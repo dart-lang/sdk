@@ -138,6 +138,7 @@ static const intptr_t SHT_PROGBITS = 1;
 static const intptr_t SHT_SYMTAB = 2;
 static const intptr_t SHT_STRTAB = 3;
 static const intptr_t SHT_HASH = 5;
+static const intptr_t SHT_NOBITS = 8;
 static const intptr_t SHT_DYNAMIC = 6;
 static const intptr_t SHT_DYNSYM = 11;
 
@@ -153,10 +154,12 @@ static const intptr_t PT_LOAD = 1;
 static const intptr_t PT_DYNAMIC = 2;
 static const intptr_t PT_PHDR = 6;
 
+static const intptr_t STB_LOCAL = 0;
 static const intptr_t STB_GLOBAL = 1;
 
 static const intptr_t STT_OBJECT = 1;  // I.e., data.
 static const intptr_t STT_FUNC = 2;
+static const intptr_t STT_SECTION = 3;
 
 static const intptr_t DT_NULL = 0;
 static const intptr_t DT_HASH = 4;

@@ -22437,9 +22437,10 @@ const char* StackTrace::ToDartCString(const StackTrace& stack_trace_in) {
 
 const char* StackTrace::ToDwarfCString(const StackTrace& stack_trace_in) {
 #if defined(DART_PRECOMPILER) || defined(DART_PRECOMPILED_RUNTIME)
-  Zone* zone = Thread::Current()->zone();
-  StackTrace& stack_trace = StackTrace::Handle(zone, stack_trace_in.raw());
-  Object& code = Object::Handle(zone);
+  auto const T = Thread::Current();
+  auto const zone = T->zone();
+  auto& stack_trace = StackTrace::Handle(zone, stack_trace_in.raw());
+  auto& code = Object::Handle(zone);
   ZoneTextBuffer buffer(zone, 1024);
 
   // The Dart standard requires the output of StackTrace.toString to include
@@ -22455,6 +22456,17 @@ const char* StackTrace::ToDwarfCString(const StackTrace& stack_trace_in) {
   OSThread* thread = OSThread::Current();
   buffer.Printf("pid: %" Pd ", tid: %" Pd ", name %s\n", OS::ProcessId(),
                 OSThread::ThreadIdToIntPtr(thread->id()), thread->name());
+  if (auto const isolate_group = T->isolate_group()) {
+    buffer.Printf("isolate_instructions: %" Px "",
+                  reinterpret_cast<uintptr_t>(
+                      isolate_group->source()->snapshot_instructions));
+    if (auto const vm_group = Dart::vm_isolate()->group()) {
+      buffer.Printf(" vm_instructions: %" Px "",
+                    reinterpret_cast<uintptr_t>(
+                        vm_group->source()->snapshot_instructions));
+    }
+    buffer.Printf("\n");
+  }
   intptr_t frame_index = 0;
   uint32_t frame_skip = 0;
   do {
@@ -22489,11 +22501,11 @@ const char* StackTrace::ToDwarfCString(const StackTrace& stack_trace_in) {
         if (NativeSymbolResolver::LookupSharedObject(call_addr, &dso_base,
                                                      &dso_name)) {
           uword dso_offset = call_addr - dso_base;
-          buffer.Printf("    #%02" Pd " pc %" Pp "  %s\n", frame_index,
-                        dso_offset, dso_name);
+          buffer.Printf("    #%02" Pd " abs %" Pp " virt %" Pp " %s\n",
+                        frame_index, call_addr, dso_offset, dso_name);
           NativeSymbolResolver::FreeSymbolName(dso_name);
         } else {
-          buffer.Printf("    #%02" Pd " pc %" Pp "  <unknown>\n", frame_index,
+          buffer.Printf("    #%02" Pd " abs %" Pp " <unknown>\n", frame_index,
                         call_addr);
         }
         frame_index++;

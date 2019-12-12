@@ -415,7 +415,7 @@ class SectionHeader {
     // for the other section header entries.
     final nameTableEntry = _readSectionHeaderEntry(stringsIndex);
     assert(nameTableEntry.type == SectionHeaderEntry._SHT_STRTAB);
-    nameTable = StringTable.fromReader(
+    nameTable = StringTable(nameTableEntry,
         reader.refocus(nameTableEntry.offset, nameTableEntry.size));
     nameTableEntry.setName(nameTable);
 
@@ -444,19 +444,16 @@ class SectionHeader {
 
 class Section {
   final Reader reader;
+  final SectionHeaderEntry headerEntry;
 
-  Section.fromReader(Reader this.reader);
+  Section(this.headerEntry, this.reader);
 
   factory Section.fromEntryAndReader(SectionHeaderEntry entry, Reader reader) {
     switch (entry.type) {
-      case SectionHeaderEntry._SHT_NULL:
-        return NullSection.fromReader(reader.refocus(entry.offset, 0));
-      case SectionHeaderEntry._SHT_NOBITS:
-        return NoBits.fromReader(reader.refocus(entry.offset, 0));
       case SectionHeaderEntry._SHT_STRTAB:
-        return StringTable.fromReader(reader.refocus(entry.offset, entry.size));
+        return StringTable(entry, reader);
       default:
-        return Section.fromReader(reader.refocus(entry.offset, entry.size));
+        return Section(entry, reader);
     }
   }
 
@@ -464,22 +461,10 @@ class Section {
   String toString() => "an unparsed section of ${length} bytes\n";
 }
 
-class NullSection extends Section {
-  NullSection.fromReader(Reader reader) : super.fromReader(reader);
-
-  String toString() => "a null section\n";
-}
-
-class NoBits extends Section {
-  NoBits.fromReader(Reader reader) : super.fromReader(reader);
-
-  String toString() => "a section with no bits in file\n";
-}
-
 class StringTable extends Section {
   final _entries = Map<int, String>();
 
-  StringTable.fromReader(Reader reader) : super.fromReader(reader) {
+  StringTable(SectionHeaderEntry entry, Reader reader) : super(entry, reader) {
     while (!reader.done) {
       _entries[reader.offset] = reader.readNullTerminatedString();
     }
@@ -524,13 +509,17 @@ class Elf {
     return ret;
   }
 
-  Section namedSection(String name) {
+  Iterable<Section> namedSection(String name) {
+    final ret = <Section>[];
     for (var entry in sections.keys) {
       if (entry.name == name) {
-        return sections[entry];
+        ret.add(sections[entry]);
       }
     }
-    throw FormatException("No section named $name found in ELF file");
+    if (ret.isEmpty) {
+      throw FormatException("No section named $name found in ELF file");
+    }
+    return ret;
   }
 
   void _read() {
@@ -554,7 +543,8 @@ class Elf {
       if (i == header.sectionHeaderStringsIndex) {
         sections[entry] = sectionHeader.nameTable;
       } else {
-        sections[entry] = Section.fromEntryAndReader(entry, reader.copy());
+        sections[entry] = Section.fromEntryAndReader(
+            entry, reader.refocus(entry.offset, entry.size));
       }
     }
   }
