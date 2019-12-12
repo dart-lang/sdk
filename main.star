@@ -498,28 +498,6 @@ dart_ci_sandbox_builder(
     triggered_by=["dart-gitiles-trigger-flutter"],
 )
 
-# vm|ast
-dart_vm_extra_builder("vm-kernel-ast-linux-debug-ia32", category="vm|ast|d32")
-dart_vm_extra_builder("vm-kernel-ast-linux-release-ia32", category="vm|ast|r32")
-dart_vm_extra_builder("vm-kernel-ast-linux-debug-x64", category="vm|ast|d")
-dart_vm_extra_builder(
-    "vm-kernel-ast-linux-release-simarm", category="vm|ast|psr")
-dart_vm_extra_builder(
-    "vm-kernel-ast-linux-release-simarm64", category="vm|ast|psr6")
-dart_vm_extra_builder("vm-kernel-ast-linux-release-x64", category="vm|ast|r")
-dart_vm_extra_builder(
-    "vm-kernel-ast-win-debug-x64", category="vm|ast|wd", dimensions=windows())
-dart_vm_extra_builder(
-    "vm-kernel-ast-win-release-x64", category="vm|ast|wr", dimensions=windows())
-dart_vm_extra_builder(
-    "vm-kernel-precomp-ast-linux-debug-x64", category="vm|ast|pd")
-dart_vm_extra_builder(
-    "vm-kernel-precomp-ast-linux-release-simarm_x64", category="vm|ast|psr")
-dart_vm_extra_builder(
-    "vm-kernel-precomp-ast-linux-release-simarm64", category="vm|ast|psr6")
-dart_vm_extra_builder(
-    "vm-kernel-precomp-ast-linux-release-x64", category="vm|ast|pr")
-
 # vm|app-kernel
 dart_vm_extra_builder(
     "app-kernel-linux-debug-x64", category="vm|app-kernel|d64")
