@@ -5,10 +5,12 @@
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart' show astFactory;
 import 'package:analyzer/dart/ast/token.dart' show Keyword;
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/token.dart' show KeywordToken;
+import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -31,6 +33,7 @@ main() {
     defineReflectiveTests(GreatestLowerBoundTest);
     defineReflectiveTests(LeastUpperBoundFunctionsTest);
     defineReflectiveTests(LeastUpperBoundTest);
+    defineReflectiveTests(TryPromoteToTest);
   });
 }
 
@@ -3249,5 +3252,59 @@ class LeastUpperBoundTest extends BoundTestBase {
         functionTypeStar(returnType: voidNone),
       );
     }
+  }
+}
+
+@reflectiveTest
+class TryPromoteToTest extends AbstractTypeSystemTest {
+  @override
+  FeatureSet get testFeatureSet {
+    return FeatureSet.forTesting(
+      additionalFeatures: [Feature.non_nullable],
+    );
+  }
+
+  void notPromotes(DartType from, DartType to) {
+    var result = typeSystem.tryPromoteToType(to, from);
+    expect(result, isNull);
+  }
+
+  void promotes(DartType from, DartType to) {
+    var result = typeSystem.tryPromoteToType(to, from);
+    expect(result, to);
+  }
+
+  test_interface() {
+    promotes(intNone, intNone);
+    promotes(intQuestion, intNone);
+    promotes(intStar, intNone);
+
+    promotes(numNone, intNone);
+    promotes(numQuestion, intNone);
+    promotes(numStar, intNone);
+
+    notPromotes(intNone, doubleNone);
+    notPromotes(intNone, intQuestion);
+  }
+
+  test_typeParameter() {
+    void check(
+      TypeParameterType type,
+      TypeParameterElement expectedDeclaration,
+      DartType expectedBound,
+    ) {
+      var actualElement = type.element as TypeParameterMember;
+      expect(actualElement.declaration, expectedDeclaration);
+      expect(actualElement.bound, expectedBound);
+    }
+
+    var T = typeParameter('T');
+    var T0 = typeParameterTypeNone(T);
+
+    var T1 = typeSystem.tryPromoteToType(numNone, T0);
+    check(T1, T, numNone);
+
+    var T2 = typeSystem.tryPromoteToType(intNone, T1);
+    check(T2, T, intNone);
   }
 }
