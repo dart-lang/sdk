@@ -108,9 +108,12 @@ Future<CompilerResult> _compile(List<String> args,
     ..addOption('libraries-file',
         help: 'The path to the libraries.json file for the sdk.')
     ..addOption('used-inputs-file',
-        help: 'If set, the file to record inputs used.', hide: true);
+        help: 'If set, the file to record inputs used.', hide: true)
+    ..addFlag('kernel',
+        abbr: 'k',
+        help: 'Deprecated and ignored. To be removed in a future release.',
+        hide: true);
   SharedCompilerOptions.addArguments(argParser);
-
   var declaredVariables = parseAndRemoveDeclaredVariables(args);
   ArgResults argResults;
   try {

@@ -9,10 +9,12 @@ import 'package:front_end/src/api_unstable/ddc.dart'
     show InitializedCompilerState, parseExperimentalArguments;
 import 'package:path/path.dart' as p;
 import 'module_builder.dart';
-import '../analyzer/driver.dart' show CompilerAnalysisDriver;
 import '../kernel/command.dart' as kernel_compiler;
 
-/// Shared code between Analyzer and Kernel CLI interfaces.
+// TODO(nshahan) Merge all of this file the locations where they are used in
+// the kernel (only) version of DDC.
+
+/// Previously was shared code between Analyzer and Kernel CLI interfaces.
 ///
 /// This file should only implement functionality that does not depend on
 /// Analyzer/Kernel imports.
@@ -45,7 +47,7 @@ Map<String, String> sdkLibraryVariables = {
   'dart.library.web_sql': 'true',
 };
 
-/// Shared compiler options between `dartdevc` kernel and analyzer backends.
+/// Compiler options for the `dartdevc` backend.
 class SharedCompilerOptions {
   /// Whether to emit the source mapping file.
   ///
@@ -424,28 +426,15 @@ class CompilerResult {
   /// Optionally provides the front_end state from the previous compilation,
   /// which can be passed to [compile] to potentially speed up the next
   /// compilation.
-  ///
-  /// This field is unused when using the Analyzer-backend for DDC.
   final InitializedCompilerState kernelState;
-
-  /// Optionally provides the analyzer state from the previous compilation,
-  /// which can be passed to [compile] to potentially speeed up the next
-  /// compilation.
-  ///
-  /// This field is unused when using the Kernel-backend for DDC.
-  // TODO(38777) Cleanup when we delete all the DDC code.
-  final CompilerAnalysisDriver analyzerState;
 
   /// The process exit code of the compiler.
   final int exitCode;
 
-  CompilerResult(this.exitCode, {this.kernelState, this.analyzerState}) {
-    assert(kernelState == null || analyzerState == null,
-        'kernel and analyzer state should not both be supplied');
-  }
+  CompilerResult(this.exitCode, {this.kernelState});
 
-  /// Gets the kernel or analyzer compiler state, if any.
-  Object get compilerState => kernelState ?? analyzerState;
+  /// Gets the kernel compiler state, if any.
+  Object get compilerState => kernelState;
 
   /// Whether the program compiled without any fatal errors (equivalent to
   /// [exitCode] == 0).
@@ -464,9 +453,6 @@ class CompilerResult {
 ///
 /// [isBatch]/[isWorker] mode are preprocessed because they can combine
 /// argument lists from the initial invocation and from batch/worker jobs.
-///
-/// [isKernel] is also preprocessed because the Kernel backend supports
-/// different options compared to the Analyzer backend.
 class ParsedArguments {
   /// The user's arguments to the compiler for this compialtion.
   final List<String> rest;
@@ -485,8 +471,7 @@ class ParsedArguments {
 
   /// Whether to use the Kernel-based back end for dartdevc.
   ///
-  /// This is similar to the Analyzer-based back end, but uses Kernel trees
-  /// instead of Analyzer trees for representing the Dart code.
+  /// This is always true now and will be removed in a future version.
   final bool isKernel;
 
   /// Whether to re-use the last compiler result when in a worker.
@@ -539,8 +524,6 @@ class ParsedArguments {
         isWorker = true;
       } else if (arg == '--batch') {
         isBatch = true;
-      } else if (arg == '--kernel' || arg == '-k') {
-        isKernel = true;
       } else if (arg == '--reuse-compiler-result') {
         reuseResult = true;
       } else if (arg == '--use-incremental-compiler') {
@@ -579,7 +562,7 @@ class ParsedArguments {
     return ParsedArguments._(rest.toList()..addAll(newArgs.rest),
         isWorker: isWorker,
         isBatch: isBatch,
-        isKernel: isKernel || newArgs.isKernel,
+        isKernel: isKernel,
         reuseResult: reuseResult || newArgs.reuseResult,
         useIncrementalCompiler:
             useIncrementalCompiler || newArgs.useIncrementalCompiler);
