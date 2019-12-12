@@ -1547,7 +1547,11 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       } else {
         var leftType = left.type;
         var rightType = right.type;
-        if (leftType is InterfaceType && rightType is InterfaceType) {
+        if (leftType.isDartCoreNull && isLUB) {
+          return DecoratedType(type, node, typeArguments: right.typeArguments);
+        } else if (rightType.isDartCoreNull && isLUB) {
+          return DecoratedType(type, node, typeArguments: left.typeArguments);
+        } else if (leftType is InterfaceType && rightType is InterfaceType) {
           if (leftType.element != type.element ||
               rightType.element != type.element) {
             _unimplemented(astNode, 'LUB/GLB with substitution');

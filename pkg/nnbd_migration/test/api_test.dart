@@ -2639,7 +2639,6 @@ test(int?/*?*/ j) {
     await _checkSingleFileChanges(content, expected);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/39269')
   test_null_in_conditional_expression() async {
     var content = '''
 void f() {

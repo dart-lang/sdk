@@ -1619,6 +1619,18 @@ int f(bool b, int i) {
     assertLUB(nullable_conditional, inSet(alwaysPlus), nullable_i);
   }
 
+  test_conditionalExpression_left_null_right_typeArgs() async {
+    await analyze('''
+List<int> f(bool b, List<int> l) {
+  return (b ? null : l);
+}
+''');
+
+    var nullable_i = decoratedTypeAnnotation('List<int> l').node;
+    var nullable_conditional = decoratedExpressionType('(b ?').node;
+    assertLUB(nullable_conditional, inSet(alwaysPlus), nullable_i);
+  }
+
   test_conditionalExpression_right_non_null() async {
     await analyze('''
 int f(bool b, int i) {
@@ -1642,6 +1654,18 @@ int f(bool b, int i) {
 ''');
 
     var nullable_i = decoratedTypeAnnotation('int i').node;
+    var nullable_conditional = decoratedExpressionType('(b ?').node;
+    assertLUB(nullable_conditional, nullable_i, inSet(alwaysPlus));
+  }
+
+  test_conditionalExpression_right_null_left_typeArgs() async {
+    await analyze('''
+List<int> f(bool b, List<int> l) {
+  return (b ? l : null);
+}
+''');
+
+    var nullable_i = decoratedTypeAnnotation('List<int> l').node;
     var nullable_conditional = decoratedExpressionType('(b ?').node;
     assertLUB(nullable_conditional, nullable_i, inSet(alwaysPlus));
   }
