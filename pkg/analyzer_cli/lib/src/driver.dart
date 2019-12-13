@@ -544,14 +544,18 @@ class Driver with HasContextMixin implements CommandLineStarter {
     _PackageInfo packageInfo = _findPackages(options);
 
     // Process embedders.
-    Map<Folder, YamlMap> embedderMap =
-        new EmbedderYamlLocator(packageInfo.packageMap).embedderYamls;
+    Map<Folder, YamlMap> embedderMap = {};
+    if (packageInfo.packageMap != null) {
+      var libFolder = packageInfo.packageMap['sky_engine']?.first;
+      if (libFolder != null) {
+        EmbedderYamlLocator locator =
+            EmbedderYamlLocator.forLibFolder(libFolder);
+        embedderMap = locator.embedderYamls;
+      }
+    }
 
-    // Scan for SDK extenders.
-    bool hasSdkExt = _hasSdkExt(packageInfo.packageMap?.values);
-
-    // No summaries in the presence of embedders or extenders.
-    bool useSummaries = embedderMap.isEmpty && !hasSdkExt;
+    // No summaries in the presence of embedders.
+    bool useSummaries = embedderMap.isEmpty;
 
     if (!useSummaries && options.buildSummaryInputs.isNotEmpty) {
       throw new _DriverError(
@@ -648,19 +652,6 @@ class Driver with HasContextMixin implements CommandLineStarter {
       folderMap[packagePath] = [resourceProvider.getFolder(path)];
     });
     return folderMap;
-  }
-
-  bool _hasSdkExt(Iterable<List<Folder>> folders) {
-    if (folders != null) {
-      //TODO: ideally share this traversal with SdkExtUriResolver
-      for (Iterable<Folder> libDirs in folders) {
-        if (libDirs.any((Folder libDir) =>
-            libDir.getChild(SdkExtUriResolver.SDK_EXT_NAME).exists)) {
-          return true;
-        }
-      }
-    }
-    return false;
   }
 
   /// Returns `true` if this relative path is a hidden directory.

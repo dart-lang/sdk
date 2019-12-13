@@ -160,7 +160,7 @@ embedded_libs:
   ''');
     // Setup .packages file
     newFile('$projPath/.packages', content: r'''
-test_pack:lib/''');
+sky_engine:lib/''');
     // Setup context.
 
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
@@ -370,34 +370,6 @@ test_pack:lib/''');
         expect(callbacks.currentContextTimestamps[proj2Path], callbacks.now);
       });
     });
-  }
-
-  test_sdk_ext_packagespec() async {
-    // Create files.
-    String libPath = '$projPath/${ContextManagerTest.LIB_NAME}';
-    newFile('$libPath/main.dart');
-    newFile('$libPath/nope.dart');
-    String sdkExtPath = '$projPath/sdk_ext';
-    newFile('$sdkExtPath/entry.dart');
-    String sdkExtSrcPath = '$projPath/sdk_ext/src';
-    newFile('$sdkExtSrcPath/part.dart');
-    // Setup sdk extension mapping.
-    newFile('$libPath/_sdkext', content: r'''
-{
-  "dart:foobar": "../sdk_ext/entry.dart"
-}
-''');
-    // Setup .packages file
-    newFile('$projPath/.packages', content: r'''
-test_pack:lib/''');
-    // Setup context.
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
-    // Confirm that one context was created.
-    int count = manager
-        .numberOfContextsInAnalysisRoot(resourceProvider.newFolder(projPath));
-    expect(count, equals(1));
-    var source = sourceFactory.forUri('dart:foobar');
-    expect(source.fullName, equals(convertPath('/my/proj/sdk_ext/entry.dart')));
   }
 
   void test_setRoots_addFolderWithDartFile() {

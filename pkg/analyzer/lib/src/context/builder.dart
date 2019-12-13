@@ -58,13 +58,10 @@ import 'package:yaml/yaml.dart';
  *    (_embedder.yaml). If one exists then it defines the SDK. If multiple such
  *    files exist then use the first one found. Otherwise, use the default SDK.
  *
- * 3. Look in each package for an SDK extension file (_sdkext). For each such
- *    file, add the specified files to the SDK.
- *
- * 4. Look for an analysis options file (`analysis_options.yaml` or
+ * 3. Look for an analysis options file (`analysis_options.yaml` or
  *    `.analysis_options`) and process the options in the file.
  *
- * 5. Create a new context. Initialize its source factory based on steps 1, 2
+ * 4. Create a new context. Initialize its source factory based on steps 1, 2
  *    and 3. Initialize its analysis options from step 4.
  *
  * [1]: https://github.com/dart-lang/dart_enhancement_proposals/blob/master/Accepted/0005%20-%20Package%20Specification/DEP-pkgspec.md.
@@ -252,7 +249,7 @@ class ContextBuilder {
       {SummaryDataStore summaryData}) {
     Workspace workspace =
         ContextBuilder.createWorkspace(resourceProvider, rootPath, this);
-    DartSdk sdk = findSdk(workspace.packageMap, options);
+    DartSdk sdk = findSdk(workspace, options);
     if (summaryData != null && sdk is SummaryBasedDartSdk) {
       summaryData.addBundle(null, sdk.bundle);
     }
@@ -304,62 +301,35 @@ class ContextBuilder {
 
   /**
    * Return the SDK that should be used to analyze code. Use the given
-   * [packageMap] and [analysisOptions] to locate the SDK.
+   * [workspace] and [analysisOptions] to locate the SDK.
+   *
+   * TODO(scheglov) Remove [analysisOptions]?
    */
-  DartSdk findSdk(
-      Map<String, List<Folder>> packageMap, AnalysisOptions analysisOptions) {
+  DartSdk findSdk(Workspace workspace, AnalysisOptions analysisOptions) {
     String summaryPath = builderOptions.dartSdkSummaryPath;
     if (summaryPath != null) {
       return SummaryBasedDartSdk(summaryPath, true,
           resourceProvider: resourceProvider);
-    } else if (packageMap != null) {
-      SdkExtensionFinder extFinder = SdkExtensionFinder(packageMap);
-      List<String> extFilePaths = extFinder.extensionFilePaths;
-      EmbedderYamlLocator locator = EmbedderYamlLocator(packageMap);
-      Map<Folder, YamlMap> embedderYamls = locator.embedderYamls;
-      EmbedderSdk embedderSdk = EmbedderSdk(resourceProvider, embedderYamls);
-      if (embedderSdk.sdkLibraries.isNotEmpty) {
-        //
-        // There is an embedder file that defines the content of the SDK and
-        // there might be an extension file that extends it.
-        //
-        List<String> paths = <String>[];
-        for (Folder folder in embedderYamls.keys) {
-          paths.add(folder
-              .getChildAssumingFile(EmbedderYamlLocator.EMBEDDER_FILE_NAME)
-              .path);
-        }
-        paths.addAll(extFilePaths);
-        SdkDescription description = SdkDescription(paths, analysisOptions);
-        DartSdk dartSdk = sdkManager.getSdk(description, () {
-          if (extFilePaths.isNotEmpty) {
-            embedderSdk.addExtensions(extFinder.urlMappings);
-          }
-          embedderSdk.analysisOptions = analysisOptions;
-          embedderSdk.useSummary = sdkManager.canUseSummaries;
+    }
+
+    if (workspace != null) {
+      var partialSourceFactory = workspace.createSourceFactory(null, null);
+      var embedderYamlSource = partialSourceFactory.forUri(
+        'package:sky_engine/_embedder.yaml',
+      );
+      if (embedderYamlSource != null) {
+        var embedderYamlPath = embedderYamlSource.fullName;
+        var libFolder = resourceProvider.getFile(embedderYamlPath).parent;
+        EmbedderYamlLocator locator =
+            EmbedderYamlLocator.forLibFolder(libFolder);
+        Map<Folder, YamlMap> embedderMap = locator.embedderYamls;
+        if (embedderMap.isNotEmpty) {
+          EmbedderSdk embedderSdk = EmbedderSdk(resourceProvider, embedderMap);
           return embedderSdk;
-        });
-        return dartSdk;
-      } else if (extFilePaths != null && extFilePaths.isNotEmpty) {
-        //
-        // We have an extension file, but no embedder file.
-        //
-        String sdkPath = sdkManager.defaultSdkDirectory;
-        List<String> paths = <String>[sdkPath];
-        paths.addAll(extFilePaths);
-        SdkDescription description = SdkDescription(paths, analysisOptions);
-        return sdkManager.getSdk(description, () {
-          FolderBasedDartSdk sdk = FolderBasedDartSdk(
-              resourceProvider, resourceProvider.getFolder(sdkPath));
-          if (extFilePaths.isNotEmpty) {
-            sdk.addExtensions(extFinder.urlMappings);
-          }
-          sdk.analysisOptions = analysisOptions;
-          sdk.useSummary = sdkManager.canUseSummaries;
-          return sdk;
-        });
+        }
       }
     }
+
     String sdkPath = sdkManager.defaultSdkDirectory;
     SdkDescription description =
         SdkDescription(<String>[sdkPath], analysisOptions);
@@ -733,6 +703,13 @@ class EmbedderYamlLocator {
   }
 
   /**
+   * Initialize with the given [libFolder] of `sky_engine` package.
+   */
+  EmbedderYamlLocator.forLibFolder(Folder libFolder) {
+    _processPackage([libFolder]);
+  }
+
+  /**
    * Programmatically add an `_embedder.yaml` mapping.
    */
   void addEmbedderYaml(Folder libDir, String embedderYaml) {
@@ -767,10 +744,10 @@ class EmbedderYamlLocator {
   }
 
   /**
-   * Given a package [name] and a list of folders ([libDirs]), process any
+   * Given a package list of folders ([libDirs]), process any
    * `_embedder.yaml` files that are found in any of the folders.
    */
-  void _processPackage(String name, List<Folder> libDirs) {
+  void _processPackage(List<Folder> libDirs) {
     for (Folder libDir in libDirs) {
       String embedderYaml = _readEmbedderYaml(libDir);
       if (embedderYaml != null) {
@@ -783,7 +760,7 @@ class EmbedderYamlLocator {
    * Process each of the entries in the [packageMap].
    */
   void _processPackageMap(Map<String, List<Folder>> packageMap) {
-    packageMap.forEach(_processPackage);
+    packageMap.values.forEach(_processPackage);
   }
 
   /**

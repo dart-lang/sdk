@@ -15,7 +15,6 @@ import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
-import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
@@ -1734,13 +1733,6 @@ abstract class FolderDisposition {
    * where that is necessary.
    */
   EmbedderYamlLocator getEmbedderLocator(ResourceProvider resourceProvider);
-
-  /**
-   * Return the extension finder used to locate the `_sdkext` file used to add
-   * extensions to the SDK. The [resourceProvider] is used to access the file
-   * system in cases where that is necessary.
-   */
-  SdkExtensionFinder getSdkExtensionFinder(ResourceProvider resourceProvider);
 }
 
 /**
@@ -1764,10 +1756,6 @@ class NoPackageFolderDisposition extends FolderDisposition {
   @override
   EmbedderYamlLocator getEmbedderLocator(ResourceProvider resourceProvider) =>
       new EmbedderYamlLocator(null);
-
-  @override
-  SdkExtensionFinder getSdkExtensionFinder(ResourceProvider resourceProvider) =>
-      new SdkExtensionFinder(null);
 }
 
 /**
@@ -1778,7 +1766,6 @@ class PackageMapDisposition extends FolderDisposition {
   final Map<String, List<Folder>> packageMap;
 
   EmbedderYamlLocator _embedderLocator;
-  SdkExtensionFinder _sdkExtensionFinder;
 
   @override
   final String packageRoot;
@@ -1803,11 +1790,6 @@ class PackageMapDisposition extends FolderDisposition {
     }
     return _embedderLocator;
   }
-
-  @override
-  SdkExtensionFinder getSdkExtensionFinder(ResourceProvider resourceProvider) {
-    return _sdkExtensionFinder ??= new SdkExtensionFinder(packageMap);
-  }
 }
 
 /**
@@ -1821,7 +1803,6 @@ class PackagesFileDisposition extends FolderDisposition {
   Map<String, List<Folder>> packageMap;
 
   EmbedderYamlLocator _embedderLocator;
-  SdkExtensionFinder _sdkExtensionFinder;
 
   PackagesFileDisposition(this.packages);
 
@@ -1863,11 +1844,5 @@ class PackagesFileDisposition extends FolderDisposition {
           new EmbedderYamlLocator(buildPackageMap(resourceProvider));
     }
     return _embedderLocator;
-  }
-
-  @override
-  SdkExtensionFinder getSdkExtensionFinder(ResourceProvider resourceProvider) {
-    return _sdkExtensionFinder ??=
-        new SdkExtensionFinder(buildPackageMap(resourceProvider));
   }
 }
