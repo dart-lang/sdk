@@ -153,9 +153,7 @@ template("gen_vm_platform") {
       "-Ddart.isVM=true",
     ]
     if (use_nnbd) {
-      # TODO(sigmund): reenable this flag once the CFE can build targets without
-      # issues.
-      # args += [ "--enable-experiment=non-nullable" ]
+      args += [ "--enable-experiment=non-nullable" ]
     }
     if (defined(invoker.exclude_source) && invoker.exclude_source) {
       args += [ "--exclude-source" ]
