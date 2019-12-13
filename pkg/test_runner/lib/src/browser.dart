@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:path/path.dart' as p;
+import 'package:smith/configuration.dart' show NnbdMode;
+
 import 'configuration.dart' show Compiler;
 import 'utils.dart';
 
@@ -145,10 +147,12 @@ bool _invalidVariableName(String keyword, {bool strictMode = true}) {
 /// [testJSDir] is the relative path to the build directory where the
 /// dartdevc-generated JS file is stored.
 String dartdevcHtml(String testName, String testNameAlias, String testJSDir,
-    Compiler compiler) {
+    Compiler compiler, NnbdMode mode) {
   var testId = pathToJSIdentifier(testName);
   var testIdAlias = pathToJSIdentifier(testNameAlias);
   var isKernel = compiler == Compiler.dartdevk;
+  var isNnbd = mode != NnbdMode.legacy;
+  var isNnbdStrong = mode == NnbdMode.strong;
   var sdkPath = isKernel ? 'kernel/amd/dart_sdk' : 'js/amd/dart_sdk';
   var pkgDir = isKernel ? 'pkg_kernel' : 'pkg';
   var packagePaths = testPackages
@@ -241,6 +245,10 @@ requirejs(["$testName", "dart_sdk", "async_helper"],
       }, 0);
     }
   };
+
+  if ($isNnbd) {
+    sdk.dart.strictSubtypeChecks($isNnbdStrong);
+  }
 
   dartMainRunner(function testMainWrapper() {
     // Some callbacks are not scheduled with timers/microtasks, so they don't

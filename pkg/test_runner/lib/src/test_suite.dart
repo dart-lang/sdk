@@ -813,8 +813,8 @@ class StandardTestSuite extends TestSuite {
             "${nameFromModuleRoot.directoryPath}/$nameNoExt";
         var jsDir =
             Path(compilationTempDir).relativeTo(Repository.dir).toString();
-        content = dartdevcHtml(
-            nameNoExt, nameFromModuleRootNoExt, jsDir, configuration.compiler);
+        content = dartdevcHtml(nameNoExt, nameFromModuleRootNoExt, jsDir,
+            configuration.compiler, configuration.nnbdMode);
       }
     }
 
