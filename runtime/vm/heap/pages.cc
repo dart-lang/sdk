@@ -1280,8 +1280,8 @@ uword PageSpace::TryAllocateDataBumpLocked(intptr_t size) {
   bump_top_ += size;
 
   // No need for atomic operation: This is either running during a scavenge or
-  // isolate snapshot loading.
-  usage_.used_in_words += (size >> kWordSizeLog2);
+  // isolate snapshot loading. Note that operator+= is atomic.
+  usage_.used_in_words = usage_.used_in_words + (size >> kWordSizeLog2);
 
 // Note: Remaining block is unwalkable until MakeIterable is called.
 #ifdef DEBUG
@@ -1294,12 +1294,14 @@ uword PageSpace::TryAllocateDataBumpLocked(intptr_t size) {
   return result;
 }
 
+DART_FLATTEN
 uword PageSpace::TryAllocatePromoLocked(intptr_t size) {
   FreeList* freelist = &freelist_[HeapPage::kData];
   uword result = freelist->TryAllocateSmallLocked(size);
   if (result != 0) {
-    // No need for atomic operation: we're at a safepoint.
-    usage_.used_in_words += (size >> kWordSizeLog2);
+    // No need for atomic operation: we're at a safepoint. Note that
+    // operator+= is atomic.
+    usage_.used_in_words = usage_.used_in_words + (size >> kWordSizeLog2);
     return result;
   }
   result = TryAllocateDataBumpLocked(size);
