@@ -62,8 +62,8 @@ DECLARE_FLAG(bool, trace_deoptimization);
 #define Z zone_
 
 #define TIMELINE_SCOPE(name)                                                   \
-  TimelineDurationScope tds##name(Thread::Current(),                           \
-                                  Timeline::GetIsolateStream(), #name)
+  TimelineBeginEndScope tbes##name(Thread::Current(),                          \
+                                   Timeline::GetIsolateStream(), #name)
 
 // The ObjectLocator is used for collecting instances that
 // needs to be morphed.

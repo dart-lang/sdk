@@ -429,11 +429,11 @@ static intptr_t Prepare(const RegExp& regexp,
   if (regexp.bytecode(is_one_byte, sticky) == TypedData::null()) {
     const String& pattern = String::Handle(zone, regexp.pattern());
 #if defined(SUPPORT_TIMELINE)
-    TimelineDurationScope tds(Thread::Current(), Timeline::GetCompilerStream(),
-                              "CompileIrregexpBytecode");
-    if (tds.enabled()) {
-      tds.SetNumArguments(1);
-      tds.CopyArgument(0, "pattern", pattern.ToCString());
+    TimelineBeginEndScope tbes(Thread::Current(), Timeline::GetCompilerStream(),
+                               "CompileIrregexpBytecode");
+    if (tbes.enabled()) {
+      tbes.SetNumArguments(1);
+      tbes.CopyArgument(0, "pattern", pattern.ToCString());
     }
 #endif  // !defined(PRODUCT)
 

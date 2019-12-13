@@ -476,7 +476,7 @@ void Heap::EvacuateNewSpace(Thread* thread, GCReason reason) {
     new_space_.Evacuate();
     RecordAfterGC(kScavenge);
     PrintStats();
-    NOT_IN_PRODUCT(PrintStatsToTimeline(&tds, reason));
+    NOT_IN_PRODUCT(PrintStatsToTimeline(&tbes, reason));
     EndNewSpaceGC();
   }
 }
@@ -499,7 +499,7 @@ void Heap::CollectNewSpaceGarbage(Thread* thread, GCReason reason) {
       new_space_.Scavenge();
       RecordAfterGC(kScavenge);
       PrintStats();
-      NOT_IN_PRODUCT(PrintStatsToTimeline(&tds, reason));
+      NOT_IN_PRODUCT(PrintStatsToTimeline(&tbes, reason));
       EndNewSpaceGC();
     }
     if (reason == kNewSpace) {
@@ -535,7 +535,7 @@ void Heap::CollectOldSpaceGarbage(Thread* thread,
     old_space_.CollectGarbage(type == kMarkCompact, true /* finish */);
     RecordAfterGC(type);
     PrintStats();
-    NOT_IN_PRODUCT(PrintStatsToTimeline(&tds, reason));
+    NOT_IN_PRODUCT(PrintStatsToTimeline(&tbes, reason));
     // Some Code objects may have been collected so invalidate handler cache.
     thread->isolate()->handler_info_cache()->Clear();
     thread->isolate()->catch_entry_moves_cache()->Clear();

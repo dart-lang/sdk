@@ -1001,7 +1001,7 @@ void PageSpace::CollectGarbage(bool compact, bool finalize) {
     return;  // Barrier not implemented.
 #else
     if (!enable_concurrent_mark()) return;  // Disabled.
-    if (FLAG_marker_tasks == 0) return;   // Disabled.
+    if (FLAG_marker_tasks == 0) return;     // Disabled.
 #endif
   }
 
@@ -1530,16 +1530,16 @@ void PageSpaceController::RecordUpdate(SpaceUsage before,
                                        const char* reason) {
 #if defined(SUPPORT_TIMELINE)
   TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "UpdateGrowthLimit");
-  tds.SetNumArguments(5);
-  tds.CopyArgument(0, "Reason", reason);
-  tds.FormatArgument(1, "Before.CombinedCapacity (kB)", "%" Pd "",
-                     RoundWordsToKB(before.CombinedCapacityInWords()));
-  tds.FormatArgument(2, "After.CombinedCapacity (kB)", "%" Pd "",
-                     RoundWordsToKB(after.CombinedCapacityInWords()));
-  tds.FormatArgument(3, "Threshold (kB)", "%" Pd "",
-                     RoundWordsToKB(gc_threshold_in_words_));
-  tds.FormatArgument(4, "Idle Threshold (kB)", "%" Pd "",
-                     RoundWordsToKB(idle_gc_threshold_in_words_));
+  tbes.SetNumArguments(5);
+  tbes.CopyArgument(0, "Reason", reason);
+  tbes.FormatArgument(1, "Before.CombinedCapacity (kB)", "%" Pd "",
+                      RoundWordsToKB(before.CombinedCapacityInWords()));
+  tbes.FormatArgument(2, "After.CombinedCapacity (kB)", "%" Pd "",
+                      RoundWordsToKB(after.CombinedCapacityInWords()));
+  tbes.FormatArgument(3, "Threshold (kB)", "%" Pd "",
+                      RoundWordsToKB(gc_threshold_in_words_));
+  tbes.FormatArgument(4, "Idle Threshold (kB)", "%" Pd "",
+                      RoundWordsToKB(idle_gc_threshold_in_words_));
 #endif
 
   if (FLAG_log_growth) {

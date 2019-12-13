@@ -199,7 +199,7 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
   Zone::Init();
 #if defined(SUPPORT_TIMELINE)
   Timeline::Init();
-  TimelineDurationScope tds(Timeline::GetVMStream(), "Dart::Init");
+  TimelineBeginEndScope tbes(Timeline::GetVMStream(), "Dart::Init");
 #endif
   Isolate::InitVM();
   IsolateGroup::Init();
@@ -263,7 +263,7 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
     SubtypeTestCache::Init();
     if (vm_isolate_snapshot != NULL) {
 #if defined(SUPPORT_TIMELINE)
-      TimelineDurationScope tds(Timeline::GetVMStream(), "ReadVMSnapshot");
+      TimelineBeginEndScope tbes(Timeline::GetVMStream(), "ReadVMSnapshot");
 #endif
       ASSERT(snapshot != nullptr);
       vm_snapshot_kind_ = snapshot->kind();
@@ -307,10 +307,10 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
 
       Object::FinishInit(vm_isolate_);
 #if defined(SUPPORT_TIMELINE)
-      if (tds.enabled()) {
-        tds.SetNumArguments(2);
-        tds.FormatArgument(0, "snapshotSize", "%" Pd, snapshot->length());
-        tds.FormatArgument(
+      if (tbes.enabled()) {
+        tbes.SetNumArguments(2);
+        tbes.FormatArgument(0, "snapshotSize", "%" Pd, snapshot->length());
+        tbes.FormatArgument(
             1, "heapSize", "%" Pd64,
             vm_isolate_->heap()->UsedInWords(Heap::kOld) * kWordSize);
       }
@@ -356,7 +356,7 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
 #endif
     {
 #if defined(SUPPORT_TIMELINE)
-      TimelineDurationScope tds(Timeline::GetVMStream(), "FinalizeVMIsolate");
+      TimelineBeginEndScope tbes(Timeline::GetVMStream(), "FinalizeVMIsolate");
 #endif
       Object::FinalizeVMIsolate(vm_isolate_);
     }
@@ -644,10 +644,10 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
   Thread* T = Thread::Current();
   Isolate* I = T->isolate();
 #if defined(SUPPORT_TIMELINE)
-  TimelineDurationScope tds(T, Timeline::GetIsolateStream(),
-                            "InitializeIsolate");
-  tds.SetNumArguments(1);
-  tds.CopyArgument(0, "isolateName", I->name());
+  TimelineBeginEndScope tbes(T, Timeline::GetIsolateStream(),
+                             "InitializeIsolate");
+  tbes.SetNumArguments(1);
+  tbes.CopyArgument(0, "isolateName", I->name());
 #endif
   ASSERT(I != NULL);
   StackZone zone(T);
@@ -662,8 +662,8 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
   if ((snapshot_data != NULL) && kernel_buffer == NULL) {
     // Read the snapshot and setup the initial state.
 #if defined(SUPPORT_TIMELINE)
-    TimelineDurationScope tds(T, Timeline::GetIsolateStream(),
-                              "ReadIsolateSnapshot");
+    TimelineBeginEndScope tbes(T, Timeline::GetIsolateStream(),
+                               "ReadIsolateSnapshot");
 #endif
     // TODO(turnidge): Remove once length is not part of the snapshot.
     const Snapshot* snapshot = Snapshot::SetupFromBuffer(snapshot_data);
@@ -690,11 +690,11 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
     ReversePcLookupCache::BuildAndAttachToIsolate(I);
 
 #if defined(SUPPORT_TIMELINE)
-    if (tds.enabled()) {
-      tds.SetNumArguments(2);
-      tds.FormatArgument(0, "snapshotSize", "%" Pd, snapshot->length());
-      tds.FormatArgument(1, "heapSize", "%" Pd64,
-                         I->heap()->UsedInWords(Heap::kOld) * kWordSize);
+    if (tbes.enabled()) {
+      tbes.SetNumArguments(2);
+      tbes.FormatArgument(0, "snapshotSize", "%" Pd, snapshot->length());
+      tbes.FormatArgument(1, "heapSize", "%" Pd64,
+                          I->heap()->UsedInWords(Heap::kOld) * kWordSize);
     }
 #endif  // !defined(PRODUCT)
     if (FLAG_trace_isolates) {

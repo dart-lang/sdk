@@ -1121,11 +1121,11 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
   }
 
 #if defined(SUPPORT_TIMELINE)
-  TimelineDurationScope tds(thread, Timeline::GetCompilerStream(),
-                            "FinalizeClass");
-  if (tds.enabled()) {
-    tds.SetNumArguments(1);
-    tds.CopyArgument(0, "class", cls.ToCString());
+  TimelineBeginEndScope tbes(thread, Timeline::GetCompilerStream(),
+                             "FinalizeClass");
+  if (tbes.enabled()) {
+    tbes.SetNumArguments(1);
+    tbes.CopyArgument(0, "class", cls.ToCString());
   }
 #endif  // defined(SUPPORT_TIMELINE)
 
@@ -1464,7 +1464,7 @@ void ClassFinalizer::SortClasses() {
 
   RemapClassIds(old_to_new_cid);
   delete[] old_to_new_cid;
-  RehashTypes();  // Types use cid's as part of their hashes.
+  RehashTypes();         // Types use cid's as part of their hashes.
   I->RehashConstants();  // Const objects use cid's as part of their hashes.
 }
 

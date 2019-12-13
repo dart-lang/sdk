@@ -466,20 +466,20 @@ class TimelineEvent {
 
 #ifdef SUPPORT_TIMELINE
 #define TIMELINE_DURATION(thread, stream, name)                                \
-  TimelineDurationScope tds(thread, Timeline::Get##stream##Stream(), name);
+  TimelineBeginEndScope tbes(thread, Timeline::Get##stream##Stream(), name);
 #define TIMELINE_FUNCTION_COMPILATION_DURATION(thread, name, function)         \
-  TimelineDurationScope tds(thread, Timeline::GetCompilerStream(), name);      \
-  if (tds.enabled()) {                                                         \
-    tds.SetNumArguments(1);                                                    \
-    tds.CopyArgument(0, "function", function.ToQualifiedCString());            \
+  TimelineBeginEndScope tbes(thread, Timeline::GetCompilerStream(), name);     \
+  if (tbes.enabled()) {                                                        \
+    tbes.SetNumArguments(1);                                                   \
+    tbes.CopyArgument(0, "function", function.ToQualifiedCString());           \
   }
 
 #define TIMELINE_FUNCTION_GC_DURATION(thread, name)                            \
-  TimelineDurationScope tds(thread, Timeline::GetGCStream(), name);
+  TimelineBeginEndScope tbes(thread, Timeline::GetGCStream(), name);
 #define TIMELINE_FUNCTION_GC_DURATION_BASIC(thread, name)                      \
   TIMELINE_FUNCTION_GC_DURATION(thread, name)                                  \
-  tds.SetNumArguments(1);                                                      \
-  tds.CopyArgument(0, "mode", "basic");
+  tbes.SetNumArguments(1);                                                     \
+  tbes.CopyArgument(0, "mode", "basic");
 #else
 #define TIMELINE_DURATION(thread, stream, name)
 #define TIMELINE_FUNCTION_COMPILATION_DURATION(thread, name, function)
@@ -487,7 +487,7 @@ class TimelineEvent {
 #define TIMELINE_FUNCTION_GC_DURATION_BASIC(thread, name)
 #endif  // !PRODUCT
 
-// See |TimelineDurationScope| and |TimelineBeginEndScope|.
+// See |TimelineBeginEndScope|.
 class TimelineEventScope : public StackResource {
  public:
   bool enabled() const { return enabled_; }
@@ -532,23 +532,6 @@ class TimelineEventScope : public StackResource {
   bool enabled_;
 
   DISALLOW_COPY_AND_ASSIGN(TimelineEventScope);
-};
-
-class TimelineDurationScope : public TimelineEventScope {
- public:
-  TimelineDurationScope(TimelineStream* stream, const char* label);
-
-  TimelineDurationScope(Thread* thread,
-                        TimelineStream* stream,
-                        const char* label);
-
-  virtual ~TimelineDurationScope();
-
- private:
-  int64_t timestamp_;
-  int64_t thread_timestamp_;
-
-  DISALLOW_COPY_AND_ASSIGN(TimelineDurationScope);
 };
 
 class TimelineBeginEndScope : public TimelineEventScope {

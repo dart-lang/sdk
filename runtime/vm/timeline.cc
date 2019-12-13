@@ -769,10 +769,7 @@ TimelineEventScope::TimelineEventScope(TimelineStream* stream,
 TimelineEventScope::TimelineEventScope(Thread* thread,
                                        TimelineStream* stream,
                                        const char* label)
-    : StackResource(thread),
-      stream_(stream),
-      label_(label),
-      enabled_(false) {
+    : StackResource(thread), stream_(stream), label_(label), enabled_(false) {
   Init();
 }
 
@@ -833,44 +830,6 @@ void TimelineEventScope::StealArguments(TimelineEvent* event) {
     return;
   }
   event->StealArguments(&arguments_);
-}
-
-TimelineDurationScope::TimelineDurationScope(TimelineStream* stream,
-                                             const char* label)
-    : TimelineEventScope(stream, label) {
-  if (!enabled()) {
-    return;
-  }
-  timestamp_ = OS::GetCurrentMonotonicMicros();
-  thread_timestamp_ = OS::GetCurrentThreadCPUMicros();
-}
-
-TimelineDurationScope::TimelineDurationScope(Thread* thread,
-                                             TimelineStream* stream,
-                                             const char* label)
-    : TimelineEventScope(thread, stream, label) {
-  if (!enabled()) {
-    return;
-  }
-  timestamp_ = OS::GetCurrentMonotonicMicros();
-  thread_timestamp_ = OS::GetCurrentThreadCPUMicros();
-}
-
-TimelineDurationScope::~TimelineDurationScope() {
-  if (!ShouldEmitEvent()) {
-    return;
-  }
-  TimelineEvent* event = stream()->StartEvent();
-  if (event == NULL) {
-    // Stream is now disabled.
-    return;
-  }
-  ASSERT(event != NULL);
-  // Emit a duration event.
-  event->Duration(label(), timestamp_, OS::GetCurrentMonotonicMicros(),
-                  thread_timestamp_, OS::GetCurrentThreadCPUMicros());
-  StealArguments(event);
-  event->Complete();
 }
 
 TimelineBeginEndScope::TimelineBeginEndScope(TimelineStream* stream,

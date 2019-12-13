@@ -1450,8 +1450,7 @@ DART_EXPORT bool Dart_WriteProfileToTimeline(Dart_Port main_port,
   intptr_t response_length;
   bool success = Dart_InvokeVMServiceMethod(
       reinterpret_cast<uint8_t*>(method), method_length,
-      reinterpret_cast<uint8_t**>(&response), &response_length,
-      error);
+      reinterpret_cast<uint8_t**>(&response), &response_length, error);
   free(response);
   return success;
 #endif
@@ -6189,8 +6188,8 @@ Dart_CreateAppAOTSnapshotAsElf(Dart_StreamingWriteCallback callback,
   DARTSCOPE(Thread::Current());
   API_TIMELINE_DURATION(T);
 
-  NOT_IN_PRODUCT(TimelineDurationScope tds2(T, Timeline::GetIsolateStream(),
-                                            "WriteAppAOTSnapshot"));
+  NOT_IN_PRODUCT(TimelineBeginEndScope tbes2(T, Timeline::GetIsolateStream(),
+                                             "WriteAppAOTSnapshot"));
 
   uint8_t* vm_snapshot_data_buffer = nullptr;
   uint8_t* vm_snapshot_instructions_buffer = nullptr;

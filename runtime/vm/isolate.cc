@@ -861,11 +861,11 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
   Zone* zone = stack_zone.GetZone();
   HandleScope handle_scope(thread);
 #if defined(SUPPORT_TIMELINE)
-  TimelineDurationScope tds(
+  TimelineBeginEndScope tbes(
       thread, Timeline::GetIsolateStream(),
       message->IsOOB() ? "HandleOOBMessage" : "HandleMessage");
-  tds.SetNumArguments(1);
-  tds.CopyArgument(0, "isolateName", I->name());
+  tbes.SetNumArguments(1);
+  tbes.CopyArgument(0, "isolateName", I->name());
 #endif
 
   // If the message is in band we lookup the handler to dispatch to.  If the
@@ -979,8 +979,8 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
       // the Timeline due to absence of this argument. We still send them in
       // order to maintain the original behavior of the full timeline and allow
       // the developer to download complete dump files.
-      tds.SetNumArguments(2);
-      tds.CopyArgument(1, "mode", "basic");
+      tbes.SetNumArguments(2);
+      tbes.CopyArgument(1, "mode", "basic");
     }
 #endif
     const Object& result =
@@ -2361,7 +2361,6 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
     deopt_context()->VisitObjectPointers(visitor);
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
-
 
   VisitStackPointers(visitor, validate_frames);
 }

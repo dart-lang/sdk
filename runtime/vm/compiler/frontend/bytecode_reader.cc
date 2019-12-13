@@ -3300,13 +3300,13 @@ RawError* BytecodeReader::ReadFunctionBytecode(Thread* thread,
   VMTagScope tagScope(thread, VMTag::kLoadBytecodeTagId);
 
 #if defined(SUPPORT_TIMELINE)
-  TimelineDurationScope tds(thread, Timeline::GetCompilerStream(),
-                            "BytecodeReader::ReadFunctionBytecode");
+  TimelineBeginEndScope tbes(thread, Timeline::GetCompilerStream(),
+                             "BytecodeReader::ReadFunctionBytecode");
   // This increases bytecode reading time by ~7%, so only keep it around for
   // debugging.
 #if defined(DEBUG)
-  tds.SetNumArguments(1);
-  tds.CopyArgument(0, "Function", function.ToQualifiedCString());
+  tbes.SetNumArguments(1);
+  tbes.CopyArgument(0, "Function", function.ToQualifiedCString());
 #endif  // defined(DEBUG)
 #endif  // !defined(SUPPORT_TIMELINE)
 
