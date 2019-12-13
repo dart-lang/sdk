@@ -52,7 +52,8 @@ else
     pub global activate dart_coveralls
     pub global run dart_coveralls report \
       --token $COVERALLS_TOKEN \
-      --retry 2 \
+      --retry 10 \
+      --debug \
       --exclude-test-files \
       test/all.dart
   fi
