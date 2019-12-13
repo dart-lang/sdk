@@ -2894,15 +2894,28 @@ class HLocalValue extends HInstruction {
 }
 
 class HParameterValue extends HLocalValue {
+  bool _potentiallyUsedAsVariable = true;
+
   HParameterValue(Entity variable, AbstractValue type) : super(variable, type);
 
   // [HParameterValue]s are either the value of the parameter (in fully SSA
   // converted code), or the mutable variable containing the value (in
   // incompletely SSA converted code, e.g. methods containing exceptions).
   bool usedAsVariable() {
-    for (HInstruction user in usedBy) {
-      if (user is HLocalGet) return true;
-      if (user is HLocalSet && user.local == this) return true;
+    if (_potentiallyUsedAsVariable) {
+      // If the HParameterValue is used as a variable, all of the uses should be
+      // HLocalGet or HLocalSet, so this loop exits fast.
+      for (HInstruction user in usedBy) {
+        if (user is HLocalGet) return true;
+        if (user is HLocalSet && user.local == this) return true;
+      }
+      // An 'ssa-conversion' optimization can make the HParameterValue change
+      // from a variable to a value, but there is no transformation that
+      // re-introduces the variable.
+      // TODO(sra): The builder knows that most parameters are not variables to
+      // begin with, so could initialize [_potentiallyUsedAsVariable] to
+      // `false`.
+      _potentiallyUsedAsVariable = false;
     }
     return false;
   }
