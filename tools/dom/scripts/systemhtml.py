@@ -989,7 +989,7 @@ promise_operations = monitored.Dict(
             "type": "MediaCapabilitiesInfo"
         },
         "MediaDevices.enumerateDevices": {
-            "type": "List<MediaDeviceInfo>"
+            "type": "List<dynamic>"
         },
         "MediaDevices.getUserMedia": {
             "type": "MediaStream"
