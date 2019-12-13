@@ -4,11 +4,11 @@
 
 // test w/ `pub run test -N avoid_as`
 
-main() {
+void main() {
   var pm;
   try {
-    (pm as Person).firstName = 'Seth'; //LINT
-  } on CastError {}
+    (pm as Person).firstName = 'Seth'; //LINT [12:6]
+  } on CastError {} // ignore: avoid_catching_errors, empty_catches
 
   Person person = pm;
   person.firstName = 'Seth';

@@ -82,10 +82,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitAsExpression(AsExpression node) {
-    // TODO(brianwilkerson) Use TypeAnnotation rather than AstNode below.
-    AstNode typeAnnotation = node.type;
+    final typeAnnotation = node.type;
     if (typeAnnotation is NamedType && typeAnnotation.name.name != 'dynamic') {
-      rule.reportLint(node);
+      rule.reportLint(typeAnnotation);
     }
   }
 }
