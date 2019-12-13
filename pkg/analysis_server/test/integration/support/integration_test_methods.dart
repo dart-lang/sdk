@@ -1757,11 +1757,11 @@ abstract class IntegrationTestMixin {
    *
    * includePedanticFixes: bool (optional)
    *
-   *   A flag indicating that "pedantic" fixes should be applied.
+   *   A flag indicating whether "pedantic" fixes should be applied.
    *
    * includeRequiredFixes: bool (optional)
    *
-   *   A flag indicating that "required" fixes should be applied.
+   *   A flag indicating whether "required" fixes should be applied.
    *
    * excludedFixes: List<String> (optional)
    *
@@ -1769,6 +1769,13 @@ abstract class IntegrationTestMixin {
    *
    *   If a name is specified that does not match the name of a known fix, an
    *   error of type UNKNOWN_FIX will be generated.
+   *
+   * preview: bool (optional)
+   *
+   *   A flag indicating whether the user has requested that the preview tool
+   *   be opened.
+   *
+   *   Defaults to false.
    *
    * port: int (optional)
    *
@@ -1811,17 +1818,23 @@ abstract class IntegrationTestMixin {
    *   or (b) describe exceptions that were thrown but that did not stop the
    *   fixes from being produced. The list will be omitted if it is empty.
    *
+   * port: int (optional)
+   *
+   *   The port on which the preview tool will respond to GET requests. The
+   *   field is omitted if a preview was not requested.
+   *
    * urls: List<String> (optional)
    *
    *   The URLs that users can visit in a browser to see a preview of the
    *   proposed changes. There is one URL for each of the included file paths.
-   *   The field is omitted if no port was provided.
+   *   The field is omitted if a preview was not requested.
    */
   Future<EditDartfixResult> sendEditDartfix(List<String> included,
       {List<String> includedFixes,
       bool includePedanticFixes,
       bool includeRequiredFixes,
       List<String> excludedFixes,
+      bool preview,
       int port,
       String outputDir}) async {
     var params = new EditDartfixParams(included,
@@ -1829,6 +1842,7 @@ abstract class IntegrationTestMixin {
             includePedanticFixes: includePedanticFixes,
             includeRequiredFixes: includeRequiredFixes,
             excludedFixes: excludedFixes,
+            preview: preview,
             port: port,
             outputDir: outputDir)
         .toJson();

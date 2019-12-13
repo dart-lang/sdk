@@ -174,6 +174,7 @@ const String EDIT_REQUEST_DARTFIX_INCLUDE_REQUIRED_FIXES =
     'includeRequiredFixes';
 const String EDIT_REQUEST_DARTFIX_OUTPUT_DIR = 'outputDir';
 const String EDIT_REQUEST_DARTFIX_PORT = 'port';
+const String EDIT_REQUEST_DARTFIX_PREVIEW = 'preview';
 const String EDIT_REQUEST_FORMAT = 'edit.format';
 const String EDIT_REQUEST_FORMAT_FILE = 'file';
 const String EDIT_REQUEST_FORMAT_LINE_LENGTH = 'lineLength';
@@ -226,6 +227,7 @@ const String EDIT_RESPONSE_DARTFIX_DETAILS = 'details';
 const String EDIT_RESPONSE_DARTFIX_EDITS = 'edits';
 const String EDIT_RESPONSE_DARTFIX_HAS_ERRORS = 'hasErrors';
 const String EDIT_RESPONSE_DARTFIX_OTHER_SUGGESTIONS = 'otherSuggestions';
+const String EDIT_RESPONSE_DARTFIX_PORT = 'port';
 const String EDIT_RESPONSE_DARTFIX_SUGGESTIONS = 'suggestions';
 const String EDIT_RESPONSE_DARTFIX_URLS = 'urls';
 const String EDIT_RESPONSE_FORMAT_EDITS = 'edits';
