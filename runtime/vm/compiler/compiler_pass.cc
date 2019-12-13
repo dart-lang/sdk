@@ -255,6 +255,8 @@ FlowGraph* CompilerPass::RunForceOptimizedPipeline(
   INVOKE_PASS(TryCatchOptimization);
   INVOKE_PASS(EliminateEnvironments);
   INVOKE_PASS(EliminateDeadPhis);
+  // Currently DCE assumes that EliminateEnvironments has already been run,
+  // so it should not be lifted earlier than that pass.
   INVOKE_PASS(DCE);
   INVOKE_PASS(Canonicalize);
   INVOKE_PASS(WriteBarrierElimination);
@@ -326,6 +328,8 @@ FlowGraph* CompilerPass::RunPipeline(PipelineMode mode,
   INVOKE_PASS(TryCatchOptimization);
   INVOKE_PASS(EliminateEnvironments);
   INVOKE_PASS(EliminateDeadPhis);
+  // Currently DCE assumes that EliminateEnvironments has already been run,
+  // so it should not be lifted earlier than that pass.
   INVOKE_PASS(DCE);
   INVOKE_PASS(Canonicalize);
   INVOKE_PASS(AllocationSinking_Sink);

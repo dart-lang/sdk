@@ -3766,9 +3766,27 @@ void DeadCodeElimination::EliminateDeadCode(FlowGraph* flow_graph) {
     }
     for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
       Instruction* current = it.Current();
-      if (!CanEliminateInstruction(current, block) ||
-          current->IsPushArgument()) {
+      if (!CanEliminateInstruction(current, block)) {
         continue;
+      }
+      // Remove push arguments that correspond to non-live definitions. For
+      // example, if a call is removed but some of its PushArguments are also
+      // have environmental uses in other instructions, then those PushArguments
+      // linger in the graph. However, currently we only run DCE after the
+      // EliminateEnvironments pass, so we are guaranteed those PushArguments
+      // now have no uses.
+      //
+      // TODO(dartbug.com/39767): A better solution is to be able to remove
+      // these push arguments as soon as they go dead (i.e., during environment
+      // elimination) To do this, we'd need a way to go from PushArguments to
+      // the call in which they appear as an argument (if any), but we don't
+      // currently have that, so this fix papers over that for now.
+      if (auto const push_arg = current->AsPushArgument()) {
+        auto const def = push_arg->value()->definition();
+        ASSERT(def->HasSSATemp());
+        if (live.Contains(def->ssa_temp_index())) {
+          continue;
+        }
       }
       if (Definition* def = current->AsDefinition()) {
         if (def->HasSSATemp() && live.Contains(def->ssa_temp_index())) {
@@ -3778,6 +3796,9 @@ void DeadCodeElimination::EliminateDeadCode(FlowGraph* flow_graph) {
       // Remove PushArgument instructions corresponding to 'current'.
       for (intptr_t i = 0, n = current->ArgumentCount(); i < n; ++i) {
         PushArgumentInstr* push_arg = current->PushArgumentAt(i);
+        // If the definition referenced by a push argument to dead code is also
+        // dead, then we may have already removed it.
+        if (push_arg->previous() == nullptr) continue;
         push_arg->ReplaceUsesWith(push_arg->value()->definition());
         push_arg->RemoveFromGraph();
       }
