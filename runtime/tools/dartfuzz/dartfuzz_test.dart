@@ -309,7 +309,8 @@ class DartFuzzTest {
       this.top,
       this.mode1,
       this.mode2,
-      this.rerun);
+      this.rerun,
+      this.dartSdkRevision);
 
   int run() {
     setup();
@@ -545,6 +546,7 @@ class DartFuzzTest {
 
   void showReproduce() {
     print("\n-- BEGIN REPRODUCE  --\n");
+    print("DART SDK REVISION: $dartSdkRevision\n");
     print("dartfuzz.dart --${fp ? "" : "no-"}fp --${ffi ? "" : "no-"}ffi "
         "--${flatTp ? "" : "no-"}flat "
         "--seed ${seed} $fileName");
@@ -566,6 +568,7 @@ class DartFuzzTest {
   final String mode1;
   final String mode2;
   final bool rerun;
+  final String dartSdkRevision;
 
   // Test.
   Random rand;
@@ -609,21 +612,23 @@ class DartFuzzTestSession {
       this.mode1,
       this.mode2,
       this.rerun)
-      : top = getTop(tp);
+      : top = getTop(tp),
+        dartSdkRevision = getDartSdkRevision(tp);
 
   start() async {
     print('\n**\n**** Dart Fuzz Testing Session\n**\n');
-    print('Fuzz Version    : ${version}');
-    print('Isolates        : ${isolates}');
-    print('Tests           : ${repeat}');
+    print('Fuzz Version      : ${version}');
+    print('Dart SDK Revision : ${dartSdkRevision}');
+    print('Isolates          : ${isolates}');
+    print('Tests             : ${repeat}');
     if (time > 0) {
-      print('Time            : ${time} seconds');
+      print('Time              : ${time} seconds');
     } else {
-      print('Time            : unlimited');
+      print('Time              : unlimited');
     }
-    print('True Divergence : ${trueDivergence}');
-    print('Show Stats      : ${showStats}');
-    print('Dart Dev        : ${top}');
+    print('True Divergence   : ${trueDivergence}');
+    print('Show Stats        : ${showStats}');
+    print('Dart Dev          : ${top}');
     // Fork.
     List<ReceivePort> ports = List();
     for (int i = 0; i < isolates; i++) {
@@ -661,7 +666,8 @@ class DartFuzzTestSession {
           session.top,
           m1,
           m2,
-          session.rerun);
+          session.rerun,
+          session.dartSdkRevision);
       divergences = fuzz.run();
     } catch (e) {
       print('Isolate: $e');
@@ -678,6 +684,17 @@ class DartFuzzTestSession {
       top = Directory.current.path;
     }
     return top;
+  }
+
+  static String getDartSdkRevision(String top) {
+    top = getTop(top);
+    ProcessResult res =
+        Process.runSync('git', ['--git-dir=$top/.git', 'rev-parse', 'HEAD']);
+    if (debug) {
+      print('\ngit rev-parse HEAD result:\n'
+          '${res.exitCode}\n${res.stdout}\n');
+    }
+    return res.stdout;
   }
 
   // Picks a mode (command line or random).
@@ -708,6 +725,7 @@ class DartFuzzTestSession {
   final String top;
   final String mode1;
   final String mode2;
+  final String dartSdkRevision;
 
   // Passes each port to isolate.
   SendPort port;
