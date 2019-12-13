@@ -459,7 +459,7 @@ Future runGlobalTransformations(
 
   // TODO(35069): avoid recomputing CSA by reading it from the platform files.
   void ignoreAmbiguousSupertypes(cls, a, b) {}
-  final hierarchy = new ClassHierarchy(component,
+  final hierarchy = new ClassHierarchy(component, coreTypes,
       onAmbiguousSupertypes: ignoreAmbiguousSupertypes);
   call_site_annotator.transformLibraries(
       component, component.libraries, coreTypes, hierarchy);

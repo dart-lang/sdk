@@ -77,9 +77,10 @@ void main() {
     final manifestSink = _MemorySink();
     final codeSink = _MemorySink();
     final sourcemapSink = _MemorySink();
+    final coreTypes = CoreTypes(testComponent);
 
-    javaScriptBundler.compile(ClassHierarchy(testComponent),
-        CoreTypes(testComponent), {}, codeSink, manifestSink, sourcemapSink);
+    javaScriptBundler.compile(ClassHierarchy(testComponent, coreTypes),
+        coreTypes, {}, codeSink, manifestSink, sourcemapSink);
 
     final Map manifest = json.decode(utf8.decode(manifestSink.buffer));
     final String code = utf8.decode(codeSink.buffer);
@@ -125,9 +126,10 @@ void main() {
     final manifestSink = _MemorySink();
     final codeSink = _MemorySink();
     final sourcemapSink = _MemorySink();
+    final coreTypes = CoreTypes(testComponent);
 
-    javaScriptBundler.compile(ClassHierarchy(testComponent),
-        CoreTypes(testComponent), {}, codeSink, manifestSink, sourcemapSink);
+    javaScriptBundler.compile(ClassHierarchy(testComponent, coreTypes),
+        coreTypes, {}, codeSink, manifestSink, sourcemapSink);
 
     final code = utf8.decode(codeSink.buffer);
     final manifest = json.decode(utf8.decode(manifestSink.buffer));

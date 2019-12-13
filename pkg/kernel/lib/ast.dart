@@ -5685,7 +5685,8 @@ class InterfaceType extends DartType {
             typeArguments ?? _defaultTypeArguments(classNode));
 
   InterfaceType.byReference(
-      this.className, this.nullability, this.typeArguments);
+      this.className, this.nullability, this.typeArguments)
+      : assert(nullability != null);
 
   Class get classNode => className.asClass;
 

@@ -37,15 +37,11 @@ import 'package:kernel/ast.dart'
         VariableGet;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
-
 import 'package:kernel/clone.dart' show CloneVisitor;
-
+import 'package:kernel/core_types.dart';
 import 'package:kernel/type_algebra.dart' show substitute;
-
 import 'package:kernel/target/targets.dart' show DiagnosticReporter;
-
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
-
 import 'package:kernel/verifier.dart' show verifyGetStaticType;
 
 import '../../api_prototype/file_system.dart' show FileSystem;
@@ -845,8 +841,9 @@ class KernelTarget extends TargetImplementation {
   void verify() {
     // TODO(ahe): How to handle errors.
     verifyComponent(component);
-    ClassHierarchy hierarchy = new ClassHierarchy(component,
-        onAmbiguousSupertypes: (Class cls, Supertype a, Supertype b) {
+    ClassHierarchy hierarchy =
+        new ClassHierarchy(component, new CoreTypes(component),
+            onAmbiguousSupertypes: (Class cls, Supertype a, Supertype b) {
       // An error has already been reported.
     });
     verifyGetStaticType(

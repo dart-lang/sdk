@@ -4,6 +4,7 @@
 // BSD-style license that can be found in the LICENSE file.
 import 'package:kernel/kernel.dart';
 import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/core_types.dart';
 import 'package:args/args.dart';
 import 'class_hierarchy_basic.dart';
 import 'dart:io';
@@ -37,13 +38,14 @@ main(List<String> args) {
   String filename = options.rest.single;
 
   Component component = loadComponentFromBinary(filename);
+  CoreTypes coreTypes = new CoreTypes(component);
 
   int copyCount = int.parse(options['count']);
 
   ClassHierarchy buildHierarchy() {
     return options['basic']
         ? new BasicClassHierarchy(component)
-        : new ClassHierarchy(component);
+        : new ClassHierarchy(component, coreTypes);
   }
 
   List<ClosedWorldClassHierarchy> keepAlive = <ClosedWorldClassHierarchy>[];

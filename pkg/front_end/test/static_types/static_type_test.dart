@@ -55,8 +55,7 @@ class StaticTypeDataExtractor extends CfeDataExtractor<String> {
   StaticTypeDataExtractor(InternalCompilerResult compilerResult,
       Map<Id, ActualData<String>> actualMap)
       : _environment = new TypeEnvironment(
-            new CoreTypes(compilerResult.component),
-            new ClassHierarchy(compilerResult.component)),
+            compilerResult.coreTypes, compilerResult.classHierarchy),
         super(compilerResult, actualMap);
 
   @override

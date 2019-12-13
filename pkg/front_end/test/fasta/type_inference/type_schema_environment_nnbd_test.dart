@@ -1144,6 +1144,7 @@ class TypeSchemaEnvironmentTest {
           ..isNonNullableByDefault = true;
     component = new Component(libraries: <Library>[library]);
     coreTypes = new CoreTypes(component);
-    env = new TypeSchemaEnvironment(coreTypes, new ClassHierarchy(component));
+    env = new TypeSchemaEnvironment(
+        coreTypes, new ClassHierarchy(component, coreTypes));
   }
 }

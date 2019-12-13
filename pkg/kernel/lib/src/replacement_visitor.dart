@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-import 'package:kernel/ast.dart' hide MapEntry;
-import 'package:kernel/type_algebra.dart';
+import '../ast.dart' hide MapEntry;
+import '../type_algebra.dart';
 
 /// Helper visitor that clones a type if a nested type is replaced, and
 /// otherwise returns `null`.

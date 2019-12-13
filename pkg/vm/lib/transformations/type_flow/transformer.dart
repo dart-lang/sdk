@@ -35,7 +35,7 @@ Component transformComponent(
     Target target, CoreTypes coreTypes, Component component,
     [PragmaAnnotationParser matcher]) {
   void ignoreAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {}
-  final hierarchy = new ClassHierarchy(component,
+  final hierarchy = new ClassHierarchy(component, coreTypes,
       onAmbiguousSupertypes: ignoreAmbiguousSupertypes);
   final types = new TypeEnvironment(coreTypes, hierarchy);
   final libraryIndex = new LibraryIndex.all(component);

@@ -1216,8 +1216,8 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   ir.TypeEnvironment get typeEnvironment =>
       _typeEnvironment ??= ir.TypeEnvironment(coreTypes, classHierarchy);
 
-  ir.ClassHierarchy get classHierarchy =>
-      _classHierarchy ??= ir.ClassHierarchy(programEnv.mainComponent);
+  ir.ClassHierarchy get classHierarchy => _classHierarchy ??=
+      ir.ClassHierarchy(programEnv.mainComponent, coreTypes);
 
   ir.StaticTypeContext getStaticTypeContext(ir.Member node) {
     // TODO(johnniwinther): Cache the static type context.

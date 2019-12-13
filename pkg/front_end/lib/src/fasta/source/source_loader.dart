@@ -887,7 +887,7 @@ class SourceLoader extends Loader {
       }
     };
     if (hierarchy == null) {
-      hierarchy = new ClassHierarchy(computeFullComponent(),
+      hierarchy = new ClassHierarchy(computeFullComponent(), coreTypes,
           onAmbiguousSupertypes: onAmbiguousSupertypes);
     } else {
       hierarchy.onAmbiguousSupertypes = onAmbiguousSupertypes;

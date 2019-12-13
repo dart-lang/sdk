@@ -11,6 +11,7 @@ import 'package:build_integration/file_system/multi_root.dart';
 import 'package:cli_util/cli_util.dart' show getSdkPath;
 import 'package:front_end/src/api_unstable/ddc.dart' as fe;
 import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart' hide MapEntry;
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/text/ast_to_text.dart' as kernel show Printer;
@@ -482,12 +483,14 @@ Future<CompilerResult> compileSdkFromDill(List<String> args) async {
   }
 
   var component = loadComponentFromBinary(argResults.rest[0]);
-  var hierarchy = ClassHierarchy(component);
+  var coreTypes = CoreTypes(component);
+  var hierarchy = ClassHierarchy(component, coreTypes);
   var multiRootScheme = argResults['multi-root-scheme'] as String;
   var multiRootOutputPath = argResults['multi-root-output-path'] as String;
   var options = SharedCompilerOptions.fromArguments(argResults);
 
-  var compiler = ProgramCompiler(component, hierarchy, options);
+  var compiler =
+      ProgramCompiler(component, hierarchy, options, coreTypes: coreTypes);
   var jsModule = compiler.emitModule(component, const [], const [], const {});
   var outFiles = <Future>[];
 

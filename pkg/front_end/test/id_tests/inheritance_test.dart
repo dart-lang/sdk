@@ -75,9 +75,10 @@ class InheritanceDataExtractor extends CfeDataExtractor<String> {
   String computeClassValue(Id id, Class node) {
     List<String> supertypes = <String>[];
     for (Class superclass in computeAllSuperclasses(node)) {
-      supertypes.add(supertypeToText(
-          _hierarchy.getClassAsInstanceOf(node, superclass),
-          TypeRepresentation.implicitUndetermined));
+      Supertype supertype = _hierarchy.getClassAsInstanceOf(node, superclass);
+      assert(supertype != null, "No instance of $superclass found for $node.");
+      supertypes.add(
+          supertypeToText(supertype, TypeRepresentation.implicitUndetermined));
     }
     supertypes.sort();
     return supertypes.join(',');

@@ -86,7 +86,7 @@ Future<CompilerOutcome> runTransformation(List<String> arguments) async {
   var component = loadComponentFromBinary(input);
 
   final coreTypes = new CoreTypes(component);
-  final hierarchy = new ClassHierarchy(component);
+  final hierarchy = new ClassHierarchy(component, coreTypes);
   final typeEnvironment = new TypeEnvironment(coreTypes, hierarchy);
   switch (options['transformation']) {
     case 'continuation':

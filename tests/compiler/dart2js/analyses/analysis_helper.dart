@@ -154,7 +154,8 @@ class DynamicVisitor extends StaticTypeVisitorBase {
 
   DynamicVisitor(this.reporter, this.component, this._allowedListPath,
       this.analyzedUrisFilter)
-      : super(component, new ir.ClassHierarchy(component));
+      : super(component,
+            new ir.ClassHierarchy(component, new ir.CoreTypes(component)));
 
   void run({bool verbose = false, bool generate = false}) {
     if (!generate && _allowedListPath != null) {

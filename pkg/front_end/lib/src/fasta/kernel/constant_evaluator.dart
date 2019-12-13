@@ -78,7 +78,7 @@ Component transformComponent(Component component, ConstantsBackend backend,
     CoreTypes coreTypes,
     ClassHierarchy hierarchy}) {
   coreTypes ??= new CoreTypes(component);
-  hierarchy ??= new ClassHierarchy(component);
+  hierarchy ??= new ClassHierarchy(component, coreTypes);
 
   final TypeEnvironment typeEnvironment =
       new TypeEnvironment(coreTypes, hierarchy);

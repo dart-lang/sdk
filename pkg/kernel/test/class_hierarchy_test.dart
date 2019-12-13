@@ -93,7 +93,7 @@ class ClosedWorldClassHierarchyTest {
   }
 
   ClassHierarchy createClassHierarchy(Component component) {
-    return new ClassHierarchy(component);
+    return new ClassHierarchy(component, coreTypes);
   }
 
   void test_applyTreeChanges() {

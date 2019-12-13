@@ -85,7 +85,7 @@ void generateBytecode(
     verifyBytecodeInstructionDeclarations();
     coreTypes ??= new CoreTypes(component);
     void ignoreAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {}
-    hierarchy ??= new ClassHierarchy(component,
+    hierarchy ??= new ClassHierarchy(component, coreTypes,
         onAmbiguousSupertypes: ignoreAmbiguousSupertypes);
     final typeEnvironment = new TypeEnvironment(coreTypes, hierarchy);
     libraries ??= component.libraries;

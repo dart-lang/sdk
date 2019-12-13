@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-import 'package:kernel/ast.dart' hide MapEntry;
-import 'package:kernel/core_types.dart';
+import '../ast.dart' hide MapEntry;
+import '../core_types.dart';
 
 import 'replacement_visitor.dart';
 
@@ -12,6 +12,29 @@ import 'replacement_visitor.dart';
 /// named parameters are not required.
 DartType legacyErasure(CoreTypes coreTypes, DartType type) {
   return type.accept(new _LegacyErasure(coreTypes)) ?? type;
+}
+
+/// Returns legacy erasure of [supertype], that is, the type in which all nnbd
+/// nullabilities have been replaced with legacy nullability, and all required
+/// named parameters are not required.
+Supertype legacyErasureSupertype(CoreTypes coreTypes, Supertype supertype) {
+  if (supertype.typeArguments.isEmpty) {
+    return supertype;
+  }
+  List<DartType> newTypeArguments;
+  for (int i = 0; i < supertype.typeArguments.length; i++) {
+    DartType typeArgument = supertype.typeArguments[i];
+    DartType newTypeArgument =
+        typeArgument.accept(new _LegacyErasure(coreTypes));
+    if (newTypeArgument != null) {
+      newTypeArguments ??= supertype.typeArguments.toList(growable: false);
+      newTypeArguments[i] = newTypeArgument;
+    }
+  }
+  if (newTypeArguments != null) {
+    return new Supertype(supertype.classNode, newTypeArguments);
+  }
+  return supertype;
 }
 
 /// Visitor that replaces all nnbd nullabilities with legacy nullabilities and

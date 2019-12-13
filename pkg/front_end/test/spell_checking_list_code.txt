@@ -144,6 +144,9 @@ class4a
 class4b
 class4c
 class4d
+class4e
+class6a
+class6b
 clazz
 cls
 cn

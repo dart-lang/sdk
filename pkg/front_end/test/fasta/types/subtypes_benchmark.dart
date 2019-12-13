@@ -139,8 +139,8 @@ Future<void> run(Uri benchmarkInput, String name) async {
   bytes = null;
   ticker.logMs("Parsed benchmark file");
   Component c = new Component(libraries: [bench.library]);
-  ClassHierarchy hierarchy = new ClassHierarchy(c);
   CoreTypes coreTypes = new CoreTypes(c);
+  ClassHierarchy hierarchy = new ClassHierarchy(c, coreTypes);
   TypeEnvironment environment = new TypeEnvironment(coreTypes, hierarchy);
 
   final CompilerContext context = new CompilerContext(new ProcessedOptions(

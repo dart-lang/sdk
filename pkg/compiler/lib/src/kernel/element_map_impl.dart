@@ -805,7 +805,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
 
   @override
   ir.ClassHierarchy get classHierarchy =>
-      _classHierarchy ??= ir.ClassHierarchy(env.mainComponent);
+      _classHierarchy ??= ir.ClassHierarchy(env.mainComponent, coreTypes);
 
   @override
   ir.StaticTypeContext getStaticTypeContext(MemberEntity member) {

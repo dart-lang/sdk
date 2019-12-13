@@ -922,7 +922,8 @@ late_lowering/late_nullable_local_with_initializer: TextSerializationFailure
 late_lowering/late_nullable_local_without_initializer: TextSerializationFailure
 new_const_insertion/simple: TextSerializationFailure # Was: Pass
 nnbd/function_types: TextSerializationFailure
-nnbd/inheritance_from_opt_out: TypeCheckError
+nnbd/inheritance_from_opt_in: TypeCheckError
+nnbd/inheritance_from_opt_out: TextSerializationFailure
 nnbd/intersection_types: TextSerializationFailure
 nnbd/issue_39286: TextSerializationFailure
 nnbd/issue_39286_2: TextSerializationFailure

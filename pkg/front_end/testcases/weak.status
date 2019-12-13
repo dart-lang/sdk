@@ -8,6 +8,6 @@ extensions/extension_setter_error: TypeCheckError
 extensions/instance_access_of_static: RuntimeError
 extensions/invalid_explicit_access: RuntimeError
 extensions/static_access_of_instance: RuntimeError
-nnbd/inheritance_from_opt_out: TypeCheckError
+nnbd/inheritance_from_opt_in: TypeCheckError
 nnbd/messages_with_types_opt_in: TypeCheckError
 nnbd/messages_with_types_opt_out: TypeCheckError
