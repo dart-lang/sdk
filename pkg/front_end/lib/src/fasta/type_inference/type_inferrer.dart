@@ -517,6 +517,14 @@ class TypeInferrerImpl implements TypeInferrer {
 
   bool get isNonNullableByDefault => library.isNonNullableByDefault;
 
+  bool get nnbdStrongMode => library.loader.nnbdStrongMode;
+
+  bool get performNnbdChecks {
+    return !isTopLevel &&
+        isNonNullableByDefault &&
+        library.loader.performNnbdChecks;
+  }
+
   void registerIfUnreachableForTesting(TreeNode node, {bool isReachable}) {
     if (dataForTesting == null) return;
     isReachable ??= flowAnalysis.isReachable;

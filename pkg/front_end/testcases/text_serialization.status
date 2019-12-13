@@ -939,6 +939,7 @@ nnbd/null_shorting_cascade: TextSerializationFailure
 nnbd/null_shorting_explicit_extension: TextSerializationFailure
 nnbd/null_shorting_extension: TextSerializationFailure
 nnbd/null_shorting_index: TextSerializationFailure
+nnbd/nullable_access: TextSerializationFailure
 nnbd/nullable_null: TextSerializationFailure
 nnbd/nullable_param: TextSerializationFailure
 nnbd/opt_out: TextSerializationFailure

@@ -18,23 +18,7 @@ import '../../base/instrumentation.dart'
         InstrumentationValueForType,
         InstrumentationValueForTypeArgs;
 
-import '../fasta_codes.dart'
-    show
-        messageCantDisambiguateAmbiguousInformation,
-        messageCantDisambiguateNotEnoughInformation,
-        messageNonNullAwareSpreadIsNull,
-        messageSwitchExpressionNotAssignableCause,
-        noLength,
-        templateForInLoopElementTypeNotAssignable,
-        templateForInLoopTypeNotIterable,
-        templateIntegerLiteralIsOutOfRange,
-        templateSpreadElementTypeMismatch,
-        templateSpreadMapEntryElementKeyTypeMismatch,
-        templateSpreadMapEntryElementValueTypeMismatch,
-        templateSpreadMapEntryTypeMismatch,
-        templateSpreadTypeMismatch,
-        templateSwitchExpressionNotAssignable,
-        templateUndefinedSetter;
+import '../fasta_codes.dart';
 
 import '../names.dart';
 
@@ -4552,6 +4536,7 @@ class InferenceVisitor
         inferrer.inferExpression(node.receiver, const UnknownType(), true);
     Link<NullAwareGuard> nullAwareGuards;
     Expression receiver;
+    DartType receiverType = result.inferredType;
     if (inferrer.isNonNullableByDefault) {
       nullAwareGuards = result.nullAwareGuards;
       receiver = result.nullAwareAction;
@@ -4559,12 +4544,29 @@ class InferenceVisitor
       receiver = result.expression;
     }
     node.receiver = receiver..parent = node;
-    DartType receiverType = result.inferredType;
     ExpressionInferenceResult readResult = _computePropertyGet(
         node.fileOffset, receiver, receiverType, node.name, typeContext,
         isThisReceiver: node.receiver is ThisExpression);
+    Expression resultExpression = readResult.expression;
+    if (inferrer.isNonNullableByDefault && inferrer.performNnbdChecks) {
+      if (receiverType is! DynamicType && receiverType.isPotentiallyNullable) {
+        if (inferrer.nnbdStrongMode) {
+          resultExpression = inferrer.helper.wrapInProblem(
+              resultExpression,
+              templateNullablePropertyGetError.withArguments(node.name.name,
+                  receiverType, inferrer.isNonNullableByDefault),
+              noLength);
+        } else {
+          inferrer.helper.addProblem(
+              templateNullablePropertyGetWarning.withArguments(node.name.name,
+                  receiverType, inferrer.isNonNullableByDefault),
+              resultExpression.fileOffset,
+              noLength);
+        }
+      }
+    }
     return new ExpressionInferenceResult.nullAware(
-        readResult.inferredType, readResult.expression, nullAwareGuards);
+        readResult.inferredType, resultExpression, nullAwareGuards);
   }
 
   @override

@@ -53,6 +53,7 @@ abstract class TargetImplementation extends Target {
   bool enableTripleShift;
   bool enableVariance;
   bool enableNonfunctionTypeAliases;
+  bool performNnbdChecks;
 
   TargetImplementation(Ticker ticker, this.uriTranslator, this.backendTarget)
       : enableExtensionMethods = CompilerContext.current.options
@@ -65,6 +66,7 @@ abstract class TargetImplementation extends Target {
             .isExperimentEnabled(ExperimentalFlag.variance),
         enableNonfunctionTypeAliases = CompilerContext.current.options
             .isExperimentEnabled(ExperimentalFlag.nonfunctionTypeAliases),
+        performNnbdChecks = CompilerContext.current.options.performNnbdChecks,
         super(ticker);
 
   /// Creates a [LibraryBuilder] corresponding to [uri], if one doesn't exist

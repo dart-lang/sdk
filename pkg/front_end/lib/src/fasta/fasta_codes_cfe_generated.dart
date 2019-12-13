@@ -1829,6 +1829,81 @@ Message _withArgumentsMixinInferenceNoMatchingClass(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>
+    templateNullablePropertyGetError = const Template<
+            Message Function(
+                String name, DartType _type, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""Property '#name' cannot be accessed on '#type' because it is potentially null.""",
+        tipTemplate: r"""Try accessing using ?. instead.""",
+        withArguments: _withArgumentsNullablePropertyGetError);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+    Message Function(String name, DartType _type,
+        bool isNonNullableByDefault)> codeNullablePropertyGetError = const Code<
+    Message Function(String name, DartType _type, bool isNonNullableByDefault)>(
+  "NullablePropertyGetError",
+  templateNullablePropertyGetError,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsNullablePropertyGetError(
+    String name, DartType _type, bool isNonNullableByDefault) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeNullablePropertyGetError,
+      message:
+          """Property '${name}' cannot be accessed on '${type}' because it is potentially null.""" +
+              labeler.originMessages,
+      tip: """Try accessing using ?. instead.""",
+      arguments: {'name': name, 'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>
+    templateNullablePropertyGetWarning = const Template<
+            Message Function(
+                String name, DartType _type, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""Property '#name' is accessed on '#type' which is potentially null.""",
+        tipTemplate: r"""Try accessing using ?. instead.""",
+        withArguments: _withArgumentsNullablePropertyGetWarning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>
+    codeNullablePropertyGetWarning = const Code<
+            Message Function(
+                String name, DartType _type, bool isNonNullableByDefault)>(
+        "NullablePropertyGetWarning", templateNullablePropertyGetWarning,
+        severity: Severity.warning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsNullablePropertyGetWarning(
+    String name, DartType _type, bool isNonNullableByDefault) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeNullablePropertyGetWarning,
+      message:
+          """Property '${name}' is accessed on '${type}' which is potentially null.""" +
+              labeler.originMessages,
+      tip: """Try accessing using ?. instead.""",
+      arguments: {'name': name, 'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
         Message Function(String name, String name2, DartType _type,
             DartType _type2, String name3, bool isNonNullableByDefault)>
     templateOverrideTypeMismatchParameter = const Template<

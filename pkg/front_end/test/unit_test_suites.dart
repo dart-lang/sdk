@@ -24,6 +24,7 @@ import 'fasta/messages_suite.dart' as messages show createContext;
 import 'fasta/strong_tester.dart' as strong show createContext;
 import 'fasta/text_serialization_tester.dart' as text_serialization
     show createContext;
+import 'fasta/weak_suite.dart' as weak show createContext;
 import 'incremental_bulk_compiler_smoke_suite.dart' as incremental_bulk_compiler
     show createContext;
 import 'incremental_load_from_dill_suite.dart' as incremental_load
@@ -269,6 +270,7 @@ const List<Suite> suites = [
       "../testing.json"),
   const Suite(
       "spelling_test_src", spelling_src.createContext, "../testing.json"),
+  const Suite("fasta/weak", weak.createContext, "../../testing.json"),
 ];
 
 const Duration timeoutDuration = Duration(minutes: 15);

@@ -175,6 +175,10 @@ class ProcessedOptions {
 
   bool get throwOnWarningsForDebugging => _raw.throwOnWarningsForDebugging;
 
+  bool get performNnbdChecks => _raw.performNnbdChecks;
+
+  bool get nnbdStrongMode => _raw.nnbdStrongMode;
+
   /// The entry-points provided to the compiler.
   final List<Uri> inputs;
 

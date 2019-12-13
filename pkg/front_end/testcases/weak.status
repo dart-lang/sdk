@@ -1,0 +1,13 @@
+# Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Status file for the weak_suite.dart test suite.
+
+extensions/extension_setter_error: TypeCheckError
+extensions/instance_access_of_static: RuntimeError
+extensions/invalid_explicit_access: RuntimeError
+extensions/static_access_of_instance: RuntimeError
+nnbd/inheritance_from_opt_out: TypeCheckError
+nnbd/messages_with_types_opt_in: TypeCheckError
+nnbd/messages_with_types_opt_out: TypeCheckError

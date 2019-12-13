@@ -7,6 +7,8 @@ library fasta.codes;
 import 'package:_fe_analyzer_shared/src/messages/codes.dart'
     hide demangleMixinApplicationName;
 
+import 'package:_fe_analyzer_shared/src/messages/severity.dart';
+
 import 'package:kernel/ast.dart'
     show Constant, DartType, demangleMixinApplicationName;
 
@@ -14,5 +16,7 @@ import 'kernel/type_labeler.dart';
 
 export 'package:_fe_analyzer_shared/src/messages/codes.dart'
     hide demangleMixinApplicationName;
+
+export 'package:_fe_analyzer_shared/src/messages/severity.dart';
 
 part 'fasta_codes_cfe_generated.dart';

@@ -177,6 +177,10 @@ class SourceLoader extends Loader {
             retainDataForTesting ? new SourceLoaderDataForTesting() : null,
         super(target);
 
+  bool get nnbdStrongMode => target.context.options.nnbdStrongMode;
+
+  bool get performNnbdChecks => target.context.options.performNnbdChecks;
+
   CoreTypes get coreTypes {
     assert(_coreTypes != null, "CoreTypes has not been computed.");
     return _coreTypes;

@@ -1,0 +1,206 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/null_shorting_extension.dart:48:27: Warning: Property 'field' is accessed on 'Class?' which is potentially null.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/null_shorting_extension.dart'.
+// Try accessing using ?. instead.
+//   throws(() => (c?.field).field);
+//                           ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  field self::Class? _field = null;
+  synthetic constructor •() → self::Class
+    : super core::Object::•()
+    ;
+}
+extension Extension on self::Class {
+  get field = self::Extension|get#field;
+  method method = self::Extension|method;
+  tearoff method = self::Extension|get#method;
+  operator [] = self::Extension|[];
+  operator []= = self::Extension|[]=;
+  operator + = self::Extension|+;
+  operator unary- = self::Extension|unary-;
+  get property = self::Extension|get#property;
+  set field = self::Extension|set#field;
+}
+static method Extension|get#field(final self::Class #this) → self::Class?
+  return #this.{self::Class::_field};
+static method Extension|set#field(final self::Class #this, self::Class? value) → void {
+  #this.{self::Class::_field} = value;
+}
+static method Extension|method(final self::Class #this) → self::Class
+  return self::Extension|get#property(#this);
+static method Extension|get#method(final self::Class #this) → () →* self::Class
+  return () → self::Class => self::Extension|method(#this);
+static method Extension|[](final self::Class #this, self::Class? key) → self::Class?
+  return self::Extension|get#field(#this);
+static method Extension|[]=(final self::Class #this, self::Class? key, self::Class? value) → void {
+  self::Extension|set#field(#this, value);
+}
+static method Extension|+(final self::Class #this, core::int value) → self::Class?
+  return self::Extension|get#field(#this);
+static method Extension|unary-(final self::Class #this) → self::Class?
+  return self::Extension|get#field(#this);
+static method Extension|get#property(final self::Class #this) → self::Class
+  return #this;
+static method main() → dynamic {
+  self::propertyAccess(null);
+  self::indexAccess(null);
+  self::operatorAccess(null);
+  self::ifNull(null);
+}
+static method propertyAccess(self::Class? c) → void {
+  let final self::Class? #t1 = c in #t1.{core::Object::==}(null) ?{self::Class?} null : self::Extension|get#field(#t1{self::Class});
+  let final self::Class? #t2 = c in #t2.{core::Object::==}(null) ?{self::Class} null : self::Extension|set#field(#t2{self::Class}, new self::Class::•());
+  c = let final self::Class? #t3 = c in #t3.{core::Object::==}(null) ?{self::Class} null : let final self::Class #t4 = new self::Class::•() in let final void #t5 = self::Extension|set#field(#t3{self::Class}, #t4) in #t4;
+  let final self::Class #t6 = c{self::Class} in #t6.{core::Object::==}(null) ?{self::Class} null : self::Extension|method(#t6);
+  let final self::Class #t7 = c{self::Class} in #t7.{core::Object::==}(null) ?{self::Class?} null : self::Extension|get#field(self::Extension|get#property(#t7));
+  let final self::Class #t8 = c{self::Class} in #t8.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t9 = self::Extension|get#field(#t8) in #t9.{core::Object::==}(null) ?{self::Class?} null : self::Extension|get#field(#t9{self::Class});
+  let final self::Class #t10 = c{self::Class} in #t10.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t11 = self::Extension|get#field(self::Extension|get#property(#t10)) in #t11.{core::Object::==}(null) ?{self::Class?} null : self::Extension|get#field(#t11{self::Class});
+  let final self::Class #t12 = c{self::Class} in #t12.{core::Object::==}(null) ?{self::Class} null : self::Extension|set#field(self::Extension|get#property(#t12), new self::Class::•());
+  let final self::Class #t13 = c{self::Class} in #t13.{core::Object::==}(null) ?{self::Class} null : let final self::Class? #t14 = self::Extension|get#field(#t13) in #t14.{core::Object::==}(null) ?{self::Class} null : self::Extension|set#field(#t14{self::Class}, new self::Class::•());
+  let final self::Class #t15 = c{self::Class} in #t15.{core::Object::==}(null) ?{self::Class} null : let final self::Class? #t16 = self::Extension|get#field(self::Extension|get#property(#t15)) in #t16.{core::Object::==}(null) ?{self::Class} null : self::Extension|set#field(#t16{self::Class}, new self::Class::•());
+  self::throws(() → self::Class? => self::Extension|get#field(let final self::Class? #t17 = c in #t17.{core::Object::==}(null) ?{self::Class?} null : self::Extension|get#field(#t17{self::Class})));
+  self::throws(() → self::Class? => self::Extension|get#field(let final self::Class? #t18 = c in #t18.{core::Object::==}(null) ?{self::Class} null : let final self::Class #t19 = new self::Class::•() in let final void #t20 = self::Extension|set#field(#t18{self::Class}, #t19) in #t19));
+  self::throws(() → self::Class? => self::Extension|get#field(let final self::Class? #t21 = c in #t21.{core::Object::==}(null) ?{self::Class} null : self::Extension|method(#t21{self::Class})));
+  c = let final self::Class #t22 = c{self::Class} in #t22.{core::Object::==}(null) ?{self::Class} null : let final self::Class #t23 = new self::Class::•() in let final void #t24 = self::Extension|set#field(self::Extension|get#property(#t22), #t23) in #t23;
+  c = let final self::Class #t25 = c{self::Class} in #t25.{core::Object::==}(null) ?{self::Class} null : let final self::Class? #t26 = self::Extension|get#field(#t25) in #t26.{core::Object::==}(null) ?{self::Class} null : let final self::Class #t27 = new self::Class::•() in let final void #t28 = self::Extension|set#field(#t26{self::Class}, #t27) in #t27;
+  c = let final self::Class #t29 = c{self::Class} in #t29.{core::Object::==}(null) ?{self::Class} null : let final self::Class? #t30 = self::Extension|get#field(self::Extension|get#property(#t29)) in #t30.{core::Object::==}(null) ?{self::Class} null : let final self::Class #t31 = new self::Class::•() in let final void #t32 = self::Extension|set#field(#t30{self::Class}, #t31) in #t31;
+  let final self::Class #t33 = c{self::Class} in #t33.{core::Object::==}(null) ?{self::Class} null : self::Extension|method(self::Extension|get#property(#t33));
+  let final self::Class #t34 = c{self::Class} in #t34.{core::Object::==}(null) ?{self::Class?} null : self::Extension|set#field(#t34, self::Extension|get#field(new self::Class::•()));
+  c = let final self::Class #t35 = c{self::Class} in #t35.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t36 = self::Extension|get#field(new self::Class::•()) in let final void #t37 = self::Extension|set#field(#t35, #t36) in #t36;
+  let final self::Class? #t38 = c in #t38.{core::Object::==}(null) ?{self::Class} null : self::Extension|set#field(#t38{self::Class}, let final self::Class #t39 = new self::Class::•() in let final void #t40 = self::Extension|set#field(new self::Class::•(), #t39) in #t39);
+  c = let final self::Class? #t41 = c in #t41.{core::Object::==}(null) ?{self::Class} null : let final self::Class #t42 = let final self::Class #t43 = new self::Class::•() in let final void #t44 = self::Extension|set#field(new self::Class::•(), #t43) in #t43 in let final void #t45 = self::Extension|set#field(#t41{self::Class}, #t42) in #t42;
+  let final self::Class #t46 = c{self::Class} in #t46.{core::Object::==}(null) ?{self::Class} null : self::Extension|set#field(#t46, self::Extension|method(new self::Class::•()));
+  c = let final self::Class #t47 = c{self::Class} in #t47.{core::Object::==}(null) ?{self::Class} null : let final self::Class #t48 = self::Extension|method(new self::Class::•()) in let final void #t49 = self::Extension|set#field(#t47, #t48) in #t48;
+  let final self::Class #t50 = c{self::Class} in #t50.{core::Object::==}(null) ?{self::Class?} null : self::Extension|get#field(self::Extension|method(#t50));
+  let final self::Class #t51 = c{self::Class} in #t51.{core::Object::==}(null) ?{self::Class} null : self::Extension|set#field(self::Extension|method(#t51), new self::Class::•());
+  let final self::Class #t52 = c{self::Class} in #t52.{core::Object::==}(null) ?{self::Class} null : self::Extension|method(self::Extension|method(#t52));
+  let final self::Class #t53 = c{self::Class} in #t53.{core::Object::==}(null) ?{self::Class?} null : self::Extension|get#field(self::Extension|get#property(self::Extension|get#property(#t53)));
+  let final self::Class #t54 = c{self::Class} in #t54.{core::Object::==}(null) ?{self::Class} null : self::Extension|set#field(self::Extension|get#property(self::Extension|get#property(#t54)), new self::Class::•());
+  c = let final self::Class #t55 = c{self::Class} in #t55.{core::Object::==}(null) ?{self::Class} null : let final self::Class #t56 = new self::Class::•() in let final void #t57 = self::Extension|set#field(self::Extension|get#property(self::Extension|get#property(#t55)), #t56) in #t56;
+  let final self::Class #t58 = c{self::Class} in #t58.{core::Object::==}(null) ?{self::Class} null : self::Extension|method(self::Extension|get#property(self::Extension|get#property(#t58)));
+  let final self::Class #t59 = c{self::Class} in #t59.{core::Object::==}(null) ?{self::Class?} null : self::Extension|set#field(#t59, self::Extension|get#field(self::Extension|get#property(new self::Class::•())));
+  c = let final self::Class #t60 = c{self::Class} in #t60.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t61 = self::Extension|get#field(self::Extension|get#property(new self::Class::•())) in let final void #t62 = self::Extension|set#field(#t60, #t61) in #t61;
+  let final self::Class? #t63 = c in #t63.{core::Object::==}(null) ?{self::Class} null : self::Extension|set#field(#t63{self::Class}, let final self::Class #t64 = new self::Class::•() in let final void #t65 = self::Extension|set#field(self::Extension|get#property(new self::Class::•()), #t64) in #t64);
+  c = let final self::Class? #t66 = c in #t66.{core::Object::==}(null) ?{self::Class} null : let final self::Class #t67 = let final self::Class #t68 = new self::Class::•() in let final void #t69 = self::Extension|set#field(self::Extension|get#property(new self::Class::•()), #t68) in #t68 in let final void #t70 = self::Extension|set#field(#t66{self::Class}, #t67) in #t67;
+  let final self::Class #t71 = c{self::Class} in #t71.{core::Object::==}(null) ?{self::Class} null : self::Extension|set#field(#t71, self::Extension|method(self::Extension|get#property(new self::Class::•())));
+  c = let final self::Class #t72 = c{self::Class} in #t72.{core::Object::==}(null) ?{self::Class} null : let final self::Class #t73 = self::Extension|method(self::Extension|get#property(new self::Class::•())) in let final void #t74 = self::Extension|set#field(#t72, #t73) in #t73;
+  let final self::Class #t75 = c{self::Class} in #t75.{core::Object::==}(null) ?{self::Class?} null : self::Extension|get#field(self::Extension|get#property(self::Extension|method(#t75)));
+  let final self::Class #t76 = c{self::Class} in #t76.{core::Object::==}(null) ?{self::Class} null : self::Extension|set#field(self::Extension|get#property(self::Extension|method(#t76)), new self::Class::•());
+  let final self::Class #t77 = c{self::Class} in #t77.{core::Object::==}(null) ?{self::Class} null : self::Extension|method(self::Extension|get#property(self::Extension|method(#t77)));
+  let final self::Class #t78 = c{self::Class} in #t78.{core::Object::==}(null) ?{self::Class?} null : self::Extension|set#field(self::Extension|get#property(#t78), self::Extension|get#field(new self::Class::•()));
+  c = let final self::Class #t79 = c{self::Class} in #t79.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t80 = self::Extension|get#field(new self::Class::•()) in let final void #t81 = self::Extension|set#field(self::Extension|get#property(#t79), #t80) in #t80;
+  let final self::Class? #t82 = c in #t82.{core::Object::==}(null) ?{self::Class} null : self::Extension|set#field(self::Extension|get#property(#t82{self::Class}), let final self::Class #t83 = new self::Class::•() in let final void #t84 = self::Extension|set#field(new self::Class::•(), #t83) in #t83);
+  c = let final self::Class? #t85 = c in #t85.{core::Object::==}(null) ?{self::Class} null : let final self::Class #t86 = let final self::Class #t87 = new self::Class::•() in let final void #t88 = self::Extension|set#field(new self::Class::•(), #t87) in #t87 in let final void #t89 = self::Extension|set#field(self::Extension|get#property(#t85{self::Class}), #t86) in #t86;
+  let final self::Class #t90 = c{self::Class} in #t90.{core::Object::==}(null) ?{self::Class} null : self::Extension|set#field(self::Extension|get#property(#t90), self::Extension|method(new self::Class::•()));
+  c = let final self::Class #t91 = c{self::Class} in #t91.{core::Object::==}(null) ?{self::Class} null : let final self::Class #t92 = self::Extension|method(new self::Class::•()) in let final void #t93 = self::Extension|set#field(self::Extension|get#property(#t91), #t92) in #t92;
+  let final self::Class #t94 = c{self::Class} in #t94.{core::Object::==}(null) ?{self::Class?} null : self::Extension|set#field(#t94, let final self::Class? #t95 = self::Extension|get#field(new self::Class::•()) in let final void #t96 = self::Extension|set#field(new self::Class::•(), #t95) in #t95);
+  c = let final self::Class #t97 = c{self::Class} in #t97.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t98 = let final self::Class? #t99 = self::Extension|get#field(new self::Class::•()) in let final void #t100 = self::Extension|set#field(new self::Class::•(), #t99) in #t99 in let final void #t101 = self::Extension|set#field(#t97, #t98) in #t98;
+  let final self::Class? #t102 = c in #t102.{core::Object::==}(null) ?{self::Class} null : self::Extension|set#field(#t102{self::Class}, let final self::Class #t103 = let final self::Class #t104 = new self::Class::•() in let final void #t105 = self::Extension|set#field(new self::Class::•(), #t104) in #t104 in let final void #t106 = self::Extension|set#field(new self::Class::•(), #t103) in #t103);
+  c = let final self::Class? #t107 = c in #t107.{core::Object::==}(null) ?{self::Class} null : let final self::Class #t108 = let final self::Class #t109 = let final self::Class #t110 = new self::Class::•() in let final void #t111 = self::Extension|set#field(new self::Class::•(), #t110) in #t110 in let final void #t112 = self::Extension|set#field(new self::Class::•(), #t109) in #t109 in let final void #t113 = self::Extension|set#field(#t107{self::Class}, #t108) in #t108;
+  let final self::Class #t114 = c{self::Class} in #t114.{core::Object::==}(null) ?{self::Class} null : self::Extension|set#field(#t114, let final self::Class #t115 = self::Extension|method(new self::Class::•()) in let final void #t116 = self::Extension|set#field(new self::Class::•(), #t115) in #t115);
+  c = let final self::Class #t117 = c{self::Class} in #t117.{core::Object::==}(null) ?{self::Class} null : let final self::Class #t118 = let final self::Class #t119 = self::Extension|method(new self::Class::•()) in let final void #t120 = self::Extension|set#field(new self::Class::•(), #t119) in #t119 in let final void #t121 = self::Extension|set#field(#t117, #t118) in #t118;
+  let final self::Class #t122 = c{self::Class} in #t122.{core::Object::==}(null) ?{self::Class?} null : self::Extension|set#field(self::Extension|method(#t122), self::Extension|get#field(new self::Class::•()));
+  c = let final self::Class #t123 = c{self::Class} in #t123.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t124 = self::Extension|get#field(new self::Class::•()) in let final void #t125 = self::Extension|set#field(self::Extension|method(#t123), #t124) in #t124;
+  let final self::Class? #t126 = c in #t126.{core::Object::==}(null) ?{self::Class} null : self::Extension|set#field(self::Extension|method(#t126{self::Class}), let final self::Class #t127 = new self::Class::•() in let final void #t128 = self::Extension|set#field(new self::Class::•(), #t127) in #t127);
+  c = let final self::Class? #t129 = c in #t129.{core::Object::==}(null) ?{self::Class} null : let final self::Class #t130 = let final self::Class #t131 = new self::Class::•() in let final void #t132 = self::Extension|set#field(new self::Class::•(), #t131) in #t131 in let final void #t133 = self::Extension|set#field(self::Extension|method(#t129{self::Class}), #t130) in #t130;
+  let final self::Class #t134 = c{self::Class} in #t134.{core::Object::==}(null) ?{self::Class} null : self::Extension|set#field(self::Extension|method(#t134), self::Extension|method(new self::Class::•()));
+  c = let final self::Class #t135 = c{self::Class} in #t135.{core::Object::==}(null) ?{self::Class} null : let final self::Class #t136 = self::Extension|method(new self::Class::•()) in let final void #t137 = self::Extension|set#field(self::Extension|method(#t135), #t136) in #t136;
+  let final self::Class #t138 = c{self::Class} in #t138.{core::Object::==}(null) ?{self::Class?} null : self::Extension|get#field(self::Extension|method(self::Extension|get#field(#t138)));
+  let final self::Class #t139 = c{self::Class} in #t139.{core::Object::==}(null) ?{self::Class} null : self::Extension|set#field(self::Extension|method(self::Extension|get#field(#t139)), new self::Class::•());
+  c = let final self::Class #t140 = c{self::Class} in #t140.{core::Object::==}(null) ?{self::Class} null : let final self::Class #t141 = new self::Class::•() in let final void #t142 = self::Extension|set#field(self::Extension|method(self::Extension|get#field(#t140)), #t141) in #t141;
+  let final self::Class #t143 = c{self::Class} in #t143.{core::Object::==}(null) ?{self::Class} null : self::Extension|method(self::Extension|method(self::Extension|get#field(#t143)));
+  let final self::Class #t144 = c{self::Class} in #t144.{core::Object::==}(null) ?{self::Class?} null : self::Extension|set#field(#t144, self::Extension|get#field(self::Extension|method(new self::Class::•())));
+  c = let final self::Class #t145 = c{self::Class} in #t145.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t146 = self::Extension|get#field(self::Extension|method(new self::Class::•())) in let final void #t147 = self::Extension|set#field(#t145, #t146) in #t146;
+  let final self::Class? #t148 = c in #t148.{core::Object::==}(null) ?{self::Class} null : self::Extension|set#field(#t148{self::Class}, let final self::Class #t149 = new self::Class::•() in let final void #t150 = self::Extension|set#field(self::Extension|method(new self::Class::•()), #t149) in #t149);
+  c = let final self::Class? #t151 = c in #t151.{core::Object::==}(null) ?{self::Class} null : let final self::Class #t152 = let final self::Class #t153 = new self::Class::•() in let final void #t154 = self::Extension|set#field(self::Extension|method(new self::Class::•()), #t153) in #t153 in let final void #t155 = self::Extension|set#field(#t151{self::Class}, #t152) in #t152;
+  let final self::Class #t156 = c{self::Class} in #t156.{core::Object::==}(null) ?{self::Class} null : self::Extension|set#field(#t156, self::Extension|method(self::Extension|method(new self::Class::•())));
+  c = let final self::Class #t157 = c{self::Class} in #t157.{core::Object::==}(null) ?{self::Class} null : let final self::Class #t158 = self::Extension|method(self::Extension|method(new self::Class::•())) in let final void #t159 = self::Extension|set#field(#t157, #t158) in #t158;
+  let final self::Class #t160 = c{self::Class} in #t160.{core::Object::==}(null) ?{self::Class?} null : self::Extension|get#field(self::Extension|method(self::Extension|method(#t160)));
+  let final self::Class #t161 = c{self::Class} in #t161.{core::Object::==}(null) ?{self::Class} null : self::Extension|set#field(self::Extension|method(self::Extension|method(#t161)), new self::Class::•());
+  let final self::Class #t162 = c{self::Class} in #t162.{core::Object::==}(null) ?{self::Class} null : self::Extension|method(self::Extension|method(self::Extension|method(#t162)));
+  let final self::Class #t163 = c{self::Class} in #t163.{core::Object::==}(null) ?{self::Class} null : let final self::Class #t164 = self::Extension|method(#t163) in #t164.{core::Object::==}(null) ?{self::Class} null : self::Extension|method(#t164);
+}
+static method indexAccess(self::Class? c) → void {
+  let final self::Class? #t165 = c in #t165.{core::Object::==}(null) ?{self::Class?} null : self::Extension|[](#t165{self::Class}, c{self::Class});
+  let final self::Class? #t166 = c in #t166.{core::Object::==}(null) ?{self::Class} null : self::Extension|[]=(#t166{self::Class}, c{self::Class}, new self::Class::•());
+  let final self::Class? #t167 = c in #t167.{core::Object::==}(null) ?{self::Class} null : self::Extension|method(self::Extension|[](#t167{self::Class}, c{self::Class}));
+  let final self::Class? #t168 = c in #t168.{core::Object::==}(null) ?{self::Class?} null : self::Extension|[](self::Extension|get#field(#t168{self::Class}), c{self::Class});
+  let final self::Class? #t169 = c in #t169.{core::Object::==}(null) ?{self::Class} null : self::Extension|[]=(self::Extension|get#field(#t169{self::Class}), c{self::Class}, new self::Class::•());
+  c = let final self::Class? #t170 = c in #t170.{core::Object::==}(null) ?{self::Class} null : let final self::Class? #t171 = self::Extension|get#field(#t170{self::Class}) in let final self::Class #t172 = c{self::Class} in let final self::Class #t173 = new self::Class::•() in let final void #t174 = self::Extension|[]=(#t171, #t172, #t173) in #t173;
+  let final self::Class #t175 = c{self::Class} in #t175.{core::Object::==}(null) ?{self::Class} null : self::Extension|method(self::Extension|[](self::Extension|get#field(#t175), c{self::Class}));
+  let final self::Class #t176 = c{self::Class} in #t176.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t177 = self::Extension|get#field(#t176) in let final self::Class #t178 = c{self::Class} in self::Extension|[]=(#t177, #t178, self::Extension|+(self::Extension|[](#t177, #t178), 0));
+  c = let final self::Class #t179 = c{self::Class} in #t179.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t180 = self::Extension|get#field(#t179) in let final self::Class #t181 = c{self::Class} in let final self::Class? #t182 = self::Extension|+(self::Extension|[](#t180, #t181), 0) in let final void #t183 = self::Extension|[]=(#t180, #t181, #t182) in #t182;
+  let final self::Class? #t184 = c in #t184.{core::Object::==}(null) ?{self::Class?} null : let final self::Class #t185 = c{self::Class} in self::Extension|[](#t184{self::Class}, #t185).{core::Object::==}(null) ?{self::Class?} self::Extension|[]=(#t184{self::Class}, #t185, c{self::Class}) : null;
+  c = let final self::Class? #t186 = c in #t186.{core::Object::==}(null) ?{self::Class?} null : let final self::Class #t187 = c{self::Class} in let final self::Class? #t188 = self::Extension|[](#t186{self::Class}, #t187) in #t188.{core::Object::==}(null) ?{self::Class?} let final self::Class #t189 = c{self::Class} in let final void #t190 = self::Extension|[]=(#t186{self::Class}, #t187, #t189) in #t189 : #t188;
+  let final self::Class? #t191 = c in #t191.{core::Object::==}(null) ?{self::Class?} null : let final self::Class #t192 = c{self::Class} in self::Extension|[]=(#t191{self::Class}, #t192, self::Extension|+(self::Extension|[](#t191{self::Class}, #t192), 0));
+  c = let final self::Class? #t193 = c in #t193.{core::Object::==}(null) ?{self::Class?} null : let final self::Class #t194 = c{self::Class} in let final self::Class? #t195 = self::Extension|+(self::Extension|[](#t193{self::Class}, #t194), 0) in let final void #t196 = self::Extension|[]=(#t193{self::Class}, #t194, #t195) in #t195;
+  let final self::Class? #t197 = c in #t197.{core::Object::==}(null) ?{self::Class?} null : let final self::Class #t198 = c{self::Class} in self::Extension|[]=(#t197{self::Class}, #t198, self::Extension|+(self::Extension|[](#t197{self::Class}, #t198), 0));
+  c = let final self::Class? #t199 = c in #t199.{core::Object::==}(null) ?{self::Class?} null : let final self::Class #t200 = c{self::Class} in let final self::Class? #t201 = self::Extension|+(self::Extension|[](#t199{self::Class}, #t200), 0) in let final void #t202 = self::Extension|[]=(#t199{self::Class}, #t200, #t201) in #t201;
+  let final self::Class? #t203 = c in #t203.{core::Object::==}(null) ?{self::Class?} null : let final self::Class #t204 = c{self::Class} in self::Extension|[]=(#t203{self::Class}, #t204, self::Extension|+(self::Extension|[](#t203{self::Class}, #t204), 1));
+  c = let final self::Class? #t205 = c in #t205.{core::Object::==}(null) ?{self::Class?} null : let final self::Class #t206 = c{self::Class} in let final self::Class? #t207 = self::Extension|[](#t205{self::Class}, #t206) in let final void #t208 = self::Extension|[]=(#t205{self::Class}, #t206, self::Extension|+(#t207, 1)) in #t207;
+  let final self::Class? #t209 = c in #t209.{core::Object::==}(null) ?{self::Class?} null : let final self::Class #t210 = c{self::Class} in let final self::Class? #t211 = self::Extension|+(self::Extension|[](#t209{self::Class}, #t210), 1) in let final void #t212 = self::Extension|[]=(#t209{self::Class}, #t210, #t211) in #t211;
+  c = let final self::Class? #t213 = c in #t213.{core::Object::==}(null) ?{self::Class?} null : let final self::Class #t214 = c{self::Class} in let final self::Class? #t215 = self::Extension|+(self::Extension|[](#t213{self::Class}, #t214), 1) in let final void #t216 = self::Extension|[]=(#t213{self::Class}, #t214, #t215) in #t215;
+  let final self::Class? #t217 = c in #t217.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t218 = self::Extension|get#field(#t217{self::Class}) in let final self::Class #t219 = c{self::Class} in self::Extension|[]=(#t218, #t219, self::Extension|+(self::Extension|[](#t218, #t219), 1));
+  c = let final self::Class? #t220 = c in #t220.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t221 = self::Extension|get#field(#t220{self::Class}) in let final self::Class #t222 = c{self::Class} in let final self::Class? #t223 = self::Extension|[](#t221, #t222) in let final void #t224 = self::Extension|[]=(#t221, #t222, self::Extension|+(#t223, 1)) in #t223;
+  let final self::Class? #t225 = c in #t225.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t226 = self::Extension|get#field(#t225{self::Class}) in let final self::Class #t227 = c{self::Class} in let final self::Class? #t228 = self::Extension|+(self::Extension|[](#t226, #t227), 1) in let final void #t229 = self::Extension|[]=(#t226, #t227, #t228) in #t228;
+  c = let final self::Class? #t230 = c in #t230.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t231 = self::Extension|get#field(#t230{self::Class}) in let final self::Class #t232 = c{self::Class} in let final self::Class? #t233 = self::Extension|+(self::Extension|[](#t231, #t232), 1) in let final void #t234 = self::Extension|[]=(#t231, #t232, #t233) in #t233;
+  let final self::Class? #t235 = c in #t235.{core::Object::==}(null) ?{self::Class?} null : self::Extension|[](self::Extension|[](self::Extension|get#field(#t235{self::Class}), c{self::Class}), c{self::Class});
+  let final self::Class? #t236 = c in #t236.{core::Object::==}(null) ?{self::Class} null : self::Extension|[]=(self::Extension|[](self::Extension|get#field(#t236{self::Class}), c{self::Class}), c{self::Class}, new self::Class::•());
+  c = let final self::Class? #t237 = c in #t237.{core::Object::==}(null) ?{self::Class} null : let final self::Class? #t238 = self::Extension|[](self::Extension|get#field(#t237{self::Class}), c{self::Class}) in let final self::Class #t239 = c{self::Class} in let final self::Class #t240 = new self::Class::•() in let final void #t241 = self::Extension|[]=(#t238, #t239, #t240) in #t240;
+  let final self::Class #t242 = c{self::Class} in #t242.{core::Object::==}(null) ?{self::Class} null : self::Extension|method(self::Extension|[](self::Extension|[](self::Extension|get#field(#t242), c{self::Class}), c{self::Class}));
+  let final self::Class #t243 = c{self::Class} in #t243.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t244 = self::Extension|[](self::Extension|get#field(#t243), c{self::Class}) in let final self::Class #t245 = c{self::Class} in self::Extension|[]=(#t244, #t245, self::Extension|+(self::Extension|[](#t244, #t245), 0));
+  c = let final self::Class #t246 = c{self::Class} in #t246.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t247 = self::Extension|[](self::Extension|get#field(#t246), c{self::Class}) in let final self::Class #t248 = c{self::Class} in let final self::Class? #t249 = self::Extension|+(self::Extension|[](#t247, #t248), 0) in let final void #t250 = self::Extension|[]=(#t247, #t248, #t249) in #t249;
+  let final self::Class? #t251 = c in #t251.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t252 = self::Extension|[](self::Extension|get#field(#t251{self::Class}), c{self::Class}) in let final self::Class #t253 = c{self::Class} in self::Extension|[]=(#t252, #t253, self::Extension|+(self::Extension|[](#t252, #t253), 1));
+  c = let final self::Class? #t254 = c in #t254.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t255 = self::Extension|[](self::Extension|get#field(#t254{self::Class}), c{self::Class}) in let final self::Class #t256 = c{self::Class} in let final self::Class? #t257 = self::Extension|[](#t255, #t256) in let final void #t258 = self::Extension|[]=(#t255, #t256, self::Extension|+(#t257, 1)) in #t257;
+  let final self::Class? #t259 = c in #t259.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t260 = self::Extension|[](self::Extension|get#field(#t259{self::Class}), c{self::Class}) in let final self::Class #t261 = c{self::Class} in let final self::Class? #t262 = self::Extension|+(self::Extension|[](#t260, #t261), 1) in let final void #t263 = self::Extension|[]=(#t260, #t261, #t262) in #t262;
+  c = let final self::Class? #t264 = c in #t264.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t265 = self::Extension|[](self::Extension|get#field(#t264{self::Class}), c{self::Class}) in let final self::Class #t266 = c{self::Class} in let final self::Class? #t267 = self::Extension|+(self::Extension|[](#t265, #t266), 1) in let final void #t268 = self::Extension|[]=(#t265, #t266, #t267) in #t267;
+  let final self::Class? #t269 = c in #t269.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t270 = self::Extension|[](#t269{self::Class}, c{self::Class}) in #t270.{core::Object::==}(null) ?{self::Class?} null : self::Extension|[](#t270{self::Class}, c{self::Class});
+  let final self::Class? #t271 = c in #t271.{core::Object::==}(null) ?{self::Class} null : let final self::Class? #t272 = self::Extension|[](#t271{self::Class}, c{self::Class}) in #t272.{core::Object::==}(null) ?{self::Class} null : self::Extension|[]=(#t272{self::Class}, c{self::Class}, new self::Class::•());
+  c = let final self::Class? #t273 = c in #t273.{core::Object::==}(null) ?{self::Class} null : let final self::Class? #t274 = self::Extension|[](#t273{self::Class}, c{self::Class}) in #t274.{core::Object::==}(null) ?{self::Class} null : let final self::Class #t275 = c{self::Class} in let final self::Class #t276 = new self::Class::•() in let final void #t277 = self::Extension|[]=(#t274{self::Class}, #t275, #t276) in #t276;
+  let final self::Class #t278 = c{self::Class} in #t278.{core::Object::==}(null) ?{self::Class} null : let final self::Class? #t279 = self::Extension|[](#t278, c{self::Class}) in #t279.{core::Object::==}(null) ?{self::Class} null : self::Extension|method(self::Extension|[](#t279{self::Class}, c{self::Class}));
+  c = let final self::Class #t280 = c{self::Class} in #t280.{core::Object::==}(null) ?{self::Class} null : let final self::Class? #t281 = self::Extension|[](#t280, c{self::Class}) in #t281.{core::Object::==}(null) ?{self::Class} null : self::Extension|method(self::Extension|[](#t281{self::Class}, c{self::Class}));
+  let final self::Class #t282 = c{self::Class} in #t282.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t283 = self::Extension|[](#t282, c{self::Class}) in #t283.{core::Object::==}(null) ?{self::Class?} null : let final self::Class #t284 = c{self::Class} in self::Extension|[](#t283{self::Class}, #t284).{core::Object::==}(null) ?{self::Class?} self::Extension|[]=(#t283{self::Class}, #t284, c{self::Class}) : null;
+  c = let final self::Class #t285 = c{self::Class} in #t285.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t286 = self::Extension|[](#t285, c{self::Class}) in #t286.{core::Object::==}(null) ?{self::Class?} null : let final self::Class #t287 = c{self::Class} in let final self::Class? #t288 = self::Extension|[](#t286{self::Class}, #t287) in #t288.{core::Object::==}(null) ?{self::Class?} let final self::Class #t289 = c{self::Class} in let final void #t290 = self::Extension|[]=(#t286{self::Class}, #t287, #t289) in #t289 : #t288;
+  let final self::Class? #t291 = c in #t291.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t292 = self::Extension|[](#t291{self::Class}, c{self::Class}) in #t292.{core::Object::==}(null) ?{self::Class?} null : let final self::Class #t293 = c{self::Class} in self::Extension|[]=(#t292{self::Class}, #t293, self::Extension|+(self::Extension|[](#t292{self::Class}, #t293), 0));
+  c = let final self::Class? #t294 = c in #t294.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t295 = self::Extension|[](#t294{self::Class}, c{self::Class}) in #t295.{core::Object::==}(null) ?{self::Class?} null : let final self::Class #t296 = c{self::Class} in let final self::Class? #t297 = self::Extension|+(self::Extension|[](#t295{self::Class}, #t296), 0) in let final void #t298 = self::Extension|[]=(#t295{self::Class}, #t296, #t297) in #t297;
+  let final self::Class? #t299 = c in #t299.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t300 = self::Extension|[](#t299{self::Class}, c{self::Class}) in #t300.{core::Object::==}(null) ?{self::Class?} null : let final self::Class #t301 = c{self::Class} in self::Extension|[]=(#t300{self::Class}, #t301, self::Extension|+(self::Extension|[](#t300{self::Class}, #t301), 1));
+  c = let final self::Class? #t302 = c in #t302.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t303 = self::Extension|[](#t302{self::Class}, c{self::Class}) in #t303.{core::Object::==}(null) ?{self::Class?} null : let final self::Class #t304 = c{self::Class} in let final self::Class? #t305 = self::Extension|[](#t303{self::Class}, #t304) in let final void #t306 = self::Extension|[]=(#t303{self::Class}, #t304, self::Extension|+(#t305, 1)) in #t305;
+  let final self::Class? #t307 = c in #t307.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t308 = self::Extension|[](#t307{self::Class}, c{self::Class}) in #t308.{core::Object::==}(null) ?{self::Class?} null : let final self::Class #t309 = c{self::Class} in let final self::Class? #t310 = self::Extension|+(self::Extension|[](#t308{self::Class}, #t309), 1) in let final void #t311 = self::Extension|[]=(#t308{self::Class}, #t309, #t310) in #t310;
+  c = let final self::Class? #t312 = c in #t312.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t313 = self::Extension|[](#t312{self::Class}, c{self::Class}) in #t313.{core::Object::==}(null) ?{self::Class?} null : let final self::Class #t314 = c{self::Class} in let final self::Class? #t315 = self::Extension|+(self::Extension|[](#t313{self::Class}, #t314), 1) in let final void #t316 = self::Extension|[]=(#t313{self::Class}, #t314, #t315) in #t315;
+}
+static method operatorAccess(self::Class? c) → void {
+  self::throws(() → self::Class? => self::Extension|+(let final self::Class? #t317 = c in #t317.{core::Object::==}(null) ?{self::Class?} null : self::Extension|get#field(#t317{self::Class}), 0));
+  self::throws(() → self::Class? => self::Extension|unary-(let final self::Class? #t318 = c in #t318.{core::Object::==}(null) ?{self::Class?} null : self::Extension|get#field(#t318{self::Class})));
+  let final self::Class? #t319 = c in #t319.{core::Object::==}(null) ?{self::Class?} null : self::Extension|set#field(#t319, self::Extension|+(self::Extension|get#field(#t319), 0));
+  c = let final self::Class? #t320 = c in #t320.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t321 = self::Extension|+(self::Extension|get#field(#t320), 0) in let final void #t322 = self::Extension|set#field(#t320, #t321) in #t321;
+  let final self::Class? #t323 = c in #t323.{core::Object::==}(null) ?{self::Class?} null : let final self::Class #t324 = self::Extension|get#property(#t323{self::Class}) in self::Extension|set#field(#t324, self::Extension|+(self::Extension|get#field(#t324), 0));
+  c = let final self::Class? #t325 = c in #t325.{core::Object::==}(null) ?{self::Class?} null : let final self::Class #t326 = self::Extension|get#property(#t325{self::Class}) in let final self::Class? #t327 = self::Extension|+(self::Extension|get#field(#t326), 0) in let final void #t328 = self::Extension|set#field(#t326, #t327) in #t327;
+  let final self::Class? #t329 = c in #t329.{core::Object::==}(null) ?{self::Class?} null : self::Extension|set#field(#t329, self::Extension|+(self::Extension|get#field(#t329), 1));
+  c = let final self::Class? #t330 = c in #t330.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t331 = self::Extension|get#field(#t330) in let final void #t332 = self::Extension|set#field(#t330, self::Extension|+(#t331, 1)) in #t331;
+  let final self::Class? #t333 = c in #t333.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t334 = self::Extension|+(self::Extension|get#field(#t333), 1) in let final void #t335 = self::Extension|set#field(#t333, #t334) in #t334;
+  c = let final self::Class? #t336 = c in #t336.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t337 = self::Extension|+(self::Extension|get#field(#t336), 1) in let final void #t338 = self::Extension|set#field(#t336, #t337) in #t337;
+}
+static method ifNull(self::Class? c) → void {
+  let final self::Class? #t339 = c in #t339.{core::Object::==}(null) ?{self::Class?} null : self::Extension|get#field(#t339).{core::Object::==}(null) ?{self::Class?} self::Extension|set#field(#t339, c{self::Class}) : null;
+  c = let final self::Class? #t340 = c in #t340.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t341 = self::Extension|get#field(#t340) in #t341.{core::Object::==}(null) ?{self::Class?} let final self::Class #t342 = c{self::Class} in let final void #t343 = self::Extension|set#field(#t340, #t342) in #t342 : #t341;
+  let final self::Class? #t344 = c in #t344.{core::Object::==}(null) ?{self::Class?} null : let final self::Class #t345 = self::Extension|get#property(#t344{self::Class}) in self::Extension|get#field(#t345).{core::Object::==}(null) ?{self::Class?} self::Extension|set#field(#t345, c{self::Class}) : null;
+  c = let final self::Class? #t346 = c in #t346.{core::Object::==}(null) ?{self::Class?} null : let final self::Class #t347 = self::Extension|get#property(#t346{self::Class}) in let final self::Class? #t348 = self::Extension|get#field(#t347) in #t348.{core::Object::==}(null) ?{self::Class?} let final self::Class #t349 = c{self::Class} in let final void #t350 = self::Extension|set#field(#t347, #t349) in #t349 : #t348;
+  let final self::Class? #t351 = c in #t351.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t352 = self::Extension|get#field(#t351{self::Class}) in let final self::Class #t353 = c{self::Class} in self::Extension|[](#t352, #t353).{core::Object::==}(null) ?{self::Class?} self::Extension|[]=(#t352, #t353, c{self::Class}) : null;
+  c = let final self::Class? #t354 = c in #t354.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t355 = self::Extension|get#field(#t354{self::Class}) in let final self::Class #t356 = c{self::Class} in let final self::Class? #t357 = self::Extension|[](#t355, #t356) in #t357.{core::Object::==}(null) ?{self::Class?} let final self::Class #t358 = c{self::Class} in let final void #t359 = self::Extension|[]=(#t355, #t356, #t358) in #t358 : #t357;
+}
+static method throws(() → void f) → void {
+  try {
+    f.call();
+  }
+  on dynamic catch(final dynamic _) {
+    return;
+  }
+  throw "Expected exception.";
+}

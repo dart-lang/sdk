@@ -37,6 +37,8 @@ import 'package:front_end/src/base/processed_options.dart'
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 
+import 'package:front_end/src/base/command_line_options.dart';
+
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
 import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
@@ -142,9 +144,12 @@ const String experimentalFlagOptions = '--enable-experiment=';
 class TestOptions {
   final Map<ExperimentalFlag, bool> experimentalFlags;
   final bool forceLateLowering;
+  final bool forceNnbdChecks;
 
-  TestOptions(this.experimentalFlags, {this.forceLateLowering})
-      : assert(forceLateLowering != null);
+  TestOptions(this.experimentalFlags,
+      {this.forceLateLowering, this.forceNnbdChecks})
+      : assert(forceLateLowering != null),
+        assert(forceNnbdChecks != null);
 
   Map<ExperimentalFlag, bool> computeExperimentalFlags(
       Map<ExperimentalFlag, bool> forcedExperimentalFlags) {
@@ -162,6 +167,7 @@ class FastaContext extends ChainContext with MatchContext {
   final Map<ExperimentalFlag, bool> experimentalFlags;
   final bool skipVm;
   final bool verify;
+  final bool weak;
   final Map<Component, KernelTarget> componentToTarget =
       <Component, KernelTarget>{};
   final Map<Component, StringBuffer> componentToDiagnostics =
@@ -192,19 +198,29 @@ class FastaContext extends ChainContext with MatchContext {
       bool kernelTextSerialization,
       this.uriTranslator,
       bool fullCompile,
-      this.verify)
+      this.verify,
+      this.weak)
       : steps = <Step>[
           new Outline(fullCompile, updateComments: updateComments),
           const Print(),
           new Verify(fullCompile)
         ] {
+    String fullPrefix;
+    String outlinePrefix;
+    if (weak) {
+      fullPrefix = '.weak';
+      outlinePrefix = '.weak.outline';
+    } else {
+      fullPrefix = '.strong';
+      outlinePrefix = '.outline';
+    }
     if (!ignoreExpectations) {
       steps.add(new MatchExpectation(
-          fullCompile ? ".strong.expect" : ".outline.expect",
+          fullCompile ? "$fullPrefix.expect" : "$outlinePrefix.expect",
           serializeFirst: false));
       if (!updateExpectations) {
         steps.add(new MatchExpectation(
-            fullCompile ? ".strong.expect" : ".outline.expect",
+            fullCompile ? "$fullPrefix.expect" : "$outlinePrefix.expect",
             serializeFirst: true));
       }
     }
@@ -218,14 +234,14 @@ class FastaContext extends ChainContext with MatchContext {
       if (!ignoreExpectations) {
         steps.add(new MatchExpectation(
             fullCompile
-                ? ".strong.transformed.expect"
-                : ".outline.transformed.expect",
+                ? "$fullPrefix.transformed.expect"
+                : "$outlinePrefix.transformed.expect",
             serializeFirst: false));
         if (!updateExpectations) {
           steps.add(new MatchExpectation(
               fullCompile
-                  ? ".strong.transformed.expect"
-                  : ".outline.transformed.expect",
+                  ? "$fullPrefix.transformed.expect"
+                  : "$outlinePrefix.transformed.expect",
               serializeFirst: true));
         }
       }
@@ -247,6 +263,7 @@ class FastaContext extends ChainContext with MatchContext {
     TestOptions testOptions = _testOptions[directory.uri];
     if (testOptions == null) {
       bool forceLateLowering = false;
+      bool forceNnbdChecks = false;
       List<String> experimentalFlagsArguments = [];
       File optionsFile =
           new File.fromUri(directory.uri.resolve('test.options'));
@@ -256,8 +273,10 @@ class FastaContext extends ChainContext with MatchContext {
           if (line.startsWith(experimentalFlagOptions)) {
             experimentalFlagsArguments =
                 line.substring(experimentalFlagOptions.length).split('\n');
-          } else if (line.startsWith('--force-late-lowering')) {
+          } else if (line.startsWith(Flags.forceLateLowering)) {
             forceLateLowering = true;
+          } else if (line.startsWith(Flags.forceNnbdChecks)) {
+            forceNnbdChecks = true;
           } else if (line.isNotEmpty) {
             throw new UnsupportedError("Unsupported test option '$line'");
           }
@@ -268,7 +287,8 @@ class FastaContext extends ChainContext with MatchContext {
               parseExperimentalArguments(experimentalFlagsArguments),
               onError: (String message) => throw new ArgumentError(message),
               onWarning: (String message) => throw new ArgumentError(message)),
-          forceLateLowering: forceLateLowering);
+          forceLateLowering: forceLateLowering,
+          forceNnbdChecks: forceNnbdChecks);
       _testOptions[directory.uri] = testOptions;
     }
     return testOptions;
@@ -331,6 +351,7 @@ class FastaContext extends ChainContext with MatchContext {
     addForcedExperimentalFlag(
         "enableNonNullable", ExperimentalFlag.nonNullable);
 
+    bool weak = environment["weak"] == "true";
     var options = new ProcessedOptions(
         options: new CompilerOptions()
           ..onDiagnostic = (DiagnosticMessage message) {
@@ -339,7 +360,8 @@ class FastaContext extends ChainContext with MatchContext {
           ..sdkRoot = sdk
           ..packagesFileUri = packages
           ..environmentDefines = {}
-          ..experimentalFlags = experimentalFlags);
+          ..experimentalFlags = experimentalFlags
+          ..nnbdStrongMode = !weak);
     UriTranslator uriTranslator = await options.getUriTranslator();
     bool onlyCrashes = environment["onlyCrashes"] == "true";
     bool ignoreExpectations = environment["ignoreExpectations"] == "true";
@@ -367,7 +389,8 @@ class FastaContext extends ChainContext with MatchContext {
         kernelTextSerialization,
         uriTranslator,
         environment.containsKey(ENABLE_FULL_COMPILE),
-        verify);
+        verify,
+        weak);
   }
 }
 
@@ -425,7 +448,9 @@ class Outline extends Step<TestDescription, Component, FastaContext> {
           }
           ..environmentDefines = {}
           ..experimentalFlags =
-              testOptions.computeExperimentalFlags(context.experimentalFlags),
+              testOptions.computeExperimentalFlags(context.experimentalFlags)
+          ..performNnbdChecks = testOptions.forceNnbdChecks
+          ..nnbdStrongMode = !context.weak,
         inputs: <Uri>[description.uri]);
     return await CompilerContext.runWithOptions(options, (_) async {
       // Disable colors to ensure that expectation files are the same across

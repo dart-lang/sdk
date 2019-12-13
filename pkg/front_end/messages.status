@@ -445,6 +445,10 @@ NotAType/example: Fail
 NotAnLvalue/example: Fail
 NotBinaryOperator/analyzerCode: Fail
 NotConstantExpression/example: Fail
+NullablePropertyGetError/analyzerCode: Fail
+NullablePropertyGetError/example: Fail
+NullablePropertyGetWarning/analyzerCode: Fail
+NullablePropertyGetWarning/example: Fail
 NullAwareCascadeOutOfOrder/example: Fail
 OperatorMinusParameterMismatch/example: Fail
 OperatorParameterMismatch0/analyzerCode: Fail

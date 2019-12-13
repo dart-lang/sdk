@@ -3734,3 +3734,12 @@ MultipleVarianceModifiers:
   template: "Each type parameter can have at most one variance modifier."
   tip: "Use at most one of the 'in', 'out', or 'inout' modifiers."
   analyzerCode: ParserErrorCode.MULTIPLE_VARIANCE_MODIFIERS
+
+NullablePropertyGetError:
+  template: "Property '#name' cannot be accessed on '#type' because it is potentially null."
+  tip: "Try accessing using ?. instead."
+
+NullablePropertyGetWarning:
+  template: "Property '#name' is accessed on '#type' which is potentially null."
+  tip: "Try accessing using ?. instead."
+  severity: WARNING

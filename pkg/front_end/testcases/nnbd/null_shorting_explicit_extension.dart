@@ -12,7 +12,7 @@ extension Extension on Class {
     _field = value;
   }
 
-  Class? method() => field;
+  Class method() => property;
 
   Class? operator [](Class? key) => field;
   void operator []=(Class? key, Class? value) {
@@ -22,6 +22,8 @@ extension Extension on Class {
   Class? operator +(int value) => field;
 
   Class? operator -() => field;
+
+  Class get property => this;
 }
 
 main() {
@@ -37,18 +39,18 @@ void propertyAccess(Class? c) {
   c = Extension(c)?.field = new Class();
   Extension(c)?.method();
 
-  Extension(c)?.field.field;
+  Extension(c)?.property.field;
   Extension(c)?.field?.field;
-  Extension(c)?.field.field?.field;
-  Extension(c)?.field.field = new Class();
+  Extension(c)?.property.field?.field;
+  Extension(c)?.property.field = new Class();
   Extension(c)?.field?.field = new Class();
-  Extension(c)?.field.field?.field = new Class();
+  Extension(c)?.property.field?.field = new Class();
   throws(() => (Extension(c)?.field).field);
   throws(() => (Extension(c)?.field = new Class()).field);
   throws(() => (Extension(c)?.method()).field);
-  c = Extension(c)?.field.field = new Class();
+  c = Extension(c)?.property.field = new Class();
   c = Extension(c)?.field?.field = new Class();
-  c = Extension(c)?.field.field?.field = new Class();
+  c = Extension(c)?.property.field?.field = new Class();
   Extension(c)?.field.method();
   Extension(c)?.field = new Class().field;
   c = Extension(c)?.field = new Class().field;
@@ -60,26 +62,26 @@ void propertyAccess(Class? c) {
   Extension(c)?.method().field = new Class();
   Extension(c)?.method().method();
 
-  Extension(c)?.field.field.field;
-  Extension(c)?.field.field.field = new Class();
-  c = Extension(c)?.field.field.field = new Class();
-  Extension(c)?.field.field.method();
-  Extension(c)?.field = new Class().field.field;
-  c = Extension(c)?.field = new Class().field.field;
-  Extension(c)?.field = new Class().field.field = new Class();
-  c = Extension(c)?.field = new Class().field.field = new Class();
-  Extension(c)?.field = new Class().field.method();
-  c = Extension(c)?.field = new Class().field.method();
-  Extension(c)?.method().field.field;
-  Extension(c)?.method().field.field = new Class();
+  Extension(c)?.property.property.field;
+  Extension(c)?.property.property.field = new Class();
+  c = Extension(c)?.property.property.field = new Class();
+  Extension(c)?.property.property.method();
+  Extension(c)?.field = new Class().property.field;
+  c = Extension(c)?.field = new Class().property.field;
+  Extension(c)?.field = new Class().property.field = new Class();
+  c = Extension(c)?.field = new Class().property.field = new Class();
+  Extension(c)?.field = new Class().property.method();
+  c = Extension(c)?.field = new Class().property.method();
+  Extension(c)?.method().property.field;
+  Extension(c)?.method().property.field = new Class();
   Extension(c)?.method().field.method();
 
-  Extension(c)?.field.field = new Class().field;
-  c = Extension(c)?.field.field = new Class().field;
-  Extension(c)?.field.field = new Class().field = new Class();
-  c = Extension(c)?.field.field = new Class().field = new Class();
-  Extension(c)?.field.field = new Class().method();
-  c = Extension(c)?.field.field = new Class().method();
+  Extension(c)?.property.field = new Class().field;
+  c = Extension(c)?.property.field = new Class().field;
+  Extension(c)?.property.field = new Class().field = new Class();
+  c = Extension(c)?.property.field = new Class().field = new Class();
+  Extension(c)?.property.field = new Class().method();
+  c = Extension(c)?.property.field = new Class().method();
   Extension(c)?.field = new Class().field = new Class().field;
   c = Extension(c)?.field = new Class().field = new Class().field;
   Extension(c)?.field = new Class().field = new Class().field = new Class();
@@ -93,10 +95,10 @@ void propertyAccess(Class? c) {
   Extension(c)?.method().field = new Class().method();
   c = Extension(c)?.method().field = new Class().method();
 
-  Extension(c)?.field.method().field;
-  Extension(c)?.field.method().field = new Class();
-  c = Extension(c)?.field.method().field = new Class();
-  Extension(c)?.field.method().method();
+  Extension(c)?.property.method().field;
+  Extension(c)?.property.method().field = new Class();
+  c = Extension(c)?.property.method().field = new Class();
+  Extension(c)?.property.method().method();
   Extension(c)?.field = new Class().method().field;
   c = Extension(c)?.field = new Class().method().field;
   Extension(c)?.field = new Class().method().field = new Class();
@@ -175,8 +177,8 @@ void operatorAccess(Class? c) {
   throws(() => -Extension(c)?.field);
   Extension(c)?.field += 0;
   c = Extension(c)?.field += 0;
-  Extension(c)?.field.field += 0;
-  c = Extension(c)?.field.field += 0;
+  Extension(c)?.property.field += 0;
+  c = Extension(c)?.property.field += 0;
   // TODO(johnniwinther): ++ should probably not be null-shorted, awaiting spec
   // update.
   Extension(c)?.field++;
@@ -188,8 +190,8 @@ void operatorAccess(Class? c) {
 void ifNull(Class? c) {
   Extension(c)?.field ??= c;
   c = Extension(c)?.field ??= c;
-  Extension(c)?.field.field ??= c;
-  c = Extension(c)?.field.field ??= c;
+  Extension(c)?.property.field ??= c;
+  c = Extension(c)?.property.field ??= c;
   Extension(c)?.field[c] ??= c;
   c = Extension(c)?.field[c] ??= c;
 }
