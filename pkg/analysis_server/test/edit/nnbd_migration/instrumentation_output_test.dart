@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/edit/nnbd_migration/instrumentation_renderer.dart';
+import 'dart:convert' show jsonDecode;
+
+import 'package:analysis_server/src/edit/nnbd_migration/unit_renderer.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/migration_info.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/path_mapper.dart';
 import 'package:test/test.dart';
@@ -28,16 +30,14 @@ class InstrumentationRendererTest extends AbstractAnalysisTest {
         libraryInfo.units, {}, resourceProvider.pathContext, packageRoot);
     List<String> contents = [];
     for (UnitInfo unitInfo in libraryInfo.units) {
-      contents.add(InstrumentationRenderer(
-              unitInfo, migrationInfo, PathMapper(resourceProvider))
-          .render());
+      contents.add(
+          UnitRenderer(unitInfo, migrationInfo, PathMapper(resourceProvider))
+              .render());
     }
     return contents;
   }
 
   test_outputContainsEachPath() async {
-    String convert(String path) => path.replaceAll('/', '&#x2F;');
-
     LibraryInfo info = LibraryInfo({
       unit('/package/lib/a.dart', 'int? a = null;',
           regions: [RegionInfo(RegionType.fix, 3, 1, 'null was assigned', [])]),
@@ -47,9 +47,15 @@ class InstrumentationRendererTest extends AbstractAnalysisTest {
           regions: [RegionInfo(RegionType.fix, 3, 1, 'null was assigned', [])]),
     });
     List<String> contents = renderLibrary(info);
-    expect(contents[0], contains(convert('lib/a.dart')));
-    expect(contents[1], contains(convert('lib/part1.dart')));
-    expect(contents[2], contains(convert('lib/part2.dart')));
+    var outputJson0 = contents[0];
+    var output0 = jsonDecode(outputJson0);
+    expect(output0['thisUnit'], equals('lib/a.dart'));
+    var outputJson1 = contents[1];
+    var output1 = jsonDecode(outputJson1);
+    expect(output1['thisUnit'], contains('lib/part1.dart'));
+    var outputJson2 = contents[2];
+    var output2 = jsonDecode(outputJson2);
+    expect(output2['thisUnit'], contains('lib/part2.dart'));
   }
 
   test_outputContainsEscapedHtml() async {
@@ -58,9 +64,10 @@ class InstrumentationRendererTest extends AbstractAnalysisTest {
         RegionInfo(RegionType.fix, 12, 1, 'null was assigned', [])
       ]),
     });
-    String output = renderLibrary(info)[0];
+    var outputJson = renderLibrary(info)[0];
+    var output = jsonDecode(outputJson);
     expect(
-        output,
+        output['regions'],
         contains('List&lt;String&gt;<span class="region fix-region">?'
             '<span class="tooltip"><p>null was assigned</p>'
             '</span></span> a = null;'));
@@ -70,8 +77,9 @@ class InstrumentationRendererTest extends AbstractAnalysisTest {
     LibraryInfo info = LibraryInfo({
       unit('/package/lib/a.dart', 'bool a = true && false;', regions: []),
     });
-    String output = renderLibrary(info)[0];
-    expect(output, contains('bool a = true &amp;&amp; false;'));
+    var outputJson = renderLibrary(info)[0];
+    var output = jsonDecode(outputJson);
+    expect(output['regions'], contains('bool a = true &amp;&amp; false;'));
   }
 
   test_outputContainsModifiedAndUnmodifiedRegions() async {
@@ -79,9 +87,10 @@ class InstrumentationRendererTest extends AbstractAnalysisTest {
       unit('/package/lib/a.dart', 'int? a = null;',
           regions: [RegionInfo(RegionType.fix, 3, 1, 'null was assigned', [])]),
     });
-    String output = renderLibrary(info)[0];
+    var outputJson = renderLibrary(info)[0];
+    var output = jsonDecode(outputJson);
     expect(
-        output,
+        output['regions'],
         contains('int<span class="region fix-region">?'
             '<span class="tooltip"><p>null was assigned</p>'
             '</span></span> a = null;'));

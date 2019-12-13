@@ -10,7 +10,7 @@ body {
   /* This allows very small files to be displayed lower than the very top of the
    * screen.
    */
-  margin-bottom; 100px;
+  margin-bottom: 100px;
   padding: 0.5em;
 }
 
@@ -20,7 +20,7 @@ h1 {
   margin: 0;
 }
 
-h2 {
+h2.unit-name {
   font-size: 1.2em;
   font-weight: 600;
   margin: 0;
@@ -28,7 +28,45 @@ h2 {
 
 .horizontal {
   display: flex;
-  flex-wrap: wrap-reverse;
+  flex-wrap: wrap;
+}
+
+
+.nav-link {
+  cursor: pointer;
+}
+
+.nav {
+  background-color: #282b2e;
+  flex-basis: 0;
+  flex-grow: 1;
+  font-size: 14px;
+  /* 10px to match exact top margin of .content.
+   * 0.8em to pair with the -0.5em margin of .content, producing a net margin
+   * between the two of 0.3em.
+   */
+  margin: 10px 0.8em 10px 0;
+  padding: 0.5em;
+}
+
+.nav :first-child {
+  margin-top: 0;
+}
+
+.nav .root {
+  margin: 0;
+}
+
+.nav .nav-link {
+  color: #33ccff;
+  margin-left: 1em;
+}
+
+.nav .selected-file {
+  color: white;
+  cursor: inherit;
+  font-weight: 600;
+  text-decoration: none;
 }
 
 .content {
@@ -49,21 +87,22 @@ h2 {
    * regions.
    */
   line-height: 1.3;
+  min-height: 600px;
   padding-left: 60px;
   position: inherit;
 }
 
-.code a:link {
+.code .nav-link {
   color: inherit;
   text-decoration-line: none;
 }
 
-.code a:visited {
+.code .nav-link:visited {
   color: inherit;
   text-decoration-line: none;
 }
 
-.code a:hover {
+.code .nav-link:hover {
   text-decoration-line: underline;
   font-weight: 600;
 }
@@ -152,43 +191,6 @@ h2 {
   opacity: 100%;
   transition: opacity 150ms;
   visibility: visible;
-}
-
-.nav {
-  background-color: #282b2e;
-  flex-basis: 0;
-  flex-grow: 1;
-  font-size: 14px;
-  /* 10px to match exact top margin of .content.
-   * 0.8em to pair with the -0.5em margin of .content, producing a net margin
-   * between the two of 0.3em.
-   */
-  margin: 10px 0.8em;
-  padding: 0.5em;
-}
-
-.nav :first-child {
-  margin-top: 0;
-}
-
-.nav .root {
-  margin: 0;
-}
-
-.nav .file-name {
-  margin-left: 1em;
-}
-
-.nav a:link {
-  color: #33ccff;
-}
-
-.nav a:visited {
-  color: #33ccff;
-}
-
-.nav .selected-file {
-  font-weight: 600;
 }
 
 .target {

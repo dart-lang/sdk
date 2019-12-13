@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/edit/nnbd_migration/instrumentation_renderer.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/migration_info.dart';
+import 'package:analysis_server/src/edit/nnbd_migration/unit_renderer.dart';
 import 'package:analysis_server/src/edit/preview/preview_page.dart';
 import 'package:analysis_server/src/edit/preview/preview_site.dart';
 
@@ -26,8 +26,8 @@ class DartFilePage extends PreviewPage {
 
   @override
   Future<void> generatePage(Map<String, String> params) async {
-    InstrumentationRenderer renderer =
-        InstrumentationRenderer(unitInfo, site.migrationInfo, site.pathMapper);
+    UnitRenderer renderer =
+        UnitRenderer(unitInfo, site.migrationInfo, site.pathMapper);
     buf.write(renderer.render());
   }
 }
