@@ -37,6 +37,10 @@ The Linter was updated to `0.1.106`, which includes:
 
 #### Pub
 
+* `pub get` and `pub upgrade` no longer precompiles executables from
+  dependencies by default. Instead they are precompiled on first `pub run`.
+  Use `pub get --precompile` to get the previous behavior.
+
 ## 2.7.0 - 2019-12-11
 
 **Extension methods** -- which we shipped in preview in 2.6.0 -- are no longer
