@@ -7,7 +7,7 @@
 
 import 'package:path/path.dart' as p;
 
-const _legacyRootDirs = const [
+const legacyRootDirs = const [
   "corelib_2",
   "language_2",
   "lib_2",
@@ -25,7 +25,9 @@ String toNnbdDirectory(String legacyDir) {
 
 /// Given a path within a legacy directory, returns the corresponding NNBD path.
 String toNnbdPath(String legacyPath) {
-  for (var dir in _legacyRootDirs) {
+  for (var dir in legacyRootDirs) {
+    if (legacyPath == dir) return toNnbdDirectory(dir);
+
     if (p.isWithin(dir, legacyPath)) {
       var relative = p.relative(legacyPath, from: dir);
       return p.join(toNnbdDirectory(dir), relative);

@@ -80,7 +80,7 @@ void _copyFiles(String testDir) {
   print("Next, commit the new files and upload a new CL with them:");
   print("");
   print(bold("  git add ."));
-  print(bold("  git commit -m \"Copy files from $testDir\"."));
+  print(bold("  git commit -m \"Migrate $testDir to NNBD\"."));
   print(bold("  git cl upload --bypass-hooks"));
   _showNextStep("Then use analyzer to migrate the files", "analyze", testDir);
 }
@@ -91,7 +91,7 @@ void _analyzeFiles(String testDir) {
     print(
         "Next, commit the changed files and upload a new patchset with them:");
     print(bold("  git add ."));
-    print(bold("  git commit -m \"Migrate files from $testDir\"."));
+    print(bold("  git commit -m \"Apply changes needed for NNBD\"."));
     print(bold("  git cl upload --bypass-hooks"));
     print("");
     print("Finally, send that out for code review and land the changes!");
