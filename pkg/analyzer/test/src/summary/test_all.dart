@@ -8,7 +8,6 @@ import 'api_signature_test.dart' as api_signature;
 import 'dependency_walker_test.dart' as dependency_walker;
 import 'flat_buffers_test.dart' as flat_buffers;
 import 'in_summary_source_test.dart' as in_summary_source;
-import 'name_filter_test.dart' as name_filter;
 import 'resynthesize_ast2_test.dart' as resynthesize_ast2;
 import 'top_level_inference_test.dart' as top_level_inference;
 
@@ -18,7 +17,6 @@ main() {
     dependency_walker.main();
     flat_buffers.main();
     in_summary_source.main();
-    name_filter.main();
     resynthesize_ast2.main();
     top_level_inference.main();
   }, name: 'summary');

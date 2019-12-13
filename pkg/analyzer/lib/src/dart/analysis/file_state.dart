@@ -29,7 +29,6 @@ import 'package:analyzer/src/source/source_resource.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
-import 'package:analyzer/src/summary/name_filter.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:convert/convert.dart';
@@ -125,7 +124,6 @@ class FileState {
   List<FileState> _exportedFiles;
   List<FileState> _partedFiles;
   List<FileState> _libraryFiles;
-  List<NameFilter> _exportFilters;
 
   Set<FileState> _directReferencedFiles;
   Set<FileState> _directReferencedLibraries;
@@ -472,7 +470,6 @@ class FileState {
     _importedFiles = <FileState>[];
     _exportedFiles = <FileState>[];
     _partedFiles = <FileState>[];
-    _exportFilters = <NameFilter>[];
     for (var directive in _unlinked2.imports) {
       var uri = _selectRelativeUri(directive);
       var file = _fileForRelativeUri(uri);
@@ -482,8 +479,6 @@ class FileState {
       var uri = _selectRelativeUri(directive);
       var file = _fileForRelativeUri(uri);
       _exportedFiles.add(file);
-      // TODO(scheglov) implement
-      _exportFilters.add(NameFilter.identity);
     }
     for (var uri in _unlinked2.parts) {
       var file = _fileForRelativeUri(uri);
