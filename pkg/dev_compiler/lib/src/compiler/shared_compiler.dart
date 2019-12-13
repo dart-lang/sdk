@@ -260,7 +260,7 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
     /// runtime call.
     js_ast.TemporaryId initPrivateNameSymbol() {
       var idName = name.endsWith('=') ? name.replaceAll('=', '_') : name;
-      idName = idName.replaceAll('.', '_');
+      idName = idName.replaceAll(js_ast.invalidCharInIdentifier, '_');
       id ??= js_ast.TemporaryId(idName);
       moduleItems.add(js.statement('const # = #.privateName(#, #)',
           [id, runtimeModule, emitLibraryName(library), js.string(name)]));

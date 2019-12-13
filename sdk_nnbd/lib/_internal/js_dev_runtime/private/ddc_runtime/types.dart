@@ -990,12 +990,12 @@ _isFunctionSubtype(ft1, ft2, bool strictMode) => JS('', '''(() => {
 bool isSubtypeOf(Object t1, Object t2) {
   // TODO(jmesserly): we've optimized `is`/`as`/implicit type checks, so they're
   // dispatched on the type. Can we optimize the subtype relation too?
-  late Object map;
+  Object map;
   if (JS('!', '!#.hasOwnProperty(#)', t1, _subtypeCache)) {
-    JS('', '#[#] = # = new Map()', t1, _subtypeCache, map);
+    JS('', '#[#] = #', t1, _subtypeCache, map = JS<Object>('!', 'new Map()'));
     _cacheMaps.add(map);
   } else {
-    map = JS('', '#[#]', t1, _subtypeCache);
+    map = JS<Object>('!', '#[#]', t1, _subtypeCache);
     bool result = JS('', '#.get(#)', map, t2);
     if (JS('!', '# !== void 0', result)) return result;
   }

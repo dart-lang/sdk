@@ -407,7 +407,7 @@ final friendlyNameForDartOperator = {
 };
 
 // Invalid characters for identifiers, which would need to be escaped.
-final _invalidCharInIdentifier = RegExp(r'[^A-Za-z_$0-9]');
+final invalidCharInIdentifier = RegExp(r'[^A-Za-z_$0-9]');
 
 /// Escape [name] to make it into a valid identifier.
 String toJSIdentifier(String name) {
@@ -417,7 +417,7 @@ String toJSIdentifier(String name) {
   StringBuffer buffer;
   for (int i = 0; i < name.length; i++) {
     var ch = name[i];
-    var needsEscape = ch == r'$' || _invalidCharInIdentifier.hasMatch(ch);
+    var needsEscape = ch == r'$' || invalidCharInIdentifier.hasMatch(ch);
     if (needsEscape && buffer == null) {
       buffer = StringBuffer(name.substring(0, i));
     }

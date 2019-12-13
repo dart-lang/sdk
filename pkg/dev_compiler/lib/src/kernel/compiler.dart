@@ -3073,7 +3073,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
 
     for (var p in f.positionalParameters) {
-      var jsParam = _emitIdentifier(p.name);
+      var jsParam = _emitVariableDef(p);
       initParameter(p, jsParam);
     }
     for (var p in f.namedParameters) {
