@@ -1,7 +1,5 @@
 # Using and interpreting DWARF stack traces
 
-When using the `--dwarf-stack-traces` flag,
-
 The Dart VM AOT compiler can encode code source mapping information as DWARF
 debugging information instead of using in-snapshot `CodeSourceMap` objects.
 Unlike `CodeSourceMap` objects, this DWARF information can then be stripped
