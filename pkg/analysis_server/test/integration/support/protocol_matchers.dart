@@ -2563,7 +2563,6 @@ final Matcher isDiagnosticGetServerPortResult = new LazyMatcher(() =>
  *   "includePedanticFixes": optional bool
  *   "includeRequiredFixes": optional bool
  *   "excludedFixes": optional List<String>
- *   "preview": optional bool
  *   "port": optional int
  *   "outputDir": optional FilePath
  * }
@@ -2576,7 +2575,6 @@ final Matcher isEditDartfixParams =
           "includePedanticFixes": isBool,
           "includeRequiredFixes": isBool,
           "excludedFixes": isListOf(isString),
-          "preview": isBool,
           "port": isInt,
           "outputDir": isFilePath
         }));

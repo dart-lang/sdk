@@ -7964,7 +7964,6 @@ class DiagnosticGetServerPortResult implements ResponseResult {
  *   "includePedanticFixes": optional bool
  *   "includeRequiredFixes": optional bool
  *   "excludedFixes": optional List<String>
- *   "preview": optional bool
  *   "port": optional int
  *   "outputDir": optional FilePath
  * }
@@ -7981,8 +7980,6 @@ class EditDartfixParams implements RequestParams {
   bool _includeRequiredFixes;
 
   List<String> _excludedFixes;
-
-  bool _preview;
 
   int _port;
 
@@ -8076,50 +8073,24 @@ class EditDartfixParams implements RequestParams {
   }
 
   /**
-   * A flag indicating whether the user has requested that the preview tool be
-   * opened.
-   *
-   * Defaults to false.
-   */
-  bool get preview => _preview;
-
-  /**
-   * A flag indicating whether the user has requested that the preview tool be
-   * opened.
-   *
-   * Defaults to false.
-   */
-  void set preview(bool value) {
-    this._preview = value;
-  }
-
-  /**
-   * The port to be used to listen for and respond to http requests for preview
-   * pages.
+   * Deprecated: This field is now ignored by server.
    */
   int get port => _port;
 
   /**
-   * The port to be used to listen for and respond to http requests for preview
-   * pages.
+   * Deprecated: This field is now ignored by server.
    */
   void set port(int value) {
     this._port = value;
   }
 
   /**
-   * The absolute and normalized path to a directory to which non-nullability
-   * migration output will be written. The output is only produced if the
-   * non-nullable fix is included. Files in the directory might be overwritten,
-   * but no previously existing files will be deleted.
+   * Deprecated: This field is now ignored by server.
    */
   String get outputDir => _outputDir;
 
   /**
-   * The absolute and normalized path to a directory to which non-nullability
-   * migration output will be written. The output is only produced if the
-   * non-nullable fix is included. Files in the directory might be overwritten,
-   * but no previously existing files will be deleted.
+   * Deprecated: This field is now ignored by server.
    */
   void set outputDir(String value) {
     this._outputDir = value;
@@ -8130,7 +8101,6 @@ class EditDartfixParams implements RequestParams {
       bool includePedanticFixes,
       bool includeRequiredFixes,
       List<String> excludedFixes,
-      bool preview,
       int port,
       String outputDir}) {
     this.included = included;
@@ -8138,7 +8108,6 @@ class EditDartfixParams implements RequestParams {
     this.includePedanticFixes = includePedanticFixes;
     this.includeRequiredFixes = includeRequiredFixes;
     this.excludedFixes = excludedFixes;
-    this.preview = preview;
     this.port = port;
     this.outputDir = outputDir;
   }
@@ -8176,11 +8145,6 @@ class EditDartfixParams implements RequestParams {
         excludedFixes = jsonDecoder.decodeList(jsonPath + ".excludedFixes",
             json["excludedFixes"], jsonDecoder.decodeString);
       }
-      bool preview;
-      if (json.containsKey("preview")) {
-        preview =
-            jsonDecoder.decodeBool(jsonPath + ".preview", json["preview"]);
-      }
       int port;
       if (json.containsKey("port")) {
         port = jsonDecoder.decodeInt(jsonPath + ".port", json["port"]);
@@ -8195,7 +8159,6 @@ class EditDartfixParams implements RequestParams {
           includePedanticFixes: includePedanticFixes,
           includeRequiredFixes: includeRequiredFixes,
           excludedFixes: excludedFixes,
-          preview: preview,
           port: port,
           outputDir: outputDir);
     } else {
@@ -8223,9 +8186,6 @@ class EditDartfixParams implements RequestParams {
     }
     if (excludedFixes != null) {
       result["excludedFixes"] = excludedFixes;
-    }
-    if (preview != null) {
-      result["preview"] = preview;
     }
     if (port != null) {
       result["port"] = port;
@@ -8255,7 +8215,6 @@ class EditDartfixParams implements RequestParams {
           includeRequiredFixes == other.includeRequiredFixes &&
           listEqual(excludedFixes, other.excludedFixes,
               (String a, String b) => a == b) &&
-          preview == other.preview &&
           port == other.port &&
           outputDir == other.outputDir;
     }
@@ -8270,7 +8229,6 @@ class EditDartfixParams implements RequestParams {
     hash = JenkinsSmiHash.combine(hash, includePedanticFixes.hashCode);
     hash = JenkinsSmiHash.combine(hash, includeRequiredFixes.hashCode);
     hash = JenkinsSmiHash.combine(hash, excludedFixes.hashCode);
-    hash = JenkinsSmiHash.combine(hash, preview.hashCode);
     hash = JenkinsSmiHash.combine(hash, port.hashCode);
     hash = JenkinsSmiHash.combine(hash, outputDir.hashCode);
     return JenkinsSmiHash.finish(hash);

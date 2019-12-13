@@ -174,7 +174,6 @@ const String EDIT_REQUEST_DARTFIX_INCLUDE_REQUIRED_FIXES =
     'includeRequiredFixes';
 const String EDIT_REQUEST_DARTFIX_OUTPUT_DIR = 'outputDir';
 const String EDIT_REQUEST_DARTFIX_PORT = 'port';
-const String EDIT_REQUEST_DARTFIX_PREVIEW = 'preview';
 const String EDIT_REQUEST_FORMAT = 'edit.format';
 const String EDIT_REQUEST_FORMAT_FILE = 'file';
 const String EDIT_REQUEST_FORMAT_LINE_LENGTH = 'lineLength';

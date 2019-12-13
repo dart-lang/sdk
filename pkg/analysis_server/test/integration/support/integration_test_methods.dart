@@ -1770,24 +1770,13 @@ abstract class IntegrationTestMixin {
    *   If a name is specified that does not match the name of a known fix, an
    *   error of type UNKNOWN_FIX will be generated.
    *
-   * preview: bool (optional)
-   *
-   *   A flag indicating whether the user has requested that the preview tool
-   *   be opened.
-   *
-   *   Defaults to false.
-   *
    * port: int (optional)
    *
-   *   The port to be used to listen for and respond to http requests for
-   *   preview pages.
+   *   Deprecated: This field is now ignored by server.
    *
    * outputDir: FilePath (optional)
    *
-   *   The absolute and normalized path to a directory to which non-nullability
-   *   migration output will be written. The output is only produced if the
-   *   non-nullable fix is included. Files in the directory might be
-   *   overwritten, but no previously existing files will be deleted.
+   *   Deprecated: This field is now ignored by server.
    *
    * Returns
    *
@@ -1834,7 +1823,6 @@ abstract class IntegrationTestMixin {
       bool includePedanticFixes,
       bool includeRequiredFixes,
       List<String> excludedFixes,
-      bool preview,
       int port,
       String outputDir}) async {
     var params = new EditDartfixParams(included,
@@ -1842,7 +1830,6 @@ abstract class IntegrationTestMixin {
             includePedanticFixes: includePedanticFixes,
             includeRequiredFixes: includeRequiredFixes,
             excludedFixes: excludedFixes,
-            preview: preview,
             port: port,
             outputDir: outputDir)
         .toJson();
