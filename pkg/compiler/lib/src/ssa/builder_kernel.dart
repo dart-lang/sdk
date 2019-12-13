@@ -604,6 +604,11 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       graph.entry.addBefore(graph.entry.last, parameter);
       HInstruction value = _typeBuilder.potentiallyCheckOrTrustTypeOfParameter(
           field, parameter, _getDartTypeIfValid(node.type));
+      // TODO(sra): Pass source information to
+      // [potentiallyCheckOrTrustTypeOfParameter].
+      // TODO(sra): The source information should indiciate the field and
+      // possibly its type but not the initializer.
+      value.sourceInformation ??= _sourceInformationBuilder.buildSet(node);
       if (!_fieldAnalysis.getFieldData(field).isElided) {
         add(new HFieldSet(_abstractValueDomain, field, thisInstruction, value));
       }
@@ -802,8 +807,9 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       if (needsTypeArguments) {
         if (options.experimentNewRti) {
           InterfaceType thisType = _elementEnvironment.getThisType(cls);
-          HInstruction typeArgument =
-              _typeBuilder.analyzeTypeArgumentNewRti(thisType, sourceElement);
+          HInstruction typeArgument = _typeBuilder.analyzeTypeArgumentNewRti(
+              thisType, sourceElement,
+              sourceInformation: sourceInformation);
           constructorArguments.add(typeArgument);
         } else {
           // Read the values of the type arguments and create a
@@ -5430,7 +5436,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
           _abstractValueDomain.createFromStaticType(typeValue, nullable: false);
 
       push(HIsTest(typeValue, checkedType, expression, rti,
-          _abstractValueDomain.boolType));
+          _abstractValueDomain.boolType)
+        ..sourceInformation = sourceInformation);
       return;
     }
 
