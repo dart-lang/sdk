@@ -58,27 +58,29 @@ void _copyMember(to, from, name) {
   var setter = JS('', '#.set', desc);
   if (getter != null) {
     if (setter == null) {
-      var obj = JS(
-          '',
+      var obj = JS<Object>(
+          '!',
           '#.set = { __proto__: #.__proto__, '
               'set [#](x) { return super[#] = x; } }',
           desc,
           to,
           name,
           name);
-      JS<Object>('!', '#.set = #.set', desc, getOwnPropertyDescriptor(obj, name));
+      JS<Object>(
+          '!', '#.set = #.set', desc, getOwnPropertyDescriptor(obj, name));
     }
   } else if (setter != null) {
     if (getter == null) {
-      var obj = JS(
-          '',
+      var obj = JS<Object>(
+          '!',
           '#.get = { __proto__: #.__proto__, '
               'get [#]() { return super[#]; } }',
           desc,
           to,
           name,
           name);
-      JS<Object>('!', '#.get = #.get', desc, getOwnPropertyDescriptor(obj, name));
+      JS<Object>(
+          '!', '#.get = #.get', desc, getOwnPropertyDescriptor(obj, name));
     }
   }
   defineProperty(to, name, desc);
@@ -176,8 +178,10 @@ generic(typeConstructor, setBaseClass) => JS('', '''(() => {
 
 getGenericClass(type) => safeGetOwnProperty(type, _originalDeclaration);
 
+// TODO(markzipan): Make this non-nullable if we can ensure this returns
+// an empty list or if null and the empty list are semantically the same.
 List? getGenericArgs(type) =>
-    JS<List?>('', '#', safeGetOwnProperty(type, _typeArguments));
+    JS<List>('', '#', safeGetOwnProperty(type, _typeArguments));
 
 List? getGenericArgVariances(type) =>
     JS<List?>('', '#', safeGetOwnProperty(type, _variances));
@@ -343,7 +347,7 @@ void _installProperties(jsProto, dartType, installedParent) {
     _installProperties(jsProto, dartSupertype, installedParent);
   }
 
-  var dartProto = JS('', '#.prototype', dartType);
+  var dartProto = JS<Object>('!', '#.prototype', dartType);
   copyTheseProperties(jsProto, dartProto, getOwnPropertySymbols(dartProto));
 }
 

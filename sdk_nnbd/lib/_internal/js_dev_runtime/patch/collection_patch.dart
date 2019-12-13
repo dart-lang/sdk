@@ -95,7 +95,6 @@ class HashSet<E> {
           }
           return _HashSet<E>();
         }
-        hashCode = dart.hashCode;
       } else if (identical(identityHashCode, hashCode) &&
           identical(identical, equals)) {
         return _IdentityHashSet<E>();

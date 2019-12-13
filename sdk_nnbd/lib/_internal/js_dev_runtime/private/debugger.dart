@@ -592,7 +592,7 @@ class LibraryModuleFormatter implements Formatter {
   bool hasChildren(object) => true;
 
   String preview(object) {
-    var libraryNames = dart.getModuleName(object).split('/');
+    var libraryNames = dart.getModuleName(object)!.split('/');
     // Library names are received with a repeat directory name, so strip the
     // last directory entry here to make the path cleaner. For example, the
     // library "third_party/dart/utf/utf" shoud display as
@@ -907,10 +907,10 @@ class ClassFormatter implements Formatter {
   bool accept(object, config) => config == JsonMLConfig.asClass;
 
   String preview(type) {
-    var implements = dart.getImplements(type);
+    var implements = dart.getImplements(type)();
     var typeName = getTypeName(type);
     if (implements != null) {
-      var typeNames = implements().map(getTypeName);
+      var typeNames = implements.map(getTypeName);
       return '${typeName} implements ${typeNames.join(", ")}';
     } else {
       return typeName;

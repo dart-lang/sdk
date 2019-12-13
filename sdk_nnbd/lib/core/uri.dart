@@ -3256,8 +3256,7 @@ class UriData {
       bool base64 = false}) {
     StringBuffer buffer = StringBuffer();
     List<int> indices = [_noScheme];
-    String? charsetName;
-    String? charSetName = parameters?.["charset"];
+    String? charsetName = parameters?.["charset"];
     String? encodingName;
     if (encoding == null) {
       if (charsetName != null) {

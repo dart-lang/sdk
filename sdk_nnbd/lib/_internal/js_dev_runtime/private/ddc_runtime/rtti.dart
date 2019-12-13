@@ -69,9 +69,9 @@ lazyFn(closure, Object Function() computeType) {
 }
 
 // TODO(vsm): How should we encode the runtime type?
-final _runtimeType = JS('!', 'Symbol("_runtimeType")');
+final Object _runtimeType = JS('!', 'Symbol("_runtimeType")');
 
-final _moduleName = JS('!', 'Symbol("_moduleName")');
+final Object _moduleName = JS('!', 'Symbol("_moduleName")');
 
 getFunctionType(obj) {
   // TODO(vsm): Encode this properly on the function for Dart-generated code.

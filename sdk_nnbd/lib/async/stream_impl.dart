@@ -584,7 +584,7 @@ typedef void _DataHandler<T>(T value);
 typedef void _DoneHandler();
 
 /** Default data handler, does nothing. */
-void _nullDataHandler(Object value) {}
+void _nullDataHandler(dynamic value) {}
 
 /** Default error handler, reports the error to the current zone's handler. */
 void _nullErrorHandler(Object error, [StackTrace? stackTrace]) {

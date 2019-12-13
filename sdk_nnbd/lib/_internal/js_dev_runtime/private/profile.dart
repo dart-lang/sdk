@@ -63,8 +63,8 @@ List<List<Object>> getDynamicStats() {
       // runtime.
       var src = frames
           .skip(2)
-          .map((f) =>
-              _frameMappingCache.putIfAbsent(f, () => stackTraceMapper('\n$f')))
+          .map((f) => _frameMappingCache.putIfAbsent(
+              f, () => stackTraceMapper!('\n$f')))
           .firstWhere((f) => !f.startsWith('dart:'), orElse: () => '');
 
       var actualTypeName = dart.typeName(record.type);

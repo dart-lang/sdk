@@ -630,7 +630,7 @@ class String {
         throw RangeError.range(start, 0, i);
       }
     }
-    var list = <int>[];
+    var list = JSArray<int>.of(JS('', 'new Array()'));
     if (end == null) {
       while (it.moveNext()) list.add(it.current);
     } else {
