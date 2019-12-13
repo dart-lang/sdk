@@ -46,10 +46,7 @@ prebuilt_dart_action("dart2js_create_snapshot_entry") {
 
   packages = "../../.packages"
 
-  args = [
-    "--output_dir=$output_dir",
-    "--dart2js_main=pkg/compiler/lib/src/dart2js.dart",
-  ]
+  args = [ "--output_dir=$output_dir" ]
 }
 
 if (use_nnbd) {
