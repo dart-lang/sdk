@@ -298,20 +298,20 @@ class ModelEmitter {
     List<CodeOutputListener> codeOutputListeners;
     if (_shouldGenerateSourceMap) {
       _task.measureSubtask('source-maps', () {
-        locationCollector = new LocationCollector();
+        locationCollector = LocationCollector();
         codeOutputListeners = <CodeOutputListener>[locationCollector];
       });
     }
 
-    CodeOutput mainOutput = new StreamCodeOutput(
+    CodeOutput mainOutput = StreamCodeOutput(
         _outputProvider.createOutputSink('', 'js', OutputType.js),
         codeOutputListeners);
     outputBuffers[fragment] = mainOutput;
 
-    js.Program program = new js.Program([
+    js.Program program = js.Program([
       buildGeneratedBy(),
-      new js.Comment(HOOKS_API_USAGE),
-      isSplit ? buildDeferredInitializerGlobal() : new js.Block.empty(),
+      js.Comment(HOOKS_API_USAGE),
+      if (isSplit) buildDeferredInitializerGlobal(),
       code
     ]);
 
