@@ -68,10 +68,6 @@ const char* TypeTestingStubNamer::StringifyType(
   } else if (type.IsTypeParameter()) {
     string_ = TypeParameter::Cast(type).name();
     return AssemblerSafeName(OS::SCreate(Z, "%s", string_.ToCString()));
-  } else if (type.IsTypeRef()) {
-    const Type& dereferenced_type =
-        Type::Handle(Type::RawCast(TypeRef::Cast(type).type()));
-    return OS::SCreate(Z, "TypeRef_%s", StringifyType(dereferenced_type));
   } else {
     return AssemblerSafeName(OS::SCreate(Z, "%s", type.ToCString()));
   }
@@ -94,7 +90,7 @@ RawCode* TypeTestingStubGenerator::DefaultCodeForType(
     const AbstractType& type,
     bool lazy_specialize /* = true */) {
   if (type.IsTypeRef()) {
-    return StubCode::TypeRefTypeTest().raw();
+    return StubCode::DefaultTypeTest().raw();
   }
 
   const intptr_t cid = type.type_class_id();
@@ -145,7 +141,7 @@ RawCode* TypeTestingStubGenerator::OptimizedCodeForType(
   ASSERT(StubCode::HasBeenInitialized());
 
   if (type.IsTypeRef()) {
-    return StubCode::TypeRefTypeTest().raw();
+    return StubCode::DefaultTypeTest().raw();
   }
 
   const intptr_t cid = type.type_class_id();

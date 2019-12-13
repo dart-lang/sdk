@@ -854,6 +854,15 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
   bool should_update_cache = true;
 #if !defined(TARGET_ARCH_IA32) && !defined(DART_PRECOMPILED_RUNTIME)
   if (mode == kTypeCheckFromLazySpecializeStub) {
+    // Checks against type parameters are done by loading the value of the type
+    // parameter and calling its type testing stub.
+    // So we have to install a specialized TTS on the value of the type
+    // parameter, not the parameter itself.
+    if (dst_type.IsTypeParameter()) {
+      dst_type = dst_type.InstantiateFrom(
+          NNBDMode::kLegacy, instantiator_type_arguments,
+          function_type_arguments, kAllFree, NULL, Heap::kNew);
+    }
     if (FLAG_trace_type_checks) {
       OS::PrintErr("  Specializing type testing stub for %s\n",
                    dst_type.ToCString());

@@ -501,6 +501,7 @@ class FlowGraphCompiler : public ValueObject {
       const Register function_type_args_reg,
       const Register subtype_cache_reg,
       const Register dst_type_reg,
+      const Register dst_type_reg_to_call,
       const Register scratch_reg,
       compiler::Label* done);
 

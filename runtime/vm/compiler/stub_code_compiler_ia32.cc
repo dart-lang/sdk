@@ -2442,11 +2442,6 @@ void StubCodeCompiler::GenerateTopTypeTypeTestStub(Assembler* assembler) {
   __ Breakpoint();
 }
 
-void StubCodeCompiler::GenerateTypeRefTypeTestStub(Assembler* assembler) {
-  // Not implemented on ia32.
-  __ Breakpoint();
-}
-
 void StubCodeCompiler::GenerateUnreachableTypeTestStub(Assembler* assembler) {
   // Not implemented on ia32.
   __ Breakpoint();

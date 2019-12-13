@@ -81,12 +81,12 @@ bool DecodeLoadObjectFromPoolOrThread(uword pc, const Code& code, Object* obj) {
 
 intptr_t TypeTestingStubCallPattern::GetSubtypeTestCachePoolIndex() {
   static int16_t pattern_disp8[] = {
-      0x4d, 0x8b, 0x4f, -1,  // movq R9, [PP + offset]
-      0xff, 0x53, 0x07,      // callq [RBX + 0x7]
+      0x4d, 0x8b, 0x4f, -1,               // movq R9, [PP + offset]
+      0xff, -1 /* 0x53 or 0x56 */, 0x07,  // callq [RBX/RSI + 0x7]
   };
   static int16_t pattern_disp32[] = {
-      0x4d, 0x8b, 0x8f, -1, -1, -1, -1,  // movq R9, [PP + offset]
-      0xff, 0x53, 0x07,                  // callq [RBX + 0x7]
+      0x4d, 0x8b, 0x8f, -1, -1, -1, -1,   // movq R9, [PP + offset]
+      0xff, -1 /* 0x53 or 0x56 */, 0x07,  // callq [RBX/RSI + 0x7]
   };
   if (MatchesPattern(pc_, pattern_disp8, ARRAY_SIZE(pattern_disp8))) {
     return IndexFromPPLoadDisp8(pc_ - 4);
