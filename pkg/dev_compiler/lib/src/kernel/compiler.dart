@@ -3334,12 +3334,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var jsCondition = _visitExpression(condition);
 
     var boolType = _coreTypes.boolLegacyRawType;
-    if (conditionType is FunctionType &&
-        conditionType.requiredParameterCount == 0 &&
-        conditionType.returnType == boolType) {
-      jsCondition = runtimeCall('test(#())', [jsCondition]);
-    } else if (conditionType != boolType) {
-      jsCondition = runtimeCall('dassert(#)', [jsCondition]);
+    if (conditionType != boolType) {
+      jsCondition = runtimeCall('dtest(#)', [jsCondition]);
     } else if (isNullable(condition)) {
       jsCondition = runtimeCall('test(#)', [jsCondition]);
     }

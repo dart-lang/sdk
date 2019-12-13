@@ -522,14 +522,6 @@ Set<E> constSet<E>(JSArray<E> elements) {
   return result;
 }
 
-bool dassert(value) {
-  if (JS('!', '# != null && #[#] instanceof #', value, value, _runtimeType,
-      AbstractFunctionType)) {
-    value = dcall(value, []);
-  }
-  return dtest(value);
-}
-
 final _value = JS('', 'Symbol("_value")');
 
 ///
