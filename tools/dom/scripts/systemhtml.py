@@ -926,7 +926,7 @@ promise_operations = monitored.Dict(
             "type": "FontFace"
         },
         "FontFaceSet.load": {
-            "type": "List<FontFace>"
+            "type": "List<dynamic>"
         },
         "OffscreenCanvas.load": {
             "type": "Blob"
@@ -938,13 +938,13 @@ promise_operations = monitored.Dict(
             "type": "BackgroundFetchRegistration"
         },
         "BackgroundFetchManager.getIds": {
-            "type": "List<String>"
+            "type": "List<dynamic>"
         },
         "BackgroundFetchRegistration.abort": {
             "type": "bool"
         },
         "SyncManager.getTags": {
-            "type": "List<String>"
+            "type": "List<dynamic>"
         },
         "BudgetService.getCost": {
             "type": "double"
@@ -995,7 +995,7 @@ promise_operations = monitored.Dict(
             "type": "MediaStream"
         },
         "ServiceWorkerRegistration.getNotifications": {
-            "type": "List<Notification>"
+            "type": "List<dynamic>"
         },
         "PaymentInstruments.delete": {
             "type": "bool"
@@ -1004,7 +1004,7 @@ promise_operations = monitored.Dict(
             "type": "dictionary"
         },
         "PaymentInstruments.keys": {
-            "type": "List<String>"
+            "type": "List<dynamic>"
         },
         "PaymentInstrumentshas.": {
             "type": "bool"
@@ -1074,7 +1074,7 @@ promise_operations = monitored.Dict(
             "type": "int"
         },
         "Clients.matchAll": {
-            "type": "List<Client>"
+            "type": "List<dynamic>"
         },
         "Clients.openWindow": {
             "type": "WindowClient"
@@ -1089,7 +1089,7 @@ promise_operations = monitored.Dict(
             "type": "ServiceWorkerRegistration"
         },
         "ServiceWorkerContainer.getRegistrations": {
-            "type": "List<ServiceWorkerRegistration>"
+            "type": "List<dynamic>"
         },
         "ServiceWorkerGlobalScope.fetch": {
             "type": "Response"
@@ -1104,13 +1104,13 @@ promise_operations = monitored.Dict(
             "type": "WindowClient"
         },
         "BarcodeDetector.detect": {
-            "type": "List<DetectedBarcode>"
+            "type": "List<dynamic>"
         },
         "FaceDetector.detect": {
-            "type": "List<DetectedFace>"
+            "type": "List<dynamic>"
         },
         "TextDetector.detect": {
-            "type": "List<DetectedText>"
+            "type": "List<dynamic>"
         },
         "BaseAudioContext.decodeAudioData": {
             "type": "AudioBuffer"
