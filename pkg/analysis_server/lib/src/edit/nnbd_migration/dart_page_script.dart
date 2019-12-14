@@ -4,7 +4,15 @@
 
 const dartPageScript = r'''
 function getOffset(location) {
-  return new URL(location).searchParams.get("offset");
+  const root = document.querySelector(".root").textContent;
+  return new URL(location, "file://" + root + "/dummy.txt")
+      .searchParams.get("offset");
+}
+
+function getLine(location) {
+  const root = document.querySelector(".root").textContent;
+  return new URL(location, "file://" + root + "/dummy.txt")
+      .searchParams.get("line");
 }
 
 // Remove highlighting from [offset].
@@ -21,7 +29,7 @@ function removeHighlight(offset) {
 function absolutePath(path) {
   if (path[0] != "/") {
       const root = document.querySelector(".root").textContent;
-      return new URL(path, "file://" + root + "/dummy.txt").pathname;
+      return new URL(path, window.location.href).pathname;
   } else {
     return path;
   }
@@ -46,24 +54,27 @@ function writeCodeAndRegions(data) {
   code.innerHTML = data["navContent"];
   highlightAllCode();
   addClickHandlers(".code");
+  addClickHandlers(".regions");
 }
 
 // Navigate to [path] and optionally scroll [offset] into view.
 //
 // If [callback] is present, it will be called after the server response has
 // been processed, and the content has been updated on the page.
-function navigate(path, offset, callback) {
+function navigate(path, offset, lineNumber, callback) {
   removeHighlight(offset);
   if (path == window.location.pathname) {
     // Navigating to same file; just scroll into view.
-    maybeScrollIntoView(offset);
+    maybeScrollIntoView(offset, lineNumber);
   } else {
-    loadFile(path, offset, callback);
+    loadFile(path, offset, lineNumber, callback);
   }
 }
 
 // Scroll [target] into view if it is not currently in view.
-function maybeScrollIntoView(offset) {
+//
+// Also add the "target" class, highlighting the target.
+function maybeScrollIntoView(offset, lineNumber) {
   if (offset !== null) {
     const target = document.getElementById("o" + offset);
     if (target != null) {
@@ -76,13 +87,17 @@ function maybeScrollIntoView(offset) {
         target.scrollIntoView({behavior: "smooth"});
       }
       target.classList.add("target");
+      if (lineNumber != null) {
+        const line = document.querySelector(".line-" + lineNumber);
+        line.parentNode.classList.add("highlight");
+      }
     }
   }
 }
 
 // Load the file at [path] from the server, optionally scrolling [offset] into
 // view.
-function loadFile(path, offset, callback) {
+function loadFile(path, offset, lineNumber, callback) {
   // Navigating to another file; request it, then do work with the response.
   const xhr = new XMLHttpRequest();
   xhr.open("GET", path + "?inline=true");
@@ -91,7 +106,7 @@ function loadFile(path, offset, callback) {
     if (xhr.status === 200) {
       const response = JSON.parse(xhr.responseText);
       writeCodeAndRegions(response);
-      maybeScrollIntoView(offset);
+      maybeScrollIntoView(offset, lineNumber);
       updatePage(path, offset);
       if (callback !== undefined) {
         callback();
@@ -103,10 +118,13 @@ function loadFile(path, offset, callback) {
   xhr.send();
 }
 
-function pushState(path, offset) {
-  let newLocation = window.location.origin + path;
+function pushState(path, offset, lineNumber) {
+  let newLocation = window.location.origin + path + "?";
   if (offset !== null) {
-    newLocation = newLocation + "?offset=" + offset;
+    newLocation = newLocation + "offset=" + offset + "&";
+  }
+  if (lineNumber !== null) {
+    newLocation = newLocation + "line=" + lineNumber;
   }
   history.pushState({}, "", newLocation);
 }
@@ -141,13 +159,14 @@ function addClickHandlers(parentSelector) {
   const links = parentElement.querySelectorAll(".nav-link");
   links.forEach(function(link) {
     link.onclick = (event) => {
-      const dataset = event.currentTarget.dataset;
-      const path = absolutePath(dataset.path);
-      if (dataset.hasOwnProperty("offset")) {
-        navigate(path, dataset.offset,
-            () => { pushState(path, dataset.offset) });
+      const path = absolutePath(event.currentTarget.getAttribute("href"));
+      const offset = getOffset(event.currentTarget.getAttribute("href"));
+      const lineNumber = getLine(event.currentTarget.getAttribute("href"));
+      if (offset !== null) {
+        navigate(path, offset, lineNumber,
+            () => { pushState(path, offset, lineNumber) });
       } else {
-        navigate(path, null, () => { pushState(path, null) });
+        navigate(path, null, null, () => { pushState(path, null, null) });
       }
       event.preventDefault();
     };
@@ -157,9 +176,11 @@ function addClickHandlers(parentSelector) {
 document.addEventListener("DOMContentLoaded", (event) => {
   const path = window.location.pathname;
   const offset = getOffset(window.location.href);
+  const lineNumber = getLine(window.location.href);
   if (path.length > 1) {
     // TODO(srawlins): replaceState?
-    loadFile(path, offset, () => { pushState(path, offset) });
+    loadFile(path, offset, lineNumber,
+        () => { pushState(path, offset, lineNumber) });
   }
   addClickHandlers(".nav");
 });
@@ -167,8 +188,9 @@ document.addEventListener("DOMContentLoaded", (event) => {
 window.addEventListener("popstate", (event) => {
   const path = window.location.pathname;
   const offset = getOffset(window.location.href);
+  const lineNumber = getLine(window.location.href);
   if (path.length > 1) {
-    loadFile(path, offset);
+    loadFile(path, offset, lineNumber);
   } else {
     // Blank out the page, for the index screen.
     writeCodeAndRegions({"regions": "", "navContent": ""});

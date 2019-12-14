@@ -88,8 +88,13 @@ h2.unit-name {
    */
   line-height: 1.3;
   min-height: 600px;
-  padding-left: 60px;
+  padding-left: 62px;
   position: inherit;
+  z-index: 100;
+}
+
+.code.hljs {
+  background-color: inherit;
 }
 
 .code .nav-link {
@@ -108,13 +113,11 @@ h2.unit-name {
 }
 
 .regions {
-  padding: 0.5em;
+  background-color: #282b2e;
+  padding: 0.5em 0 0.5em 0.5em;
   position: absolute;
   left: 0.5em;
   top: 0;
-  /* The content of the regions is not visible; the user instead will see the
-   * highlighted copy of the content. */
-  visibility: hidden;
 }
 
 .regions table {
@@ -123,6 +126,9 @@ h2.unit-name {
 
 .regions td {
   border: none;
+  /* The content of the regions is not visible; the user instead will see the
+   * highlighted copy of the content. */
+  color: rgba(255, 255, 255, 0);
   line-height: 1.3;
   padding: 0;
   white-space: pre;
@@ -132,7 +138,12 @@ h2.unit-name {
   content: "\00a0";
 }
 
+.regions tr.highlight td:last-child {
+  background-color: rgba(0, 0, 128, 0.5);
+}
+
 .regions td.line-no {
+  border-right: solid #282b2e 2px;
   color: #999999;
   display: inline-block;
   padding-right: 4px;
@@ -141,11 +152,16 @@ h2.unit-name {
   width: 50px;
 }
 
+.regions tr.highlight td.line-no {
+  border-right: solid #0000ff 2px;
+}
+
 .region {
   cursor: default;
   display: inline-block;
   position: relative;
   visibility: visible;
+  z-index: 200;
 }
 
 .region.fix-region {
@@ -195,6 +211,7 @@ h2.unit-name {
 
 .target {
   background-color: #FFFF99;
+  color: black;
   position: relative;
   visibility: visible;
 }

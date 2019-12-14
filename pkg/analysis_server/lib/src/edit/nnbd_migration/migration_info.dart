@@ -42,11 +42,14 @@ abstract class NavigationRegion {
   /// The offset of the region.
   final int offset;
 
+  /// The line number of the region.
+  final int line;
+
   /// The length of the region.
   final int length;
 
   /// Initialize a newly created link.
-  NavigationRegion(this.offset, this.length);
+  NavigationRegion(this.offset, this.line, this.length);
 }
 
 /// A location from which a user might want to navigate.
@@ -55,7 +58,8 @@ class NavigationSource extends NavigationRegion {
   final NavigationTarget target;
 
   /// Initialize a newly created link.
-  NavigationSource(int offset, int length, this.target) : super(offset, length);
+  NavigationSource(int offset, int line, int length, this.target)
+      : super(offset, line, length);
 }
 
 /// A location to which a user might want to navigate.
@@ -64,8 +68,8 @@ class NavigationTarget extends NavigationRegion {
   final String filePath;
 
   /// Initialize a newly created anchor.
-  NavigationTarget(this.filePath, int offset, int length)
-      : super(offset, length);
+  NavigationTarget(this.filePath, int offset, int line, int length)
+      : super(offset, line, length);
 
   @override
   int get hashCode => JenkinsSmiHash.hash3(filePath.hashCode, offset, length);

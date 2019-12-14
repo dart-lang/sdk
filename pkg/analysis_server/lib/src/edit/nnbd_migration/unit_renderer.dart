@@ -44,6 +44,7 @@ class UnitRenderer {
 
   /// Return the content of the file with navigation links and anchors added.
   String _computeNavigationContent(UnitInfo unitInfo) {
+    String unitDir = _directoryContaining(unitInfo);
     String content = unitInfo.content;
     OffsetMapper mapper = unitInfo.offsetMapper;
     Map<int, String> openInsertions = {};
@@ -77,11 +78,11 @@ class UnitRenderer {
         if (target.filePath != unitInfo.path ||
             region.offset != target.offset) {
           String openInsertion = openInsertions[openOffset] ?? '';
-          String unitPath = pathContext.relative(
-              pathMapper.map(target.filePath),
-              from: migrationInfo.includedRoot);
-          openInsertion = '<a href="#" class="nav-link" data-path="$unitPath" '
-              'data-offset="${target.offset}">$openInsertion';
+          String unitPath = pathContext
+              .relative(pathMapper.map(target.filePath), from: unitDir);
+          String targetUri = _uriForRelativePath(unitPath, target);
+          openInsertion =
+              '<a href="$targetUri" class="nav-link">$openInsertion';
           openInsertions[openOffset] = openInsertion;
 
           int closeOffset = openOffset + regionLength;
@@ -130,8 +131,9 @@ class UnitRenderer {
           // If we're not on the last element, end this table row, and start a
           // new table row.
           lineNumber++;
-          regions.write(
-              '</td></tr>' '<tr><td class="line-no">$lineNumber</td><td>');
+          regions.write('</td></tr>'
+              '<tr><td class="line-no">$lineNumber</td>'
+              '<td class="line-$lineNumber">');
         } else {
           break;
         }
@@ -167,7 +169,7 @@ class UnitRenderer {
           if (target != null) {
             String relativePath = _relativePathToTarget(target, unitDir);
             String targetUri = _uriForRelativePath(relativePath, target);
-            regions.write(' (<a href="$targetUri">');
+            regions.write(' (<a href="$targetUri" class="nav-link">');
             regions.write(relativePath);
             // TODO(brianwilkerson) Add the line number to the link text. This
             //  will require that either the contents of all navigation targets
@@ -193,7 +195,7 @@ class UnitRenderer {
                 'replacement': edit.replacement
               }).toString();
           regions.write('<p>');
-          regions.write('<a href="$targetUri">');
+          regions.write('<a href="$targetUri" class="nav-link">');
           regions.write(edit.description);
           regions.write('</a>');
           regions.write('</p>');
@@ -228,6 +230,10 @@ class UnitRenderer {
   /// Return the URL that will navigate to the given [target] in the file at the
   /// given [relativePath].
   String _uriForRelativePath(String relativePath, NavigationTarget target) {
-    return '$relativePath?offset=${target.offset.toString()}';
+    var queryParams = {
+      'offset': target.offset,
+      if (target.line != null) 'line': target.line,
+    }.entries.map((entry) => '${entry.key}=${entry.value}').join('&');
+    return '$relativePath?$queryParams';
   }
 }

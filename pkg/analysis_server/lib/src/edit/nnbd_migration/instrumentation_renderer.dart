@@ -33,8 +33,7 @@ mustache.Template _template = mustache.Template(r'''
       <p>Select a source file below to preview the modifications.</p>
       <p class="root">{{ root }}</p>
       {{# links }}
-        <a href="#" class="nav-link"
-            data-path="{{ path }}"
+        <a href="{{ path }}" class="nav-link"
             data-name="{{ name }}">{{ name }}</a>
         {{ modificationCount }}
         <br/>

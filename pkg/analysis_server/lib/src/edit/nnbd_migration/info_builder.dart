@@ -14,6 +14,7 @@ import 'package:analysis_server/src/utilities/strings.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -288,13 +289,14 @@ class InfoBuilder {
         TypeAnnotation type = info.typeAnnotationForNode(edge.sourceNode);
         if (type != null) {
           CompilationUnit unit = type.thisOrAncestorOfType<CompilationUnit>();
-          target = _targetForNode(unit.declaredElement.source.fullName, type);
+          target = _proximateTargetForNode(
+              unit.declaredElement.source.fullName, type);
         }
         String description =
             _buildInheritanceDescriptionForOrigin(origin, type);
         return RegionDetail(description, target);
       } else {
-        target = _targetForNode(origin.source.fullName, node);
+        target = _proximateTargetForNode(origin.source.fullName, node);
       }
     }
     return RegionDetail(_buildDescriptionForOrigin(origin, fixKind), target);
@@ -342,8 +344,10 @@ class InfoBuilder {
             var nodeInfo = info.nodeInfoFor(exactNullableDownstream);
             if (nodeInfo != null) {
               // TODO(mfairhurst): Give a better text description.
-              details.add(RegionDetail('This is later required to accept null.',
-                  _targetForNode(nodeInfo.filePath, nodeInfo.astNode)));
+              details.add(RegionDetail(
+                  'This is later required to accept null.',
+                  _proximateTargetForNode(
+                      nodeInfo.filePath, nodeInfo.astNode)));
             } else {
               details.add(RegionDetail(
                   'exact nullable node with no info ($exactNullableDownstream)',
@@ -368,7 +372,8 @@ class InfoBuilder {
         if (nodeInfo != null && nodeInfo.astNode != null) {
           NavigationTarget target;
           if (destination != info.never && destination != info.always) {
-            target = _targetForNode(nodeInfo.filePath, nodeInfo.astNode);
+            target =
+                _proximateTargetForNode(nodeInfo.filePath, nodeInfo.astNode);
           }
           EdgeOriginInfo edge = info.edgeOrigin[reason];
           details.add(RegionDetail(_describeNonNullEdge(edge), target));
@@ -416,11 +421,11 @@ class InfoBuilder {
       NavigationTarget target = convertedTargets[targets[0]];
       if (target == null) {
         protocol.NavigationTarget rawTarget = rawTargets[targets[0]];
-        target = _targetFor(
-            files[rawTarget.fileIndex], rawTarget.offset, rawTarget.length);
+        target = _targetForRawTarget(files[rawTarget.fileIndex], rawTarget);
         convertedTargets[targets[0]] = target;
       }
-      return NavigationSource(region.offset, region.length, target);
+      return NavigationSource(
+          region.offset, null /* line */, region.length, target);
     }).toList();
   }
 
@@ -436,7 +441,7 @@ class InfoBuilder {
         continue;
       }
       NavigationTarget target =
-          _targetForNode(origin.source.fullName, origin.node);
+          _proximateTargetForNode(origin.source.fullName, origin.node);
       if (origin.kind == EdgeOriginKind.expressionChecks) {
         details.add(RegionDetail(
             'This value is unconditionally used in a non-nullable context',
@@ -577,41 +582,61 @@ class InfoBuilder {
 
   /// Return the navigation target in the file with the given [filePath] at the
   /// given [offset] ans with the given [length].
-  NavigationTarget _targetFor(String filePath, int offset, int length) {
+  NavigationTarget _targetForNode(
+      String filePath, SyntacticEntity node, CompilationUnit unit) {
     UnitInfo unitInfo = _unitForPath(filePath);
-    NavigationTarget target = NavigationTarget(filePath, offset, length);
+    int offset = node.offset;
+    int length = node.length;
+
+    int line = unit.lineInfo.getLocation(node.offset).lineNumber;
+    NavigationTarget target = NavigationTarget(filePath, offset, line, length);
+    unitInfo.targets.add(target);
+    return target;
+  }
+
+  /// Return the navigation target in the file with the given [filePath] at the
+  /// given [offset] ans with the given [length].
+  NavigationTarget _targetForRawTarget(
+      String filePath, protocol.NavigationTarget rawTarget) {
+    UnitInfo unitInfo = _unitForPath(filePath);
+    int offset = rawTarget.offset;
+    int length = rawTarget.length;
+    NavigationTarget target =
+        NavigationTarget(filePath, offset, null /* line */, length);
     unitInfo.targets.add(target);
     return target;
   }
 
   /// Return the navigation target corresponding to the given [node] in the file
   /// with the given [filePath].
-  NavigationTarget _targetForNode(String filePath, AstNode node) {
+  ///
+  /// Rather than a NavigationTarget targeting exactly [node], heuristics are
+  /// made to point to a narrower target, for example the name of a
+  /// method declaration, rather the the entire declaration.
+  NavigationTarget _proximateTargetForNode(String filePath, AstNode node) {
     AstNode parent = node.parent;
+    CompilationUnit unit = node.thisOrAncestorOfType<CompilationUnit>();
     if (node is ConstructorDeclaration) {
       if (node.name != null) {
-        return _targetFor(filePath, node.name.offset, node.name.length);
+        return _targetForNode(filePath, node.name, unit);
       } else {
-        return _targetFor(
-            filePath, node.returnType.offset, node.returnType.length);
+        return _targetForNode(filePath, node.returnType, unit);
       }
     } else if (node is MethodDeclaration) {
       // Rather than create a NavigationTarget for an entire method declaration
       // (starting at its doc comment, ending at `}`, return a target pointing
       // to the method's name.
-      return _targetFor(filePath, node.name.offset, node.name.length);
+      return _targetForNode(filePath, node.name, unit);
     } else if (parent is ReturnStatement) {
       // Rather than create a NavigationTarget for an entire expression, return
       // a target pointing to the `return` token.
-      return _targetFor(
-          filePath, parent.returnKeyword.offset, parent.returnKeyword.length);
+      return _targetForNode(filePath, parent.returnKeyword, unit);
     } else if (parent is ExpressionFunctionBody) {
       // Rather than create a NavigationTarget for an entire expression function
       // body, return a target pointing to the `=>` token.
-      return _targetFor(filePath, parent.functionDefinition.offset,
-          parent.functionDefinition.length);
+      return _targetForNode(filePath, parent.functionDefinition, unit);
     } else {
-      return _targetFor(filePath, node.offset, node.length);
+      return _targetForNode(filePath, node, unit);
     }
   }
 
