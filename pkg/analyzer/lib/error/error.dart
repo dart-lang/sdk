@@ -137,6 +137,7 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP,
   CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET,
   CompileTimeErrorCode.EXPORT_INTERNAL_LIBRARY,
+  CompileTimeErrorCode.EXPORT_LEGACY_SYMBOL,
   CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY,
   CompileTimeErrorCode.EXPRESSION_IN_MAP,
   CompileTimeErrorCode.EXTENDS_DEFERRED_CLASS,

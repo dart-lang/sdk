@@ -661,6 +661,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _checkForAmbiguousExport(node, exportElement, exportedLibrary);
       _checkForExportDuplicateLibraryName(node, exportElement, exportedLibrary);
       _checkForExportInternalLibrary(node, exportElement);
+      _checkForExportLegacySymbol(node);
     }
     super.visitExportDirective(node);
   }
@@ -2806,6 +2807,33 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         CompileTimeErrorCode.EXPORT_INTERNAL_LIBRARY,
         directive,
         [directive.uri]);
+  }
+
+  /**
+   * See [CompileTimeErrorCode.EXPORT_LEGACY_SYMBOL].
+   */
+  void _checkForExportLegacySymbol(ExportDirective node) {
+    if (!_isNonNullableByDefault) {
+      return;
+    }
+
+    var element = node.element as ExportElement;
+    // TODO(scheglov) Expose from ExportElement.
+    var namespace =
+        NamespaceBuilder().createExportNamespaceForDirective(element);
+
+    for (var element in namespace.definedNames.values) {
+      if (!element.library.isNonNullableByDefault) {
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.EXPORT_LEGACY_SYMBOL,
+          node.uri,
+          [element.displayName],
+        );
+        // Stop after the first symbol.
+        // We don't want to list them all.
+        break;
+      }
+    }
   }
 
   /**

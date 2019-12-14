@@ -1526,6 +1526,20 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "The library '{0}' is internal and can't be exported.");
 
   /**
+   * It is an error for an opted-in library to re-export symbols which are
+   * defined in a legacy library.
+   *
+   * Parameters:
+   * 0: the name of a symbol defined in a legacy library
+   */
+  static const CompileTimeErrorCode EXPORT_LEGACY_SYMBOL = CompileTimeErrorCode(
+      'EXPORT_LEGACY_SYMBOL',
+      "The symbol '{0}' is defined in a legacy library, and can't be "
+          "re-exported from a non-nullable by default library.",
+      correction: "Use show / hide combinators to avoid exporting these"
+          "symbols, or migrate the legacy library.");
+
+  /**
    * 14.2 Exports: It is a compile-time error if the compilation unit found at
    * the specified URI is not a library declaration.
    *
