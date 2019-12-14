@@ -8,7 +8,9 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
@@ -1127,6 +1129,9 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
   List<TypeParameterElement> get typeParameters => element.typeParameters;
 
+  InheritanceManager3 get _inheritanceManager =>
+      (element.library.session as AnalysisSessionImpl).inheritanceManager;
+
   @override
   bool operator ==(Object object) {
     if (identical(object, this)) {
@@ -1232,6 +1237,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return ConstructorMember.from(constructorElement, this);
   }
 
+  @deprecated
   @override
   PropertyAccessorElement lookUpGetter(
       String getterName, LibraryElement library) {
@@ -1242,6 +1248,46 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return lookUpGetterInSuperclass(getterName, library);
   }
 
+  @override
+  PropertyAccessorElement lookUpGetter2(
+    String name,
+    LibraryElement library, {
+    bool concrete = false,
+    bool inherited = false,
+    bool recoveryStatic = false,
+  }) {
+    var inheritance = _inheritanceManager;
+    var nameObj = Name(library.source.uri, name);
+
+    if (inherited) {
+      if (concrete) {
+        var result = inheritance.getMember(this, nameObj, forSuper: inherited);
+        if (result is PropertyAccessorElement) {
+          return result;
+        }
+      } else {
+        var result = inheritance.getInherited(this, nameObj);
+        if (result is PropertyAccessorElement) {
+          return result;
+        }
+      }
+      return null;
+    }
+
+    var result = inheritance.getMember(this, nameObj, concrete: concrete);
+    if (result is PropertyAccessorElement) {
+      return result;
+    }
+
+    if (recoveryStatic) {
+      var element = this.element as AbstractClassElementImpl;
+      return element.lookupStaticGetter(name, library);
+    }
+
+    return null;
+  }
+
+  @deprecated
   @override
   PropertyAccessorElement lookUpGetterInSuperclass(
       String getterName, LibraryElement library) {
@@ -1278,6 +1324,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return null;
   }
 
+  @deprecated
   @override
   PropertyAccessorElement lookUpInheritedGetter(String name,
       {LibraryElement library, bool thisType = true}) {
@@ -1294,6 +1341,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         HashSet<ClassElement>(), (InterfaceType t) => t.getGetter(name));
   }
 
+  @deprecated
   @override
   ExecutableElement lookUpInheritedGetterOrMethod(String name,
       {LibraryElement library}) {
@@ -1311,6 +1359,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         (InterfaceType t) => t.getGetter(name) ?? t.getMethod(name));
   }
 
+  @deprecated
   ExecutableElement lookUpInheritedMember(String name, LibraryElement library,
       {bool concrete = false,
       bool forSuperInvocation = false,
@@ -1398,6 +1447,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
   }
 
+  @deprecated
   @override
   MethodElement lookUpInheritedMethod(String name,
       {LibraryElement library, bool thisType = true}) {
@@ -1414,6 +1464,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         HashSet<ClassElement>(), (InterfaceType t) => t.getMethod(name));
   }
 
+  @deprecated
   @override
   PropertyAccessorElement lookUpInheritedSetter(String name,
       {LibraryElement library, bool thisType = true}) {
@@ -1430,6 +1481,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         HashSet<ClassElement>(), (t) => t.getSetter(name));
   }
 
+  @deprecated
   @override
   MethodElement lookUpMethod(String methodName, LibraryElement library) {
     MethodElement element = getMethod(methodName);
@@ -1439,6 +1491,46 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return lookUpMethodInSuperclass(methodName, library);
   }
 
+  @override
+  MethodElement lookUpMethod2(
+    String name,
+    LibraryElement library, {
+    bool concrete = false,
+    bool inherited = false,
+    bool recoveryStatic = false,
+  }) {
+    var inheritance = _inheritanceManager;
+    var nameObj = Name(library.source.uri, name);
+
+    if (inherited) {
+      if (concrete) {
+        var result = inheritance.getMember(this, nameObj, forSuper: inherited);
+        if (result is MethodElement) {
+          return result;
+        }
+      } else {
+        var result = inheritance.getInherited(this, nameObj);
+        if (result is MethodElement) {
+          return result;
+        }
+      }
+      return null;
+    }
+
+    var result = inheritance.getMember(this, nameObj, concrete: concrete);
+    if (result is MethodElement) {
+      return result;
+    }
+
+    if (recoveryStatic) {
+      var element = this.element as AbstractClassElementImpl;
+      return element.lookupStaticMethod(name, library);
+    }
+
+    return null;
+  }
+
+  @deprecated
   @override
   MethodElement lookUpMethodInSuperclass(
       String methodName, LibraryElement library) {
@@ -1475,6 +1567,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return null;
   }
 
+  @deprecated
   @override
   PropertyAccessorElement lookUpSetter(
       String setterName, LibraryElement library) {
@@ -1485,6 +1578,46 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return lookUpSetterInSuperclass(setterName, library);
   }
 
+  @override
+  PropertyAccessorElement lookUpSetter2(
+    String name,
+    LibraryElement library, {
+    bool concrete = false,
+    bool inherited = false,
+    bool recoveryStatic = false,
+  }) {
+    var inheritance = _inheritanceManager;
+    var nameObj = Name(library.source.uri, '$name=');
+
+    if (inherited) {
+      if (concrete) {
+        var result = inheritance.getMember(this, nameObj, forSuper: inherited);
+        if (result is PropertyAccessorElement) {
+          return result;
+        }
+      } else {
+        var result = inheritance.getInherited(this, nameObj);
+        if (result is PropertyAccessorElement) {
+          return result;
+        }
+      }
+      return null;
+    }
+
+    var result = inheritance.getMember(this, nameObj, concrete: concrete);
+    if (result is PropertyAccessorElement) {
+      return result;
+    }
+
+    if (recoveryStatic) {
+      var element = this.element as AbstractClassElementImpl;
+      return element.lookupStaticSetter(name, library);
+    }
+
+    return null;
+  }
+
+  @deprecated
   @override
   PropertyAccessorElement lookUpSetterInSuperclass(
       String setterName, LibraryElement library) {

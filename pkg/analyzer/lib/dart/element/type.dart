@@ -324,7 +324,26 @@ abstract class InterfaceType implements ParameterizedType {
   ///   looking up getter (respectively setter) <i>m</i> in <i>S</i> with
   ///   respect to <i>L</i>. Otherwise, we say that the lookup has failed.
   /// </blockquote>
+  @deprecated
   PropertyAccessorElement lookUpGetter(String name, LibraryElement library);
+
+  /// Return the getter with the given [name].
+  ///
+  /// If [concrete] is `true`, then the concrete implementation is returned,
+  /// from this type, or its superclass.
+  ///
+  /// If [inherited] is `true`, then only getters from the superclass are
+  /// considered.
+  ///
+  /// If [recoveryStatic] is `true`, then static getters of the class,
+  /// and its superclasses are considered. Clients should not use it.
+  PropertyAccessorElement lookUpGetter2(
+    String name,
+    LibraryElement library, {
+    bool concrete = false,
+    bool inherited = false,
+    bool recoveryStatic = false,
+  });
 
   /// Return the element representing the getter that results from looking up
   /// the getter with the given [name] in the superclass of this class with
@@ -341,6 +360,7 @@ abstract class InterfaceType implements ParameterizedType {
   ///   looking up getter (respectively setter) <i>m</i> in <i>S</i> with
   ///   respect to <i>L</i>. Otherwise, we say that the lookup has failed.
   /// </blockquote>
+  @deprecated
   PropertyAccessorElement lookUpGetterInSuperclass(
       String name, LibraryElement library);
 
@@ -353,6 +373,7 @@ abstract class InterfaceType implements ParameterizedType {
   ///
   /// The [library] determines if a private member name is visible, and does not
   /// need to be supplied for public names.
+  @deprecated
   PropertyAccessorElement lookUpInheritedGetter(String name,
       {LibraryElement library, bool thisType = true});
 
@@ -365,6 +386,7 @@ abstract class InterfaceType implements ParameterizedType {
   ///
   /// The [library] determines if a private member name is visible, and does not
   /// need to be supplied for public names.
+  @deprecated
   ExecutableElement lookUpInheritedGetterOrMethod(String name,
       {LibraryElement library});
 
@@ -377,6 +399,7 @@ abstract class InterfaceType implements ParameterizedType {
   ///
   /// The [library] determines if a private member name is visible, and does not
   /// need to be supplied for public names.
+  @deprecated
   MethodElement lookUpInheritedMethod(String name,
       {LibraryElement library, bool thisType = true});
 
@@ -389,6 +412,7 @@ abstract class InterfaceType implements ParameterizedType {
   ///
   /// The [library] determines if a private member name is visible, and does not
   /// need to be supplied for public names.
+  @deprecated
   PropertyAccessorElement lookUpInheritedSetter(String name,
       {LibraryElement library, bool thisType = true});
 
@@ -405,7 +429,26 @@ abstract class InterfaceType implements ParameterizedType {
   ///   lookup is the result of looking up method <i>m</i> in <i>S</i> with
   ///   respect to <i>L</i> Otherwise, we say that the lookup has failed.
   /// </blockquote>
+  @deprecated
   MethodElement lookUpMethod(String name, LibraryElement library);
+
+  /// Return the method with the given [name].
+  ///
+  /// If [concrete] is `true`, then the concrete implementation is returned,
+  /// from this type, or its superclass.
+  ///
+  /// If [inherited] is `true`, then only methods from the superclass are
+  /// considered.
+  ///
+  /// If [recoveryStatic] is `true`, then static methods of the class,
+  /// and its superclasses are considered. Clients should not use it.
+  MethodElement lookUpMethod2(
+    String name,
+    LibraryElement library, {
+    bool concrete = false,
+    bool inherited = false,
+    bool recoveryStatic = false,
+  });
 
   /// Return the element representing the method that results from looking up
   /// the method with the given [name] in the superclass of this class with
@@ -422,6 +465,7 @@ abstract class InterfaceType implements ParameterizedType {
   ///   respect to <i>L</i>.
   /// * Otherwise, we say that the lookup has failed.
   /// </blockquote>
+  @deprecated
   MethodElement lookUpMethodInSuperclass(String name, LibraryElement library);
 
   /// Return the element representing the setter that results from looking up
@@ -438,7 +482,26 @@ abstract class InterfaceType implements ParameterizedType {
   ///   looking up getter (respectively setter) <i>m</i> in <i>S</i> with
   ///   respect to <i>L</i>. Otherwise, we say that the lookup has failed.
   /// </blockquote>
+  @deprecated
   PropertyAccessorElement lookUpSetter(String name, LibraryElement library);
+
+  /// Return the setter with the given [name].
+  ///
+  /// If [concrete] is `true`, then the concrete implementation is returned,
+  /// from this type, or its superclass.
+  ///
+  /// If [inherited] is `true`, then only setters from the superclass are
+  /// considered.
+  ///
+  /// If [recoveryStatic] is `true`, then static setters of the class,
+  /// and its superclasses are considered. Clients should not use it.
+  PropertyAccessorElement lookUpSetter2(
+    String name,
+    LibraryElement library, {
+    bool concrete = false,
+    bool inherited = false,
+    bool recoveryStatic = false,
+  });
 
   /// Return the element representing the setter that results from looking up
   /// the setter with the given [name] in the superclass of this class with
@@ -455,6 +518,7 @@ abstract class InterfaceType implements ParameterizedType {
   ///   looking up getter (respectively setter) <i>m</i> in <i>S</i> with
   ///   respect to <i>L</i>. Otherwise, we say that the lookup has failed.
   /// </blockquote>
+  @deprecated
   PropertyAccessorElement lookUpSetterInSuperclass(
       String name, LibraryElement library);
 

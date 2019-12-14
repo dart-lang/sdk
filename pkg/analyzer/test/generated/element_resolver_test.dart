@@ -404,7 +404,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     //
     ClassElementImpl classD =
         ElementFactory.classElement("D", interfaceTypeStar(classC));
-    _encloseElement(classA);
+    _encloseElement(classD);
     //
     // D a;
     // a[i];
@@ -982,8 +982,9 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
         ElementFactory.getterElement(getterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement>[getter];
     SuperExpression target = AstTestFactory.superExpression();
-    target.staticType = interfaceTypeStar(
-        ElementFactory.classElement("B", interfaceTypeStar(classA)));
+    var classB = ElementFactory.classElement("B", interfaceTypeStar(classA));
+    _encloseElement(classB);
+    target.staticType = interfaceTypeStar(classB);
     PropertyAccess access = AstTestFactory.propertyAccess2(target, getterName);
     AstTestFactory.methodDeclaration2(
         null,

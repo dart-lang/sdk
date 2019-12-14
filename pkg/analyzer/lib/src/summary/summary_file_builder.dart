@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
@@ -84,7 +85,7 @@ class _Builder {
 
     var elementFactory = summary2.LinkedElementFactory(
       context,
-      null,
+      AnalysisSessionImpl(null),
       summary2.Reference.root(),
     );
 

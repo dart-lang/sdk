@@ -1105,7 +1105,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     // CAN_BE_NULL_AFTER_NULL_AWARE
     if (parent is MethodInvocation &&
         !parent.isNullAware &&
-        _nullType.lookUpMethod(parent.methodName.name, _currentLibrary) ==
+        _nullType.lookUpMethod2(parent.methodName.name, _currentLibrary) ==
             null) {
       _errorReporter.reportErrorForNode(
           HintCode.CAN_BE_NULL_AFTER_NULL_AWARE, childOfParent);
@@ -1113,7 +1113,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
     if (parent is PropertyAccess &&
         !parent.isNullAware &&
-        _nullType.lookUpGetter(parent.propertyName.name, _currentLibrary) ==
+        _nullType.lookUpGetter2(parent.propertyName.name, _currentLibrary) ==
             null) {
       _errorReporter.reportErrorForNode(
           HintCode.CAN_BE_NULL_AFTER_NULL_AWARE, childOfParent);

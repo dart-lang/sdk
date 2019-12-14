@@ -3981,9 +3981,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         }
         names[name] = typeName.name.name;
         ExecutableElement inheritedMember =
-            superclass.lookUpMethod(name, library) ??
-                superclass.lookUpGetter(name, library) ??
-                superclass.lookUpSetter(name, library);
+            superclass.lookUpMethod2(name, library) ??
+                superclass.lookUpGetter2(name, library) ??
+                superclass.lookUpSetter2(name, library);
         if (inheritedMember != null) {
           _errorReporter.reportErrorForNode(
               CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION,
@@ -5916,7 +5916,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return true;
     } else if (type is InterfaceType) {
       MethodElement callMethod =
-          type.lookUpMethod(FunctionElement.CALL_METHOD_NAME, _currentLibrary);
+          type.lookUpMethod2(FunctionElement.CALL_METHOD_NAME, _currentLibrary);
       return callMethod != null;
     }
     return false;

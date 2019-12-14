@@ -1340,7 +1340,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       {@required bool isNullAware}) {
     TypeImpl /*!*/ returnType;
     if (type is InterfaceType) {
-      MethodElement callMethod = type.lookUpMethod(
+      MethodElement callMethod = type.lookUpMethod2(
           FunctionElement.CALL_METHOD_NAME, _resolver.definingLibrary);
       returnType = callMethod?.type?.returnType ?? _dynamicType;
     } else if (type is FunctionType) {

@@ -172,8 +172,8 @@ class MethodInvocationResolver {
   List<ParameterElement> _computeCorrespondingParameters(
       ArgumentList argumentList, DartType type) {
     if (type is InterfaceType) {
-      MethodElement callMethod =
-          type.lookUpMethod(FunctionElement.CALL_METHOD_NAME, _definingLibrary);
+      MethodElement callMethod = type.lookUpMethod2(
+          FunctionElement.CALL_METHOD_NAME, _definingLibrary);
       if (callMethod != null) {
         return _resolveArgumentsToFunction(argumentList, callMethod);
       }

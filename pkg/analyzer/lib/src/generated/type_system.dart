@@ -142,7 +142,7 @@ class Dart2TypeSystem extends TypeSystem {
   /// return null.
   FunctionType getCallMethodType(DartType t) {
     if (t is InterfaceType) {
-      return t.lookUpInheritedMethod("call")?.type;
+      return t.lookUpMethod2('call', t.element.library)?.type;
     }
     return null;
   }

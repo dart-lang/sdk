@@ -13,6 +13,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' as driver;
 import 'package:analyzer/src/dart/analysis/uri_converter.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/resolver.dart';
@@ -36,11 +37,13 @@ class AnalysisSessionImpl implements AnalysisSession {
   /// The cache of libraries for URIs.
   final Map<String, LibraryElement> _uriToLibraryCache = {};
 
+  final InheritanceManager3 inheritanceManager = InheritanceManager3();
+
   /// Initialize a newly created analysis session.
   AnalysisSessionImpl(this._driver);
 
   @override
-  AnalysisContext get analysisContext => _driver.analysisContext;
+  AnalysisContext get analysisContext => _driver?.analysisContext;
 
   @override
   DeclaredVariables get declaredVariables => _driver.declaredVariables;
@@ -219,7 +222,13 @@ class SynchronousSession {
   TypeSystemImpl _typeSystemLegacy;
   TypeSystemImpl _typeSystemNonNullableByDefault;
 
+  InheritanceManager3 _inheritanceManager;
+
   SynchronousSession(this.analysisOptions, this.declaredVariables);
+
+  InheritanceManager3 get inheritanceManager {
+    return _inheritanceManager ??= InheritanceManager3();
+  }
 
   @Deprecated('Use LibraryElement.typeProvider')
   TypeProvider get typeProvider => _typeProviderLegacy;
@@ -251,6 +260,8 @@ class SynchronousSession {
 
     _typeSystemLegacy = null;
     _typeSystemNonNullableByDefault = null;
+
+    _inheritanceManager = null;
   }
 
   void setTypeProviders({

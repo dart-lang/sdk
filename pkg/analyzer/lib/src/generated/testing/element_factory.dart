@@ -9,6 +9,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
@@ -437,8 +438,13 @@ class ElementFactory {
       {bool isNonNullableByDefault = true}) {
     String fileName = "/$libraryName.dart";
     CompilationUnitElementImpl unit = compilationUnit(fileName);
-    LibraryElementImpl library = LibraryElementImpl(context, null, libraryName,
-        0, libraryName.length, isNonNullableByDefault);
+    LibraryElementImpl library = LibraryElementImpl(
+        context,
+        AnalysisSessionImpl(null),
+        libraryName,
+        0,
+        libraryName.length,
+        isNonNullableByDefault);
     library.definingCompilationUnit = unit;
     return library;
   }
