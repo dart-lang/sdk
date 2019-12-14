@@ -24,6 +24,7 @@ import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/method_invocation_resolver.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/generated/element_type_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/super_context.dart';
@@ -116,6 +117,8 @@ class ElementResolver extends SimpleAstVisitor<void> {
   final ExtensionMemberResolver _extensionResolver;
 
   final MethodInvocationResolver _methodInvocationResolver;
+
+  final ElementTypeProvider _elementTypeProvider = const ElementTypeProvider();
 
   /**
    * Initialize a newly created visitor to work for the given [_resolver] to
@@ -406,7 +409,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
               node.argumentList);
         }
         node.staticElement = member;
-        functionType = member.type;
+        functionType = _elementTypeProvider.getExecutableType(member);
       }
     } else {
       functionType = function.staticType;
@@ -1102,7 +1105,9 @@ class ElementResolver extends SimpleAstVisitor<void> {
     if (expression is NullLiteral) {
       return _resolver.typeProvider.nullType;
     }
-    DartType type = read ? getReadType(expression) : expression.staticType;
+    DartType type = read
+        ? getReadType(expression, elementTypeProvider: _elementTypeProvider)
+        : expression.staticType;
     return _resolveTypeParameter(type);
   }
 
@@ -1132,7 +1137,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
           FunctionElement.CALL_METHOD_NAME, invocation.function);
       ExecutableElement callMethod = propertyResolver.result.getter;
       invocation.staticElement = callMethod;
-      parameterizableType = callMethod?.type;
+      parameterizableType = _elementTypeProvider.safeExecutableType(callMethod);
       parameters = (parameterizableType as FunctionType)?.typeFormals;
     }
 
@@ -1430,7 +1435,8 @@ class ElementResolver extends SimpleAstVisitor<void> {
     if (executableElement == null) {
       return null;
     }
-    List<ParameterElement> parameters = executableElement.parameters;
+    List<ParameterElement> parameters =
+        _elementTypeProvider.getExecutableParameters(executableElement);
     return _resolveArgumentsToParameters(argumentList, parameters);
   }
 
@@ -1467,7 +1473,8 @@ class ElementResolver extends SimpleAstVisitor<void> {
           .resolve(leftOperand, leftType, methodName, node);
 
       node.staticElement = result.getter;
-      node.staticInvokeType = result.getter?.type;
+      node.staticInvokeType =
+          _elementTypeProvider.safeExecutableType(result.getter);
       if (_shouldReportInvalidMember(leftType, result)) {
         if (leftOperand is SuperExpression) {
           _recordUndefinedToken(
