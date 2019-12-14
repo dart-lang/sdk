@@ -33,6 +33,9 @@ class ElementTypeProvider {
   /// Guaranteed to be a function type.
   FunctionType getExecutableType(FunctionTypedElement element) => element.type;
 
+  /// Queries the type of a field.
+  DartType getFieldType(FieldElement element) => element.type;
+
   /// Queries the type of a variable element.
   DartType getVariableType(VariableElement variable) => variable.type;
 }
@@ -52,6 +55,10 @@ extension E on ElementTypeProvider {
   /// Null-aware version of [ElementTypeProvider.getExecutableType].
   FunctionType safeExecutableType(ExecutableElement element) =>
       element == null ? null : getExecutableType(element);
+
+  /// Null-aware version of [ElementTypeProvider.getFieldType].
+  DartType safeFieldType(FieldElement element) =>
+      element == null ? null : getFieldType(element);
 
   /// Null-aware version of [ElementTypeProvider.getVariableType].
   DartType safeVariableType(VariableElement variable) =>
