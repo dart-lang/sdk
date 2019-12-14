@@ -3,20 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:typed_data';
 
 import 'package:analysis_server/src/plugin/plugin_locator.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_watcher.dart';
-import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/context/context_root.dart';
-import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
-import 'package:analyzer/src/dart/analysis/file_state.dart';
-import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
@@ -116,7 +111,6 @@ class TestDriver implements AnalysisDriver {
   final MemoryResourceProvider resourceProvider;
 
   SourceFactory sourceFactory;
-  FileSystemState fsState;
   AnalysisSession currentSession;
   AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
 
@@ -136,17 +130,6 @@ class TestDriver implements AnalysisDriver {
         ]
       })
     ]);
-    fsState = new FileSystemState(
-        new PerformanceLog(null),
-        new MemoryByteStore(),
-        new FileContentOverlay(),
-        resourceProvider,
-        'contextName',
-        sourceFactory,
-        new AnalysisOptionsImpl(),
-        DeclaredVariables(),
-        new Uint32List(0),
-        new Uint32List(0));
     currentSession = new AnalysisSessionImpl(this);
   }
 

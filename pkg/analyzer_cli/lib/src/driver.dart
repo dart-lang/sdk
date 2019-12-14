@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:io' as io;
 import 'dart:isolate';
 
+import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
@@ -588,7 +589,7 @@ class Driver with HasContextMixin implements CommandLineStarter {
         resourceProvider,
         analysisDriverMemoryByteStore,
         new FileContentOverlay(),
-        null,
+        ContextRoot(source, [], pathContext: resourceProvider.pathContext),
         sourceFactory,
         analysisOptions);
     analysisDriver.results.listen((_) {});

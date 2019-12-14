@@ -15,6 +15,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/defined_names.dart';
+import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
 import 'package:analyzer/src/dart/analysis/library_graph.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/referenced_names.dart';
@@ -567,7 +568,7 @@ class FileState {
 
   CompilationUnit _parse(AnalysisErrorListener errorListener) {
     AnalysisOptionsImpl analysisOptions = _fsState._analysisOptions;
-    FeatureSet featureSet = analysisOptions.contextFeatures;
+    var featureSet = _fsState.featureSetProvider.getFeatureSet(path, uri);
     if (source == null) {
       return _createEmptyCompilationUnit(featureSet);
     }
@@ -718,6 +719,8 @@ class FileSystemState {
   final Uint32List _unlinkedSalt;
   final Uint32List _linkedSalt;
 
+  final FeatureSetProvider featureSetProvider;
+
   /**
    * The optional store with externally provided unlinked and corresponding
    * linked summaries. These summaries are always added to the store for any
@@ -797,7 +800,8 @@ class FileSystemState {
     this._analysisOptions,
     this._declaredVariables,
     this._unlinkedSalt,
-    this._linkedSalt, {
+    this._linkedSalt,
+    this.featureSetProvider, {
     this.externalSummaries,
   }) {
     _fileContentCache = _FileContentCache.getInstance(

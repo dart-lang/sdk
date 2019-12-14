@@ -17,8 +17,6 @@ main() {
 
 @reflectiveTest
 class PackagesTest with ResourceProviderMixin {
-  final Version defaultLanguageVersion = Version(2, 8, 0);
-
   void setUp() {
     newFile('/test/lib/test.dart', content: '');
   }
@@ -29,24 +27,20 @@ class PackagesTest with ResourceProviderMixin {
 aaa:file:///packages/aaa/lib/
 test:lib/
 ''');
-    var packages = parseDotPackagesFile(
-      resourceProvider,
-      file,
-      defaultLanguageVersion,
-    );
+    var packages = parseDotPackagesFile(resourceProvider, file);
 
     _assertPackage(
       packages,
       name: 'test',
       expectedLibPath: '/test/lib',
-      expectedVersion: Version(2, 8, 0),
+      expectedVersion: null,
     );
 
     _assertPackage(
       packages,
       name: 'aaa',
       expectedLibPath: '/packages/aaa/lib',
-      expectedVersion: Version(2, 8, 0),
+      expectedVersion: null,
     );
   }
 
@@ -75,11 +69,7 @@ test:lib/
   ]
 }
 ''');
-    var packages = parsePackageConfigJsonFile(
-      resourceProvider,
-      file,
-      defaultLanguageVersion,
-    );
+    var packages = parsePackageConfigJsonFile(resourceProvider, file);
 
     _assertPackage(
       packages,
@@ -99,7 +89,33 @@ test:lib/
       packages,
       name: 'bbb',
       expectedLibPath: '/packages/bbb/lib',
-      expectedVersion: Version(2, 8, 0),
+      expectedVersion: null,
+    );
+  }
+
+  /// New features were added in `2.2.2` over `2.2.0`.
+  /// But `2.2.2` is not representable, so we special case it.
+  test_parsePackageConfigJsonFile_version222() {
+    var file = newFile('/test/.dart_tool/package_config.json', content: '''
+{
+  "configVersion": 2,
+  "packages": [
+    {
+      "name": "test",
+      "rootUri": "../",
+      "packageUri": "lib/",
+      "languageVersion": "2.2"
+    }
+  ]
+}
+''');
+    var packages = parsePackageConfigJsonFile(resourceProvider, file);
+
+    _assertPackage(
+      packages,
+      name: 'test',
+      expectedLibPath: '/test/lib',
+      expectedVersion: Version(2, 2, 2),
     );
   }
 

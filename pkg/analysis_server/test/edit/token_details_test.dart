@@ -35,10 +35,10 @@ class CompletionListTokenDetailsTest extends AbstractAnalysisTest {
   }
 
   test_packageUri() async {
-    newFile('/project/.packages', content: ''''
+    newFile('/project/.packages', content: '''
 project:lib/
 ''');
-    newFile('/project/lib/c.dart', content: ''''
+    newFile('/project/lib/c.dart', content: '''
 class C {}
 ''');
     addTestFile('''

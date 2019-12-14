@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
-
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/package_config_json.dart';
 import 'package:analyzer/src/util/uri.dart';
@@ -12,11 +10,7 @@ import 'package:package_config/packages_file.dart' as dot_packages;
 import 'package:pub_semver/pub_semver.dart';
 
 /// Parse the [file] as a `.packages` file.
-Packages parseDotPackagesFile(
-  ResourceProvider provider,
-  File file,
-  Version defaultLanguageVersion,
-) {
+Packages parseDotPackagesFile(ResourceProvider provider, File file) {
   var uri = file.toUri();
   var content = file.readAsBytesSync();
   var uriMap = dot_packages.parse(content, uri);
@@ -28,10 +22,12 @@ Packages parseDotPackagesFile(
       provider.pathContext,
       libUri,
     );
+    var libFolder = provider.getFolder(libPath);
     map[name] = Package(
       name: name,
-      libFolder: provider.getFolder(libPath),
-      languageVersion: defaultLanguageVersion,
+      rootFolder: libFolder,
+      libFolder: libFolder,
+      languageVersion: null,
     );
   }
 
@@ -39,11 +35,7 @@ Packages parseDotPackagesFile(
 }
 
 /// Parse the [file] as a `package_config.json` file.
-Packages parsePackageConfigJsonFile(
-  ResourceProvider provider,
-  File file,
-  Version defaultLanguageVersion,
-) {
+Packages parsePackageConfigJsonFile(ResourceProvider provider, File file) {
   var uri = file.toUri();
   var content = file.readAsStringSync();
   var jsonConfig = parsePackageConfigJson(uri, content);
@@ -52,22 +44,33 @@ Packages parsePackageConfigJsonFile(
   for (var jsonPackage in jsonConfig.packages) {
     var name = jsonPackage.name;
 
+    var rootPath = fileUriToNormalizedPath(
+      provider.pathContext,
+      jsonPackage.rootUri,
+    );
+
     var libPath = fileUriToNormalizedPath(
       provider.pathContext,
       jsonPackage.packageUri,
     );
 
-    var languageVersion = defaultLanguageVersion;
+    Version languageVersion;
     if (jsonPackage.languageVersion != null) {
       languageVersion = Version(
         jsonPackage.languageVersion.major,
         jsonPackage.languageVersion.minor,
         0,
       );
+      // New features were added in `2.2.2` over `2.2.0`.
+      // But `2.2.2` is not representable, so we special case it.
+      if (languageVersion.major == 2 && languageVersion.minor == 2) {
+        languageVersion = Version(2, 2, 2);
+      }
     }
 
     map[name] = Package(
       name: name,
+      rootFolder: provider.getFolder(rootPath),
       libFolder: provider.getFolder(libPath),
       languageVersion: languageVersion,
     );
@@ -78,13 +81,15 @@ Packages parsePackageConfigJsonFile(
 
 class Package {
   final String name;
+  final Folder rootFolder;
   final Folder libFolder;
 
-  /// The language version to use for this package, not `null`.
+  /// The language version for this package, `null` not specified explicitly.
   final Version languageVersion;
 
   Package({
     @required this.name,
+    @required this.rootFolder,
     @required this.libFolder,
     @required this.languageVersion,
   });

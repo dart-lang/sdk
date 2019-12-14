@@ -33,7 +33,6 @@ import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/sdk.dart';
 import 'package:path/path.dart' as p;
-import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart';
 
 AnalysisOptionsProvider _optionsProvider = AnalysisOptionsProvider();
@@ -238,7 +237,6 @@ class LintDriver {
         var packages = parseDotPackagesFile(
           resourceProvider,
           resourceProvider.getFile(packageConfigPath),
-          Version(2, 6, 0),
         );
 
         var packageMap = <String, List<Folder>>{};

@@ -17,6 +17,7 @@ import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
+import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/file_tracker.dart';
 import 'package:analyzer/src/dart/analysis/index.dart';
@@ -1441,6 +1442,14 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// changes.
   void _createFileTracker() {
     _fillSalt();
+
+    var featureSetProvider = FeatureSetProvider.build(
+      resourceProvider: resourceProvider,
+      contextRoot: contextRoot,
+      sourceFactory: _sourceFactory,
+      defaultFeatureSet: _analysisOptions.contextFeatures,
+    );
+
     _fsState = FileSystemState(
       _logger,
       _byteStore,
@@ -1452,6 +1461,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       declaredVariables,
       _unlinkedSalt,
       _linkedSalt,
+      featureSetProvider,
       externalSummaries: _externalSummaries,
     );
     _fileTracker = FileTracker(_logger, _fsState, _changeHook);
