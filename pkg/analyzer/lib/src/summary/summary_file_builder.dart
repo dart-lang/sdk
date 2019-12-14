@@ -69,7 +69,7 @@ class _Builder {
   final AnalysisContext context;
   final Iterable<Source> librarySources;
 
-  final Set<String> libraryUris = Set<String>();
+  final Set<String> libraryUris = <String>{};
   final List<summary2.LinkInputLibrary> inputLibraries = [];
 
   final PackageBundleAssembler bundleAssembler = PackageBundleAssembler();

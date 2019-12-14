@@ -22,7 +22,7 @@ class LibraryCycle {
   final List<FileState> libraries = [];
 
   /// The library cycles that this cycle references directly.
-  final Set<LibraryCycle> directDependencies = Set<LibraryCycle>();
+  final Set<LibraryCycle> directDependencies = <LibraryCycle>{};
 
   /// The cycles that use this cycle, used to [invalidate] transitively.
   final List<LibraryCycle> _directUsers = [];

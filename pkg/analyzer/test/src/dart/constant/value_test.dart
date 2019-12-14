@@ -1975,7 +1975,7 @@ class DartObjectImplTest {
   DartObjectImpl _mapValue(DartType keyType, DartType valueType,
       List<DartObjectImpl> keyElementPairs) {
     Map<DartObjectImpl, DartObjectImpl> map =
-        Map<DartObjectImpl, DartObjectImpl>();
+        <DartObjectImpl, DartObjectImpl>{};
     int count = keyElementPairs.length;
     for (int i = 0; i < count;) {
       map[keyElementPairs[i++]] = keyElementPairs[i++];
@@ -1991,7 +1991,7 @@ class DartObjectImplTest {
   }
 
   DartObjectImpl _setValue(DartType type, Set<DartObjectImpl> elements) {
-    return DartObjectImpl(type, SetState(elements ?? Set<DartObjectImpl>()));
+    return DartObjectImpl(type, SetState(elements ?? <DartObjectImpl>{}));
   }
 
   DartObjectImpl _stringValue(String value) {

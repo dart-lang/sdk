@@ -33,7 +33,7 @@ abstract class AbstractResynthesizeTest with ResourceProviderMixin {
 
   String testFile;
   Source testSource;
-  Set<Source> otherLibrarySources = Set<Source>();
+  Set<Source> otherLibrarySources = <Source>{};
 
   /**
    * Tests may set this to `true` to indicate that a missing file at the time of

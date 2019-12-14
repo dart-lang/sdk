@@ -94,9 +94,9 @@ class LibraryAnalyzer {
    *
    * TODO(scheglov) Remove after https://github.com/dart-lang/sdk/issues/31925
    */
-  final Set<ConstantEvaluationTarget> _libraryConstants = Set();
+  final Set<ConstantEvaluationTarget> _libraryConstants = {};
 
-  final Set<ConstantEvaluationTarget> _constants = Set();
+  final Set<ConstantEvaluationTarget> _constants = {};
 
   LibraryAnalyzer(
       this._analysisOptions,
@@ -558,7 +558,7 @@ class LibraryAnalyzer {
     ErrorReporter libraryErrorReporter = _getErrorReporter(_library);
 
     LibraryIdentifier libraryNameNode;
-    var seenPartSources = Set<Source>();
+    var seenPartSources = <Source>{};
     var directivesToResolve = <Directive>[];
     int partIndex = 0;
     for (Directive directive in definingCompilationUnit.directives) {

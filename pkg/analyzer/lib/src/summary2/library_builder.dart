@@ -222,7 +222,7 @@ class LibraryBuilder {
     for (var unitContext in context.units) {
       for (var declaration in unitContext.unit.declarations) {
         if (declaration is ast.MixinDeclaration) {
-          var names = Set<String>();
+          var names = <String>{};
           var collector = MixinSuperInvokedNamesCollector(names);
           for (var executable in declaration.members) {
             if (executable is ast.MethodDeclaration) {

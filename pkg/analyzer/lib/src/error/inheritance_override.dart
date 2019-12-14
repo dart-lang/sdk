@@ -103,7 +103,7 @@ class _ClassVerifier {
 
   /// The set of unique supertypes of the current class.
   /// It is used to decide when to add a new element to [allSuperinterfaces].
-  final Set<InterfaceType> allSupertypes = Set<InterfaceType>();
+  final Set<InterfaceType> allSupertypes = <InterfaceType>{};
 
   /// The list of all superinterfaces, collected so far.
   final List<Interface> allSuperinterfaces = [];

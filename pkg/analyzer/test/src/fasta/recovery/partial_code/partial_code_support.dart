@@ -65,8 +65,9 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
    * can validly be followed by anything that is valid after a part directive.
    */
   static final List<TestSuffix> postPartSuffixes = <TestSuffix>[
-    TestSuffix('part', "part 'a.dart';")
-  ]..addAll(declarationSuffixes);
+    TestSuffix('part', "part 'a.dart';"),
+    ...declarationSuffixes
+  ];
 
   /**
    * A list of suffixes that can be used by tests of top-level constructs that
@@ -75,8 +76,9 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
    */
   static final List<TestSuffix> prePartSuffixes = <TestSuffix>[
     TestSuffix('import', "import 'a.dart';"),
-    TestSuffix('export', "export 'a.dart';")
-  ]..addAll(postPartSuffixes);
+    TestSuffix('export', "export 'a.dart';"),
+    ...postPartSuffixes
+  ];
 
   /**
    * A list of suffixes that can be used by tests of statements.

@@ -254,7 +254,7 @@ class AstValidator extends UnifyingAstVisitor<void> {
   /**
    * A list containing the errors found while traversing the AST structure.
    */
-  List<String> _errors = List<String>();
+  List<String> _errors = <String>[];
 
   /**
    * Assert that no errors were found while traversing any of the AST structures that have been

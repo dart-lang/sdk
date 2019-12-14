@@ -15,7 +15,7 @@ class PathFilter {
   final String root;
 
   /// List of ignore patterns that paths are tested against.
-  final List<Glob> _ignorePatterns = List<Glob>();
+  final List<Glob> _ignorePatterns = <Glob>[];
 
   /// Construct a new path filter rooted at [root] with [ignorePatterns].
   /// If [pathContext] is not specified, then the system path context is used.

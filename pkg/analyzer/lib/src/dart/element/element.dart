@@ -473,7 +473,7 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   @override
   List<InterfaceType> get allSupertypes {
-    List<InterfaceType> list = List<InterfaceType>();
+    List<InterfaceType> list = <InterfaceType>[];
     collectAllSupertypes(list, thisType, thisType);
     return list;
   }
@@ -594,7 +594,7 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   @override
   bool get hasNonFinalField {
-    List<ClassElement> classesToVisit = List<ClassElement>();
+    List<ClassElement> classesToVisit = <ClassElement>[];
     HashSet<ClassElement> visitedClasses = HashSet<ClassElement>();
     classesToVisit.add(this);
     while (classesToVisit.isNotEmpty) {
@@ -1192,8 +1192,8 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   static void collectAllSupertypes(List<InterfaceType> supertypes,
       InterfaceType startingType, InterfaceType excludeType) {
-    List<InterfaceType> typesToVisit = List<InterfaceType>();
-    List<ClassElement> visitedClasses = List<ClassElement>();
+    List<InterfaceType> typesToVisit = <InterfaceType>[];
+    List<ClassElement> visitedClasses = <ClassElement>[];
     typesToVisit.add(startingType);
     while (typesToVisit.isNotEmpty) {
       InterfaceType currentType = typesToVisit.removeAt(0);
@@ -3184,7 +3184,7 @@ class ElementLocationImpl implements ElementLocation {
 
   /// Initialize a newly created location to represent the given [element].
   ElementLocationImpl.con1(Element element) {
-    List<String> components = List<String>();
+    List<String> components = <String>[];
     Element ancestor = element;
     while (ancestor != null) {
       components.insert(0, (ancestor as ElementImpl).identifier);
@@ -3256,7 +3256,7 @@ class ElementLocationImpl implements ElementLocation {
   /// Decode the [encoding] of a location into a list of components and return
   /// the components.
   List<String> _decode(String encoding) {
-    List<String> components = List<String>();
+    List<String> components = <String>[];
     StringBuffer buffer = StringBuffer();
     int index = 0;
     int length = encoding.length;
@@ -5526,7 +5526,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   /// Return `true` if the receiver directly or indirectly imports the
   /// 'dart:html' libraries.
   bool get isOrImportsBrowserLibrary {
-    List<LibraryElement> visited = List<LibraryElement>();
+    List<LibraryElement> visited = <LibraryElement>[];
     Source htmlLibSource = context.sourceFactory.forUri(DartSdk.DART_HTML);
     visited.add(this);
     for (int index = 0; index < visited.length; index++) {
@@ -5639,7 +5639,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   @override
   List<CompilationUnitElement> get units {
-    List<CompilationUnitElement> units = List<CompilationUnitElement>();
+    List<CompilationUnitElement> units = <CompilationUnitElement>[];
     units.add(_definingCompilationUnit);
     units.addAll(_parts);
     return units;
@@ -5741,7 +5741,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   static List<ImportElement> getImportsWithPrefixFromImports(
       PrefixElement prefixElement, List<ImportElement> imports) {
     int count = imports.length;
-    List<ImportElement> importList = List<ImportElement>();
+    List<ImportElement> importList = <ImportElement>[];
     for (int i = 0; i < count; i++) {
       if (identical(imports[i].prefix, prefixElement)) {
         importList.add(imports[i]);

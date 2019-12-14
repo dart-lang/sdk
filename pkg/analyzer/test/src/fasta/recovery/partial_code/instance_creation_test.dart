@@ -14,9 +14,10 @@ class InstanceCreationTest extends PartialCodeTest {
   buildAll() {
     buildTests(
         'instance_creation_expression',
-        <TestDescriptor>[]
-          ..addAll(forKeyword('const'))
-          ..addAll(forKeyword('new')),
+        <TestDescriptor>[
+          ...forKeyword('const'),
+          ...forKeyword('new'),
+        ],
         <TestSuffix>[],
         head: 'f() => ',
         tail: ';');

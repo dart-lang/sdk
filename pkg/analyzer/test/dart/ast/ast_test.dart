@@ -41,7 +41,7 @@ main() {
 @reflectiveTest
 class ClassDeclarationTest extends ParserTestCase {
   void test_getConstructor() {
-    List<ConstructorInitializer> initializers = List<ConstructorInitializer>();
+    List<ConstructorInitializer> initializers = <ConstructorInitializer>[];
     ConstructorDeclaration defaultConstructor =
         AstTestFactory.constructorDeclaration(
             AstTestFactory.identifier3("Test"),
@@ -497,7 +497,7 @@ class NodeListTest {
 
   void test_addAll() {
     AstNode parent = AstTestFactory.argumentList();
-    List<AstNode> firstNodes = List<AstNode>();
+    List<AstNode> firstNodes = <AstNode>[];
     AstNode firstNode = AstTestFactory.booleanLiteral(true);
     AstNode secondNode = AstTestFactory.booleanLiteral(false);
     firstNodes.add(firstNode);
@@ -509,7 +509,7 @@ class NodeListTest {
     expect(list[1], same(secondNode));
     expect(firstNode.parent, same(parent));
     expect(secondNode.parent, same(parent));
-    List<AstNode> secondNodes = List<AstNode>();
+    List<AstNode> secondNodes = <AstNode>[];
     AstNode thirdNode = AstTestFactory.booleanLiteral(true);
     AstNode fourthNode = AstTestFactory.booleanLiteral(false);
     secondNodes.add(thirdNode);
@@ -587,7 +587,7 @@ class NodeListTest {
   }
 
   void test_indexOf() {
-    List<AstNode> nodes = List<AstNode>();
+    List<AstNode> nodes = <AstNode>[];
     AstNode firstNode = AstTestFactory.booleanLiteral(true);
     AstNode secondNode = AstTestFactory.booleanLiteral(false);
     AstNode thirdNode = AstTestFactory.booleanLiteral(true);
@@ -607,7 +607,7 @@ class NodeListTest {
   }
 
   void test_remove() {
-    List<AstNode> nodes = List<AstNode>();
+    List<AstNode> nodes = <AstNode>[];
     AstNode firstNode = AstTestFactory.booleanLiteral(true);
     AstNode secondNode = AstTestFactory.booleanLiteral(false);
     AstNode thirdNode = AstTestFactory.booleanLiteral(true);
@@ -647,7 +647,7 @@ class NodeListTest {
   }
 
   void test_set() {
-    List<AstNode> nodes = List<AstNode>();
+    List<AstNode> nodes = <AstNode>[];
     AstNode firstNode = AstTestFactory.booleanLiteral(true);
     AstNode secondNode = AstTestFactory.booleanLiteral(false);
     AstNode thirdNode = AstTestFactory.booleanLiteral(true);

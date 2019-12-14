@@ -201,7 +201,7 @@ class TestWalker extends DependencyWalker<TestNode> {
   @override
   void evaluate(TestNode v) {
     v.isEvaluated = true;
-    _evaluations.add([v._name].toSet());
+    _evaluations.add({v._name});
     _sccFlags.add(false);
   }
 

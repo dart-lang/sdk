@@ -51,6 +51,6 @@ DefinedNames computeDefinedNames(CompilationUnit unit) {
  * Defined top-level and class member names.
  */
 class DefinedNames {
-  final Set<String> topLevelNames = Set<String>();
-  final Set<String> classMemberNames = Set<String>();
+  final Set<String> topLevelNames = <String>{};
+  final Set<String> classMemberNames = <String>{};
 }

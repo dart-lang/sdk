@@ -287,7 +287,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
     node.finallyBlock?.accept(this);
     NodeList<CatchClause> catchClauses = node.catchClauses;
     int numOfCatchClauses = catchClauses.length;
-    List<DartType> visitedTypes = List<DartType>();
+    List<DartType> visitedTypes = <DartType>[];
     for (int i = 0; i < numOfCatchClauses; i++) {
       CatchClause catchClause = catchClauses[i];
       if (catchClause.onKeyword != null) {

@@ -72,7 +72,7 @@ class ResynthesizeTestStrategyTwoPhase extends AbstractResynthesizeTest
   @override
   FeatureSet featureSet = FeatureSet.forTesting(sdkVersion: '2.2.2');
 
-  final Set<Source> serializedSources = Set<Source>();
+  final Set<Source> serializedSources = <Source>{};
 
   PackageBundleAssembler bundleAssembler = PackageBundleAssembler();
 }

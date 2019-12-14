@@ -167,7 +167,7 @@ class ConstantFinderTest {
   }
 
   List<Annotation> _findAnnotations() {
-    Set<Annotation> annotations = Set<Annotation>();
+    Set<Annotation> annotations = <Annotation>{};
     for (ConstantEvaluationTarget target in _findConstants()) {
       if (target is ElementAnnotationImpl) {
         expect(target.source, same(_source));
@@ -304,7 +304,7 @@ class ReferenceFinderTest {
 
   SuperConstructorInvocation _makeTailSuperConstructorInvocation(
       String name, bool isConst) {
-    List<ConstructorInitializer> initializers = List<ConstructorInitializer>();
+    List<ConstructorInitializer> initializers = <ConstructorInitializer>[];
     ConstructorDeclaration constructorDeclaration =
         AstTestFactory.constructorDeclaration(AstTestFactory.identifier3(name),
             null, AstTestFactory.formalParameterList(), initializers);

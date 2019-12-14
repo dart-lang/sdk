@@ -165,7 +165,7 @@ class ElementFactory {
     //
     // Populate the fields.
     //
-    List<FieldElement> fields = List<FieldElement>();
+    List<FieldElement> fields = <FieldElement>[];
     InterfaceType intType = typeProvider.intType;
     InterfaceType stringType = typeProvider.stringType;
     String indexFieldName = "index";
@@ -359,7 +359,7 @@ class ElementFactory {
   static FunctionElementImpl functionElement8(
       List<DartType> parameters, DartType returnType,
       {List<DartType> optional, Map<String, DartType> named}) {
-    List<ParameterElement> parameterElements = List<ParameterElement>();
+    List<ParameterElement> parameterElements = <ParameterElement>[];
     for (int i = 0; i < parameters.length; i++) {
       ParameterElementImpl parameterElement = ParameterElementImpl("a$i", i);
       parameterElement.type = parameters[i];

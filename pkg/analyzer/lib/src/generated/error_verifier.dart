@@ -45,8 +45,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    *
    * TODO(mfairhurst): Calculate these fields rather than hard-code them.
    */
-  static final _objectPropertyNames =
-      Set.from(['hashCode', 'runtimeType', 'noSuchMethod', 'toString']);
+  static final _objectPropertyNames = {
+    'hashCode',
+    'runtimeType',
+    'noSuchMethod',
+    'toString',
+  };
 
   /**
    * The error reporter by which errors will be reported.
@@ -217,13 +221,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * The return statements found in the method or function that we are currently
    * visiting that have a return value.
    */
-  List<ReturnStatement> _returnsWith = List<ReturnStatement>();
+  List<ReturnStatement> _returnsWith = <ReturnStatement>[];
 
   /**
    * The return statements found in the method or function that we are currently
    * visiting that do not have a return value.
    */
-  List<ReturnStatement> _returnsWithout = List<ReturnStatement>();
+  List<ReturnStatement> _returnsWithout = <ReturnStatement>[];
 
   /**
    * This map is initialized when visiting the contents of a class declaration.
@@ -451,8 +455,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     try {
       _inAsync = node.isAsynchronous;
       _inGenerator = node.isGenerator;
-      _returnsWith = List<ReturnStatement>();
-      _returnsWithout = List<ReturnStatement>();
+      _returnsWith = <ReturnStatement>[];
+      _returnsWithout = <ReturnStatement>[];
       super.visitBlockFunctionBody(node);
     } finally {
       _inAsync = wasInAsync;
@@ -2643,7 +2647,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
             if (element is PrefixElement) {
               List<ImportDirective> elements = prefixToDirectivesMap[element];
               if (elements == null) {
-                elements = List<ImportDirective>();
+                elements = <ImportDirective>[];
                 prefixToDirectivesMap[element] = elements;
               }
               elements.add(directive);
@@ -5698,7 +5702,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         Queue.of(classElement.mixins.map((i) => i.element))
           ..addAll(classElement.superclassConstraints.map((i) => i.element))
           ..add(classElement.supertype?.element);
-    Set<ClassElement> visitedClasses = Set<ClassElement>();
+    Set<ClassElement> visitedClasses = <ClassElement>{};
     while (superclasses.isNotEmpty) {
       ClassElement ancestor = superclasses.removeFirst();
       if (ancestor == null || !visitedClasses.add(ancestor)) {
@@ -5791,7 +5795,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         return library.definingCompilationUnit.source.uri.toString();
       }
     }
-    List<String> indirectSources = List<String>();
+    List<String> indirectSources = <String>[];
     for (int i = 0; i < count; i++) {
       LibraryElement importedLibrary = imports[i].importedLibrary;
       if (importedLibrary != null) {
@@ -5973,7 +5977,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    */
   static List<FieldElement> computeNotInitializedFields(
       ConstructorDeclaration constructor) {
-    Set<FieldElement> fields = Set<FieldElement>();
+    Set<FieldElement> fields = <FieldElement>{};
     var classDeclaration = constructor.parent as ClassDeclaration;
     for (ClassMember fieldDeclaration in classDeclaration.members) {
       if (fieldDeclaration is FieldDeclaration) {

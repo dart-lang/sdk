@@ -1870,7 +1870,7 @@ class CommentImpl extends AstNodeImpl implements Comment {
 
   /// Create a documentation comment consisting of the given [tokens].
   static Comment createDocumentationComment(List<Token> tokens) =>
-      CommentImpl(tokens, CommentType.DOCUMENTATION, List<CommentReference>());
+      CommentImpl(tokens, CommentType.DOCUMENTATION, <CommentReference>[]);
 
   /// Create a documentation comment consisting of the given [tokens] and having
   /// the given [references] embedded within it.
@@ -2065,10 +2065,10 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
 
   @override
   List<AstNode> get sortedDirectivesAndDeclarations {
-    return <AstNode>[]
-      ..addAll(_directives)
-      ..addAll(_declarations)
-      ..sort(AstNode.LEXICAL_ORDER);
+    return <AstNode>[
+      ..._directives,
+      ..._declarations,
+    ]..sort(AstNode.LEXICAL_ORDER);
   }
 
   /// Return `true` if all of the directives are lexically before any
@@ -6677,12 +6677,11 @@ class LocalVariableInfo {
   /// The set of local variables and parameters that are potentially mutated
   /// within a local function other than the function in which they are
   /// declared.
-  final Set<VariableElement> potentiallyMutatedInClosure =
-      Set<VariableElement>();
+  final Set<VariableElement> potentiallyMutatedInClosure = <VariableElement>{};
 
   /// The set of local variables and parameters that are potentially mutated
   /// within the scope of their declarations.
-  final Set<VariableElement> potentiallyMutatedInScope = Set<VariableElement>();
+  final Set<VariableElement> potentiallyMutatedInScope = <VariableElement>{};
 }
 
 /// A single key/value pair in a map literal.

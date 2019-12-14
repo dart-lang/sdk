@@ -161,7 +161,7 @@ class _BaseGenerator {
   }
 
   List<String> _computeVariants(idl_model.ClassDeclaration cls) {
-    var allVariants = Set<String>();
+    var allVariants = <String>{};
     for (var field in cls.fields) {
       var logicalFields = field.logicalProperties?.values;
       if (logicalFields != null) {

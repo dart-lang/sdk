@@ -17,8 +17,8 @@ class _LRUCacheTest {
   LRUMap<int, String> cache = LRUMap<int, String>(3);
 
   void test_evict_notGet() {
-    List<int> evictedKeys = List<int>();
-    List<String> evictedValues = List<String>();
+    List<int> evictedKeys = <int>[];
+    List<String> evictedValues = <String>[];
     cache = LRUMap<int, String>(3, (int key, String value) {
       evictedKeys.add(key);
       evictedValues.add(value);
@@ -42,8 +42,8 @@ class _LRUCacheTest {
   }
 
   void test_evict_notPut() {
-    List<int> evictedKeys = List<int>();
-    List<String> evictedValues = List<String>();
+    List<int> evictedKeys = <int>[];
+    List<String> evictedValues = <String>[];
     cache = LRUMap<int, String>(3, (int key, String value) {
       evictedKeys.add(key);
       evictedValues.add(value);

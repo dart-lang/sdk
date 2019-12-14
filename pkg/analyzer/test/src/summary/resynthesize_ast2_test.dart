@@ -89,7 +89,7 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
     var source = addTestSource(text);
 
     var inputLibraries = <LinkInputLibrary>[];
-    _addNonDartLibraries(Set(), inputLibraries, source);
+    _addNonDartLibraries({}, inputLibraries, source);
 
     var analysisContext = AnalysisContextImpl(
       SynchronousSession(

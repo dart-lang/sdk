@@ -152,7 +152,7 @@ class DeclarationsContext {
 
   /// The set of paths of already checked known files, some of which were
   /// added to [_knownPathList]. For example we skip non-API files.
-  final Set<String> _knownPathSet = Set<String>();
+  final Set<String> _knownPathSet = <String>{};
 
   /// The list of paths of files known to this context - from the context
   /// itself, from direct dependencies, from indirect dependencies.
@@ -339,9 +339,10 @@ class DeclarationsContext {
         var devPaths = _resolvePackageNamesToLibPaths(dependencies.dev);
 
         var packagePath = folder.path;
-        pubPathPrefixToPathList[packagePath] = <String>[]
-          ..addAll(libPaths)
-          ..addAll(devPaths);
+        pubPathPrefixToPathList[packagePath] = [
+          ...libPaths,
+          ...devPaths,
+        ];
 
         var libPath = pathContext.join(packagePath, 'lib');
         pubPathPrefixToPathList[libPath] = libPaths;
@@ -740,7 +741,7 @@ class DeclarationsTracker {
     var isLibrary = file.isLibrary;
     var newLibrary = isLibrary ? file : file.library;
 
-    var invalidatedLibraries = Set<_File>();
+    var invalidatedLibraries = <_File>{};
     var notLibraries = <_File>[];
     if (wasLibrary) {
       if (isLibrary) {
@@ -1937,7 +1938,7 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
   @override
   void evaluateScc(List<_LibraryNode> scc) {
     for (var node in scc) {
-      var visitedFiles = Set<_File>();
+      var visitedFiles = <_File>{};
 
       List<Declaration> computeExported(_File file) {
         if (file.exportedDeclarations != null) {

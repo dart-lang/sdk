@@ -13,7 +13,7 @@ List<List<T>> computeStrongComponents<T>(Graph<T> graph) {
   Map<T, int> preorderNumbers = <T, int>{};
   List<T> unassigned = <T>[];
   List<T> candidates = <T>[];
-  Set<T> assigned = Set<T>();
+  Set<T> assigned = <T>{};
 
   void recursivelySearch(T vertex) {
     // Step 1: Set the preorder number of [vertex] to [count], and increment

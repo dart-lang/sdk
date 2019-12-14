@@ -467,12 +467,12 @@ class StaticTypeVerifier extends GeneralizingAstVisitor<void> {
   /**
    * A list containing all of the AST Expression nodes that were not resolved.
    */
-  List<Expression> _unresolvedExpressions = List<Expression>();
+  List<Expression> _unresolvedExpressions = <Expression>[];
 
   /**
    * The TypeAnnotation nodes that were not resolved.
    */
-  List<TypeAnnotation> _unresolvedTypes = List<TypeAnnotation>();
+  List<TypeAnnotation> _unresolvedTypes = <TypeAnnotation>[];
 
   /**
    * Counter for the number of Expression nodes visited that are resolved.

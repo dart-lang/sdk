@@ -145,7 +145,7 @@ dependencies:
     tracker.addContext(cAnalysisContext);
     await _doAllTrackerWork();
 
-    var uniquePathSet = Set<String>();
+    var uniquePathSet = <String>{};
     for (var change in changes) {
       for (var library in change.changed) {
         if (!uniquePathSet.add(library.path)) {

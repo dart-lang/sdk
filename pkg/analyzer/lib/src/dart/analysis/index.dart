@@ -884,7 +884,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
    */
   ConstructorElement _getActualConstructorElement(
       ConstructorElement constructor) {
-    Set<ConstructorElement> seenConstructors = Set<ConstructorElement>();
+    Set<ConstructorElement> seenConstructors = <ConstructorElement>{};
     while (constructor != null &&
         constructor.isSynthetic &&
         constructor.redirectedConstructor != null) {

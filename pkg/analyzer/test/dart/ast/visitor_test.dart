@@ -39,7 +39,7 @@ A f(var p) {
   }
 }''';
     CompilationUnit unit = parseCompilationUnit(source);
-    List<AstNode> nodes = List<AstNode>();
+    List<AstNode> nodes = <AstNode>[];
     _BreadthFirstVisitorTestHelper visitor =
         _BreadthFirstVisitorTestHelper(nodes);
     visitor.visitAllNodes(unit);

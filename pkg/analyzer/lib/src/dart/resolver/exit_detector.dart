@@ -21,7 +21,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
   bool _enclosingBlockContainsContinue = false;
 
   /// Add node when a labelled `break` is encountered.
-  Set<AstNode> _enclosingBlockBreaksLabel = Set<AstNode>();
+  Set<AstNode> _enclosingBlockBreaksLabel = <AstNode>{};
 
   @override
   bool visitArgumentList(ArgumentList node) =>

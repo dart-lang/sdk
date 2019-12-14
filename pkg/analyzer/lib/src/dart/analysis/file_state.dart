@@ -301,7 +301,7 @@ class FileState {
    * directly or indirectly referenced files.
    */
   Set<FileState> get transitiveFiles {
-    var transitiveFiles = Set<FileState>();
+    var transitiveFiles = <FileState>{};
 
     void appendReferenced(FileState file) {
       if (transitiveFiles.add(file)) {
@@ -487,22 +487,24 @@ class FileState {
           .putIfAbsent(file, () => <FileState>[])
           .add(this);
     }
-    _libraryFiles = [this]..addAll(_partedFiles);
+    _libraryFiles = [this, ..._partedFiles];
 
     // Compute referenced files.
-    _directReferencedFiles = Set<FileState>()
-      ..addAll(_importedFiles)
-      ..addAll(_exportedFiles)
-      ..addAll(_partedFiles);
-    _directReferencedLibraries = Set<FileState>()
-      ..addAll(_importedFiles)
-      ..addAll(_exportedFiles);
+    _directReferencedFiles = <FileState>{
+      ..._importedFiles,
+      ..._exportedFiles,
+      ..._partedFiles,
+    };
+    _directReferencedLibraries = <FileState>{
+      ..._importedFiles,
+      ..._exportedFiles,
+    };
 
     // Update mapping from subtyped names to files.
     for (var name in _driverUnlinkedUnit.subtypedNames) {
       var files = _fsState._subtypedNameToFiles[name];
       if (files == null) {
-        files = Set<FileState>();
+        files = <FileState>{};
         _fsState._subtypedNameToFiles[name] = files;
       }
       files.add(this);
@@ -735,7 +737,7 @@ class FileSystemState {
   /**
    * All known file paths.
    */
-  final Set<String> knownFilePaths = Set<String>();
+  final Set<String> knownFilePaths = <String>{};
 
   /**
    * All known files.

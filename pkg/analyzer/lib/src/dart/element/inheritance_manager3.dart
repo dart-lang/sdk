@@ -38,7 +38,7 @@ class InheritanceManager3 {
 
   /// The set of classes that are currently being processed, used to detect
   /// self-referencing cycles.
-  final Set<ClassElement> _processingClasses = Set<ClassElement>();
+  final Set<ClassElement> _processingClasses = <ClassElement>{};
 
   InheritanceManager3([@deprecated TypeSystem typeSystem]);
 
@@ -183,7 +183,7 @@ class InheritanceManager3 {
       namedCandidates,
     );
 
-    var noSuchMethodForwarders = Set<Name>();
+    var noSuchMethodForwarders = <Name>{};
     if (classElement.isAbstract) {
       if (superInterface != null) {
         noSuchMethodForwarders = superInterface._noSuchMethodForwarders;
@@ -443,7 +443,7 @@ class Interface {
     const {},
     const {},
     const {},
-    Set<Name>(),
+    <Name>{},
     const {},
     const {},
     const [{}],

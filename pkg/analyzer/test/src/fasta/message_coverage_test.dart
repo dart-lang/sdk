@@ -45,7 +45,7 @@ class AbstractRecoveryTest extends FastaParserTestCase {
     String content = io.File(messagesPath).readAsStringSync();
     YamlDocument document = loadYamlDocument(content);
     expect(document, isNotNull);
-    Set<String> codes = Set<String>();
+    Set<String> codes = <String>{};
     YamlNode contents = document.contents;
     if (contents is YamlMap) {
       for (String name in contents.keys) {
@@ -68,7 +68,7 @@ class AbstractRecoveryTest extends FastaParserTestCase {
     String content = io.File(messagesPath).readAsStringSync();
     YamlDocument document = loadYamlDocument(content);
     expect(document, isNotNull);
-    Set<String> codes = Set<String>();
+    Set<String> codes = <String>{};
     YamlNode contents = document.contents;
     if (contents is YamlMap) {
       for (String name in contents.keys) {
@@ -199,7 +199,7 @@ class GeneratedCodesVisitor extends RecursiveAstVisitor {
   /**
    * The names of the message codes that are generated in the visited AST.
    */
-  Set<String> generatedNames = Set<String>();
+  Set<String> generatedNames = <String>{};
 
   @override
   visitPrefixedIdentifier(PrefixedIdentifier node) {

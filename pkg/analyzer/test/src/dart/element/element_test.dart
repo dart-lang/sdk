@@ -62,7 +62,7 @@ class ClassElementImplTest extends AbstractTypeTest {
     InterfaceType typeC = interfaceTypeStar(elementC);
     elementC.interfaces = <InterfaceType>[typeB];
     List<InterfaceType> supers = elementC.allSupertypes;
-    List<InterfaceType> types = List<InterfaceType>();
+    List<InterfaceType> types = <InterfaceType>[];
     types.addAll(supers);
     expect(types.contains(typeA), isTrue);
     expect(types.contains(typeB), isTrue);
@@ -81,7 +81,7 @@ class ClassElementImplTest extends AbstractTypeTest {
     InterfaceType typeC = interfaceTypeStar(classC);
     classC.mixins = <InterfaceType>[typeB];
     List<InterfaceType> supers = classC.allSupertypes;
-    List<InterfaceType> types = List<InterfaceType>();
+    List<InterfaceType> types = <InterfaceType>[];
     types.addAll(supers);
     expect(types.contains(typeA), isTrue);
     expect(types.contains(typeB), isTrue);

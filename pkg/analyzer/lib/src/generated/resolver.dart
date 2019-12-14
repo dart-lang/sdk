@@ -2279,7 +2279,7 @@ class ResolverVisitor extends ScopedVisitor {
     _LiteralResolution elementResolution = elementCounts.resolution;
 
     List<_LiteralResolution> unambiguousResolutions = [];
-    Set<_LiteralResolutionKind> kinds = Set<_LiteralResolutionKind>();
+    Set<_LiteralResolutionKind> kinds = <_LiteralResolutionKind>{};
     if (typeArgumentsResolution.kind != _LiteralResolutionKind.ambiguous) {
       unambiguousResolutions.add(typeArgumentsResolution);
       kinds.add(typeArgumentsResolution.kind);
@@ -2595,7 +2595,7 @@ class ResolverVisitor extends ScopedVisitor {
     }
     int requiredParameterCount = 0;
     int unnamedParameterCount = 0;
-    List<ParameterElement> unnamedParameters = List<ParameterElement>();
+    List<ParameterElement> unnamedParameters = <ParameterElement>[];
     Map<String, ParameterElement> namedParameters;
     int length = parameters.length;
     for (int i = 0; i < length; i++) {

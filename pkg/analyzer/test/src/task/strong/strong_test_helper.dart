@@ -150,7 +150,7 @@ SourceLocation _locationForOffset(LineInfo lineInfo, Uri uri, int offset) {
 
 /// Returns all libraries transitively imported or exported from [start].
 Set<LibraryElement> _reachableLibraries(LibraryElement start) {
-  Set<LibraryElement> results = Set<LibraryElement>();
+  Set<LibraryElement> results = <LibraryElement>{};
 
   void find(LibraryElement library) {
     if (results.add(library)) {

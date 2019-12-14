@@ -1383,7 +1383,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
         return null;
       }
       bool errorOccurred = false;
-      Set<DartObjectImpl> set = Set<DartObjectImpl>();
+      Set<DartObjectImpl> set = <DartObjectImpl>{};
       for (CollectionElement element in node.elements) {
         errorOccurred = errorOccurred | _addElementsToSet(set, element);
       }

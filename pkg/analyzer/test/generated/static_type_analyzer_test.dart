@@ -1377,7 +1377,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
    */
   FunctionExpression _resolvedFunctionExpression(
       FormalParameterList parameters, FunctionBody body) {
-    List<ParameterElement> parameterElements = List<ParameterElement>();
+    List<ParameterElement> parameterElements = <ParameterElement>[];
     for (FormalParameter parameter in parameters.parameters) {
       var nameNode = parameter.identifier;
       ParameterElementImpl element =

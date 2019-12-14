@@ -194,7 +194,8 @@ class DefaultTypesBuilder {
                 for (var tail in tails) {
                   paths.add(<_CycleElement>[
                     _CycleElement(startParameter, startType),
-                  ]..addAll(tail));
+                    ...tail,
+                  ]);
                 }
               }
             }

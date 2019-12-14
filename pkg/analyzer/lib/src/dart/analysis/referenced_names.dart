@@ -19,7 +19,7 @@ Set<String> computeReferencedNames(CompilationUnit unit) {
  * clauses in the file. Import prefixes and type arguments are not included.
  */
 Set<String> computeSubtypedNames(CompilationUnit unit) {
-  Set<String> subtypedNames = Set<String>();
+  Set<String> subtypedNames = <String>{};
 
   void _addSubtypedName(TypeName type) {
     if (type != null) {
@@ -140,7 +140,7 @@ class _LocalNameScope {
 
   void add(SimpleIdentifier identifier) {
     if (identifier != null) {
-      names ??= Set<String>();
+      names ??= <String>{};
       names.add(identifier.name);
     }
   }
@@ -177,8 +177,8 @@ class _LocalNameScope {
 }
 
 class _ReferencedNamesComputer extends GeneralizingAstVisitor {
-  final Set<String> names = Set<String>();
-  final Set<String> importPrefixNames = Set<String>();
+  final Set<String> names = <String>{};
+  final Set<String> importPrefixNames = <String>{};
 
   _LocalNameScope localScope = _LocalNameScope(null);
 

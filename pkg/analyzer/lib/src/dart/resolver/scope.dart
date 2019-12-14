@@ -571,8 +571,8 @@ class LibraryImportScope extends Scope {
     }
 
     if (hasPotentialConflict) {
-      var sdkElements = Set<Element>();
-      var nonSdkElements = Set<Element>();
+      var sdkElements = <Element>{};
+      var nonSdkElements = <Element>{};
       for (int i = 0; i < _importedNamespaces.length; i++) {
         Element element = lookup(_importedNamespaces[i]);
         if (element != null) {
@@ -584,9 +584,10 @@ class LibraryImportScope extends Scope {
         }
       }
       if (sdkElements.length > 1 || nonSdkElements.length > 1) {
-        var conflictingElements = <Element>[]
-          ..addAll(sdkElements)
-          ..addAll(nonSdkElements);
+        var conflictingElements = <Element>[
+          ...sdkElements,
+          ...nonSdkElements,
+        ];
         return MultiplyDefinedElementImpl(
             _definingLibrary.context,
             _definingLibrary.session,

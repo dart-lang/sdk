@@ -734,7 +734,7 @@ class Dart2TypeSystem extends TypeSystem {
       return const <DartType>[];
     }
 
-    Set<TypeParameterElement> all = Set<TypeParameterElement>();
+    Set<TypeParameterElement> all = <TypeParameterElement>{};
     // all ground
     Map<TypeParameterElement, DartType> defaults = knownTypes ?? {};
     // not ground
@@ -3406,7 +3406,7 @@ class InterfaceLeastUpperBoundHelper {
     return _computeLongestInheritancePathToObject(
       element,
       0,
-      Set<ClassElement>(),
+      <ClassElement>{},
     );
   }
 
@@ -3414,7 +3414,7 @@ class InterfaceLeastUpperBoundHelper {
   @visibleForTesting
   static Set<InstantiatedClass> computeSuperinterfaceSet(
       InstantiatedClass type) {
-    var result = Set<InstantiatedClass>();
+    var result = <InstantiatedClass>{};
     _addSuperinterfaces(result, type);
     return result;
   }

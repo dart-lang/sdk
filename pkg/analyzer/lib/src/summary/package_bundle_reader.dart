@@ -128,8 +128,8 @@ class SummaryDataStore {
    */
   final Map<String, String> uriToSummaryPath = <String, String>{};
 
-  final Set<String> _libraryUris = Set<String>();
-  final Set<String> _partUris = Set<String>();
+  final Set<String> _libraryUris = <String>{};
+  final Set<String> _partUris = <String>{};
 
   /**
    * Create a [SummaryDataStore] and populate it with the summaries in

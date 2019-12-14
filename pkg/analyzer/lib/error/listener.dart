@@ -217,8 +217,8 @@ class ErrorReporter {
         Map<String, Set<Element>> nameToElementMap = {};
         for (_TypeToConvert typeToConvert in typeGroup) {
           for (Element element in typeToConvert.allElements()) {
-            Set<Element> elements = nameToElementMap.putIfAbsent(
-                element.name, () => Set<Element>());
+            Set<Element> elements =
+                nameToElementMap.putIfAbsent(element.name, () => <Element>{});
             elements.add(element);
           }
         }
@@ -311,7 +311,7 @@ class _TypeToConvert {
 
   List<Element> allElements() {
     if (_allElements == null) {
-      Set<Element> elements = Set<Element>();
+      Set<Element> elements = <Element>{};
 
       void addElementsFrom(DartType type) {
         if (type is FunctionType) {

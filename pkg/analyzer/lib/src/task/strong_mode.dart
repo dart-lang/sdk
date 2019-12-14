@@ -87,9 +87,10 @@ class InstanceMemberInferrer {
     } else if (overriddenGetters != null && overriddenSetters == null) {
       overriddenElements = overriddenGetters;
     } else {
-      overriddenElements = <ExecutableElement>[]
-        ..addAll(overriddenGetters)
-        ..addAll(overriddenSetters);
+      overriddenElements = <ExecutableElement>[
+        ...overriddenGetters,
+        ...overriddenSetters,
+      ];
     }
 
     bool isCovariant = false;

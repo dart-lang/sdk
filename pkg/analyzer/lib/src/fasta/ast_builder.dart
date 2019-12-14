@@ -1945,7 +1945,7 @@ class AstBuilder extends StackListener {
     List<SwitchMember> members =
         membersList?.expand((members) => members)?.toList() ?? <SwitchMember>[];
 
-    Set<String> labels = Set<String>();
+    Set<String> labels = <String>{};
     for (SwitchMember member in members) {
       for (Label label in member.labels) {
         if (!labels.add(label.label.name)) {
@@ -3399,7 +3399,7 @@ class AstBuilder extends StackListener {
   }
 
   List<CollectionElement> popCollectionElements(int count) {
-    final elements = List<CollectionElement>()..length = count;
+    final elements = <CollectionElement>[]..length = count;
     for (int index = count - 1; index >= 0; --index) {
       var element = pop();
       elements[index] = element as CollectionElement;

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
-
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 
@@ -47,37 +45,37 @@ class FileTracker {
   /**
    * The set of added files.
    */
-  final addedFiles = LinkedHashSet<String>();
+  final addedFiles = <String>{};
 
   /**
    * The set of files were reported as changed through [changeFile] and not
    * checked for actual changes yet.
    */
-  final _changedFiles = LinkedHashSet<String>();
+  final _changedFiles = <String>{};
 
   /**
    * The set of files that are currently scheduled for analysis, which were
    * reported as changed through [changeFile].
    */
-  var _pendingChangedFiles = LinkedHashSet<String>();
+  var _pendingChangedFiles = <String>{};
 
   /**
    * The set of files that are currently scheduled for analysis, which directly
    * import a changed file.
    */
-  var _pendingImportFiles = LinkedHashSet<String>();
+  var _pendingImportFiles = <String>{};
 
   /**
    * The set of files that are currently scheduled for analysis, which have an
    * error or a warning, which might be fixed by a changed file.
    */
-  var _pendingErrorFiles = LinkedHashSet<String>();
+  var _pendingErrorFiles = <String>{};
 
   /**
    * The set of files that are currently scheduled for analysis, and don't
    * have any special relation with changed files.
    */
-  var _pendingFiles = LinkedHashSet<String>();
+  var _pendingFiles = <String>{};
 
   FileTracker(this._logger, this._fsState, this._changeHook);
 
@@ -238,10 +236,10 @@ class FileTracker {
       if (anyApiChanged) {
         _logger.writeln('API signatures mismatch found.');
         // TODO(scheglov) schedule analysis of only affected files
-        var pendingChangedFiles = LinkedHashSet<String>();
-        var pendingImportFiles = LinkedHashSet<String>();
-        var pendingErrorFiles = LinkedHashSet<String>();
-        var pendingFiles = LinkedHashSet<String>();
+        var pendingChangedFiles = <String>{};
+        var pendingImportFiles = <String>{};
+        var pendingErrorFiles = <String>{};
+        var pendingFiles = <String>{};
 
         // Add the changed file.
         if (addedFiles.contains(path)) {

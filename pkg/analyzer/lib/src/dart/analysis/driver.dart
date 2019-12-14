@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:collection';
 import 'dart:typed_data';
 
 import 'package:analyzer/dart/analysis/analysis_context.dart' as api;
@@ -151,7 +150,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       2 + AnalysisOptions.signatureLength + _declaredVariablesSignatureLength);
 
   /// The set of priority files, that should be analyzed sooner.
-  final _priorityFiles = LinkedHashSet<String>();
+  final _priorityFiles = <String>{};
 
   /// The mapping from the files for which analysis was requested using
   /// [getResult] to the [Completer]s to report the result.
@@ -204,7 +203,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   final _requestedParts = <String, List<Completer<ResolvedUnitResult>>>{};
 
   /// The set of part files that are currently scheduled for analysis.
-  final _partsToAnalyze = LinkedHashSet<String>();
+  final _partsToAnalyze = <String>{};
 
   /// The controller for the [results] stream.
   final _resultController = StreamController<ResolvedUnitResult>();
@@ -1722,7 +1721,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       String min = _twoDigits(time.minute);
       String sec = _twoDigits(time.second);
       String ms = _threeDigits(time.millisecond);
-      String key = 'exception_${time.year}$m$d' '_$h$min$sec' + '_$ms';
+      String key = 'exception_${time.year}$m${d}_$h$min${sec}_$ms';
 
       _byteStore.put(key, bytes);
       return key;
@@ -2202,7 +2201,7 @@ class _FilesDefiningClassMemberNameTask {
   final Completer<List<String>> completer = Completer<List<String>>();
 
   final List<String> definingFiles = <String>[];
-  final Set<String> checkedFiles = Set<String>();
+  final Set<String> checkedFiles = <String>{};
   final List<String> filesToCheck = <String>[];
 
   _FilesDefiningClassMemberNameTask(this.driver, this.name);

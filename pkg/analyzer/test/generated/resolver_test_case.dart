@@ -51,13 +51,13 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
   /**
    * A list containing all of the AST nodes that were not resolved.
    */
-  List<AstNode> _unresolvedNodes = List<AstNode>();
+  List<AstNode> _unresolvedNodes = <AstNode>[];
 
   /**
    * A list containing all of the AST nodes that were resolved to an element of
    * the wrong type.
    */
-  List<AstNode> _wrongTypedNodes = List<AstNode>();
+  List<AstNode> _wrongTypedNodes = <AstNode>[];
 
   /**
    * Initialize a newly created verifier to verify that all of the identifiers

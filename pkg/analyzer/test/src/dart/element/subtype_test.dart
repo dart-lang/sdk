@@ -6131,12 +6131,12 @@ class _SubtypingTestBase with ElementsTypesMixin {
 }
 
 class _TypeParameterCollector extends DartTypeVisitor<void> {
-  final Set<TypeParameterElement> typeParameters = Set();
+  final Set<TypeParameterElement> typeParameters = {};
 
   /// We don't need to print bounds for these type parameters, because
   /// they are already included into the function type itself, and cannot
   /// be promoted.
-  final Set<TypeParameterElement> functionTypeParameters = Set();
+  final Set<TypeParameterElement> functionTypeParameters = {};
 
   @override
   void defaultDartType(DartType type) {
