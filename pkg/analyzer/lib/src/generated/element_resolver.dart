@@ -1672,17 +1672,8 @@ class ElementResolver extends SimpleAstVisitor<void> {
           } else {
             // We were not able to find the concrete dispatch target.
             // But we would like to give the user at least some resolution.
-            // So, we retry without the "concrete" requirement.
-            element = staticType.lookUpGetter2(
-                  propertyName.name,
-                  _definingLibrary,
-                  inherited: true,
-                ) ??
-                staticType.lookUpMethod2(
-                  propertyName.name,
-                  _definingLibrary,
-                  inherited: true,
-                );
+            // So, we retry simply looking for an inherited member.
+            var element = _resolver.inheritance.getInherited(staticType, name);
             if (element != null) {
               propertyName.staticElement = element;
               ClassElementImpl receiverSuperClass =
