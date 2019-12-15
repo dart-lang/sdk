@@ -11,10 +11,9 @@ Before releasing there are a few boxes to tick off.
 
 ## Doing the Push
 
-First, make sure travis and appveyor are GREEN.
+First, make sure travis is GREEN.
 
 [![Build Status](https://travis-ci.org/dart-lang/linter.svg)](https://travis-ci.org/dart-lang/linter)
-[![Build status](https://ci.appveyor.com/api/projects/status/3a2437l58uhmvckm/branch/master?svg=true)](https://ci.appveyor.com/project/pq/linter/branch/master)
 
 All clear?  Then:
 
