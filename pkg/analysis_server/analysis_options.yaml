@@ -38,3 +38,23 @@ linter:
   rules:
     - empty_statements
     - unnecessary_brace_in_string_interps
+    #
+    # Delta from pedantic 1.8.0 to 1.9.0
+    #
+    #- always_declare_return_types # 5645
+    - always_require_non_null_named_parameters
+    #- annotate_overrides # 447
+    - avoid_null_checks_in_equality_operators
+    - camel_case_extensions
+    #- omit_local_variable_types # 8650
+    #- prefer_adjacent_string_concatenation # 1
+    #- prefer_collection_literals # 130
+    #- prefer_conditional_assignment # 191
+    #- prefer_final_fields # 35
+    - prefer_for_elements_to_map_fromIterable
+    #- prefer_generic_function_type_aliases # 18
+    #- prefer_if_null_operators # 22
+    #- prefer_single_quotes # 6653
+    #- prefer_spread_collections # 3
+    #- unnecessary_this # 475
+    #- use_function_type_syntax_for_parameters # 90
