@@ -29,8 +29,6 @@ void main() {
     bool showHelp = false,
     String normalOut,
     bool pedanticFixes = false,
-    String previewDir,
-    String previewPort,
     bool requiredFixes = false,
     bool overwrite = false,
     String serverSnapshot,
@@ -56,8 +54,6 @@ void main() {
     }
     expect(options.force, force);
     expect(options.pedanticFixes, pedanticFixes);
-    expect(options.previewDir, previewDir);
-    expect(options.previewPort, previewPort);
     expect(options.requiredFixes, requiredFixes);
     expect(options.overwrite, overwrite);
     expect(options.serverSnapshot, serverSnapshot);
@@ -125,14 +121,6 @@ void main() {
 
   test('pedantic fixes', () {
     parse(['--pedantic', 'foo'], pedanticFixes: true);
-  });
-
-  test('previewDir', () {
-    parse(['--preview-dir=bar', 'foo'], previewDir: 'bar');
-  });
-
-  test('previewPort', () {
-    parse(['--preview-port=8080', 'foo'], previewPort: '8080');
   });
 
   test('required fixes', () {

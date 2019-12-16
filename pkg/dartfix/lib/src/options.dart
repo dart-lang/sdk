@@ -45,8 +45,6 @@ class Options {
   final bool force;
   final bool showHelp;
   final bool overwrite;
-  final String previewDir;
-  final String previewPort;
   final bool useColor;
   final bool verbose;
 
@@ -56,8 +54,6 @@ class Options {
         excludeFixes = (results[excludeFixOption] as List ?? []).cast<String>(),
         overwrite = results[overwriteOption] as bool,
         pedanticFixes = results[pedanticOption] as bool,
-        previewDir = results[previewDirOption] as String,
-        previewPort = results[previewPortOption] as String,
         requiredFixes = results[requiredOption] as bool,
         sdkPath = results[sdkOption] as String ?? _getSdkPath(),
         serverSnapshot = results[_serverSnapshot] as String,
@@ -118,14 +114,7 @@ class Options {
           negatable: false)
       ..addFlag(_colorOption,
           help: 'Use ansi colors when printing messages.',
-          defaultsTo: Ansi.terminalSupportsAnsi)
-      //
-      // Hidden options.
-      //
-      ..addOption(previewDirOption,
-          help: 'Path to the preview directory', hide: true)
-      ..addOption(previewPortOption,
-          help: 'The port used by the preview tool', hide: true);
+          defaultsTo: Ansi.terminalSupportsAnsi);
 
     context ??= Context();
 

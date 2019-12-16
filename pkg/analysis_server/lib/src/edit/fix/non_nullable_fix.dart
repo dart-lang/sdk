@@ -41,9 +41,12 @@ class NonNullableFix extends FixCodeTask {
   /// which all included paths share.
   final String includedRoot;
 
+  /// The HTTP server that serves the preview tool.
+  HttpPreviewServer server;
+
   /// The port on which preview pages should be served, or `null` if no preview
   /// server should be started.
-  final int port;
+  int port;
 
   InstrumentationListener instrumentationListener;
 
@@ -54,10 +57,10 @@ class NonNullableFix extends FixCodeTask {
   /// If this occurs, then don't update any code.
   bool _packageIsNNBD = true;
 
-  NonNullableFix(this.listener, this.port, {List<String> included = const []})
+  NonNullableFix(this.listener, {List<String> included = const []})
       : this.includedRoot =
             _getIncludedRoot(included, listener.server.resourceProvider) {
-    instrumentationListener = port == null ? null : InstrumentationListener();
+    instrumentationListener = InstrumentationListener();
     migration = new NullabilityMigration(
         new NullabilityMigrationAdapter(listener),
         permissive: _usePermissiveMode,
@@ -76,23 +79,19 @@ class NonNullableFix extends FixCodeTask {
   @override
   Future<void> finish() async {
     migration.finish();
-    if (port != null) {
-      OverlayResourceProvider provider = listener.server.resourceProvider;
-      InfoBuilder infoBuilder = InfoBuilder(
-          provider, includedRoot, instrumentationListener.data, listener);
-      Set<UnitInfo> unitInfos = await infoBuilder.explainMigration();
-      var pathContext = provider.pathContext;
-      MigrationInfo migrationInfo = MigrationInfo(
-          unitInfos, infoBuilder.unitMap, pathContext, includedRoot);
-      PathMapper pathMapper = PathMapper(provider);
 
-      print(Uri(
-          scheme: 'http', host: 'localhost', port: port, path: includedRoot));
+    OverlayResourceProvider provider = listener.server.resourceProvider;
+    InfoBuilder infoBuilder = InfoBuilder(
+        provider, includedRoot, instrumentationListener.data, listener);
+    Set<UnitInfo> unitInfos = await infoBuilder.explainMigration();
+    var pathContext = provider.pathContext;
+    MigrationInfo migrationInfo = MigrationInfo(
+        unitInfos, infoBuilder.unitMap, pathContext, includedRoot);
+    PathMapper pathMapper = PathMapper(provider);
 
-      // TODO(brianwilkerson) Capture the server so that it can be closed
-      //  cleanly.
-      HttpPreviewServer(migrationInfo, pathMapper).serveHttp(port);
-    }
+    server = HttpPreviewServer(migrationInfo, pathMapper);
+    server.serveHttp();
+    port = await server.boundPort;
   }
 
   /// If the package contains an analysis_options.yaml file, then update the
@@ -228,7 +227,7 @@ analyzer:
   static void task(DartFixRegistrar registrar, DartFixListener listener,
       EditDartfixParams params) {
     registrar.registerCodeTask(
-        new NonNullableFix(listener, params.port, included: params.included));
+        new NonNullableFix(listener, included: params.included));
   }
 
   /// Get the "root" of all [included] paths. See [includedRoot] for its

@@ -72,59 +72,58 @@ class NonNullableFixTest extends AbstractAnalysisTest {
   }
 
   test_included_multipleRelativeDirectories() async {
-    NonNullableFix fix =
-        NonNullableFix(listener, null, included: ['lib', 'test']);
+    NonNullableFix fix = NonNullableFix(listener, included: ['lib', 'test']);
     expect(fix.includedRoot, equals(convertPath('/project')));
   }
 
   test_included_multipleRelativeDirectories_nonCanonical() async {
-    NonNullableFix fix = NonNullableFix(listener, null,
+    NonNullableFix fix = NonNullableFix(listener,
         included: ['../project2/lib', '../project2/lib/src']);
     expect(fix.includedRoot, equals(convertPath('/project2/lib')));
   }
 
   test_included_multipleRelativeDirectories_nonCanonical_atFilesystemRoot() async {
-    NonNullableFix fix = NonNullableFix(listener, null,
+    NonNullableFix fix = NonNullableFix(listener,
         included: ['../project2/lib', '../project/lib']);
     expect(fix.includedRoot, equals(convertPath('/')));
   }
 
   test_included_multipleRelativeDirectories_subAndSuperDirectories() async {
-    NonNullableFix fix = NonNullableFix(listener, null, included: ['lib', '.']);
+    NonNullableFix fix = NonNullableFix(listener, included: ['lib', '.']);
     expect(fix.includedRoot, equals(convertPath('/project')));
   }
 
   test_included_multipleRelativeFiles() async {
-    NonNullableFix fix = NonNullableFix(listener, null,
-        included: ['lib/lib1.dart', 'test/test.dart']);
+    NonNullableFix fix =
+        NonNullableFix(listener, included: ['lib/lib1.dart', 'test/test.dart']);
     expect(fix.includedRoot, equals(convertPath('/project')));
   }
 
   test_included_multipleRelativeFiles_sameDirectory() async {
-    NonNullableFix fix = NonNullableFix(listener, null,
-        included: ['lib/lib1.dart', 'lib/lib2.dart']);
+    NonNullableFix fix =
+        NonNullableFix(listener, included: ['lib/lib1.dart', 'lib/lib2.dart']);
     expect(fix.includedRoot, equals(convertPath('/project/lib')));
   }
 
   test_included_multipleRelativeFilesAndDirectories() async {
-    NonNullableFix fix = NonNullableFix(listener, null,
+    NonNullableFix fix = NonNullableFix(listener,
         included: ['lib/lib1.dart', 'lib/src', '../project/lib/src/lib3.dart']);
     expect(fix.includedRoot, equals(convertPath('/project/lib')));
   }
 
   test_included_singleAbsoluteDirectory() async {
-    NonNullableFix fix = NonNullableFix(listener, null, included: ['/project']);
+    NonNullableFix fix = NonNullableFix(listener, included: ['/project']);
     expect(fix.includedRoot, equals(convertPath('/project')));
   }
 
   test_included_singleAbsoluteFile() async {
     NonNullableFix fix =
-        NonNullableFix(listener, null, included: ['/project/bin/bin.dart']);
+        NonNullableFix(listener, included: ['/project/bin/bin.dart']);
     expect(fix.includedRoot, equals(convertPath('/project/bin')));
   }
 
   test_included_singleRelativeDirectory() async {
-    NonNullableFix fix = NonNullableFix(listener, null, included: ['.']);
+    NonNullableFix fix = NonNullableFix(listener, included: ['.']);
     expect(fix.includedRoot, equals(convertPath('/project')));
   }
 }

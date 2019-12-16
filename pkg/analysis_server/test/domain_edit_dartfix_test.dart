@@ -66,7 +66,9 @@ class EditDartfixDomainHandlerTest extends AbstractAnalysisTest {
     params.includePedanticFixes = pedantic;
     final request = new Request(id, 'edit.dartfix', params.toJson());
 
-    final response = await new EditDartFix(server, request).compute();
+    var fix = new EditDartFix(server, request);
+    final response = await fix.compute();
+    fix.nonNullableFixTask?.server?.close();
     expect(response.id, id);
     return response;
   }

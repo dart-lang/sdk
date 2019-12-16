@@ -16,7 +16,6 @@ import 'package:dartfix/listener/bad_message_listener.dart';
 import 'package:dartfix/src/context.dart';
 import 'package:dartfix/src/options.dart';
 import 'package:dartfix/src/util.dart';
-import 'package:path/path.dart' as path;
 import 'package:pub_semver/pub_semver.dart';
 
 class Driver {
@@ -127,22 +126,6 @@ class Driver {
     }
     if (options.pedanticFixes) {
       params.includePedanticFixes = true;
-    }
-    String previewDir = options.previewDir;
-    if (previewDir != null) {
-      if (!path.isAbsolute(previewDir)) {
-        previewDir = path.absolute(previewDir);
-      }
-      previewDir = path.canonicalize(previewDir);
-      params.outputDir = previewDir;
-    }
-    String previewPort = options.previewPort;
-    if (previewPort != null) {
-      try {
-        params.port = int.parse(previewPort);
-      } on FormatException {
-        logger.stderr('Invalid port number: ignored');
-      }
     }
     Map<String, dynamic> json =
         await server.send(EDIT_REQUEST_DARTFIX, params.toJson());
@@ -276,22 +259,26 @@ These fixes are NOT automatically applied, but may be enabled using --$includeFi
     try {
       await startServerAnalysis(options);
       result = await requestFixes(options, progress: progress);
-      if (options.previewPort != null) {
-        var urls = result.urls;
-        if (urls != null) {
-          if (urls.length == 1) {
-            logger.stdout('Please open ${urls[0]} in a browser and '
-                'press enter when you are done viewing the preview.');
-          } else {
-            logger.stdout('Please open the following URLs in a browser and '
-                'press enter when you are done viewing the preview:');
-            for (var url in urls) {
-              logger.stdout('  $url');
-            }
+      //
+      // Print instructions for opening the preview tool.
+      //
+      var urls = result.urls;
+      if (urls != null) {
+        if (urls.length == 1) {
+          logger.stdout('Please open ${urls[0]} in a browser and '
+              'press enter when you are done viewing the preview.');
+        } else {
+          logger.stdout('Please open the following URLs in a browser and '
+              'press enter when you are done viewing the previews:');
+          for (var url in urls) {
+            logger.stdout('  $url');
           }
-          stdin.readLineSync();
         }
+        stdin.readLineSync();
       }
+      //
+      // Stop the server.
+      //
       serverStopped = server.stop();
       await applyFixes();
       await serverStopped;
