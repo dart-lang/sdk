@@ -161,7 +161,7 @@ class ExperimentalFeatures {
       var enabledIn = (experimentsYaml[key] as YamlMap)['enabledIn'];
       out.write('''
 
-      static const $id = const ExperimentalFeature(
+      static const $id = ExperimentalFeature(
       $index,
       EnableString.$id,
       IsEnabledByDefault.$id,
@@ -181,7 +181,7 @@ class ExperimentalFeatures {
     out.write('''
 
       @deprecated
-      static const bogus_disabled = const ExperimentalFeature(
+      static const bogus_disabled = ExperimentalFeature(
         $index,
         // ignore: deprecated_member_use_from_same_package
         EnableString.bogus_disabled,
@@ -190,7 +190,7 @@ class ExperimentalFeatures {
         null);
 
       @deprecated
-      static const bogus_enabled = const ExperimentalFeature(
+      static const bogus_enabled = ExperimentalFeature(
         ${index + 1},
         // ignore: deprecated_member_use_from_same_package
         EnableString.bogus_enabled,
