@@ -52,7 +52,7 @@ class MethodInvocationResolver {
   /// Helper for extension method resolution.
   final ExtensionMemberResolver _extensionResolver;
 
-  final ElementTypeProvider _elementTypeProvider = const ElementTypeProvider();
+  final ElementTypeProvider _elementTypeProvider;
 
   /// The invocation being resolved.
   MethodInvocationImpl _invocation;
@@ -60,7 +60,7 @@ class MethodInvocationResolver {
   /// The [Name] object of the invocation being resolved by [resolve].
   Name _currentName;
 
-  MethodInvocationResolver(this._resolver)
+  MethodInvocationResolver(this._resolver, this._elementTypeProvider)
       : _typeType = _resolver.typeProvider.typeType,
         _inheritance = _resolver.inheritance,
         _definingLibrary = _resolver.definingLibrary,

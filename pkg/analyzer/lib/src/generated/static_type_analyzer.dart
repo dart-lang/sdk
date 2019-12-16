@@ -19,6 +19,7 @@ import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/element_type_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/migration.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/generated/variable_type_provider.dart';
@@ -79,7 +80,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
 
   final FlowAnalysisHelper _flowAnalysis;
 
-  final ElementTypeProvider _elementTypeProvider = const ElementTypeProvider();
+  final ElementTypeProvider _elementTypeProvider;
 
   /**
    * Initialize a newly created static type analyzer to analyze types for the
@@ -87,7 +88,9 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
    *
    * @param resolver the resolver driving this participant
    */
-  StaticTypeAnalyzer(this._resolver, this._featureSet, this._flowAnalysis) {
+  StaticTypeAnalyzer(this._resolver, this._featureSet, this._flowAnalysis,
+      {ElementTypeProvider elementTypeProvider = const ElementTypeProvider()})
+      : _elementTypeProvider = elementTypeProvider {
     _typeProvider = _resolver.typeProvider;
     _typeSystem = _resolver.typeSystem;
     _dynamicType = _typeProvider.dynamicType;
@@ -2217,6 +2220,26 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     } else {
       return type;
     }
+  }
+}
+
+/// Override of [FlowAnalysisHelper] that invokes methods of
+/// [MigrationResolutionHooks] when appropriate.
+class StaticTypeAnalyzerForMigration extends StaticTypeAnalyzer {
+  StaticTypeAnalyzerForMigration(
+      ResolverVisitor resolver,
+      FeatureSet featureSet,
+      FlowAnalysisHelper flowAnalysis,
+      MigrationResolutionHooks migrationResolutionHooks)
+      : super(resolver, featureSet, flowAnalysis,
+            elementTypeProvider: migrationResolutionHooks);
+
+  @override
+  void _recordStaticType(Expression expression, DartType type) {
+    super._recordStaticType(
+        expression,
+        (_elementTypeProvider as MigrationResolutionHooks)
+            .modifyExpressionType(expression, type ?? _dynamicType));
   }
 }
 
