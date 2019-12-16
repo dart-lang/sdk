@@ -43,4 +43,6 @@ identifier/built_in_type_annotation_test/set: Crash # Not supported by legacy VM
 
 [ $hot_reload || $hot_reload_rollback ]
 regress/regress22780_test/01: Crash # Issue 29094
+regress/regress23244_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
+vm/optimized_guarded_field_isolates_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
 vm/optimized_stacktrace_test: Slow
