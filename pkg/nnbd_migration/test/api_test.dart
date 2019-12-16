@@ -980,6 +980,25 @@ int f(int i) {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_downcast_dynamic_function_to_functionType() async {
+    var content = '''
+void f(Function a) {
+  int Function<T>(String y) f1 = a;
+  Function b = null;
+  int Function<T>(String y) f2 = b;
+}
+''';
+    // Don't assume any new nullabilities, but keep known nullabilities.
+    var expected = '''
+void f(Function a) {
+  int Function<T>(String y) f1 = a;
+  Function? b = null;
+  int Function<T>(String y)? f2 = b;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_downcast_dynamic_to_functionType() async {
     var content = '''
 void f(dynamic a) {

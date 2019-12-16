@@ -2534,6 +2534,11 @@ mixin _AssignmentChecker {
         assert(param.bound == null,
             'downcast to type parameters with bounds not supported');
       }
+    } else if (destinationType is FunctionType) {
+      if (source.type.isDartCoreFunction) {
+        // Nothing else to do.
+        return;
+      }
     } else {
       assert(
           false,
