@@ -9,8 +9,7 @@
 // before cut-and-paste gets out of hand.
 
 class MultiFutureTracker {
-  /// Approximate maximum number of simultaneous active Futures.
-  // TODO(jcollins-g): make this a hard limit.
+  /// Maximum number of simultaneously incomplete [Future]s.
   final int parallel;
 
   final Set<Future<void>> _trackedFutures = Set();
@@ -19,6 +18,7 @@ class MultiFutureTracker {
 
   /// Wait until fewer or equal to this many Futures are outstanding.
   Future<void> _waitUntil(int max) async {
+    assert(_trackedFutures.length <= parallel);
     while (_trackedFutures.length > max) {
       await Future.any(_trackedFutures);
     }
@@ -28,6 +28,9 @@ class MultiFutureTracker {
   /// once the queue is sufficiently empty.  The returned future completes
   /// when the generated [Future] has been added to the queue.
   Future<void> addFutureFromClosure(Future<void> Function() closure) async {
+    assert(_trackedFutures.length <= parallel);
+    // Can't use _waitUntil because we might not return directly to this
+    // invocation of addFutureFromClosure.
     while (_trackedFutures.length > parallel - 1) {
       await Future.any(_trackedFutures);
     }
@@ -37,5 +40,5 @@ class MultiFutureTracker {
   }
 
   /// Wait until all futures added so far have completed.
-  Future<void> wait() async => await _waitUntil(0);
+  Future<void> wait() => _waitUntil(0);
 }
