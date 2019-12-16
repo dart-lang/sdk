@@ -231,7 +231,7 @@ _f(int/*?*/ x, int/*!*/ y) => x = y;
 _f(int/*!*/ x, int/*?*/ y) => x = y;
 ''');
     visitSubexpression(findNode.assignment('= '), 'int',
-        contextType: objectType, changes: {findNode.simple('y;'): NullCheck()});
+        changes: {findNode.simple('y;'): NullCheck()});
   }
 
   test_assignmentExpression_simple_nullable_to_nullable() async {
@@ -665,7 +665,7 @@ class _C {
   _f() => x = 0;
 }
 ''');
-    visitAssignmentTarget(findNode.simple('x '), 'int', 'int');
+    visitAssignmentTarget(findNode.simple('x '), null, 'int');
   }
 
   test_assignmentTarget_simpleIdentifier_setter_nullable() async {
@@ -776,15 +776,14 @@ Object/*!*/ _f(int/*?*/ x, double/*?*/ y) {
 ''');
     var yRef = findNode.simple('y;');
     visitSubexpression(findNode.binary('??'), 'num',
-        contextType: objectType, changes: {yRef: NullCheck()});
+        changes: {yRef: NullCheck()});
   }
 
   test_binaryExpression_userDefinable_dynamic() async {
     await analyze('''
 Object/*!*/ _f(dynamic d, int/*?*/ i) => d + i;
 ''');
-    visitSubexpression(findNode.binary('+'), 'dynamic',
-        contextType: objectType);
+    visitSubexpression(findNode.binary('+'), 'dynamic');
   }
 
   test_binaryExpression_userDefinable_intRules() async {
@@ -1046,8 +1045,7 @@ _f(int/*?*/ x) {
     await analyze('''
 Object/*!*/ _f(dynamic d, int/*?*/ i) => d[i];
 ''');
-    visitSubexpression(findNode.index('d[i]'), 'dynamic',
-        contextType: objectType);
+    visitSubexpression(findNode.index('d[i]'), 'dynamic');
   }
 
   test_indexExpression_simple() async {
@@ -1139,8 +1137,7 @@ _f(int/*?*/ x) => <int/*!*/>[x];
     await analyze('''
 Object/*!*/ _f(dynamic d) => d.f();
 ''');
-    visitSubexpression(findNode.methodInvocation('d.f'), 'dynamic',
-        contextType: objectType);
+    visitSubexpression(findNode.methodInvocation('d.f'), 'dynamic');
   }
 
   test_methodInvocation_namedParameter() async {
@@ -1382,8 +1379,7 @@ _f(_C/*!*/ x) => x++;
     await analyze('''
 Object/*!*/ _f(dynamic d) => d.x;
 ''');
-    visitSubexpression(findNode.prefixed('d.x'), 'dynamic',
-        contextType: objectType);
+    visitSubexpression(findNode.prefixed('d.x'), 'dynamic');
   }
 
   test_prefixedIdentifier_field_nonNullable() async {
@@ -1674,8 +1670,7 @@ _f(_C<int> x) => ~x;
     await analyze('''
 Object/*!*/ _f(dynamic d) => (d).x;
 ''');
-    visitSubexpression(findNode.propertyAccess('(d).x'), 'dynamic',
-        contextType: objectType);
+    visitSubexpression(findNode.propertyAccess('(d).x'), 'dynamic');
   }
 
   test_propertyAccess_field_nonNullable() async {
@@ -1733,8 +1728,7 @@ _f(_C c) => (c).x;
     await analyze('''
 Object/*!*/ _f(dynamic d) => d?.x;
 ''');
-    visitSubexpression(findNode.propertyAccess('d?.x'), 'dynamic',
-        contextType: objectType);
+    visitSubexpression(findNode.propertyAccess('d?.x'), 'dynamic');
   }
 
   test_propertyAccess_nullAware_field_nonNullable() async {
@@ -2084,9 +2078,10 @@ void _f(bool/*?*/ x, bool/*?*/ y) {
       Expression node, String expectedReadType, String expectedWriteType,
       {Map<AstNode, NodeChange> changes = const <Expression, NodeChange>{},
       Map<AstNode, Set<Problem>> problems = const <AstNode, Set<Problem>>{}}) {
-    _FixBuilder fixBuilder = _createFixBuilder(node);
-    var targetInfo =
-        fixBuilder.visitAssignmentTarget(node, expectedReadType != null);
+    var fixBuilder = _FixBuilder(node, testSource, decoratedClassHierarchy,
+        typeProvider, typeSystem, variables);
+    node.thisOrAncestorOfType<CompilationUnit>().accept(fixBuilder);
+    var targetInfo = fixBuilder.assignmentTargetInfo[node];
     if (expectedReadType == null) {
       expect(targetInfo.readType, null);
     } else {
@@ -2102,20 +2097,20 @@ void _f(bool/*?*/ x, bool/*?*/ y) {
   void visitStatement(Statement node,
       {Map<AstNode, NodeChange> changes = const <Expression, NodeChange>{},
       Map<AstNode, Set<Problem>> problems = const <AstNode, Set<Problem>>{}}) {
-    _FixBuilder fixBuilder = _createFixBuilder(node);
-    var type = node.accept(fixBuilder);
-    expect(type, null);
+    _FixBuilder fixBuilder = _FixBuilder(node, testSource,
+        decoratedClassHierarchy, typeProvider, typeSystem, variables);
+    node.thisOrAncestorOfType<CompilationUnit>().accept(fixBuilder);
     expect(fixBuilder.changes, changes);
     expect(fixBuilder.problems, problems);
   }
 
   void visitSubexpression(Expression node, String expectedType,
-      {DartType contextType,
-      Map<AstNode, NodeChange> changes = const <Expression, NodeChange>{},
+      {Map<AstNode, NodeChange> changes = const <Expression, NodeChange>{},
       Map<AstNode, Set<Problem>> problems = const <AstNode, Set<Problem>>{}}) {
-    contextType ??= dynamicType;
-    _FixBuilder fixBuilder = _createFixBuilder(node);
-    var type = fixBuilder.visitSubexpression(node, contextType);
+    _FixBuilder fixBuilder = _FixBuilder(node, testSource,
+        decoratedClassHierarchy, typeProvider, typeSystem, variables);
+    node.thisOrAncestorOfType<CompilationUnit>().accept(fixBuilder);
+    var type = fixBuilder.expressionType[node];
     expect((type as TypeImpl).toString(withNullability: true), expectedType);
     expect(fixBuilder.changes, changes);
     expect(fixBuilder.problems, problems);
@@ -2124,46 +2119,72 @@ void _f(bool/*?*/ x, bool/*?*/ y) {
   void visitTypeAnnotation(TypeAnnotation node, String expectedType,
       {Map<AstNode, NodeChange> changes = const <AstNode, NodeChange>{},
       Map<AstNode, Set<Problem>> problems = const <AstNode, Set<Problem>>{}}) {
-    _FixBuilder fixBuilder = _createFixBuilder(node);
-    var type = node.accept(fixBuilder);
+    _FixBuilder fixBuilder = _FixBuilder(node, testSource,
+        decoratedClassHierarchy, typeProvider, typeSystem, variables);
+    node.thisOrAncestorOfType<CompilationUnit>().accept(fixBuilder);
+    var type = fixBuilder.typeAnnotationType[node];
     expect((type as TypeImpl).toString(withNullability: true), expectedType);
     expect(fixBuilder.changes, changes);
     expect(fixBuilder.problems, problems);
   }
-
-  _FixBuilder _createFixBuilder(AstNode node) {
-    var fixBuilder = _FixBuilder(testSource, decoratedClassHierarchy,
-        typeProvider, typeSystem, variables);
-    var body = node.thisOrAncestorOfType<FunctionBody>();
-    var declaration = body.thisOrAncestorOfType<Declaration>();
-    FormalParameterList parameters;
-    if (declaration is FunctionDeclaration) {
-      parameters = declaration.functionExpression.parameters;
-    }
-    fixBuilder.createFlowAnalysis(declaration, parameters);
-    return fixBuilder;
-  }
 }
 
 class _FixBuilder extends FixBuilder {
+  final AstNode scope;
+
   final Map<AstNode, NodeChange> changes = {};
 
   final Map<AstNode, Set<Problem>> problems = {};
 
-  _FixBuilder(Source source, DecoratedClassHierarchy decoratedClassHierarchy,
-      TypeProvider typeProvider, TypeSystemImpl typeSystem, Variables variables)
+  Map<Expression, AssignmentTargetInfo> assignmentTargetInfo = {};
+
+  Map<Expression, DartType> expressionType = {};
+
+  Map<TypeAnnotation, DartType> typeAnnotationType = {};
+
+  _FixBuilder(
+      this.scope,
+      Source source,
+      DecoratedClassHierarchy decoratedClassHierarchy,
+      TypeProvider typeProvider,
+      TypeSystemImpl typeSystem,
+      Variables variables)
       : super(source, decoratedClassHierarchy, typeProvider, typeSystem,
             variables);
 
   @override
   void addChange(AstNode node, NodeChange change) {
+    if (!_isInScope(node)) return;
     expect(changes, isNot(contains(node)));
     changes[node] = change;
   }
 
   @override
   void addProblem(AstNode node, Problem problem) {
+    if (!_isInScope(node)) return;
     var newlyAdded = (problems[node] ??= {}).add(problem);
     expect(newlyAdded, true);
+  }
+
+  @override
+  void setExpressionType(Expression node, DartType type) {
+    expressionType[node] = type;
+  }
+
+  @override
+  void setTypeAnnotationType(TypeAnnotation node, DartType type) {
+    typeAnnotationType[node] = type;
+  }
+
+  @override
+  AssignmentTargetInfo visitAssignmentTarget(Expression node, bool isCompound) {
+    return assignmentTargetInfo[node] =
+        super.visitAssignmentTarget(node, isCompound);
+  }
+
+  bool _isInScope(AstNode node) {
+    return node
+            .thisOrAncestorMatching((ancestor) => identical(ancestor, scope)) !=
+        null;
   }
 }
