@@ -213,13 +213,6 @@ abstract class InternalStatement extends Statement {
   StatementInferenceResult acceptInference(InferenceVisitor visitor);
 }
 
-class ForInStatementImpl extends ForInStatement {
-  ForInStatementImpl(
-      VariableDeclaration variable, Expression iterable, Statement body,
-      {bool isAsync: false})
-      : super(variable, iterable, body, isAsync: isAsync);
-}
-
 class ForInStatementWithSynthesizedVariable extends InternalStatement {
   VariableDeclaration variable;
   Expression iterable;
@@ -277,6 +270,43 @@ class ForInStatementWithSynthesizedVariable extends InternalStatement {
     if (body != null) {
       body = body.accept<TreeNode>(v);
       body?.parent = this;
+    }
+  }
+}
+
+class TryStatement extends InternalStatement {
+  Statement tryBlock;
+  List<Catch> catchBlocks;
+  Statement finallyBlock;
+
+  TryStatement(this.tryBlock, this.catchBlocks, this.finallyBlock) {
+    tryBlock?.parent = this;
+    setParents(catchBlocks, this);
+    finallyBlock?.parent = this;
+  }
+
+  @override
+  StatementInferenceResult acceptInference(InferenceVisitor visitor) {
+    return visitor.visitTryStatement(this);
+  }
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    tryBlock?.accept(v);
+    visitList(catchBlocks, v);
+    finallyBlock?.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    if (tryBlock != null) {
+      tryBlock = tryBlock.accept<TreeNode>(v);
+      tryBlock?.parent = this;
+    }
+    transformList(catchBlocks, v, this);
+    if (finallyBlock != null) {
+      finallyBlock = finallyBlock.accept<TreeNode>(v);
+      finallyBlock?.parent = this;
     }
   }
 }

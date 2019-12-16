@@ -190,6 +190,16 @@ class InferenceVisitor
     return _unhandledStatement(node);
   }
 
+  @override
+  StatementInferenceResult visitTryCatch(TryCatch node) {
+    return _unhandledStatement(node);
+  }
+
+  @override
+  StatementInferenceResult visitTryFinally(TryFinally node) {
+    return _unhandledStatement(node);
+  }
+
   void _unhandledInitializer(Initializer node) {
     unhandled("${node.runtimeType}", "InferenceVisitor", node.fileOffset,
         node.location.file);
@@ -308,10 +318,13 @@ class InferenceVisitor
   StatementInferenceResult visitBlock(Block node) {
     inferrer.registerIfUnreachableForTesting(node);
     List<Statement> result = _visitStatements<Statement>(node.statements);
-    return result != null
-        ? new StatementInferenceResult.single(
-            new Block(result)..fileOffset = node.fileOffset)
-        : const StatementInferenceResult();
+    if (result != null) {
+      Block block = new Block(result)..fileOffset = node.fileOffset;
+      inferrer.library.loader.dataForTesting?.registerAlias(node, block);
+      return new StatementInferenceResult.single(block);
+    } else {
+      return const StatementInferenceResult();
+    }
   }
 
   @override
@@ -960,8 +973,7 @@ class InferenceVisitor
   }
 
   @override
-  StatementInferenceResult visitForInStatement(
-      covariant ForInStatementImpl node) {
+  StatementInferenceResult visitForInStatement(ForInStatement node) {
     assert(node.variable.name != null);
     ForInResult result = handleForInDeclaringVariable(
         node, node.variable, node.iterable, null,
@@ -4939,58 +4951,61 @@ class InferenceVisitor
   }
 
   void visitCatch(Catch node) {
-    if (node.exception != null) {
-      inferrer.flowAnalysis.initialize(node.exception);
-    }
-    if (node.stackTrace != null) {
-      inferrer.flowAnalysis.initialize(node.stackTrace);
-    }
     StatementInferenceResult bodyResult = inferrer.inferStatement(node.body);
     if (bodyResult.hasChanged) {
       node.body = bodyResult.statement..parent = node;
     }
   }
 
-  @override
-  StatementInferenceResult visitTryCatch(TryCatch node) {
-    inferrer.flowAnalysis.tryCatchStatement_bodyBegin();
-    Statement bodyWithAssignedInfo = node.body;
-    StatementInferenceResult bodyResult = inferrer.inferStatement(node.body);
-    if (bodyResult.hasChanged) {
-      node.body = bodyResult.statement..parent = node;
+  StatementInferenceResult visitTryStatement(TryStatement node) {
+    if (node.finallyBlock != null) {
+      inferrer.flowAnalysis.tryFinallyStatement_bodyBegin();
     }
-    inferrer.flowAnalysis.tryCatchStatement_bodyEnd(bodyWithAssignedInfo);
-    for (Catch catch_ in node.catches) {
-      inferrer.flowAnalysis
-          .tryCatchStatement_catchBegin(catch_.exception, catch_.stackTrace);
-      inferrer.flowAnalysis.initialize(catch_.exception);
-      inferrer.flowAnalysis.initialize(catch_.stackTrace);
-      visitCatch(catch_);
-      inferrer.flowAnalysis.tryCatchStatement_catchEnd();
+    Statement tryBodyWithAssignedInfo = node.tryBlock;
+    if (node.catchBlocks.isNotEmpty) {
+      inferrer.flowAnalysis.tryCatchStatement_bodyBegin();
     }
-    inferrer.flowAnalysis.tryCatchStatement_end();
-    return const StatementInferenceResult();
-  }
 
-  @override
-  StatementInferenceResult visitTryFinally(TryFinally node) {
-    inferrer.flowAnalysis.tryFinallyStatement_bodyBegin();
-    // TODO(johnniwinther): Use one internal statement for try-catch-finally.
-    TreeNode body = node.body;
-    Statement bodyWithAssignedInfo = body is TryCatch ? body.body : body;
-    StatementInferenceResult bodyResult = inferrer.inferStatement(node.body);
-    if (bodyResult.hasChanged) {
-      node.body = bodyResult.statement..parent = node;
+    StatementInferenceResult tryBlockResult =
+        inferrer.inferStatement(node.tryBlock);
+
+    if (node.catchBlocks.isNotEmpty) {
+      inferrer.flowAnalysis.tryCatchStatement_bodyEnd(tryBodyWithAssignedInfo);
+      for (Catch catchBlock in node.catchBlocks) {
+        inferrer.flowAnalysis.tryCatchStatement_catchBegin(
+            catchBlock.exception, catchBlock.stackTrace);
+        visitCatch(catchBlock);
+        inferrer.flowAnalysis.tryCatchStatement_catchEnd();
+      }
+      inferrer.flowAnalysis.tryCatchStatement_end();
     }
-    inferrer.flowAnalysis
-        .tryFinallyStatement_finallyBegin(bodyWithAssignedInfo);
-    StatementInferenceResult finalizerResult =
-        inferrer.inferStatement(node.finalizer);
-    if (finalizerResult.hasChanged) {
-      node.finalizer = finalizerResult.statement..parent = node;
+
+    StatementInferenceResult finalizerResult;
+    if (node.finallyBlock != null) {
+      // If a try statement has no catch blocks, the finally block uses the
+      // assigned variables from the try block in [tryBodyWithAssignedInfo],
+      // otherwise it uses the assigned variables for the
+      inferrer.flowAnalysis.tryFinallyStatement_finallyBegin(
+          node.catchBlocks.isNotEmpty ? node : tryBodyWithAssignedInfo);
+      finalizerResult = inferrer.inferStatement(node.finallyBlock);
+      inferrer.flowAnalysis.tryFinallyStatement_end(node.finallyBlock);
     }
-    inferrer.flowAnalysis.tryFinallyStatement_end(node.finalizer);
-    return const StatementInferenceResult();
+    Statement result =
+        tryBlockResult.hasChanged ? tryBlockResult.statement : node.tryBlock;
+    if (node.catchBlocks.isNotEmpty) {
+      result = new TryCatch(result, node.catchBlocks)
+        ..fileOffset = node.fileOffset;
+    }
+    if (node.finallyBlock != null) {
+      result = new TryFinally(
+          result,
+          finalizerResult.hasChanged
+              ? finalizerResult.statement
+              : node.finallyBlock)
+        ..fileOffset = node.fileOffset;
+    }
+    inferrer.library.loader.dataForTesting?.registerAlias(node, result);
+    return new StatementInferenceResult.single(result);
   }
 
   @override

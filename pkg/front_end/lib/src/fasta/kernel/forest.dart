@@ -479,16 +479,11 @@ class Forest {
 
   bool isThrow(Object o) => o is Throw;
 
-  TryCatch createTryCatch(
-      int fileOffset, Statement tryBlock, List<Catch> catchBlocks) {
+  Statement createTryStatement(int fileOffset, Statement tryBlock,
+      List<Catch> catchBlocks, Statement finallyBlock) {
     assert(fileOffset != null);
-    return new TryCatch(tryBlock, catchBlocks)..fileOffset = fileOffset;
-  }
-
-  TryFinally createTryFinally(
-      int fileOffset, Statement tryBlock, Statement finallyBlock) {
-    assert(fileOffset != null);
-    return new TryFinally(tryBlock, finallyBlock)..fileOffset = fileOffset;
+    return new TryStatement(tryBlock, catchBlocks ?? <Catch>[], finallyBlock)
+      ..fileOffset = fileOffset;
   }
 
   _VariablesDeclaration variablesDeclaration(

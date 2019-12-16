@@ -21,11 +21,7 @@ main(List<String> args) async {
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
       runTest: runTestFor(
-          const TypePromotionDataComputer(), [cfeNonNullableOnlyConfig]),
-      skipList: [
-        // TODO(johnniwinther): Run all type promotion tests.
-        'bug39178.dart',
-      ]);
+          const TypePromotionDataComputer(), [cfeNonNullableOnlyConfig]));
 }
 
 class TypePromotionDataComputer extends DataComputer<DartType> {
