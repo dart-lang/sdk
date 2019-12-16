@@ -2510,15 +2510,15 @@ mixin _AssignmentChecker {
     // Nullability should narrow to maintain subtype relationship.
     _connect(source.node, destination.node, origin, hard: hard);
     if (source.type.isDynamic) {
-      assert(destination.typeFormals?.isEmpty ?? true,
-          'downcast to something with type parameters not yet supported.');
-      assert(destinationType is! FunctionType,
-          'downcast to function type not yet supported.');
       if (destinationType is InterfaceType) {
         for (final param in destinationType.element.typeParameters) {
           assert(param.bound == null,
               'downcast to type parameters with bounds not supported');
         }
+      }
+      if (destinationType is FunctionType) {
+        // Nothing else to do.
+        return;
       }
     } else if (destinationType is TypeParameterType &&
         source.type is! TypeParameterType) {

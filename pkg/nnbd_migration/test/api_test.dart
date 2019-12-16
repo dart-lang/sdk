@@ -980,6 +980,25 @@ int f(int i) {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_downcast_dynamic_to_functionType() async {
+    var content = '''
+void f(dynamic a) {
+  int Function<T>(String y) f1 = a;
+  dynamic b = null;
+  int Function<T>(String y) f2 = b;
+}
+''';
+    // Don't assume any new nullabilities, but keep known nullabilities.
+    var expected = '''
+void f(dynamic a) {
+  int Function<T>(String y) f1 = a;
+  dynamic b = null;
+  int Function<T>(String y)? f2 = b;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   @failingTest
   test_downcast_not_widest_type_type_parameters() async {
     // Fails because a hard assignment from List<int/*1*/> to List<int/*2*/>
