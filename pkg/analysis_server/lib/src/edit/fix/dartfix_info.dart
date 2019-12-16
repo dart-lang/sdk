@@ -106,6 +106,32 @@ will be converted to
     isDefault: false,
     isPedantic: true,
   ),
+  const DartFixInfo(
+    'unnecessary-const',
+    '''
+Remove unnecessary `const` keywords.
+
+For example, this
+  static const digits = const ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+
+will be converted to
+  static const digits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];''',
+    BasicFixLintErrorTask.unnecessaryConst,
+    isPedantic: true,
+  ),
+  const DartFixInfo(
+    'unnecessary-new',
+    '''
+Remove unnecessary `new` keywords.
+
+For example, this
+  var marker = new Object();
+
+will be converted to
+  var marker = Object();''',
+    BasicFixLintErrorTask.unnecessaryNew,
+    isPedantic: true,
+  ),
   //
   // Other fixes
   //

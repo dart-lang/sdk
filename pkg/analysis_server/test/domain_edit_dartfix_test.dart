@@ -136,17 +136,17 @@ const double myDouble = 42.0;
     addTestFile('''
 class A<T> { A.from(Object obj) { } }
 main() {
-  print(new A.from<String>([]));
+  print(A.from<String>([]));
 }
     ''');
     createProject();
     EditDartfixResult result = await performFix();
     expect(result.suggestions, hasLength(1));
-    expectSuggestion(result.suggestions[0], 'type arguments', 65, 8);
+    expectSuggestion(result.suggestions[0], 'type arguments', 61, 8);
     expectEdits(result.edits, '''
 class A<T> { A.from(Object obj) { } }
 main() {
-  print(new A<String>.from([]));
+  print(A<String>.from([]));
 }
     ''');
   }

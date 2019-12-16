@@ -3197,9 +3197,16 @@ class FixProcessor extends BaseProcessor {
   }
 
   Future<void> _addFix_removeConstKeyword() async {
-    final instanceCreationExpression = node;
-    if (instanceCreationExpression is InstanceCreationExpression) {
-      final constToken = instanceCreationExpression.keyword;
+    final expression = node;
+    if (expression is InstanceCreationExpression) {
+      final constToken = expression.keyword;
+      var changeBuilder = _newDartChangeBuilder();
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+        builder.addDeletion(range.startStart(constToken, constToken.next));
+      });
+      _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_UNNECESSARY_CONST);
+    } else if (expression is TypedLiteralImpl) {
+      final constToken = expression.constKeyword;
       var changeBuilder = _newDartChangeBuilder();
       await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
         builder.addDeletion(range.startStart(constToken, constToken.next));

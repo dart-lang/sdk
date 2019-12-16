@@ -50,4 +50,20 @@ class BasicFixLintErrorTask extends FixLintTask {
           DartFixKind.REPLACE_WITH_IS_NOT_EMPTY, listener),
     );
   }
+
+  static void unnecessaryConst(DartFixRegistrar registrar,
+      DartFixListener listener, EditDartfixParams params) {
+    registrar.registerLintTask(
+      Registry.ruleRegistry['unnecessary_const'],
+      new BasicFixLintErrorTask(DartFixKind.REMOVE_UNNECESSARY_CONST, listener),
+    );
+  }
+
+  static void unnecessaryNew(DartFixRegistrar registrar,
+      DartFixListener listener, EditDartfixParams params) {
+    registrar.registerLintTask(
+      Registry.ruleRegistry['unnecessary_new'],
+      new BasicFixLintErrorTask(DartFixKind.REMOVE_UNNECESSARY_NEW, listener),
+    );
+  }
 }
