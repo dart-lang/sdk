@@ -129,7 +129,7 @@ test:lib/
     provider = FeatureSetProvider.build(
       resourceProvider: resourceProvider,
       contextRoot: ContextRoot(
-        '/test',
+        convertPath('/test'),
         [],
         pathContext: resourceProvider.pathContext,
       ),
