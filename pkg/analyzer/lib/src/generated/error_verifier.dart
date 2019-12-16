@@ -3980,10 +3980,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
           return true;
         }
         names[name] = typeName.name.name;
-        ExecutableElement inheritedMember =
-            superclass.lookUpMethod2(name, library) ??
-                superclass.lookUpGetter2(name, library) ??
-                superclass.lookUpSetter2(name, library);
+        ExecutableElement inheritedMember = _inheritanceManager.getMember(
+          superclass,
+          Name(library.source.uri, name),
+          concrete: true,
+        );
         if (inheritedMember != null) {
           _errorReporter.reportErrorForNode(
               CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION,

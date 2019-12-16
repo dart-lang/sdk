@@ -13,7 +13,6 @@ import 'package:test/test.dart' show expect;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../src/dart/resolution/driver_resolution.dart';
-import 'test_support.dart';
 
 class CompileTimeErrorCodeTestBase extends DriverResolutionTest {
   @failingTest
@@ -3573,80 +3572,6 @@ f() {
     ]);
   }
 
-  test_privateCollisionInClassTypeAlias_mixinAndMixin() {
-    return _privateCollisionInMixinApplicationTest('''
-import 'lib1.dart';
-class C = Object with A, B;
-''', [
-      error(CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION, 45, 1),
-    ]);
-  }
-
-  test_privateCollisionInClassTypeAlias_mixinAndMixin_indirect() {
-    return _privateCollisionInMixinApplicationTest('''
-import 'lib1.dart';
-class C = Object with A;
-class D = C with B;
-''', [
-      error(CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION, 62, 1),
-    ]);
-  }
-
-  test_privateCollisionInClassTypeAlias_superclassAndMixin() {
-    return _privateCollisionInMixinApplicationTest('''
-import 'lib1.dart';
-class C = A with B;
-''', [
-      error(CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION, 37, 1),
-    ]);
-  }
-
-  test_privateCollisionInClassTypeAlias_superclassAndMixin_same() {
-    return _privateCollisionInMixinApplicationTest('''
-import 'lib1.dart';
-class C = A with A;
-''', [
-      error(CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION, 37, 1),
-    ]);
-  }
-
-  test_privateCollisionInMixinApplication_mixinAndMixin() {
-    return _privateCollisionInMixinApplicationTest('''
-import 'lib1.dart';
-class C extends Object with A, B {}
-''', [
-      error(CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION, 51, 1),
-    ]);
-  }
-
-  test_privateCollisionInMixinApplication_mixinAndMixin_indirect() {
-    return _privateCollisionInMixinApplicationTest('''
-import 'lib1.dart';
-class C extends Object with A {}
-class D extends C with B {}
-''', [
-      error(CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION, 76, 1),
-    ]);
-  }
-
-  test_privateCollisionInMixinApplication_superclassAndMixin() {
-    return _privateCollisionInMixinApplicationTest('''
-import 'lib1.dart';
-class C extends A with B {}
-''', [
-      error(CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION, 43, 1),
-    ]);
-  }
-
-  test_privateCollisionInMixinApplication_superclassAndMixin_same() {
-    return _privateCollisionInMixinApplicationTest('''
-import 'lib1.dart';
-class C extends A with A {}
-''', [
-      error(CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION, 43, 1),
-    ]);
-  }
-
   test_privateOptionalParameter() async {
     await assertErrorsInCode('''
 f({var _p}) {}
@@ -3988,19 +3913,5 @@ const _ = $expr;
       error(CompileTimeErrorCode.CONST_EVAL_TYPE_NUM, 27, 6),
       error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 31, 2),
     ]);
-  }
-
-  Future<void> _privateCollisionInMixinApplicationTest(
-      String testCode, List<ExpectedError> expectedErrors) async {
-    newFile('/test/lib/lib1.dart', content: '''
-class A {
-  int _x;
-}
-
-class B {
-  int _x;
-}
-''');
-    await assertErrorsInCode(testCode, expectedErrors);
   }
 }

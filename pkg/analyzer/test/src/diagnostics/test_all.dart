@@ -275,6 +275,8 @@ import 'override_on_non_overriding_method_test.dart'
 import 'override_on_non_overriding_setter_test.dart'
     as override_on_non_overriding_setter;
 import 'part_of_different_library_test.dart' as part_of_different_library;
+import 'private_collision_in_mixin_application_test.dart'
+    as private_collision_in_mixin_application;
 import 'redirect_generative_to_missing_constructor_test.dart'
     as redirect_generative_to_missing_constructor;
 import 'redirect_generative_to_non_generative_constructor_test.dart'
@@ -586,6 +588,7 @@ main() {
     override_on_non_overriding_method.main();
     override_on_non_overriding_setter.main();
     part_of_different_library.main();
+    private_collision_in_mixin_application.main();
     redirect_generative_to_missing_constructor.main();
     redirect_generative_to_non_generative_constructor.main();
     redirect_to_invalid_function_type.main();
