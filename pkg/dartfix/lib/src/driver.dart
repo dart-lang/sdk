@@ -368,6 +368,8 @@ class _Handler
     with NotificationHandler, ConnectionHandler, AnalysisCompleteHandler {
   final Driver driver;
   final Logger logger;
+
+  @override
   final Server server;
   Version serverProtocolVersion;
 

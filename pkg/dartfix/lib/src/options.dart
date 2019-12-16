@@ -147,9 +147,7 @@ class Options {
       } else {
         logger = Logger.standard(
             ansi: Ansi(
-          options.useColor != null
-              ? options.useColor
-              : Ansi.terminalSupportsAnsi,
+          options.useColor ?? Ansi.terminalSupportsAnsi,
         ));
       }
     }
@@ -204,12 +202,11 @@ class Options {
   }
 
   static String _getSdkPath() {
-    return Platform.environment['DART_SDK'] != null
-        ? Platform.environment['DART_SDK']
-        : path.dirname(path.dirname(Platform.resolvedExecutable));
+    return Platform.environment['DART_SDK'] ??
+        path.dirname(path.dirname(Platform.resolvedExecutable));
   }
 
-  static _showUsage(ArgParser parser, Logger logger,
+  static void _showUsage(ArgParser parser, Logger logger,
       {bool showHelpHint = true}) {
     Function(String message) out = showHelpHint ? logger.stderr : logger.stdout;
     // show help on stdout when showHelp is true and showHelpHint is false

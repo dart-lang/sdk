@@ -34,12 +34,14 @@ class RecordingListener with ServerListener, BadMessageListener, TimedListener {
 
   /// Called when the [Server] is terminating the server process
   /// rather than requesting that the server stop itself.
+  @override
   void killingServerProcess(String reason) {
     echoMessages();
     super.killingServerProcess(reason);
   }
 
   /// Log a timed message about interaction with the server.
+  @override
   void logTimed(double elapseTime, String prefix, String details) {
     String line = '$elapseTime: $prefix $details';
     if (_echoMessages) {

@@ -4,7 +4,7 @@
 
 import 'driver_test.dart' show defineDriverTests;
 
-main() {
+void main() {
   defineDriverTests(
     name: 'pedantic',
     options: ['--pedantic'],

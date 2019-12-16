@@ -37,11 +37,13 @@ class TestExit {
 
 class TestLogger implements Logger {
   final bool debug;
+
+  @override
   final Ansi ansi;
   final stdoutBuffer = StringBuffer();
   final stderrBuffer = StringBuffer();
 
-  TestLogger({this.debug = false}) : this.ansi = Ansi(false);
+  TestLogger({this.debug = false}) : ansi = Ansi(false);
 
   @override
   void flush() {}

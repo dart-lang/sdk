@@ -8,7 +8,7 @@ import 'package:test/test.dart';
 
 import 'test_context.dart';
 
-main() {
+void main() {
   test('help explicit', () async {
     final driver = Driver();
     final testContext = TestContext();

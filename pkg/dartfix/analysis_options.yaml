@@ -6,6 +6,9 @@ analyzer:
   errors:
     # Increase the severity of the unused_import hint.
     unused_import: warning
+    # There are many pre-existing violations; this lint may not work well with
+    # the Analyzer team's style.
+    omit_local_variable_types: ignore
     # Turn off the prefer_is_empty lint so that it can be used in the example tests
     # and not be reported during normal package analysis.
     prefer_is_empty: ignore

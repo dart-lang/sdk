@@ -4,7 +4,7 @@
 
 import 'driver_test.dart' show defineDriverTests;
 
-main() {
+void main() {
   defineDriverTests(
     name: 'prefer-is-empty',
     options: ['--fix', 'prefer-is-empty'],

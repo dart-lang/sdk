@@ -8,7 +8,7 @@ import 'package:test/test.dart';
 
 import 'test_context.dart';
 
-main() {
+void main() {
   TestContext context;
   TestLogger logger;
 
