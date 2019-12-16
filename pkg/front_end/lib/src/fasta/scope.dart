@@ -600,11 +600,7 @@ class AmbiguousBuilder extends ProblemBuilder {
   }
 }
 
-class AmbiguousMemberBuilder extends AmbiguousBuilder implements MemberBuilder {
-  AmbiguousMemberBuilder(
-      String name, Builder builder, int charOffset, Uri fileUri)
-      : super(name, builder, charOffset, fileUri);
-
+mixin ErroneousMemberBuilderMixin implements MemberBuilder {
   @override
   Member get member => null;
 
@@ -650,6 +646,13 @@ class AmbiguousMemberBuilder extends AmbiguousBuilder implements MemberBuilder {
 
   @override
   List<ClassMember> get localSetters => const <ClassMember>[];
+}
+
+class AmbiguousMemberBuilder extends AmbiguousBuilder
+    with ErroneousMemberBuilderMixin {
+  AmbiguousMemberBuilder(
+      String name, Builder builder, int charOffset, Uri fileUri)
+      : super(name, builder, charOffset, fileUri);
 }
 
 class ScopeLocalDeclarationIterator implements Iterator<Builder> {

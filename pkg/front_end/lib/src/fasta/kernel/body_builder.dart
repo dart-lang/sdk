@@ -1938,6 +1938,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         return new UnresolvedNameGenerator(this, token, n);
       }
     } else if (declaration.isTypeDeclaration) {
+      if (declaration is AccessErrorBuilder) {
+        AccessErrorBuilder accessError = declaration;
+        declaration = accessError.builder;
+      }
       return new TypeUseGenerator(this, token, declaration, name);
     } else if (declaration.isLocal) {
       VariableBuilder variableBuilder = declaration;
@@ -2432,6 +2436,14 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   @override
   void handleAssignmentExpression(Token token) {
+    assert(checkState(token, [
+      unionOfKinds(<ValueKind>[ValueKinds.Expression, ValueKinds.Generator]),
+      unionOfKinds(<ValueKind>[
+        ValueKinds.Expression, ValueKinds.Generator,
+        // TODO(johnniwinther): Avoid problem builders here.
+        ValueKinds.ProblemBuilder
+      ])
+    ]));
     debugEvent("AssignmentExpression");
     Expression value = popForValue();
     Object generator = pop();

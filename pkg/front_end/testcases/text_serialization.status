@@ -196,6 +196,10 @@ general/implicit_const_with_static_fields: TextSerializationFailure # Was: Pass
 general/implicit_new: TextSerializationFailure # Was: Pass
 general/implicit_scope_test: TextSerializationFailure # Was: Pass
 general/implicit_this: TextSerializationFailure # Was: Pass
+general/import_conflicting_getters: TextSerializationFailure
+general/import_conflicting_setters: TextSerializationFailure
+general/import_conflicting_type_member: TextSerializationFailure
+general/import_conflicting_types: TextSerializationFailure
 general/incomplete_field_formal_parameter: TextSerializationFailure # Was: RuntimeError
 general/interface_contravariant_from_class: TextSerializationFailure
 general/interface_covariantImpl_from_class: TextSerializationFailure

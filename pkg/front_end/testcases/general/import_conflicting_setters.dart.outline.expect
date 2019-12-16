@@ -1,0 +1,24 @@
+library;
+import self as self;
+
+import "org-dartlang-testcase:///import_conflicting_setters_lib1.dart";
+import "org-dartlang-testcase:///import_conflicting_setters_lib2.dart";
+
+static method main() → dynamic
+  ;
+static method errors() → dynamic
+  ;
+
+library;
+import self as self2;
+import "dart:core" as core;
+
+static set foo(core::int* value) → void
+  ;
+
+library;
+import self as self3;
+import "dart:core" as core;
+
+static set foo(core::int* value) → void
+  ;
