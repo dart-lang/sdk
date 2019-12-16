@@ -39,12 +39,10 @@ Element findChildElement(Element root, String name, [ElementKind kind]) {
   return result;
 }
 
-typedef bool Predicate<E>(E argument);
+typedef Predicate<E> = bool Function(E argument);
 
-/**
- * A function to be called for every [Element].
- */
-typedef void _ElementVisitorFunction(Element element);
+/// A function to be called for every [Element].
+typedef _ElementVisitorFunction = void Function(Element element);
 
 class BaseAnalysisDriverTest with ResourceProviderMixin {
   DartSdk sdk;

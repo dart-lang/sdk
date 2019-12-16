@@ -444,11 +444,12 @@ class MemoryResourceProviderTest extends BaseTest
     });
   }
 
-  Future _delayed(computation()) {
+  Future _delayed(Function() computation) {
     return Future.delayed(Duration.zero, computation);
   }
 
-  _watchingFolder(String path, test(List<WatchEvent> changesReceived)) {
+  _watchingFolder(
+      String path, Function(List<WatchEvent> changesReceived) test) {
     Folder folder = provider.getResource(path);
     var changesReceived = <WatchEvent>[];
     folder.changes.listen(changesReceived.add);

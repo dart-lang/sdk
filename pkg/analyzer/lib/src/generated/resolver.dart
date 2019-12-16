@@ -2618,8 +2618,8 @@ class ResolverVisitor extends ScopedVisitor {
   static List<ParameterElement> resolveArgumentsToParameters(
       ArgumentList argumentList,
       List<ParameterElement> parameters,
-      void onError(ErrorCode errorCode, AstNode node,
-          [List<Object> arguments])) {
+      void Function(ErrorCode errorCode, AstNode node, [List<Object> arguments])
+          onError) {
     if (parameters.isEmpty && argumentList.arguments.isEmpty) {
       return const <ParameterElement>[];
     }

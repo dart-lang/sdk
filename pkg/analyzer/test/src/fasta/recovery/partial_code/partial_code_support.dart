@@ -11,7 +11,8 @@ import 'package:test/test.dart';
 import '../../../../generated/test_support.dart';
 import '../recovery_test_support.dart';
 
-typedef CompilationUnit AdjustValidUnitBeforeComparison(CompilationUnit unit);
+typedef AdjustValidUnitBeforeComparison = CompilationUnit Function(
+    CompilationUnit unit);
 
 /**
  * A base class that adds support for tests that test how well the parser

@@ -100,7 +100,7 @@ class SdkPatcher {
   }
 
   void _matchParameterLists(FormalParameterList baseParameters,
-      FormalParameterList patchParameters, String context()) {
+      FormalParameterList patchParameters, String Function() context) {
     if (baseParameters == null && patchParameters == null) return;
     if (baseParameters == null || patchParameters == null) {
       throw ArgumentError("${context()}, parameter lists don't match");
@@ -116,7 +116,7 @@ class SdkPatcher {
   }
 
   void _matchParameters(FormalParameter baseParameter,
-      FormalParameter patchParameter, String whichParameter()) {
+      FormalParameter patchParameter, String Function() whichParameter) {
     if (baseParameter.identifier.name != patchParameter.identifier.name) {
       throw ArgumentError('${whichParameter()} has different name');
     }
@@ -148,7 +148,8 @@ class SdkPatcher {
     }
   }
 
-  void _matchTypes(TypeName baseType, TypeName patchType, String whichType()) {
+  void _matchTypes(
+      TypeName baseType, TypeName patchType, String Function() whichType) {
     error() => ArgumentError("${whichType()} doesn't match");
     if (baseType == null && patchType == null) return;
     if (baseType == null || patchType == null) throw error();

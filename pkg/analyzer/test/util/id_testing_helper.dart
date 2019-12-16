@@ -79,7 +79,7 @@ Future<bool> runTest<T>(TestData testData, DataComputer<T> dataComputer,
     {bool testAfterFailures,
     bool forUserLibrariesOnly = true,
     Iterable<Id> globalIds = const <Id>[],
-    void onFailure(String message)}) async {
+    void Function(String message) onFailure}) async {
   bool hasFailures = false;
   for (TestConfig config in testedConfigs) {
     if (await runTestForConfig(testData, dataComputer, config,
@@ -105,7 +105,7 @@ RunTestFunction runTestFor<T>(
 /// Returns `true` if an error was encountered.
 Future<bool> runTestForConfig<T>(
     TestData testData, DataComputer<T> dataComputer, TestConfig config,
-    {bool fatalErrors, void onFailure(String message)}) async {
+    {bool fatalErrors, void Function(String message) onFailure}) async {
   MemberAnnotations<IdValue> memberAnnotations =
       testData.expectedMaps[config.marker];
   var resourceProvider = MemoryResourceProvider();

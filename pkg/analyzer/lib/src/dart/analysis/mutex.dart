@@ -33,7 +33,7 @@ class Mutex {
   }
 
   /// Run the given [criticalSection] with acquired mutex.
-  Future<T> guard<T>(Future<T> criticalSection()) async {
+  Future<T> guard<T>(Future<T> Function() criticalSection) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     await acquire();

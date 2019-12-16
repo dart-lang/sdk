@@ -17,11 +17,9 @@ import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 
 export 'package:analyzer/src/dart/ast/constant_evaluator.dart';
 
-/**
- * A function used to handle exceptions that are thrown by delegates while using
- * an [ExceptionHandlingDelegatingAstVisitor].
- */
-typedef void ExceptionInDelegateHandler(
+/// A function used to handle exceptions that are thrown by delegates while
+/// using an [ExceptionHandlingDelegatingAstVisitor].
+typedef ExceptionInDelegateHandler = void Function(
     AstNode node, AstVisitor visitor, dynamic exception, StackTrace stackTrace);
 
 /**

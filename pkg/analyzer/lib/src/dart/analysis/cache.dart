@@ -14,7 +14,7 @@ class Cache<K, V> {
 
   Cache(this._maxSizeBytes, this._meter);
 
-  V get(K key, V getNotCached()) {
+  V get(K key, V Function() getNotCached) {
     V value = _map.remove(key);
     if (value == null) {
       value = getNotCached();

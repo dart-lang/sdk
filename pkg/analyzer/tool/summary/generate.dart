@@ -51,7 +51,7 @@ List<GeneratedContent> getAllTargets(String idlPath) {
   return <GeneratedContent>[formatTarget, schemaTarget];
 }
 
-typedef String _StringToString(String s);
+typedef _StringToString = String Function(String s);
 
 class _BaseGenerator {
   static const String _throwDeprecated =
@@ -129,7 +129,7 @@ class _BaseGenerator {
   }
 
   /// Execute [callback] with two spaces added to [_indentation].
-  void indent(void callback()) {
+  void indent(void Function() callback) {
     String oldIndentation = _indentation;
     try {
       _indentation += '  ';

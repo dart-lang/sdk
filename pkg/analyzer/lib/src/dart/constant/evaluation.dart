@@ -1900,7 +1900,7 @@ class DartObjectComputer {
   }
 
   DartObjectImpl lazyAnd(BinaryExpression node, DartObjectImpl leftOperand,
-      DartObjectImpl rightOperandComputer()) {
+      DartObjectImpl Function() rightOperandComputer) {
     if (leftOperand != null) {
       try {
         return leftOperand.lazyAnd(_typeProvider, rightOperandComputer);
@@ -1924,7 +1924,7 @@ class DartObjectComputer {
   }
 
   DartObjectImpl lazyOr(BinaryExpression node, DartObjectImpl leftOperand,
-      DartObjectImpl rightOperandComputer()) {
+      DartObjectImpl Function() rightOperandComputer) {
     if (leftOperand != null) {
       try {
         return leftOperand.lazyOr(_typeProvider, rightOperandComputer);
@@ -1935,8 +1935,10 @@ class DartObjectComputer {
     return null;
   }
 
-  DartObjectImpl lazyQuestionQuestion(Expression node,
-      DartObjectImpl leftOperand, DartObjectImpl rightOperandComputer()) {
+  DartObjectImpl lazyQuestionQuestion(
+      Expression node,
+      DartObjectImpl leftOperand,
+      DartObjectImpl Function() rightOperandComputer) {
     if (leftOperand != null) {
       if (leftOperand.isNull) {
         return rightOperandComputer();

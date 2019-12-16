@@ -502,7 +502,7 @@ class _ElementWriter {
   }
 
   void writeList<T>(String open, String close, List<T> items, String separator,
-      writeItem(T item),
+      Function(T item) writeItem,
       {bool includeEmpty = false}) {
     if (!includeEmpty && items.isEmpty) {
       return;

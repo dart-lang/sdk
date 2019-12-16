@@ -50,7 +50,7 @@ class TypePromotionManager {
   }
 
   void visitBinaryExpression_and_rhs(
-      Expression leftOperand, Expression rightOperand, void f()) {
+      Expression leftOperand, Expression rightOperand, void Function() f) {
     if (rightOperand != null) {
       _enterScope();
       try {
@@ -69,7 +69,7 @@ class TypePromotionManager {
   }
 
   void visitConditionalExpression_then(
-      Expression condition, Expression thenExpression, void f()) {
+      Expression condition, Expression thenExpression, void Function() f) {
     if (thenExpression != null) {
       _enterScope();
       try {
@@ -88,7 +88,7 @@ class TypePromotionManager {
   }
 
   void visitIfElement_thenElement(
-      Expression condition, CollectionElement thenElement, void f()) {
+      Expression condition, CollectionElement thenElement, void Function() f) {
     if (thenElement != null) {
       _enterScope();
       try {
@@ -106,7 +106,7 @@ class TypePromotionManager {
   }
 
   void visitIfStatement_thenStatement(
-      Expression condition, Statement thenStatement, void f()) {
+      Expression condition, Statement thenStatement, void Function() f) {
     if (thenStatement != null) {
       _enterScope();
       try {

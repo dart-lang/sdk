@@ -41,7 +41,7 @@ import 'package:path/path.dart' as p;
 
 export 'package:analyzer/src/lint/linter_visitor.dart' show NodeLintRegistry;
 
-typedef Printer(String msg);
+typedef Printer = Function(String msg);
 
 /// Describes a String in valid camel case format.
 @deprecated // Never intended for public use.

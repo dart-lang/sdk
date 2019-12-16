@@ -344,13 +344,11 @@ class ContextBuilder {
     });
   }
 
-  /**
-   * Return the analysis options that should be used to analyze code in the
-   * directory with the given [path]. Use [verbosePrint] to echo verbose
-   * information about the analysis options selection process.
-   */
+  /// Return the analysis options that should be used to analyze code in the
+  /// directory with the given [path]. Use [verbosePrint] to echo verbose
+  /// information about the analysis options selection process.
   AnalysisOptions getAnalysisOptions(String path,
-      {void verbosePrint(String text), ContextRoot contextRoot}) {
+      {void Function(String text) verbosePrint, ContextRoot contextRoot}) {
     void verbose(String text) {
       if (verbosePrint != null) {
         verbosePrint(text);

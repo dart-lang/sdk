@@ -583,10 +583,11 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
    * backwards compatibility, and convenience for Dart 1 type system methods.
    */
   static bool relate(FunctionType t, DartType other,
-      bool returnRelation(DartType t, DartType s),
-      {bool parameterRelation(ParameterElement t, ParameterElement s),
-      bool boundsRelation(DartType bound2, DartType bound1,
-          TypeParameterElement formal2, TypeParameterElement formal1)}) {
+      bool Function(DartType t, DartType s) returnRelation,
+      {bool Function(ParameterElement t, ParameterElement s) parameterRelation,
+      bool Function(DartType bound2, DartType bound1,
+              TypeParameterElement formal2, TypeParameterElement formal1)
+          boundsRelation}) {
     parameterRelation ??= (t, s) => returnRelation(t.type, s.type);
     boundsRelation ??= (t, s, _, __) => returnRelation(t, s);
 
@@ -625,24 +626,22 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     return relateParameters(t.parameters, s.parameters, parameterRelation);
   }
 
-  /**
-   * Compares parameters [tParams] and [sParams] of two function types, taking
-   * corresponding parameters from the lists, and see if they match
-   * [parameterRelation].
-   *
-   * Corresponding parameters are defined as a pair `(t, s)` where `t` is a
-   * parameter from [tParams] and `s` is a parameter from [sParams], and both
-   * `t` and `s` are at the same position (for positional parameters)
-   * or have the same name (for named parameters).
-   *
-   * Used for the various relations on function types which have the same
-   * structural rules for handling optional parameters and arity, but use their
-   * own relation for comparing the parameters.
-   */
+  /// Compares parameters [tParams] and [sParams] of two function types, taking
+  /// corresponding parameters from the lists, and see if they match
+  /// [parameterRelation].
+  ///
+  /// Corresponding parameters are defined as a pair `(t, s)` where `t` is a
+  /// parameter from [tParams] and `s` is a parameter from [sParams], and both
+  /// `t` and `s` are at the same position (for positional parameters)
+  /// or have the same name (for named parameters).
+  ///
+  /// Used for the various relations on function types which have the same
+  /// structural rules for handling optional parameters and arity, but use their
+  /// own relation for comparing the parameters.
   static bool relateParameters(
       List<ParameterElement> tParams,
       List<ParameterElement> sParams,
-      bool parameterRelation(ParameterElement t, ParameterElement s)) {
+      bool Function(ParameterElement t, ParameterElement s) parameterRelation) {
     // TODO(jmesserly): this could be implemented with less allocation if we
     // wanted, by taking advantage of the fact that positional arguments must
     // appear before named ones.
@@ -746,8 +745,9 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   static List<DartType> relateTypeFormals(
       FunctionType f1,
       FunctionType f2,
-      bool relation(DartType bound2, DartType bound1,
-          TypeParameterElement formal2, TypeParameterElement formal1)) {
+      bool Function(DartType bound2, DartType bound1,
+              TypeParameterElement formal2, TypeParameterElement formal1)
+          relation) {
     List<TypeParameterElement> params1 = f1.typeFormals;
     List<TypeParameterElement> params2 = f2.typeFormals;
     return relateTypeFormals2(params1, params2, relation);
@@ -756,8 +756,9 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   static List<DartType> relateTypeFormals2(
       List<TypeParameterElement> params1,
       List<TypeParameterElement> params2,
-      bool relation(DartType bound2, DartType bound1,
-          TypeParameterElement formal2, TypeParameterElement formal1)) {
+      bool Function(DartType bound2, DartType bound1,
+              TypeParameterElement formal2, TypeParameterElement formal1)
+          relation) {
     int count = params1.length;
     if (params2.length != count) {
       return null;
@@ -1899,22 +1900,19 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         nullabilitySuffix: computeNullability());
   }
 
-  /**
-   * Look up the getter with the given [name] in the interfaces
-   * implemented by the given [targetType], either directly or indirectly.
-   * Return the element representing the getter that was found, or `null` if
-   * there is no getter with the given name. The flag [includeTargetType] should
-   * be `true` if the search should include the target type. The
-   * [visitedInterfaces] is a set containing all of the interfaces that have
-   * been examined, used to prevent infinite recursion and to optimize the
-   * search.
-   */
+  /// Look up the getter with the given name in the interfaces implemented by
+  /// the given [targetType], either directly or indirectly. Return the element
+  /// representing the getter that was found, or `null` if there is no getter
+  /// with the given name. The flag [includeTargetType] should be `true` if the
+  /// search should include the target type. The [visitedInterfaces] is a set
+  /// containing all of the interfaces that have been examined, used to prevent
+  /// infinite recursion and to optimize the search.
   static ExecutableElement _lookUpMemberInInterfaces(
       InterfaceType targetType,
       bool includeTargetType,
       LibraryElement library,
       HashSet<ClassElement> visitedInterfaces,
-      ExecutableElement getMember(InterfaceType type)) {
+      ExecutableElement Function(InterfaceType type) getMember) {
     // TODO(brianwilkerson) This isn't correct. Section 8.1.1 of the
     // specification (titled "Inheritance and Overriding" under "Interfaces")
     // describes a much more complex scheme for finding the inherited member.

@@ -130,14 +130,15 @@ class PhysicalResourceProviderWatchTest extends BaseTest {
     });
   }
 
-  Future _delayed(computation()) {
+  Future _delayed(Function() computation) {
     // Give the tests 1 second to detect the changes. While it may only
     // take up to a few hundred ms, a whole second gives a good margin
     // for when running tests.
     return Future.delayed(Duration(seconds: 1), computation);
   }
 
-  _watchingFile(String filePath, test(List<WatchEvent> changesReceived)) {
+  _watchingFile(
+      String filePath, Function(List<WatchEvent> changesReceived) test) {
     // Delay before we start watching the file.  This is necessary
     // because on MacOS, file modifications that occur just before we
     // start watching are sometimes misclassified as happening just after
@@ -153,7 +154,8 @@ class PhysicalResourceProviderWatchTest extends BaseTest {
     });
   }
 
-  _watchingFolder(String filePath, test(List<WatchEvent> changesReceived)) {
+  _watchingFolder(
+      String filePath, Function(List<WatchEvent> changesReceived) test) {
     // Delay before we start watching the folder.  This is necessary
     // because on MacOS, file modifications that occur just before we
     // start watching are sometimes misclassified as happening just after

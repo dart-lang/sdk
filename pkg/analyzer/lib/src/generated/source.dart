@@ -16,10 +16,9 @@ import 'package:path/path.dart' as pathos;
 export 'package:analyzer/source/line_info.dart' show LineInfo;
 export 'package:analyzer/source/source_range.dart';
 
-/**
- * A function that is used to visit [ContentCache] entries.
- */
-typedef void ContentCacheVisitor(String fullPath, int stamp, String contents);
+/// A function that is used to visit [ContentCache] entries.
+typedef ContentCacheVisitor = void Function(
+    String fullPath, int stamp, String contents);
 
 /// Base class providing implementations for the methods in [Source] that don't
 /// require filesystem access.

@@ -8,7 +8,7 @@ import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/services/lint.dart';
 
 /// The type of the function that handles exceptions in lints.
-typedef void LintRuleExceptionHandler(
+typedef LintRuleExceptionHandler = void Function(
     AstNode node, LintRule linter, dynamic exception, StackTrace stackTrace);
 
 /// The AST visitor that runs handlers for nodes from the [registry].

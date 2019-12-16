@@ -555,7 +555,7 @@ class LibraryImportScope extends Scope {
   }
 
   Element _lookupInImportedNamespaces(
-      Identifier identifier, Element lookup(Namespace namespace)) {
+      Identifier identifier, Element Function(Namespace namespace) lookup) {
     Element result;
 
     bool hasPotentialConflict = false;

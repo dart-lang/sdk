@@ -7,10 +7,8 @@ import 'package:analyzer/src/generated/java_core.dart';
 
 export 'package:analyzer/exception/exception.dart';
 
-/**
- * A predicate is a one-argument function that returns a boolean value.
- */
-typedef bool Predicate<E>(E argument);
+/// A predicate is a one-argument function that returns a boolean value.
+typedef Predicate<E> = bool Function(E argument);
 
 class FileNameUtilities {
   static String getExtension(String fileName) {

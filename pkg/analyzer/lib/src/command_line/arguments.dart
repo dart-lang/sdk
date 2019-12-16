@@ -31,11 +31,9 @@ const String sdkPathOption = 'dart-sdk';
 
 const String sdkSummaryPathOption = 'dart-sdk-summary';
 
-/**
- * Update [options] with the value of each analysis option command line flag.
- */
+/// Update [options] with the value of each analysis option command line flag.
 void applyAnalysisOptionFlags(AnalysisOptionsImpl options, ArgResults args,
-    {void verbosePrint(String text)}) {
+    {void Function(String text) verbosePrint}) {
   void verbose(String text) {
     if (verbosePrint != null) {
       verbosePrint('Analysis options: $text');

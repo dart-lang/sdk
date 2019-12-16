@@ -133,7 +133,7 @@ class Dart2TypeSystem extends TypeSystem {
     return t is FunctionType || t.isDartCoreFunction;
   }
 
-  bool anyParameterType(FunctionType ft, bool predicate(DartType t)) {
+  bool anyParameterType(FunctionType ft, bool Function(DartType t) predicate) {
     return ft.parameters.any((p) => predicate(p.type));
   }
 
@@ -2408,7 +2408,7 @@ class Dart2TypeSystem extends TypeSystem {
         .substituteType(type);
   }
 
-  static List<T> _transformList<T>(List<T> list, T f(T t)) {
+  static List<T> _transformList<T>(List<T> list, T Function(T t) f) {
     List<T> newList;
     for (var i = 0; i < list.length; i++) {
       var item = list[i];

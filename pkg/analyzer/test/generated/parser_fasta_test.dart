@@ -52,10 +52,8 @@ main() {
   });
 }
 
-/**
- * Type of the "parse..." methods defined in the Fasta parser.
- */
-typedef analyzer.Token ParseFunction(analyzer.Token token);
+/// Type of the "parse..." methods defined in the Fasta parser.
+typedef ParseFunction = analyzer.Token Function(analyzer.Token token);
 
 @reflectiveTest
 class ClassMemberParserTest_Fasta extends FastaParserTestCase
@@ -3405,13 +3403,10 @@ class ParserProxy extends analyzer.ParserAdapter {
     return _run('unspecified', () => super.parseTypeParameterList());
   }
 
-  /**
-   * Runs the specified function and returns the result.
-   * It checks the enclosing listener events,
-   * that the parse consumed all of the tokens,
-   * and that the result stack is empty.
-   */
-  _run(String enclosingEvent, f()) {
+  /// Runs the specified function and returns the result. It checks the
+  /// enclosing listener events, that the parse consumed all of the tokens, and
+  /// that the result stack is empty.
+  _run(String enclosingEvent, Function() f) {
     _eventListener.begin(enclosingEvent);
 
     // Simulate error handling of parseUnit by skipping error tokens

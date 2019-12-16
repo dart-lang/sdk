@@ -27,7 +27,7 @@ export 'package:analyzer/src/generated/timestamped_data.dart'
 
 /// Used by [AnalysisOptions] to allow function bodies to be analyzed in some
 /// sources but not others.
-typedef bool AnalyzeFunctionBodiesPredicate(Source source);
+typedef AnalyzeFunctionBodiesPredicate = bool Function(Source source);
 
 /// A context in which a single analysis can be performed and incrementally
 /// maintained. The context includes such information as the version of the SDK

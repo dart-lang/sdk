@@ -5,13 +5,11 @@
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 
-/**
- * Callback used by [FileTracker] to report to its client that files have been
- * added, changed, or removed, and therefore more analysis may be necessary.
- * [path] is the path of the file that was added, changed, or removed,
- * or `null` if multiple files were added, changed, or removed.
- */
-typedef void FileTrackerChangeHook(String path);
+/// Callback used by [FileTracker] to report to its client that files have been
+/// added, changed, or removed, and therefore more analysis may be necessary.
+/// [path] is the path of the file that was added, changed, or removed, or
+/// `null` if multiple files were added, changed, or removed.
+typedef FileTrackerChangeHook = void Function(String path);
 
 /**
  * Maintains the file system state needed by the analysis driver, as well as

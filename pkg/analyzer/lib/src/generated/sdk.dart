@@ -137,12 +137,10 @@ class DartSdkManager {
    */
   List<SdkDescription> get sdkDescriptors => sdkMap.keys.toList();
 
-  /**
-   * Return the Dart SDK that is appropriate for the given SDK [description].
-   * If such an SDK has not yet been created, then the [ifAbsent] function will
-   * be invoked to create it.
-   */
-  DartSdk getSdk(SdkDescription description, DartSdk ifAbsent()) {
+  /// Return the Dart SDK that is appropriate for the given SDK [description].
+  /// If such an SDK has not yet been created, then the [ifAbsent] function will
+  /// be invoked to create it.
+  DartSdk getSdk(SdkDescription description, DartSdk Function() ifAbsent) {
     return sdkMap.putIfAbsent(description, ifAbsent);
   }
 }

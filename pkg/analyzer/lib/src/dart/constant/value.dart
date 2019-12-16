@@ -83,7 +83,7 @@ class BoolState extends InstanceState {
   }
 
   @override
-  BoolState lazyAnd(InstanceState rightOperandComputer()) {
+  BoolState lazyAnd(InstanceState Function() rightOperandComputer) {
     if (value == false) {
       return FALSE_STATE;
     }
@@ -98,7 +98,7 @@ class BoolState extends InstanceState {
   }
 
   @override
-  BoolState lazyOr(InstanceState rightOperandComputer()) {
+  BoolState lazyOr(InstanceState Function() rightOperandComputer) {
     if (value == true) {
       return TRUE_STATE;
     }
@@ -478,8 +478,8 @@ class DartObjectImpl implements DartObject {
   ///
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
-  DartObjectImpl lazyAnd(
-          TypeProvider typeProvider, DartObjectImpl rightOperandComputer()) =>
+  DartObjectImpl lazyAnd(TypeProvider typeProvider,
+          DartObjectImpl Function() rightOperandComputer) =>
       DartObjectImpl(typeProvider.boolType,
           _state.lazyAnd(() => rightOperandComputer()?._state));
 
@@ -512,8 +512,8 @@ class DartObjectImpl implements DartObject {
   ///
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
-  DartObjectImpl lazyOr(
-          TypeProvider typeProvider, DartObjectImpl rightOperandComputer()) =>
+  DartObjectImpl lazyOr(TypeProvider typeProvider,
+          DartObjectImpl Function() rightOperandComputer) =>
       DartObjectImpl(typeProvider.boolType,
           _state.lazyOr(() => rightOperandComputer()?._state));
 
@@ -1442,7 +1442,7 @@ abstract class InstanceState {
   ///
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
-  BoolState lazyAnd(InstanceState rightOperandComputer()) {
+  BoolState lazyAnd(InstanceState Function() rightOperandComputer) {
     assertBool(this);
     if (convertToBool() == BoolState.FALSE_STATE) {
       return this;
@@ -1464,7 +1464,7 @@ abstract class InstanceState {
   ///
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
-  BoolState lazyOr(InstanceState rightOperandComputer()) {
+  BoolState lazyOr(InstanceState Function() rightOperandComputer) {
     assertBool(this);
     if (convertToBool() == BoolState.TRUE_STATE) {
       return this;

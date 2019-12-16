@@ -272,8 +272,9 @@ const V = 0;
   Future<void> _validateAnnotation(
       String annotationPrefix,
       String annotationText,
-      validator(SimpleIdentifier name1, SimpleIdentifier name2,
-          SimpleIdentifier name3, Element annotationElement)) async {
+      Function(SimpleIdentifier name1, SimpleIdentifier name2,
+              SimpleIdentifier name3, Element annotationElement)
+          validator) async {
     await resolveTestCode('''
 import 'a.dart' $annotationPrefix;
 $annotationText

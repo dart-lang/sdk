@@ -8,12 +8,10 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 
-/**
- * A function that can translate the contents of files on disk as they are read.
- * This is now obsolete, but supported the ability of server to deal with
- * clients that convert all text to an internal format.
- */
-typedef String FileReadMode(String s);
+/// A function that can translate the contents of files on disk as they are
+/// read. This is now obsolete, but supported the ability of server to deal with
+/// clients that convert all text to an internal format.
+typedef FileReadMode = String Function(String s);
 
 /**
  * A source that represents a file.

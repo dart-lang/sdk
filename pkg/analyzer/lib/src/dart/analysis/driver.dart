@@ -47,10 +47,11 @@ import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:meta/meta.dart';
 
-/// TODO(scheglov) We could use generalized Function in [AnalysisDriverTestView],
-/// but this breaks `AnalysisContext` and code generation. So, for now let's
-/// work around them, and rewrite generators to [AnalysisDriver].
-typedef Future<void> WorkToWaitAfterComputingResult(String path);
+/// TODO(scheglov) We could use generalized Function in
+/// [AnalysisDriverTestView], but this breaks `AnalysisContext` and code
+/// generation. So, for now let's work around them, and rewrite generators to
+/// [AnalysisDriver].
+typedef WorkToWaitAfterComputingResult = Future<void> Function(String path);
 
 /// This class computes [AnalysisResult]s for Dart files.
 ///
