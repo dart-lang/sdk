@@ -190,7 +190,8 @@ class DecoratedType implements DecoratedTypeInfo {
     // We'll be storing the type parameter bounds in
     // [_decoratedTypeParameterBounds] so the type parameter needs to have an
     // enclosing element of `null`.
-    assert(parameter.enclosingElement == null);
+    assert(parameter.enclosingElement == null,
+        "$parameter should not have parent ${parameter.enclosingElement}");
   }
 
   /// If `this` represents an interface type, returns the substitution necessary
@@ -456,9 +457,12 @@ class DecoratedType implements DecoratedTypeInfo {
         substitution =
             Map<TypeParameterElement, DecoratedType>.from(substitution);
         for (int i = 0; i < typeFormals.length; i++) {
-          substitution[typeFormals[i]] =
-              DecoratedType._forTypeParameterSubstitution(
-                  undecoratedResult.typeFormals[i]);
+          // Check if it's a fresh type variable.
+          if (undecoratedResult.typeFormals[i].enclosingElement == null) {
+            substitution[typeFormals[i]] =
+                DecoratedType._forTypeParameterSubstitution(
+                    undecoratedResult.typeFormals[i]);
+          }
         }
         for (int i = 0; i < typeFormalBounds.length; i++) {
           newTypeFormalBounds.add(typeFormalBounds[i]._substitute(

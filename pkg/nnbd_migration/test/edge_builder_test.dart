@@ -2536,6 +2536,29 @@ bar(Derived<int> d, List<int> x) => d.foo(x);
     // constructor verify that we've substituted the bound correctly.
   }
 
+  test_genericMethodInvocation_withBoundSubstitution_noFreshParameters() async {
+    await analyze('''
+class Base<T> {
+  U foo<U>(U x) => x;
+}
+class Derived<V> extends Base {}
+int bar(Derived<int> d, int i) => d.foo(i);
+''');
+    var implicitTypeArgumentMatcher = anyNode;
+    assertEdge(
+        decoratedTypeAnnotation('int i').node,
+        substitutionNode(
+            implicitTypeArgumentMatcher, decoratedTypeAnnotation('U x').node),
+        hard: true);
+    var implicitTypeArgumentNullability =
+        implicitTypeArgumentMatcher.matchingNode;
+    assertEdge(
+        substitutionNode(implicitTypeArgumentNullability,
+            decoratedTypeAnnotation('U foo').node),
+        decoratedTypeAnnotation('int bar').node,
+        hard: false);
+  }
+
   test_genericMethodInvocation_withSubstitution() async {
     await analyze('''
 class Base<T> {
