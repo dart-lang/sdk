@@ -276,7 +276,7 @@ class Object {
   void operator=(RawObject* value) { initializeHandle(this, value); }
 
   uint32_t CompareAndSwapTags(uint32_t old_tags, uint32_t new_tags) const {
-    raw()->ptr()->tags_.compare_exchange_strong(old_tags, new_tags);
+    raw()->ptr()->tags_.StrongCAS(old_tags, new_tags);
     return old_tags;
   }
   bool IsCanonical() const { return raw()->IsCanonical(); }
@@ -618,6 +618,9 @@ class Object {
   // (i.e., both the previous and new value are Smis).
   void StoreSmi(RawSmi* const* addr, RawSmi* value) const {
     raw()->StoreSmi(addr, value);
+  }
+  void StoreSmiIgnoreRace(RawSmi* const* addr, RawSmi* value) const {
+    raw()->StoreSmiIgnoreRace(addr, value);
   }
 
   template <typename FieldType>
@@ -8730,9 +8733,10 @@ class Array : public Instance {
   }
 
   void SetLength(intptr_t value) const {
-    // This is only safe because we create a new Smi, which does not cause
-    // heap allocation.
     StoreSmi(&raw_ptr()->length_, Smi::New(value));
+  }
+  void SetLengthIgnoreRace(intptr_t value) const {
+    StoreSmiIgnoreRace(&raw_ptr()->length_, Smi::New(value));
   }
 
   template <typename type, std::memory_order order = std::memory_order_relaxed>

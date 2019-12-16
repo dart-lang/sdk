@@ -1476,7 +1476,7 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
         old_tags = tags;
         // We can't use obj.CompareAndSwapTags here because we don't have a
         // handle for the new object.
-      } while (!raw->ptr()->tags_.compare_exchange_weak(old_tags, new_tags));
+      } while (!raw->ptr()->tags_.WeakCAS(old_tags, new_tags));
 
       intptr_t leftover_len = (leftover_size - TypedData::InstanceSize(0));
       ASSERT(TypedData::InstanceSize(leftover_len) == leftover_size);
@@ -1505,7 +1505,7 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
         old_tags = tags;
         // We can't use obj.CompareAndSwapTags here because we don't have a
         // handle for the new object.
-      } while (!raw->ptr()->tags_.compare_exchange_weak(old_tags, new_tags));
+      } while (!raw->ptr()->tags_.WeakCAS(old_tags, new_tags));
     }
   }
 }
@@ -21300,6 +21300,10 @@ void Array::Truncate(intptr_t new_len) const {
   // that it can be traversed over successfully during garbage collection.
   Object::MakeUnusedSpaceTraversable(array, old_size, new_size);
 
+  // For the heap to remain walkable by the sweeper, it must observe the
+  // creation of the filler object no later than the new length of the array.
+  std::atomic_thread_fence(std::memory_order_release);
+
   // Update the size in the header field and length of the array object.
   uint32_t tags = array.raw_ptr()->tags_;
   ASSERT(kArrayCid == RawObject::ClassIdTag::decode(tags));
@@ -21309,16 +21313,12 @@ void Array::Truncate(intptr_t new_len) const {
     uint32_t new_tags = RawObject::SizeTag::update(new_size, old_tags);
     tags = CompareAndSwapTags(old_tags, new_tags);
   } while (tags != old_tags);
-  // TODO(22501): For the heap to remain walkable by the sweeper, it must
-  // observe the creation of the filler object no later than the new length
-  // of the array. This assumption holds on ia32/x64 or if the CAS above is a
-  // full memory barrier.
-  //
-  // Also, between the CAS of the header above and the SetLength below,
-  // the array is temporarily in an inconsistent state. The header is considered
-  // the overriding source of object size by RawObject::Size, but the ASSERTs
-  // in RawObject::SizeFromClass must handle this special case.
-  array.SetLength(new_len);
+
+  // Between the CAS of the header above and the SetLength below, the array is
+  // temporarily in an inconsistent state. The header is considered the
+  // overriding source of object size by RawObject::Size, but the ASSERTs in
+  // RawObject::SizeFromClass must handle this special case.
+  array.SetLengthIgnoreRace(new_len);
 }
 
 RawArray* Array::MakeFixedLength(const GrowableObjectArray& growable_array,

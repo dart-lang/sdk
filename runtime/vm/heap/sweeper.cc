@@ -140,7 +140,14 @@ class ConcurrentSweeperTask : public ThreadPool::Task {
 
       while (page != NULL) {
         ASSERT(thread->BypassSafepoints());  // Or we should be checking in.
-        HeapPage* next_page = page->next();
+        HeapPage* next_page;
+        if (page == last_) {
+          // Don't access page->next(), which would be a race with mutator
+          // allocating new pages.
+          next_page = NULL;
+        } else {
+          next_page = page->next();
+        }
         ASSERT(page->type() == HeapPage::kData);
         bool page_in_use = sweeper.SweepPage(page, freelist_, false);
         if (page_in_use) {
@@ -154,7 +161,6 @@ class ConcurrentSweeperTask : public ThreadPool::Task {
           MonitorLocker ml(old_space_->tasks_lock());
           ml.Notify();
         }
-        if (page == last_) break;
         page = next_page;
       }
     }

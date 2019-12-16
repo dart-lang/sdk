@@ -3296,6 +3296,13 @@ void Isolate::UnscheduleThread(Thread* thread,
   // no_safepoint_scope_depth increments/decrements.
   MonitorLocker ml(group()->threads_lock(), false);
 
+  // Clear since GC will not visit the thread once it is unscheduled. Do this
+  // under the thread lock to prevent races with the GC visiting thread roots.
+  thread->ClearReusableHandles();
+  if (!is_mutator) {
+    thread->heap()->AbandonRemainingTLAB(thread);
+  }
+
   if (is_mutator) {
     if (thread->sticky_error() != Error::null()) {
       ASSERT(sticky_error_ == Error::null());

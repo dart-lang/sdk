@@ -331,8 +331,6 @@ void Thread::ExitIsolate() {
   Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
   ASSERT(thread->execution_state() == Thread::kThreadInVM);
-  // Clear since GC will not visit the thread once it is unscheduled.
-  thread->ClearReusableHandles();
   if (thread->is_marking()) {
     thread->MarkingStackRelease();
     thread->DeferredMarkingStackRelease();
@@ -379,14 +377,11 @@ void Thread::ExitIsolateAsHelper(bool bypass_safepoint) {
   ASSERT(!thread->IsMutatorThread());
   ASSERT(thread->execution_state() == Thread::kThreadInVM);
   thread->task_kind_ = kUnknownTask;
-  // Clear since GC will not visit the thread once it is unscheduled.
-  thread->ClearReusableHandles();
   if (thread->is_marking()) {
     thread->MarkingStackRelease();
     thread->DeferredMarkingStackRelease();
   }
   thread->StoreBufferRelease();
-  thread->heap()->AbandonRemainingTLAB(thread);
   Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
   const bool kIsNotMutatorThread = false;

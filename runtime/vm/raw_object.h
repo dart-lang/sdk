@@ -11,6 +11,7 @@
 
 #include "platform/assert.h"
 #include "platform/atomic.h"
+#include "platform/thread_sanitizer.h"
 #include "vm/class_id.h"
 #include "vm/compiler/method_recognizer.h"
 #include "vm/compiler/runtime_api.h"
@@ -146,6 +147,8 @@ class RawObject {
   // Encodes the object size in the tag in units of object alignment.
   class SizeTag {
    public:
+    typedef intptr_t Type;
+
     static constexpr intptr_t kMaxSizeTagInUnitsOfAlignment =
         ((1 << RawObject::kSizeTagSize) - 1);
     static constexpr intptr_t kMaxSizeTag =
@@ -199,6 +202,72 @@ class RawObject {
       : public BitField<uint32_t, intptr_t, kReservedTagPos, kReservedTagSize> {
   };
 
+  class Tags {
+   public:
+    Tags() : tags_(0) {}
+
+    NO_SANITIZE_THREAD
+    operator uint32_t() const {
+      return *reinterpret_cast<const uint32_t*>(&tags_);
+    }
+
+    NO_SANITIZE_THREAD
+    uint32_t operator=(uint32_t tags) {
+      return *reinterpret_cast<uint32_t*>(&tags_) = tags;
+    }
+
+    NO_SANITIZE_THREAD
+    bool StrongCAS(uint32_t old_tags, uint32_t new_tags) {
+      return tags_.compare_exchange_strong(old_tags, new_tags,
+                                           std::memory_order_relaxed);
+    }
+
+    NO_SANITIZE_THREAD
+    bool WeakCAS(uint32_t old_tags, uint32_t new_tags) {
+      return tags_.compare_exchange_weak(old_tags, new_tags,
+                                         std::memory_order_relaxed);
+    }
+
+    template <class TagBitField>
+    NO_SANITIZE_THREAD typename TagBitField::Type Read() const {
+      return TagBitField::decode(*reinterpret_cast<const uint32_t*>(&tags_));
+    }
+
+    template <class TagBitField>
+    NO_SANITIZE_THREAD void UpdateBool(bool value) {
+      if (value) {
+        tags_.fetch_or(TagBitField::encode(true), std::memory_order_relaxed);
+      } else {
+        tags_.fetch_and(~TagBitField::encode(true), std::memory_order_relaxed);
+      }
+    }
+
+    template <class TagBitField>
+    NO_SANITIZE_THREAD void UpdateUnsynchronized(
+        typename TagBitField::Type value) {
+      *reinterpret_cast<uint32_t*>(&tags_) =
+          TagBitField::update(value, *reinterpret_cast<uint32_t*>(&tags_));
+    }
+
+    template <class TagBitField>
+    NO_SANITIZE_THREAD bool TryAcquire() {
+      uint32_t mask = TagBitField::encode(true);
+      uint32_t old_tags = tags_.fetch_or(mask, std::memory_order_relaxed);
+      return !TagBitField::decode(old_tags);
+    }
+
+    template <class TagBitField>
+    NO_SANITIZE_THREAD bool TryClear() {
+      uint32_t mask = ~TagBitField::encode(true);
+      uint32_t old_tags = tags_.fetch_and(mask, std::memory_order_relaxed);
+      return TagBitField::decode(old_tags);
+    }
+
+   private:
+    std::atomic<uint32_t> tags_;
+    COMPILE_ASSERT(sizeof(std::atomic<uint32_t>) == sizeof(uint32_t));
+  };
+
   bool IsWellFormed() const {
     uword value = reinterpret_cast<uword>(this);
     return (value & kSmiTagMask) == 0 ||
@@ -250,51 +319,51 @@ class RawObject {
   // visited) or black (already visited).
   bool IsMarked() const {
     ASSERT(IsOldObject());
-    return !OldAndNotMarkedBit::decode(ptr()->tags_);
+    return !ptr()->tags_.Read<OldAndNotMarkedBit>();
   }
   void SetMarkBit() {
     ASSERT(IsOldObject());
     ASSERT(!IsMarked());
-    UpdateTagBit<OldAndNotMarkedBit>(false);
+    ptr()->tags_.UpdateBool<OldAndNotMarkedBit>(false);
   }
   void SetMarkBitUnsynchronized() {
     ASSERT(IsOldObject());
     ASSERT(!IsMarked());
-    ptr()->tags_ = OldAndNotMarkedBit::update(false, ptr()->tags_);
+    ptr()->tags_.UpdateUnsynchronized<OldAndNotMarkedBit>(false);
   }
   void ClearMarkBit() {
     ASSERT(IsOldObject());
     ASSERT(IsMarked());
-    UpdateTagBit<OldAndNotMarkedBit>(true);
+    ptr()->tags_.UpdateBool<OldAndNotMarkedBit>(true);
   }
   // Returns false if the bit was already set.
   DART_WARN_UNUSED_RESULT
   bool TryAcquireMarkBit() {
     ASSERT(IsOldObject());
-    return TryClearTagBit<OldAndNotMarkedBit>();
+    return ptr()->tags_.TryClear<OldAndNotMarkedBit>();
   }
 
   // Canonical objects have the property that two canonical objects are
   // logically equal iff they are the same object (pointer equal).
-  bool IsCanonical() const { return CanonicalBit::decode(ptr()->tags_); }
-  void SetCanonical() { UpdateTagBit<CanonicalBit>(true); }
-  void ClearCanonical() { UpdateTagBit<CanonicalBit>(false); }
+  bool IsCanonical() const { return ptr()->tags_.Read<CanonicalBit>(); }
+  void SetCanonical() { ptr()->tags_.UpdateBool<CanonicalBit>(true); }
+  void ClearCanonical() { ptr()->tags_.UpdateBool<CanonicalBit>(false); }
 
   bool InVMIsolateHeap() const;
 
   // Support for GC remembered bit.
   bool IsRemembered() const {
     ASSERT(IsOldObject());
-    return !OldAndNotRememberedBit::decode(ptr()->tags_);
+    return !ptr()->tags_.Read<OldAndNotRememberedBit>();
   }
   void SetRememberedBit() {
     ASSERT(!IsRemembered());
     ASSERT(!IsCardRemembered());
-    UpdateTagBit<OldAndNotRememberedBit>(false);
+    ptr()->tags_.UpdateBool<OldAndNotRememberedBit>(false);
   }
   void ClearRememberedBit() {
     ASSERT(IsOldObject());
-    UpdateTagBit<OldAndNotRememberedBit>(true);
+    ptr()->tags_.UpdateBool<OldAndNotRememberedBit>(true);
   }
 
   DART_FORCE_INLINE
@@ -305,12 +374,12 @@ class RawObject {
   }
 
   bool IsCardRemembered() const {
-    return CardRememberedBit::decode(ptr()->tags_);
+    return ptr()->tags_.Read<CardRememberedBit>();
   }
   void SetCardRememberedBitUnsynchronized() {
     ASSERT(!IsRemembered());
     ASSERT(!IsCardRemembered());
-    ptr()->tags_ = CardRememberedBit::update(true, ptr()->tags_);
+    ptr()->tags_.UpdateUnsynchronized<CardRememberedBit>(true);
   }
 
 #define DEFINE_IS_CID(clazz)                                                   \
@@ -351,7 +420,7 @@ class RawObject {
     return IsFreeListElement() || IsForwardingCorpse();
   }
 
-  intptr_t GetClassId() const { return ClassIdTag::decode(ptr()->tags_); }
+  intptr_t GetClassId() const { return ptr()->tags_.Read<ClassIdTag>(); }
   intptr_t GetClassIdMayBeSmi() const {
     return IsHeapObject() ? GetClassId() : static_cast<intptr_t>(kSmiCid);
   }
@@ -480,7 +549,7 @@ class RawObject {
   static intptr_t NumberOfTypedDataClasses();
 
  private:
-  RelaxedAtomic<uint32_t> tags_;  // Various object tags (bits).
+  Tags tags_;  // Various object tags (bits).
 #if defined(HASH_IN_OBJECT_HEADER)
   // On 64 bit there is a hash field in the header for the identity hash.
   uint32_t hash_;
@@ -503,29 +572,7 @@ class RawObject {
   intptr_t HeapSizeFromClass() const;
 
   void SetClassId(intptr_t new_cid) {
-    ptr()->tags_ = ClassIdTag::update(new_cid, ptr()->tags_);
-  }
-
-  template <class TagBitField>
-  void UpdateTagBit(bool value) {
-    if (value) {
-      ptr()->tags_.fetch_or(TagBitField::encode(true));
-    } else {
-      ptr()->tags_.fetch_and(~TagBitField::encode(true));
-    }
-  }
-
-  template <class TagBitField>
-  bool TryAcquireTagBit() {
-    uint32_t mask = TagBitField::encode(true);
-    uint32_t old_tags = ptr()->tags_.fetch_or(mask);
-    return !TagBitField::decode(old_tags);
-  }
-  template <class TagBitField>
-  bool TryClearTagBit() {
-    uint32_t mask = ~TagBitField::encode(true);
-    uint32_t old_tags = ptr()->tags_.fetch_and(mask);
-    return TagBitField::decode(old_tags);
+    ptr()->tags_.UpdateUnsynchronized<ClassIdTag>(new_cid);
   }
 
   // All writes to heap objects should ultimately pass through one of the
@@ -639,6 +686,12 @@ class RawObject {
   // Use for storing into an explicitly Smi-typed field of an object
   // (i.e., both the previous and new value are Smis).
   void StoreSmi(RawSmi* const* addr, RawSmi* value) {
+    // Can't use Contains, as array length is initialized through this method.
+    ASSERT(reinterpret_cast<uword>(addr) >= RawObject::ToAddr(this));
+    *const_cast<RawSmi**>(addr) = value;
+  }
+  NO_SANITIZE_THREAD
+  void StoreSmiIgnoreRace(RawSmi* const* addr, RawSmi* value) {
     // Can't use Contains, as array length is initialized through this method.
     ASSERT(reinterpret_cast<uword>(addr) >= RawObject::ToAddr(this));
     *const_cast<RawSmi**>(addr) = value;
