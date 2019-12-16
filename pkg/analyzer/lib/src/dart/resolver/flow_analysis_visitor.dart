@@ -10,6 +10,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/generated/element_type_provider.dart';
 import 'package:analyzer/src/generated/type_system.dart' show TypeSystemImpl;
 import 'package:analyzer/src/generated/variable_type_provider.dart';
 
@@ -528,6 +529,8 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
 class _LocalVariableTypeProvider implements LocalVariableTypeProvider {
   final FlowAnalysisHelper _manager;
 
+  final ElementTypeProvider _elementTypeProvider = const ElementTypeProvider();
+
   _LocalVariableTypeProvider(this._manager);
 
   @override
@@ -537,6 +540,6 @@ class _LocalVariableTypeProvider implements LocalVariableTypeProvider {
       var promotedType = _manager.flow?.variableRead(node, variable);
       if (promotedType != null) return promotedType;
     }
-    return variable.type;
+    return _elementTypeProvider.getVariableType(variable);
   }
 }
