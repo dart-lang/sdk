@@ -1221,7 +1221,7 @@ class _WorkList {
 
     // Test if tracing is enabled to avoid expensive message formatting.
     if (kPrintTrace) {
-      tracePrint('PROCESSING $invocation');
+      tracePrint('PROCESSING $invocation', 1);
     }
 
     if (processing.add(invocation)) {
@@ -1270,7 +1270,7 @@ class _WorkList {
 
       Statistics.invocationsProcessed++;
       if (kPrintTrace) {
-        tracePrint('END PROCESSING $invocation, RESULT $result');
+        tracePrint('END PROCESSING $invocation, RESULT $result', -1);
       }
       return result;
     } else {
@@ -1279,7 +1279,7 @@ class _WorkList {
       if (result != null) {
         if (kPrintTrace) {
           tracePrint("Already known type for recursive invocation: $result");
-          tracePrint('END PROCESSING $invocation, RESULT $result');
+          tracePrint('END PROCESSING $invocation, RESULT $result', -1);
         }
         return result;
       }
@@ -1290,7 +1290,7 @@ class _WorkList {
       if (kPrintTrace) {
         tracePrint(
             "Approximated recursive invocation with static type $staticType");
-        tracePrint('END PROCESSING $invocation, RESULT $staticType');
+        tracePrint('END PROCESSING $invocation, RESULT $staticType', -1);
       }
       return staticType;
     }
