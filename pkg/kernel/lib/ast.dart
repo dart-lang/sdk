@@ -4012,9 +4012,11 @@ class NullCheck extends Expression {
     operand?.parent = this;
   }
 
-  DartType getStaticType(StaticTypeContext context) =>
-      // TODO(johnniwinther): Return `NonNull(operand.getStaticType(context))`.
-      operand.getStaticType(context);
+  DartType getStaticType(StaticTypeContext context) {
+    return operand
+        .getStaticType(context)
+        .withNullability(Nullability.nonNullable);
+  }
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitNullCheck(this);
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>

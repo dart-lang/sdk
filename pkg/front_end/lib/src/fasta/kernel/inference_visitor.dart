@@ -755,7 +755,7 @@ class InferenceVisitor
     Expression implicitDowncast = inferrer.ensureAssignable(
         variable.type, inferredType, variableGet,
         fileOffset: parent.fileOffset,
-        template: templateForInLoopElementTypeNotAssignable);
+        errorTemplate: templateForInLoopElementTypeNotAssignable);
     Statement expressionEffect;
     if (!identical(implicitDowncast, variableGet)) {
       variable.initializer = implicitDowncast..parent = variable;
@@ -798,7 +798,7 @@ class InferenceVisitor
             const DynamicType(), iterableClass, inferrer.library.nonNullable),
         inferredExpressionType,
         iterable,
-        template: templateForInLoopTypeNotIterable);
+        errorTemplate: templateForInLoopTypeNotIterable);
     DartType inferredType;
     if (typeNeeded) {
       inferredType = const DynamicType();
@@ -942,7 +942,7 @@ class InferenceVisitor
           greatestClosure(inferrer.coreTypes, syntheticWriteType),
           variable.type,
           rhs,
-          template: templateForInLoopElementTypeNotAssignable,
+          errorTemplate: templateForInLoopElementTypeNotAssignable,
           isVoidAllowed: true);
       if (syntheticVariableSet != null) {
         syntheticVariableSet.value = rhs..parent = syntheticVariableSet;
@@ -2359,7 +2359,9 @@ class InferenceVisitor
     //  nullable.
     inferrer.flowAnalysis.nonNullAssert_end(node.operand);
     // TODO(johnniwinther): Return `NonNull(inferredType)`.
-    return new ExpressionInferenceResult(operandResult.inferredType, node);
+    return new ExpressionInferenceResult(
+        operandResult.inferredType.withNullability(Nullability.nonNullable),
+        node);
   }
 
   ExpressionInferenceResult visitNullAwareMethodInvocation(

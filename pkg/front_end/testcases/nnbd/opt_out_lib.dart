@@ -4,6 +4,9 @@
 
 // @dart=2.5
 
+// The intent of this file is to show that it's an error to use NNBD features in
+// an opt-in library.
+
 class A<T> {
   late int field = 42;
 }
@@ -11,7 +14,7 @@ class B extends A<String?> {}
 
 typedef F = void Function()?;
 
-List<String?> l = null;
+List<String?> l = [];
 String? s = null;
 var t = s!;
 

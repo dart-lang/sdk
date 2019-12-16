@@ -267,6 +267,7 @@ belongs
 below
 beneficial
 benefit
+benign
 best
 bets
 better
@@ -1366,6 +1367,7 @@ impossible
 improve
 improved
 in
+inappropriate
 inbound
 include
 included
@@ -2972,6 +2974,7 @@ unalias
 unaliased
 unambiguous
 unary
+unassignable
 unbalanced
 unbind
 uncertain

@@ -2842,7 +2842,7 @@ ArgumentTypeNotAssignable:
   template: "The argument type '#type' can't be assigned to the parameter type '#type2'."
   analyzerCode: ARGUMENT_TYPE_NOT_ASSIGNABLE
 
-InvalidAssignment:
+InvalidAssignmentError:
   template: "A value of type '#type' can't be assigned to a variable of type '#type2'."
   analyzerCode: INVALID_ASSIGNMENT
   script: >
@@ -2850,6 +2850,10 @@ InvalidAssignment:
       int i;
       i = 1.5;
     }
+
+InvalidAssignmentWarning:
+  template: "Assigning value of type '#type' to a variable of type '#type2'."
+  severity: WARNING
 
 PatchClassTypeVariablesMismatch:
   template: "A patch class must have the same number of type variables as its origin class."

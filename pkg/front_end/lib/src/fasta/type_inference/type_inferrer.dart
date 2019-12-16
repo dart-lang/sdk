@@ -601,10 +601,20 @@ class TypeInferrerImpl implements TypeInferrer {
   }
 
   bool isAssignable(DartType expectedType, DartType actualType) {
-    return typeSchemaEnvironment.isSubtypeOf(
-            expectedType, actualType, SubtypeCheckMode.ignoringNullabilities) ||
-        typeSchemaEnvironment.isSubtypeOf(
-            actualType, expectedType, SubtypeCheckMode.ignoringNullabilities);
+    if (library.isNonNullableByDefault) {
+      if (actualType is DynamicType) return true;
+      IsSubtypeOf result = typeSchemaEnvironment
+          .performNullabilityAwareSubtypeCheck(actualType, expectedType);
+      if (result.isSubtypeWhenUsingNullabilities()) return true;
+      if (result.isSubtypeWhenIgnoringNullabilities()) {
+        // TODO(dmitryas): Return true in weak mode here.
+      }
+      return false;
+    }
+    return typeSchemaEnvironment
+        .performNullabilityAwareSubtypeCheck(actualType, expectedType)
+        .orSubtypeCheckFor(expectedType, actualType, typeSchemaEnvironment)
+        .isSubtypeWhenIgnoringNullabilities();
   }
 
   Expression ensureAssignableResult(
@@ -619,126 +629,279 @@ class TypeInferrerImpl implements TypeInferrer {
         isReturnFromAsync: isReturnFromAsync);
   }
 
-  /// Checks whether [actualType] can be assigned to the greatest closure of
-  /// [expectedType], and inserts an implicit downcast if appropriate.
+  /// Ensures that [expressionType] is assignable to [contextType].
+  ///
+  /// Checks whether [expressionType] can be assigned to the greatest closure of
+  /// [contextType], and inserts an implicit downcast, inserts a tear-off, or
+  /// reports an error if appropriate.
   Expression ensureAssignable(
-      DartType expectedType, DartType actualType, Expression expression,
+      DartType contextType, DartType expressionType, Expression expression,
       {int fileOffset,
       bool isReturnFromAsync: false,
       bool isVoidAllowed: false,
-      Template<Message Function(DartType, DartType, bool)> template}) {
-    assert(expectedType != null);
-    fileOffset ??= expression.fileOffset;
-    expectedType = greatestClosure(coreTypes, expectedType);
-
-    DartType initialExpectedType = expectedType;
-    if (isReturnFromAsync && !isAssignable(expectedType, actualType)) {
-      // If the body of the function is async, the expected return type has the
-      // shape FutureOr<T>.  We check both branches for FutureOr here: both T
-      // and Future<T>.
-      DartType unfuturedExpectedType =
-          typeSchemaEnvironment.unfutureType(expectedType);
-      DartType futuredExpectedType =
-          wrapFutureType(unfuturedExpectedType, library.nonNullable);
-      if (isAssignable(unfuturedExpectedType, actualType)) {
-        expectedType = unfuturedExpectedType;
-      } else if (isAssignable(futuredExpectedType, actualType)) {
-        expectedType = futuredExpectedType;
-      }
-    }
+      Template<Message Function(DartType, DartType, bool)> errorTemplate,
+      Template<Message Function(DartType, DartType, bool)> warningTemplate}) {
+    assert(contextType != null);
 
     // We don't need to insert assignability checks when doing top level type
     // inference since top level type inference only cares about the type that
     // is inferred (the kernel code is discarded).
-    if (isTopLevel) {
-      return expression;
+    if (isTopLevel) return expression;
+
+    fileOffset ??= expression.fileOffset;
+    contextType = greatestClosure(coreTypes, contextType);
+
+    DartType initialContextType = contextType;
+    if (isReturnFromAsync &&
+        !isAssignable(initialContextType, expressionType)) {
+      // If the body of the function is async, the expected return type has the
+      // shape FutureOr<T>.  We check both branches for FutureOr here: both T
+      // and Future<T>.
+      DartType unfuturedExpectedType =
+          typeSchemaEnvironment.unfutureType(contextType);
+      DartType futuredExpectedType =
+          wrapFutureType(unfuturedExpectedType, library.nonNullable);
+      if (isAssignable(unfuturedExpectedType, expressionType)) {
+        contextType = unfuturedExpectedType;
+      } else if (isAssignable(futuredExpectedType, expressionType)) {
+        contextType = futuredExpectedType;
+      }
     }
+
+    Template<Message Function(DartType, DartType, bool)>
+        preciseTypeErrorTemplate = _getPreciseTypeErrorTemplate(expression);
+    AssignabilityKind kind = _computeAssignabilityKind(
+        contextType, expressionType,
+        isStrongNullabilityMode:
+            isNonNullableByDefault && performNnbdChecks && nnbdStrongMode,
+        isVoidAllowed: isVoidAllowed,
+        isExpressionTypePrecise: preciseTypeErrorTemplate != null);
+
+    Expression result;
+    switch (kind) {
+      case AssignabilityKind.assignable:
+        result = expression;
+        break;
+      case AssignabilityKind.assignableCast:
+        // Insert an implicit downcast.
+        result = new AsExpression(expression, initialContextType)
+          ..isTypeError = true
+          ..fileOffset = fileOffset;
+        break;
+      case AssignabilityKind.assignableTearoff:
+        result = _tearOffCall(expression, expressionType, fileOffset).tearoff;
+        break;
+      case AssignabilityKind.assignableTearoffCast:
+        result = new AsExpression(
+            _tearOffCall(expression, expressionType, fileOffset).tearoff,
+            initialContextType)
+          ..isTypeError = true
+          ..fileOffset = fileOffset;
+        break;
+      case AssignabilityKind.unassignable:
+        // Error: not assignable.  Perform error recovery.
+        result = _wrapUnassignableExpression(
+            expression, expressionType, contextType, errorTemplate);
+        break;
+      case AssignabilityKind.unassignableVoid:
+        // Error: not assignable.  Perform error recovery.
+        result =
+            helper.wrapInProblem(expression, messageVoidExpression, noLength);
+        break;
+      case AssignabilityKind.unassignablePrecise:
+        // The type of the expression is known precisely, so an implicit
+        // downcast is guaranteed to fail.  Insert a compile-time error.
+        result = helper.wrapInProblem(
+            expression,
+            preciseTypeErrorTemplate.withArguments(
+                expressionType, contextType, isNonNullableByDefault),
+            noLength);
+        break;
+      case AssignabilityKind.unassignableTearoff:
+        TypedTearoff typedTearoff =
+            _tearOffCall(expression, expressionType, fileOffset);
+        result = _wrapUnassignableExpression(typedTearoff.tearoff,
+            typedTearoff.tearoffType, contextType, errorTemplate);
+        break;
+      default:
+        return unhandled("${kind}", "ensureAssignable", fileOffset, helper.uri);
+    }
+
+    // Report warnings in weak mode.
+    if (isNonNullableByDefault && performNnbdChecks && !nnbdStrongMode) {
+      AssignabilityKind weakKind = _computeAssignabilityKind(
+          contextType, expressionType,
+          isStrongNullabilityMode: true,
+          isVoidAllowed: isVoidAllowed,
+          isExpressionTypePrecise: preciseTypeErrorTemplate != null);
+      switch (weakKind) {
+        case AssignabilityKind.assignable:
+          // Do nothing if an error wouldn't be reported in the strong mode.
+          break;
+        case AssignabilityKind.assignableCast:
+          // Do nothing if an error wouldn't be reported in the strong mode.
+          break;
+        case AssignabilityKind.assignableTearoff:
+          // Do nothing if an error wouldn't be reported in the strong mode.
+          break;
+        case AssignabilityKind.assignableTearoffCast:
+          // Do nothing if an error wouldn't be reported in the strong mode.
+          break;
+        case AssignabilityKind.unassignable:
+          // Don't report the same problem twice.
+          if (kind == AssignabilityKind.unassignable) break;
+          if (contextType is! InvalidType && expressionType is! InvalidType) {
+            helper.addProblem(
+                (warningTemplate ?? templateInvalidAssignmentWarning)
+                    .withArguments(
+                        expressionType, contextType, isNonNullableByDefault),
+                fileOffset,
+                noLength);
+          }
+          break;
+        case AssignabilityKind.unassignableVoid:
+          // The NNBD feature can't cause this case..
+          return unhandled(
+              "${kind}", "ensureAssignable:weak", fileOffset, helper.uri);
+        case AssignabilityKind.unassignablePrecise:
+          // The NNBD feature can't cause this case..
+          return unhandled(
+              "${kind}", "ensureAssignable:weak", fileOffset, helper.uri);
+        case AssignabilityKind.unassignableTearoff:
+          // Don't report the same problem twice.
+          if (kind == AssignabilityKind.unassignableTearoff) break;
+          if (contextType is! InvalidType && expressionType is! InvalidType) {
+            TypedTearoff typedTearoff =
+                _tearOffCall(expression, expressionType, fileOffset);
+            helper.addProblem(
+                (warningTemplate ?? templateInvalidAssignmentWarning)
+                    .withArguments(typedTearoff.tearoffType, contextType,
+                        isNonNullableByDefault),
+                fileOffset,
+                noLength);
+          }
+          break;
+        default:
+          return unhandled(
+              "${kind}", "ensureAssignable:weak", fileOffset, helper.uri);
+      }
+    }
+
+    return result;
+  }
+
+  Expression _wrapUnassignableExpression(
+      Expression expression,
+      DartType expressionType,
+      DartType contextType,
+      Template<Message Function(DartType, DartType, bool)> template) {
+    Expression errorNode = new AsExpression(
+        expression,
+        // TODO(ahe): The outline phase doesn't correctly remove invalid
+        // uses of type variables, for example, on static members. Once
+        // that has been fixed, we should always be able to use
+        // [expectedType] directly here.
+        hasAnyTypeVariables(contextType) ? const BottomType() : contextType)
+      ..isTypeError = true
+      ..fileOffset = expression.fileOffset;
+    if (contextType is! InvalidType && expressionType is! InvalidType) {
+      errorNode = helper.wrapInProblem(
+          errorNode,
+          (template ?? templateInvalidAssignmentError).withArguments(
+              expressionType, contextType, isNonNullableByDefault),
+          noLength);
+    }
+    return errorNode;
+  }
+
+  TypedTearoff _tearOffCall(
+      Expression expression, InterfaceType expressionType, int fileOffset) {
+    Class classNode = expressionType.classNode;
+    Member callMember = classHierarchy.getInterfaceMember(classNode, callName);
+    assert(callMember is Procedure && callMember.kind == ProcedureKind.Method);
+
+    // Replace expression with:
+    // `let t = expression in t == null ? null : t.call`
+    VariableDeclaration t =
+        new VariableDeclaration.forValue(expression, type: expressionType)
+          ..fileOffset = fileOffset;
+    Expression nullCheck = new MethodInvocation(new VariableGet(t), equalsName,
+        new Arguments(<Expression>[new NullLiteral()..fileOffset = fileOffset]))
+      ..fileOffset = fileOffset;
+    PropertyGet tearOff =
+        new PropertyGet(new VariableGet(t), callName, callMember)
+          ..fileOffset = fileOffset;
+    DartType tearoffType =
+        getGetterTypeForMemberTarget(callMember, expressionType);
+    ConditionalExpression conditional = new ConditionalExpression(nullCheck,
+        new NullLiteral()..fileOffset = fileOffset, tearOff, tearoffType);
+    return new TypedTearoff(
+        tearoffType, new Let(t, conditional)..fileOffset = fileOffset);
+  }
+
+  /// Computes the assignability kind of [expressionType] to [contextType].
+  AssignabilityKind _computeAssignabilityKind(
+      DartType contextType, DartType expressionType,
+      {bool isStrongNullabilityMode,
+      bool isVoidAllowed,
+      bool isExpressionTypePrecise}) {
+    assert(isStrongNullabilityMode != null);
+    assert(isVoidAllowed != null);
+    assert(isExpressionTypePrecise != null);
 
     // If an interface type is being assigned to a function type, see if we
     // should tear off `.call`.
     // TODO(paulberry): use resolveTypeParameter.  See findInterfaceMember.
-    if (actualType is InterfaceType) {
-      Class classNode = (actualType as InterfaceType).classNode;
+    bool needsTearoff = false;
+    if (expressionType is InterfaceType) {
+      Class classNode = (expressionType as InterfaceType).classNode;
       Member callMember =
           classHierarchy.getInterfaceMember(classNode, callName);
       if (callMember is Procedure && callMember.kind == ProcedureKind.Method) {
-        if (_shouldTearOffCall(expectedType, actualType)) {
-          // Replace expression with:
-          // `let t = expression in t == null ? null : t.call`
-          VariableDeclaration t =
-              new VariableDeclaration.forValue(expression, type: actualType)
-                ..fileOffset = fileOffset;
-          Expression nullCheck = new MethodInvocation(
-              new VariableGet(t),
-              equalsName,
-              new Arguments(
-                  <Expression>[new NullLiteral()..fileOffset = fileOffset]))
-            ..fileOffset = fileOffset;
-          PropertyGet tearOff =
-              new PropertyGet(new VariableGet(t), callName, callMember)
-                ..fileOffset = fileOffset;
-          actualType = getGetterTypeForMemberTarget(callMember, actualType);
-          ConditionalExpression conditional = new ConditionalExpression(
-              nullCheck,
-              new NullLiteral()..fileOffset = fileOffset,
-              tearOff,
-              actualType);
-          Let let = new Let(t, conditional)..fileOffset = fileOffset;
-          expression = let;
+        if (_shouldTearOffCall(contextType, expressionType)) {
+          needsTearoff = true;
+          expressionType =
+              getGetterTypeForMemberTarget(callMember, expressionType);
         }
       }
     }
 
-    if (actualType is VoidType && !isVoidAllowed) {
-      // Error: not assignable.  Perform error recovery.
-      return helper.wrapInProblem(expression, messageVoidExpression, noLength);
+    if (expressionType is VoidType && !isVoidAllowed) {
+      return AssignabilityKind.unassignableVoid;
     }
 
-    if (expectedType == null ||
-        typeSchemaEnvironment.isSubtypeOf(
-            actualType, expectedType, SubtypeCheckMode.ignoringNullabilities)) {
-      // Types are compatible.
-      return expression;
+    {
+      IsSubtypeOf result = typeSchemaEnvironment
+          .performNullabilityAwareSubtypeCheck(expressionType, contextType);
+      bool isDirectlyAssignable = isStrongNullabilityMode
+          ? result.isSubtypeWhenUsingNullabilities()
+          : result.isSubtypeWhenIgnoringNullabilities();
+      if (isDirectlyAssignable) {
+        return needsTearoff
+            ? AssignabilityKind.assignableTearoff
+            : AssignabilityKind.assignable;
+      }
     }
 
-    if (!typeSchemaEnvironment.isSubtypeOf(
-        expectedType, actualType, SubtypeCheckMode.ignoringNullabilities)) {
-      // Error: not assignable.  Perform error recovery.
-      Expression errorNode = new AsExpression(
-          expression,
-          // TODO(ahe): The outline phase doesn't correctly remove invalid
-          // uses of type variables, for example, on static members. Once
-          // that has been fixed, we should always be able to use
-          // [expectedType] directly here.
-          hasAnyTypeVariables(expectedType) ? const BottomType() : expectedType)
-        ..isTypeError = true
-        ..fileOffset = expression.fileOffset;
-      if (expectedType is! InvalidType && actualType is! InvalidType) {
-        errorNode = helper.wrapInProblem(
-            errorNode,
-            (template ?? templateInvalidAssignment).withArguments(
-                actualType, expectedType, isNonNullableByDefault),
-            noLength);
-      }
-      return errorNode;
-    } else {
-      Template<Message Function(DartType, DartType, bool)> template =
-          _getPreciseTypeErrorTemplate(expression);
-      if (template != null) {
-        // The type of the expression is known precisely, so an implicit
-        // downcast is guaranteed to fail.  Insert a compile-time error.
-        return helper.wrapInProblem(
-            expression,
-            template.withArguments(
-                actualType, expectedType, isNonNullableByDefault),
-            noLength);
-      } else {
-        // Insert an implicit downcast.
-        return new AsExpression(expression, initialExpectedType)
-          ..isTypeError = true
-          ..fileOffset = fileOffset;
-      }
+    bool isIndirectlyAssignable = isStrongNullabilityMode
+        ? expressionType is DynamicType
+        : typeSchemaEnvironment
+            .performNullabilityAwareSubtypeCheck(contextType, expressionType)
+            .isSubtypeWhenIgnoringNullabilities();
+    if (!isIndirectlyAssignable) {
+      return needsTearoff
+          ? AssignabilityKind.unassignableTearoff
+          : AssignabilityKind.unassignable;
     }
+    if (isExpressionTypePrecise) {
+      // The type of the expression is known precisely, so an implicit
+      // downcast is guaranteed to fail.  Insert a compile-time error.
+      return AssignabilityKind.unassignablePrecise;
+    }
+    // Insert an implicit downcast.
+    return needsTearoff
+        ? AssignabilityKind.assignableTearoffCast
+        : AssignabilityKind.assignableCast;
   }
 
   bool isNull(DartType type) {
@@ -1931,7 +2094,7 @@ class TypeInferrerImpl implements TypeInferrer {
               isVoidAllowed: expectedType is VoidType,
               // TODO(johnniwinther): Specialize message for operator
               // invocations.
-              template: templateArgumentTypeNotAssignable);
+              errorTemplate: templateArgumentTypeNotAssignable);
           if (namedExpression == null) {
             arguments.positional[i] = expression..parent = arguments;
           } else {
@@ -3604,4 +3767,39 @@ class ExtensionAccessCandidate {
     // Neither is more specific than the other.
     return null;
   }
+}
+
+/// Describes assignability kind of one type to another.
+enum AssignabilityKind {
+  /// Unconditionally assignable.
+  assignable,
+
+  /// Assignable, but needs an implicit downcast.
+  assignableCast,
+
+  /// Assignable, but needs a tearoff due to a function context.
+  assignableTearoff,
+
+  /// Assignable, but needs both a tearoff and an implicit downcast.
+  assignableTearoffCast,
+
+  /// Unconditionally unassignable.
+  unassignable,
+
+  /// Trying to use void in an inappropriate context.
+  unassignableVoid,
+
+  /// The right-hand side type is precise, and the downcast will fail.
+  unassignablePrecise,
+
+  /// Unassignable, but needs a tearoff of "call" for better error reporting.
+  unassignableTearoff,
+}
+
+/// Convenient way to return both a tear-off expression and its type.
+class TypedTearoff {
+  final DartType tearoffType;
+  final Expression tearoff;
+
+  TypedTearoff(this.tearoffType, this.tearoff);
 }

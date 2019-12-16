@@ -927,6 +927,7 @@ team
 tear
 tearing
 tearoff
+tearoffable
 tearoffs
 telemetry
 tell
@@ -1126,7 +1127,9 @@ xef
 xi
 xm
 xn
+xnon
 xor
+xpotentially
 xs
 xss
 xterm
@@ -1142,6 +1145,8 @@ yet
 yielding
 yields
 yn
+ynon
+ypotentially
 ys
 yss
 z

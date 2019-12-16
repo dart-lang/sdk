@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// This file contains benign use of NNBD features that shouldn't result in
+// compile-time errors.
+
 import 'opt_out_lib.dart';
 
 class A<T> {
@@ -12,7 +15,7 @@ class B extends A<String?> {}
 
 typedef F = void Function()?;
 
-List<String?> l = null;
+List<String?> l = [];
 String? s = null;
 var t = s!;
 

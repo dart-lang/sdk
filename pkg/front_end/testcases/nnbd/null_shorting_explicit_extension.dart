@@ -111,7 +111,7 @@ void propertyAccess(Class? c) {
 
   Extension(c)?.method()?.method();
 
-  throws(() => Extension(c?.field).field);
+  throws(() => (Extension(c?.field)?.field).field);
   Extension(c?.field)?.field;
 }
 

@@ -1372,38 +1372,72 @@ Message _withArgumentsInitializingFormalTypeMismatch(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-    Message Function(
-        DartType _type,
-        DartType _type2,
-        bool
-            isNonNullableByDefault)> templateInvalidAssignment = const Template<
         Message Function(
-            DartType _type, DartType _type2, bool isNonNullableByDefault)>(
-    messageTemplate:
-        r"""A value of type '#type' can't be assigned to a variable of type '#type2'.""",
-    withArguments: _withArgumentsInvalidAssignment);
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>
+    templateInvalidAssignmentError = const Template<
+            Message Function(
+                DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""A value of type '#type' can't be assigned to a variable of type '#type2'.""",
+        withArguments: _withArgumentsInvalidAssignmentError);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<
         Message Function(
             DartType _type, DartType _type2, bool isNonNullableByDefault)>
-    codeInvalidAssignment = const Code<
+    codeInvalidAssignmentError = const Code<
             Message Function(
                 DartType _type, DartType _type2, bool isNonNullableByDefault)>(
-        "InvalidAssignment", templateInvalidAssignment,
+        "InvalidAssignmentError", templateInvalidAssignmentError,
         analyzerCodes: <String>["INVALID_ASSIGNMENT"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidAssignment(
+Message _withArgumentsInvalidAssignmentError(
     DartType _type, DartType _type2, bool isNonNullableByDefault) {
   TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
   List<Object> typeParts = labeler.labelType(_type);
   List<Object> type2Parts = labeler.labelType(_type2);
   String type = typeParts.join();
   String type2 = type2Parts.join();
-  return new Message(codeInvalidAssignment,
+  return new Message(codeInvalidAssignmentError,
       message:
           """A value of type '${type}' can't be assigned to a variable of type '${type2}'.""" +
+              labeler.originMessages,
+      arguments: {'type': _type, 'type2': _type2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>
+    templateInvalidAssignmentWarning = const Template<
+            Message Function(
+                DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""Assigning value of type '#type' to a variable of type '#type2'.""",
+        withArguments: _withArgumentsInvalidAssignmentWarning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>
+    codeInvalidAssignmentWarning = const Code<
+            Message Function(
+                DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        "InvalidAssignmentWarning", templateInvalidAssignmentWarning,
+        severity: Severity.warning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidAssignmentWarning(
+    DartType _type, DartType _type2, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  return new Message(codeInvalidAssignmentWarning,
+      message:
+          """Assigning value of type '${type}' to a variable of type '${type2}'.""" +
               labeler.originMessages,
       arguments: {'type': _type, 'type2': _type2});
 }
