@@ -316,16 +316,18 @@ def dart_try_builder(name,
         service_account=TRY_ACCOUNT,
         swarming_tags=["vpython:native-python-wrapper"],
     )
-    if on_cq:
-        luci.cq_tryjob_verifier(
-            builder=builder,
-            cq_group='sdk',
-            experiment_percentage=experiment_percentage,
-            location_regexp=location_regexp)
-        luci.list_view_entry(
-            list_view="cq",
-            builder=builder,
-        )
+    includable_only = (not on_cq and not experiment_percentage and
+                       not location_regexp)
+    luci.cq_tryjob_verifier(
+        builder=builder,
+        cq_group='sdk',
+        experiment_percentage=experiment_percentage,
+        location_regexp=location_regexp,
+        includable_only=includable_only)
+    luci.list_view_entry(
+        list_view="cq",
+        builder=builder,
+    )
 
 
 postponed_alt_console_entries = []
