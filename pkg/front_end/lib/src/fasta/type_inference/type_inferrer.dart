@@ -1566,7 +1566,8 @@ class TypeInferrerImpl implements TypeInferrer {
       result = expression.accept1(visitor, typeContext);
     }
     DartType inferredType = result.inferredType;
-    assert(inferredType != null, "No type inferred for $expression.");
+    assert(inferredType != null,
+        "No type inferred for $expression (${expression.runtimeType}).");
     if (inferredType is VoidType && !isVoidAllowed) {
       if (expression.parent is! ArgumentsImpl) {
         helper?.addProblem(

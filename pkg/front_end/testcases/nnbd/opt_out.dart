@@ -4,8 +4,28 @@
 
 import 'opt_out_lib.dart';
 
+class A<T> {
+  late int field = 42;
+}
+
+class B extends A<String?> {}
+
+typedef F = void Function()?;
+
+List<String?> l = null;
+String? s = null;
+var t = s!;
+
+late int field = 42;
+
+void method(void f()?, {required int a}) {}
+
 main() {}
 
 noErrors() {
+  late int local = 42;
   String? s = null;
+  dynamic c;
+  c?..f;
+  c?.[0];
 }

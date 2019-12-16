@@ -1,15 +1,97 @@
 library;
 import self as self;
+import "dart:core" as core;
 
 import "org-dartlang-testcase:///opt_out_lib.dart";
 
+typedef F = () →? void;
+class A<T extends core::Object? = dynamic> extends core::Object {
+  late field core::int field;
+  synthetic constructor •() → self::A<self::A::T%>
+    ;
+}
+class B extends self::A<core::String?> {
+  synthetic constructor •() → self::B
+    ;
+}
+static field core::List<core::String?> l;
+static field core::String? s;
+static field core::String? t;
+late static field core::int field;
+static method method(() →? void f, {required core::int a}) → void
+  ;
 static method main() → dynamic
   ;
 static method noErrors() → dynamic
   ;
 
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/opt_out_lib.dart:8:3: Error: This requires the 'non-nullable' experiment to be enabled.
+// Try enabling this experiment by adding it to the command line when compiling and running.
+//   late int field = 42;
+//   ^^^^
+//
+// pkg/front_end/testcases/nnbd/opt_out_lib.dart:10:25: Error: This requires the 'non-nullable' experiment to be enabled.
+// Try enabling this experiment by adding it to the command line when compiling and running.
+// class B extends A<String?> {}
+//                         ^
+//
+// pkg/front_end/testcases/nnbd/opt_out_lib.dart:12:28: Error: This requires the 'non-nullable' experiment to be enabled.
+// Try enabling this experiment by adding it to the command line when compiling and running.
+// typedef F = void Function()?;
+//                            ^
+//
+// pkg/front_end/testcases/nnbd/opt_out_lib.dart:14:12: Error: This requires the 'non-nullable' experiment to be enabled.
+// Try enabling this experiment by adding it to the command line when compiling and running.
+// List<String?> l = null;
+//            ^
+//
+// pkg/front_end/testcases/nnbd/opt_out_lib.dart:15:7: Error: This requires the 'non-nullable' experiment to be enabled.
+// Try enabling this experiment by adding it to the command line when compiling and running.
+// String? s = null;
+//       ^
+//
+// pkg/front_end/testcases/nnbd/opt_out_lib.dart:18:1: Error: This requires the 'non-nullable' experiment to be enabled.
+// Try enabling this experiment by adding it to the command line when compiling and running.
+// late int field = 42;
+// ^^^^
+//
+// pkg/front_end/testcases/nnbd/opt_out_lib.dart:20:21: Error: This requires the 'non-nullable' experiment to be enabled.
+// Try enabling this experiment by adding it to the command line when compiling and running.
+// void method(void f()?, {required int a}) {}
+//                     ^
+//
+// pkg/front_end/testcases/nnbd/opt_out_lib.dart:20:25: Error: This requires the 'non-nullable' experiment to be enabled.
+// Try enabling this experiment by adding it to the command line when compiling and running.
+// void method(void f()?, {required int a}) {}
+//                         ^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/opt_out_lib.dart:16:10: Error: This requires the 'non-nullable' experiment to be enabled.
+// Try enabling this experiment by adding it to the command line when compiling and running.
+// var t = s!;
+//          ^
+//
 import self as self2;
+import "dart:core" as core;
 
+typedef F = () →? void;
+class A<T extends core::Object* = dynamic> extends core::Object {
+  late field core::int* field;
+  synthetic constructor •() → self2::A<self2::A::T*>*
+    ;
+}
+class B extends self2::A<core::String?> {
+  synthetic constructor •() → self2::B*
+    ;
+}
+static field core::List<core::String?>* l;
+static field core::String? s;
+static field core::String? t;
+late static field core::int* field;
+static method method(() →? void f, {required core::int* a}) → void
+  ;
 static method errors() → dynamic
   ;

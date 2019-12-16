@@ -8,6 +8,14 @@
 //       ^
 //
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/inheritance_from_opt_in.dart:21:52: Error: This requires the 'non-nullable' experiment to be enabled.
+// Try enabling this experiment by adding it to the command line when compiling and running.
+// class LegacyClass4c implements GenericInterface<num?> {}
+//                                                    ^
+//
 import self as self;
 import "inheritance_from_opt_in_lib.dart" as inh;
 import "dart:core" as core;

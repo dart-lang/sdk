@@ -1524,9 +1524,16 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       push(_createReadOnlyVariableAccess(
           expression.variable, token, expression.fileOffset, null));
     } else {
+      bool isNullAware = optional('?..', token);
+      if (isNullAware && !libraryBuilder.isNonNullableByDefault) {
+        addProblem(
+            fasta.templateExperimentNotEnabled.withArguments('non-nullable'),
+            offsetForToken(token),
+            token.charCount);
+      }
       VariableDeclaration variable =
           forest.createVariableDeclarationForValue(expression);
-      push(new Cascade(variable, isNullAware: optional('?..', token))
+      push(new Cascade(variable, isNullAware: isNullAware)
         ..fileOffset = expression.fileOffset);
       push(_createReadOnlyVariableAccess(
           variable, token, expression.fileOffset, null));
@@ -3491,6 +3498,12 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     Expression index = popForValue();
     Object receiver = pop();
     bool isNullAware = optional('?.[', openSquareBracket);
+    if (isNullAware && !libraryBuilder.isNonNullableByDefault) {
+      addProblem(
+          fasta.templateExperimentNotEnabled.withArguments('non-nullable'),
+          offsetForToken(openSquareBracket),
+          openSquareBracket.charCount);
+    }
     if (receiver is Generator) {
       push(receiver.buildIndexedAccess(index, openSquareBracket,
           isNullAware: isNullAware));
