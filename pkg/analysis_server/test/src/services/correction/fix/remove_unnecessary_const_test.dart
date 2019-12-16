@@ -11,12 +11,12 @@ import 'fix_processor.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(UnnecessaryConstTest);
+    defineReflectiveTests(RemoveUnnecessaryConstTest);
   });
 }
 
 @reflectiveTest
-class UnnecessaryConstTest extends FixProcessorLintTest {
+class RemoveUnnecessaryConstTest extends FixProcessorLintTest {
   @override
   FixKind get kind => DartFixKind.REMOVE_UNNECESSARY_CONST;
 
@@ -36,5 +36,23 @@ m(){
   const a = /*LINT*/A();
 }
 ''');
+  }
+
+  test_instanceCreation() async {
+    await resolveTestUnit('''
+const list = /*LINT*/const List();
+''');
+    await assertHasFix('''
+const list = /*LINT*/List();
+''', length: 5);
+  }
+
+  test_typedLiteral() async {
+    await resolveTestUnit('''
+const list = /*LINT*/const [];
+''');
+    await assertHasFix('''
+const list = /*LINT*/[];
+''', length: 5);
   }
 }

@@ -129,7 +129,6 @@ import 'replace_with_is_not_empty_test.dart' as replace_with_is_not_empty;
 import 'replace_with_null_aware_test.dart' as replace_with_null_aware;
 import 'replace_with_tear_off_test.dart' as replace_with_tear_off;
 import 'sort_child_property_last_test.dart' as sort_properties_last;
-import 'unnecessary_const_test.dart' as unnecessary_const;
 import 'update_sdk_constraints_test.dart' as update_sdk_constraints;
 import 'use_const_test.dart' as use_const;
 import 'use_effective_integer_division_test.dart'
@@ -252,7 +251,6 @@ main() {
     replace_with_null_aware.main();
     replace_with_tear_off.main();
     sort_properties_last.main();
-    unnecessary_const.main();
     update_sdk_constraints.main();
     use_const.main();
     use_effective_integer_division.main();
