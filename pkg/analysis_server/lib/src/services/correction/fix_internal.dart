@@ -594,6 +594,9 @@ class FixProcessor extends BaseProcessor {
     // lints
     if (errorCode is LintCode) {
       String name = errorCode.name;
+      if (name == LintNames.always_declare_return_types) {
+        await _addFix_addReturnType();
+      }
       if (name == LintNames.always_specify_types ||
           name == LintNames.type_annotate_public_apis) {
         await _addFix_addTypeAnnotation();
@@ -1182,6 +1185,11 @@ class FixProcessor extends BaseProcessor {
       builder.addSimpleInsertion(node.parent.offset, '@required ');
     });
     _addFixFromBuilder(changeBuilder, DartFixKind.ADD_REQUIRED);
+  }
+
+  Future<void> _addFix_addReturnType() async {
+    var changeBuilder = await createBuilder_addReturnType();
+    _addFixFromBuilder(changeBuilder, DartFixKind.ADD_RETURN_TYPE);
   }
 
   Future<void> _addFix_addStatic() async {

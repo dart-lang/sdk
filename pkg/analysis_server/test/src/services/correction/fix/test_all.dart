@@ -24,6 +24,7 @@ import 'add_missing_required_argument_test.dart'
 import 'add_ne_null_test.dart' as add_ne_null;
 import 'add_override_test.dart' as add_override;
 import 'add_required_test.dart' as add_required;
+import 'add_return_type_test.dart' as add_return_type;
 import 'add_static_test.dart' as add_static;
 import 'add_super_constructor_invocation_test.dart'
     as add_super_constructor_invocation;
@@ -155,6 +156,7 @@ main() {
     add_ne_null.main();
     add_override.main();
     add_required.main();
+    add_return_type.main();
     add_static.main();
     add_super_constructor_invocation.main();
     add_type_annotation.main();

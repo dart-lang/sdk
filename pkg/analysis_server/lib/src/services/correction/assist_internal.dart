@@ -160,6 +160,9 @@ class AssistProcessor extends BaseProcessor {
     )) {
       await _addProposal_addDiagnosticPropertyReference();
     }
+    if (!_containsErrorCode({LintNames.always_declare_return_types})) {
+      await _addProposal_addReturnType();
+    }
     if (experimentStatus.control_flow_collections) {
       if (!_containsErrorCode(
         {LintNames.prefer_if_elements_to_conditional_expressions},
@@ -288,6 +291,11 @@ class AssistProcessor extends BaseProcessor {
         }
       }
     }
+  }
+
+  Future<void> _addProposal_addReturnType() async {
+    final changeBuilder = await createBuilder_addReturnType();
+    _addAssistFromBuilder(changeBuilder, DartAssistKind.ADD_RETURN_TYPE);
   }
 
   Future<void> _addProposal_assignToLocalVariable() async {

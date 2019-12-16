@@ -166,6 +166,8 @@ class DartFixKind {
       const FixKind('ADD_OVERRIDE', 50, "Add '@override' annotation");
   static const ADD_REQUIRED =
       const FixKind('ADD_REQUIRED', 50, "Add '@required' annotation");
+  static const ADD_RETURN_TYPE =
+      const FixKind('ADD_RETURN_TYPE', 50, "Add return type");
   static const ADD_STATIC =
       const FixKind('ADD_STATIC', 50, "Add 'static' modifier");
   static const ADD_SUPER_CONSTRUCTOR_INVOCATION = const FixKind(

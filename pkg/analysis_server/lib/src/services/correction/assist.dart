@@ -37,6 +37,8 @@ class DartAssistKind {
       "Add a debug reference to this property");
   static const ADD_NOT_NULL_ASSERT = const AssistKind(
       'dart.assist.addNotNullAssert', 30, "Add a not-null assertion");
+  static const ADD_RETURN_TYPE =
+      const AssistKind('dart.assist.addReturnType', 30, "Add return type");
   static const ADD_TYPE_ANNOTATION = const AssistKind(
       'dart.assist.addTypeAnnotation', 30, "Add type annotation");
   static const ASSIGN_TO_LOCAL_VARIABLE = const AssistKind(
