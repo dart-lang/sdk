@@ -47,7 +47,7 @@ class TypeProviderImpl extends TypeProviderBase {
 
   /// If `true`, then NNBD types are returned.
   /// If `false`, then legacy types are returned.
-  final bool _isNonNullableByDefault;
+  final bool isNonNullableByDefault;
 
   ClassElement _boolElement;
   ClassElement _doubleElement;
@@ -108,10 +108,10 @@ class TypeProviderImpl extends TypeProviderBase {
     @required bool isNonNullableByDefault,
   })  : _coreLibrary = coreLibrary,
         _asyncLibrary = asyncLibrary,
-        _isNonNullableByDefault = isNonNullableByDefault;
+        isNonNullableByDefault = isNonNullableByDefault;
 
   TypeProviderImpl get asLegacy {
-    if (_isNonNullableByDefault) {
+    if (isNonNullableByDefault) {
       return TypeProviderImpl(
         coreLibrary: _coreLibrary,
         asyncLibrary: _asyncLibrary,
@@ -123,7 +123,7 @@ class TypeProviderImpl extends TypeProviderBase {
   }
 
   TypeProviderImpl get asNonNullableByDefault {
-    if (_isNonNullableByDefault) {
+    if (isNonNullableByDefault) {
       return this;
     } else {
       return TypeProviderImpl(
@@ -147,7 +147,7 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   DartType get bottomType {
-    if (_isNonNullableByDefault) {
+    if (isNonNullableByDefault) {
       return NeverTypeImpl.instance;
     }
     return NeverTypeImpl.instanceLegacy;
@@ -361,19 +361,19 @@ class TypeProviderImpl extends TypeProviderBase {
     return _nullElement ??= _getClassElement(_coreLibrary, 'Null');
   }
 
-  InterfaceTypeImpl get nullStar {
-    return _nullStar ??= nullElement.instantiate(
-      typeArguments: const [],
-      nullabilitySuffix: NullabilitySuffix.star,
-    );
-  }
-
   @override
   DartObjectImpl get nullObject {
     if (_nullObject == null) {
       _nullObject = DartObjectImpl(nullType, NullState.NULL_STATE);
     }
     return _nullObject;
+  }
+
+  InterfaceTypeImpl get nullStar {
+    return _nullStar ??= nullElement.instantiate(
+      typeArguments: const [],
+      nullabilitySuffix: NullabilitySuffix.star,
+    );
   }
 
   @override
@@ -472,7 +472,7 @@ class TypeProviderImpl extends TypeProviderBase {
   VoidType get voidType => VoidTypeImpl.instance;
 
   NullabilitySuffix get _nullabilitySuffix {
-    if (_isNonNullableByDefault) {
+    if (isNonNullableByDefault) {
       return NullabilitySuffix.none;
     } else {
       return NullabilitySuffix.star;
@@ -480,7 +480,7 @@ class TypeProviderImpl extends TypeProviderBase {
   }
 
   NullabilitySuffix get _questionOrStarSuffix {
-    return _isNonNullableByDefault
+    return isNonNullableByDefault
         ? NullabilitySuffix.question
         : NullabilitySuffix.star;
   }
