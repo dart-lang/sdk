@@ -478,7 +478,7 @@ class BuildMode with HasContextMixin {
 
     elementFactory = summary2.LinkedElementFactory(
       analysisContext,
-      null,
+      AnalysisSessionImpl(null),
       summary2.Reference.root(),
     );
 
