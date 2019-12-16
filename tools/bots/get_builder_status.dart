@@ -116,7 +116,7 @@ main(List<String> args) async {
         print("No results recieved for build $buildNumber of $builder");
       }
     } else {
-      print("HTTP status ${response.statuscCode} received "
+      print("HTTP status ${response.statusCode} received "
           "when fetching build data");
     }
   }
