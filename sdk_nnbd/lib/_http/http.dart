@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 library dart._http;
 
 import 'dart:async';
@@ -143,7 +141,7 @@ abstract class HttpServer implements Stream<HttpRequest> {
    *
    * The default value is `null`.
    */
-  String serverHeader;
+  String? serverHeader;
 
   /**
    * Default set of headers added to all response objects.
@@ -184,7 +182,7 @@ abstract class HttpServer implements Stream<HttpRequest> {
    *
    * To disable, set [idleTimeout] to `null`.
    */
-  Duration idleTimeout;
+  Duration? idleTimeout;
 
   /**
    * Starts listening for HTTP requests on the specified [address] and
@@ -208,13 +206,13 @@ abstract class HttpServer implements Stream<HttpRequest> {
    * [InternetAddress.loopbackIPv6], only IP version 6 (IPv6) connections
    * will be accepted.
    *
-   * If [port] has the value [:0:] an ephemeral port will be chosen by
+   * If [port] has the value 0 an ephemeral port will be chosen by
    * the system. The actual port used can be retrieved using the
    * [port] getter.
    *
    * The optional argument [backlog] can be used to specify the listen
    * backlog for the underlying OS listen setup. If [backlog] has the
-   * value of [:0:] (the default) a reasonable value will be chosen by
+   * value of 0 (the default) a reasonable value will be chosen by
    * the system.
    *
    * The optional argument [shared] specifies whether additional HttpServer
@@ -225,7 +223,7 @@ abstract class HttpServer implements Stream<HttpRequest> {
    * distributed over multiple isolates this way.
    */
   static Future<HttpServer> bind(address, int port,
-          {int backlog: 0, bool v6Only: false, bool shared: false}) =>
+          {int backlog = 0, bool v6Only = false, bool shared = false}) =>
       _HttpServer.bind(address, port, backlog, v6Only, shared);
 
   /**
@@ -245,13 +243,13 @@ abstract class HttpServer implements Stream<HttpRequest> {
    * restrict this to version 6 (IPv6) only, use [v6Only] to set
    * version 6 only.
    *
-   * If [port] has the value [:0:] an ephemeral port will be chosen by
+   * If [port] has the value 0 an ephemeral port will be chosen by
    * the system. The actual port used can be retrieved using the
    * [port] getter.
    *
    * The optional argument [backlog] can be used to specify the listen
    * backlog for the underlying OS listen setup. If [backlog] has the
-   * value of [:0:] (the default) a reasonable value will be chosen by
+   * value of 0 (the default) a reasonable value will be chosen by
    * the system.
    *
    * If [requestClientCertificate] is true, the server will
@@ -270,10 +268,10 @@ abstract class HttpServer implements Stream<HttpRequest> {
 
   static Future<HttpServer> bindSecure(
           address, int port, SecurityContext context,
-          {int backlog: 0,
-          bool v6Only: false,
-          bool requestClientCertificate: false,
-          bool shared: false}) =>
+          {int backlog = 0,
+          bool v6Only = false,
+          bool requestClientCertificate = false,
+          bool shared = false}) =>
       _HttpServer.bindSecure(address, port, context, backlog, v6Only,
           requestClientCertificate, shared);
 
@@ -294,30 +292,33 @@ abstract class HttpServer implements Stream<HttpRequest> {
    *
    * If [force] is `true`, active connections will be closed immediately.
    */
-  Future close({bool force: false});
+  Future close({bool force = false});
 
   /**
-   * Returns the port that the server is listening on. This can be
-   * used to get the actual port used when a value of 0 for [:port:] is
+   * The port that the server is listening on.
+   *
+   * This is the actual port used when a port of zero is
    * specified in the [bind] or [bindSecure] call.
    */
   int get port;
 
   /**
-   * Returns the address that the server is listening on. This can be
-   * used to get the actual address used, when the address is fetched by
-   * a lookup from a hostname.
+   * The address that the server is listening on.
+   *
+   * This is the actual address used when the original address
+   * was specified as a hostname.
    */
   InternetAddress get address;
 
   /**
    * Sets the timeout, in seconds, for sessions of this [HttpServer].
+   *
    * The default timeout is 20 minutes.
    */
   set sessionTimeout(int timeout);
 
   /**
-   * Returns an [HttpConnectionsInfo] object summarizing the number of
+   * A [HttpConnectionsInfo] object summarizing the number of
    * current connections handled by the server.
    */
   HttpConnectionsInfo connectionsInfo();
@@ -344,8 +345,9 @@ class HttpConnectionsInfo {
   int idle = 0;
 
   /**
-   * Number of connections which are preparing to close. Note: These
-   * connections are also part of the [:active:] count as they might
+   * Number of connections which are preparing to close.
+   *
+   * Note: These connections are also part of the [active] count as they might
    * still be sending data to the client before finally closing.
    */
   int closing = 0;
@@ -356,9 +358,9 @@ class HttpConnectionsInfo {
  *
  * In some situations, headers are immutable:
  *
- * * HttpRequest and HttpClientResponse always have immutable headers.
+ * * [HttpRequest] and [HttpClientResponse] always have immutable headers.
  *
- * * HttpResponse and HttpClientRequest have immutable headers
+ * * [HttpResponse] and [HttpClientRequest] have immutable headers
  *   from the moment the body is written to.
  *
  * In these situations, the mutating methods throw exceptions.
@@ -375,7 +377,7 @@ class HttpConnectionsInfo {
  *
  *     print(request.headers.value(HttpHeaders.userAgentHeader));
  *
- * An HttpHeaders object holds a list of values for each name
+ * An `HttpHeaders` object holds a list of values for each name
  * as the standard allows. In most cases a name holds only a single value,
  * The most common mode of operation is to use `set()` for setting a value,
  * and `value()` for retrieving a value.
@@ -533,6 +535,7 @@ abstract class HttpHeaders {
   @Deprecated("Use setCookieHeader instead")
   static const SET_COOKIE = setCookieHeader;
 
+  // TODO(39783): Document this.
   static const generalHeaders = const [
     cacheControlHeader,
     connectionHeader,
@@ -605,136 +608,157 @@ abstract class HttpHeaders {
   static const REQUEST_HEADERS = requestHeaders;
 
   /**
-   * Gets and sets the date. The value of this property will
-   * reflect the 'date' header.
+   * The date specified by the [dateHeader] header, if any.
    */
-  DateTime date;
+  DateTime? date;
 
   /**
-   * Gets and sets the expiry date. The value of this property will
-   * reflect the 'expires' header.
+   * The date and time specified by the [expiresHeader] header, if any.
    */
-  DateTime expires;
+  DateTime? expires;
 
   /**
-   * Gets and sets the "if-modified-since" date. The value of this property will
-   * reflect the "if-modified-since" header.
+   * The date and time specified by the [ifModifiedSinceHeader] header, if any.
    */
-  DateTime ifModifiedSince;
+  DateTime? ifModifiedSince;
 
   /**
-   * Gets and sets the host part of the 'host' header for the
-   * connection.
+   * The value of the [hostHeader] header, if any.
    */
-  String host;
+  String? host;
 
   /**
-   * Gets and sets the port part of the 'host' header for the
-   * connection.
+   * The value of the port part of the [hostHeader] header, if any.
    */
-  int port;
+  int? port;
 
   /**
-   * Gets and sets the content type. Note that the content type in the
-   * header will only be updated if this field is set
-   * directly. Mutating the returned current value will have no
-   * effect.
+   * The [ContentType] of the [contentTypeHeader] header, if any.
    */
-  ContentType contentType;
+  ContentType? contentType;
 
   /**
-   * Gets and sets the content length header value.
+   * The value of the [contentLengthHeader] header, if any.
+   *
+   * The value is negative if there is no content length set.
    */
-  int contentLength;
+  int get contentLength;
+  void set contentLength(int contentLength);
 
   /**
-   * Gets and sets the persistent connection header value.
+   * Whether the connection is persistent (keep-alive).
    */
-  bool persistentConnection;
+  bool get persistentConnection;
+  void set persistentConnection(bool persistentConnection);
 
   /**
-   * Gets and sets the chunked transfer encoding header value.
+   * Whether the connection uses chunked transfer encoding.
+   *
+   * Reflects and modifies the value of the [transferEncodingHeader] header.
    */
-  bool chunkedTransferEncoding;
+  bool get chunkedTransferEncoding;
+  void set chunkedTransferEncoding(bool chunkedTransferEncoding);
 
   /**
-   * Returns the list of values for the header named [name]. If there
-   * is no header with the provided name, [:null:] will be returned.
+   * The values for the header named [name].
+   *
+   * Returns null if there is no header with the provided name,
+   * otherwise returns a new list containing the current values.
+   * Not that modifying the list does not change the header.
    */
-  List<String> operator [](String name);
+  List<String>? operator [](String name);
 
   /**
-   * Convenience method for the value for a single valued header. If
-   * there is no header with the provided name, [:null:] will be
-   * returned. If the header has more than one value an exception is
-   * thrown.
+   * Convenience method for the value for a single valued header.
+   *
+   * The value must not have more than one value.
+   *
+   * Returns `null` if there is no header with the provided name.
    */
-  String value(String name);
+  String? value(String name);
 
   /**
-   * Adds a header value. The header named [name] will have the value
-   * [value] added to its list of values. Some headers are single
-   * valued, and for these adding a value will replace the previous
-   * value. If the value is of type DateTime a HTTP date format will be
-   * applied. If the value is a [:List:] each element of the list will
-   * be added separately. For all other types the default [:toString:]
+   * Adds a header value.
+   *
+   * The header named [name] will have a string value derived from [value]
+   * added to its list of values.
+   *
+   * Some headers are single valued, and for these adding a value will replace
+   * a previous value.
+   * If the [value] is a [DateTime], an HTTP date format will be
+   * applied. If the value is a [List], each element of the list will
+   * be added separately. For all other types the default [Object.toString]
    * method will be used.
    */
   void add(String name, Object value);
 
   /**
-   * Sets a header. The header named [name] will have all its values
-   * cleared before the value [value] is added as its value.
+   * Sets a header.
+   *
+   * Removes all existing values for [name], then adds [value] as
+   * if using [add].
    */
   void set(String name, Object value);
 
   /**
-   * Removes a specific value for a header name. Some headers have
-   * system supplied values and for these the system supplied values
-   * will still be added to the collection of values for the header.
+   * Removes a specific value for a header name.
+   *
+   * Some headers have system supplied values which cannot be removed.
+   * For all other headers and values, the [value] is converted to a string
+   * in the same way as for [add], then that string value is removed from the
+   * current values of [name].
+   * If there are no remaining values for [name], the header is no longer
+   * considered present.
    */
   void remove(String name, Object value);
 
   /**
-   * Removes all values for the specified header name. Some headers
-   * have system supplied values and for these the system supplied
-   * values will still be added to the collection of values for the
-   * header.
+   * Removes all values for the specified header name.
+   *
+   * Some headers have system supplied values which cannot be removed.
+   * All other values for [name] are removed.
+   * If there are no remaining values for [name], the header is no longer
+   * considered present.
    */
   void removeAll(String name);
 
   /**
-   * Enumerates the headers, applying the function [f] to each
-   * header. The header name passed in [:name:] will be all lower
-   * case.
+   * Enumerates the headers, applying the function [f] to each header.
+   *
+   * The header name passed in [name] will be all lower case.
    */
   void forEach(void f(String name, List<String> values));
 
   /**
-   * Disables folding for the header named [name] when sending the HTTP
-   * header. By default, multiple header values are folded into a
-   * single header line by separating the values with commas. The
-   * 'set-cookie' header has folding disabled by default.
+   * Disables folding for the header named [name] when sending the HTTP header.
+   *
+   * By default, multiple header values are folded into a
+   * single header line by separating the values with commas.
+   *
+   * The 'set-cookie' header has folding disabled by default.
    */
   void noFolding(String name);
 
   /**
-   * Remove all headers. Some headers have system supplied values and
-   * for these the system supplied values will still be added to the
-   * collection of values for the header.
+   * Removes all headers.
+   *
+   * Some headers have system supplied values which cannot be removed.
+   * All other header values are removed, and header names with not
+   * remaining values are no longer considered present.
    */
   void clear();
 }
 
 /**
  * Representation of a header value in the form:
- *
- *   [:value; parameter1=value1; parameter2=value2:]
+ * ```dart
+ * value; parameter1=value1; parameter2=value2
+ * ```
  *
  * [HeaderValue] can be used to conveniently build and parse header
  * values on this form.
  *
- * To build an [:accepts:] header with the value
+ * To build an "accepts" header with the value
  *
  *     text/plain; q=0.3, text/html
  *
@@ -745,7 +769,7 @@ abstract class HttpHeaders {
  *     request.headers.add(HttpHeaders.acceptHeader, v);
  *     request.headers.add(HttpHeaders.acceptHeader, "text/html");
  *
- * To parse the header values use the [:parse:] static method.
+ * To parse the header values use the [parse] static method.
  *
  *     HttpRequest request = ...;
  *     List<String> values = request.headers[HttpHeaders.acceptHeader];
@@ -760,7 +784,7 @@ abstract class HeaderValue {
   /**
    * Creates a new header value object setting the value and parameters.
    */
-  factory HeaderValue([String value = "", Map<String, String> parameters]) {
+  factory HeaderValue([String value = "", Map<String, String>? parameters]) {
     return new _HeaderValue(value, parameters);
   }
 
@@ -769,9 +793,9 @@ abstract class HeaderValue {
    * string with both value and optional parameters.
    */
   static HeaderValue parse(String value,
-      {String parameterSeparator: ";",
-      String valueSeparator: null,
-      bool preserveBackslash: false}) {
+      {String parameterSeparator = ";",
+      String? valueSeparator,
+      bool preserveBackslash = false}) {
     return _HeaderValue.parse(value,
         parameterSeparator: parameterSeparator,
         valueSeparator: valueSeparator,
@@ -779,52 +803,57 @@ abstract class HeaderValue {
   }
 
   /**
-   * Gets the header value.
+   * The value of the header.
    */
   String get value;
 
   /**
-   * Gets the map of parameters.
+   * A map of parameters.
    *
-   * This map cannot be modified. Invoking any operation which would
-   * modify the map will throw [UnsupportedError].
+   * This map cannot be modified.
    */
   Map<String, String> get parameters;
 
   /**
    * Returns the formatted string representation in the form:
-   *
-   *     value; parameter1=value1; parameter2=value2
+   * ```
+   * value; parameter1=value1; parameter2=value2
+   * ```
    */
   String toString();
 }
 
 abstract class HttpSession implements Map {
   /**
-   * Gets the id for the current session.
+   * The id of the current session.
    */
   String get id;
 
   /**
-   * Destroys the session. This will terminate the session and any further
+   * Destroys the session.
+   *
+   * This terminates the session and any further
    * connections with this id will be given a new id and session.
    */
   void destroy();
 
   /**
    * Sets a callback that will be called when the session is timed out.
+   *
+   * Calling this again will overwrite the previous value.
    */
   void set onTimeout(void callback());
 
   /**
-   * Is true if the session has not been sent to the client yet.
+   * Whether the session has not yet been sent to the client.
    */
   bool get isNew;
 }
 
 /**
- * Representation of a content type. An instance of [ContentType] is
- * immutable.
+ * A MIME/IANA media type used as the value of the [contentTypeHeader] header.
+ *
+ * A [ContentType] is immutable.
  */
 abstract class ContentType implements HeaderValue {
   /**
@@ -873,7 +902,7 @@ abstract class ContentType implements HeaderValue {
    * or in `parameters`, will have its value converted to lower-case.
    */
   factory ContentType(String primaryType, String subType,
-      {String charset, Map<String, String> parameters}) {
+      {String? charset, Map<String, String>? parameters}) {
     return new _ContentType(primaryType, subType, charset, parameters);
   }
 
@@ -885,32 +914,47 @@ abstract class ContentType implements HeaderValue {
    *
    *     text/html; charset=utf-8
    *
-   * will create a content type object with primary type [:text:], sub
-   * type [:html:] and parameter [:charset:] with value [:utf-8:].
+   * will create a content type object with primary type "text",
+   * subtype "html" and parameter "charset" with value "utf-8".
+   * There may be more parameters supplied, but they are not recognized
+   * by this class.
    */
   static ContentType parse(String value) {
     return _ContentType.parse(value);
   }
 
   /**
-   * Gets the mime-type, without any parameters.
+   * Gets the MIME type and subtype, without any parameters.
+   *
+   * For the full content type `text/html;charset=utf-8`,
+   * the [mimeType] value is the string `text/html`.
    */
   String get mimeType;
 
   /**
    * Gets the primary type.
+   *
+   * For the full content type `text/html;charset=utf-8`,
+   * the [primaryType] value is the string `text`.
    */
   String get primaryType;
 
   /**
-   * Gets the sub type.
+   * Gets the subtype.
+   *
+   * For the full content type `text/html;charset=utf-8`,
+   * the [subType] value is the string `html`.
+   * May be the empty string.
    */
   String get subType;
 
   /**
-   * Gets the character set.
+   * Gets the character set, if any.
+   *
+   * For the full content type `text/html;charset=utf-8`,
+   * the [charset] value is the string `utf-8`.
    */
-  String get charset;
+  String? get charset;
 }
 
 /**
@@ -948,23 +992,23 @@ abstract class Cookie {
   /**
    * The time at which the cookie expires.
    */
-  DateTime expires;
+  DateTime? expires;
 
   /**
    * The number of seconds until the cookie expires. A zero or negative value
    * means the cookie has expired.
    */
-  int maxAge;
+  int? maxAge;
 
   /**
-   * The domain the cookie applies to.
+   * The domain that the cookie applies to.
    */
-  String domain;
+  String? domain;
 
   /**
-   * The path within the [domain] the cookie applies to.
+   * The path within the [domain] that the cookie applies to.
    */
-  String path;
+  String? path;
 
   /**
    * Whether to only send this cookie on secure connections.
@@ -1097,7 +1141,7 @@ abstract class HttpRequest implements Stream<Uint8List> {
   HttpHeaders get headers;
 
   /**
-   * The cookies in the request, from the Cookie headers.
+   * The cookies in the request, from the "Cookie" headers.
    */
   List<Cookie> get cookies;
 
@@ -1113,14 +1157,13 @@ abstract class HttpRequest implements Stream<Uint8List> {
    * or if the server does not request a client certificate, or if the client
    * does not provide one.
    */
-  X509Certificate get certificate;
+  X509Certificate? get certificate;
 
   /**
    * The session for the given request.
    *
-   * If the session is
-   * being initialized by this call, [:isNew:] is true for the returned
-   * session.
+   * If the session is being initialized by this call,
+   * [HttpSession.isNew] is true for the returned session.
    * See [HttpServer.sessionTimeout] on how to change default timeout.
    */
   HttpSession get session;
@@ -1134,9 +1177,9 @@ abstract class HttpRequest implements Stream<Uint8List> {
   /**
    * Information about the client connection.
    *
-   * Returns [:null:] if the socket is not available.
+   * Returns `null` if the socket is not available.
    */
-  HttpConnectionInfo get connectionInfo;
+  HttpConnectionInfo? get connectionInfo;
 
   /**
    * The [HttpResponse] object, used for sending back the response to the
@@ -1205,10 +1248,13 @@ abstract class HttpResponse implements IOSink {
    * the response is not known in advance set the content length to
    * -1, which is also the default if not set.
    */
-  int contentLength;
+  int get contentLength;
+  void set contentLength(int contentLength);
 
   /**
-   * Gets and sets the status code. Any integer value is accepted. For
+   * The status code of the response.
+   *
+   * Any integer value is accepted. For
    * the official HTTP status codes use the fields from
    * [HttpStatus]. If no status code is explicitly set the default
    * value [HttpStatus.ok] is used.
@@ -1217,24 +1263,28 @@ abstract class HttpResponse implements IOSink {
    * to. Setting the status code after writing to the response body or
    * closing the response will throw a `StateError`.
    */
-  int statusCode;
+  int get statusCode;
+  void set statusCode(int statusCode);
 
   /**
-   * Gets and sets the reason phrase. If no reason phrase is explicitly
-   * set a default reason phrase is provided.
+   * The reason phrase for the response.
+   *
+   * If no reason phrase is explicitly set, a default reason phrase is provided.
    *
    * The reason phrase must be set before the body is written
    * to. Setting the reason phrase after writing to the response body
-   * or closing the response will throw a `StateError`.
+   * or closing the response will throw a [StateError].
    */
-  String reasonPhrase;
+  String get reasonPhrase;
+  void set reasonPhrase(String reasonPhrase);
 
   /**
    * Gets and sets the persistent connection state. The initial value
    * of this property is the persistent connection state from the
    * request.
    */
-  bool persistentConnection;
+  bool get persistentConnection;
+  void set persistentConnection(bool persistentConnection);
 
   /**
    * Set and get the [deadline] for the response. The deadline is timed from the
@@ -1246,7 +1296,7 @@ abstract class HttpResponse implements IOSink {
    *
    * The [deadline] is `null` by default.
    */
-  Duration deadline;
+  Duration? deadline;
 
   /**
    * Gets or sets if the [HttpResponse] should buffer output.
@@ -1256,7 +1306,8 @@ abstract class HttpResponse implements IOSink {
    * __Note__: Disabling buffering of the output can result in very poor
    * performance, when writing many small chunks.
    */
-  bool bufferOutput;
+  bool get bufferOutput;
+  void set bufferOutput(bool bufferOutput);
 
   /**
    * Returns the response headers.
@@ -1284,7 +1335,7 @@ abstract class HttpResponse implements IOSink {
    * This method will also call `close`, and the returned future is
    * the future returned by `close`.
    */
-  Future redirect(Uri location, {int status: HttpStatus.movedTemporarily});
+  Future redirect(Uri location, {int status = HttpStatus.movedTemporarily});
 
   /**
    * Detaches the underlying socket from the HTTP server. When the
@@ -1298,13 +1349,13 @@ abstract class HttpResponse implements IOSink {
    * to the socket before it's detached. If `false`, the socket is detached
    * immediately, without any data written to the socket. Default is `true`.
    */
-  Future<Socket> detachSocket({bool writeHeaders: true});
+  Future<Socket> detachSocket({bool writeHeaders = true});
 
   /**
-   * Gets information about the client connection. Returns [:null:] if the
+   * Gets information about the client connection. Returns `null` if the
    * socket is not available.
    */
-  HttpConnectionInfo get connectionInfo;
+  HttpConnectionInfo? get connectionInfo;
 }
 
 /**
@@ -1390,7 +1441,7 @@ abstract class HttpResponse implements IOSink {
  * By default the HttpClient uses the proxy configuration available
  * from the environment, see [findProxyFromEnvironment]. To turn off
  * the use of proxies set the [findProxy] property to
- * [:null:].
+ * `null`.
  *
  *     HttpClient client = new HttpClient();
  *     client.findProxy = null;
@@ -1434,7 +1485,7 @@ abstract class HttpClient {
   ///
   /// When this is `null`, the OS default timeout is used. The default is
   /// `null`.
-  Duration connectionTimeout;
+  Duration? connectionTimeout;
 
   /**
    * Gets and sets the maximum number of live connections, to a single host.
@@ -1446,7 +1497,7 @@ abstract class HttpClient {
    *
    * Default is `null`.
    */
-  int maxConnectionsPerHost;
+  int? maxConnectionsPerHost;
 
   /**
    * Gets and sets whether the body of a response will be automatically
@@ -1483,10 +1534,10 @@ abstract class HttpClient {
   ///
   /// If the userAgent is set to `null`, no default `User-Agent` header will be
   /// added to each request.
-  String userAgent;
+  String? userAgent;
 
-  factory HttpClient({SecurityContext context}) {
-    HttpOverrides overrides = HttpOverrides.current;
+  factory HttpClient({SecurityContext? context}) {
+    HttpOverrides? overrides = HttpOverrides.current;
     if (overrides == null) {
       return new _HttpClient(context);
     }
@@ -1653,12 +1704,12 @@ abstract class HttpClient {
    *
    * The function returns a [Future] which should complete when the
    * authentication has been resolved. If credentials cannot be
-   * provided the [Future] should complete with [:false:]. If
+   * provided the [Future] should complete with `false`. If
    * credentials are available the function should add these using
    * [addCredentials] before completing the [Future] with the value
-   * [:true:].
+   * `true`.
    *
-   * If the [Future] completes with [:true:] the request will be retried
+   * If the [Future] completes with `true` the request will be retried
    * using the updated credentials, however, the retried request will not
    * carry the original request payload. Otherwise response processing will
    * continue normally.
@@ -1669,7 +1720,7 @@ abstract class HttpClient {
    * of a failed request, or issues due to missing request payload on retried
    * request.
    */
-  set authenticate(Future<bool> f(Uri url, String scheme, String realm));
+  void set authenticate(Future<bool> f(Uri url, String scheme, String realm)?);
 
   /**
    * Add credentials to be used for authorizing HTTP requests.
@@ -1690,7 +1741,7 @@ abstract class HttpClient {
    *
    *     "PROXY host:port"
    *
-   * for using the proxy server [:host:] on port [:port:].
+   * for using the proxy server `host` on port `port`.
    *
    * A configuration can contain several configuration elements
    * separated by semicolons, e.g.
@@ -1701,7 +1752,7 @@ abstract class HttpClient {
    * be used to implement proxy server resolving based on environment
    * variables.
    */
-  set findProxy(String f(Uri url));
+  void set findProxy(String f(Uri url)?);
 
   /**
    * Function for resolving the proxy server to be used for a HTTP
@@ -1755,8 +1806,8 @@ abstract class HttpClient {
    * to set credentials for proxies which require authentication.
    */
   static String findProxyFromEnvironment(Uri url,
-      {Map<String, String> environment}) {
-    HttpOverrides overrides = HttpOverrides.current;
+      {Map<String, String>? environment}) {
+    HttpOverrides? overrides = HttpOverrides.current;
     if (overrides == null) {
       return _HttpClient._findProxyFromEnvironment(url, environment);
     }
@@ -1771,17 +1822,17 @@ abstract class HttpClient {
    *
    * The function returns a [Future] which should complete when the
    * authentication has been resolved. If credentials cannot be
-   * provided the [Future] should complete with [:false:]. If
+   * provided the [Future] should complete with `false`. If
    * credentials are available the function should add these using
    * [addProxyCredentials] before completing the [Future] with the value
-   * [:true:].
+   * `true`.
    *
-   * If the [Future] completes with [:true:] the request will be retried
+   * If the [Future] completes with `true` the request will be retried
    * using the updated credentials. Otherwise response processing will
    * continue normally.
    */
-  set authenticateProxy(
-      Future<bool> f(String host, int port, String scheme, String realm));
+  void set authenticateProxy(
+      Future<bool> f(String host, int port, String scheme, String realm)?);
 
   /**
    * Add credentials to be used for authorizing HTTP proxies.
@@ -1798,8 +1849,8 @@ abstract class HttpClient {
    * server returns a server certificate that cannot be authenticated, the
    * callback is called asynchronously with the [X509Certificate] object and
    * the server's hostname and port.  If the value of [badCertificateCallback]
-   * is [:null:], the bad certificate is rejected, as if the callback
-   * returned [:false:]
+   * is `null`, the bad certificate is rejected, as if the callback
+   * returned `false`
    *
    * If the callback returns true, the secure connection is accepted and the
    * [:Future<HttpClientRequest>:] that was returned from the call making the
@@ -1811,8 +1862,8 @@ abstract class HttpClient {
    * the request is made, even if the value of badCertificateCallback
    * has changed since then.
    */
-  set badCertificateCallback(
-      bool callback(X509Certificate cert, String host, int port));
+  void set badCertificateCallback(
+      bool callback(X509Certificate cert, String host, int port)?);
 
   /// Shuts down the HTTP client.
   ///
@@ -1822,7 +1873,7 @@ abstract class HttpClient {
   /// closed connections will receive an error event to indicate that the client
   /// was shut down. In both cases trying to establish a new connection after
   /// calling [close] will throw an exception.
-  void close({bool force: false});
+  void close({bool force = false});
 }
 
 /**
@@ -1857,23 +1908,26 @@ abstract class HttpClient {
  */
 abstract class HttpClientRequest implements IOSink {
   /**
-   * Gets and sets the requested persistent connection state.
+   * The requested persistent connection state.
    *
-   * The default value is [:true:].
+   * The default value is `true`.
    */
-  bool persistentConnection;
+  bool get persistentConnection;
+  void set persistentConnection(bool persistentConnection);
 
   /**
-   * Set this property to [:true:] if this request should
-   * automatically follow redirects. The default is [:true:].
+   * Whether to follow redirects automatically.
+   *
+   * Set this property to `false` if this request should not
+   * automatically follow redirects. The default is `true`.
    *
    * Automatic redirect will only happen for "GET" and "HEAD" requests
-   * and only for the status codes [:HttpStatus.movedPermanently:]
-   * (301), [:HttpStatus.found:] (302),
-   * [:HttpStatus.movedTemporarily:] (302, alias for
-   * [:HttpStatus.found:]), [:HttpStatus.seeOther:] (303) and
-   * [:HttpStatus.temporaryRedirect:] (307). For
-   * [:HttpStatus.seeOther:] (303) automatic redirect will also happen
+   * and only for the status codes [HttpStatus.movedPermanently]
+   * (301), [HttpStatus.found] (302),
+   * [HttpStatus.movedTemporarily] (302, alias for
+   * [HttpStatus.found]), [HttpStatus.seeOther] (303) and
+   * [HttpStatus.temporaryRedirect] (307). For
+   * [HttpStatus.seeOther] (303) automatic redirect will also happen
    * for "POST" requests with the method changed to "GET" when
    * following the redirect.
    *
@@ -1881,7 +1935,8 @@ abstract class HttpClientRequest implements IOSink {
    * request(s). However, any body send with the request will not be
    * part of the redirection request(s).
    */
-  bool followRedirects;
+  bool get followRedirects;
+  void set followRedirects(bool followRedirects);
 
   /**
    * Set this property to the maximum number of redirects to follow
@@ -1890,7 +1945,8 @@ abstract class HttpClientRequest implements IOSink {
    *
    * The default value is 5.
    */
-  int maxRedirects;
+  int get maxRedirects;
+  void set maxRedirects(int maxRedirects);
 
   /**
    * The method of the request.
@@ -1906,7 +1962,8 @@ abstract class HttpClientRequest implements IOSink {
   ///
   /// If the size of the request is not known in advance set content length to
   /// -1, which is also the default.
-  int contentLength;
+  int get contentLength;
+  void set contentLength(int contentLength);
 
   /**
    * Gets or sets if the [HttpClientRequest] should buffer output.
@@ -1916,7 +1973,8 @@ abstract class HttpClientRequest implements IOSink {
    * __Note__: Disabling buffering of the output can result in very poor
    * performance, when writing many small chunks.
    */
-  bool bufferOutput;
+  bool get bufferOutput;
+  void set bufferOutput(bool bufferOutput);
 
   /**
    * Returns the client request headers.
@@ -1946,8 +2004,8 @@ abstract class HttpClientRequest implements IOSink {
 
   /// Gets information about the client connection.
   ///
-  /// Returns [:null:] if the socket is not available.
-  HttpConnectionInfo get connectionInfo;
+  /// Returns `null` if the socket is not available.
+  HttpConnectionInfo? get connectionInfo;
 }
 
 /**
@@ -2037,14 +2095,14 @@ abstract class HttpClientResponse implements Stream<List<int>> {
    * request. However, any body sent with the request will not be
    * part of the redirection request.
    *
-   * If [followLoops] is set to [:true:], redirect will follow the redirect,
-   * even if the URL was already visited. The default value is [:false:].
+   * If [followLoops] is set to `true`, redirect will follow the redirect,
+   * even if the URL was already visited. The default value is `false`.
    *
    * The method will ignore [HttpClientRequest.maxRedirects]
    * and will always perform the redirect.
    */
   Future<HttpClientResponse> redirect(
-      [String method, Uri url, bool followLoops]);
+      [String? method, Uri? url, bool? followLoops]);
 
   /**
    * Returns the client response headers.
@@ -2072,13 +2130,13 @@ abstract class HttpClientResponse implements Stream<List<int>> {
    * Returns the certificate of the HTTPS server providing the response.
    * Returns null if the connection is not a secure TLS or SSL connection.
    */
-  X509Certificate get certificate;
+  X509Certificate? get certificate;
 
   /**
-   * Gets information about the client connection. Returns [:null:] if the socket
+   * Gets information about the client connection. Returns `null` if the socket
    * is not available.
    */
-  HttpConnectionInfo get connectionInfo;
+  HttpConnectionInfo? get connectionInfo;
 }
 
 /// Enum that specifies the compression state of the byte stream of an
@@ -2189,12 +2247,13 @@ abstract class DetachedSocket {
 
 class HttpException implements IOException {
   final String message;
-  final Uri uri;
+  final Uri? uri;
 
   const HttpException(this.message, {this.uri});
 
   String toString() {
     var b = new StringBuffer()..write('HttpException: ')..write(message);
+    var uri = this.uri;
     if (uri != null) {
       b.write(', uri = $uri');
     }
