@@ -55,7 +55,6 @@ ArgResults parseArguments(List<String> args) {
     defaultsTo: [],
     help: 'Shallow-clone the given git repositories into a playground area,'
         ' run pub get on them, and migrate them.',
-    splitCommas: true,
   );
 
   argParser.addMultiOption(
@@ -64,15 +63,13 @@ ArgResults parseArguments(List<String> args) {
     defaultsTo: [],
     help: 'Run migration against packages in these directories.  Does not '
         'run pub get, any git commands, or any other preparation.',
-    splitCommas: true,
   );
 
   argParser.addMultiOption(
     'packages',
     abbr: 'p',
     defaultsTo: [],
-    help: 'The list of packages to run the migration against.',
-    splitCommas: true,
+    help: 'The list of SDK packages to run the migration against.',
   );
 
   try {
@@ -127,29 +124,32 @@ main(List<String> args) async {
 
   var listener = _Listener(categoryOfInterest,
       printExceptionNodeOnly: parsedArgs['exception_node_only'] as bool);
+  assert(listener.numExceptions == 0);
   for (var package in packages) {
     print('Migrating $package');
     var testUri = thisSdkUri.resolve(package.packagePath);
     var contextCollection = AnalysisContextCollectionImpl(
         includedPaths: [testUri.toFilePath()], sdkPath: sdk.sdkPath);
 
-    var context = contextCollection.contexts.single;
-    var files = context.contextRoot
-        .analyzedFiles()
-        .where((s) => s.endsWith('.dart'))
-        .toList();
-    print('  ${files.length} files found');
+    var files = <String>{};
     var previousExceptionCount = listener.numExceptions;
-    var migration = NullabilityMigration(listener, permissive: true);
-    for (var file in files) {
-      var resolvedUnit = await context.currentSession.getResolvedUnit(file);
-      migration.prepareInput(resolvedUnit);
+    for (var context in contextCollection.contexts) {
+      var localFiles =
+          context.contextRoot.analyzedFiles().where((s) => s.endsWith('.dart'));
+      files.addAll(localFiles);
+      var migration = NullabilityMigration(listener, permissive: true);
+      for (var file in localFiles) {
+        var resolvedUnit = await context.currentSession.getResolvedUnit(file);
+        migration.prepareInput(resolvedUnit);
+      }
+      for (var file in localFiles) {
+        var resolvedUnit = await context.currentSession.getResolvedUnit(file);
+        migration.processInput(resolvedUnit);
+      }
+      migration.finish();
     }
-    for (var file in files) {
-      var resolvedUnit = await context.currentSession.getResolvedUnit(file);
-      migration.processInput(resolvedUnit);
-    }
-    migration.finish();
+
+    print('  ${files.length} files found');
     var exceptionCount = listener.numExceptions - previousExceptionCount;
     print('  $exceptionCount exceptions in this package');
   }

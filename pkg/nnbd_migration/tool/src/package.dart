@@ -109,7 +109,7 @@ class GitPackage extends Package {
     int indexOfName = pathParts.lastIndexOf('git') - 1;
     if (indexOfName < 0) {
       throw ArgumentError(
-          'GitPackage can not figure out the name, pass it in manually');
+          'GitPackage can not figure out the name for $clonePath, pass it in manually?');
     }
     return pathParts[indexOfName];
   }

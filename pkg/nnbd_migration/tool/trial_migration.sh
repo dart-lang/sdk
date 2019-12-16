@@ -7,5 +7,20 @@
 
 TRIAL_MIGRATION=`dirname "$0"`/trial_migration.dart
 
+# Priority One, Group One
+p1g1 () {
+  for n in charcode collection logging path pedantic term_glyph typed_data ; do
+    echo "-g https://dart.googlesource.com/${n}.git"
+  done
+  # Some packages do not have googlesource mirrors, use github directly.
+  echo "-g https://github.com/google/vector_math.dart.git"
+  # SDK-only packages.
+  echo "-p meta"
+}
+
+
 # The current "official" set of parameters for the trial_migration script.
-exec dart --enable-asserts ${TRIAL_MIGRATION} -p charcode,collection,logging,meta,path,term_glyph,typed_data,async,source_span,stack_trace,matcher,stream_channel,boolean_selector,test/pkgs/test_api "$@"
+set -x
+dart --enable-asserts ${TRIAL_MIGRATION} \
+  $(p1g1) \
+  "$@"
