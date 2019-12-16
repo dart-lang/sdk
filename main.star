@@ -300,7 +300,6 @@ def dart_try_builder(name,
     dimensions.setdefault("host_class", "default")
     dimensions.setdefault("cpu", "x86-64")
     properties.setdefault("clobber", "true")
-    properties.setdefault("$depot_tools/osx_sdk", {"sdk_version": "9c40b"})
     builder = name + "-try"
 
     luci.builder(
@@ -358,7 +357,6 @@ def dart_builder(name,
     dimensions.setdefault("pool", "luci.dart.try")
     dimensions["cpu"] = cpu
     properties.setdefault("clobber", "true")
-    properties.setdefault("$depot_tools/osx_sdk", {"sdk_version": "9c40b"})
 
     def builder(channel=None, triggered_by=None):
         if channel == "try":
