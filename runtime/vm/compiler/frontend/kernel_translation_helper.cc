@@ -2780,12 +2780,9 @@ void TypeTranslator::BuildTypeInternal() {
       break;
     case kNeverType: {
       const Nullability nullability = helper_->ReadNullability();
-      if (nullability != Nullability::kNullable) {
-        result_ = Object::never_type().raw();
-        break;
-      }
+      result_ = Object::never_type().ToNullability(nullability, Heap::kOld);
+      break;
     }
-      FALL_THROUGH;  // Map nullable Never type to Null type.
     case kBottomType:
       // Map Bottom type to Null type until not emitted by CFE anymore.
       result_ = I->object_store()->null_type();

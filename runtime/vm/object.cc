@@ -1044,11 +1044,7 @@ void Object::Init(Isolate* isolate) {
   void_type_->SetCanonical();
 
   cls = never_class_;
-  *never_type_ = Type::New(cls, Object::null_type_arguments(),
-                           TokenPosition::kNoSource, Nullability::kNonNullable);
-  never_type_->SetIsFinalized();
-  never_type_->ComputeHash();
-  never_type_->SetCanonical();
+  *never_type_ = Type::NewNonParameterizedType(cls);
 
   // Since TypeArguments objects are passed as function arguments, make them
   // behave as Dart instances, although they are just VM objects.
@@ -4433,7 +4429,7 @@ void Class::set_constants(const Array& value) const {
 }
 
 void Class::set_declaration_type(const Type& value) const {
-  ASSERT(!(id() >= kDynamicCid && id() <= kNeverCid));
+  ASSERT(id() != kDynamicCid && id() != kVoidCid);
   ASSERT(!value.IsNull() && value.IsCanonical() && value.IsOld());
   ASSERT((declaration_type() == Object::null()) ||
          (declaration_type() == value.raw()));  // Set during own finalization.
@@ -4457,9 +4453,6 @@ RawType* Class::DeclarationType() const {
   }
   if (IsVoidClass()) {
     return Type::VoidType();
-  }
-  if (IsNeverClass()) {
-    return Type::NeverType();
   }
   if (declaration_type() != Type::null()) {
     return declaration_type();
@@ -17244,8 +17237,7 @@ RawAbstractType* AbstractType::CheckInstantiatedNullability(
     }
   } else {
     const classid_t cid = type_class_id();
-    if (cid == kDynamicCid || cid == kVoidCid || cid == kNeverCid ||
-        cid == kNullCid) {
+    if (cid == kDynamicCid || cid == kVoidCid || cid == kNullCid) {
       // Do not force result to kLegacy.
       return raw();
     }
@@ -17886,9 +17878,6 @@ RawType* Type::NewNonParameterizedType(const Class& type_class) {
   if (type_class.IsVoidClass()) {
     return Type::VoidType();
   }
-  if (type_class.IsNeverClass()) {
-    return Type::NeverType();
-  }
   // It is too early to use the class finalizer, as type_class may not be named
   // yet, so do not call DeclarationType().
   Type& type = Type::Handle(type_class.declaration_type());
@@ -17934,13 +17923,6 @@ RawType* Type::ToNullability(Nullability value, Heap::Space space) const {
   // instantiating a non-nullable type parameter (TypeError thrown).
   const classid_t cid = type_class_id();
   if (cid == kDynamicCid || cid == kVoidCid || cid == kNullCid) {
-    return raw();
-  }
-  if (cid == kNeverCid) {
-    if (value == Nullability::kNullable) {
-      // Map nullable Never type to Null type.
-      return Type::NullType();
-    }
     return raw();
   }
   // Clone type and set new nullability.
@@ -18296,11 +18278,6 @@ RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
     return Object::void_type().raw();
   }
 
-  if (cid == kNeverCid) {
-    ASSERT(Object::never_type().IsCanonical());
-    return Object::never_type().raw();
-  }
-
   const Class& cls = Class::Handle(zone, type_class());
 
   // Fast canonical lookup/registry for simple types.
@@ -18427,9 +18404,6 @@ bool Type::CheckIsCanonical(Thread* thread) const {
   }
   if (cid == kVoidCid) {
     return (raw() == Object::void_type().raw());
-  }
-  if (cid == kNeverCid) {
-    return (raw() == Object::never_type().raw());
   }
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();

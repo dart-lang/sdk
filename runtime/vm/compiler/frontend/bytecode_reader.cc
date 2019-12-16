@@ -1668,9 +1668,7 @@ RawObject* BytecodeReaderHelper::ReadType(intptr_t tag,
     case kVoid:
       return AbstractType::void_type().raw();
     case kNever:
-      // Nullable Never type should have been mapped to Null type.
-      ASSERT(nullability == Nullability::kNonNullable);
-      return AbstractType::never_type().raw();
+      return AbstractType::never_type().ToNullability(nullability, Heap::kOld);
     case kSimpleType: {
       const Class& cls = Class::CheckedHandle(Z, ReadObject());
       if (!cls.is_declaration_loaded()) {
