@@ -108,7 +108,7 @@ main() {
     }
   };
   Future<num> g = f();
-  Future<int> h = /*info:ASSIGNMENT_CAST*/f();
+  Future<int> h = f();
 }
 ''');
     var f = findLocalVariable(unit, 'f');
@@ -131,7 +131,7 @@ main() {
     }
   };
   Future<num> g = f();
-  Future<int> h = /*info:ASSIGNMENT_CAST*/f();
+  Future<int> h = f();
 }
 ''');
     var f = findLocalVariable(unit, 'f');
@@ -154,7 +154,7 @@ main() {
     }
   };
   Future<num> g = f();
-  Future<int> h = /*info:ASSIGNMENT_CAST*/f();
+  Future<int> h = f();
 }
 ''');
     var f = findLocalVariable(unit, 'f');
@@ -174,7 +174,7 @@ main() {
     yield* s;
   };
   Stream<num> g = f();
-  Stream<int> h = /*info:ASSIGNMENT_CAST*/f();
+  Stream<int> h = f();
 }
 ''');
     var f = findLocalVariable(unit, 'f');
@@ -303,7 +303,7 @@ test2() {
     }
   });
   Iterable<num> w = y;
-  Iterable<int> z = /*info:ASSIGNMENT_CAST*/y;
+  Iterable<int> z = y;
 }
 ''');
   }
@@ -350,7 +350,7 @@ main() {
     yield* /*info:INFERRED_TYPE_LITERAL*/[3, 4.0];
   };
   Iterable<num> g = f();
-  Iterable<int> h = /*info:ASSIGNMENT_CAST*/f();
+  Iterable<int> h = f();
 }
 ''');
     var f = findLocalVariable(unit, 'f');
@@ -512,7 +512,7 @@ main() {
   var x = /*info:INFERRED_TYPE_ALLOCATION*/new C(42);
 
   num y;
-  C<int> c_int = /*info:INFERRED_TYPE_ALLOCATION*/new C(/*info:DOWN_CAST_IMPLICIT*/y);
+  C<int> c_int = /*info:INFERRED_TYPE_ALLOCATION*/new C(y);
 
   // These hints are not reported because we resolve with a null error listener.
   C<num> c_num = /*info:INFERRED_TYPE_ALLOCATION*/new C(123);
@@ -750,8 +750,8 @@ class B implements A {
 }
 
 foo() {
-  String y = /*info:DYNAMIC_CAST*/new B().x;
-  int z = /*info:DYNAMIC_CAST*/new B().x;
+  String y = new B().x;
+  int z = new B().x;
 }
 ''');
   }
@@ -806,8 +806,8 @@ main() {
   num x;
   dynamic y;
 
-  num a = max(x, /*info:DYNAMIC_CAST*/y);
-  Object b = max(x, /*info:DYNAMIC_CAST*/y);
+  num a = max(x, y);
+  Object b = max(x, y);
   dynamic c = /*error:COULD_NOT_INFER*/max(x, y);
   var d = /*error:COULD_NOT_INFER*/max(x, y);
 }''');
@@ -881,9 +881,9 @@ void main() {
 import 'dart:async';
 Future test() async {
   dynamic d;
-  List<int> l0 = await /*info:INFERRED_TYPE_LITERAL*/[/*info:DYNAMIC_CAST*/d];
+  List<int> l0 = await /*info:INFERRED_TYPE_LITERAL*/[d];
   List<int> l1 = await /*info:INFERRED_TYPE_ALLOCATION*/new Future.value(
-      /*info:INFERRED_TYPE_LITERAL*/[/*info:DYNAMIC_CAST*/d]);
+      /*info:INFERRED_TYPE_LITERAL*/[d]);
 }
 ''');
   }
@@ -1032,7 +1032,7 @@ void main () {
     Function2<int, int> l0 = /*info:INFERRED_TYPE_CLOSURE*/(x) => x;
     Function2<int, int> l1 = /*info:INFERRED_TYPE_CLOSURE*/(x) => x+1;
     Function2<int, String> l2 = /*info:INFERRED_TYPE_CLOSURE*/(x) => /*error:RETURN_OF_INVALID_TYPE_FROM_CLOSURE*/x;
-    Function2<int, String> l3 = /*info:INFERRED_TYPE_CLOSURE*/(x) => /*info:DYNAMIC_CAST, info:DYNAMIC_INVOKE*/x./*error:UNDEFINED_METHOD*/substring(3);
+    Function2<int, String> l3 = /*info:INFERRED_TYPE_CLOSURE*/(x) => /*info:DYNAMIC_INVOKE*/x./*error:UNDEFINED_METHOD*/substring(3);
     Function2<String, String> l4 = /*info:INFERRED_TYPE_CLOSURE*/(x) => x.substring(3);
   }
 }
@@ -1182,7 +1182,7 @@ void main () {
     x = /*info:INFERRED_TYPE_CLOSURE, info:INFERRED_TYPE_CLOSURE*/<T>(x) => x+1;
     var y = int2String;
     y = /*info:INFERRED_TYPE_CLOSURE, info:INFERRED_TYPE_CLOSURE*/<T>(x) => /*error:RETURN_OF_INVALID_TYPE_FROM_CLOSURE*/x;
-    y = /*info:INFERRED_TYPE_CLOSURE, info:INFERRED_TYPE_CLOSURE*/<T>(x) => /*info:DYNAMIC_INVOKE, info:DYNAMIC_CAST*/x./*error:UNDEFINED_METHOD*/substring(3);
+    y = /*info:INFERRED_TYPE_CLOSURE, info:INFERRED_TYPE_CLOSURE*/<T>(x) => /*info:DYNAMIC_INVOKE*/x./*error:UNDEFINED_METHOD*/substring(3);
     var z = string2String;
     z = /*info:INFERRED_TYPE_CLOSURE, info:INFERRED_TYPE_CLOSURE*/<T>(x) => x.substring(3);
   }
@@ -1600,11 +1600,11 @@ void main() {
   $downwards<int> t1 = f.then(/*info:INFERRED_TYPE_CLOSURE, info:INFERRED_TYPE_CLOSURE*/
       (x) async => x ? 2 : await new $upwards<int>.value(3));
   $downwards<int> t2 = f.then(/*info:INFERRED_TYPE_CLOSURE,info:INFERRED_TYPE_CLOSURE*/(x) async { // TODO(leafp): Why the duplicate here?
-    return /*info:DOWN_CAST_COMPOSITE*/await x ? 2 : new $upwards<int>.value(3);});
+    return await x ? 2 : new $upwards<int>.value(3);});
   $downwards<int> t5 = f.then(/*info:INFERRED_TYPE_CLOSURE*/
-      (x) => /*info:DOWN_CAST_COMPOSITE*/x ? 2 : new $upwards<int>.value(3));
+      (x) => x ? 2 : new $upwards<int>.value(3));
   $downwards<int> t6 = f.then(/*info:INFERRED_TYPE_CLOSURE*/
-      (x) {return /*info:DOWN_CAST_COMPOSITE*/x ? 2 : new $upwards<int>.value(3);});
+      (x) {return x ? 2 : new $upwards<int>.value(3);});
 }
 ''';
     await checkFileElement(
@@ -1627,7 +1627,7 @@ void main() {
 import 'dart:async';
 main() {
   Future<int> f;
-  Future<List<int>> b = /*info:ASSIGNMENT_CAST should be pass*/f
+  Future<List<int>> b = f
       .then(/*info:INFERRED_TYPE_CLOSURE, info:INFERRED_TYPE_CLOSURE*/(x) => [])
       .whenComplete(/*info:INFERRED_TYPE_CLOSURE*/() {});
   b = f.then(/*info:INFERRED_TYPE_CLOSURE, info:INFERRED_TYPE_CLOSURE*/(x) => /*info:INFERRED_TYPE_LITERAL*/[]);
@@ -1712,12 +1712,12 @@ class MyFuture<T> implements Future<T> {
 }
 
 $downwards<int> g1(bool x) async {
-  return /*info:DOWN_CAST_COMPOSITE*/x ? 42 : /*info:INFERRED_TYPE_ALLOCATION*/new $upwards.value(42); }
+  return x ? 42 : /*info:INFERRED_TYPE_ALLOCATION*/new $upwards.value(42); }
 $downwards<int> g2(bool x) async =>
-  /*info:DOWN_CAST_COMPOSITE*/x ? 42 : /*info:INFERRED_TYPE_ALLOCATION*/new $upwards.value(42);
+  x ? 42 : /*info:INFERRED_TYPE_ALLOCATION*/new $upwards.value(42);
 $downwards<int> g3(bool x) async {
   var y = x ? 42 : ${expectedInfo}new $upwards.value(42);
-  return /*info:DOWN_CAST_COMPOSITE*/y;
+  return y;
 }
     ''';
     await checkFileElement(build(
@@ -1878,7 +1878,7 @@ main() {
   printDouble(min(1.0, 2.0));
 
   // No help for user-defined functions from num->num->num.
-  printInt(/*info:DOWN_CAST_IMPLICIT*/myMax(1, 2));
+  printInt(myMax(1, 2));
   printInt(myMax(1, 2) as int);
 
   // An int context means doubles are rejected
@@ -1906,7 +1906,7 @@ class D extends C {
 /*error:INVALID_OVERRIDE*/m(x) => x;
 }
 main() {
-  int y = /*info:DYNAMIC_CAST*/new D()./*error:WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD*/m<int>(42);
+  int y = new D()./*error:WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD*/m<int>(42);
   print(y);
 }
 ''');
@@ -1931,13 +1931,13 @@ void main() {
   List<int> o;
   int y = o.fold(0, /*info:INFERRED_TYPE_CLOSURE*/(x, y) => x + y);
   var z = o.fold(0, /*info:INFERRED_TYPE_CLOSURE, info:INFERRED_TYPE_CLOSURE*/(x, y) => /*info:DYNAMIC_INVOKE*/x + y);
-  y = /*info:DYNAMIC_CAST*/z;
+  y = z;
 }
 void functionExpressionInvocation() {
   List<int> o;
   int y = (o.fold)(0, /*info:INFERRED_TYPE_CLOSURE*/(x, y) => x + y);
   var z = (o.fold)(0, /*info:INFERRED_TYPE_CLOSURE, info:INFERRED_TYPE_CLOSURE*/(x, y) => /*info:DYNAMIC_INVOKE*/x + y);
-  y = /*info:DYNAMIC_CAST*/z;
+  y = z;
 }
 ''');
   }
@@ -1954,7 +1954,7 @@ class D extends C {
   T /*error:INVALID_OVERRIDE*/g<T>(T x) => x;
 }
 main() {
-  int y = /*info:DYNAMIC_CAST*/(/*info:UNNECESSARY_CAST*/new D() as C).m(42);
+  int y = (/*info:UNNECESSARY_CAST*/new D() as C).m(42);
   print(y);
 }
 ''');
@@ -2075,14 +2075,14 @@ takeDDO(new C().m);
 // That's legal because we're loosening parameter types.
 //
 // We do issue the inference error though, similar to generic function calls.
-takeOON(/*error:COULD_NOT_INFER,info:DOWN_CAST_COMPOSITE*/new C().m);
-takeOOO(/*error:COULD_NOT_INFER,info:DOWN_CAST_COMPOSITE*/new C().m);
+takeOON(/*error:COULD_NOT_INFER*/new C().m);
+takeOOO(/*error:COULD_NOT_INFER*/new C().m);
 
 // Note: this is a warning because a downcast of a method tear-off could work
 // in "normal" Dart, due to bivariance.
 //
 // We do issue the inference error though, similar to generic function calls.
-takeOOI(/*error:COULD_NOT_INFER,info:DOWN_CAST_COMPOSITE*/new C().m);
+takeOOI(/*error:COULD_NOT_INFER*/new C().m);
 
 takeIDI(/*error:COULD_NOT_INFER,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/new C().m);
 takeDID(/*error:COULD_NOT_INFER,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/new C().m);
@@ -2145,7 +2145,7 @@ main() {
   Iterable<Future<int>> list = <int>[1, 2, 3].map(make);
   Future<List<int>> results = Future.wait(list);
   Future<String> results2 = results.then(/*info:INFERRED_TYPE_CLOSURE*/(List<int> list)
-    => list.fold('', /*info:INFERRED_TYPE_CLOSURE*/(x, y) => /*info:DYNAMIC_CAST,info:DYNAMIC_INVOKE*/x /*error:UNDEFINED_OPERATOR*/+ y.toString()));
+    => list.fold('', /*info:INFERRED_TYPE_CLOSURE*/(x, y) => /*info:DYNAMIC_INVOKE*/x /*error:UNDEFINED_OPERATOR*/+ y.toString()));
 
   Future<String> results3 = results.then(/*info:INFERRED_TYPE_CLOSURE*/(List<int> list)
     => list.fold('', /*info:INFERRED_TYPE_CLOSURE, info:INFERRED_TYPE_CLOSURE, error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/(String x, y) => x + y.toString()));
@@ -2458,12 +2458,12 @@ foo() {
   String s;
   int i;
 
-  s = /*info:DYNAMIC_CAST*/new B().x;
+  s = new B().x;
   s = /*error:INVALID_ASSIGNMENT*/new B().y;
   s = new B().z;
   s = /*error:INVALID_ASSIGNMENT*/new B().w;
 
-  i = /*info:DYNAMIC_CAST*/new B().x;
+  i = new B().x;
   i = new B().y;
   i = /*error:INVALID_ASSIGNMENT*/new B().z;
   i = new B().w;
@@ -2528,8 +2528,8 @@ class B implements A {
 }
 
 foo() {
-  String y = /*info:DYNAMIC_CAST*/new B().x;
-  int z = /*info:DYNAMIC_CAST*/new B().x;
+  String y = new B().x;
+  int z = new B().x;
 }
 ''');
   }
@@ -2545,8 +2545,8 @@ class B implements A {
 }
 
 foo() {
-  String y = /*info:DYNAMIC_CAST*/new B().x;
-  int z = /*info:DYNAMIC_CAST*/new B().x;
+  String y = new B().x;
+  int z = new B().x;
 }
 ''');
   }
@@ -2681,17 +2681,17 @@ class Foo<T> {
 main() {
   // List inside map
   var map = <String, List<Folder>>{
-    'pkgA': /*info:INFERRED_TYPE_LITERAL*/[/*info:DOWN_CAST_IMPLICIT*/getResource('/pkgA/lib/')],
-    'pkgB': /*info:INFERRED_TYPE_LITERAL*/[/*info:DOWN_CAST_IMPLICIT*/getResource('/pkgB/lib/')]
+    'pkgA': /*info:INFERRED_TYPE_LITERAL*/[getResource('/pkgA/lib/')],
+    'pkgB': /*info:INFERRED_TYPE_LITERAL*/[getResource('/pkgB/lib/')]
   };
   // Also try map inside list
   var list = <Map<String, Folder>>[
-    /*info:INFERRED_TYPE_LITERAL*/{ 'pkgA': /*info:DOWN_CAST_IMPLICIT*/getResource('/pkgA/lib/') },
-    /*info:INFERRED_TYPE_LITERAL*/{ 'pkgB': /*info:DOWN_CAST_IMPLICIT*/getResource('/pkgB/lib/') },
+    /*info:INFERRED_TYPE_LITERAL*/{ 'pkgA': getResource('/pkgA/lib/') },
+    /*info:INFERRED_TYPE_LITERAL*/{ 'pkgB': getResource('/pkgB/lib/') },
   ];
   // Instance creation too
   var foo = new Foo<List<Folder>>(
-    /*info:INFERRED_TYPE_LITERAL*/[/*info:DOWN_CAST_IMPLICIT*/getResource('/pkgA/lib/')]
+    /*info:INFERRED_TYPE_LITERAL*/[getResource('/pkgA/lib/')]
   );
 }
 ''');
@@ -3387,8 +3387,8 @@ class B implements A<int> {
 }
 
 foo() {
-  String y = /*info:DYNAMIC_CAST*/new B().x;
-  int z = /*info:DYNAMIC_CAST*/new B().x;
+  String y = new B().x;
+  int z = new B().x;
 }
 ''');
   }
@@ -3458,7 +3458,7 @@ test() {
   }
 
   for (dynamic x in list) {
-    String y = /*info:DYNAMIC_CAST*/x;
+    String y = x;
   }
 
   for (String x in /*error:FOR_IN_OF_INVALID_ELEMENT_TYPE*/list) {
@@ -3467,23 +3467,23 @@ test() {
 
   var z;
   for(z in list) {
-    String y = /*info:DYNAMIC_CAST*/z;
+    String y = z;
   }
 
   Iterable iter = list;
-  for (Foo /*info:DYNAMIC_CAST*/x in iter) {
+  for (Foo x in iter) {
     var y = x;
   }
 
   dynamic iter2 = list;
-  for (Foo /*info:DYNAMIC_CAST*/x in /*info:DYNAMIC_CAST*/iter2) {
+  for (Foo x in iter2) {
     var y = x;
   }
 
   var map = <String, Foo>{};
   // Error: map must be an Iterable.
   for (var x in /*error:FOR_IN_OF_INVALID_TYPE*/map) {
-    String y = /*info:DYNAMIC_CAST*/x;
+    String y = x;
   }
 
   // We're not properly inferring that map.keys is an Iterable<String>
@@ -3694,7 +3694,7 @@ test2() {
   var x = /*info:INFERRED_TYPE_LITERAL*/[1, 2.0, 3];
   x.add(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/'hi');
   x.add(4.0);
-  List<int> y = /*info:ASSIGNMENT_CAST*/x;
+  List<int> y = x;
 }
 ''');
   }
@@ -3712,7 +3712,7 @@ var x2 = /*info:INFERRED_TYPE_LITERAL*/[1, 2.0, 3];
 test2() {
   x2.add(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/'hi');
   x2.add(4.0);
-  List<int> y = /*info:ASSIGNMENT_CAST*/x2;
+  List<int> y = x2;
 }
 ''');
   }
@@ -3758,7 +3758,7 @@ test2() {
   x[3] = /*error:INVALID_ASSIGNMENT*/42;
   Pattern p = null;
   x[2] = p;
-  Map<int, String> y = /*info:ASSIGNMENT_CAST*/x;
+  Map<int, String> y = x;
 }
 ''');
   }
@@ -3782,7 +3782,7 @@ test2() {
   x2[3] = /*error:INVALID_ASSIGNMENT*/42;
   Pattern p = null;
   x2[2] = p;
-  Map<int, String> y = /*info:ASSIGNMENT_CAST*/x2;
+  Map<int, String> y = x2;
 }
 ''');
   }
@@ -3934,7 +3934,7 @@ class A {
 
 test() {
   dynamic a = new A();
-  A b = /*info:DYNAMIC_CAST*/a;
+  A b = a;
   print(/*info:DYNAMIC_INVOKE*/a.x);
   print(/*info:DYNAMIC_INVOKE*/(/*info:DYNAMIC_INVOKE*/a.x) + 2);
 }

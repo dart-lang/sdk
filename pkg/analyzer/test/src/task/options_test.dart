@@ -350,7 +350,7 @@ analyzer:
     validate('''
 analyzer:
   errors:
-    assignment_cast: ignore
+    invalid_cast_method: ignore
 ''', []);
   }
 

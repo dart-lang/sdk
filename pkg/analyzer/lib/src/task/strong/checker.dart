@@ -1063,38 +1063,6 @@ class CodeChecker extends RecursiveAstVisitor {
         return;
       }
     }
-
-    // Composite cast: these are more likely to fail.
-    bool downCastComposite = false;
-    if (!rules.isGroundType(to)) {
-      // This cast is (probably) due to our different treatment of dynamic.
-      // It may be more likely to fail at runtime.
-      if (from is InterfaceType) {
-        // For class types, we'd like to allow non-generic down casts, e.g.,
-        // Iterable<T> to List<T>.  The intuition here is that raw (generic)
-        // casts are problematic, and we should complain about those.
-        var typeArgs = from.typeArguments;
-        downCastComposite =
-            typeArgs.isEmpty || typeArgs.any((t) => t.isDynamic);
-      } else {
-        downCastComposite = !from.isDynamic;
-      }
-    }
-
-    var parent = expr.parent;
-    ErrorCode errorCode;
-    if (downCastComposite) {
-      errorCode = StrongModeCode.DOWN_CAST_COMPOSITE;
-    } else if (from.isDynamic) {
-      errorCode = StrongModeCode.DYNAMIC_CAST;
-    } else if (parent is VariableDeclaration && parent.initializer == expr) {
-      errorCode = StrongModeCode.ASSIGNMENT_CAST;
-    } else {
-      errorCode = opAssign
-          ? StrongModeCode.DOWN_CAST_IMPLICIT_ASSIGN
-          : StrongModeCode.DOWN_CAST_IMPLICIT;
-    }
-    _recordMessage(expr, errorCode, [from, to]);
   }
 
   void _recordMessage(AstNode node, ErrorCode errorCode, List arguments) {

@@ -61,7 +61,6 @@ import 'deprecated_function_class_declaration_test.dart'
 import 'deprecated_member_use_test.dart' as deprecated_member_use;
 import 'deprecated_mixin_function_test.dart' as deprecated_mixin_function;
 import 'division_optimization_test.dart' as division_optimization;
-import 'down_cast_composite_test.dart' as down_cast_composite;
 import 'duplicate_definition_test.dart' as duplicate_definition;
 import 'duplicate_hidden_name_test.dart' as duplicate_hidden_name;
 import 'duplicate_import_test.dart' as duplicate_import;
@@ -442,7 +441,6 @@ main() {
     deprecated_member_use.main();
     deprecated_mixin_function.main();
     division_optimization.main();
-    down_cast_composite.main();
     duplicate_definition.main();
     duplicate_hidden_name.main();
     duplicate_import.main();

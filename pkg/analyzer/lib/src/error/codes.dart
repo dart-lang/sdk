@@ -8599,14 +8599,6 @@ class StaticWarningCodeWithUniqueName extends StaticWarningCode {
  * levels, so they are grouped for clarity.
  */
 class StrongModeCode extends ErrorCode {
-  static const String _implicitCastMessage =
-      "Unsafe implicit cast from '{0}' to '{1}'. "
-      "This usually indicates that type information was lost and resulted in "
-      "'dynamic' and/or a place that will have a failure at runtime.";
-
-  static const String _implicitCastCorrection =
-      "Try adding an explicit cast to '{1}' or improving the type of '{0}'.";
-
   /**
    * This is appended to the end of an error message about implicit dynamic.
    *
@@ -8619,26 +8611,6 @@ class StrongModeCode extends ErrorCode {
       "enable implicit-dynamic in your analysis options file.";
 
   static const String _inferredTypeMessage = "'{0}' has inferred type '{1}'.";
-
-  static const StrongModeCode DOWN_CAST_COMPOSITE = StrongModeCode(
-      ErrorType.HINT, 'DOWN_CAST_COMPOSITE', _implicitCastMessage,
-      correction: _implicitCastCorrection);
-
-  static const StrongModeCode DOWN_CAST_IMPLICIT = StrongModeCode(
-      ErrorType.HINT, 'DOWN_CAST_IMPLICIT', _implicitCastMessage,
-      correction: _implicitCastCorrection);
-
-  static const StrongModeCode DOWN_CAST_IMPLICIT_ASSIGN = StrongModeCode(
-      ErrorType.HINT, 'DOWN_CAST_IMPLICIT_ASSIGN', _implicitCastMessage,
-      correction: _implicitCastCorrection);
-
-  static const StrongModeCode DYNAMIC_CAST = StrongModeCode(
-      ErrorType.HINT, 'DYNAMIC_CAST', _implicitCastMessage,
-      correction: _implicitCastCorrection);
-
-  static const StrongModeCode ASSIGNMENT_CAST = StrongModeCode(
-      ErrorType.HINT, 'ASSIGNMENT_CAST', _implicitCastMessage,
-      correction: _implicitCastCorrection);
 
   static const StrongModeCode INVALID_PARAMETER_DECLARATION = StrongModeCode(
       ErrorType.COMPILE_TIME_ERROR,
