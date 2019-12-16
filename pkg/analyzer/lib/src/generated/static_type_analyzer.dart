@@ -17,6 +17,7 @@ import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/generated/element_type_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -78,6 +79,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
 
   final FlowAnalysisHelper _flowAnalysis;
 
+  final ElementTypeProvider _elementTypeProvider = const ElementTypeProvider();
+
   /**
    * Initialize a newly created static type analyzer to analyze types for the
    * [_resolver] based on the
@@ -130,6 +133,30 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   }
 
   /**
+   * Given a constructor for a generic type, returns the equivalent generic
+   * function type that we could use to forward to the constructor, or for a
+   * non-generic type simply returns the constructor type.
+   *
+   * For example given the type `class C<T> { C(T arg); }`, the generic function
+   * type is `<T>(T) -> C<T>`.
+   */
+  FunctionType constructorToGenericFunctionType(
+      ConstructorElement constructor) {
+    var classElement = constructor.enclosingElement;
+    var typeParameters = classElement.typeParameters;
+    if (typeParameters.isEmpty) {
+      return _elementTypeProvider.getExecutableType(constructor);
+    }
+
+    return FunctionTypeImpl(
+      typeFormals: typeParameters,
+      parameters: _elementTypeProvider.getExecutableParameters(constructor),
+      returnType: _elementTypeProvider.getExecutableReturnType(constructor),
+      nullabilitySuffix: NullabilitySuffix.star,
+    );
+  }
+
+  /**
    * Given a constructor name [node] and a type [type], record an inferred type
    * for the constructor if in strong mode. This is used to fill in any
    * inferred type parameters found by the resolver.
@@ -165,7 +192,9 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       void inferType(ParameterElementImpl p, DartType inferredType) {
         // Check that there is no declared type, and that we have not already
         // inferred a type in some fashion.
-        if (p.hasImplicitType && (p.type == null || p.type.isDynamic)) {
+        if (p.hasImplicitType &&
+            (_elementTypeProvider.getVariableType(p) == null ||
+                _elementTypeProvider.getVariableType(p).isDynamic)) {
           inferredType = _typeSystem.upperBoundForType(inferredType);
           if (inferredType.isDartCoreNull) {
             inferredType = _typeProvider.objectType;
@@ -184,7 +213,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
         Iterator<ParameterElement> fnPositional =
             functionType.parameters.where((p) => p.isPositional).iterator;
         while (positional.moveNext() && fnPositional.moveNext()) {
-          inferType(positional.current, fnPositional.current.type);
+          inferType(positional.current,
+              _elementTypeProvider.getVariableType(fnPositional.current));
         }
       }
 
@@ -396,7 +426,9 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       _recordStaticType(node, _nonNullable(_typeProvider.boolType));
     } else {
       var operatorElement = node.staticElement;
-      var type = operatorElement?.returnType ?? _dynamicType;
+      var type =
+          _elementTypeProvider.safeExecutableReturnType(operatorElement) ??
+              _dynamicType;
       type = _typeSystem.refineBinaryExpressionType(
         _getStaticType(node.leftHandSide, read: true),
         operator,
@@ -572,7 +604,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       functionElement.returnType =
           _computeStaticReturnTypeOfFunctionDeclaration(node);
     }
-    _recordStaticType(function, functionElement.type);
+    _recordStaticType(
+        function, _elementTypeProvider.getExecutableType(functionElement));
   }
 
   /**
@@ -644,12 +677,13 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   void visitIndexExpression(IndexExpression node) {
     DartType type;
     if (node.inSetterContext()) {
-      var parameters = node.staticElement?.parameters;
+      var parameters =
+          _elementTypeProvider.safeExecutableParameters(node.staticElement);
       if (parameters?.length == 2) {
-        type = parameters[1].type;
+        type = _elementTypeProvider.getVariableType(parameters[1]);
       }
     } else {
-      type = node.staticElement?.returnType;
+      type = _elementTypeProvider.safeExecutableReturnType(node.staticElement);
     }
 
     type ??= _dynamicType;
@@ -920,13 +954,13 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       }
       return;
     } else if (staticElement is MethodElement) {
-      staticType = staticElement.type;
+      staticType = _elementTypeProvider.getExecutableType(staticElement);
     } else if (staticElement is PropertyAccessorElement) {
       staticType = _getTypeOfProperty(staticElement);
     } else if (staticElement is ExecutableElement) {
-      staticType = staticElement.type;
+      staticType = _elementTypeProvider.getExecutableType(staticElement);
     } else if (staticElement is VariableElement) {
-      staticType = staticElement.type;
+      staticType = _elementTypeProvider.getVariableType(staticElement);
     }
 
     staticType = _inferTearOff(node, node.identifier, staticType);
@@ -1016,7 +1050,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     Element staticElement = propertyName.staticElement;
     DartType staticType = _dynamicType;
     if (staticElement is MethodElement) {
-      staticType = staticElement.type;
+      staticType = _elementTypeProvider.getExecutableType(staticElement);
     } else if (staticElement is PropertyAccessorElement) {
       staticType = _getTypeOfProperty(staticElement);
     } else {
@@ -1155,11 +1189,11 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       }
       return;
     } else if (element is MethodElement) {
-      staticType = element.type;
+      staticType = _elementTypeProvider.getExecutableType(element);
     } else if (element is PropertyAccessorElement) {
       staticType = _getTypeOfProperty(element);
     } else if (element is ExecutableElement) {
-      staticType = element.type;
+      staticType = _elementTypeProvider.getExecutableType(element);
     } else if (element is TypeParameterElement) {
       staticType = _nonNullable(_typeProvider.typeType);
     } else if (element is VariableElement) {
@@ -1342,7 +1376,9 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     if (type is InterfaceType) {
       MethodElement callMethod = type.lookUpMethod2(
           FunctionElement.CALL_METHOD_NAME, _resolver.definingLibrary);
-      returnType = callMethod?.type?.returnType ?? _dynamicType;
+      returnType =
+          _elementTypeProvider.safeExecutableType(callMethod)?.returnType ??
+              _dynamicType;
     } else if (type is FunctionType) {
       returnType = type.returnType ?? _dynamicType;
     } else {
@@ -1393,13 +1429,16 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       // This is a function invocation expression disguised as something else.
       // We are invoking a getter and then invoking the returned function.
       //
-      FunctionType propertyType = element.type;
+      FunctionType propertyType =
+          _elementTypeProvider.getExecutableType(element);
       if (propertyType != null) {
         return _computeInvokeReturnType(propertyType.returnType,
             isNullAware: false);
       }
     } else if (element is ExecutableElement) {
-      return _computeInvokeReturnType(element.type, isNullAware: false);
+      return _computeInvokeReturnType(
+          _elementTypeProvider.getExecutableType(element),
+          isNullAware: false);
     }
     return _dynamicType;
   }
@@ -1459,7 +1498,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
    * equivalent to [_getStaticType].
    */
   DartType _getExpressionType(Expression expr, {bool read = false}) =>
-      getExpressionType(expr, _typeSystem, _typeProvider, read: read);
+      getExpressionType(expr, _typeSystem, _typeProvider,
+          read: read, elementTypeProvider: _elementTypeProvider);
 
   /**
    * If the given argument list contains at least one argument, and if the argument is a simple
@@ -1485,13 +1525,13 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   DartType _getStaticType(Expression expression, {bool read = false}) {
     DartType type;
     if (read) {
-      type = getReadType(expression);
+      type = getReadType(expression, elementTypeProvider: _elementTypeProvider);
     } else {
       if (expression is SimpleIdentifier && expression.inSetterContext()) {
         var element = expression.staticElement;
         if (element is PromotableElement) {
           // We're writing to the element so ignore promotions.
-          type = element.type;
+          type = _elementTypeProvider.getVariableType(element);
         } else {
           type = expression.staticType;
         }
@@ -1527,7 +1567,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
    * @return the type that should be recorded for a node that resolved to the given accessor
    */
   DartType _getTypeOfProperty(PropertyAccessorElement accessor) {
-    FunctionType functionType = accessor.type;
+    FunctionType functionType =
+        _elementTypeProvider.getExecutableType(accessor);
     if (functionType == null) {
       // TODO(brianwilkerson) Report this internal error. This happens when we
       // are analyzing a reference to a property before we have analyzed the
@@ -1542,7 +1583,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       }
       PropertyAccessorElement getter = accessor.variable.getter;
       if (getter != null) {
-        functionType = getter.type;
+        functionType = _elementTypeProvider.getExecutableType(getter);
         if (functionType != null) {
           return functionType.returnType;
         }
@@ -1739,7 +1780,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
         constructor.type.typeArguments, arguments, node.constructorName,
         isConst: node.isConst);
 
-    if (inferred != null && inferred != originalElement.type) {
+    if (inferred != null &&
+        inferred != _elementTypeProvider.getExecutableType(originalElement)) {
       // Fix up the parameter elements based on inferred method.
       arguments.correspondingStaticParameters =
           ResolverVisitor.resolveArgumentsToParameters(
@@ -1767,8 +1809,10 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
 
     computedType = _computeReturnTypeOfFunction(body, computedType);
     functionElement.returnType = computedType;
-    _recordStaticType(node, functionElement.type);
-    _resolver.inferenceContext.recordInference(node, functionElement.type);
+    _recordStaticType(
+        node, _elementTypeProvider.getExecutableType(functionElement));
+    _resolver.inferenceContext.recordInference(
+        node, _elementTypeProvider.getExecutableType(functionElement));
   }
 
   /**
@@ -1863,7 +1907,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     if (inferredElement == null || inferredElement.isStatic) {
       return false;
     }
-    DartType inferredType = inferredElement.type;
+    DartType inferredType =
+        _elementTypeProvider.getExecutableType(inferredElement);
     if (inferredType is FunctionType) {
       DartType returnType = inferredType.returnType;
       if (inferredType.parameters.isEmpty &&
@@ -1898,7 +1943,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     if (inferredElement == null || inferredElement.isStatic) {
       return false;
     }
-    DartType inferredType = inferredElement.type.returnType;
+    DartType inferredType =
+        _elementTypeProvider.getExecutableType(inferredElement).returnType;
     if (nodeType != null &&
         nodeType.isDynamic &&
         inferredType is InterfaceType &&
@@ -2161,30 +2207,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     return element.instantiate(
       typeArguments: typeArguments,
       nullabilitySuffix: _noneOrStarSuffix,
-    );
-  }
-
-  /**
-   * Given a constructor for a generic type, returns the equivalent generic
-   * function type that we could use to forward to the constructor, or for a
-   * non-generic type simply returns the constructor type.
-   *
-   * For example given the type `class C<T> { C(T arg); }`, the generic function
-   * type is `<T>(T) -> C<T>`.
-   */
-  static FunctionType constructorToGenericFunctionType(
-      ConstructorElement constructor) {
-    var classElement = constructor.enclosingElement;
-    var typeParameters = classElement.typeParameters;
-    if (typeParameters.isEmpty) {
-      return constructor.type;
-    }
-
-    return FunctionTypeImpl(
-      typeFormals: typeParameters,
-      parameters: constructor.parameters,
-      returnType: constructor.returnType,
-      nullabilitySuffix: NullabilitySuffix.star,
     );
   }
 

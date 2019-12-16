@@ -2481,7 +2481,7 @@ class ResolverVisitor extends ScopedVisitor {
       var rawElement = originalElement.declaration;
 
       FunctionType constructorType =
-          StaticTypeAnalyzer.constructorToGenericFunctionType(rawElement);
+          typeAnalyzer.constructorToGenericFunctionType(rawElement);
 
       inferred = _inferArgumentTypesForGeneric(
           node, constructorType, constructor.type.typeArguments,
