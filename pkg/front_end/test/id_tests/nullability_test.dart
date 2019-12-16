@@ -19,11 +19,7 @@ main(List<String> args) async {
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
       runTest: runTestFor(
-          const NullabilityDataComputer(), [cfeNonNullableOnlyConfig]),
-      skipList: [
-        // TODO(dmitryas): Run all nullability tests.
-        'if_element.dart',
-      ]);
+          const NullabilityDataComputer(), [cfeNonNullableOnlyConfig]));
 }
 
 class NullabilityDataComputer extends DataComputer<String> {

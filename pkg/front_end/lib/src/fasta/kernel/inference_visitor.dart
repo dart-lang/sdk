@@ -1369,6 +1369,7 @@ class InferenceVisitor
       Expression condition =
           inferrer.ensureAssignableResult(boolType, conditionResult);
       element.condition = condition..parent = element;
+      inferrer.flowAnalysis.ifStatement_thenBegin(condition);
       ExpressionInferenceResult thenResult = inferElement(
           element.then,
           inferredTypeArgument,
@@ -1379,6 +1380,7 @@ class InferenceVisitor
       element.then = thenResult.expression..parent = element;
       ExpressionInferenceResult otherwiseResult;
       if (element.otherwise != null) {
+        inferrer.flowAnalysis.ifStatement_elseBegin();
         otherwiseResult = inferElement(
             element.otherwise,
             inferredTypeArgument,
@@ -1388,6 +1390,7 @@ class InferenceVisitor
             typeChecksNeeded);
         element.otherwise = otherwiseResult.expression..parent = element;
       }
+      inferrer.flowAnalysis.ifStatement_end(element.otherwise != null);
       return new ExpressionInferenceResult(
           otherwiseResult == null
               ? thenResult.inferredType
@@ -1834,6 +1837,7 @@ class InferenceVisitor
       Expression condition =
           inferrer.ensureAssignableResult(boolType, conditionResult);
       entry.condition = condition..parent = entry;
+      inferrer.flowAnalysis.ifStatement_thenBegin(condition);
       // Note that this recursive invocation of inferMapEntry will add two types
       // to actualTypes; they are the actual types of the current invocation if
       // the 'else' branch is empty.
@@ -1852,6 +1856,7 @@ class InferenceVisitor
       entry.then = then..parent = entry;
       MapEntry otherwise;
       if (entry.otherwise != null) {
+        inferrer.flowAnalysis.ifStatement_elseBegin();
         // We need to modify the actual types added in the recursive call to
         // inferMapEntry.
         DartType actualValueType = actualTypes.removeLast();
@@ -1882,6 +1887,7 @@ class InferenceVisitor
                 actualTypesForSet[lengthForSet - 1], inferrer.library.library);
         entry.otherwise = otherwise..parent = entry;
       }
+      inferrer.flowAnalysis.ifStatement_end(entry.otherwise != null);
       return entry;
     } else if (entry is ForMapEntry) {
       // TODO(johnniwinther): Use _visitStatements instead.
