@@ -9,7 +9,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import '../analyzer.dart';
 import '../util/dart_type_utilities.dart';
 
-const _desc = r'Use @required.';
+const _desc = r'Specify `@required` on named parameters without defaults.';
 
 const _details = r'''
 
