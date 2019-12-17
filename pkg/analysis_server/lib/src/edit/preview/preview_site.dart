@@ -94,7 +94,7 @@ class PreviewSite extends Site implements AbstractGetHandler {
         return respond(request, HighlightCssPage(this));
       } else if (path == highlightJSPagePath) {
         return respond(request, HighlightJSPage(this));
-      } else if (path == '/') {
+      } else if (path == '/' || path == migrationInfo.includedRoot) {
         return respond(request, IndexFilePage(this));
       }
       UnitInfo unitInfo = unitInfoMap[path];
