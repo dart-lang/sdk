@@ -67,9 +67,9 @@ import 'duplicate_import_test.dart' as duplicate_import;
 import 'duplicate_shown_name_test.dart' as duplicate_shown_name;
 import 'equal_elements_in_const_set_test.dart' as equal_elements_in_const_set;
 import 'equal_keys_in_const_map_test.dart' as equal_keys_in_const_map;
+import 'export_duplicated_library_named_test.dart'
+    as export_duplicated_library_named;
 import 'export_legacy_symbol_test.dart' as export_legacy_symbol;
-import 'export_suplicated_library_named_test.dart'
-    as export_suplicated_library_named;
 import 'expression_in_map_test.dart' as expression_in_map;
 import 'extends_disallowed_class_test.dart' as extends_disallowed_class;
 import 'extends_non_class_test.dart' as extends_non_class;
@@ -447,8 +447,8 @@ main() {
     duplicate_shown_name.main();
     equal_elements_in_const_set.main();
     equal_keys_in_const_map.main();
+    export_duplicated_library_named.main();
     export_legacy_symbol.main();
-    export_suplicated_library_named.main();
     expression_in_map.main();
     extends_disallowed_class.main();
     extends_non_class.main();
