@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test for testing regular expressions in Dart.
 
+// Note: This test deliberately has no NNBD version in corelib/.
+
 import "package:expect/expect.dart";
 
 main() {
