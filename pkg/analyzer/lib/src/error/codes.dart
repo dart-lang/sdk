@@ -7600,6 +7600,42 @@ class StaticWarningCode extends AnalyzerErrorCode {
           errorSeverity: ErrorSeverity.WARNING);
 
   /**
+   * It is an error to call a method or getter on an expression of type `Never`,
+   * or to invoke it as if it were a function.
+   *
+   * Go out of our way to provide a *little* more information here because many
+   * dart users probably have never heard of the type Never. Be careful however
+   * of providing too much information or it only becomes more confusing. Hard
+   * balance to strike.
+   *
+   * Parameters: none
+   */
+  static const StaticWarningCode INVALID_USE_OF_NEVER_VALUE = StaticWarningCode(
+      'INVALID_USE_OF_NEVER_VALUE',
+      'This expression is invalid because its target is of type Never and'
+          ' will never complete with a value',
+      correction: 'Try checking for throw expressions or type errors in the'
+          ' target expression');
+
+  /**
+   * For the purposes of experimenting with potential non-null type semantics.
+   *
+   * Whereas [UNCHECKED_USE_OF_NULLABLE] refers to using a value of type T? as
+   * if it were a T, this refers to using a value of type [Null] itself. These
+   * occur at many of the same times ([Null] is a potentially nullable type) but
+   * it indicates a different type of programmer error and has different
+   * corrections.
+   *
+   * Parameters: none
+   */
+  static const StaticWarningCode INVALID_USE_OF_NULL_VALUE = StaticWarningCode(
+      'INVALID_USE_OF_NULL_VALUE',
+      "This expression is invalid as it will always be null.",
+      correction:
+          "Try changing the type, or casting, to a more useful type like "
+          "dynamic.");
+
+  /**
    * Parameters:
    * 0: the actual type of the list element
    * 1: the expected type of the list element
@@ -8462,6 +8498,16 @@ class StaticWarningCode extends AnalyzerErrorCode {
           errorSeverity: ErrorSeverity.WARNING);
 
   /**
+   * When the '?.' operator is used on a target that we know to be non-null,
+   * it is unnecessary.
+   */
+  static const StaticWarningCode UNNECESSARY_NULL_AWARE_CALL =
+      StaticWarningCode('UNNECESSARY_NULL_AWARE_CALL',
+          "The target expression can't be null, and so '?.' isn't necessary.",
+          correction: "Try replacing the '?.' with a '.' in the invocation.",
+          errorSeverity: ErrorSeverity.WARNING);
+
+  /**
    * When the '...?' operator is used on a value that we know to be non-null,
    * it is unnecessary.
    */
@@ -8471,52 +8517,6 @@ class StaticWarningCode extends AnalyzerErrorCode {
           "The target expression can't be null, so it isn't necessary to use "
               "the null-aware spread operator '...?'.",
           correction: "Try replacing the '...?' with a '...' in the spread.",
-          errorSeverity: ErrorSeverity.WARNING);
-
-  /**
-   * For the purposes of experimenting with potential non-null type semantics.
-   *
-   * Whereas [UNCHECKED_USE_OF_NULLABLE] refers to using a value of type T? as
-   * if it were a T, this refers to using a value of type [Null] itself. These
-   * occur at many of the same times ([Null] is a potentially nullable type) but
-   * it indicates a different type of programmer error and has different
-   * corrections.
-   *
-   * Parameters: none
-   */
-  static const StaticWarningCode INVALID_USE_OF_NULL_VALUE = StaticWarningCode(
-      'INVALID_USE_OF_NULL_VALUE',
-      "This expression is invalid as it will always be null.",
-      correction:
-          "Try changing the type, or casting, to a more useful type like "
-          "dynamic.");
-
-  /**
-   * It is an error to call a method or getter on an expression of type `Never`,
-   * or to invoke it as if it were a function.
-   *
-   * Go out of our way to provide a *little* more information here because many
-   * dart users probably have never heard of the type Never. Be careful however
-   * of providing too much information or it only becomes more confusing. Hard
-   * balance to strike.
-   *
-   * Parameters: none
-   */
-  static const StaticWarningCode INVALID_USE_OF_NEVER_VALUE = StaticWarningCode(
-      'INVALID_USE_OF_NEVER_VALUE',
-      'This expression is invalid because its target is of type Never and'
-          ' will never complete with a value',
-      correction: 'Try checking for throw expressions or type errors in the'
-          ' target expression');
-
-  /**
-   * When the '?.' operator is used on a target that we know to be non-null,
-   * it is unnecessary.
-   */
-  static const StaticWarningCode UNNECESSARY_NULL_AWARE_CALL =
-      StaticWarningCode('UNNECESSARY_NULL_AWARE_CALL',
-          "The target expression can't be null, and so '?.' isn't necessary.",
-          correction: "Try replacing the '?.' with a '.' in the invocation.",
           errorSeverity: ErrorSeverity.WARNING);
 
   /**

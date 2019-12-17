@@ -32,6 +32,7 @@ import 'a.dart';
 
 f() {
   x?.isEven;
+  x?..isEven;
 }
 ''');
   }
@@ -40,9 +41,11 @@ f() {
     await assertErrorsInCode('''
 f(int x) {
   x?.isEven;
+  x?..isEven;
 }
 ''', [
       error(StaticWarningCode.UNNECESSARY_NULL_AWARE_CALL, 14, 2),
+      error(StaticWarningCode.UNNECESSARY_NULL_AWARE_CALL, 27, 3),
     ]);
   }
 
@@ -50,6 +53,44 @@ f(int x) {
     await assertNoErrorsInCode('''
 f(int? x) {
   x?.isEven;
+  x?..isEven;
+}
+''');
+  }
+
+  test_index_legacy() async {
+    newFile('/test/lib/a.dart', content: r'''
+// @dart = 2.5
+var x = [0];
+''');
+
+    await assertNoErrorsInCode('''
+import 'a.dart';
+
+f() {
+  x?.[0];
+  x?..[0];
+}
+''');
+  }
+
+  test_index_nonNullable() async {
+    await assertErrorsInCode('''
+f(List<int> x) {
+  x?.[0];
+  x?..[0];
+}
+''', [
+      error(StaticWarningCode.UNNECESSARY_NULL_AWARE_CALL, 20, 3),
+      error(StaticWarningCode.UNNECESSARY_NULL_AWARE_CALL, 30, 3),
+    ]);
+  }
+
+  test_index_nullable() async {
+    await assertNoErrorsInCode('''
+f(List<int>? x) {
+  x?.[0];
+  x?..[0];
 }
 ''');
   }
@@ -65,6 +106,7 @@ import 'a.dart';
 
 f() {
   x?.round();
+  x?..round();
 }
 ''');
   }
@@ -73,9 +115,11 @@ f() {
     await assertErrorsInCode('''
 f(int x) {
   x?.round();
+  x?..round();
 }
 ''', [
       error(StaticWarningCode.UNNECESSARY_NULL_AWARE_CALL, 14, 2),
+      error(StaticWarningCode.UNNECESSARY_NULL_AWARE_CALL, 28, 3),
     ]);
   }
 
@@ -83,6 +127,7 @@ f(int x) {
     await assertNoErrorsInCode('''
 f(int? x) {
   x?.round();
+  x?..round();
 }
 ''');
   }

@@ -949,7 +949,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitIndexExpression(IndexExpression node) {
     _checkForArgumentTypeNotAssignableForArgument(node.index);
-    if (!node.isNullAware) {
+    if (node.isNullAware) {
+      _checkForUnnecessaryNullAware(
+        node.realTarget,
+        node.period ?? node.leftBracket,
+      );
+    } else {
       _checkForNullableDereference(node.realTarget);
     }
     super.visitIndexExpression(node);
@@ -1166,17 +1171,17 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitPropertyAccess(PropertyAccess node) {
-    ClassElement typeReference =
-        ElementResolver.getTypeReference(node.realTarget);
+    var target = node.realTarget;
+    ClassElement typeReference = ElementResolver.getTypeReference(target);
     SimpleIdentifier propertyName = node.propertyName;
     _checkForStaticAccessToInstanceMember(typeReference, propertyName);
     _checkForInstanceAccessToStaticMember(
         typeReference, node.target, propertyName);
     if (!node.isNullAware &&
         !_objectPropertyNames.contains(propertyName.name)) {
-      _checkForNullableDereference(node.realTarget);
+      _checkForNullableDereference(target);
     }
-    _checkForUnnecessaryNullAware(node.target, node.operator);
+    _checkForUnnecessaryNullAware(target, node.operator);
     super.visitPropertyAccess(node);
   }
 
@@ -5041,7 +5046,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
 
     ErrorCode errorCode;
-    if (operator.type == TokenType.QUESTION_PERIOD) {
+    if (operator.type == TokenType.QUESTION_PERIOD ||
+        operator.type == TokenType.QUESTION_PERIOD_PERIOD ||
+        operator.type == TokenType.QUESTION_PERIOD_OPEN_SQUARE_BRACKET) {
       errorCode = StaticWarningCode.UNNECESSARY_NULL_AWARE_CALL;
     } else if (operator.type == TokenType.PERIOD_PERIOD_PERIOD_QUESTION) {
       errorCode = StaticWarningCode.UNNECESSARY_NULL_AWARE_SPREAD;
