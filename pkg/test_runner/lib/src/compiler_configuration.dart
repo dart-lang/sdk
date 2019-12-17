@@ -491,7 +491,9 @@ class DevCompilerConfiguration extends CompilerConfiguration {
   bool get useKernel => _configuration.compiler == Compiler.dartdevk;
 
   String computeCompilerPath() {
-    var dir = _useSdk ? "${_configuration.buildDirectory}/dart-sdk" : "sdk";
+    var dir = _useSdk
+        ? "${_configuration.buildDirectory}/dart-sdk"
+        : _configuration.nnbdMode == NnbdMode.legacy ? "sdk" : "sdk_nnbd";
     return "$dir/bin/dartdevc$shellScriptExtension";
   }
 
