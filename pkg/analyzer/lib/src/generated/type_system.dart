@@ -3720,6 +3720,20 @@ abstract class TypeSystem implements public.TypeSystem {
   @override
   bool isPotentiallyNullable(DartType type) => !isNonNullable(type);
 
+  @override
+  bool isStrictlyNonNullable(DartType type) {
+    if (type.isDynamic || type.isVoid || type.isDartCoreNull) {
+      return false;
+    } else if (type.nullabilitySuffix != NullabilitySuffix.none) {
+      return false;
+    } else if (type is InterfaceType && type.isDartAsyncFutureOr) {
+      return isStrictlyNonNullable(type.typeArguments[0]);
+    } else if (type is TypeParameterType) {
+      return isStrictlyNonNullable(type.bound);
+    }
+    return true;
+  }
+
   /**
    * Return `true` if the [leftType] is a subtype of the [rightType] (that is,
    * if leftType <: rightType).

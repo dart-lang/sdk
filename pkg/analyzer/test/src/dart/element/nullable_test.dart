@@ -21,6 +21,7 @@ main() {
     defineReflectiveTests(IsNullableTest);
     defineReflectiveTests(IsPotentiallyNonNullableTest);
     defineReflectiveTests(IsPotentiallyNullableTest);
+    defineReflectiveTests(IsStrictlyNonNullableTest);
     defineReflectiveTests(PromoteToNonNullTest);
   });
 }
@@ -370,6 +371,153 @@ class IsPotentiallyNullableTest extends _NullableBase {
 
   test_void() {
     isPotentiallyNullable(voidNone);
+  }
+}
+
+@reflectiveTest
+class IsStrictlyNonNullableTest extends _NullableBase {
+  void isNotStrictlyNonNullable(DartType type) {
+    expect(typeSystem.isStrictlyNonNullable(type), isFalse);
+  }
+
+  void isStrictlyNonNullable(DartType type) {
+    expect(typeSystem.isStrictlyNonNullable(type), isTrue);
+  }
+
+  test_dynamic() {
+    isNotStrictlyNonNullable(dynamicType);
+  }
+
+  test_function() {
+    isStrictlyNonNullable(
+      functionTypeNone(returnType: voidNone),
+    );
+
+    isNotStrictlyNonNullable(
+      functionTypeQuestion(returnType: voidNone),
+    );
+
+    isNotStrictlyNonNullable(
+      functionTypeStar(returnType: voidNone),
+    );
+  }
+
+  test_functionClass() {
+    isStrictlyNonNullable(functionNone);
+    isNotStrictlyNonNullable(functionQuestion);
+    isNotStrictlyNonNullable(functionStar);
+  }
+
+  test_futureOr_noneArgument() {
+    isStrictlyNonNullable(
+      futureOrNone(intNone),
+    );
+
+    isNotStrictlyNonNullable(
+      futureOrQuestion(intNone),
+    );
+
+    isNotStrictlyNonNullable(
+      futureOrStar(intNone),
+    );
+  }
+
+  test_futureOr_questionArgument() {
+    isNotStrictlyNonNullable(
+      futureOrNone(intQuestion),
+    );
+
+    isNotStrictlyNonNullable(
+      futureOrQuestion(intQuestion),
+    );
+
+    isNotStrictlyNonNullable(
+      futureOrStar(intQuestion),
+    );
+  }
+
+  test_futureOr_starArgument() {
+    isNotStrictlyNonNullable(
+      futureOrNone(intStar),
+    );
+
+    isNotStrictlyNonNullable(
+      futureOrStar(intQuestion),
+    );
+
+    isNotStrictlyNonNullable(
+      futureOrStar(intStar),
+    );
+  }
+
+  test_interface() {
+    isStrictlyNonNullable(intNone);
+    isNotStrictlyNonNullable(intQuestion);
+    isNotStrictlyNonNullable(intStar);
+  }
+
+  test_never() {
+    isStrictlyNonNullable(neverNone);
+    isNotStrictlyNonNullable(neverQuestion);
+    isNotStrictlyNonNullable(neverStar);
+  }
+
+  test_null() {
+    isNotStrictlyNonNullable(nullNone);
+    isNotStrictlyNonNullable(nullQuestion);
+    isNotStrictlyNonNullable(nullStar);
+  }
+
+  test_typeParameter_noneBound() {
+    var T = typeParameter('T', bound: intNone);
+
+    isStrictlyNonNullable(
+      typeParameterTypeNone(T),
+    );
+
+    isNotStrictlyNonNullable(
+      typeParameterTypeQuestion(T),
+    );
+
+    isNotStrictlyNonNullable(
+      typeParameterTypeStar(T),
+    );
+  }
+
+  test_typeParameter_questionBound() {
+    var T = typeParameter('T', bound: intQuestion);
+
+    isNotStrictlyNonNullable(
+      typeParameterTypeNone(T),
+    );
+
+    isNotStrictlyNonNullable(
+      typeParameterTypeQuestion(T),
+    );
+
+    isNotStrictlyNonNullable(
+      typeParameterTypeStar(T),
+    );
+  }
+
+  test_typeParameter_starBound() {
+    var T = typeParameter('T', bound: intStar);
+
+    isNotStrictlyNonNullable(
+      typeParameterTypeNone(T),
+    );
+
+    isNotStrictlyNonNullable(
+      typeParameterTypeQuestion(T),
+    );
+
+    isNotStrictlyNonNullable(
+      typeParameterTypeStar(T),
+    );
+  }
+
+  test_void() {
+    isNotStrictlyNonNullable(voidNone);
   }
 }
 
