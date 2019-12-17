@@ -103,7 +103,7 @@ class DebugLogger {
 
 String prettifyJson(Object json,
     {int startIndentation = 0, int shiftWidth = 6}) {
-  int currentIndentation = startIndentation;
+  var currentIndentation = startIndentation;
   var buffer = StringBuffer();
 
   String indentationString() {
@@ -174,9 +174,9 @@ bool areByteArraysEqual(
 /// Returns `true` if [pattern] was found in [data].
 int findBytes(List<int> data, List<int> pattern, [int startPos = 0]) {
   // TODO(kustermann): Use one of the fast string-matching algorithms!
-  for (int i = startPos; i < (data.length - pattern.length); i++) {
-    bool found = true;
-    for (int j = 0; j < pattern.length; j++) {
+  for (var i = startPos; i < (data.length - pattern.length); i++) {
+    var found = true;
+    for (var j = 0; j < pattern.length; j++) {
       if (data[i + j] != pattern[j]) {
         found = false;
         break;
@@ -288,7 +288,7 @@ bool deepJsonCompare(Object a, Object b) {
     if (b is List) {
       if (a.length != b.length) return false;
 
-      for (int i = 0; i < a.length; i++) {
+      for (var i = 0; i < a.length; i++) {
         if (!deepJsonCompare(a[i], b[i])) return false;
       }
       return true;
@@ -359,10 +359,10 @@ class TestUtils {
     if (relativePath.isAbsolute) {
       base = Path('/');
     }
-    Directory dir = Directory(base.toNativePath());
+    var dir = Directory(base.toNativePath());
     assert(dir.existsSync());
     var segments = relativePath.segments();
-    for (String segment in segments) {
+    for (var segment in segments) {
       base = base.append(segment);
       if (base.toString() == "/$segment" &&
           segment.length == 2 &&

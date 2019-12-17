@@ -58,7 +58,7 @@ String _toJSIdentifier(String name) {
 
   // Escape any invalid characters
   StringBuffer buffer;
-  for (int i = 0; i < name.length; i++) {
+  for (var i = 0; i < name.length; i++) {
     var ch = name[i];
     var needsEscape = ch == r'$' || _invalidCharInIdentifier.hasMatch(ch);
     if (needsEscape && buffer == null) {

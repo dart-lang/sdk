@@ -209,11 +209,11 @@ abstract class TestSuite {
 
   String createGeneratedTestDirectoryHelper(
       String name, String dirname, Path testPath) {
-    Path relative = testPath.relativeTo(Repository.dir);
+    var relative = testPath.relativeTo(Repository.dir);
     relative = relative.directoryPath.append(relative.filenameWithoutExtension);
-    String testUniqueName = TestUtils.getShortName(relative.toString());
+    var testUniqueName = TestUtils.getShortName(relative.toString());
 
-    Path generatedTestPath = Path(buildDir)
+    var generatedTestPath = Path(buildDir)
         .append('generated_$name')
         .append(dirname)
         .append(testUniqueName);
@@ -403,7 +403,7 @@ class StandardTestSuite extends TestSuite {
     // Initialize _testListPossibleFilenames.
     if (configuration.testList != null) {
       _testListPossibleFilenames = <String>{};
-      for (String s in configuration.testList) {
+      for (var s in configuration.testList) {
         if (s.startsWith("$suiteName/")) {
           s = s.substring(s.indexOf('/') + 1);
           _testListPossibleFilenames

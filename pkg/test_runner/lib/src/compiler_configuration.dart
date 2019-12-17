@@ -312,7 +312,7 @@ class ComposedCompilerConfiguration extends CompilerConfiguration {
 
     // The first compilation command is as usual.
     var arguments = pipelineCommands[0].extractArguments(globalArguments, null);
-    CommandArtifact artifact = pipelineCommands[0]
+    var artifact = pipelineCommands[0]
         .compilerConfiguration
         .computeCompilationArtifact(tempDir, arguments, environmentOverrides);
     allCommands.addAll(artifact.commands);
@@ -320,7 +320,7 @@ class ComposedCompilerConfiguration extends CompilerConfiguration {
     // The following compilation commands are based on the output of the
     // previous one.
     for (var i = 1; i < pipelineCommands.length; i++) {
-      PipelineCommand command = pipelineCommands[i];
+      var command = pipelineCommands[i];
 
       arguments = command.extractArguments(globalArguments, artifact.filename);
       artifact = command.compilerConfiguration
@@ -351,8 +351,7 @@ class ComposedCompilerConfiguration extends CompilerConfiguration {
       List<String> vmOptions,
       List<String> originalArguments,
       CommandArtifact artifact) {
-    CompilerConfiguration lastCompilerConfiguration =
-        pipelineCommands.last.compilerConfiguration;
+    var lastCompilerConfiguration = pipelineCommands.last.compilerConfiguration;
     return lastCompilerConfiguration.computeRuntimeArguments(
         runtimeConfiguration, testFile, vmOptions, originalArguments, artifact);
   }
@@ -458,10 +457,10 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
       List<String> vmOptions,
       List<String> originalArguments,
       CommandArtifact artifact) {
-    Uri sdk = _useSdk
+    var sdk = _useSdk
         ? Uri.directory(_configuration.buildDirectory).resolve('dart-sdk/')
         : Uri.directory(Repository.dir.toNativePath()).resolve('sdk/');
-    Uri preambleDir = sdk.resolve('lib/_internal/js_runtime/lib/preambles/');
+    var preambleDir = sdk.resolve('lib/_internal/js_runtime/lib/preambles/');
     return runtimeConfiguration.dart2jsPreambles(preambleDir)
       ..add(artifact.filename);
   }
@@ -775,12 +774,9 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
 
   Command computeStripCommand(
       String tempDir, Map<String, String> environmentOverrides) {
-    final String stripTool = "$ndkPath/toolchains/$abiTriple-4.9/prebuilt/"
+    var stripTool = "$ndkPath/toolchains/$abiTriple-4.9/prebuilt/"
         "$host-x86_64/bin/$abiTriple-strip";
-    final List<String> args = [
-      '--strip-unneeded',
-      "$tempDir/out.aotsnapshot",
-    ];
+    var args = ['--strip-unneeded', "$tempDir/out.aotsnapshot"];
     return CompilationCommand('strip', tempDir, bootstrapDependencies(),
         stripTool, args, environmentOverrides,
         alwaysCompile: !_useSdk);
@@ -1041,10 +1037,10 @@ abstract class VMKernelCompilerMixin {
 
   Command computeCompileToKernelCommand(String tempDir, List<String> arguments,
       Map<String, String> environmentOverrides) {
-    final pkgVmDir = Platform.script.resolve('../../../pkg/vm').toFilePath();
-    final genKernel = '$pkgVmDir/tool/gen_kernel$shellScriptExtension';
+    var pkgVmDir = Platform.script.resolve('../../../pkg/vm').toFilePath();
+    var genKernel = '$pkgVmDir/tool/gen_kernel$shellScriptExtension';
 
-    final String useAbiVersion = arguments.firstWhere(
+    var useAbiVersion = arguments.firstWhere(
         (arg) => arg.startsWith('--use-abi-version='),
         orElse: () => null);
 

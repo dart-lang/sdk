@@ -609,9 +609,11 @@ compiler.''',
             .resolve('runtime/observatory/.packages')
             .toFilePath();
 
-        return _expandConfigurations(configuration, selectors)
-          ..addAll(_expandConfigurations(
-              observatoryConfiguration, observatorySelectors));
+        return [
+          ..._expandConfigurations(configuration, selectors),
+          ..._expandConfigurations(
+              observatoryConfiguration, observatorySelectors)
+        ];
       }
     }
 
@@ -738,12 +740,12 @@ compiler.''',
       }
     }
 
-    String namedConfigurationOption = data["named_configuration"] as String;
+    var namedConfigurationOption = data["named_configuration"] as String;
     if (namedConfigurationOption != null) {
-      List<String> namedConfigurations = namedConfigurationOption.split(',');
+      var namedConfigurations = namedConfigurationOption.split(',');
       var testMatrixFile = "tools/bots/test_matrix.json";
       var testMatrix = TestMatrix.fromPath(testMatrixFile);
-      for (String namedConfiguration in namedConfigurations) {
+      for (var namedConfiguration in namedConfigurations) {
         var configuration = testMatrix.configurations.singleWhere(
             (c) => c.name == namedConfiguration,
             orElse: () => null);
@@ -775,14 +777,15 @@ compiler.''',
         // Expand compilers.
         for (var compiler in compilers) {
           // Expand modes.
-          String modes = (data["mode"] as String) ?? compiler.defaultMode.name;
+          var modes = (data["mode"] as String) ?? compiler.defaultMode.name;
           if (modes == "all") modes = "debug,release,product";
           for (var modeName in modes.split(",")) {
             var mode = Mode.find(modeName);
             // Expand sanitizers.
-            String sanitizers = (data["sanitizer"] as String) ?? "none";
-            if (sanitizers == "all")
+            var sanitizers = (data["sanitizer"] as String) ?? "none";
+            if (sanitizers == "all") {
               sanitizers = "none,asan,lsan,msan,tsan,ubsan";
+            }
             for (var sanitizerName in sanitizers.split(",")) {
               var sanitizer = Sanitizer.find(sanitizerName);
               var system = System.find(data["system"] as String);

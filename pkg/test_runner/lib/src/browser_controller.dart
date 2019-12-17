@@ -290,7 +290,7 @@ class Safari extends Browser {
       });
     });
     Future zoneWrapper() {
-      Uri safariUri = Uri.base.resolve(safariBundleLocation);
+      var safariUri = Uri.base.resolve(safariBundleLocation);
       return Future(() => killAndResetSafari(bundle: safariUri))
           .then(completer.complete);
     }
@@ -526,7 +526,7 @@ class IE extends Browser {
         data: "1", type: "REG_DWORD");
 
     var localAppData = Platform.environment['LOCALAPPDATA'];
-    Directory dir = Directory("$localAppData\\Microsoft\\"
+    var dir = Directory("$localAppData\\Microsoft\\"
         "Internet Explorer\\Recovery");
     return dir.delete(recursive: true).then((_) {
       return true;
@@ -865,7 +865,7 @@ class BrowserTestRunner {
 
     Browser browser;
     if (configuration.runtime == Runtime.chromeOnAndroid) {
-      AdbDevice device = idleAdbDevices.removeLast();
+      var device = idleAdbDevices.removeLast();
       adbDeviceMapping[id] = device;
       browser = AndroidChrome(device);
     } else {
@@ -1036,7 +1036,7 @@ class BrowserTestRunner {
       return null;
     }
 
-    BrowserTest test = testQueue.removeLast();
+    var test = testQueue.removeLast();
     // If our queue isn't empty, try starting more browsers
     if (testQueue.isEmpty) {
       lastEmptyTestQueueTime = DateTime.now();
@@ -1133,7 +1133,7 @@ class BrowserTestRunner {
     var browsers = <Browser>[];
     underTermination = true;
     testingServer.underTermination = true;
-    for (BrowserStatus status in browserStatus.values) {
+    for (var status in browserStatus.values) {
       browsers.add(status.browser);
       if (status.nextTestTimeout != null) {
         status.nextTestTimeout.cancel();

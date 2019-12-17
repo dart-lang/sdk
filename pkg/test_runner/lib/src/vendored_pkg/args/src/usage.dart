@@ -112,8 +112,8 @@ class Usage {
   }
 
   void calculateColumnWidths() {
-    int abbr = 0;
-    int title = 0;
+    var abbr = 0;
+    var title = 0;
     args.options.forEach((name, option) {
       // Make room in the first column if there are abbreviations.
       abbr = max(abbr, getAbbreviation(option).length);
@@ -201,7 +201,7 @@ class Usage {
   String buildAllowedList(Option option) {
     var allowedBuffer = StringBuffer();
     allowedBuffer.write('[');
-    bool first = true;
+    var first = true;
     for (var allowed in option.allowed) {
       if (!first) allowedBuffer.write(', ');
       allowedBuffer.write(allowed);
@@ -217,7 +217,7 @@ class Usage {
 
 /// Pads [source] to [length] by adding spaces at the end.
 String padRight(String source, int length) {
-  final result = StringBuffer();
+  var result = StringBuffer();
   result.write(source);
 
   while (result.length < length) {

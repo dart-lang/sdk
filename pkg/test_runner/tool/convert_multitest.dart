@@ -30,7 +30,7 @@ Future<List<StaticError>> getErrors(
 
 bool areSameErrors(List<StaticError> first, List<StaticError> second) {
   if (first.length != second.length) return false;
-  for (int i = 0; i < first.length; ++i) {
+  for (var i = 0; i < first.length; ++i) {
     if (first[i].compareTo(second[i]) != 0) return false;
   }
   return true;
@@ -66,9 +66,9 @@ class CleanedMultiTest {
 }
 
 CleanedMultiTest removeMultiTestMarker(String test) {
-  StringBuffer sb = StringBuffer();
+  var buffer = StringBuffer();
   var subTests = <String, String>{};
-  List<String> lines = LineSplitter.split(test)
+  var lines = LineSplitter.split(test)
       .where((line) => !line.startsWith("// Test created from multitest named"))
       .toList();
   if (lines.length > 1 && lines.last.isEmpty) {
@@ -76,7 +76,7 @@ CleanedMultiTest removeMultiTestMarker(String test) {
     // will add a newline to the end.
     lines.length--;
   }
-  for (String line in lines) {
+  for (var line in lines) {
     var matches = multitestMarker.allMatches(line);
     if (matches.length > 1) {
       throw "internal error: cannot process line '$line'";
@@ -101,9 +101,9 @@ CleanedMultiTest removeMultiTestMarker(String test) {
         throw UnableToConvertException("test contains dynamic outcome");
       }
     }
-    sb.writeln(line);
+    buffer.writeln(line);
   }
-  return CleanedMultiTest(sb.toString(), subTests);
+  return CleanedMultiTest(buffer.toString(), subTests);
 }
 
 Future createRuntimeTest(
@@ -120,7 +120,7 @@ Future createRuntimeTest(
   }
   var runtimeTestPath = "${dirname(testFilePath)}/$runtimeTestBase"
       "_runtime_test.dart";
-  int n = 1;
+  var n = 1;
   while (await File(runtimeTestPath).exists()) {
     runtimeTestPath = "${dirname(testFilePath)}/$runtimeTestBase"
         "_runtime_${n++}_test.dart";
@@ -133,7 +133,7 @@ Future createRuntimeTest(
 
 ${cleanedMultiTest.text}""";
   if (writeToFile) {
-    File outputFile = File(runtimeTestPath);
+    var outputFile = File(runtimeTestPath);
     await outputFile.writeAsString(runtimeTestContent, mode: FileMode.append);
     print("Runtime part of the test written to '$runtimeTestPath'.");
   } else {
@@ -169,8 +169,7 @@ Future<void> main(List<String> arguments) async {
     exitCode = 1;
     return;
   }
-  Directory outputDirectory =
-      await Directory(dirname(testFilePath)).createTemp();
+  var outputDirectory = await Directory(dirname(testFilePath)).createTemp();
   if (verbose) {
     print("Output directory for generated files: ${outputDirectory.uri.path}");
   }
@@ -192,7 +191,7 @@ Future<void> main(List<String> arguments) async {
     // from the analyser and the common front-end.
     var options = test.sharedOptions;
     var errors = <List<StaticError>>[];
-    for (TestFile test in tests) {
+    for (var test in tests) {
       if (verbose) {
         print("Processing ${test.path}");
       }
@@ -218,7 +217,7 @@ Future<void> main(List<String> arguments) async {
     // and output the result.
     var annotatedContent =
         updateErrorExpectations(contentWithoutMarkers, errors[0]);
-    bool writeToFile = results["write"] as bool;
+    var writeToFile = results["write"] as bool;
     if (writeToFile) {
       await testFile.writeAsString(annotatedContent);
       print("Converted test '${test.path.toNativePath()}'.");
@@ -228,10 +227,10 @@ Future<void> main(List<String> arguments) async {
     }
     // Generate runtime tests for all sub-tests that are generated from the
     // 'none' case and those with 'ok' annotations.
-    for (int i = 1; i < tests.length; ++i) {
-      String test = tests[i].path.toNativePath();
-      String base = basenameWithoutExtension(test);
-      String key = base.split("_").last;
+    for (var i = 1; i < tests.length; ++i) {
+      var test = tests[i].path.toNativePath();
+      var base = basenameWithoutExtension(test);
+      var key = base.split("_").last;
       if (key == "none" || cleanedTest.subTests[key] == "ok") {
         await createRuntimeTest(
             testFilePath, tests[i].path.toNativePath(), writeToFile);

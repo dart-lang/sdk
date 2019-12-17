@@ -77,12 +77,12 @@ class Path {
     var basePath = base.toString();
     // Handle drive letters specially on Windows.
     if (base.isAbsolute && Platform.operatingSystem == 'windows') {
-      bool baseHasDrive =
+      var baseHasDrive =
           basePath.length >= 4 && basePath[2] == ':' && basePath[3] == '/';
-      bool pathHasDrive =
+      var pathHasDrive =
           _path.length >= 4 && _path[2] == ':' && _path[3] == '/';
       if (baseHasDrive && pathHasDrive) {
-        int baseDrive = basePath.codeUnitAt(1) | 32; // Convert to uppercase.
+        var baseDrive = basePath.codeUnitAt(1) | 32; // Convert to uppercase.
         if (baseDrive >= 'a'.codeUnitAt(0) &&
             baseDrive <= 'z'.codeUnitAt(0) &&
             baseDrive == (_path.codeUnitAt(1) | 32)) {
@@ -106,7 +106,7 @@ class Path {
     if (_path.startsWith(basePath)) {
       if (_path == basePath) return Path('.');
       // There must be a '/' at the end of the match, or immediately after.
-      int matchEnd = basePath.length;
+      var matchEnd = basePath.length;
       if (_path[matchEnd - 1] == '/' || _path[matchEnd] == '/') {
         // Drop any extra '/' characters at matchEnd
         while (matchEnd < _path.length && _path[matchEnd] == '/') {
@@ -116,16 +116,16 @@ class Path {
       }
     }
 
-    List<String> baseSegments = base.canonicalize().segments();
-    List<String> pathSegments = canonicalize().segments();
+    var baseSegments = base.canonicalize().segments();
+    var pathSegments = canonicalize().segments();
     if (baseSegments.length == 1 && baseSegments[0] == '.') {
       baseSegments = [];
     }
     if (pathSegments.length == 1 && pathSegments[0] == '.') {
       pathSegments = [];
     }
-    int common = 0;
-    int length = min(pathSegments.length, baseSegments.length);
+    var common = 0;
+    var length = min(pathSegments.length, baseSegments.length);
     while (common < length && pathSegments[common] == baseSegments[common]) {
       common++;
     }
@@ -136,10 +136,10 @@ class Path {
           "  Base path has more '..'s than path does.\n"
           "  Arguments: $_path.relativeTo($base)");
     }
-    for (int i = common; i < baseSegments.length; i++) {
+    for (var i = common; i < baseSegments.length; i++) {
       segments.add('..');
     }
-    for (int i = common; i < pathSegments.length; i++) {
+    for (var i = common; i < pathSegments.length; i++) {
       segments.add('${pathSegments[i]}');
     }
     if (segments.isEmpty) {
@@ -187,7 +187,7 @@ class Path {
       segs[0] = null; // Faster than removeRange().
     } else {
       // A canonical relative path may start with .. segments.
-      for (int pos = 0; pos < segs.length && segs[pos] == '..'; ++pos) {
+      for (var pos = 0; pos < segs.length && segs[pos] == '..'; ++pos) {
         segs[pos] = null;
       }
     }
@@ -257,7 +257,7 @@ class Path {
   String toNativePath() {
     if (isEmpty) return '.';
     if (Platform.operatingSystem == 'windows') {
-      String nativePath = _path;
+      var nativePath = _path;
       // Drop '/' before a drive letter.
       if (nativePath.length >= 3 &&
           nativePath.startsWith('/') &&
@@ -293,18 +293,18 @@ class Path {
   String get filenameWithoutExtension {
     var name = filename;
     if (name == '.' || name == '..') return name;
-    int pos = name.lastIndexOf('.');
+    var pos = name.lastIndexOf('.');
     return (pos < 0) ? name : name.substring(0, pos);
   }
 
   String get extension {
     var name = filename;
-    int pos = name.lastIndexOf('.');
+    var pos = name.lastIndexOf('.');
     return (pos < 0) ? '' : name.substring(pos + 1);
   }
 
   Path get directoryPath {
-    int pos = _path.lastIndexOf('/');
+    var pos = _path.lastIndexOf('/');
     if (pos < 0) return Path('');
     while (pos > 0 && _path[pos - 1] == '/') {
       --pos;
@@ -314,7 +314,7 @@ class Path {
   }
 
   String get filename {
-    int pos = _path.lastIndexOf('/');
+    var pos = _path.lastIndexOf('/');
     return _path.substring(pos + 1);
   }
 }

@@ -47,10 +47,7 @@ class Graph<T> {
   bool get isSealed => _isSealed;
 
   /// Counts the number of nodes who are in [state].
-  int stateCount(NodeState state) {
-    int count = _stateCounts[state];
-    return count == null ? 0 : count;
-  }
+  int stateCount(NodeState state) => _stateCounts[state] ?? 0;
 
   void dumpCounts() {
     for (var state in _stateCounts.keys) {

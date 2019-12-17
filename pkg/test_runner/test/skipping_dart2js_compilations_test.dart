@@ -69,7 +69,7 @@ class FileUtils {
     if (testSnapshot != null) testSnapshot.deleteSync();
 
     // if the script did run, it created this file, so we need to delete it
-    File file = File(scriptOutputPath.toNativePath());
+    var file = File(scriptOutputPath.toNativePath());
     if (file.existsSync()) {
       file.deleteSync();
     }

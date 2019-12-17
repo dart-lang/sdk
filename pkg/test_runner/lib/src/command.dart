@@ -287,7 +287,7 @@ class FastaCompilationCommand extends CompilationCommand {
       return escapeCommandLineArgument(argument);
     }
 
-    StringBuffer buffer = StringBuffer();
+    var buffer = StringBuffer();
     if (workingDirectory != null && !io.Platform.isWindows) {
       buffer.write("(cd ");
       buffer.write(escapeCommandLineArgument(workingDirectory));

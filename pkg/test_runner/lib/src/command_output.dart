@@ -88,7 +88,7 @@ class CommandOutput {
       // codes basically saying that codes starting with 0xC0, 0x80 or 0x40
       // are crashes, so look at the 4 most significant bits in 32-bit-space
       // make sure its either 0b1100, 0b1000 or 0b0100.
-      int masked = (exitCode & 0xF0000000) >> 28;
+      var masked = (exitCode & 0xF0000000) >> 28;
       return (exitCode < 0) && (masked >= 4) && ((masked & 3) == 0);
     }
     return exitCode < 0;
@@ -880,7 +880,7 @@ class VMKernelCompilationCommandOutput extends CompilationCommandOutput {
     // between different kinds of failures and will mark a failed
     // compilation to just an exit code of "1".  So we treat all `exitCode ==
     // 1`s as compile-time errors as well.
-    const int kBatchModeCompileTimeErrorExit = 1;
+    const batchModeCompileTimeErrorExit = 1;
 
     // Handle crashes and timeouts first.
     if (hasCrashed) return Expectation.dartkCrash;
@@ -896,7 +896,7 @@ class VMKernelCompilationCommandOutput extends CompilationCommandOutput {
     // Multitests are handled specially.
     if (testCase.hasCompileError) {
       if (exitCode == VMCommandOutput._compileErrorExitCode ||
-          exitCode == kBatchModeCompileTimeErrorExit) {
+          exitCode == batchModeCompileTimeErrorExit) {
         return Expectation.pass;
       }
       return Expectation.missingCompileTimeError;
@@ -904,7 +904,7 @@ class VMKernelCompilationCommandOutput extends CompilationCommandOutput {
 
     // The actual outcome depends on the exitCode.
     if (exitCode == VMCommandOutput._compileErrorExitCode ||
-        exitCode == kBatchModeCompileTimeErrorExit) {
+        exitCode == batchModeCompileTimeErrorExit) {
       return Expectation.compileTimeError;
     } else if (exitCode != 0) {
       // This is a general fail, in case we get an unknown nonzero exitcode.
@@ -922,7 +922,7 @@ class VMKernelCompilationCommandOutput extends CompilationCommandOutput {
     // between different kinds of failures and will mark a failed
     // compilation to just an exit code of "1".  So we treat all `exitCode ==
     // 1`s as compile-time errors as well.
-    const int kBatchModeCompileTimeErrorExit = 1;
+    const batchModeCompileTimeErrorExit = 1;
 
     // Handle crashes and timeouts first.
     if (hasCrashed) return Expectation.dartkCrash;
@@ -938,7 +938,7 @@ class VMKernelCompilationCommandOutput extends CompilationCommandOutput {
     // Multitests are handled specially.
 
     if (exitCode == VMCommandOutput._compileErrorExitCode ||
-        exitCode == kBatchModeCompileTimeErrorExit) {
+        exitCode == batchModeCompileTimeErrorExit) {
       return Expectation.compileTimeError;
     }
     if (exitCode != 0) {
