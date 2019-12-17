@@ -34,22 +34,22 @@ class HighlightsMixinTest with ResourceProviderMixin {
     packagePath1 = convertPath('/package1');
     filePath1 = join(packagePath1, 'lib', 'test.dart');
     newFile(filePath1);
-    contextRoot1 = new ContextRoot(packagePath1, <String>[]);
+    contextRoot1 = ContextRoot(packagePath1, <String>[]);
 
-    channel = new MockChannel();
-    plugin = new _TestServerPlugin(resourceProvider);
+    channel = MockChannel();
+    plugin = _TestServerPlugin(resourceProvider);
     plugin.start(channel);
   }
 
   test_sendHighlightsNotification() async {
     await plugin.handleAnalysisSetContextRoots(
-        new AnalysisSetContextRootsParams([contextRoot1]));
+        AnalysisSetContextRootsParams([contextRoot1]));
 
-    Completer<void> notificationReceived = new Completer<void>();
+    Completer<void> notificationReceived = Completer<void>();
     channel.listen(null, onNotification: (Notification notification) {
       expect(notification, isNotNull);
       AnalysisHighlightsParams params =
-          new AnalysisHighlightsParams.fromNotification(notification);
+          AnalysisHighlightsParams.fromNotification(notification);
       expect(params.file, filePath1);
       expect(params.regions, hasLength(5));
       notificationReceived.complete();
@@ -80,14 +80,14 @@ class _TestServerPlugin extends MockServerPlugin with HighlightsMixin {
   @override
   List<HighlightsContributor> getHighlightsContributors(String path) {
     return <HighlightsContributor>[
-      new _TestHighlightsContributor(2),
-      new _TestHighlightsContributor(3)
+      _TestHighlightsContributor(2),
+      _TestHighlightsContributor(3)
     ];
   }
 
   @override
   Future<HighlightsRequest> getHighlightsRequest(String path) async {
-    var result = new MockResolvedUnitResult(path: path);
-    return new DartHighlightsRequestImpl(resourceProvider, result);
+    var result = MockResolvedUnitResult(path: path);
+    return DartHighlightsRequestImpl(resourceProvider, result);
   }
 }

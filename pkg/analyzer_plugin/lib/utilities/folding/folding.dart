@@ -80,19 +80,19 @@ class FoldingGenerator {
    */
   GeneratorResult generateFoldingNotification(FoldingRequest request) {
     List<Notification> notifications = <Notification>[];
-    FoldingCollectorImpl collector = new FoldingCollectorImpl();
+    FoldingCollectorImpl collector = FoldingCollectorImpl();
     for (FoldingContributor contributor in contributors) {
       try {
         contributor.computeFolding(request, collector);
       } catch (exception, stackTrace) {
-        notifications.add(new PluginErrorParams(
+        notifications.add(PluginErrorParams(
                 false, exception.toString(), stackTrace.toString())
             .toNotification());
       }
     }
-    notifications.add(new AnalysisFoldingParams(request.path, collector.regions)
+    notifications.add(AnalysisFoldingParams(request.path, collector.regions)
         .toNotification());
-    return new GeneratorResult(null, notifications);
+    return GeneratorResult(null, notifications);
   }
 }
 

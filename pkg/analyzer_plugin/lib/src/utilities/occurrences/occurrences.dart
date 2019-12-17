@@ -48,7 +48,7 @@ class OccurrencesCollectorImpl implements OccurrencesCollector {
     List<Occurrences> occurrences = <Occurrences>[];
     occurrenceLocations.forEach((Element element, List<int> offsets) {
       offsets.sort();
-      occurrences.add(new Occurrences(element, offsets, element.name.length));
+      occurrences.add(Occurrences(element, offsets, element.name.length));
     });
     return occurrences;
   }

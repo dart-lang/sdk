@@ -43,7 +43,7 @@ class DartCodegenVisitor extends HierarchicalApiVisitor {
     } else if (type is TypeUnion) {
       return 'dynamic';
     } else {
-      throw new Exception("Can't convert to a dart type");
+      throw Exception("Can't convert to a dart type");
     }
   }
 }

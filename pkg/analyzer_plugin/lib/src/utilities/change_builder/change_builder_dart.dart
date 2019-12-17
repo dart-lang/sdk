@@ -68,7 +68,7 @@ class DartChangeBuilderImpl extends ChangeBuilderImpl
     ResolvedUnitResult result = await session.getResolvedUnit(path);
     ResultState state = result?.state ?? ResultState.INVALID_FILE_TYPE;
     if (state == ResultState.INVALID_FILE_TYPE) {
-      throw new AnalysisException('Cannot analyze "$path"');
+      throw AnalysisException('Cannot analyze "$path"');
     }
     int timeStamp = state == ResultState.VALID ? 0 : -1;
 
@@ -136,7 +136,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   @override
   LinkedEditBuilderImpl createLinkedEditBuilder() {
-    return new DartLinkedEditBuilderImpl(this);
+    return DartLinkedEditBuilderImpl(this);
   }
 
   /**
@@ -654,7 +654,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   void writeParametersMatchingArguments(ArgumentList argumentList) {
     // TODO(brianwilkerson) Handle the case when there are required parameters
     // after named parameters.
-    Set<String> usedNames = new Set<String>();
+    Set<String> usedNames = Set<String>();
     List<Expression> arguments = argumentList.arguments;
     bool hasNamedParameters = false;
     for (int i = 0; i < arguments.length; i++) {
@@ -728,7 +728,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
         addLinkedEdit(groupName, (LinkedEditBuilder builder) {
           wroteType = _writeType(type, methodBeingCopied: methodBeingCopied);
           if (wroteType && addSupertypeProposals) {
-            _addSuperTypeProposals(builder, type, new Set<DartType>());
+            _addSuperTypeProposals(builder, type, Set<DartType>());
           }
         });
       } else {
@@ -816,7 +816,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   void _addSingleCharacterName(
       Set<String> excluded, Set<String> result, int c) {
     while (c < $z) {
-      String name = new String.fromCharCode(c);
+      String name = String.fromCharCode(c);
       // may be done
       if (!excluded.contains(name)) {
         result.add(name);
@@ -963,7 +963,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
    */
   List<String> _getVariableNameSuggestionsForExpression(DartType expectedType,
       Expression assignedExpression, Set<String> excluded) {
-    Set<String> res = new Set();
+    Set<String> res = Set();
     // use expression
     if (assignedExpression != null) {
       String nameFromExpression =
@@ -993,7 +993,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       res.remove(typeName);
     }
     // done
-    return new List.from(res);
+    return List.from(res);
   }
 
   /**
@@ -1033,7 +1033,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
    */
   void _initializeEnclosingElements() {
     if (!_hasEnclosingElementsInitialized) {
-      _EnclosingElementFinder finder = new _EnclosingElementFinder();
+      _EnclosingElementFinder finder = _EnclosingElementFinder();
       finder.find(dartFileEditBuilder.resolvedUnit.unit, offset);
       _enclosingClass = finder.enclosingClass;
       _enclosingExecutable = finder.enclosingExecutable;
@@ -1222,7 +1222,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   void convertFunctionFromSyncToAsync(
       FunctionBody body, TypeProvider typeProvider) {
     if (body == null && body.keyword != null) {
-      throw new ArgumentError(
+      throw ArgumentError(
           'The function must have a synchronous, non-generator body.');
     }
     if (body is! EmptyFunctionBody) {
@@ -1238,7 +1238,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
 
   @override
   DartEditBuilderImpl createEditBuilder(int offset, int length) {
-    return new DartEditBuilderImpl(this, offset, length);
+    return DartEditBuilderImpl(this, offset, length);
   }
 
   @override
@@ -1556,7 +1556,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       String uriText = _getLibraryUriText(uri);
       String prefix =
           importPrefixGenerator != null ? importPrefixGenerator(uri) : null;
-      import = new _LibraryToImport(uriText, prefix);
+      import = _LibraryToImport(uriText, prefix);
       (libraryChangeBuilder ?? this).librariesToImport[uri] = import;
     }
     return import;
@@ -1570,7 +1570,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       [String prefix = null]) {
     var import = librariesToRelativelyImport[uriText];
     if (import == null) {
-      import = new _LibraryToImport(uriText, prefix);
+      import = _LibraryToImport(uriText, prefix);
       librariesToRelativelyImport[uriText] = import;
     }
     return import;
@@ -1625,7 +1625,7 @@ class DartLinkedEditBuilderImpl extends LinkedEditBuilderImpl
 
   @override
   void addSuperTypesAsSuggestions(DartType type) {
-    _addSuperTypesAsSuggestions(type, new Set<DartType>());
+    _addSuperTypesAsSuggestions(type, Set<DartType>());
   }
 
   /**
@@ -1661,7 +1661,7 @@ class _EnclosingElementFinder {
   _EnclosingElementFinder();
 
   void find(AstNode target, int offset) {
-    AstNode node = new NodeLocator2(offset).searchWithin(target);
+    AstNode node = NodeLocator2(offset).searchWithin(target);
     while (node != null) {
       if (node is ClassDeclaration) {
         enclosingClass = node.declaredElement;

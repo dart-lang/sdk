@@ -44,8 +44,8 @@ class InheritedReferenceContributor
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     CompletionTarget target =
-        new CompletionTarget.forOffset(request.result.unit, request.offset);
-    OpType optype = new OpType.forCompletion(target, request.offset);
+        CompletionTarget.forOffset(request.result.unit, request.offset);
+    OpType optype = OpType.forCompletion(target, request.offset);
     if (!optype.includeIdentifiers) {
       return;
     }
@@ -72,10 +72,9 @@ class InheritedReferenceContributor
   }) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    target ??= new CompletionTarget.forOffset(
-        request.result.unit, request.offset,
+    target ??= CompletionTarget.forOffset(request.result.unit, request.offset,
         entryPoint: entryPoint);
-    optype ??= new OpType.forCompletion(target, request.offset);
+    optype ??= OpType.forCompletion(target, request.offset);
     if (!optype.includeIdentifiers) {
       return;
     }

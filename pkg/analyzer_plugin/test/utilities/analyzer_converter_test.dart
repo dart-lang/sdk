@@ -29,7 +29,7 @@ void main() {
 
 @reflectiveTest
 class AnalyzerConverterTest extends AbstractContextTest {
-  AnalyzerConverter converter = new AnalyzerConverter();
+  AnalyzerConverter converter = AnalyzerConverter();
   analyzer.Source source;
   String testFile;
 
@@ -67,7 +67,7 @@ class AnalyzerConverterTest extends AbstractContextTest {
           length: 7,
           message: contextMessage));
     }
-    return new analyzer.AnalysisError(
+    return analyzer.AnalysisError(
         source,
         offset,
         5,
@@ -86,7 +86,7 @@ class AnalyzerConverterTest extends AbstractContextTest {
   test_convertAnalysisError_contextMessages() {
     analyzer.AnalysisError analyzerError =
         createError(13, contextMessage: 'here');
-    analyzer.LineInfo lineInfo = new analyzer.LineInfo([0, 10, 20]);
+    analyzer.LineInfo lineInfo = analyzer.LineInfo([0, 10, 20]);
     analyzer.ErrorSeverity severity = analyzer.ErrorSeverity.WARNING;
 
     plugin.AnalysisError pluginError = converter.convertAnalysisError(
@@ -104,7 +104,7 @@ class AnalyzerConverterTest extends AbstractContextTest {
 
   test_convertAnalysisError_lineInfo_noSeverity() {
     analyzer.AnalysisError analyzerError = createError(13);
-    analyzer.LineInfo lineInfo = new analyzer.LineInfo([0, 10, 20]);
+    analyzer.LineInfo lineInfo = analyzer.LineInfo([0, 10, 20]);
 
     assertError(
         converter.convertAnalysisError(analyzerError, lineInfo: lineInfo),
@@ -115,7 +115,7 @@ class AnalyzerConverterTest extends AbstractContextTest {
 
   test_convertAnalysisError_lineInfo_severity() {
     analyzer.AnalysisError analyzerError = createError(13);
-    analyzer.LineInfo lineInfo = new analyzer.LineInfo([0, 10, 20]);
+    analyzer.LineInfo lineInfo = analyzer.LineInfo([0, 10, 20]);
     analyzer.ErrorSeverity severity = analyzer.ErrorSeverity.WARNING;
 
     assertError(
@@ -148,7 +148,7 @@ class AnalyzerConverterTest extends AbstractContextTest {
       createError(13),
       createError(25)
     ];
-    analyzer.LineInfo lineInfo = new analyzer.LineInfo([0, 10, 20]);
+    analyzer.LineInfo lineInfo = analyzer.LineInfo([0, 10, 20]);
 
     List<plugin.AnalysisError> pluginErrors =
         converter.convertAnalysisErrors(analyzerErrors, lineInfo: lineInfo);
@@ -164,11 +164,11 @@ class AnalyzerConverterTest extends AbstractContextTest {
       createError(13),
       createError(25)
     ];
-    analyzer.LineInfo lineInfo = new analyzer.LineInfo([0, 10, 20]);
+    analyzer.LineInfo lineInfo = analyzer.LineInfo([0, 10, 20]);
     analyzer.ErrorSeverity severity = analyzer.ErrorSeverity.WARNING;
-    analyzer.AnalysisOptionsImpl options = new analyzer.AnalysisOptionsImpl();
+    analyzer.AnalysisOptionsImpl options = analyzer.AnalysisOptionsImpl();
     options.errorProcessors = [
-      new analyzer.ErrorProcessor(analyzerErrors[0].errorCode.name, severity)
+      analyzer.ErrorProcessor(analyzerErrors[0].errorCode.name, severity)
     ];
 
     List<plugin.AnalysisError> pluginErrors = converter.convertAnalysisErrors(
@@ -201,9 +201,9 @@ class AnalyzerConverterTest extends AbstractContextTest {
       createError(25)
     ];
     analyzer.ErrorSeverity severity = analyzer.ErrorSeverity.WARNING;
-    analyzer.AnalysisOptionsImpl options = new analyzer.AnalysisOptionsImpl();
+    analyzer.AnalysisOptionsImpl options = analyzer.AnalysisOptionsImpl();
     options.errorProcessors = [
-      new analyzer.ErrorProcessor(analyzerErrors[0].errorCode.name, severity)
+      analyzer.ErrorProcessor(analyzerErrors[0].errorCode.name, severity)
     ];
 
     List<plugin.AnalysisError> pluginErrors =

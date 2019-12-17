@@ -75,7 +75,7 @@ class TypeMemberContributor implements CompletionContributor {
    */
   Expression _computeDotTarget(
       DartCompletionRequest request, AstNode entryPoint) {
-    CompletionTarget target = new CompletionTarget.forOffset(
+    CompletionTarget target = CompletionTarget.forOffset(
         request.result.unit, request.offset,
         entryPoint: entryPoint);
     AstNode node = target.containingNode;
@@ -137,7 +137,7 @@ class TypeMemberContributor implements CompletionContributor {
           // If the element does not provide a good type
           // then attempt to get a better type from a local declaration
           _LocalBestTypeVisitor visitor =
-              new _LocalBestTypeVisitor(expression.name, request.offset);
+              _LocalBestTypeVisitor(expression.name, request.offset);
           if (visitor.visit(expression) && visitor.typeFound != null) {
             type = visitor.typeFound;
           }
@@ -166,7 +166,7 @@ class TypeMemberContributor implements CompletionContributor {
 
     // Build the suggestions
     if (type is InterfaceType) {
-      _SuggestionBuilder builder = new _SuggestionBuilder(
+      _SuggestionBuilder builder = _SuggestionBuilder(
           request.resourceProvider, collector, containingLibrary);
       builder.buildSuggestions(type, containingMethodName);
     }
@@ -353,7 +353,7 @@ class _SuggestionBuilder {
    * Note: the enumerated values stored in this map are intended to be bitwise
    * compared.
    */
-  Map<String, int> _completionTypesGenerated = new HashMap<String, int>();
+  Map<String, int> _completionTypesGenerated = HashMap<String, int>();
 
   /**
    * Map from completion identifier to completion suggestion
@@ -368,7 +368,7 @@ class _SuggestionBuilder {
 
   _SuggestionBuilder(
       this.resourceProvider, this.collector, this.containingLibrary)
-      : builder = new SuggestionBuilderImpl(resourceProvider);
+      : builder = SuggestionBuilderImpl(resourceProvider);
 
   Iterable<CompletionSuggestion> get suggestions => _suggestionMap.values;
 
@@ -495,7 +495,7 @@ class _SuggestionBuilder {
     // classes seen (not the interfaces) so that we won't be fooled by nonsense
     // like "class C<T> extends C<List<T>> {}"
     List<InterfaceType> result = <InterfaceType>[];
-    Set<ClassElement> classesSeen = new HashSet<ClassElement>();
+    Set<ClassElement> classesSeen = HashSet<ClassElement>();
     List<InterfaceType> typesToVisit = <InterfaceType>[type];
     while (typesToVisit.isNotEmpty) {
       InterfaceType nextType = typesToVisit.removeLast();

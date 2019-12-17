@@ -423,17 +423,17 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
   Future computeSuggestions() async {
     ResolvedUnitResult result = await driver.getResult(testFile);
     testSource = result.unit.declaredElement.source;
-    request = new DartCompletionRequestImpl(
-        resourceProvider, completionOffset, result);
+    request =
+        DartCompletionRequestImpl(resourceProvider, completionOffset, result);
 
     CompletionTarget target =
-        new CompletionTarget.forOffset(request.result.unit, request.offset);
+        CompletionTarget.forOffset(request.result.unit, request.offset);
     var range = target.computeReplacementRange(request.offset);
     replacementOffset = range.offset;
     replacementLength = range.length;
 
     // Request completions
-    CompletionCollectorImpl collector = new CompletionCollectorImpl();
+    CompletionCollectorImpl collector = CompletionCollectorImpl();
     await contributor.computeSuggestions(request, collector);
     suggestions = collector.suggestions;
     expect(suggestions, isNotNull, reason: 'expected suggestions');
@@ -443,7 +443,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
 
   void failedCompletion(String message,
       [Iterable<CompletionSuggestion> completions]) {
-    StringBuffer sb = new StringBuffer(message);
+    StringBuffer sb = StringBuffer(message);
     if (completions != null) {
       sb.write('\n  found');
       completions.toList()
@@ -493,7 +493,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     // Future.value or Future() constructors use scheduleMicrotask themselves and
     // would therefore not wait for microtask callbacks that are scheduled after
     // invoking this method.
-    return new Future.delayed(
+    return Future.delayed(
         Duration.zero, () => performAnalysis(times - 1, completer));
   }
 

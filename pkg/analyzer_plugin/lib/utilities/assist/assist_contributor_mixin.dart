@@ -34,6 +34,6 @@ abstract class AssistContributorMixin implements AssistContributor {
     }
     change.message = formatList(kind.message, args);
     collector.addAssist(
-        new PrioritizedSourceChange(kind.priority, builder.sourceChange));
+        PrioritizedSourceChange(kind.priority, builder.sourceChange));
   }
 }

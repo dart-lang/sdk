@@ -24,7 +24,7 @@ class SourceRangesTest extends AbstractSingleUnitTest {
   test_elementName() async {
     await resolveTestUnit('class ABC {}');
     Element element = findElement('ABC');
-    expect(range.elementName(element), new SourceRange(6, 3));
+    expect(range.elementName(element), SourceRange(6, 3));
   }
 
   test_endEnd() async {
@@ -33,7 +33,7 @@ class SourceRangesTest extends AbstractSingleUnitTest {
         testUnit.declarations[0] as FunctionDeclaration;
     SimpleIdentifier mainName = mainFunction.name;
     FunctionBody mainBody = mainFunction.functionExpression.body;
-    expect(range.endEnd(mainName, mainBody), new SourceRange(4, 5));
+    expect(range.endEnd(mainName, mainBody), SourceRange(4, 5));
   }
 
   test_endLength() async {
@@ -41,7 +41,7 @@ class SourceRangesTest extends AbstractSingleUnitTest {
     FunctionDeclaration mainFunction =
         testUnit.declarations[0] as FunctionDeclaration;
     SimpleIdentifier mainName = mainFunction.name;
-    expect(range.endLength(mainName, 3), new SourceRange(4, 3));
+    expect(range.endLength(mainName, 3), SourceRange(4, 3));
   }
 
   test_endStart() async {
@@ -50,13 +50,13 @@ class SourceRangesTest extends AbstractSingleUnitTest {
         testUnit.declarations[0] as FunctionDeclaration;
     SimpleIdentifier mainName = mainFunction.name;
     FunctionBody mainBody = mainFunction.functionExpression.body;
-    expect(range.endStart(mainName, mainBody), new SourceRange(4, 3));
+    expect(range.endStart(mainName, mainBody), SourceRange(4, 3));
   }
 
   test_error() {
     AnalysisError error =
-        new AnalysisError(null, 10, 5, ParserErrorCode.CONST_CLASS, []);
-    expect(range.error(error), new SourceRange(10, 5));
+        AnalysisError(null, 10, 5, ParserErrorCode.CONST_CLASS, []);
+    expect(range.error(error), SourceRange(10, 5));
   }
 
   test_node() async {
@@ -64,7 +64,7 @@ class SourceRangesTest extends AbstractSingleUnitTest {
     FunctionDeclaration mainFunction =
         testUnit.declarations[0] as FunctionDeclaration;
     SimpleIdentifier mainName = mainFunction.name;
-    expect(range.node(mainName), new SourceRange(0, 4));
+    expect(range.node(mainName), SourceRange(0, 4));
   }
 
   test_nodes() async {
@@ -73,16 +73,16 @@ class SourceRangesTest extends AbstractSingleUnitTest {
         testUnit.declarations[0] as FunctionDeclaration;
     SimpleIdentifier mainName = mainFunction.name;
     FunctionBody mainBody = mainFunction.functionExpression.body;
-    expect(range.nodes([mainName, mainBody]), new SourceRange(1, 9));
+    expect(range.nodes([mainName, mainBody]), SourceRange(1, 9));
   }
 
   test_nodes_empty() async {
     await resolveTestUnit('main() {}');
-    expect(range.nodes([]), new SourceRange(0, 0));
+    expect(range.nodes([]), SourceRange(0, 0));
   }
 
   test_offsetBy() {
-    expect(range.offsetBy(new SourceRange(7, 3), 2), new SourceRange(9, 3));
+    expect(range.offsetBy(SourceRange(7, 3), 2), SourceRange(9, 3));
   }
 
   test_startEnd_nodeNode() async {
@@ -91,7 +91,7 @@ class SourceRangesTest extends AbstractSingleUnitTest {
         testUnit.declarations[0] as FunctionDeclaration;
     SimpleIdentifier mainName = mainFunction.name;
     FunctionBody mainBody = mainFunction.functionExpression.body;
-    expect(range.startEnd(mainName, mainBody), new SourceRange(1, 9));
+    expect(range.startEnd(mainName, mainBody), SourceRange(1, 9));
   }
 
   test_startLength_node() async {
@@ -99,11 +99,11 @@ class SourceRangesTest extends AbstractSingleUnitTest {
     FunctionDeclaration mainFunction =
         testUnit.declarations[0] as FunctionDeclaration;
     SimpleIdentifier mainName = mainFunction.name;
-    expect(range.startLength(mainName, 10), new SourceRange(1, 10));
+    expect(range.startLength(mainName, 10), SourceRange(1, 10));
   }
 
   test_startOffsetEndOffset() {
-    expect(range.startOffsetEndOffset(6, 11), new SourceRange(6, 5));
+    expect(range.startOffsetEndOffset(6, 11), SourceRange(6, 5));
   }
 
   test_startStart_nodeNode() async {
@@ -112,7 +112,7 @@ class SourceRangesTest extends AbstractSingleUnitTest {
         testUnit.declarations[0] as FunctionDeclaration;
     SimpleIdentifier mainName = mainFunction.name;
     FunctionBody mainBody = mainFunction.functionExpression.body;
-    expect(range.startStart(mainName, mainBody), new SourceRange(0, 7));
+    expect(range.startStart(mainName, mainBody), SourceRange(0, 7));
   }
 
   test_token() async {
@@ -120,6 +120,6 @@ class SourceRangesTest extends AbstractSingleUnitTest {
     FunctionDeclaration mainFunction =
         testUnit.declarations[0] as FunctionDeclaration;
     SimpleIdentifier mainName = mainFunction.name;
-    expect(range.token(mainName.beginToken), new SourceRange(1, 4));
+    expect(range.token(mainName.beginToken), SourceRange(1, 4));
   }
 }

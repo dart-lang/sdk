@@ -23,18 +23,18 @@ import 'package:test/test.dart';
 
 class MockAnalysisDriver extends AnalysisDriver {
   @override
-  Set<String> addedFiles = new HashSet<String>();
+  Set<String> addedFiles = HashSet<String>();
 
   MockAnalysisDriver()
       : super(
-            new AnalysisDriverScheduler(null),
+            AnalysisDriverScheduler(null),
             null,
-            new MockResourceProvider(),
+            MockResourceProvider(),
             null,
-            new FileContentOverlay(),
+            FileContentOverlay(),
             null,
-            new SourceFactory([]),
-            new AnalysisOptionsImpl());
+            SourceFactory([]),
+            AnalysisOptionsImpl());
 
   @override
   bool get hasFilesToAnalyze => false;
@@ -54,7 +54,7 @@ class MockAnalysisDriver extends AnalysisDriver {
   void dispose() {}
 
   @override
-  Future<Null> performWork() => new Future.value(null);
+  Future<Null> performWork() => Future.value(null);
 }
 
 class MockChannel implements PluginCommunicationChannel {
@@ -98,7 +98,7 @@ class MockChannel implements PluginCommunicationChannel {
   @override
   void sendNotification(Notification notification) {
     if (_closed) {
-      throw new StateError('Sent a notification to a closed channel');
+      throw StateError('Sent a notification to a closed channel');
     }
     if (_onNotification == null) {
       fail('Unexpected invocation of sendNotification');
@@ -112,7 +112,7 @@ class MockChannel implements PluginCommunicationChannel {
     }
     String id = (idCounter++).toString();
     Request request = params.toRequest(id);
-    Completer<Response> completer = new Completer<Response>();
+    Completer<Response> completer = Completer<Response>();
     completers[request.id] = completer;
     _onRequest(request);
     return completer.future;
@@ -121,7 +121,7 @@ class MockChannel implements PluginCommunicationChannel {
   @override
   void sendResponse(Response response) {
     if (_closed) {
-      throw new StateError('Sent a response to a closed channel');
+      throw StateError('Sent a response to a closed channel');
     }
     Completer<Response> completer = completers.remove(response.id);
     completer.complete(response);
@@ -166,7 +166,7 @@ class MockServerPlugin extends ServerPlugin {
 
   @override
   AnalysisDriverGeneric createAnalysisDriver(ContextRoot contextRoot) {
-    return new MockAnalysisDriver();
+    return MockAnalysisDriver();
   }
 }
 

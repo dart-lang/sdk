@@ -46,7 +46,7 @@ linter:
     - type_init_formals
     - unawaited_futures
     #- unnecessary_const # 192
-    #- unnecessary_new #1214
+    - unnecessary_new
     - unnecessary_null_in_if_null_operators
     #- unnecessary_this # 232
     #- unrelated_type_equality_checks # 1

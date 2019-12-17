@@ -975,7 +975,7 @@ class _Base extends AbstractContextTest {
     var result = await driver.getResult(path);
     findElement = FindElement(result.unit);
 
-    target = new CompletionTarget.forOffset(result.unit, offset);
+    target = CompletionTarget.forOffset(result.unit, offset);
   }
 
   static String _executableNameStr(ExecutableElement executable) {

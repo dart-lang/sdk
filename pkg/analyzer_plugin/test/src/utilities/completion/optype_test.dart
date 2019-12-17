@@ -2401,8 +2401,8 @@ class OpTypeTestCommon extends AbstractContextTest {
     ResolvedUnitResult resolvedUnit = await driver.getResult(testPath);
 
     CompletionTarget completionTarget =
-        new CompletionTarget.forOffset(resolvedUnit.unit, completionOffset);
-    visitor = new OpType.forCompletion(completionTarget, completionOffset);
+        CompletionTarget.forOffset(resolvedUnit.unit, completionOffset);
+    visitor = OpType.forCompletion(completionTarget, completionOffset);
 
     expect(visitor.includeCaseLabelSuggestions, caseLabel, reason: 'caseLabel');
     expect(visitor.includeConstructorSuggestions, constructors,

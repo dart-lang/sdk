@@ -51,11 +51,11 @@ class AnalyzerConverter {
               convertDiagnosticMessage(message, lineInfo: lineInfo))
           .toList();
     }
-    return new plugin.AnalysisError(
+    return plugin.AnalysisError(
         convertErrorSeverity(severity),
         convertErrorType(errorCode.type),
-        new plugin.Location(error.source.fullName, offset, error.length,
-            startLine, startColumn),
+        plugin.Location(error.source.fullName, offset, error.length, startLine,
+            startColumn),
         error.message,
         errorCode.name.toLowerCase(),
         contextMessages: contextMessages,
@@ -124,7 +124,7 @@ class AnalyzerConverter {
    */
   plugin.Element convertElement(analyzer.Element element) {
     plugin.ElementKind kind = _convertElementToElementKind(element);
-    return new plugin.Element(
+    return plugin.Element(
         kind,
         element.displayName,
         plugin.Element.makeFlags(
@@ -193,14 +193,14 @@ class AnalyzerConverter {
    */
   plugin.AnalysisErrorSeverity convertErrorSeverity(
           analyzer.ErrorSeverity severity) =>
-      new plugin.AnalysisErrorSeverity(severity.name);
+      plugin.AnalysisErrorSeverity(severity.name);
 
   /**
    *Convert the error [type] from the 'analyzer' package to an analysis error
    * type defined by the plugin API.
    */
   plugin.AnalysisErrorType convertErrorType(analyzer.ErrorType type) =>
-      new plugin.AnalysisErrorType(type.name);
+      plugin.AnalysisErrorType(type.name);
 
   /**
    * Convert the element kind of the [element] from the 'analyzer' package to an
@@ -245,7 +245,7 @@ class AnalyzerConverter {
     } else {
       return null;
     }
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     String closeOptionalString = '';
     buffer.write('(');
     for (int i = 0; i < parameters.length; i++) {
@@ -386,7 +386,7 @@ class AnalyzerConverter {
     } on analyzer.AnalysisException {
       // Ignore exceptions
     }
-    return new plugin.Location(unitElement.source.fullName, range.offset,
+    return plugin.Location(unitElement.source.fullName, range.offset,
         range.length, startLine, startColumn);
   }
 
@@ -405,7 +405,7 @@ class AnalyzerConverter {
       length = 0;
     }
     analyzer.CompilationUnitElement unitElement = _getUnitElement(element);
-    analyzer.SourceRange range = new analyzer.SourceRange(offset, length);
+    analyzer.SourceRange range = analyzer.SourceRange(offset, length);
     return _locationForArgs(unitElement, range);
   }
 }

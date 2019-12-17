@@ -72,7 +72,7 @@ class AnalysisErrorFixes implements HasToJson {
     if (json is Map) {
       AnalysisError error;
       if (json.containsKey("error")) {
-        error = new AnalysisError.fromJson(
+        error = AnalysisError.fromJson(
             jsonDecoder, jsonPath + ".error", json["error"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "error");
@@ -83,12 +83,11 @@ class AnalysisErrorFixes implements HasToJson {
             jsonPath + ".fixes",
             json["fixes"],
             (String jsonPath, Object json) =>
-                new PrioritizedSourceChange.fromJson(
-                    jsonDecoder, jsonPath, json));
+                PrioritizedSourceChange.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "fixes");
       }
-      return new AnalysisErrorFixes(error, fixes: fixes);
+      return AnalysisErrorFixes(error, fixes: fixes);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "AnalysisErrorFixes", json);
     }
@@ -189,19 +188,19 @@ class AnalysisErrorsParams implements HasToJson {
             jsonPath + ".errors",
             json["errors"],
             (String jsonPath, Object json) =>
-                new AnalysisError.fromJson(jsonDecoder, jsonPath, json));
+                AnalysisError.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "errors");
       }
-      return new AnalysisErrorsParams(file, errors);
+      return AnalysisErrorsParams(file, errors);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "analysis.errors params", json);
     }
   }
 
   factory AnalysisErrorsParams.fromNotification(Notification notification) {
-    return new AnalysisErrorsParams.fromJson(
-        new ResponseDecoder(null), "params", notification.params);
+    return AnalysisErrorsParams.fromJson(
+        ResponseDecoder(null), "params", notification.params);
   }
 
   @override
@@ -214,7 +213,7 @@ class AnalysisErrorsParams implements HasToJson {
   }
 
   Notification toNotification() {
-    return new Notification("analysis.errors", toJson());
+    return Notification("analysis.errors", toJson());
   }
 
   @override
@@ -303,19 +302,19 @@ class AnalysisFoldingParams implements HasToJson {
             jsonPath + ".regions",
             json["regions"],
             (String jsonPath, Object json) =>
-                new FoldingRegion.fromJson(jsonDecoder, jsonPath, json));
+                FoldingRegion.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "regions");
       }
-      return new AnalysisFoldingParams(file, regions);
+      return AnalysisFoldingParams(file, regions);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "analysis.folding params", json);
     }
   }
 
   factory AnalysisFoldingParams.fromNotification(Notification notification) {
-    return new AnalysisFoldingParams.fromJson(
-        new ResponseDecoder(null), "params", notification.params);
+    return AnalysisFoldingParams.fromJson(
+        ResponseDecoder(null), "params", notification.params);
   }
 
   @override
@@ -328,7 +327,7 @@ class AnalysisFoldingParams implements HasToJson {
   }
 
   Notification toNotification() {
-    return new Notification("analysis.folding", toJson());
+    return Notification("analysis.folding", toJson());
   }
 
   @override
@@ -444,7 +443,7 @@ class AnalysisGetNavigationParams implements RequestParams {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "length");
       }
-      return new AnalysisGetNavigationParams(file, offset, length);
+      return AnalysisGetNavigationParams(file, offset, length);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "analysis.getNavigation params", json);
@@ -452,8 +451,8 @@ class AnalysisGetNavigationParams implements RequestParams {
   }
 
   factory AnalysisGetNavigationParams.fromRequest(Request request) {
-    return new AnalysisGetNavigationParams.fromJson(
-        new RequestDecoder(request), "params", request.params);
+    return AnalysisGetNavigationParams.fromJson(
+        RequestDecoder(request), "params", request.params);
   }
 
   @override
@@ -467,7 +466,7 @@ class AnalysisGetNavigationParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "analysis.getNavigation", toJson());
+    return Request(id, "analysis.getNavigation", toJson());
   }
 
   @override
@@ -580,7 +579,7 @@ class AnalysisGetNavigationResult implements ResponseResult {
             jsonPath + ".targets",
             json["targets"],
             (String jsonPath, Object json) =>
-                new NavigationTarget.fromJson(jsonDecoder, jsonPath, json));
+                NavigationTarget.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "targets");
       }
@@ -590,11 +589,11 @@ class AnalysisGetNavigationResult implements ResponseResult {
             jsonPath + ".regions",
             json["regions"],
             (String jsonPath, Object json) =>
-                new NavigationRegion.fromJson(jsonDecoder, jsonPath, json));
+                NavigationRegion.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "regions");
       }
-      return new AnalysisGetNavigationResult(files, targets, regions);
+      return AnalysisGetNavigationResult(files, targets, regions);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "analysis.getNavigation result", json);
@@ -602,8 +601,8 @@ class AnalysisGetNavigationResult implements ResponseResult {
   }
 
   factory AnalysisGetNavigationResult.fromResponse(Response response) {
-    return new AnalysisGetNavigationResult.fromJson(
-        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+    return AnalysisGetNavigationResult.fromJson(
+        ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         "result",
         response.result);
   }
@@ -621,7 +620,7 @@ class AnalysisGetNavigationResult implements ResponseResult {
 
   @override
   Response toResponse(String id, int requestTime) {
-    return new Response(id, requestTime, result: toJson());
+    return Response(id, requestTime, result: toJson());
   }
 
   @override
@@ -690,11 +689,11 @@ class AnalysisHandleWatchEventsParams implements RequestParams {
             jsonPath + ".events",
             json["events"],
             (String jsonPath, Object json) =>
-                new WatchEvent.fromJson(jsonDecoder, jsonPath, json));
+                WatchEvent.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "events");
       }
-      return new AnalysisHandleWatchEventsParams(events);
+      return AnalysisHandleWatchEventsParams(events);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "analysis.handleWatchEvents params", json);
@@ -702,8 +701,8 @@ class AnalysisHandleWatchEventsParams implements RequestParams {
   }
 
   factory AnalysisHandleWatchEventsParams.fromRequest(Request request) {
-    return new AnalysisHandleWatchEventsParams.fromJson(
-        new RequestDecoder(request), "params", request.params);
+    return AnalysisHandleWatchEventsParams.fromJson(
+        RequestDecoder(request), "params", request.params);
   }
 
   @override
@@ -716,7 +715,7 @@ class AnalysisHandleWatchEventsParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "analysis.handleWatchEvents", toJson());
+    return Request(id, "analysis.handleWatchEvents", toJson());
   }
 
   @override
@@ -750,7 +749,7 @@ class AnalysisHandleWatchEventsResult implements ResponseResult {
 
   @override
   Response toResponse(String id, int requestTime) {
-    return new Response(id, requestTime, result: null);
+    return Response(id, requestTime, result: null);
   }
 
   @override
@@ -831,19 +830,19 @@ class AnalysisHighlightsParams implements HasToJson {
             jsonPath + ".regions",
             json["regions"],
             (String jsonPath, Object json) =>
-                new HighlightRegion.fromJson(jsonDecoder, jsonPath, json));
+                HighlightRegion.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "regions");
       }
-      return new AnalysisHighlightsParams(file, regions);
+      return AnalysisHighlightsParams(file, regions);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "analysis.highlights params", json);
     }
   }
 
   factory AnalysisHighlightsParams.fromNotification(Notification notification) {
-    return new AnalysisHighlightsParams.fromJson(
-        new ResponseDecoder(null), "params", notification.params);
+    return AnalysisHighlightsParams.fromJson(
+        ResponseDecoder(null), "params", notification.params);
   }
 
   @override
@@ -856,7 +855,7 @@ class AnalysisHighlightsParams implements HasToJson {
   }
 
   Notification toNotification() {
-    return new Notification("analysis.highlights", toJson());
+    return Notification("analysis.highlights", toJson());
   }
 
   @override
@@ -984,7 +983,7 @@ class AnalysisNavigationParams implements HasToJson {
             jsonPath + ".regions",
             json["regions"],
             (String jsonPath, Object json) =>
-                new NavigationRegion.fromJson(jsonDecoder, jsonPath, json));
+                NavigationRegion.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "regions");
       }
@@ -994,7 +993,7 @@ class AnalysisNavigationParams implements HasToJson {
             jsonPath + ".targets",
             json["targets"],
             (String jsonPath, Object json) =>
-                new NavigationTarget.fromJson(jsonDecoder, jsonPath, json));
+                NavigationTarget.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "targets");
       }
@@ -1005,15 +1004,15 @@ class AnalysisNavigationParams implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "files");
       }
-      return new AnalysisNavigationParams(file, regions, targets, files);
+      return AnalysisNavigationParams(file, regions, targets, files);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "analysis.navigation params", json);
     }
   }
 
   factory AnalysisNavigationParams.fromNotification(Notification notification) {
-    return new AnalysisNavigationParams.fromJson(
-        new ResponseDecoder(null), "params", notification.params);
+    return AnalysisNavigationParams.fromJson(
+        ResponseDecoder(null), "params", notification.params);
   }
 
   @override
@@ -1029,7 +1028,7 @@ class AnalysisNavigationParams implements HasToJson {
   }
 
   Notification toNotification() {
-    return new Notification("analysis.navigation", toJson());
+    return Notification("analysis.navigation", toJson());
   }
 
   @override
@@ -1123,11 +1122,11 @@ class AnalysisOccurrencesParams implements HasToJson {
             jsonPath + ".occurrences",
             json["occurrences"],
             (String jsonPath, Object json) =>
-                new Occurrences.fromJson(jsonDecoder, jsonPath, json));
+                Occurrences.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "occurrences");
       }
-      return new AnalysisOccurrencesParams(file, occurrences);
+      return AnalysisOccurrencesParams(file, occurrences);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "analysis.occurrences params", json);
     }
@@ -1135,8 +1134,8 @@ class AnalysisOccurrencesParams implements HasToJson {
 
   factory AnalysisOccurrencesParams.fromNotification(
       Notification notification) {
-    return new AnalysisOccurrencesParams.fromJson(
-        new ResponseDecoder(null), "params", notification.params);
+    return AnalysisOccurrencesParams.fromJson(
+        ResponseDecoder(null), "params", notification.params);
   }
 
   @override
@@ -1149,7 +1148,7 @@ class AnalysisOccurrencesParams implements HasToJson {
   }
 
   Notification toNotification() {
-    return new Notification("analysis.occurrences", toJson());
+    return Notification("analysis.occurrences", toJson());
   }
 
   @override
@@ -1238,19 +1237,19 @@ class AnalysisOutlineParams implements HasToJson {
             jsonPath + ".outline",
             json["outline"],
             (String jsonPath, Object json) =>
-                new Outline.fromJson(jsonDecoder, jsonPath, json));
+                Outline.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "outline");
       }
-      return new AnalysisOutlineParams(file, outline);
+      return AnalysisOutlineParams(file, outline);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "analysis.outline params", json);
     }
   }
 
   factory AnalysisOutlineParams.fromNotification(Notification notification) {
-    return new AnalysisOutlineParams.fromJson(
-        new ResponseDecoder(null), "params", notification.params);
+    return AnalysisOutlineParams.fromJson(
+        ResponseDecoder(null), "params", notification.params);
   }
 
   @override
@@ -1262,7 +1261,7 @@ class AnalysisOutlineParams implements HasToJson {
   }
 
   Notification toNotification() {
-    return new Notification("analysis.outline", toJson());
+    return Notification("analysis.outline", toJson());
   }
 
   @override
@@ -1342,14 +1341,14 @@ class AnalysisService implements Enum {
       case "OUTLINE":
         return OUTLINE;
     }
-    throw new Exception('Illegal enum value: $name');
+    throw Exception('Illegal enum value: $name');
   }
 
   factory AnalysisService.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json is String) {
       try {
-        return new AnalysisService(json);
+        return AnalysisService(json);
       } catch (_) {
         // Fall through
       }
@@ -1404,11 +1403,11 @@ class AnalysisSetContextRootsParams implements RequestParams {
             jsonPath + ".roots",
             json["roots"],
             (String jsonPath, Object json) =>
-                new ContextRoot.fromJson(jsonDecoder, jsonPath, json));
+                ContextRoot.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "roots");
       }
-      return new AnalysisSetContextRootsParams(roots);
+      return AnalysisSetContextRootsParams(roots);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "analysis.setContextRoots params", json);
@@ -1416,8 +1415,8 @@ class AnalysisSetContextRootsParams implements RequestParams {
   }
 
   factory AnalysisSetContextRootsParams.fromRequest(Request request) {
-    return new AnalysisSetContextRootsParams.fromJson(
-        new RequestDecoder(request), "params", request.params);
+    return AnalysisSetContextRootsParams.fromJson(
+        RequestDecoder(request), "params", request.params);
   }
 
   @override
@@ -1429,7 +1428,7 @@ class AnalysisSetContextRootsParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "analysis.setContextRoots", toJson());
+    return Request(id, "analysis.setContextRoots", toJson());
   }
 
   @override
@@ -1463,7 +1462,7 @@ class AnalysisSetContextRootsResult implements ResponseResult {
 
   @override
   Response toResponse(String id, int requestTime) {
-    return new Response(id, requestTime, result: null);
+    return Response(id, requestTime, result: null);
   }
 
   @override
@@ -1522,7 +1521,7 @@ class AnalysisSetPriorityFilesParams implements RequestParams {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "files");
       }
-      return new AnalysisSetPriorityFilesParams(files);
+      return AnalysisSetPriorityFilesParams(files);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "analysis.setPriorityFiles params", json);
@@ -1530,8 +1529,8 @@ class AnalysisSetPriorityFilesParams implements RequestParams {
   }
 
   factory AnalysisSetPriorityFilesParams.fromRequest(Request request) {
-    return new AnalysisSetPriorityFilesParams.fromJson(
-        new RequestDecoder(request), "params", request.params);
+    return AnalysisSetPriorityFilesParams.fromJson(
+        RequestDecoder(request), "params", request.params);
   }
 
   @override
@@ -1543,7 +1542,7 @@ class AnalysisSetPriorityFilesParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "analysis.setPriorityFiles", toJson());
+    return Request(id, "analysis.setPriorityFiles", toJson());
   }
 
   @override
@@ -1576,7 +1575,7 @@ class AnalysisSetPriorityFilesResult implements ResponseResult {
 
   @override
   Response toResponse(String id, int requestTime) {
-    return new Response(id, requestTime, result: null);
+    return Response(id, requestTime, result: null);
   }
 
   @override
@@ -1636,13 +1635,13 @@ class AnalysisSetSubscriptionsParams implements RequestParams {
         subscriptions = jsonDecoder.decodeMap(
             jsonPath + ".subscriptions", json["subscriptions"],
             keyDecoder: (String jsonPath, Object json) =>
-                new AnalysisService.fromJson(jsonDecoder, jsonPath, json),
+                AnalysisService.fromJson(jsonDecoder, jsonPath, json),
             valueDecoder: (String jsonPath, Object json) => jsonDecoder
                 .decodeList(jsonPath, json, jsonDecoder.decodeString));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "subscriptions");
       }
-      return new AnalysisSetSubscriptionsParams(subscriptions);
+      return AnalysisSetSubscriptionsParams(subscriptions);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "analysis.setSubscriptions params", json);
@@ -1650,8 +1649,8 @@ class AnalysisSetSubscriptionsParams implements RequestParams {
   }
 
   factory AnalysisSetSubscriptionsParams.fromRequest(Request request) {
-    return new AnalysisSetSubscriptionsParams.fromJson(
-        new RequestDecoder(request), "params", request.params);
+    return AnalysisSetSubscriptionsParams.fromJson(
+        RequestDecoder(request), "params", request.params);
   }
 
   @override
@@ -1664,7 +1663,7 @@ class AnalysisSetSubscriptionsParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "analysis.setSubscriptions", toJson());
+    return Request(id, "analysis.setSubscriptions", toJson());
   }
 
   @override
@@ -1701,7 +1700,7 @@ class AnalysisSetSubscriptionsResult implements ResponseResult {
 
   @override
   Response toResponse(String id, int requestTime) {
-    return new Response(id, requestTime, result: null);
+    return Response(id, requestTime, result: null);
   }
 
   @override
@@ -1761,19 +1760,17 @@ class AnalysisUpdateContentParams implements RequestParams {
             valueDecoder: (String jsonPath, Object json) =>
                 jsonDecoder.decodeUnion(jsonPath, json as Map, "type", {
                   "add": (String jsonPath, Object json) =>
-                      new AddContentOverlay.fromJson(
-                          jsonDecoder, jsonPath, json),
+                      AddContentOverlay.fromJson(jsonDecoder, jsonPath, json),
                   "change": (String jsonPath, Object json) =>
-                      new ChangeContentOverlay.fromJson(
+                      ChangeContentOverlay.fromJson(
                           jsonDecoder, jsonPath, json),
                   "remove": (String jsonPath, Object json) =>
-                      new RemoveContentOverlay.fromJson(
-                          jsonDecoder, jsonPath, json)
+                      RemoveContentOverlay.fromJson(jsonDecoder, jsonPath, json)
                 }));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "files");
       }
-      return new AnalysisUpdateContentParams(files);
+      return AnalysisUpdateContentParams(files);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "analysis.updateContent params", json);
@@ -1781,8 +1778,8 @@ class AnalysisUpdateContentParams implements RequestParams {
   }
 
   factory AnalysisUpdateContentParams.fromRequest(Request request) {
-    return new AnalysisUpdateContentParams.fromJson(
-        new RequestDecoder(request), "params", request.params);
+    return AnalysisUpdateContentParams.fromJson(
+        RequestDecoder(request), "params", request.params);
   }
 
   @override
@@ -1795,7 +1792,7 @@ class AnalysisUpdateContentParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "analysis.updateContent", toJson());
+    return Request(id, "analysis.updateContent", toJson());
   }
 
   @override
@@ -1828,7 +1825,7 @@ class AnalysisUpdateContentResult implements ResponseResult {
 
   @override
   Response toResponse(String id, int requestTime) {
-    return new Response(id, requestTime, result: null);
+    return Response(id, requestTime, result: null);
   }
 
   @override
@@ -1909,7 +1906,7 @@ class CompletionGetSuggestionsParams implements RequestParams {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "offset");
       }
-      return new CompletionGetSuggestionsParams(file, offset);
+      return CompletionGetSuggestionsParams(file, offset);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "completion.getSuggestions params", json);
@@ -1917,8 +1914,8 @@ class CompletionGetSuggestionsParams implements RequestParams {
   }
 
   factory CompletionGetSuggestionsParams.fromRequest(Request request) {
-    return new CompletionGetSuggestionsParams.fromJson(
-        new RequestDecoder(request), "params", request.params);
+    return CompletionGetSuggestionsParams.fromJson(
+        RequestDecoder(request), "params", request.params);
   }
 
   @override
@@ -1931,7 +1928,7 @@ class CompletionGetSuggestionsParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "completion.getSuggestions", toJson());
+    return Request(id, "completion.getSuggestions", toJson());
   }
 
   @override
@@ -2062,11 +2059,11 @@ class CompletionGetSuggestionsResult implements ResponseResult {
             jsonPath + ".results",
             json["results"],
             (String jsonPath, Object json) =>
-                new CompletionSuggestion.fromJson(jsonDecoder, jsonPath, json));
+                CompletionSuggestion.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "results");
       }
-      return new CompletionGetSuggestionsResult(
+      return CompletionGetSuggestionsResult(
           replacementOffset, replacementLength, results);
     } else {
       throw jsonDecoder.mismatch(
@@ -2075,8 +2072,8 @@ class CompletionGetSuggestionsResult implements ResponseResult {
   }
 
   factory CompletionGetSuggestionsResult.fromResponse(Response response) {
-    return new CompletionGetSuggestionsResult.fromJson(
-        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+    return CompletionGetSuggestionsResult.fromJson(
+        ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         "result",
         response.result);
   }
@@ -2093,7 +2090,7 @@ class CompletionGetSuggestionsResult implements ResponseResult {
 
   @override
   Response toResponse(String id, int requestTime) {
-    return new Response(id, requestTime, result: toJson());
+    return Response(id, requestTime, result: toJson());
   }
 
   @override
@@ -2212,7 +2209,7 @@ class ContextRoot implements HasToJson {
         optionsFile = jsonDecoder.decodeString(
             jsonPath + ".optionsFile", json["optionsFile"]);
       }
-      return new ContextRoot(root, exclude, optionsFile: optionsFile);
+      return ContextRoot(root, exclude, optionsFile: optionsFile);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "ContextRoot", json);
     }
@@ -2423,15 +2420,15 @@ class EditGetAssistsParams implements RequestParams {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "length");
       }
-      return new EditGetAssistsParams(file, offset, length);
+      return EditGetAssistsParams(file, offset, length);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "edit.getAssists params", json);
     }
   }
 
   factory EditGetAssistsParams.fromRequest(Request request) {
-    return new EditGetAssistsParams.fromJson(
-        new RequestDecoder(request), "params", request.params);
+    return EditGetAssistsParams.fromJson(
+        RequestDecoder(request), "params", request.params);
   }
 
   @override
@@ -2445,7 +2442,7 @@ class EditGetAssistsParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "edit.getAssists", toJson());
+    return Request(id, "edit.getAssists", toJson());
   }
 
   @override
@@ -2512,20 +2509,19 @@ class EditGetAssistsResult implements ResponseResult {
             jsonPath + ".assists",
             json["assists"],
             (String jsonPath, Object json) =>
-                new PrioritizedSourceChange.fromJson(
-                    jsonDecoder, jsonPath, json));
+                PrioritizedSourceChange.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "assists");
       }
-      return new EditGetAssistsResult(assists);
+      return EditGetAssistsResult(assists);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "edit.getAssists result", json);
     }
   }
 
   factory EditGetAssistsResult.fromResponse(Response response) {
-    return new EditGetAssistsResult.fromJson(
-        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+    return EditGetAssistsResult.fromJson(
+        ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         "result",
         response.result);
   }
@@ -2540,7 +2536,7 @@ class EditGetAssistsResult implements ResponseResult {
 
   @override
   Response toResponse(String id, int requestTime) {
-    return new Response(id, requestTime, result: toJson());
+    return Response(id, requestTime, result: toJson());
   }
 
   @override
@@ -2650,7 +2646,7 @@ class EditGetAvailableRefactoringsParams implements RequestParams {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "length");
       }
-      return new EditGetAvailableRefactoringsParams(file, offset, length);
+      return EditGetAvailableRefactoringsParams(file, offset, length);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "edit.getAvailableRefactorings params", json);
@@ -2658,8 +2654,8 @@ class EditGetAvailableRefactoringsParams implements RequestParams {
   }
 
   factory EditGetAvailableRefactoringsParams.fromRequest(Request request) {
-    return new EditGetAvailableRefactoringsParams.fromJson(
-        new RequestDecoder(request), "params", request.params);
+    return EditGetAvailableRefactoringsParams.fromJson(
+        RequestDecoder(request), "params", request.params);
   }
 
   @override
@@ -2673,7 +2669,7 @@ class EditGetAvailableRefactoringsParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "edit.getAvailableRefactorings", toJson());
+    return Request(id, "edit.getAvailableRefactorings", toJson());
   }
 
   @override
@@ -2750,11 +2746,11 @@ class EditGetAvailableRefactoringsResult implements ResponseResult {
             jsonPath + ".kinds",
             json["kinds"],
             (String jsonPath, Object json) =>
-                new RefactoringKind.fromJson(jsonDecoder, jsonPath, json));
+                RefactoringKind.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "kinds");
       }
-      return new EditGetAvailableRefactoringsResult(kinds);
+      return EditGetAvailableRefactoringsResult(kinds);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "edit.getAvailableRefactorings result", json);
@@ -2762,8 +2758,8 @@ class EditGetAvailableRefactoringsResult implements ResponseResult {
   }
 
   factory EditGetAvailableRefactoringsResult.fromResponse(Response response) {
-    return new EditGetAvailableRefactoringsResult.fromJson(
-        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+    return EditGetAvailableRefactoringsResult.fromJson(
+        ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         "result",
         response.result);
   }
@@ -2778,7 +2774,7 @@ class EditGetAvailableRefactoringsResult implements ResponseResult {
 
   @override
   Response toResponse(String id, int requestTime) {
-    return new Response(id, requestTime, result: toJson());
+    return Response(id, requestTime, result: toJson());
   }
 
   @override
@@ -2865,15 +2861,15 @@ class EditGetFixesParams implements RequestParams {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "offset");
       }
-      return new EditGetFixesParams(file, offset);
+      return EditGetFixesParams(file, offset);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "edit.getFixes params", json);
     }
   }
 
   factory EditGetFixesParams.fromRequest(Request request) {
-    return new EditGetFixesParams.fromJson(
-        new RequestDecoder(request), "params", request.params);
+    return EditGetFixesParams.fromJson(
+        RequestDecoder(request), "params", request.params);
   }
 
   @override
@@ -2886,7 +2882,7 @@ class EditGetFixesParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "edit.getFixes", toJson());
+    return Request(id, "edit.getFixes", toJson());
   }
 
   @override
@@ -2950,19 +2946,19 @@ class EditGetFixesResult implements ResponseResult {
             jsonPath + ".fixes",
             json["fixes"],
             (String jsonPath, Object json) =>
-                new AnalysisErrorFixes.fromJson(jsonDecoder, jsonPath, json));
+                AnalysisErrorFixes.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "fixes");
       }
-      return new EditGetFixesResult(fixes);
+      return EditGetFixesResult(fixes);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "edit.getFixes result", json);
     }
   }
 
   factory EditGetFixesResult.fromResponse(Response response) {
-    return new EditGetFixesResult.fromJson(
-        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+    return EditGetFixesResult.fromJson(
+        ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         "result",
         response.result);
   }
@@ -2977,7 +2973,7 @@ class EditGetFixesResult implements ResponseResult {
 
   @override
   Response toResponse(String id, int requestTime) {
-    return new Response(id, requestTime, result: toJson());
+    return Response(id, requestTime, result: toJson());
   }
 
   @override
@@ -3133,7 +3129,7 @@ class EditGetRefactoringParams implements RequestParams {
     if (json is Map) {
       RefactoringKind kind;
       if (json.containsKey("kind")) {
-        kind = new RefactoringKind.fromJson(
+        kind = RefactoringKind.fromJson(
             jsonDecoder, jsonPath + ".kind", json["kind"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "kind");
@@ -3165,11 +3161,10 @@ class EditGetRefactoringParams implements RequestParams {
       }
       RefactoringOptions options;
       if (json.containsKey("options")) {
-        options = new RefactoringOptions.fromJson(
+        options = RefactoringOptions.fromJson(
             jsonDecoder, jsonPath + ".options", json["options"], kind);
       }
-      return new EditGetRefactoringParams(
-          kind, file, offset, length, validateOnly,
+      return EditGetRefactoringParams(kind, file, offset, length, validateOnly,
           options: options);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "edit.getRefactoring params", json);
@@ -3177,8 +3172,8 @@ class EditGetRefactoringParams implements RequestParams {
   }
 
   factory EditGetRefactoringParams.fromRequest(Request request) {
-    var params = new EditGetRefactoringParams.fromJson(
-        new RequestDecoder(request), "params", request.params);
+    var params = EditGetRefactoringParams.fromJson(
+        RequestDecoder(request), "params", request.params);
     REQUEST_ID_REFACTORING_KINDS[request.id] = params.kind;
     return params;
   }
@@ -3199,7 +3194,7 @@ class EditGetRefactoringParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "edit.getRefactoring", toJson());
+    return Request(id, "edit.getRefactoring", toJson());
   }
 
   @override
@@ -3394,7 +3389,7 @@ class EditGetRefactoringResult implements ResponseResult {
             jsonPath + ".initialProblems",
             json["initialProblems"],
             (String jsonPath, Object json) =>
-                new RefactoringProblem.fromJson(jsonDecoder, jsonPath, json));
+                RefactoringProblem.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "initialProblems");
       }
@@ -3404,7 +3399,7 @@ class EditGetRefactoringResult implements ResponseResult {
             jsonPath + ".optionsProblems",
             json["optionsProblems"],
             (String jsonPath, Object json) =>
-                new RefactoringProblem.fromJson(jsonDecoder, jsonPath, json));
+                RefactoringProblem.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "optionsProblems");
       }
@@ -3414,18 +3409,18 @@ class EditGetRefactoringResult implements ResponseResult {
             jsonPath + ".finalProblems",
             json["finalProblems"],
             (String jsonPath, Object json) =>
-                new RefactoringProblem.fromJson(jsonDecoder, jsonPath, json));
+                RefactoringProblem.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "finalProblems");
       }
       RefactoringFeedback feedback;
       if (json.containsKey("feedback")) {
-        feedback = new RefactoringFeedback.fromJson(
+        feedback = RefactoringFeedback.fromJson(
             jsonDecoder, jsonPath + ".feedback", json["feedback"], json);
       }
       SourceChange change;
       if (json.containsKey("change")) {
-        change = new SourceChange.fromJson(
+        change = SourceChange.fromJson(
             jsonDecoder, jsonPath + ".change", json["change"]);
       }
       List<String> potentialEdits;
@@ -3433,7 +3428,7 @@ class EditGetRefactoringResult implements ResponseResult {
         potentialEdits = jsonDecoder.decodeList(jsonPath + ".potentialEdits",
             json["potentialEdits"], jsonDecoder.decodeString);
       }
-      return new EditGetRefactoringResult(
+      return EditGetRefactoringResult(
           initialProblems, optionsProblems, finalProblems,
           feedback: feedback, change: change, potentialEdits: potentialEdits);
     } else {
@@ -3442,8 +3437,8 @@ class EditGetRefactoringResult implements ResponseResult {
   }
 
   factory EditGetRefactoringResult.fromResponse(Response response) {
-    return new EditGetRefactoringResult.fromJson(
-        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+    return EditGetRefactoringResult.fromJson(
+        ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         "result",
         response.result);
   }
@@ -3474,7 +3469,7 @@ class EditGetRefactoringResult implements ResponseResult {
 
   @override
   Response toResponse(String id, int requestTime) {
-    return new Response(id, requestTime, result: toJson());
+    return Response(id, requestTime, result: toJson());
   }
 
   @override
@@ -3661,7 +3656,7 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "lengths");
       }
-      return new ExtractLocalVariableFeedback(names, offsets, lengths,
+      return ExtractLocalVariableFeedback(names, offsets, lengths,
           coveringExpressionOffsets: coveringExpressionOffsets,
           coveringExpressionLengths: coveringExpressionLengths);
     } else {
@@ -3785,7 +3780,7 @@ class ExtractLocalVariableOptions extends RefactoringOptions {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "extractAll");
       }
-      return new ExtractLocalVariableOptions(name, extractAll);
+      return ExtractLocalVariableOptions(name, extractAll);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "extractLocalVariable options", json);
@@ -3794,8 +3789,8 @@ class ExtractLocalVariableOptions extends RefactoringOptions {
 
   factory ExtractLocalVariableOptions.fromRefactoringParams(
       EditGetRefactoringParams refactoringParams, Request request) {
-    return new ExtractLocalVariableOptions.fromJson(
-        new RequestDecoder(request), "options", refactoringParams.options);
+    return ExtractLocalVariableOptions.fromJson(
+        RequestDecoder(request), "options", refactoringParams.options);
   }
 
   @override
@@ -4041,7 +4036,7 @@ class ExtractMethodFeedback extends RefactoringFeedback {
             jsonPath + ".parameters",
             json["parameters"],
             (String jsonPath, Object json) =>
-                new RefactoringMethodParameter.fromJson(
+                RefactoringMethodParameter.fromJson(
                     jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "parameters");
@@ -4060,7 +4055,7 @@ class ExtractMethodFeedback extends RefactoringFeedback {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "lengths");
       }
-      return new ExtractMethodFeedback(offset, length, returnType, names,
+      return ExtractMethodFeedback(offset, length, returnType, names,
           canCreateGetter, parameters, offsets, lengths);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "extractMethod feedback", json);
@@ -4274,7 +4269,7 @@ class ExtractMethodOptions extends RefactoringOptions {
             jsonPath + ".parameters",
             json["parameters"],
             (String jsonPath, Object json) =>
-                new RefactoringMethodParameter.fromJson(
+                RefactoringMethodParameter.fromJson(
                     jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "parameters");
@@ -4286,7 +4281,7 @@ class ExtractMethodOptions extends RefactoringOptions {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "extractAll");
       }
-      return new ExtractMethodOptions(
+      return ExtractMethodOptions(
           returnType, createGetter, name, parameters, extractAll);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "extractMethod options", json);
@@ -4295,8 +4290,8 @@ class ExtractMethodOptions extends RefactoringOptions {
 
   factory ExtractMethodOptions.fromRefactoringParams(
       EditGetRefactoringParams refactoringParams, Request request) {
-    return new ExtractMethodOptions.fromJson(
-        new RequestDecoder(request), "options", refactoringParams.options);
+    return ExtractMethodOptions.fromJson(
+        RequestDecoder(request), "options", refactoringParams.options);
   }
 
   @override
@@ -4408,7 +4403,7 @@ class InlineLocalVariableFeedback extends RefactoringFeedback {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "occurrences");
       }
-      return new InlineLocalVariableFeedback(name, occurrences);
+      return InlineLocalVariableFeedback(name, occurrences);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "inlineLocalVariable feedback", json);
@@ -4556,7 +4551,7 @@ class InlineMethodFeedback extends RefactoringFeedback {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "isDeclaration");
       }
-      return new InlineMethodFeedback(methodName, isDeclaration,
+      return InlineMethodFeedback(methodName, isDeclaration,
           className: className);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "inlineMethod feedback", json);
@@ -4667,7 +4662,7 @@ class InlineMethodOptions extends RefactoringOptions {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "inlineAll");
       }
-      return new InlineMethodOptions(deleteSource, inlineAll);
+      return InlineMethodOptions(deleteSource, inlineAll);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "inlineMethod options", json);
     }
@@ -4675,8 +4670,8 @@ class InlineMethodOptions extends RefactoringOptions {
 
   factory InlineMethodOptions.fromRefactoringParams(
       EditGetRefactoringParams refactoringParams, Request request) {
-    return new InlineMethodOptions.fromJson(
-        new RequestDecoder(request), "options", refactoringParams.options);
+    return InlineMethodOptions.fromJson(
+        RequestDecoder(request), "options", refactoringParams.options);
   }
 
   @override
@@ -4750,7 +4745,7 @@ class KytheGetKytheEntriesParams implements RequestParams {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "file");
       }
-      return new KytheGetKytheEntriesParams(file);
+      return KytheGetKytheEntriesParams(file);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "kythe.getKytheEntries params", json);
@@ -4758,8 +4753,8 @@ class KytheGetKytheEntriesParams implements RequestParams {
   }
 
   factory KytheGetKytheEntriesParams.fromRequest(Request request) {
-    return new KytheGetKytheEntriesParams.fromJson(
-        new RequestDecoder(request), "params", request.params);
+    return KytheGetKytheEntriesParams.fromJson(
+        RequestDecoder(request), "params", request.params);
   }
 
   @override
@@ -4771,7 +4766,7 @@ class KytheGetKytheEntriesParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "kythe.getKytheEntries", toJson());
+    return Request(id, "kythe.getKytheEntries", toJson());
   }
 
   @override
@@ -4857,7 +4852,7 @@ class KytheGetKytheEntriesResult implements ResponseResult {
             jsonPath + ".entries",
             json["entries"],
             (String jsonPath, Object json) =>
-                new KytheEntry.fromJson(jsonDecoder, jsonPath, json));
+                KytheEntry.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "entries");
       }
@@ -4868,7 +4863,7 @@ class KytheGetKytheEntriesResult implements ResponseResult {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "files");
       }
-      return new KytheGetKytheEntriesResult(entries, files);
+      return KytheGetKytheEntriesResult(entries, files);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "kythe.getKytheEntries result", json);
@@ -4876,8 +4871,8 @@ class KytheGetKytheEntriesResult implements ResponseResult {
   }
 
   factory KytheGetKytheEntriesResult.fromResponse(Response response) {
-    return new KytheGetKytheEntriesResult.fromJson(
-        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+    return KytheGetKytheEntriesResult.fromJson(
+        ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         "result",
         response.result);
   }
@@ -4893,7 +4888,7 @@ class KytheGetKytheEntriesResult implements ResponseResult {
 
   @override
   Response toResponse(String id, int requestTime) {
-    return new Response(id, requestTime, result: toJson());
+    return Response(id, requestTime, result: toJson());
   }
 
   @override
@@ -4980,7 +4975,7 @@ class MoveFileOptions extends RefactoringOptions {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "newFile");
       }
-      return new MoveFileOptions(newFile);
+      return MoveFileOptions(newFile);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "moveFile options", json);
     }
@@ -4988,8 +4983,8 @@ class MoveFileOptions extends RefactoringOptions {
 
   factory MoveFileOptions.fromRefactoringParams(
       EditGetRefactoringParams refactoringParams, Request request) {
-    return new MoveFileOptions.fromJson(
-        new RequestDecoder(request), "options", refactoringParams.options);
+    return MoveFileOptions.fromJson(
+        RequestDecoder(request), "options", refactoringParams.options);
   }
 
   @override
@@ -5116,15 +5111,15 @@ class PluginErrorParams implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "stackTrace");
       }
-      return new PluginErrorParams(isFatal, message, stackTrace);
+      return PluginErrorParams(isFatal, message, stackTrace);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "plugin.error params", json);
     }
   }
 
   factory PluginErrorParams.fromNotification(Notification notification) {
-    return new PluginErrorParams.fromJson(
-        new ResponseDecoder(null), "params", notification.params);
+    return PluginErrorParams.fromJson(
+        ResponseDecoder(null), "params", notification.params);
   }
 
   @override
@@ -5137,7 +5132,7 @@ class PluginErrorParams implements HasToJson {
   }
 
   Notification toNotification() {
-    return new Notification("plugin.error", toJson());
+    return Notification("plugin.error", toJson());
   }
 
   @override
@@ -5174,7 +5169,7 @@ class PluginShutdownParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "plugin.shutdown", null);
+    return Request(id, "plugin.shutdown", null);
   }
 
   @override
@@ -5202,7 +5197,7 @@ class PluginShutdownResult implements ResponseResult {
 
   @override
   Response toResponse(String id, int requestTime) {
-    return new Response(id, requestTime, result: null);
+    return Response(id, requestTime, result: null);
   }
 
   @override
@@ -5316,15 +5311,15 @@ class PluginVersionCheckParams implements RequestParams {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "version");
       }
-      return new PluginVersionCheckParams(byteStorePath, sdkPath, version);
+      return PluginVersionCheckParams(byteStorePath, sdkPath, version);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "plugin.versionCheck params", json);
     }
   }
 
   factory PluginVersionCheckParams.fromRequest(Request request) {
-    return new PluginVersionCheckParams.fromJson(
-        new RequestDecoder(request), "params", request.params);
+    return PluginVersionCheckParams.fromJson(
+        RequestDecoder(request), "params", request.params);
   }
 
   @override
@@ -5338,7 +5333,7 @@ class PluginVersionCheckParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "plugin.versionCheck", toJson());
+    return Request(id, "plugin.versionCheck", toJson());
   }
 
   @override
@@ -5518,7 +5513,7 @@ class PluginVersionCheckResult implements ResponseResult {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "interestingFiles");
       }
-      return new PluginVersionCheckResult(
+      return PluginVersionCheckResult(
           isCompatible, name, version, interestingFiles,
           contactInfo: contactInfo);
     } else {
@@ -5527,8 +5522,8 @@ class PluginVersionCheckResult implements ResponseResult {
   }
 
   factory PluginVersionCheckResult.fromResponse(Response response) {
-    return new PluginVersionCheckResult.fromJson(
-        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+    return PluginVersionCheckResult.fromJson(
+        ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         "result",
         response.result);
   }
@@ -5548,7 +5543,7 @@ class PluginVersionCheckResult implements ResponseResult {
 
   @override
   Response toResponse(String id, int requestTime) {
-    return new Response(id, requestTime, result: toJson());
+    return Response(id, requestTime, result: toJson());
   }
 
   @override
@@ -5642,12 +5637,12 @@ class PrioritizedSourceChange implements HasToJson {
       }
       SourceChange change;
       if (json.containsKey("change")) {
-        change = new SourceChange.fromJson(
+        change = SourceChange.fromJson(
             jsonDecoder, jsonPath + ".change", json["change"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "change");
       }
-      return new PrioritizedSourceChange(priority, change);
+      return PrioritizedSourceChange(priority, change);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "PrioritizedSourceChange", json);
     }
@@ -5877,7 +5872,7 @@ class RenameFeedback extends RefactoringFeedback {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "oldName");
       }
-      return new RenameFeedback(offset, length, elementKindName, oldName);
+      return RenameFeedback(offset, length, elementKindName, oldName);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "rename feedback", json);
     }
@@ -5960,7 +5955,7 @@ class RenameOptions extends RefactoringOptions {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "newName");
       }
-      return new RenameOptions(newName);
+      return RenameOptions(newName);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "rename options", json);
     }
@@ -5968,8 +5963,8 @@ class RenameOptions extends RefactoringOptions {
 
   factory RenameOptions.fromRefactoringParams(
       EditGetRefactoringParams refactoringParams, Request request) {
-    return new RenameOptions.fromJson(
-        new RequestDecoder(request), "options", refactoringParams.options);
+    return RenameOptions.fromJson(
+        RequestDecoder(request), "options", refactoringParams.options);
   }
 
   @override
@@ -6070,7 +6065,7 @@ class RequestError implements HasToJson {
     if (json is Map) {
       RequestErrorCode code;
       if (json.containsKey("code")) {
-        code = new RequestErrorCode.fromJson(
+        code = RequestErrorCode.fromJson(
             jsonDecoder, jsonPath + ".code", json["code"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "code");
@@ -6087,7 +6082,7 @@ class RequestError implements HasToJson {
         stackTrace = jsonDecoder.decodeString(
             jsonPath + ".stackTrace", json["stackTrace"]);
       }
-      return new RequestError(code, message, stackTrace: stackTrace);
+      return RequestError(code, message, stackTrace: stackTrace);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "RequestError", json);
     }
@@ -6199,14 +6194,14 @@ class RequestErrorCode implements Enum {
       case "UNKNOWN_REQUEST":
         return UNKNOWN_REQUEST;
     }
-    throw new Exception('Illegal enum value: $name');
+    throw Exception('Illegal enum value: $name');
   }
 
   factory RequestErrorCode.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json is String) {
       try {
-        return new RequestErrorCode(json);
+        return RequestErrorCode(json);
       } catch (_) {
         // Fall through
       }
@@ -6274,7 +6269,7 @@ class WatchEvent implements HasToJson {
     if (json is Map) {
       WatchEventType type;
       if (json.containsKey("type")) {
-        type = new WatchEventType.fromJson(
+        type = WatchEventType.fromJson(
             jsonDecoder, jsonPath + ".type", json["type"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "type");
@@ -6285,7 +6280,7 @@ class WatchEvent implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "path");
       }
-      return new WatchEvent(type, path);
+      return WatchEvent(type, path);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "WatchEvent", json);
     }
@@ -6369,14 +6364,14 @@ class WatchEventType implements Enum {
       case "REMOVE":
         return REMOVE;
     }
-    throw new Exception('Illegal enum value: $name');
+    throw Exception('Illegal enum value: $name');
   }
 
   factory WatchEventType.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json is String) {
       try {
-        return new WatchEventType(json);
+        return WatchEventType(json);
       } catch (_) {
         // Fall through
       }

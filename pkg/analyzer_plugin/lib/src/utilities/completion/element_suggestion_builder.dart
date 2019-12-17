@@ -23,7 +23,7 @@ mixin ElementSuggestionBuilder {
   /**
    * A set of existing completions used to prevent duplicate suggestions.
    */
-  final Set<String> _completions = new Set<String>();
+  final Set<String> _completions = Set<String>();
 
   /**
    * A map of element names to suggestions for synthetic getters and setters.
@@ -67,7 +67,7 @@ mixin ElementSuggestionBuilder {
     if (completion == null || completion.length <= 0) {
       return;
     }
-    SuggestionBuilderImpl builder = new SuggestionBuilderImpl(resourceProvider);
+    SuggestionBuilderImpl builder = SuggestionBuilderImpl(resourceProvider);
     CompletionSuggestion suggestion = builder.forElement(element,
         completion: completion, kind: kind, relevance: relevance);
     if (suggestion != null) {
@@ -91,7 +91,7 @@ mixin ElementSuggestionBuilder {
                 element.enclosingElement is ClassElement
                     ? protocol.ElementKind.FIELD
                     : protocol.ElementKind.TOP_LEVEL_VARIABLE;
-            existingSuggestion.element = new protocol.Element(
+            existingSuggestion.element = protocol.Element(
                 elemKind,
                 existingSuggestion.element.name,
                 existingSuggestion.element.flags,

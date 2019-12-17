@@ -42,8 +42,7 @@ mixin AssistsMixin implements ServerPlugin {
     await null;
     String path = parameters.file;
     AssistRequest request = await getAssistRequest(parameters);
-    AssistGenerator generator =
-        new AssistGenerator(getAssistContributors(path));
+    AssistGenerator generator = AssistGenerator(getAssistContributors(path));
     GeneratorResult<EditGetAssistsResult> result =
         generator.generateAssistsResponse(request);
     result.sendNotifications(channel);
@@ -68,7 +67,7 @@ abstract class DartAssistsMixin implements AssistsMixin {
     await null;
     String path = parameters.file;
     ResolvedUnitResult result = await getResolvedUnitResult(path);
-    return new DartAssistRequestImpl(
+    return DartAssistRequestImpl(
         resourceProvider, parameters.offset, parameters.length, result);
   }
 }

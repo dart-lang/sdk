@@ -24,7 +24,7 @@ class SuggestionBuilderImpl implements SuggestionBuilder {
   /**
    * The converter used to convert analyzer objects to protocol objects.
    */
-  final AnalyzerConverter converter = new AnalyzerConverter();
+  final AnalyzerConverter converter = AnalyzerConverter();
 
   /**
    * Initialize a newly created suggestion builder.
@@ -41,7 +41,7 @@ class SuggestionBuilderImpl implements SuggestionBuilder {
       Iterable<ParameterElement> requiredParams,
       Iterable<ParameterElement> namedParams) {
     // Copied from analysis_server/lib/src/services/completion/dart/suggestion_builder.dart
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     List<int> ranges = <int>[];
 
     int offset;
@@ -93,7 +93,7 @@ class SuggestionBuilderImpl implements SuggestionBuilder {
       completion = element.displayName;
     }
     bool isDeprecated = element.hasDeprecated;
-    CompletionSuggestion suggestion = new CompletionSuggestion(
+    CompletionSuggestion suggestion = CompletionSuggestion(
         kind,
         isDeprecated ? DART_RELEVANCE_LOW : relevance,
         completion,

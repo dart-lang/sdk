@@ -28,7 +28,7 @@ mixin DartFoldingMixin implements FoldingMixin {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     ResolvedUnitResult result = await getResolvedUnitResult(path);
-    return new DartFoldingRequestImpl(resourceProvider, result);
+    return DartFoldingRequestImpl(resourceProvider, result);
   }
 }
 
@@ -61,7 +61,7 @@ mixin FoldingMixin implements ServerPlugin {
     try {
       FoldingRequest request = await getFoldingRequest(path);
       FoldingGenerator generator =
-          new FoldingGenerator(getFoldingContributors(path));
+          FoldingGenerator(getFoldingContributors(path));
       GeneratorResult generatorResult =
           generator.generateFoldingNotification(request);
       generatorResult.sendNotifications(channel);

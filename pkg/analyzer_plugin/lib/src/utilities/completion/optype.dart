@@ -139,7 +139,7 @@ class OpType {
    * [CompletionTarget] and [offset].
    */
   factory OpType.forCompletion(CompletionTarget target, int offset) {
-    OpType optype = new OpType._();
+    OpType optype = OpType._();
 
     // Don't suggest anything right after double or integer literals.
     if (target.isDoubleOrIntLiteral()) {
@@ -149,7 +149,7 @@ class OpType {
     optype._typeSystem = target.unit?.declaredElement?.library?.typeSystem;
 
     var targetNode = target.containingNode;
-    targetNode.accept(new _OpTypeAstVisitor(optype, target.entity, offset));
+    targetNode.accept(_OpTypeAstVisitor(optype, target.entity, offset));
 
     var functionBody = targetNode.thisOrAncestorOfType<FunctionBody>();
     if (functionBody != null) {

@@ -60,18 +60,18 @@ class AssistGenerator {
   GeneratorResult<EditGetAssistsResult> generateAssistsResponse(
       AssistRequest request) {
     List<Notification> notifications = <Notification>[];
-    AssistCollectorImpl collector = new AssistCollectorImpl();
+    AssistCollectorImpl collector = AssistCollectorImpl();
     for (AssistContributor contributor in contributors) {
       try {
         contributor.computeAssists(request, collector);
       } catch (exception, stackTrace) {
-        notifications.add(new PluginErrorParams(
+        notifications.add(PluginErrorParams(
                 false, exception.toString(), stackTrace.toString())
             .toNotification());
       }
     }
-    EditGetAssistsResult result = new EditGetAssistsResult(collector.assists);
-    return new GeneratorResult(result, notifications);
+    EditGetAssistsResult result = EditGetAssistsResult(collector.assists);
+    return GeneratorResult(result, notifications);
   }
 }
 

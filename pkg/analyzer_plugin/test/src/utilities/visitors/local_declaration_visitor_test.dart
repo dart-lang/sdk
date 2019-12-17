@@ -25,12 +25,11 @@ class LocalDeclarationVisitorTest {
   CompilationUnit parseCompilationUnit(String content) {
     AnalysisErrorListener listener = AnalysisErrorListener.NULL_LISTENER;
     var featureSet = FeatureSet.forTesting(sdkVersion: '2.2.2');
-    Scanner scanner =
-        new Scanner(null, new CharSequenceReader(content), listener)
-          ..configureFeatures(featureSet);
+    Scanner scanner = Scanner(null, CharSequenceReader(content), listener)
+      ..configureFeatures(featureSet);
     Token token = scanner.tokenize();
-    var source = new StringSource(content, '/test.dart');
-    Parser parser = new Parser(source, listener, featureSet: featureSet);
+    var source = StringSource(content, '/test.dart');
+    Parser parser = Parser(source, listener, featureSet: featureSet);
     CompilationUnit unit = parser.parseCompilationUnit(token);
     expect(unit, isNotNull);
     return unit;
@@ -50,7 +49,7 @@ f(List<MyClass> list) {
     BlockFunctionBody body = f.functionExpression.body as BlockFunctionBody;
     var statement = body.block.statements[0] as ForStatement;
     expect(statement.forLoopParts, const TypeMatcher<ForEachParts>());
-    statement.accept(new TestVisitor(statement.offset));
+    statement.accept(TestVisitor(statement.offset));
   }
 }
 

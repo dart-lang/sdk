@@ -10,7 +10,7 @@ import 'package:analysis_tool/tools.dart';
 import 'api.dart';
 
 Map<String, ImpliedType> computeImpliedTypes(Api api) {
-  _ImpliedTypesVisitor visitor = new _ImpliedTypesVisitor(api);
+  _ImpliedTypesVisitor visitor = _ImpliedTypesVisitor(api);
   visitor.visitApi();
   return visitor.impliedTypes;
 }
@@ -55,7 +55,7 @@ class _ImpliedTypesVisitor extends HierarchicalApiVisitor {
     }
     String camelName = camelJoin(camelNameParts);
     impliedTypes[camelName] =
-        new ImpliedType(camelName, humanReadableName, type, kind, apiNode);
+        ImpliedType(camelName, humanReadableName, type, kind, apiNode);
   }
 
   @override

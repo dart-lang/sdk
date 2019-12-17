@@ -41,7 +41,7 @@ class ChangeBuilderImpl implements ChangeBuilder {
    * The set of [Position]s that belong to the current [EditBuilderImpl] and
    * should not be updated in result of inserting this builder.
    */
-  final Set<Position> _lockedPositions = new HashSet<Position>.identity();
+  final Set<Position> _lockedPositions = HashSet<Position>.identity();
 
   /**
    * A map of absolute normalized path to file edit builder.
@@ -58,7 +58,7 @@ class ChangeBuilderImpl implements ChangeBuilder {
 
   @override
   SourceChange get sourceChange {
-    final SourceChange change = new SourceChange('');
+    final SourceChange change = SourceChange('');
     for (var builder in _fileEditBuilders.values) {
       if (builder.hasEdits) {
         change.addFileEdit(builder.fileEdit);
@@ -96,7 +96,7 @@ class ChangeBuilderImpl implements ChangeBuilder {
   Future<FileEditBuilderImpl> createFileEditBuilder(String path) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    return new FileEditBuilderImpl(this, path, 0);
+    return FileEditBuilderImpl(this, path, 0);
   }
 
   /**
@@ -106,7 +106,7 @@ class ChangeBuilderImpl implements ChangeBuilder {
   LinkedEditGroup getLinkedEditGroup(String groupName) {
     LinkedEditGroup group = _linkedEditGroups[groupName];
     if (group == null) {
-      group = new LinkedEditGroup.empty();
+      group = LinkedEditGroup.empty();
       _linkedEditGroups[groupName] = group;
     }
     return group;
@@ -179,7 +179,7 @@ class EditBuilderImpl implements EditBuilder {
   /**
    * The buffer in which the content of the edit is being composed.
    */
-  final StringBuffer _buffer = new StringBuffer();
+  final StringBuffer _buffer = StringBuffer();
 
   /**
    * Initialize a newly created builder to build a source edit.
@@ -192,8 +192,7 @@ class EditBuilderImpl implements EditBuilder {
    * Create and return an edit representing the replacement of a region of the
    * file with the accumulated text.
    */
-  SourceEdit get sourceEdit =>
-      new SourceEdit(offset, length, _buffer.toString());
+  SourceEdit get sourceEdit => SourceEdit(offset, length, _buffer.toString());
 
   @override
   void addLinkedEdit(
@@ -206,7 +205,7 @@ class EditBuilderImpl implements EditBuilder {
       int end = offset + _buffer.length;
       int length = end - start;
       if (length != 0) {
-        Position position = new Position(fileEditBuilder.fileEdit.file, start);
+        Position position = Position(fileEditBuilder.fileEdit.file, start);
         fileEditBuilder.changeBuilder._lockedPositions.add(position);
         LinkedEditGroup group =
             fileEditBuilder.changeBuilder.getLinkedEditGroup(groupName);
@@ -228,14 +227,14 @@ class EditBuilderImpl implements EditBuilder {
           builder.addSuggestion(kind, suggestion);
         }
       } else if (kind != null || suggestions != null) {
-        throw new ArgumentError(
+        throw ArgumentError(
             'Either both kind and suggestions must be provided or neither.');
       }
     });
   }
 
   LinkedEditBuilderImpl createLinkedEditBuilder() {
-    return new LinkedEditBuilderImpl(this);
+    return LinkedEditBuilderImpl(this);
   }
 
   @override
@@ -243,12 +242,12 @@ class EditBuilderImpl implements EditBuilder {
     int rangeOffset = _buffer.length;
     writer();
     int rangeLength = _buffer.length - rangeOffset;
-    _selectionRange = new SourceRange(offset + rangeOffset, rangeLength);
+    _selectionRange = SourceRange(offset + rangeOffset, rangeLength);
   }
 
   @override
   void selectHere() {
-    _selectionRange = new SourceRange(offset + _buffer.length, 0);
+    _selectionRange = SourceRange(offset + _buffer.length, 0);
   }
 
   @override
@@ -290,7 +289,7 @@ class FileEditBuilderImpl implements FileEditBuilder {
    * the given absolute [path] and [timeStamp].
    */
   FileEditBuilderImpl(this.changeBuilder, String path, int timeStamp)
-      : fileEdit = new SourceFileEdit(path, timeStamp);
+      : fileEdit = SourceFileEdit(path, timeStamp);
 
   /**
    * Return `true` if this builder has edits to be applied.
@@ -318,8 +317,8 @@ class FileEditBuilderImpl implements FileEditBuilder {
   @override
   void addLinkedPosition(SourceRange range, String groupName) {
     LinkedEditGroup group = changeBuilder.getLinkedEditGroup(groupName);
-    Position position = new Position(
-        fileEdit.file, range.offset + _deltaToOffset(range.offset));
+    Position position =
+        Position(fileEdit.file, range.offset + _deltaToOffset(range.offset));
     group.addPosition(position, range.length);
   }
 
@@ -354,7 +353,7 @@ class FileEditBuilderImpl implements FileEditBuilder {
   }
 
   EditBuilderImpl createEditBuilder(int offset, int length) {
-    return new EditBuilderImpl(this, offset, length);
+    return EditBuilderImpl(this, offset, length);
   }
 
   /**
@@ -413,7 +412,7 @@ class FileEditBuilderImpl implements FileEditBuilder {
     SourceRange range = builder._selectionRange;
     if (range != null) {
       Position position =
-          new Position(fileEdit.file, range.offset + _deltaToEdit(edit));
+          Position(fileEdit.file, range.offset + _deltaToEdit(edit));
       changeBuilder.setSelection(position);
       changeBuilder._setSelectionRange(range);
     }
@@ -470,7 +469,7 @@ class LinkedEditBuilderImpl implements LinkedEditBuilder {
 
   @override
   void addSuggestion(LinkedEditSuggestionKind kind, String value) {
-    suggestions.add(new LinkedEditSuggestion(value, kind));
+    suggestions.add(LinkedEditSuggestion(value, kind));
   }
 
   @override

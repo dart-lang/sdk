@@ -13,7 +13,7 @@ void main() {
 
 @reflectiveTest
 class NavigationCollectorImplTest {
-  NavigationCollectorImpl collector = new NavigationCollectorImpl();
+  NavigationCollectorImpl collector = NavigationCollectorImpl();
 
   test_createRegions_multiple() {
     // Two files, each with two targets.
@@ -23,15 +23,15 @@ class NavigationCollectorImplTest {
     int targetStartLineA1 = 3;
     int targetStartColumnA1 = 4;
     ElementKind targetKindA1 = ElementKind.CLASS;
-    Location targetLocationA1 = new Location(fileA, targetOffsetA1,
-        targetLengthA1, targetStartLineA1, targetStartColumnA1);
+    Location targetLocationA1 = Location(fileA, targetOffsetA1, targetLengthA1,
+        targetStartLineA1, targetStartColumnA1);
     int targetOffsetA2 = 5;
     int targetLengthA2 = 6;
     int targetStartLineA2 = 7;
     int targetStartColumnA2 = 8;
     ElementKind targetKindA2 = ElementKind.FUNCTION;
-    Location targetLocationA2 = new Location(fileA, targetOffsetA2,
-        targetLengthA2, targetStartLineA2, targetStartColumnA2);
+    Location targetLocationA2 = Location(fileA, targetOffsetA2, targetLengthA2,
+        targetStartLineA2, targetStartColumnA2);
 
     String fileB = 'b.dart';
     int targetOffsetB1 = 9;
@@ -39,15 +39,15 @@ class NavigationCollectorImplTest {
     int targetStartLineB1 = 11;
     int targetStartColumnB1 = 12;
     ElementKind targetKindB1 = ElementKind.ENUM;
-    Location targetLocationB1 = new Location(fileB, targetOffsetB1,
-        targetLengthB1, targetStartLineB1, targetStartColumnB1);
+    Location targetLocationB1 = Location(fileB, targetOffsetB1, targetLengthB1,
+        targetStartLineB1, targetStartColumnB1);
     int targetOffsetB2 = 13;
     int targetLengthB2 = 14;
     int targetStartLineB2 = 15;
     int targetStartColumnB2 = 16;
     ElementKind targetKindB2 = ElementKind.METHOD;
-    Location targetLocationB2 = new Location(fileB, targetOffsetB2,
-        targetLengthB2, targetStartLineB2, targetStartColumnB2);
+    Location targetLocationB2 = Location(fileB, targetOffsetB2, targetLengthB2,
+        targetStartLineB2, targetStartColumnB2);
 
     // Six regions targeting a1, b1, a2, b1, a1, b2
     List<int> regionOffsets = [17, 18, 19, 20, 21, 22];
@@ -76,21 +76,21 @@ class NavigationCollectorImplTest {
     collector.createRegions();
     expect(collector.files, [fileA, fileB]);
     expect(collector.regions, [
-      new NavigationRegion(regionOffsets[0], regionLengths[0], [0]),
-      new NavigationRegion(regionOffsets[1], regionLengths[1], [1]),
-      new NavigationRegion(regionOffsets[2], regionLengths[2], [2]),
-      new NavigationRegion(regionOffsets[3], regionLengths[3], [1]),
-      new NavigationRegion(regionOffsets[4], regionLengths[4], [0]),
-      new NavigationRegion(regionOffsets[5], regionLengths[5], [3]),
+      NavigationRegion(regionOffsets[0], regionLengths[0], [0]),
+      NavigationRegion(regionOffsets[1], regionLengths[1], [1]),
+      NavigationRegion(regionOffsets[2], regionLengths[2], [2]),
+      NavigationRegion(regionOffsets[3], regionLengths[3], [1]),
+      NavigationRegion(regionOffsets[4], regionLengths[4], [0]),
+      NavigationRegion(regionOffsets[5], regionLengths[5], [3]),
     ]);
     expect(collector.targets, [
-      new NavigationTarget(targetKindA1, 0, targetOffsetA1, targetLengthA1,
+      NavigationTarget(targetKindA1, 0, targetOffsetA1, targetLengthA1,
           targetStartLineA1, targetStartColumnA1),
-      new NavigationTarget(targetKindB1, 1, targetOffsetB1, targetLengthB1,
+      NavigationTarget(targetKindB1, 1, targetOffsetB1, targetLengthB1,
           targetStartLineB1, targetStartColumnB1),
-      new NavigationTarget(targetKindA2, 0, targetOffsetA2, targetLengthA2,
+      NavigationTarget(targetKindA2, 0, targetOffsetA2, targetLengthA2,
           targetStartLineA2, targetStartColumnA2),
-      new NavigationTarget(targetKindB2, 1, targetOffsetB2, targetLengthB2,
+      NavigationTarget(targetKindB2, 1, targetOffsetB2, targetLengthB2,
           targetStartLineB2, targetStartColumnB2),
     ]);
   }
@@ -111,16 +111,16 @@ class NavigationCollectorImplTest {
     int targetLength = 1;
     int targetStartLine = 5;
     int targetStartColumn = 1;
-    Location targetLocation = new Location(targetFile, targetOffset,
-        targetLength, targetStartLine, targetStartColumn);
+    Location targetLocation = Location(targetFile, targetOffset, targetLength,
+        targetStartLine, targetStartColumn);
     collector.addRegion(regionOffset, regionLength, targetKind, targetLocation);
     collector.createRegions();
     expect(collector.files, [targetFile]);
     expect(collector.regions, [
-      new NavigationRegion(regionOffset, regionLength, [0])
+      NavigationRegion(regionOffset, regionLength, [0])
     ]);
     expect(collector.targets, [
-      new NavigationTarget(targetKind, 0, targetOffset, targetLength,
+      NavigationTarget(targetKind, 0, targetOffset, targetLength,
           targetStartLine, targetStartColumn)
     ]);
   }

@@ -33,19 +33,19 @@ class KytheMixinTest with ResourceProviderMixin {
     packagePath1 = convertPath('/package1');
     filePath1 = join(packagePath1, 'lib', 'test.dart');
     newFile(filePath1);
-    contextRoot1 = new ContextRoot(packagePath1, <String>[]);
+    contextRoot1 = ContextRoot(packagePath1, <String>[]);
 
-    channel = new MockChannel();
-    plugin = new _TestServerPlugin(resourceProvider);
+    channel = MockChannel();
+    plugin = _TestServerPlugin(resourceProvider);
     plugin.start(channel);
   }
 
   test_handleEditGetAssists() async {
     await plugin.handleAnalysisSetContextRoots(
-        new AnalysisSetContextRootsParams([contextRoot1]));
+        AnalysisSetContextRootsParams([contextRoot1]));
 
     KytheGetKytheEntriesResult result = await plugin
-        .handleKytheGetKytheEntries(new KytheGetKytheEntriesParams(filePath1));
+        .handleKytheGetKytheEntries(KytheGetKytheEntriesParams(filePath1));
     expect(result, isNotNull);
     expect(result.entries, hasLength(3));
   }
@@ -69,26 +69,25 @@ class _TestServerPlugin extends MockServerPlugin with EntryMixin {
       : super(resourceProvider);
 
   PrioritizedSourceChange createChange() {
-    return new PrioritizedSourceChange(0, new SourceChange(''));
+    return PrioritizedSourceChange(0, SourceChange(''));
   }
 
   @override
   List<EntryContributor> getEntryContributors(String path) {
-    KytheVName vName = new KytheVName('', '', '', '', '');
+    KytheVName vName = KytheVName('', '', '', '', '');
     return <EntryContributor>[
-      new _TestEntryContributor(<KytheEntry>[
-        new KytheEntry(vName, '', target: vName),
-        new KytheEntry(vName, '', target: vName)
+      _TestEntryContributor(<KytheEntry>[
+        KytheEntry(vName, '', target: vName),
+        KytheEntry(vName, '', target: vName)
       ]),
-      new _TestEntryContributor(
-          <KytheEntry>[new KytheEntry(vName, '', target: vName)])
+      _TestEntryContributor(<KytheEntry>[KytheEntry(vName, '', target: vName)])
     ];
   }
 
   @override
   Future<EntryRequest> getEntryRequest(
       KytheGetKytheEntriesParams parameters) async {
-    var result = new MockResolvedUnitResult();
-    return new DartEntryRequestImpl(resourceProvider, result);
+    var result = MockResolvedUnitResult();
+    return DartEntryRequestImpl(resourceProvider, result);
   }
 }

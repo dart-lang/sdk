@@ -13,7 +13,7 @@ void main() {
 
 @reflectiveTest
 class SubscriptionManagerTest {
-  SubscriptionManager manager = new SubscriptionManager();
+  SubscriptionManager manager = SubscriptionManager();
 
   String fooPath = '/project/lib/foo.dart';
   String barPath = '/project/lib/bar.dart';

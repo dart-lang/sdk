@@ -11,7 +11,7 @@ String getDartDocSummary(String string) {
     return null;
   }
   List<String> lines = string.split('\n');
-  StringBuffer buffer = new StringBuffer();
+  StringBuffer buffer = StringBuffer();
   bool firstLine = true;
   for (String line in lines) {
     if (buffer.length != 0 && line.isEmpty) {
@@ -44,7 +44,7 @@ String removeDartDocDelimiters(String string) {
   string = string.trim();
   // remove leading '* ' and '/// '
   List<String> lines = string.split('\n');
-  StringBuffer buffer = new StringBuffer();
+  StringBuffer buffer = StringBuffer();
   bool firstLine = true;
   for (String line in lines) {
     line = line.trim();

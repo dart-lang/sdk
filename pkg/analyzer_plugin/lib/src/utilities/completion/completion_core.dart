@@ -42,7 +42,7 @@ class CompletionCollectorImpl implements CompletionCollector {
   @override
   set length(int length) {
     if (_length != null) {
-      throw new StateError('The length can only be set once');
+      throw StateError('The length can only be set once');
     }
     _length = length;
   }
@@ -56,7 +56,7 @@ class CompletionCollectorImpl implements CompletionCollector {
   @override
   set offset(int length) {
     if (_offset != null) {
-      throw new StateError('The offset can only be set once');
+      throw StateError('The offset can only be set once');
     }
     _offset = length;
   }
@@ -106,7 +106,7 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
   @override
   void checkAborted() {
     if (_aborted) {
-      throw new AbortCompletion();
+      throw AbortCompletion();
     }
   }
 }

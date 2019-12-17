@@ -57,7 +57,7 @@ class Notification {
    * Initialize a newly created instance based on the given JSON data.
    */
   factory Notification.fromJson(Map json) {
-    return new Notification(json[Notification.EVENT] as String,
+    return Notification(json[Notification.EVENT] as String,
         json[Notification.PARAMS] as Map<String, Object>);
   }
 
@@ -164,7 +164,7 @@ class Request {
     }
     var params = result[Request.PARAMS];
     if (params is Map || params == null) {
-      return new Request(id as String, method as String,
+      return Request(id as String, method as String,
           params as Map<String, Object>, time as int);
     } else {
       return null;
@@ -276,7 +276,7 @@ class RequestErrorFactory {
    * Return a request error representing an error condition caused by a
    * [request] that had an invalid edit object.
    */
-  static RequestError invalidOverlayChangeInvalidEdit() => new RequestError(
+  static RequestError invalidOverlayChangeInvalidEdit() => RequestError(
       RequestErrorCode.INVALID_OVERLAY_CHANGE,
       'Invalid overlay change: invalid edit');
 
@@ -285,7 +285,7 @@ class RequestErrorFactory {
    * [request] that attempted to change an existing overlay when no overlay
    * existed.
    */
-  static RequestError invalidOverlayChangeNoContent() => new RequestError(
+  static RequestError invalidOverlayChangeNoContent() => RequestError(
       RequestErrorCode.INVALID_OVERLAY_CHANGE,
       'Invalid overlay change: no content to change');
 
@@ -297,21 +297,21 @@ class RequestErrorFactory {
    * [expectation] is a description of the type of data that was expected.
    */
   static RequestError invalidParameter(String path, String expectation) =>
-      new RequestError(RequestErrorCode.INVALID_PARAMETER,
+      RequestError(RequestErrorCode.INVALID_PARAMETER,
           "Invalid parameter '$path'. $expectation.");
 
   /**
    * Return a request error representing an error that occurred in the plugin.
    */
   static RequestError pluginError(dynamic exception, String stackTrace) =>
-      new RequestError(RequestErrorCode.PLUGIN_ERROR, exception.toString(),
+      RequestError(RequestErrorCode.PLUGIN_ERROR, exception.toString(),
           stackTrace: stackTrace);
 
   /**
    * Return a request error representing an error condition caused by a request
    * with the given [method] that cannot be handled by any known handlers.
    */
-  static RequestError unknownRequest(String method) => new RequestError(
+  static RequestError unknownRequest(String method) => RequestError(
       RequestErrorCode.UNKNOWN_REQUEST, 'Unknown request: $method');
 }
 
@@ -406,8 +406,8 @@ class Response {
       Object error = json[ERROR];
       RequestError decodedError;
       if (error is Map) {
-        decodedError = new RequestError.fromJson(
-            new ResponseDecoder(null), '.error', error);
+        decodedError =
+            RequestError.fromJson(ResponseDecoder(null), '.error', error);
       }
       Object requestTime = json[REQUEST_TIME];
       if (requestTime is! int) {
@@ -418,7 +418,7 @@ class Response {
       if (result is Map) {
         decodedResult = result as Map<String, Object>;
       }
-      return new Response(id as String, requestTime as int,
+      return Response(id as String, requestTime as int,
           error: decodedError, result: decodedResult);
     } catch (exception) {
       return null;

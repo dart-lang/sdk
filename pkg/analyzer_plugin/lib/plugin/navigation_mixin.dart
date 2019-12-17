@@ -37,8 +37,7 @@ mixin DartNavigationMixin implements NavigationMixin {
       offset = 0;
       length = result.content.length;
     }
-    return new DartNavigationRequestImpl(
-        resourceProvider, offset, length, result);
+    return DartNavigationRequestImpl(resourceProvider, offset, length, result);
   }
 }
 
@@ -73,7 +72,7 @@ mixin NavigationMixin implements ServerPlugin {
     String path = parameters.file;
     NavigationRequest request = await getNavigationRequest(parameters);
     NavigationGenerator generator =
-        new NavigationGenerator(getNavigationContributors(path));
+        NavigationGenerator(getNavigationContributors(path));
     GeneratorResult<AnalysisGetNavigationResult> result =
         generator.generateNavigationResponse(request);
     result.sendNotifications(channel);
@@ -89,10 +88,10 @@ mixin NavigationMixin implements ServerPlugin {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     try {
-      NavigationRequest request = await getNavigationRequest(
-          new AnalysisGetNavigationParams(path, -1, -1));
+      NavigationRequest request =
+          await getNavigationRequest(AnalysisGetNavigationParams(path, -1, -1));
       NavigationGenerator generator =
-          new NavigationGenerator(getNavigationContributors(path));
+          NavigationGenerator(getNavigationContributors(path));
       GeneratorResult generatorResult =
           generator.generateNavigationNotification(request);
       generatorResult.sendNotifications(channel);

@@ -12,7 +12,7 @@ import 'package:analyzer/src/generated/source.dart';
 /**
  * An instance of [RangeFactory] made available for convenience.
  */
-final RangeFactory range = new RangeFactory();
+final RangeFactory range = RangeFactory();
 
 /**
  * A factory used to create instances of [SourceRange] based on various
@@ -23,7 +23,7 @@ class RangeFactory {
    * Return a source range that covers the name of the given [element].
    */
   SourceRange elementName(Element element) {
-    return new SourceRange(element.nameOffset, element.nameLength);
+    return SourceRange(element.nameOffset, element.nameLength);
   }
 
   /**
@@ -33,7 +33,7 @@ class RangeFactory {
   SourceRange endEnd(SyntacticEntity leftEntity, SyntacticEntity rightEntity) {
     int offset = leftEntity.end;
     int length = rightEntity.end - offset;
-    return new SourceRange(offset, length);
+    return SourceRange(offset, length);
   }
 
   /**
@@ -41,7 +41,7 @@ class RangeFactory {
    * [length].
    */
   SourceRange endLength(SyntacticEntity entity, int length) {
-    return new SourceRange(entity.end, length);
+    return SourceRange(entity.end, length);
   }
 
   /**
@@ -52,21 +52,21 @@ class RangeFactory {
       SyntacticEntity leftEntity, SyntacticEntity rightEntity) {
     int offset = leftEntity.end;
     int length = rightEntity.offset - offset;
-    return new SourceRange(offset, length);
+    return SourceRange(offset, length);
   }
 
   /**
    * Return a source range that covers the same range as the given [error].
    */
   SourceRange error(AnalysisError error) {
-    return new SourceRange(error.offset, error.length);
+    return SourceRange(error.offset, error.length);
   }
 
   /**
    * Return a source range that covers the same range as the given [node].
    */
   SourceRange node(AstNode node) {
-    return new SourceRange(node.offset, node.length);
+    return SourceRange(node.offset, node.length);
   }
 
   /**
@@ -93,7 +93,7 @@ class RangeFactory {
    */
   SourceRange nodes(List<AstNode> nodes) {
     if (nodes.isEmpty) {
-      return new SourceRange(0, 0);
+      return SourceRange(0, 0);
     }
     return startEnd(nodes.first, nodes.last);
   }
@@ -103,7 +103,7 @@ class RangeFactory {
    * whose offset is the offset of the given [range] with [offset] added to it.
    */
   SourceRange offsetBy(SourceRange range, int offset) {
-    return new SourceRange(range.offset + offset, range.length);
+    return SourceRange(range.offset + offset, range.length);
   }
 
   /**
@@ -114,14 +114,14 @@ class RangeFactory {
       SyntacticEntity leftEntity, SyntacticEntity rightEntity) {
     int offset = leftEntity.offset;
     int length = rightEntity.end - offset;
-    return new SourceRange(offset, length);
+    return SourceRange(offset, length);
   }
 
   /**
    * Return a source range that starts at the start of [entity] and has a length of [length].
    */
   SourceRange startLength(SyntacticEntity entity, int length) {
-    return new SourceRange(entity.offset, length);
+    return SourceRange(entity.offset, length);
   }
 
   /**
@@ -130,7 +130,7 @@ class RangeFactory {
    */
   SourceRange startOffsetEndOffset(int startOffset, int endOffset) {
     int length = endOffset - startOffset;
-    return new SourceRange(startOffset, length);
+    return SourceRange(startOffset, length);
   }
 
   /**
@@ -141,13 +141,13 @@ class RangeFactory {
       SyntacticEntity leftEntity, SyntacticEntity rightEntity) {
     int offset = leftEntity.offset;
     int length = rightEntity.offset - offset;
-    return new SourceRange(offset, length);
+    return SourceRange(offset, length);
   }
 
   /**
    * Return a source range that covers the same range as the given [token].
    */
   SourceRange token(Token token) {
-    return new SourceRange(token.offset, token.length);
+    return SourceRange(token.offset, token.length);
   }
 }

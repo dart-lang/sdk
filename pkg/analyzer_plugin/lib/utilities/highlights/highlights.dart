@@ -80,20 +80,19 @@ class HighlightsGenerator {
    */
   GeneratorResult generateHighlightsNotification(HighlightsRequest request) {
     List<Notification> notifications = <Notification>[];
-    HighlightsCollectorImpl collector = new HighlightsCollectorImpl();
+    HighlightsCollectorImpl collector = HighlightsCollectorImpl();
     for (HighlightsContributor contributor in contributors) {
       try {
         contributor.computeHighlights(request, collector);
       } catch (exception, stackTrace) {
-        notifications.add(new PluginErrorParams(
+        notifications.add(PluginErrorParams(
                 false, exception.toString(), stackTrace.toString())
             .toNotification());
       }
     }
-    notifications.add(
-        new AnalysisHighlightsParams(request.path, collector.regions)
-            .toNotification());
-    return new GeneratorResult(null, notifications);
+    notifications.add(AnalysisHighlightsParams(request.path, collector.regions)
+        .toNotification());
+    return GeneratorResult(null, notifications);
   }
 }
 

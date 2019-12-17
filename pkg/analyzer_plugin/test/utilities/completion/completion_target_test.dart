@@ -29,13 +29,12 @@ class CompletionTargetTest {
   /// Parse a dangling expression (no parent node). The angular plugin, for
   /// instance, does this.
   Expression parseDanglingDart(String code) {
-    final reader = new CharSequenceReader(code);
+    final reader = CharSequenceReader(code);
     var featureSet = FeatureSet.forTesting(sdkVersion: '2.2.2');
-    final scanner = new Scanner(null, reader, null)
-      ..configureFeatures(featureSet);
-    final source = new StringSource(code, 'test.dart');
-    final listener = new _ErrorCollector();
-    final parser = new Parser(source, listener, featureSet: featureSet);
+    final scanner = Scanner(null, reader, null)..configureFeatures(featureSet);
+    final source = StringSource(code, 'test.dart');
+    final listener = _ErrorCollector();
+    final parser = Parser(source, listener, featureSet: featureSet);
 
     return parser.parseExpression(scanner.tokenize());
   }
@@ -46,7 +45,7 @@ class CompletionTargetTest {
     final snippet = wrapForCompliance(parseDanglingDart('identifier'));
     final completionTarget =
         // ignore: deprecated_member_use
-        new CompletionTarget.forOffset(null, 1, entryPoint: snippet);
+        CompletionTarget.forOffset(null, 1, entryPoint: snippet);
     expect(completionTarget.offset, 1);
     final replacementRange = completionTarget.computeReplacementRange(1);
     expect(replacementRange.offset, 0);
@@ -59,10 +58,10 @@ class CompletionTargetTest {
     // expressions should have parents, and one we can enforce via synthetics.
     // But clients should not be doing this ideally.
     return astFactory.parenthesizedExpression(
-        new SyntheticBeginToken(TokenType.OPEN_PAREN, expression.offset)
+        SyntheticBeginToken(TokenType.OPEN_PAREN, expression.offset)
           ..next = expression.beginToken,
         expression,
-        new SyntheticToken(TokenType.CLOSE_PAREN, expression.end));
+        SyntheticToken(TokenType.CLOSE_PAREN, expression.end));
   }
 }
 

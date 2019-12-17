@@ -52,7 +52,7 @@ abstract class ServerPlugin {
   /**
    * The object used to manage analysis subscriptions.
    */
-  final SubscriptionManager subscriptionManager = new SubscriptionManager();
+  final SubscriptionManager subscriptionManager = SubscriptionManager();
 
   /**
    * The scheduler used by any analysis drivers that are created.
@@ -69,8 +69,7 @@ abstract class ServerPlugin {
   /**
    * The performance log used by any analysis drivers that are created.
    */
-  final PerformanceLog performanceLog =
-      new PerformanceLog(new NullStringSink());
+  final PerformanceLog performanceLog = PerformanceLog(NullStringSink());
 
   /**
    * The byte store used by any analysis drivers that are created, or `null` if
@@ -87,7 +86,7 @@ abstract class ServerPlugin {
   /**
    * The file content overlay used by any analysis drivers that are created.
    */
-  final FileContentOverlay fileContentOverlay = new FileContentOverlay();
+  final FileContentOverlay fileContentOverlay = FileContentOverlay();
 
   /**
    * Initialize a newly created analysis server plugin. If a resource [provider]
@@ -96,7 +95,7 @@ abstract class ServerPlugin {
    */
   ServerPlugin(ResourceProvider provider)
       : resourceProvider = provider ?? PhysicalResourceProvider.INSTANCE {
-    analysisDriverScheduler = new AnalysisDriverScheduler(performanceLog);
+    analysisDriverScheduler = AnalysisDriverScheduler(performanceLog);
     analysisDriverScheduler.start();
   }
 
@@ -214,7 +213,7 @@ abstract class ServerPlugin {
     AnalysisDriverGeneric driver = driverForPath(path);
     if (driver is! AnalysisDriver) {
       // Return an error from the request.
-      throw new RequestFailure(
+      throw RequestFailure(
           RequestErrorFactory.pluginError('Failed to analyze $path', null));
     }
     ResolvedUnitResult result =
@@ -222,7 +221,7 @@ abstract class ServerPlugin {
     ResultState state = result.state;
     if (state != ResultState.VALID) {
       // Return an error from the request.
-      throw new RequestFailure(
+      throw RequestFailure(
           RequestErrorFactory.pluginError('Failed to analyze $path', null));
     }
     return result;
@@ -247,7 +246,7 @@ abstract class ServerPlugin {
       AnalysisGetNavigationParams params) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    return new AnalysisGetNavigationResult(
+    return AnalysisGetNavigationResult(
         <String>[], <NavigationTarget>[], <NavigationRegion>[]);
   }
 
@@ -276,7 +275,7 @@ abstract class ServerPlugin {
           break;
       }
     }
-    return new AnalysisHandleWatchEventsResult();
+    return AnalysisHandleWatchEventsResult();
   }
 
   /**
@@ -309,7 +308,7 @@ abstract class ServerPlugin {
       // the analysis driver scheduler.
       driver.dispose();
     }
-    return new AnalysisSetContextRootsResult();
+    return AnalysisSetContextRootsResult();
   }
 
   /**
@@ -335,7 +334,7 @@ abstract class ServerPlugin {
     filesByDriver.forEach((AnalysisDriverGeneric driver, List<String> files) {
       driver.priorityFiles = files;
     });
-    return new AnalysisSetPriorityFilesResult();
+    return AnalysisSetPriorityFilesResult();
   }
 
   /**
@@ -353,7 +352,7 @@ abstract class ServerPlugin {
     Map<String, List<AnalysisService>> newSubscriptions =
         subscriptionManager.setSubscriptions(subscriptions);
     sendNotificationsForSubscriptions(newSubscriptions);
-    return new AnalysisSetSubscriptionsResult();
+    return AnalysisSetSubscriptionsResult();
   }
 
   /**
@@ -377,13 +376,13 @@ abstract class ServerPlugin {
         if (oldContents == null) {
           // The server should only send a ChangeContentOverlay if there is
           // already an existing overlay for the source.
-          throw new RequestFailure(
+          throw RequestFailure(
               RequestErrorFactory.invalidOverlayChangeNoContent());
         }
         try {
           newContents = SourceEdit.applySequence(oldContents, overlay.edits);
         } on RangeError {
-          throw new RequestFailure(
+          throw RequestFailure(
               RequestErrorFactory.invalidOverlayChangeInvalidEdit());
         }
         fileContentOverlay[filePath] = newContents;
@@ -392,7 +391,7 @@ abstract class ServerPlugin {
       }
       contentChanged(filePath);
     });
-    return new AnalysisUpdateContentResult();
+    return AnalysisUpdateContentResult();
   }
 
   /**
@@ -404,7 +403,7 @@ abstract class ServerPlugin {
       CompletionGetSuggestionsParams parameters) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    return new CompletionGetSuggestionsResult(
+    return CompletionGetSuggestionsResult(
         -1, -1, const <CompletionSuggestion>[]);
   }
 
@@ -417,7 +416,7 @@ abstract class ServerPlugin {
       EditGetAssistsParams parameters) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    return new EditGetAssistsResult(const <PrioritizedSourceChange>[]);
+    return EditGetAssistsResult(const <PrioritizedSourceChange>[]);
   }
 
   /**
@@ -431,7 +430,7 @@ abstract class ServerPlugin {
       EditGetAvailableRefactoringsParams parameters) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    return new EditGetAvailableRefactoringsResult(const <RefactoringKind>[]);
+    return EditGetAvailableRefactoringsResult(const <RefactoringKind>[]);
   }
 
   /**
@@ -443,7 +442,7 @@ abstract class ServerPlugin {
       EditGetFixesParams parameters) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    return new EditGetFixesResult(const <AnalysisErrorFixes>[]);
+    return EditGetFixesResult(const <AnalysisErrorFixes>[]);
   }
 
   /**
@@ -479,7 +478,7 @@ abstract class ServerPlugin {
       PluginShutdownParams parameters) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    return new PluginShutdownResult();
+    return PluginShutdownResult();
   }
 
   /**
@@ -494,14 +493,13 @@ abstract class ServerPlugin {
     String byteStorePath = parameters.byteStorePath;
     String sdkPath = parameters.sdkPath;
     String versionString = parameters.version;
-    Version serverVersion = new Version.parse(versionString);
-    _byteStore = new MemoryCachingByteStore(
-        new FileByteStore(byteStorePath,
-            tempNameSuffix:
-                new DateTime.now().millisecondsSinceEpoch.toString()),
+    Version serverVersion = Version.parse(versionString);
+    _byteStore = MemoryCachingByteStore(
+        FileByteStore(byteStorePath,
+            tempNameSuffix: DateTime.now().millisecondsSinceEpoch.toString()),
         64 * M);
-    _sdkManager = new DartSdkManager(sdkPath, true);
-    return new PluginVersionCheckResult(
+    _sdkManager = DartSdkManager(sdkPath, true);
+    return PluginVersionCheckResult(
         isCompatibleWith(serverVersion), name, version, fileGlobsToAnalyze,
         contactInfo: contactInfo);
   }
@@ -511,7 +509,7 @@ abstract class ServerPlugin {
    * using the given version of the plugin API.
    */
   bool isCompatibleWith(Version serverVersion) =>
-      serverVersion <= new Version.parse(version);
+      serverVersion <= Version.parse(version);
 
   /**
    * The method that is called when the analysis server closes the communication
@@ -532,7 +530,7 @@ abstract class ServerPlugin {
    * for the file with the given [path] to the server.
    */
   Future<void> sendFoldingNotification(String path) {
-    return new Future.value();
+    return Future.value();
   }
 
   /**
@@ -540,7 +538,7 @@ abstract class ServerPlugin {
    * notification for the file with the given [path] to the server.
    */
   Future<void> sendHighlightsNotification(String path) {
-    return new Future.value();
+    return Future.value();
   }
 
   /**
@@ -548,7 +546,7 @@ abstract class ServerPlugin {
    * notification for the file with the given [path] to the server.
    */
   Future<void> sendNavigationNotification(String path) {
-    return new Future.value();
+    return Future.value();
   }
 
   /**
@@ -588,7 +586,7 @@ abstract class ServerPlugin {
    * notification for the file with the given [path] to the server.
    */
   Future<void> sendOccurrencesNotification(String path) {
-    return new Future.value();
+    return Future.value();
   }
 
   /**
@@ -596,7 +594,7 @@ abstract class ServerPlugin {
    * for the file with the given [path] to the server.
    */
   Future<void> sendOutlineNotification(String path) {
-    return new Future.value();
+    return Future.value();
   }
 
   /**
@@ -640,67 +638,66 @@ abstract class ServerPlugin {
     ResponseResult result = null;
     switch (request.method) {
       case ANALYSIS_REQUEST_GET_NAVIGATION:
-        var params = new AnalysisGetNavigationParams.fromRequest(request);
+        var params = AnalysisGetNavigationParams.fromRequest(request);
         result = await handleAnalysisGetNavigation(params);
         break;
       case ANALYSIS_REQUEST_HANDLE_WATCH_EVENTS:
-        var params = new AnalysisHandleWatchEventsParams.fromRequest(request);
+        var params = AnalysisHandleWatchEventsParams.fromRequest(request);
         result = await handleAnalysisHandleWatchEvents(params);
         break;
       case ANALYSIS_REQUEST_SET_CONTEXT_ROOTS:
-        var params = new AnalysisSetContextRootsParams.fromRequest(request);
+        var params = AnalysisSetContextRootsParams.fromRequest(request);
         result = await handleAnalysisSetContextRoots(params);
         break;
       case ANALYSIS_REQUEST_SET_PRIORITY_FILES:
-        var params = new AnalysisSetPriorityFilesParams.fromRequest(request);
+        var params = AnalysisSetPriorityFilesParams.fromRequest(request);
         result = await handleAnalysisSetPriorityFiles(params);
         break;
       case ANALYSIS_REQUEST_SET_SUBSCRIPTIONS:
-        var params = new AnalysisSetSubscriptionsParams.fromRequest(request);
+        var params = AnalysisSetSubscriptionsParams.fromRequest(request);
         result = await handleAnalysisSetSubscriptions(params);
         break;
       case ANALYSIS_REQUEST_UPDATE_CONTENT:
-        var params = new AnalysisUpdateContentParams.fromRequest(request);
+        var params = AnalysisUpdateContentParams.fromRequest(request);
         result = await handleAnalysisUpdateContent(params);
         break;
       case COMPLETION_REQUEST_GET_SUGGESTIONS:
-        var params = new CompletionGetSuggestionsParams.fromRequest(request);
+        var params = CompletionGetSuggestionsParams.fromRequest(request);
         result = await handleCompletionGetSuggestions(params);
         break;
       case EDIT_REQUEST_GET_ASSISTS:
-        var params = new EditGetAssistsParams.fromRequest(request);
+        var params = EditGetAssistsParams.fromRequest(request);
         result = await handleEditGetAssists(params);
         break;
       case EDIT_REQUEST_GET_AVAILABLE_REFACTORINGS:
-        var params =
-            new EditGetAvailableRefactoringsParams.fromRequest(request);
+        var params = EditGetAvailableRefactoringsParams.fromRequest(request);
         result = await handleEditGetAvailableRefactorings(params);
         break;
       case EDIT_REQUEST_GET_FIXES:
-        var params = new EditGetFixesParams.fromRequest(request);
+        var params = EditGetFixesParams.fromRequest(request);
         result = await handleEditGetFixes(params);
         break;
       case EDIT_REQUEST_GET_REFACTORING:
-        var params = new EditGetRefactoringParams.fromRequest(request);
+        var params = EditGetRefactoringParams.fromRequest(request);
         result = await handleEditGetRefactoring(params);
         break;
       case KYTHE_REQUEST_GET_KYTHE_ENTRIES:
-        var params = new KytheGetKytheEntriesParams.fromRequest(request);
+        var params = KytheGetKytheEntriesParams.fromRequest(request);
         result = await handleKytheGetKytheEntries(params);
         break;
       case PLUGIN_REQUEST_SHUTDOWN:
-        var params = new PluginShutdownParams();
+        var params = PluginShutdownParams();
         result = await handlePluginShutdown(params);
         _channel.sendResponse(result.toResponse(request.id, requestTime));
         _channel.close();
         return null;
       case PLUGIN_REQUEST_VERSION_CHECK:
-        var params = new PluginVersionCheckParams.fromRequest(request);
+        var params = PluginVersionCheckParams.fromRequest(request);
         result = await handlePluginVersionCheck(params);
         break;
     }
     if (result == null) {
-      return new Response(request.id, requestTime,
+      return Response(request.id, requestTime,
           error: RequestErrorFactory.unknownRequest(request.method));
     }
     return result.toResponse(request.id, requestTime);
@@ -713,16 +710,16 @@ abstract class ServerPlugin {
   Future<void> _onRequest(Request request) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    int requestTime = new DateTime.now().millisecondsSinceEpoch;
+    int requestTime = DateTime.now().millisecondsSinceEpoch;
     String id = request.id;
     Response response;
     try {
       response = await _getResponse(request, requestTime);
     } on RequestFailure catch (exception) {
-      response = new Response(id, requestTime, error: exception.error);
+      response = Response(id, requestTime, error: exception.error);
     } catch (exception, stackTrace) {
-      response = new Response(id, requestTime,
-          error: new RequestError(
+      response = Response(id, requestTime,
+          error: RequestError(
               RequestErrorCode.PLUGIN_ERROR, exception.toString(),
               stackTrace: stackTrace.toString()));
     }

@@ -14,9 +14,9 @@ import 'from_html.dart';
 import 'implied_types.dart';
 import 'to_html.dart';
 
-final GeneratedFile target = new GeneratedFile(
+final GeneratedFile target = GeneratedFile(
     'test/integration/support/protocol_matchers.dart', (String pkgPath) async {
-  CodegenMatchersVisitor visitor = new CodegenMatchersVisitor(readApi(pkgPath));
+  CodegenMatchersVisitor visitor = CodegenMatchersVisitor(readApi(pkgPath));
   return visitor.collectCode(visitor.visitApi);
 });
 
@@ -33,7 +33,7 @@ class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
   String context;
 
   CodegenMatchersVisitor(Api api)
-      : toHtmlVisitor = new ToHtmlVisitor(api),
+      : toHtmlVisitor = ToHtmlVisitor(api),
         super(api) {
     codeGeneratorSettings.commentLineLength = 79;
     codeGeneratorSettings.languageName = 'dart';
@@ -115,7 +115,7 @@ class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
 
   @override
   visitTypeEnum(TypeEnum typeEnum) {
-    writeln('new MatchesEnum(${json.encode(context)}, [');
+    writeln('MatchesEnum(${json.encode(context)}, [');
     indent(() {
       bool commaNeeded = false;
       for (TypeEnumValue value in typeEnum.values) {
@@ -148,7 +148,7 @@ class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
 
   @override
   void visitTypeObject(TypeObject typeObject) {
-    writeln('new LazyMatcher(() => new MatchesJsonObject(');
+    writeln('LazyMatcher(() => MatchesJsonObject(');
     indent(() {
       write('${json.encode(context)}, ');
       Iterable<TypeObjectField> requiredFields =

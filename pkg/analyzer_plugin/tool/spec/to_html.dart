@@ -128,10 +128,10 @@ a:focus, a:hover {
     .trim();
 
 final GeneratedFile target =
-    new GeneratedFile('doc/api.html', (String pkgPath) async {
-  ToHtmlVisitor visitor = new ToHtmlVisitor(readApi(pkgPath));
-  dom.Document document = new dom.Document();
-  document.append(new dom.DocumentType('html', null, null));
+    GeneratedFile('doc/api.html', (String pkgPath) async {
+  ToHtmlVisitor visitor = ToHtmlVisitor(readApi(pkgPath));
+  dom.Document document = dom.Document();
+  document.append(dom.DocumentType('html', null, null));
   for (dom.Node node in visitor.collectHtml(visitor.visitApi)) {
     document.append(node);
   }
@@ -220,7 +220,7 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
   /**
    * Set of types defined in the API.
    */
-  Set<String> definedTypes = new Set<String>();
+  Set<String> definedTypes = Set<String>();
 
   /**
    * Mappings from HTML elements to API nodes.
@@ -228,7 +228,7 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
   ApiMappings apiMappings;
 
   ToHtmlVisitor(Api api)
-      : apiMappings = new ApiMappings(api),
+      : apiMappings = ApiMappings(api),
         super(api) {
     apiMappings.visitApi();
   }
@@ -418,7 +418,7 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
    * boldface.
    */
   void showType(String shortDesc, TypeDecl type, [TypeObject typeForBolding]) {
-    Set<String> fieldsToBold = new Set<String>();
+    Set<String> fieldsToBold = Set<String>();
     if (typeForBolding != null) {
       for (TypeObjectField field in typeForBolding.fields) {
         fieldsToBold.add(field.name);
@@ -428,8 +428,7 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
       if (shortDesc != null) {
         write('$shortDesc: ');
       }
-      TypeVisitor typeVisitor =
-          new TypeVisitor(api, fieldsToBold: fieldsToBold);
+      TypeVisitor typeVisitor = TypeVisitor(api, fieldsToBold: fieldsToBold);
       addAll(typeVisitor.collectHtml(() {
         typeVisitor.visitTypeDecl(type);
       }));
@@ -607,7 +606,7 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
             : 'typeDefinition', () {
       anchor('type_${typeDefinition.name}', () {
         write('${typeDefinition.name}: ');
-        TypeVisitor typeVisitor = new TypeVisitor(api, short: true);
+        TypeVisitor typeVisitor = TypeVisitor(api, short: true);
         addAll(typeVisitor.collectHtml(() {
           typeVisitor.visitTypeDecl(typeDefinition.type);
         }));
@@ -678,7 +677,7 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
           write(' = ${json.encode(typeObjectField.value)}');
         } else {
           write(': ');
-          TypeVisitor typeVisitor = new TypeVisitor(api, short: true);
+          TypeVisitor typeVisitor = TypeVisitor(api, short: true);
           addAll(typeVisitor.collectHtml(() {
             typeVisitor.visitTypeDecl(typeObjectField.type);
           }));
