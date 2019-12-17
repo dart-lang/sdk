@@ -111,7 +111,8 @@ abstract class SubtypeTest<T, E> {
     isSubtype('List<int>', 'List<int?>');
     // TODO(dmitryas):  Uncomment the following when type arguments are allowed
     // to be intersection types.
-//    isSubtype('List<X & int>', 'List<X>', typeParameters: 'X extends Object?');
+//    isSubtype('List<X & int>', 'List<X>',
+//    typeParameters: 'X extends Object?');
     isSubtype('List<int*>', 'List<int>');
     isSubtype('List<int*>', 'List<int*>');
     isSubtype('List<int*>', 'List<int?>');
@@ -120,7 +121,8 @@ abstract class SubtypeTest<T, E> {
     isSubtype('List<int?>', 'List<int?>');
     // TODO(dmitryas):  Uncomment the following when type arguments are allowed
     // to be intersection types.
-//    isSubtype('List<X & int?>', 'List<X>', typeParameters: 'X extends Object?');
+//    isSubtype('List<X & int?>', 'List<X>',
+//    typeParameters: 'X extends Object?');
 
     isNotSubtype('List<int*>*', 'List<double*>*');
     isNotSubtype('List<int*>*', 'Iterable<double*>*');
