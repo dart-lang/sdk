@@ -443,8 +443,10 @@ Scavenger::Scavenger(Heap* heap,
   const intptr_t initial_semi_capacity_in_words = Utils::Minimum(
       max_semi_capacity_in_words, FLAG_new_gen_semi_initial_size * MBInWords);
 
-  const char* name = Heap::RegionName(Heap::kNew);
-  to_ = SemiSpace::New(initial_semi_capacity_in_words, name);
+  const intptr_t kVmNameSize = 128;
+  char vm_name[kVmNameSize];
+  Heap::RegionName(heap_, Heap::kNew, vm_name, kVmNameSize);
+  to_ = SemiSpace::New(initial_semi_capacity_in_words, vm_name);
   if (to_ == NULL) {
     OUT_OF_MEMORY();
   }
@@ -486,8 +488,10 @@ SemiSpace* Scavenger::Prologue(Isolate* isolate) {
   // objects.
   SemiSpace* from = to_;
 
-  const char* name = Heap::RegionName(Heap::kNew);
-  to_ = SemiSpace::New(NewSizeInWords(from->size_in_words()), name);
+  const intptr_t kVmNameSize = 128;
+  char vm_name[kVmNameSize];
+  Heap::RegionName(heap_, Heap::kNew, vm_name, kVmNameSize);
+  to_ = SemiSpace::New(NewSizeInWords(from->size_in_words()), vm_name);
   if (to_ == NULL) {
     // TODO(koda): We could try to recover (collect old space, wait for another
     // isolate to finish scavenge, etc.).
