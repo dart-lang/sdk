@@ -25,6 +25,8 @@ CHANNEL = bot_utils.GetChannelFromName(bot_name)
 def BuildArchitectures():
     if BUILD_OS == 'linux':
         return ['ia32', 'x64', 'arm', 'arm64']
+    elif BUILD_OS == 'macos':
+        return ['x64']
     else:
         return ['ia32', 'x64']
 

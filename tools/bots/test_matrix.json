@@ -1910,7 +1910,7 @@
         {
           "name": "build dart",
           "script": "tools/build.py",
-          "arguments": ["--arch=ia32,x64",
+          "arguments": ["--arch=x64",
                         "--mode=release", "create_sdk"]
         },
         {
