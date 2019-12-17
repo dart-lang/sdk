@@ -271,7 +271,7 @@ class NonNullableSubtypingCompoundTest extends _SubtypingCompoundTestBase {
 
 @reflectiveTest
 class SubtypeTest extends _SubtypingTestBase {
-  Map<String, DartType> _types = {};
+  final Map<String, DartType> _types = {};
 
   void assertExpectedString(TypeImpl type, String expectedString) {
     if (expectedString != null) {

@@ -269,7 +269,7 @@ class ConstantFinderTest {
 @reflectiveTest
 class ReferenceFinderTest {
   Element _tail;
-  List<ConstantEvaluationTarget> _dependencies = [];
+  final List<ConstantEvaluationTarget> _dependencies = [];
 
   void test_visitSimpleIdentifier_const() {
     _visitNode(_makeTailVariable("v2", true));

@@ -271,7 +271,7 @@ class StringUtilities {
 }
 
 class UUID {
-  static int __nextId = 0;
+  static const int __nextId = 0;
   final String id;
   UUID(this.id);
   String toString() => id;

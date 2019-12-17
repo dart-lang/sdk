@@ -49,7 +49,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 class BreadthFirstVisitor<R> extends GeneralizingAstVisitor<R> {
   /// A queue holding the nodes that have not yet been visited in the order in
   /// which they ought to be visited.
-  Queue<AstNode> _queue = Queue<AstNode>();
+  final Queue<AstNode> _queue = Queue<AstNode>();
 
   /// A visitor, used to visit the children of the current node, that will add
   /// the nodes it visits to the [_queue].

@@ -22,7 +22,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 /// nodes, have legacy types, and asserts that the legacy types are deep legacy
 /// types.
 class LegacyTypeAsserter extends GeneralizingAstVisitor {
-  Set<DartType> _visitedTypes = {};
+  final Set<DartType> _visitedTypes = {};
 
   LegacyTypeAsserter({bool requireIsDebug = true}) {
     if (requireIsDebug) {

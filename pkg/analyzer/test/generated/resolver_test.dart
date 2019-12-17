@@ -459,20 +459,15 @@ class ScopeTest extends DriverResolutionTest {
   }
 }
 
-/**
- * Instances of the class `StaticTypeVerifier` verify that all of the nodes in an AST
- * structure that should have a static type associated with them do have a static type.
- */
+/// Instances of the class `StaticTypeVerifier` verify that all of the nodes in
+/// an AST structure that should have a static type associated with them do have
+/// a static type.
 class StaticTypeVerifier extends GeneralizingAstVisitor<void> {
-  /**
-   * A list containing all of the AST Expression nodes that were not resolved.
-   */
-  List<Expression> _unresolvedExpressions = <Expression>[];
+  /// A list containing all of the AST Expression nodes that were not resolved.
+  final List<Expression> _unresolvedExpressions = <Expression>[];
 
-  /**
-   * The TypeAnnotation nodes that were not resolved.
-   */
-  List<TypeAnnotation> _unresolvedTypes = <TypeAnnotation>[];
+  /// The TypeAnnotation nodes that were not resolved.
+  final List<TypeAnnotation> _unresolvedTypes = <TypeAnnotation>[];
 
   /**
    * Counter for the number of Expression nodes visited that are resolved.
@@ -484,9 +479,8 @@ class StaticTypeVerifier extends GeneralizingAstVisitor<void> {
    */
   int _resolvedTypeCount = 0;
 
-  /**
-   * Assert that all of the visited nodes have a static type associated with them.
-   */
+  /// Assert that all of the visited nodes have a static type associated with
+  /// them.
   void assertResolved() {
     if (_unresolvedExpressions.isNotEmpty || _unresolvedTypes.isNotEmpty) {
       StringBuffer buffer = StringBuffer();

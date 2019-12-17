@@ -2498,12 +2498,12 @@ class NodeLocator extends UnifyingAstVisitor<void> {
   /**
    * The start offset of the range used to identify the node.
    */
-  int _startOffset = 0;
+  final int _startOffset;
 
   /**
    * The end offset of the range used to identify the node.
    */
-  int _endOffset = 0;
+  final int _endOffset;
 
   /**
    * The element that was found that corresponds to the given source range, or
@@ -2601,15 +2601,11 @@ class NodeLocator extends UnifyingAstVisitor<void> {
  * encompasses the specified range.
  */
 class NodeLocator2 extends UnifyingAstVisitor<void> {
-  /**
-   * The inclusive start offset of the range used to identify the node.
-   */
-  int _startOffset = 0;
+  /// The inclusive start offset of the range used to identify the node.
+  final int _startOffset;
 
-  /**
-   * The inclusive end offset of the range used to identify the node.
-   */
-  int _endOffset = 0;
+  /// The inclusive end offset of the range used to identify the node.
+  final int _endOffset;
 
   /**
    * The found node or `null` if there is no such node.
@@ -5633,7 +5629,8 @@ class ScopedNameFinder extends GeneralizingAstVisitor<void> {
 
   AstNode _immediateChild;
 
-  Map<String, SimpleIdentifier> _locals = HashMap<String, SimpleIdentifier>();
+  final Map<String, SimpleIdentifier> _locals =
+      HashMap<String, SimpleIdentifier>();
 
   final int _position;
 

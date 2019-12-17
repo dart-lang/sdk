@@ -126,11 +126,9 @@ class Builder {
 
   _VTable _currentVTable;
 
-  /**
-   * Map containing all strings that have been written so far.  This allows us
-   * to avoid duplicating strings.
-   */
-  Map<String, Offset<String>> _strings = <String, Offset<String>>{};
+  /// Map containing all strings that have been written so far.  This allows us
+  /// to avoid duplicating strings.
+  final Map<String, Offset<String>> _strings = <String, Offset<String>>{};
 
   Builder({this.initialSize = 1024}) {
     reset();

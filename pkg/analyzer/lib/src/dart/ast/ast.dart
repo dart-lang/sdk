@@ -1386,7 +1386,7 @@ class ChildEntities
     with IterableMixin<SyntacticEntity>
     implements Iterable<SyntacticEntity> {
   /// The list of child entities to be iterated over.
-  List<SyntacticEntity> _entities = [];
+  final List<SyntacticEntity> _entities = [];
 
   @override
   Iterator<SyntacticEntity> get iterator => _entities.iterator;
@@ -10133,7 +10133,7 @@ abstract class UriBasedDirectiveImpl extends DirectiveImpl
     implements UriBasedDirective {
   /// The prefix of a URI using the `dart-ext` scheme to reference a native code
   /// library.
-  static String _DART_EXT_SCHEME = "dart-ext:";
+  static const String _DART_EXT_SCHEME = "dart-ext:";
 
   /// The URI referenced by this directive.
   StringLiteralImpl _uri;

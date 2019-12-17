@@ -50,7 +50,7 @@ class LibraryContext {
   /// The size of the linked data that is loaded by this context.
   /// When it reaches [_maxLinkedDataInBytes] the whole context is thrown away.
   /// We use it as an approximation for the heap size of elements.
-  int _linkedDataInBytes = 0;
+  final int _linkedDataInBytes = 0;
 
   AnalysisContextImpl analysisContext;
   LinkedElementFactory elementFactory;

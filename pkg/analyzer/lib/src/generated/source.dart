@@ -52,18 +52,14 @@ abstract class BasicSource extends Source {
  * TODO(scheglov) Remove it.
  */
 class ContentCache {
-  /**
-   * A table mapping the full path of sources to the contents of those sources.
-   * This is used to override the default contents of a source.
-   */
-  Map<String, String> _contentMap = HashMap<String, String>();
+  /// A table mapping the full path of sources to the contents of those sources.
+  /// This is used to override the default contents of a source.
+  final Map<String, String> _contentMap = HashMap<String, String>();
 
-  /**
-   * A table mapping the full path of sources to the modification stamps of
-   * those sources. This is used when the default contents of a source has been
-   * overridden.
-   */
-  Map<String, int> _stampMap = HashMap<String, int>();
+  /// A table mapping the full path of sources to the modification stamps of
+  /// those sources. This is used when the default contents of a source has been
+  /// overridden.
+  final Map<String, int> _stampMap = HashMap<String, int>();
 
   int _nextStamp = 0;
 
@@ -162,22 +158,17 @@ class DartUriResolver extends UriResolver {
    */
   static String DART_SCHEME = "dart";
 
-  /**
-   * The prefix of a URI using the dart-ext scheme to reference a native code library.
-   */
-  static String _DART_EXT_SCHEME = "dart-ext:";
+  /// The prefix of a URI using the dart-ext scheme to reference a native code
+  /// library.
+  static const String _DART_EXT_SCHEME = "dart-ext:";
 
   /**
    * The Dart SDK against which URI's are to be resolved.
    */
   final DartSdk _sdk;
 
-  /**
-   * Initialize a newly created resolver to resolve Dart URI's against the given platform within the
-   * given Dart SDK.
-   *
-   * @param sdk the Dart SDK against which URI's are to be resolved
-   */
+  /// Initialize a newly created resolver to resolve Dart URI's against the
+  /// given platform within the given Dart SDK.
   DartUriResolver(this._sdk);
 
   /**

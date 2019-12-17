@@ -2417,10 +2417,8 @@ class TypeParameterTypeImplTest extends AbstractTypeTest {
 
 @reflectiveTest
 class VoidTypeImplTest extends AbstractTypeTest {
-  /**
-   * Reference {code VoidTypeImpl.getInstance()}.
-   */
-  DartType _voidType = VoidTypeImpl.instance;
+  /// Reference {code VoidTypeImpl.getInstance()}.
+  final DartType _voidType = VoidTypeImpl.instance;
 
   void test_isVoid() {
     expect(_voidType.isVoid, isTrue);

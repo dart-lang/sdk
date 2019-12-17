@@ -262,7 +262,7 @@ class _TypeParametersGraph implements Graph<int> {
   // the type parameter with the index `i` in their bounds.
   List<List<int>> _edges;
 
-  Map<TypeParameterElement, int> _parameterToIndex = Map.identity();
+  final Map<TypeParameterElement, int> _parameterToIndex = Map.identity();
 
   _TypeParametersGraph(
     List<TypeParameterElement> parameters,

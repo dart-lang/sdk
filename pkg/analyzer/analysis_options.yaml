@@ -7,6 +7,15 @@ analyzer:
   errors:
     # Increase the severity of the unused_import hint.
     unused_import: warning
+    # There are currently 140 violations in lib/.
+    always_declare_return_types: ignore
+    # There are currently 230 violations in lib/.
+    annotate_overrides: ignore
+    # There are currently 5500 violations in lib/. This just does not fit well
+    # with the analyzer team's style.
+    omit_local_variable_types: ignore
+    # There are currently 3360 violations in lib/.
+    prefer_single_quotes: ignore
     # Ignoring "style" lint rules from pedantic for now. There are pre-existing
     # violations that need to be cleaned up. Each one can be cleaned up and
     # enabled according to the value provided.
@@ -14,6 +23,8 @@ analyzer:
     # is mechanical, via `dartfmt --fix-doc-comments`, but not worth the churn
     # today.
     slash_for_doc_comments: ignore
+    # There are currently 1980 violations in lib/.
+    unnecessary_this: ignore
 
 linter:
   rules:

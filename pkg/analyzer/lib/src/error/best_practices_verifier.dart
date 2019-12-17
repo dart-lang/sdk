@@ -33,9 +33,9 @@ import 'package:path/path.dart' as path;
 class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 //  static String _HASHCODE_GETTER_NAME = "hashCode";
 
-  static String _NULL_TYPE_NAME = "Null";
+  static const String _NULL_TYPE_NAME = "Null";
 
-  static String _TO_INT_METHOD_NAME = "toInt";
+  static const String _TO_INT_METHOD_NAME = "toInt";
 
   /// The class containing the AST nodes being visited, or `null` if we are not
   /// in the scope of a class.

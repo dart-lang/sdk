@@ -118,7 +118,7 @@ class LintDriver {
   /// The sources which have been analyzed so far.  This is used to avoid
   /// analyzing a source more than once, and to compute the total number of
   /// sources analyzed for statistics.
-  Set<Source> _sourcesAnalyzed = HashSet<Source>();
+  final Set<Source> _sourcesAnalyzed = HashSet<Source>();
 
   final LinterOptions options;
 

@@ -130,13 +130,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    */
   bool _isInConstInstanceCreation = false;
 
-  /**
-   * The stack of flags, where `true` at the top (last) of the stack indicates
-   * that the visitor is in the initializer of a lazy local variable. When the
-   * top is `false`, we might be not in a local variable, or it is not `lazy`,
-   * etc.
-   */
-  List<bool> _isInLateLocalVariable = [false];
+  /// The stack of flags, where `true` at the top (last) of the stack indicates
+  /// that the visitor is in the initializer of a lazy local variable. When the
+  /// top is `false`, we might be not in a local variable, or it is not `lazy`,
+  /// etc.
+  final List<bool> _isInLateLocalVariable = [false];
 
   /**
    * A flag indicating whether the visitor is currently within a native class
@@ -245,29 +243,21 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    */
   Map<FieldElement, INIT_STATE> _initialFieldElementsMap;
 
-  /**
-   * A table mapping name of the library to the export directive which export
-   * this library.
-   */
-  Map<String, LibraryElement> _nameToExportElement =
+  /// A table mapping name of the library to the export directive which export
+  /// this library.
+  final Map<String, LibraryElement> _nameToExportElement =
       HashMap<String, LibraryElement>();
 
-  /**
-   * A table mapping name of the library to the import directive which import
-   * this library.
-   */
-  Map<String, LibraryElement> _nameToImportElement =
+  /// A table mapping name of the library to the import directive which import
+  /// this library.
+  final Map<String, LibraryElement> _nameToImportElement =
       HashMap<String, LibraryElement>();
 
-  /**
-   * A table mapping names to the exported elements.
-   */
-  Map<String, Element> _exportedElements = HashMap<String, Element>();
+  /// A table mapping names to the exported elements.
+  final Map<String, Element> _exportedElements = HashMap<String, Element>();
 
-  /**
-   * A set of the names of the variable initializers we are visiting now.
-   */
-  HashSet<String> _namesForReferenceToDeclaredVariableInInitializer =
+  /// A set of the names of the variable initializers we are visiting now.
+  final HashSet<String> _namesForReferenceToDeclaredVariableInInitializer =
       HashSet<String>();
 
   /**
@@ -6078,11 +6068,9 @@ class HiddenElements {
    */
   final HiddenElements outerElements;
 
-  /**
-   * A set containing the elements that will be declared in this scope, but are
-   * not yet declared.
-   */
-  Set<Element> _elements = HashSet<Element>();
+  /// A set containing the elements that will be declared in this scope, but are
+  /// not yet declared.
+  final Set<Element> _elements = HashSet<Element>();
 
   /**
    * Initialize a newly created set of hidden elements to include all of the

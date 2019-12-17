@@ -2353,88 +2353,89 @@ class DynamicElementImpl extends ElementImpl implements TypeDefiningElement {
 class ElementAnnotationImpl implements ElementAnnotation {
   /// The name of the top-level variable used to mark that a function always
   /// throws, for dead code purposes.
-  static String _ALWAYS_THROWS_VARIABLE_NAME = "alwaysThrows";
+  static const String _ALWAYS_THROWS_VARIABLE_NAME = "alwaysThrows";
 
   /// The name of the class used to mark an element as being deprecated.
-  static String _DEPRECATED_CLASS_NAME = "Deprecated";
+  static const String _DEPRECATED_CLASS_NAME = "Deprecated";
 
   /// The name of the top-level variable used to mark an element as being
   /// deprecated.
-  static String _DEPRECATED_VARIABLE_NAME = "deprecated";
+  static const String _DEPRECATED_VARIABLE_NAME = "deprecated";
 
   /// The name of the top-level variable used to mark a method as being a
   /// factory.
-  static String _FACTORY_VARIABLE_NAME = "factory";
+  static const String _FACTORY_VARIABLE_NAME = "factory";
 
   /// The name of the top-level variable used to mark a class and its subclasses
   /// as being immutable.
-  static String _IMMUTABLE_VARIABLE_NAME = "immutable";
+  static const String _IMMUTABLE_VARIABLE_NAME = "immutable";
 
   /// The name of the top-level variable used to mark a constructor as being
   /// literal.
-  static String _LITERAL_VARIABLE_NAME = "literal";
+  static const String _LITERAL_VARIABLE_NAME = "literal";
 
   /// The name of the top-level variable used to mark a type as having
   /// "optional" type arguments.
-  static String _OPTIONAL_TYPE_ARGS_VARIABLE_NAME = "optionalTypeArgs";
+  static const String _OPTIONAL_TYPE_ARGS_VARIABLE_NAME = "optionalTypeArgs";
 
   /// The name of the top-level variable used to mark a function as running
   /// a single test.
-  static String _IS_TEST_VARIABLE_NAME = "isTest";
+  static const String _IS_TEST_VARIABLE_NAME = "isTest";
 
   /// The name of the top-level variable used to mark a function as running
   /// a test group.
-  static String _IS_TEST_GROUP_VARIABLE_NAME = "isTestGroup";
+  static const String _IS_TEST_GROUP_VARIABLE_NAME = "isTestGroup";
 
   /// The name of the class used to JS annotate an element.
-  static String _JS_CLASS_NAME = "JS";
+  static const String _JS_CLASS_NAME = "JS";
 
   /// The name of `js` library, used to define JS annotations.
-  static String _JS_LIB_NAME = "js";
+  static const String _JS_LIB_NAME = "js";
 
   /// The name of `meta` library, used to define analysis annotations.
-  static String _META_LIB_NAME = "meta";
+  static const String _META_LIB_NAME = "meta";
 
   /// The name of the top-level variable used to mark a method as requiring
   /// overriders to call super.
-  static String _MUST_CALL_SUPER_VARIABLE_NAME = "mustCallSuper";
+  static const String _MUST_CALL_SUPER_VARIABLE_NAME = "mustCallSuper";
 
   /// The name of `angular.meta` library, used to define angular analysis
   /// annotations.
-  static String _NG_META_LIB_NAME = "angular.meta";
+  static const String _NG_META_LIB_NAME = "angular.meta";
 
   /// The name of the top-level variable used to mark a member as being nonVirtual.
-  static String _NON_VIRTUAL_VARIABLE_NAME = "nonVirtual";
+  static const String _NON_VIRTUAL_VARIABLE_NAME = "nonVirtual";
 
   /// The name of the top-level variable used to mark a method as being expected
   /// to override an inherited method.
-  static String _OVERRIDE_VARIABLE_NAME = "override";
+  static const String _OVERRIDE_VARIABLE_NAME = "override";
 
   /// The name of the top-level variable used to mark a method as being
   /// protected.
-  static String _PROTECTED_VARIABLE_NAME = "protected";
+  static const String _PROTECTED_VARIABLE_NAME = "protected";
 
   /// The name of the top-level variable used to mark a class as implementing a
   /// proxy object.
-  static String PROXY_VARIABLE_NAME = "proxy";
+  static const String PROXY_VARIABLE_NAME = "proxy";
 
   /// The name of the class used to mark a parameter as being required.
-  static String _REQUIRED_CLASS_NAME = "Required";
+  static const String _REQUIRED_CLASS_NAME = "Required";
 
   /// The name of the top-level variable used to mark a parameter as being
   /// required.
-  static String _REQUIRED_VARIABLE_NAME = "required";
+  static const String _REQUIRED_VARIABLE_NAME = "required";
 
   /// The name of the top-level variable used to mark a class as being sealed.
-  static String _SEALED_VARIABLE_NAME = "sealed";
+  static const String _SEALED_VARIABLE_NAME = "sealed";
 
   /// The name of the top-level variable used to mark a method as being
   /// visible for templates.
-  static String _VISIBLE_FOR_TEMPLATE_VARIABLE_NAME = "visibleForTemplate";
+  static const String _VISIBLE_FOR_TEMPLATE_VARIABLE_NAME =
+      "visibleForTemplate";
 
   /// The name of the top-level variable used to mark a method as being
   /// visible for testing.
-  static String _VISIBLE_FOR_TESTING_VARIABLE_NAME = "visibleForTesting";
+  static const String _VISIBLE_FOR_TESTING_VARIABLE_NAME = "visibleForTesting";
 
   /// The element representing the field, variable, or constructor being used as
   /// an annotation.
@@ -3196,7 +3197,7 @@ abstract class ElementImpl implements Element {
 /// A concrete implementation of an [ElementLocation].
 class ElementLocationImpl implements ElementLocation {
   /// The character used to separate components in the encoded form.
-  static int _SEPARATOR_CHAR = 0x3B;
+  static const int _SEPARATOR_CHAR = 0x3B;
 
   /// The path to the element whose location is represented by this object.
   List<String> _components;

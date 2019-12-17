@@ -91,10 +91,10 @@ class GatheringErrorListener implements AnalysisErrorListener {
   final bool checkRanges;
 
   /// A list containing the errors that were collected.
-  List<AnalysisError> _errors = <AnalysisError>[];
+  final List<AnalysisError> _errors = <AnalysisError>[];
 
   /// A table mapping sources to the line information for the source.
-  Map<Source, LineInfo> _lineInfoMap = <Source, LineInfo>{};
+  final Map<Source, LineInfo> _lineInfoMap = <Source, LineInfo>{};
 
   /// Initialize a newly created error listener to collect errors.
   GatheringErrorListener({this.checkRanges = Parser.useFasta});
@@ -379,7 +379,7 @@ class TestInstrumentor extends NoopInstrumentationService {
 }
 
 class TestSource extends Source {
-  String _name;
+  final String _name;
   String _contents;
   int _modificationStamp = 0;
   bool exists2 = true;

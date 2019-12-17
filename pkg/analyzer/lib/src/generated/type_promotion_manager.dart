@@ -361,7 +361,7 @@ class _TypePromoteScope {
   final _TypePromoteScope _outerScope;
 
   /// A table mapping elements to the promoted type of that element.
-  Map<Element, DartType> _promotedTypes = {};
+  final Map<Element, DartType> _promotedTypes = {};
 
   /// Initialize a newly created scope to be an empty child of the given scope.
   ///

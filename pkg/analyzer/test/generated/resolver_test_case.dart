@@ -48,16 +48,12 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
    */
   final Set<AstNode> _knownExceptions;
 
-  /**
-   * A list containing all of the AST nodes that were not resolved.
-   */
-  List<AstNode> _unresolvedNodes = <AstNode>[];
+  /// A list containing all of the AST nodes that were not resolved.
+  final List<AstNode> _unresolvedNodes = <AstNode>[];
 
-  /**
-   * A list containing all of the AST nodes that were resolved to an element of
-   * the wrong type.
-   */
-  List<AstNode> _wrongTypedNodes = <AstNode>[];
+  /// A list containing all of the AST nodes that were resolved to an element of
+  /// the wrong type.
+  final List<AstNode> _wrongTypedNodes = <AstNode>[];
 
   /**
    * Initialize a newly created verifier to verify that all of the identifiers
@@ -315,14 +311,13 @@ class ResolverTestCase with ResourceProviderMixin {
    */
   bool enableUnusedElement = false;
 
-  /**
-   * Specifies if [assertErrors] should check for [HintCode.UNUSED_LOCAL_VARIABLE].
-   */
+  /// Specifies if [assertErrors] should check for
+  /// [HintCode.UNUSED_LOCAL_VARIABLE].
   bool enableUnusedLocalVariable = false;
 
   final Map<Source, TestAnalysisResult> analysisResults = {};
 
-  StringBuffer _logBuffer = StringBuffer();
+  final StringBuffer _logBuffer = StringBuffer();
   FileContentOverlay fileContentOverlay = FileContentOverlay();
   AnalysisDriver driver;
 

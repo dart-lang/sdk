@@ -609,7 +609,7 @@ class LibraryImportScope extends Scope {
  * A scope containing all of the names defined in a given library.
  */
 class LibraryScope extends EnclosedScope {
-  List<ExtensionElement> _extensions = <ExtensionElement>[];
+  final List<ExtensionElement> _extensions = <ExtensionElement>[];
 
   /**
    * Initialize a newly created scope representing the names defined in the

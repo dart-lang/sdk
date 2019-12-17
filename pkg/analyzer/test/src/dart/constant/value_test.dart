@@ -22,7 +22,7 @@ final Matcher throwsEvaluationException =
 
 @reflectiveTest
 class DartObjectImplTest {
-  TypeProvider _typeProvider = TestTypeProvider();
+  final TypeProvider _typeProvider = TestTypeProvider();
 
   void test_add_knownDouble_knownDouble() {
     _assertAdd(_doubleValue(3.0), _doubleValue(1.0), _doubleValue(2.0));

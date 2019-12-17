@@ -34,16 +34,16 @@ import 'package:analyzer/src/task/api/model.dart';
 /// constant instance creation expressions.
 class ConstantEvaluationEngine {
   /// Parameter to "fromEnvironment" methods that denotes the default value.
-  static String _DEFAULT_VALUE_PARAM = "defaultValue";
+  static const String _DEFAULT_VALUE_PARAM = "defaultValue";
 
   /// Source of RegExp matching declarable operator names.
   /// From sdk/lib/internal/symbol.dart.
-  static String _OPERATOR_RE =
+  static const String _OPERATOR_RE =
       "(?:[\\-+*/%&|^]|\\[\\]=?|==|~/?|<[<=]?|>[>=]?|unary-)";
 
   /// Source of RegExp matching Dart reserved words.
   /// From sdk/lib/internal/symbol.dart.
-  static String _RESERVED_WORD_RE =
+  static const String _RESERVED_WORD_RE =
       "(?:assert|break|c(?:a(?:se|tch)|lass|on(?:st|tinue))|"
       "d(?:efault|o)|e(?:lse|num|xtends)|f(?:alse|inal(?:ly)?|or)|"
       "i[fns]|n(?:ew|ull)|ret(?:hrow|urn)|s(?:uper|witch)|t(?:h(?:is|row)|"
@@ -51,12 +51,12 @@ class ConstantEvaluationEngine {
 
   /// Source of RegExp matching any public identifier.
   /// From sdk/lib/internal/symbol.dart.
-  static String _PUBLIC_IDENTIFIER_RE =
+  static const String _PUBLIC_IDENTIFIER_RE =
       "(?!$_RESERVED_WORD_RE\\b(?!\\\$))[a-zA-Z\$][\\w\$]*";
 
   /// RegExp that validates a non-empty non-private symbol.
   /// From sdk/lib/internal/symbol.dart.
-  static RegExp _PUBLIC_SYMBOL_PATTERN = RegExp(
+  static final RegExp _PUBLIC_SYMBOL_PATTERN = RegExp(
       "^(?:$_OPERATOR_RE\$|$_PUBLIC_IDENTIFIER_RE(?:=?\$|[.](?!\$)))+?\$");
 
   /// The type provider used to access the known types.

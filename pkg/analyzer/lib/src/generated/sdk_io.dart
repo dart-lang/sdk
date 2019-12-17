@@ -43,10 +43,8 @@ abstract class AbstractDartSdk implements DartSdk {
    */
   SdkAnalysisContext _analysisContext;
 
-  /**
-   * The mapping from Dart URI's to the corresponding sources.
-   */
-  Map<String, Source> _uriToSourceMap = HashMap<String, Source>();
+  /// The mapping from Dart URI's to the corresponding sources.
+  final Map<String, Source> _uriToSourceMap = HashMap<String, Source>();
 
   /**
    * Set the [options] for this SDK analysis context.  Throw [StateError] if the
