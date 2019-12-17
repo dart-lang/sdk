@@ -578,9 +578,8 @@ dart_vm_extra_builder(
     category="vm|kernel-precomp|adx",
     properties={"shard_timeout": 5400})  # 1.5h
 dart_vm_extra_builder(
-    "vm-kernel-precomp-mac-release-simarm_x64",
-    category="vm|kernel-precomp|arx",
-    dimensions=mac())
+    "vm-kernel-precomp-linux-release-simarm_x64",
+    category="vm|kernel-precomp|arx")
 dart_vm_extra_builder(
     "vm-kernel-precomp-mac-release-simarm64",
     category="vm|kernel-precomp|ma",
