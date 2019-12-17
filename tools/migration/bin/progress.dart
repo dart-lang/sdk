@@ -15,6 +15,17 @@ import 'package:migration/src/test_directories.dart';
 // TODO(rnystrom): Update this with numbers from migrating some language tests.
 const _linesPerDay = 24607;
 
+const _includeNonCoreLibs = false;
+
+const _nonCoreLibs = [
+  "lib_2/html/",
+  "lib_2/isolate/",
+  "lib_2/mirrors/",
+  "lib_2/profiler/",
+  "lib_2/wasm/",
+  "standalone_2/io/",
+];
+
 void main(List<String> arguments) {
   var totalFiles = 0;
   var totalLines = 0;
@@ -28,6 +39,10 @@ void main(List<String> arguments) {
     var migratedLines = 0;
 
     for (var legacyPath in listFiles(dir)) {
+      if (!_includeNonCoreLibs && _nonCoreLibs.any(legacyPath.startsWith)) {
+        continue;
+      }
+
       files++;
       var lineCount = readFileLines(legacyPath).length;
       lines += lineCount;
@@ -63,13 +78,12 @@ void _show(
   var migratedDays = migratedLines / _linesPerDay;
   var daysLeft = days - migratedDays;
 
-  print("${label.padRight(12)} ${pad(migratedFiles, 4)} / ${pad(files, 4)} "
+  print("${label.padRight(12)} ${pad(migratedFiles, 4)}/${pad(files, 4)} "
       "files (${percent(migratedFiles, files)}%), "
       "${pad(migratedLines, 6)}/${pad(lines, 6)} "
       "lines (${percent(migratedLines, lines)}%), "
       "${pad(migratedDays.toStringAsFixed(2), 6)}/"
-      "${pad(days.toStringAsFixed(2), 6)} "
+      "${pad(days.toStringAsFixed(2), 5)} "
       "days (${percent(migratedDays, days)}%), "
-      "${pad(daysLeft.toStringAsFixed(2), 6)} "
-      "days left (${percent(daysLeft, days)}%)");
+      "${pad(daysLeft.toStringAsFixed(2), 5)} days left");
 }
