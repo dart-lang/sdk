@@ -9123,7 +9123,7 @@ class StringLexemeHelper {
 
   StringLexemeHelper(this.lexeme, this.isFirst, this.isLast) {
     if (isFirst) {
-      isRaw = StringUtilities.startsWithChar(lexeme, 0x72);
+      isRaw = lexeme.startsWith('r');
       if (isRaw) {
         start++;
       }

@@ -2909,8 +2909,7 @@ abstract class Identifier implements Expression {
 
   /// Return `true` if the given [name] is visible only within the library in
   /// which it is declared.
-  static bool isPrivateName(String name) =>
-      StringUtilities.startsWithChar(name, 0x5F); // '_'
+  static bool isPrivateName(String name) => name.startsWith('_');
 }
 
 /// The basic structure of an if element.

@@ -9,7 +9,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/java_engine.dart';
 
 /**
  * The scope defined by a block.
@@ -1149,7 +1148,7 @@ abstract class Scope {
    * Return `true` if the given [name] is a library-private name.
    */
   static bool isPrivateName(String name) =>
-      name != null && StringUtilities.startsWithChar(name, PRIVATE_NAME_PREFIX);
+      name != null && name.startsWith('_');
 }
 
 /**

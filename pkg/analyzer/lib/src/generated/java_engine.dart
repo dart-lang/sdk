@@ -240,10 +240,6 @@ class StringUtilities {
         str.codeUnitAt(start + 5) == c6;
   }
 
-  static startsWithChar(String str, int c) {
-    return str.isNotEmpty && str.codeUnitAt(0) == c;
-  }
-
   static String substringBefore(String str, String separator) {
     if (str == null || str.isEmpty) {
       return str;

@@ -3921,12 +3921,6 @@ class StringUtilitiesTest {
     // missing
   }
 
-  void test_startsWithChar() {
-    expect(StringUtilities.startsWithChar("a", 0x61), isTrue);
-    expect(StringUtilities.startsWithChar("b", 0x61), isFalse);
-    expect(StringUtilities.startsWithChar("", 0x61), isFalse);
-  }
-
   void test_substringBefore() {
     expect(StringUtilities.substringBefore(null, ""), null);
     expect(StringUtilities.substringBefore(null, "a"), null);
