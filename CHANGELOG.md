@@ -6,6 +6,15 @@
 
 ### Core libraries
 
+#### `dart:html`
+
+* **Breaking Change**: Changed the return type of several html native methods
+involving Futures. In return types that matched Future<List<T>>, T was changed
+to `dynamic`. These methods would have resulted in a runtime error if they were
+used (see Issue [39627][]).
+
+[39627]: https://github.com/dart-lang/sdk/issues/39627
+
 #### `dart:io`
 
 ### Dart VM
