@@ -930,41 +930,6 @@ class Dart2TypeSystem extends TypeSystem {
     return false;
   }
 
-  bool isGroundType(DartType t) {
-    // TODO(leafp): Revisit this.
-    if (t is TypeParameterType) {
-      return false;
-    }
-    // TODO(mfairhurst): switch legacy Top checks to true Top checks
-    if (_isLegacyTop(t, orTrueTop: true)) {
-      return true;
-    }
-
-    if (t is FunctionType) {
-      // TODO(mfairhurst): switch legacy Top checks to true Top checks
-      // TODO(mfairhurst): switch legacy Bottom checks to true Bottom checks
-      if (!_isLegacyTop(t.returnType, orTrueTop: true) ||
-          anyParameterType(
-              t, (pt) => !_isLegacyBottom(pt, orTrueBottom: true))) {
-        return false;
-      } else {
-        return true;
-      }
-    }
-
-    if (t is InterfaceType) {
-      List<DartType> typeArguments = t.typeArguments;
-      for (DartType typeArgument in typeArguments) {
-        // TODO(mfairhurst): switch legacy Top checks to true Top checks
-        if (!_isLegacyTop(typeArgument, orTrueTop: true)) return false;
-      }
-      return true;
-    }
-
-    // We should not see any other type aside from malformed code.
-    return false;
-  }
-
   /// Defines an (almost) total order on bottom and `Null` types. This does not
   /// currently consistently order two different type variables with the same
   /// bound.

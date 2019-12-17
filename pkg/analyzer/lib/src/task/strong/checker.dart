@@ -459,12 +459,6 @@ class CodeChecker extends RecursiveAstVisitor {
   }
 
   @override
-  void visitIsExpression(IsExpression node) {
-    _checkRuntimeTypeCheck(node, node.type);
-    node.visitChildren(this);
-  }
-
-  @override
   void visitListLiteral(ListLiteral node) {
     DartType type = DynamicTypeImpl.instance;
     if (node.typeArguments != null) {
@@ -799,13 +793,6 @@ class CodeChecker extends RecursiveAstVisitor {
     }
     // TODO(vsm): Enforce void or dynamic (to void?) when expression is null.
     if (expression != null) checkAssignment(expression, type);
-  }
-
-  void _checkRuntimeTypeCheck(AstNode node, TypeAnnotation annotation) {
-    var type = getAnnotatedType(annotation);
-    if (!rules.isGroundType(type)) {
-      _recordMessage(node, StrongModeCode.NON_GROUND_TYPE_CHECK_INFO, [type]);
-    }
   }
 
   void _checkUnary(Expression operand, Token op, MethodElement element) {

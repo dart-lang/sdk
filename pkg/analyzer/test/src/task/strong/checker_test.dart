@@ -2885,19 +2885,19 @@ int bar(int x, int y) => x + y;
 
 void main() {
   bool b;
-  b = /*info:NON_GROUND_TYPE_CHECK_INFO*/foo is I2I;
-  b = /*info:NON_GROUND_TYPE_CHECK_INFO*/foo is D2I;
-  b = /*info:NON_GROUND_TYPE_CHECK_INFO*/foo is I2D;
-  b = /*info:NON_GROUND_TYPE_CHECK_INFO*/foo is D2D;
+  b = foo is I2I;
+  b = foo is D2I;
+  b = foo is I2D;
+  b = foo is D2D;
 
-  b = /*info:NON_GROUND_TYPE_CHECK_INFO*/bar is II2I;
-  b = /*info:NON_GROUND_TYPE_CHECK_INFO*/bar is DI2I;
-  b = /*info:NON_GROUND_TYPE_CHECK_INFO*/bar is ID2I;
-  b = /*info:NON_GROUND_TYPE_CHECK_INFO*/bar is II2D;
-  b = /*info:NON_GROUND_TYPE_CHECK_INFO*/bar is DD2I;
-  b = /*info:NON_GROUND_TYPE_CHECK_INFO*/bar is DI2D;
-  b = /*info:NON_GROUND_TYPE_CHECK_INFO*/bar is ID2D;
-  b = /*info:NON_GROUND_TYPE_CHECK_INFO*/bar is DD2D;
+  b = bar is II2I;
+  b = bar is DI2I;
+  b = bar is ID2I;
+  b = bar is II2D;
+  b = bar is DD2I;
+  b = bar is DI2D;
+  b = bar is ID2D;
+  b = bar is DD2D;
 
   // For as, the validity of checks is deferred to runtime.
   Function f;
@@ -4616,7 +4616,7 @@ class SubCloneable<T> extends Cloneable<T> {
 void takesSubCloneable<A>(SubCloneable<A> t) {}
 
 void h<T extends Cloneable<T>>(T object) {
-  if (/*info:NON_GROUND_TYPE_CHECK_INFO*/object is SubCloneable<T>) {
+  if (object is SubCloneable<T>) {
     print(object.m(object));
 
     SubCloneable<T> s = object;

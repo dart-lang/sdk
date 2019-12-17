@@ -8693,11 +8693,6 @@ class StrongModeCode extends ErrorCode {
       "The super call must be last in an initializer "
           "list (see https://goo.gl/EY6hDP): '{0}'.");
 
-  static const StrongModeCode NON_GROUND_TYPE_CHECK_INFO = StrongModeCode(
-      ErrorType.HINT,
-      'NON_GROUND_TYPE_CHECK_INFO',
-      "Runtime check on non-ground type '{0}' may throw StrongModeError.");
-
   static const StrongModeCode DYNAMIC_INVOKE = StrongModeCode(
       ErrorType.HINT, 'DYNAMIC_INVOKE', "'{0}' requires a dynamic invoke.");
 

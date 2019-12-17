@@ -817,7 +817,6 @@ const List<ErrorCode> errorCodeValues = [
   StrongModeCode.INVALID_CAST_FUNCTION,
   StrongModeCode.INVALID_PARAMETER_DECLARATION,
   StrongModeCode.INVALID_SUPER_INVOCATION,
-  StrongModeCode.NON_GROUND_TYPE_CHECK_INFO,
   StrongModeCode.NOT_INSTANTIATED_BOUND,
   StrongModeCode.TOP_LEVEL_CYCLE,
   StrongModeCode.TOP_LEVEL_FUNCTION_LITERAL_BLOCK,
