@@ -5051,8 +5051,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return;
     }
 
-    if (target.staticType != null &&
-        _typeSystem.isNonNullable(target.staticType)) {
+    if (_typeSystem.isStrictlyNonNullable(target.staticType)) {
       _errorReporter.reportErrorForToken(errorCode, operator, []);
     }
   }

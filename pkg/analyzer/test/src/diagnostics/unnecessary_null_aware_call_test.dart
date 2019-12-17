@@ -21,25 +21,22 @@ class UnnecessaryNullAwareCallTest extends DriverResolutionTest {
   AnalysisOptionsImpl get analysisOptions =>
       AnalysisOptionsImpl()..enabledExperiments = [EnableString.non_nullable];
 
-  test_getter_parenthesized_nonNull() async {
-    await assertErrorsInCode('''
-f(int x) {
-  (x)?.isEven;
-}
-''', [
-      error(StaticWarningCode.UNNECESSARY_NULL_AWARE_CALL, 16, 2),
-    ]);
-  }
+  test_getter_legacy() async {
+    newFile('/test/lib/a.dart', content: r'''
+// @dart = 2.5
+var x = 0;
+''');
 
-  test_getter_parenthesized_nullable() async {
     await assertNoErrorsInCode('''
-f(int? x) {
-  (x)?.isEven;
+import 'a.dart';
+
+f() {
+  x?.isEven;
 }
 ''');
   }
 
-  test_getter_simple_nonNull() async {
+  test_getter_nonNullable() async {
     await assertErrorsInCode('''
 f(int x) {
   x?.isEven;
@@ -49,7 +46,7 @@ f(int x) {
     ]);
   }
 
-  test_getter_simple_nullable() async {
+  test_getter_nullable() async {
     await assertNoErrorsInCode('''
 f(int? x) {
   x?.isEven;
@@ -57,25 +54,22 @@ f(int? x) {
 ''');
   }
 
-  test_method_parenthesized_nonNull() async {
-    await assertErrorsInCode('''
-f(int x) {
-  (x)?.round();
-}
-''', [
-      error(StaticWarningCode.UNNECESSARY_NULL_AWARE_CALL, 16, 2),
-    ]);
-  }
+  test_method_legacy() async {
+    newFile('/test/lib/a.dart', content: r'''
+// @dart = 2.5
+var x = 0;
+''');
 
-  test_method_parenthesized_nullable() async {
     await assertNoErrorsInCode('''
-f(int? x) {
-  (x)?.round();
+import 'a.dart';
+
+f() {
+  x?.round();
 }
 ''');
   }
 
-  test_method_simple_nonNull() async {
+  test_method_nonNullable() async {
     await assertErrorsInCode('''
 f(int x) {
   x?.round();
@@ -85,7 +79,7 @@ f(int x) {
     ]);
   }
 
-  test_method_simple_nullable() async {
+  test_method_nullable() async {
     await assertNoErrorsInCode('''
 f(int? x) {
   x?.round();
