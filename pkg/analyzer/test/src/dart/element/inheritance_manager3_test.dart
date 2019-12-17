@@ -1053,6 +1053,55 @@ class InheritanceManager3WithNnbdTest extends _InheritanceManager3Base {
   @override
   bool get typeToStringWithNullability => true;
 
+  test_getMember_optIn_inheritsOptIn() async {
+    newFile('/test/lib/a.dart', content: r'''
+class A {
+  int foo(int a, int? b) => 0;
+}
+''');
+    await resolveTestCode('''
+import 'a.dart';
+class B extends A {
+  int? bar(int a) => 0;
+}
+''');
+    _assertGetMember(
+      className: 'B',
+      name: 'foo',
+      expected: 'A.foo: int Function(int, int?)',
+    );
+    _assertGetMember(
+      className: 'B',
+      name: 'bar',
+      expected: 'B.bar: int? Function(int)',
+    );
+  }
+
+  test_getMember_optIn_inheritsOptOut() async {
+    newFile('/test/lib/a.dart', content: r'''
+// @dart = 2.6
+class A {
+  int foo(int a, int b) => 0;
+}
+''');
+    await resolveTestCode('''
+import 'a.dart';
+class B extends A {
+  int? bar(int a) => 0;
+}
+''');
+    _assertGetMember(
+      className: 'B',
+      name: 'foo',
+      expected: 'A.foo: int* Function(int*, int*)*',
+    );
+    _assertGetMember(
+      className: 'B',
+      name: 'bar',
+      expected: 'B.bar: int? Function(int)',
+    );
+  }
+
   test_getMember_optOut_inheritsOptIn() async {
     newFile('/test/lib/a.dart', content: r'''
 class A {
@@ -1069,7 +1118,7 @@ class B extends A {
     _assertGetMember(
       className: 'B',
       name: 'foo',
-      expected: 'A.foo: int Function(int, int?)',
+      expected: 'A.foo: int* Function(int*, int*)*',
     );
     _assertGetMember(
       className: 'B',
@@ -1098,7 +1147,7 @@ class C extends B {}
     _assertGetMember(
       className: 'C',
       name: 'foo',
-      expected: 'A.foo: int Function(int, int?)',
+      expected: 'A.foo: int* Function(int*, int*)*',
     );
     _assertGetMember(
       className: 'C',
