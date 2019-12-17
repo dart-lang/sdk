@@ -1915,7 +1915,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       return false;
     }
     DartType inferredType =
-        _elementTypeProvider.getExecutableType(inferredElement).returnType;
+        _elementTypeProvider.getExecutableReturnType(inferredElement);
     if (nodeType != null &&
         nodeType.isDynamic &&
         inferredType is InterfaceType &&

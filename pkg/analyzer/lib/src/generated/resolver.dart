@@ -1745,9 +1745,9 @@ class ResolverVisitor extends ScopedVisitor {
       _flowAnalysis?.executableDeclaration_enter(node, node.parameters, false);
       _promoteManager.enterFunctionBody(node.body);
       _enclosingFunction = node.declaredElement;
-      DartType returnType = _computeReturnOrYieldType(_elementTypeProvider
-          .getExecutableType(_enclosingFunction)
-          ?.returnType);
+      DartType returnType = _computeReturnOrYieldType(
+        _elementTypeProvider.safeExecutableReturnType(_enclosingFunction),
+      );
       InferenceContext.setType(node.body, returnType);
       super.visitMethodDeclaration(node);
     } finally {
