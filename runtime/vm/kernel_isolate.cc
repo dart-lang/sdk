@@ -392,7 +392,14 @@ MallocGrowableArray<char*>* KernelIsolate::experimental_flags_ =
     new MallocGrowableArray<char*>();
 
 void KernelIsolate::AddExperimentalFlag(const char* value) {
-  experimental_flags_->Add(strdup(value));
+  char* save_ptr;  // Needed for strtok_r.
+  char* temp = strdup(value);
+  char* token = strtok_r(temp, ",", &save_ptr);
+  while (token != NULL) {
+    experimental_flags_->Add(strdup(token));
+    token = strtok_r(NULL, ",", &save_ptr);
+  }
+  free(temp);
 }
 
 bool KernelIsolate::GetExperimentalFlag(const char* value) {
