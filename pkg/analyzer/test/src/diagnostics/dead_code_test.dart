@@ -25,9 +25,6 @@ class DeadCodeNullCoalesceTest extends DriverResolutionTest {
 
   test_assignCompound_dynamic() async {
     await assertNoErrorsInCode(r'''
-@pragma('analyzer:non-nullable')
-library foo;
-
 m() {
   dynamic x;
   x ??= 1;
@@ -50,22 +47,16 @@ f(MyMap<int, int> map) {
 
   test_assignCompound_nonNullable() async {
     await assertErrorsInCode(r'''
-@pragma('analyzer:non-nullable')
-library foo;
-
 m(int x) {
   x ??= 1;
 }
 ''', [
-      error(HintCode.DEAD_CODE, 66, 1),
+      error(HintCode.DEAD_CODE, 19, 1),
     ]);
   }
 
   test_assignCompound_nullable() async {
     await assertNoErrorsInCode(r'''
-@pragma('analyzer:non-nullable')
-library foo;
-
 m() {
   int? x;
   x ??= 1;
@@ -75,9 +66,6 @@ m() {
 
   test_binary_dynamic() async {
     await assertNoErrorsInCode(r'''
-@pragma('analyzer:non-nullable')
-library foo;
-
 m() {
   dynamic x;
   x ?? 1;
@@ -87,22 +75,16 @@ m() {
 
   test_binary_nonNullable() async {
     await assertErrorsInCode(r'''
-@pragma('analyzer:non-nullable')
-library foo;
-
 m(int x) {
   x ?? 1;
 }
 ''', [
-      error(HintCode.DEAD_CODE, 65, 1),
+      error(HintCode.DEAD_CODE, 18, 1),
     ]);
   }
 
   test_binary_nullable() async {
     await assertNoErrorsInCode(r'''
-@pragma('analyzer:non-nullable')
-library foo;
-
 m() {
   int? x;
   x ?? 1;
@@ -112,9 +94,6 @@ m() {
 
   test_binary_nullType() async {
     await assertNoErrorsInCode(r'''
-@pragma('analyzer:non-nullable')
-library foo;
-
 m() {
   Null x;
   x ?? 1;
@@ -273,12 +252,10 @@ f() {
 
   test_deadBlock_if_debugConst_prefixedIdentifier2() async {
     newFile('/test/lib/lib2.dart', content: r'''
-library lib2;
 class A {
   static const bool DEBUG = false;
 }''');
     await assertNoErrorsInCode(r'''
-library L;
 import 'lib2.dart';
 f() {
   if(A.DEBUG) {}
@@ -287,12 +264,10 @@ f() {
 
   test_deadBlock_if_debugConst_propertyAccessor() async {
     newFile('/test/lib/lib2.dart', content: r'''
-library lib2;
 class A {
   static const bool DEBUG = false;
 }''');
     await assertNoErrorsInCode(r'''
-library L;
 import 'lib2.dart' as LIB;
 f() {
   if(LIB.A.DEBUG) {}
