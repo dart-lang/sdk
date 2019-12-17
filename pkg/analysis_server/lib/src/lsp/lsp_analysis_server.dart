@@ -19,6 +19,7 @@ import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/domain_completion.dart'
     show CompletionDomainHandler;
 import 'package:analysis_server/src/domains/completion/available_suggestions.dart';
+import 'package:analysis_server/src/flutter/flutter_outline_computer.dart';
 import 'package:analysis_server/src/lsp/channel/lsp_channel.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_states.dart';
@@ -361,6 +362,17 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     sendNotification(message);
   }
 
+  void publishFlutterOutline(String path, FlutterOutline outline) {
+    final params =
+        new PublishFlutterOutlineParams(Uri.file(path).toString(), outline);
+    final message = new NotificationMessage(
+      CustomMethods.PublishFlutterOutline,
+      params,
+      jsonRpcVersion,
+    );
+    sendNotification(message);
+  }
+
   void publishOutline(String path, Outline outline) {
     final params = new PublishOutlineParams(Uri.file(path).toString(), outline);
     final message = new NotificationMessage(
@@ -488,6 +500,15 @@ class LspAnalysisServer extends AbstractAnalysisServer {
         !contextManager.isContainedInDotFolder(file);
   }
 
+  /// Returns `true` if Flutter outlines should be sent for [file] with the given
+  /// absolute path.
+  bool shouldSendFlutterOutlineFor(String file) {
+    // Outlines should only be sent for open (priority) files in the workspace.
+    return initializationOptions.flutterOutline &&
+        priorityFiles.contains(file) &&
+        contextManager.isInAnalysisRoot(file);
+  }
+
   /// Returns `true` if outlines should be sent for [file] with the given
   /// absolute path.
   bool shouldSendOutlineFor(String file) {
@@ -562,6 +583,7 @@ class LspInitializationOptions {
   final bool suggestFromUnimportedLibraries;
   final bool closingLabels;
   final bool outline;
+  final bool flutterOutline;
   LspInitializationOptions(dynamic options)
       : onlyAnalyzeProjectsWithOpenFiles = options != null &&
             options['onlyAnalyzeProjectsWithOpenFiles'] == true,
@@ -570,7 +592,8 @@ class LspInitializationOptions {
         suggestFromUnimportedLibraries = options == null ||
             options['suggestFromUnimportedLibraries'] != false,
         closingLabels = options != null && options['closingLabels'] == true,
-        outline = options != null && options['outline'] == true;
+        outline = options != null && options['outline'] == true,
+        flutterOutline = options != null && options['flutterOutline'] == true;
 }
 
 class LspPerformance {
@@ -631,6 +654,11 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
           ).compute();
           final lspOutline = toOutline(result.lineInfo, outline);
           analysisServer.publishOutline(result.path, lspOutline);
+        }
+        if (analysisServer.shouldSendFlutterOutlineFor(path)) {
+          final outline = new FlutterOutlineComputer(result).compute();
+          final lspOutline = toFlutterOutline(result.lineInfo, outline);
+          analysisServer.publishFlutterOutline(result.path, lspOutline);
         }
       }
     });

@@ -57,6 +57,8 @@ abstract class CustomMethods {
       const Method('dart/textDocument/publishClosingLabels');
   static const PublishOutline =
       const Method('dart/textDocument/publishOutline');
+  static const PublishFlutterOutline =
+      const Method('dart/textDocument/publishFlutterOutline');
   static const Super = const Method('dart/textDocument/super');
   static const AnalyzerStatus = const Method(r'$/analyzerStatus');
 }

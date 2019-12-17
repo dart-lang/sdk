@@ -19,6 +19,7 @@ import 'diagnostic_test.dart' as diagnostic;
 import 'document_highlights_test.dart' as document_highlights;
 import 'document_symbols_test.dart' as document_symbols;
 import 'file_modification_test.dart' as file_modification;
+import 'flutter_outline_test.dart' as flutter_outline;
 import 'folding_test.dart' as folding;
 import 'format_test.dart' as format;
 import 'hover_test.dart' as hover;
@@ -50,6 +51,7 @@ main() {
     document_highlights.main();
     document_symbols.main();
     file_modification.main();
+    flutter_outline.main();
     folding.main();
     format.main();
     get_super.main();

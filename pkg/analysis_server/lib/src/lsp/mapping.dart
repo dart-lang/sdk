@@ -742,9 +742,14 @@ lsp.DiagnosticSeverity toDiagnosticSeverity(server.ErrorSeverity severity) {
 
 lsp.Element toElement(server.LineInfo lineInfo, server.Element element) =>
     lsp.Element(
-      toRange(lineInfo, element.location.offset, element.location.length),
+      element.location != null
+          ? toRange(lineInfo, element.location.offset, element.location.length)
+          : null,
       element.name,
       element.kind.name,
+      element.parameters,
+      element.typeParameters,
+      element.returnType,
     );
 
 lsp.FoldingRange toFoldingRange(
@@ -816,6 +821,30 @@ lsp.Outline toOutline(server.LineInfo lineInfo, server.Outline outline) =>
           ? outline.children.map((c) => toOutline(lineInfo, c)).toList()
           : null,
     );
+
+lsp.FlutterOutline toFlutterOutline(
+        server.LineInfo lineInfo, server.FlutterOutline outline) =>
+    lsp.FlutterOutline(
+      outline.kind.name,
+      outline.label,
+      outline.className,
+      outline.variableName,
+      outline.attributes != null
+          ? outline.attributes.map(toFlutterOutlineAttribute).toList()
+          : null,
+      outline.dartElement != null
+          ? toElement(lineInfo, outline.dartElement)
+          : null,
+      toRange(lineInfo, outline.offset, outline.length),
+      toRange(lineInfo, outline.codeOffset, outline.codeLength),
+      outline.children != null
+          ? outline.children.map((c) => toFlutterOutline(lineInfo, c)).toList()
+          : null,
+    );
+
+lsp.FlutterOutlineAttribute toFlutterOutlineAttribute(
+        server.FlutterOutlineAttribute attribute) =>
+    lsp.FlutterOutlineAttribute(attribute.name, attribute.label);
 
 lsp.Position toPosition(server.CharacterLocation location) {
   // LSP is zero-based, but analysis server is 1-based.

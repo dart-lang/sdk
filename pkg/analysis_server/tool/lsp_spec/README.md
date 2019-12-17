@@ -21,7 +21,8 @@ Note: In LSP the client makes the first request so there is no obvious confirmat
 - `onlyAnalyzeProjectsWithOpenFiles`: When set to `true`, analysis will only be performed for projects that have open files rather than the root workspace folder. Defaults to `false`.
 - `suggestFromUnimportedLibraries`: When set to `false`, completion will not include synbols that are not already imported into the current file. Defaults to `true`, though the client must additionally support `workspace/applyEdit` for these completions to be included.
 - `closingLabels`: When set to `true`, `dart/textDocument/publishClosingLabels` notifications will be sent with information to render editor closing labels.
-- `outline`: When set to `true`, `dart/textDocument/publishOutline` notifications will be sent with outline information for open files.files.
+- `outline`: When set to `true`, `dart/textDocument/publishOutline` notifications will be sent with outline information for open files.
+- `flutterOutline`: When set to `true`, `dart/textDocument/publishFlutterOutline` notifications will be sent with Flutter outline information for open files.
 
 ## Method Status
 
@@ -126,7 +127,8 @@ Notifies the client when closing label information is available (or updated) for
 
 Direction: Server -> Client
 Params: `{ uri: string, outline: Outline }`
-Outline: `{ element: { name: string, range: Range, kind: string }, range: Range, codeRange: Range, children: Outline[] }`
+Outline: `{ element: Element, range: Range, codeRange: Range, children: Outline[] }`
+Element: `{ name: string, range: Range, kind: string, parameters: string | undefined, typeParameters: string | undefined, returnType: string | undefined }`
 
 Notifies the client when outline information is available (or updated) for a file.
 
@@ -135,3 +137,15 @@ Nodes contains multiple ranges:
 - `element.range` - the range of the name in the declaration of the element
 - `range` - the entire range of the declaration including dartdocs
 - `codeRange` - the range of code part of the declaration (excluding dartdocs and annotations) - typically used when navigating to the declaration
+
+### dart/textDocument/publishFlutterOutline Notification
+
+Direction: Server -> Client
+Params: `{ uri: string, outline: FlutterOutline }`
+FlutterOutline: `{ dartElement: Element | undefined, range: Range, codeRange: Range, children: Outline[], kind: string, label: string | undefined, className: string | undefined, variableName: string | undefined, attributes: FlutterOutlineAttribute[] | undefined }`
+FlutterOutlineAttribute: `{ name: string, label: string }`
+Element: as defined for the `dart/textDocument/publishOutline` notification.
+
+Notifies the client when Flutter outline information is available (or updated) for a file.
+
+Nodes contains multiple ranges as desribed for the `dart/textDocument/publishOutline` notification.

@@ -203,9 +203,12 @@ List<AstNode> getCustomClasses() {
     interface('ClosingLabel',
         [field('range', type: 'Range'), field('label', type: 'string')]),
     interface('Element', [
-      field('range', type: 'Range'),
+      field('range', type: 'Range', canBeUndefined: true),
       field('name', type: 'string'),
-      field('kind', type: 'string')
+      field('kind', type: 'string'),
+      field('parameters', type: 'string', canBeUndefined: true),
+      field('typeParameters', type: 'string', canBeUndefined: true),
+      field('returnType', type: 'string', canBeUndefined: true),
     ]),
     interface('PublishOutlineParams',
         [field('uri', type: 'string'), field('outline', type: 'Outline')]),
@@ -215,6 +218,30 @@ List<AstNode> getCustomClasses() {
       field('codeRange', type: 'Range'),
       field('children', type: 'Outline', array: true, canBeUndefined: true)
     ]),
+    interface('PublishFlutterOutlineParams', [
+      field('uri', type: 'string'),
+      field('outline', type: 'FlutterOutline')
+    ]),
+    interface('FlutterOutline', [
+      field('kind', type: 'string'),
+      field('label', type: 'string', canBeUndefined: true),
+      field('className', type: 'string', canBeUndefined: true),
+      field('variableName', type: 'string', canBeUndefined: true),
+      field('attributes',
+          type: 'FlutterOutlineAttribute', array: true, canBeUndefined: true),
+      field('dartElement', type: 'Element', canBeUndefined: true),
+      field('range', type: 'Range'),
+      field('codeRange', type: 'Range'),
+      field('children',
+          type: 'FlutterOutline', array: true, canBeUndefined: true)
+    ]),
+    interface(
+      'FlutterOutlineAttribute',
+      [
+        field('name', type: 'string'),
+        field('label', type: 'string'),
+      ],
+    ),
     interface(
       'CompletionItemResolutionInfo',
       [

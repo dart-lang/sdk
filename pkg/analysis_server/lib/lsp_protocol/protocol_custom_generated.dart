@@ -453,10 +453,8 @@ class Element implements ToJsonable {
   static const jsonHandler =
       const LspJsonHandler(Element.canParse, Element.fromJson);
 
-  Element(this.range, this.name, this.kind) {
-    if (range == null) {
-      throw 'range is required but was not provided';
-    }
+  Element(this.range, this.name, this.kind, this.parameters,
+      this.typeParameters, this.returnType) {
     if (name == null) {
       throw 'name is required but was not provided';
     }
@@ -468,18 +466,36 @@ class Element implements ToJsonable {
     final range = json['range'] != null ? Range.fromJson(json['range']) : null;
     final name = json['name'];
     final kind = json['kind'];
-    return new Element(range, name, kind);
+    final parameters = json['parameters'];
+    final typeParameters = json['typeParameters'];
+    final returnType = json['returnType'];
+    return new Element(
+        range, name, kind, parameters, typeParameters, returnType);
   }
 
   final String kind;
   final String name;
+  final String parameters;
   final Range range;
+  final String returnType;
+  final String typeParameters;
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
-    __result['range'] = range ?? (throw 'range is required but was not set');
+    if (range != null) {
+      __result['range'] = range;
+    }
     __result['name'] = name ?? (throw 'name is required but was not set');
     __result['kind'] = kind ?? (throw 'kind is required but was not set');
+    if (parameters != null) {
+      __result['parameters'] = parameters;
+    }
+    if (typeParameters != null) {
+      __result['typeParameters'] = typeParameters;
+    }
+    if (returnType != null) {
+      __result['returnType'] = returnType;
+    }
     return __result;
   }
 
@@ -487,15 +503,7 @@ class Element implements ToJsonable {
     if (obj is Map<String, dynamic>) {
       reporter.push('range');
       try {
-        if (!obj.containsKey('range')) {
-          reporter.reportError("must not be undefined");
-          return false;
-        }
-        if (obj['range'] == null) {
-          reporter.reportError("must not be null");
-          return false;
-        }
-        if (!(Range.canParse(obj['range'], reporter))) {
+        if (obj['range'] != null && !(Range.canParse(obj['range'], reporter))) {
           reporter.reportError("must be of type Range");
           return false;
         }
@@ -536,6 +544,34 @@ class Element implements ToJsonable {
       } finally {
         reporter.pop();
       }
+      reporter.push('parameters');
+      try {
+        if (obj['parameters'] != null && !(obj['parameters'] is String)) {
+          reporter.reportError("must be of type String");
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('typeParameters');
+      try {
+        if (obj['typeParameters'] != null &&
+            !(obj['typeParameters'] is String)) {
+          reporter.reportError("must be of type String");
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('returnType');
+      try {
+        if (obj['returnType'] != null && !(obj['returnType'] is String)) {
+          reporter.reportError("must be of type String");
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
       return true;
     } else {
       reporter.reportError("must be of type Element");
@@ -549,6 +585,9 @@ class Element implements ToJsonable {
       return range == other.range &&
           name == other.name &&
           kind == other.kind &&
+          parameters == other.parameters &&
+          typeParameters == other.typeParameters &&
+          returnType == other.returnType &&
           true;
     }
     return false;
@@ -560,6 +599,347 @@ class Element implements ToJsonable {
     hash = JenkinsSmiHash.combine(hash, range.hashCode);
     hash = JenkinsSmiHash.combine(hash, name.hashCode);
     hash = JenkinsSmiHash.combine(hash, kind.hashCode);
+    hash = JenkinsSmiHash.combine(hash, parameters.hashCode);
+    hash = JenkinsSmiHash.combine(hash, typeParameters.hashCode);
+    hash = JenkinsSmiHash.combine(hash, returnType.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class FlutterOutline implements ToJsonable {
+  static const jsonHandler =
+      const LspJsonHandler(FlutterOutline.canParse, FlutterOutline.fromJson);
+
+  FlutterOutline(
+      this.kind,
+      this.label,
+      this.className,
+      this.variableName,
+      this.attributes,
+      this.dartElement,
+      this.range,
+      this.codeRange,
+      this.children) {
+    if (kind == null) {
+      throw 'kind is required but was not provided';
+    }
+    if (range == null) {
+      throw 'range is required but was not provided';
+    }
+    if (codeRange == null) {
+      throw 'codeRange is required but was not provided';
+    }
+  }
+  static FlutterOutline fromJson(Map<String, dynamic> json) {
+    final kind = json['kind'];
+    final label = json['label'];
+    final className = json['className'];
+    final variableName = json['variableName'];
+    final attributes = json['attributes']
+        ?.map((item) =>
+            item != null ? FlutterOutlineAttribute.fromJson(item) : null)
+        ?.cast<FlutterOutlineAttribute>()
+        ?.toList();
+    final dartElement = json['dartElement'] != null
+        ? Element.fromJson(json['dartElement'])
+        : null;
+    final range = json['range'] != null ? Range.fromJson(json['range']) : null;
+    final codeRange =
+        json['codeRange'] != null ? Range.fromJson(json['codeRange']) : null;
+    final children = json['children']
+        ?.map((item) => item != null ? FlutterOutline.fromJson(item) : null)
+        ?.cast<FlutterOutline>()
+        ?.toList();
+    return new FlutterOutline(kind, label, className, variableName, attributes,
+        dartElement, range, codeRange, children);
+  }
+
+  final List<FlutterOutlineAttribute> attributes;
+  final List<FlutterOutline> children;
+  final String className;
+  final Range codeRange;
+  final Element dartElement;
+  final String kind;
+  final String label;
+  final Range range;
+  final String variableName;
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> __result = {};
+    __result['kind'] = kind ?? (throw 'kind is required but was not set');
+    if (label != null) {
+      __result['label'] = label;
+    }
+    if (className != null) {
+      __result['className'] = className;
+    }
+    if (variableName != null) {
+      __result['variableName'] = variableName;
+    }
+    if (attributes != null) {
+      __result['attributes'] = attributes;
+    }
+    if (dartElement != null) {
+      __result['dartElement'] = dartElement;
+    }
+    __result['range'] = range ?? (throw 'range is required but was not set');
+    __result['codeRange'] =
+        codeRange ?? (throw 'codeRange is required but was not set');
+    if (children != null) {
+      __result['children'] = children;
+    }
+    return __result;
+  }
+
+  static bool canParse(Object obj, LspJsonReporter reporter) {
+    if (obj is Map<String, dynamic>) {
+      reporter.push('kind');
+      try {
+        if (!obj.containsKey('kind')) {
+          reporter.reportError("must not be undefined");
+          return false;
+        }
+        if (obj['kind'] == null) {
+          reporter.reportError("must not be null");
+          return false;
+        }
+        if (!(obj['kind'] is String)) {
+          reporter.reportError("must be of type String");
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('label');
+      try {
+        if (obj['label'] != null && !(obj['label'] is String)) {
+          reporter.reportError("must be of type String");
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('className');
+      try {
+        if (obj['className'] != null && !(obj['className'] is String)) {
+          reporter.reportError("must be of type String");
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('variableName');
+      try {
+        if (obj['variableName'] != null && !(obj['variableName'] is String)) {
+          reporter.reportError("must be of type String");
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('attributes');
+      try {
+        if (obj['attributes'] != null &&
+            !((obj['attributes'] is List &&
+                (obj['attributes'].every((item) =>
+                    FlutterOutlineAttribute.canParse(item, reporter)))))) {
+          reporter.reportError("must be of type List<FlutterOutlineAttribute>");
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('dartElement');
+      try {
+        if (obj['dartElement'] != null &&
+            !(Element.canParse(obj['dartElement'], reporter))) {
+          reporter.reportError("must be of type Element");
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('range');
+      try {
+        if (!obj.containsKey('range')) {
+          reporter.reportError("must not be undefined");
+          return false;
+        }
+        if (obj['range'] == null) {
+          reporter.reportError("must not be null");
+          return false;
+        }
+        if (!(Range.canParse(obj['range'], reporter))) {
+          reporter.reportError("must be of type Range");
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('codeRange');
+      try {
+        if (!obj.containsKey('codeRange')) {
+          reporter.reportError("must not be undefined");
+          return false;
+        }
+        if (obj['codeRange'] == null) {
+          reporter.reportError("must not be null");
+          return false;
+        }
+        if (!(Range.canParse(obj['codeRange'], reporter))) {
+          reporter.reportError("must be of type Range");
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('children');
+      try {
+        if (obj['children'] != null &&
+            !((obj['children'] is List &&
+                (obj['children'].every(
+                    (item) => FlutterOutline.canParse(item, reporter)))))) {
+          reporter.reportError("must be of type List<FlutterOutline>");
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      return true;
+    } else {
+      reporter.reportError("must be of type FlutterOutline");
+      return false;
+    }
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is FlutterOutline) {
+      return kind == other.kind &&
+          label == other.label &&
+          className == other.className &&
+          variableName == other.variableName &&
+          listEqual(
+              attributes,
+              other.attributes,
+              (FlutterOutlineAttribute a, FlutterOutlineAttribute b) =>
+                  a == b) &&
+          dartElement == other.dartElement &&
+          range == other.range &&
+          codeRange == other.codeRange &&
+          listEqual(children, other.children,
+              (FlutterOutline a, FlutterOutline b) => a == b) &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
+    hash = JenkinsSmiHash.combine(hash, label.hashCode);
+    hash = JenkinsSmiHash.combine(hash, className.hashCode);
+    hash = JenkinsSmiHash.combine(hash, variableName.hashCode);
+    hash = JenkinsSmiHash.combine(hash, attributes.hashCode);
+    hash = JenkinsSmiHash.combine(hash, dartElement.hashCode);
+    hash = JenkinsSmiHash.combine(hash, range.hashCode);
+    hash = JenkinsSmiHash.combine(hash, codeRange.hashCode);
+    hash = JenkinsSmiHash.combine(hash, children.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class FlutterOutlineAttribute implements ToJsonable {
+  static const jsonHandler = const LspJsonHandler(
+      FlutterOutlineAttribute.canParse, FlutterOutlineAttribute.fromJson);
+
+  FlutterOutlineAttribute(this.name, this.label) {
+    if (name == null) {
+      throw 'name is required but was not provided';
+    }
+    if (label == null) {
+      throw 'label is required but was not provided';
+    }
+  }
+  static FlutterOutlineAttribute fromJson(Map<String, dynamic> json) {
+    final name = json['name'];
+    final label = json['label'];
+    return new FlutterOutlineAttribute(name, label);
+  }
+
+  final String label;
+  final String name;
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> __result = {};
+    __result['name'] = name ?? (throw 'name is required but was not set');
+    __result['label'] = label ?? (throw 'label is required but was not set');
+    return __result;
+  }
+
+  static bool canParse(Object obj, LspJsonReporter reporter) {
+    if (obj is Map<String, dynamic>) {
+      reporter.push('name');
+      try {
+        if (!obj.containsKey('name')) {
+          reporter.reportError("must not be undefined");
+          return false;
+        }
+        if (obj['name'] == null) {
+          reporter.reportError("must not be null");
+          return false;
+        }
+        if (!(obj['name'] is String)) {
+          reporter.reportError("must be of type String");
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('label');
+      try {
+        if (!obj.containsKey('label')) {
+          reporter.reportError("must not be undefined");
+          return false;
+        }
+        if (obj['label'] == null) {
+          reporter.reportError("must not be null");
+          return false;
+        }
+        if (!(obj['label'] is String)) {
+          reporter.reportError("must be of type String");
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      return true;
+    } else {
+      reporter.reportError("must be of type FlutterOutlineAttribute");
+      return false;
+    }
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is FlutterOutlineAttribute) {
+      return name == other.name && label == other.label && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, name.hashCode);
+    hash = JenkinsSmiHash.combine(hash, label.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -804,6 +1184,101 @@ class PublishClosingLabelsParams implements ToJsonable {
     int hash = 0;
     hash = JenkinsSmiHash.combine(hash, uri.hashCode);
     hash = JenkinsSmiHash.combine(hash, labels.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class PublishFlutterOutlineParams implements ToJsonable {
+  static const jsonHandler = const LspJsonHandler(
+      PublishFlutterOutlineParams.canParse,
+      PublishFlutterOutlineParams.fromJson);
+
+  PublishFlutterOutlineParams(this.uri, this.outline) {
+    if (uri == null) {
+      throw 'uri is required but was not provided';
+    }
+    if (outline == null) {
+      throw 'outline is required but was not provided';
+    }
+  }
+  static PublishFlutterOutlineParams fromJson(Map<String, dynamic> json) {
+    final uri = json['uri'];
+    final outline = json['outline'] != null
+        ? FlutterOutline.fromJson(json['outline'])
+        : null;
+    return new PublishFlutterOutlineParams(uri, outline);
+  }
+
+  final FlutterOutline outline;
+  final String uri;
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> __result = {};
+    __result['uri'] = uri ?? (throw 'uri is required but was not set');
+    __result['outline'] =
+        outline ?? (throw 'outline is required but was not set');
+    return __result;
+  }
+
+  static bool canParse(Object obj, LspJsonReporter reporter) {
+    if (obj is Map<String, dynamic>) {
+      reporter.push('uri');
+      try {
+        if (!obj.containsKey('uri')) {
+          reporter.reportError("must not be undefined");
+          return false;
+        }
+        if (obj['uri'] == null) {
+          reporter.reportError("must not be null");
+          return false;
+        }
+        if (!(obj['uri'] is String)) {
+          reporter.reportError("must be of type String");
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('outline');
+      try {
+        if (!obj.containsKey('outline')) {
+          reporter.reportError("must not be undefined");
+          return false;
+        }
+        if (obj['outline'] == null) {
+          reporter.reportError("must not be null");
+          return false;
+        }
+        if (!(FlutterOutline.canParse(obj['outline'], reporter))) {
+          reporter.reportError("must be of type FlutterOutline");
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      return true;
+    } else {
+      reporter.reportError("must be of type PublishFlutterOutlineParams");
+      return false;
+    }
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is PublishFlutterOutlineParams) {
+      return uri == other.uri && outline == other.outline && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, uri.hashCode);
+    hash = JenkinsSmiHash.combine(hash, outline.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 

@@ -1048,6 +1048,21 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     return diagnosticParams.diagnostics;
   }
 
+  Future<FlutterOutline> waitForFlutterOutline(Uri uri) async {
+    PublishFlutterOutlineParams outlineParams;
+    await serverToClient.firstWhere((message) {
+      if (message is NotificationMessage &&
+          message.method == CustomMethods.PublishFlutterOutline) {
+        outlineParams =
+            _convertParams(message, PublishFlutterOutlineParams.fromJson);
+
+        return outlineParams.uri == uri.toString();
+      }
+      return false;
+    });
+    return outlineParams.outline;
+  }
+
   Future<Outline> waitForOutline(Uri uri) async {
     PublishOutlineParams outlineParams;
     await serverToClient.firstWhere((message) {
