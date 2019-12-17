@@ -8610,8 +8610,6 @@ class StrongModeCode extends ErrorCode {
       "Try adding an explicit type like 'dynamic', or "
       "enable implicit-dynamic in your analysis options file.";
 
-  static const String _inferredTypeMessage = "'{0}' has inferred type '{1}'.";
-
   static const StrongModeCode INVALID_PARAMETER_DECLARATION = StrongModeCode(
       ErrorType.COMPILE_TIME_ERROR,
       'INVALID_PARAMETER_DECLARATION',
@@ -8621,18 +8619,6 @@ class StrongModeCode extends ErrorCode {
       ErrorType.COMPILE_TIME_ERROR,
       'COULD_NOT_INFER',
       "Couldn't infer type parameter '{0}'.{1}");
-
-  static const StrongModeCode INFERRED_TYPE =
-      StrongModeCode(ErrorType.HINT, 'INFERRED_TYPE', _inferredTypeMessage);
-
-  static const StrongModeCode INFERRED_TYPE_LITERAL = StrongModeCode(
-      ErrorType.HINT, 'INFERRED_TYPE_LITERAL', _inferredTypeMessage);
-
-  static const StrongModeCode INFERRED_TYPE_ALLOCATION = StrongModeCode(
-      ErrorType.HINT, 'INFERRED_TYPE_ALLOCATION', _inferredTypeMessage);
-
-  static const StrongModeCode INFERRED_TYPE_CLOSURE = StrongModeCode(
-      ErrorType.HINT, 'INFERRED_TYPE_CLOSURE', _inferredTypeMessage);
 
   static const StrongModeCode INVALID_CAST_LITERAL = StrongModeCode(
       ErrorType.COMPILE_TIME_ERROR,

@@ -160,30 +160,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   }
 
   /**
-   * Given a constructor name [node] and a type [type], record an inferred type
-   * for the constructor if in strong mode. This is used to fill in any
-   * inferred type parameters found by the resolver.
-   */
-  void inferConstructorName(ConstructorName node, InterfaceType type) {
-    // TODO(scheglov) Inline.
-    node.type.type = type;
-    // TODO(scheglov) Remove when DDC stops using analyzer.
-    var element = type.element;
-    if (element.typeParameters.isNotEmpty) {
-      var typeParameterBounds = _typeSystem.instantiateTypeFormalsToBounds(
-        element.typeParameters,
-      );
-      var instantiatedToBounds = element.instantiate(
-        typeArguments: typeParameterBounds,
-        nullabilitySuffix: _noneOrStarSuffix,
-      );
-      if (type != instantiatedToBounds) {
-        _resolver.inferenceContext.recordInference(node.parent, type);
-      }
-    }
-  }
-
-  /**
    * Given a formal parameter list and a function type use the function type
    * to infer types for any of the parameters which have implicit (missing)
    * types.  Returns true if inference has occurred.
@@ -785,13 +761,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     DartType inferred = inferListType(node);
 
     if (inferred != listDynamicType) {
-      // TODO(jmesserly): this results in an "inferred" message even when we
-      // in fact had an error above, because it will still attempt to return
-      // a type. Perhaps we should record inference from TypeSystem if
-      // everything was successful?
       // TODO(brianwilkerson) Determine whether we need to make the inferred
       //  type non-nullable here or whether it will already be non-nullable.
-      _resolver.inferenceContext.recordInference(node, inferred);
       _recordStaticType(node, inferred);
       return;
     }
@@ -1127,7 +1098,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     // TODO(brianwilkerson) Decide whether the literalType needs to be made
     //  non-nullable here or whether that will have happened in
     //  _inferSetOrMapLiteralType.
-    _resolver.inferenceContext.recordInference(node, literalType);
     _recordStaticType(node, literalType);
   }
 
@@ -1789,7 +1759,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       arguments.correspondingStaticParameters =
           ResolverVisitor.resolveArgumentsToParameters(
               arguments, inferred.parameters, null);
-      inferConstructorName(constructor, inferred.returnType);
+      constructor.type.type = inferred.returnType;
       // Update the static element as well. This is used in some cases, such as
       // computing constant values. It is stored in two places.
       constructor.staticElement =
@@ -1813,8 +1783,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     computedType = _computeReturnTypeOfFunction(body, computedType);
     functionElement.returnType = computedType;
     _recordStaticType(
-        node, _elementTypeProvider.getExecutableType(functionElement));
-    _resolver.inferenceContext.recordInference(
         node, _elementTypeProvider.getExecutableType(functionElement));
   }
 

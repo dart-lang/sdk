@@ -57,12 +57,6 @@ class InferenceContext {
 
   final ResolverVisitor _resolver;
 
-  /// The error listener on which to record inference information.
-  final ErrorReporter _errorReporter;
-
-  /// If true, emit hints when types are inferred
-  final bool _inferenceHints;
-
   /// Type provider, needed for type matching.
   final TypeProvider _typeProvider;
 
@@ -79,12 +73,9 @@ class InferenceContext {
   /// functions and methods.
   final List<DartType> _returnStack = <DartType>[];
 
-  InferenceContext._(
-    ResolverVisitor resolver,
-    this._inferenceHints,
-  )   : _resolver = resolver,
+  InferenceContext._(ResolverVisitor resolver)
+      : _resolver = resolver,
         _typeProvider = resolver.typeProvider,
-        _errorReporter = resolver.errorReporter,
         _typeSystem = resolver.typeSystem;
 
   /// Get the return type of the current enclosing function, if any.
@@ -151,27 +142,6 @@ class InferenceContext {
   void pushReturnContext(FunctionBody node) {
     _returnStack.add(getContext(node));
     _inferredReturn.add(null);
-  }
-
-  /// Place an info node into the error stream indicating that a
-  /// [type] has been inferred as the type of [node].
-  void recordInference(Expression node, DartType type) {
-    if (!_inferenceHints) {
-      return;
-    }
-
-    ErrorCode error;
-    if (node is Literal) {
-      error = StrongModeCode.INFERRED_TYPE_LITERAL;
-    } else if (node is InstanceCreationExpression) {
-      error = StrongModeCode.INFERRED_TYPE_ALLOCATION;
-    } else if (node is FunctionExpression) {
-      error = StrongModeCode.INFERRED_TYPE_CLOSURE;
-    } else {
-      error = StrongModeCode.INFERRED_TYPE;
-    }
-
-    _errorReporter.reportErrorForNode(error, node, [node, type]);
   }
 
   /// Clear the type information associated with [node].
@@ -485,8 +455,6 @@ class ResolverVisitor extends ScopedVisitor {
    */
   final InheritanceManager3 inheritance;
 
-  final AnalysisOptionsImpl _analysisOptions;
-
   /**
    * The feature set that is enabled for the current unit.
    */
@@ -604,8 +572,7 @@ class ResolverVisitor extends ScopedVisitor {
       reportConstEvaluationErrors,
       this._flowAnalysis,
       this._elementTypeProvider)
-      : _analysisOptions = definingLibrary.context.analysisOptions,
-        _featureSet = featureSet,
+      : _featureSet = featureSet,
         _uiAsCodeEnabled =
             featureSet.isEnabled(Feature.control_flow_collections) ||
                 featureSet.isEnabled(Feature.spread_collections),
@@ -616,12 +583,7 @@ class ResolverVisitor extends ScopedVisitor {
     this.elementResolver = ElementResolver(this,
         reportConstEvaluationErrors: reportConstEvaluationErrors,
         elementTypeProvider: _elementTypeProvider);
-    bool strongModeHints = false;
-    AnalysisOptions options = _analysisOptions;
-    if (options is AnalysisOptionsImpl) {
-      strongModeHints = options.strongModeHints;
-    }
-    this.inferenceContext = InferenceContext._(this, strongModeHints);
+    this.inferenceContext = InferenceContext._(this);
     this.typeAnalyzer = _makeStaticTypeAnalyzer(featureSet, _flowAnalysis);
   }
 
@@ -1581,7 +1543,7 @@ class ResolverVisitor extends ScopedVisitor {
         functionType =
             matchFunctionTypeParameters(node.typeParameters, functionType);
         if (functionType is FunctionType) {
-          _inferFormalParameterList(node.parameters, functionType);
+          typeAnalyzer.inferFormalParameterList(node.parameters, functionType);
           InferenceContext.setType(
               node.body, _computeReturnOrYieldType(functionType.returnType));
         }
@@ -2500,9 +2462,6 @@ class ResolverVisitor extends ScopedVisitor {
             resolveArgumentsToParameters(arguments, inferred.parameters, null);
 
         constructor.type.type = inferred.returnType;
-        if (UnknownInferredType.isKnown(inferred)) {
-          inferenceContext.recordInference(node, inferred.returnType);
-        }
 
         // Update the static element as well. This is used in some cases, such
         // as computing constant values. It is stored in two places.
@@ -2523,28 +2482,6 @@ class ResolverVisitor extends ScopedVisitor {
         node, node.function.staticType, node.typeArguments);
     InferenceContext.setType(
         node.argumentList, inferred ?? node.staticInvokeType);
-  }
-
-  void _inferFormalParameterList(FormalParameterList node, DartType type) {
-    if (typeAnalyzer.inferFormalParameterList(node, type)) {
-      // TODO(leafp): This gets dropped on the floor if we're in the field
-      // inference task.  We should probably keep these infos.
-      //
-      // TODO(jmesserly): this is reporting the context type, and therefore not
-      // necessarily the correct inferred type for the lambda.
-      //
-      // For example, `([x]) {}`  could be passed to `int -> void` but its type
-      // will really be `([int]) -> void`. Similar issue for named arguments.
-      // It can also happen if the return type is inferred later on to be
-      // more precise.
-      //
-      // This reporting bug defeats the deduplication of error messages and
-      // results in the same inference message being reported twice.
-      //
-      // To get this right, we'd have to delay reporting until we have the
-      // complete type including return type.
-      inferenceContext.recordInference(node.parent, type);
-    }
   }
 
   StaticTypeAnalyzer _makeStaticTypeAnalyzer(

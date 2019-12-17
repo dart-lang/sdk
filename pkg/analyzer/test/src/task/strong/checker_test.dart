@@ -376,19 +376,19 @@ main() {
     await checkFile('''
 abstract class Equality<Q> {}
 abstract class EqualityBase<R> implements Equality<R> {
-  final C<R> c = /*info:INFERRED_TYPE_ALLOCATION*/const C();
+  final C<R> c = const C();
   const EqualityBase();
 }
 class DefaultEquality<S> extends EqualityBase<S> {
   const DefaultEquality();
 }
 class SetEquality<T> implements Equality<T> {
-  final Equality<T> field = /*info:INFERRED_TYPE_ALLOCATION*/const DefaultEquality();
-  const SetEquality([Equality<T> inner = /*info:INFERRED_TYPE_ALLOCATION*/const DefaultEquality()]);
+  final Equality<T> field = const DefaultEquality();
+  const SetEquality([Equality<T> inner = const DefaultEquality()]);
 }
 class C<Q> {
-  final List<Q> list = /*info:INFERRED_TYPE_LITERAL*/const [];
-  final Map<Q, Iterable<Q>> m =  /*info:INFERRED_TYPE_LITERAL*/const {};
+  final List<Q> list = const [];
+  final Map<Q, Iterable<Q>> m =  const {};
   const C();
 }
 main() {
@@ -443,7 +443,7 @@ void main() {
 
   test_conversionAndDynamicInvoke() async {
     addFile('''
-dynamic toString = /*info:INFERRED_TYPE_CLOSURE*/(int x) => x + 42;
+dynamic toString = (int x) => x + 42;
 dynamic hashCode = "hello";
 ''', name: '/helper.dart');
     await checkFile('''
@@ -507,7 +507,7 @@ void main() {
   (/*info:DYNAMIC_INVOKE*/a1.toStringClosure("hello"));
   a1.hashCode;
 
-  dynamic toString = /*info:INFERRED_TYPE_CLOSURE*/() => null;
+  dynamic toString = () => null;
   (/*info:DYNAMIC_INVOKE*/toString());
 
   (/*info:DYNAMIC_INVOKE*/helper.toString());
@@ -976,7 +976,7 @@ baz1() async* { yield* x; }
 Stream baz2() async* { yield* x; }
 Stream<int> baz3() async* { yield* x; }
 Stream<int> baz4() async* { yield* intStream; }
-Stream<int> baz5() async* { yield* /*info:INFERRED_TYPE_ALLOCATION*/new MyStream(); }
+Stream<int> baz5() async* { yield* new MyStream(); }
 ''');
   }
 
@@ -993,7 +993,7 @@ baz1() sync* { yield* x; }
 Iterable baz2() sync* { yield* x; }
 Iterable<int> baz3() sync* { yield* x; }
 Iterable<int> baz4() sync* { yield* bar3(); }
-Iterable<int> baz5() sync* { yield* /*info:INFERRED_TYPE_ALLOCATION*/new List(); }
+Iterable<int> baz5() sync* { yield* new List(); }
 ''');
   }
 
@@ -1149,10 +1149,10 @@ void main() {
         botTop
                       );
     apply<BotTop>(
-        /*info:INFERRED_TYPE_CLOSURE*/(dynamic x) => new A(),
-        /*info:INFERRED_TYPE_CLOSURE*/(dynamic x) => (x as Object),
-        /*info:INFERRED_TYPE_CLOSURE*/(A x) => x,
-        /*info:INFERRED_TYPE_CLOSURE*/(A x) => null,
+        (dynamic x) => new A(),
+        (dynamic x) => (x as Object),
+        (A x) => x,
+        (A x) => null,
         botA,
         botTop
                       );
@@ -1174,10 +1174,10 @@ void main() {
         botTop
                     );
     apply<ATop>(
-        /*info:INFERRED_TYPE_CLOSURE*/(dynamic x) => new A(),
-        /*info:INFERRED_TYPE_CLOSURE*/(dynamic x) => (x as Object),
-        /*info:INFERRED_TYPE_CLOSURE*/(A x) => x,
-        /*info:INFERRED_TYPE_CLOSURE*/(A x) => null,
+        (dynamic x) => new A(),
+        (dynamic x) => (x as Object),
+        (A x) => x,
+        (A x) => null,
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/botA,
         botTop
                     );
@@ -1199,10 +1199,10 @@ void main() {
         botTop
                     );
     apply<BotA>(
-        /*info:INFERRED_TYPE_CLOSURE*/(dynamic x) => new A(),
-        /*info:INFERRED_TYPE_CLOSURE*/(dynamic x) => (x as Object),
-        /*info:INFERRED_TYPE_CLOSURE*/(A x) => x,
-        /*info:INFERRED_TYPE_CLOSURE*/(A x) => (/*info:UNNECESSARY_CAST*/x as Object),
+        (dynamic x) => new A(),
+        (dynamic x) => (x as Object),
+        (A x) => x,
+        (A x) => (/*info:UNNECESSARY_CAST*/x as Object),
         botA,
         botTop
                     );
@@ -1224,10 +1224,10 @@ void main() {
         botTop
                   );
     apply<AA>(
-        /*info:INFERRED_TYPE_CLOSURE*/(dynamic x) => new A(),
-        /*info:INFERRED_TYPE_CLOSURE*/(dynamic x) => (x as Object),
-        /*info:INFERRED_TYPE_CLOSURE*/(A x) => x,
-        /*info:INFERRED_TYPE_CLOSURE*/(A x) => (/*info:UNNECESSARY_CAST*/x as Object), // known function
+        (dynamic x) => new A(),
+        (dynamic x) => (x as Object),
+        (A x) => x,
+        (A x) => (/*info:UNNECESSARY_CAST*/x as Object), // known function
         botA,
         botTop
                   );
@@ -1249,10 +1249,10 @@ void main() {
         botTop
                       );
     apply<TopTop>(
-        /*info:INFERRED_TYPE_CLOSURE*/(dynamic x) => new A(),
-        /*info:INFERRED_TYPE_CLOSURE*/(dynamic x) => (x as Object),
-        /*info:INFERRED_TYPE_CLOSURE, error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/(A x) => x,
-        /*info:INFERRED_TYPE_CLOSURE, error:INVALID_CAST_FUNCTION_EXPR*/(A x) => (/*info:UNNECESSARY_CAST*/x as Object), // known function
+        (dynamic x) => new A(),
+        (dynamic x) => (x as Object),
+        /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/(A x) => x,
+        /*error:INVALID_CAST_FUNCTION_EXPR*/(A x) => (/*info:UNNECESSARY_CAST*/x as Object), // known function
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/botA,
         botTop
                       );
@@ -1274,10 +1274,10 @@ void main() {
         botTop
                     );
     apply<TopA>(
-        /*info:INFERRED_TYPE_CLOSURE*/(dynamic x) => new A(),
-        /*info:INFERRED_TYPE_CLOSURE*/(dynamic x) => (x as Object), // known function
-        /*info:INFERRED_TYPE_CLOSURE, error:INVALID_CAST_FUNCTION_EXPR*/(A x) => x, // known function
-        /*info:INFERRED_TYPE_CLOSURE, error:INVALID_CAST_FUNCTION_EXPR*/(A x) => (/*info:UNNECESSARY_CAST*/x as Object), // known function
+        (dynamic x) => new A(),
+        (dynamic x) => (x as Object), // known function
+        /*error:INVALID_CAST_FUNCTION_EXPR*/(A x) => x, // known function
+        /*error:INVALID_CAST_FUNCTION_EXPR*/(A x) => (/*info:UNNECESSARY_CAST*/x as Object), // known function
         botA,
         botTop
                     );
@@ -1892,7 +1892,7 @@ void main() {
   test_functionTypingAndSubtyping_subtypeOfUniversalType() async {
     await checkFile('''
 void main() {
-  nonGenericFn/*info:INFERRED_TYPE_CLOSURE*/(x) => null;
+  nonGenericFn(x) => null;
   {
     R f<P, R>(P p) => null;
     T g<S, T>(S s) => null;
@@ -1901,7 +1901,7 @@ void main() {
     local = g; // valid
 
     // Non-generic function cannot subtype a generic one.
-    local = /*info:INFERRED_TYPE_CLOSURE, error:INVALID_ASSIGNMENT*/(x) => null;
+    local = /*error:INVALID_ASSIGNMENT*/(x) => null;
     local = /*error:INVALID_ASSIGNMENT*/nonGenericFn;
   }
   {
@@ -1917,7 +1917,7 @@ void main() {
     local2 = local;
 
     // Non-generic function cannot subtype a generic one.
-    local = /*info:INFERRED_TYPE_CLOSURE, error:INVALID_ASSIGNMENT*/(x) => null;
+    local = /*error:INVALID_ASSIGNMENT*/(x) => null;
     local = /*error:INVALID_ASSIGNMENT*/nonGenericFn;
   }
 }
@@ -1928,7 +1928,7 @@ void main() {
     await checkFile('''
 typedef num Num2Num(num x);
 void main() {
-  Num2Num g = /*info:INFERRED_TYPE_CLOSURE,error:INVALID_ASSIGNMENT*/(int x) { return x; };
+  Num2Num g = /*error:INVALID_ASSIGNMENT*/(int x) { return x; };
   print(g(42));
 }
 ''');
@@ -2182,7 +2182,7 @@ main() {
 
   test_implicitCasts_genericMethods() async {
     addFile('''
-var x = <String>[].map<String>(/*info:INFERRED_TYPE_CLOSURE*/(x) => "");
+var x = <String>[].map<String>((x) => "");
 ''');
     await check(implicitCasts: false);
   }
@@ -2277,9 +2277,9 @@ void main<S>() {
   d = /*error:IMPLICIT_DYNAMIC_FUNCTION*/g();
   i = g();
 
-  /*error:IMPLICIT_DYNAMIC_INVOKE*/(/*info:INFERRED_TYPE_CLOSURE*/<T>(T t) => t)(d);
-  (/*info:INFERRED_TYPE_CLOSURE*/<T>(T t) => t)(42);
-  (/*info:INFERRED_TYPE_CLOSURE*/<T>() => /*info:UNNECESSARY_CAST*/null as T)<int>();
+  /*error:IMPLICIT_DYNAMIC_INVOKE*/(<T>(T t) => t)(d);
+  (<T>(T t) => t)(42);
+  (<T>() => /*info:UNNECESSARY_CAST*/null as T)<int>();
 }
     ''');
     await check(implicitDynamic: false);
@@ -2296,26 +2296,26 @@ var l3 = /*error:IMPLICIT_DYNAMIC_LIST_LITERAL*/[d, d];
 
 var l4 = <dynamic>[];
 var l5 = <int>[];
-List<int> l6 = /*info:INFERRED_TYPE_LITERAL*/[];
-var l7 = /*info:INFERRED_TYPE_LITERAL*/[42];
+List<int> l6 = [];
+var l7 = [42];
     ''');
     await check(implicitDynamic: false);
   }
 
   test_implicitDynamic_mapLiteral() async {
     addFile(r'''
-var m0 = /*info:INFERRED_TYPE_LITERAL,error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{};
-Map m1 = /*info:INFERRED_TYPE_LITERAL,error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{};
-Map<dynamic, dynamic> m2 = /*info:INFERRED_TYPE_LITERAL,error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{};
+var m0 = /*error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{};
+Map m1 = /*error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{};
+Map<dynamic, dynamic> m2 = /*error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{};
 dynamic d = 42;
-var m3 = /*info:INFERRED_TYPE_LITERAL,error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{d: d};
-var m4 = /*info:INFERRED_TYPE_LITERAL,error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{'x': d, 'y': d};
-var m5 = /*info:INFERRED_TYPE_LITERAL,error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{d: 'x'};
+var m3 = /*error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{d: d};
+var m4 = /*error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{'x': d, 'y': d};
+var m5 = /*error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{d: 'x'};
 
 var m6 = <dynamic, dynamic>{};
 var m7 = <String, String>{};
-Map<String, String> m8 = /*info:INFERRED_TYPE_LITERAL*/{};
-var m9 = /*info:INFERRED_TYPE_LITERAL*/{'hi': 'there'};
+Map<String, String> m8 = {};
+var m9 = {'hi': 'there'};
     ''');
     await check(implicitDynamic: false);
   }
@@ -2392,7 +2392,7 @@ dynamic f1() { return 42; }
 
 // nested function
 void main() {
-  /*error:IMPLICIT_DYNAMIC_RETURN*/g0/*info:INFERRED_TYPE_CLOSURE*/() {return g0();}
+  /*error:IMPLICIT_DYNAMIC_RETURN*/g0() {return g0();}
   dynamic g1() { return 42; }
 }
 
@@ -2416,8 +2416,8 @@ void ftf0(/*error:IMPLICIT_DYNAMIC_RETURN*/f(int x)) {}
 void ftf1(dynamic f(int x)) {}
 
 // function expressions
-var fe0 = /*info:INFERRED_TYPE_CLOSURE*/(int x) => x as dynamic;
-var fe1 = /*info:INFERRED_TYPE_CLOSURE*/(int x) => x;
+var fe0 = (int x) => x as dynamic;
+var fe1 = (int x) => x;
     ''');
     await check(implicitDynamic: false);
   }
@@ -2429,7 +2429,7 @@ class C {
 }
 
 void main() {
-  C.test(/*info:INFERRED_TYPE_CLOSURE*/()  {
+  C.test(()  {
     return 42;
   });
 }
@@ -2451,10 +2451,10 @@ class D2<T, S> = /*error:IMPLICIT_DYNAMIC_TYPE*/C
     implements /*error:IMPLICIT_DYNAMIC_TYPE*/I;
 
 C f(D d) {
-  D x = /*info:INFERRED_TYPE_ALLOCATION*/new /*error:IMPLICIT_DYNAMIC_TYPE*/D();
-  D<int, dynamic> y = /*info:INFERRED_TYPE_ALLOCATION*/new /*error:IMPLICIT_DYNAMIC_TYPE*/D();
-  D<dynamic, int> z = /*info:INFERRED_TYPE_ALLOCATION*/new /*error:IMPLICIT_DYNAMIC_TYPE*/D();
-  return /*info:INFERRED_TYPE_ALLOCATION*/new /*error:IMPLICIT_DYNAMIC_TYPE*/C();
+  D x = new /*error:IMPLICIT_DYNAMIC_TYPE*/D();
+  D<int, dynamic> y = new /*error:IMPLICIT_DYNAMIC_TYPE*/D();
+  D<dynamic, int> z = new /*error:IMPLICIT_DYNAMIC_TYPE*/D();
+  return new /*error:IMPLICIT_DYNAMIC_TYPE*/C();
 }
 
 class A<T extends num> {}
@@ -2463,8 +2463,8 @@ class N2<T extends Object> {}
 class J<T extends Object> {}
 class B<T extends Object> extends A with N1, N2 implements J {}
 A g(B b) {
-  B y = /*info:INFERRED_TYPE_ALLOCATION*/new B();
-  return /*info:INFERRED_TYPE_ALLOCATION*/new A();
+  B y = new B();
+  return new A();
 }
     ''');
     await check(implicitDynamic: false);
@@ -3681,8 +3681,8 @@ main() {
 
   // downwards inference
   C<int> c, d;
-  c ??= /*info:INFERRED_TYPE_ALLOCATION*/new C();
-  d = d ?? /*info:INFERRED_TYPE_ALLOCATION*/new C();
+  c ??= new C();
+  d = d ?? new C();
 }
 ''');
   }
@@ -3704,10 +3704,8 @@ class C<T> {
     // Regression test for https://github.com/dart-lang/sdk/issues/26155
     await checkFile(r'''
 void takesF(void f(int x)) {
-  takesF(/*info:INFERRED_TYPE_CLOSURE,
-           info:INFERRED_TYPE_CLOSURE*/([x]) { bool z = x.isEven; });
-  takesF(/*info:INFERRED_TYPE_CLOSURE,
-           info:INFERRED_TYPE_CLOSURE*/(y) { bool z = y.isEven; });
+  takesF(([x]) { bool z = x.isEven; });
+  takesF((y) { bool z = y.isEven; });
 }
     ''');
   }
@@ -3869,7 +3867,7 @@ void main() {
     lOfDs = lOfDs;
     lOfDs = lOfOs;
     lOfDs = lOfAs;
-    lOfDs = /*info:INFERRED_TYPE_ALLOCATION*/new L(); // Reset type propagation.
+    lOfDs = new L(); // Reset type propagation.
   }
   {
     lOfOs = mOfDs;
@@ -3896,7 +3894,7 @@ void main() {
     mOfDs = lOfDs;
     mOfDs = lOfOs;
     mOfDs = /*error:INVALID_ASSIGNMENT*/lOfAs;
-    mOfDs = /*info:INFERRED_TYPE_ALLOCATION*/new M(); // Reset type propagation.
+    mOfDs = new M(); // Reset type propagation.
   }
   {
     mOfOs = mOfDs;
@@ -4513,13 +4511,13 @@ class SplayTreeMap<K, V> {
   SplayTreeMap([int compare(K key1, K key2),
                 bool isValidKey(potentialKey)])
     : _comparator = (compare == null) ? Comparable.compare : compare,
-      _validKey = (isValidKey != null) ? isValidKey : (/*info:INFERRED_TYPE_CLOSURE*/(v) => true) {
+      _validKey = (isValidKey != null) ? isValidKey : ((v) => true) {
 
     _Predicate<Object> v = (isValidKey != null)
-        ? isValidKey : (/*info:INFERRED_TYPE_CLOSURE*/(_) => true);
+        ? isValidKey : ((_) => true);
 
     v = (isValidKey != null)
-         ? v : (/*info:INFERRED_TYPE_CLOSURE*/(_) => true);
+         ? v : ((_) => true);
   }
 }
 void main() {
@@ -4564,13 +4562,13 @@ test() {
  // TODO(leafp): We can't currently test for key errors since the
  // error marker binds to the entire entry.
   {
-     Map m = /*info:INFERRED_TYPE_LITERAL*/{s: i};
-     m = /*info:INFERRED_TYPE_LITERAL*/{s: s};
-     m = /*info:INFERRED_TYPE_LITERAL*/{s: n};
-     m = /*info:INFERRED_TYPE_LITERAL*/{s: i,
+     Map m = {s: i};
+     m = {s: s};
+     m = {s: n};
+     m = {s: i,
           s: n,
           s: s};
-     m = /*info:INFERRED_TYPE_LITERAL*/{i: s,
+     m = {i: s,
           n: s,
           s: s};
   }
@@ -4636,8 +4634,8 @@ void h<T extends Cloneable<T>>(T object) {
     await checkFile(r'''
 void f<T extends num>(T x, T y) {
   var z = x;
-  var f = /*info:INFERRED_TYPE_CLOSURE*/() => x;
-  f = /*info:INFERRED_TYPE_CLOSURE*/() => y;
+  var f = () => x;
+  f = () => y;
   if (x is int) {
     /*info:DYNAMIC_INVOKE*/z./*error:UNDEFINED_GETTER*/isEven;
     var q = x;
@@ -4645,7 +4643,7 @@ void f<T extends num>(T x, T y) {
     /*info:DYNAMIC_INVOKE*/f()./*error:UNDEFINED_GETTER*/isEven;
 
     // This captures the type `T extends int`.
-    var g = /*info:INFERRED_TYPE_CLOSURE*/() => x;
+    var g = () => x;
     g = f;
     g().isEven;
     q = g();
@@ -4835,7 +4833,7 @@ test() {
   b++;
   b--;
 
-  takesC/*info:INFERRED_TYPE_CLOSURE*/(C c) => null;
+  takesC(C c) => null;
   takesC(++b);
   takesC(--b);
   takesC(b++);

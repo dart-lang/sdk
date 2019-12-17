@@ -80,7 +80,7 @@ var t = (a = 1)..isEven;
 class A<T> {}
 class B {
   var t1 = new A<int>();
-  var t2 = /*info:INFERRED_TYPE_ALLOCATION*/new A();
+  var t2 = new A();
 }
 ''';
     await checkFile(content);
@@ -91,7 +91,7 @@ class B {
 class A<T> {}
 class B {
   static var t1 = 1;
-  static var t2 = /*info:INFERRED_TYPE_ALLOCATION*/new A();
+  static var t2 = new A();
 }
 ''';
     await checkFile(content);
@@ -127,7 +127,7 @@ var t2 = ((a = 1) == 0) != ((a = 2) == 0);
 
   test_initializer_extractIndex() async {
     var content = r'''
-var a = /*info:INFERRED_TYPE_LITERAL*/[0, 1.2];
+var a = [0, 1.2];
 var b0 = a[0];
 var b1 = a[1];
 ''';
@@ -137,7 +137,7 @@ var b1 = a[1];
   test_initializer_functionLiteral_blockBody() async {
     var content = r'''
 var t = /*error:TOP_LEVEL_FUNCTION_LITERAL_BLOCK*/
-        /*info:INFERRED_TYPE_CLOSURE*/
+        
         (int p) {};
 ''';
     await checkFile(content);
@@ -146,14 +146,14 @@ var t = /*error:TOP_LEVEL_FUNCTION_LITERAL_BLOCK*/
   test_initializer_functionLiteral_expressionBody() async {
     var content = r'''
 var a = 0;
-var t = /*info:INFERRED_TYPE_CLOSURE*/(int p) => (a = 1);
+var t = (int p) => (a = 1);
 ''';
     await checkFile(content);
   }
 
   test_initializer_functionLiteral_parameters_withoutType() async {
     var content = r'''
-var t = /*info:INFERRED_TYPE_CLOSURE*/(int a, b,int c, d) => 0;
+var t = (int a, b,int c, d) => 0;
 ''';
     await checkFile(content);
   }
@@ -217,7 +217,7 @@ var t = new A();
     var content = r'''
 class A<T> {}
 var t1 = new A<int>();
-var t2 = /*info:INFERRED_TYPE_ALLOCATION*/new A();
+var t2 = new A();
 ''';
     await checkFile(content);
   }
@@ -306,7 +306,7 @@ var t = <int, int>{(a = 1) : (a = 2)};
   test_initializer_untypedList() async {
     var content = r'''
 var a = 1;
-var t = /*info:INFERRED_TYPE_LITERAL*/[
+var t = [
             a = 1,
             2, 3];
 ''';
@@ -316,7 +316,7 @@ var t = /*info:INFERRED_TYPE_LITERAL*/[
   test_initializer_untypedMap() async {
     var content = r'''
 var a = 1;
-var t = /*info:INFERRED_TYPE_LITERAL*/{
+var t = {
             (a = 1) :
             (a = 2)};
 ''';

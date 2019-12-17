@@ -7256,7 +7256,7 @@ abstract class D<U, V> {
     var library = await checkLibrary('''
 typedef void F(int g(String s));
 h(F f) => null;
-var v = h(/*info:INFERRED_TYPE_CLOSURE*/(y) {});
+var v = h((y) {});
 ''');
     checkElementText(library, r'''
 typedef F = void Function(int Function(String) g/*(String s)*/);
