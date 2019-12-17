@@ -25,6 +25,7 @@ const _colorOption = 'color';
 const _helpOption = 'help';
 
 // options only supported by server 1.22.2 and greater
+const _previewOption = 'preview';
 const _serverSnapshot = 'server';
 const _verboseOption = 'verbose';
 
@@ -46,7 +47,8 @@ class Options {
 
   final bool force;
   final bool showHelp;
-  final bool overwrite;
+  bool overwrite;
+  final bool preview;
   final bool useColor;
   final bool verbose;
 
@@ -56,6 +58,7 @@ class Options {
         excludeFixes = (results[excludeFixOption] as List ?? []).cast<String>(),
         overwrite = results[overwriteOption] as bool,
         pedanticFixes = results[pedanticOption] as bool,
+        preview = results[_previewOption] as bool,
         requiredFixes = results[requiredOption] as bool,
         sdkPath = results[sdkOption] as String ?? _getSdkPath(),
         serverSnapshot = results[_serverSnapshot] as String,
@@ -101,6 +104,11 @@ class Options {
           help: 'Display this help message.',
           defaultsTo: false,
           negatable: false)
+      ..addFlag(_previewOption,
+          help: 'Open the preview tool to view changes.',
+          defaultsTo: true,
+          negatable: true,
+          hide: true)
       ..addOption(sdkOption,
           help: 'Path to the SDK to analyze against.',
           valueHelp: 'path',

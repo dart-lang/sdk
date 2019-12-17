@@ -284,6 +284,12 @@ These fixes are NOT automatically applied, but may be enabled using --$includeFi
     try {
       await startServerAnalysis(options);
       result = await requestFixes(options, progress: progress);
+      var fileEdits = result.edits;
+      var editCount = 0;
+      for (SourceFileEdit fileEdit in fileEdits) {
+        editCount += fileEdit.edits.length;
+      }
+      logger.stdout('Found $editCount changes in ${fileEdits.length} files.');
       //
       // Print instructions for opening the preview tool.
       //
@@ -293,21 +299,29 @@ These fixes are NOT automatically applied, but may be enabled using --$includeFi
         if (result.hasErrors) {
           // TODO(brianwilkerson) When we have previews for fixes, tailor the
           //  message to be appropriate for fixes.
-          logger.stdout('WARNING: The unmodified code contains errors that '
-              'might affect the accuracy of the upgrade.');
           logger.stdout('');
+          String warning = ansi.emphasized('WARNING');
+          logger.stdout('$warning: The unmodified code contains errors that '
+              'might affect the accuracy of the upgrade.');
+          options.overwrite = false;
         }
-        if (urls.length == 1) {
-          logger.stdout('Please open ${urls[0]} in a browser and '
-              'press enter when you are done viewing the preview.');
-        } else {
-          logger.stdout('Please open the following URLs in a browser and '
-              'press enter when you are done viewing the previews:');
+        if (options.preview) {
+          logger.stdout('');
+          String open;
+          if (urls.length == 1) {
+            open = ansi.emphasized('Please open this URL');
+          } else {
+            open = ansi.emphasized('Please open these URLs');
+          }
+          logger.stdout('$open in your browser to see the changes:');
           for (var url in urls) {
             logger.stdout('  $url');
           }
+          logger.stdout('');
+          String enter = ansi.emphasized('ENTER');
+          logger.stdout('When done previewing, press $enter.');
+          stdin.readLineSync();
         }
-        stdin.readLineSync();
         //
         // Stop the server.
         //
