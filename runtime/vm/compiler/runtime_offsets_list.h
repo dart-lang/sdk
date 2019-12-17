@@ -225,6 +225,7 @@
   FIELD(Type, signature_offset)                                                \
   FIELD(Type, type_class_id_offset)                                            \
   FIELD(Type, type_state_offset)                                               \
+  FIELD(Type, nullability_offset)                                              \
   FIELD(TypeArguments, instantiations_offset)                                  \
   FIELD(TypeRef, type_offset)                                                  \
   FIELD(TypedDataBase, data_field_offset)                                      \

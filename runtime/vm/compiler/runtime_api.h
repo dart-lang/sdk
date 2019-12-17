@@ -545,6 +545,7 @@ class Type : public AllStatic {
   static word arguments_offset();
   static word signature_offset();
   static word type_class_id_offset();
+  static word nullability_offset();
 };
 
 class TypeRef : public AllStatic {
