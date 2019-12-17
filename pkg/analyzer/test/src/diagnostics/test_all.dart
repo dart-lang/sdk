@@ -53,7 +53,7 @@ import 'dead_code_test.dart' as dead_code;
 import 'default_list_constructor_mismatch_test.dart'
     as default_list_constructor_mismatch;
 import 'default_value_on_required_parameter_test.dart'
-    as default_value_on_required_paramter;
+    as default_value_on_required_parameter;
 import 'deferred_import_of_extension_test.dart' as deferred_import_of_extension;
 import 'deprecated_extends_function_test.dart' as deprecated_extends_function;
 import 'deprecated_function_class_declaration_test.dart'
@@ -104,7 +104,7 @@ import 'field_initializer_not_assignable_test.dart'
 import 'field_initializing_formal_not_assignable_test.dart'
     as field_initializing_formal_not_assignable;
 import 'final_initialized_in_delcaration_and_constructor_test.dart'
-    as final_initialized_in_delcaration_and_constructor;
+    as final_initialized_in_declaration_and_constructor;
 import 'final_not_initialized_constructor_test.dart'
     as final_not_initialized_constructor;
 import 'final_not_initialized_test.dart' as final_not_initialized;
@@ -434,7 +434,7 @@ main() {
     const_spread_expected_map.main();
     dead_code.main();
     default_list_constructor_mismatch.main();
-    default_value_on_required_paramter.main();
+    default_value_on_required_parameter.main();
     deferred_import_of_extension.main();
     deprecated_extends_function.main();
     deprecated_function_class_declaration.main();
@@ -469,7 +469,7 @@ main() {
     field_initializer_in_struct.main();
     field_initializer_not_assignable.main();
     field_initializing_formal_not_assignable.main();
-    final_initialized_in_delcaration_and_constructor.main();
+    final_initialized_in_declaration_and_constructor.main();
     final_not_initialized_constructor.main();
     final_not_initialized.main();
     generic_struct_subclass.main();
