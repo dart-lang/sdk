@@ -10,7 +10,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
-import 'package:analyzer/src/generated/source.dart';
 
 /**
  * The scope defined by a block.
@@ -425,15 +424,6 @@ class LibraryImportScope extends Scope {
     if (!Scope.isPrivateName(element.displayName)) {
       super.define(element);
     }
-  }
-
-  @override
-  Source getSource(AstNode node) {
-    Source source = super.getSource(node);
-    if (source == null) {
-      source = _definingLibrary.definingCompilationUnit.source;
-    }
-    return source;
   }
 
   @override
@@ -1076,22 +1066,6 @@ abstract class Scope {
   void defineWithoutChecking(Element element) {
     _definedNames ??= HashMap<String, Element>();
     _definedNames[_getName(element)] = element;
-  }
-
-  /**
-   * Return the source that contains the given [identifier], or the source
-   * associated with this scope if the source containing the identifier could
-   * not be determined.
-   */
-  Source getSource(AstNode identifier) {
-    CompilationUnit unit = identifier.thisOrAncestorOfType<CompilationUnit>();
-    if (unit != null) {
-      CompilationUnitElement unitElement = unit.declaredElement;
-      if (unitElement != null) {
-        return unitElement.source;
-      }
-    }
-    return null;
   }
 
   /**
