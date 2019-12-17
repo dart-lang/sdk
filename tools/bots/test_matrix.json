@@ -228,13 +228,11 @@
       "xcodebuild/DebugIA32/",
       "xcodebuild/DebugSIMARM/",
       "xcodebuild/DebugSIMARM64/",
-      "xcodebuild/DebugSIMARM_X64/",
       "xcodebuild/DebugX64/",
       "xcodebuild/ProductX64/",
       "xcodebuild/ReleaseIA32/",
       "xcodebuild/ReleaseSIMARM/",
       "xcodebuild/ReleaseSIMARM64/",
-      "xcodebuild/ReleaseSIMARM_X64/",
       "xcodebuild/ReleaseX64/",
       "samples/",
       "samples-dev/",
@@ -2579,7 +2577,7 @@
     {
       "builders": [
         "vm-kernel-precomp-linux-debug-simarm_x64",
-        "vm-kernel-precomp-mac-release-simarm_x64"
+        "vm-kernel-precomp-linux-release-simarm_x64"
       ],
       "meta": {
         "description": "This configuration runs tests for the simarm_x64 architecture."
