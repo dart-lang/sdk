@@ -37,6 +37,8 @@ class Options {
   final String sdkPath;
   final String serverSnapshot;
 
+  bool isUpgrade = false;
+
   final bool pedanticFixes;
   final bool requiredFixes;
   final List<String> includeFixes;
@@ -114,7 +116,11 @@ class Options {
           negatable: false)
       ..addFlag(_colorOption,
           help: 'Use ansi colors when printing messages.',
-          defaultsTo: Ansi.terminalSupportsAnsi);
+          defaultsTo: Ansi.terminalSupportsAnsi)
+      //
+      // Commands.
+      //
+      ..addCommand('upgrade');
 
     context ??= Context();
 
@@ -158,6 +164,45 @@ class Options {
     if (!context.exists(sdkPath)) {
       logger.stderr('Invalid Dart SDK path: $sdkPath');
       context.exit(19);
+    }
+
+    var command = results.command;
+    if (command != null) {
+      if (command.name == 'upgrade') {
+        options.isUpgrade = true;
+        var rest = command.rest;
+        if (rest.isNotEmpty) {
+          if (rest[0] == 'sdk') {
+            if (options.includeFixes.isNotEmpty) {
+              logger.stderr('Cannot define includeFixes when using upgrade.');
+              context.exit(22);
+            }
+            if (options.excludeFixes.isNotEmpty) {
+              logger.stderr('Cannot define excludeFixes when using upgrade.');
+              context.exit(22);
+            }
+            if (options.pedanticFixes) {
+              logger.stderr('Cannot use pedanticFixes when using upgrade.');
+              context.exit(22);
+            }
+            if (options.requiredFixes) {
+              logger.stderr('Cannot use requiredFixes when using upgrade.');
+              context.exit(22);
+            }
+            options.includeFixes.add('non-nullable');
+            if (rest.length > 1) {
+              options.targets = command.rest.sublist(1);
+            } else {
+              options.targets = [Directory.current.path];
+            }
+          } else {
+            logger
+                .stderr('Missing or invalid specification of what to upgrade.');
+            logger.stderr("(Currently 'sdk' is the only supported option.)");
+            context.exit(22);
+          }
+        }
+      }
     }
 
     // Check for files and/or directories to analyze.

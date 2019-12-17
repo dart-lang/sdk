@@ -31,30 +31,13 @@ class Driver {
 
   Ansi get ansi => logger.ansi;
 
-  Future applyFixes() async {
-    showDescriptions('Recommended changes that cannot be automatically applied',
-        result.otherSuggestions);
-    showDetails(result.details);
-    if (result.edits.isEmpty) {
-      logger.stdout('');
-      logger.stdout(result.otherSuggestions.isNotEmpty
-          ? 'None of the recommended changes can be automatically applied.'
-          : 'No recommended changes.');
-      return;
-    }
-    logger.stdout('');
-    logger.stdout(ansi.emphasized('Files to be changed:'));
+  /// Apply the fixes that were computed.
+  void applyFixes() {
     for (SourceFileEdit fileEdit in result.edits) {
-      logger.stdout('  ${_relativePath(fileEdit.file)}');
-    }
-    if (checkIfChangesShouldBeApplied(result)) {
-      for (SourceFileEdit fileEdit in result.edits) {
-        final file = File(fileEdit.file);
-        String code = file.existsSync() ? file.readAsStringSync() : '';
-        code = SourceEdit.applySequence(code, fileEdit.edits);
-        await file.writeAsString(code);
-      }
-      logger.stdout(ansi.emphasized('Changes applied.'));
+      final file = File(fileEdit.file);
+      String code = file.existsSync() ? file.readAsStringSync() : '';
+      code = SourceEdit.applySequence(code, fileEdit.edits);
+      file.writeAsStringSync(code);
     }
   }
 
@@ -107,6 +90,28 @@ class Driver {
     return true;
   }
 
+  void printAndApplyFixes() {
+    showDescriptions('Recommended changes that cannot be automatically applied',
+        result.otherSuggestions);
+    showDetails(result.details);
+    if (result.edits.isEmpty) {
+      logger.stdout('');
+      logger.stdout(result.otherSuggestions.isNotEmpty
+          ? 'None of the recommended changes can be automatically applied.'
+          : 'No recommended changes.');
+      return;
+    }
+    logger.stdout('');
+    logger.stdout(ansi.emphasized('Files to be changed:'));
+    for (SourceFileEdit fileEdit in result.edits) {
+      logger.stdout('  ${_relativePath(fileEdit.file)}');
+    }
+    if (checkIfChangesShouldBeApplied(result)) {
+      applyFixes();
+      logger.stdout(ansi.emphasized('Changes have been applied.'));
+    }
+  }
+
   Future<EditDartfixResult> requestFixes(
     Options options, {
     Progress progress,
@@ -139,6 +144,24 @@ class Driver {
     progress.finish(showTiming: true);
     ResponseDecoder decoder = ResponseDecoder(null);
     return EditDartfixResult.fromJson(decoder, 'result', json);
+  }
+
+  /// Return `true` if the changes should be applied.
+  bool shouldApplyFixes(EditDartfixResult result) {
+    if (result.edits.isEmpty) {
+      logger.stdout('');
+      logger.stdout(result.otherSuggestions.isNotEmpty
+          ? 'None of the recommended changes can be automatically applied.'
+          : 'There are no recommended changes.');
+      return false;
+    }
+    if (overwrite || force) {
+      return true;
+    }
+    logger.stdout('');
+    logger.stdout('Would you like to apply these changes? (yes/no)');
+    var response = stdin.readLineSync();
+    return response.toLowerCase() == 'yes';
   }
 
   void showDescriptions(String title, List<DartFixSuggestion> suggestions) {
@@ -233,6 +256,8 @@ These fixes are NOT automatically applied, but may be enabled using --$includeFi
     Progress progress;
     if (options.showHelp) {
       progress = logger.progress('${ansi.emphasized('Listing fixes')}');
+    } else if (options.isUpgrade) {
+      progress = logger.progress('${ansi.emphasized('Calculating changes')}');
     } else {
       progress = logger.progress('${ansi.emphasized('Calculating fixes')}');
     }
@@ -264,6 +289,14 @@ These fixes are NOT automatically applied, but may be enabled using --$includeFi
       //
       var urls = result.urls;
       if (urls != null) {
+        // Server has already started the preview server.
+        if (result.hasErrors) {
+          // TODO(brianwilkerson) When we have previews for fixes, tailor the
+          //  message to be appropriate for fixes.
+          logger.stdout('WARNING: The unmodified code contains errors that '
+              'might affect the accuracy of the upgrade.');
+          logger.stdout('');
+        }
         if (urls.length == 1) {
           logger.stdout('Please open ${urls[0]} in a browser and '
               'press enter when you are done viewing the preview.');
@@ -275,13 +308,25 @@ These fixes are NOT automatically applied, but may be enabled using --$includeFi
           }
         }
         stdin.readLineSync();
+        //
+        // Stop the server.
+        //
+        serverStopped = server.stop();
+        if (shouldApplyFixes(result)) {
+          applyFixes();
+          logger.stdout('Changes have been applied.');
+        } else {
+          logger.stdout('No changes applied.');
+        }
+        await serverStopped;
+      } else {
+        //
+        // Stop the server.
+        //
+        serverStopped = server.stop();
+        await printAndApplyFixes();
+        await serverStopped;
       }
-      //
-      // Stop the server.
-      //
-      serverStopped = server.stop();
-      await applyFixes();
-      await serverStopped;
     } finally {
       // If we didn't already try to stop the server, then stop it now.
       if (serverStopped == null) {

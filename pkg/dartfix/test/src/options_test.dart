@@ -143,6 +143,22 @@ void main() {
   test('verbose', () {
     parse(['--verbose', 'foo'], verbose: true);
   });
+
+  group('upgrade', () {
+    group('sdk', () {
+      test('no target', () {
+        var options = parse(['upgrade', 'sdk'], includeFixes: ['non-nullable']);
+        expect(options.targets, hasLength(1));
+      });
+
+      test('target', () {
+        var target = p('/pkg/foo');
+        var options =
+            parse(['upgrade', 'sdk', target], includeFixes: ['non-nullable']);
+        expect(options.targets, [target]);
+      });
+    });
+  });
 }
 
 void expectContains(Iterable<String> collection, String suffix) {
