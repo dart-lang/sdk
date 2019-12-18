@@ -115,7 +115,7 @@ class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
 
   @override
   visitTypeEnum(TypeEnum typeEnum) {
-    writeln('new MatchesEnum(${json.encode(context)}, [');
+    writeln('MatchesEnum(${json.encode(context)}, [');
     indent(() {
       bool commaNeeded = false;
       for (TypeEnumValue value in typeEnum.values) {
@@ -148,7 +148,7 @@ class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
 
   @override
   void visitTypeObject(TypeObject typeObject) {
-    writeln('new LazyMatcher(() => new MatchesJsonObject(');
+    writeln('LazyMatcher(() => MatchesJsonObject(');
     indent(() {
       write('${json.encode(context)}, ');
       Iterable<TypeObjectField> requiredFields =

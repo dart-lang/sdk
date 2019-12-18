@@ -190,7 +190,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
         inputType = 'Request';
         inputName = 'request';
         fieldName = 'params';
-        makeDecoder = 'new RequestDecoder(request)';
+        makeDecoder = 'RequestDecoder(request)';
         constructorName = 'fromRequest';
         break;
       case 'requestResult':
@@ -198,21 +198,21 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
         inputName = 'response';
         fieldName = 'result';
         makeDecoder =
-            'new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id))';
+            'ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id))';
         constructorName = 'fromResponse';
         break;
       case 'notificationParams':
         inputType = 'Notification';
         inputName = 'notification';
         fieldName = 'params';
-        makeDecoder = 'new ResponseDecoder(null)';
+        makeDecoder = 'ResponseDecoder(null)';
         constructorName = 'fromNotification';
         break;
       case 'refactoringOptions':
         inputType = 'EditGetRefactoringParams';
         inputName = 'refactoringParams';
         fieldName = 'options';
-        makeDecoder = 'new RequestDecoder(request)';
+        makeDecoder = 'RequestDecoder(request)';
         constructorName = 'fromRefactoringParams';
         extraArgs.add('Request request');
         break;
@@ -226,12 +226,12 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
       String fieldNameString =
           literalString(fieldName.replaceFirst(new RegExp('^_'), ''));
       if (className == 'EditGetRefactoringParams') {
-        writeln('var params = new $className.fromJson(');
+        writeln('var params = $className.fromJson(');
         writeln('    $makeDecoder, $fieldNameString, $inputName.$fieldName);');
         writeln('REQUEST_ID_REFACTORING_KINDS[request.id] = params.kind;');
         writeln('return params;');
       } else {
-        writeln('return new $className.fromJson(');
+        writeln('return $className.fromJson(');
         writeln('    $makeDecoder, $fieldNameString, $inputName.$fieldName);');
       }
     });
@@ -321,7 +321,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
         }));
         String valueString = literalString(value.value);
         writeln(
-            'static const $className ${value.value} = const $className._($valueString);');
+            'static const $className ${value.value} = $className._($valueString);');
         writeln();
       }
 
@@ -330,7 +330,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
       writeln(' */');
       write('static const List<');
       write(className);
-      write('> VALUES = const <');
+      write('> VALUES = <');
       write(className);
       write('>[');
       bool first = true;
@@ -388,7 +388,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
         }
       });
       writeln('}');
-      writeln(r"throw new Exception('Illegal enum value: $name');");
+      writeln(r"throw Exception('Illegal enum value: $name');");
     });
     writeln('}');
   }
@@ -405,7 +405,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
       indent(() {
         writeln('try {');
         indent(() {
-          writeln('return new $className(json);');
+          writeln('return $className(json);');
         });
         writeln('} catch(_) {');
         indent(() {
@@ -721,7 +721,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
           }
         }
         args.addAll(optionalArgs);
-        writeln('return new $className(${args.join(', ')});');
+        writeln('return $className(${args.join(', ')});');
       });
       writeln('} else {');
       indent(() {
@@ -960,7 +960,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
         String eventString =
             literalString((impliedType.apiNode as Notification).longEvent);
         String jsonPart = impliedType.type != null ? 'toJson()' : 'null';
-        writeln('return new Notification($eventString, $jsonPart);');
+        writeln('return Notification($eventString, $jsonPart);');
       });
       writeln('}');
       return true;
@@ -980,7 +980,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
         String methodString =
             literalString((impliedType.apiNode as Request).longMethod);
         String jsonPart = impliedType.type != null ? 'toJson()' : 'null';
-        writeln('return new Request(id, $methodString, $jsonPart);');
+        writeln('return Request(id, $methodString, $jsonPart);');
       });
       writeln('}');
       return true;
@@ -1003,9 +1003,9 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
       indent(() {
         String jsonPart = impliedType.type != null ? 'toJson()' : 'null';
         if (responseRequiresRequestTime) {
-          writeln('return new Response(id, requestTime, result: $jsonPart);');
+          writeln('return Response(id, requestTime, result: $jsonPart);');
         } else {
-          writeln('return new Response(id, result: $jsonPart);');
+          writeln('return Response(id, result: $jsonPart);');
         }
       });
       writeln('}');
@@ -1026,11 +1026,11 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
           return new FromJsonSnippet((String jsonPath, String json) {
             String typeName = dartType(type);
             if (typeName == 'RefactoringFeedback') {
-              return 'new $typeName.fromJson(jsonDecoder, $jsonPath, $json, json)';
+              return '$typeName.fromJson(jsonDecoder, $jsonPath, $json, json)';
             } else if (typeName == 'RefactoringOptions') {
-              return 'new $typeName.fromJson(jsonDecoder, $jsonPath, $json, kind)';
+              return '$typeName.fromJson(jsonDecoder, $jsonPath, $json, kind)';
             } else {
-              return 'new $typeName.fromJson(jsonDecoder, $jsonPath, $json)';
+              return '$typeName.fromJson(jsonDecoder, $jsonPath, $json)';
             }
           });
         } else {

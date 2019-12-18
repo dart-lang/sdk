@@ -142,7 +142,7 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
       }));
       writeln('void dispatchNotification(String event, params) {');
       indent(() {
-        writeln('ResponseDecoder decoder = new ResponseDecoder(null);');
+        writeln('ResponseDecoder decoder = ResponseDecoder(null);');
         writeln('switch (event) {');
         indent(() {
           write(notificationSwitchContents.join());
@@ -178,7 +178,7 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
     }));
     writeln('StreamController<$className> _$streamName;');
     fieldInitializationCode.add(collectCode(() {
-      writeln('_$streamName = new StreamController<$className>(sync: true);');
+      writeln('_$streamName = StreamController<$className>(sync: true);');
       writeln('$streamName = _$streamName.stream.asBroadcastStream();');
     }));
     notificationSwitchContents.add(collectCode(() {
@@ -189,10 +189,9 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
         writeln('outOfTestExpect(params, $paramsValidator);');
         String constructorCall;
         if (notification.params == null) {
-          constructorCall = 'new $className()';
+          constructorCall = '$className()';
         } else {
-          constructorCall =
-              "new $className.fromJson(decoder, 'params', params)";
+          constructorCall = "$className.fromJson(decoder, 'params', params)";
         }
         writeln('_$streamName.add($constructorCall);');
         writeln('break;');
@@ -253,7 +252,7 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
           }
         }
         args.addAll(optionalArgs);
-        writeln('var params = new $requestClass(${args.join(', ')}).toJson();');
+        writeln('var params = $requestClass(${args.join(', ')}).toJson();');
       }
       String methodJson = json.encode(request.longMethod);
       writeln('var result = await server.send($methodJson, $paramsVar);');
@@ -262,8 +261,8 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
         if (requestClass == 'EditGetRefactoringParams') {
           kind = 'kind';
         }
-        writeln('ResponseDecoder decoder = new ResponseDecoder($kind);');
-        writeln("return new $resultClass.fromJson(decoder, 'result', result);");
+        writeln('ResponseDecoder decoder = ResponseDecoder($kind);');
+        writeln("return $resultClass.fromJson(decoder, 'result', result);");
       } else {
         writeln('outOfTestExpect(result, isNull);');
         writeln('return null;');

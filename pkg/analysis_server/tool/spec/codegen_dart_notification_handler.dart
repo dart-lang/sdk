@@ -49,13 +49,13 @@ class CodegenNotificationHandlerVisitor extends DartCodegenVisitor
 mixin NotificationHandler {
   void handleEvent(Notification notification) {
     Map<String, Object> params = notification.params;
-    ResponseDecoder decoder = new ResponseDecoder(null);
+    ResponseDecoder decoder = ResponseDecoder(null);
     switch (notification.event) {
 ''');
     for (_Notification notification in notifications) {
       writeln('      case ${notification.constName}:');
       writeln('        ${notification.methodName}(');
-      writeln('          new ${notification.paramsTypeName}');
+      writeln('          ${notification.paramsTypeName}');
       writeln("            .fromJson(decoder, 'params', params));");
       writeln('        break;');
     }

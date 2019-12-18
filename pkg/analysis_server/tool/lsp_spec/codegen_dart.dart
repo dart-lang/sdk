@@ -335,7 +335,7 @@ void _writeEnumClass(IndentableStringBuffer buffer, Namespace namespace) {
     _writeDocCommentsAndAnnotations(buffer, cons);
     buffer
       ..writeIndentedln(
-          'static const ${_makeValidIdentifier(cons.name)} = const ${namespace.name}$constructorName(${cons.valueAsLiteral});');
+          'static const ${_makeValidIdentifier(cons.name)} = ${namespace.name}$constructorName(${cons.valueAsLiteral});');
   });
   buffer
     ..writeln()
@@ -415,7 +415,7 @@ void _writeFromJsonCode(
   } else if (type is MapType) {
     // Maps need to be map()'d so we can recursively call writeFromJsonCode as
     // they may need fromJson on each key or value.
-    buffer.write('$valueCode?.map((key, value) => new MapEntry(');
+    buffer.write('$valueCode?.map((key, value) => MapEntry(');
     _writeFromJsonCode(buffer, type.indexType, 'key', allowsNull: allowsNull);
     buffer.write(', ');
     _writeFromJsonCode(buffer, type.valueType, 'value', allowsNull: allowsNull);
@@ -446,7 +446,7 @@ void _writeFromJsonCodeForUnion(
     }
 
     // The code to construct a value with this "side" of the union.
-    buffer.write('new ${union.dartTypeWithTypeArgs}.t${i + 1}(');
+    buffer.write('${union.dartTypeWithTypeArgs}.t${i + 1}(');
     _writeFromJsonCode(buffer, type, valueCode,
         allowsNull: allowsNull); // Call recursively!
     buffer.write(')');
@@ -498,7 +498,7 @@ void _writeFromJsonConstructor(
     buffer.writeln(';');
   }
   buffer
-    ..writeIndented('return new ${interface.nameWithTypeArgs}(')
+    ..writeIndented('return ${interface.nameWithTypeArgs}(')
     ..write(allFields.map((field) => '${field.name}').join(', '))
     ..writeln(');')
     ..outdent()
