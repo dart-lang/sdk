@@ -3747,3 +3747,10 @@ NullablePropertyGetWarning:
   template: "Property '#name' is accessed on '#type' which is potentially null."
   tip: "Try accessing using ?. instead."
   severity: WARNING
+
+ThrowingNotAssignableToObjectError:
+  template: "Can't throw a value of '#type' since it is neither dynamic nor non-nullable."
+
+ThrowingNotAssignableToObjectWarning:
+  template: "Throwing a value of '#type' that is neither dynamic nor non-nullable."
+  severity: WARNING

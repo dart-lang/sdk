@@ -4863,7 +4863,34 @@ class InferenceVisitor
         isVoidAllowed: false);
     node.expression = expressionResult.expression..parent = node;
     inferrer.flowAnalysis.handleExit();
-    return new ExpressionInferenceResult(const BottomType(), node);
+    if (inferrer.isNonNullableByDefault && inferrer.performNnbdChecks) {
+      if (!inferrer.isAssignable(
+          inferrer.typeSchemaEnvironment.objectNonNullableRawType,
+          expressionResult.inferredType,
+          isStrongNullabilityMode: true)) {
+        if (inferrer.nnbdStrongMode) {
+          return new ExpressionInferenceResult(
+              const DynamicType(),
+              inferrer.helper.buildProblem(
+                  templateThrowingNotAssignableToObjectError.withArguments(
+                      expressionResult.inferredType, true),
+                  node.expression.fileOffset,
+                  noLength));
+        } else {
+          inferrer.helper.addProblem(
+              templateThrowingNotAssignableToObjectWarning.withArguments(
+                  expressionResult.inferredType, true),
+              node.expression.fileOffset,
+              noLength);
+        }
+      }
+    }
+    // Return BottomType in legacy mode for compatibility.
+    return new ExpressionInferenceResult(
+        inferrer.isNonNullableByDefault
+            ? const NeverType(Nullability.nonNullable)
+            : const BottomType(),
+        node);
   }
 
   void visitCatch(Catch node) {

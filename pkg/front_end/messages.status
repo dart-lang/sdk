@@ -545,6 +545,10 @@ SyntheticToken/example: Fail # Can't be tested, used to recover from other error
 ThisAccessInFieldInitializer/example: Fail
 ThisAsIdentifier/example: Fail
 ThisOrSuperAccessInFieldInitializer/example: Fail
+ThrowingNotAssignableToObjectError/analyzerCode: Fail
+ThrowingNotAssignableToObjectError/example: Fail
+ThrowingNotAssignableToObjectWarning/analyzerCode: Fail
+ThrowingNotAssignableToObjectWarning/example: Fail
 TooFewArguments/example: Fail
 TooManyArguments/example: Fail
 TypeAfterVar/example: Fail

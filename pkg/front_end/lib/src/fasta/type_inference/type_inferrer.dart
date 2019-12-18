@@ -600,20 +600,18 @@ class TypeInferrerImpl implements TypeInferrer {
         typeContext.classNode == coreTypes.doubleClass;
   }
 
-  bool isAssignable(DartType expectedType, DartType actualType) {
-    if (library.isNonNullableByDefault) {
-      if (actualType is DynamicType) return true;
-      IsSubtypeOf result = typeSchemaEnvironment
-          .performNullabilityAwareSubtypeCheck(actualType, expectedType);
-      if (result.isSubtypeWhenUsingNullabilities()) return true;
-      if (result.isSubtypeWhenIgnoringNullabilities()) {
-        // TODO(dmitryas): Return true in weak mode here.
-      }
-      return false;
+  bool isAssignable(DartType contextType, DartType expressionType,
+      {bool isStrongNullabilityMode}) {
+    isStrongNullabilityMode ??= isNonNullableByDefault && nnbdStrongMode;
+    if (isStrongNullabilityMode) {
+      if (expressionType is DynamicType) return true;
+      return typeSchemaEnvironment
+          .performNullabilityAwareSubtypeCheck(expressionType, contextType)
+          .isSubtypeWhenUsingNullabilities();
     }
     return typeSchemaEnvironment
-        .performNullabilityAwareSubtypeCheck(actualType, expectedType)
-        .orSubtypeCheckFor(expectedType, actualType, typeSchemaEnvironment)
+        .performNullabilityAwareSubtypeCheck(expressionType, contextType)
+        .orSubtypeCheckFor(contextType, expressionType, typeSchemaEnvironment)
         .isSubtypeWhenIgnoringNullabilities();
   }
 

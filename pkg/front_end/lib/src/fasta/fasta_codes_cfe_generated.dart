@@ -2335,6 +2335,64 @@ Message _withArgumentsSwitchExpressionNotAssignable(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
+    templateThrowingNotAssignableToObjectError = const Template<
+            Message Function(DartType _type, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""Can't throw a value of '#type' since it is neither dynamic nor non-nullable.""",
+        withArguments: _withArgumentsThrowingNotAssignableToObjectError);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type, bool isNonNullableByDefault)>
+    codeThrowingNotAssignableToObjectError =
+    const Code<Message Function(DartType _type, bool isNonNullableByDefault)>(
+  "ThrowingNotAssignableToObjectError",
+  templateThrowingNotAssignableToObjectError,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsThrowingNotAssignableToObjectError(
+    DartType _type, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeThrowingNotAssignableToObjectError,
+      message:
+          """Can't throw a value of '${type}' since it is neither dynamic nor non-nullable.""" +
+              labeler.originMessages,
+      arguments: {'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
+    templateThrowingNotAssignableToObjectWarning = const Template<
+            Message Function(DartType _type, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""Throwing a value of '#type' that is neither dynamic nor non-nullable.""",
+        withArguments: _withArgumentsThrowingNotAssignableToObjectWarning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type, bool isNonNullableByDefault)>
+    codeThrowingNotAssignableToObjectWarning =
+    const Code<Message Function(DartType _type, bool isNonNullableByDefault)>(
+        "ThrowingNotAssignableToObjectWarning",
+        templateThrowingNotAssignableToObjectWarning,
+        severity: Severity.warning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsThrowingNotAssignableToObjectWarning(
+    DartType _type, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeThrowingNotAssignableToObjectWarning,
+      message:
+          """Throwing a value of '${type}' that is neither dynamic nor non-nullable.""" +
+              labeler.originMessages,
+      arguments: {'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         String name,
