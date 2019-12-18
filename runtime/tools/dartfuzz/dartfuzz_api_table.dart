@@ -28,31 +28,31 @@ class DartLib {
       (restrictions == null) ? Restriction.none : restrictions[paramIndex];
 
   static final typeToLibraryMethods = {
-    DartType.VOID: voidLibs,
     DartType.BOOL: boolLibs,
-    DartType.INT: intLibs,
     DartType.DOUBLE: doubleLibs,
-    DartType.STRING: stringLibs,
-    DartType.LIST_INT: listLibs,
-    DartType.SET_INT: setLibs,
-    DartType.MAP_INT_STRING: mapLibs,
-    DartType.INT8LIST: int8ListLibs,
-    DartType.INT16LIST: int16ListLibs,
-    DartType.INT32LIST: int32ListLibs,
-    DartType.INT32X4: int32x4Libs,
-    DartType.INT32X4LIST: int32x4ListLibs,
-    DartType.INT64LIST: int64ListLibs,
     DartType.FLOAT32LIST: float32ListLibs,
     DartType.FLOAT32X4: float32x4Libs,
     DartType.FLOAT32X4LIST: float32x4ListLibs,
     DartType.FLOAT64LIST: float64ListLibs,
     DartType.FLOAT64X2: float64x2Libs,
     DartType.FLOAT64X2LIST: float64x2ListLibs,
-    DartType.UINT8CLAMPEDLIST: uint8ClampedListLibs,
-    DartType.UINT8LIST: uint8ListLibs,
+    DartType.INT: intLibs,
+    DartType.INT16LIST: int16ListLibs,
+    DartType.INT32LIST: int32ListLibs,
+    DartType.INT32X4: int32x4Libs,
+    DartType.INT32X4LIST: int32x4ListLibs,
+    DartType.INT64LIST: int64ListLibs,
+    DartType.INT8LIST: int8ListLibs,
+    DartType.LIST_INT: listLibs,
+    DartType.MAP_INT_STRING: mapLibs,
+    DartType.SET_INT: setLibs,
+    DartType.STRING: stringLibs,
     DartType.UINT16LIST: uint16ListLibs,
     DartType.UINT32LIST: uint32ListLibs,
     DartType.UINT64LIST: uint64ListLibs,
+    DartType.UINT8CLAMPEDLIST: uint8ClampedListLibs,
+    DartType.UINT8LIST: uint8ListLibs,
+    DartType.VOID: voidLibs,
   };
   static const typedDataFloatTypes = [
     DartType.FLOAT32LIST,
@@ -61,31 +61,6 @@ class DartLib {
     DartType.FLOAT64LIST,
     DartType.FLOAT64X2,
     DartType.FLOAT64X2LIST,
-  ];
-  static const voidLibs = [
-    DartLib('RangeError.checkNotNegative',
-        [DartType.VOID, DartType.INT, DartType.STRING, DartType.STRING], true),
-    DartLib(
-        'RangeError.checkValueInInterval',
-        [
-          DartType.VOID,
-          DartType.INT,
-          DartType.INT,
-          DartType.INT,
-          DartType.STRING,
-          DartType.STRING
-        ],
-        true),
-    DartLib('add', [DartType.LIST_INT, DartType.INT], true),
-    DartLib('addAll', [DartType.MAP_INT_STRING, DartType.MAP_INT_STRING], true),
-    DartLib('clear', [DartType.LIST_INT, DartType.VOID], true),
-    DartLib('clear', [DartType.MAP_INT_STRING, DartType.VOID], true),
-    DartLib('clear', [DartType.SET_INT, DartType.VOID], true),
-    DartLib('fillRange',
-        [DartType.LIST_INT, DartType.INT, DartType.INT, DartType.INT], true),
-    DartLib('insert', [DartType.LIST_INT, DartType.INT, DartType.INT], true),
-    DartLib(
-        'removeRange', [DartType.LIST_INT, DartType.INT, DartType.INT], true),
   ];
   static const boolLibs = [
     DartLib('NetworkInterface.listSupported', [DartType.VOID, DartType.VOID],
@@ -109,6 +84,115 @@ class DartLib {
     DartLib('isNotEmpty', [DartType.MAP_INT_STRING, DartType.VOID], false),
     DartLib('isNotEmpty', [DartType.STRING, DartType.VOID], false),
     DartLib('isOdd', [DartType.INT, DartType.VOID], false),
+  ];
+  static const doubleLibs = [
+    DartLib('abs', [DartType.DOUBLE, DartType.VOID], true),
+    DartLib('abs', [DartType.DOUBLE, DartType.VOID], true),
+    DartLib('acos', [DartType.VOID, DartType.DOUBLE], true),
+    DartLib('asin', [DartType.VOID, DartType.DOUBLE], true),
+    DartLib('atan', [DartType.VOID, DartType.DOUBLE], true),
+    DartLib('atan2', [DartType.VOID, DartType.DOUBLE, DartType.DOUBLE], true),
+    DartLib('ceilToDouble', [DartType.DOUBLE, DartType.VOID], true),
+    DartLib('ceilToDouble', [DartType.DOUBLE, DartType.VOID], true),
+    DartLib('ceilToDouble', [DartType.INT, DartType.VOID], true),
+    DartLib('clamp', [DartType.DOUBLE, DartType.DOUBLE, DartType.DOUBLE], true),
+    DartLib('cos', [DartType.VOID, DartType.DOUBLE], true),
+    DartLib('double.infinity', [DartType.VOID, DartType.VOID], false),
+    DartLib('double.maxFinite', [DartType.VOID, DartType.VOID], false),
+    DartLib('double.minPositive', [DartType.VOID, DartType.VOID], false),
+    DartLib('double.nan', [DartType.VOID, DartType.VOID], false),
+    DartLib('double.negativeInfinity', [DartType.VOID, DartType.VOID], false),
+    DartLib('double.tryParse', [DartType.VOID, DartType.STRING], true),
+    DartLib('e', [DartType.VOID, DartType.VOID], false),
+    DartLib('exp', [DartType.VOID, DartType.DOUBLE], true),
+    DartLib('floorToDouble', [DartType.DOUBLE, DartType.VOID], true),
+    DartLib('floorToDouble', [DartType.DOUBLE, DartType.VOID], true),
+    DartLib('floorToDouble', [DartType.INT, DartType.VOID], true),
+    DartLib('ln10', [DartType.VOID, DartType.VOID], false),
+    DartLib('ln2', [DartType.VOID, DartType.VOID], false),
+    DartLib('log', [DartType.VOID, DartType.DOUBLE], true),
+    DartLib('log10e', [DartType.VOID, DartType.VOID], false),
+    DartLib('log2e', [DartType.VOID, DartType.VOID], false),
+    DartLib('num.tryParse', [DartType.VOID, DartType.STRING], true),
+    DartLib('pi', [DartType.VOID, DartType.VOID], false),
+    DartLib('pow', [DartType.VOID, DartType.DOUBLE, DartType.DOUBLE], true),
+    DartLib('remainder', [DartType.DOUBLE, DartType.DOUBLE], true),
+    DartLib('remainder', [DartType.DOUBLE, DartType.DOUBLE], true),
+    DartLib('roundToDouble', [DartType.DOUBLE, DartType.VOID], true),
+    DartLib('roundToDouble', [DartType.DOUBLE, DartType.VOID], true),
+    DartLib('roundToDouble', [DartType.INT, DartType.VOID], true),
+    DartLib('sign', [DartType.DOUBLE, DartType.VOID], false),
+    DartLib('sign', [DartType.DOUBLE, DartType.VOID], false),
+    DartLib('sin', [DartType.VOID, DartType.DOUBLE], true),
+    DartLib('sqrt', [DartType.VOID, DartType.DOUBLE], true),
+    DartLib('sqrt1_2', [DartType.VOID, DartType.VOID], false),
+    DartLib('sqrt2', [DartType.VOID, DartType.VOID], false),
+    DartLib('tan', [DartType.VOID, DartType.DOUBLE], true),
+    DartLib('toDouble', [DartType.DOUBLE, DartType.VOID], true),
+    DartLib('truncateToDouble', [DartType.DOUBLE, DartType.VOID], true),
+    DartLib('truncateToDouble', [DartType.DOUBLE, DartType.VOID], true),
+    DartLib('truncateToDouble', [DartType.INT, DartType.VOID], true),
+    DartLib('w', [DartType.FLOAT32X4, DartType.VOID], false),
+    DartLib('x', [DartType.FLOAT32X4, DartType.VOID], false),
+    DartLib('x', [DartType.FLOAT64X2, DartType.VOID], false),
+    DartLib('y', [DartType.FLOAT32X4, DartType.VOID], false),
+    DartLib('y', [DartType.FLOAT64X2, DartType.VOID], false),
+    DartLib('z', [DartType.FLOAT32X4, DartType.VOID], false),
+  ];
+  static const float32ListLibs = [
+    DartLib(
+        'sublist', [DartType.FLOAT32LIST, DartType.INT, DartType.INT], true),
+  ];
+  static const float32x4Libs = [
+    DartLib(
+        'Float32x4.fromFloat64x2', [DartType.VOID, DartType.FLOAT64X2], true),
+    DartLib(
+        'Float32x4.fromInt32x4Bits', [DartType.VOID, DartType.INT32X4], true),
+    DartLib('Float32x4.splat', [DartType.VOID, DartType.DOUBLE], true),
+    DartLib('Float32x4.zero', [DartType.VOID, DartType.VOID], true),
+    DartLib('abs', [DartType.FLOAT32X4, DartType.VOID], true),
+    DartLib('clamp',
+        [DartType.FLOAT32X4, DartType.FLOAT32X4, DartType.FLOAT32X4], true),
+    DartLib('max', [DartType.FLOAT32X4, DartType.FLOAT32X4], true),
+    DartLib('min', [DartType.FLOAT32X4, DartType.FLOAT32X4], true),
+    DartLib('scale', [DartType.FLOAT32X4, DartType.DOUBLE], true),
+    DartLib('select',
+        [DartType.INT32X4, DartType.FLOAT32X4, DartType.FLOAT32X4], true),
+    DartLib('shuffle', [DartType.FLOAT32X4, DartType.INT], true),
+    DartLib('shuffleMix',
+        [DartType.FLOAT32X4, DartType.FLOAT32X4, DartType.INT], true),
+    DartLib('sqrt', [DartType.FLOAT32X4, DartType.VOID], true),
+    DartLib('withW', [DartType.FLOAT32X4, DartType.DOUBLE], true),
+    DartLib('withX', [DartType.FLOAT32X4, DartType.DOUBLE], true),
+    DartLib('withY', [DartType.FLOAT32X4, DartType.DOUBLE], true),
+    DartLib('withZ', [DartType.FLOAT32X4, DartType.DOUBLE], true),
+  ];
+  static const float32x4ListLibs = [
+    DartLib(
+        'sublist', [DartType.FLOAT32X4LIST, DartType.INT, DartType.INT], true),
+  ];
+  static const float64ListLibs = [
+    DartLib(
+        'sublist', [DartType.FLOAT64LIST, DartType.INT, DartType.INT], true),
+  ];
+  static const float64x2Libs = [
+    DartLib(
+        'Float64x2.fromFloat32x4', [DartType.VOID, DartType.FLOAT32X4], true),
+    DartLib('Float64x2.splat', [DartType.VOID, DartType.DOUBLE], true),
+    DartLib('Float64x2.zero', [DartType.VOID, DartType.VOID], true),
+    DartLib('abs', [DartType.FLOAT64X2, DartType.VOID], true),
+    DartLib('clamp',
+        [DartType.FLOAT64X2, DartType.FLOAT64X2, DartType.FLOAT64X2], true),
+    DartLib('max', [DartType.FLOAT64X2, DartType.FLOAT64X2], true),
+    DartLib('min', [DartType.FLOAT64X2, DartType.FLOAT64X2], true),
+    DartLib('scale', [DartType.FLOAT64X2, DartType.DOUBLE], true),
+    DartLib('sqrt', [DartType.FLOAT64X2, DartType.VOID], true),
+    DartLib('withX', [DartType.FLOAT64X2, DartType.DOUBLE], true),
+    DartLib('withY', [DartType.FLOAT64X2, DartType.DOUBLE], true),
+  ];
+  static const float64x2ListLibs = [
+    DartLib(
+        'sublist', [DartType.FLOAT64X2LIST, DartType.INT, DartType.INT], true),
   ];
   static const intLibs = [
     DartLib('DateTime.april', [DartType.VOID, DartType.VOID], false),
@@ -804,127 +888,6 @@ class DartLib {
     DartLib('y', [DartType.INT32X4, DartType.VOID], false),
     DartLib('z', [DartType.INT32X4, DartType.VOID], false),
   ];
-  static const doubleLibs = [
-    DartLib('abs', [DartType.DOUBLE, DartType.VOID], true),
-    DartLib('abs', [DartType.DOUBLE, DartType.VOID], true),
-    DartLib('acos', [DartType.VOID, DartType.DOUBLE], true),
-    DartLib('asin', [DartType.VOID, DartType.DOUBLE], true),
-    DartLib('atan', [DartType.VOID, DartType.DOUBLE], true),
-    DartLib('atan2', [DartType.VOID, DartType.DOUBLE, DartType.DOUBLE], true),
-    DartLib('ceilToDouble', [DartType.DOUBLE, DartType.VOID], true),
-    DartLib('ceilToDouble', [DartType.DOUBLE, DartType.VOID], true),
-    DartLib('ceilToDouble', [DartType.INT, DartType.VOID], true),
-    DartLib('clamp', [DartType.DOUBLE, DartType.DOUBLE, DartType.DOUBLE], true),
-    DartLib('cos', [DartType.VOID, DartType.DOUBLE], true),
-    DartLib('double.infinity', [DartType.VOID, DartType.VOID], false),
-    DartLib('double.maxFinite', [DartType.VOID, DartType.VOID], false),
-    DartLib('double.minPositive', [DartType.VOID, DartType.VOID], false),
-    DartLib('double.nan', [DartType.VOID, DartType.VOID], false),
-    DartLib('double.negativeInfinity', [DartType.VOID, DartType.VOID], false),
-    DartLib('double.tryParse', [DartType.VOID, DartType.STRING], true),
-    DartLib('e', [DartType.VOID, DartType.VOID], false),
-    DartLib('exp', [DartType.VOID, DartType.DOUBLE], true),
-    DartLib('floorToDouble', [DartType.DOUBLE, DartType.VOID], true),
-    DartLib('floorToDouble', [DartType.DOUBLE, DartType.VOID], true),
-    DartLib('floorToDouble', [DartType.INT, DartType.VOID], true),
-    DartLib('ln10', [DartType.VOID, DartType.VOID], false),
-    DartLib('ln2', [DartType.VOID, DartType.VOID], false),
-    DartLib('log', [DartType.VOID, DartType.DOUBLE], true),
-    DartLib('log10e', [DartType.VOID, DartType.VOID], false),
-    DartLib('log2e', [DartType.VOID, DartType.VOID], false),
-    DartLib('num.tryParse', [DartType.VOID, DartType.STRING], true),
-    DartLib('pi', [DartType.VOID, DartType.VOID], false),
-    DartLib('pow', [DartType.VOID, DartType.DOUBLE, DartType.DOUBLE], true),
-    DartLib('remainder', [DartType.DOUBLE, DartType.DOUBLE], true),
-    DartLib('remainder', [DartType.DOUBLE, DartType.DOUBLE], true),
-    DartLib('roundToDouble', [DartType.DOUBLE, DartType.VOID], true),
-    DartLib('roundToDouble', [DartType.DOUBLE, DartType.VOID], true),
-    DartLib('roundToDouble', [DartType.INT, DartType.VOID], true),
-    DartLib('sign', [DartType.DOUBLE, DartType.VOID], false),
-    DartLib('sign', [DartType.DOUBLE, DartType.VOID], false),
-    DartLib('sin', [DartType.VOID, DartType.DOUBLE], true),
-    DartLib('sqrt', [DartType.VOID, DartType.DOUBLE], true),
-    DartLib('sqrt1_2', [DartType.VOID, DartType.VOID], false),
-    DartLib('sqrt2', [DartType.VOID, DartType.VOID], false),
-    DartLib('tan', [DartType.VOID, DartType.DOUBLE], true),
-    DartLib('toDouble', [DartType.DOUBLE, DartType.VOID], true),
-    DartLib('truncateToDouble', [DartType.DOUBLE, DartType.VOID], true),
-    DartLib('truncateToDouble', [DartType.DOUBLE, DartType.VOID], true),
-    DartLib('truncateToDouble', [DartType.INT, DartType.VOID], true),
-    DartLib('w', [DartType.FLOAT32X4, DartType.VOID], false),
-    DartLib('x', [DartType.FLOAT32X4, DartType.VOID], false),
-    DartLib('x', [DartType.FLOAT64X2, DartType.VOID], false),
-    DartLib('y', [DartType.FLOAT32X4, DartType.VOID], false),
-    DartLib('y', [DartType.FLOAT64X2, DartType.VOID], false),
-    DartLib('z', [DartType.FLOAT32X4, DartType.VOID], false),
-  ];
-  static const stringLibs = [
-    DartLib('ListBase.listToString', [DartType.VOID, DartType.LIST_INT], true),
-    DartLib(
-        'MapBase.mapToString', [DartType.VOID, DartType.MAP_INT_STRING], true),
-    DartLib('RegExp.escape', [DartType.VOID, DartType.STRING], true),
-    DartLib('SetBase.setToString', [DartType.VOID, DartType.SET_INT], true),
-    DartLib('String.fromCharCode', [DartType.VOID, DartType.INT], true),
-    DartLib('String.fromEnvironment', [DartType.VOID, DartType.STRING], true),
-    DartLib('Uri.decodeComponent', [DartType.VOID, DartType.STRING], true),
-    DartLib('Uri.decodeFull', [DartType.VOID, DartType.STRING], true),
-    DartLib('Uri.decodeQueryComponent', [DartType.VOID, DartType.STRING], true),
-    DartLib('Uri.encodeComponent', [DartType.VOID, DartType.STRING], true),
-    DartLib('Uri.encodeFull', [DartType.VOID, DartType.STRING], true),
-    DartLib('Uri.encodeQueryComponent', [DartType.VOID, DartType.STRING], true),
-    DartLib('base64Encode', [DartType.VOID, DartType.LIST_INT], true),
-    DartLib('base64UrlEncode', [DartType.VOID, DartType.LIST_INT], true),
-    DartLib('padLeft', [DartType.STRING, DartType.INT, DartType.STRING], true,
-        restrictions: [Restriction.none, Restriction.small, Restriction.small]),
-    DartLib('padRight', [DartType.STRING, DartType.INT, DartType.STRING], true,
-        restrictions: [Restriction.none, Restriction.small, Restriction.small]),
-    DartLib('replaceRange',
-        [DartType.STRING, DartType.INT, DartType.INT, DartType.STRING], true),
-    DartLib('substring', [DartType.STRING, DartType.INT, DartType.INT], true),
-    DartLib('toLowerCase', [DartType.STRING, DartType.VOID], true),
-    DartLib('toRadixString', [DartType.INT, DartType.INT], true),
-    DartLib('toString', [DartType.BOOL, DartType.VOID], true),
-    DartLib('toString', [DartType.DOUBLE, DartType.VOID], true),
-    DartLib('toString', [DartType.DOUBLE, DartType.VOID], true),
-    DartLib('toString', [DartType.INT, DartType.VOID], true),
-    DartLib('toStringAsExponential', [DartType.DOUBLE, DartType.INT], true),
-    DartLib('toStringAsFixed', [DartType.DOUBLE, DartType.INT], true),
-    DartLib('toStringAsPrecision', [DartType.DOUBLE, DartType.INT], true),
-    DartLib('toUpperCase', [DartType.STRING, DartType.VOID], true),
-    DartLib('trim', [DartType.STRING, DartType.VOID], true),
-    DartLib('trimLeft', [DartType.STRING, DartType.VOID], true),
-    DartLib('trimRight', [DartType.STRING, DartType.VOID], true),
-  ];
-  static const listLibs = [
-    DartLib(
-        'List<int>.filled', [DartType.VOID, DartType.INT, DartType.INT], true,
-        restrictions: [Restriction.none, Restriction.small, Restriction.none]),
-    DartLib('Uri.parseIPv4Address', [DartType.VOID, DartType.STRING], true),
-    DartLib('Uri.parseIPv6Address',
-        [DartType.VOID, DartType.STRING, DartType.INT, DartType.INT], true),
-    DartLib('codeUnits', [DartType.STRING, DartType.VOID], false),
-    DartLib('sublist', [DartType.LIST_INT, DartType.INT, DartType.INT], true),
-  ];
-  static const setLibs = [
-    DartLib('Set<int>.identity', [DartType.VOID, DartType.VOID], true),
-    DartLib('difference', [DartType.SET_INT, DartType.SET_INT], true),
-    DartLib('intersection', [DartType.SET_INT, DartType.SET_INT], true),
-    DartLib('toSet', [DartType.SET_INT, DartType.VOID], true),
-    DartLib('union', [DartType.SET_INT, DartType.SET_INT], true),
-  ];
-  static const mapLibs = [
-    DartLib('Map<int, String>.from', [DartType.VOID, DartType.MAP_INT_STRING],
-        true),
-    DartLib('Map<int, String>.identity', [DartType.VOID, DartType.VOID], true),
-    DartLib(
-        'Map<int, String>.of', [DartType.VOID, DartType.MAP_INT_STRING], true),
-    DartLib('Map<int, String>.unmodifiable',
-        [DartType.VOID, DartType.MAP_INT_STRING], true),
-  ];
-  static const int8ListLibs = [
-    DartLib('Int8List.fromList', [DartType.VOID, DartType.LIST_INT], true),
-    DartLib('sublist', [DartType.INT8LIST, DartType.INT, DartType.INT], true),
-  ];
   static const int16ListLibs = [
     DartLib('Int16List.fromList', [DartType.VOID, DartType.LIST_INT], true),
     DartLib('sublist', [DartType.INT16LIST, DartType.INT, DartType.INT], true),
@@ -973,71 +936,72 @@ class DartLib {
     DartLib('Int64List.fromList', [DartType.VOID, DartType.LIST_INT], true),
     DartLib('sublist', [DartType.INT64LIST, DartType.INT, DartType.INT], true),
   ];
-  static const float32ListLibs = [
-    DartLib(
-        'sublist', [DartType.FLOAT32LIST, DartType.INT, DartType.INT], true),
+  static const int8ListLibs = [
+    DartLib('Int8List.fromList', [DartType.VOID, DartType.LIST_INT], true),
+    DartLib('sublist', [DartType.INT8LIST, DartType.INT, DartType.INT], true),
   ];
-  static const float32x4Libs = [
+  static const listLibs = [
     DartLib(
-        'Float32x4.fromFloat64x2', [DartType.VOID, DartType.FLOAT64X2], true),
-    DartLib(
-        'Float32x4.fromInt32x4Bits', [DartType.VOID, DartType.INT32X4], true),
-    DartLib('Float32x4.splat', [DartType.VOID, DartType.DOUBLE], true),
-    DartLib('Float32x4.zero', [DartType.VOID, DartType.VOID], true),
-    DartLib('abs', [DartType.FLOAT32X4, DartType.VOID], true),
-    DartLib('clamp',
-        [DartType.FLOAT32X4, DartType.FLOAT32X4, DartType.FLOAT32X4], true),
-    DartLib('max', [DartType.FLOAT32X4, DartType.FLOAT32X4], true),
-    DartLib('min', [DartType.FLOAT32X4, DartType.FLOAT32X4], true),
-    DartLib('scale', [DartType.FLOAT32X4, DartType.DOUBLE], true),
-    DartLib('select',
-        [DartType.INT32X4, DartType.FLOAT32X4, DartType.FLOAT32X4], true),
-    DartLib('shuffle', [DartType.FLOAT32X4, DartType.INT], true),
-    DartLib('shuffleMix',
-        [DartType.FLOAT32X4, DartType.FLOAT32X4, DartType.INT], true),
-    DartLib('sqrt', [DartType.FLOAT32X4, DartType.VOID], true),
-    DartLib('withW', [DartType.FLOAT32X4, DartType.DOUBLE], true),
-    DartLib('withX', [DartType.FLOAT32X4, DartType.DOUBLE], true),
-    DartLib('withY', [DartType.FLOAT32X4, DartType.DOUBLE], true),
-    DartLib('withZ', [DartType.FLOAT32X4, DartType.DOUBLE], true),
+        'List<int>.filled', [DartType.VOID, DartType.INT, DartType.INT], true,
+        restrictions: [Restriction.none, Restriction.small, Restriction.none]),
+    DartLib('Uri.parseIPv4Address', [DartType.VOID, DartType.STRING], true),
+    DartLib('Uri.parseIPv6Address',
+        [DartType.VOID, DartType.STRING, DartType.INT, DartType.INT], true),
+    DartLib('codeUnits', [DartType.STRING, DartType.VOID], false),
+    DartLib('sublist', [DartType.LIST_INT, DartType.INT, DartType.INT], true),
   ];
-  static const float32x4ListLibs = [
-    DartLib(
-        'sublist', [DartType.FLOAT32X4LIST, DartType.INT, DartType.INT], true),
-  ];
-  static const float64ListLibs = [
-    DartLib(
-        'sublist', [DartType.FLOAT64LIST, DartType.INT, DartType.INT], true),
-  ];
-  static const float64x2Libs = [
-    DartLib(
-        'Float64x2.fromFloat32x4', [DartType.VOID, DartType.FLOAT32X4], true),
-    DartLib('Float64x2.splat', [DartType.VOID, DartType.DOUBLE], true),
-    DartLib('Float64x2.zero', [DartType.VOID, DartType.VOID], true),
-    DartLib('abs', [DartType.FLOAT64X2, DartType.VOID], true),
-    DartLib('clamp',
-        [DartType.FLOAT64X2, DartType.FLOAT64X2, DartType.FLOAT64X2], true),
-    DartLib('max', [DartType.FLOAT64X2, DartType.FLOAT64X2], true),
-    DartLib('min', [DartType.FLOAT64X2, DartType.FLOAT64X2], true),
-    DartLib('scale', [DartType.FLOAT64X2, DartType.DOUBLE], true),
-    DartLib('sqrt', [DartType.FLOAT64X2, DartType.VOID], true),
-    DartLib('withX', [DartType.FLOAT64X2, DartType.DOUBLE], true),
-    DartLib('withY', [DartType.FLOAT64X2, DartType.DOUBLE], true),
-  ];
-  static const float64x2ListLibs = [
-    DartLib(
-        'sublist', [DartType.FLOAT64X2LIST, DartType.INT, DartType.INT], true),
-  ];
-  static const uint8ClampedListLibs = [
-    DartLib(
-        'Uint8ClampedList.fromList', [DartType.VOID, DartType.LIST_INT], true),
-    DartLib('sublist', [DartType.UINT8CLAMPEDLIST, DartType.INT, DartType.INT],
+  static const mapLibs = [
+    DartLib('Map<int, String>.from', [DartType.VOID, DartType.MAP_INT_STRING],
         true),
+    DartLib('Map<int, String>.identity', [DartType.VOID, DartType.VOID], true),
+    DartLib(
+        'Map<int, String>.of', [DartType.VOID, DartType.MAP_INT_STRING], true),
+    DartLib('Map<int, String>.unmodifiable',
+        [DartType.VOID, DartType.MAP_INT_STRING], true),
   ];
-  static const uint8ListLibs = [
-    DartLib('Uint8List.fromList', [DartType.VOID, DartType.LIST_INT], true),
-    DartLib('base64Decode', [DartType.VOID, DartType.STRING], true),
-    DartLib('sublist', [DartType.UINT8LIST, DartType.INT, DartType.INT], true),
+  static const setLibs = [
+    DartLib('Set<int>.identity', [DartType.VOID, DartType.VOID], true),
+    DartLib('difference', [DartType.SET_INT, DartType.SET_INT], true),
+    DartLib('intersection', [DartType.SET_INT, DartType.SET_INT], true),
+    DartLib('toSet', [DartType.SET_INT, DartType.VOID], true),
+    DartLib('union', [DartType.SET_INT, DartType.SET_INT], true),
+  ];
+  static const stringLibs = [
+    DartLib('ListBase.listToString', [DartType.VOID, DartType.LIST_INT], true),
+    DartLib(
+        'MapBase.mapToString', [DartType.VOID, DartType.MAP_INT_STRING], true),
+    DartLib('RegExp.escape', [DartType.VOID, DartType.STRING], true),
+    DartLib('SetBase.setToString', [DartType.VOID, DartType.SET_INT], true),
+    DartLib('String.fromCharCode', [DartType.VOID, DartType.INT], true),
+    DartLib('String.fromEnvironment', [DartType.VOID, DartType.STRING], true),
+    DartLib('Uri.decodeComponent', [DartType.VOID, DartType.STRING], true),
+    DartLib('Uri.decodeFull', [DartType.VOID, DartType.STRING], true),
+    DartLib('Uri.decodeQueryComponent', [DartType.VOID, DartType.STRING], true),
+    DartLib('Uri.encodeComponent', [DartType.VOID, DartType.STRING], true),
+    DartLib('Uri.encodeFull', [DartType.VOID, DartType.STRING], true),
+    DartLib('Uri.encodeQueryComponent', [DartType.VOID, DartType.STRING], true),
+    DartLib('base64Encode', [DartType.VOID, DartType.LIST_INT], true),
+    DartLib('base64UrlEncode', [DartType.VOID, DartType.LIST_INT], true),
+    DartLib('padLeft', [DartType.STRING, DartType.INT, DartType.STRING], true,
+        restrictions: [Restriction.none, Restriction.small, Restriction.small]),
+    DartLib('padRight', [DartType.STRING, DartType.INT, DartType.STRING], true,
+        restrictions: [Restriction.none, Restriction.small, Restriction.small]),
+    DartLib('replaceRange',
+        [DartType.STRING, DartType.INT, DartType.INT, DartType.STRING], true),
+    DartLib('substring', [DartType.STRING, DartType.INT, DartType.INT], true),
+    DartLib('toLowerCase', [DartType.STRING, DartType.VOID], true),
+    DartLib('toRadixString', [DartType.INT, DartType.INT], true),
+    DartLib('toString', [DartType.BOOL, DartType.VOID], true),
+    DartLib('toString', [DartType.DOUBLE, DartType.VOID], true),
+    DartLib('toString', [DartType.DOUBLE, DartType.VOID], true),
+    DartLib('toString', [DartType.INT, DartType.VOID], true),
+    DartLib('toStringAsExponential', [DartType.DOUBLE, DartType.INT], true),
+    DartLib('toStringAsFixed', [DartType.DOUBLE, DartType.INT], true),
+    DartLib('toStringAsPrecision', [DartType.DOUBLE, DartType.INT], true),
+    DartLib('toUpperCase', [DartType.STRING, DartType.VOID], true),
+    DartLib('trim', [DartType.STRING, DartType.VOID], true),
+    DartLib('trimLeft', [DartType.STRING, DartType.VOID], true),
+    DartLib('trimRight', [DartType.STRING, DartType.VOID], true),
   ];
   static const uint16ListLibs = [
     DartLib('Uint16List.fromList', [DartType.VOID, DartType.LIST_INT], true),
@@ -1050,5 +1014,41 @@ class DartLib {
   static const uint64ListLibs = [
     DartLib('Uint64List.fromList', [DartType.VOID, DartType.LIST_INT], true),
     DartLib('sublist', [DartType.UINT64LIST, DartType.INT, DartType.INT], true),
+  ];
+  static const uint8ClampedListLibs = [
+    DartLib(
+        'Uint8ClampedList.fromList', [DartType.VOID, DartType.LIST_INT], true),
+    DartLib('sublist', [DartType.UINT8CLAMPEDLIST, DartType.INT, DartType.INT],
+        true),
+  ];
+  static const uint8ListLibs = [
+    DartLib('Uint8List.fromList', [DartType.VOID, DartType.LIST_INT], true),
+    DartLib('base64Decode', [DartType.VOID, DartType.STRING], true),
+    DartLib('sublist', [DartType.UINT8LIST, DartType.INT, DartType.INT], true),
+  ];
+  static const voidLibs = [
+    DartLib('RangeError.checkNotNegative',
+        [DartType.VOID, DartType.INT, DartType.STRING, DartType.STRING], true),
+    DartLib(
+        'RangeError.checkValueInInterval',
+        [
+          DartType.VOID,
+          DartType.INT,
+          DartType.INT,
+          DartType.INT,
+          DartType.STRING,
+          DartType.STRING
+        ],
+        true),
+    DartLib('add', [DartType.LIST_INT, DartType.INT], true),
+    DartLib('addAll', [DartType.MAP_INT_STRING, DartType.MAP_INT_STRING], true),
+    DartLib('clear', [DartType.LIST_INT, DartType.VOID], true),
+    DartLib('clear', [DartType.MAP_INT_STRING, DartType.VOID], true),
+    DartLib('clear', [DartType.SET_INT, DartType.VOID], true),
+    DartLib('fillRange',
+        [DartType.LIST_INT, DartType.INT, DartType.INT, DartType.INT], true),
+    DartLib('insert', [DartType.LIST_INT, DartType.INT, DartType.INT], true),
+    DartLib(
+        'removeRange', [DartType.LIST_INT, DartType.INT, DartType.INT], true),
   ];
 }
