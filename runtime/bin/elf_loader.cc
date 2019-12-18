@@ -428,9 +428,9 @@ bool LoadedElf::LoadSegments() {
     //    file mapping: we must first unmap the existing mapping.
 
     if (map_type == File::kReadWrite) {
-      CHECK_ERROR(file_->SetPosition(file_start),
+      CHECK_ERROR(mappable_->SetPosition(file_start),
                   "Could not advance file position.");
-      CHECK_ERROR(file_->ReadFully(memory_start, length),
+      CHECK_ERROR(mappable_->ReadFully(memory_start, length),
                   "Could not read file.");
       continue;
     }
