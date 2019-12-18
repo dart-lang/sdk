@@ -924,7 +924,7 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
     const Code& code = *instructions_[i].code_;
     if ((elf_ != nullptr) && (dwarf_ != nullptr) && !code.IsNull()) {
       intptr_t segment_offset = instructions_blob_stream_.bytes_written() +
-                                Instructions::HeaderSize();
+                                compiler::target::Instructions::HeaderSize();
       dwarf_->AddCode(code, segment_base + segment_offset);
     }
 #endif

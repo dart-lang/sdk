@@ -15,9 +15,7 @@ import 'package:kernel/kernel.dart';
 import 'package:path/path.dart' as path;
 import 'package:vm/metadata/bytecode.dart' show BytecodeMetadataRepository;
 
-import 'use_bare_instructions_flag_test.dart' show run, withTempDir;
-
-const platformFilename = 'vm_platform_strong.dill';
+import 'use_flag_test_helper.dart';
 
 Future main(List<String> args) async {
   final buildDir = path.dirname(Platform.resolvedExecutable);
@@ -28,20 +26,16 @@ Future main(List<String> args) async {
   }
 
   if (Platform.isAndroid) {
-    print('Skipping test due missing "$platformFilename".');
+    print('Skipping test due to missing "${path.basename(platformDill)}".');
     return;
   }
 
-  final platformDill = path.join(buildDir, platformFilename);
-  await withTempDir((String tempDir) async {
+  await withTempDir('product-aot-kernel-test', (String tempDir) async {
     final helloFile = path.join(tempDir, 'hello.dart');
     final helloDillFile = path.join(tempDir, 'hello.dart.dill');
 
     // Compile script to Kernel IR.
     await File(helloFile).writeAsString('main() => print("Hello");');
-    final genKernel = Platform.isWindows
-        ? "pkg\\vm\\tool\\gen_kernel.bat"
-        : 'pkg/vm/tool/gen_kernel';
     await run(genKernel, <String>[
       '--aot',
       '--platform=$platformDill',

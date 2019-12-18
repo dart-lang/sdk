@@ -3419,12 +3419,16 @@ Dart_CreateAppAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
  *
  *  The callback will be invoked one or more times to provide the binary output.
  *
+ *  If debug_callback_data is provided, debug_callback_data will be used with
+ *  the callback to provide separate debugging information.
+ *
  * \return A valid handle if no error occurs during the operation.
  */
 DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
 Dart_CreateAppAOTSnapshotAsElf(Dart_StreamingWriteCallback callback,
                                void* callback_data,
-                               bool stripped);
+                               bool stripped,
+                               void* debug_callback_data);
 
 /**
  *  Like Dart_CreateAppAOTSnapshotAsAssembly, but only includes

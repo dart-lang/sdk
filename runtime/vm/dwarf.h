@@ -223,7 +223,7 @@ class Dwarf : public ZoneAllocated {
   }
   void u1(uint8_t value) {
     if (asm_stream_) {
-      Print(".byte %d\n", value);
+      Print(".byte %u\n", value);
     } else {
       bin_stream_->WriteBytes(reinterpret_cast<const uint8_t*>(&value),
                               sizeof(value));
@@ -231,7 +231,7 @@ class Dwarf : public ZoneAllocated {
   }
   void u2(uint16_t value) {
     if (asm_stream_) {
-      Print(".2byte %d\n", value);
+      Print(".2byte %u\n", value);
     } else {
       bin_stream_->WriteBytes(reinterpret_cast<const uint8_t*>(&value),
                               sizeof(value));
@@ -239,7 +239,7 @@ class Dwarf : public ZoneAllocated {
   }
   intptr_t u4(uint32_t value) {
     if (asm_stream_) {
-      Print(".4byte %d\n", value);
+      Print(".4byte %" Pu32 "\n", value);
       return -1;
     } else {
       intptr_t fixup = position();
@@ -255,12 +255,23 @@ class Dwarf : public ZoneAllocated {
       memmove(bin_stream_->buffer() + position, &value, sizeof(value));
     }
   }
+  void u8(uint64_t value) {
+    if (asm_stream_) {
+      Print(".8byte %" Pu64 "\n", value);
+    } else {
+      bin_stream_->WriteBytes(reinterpret_cast<const uint8_t*>(&value),
+                              sizeof(value));
+    }
+  }
   void addr(uword value) {
     if (asm_stream_) {
       UNREACHABLE();
     } else {
-      bin_stream_->WriteBytes(reinterpret_cast<const uint8_t*>(&value),
-                              sizeof(value));
+#if defined(TARGET_ARCH_IS_32_BIT)
+      u4(value);
+#else
+      u8(value);
+#endif
     }
   }
   void string(const char* cstr) {  // NOLINT

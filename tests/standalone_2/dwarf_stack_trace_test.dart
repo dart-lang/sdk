@@ -2,15 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// VMOptions=--dwarf-stack-traces
+/// VMOptions=--dwarf-stack-traces --save-debugging-info=dwarf.so
 
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:unittest/unittest.dart';
-import 'package:vm/elf/convert.dart';
-import 'package:vm/elf/dwarf.dart';
-import 'package:vm/elf/elf.dart';
+import 'package:vm/dwarf/convert.dart';
+import 'package:vm/dwarf/dwarf.dart';
 import 'package:path/path.dart' as path;
 
 @pragma("vm:prefer-inline")
@@ -40,24 +39,21 @@ Future<void> main() async {
   print("Raw stack trace:");
   print(rawStack);
 
-  if (Platform.isWindows) {
-    // TODO(dartbug.com/39490): Remove this when we can retrieve or calculate
-    // virtual addresses from DWARF stack traces on Windows.
-    print("Skipping test because we are running on Windows.");
-    return;
+  if (!Platform.executable.endsWith("dart_precompiled_runtime")) {
+    return; // Not running from an AOT compiled snapshot.
   }
 
-  if (!Elf.startsWithMagicNumber(Platform.script.toFilePath())) {
-    print("Skipping test because we are not running from ELF.");
-    return;
+  if (Platform.isAndroid) {
+    return; // Generated dwarf.so not available on the test device.
   }
 
-  final dwarf = Dwarf.fromFile(Platform.script.toFilePath());
+  final dwarf = Dwarf.fromFile("dwarf.so");
 
-  var rawLines =
+  final rawLines =
       await Stream.value(rawStack).transform(const LineSplitter()).toList();
 
-  final pcAddresses = collectPCAddresses(rawLines).toList();
+  final pcAddresses =
+      collectPCOffsets(rawLines).map((pc) => pc.virtualAddress(dwarf)).toList();
 
   // We should have at least enough PC addresses to cover the frames we'll be
   // checking.
@@ -142,20 +138,20 @@ final expectedExternalCallInfo = <List<CallInfo>>[
     CallInfo(
         function: "bar",
         filename: "dwarf_stack_trace_test.dart",
-        line: 19,
+        line: 18,
         inlined: true),
     // The second frame corresponds to call to foo in main.
     CallInfo(
         function: "foo",
         filename: "dwarf_stack_trace_test.dart",
-        line: 25,
+        line: 24,
         inlined: false)
   ],
   [
     CallInfo(
         function: "main",
         filename: "dwarf_stack_trace_test.dart",
-        line: 31,
+        line: 30,
         inlined: false)
   ],
   // No call information for the main tearoff.

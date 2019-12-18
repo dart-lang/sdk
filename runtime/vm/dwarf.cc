@@ -19,6 +19,8 @@ namespace dart {
 #define FORM_ADDR ".8byte"
 #endif
 
+static const intptr_t kTargetWordSize = sizeof(compiler::target::kWordSize);
+
 class InliningNode : public ZoneAllocated {
  public:
   InliningNode(const Function& function,
@@ -285,9 +287,9 @@ void Dwarf::WriteCompilationUnit() {
     cu_start = position();
   }
 
-  u2(2);              // DWARF version 2
-  u4(0);              // debug_abbrev_offset
-  u1(sizeof(void*));  // address_size
+  u2(2);                // DWARF version 2
+  u4(0);                // debug_abbrev_offset
+  u1(kTargetWordSize);  // address_size
 
   // Compilation Unit DIE. We describe the entire Dart program as a single
   // compilation unit. Note we write attributes in the same order we declared
@@ -537,9 +539,9 @@ void Dwarf::WriteInliningNode(InliningNode* node,
     const char* asm_name =
         namer->AssemblyNameFor(root_code_index, *codes_[root_code_index]);
     // DW_AT_low_pc
-    Print(FORM_ADDR " %s + %d\n", asm_name, node->start_pc_offset);
+    Print(FORM_ADDR " %s + %" Pd32 "\n", asm_name, node->start_pc_offset);
     // DW_AT_high_pc
-    Print(FORM_ADDR " %s + %d\n", asm_name, node->end_pc_offset);
+    Print(FORM_ADDR " %s + %" Pd32 "\n", asm_name, node->end_pc_offset);
   } else {
     // DW_AT_low_pc
     addr(root_code_offset + node->start_pc_offset);
@@ -732,11 +734,11 @@ void Dwarf::WriteLines() {
           // 4. Update LNP pc.
           if (previous_code_offset == -1) {
             // This variant is relocatable.
-            u1(0);                  // This is an extended opcode
-            u1(1 + sizeof(void*));  // that is 5 or 9 bytes long
+            u1(0);                    // This is an extended opcode
+            u1(1 + kTargetWordSize);  // that is 5 or 9 bytes long
             u1(DW_LNE_set_address);
             if (asm_stream_) {
-              Print(FORM_ADDR " %s + %d\n", asm_name, current_pc_offset);
+              Print(FORM_ADDR " %s + %" Pd32 "\n", asm_name, current_pc_offset);
             } else {
               addr(current_code_offset + current_pc_offset);
             }
