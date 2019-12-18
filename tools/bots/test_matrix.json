@@ -448,6 +448,11 @@
         "use-elf": true
     }},
     "dartk-(linux|mac|win)-(debug|product|release)-(ia32|x64)": { },
+    "dartk-weak-asserts-(linux|mac|win)-(debug|product|release)-x64": {
+      "options": {
+        "enable-experiment": ["non-nullable"],
+        "enable-asserts": true
+    }},
     "dartk-(linux|mac|win)-(debug|product|release)-(ia32|simarm|simarm64|x64)-ast": {
       "options": {
         "builder-tag": "ast",
@@ -1116,6 +1121,32 @@
             "-ndartk-${system}-${mode}-${arch}"],
           "fileset": "vm-kernel",
           "shards": 10
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-kernel-nnbd-linux-release-x64",
+        "vm-kernel-nnbd-linux-debug-x64"
+      ],
+      "meta": {
+        "description": "This configuration is for the VM nnbd builder group."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "--nnbd",
+            "create_sdk"
+          ]
+        },
+        {
+          "name": "vm weak tests with asserts",
+          "arguments": [
+            "-ndartk-weak-asserts-${system}-${mode}-${arch}",
+            "language"
+          ]
         }
       ]
     },
