@@ -1398,6 +1398,15 @@
             "-ndartdevk-weak-linux-release-chrome",
             "dartdevc_native"
           ]
+        },
+        {
+          "name": "ddc legacy weak tests",
+          "arguments": [
+            "-ndartdevk-weak-linux-release-chrome",
+            "language_2",
+            "corelib_2",
+            "lib_2"
+          ]
         }
       ]
     },
