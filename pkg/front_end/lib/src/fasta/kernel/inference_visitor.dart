@@ -829,6 +829,27 @@ class InferenceVisitor
     return new ExpressionInferenceResult(inferredType, iterable);
   }
 
+  ForInVariable computeForInVariable(
+      Expression syntheticAssignment, bool hasProblem) {
+    if (syntheticAssignment is VariableSet) {
+      return new LocalForInVariable(syntheticAssignment);
+    } else if (syntheticAssignment is PropertySet) {
+      return new PropertyForInVariable(syntheticAssignment);
+    } else if (syntheticAssignment is SuperPropertySet) {
+      return new SuperPropertyForInVariable(syntheticAssignment);
+    } else if (syntheticAssignment is StaticSet) {
+      return new StaticForInVariable(syntheticAssignment);
+    } else if (syntheticAssignment is InvalidExpression || hasProblem) {
+      return new InvalidForInVariable(syntheticAssignment);
+    } else {
+      return unhandled(
+          "${syntheticAssignment.runtimeType}",
+          "handleForInStatementWithoutVariable",
+          syntheticAssignment.fileOffset,
+          inferrer.helper.uri);
+    }
+  }
+
   ForInResult handleForInWithoutVariable(
       TreeNode node,
       VariableDeclaration variable,
@@ -838,92 +859,10 @@ class InferenceVisitor
       {bool isAsync: false,
       bool hasProblem}) {
     assert(hasProblem != null);
-    DartType elementType;
     bool typeChecksNeeded = !inferrer.isTopLevel;
-    DartType syntheticWriteType;
-    Expression rhs;
-    // If `true`, the synthetic statement should not be visited.
-    bool skipStatement = false;
-    // TODO(johnniwinther): Refactor handling of synthetic assignment to avoid
-    // case handling here.
-    VariableSet syntheticVariableSet;
-    PropertySet syntheticPropertySet;
-    SuperPropertySet syntheticSuperPropertySet;
-    StaticSet syntheticStaticSet;
-    if (syntheticAssignment is VariableSet) {
-      syntheticVariableSet = syntheticAssignment;
-      syntheticWriteType = elementType = syntheticVariableSet.variable.type;
-      rhs = syntheticVariableSet.value;
-      // This expression is fully handled in this method so we should not
-      // visit the synthetic statement.
-      skipStatement = true;
-    } else if (syntheticAssignment is PropertySet) {
-      syntheticPropertySet = syntheticAssignment;
-      ExpressionInferenceResult receiverResult = inferrer.inferExpression(
-          syntheticPropertySet.receiver, const UnknownType(), true);
-      syntheticPropertySet.receiver = receiverResult.expression
-        ..parent = syntheticPropertySet;
-      DartType receiverType = receiverResult.inferredType;
-      ObjectAccessTarget writeTarget = inferrer.findInterfaceMember(
-          receiverType,
-          syntheticPropertySet.name,
-          syntheticPropertySet.fileOffset,
-          setter: true,
-          instrumented: true,
-          includeExtensionMethods: true);
-      syntheticWriteType =
-          elementType = inferrer.getSetterType(writeTarget, receiverType);
-      Expression error = inferrer.reportMissingInterfaceMember(
-          writeTarget,
-          receiverType,
-          syntheticPropertySet.name,
-          syntheticPropertySet.fileOffset,
-          templateUndefinedSetter);
-      if (error != null) {
-        rhs = error;
-      } else {
-        if (writeTarget.isInstanceMember) {
-          if (inferrer.instrumentation != null &&
-              receiverType == const DynamicType()) {
-            inferrer.instrumentation.record(
-                inferrer.uriForInstrumentation,
-                syntheticPropertySet.fileOffset,
-                'target',
-                new InstrumentationValueForMember(writeTarget.member));
-          }
-          syntheticPropertySet.interfaceTarget = writeTarget.member;
-        }
-        rhs = syntheticPropertySet.value;
-      }
-    } else if (syntheticAssignment is SuperPropertySet) {
-      syntheticSuperPropertySet = syntheticAssignment;
-      DartType receiverType = inferrer.thisType;
-      ObjectAccessTarget writeTarget = inferrer.findInterfaceMember(
-          receiverType,
-          syntheticSuperPropertySet.name,
-          syntheticSuperPropertySet.fileOffset,
-          setter: true,
-          instrumented: true);
-      if (writeTarget.isInstanceMember) {
-        syntheticSuperPropertySet.interfaceTarget = writeTarget.member;
-      }
-      syntheticWriteType =
-          elementType = inferrer.getSetterType(writeTarget, receiverType);
-      rhs = syntheticSuperPropertySet.value;
-    } else if (syntheticAssignment is StaticSet) {
-      syntheticStaticSet = syntheticAssignment;
-      syntheticWriteType = elementType = syntheticStaticSet.target.setterType;
-      rhs = syntheticStaticSet.value;
-    } else if (syntheticAssignment is InvalidExpression || hasProblem) {
-      elementType = const UnknownType();
-    } else {
-      unhandled(
-          "${syntheticAssignment.runtimeType}",
-          "handleForInStatementWithoutVariable",
-          syntheticAssignment.fileOffset,
-          inferrer.helper.uri);
-    }
-
+    ForInVariable forInVariable =
+        computeForInVariable(syntheticAssignment, hasProblem);
+    DartType elementType = forInVariable.computeElementType(inferrer);
     ExpressionInferenceResult iterableResult = inferForInIterable(
         iterable, elementType, typeChecksNeeded,
         isAsync: isAsync);
@@ -933,40 +872,13 @@ class InferenceVisitor
     }
     // This is matched by the call to [forEach_end] in
     // [inferElement], [inferMapEntry] or [inferForInStatement].
-    inferrer.flowAnalysis.forEach_bodyBegin(node, variable, variable.type);
-    if (syntheticVariableSet != null) {
-      inferrer.flowAnalysis.write(syntheticVariableSet.variable, variable.type);
-    }
-    if (syntheticAssignment != null && !skipStatement) {
-      ExpressionInferenceResult result = inferrer.inferExpression(
-          syntheticAssignment, const UnknownType(), !inferrer.isTopLevel,
-          isVoidAllowed: true);
-      syntheticAssignment = result.expression;
-    }
+    inferrer.flowAnalysis.forEach_bodyBegin(node, variable, inferredType);
+    syntheticAssignment = forInVariable.inferAssignment(inferrer, inferredType);
     if (expressionEffects != null) {
       StatementInferenceResult result =
           inferrer.inferStatement(expressionEffects);
       expressionEffects =
           result.hasChanged ? result.statement : expressionEffects;
-    }
-
-    if (syntheticWriteType != null) {
-      rhs = inferrer.ensureAssignable(
-          greatestClosure(inferrer.coreTypes, syntheticWriteType),
-          variable.type,
-          rhs,
-          errorTemplate: templateForInLoopElementTypeNotAssignable,
-          isVoidAllowed: true);
-      if (syntheticVariableSet != null) {
-        syntheticVariableSet.value = rhs..parent = syntheticVariableSet;
-      } else if (syntheticPropertySet != null) {
-        syntheticPropertySet.value = rhs..parent = syntheticPropertySet;
-      } else if (syntheticSuperPropertySet != null) {
-        syntheticSuperPropertySet.value = rhs
-          ..parent = syntheticSuperPropertySet;
-      } else if (syntheticStaticSet != null) {
-        syntheticStaticSet.value = rhs..parent = syntheticStaticSet;
-      }
     }
     return new ForInResult(variable, iterableResult.expression,
         syntheticAssignment, expressionEffects);
@@ -5417,4 +5329,169 @@ class ForInResult {
 
   String toString() => 'ForInResult($variable,$iterable,'
       '$syntheticAssignment,$expressionSideEffects)';
+}
+
+abstract class ForInVariable {
+  /// Computes the type of the elements expected for this for-in variable.
+  DartType computeElementType(TypeInferrerImpl inferrer);
+
+  /// Infers the assignment to this for-in variable with a value of type
+  /// [rhsType]. The resulting expression is returned.
+  Expression inferAssignment(TypeInferrerImpl inferrer, DartType rhsType);
+}
+
+class LocalForInVariable implements ForInVariable {
+  VariableSet variableSet;
+
+  LocalForInVariable(this.variableSet);
+
+  DartType computeElementType(TypeInferrerImpl inferrer) =>
+      variableSet.variable.type;
+
+  Expression inferAssignment(TypeInferrerImpl inferrer, DartType rhsType) {
+    Expression rhs = inferrer.ensureAssignable(
+        greatestClosure(inferrer.coreTypes, variableSet.variable.type),
+        rhsType,
+        variableSet.value,
+        errorTemplate: templateForInLoopElementTypeNotAssignable,
+        isVoidAllowed: true);
+
+    variableSet.value = rhs..parent = variableSet;
+    inferrer.flowAnalysis.write(variableSet.variable, rhsType);
+    return variableSet;
+  }
+}
+
+class PropertyForInVariable implements ForInVariable {
+  final PropertySet propertySet;
+
+  DartType _writeType;
+
+  Expression _rhs;
+
+  PropertyForInVariable(this.propertySet);
+
+  @override
+  DartType computeElementType(TypeInferrerImpl inferrer) {
+    ExpressionInferenceResult receiverResult = inferrer.inferExpression(
+        propertySet.receiver, const UnknownType(), true);
+    propertySet.receiver = receiverResult.expression..parent = propertySet;
+    DartType receiverType = receiverResult.inferredType;
+    ObjectAccessTarget writeTarget = inferrer.findInterfaceMember(
+        receiverType, propertySet.name, propertySet.fileOffset,
+        setter: true, instrumented: true, includeExtensionMethods: true);
+    DartType elementType =
+        _writeType = inferrer.getSetterType(writeTarget, receiverType);
+    Expression error = inferrer.reportMissingInterfaceMember(
+        writeTarget,
+        receiverType,
+        propertySet.name,
+        propertySet.fileOffset,
+        templateUndefinedSetter);
+    if (error != null) {
+      _rhs = error;
+    } else {
+      if (writeTarget.isInstanceMember) {
+        if (inferrer.instrumentation != null &&
+            receiverType == const DynamicType()) {
+          inferrer.instrumentation.record(
+              inferrer.uriForInstrumentation,
+              propertySet.fileOffset,
+              'target',
+              new InstrumentationValueForMember(writeTarget.member));
+        }
+        propertySet.interfaceTarget = writeTarget.member;
+      }
+      _rhs = propertySet.value;
+    }
+    return elementType;
+  }
+
+  @override
+  Expression inferAssignment(TypeInferrerImpl inferrer, DartType rhsType) {
+    Expression rhs = inferrer.ensureAssignable(
+        greatestClosure(inferrer.coreTypes, _writeType), rhsType, _rhs,
+        errorTemplate: templateForInLoopElementTypeNotAssignable,
+        isVoidAllowed: true);
+
+    propertySet.value = rhs..parent = propertySet;
+    ExpressionInferenceResult result = inferrer.inferExpression(
+        propertySet, const UnknownType(), !inferrer.isTopLevel,
+        isVoidAllowed: true);
+    return result.expression;
+  }
+}
+
+class SuperPropertyForInVariable implements ForInVariable {
+  final SuperPropertySet superPropertySet;
+
+  DartType _writeType;
+
+  SuperPropertyForInVariable(this.superPropertySet);
+
+  @override
+  DartType computeElementType(TypeInferrerImpl inferrer) {
+    DartType receiverType = inferrer.thisType;
+    ObjectAccessTarget writeTarget = inferrer.findInterfaceMember(
+        receiverType, superPropertySet.name, superPropertySet.fileOffset,
+        setter: true, instrumented: true);
+    if (writeTarget.isInstanceMember) {
+      superPropertySet.interfaceTarget = writeTarget.member;
+    }
+    return _writeType = inferrer.getSetterType(writeTarget, receiverType);
+  }
+
+  @override
+  Expression inferAssignment(TypeInferrerImpl inferrer, DartType rhsType) {
+    Expression rhs = inferrer.ensureAssignable(
+        greatestClosure(inferrer.coreTypes, _writeType),
+        rhsType,
+        superPropertySet.value,
+        errorTemplate: templateForInLoopElementTypeNotAssignable,
+        isVoidAllowed: true);
+    superPropertySet.value = rhs..parent = superPropertySet;
+    ExpressionInferenceResult result = inferrer.inferExpression(
+        superPropertySet, const UnknownType(), !inferrer.isTopLevel,
+        isVoidAllowed: true);
+    return result.expression;
+  }
+}
+
+class StaticForInVariable implements ForInVariable {
+  final StaticSet staticSet;
+
+  StaticForInVariable(this.staticSet);
+
+  @override
+  DartType computeElementType(TypeInferrerImpl inferrer) =>
+      staticSet.target.setterType;
+
+  @override
+  Expression inferAssignment(TypeInferrerImpl inferrer, DartType rhsType) {
+    Expression rhs = inferrer.ensureAssignable(
+        greatestClosure(inferrer.coreTypes, staticSet.target.setterType),
+        rhsType,
+        staticSet.value,
+        errorTemplate: templateForInLoopElementTypeNotAssignable,
+        isVoidAllowed: true);
+
+    staticSet.value = rhs..parent = staticSet;
+    ExpressionInferenceResult result = inferrer.inferExpression(
+        staticSet, const UnknownType(), !inferrer.isTopLevel,
+        isVoidAllowed: true);
+    return result.expression;
+  }
+}
+
+class InvalidForInVariable implements ForInVariable {
+  final Expression expression;
+
+  InvalidForInVariable(this.expression);
+
+  @override
+  DartType computeElementType(TypeInferrerImpl inferrer) => const UnknownType();
+
+  @override
+  Expression inferAssignment(TypeInferrerImpl inferrer, DartType rhsType) =>
+      expression;
 }
