@@ -88,7 +88,7 @@ class MemoryMappable : public Mappable {
     const uword map_size = Utils::RoundUp(length, VirtualMemory::PageSize());
     if (start == nullptr) {
       auto* memory = VirtualMemory::Allocate(
-          map_size, type == File::kReadExecute, /*name=*/nullptr);
+          map_size, type == File::kReadExecute, "dart-compiled-image");
       if (memory == nullptr) return nullptr;
       result = new MappedMemory(memory->address(), memory->size());
       memory->release();
@@ -385,7 +385,7 @@ bool LoadedElf::LoadSegments() {
 
   base_.reset(VirtualMemory::AllocateAligned(
       total_memory, /*alignment=*/maximum_alignment,
-      /*is_executable=*/false, /*mapping name=*/nullptr));
+      /*is_executable=*/false, "dart-compiled-image"));
   CHECK_ERROR(base_ != nullptr, "Could not reserve virtual memory.");
 
   for (uword i = 0; i < header_.num_program_headers; ++i) {

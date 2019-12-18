@@ -683,26 +683,17 @@ void Heap::Init(Isolate* isolate,
   isolate->set_heap(heap);
 }
 
-void Heap::RegionName(Heap* heap, Space space, char* name, intptr_t name_size) {
-  const bool no_isolate_name = (heap == NULL) || (heap->isolate() == NULL) ||
-                               (heap->isolate()->name() == NULL);
-  const char* isolate_name =
-      no_isolate_name ? "<unknown>" : heap->isolate()->name();
-  const char* space_name = NULL;
+const char* Heap::RegionName(Space space) {
   switch (space) {
     case kNew:
-      space_name = "newspace";
-      break;
+      return "dart-newspace";
     case kOld:
-      space_name = "oldspace";
-      break;
+      return "dart-oldspace";
     case kCode:
-      space_name = "codespace";
-      break;
+      return "dart-codespace";
     default:
       UNREACHABLE();
   }
-  Utils::SNPrint(name, name_size, "dart-%s %s", space_name, isolate_name);
 }
 
 void Heap::AddRegionsToObjectSet(ObjectSet* set) const {
