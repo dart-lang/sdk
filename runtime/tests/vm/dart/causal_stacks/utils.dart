@@ -792,12 +792,51 @@ Future<void> doTestsLazy() async {
     r'^#2      _AsyncAwaitCompleter.start ',
     r'^#3      noYields3 \(.*/utils.dart:(53|53:23)\)$',
     r'^#4      noYields2 \(.*/utils.dart:(50|50:9)\)$',
-    r'^<asynchronous suspension>$',
-    r'^$',
+    r'^#5      _AsyncAwaitCompleter.start ',
+    r'^#6      noYields2 \(.*/utils.dart:(49|49:23)\)$',
+    r'^#7      noYields \(.*/utils.dart:(46|46:9)\)$',
+    r'^#8      _AsyncAwaitCompleter.start ',
+    r'^#9      noYields \(.*/utils.dart:(45|45:22)\)$',
   ];
-  await doTestAwait(noYields, noYieldsExpected);
-  await doTestAwaitThen(noYields, noYieldsExpected);
-  await doTestAwaitCatchError(noYields, noYieldsExpected);
+  await doTestAwait(
+      noYields,
+      noYieldsExpected +
+          const <String>[
+            r'^#10     doTestAwait ',
+            r'^#11     _AsyncAwaitCompleter.start ',
+            r'^#12     doTestAwait ',
+            r'^#13     doTestsLazy ',
+            r'^<asynchronous suspension>$',
+            r'^#14     main ',
+            r'^<asynchronous suspension>$',
+            r'^$',
+          ]);
+  await doTestAwaitThen(
+      noYields,
+      noYieldsExpected +
+          const <String>[
+            r'^#10     doTestAwaitThen ',
+            r'^#11     _AsyncAwaitCompleter.start ',
+            r'^#12     doTestAwaitThen ',
+            r'^#13     doTestsLazy ',
+            r'^<asynchronous suspension>$',
+            r'^#14     main ',
+            r'^<asynchronous suspension>$',
+            r'^$',
+          ]);
+  await doTestAwaitCatchError(
+      noYields,
+      noYieldsExpected +
+          const <String>[
+            r'^#10     doTestAwaitCatchError ',
+            r'^#11     _AsyncAwaitCompleter.start ',
+            r'^#12     doTestAwaitCatchError ',
+            r'^#13     doTestsLazy ',
+            r'^<asynchronous suspension>$',
+            r'^#14     main ',
+            r'^<asynchronous suspension>$',
+            r'^$',
+          ]);
 
   final mixedYieldsExpected = const <String>[
     r'^#0      throwAsync \(.*/utils.dart:(21|21:3)\)$',

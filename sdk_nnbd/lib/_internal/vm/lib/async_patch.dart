@@ -22,6 +22,7 @@ _fatal(msg) native "DartAsync_fatal";
 class _AsyncAwaitCompleter<T> implements Completer<T> {
   @pragma("vm:entry-point")
   final _future = new _Future<T>();
+  @pragma("vm:entry-point")
   bool isSync;
 
   _AsyncAwaitCompleter() : isSync = false;

@@ -458,6 +458,7 @@ class ObjectPointerVisitor;
   V(identityHashCode, "identityHashCode")                                      \
   V(index_temp, ":index_temp")                                                 \
   V(isPaused, "isPaused")                                                      \
+  V(isSync, "isSync")                                                          \
   V(last, "last")                                                              \
   V(match_end_index, ":match_end_index")                                       \
   V(match_start_index, ":match_start_index")                                   \
