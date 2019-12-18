@@ -189,12 +189,12 @@ Future<void> doTestAwaitCatchError(
 // For: --causal-async-stacks
 Future<void> doTestsCausal() async {
   final allYieldExpected = const <String>[
-    r'^#0      throwSync \(.*/utils.dart:(16|16:3)\)$',
-    r'^#1      allYield3 \(.*/utils.dart:(39|39:3)\)$',
+    r'^#0      throwSync \(.*/utils.dart:16(:3)?\)$',
+    r'^#1      allYield3 \(.*/utils.dart:39(:3)?\)$',
     r'^<asynchronous suspension>$',
-    r'^#2      allYield2 \(.*/utils.dart:(34|34:9)\)$',
+    r'^#2      allYield2 \(.*/utils.dart:34(:9)?\)$',
     r'^<asynchronous suspension>$',
-    r'^#3      allYield \(.*/utils.dart:(29|29:9)\)$',
+    r'^#3      allYield \(.*/utils.dart:29(:9)?\)$',
     r'^<asynchronous suspension>$',
   ];
   await doTestAwait(
@@ -234,10 +234,10 @@ Future<void> doTestsCausal() async {
           ]);
 
   final noYieldsExpected = const <String>[
-    r'^#0      throwSync \(.*/utils.dart:(16|16:3)\)$',
-    r'^#1      noYields3 \(.*/utils.dart:(54|54:3)\)$',
-    r'^#2      noYields2 \(.*/utils.dart:(50|50:9)\)$',
-    r'^#3      noYields \(.*/utils.dart:(46|46:9)\)$',
+    r'^#0      throwSync \(.*/utils.dart:16(:3)?\)$',
+    r'^#1      noYields3 \(.*/utils.dart:54(:3)?\)$',
+    r'^#2      noYields2 \(.*/utils.dart:50(:9)?\)$',
+    r'^#3      noYields \(.*/utils.dart:46(:9)?\)$',
   ];
   await doTestAwait(
       noYields,
@@ -277,12 +277,12 @@ Future<void> doTestsCausal() async {
           ]);
 
   final mixedYieldsExpected = const <String>[
-    r'^#0      throwAsync \(.*/utils.dart:(21|21:3)\)$',
+    r'^#0      throwAsync \(.*/utils.dart:21(:3)?\)$',
     r'^<asynchronous suspension>$',
-    r'^#1      mixedYields3 \(.*/utils.dart:(70|70:10)\)$',
-    r'^#2      mixedYields2 \(.*/utils.dart:(66|66:9)\)$',
+    r'^#1      mixedYields3 \(.*/utils.dart:70(:10)?\)$',
+    r'^#2      mixedYields2 \(.*/utils.dart:66(:9)?\)$',
     r'^<asynchronous suspension>$',
-    r'^#3      mixedYields \(.*/utils.dart:(61|61:9)\)$',
+    r'^#3      mixedYields \(.*/utils.dart:61(:9)?\)$',
   ];
   await doTestAwait(
       mixedYields,
@@ -322,12 +322,12 @@ Future<void> doTestsCausal() async {
           ]);
 
   final syncSuffixExpected = const <String>[
-    r'^#0      throwAsync \(.*/utils.dart:(21|21:3)\)$',
+    r'^#0      throwAsync \(.*/utils.dart:21(:3)?\)$',
     r'^<asynchronous suspension>$',
-    r'^#1      syncSuffix3 \(.*/utils.dart:(86|86:10)\)$',
-    r'^#2      syncSuffix2 \(.*/utils.dart:(82|82:9)\)$',
+    r'^#1      syncSuffix3 \(.*/utils.dart:86(:10)?\)$',
+    r'^#2      syncSuffix2 \(.*/utils.dart:82(:9)?\)$',
     r'^<asynchronous suspension>$',
-    r'^#3      syncSuffix \(.*/utils.dart:(77|77:9)\)$',
+    r'^#3      syncSuffix \(.*/utils.dart:77(:9)?\)$',
   ];
   await doTestAwait(
       syncSuffix,
@@ -367,7 +367,7 @@ Future<void> doTestsCausal() async {
           ]);
 
   final nonAsyncNoStackExpected = const <String>[
-    r'^#0      throwAsync \(.*/utils.dart:(21|21:3)\)$',
+    r'^#0      throwAsync \(.*/utils.dart:21(:3)?\)$',
     r'^<asynchronous suspension>$',
     r'^#1      nonAsyncNoStack2.<anonymous closure> ',
     r'^#2      _RootZone.runUnary ',
@@ -387,8 +387,8 @@ Future<void> doTestsCausal() async {
   await doTestAwaitCatchError(nonAsyncNoStack, nonAsyncNoStackExpected);
 
   final asyncStarThrowSyncExpected = const <String>[
-    r'^#0      throwSync \(.*/utils.dart:(16|16:3)\)$',
-    r'^#1      asyncStarThrowSync \(.*/utils.dart:(112|112:11)\)$',
+    r'^#0      throwSync \(.*/utils.dart:16(:3)?\)$',
+    r'^#1      asyncStarThrowSync \(.*/utils.dart:112(:11)?\)$',
     r'^<asynchronous suspension>$',
     r'^#2      awaitEveryAsyncStarThrowSync \(.+\)$',
   ];
@@ -430,9 +430,9 @@ Future<void> doTestsCausal() async {
           ]);
 
   final asyncStarThrowAsyncExpected = const <String>[
-    r'^#0      throwAsync \(.*/utils.dart:(21|21:3)\)$',
+    r'^#0      throwAsync \(.*/utils.dart:21(:3)?\)$',
     r'^<asynchronous suspension>$',
-    r'^#1      asyncStarThrowAsync \(.*/utils.dart:(126|126:11)\)$',
+    r'^#1      asyncStarThrowAsync \(.*/utils.dart:126(:11)?\)$',
     r'^<asynchronous suspension>$',
     r'^#2      awaitEveryAsyncStarThrowAsync \(.+\)$',
   ];
@@ -477,8 +477,8 @@ Future<void> doTestsCausal() async {
 // For: --no-causal-async-stacks
 Future<void> doTestsNoCausal() async {
   final allYieldExpected = const <String>[
-    r'^#0      throwSync \(.*/utils.dart:(16|16:3)\)$',
-    r'^#1      allYield3 \(.*/utils.dart:(39|39:3)\)$',
+    r'^#0      throwSync \(.*/utils.dart:16(:3)?\)$',
+    r'^#1      allYield3 \(.*/utils.dart:39(:3)?\)$',
     r'^#2      _RootZone.runUnary ',
     r'^#3      _FutureListener.handleValue ',
     r'^#4      Future._propagateToListeners.handleValueCallback ',
@@ -496,16 +496,16 @@ Future<void> doTestsNoCausal() async {
   await doTestAwaitCatchError(allYield, allYieldExpected);
 
   final noYieldsExpected = const <String>[
-    r'^#0      throwSync \(.*/utils.dart:(16|16:3)\)$',
-    r'^#1      noYields3 \(.*/utils.dart:(54|54:3)\)$',
+    r'^#0      throwSync \(.*/utils.dart:16(:3)?\)$',
+    r'^#1      noYields3 \(.*/utils.dart:54(:3)?\)$',
     r'^#2      _AsyncAwaitCompleter.start ',
-    r'^#3      noYields3 \(.*/utils.dart:(53|53:23)\)$',
-    r'^#4      noYields2 \(.*/utils.dart:(50|50:9)\)$',
+    r'^#3      noYields3 \(.*/utils.dart:53(:23)?\)$',
+    r'^#4      noYields2 \(.*/utils.dart:50(:9)?\)$',
     r'^#5      _AsyncAwaitCompleter.start ',
-    r'^#6      noYields2 \(.*/utils.dart:(49|49:23)\)$',
-    r'^#7      noYields \(.*/utils.dart:(46|46:9)\)$',
+    r'^#6      noYields2 \(.*/utils.dart:49(:23)?\)$',
+    r'^#7      noYields \(.*/utils.dart:46(:9)?\)$',
     r'^#8      _AsyncAwaitCompleter.start ',
-    r'^#9      noYields \(.*/utils.dart:(45|45:22)\)$',
+    r'^#9      noYields \(.*/utils.dart:45(:22)?\)$',
   ];
   await doTestAwait(
       noYields,
@@ -652,7 +652,7 @@ Future<void> doTestsNoCausal() async {
           ]);
 
   final mixedYieldsExpected = const <String>[
-    r'^#0      throwAsync \(.*/utils.dart:(21|21:3)\)$',
+    r'^#0      throwAsync \(.*/utils.dart:21(:3)?\)$',
     r'^#1      _RootZone.runUnary ',
     r'^#2      _FutureListener.handleValue ',
     r'^#3      Future._propagateToListeners.handleValueCallback ',
@@ -670,7 +670,7 @@ Future<void> doTestsNoCausal() async {
   await doTestAwaitCatchError(mixedYields, mixedYieldsExpected);
 
   final syncSuffixExpected = const <String>[
-    r'^#0      throwAsync \(.*/utils.dart:(21|21:3)\)$',
+    r'^#0      throwAsync \(.*/utils.dart:21(:3)?\)$',
     r'^#1      _RootZone.runUnary ',
     r'^#2      _FutureListener.handleValue ',
     r'^#3      Future._propagateToListeners.handleValueCallback ',
@@ -688,7 +688,7 @@ Future<void> doTestsNoCausal() async {
   await doTestAwaitCatchError(syncSuffix, syncSuffixExpected);
 
   final nonAsyncNoStackExpected = const <String>[
-    r'^#0      throwAsync \(.*/utils.dart:(21|21:3)\)$',
+    r'^#0      throwAsync \(.*/utils.dart:21(:3)?\)$',
     r'^#1      _RootZone.runUnary ',
     r'^#2      _FutureListener.handleValue ',
     r'^#3      Future._propagateToListeners.handleValueCallback ',
@@ -706,8 +706,8 @@ Future<void> doTestsNoCausal() async {
   await doTestAwaitCatchError(nonAsyncNoStack, nonAsyncNoStackExpected);
 
   final asyncStarThrowSyncExpected = const <String>[
-    r'^#0      throwSync \(.+/utils.dart:(16|16:3)\)$',
-    r'^#1      asyncStarThrowSync \(.+/utils.dart:(112|112:11)\)$',
+    r'^#0      throwSync \(.+/utils.dart:16(:3)?\)$',
+    r'^#1      asyncStarThrowSync \(.+/utils.dart:112(:11)?\)$',
     r'^#2      _RootZone.runUnary \(.+\)$',
     r'^#3      _FutureListener.handleValue \(.+\)$',
     r'^#4      Future._propagateToListeners.handleValueCallback \(.+\)$',
@@ -727,7 +727,7 @@ Future<void> doTestsNoCausal() async {
       awaitEveryAsyncStarThrowSync, asyncStarThrowSyncExpected);
 
   final asyncStarThrowAsyncExpected = const <String>[
-    r'^#0      throwAsync \(.*/utils.dart:(21|21:3)\)$',
+    r'^#0      throwAsync \(.*/utils.dart:21(:3)?\)$',
     r'^#1      _RootZone.runUnary ',
     r'^#2      _FutureListener.handleValue ',
     r'^#3      Future._propagateToListeners.handleValueCallback ',
@@ -750,12 +750,12 @@ Future<void> doTestsNoCausal() async {
 // For: --lazy-async-stacks
 Future<void> doTestsLazy() async {
   final allYieldExpected = const <String>[
-    r'^#0      throwSync \(.*/utils.dart:(16|16:3)\)$',
-    r'^#1      allYield3 \(.*/utils.dart:(39|39:3)\)$',
+    r'^#0      throwSync \(.*/utils.dart:16(:3)?\)$',
+    r'^#1      allYield3 \(.*/utils.dart:39(:3)?\)$',
     r'^<asynchronous suspension>$',
-    r'^#2      allYield2 \(.*/utils.dart:(0|34|34:3)\)$',
+    r'^#2      allYield2 \(.*/utils.dart:34(:3)?\)$',
     r'^<asynchronous suspension>$',
-    r'^#3      allYield \(.*/utils.dart:(0|29|29:3)\)$',
+    r'^#3      allYield \(.*/utils.dart:29(:3)?\)$',
     r'^<asynchronous suspension>$',
   ];
   await doTestAwait(
@@ -786,17 +786,17 @@ Future<void> doTestsLazy() async {
           ]);
 
   final noYieldsExpected = const <String>[
-    r'^#0      throwSync \(.*/utils.dart:(16|16:3)\)$',
-    r'^#1      noYields3 \(.*/utils.dart:(54|54:3)\)$',
+    r'^#0      throwSync \(.*/utils.dart:16(:3)?\)$',
+    r'^#1      noYields3 \(.*/utils.dart:54(:3)?\)$',
     // TODO(dart-vm): Figure out why this frame is flaky:
     r'^#2      _AsyncAwaitCompleter.start ',
-    r'^#3      noYields3 \(.*/utils.dart:(53|53:23)\)$',
-    r'^#4      noYields2 \(.*/utils.dart:(50|50:9)\)$',
+    r'^#3      noYields3 \(.*/utils.dart:53(:23)?\)$',
+    r'^#4      noYields2 \(.*/utils.dart:50(:9)?\)$',
     r'^#5      _AsyncAwaitCompleter.start ',
-    r'^#6      noYields2 \(.*/utils.dart:(49|49:23)\)$',
-    r'^#7      noYields \(.*/utils.dart:(46|46:9)\)$',
+    r'^#6      noYields2 \(.*/utils.dart:49(:23)?\)$',
+    r'^#7      noYields \(.*/utils.dart:46(:9)?\)$',
     r'^#8      _AsyncAwaitCompleter.start ',
-    r'^#9      noYields \(.*/utils.dart:(45|45:22)\)$',
+    r'^#9      noYields \(.*/utils.dart:45(:22)?\)$',
   ];
   await doTestAwait(
       noYields,
@@ -839,11 +839,11 @@ Future<void> doTestsLazy() async {
           ]);
 
   final mixedYieldsExpected = const <String>[
-    r'^#0      throwAsync \(.*/utils.dart:(21|21:3)\)$',
+    r'^#0      throwAsync \(.*/utils.dart:21(:3)?\)$',
     r'^<asynchronous suspension>$',
-    r'^#1      mixedYields2 \(.*/utils.dart:(0|66|66:3)\)$',
+    r'^#1      mixedYields2 \(.*/utils.dart:66(:3)?\)$',
     r'^<asynchronous suspension>$',
-    r'^#2      mixedYields \(.*/utils.dart:(0|61|61:3)\)$',
+    r'^#2      mixedYields \(.*/utils.dart:61(:3)?\)$',
     r'^<asynchronous suspension>$',
   ];
   await doTestAwait(
@@ -874,11 +874,11 @@ Future<void> doTestsLazy() async {
           ]);
 
   final syncSuffixExpected = const <String>[
-    r'^#0      throwAsync \(.*/utils.dart:(21|21:3)\)$',
+    r'^#0      throwAsync \(.*/utils.dart:21(:3)?\)$',
     r'^<asynchronous suspension>$',
-    r'^#1      syncSuffix2 \(.*/utils.dart:(0|82|82:3)\)$',
+    r'^#1      syncSuffix2 \(.*/utils.dart:82(:3)?\)$',
     r'^<asynchronous suspension>$',
-    r'^#2      syncSuffix \(.*/utils.dart:(0|77|77:3)\)$',
+    r'^#2      syncSuffix \(.*/utils.dart:77(:3)?\)$',
     r'^<asynchronous suspension>$',
   ];
   await doTestAwait(
@@ -909,11 +909,11 @@ Future<void> doTestsLazy() async {
           ]);
 
   final nonAsyncNoStackExpected = const <String>[
-    r'^#0      throwAsync \(.*/utils.dart:(21|21:3)\)$',
+    r'^#0      throwAsync \(.*/utils.dart:21(:3)?\)$',
     r'^<asynchronous suspension>$',
-    r'^#1      nonAsyncNoStack1 \(.*/utils.dart:(0|95|95:36)\)$',
+    r'^#1      nonAsyncNoStack1 \(.*/utils.dart:95(:36)?\)$',
     r'^<asynchronous suspension>$',
-    r'^#2      nonAsyncNoStack \(.*/utils.dart:(0|93|93:35)\)$',
+    r'^#2      nonAsyncNoStack \(.*/utils.dart:93(:35)?\)$',
     r'^<asynchronous suspension>$',
   ];
   await doTestAwait(
@@ -944,8 +944,8 @@ Future<void> doTestsLazy() async {
           ]);
 
   final asyncStarThrowSyncExpected = const <String>[
-    r'^#0      throwSync \(.+/utils.dart:(16|16:3)\)$',
-    r'^#1      asyncStarThrowSync \(.+/utils.dart:(112|112:11)\)$',
+    r'^#0      throwSync \(.+/utils.dart:16(:3)?\)$',
+    r'^#1      asyncStarThrowSync \(.+/utils.dart:112(:11)?\)$',
     r'^<asynchronous suspension>$',
     // Non-visible _onData frame.
     r'^<asynchronous suspension>$',
@@ -958,9 +958,9 @@ Future<void> doTestsLazy() async {
       awaitEveryAsyncStarThrowSync, asyncStarThrowSyncExpected);
 
   final asyncStarThrowAsyncExpected = const <String>[
-    r'^#0      throwAsync \(.*/utils.dart:(21|21:3)\)$',
+    r'^#0      throwAsync \(.*/utils.dart:21(:3)?\)$',
     r'^<asynchronous suspension>$',
-    r'^#1      asyncStarThrowAsync \(.*/utils.dart:(0|126|126:5)\)$',
+    r'^#1      asyncStarThrowAsync \(.*/utils.dart:126(:5)?\)$',
     r'^<asynchronous suspension>$',
     // Non-visible _onData frame.
     r'^<asynchronous suspension>$',

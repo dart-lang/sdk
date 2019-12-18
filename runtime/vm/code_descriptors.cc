@@ -463,7 +463,7 @@ void CodeSourceMapBuilder::NoteDescriptor(RawPcDescriptors::Kind kind,
   const uint8_t kCanThrow =
       RawPcDescriptors::kIcCall | RawPcDescriptors::kUnoptStaticCall |
       RawPcDescriptors::kRuntimeCall | RawPcDescriptors::kOther;
-  if (stack_traces_only_ && ((kind & kCanThrow) != 0)) {
+  if ((kind & kCanThrow) != 0) {
     BufferChangePosition(pos);
     BufferAdvancePC(pc_offset - buffered_pc_offset_);
     FlushBuffer();
