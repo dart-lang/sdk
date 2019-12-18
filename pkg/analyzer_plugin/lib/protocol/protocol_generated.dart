@@ -1299,23 +1299,20 @@ class AnalysisOutlineParams implements HasToJson {
  * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisService implements Enum {
-  static const AnalysisService FOLDING = const AnalysisService._("FOLDING");
+  static const AnalysisService FOLDING = AnalysisService._("FOLDING");
 
-  static const AnalysisService HIGHLIGHTS =
-      const AnalysisService._("HIGHLIGHTS");
+  static const AnalysisService HIGHLIGHTS = AnalysisService._("HIGHLIGHTS");
 
-  static const AnalysisService NAVIGATION =
-      const AnalysisService._("NAVIGATION");
+  static const AnalysisService NAVIGATION = AnalysisService._("NAVIGATION");
 
-  static const AnalysisService OCCURRENCES =
-      const AnalysisService._("OCCURRENCES");
+  static const AnalysisService OCCURRENCES = AnalysisService._("OCCURRENCES");
 
-  static const AnalysisService OUTLINE = const AnalysisService._("OUTLINE");
+  static const AnalysisService OUTLINE = AnalysisService._("OUTLINE");
 
   /**
    * A list containing all of the enum values that are defined.
    */
-  static const List<AnalysisService> VALUES = const <AnalysisService>[
+  static const List<AnalysisService> VALUES = <AnalysisService>[
     FOLDING,
     HIGHLIGHTS,
     NAVIGATION,
@@ -6145,13 +6142,13 @@ class RequestErrorCode implements Enum {
    *   of range.
    */
   static const RequestErrorCode INVALID_OVERLAY_CHANGE =
-      const RequestErrorCode._("INVALID_OVERLAY_CHANGE");
+      RequestErrorCode._("INVALID_OVERLAY_CHANGE");
 
   /**
    * One of the method parameters was invalid.
    */
   static const RequestErrorCode INVALID_PARAMETER =
-      const RequestErrorCode._("INVALID_PARAMETER");
+      RequestErrorCode._("INVALID_PARAMETER");
 
   /**
    * An internal error occurred in the plugin while attempting to respond to a
@@ -6159,19 +6156,19 @@ class RequestErrorCode implements Enum {
    * outside of handling a request.
    */
   static const RequestErrorCode PLUGIN_ERROR =
-      const RequestErrorCode._("PLUGIN_ERROR");
+      RequestErrorCode._("PLUGIN_ERROR");
 
   /**
    * A request was received that the plugin does not recognize, or cannot
    * handle in its current configuration.
    */
   static const RequestErrorCode UNKNOWN_REQUEST =
-      const RequestErrorCode._("UNKNOWN_REQUEST");
+      RequestErrorCode._("UNKNOWN_REQUEST");
 
   /**
    * A list containing all of the enum values that are defined.
    */
-  static const List<RequestErrorCode> VALUES = const <RequestErrorCode>[
+  static const List<RequestErrorCode> VALUES = <RequestErrorCode>[
     INVALID_OVERLAY_CHANGE,
     INVALID_PARAMETER,
     PLUGIN_ERROR,
@@ -6329,22 +6326,22 @@ class WatchEventType implements Enum {
   /**
    * An indication that the file or directory was added.
    */
-  static const WatchEventType ADD = const WatchEventType._("ADD");
+  static const WatchEventType ADD = WatchEventType._("ADD");
 
   /**
    * An indication that the file was modified.
    */
-  static const WatchEventType MODIFY = const WatchEventType._("MODIFY");
+  static const WatchEventType MODIFY = WatchEventType._("MODIFY");
 
   /**
    * An indication that the file or directory was removed.
    */
-  static const WatchEventType REMOVE = const WatchEventType._("REMOVE");
+  static const WatchEventType REMOVE = WatchEventType._("REMOVE");
 
   /**
    * A list containing all of the enum values that are defined.
    */
-  static const List<WatchEventType> VALUES = const <WatchEventType>[
+  static const List<WatchEventType> VALUES = <WatchEventType>[
     ADD,
     MODIFY,
     REMOVE
