@@ -2,12 +2,6 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/nnbd/assignability.dart:63:17: Error: A value of type 'Tearoffable' can't be assigned to a variable of type 'Function'.
-//  - 'Tearoffable' is from 'pkg/front_end/testcases/nnbd/assignability.dart'.
-//  - 'Function' is from 'dart:core'.
-//   functionVar = tearoffableArg;
-//                 ^
-//
 // pkg/front_end/testcases/nnbd/assignability.dart:114:22: Error: A value of type 'Object?' can't be assigned to a variable of type 'Object'.
 //  - 'Object' is from 'dart:core'.
 //   Object objectVar = objectNullableArg;
@@ -387,12 +381,6 @@ library;
 // pkg/front_end/testcases/nnbd/assignability.dart:201:17: Error: A value of type 'void Function()?' can't be assigned to a variable of type 'Function'.
 //  - 'Function' is from 'dart:core'.
 //   functionVar = toVoidNullableArg;
-//                 ^
-//
-// pkg/front_end/testcases/nnbd/assignability.dart:202:17: Error: A value of type 'Tearoffable?' can't be assigned to a variable of type 'Function'.
-//  - 'Tearoffable' is from 'pkg/front_end/testcases/nnbd/assignability.dart'.
-//  - 'Function' is from 'dart:core'.
-//   functionVar = tearoffableNullableArg;
 //                 ^
 //
 // pkg/front_end/testcases/nnbd/assignability.dart:203:17: Error: A value of type 'XnonNull' can't be assigned to a variable of type 'Function'.
@@ -1018,11 +1006,7 @@ static method ok<XnonNull extends core::Object = core::Object, YnonNull extends 
   core::Function functionVar = dynamicArg as{TypeError} core::Function;
   functionVar = functionArg;
   functionVar = toVoidArg;
-  functionVar = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:63:17: Error: A value of type 'Tearoffable' can't be assigned to a variable of type 'Function'.
- - 'Tearoffable' is from 'pkg/front_end/testcases/nnbd/assignability.dart'.
- - 'Function' is from 'dart:core'.
-  functionVar = tearoffableArg;
-                ^" in tearoffableArg as{TypeError} core::Function;
+  functionVar = let final self::Tearoffable #t1 = tearoffableArg in #t1.==(null) ?{() →* void} null : #t1.{self::Tearoffable::call};
   () → void toVoidVar = dynamicArg as{TypeError} () → void;
   toVoidVar = toVoidArg;
   toVoidVar = let final self::Tearoffable #t2 = tearoffableArg in #t2.==(null) ?{() →* void} null : #t2.{self::Tearoffable::call};
@@ -1337,11 +1321,7 @@ static method error<XnonNull extends core::Object = core::Object, YnonNull exten
  - 'Function' is from 'dart:core'.
   functionVar = toVoidNullableArg;
                 ^" in toVoidNullableArg as{TypeError} core::Function;
-  functionVar = let final<BottomType> #t87 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:202:17: Error: A value of type 'Tearoffable?' can't be assigned to a variable of type 'Function'.
- - 'Tearoffable' is from 'pkg/front_end/testcases/nnbd/assignability.dart'.
- - 'Function' is from 'dart:core'.
-  functionVar = tearoffableNullableArg;
-                ^" in tearoffableNullableArg as{TypeError} core::Function;
+  functionVar = let final self::Tearoffable? #t87 = tearoffableNullableArg in #t87.==(null) ?{() →* void} null : #t87.{self::Tearoffable::call};
   functionVar = let final<BottomType> #t88 = invalid-expression "pkg/front_end/testcases/nnbd/assignability.dart:203:17: Error: A value of type 'XnonNull' can't be assigned to a variable of type 'Function'.
  - 'Function' is from 'dart:core'.
   functionVar = xNonNullArg;
