@@ -39,6 +39,7 @@ import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
+import 'package:analyzer/src/source/sdk_ext.dart';
 import 'package:path/path.dart' as path;
 
 final String kCustomCss = '''
@@ -641,6 +642,10 @@ class ContextsPage extends DiagnosticPageWithNav {
             writeMap(sdk.urlMappings);
             buf.write(')');
           }
+          buf.write(')');
+        } else if (resolver is SdkExtUriResolver) {
+          buf.write(' (map = ');
+          writeMap(resolver.urlMappings);
           buf.write(')');
         } else if (resolver is PackageMapUriResolver) {
           writeMap(resolver.packageMap);

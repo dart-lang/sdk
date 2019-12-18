@@ -6,11 +6,11 @@ import 'dart:async';
 import 'dart:io' as io;
 import 'dart:isolate';
 
+import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/context/builder.dart';
-import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
@@ -29,6 +29,7 @@ import 'package:analyzer/src/manifest/manifest_validator.dart';
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/source/path_filter.dart';
+import 'package:analyzer/src/source/sdk_ext.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/summary_file_builder.dart';
@@ -459,6 +460,11 @@ class Driver with HasContextMixin implements CommandLineStarter {
       }
     }
 
+    // Next SdkExts.
+    if (packageInfo.packageMap != null) {
+      resolvers.add(new SdkExtUriResolver(packageInfo.packageMap));
+    }
+
     // Then package URIs from summaries.
     resolvers.add(new InSummaryUriResolver(resourceProvider, summaryDataStore));
 
@@ -762,12 +768,12 @@ class _PackageInfo {
   _PackageInfo(this.packages, this.packageMap);
 }
 
+/// [SdkExtUriResolver] needs a Map from package name to folder. In the case
+/// that the analyzer is invoked with a --package-root option, we need to
+/// manually create this mapping. Given [packageRootPath],
+/// [_PackageRootPackageMapBuilder] creates a simple mapping from package name
+/// to full path on disk (resolving any symbolic links).
 class _PackageRootPackageMapBuilder {
-  /// In the case that the analyzer is invoked with a --package-root option, we
-  /// need to manually create the mapping from package name to folder.
-  ///
-  /// Given [packageRootPath], creates a simple mapping from package name
-  /// to full path on disk (resolving any symbolic links).
   static Map<String, List<Folder>> buildPackageMap(String packageRootPath) {
     var packageRoot = new io.Directory(packageRootPath);
     if (!packageRoot.existsSync()) {

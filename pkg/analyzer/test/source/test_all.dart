@@ -10,6 +10,7 @@ import 'embedder_test.dart' // ignore: deprecated_member_use_from_same_package
 import 'error_processor_test.dart' as error_processor_test;
 import 'package_map_resolver_test.dart' as package_map_resolver_test;
 import 'path_filter_test.dart' as path_filter_test;
+import 'sdk_ext_test.dart' as sdk_ext_test;
 
 main() {
   defineReflectiveSuite(() {
@@ -18,5 +19,6 @@ main() {
     error_processor_test.main();
     package_map_resolver_test.main();
     path_filter_test.main();
+    sdk_ext_test.main();
   }, name: 'source');
 }
