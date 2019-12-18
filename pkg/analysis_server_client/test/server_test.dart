@@ -6,8 +6,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:analysis_server_client/server.dart';
 import 'package:analysis_server_client/protocol.dart';
+import 'package:analysis_server_client/server.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -15,8 +15,8 @@ void main() {
   Server server;
 
   setUp(() async {
-    process = new MockProcess();
-    server = new Server(process: process);
+    process = MockProcess();
+    server = Server(process: process);
   });
 
   group('listenToOutput', () {
@@ -50,7 +50,7 @@ void main() {
       process.stdout = _eventMessage();
       process.stderr = _noMessage();
 
-      final completer = new Completer();
+      final completer = Completer();
       void eventHandler(Notification notification) {
         expect(notification.event, 'fooEvent');
         expect(notification.params.length, 2);
@@ -67,34 +67,34 @@ void main() {
 
   group('stop', () {
     test('ok', () async {
-      final mockout = new StreamController<List<int>>();
+      final mockout = StreamController<List<int>>();
       process.stdout = mockout.stream;
       process.stderr = _noMessage();
       process.mockin.controller.stream.first.then((_) {
         String encoded = json.encode({'id': '0'});
         mockout.add(utf8.encoder.convert('$encoded\n'));
       });
-      process.exitCode = new Future.value(0);
+      process.exitCode = Future.value(0);
 
       server.listenToOutput();
       await server.stop(timeLimit: const Duration(milliseconds: 1));
       expect(process.killed, isFalse);
     });
     test('stopped', () async {
-      final mockout = new StreamController<List<int>>();
+      final mockout = StreamController<List<int>>();
       process.stdout = mockout.stream;
       process.stderr = _noMessage();
-      process.exitCode = new Future.value(0);
+      process.exitCode = Future.value(0);
 
       server.listenToOutput();
       await server.stop(timeLimit: const Duration(milliseconds: 1));
       expect(process.killed, isFalse);
     });
     test('kill', () async {
-      final mockout = new StreamController<List<int>>();
+      final mockout = StreamController<List<int>>();
       process.stdout = mockout.stream;
       process.stderr = _noMessage();
-      process.exitCode = new Future.delayed(const Duration(seconds: 1));
+      process.exitCode = Future.delayed(const Duration(seconds: 1));
 
       server.listenToOutput();
       await server.stop(timeLimit: const Duration(milliseconds: 10));
@@ -141,15 +141,12 @@ Stream<List<int>> _noMessage() async* {
 }
 
 class MockProcess implements Process {
-  MockStdin mockin = new MockStdin();
+  MockStdin mockin = MockStdin();
 
   bool killed = false;
 
   @override
   Stream<List<int>> stderr;
-
-  @override
-  IOSink get stdin => mockin;
 
   @override
   Stream<List<int>> stdout;
@@ -161,6 +158,9 @@ class MockProcess implements Process {
   int get pid => null;
 
   @override
+  IOSink get stdin => mockin;
+
+  @override
   bool kill([ProcessSignal signal = ProcessSignal.sigterm]) {
     bool wasKilled = killed;
     killed = true;
@@ -169,7 +169,7 @@ class MockProcess implements Process {
 }
 
 class MockStdin implements IOSink {
-  final controller = new StreamController<String>();
+  final controller = StreamController<String>();
 
   @override
   Encoding encoding;

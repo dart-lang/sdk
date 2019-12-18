@@ -5,6 +5,9 @@
 // This file has been automatically generated. Please do not edit it manually.
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/spec/generate_files".
+//
+// TODO(brianwilkerson) This file is not being generated as advertised, but it
+//  should be generated. Fix the generator to generate this file.
 
 import 'dart:convert' hide JsonDecoder;
 
@@ -58,7 +61,7 @@ class AddContentOverlay implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "content");
       }
-      return new AddContentOverlay(content);
+      return AddContentOverlay(content);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "AddContentOverlay", json);
     }
@@ -251,21 +254,21 @@ class AnalysisError implements HasToJson {
     if (json is Map) {
       AnalysisErrorSeverity severity;
       if (json.containsKey("severity")) {
-        severity = new AnalysisErrorSeverity.fromJson(
+        severity = AnalysisErrorSeverity.fromJson(
             jsonDecoder, jsonPath + ".severity", json["severity"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "severity");
       }
       AnalysisErrorType type;
       if (json.containsKey("type")) {
-        type = new AnalysisErrorType.fromJson(
+        type = AnalysisErrorType.fromJson(
             jsonDecoder, jsonPath + ".type", json["type"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "type");
       }
       Location location;
       if (json.containsKey("location")) {
-        location = new Location.fromJson(
+        location = Location.fromJson(
             jsonDecoder, jsonPath + ".location", json["location"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "location");
@@ -292,7 +295,7 @@ class AnalysisError implements HasToJson {
       if (json.containsKey("hasFix")) {
         hasFix = jsonDecoder.decodeBool(jsonPath + ".hasFix", json["hasFix"]);
       }
-      return new AnalysisError(severity, type, location, message, code,
+      return AnalysisError(severity, type, location, message, code,
           correction: correction, hasFix: hasFix);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "AnalysisError", json);
@@ -388,14 +391,14 @@ class AnalysisErrorSeverity implements Enum {
       case "ERROR":
         return ERROR;
     }
-    throw new Exception('Illegal enum value: $name');
+    throw Exception('Illegal enum value: $name');
   }
 
   factory AnalysisErrorSeverity.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json is String) {
       try {
-        return new AnalysisErrorSeverity(json);
+        return AnalysisErrorSeverity(json);
       } catch (_) {
         // Fall through
       }
@@ -485,14 +488,14 @@ class AnalysisErrorType implements Enum {
       case "TODO":
         return TODO;
     }
-    throw new Exception('Illegal enum value: $name');
+    throw Exception('Illegal enum value: $name');
   }
 
   factory AnalysisErrorType.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json is String) {
       try {
-        return new AnalysisErrorType(json);
+        return AnalysisErrorType(json);
       } catch (_) {
         // Fall through
       }
@@ -551,11 +554,11 @@ class ChangeContentOverlay implements HasToJson {
             jsonPath + ".edits",
             json["edits"],
             (String jsonPath, Object json) =>
-                new SourceEdit.fromJson(jsonDecoder, jsonPath, json));
+                SourceEdit.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "edits");
       }
-      return new ChangeContentOverlay(edits);
+      return ChangeContentOverlay(edits);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "ChangeContentOverlay", json);
     }
@@ -1049,7 +1052,7 @@ class CompletionSuggestion implements HasToJson {
     if (json is Map) {
       CompletionSuggestionKind kind;
       if (json.containsKey("kind")) {
-        kind = new CompletionSuggestionKind.fromJson(
+        kind = CompletionSuggestionKind.fromJson(
             jsonDecoder, jsonPath + ".kind", json["kind"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "kind");
@@ -1131,7 +1134,7 @@ class CompletionSuggestion implements HasToJson {
       }
       Element element;
       if (json.containsKey("element")) {
-        element = new Element.fromJson(
+        element = Element.fromJson(
             jsonDecoder, jsonPath + ".element", json["element"]);
       }
       String returnType;
@@ -1175,8 +1178,8 @@ class CompletionSuggestion implements HasToJson {
         importUri = jsonDecoder.decodeString(
             jsonPath + ".importUri", json["importUri"]);
       }
-      return new CompletionSuggestion(kind, relevance, completion,
-          selectionOffset, selectionLength, isDeprecated, isPotential,
+      return CompletionSuggestion(kind, relevance, completion, selectionOffset,
+          selectionLength, isDeprecated, isPotential,
           displayText: displayText,
           docSummary: docSummary,
           docComplete: docComplete,
@@ -1435,14 +1438,14 @@ class CompletionSuggestionKind implements Enum {
       case "PARAMETER":
         return PARAMETER;
     }
-    throw new Exception('Illegal enum value: $name');
+    throw Exception('Illegal enum value: $name');
   }
 
   factory CompletionSuggestionKind.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json is String) {
       try {
-        return new CompletionSuggestionKind(json);
+        return CompletionSuggestionKind(json);
       } catch (_) {
         // Fall through
       }
@@ -1649,8 +1652,8 @@ class Element implements HasToJson {
     if (json is Map) {
       ElementKind kind;
       if (json.containsKey("kind")) {
-        kind = new ElementKind.fromJson(
-            jsonDecoder, jsonPath + ".kind", json["kind"]);
+        kind =
+            ElementKind.fromJson(jsonDecoder, jsonPath + ".kind", json["kind"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "kind");
       }
@@ -1662,7 +1665,7 @@ class Element implements HasToJson {
       }
       Location location;
       if (json.containsKey("location")) {
-        location = new Location.fromJson(
+        location = Location.fromJson(
             jsonDecoder, jsonPath + ".location", json["location"]);
       }
       int flags;
@@ -1686,7 +1689,7 @@ class Element implements HasToJson {
         typeParameters = jsonDecoder.decodeString(
             jsonPath + ".typeParameters", json["typeParameters"]);
       }
-      return new Element(kind, name, flags,
+      return Element(kind, name, flags,
           location: location,
           parameters: parameters,
           returnType: returnType,
@@ -1944,14 +1947,14 @@ class ElementKind implements Enum {
       case "UNKNOWN":
         return UNKNOWN;
     }
-    throw new Exception('Illegal enum value: $name');
+    throw Exception('Illegal enum value: $name');
   }
 
   factory ElementKind.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json is String) {
       try {
-        return new ElementKind(json);
+        return ElementKind(json);
       } catch (_) {
         // Fall through
       }
@@ -2037,14 +2040,14 @@ class FoldingKind implements Enum {
       case "LITERAL":
         return LITERAL;
     }
-    throw new Exception('Illegal enum value: $name');
+    throw Exception('Illegal enum value: $name');
   }
 
   factory FoldingKind.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json is String) {
       try {
-        return new FoldingKind(json);
+        return FoldingKind(json);
       } catch (_) {
         // Fall through
       }
@@ -2129,8 +2132,8 @@ class FoldingRegion implements HasToJson {
     if (json is Map) {
       FoldingKind kind;
       if (json.containsKey("kind")) {
-        kind = new FoldingKind.fromJson(
-            jsonDecoder, jsonPath + ".kind", json["kind"]);
+        kind =
+            FoldingKind.fromJson(jsonDecoder, jsonPath + ".kind", json["kind"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "kind");
       }
@@ -2146,7 +2149,7 @@ class FoldingRegion implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "length");
       }
-      return new FoldingRegion(kind, offset, length);
+      return FoldingRegion(kind, offset, length);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "FoldingRegion", json);
     }
@@ -2255,7 +2258,7 @@ class HighlightRegion implements HasToJson {
     if (json is Map) {
       HighlightRegionType type;
       if (json.containsKey("type")) {
-        type = new HighlightRegionType.fromJson(
+        type = HighlightRegionType.fromJson(
             jsonDecoder, jsonPath + ".type", json["type"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "type");
@@ -2272,7 +2275,7 @@ class HighlightRegion implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "length");
       }
-      return new HighlightRegion(type, offset, length);
+      return HighlightRegion(type, offset, length);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "HighlightRegion", json);
     }
@@ -2987,14 +2990,14 @@ class HighlightRegionType implements Enum {
       case "VALID_STRING_ESCAPE":
         return VALID_STRING_ESCAPE;
     }
-    throw new Exception('Illegal enum value: $name');
+    throw Exception('Illegal enum value: $name');
   }
 
   factory HighlightRegionType.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json is String) {
       try {
-        return new HighlightRegionType(json);
+        return HighlightRegionType(json);
       } catch (_) {
         // Fall through
       }
@@ -3111,7 +3114,7 @@ class KytheEntry implements HasToJson {
     if (json is Map) {
       KytheVName source;
       if (json.containsKey("source")) {
-        source = new KytheVName.fromJson(
+        source = KytheVName.fromJson(
             jsonDecoder, jsonPath + ".source", json["source"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "source");
@@ -3122,7 +3125,7 @@ class KytheEntry implements HasToJson {
       }
       KytheVName target;
       if (json.containsKey("target")) {
-        target = new KytheVName.fromJson(
+        target = KytheVName.fromJson(
             jsonDecoder, jsonPath + ".target", json["target"]);
       }
       String fact;
@@ -3136,8 +3139,7 @@ class KytheEntry implements HasToJson {
         value = jsonDecoder.decodeList(
             jsonPath + ".value", json["value"], jsonDecoder.decodeInt);
       }
-      return new KytheEntry(source, fact,
-          kind: kind, target: target, value: value);
+      return KytheEntry(source, fact, kind: kind, target: target, value: value);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "KytheEntry", json);
     }
@@ -3333,7 +3335,7 @@ class KytheVName implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "language");
       }
-      return new KytheVName(signature, corpus, root, path, language);
+      return KytheVName(signature, corpus, root, path, language);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "KytheVName", json);
     }
@@ -3455,7 +3457,7 @@ class LinkedEditGroup implements HasToJson {
             jsonPath + ".positions",
             json["positions"],
             (String jsonPath, Object json) =>
-                new Position.fromJson(jsonDecoder, jsonPath, json));
+                Position.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "positions");
       }
@@ -3471,11 +3473,11 @@ class LinkedEditGroup implements HasToJson {
             jsonPath + ".suggestions",
             json["suggestions"],
             (String jsonPath, Object json) =>
-                new LinkedEditSuggestion.fromJson(jsonDecoder, jsonPath, json));
+                LinkedEditSuggestion.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "suggestions");
       }
-      return new LinkedEditGroup(positions, length, suggestions);
+      return LinkedEditGroup(positions, length, suggestions);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "LinkedEditGroup", json);
     }
@@ -3598,12 +3600,12 @@ class LinkedEditSuggestion implements HasToJson {
       }
       LinkedEditSuggestionKind kind;
       if (json.containsKey("kind")) {
-        kind = new LinkedEditSuggestionKind.fromJson(
+        kind = LinkedEditSuggestionKind.fromJson(
             jsonDecoder, jsonPath + ".kind", json["kind"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "kind");
       }
-      return new LinkedEditSuggestion(value, kind);
+      return LinkedEditSuggestion(value, kind);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "LinkedEditSuggestion", json);
     }
@@ -3684,14 +3686,14 @@ class LinkedEditSuggestionKind implements Enum {
       case "VARIABLE":
         return VARIABLE;
     }
-    throw new Exception('Illegal enum value: $name');
+    throw Exception('Illegal enum value: $name');
   }
 
   factory LinkedEditSuggestionKind.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json is String) {
       try {
-        return new LinkedEditSuggestionKind(json);
+        return LinkedEditSuggestionKind(json);
       } catch (_) {
         // Fall through
       }
@@ -3845,7 +3847,7 @@ class Location implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "startColumn");
       }
-      return new Location(file, offset, length, startLine, startColumn);
+      return Location(file, offset, length, startLine, startColumn);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "Location", json);
     }
@@ -3981,7 +3983,7 @@ class NavigationRegion implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "targets");
       }
-      return new NavigationRegion(offset, length, targets);
+      return NavigationRegion(offset, length, targets);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "NavigationRegion", json);
     }
@@ -4148,8 +4150,8 @@ class NavigationTarget implements HasToJson {
     if (json is Map) {
       ElementKind kind;
       if (json.containsKey("kind")) {
-        kind = new ElementKind.fromJson(
-            jsonDecoder, jsonPath + ".kind", json["kind"]);
+        kind =
+            ElementKind.fromJson(jsonDecoder, jsonPath + ".kind", json["kind"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "kind");
       }
@@ -4186,7 +4188,7 @@ class NavigationTarget implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "startColumn");
       }
-      return new NavigationTarget(
+      return NavigationTarget(
           kind, fileIndex, offset, length, startLine, startColumn);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "NavigationTarget", json);
@@ -4305,7 +4307,7 @@ class Occurrences implements HasToJson {
     if (json is Map) {
       Element element;
       if (json.containsKey("element")) {
-        element = new Element.fromJson(
+        element = Element.fromJson(
             jsonDecoder, jsonPath + ".element", json["element"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "element");
@@ -4323,7 +4325,7 @@ class Occurrences implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "length");
       }
-      return new Occurrences(element, offsets, length);
+      return Occurrences(element, offsets, length);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "Occurrences", json);
     }
@@ -4494,7 +4496,7 @@ class Outline implements HasToJson {
     if (json is Map) {
       Element element;
       if (json.containsKey("element")) {
-        element = new Element.fromJson(
+        element = Element.fromJson(
             jsonDecoder, jsonPath + ".element", json["element"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "element");
@@ -4531,9 +4533,9 @@ class Outline implements HasToJson {
             jsonPath + ".children",
             json["children"],
             (String jsonPath, Object json) =>
-                new Outline.fromJson(jsonDecoder, jsonPath, json));
+                Outline.fromJson(jsonDecoder, jsonPath, json));
       }
-      return new Outline(element, offset, length, codeOffset, codeLength,
+      return Outline(element, offset, length, codeOffset, codeLength,
           children: children);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "Outline", json);
@@ -4674,7 +4676,7 @@ class ParameterInfo implements HasToJson {
     if (json is Map) {
       ParameterKind kind;
       if (json.containsKey("kind")) {
-        kind = new ParameterKind.fromJson(
+        kind = ParameterKind.fromJson(
             jsonDecoder, jsonPath + ".kind", json["kind"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "kind");
@@ -4696,7 +4698,7 @@ class ParameterInfo implements HasToJson {
         defaultValue = jsonDecoder.decodeString(
             jsonPath + ".defaultValue", json["defaultValue"]);
       }
-      return new ParameterInfo(kind, name, type, defaultValue: defaultValue);
+      return ParameterInfo(kind, name, type, defaultValue: defaultValue);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "ParameterInfo", json);
     }
@@ -4789,14 +4791,14 @@ class ParameterKind implements Enum {
       case "REQUIRED":
         return REQUIRED;
     }
-    throw new Exception('Illegal enum value: $name');
+    throw Exception('Illegal enum value: $name');
   }
 
   factory ParameterKind.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json is String) {
       try {
-        return new ParameterKind(json);
+        return ParameterKind(json);
       } catch (_) {
         // Fall through
       }
@@ -4874,7 +4876,7 @@ class Position implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "offset");
       }
-      return new Position(file, offset);
+      return Position(file, offset);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "Position", json);
     }
@@ -4992,14 +4994,14 @@ class RefactoringKind implements Enum {
       case "RENAME":
         return RENAME;
     }
-    throw new Exception('Illegal enum value: $name');
+    throw Exception('Illegal enum value: $name');
   }
 
   factory RefactoringKind.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json is String) {
       try {
-        return new RefactoringKind(json);
+        return RefactoringKind(json);
       } catch (_) {
         // Fall through
       }
@@ -5130,7 +5132,7 @@ class RefactoringMethodParameter implements HasToJson {
       }
       RefactoringMethodParameterKind kind;
       if (json.containsKey("kind")) {
-        kind = new RefactoringMethodParameterKind.fromJson(
+        kind = RefactoringMethodParameterKind.fromJson(
             jsonDecoder, jsonPath + ".kind", json["kind"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "kind");
@@ -5152,7 +5154,7 @@ class RefactoringMethodParameter implements HasToJson {
         parameters = jsonDecoder.decodeString(
             jsonPath + ".parameters", json["parameters"]);
       }
-      return new RefactoringMethodParameter(kind, type, name,
+      return RefactoringMethodParameter(kind, type, name,
           id: id, parameters: parameters);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "RefactoringMethodParameter", json);
@@ -5242,14 +5244,14 @@ class RefactoringMethodParameterKind implements Enum {
       case "NAMED":
         return NAMED;
     }
-    throw new Exception('Illegal enum value: $name');
+    throw Exception('Illegal enum value: $name');
   }
 
   factory RefactoringMethodParameterKind.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json is String) {
       try {
-        return new RefactoringMethodParameterKind(json);
+        return RefactoringMethodParameterKind(json);
       } catch (_) {
         // Fall through
       }
@@ -5339,7 +5341,7 @@ class RefactoringProblem implements HasToJson {
     if (json is Map) {
       RefactoringProblemSeverity severity;
       if (json.containsKey("severity")) {
-        severity = new RefactoringProblemSeverity.fromJson(
+        severity = RefactoringProblemSeverity.fromJson(
             jsonDecoder, jsonPath + ".severity", json["severity"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "severity");
@@ -5353,10 +5355,10 @@ class RefactoringProblem implements HasToJson {
       }
       Location location;
       if (json.containsKey("location")) {
-        location = new Location.fromJson(
+        location = Location.fromJson(
             jsonDecoder, jsonPath + ".location", json["location"]);
       }
-      return new RefactoringProblem(severity, message, location: location);
+      return RefactoringProblem(severity, message, location: location);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "RefactoringProblem", json);
     }
@@ -5468,14 +5470,14 @@ class RefactoringProblemSeverity implements Enum {
       case "FATAL":
         return FATAL;
     }
-    throw new Exception('Illegal enum value: $name');
+    throw Exception('Illegal enum value: $name');
   }
 
   factory RefactoringProblemSeverity.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json is String) {
       try {
-        return new RefactoringProblemSeverity(json);
+        return RefactoringProblemSeverity(json);
       } catch (_) {
         // Fall through
       }
@@ -5517,7 +5519,7 @@ class RemoveContentOverlay implements HasToJson {
       if (json["type"] != "remove") {
         throw jsonDecoder.mismatch(jsonPath, "equal " + "remove", json);
       }
-      return new RemoveContentOverlay();
+      return RemoveContentOverlay();
     } else {
       throw jsonDecoder.mismatch(jsonPath, "RemoveContentOverlay", json);
     }
@@ -5679,7 +5681,7 @@ class SourceChange implements HasToJson {
             jsonPath + ".edits",
             json["edits"],
             (String jsonPath, Object json) =>
-                new SourceFileEdit.fromJson(jsonDecoder, jsonPath, json));
+                SourceFileEdit.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "edits");
       }
@@ -5689,20 +5691,20 @@ class SourceChange implements HasToJson {
             jsonPath + ".linkedEditGroups",
             json["linkedEditGroups"],
             (String jsonPath, Object json) =>
-                new LinkedEditGroup.fromJson(jsonDecoder, jsonPath, json));
+                LinkedEditGroup.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "linkedEditGroups");
       }
       Position selection;
       if (json.containsKey("selection")) {
-        selection = new Position.fromJson(
+        selection = Position.fromJson(
             jsonDecoder, jsonPath + ".selection", json["selection"]);
       }
       String id;
       if (json.containsKey("id")) {
         id = jsonDecoder.decodeString(jsonPath + ".id", json["id"]);
       }
-      return new SourceChange(message,
+      return SourceChange(message,
           edits: edits,
           linkedEditGroups: linkedEditGroups,
           selection: selection,
@@ -5913,7 +5915,7 @@ class SourceEdit implements HasToJson {
       if (json.containsKey("id")) {
         id = jsonDecoder.decodeString(jsonPath + ".id", json["id"]);
       }
-      return new SourceEdit(offset, length, replacement, id: id);
+      return SourceEdit(offset, length, replacement, id: id);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "SourceEdit", json);
     }
@@ -6066,11 +6068,11 @@ class SourceFileEdit implements HasToJson {
             jsonPath + ".edits",
             json["edits"],
             (String jsonPath, Object json) =>
-                new SourceEdit.fromJson(jsonDecoder, jsonPath, json));
+                SourceEdit.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "edits");
       }
-      return new SourceFileEdit(file, fileStamp, edits: edits);
+      return SourceFileEdit(file, fileStamp, edits: edits);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "SourceFileEdit", json);
     }

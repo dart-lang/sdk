@@ -5,8 +5,8 @@
 import 'dart:async';
 import 'dart:io' show Directory, Platform, ProcessSignal, exit;
 
-import 'package:analysis_server_client/handler/notification_handler.dart';
 import 'package:analysis_server_client/handler/connection_handler.dart';
+import 'package:analysis_server_client/handler/notification_handler.dart';
 import 'package:analysis_server_client/protocol.dart';
 import 'package:analysis_server_client/server.dart';
 import 'package:path/path.dart' as path;
@@ -18,11 +18,11 @@ main(List<String> args) async {
   print('Analyzing $target');
 
   // Launch the server
-  Server server = new Server();
+  Server server = Server();
   await server.start();
 
   // Connect to the server
-  _Handler handler = new _Handler(server);
+  _Handler handler = _Handler(server);
   server.listenToOutput(notificationProcessor: handler.handleEvent);
   if (!await handler.serverConnected(timeLimit: const Duration(seconds: 15))) {
     exit(1);
@@ -30,9 +30,9 @@ main(List<String> args) async {
 
   // Request analysis
   await server.send(SERVER_REQUEST_SET_SUBSCRIPTIONS,
-      new ServerSetSubscriptionsParams([ServerService.STATUS]).toJson());
+      ServerSetSubscriptionsParams([ServerService.STATUS]).toJson());
   await server.send(ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS,
-      new AnalysisSetAnalysisRootsParams([target], const []).toJson());
+      AnalysisSetAnalysisRootsParams([target], const []).toJson());
 
   // Continue to watch for analysis until the user presses Ctrl-C
   StreamSubscription<ProcessSignal> subscription;
@@ -41,6 +41,26 @@ main(List<String> args) async {
     subscription.cancel();
     await server.stop();
   });
+}
+
+Future<String> parseArgs(List<String> args) async {
+  if (args.length != 1) {
+    printUsageAndExit('Expected exactly one directory');
+  }
+  final dir = Directory(path.normalize(path.absolute(args[0])));
+  if (!(await dir.exists())) {
+    printUsageAndExit('Could not find directory ${dir.path}');
+  }
+  return dir.path;
+}
+
+void printUsageAndExit(String errorMessage) {
+  print(errorMessage);
+  print('');
+  var appName = path.basename(Platform.script.toFilePath());
+  print('Usage: $appName <directory path>');
+  print('  Analyze the *.dart source files in <directory path>');
+  exit(1);
 }
 
 class _Handler with NotificationHandler, ConnectionHandler {
@@ -105,24 +125,4 @@ class _Handler with NotificationHandler, ConnectionHandler {
       print('--------- ctrl-c to exit ---------');
     }
   }
-}
-
-Future<String> parseArgs(List<String> args) async {
-  if (args.length != 1) {
-    printUsageAndExit('Expected exactly one directory');
-  }
-  final dir = new Directory(path.normalize(path.absolute(args[0])));
-  if (!(await dir.exists())) {
-    printUsageAndExit('Could not find directory ${dir.path}');
-  }
-  return dir.path;
-}
-
-void printUsageAndExit(String errorMessage) {
-  print(errorMessage);
-  print('');
-  var appName = path.basename(Platform.script.toFilePath());
-  print('Usage: $appName <directory path>');
-  print('  Analyze the *.dart source files in <directory path>');
-  exit(1);
 }
