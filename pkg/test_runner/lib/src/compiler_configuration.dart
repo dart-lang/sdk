@@ -367,7 +367,9 @@ class Dart2xCompilerConfiguration extends CompilerConfiguration {
       : super._subclass(configuration);
 
   String computeCompilerPath() {
-    var prefix = 'sdk/bin';
+    var prefix =
+        // TODO(38701): Cleanup after merging the forked SDK into mainline.
+        _configuration.nnbdMode == NnbdMode.legacy ? 'sdk/bin' : 'sdk_nnbd/bin';
     var suffix = shellScriptExtension;
 
     if (_isHostChecked) {
@@ -459,7 +461,9 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
       CommandArtifact artifact) {
     var sdk = _useSdk
         ? Uri.directory(_configuration.buildDirectory).resolve('dart-sdk/')
-        : Uri.directory(Repository.dir.toNativePath()).resolve('sdk/');
+        : Uri.directory(Repository.dir.toNativePath()).resolve(
+            // TODO(38701): Cleanup after merging the forked SDK into mainline.
+            _configuration.nnbdMode == NnbdMode.legacy ? 'sdk/' : 'sdk_nnbd/');
     var preambleDir = sdk.resolve('lib/_internal/js_runtime/lib/preambles/');
     return runtimeConfiguration.dart2jsPreambles(preambleDir)
       ..add(artifact.filename);
@@ -492,6 +496,7 @@ class DevCompilerConfiguration extends CompilerConfiguration {
   String computeCompilerPath() {
     var dir = _useSdk
         ? "${_configuration.buildDirectory}/dart-sdk"
+        // TODO(38701): Cleanup after merging the forked SDK into mainline.
         : _configuration.nnbdMode == NnbdMode.legacy ? "sdk" : "sdk_nnbd";
     return "$dir/bin/dartdevc$shellScriptExtension";
   }
@@ -916,7 +921,9 @@ class AnalyzerCompilerConfiguration extends CompilerConfiguration {
   int get timeoutMultiplier => 4;
 
   String computeCompilerPath() {
-    var prefix = 'sdk/bin';
+    var prefix =
+        // TODO(38701): Cleanup after merging the forked SDK into mainline.
+        _configuration.nnbdMode == NnbdMode.legacy ? 'sdk/bin' : 'sdk_nnbd/bin';
     if (_isHostChecked) {
       if (_useSdk) {
         throw "--host-checked and --use-sdk cannot be used together";
