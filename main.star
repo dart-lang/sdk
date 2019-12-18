@@ -498,6 +498,12 @@ dart_ci_sandbox_builder(
     triggered_by=["dart-gitiles-trigger-flutter"],
 )
 
+# vm|nnbd
+dart_vm_extra_builder(
+    "vm-kernel-nnbd-linux-debug-x64", category="vm|nnbd|d")
+dart_vm_extra_builder(
+    "vm-kernel-nnbd-linux-release-x64", category="vm|nnbd|r")
+
 # vm|app-kernel
 dart_vm_extra_builder(
     "app-kernel-linux-debug-x64", category="vm|app-kernel|d64")
