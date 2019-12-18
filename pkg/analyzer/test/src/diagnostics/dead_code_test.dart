@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/test_utilities/package_mixin.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -13,93 +11,7 @@ import '../dart/resolution/driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DeadCodeTest);
-    defineReflectiveTests(DeadCodeNullCoalesceTest);
   });
-}
-
-@reflectiveTest
-class DeadCodeNullCoalesceTest extends DriverResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions =>
-      AnalysisOptionsImpl()..enabledExperiments = [EnableString.non_nullable];
-
-  test_assignCompound_dynamic() async {
-    await assertNoErrorsInCode(r'''
-m() {
-  dynamic x;
-  x ??= 1;
-}
-''');
-  }
-
-  test_assignCompound_map() async {
-    await assertNoErrorsInCode(r'''
-class MyMap<K, V> {
-  V? operator[](K key) => null;
-  void operator[]=(K key, V value) {}
-}
-
-f(MyMap<int, int> map) {
-  map[0] ??= 0;
-}
-''');
-  }
-
-  test_assignCompound_nonNullable() async {
-    await assertErrorsInCode(r'''
-m(int x) {
-  x ??= 1;
-}
-''', [
-      error(HintCode.DEAD_CODE, 19, 1),
-    ]);
-  }
-
-  test_assignCompound_nullable() async {
-    await assertNoErrorsInCode(r'''
-m() {
-  int? x;
-  x ??= 1;
-}
-''');
-  }
-
-  test_binary_dynamic() async {
-    await assertNoErrorsInCode(r'''
-m() {
-  dynamic x;
-  x ?? 1;
-}
-''');
-  }
-
-  test_binary_nonNullable() async {
-    await assertErrorsInCode(r'''
-m(int x) {
-  x ?? 1;
-}
-''', [
-      error(HintCode.DEAD_CODE, 18, 1),
-    ]);
-  }
-
-  test_binary_nullable() async {
-    await assertNoErrorsInCode(r'''
-m() {
-  int? x;
-  x ?? 1;
-}
-''');
-  }
-
-  test_binary_nullType() async {
-    await assertNoErrorsInCode(r'''
-m() {
-  Null x;
-  x ?? 1;
-}
-''');
-  }
 }
 
 @reflectiveTest

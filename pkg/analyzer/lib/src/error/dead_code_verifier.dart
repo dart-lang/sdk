@@ -395,8 +395,13 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _checkForDeadNullCoalesce(TypeImpl lhsType, Expression rhs) {
-    if (_isNonNullableByDefault && _typeSystem.isNonNullable(lhsType)) {
-      _errorReporter.reportErrorForNode(HintCode.DEAD_CODE, rhs, []);
+    if (!_isNonNullableByDefault) return;
+
+    if (_typeSystem.isStrictlyNonNullable(lhsType)) {
+      _errorReporter.reportErrorForNode(
+        StaticWarningCode.DEAD_NULL_COALESCE,
+        rhs,
+      );
     }
   }
 

@@ -7253,6 +7253,16 @@ class StaticWarningCode extends AnalyzerErrorCode {
       INSTANTIATE_ABSTRACT_CLASS;
 
   /**
+   * It is a warning to use null aware operators '??' or '??=' on an
+   * expression of type `T` if `T` is strictly non-nullable.
+   */
+  static const StaticWarningCode DEAD_NULL_COALESCE = StaticWarningCode(
+      'DEAD_NULL_COALESCE',
+      "The left operand can't be null, so the right operand is never executed.",
+      correction: "Try removing the right operand.",
+      errorSeverity: ErrorSeverity.WARNING);
+
+  /**
    * 14.2 Exports: It is a static warning to export two different libraries with
    * the same name.
    *

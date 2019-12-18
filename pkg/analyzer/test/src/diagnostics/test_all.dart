@@ -50,6 +50,7 @@ import 'const_spread_expected_list_or_set_test.dart'
     as const_spread_expected_list_or_set;
 import 'const_spread_expected_map_test.dart' as const_spread_expected_map;
 import 'dead_code_test.dart' as dead_code;
+import 'dead_null_coalesce_test.dart' as dead_null_coalesce;
 import 'default_list_constructor_mismatch_test.dart'
     as default_list_constructor_mismatch;
 import 'default_value_on_required_parameter_test.dart'
@@ -433,6 +434,7 @@ main() {
     const_spread_expected_list_or_set.main();
     const_spread_expected_map.main();
     dead_code.main();
+    dead_null_coalesce.main();
     default_list_constructor_mismatch.main();
     default_value_on_required_parameter.main();
     deferred_import_of_extension.main();
