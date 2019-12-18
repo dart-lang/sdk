@@ -117,6 +117,80 @@ struct CodeIndexPair {
 
 typedef DirectChainedHashMap<CodeIndexPair> CodeIndexMap;
 
+template <typename T>
+class Trie : public ZoneAllocated {
+ public:
+  // Returns whether [key] is a valid trie key (that is, a C string that
+  // contains only characters for which charIndex returns a non-negative value).
+  static bool IsValidKey(const char* key) {
+    for (intptr_t i = 0; key[i] != '\0'; i++) {
+      if (ChildIndex(key[i]) < 0) return false;
+    }
+    return true;
+  }
+
+  // Adds a binding of [key] to [value] in [trie]. Assumes that the string in
+  // [key] is a valid trie key and does not already have a value in [trie].
+  //
+  // If [trie] is nullptr, then a new trie is created and a pointer to the new
+  // trie is returned. Otherwise, [trie] will be returned.
+  static Trie<T>* AddString(Zone* zone,
+                            Trie<T>* trie,
+                            const char* key,
+                            const T* value);
+
+  // Adds a binding of [key] to [value]. Assumes that the string in [key] is a
+  // valid trie key and does not already have a value in this trie.
+  void AddString(Zone* zone, const char* key, const T* value) {
+    AddString(zone, this, key, value);
+  }
+
+  // Looks up the value stored for [key] in [trie]. If one is not found, then
+  // nullptr is returned.
+  //
+  // If [end] is not nullptr, then the longest prefix of [key] that is a valid
+  // trie key prefix will be used for the lookup and the value pointed to by
+  // [end] is set to the index after that prefix. Otherwise, the whole [key]
+  // is used.
+  static const T* Lookup(const Trie<T>* trie,
+                         const char* key,
+                         intptr_t* end = nullptr);
+
+  // Looks up the value stored for [key]. If one is not found, then nullptr is
+  // returned.
+  //
+  // If [end] is not nullptr, then the longest prefix of [key] that is a valid
+  // trie key prefix will be used for the lookup and the value pointed to by
+  // [end] is set to the index after that prefix. Otherwise, the whole [key]
+  // is used.
+  const T* Lookup(const char* key, intptr_t* end = nullptr) const {
+    return Lookup(this, key, end);
+  }
+
+ private:
+  // Currently, only the following characters can appear in obfuscated names:
+  // '_', '@', '0-9', 'a-z', 'A-Z'
+  static const intptr_t kNumValidChars = 64;
+
+  Trie() {
+    for (intptr_t i = 0; i < kNumValidChars; i++) {
+      children_[i] = nullptr;
+    }
+  }
+
+  static intptr_t ChildIndex(char c) {
+    if (c == '_') return 0;
+    if (c == '@') return 1;
+    if (c >= '0' && c <= '9') return ('9' - c) + 2;
+    if (c >= 'a' && c <= 'z') return ('z' - c) + 12;
+    if (c >= 'A' && c <= 'Z') return ('Z' - c) + 38;
+    return -1;
+  }
+
+  const T* value_ = nullptr;
+  Trie<T>* children_[kNumValidChars];
+};
+
 class Dwarf : public ZoneAllocated {
  public:
   Dwarf(Zone* zone, StreamingWriteStream* stream, Elf* elf);
@@ -302,8 +376,12 @@ class Dwarf : public ZoneAllocated {
                          AssemblyCodeNamer* namer);
   void WriteLines();
 
+  const char* Deobfuscate(const char* cstr);
+  static Trie<const char>* CreateReverseObfuscationTrie(Zone* zone);
+
   Zone* const zone_;
   Elf* const elf_;
+  Trie<const char>* const reverse_obfuscation_trie_;
   StreamingWriteStream* asm_stream_;
   WriteStream* bin_stream_;
   ZoneGrowableArray<const Code*> codes_;
