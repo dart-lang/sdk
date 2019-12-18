@@ -3029,7 +3029,8 @@ static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
                                        array, &index, &cursor);
   }
 
-  // Prepare additional checks.
+  // Prepare additional checks. In AOT Dart2, we use an explicit null check and
+  // non-speculative unboxing for most value types.
   Cids* value_check = nullptr;
   bool needs_null_check = false;
   switch (view_cid) {
@@ -3040,21 +3041,30 @@ static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
     case kExternalTypedDataUint8ClampedArrayCid:
     case kTypedDataInt16ArrayCid:
     case kTypedDataUint16ArrayCid: {
-      // Check that value is always smi.
-      value_check = Cids::CreateMonomorphic(Z, kSmiCid);
+      if (FLAG_precompiled_mode &&
+          flow_graph->isolate()->can_use_strong_mode_types()) {
+        needs_null_check = true;
+      } else {
+        // Check that value is always smi.
+        value_check = Cids::CreateMonomorphic(Z, kSmiCid);
+      }
       break;
     }
     case kTypedDataInt32ArrayCid:
     case kTypedDataUint32ArrayCid:
-      // On 64-bit platforms assume that stored value is always a smi.
-      if (compiler::target::kSmiBits >= 32) {
-        value_check = Cids::CreateMonomorphic(Z, kSmiCid);
+      if (FLAG_precompiled_mode &&
+          flow_graph->isolate()->can_use_strong_mode_types()) {
+        needs_null_check = true;
+      } else {
+        // On 64-bit platforms assume that stored value is always a smi.
+        if (compiler::target::kSmiBits >= 32) {
+          value_check = Cids::CreateMonomorphic(Z, kSmiCid);
+        }
       }
       break;
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat64ArrayCid: {
-      // Check that value is always double. In AOT Dart2, we use
-      // an explicit null check and non-speculative unboxing.
+      // Check that value is always double.
       if (FLAG_precompiled_mode &&
           flow_graph->isolate()->can_use_strong_mode_types()) {
         needs_null_check = true;
