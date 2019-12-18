@@ -1163,14 +1163,8 @@ RawArray* BytecodeReaderHelper::ReadBytecodeComponent(intptr_t md_offset) {
   reader_.ReadUInt32();  // Skip annotations.numItems
   const intptr_t annotations_offset = start_offset + reader_.ReadUInt32();
 
-  intptr_t num_protected_names = 0;
-  intptr_t protected_names_offset = 0;
-  static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 23,
-                "Cleanup condition");
-  if (version >= 23) {
-    num_protected_names = reader_.ReadUInt32();
-    protected_names_offset = start_offset + reader_.ReadUInt32();
-  }
+  const intptr_t num_protected_names = reader_.ReadUInt32();
+  const intptr_t protected_names_offset = start_offset + reader_.ReadUInt32();
 
   // Read header of string table.
   reader_.set_offset(string_table_offset);
@@ -1446,19 +1440,15 @@ RawObject* BytecodeReaderHelper::ReadObjectContents(uint32_t header) {
     case kName: {
       if ((flags & kFlagIsPublic) == 0) {
         const Library& library = Library::CheckedHandle(Z, ReadObject());
-        static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 23,
-                      "Cleanup library.IsNull() condition");
-        if (!library.IsNull()) {
-          auto& name =
-              String::Handle(Z, ReadString(/* is_canonical = */ false));
-          name = library.PrivateName(name);
-          if (I->obfuscate()) {
-            const auto& library_key = String::Handle(Z, library.private_key());
-            Obfuscator obfuscator(thread_, library_key);
-            return obfuscator.Rename(name);
-          }
-          return name.raw();
+        ASSERT(!library.IsNull());
+        auto& name = String::Handle(Z, ReadString(/* is_canonical = */ false));
+        name = library.PrivateName(name);
+        if (I->obfuscate()) {
+          const auto& library_key = String::Handle(Z, library.private_key());
+          Obfuscator obfuscator(thread_, library_key);
+          return obfuscator.Rename(name);
         }
+        return name.raw();
       }
       if (I->obfuscate()) {
         Obfuscator obfuscator(thread_, Object::null_string());
@@ -1508,12 +1498,8 @@ RawObject* BytecodeReaderHelper::ReadObjectContents(uint32_t header) {
     }
     case kType: {
       const intptr_t tag = (flags & kTagMask) / kFlagBit0;
-      static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 24,
-                    "Cleanup condition");
       const Nullability nullability =
-          bytecode_component_->GetVersion() >= 24
-              ? static_cast<Nullability>((flags & kNullabilityMask) / kFlagBit4)
-              : Nullability::kLegacy;
+          static_cast<Nullability>((flags & kNullabilityMask) / kFlagBit4);
       return ReadType(tag, nullability);
     }
     default:
