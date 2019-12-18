@@ -15,6 +15,7 @@ import 'package:analyzer/error/listener.dart' show ErrorReporter;
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart' show TypeParameterMember;
 import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
+import 'package:analyzer/src/dart/element/top_merge.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
@@ -1753,6 +1754,18 @@ class Dart2TypeSystem extends TypeSystem {
     }
     return super
         .refineBinaryExpressionType(leftType, operator, rightType, currentType);
+  }
+
+  /**
+   * Merges two types into a single type.
+   * Compute the canonical representation of [T].
+   *
+   * https://github.com/dart-lang/language/
+   * See `accepted/future-releases/nnbd/feature-specification.md`
+   * See `#classes-defined-in-opted-in-libraries`
+   */
+  DartType topMerge(DartType T, DartType S) {
+    return TopMergeHelper.topMerge(T, S);
   }
 
   @override

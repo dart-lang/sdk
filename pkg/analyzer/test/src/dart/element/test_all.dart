@@ -12,6 +12,7 @@ import 'normalize_type_test.dart' as normalize_type;
 import 'nullability_eliminator_test.dart' as nullability_eliminator;
 import 'nullable_test.dart' as nullable;
 import 'subtype_test.dart' as subtype;
+import 'top_merge_test.dart' as top_merge;
 import 'type_algebra_test.dart' as type_algebra;
 import 'type_parameter_element_test.dart' as type_parameter_element;
 import 'upper_lower_bound_test.dart' as upper_bound;
@@ -27,6 +28,7 @@ main() {
     nullability_eliminator.main();
     nullable.main();
     subtype.main();
+    top_merge.main();
     type_algebra.main();
     type_parameter_element.main();
     upper_bound.main();
