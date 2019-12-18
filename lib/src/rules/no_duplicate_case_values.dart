@@ -6,7 +6,6 @@ import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/error/listener.dart';
 
 import '../analyzer.dart';
 
@@ -84,8 +83,6 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitSwitchStatement(SwitchStatement node) {
     final typeProvider = context.typeProvider;
-    final typeSystem = context.typeSystem;
-    final declaredVariables = context.declaredVariables;
 
     Map<DartObjectImpl, Expression> values =
         HashMap<DartObjectImpl, Expression>(
@@ -94,29 +91,23 @@ class _Visitor extends SimpleAstVisitor<void> {
       return equals.isBool && equals.toBoolValue();
     });
 
-    // todo (pq): replace w/ calls to API provided by LinterContext
-    final constantVisitor = ConstantVisitor(
-        ConstantEvaluationEngine(typeProvider, declaredVariables,
-            typeSystem: typeSystem),
-        ErrorReporter(
-            AnalysisErrorListener.NULL_LISTENER, rule.reporter.source));
-
     for (var member in node.members) {
       if (member is SwitchCase) {
         final expression = member.expression;
 
-        final result = expression.accept(constantVisitor);
+        final result = context.evaluateConstant(expression);
+        final value = result.value as DartObjectImpl;
 
-        if (result == null) {
+        if (value == null) {
           continue;
         }
 
-        final duplicateValue = values[result];
+        final duplicateValue = values[value];
         if (duplicateValue != null) {
           rule.reportLintWithDescription(member,
               message(duplicateValue.toString(), expression.toString()));
         } else {
-          values[result] = expression;
+          values[value] = expression;
         }
       }
     }

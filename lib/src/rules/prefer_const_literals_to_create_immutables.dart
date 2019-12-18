@@ -133,7 +133,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     final oldKeyword = literal.constKeyword;
     literal.constKeyword = KeywordToken(Keyword.CONST, node.offset);
     try {
-      hasConstError = hasErrorWithConstantVerifier(context, literal);
+      hasConstError = hasConstantError(context, literal);
     } finally {
       // restore old keyword
       literal.constKeyword = oldKeyword;

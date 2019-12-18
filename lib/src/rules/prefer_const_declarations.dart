@@ -85,7 +85,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return initializer != null &&
           (initializer is! TypedLiteral ||
               (initializer.beginToken?.keyword == Keyword.CONST)) &&
-          !hasErrorWithConstantVisitor(context, initializer);
+          !hasConstantError(context, initializer);
     })) {
       rule.reportLint(node);
     }

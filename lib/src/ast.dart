@@ -7,11 +7,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
-import 'package:analyzer/error/error.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/error/codes.dart'; // ignore: implementation_imports
-import 'package:analyzer/src/generated/resolver.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/workspace/workspace.dart'; // ignore: implementation_imports
 import 'package:path/path.dart' as path;
 
@@ -51,24 +47,9 @@ AstNode getNodeToAnnotate(Declaration node) {
   return mostSpecific ?? node;
 }
 
-bool hasErrorWithConstantVerifier(LinterContext context, AstNode node) {
-  final cu = getCompilationUnit(node);
-  final listener = HasConstErrorListener();
-  node.accept(ConstantVerifier(
-      ErrorReporter(listener, cu.declaredElement.source),
-      cu.declaredElement.library,
-      context.typeProvider,
-      context.declaredVariables));
-  return listener.hasConstError;
-}
-
-bool hasErrorWithConstantVisitor(LinterContext context, AstNode node) {
-  final cu = getCompilationUnit(node);
-  final listener = HasConstErrorListener();
-  node.accept(ConstantVisitor(
-      ConstantEvaluationEngine(context.typeProvider, context.declaredVariables),
-      ErrorReporter(listener, cu.declaredElement.source)));
-  return listener.hasConstError;
+bool hasConstantError(LinterContext context, Expression node) {
+  var result = context.evaluateConstant(node);
+  return result.errors.isNotEmpty;
 }
 
 /// Returns `true` if this [element] has a `@literal` annotation.
@@ -344,37 +325,6 @@ AstNode _getNodeToAnnotate(Declaration node) {
 /// An [Element] processor function type.
 /// If `true` is returned, children of [element] will be visited.
 typedef ElementProcessor = bool Function(Element element);
-
-class HasConstErrorListener extends AnalysisErrorListener {
-  static const List<CompileTimeErrorCode> errorCodes = [
-    CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST,
-    CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL,
-    CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING,
-    CompileTimeErrorCode.CONST_EVAL_TYPE_INT,
-    CompileTimeErrorCode.CONST_EVAL_TYPE_NUM,
-    CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-    CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE,
-    CompileTimeErrorCode.CONST_WITH_NON_CONST,
-    CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT,
-    CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS,
-    CompileTimeErrorCode.INVALID_CONSTANT,
-    CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL,
-    CompileTimeErrorCode.MISSING_CONST_IN_MAP_LITERAL,
-    CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION,
-    CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT,
-    CompileTimeErrorCode.NON_CONSTANT_MAP_KEY,
-    CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE,
-  ];
-
-  bool hasConstError = false;
-
-  HasConstErrorListener();
-
-  @override
-  void onError(AnalysisError error) {
-    hasConstError = hasConstError || errorCodes.contains(error.errorCode);
-  }
-}
 
 /// A [GeneralizingElementVisitor] adapter for [ElementProcessor].
 class _ElementVisitorAdapter extends GeneralizingElementVisitor {

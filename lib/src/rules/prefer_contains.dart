@@ -6,7 +6,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/error/listener.dart';
 
 import '../analyzer.dart';
 import '../util/dart_type_utilities.dart';
@@ -132,27 +131,19 @@ class _Visitor extends SimpleAstVisitor<void> {
     final binaryExpression = search as BinaryExpression;
     final operator = binaryExpression.operator;
 
-    final typeProvider = context.typeProvider;
-    final typeSystem = context.typeSystem;
-
-    final declaredVariables = context.declaredVariables;
-
     // Comparing constants with result of indexOf.
 
-    final visitor = ConstantVisitor(
-        ConstantEvaluationEngine(typeProvider, declaredVariables,
-            typeSystem: typeSystem),
-        ErrorReporter(
-            AnalysisErrorListener.NULL_LISTENER, rule.reporter.source));
+    final rightOperand = binaryExpression.rightOperand;
+    final rightValue = context.evaluateConstant(rightOperand).value;
 
-    final rightValue = binaryExpression.rightOperand.accept(visitor);
     if (rightValue?.type?.name == 'int') {
       // Constant is on right side of comparison operator
       _checkConstant(binaryExpression, rightValue.toIntValue(), operator.type);
       return;
     }
 
-    final leftValue = binaryExpression.leftOperand.accept(visitor);
+    final leftOperand = binaryExpression.leftOperand;
+    final leftValue = context.evaluateConstant(leftOperand).value;
     if (leftValue?.type?.name == 'int') {
       // Constants is on left side of comparison operator
       _checkConstant(binaryExpression, leftValue.toIntValue(),
