@@ -28,8 +28,8 @@ class ErrorsReportedOnceTest {
     savedExitHandler = exitHandler;
     savedExitCode = exitCode;
     exitHandler = (code) => exitCode = code;
-    outSink = new StringBuffer();
-    errorSink = new StringBuffer();
+    outSink = StringBuffer();
+    errorSink = StringBuffer();
   }
 
   void tearDown() {
@@ -41,7 +41,7 @@ class ErrorsReportedOnceTest {
 
   test_once() async {
     String testDir = path.join(testDirectory, 'data', 'errors_reported_once');
-    Driver driver = new Driver(isTesting: true);
+    Driver driver = Driver(isTesting: true);
     await driver.start(
         [path.join(testDir, 'foo.dart'), path.join(testDir, 'bar.dart')]);
 
@@ -56,7 +56,7 @@ class ErrorsReportedOnceTest {
 
   test_once_machine() async {
     String testDir = path.join(testDirectory, 'data', 'errors_reported_once');
-    Driver driver = new Driver(isTesting: true);
+    Driver driver = Driver(isTesting: true);
     await driver.start([
       '--format',
       'machine',

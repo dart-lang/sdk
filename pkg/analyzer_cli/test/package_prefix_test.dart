@@ -17,7 +17,7 @@ main() {
     _Runner runner;
 
     setUp(() {
-      runner = new _Runner.setUp();
+      runner = _Runner.setUp();
     });
 
     tearDown(() {
@@ -42,8 +42,8 @@ main() {
 }
 
 class _Runner {
-  final _stdout = new StringBuffer();
-  final _stderr = new StringBuffer();
+  final _stdout = StringBuffer();
+  final _stderr = StringBuffer();
 
   final StringSink _savedOutSink;
   final StringSink _savedErrorSink;
@@ -65,7 +65,7 @@ class _Runner {
   String get stdout => _stdout.toString();
 
   Future<void> run2(List<String> args) async {
-    await new Driver(isTesting: true).start(args);
+    await Driver(isTesting: true).start(args);
     if (stderr.isNotEmpty) {
       fail("Unexpected output to stderr:\n$stderr");
     }

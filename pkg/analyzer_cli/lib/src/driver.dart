@@ -72,9 +72,9 @@ bool containsLintRuleEntry(YamlMap options) {
 
 class Driver with HasContextMixin implements CommandLineStarter {
   static final PerformanceTag _analyzeAllTag =
-      new PerformanceTag("Driver._analyzeAll");
+      PerformanceTag("Driver._analyzeAll");
 
-  static final ByteStore analysisDriverMemoryByteStore = new MemoryByteStore();
+  static final ByteStore analysisDriverMemoryByteStore = MemoryByteStore();
 
   ContextCache contextCache;
 
@@ -100,7 +100,7 @@ class Driver with HasContextMixin implements CommandLineStarter {
   final ResourceProvider resourceProvider = PhysicalResourceProvider.INSTANCE;
 
   /// Collected analysis statistics.
-  final AnalysisStats stats = new AnalysisStats();
+  final AnalysisStats stats = AnalysisStats();
 
   /// The [PathFilter] for excluded files with wildcards, etc.
   PathFilter pathFilter;
@@ -123,11 +123,11 @@ class Driver with HasContextMixin implements CommandLineStarter {
   @override
   Future<void> start(List<String> args, {SendPort sendPort}) async {
     if (analysisDriver != null) {
-      throw new StateError("start() can only be called once");
+      throw StateError("start() can only be called once");
     }
-    int startTime = new DateTime.now().millisecondsSinceEpoch;
+    int startTime = DateTime.now().millisecondsSinceEpoch;
 
-    StringUtilities.INTERNER = new MappedInterner();
+    StringUtilities.INTERNER = MappedInterner();
 
     linter.registerLintRules();
 
@@ -142,7 +142,7 @@ class Driver with HasContextMixin implements CommandLineStarter {
         io.exitCode = severity.ordinal;
       }
     } else if (options.batchMode) {
-      BatchRunner batchRunner = new BatchRunner(outSink, errorSink);
+      BatchRunner batchRunner = BatchRunner(outSink, errorSink);
       batchRunner.runAsBatch(args, (List<String> args) async {
         // TODO(brianwilkerson) Determine whether this await is necessary.
         await null;
@@ -164,11 +164,11 @@ class Driver with HasContextMixin implements CommandLineStarter {
       // representative of what we see internally; call into _buildModeAnalyze()
       // with some appropriate options.
       print('\nGenerating strong mode summary...');
-      final Stopwatch stopwatch = new Stopwatch()..start();
+      final Stopwatch stopwatch = Stopwatch()..start();
 
-      new SummaryBuilder.forSdk(options.dartSdkPath).build();
-      new SummaryBuilder.forSdk(options.dartSdkPath).build();
-      new SummaryBuilder.forSdk(options.dartSdkPath).build();
+      SummaryBuilder.forSdk(options.dartSdkPath).build();
+      SummaryBuilder.forSdk(options.dartSdkPath).build();
+      SummaryBuilder.forSdk(options.dartSdkPath).build();
 
       print('Done in ${stopwatch.elapsedMilliseconds} ms.');
     }
@@ -180,7 +180,7 @@ class Driver with HasContextMixin implements CommandLineStarter {
     if (options.perfReport != null) {
       String json = makePerfReport(
           startTime, currentTimeMillis, options, _analyzedFileCount, stats);
-      new io.File(options.perfReport).writeAsStringSync(json);
+      io.File(options.perfReport).writeAsStringSync(json);
     }
   }
 
@@ -214,9 +214,9 @@ class Driver with HasContextMixin implements CommandLineStarter {
     }
 
     // These are used to do part file analysis across sources.
-    Set<String> dartFiles = new Set<String>();
-    Set<FileState> libraryFiles = new Set<FileState>();
-    Set<FileState> danglingParts = new Set<FileState>();
+    Set<String> dartFiles = Set<String>();
+    Set<FileState> libraryFiles = Set<FileState>();
+    Set<FileState> danglingParts = Set<FileState>();
 
     // Note: This references analysisDriver via closure, so it will change over
     // time during the following analysis.
@@ -233,10 +233,10 @@ class Driver with HasContextMixin implements CommandLineStarter {
     // batch flag and source file" error message.
     ErrorFormatter formatter;
     if (options.machineFormat) {
-      formatter = new MachineErrorFormatter(errorSink, options, stats,
+      formatter = MachineErrorFormatter(errorSink, options, stats,
           severityProcessor: defaultSeverityProcessor);
     } else {
-      formatter = new HumanErrorFormatter(outSink, options, stats,
+      formatter = HumanErrorFormatter(outSink, options, stats,
           severityProcessor: defaultSeverityProcessor);
     }
 
@@ -263,7 +263,7 @@ class Driver with HasContextMixin implements CommandLineStarter {
       // Add all the files to be analyzed en masse to the context. Skip any
       // files that were added earlier (whether explicitly or implicitly) to
       // avoid causing those files to be unnecessarily re-read.
-      Set<String> filesToAnalyze = new Set<String>();
+      Set<String> filesToAnalyze = Set<String>();
 
       // Collect files for analysis.
       // Note that these files will all be analyzed in the same context.
@@ -288,7 +288,7 @@ class Driver with HasContextMixin implements CommandLineStarter {
             shortName == AnalysisEngine.ANALYSIS_OPTIONS_FILE) {
           File file = resourceProvider.getFile(path);
           String content = file.readAsStringSync();
-          LineInfo lineInfo = new LineInfo.fromContent(content);
+          LineInfo lineInfo = LineInfo.fromContent(content);
           List<AnalysisError> errors = analyzeAnalysisOptions(
               file.createSource(), content, analysisDriver.sourceFactory);
           formatter.formatErrors([
@@ -309,8 +309,8 @@ class Driver with HasContextMixin implements CommandLineStarter {
             YamlNode node = loadYamlNode(content);
             if (node is YamlMap) {
               PubspecValidator validator =
-                  new PubspecValidator(resourceProvider, file.createSource());
-              LineInfo lineInfo = new LineInfo.fromContent(content);
+                  PubspecValidator(resourceProvider, file.createSource());
+              LineInfo lineInfo = LineInfo.fromContent(content);
               List<AnalysisError> errors = validator.validate(node.nodes);
               formatter.formatErrors([
                 ErrorsResultImpl(analysisDriver.currentSession, path, null,
@@ -330,8 +330,8 @@ class Driver with HasContextMixin implements CommandLineStarter {
             File file = resourceProvider.getFile(path);
             String content = file.readAsStringSync();
             ManifestValidator validator =
-                new ManifestValidator(file.createSource());
-            LineInfo lineInfo = new LineInfo.fromContent(content);
+                ManifestValidator(file.createSource());
+            LineInfo lineInfo = LineInfo.fromContent(content);
             List<AnalysisError> errors = validator.validate(
                 content, analysisDriver.analysisOptions.chromeOsManifestChecks);
             formatter.formatErrors([
@@ -402,15 +402,15 @@ class Driver with HasContextMixin implements CommandLineStarter {
     try {
       if (options.buildModePersistentWorker) {
         var workerLoop = sendPort == null
-            ? new AnalyzerWorkerLoop.std(resourceProvider,
+            ? AnalyzerWorkerLoop.std(resourceProvider,
                 dartSdkPath: options.dartSdkPath)
-            : new AnalyzerWorkerLoop.sendPort(resourceProvider, sendPort,
+            : AnalyzerWorkerLoop.sendPort(resourceProvider, sendPort,
                 dartSdkPath: options.dartSdkPath);
         await workerLoop.run();
         return ErrorSeverity.NONE;
       } else {
-        return await new BuildMode(resourceProvider, options, stats,
-                new ContextCache(resourceProvider, options, verbosePrint))
+        return await BuildMode(resourceProvider, options, stats,
+                ContextCache(resourceProvider, options, verbosePrint))
             .analyze();
       }
     } finally {
@@ -434,7 +434,7 @@ class Driver with HasContextMixin implements CommandLineStarter {
     UriResolver packageUriResolver;
 
     if (packageInfo.packageMap != null) {
-      packageUriResolver = new PackageMapUriResolver(
+      packageUriResolver = PackageMapUriResolver(
         resourceProvider,
         packageInfo.packageMap,
       );
@@ -447,26 +447,26 @@ class Driver with HasContextMixin implements CommandLineStarter {
 
     // Setup embedding.
     if (includeSdkResolver) {
-      EmbedderSdk embedderSdk = new EmbedderSdk(resourceProvider, embedderMap);
+      EmbedderSdk embedderSdk = EmbedderSdk(resourceProvider, embedderMap);
       if (embedderSdk.libraryMap.size() == 0) {
         // The embedder uri resolver has no mappings. Use the default Dart SDK
         // uri resolver.
-        resolvers.add(new DartUriResolver(sdk));
+        resolvers.add(DartUriResolver(sdk));
       } else {
         // The embedder uri resolver has mappings, use it instead of the default
         // Dart SDK uri resolver.
         embedderSdk.analysisOptions = analysisOptions;
-        resolvers.add(new DartUriResolver(embedderSdk));
+        resolvers.add(DartUriResolver(embedderSdk));
       }
     }
 
     // Next SdkExts.
     if (packageInfo.packageMap != null) {
-      resolvers.add(new SdkExtUriResolver(packageInfo.packageMap));
+      resolvers.add(SdkExtUriResolver(packageInfo.packageMap));
     }
 
     // Then package URIs from summaries.
-    resolvers.add(new InSummaryUriResolver(resourceProvider, summaryDataStore));
+    resolvers.add(InSummaryUriResolver(resourceProvider, summaryDataStore));
 
     // Then package URIs.
     if (packageUriResolver != null) {
@@ -474,20 +474,20 @@ class Driver with HasContextMixin implements CommandLineStarter {
     }
 
     // Finally files.
-    resolvers.add(new ResourceUriResolver(resourceProvider));
+    resolvers.add(ResourceUriResolver(resourceProvider));
 
-    return new SourceFactory(resolvers);
+    return SourceFactory(resolvers);
   }
 
   /// Collect all analyzable files at [filePath], recursively if it's a
   /// directory, ignoring links.
   Iterable<io.File> _collectFiles(String filePath, AnalysisOptions options) {
     List<io.File> files = <io.File>[];
-    io.File file = new io.File(filePath);
+    io.File file = io.File(filePath);
     if (file.existsSync() && !pathFilter.ignored(filePath)) {
       files.add(file);
     } else {
-      io.Directory directory = new io.Directory(filePath);
+      io.Directory directory = io.Directory(filePath);
       if (directory.existsSync()) {
         for (io.FileSystemEntity entry
             in directory.listSync(recursive: true, followLinks: false)) {
@@ -511,7 +511,7 @@ class Driver with HasContextMixin implements CommandLineStarter {
     // If not the same command-line options, clear cached information.
     if (!_equalCommandLineOptions(_previousOptions, options)) {
       _previousOptions = options;
-      contextCache = new ContextCache(resourceProvider, options, verbosePrint);
+      contextCache = ContextCache(resourceProvider, options, verbosePrint);
       analysisDriver = null;
     }
 
@@ -519,7 +519,7 @@ class Driver with HasContextMixin implements CommandLineStarter {
         createAnalysisOptionsForCommandLineOptions(options, source);
 
     // Store the [PathFilter] for this context to properly exclude files
-    pathFilter = new PathFilter(getContextInfo(options, source).analysisRoot,
+    pathFilter = PathFilter(getContextInfo(options, source).analysisRoot,
         analysisOptions.excludePatterns);
 
     // If we have the analysis driver, and the new analysis options are the
@@ -533,7 +533,7 @@ class Driver with HasContextMixin implements CommandLineStarter {
 
     // Set up logging.
     if (options.log) {
-      AnalysisEngine.instance.instrumentationService = new StdInstrumentation();
+      AnalysisEngine.instance.instrumentationService = StdInstrumentation();
     }
 
     // Save stats from previous context before clobbering it.
@@ -559,12 +559,11 @@ class Driver with HasContextMixin implements CommandLineStarter {
     bool useSummaries = embedderMap.isEmpty;
 
     if (!useSummaries && options.buildSummaryInputs.isNotEmpty) {
-      throw new _DriverError(
-          'Summaries are not yet supported when using Flutter.');
+      throw _DriverError('Summaries are not yet supported when using Flutter.');
     }
 
     // Read any input summaries.
-    SummaryDataStore summaryDataStore = new SummaryDataStore(
+    SummaryDataStore summaryDataStore = SummaryDataStore(
         useSummaries ? options.buildSummaryInputs : <String>[]);
 
     // Once options and embedders are processed, setup the SDK.
@@ -580,15 +579,15 @@ class Driver with HasContextMixin implements CommandLineStarter {
     SourceFactory sourceFactory = _chooseUriResolutionPolicy(options,
         embedderMap, packageInfo, summaryDataStore, true, analysisOptions);
 
-    PerformanceLog log = new PerformanceLog(null);
-    AnalysisDriverScheduler scheduler = new AnalysisDriverScheduler(log);
+    PerformanceLog log = PerformanceLog(null);
+    AnalysisDriverScheduler scheduler = AnalysisDriverScheduler(log);
 
-    analysisDriver = new AnalysisDriver(
+    analysisDriver = AnalysisDriver(
         scheduler,
         log,
         resourceProvider,
         analysisDriverMemoryByteStore,
-        new FileContentOverlay(),
+        FileContentOverlay(),
         ContextRoot(source, [], pathContext: resourceProvider.pathContext),
         sourceFactory,
         analysisOptions);
@@ -617,12 +616,12 @@ class Driver with HasContextMixin implements CommandLineStarter {
 
     if (options.packageConfigPath != null) {
       String packageConfigPath = options.packageConfigPath;
-      Uri fileUri = new Uri.file(packageConfigPath);
+      Uri fileUri = Uri.file(packageConfigPath);
       try {
-        io.File configFile = new io.File.fromUri(fileUri).absolute;
+        io.File configFile = io.File.fromUri(fileUri).absolute;
         List<int> bytes = configFile.readAsBytesSync();
         Map<String, Uri> map = pkgfile.parse(bytes, configFile.uri);
-        packages = new MapPackages(map);
+        packages = MapPackages(map);
         packageMap = _getPackageMap(packages);
       } catch (e) {
         printAndFail(
@@ -634,11 +633,11 @@ class Driver with HasContextMixin implements CommandLineStarter {
     } else {
       Resource cwd = resourceProvider.getResource(path.current);
       // Look for .packages.
-      packages = _discoverPackagespec(new Uri.directory(cwd.path));
+      packages = _discoverPackagespec(Uri.directory(cwd.path));
       packageMap = _getPackageMap(packages);
     }
 
-    return new _PackageInfo(packages, packageMap);
+    return _PackageInfo(packages, packageMap);
   }
 
   Map<String, List<Folder>> _getPackageMap(Packages packages) {
@@ -646,7 +645,7 @@ class Driver with HasContextMixin implements CommandLineStarter {
       return null;
     }
 
-    Map<String, List<Folder>> folderMap = new Map<String, List<Folder>>();
+    Map<String, List<Folder>> folderMap = Map<String, List<Folder>>();
     var pathContext = resourceProvider.pathContext;
     packages.asMap().forEach((String packagePath, Uri uri) {
       String path = fileUriToNormalizedPath(pathContext, uri);
@@ -663,7 +662,7 @@ class Driver with HasContextMixin implements CommandLineStarter {
   Future<ErrorSeverity> _runAnalyzer(
       FileState file, CommandLineOptions options, ErrorFormatter formatter) {
     int startTime = currentTimeMillis;
-    AnalyzerImpl analyzer = new AnalyzerImpl(analysisDriver.analysisOptions,
+    AnalyzerImpl analyzer = AnalyzerImpl(analysisDriver.analysisOptions,
         analysisDriver, file, options, stats, startTime);
     return analyzer.analyze(formatter);
   }
@@ -672,10 +671,10 @@ class Driver with HasContextMixin implements CommandLineStarter {
       AnalysisOptions analysisOptions) {
     if (sdk == null) {
       if (options.dartSdkSummaryPath != null) {
-        sdk = new SummaryBasedDartSdk(options.dartSdkSummaryPath, true);
+        sdk = SummaryBasedDartSdk(options.dartSdkSummaryPath, true);
       } else {
         String dartSdkPath = options.dartSdkPath;
-        FolderBasedDartSdk dartSdk = new FolderBasedDartSdk(
+        FolderBasedDartSdk dartSdk = FolderBasedDartSdk(
             resourceProvider, resourceProvider.getFolder(dartSdkPath));
         dartSdk.useSummary = useSummaries &&
             options.sourceFiles.every((String sourcePath) {
@@ -775,13 +774,13 @@ class _PackageInfo {
 /// to full path on disk (resolving any symbolic links).
 class _PackageRootPackageMapBuilder {
   static Map<String, List<Folder>> buildPackageMap(String packageRootPath) {
-    var packageRoot = new io.Directory(packageRootPath);
+    var packageRoot = io.Directory(packageRootPath);
     if (!packageRoot.existsSync()) {
-      throw new _DriverError(
+      throw _DriverError(
           'Package root directory ($packageRootPath) does not exist.');
     }
     var packages = packageRoot.listSync(followLinks: false);
-    var result = new Map<String, List<Folder>>();
+    var result = Map<String, List<Folder>>();
     for (var package in packages) {
       var packageName = path.basename(package.path);
       var realPath = package.resolveSymbolicLinksSync();

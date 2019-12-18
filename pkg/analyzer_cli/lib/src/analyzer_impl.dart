@@ -21,14 +21,14 @@ import 'package:analyzer_cli/src/error_severity.dart';
 import 'package:analyzer_cli/src/options.dart';
 import 'package:path/path.dart' as path;
 
-int get currentTimeMillis => new DateTime.now().millisecondsSinceEpoch;
+int get currentTimeMillis => DateTime.now().millisecondsSinceEpoch;
 
 /// Analyzes single library [File].
 class AnalyzerImpl {
   static final PerformanceTag _prepareErrorsTag =
-      new PerformanceTag("AnalyzerImpl.prepareErrors");
+      PerformanceTag("AnalyzerImpl.prepareErrors");
   static final PerformanceTag _resolveLibraryTag =
-      new PerformanceTag("AnalyzerImpl._resolveLibrary");
+      PerformanceTag("AnalyzerImpl._resolveLibrary");
 
   final CommandLineOptions options;
   final int startTime;
@@ -43,7 +43,7 @@ class AnalyzerImpl {
   final FileState libraryFile;
 
   /// All files references by the analyzed library.
-  final Set<String> files = new Set<String>();
+  final Set<String> files = Set<String>();
 
   /// All [AnalysisErrorInfo]s in the analyzed library.
   final List<ErrorsResult> errorsResults = [];
@@ -136,8 +136,8 @@ class AnalyzerImpl {
 
   /// Fills [files].
   void prepareSources(LibraryElement library) {
-    var units = new Set<CompilationUnitElement>();
-    var libraries = new Set<LibraryElement>();
+    var units = Set<CompilationUnitElement>();
+    var libraries = Set<LibraryElement>();
     addLibrarySources(library, libraries, units);
   }
 

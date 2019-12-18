@@ -22,7 +22,7 @@ class OptionsTest {
   _Runner runner;
 
   void setUp() {
-    runner = new _Runner.setUp();
+    runner = _Runner.setUp();
   }
 
   void tearDown() {
@@ -35,7 +35,7 @@ class OptionsTest {
     // in the test directory hierarchy do not interfere
     var projDir = path.join(testDirectory, 'data', 'flutter_analysis_options');
     await withTempDirAsync((String tempDirPath) async {
-      await recursiveCopy(new Directory(projDir), tempDirPath);
+      await recursiveCopy(Directory(projDir), tempDirPath);
       var expectedPath = path.join(tempDirPath, 'somepkgs', 'flutter', 'lib',
           'analysis_options_user.yaml');
       expect(FileSystemEntity.isFileSync(expectedPath), isTrue);
@@ -53,8 +53,8 @@ class OptionsTest {
 }
 
 class _Runner {
-  final _stdout = new StringBuffer();
-  final _stderr = new StringBuffer();
+  final _stdout = StringBuffer();
+  final _stderr = StringBuffer();
 
   final StringSink _savedOutSink;
   final StringSink _savedErrorSink;
@@ -76,7 +76,7 @@ class _Runner {
   String get stdout => _stdout.toString();
 
   Future<void> run2(List<String> args) async {
-    await new Driver(isTesting: true).start(args);
+    await Driver(isTesting: true).start(args);
     if (stderr.isNotEmpty) {
       fail("Unexpected output to stderr:\n$stderr");
     }

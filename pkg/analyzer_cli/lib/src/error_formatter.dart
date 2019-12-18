@@ -197,7 +197,7 @@ abstract class ErrorFormatter {
   void formatErrors(List<ErrorsResult> results) {
     stats.unfilteredCount += results.length;
 
-    List<AnalysisError> errors = new List<AnalysisError>();
+    List<AnalysisError> errors = List<AnalysisError>();
     Map<AnalysisError, ErrorsResult> errorToLine = {};
     for (ErrorsResult result in results) {
       for (AnalysisError error in result.errors) {
@@ -223,13 +223,13 @@ class HumanErrorFormatter extends ErrorFormatter {
   AnsiLogger ansi;
 
   // This is a Set in order to de-dup CLI errors.
-  final Set<CLIError> batchedErrors = new Set();
+  final Set<CLIError> batchedErrors = Set();
 
   HumanErrorFormatter(
       StringSink out, CommandLineOptions options, AnalysisStats stats,
       {SeverityProcessor severityProcessor})
       : super(out, options, stats, severityProcessor: severityProcessor) {
-    ansi = new AnsiLogger(this.options.color);
+    ansi = AnsiLogger(this.options.color);
   }
 
   void flush() {
@@ -323,7 +323,7 @@ class HumanErrorFormatter extends ErrorFormatter {
       }
     }
 
-    batchedErrors.add(new CLIError(
+    batchedErrors.add(CLIError(
       severity: errorType,
       sourcePath: sourcePath,
       offset: error.offset,
@@ -393,7 +393,7 @@ class MachineErrorFormatter extends ErrorFormatter {
   }
 
   static String _escapeForMachineMode(String input) {
-    StringBuffer result = new StringBuffer();
+    StringBuffer result = StringBuffer();
     for (int c in input.codeUnits) {
       if (c == _newline) {
         result.write(r'\n');

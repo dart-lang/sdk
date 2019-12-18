@@ -15,8 +15,8 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 main() {
   group('CommandLineOptions', () {
     group('parse', () {
-      StringBuffer outStringBuffer = new StringBuffer();
-      StringBuffer errorStringBuffer = new StringBuffer();
+      StringBuffer outStringBuffer = StringBuffer();
+      StringBuffer errorStringBuffer = StringBuffer();
 
       StringSink savedOutSink, savedErrorSink;
       int savedExitCode;
@@ -275,8 +275,8 @@ main() {
 @reflectiveTest
 class AbstractStatusTest {
   int lastExitHandlerCode;
-  StringBuffer outStringBuffer = new StringBuffer();
-  StringBuffer errorStringBuffer = new StringBuffer();
+  StringBuffer outStringBuffer = StringBuffer();
+  StringBuffer errorStringBuffer = StringBuffer();
 
   StringSink savedOutSink, savedErrorSink;
   int savedExitCode;

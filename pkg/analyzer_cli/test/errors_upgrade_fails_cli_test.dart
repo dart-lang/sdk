@@ -28,8 +28,8 @@ class ErrorUpgradeFailsCli {
     savedExitHandler = exitHandler;
     savedExitCode = exitCode;
     exitHandler = (code) => exitCode = code;
-    outSink = new StringBuffer();
-    errorSink = new StringBuffer();
+    outSink = StringBuffer();
+    errorSink = StringBuffer();
   }
 
   void tearDown() {
@@ -42,7 +42,7 @@ class ErrorUpgradeFailsCli {
   test_once() async {
     String testDir =
         path.join(testDirectory, 'data', 'error_upgrade_fails_cli');
-    Driver driver = new Driver(isTesting: true);
+    Driver driver = Driver(isTesting: true);
     await driver.start([path.join(testDir, 'foo.dart')]);
 
     expect(exitCode, 3);
