@@ -1006,15 +1006,14 @@ class CodeChecker extends RecursiveAstVisitor {
         errorCode.name.startsWith('TOP_LEVEL_')) {
       severity = ErrorSeverity.ERROR;
     }
-    if (severity != ErrorSeverity.INFO || _options.strongModeHints) {
-      int begin = node is AnnotatedNode
-          ? node.firstTokenAfterCommentAndMetadata.offset
-          : node.offset;
-      int length = node.end - begin;
-      var source = (node.root as CompilationUnit).declaredElement.source;
-      var error = AnalysisError(source, begin, length, errorCode, arguments);
-      reporter.onError(error);
-    }
+
+    int begin = node is AnnotatedNode
+        ? node.firstTokenAfterCommentAndMetadata.offset
+        : node.offset;
+    int length = node.end - begin;
+    var source = (node.root as CompilationUnit).declaredElement.source;
+    var error = AnalysisError(source, begin, length, errorCode, arguments);
+    reporter.onError(error);
   }
 
   void _validateTopLevelInitializer(String name, Expression n) {

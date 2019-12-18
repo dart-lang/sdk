@@ -500,7 +500,6 @@ class ContextsPage extends DiagnosticPageWithNav {
         writeOption('Generate errors in SDK files', options.generateSdkErrors));
     b.write(writeOption('Generate hints', options.hint));
     b.write(writeOption('Preserve comments', options.preserveComments));
-    b.write(writeOption('Strong mode hints', options.strongModeHints));
 
     return b.toString();
   }

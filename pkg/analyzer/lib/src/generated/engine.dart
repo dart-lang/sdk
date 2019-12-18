@@ -472,12 +472,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @override
   bool preserveComments = true;
 
-  /// A flag indicating whether strong-mode inference hints should be
-  /// used.  This flag is not exposed in the interface, and should be
-  /// replaced by something more general.
-  // TODO(leafp): replace this with something more general
-  bool strongModeHints = false;
-
   @override
   bool trackCacheDependencies = true;
 
@@ -541,7 +535,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     preserveComments = options.preserveComments;
     useFastaParser = options.useFastaParser;
     if (options is AnalysisOptionsImpl) {
-      strongModeHints = options.strongModeHints;
       implicitCasts = options.implicitCasts;
       implicitDynamic = options.implicitDynamic;
       strictInference = options.strictInference;
@@ -718,7 +711,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       buffer.addBool(implicitDynamic);
       buffer.addBool(strictInference);
       buffer.addBool(strictRawTypes);
-      buffer.addBool(strongModeHints);
       buffer.addBool(useFastaParser);
 
       // Append enabled experiments.
@@ -810,7 +802,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     _lintRules = null;
     patchPaths = {};
     preserveComments = true;
-    strongModeHints = false;
     trackCacheDependencies = true;
     useFastaParser = true;
   }
@@ -819,9 +810,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @override
   void setCrossContextOptionsFrom(AnalysisOptions options) {
     enableLazyAssignmentOperators = options.enableLazyAssignmentOperators;
-    if (options is AnalysisOptionsImpl) {
-      strongModeHints = options.strongModeHints;
-    }
   }
 
   /// Return whether the given lists of lints are equal.

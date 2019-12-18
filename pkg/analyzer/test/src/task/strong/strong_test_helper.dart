@@ -273,7 +273,6 @@ class AbstractStrongTest with ResourceProviderMixin {
     expect(mainFile.exists, true, reason: '`/main.dart` is missing');
 
     AnalysisOptionsImpl analysisOptions = AnalysisOptionsImpl();
-    analysisOptions.strongModeHints = true;
     analysisOptions.implicitCasts = implicitCasts;
     analysisOptions.implicitDynamic = implicitDynamic;
     analysisOptions.strictInference = strictInference;
