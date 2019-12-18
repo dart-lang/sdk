@@ -50,7 +50,7 @@ DART2JS_PATHS = STANDARD_PATHS + [
 
 DDC_PATHS = STANDARD_PATHS + [
     # compiler sources
-    "pkg/(analyzer|build_integration|dev_compiler|front_end|kernel|meta|_fe_analyzer_shared)/.+",
+    "pkg/(build_integration|dev_compiler|front_end|kernel|meta|_fe_analyzer_shared)/.+",
     "utils/dartdevc/.+",
     # testing
     "pkg/(js|modular_test|sourcemap_testing|testing)/.+",
@@ -752,7 +752,11 @@ dart_ci_sandbox_builder(
     location_regexp=to_location_regexp(DDC_PATHS),
     on_cq=True)
 dart_ci_sandbox_builder(
-    "ddc-nnbd-linux-release-chrome", category="ddc|nn", channels=["try"])
+    "ddc-nnbd-linux-release-chrome",
+    category="ddc|nn",
+    channels=["try"],
+    location_regexp=to_location_regexp(DDC_PATHS),
+    on_cq=True)
 dart_ci_sandbox_builder(
     "ddc-mac-release-chrome", category="ddc|m", dimensions=mac())
 dart_ci_sandbox_builder(
