@@ -18,13 +18,13 @@ import 'operation.dart';
  * Launch and interact with the analysis server.
  */
 main(List<String> rawArgs) {
-  Logger logger = new Logger('Performance Measurement Client');
+  Logger logger = Logger('Performance Measurement Client');
   logger.onRecord.listen((LogRecord rec) {
     print(rec.message);
   });
   PerfArgs args = parseArgs(rawArgs);
 
-  Driver driver = new Driver(diagnosticPort: args.diagnosticPort);
+  Driver driver = Driver(diagnosticPort: args.diagnosticPort);
   Stream<Operation> stream = openInput(args);
   StreamSubscription<Operation> subscription;
   subscription = stream.listen((Operation op) {
@@ -68,7 +68,7 @@ const VERY_VERBOSE_CMDLINE_OPTION = 'vv';
 ArgParser _argParser;
 
 ArgParser get argParser {
-  _argParser = new ArgParser();
+  _argParser = ArgParser();
 
   _argParser.addOption(INPUT_CMDLINE_OPTION,
       abbr: 'i',
@@ -106,12 +106,12 @@ ArgParser get argParser {
  * should interact with the analysis server.
  */
 Stream<Operation> openInput(PerfArgs args) {
-  var logger = new Logger('openInput');
+  var logger = Logger('openInput');
   Stream<List<int>> inputRaw;
   if (args.inputPath == 'stdin') {
     inputRaw = stdin;
   } else {
-    inputRaw = new File(args.inputPath).openRead();
+    inputRaw = File(args.inputPath).openRead();
   }
   for (PathMapEntry entry in args.srcPathMap.entries) {
     logger.log(
@@ -123,8 +123,8 @@ Stream<Operation> openInput(PerfArgs args) {
   return inputRaw
       .cast<List<int>>()
       .transform(systemEncoding.decoder)
-      .transform(new LineSplitter())
-      .transform(new InputConverter(args.tmpSrcDirPath, args.srcPathMap));
+      .transform(LineSplitter())
+      .transform(InputConverter(args.tmpSrcDirPath, args.srcPathMap));
 }
 
 /**
@@ -132,7 +132,7 @@ Stream<Operation> openInput(PerfArgs args) {
  */
 PerfArgs parseArgs(List<String> rawArgs) {
   ArgResults args;
-  PerfArgs perfArgs = new PerfArgs();
+  PerfArgs perfArgs = PerfArgs();
   try {
     args = argParser.parse(rawArgs);
   } on Exception catch (e) {
@@ -157,7 +157,7 @@ PerfArgs parseArgs(List<String> rawArgs) {
       if (index != -1 && pair.indexOf(',', index + 1) == -1) {
         String oldSrcPrefix = _withTrailingSeparator(pair.substring(0, index));
         String newSrcPrefix = _withTrailingSeparator(pair.substring(index + 1));
-        if (new Directory(newSrcPrefix).existsSync()) {
+        if (Directory(newSrcPrefix).existsSync()) {
           perfArgs.srcPathMap.add(oldSrcPrefix, newSrcPrefix);
           continue;
         }
@@ -234,7 +234,7 @@ class PerfArgs {
    * when the instrumentation or log file was generated
    * to the target source directory used during performance testing.
    */
-  final PathMap srcPathMap = new PathMap();
+  final PathMap srcPathMap = PathMap();
 
   /**
    * The temporary directory containing source used during performance measurement.

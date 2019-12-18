@@ -15,7 +15,7 @@ import '../timing_framework.dart';
  * well as the standard deviation to the output.
  */
 void main(List<String> args) {
-  SimpleTest test = new SimpleTest();
+  SimpleTest test = SimpleTest();
   test.run().then((TimingResult result) {
     print('minTime = ${result.minTime}');
     print('averageTime = ${result.averageTime}');
@@ -81,8 +81,7 @@ f(C c) {
   @override
   Future perform() {
     sendAnalysisUpdateContent({
-      mainFilePath:
-          new ChangeContentOverlay([new SourceEdit(cursorOffset, 0, '.')])
+      mainFilePath: ChangeContentOverlay([SourceEdit(cursorOffset, 0, '.')])
     });
     sendCompletionGetSuggestions(mainFilePath, cursorOffset + 1);
     return completionReceived.future;
@@ -90,7 +89,7 @@ f(C c) {
 
   @override
   Future setUp() {
-    completionReceived = new Completer();
+    completionReceived = Completer();
     onCompletionResults.listen((_) {
       // We only care about the time to the first response.
       if (!completionReceived.isCompleted) {
@@ -99,13 +98,13 @@ f(C c) {
     });
     sendAnalysisSetAnalysisRoots([dirname(mainFilePath)], []);
     sendAnalysisUpdateContent(
-        {mainFilePath: new AddContentOverlay(originalContent)});
-    return new Future.value();
+        {mainFilePath: AddContentOverlay(originalContent)});
+    return Future.value();
   }
 
   @override
   Future tearDown() {
     sendAnalysisSetAnalysisRoots([], []);
-    return new Future.value();
+    return Future.value();
   }
 }

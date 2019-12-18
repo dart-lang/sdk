@@ -63,7 +63,7 @@ class ExtensionMemberContributor extends DartCompletionContributor {
         // to ensure that we can return the suggestions from other providers.
         return const <CompletionSuggestion>[];
       }
-      LibraryScope nameScope = new LibraryScope(containingLibrary);
+      LibraryScope nameScope = LibraryScope(containingLibrary);
       for (var extension in nameScope.extensions) {
         var typeSystem = containingLibrary.typeSystem;
         var typeProvider = containingLibrary.typeProvider;

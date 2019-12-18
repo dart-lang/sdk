@@ -79,7 +79,7 @@ main() {
     }
 
     DartUnitHighlightsComputer computer =
-        new DartUnitHighlightsComputer(result.unit);
+        DartUnitHighlightsComputer(result.unit);
     highlights = computer.compute();
   }
 }

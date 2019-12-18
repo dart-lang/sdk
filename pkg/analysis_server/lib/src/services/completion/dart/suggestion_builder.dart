@@ -35,7 +35,7 @@ CompletionSuggestion createSuggestion(Element element,
     completion = element.displayName;
   }
   bool isDeprecated = element.hasDeprecated;
-  CompletionSuggestion suggestion = new CompletionSuggestion(
+  CompletionSuggestion suggestion = CompletionSuggestion(
       kind,
       isDeprecated ? DART_RELEVANCE_LOW : relevance,
       completion,
@@ -94,7 +94,7 @@ mixin ElementSuggestionBuilder {
   /**
    * A set of existing completions used to prevent duplicate suggestions.
    */
-  final Set<String> _completions = new Set<String>();
+  final Set<String> _completions = Set<String>();
 
   /**
    * A map of element names to suggestions for synthetic getters and setters.
@@ -158,7 +158,7 @@ mixin ElementSuggestionBuilder {
                 element.enclosingElement is ClassElement
                     ? protocol.ElementKind.FIELD
                     : protocol.ElementKind.TOP_LEVEL_VARIABLE;
-            existingSuggestion.element = new protocol.Element(
+            existingSuggestion.element = protocol.Element(
                 elemKind,
                 existingSuggestion.element.name,
                 existingSuggestion.element.flags,
@@ -295,7 +295,7 @@ class MemberSuggestionBuilder {
    * Note: the enumerated values stored in this map are intended to be bitwise
    * compared.
    */
-  final Map<String, int> _completionTypesGenerated = new HashMap<String, int>();
+  final Map<String, int> _completionTypesGenerated = HashMap<String, int>();
 
   /**
    * Map from completion identifier to completion suggestion

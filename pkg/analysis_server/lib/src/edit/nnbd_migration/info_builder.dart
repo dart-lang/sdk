@@ -404,7 +404,7 @@ class InfoBuilder {
 
   /// Return the navigation sources for the unit associated with the [result].
   List<NavigationSource> _computeNavigationSources(ResolvedUnitResult result) {
-    NavigationCollectorImpl collector = new NavigationCollectorImpl();
+    NavigationCollectorImpl collector = NavigationCollectorImpl();
     computeDartNavigation(
         result.session.resourceProvider, collector, result.unit, null, null);
     collector.createRegions();

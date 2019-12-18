@@ -120,7 +120,7 @@ class TextDocumentOpenHandler
     return path.mapResult((path) {
       // We don't get a VersionedTextDocumentIdentifier with a didOpen but we
       // do get the necessary info to create one.
-      server.documentVersions[path] = new VersionedTextDocumentIdentifier(
+      server.documentVersions[path] = VersionedTextDocumentIdentifier(
         params.textDocument.version,
         params.textDocument.uri,
       );

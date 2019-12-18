@@ -38,8 +38,8 @@ abstract class FixProcessorLintTest extends FixProcessorTest {
     if (index < 0) {
       fail('Missing "/*LINT*/" marker');
     }
-    return new AnalysisError(testSource, index + '/*LINT*/'.length, length ?? 0,
-        new LintCode(lintCode, '<ignored>'));
+    return AnalysisError(testSource, index + '/*LINT*/'.length, length ?? 0,
+        LintCode(lintCode, '<ignored>'));
   }
 }
 
@@ -145,7 +145,7 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
   List<LinkedEditSuggestion> expectedSuggestions(
       LinkedEditSuggestionKind kind, List<String> values) {
     return values.map((value) {
-      return new LinkedEditSuggestion(value, kind);
+      return LinkedEditSuggestion(value, kind);
     }).toList();
   }
 
@@ -256,7 +256,7 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
     var tracker = DeclarationsTracker(MemoryByteStore(), resourceProvider);
     tracker.addContext(driver.analysisContext);
 
-    var context = new DartFixContextImpl(
+    var context = DartFixContextImpl(
       workspace,
       testAnalysisResult,
       error,
@@ -266,7 +266,7 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
         return provider.get(driver.analysisContext, testFile, name);
       },
     );
-    return await new DartFixContributor().computeFixes(context);
+    return await DartFixContributor().computeFixes(context);
   }
 
   /// Find the error that is to be fixed by computing the errors in the file,
@@ -286,7 +286,7 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
     if (errors.isEmpty) {
       fail('Expected one error, found: none');
     } else if (errors.length > 1) {
-      StringBuffer buffer = new StringBuffer();
+      StringBuffer buffer = StringBuffer();
       buffer.writeln('Expected one error, found:');
       for (AnalysisError error in errors) {
         buffer.writeln('  $error [${error.errorCode}]');
@@ -310,7 +310,7 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
     List<Position> positions = <Position>[];
     for (String search in searchStrings) {
       int offset = resultCode.indexOf(search);
-      positions.add(new Position(testFile, offset));
+      positions.add(Position(testFile, offset));
     }
     return positions;
   }

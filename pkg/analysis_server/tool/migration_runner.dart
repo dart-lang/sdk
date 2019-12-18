@@ -68,12 +68,12 @@ class MigrationBase {
     //
     // Create server
     //
-    AnalysisServerOptions options = new AnalysisServerOptions();
+    AnalysisServerOptions options = AnalysisServerOptions();
     String sdkPath = FolderBasedDartSdk.defaultSdkDirectory(
       PhysicalResourceProvider.INSTANCE,
     ).path;
-    return new AnalysisServer(serverChannel, resourceProvider, options,
-        new DartSdkManager(sdkPath, true), InstrumentationService.NULL_SERVICE);
+    return AnalysisServer(serverChannel, resourceProvider, options,
+        DartSdkManager(sdkPath, true), InstrumentationService.NULL_SERVICE);
   }
 
   void processNotification(Notification notification) {
@@ -96,9 +96,9 @@ class MigrationBase {
   }
 
   void setUp() {
-    serverChannel = new MockServerChannel();
+    serverChannel = MockServerChannel();
     server = createAnalysisServer();
-    server.pluginManager = new TestPluginManager();
+    server.pluginManager = TestPluginManager();
     // listen for notifications
     Stream<Notification> notificationStream =
         serverChannel.notificationController.stream;

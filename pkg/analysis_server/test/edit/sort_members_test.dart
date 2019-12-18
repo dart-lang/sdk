@@ -28,15 +28,14 @@ class SortMembersTest extends AbstractAnalysisTest {
   void setUp() {
     super.setUp();
     createProject();
-    handler = new EditDomainHandler(server);
+    handler = EditDomainHandler(server);
   }
 
   @failingTest
   test_BAD_doesNotExist() async {
     // The analysis driver fails to return an error
     Request request =
-        new EditSortMembersParams(convertPath('/no/such/file.dart'))
-            .toRequest('0');
+        EditSortMembersParams(convertPath('/no/such/file.dart')).toRequest('0');
     Response response = await waitResponse(request);
     expect(response,
         isResponseFailure('0', RequestErrorCode.SORT_MEMBERS_INVALID_FILE));
@@ -48,14 +47,14 @@ main() {
   print()
 }
 ''');
-    Request request = new EditSortMembersParams(testFile).toRequest('0');
+    Request request = EditSortMembersParams(testFile).toRequest('0');
     Response response = await waitResponse(request);
     expect(response,
         isResponseFailure('0', RequestErrorCode.SORT_MEMBERS_PARSE_ERRORS));
   }
 
   test_BAD_notDartFile() async {
-    Request request = new EditSortMembersParams(
+    Request request = EditSortMembersParams(
       convertPath('/not-a-Dart-file.txt'),
     ).toRequest('0');
     Response response = await waitResponse(request);
@@ -64,7 +63,7 @@ main() {
   }
 
   test_invalidFilePathFormat_notAbsolute() async {
-    var request = new EditSortMembersParams('test.dart').toRequest('0');
+    var request = EditSortMembersParams('test.dart').toRequest('0');
     var response = await waitResponse(request);
     expect(
       response,
@@ -73,9 +72,8 @@ main() {
   }
 
   test_invalidFilePathFormat_notNormalized() async {
-    var request =
-        new EditSortMembersParams(convertPath('/foo/../bar/test.dart'))
-            .toRequest('0');
+    var request = EditSortMembersParams(convertPath('/foo/../bar/test.dart'))
+        .toRequest('0');
     var response = await waitResponse(request);
     expect(
       response,
@@ -270,9 +268,9 @@ class C {}
   }
 
   Future _requestSort() async {
-    Request request = new EditSortMembersParams(testFile).toRequest('0');
+    Request request = EditSortMembersParams(testFile).toRequest('0');
     Response response = await waitResponse(request);
-    var result = new EditSortMembersResult.fromResponse(response);
+    var result = EditSortMembersResult.fromResponse(response);
     fileEdit = result.edit;
   }
 }

@@ -43,7 +43,7 @@ main() {}''';
         return analysisFinished.then((_) {
           // Now that reanalysis has finished, give the server an extra second
           // to make sure it doesn't crash.
-          return new Future.delayed(new Duration(seconds: 1));
+          return Future.delayed(Duration(seconds: 1));
         });
       });
     });

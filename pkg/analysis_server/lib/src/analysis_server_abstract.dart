@@ -57,7 +57,7 @@ abstract class AbstractAnalysisServer {
 
   /// A [RecentBuffer] of the most recent exceptions encountered by the analysis
   /// server.
-  final RecentBuffer<ServerException> exceptions = new RecentBuffer(10);
+  final RecentBuffer<ServerException> exceptions = RecentBuffer(10);
 
   /// Performance information after initial analysis is complete
   /// or `null` if the initial analysis is not yet complete
@@ -69,10 +69,10 @@ abstract class AbstractAnalysisServer {
   ServerPerformance performance;
 
   /// Performance information before initial analysis is complete.
-  final ServerPerformance performanceDuringStartup = new ServerPerformance();
+  final ServerPerformance performanceDuringStartup = ServerPerformance();
 
   /// The set of the files that are currently priority.
-  final Set<String> priorityFiles = new Set<String>();
+  final Set<String> priorityFiles = Set<String>();
 
   final List<String> analyzableFilePatterns = <String>[
     '**/*.${AnalysisEngine.SUFFIX_DART}',
@@ -108,10 +108,10 @@ abstract class AbstractAnalysisServer {
       for (String pattern in analyzableFilePatterns) {
         try {
           _analyzedFilesGlobs
-              .add(new Glob(resourceProvider.pathContext.separator, pattern));
+              .add(Glob(resourceProvider.pathContext.separator, pattern));
         } catch (exception, stackTrace) {
           AnalysisEngine.instance.instrumentationService.logException(
-              new CaughtException.withMessage(
+              CaughtException.withMessage(
                   'Invalid glob pattern: "$pattern"', exception, stackTrace));
         }
       }
@@ -129,9 +129,9 @@ abstract class AbstractAnalysisServer {
 
   /// Return the total time the server's been alive.
   Duration get uptime {
-    DateTime start = new DateTime.fromMillisecondsSinceEpoch(
-        performanceDuringStartup.startTime);
-    return new DateTime.now().difference(start);
+    DateTime start =
+        DateTime.fromMillisecondsSinceEpoch(performanceDuringStartup.startTime);
+    return DateTime.now().difference(start);
   }
 
   void addContextsToDeclarationsTracker() {
@@ -157,12 +157,12 @@ abstract class AbstractAnalysisServer {
       Folder stateLocation =
           resourceProvider.getStateLocation('.analysis-driver');
       if (stateLocation != null) {
-        return new MemoryCachingByteStore(
-            new EvictingFileByteStore(stateLocation.path, G), memoryCacheSize);
+        return MemoryCachingByteStore(
+            EvictingFileByteStore(stateLocation.path, G), memoryCacheSize);
       }
     }
 
-    return new MemoryCachingByteStore(new NullByteStore(), memoryCacheSize);
+    return MemoryCachingByteStore(NullByteStore(), memoryCacheSize);
   }
 
   /// Return an analysis driver to which the file with the given [path] is
@@ -191,7 +191,7 @@ abstract class AbstractAnalysisServer {
     return declarationsTracker
             ?.getContext(result.session.analysisContext)
             ?.dartdocDirectiveInfo ??
-        new DartdocDirectiveInfo();
+        DartdocDirectiveInfo();
   }
 
   /// Return a [Future] that completes with the [Element] at the given
@@ -252,7 +252,7 @@ abstract class AbstractAnalysisServer {
     ResolvedUnitResult result = await getResolvedUnit(file);
     CompilationUnit unit = result?.unit;
     if (unit != null) {
-      return new NodeLocator(offset).searchWithin(unit);
+      return NodeLocator(offset).searchWithin(unit);
     }
     return null;
   }
@@ -277,7 +277,7 @@ abstract class AbstractAnalysisServer {
 
     nd.AnalysisDriver driver = getAnalysisDriver(path);
     if (driver == null) {
-      return new Future.value();
+      return Future.value();
     }
 
     return driver

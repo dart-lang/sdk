@@ -13,12 +13,12 @@ import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 class RequestConverter {
   plugin.AnalysisService convertAnalysisService(
       server.AnalysisService service) {
-    return new plugin.AnalysisService(service.name);
+    return plugin.AnalysisService(service.name);
   }
 
   plugin.AnalysisSetPriorityFilesParams convertAnalysisSetPriorityFilesParams(
       server.AnalysisSetPriorityFilesParams params) {
-    return new plugin.AnalysisSetPriorityFilesParams(params.files);
+    return plugin.AnalysisSetPriorityFilesParams(params.files);
   }
 
   plugin.AnalysisSetSubscriptionsParams convertAnalysisSetSubscriptionsParams(
@@ -36,11 +36,11 @@ class RequestConverter {
         // should be passed along to plugins.
       }
     }
-    return new plugin.AnalysisSetSubscriptionsParams(pluginSubscriptions);
+    return plugin.AnalysisSetSubscriptionsParams(pluginSubscriptions);
   }
 
   plugin.AnalysisUpdateContentParams convertAnalysisUpdateContentParams(
       server.AnalysisUpdateContentParams params) {
-    return new plugin.AnalysisUpdateContentParams(params.files);
+    return plugin.AnalysisUpdateContentParams(params.files);
   }
 }

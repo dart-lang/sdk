@@ -57,35 +57,34 @@ class ElementKindTest {
   }
 
   void test_string_constructor() {
-    expect(new ElementKind(ElementKind.CLASS.name), ElementKind.CLASS);
-    expect(new ElementKind(ElementKind.CLASS_TYPE_ALIAS.name),
+    expect(ElementKind(ElementKind.CLASS.name), ElementKind.CLASS);
+    expect(ElementKind(ElementKind.CLASS_TYPE_ALIAS.name),
         ElementKind.CLASS_TYPE_ALIAS);
-    expect(new ElementKind(ElementKind.COMPILATION_UNIT.name),
+    expect(ElementKind(ElementKind.COMPILATION_UNIT.name),
         ElementKind.COMPILATION_UNIT);
-    expect(
-        new ElementKind(ElementKind.CONSTRUCTOR.name), ElementKind.CONSTRUCTOR);
-    expect(new ElementKind(ElementKind.FIELD.name), ElementKind.FIELD);
-    expect(new ElementKind(ElementKind.FUNCTION.name), ElementKind.FUNCTION);
-    expect(new ElementKind(ElementKind.FUNCTION_TYPE_ALIAS.name),
+    expect(ElementKind(ElementKind.CONSTRUCTOR.name), ElementKind.CONSTRUCTOR);
+    expect(ElementKind(ElementKind.FIELD.name), ElementKind.FIELD);
+    expect(ElementKind(ElementKind.FUNCTION.name), ElementKind.FUNCTION);
+    expect(ElementKind(ElementKind.FUNCTION_TYPE_ALIAS.name),
         ElementKind.FUNCTION_TYPE_ALIAS);
-    expect(new ElementKind(ElementKind.GETTER.name), ElementKind.GETTER);
-    expect(new ElementKind(ElementKind.LIBRARY.name), ElementKind.LIBRARY);
-    expect(new ElementKind(ElementKind.LOCAL_VARIABLE.name),
+    expect(ElementKind(ElementKind.GETTER.name), ElementKind.GETTER);
+    expect(ElementKind(ElementKind.LIBRARY.name), ElementKind.LIBRARY);
+    expect(ElementKind(ElementKind.LOCAL_VARIABLE.name),
         ElementKind.LOCAL_VARIABLE);
-    expect(new ElementKind(ElementKind.METHOD.name), ElementKind.METHOD);
-    expect(new ElementKind(ElementKind.PARAMETER.name), ElementKind.PARAMETER);
-    expect(new ElementKind(ElementKind.SETTER.name), ElementKind.SETTER);
-    expect(new ElementKind(ElementKind.TOP_LEVEL_VARIABLE.name),
+    expect(ElementKind(ElementKind.METHOD.name), ElementKind.METHOD);
+    expect(ElementKind(ElementKind.PARAMETER.name), ElementKind.PARAMETER);
+    expect(ElementKind(ElementKind.SETTER.name), ElementKind.SETTER);
+    expect(ElementKind(ElementKind.TOP_LEVEL_VARIABLE.name),
         ElementKind.TOP_LEVEL_VARIABLE);
-    expect(new ElementKind(ElementKind.TYPE_PARAMETER.name),
+    expect(ElementKind(ElementKind.TYPE_PARAMETER.name),
         ElementKind.TYPE_PARAMETER);
-    expect(new ElementKind(ElementKind.UNIT_TEST_TEST.name),
+    expect(ElementKind(ElementKind.UNIT_TEST_TEST.name),
         ElementKind.UNIT_TEST_TEST);
-    expect(new ElementKind(ElementKind.UNIT_TEST_GROUP.name),
+    expect(ElementKind(ElementKind.UNIT_TEST_GROUP.name),
         ElementKind.UNIT_TEST_GROUP);
-    expect(new ElementKind(ElementKind.UNKNOWN.name), ElementKind.UNKNOWN);
+    expect(ElementKind(ElementKind.UNKNOWN.name), ElementKind.UNKNOWN);
     expect(() {
-      new ElementKind('no-such-kind');
+      ElementKind('no-such-kind');
     }, throwsException);
   }
 

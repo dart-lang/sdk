@@ -22,7 +22,7 @@ class CancelRequestHandler extends MessageHandler<CancelParams, void> {
   }
 
   CancelableToken createToken(RequestMessage message) {
-    final token = new CancelableToken();
+    final token = CancelableToken();
     _tokens[message.id.toString()] = token;
     return token;
   }

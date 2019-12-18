@@ -27,7 +27,7 @@ class GetServerPortTest extends AbstractAnalysisServerIntegrationTest {
     expect(result.port, isNonZero);
 
     // Connect to the server and verify that it's serving the status page.
-    HttpClient client = new HttpClient();
+    HttpClient client = HttpClient();
     HttpClientRequest request = await client
         .getUrl(Uri.parse('http://localhost:${result.port}/status'));
     HttpClientResponse response = await request.close();

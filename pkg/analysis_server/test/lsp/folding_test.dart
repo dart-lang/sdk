@@ -25,7 +25,7 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
 
     final range1 = rangeFromMarkers(content);
     final expectedRegions = [
-      new FoldingRange(
+      FoldingRange(
         range1.start.line,
         range1.start.character,
         range1.end.line,
@@ -50,7 +50,7 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
 
     final range1 = rangeFromMarkers(content);
     final expectedRegions = [
-      new FoldingRange(
+      FoldingRange(
         range1.start.line,
         range1.start.character,
         range1.end.line,
@@ -110,7 +110,7 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
   }
 
   FoldingRange _toFoldingRange(Range range, FoldingRangeKind kind) {
-    return new FoldingRange(
+    return FoldingRange(
       range.start.line,
       range.start.character,
       range.end.line,

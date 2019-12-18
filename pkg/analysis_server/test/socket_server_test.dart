@@ -29,8 +29,8 @@ main() {
 
 class SocketServerTest {
   static void createAnalysisServer_alreadyStarted() {
-    MockServerChannel channel1 = new MockServerChannel();
-    MockServerChannel channel2 = new MockServerChannel();
+    MockServerChannel channel1 = MockServerChannel();
+    MockServerChannel channel2 = MockServerChannel();
     SocketServer server = _createSocketServer(channel1);
     expect(
         channel1.notificationsReceived[0].event, SERVER_NOTIFICATION_CONNECTED);
@@ -42,7 +42,7 @@ class SocketServerTest {
     expect(channel2.responsesReceived[0].error.code,
         equals(RequestErrorCode.SERVER_ALREADY_STARTED));
     channel2
-        .sendRequest(new ServerShutdownParams().toRequest('0'))
+        .sendRequest(ServerShutdownParams().toRequest('0'))
         .then((Response response) {
       expect(response.id, equals('0'));
       expect(response.error, isNotNull);
@@ -53,13 +53,13 @@ class SocketServerTest {
   }
 
   static Future createAnalysisServer_successful() {
-    MockServerChannel channel = new MockServerChannel();
+    MockServerChannel channel = MockServerChannel();
     _createSocketServer(channel);
     channel.expectMsgCount(notificationCount: 1);
     expect(
         channel.notificationsReceived[0].event, SERVER_NOTIFICATION_CONNECTED);
     return channel
-        .sendRequest(new ServerShutdownParams().toRequest('0'))
+        .sendRequest(ServerShutdownParams().toRequest('0'))
         .then((Response response) {
       expect(response.id, equals('0'));
       expect(response.error, isNull);
@@ -68,14 +68,14 @@ class SocketServerTest {
   }
 
   static Future requestHandler_exception() {
-    MockServerChannel channel = new MockServerChannel();
+    MockServerChannel channel = MockServerChannel();
     SocketServer server = _createSocketServer(channel);
     channel.expectMsgCount(notificationCount: 1);
     expect(
         channel.notificationsReceived[0].event, SERVER_NOTIFICATION_CONNECTED);
-    _MockRequestHandler handler = new _MockRequestHandler(false);
+    _MockRequestHandler handler = _MockRequestHandler(false);
     server.analysisServer.handlers = [handler];
-    var request = new ServerGetVersionParams().toRequest('0');
+    var request = ServerGetVersionParams().toRequest('0');
     return channel.sendRequest(request).then((Response response) {
       expect(response.id, equals('0'));
       expect(response.error, isNotNull);
@@ -88,11 +88,11 @@ class SocketServerTest {
   }
 
   static Future requestHandler_futureException() async {
-    MockServerChannel channel = new MockServerChannel();
+    MockServerChannel channel = MockServerChannel();
     SocketServer server = _createSocketServer(channel);
-    _MockRequestHandler handler = new _MockRequestHandler(true);
+    _MockRequestHandler handler = _MockRequestHandler(true);
     server.analysisServer.handlers = [handler];
-    var request = new ServerGetVersionParams().toRequest('0');
+    var request = ServerGetVersionParams().toRequest('0');
     Response response = await channel.sendRequest(request, throwOnError: false);
     expect(response.id, equals('0'));
     expect(response.error, isNull);
@@ -101,9 +101,9 @@ class SocketServerTest {
   }
 
   static SocketServer _createSocketServer(MockServerChannel channel) {
-    final errorNotifier = new ErrorNotifier();
-    final server = new SocketServer(new AnalysisServerOptions(),
-        new DartSdkManager('', false), errorNotifier, null, null, null);
+    final errorNotifier = ErrorNotifier();
+    final server = SocketServer(AnalysisServerOptions(),
+        DartSdkManager('', false), errorNotifier, null, null, null);
 
     server.createAnalysisServer(channel);
     errorNotifier.server = server.analysisServer;
@@ -121,8 +121,8 @@ class _MockRequestHandler implements RequestHandler {
   @override
   Response handleRequest(Request request) {
     if (futureException) {
-      new Future(throwException);
-      return new Response(request.id);
+      Future(throwException);
+      return Response(request.id);
     }
     throw 'mock request exception';
   }

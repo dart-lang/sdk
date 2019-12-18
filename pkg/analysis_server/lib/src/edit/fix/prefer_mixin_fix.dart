@@ -20,7 +20,7 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/lint/registry.dart';
 
 class PreferMixinFix extends FixLintTask implements FixCodeTask {
-  final classesToConvert = new Set<Element>();
+  final classesToConvert = Set<Element>();
 
   PreferMixinFix(DartFixListener listener) : super(listener);
 
@@ -34,8 +34,8 @@ class PreferMixinFix extends FixLintTask implements FixCodeTask {
     for (CompilationUnitMember declaration in result.unit.declarations) {
       if (declaration is ClassOrMixinDeclaration &&
           declaration.name.name == elem.name) {
-        AssistProcessor processor = new AssistProcessor(
-          new DartAssistContextImpl(
+        AssistProcessor processor = AssistProcessor(
+          DartAssistContextImpl(
               DartChangeWorkspace(listener.server.currentSessions),
               result,
               declaration.name.offset,
@@ -71,7 +71,7 @@ class PreferMixinFix extends FixLintTask implements FixCodeTask {
 
   @override
   Future<void> fixError(ResolvedUnitResult result, AnalysisError error) async {
-    var node = new NodeLocator(error.offset).searchWithin(result.unit);
+    var node = NodeLocator(error.offset).searchWithin(result.unit);
     TypeName type = node.thisOrAncestorOfType<TypeName>();
     if (type != null) {
       Element element = type.name.staticElement;
@@ -94,7 +94,7 @@ class PreferMixinFix extends FixLintTask implements FixCodeTask {
 
   static void task(DartFixRegistrar registrar, DartFixListener listener,
       EditDartfixParams params) {
-    var task = new PreferMixinFix(listener);
+    var task = PreferMixinFix(listener);
     registrar.registerLintTask(Registry.ruleRegistry['prefer_mixin'], task);
     registrar.registerCodeTask(task);
   }

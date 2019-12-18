@@ -41,7 +41,7 @@ class AnalysisOptionsFixGenerator {
   AnalysisOptionsFixGenerator(this.error, this.content, this.options)
       : errorOffset = error.offset,
         errorLength = error.length,
-        lineInfo = new LineInfo.fromContent(content);
+        lineInfo = LineInfo.fromContent(content);
 
   /// Return the absolute, normalized path to the file in which the error was
   /// reported.
@@ -49,8 +49,8 @@ class AnalysisOptionsFixGenerator {
 
   /// Return the list of fixes that apply to the error being fixed.
   Future<List<Fix>> computeFixes() async {
-    YamlNodeLocator locator = new YamlNodeLocator(
-        start: errorOffset, end: errorOffset + errorLength - 1);
+    YamlNodeLocator locator =
+        YamlNodeLocator(start: errorOffset, end: errorOffset + errorLength - 1);
     coveringNodePath = locator.searchWithin(options);
     if (coveringNodePath.isEmpty) {
       return fixes;
@@ -136,7 +136,7 @@ class AnalysisOptionsFixGenerator {
       YamlNode nodeToDelete = coveringNodePath[index - 1];
       deletionRange ??=
           _lines(nodeToDelete.span.start.offset, nodeToDelete.span.end.offset);
-      ChangeBuilder builder = new ChangeBuilder();
+      ChangeBuilder builder = ChangeBuilder();
       await builder.addFileEdit(file, (builder) {
         builder.addDeletion(deletionRange);
       });
@@ -155,7 +155,7 @@ class AnalysisOptionsFixGenerator {
       return;
     }
     change.message = formatList(kind.message, args);
-    fixes.add(new Fix(kind, change));
+    fixes.add(Fix(kind, change));
   }
 
   int _firstNonWhitespaceBefore(int offset) {
@@ -171,6 +171,6 @@ class AnalysisOptionsFixGenerator {
     CharacterLocation endLocation = lineInfo.getLocation(end);
     int endOffset = lineInfo.getOffsetOfLine(
         math.min(endLocation.lineNumber, lineInfo.lineCount - 1));
-    return new SourceRange(startOffset, endOffset - startOffset);
+    return SourceRange(startOffset, endOffset - startOffset);
   }
 }

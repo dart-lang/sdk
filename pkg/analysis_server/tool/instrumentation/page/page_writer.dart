@@ -16,7 +16,7 @@ abstract class PageWriter {
   /**
    * The object used to escape special HTML characters.
    */
-  static final HtmlEscape htmlEscape = new HtmlEscape();
+  static final HtmlEscape htmlEscape = HtmlEscape();
 
   /**
    * Initialize a newly create page writer.

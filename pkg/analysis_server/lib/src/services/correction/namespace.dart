@@ -21,7 +21,7 @@ Element getExportedElement(LibraryElement library, String name) {
  */
 Map<String, Element> getExportNamespaceForLibrary(LibraryElement library) {
   Namespace namespace =
-      new NamespaceBuilder().createExportNamespaceForLibrary(library);
+      NamespaceBuilder().createExportNamespaceForLibrary(library);
   return namespace.definedNames;
 }
 
@@ -104,7 +104,7 @@ ImportElement internal_getImportElement(
       continue;
     }
     Namespace namespace = importElement.namespace;
-    Set<Element> elements = new Set.from(namespace.definedNames.values);
+    Set<Element> elements = Set.from(namespace.definedNames.values);
     importElementsMap[importElement] = elements;
   }
   // use import namespace to choose correct one

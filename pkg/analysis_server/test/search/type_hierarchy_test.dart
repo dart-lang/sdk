@@ -28,7 +28,7 @@ class GetTypeHierarchyTest extends AbstractAnalysisTest {
     super.setUp();
     createProject();
     server.handlers = [
-      new SearchDomainHandler(server),
+      SearchDomainHandler(server),
     ];
   }
 
@@ -180,7 +180,7 @@ class C extends A {}
 ''');
     await waitForTasksFinished();
     // configure roots
-    Request request = new AnalysisSetAnalysisRootsParams(
+    Request request = AnalysisSetAnalysisRootsParams(
         [projectPath, convertPath('/packages/pkgA')], []).toRequest('0');
     handleSuccessfulRequest(request);
     // test A type hierarchy
@@ -1071,13 +1071,13 @@ class D extends C {}
   }
 
   Future<void> test_superOnly_fileDoesNotExist() async {
-    Request request = new SearchGetTypeHierarchyParams(
+    Request request = SearchGetTypeHierarchyParams(
             convertPath('/does/not/exist.dart'), 0,
             superOnly: true)
         .toRequest(requestId);
     Response response = await serverChannel.sendRequest(request);
     List<TypeHierarchyItem> items =
-        new SearchGetTypeHierarchyResult.fromResponse(response).hierarchyItems;
+        SearchGetTypeHierarchyResult.fromResponse(response).hierarchyItems;
     expect(items, isNull);
   }
 
@@ -1086,7 +1086,7 @@ class D extends C {}
   }
 
   Request _createGetTypeHierarchyRequest(String search, {bool superOnly}) {
-    return new SearchGetTypeHierarchyParams(testFile, findOffset(search),
+    return SearchGetTypeHierarchyParams(testFile, findOffset(search),
             superOnly: superOnly)
         .toRequest(requestId);
   }
@@ -1097,8 +1097,7 @@ class D extends C {}
     Request request =
         _createGetTypeHierarchyRequest(search, superOnly: superOnly);
     Response response = await serverChannel.sendRequest(request);
-    return new SearchGetTypeHierarchyResult.fromResponse(response)
-        .hierarchyItems;
+    return SearchGetTypeHierarchyResult.fromResponse(response).hierarchyItems;
   }
 
   List _toJson(List<TypeHierarchyItem> items) {

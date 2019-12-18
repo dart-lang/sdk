@@ -10,7 +10,7 @@ import 'package:test/test.dart';
 import 'completion_test_support.dart';
 
 main() {
-  CompletionTestBuilder builder = new CompletionTestBuilder();
+  CompletionTestBuilder builder = CompletionTestBuilder();
   builder.buildAll();
 }
 
@@ -1587,7 +1587,7 @@ class Foo { int boo = 7; mth() { while (b!1) {} }}''', <String>["1+boo"]);
   }
 
   void buildLibraryTests() {
-    Map<String, String> sources = new HashMap<String, String>();
+    Map<String, String> sources = HashMap<String, String>();
 
     buildTests('test_export_ignoreIfThisLibraryExports', '''
 export 'dart:math';
@@ -2449,15 +2449,15 @@ class A<Z extends X> {
       if (failingTests.contains(spec.id)) {
         ++expectedFailCount;
         test("$testName (expected failure $expectedFailCount)", () {
-          CompletionTestCase test = new CompletionTestCase();
-          return new Future(() => test.runTest(spec, extraFiles)).then((_) {
+          CompletionTestCase test = CompletionTestCase();
+          return Future(() => test.runTest(spec, extraFiles)).then((_) {
             fail('Test passed - expected to fail.');
           }, onError: (_) {});
         });
       } else {
         ++expectedPassCount;
         test(testName, () {
-          CompletionTestCase test = new CompletionTestCase();
+          CompletionTestCase test = CompletionTestCase();
           return test.runTest(spec, extraFiles);
         });
       }

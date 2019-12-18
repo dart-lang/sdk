@@ -23,9 +23,9 @@ bool isUndefinedType(TypeBase t) => t is Type && t.name == 'undefined';
 const fieldNameForIndexer = 'indexer';
 
 List<AstNode> parseString(String input) {
-  final scanner = new Scanner(input);
+  final scanner = Scanner(input);
   final tokens = scanner.scan();
-  final parser = new Parser(tokens);
+  final parser = Parser(tokens);
   return parser.parse();
 }
 
@@ -35,7 +35,7 @@ TypeBase typeOfLiteral(TokenType tokenType) {
       : tokenType == TokenType.NUMBER
           ? 'number'
           : throw 'Unknown literal type $tokenType';
-  return new Type.identifier(typeName);
+  return Type.identifier(typeName);
 }
 
 class ArrayType extends TypeBase {
@@ -133,7 +133,7 @@ class InlineInterface extends Interface {
   InlineInterface(
     String name,
     List<Member> members,
-  ) : super(null, new Token.identifier(name), [], [], members);
+  ) : super(null, Token.identifier(name), [], [], members);
 }
 
 class Indexer extends Member {
@@ -244,7 +244,7 @@ class Parser {
     //_consume(TokenType.RIGHT_BRACE, 'Expected }');
     _match([TokenType.SEMI_COLON]);
 
-    return new Indexer(leadingComment, indexer.type, type);
+    return Indexer(leadingComment, indexer.type, type);
   }
 
   /// Ensures the next token is [type] and moves to the next, throwing [message]
@@ -273,7 +273,7 @@ class Parser {
     }
     _consume(TokenType.RIGHT_BRACE, 'Expected }');
 
-    return new Namespace(leadingComment, name, consts);
+    return Namespace(leadingComment, name, consts);
   }
 
   Const _enumValue(String enumName) {
@@ -309,7 +309,7 @@ class Parser {
     // Overwrite comment if we have an improved one.
     final improvedComment = getImprovedComment(containerName, name.lexeme);
     leadingComment = improvedComment != null
-        ? new Comment(new Token(TokenType.COMMENT, improvedComment))
+        ? Comment(Token(TokenType.COMMENT, improvedComment))
         : leadingComment;
 
     // Some fields have weird comments like this in the spec:
@@ -318,11 +318,11 @@ class Parser {
     // marked with number.
     final commentText = leadingComment?.text;
     if (commentText != null) {
-      final RegExp _linkTypePattern = new RegExp(r'See \{@link (\w+)\}\.?');
+      final RegExp _linkTypePattern = RegExp(r'See \{@link (\w+)\}\.?');
       final linkTypeMatch = _linkTypePattern.firstMatch(commentText);
       if (linkTypeMatch != null) {
-        type = new Type.identifier(linkTypeMatch.group(1));
-        leadingComment = new Comment(new Token(TokenType.COMMENT,
+        type = Type.identifier(linkTypeMatch.group(1));
+        leadingComment = Comment(Token(TokenType.COMMENT,
             '// ' + commentText.replaceAll(_linkTypePattern, '')));
       }
     }
@@ -333,7 +333,7 @@ class Parser {
 
     // Special handling for fields that have fixed values.
     if (value != null) {
-      return new FixedValueField(
+      return FixedValueField(
           leadingComment, name, value, type, false, canBeUndefined);
     }
 
@@ -355,7 +355,7 @@ class Parser {
       remainingTypes.removeWhere((t) => !allowTypeInSignatures(t));
 
       type = remainingTypes.length > 1
-          ? new UnionType(remainingTypes)
+          ? UnionType(remainingTypes)
           : remainingTypes.single;
     } else if (isAnyType(type)) {
       // There are values in the spec marked as `any` that allow nulls (for
@@ -397,7 +397,7 @@ class Parser {
 
     _consume(TokenType.RIGHT_BRACE, 'Expected }');
 
-    return new Interface(leadingComment, name, typeArgs, baseTypes, members);
+    return Interface(leadingComment, name, typeArgs, baseTypes, members);
   }
 
   /// Returns [true] an advances if the next token is one of [types], otherwise
@@ -435,7 +435,7 @@ class Parser {
     }
     _consume(TokenType.RIGHT_BRACE, 'Expected }');
 
-    return new Namespace(leadingComment, name, members);
+    return Namespace(leadingComment, name, members);
   }
 
   /// Returns the next token without advancing.
@@ -494,13 +494,13 @@ class Parser {
         // If we have a single member that is an indexer type, we can use a Map.
         if (members.length == 1 && members.single is Indexer) {
           Indexer indexer = members.single;
-          type = new MapType(indexer.indexType, indexer.valueType);
+          type = MapType(indexer.indexType, indexer.valueType);
         } else {
           // Add a synthetic interface to the parsers list of nodes to represent this type.
           final generatedName = _joinNames(containerName, fieldName);
-          _nodes.add(new InlineInterface(generatedName, members));
+          _nodes.add(InlineInterface(generatedName, members));
           // Record the type as a simple type that references this interface.
-          type = new Type.identifier(generatedName);
+          type = Type.identifier(generatedName);
         }
       } else if (_match([TokenType.LEFT_PAREN])) {
         // Some types are in (parens), so we just parse the contents as a nested type.
@@ -530,8 +530,8 @@ class Parser {
         final uniqueTypes = _getUniqueTypes(tupleElementTypes);
         var tupleType = uniqueTypes.length == 1
             ? uniqueTypes.single
-            : new UnionType(uniqueTypes);
-        type = new ArrayType(tupleType);
+            : UnionType(uniqueTypes);
+        type = ArrayType(tupleType);
       } else {
         var typeName = _consume(TokenType.IDENTIFIER, 'Expected identifier');
         final typeArgs = <Type>[];
@@ -546,12 +546,12 @@ class Parser {
         }
 
         type = typeName.lexeme == 'Array'
-            ? new ArrayType(typeArgs.single)
-            : new Type(typeName, typeArgs);
+            ? ArrayType(typeArgs.single)
+            : Type(typeName, typeArgs);
       }
       if (_match([TokenType.LEFT_BRACKET])) {
         _consume(TokenType.RIGHT_BRACKET, 'Expected ]');
-        type = new ArrayType(type);
+        type = ArrayType(type);
       }
       // TODO(dantup): Handle types like This & That.
       // For now, map to any.
@@ -575,15 +575,14 @@ class Parser {
 
     final uniqueTypes = _getUniqueTypes(types);
 
-    var type = uniqueTypes.length == 1
-        ? uniqueTypes.single
-        : new UnionType(uniqueTypes);
+    var type =
+        uniqueTypes.length == 1 ? uniqueTypes.single : UnionType(uniqueTypes);
 
     // Handle improved type mappings for things that aren't very tight in the spec.
     if (improveTypes) {
       final improvedTypeName = getImprovedType(containerName, fieldName);
       if (improvedTypeName != null) {
-        type = new Type.identifier(improvedTypeName);
+        type = Type.identifier(improvedTypeName);
       }
     }
     return type;
@@ -593,8 +592,8 @@ class Parser {
   /// we don't want to end up with `dynamic | dynamic`. Key on dartType to
   /// ensure we different types that will map down to the same type.
   List<TypeBase> _getUniqueTypes(List<TypeBase> types) {
-    final uniqueTypes = new Map.fromEntries(
-      types.map((t) => new MapEntry(t.dartTypeWithTypeArgs, t)),
+    final uniqueTypes = Map.fromEntries(
+      types.map((t) => MapEntry(t.dartTypeWithTypeArgs, t)),
     ).values.toList();
 
     // If our list includes something that maps to dynamic as well as other
@@ -614,7 +613,7 @@ class Parser {
     final type = _type(name.lexeme, null);
     _consume(TokenType.SEMI_COLON, 'Expected ;');
 
-    return new TypeAlias(leadingComment, name, type);
+    return TypeAlias(leadingComment, name, type);
   }
 }
 
@@ -800,7 +799,7 @@ class Scanner {
 }
 
 class Token {
-  static final Token EOF = new Token(TokenType.EOF, '');
+  static final Token EOF = Token(TokenType.EOF, '');
 
   final TokenType type;
   final String lexeme;
@@ -851,8 +850,8 @@ enum TokenType {
 }
 
 class Type extends TypeBase {
-  static final TypeBase Undefined = new Type.identifier('undefined');
-  static final TypeBase Any = new Type.identifier('any');
+  static final TypeBase Undefined = Type.identifier('undefined');
+  static final TypeBase Any = Type.identifier('any');
   final Token nameToken;
   final List<TypeBase> typeArgs;
 
@@ -862,8 +861,7 @@ class Type extends TypeBase {
     }
   }
 
-  Type.identifier(String identifier)
-      : this(new Token.identifier(identifier), []);
+  Type.identifier(String identifier) : this(Token.identifier(identifier), []);
 
   @override
   String get dartType {

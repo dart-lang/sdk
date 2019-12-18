@@ -39,7 +39,7 @@ class ImplementationHandler
   Future<ErrorOr<List<Location>>> _getImplementations(
       String file, int offset, CancelableToken token) async {
     final element = await server.getElementAtOffset(file, offset);
-    final computer = new TypeHierarchyComputer(server.searchEngine, element);
+    final computer = TypeHierarchyComputer(server.searchEngine, element);
     if (token.isCancellationRequested) {
       return cancelled();
     }

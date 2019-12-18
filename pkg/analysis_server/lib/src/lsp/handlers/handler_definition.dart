@@ -34,7 +34,7 @@ class DefinitionHandler
     final offset = await unit.mapResult((unit) => toOffset(unit.lineInfo, pos));
 
     return offset.mapResult((offset) {
-      NavigationCollectorImpl collector = new NavigationCollectorImpl();
+      NavigationCollectorImpl collector = NavigationCollectorImpl();
       computeDartNavigation(
           server.resourceProvider, collector, unit.result.unit, offset, 0);
 

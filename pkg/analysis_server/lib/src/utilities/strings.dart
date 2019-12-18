@@ -40,12 +40,12 @@ SimpleDiff computeSimpleDiff(String oldStr, String newStr) {
     int oldReplaceLength = oldStr.length - prefixLength - suffixLength;
     int newReplaceLength = newStr.length - prefixLength - suffixLength;
     if (oldReplaceLength >= 0 && newReplaceLength >= 0) {
-      return new SimpleDiff(prefixLength, oldReplaceLength,
+      return SimpleDiff(prefixLength, oldReplaceLength,
           newStr.substring(prefixLength, newStr.length - suffixLength));
     }
     prefixLength--;
   }
-  return new SimpleDiff(0, oldStr.length, newStr);
+  return SimpleDiff(0, oldStr.length, newStr);
 }
 
 int countLeadingWhitespaces(String str) {
@@ -152,7 +152,7 @@ String removeEnd(String str, String remove) {
 }
 
 String repeat(String s, int n) {
-  StringBuffer sb = new StringBuffer();
+  StringBuffer sb = StringBuffer();
   for (int i = 0; i < n; i++) {
     sb.write(s);
   }

@@ -24,9 +24,9 @@ class BasicFixLintAssistTask extends FixLintTask {
 
   @override
   Future<void> fixError(ResolvedUnitResult result, AnalysisError error) async {
-    var node = new NodeLocator(error.offset).searchWithin(result.unit);
-    AssistProcessor processor = new AssistProcessor(
-      new DartAssistContextImpl(
+    var node = NodeLocator(error.offset).searchWithin(result.unit);
+    AssistProcessor processor = AssistProcessor(
+      DartAssistContextImpl(
         DartChangeWorkspace(listener.server.currentSessions),
         result,
         node.offset,
@@ -52,8 +52,7 @@ class BasicFixLintAssistTask extends FixLintTask {
       DartFixListener listener, EditDartfixParams params) {
     registrar.registerLintTask(
       Registry.ruleRegistry['prefer_for_elements_to_map_fromIterable'],
-      new BasicFixLintAssistTask(
-          DartAssistKind.CONVERT_TO_FOR_ELEMENT, listener),
+      BasicFixLintAssistTask(DartAssistKind.CONVERT_TO_FOR_ELEMENT, listener),
     );
   }
 
@@ -63,8 +62,7 @@ class BasicFixLintAssistTask extends FixLintTask {
       EditDartfixParams params) {
     registrar.registerLintTask(
       Registry.ruleRegistry['prefer_if_elements_to_conditional_expressions'],
-      new BasicFixLintAssistTask(
-          DartAssistKind.CONVERT_TO_IF_ELEMENT, listener),
+      BasicFixLintAssistTask(DartAssistKind.CONVERT_TO_IF_ELEMENT, listener),
     );
   }
 
@@ -72,8 +70,7 @@ class BasicFixLintAssistTask extends FixLintTask {
       DartFixListener listener, EditDartfixParams params) {
     registrar.registerLintTask(
       Registry.ruleRegistry['prefer_int_literals'],
-      new BasicFixLintAssistTask(
-          DartAssistKind.CONVERT_TO_INT_LITERAL, listener),
+      BasicFixLintAssistTask(DartAssistKind.CONVERT_TO_INT_LITERAL, listener),
     );
   }
 
@@ -81,7 +78,7 @@ class BasicFixLintAssistTask extends FixLintTask {
       DartFixListener listener, EditDartfixParams params) {
     registrar.registerLintTask(
       Registry.ruleRegistry['prefer_spread_collections'],
-      new BasicFixLintAssistTask(DartAssistKind.CONVERT_TO_SPREAD, listener),
+      BasicFixLintAssistTask(DartAssistKind.CONVERT_TO_SPREAD, listener),
     );
   }
 }

@@ -20,10 +20,9 @@ NavigationCollector computeDartNavigation(
     CompilationUnit unit,
     int offset,
     int length) {
-  _DartNavigationCollector dartCollector =
-      new _DartNavigationCollector(collector);
+  _DartNavigationCollector dartCollector = _DartNavigationCollector(collector);
   _DartNavigationComputerVisitor visitor =
-      new _DartNavigationComputerVisitor(resourceProvider, dartCollector);
+      _DartNavigationComputerVisitor(resourceProvider, dartCollector);
   if (offset == null || length == null) {
     unit.accept(visitor);
   } else {
@@ -34,7 +33,7 @@ NavigationCollector computeDartNavigation(
 }
 
 AstNode _getNodeForRange(CompilationUnit unit, int offset, int length) {
-  AstNode node = new NodeLocator(offset, offset + length).searchWithin(unit);
+  AstNode node = NodeLocator(offset, offset + length).searchWithin(unit);
   for (AstNode n = node; n != null; n = n.parent) {
     if (n is Directive) {
       return n;

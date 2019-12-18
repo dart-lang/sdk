@@ -75,7 +75,7 @@ class LocalReferenceContributorTest extends DartCompletionContributorTest {
 
   @override
   DartCompletionContributor createContributor() {
-    return new LocalReferenceContributor();
+    return LocalReferenceContributor();
   }
 
   test_ArgDefaults_function() async {

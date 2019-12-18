@@ -23,29 +23,29 @@ const _jsonEncoder = const JsonEncoder.withIndent('    ');
  * and has an error.  The error code may optionally be checked.
  */
 Matcher isResponseFailure(String id, [RequestErrorCode code]) =>
-    new _IsResponseFailure(id, code);
+    _IsResponseFailure(id, code);
 
 /**
  * A [Matcher] that check that the given [Response] has an expected identifier
  * and no error.
  */
-Matcher isResponseSuccess(String id) => new _IsResponseSuccess(id);
+Matcher isResponseSuccess(String id) => _IsResponseSuccess(id);
 
 /**
  * A mock [LspServerCommunicationChannel] for testing [LspAnalysisServer].
  */
 class MockLspServerChannel implements LspServerCommunicationChannel {
   final StreamController<lsp.Message> _clientToServer =
-      new StreamController<lsp.Message>.broadcast();
+      StreamController<lsp.Message>.broadcast();
   final StreamController<lsp.Message> _serverToClient =
-      new StreamController<lsp.Message>.broadcast();
+      StreamController<lsp.Message>.broadcast();
 
   String name;
 
   /**
    * Completer that will be signalled when the input stream is closed.
    */
-  final Completer _closed = new Completer();
+  final Completer _closed = Completer();
 
   MockLspServerChannel(bool _printMessages) {
     if (_printMessages) {
@@ -106,7 +106,7 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
     notification = _convertJson(notification, lsp.NotificationMessage.fromJson);
 
     // Wrap send request in future to simulate WebSocket.
-    new Future(() => _clientToServer.add(notification));
+    Future(() => _clientToServer.add(notification));
   }
 
   @override
@@ -129,13 +129,13 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
   Future<lsp.ResponseMessage> sendRequestToServer(lsp.RequestMessage request) {
     // No further requests should be sent after the connection is closed.
     if (_closed.isCompleted) {
-      throw new Exception('sendLspRequest after connection closed');
+      throw Exception('sendLspRequest after connection closed');
     }
 
     request = _convertJson(request, lsp.RequestMessage.fromJson);
 
     // Wrap send request in future to simulate WebSocket.
-    new Future(() => _clientToServer.add(request));
+    Future(() => _clientToServer.add(request));
     return waitForResponse(request);
   }
 
@@ -149,7 +149,7 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
     ensureMessageCanBeJsonSerialized(response);
 
     // Wrap send response in future to simulate WebSocket.
-    new Future(() => _serverToClient.add(response));
+    Future(() => _serverToClient.add(response));
   }
 
   void sendResponseToServer(lsp.ResponseMessage response) {

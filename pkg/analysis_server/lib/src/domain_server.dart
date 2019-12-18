@@ -28,7 +28,7 @@ class ServerDomainHandler implements RequestHandler {
    * Return the version number of the analysis server.
    */
   Response getVersion(Request request) {
-    return new ServerGetVersionResult(PROTOCOL_VERSION).toResponse(request.id);
+    return ServerGetVersionResult(PROTOCOL_VERSION).toResponse(request.id);
   }
 
   @override
@@ -56,14 +56,12 @@ class ServerDomainHandler implements RequestHandler {
    */
   Response setSubscriptions(Request request) {
     server.serverServices =
-        new ServerSetSubscriptionsParams.fromRequest(request)
-            .subscriptions
-            .toSet();
+        ServerSetSubscriptionsParams.fromRequest(request).subscriptions.toSet();
 
     server.requestStatistics?.isNotificationSubscribed =
         server.serverServices.contains(ServerService.LOG);
 
-    return new ServerSetSubscriptionsResult().toResponse(request.id);
+    return ServerSetSubscriptionsResult().toResponse(request.id);
   }
 
   /**
@@ -71,7 +69,7 @@ class ServerDomainHandler implements RequestHandler {
    */
   Future<void> shutdown(Request request) async {
     await server.shutdown();
-    Response response = new ServerShutdownResult().toResponse(request.id);
+    Response response = ServerShutdownResult().toResponse(request.id);
     server.sendResponse(response);
   }
 }

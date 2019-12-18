@@ -19,7 +19,7 @@ class ShutdownMessageHandler extends MessageHandler<void, void> {
   ErrorOr<void> handle(void _, CancellationToken token) {
     // Move to the Shutting Down state so we won't process any more
     // requests and the Exit notification will know it was a clean shutdown.
-    server.messageHandler = new ShuttingDownStateMessageHandler(server);
+    server.messageHandler = ShuttingDownStateMessageHandler(server);
 
     // We can clean up and shut down here, but we cannot terminate the server
     // because that must be done after the exit notification.

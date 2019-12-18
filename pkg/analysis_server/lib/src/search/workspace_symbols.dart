@@ -116,7 +116,7 @@ class WorkspaceSymbols {
       }
 
       declarations.add(
-        new Declaration(
+        Declaration(
           getPathIndex(path),
           declaration.lineInfo,
           name,

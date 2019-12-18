@@ -11,11 +11,11 @@ import 'codegen_protocol_constants.dart' show generateConstName;
 import 'from_html.dart';
 
 GeneratedFile clientTarget() {
-  return new GeneratedFile(
+  return GeneratedFile(
       '../analysis_server_client/lib/handler/notification_handler.dart',
       (String pkgPath) async {
     CodegenNotificationHandlerVisitor visitor =
-        new CodegenNotificationHandlerVisitor(readApi(pkgPath));
+        CodegenNotificationHandlerVisitor(readApi(pkgPath));
     return visitor.collectCode(visitor.visitApi);
   });
 }
@@ -35,7 +35,7 @@ class CodegenNotificationHandlerVisitor extends DartCodegenVisitor
   }
 
   void emitNotificationHandler() {
-    _NotificationVisitor visitor = new _NotificationVisitor(api)..visitApi();
+    _NotificationVisitor visitor = _NotificationVisitor(api)..visitApi();
     final notifications = visitor.notificationConstants;
     notifications.sort((n1, n2) => n1.constName.compareTo(n2.constName));
 
@@ -86,7 +86,7 @@ mixin NotificationHandler {
       } else {
         writeln('  ///');
       }
-      for (String line in paragraph.split(new RegExp('\r?\n'))) {
+      for (String line in paragraph.split(RegExp('\r?\n'))) {
         writeln('  /// ${line.trim()}');
       }
     }
@@ -118,7 +118,7 @@ class _NotificationVisitor extends HierarchicalApiVisitor {
 
   @override
   void visitNotification(Notification notification) {
-    notificationConstants.add(new _Notification(
+    notificationConstants.add(_Notification(
         generateConstName(
             notification.domainName, 'notification', notification.event),
         _generateNotificationMethodName(

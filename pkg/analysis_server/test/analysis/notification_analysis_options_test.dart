@@ -48,14 +48,14 @@ main() {
   @override
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_ERRORS) {
-      var decoded = new AnalysisErrorsParams.fromNotification(notification);
+      var decoded = AnalysisErrorsParams.fromNotification(notification);
       filesErrors[decoded.file] = decoded.errors;
     }
   }
 
   void setAnalysisRoot() {
     Request request =
-        new AnalysisSetAnalysisRootsParams([projectPath], []).toRequest('0');
+        AnalysisSetAnalysisRootsParams([projectPath], []).toRequest('0');
     handleSuccessfulRequest(request);
   }
 
@@ -64,7 +64,7 @@ main() {
     generateSummaryFiles = true;
     registerLintRules();
     super.setUp();
-    server.handlers = [new AnalysisDomainHandler(server)];
+    server.handlers = [AnalysisDomainHandler(server)];
   }
 
   @override

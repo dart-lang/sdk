@@ -34,7 +34,7 @@ Future<void> addLibraryImports(AnalysisSession session, SourceChange change,
     LibraryElement targetLibrary, Set<Source> libraries) async {
   var libraryPath = targetLibrary.source.fullName;
   var resolveResult = await session.getResolvedUnit(libraryPath);
-  var libUtils = new CorrectionUtils(resolveResult);
+  var libUtils = CorrectionUtils(resolveResult);
   String eol = libUtils.endOfLine;
   // Prepare information about existing imports.
   LibraryDirective libraryDirective;
@@ -43,7 +43,7 @@ Future<void> addLibraryImports(AnalysisSession session, SourceChange change,
     if (directive is LibraryDirective) {
       libraryDirective = directive;
     } else if (directive is ImportDirective) {
-      importDirectives.add(new _ImportDirectiveInfo(
+      importDirectives.add(_ImportDirectiveInfo(
           directive.uri.stringValue, directive.offset, directive.end));
     }
   }
@@ -72,7 +72,7 @@ Future<void> addLibraryImports(AnalysisSession session, SourceChange change,
         if (importUri.compareTo(existingImport.uri) < 0) {
           String importCode = "import '$importUri';$eol";
           doSourceChange_addElementEdit(change, targetLibrary,
-              new SourceEdit(existingImport.offset, 0, importCode));
+              SourceEdit(existingImport.offset, 0, importCode));
           inserted = true;
           break;
         }
@@ -83,7 +83,7 @@ Future<void> addLibraryImports(AnalysisSession session, SourceChange change,
           importCode = eol + importCode;
         }
         doSourceChange_addElementEdit(change, targetLibrary,
-            new SourceEdit(importDirectives.last.end, 0, importCode));
+            SourceEdit(importDirectives.last.end, 0, importCode));
       }
       if (isPackage) {
         isFirstPackage = false;
@@ -99,7 +99,7 @@ Future<void> addLibraryImports(AnalysisSession session, SourceChange change,
       String importCode = "${prefix}import '$importUri';";
       prefix = eol;
       doSourceChange_addElementEdit(change, targetLibrary,
-          new SourceEdit(libraryDirective.end, 0, importCode));
+          SourceEdit(libraryDirective.end, 0, importCode));
     }
     return;
   }
@@ -118,7 +118,7 @@ Future<void> addLibraryImports(AnalysisSession session, SourceChange change,
         importCode = importCode + desc.suffix;
       }
       doSourceChange_addElementEdit(
-          change, targetLibrary, new SourceEdit(offset, 0, importCode));
+          change, targetLibrary, SourceEdit(offset, 0, importCode));
     }
   }
 }
@@ -146,7 +146,7 @@ Expression climbPropertyAccess(AstNode node) {
  */
 List<SimpleIdentifier> findLocalElementReferences(
     AstNode root, LocalElement element) {
-  var collector = new _ElementReferenceCollector(element);
+  var collector = _ElementReferenceCollector(element);
   root.accept(collector);
   return collector.references;
 }
@@ -205,7 +205,7 @@ String getDefaultValueCode(DartType type) {
  * Return all [LocalElement]s defined in the given [node].
  */
 List<LocalElement> getDefinedLocalElements(AstNode node) {
-  var collector = new _LocalElementsCollector();
+  var collector = _LocalElementsCollector();
   node.accept(collector);
   return collector.elements;
 }
@@ -454,7 +454,7 @@ List<AstNode> getParents(AstNode node) {
     }
   }
   // fill array of parents
-  List<AstNode> parents = new List<AstNode>(numParents);
+  List<AstNode> parents = List<AstNode>(numParents);
   AstNode current = node.parent;
   int index = numParents;
   while (current != null) {
@@ -637,19 +637,19 @@ class CorrectionUtils {
   /**
    * Returns the [AstNode] that encloses the given offset.
    */
-  AstNode findNode(int offset) => new NodeLocator(offset).searchWithin(unit);
+  AstNode findNode(int offset) => NodeLocator(offset).searchWithin(unit);
 
   /**
    * Returns names of elements that might conflict with a new local variable
    * declared at [offset].
    */
   Set<String> findPossibleLocalVariableConflicts(int offset) {
-    Set<String> conflicts = new Set<String>();
+    Set<String> conflicts = Set<String>();
     AstNode enclosingNode = findNode(offset);
     Block enclosingBlock = enclosingNode.thisOrAncestorOfType<Block>();
     if (enclosingBlock != null) {
       _CollectReferencedUnprefixedNames visitor =
-          new _CollectReferencedUnprefixedNames();
+          _CollectReferencedUnprefixedNames();
       enclosingBlock.accept(visitor);
       return visitor.names;
     }
@@ -711,7 +711,7 @@ class CorrectionUtils {
       insertEmptyLineAfter = true;
     }
     // fill InsertDesc
-    CorrectionUtils_InsertDesc desc = new CorrectionUtils_InsertDesc();
+    CorrectionUtils_InsertDesc desc = CorrectionUtils_InsertDesc();
     desc.offset = offset;
     if (insertEmptyLineBefore) {
       desc.prefix = endOfLine;
@@ -913,7 +913,7 @@ class CorrectionUtils {
    */
   String getTypeSource(DartType type, Set<Source> librariesToImport,
       {StringBuffer parametersBuffer}) {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     // type parameter
     if (!_isTypeVisible(type)) {
       return 'dynamic';
@@ -1014,7 +1014,7 @@ class CorrectionUtils {
    * Indents given source left or right.
    */
   String indentSourceLeftRight(String source, {bool indentLeft = true}) {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     String indent = getIndent(1);
     String eol = endOfLine;
     List<String> lines = source.split(eol);
@@ -1084,14 +1084,14 @@ class CorrectionUtils {
     }
     // After the last target member.
     if (targetMember != null) {
-      return new ClassMemberLocation(
+      return ClassMemberLocation(
           endOfLine + endOfLine + indent, targetMember.end, '');
     }
     // At the beginning of the class.
     String suffix = members.isNotEmpty || isClassWithEmptyBody(declaration)
         ? endOfLine
         : '';
-    return new ClassMemberLocation(
+    return ClassMemberLocation(
         endOfLine + indent, _getLeftBracket(declaration).end, suffix);
   }
 
@@ -1147,7 +1147,7 @@ class CorrectionUtils {
       }
     }
     // re-indent lines
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     String eol = endOfLine;
     List<String> lines = source.split(eol);
     int lineOffset = 0;
@@ -1402,7 +1402,7 @@ class TokenUtils {
   static List<Token> getTokens(String s, FeatureSet featureSet) {
     try {
       List<Token> tokens = [];
-      Scanner scanner = new Scanner(null, new CharSequenceReader(s), null)
+      Scanner scanner = Scanner(null, CharSequenceReader(s), null)
         ..configureFeatures(featureSet);
       Token token = scanner.tokenize();
       while (token.type != TokenType.EOF) {
@@ -1417,7 +1417,7 @@ class TokenUtils {
 }
 
 class _CollectReferencedUnprefixedNames extends RecursiveAstVisitor {
-  final Set<String> names = new Set<String>();
+  final Set<String> names = Set<String>();
 
   void visitSimpleIdentifier(SimpleIdentifier node) {
     if (!_isPrefixed(node)) {
@@ -1473,13 +1473,13 @@ class _InvertedCondition {
     String src = _parenthesizeIfRequired(left, precedence) +
         operation +
         _parenthesizeIfRequired(right, precedence);
-    return new _InvertedCondition(precedence, src);
+    return _InvertedCondition(precedence, src);
   }
 
   static _InvertedCondition _binary2(
       _InvertedCondition left, String operation, _InvertedCondition right) {
     // TODO(scheglov) consider merging with "_binary()" after testing
-    return new _InvertedCondition(
+    return _InvertedCondition(
         1 << 20, "${left._source}$operation${right._source}");
   }
 
@@ -1496,7 +1496,7 @@ class _InvertedCondition {
   }
 
   static _InvertedCondition _simple(String source) =>
-      new _InvertedCondition(2147483647, source);
+      _InvertedCondition(2147483647, source);
 }
 
 /**

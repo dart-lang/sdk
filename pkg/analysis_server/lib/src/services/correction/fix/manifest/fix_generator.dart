@@ -86,7 +86,7 @@ class ManifestFixGenerator {
   ManifestFixGenerator(this.error, this.content, this.document)
       : errorOffset = error.offset,
         errorLength = error.length,
-        lineInfo = new LineInfo.fromContent(content);
+        lineInfo = LineInfo.fromContent(content);
 
   /// Return the absolute, normalized path to the file in which the error was
   /// reported.
@@ -94,8 +94,8 @@ class ManifestFixGenerator {
 
   /// Return the list of fixes that apply to the error being fixed.
   Future<List<Fix>> computeFixes() async {
-    HtmlNodeLocator locator = new HtmlNodeLocator(
-        start: errorOffset, end: errorOffset + errorLength - 1);
+    HtmlNodeLocator locator =
+        HtmlNodeLocator(start: errorOffset, end: errorOffset + errorLength - 1);
     coveringNodePath = locator.searchWithin(document);
     if (coveringNodePath.isEmpty) {
       return fixes;
@@ -121,7 +121,7 @@ class ManifestFixGenerator {
       return;
     }
     change.message = formatList(kind.message, args);
-    fixes.add(new Fix(kind, change));
+    fixes.add(Fix(kind, change));
   }
 
   // ignore: unused_element
@@ -139,6 +139,6 @@ class ManifestFixGenerator {
     CharacterLocation endLocation = lineInfo.getLocation(end);
     int endOffset = lineInfo.getOffsetOfLine(
         math.min(endLocation.lineNumber, lineInfo.lineCount - 1));
-    return new SourceRange(startOffset, endOffset - startOffset);
+    return SourceRange(startOffset, endOffset - startOffset);
   }
 }

@@ -41,11 +41,11 @@ class CommonUsageSorter implements DartContributionSorter {
   Future sort(DartCompletionRequest request,
       Iterable<CompletionSuggestion> suggestions) {
     _update(request, suggestions);
-    return new Future.value();
+    return Future.value();
   }
 
   CompletionTarget _getCompletionTarget(CompletionRequest request) =>
-      new CompletionTarget.forOffset(request.result.unit, request.offset);
+      CompletionTarget.forOffset(request.result.unit, request.offset);
 
   /**
    * Adjusts the relevance based on the given completion context.
@@ -56,7 +56,7 @@ class CommonUsageSorter implements DartContributionSorter {
       CompletionRequest request, Iterable<CompletionSuggestion> suggestions) {
     var target = _getCompletionTarget(request);
     if (target != null) {
-      var visitor = new _BestTypeVisitor(target.entity);
+      var visitor = _BestTypeVisitor(target.entity);
       var typeElem = target.containingNode.accept(visitor);
       if (typeElem != null) {
         LibraryElement libElem = typeElem.library;

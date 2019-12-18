@@ -73,7 +73,7 @@ class ImportedReferenceContributor extends DartCompletionContributor {
   List<CompletionSuggestion> _buildSuggestions(Namespace namespace,
       {String prefix, List<String> showNames, List<String> hiddenNames}) {
     LibraryElementSuggestionBuilder visitor =
-        new LibraryElementSuggestionBuilder(request, optype, prefix);
+        LibraryElementSuggestionBuilder(request, optype, prefix);
     for (Element elem in namespace.definedNames.values) {
       if (showNames != null && !showNames.contains(elem.name)) {
         continue;

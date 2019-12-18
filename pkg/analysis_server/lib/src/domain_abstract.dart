@@ -45,14 +45,14 @@ abstract class AbstractRequestHandler implements RequestHandler {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     // TODO(brianwilkerson) requestParameters might need to be required.
-    int endTime = new DateTime.now().millisecondsSinceEpoch + timeout;
+    int endTime = DateTime.now().millisecondsSinceEpoch + timeout;
     List<plugin.Response> responses = <plugin.Response>[];
     for (PluginInfo pluginInfo in futures.keys) {
       Future<plugin.Response> future = futures[pluginInfo];
       try {
-        int startTime = new DateTime.now().millisecondsSinceEpoch;
-        plugin.Response response = await future.timeout(
-            new Duration(milliseconds: math.max(endTime - startTime, 0)));
+        int startTime = DateTime.now().millisecondsSinceEpoch;
+        plugin.Response response = await future
+            .timeout(Duration(milliseconds: math.max(endTime - startTime, 0)));
         if (response.error != null) {
           // TODO(brianwilkerson) Report the error to the plugin manager.
           server.instrumentationService.logPluginError(
@@ -67,7 +67,7 @@ abstract class AbstractRequestHandler implements RequestHandler {
         // TODO(brianwilkerson) Report the timeout to the plugin manager.
         server.instrumentationService.logPluginTimeout(
             pluginInfo.data,
-            new JsonEncoder()
+            JsonEncoder()
                 .convert(requestParameters?.toRequest('-')?.toJson() ?? {}));
       } catch (exception, stackTrace) {
         // TODO(brianwilkerson) Report the exception to the plugin manager.

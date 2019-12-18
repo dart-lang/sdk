@@ -54,11 +54,11 @@ class AnalysisServerTest with ResourceProviderMixin {
     expect(server.statusAnalyzing, isFalse);
     channel.notificationsReceived.clear();
     server.updateContent(
-        '0', {bar.path: new AddContentOverlay('library bar; void f() {}')});
+        '0', {bar.path: AddContentOverlay('library bar; void f() {}')});
     await server.onAnalysisComplete;
     expect(server.statusAnalyzing, isFalse);
     expect(channel.notificationsReceived, isNotEmpty);
-    Set<String> notificationTypesReceived = new Set<String>();
+    Set<String> notificationTypesReceived = Set<String>();
     for (Notification notification in channel.notificationsReceived) {
       String notificationType = notification.event;
       switch (notificationType) {
@@ -80,20 +80,20 @@ class AnalysisServerTest with ResourceProviderMixin {
   }
 
   void setUp() {
-    channel = new MockServerChannel();
+    channel = MockServerChannel();
     // Create an SDK in the mock file system.
-    new MockSdk(resourceProvider: resourceProvider);
-    server = new AnalysisServer(
+    MockSdk(resourceProvider: resourceProvider);
+    server = AnalysisServer(
         channel,
         resourceProvider,
-        new AnalysisServerOptions(),
-        new DartSdkManager(convertPath('/sdk'), false),
+        AnalysisServerOptions(),
+        DartSdkManager(convertPath('/sdk'), false),
         InstrumentationService.NULL_SERVICE);
   }
 
   Future test_echo() {
-    server.handlers = [new EchoHandler()];
-    var request = new Request('my22', 'echo');
+    server.handlers = [EchoHandler()];
+    var request = Request('my22', 'echo');
     return channel.sendRequest(request).then((Response response) {
       expect(response.id, equals('my22'));
       expect(response.error, isNull);
@@ -115,7 +115,7 @@ class AnalysisServerTest with ResourceProviderMixin {
       // expect at least one notification indicating analysis is in progress
       expect(notifications.any((Notification notification) {
         if (notification.event == SERVER_NOTIFICATION_STATUS) {
-          var params = new ServerStatusParams.fromNotification(notification);
+          var params = ServerStatusParams.fromNotification(notification);
           if (params.analysis != null) {
             return params.analysis.isAnalyzing;
           }
@@ -124,7 +124,7 @@ class AnalysisServerTest with ResourceProviderMixin {
       }), isTrue);
       // the last notification should indicate that analysis is complete
       Notification notification = notifications[notifications.length - 1];
-      var params = new ServerStatusParams.fromNotification(notification);
+      var params = ServerStatusParams.fromNotification(notification);
       expect(params.analysis.isAnalyzing, isFalse);
     });
   }
@@ -139,7 +139,7 @@ analyzer:
 ''');
     server.setAnalysisRoots('0', [convertPath('/project')], [], {});
     server.setAnalysisSubscriptions(<AnalysisService, Set<String>>{
-      AnalysisService.NAVIGATION: new Set<String>.from([path])
+      AnalysisService.NAVIGATION: Set<String>.from([path])
     });
 
     // We respect subscriptions, even for excluded files.
@@ -159,7 +159,7 @@ analyzer:
 ''');
     server.setAnalysisRoots('0', [convertPath('/project')], [], {});
     server.setAnalysisSubscriptions(<AnalysisService, Set<String>>{
-      AnalysisService.NAVIGATION: new Set<String>.from([path])
+      AnalysisService.NAVIGATION: Set<String>.from([path])
     });
 
     // We respect subscriptions, even for excluded files.
@@ -170,8 +170,8 @@ analyzer:
   }
 
   Future test_shutdown() {
-    server.handlers = [new ServerDomainHandler(server)];
-    var request = new Request('my28', SERVER_REQUEST_SHUTDOWN);
+    server.handlers = [ServerDomainHandler(server)];
+    var request = Request('my28', SERVER_REQUEST_SHUTDOWN);
     return channel.sendRequest(request).then((Response response) {
       expect(response.id, equals('my28'));
       expect(response.error, isNull);
@@ -179,8 +179,8 @@ analyzer:
   }
 
   Future test_unknownRequest() {
-    server.handlers = [new EchoHandler()];
-    var request = new Request('my22', 'randomRequest');
+    server.handlers = [EchoHandler()];
+    var request = Request('my22', 'randomRequest');
     return channel.sendRequest(request).then((Response response) {
       expect(response.id, equals('my22'));
       expect(response.error, isNotNull);
@@ -192,7 +192,7 @@ class EchoHandler implements RequestHandler {
   @override
   Response handleRequest(Request request) {
     if (request.method == 'echo') {
-      return new Response(request.id, result: {'echo': true});
+      return Response(request.id, result: {'echo': true});
     }
     return null;
   }

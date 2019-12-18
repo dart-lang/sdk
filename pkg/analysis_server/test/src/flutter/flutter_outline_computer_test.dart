@@ -463,7 +463,7 @@ class MyWidget extends StatelessWidget {
     testCode = code;
     newFile(testPath, content: code);
     resolveResult = await session.getResolvedUnit(testPath);
-    computer = new FlutterOutlineComputer(resolveResult);
+    computer = FlutterOutlineComputer(resolveResult);
     return computer.compute();
   }
 
@@ -499,7 +499,7 @@ class MyWidget extends StatelessWidget {
   }
 
   static String _toText(FlutterOutline outline) {
-    var buffer = new StringBuffer();
+    var buffer = StringBuffer();
 
     void writeOutline(FlutterOutline outline, String indent) {
       buffer.write(indent);

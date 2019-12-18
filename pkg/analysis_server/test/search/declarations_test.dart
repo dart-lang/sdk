@@ -216,12 +216,12 @@ typedef tf2<T> = int Function<S>(T tp, S sp);
 
   Future<void> _getDeclarations(
       {String file, String pattern, int maxResults}) async {
-    Request request = new SearchGetElementDeclarationsParams(
+    Request request = SearchGetElementDeclarationsParams(
             file: file, pattern: pattern, maxResults: maxResults)
         .toRequest('0');
     Response response = await waitResponse(request);
 
     declarationsResult =
-        new SearchGetElementDeclarationsResult.fromResponse(response);
+        SearchGetElementDeclarationsResult.fromResponse(response);
   }
 }

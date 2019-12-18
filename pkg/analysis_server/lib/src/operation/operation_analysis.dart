@@ -35,9 +35,9 @@ Future<void> scheduleImplementedNotification(
     if (unitElement != null) {
       try {
         ImplementedComputer computer =
-            new ImplementedComputer(searchEngine, unitElement);
+            ImplementedComputer(searchEngine, unitElement);
         await computer.compute();
-        var params = new protocol.AnalysisImplementedParams(
+        var params = protocol.AnalysisImplementedParams(
             file, computer.classes, computer.members);
         server.sendNotification(params.toNotification());
       } catch (exception, stackTrace) {
@@ -72,7 +72,7 @@ void sendAnalysisNotificationAnalyzedFiles(AnalysisServer server) {
     }
     server.prevAnalyzedFiles = analyzedFiles;
     protocol.AnalysisAnalyzedFilesParams params =
-        new protocol.AnalysisAnalyzedFilesParams(analyzedFiles.toList());
+        protocol.AnalysisAnalyzedFilesParams(analyzedFiles.toList());
     server.sendNotification(params.toNotification());
   });
 }
@@ -80,9 +80,8 @@ void sendAnalysisNotificationAnalyzedFiles(AnalysisServer server) {
 void sendAnalysisNotificationClosingLabels(AnalysisServer server, String file,
     LineInfo lineInfo, CompilationUnit dartUnit) {
   _sendNotification(server, () {
-    var labels =
-        new DartUnitClosingLabelsComputer(lineInfo, dartUnit).compute();
-    var params = new protocol.AnalysisClosingLabelsParams(file, labels);
+    var labels = DartUnitClosingLabelsComputer(lineInfo, dartUnit).compute();
+    var params = protocol.AnalysisClosingLabelsParams(file, labels);
     server.sendNotification(params.toNotification());
   });
 }
@@ -91,7 +90,7 @@ void sendAnalysisNotificationFlushResults(
     AnalysisServer server, List<String> files) {
   _sendNotification(server, () {
     if (files != null && files.isNotEmpty) {
-      var params = new protocol.AnalysisFlushResultsParams(files);
+      var params = protocol.AnalysisFlushResultsParams(files);
       server.sendNotification(params.toNotification());
     }
   });
@@ -100,8 +99,8 @@ void sendAnalysisNotificationFlushResults(
 void sendAnalysisNotificationFolding(AnalysisServer server, String file,
     LineInfo lineInfo, CompilationUnit dartUnit) {
   _sendNotification(server, () {
-    var regions = new DartUnitFoldingComputer(lineInfo, dartUnit).compute();
-    var params = new protocol.AnalysisFoldingParams(file, regions);
+    var regions = DartUnitFoldingComputer(lineInfo, dartUnit).compute();
+    var params = protocol.AnalysisFoldingParams(file, regions);
     server.sendNotification(params.toNotification());
   });
 }
@@ -111,11 +110,11 @@ void sendAnalysisNotificationHighlights(
   _sendNotification(server, () {
     List<protocol.HighlightRegion> regions;
     if (server.options.useAnalysisHighlight2) {
-      regions = new DartUnitHighlightsComputer2(dartUnit).compute();
+      regions = DartUnitHighlightsComputer2(dartUnit).compute();
     } else {
-      regions = new DartUnitHighlightsComputer(dartUnit).compute();
+      regions = DartUnitHighlightsComputer(dartUnit).compute();
     }
-    var params = new protocol.AnalysisHighlightsParams(file, regions);
+    var params = protocol.AnalysisHighlightsParams(file, regions);
     server.sendNotification(params.toNotification());
   });
 }
@@ -134,13 +133,13 @@ void sendAnalysisNotificationOutline(
     String libraryName = _computeLibraryName(resolvedUnit.unit);
 
     // compute Outline
-    protocol.Outline outline = new DartUnitOutlineComputer(
+    protocol.Outline outline = DartUnitOutlineComputer(
       resolvedUnit,
       withBasicFlutter: true,
     ).compute();
 
     // send notification
-    var params = new protocol.AnalysisOutlineParams(
+    var params = protocol.AnalysisOutlineParams(
         resolvedUnit.path, fileKind, outline,
         libraryName: libraryName);
     server.sendNotification(params.toNotification());
@@ -150,8 +149,8 @@ void sendAnalysisNotificationOutline(
 void sendAnalysisNotificationOverrides(
     AnalysisServer server, String file, CompilationUnit dartUnit) {
   _sendNotification(server, () {
-    var overrides = new DartUnitOverridesComputer(dartUnit).compute();
-    var params = new protocol.AnalysisOverridesParams(file, overrides);
+    var overrides = DartUnitOverridesComputer(dartUnit).compute();
+    var params = protocol.AnalysisOverridesParams(file, overrides);
     server.sendNotification(params.toNotification());
   });
 }

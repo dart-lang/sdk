@@ -34,8 +34,8 @@ class PluginWatcherTest with ResourceProviderMixin {
   PluginWatcher watcher;
 
   void setUp() {
-    manager = new TestPluginManager();
-    watcher = new PluginWatcher(resourceProvider, manager);
+    manager = TestPluginManager();
+    watcher = PluginWatcher(resourceProvider, manager);
   }
 
   test_addedDriver() async {
@@ -46,9 +46,9 @@ class PluginWatcherTest with ResourceProviderMixin {
     newFile(
         '/pkg2/${PluginLocator.toolsFolderName}/${PluginLocator.defaultPluginFolderName}/bin/plugin.dart');
 
-    ContextRoot contextRoot = new ContextRoot(pkg1Path, [],
-        pathContext: resourceProvider.pathContext);
-    TestDriver driver = new TestDriver(resourceProvider, contextRoot);
+    ContextRoot contextRoot =
+        ContextRoot(pkg1Path, [], pathContext: resourceProvider.pathContext);
+    TestDriver driver = TestDriver(resourceProvider, contextRoot);
     driver.analysisOptions.enabledPluginNames = ['pkg2'];
     expect(manager.addedContextRoots, isEmpty);
     watcher.addedDriver(driver, contextRoot);
@@ -68,7 +68,7 @@ class PluginWatcherTest with ResourceProviderMixin {
     // guaranteed to have expired and the list of changed files will have been
     // delivered.
     //
-    await new Future.delayed(new Duration(seconds: 1));
+    await Future.delayed(Duration(seconds: 1));
     expect(manager.addedContextRoots, hasLength(1));
   }
 
@@ -76,9 +76,9 @@ class PluginWatcherTest with ResourceProviderMixin {
     String pkg1Path = newFolder('/pkg1').path;
     newFile('/pkg1/lib/test1.dart');
 
-    ContextRoot contextRoot = new ContextRoot(pkg1Path, [],
-        pathContext: resourceProvider.pathContext);
-    TestDriver driver = new TestDriver(resourceProvider, contextRoot);
+    ContextRoot contextRoot =
+        ContextRoot(pkg1Path, [], pathContext: resourceProvider.pathContext);
+    TestDriver driver = TestDriver(resourceProvider, contextRoot);
     driver.analysisOptions.enabledPluginNames = ['pkg3'];
     watcher.addedDriver(driver, contextRoot);
     expect(manager.addedContextRoots, isEmpty);
@@ -87,7 +87,7 @@ class PluginWatcherTest with ResourceProviderMixin {
     // guaranteed to have expired and the list of changed files will have been
     // delivered.
     //
-    await new Future.delayed(new Duration(seconds: 1));
+    await Future.delayed(Duration(seconds: 1));
     expect(manager.addedContextRoots, isEmpty);
   }
 
@@ -98,9 +98,9 @@ class PluginWatcherTest with ResourceProviderMixin {
 
   test_removedDriver() {
     String pkg1Path = newFolder('/pkg1').path;
-    ContextRoot contextRoot = new ContextRoot(pkg1Path, [],
-        pathContext: resourceProvider.pathContext);
-    TestDriver driver = new TestDriver(resourceProvider, contextRoot);
+    ContextRoot contextRoot =
+        ContextRoot(pkg1Path, [], pathContext: resourceProvider.pathContext);
+    TestDriver driver = TestDriver(resourceProvider, contextRoot);
     watcher.addedDriver(driver, contextRoot);
     watcher.removedDriver(driver);
     expect(manager.removedContextRoots, equals([contextRoot]));
@@ -112,25 +112,25 @@ class TestDriver implements AnalysisDriver {
 
   SourceFactory sourceFactory;
   AnalysisSession currentSession;
-  AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
+  AnalysisOptionsImpl analysisOptions = AnalysisOptionsImpl();
 
-  final _resultController = new StreamController<ResolvedUnitResult>();
+  final _resultController = StreamController<ResolvedUnitResult>();
 
   TestDriver(this.resourceProvider, ContextRoot contextRoot) {
     path.Context pathContext = resourceProvider.pathContext;
-    MockSdk sdk = new MockSdk(resourceProvider: resourceProvider);
+    MockSdk sdk = MockSdk(resourceProvider: resourceProvider);
     String packageName = pathContext.basename(contextRoot.root);
     String libPath = pathContext.join(contextRoot.root, 'lib');
-    sourceFactory = new SourceFactory([
-      new DartUriResolver(sdk),
-      new PackageMapUriResolver(resourceProvider, {
+    sourceFactory = SourceFactory([
+      DartUriResolver(sdk),
+      PackageMapUriResolver(resourceProvider, {
         packageName: [resourceProvider.getFolder(libPath)],
         'pkg2': [
           resourceProvider.getFolder(resourceProvider.convertPath('/pkg2/lib'))
         ]
       })
     ]);
-    currentSession = new AnalysisSessionImpl(this);
+    currentSession = AnalysisSessionImpl(this);
   }
 
   Stream<ResolvedUnitResult> get results => _resultController.stream;

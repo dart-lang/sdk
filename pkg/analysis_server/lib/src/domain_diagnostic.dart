@@ -25,14 +25,14 @@ class DiagnosticDomainHandler implements RequestHandler {
   Response computeDiagnostics(Request request) {
     List<ContextData> contexts =
         server.driverMap.values.map(extractDataFromDriver).toList();
-    return new DiagnosticGetDiagnosticsResult(contexts).toResponse(request.id);
+    return DiagnosticGetDiagnosticsResult(contexts).toResponse(request.id);
   }
 
   /// Extract context data from the given [driver].
   ContextData extractDataFromDriver(AnalysisDriver driver) {
     int explicitFileCount = driver.addedFiles.length;
     int knownFileCount = driver.knownFiles.length;
-    return new ContextData(driver.name, explicitFileCount,
+    return ContextData(driver.name, explicitFileCount,
         knownFileCount - explicitFileCount, driver.numberOfFilesToAnalyze, []);
   }
 
@@ -44,10 +44,9 @@ class DiagnosticDomainHandler implements RequestHandler {
       // Open a port (or return the existing one).
       int port = await server.diagnosticServer.getServerPort();
       server.sendResponse(
-          new DiagnosticGetServerPortResult(port).toResponse(request.id));
+          DiagnosticGetServerPortResult(port).toResponse(request.id));
     } catch (error) {
-      server
-          .sendResponse(new Response.debugPortCouldNotBeOpened(request, error));
+      server.sendResponse(Response.debugPortCouldNotBeOpened(request, error));
     }
   }
 

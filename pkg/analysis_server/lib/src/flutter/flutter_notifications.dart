@@ -12,10 +12,10 @@ import 'package:analyzer/src/generated/engine.dart';
 void sendFlutterNotificationOutline(
     AnalysisServer server, ResolvedUnitResult resolvedUnit) {
   _sendNotification(server, () {
-    var computer = new FlutterOutlineComputer(resolvedUnit);
+    var computer = FlutterOutlineComputer(resolvedUnit);
     protocol.FlutterOutline outline = computer.compute();
     // send notification
-    var params = new protocol.FlutterOutlineParams(
+    var params = protocol.FlutterOutlineParams(
       resolvedUnit.path,
       outline,
     );

@@ -37,16 +37,16 @@ class KytheDomainHandler extends AbstractRequestHandler {
   Future<void> getKytheEntries(Request request) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    String file = new KytheGetKytheEntriesParams.fromRequest(request).file;
+    String file = KytheGetKytheEntriesParams.fromRequest(request).file;
     AnalysisDriver driver = server.getAnalysisDriver(file);
     if (driver == null) {
-      server.sendResponse(new Response.getKytheEntriesInvalidFile(request));
+      server.sendResponse(Response.getKytheEntriesInvalidFile(request));
     } else {
       //
       // Allow plugins to start computing entries.
       //
       plugin.KytheGetKytheEntriesParams requestParams =
-          new plugin.KytheGetKytheEntriesParams(file);
+          plugin.KytheGetKytheEntriesParams(file);
       Map<PluginInfo, Future<plugin.Response>> pluginFutures = server
           .pluginManager
           .broadcastRequest(requestParams, contextRoot: driver.contextRoot);
@@ -60,9 +60,9 @@ class KytheDomainHandler extends AbstractRequestHandler {
         List<KytheEntry> entries = <KytheEntry>[];
         // TODO(brianwilkerson) Figure out how to get the list of files.
         List<String> files = <String>[];
-        result.unit.accept(new KytheDartVisitor(server.resourceProvider,
-            entries, file, new InheritanceManager3(), result.content));
-        allResults.add(new KytheGetKytheEntriesResult(entries, files));
+        result.unit.accept(KytheDartVisitor(server.resourceProvider, entries,
+            file, InheritanceManager3(), result.content));
+        allResults.add(KytheGetKytheEntriesResult(entries, files));
       }
       //
       // Add the entries produced by plugins to the server-generated entries.
@@ -72,23 +72,23 @@ class KytheDomainHandler extends AbstractRequestHandler {
             requestParameters: requestParams);
         for (plugin.Response response in responses) {
           plugin.KytheGetKytheEntriesResult result =
-              new plugin.KytheGetKytheEntriesResult.fromResponse(response);
-          allResults.add(
-              new KytheGetKytheEntriesResult(result.entries, result.files));
+              plugin.KytheGetKytheEntriesResult.fromResponse(response);
+          allResults
+              .add(KytheGetKytheEntriesResult(result.entries, result.files));
         }
       }
       //
       // Return the result.
       //
-      ResultMerger merger = new ResultMerger();
+      ResultMerger merger = ResultMerger();
       KytheGetKytheEntriesResult mergedResults =
           merger.mergeKytheEntries(allResults);
       if (mergedResults == null) {
         server.sendResponse(
-            new KytheGetKytheEntriesResult(<KytheEntry>[], <String>[])
+            KytheGetKytheEntriesResult(<KytheEntry>[], <String>[])
                 .toResponse(request.id));
       } else {
-        server.sendResponse(new KytheGetKytheEntriesResult(
+        server.sendResponse(KytheGetKytheEntriesResult(
                 mergedResults.entries, mergedResults.files)
             .toResponse(request.id));
       }

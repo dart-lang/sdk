@@ -60,13 +60,13 @@ class EditDartfixDomainHandlerTest extends AbstractAnalysisTest {
       List<String> excludedFixes,
       bool pedantic}) async {
     final id = nextRequestId;
-    final params = new EditDartfixParams([projectPath]);
+    final params = EditDartfixParams([projectPath]);
     params.includedFixes = includedFixes;
     params.excludedFixes = excludedFixes;
     params.includePedanticFixes = pedantic;
-    final request = new Request(id, 'edit.dartfix', params.toJson());
+    final request = Request(id, 'edit.dartfix', params.toJson());
 
-    var fix = new EditDartFix(server, request);
+    var fix = EditDartFix(server, request);
     final response = await fix.compute();
     fix.nonNullableFixTask?.server?.close();
     expect(response.id, id);

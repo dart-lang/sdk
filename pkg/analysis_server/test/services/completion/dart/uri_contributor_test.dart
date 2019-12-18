@@ -23,7 +23,7 @@ main() {
 class UriContributorTest extends DartCompletionContributorTest {
   @override
   DartCompletionContributor createContributor() {
-    return new UriContributor();
+    return UriContributor();
   }
 
   test_after_import() async {
@@ -532,12 +532,12 @@ class UriContributorTest extends DartCompletionContributorTest {
 class UriContributorWindowsTest extends DartCompletionContributorTest {
   @override
   DartCompletionContributor createContributor() {
-    return new UriContributor();
+    return UriContributor();
   }
 
   @override
   void setupResourceProvider() {
-    resourceProvider = new MemoryResourceProvider(context: windows);
+    resourceProvider = MemoryResourceProvider(context: windows);
   }
 
   test_import_file() async {

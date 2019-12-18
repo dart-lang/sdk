@@ -27,10 +27,9 @@ class AnalysisHoverTest extends AbstractAnalysisTest {
 
   Future<HoverInformation> prepareHoverAt(int offset) async {
     await waitForTasksFinished();
-    Request request =
-        new AnalysisGetHoverParams(testFile, offset).toRequest('0');
+    Request request = AnalysisGetHoverParams(testFile, offset).toRequest('0');
     Response response = await waitResponse(request);
-    var result = new AnalysisGetHoverResult.fromResponse(response);
+    var result = AnalysisGetHoverResult.fromResponse(response);
     List<HoverInformation> hovers = result.hovers;
     return hovers.isNotEmpty ? hovers.first : null;
   }
@@ -433,7 +432,7 @@ foo(double myParameter) {}
   }
 
   test_invalidFilePathFormat_notAbsolute() async {
-    var request = new AnalysisGetHoverParams('test.dart', 0).toRequest('0');
+    var request = AnalysisGetHoverParams('test.dart', 0).toRequest('0');
     var response = await waitResponse(request);
     expect(
       response,
@@ -443,7 +442,7 @@ foo(double myParameter) {}
 
   test_invalidFilePathFormat_notNormalized() async {
     var request =
-        new AnalysisGetHoverParams(convertPath('/foo/../bar/test.dart'), 0)
+        AnalysisGetHoverParams(convertPath('/foo/../bar/test.dart'), 0)
             .toRequest('0');
     var response = await waitResponse(request);
     expect(

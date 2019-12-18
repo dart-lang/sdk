@@ -190,7 +190,7 @@ abstract class AbstractCompletionPage extends DiagnosticPageWithNav {
     // draw a chart
     buf.writeln(
         '<div id="chart-div" style="width: 700px; height: 300px;"></div>');
-    StringBuffer rowData = new StringBuffer();
+    StringBuffer rowData = StringBuffer();
     for (int i = completions.length - 1; i >= 0; i--) {
       // [' ', 101.5]
       if (rowData.isNotEmpty) {
@@ -265,7 +265,7 @@ class AstPage extends DiagnosticPageWithNav {
       return;
     }
 
-    AstWriter writer = new AstWriter(buf);
+    AstWriter writer = AstWriter(buf);
     result.unit.accept(writer);
   }
 
@@ -423,7 +423,7 @@ href="https://github.com/dart-lang/sdk/wiki/Previewing-Dart-code-completions-pow
     // draw a chart
     buf.writeln(
         '<div id="chart-div" style="width: 700px; height: 300px;"></div>');
-    StringBuffer rowData = new StringBuffer();
+    StringBuffer rowData = StringBuffer();
     for (PredictionResult prediction in predictions.reversed) {
       // [' ', 101.5]
       if (rowData.isNotEmpty) {
@@ -483,7 +483,7 @@ class ContextsPage extends DiagnosticPageWithNav {
   String get navDetail => printInteger(server.driverMap.length);
 
   String describe(AnalysisOptionsImpl options) {
-    StringBuffer b = new StringBuffer();
+    StringBuffer b = StringBuffer();
 
     b.write(writeOption('Strong mode', options.strongMode));
     b.write(writeOption('Implicit dynamic', options.implicitDynamic));
@@ -658,7 +658,7 @@ class ContextsPage extends DiagnosticPageWithNav {
     DartdocDirectiveInfo info = server.declarationsTracker
             ?.getContext(driver.analysisContext)
             ?.dartdocDirectiveInfo ??
-        new DartdocDirectiveInfo();
+        DartdocDirectiveInfo();
     buf.write('<p class="scroll-table">');
     writeMap(info.templateMap);
     buf.write('</p>');
@@ -824,51 +824,50 @@ class DiagnosticsSite extends Site implements AbstractGetHandler {
 
   DiagnosticsSite(this.socketServer, this.lastPrintedLines)
       : super('Analysis Server') {
-    pages.add(new CommunicationsPage(this));
-    pages.add(new ContextsPage(this));
-    pages.add(new EnvironmentVariablesPage(this));
-    pages.add(new ExceptionsPage(this));
+    pages.add(CommunicationsPage(this));
+    pages.add(ContextsPage(this));
+    pages.add(EnvironmentVariablesPage(this));
+    pages.add(ExceptionsPage(this));
     //pages.add(new InstrumentationPage(this));
-    pages.add(new ProfilePage(this));
+    pages.add(ProfilePage(this));
 
     // Add server-specific pages. Ordering doesn't matter as the items are
     // sorted later.
     final AbstractAnalysisServer server = this.socketServer.analysisServer;
-    pages.add(new MLCompletionPage(this, server));
+    pages.add(MLCompletionPage(this, server));
 
     if (server is AnalysisServer) {
-      pages.add(new CompletionPage(this, server));
-      pages.add(new PluginsPage(this, server));
-      pages.add(new SubscriptionsPage(this, server));
+      pages.add(CompletionPage(this, server));
+      pages.add(PluginsPage(this, server));
+      pages.add(SubscriptionsPage(this, server));
     } else if (server is LspAnalysisServer) {
-      pages.add(new LspCompletionPage(this, server));
-      pages.add(new LspCapabilitiesPage(this, server));
+      pages.add(LspCompletionPage(this, server));
+      pages.add(LspCapabilitiesPage(this, server));
     }
 
     ProcessProfiler profiler = ProcessProfiler.getProfilerForPlatform();
     if (profiler != null) {
-      pages.add(new MemoryAndCpuPage(this, profiler));
+      pages.add(MemoryAndCpuPage(this, profiler));
     }
 
     pages.sort(((Page a, Page b) =>
         a.title.toLowerCase().compareTo(b.title.toLowerCase())));
 
     // Add the status page at the beginning.
-    pages.insert(0, new StatusPage(this));
+    pages.insert(0, StatusPage(this));
 
     // Add non-nav pages.
-    pages.add(new FeedbackPage(this));
-    pages.add(new AstPage(this));
-    pages.add(new ElementModelPage(this));
+    pages.add(FeedbackPage(this));
+    pages.add(AstPage(this));
+    pages.add(ElementModelPage(this));
   }
 
   String get customCss => kCustomCss;
 
   Page createExceptionPage(String message, StackTrace trace) =>
-      new ExceptionPage(this, message, trace);
+      ExceptionPage(this, message, trace);
 
-  Page createUnknownPage(String unknownPath) =>
-      new NotFoundPage(this, unknownPath);
+  Page createUnknownPage(String unknownPath) => NotFoundPage(this, unknownPath);
 }
 
 class ElementModelPage extends DiagnosticPageWithNav {
@@ -906,7 +905,7 @@ class ElementModelPage extends DiagnosticPageWithNav {
       return;
     }
 
-    ElementWriter writer = new ElementWriter(buf);
+    ElementWriter writer = ElementWriter(buf);
     result.unit.declaredElement.accept(writer);
   }
 
@@ -1215,7 +1214,7 @@ class PluginsPage extends DiagnosticPageWithNav {
             List<int> data = responseTimes[requestName];
             // TODO(brianwilkerson) Consider displaying these times as a graph,
             //  similar to the one in AbstractCompletionPage.generateContent.
-            StringBuffer buffer = new StringBuffer();
+            StringBuffer buffer = StringBuffer();
             buffer.write(requestName);
             buffer.write(' ');
             buffer.write(data);

@@ -36,8 +36,8 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
 
   @override
   Future<RefactoringStatus> checkFinalConditions() {
-    RefactoringStatus result = new RefactoringStatus();
-    return new Future.value(result);
+    RefactoringStatus result = RefactoringStatus();
+    return Future.value(result);
   }
 
   @override
@@ -47,32 +47,32 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
     // check Element type
     if (element is FunctionElement) {
       if (element.enclosingElement is! CompilationUnitElement) {
-        return new RefactoringStatus.fatal(
+        return RefactoringStatus.fatal(
             'Only top-level functions can be converted to getters.');
       }
     } else if (element is! MethodElement) {
-      return new RefactoringStatus.fatal(
+      return RefactoringStatus.fatal(
           'Only class methods or top-level functions can be converted to getters.');
     }
     // returns a value
     if (element.returnType != null && element.returnType.isVoid) {
-      return new RefactoringStatus.fatal(
+      return RefactoringStatus.fatal(
           'Cannot convert ${element.kind.displayName} returning void.');
     }
     // no parameters
     if (element.parameters.isNotEmpty) {
-      return new RefactoringStatus.fatal(
+      return RefactoringStatus.fatal(
           'Only methods without parameters can be converted to getters.');
     }
     // OK
-    return new RefactoringStatus();
+    return RefactoringStatus();
   }
 
   @override
   Future<SourceChange> createChange() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    change = new SourceChange(refactoringName);
+    change = SourceChange(refactoringName);
     // FunctionElement
     if (element is FunctionElement) {
       await _updateElementDeclaration(element);
@@ -112,7 +112,7 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
     }
     // insert "get "
     {
-      SourceEdit edit = new SourceEdit(element.nameOffset, 0, 'get ');
+      SourceEdit edit = SourceEdit(element.nameOffset, 0, 'get ');
       doSourceChange_addElementEdit(change, element, edit);
     }
     // remove parameters
@@ -136,7 +136,7 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
         var resolvedUnit =
             await sessionHelper.getResolvedUnitByElement(refElement);
         var refUnit = resolvedUnit.unit;
-        var refNode = new NodeLocator(refRange.offset).searchWithin(refUnit);
+        var refNode = NodeLocator(refRange.offset).searchWithin(refUnit);
         invocation = refNode.thisOrAncestorOfType<MethodInvocation>();
       }
       // we need invocation

@@ -33,7 +33,7 @@ class StaticMemberContributor extends DartCompletionContributor {
           return const <CompletionSuggestion>[];
         }
 
-        _SuggestionBuilder builder = new _SuggestionBuilder(containingLibrary);
+        _SuggestionBuilder builder = _SuggestionBuilder(containingLibrary);
         elem.accept(builder);
         return builder.suggestions;
       }

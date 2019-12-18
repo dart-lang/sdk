@@ -27,7 +27,7 @@ const DYNAMIC = 'dynamic';
  * A marker used in place of `null` when a function has no return type.
  */
 final TypeName NO_RETURN_TYPE = astFactory.typeName(
-    astFactory.simpleIdentifier(new StringToken(TokenType.IDENTIFIER, '', 0)),
+    astFactory.simpleIdentifier(StringToken(TokenType.IDENTIFIER, '', 0)),
     null);
 
 /**
@@ -39,7 +39,7 @@ void addDefaultArgDetails(
     Element element,
     Iterable<ParameterElement> requiredParams,
     Iterable<ParameterElement> namedParams) {
-  StringBuffer sb = new StringBuffer();
+  StringBuffer sb = StringBuffer();
   List<int> ranges = <int>[];
 
   int offset;
@@ -86,16 +86,16 @@ protocol.Element createLocalElement(
   if (id != null) {
     name = id.name;
     // TODO(danrubel) use lineInfo to determine startLine and startColumn
-    location = new Location(source.fullName, id.offset, id.length, 0, 0);
+    location = Location(source.fullName, id.offset, id.length, 0, 0);
   } else {
     name = '';
-    location = new Location(source.fullName, -1, 0, 1, 0);
+    location = Location(source.fullName, -1, 0, 1, 0);
   }
   int flags = protocol.Element.makeFlags(
       isAbstract: isAbstract,
       isDeprecated: isDeprecated,
       isPrivate: Identifier.isPrivateName(name));
-  return new protocol.Element(kind, name, flags,
+  return protocol.Element(kind, name, flags,
       location: location,
       parameters: parameters,
       returnType: nameForType(id, returnType));
@@ -117,7 +117,7 @@ CompletionSuggestion createLocalSuggestion(SimpleIdentifier id,
   if (completion == null || completion.isEmpty || completion == '_') {
     return null;
   }
-  CompletionSuggestion suggestion = new CompletionSuggestion(
+  CompletionSuggestion suggestion = CompletionSuggestion(
       kind,
       isDeprecated ? DART_RELEVANCE_LOW : defaultRelevance,
       completion,

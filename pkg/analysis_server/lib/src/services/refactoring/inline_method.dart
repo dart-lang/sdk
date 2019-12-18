@@ -105,7 +105,7 @@ String _getMethodSourceForInvocation(
   part._implicitClassNameOffsets.forEach((String className, List<int> offsets) {
     for (int offset in offsets) {
 //      edits.add(newSourceEdit_range(range, className + '.'));
-      edits.add(new SourceEdit(offset, 0, className + '.'));
+      edits.add(SourceEdit(offset, 0, className + '.'));
     }
   });
   // replace "this" references with invocation target
@@ -113,12 +113,12 @@ String _getMethodSourceForInvocation(
     String targetSource = utils.getNodeText(targetExpression);
     // explicit "this" references
     for (int offset in part._explicitThisOffsets) {
-      edits.add(new SourceEdit(offset, 4, targetSource));
+      edits.add(SourceEdit(offset, 4, targetSource));
     }
     // implicit "this" references
     targetSource += '.';
     for (int offset in part._implicitThisOffsets) {
-      edits.add(new SourceEdit(offset, 0, targetSource));
+      edits.add(SourceEdit(offset, 0, targetSource));
     }
   }
   // prepare edits to replace conflicting variables
@@ -152,7 +152,7 @@ String _getMethodSourceForInvocation(
  * at [node].
  */
 Set<String> _getNamesConflictingAt(AstNode node) {
-  Set<String> result = new Set<String>();
+  Set<String> result = Set<String>();
   // local variables and functions
   {
     SourceRange localsRange = _getLocalsConflictingRange(node);
@@ -168,7 +168,7 @@ Set<String> _getNamesConflictingAt(AstNode node) {
   {
     ClassElement enclosingClassElement = getEnclosingClassElement(node);
     if (enclosingClassElement != null) {
-      Set<ClassElement> elements = new Set<ClassElement>();
+      Set<ClassElement> elements = Set<ClassElement>();
       elements.add(enclosingClassElement);
       elements.addAll(getSuperClasses(enclosingClassElement));
       for (ClassElement classElement in elements) {
@@ -209,12 +209,12 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
   _SourcePart _methodExpressionPart;
   _SourcePart _methodStatementsPart;
   final List<_ReferenceProcessor> _referenceProcessors = [];
-  final Set<Element> _alreadyMadeAsync = new Set<Element>();
+  final Set<Element> _alreadyMadeAsync = Set<Element>();
 
   InlineMethodRefactoringImpl(
       this.searchEngine, this.resolveResult, this.offset)
       : sessionHelper = AnalysisSessionHelper(resolveResult.session) {
-    utils = new CorrectionUtils(resolveResult);
+    utils = CorrectionUtils(resolveResult);
   }
 
   @override
@@ -248,8 +248,8 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
 
   @override
   Future<RefactoringStatus> checkFinalConditions() {
-    change = new SourceChange(refactoringName);
-    RefactoringStatus result = new RefactoringStatus();
+    change = SourceChange(refactoringName);
+    RefactoringStatus result = RefactoringStatus();
     // check for compatibility of "deleteSource" and "inlineAll"
     if (deleteSource && !inlineAll) {
       result.addError('All references must be inlined to remove the source.');
@@ -267,28 +267,28 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
           change, _methodElement, newSourceEdit_range(linesRange, ''));
     }
     // done
-    return new Future.value(result);
+    return Future.value(result);
   }
 
   @override
   Future<RefactoringStatus> checkInitialConditions() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    RefactoringStatus result = new RefactoringStatus();
+    RefactoringStatus result = RefactoringStatus();
     // prepare method information
     result.addStatus(await _prepareMethod());
     if (result.hasFatalError) {
-      return new Future<RefactoringStatus>.value(result);
+      return Future<RefactoringStatus>.value(result);
     }
     // maybe operator
     if (_methodElement.isOperator) {
-      result = new RefactoringStatus.fatal('Cannot inline operator.');
-      return new Future<RefactoringStatus>.value(result);
+      result = RefactoringStatus.fatal('Cannot inline operator.');
+      return Future<RefactoringStatus>.value(result);
     }
     // maybe [a]sync*
     if (_methodElement.isGenerator) {
-      result = new RefactoringStatus.fatal('Cannot inline a generator.');
-      return new Future<RefactoringStatus>.value(result);
+      result = RefactoringStatus.fatal('Cannot inline a generator.');
+      return Future<RefactoringStatus>.value(result);
     }
     // analyze method body
     result.addStatus(_prepareMethodParts());
@@ -297,7 +297,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
         await searchEngine.searchReferences(_methodElement);
     _referenceProcessors.clear();
     for (SearchMatch reference in references) {
-      _ReferenceProcessor processor = new _ReferenceProcessor(this, reference);
+      _ReferenceProcessor processor = _ReferenceProcessor(this, reference);
       await processor.init();
       _referenceProcessors.add(processor);
     }
@@ -306,15 +306,15 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
 
   @override
   Future<SourceChange> createChange() {
-    return new Future.value(change);
+    return Future.value(change);
   }
 
   _SourcePart _createSourcePart(SourceRange range) {
     String source = _methodUtils.getRangeText(range);
     String prefix = getLinePrefix(source);
-    _SourcePart result = new _SourcePart(range.offset, source, prefix);
+    _SourcePart result = _SourcePart(range.offset, source, prefix);
     // remember parameters and variables occurrences
-    _methodUnit.accept(new _VariablesVisitor(_methodElement, range, result));
+    _methodUnit.accept(_VariablesVisitor(_methodElement, range, result));
     // done
     return result;
   }
@@ -331,10 +331,10 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     deleteSource = false;
     inlineAll = false;
     // prepare for failure
-    RefactoringStatus fatalStatus = new RefactoringStatus.fatal(
+    RefactoringStatus fatalStatus = RefactoringStatus.fatal(
         'Method declaration or reference must be selected to activate this refactoring.');
     // prepare selected SimpleIdentifier
-    AstNode node = new NodeLocator(offset).searchWithin(resolveResult.unit);
+    AstNode node = NodeLocator(offset).searchWithin(resolveResult.unit);
     if (node is! SimpleIdentifier) {
       return fatalStatus;
     }
@@ -355,7 +355,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
 
     var resolvedUnit = declaration.resolvedUnit;
     _methodUnit = resolvedUnit.unit;
-    _methodUtils = new CorrectionUtils(resolvedUnit);
+    _methodUtils = CorrectionUtils(resolvedUnit);
 
     if (methodNode is MethodDeclaration) {
       _methodParameters = methodNode.parameters;
@@ -371,7 +371,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
         node.offset == element.nameOffset;
     deleteSource = isDeclaration;
     inlineAll = deleteSource;
-    return new RefactoringStatus();
+    return RefactoringStatus();
   }
 
   /**
@@ -379,7 +379,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
    * [_methodStatementsPart].
    */
   RefactoringStatus _prepareMethodParts() {
-    RefactoringStatus result = new RefactoringStatus();
+    RefactoringStatus result = RefactoringStatus();
     if (_methodBody is ExpressionFunctionBody) {
       ExpressionFunctionBody body = _methodBody as ExpressionFunctionBody;
       _methodExpression = body.expression;
@@ -408,9 +408,9 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
         }
       }
       // check if more than one return
-      body.accept(new _ReturnsValidatorVisitor(result));
+      body.accept(_ReturnsValidatorVisitor(result));
     } else {
-      return new RefactoringStatus.fatal('Cannot inline method without body.');
+      return RefactoringStatus.fatal('Cannot inline method without body.');
     }
     return result;
   }
@@ -445,7 +445,7 @@ class _ReferenceProcessor {
 
     // prepare CorrectionUtils
     var result = await ref.sessionHelper.getResolvedUnitByElement(refElement);
-    _refUtils = new CorrectionUtils(result);
+    _refUtils = CorrectionUtils(result);
 
     // prepare node and environment
     _node = _refUtils.findNode(reference.sourceRange.offset);
@@ -521,8 +521,8 @@ class _ReferenceProcessor {
         source = _refUtils.replaceSourceIndent(
             source, ref._methodStatementsPart._prefix, _refPrefix);
         // do insert
-        SourceEdit edit = newSourceEdit_range(
-            new SourceRange(_refLineRange.offset, 0), source);
+        SourceEdit edit =
+            newSourceEdit_range(SourceRange(_refLineRange.offset, 0), source);
         _addRefEdit(edit);
       }
       // replace invocation with return expression
@@ -748,7 +748,7 @@ class _SourcePart {
         _parameters[parameter] = occurrences;
       }
       identifierRange = range.offsetBy(identifierRange, -_base);
-      occurrences.add(new _ParameterOccurrence(precedence, identifierRange));
+      occurrences.add(_ParameterOccurrence(precedence, identifierRange));
     }
   }
 

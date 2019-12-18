@@ -15,10 +15,9 @@ ErrorOr<R> cancelled<R>([R t]) =>
     error(ErrorCodes.RequestCancelled, 'Request was cancelled', null);
 
 ErrorOr<R> error<R>(ErrorCodes code, String message, [String data]) =>
-    new ErrorOr<R>.error(new ResponseError(code, message, data));
+    ErrorOr<R>.error(ResponseError(code, message, data));
 
-ErrorOr<R> failure<R>(ErrorOr<dynamic> error) =>
-    new ErrorOr<R>.error(error.error);
+ErrorOr<R> failure<R>(ErrorOr<dynamic> error) => ErrorOr<R>.error(error.error);
 
 Object specToJson(Object obj) {
   if (obj is ToJsonable) {
@@ -28,7 +27,7 @@ Object specToJson(Object obj) {
   }
 }
 
-ErrorOr<R> success<R>([R t]) => new ErrorOr<R>.success(t);
+ErrorOr<R> success<R>([R t]) => ErrorOr<R>.success(t);
 
 Null _alwaysNull(_, [__]) => null;
 
@@ -212,7 +211,7 @@ class ErrorOr<T> extends Either2<ResponseError, T> {
   FutureOr<ErrorOr<N>> mapResult<N>(FutureOr<ErrorOr<N>> Function(T) f) {
     return isError
         // Re-wrap the error using our new type arg
-        ? new ErrorOr<N>.error(error)
+        ? ErrorOr<N>.error(error)
         // Otherwise call the map function
         : f(result);
   }

@@ -14,7 +14,7 @@ Element findElementByNameOffset(Element root, int nameOffset) {
     return null;
   }
   try {
-    var visitor = new _ElementByNameOffsetVisitor(nameOffset);
+    var visitor = _ElementByNameOffsetVisitor(nameOffset);
     root.accept(visitor);
   } on Element catch (result) {
     return result;
@@ -27,7 +27,7 @@ Element findElementByNameOffset(Element root, int nameOffset) {
  * If [processor] returns `true`, then children of a child are visited too.
  */
 void visitChildren(Element element, BoolElementProcessor processor) {
-  element.visitChildren(new _ElementVisitorAdapter(processor));
+  element.visitChildren(_ElementVisitorAdapter(processor));
 }
 
 /**
@@ -35,7 +35,7 @@ void visitChildren(Element element, BoolElementProcessor processor) {
  */
 void visitLibraryTopLevelElements(
     LibraryElement library, VoidElementProcessor processor) {
-  library.visitChildren(new _TopLevelElementsVisitor(processor));
+  library.visitChildren(_TopLevelElementsVisitor(processor));
 }
 
 /**

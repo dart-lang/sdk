@@ -120,7 +120,7 @@ bool _isInsertingToArgListWithSynthetic(DartCompletionRequest request) {
  */
 Iterable<String> _namedArgs(DartCompletionRequest request) {
   AstNode node = request.target.containingNode;
-  List<String> namedArgs = new List<String>();
+  List<String> namedArgs = List<String>();
   if (node is ArgumentList) {
     for (Expression arg in node.arguments) {
       if (arg is NamedExpression) {
@@ -200,7 +200,7 @@ class ArgListContributor extends DartCompletionContributor {
           ? DART_RELEVANCE_NAMED_PARAMETER_REQUIRED
           : DART_RELEVANCE_NAMED_PARAMETER;
 
-      CompletionSuggestion suggestion = new CompletionSuggestion(
+      CompletionSuggestion suggestion = CompletionSuggestion(
           CompletionSuggestionKind.NAMED_ARGUMENT,
           relevance,
           completion,

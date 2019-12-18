@@ -42,8 +42,8 @@ lsp.Either2<String, lsp.MarkupContent> asStringOrMarkupContent(
   }
 
   return preferredFormats == null
-      ? new lsp.Either2<String, lsp.MarkupContent>.t1(content)
-      : new lsp.Either2<String, lsp.MarkupContent>.t2(
+      ? lsp.Either2<String, lsp.MarkupContent>.t1(content)
+      : lsp.Either2<String, lsp.MarkupContent>.t2(
           _asMarkup(preferredFormats, content));
 }
 
@@ -83,7 +83,7 @@ lsp.WorkspaceEdit createWorkspaceEdit(
   return toWorkspaceEdit(
       server.clientCapabilities?.workspace,
       edits
-          .map((e) => new FileEditInformation(
+          .map((e) => FileEditInformation(
               server.getVersionedDocumentIdentifier(e.file),
               server.getLineInfo(e.file),
               e.edits))
@@ -225,7 +225,7 @@ lsp.CompletionItem declarationToCompletionItem(
   // Because we potentially send thousands of these items, we should minimise
   // the generated JSON as much as possible - for example using nulls in place
   // of empty lists/false where possible.
-  return new lsp.CompletionItem(
+  return lsp.CompletionItem(
     label,
     completionKind,
     getDeclarationCompletionDetail(declaration, completionKind, useDeprecated),
@@ -246,7 +246,7 @@ lsp.CompletionItem declarationToCompletionItem(
     null, // commitCharacters
     null, // command
     // data, used for completionItem/resolve.
-    new lsp.CompletionItemResolutionInfo(
+    lsp.CompletionItemResolutionInfo(
         file,
         offset,
         includedSuggestionSet.id,
@@ -487,7 +487,7 @@ lsp.Location navigationTargetToLocation(String targetFilePath,
     return null;
   }
 
-  return new lsp.Location(
+  return lsp.Location(
     Uri.file(targetFilePath).toString(),
     toRange(lineInfo, target.offset, target.length),
   );
@@ -504,24 +504,24 @@ ErrorOr<String> pathOfDocItem(lsp.TextDocumentItem doc) =>
 /// Returns the file system path for a file URI.
 ErrorOr<String> pathOfUri(Uri uri) {
   if (uri == null) {
-    return new ErrorOr<String>.error(new ResponseError(
+    return ErrorOr<String>.error(ResponseError(
         lsp.ServerErrorCodes.InvalidFilePath,
         'Document URI was not supplied',
         null));
   }
   final isValidFileUri = (uri?.isScheme('file') ?? false);
   if (!isValidFileUri) {
-    return new ErrorOr<String>.error(new ResponseError(
+    return ErrorOr<String>.error(ResponseError(
         lsp.ServerErrorCodes.InvalidFilePath,
         'URI was not a valid file:// URI',
         uri.toString()));
   }
   try {
-    return new ErrorOr<String>.success(uri.toFilePath());
+    return ErrorOr<String>.success(uri.toFilePath());
   } catch (e) {
     // Even if tryParse() works and file == scheme, toFilePath() can throw on
     // Windows if there are invalid characters.
-    return new ErrorOr<String>.error(new ResponseError(
+    return ErrorOr<String>.error(ResponseError(
         lsp.ServerErrorCodes.InvalidFilePath,
         'File URI did not contain a valid file path',
         uri.toString()));
@@ -536,7 +536,7 @@ lsp.Location searchResultToLocation(
     return null;
   }
 
-  return new lsp.Location(
+  return lsp.Location(
     Uri.file(result.location.file).toString(),
     toRange(lineInfo, location.offset, location.length),
   );
@@ -648,7 +648,7 @@ lsp.CompletionItem toCompletionItem(
   // Because we potentially send thousands of these items, we should minimise
   // the generated JSON as much as possible - for example using nulls in place
   // of empty lists/false where possible.
-  return new lsp.CompletionItem(
+  return lsp.CompletionItem(
     label,
     completionKind,
     getCompletionDetail(suggestion, completionKind, useDeprecated),
@@ -666,7 +666,7 @@ lsp.CompletionItem toCompletionItem(
     insertTextFormat != lsp.InsertTextFormat.PlainText
         ? insertTextFormat
         : null, // Defaults to PlainText if not supplied
-    new lsp.TextEdit(
+    lsp.TextEdit(
       toRange(lineInfo, replacementOffset, replacementLength),
       insertText,
     ),
@@ -697,7 +697,7 @@ lsp.Diagnostic toDiagnostic(
     message = '$message\n${error.correctionMessage}';
   }
 
-  return new lsp.Diagnostic(
+  return lsp.Diagnostic(
     toRange(result.lineInfo, error.offset, error.length),
     toDiagnosticSeverity(errorSeverity),
     errorCode.name.toLowerCase(),
@@ -755,7 +755,7 @@ lsp.Element toElement(server.LineInfo lineInfo, server.Element element) =>
 lsp.FoldingRange toFoldingRange(
     server.LineInfo lineInfo, server.FoldingRegion region) {
   final range = toRange(lineInfo, region.offset, region.length);
-  return new lsp.FoldingRange(range.start.line, range.start.character,
+  return lsp.FoldingRange(range.start.line, range.start.character,
       range.end.line, range.end.character, toFoldingRangeKind(region.kind));
 }
 
@@ -777,7 +777,7 @@ lsp.FoldingRangeKind toFoldingRangeKind(server.FoldingKind kind) {
 List<lsp.DocumentHighlight> toHighlights(
     server.LineInfo lineInfo, server.Occurrences occurrences) {
   return occurrences.offsets
-      .map((offset) => new lsp.DocumentHighlight(
+      .map((offset) => lsp.DocumentHighlight(
           toRange(lineInfo, offset, occurrences.length), null))
       .toList();
 }
@@ -798,7 +798,7 @@ ErrorOr<int> toOffset(
   failureIsCritial = false,
 }) {
   if (pos.line > lineInfo.lineCount) {
-    return new ErrorOr<int>.error(new lsp.ResponseError(
+    return ErrorOr<int>.error(lsp.ResponseError(
         failureIsCritial
             ? lsp.ServerErrorCodes.ClientServerInconsistentState
             : lsp.ServerErrorCodes.InvalidFileLineCol,
@@ -808,7 +808,7 @@ ErrorOr<int> toOffset(
   // TODO(dantup): Is there any way to validate the character? We could ensure
   // it's less than the offset of the next line, but that would only work for
   // all lines except the last one.
-  return new ErrorOr<int>.success(
+  return ErrorOr<int>.success(
       lineInfo.getOffsetOfLine(pos.line) + pos.character);
 }
 
@@ -848,14 +848,14 @@ lsp.FlutterOutlineAttribute toFlutterOutlineAttribute(
 
 lsp.Position toPosition(server.CharacterLocation location) {
   // LSP is zero-based, but analysis server is 1-based.
-  return new lsp.Position(location.lineNumber - 1, location.columnNumber - 1);
+  return lsp.Position(location.lineNumber - 1, location.columnNumber - 1);
 }
 
 lsp.Range toRange(server.LineInfo lineInfo, int offset, int length) {
   server.CharacterLocation start = lineInfo.getLocation(offset);
   server.CharacterLocation end = lineInfo.getLocation(offset + length);
 
-  return new lsp.Range(
+  return lsp.Range(
     toPosition(start),
     toPosition(end),
   );
@@ -904,14 +904,14 @@ lsp.SignatureHelp toSignatureHelp(List<lsp.MarkupKind> preferredFormats,
     // to guess based on substrings). We should check the
     // signatureHelp.signatureInformation.parameterInformation.labelOffsetSupport
     // capability when deciding to send that.
-    return new lsp.ParameterInformation(getParamLabel(param), null);
+    return lsp.ParameterInformation(getParamLabel(param), null);
   }
 
   final cleanDoc = cleanDartdoc(signature.dartdoc);
 
-  return new lsp.SignatureHelp(
+  return lsp.SignatureHelp(
     [
-      new lsp.SignatureInformation(
+      lsp.SignatureInformation(
         getSignatureLabel(signature),
         asStringOrMarkupContent(preferredFormats, cleanDoc),
         signature.parameters.map(toParameterInfo).toList(),
@@ -931,14 +931,14 @@ lsp.SignatureHelp toSignatureHelp(List<lsp.MarkupKind> preferredFormats,
 }
 
 lsp.TextDocumentEdit toTextDocumentEdit(FileEditInformation edit) {
-  return new lsp.TextDocumentEdit(
+  return lsp.TextDocumentEdit(
     edit.doc,
     edit.edits.map((e) => toTextEdit(edit.lineInfo, e)).toList(),
   );
 }
 
 lsp.TextEdit toTextEdit(server.LineInfo lineInfo, server.SourceEdit edit) {
-  return new lsp.TextEdit(
+  return lsp.TextEdit(
     toRange(lineInfo, edit.offset, edit.length),
     edit.replacement,
   );
@@ -951,7 +951,7 @@ lsp.WorkspaceEdit toWorkspaceEdit(
   final clientSupportsTextDocumentEdits =
       capabilities?.workspaceEdit?.documentChanges == true;
   if (clientSupportsTextDocumentEdits) {
-    return new lsp.WorkspaceEdit(
+    return lsp.WorkspaceEdit(
         null,
         Either2<
             List<lsp.TextDocumentEdit>,
@@ -961,7 +961,7 @@ lsp.WorkspaceEdit toWorkspaceEdit(
           edits.map(toTextDocumentEdit).toList(),
         ));
   } else {
-    return new lsp.WorkspaceEdit(toWorkspaceEditChanges(edits), null);
+    return lsp.WorkspaceEdit(toWorkspaceEditChanges(edits), null);
   }
 }
 
@@ -970,7 +970,7 @@ Map<String, List<lsp.TextEdit>> toWorkspaceEditChanges(
   createEdit(FileEditInformation file) {
     final edits =
         file.edits.map((edit) => toTextEdit(file.lineInfo, edit)).toList();
-    return new MapEntry(file.doc.uri, edits);
+    return MapEntry(file.doc.uri, edits);
   }
 
   return Map<String, List<lsp.TextEdit>>.fromEntries(edits.map(createEdit));
@@ -999,5 +999,5 @@ lsp.MarkupContent _asMarkup(
       ? lsp.MarkupKind.PlainText
       : lsp.MarkupKind.Markdown;
 
-  return new lsp.MarkupContent(format, content);
+  return lsp.MarkupContent(format, content);
 }

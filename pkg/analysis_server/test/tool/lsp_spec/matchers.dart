@@ -7,7 +7,7 @@ import 'package:matcher/matcher.dart';
 
 import '../../../tool/lsp_spec/typescript_parser.dart';
 
-Matcher isSimpleType(String name) => new SimpleTypeMatcher(name);
+Matcher isSimpleType(String name) => SimpleTypeMatcher(name);
 
 class SimpleTypeMatcher extends Matcher {
   final String _expectedName;
@@ -32,8 +32,7 @@ class SimpleTypeMatcher extends Matcher {
   }
 }
 
-Matcher isArrayOf(Matcher matcher) =>
-    new ArrayTypeMatcher(wrapMatcher(matcher));
+Matcher isArrayOf(Matcher matcher) => ArrayTypeMatcher(wrapMatcher(matcher));
 
 class ArrayTypeMatcher extends Matcher {
   final Matcher _elementTypeMatcher;
@@ -59,7 +58,7 @@ class ArrayTypeMatcher extends Matcher {
 }
 
 Matcher isMapOf(Matcher indexMatcher, Matcher valueMatcher) =>
-    new MapTypeMatcher(wrapMatcher(indexMatcher), wrapMatcher(valueMatcher));
+    MapTypeMatcher(wrapMatcher(indexMatcher), wrapMatcher(valueMatcher));
 
 class MapTypeMatcher extends Matcher {
   final Matcher _indexMatcher, _valueMatcher;

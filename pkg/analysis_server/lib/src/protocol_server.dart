@@ -130,15 +130,15 @@ AnalysisError newAnalysisError_fromEngine(
         startColumn = lineLocation.columnNumber;
       }
     }
-    location = new Location(file, offset, length, startLine, startColumn);
+    location = Location(file, offset, length, startLine, startColumn);
   }
 
   // Default to the error's severity if none is specified.
   errorSeverity ??= errorCode.errorSeverity;
 
   // done
-  var severity = new AnalysisErrorSeverity(errorSeverity.name);
-  var type = new AnalysisErrorType(errorCode.type.name);
+  var severity = AnalysisErrorSeverity(errorSeverity.name);
+  var type = AnalysisErrorType(errorCode.type.name);
   String message = error.message;
   String code = errorCode.name.toLowerCase();
   List<DiagnosticMessage> contextMessages;
@@ -150,7 +150,7 @@ AnalysisError newAnalysisError_fromEngine(
   String correction = error.correction;
   bool fix = hasFix(error.errorCode);
   String url = errorCode.url;
-  return new AnalysisError(severity, type, location, message, code,
+  return AnalysisError(severity, type, location, message, code,
       contextMessages: contextMessages,
       correction: correction,
       hasFix: fix,
@@ -194,7 +194,7 @@ Location newLocation_fromElement(engine.Element element) {
     length = 0;
   }
   engine.CompilationUnitElement unitElement = _getUnitElement(element);
-  engine.SourceRange range = new engine.SourceRange(offset, length);
+  engine.SourceRange range = engine.SourceRange(offset, length);
   return _locationForArgs(unitElement, range);
 }
 
@@ -213,7 +213,7 @@ Location newLocation_fromNode(engine.AstNode node) {
   engine.CompilationUnit unit =
       node.thisOrAncestorOfType<engine.CompilationUnit>();
   engine.CompilationUnitElement unitElement = unit.declaredElement;
-  engine.SourceRange range = new engine.SourceRange(node.offset, node.length);
+  engine.SourceRange range = engine.SourceRange(node.offset, node.length);
   return _locationForArgs(unitElement, range);
 }
 
@@ -231,7 +231,7 @@ Location newLocation_fromUnit(
 OverriddenMember newOverriddenMember_fromEngine(engine.Element member) {
   Element element = convertElement(member);
   String className = member.enclosingElement.displayName;
-  return new OverriddenMember(element, className);
+  return OverriddenMember(element, className);
 }
 
 /**
@@ -241,7 +241,7 @@ SearchResult newSearchResult_fromMatch(engine.SearchMatch match) {
   SearchResultKind kind = newSearchResultKind_fromEngine(match.kind);
   Location location = newLocation_fromMatch(match);
   List<Element> path = _computePath(match.element);
-  return new SearchResult(location, kind, !match.isResolved, path);
+  return SearchResult(location, kind, !match.isResolved, path);
 }
 
 /**
@@ -274,7 +274,7 @@ SearchResultKind newSearchResultKind_fromEngine(engine.MatchKind kind) {
  */
 SourceEdit newSourceEdit_range(engine.SourceRange range, String replacement,
     {String id}) {
-  return new SourceEdit(range.offset, range.length, replacement, id: id);
+  return SourceEdit(range.offset, range.length, replacement, id: id);
 }
 
 List<Element> _computePath(engine.Element element) {
@@ -326,6 +326,6 @@ Location _locationForArgs(
       startColumn = offsetLocation.columnNumber;
     }
   } on AnalysisException {}
-  return new Location(unitElement.source.fullName, range.offset, range.length,
+  return Location(unitElement.source.fullName, range.offset, range.length,
       startLine, startColumn);
 }

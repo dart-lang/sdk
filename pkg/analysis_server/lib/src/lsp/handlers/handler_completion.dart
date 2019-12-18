@@ -22,7 +22,7 @@ import 'package:analyzer/src/services/available_declarations.dart';
 
 // If the client does not provide capabilities.completion.completionItemKind.valueSet
 // then we must never send a kind that's not in this list.
-final defaultSupportedCompletionKinds = new HashSet<CompletionItemKind>.of([
+final defaultSupportedCompletionKinds = HashSet<CompletionItemKind>.of([
   CompletionItemKind.Text,
   CompletionItemKind.Method,
   CompletionItemKind.Function,
@@ -67,7 +67,7 @@ class CompletionHandler
 
     final clientSupportedCompletionKinds =
         completionCapabilities?.completionItemKind?.valueSet != null
-            ? new HashSet<CompletionItemKind>.of(
+            ? HashSet<CompletionItemKind>.of(
                 completionCapabilities.completionItemKind.valueSet)
             : defaultSupportedCompletionKinds;
 
@@ -127,13 +127,12 @@ class CompletionHandler
     int offset,
     CancellationToken token,
   ) async {
-    final performance = new CompletionPerformance();
+    final performance = CompletionPerformance();
     performance.path = unit.path;
     performance.setContentsAndOffset(unit.content, offset);
     server.performanceStats.completion.add(performance);
 
-    final completionRequest =
-        new CompletionRequestImpl(unit, offset, performance);
+    final completionRequest = CompletionRequestImpl(unit, offset, performance);
 
     Set<ElementKind> includedElementKinds;
     Set<String> includedElementNames;
@@ -145,7 +144,7 @@ class CompletionHandler
     }
 
     try {
-      CompletionContributor contributor = new DartCompletionManager(
+      CompletionContributor contributor = DartCompletionManager(
         includedElementKinds: includedElementKinds,
         includedElementNames: includedElementNames,
         includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,

@@ -31,7 +31,7 @@ class ExitMessageHandler extends MessageHandler<void, void> {
     server.willExit = true;
 
     await server.shutdown();
-    new Future(() {
+    Future(() {
       exit(clientDidCallShutdown ? 0 : 1);
     });
     return success();

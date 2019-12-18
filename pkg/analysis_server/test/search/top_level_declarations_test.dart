@@ -37,13 +37,12 @@ class TopLevelDeclarationsTest extends AbstractSearchDomainTest {
   Future findTopLevelDeclarations(String pattern) async {
     await waitForTasksFinished();
     Request request =
-        new SearchFindTopLevelDeclarationsParams(pattern).toRequest('0');
+        SearchFindTopLevelDeclarationsParams(pattern).toRequest('0');
     Response response = await waitResponse(request);
     if (response.error != null) {
       return response.error;
     }
-    searchId =
-        new SearchFindTopLevelDeclarationsResult.fromResponse(response).id;
+    searchId = SearchFindTopLevelDeclarationsResult.fromResponse(response).id;
     return waitForSearchResults();
   }
 

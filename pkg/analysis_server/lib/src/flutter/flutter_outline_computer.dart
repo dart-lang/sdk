@@ -21,7 +21,7 @@ class FlutterOutlineComputer {
   FlutterOutlineComputer(this.resolvedUnit);
 
   protocol.FlutterOutline compute() {
-    protocol.Outline dartOutline = new DartUnitOutlineComputer(
+    protocol.Outline dartOutline = DartUnitOutlineComputer(
       resolvedUnit,
       withBasicFlutter: false,
     ).compute();
@@ -32,7 +32,7 @@ class FlutterOutlineComputer {
     var flutterDartOutline = _convert(dartOutline);
 
     // Create outlines for widgets.
-    var visitor = new _FlutterOutlineBuilder(this);
+    var visitor = _FlutterOutlineBuilder(this);
     resolvedUnit.unit.accept(visitor);
 
     // Associate Flutter outlines with Dart outlines.
@@ -99,7 +99,7 @@ class FlutterOutlineComputer {
       }
     }
 
-    attributes.add(new protocol.FlutterOutlineAttribute(
+    attributes.add(protocol.FlutterOutlineAttribute(
       name,
       label,
       literalValueBoolean: literalValueBoolean,
@@ -111,7 +111,7 @@ class FlutterOutlineComputer {
   }
 
   protocol.FlutterOutline _convert(protocol.Outline dartOutline) {
-    protocol.FlutterOutline flutterOutline = new protocol.FlutterOutline(
+    protocol.FlutterOutline flutterOutline = protocol.FlutterOutline(
         protocol.FlutterOutlineKind.DART_ELEMENT,
         dartOutline.offset,
         dartOutline.length,
@@ -197,15 +197,9 @@ class FlutterOutlineComputer {
         }
       }
 
-      return new protocol.FlutterOutline(
-          protocol.FlutterOutlineKind.NEW_INSTANCE,
-          node.offset,
-          node.length,
-          node.offset,
-          node.length,
-          className: className,
-          attributes: attributes,
-          children: children);
+      return protocol.FlutterOutline(protocol.FlutterOutlineKind.NEW_INSTANCE,
+          node.offset, node.length, node.offset, node.length,
+          className: className, attributes: attributes, children: children);
     }
 
     // A generic Widget typed expression.
@@ -223,7 +217,7 @@ class FlutterOutlineComputer {
         label = _getShortLabel(node);
       }
 
-      return new protocol.FlutterOutline(
+      return protocol.FlutterOutline(
           kind, node.offset, node.length, node.offset, node.length,
           className: className, variableName: variableName, label: label);
     }
@@ -233,7 +227,7 @@ class FlutterOutlineComputer {
 
   String _getShortLabel(AstNode node) {
     if (node is MethodInvocation) {
-      var buffer = new StringBuffer();
+      var buffer = StringBuffer();
 
       if (node.target != null) {
         buffer.write(_getShortLabel(node.target));

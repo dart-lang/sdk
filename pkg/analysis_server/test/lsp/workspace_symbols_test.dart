@@ -72,7 +72,7 @@ class WorkspaceSymbolsTest extends AbstractLspAnalysisServerTest {
     await initialize();
 
     // Create a request that doesn't supply the query param.
-    final request = new RequestMessage(
+    final request = RequestMessage(
       Either2<num, String>.t1(1),
       Method.workspace_symbol,
       <String, dynamic>{},

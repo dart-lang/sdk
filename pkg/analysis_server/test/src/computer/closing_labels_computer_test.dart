@@ -373,7 +373,7 @@ void myMethod() {
     expect(labels, hasLength(expectedLabelCount));
 
     // Find all numeric markers for label starts.
-    var regex = new RegExp("/\\*(\\d+)\\*/");
+    var regex = RegExp("/\\*(\\d+)\\*/");
     var expectedLabels = regex.allMatches(content);
 
     // Check we didn't get more than expected, since the loop below only
@@ -385,16 +385,14 @@ void myMethod() {
     expectedLabels.forEach((m) {
       var i = m.group(1);
       // Find the end marker.
-      var endMatch = new RegExp("/\\*$i:(.+?)\\*/").firstMatch(content);
+      var endMatch = RegExp("/\\*$i:(.+?)\\*/").firstMatch(content);
 
       var expectedStart = m.end;
       var expectedLength = endMatch.start - expectedStart;
       var expectedLabel = endMatch.group(1);
 
-      expect(
-          labels,
-          contains(
-              new ClosingLabel(expectedStart, expectedLength, expectedLabel)));
+      expect(labels,
+          contains(ClosingLabel(expectedStart, expectedLength, expectedLabel)));
     });
   }
 
@@ -402,7 +400,7 @@ void myMethod() {
     newFile(sourcePath, content: sourceContent);
     ResolvedUnitResult result = await session.getResolvedUnit(sourcePath);
     DartUnitClosingLabelsComputer computer =
-        new DartUnitClosingLabelsComputer(result.lineInfo, result.unit);
+        DartUnitClosingLabelsComputer(result.lineInfo, result.unit);
     return computer.compute();
   }
 }

@@ -21,7 +21,7 @@ class HighlightJSPage extends PreviewPage {
 
   @override
   void generateBody(Map<String, String> params) {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 
   @override

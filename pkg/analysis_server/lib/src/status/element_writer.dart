@@ -38,7 +38,7 @@ class ElementWriter extends GeneralizingElementVisitor with TreeWriter {
    * Write a representation of the properties of the given [node] to the buffer.
    */
   Map<String, Object> _computeProperties(Element element) {
-    Map<String, Object> properties = new HashMap<String, Object>();
+    Map<String, Object> properties = HashMap<String, Object>();
 
     properties['metadata'] = element.metadata;
     properties['nameOffset'] = element.nameOffset;

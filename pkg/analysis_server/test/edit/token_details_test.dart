@@ -22,7 +22,7 @@ class CompletionListTokenDetailsTest extends AbstractAnalysisTest {
 
   Future<CompletionListTokenDetailsResult> getTokenDetails() async {
     CompletionListTokenDetailsParams params =
-        new CompletionListTokenDetailsParams(testFile);
+        CompletionListTokenDetailsParams(testFile);
     await completionHandler.listTokenDetails(params.toRequest('0'));
     Response response = await serverChannel.responseController.stream.first;
     return CompletionListTokenDetailsResult.fromResponse(response);
@@ -31,7 +31,7 @@ class CompletionListTokenDetailsTest extends AbstractAnalysisTest {
   @override
   void setUp() {
     super.setUp();
-    completionHandler = new CompletionDomainHandler(server);
+    completionHandler = CompletionDomainHandler(server);
   }
 
   test_packageUri() async {

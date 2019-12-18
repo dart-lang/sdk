@@ -226,5 +226,5 @@ class DartFixInfo {
   });
 
   DartFix asDartFix() =>
-      new DartFix(key, description: description, isRequired: isRequired);
+      DartFix(key, description: description, isRequired: isRequired);
 }

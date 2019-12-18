@@ -75,10 +75,10 @@ class RequestOperation extends Operation {
 
   @override
   Future perform(Driver driver) {
-    Stopwatch stopwatch = new Stopwatch();
+    Stopwatch stopwatch = Stopwatch();
     String originalId = json['id'];
     String method = json['method'];
-    json['clientRequestTime'] = new DateTime.now().millisecondsSinceEpoch;
+    json['clientRequestTime'] = DateTime.now().millisecondsSinceEpoch;
     driver.logger.log(Level.FINE, 'Sending request: $method\n  $json');
     stopwatch.start();
 
@@ -111,11 +111,11 @@ class RequestOperation extends Operation {
  * A [ResponseOperation] waits for a [JSON] response from the server.
  */
 class ResponseOperation extends Operation {
-  static final Duration responseTimeout = new Duration(seconds: 60);
+  static final Duration responseTimeout = Duration(seconds: 60);
   final CommonInputConverter converter;
   final Map<String, dynamic> requestJson;
   final Map<String, dynamic> responseJson;
-  final Completer completer = new Completer();
+  final Completer completer = Completer();
   Driver driver;
 
   ResponseOperation(this.converter, this.requestJson, this.responseJson) {
@@ -190,11 +190,11 @@ class StartServerOperation extends Operation {
 class WaitForAnalysisCompleteOperation extends Operation {
   @override
   Future perform(Driver driver) {
-    DateTime start = new DateTime.now();
+    DateTime start = DateTime.now();
     driver.logger.log(Level.FINE, 'waiting for analysis to complete');
     StreamSubscription<ServerStatusParams> subscription;
     Timer timer;
-    Completer completer = new Completer();
+    Completer completer = Completer();
     bool isAnalyzing = false;
     subscription = driver.onServerStatus.listen((ServerStatusParams params) {
       if (params.analysis != null) {
@@ -203,7 +203,7 @@ class WaitForAnalysisCompleteOperation extends Operation {
         } else {
           subscription.cancel();
           timer.cancel();
-          DateTime end = new DateTime.now();
+          DateTime end = DateTime.now();
           Duration delta = end.difference(start);
           driver.logger.log(Level.FINE, 'analysis complete after $delta');
           completer.complete();
@@ -211,7 +211,7 @@ class WaitForAnalysisCompleteOperation extends Operation {
         }
       }
     });
-    timer = new Timer.periodic(new Duration(milliseconds: 20), (_) {
+    timer = Timer.periodic(Duration(milliseconds: 20), (_) {
       if (!isAnalyzing) {
         // TODO (danrubel) revisit this once source change requests are implemented
         subscription.cancel();

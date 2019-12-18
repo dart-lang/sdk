@@ -696,11 +696,11 @@ abstract class BaseProcessor {
       loopVariableName = keyParameterName;
     } else {
       _ParameterReferenceFinder keyFinder =
-          new _ParameterReferenceFinder(keyParameter.declaredElement);
+          _ParameterReferenceFinder(keyParameter.declaredElement);
       keyBody.accept(keyFinder);
 
       _ParameterReferenceFinder valueFinder =
-          new _ParameterReferenceFinder(valueParameter.declaredElement);
+          _ParameterReferenceFinder(valueParameter.declaredElement);
       valueBody.accept(valueFinder);
 
       String computeUnusedVariableName() {
@@ -779,12 +779,11 @@ abstract class BaseProcessor {
           var changeBuilder = _newDartChangeBuilder();
           await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
             builder.addSimpleReplacement(
-                new SourceRange(
+                SourceRange(
                     literal.offset + (literal.isRaw ? 1 : 0), quoteLength),
                 newQuote);
             builder.addSimpleReplacement(
-                new SourceRange(literal.end - quoteLength, quoteLength),
-                newQuote);
+                SourceRange(literal.end - quoteLength, quoteLength), newQuote);
           });
           return changeBuilder;
         }
@@ -809,11 +808,10 @@ abstract class BaseProcessor {
         var changeBuilder = _newDartChangeBuilder();
         await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
           builder.addSimpleReplacement(
-              new SourceRange(
-                  parent.offset + (parent.isRaw ? 1 : 0), quoteLength),
+              SourceRange(parent.offset + (parent.isRaw ? 1 : 0), quoteLength),
               newQuote);
           builder.addSimpleReplacement(
-              new SourceRange(parent.end - quoteLength, quoteLength), newQuote);
+              SourceRange(parent.end - quoteLength, quoteLength), newQuote);
         });
         return changeBuilder;
       }
@@ -890,7 +888,7 @@ abstract class BaseProcessor {
 
     var changeBuilder = _newDartChangeBuilder();
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addReplacement(new SourceRange(literal.offset, literal.length),
+      builder.addReplacement(SourceRange(literal.offset, literal.length),
           (DartEditBuilder builder) {
         builder.write('$intValue');
       });
@@ -1227,7 +1225,7 @@ abstract class BaseProcessor {
       builder.addSimpleReplacement(childRange, '');
       builder.addSimpleInsertion(last.end + 1, childText);
 
-      changeBuilder.setSelection(new Position(file, last.end + 1));
+      changeBuilder.setSelection(Position(file, last.end + 1));
     });
 
     return changeBuilder;
@@ -1513,7 +1511,7 @@ class _ParameterReferenceFinder extends RecursiveAstVisitor<void> {
   /// A collection of the names of other simple identifiers that were found. We
   /// need to know these in order to ensure that the selected loop variable does
   /// not hide a name from an enclosing scope that is already being referenced.
-  final Set<String> otherNames = new Set<String>();
+  final Set<String> otherNames = Set<String>();
 
   /// Initialize a newly created finder to find references to the [parameter].
   _ParameterReferenceFinder(this.parameter) : assert(parameter != null);

@@ -157,7 +157,7 @@ class CompletionResolveHandler
           item.filterText,
           newInsertText,
           item.insertTextFormat,
-          new TextEdit(
+          TextEdit(
             // TODO(dantup): If `clientSupportsSnippets == true` then we should map
             // `selection` in to a snippet (see how Dart Code does this).
             toRange(lineInfo, item.data.rOffset, item.data.rLength),

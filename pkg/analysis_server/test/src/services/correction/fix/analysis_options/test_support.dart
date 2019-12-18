@@ -39,27 +39,27 @@ class AnalysisOptionsFixTest with ResourceProviderMixin {
 
   Future<List<Fix>> _getFixes(String content) {
     File optionsFile = getFile('/analysis_options.yaml');
-    SourceFactory sourceFactory = new SourceFactory([]);
+    SourceFactory sourceFactory = SourceFactory([]);
     List<engine.AnalysisError> errors = analyzeAnalysisOptions(
         optionsFile.createSource(), content, sourceFactory);
     expect(errors, hasLength(1));
     engine.AnalysisError error = errors[0];
     YamlMap options = _parseYaml(content);
     AnalysisOptionsFixGenerator generator =
-        new AnalysisOptionsFixGenerator(error, content, options);
+        AnalysisOptionsFixGenerator(error, content, options);
     return generator.computeFixes();
   }
 
   YamlMap _parseYaml(String content) {
     if (content == null) {
-      return new YamlMap();
+      return YamlMap();
     }
     try {
       YamlNode doc = loadYamlNode(content);
       if (doc is YamlMap) {
         return doc;
       }
-      return new YamlMap();
+      return YamlMap();
     } catch (exception) {
       return null;
     }

@@ -1234,7 +1234,7 @@ void main() {
   }
 
   void _createRefactoring(int offset, int length) {
-    refactoring = new ExtractWidgetRefactoring(
+    refactoring = ExtractWidgetRefactoring(
         searchEngine, testAnalysisResult, offset, length);
     refactoring.name = 'Test';
   }

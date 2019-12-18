@@ -130,10 +130,9 @@ $selection
       await checkElements(selection, []);
     } else {
       await checkElements(selection, [
-        new ImportedElements(
+        ImportedElements(
             path.join('lib', 'core', 'core.dart'), '', ['String', 'print']),
-        new ImportedElements(
-            path.join('lib', 'math', 'math.dart'), '', ['Random'])
+        ImportedElements(path.join('lib', 'math', 'math.dart'), '', ['Random'])
       ]);
     }
   }

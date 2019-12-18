@@ -69,7 +69,7 @@ class HttpPreviewServer {
 
   /// Handle a GET request received by the HTTP server.
   Future<void> _handleGetRequest(HttpRequest request) async {
-    getHandler ??= new PreviewSite(migrationInfo, pathMapper);
+    getHandler ??= PreviewSite(migrationInfo, pathMapper);
     await getHandler.handleGetRequest(request);
   }
 

@@ -22,7 +22,7 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 List<Token> _getTokens(String text, FeatureSet featureSet) {
   try {
     List<Token> tokens = <Token>[];
-    Scanner scanner = new Scanner(null, new CharSequenceReader(text), null)
+    Scanner scanner = Scanner(null, CharSequenceReader(text), null)
       ..configureFeatures(featureSet);
     Token token = scanner.tokenize();
     while (token.type != TokenType.EOF) {
@@ -31,7 +31,7 @@ List<Token> _getTokens(String text, FeatureSet featureSet) {
     }
     return tokens;
   } catch (e) {
-    return new List<Token>(0);
+    return List<Token>(0);
   }
 }
 
@@ -41,7 +41,7 @@ List<Token> _getTokens(String text, FeatureSet featureSet) {
 class StatementAnalyzer extends SelectionAnalyzer {
   final ResolvedUnitResult resolveResult;
 
-  final RefactoringStatus _status = new RefactoringStatus();
+  final RefactoringStatus _status = RefactoringStatus();
 
   StatementAnalyzer(this.resolveResult, SourceRange selection)
       : super(selection);
@@ -118,7 +118,7 @@ class StatementAnalyzer extends SelectionAnalyzer {
       } else if (forLoopParts is ForPartsWithDeclarations) {
         containsInit = _contains(selectedNodes, forLoopParts.variables);
       } else {
-        throw new StateError('Unrecognized for loop parts');
+        throw StateError('Unrecognized for loop parts');
       }
       bool containsCondition = _contains(selectedNodes, forLoopParts.condition);
       bool containsUpdaters =

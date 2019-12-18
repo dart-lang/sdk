@@ -79,8 +79,8 @@ class RenameTest extends AbstractLspAnalysisServerTest {
 
     final request = makeRequest(
       Method.textDocument_prepareRename,
-      new TextDocumentPositionParams(
-        new TextDocumentIdentifier(mainFileUri.toString()),
+      TextDocumentPositionParams(
+        TextDocumentIdentifier(mainFileUri.toString()),
         positionFromMarker(content),
       ),
     );
@@ -231,8 +231,8 @@ class RenameTest extends AbstractLspAnalysisServerTest {
 
     final request = makeRequest(
       Method.textDocument_rename,
-      new RenameParams(
-        new TextDocumentIdentifier(mainFileUri.toString()),
+      RenameParams(
+        TextDocumentIdentifier(mainFileUri.toString()),
         positionFromMarker(content),
         'Object2',
       ),

@@ -26,12 +26,12 @@ class StatementCompletionTest extends AbstractAnalysisTest {
   void setUp() {
     super.setUp();
     createProject();
-    handler = new EditDomainHandler(server);
+    handler = EditDomainHandler(server);
   }
 
   test_invalidFilePathFormat_notAbsolute() async {
     var request =
-        new EditGetStatementCompletionParams('test.dart', 0).toRequest('0');
+        EditGetStatementCompletionParams('test.dart', 0).toRequest('0');
     var response = await waitResponse(request);
     expect(
       response,
@@ -40,7 +40,7 @@ class StatementCompletionTest extends AbstractAnalysisTest {
   }
 
   test_invalidFilePathFormat_notNormalized() async {
-    var request = new EditGetStatementCompletionParams(
+    var request = EditGetStatementCompletionParams(
             convertPath('/foo/../bar/test.dart'), 0)
         .toRequest('0');
     var response = await waitResponse(request);
@@ -136,9 +136,9 @@ main() {
 
   _prepareCompletionAt(int offset) async {
     Request request =
-        new EditGetStatementCompletionParams(testFile, offset).toRequest('0');
+        EditGetStatementCompletionParams(testFile, offset).toRequest('0');
     Response response = await waitResponse(request);
-    var result = new EditGetStatementCompletionResult.fromResponse(response);
+    var result = EditGetStatementCompletionResult.fromResponse(response);
     change = result.change;
   }
 }

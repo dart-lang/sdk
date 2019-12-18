@@ -27,8 +27,8 @@ class SearchEngineImpl implements SearchEngine {
 
     String libraryUriStr = type.librarySource.uri.toString();
     bool hasSubtypes = false;
-    Set<String> visitedIds = new Set<String>();
-    Set<String> members = new Set<String>();
+    Set<String> visitedIds = Set<String>();
+    Set<String> members = Set<String>();
 
     Future<void> addMembers(ClassElement type, SubtypeResult subtype) async {
       // TODO(brianwilkerson) Determine whether this await is necessary.
@@ -61,7 +61,7 @@ class SearchEngineImpl implements SearchEngine {
   Future<Set<ClassElement>> searchAllSubtypes(ClassElement type) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    Set<ClassElement> allSubtypes = new Set<ClassElement>();
+    Set<ClassElement> allSubtypes = Set<ClassElement>();
 
     Future<void> addSubtypes(ClassElement type) async {
       // TODO(brianwilkerson) Determine whether this await is necessary.
@@ -134,8 +134,8 @@ class SearchEngineImpl implements SearchEngine {
   Future<List<SearchMatch>> searchTopLevelDeclarations(String pattern) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    Set<Element> allElements = new Set<Element>();
-    RegExp regExp = new RegExp(pattern);
+    Set<Element> allElements = Set<Element>();
+    RegExp regExp = RegExp(pattern);
     List<AnalysisDriver> drivers = _drivers.toList();
     for (AnalysisDriver driver in drivers) {
       List<Element> elements = await driver.search.topLevelElements(regExp);
@@ -149,7 +149,7 @@ class SearchEngineImpl implements SearchEngine {
    * by the drivers that have them added.
    */
   SearchedFiles _createSearchedFiles(List<AnalysisDriver> drivers) {
-    var searchedFiles = new SearchedFiles();
+    var searchedFiles = SearchedFiles();
     for (AnalysisDriver driver in drivers) {
       searchedFiles.ownAdded(driver.search);
     }
@@ -212,7 +212,7 @@ class SearchMatchImpl implements SearchMatch {
 
   @override
   String toString() {
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     buffer.write("SearchMatch(kind=");
     buffer.write(kind);
     buffer.write(", libraryUri=");
@@ -230,7 +230,7 @@ class SearchMatchImpl implements SearchMatch {
   }
 
   static SearchMatchImpl forElement(Element element) {
-    return new SearchMatchImpl(
+    return SearchMatchImpl(
         element.source.fullName,
         element.librarySource,
         element.source,
@@ -239,12 +239,12 @@ class SearchMatchImpl implements SearchMatch {
         true,
         true,
         MatchKind.DECLARATION,
-        new SourceRange(element.nameOffset, element.nameLength));
+        SourceRange(element.nameOffset, element.nameLength));
   }
 
   static SearchMatchImpl forSearchResult(SearchResult result) {
     Element enclosingElement = result.enclosingElement;
-    return new SearchMatchImpl(
+    return SearchMatchImpl(
         enclosingElement.source.fullName,
         enclosingElement.librarySource,
         enclosingElement.source,
@@ -253,7 +253,7 @@ class SearchMatchImpl implements SearchMatch {
         result.isResolved,
         result.isQualified,
         toMatchKind(result.kind),
-        new SourceRange(result.offset, result.length));
+        SourceRange(result.offset, result.length));
   }
 
   static MatchKind toMatchKind(SearchResultKind kind) {

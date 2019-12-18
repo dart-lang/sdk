@@ -39,7 +39,7 @@ class LocalConstructorContributor extends DartCompletionContributor {
     List<CompletionSuggestion> suggestions = <CompletionSuggestion>[];
     if (!optype.isPrefixed) {
       if (optype.includeConstructorSuggestions) {
-        new _Visitor(request, suggestions, optype)
+        _Visitor(request, suggestions, optype)
             .visit(request.target.containingNode);
       }
     }
@@ -146,7 +146,7 @@ class _Visitor extends LocalDeclarationVisitor {
           request.source, protocol.ElementKind.CONSTRUCTOR, null,
           parameters: '()');
       element.returnType = classDecl.name.name;
-      CompletionSuggestion suggestion = new CompletionSuggestion(
+      CompletionSuggestion suggestion = CompletionSuggestion(
           CompletionSuggestionKind.INVOCATION,
           relevance,
           completion,

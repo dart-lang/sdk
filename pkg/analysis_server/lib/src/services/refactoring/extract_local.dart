@@ -51,12 +51,12 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
   String stringLiteralPart;
   final List<SourceRange> occurrences = <SourceRange>[];
   final Map<Element, int> elementIds = <Element, int>{};
-  Set<String> excludedVariableNames = new Set<String>();
+  Set<String> excludedVariableNames = Set<String>();
 
   ExtractLocalRefactoringImpl(
       this.resolveResult, this.selectionOffset, this.selectionLength) {
-    selectionRange = new SourceRange(selectionOffset, selectionLength);
-    utils = new CorrectionUtils(resolveResult);
+    selectionRange = SourceRange(selectionOffset, selectionLength);
+    utils = CorrectionUtils(resolveResult);
   }
 
   String get file => resolveResult.path;
@@ -80,18 +80,18 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
 
   @override
   Future<RefactoringStatus> checkFinalConditions() {
-    RefactoringStatus result = new RefactoringStatus();
+    RefactoringStatus result = RefactoringStatus();
     result.addStatus(checkName());
-    return new Future.value(result);
+    return Future.value(result);
   }
 
   @override
   Future<RefactoringStatus> checkInitialConditions() {
-    RefactoringStatus result = new RefactoringStatus();
+    RefactoringStatus result = RefactoringStatus();
     // selection
     result.addStatus(_checkSelection());
     if (result.hasFatalError) {
-      return new Future.value(result);
+      return Future.value(result);
     }
     // occurrences
     _prepareOccurrences();
@@ -101,12 +101,12 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
         utils.findPossibleLocalVariableConflicts(selectionOffset);
     _prepareNames();
     // done
-    return new Future.value(result);
+    return Future.value(result);
   }
 
   @override
   RefactoringStatus checkName() {
-    RefactoringStatus result = new RefactoringStatus();
+    RefactoringStatus result = RefactoringStatus();
     result.addStatus(validateVariableName(name));
     if (excludedVariableNames.contains(name)) {
       result.addError(
@@ -117,7 +117,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
 
   @override
   Future<SourceChange> createChange() {
-    SourceChange change = new SourceChange(refactoringName);
+    SourceChange change = SourceChange(refactoringName);
     // prepare occurrences
     List<SourceRange> occurrences;
     if (extractAll) {
@@ -133,15 +133,15 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
       String keyword = _declarationKeyword;
       String declarationSource = '$keyword $name = ';
       SourceEdit edit =
-          new SourceEdit(singleExpression.offset, 0, declarationSource);
+          SourceEdit(singleExpression.offset, 0, declarationSource);
       doSourceChange_addElementEdit(change, unitElement, edit);
-      return new Future.value(change);
+      return Future.value(change);
     }
     // prepare positions
     List<Position> positions = <Position>[];
     int occurrencesShift = 0;
     void addPosition(int offset) {
-      positions.add(new Position(file, offset));
+      positions.add(Position(file, offset));
     }
 
     // add variable declaration
@@ -166,7 +166,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
       if (target is Statement) {
         String prefix = utils.getNodePrefix(target);
         SourceEdit edit =
-            new SourceEdit(target.offset, 0, declarationCode + eol + prefix);
+            SourceEdit(target.offset, 0, declarationCode + eol + prefix);
         doSourceChange_addElementEdit(change, unitElement, edit);
         addPosition(edit.offset + nameOffsetInDeclarationCode);
         occurrencesShift = edit.replacement.length;
@@ -181,14 +181,14 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
           code += declarationCode + eol;
           code += prefix + indent + 'return ';
           SourceEdit edit =
-              new SourceEdit(target.offset, expr.offset - target.offset, code);
+              SourceEdit(target.offset, expr.offset - target.offset, code);
           occurrencesShift = target.offset + code.length - expr.offset;
           doSourceChange_addElementEdit(change, unitElement, edit);
         }
         doSourceChange_addElementEdit(
             change,
             unitElement,
-            new SourceEdit(
+            SourceEdit(
                 expr.end, target.end - expr.end, ';' + eol + prefix + '}'));
       }
     }
@@ -206,15 +206,15 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
       doSourceChange_addElementEdit(change, unitElement, edit);
     }
     // add the linked group
-    change.addLinkedEditGroup(new LinkedEditGroup(
+    change.addLinkedEditGroup(LinkedEditGroup(
         positions,
         name.length,
         names
-            .map((name) => new LinkedEditSuggestion(
-                name, LinkedEditSuggestionKind.VARIABLE))
+            .map((name) =>
+                LinkedEditSuggestion(name, LinkedEditSuggestionKind.VARIABLE))
             .toList()));
     // done
-    return new Future.value(change);
+    return Future.value(change);
   }
 
   @override
@@ -228,11 +228,11 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
    */
   RefactoringStatus _checkSelection() {
     if (selectionOffset <= 0) {
-      return new RefactoringStatus.fatal(
+      return RefactoringStatus.fatal(
           'The selection offset must be greater than zero.');
     }
     if (selectionOffset + selectionLength >= resolveResult.content.length) {
-      return new RefactoringStatus.fatal(
+      return RefactoringStatus.fatal(
           'The selection end offset must be less then the length of the file.');
     }
 
@@ -244,12 +244,12 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
       int numTrailing = countTrailingWhitespaces(selectionStr);
       int offset = selectionRange.offset + numLeading;
       int end = selectionRange.end - numTrailing;
-      selectionRange = new SourceRange(offset, end - offset);
+      selectionRange = SourceRange(offset, end - offset);
     }
 
     // get covering node
     AstNode coveringNode =
-        new NodeLocator(selectionRange.offset, selectionRange.end)
+        NodeLocator(selectionRange.offset, selectionRange.end)
             .searchWithin(unit);
 
     // We need an enclosing function.
@@ -258,7 +258,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     // the block body first.
     coveringFunctionBody = coveringNode?.thisOrAncestorOfType<FunctionBody>();
     if (coveringFunctionBody == null) {
-      return new RefactoringStatus.fatal(
+      return RefactoringStatus.fatal(
           'An expression inside a function must be selected '
           'to activate this refactoring.');
     }
@@ -269,7 +269,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
           selectionRange.offset > coveringNode.offset &&
           selectionRange.end < coveringNode.end) {
         stringLiteralPart = selectionStr;
-        return new RefactoringStatus();
+        return RefactoringStatus();
       }
     }
     // compute covering expressions
@@ -305,7 +305,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
             element.returnType != null &&
             element.returnType.isVoid) {
           if (singleExpression == null) {
-            return new RefactoringStatus.fatal(
+            return RefactoringStatus.fatal(
                 'Cannot extract the void expression.',
                 newLocation_fromNode(node));
           }
@@ -316,7 +316,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
       if (coveringExpressionOffsets.isEmpty) {
         if (node is SimpleIdentifier) {
           if (node.inDeclarationContext()) {
-            return new RefactoringStatus.fatal(
+            return RefactoringStatus.fatal(
                 'Cannot extract the name part of a declaration.',
                 newLocation_fromNode(node));
           }
@@ -326,7 +326,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
           }
         }
         if (parent is AssignmentExpression && parent.leftHandSide == node) {
-          return new RefactoringStatus.fatal(
+          return RefactoringStatus.fatal(
               'Cannot extract the left-hand side of an assignment.',
               newLocation_fromNode(node));
         }
@@ -342,10 +342,10 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     // single node selected
     if (singleExpression != null) {
       selectionRange = range.node(singleExpression);
-      return new RefactoringStatus();
+      return RefactoringStatus();
     }
     // invalid selection
-    return new RefactoringStatus.fatal(
+    return RefactoringStatus.fatal(
         'Expression must be selected to activate this refactoring.');
   }
 
@@ -379,10 +379,10 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
       return tokens.join(_TOKEN_SEPARATOR);
     }
     // prepare Token -> LocalElement map
-    Map<Token, Element> map = new HashMap<Token, Element>(
+    Map<Token, Element> map = HashMap<Token, Element>(
         equals: (Token a, Token b) => a.lexeme == b.lexeme,
         hashCode: (Token t) => t.lexeme.hashCode);
-    expr.accept(new _TokenLocalElementVisitor(map));
+    expr.accept(_TokenLocalElementVisitor(map));
     // map and join tokens
     var result = tokens.map((Token token) {
       String tokenString = token.lexeme;
@@ -432,7 +432,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
   List<AstNode> _findNodes(List<SourceRange> ranges) {
     List<AstNode> nodes = <AstNode>[];
     for (SourceRange range in ranges) {
-      AstNode node = new NodeLocator(range.offset).searchWithin(unit);
+      AstNode node = NodeLocator(range.offset).searchWithin(unit);
       nodes.add(node);
     }
     return nodes;
@@ -507,7 +507,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
       selectionSource = _encodeExpressionTokens(singleExpression, tokens);
     }
     // visit function
-    coveringFunctionBody.accept(new _OccurrencesVisitor(
+    coveringFunctionBody.accept(_OccurrencesVisitor(
         this, occurrences, selectionSource, unit.featureSet));
   }
 
@@ -559,7 +559,7 @@ class _OccurrencesVisitor extends GeneralizingAstVisitor<void> {
         }
         lastIndex = index + length;
         int start = node.offset + index;
-        SourceRange range = new SourceRange(start, length);
+        SourceRange range = SourceRange(start, length);
         occurrences.add(range);
       }
       return;

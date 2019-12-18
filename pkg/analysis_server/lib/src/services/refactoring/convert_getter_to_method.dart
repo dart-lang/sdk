@@ -37,21 +37,21 @@ class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl
 
   @override
   Future<RefactoringStatus> checkFinalConditions() {
-    RefactoringStatus result = new RefactoringStatus();
-    return new Future.value(result);
+    RefactoringStatus result = RefactoringStatus();
+    return Future.value(result);
   }
 
   @override
   Future<RefactoringStatus> checkInitialConditions() {
     RefactoringStatus result = _checkInitialConditions();
-    return new Future.value(result);
+    return Future.value(result);
   }
 
   @override
   Future<SourceChange> createChange() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    change = new SourceChange(refactoringName);
+    change = SourceChange(refactoringName);
     // function
     if (element.enclosingElement is CompilationUnitElement) {
       await _updateElementDeclaration(element);
@@ -80,10 +80,10 @@ class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl
 
   RefactoringStatus _checkInitialConditions() {
     if (!element.isGetter || element.isSynthetic) {
-      return new RefactoringStatus.fatal(
+      return RefactoringStatus.fatal(
           'Only explicit getters can be converted to methods.');
     }
-    return new RefactoringStatus();
+    return RefactoringStatus();
   }
 
   Future<void> _updateElementDeclaration(
@@ -113,7 +113,7 @@ class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl
     }
     // add parameters "()"
     {
-      SourceEdit edit = new SourceEdit(range.elementName(element).end, 0, '()');
+      SourceEdit edit = SourceEdit(range.elementName(element).end, 0, '()');
       doSourceChange_addElementEdit(change, element, edit);
     }
   }
@@ -127,7 +127,7 @@ class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl
       Element refElement = reference.element;
       SourceRange refRange = reference.range;
       // insert "()"
-      var edit = new SourceEdit(refRange.end, 0, "()");
+      var edit = SourceEdit(refRange.end, 0, "()");
       doSourceChange_addElementEdit(change, refElement, edit);
     }
   }

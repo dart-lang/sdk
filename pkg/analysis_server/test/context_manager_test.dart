@@ -424,13 +424,13 @@ sky_engine:lib/''');
     Iterable<Source> projSources = callbacks.currentFileSources(projPath);
     expect(projSources, hasLength(1));
     expect(projSources.first.uri.toString(),
-        (new Uri.file(join(libPath, 'main.dart')).toString()));
+        (Uri.file(join(libPath, 'main.dart')).toString()));
 
     expect(callbacks.currentContextRoots, contains(examplePath));
     Iterable<Source> exampleSources = callbacks.currentFileSources(examplePath);
     expect(exampleSources, hasLength(1));
     expect(exampleSources.first.uri.toString(),
-        (new Uri.file(join(examplePath, 'example.dart')).toString()));
+        (Uri.file(join(examplePath, 'example.dart')).toString()));
   }
 
   void test_setRoots_addFolderWithNestedPubspec() {
@@ -458,7 +458,7 @@ sky_engine:lib/''');
     Iterable<Source> exampleSources = callbacks.currentFileSources(examplePath);
     expect(exampleSources, hasLength(1));
     expect(exampleSources.first.uri.toString(),
-        (new Uri.file('$examplePath/example.dart').toString()));
+        (Uri.file('$examplePath/example.dart').toString()));
   }
 
   void test_setRoots_addFolderWithoutPubspec() {
@@ -543,10 +543,10 @@ sky_engine:lib/''');
     expect(sources, hasLength(4));
     List<String> uris =
         sources.map((Source source) => source.uri.toString()).toList();
-    expect(uris, contains((new Uri.file(appPath)).toString()));
+    expect(uris, contains((Uri.file(appPath)).toString()));
     expect(uris, contains('package:proj/main.dart'));
     expect(uris, contains('package:proj/src/internal.dart'));
-    expect(uris, contains((new Uri.file(testFilePath)).toString()));
+    expect(uris, contains((Uri.file(testFilePath)).toString()));
   }
 
   void test_setRoots_addFolderWithPubspecAndPackagespecFolders() {
@@ -1648,18 +1648,18 @@ abstract class ContextManagerTest with ResourceProviderMixin {
   String projPath = null;
 
   AnalysisError missing_return =
-      new AnalysisError(null, 0, 1, HintCode.MISSING_RETURN, [
+      AnalysisError(null, 0, 1, HintCode.MISSING_RETURN, [
     ['x']
   ]);
 
   AnalysisError invalid_assignment_error =
-      new AnalysisError(null, 0, 1, StaticTypeWarningCode.INVALID_ASSIGNMENT, [
+      AnalysisError(null, 0, 1, StaticTypeWarningCode.INVALID_ASSIGNMENT, [
     ['x'],
     ['y']
   ]);
 
   AnalysisError unused_local_variable =
-      new AnalysisError(null, 0, 1, HintCode.UNUSED_LOCAL_VARIABLE, [
+      AnalysisError(null, 0, 1, HintCode.UNUSED_LOCAL_VARIABLE, [
     ['x']
   ]);
 
@@ -1672,7 +1672,7 @@ abstract class ContextManagerTest with ResourceProviderMixin {
       '**/${AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE}'
     ];
     return patterns
-        .map((pattern) => new Glob(path.posix.separator, pattern))
+        .map((pattern) => Glob(path.posix.separator, pattern))
         .toList();
   }
 
@@ -1702,17 +1702,17 @@ abstract class ContextManagerTest with ResourceProviderMixin {
     projPath = convertPath('/my/proj');
     resourceProvider.newFolder(projPath);
     // Create an SDK in the mock file system.
-    new MockSdk(generateSummaryFiles: true, resourceProvider: resourceProvider);
-    DartSdkManager sdkManager = new DartSdkManager(convertPath('/sdk'), true);
-    manager = new ContextManagerImpl(
+    MockSdk(generateSummaryFiles: true, resourceProvider: resourceProvider);
+    DartSdkManager sdkManager = DartSdkManager(convertPath('/sdk'), true);
+    manager = ContextManagerImpl(
         resourceProvider,
         sdkManager,
         analysisFilesGlobs,
         InstrumentationService.NULL_SERVICE,
-        new AnalysisOptionsImpl());
-    PerformanceLog logger = new PerformanceLog(new NullStringSink());
-    AnalysisDriverScheduler scheduler = new AnalysisDriverScheduler(logger);
-    callbacks = new TestContextManagerCallbacks(
+        AnalysisOptionsImpl());
+    PerformanceLog logger = PerformanceLog(NullStringSink());
+    AnalysisDriverScheduler scheduler = AnalysisDriverScheduler(logger);
+    callbacks = TestContextManagerCallbacks(
         resourceProvider, sdkManager, logger, scheduler);
     manager.callbacks = callbacks;
   }
@@ -1935,7 +1935,7 @@ include: package:boo/other_options.yaml
     newFile('$sdkExtPath/entry.dart');
     var synchronousSession = SynchronousSession(analysisOptions, null);
     List<int> bytes =
-        new SummaryBuilder([], AnalysisContextImpl(synchronousSession, null))
+        SummaryBuilder([], AnalysisContextImpl(synchronousSession, null))
             .build();
     newFileWithBytes('$projPath/sdk.ds', bytes);
     // Setup _embedder.yaml.
@@ -2342,7 +2342,7 @@ analyzer:
     String libPath = newFolder('$projPath/${ContextManagerTest.LIB_NAME}').path;
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     newFile('$libPath/main.dart');
-    await new Future.delayed(new Duration(milliseconds: 1));
+    await Future.delayed(Duration(milliseconds: 1));
     expect(callbacks.watchEvents, hasLength(1));
   }
 }
@@ -2412,7 +2412,7 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
   List<WatchEvent> watchEvents = <WatchEvent>[];
 
   @override
-  NotificationManager notificationManager = new TestNotificationManager();
+  NotificationManager notificationManager = TestNotificationManager();
 
   TestContextManagerCallbacks(
       this.resourceProvider, this.sdkManager, this.logger, this.scheduler);
@@ -2464,7 +2464,7 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
     driverMap[path] = currentDriver;
     currentDriver.exceptions.listen((ExceptionResult result) {
       AnalysisEngine.instance.instrumentationService.logException(
-          new CaughtException.withMessage('Analysis failed: ${result.path}',
+          CaughtException.withMessage('Analysis failed: ${result.path}',
               result.exception.exception, result.exception.stackTrace));
     });
     return currentDriver;
@@ -2513,10 +2513,9 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
   @override
   ContextBuilder createContextBuilder(Folder folder, AnalysisOptions options,
       {bool useSummaries = false}) {
-    ContextBuilderOptions builderOptions = new ContextBuilderOptions();
+    ContextBuilderOptions builderOptions = ContextBuilderOptions();
     builderOptions.defaultOptions = options;
-    ContextBuilder builder = new ContextBuilder(
-        resourceProvider, sdkManager, null,
+    ContextBuilder builder = ContextBuilder(resourceProvider, sdkManager, null,
         options: builderOptions);
     return builder;
   }

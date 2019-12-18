@@ -24,7 +24,7 @@ class MappingTest extends AbstractLspAnalysisServerTest {
     // TYPE_PARAMETER maps to TypeParameter first, but since originally LSP
     // did not support it, it'll map to Variable if the client doesn't support
     // that.
-    var supportedKinds = new HashSet.of([
+    var supportedKinds = HashSet.of([
       lsp.CompletionItemKind.TypeParameter,
       lsp.CompletionItemKind.Variable,
     ]);
@@ -39,7 +39,7 @@ class MappingTest extends AbstractLspAnalysisServerTest {
     // TYPE_PARAMETER maps to TypeParameter first, but since originally LSP
     // did not support it, it'll map to Variable if the client doesn't support
     // that.
-    var supportedKinds = new HashSet.of([lsp.CompletionItemKind.Variable]);
+    var supportedKinds = HashSet.of([lsp.CompletionItemKind.Variable]);
     var result = lsp.elementKindToCompletionItemKind(
       supportedKinds,
       server.ElementKind.TYPE_PARAMETER,
@@ -48,7 +48,7 @@ class MappingTest extends AbstractLspAnalysisServerTest {
   }
 
   test_completionItemKind_knownMapping() async {
-    final supportedKinds = new HashSet.of([lsp.CompletionItemKind.Class]);
+    final supportedKinds = HashSet.of([lsp.CompletionItemKind.Class]);
     final result = lsp.elementKindToCompletionItemKind(
       supportedKinds,
       server.ElementKind.CLASS,
@@ -57,7 +57,7 @@ class MappingTest extends AbstractLspAnalysisServerTest {
   }
 
   test_completionItemKind_notMapped() async {
-    var supportedKinds = new HashSet<lsp.CompletionItemKind>();
+    var supportedKinds = HashSet<lsp.CompletionItemKind>();
     var result = lsp.elementKindToCompletionItemKind(
       supportedKinds,
       server.ElementKind.UNKNOWN, // Unknown is not mapped.
@@ -66,7 +66,7 @@ class MappingTest extends AbstractLspAnalysisServerTest {
   }
 
   test_completionItemKind_notSupported() async {
-    var supportedKinds = new HashSet<lsp.CompletionItemKind>();
+    var supportedKinds = HashSet<lsp.CompletionItemKind>();
     var result = lsp.elementKindToCompletionItemKind(
       supportedKinds,
       server.ElementKind.CLASS,

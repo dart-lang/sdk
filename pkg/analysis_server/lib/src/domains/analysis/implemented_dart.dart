@@ -29,13 +29,13 @@ class ImplementedComputer {
   void _addImplementedClass(ClassElement type) {
     int offset = type.nameOffset;
     int length = type.nameLength;
-    classes.add(new protocol.ImplementedClass(offset, length));
+    classes.add(protocol.ImplementedClass(offset, length));
   }
 
   void _addImplementedMember(Element member) {
     int offset = member.nameOffset;
     int length = member.nameLength;
-    members.add(new protocol.ImplementedMember(offset, length));
+    members.add(protocol.ImplementedMember(offset, length));
   }
 
   void _addMemberIfImplemented(Element element) {

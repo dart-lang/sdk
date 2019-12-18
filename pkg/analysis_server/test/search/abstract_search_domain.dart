@@ -73,11 +73,11 @@ class AbstractSearchDomainTest extends AbstractAnalysisTest {
   void processNotification(Notification notification) {
     super.processNotification(notification);
     if (notification.event == SEARCH_NOTIFICATION_RESULTS) {
-      var params = new SearchResultsParams.fromNotification(notification);
+      var params = SearchResultsParams.fromNotification(notification);
       String id = params.id;
       _ResultSet resultSet = resultSets[id];
       if (resultSet == null) {
-        resultSet = new _ResultSet(id);
+        resultSet = _ResultSet(id);
         resultSets[id] = resultSet;
       }
       resultSet.results.addAll(params.results);
@@ -90,7 +90,7 @@ class AbstractSearchDomainTest extends AbstractAnalysisTest {
     super.setUp();
     createProject();
     server.handlers = [
-      new SearchDomainHandler(server),
+      SearchDomainHandler(server),
     ];
   }
 
@@ -98,9 +98,9 @@ class AbstractSearchDomainTest extends AbstractAnalysisTest {
     _ResultSet resultSet = resultSets[searchId];
     if (resultSet != null && resultSet.done) {
       results = resultSet.results;
-      return new Future.value();
+      return Future.value();
     }
-    return new Future.delayed(Duration.zero, waitForSearchResults);
+    return Future.delayed(Duration.zero, waitForSearchResults);
   }
 }
 

@@ -29,7 +29,7 @@ class FixesTest extends AbstractAnalysisTest {
   @override
   void setUp() {
     super.setUp();
-    handler = new EditDomainHandler(server);
+    handler = EditDomainHandler(server);
   }
 
   test_fixUndefinedClass() async {
@@ -53,14 +53,17 @@ main() {
   }
 
   test_fromPlugins() async {
-    PluginInfo info = new DiscoveredPluginInfo('a', 'b', 'c', null, null);
-    plugin.AnalysisErrorFixes fixes = new plugin.AnalysisErrorFixes(
-        new AnalysisError(AnalysisErrorSeverity.ERROR, AnalysisErrorType.HINT,
-            new Location('', 0, 0, 0, 0), 'message', 'code'));
+    PluginInfo info = DiscoveredPluginInfo('a', 'b', 'c', null, null);
+    plugin.AnalysisErrorFixes fixes = plugin.AnalysisErrorFixes(AnalysisError(
+        AnalysisErrorSeverity.ERROR,
+        AnalysisErrorType.HINT,
+        Location('', 0, 0, 0, 0),
+        'message',
+        'code'));
     plugin.EditGetFixesResult result =
-        new plugin.EditGetFixesResult(<plugin.AnalysisErrorFixes>[fixes]);
+        plugin.EditGetFixesResult(<plugin.AnalysisErrorFixes>[fixes]);
     pluginManager.broadcastResults = <PluginInfo, Future<plugin.Response>>{
-      info: new Future.value(result.toResponse('-', 1))
+      info: Future.value(result.toResponse('-', 1))
     };
 
     createProject();
@@ -97,7 +100,7 @@ bar() {
   }
 
   test_invalidFilePathFormat_notAbsolute() async {
-    var request = new EditGetFixesParams('test.dart', 0).toRequest('0');
+    var request = EditGetFixesParams('test.dart', 0).toRequest('0');
     var response = await waitResponse(request);
     expect(
       response,
@@ -106,9 +109,8 @@ bar() {
   }
 
   test_invalidFilePathFormat_notNormalized() async {
-    var request =
-        new EditGetFixesParams(convertPath('/foo/../bar/test.dart'), 0)
-            .toRequest('0');
+    var request = EditGetFixesParams(convertPath('/foo/../bar/test.dart'), 0)
+        .toRequest('0');
     var response = await waitResponse(request);
     expect(
       response,
@@ -151,7 +153,7 @@ bbb:${toUri('/bbb/lib')}
     newFile('/bbb/lib/target.template.dart', content: 'class Foo() {}');
 
     handleSuccessfulRequest(
-        new AnalysisSetAnalysisRootsParams(
+        AnalysisSetAnalysisRootsParams(
             [convertPath('/aaa'), convertPath('/bbb')], []).toRequest('0'),
         handler: analysisHandler);
 
@@ -179,15 +181,15 @@ bbb:${toUri('/bbb/lib')}
 
   void _addOverlay(String name, String contents) {
     Request request =
-        new AnalysisUpdateContentParams({name: new AddContentOverlay(contents)})
+        AnalysisUpdateContentParams({name: AddContentOverlay(contents)})
             .toRequest('0');
     handleSuccessfulRequest(request, handler: analysisHandler);
   }
 
   Future<List<AnalysisErrorFixes>> _getFixes(int offset) async {
-    Request request = new EditGetFixesParams(testFile, offset).toRequest('0');
+    Request request = EditGetFixesParams(testFile, offset).toRequest('0');
     Response response = await waitResponse(request);
-    var result = new EditGetFixesResult.fromResponse(response);
+    var result = EditGetFixesResult.fromResponse(response);
     return result.fixes;
   }
 

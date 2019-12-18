@@ -22,7 +22,7 @@ class IntializedMessageHandler extends MessageHandler<InitializedParams, void> {
       InitializedParams.jsonHandler;
 
   ErrorOr<void> handle(InitializedParams params, CancellationToken token) {
-    server.messageHandler = new InitializedStateMessageHandler(
+    server.messageHandler = InitializedStateMessageHandler(
       server,
     );
 

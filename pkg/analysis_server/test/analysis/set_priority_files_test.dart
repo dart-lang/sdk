@@ -25,7 +25,7 @@ class SetPriorityFilesTest extends AbstractAnalysisTest {
   void setUp() {
     super.setUp();
     server.handlers = [
-      new AnalysisDomainHandler(server),
+      AnalysisDomainHandler(server),
     ];
     createProject();
   }
@@ -106,8 +106,7 @@ analyzer:
   }
 
   test_invalidFilePathFormat_notAbsolute() async {
-    var request =
-        new AnalysisSetPriorityFilesParams(['test.dart']).toRequest('0');
+    var request = AnalysisSetPriorityFilesParams(['test.dart']).toRequest('0');
     var response = await waitResponse(request);
     expect(
       response,
@@ -116,8 +115,9 @@ analyzer:
   }
 
   test_invalidFilePathFormat_notNormalized() async {
-    var request = new AnalysisSetPriorityFilesParams(
-        [convertPath('/foo/../bar/test.dart')]).toRequest('0');
+    var request =
+        AnalysisSetPriorityFilesParams([convertPath('/foo/../bar/test.dart')])
+            .toRequest('0');
     var response = await waitResponse(request);
     expect(
       response,
@@ -139,7 +139,7 @@ analyzer:
 
   _setPriorityFile(String file) async {
     Request request =
-        new AnalysisSetPriorityFilesParams(<String>[file]).toRequest('0');
+        AnalysisSetPriorityFilesParams(<String>[file]).toRequest('0');
     return await serverChannel.sendRequest(request);
   }
 

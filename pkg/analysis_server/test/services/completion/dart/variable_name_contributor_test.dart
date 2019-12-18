@@ -19,7 +19,7 @@ main() {
 class VariableNameContributorTest extends DartCompletionContributorTest {
   @override
   DartCompletionContributor createContributor() {
-    return new VariableNameContributor();
+    return VariableNameContributor();
   }
 
   test_ExpressionStatement_dont_suggest_type() async {

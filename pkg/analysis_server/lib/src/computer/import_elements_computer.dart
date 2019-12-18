@@ -64,7 +64,7 @@ class ImportElementsComputer {
       }
     }
 
-    DartChangeBuilder builder = new DartChangeBuilder(libraryResult.session);
+    DartChangeBuilder builder = DartChangeBuilder(libraryResult.session);
     await builder.addFileEdit(libraryResult.path,
         (DartFileEditBuilder builder) {
       for (ImportedElements importedElements in filteredImportedElements) {
@@ -252,7 +252,7 @@ class ImportElementsComputer {
     }
 
     _ImportUpdate update = updateMap.putIfAbsent(
-        preferredDirective, () => new _ImportUpdate(preferredDirective));
+        preferredDirective, () => _ImportUpdate(preferredDirective));
     if (deleteHide) {
       update.unhide(requiredName);
     }
@@ -270,19 +270,19 @@ class ImportElementsComputer {
   List<ImportedElements> _filterImportedElements(
       List<ImportedElements> originalList) {
     LibraryElement libraryElement = libraryResult.libraryElement;
-    LibraryScope libraryScope = new LibraryScope(libraryElement);
-    AstFactory factory = new AstFactoryImpl();
+    LibraryScope libraryScope = LibraryScope(libraryElement);
+    AstFactory factory = AstFactoryImpl();
     List<ImportedElements> filteredList = <ImportedElements>[];
     for (ImportedElements elements in originalList) {
       List<String> originalElements = elements.elements;
       List<String> filteredElements = originalElements.toList();
       for (String name in originalElements) {
         Identifier identifier = factory
-            .simpleIdentifier(new StringToken(TokenType.IDENTIFIER, name, -1));
+            .simpleIdentifier(StringToken(TokenType.IDENTIFIER, name, -1));
         if (elements.prefix.isNotEmpty) {
           SimpleIdentifier prefix = factory.simpleIdentifier(
-              new StringToken(TokenType.IDENTIFIER, elements.prefix, -1));
-          Token period = new SimpleToken(TokenType.PERIOD, -1);
+              StringToken(TokenType.IDENTIFIER, elements.prefix, -1));
+          Token period = SimpleToken(TokenType.PERIOD, -1);
           identifier = factory.prefixedIdentifier(prefix, period, identifier);
         }
         Element element = libraryScope.lookup(identifier, libraryElement);
@@ -293,8 +293,8 @@ class ImportElementsComputer {
       if (originalElements.length == filteredElements.length) {
         filteredList.add(elements);
       } else if (filteredElements.isNotEmpty) {
-        filteredList.add(new ImportedElements(
-            elements.path, elements.prefix, filteredElements));
+        filteredList.add(
+            ImportedElements(elements.path, elements.prefix, filteredElements));
       }
     }
     return filteredList;
@@ -341,15 +341,15 @@ class ImportElementsComputer {
       if (libraryDirective == null) {
         if (otherDirectives.isEmpty) {
           // TODO(brianwilkerson) Insert after any non-doc comments.
-          return new _InsertionDescription(0, after: 2);
+          return _InsertionDescription(0, after: 2);
         }
-        return new _InsertionDescription(otherDirectives[0].offset, after: 2);
+        return _InsertionDescription(otherDirectives[0].offset, after: 2);
       }
-      return new _InsertionDescription(libraryDirective.end, before: 2);
+      return _InsertionDescription(libraryDirective.end, before: 2);
     }
     // TODO(brianwilkerson) Fix this to find the right location.
     // See DartFileEditBuilderImpl._addLibraryImports for inspiration.
-    return new _InsertionDescription(importDirectives.last.end, before: 1);
+    return _InsertionDescription(importDirectives.last.end, before: 1);
   }
 
   /**

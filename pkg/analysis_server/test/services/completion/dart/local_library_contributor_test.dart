@@ -21,7 +21,7 @@ main() {
 class LocalLibraryContributorTest extends DartCompletionContributorTest {
   @override
   DartCompletionContributor createContributor() {
-    return new LocalLibraryContributor();
+    return LocalLibraryContributor();
   }
 
   test_partFile_Constructor() async {

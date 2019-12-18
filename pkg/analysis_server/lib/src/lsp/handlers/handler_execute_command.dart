@@ -21,11 +21,10 @@ class ExecuteCommandHandler
   final Map<String, CommandHandler> commandHandlers;
   ExecuteCommandHandler(LspAnalysisServer server)
       : commandHandlers = {
-          Commands.sortMembers: new SortMembersCommandHandler(server),
-          Commands.organizeImports: new OrganizeImportsCommandHandler(server),
-          Commands.performRefactor: new PerformRefactorCommandHandler(server),
-          Commands.sendWorkspaceEdit:
-              new SendWorkspaceEditCommandHandler(server),
+          Commands.sortMembers: SortMembersCommandHandler(server),
+          Commands.organizeImports: OrganizeImportsCommandHandler(server),
+          Commands.performRefactor: PerformRefactorCommandHandler(server),
+          Commands.sendWorkspaceEdit: SendWorkspaceEditCommandHandler(server),
         },
         super(server);
 

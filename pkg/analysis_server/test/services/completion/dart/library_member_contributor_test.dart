@@ -21,7 +21,7 @@ main() {
 class LibraryMemberContributorTest extends DartCompletionContributorTest {
   @override
   DartCompletionContributor createContributor() {
-    return new LibraryMemberContributor();
+    return LibraryMemberContributor();
   }
 
   test_libraryPrefix() async {
@@ -288,7 +288,7 @@ class LibraryMemberContributorWithExtensionMethodsTest
     extends DartCompletionContributorTest {
   @override
   DartCompletionContributor createContributor() {
-    return new LibraryMemberContributor();
+    return LibraryMemberContributor();
   }
 
   @override

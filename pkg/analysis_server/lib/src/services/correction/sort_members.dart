@@ -11,35 +11,35 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
  */
 class MemberSorter {
   static final List<_PriorityItem> _PRIORITY_ITEMS = [
-    new _PriorityItem(false, _MemberKind.UNIT_FUNCTION_MAIN, false),
-    new _PriorityItem(false, _MemberKind.UNIT_VARIABLE_CONST, false),
-    new _PriorityItem(false, _MemberKind.UNIT_VARIABLE_CONST, true),
-    new _PriorityItem(false, _MemberKind.UNIT_VARIABLE, false),
-    new _PriorityItem(false, _MemberKind.UNIT_VARIABLE, true),
-    new _PriorityItem(false, _MemberKind.UNIT_ACCESSOR, false),
-    new _PriorityItem(false, _MemberKind.UNIT_ACCESSOR, true),
-    new _PriorityItem(false, _MemberKind.UNIT_FUNCTION, false),
-    new _PriorityItem(false, _MemberKind.UNIT_FUNCTION, true),
-    new _PriorityItem(false, _MemberKind.UNIT_GENERIC_TYPE_ALIAS, false),
-    new _PriorityItem(false, _MemberKind.UNIT_GENERIC_TYPE_ALIAS, true),
-    new _PriorityItem(false, _MemberKind.UNIT_FUNCTION_TYPE, false),
-    new _PriorityItem(false, _MemberKind.UNIT_FUNCTION_TYPE, true),
-    new _PriorityItem(false, _MemberKind.UNIT_CLASS, false),
-    new _PriorityItem(false, _MemberKind.UNIT_CLASS, true),
-    new _PriorityItem(false, _MemberKind.UNIT_EXTENSION, false),
-    new _PriorityItem(false, _MemberKind.UNIT_EXTENSION, true),
-    new _PriorityItem(true, _MemberKind.CLASS_FIELD, false),
-    new _PriorityItem(true, _MemberKind.CLASS_ACCESSOR, false),
-    new _PriorityItem(true, _MemberKind.CLASS_ACCESSOR, true),
-    new _PriorityItem(false, _MemberKind.CLASS_FIELD, false),
-    new _PriorityItem(false, _MemberKind.CLASS_CONSTRUCTOR, false),
-    new _PriorityItem(false, _MemberKind.CLASS_CONSTRUCTOR, true),
-    new _PriorityItem(false, _MemberKind.CLASS_ACCESSOR, false),
-    new _PriorityItem(false, _MemberKind.CLASS_ACCESSOR, true),
-    new _PriorityItem(false, _MemberKind.CLASS_METHOD, false),
-    new _PriorityItem(false, _MemberKind.CLASS_METHOD, true),
-    new _PriorityItem(true, _MemberKind.CLASS_METHOD, false),
-    new _PriorityItem(true, _MemberKind.CLASS_METHOD, true)
+    _PriorityItem(false, _MemberKind.UNIT_FUNCTION_MAIN, false),
+    _PriorityItem(false, _MemberKind.UNIT_VARIABLE_CONST, false),
+    _PriorityItem(false, _MemberKind.UNIT_VARIABLE_CONST, true),
+    _PriorityItem(false, _MemberKind.UNIT_VARIABLE, false),
+    _PriorityItem(false, _MemberKind.UNIT_VARIABLE, true),
+    _PriorityItem(false, _MemberKind.UNIT_ACCESSOR, false),
+    _PriorityItem(false, _MemberKind.UNIT_ACCESSOR, true),
+    _PriorityItem(false, _MemberKind.UNIT_FUNCTION, false),
+    _PriorityItem(false, _MemberKind.UNIT_FUNCTION, true),
+    _PriorityItem(false, _MemberKind.UNIT_GENERIC_TYPE_ALIAS, false),
+    _PriorityItem(false, _MemberKind.UNIT_GENERIC_TYPE_ALIAS, true),
+    _PriorityItem(false, _MemberKind.UNIT_FUNCTION_TYPE, false),
+    _PriorityItem(false, _MemberKind.UNIT_FUNCTION_TYPE, true),
+    _PriorityItem(false, _MemberKind.UNIT_CLASS, false),
+    _PriorityItem(false, _MemberKind.UNIT_CLASS, true),
+    _PriorityItem(false, _MemberKind.UNIT_EXTENSION, false),
+    _PriorityItem(false, _MemberKind.UNIT_EXTENSION, true),
+    _PriorityItem(true, _MemberKind.CLASS_FIELD, false),
+    _PriorityItem(true, _MemberKind.CLASS_ACCESSOR, false),
+    _PriorityItem(true, _MemberKind.CLASS_ACCESSOR, true),
+    _PriorityItem(false, _MemberKind.CLASS_FIELD, false),
+    _PriorityItem(false, _MemberKind.CLASS_CONSTRUCTOR, false),
+    _PriorityItem(false, _MemberKind.CLASS_CONSTRUCTOR, true),
+    _PriorityItem(false, _MemberKind.CLASS_ACCESSOR, false),
+    _PriorityItem(false, _MemberKind.CLASS_ACCESSOR, true),
+    _PriorityItem(false, _MemberKind.CLASS_METHOD, false),
+    _PriorityItem(false, _MemberKind.CLASS_METHOD, true),
+    _PriorityItem(true, _MemberKind.CLASS_METHOD, false),
+    _PriorityItem(true, _MemberKind.CLASS_METHOD, true)
   ];
 
   final String initialCode;
@@ -65,8 +65,7 @@ class MemberSorter {
     List<SourceEdit> edits = <SourceEdit>[];
     if (code != initialCode) {
       SimpleDiff diff = computeSimpleDiff(initialCode, code);
-      SourceEdit edit =
-          new SourceEdit(diff.offset, diff.length, diff.replacement);
+      SourceEdit edit = SourceEdit(diff.offset, diff.length, diff.replacement);
       edits.add(edit);
     }
     return edits;
@@ -139,11 +138,11 @@ class MemberSorter {
         }
       }
       if (name != null) {
-        _PriorityItem item = new _PriorityItem.forName(isStatic, name, kind);
+        _PriorityItem item = _PriorityItem.forName(isStatic, name, kind);
         int offset = member.offset;
         int length = member.length;
         String text = code.substring(offset, offset + length);
-        members.add(new _MemberInfo(item, name, offset, length, text));
+        members.add(_MemberInfo(item, name, offset, length, text));
       }
     }
     // do sort
@@ -206,7 +205,7 @@ class MemberSorter {
         int offset = directive.firstTokenAfterCommentAndMetadata.offset;
         int length = directive.end - offset;
         String text = code.substring(offset, offset + length);
-        directives.add(new _DirectiveInfo(directive, kind, uriContent,
+        directives.add(_DirectiveInfo(directive, kind, uriContent,
             documentationText, annotationText, text));
       }
     }
@@ -227,7 +226,7 @@ class MemberSorter {
     // append directives with grouping
     String directivesCode;
     {
-      StringBuffer sb = new StringBuffer();
+      StringBuffer sb = StringBuffer();
       String endOfLine = this.endOfLine;
       _DirectivePriority currentPriority = null;
       bool firstOutputDirective = true;
@@ -323,11 +322,11 @@ class MemberSorter {
         }
       }
       if (name != null) {
-        _PriorityItem item = new _PriorityItem.forName(false, name, kind);
+        _PriorityItem item = _PriorityItem.forName(false, name, kind);
         int offset = member.offset;
         int length = member.length;
         String text = code.substring(offset, offset + length);
-        members.add(new _MemberInfo(item, name, offset, length, text));
+        members.add(_MemberInfo(item, name, offset, length, text));
       }
     }
     // do sort
@@ -355,7 +354,7 @@ class MemberSorter {
   }
 
   static List<_MemberInfo> _getSortedMembers(List<_MemberInfo> members) {
-    List<_MemberInfo> membersSorted = new List<_MemberInfo>.from(members);
+    List<_MemberInfo> membersSorted = List<_MemberInfo>.from(members);
     membersSorted.sort((_MemberInfo o1, _MemberInfo o2) {
       int priority1 = _getPriority(o1.item);
       int priority2 = _getPriority(o2.item);
@@ -491,7 +490,7 @@ class _PriorityItem {
 
   factory _PriorityItem.forName(bool isStatic, String name, _MemberKind kind) {
     bool isPrivate = Identifier.isPrivateName(name);
-    return new _PriorityItem(isStatic, kind, isPrivate);
+    return _PriorityItem(isStatic, kind, isPrivate);
   }
 
   @override

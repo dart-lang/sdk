@@ -28,15 +28,15 @@ const Matcher isNotification = const MatchesJsonObject(
 
 const Matcher isString = const TypeMatcher<String>();
 
-final Matcher isResponse = new MatchesJsonObject('response', {'id': isString},
+final Matcher isResponse = MatchesJsonObject('response', {'id': isString},
     optionalFields: {'result': anything, 'error': isRequestError});
 
-Matcher isListOf(Matcher elementMatcher) => new _ListOf(elementMatcher);
+Matcher isListOf(Matcher elementMatcher) => _ListOf(elementMatcher);
 
 Matcher isMapOf(Matcher keyMatcher, Matcher valueMatcher) =>
-    new _MapOf(keyMatcher, valueMatcher);
+    _MapOf(keyMatcher, valueMatcher);
 
-Matcher isOneOf(List<Matcher> choiceMatchers) => new _OneOf(choiceMatchers);
+Matcher isOneOf(List<Matcher> choiceMatchers) => _OneOf(choiceMatchers);
 
 /**
  * Assert that [actual] matches [matcher].
@@ -56,11 +56,11 @@ void outOfTestExpect(actual, Matcher matcher,
 
 String _defaultFailFormatter(
     actual, Matcher matcher, String reason, Map matchState, bool verbose) {
-  var description = new StringDescription();
+  var description = StringDescription();
   description.add('Expected: ').addDescriptionOf(matcher).add('\n');
   description.add('  Actual: ').addDescriptionOf(actual).add('\n');
 
-  var mismatchDescription = new StringDescription();
+  var mismatchDescription = StringDescription();
   matcher.describeMismatch(actual, mismatchDescription, matchState, verbose);
 
   if (mismatchDescription.length > 0) {
@@ -99,7 +99,7 @@ abstract class AbstractAnalysisServerIntegrationTest
   /**
    * Connection to the analysis server.
    */
-  final Server server = new Server();
+  final Server server = Server();
 
   /**
    * Temporary directory in which source files can be stored.
@@ -111,7 +111,7 @@ abstract class AbstractAnalysisServerIntegrationTest
    * been received for the file.
    */
   Map<String, List<AnalysisError>> currentAnalysisErrors =
-      new HashMap<String, List<AnalysisError>>();
+      HashMap<String, List<AnalysisError>>();
 
   /**
    * The last list of analyzed files received.
@@ -143,8 +143,7 @@ abstract class AbstractAnalysisServerIntegrationTest
    * analysis to finish.
    */
   Future<ServerStatusParams> get analysisFinished {
-    Completer<ServerStatusParams> completer =
-        new Completer<ServerStatusParams>();
+    Completer<ServerStatusParams> completer = Completer<ServerStatusParams>();
     StreamSubscription<ServerStatusParams> subscription;
     // This will only work if the caller has already subscribed to
     // SERVER_STATUS (e.g. using sendServerSetSubscriptions(['STATUS']))
@@ -172,7 +171,7 @@ abstract class AbstractAnalysisServerIntegrationTest
   /**
    * Read a source file with the given absolute [pathname].
    */
-  String readFile(String pathname) => new File(pathname).readAsStringSync();
+  String readFile(String pathname) => File(pathname).readAsStringSync();
 
   @override
   Future sendServerSetSubscriptions(List<ServerService> subscriptions) {
@@ -185,7 +184,7 @@ abstract class AbstractAnalysisServerIntegrationTest
    * [sourceDirectory] is created.
    */
   Future setUp() async {
-    sourceDirectory = new Directory(Directory.systemTemp
+    sourceDirectory = Directory(Directory.systemTemp
         .createTempSync('analysisServer')
         .resolveSymbolicLinksSync());
 
@@ -195,7 +194,7 @@ abstract class AbstractAnalysisServerIntegrationTest
     onAnalysisAnalyzedFiles.listen((AnalysisAnalyzedFilesParams params) {
       lastAnalyzedFiles = params.directories;
     });
-    Completer serverConnected = new Completer();
+    Completer serverConnected = Completer();
     onServerConnected.listen((_) {
       outOfTestExpect(serverConnected.isCompleted, isFalse);
       serverConnected.complete();
@@ -217,7 +216,7 @@ abstract class AbstractAnalysisServerIntegrationTest
    */
   Future shutdownIfNeeded() {
     if (skipShutdown) {
-      return new Future.value();
+      return Future.value();
     }
     // Give the server a short time to comply with the shutdown request; if it
     // doesn't exit, then forcibly terminate it.
@@ -284,8 +283,8 @@ abstract class AbstractAnalysisServerIntegrationTest
    * Return a normalized path to the file (with symbolic links resolved).
    */
   String writeFile(String pathname, String contents) {
-    new Directory(dirname(pathname)).createSync(recursive: true);
-    File file = new File(pathname);
+    Directory(dirname(pathname)).createSync(recursive: true);
+    File file = File(pathname);
     file.writeAsStringSync(contents);
     return file.resolveSymbolicLinksSync();
   }
@@ -491,7 +490,7 @@ class Server {
   /**
    * Stopwatch that we use to generate timing information for debug output.
    */
-  Stopwatch _time = new Stopwatch();
+  Stopwatch _time = Stopwatch();
 
   /**
    * The [currentElapseTime] at which the last communication was received from the server
@@ -531,7 +530,7 @@ class Server {
     while (!['benchmark', 'test'].contains(basename(pathname))) {
       String parent = dirname(pathname);
       if (parent.length >= pathname.length) {
-        throw new Exception("Can't find root directory");
+        throw Exception("Can't find root directory");
       }
       pathname = parent;
     }
@@ -563,7 +562,7 @@ class Server {
   void listenToOutput(NotificationProcessor notificationProcessor) {
     _process.stdout
         .transform(utf8.decoder)
-        .transform(new LineSplitter())
+        .transform(LineSplitter())
         .listen((String line) {
       lastCommunicationTime = currentElapseTime;
       String trimmedLine = line.trim();
@@ -600,7 +599,7 @@ class Server {
           _pendingCommands.remove(id);
         }
         if (messageAsMap.containsKey('error')) {
-          completer.completeError(new ServerErrorMessage(messageAsMap));
+          completer.completeError(ServerErrorMessage(messageAsMap));
         } else {
           completer.complete(messageAsMap['result']);
         }
@@ -621,8 +620,8 @@ class Server {
       }
     });
     _process.stderr
-        .transform((new Utf8Codec()).decoder)
-        .transform(new LineSplitter())
+        .transform((Utf8Codec()).decoder)
+        .transform(LineSplitter())
         .listen((String line) {
       String trimmedLine = line.trim();
       _recordStdio('ERR:  $trimmedLine');
@@ -649,7 +648,7 @@ class Server {
       command['params'] = params;
     }
     Completer<Map<String, dynamic>> completer =
-        new Completer<Map<String, dynamic>>();
+        Completer<Map<String, dynamic>>();
     _pendingCommands[id] = completer;
     String line = json.encode(command);
     _recordStdio('==> $line');
@@ -671,7 +670,7 @@ class Server {
     bool useAnalysisHighlight2 = false,
   }) async {
     if (_process != null) {
-      throw new Exception('Process already started');
+      throw Exception('Process already started');
     }
     _time.start();
     String dartBinary = Platform.executable;
@@ -762,7 +761,7 @@ class Server {
     // and is outputting a stacktrace, because it ensures that we see the
     // entire stacktrace.  Use expectAsync() to prevent the test from
     // ending during this 1 second.
-    new Future.delayed(new Duration(seconds: 1), expectAsync0(() {
+    Future.delayed(Duration(seconds: 1), expectAsync0(() {
       fail('Bad data received from server: $details');
     }));
   }
@@ -950,7 +949,7 @@ abstract class _RecursiveMatcher extends Matcher {
         mismatchDescription =
             mismatchDescription.add(' (should be ').addDescriptionOf(matcher);
         String subDescription = matcher
-            .describeMismatch(item, new StringDescription(), subState, false)
+            .describeMismatch(item, StringDescription(), subState, false)
             .toString();
         if (subDescription.isNotEmpty) {
           mismatchDescription =

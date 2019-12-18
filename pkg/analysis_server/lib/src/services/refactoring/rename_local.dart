@@ -48,7 +48,7 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
 
   @override
   Future<RefactoringStatus> checkFinalConditions() async {
-    RefactoringStatus result = new RefactoringStatus();
+    RefactoringStatus result = RefactoringStatus();
     await _prepareElements();
     for (LocalElement element in elements) {
       var resolvedUnit = await sessionHelper.getResolvedUnitByElement(element);
@@ -80,7 +80,7 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
 
   @override
   Future<void> fillChange() async {
-    var processor = new RenameProcessor(workspace, change, newName);
+    var processor = RenameProcessor(workspace, change, newName);
     for (Element element in elements) {
       processor.addDeclarationEdit(element);
       var references = await searchEngine.searchReferences(element);
@@ -112,7 +112,7 @@ class _ConflictValidatorVisitor extends RecursiveAstVisitor {
   final String newName;
   final LocalElement target;
   final Map<Element, SourceRange> visibleRangeMap;
-  final Set<Element> conflictingLocals = new Set<Element>();
+  final Set<Element> conflictingLocals = Set<Element>();
 
   _ConflictValidatorVisitor(
     this.result,

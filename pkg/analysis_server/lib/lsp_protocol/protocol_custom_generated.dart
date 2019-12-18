@@ -35,7 +35,7 @@ class AnalyzerStatusParams implements ToJsonable {
   }
   static AnalyzerStatusParams fromJson(Map<String, dynamic> json) {
     final isAnalyzing = json['isAnalyzing'];
-    return new AnalyzerStatusParams(isAnalyzing);
+    return AnalyzerStatusParams(isAnalyzing);
   }
 
   final bool isAnalyzing;
@@ -107,7 +107,7 @@ class ClosingLabel implements ToJsonable {
   static ClosingLabel fromJson(Map<String, dynamic> json) {
     final range = json['range'] != null ? Range.fromJson(json['range']) : null;
     final label = json['label'];
-    return new ClosingLabel(range, label);
+    return ClosingLabel(range, label);
   }
 
   final String label;
@@ -216,7 +216,7 @@ class CompletionItemResolutionInfo implements ToJsonable {
     final displayUri = json['displayUri'];
     final rOffset = json['rOffset'];
     final rLength = json['rLength'];
-    return new CompletionItemResolutionInfo(
+    return CompletionItemResolutionInfo(
         file, offset, libId, displayUri, rOffset, rLength);
   }
 
@@ -393,7 +393,7 @@ class DartDiagnosticServer implements ToJsonable {
   }
   static DartDiagnosticServer fromJson(Map<String, dynamic> json) {
     final port = json['port'];
-    return new DartDiagnosticServer(port);
+    return DartDiagnosticServer(port);
   }
 
   final num port;
@@ -469,8 +469,7 @@ class Element implements ToJsonable {
     final parameters = json['parameters'];
     final typeParameters = json['typeParameters'];
     final returnType = json['returnType'];
-    return new Element(
-        range, name, kind, parameters, typeParameters, returnType);
+    return Element(range, name, kind, parameters, typeParameters, returnType);
   }
 
   final String kind;
@@ -653,7 +652,7 @@ class FlutterOutline implements ToJsonable {
         ?.map((item) => item != null ? FlutterOutline.fromJson(item) : null)
         ?.cast<FlutterOutline>()
         ?.toList();
-    return new FlutterOutline(kind, label, className, variableName, attributes,
+    return FlutterOutline(kind, label, className, variableName, attributes,
         dartElement, range, codeRange, children);
   }
 
@@ -871,7 +870,7 @@ class FlutterOutlineAttribute implements ToJsonable {
   static FlutterOutlineAttribute fromJson(Map<String, dynamic> json) {
     final name = json['name'];
     final label = json['label'];
-    return new FlutterOutlineAttribute(name, label);
+    return FlutterOutlineAttribute(name, label);
   }
 
   final String label;
@@ -972,7 +971,7 @@ class Outline implements ToJsonable {
         ?.map((item) => item != null ? Outline.fromJson(item) : null)
         ?.cast<Outline>()
         ?.toList();
-    return new Outline(element, range, codeRange, children);
+    return Outline(element, range, codeRange, children);
   }
 
   final List<Outline> children;
@@ -1110,7 +1109,7 @@ class PublishClosingLabelsParams implements ToJsonable {
         ?.map((item) => item != null ? ClosingLabel.fromJson(item) : null)
         ?.cast<ClosingLabel>()
         ?.toList();
-    return new PublishClosingLabelsParams(uri, labels);
+    return PublishClosingLabelsParams(uri, labels);
   }
 
   final List<ClosingLabel> labels;
@@ -1209,7 +1208,7 @@ class PublishFlutterOutlineParams implements ToJsonable {
     final outline = json['outline'] != null
         ? FlutterOutline.fromJson(json['outline'])
         : null;
-    return new PublishFlutterOutlineParams(uri, outline);
+    return PublishFlutterOutlineParams(uri, outline);
   }
 
   final FlutterOutline outline;
@@ -1302,7 +1301,7 @@ class PublishOutlineParams implements ToJsonable {
     final uri = json['uri'];
     final outline =
         json['outline'] != null ? Outline.fromJson(json['outline']) : null;
-    return new PublishOutlineParams(uri, outline);
+    return PublishOutlineParams(uri, outline);
   }
 
   final Outline outline;

@@ -23,7 +23,7 @@ class ImportedReferenceContributorTest extends DartCompletionContributorTest {
 
   @override
   DartCompletionContributor createContributor() {
-    return new ImportedReferenceContributor();
+    return ImportedReferenceContributor();
   }
 
   /// Sanity check.  Permutations tested in local_ref_contributor.

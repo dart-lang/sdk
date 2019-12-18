@@ -41,7 +41,7 @@ class DirectiveOrganizer {
     List<SourceEdit> edits = <SourceEdit>[];
     if (code != initialCode) {
       int suffixLength = findCommonSuffix(initialCode, code);
-      SourceEdit edit = new SourceEdit(0, initialCode.length - suffixLength,
+      SourceEdit edit = SourceEdit(0, initialCode.length - suffixLength,
           code.substring(0, code.length - suffixLength));
       edits.add(edit);
     }
@@ -84,7 +84,7 @@ class DirectiveOrganizer {
           String text = code.substring(offset, end);
           String uriContent = directive.uri.stringValue;
           directives.add(
-            new _DirectiveInfo(
+            _DirectiveInfo(
               directive,
               priority,
               uriContent,
@@ -107,7 +107,7 @@ class DirectiveOrganizer {
     // append directives with grouping
     String directivesCode;
     {
-      StringBuffer sb = new StringBuffer();
+      StringBuffer sb = StringBuffer();
       _DirectivePriority currentPriority = null;
       for (_DirectiveInfo directiveInfo in directives) {
         if (!hasUnresolvedIdentifierError) {

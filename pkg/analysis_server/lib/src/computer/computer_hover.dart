@@ -28,7 +28,7 @@ class DartUnitHoverComputer {
    * Returns the computed hover, maybe `null`.
    */
   HoverInformation compute() {
-    AstNode node = new NodeLocator(_offset).searchWithin(_unit);
+    AstNode node = NodeLocator(_offset).searchWithin(_unit);
     if (node == null) {
       return null;
     }
@@ -47,11 +47,11 @@ class DartUnitHoverComputer {
       // results in the range covering the whole call so narrow it to just the
       // ConstructorName.
       HoverInformation hover = expression is InstanceCreationExpression
-          ? new HoverInformation(
+          ? HoverInformation(
               expression.constructorName.offset,
               expression.constructorName.length,
             )
-          : new HoverInformation(expression.offset, expression.length);
+          : HoverInformation(expression.offset, expression.length);
       // element
       Element element = ElementLocator.locate(expression);
       if (element != null) {

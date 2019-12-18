@@ -45,7 +45,7 @@ void bar() { foo(); } // missing semi-colon
 
 void foo() { }''');
 
-    await sendAnalysisUpdateContent({pathname: new AddContentOverlay(text)});
+    await sendAnalysisUpdateContent({pathname: AddContentOverlay(text)});
 
     await analysisFinished;
     expect(currentAnalysisErrors[pathname], isEmpty);

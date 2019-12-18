@@ -13,9 +13,9 @@ import 'package:analyzer/dart/element/type.dart';
  */
 OverriddenElements findOverriddenElements(Element element) {
   if (element?.enclosingElement is ClassElement) {
-    return new _OverriddenElementsFinder(element).find();
+    return _OverriddenElementsFinder(element).find();
   }
-  return new OverriddenElements(element, <Element>[], <Element>[]);
+  return OverriddenElements(element, <Element>[], <Element>[]);
 }
 
 /**
@@ -61,7 +61,7 @@ class DartUnitOverridesComputer {
   void _addOverride(SimpleIdentifier node) {
     Element element = node.staticElement;
     OverriddenElements overridesResult =
-        new _OverriddenElementsFinder(element).find();
+        _OverriddenElementsFinder(element).find();
     List<Element> superElements = overridesResult.superElements;
     List<Element> interfaceElements = overridesResult.interfaceElements;
     if (superElements.isNotEmpty || interfaceElements.isNotEmpty) {
@@ -71,7 +71,7 @@ class DartUnitOverridesComputer {
       List<proto.OverriddenMember> interfaceMembers = interfaceElements
           .map((member) => proto.newOverriddenMember_fromEngine(member))
           .toList();
-      _overrides.add(new proto.Override(node.offset, node.length,
+      _overrides.add(proto.Override(node.offset, node.length,
           superclassMember: superMember,
           interfaceMembers: nullIfEmpty(interfaceMembers)));
     }
@@ -156,7 +156,7 @@ class _OverriddenElementsFinder {
     _visited.clear();
     _addInterfaceOverrides(_class, false);
     _superElements.forEach(_interfaceElements.remove);
-    return new OverriddenElements(_seed, _superElements, _interfaceElements);
+    return OverriddenElements(_seed, _superElements, _interfaceElements);
   }
 
   void _addInterfaceOverrides(ClassElement class_, bool checkType) {

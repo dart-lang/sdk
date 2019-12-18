@@ -53,11 +53,10 @@ const Map<String, String> _typeRenames = const {
 final String pathToGenTypes = 'tool/spec/generated/java/types';
 
 final GeneratedDirectory targetDir =
-    new GeneratedDirectory(pathToGenTypes, (String pkgPath) {
+    GeneratedDirectory(pathToGenTypes, (String pkgPath) {
   Api api = readApi(pkgPath);
   Map<String, ImpliedType> impliedTypes = computeImpliedTypes(api);
-  Map<String, FileContentsComputer> map =
-      new Map<String, FileContentsComputer>();
+  Map<String, FileContentsComputer> map = Map<String, FileContentsComputer>();
   for (ImpliedType impliedType in impliedTypes.values) {
     String typeNameInSpec = capitalize(impliedType.camelName);
     bool isRefactoringFeedback = impliedType.kind == 'refactoringFeedback';
@@ -90,7 +89,7 @@ final GeneratedDirectory targetDir =
             generateSetters = true;
           }
           // create the visitor
-          CodegenJavaType visitor = new CodegenJavaType(api, typeNameInJava,
+          CodegenJavaType visitor = CodegenJavaType(api, typeNameInJava,
               superclassName, generateGetters, generateSetters);
           return visitor.collectCode(() {
             dom.Element doc = type.html;
@@ -366,7 +365,7 @@ class CodegenJavaType extends CodegenJavaVisitor {
         }));
         write('public $className(');
         // write out parameters to constructor
-        List<String> parameters = new List();
+        List<String> parameters = List();
         if (className == 'Outline') {
           parameters.add('Outline parent');
         }
@@ -515,7 +514,7 @@ class CodegenJavaType extends CodegenJavaVisitor {
               writeln(';');
             }
             write('return new $className(');
-            List<String> parameters = new List();
+            List<String> parameters = List();
             for (TypeObjectField field in fields) {
               if (!_isTypeFieldInUpdateContentUnionType(
                   className, field.name)) {
@@ -631,7 +630,7 @@ class CodegenJavaType extends CodegenJavaVisitor {
             writeln('$className other = ($className) obj;');
             writeln('return');
             indent(() {
-              List<String> equalsForField = new List<String>();
+              List<String> equalsForField = List<String>();
               for (TypeObjectField field in fields) {
                 equalsForField.add(_getEqualsLogicForField(field, 'other'));
               }

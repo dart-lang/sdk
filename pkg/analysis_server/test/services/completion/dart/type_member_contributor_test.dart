@@ -54,7 +54,7 @@ void f(Derived d) {
 
   @override
   DartCompletionContributor createContributor() {
-    return new TypeMemberContributor();
+    return TypeMemberContributor();
   }
 
   test_ArgDefaults_method() async {
@@ -4084,7 +4084,7 @@ class TypeMemberContributorWithExtensionMethodsTest
     extends DartCompletionContributorTest {
   @override
   DartCompletionContributor createContributor() {
-    return new TypeMemberContributor();
+    return TypeMemberContributor();
   }
 
   void setUp() {

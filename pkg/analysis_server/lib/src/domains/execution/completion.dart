@@ -52,7 +52,7 @@ class RuntimeCompletionComputer {
     const codeMarker = '__code_\_';
 
     // Insert the code being completed at the context offset.
-    var changeBuilder = new DartChangeBuilder(session);
+    var changeBuilder = DartChangeBuilder(session);
     int nextImportPrefixIndex = 0;
     await changeBuilder.addFileEdit(contextPath, (builder) {
       builder.addInsertion(contextOffset, (builder) {
@@ -84,11 +84,11 @@ class RuntimeCompletionComputer {
       targetResult = await analysisDriver.getResult(contextPath);
     });
 
-    CompletionContributor contributor = new DartCompletionManager();
-    CompletionRequestImpl request = new CompletionRequestImpl(
+    CompletionContributor contributor = DartCompletionManager();
+    CompletionRequestImpl request = CompletionRequestImpl(
       targetResult,
       targetOffset,
-      new CompletionPerformance(),
+      CompletionPerformance(),
     );
     var suggestions = await contributor.computeSuggestions(request);
 
@@ -97,7 +97,7 @@ class RuntimeCompletionComputer {
 
     // TODO(scheglov) Add support for expressions.
     var expressions = <RuntimeCompletionExpression>[];
-    return new RuntimeCompletionResult(expressions, suggestions);
+    return RuntimeCompletionResult(expressions, suggestions);
   }
 
   Future<void> _withContextFileContent(

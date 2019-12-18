@@ -47,7 +47,7 @@ class InitializeMessageHandler
       }
     }
 
-    server.messageHandler = new InitializingStateMessageHandler(
+    server.messageHandler = InitializingStateMessageHandler(
       server,
       openWorkspacePaths,
     );
@@ -68,8 +68,8 @@ class InitializeMessageHandler
     // supporting clients of this. This avoids clients needing to hard-code the
     // list of what files types we support (and allows them to avoid sending
     // requests where we have only partial support for some types).
-    server.capabilities = new ServerCapabilities(
-        Either2<TextDocumentSyncOptions, num>.t1(new TextDocumentSyncOptions(
+    server.capabilities = ServerCapabilities(
+        Either2<TextDocumentSyncOptions, num>.t1(TextDocumentSyncOptions(
           // The open/close and sync kind flags are registered dynamically if the
           // client supports them, so these static registrations are based on whether
           // the client supports dynamic registration.
@@ -82,11 +82,11 @@ class InitializeMessageHandler
           null,
         )),
         true, // hoverProvider
-        new CompletionOptions(
+        CompletionOptions(
           true, // resolveProvider
           dartCompletionTriggerCharacters,
         ),
-        new SignatureHelpOptions(
+        SignatureHelpOptions(
           dartSignatureHelpTriggerCharacters,
         ),
         true, // definitionProvider
@@ -101,25 +101,25 @@ class InitializeMessageHandler
         // `textDocument.codeAction.codeActionLiteralSupport`."
         codeActionLiteralSupport != null
             ? Either2<bool, CodeActionOptions>.t2(
-                new CodeActionOptions(DartCodeActionKind.serverSupportedKinds))
+                CodeActionOptions(DartCodeActionKind.serverSupportedKinds))
             : Either2<bool, CodeActionOptions>.t1(true),
         null,
         true, // documentFormattingProvider
         false, // documentRangeFormattingProvider
-        new DocumentOnTypeFormattingOptions(dartTypeFormattingCharacters.first,
+        DocumentOnTypeFormattingOptions(dartTypeFormattingCharacters.first,
             dartTypeFormattingCharacters.skip(1).toList()),
         renameOptionsSupport
-            ? Either2<bool, RenameOptions>.t2(new RenameOptions(true))
+            ? Either2<bool, RenameOptions>.t2(RenameOptions(true))
             : Either2<bool, RenameOptions>.t1(true),
         null,
         null,
         true, // foldingRangeProvider
         null, // declarationProvider
-        new ExecuteCommandOptions(Commands.serverSupportedCommands),
-        new ServerCapabilitiesWorkspace(
-            new ServerCapabilitiesWorkspaceFolders(true, true)),
+        ExecuteCommandOptions(Commands.serverSupportedCommands),
+        ServerCapabilitiesWorkspace(
+            ServerCapabilitiesWorkspaceFolders(true, true)),
         null);
 
-    return success(new InitializeResult(server.capabilities));
+    return success(InitializeResult(server.capabilities));
   }
 }

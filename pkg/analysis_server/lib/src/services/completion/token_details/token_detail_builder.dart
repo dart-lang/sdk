@@ -69,7 +69,7 @@ class TokenDetailBuilder {
 
   /// Create the details for a single [token], using the given list of [kinds].
   void _createDetails(Token token, String type, List<String> kinds) {
-    details.add(new TokenDetails(token.lexeme, token.offset,
+    details.add(TokenDetails(token.lexeme, token.offset,
         type: type, validElementKinds: kinds));
   }
 
@@ -90,7 +90,7 @@ class TokenDetailBuilder {
 
   /// Return a unique identifier for the [type].
   String _typeStr(DartType type) {
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     _writeType(buffer, type);
     return buffer.toString();
   }

@@ -15,8 +15,8 @@ class DartUnitClosingLabelsComputer {
   final LineInfo _lineInfo;
   final CompilationUnit _unit;
   final List<ClosingLabel> _closingLabels = [];
-  final Set<ClosingLabel> hasNestingSet = new Set();
-  final Set<ClosingLabel> isSingleLineSet = new Set();
+  final Set<ClosingLabel> hasNestingSet = Set();
+  final Set<ClosingLabel> isSingleLineSet = Set();
 
   DartUnitClosingLabelsComputer(this._lineInfo, this._unit);
 
@@ -24,7 +24,7 @@ class DartUnitClosingLabelsComputer {
    * Returns a list of closing labels, not `null`.
    */
   List<ClosingLabel> compute() {
-    _unit.accept(new _DartUnitClosingLabelsComputerVisitor(this));
+    _unit.accept(_DartUnitClosingLabelsComputerVisitor(this));
 
     return _closingLabels.where((ClosingLabel label) {
       // Filter labels that don't have some nesting.
@@ -125,7 +125,7 @@ class _DartUnitClosingLabelsComputerVisitor extends RecursiveAstVisitor<void> {
         computer._lineInfo.getLocation(checkLinesUsing.end - 1);
 
     final ClosingLabel closingLabel =
-        new ClosingLabel(node.offset, node.length, label);
+        ClosingLabel(node.offset, node.length, label);
 
     int spannedLines = end.lineNumber - start.lineNumber;
     if (spannedLines < 1) {

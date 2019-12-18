@@ -29,10 +29,9 @@ class MemberDeclarationsTest extends AbstractSearchDomainTest {
 
   Future findMemberDeclarations(String name) async {
     await waitForTasksFinished();
-    Request request =
-        new SearchFindMemberDeclarationsParams(name).toRequest('0');
+    Request request = SearchFindMemberDeclarationsParams(name).toRequest('0');
     Response response = await waitResponse(request);
-    var result = new SearchFindMemberDeclarationsResult.fromResponse(response);
+    var result = SearchFindMemberDeclarationsResult.fromResponse(response);
     searchId = result.id;
     return waitForSearchResults();
   }

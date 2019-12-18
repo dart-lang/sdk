@@ -56,7 +56,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
    * Fail if there is not exactly one such variable.
    */
   LocalVariableElement findLocalVariable(String name) {
-    var finder = new _ElementsByNameFinder(name);
+    var finder = _ElementsByNameFinder(name);
     testUnit.accept(finder);
     List<Element> localVariables =
         finder.elements.where((e) => e is LocalVariableElement).toList();
@@ -65,7 +65,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   }
 
   AstNode findNodeAtOffset(int offset, [Predicate<AstNode> predicate]) {
-    AstNode result = new NodeLocator(offset).searchWithin(testUnit);
+    AstNode result = NodeLocator(offset).searchWithin(testUnit);
     if (result != null && predicate != null) {
       result = result.thisOrAncestorMatching(predicate);
     }

@@ -152,7 +152,7 @@ main() {
   }
 
   void _createRefactoringForElement(ExecutableElement element) {
-    refactoring = new ConvertGetterToMethodRefactoring(
+    refactoring = ConvertGetterToMethodRefactoring(
         searchEngine, testAnalysisResult.session, element);
   }
 

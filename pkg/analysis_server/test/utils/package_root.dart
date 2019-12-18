@@ -24,5 +24,5 @@ String get packageRoot {
   if (pkgIndex != -1) {
     return pathos.joinAll(parts.sublist(0, pkgIndex + 1)) + pathos.separator;
   }
-  throw new StateError('Unable to find sdk/pkg/ in $scriptPath');
+  throw StateError('Unable to find sdk/pkg/ in $scriptPath');
 }

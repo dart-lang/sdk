@@ -230,7 +230,7 @@ class AssistProcessor extends BaseProcessor {
     }
     change.id = kind.id;
     change.message = formatList(kind.message, args);
-    assists.add(new Assist(kind, change));
+    assists.add(Assist(kind, change));
   }
 
   Future<void> _addProposal_addDiagnosticPropertyReference() async {
@@ -328,8 +328,8 @@ class AssistProcessor extends BaseProcessor {
       return;
     }
     // prepare excluded names
-    Set<String> excluded = new Set<String>();
-    ScopedNameFinder scopedNameFinder = new ScopedNameFinder(offset);
+    Set<String> excluded = Set<String>();
+    ScopedNameFinder scopedNameFinder = ScopedNameFinder(offset);
     expression.accept(scopedNameFinder);
     excluded.addAll(scopedNameFinder.locals.keys.toSet());
     List<String> suggestions =
@@ -379,7 +379,7 @@ class AssistProcessor extends BaseProcessor {
         .any((member) => member is ConstructorDeclaration)) {
       return;
     }
-    _SuperclassReferenceFinder finder = new _SuperclassReferenceFinder();
+    _SuperclassReferenceFinder finder = _SuperclassReferenceFinder();
     classDeclaration.accept(finder);
     List<ClassElement> referencedClasses = finder.referencedClasses;
     List<InterfaceType> superclassConstraints = <InterfaceType>[];
@@ -718,7 +718,7 @@ class AssistProcessor extends BaseProcessor {
     String libraryPath = context.resolveResult.libraryElement.source.fullName;
     String partPath = context.resolveResult.path;
     String relativePath = relative(libraryPath, from: dirname(partPath));
-    String uri = new Uri.file(relativePath).toString();
+    String uri = Uri.file(relativePath).toString();
     SourceRange replacementRange = range.node(directive.libraryName);
     var changeBuilder = _newDartChangeBuilder();
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
@@ -773,7 +773,7 @@ class AssistProcessor extends BaseProcessor {
       _coverageMarker();
       return;
     }
-    new Map();
+    Map();
     //
     // Determine whether type arguments are strictly required in cases where no
     // type arguments were explicitly provided.
@@ -948,7 +948,7 @@ class AssistProcessor extends BaseProcessor {
       {
         int numOfReferences = 0;
         AstVisitor visitor =
-            new _SimpleIdentifierRecursiveAstVisitor((SimpleIdentifier node) {
+            _SimpleIdentifierRecursiveAstVisitor((SimpleIdentifier node) {
           if (node.staticElement == parameterElement) {
             numOfReferences++;
           }
@@ -1578,10 +1578,10 @@ class AssistProcessor extends BaseProcessor {
     String stateName = '_${widgetName}State';
 
     // Find fields assigned in constructors.
-    var fieldsAssignedInConstructors = new Set<FieldElement>();
+    var fieldsAssignedInConstructors = Set<FieldElement>();
     for (var member in widgetClass.members) {
       if (member is ConstructorDeclaration) {
-        member.accept(new _SimpleIdentifierRecursiveAstVisitor((node) {
+        member.accept(_SimpleIdentifierRecursiveAstVisitor((node) {
           if (node.parent is FieldFormalParameter) {
             Element element = node.staticElement;
             if (element is FieldFormalParameterElement) {
@@ -1608,8 +1608,8 @@ class AssistProcessor extends BaseProcessor {
     }
 
     // Prepare nodes to move.
-    var nodesToMove = new Set<ClassMember>();
-    var elementsToMove = new Set<Element>();
+    var nodesToMove = Set<ClassMember>();
+    var elementsToMove = Set<Element>();
     for (var member in widgetClass.members) {
       if (member is FieldDeclaration && !member.isStatic) {
         for (VariableDeclaration fieldNode in member.fields.variables) {
@@ -1640,7 +1640,7 @@ class AssistProcessor extends BaseProcessor {
 
       // Insert `widget.` before references to the widget instance members.
       final List<SourceEdit> edits = [];
-      movedNode.accept(new _SimpleIdentifierRecursiveAstVisitor((node) {
+      movedNode.accept(_SimpleIdentifierRecursiveAstVisitor((node) {
         if (node.inDeclarationContext()) {
           return;
         }
@@ -1655,10 +1655,10 @@ class AssistProcessor extends BaseProcessor {
           if (parent is InterpolationExpression &&
               parent.leftBracket.type ==
                   TokenType.STRING_INTERPOLATION_IDENTIFIER) {
-            edits.add(new SourceEdit(offset, 0, '{$qualifier.'));
-            edits.add(new SourceEdit(offset + node.length, 0, '}'));
+            edits.add(SourceEdit(offset, 0, '{$qualifier.'));
+            edits.add(SourceEdit(offset + node.length, 0, '}'));
           } else {
-            edits.add(new SourceEdit(offset, 0, '$qualifier.'));
+            edits.add(SourceEdit(offset, 0, '$qualifier.'));
           }
         }
       }));
@@ -1694,7 +1694,7 @@ class AssistProcessor extends BaseProcessor {
           bool hasEmptyLineAfterCreateState = true}) {
         int replaceLength = replaceEnd - replaceOffset;
         builder.addReplacement(
-          new SourceRange(replaceOffset, replaceLength),
+          SourceRange(replaceOffset, replaceLength),
           (builder) {
             if (hasBuildMethod) {
               if (hasEmptyLineBeforeCreateState) {
@@ -1822,7 +1822,7 @@ class AssistProcessor extends BaseProcessor {
 
           int lengthDelta = nextRange.length - widgetRange.length;
           int newWidgetOffset = nextRange.offset + lengthDelta;
-          changeBuilder.setSelection(new Position(file, newWidgetOffset));
+          changeBuilder.setSelection(Position(file, newWidgetOffset));
         });
         _addAssistFromBuilder(changeBuilder, DartAssistKind.FLUTTER_MOVE_DOWN);
       }
@@ -1853,7 +1853,7 @@ class AssistProcessor extends BaseProcessor {
           builder.addSimpleReplacement(widgetRange, previousText);
 
           int newWidgetOffset = previousRange.offset;
-          changeBuilder.setSelection(new Position(file, newWidgetOffset));
+          changeBuilder.setSelection(Position(file, newWidgetOffset));
         });
         _addAssistFromBuilder(changeBuilder, DartAssistKind.FLUTTER_MOVE_UP);
       }
@@ -1999,7 +1999,7 @@ class AssistProcessor extends BaseProcessor {
         builder.writeln('builder: (context, snapshot) {');
 
         widgetSrc = widgetSrc.replaceAll(
-          new RegExp("^$indentOld", multiLine: true),
+          RegExp("^$indentOld", multiLine: true),
           indentNew2,
         );
         builder.write(indentNew2);
@@ -2094,7 +2094,7 @@ class AssistProcessor extends BaseProcessor {
           builder.write(eol);
           builder.write(indentNew);
           widgetSrc = widgetSrc.replaceAll(
-              new RegExp("^$indentOld", multiLine: true), indentNew);
+              RegExp("^$indentOld", multiLine: true), indentNew);
           widgetSrc += ",$eol$indentOld";
         }
         if (parentClassElement == null) {
@@ -2111,8 +2111,8 @@ class AssistProcessor extends BaseProcessor {
   }
 
   Future<void> _addProposal_flutterWrapWidgets() async {
-    var selectionRange = new SourceRange(selectionOffset, selectionLength);
-    var analyzer = new SelectionAnalyzer(selectionRange);
+    var selectionRange = SourceRange(selectionOffset, selectionLength);
+    var analyzer = SelectionAnalyzer(selectionRange);
     context.resolveResult.unit.accept(analyzer);
 
     List<Expression> widgetExpressions = [];
@@ -2216,9 +2216,9 @@ class AssistProcessor extends BaseProcessor {
     }
     Map<String, Element> namespace = getImportNamespace(importElement);
     // prepare names of referenced elements (from this import)
-    SplayTreeSet<String> referencedNames = new SplayTreeSet<String>();
+    SplayTreeSet<String> referencedNames = SplayTreeSet<String>();
     _SimpleIdentifierRecursiveAstVisitor visitor =
-        new _SimpleIdentifierRecursiveAstVisitor((SimpleIdentifier node) {
+        _SimpleIdentifierRecursiveAstVisitor((SimpleIdentifier node) {
       Element element = node.staticElement;
       if (element != null && namespace[node.name] == element) {
         referencedNames.add(element.displayName);
@@ -2286,8 +2286,8 @@ class AssistProcessor extends BaseProcessor {
       statementPrefix = '';
     }
     // prepare excluded names
-    Set<String> excluded = new Set<String>();
-    ScopedNameFinder scopedNameFinder = new ScopedNameFinder(offset);
+    Set<String> excluded = Set<String>();
+    ScopedNameFinder scopedNameFinder = ScopedNameFinder(offset);
     isExpression.accept(scopedNameFinder);
     excluded.addAll(scopedNameFinder.locals.keys.toSet());
     // name(s)
@@ -2489,7 +2489,7 @@ class AssistProcessor extends BaseProcessor {
     }
     int declOffset = element.nameOffset;
     var unit = context.resolveResult.unit;
-    AstNode declNode = new NodeLocator(declOffset).searchWithin(unit);
+    AstNode declNode = NodeLocator(declOffset).searchWithin(unit);
     if (declNode != null &&
         declNode.parent is VariableDeclaration &&
         (declNode.parent as VariableDeclaration).name == declNode &&
@@ -2649,7 +2649,7 @@ class AssistProcessor extends BaseProcessor {
         // Linked editing not needed since arg is always a list.
         builder.write('children: ');
         builder.write(literalSrc.replaceAll(
-            new RegExp("^$indentOld", multiLine: true), "$indentList"));
+            RegExp("^$indentOld", multiLine: true), "$indentList"));
         builder.write(',');
         builder.write(eol);
         builder.write(indentArg);
@@ -2981,9 +2981,8 @@ class AssistProcessor extends BaseProcessor {
     // prepare selected statements
     List<Statement> selectedStatements;
     {
-      StatementAnalyzer selectionAnalyzer = new StatementAnalyzer(
-          context.resolveResult,
-          new SourceRange(selectionOffset, selectionLength));
+      StatementAnalyzer selectionAnalyzer = StatementAnalyzer(
+          context.resolveResult, SourceRange(selectionOffset, selectionLength));
       selectionAnalyzer.analyze();
       List<AstNode> selectedNodes = selectionAnalyzer.selectedNodes;
       // convert nodes to statements
@@ -3392,7 +3391,7 @@ class AssistProcessor extends BaseProcessor {
   }
 
   DartChangeBuilder _newDartChangeBuilder() {
-    return new DartChangeBuilderImpl.forWorkspace(context.workspace);
+    return DartChangeBuilderImpl.forWorkspace(context.workspace);
   }
 
   Future<void> _swapParentAndChild(InstanceCreationExpression parent,
@@ -3513,8 +3512,7 @@ class AssistProcessor extends BaseProcessor {
 
   static String _replaceSourceIndent(
       String source, String indentOld, String indentNew) {
-    return source.replaceAll(
-        new RegExp('^$indentOld', multiLine: true), indentNew);
+    return source.replaceAll(RegExp('^$indentOld', multiLine: true), indentNew);
   }
 
   /**

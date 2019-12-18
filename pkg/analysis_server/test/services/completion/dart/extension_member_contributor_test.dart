@@ -18,7 +18,7 @@ main() {
 class ExtensionMemberContributorTest extends DartCompletionContributorTest {
   @override
   DartCompletionContributor createContributor() {
-    return new ExtensionMemberContributor();
+    return ExtensionMemberContributor();
   }
 
   void setUp() {

@@ -102,7 +102,7 @@ class AnalysisNotificationImplementedTest extends AbstractAnalysisTest {
 
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_IMPLEMENTED) {
-      var params = new AnalysisImplementedParams.fromNotification(notification);
+      var params = AnalysisImplementedParams.fromNotification(notification);
       if (params.file == testFile) {
         implementedClasses = params.classes;
         implementedMembers = params.members;
@@ -144,7 +144,7 @@ class B extends A {}
 class A  {}
 class B extends A {}
 ''';
-    server.updateContent('1', {testFile: new AddContentOverlay(testCode)});
+    server.updateContent('1', {testFile: AddContentOverlay(testCode)});
     await waitForImplementedElements();
     assertHasImplementedClass('A  {');
   }
@@ -469,10 +469,10 @@ class B extends A {
   Future waitForImplementedElements() {
     Future waitForNotification(int times) {
       if (times == 0 || implementedClasses != null) {
-        return new Future.value();
+        return Future.value();
       }
-      return new Future.delayed(
-          new Duration(milliseconds: 1), () => waitForNotification(times - 1));
+      return Future.delayed(
+          Duration(milliseconds: 1), () => waitForNotification(times - 1));
     }
 
     return waitForNotification(30000);

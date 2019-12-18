@@ -41,8 +41,7 @@ abstract class ConvertGetterToMethodRefactoring implements Refactoring {
    */
   factory ConvertGetterToMethodRefactoring(SearchEngine searchEngine,
       AnalysisSession session, PropertyAccessorElement element) {
-    return new ConvertGetterToMethodRefactoringImpl(
-        searchEngine, session, element);
+    return ConvertGetterToMethodRefactoringImpl(searchEngine, session, element);
   }
 }
 
@@ -56,7 +55,7 @@ abstract class ConvertMethodToGetterRefactoring implements Refactoring {
    */
   factory ConvertMethodToGetterRefactoring(SearchEngine searchEngine,
       AnalysisSession session, ExecutableElement element) {
-    return new ConvertMethodToGetterRefactoringImpl(searchEngine, element);
+    return ConvertMethodToGetterRefactoringImpl(searchEngine, element);
   }
 }
 
@@ -146,7 +145,7 @@ abstract class ExtractMethodRefactoring implements Refactoring {
       ResolvedUnitResult resolveResult,
       int selectionOffset,
       int selectionLength) {
-    return new ExtractMethodRefactoringImpl(
+    return ExtractMethodRefactoringImpl(
         searchEngine, resolveResult, selectionOffset, selectionLength);
   }
 
@@ -242,7 +241,7 @@ abstract class ExtractWidgetRefactoring implements Refactoring {
    */
   factory ExtractWidgetRefactoring(SearchEngine searchEngine,
       ResolvedUnitResult resolveResult, int offset, int length) {
-    return new ExtractWidgetRefactoringImpl(
+    return ExtractWidgetRefactoringImpl(
         searchEngine, resolveResult, offset, length);
   }
 
@@ -278,7 +277,7 @@ abstract class InlineLocalRefactoring implements Refactoring {
    */
   factory InlineLocalRefactoring(
       SearchEngine searchEngine, ResolvedUnitResult resolveResult, int offset) {
-    return new InlineLocalRefactoringImpl(searchEngine, resolveResult, offset);
+    return InlineLocalRefactoringImpl(searchEngine, resolveResult, offset);
   }
 
   /**
@@ -301,7 +300,7 @@ abstract class InlineMethodRefactoring implements Refactoring {
    */
   factory InlineMethodRefactoring(
       SearchEngine searchEngine, ResolvedUnitResult resolveResult, int offset) {
-    return new InlineMethodRefactoringImpl(searchEngine, resolveResult, offset);
+    return InlineMethodRefactoringImpl(searchEngine, resolveResult, offset);
   }
 
   /**
@@ -346,7 +345,7 @@ abstract class MoveFileRefactoring implements Refactoring {
       RefactoringWorkspace workspace,
       ResolvedUnitResult resolveResult,
       String oldFilePath) {
-    return new MoveFileRefactoringImpl(
+    return MoveFileRefactoringImpl(
         resourceProvider, workspace, resolveResult, oldFilePath);
   }
 
@@ -464,26 +463,25 @@ abstract class RenameRefactoring implements Refactoring {
       element = (element as PropertyAccessorElement).variable;
     }
     if (element.enclosingElement is CompilationUnitElement) {
-      return new RenameUnitMemberRefactoringImpl(
-          workspace, resolvedUnit, element);
+      return RenameUnitMemberRefactoringImpl(workspace, resolvedUnit, element);
     }
     if (element is ConstructorElement) {
-      return new RenameConstructorRefactoringImpl(workspace, session, element);
+      return RenameConstructorRefactoringImpl(workspace, session, element);
     }
     if (element is ImportElement) {
-      return new RenameImportRefactoringImpl(workspace, session, element);
+      return RenameImportRefactoringImpl(workspace, session, element);
     }
     if (element is LabelElement) {
-      return new RenameLabelRefactoringImpl(workspace, element);
+      return RenameLabelRefactoringImpl(workspace, element);
     }
     if (element is LibraryElement) {
-      return new RenameLibraryRefactoringImpl(workspace, element);
+      return RenameLibraryRefactoringImpl(workspace, element);
     }
     if (element is LocalElement) {
-      return new RenameLocalRefactoringImpl(workspace, element);
+      return RenameLocalRefactoringImpl(workspace, element);
     }
     if (element.enclosingElement is ClassElement) {
-      return new RenameClassMemberRefactoringImpl(workspace, session, element);
+      return RenameClassMemberRefactoringImpl(workspace, session, element);
     }
     if (element.enclosingElement is ExtensionElement) {
       return RenameExtensionMemberRefactoringImpl(workspace, session, element);
@@ -523,7 +521,7 @@ abstract class RenameRefactoring implements Refactoring {
       length = typeIdentifier.length;
     }
 
-    return new RenameRefactoringElement(element, offset, length);
+    return RenameRefactoringElement(element, offset, length);
   }
 
   /**

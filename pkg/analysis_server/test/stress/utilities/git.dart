@@ -21,7 +21,7 @@ class BlobDiff {
    * The regular expression used to identify the beginning of a hunk.
    */
   static final RegExp hunkHeaderRegExp =
-      new RegExp(r'@@ -([0-9]+)(?:,[0-9]+)? \+([0-9]+)(?:,[0-9]+)? @@');
+      RegExp(r'@@ -([0-9]+)(?:,[0-9]+)? \+([0-9]+)(?:,[0-9]+)? @@');
 
   /**
    * A list of the hunks in the diff.
@@ -56,7 +56,7 @@ class BlobDiff {
       Match match = hunkHeaderRegExp.matchAsPrefix(line);
       int srcLine = int.parse(match.group(1));
       int dstLine = int.parse(match.group(2));
-      hunks.add(new DiffHunk(srcLine, dstLine));
+      hunks.add(DiffHunk(srcLine, dstLine));
     } else if (currentHunk != null && line.startsWith('+')) {
       currentHunk.addLines.add(line.substring(1));
     } else if (currentHunk != null && line.startsWith('-')) {
@@ -225,8 +225,8 @@ class CommitDelta {
       dstPath = _makeAbsolute(input.substring(startIndex, endIndex));
     }
     // Create the record.
-    diffRecords.add(
-        new DiffRecord(repository, srcSha, dstSha, status, srcPath, dstPath));
+    diffRecords
+        .add(DiffRecord(repository, srcSha, dstSha, status, srcPath, dstPath));
     return endIndex + 1;
   }
 }
@@ -425,7 +425,7 @@ class GitRepository {
     ProcessResult result = _run(['diff', '-U0', srcBlob, dstBlob]);
     List<String> diffResults =
         LineSplitter.split(result.stdout as String).toList();
-    return new BlobDiff._(diffResults);
+    return BlobDiff._(diffResults);
   }
 
   /**
@@ -445,7 +445,7 @@ class GitRepository {
       srcCommit,
       dstCommit
     ]);
-    return new CommitDelta._(this, result.stdout as String);
+    return CommitDelta._(this, result.stdout as String);
   }
 
   /**
@@ -456,7 +456,7 @@ class GitRepository {
     ProcessResult result = _run(['rev-list', '--first-parent', 'HEAD']);
     List<String> commitIds =
         LineSplitter.split(result.stdout as String).toList();
-    return new LinearCommitHistory(this, commitIds);
+    return LinearCommitHistory(this, commitIds);
   }
 
   /**
@@ -496,7 +496,7 @@ class LinearCommitHistory {
    * Return an iterator that can be used to iterate over this commit history.
    */
   LinearCommitHistoryIterator iterator() {
-    return new LinearCommitHistoryIterator(this);
+    return LinearCommitHistoryIterator(this);
   }
 }
 

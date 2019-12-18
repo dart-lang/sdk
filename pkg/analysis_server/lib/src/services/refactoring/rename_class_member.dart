@@ -32,7 +32,7 @@ Future<RefactoringStatus> validateCreateMethod(
     AnalysisSessionHelper sessionHelper,
     ClassElement classElement,
     String name) {
-  return new _ClassMemberValidator.forCreate(
+  return _ClassMemberValidator.forCreate(
           searchEngine, sessionHelper, classElement, name)
       .validate();
 }
@@ -63,7 +63,7 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
 
   @override
   Future<RefactoringStatus> checkFinalConditions() {
-    _validator = new _ClassMemberValidator.forRename(
+    _validator = _ClassMemberValidator.forRename(
         searchEngine, sessionHelper, element, newName);
     return _validator.validate();
   }
@@ -76,7 +76,7 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
     if (element is MethodElement && (element as MethodElement).isOperator) {
       result.addFatalError('Cannot rename operator.');
     }
-    return new Future<RefactoringStatus>.value(result);
+    return Future<RefactoringStatus>.value(result);
   }
 
   @override
@@ -93,7 +93,7 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
 
   @override
   Future<void> fillChange() async {
-    var processor = new RenameProcessor(workspace, change, newName);
+    var processor = RenameProcessor(workspace, change, newName);
     // update declarations
     for (Element renameElement in _validator.elements) {
       if (renameElement.isSynthetic && renameElement is FieldElement) {
@@ -146,8 +146,8 @@ class _ClassMemberValidator {
   final String name;
   final bool isRename;
 
-  final RefactoringStatus result = new RefactoringStatus();
-  Set<Element> elements = new Set<Element>();
+  final RefactoringStatus result = RefactoringStatus();
+  Set<Element> elements = Set<Element>();
   List<SearchMatch> references = <SearchMatch>[];
 
   _ClassMemberValidator.forCreate(
@@ -269,7 +269,7 @@ class _ClassMemberValidator {
         var result = await sessionHelper.getResolvedUnitByElement(element);
         var unit = result.unit;
 
-        var collector = new _LocalElementsCollector(name);
+        var collector = _LocalElementsCollector(name);
         unit.accept(collector);
         localElements = collector.elements;
         localElementMap[unitElement] = localElements;
@@ -291,7 +291,7 @@ class _ClassMemberValidator {
         SourceRange elementRange = visibleRangeMap[localElement];
         if (elementRange != null &&
             elementRange.intersects(match.sourceRange)) {
-          return new _MatchShadowedByLocal(match, localElement);
+          return _MatchShadowedByLocal(match, localElement);
         }
       }
     }
@@ -307,7 +307,7 @@ class _ClassMemberValidator {
     if (element is ClassMemberElement) {
       elements = await getHierarchyMembers(searchEngine, element);
     } else {
-      elements = new Set.from([element]);
+      elements = Set.from([element]);
     }
   }
 
@@ -318,7 +318,7 @@ class _ClassMemberValidator {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     if (!isRename) {
-      return new Future.value();
+      return Future.value();
     }
     await _prepareElements();
     await Future.forEach(elements, (Element element) async {

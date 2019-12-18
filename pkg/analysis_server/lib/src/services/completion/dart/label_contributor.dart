@@ -34,7 +34,7 @@ class LabelContributor extends DartCompletionContributor {
     if (!optype.isPrefixed) {
       if (optype.includeStatementLabelSuggestions ||
           optype.includeCaseLabelSuggestions) {
-        new _LabelVisitor(request, optype.includeStatementLabelSuggestions,
+        _LabelVisitor(request, optype.includeStatementLabelSuggestions,
                 optype.includeCaseLabelSuggestions, suggestions)
             .visit(request.target.containingNode);
       }
@@ -151,7 +151,7 @@ class _LabelVisitor extends LocalDeclarationVisitor {
     if (id != null) {
       String completion = id.name;
       if (completion != null && completion.isNotEmpty && completion != '_') {
-        CompletionSuggestion suggestion = new CompletionSuggestion(
+        CompletionSuggestion suggestion = CompletionSuggestion(
             CompletionSuggestionKind.IDENTIFIER,
             DART_RELEVANCE_DEFAULT,
             completion,

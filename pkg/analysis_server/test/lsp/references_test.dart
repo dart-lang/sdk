@@ -54,11 +54,11 @@ class ReferencesTest extends AbstractLspAnalysisServerTest {
     expect(res, hasLength(2));
     expect(
         res,
-        contains(new Location(
-            mainFileUri.toString(), rangeFromMarkers(mainContents))));
+        contains(
+            Location(mainFileUri.toString(), rangeFromMarkers(mainContents))));
     expect(
         res,
-        contains(new Location(referencedFileUri.toString(),
+        contains(Location(referencedFileUri.toString(),
             rangeFromMarkers(referencedContents))));
   }
 
@@ -122,7 +122,7 @@ class ReferencesTest extends AbstractLspAnalysisServerTest {
     expect(
       res,
       contains(
-        new Location(mainFileUri.toString(), rangeFromMarkers(contents)),
+        Location(mainFileUri.toString(), rangeFromMarkers(contents)),
       ),
     );
   }
@@ -142,7 +142,7 @@ class ReferencesTest extends AbstractLspAnalysisServerTest {
     expect(
       res,
       contains(
-        new Location(mainFileUri.toString(), rangeFromMarkers(contents)),
+        Location(mainFileUri.toString(), rangeFromMarkers(contents)),
       ),
     );
   }

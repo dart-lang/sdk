@@ -36,7 +36,7 @@ class UriContributor extends DartCompletionContributor {
       DartCompletionRequest request) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    builder = new _UriSuggestionBuilder(request);
+    builder = _UriSuggestionBuilder(request);
     request.target.containingNode.accept(builder);
     return builder.suggestions;
   }
@@ -241,7 +241,7 @@ class _UriSuggestionBuilder extends SimpleAstVisitor {
 
   void _addSuggestion(String completion,
       {int relevance = DART_RELEVANCE_DEFAULT}) {
-    suggestions.add(new CompletionSuggestion(CompletionSuggestionKind.IMPORT,
+    suggestions.add(CompletionSuggestion(CompletionSuggestionKind.IMPORT,
         relevance, completion, completion.length, 0, false, false));
   }
 

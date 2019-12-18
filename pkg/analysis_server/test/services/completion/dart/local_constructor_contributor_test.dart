@@ -52,7 +52,7 @@ class LocalConstructorContributorTest extends DartCompletionContributorTest {
 
   @override
   DartCompletionContributor createContributor() {
-    return new LocalConstructorContributor();
+    return LocalConstructorContributor();
   }
 
   /// Sanity check.  Permutations tested in local_ref_contributor.

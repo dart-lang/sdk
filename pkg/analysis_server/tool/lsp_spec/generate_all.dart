@@ -24,9 +24,9 @@ main(List<String> arguments) async {
 
   final String script = Platform.script.toFilePath();
   // 3x parent = file -> lsp_spec -> tool -> analysis_server.
-  final String packageFolder = new File(script).parent.parent.parent.path;
+  final String packageFolder = File(script).parent.parent.parent.path;
   final String outFolder = path.join(packageFolder, 'lib', 'lsp_protocol');
-  new Directory(outFolder).createSync();
+  Directory(outFolder).createSync();
 
   // Collect definitions for types in the spec and our custom extensions.
   final specTypes = await getSpecClasses(args);
@@ -42,9 +42,9 @@ main(List<String> arguments) async {
   final String specTypesOutput = generateDartForTypes(specTypes);
   final String customTypesOutput = generateDartForTypes(customTypes);
 
-  new File(path.join(outFolder, 'protocol_generated.dart')).writeAsStringSync(
+  File(path.join(outFolder, 'protocol_generated.dart')).writeAsStringSync(
       generatedFileHeader(2018, importCustom: true) + specTypesOutput);
-  new File(path.join(outFolder, 'protocol_custom_generated.dart'))
+  File(path.join(outFolder, 'protocol_custom_generated.dart'))
       .writeAsStringSync(generatedFileHeader(2019) + customTypesOutput);
 }
 
@@ -52,7 +52,7 @@ const argDownload = 'download';
 
 const argHelp = 'help';
 
-final argParser = new ArgParser()
+final argParser = ArgParser()
   ..addFlag(argHelp, hide: true)
   ..addFlag(argDownload,
       negatable: false,
@@ -74,7 +74,7 @@ final Uri specUri = Uri.parse(
 /// Pattern to extract inline types from the `result: {xx, yy }` notes in the spec.
 /// Doesn't parse past full stops as some of these have english sentences tagged on
 /// the end that we don't want to parse.
-final _resultsInlineTypesPattern = new RegExp(r'''\* result:[^\.]*({.*})''');
+final _resultsInlineTypesPattern = RegExp(r'''\* result:[^\.]*({.*})''');
 
 Future<void> downloadSpec() async {
   final specResp = await http.get(specUri);
@@ -92,33 +92,32 @@ code, run the same script with an argument of "--download".''',
     licenseResp.body,
     specResp.body
   ];
-  return new File(localSpecPath).writeAsString(text.join('\n\n---\n\n'));
+  return File(localSpecPath).writeAsString(text.join('\n\n---\n\n'));
 }
 
 Namespace extractMethodsEnum(String spec) {
   Const toConstant(String value) {
-    final comment = new Comment(
-        new Token(TokenType.COMMENT, '''Constant for the '$value' method.'''));
+    final comment = Comment(
+        Token(TokenType.COMMENT, '''Constant for the '$value' method.'''));
 
     // Generate a safe name for the member from the string. Those that start with
     // $/ will have the prefix removed and all slashes should be replaced with
     // underscores.
     final safeMemberName = value.replaceAll(r'$/', '').replaceAll('/', '_');
 
-    return new Const(
+    return Const(
       comment,
-      new Token.identifier(safeMemberName),
-      new Type.identifier('string'),
-      new Token(TokenType.STRING, "'$value'"),
+      Token.identifier(safeMemberName),
+      Type.identifier('string'),
+      Token(TokenType.STRING, "'$value'"),
     );
   }
 
-  final comment = new Comment(new Token(TokenType.COMMENT,
+  final comment = Comment(Token(TokenType.COMMENT,
       'Valid LSP methods known at the time of code generation from the spec.'));
   final methodConstants = extractMethodNames(spec).map(toConstant).toList();
 
-  return new Namespace(
-      comment, new Token.identifier('Method'), methodConstants);
+  return Namespace(comment, Token.identifier('Method'), methodConstants);
 }
 
 /// Extract inline types found directly in the `results:` sections of the spec
@@ -141,7 +140,7 @@ List<AstNode> extractResultsInlineTypes(String spec) {
     // Create a new name based on the fields.
     var newName = interface.members.map((m) => capitalize(m.name)).join('And');
 
-    return new InlineInterface(newName, interface.members);
+    return InlineInterface(newName, interface.members);
   }
 
   return _resultsInlineTypesPattern
@@ -183,7 +182,7 @@ const jsonEncoder = JsonEncoder.withIndent('    ');
 
 List<AstNode> getCustomClasses() {
   interface(String name, List<Member> fields) {
-    return new Interface(null, Token.identifier(name), [], [], fields);
+    return Interface(null, Token.identifier(name), [], [], fields);
   }
 
   field(String name,
@@ -191,7 +190,7 @@ List<AstNode> getCustomClasses() {
     var fieldType =
         array ? ArrayType(Type.identifier(type)) : Type.identifier(type);
 
-    return new Field(
+    return Field(
         null, Token.identifier(name), fieldType, canBeNull, canBeUndefined);
   }
 
@@ -281,7 +280,7 @@ Future<List<AstNode>> getSpecClasses(ArgResults args) async {
   return types;
 }
 
-Future<String> readSpec() => new File(localSpecPath).readAsString();
+Future<String> readSpec() => File(localSpecPath).readAsString();
 
 /// Returns whether a script block should be parsed or not.
 bool shouldIncludeScriptBlock(String input) {

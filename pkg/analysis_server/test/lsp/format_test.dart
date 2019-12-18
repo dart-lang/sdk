@@ -77,7 +77,7 @@ class FormatTest extends AbstractLspAnalysisServerTest {
 
     await expectLater(
       formatDocument(
-          new Uri.file(join(projectFolderPath, 'missing.dart')).toString()),
+          Uri.file(join(projectFolderPath, 'missing.dart')).toString()),
       throwsA(isResponseError(ServerErrorCodes.InvalidFilePath)),
     );
   }

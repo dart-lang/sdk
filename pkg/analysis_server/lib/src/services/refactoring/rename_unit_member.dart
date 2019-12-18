@@ -25,7 +25,7 @@ import 'package:analyzer/src/generated/java_core.dart';
  */
 Future<RefactoringStatus> validateCreateFunction(
     SearchEngine searchEngine, LibraryElement library, String name) {
-  return new _RenameUnitMemberValidator.forCreate(
+  return _RenameUnitMemberValidator.forCreate(
           searchEngine, library, ElementKind.FUNCTION, name)
       .validate();
 }
@@ -36,7 +36,7 @@ Future<RefactoringStatus> validateCreateFunction(
  */
 Future<RefactoringStatus> validateRenameTopLevel(
     SearchEngine searchEngine, Element element, String name) {
-  return new _RenameUnitMemberValidator.forRename(searchEngine, element, name)
+  return _RenameUnitMemberValidator.forRename(searchEngine, element, name)
       .validate();
 }
 
@@ -130,7 +130,7 @@ class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
     }
 
     // Rename each element and references to it.
-    var processor = new RenameProcessor(workspace, change, newName);
+    var processor = RenameProcessor(workspace, change, newName);
     for (var element in elements) {
       await processor.renameElement(element);
     }
@@ -138,7 +138,7 @@ class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
     // If a StatefulWidget is being renamed, rename also its State.
     if (_flutterWidgetState != null) {
       _updateFlutterWidgetStateName();
-      await new RenameProcessor(
+      await RenameProcessor(
         workspace,
         change,
         _flutterWidgetStateNewName,
@@ -179,7 +179,7 @@ class _RenameUnitMemberValidator {
   final bool isRename;
   List<SearchMatch> references = <SearchMatch>[];
 
-  final RefactoringStatus result = new RefactoringStatus();
+  final RefactoringStatus result = RefactoringStatus();
 
   _RenameUnitMemberValidator.forCreate(
       this.searchEngine, this.library, this.elementKind, this.name)

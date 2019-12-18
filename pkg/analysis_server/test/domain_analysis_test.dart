@@ -33,14 +33,14 @@ main() {
 @reflectiveTest
 class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
   Future outOfRangeTest(SourceEdit edit) async {
-    AnalysisTestHelper helper = new AnalysisTestHelper();
+    AnalysisTestHelper helper = AnalysisTestHelper();
     helper.createSingleFileProject('library A;');
     await helper.onAnalysisComplete;
-    helper.sendContentChange(new AddContentOverlay('library B;'));
+    helper.sendContentChange(AddContentOverlay('library B;'));
     await helper.onAnalysisComplete;
-    ChangeContentOverlay contentChange = new ChangeContentOverlay([edit]);
+    ChangeContentOverlay contentChange = ChangeContentOverlay([edit]);
     Request request =
-        new AnalysisUpdateContentParams({helper.testFile: contentChange})
+        AnalysisUpdateContentParams({helper.testFile: contentChange})
             .toRequest('0');
     Response response = helper.handler.handleRequest(request);
     expect(response,
@@ -106,7 +106,7 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
   }
 
   test_setPriorityFiles_invalid() {
-    var request = new AnalysisSetPriorityFilesParams(
+    var request = AnalysisSetPriorityFilesParams(
       [convertPath('/project/lib.dart')],
     ).toRequest('0');
     var response = handler.handleRequest(request);
@@ -124,12 +124,12 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
     newFile(cPath, content: 'library c;');
 
     var setRootsRequest =
-        new AnalysisSetAnalysisRootsParams([p1, p2], []).toRequest('0');
+        AnalysisSetAnalysisRootsParams([p1, p2], []).toRequest('0');
     var setRootsResponse = handler.handleRequest(setRootsRequest);
     expect(setRootsResponse, isResponseSuccess('0'));
 
     void setPriorityFiles(List<String> fileList) {
-      var request = new AnalysisSetPriorityFilesParams(fileList).toRequest('0');
+      var request = AnalysisSetPriorityFilesParams(fileList).toRequest('0');
       var response = handler.handleRequest(request);
       expect(response, isResponseSuccess('0'));
       // TODO(brianwilkerson) Enable the line below after getPriorityFiles
@@ -143,10 +143,10 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
   }
 
   test_updateContent_badType() async {
-    AnalysisTestHelper helper = new AnalysisTestHelper();
+    AnalysisTestHelper helper = AnalysisTestHelper();
     helper.createSingleFileProject('// empty');
     await helper.onAnalysisComplete;
-    Request request = new Request('0', ANALYSIS_REQUEST_UPDATE_CONTENT, {
+    Request request = Request('0', ANALYSIS_REQUEST_UPDATE_CONTENT, {
       ANALYSIS_REQUEST_UPDATE_CONTENT_FILES: {
         helper.testFile: {
           'type': 'foo',
@@ -158,11 +158,11 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
   }
 
   test_updateContent_changeOnDisk_duringOverride() async {
-    AnalysisTestHelper helper = new AnalysisTestHelper();
+    AnalysisTestHelper helper = AnalysisTestHelper();
     helper.createSingleFileProject('library A;');
     await helper.onAnalysisComplete;
     // update code
-    helper.sendContentChange(new AddContentOverlay('library B;'));
+    helper.sendContentChange(AddContentOverlay('library B;'));
     // There should be no errors
     await helper.onAnalysisComplete;
     expect(helper.getTestErrors(), hasLength(0));
@@ -173,14 +173,14 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
     expect(helper.getTestErrors(), hasLength(0));
     // Send a content change with a null content param--file should be
     // reread from disk.
-    helper.sendContentChange(new RemoveContentOverlay());
+    helper.sendContentChange(RemoveContentOverlay());
     // There should be errors now.
     await helper.onAnalysisComplete;
     expect(helper.getTestErrors(), hasLength(1));
   }
 
   test_updateContent_changeOnDisk_normal() async {
-    AnalysisTestHelper helper = new AnalysisTestHelper();
+    AnalysisTestHelper helper = AnalysisTestHelper();
     helper.createSingleFileProject('library A;');
     await helper.onAnalysisComplete;
     // There should be no errors
@@ -194,14 +194,14 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
   }
 
   test_updateContent_fullContent() async {
-    AnalysisTestHelper helper = new AnalysisTestHelper();
+    AnalysisTestHelper helper = AnalysisTestHelper();
     helper.createSingleFileProject('// empty');
     await helper.onAnalysisComplete;
     // no errors initially
     List<AnalysisError> errors = helper.getTestErrors();
     expect(errors, isEmpty);
     // update code
-    helper.sendContentChange(new AddContentOverlay('library lib'));
+    helper.sendContentChange(AddContentOverlay('library lib'));
     // wait, there is an error
     await helper.onAnalysisComplete;
     errors = helper.getTestErrors();
@@ -209,7 +209,7 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
   }
 
   test_updateContent_incremental() async {
-    AnalysisTestHelper helper = new AnalysisTestHelper();
+    AnalysisTestHelper helper = AnalysisTestHelper();
     String initialContent = 'library A;';
     helper.createSingleFileProject(initialContent);
     await helper.onAnalysisComplete;
@@ -217,10 +217,10 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
     List<AnalysisError> errors = helper.getTestErrors();
     expect(errors, isEmpty);
     // Add the file to the cache
-    helper.sendContentChange(new AddContentOverlay(initialContent));
+    helper.sendContentChange(AddContentOverlay(initialContent));
     // update code
-    helper.sendContentChange(new ChangeContentOverlay(
-        [new SourceEdit('library '.length, 'A;'.length, 'lib')]));
+    helper.sendContentChange(ChangeContentOverlay(
+        [SourceEdit('library '.length, 'A;'.length, 'lib')]));
     // wait, there is an error
     await helper.onAnalysisComplete;
     errors = helper.getTestErrors();
@@ -228,19 +228,19 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
   }
 
   test_updateContent_outOfRange_beyondEnd() {
-    return outOfRangeTest(new SourceEdit(6, 6, 'foo'));
+    return outOfRangeTest(SourceEdit(6, 6, 'foo'));
   }
 
   test_updateContent_outOfRange_negativeLength() {
-    return outOfRangeTest(new SourceEdit(3, -1, 'foo'));
+    return outOfRangeTest(SourceEdit(3, -1, 'foo'));
   }
 
   test_updateContent_outOfRange_negativeOffset() {
-    return outOfRangeTest(new SourceEdit(-1, 3, 'foo'));
+    return outOfRangeTest(SourceEdit(-1, 3, 'foo'));
   }
 
   test_updateOptions_invalid() {
-    var request = new Request('0', ANALYSIS_REQUEST_UPDATE_OPTIONS, {
+    var request = Request('0', ANALYSIS_REQUEST_UPDATE_OPTIONS, {
       ANALYSIS_REQUEST_UPDATE_OPTIONS_OPTIONS: {'not-an-option': true}
     });
     var response = handler.handleRequest(request);
@@ -250,7 +250,7 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
 
   test_updateOptions_null() {
     // null is allowed as a synonym for {}.
-    var request = new Request('0', ANALYSIS_REQUEST_UPDATE_OPTIONS,
+    var request = Request('0', ANALYSIS_REQUEST_UPDATE_OPTIONS,
         {ANALYSIS_REQUEST_UPDATE_OPTIONS_OPTIONS: null});
     var response = handler.handleRequest(request);
     expect(response, isResponseSuccess('0'));
@@ -258,7 +258,7 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
 
   Response testSetAnalysisRoots(List<String> included, List<String> excluded) {
     Request request =
-        new AnalysisSetAnalysisRootsParams(included, excluded).toRequest('0');
+        AnalysisSetAnalysisRootsParams(included, excluded).toRequest('0');
     return handler.handleRequest(request);
   }
 
@@ -270,7 +270,7 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
 
     await server.onAnalysisComplete;
 
-    var request = new AnalysisGetReachableSourcesParams('/does/not/exist.dart')
+    var request = AnalysisGetReachableSourcesParams('/does/not/exist.dart')
         .toRequest('0');
     var response = handler.handleRequest(request);
     expect(response.error, isNotNull);
@@ -288,7 +288,7 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
 
     await server.onAnalysisComplete;
 
-    var request = new AnalysisGetReachableSourcesParams(fileA).toRequest('0');
+    var request = AnalysisGetReachableSourcesParams(fileA).toRequest('0');
     var response = handler.handleRequest(request);
 
     Map json = response.toJson()[Response.RESULT];
@@ -307,7 +307,7 @@ class AnalysisDomainTest extends AbstractAnalysisTest {
 
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_ERRORS) {
-      var decoded = new AnalysisErrorsParams.fromNotification(notification);
+      var decoded = AnalysisErrorsParams.fromNotification(notification);
       filesErrors[decoded.file] = decoded.errors;
     }
   }
@@ -356,32 +356,30 @@ class AnalysisTestHelper with ResourceProviderMixin {
   AnalysisTestHelper() {
     projectPath = convertPath('/project');
     testFile = convertPath('/project/bin/test.dart');
-    serverChannel = new MockServerChannel();
+    serverChannel = MockServerChannel();
     // Create an SDK in the mock file system.
-    new MockSdk(resourceProvider: resourceProvider);
-    server = new AnalysisServer(
+    MockSdk(resourceProvider: resourceProvider);
+    server = AnalysisServer(
         serverChannel,
         resourceProvider,
-        new AnalysisServerOptions(),
-        new DartSdkManager(convertPath('/sdk'), false),
+        AnalysisServerOptions(),
+        DartSdkManager(convertPath('/sdk'), false),
         InstrumentationService.NULL_SERVICE);
-    handler = new AnalysisDomainHandler(server);
+    handler = AnalysisDomainHandler(server);
     // listen for notifications
     Stream<Notification> notificationStream =
         serverChannel.notificationController.stream;
     notificationStream.listen((Notification notification) {
       if (notification.event == ANALYSIS_NOTIFICATION_ERRORS) {
-        var decoded = new AnalysisErrorsParams.fromNotification(notification);
+        var decoded = AnalysisErrorsParams.fromNotification(notification);
         filesErrors[decoded.file] = decoded.errors;
       }
       if (notification.event == ANALYSIS_NOTIFICATION_HIGHLIGHTS) {
-        var params =
-            new AnalysisHighlightsParams.fromNotification(notification);
+        var params = AnalysisHighlightsParams.fromNotification(notification);
         filesHighlights[params.file] = params.regions;
       }
       if (notification.event == ANALYSIS_NOTIFICATION_NAVIGATION) {
-        var params =
-            new AnalysisNavigationParams.fromNotification(notification);
+        var params = AnalysisNavigationParams.fromNotification(notification);
         filesNavigation[params.file] = params.regions;
       }
     });
@@ -403,8 +401,8 @@ class AnalysisTestHelper with ResourceProviderMixin {
     }
     files.add(file);
     // set subscriptions
-    Request request = new AnalysisSetSubscriptionsParams(analysisSubscriptions)
-        .toRequest('0');
+    Request request =
+        AnalysisSetSubscriptionsParams(analysisSubscriptions).toRequest('0');
     handleSuccessfulRequest(request);
   }
 
@@ -422,7 +420,7 @@ class AnalysisTestHelper with ResourceProviderMixin {
   void createEmptyProject() {
     newFolder(projectPath);
     Request request =
-        new AnalysisSetAnalysisRootsParams([projectPath], []).toRequest('0');
+        AnalysisSetAnalysisRootsParams([projectPath], []).toRequest('0');
     handleSuccessfulRequest(request);
   }
 
@@ -435,7 +433,7 @@ class AnalysisTestHelper with ResourceProviderMixin {
     newFolder(projectPath);
     newFile(testFile, content: testCode);
     Request request =
-        new AnalysisSetAnalysisRootsParams([projectPath], []).toRequest('0');
+        AnalysisSetAnalysisRootsParams([projectPath], []).toRequest('0');
     handleSuccessfulRequest(request);
   }
 
@@ -521,8 +519,8 @@ class AnalysisTestHelper with ResourceProviderMixin {
    * Send an `updateContent` request for [testFile].
    */
   void sendContentChange(dynamic contentChange) {
-    Request request = new AnalysisUpdateContentParams({testFile: contentChange})
-        .toRequest('0');
+    Request request =
+        AnalysisUpdateContentParams({testFile: contentChange}).toRequest('0');
     handleSuccessfulRequest(request);
   }
 
@@ -545,11 +543,11 @@ class AnalysisTestHelper with ResourceProviderMixin {
 class SetSubscriptionsTest extends AbstractAnalysisTest {
   Map<String, List<HighlightRegion>> filesHighlights = {};
 
-  Completer _resultsAvailable = new Completer();
+  Completer _resultsAvailable = Completer();
 
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_HIGHLIGHTS) {
-      var params = new AnalysisHighlightsParams.fromNotification(notification);
+      var params = AnalysisHighlightsParams.fromNotification(notification);
       filesHighlights[params.file] = params.regions;
       _resultsAvailable.complete(null);
     }
@@ -622,7 +620,7 @@ main() {
     // add 'pkgA' and 'pkgB' as projects
     newFolder(projectPath);
     handleSuccessfulRequest(
-        new AnalysisSetAnalysisRootsParams([pkgA, pkgB], []).toRequest('0'));
+        AnalysisSetAnalysisRootsParams([pkgA, pkgB], []).toRequest('0'));
     // wait for analysis, no results initially
     await waitForTasksFinished();
     expect(filesHighlights[pkgFileA], isNull);

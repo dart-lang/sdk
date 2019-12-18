@@ -37,14 +37,14 @@ class WorkspaceSymbolHandler
 
     final clientSupportedSymbolKinds =
         symbolCapabilities?.symbolKind?.valueSet != null
-            ? new HashSet<SymbolKind>.of(symbolCapabilities.symbolKind.valueSet)
+            ? HashSet<SymbolKind>.of(symbolCapabilities.symbolKind.valueSet)
             : defaultSupportedSymbolKinds;
 
     // Convert the string input into a case-insensitive regex that has wildcards
     // between every character and at start/end to allow for fuzzy matching.
     final fuzzyQuery = query.split('').map(RegExp.escape).join('.*');
     final partialFuzzyQuery = '.*$fuzzyQuery.*';
-    final regex = new RegExp(partialFuzzyQuery, caseSensitive: false);
+    final regex = RegExp(partialFuzzyQuery, caseSensitive: false);
 
     // Cap the number of results we'll return because short queries may match
     // huge numbers on large projects.
@@ -90,12 +90,12 @@ class WorkspaceSymbolHandler
       declaration.codeOffset,
       declaration.codeLength,
     );
-    final location = new Location(
+    final location = Location(
       Uri.file(filePath).toString(),
       range,
     );
 
-    return new SymbolInformation(
+    return SymbolInformation(
         declaration.name,
         kind,
         null, // We don't have easy access to isDeprecated here.

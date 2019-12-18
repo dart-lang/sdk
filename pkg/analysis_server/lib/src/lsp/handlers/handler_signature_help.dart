@@ -32,7 +32,7 @@ class SignatureHelpHandler
     final offset = await unit.mapResult((unit) => toOffset(unit.lineInfo, pos));
 
     return offset.mapResult((offset) {
-      final computer = new DartUnitSignatureComputer(
+      final computer = DartUnitSignatureComputer(
           server.getDartdocDirectiveInfoFor(unit.result),
           unit.result.unit,
           offset);

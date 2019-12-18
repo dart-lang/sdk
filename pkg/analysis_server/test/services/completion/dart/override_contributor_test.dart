@@ -18,7 +18,7 @@ main() {
 class OverrideContributorTest extends DartCompletionContributorTest {
   @override
   DartCompletionContributor createContributor() {
-    return new OverrideContributor();
+    return OverrideContributor();
   }
 
   test_alreadyOverridden() async {

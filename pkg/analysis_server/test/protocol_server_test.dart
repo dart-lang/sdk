@@ -34,7 +34,7 @@ main() {
 
 @reflectiveTest
 class AnalysisErrorTest {
-  MockSource source = new MockSource();
+  MockSource source = MockSource();
   MockAnalysisError engineError;
   ResolvedUnitResult result;
 
@@ -42,12 +42,12 @@ class AnalysisErrorTest {
     // prepare Source
     source.fullName = 'foo.dart';
     // prepare AnalysisError
-    engineError = new MockAnalysisError(source,
+    engineError = MockAnalysisError(source,
         engine.CompileTimeErrorCode.AMBIGUOUS_EXPORT, 10, 20, 'my message');
     // prepare ResolvedUnitResult
-    engine.LineInfo lineInfo = new engine.LineInfo([0, 5, 9, 20]);
-    result = new engine.ResolvedUnitResultImpl(null, 'foo.dart', null, true,
-        null, lineInfo, false, null, [engineError]);
+    engine.LineInfo lineInfo = engine.LineInfo([0, 5, 9, 20]);
+    result = engine.ResolvedUnitResultImpl(null, 'foo.dart', null, true, null,
+        lineInfo, false, null, [engineError]);
   }
 
   void tearDown() {
@@ -58,12 +58,12 @@ class AnalysisErrorTest {
   void test_fromEngine_hasContextMessage() {
     engineError.contextMessages.add(engine.DiagnosticMessageImpl(
         filePath: 'bar.dart', offset: 30, length: 5, message: 'context'));
-    MockAnalysisSession session = new MockAnalysisSession();
-    session.addFileResult(new engine.FileResultImpl(
-        session, 'bar.dart', null, new engine.LineInfo([0, 5, 9, 20]), false));
+    MockAnalysisSession session = MockAnalysisSession();
+    session.addFileResult(engine.FileResultImpl(
+        session, 'bar.dart', null, engine.LineInfo([0, 5, 9, 20]), false));
     AnalysisError error = newAnalysisError_fromEngine(
-        new engine.ResolvedUnitResultImpl(session, 'foo.dart', null, true, null,
-            new engine.LineInfo([0, 5, 9, 20]), false, null, [engineError]),
+        engine.ResolvedUnitResultImpl(session, 'foo.dart', null, true, null,
+            engine.LineInfo([0, 5, 9, 20]), false, null, [engineError]),
         engineError);
     expect(error.toJson(), {
       'severity': 'ERROR',
@@ -114,9 +114,9 @@ class AnalysisErrorTest {
   }
 
   void test_fromEngine_hasUrl() {
-    engineError = new MockAnalysisError(
+    engineError = MockAnalysisError(
         source,
-        new MockErrorCode(url: 'http://codes.dartlang.org/TEST_ERROR'),
+        MockErrorCode(url: 'http://codes.dartlang.org/TEST_ERROR'),
         10,
         20,
         'my message');
@@ -139,9 +139,9 @@ class AnalysisErrorTest {
   }
 
   void test_fromEngine_lint() {
-    engineError = new MockAnalysisError(
+    engineError = MockAnalysisError(
         source,
-        new LintCode('my_lint', 'my message', correction: 'correction'),
+        LintCode('my_lint', 'my message', correction: 'correction'),
         10,
         20,
         'my message');
@@ -185,8 +185,8 @@ class AnalysisErrorTest {
   void test_fromEngine_noLineInfo() {
     engineError.correction = null;
     AnalysisError error = newAnalysisError_fromEngine(
-        new engine.ResolvedUnitResultImpl(null, 'foo.dart', null, true, null,
-            null, false, null, [engineError]),
+        engine.ResolvedUnitResultImpl(null, 'foo.dart', null, true, null, null,
+            false, null, [engineError]),
         engineError);
     expect(error.toJson(), {
       SEVERITY: 'ERROR',
@@ -208,20 +208,20 @@ class AnalysisErrorTest {
 @reflectiveTest
 class EnumTest {
   void test_AnalysisErrorSeverity() {
-    new EnumTester<engine.ErrorSeverity, AnalysisErrorSeverity>().run(
+    EnumTester<engine.ErrorSeverity, AnalysisErrorSeverity>().run(
         (engine.ErrorSeverity engineErrorSeverity) =>
-            new AnalysisErrorSeverity(engineErrorSeverity.name),
+            AnalysisErrorSeverity(engineErrorSeverity.name),
         exceptions: {engine.ErrorSeverity.NONE: null});
   }
 
   void test_AnalysisErrorType() {
-    new EnumTester<engine.ErrorType, AnalysisErrorType>().run(
+    EnumTester<engine.ErrorType, AnalysisErrorType>().run(
         (engine.ErrorType engineErrorType) =>
-            new AnalysisErrorType(engineErrorType.name));
+            AnalysisErrorType(engineErrorType.name));
   }
 
   void test_ElementKind() {
-    new EnumTester<engine.ElementKind, ElementKind>()
+    EnumTester<engine.ElementKind, ElementKind>()
         .run(convertElementKind, exceptions: {
       // TODO(paulberry): do any of the exceptions below constitute bugs?
       engine.ElementKind.DYNAMIC: ElementKind.UNKNOWN,
@@ -238,7 +238,7 @@ class EnumTest {
   void test_SearchResultKind() {
     // TODO(paulberry): why does the MatchKind class exist at all?  Can't we
     // use SearchResultKind inside the analysis server?
-    new EnumTester<MatchKind, SearchResultKind>()
+    EnumTester<MatchKind, SearchResultKind>()
         .run(newSearchResultKind_fromEngine);
   }
 }
@@ -269,7 +269,7 @@ class EnumTester<EngineEnum, ApiEnum> {
       String enumName = MirrorSystem.getName(symbol);
       EngineEnum engineValue =
           engineClass.getField(symbol).reflectee as EngineEnum;
-      expect(engineValue, new TypeMatcher<EngineEnum>());
+      expect(engineValue, TypeMatcher<EngineEnum>());
       if (exceptions.containsKey(engineValue)) {
         ApiEnum expectedResult = exceptions[engineValue];
         if (expectedResult == null) {
@@ -357,7 +357,7 @@ class MockErrorCode implements engine.ErrorCode {
 
   @override
   String get correction {
-    throw new StateError('Unexpected invocation of correction');
+    throw StateError('Unexpected invocation of correction');
   }
 
   @override
@@ -368,11 +368,11 @@ class MockErrorCode implements engine.ErrorCode {
 
   @override
   String get message {
-    throw new StateError('Unexpected invocation of message');
+    throw StateError('Unexpected invocation of message');
   }
 
   @override
   String get uniqueName {
-    throw new StateError('Unexpected invocation of uniqueName');
+    throw StateError('Unexpected invocation of uniqueName');
   }
 }

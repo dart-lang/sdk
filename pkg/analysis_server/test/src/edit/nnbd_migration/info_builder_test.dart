@@ -243,8 +243,8 @@ class InfoBuilderTest extends AbstractAnalysisTest {
     // Run the migration engine.
     DartFixListener listener = DartFixListener(server);
     InstrumentationListener instrumentationListener = InstrumentationListener();
-    NullabilityMigration migration = new NullabilityMigration(
-        new NullabilityMigrationAdapter(listener),
+    NullabilityMigration migration = NullabilityMigration(
+        NullabilityMigrationAdapter(listener),
         permissive: false,
         instrumentation: instrumentationListener);
     migration.prepareInput(result);

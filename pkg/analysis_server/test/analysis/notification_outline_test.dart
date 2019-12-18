@@ -25,8 +25,8 @@ class AnalysisNotificationOutlineTest extends AbstractAnalysisTest {
   String libraryName;
   Outline outline;
 
-  Completer _outlineReceived = new Completer();
-  Completer _highlightsReceived = new Completer();
+  Completer _outlineReceived = Completer();
+  Completer _highlightsReceived = Completer();
 
   Future prepareOutline() {
     addAnalysisSubscription(AnalysisService.OUTLINE, testFile);
@@ -35,7 +35,7 @@ class AnalysisNotificationOutlineTest extends AbstractAnalysisTest {
 
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_OUTLINE) {
-      var params = new AnalysisOutlineParams.fromNotification(notification);
+      var params = AnalysisOutlineParams.fromNotification(notification);
       if (params.file == testFile) {
         fileKind = params.kind;
         libraryName = params.libraryName;
@@ -44,7 +44,7 @@ class AnalysisNotificationOutlineTest extends AbstractAnalysisTest {
       }
     }
     if (notification.event == ANALYSIS_NOTIFICATION_HIGHLIGHTS) {
-      var params = new AnalysisHighlightsParams.fromNotification(notification);
+      var params = AnalysisHighlightsParams.fromNotification(notification);
       if (params.file == testFile) {
         _highlightsReceived?.complete(null);
         _highlightsReceived = null;

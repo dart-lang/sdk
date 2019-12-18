@@ -316,7 +316,7 @@ import 'package:product2.client/entity.dart';
   }
 
   void _assertOrganize(String expectedCode, {bool removeUnused = false}) {
-    DirectiveOrganizer organizer = new DirectiveOrganizer(
+    DirectiveOrganizer organizer = DirectiveOrganizer(
         testCode, testUnit, testErrors,
         removeUnused: removeUnused);
     List<SourceEdit> edits = organizer.organize();

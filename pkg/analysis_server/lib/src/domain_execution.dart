@@ -32,7 +32,7 @@ class ExecutionDomainHandler implements RequestHandler {
   /**
    * A table mapping execution context id's to the root of the context.
    */
-  final Map<String, String> contextMap = new HashMap<String, String>();
+  final Map<String, String> contextMap = HashMap<String, String>();
 
   /**
    * Initialize a newly created handler to handle requests for the given [server].
@@ -43,20 +43,19 @@ class ExecutionDomainHandler implements RequestHandler {
    * Implement the `execution.createContext` request.
    */
   Response createContext(Request request) {
-    String file =
-        new ExecutionCreateContextParams.fromRequest(request).contextRoot;
+    String file = ExecutionCreateContextParams.fromRequest(request).contextRoot;
     String contextId = (nextContextId++).toString();
     contextMap[contextId] = file;
-    return new ExecutionCreateContextResult(contextId).toResponse(request.id);
+    return ExecutionCreateContextResult(contextId).toResponse(request.id);
   }
 
   /**
    * Implement the `execution.deleteContext` request.
    */
   Response deleteContext(Request request) {
-    String contextId = new ExecutionDeleteContextParams.fromRequest(request).id;
+    String contextId = ExecutionDeleteContextParams.fromRequest(request).id;
     contextMap.remove(contextId);
-    return new ExecutionDeleteContextResult().toResponse(request.id);
+    return ExecutionDeleteContextResult().toResponse(request.id);
   }
 
   /**
@@ -84,7 +83,7 @@ class ExecutionDomainHandler implements RequestHandler {
 //        expressions: completionResult.expressions);
     // TODO(brianwilkerson) Re-enable this functionality after implementing a
     // way of computing suggestions that is compatible with AnalysisSession.
-    var result = new ExecutionGetSuggestionsResult(
+    var result = ExecutionGetSuggestionsResult(
         suggestions: <CompletionSuggestion>[],
         expressions: <RuntimeCompletionExpression>[]);
     server.sendResponse(result.toResponse(request.id));
@@ -116,18 +115,17 @@ class ExecutionDomainHandler implements RequestHandler {
    * Implement the 'execution.mapUri' request.
    */
   Response mapUri(Request request) {
-    ExecutionMapUriParams params =
-        new ExecutionMapUriParams.fromRequest(request);
+    ExecutionMapUriParams params = ExecutionMapUriParams.fromRequest(request);
     String contextId = params.id;
     String path = contextMap[contextId];
     if (path == null) {
-      return new Response.invalidParameter(request, 'id',
+      return Response.invalidParameter(request, 'id',
           'There is no execution context with an id of $contextId');
     }
 
     AnalysisDriver driver = server.getAnalysisDriver(path);
     if (driver == null) {
-      return new Response.invalidExecutionContext(request, contextId);
+      return Response.invalidExecutionContext(request, contextId);
     }
     SourceFactory sourceFactory = driver.sourceFactory;
 
@@ -135,14 +133,14 @@ class ExecutionDomainHandler implements RequestHandler {
     String uri = params.uri;
     if (file != null) {
       if (uri != null) {
-        return new Response.invalidParameter(request, 'file',
+        return Response.invalidParameter(request, 'file',
             'Either file or uri must be provided, but not both');
       }
       Resource resource = server.resourceProvider.getResource(file);
       if (!resource.exists) {
-        return new Response.invalidParameter(request, 'file', 'Must exist');
+        return Response.invalidParameter(request, 'file', 'Must exist');
       } else if (resource is! File) {
-        return new Response.invalidParameter(
+        return Response.invalidParameter(
             request, 'file', 'Must not refer to a directory');
       }
 
@@ -152,16 +150,16 @@ class ExecutionDomainHandler implements RequestHandler {
       } else {
         uri = sourceFactory.restoreUri(source).toString();
       }
-      return new ExecutionMapUriResult(uri: uri).toResponse(request.id);
+      return ExecutionMapUriResult(uri: uri).toResponse(request.id);
     } else if (uri != null) {
       Source source = sourceFactory.forUri(uri);
       if (source == null) {
-        return new Response.invalidParameter(request, 'uri', 'Invalid URI');
+        return Response.invalidParameter(request, 'uri', 'Invalid URI');
       }
       file = source.fullName;
-      return new ExecutionMapUriResult(file: file).toResponse(request.id);
+      return ExecutionMapUriResult(file: file).toResponse(request.id);
     }
-    return new Response.invalidParameter(
+    return Response.invalidParameter(
         request, 'file', 'Either file or uri must be provided');
   }
 
@@ -170,6 +168,6 @@ class ExecutionDomainHandler implements RequestHandler {
    */
   Response setSubscriptions(Request request) {
     // Under the analysis driver, setSubscriptions() becomes a no-op.
-    return new ExecutionSetSubscriptionsResult().toResponse(request.id);
+    return ExecutionSetSubscriptionsResult().toResponse(request.id);
   }
 }

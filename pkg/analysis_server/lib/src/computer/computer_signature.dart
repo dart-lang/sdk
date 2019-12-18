@@ -20,7 +20,7 @@ class DartUnitSignatureComputer {
   final AstNode _node;
   DartUnitSignatureComputer(
       this._dartdocInfo, CompilationUnit _unit, int _offset)
-      : _node = new NodeLocator(_offset).searchWithin(_unit);
+      : _node = NodeLocator(_offset).searchWithin(_unit);
 
   bool get offsetIsValid => _node != null;
 
@@ -70,13 +70,13 @@ class DartUnitSignatureComputer {
     final parameters =
         execElement.parameters.map((p) => _convertParam(p)).toList();
 
-    return new AnalysisGetSignatureResult(name, parameters,
+    return AnalysisGetSignatureResult(name, parameters,
         dartdoc: DartUnitHoverComputer.computeDocumentation(
             _dartdocInfo, execElement));
   }
 
   ParameterInfo _convertParam(ParameterElement param) {
-    return new ParameterInfo(
+    return ParameterInfo(
         param.isOptionalPositional
             ? ParameterKind.OPTIONAL
             : param.isPositional ? ParameterKind.REQUIRED : ParameterKind.NAMED,

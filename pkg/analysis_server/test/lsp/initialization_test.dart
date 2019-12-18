@@ -41,7 +41,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
 
   test_initialize_invalidParams() async {
     final params = {'processId': 'invalid'};
-    final request = new RequestMessage(
+    final request = RequestMessage(
       Either2<num, String>.t1(1),
       Method.initialize,
       params,
@@ -168,7 +168,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
 
   test_uninitialized_dropsNotifications() async {
     final notification =
-        makeNotification(new Method.fromJson('randomNotification'), null);
+        makeNotification(Method.fromJson('randomNotification'), null);
     final nextNotification = errorNotificationsFromServer.first;
     channel.sendNotificationToServer(notification);
 
@@ -187,7 +187,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   }
 
   test_uninitialized_rejectsRequests() async {
-    final request = makeRequest(new Method.fromJson('randomRequest'), null);
+    final request = makeRequest(Method.fromJson('randomRequest'), null);
     final response = await channel.sendRequestToServer(request);
     expect(response.id, equals(request.id));
     expect(response.result, isNull);

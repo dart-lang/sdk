@@ -67,7 +67,7 @@ class CompletionRequestImpl implements CompletionRequest {
   @override
   void checkAborted() {
     if (_aborted) {
-      throw new AbortCompletion();
+      throw AbortCompletion();
     }
   }
 }

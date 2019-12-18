@@ -37,7 +37,7 @@ class SetSubscriptionsTest extends AbstractAnalysisServerIntegrationTest {
         'We need to discover the cause and re-enable it.');
 
     bool statusReceived = false;
-    Completer analysisBegun = new Completer();
+    Completer analysisBegun = Completer();
     onServerStatus.listen((_) {
       statusReceived = true;
     });

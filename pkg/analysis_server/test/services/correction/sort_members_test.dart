@@ -877,7 +877,7 @@ int c;
   }
 
   void _assertSort(String expectedCode) {
-    MemberSorter sorter = new MemberSorter(testCode, testUnit);
+    MemberSorter sorter = MemberSorter(testCode, testUnit);
     List<SourceEdit> edits = sorter.sort();
     String result = SourceEdit.applySequence(testCode, edits);
     expect(result, expectedCode);

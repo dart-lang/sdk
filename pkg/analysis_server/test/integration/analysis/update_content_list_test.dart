@@ -28,7 +28,7 @@ main() {
     writeFile(pathname, '// dummy text');
     standardAnalysisSetup();
     // Override file contents with badText.
-    sendAnalysisUpdateContent({pathname: new AddContentOverlay(badText)});
+    sendAnalysisUpdateContent({pathname: AddContentOverlay(badText)});
     return analysisFinished.then((_) {
       // The overridden contents (badText) are missing quotation marks.
       expect(currentAnalysisErrors[pathname], isNotEmpty);
@@ -39,9 +39,9 @@ main() {
       // places, and there will still be errors.
       List<SourceEdit> edits = '"'
           .allMatches(goodText)
-          .map((Match match) => new SourceEdit(match.start, 0, '"'))
+          .map((Match match) => SourceEdit(match.start, 0, '"'))
           .toList();
-      sendAnalysisUpdateContent({pathname: new ChangeContentOverlay(edits)});
+      sendAnalysisUpdateContent({pathname: ChangeContentOverlay(edits)});
       return analysisFinished;
     }).then((_) {
       // There should be no errors now, assuming that quotation marks have been

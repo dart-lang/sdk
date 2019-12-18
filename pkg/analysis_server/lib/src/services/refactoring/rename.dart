@@ -83,7 +83,7 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
 
   @override
   Future<RefactoringStatus> checkInitialConditions() {
-    RefactoringStatus result = new RefactoringStatus();
+    RefactoringStatus result = RefactoringStatus();
     if (element.source.isInSystemLibrary) {
       String message = format(
           "The {0} '{1}' is defined in the SDK, so cannot be renamed.",
@@ -98,12 +98,12 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
           getElementQualifiedName(element));
       result.addFatalError(message);
     }
-    return new Future.value(result);
+    return Future.value(result);
   }
 
   @override
   RefactoringStatus checkNewName() {
-    RefactoringStatus result = new RefactoringStatus();
+    RefactoringStatus result = RefactoringStatus();
     if (newName == oldName) {
       result.addFatalError(
           "The new name must be different than the current name.");
@@ -116,7 +116,7 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     String changeName = "$refactoringName '$oldName' to '$newName'";
-    change = new SourceChange(changeName);
+    change = SourceChange(changeName);
     await fillChange();
     return change;
   }

@@ -130,7 +130,7 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
   List<LinkedEditSuggestion> expectedSuggestions(
       LinkedEditSuggestionKind kind, List<String> values) {
     return values.map((value) {
-      return new LinkedEditSuggestion(value, kind);
+      return LinkedEditSuggestion(value, kind);
     }).toList();
   }
 
@@ -172,13 +172,13 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
   }
 
   Future<List<Assist>> _computeAssists() async {
-    var context = new DartAssistContextImpl(
+    var context = DartAssistContextImpl(
       workspace,
       testAnalysisResult,
       _offset,
       _length,
     );
-    var processor = new AssistProcessor(context);
+    var processor = AssistProcessor(context);
     return await processor.compute();
   }
 
@@ -186,7 +186,7 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
     List<Position> positions = <Position>[];
     for (String search in searchStrings) {
       int offset = _resultCode.indexOf(search);
-      positions.add(new Position(testFile, offset));
+      positions.add(Position(testFile, offset));
     }
     return positions;
   }

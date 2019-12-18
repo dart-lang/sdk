@@ -52,7 +52,7 @@ class CommandLineParser {
   /// Creates a new command line parser
   CommandLineParser()
       : _knownFlags = <String>[],
-        _parser = new ArgParser(allowTrailingOptions: true);
+        _parser = ArgParser(allowTrailingOptions: true);
 
   ArgParser get parser => _parser;
 
@@ -355,7 +355,7 @@ class Driver implements ServerStarter {
     CommandLineParser parser = _createArgParser();
     ArgResults results = parser.parse(arguments, <String, String>{});
 
-    AnalysisServerOptions analysisServerOptions = new AnalysisServerOptions();
+    AnalysisServerOptions analysisServerOptions = AnalysisServerOptions();
     analysisServerOptions.useAnalysisHighlight2 =
         results[USE_ANALYSIS_HIGHLIGHT2];
     analysisServerOptions.fileReadMode = results[FILE_READ_MODE];
@@ -417,7 +417,7 @@ class Driver implements ServerStarter {
     };
 
     final crashReportSender =
-        new CrashReportSender('Dart_analysis_server', shouldSendCallback);
+        CrashReportSender('Dart_analysis_server', shouldSendCallback);
 
     if (telemetry.SHOW_ANALYTICS_UI) {
       if (results.wasParsed(ANALYTICS_FLAG)) {
@@ -448,7 +448,7 @@ class Driver implements ServerStarter {
     }
 
     final defaultSdkPath = _getSdkPath(results);
-    final dartSdkManager = new DartSdkManager(defaultSdkPath, true);
+    final dartSdkManager = DartSdkManager(defaultSdkPath, true);
 
     // TODO(brianwilkerson) It would be nice to avoid creating an SDK that
     // cannot be re-used, but the SDK is needed to create a package map provider
@@ -462,15 +462,15 @@ class Driver implements ServerStarter {
         instrumentationService == null ? [] : [instrumentationService];
     if (logFilePath != null) {
       _rollLogFiles(logFilePath, 5);
-      allInstrumentationServices.add(InstrumentationLogAdapter(
-          new FileInstrumentationLogger(logFilePath)));
+      allInstrumentationServices.add(
+          InstrumentationLogAdapter(FileInstrumentationLogger(logFilePath)));
     }
 
     ErrorNotifier errorNotifier = ErrorNotifier();
     allInstrumentationServices
         .add(CrashReportingInstrumentation(crashReportSender));
     instrumentationService =
-        new MulticastInstrumentationService(allInstrumentationServices);
+        MulticastInstrumentationService(allInstrumentationServices);
 
     instrumentationService.logVersion(
         results[TRAIN_USING] != null
@@ -538,7 +538,7 @@ class Driver implements ServerStarter {
     //
     linter.registerLintRules();
 
-    _DiagnosticServerImpl diagnosticServer = new _DiagnosticServerImpl();
+    _DiagnosticServerImpl diagnosticServer = _DiagnosticServerImpl();
 
     // Ping analytics with our initial call.
     analytics.sendScreenView('home');
@@ -546,14 +546,14 @@ class Driver implements ServerStarter {
     //
     // Create the sockets and start listening for requests.
     //
-    final socketServer = new SocketServer(
+    final socketServer = SocketServer(
         analysisServerOptions,
         dartSdkManager,
         instrumentationService,
         requestStatistics,
         diagnosticServer,
         detachableFileSystemManager);
-    httpServer = new HttpAnalysisServer(socketServer);
+    httpServer = HttpAnalysisServer(socketServer);
 
     errorNotifier.server = socketServer.analysisServer;
 
@@ -567,7 +567,7 @@ class Driver implements ServerStarter {
           Directory.systemTemp.createTempSync('analysis_server_');
       analysisServerOptions.cacheFolder = tempDriverDir.path;
 
-      DevAnalysisServer devServer = new DevAnalysisServer(socketServer);
+      DevAnalysisServer devServer = DevAnalysisServer(socketServer);
       devServer.initServer();
 
       () async {
@@ -600,7 +600,7 @@ class Driver implements ServerStarter {
       }();
     } else {
       _captureExceptions(instrumentationService, () {
-        StdioAnalysisServer stdioServer = new StdioAnalysisServer(socketServer);
+        StdioAnalysisServer stdioServer = StdioAnalysisServer(socketServer);
         stdioServer.serveStdio().then((_) async {
           // TODO(brianwilkerson) Determine whether this await is necessary.
           await null;
@@ -662,9 +662,9 @@ class Driver implements ServerStarter {
 
     linter.registerLintRules();
 
-    _DiagnosticServerImpl diagnosticServer = new _DiagnosticServerImpl();
+    _DiagnosticServerImpl diagnosticServer = _DiagnosticServerImpl();
 
-    final socketServer = new LspSocketServer(
+    final socketServer = LspSocketServer(
       analysisServerOptions,
       diagnosticServer,
       dartSdkManager,
@@ -672,7 +672,7 @@ class Driver implements ServerStarter {
     );
     errorNotifier.server = socketServer.analysisServer;
 
-    httpServer = new HttpAnalysisServer(socketServer);
+    httpServer = HttpAnalysisServer(socketServer);
 
     diagnosticServer.httpServer = httpServer;
     if (serve_http) {
@@ -680,8 +680,7 @@ class Driver implements ServerStarter {
     }
 
     _captureExceptions(instrumentationService, () {
-      LspStdioAnalysisServer stdioServer =
-          new LspStdioAnalysisServer(socketServer);
+      LspStdioAnalysisServer stdioServer = LspStdioAnalysisServer(socketServer);
       stdioServer.serveStdio().then((_) async {
         // Only shutdown the server and exit if the server is not already
         // handling the shutdown.
@@ -715,7 +714,7 @@ class Driver implements ServerStarter {
             // reserved for communication to the client.
             print(line);
           };
-    ZoneSpecification zoneSpecification = new ZoneSpecification(
+    ZoneSpecification zoneSpecification = ZoneSpecification(
         handleUncaughtError: errorFunction, print: printFunction);
     return runZoned(callback, zoneSpecification: zoneSpecification);
   }
@@ -724,7 +723,7 @@ class Driver implements ServerStarter {
    * Create and return the parser used to parse the command-line arguments.
    */
   CommandLineParser _createArgParser() {
-    CommandLineParser parser = new CommandLineParser();
+    CommandLineParser parser = CommandLineParser();
     parser.addOption(CLIENT_ID,
         help: "an identifier used to identify the client");
     parser.addOption(CLIENT_VERSION, help: "the version of the client");
@@ -807,7 +806,7 @@ class Driver implements ServerStarter {
   DartSdk _createDefaultSdk(String defaultSdkPath, bool useSummaries) {
     PhysicalResourceProvider resourceProvider =
         PhysicalResourceProvider.INSTANCE;
-    FolderBasedDartSdk sdk = new FolderBasedDartSdk(
+    FolderBasedDartSdk sdk = FolderBasedDartSdk(
         resourceProvider, resourceProvider.getFolder(defaultSdkPath));
     sdk.useSummary = useSummaries;
     return sdk;
@@ -817,8 +816,8 @@ class Driver implements ServerStarter {
    * Constructs a uuid combining the current date and a random integer.
    */
   String _generateUuidString() {
-    int millisecondsSinceEpoch = new DateTime.now().millisecondsSinceEpoch;
-    int random = new Random().nextInt(0x3fffffff);
+    int millisecondsSinceEpoch = DateTime.now().millisecondsSinceEpoch;
+    int random = Random().nextInt(0x3fffffff);
     return '$millisecondsSinceEpoch$random';
   }
 
@@ -865,7 +864,7 @@ class Driver implements ServerStarter {
     if (instrumentationLocation == null) {
       return _generateUuidString();
     }
-    File uuidFile = new File(instrumentationLocation.getChild('uuid.txt').path);
+    File uuidFile = File(instrumentationLocation.getChild('uuid.txt').path);
     try {
       if (uuidFile.existsSync()) {
         String uuid = uuidFile.readAsStringSync();
@@ -899,7 +898,7 @@ class Driver implements ServerStarter {
     for (int i = numOld - 1; i >= 0; i--) {
       try {
         String oldPath = i == 0 ? path : '$path.$i';
-        new File(oldPath).renameSync('$path.${i + 1}');
+        File(oldPath).renameSync('$path.${i + 1}');
       } catch (e) {}
     }
   }

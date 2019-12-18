@@ -42,8 +42,8 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
 
   @override
   Future<RefactoringStatus> checkFinalConditions() {
-    RefactoringStatus result = new RefactoringStatus();
-    return new Future.value(result);
+    RefactoringStatus result = RefactoringStatus();
+    return Future.value(result);
   }
 
   @override
@@ -100,9 +100,9 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
     if (offset != null) {
       sourceRange = range.startOffsetEndOffset(offset, element.nameEnd);
     } else {
-      sourceRange = new SourceRange(element.nameEnd, 0);
+      sourceRange = SourceRange(element.nameEnd, 0);
     }
-    return new SourceReference(new SearchMatchImpl(
+    return SourceReference(SearchMatchImpl(
         element.source.fullName,
         element.library.source,
         element.source,
@@ -122,12 +122,12 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
     var result = await AnalysisSessionHelper(session)
         .getElementDeclaration(classElement);
     ClassDeclaration classNode = result.node;
-    var utils = new CorrectionUtils(result.resolvedUnit);
+    var utils = CorrectionUtils(result.resolvedUnit);
     var location = utils.prepareNewConstructorLocation(classNode);
     doSourceChange_addElementEdit(
         change,
         classElement,
-        new SourceEdit(
+        SourceEdit(
             location.offset,
             0,
             location.prefix +

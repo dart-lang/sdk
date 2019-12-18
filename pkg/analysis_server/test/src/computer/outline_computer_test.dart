@@ -34,7 +34,7 @@ class AbstractOutlineComputerTest extends AbstractContextTest {
     testCode = code;
     newFile(testPath, content: code);
     var resolveResult = await session.getResolvedUnit(testPath);
-    return new DartUnitOutlineComputer(
+    return DartUnitOutlineComputer(
       resolveResult,
       withBasicFlutter: true,
     ).compute();
@@ -120,7 +120,7 @@ MyWidget
   }
 
   static String _toText(Outline outline) {
-    var buffer = new StringBuffer();
+    var buffer = StringBuffer();
 
     void writeOutline(Outline outline, String indent) {
       buffer.write(indent);

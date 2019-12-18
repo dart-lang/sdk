@@ -31,8 +31,7 @@ class FoldingHandler
 
     return unit.mapResult((unit) {
       final lineInfo = unit.lineInfo;
-      final regions =
-          new DartUnitFoldingComputer(lineInfo, unit.unit).compute();
+      final regions = DartUnitFoldingComputer(lineInfo, unit.unit).compute();
 
       return success(
         regions.map((region) => toFoldingRange(lineInfo, region)).toList(),

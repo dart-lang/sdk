@@ -59,29 +59,29 @@ class SocketServer implements AbstractSocketServer {
    */
   void createAnalysisServer(ServerCommunicationChannel serverChannel) {
     if (analysisServer != null) {
-      RequestError error = new RequestError(
+      RequestError error = RequestError(
           RequestErrorCode.SERVER_ALREADY_STARTED, "Server already started");
-      serverChannel.sendResponse(new Response('', error: error));
+      serverChannel.sendResponse(Response('', error: error));
       serverChannel.listen((Request request) {
-        serverChannel.sendResponse(new Response(request.id, error: error));
+        serverChannel.sendResponse(Response(request.id, error: error));
       });
       return;
     }
 
     PhysicalResourceProvider resourceProvider;
     if (analysisServerOptions.fileReadMode == 'as-is') {
-      resourceProvider = new PhysicalResourceProvider(null,
+      resourceProvider = PhysicalResourceProvider(null,
           stateLocation: analysisServerOptions.cacheFolder);
     } else if (analysisServerOptions.fileReadMode == 'normalize-eol-always') {
-      resourceProvider = new PhysicalResourceProvider(
+      resourceProvider = PhysicalResourceProvider(
           PhysicalResourceProvider.NORMALIZE_EOL_ALWAYS,
           stateLocation: analysisServerOptions.cacheFolder);
     } else {
-      throw new Exception(
+      throw Exception(
           'File read mode was set to the unknown mode: $analysisServerOptions.fileReadMode');
     }
 
-    analysisServer = new AnalysisServer(
+    analysisServer = AnalysisServer(
       serverChannel,
       resourceProvider,
       analysisServerOptions,

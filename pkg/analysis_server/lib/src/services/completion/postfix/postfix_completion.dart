@@ -292,19 +292,19 @@ class PostfixCompletionKind {
  * The computer for Dart postfix completions.
  */
 class PostfixCompletionProcessor {
-  static final NO_COMPLETION = new PostfixCompletion(
-      DartPostfixCompletion.NO_TEMPLATE, new SourceChange("", edits: []));
+  static final NO_COMPLETION = PostfixCompletion(
+      DartPostfixCompletion.NO_TEMPLATE, SourceChange("", edits: []));
 
   final PostfixCompletionContext completionContext;
   final CorrectionUtils utils;
   AstNode node;
   PostfixCompletion completion;
-  SourceChange change = new SourceChange('postfix-completion');
+  SourceChange change = SourceChange('postfix-completion');
   final Map<String, LinkedEditGroup> linkedPositionGroups = {};
   Position exitPosition = null;
 
   PostfixCompletionProcessor(this.completionContext)
-      : utils = new CorrectionUtils(completionContext.resolveResult);
+      : utils = CorrectionUtils(completionContext.resolveResult);
 
   String get eol => utils.endOfLine;
 
@@ -343,7 +343,7 @@ class PostfixCompletionProcessor {
       return null;
     }
 
-    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+    DartChangeBuilder changeBuilder = DartChangeBuilder(session);
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
       builder.addReplacement(range.node(expr), (DartEditBuilder builder) {
         String newSrc = sourcer(expr);
@@ -379,7 +379,7 @@ class PostfixCompletionProcessor {
     if (stmt == null) {
       return null;
     }
-    DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+    DartChangeBuilder changeBuilder = DartChangeBuilder(session);
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
       // Embed the full line(s) of the statement in the try block.
       var startLine = lineInfo.getLocation(stmt.offset).lineNumber - 1;
@@ -396,7 +396,7 @@ class PostfixCompletionProcessor {
         builder.write(indent);
         builder.write('try {');
         builder.write(eol);
-        builder.write(src.replaceAll(new RegExp("^$indent", multiLine: true),
+        builder.write(src.replaceAll(RegExp("^$indent", multiLine: true),
             "$indent${utils.getIndent(1)}"));
         builder.selectHere();
         builder.write(indent);
@@ -557,7 +557,7 @@ class PostfixCompletionProcessor {
   }
 
   AstNode _selectedNode({int at = null}) =>
-      new NodeLocator(at == null ? selectionOffset : at)
+      NodeLocator(at == null ? selectionOffset : at)
           .searchWithin(completionContext.resolveResult.unit);
 
   void _setCompletionFromBuilder(
@@ -569,6 +569,6 @@ class PostfixCompletionProcessor {
       return;
     }
     change.message = formatList(kind.message, args);
-    completion = new PostfixCompletion(kind, change);
+    completion = PostfixCompletion(kind, change);
   }
 }

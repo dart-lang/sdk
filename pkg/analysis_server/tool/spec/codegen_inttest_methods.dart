@@ -16,10 +16,10 @@ import 'from_html.dart';
 import 'to_html.dart';
 
 final GeneratedFile target =
-    new GeneratedFile('test/integration/support/integration_test_methods.dart',
+    GeneratedFile('test/integration/support/integration_test_methods.dart',
         (String pkgPath) async {
-  CodegenInttestMethodsVisitor visitor = new CodegenInttestMethodsVisitor(
-      path.basename(pkgPath), readApi(pkgPath));
+  CodegenInttestMethodsVisitor visitor =
+      CodegenInttestMethodsVisitor(path.basename(pkgPath), readApi(pkgPath));
   return visitor.collectCode(visitor.visitApi);
 });
 
@@ -50,7 +50,7 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
   List<String> notificationSwitchContents = <String>[];
 
   CodegenInttestMethodsVisitor(this.packageName, Api api)
-      : toHtmlVisitor = new ToHtmlVisitor(api),
+      : toHtmlVisitor = ToHtmlVisitor(api),
         super(api) {
     codeGeneratorSettings.commentLineLength = 79;
     codeGeneratorSettings.languageName = 'dart';
@@ -86,12 +86,12 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
         case 'object':
           return 'Map<String, dynamic>';
         default:
-          throw new Exception(type.typeName);
+          throw Exception(type.typeName);
       }
     } else if (type is TypeUnion) {
       return 'Object';
     } else {
-      throw new Exception('Unexpected kind of TypeDecl');
+      throw Exception('Unexpected kind of TypeDecl');
     }
   }
 

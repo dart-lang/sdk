@@ -64,7 +64,7 @@ main() {
     // Create an overlay but do not write the file to "disk"
     //   writeFile(pathname, text);
     await standardAnalysisSetup();
-    await sendAnalysisUpdateContent({path: new AddContentOverlay(content)});
+    await sendAnalysisUpdateContent({path: AddContentOverlay(content)});
     await analysisFinished;
     CompletionGetSuggestionsResult result =
         await sendCompletionGetSuggestions(path, completionOffset);
@@ -89,7 +89,7 @@ main() {
     //   writeFile(pathname, text);
     // Don't wait for any results except the completion notifications
     standardAnalysisSetup(subscribeStatus: false);
-    sendAnalysisUpdateContent({path: new AddContentOverlay(content)});
+    sendAnalysisUpdateContent({path: AddContentOverlay(content)});
     sendCompletionGetSuggestions(path, completionOffset);
     CompletionResultsParams param = await onCompletionResults
         .firstWhere((CompletionResultsParams param) => param.isLast);

@@ -40,8 +40,7 @@ class KeywordContributor extends DartCompletionContributor {
       return suggestions;
     }
 
-    request.target.containingNode
-        .accept(new _KeywordVisitor(request, suggestions));
+    request.target.containingNode.accept(_KeywordVisitor(request, suggestions));
     return suggestions;
   }
 }
@@ -854,7 +853,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
     if (offset == null) {
       offset = completion.length;
     }
-    suggestions.add(new CompletionSuggestion(CompletionSuggestionKind.KEYWORD,
+    suggestions.add(CompletionSuggestion(CompletionSuggestionKind.KEYWORD,
         relevance, completion, offset, 0, false, false));
   }
 

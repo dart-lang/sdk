@@ -20,8 +20,7 @@ class BasicFixLintErrorTask extends FixLintTask {
       EditDartfixParams params) {
     registrar.registerLintTask(
       Registry.ruleRegistry['null_closures'],
-      new BasicFixLintErrorTask(
-          DartFixKind.REPLACE_NULL_WITH_CLOSURE, listener),
+      BasicFixLintErrorTask(DartFixKind.REPLACE_NULL_WITH_CLOSURE, listener),
     );
   }
 
@@ -29,8 +28,7 @@ class BasicFixLintErrorTask extends FixLintTask {
       DartFixListener listener, EditDartfixParams params) {
     registrar.registerLintTask(
       Registry.ruleRegistry['prefer_equal_for_default_values'],
-      new BasicFixLintErrorTask(
-          DartFixKind.REPLACE_COLON_WITH_EQUALS, listener),
+      BasicFixLintErrorTask(DartFixKind.REPLACE_COLON_WITH_EQUALS, listener),
     );
   }
 
@@ -38,7 +36,7 @@ class BasicFixLintErrorTask extends FixLintTask {
       DartFixListener listener, EditDartfixParams params) {
     registrar.registerLintTask(
       Registry.ruleRegistry['prefer_is_empty'],
-      new BasicFixLintErrorTask(DartFixKind.REPLACE_WITH_IS_EMPTY, listener),
+      BasicFixLintErrorTask(DartFixKind.REPLACE_WITH_IS_EMPTY, listener),
     );
   }
 
@@ -46,8 +44,7 @@ class BasicFixLintErrorTask extends FixLintTask {
       DartFixListener listener, EditDartfixParams params) {
     registrar.registerLintTask(
       Registry.ruleRegistry['prefer_is_not_empty'],
-      new BasicFixLintErrorTask(
-          DartFixKind.REPLACE_WITH_IS_NOT_EMPTY, listener),
+      BasicFixLintErrorTask(DartFixKind.REPLACE_WITH_IS_NOT_EMPTY, listener),
     );
   }
 
@@ -55,7 +52,7 @@ class BasicFixLintErrorTask extends FixLintTask {
       DartFixListener listener, EditDartfixParams params) {
     registrar.registerLintTask(
       Registry.ruleRegistry['unnecessary_const'],
-      new BasicFixLintErrorTask(DartFixKind.REMOVE_UNNECESSARY_CONST, listener),
+      BasicFixLintErrorTask(DartFixKind.REMOVE_UNNECESSARY_CONST, listener),
     );
   }
 
@@ -63,7 +60,7 @@ class BasicFixLintErrorTask extends FixLintTask {
       DartFixListener listener, EditDartfixParams params) {
     registrar.registerLintTask(
       Registry.ruleRegistry['unnecessary_new'],
-      new BasicFixLintErrorTask(DartFixKind.REMOVE_UNNECESSARY_NEW, listener),
+      BasicFixLintErrorTask(DartFixKind.REMOVE_UNNECESSARY_NEW, listener),
     );
   }
 }

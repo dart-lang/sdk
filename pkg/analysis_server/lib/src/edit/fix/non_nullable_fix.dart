@@ -61,8 +61,7 @@ class NonNullableFix extends FixCodeTask {
       : this.includedRoot =
             _getIncludedRoot(included, listener.server.resourceProvider) {
     instrumentationListener = InstrumentationListener();
-    migration = new NullabilityMigration(
-        new NullabilityMigrationAdapter(listener),
+    migration = NullabilityMigration(NullabilityMigrationAdapter(listener),
         permissive: _usePermissiveMode,
         instrumentation: instrumentationListener);
   }
@@ -130,8 +129,8 @@ class NonNullableFix extends FixCodeTask {
       analyzerOptions = optionsMap.nodes[AnalyzerOptions.analyzer];
     }
     if (analyzerOptions == null) {
-      var start = new SourceLocation(0, line: 0, column: 0);
-      parentSpan = new SourceSpan(start, start, '');
+      var start = SourceLocation(0, line: 0, column: 0);
+      parentSpan = SourceSpan(start, start, '');
       content = '''
 analyzer:
   enable-experiment:
@@ -181,15 +180,15 @@ analyzer:
       }
       listener.addSourceFileEdit(
           'enable non-nullable analysis',
-          new Location(
+          Location(
             optionsFile.path,
             offset,
             content.length,
             line,
             0,
           ),
-          new SourceFileEdit(optionsFile.path, 0,
-              edits: [new SourceEdit(offset, 0, content)]));
+          SourceFileEdit(optionsFile.path, 0,
+              edits: [SourceEdit(offset, 0, content)]));
     }
   }
 
@@ -206,7 +205,7 @@ analyzer:
         migration.processInput(result);
         break;
       default:
-        throw new ArgumentError('Unsupported phase $phase');
+        throw ArgumentError('Unsupported phase $phase');
     }
   }
 
@@ -226,8 +225,8 @@ analyzer:
 
   static void task(DartFixRegistrar registrar, DartFixListener listener,
       EditDartfixParams params) {
-    registrar.registerCodeTask(
-        new NonNullableFix(listener, included: params.included));
+    registrar
+        .registerCodeTask(NonNullableFix(listener, included: params.included));
   }
 
   /// Get the "root" of all [included] paths. See [includedRoot] for its

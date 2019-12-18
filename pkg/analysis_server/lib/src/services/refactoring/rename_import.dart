@@ -38,8 +38,8 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
 
   @override
   Future<RefactoringStatus> checkFinalConditions() {
-    RefactoringStatus result = new RefactoringStatus();
-    return new Future.value(result);
+    RefactoringStatus result = RefactoringStatus();
+    return Future.value(result);
   }
 
   @override
@@ -67,12 +67,11 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
         if (prefix == null) {
           ImportDirective node = _findNode();
           int uriEnd = node.uri.end;
-          edit =
-              newSourceEdit_range(new SourceRange(uriEnd, 0), " as $newName");
+          edit = newSourceEdit_range(SourceRange(uriEnd, 0), " as $newName");
         } else {
           int offset = element.prefixOffset;
           int length = prefix.nameLength;
-          edit = newSourceEdit_range(new SourceRange(offset, length), newName);
+          edit = newSourceEdit_range(SourceRange(offset, length), newName);
         }
       }
       if (edit != null) {
@@ -92,7 +91,7 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
           doSourceChange_addElementEdit(
               change,
               reference.element,
-              new SourceEdit(
+              SourceEdit(
                   interpolationIdentifier.offset,
                   interpolationIdentifier.length,
                   '{$newName.${interpolationIdentifier.name}}'));
@@ -122,7 +121,7 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
   SimpleIdentifier _getInterpolationIdentifier(SourceReference reference) {
     Source source = reference.element.source;
     CompilationUnit unit = session.getParsedUnit(source.fullName).unit;
-    NodeLocator nodeLocator = new NodeLocator(reference.range.offset);
+    NodeLocator nodeLocator = NodeLocator(reference.range.offset);
     AstNode node = nodeLocator.searchWithin(unit);
     if (node is SimpleIdentifier) {
       AstNode parent = node.parent;

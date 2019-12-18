@@ -37,7 +37,7 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
 
   InlineLocalRefactoringImpl(
       this.searchEngine, this.resolveResult, this.offset) {
-    utils = new CorrectionUtils(resolveResult);
+    utils = CorrectionUtils(resolveResult);
   }
 
   @override
@@ -61,19 +61,18 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
 
   @override
   Future<RefactoringStatus> checkFinalConditions() {
-    RefactoringStatus result = new RefactoringStatus();
-    return new Future.value(result);
+    RefactoringStatus result = RefactoringStatus();
+    return Future.value(result);
   }
 
   @override
   Future<RefactoringStatus> checkInitialConditions() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    RefactoringStatus result = new RefactoringStatus();
+    RefactoringStatus result = RefactoringStatus();
     // prepare variable
     {
-      AstNode offsetNode =
-          new NodeLocator(offset).searchWithin(resolveResult.unit);
+      AstNode offsetNode = NodeLocator(offset).searchWithin(resolveResult.unit);
       if (offsetNode is SimpleIdentifier) {
         Element element = offsetNode.staticElement;
         if (element is LocalVariableElement) {
@@ -87,19 +86,19 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
     }
     // validate node declaration
     if (!_isVariableDeclaredInStatement()) {
-      result = new RefactoringStatus.fatal(
+      result = RefactoringStatus.fatal(
           'Local variable declaration or reference must be selected '
           'to activate this refactoring.');
-      return new Future<RefactoringStatus>.value(result);
+      return Future<RefactoringStatus>.value(result);
     }
     // should have initializer at declaration
     if (_variableNode.initializer == null) {
       String message = format(
           "Local variable '{0}' is not initialized at declaration.",
           _variableElement.displayName);
-      result = new RefactoringStatus.fatal(
-          message, newLocation_fromNode(_variableNode));
-      return new Future<RefactoringStatus>.value(result);
+      result =
+          RefactoringStatus.fatal(message, newLocation_fromNode(_variableNode));
+      return Future<RefactoringStatus>.value(result);
     }
     // prepare references
     _references = await searchEngine.searchReferences(_variableElement);
@@ -109,7 +108,7 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
         String message = format(
             "Local variable '{0}' is assigned more than once.",
             [_variableElement.displayName]);
-        return new RefactoringStatus.fatal(
+        return RefactoringStatus.fatal(
             message, newLocation_fromMatch(reference));
       }
     }
@@ -119,7 +118,7 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
 
   @override
   Future<SourceChange> createChange() {
-    SourceChange change = new SourceChange(refactoringName);
+    SourceChange change = SourceChange(refactoringName);
     // remove declaration
     {
       Statement declarationStatement =
@@ -166,7 +165,7 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
           newSourceEdit_range(editRange, codeForReference));
     }
     // done
-    return new Future.value(change);
+    return Future.value(change);
   }
 
   bool _isVariableDeclaredInStatement() {

@@ -36,7 +36,7 @@ main() {
     IfStatement ifStatement = findNodeAtString('if (');
     Expression condition = ifStatement.condition;
     String result =
-        new CorrectionUtils(testAnalysisResult).invertCondition(condition);
+        CorrectionUtils(testAnalysisResult).invertCondition(condition);
     expect(result, expected);
   }
 
@@ -288,7 +288,7 @@ import 'package:ddd/ddd.dart';
 
   Future<void> _assertAddLibraryImport(
       List<Source> newLibraries, String expectedCode) async {
-    SourceChange change = new SourceChange('');
+    SourceChange change = SourceChange('');
     await addLibraryImports(testAnalysisResult.session, change,
         testLibraryElement, newLibraries.toSet());
     SourceFileEdit testEdit = change.getFileEdit(testFile);
@@ -299,11 +299,11 @@ import 'package:ddd/ddd.dart';
 
   Source _getDartSource(String uri) {
     String path = removeStart(uri, 'dart:');
-    return new _SourceMock('/sdk/lib/$path.dart', Uri.parse(uri));
+    return _SourceMock('/sdk/lib/$path.dart', Uri.parse(uri));
   }
 
   Source _getSource(String path, String uri) {
-    return new _SourceMock(path, Uri.parse(uri));
+    return _SourceMock(path, Uri.parse(uri));
   }
 }
 

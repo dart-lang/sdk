@@ -111,10 +111,10 @@ class FlutterDomainHandler extends AbstractRequestHandler {
    * Implement the 'flutter.setSubscriptions' request.
    */
   Response setSubscriptions(Request request) {
-    var params = new FlutterSetSubscriptionsParams.fromRequest(request);
+    var params = FlutterSetSubscriptionsParams.fromRequest(request);
     Map<FlutterService, Set<String>> subMap = mapMap(params.subscriptions,
         valueCallback: (List<String> subscriptions) => subscriptions.toSet());
     server.setFlutterSubscriptions(subMap);
-    return new FlutterSetSubscriptionsResult().toResponse(request.id);
+    return FlutterSetSubscriptionsResult().toResponse(request.id);
   }
 }

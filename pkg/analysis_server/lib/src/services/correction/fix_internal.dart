@@ -65,10 +65,10 @@ class DartFixContributor implements FixContributor {
   @override
   Future<List<Fix>> computeFixes(DartFixContext context) async {
     try {
-      FixProcessor processor = new FixProcessor(context);
+      FixProcessor processor = FixProcessor(context);
       List<Fix> fixes = await processor.compute();
       List<Fix> fixAllFixes = await _computeFixAllFixes(context, fixes);
-      return new List.from(fixes)..addAll(fixAllFixes);
+      return List.from(fixes)..addAll(fixAllFixes);
     } on CancelCorrectionException {
       return const <Fix>[];
     }
@@ -94,24 +94,24 @@ class DartFixContributor implements FixContributor {
     }
 
     // A map between each FixKind and the List of associated fixes
-    final HashMap<FixKind, List<Fix>> map = new HashMap();
+    final HashMap<FixKind, List<Fix>> map = HashMap();
 
     // Populate the HashMap by looping through all AnalysisErrors, creating a
     // new FixProcessor to compute the other fixes that can be applied with this
     // one.
     // For each fix, put the fix into the HashMap.
     for (int i = 0; i < allAnalysisErrors.length; i++) {
-      final FixContext fixContextI = new DartFixContextImpl(
+      final FixContext fixContextI = DartFixContextImpl(
         context.workspace,
         context.resolveResult,
         allAnalysisErrors[i],
         (name) => [],
       );
-      final FixProcessor processorI = new FixProcessor(fixContextI);
+      final FixProcessor processorI = FixProcessor(fixContextI);
       final List<Fix> fixesListI = await processorI.compute();
       for (Fix f in fixesListI) {
         if (!map.containsKey(f.kind)) {
-          map[f.kind] = new List<Fix>()..add(f);
+          map[f.kind] = List<Fix>()..add(f);
         } else {
           map[f.kind].add(f);
         }
@@ -120,7 +120,7 @@ class DartFixContributor implements FixContributor {
 
     // For each FixKind in the HashMap, union each list together, then return
     // the set of unioned Fixes.
-    final List<Fix> result = new List<Fix>();
+    final List<Fix> result = List<Fix>();
     map.forEach((FixKind kind, List<Fix> fixesListJ) {
       if (fixesListJ.first.kind.canBeAppliedTogether()) {
         Fix unionFix = _unionFixList(fixesListJ);
@@ -139,12 +139,12 @@ class DartFixContributor implements FixContributor {
       return fixList[0];
     }
     final SourceChange sourceChange =
-        new SourceChange(fixList[0].kind.appliedTogetherMessage);
-    sourceChange.edits = new List.from(fixList[0].change.edits);
-    final List<SourceEdit> edits = new List<SourceEdit>();
+        SourceChange(fixList[0].kind.appliedTogetherMessage);
+    sourceChange.edits = List.from(fixList[0].change.edits);
+    final List<SourceEdit> edits = List<SourceEdit>();
     edits.addAll(fixList[0].change.edits[0].edits);
     sourceChange.linkedEditGroups =
-        new List.from(fixList[0].change.linkedEditGroups);
+        List.from(fixList[0].change.linkedEditGroups);
     for (int i = 1; i < fixList.length; i++) {
       edits.addAll(fixList[i].change.edits[0].edits);
       sourceChange.linkedEditGroups..addAll(fixList[i].change.linkedEditGroups);
@@ -155,7 +155,7 @@ class DartFixContributor implements FixContributor {
 
     sourceChange.edits[0].edits = edits;
 
-    return new Fix(fixList[0].kind, sourceChange);
+    return Fix(fixList[0].kind, sourceChange);
   }
 }
 
@@ -202,8 +202,8 @@ class FixProcessor extends BaseProcessor {
   bool get _isNonNullable => _featureSet.isEnabled(Feature.non_nullable);
 
   Future<List<Fix>> compute() async {
-    node = new NodeLocator2(errorOffset).searchWithin(unit);
-    coveredNode = new NodeLocator2(errorOffset, errorOffset + errorLength - 1)
+    node = NodeLocator2(errorOffset).searchWithin(unit);
+    coveredNode = NodeLocator2(errorOffset, errorOffset + errorLength - 1)
         .searchWithin(unit);
     if (coveredNode == null) {
       // TODO(brianwilkerson) Figure out why the coveredNode is sometimes null.
@@ -967,7 +967,7 @@ class FixProcessor extends BaseProcessor {
     List<Expression> arguments = argumentList.arguments;
 
     // Prepare the invoked element.
-    var context = new _ExecutableParameters(sessionHelper, node.parent);
+    var context = _ExecutableParameters(sessionHelper, node.parent);
     if (context == null) {
       return;
     }
@@ -987,7 +987,7 @@ class FixProcessor extends BaseProcessor {
           builder.addInsertion(offset, (builder) {
             builder.write(prefix);
             builder.writeParameterMatchingArgument(
-                argument, numRequired, new Set<String>());
+                argument, numRequired, Set<String>());
             builder.write(suffix);
           });
         });
@@ -1045,7 +1045,7 @@ class FixProcessor extends BaseProcessor {
     AstNode argumentList = namedExpression.parent;
 
     // Prepare the invoked element.
-    var context = new _ExecutableParameters(sessionHelper, argumentList.parent);
+    var context = _ExecutableParameters(sessionHelper, argumentList.parent);
     if (context == null) {
       return;
     }
@@ -1062,7 +1062,7 @@ class FixProcessor extends BaseProcessor {
           builder.addInsertion(offset, (builder) {
             builder.write(prefix);
             builder.writeParameterMatchingArgument(
-                namedExpression, 0, new Set<String>());
+                namedExpression, 0, Set<String>());
             builder.write(suffix);
           });
         });
@@ -1168,7 +1168,7 @@ class FixProcessor extends BaseProcessor {
       token = (token as CommentToken).parent;
     }
 
-    Position exitPosition = new Position(file, token.offset - 1);
+    Position exitPosition = Position(file, token.offset - 1);
     String indent = utils.getIndent(1);
     var changeBuilder = _newDartChangeBuilder();
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
@@ -2453,7 +2453,7 @@ class FixProcessor extends BaseProcessor {
         builder.write(location.suffix);
       });
     });
-    changeBuilder.setSelection(new Position(file, location.offset));
+    changeBuilder.setSelection(Position(file, location.offset));
     _addFixFromBuilder(changeBuilder, DartFixKind.CREATE_MISSING_OVERRIDES,
         args: [numElements]);
   }
@@ -2742,7 +2742,7 @@ class FixProcessor extends BaseProcessor {
     }
     // may be there is an existing import,
     // but it is with prefix and we don't use this prefix
-    var alreadyImportedWithPrefix = new Set<String>();
+    var alreadyImportedWithPrefix = Set<String>();
     for (ImportElement imp in unitLibraryElement.imports) {
       // prepare element
       LibraryElement libraryElement = imp.importedLibrary;
@@ -2774,7 +2774,7 @@ class FixProcessor extends BaseProcessor {
         ShowElementCombinator showCombinator =
             combinators[0] as ShowElementCombinator;
         // prepare new set of names to show
-        Set<String> showNames = new SplayTreeSet<String>();
+        Set<String> showNames = SplayTreeSet<String>();
         showNames.addAll(showCombinator.shownNames);
         showNames.add(name);
         // prepare library name - unit name or 'dart:name' for SDK library
@@ -2795,7 +2795,7 @@ class FixProcessor extends BaseProcessor {
         await changeBuilder.addFileEdit(libraryFile,
             (DartFileEditBuilder builder) {
           builder.addSimpleReplacement(
-              new SourceRange(offset, length), newShowCode);
+              SourceRange(offset, length), newShowCode);
         });
         _addFixFromBuilder(changeBuilder, DartFixKind.IMPORT_LIBRARY_SHOW,
             args: [libraryName]);
@@ -4123,7 +4123,7 @@ class FixProcessor extends BaseProcessor {
     if (_mayBeTypeIdentifier(node)) {
       // Prepare for selecting the closest element.
       String name = (node as SimpleIdentifier).name;
-      _ClosestElementFinder finder = new _ClosestElementFinder(
+      _ClosestElementFinder finder = _ClosestElementFinder(
           name,
           (Element element) => element is ClassElement,
           MAX_LEVENSHTEIN_DISTANCE);
@@ -4189,7 +4189,7 @@ class FixProcessor extends BaseProcessor {
     if (node is SimpleIdentifier) {
       String name = (node as SimpleIdentifier).name;
       _ClosestElementFinder finder =
-          new _ClosestElementFinder(name, predicate, MAX_LEVENSHTEIN_DISTANCE);
+          _ClosestElementFinder(name, predicate, MAX_LEVENSHTEIN_DISTANCE);
       // unqualified invocation
       if (target == null) {
         ClassDeclaration clazz = node.thisOrAncestorOfType<ClassDeclaration>();
@@ -4284,7 +4284,7 @@ class FixProcessor extends BaseProcessor {
         }
       }
       // Prepare for selecting the closest element.
-      _ClosestElementFinder finder = new _ClosestElementFinder(
+      _ClosestElementFinder finder = _ClosestElementFinder(
           node.name,
           (Element element) => element is FunctionElement,
           MAX_LEVENSHTEIN_DISTANCE);
@@ -4401,7 +4401,7 @@ class FixProcessor extends BaseProcessor {
     if (pubspecFile == null) {
       return;
     }
-    SdkConstraintExtractor extractor = new SdkConstraintExtractor(pubspecFile);
+    SdkConstraintExtractor extractor = SdkConstraintExtractor(pubspecFile);
     String text = extractor.constraintText();
     int offset = extractor.constraintOffset();
     if (text == null || offset < 0) {
@@ -4425,9 +4425,9 @@ class FixProcessor extends BaseProcessor {
     if (newText == null) {
       return;
     }
-    var changeBuilder = new ChangeBuilder();
+    var changeBuilder = ChangeBuilder();
     await changeBuilder.addFileEdit(pubspecFile.path, (builder) {
-      builder.addSimpleReplacement(new SourceRange(offset, length), newText);
+      builder.addSimpleReplacement(SourceRange(offset, length), newText);
     });
     _addFixFromBuilder(changeBuilder, DartFixKind.UPDATE_SDK_CONSTRAINTS);
   }
@@ -4504,7 +4504,7 @@ class FixProcessor extends BaseProcessor {
       return;
     }
     change.message = formatList(kind.message, args);
-    fixes.add(new Fix(kind, change));
+    fixes.add(Fix(kind, change));
   }
 
   /**
@@ -4661,7 +4661,7 @@ class FixProcessor extends BaseProcessor {
    * proposal name.
    */
   String _getConstructorProposalName(ConstructorElement constructor) {
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     buffer.write('super');
     String constructorName = constructor.displayName;
     if (constructorName.isNotEmpty) {
@@ -4923,7 +4923,7 @@ class FixProcessor extends BaseProcessor {
   }
 
   DartChangeBuilder _newDartChangeBuilder() {
-    return new DartChangeBuilderImpl.forWorkspace(context.workspace);
+    return DartChangeBuilderImpl.forWorkspace(context.workspace);
   }
 
   /**
@@ -5014,8 +5014,7 @@ class FixProcessor extends BaseProcessor {
 
   static String _replaceSourceIndent(
       String source, String indentOld, String indentNew) {
-    return source.replaceAll(
-        new RegExp('^$indentOld', multiLine: true), indentNew);
+    return source.replaceAll(RegExp('^$indentOld', multiLine: true), indentNew);
   }
 }
 
@@ -5099,7 +5098,7 @@ class _ExecutableParameters {
       element = invocation.staticElement;
     }
     if (element is ExecutableElement && !element.isSynthetic) {
-      return new _ExecutableParameters._(sessionHelper, element);
+      return _ExecutableParameters._(sessionHelper, element);
     } else {
       return null;
     }

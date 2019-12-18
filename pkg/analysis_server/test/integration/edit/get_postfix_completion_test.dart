@@ -45,7 +45,7 @@ void foo() { }
     for (SourceEdit edit in change.edits.first.edits) {
       text = text.replaceRange(edit.offset, edit.end, edit.replacement);
     }
-    await sendAnalysisUpdateContent({pathname: new AddContentOverlay(text)});
+    await sendAnalysisUpdateContent({pathname: AddContentOverlay(text)});
 
     await analysisFinished;
     expect(currentAnalysisErrors[pathname], isEmpty);

@@ -45,7 +45,7 @@ class SearchDomainHandler implements protocol.RequestHandler {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     var params =
-        new protocol.SearchFindElementReferencesParams.fromRequest(request);
+        protocol.SearchFindElementReferencesParams.fromRequest(request);
     String file = params.file;
     // prepare element
     Element element = await server.getElementAtOffset(file, params.offset);
@@ -60,7 +60,7 @@ class SearchDomainHandler implements protocol.RequestHandler {
     }
     // respond
     String searchId = (_nextSearchId++).toString();
-    var result = new protocol.SearchFindElementReferencesResult();
+    var result = protocol.SearchFindElementReferencesResult();
     if (element != null) {
       result.id = searchId;
       result.element = protocol.convertElement(element);
@@ -68,7 +68,7 @@ class SearchDomainHandler implements protocol.RequestHandler {
     _sendSearchResult(request, result);
     // search elements
     if (element != null) {
-      var computer = new ElementReferencesComputer(searchEngine);
+      var computer = ElementReferencesComputer(searchEngine);
       List<protocol.SearchResult> results =
           await computer.compute(element, params.includePotential);
       _sendSearchNotification(searchId, true, results);
@@ -79,12 +79,12 @@ class SearchDomainHandler implements protocol.RequestHandler {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     var params =
-        new protocol.SearchFindMemberDeclarationsParams.fromRequest(request);
+        protocol.SearchFindMemberDeclarationsParams.fromRequest(request);
     await server.onAnalysisComplete;
     // respond
     String searchId = (_nextSearchId++).toString();
     _sendSearchResult(
-        request, new protocol.SearchFindMemberDeclarationsResult(searchId));
+        request, protocol.SearchFindMemberDeclarationsResult(searchId));
     // search
     List<SearchMatch> matches =
         await searchEngine.searchMemberDeclarations(params.name);
@@ -95,13 +95,12 @@ class SearchDomainHandler implements protocol.RequestHandler {
   Future findMemberReferences(protocol.Request request) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    var params =
-        new protocol.SearchFindMemberReferencesParams.fromRequest(request);
+    var params = protocol.SearchFindMemberReferencesParams.fromRequest(request);
     await server.onAnalysisComplete;
     // respond
     String searchId = (_nextSearchId++).toString();
     _sendSearchResult(
-        request, new protocol.SearchFindMemberReferencesResult(searchId));
+        request, protocol.SearchFindMemberReferencesResult(searchId));
     // search
     List<SearchMatch> matches =
         await searchEngine.searchMemberReferences(params.name);
@@ -113,12 +112,12 @@ class SearchDomainHandler implements protocol.RequestHandler {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     var params =
-        new protocol.SearchFindTopLevelDeclarationsParams.fromRequest(request);
+        protocol.SearchFindTopLevelDeclarationsParams.fromRequest(request);
     try {
       // validate the regex
-      new RegExp(params.pattern);
+      RegExp(params.pattern);
     } on FormatException catch (exception) {
-      server.sendResponse(new protocol.Response.invalidParameter(
+      server.sendResponse(protocol.Response.invalidParameter(
           request, 'pattern', exception.message));
       return;
     }
@@ -127,7 +126,7 @@ class SearchDomainHandler implements protocol.RequestHandler {
     // respond
     String searchId = (_nextSearchId++).toString();
     _sendSearchResult(
-        request, new protocol.SearchFindTopLevelDeclarationsResult(searchId));
+        request, protocol.SearchFindTopLevelDeclarationsResult(searchId));
     // search
     List<SearchMatch> matches =
         await searchEngine.searchTopLevelDeclarations(params.pattern);
@@ -142,14 +141,14 @@ class SearchDomainHandler implements protocol.RequestHandler {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     var params =
-        new protocol.SearchGetElementDeclarationsParams.fromRequest(request);
+        protocol.SearchGetElementDeclarationsParams.fromRequest(request);
 
     RegExp regExp;
     if (params.pattern != null) {
       try {
-        regExp = new RegExp(params.pattern);
+        regExp = RegExp(params.pattern);
       } on FormatException catch (exception) {
-        server.sendResponse(new protocol.Response.invalidParameter(
+        server.sendResponse(protocol.Response.invalidParameter(
             request, 'pattern', exception.message));
         return;
       }
@@ -200,7 +199,7 @@ class SearchDomainHandler implements protocol.RequestHandler {
 
     List<protocol.ElementDeclaration> elementDeclarations =
         declarations.map((declaration) {
-      return new protocol.ElementDeclaration(
+      return protocol.ElementDeclaration(
           declaration.name,
           getElementKind(declaration.kind),
           declaration.fileIndex,
@@ -214,7 +213,7 @@ class SearchDomainHandler implements protocol.RequestHandler {
           parameters: declaration.parameters);
     }).toList();
 
-    server.sendResponse(new protocol.SearchGetElementDeclarationsResult(
+    server.sendResponse(protocol.SearchGetElementDeclarationsResult(
             elementDeclarations, files.toList())
         .toResponse(request.id));
   }
@@ -225,7 +224,7 @@ class SearchDomainHandler implements protocol.RequestHandler {
   Future getTypeHierarchy(protocol.Request request) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    var params = new protocol.SearchGetTypeHierarchyParams.fromRequest(request);
+    var params = protocol.SearchGetTypeHierarchyParams.fromRequest(request);
     String file = params.file;
     // prepare element
     Element element = await server.getElementAtOffset(file, params.offset);
@@ -236,20 +235,20 @@ class SearchDomainHandler implements protocol.RequestHandler {
     // maybe supertype hierarchy only
     if (params.superOnly == true) {
       TypeHierarchyComputer computer =
-          new TypeHierarchyComputer(searchEngine, element);
+          TypeHierarchyComputer(searchEngine, element);
       List<protocol.TypeHierarchyItem> items = computer.computeSuper();
       protocol.Response response =
-          new protocol.SearchGetTypeHierarchyResult(hierarchyItems: items)
+          protocol.SearchGetTypeHierarchyResult(hierarchyItems: items)
               .toResponse(request.id);
       server.sendResponse(response);
       return;
     }
     // prepare type hierarchy
     TypeHierarchyComputer computer =
-        new TypeHierarchyComputer(searchEngine, element);
+        TypeHierarchyComputer(searchEngine, element);
     List<protocol.TypeHierarchyItem> items = await computer.compute();
     protocol.Response response =
-        new protocol.SearchGetTypeHierarchyResult(hierarchyItems: items)
+        protocol.SearchGetTypeHierarchyResult(hierarchyItems: items)
             .toResponse(request.id);
     server.sendResponse(response);
   }
@@ -286,7 +285,7 @@ class SearchDomainHandler implements protocol.RequestHandler {
   void _sendSearchNotification(
       String searchId, bool isLast, Iterable<protocol.SearchResult> results) {
     server.sendNotification(
-        new protocol.SearchResultsParams(searchId, results.toList(), isLast)
+        protocol.SearchResultsParams(searchId, results.toList(), isLast)
             .toNotification());
   }
 
@@ -300,7 +299,7 @@ class SearchDomainHandler implements protocol.RequestHandler {
 
   void _sendTypeHierarchyNull(protocol.Request request) {
     protocol.Response response =
-        new protocol.SearchGetTypeHierarchyResult().toResponse(request.id);
+        protocol.SearchGetTypeHierarchyResult().toResponse(request.id);
     server.sendResponse(response);
   }
 

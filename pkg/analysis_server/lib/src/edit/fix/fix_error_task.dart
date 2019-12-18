@@ -45,13 +45,13 @@ class FixErrorTask {
 
   Future<void> fixError(ResolvedUnitResult result, AnalysisError error) async {
     final workspace = DartChangeWorkspace(listener.server.currentSessions);
-    final dartContext = new DartFixContextImpl(
+    final dartContext = DartFixContextImpl(
       workspace,
       result,
       error,
       (name) => [],
     );
-    final processor = new FixProcessor(dartContext);
+    final processor = FixProcessor(dartContext);
     Fix fix = await processor.computeFix();
     final location = listener.locationFor(result, error.offset, error.length);
     if (fix != null) {
@@ -67,6 +67,6 @@ class FixErrorTask {
       DartFixListener listener, EditDartfixParams params) {
     registrar.registerErrorTask(
         StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
-        new FixErrorTask(listener));
+        FixErrorTask(listener));
   }
 }

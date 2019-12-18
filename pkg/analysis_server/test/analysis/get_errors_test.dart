@@ -28,7 +28,7 @@ class GetErrorsTest extends AbstractAnalysisTest {
   void setUp() {
     super.setUp();
     server.handlers = [
-      new AnalysisDomainHandler(server),
+      AnalysisDomainHandler(server),
     ];
     createProject();
   }
@@ -132,12 +132,12 @@ main() {
   }
 
   Request _createGetErrorsRequest(String file) {
-    return new AnalysisGetErrorsParams(file).toRequest(requestId);
+    return AnalysisGetErrorsParams(file).toRequest(requestId);
   }
 
   Future<List<AnalysisError>> _getErrors(String file) async {
     Request request = _createGetErrorsRequest(file);
     Response response = await serverChannel.sendRequest(request);
-    return new AnalysisGetErrorsResult.fromResponse(response).errors;
+    return AnalysisGetErrorsResult.fromResponse(response).errors;
   }
 }

@@ -122,7 +122,7 @@ main(A a, B b, C c, D d) {
   }
 
   Future<Response> _sendConvertRequest(String search) {
-    Request request = new EditGetRefactoringParams(
+    Request request = EditGetRefactoringParams(
             RefactoringKind.CONVERT_GETTER_TO_METHOD,
             testFile,
             findOffset(search),
@@ -234,7 +234,7 @@ main(A a, B b, C c, D d) {
   }
 
   Future<Response> _sendConvertRequest(String search) {
-    Request request = new EditGetRefactoringParams(
+    Request request = EditGetRefactoringParams(
             RefactoringKind.CONVERT_METHOD_TO_GETTER,
             testFile,
             findOffset(search),
@@ -251,7 +251,7 @@ class ExtractLocalVariableTest extends _AbstractGetRefactoring_Test {
       int offset, int length, String name, bool extractAll) {
     RefactoringKind kind = RefactoringKind.EXTRACT_LOCAL_VARIABLE;
     ExtractLocalVariableOptions options =
-        name != null ? new ExtractLocalVariableOptions(name, extractAll) : null;
+        name != null ? ExtractLocalVariableOptions(name, extractAll) : null;
     return sendRequest(kind, offset, length, options, false);
   }
 
@@ -353,7 +353,7 @@ main() {
   }
 
   test_invalidFilePathFormat_notAbsolute() async {
-    var request = new EditGetRefactoringParams(
+    var request = EditGetRefactoringParams(
             RefactoringKind.EXTRACT_LOCAL_VARIABLE, 'test.dart', 0, 0, true)
         .toRequest('0');
     var response = await waitResponse(request);
@@ -364,7 +364,7 @@ main() {
   }
 
   test_invalidFilePathFormat_notNormalized() async {
-    var request = new EditGetRefactoringParams(
+    var request = EditGetRefactoringParams(
             RefactoringKind.EXTRACT_LOCAL_VARIABLE,
             convertPath('/foo/../bar/test.dart'),
             0,
@@ -450,7 +450,7 @@ main() {
 
     await checkUpdate(() {
       server.updateContent('u1', {
-        testFile: new AddContentOverlay('''
+        testFile: AddContentOverlay('''
 main() {
   print(1 + 2); // 1
 }
@@ -460,8 +460,8 @@ main() {
 
     await checkUpdate(() {
       server.updateContent('u2', {
-        testFile: new ChangeContentOverlay([
-          new SourceEdit(0, 0, '''
+        testFile: ChangeContentOverlay([
+          SourceEdit(0, 0, '''
 main() {
   print(1 + 2); // 2
 }
@@ -471,7 +471,7 @@ main() {
     });
 
     await checkUpdate(() {
-      server.updateContent('u3', {testFile: new RemoveContentOverlay()});
+      server.updateContent('u3', {testFile: RemoveContentOverlay()});
     });
   }
 
@@ -678,7 +678,7 @@ main(bool b) {
     return waitForTasksFinished().then((_) {
       return _sendExtractRequest();
     }).then((Response response) {
-      var result = new EditGetRefactoringResult.fromResponse(response);
+      var result = EditGetRefactoringResult.fromResponse(response);
       assertResultProblemsFatal(result.initialProblems);
       // ...there is no any feedback
       expect(result.feedback, isNull);
@@ -774,7 +774,7 @@ void res(int a, int b) {
   Future<ExtractMethodFeedback> _computeInitialFeedback() async {
     await waitForTasksFinished();
     Response response = await _sendExtractRequest();
-    var result = new EditGetRefactoringResult.fromResponse(response);
+    var result = EditGetRefactoringResult.fromResponse(response);
     return result.feedback;
   }
 
@@ -786,10 +786,10 @@ void res(int a, int b) {
       assertResultProblemsOK(result);
       // fill options from result
       ExtractMethodFeedback feedback = result.feedback;
-      options = new ExtractMethodOptions(
+      options = ExtractMethodOptions(
           feedback.returnType, false, name, feedback.parameters, true);
       // done
-      return new Future.value();
+      return Future.value();
     });
   }
 
@@ -851,11 +851,11 @@ flutter:${libFolder.toUri()}
    */
   Future getRefactorings(int offset, int length) async {
     Request request =
-        new EditGetAvailableRefactoringsParams(testFile, offset, length)
+        EditGetAvailableRefactoringsParams(testFile, offset, length)
             .toRequest('0');
     serverChannel.sendRequest(request);
     var response = await serverChannel.waitForResponse(request);
-    var result = new EditGetAvailableRefactoringsResult.fromResponse(response);
+    var result = EditGetAvailableRefactoringsResult.fromResponse(response);
     kinds = result.kinds;
   }
 
@@ -876,7 +876,7 @@ flutter:${libFolder.toUri()}
   void setUp() {
     super.setUp();
     createProject();
-    handler = new EditDomainHandler(server);
+    handler = EditDomainHandler(server);
     server.handlers = [handler];
   }
 
@@ -928,8 +928,8 @@ class MyWidget extends StatelessWidget {
   }
 
   test_invalidFilePathFormat_notAbsolute() async {
-    var request = new EditGetAvailableRefactoringsParams('test.dart', 0, 0)
-        .toRequest('0');
+    var request =
+        EditGetAvailableRefactoringsParams('test.dart', 0, 0).toRequest('0');
     var response = await waitResponse(request);
     expect(
       response,
@@ -938,7 +938,7 @@ class MyWidget extends StatelessWidget {
   }
 
   test_invalidFilePathFormat_notNormalized() async {
-    var request = new EditGetAvailableRefactoringsParams(
+    var request = EditGetAvailableRefactoringsParams(
             convertPath('/foo/../bar/test.dart'), 0, 0)
         .toRequest('0');
     var response = await waitResponse(request);
@@ -1162,7 +1162,7 @@ main() {
   }
 
   Future<Response> _sendInlineRequest(String search) {
-    Request request = new EditGetRefactoringParams(
+    Request request = EditGetRefactoringParams(
             RefactoringKind.INLINE_LOCAL_VARIABLE,
             testFile,
             findOffset(search),
@@ -1175,7 +1175,7 @@ main() {
 
 @reflectiveTest
 class InlineMethodTest extends _AbstractGetRefactoring_Test {
-  InlineMethodOptions options = new InlineMethodOptions(true, true);
+  InlineMethodOptions options = InlineMethodOptions(true, true);
 
   test_feedback() {
     addTestFile('''
@@ -1287,12 +1287,8 @@ main() {
   }
 
   Future<Response> _sendInlineRequest(String search) {
-    Request request = new EditGetRefactoringParams(
-            RefactoringKind.INLINE_METHOD,
-            testFile,
-            findOffset(search),
-            0,
-            false,
+    Request request = EditGetRefactoringParams(RefactoringKind.INLINE_METHOD,
+            testFile, findOffset(search), 0, false,
             options: options)
         .toRequest('0');
     return serverChannel.sendRequest(request);
@@ -1321,7 +1317,7 @@ import 'bin/lib.dart';
   }
 
   Future<Response> _sendMoveRequest() {
-    Request request = new EditGetRefactoringParams(
+    Request request = EditGetRefactoringParams(
             RefactoringKind.MOVE_FILE, testFile, 0, 0, false,
             options: options)
         .toRequest('0');
@@ -1329,7 +1325,7 @@ import 'bin/lib.dart';
   }
 
   void _setOptions(String newFile) {
-    options = new MoveFileOptions(newFile);
+    options = MoveFileOptions(newFile);
   }
 }
 
@@ -1337,9 +1333,9 @@ import 'bin/lib.dart';
 class RenameTest extends _AbstractGetRefactoring_Test {
   Future<Response> sendRenameRequest(String search, String newName,
       {String id = '0', bool validateOnly = false}) {
-    RenameOptions options = newName != null ? new RenameOptions(newName) : null;
-    Request request = new EditGetRefactoringParams(RefactoringKind.RENAME,
-            testFile, findOffset(search), 0, validateOnly,
+    RenameOptions options = newName != null ? RenameOptions(newName) : null;
+    Request request = EditGetRefactoringParams(RefactoringKind.RENAME, testFile,
+            findOffset(search), 0, validateOnly,
             options: options)
         .toRequest(id);
     return serverChannel.sendRequest(request);
@@ -2219,13 +2215,13 @@ class _AbstractGetRefactoring_Test extends AbstractAnalysisTest {
       await waitForTasksFinished();
     }
     Response response = await requestSender();
-    return new EditGetRefactoringResult.fromResponse(response);
+    return EditGetRefactoringResult.fromResponse(response);
   }
 
   Future<Response> sendRequest(
       RefactoringKind kind, int offset, int length, RefactoringOptions options,
       [bool validateOnly = false]) {
-    Request request = new EditGetRefactoringParams(
+    Request request = EditGetRefactoringParams(
             kind, testFile, offset, length, validateOnly,
             options: options)
         .toRequest('0');
@@ -2236,7 +2232,7 @@ class _AbstractGetRefactoring_Test extends AbstractAnalysisTest {
   void setUp() {
     super.setUp();
     createProject();
-    handler = new EditDomainHandler(server);
+    handler = EditDomainHandler(server);
     server.handlers = [handler];
   }
 }

@@ -56,7 +56,7 @@ class BuiltInPluginInfo extends PluginInfo {
 
   @override
   ServerCommunicationChannel _createChannel() {
-    return new ServerIsolateChannel.builtIn(
+    return ServerIsolateChannel.builtIn(
         entryPoint, pluginId, instrumentationService);
   }
 }
@@ -101,9 +101,9 @@ class DiscoveredPluginInfo extends PluginInfo {
 
   @override
   ServerCommunicationChannel _createChannel() {
-    return new ServerIsolateChannel.discovered(
-        new Uri.file(executionPath, windows: Platform.isWindows),
-        new Uri.file(packagesPath, windows: Platform.isWindows),
+    return ServerIsolateChannel.discovered(
+        Uri.file(executionPath, windows: Platform.isWindows),
+        Uri.file(packagesPath, windows: Platform.isWindows),
         instrumentationService);
   }
 }
@@ -145,7 +145,7 @@ abstract class PluginInfo {
    * The context roots that are currently using the results produced by the
    * plugin.
    */
-  Set<analyzer.ContextRoot> contextRoots = new HashSet<analyzer.ContextRoot>();
+  Set<analyzer.ContextRoot> contextRoots = HashSet<analyzer.ContextRoot>();
 
   /**
    * The current execution of the plugin, or `null` if the plugin is not
@@ -177,7 +177,7 @@ abstract class PluginInfo {
    * Return the data known about this plugin.
    */
   PluginData get data =>
-      new PluginData(pluginId, currentSession?.name, currentSession?.version);
+      PluginData(pluginId, currentSession?.name, currentSession?.version);
 
   /**
    * Return the id of this plugin, used to identify the plugin to users.
@@ -250,9 +250,9 @@ abstract class PluginInfo {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     if (currentSession != null) {
-      throw new StateError('Cannot start a plugin that is already running.');
+      throw StateError('Cannot start a plugin that is already running.');
     }
-    currentSession = new PluginSession(this);
+    currentSession = PluginSession(this);
     bool isRunning = await currentSession.start(byteStorePath, sdkPath);
     if (!isRunning) {
       currentSession = null;
@@ -265,7 +265,7 @@ abstract class PluginInfo {
    */
   Future<void> stop() {
     if (currentSession == null) {
-      throw new StateError('Cannot stop a plugin that is not running.');
+      throw StateError('Cannot stop a plugin that is not running.');
     }
     Future<void> doneFuture = currentSession.stop();
     currentSession = null;
@@ -282,9 +282,9 @@ abstract class PluginInfo {
    */
   void _updatePluginRoots() {
     if (currentSession != null) {
-      AnalysisSetContextRootsParams params = new AnalysisSetContextRootsParams(
+      AnalysisSetContextRootsParams params = AnalysisSetContextRootsParams(
           contextRoots
-              .map((analyzer.ContextRoot contextRoot) => new ContextRoot(
+              .map((analyzer.ContextRoot contextRoot) => ContextRoot(
                   contextRoot.root, contextRoot.exclude,
                   optionsFile: contextRoot.optionsFilePath))
               .toList());
@@ -390,13 +390,13 @@ class PluginManager {
       try {
         pluginPaths = pathsFor(path);
       } catch (exception, stackTrace) {
-        plugin = new DiscoveredPluginInfo(
+        plugin = DiscoveredPluginInfo(
             path, null, null, notificationManager, instrumentationService);
-        plugin.exception = new CaughtException(exception, stackTrace);
+        plugin.exception = CaughtException(exception, stackTrace);
         _pluginMap[path] = plugin;
         return;
       }
-      plugin = new DiscoveredPluginInfo(path, pluginPaths[0], pluginPaths[1],
+      plugin = DiscoveredPluginInfo(path, pluginPaths[0], pluginPaths[1],
           notificationManager, instrumentationService);
       _pluginMap[path] = plugin;
       if (pluginPaths[0] != null) {
@@ -408,7 +408,7 @@ class PluginManager {
         } catch (exception, stackTrace) {
           // Record the exception (for debugging purposes) and record the fact
           // that we should not try to communicate with the plugin.
-          plugin.exception = new CaughtException(exception, stackTrace);
+          plugin.exception = CaughtException(exception, stackTrace);
           isNew = false;
         }
       }
@@ -419,7 +419,7 @@ class PluginManager {
         plugin.sendRequest(_analysisSetSubscriptionsParams);
       }
       if (_overlayState.isNotEmpty) {
-        plugin.sendRequest(new AnalysisUpdateContentParams(_overlayState));
+        plugin.sendRequest(AnalysisUpdateContentParams(_overlayState));
       }
       if (_analysisSetPriorityFilesParams != null) {
         plugin.sendRequest(_analysisSetPriorityFilesParams);
@@ -464,8 +464,7 @@ class PluginManager {
      * Return `true` if the given glob [pattern] matches the file being watched.
      */
     bool matches(String pattern) =>
-        new Glob(resourceProvider.pathContext.separator, pattern)
-            .matches(filePath);
+        Glob(resourceProvider.pathContext.separator, pattern).matches(filePath);
 
     WatchEvent event = null;
     List<Future<Response>> responses = <Future<Response>>[];
@@ -481,7 +480,7 @@ class PluginManager {
         // hence it does not needed to get watch events.
         event ??= _convertWatchEvent(watchEvent);
         AnalysisHandleWatchEventsParams params =
-            new AnalysisHandleWatchEventsParams([event]);
+            AnalysisHandleWatchEventsParams([event]);
         responses.add(session.sendRequest(params));
       }
     }
@@ -554,13 +553,13 @@ class PluginManager {
    */
   void recordPluginFailure(String hostPackageName, String message) {
     try {
-      throw new PluginException(message);
+      throw PluginException(message);
     } catch (exception, stackTrace) {
       String pluginPath =
           path.join(hostPackageName, 'tools', 'analyzer_plugin');
-      DiscoveredPluginInfo plugin = new DiscoveredPluginInfo(
+      DiscoveredPluginInfo plugin = DiscoveredPluginInfo(
           pluginPath, null, null, notificationManager, instrumentationService);
-      plugin.exception = new CaughtException(exception, stackTrace);
+      plugin.exception = CaughtException(exception, stackTrace);
       _pluginMap[pluginPath] = plugin;
     }
   }
@@ -612,7 +611,7 @@ class PluginManager {
           plugin.sendRequest(_analysisSetSubscriptionsParams);
         }
         if (_overlayState.isNotEmpty) {
-          plugin.sendRequest(new AnalysisUpdateContentParams(_overlayState));
+          plugin.sendRequest(AnalysisUpdateContentParams(_overlayState));
         }
         if (_analysisSetPriorityFilesParams != null) {
           plugin.sendRequest(_analysisSetPriorityFilesParams);
@@ -668,10 +667,9 @@ class PluginManager {
         AddContentOverlay previousOverlay = _overlayState[file];
         String newContent =
             SourceEdit.applySequence(previousOverlay.content, overlay.edits);
-        _overlayState[file] = new AddContentOverlay(newContent);
+        _overlayState[file] = AddContentOverlay(newContent);
       } else {
-        throw new ArgumentError(
-            'Invalid class of overlay: ${overlay.runtimeType}');
+        throw ArgumentError('Invalid class of overlay: ${overlay.runtimeType}');
       }
     }
   }
@@ -701,7 +699,7 @@ class PluginManager {
         .getChildAssumingFolder('bin')
         .getChildAssumingFile('plugin.dart');
     if (!pluginFile.exists) {
-      throw new PluginException('File "${pluginFile.path}" does not exist.');
+      throw PluginException('File "${pluginFile.path}" does not exist.');
     }
     String reason;
     File packagesFile = pluginFolder.getChildAssumingFile('.packages');
@@ -718,7 +716,7 @@ class PluginManager {
           workingDirectory: pluginFolder.path,
           environment: {_pubEnvironmentKey: _getPubEnvironmentValue()});
       if (result.exitCode != 0) {
-        StringBuffer buffer = new StringBuffer();
+        StringBuffer buffer = StringBuffer();
         buffer.writeln('Failed to run pub $pubCommand');
         buffer.writeln('  pluginFolder = ${pluginFolder.path}');
         buffer.writeln('  exitCode = ${result.exitCode}');
@@ -744,7 +742,7 @@ class PluginManager {
       }
     }
     if (packagesFile == null) {
-      throw new PluginException(reason);
+      throw PluginException(reason);
     }
     return <String>[pluginFile.path, packagesFile.path];
   }
@@ -758,12 +756,12 @@ class PluginManager {
       case watcher.ChangeType.REMOVE:
         return WatchEventType.REMOVE;
       default:
-        throw new StateError('Unknown change type: $type');
+        throw StateError('Unknown change type: $type');
     }
   }
 
   WatchEvent _convertWatchEvent(watcher.WatchEvent watchEvent) {
-    return new WatchEvent(_convertChangeType(watchEvent.type), watchEvent.path);
+    return WatchEvent(_convertChangeType(watchEvent.type), watchEvent.path);
   }
 
   /**
@@ -805,11 +803,11 @@ class PluginManager {
           }
         }
 
-        StringBuffer buffer = new StringBuffer();
+        StringBuffer buffer = StringBuffer();
         visitedPackages.forEach((String name, String path) {
           buffer.write(name);
           buffer.write(':');
-          buffer.writeln(new Uri.file(path));
+          buffer.writeln(Uri.file(path));
         });
         packagesFile.writeAsStringSync(buffer.toString());
       } catch (exception) {
@@ -906,7 +904,7 @@ class PluginSession {
   /**
    * The completer used to signal when the plugin has stopped.
    */
-  Completer<void> pluginStoppedCompleter = new Completer<void>();
+  Completer<void> pluginStoppedCompleter = Completer<void>();
 
   /**
    * The channel used to communicate with the plugin.
@@ -974,7 +972,7 @@ class PluginSession {
   void handleNotification(Notification notification) {
     if (notification.event == PLUGIN_NOTIFICATION_ERROR) {
       PluginErrorParams params =
-          new PluginErrorParams.fromNotification(notification);
+          PluginErrorParams.fromNotification(notification);
       if (params.isFatal) {
         info.stop();
         stop();
@@ -1000,9 +998,8 @@ class PluginSession {
    */
   void handleOnError(dynamic error) {
     List<String> errorPair = (error as List).cast<String>();
-    StackTrace stackTrace = new StackTrace.fromString(errorPair[1]);
-    info.exception =
-        new CaughtException(new PluginException(errorPair[0]), stackTrace);
+    StackTrace stackTrace = StackTrace.fromString(errorPair[1]);
+    info.exception = CaughtException(PluginException(errorPair[0]), stackTrace);
     info.instrumentationService
         .logPluginException(info.data, errorPair[0], stackTrace);
   }
@@ -1013,7 +1010,7 @@ class PluginSession {
    */
   void handleResponse(Response response) {
     _PendingRequest requestData = pendingRequests.remove(response.id);
-    int responseTime = new DateTime.now().millisecondsSinceEpoch;
+    int responseTime = DateTime.now().millisecondsSinceEpoch;
     int duration = responseTime - requestData.requestTime;
     PluginManager.recordResponseTime(info, requestData.method, duration);
     Completer<Response> completer = requestData.completer;
@@ -1029,7 +1026,7 @@ class PluginSession {
   bool isNonResponsive() {
     // TODO(brianwilkerson) Figure out when to invoke this method in order to
     // identify non-responsive plugins and kill them.
-    int cutOffTime = new DateTime.now().millisecondsSinceEpoch -
+    int cutOffTime = DateTime.now().millisecondsSinceEpoch -
         MAXIMUM_RESPONSE_TIME.inMilliseconds;
     for (var requestData in pendingRequests.values) {
       if (requestData.requestTime < cutOffTime) {
@@ -1045,15 +1042,14 @@ class PluginSession {
    */
   Future<Response> sendRequest(RequestParams parameters) {
     if (channel == null) {
-      throw new StateError(
-          'Cannot send a request to a plugin that has stopped.');
+      throw StateError('Cannot send a request to a plugin that has stopped.');
     }
     String id = nextRequestId;
-    Completer<Response> completer = new Completer();
-    int requestTime = new DateTime.now().millisecondsSinceEpoch;
+    Completer<Response> completer = Completer();
+    int requestTime = DateTime.now().millisecondsSinceEpoch;
     Request request = parameters.toRequest(id);
     pendingRequests[id] =
-        new _PendingRequest(request.method, requestTime, completer);
+        _PendingRequest(request.method, requestTime, completer);
     channel.sendRequest(request);
     return completer.future;
   }
@@ -1067,19 +1063,19 @@ class PluginSession {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     if (channel != null) {
-      throw new StateError('Cannot start a plugin that is already running.');
+      throw StateError('Cannot start a plugin that is already running.');
     }
     if (byteStorePath == null || byteStorePath.isEmpty) {
-      throw new StateError('Missing byte store path');
+      throw StateError('Missing byte store path');
     }
     if (!isCompatible) {
-      info.exception = new CaughtException(
-          new PluginException('Plugin is not compatible.'), null);
+      info.exception =
+          CaughtException(PluginException('Plugin is not compatible.'), null);
       return false;
     }
     if (!info.canBeStarted) {
-      info.exception = new CaughtException(
-          new PluginException('Plugin cannot be started.'), null);
+      info.exception =
+          CaughtException(PluginException('Plugin cannot be started.'), null);
       return false;
     }
     channel = info._createChannel();
@@ -1090,24 +1086,23 @@ class PluginSession {
     if (channel == null) {
       // If there is an error when starting the isolate, the channel will invoke
       // handleOnDone, which will cause `channel` to be set to `null`.
-      info.exception ??= new CaughtException(
-          new PluginException('Unrecorded error while starting the plugin.'),
-          null);
+      info.exception ??= CaughtException(
+          PluginException('Unrecorded error while starting the plugin.'), null);
       return false;
     }
-    Response response = await sendRequest(new PluginVersionCheckParams(
+    Response response = await sendRequest(PluginVersionCheckParams(
         byteStorePath ?? '', sdkPath, '1.0.0-alpha.0'));
     PluginVersionCheckResult result =
-        new PluginVersionCheckResult.fromResponse(response);
+        PluginVersionCheckResult.fromResponse(response);
     isCompatible = result.isCompatible;
     contactInfo = result.contactInfo;
     interestingFiles = result.interestingFiles;
     name = result.name;
     version = result.version;
     if (!isCompatible) {
-      sendRequest(new PluginShutdownParams());
-      info.exception = new CaughtException(
-          new PluginException('Plugin is not compatible.'), null);
+      sendRequest(PluginShutdownParams());
+      info.exception =
+          CaughtException(PluginException('Plugin is not compatible.'), null);
       return false;
     }
     return true;
@@ -1118,10 +1113,10 @@ class PluginSession {
    */
   Future<void> stop() {
     if (channel == null) {
-      throw new StateError('Cannot stop a plugin that is not running.');
+      throw StateError('Cannot stop a plugin that is not running.');
     }
-    sendRequest(new PluginShutdownParams());
-    new Future.delayed(WAIT_FOR_SHUTDOWN_DURATION, () {
+    sendRequest(PluginShutdownParams());
+    Future.delayed(WAIT_FOR_SHUTDOWN_DURATION, () {
       if (channel != null) {
         channel?.kill();
         channel = null;

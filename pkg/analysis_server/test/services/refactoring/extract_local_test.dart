@@ -1392,8 +1392,7 @@ main() {
   }
 
   void _createRefactoring(int offset, int length) {
-    refactoring =
-        new ExtractLocalRefactoring(testAnalysisResult, offset, length);
+    refactoring = ExtractLocalRefactoring(testAnalysisResult, offset, length);
     refactoring.name = 'res';
   }
 

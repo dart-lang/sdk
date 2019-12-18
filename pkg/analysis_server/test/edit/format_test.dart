@@ -26,7 +26,7 @@ class FormatTest extends AbstractAnalysisTest {
   void setUp() {
     super.setUp();
     createProject();
-    handler = new EditDomainHandler(server);
+    handler = EditDomainHandler(server);
   }
 
   Future test_format_longLine() {
@@ -107,7 +107,7 @@ main() {
 main() { int x =
 ''');
     return waitForTasksFinished().then((_) {
-      Request request = new EditFormatParams(testFile, 0, 3).toRequest('0');
+      Request request = EditFormatParams(testFile, 0, 3).toRequest('0');
       Response response = handler.handleRequest(request);
       expect(response, isResponseFailure('0'));
     });
@@ -115,11 +115,11 @@ main() { int x =
 
   EditFormatResult _formatAt(int selectionOffset, int selectionLength,
       {int lineLength}) {
-    Request request = new EditFormatParams(
+    Request request = EditFormatParams(
             testFile, selectionOffset, selectionLength,
             lineLength: lineLength)
         .toRequest('0');
     Response response = handleSuccessfulRequest(request);
-    return new EditFormatResult.fromResponse(response);
+    return EditFormatResult.fromResponse(response);
   }
 }

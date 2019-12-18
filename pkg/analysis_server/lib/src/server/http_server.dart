@@ -116,7 +116,7 @@ class HttpAnalysisServer {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     if (getHandler == null) {
-      getHandler = new DiagnosticsSite(socketServer, _printBuffer);
+      getHandler = DiagnosticsSite(socketServer, _printBuffer);
     }
     // TODO(brianwilkerson) Determine if await is necessary, if so, change the
     // return type of [AbstractGetHandler.handleGetRequest] to `Future<void>`.

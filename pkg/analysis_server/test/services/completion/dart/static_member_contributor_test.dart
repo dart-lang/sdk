@@ -21,7 +21,7 @@ main() {
 class StaticMemberContributorTest extends DartCompletionContributorTest {
   @override
   DartCompletionContributor createContributor() {
-    return new StaticMemberContributor();
+    return StaticMemberContributor();
   }
 
   test_enumConst() async {
@@ -312,7 +312,7 @@ class StaticMemberContributorWithExtensionMethodsTest
     extends DartCompletionContributorTest {
   @override
   DartCompletionContributor createContributor() {
-    return new StaticMemberContributor();
+    return StaticMemberContributor();
   }
 
   @override

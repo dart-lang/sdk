@@ -22,20 +22,20 @@ main() {
   MockServerChannel serverChannel;
 
   setUp(() {
-    serverChannel = new MockServerChannel();
-    var resourceProvider = new MemoryResourceProvider();
-    server = new AnalysisServer(
+    serverChannel = MockServerChannel();
+    var resourceProvider = MemoryResourceProvider();
+    server = AnalysisServer(
         serverChannel,
         resourceProvider,
-        new AnalysisServerOptions(),
-        new DartSdkManager('', false),
+        AnalysisServerOptions(),
+        DartSdkManager('', false),
         InstrumentationService.NULL_SERVICE);
-    handler = new ServerDomainHandler(server);
+    handler = ServerDomainHandler(server);
   });
 
   group('ServerDomainHandler', () {
     test('getVersion', () {
-      var request = new ServerGetVersionParams().toRequest('0');
+      var request = ServerGetVersionParams().toRequest('0');
       var response = handler.handleRequest(request);
       expect(
           response.toJson(),
@@ -47,7 +47,7 @@ main() {
 
     group('setSubscriptions', () {
       test('invalid service name', () {
-        Request request = new Request('0', SERVER_REQUEST_SET_SUBSCRIPTIONS, {
+        Request request = Request('0', SERVER_REQUEST_SET_SUBSCRIPTIONS, {
           SUBSCRIPTIONS: ['noSuchService']
         });
         var response = handler.handleRequest(request);
@@ -58,8 +58,7 @@ main() {
         expect(server.serverServices, isEmpty);
         // send request
         Request request =
-            new ServerSetSubscriptionsParams([ServerService.STATUS])
-                .toRequest('0');
+            ServerSetSubscriptionsParams([ServerService.STATUS]).toRequest('0');
         var response = handler.handleRequest(request);
         expect(response, isResponseSuccess('0'));
         // set of services has been changed
@@ -68,7 +67,7 @@ main() {
     });
 
     test('shutdown', () async {
-      var request = new ServerShutdownParams().toRequest('0');
+      var request = ServerShutdownParams().toRequest('0');
       var response = await serverChannel.sendRequest(request);
       expect(response, isResponseSuccess('0'));
     });

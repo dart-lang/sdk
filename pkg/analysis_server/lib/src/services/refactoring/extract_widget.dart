@@ -76,8 +76,8 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
 
   ExtractWidgetRefactoringImpl(
       this.searchEngine, this.resolveResult, this.offset, this.length)
-      : sessionHelper = new AnalysisSessionHelper(resolveResult.session) {
-    utils = new CorrectionUtils(resolveResult);
+      : sessionHelper = AnalysisSessionHelper(resolveResult.session) {
+    utils = CorrectionUtils(resolveResult);
     flutter = Flutter.of(resolveResult);
   }
 
@@ -96,7 +96,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
   Future<RefactoringStatus> checkFinalConditions() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    RefactoringStatus result = new RefactoringStatus();
+    RefactoringStatus result = RefactoringStatus();
     result.addStatus(validateClassName(name));
     return result;
   }
@@ -105,7 +105,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
   Future<RefactoringStatus> checkInitialConditions() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    RefactoringStatus result = new RefactoringStatus();
+    RefactoringStatus result = RefactoringStatus();
 
     result.addStatus(_checkSelection());
     if (result.hasFatalError) {
@@ -125,7 +125,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
 
   @override
   RefactoringStatus checkName() {
-    RefactoringStatus result = new RefactoringStatus();
+    RefactoringStatus result = RefactoringStatus();
 
     // Validate the name.
     result.addStatus(validateClassName(name));
@@ -150,7 +150,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
   Future<SourceChange> createChange() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    var changeBuilder = new DartChangeBuilder(sessionHelper.session);
+    var changeBuilder = DartChangeBuilder(sessionHelper.session);
     await changeBuilder.addFileEdit(resolveResult.path, (builder) {
       if (_expression != null) {
         builder.addReplacement(range.node(_expression), (builder) {
@@ -179,8 +179,8 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
 
   /// Checks if [offset] is a widget creation expression that can be extracted.
   RefactoringStatus _checkSelection() {
-    AstNode node = new NodeLocator(offset, offset + length)
-        .searchWithin(resolveResult.unit);
+    AstNode node =
+        NodeLocator(offset, offset + length).searchWithin(resolveResult.unit);
 
     // Treat single ReturnStatement as its expression.
     if (node is ReturnStatement) {
@@ -195,12 +195,12 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
     var newExpression = flutter.identifyNewExpression(node);
     if (flutter.isWidgetCreation(newExpression)) {
       _expression = newExpression;
-      return new RefactoringStatus();
+      return RefactoringStatus();
     }
 
     // Block with selected statements.
     if (node is Block) {
-      var selectionRange = new SourceRange(offset, length);
+      var selectionRange = SourceRange(offset, length);
       var statements = <Statement>[];
       for (var statement in node.statements) {
         var statementRange = range.node(statement);
@@ -214,9 +214,9 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
             flutter.isWidgetExpression(lastStatement.expression)) {
           _statements = statements;
           _statementsRange = range.startEnd(statements.first, statements.last);
-          return new RefactoringStatus();
+          return RefactoringStatus();
         } else {
-          return new RefactoringStatus.fatal(
+          return RefactoringStatus.fatal(
               'The last selected statement must return a widget.');
         }
       }
@@ -231,21 +231,21 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
         DartType returnType = node.returnType?.type;
         if (flutter.isWidgetType(returnType) && node.body != null) {
           _method = node;
-          return new RefactoringStatus();
+          return RefactoringStatus();
         }
         break;
       }
     }
 
     // Invalid selection.
-    return new RefactoringStatus.fatal(
+    return RefactoringStatus.fatal(
         'Can only extract a widget expression or a method returning widget.');
   }
 
   Future<RefactoringStatus> _initializeClasses() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    var result = new RefactoringStatus();
+    var result = RefactoringStatus();
 
     Future<ClassElement> getClass(String name) async {
       // TODO(brianwilkerson) Determine whether this await is necessary.
@@ -287,19 +287,19 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
     _ParametersCollector collector;
     if (_expression != null) {
       SourceRange localRange = range.node(_expression);
-      collector = new _ParametersCollector(_enclosingClassElement, localRange);
+      collector = _ParametersCollector(_enclosingClassElement, localRange);
       _expression.accept(collector);
     }
     if (_statements != null) {
       collector =
-          new _ParametersCollector(_enclosingClassElement, _statementsRange);
+          _ParametersCollector(_enclosingClassElement, _statementsRange);
       for (var statement in _statements) {
         statement.accept(collector);
       }
     }
     if (_method != null) {
       SourceRange localRange = range.node(_method);
-      collector = new _ParametersCollector(_enclosingClassElement, localRange);
+      collector = _ParametersCollector(_enclosingClassElement, localRange);
       _method.body.accept(collector);
     }
 
@@ -315,7 +315,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
           parameter = defaultFormalParameter.parameter;
         }
         if (parameter is NormalFormalParameter) {
-          _parameters.add(new _Parameter(
+          _parameters.add(_Parameter(
               parameter.identifier.name, parameter.declaredElement.type,
               isMethodParameter: true));
         }
@@ -335,7 +335,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
     }
 
     // Collect used public names.
-    var usedNames = new Set<String>();
+    var usedNames = Set<String>();
     for (var parameter in _parameters) {
       if (!parameter.name.startsWith('_')) {
         usedNames.add(parameter.name);
@@ -369,14 +369,14 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
   }
 
   String _replaceIndent(String code, String indentOld, String indentNew) {
-    var regExp = new RegExp('^$indentOld', multiLine: true);
+    var regExp = RegExp('^$indentOld', multiLine: true);
     return code.replaceAll(regExp, indentNew);
   }
 
   /// Replace invocations of the [_method] with instantiations of the new
   /// widget class.
   void _replaceInvocationsWithInstantiations(DartFileEditBuilder builder) {
-    var collector = new _MethodInvocationsCollector(_method.declaredElement);
+    var collector = _MethodInvocationsCollector(_method.declaredElement);
     _enclosingClassNode.accept(collector);
     for (var invocation in collector.invocations) {
       List<Expression> arguments = invocation.argumentList.arguments;
@@ -597,8 +597,8 @@ class _ParametersCollector extends RecursiveAstVisitor<void> {
   final ClassElement enclosingClass;
   final SourceRange expressionRange;
 
-  final RefactoringStatus status = new RefactoringStatus();
-  final Set<Element> uniqueElements = new Set<Element>();
+  final RefactoringStatus status = RefactoringStatus();
+  final Set<Element> uniqueElements = Set<Element>();
   final List<_Parameter> parameters = [];
 
   List<ClassElement> enclosingClasses;
@@ -640,7 +640,7 @@ class _ParametersCollector extends RecursiveAstVisitor<void> {
     // TODO(scheglov) support for ParameterElement
 
     if (type != null && uniqueElements.add(element)) {
-      parameters.add(new _Parameter(elementName, type));
+      parameters.add(_Parameter(elementName, type));
     }
   }
 

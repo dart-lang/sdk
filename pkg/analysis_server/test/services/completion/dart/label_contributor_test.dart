@@ -37,7 +37,7 @@ class LabelContributorTest extends DartCompletionContributorTest {
 
   @override
   DartCompletionContributor createContributor() {
-    return new LabelContributor();
+    return LabelContributor();
   }
 
   test_break_ignores_outer_functions_using_closure() async {

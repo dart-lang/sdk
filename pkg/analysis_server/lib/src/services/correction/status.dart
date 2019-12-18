@@ -28,7 +28,7 @@ class RefactoringStatus {
    * Creates a new [RefactoringStatus] with the ERROR severity.
    */
   factory RefactoringStatus.error(String msg, [Location location]) {
-    RefactoringStatus status = new RefactoringStatus();
+    RefactoringStatus status = RefactoringStatus();
     status.addError(msg, location);
     return status;
   }
@@ -37,7 +37,7 @@ class RefactoringStatus {
    * Creates a new [RefactoringStatus] with the FATAL severity.
    */
   factory RefactoringStatus.fatal(String msg, [Location location]) {
-    RefactoringStatus status = new RefactoringStatus();
+    RefactoringStatus status = RefactoringStatus();
     status.addFatalError(msg, location);
     return status;
   }
@@ -46,7 +46,7 @@ class RefactoringStatus {
    * Creates a new [RefactoringStatus] with the WARNING severity.
    */
   factory RefactoringStatus.warning(String msg, [Location location]) {
-    RefactoringStatus status = new RefactoringStatus();
+    RefactoringStatus status = RefactoringStatus();
     status.addWarning(msg, location);
     return status;
   }
@@ -109,7 +109,7 @@ class RefactoringStatus {
    * Adds an ERROR problem with the given message and location.
    */
   void addError(String msg, [Location location]) {
-    _addProblem(new RefactoringProblem(RefactoringProblemSeverity.ERROR, msg,
+    _addProblem(RefactoringProblem(RefactoringProblemSeverity.ERROR, msg,
         location: location));
   }
 
@@ -117,7 +117,7 @@ class RefactoringStatus {
    * Adds a FATAL problem with the given message and location.
    */
   void addFatalError(String msg, [Location location]) {
-    _addProblem(new RefactoringProblem(RefactoringProblemSeverity.FATAL, msg,
+    _addProblem(RefactoringProblem(RefactoringProblemSeverity.FATAL, msg,
         location: location));
   }
 
@@ -142,13 +142,13 @@ class RefactoringStatus {
    * Adds a WARNING problem with the given message and location.
    */
   void addWarning(String msg, [Location location]) {
-    _addProblem(new RefactoringProblem(RefactoringProblemSeverity.WARNING, msg,
+    _addProblem(RefactoringProblem(RefactoringProblemSeverity.WARNING, msg,
         location: location));
   }
 
   @override
   String toString() {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     sb.write("<");
     if (_severity == null) {
       sb.write('OK');

@@ -19,7 +19,7 @@ main() {
 class CombinatorContributorTest extends DartCompletionContributorTest {
   @override
   DartCompletionContributor createContributor() {
-    return new CombinatorContributor();
+    return CombinatorContributor();
   }
 
   test_Block_inherited_local() async {

@@ -28,14 +28,14 @@ class OrganizeDirectivesTest extends AbstractAnalysisTest {
   void setUp() {
     super.setUp();
     createProject();
-    handler = new EditDomainHandler(server);
+    handler = EditDomainHandler(server);
   }
 
   @failingTest
   Future test_BAD_doesNotExist() async {
     // The analysis driver fails to return an error
     Request request =
-        new EditOrganizeDirectivesParams(convertPath('/no/such/file.dart'))
+        EditOrganizeDirectivesParams(convertPath('/no/such/file.dart'))
             .toRequest('0');
     Response response = await waitResponse(request);
     expect(
@@ -48,14 +48,14 @@ import 'dart:async'
 
 main() {}
 ''');
-    Request request = new EditOrganizeDirectivesParams(testFile).toRequest('0');
+    Request request = EditOrganizeDirectivesParams(testFile).toRequest('0');
     Response response = await waitResponse(request);
     expect(response,
         isResponseFailure('0', RequestErrorCode.ORGANIZE_DIRECTIVES_ERROR));
   }
 
   Future test_BAD_notDartFile() async {
-    Request request = new EditOrganizeDirectivesParams(
+    Request request = EditOrganizeDirectivesParams(
       convertPath('/not-a-Dart-file.txt'),
     ).toRequest('0');
     Response response = await waitResponse(request);
@@ -64,7 +64,7 @@ main() {}
   }
 
   test_invalidFilePathFormat_notAbsolute() async {
-    var request = new EditOrganizeDirectivesParams('test.dart').toRequest('0');
+    var request = EditOrganizeDirectivesParams('test.dart').toRequest('0');
     var response = await waitResponse(request);
     expect(
       response,
@@ -74,7 +74,7 @@ main() {}
 
   test_invalidFilePathFormat_notNormalized() async {
     var request =
-        new EditOrganizeDirectivesParams(convertPath('/foo/../bar/test.dart'))
+        EditOrganizeDirectivesParams(convertPath('/foo/../bar/test.dart'))
             .toRequest('0');
     var response = await waitResponse(request);
     expect(
@@ -155,9 +155,9 @@ main() {
   }
 
   Future _requestOrganize() async {
-    Request request = new EditOrganizeDirectivesParams(testFile).toRequest('0');
+    Request request = EditOrganizeDirectivesParams(testFile).toRequest('0');
     Response response = await waitResponse(request);
-    var result = new EditOrganizeDirectivesResult.fromResponse(response);
+    var result = EditOrganizeDirectivesResult.fromResponse(response);
     fileEdit = result.edit;
   }
 }

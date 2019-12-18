@@ -22,7 +22,7 @@ class InitializationTest extends AbstractLspAnalysisServerIntegrationTest {
       issue: 'https://github.com/dart-lang/sdk/issues/38629')
   test_initialize_invalidParams() async {
     final params = {'processId': 'invalid'};
-    final request = new RequestMessage(
+    final request = RequestMessage(
       Either2<num, String>.t1(1),
       Method.initialize,
       params,

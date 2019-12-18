@@ -900,7 +900,7 @@ class A<T> {
 class HighlightsTestSupport extends AbstractAnalysisTest {
   List<HighlightRegion> regions;
 
-  Completer _resultsAvailable = new Completer();
+  Completer _resultsAvailable = Completer();
 
   void assertHasRawRegion(HighlightRegionType type, int offset, int length) {
     for (HighlightRegion region in regions) {
@@ -978,7 +978,7 @@ class HighlightsTestSupport extends AbstractAnalysisTest {
       fail('SERVER_NOTIFICATION_ERROR');
     }
     if (notification.event == ANALYSIS_NOTIFICATION_HIGHLIGHTS) {
-      var params = new AnalysisHighlightsParams.fromNotification(notification);
+      var params = AnalysisHighlightsParams.fromNotification(notification);
       if (params.file == testFile) {
         regions = params.regions;
         _resultsAvailable.complete(null);
@@ -1187,7 +1187,7 @@ void f({required int x}) {}
 class HighlightTypeTest {
   void test_constructor() {
     expect(HighlightRegionType.CLASS,
-        new HighlightRegionType(HighlightRegionType.CLASS.name));
+        HighlightRegionType(HighlightRegionType.CLASS.name));
   }
 
   void test_toString() {
@@ -1196,7 +1196,7 @@ class HighlightTypeTest {
 
   void test_valueOf_unknown() {
     expect(() {
-      new HighlightRegionType('no-such-type');
+      HighlightRegionType('no-such-type');
     }, throwsException);
   }
 }

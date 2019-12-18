@@ -20,7 +20,7 @@ main() {
 
 @reflectiveTest
 class RequestConverterTest extends ProtocolTestUtilities {
-  RequestConverter converter = new RequestConverter();
+  RequestConverter converter = RequestConverter();
 
   void test_convertAnalysisService() {
     Map<plugin.AnalysisService, server.AnalysisService> kindMap =
@@ -41,7 +41,7 @@ class RequestConverterTest extends ProtocolTestUtilities {
     List<String> files = <String>['a', 'b', 'c'];
     plugin.AnalysisSetPriorityFilesParams result =
         converter.convertAnalysisSetPriorityFilesParams(
-            new server.AnalysisSetPriorityFilesParams(files));
+            server.AnalysisSetPriorityFilesParams(files));
     expect(result, isNotNull);
     expect(result.files, files);
   }
@@ -55,7 +55,7 @@ class RequestConverterTest extends ProtocolTestUtilities {
     };
     plugin.AnalysisSetSubscriptionsParams result =
         converter.convertAnalysisSetSubscriptionsParams(
-            new server.AnalysisSetSubscriptionsParams(serverSubscriptions));
+            server.AnalysisSetSubscriptionsParams(serverSubscriptions));
     expect(result, isNotNull);
     Map<plugin.AnalysisService, List<String>> pluginSubscriptions =
         result.subscriptions;
@@ -67,12 +67,12 @@ class RequestConverterTest extends ProtocolTestUtilities {
 
   void test_convertAnalysisUpdateContentParams() {
     Map<String, dynamic> serverFiles = <String, dynamic>{
-      'file1': new AddContentOverlay('content1'),
-      'file2': new AddContentOverlay('content2'),
+      'file1': AddContentOverlay('content1'),
+      'file2': AddContentOverlay('content2'),
     };
     plugin.AnalysisUpdateContentParams result =
         converter.convertAnalysisUpdateContentParams(
-            new server.AnalysisUpdateContentParams(serverFiles));
+            server.AnalysisUpdateContentParams(serverFiles));
     expect(result, isNotNull);
     Map<String, dynamic> pluginFiles = result.files;
     expect(pluginFiles, hasLength(2));
