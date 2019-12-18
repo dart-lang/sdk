@@ -66,8 +66,10 @@ final String localSpecPath = path.join(
 final Uri specLicenseUri = Uri.parse(
     'https://raw.githubusercontent.com/Microsoft/language-server-protocol/gh-pages/License.txt');
 
+/// The URI of the version of the spec to generate from. This should be periodically updated as
+/// there's no longer a stable URI for the latest published version.
 final Uri specUri = Uri.parse(
-    'https://raw.githubusercontent.com/Microsoft/language-server-protocol/gh-pages/specification.md');
+    'https://raw.githubusercontent.com/microsoft/language-server-protocol/gh-pages/_specifications/specification-3-14.md');
 
 /// Pattern to extract inline types from the `result: {xx, yy }` notes in the spec.
 /// Doesn't parse past full stops as some of these have english sentences tagged on

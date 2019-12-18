@@ -656,6 +656,9 @@ class CodeActionKind {
     return obj is String;
   }
 
+  /// Empty kind.
+  static const Empty = const CodeActionKind('');
+
   /// Base kind for quickfix actions: 'quickfix'
   static const QuickFix = const CodeActionKind('quickfix');
 
@@ -2224,7 +2227,8 @@ class CompletionItem implements ToJsonable {
   final String insertText;
 
   /// The format of the insert text. The format applies to both the `insertText`
-  /// property and the `newText` property of a provided `textEdit`.
+  /// property and the `newText` property of a provided `textEdit`. If ommitted
+  /// defaults to `InsertTextFormat.PlainText`.
   final InsertTextFormat insertTextFormat;
 
   /// The kind of this completion item. Based of the kind an icon is chosen by
@@ -2910,7 +2914,10 @@ class CompletionRegistrationOptions
   /// The list of all possible characters that commit a completion. This field
   /// can be used if clients don't support individual commmit characters per
   /// completion item. See
-  /// `ClientCapabilities.textDocument.completion.completionItem.commitCharactersSupport`
+  /// `ClientCapabilities.textDocument.completion.completionItem.commitCharactersSupport`.
+  ///
+  /// If a server provides both `allCommitCharacters` and commit characters on
+  /// an individual completion item the ones on the completion item win.
   ///
   /// Since 3.2.0
   final List<String> allCommitCharacters;
