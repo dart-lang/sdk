@@ -160,14 +160,8 @@ final expectedCallsInfo = <List<CallInfo>>[
         line: 30,
         inlined: false)
   ],
-  // Internal frames have non-positive line numbers in the call information.
-  [
-    CallInfo(
-        function: "main",
-        filename: "dwarf_stack_trace_test.dart",
-        line: 0,
-        inlined: false),
-  ]
+  // Don't assume anything about any of the frames below the call to foo
+  // in main, as this makes the test too brittle.
 ];
 
 List<List<CallInfo>> removeInternalCalls(List<List<CallInfo>> original) =>
