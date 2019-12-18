@@ -149,6 +149,7 @@ abstract class TestSuite {
     // configuration that enables the NNBD experiment.
     if (testFile.path.toString().contains("language_2") &&
         configuration.experiments.contains("non-nullable") &&
+        configuration.compiler == Compiler.dart2analyzer &&
         !(testFile.requirements.contains(Feature.nnbd) ||
             testFile.requirements.contains(Feature.nnbdWeak) ||
             testFile.requirements.contains(Feature.nnbdStrong))) {
