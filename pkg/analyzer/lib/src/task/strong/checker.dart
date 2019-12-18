@@ -269,23 +269,7 @@ class CodeChecker extends RecursiveAstVisitor {
   @override
   void visitBinaryExpression(BinaryExpression node) {
     var op = node.operator;
-    if (op.isUserDefinableOperator) {
-      var invokeType = node.staticInvokeType;
-      if (invokeType == null) {
-        // Dynamic invocation
-        // TODO(vsm): Move this logic to the resolver?
-        if (op.type != TokenType.EQ_EQ && op.type != TokenType.BANG_EQ) {
-          _recordDynamicInvoke(node, node.leftOperand);
-        }
-      } else {
-        // Analyzer should enforce number of parameter types, but check in
-        // case we have erroneous input.
-        if (invokeType.normalParameterTypes.isNotEmpty) {
-          checkArgument(node.rightOperand, invokeType.normalParameterTypes[0]);
-        }
-      }
-    } else {
-      // Non-method operator.
+    if (!op.isUserDefinableOperator) {
       switch (op.type) {
         case TokenType.AMPERSAND_AMPERSAND:
         case TokenType.BAR_BAR:
@@ -430,11 +414,8 @@ class CodeChecker extends RecursiveAstVisitor {
 
   @override
   void visitIndexExpression(IndexExpression node) {
-    var target = node.realTarget;
     var element = node.staticElement;
-    if (element == null) {
-      _recordDynamicInvoke(node, target);
-    } else if (element is MethodElement) {
+    if (element is MethodElement) {
       var type = element.type;
       // Analyzer should enforce number of parameter types, but check in
       // case we have erroneous input.
@@ -484,13 +465,8 @@ class CodeChecker extends RecursiveAstVisitor {
 
   @override
   visitMethodInvocation(MethodInvocation node) {
-    var target = node.realTarget;
     var element = node.methodName.staticElement;
-    if (element == null &&
-        !typeProvider.isObjectMethod(node.methodName.name) &&
-        node.methodName.name != FunctionElement.CALL_METHOD_NAME) {
-      _recordDynamicInvoke(node, target);
-    } else {
+    if (element != null) {
       _checkFunctionApplication(node);
     }
     // Don't visit methodName, we already checked things related to the call.
@@ -506,11 +482,6 @@ class CodeChecker extends RecursiveAstVisitor {
   }
 
   @override
-  void visitPrefixedIdentifier(PrefixedIdentifier node) {
-    _checkFieldAccess(node, node.prefix, node.identifier);
-  }
-
-  @override
   void visitPrefixExpression(PrefixExpression node) {
     if (node.operator.type == TokenType.BANG) {
       checkBoolean(node.operand);
@@ -518,11 +489,6 @@ class CodeChecker extends RecursiveAstVisitor {
       _checkUnary(node.operand, node.operator, node.staticElement);
     }
     node.visitChildren(this);
-  }
-
-  @override
-  void visitPropertyAccess(PropertyAccess node) {
-    _checkFieldAccess(node, node.realTarget, node.propertyName);
   }
 
   @override
@@ -666,10 +632,7 @@ class CodeChecker extends RecursiveAstVisitor {
     var op = expr.operator.type;
     assert(op.isAssignmentOperator && op != TokenType.EQ);
     var methodElement = expr.staticElement;
-    if (methodElement == null) {
-      // Dynamic invocation.
-      _recordDynamicInvoke(expr, expr.leftHandSide);
-    } else {
+    if (methodElement != null) {
       // Sanity check the operator.
       assert(methodElement.isOperator);
       var functionType = methodElement.type;
@@ -704,23 +667,10 @@ class CodeChecker extends RecursiveAstVisitor {
     }
   }
 
-  void _checkFieldAccess(
-      AstNode node, Expression target, SimpleIdentifier field) {
-    var element = field.staticElement;
-    if (element == null && !typeProvider.isObjectMember(field.name)) {
-      _recordDynamicInvoke(node, target);
-    }
-    node.visitChildren(this);
-  }
-
   void _checkFunctionApplication(InvocationExpression node) {
     var ft = _getTypeAsCaller(node);
 
-    if (_isDynamicCall(node, ft)) {
-      // If f is Function and this is a method invocation, we should have
-      // gotten an analyzer error, so no need to issue another error.
-      _recordDynamicInvoke(node, node.function);
-    } else {
+    if (ft != null) {
       checkArgumentList(node.argumentList, ft);
     }
   }
@@ -798,9 +748,7 @@ class CodeChecker extends RecursiveAstVisitor {
   void _checkUnary(Expression operand, Token op, MethodElement element) {
     bool isIncrementAssign = op.type.isIncrementOperator;
     if (op.isUserDefinableOperator || isIncrementAssign) {
-      if (element == null) {
-        _recordDynamicInvoke(operand.parent, operand);
-      } else if (isIncrementAssign) {
+      if (element != null && isIncrementAssign) {
         // For ++ and --, even if it is not dynamic, we still need to check
         // that the user defined method accepts an `int` as the RHS.
         //
@@ -921,12 +869,6 @@ class CodeChecker extends RecursiveAstVisitor {
     return null;
   }
 
-  /// Returns `true` if the expression is a dynamic function call or method
-  /// invocation.
-  bool _isDynamicCall(InvocationExpression call, FunctionType ft) {
-    return ft == null;
-  }
-
   /// Returns true if we need an implicit cast of [expr] from [from] type to
   /// [to] type, returns false if no cast is needed, and returns null if the
   /// types are statically incompatible, or the types are compatible but don't
@@ -968,10 +910,6 @@ class CodeChecker extends RecursiveAstVisitor {
     // However, these will have been reported already in error_verifier, so we
     // don't need to report them again.
     return null;
-  }
-
-  void _recordDynamicInvoke(AstNode node, Expression target) {
-    _recordMessage(node, StrongModeCode.DYNAMIC_INVOKE, [node]);
   }
 
   /// Records an implicit cast for the [expr] from [from] to [to].

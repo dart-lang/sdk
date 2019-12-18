@@ -95,7 +95,7 @@ test() {
   a = a & b;
   a = a ^ b;
   a = a | b;
-  c = (/*info:DYNAMIC_INVOKE*/c + b);
+  c = (c + b);
 
   String x = 'hello';
   int y = 42;
@@ -113,7 +113,7 @@ test() {
 
   a = a[b];
   a = a[c];
-  c = (/*info:DYNAMIC_INVOKE*/c[b]);
+  c = (c[b]);
   a[/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/y];
 }
 ''');
@@ -327,7 +327,7 @@ test() {
   a &= b;
   a ^= b;
   a |= b;
-  /*info:DYNAMIC_INVOKE*/c += b;
+  c += b;
 
   SubA sa;
   sa += b;
@@ -339,7 +339,7 @@ test() {
   a[/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/z] += d;
   a[b] += c;
   a[b] += /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/z;
-  /*info:DYNAMIC_INVOKE,info:DYNAMIC_INVOKE*/c[b] += d;
+  c[b] += d;
 }
 ''');
   }
@@ -453,7 +453,7 @@ class A {
   String x = "hello world";
 
   void baz1(y) { x + y; }
-  static baz2(y) => /*info:DYNAMIC_INVOKE*/y + y;
+  static baz2(y) => y + y;
 }
 
 void foo(String str) {
@@ -465,7 +465,7 @@ class B {
 }
 
 void bar(a) {
-  foo(/*info:DYNAMIC_INVOKE*/a.x);
+  foo(a.x);
 }
 
 baz() => new B();
@@ -484,7 +484,7 @@ void main() {
   var f1 = foo;
   f1("hello");
   dynamic f2 = foo;
-  (/*info:DYNAMIC_INVOKE*/f2("hello"));
+  (f2("hello"));
   DynFun f3 = /*error:INVALID_CAST_FUNCTION*/foo;
   (f3("hello"));
   (f3(42));
@@ -498,21 +498,21 @@ void main() {
   (b2("hello"));
 
   dynamic a1 = new B();
-  (/*info:DYNAMIC_INVOKE*/a1.x);
+  (a1.x);
   a1.toString();
-  (/*info:DYNAMIC_INVOKE*/a1.toString(42));
+  (a1.toString(42));
   var toStringClosure = a1.toString;
-  (/*info:DYNAMIC_INVOKE*/a1.toStringClosure());
-  (/*info:DYNAMIC_INVOKE*/a1.toStringClosure(42));
-  (/*info:DYNAMIC_INVOKE*/a1.toStringClosure("hello"));
+  (a1.toStringClosure());
+  (a1.toStringClosure(42));
+  (a1.toStringClosure("hello"));
   a1.hashCode;
 
   dynamic toString = () => null;
-  (/*info:DYNAMIC_INVOKE*/toString());
+  (toString());
 
-  (/*info:DYNAMIC_INVOKE*/helper.toString());
+  (helper.toString());
   var toStringClosure2 = helper.toString;
-  (/*info:DYNAMIC_INVOKE*/toStringClosure2());
+  (toStringClosure2());
   int hashCode = helper.hashCode;
 
   baz().toString();
@@ -652,14 +652,14 @@ void main() {
     Function f = new B();
     int x;
     bool y;
-    x = /*info:DYNAMIC_INVOKE*/f(3);
-    x = /*info:DYNAMIC_INVOKE*/f./*error:UNDEFINED_METHOD*/col(true);
-    y = /*info:DYNAMIC_INVOKE*/f(3);
-    y = /*info:DYNAMIC_INVOKE*/f./*error:UNDEFINED_METHOD*/col(true);
-    /*info:DYNAMIC_INVOKE*/f(true);
+    x = f(3);
+    x = f./*error:UNDEFINED_METHOD*/col(true);
+    y = f(3);
+    y = f./*error:UNDEFINED_METHOD*/col(true);
+    f(true);
     // Through type propagation, we know f is actually a B, hence the
     // hint.
-    /*info:DYNAMIC_INVOKE*/f./*error:UNDEFINED_METHOD*/col(3);
+    f./*error:UNDEFINED_METHOD*/col(3);
   }
   {
     A f = /*error:INVALID_ASSIGNMENT*/new B();
@@ -673,16 +673,16 @@ void main() {
   }
   {
     dynamic g = new B();
-    /*info:DYNAMIC_INVOKE*/g.call(true);
-    /*info:DYNAMIC_INVOKE*/g.col(true);
-    /*info:DYNAMIC_INVOKE*/g.foo(true);
-    /*info:DYNAMIC_INVOKE*/g.x;
+    g.call(true);
+    g.col(true);
+    g.foo(true);
+    g.x;
     A f = /* error:INVALID_ASSIGNMENT*/new B();
     B b = new B();
     f = /*error:INVALID_ASSIGNMENT*/b;
-    /*info:DYNAMIC_INVOKE*/f./*error:UNDEFINED_METHOD*/col(true);
-    /*info:DYNAMIC_INVOKE*/f./*error:UNDEFINED_METHOD*/foo(true);
-    /*info:DYNAMIC_INVOKE*/f./*error:UNDEFINED_GETTER*/x;
+    f./*error:UNDEFINED_METHOD*/col(true);
+    f./*error:UNDEFINED_METHOD*/foo(true);
+    f./*error:UNDEFINED_GETTER*/x;
   }
 }
 ''');
@@ -3814,15 +3814,15 @@ m() {
   d();
 
   C c = new C();
-  /*info:DYNAMIC_INVOKE*/c./*error:UNDEFINED_METHOD*/m();
-  /*info:DYNAMIC_INVOKE*/c./*error:UNDEFINED_GETTER*/m;
-  /*info:DYNAMIC_INVOKE,error:UNDEFINED_OPERATOR*/-c;
-  /*info:DYNAMIC_INVOKE*/c /*error:UNDEFINED_OPERATOR*/+ 7;
-  /*info:DYNAMIC_INVOKE*/c /*error:UNDEFINED_OPERATOR*/[7];
-  /*error:INVOCATION_OF_NON_FUNCTION_EXPRESSION,info:DYNAMIC_INVOKE*/c();
+  c./*error:UNDEFINED_METHOD*/m();
+  c./*error:UNDEFINED_GETTER*/m;
+  /*error:UNDEFINED_OPERATOR*/-c;
+  c /*error:UNDEFINED_OPERATOR*/+ 7;
+  c /*error:UNDEFINED_OPERATOR*/[7];
+  /*error:INVOCATION_OF_NON_FUNCTION_EXPRESSION*/c();
 
   F f = new F();
-  /*error:INVOCATION_OF_NON_FUNCTION_EXPRESSION,info:DYNAMIC_INVOKE*/f();
+  /*error:INVOCATION_OF_NON_FUNCTION_EXPRESSION*/f();
 }
     ''');
   }
@@ -4605,7 +4605,7 @@ void f<T>(T object) {
 }
 void g<T extends num>(T object) {
   if (object is int) print(object.isEven);
-  if (object is String) print(/*info:DYNAMIC_INVOKE*/object./*error:UNDEFINED_METHOD*/substring(1));
+  if (object is String) print(object./*error:UNDEFINED_METHOD*/substring(1));
 }
 class Cloneable<T> {}
 class SubCloneable<T> extends Cloneable<T> {
@@ -4637,10 +4637,10 @@ void f<T extends num>(T x, T y) {
   var f = () => x;
   f = () => y;
   if (x is int) {
-    /*info:DYNAMIC_INVOKE*/z./*error:UNDEFINED_GETTER*/isEven;
+    z./*error:UNDEFINED_GETTER*/isEven;
     var q = x;
     q = z;
-    /*info:DYNAMIC_INVOKE*/f()./*error:UNDEFINED_GETTER*/isEven;
+    f()./*error:UNDEFINED_GETTER*/isEven;
 
     // This captures the type `T extends int`.
     var g = () => x;
@@ -4810,23 +4810,23 @@ test() {
   dynamic d;
 
   ~a;
-  (/*info:DYNAMIC_INVOKE*/~d);
+  (~d);
 
   !/*error:NON_BOOL_NEGATION_EXPRESSION*/a;
   !d;
 
   -a;
-  (/*info:DYNAMIC_INVOKE*/-d);
+  (-d);
 
   ++a;
   --a;
-  (/*info:DYNAMIC_INVOKE*/++d);
-  (/*info:DYNAMIC_INVOKE*/--d);
+  (++d);
+  (--d);
 
   a++;
   a--;
-  (/*info:DYNAMIC_INVOKE*/d++);
-  (/*info:DYNAMIC_INVOKE*/d--);
+  (d++);
+  (d--);
 
   ++b;
   --b;

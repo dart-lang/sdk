@@ -1030,7 +1030,7 @@ void main () {
     Function2<int, int> l0 = (x) => x;
     Function2<int, int> l1 = (x) => x+1;
     Function2<int, String> l2 = (x) => /*error:RETURN_OF_INVALID_TYPE_FROM_CLOSURE*/x;
-    Function2<int, String> l3 = (x) => /*info:DYNAMIC_INVOKE*/x./*error:UNDEFINED_METHOD*/substring(3);
+    Function2<int, String> l3 = (x) => x./*error:UNDEFINED_METHOD*/substring(3);
     Function2<String, String> l4 = (x) => x.substring(3);
   }
 }
@@ -1180,7 +1180,7 @@ void main () {
     x = <T>(x) => x+1;
     var y = int2String;
     y = <T>(x) => /*error:RETURN_OF_INVALID_TYPE_FROM_CLOSURE*/x;
-    y = <T>(x) => /*info:DYNAMIC_INVOKE*/x./*error:UNDEFINED_METHOD*/substring(3);
+    y = <T>(x) => x./*error:UNDEFINED_METHOD*/substring(3);
     var z = string2String;
     z = <T>(x) => x.substring(3);
   }
@@ -1926,13 +1926,13 @@ main() {
 void main() {
   List<int> o;
   int y = o.fold(0, (x, y) => x + y);
-  var z = o.fold(0, (x, y) => /*info:DYNAMIC_INVOKE*/x + y);
+  var z = o.fold(0, (x, y) => x + y);
   y = z;
 }
 void functionExpressionInvocation() {
   List<int> o;
   int y = (o.fold)(0, (x, y) => x + y);
-  var z = (o.fold)(0, (x, y) => /*info:DYNAMIC_INVOKE*/x + y);
+  var z = (o.fold)(0, (x, y) => x + y);
   y = z;
 }
 ''');
@@ -2141,7 +2141,7 @@ main() {
   Iterable<Future<int>> list = <int>[1, 2, 3].map(make);
   Future<List<int>> results = Future.wait(list);
   Future<String> results2 = results.then((List<int> list)
-    => list.fold('', (x, y) => /*info:DYNAMIC_INVOKE*/x /*error:UNDEFINED_OPERATOR*/+ y.toString()));
+    => list.fold('', (x, y) => x /*error:UNDEFINED_OPERATOR*/+ y.toString()));
 
   Future<String> results3 = results.then((List<int> list)
     => list.fold('', /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/(String x, y) => x + y.toString()));
@@ -2483,7 +2483,7 @@ var f = 2 + 3;          // binary expressions are OK if the left operand
                         // connected component.
 var g = -3;
 var h = new A() + 3;
-var i = /*error:UNDEFINED_OPERATOR,info:DYNAMIC_INVOKE*/- new A();
+var i = /*error:UNDEFINED_OPERATOR*/- new A();
 var j = /*info:UNNECESSARY_CAST*/null as B;
 
 test1() {
@@ -3672,7 +3672,7 @@ void bar() {
   } catch (_) {
     return;
   }
-  /*info:DYNAMIC_INVOKE*/list.map((value) => '$value');
+  list.map((value) => '$value');
 }
   ''');
   }
@@ -3896,10 +3896,10 @@ main() {
 
   var g = null;
   g = 'hello';
-  (/*info:DYNAMIC_INVOKE*/g.foo());
+  (g.foo());
 
   h = 'hello';
-  (/*info:DYNAMIC_INVOKE*/h.foo());
+  (h.foo());
 
   foo((x) => null);
   foo((x) => throw "not implemented");
@@ -3931,8 +3931,8 @@ class A {
 test() {
   dynamic a = new A();
   A b = a;
-  print(/*info:DYNAMIC_INVOKE*/a.x);
-  print(/*info:DYNAMIC_INVOKE*/(/*info:DYNAMIC_INVOKE*/a.x) + 2);
+  print(a.x);
+  print((a.x) + 2);
 }
 ''');
   }
