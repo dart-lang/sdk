@@ -10,7 +10,7 @@ import 'package:analyzer/src/generated/utilities_general.dart'
 import 'package:analyzer_cli/src/error_formatter.dart';
 import 'package:analyzer_cli/src/options.dart' show CommandLineOptions;
 
-const _JSON = const JsonEncoder.withIndent("  ");
+const _JSON = JsonEncoder.withIndent("  ");
 
 final String _osType = () {
   if (Platform.isLinux) {

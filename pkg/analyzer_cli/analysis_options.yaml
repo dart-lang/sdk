@@ -50,7 +50,7 @@ linter:
     #- slash_for_doc_comments # 31
     - type_init_formals
     - unawaited_futures
-    #- unnecessary_const # 2
+    - unnecessary_const
     - unnecessary_new
     - unnecessary_null_in_if_null_operators
     #- unnecessary_this # 5

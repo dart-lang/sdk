@@ -673,7 +673,7 @@ class TrackingInSummaryUriResolver extends UriResolver {
  * of path + digest.
  */
 class WorkerInput {
-  static const _digestEquality = const ListEquality<int>();
+  static const _digestEquality = ListEquality<int>();
 
   final String path;
   final List<int> digest;
