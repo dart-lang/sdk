@@ -7,8 +7,8 @@ import "dart:convert";
 import "dart:io" as io;
 
 import 'package:args/args.dart' show ArgParser, ArgResults;
-import 'package:vm/dwarf/convert.dart';
-import 'package:vm/dwarf/dwarf.dart';
+import 'package:vm/elf/convert.dart';
+import 'package:vm/elf/dwarf.dart';
 
 final ArgParser _argParser = new ArgParser(allowTrailingOptions: true)
   ..addOption('elf',

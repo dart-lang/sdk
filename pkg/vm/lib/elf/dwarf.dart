@@ -969,8 +969,6 @@ class Dwarf {
   Map<int, _AbbreviationsTable> abbreviationTables;
   DebugInfo debugInfo;
   LineNumberInfo lineNumberInfo;
-  int vmStartAddress;
-  int isolateStartAddress;
 
   Dwarf.fromElf(Elf this.elf) {
     _loadSections();
@@ -982,7 +980,7 @@ class Dwarf {
   }
 
   void _loadSections() {
-    final abbrevSection = elf.namedSection(".debug_abbrev").first;
+    final abbrevSection = elf.namedSection(".debug_abbrev");
     abbreviationTables = <int, _AbbreviationsTable>{};
     var abbreviationOffset = 0;
     while (abbreviationOffset < abbrevSection.reader.length) {
@@ -993,21 +991,11 @@ class Dwarf {
     }
     assert(abbreviationOffset == abbrevSection.reader.length);
 
-    final lineNumberSection = elf.namedSection(".debug_line").first;
+    final lineNumberSection = elf.namedSection(".debug_line");
     lineNumberInfo = LineNumberInfo.fromReader(lineNumberSection.reader);
 
-    final infoSection = elf.namedSection(".debug_info").first;
+    final infoSection = elf.namedSection(".debug_info");
     debugInfo = DebugInfo.fromReader(infoSection.reader, this);
-
-    final textSegments = elf.namedSection(".text");
-    if (textSegments.length != 2) {
-      throw FormatException(
-          "Expected two text segments for VM and isolate instructions");
-    }
-
-    final textAddresses = textSegments.map((s) => s.headerEntry.addr).toList();
-    vmStartAddress = textAddresses[0];
-    isolateStartAddress = textAddresses[1];
   }
 
   Iterable<CallInfo> callInfo(int address,
@@ -1017,14 +1005,6 @@ class Dwarf {
       return calls.where((CallInfo c) => c.line > 0);
     }
     return calls;
-  }
-
-  int convertToVMVirtualAddress(int textOffset) {
-    return textOffset + vmStartAddress;
-  }
-
-  int convertToIsolateVirtualAddress(int textOffset) {
-    return textOffset + isolateStartAddress;
   }
 
   String toString() =>

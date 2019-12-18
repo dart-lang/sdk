@@ -24,9 +24,11 @@ TypeTestingStubNamer::TypeTestingStubNamer()
 
 const char* TypeTestingStubNamer::StubNameForType(
     const AbstractType& type) const {
+  const uintptr_t address =
+      reinterpret_cast<uintptr_t>(type.raw()) & 0x7fffffff;
   Zone* Z = Thread::Current()->zone();
   return OS::SCreate(Z, "TypeTestingStub_%s__%" Pd "", StringifyType(type),
-                     type.Hash());
+                     address);
 }
 
 const char* TypeTestingStubNamer::StringifyType(

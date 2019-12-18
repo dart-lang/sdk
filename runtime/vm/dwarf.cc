@@ -15,10 +15,8 @@ namespace dart {
 
 #if defined(TARGET_ARCH_IS_32_BIT)
 #define FORM_ADDR ".4byte"
-#define ADDR_SIZE kInt32Size
 #elif defined(TARGET_ARCH_IS_64_BIT)
 #define FORM_ADDR ".8byte"
-#define ADDR_SIZE kInt64Size
 #endif
 
 class InliningNode : public ZoneAllocated {
@@ -55,53 +53,9 @@ class InliningNode : public ZoneAllocated {
   InliningNode* children_next;
 };
 
-template <typename T>
-Trie<T>* Trie<T>::AddString(Zone* zone,
-                            Trie<T>* trie,
-                            const char* key,
-                            const T* value) {
-  ASSERT(key != nullptr);
-  if (trie == nullptr) {
-    trie = new (zone) Trie<T>();
-  }
-  if (*key == '\0') {
-    ASSERT(trie->value_ == nullptr);
-    trie->value_ = value;
-  } else {
-    auto const index = ChildIndex(*key);
-    ASSERT(index >= 0 && index < kNumValidChars);
-    trie->children_[index] =
-        AddString(zone, trie->children_[index], key + 1, value);
-  }
-
-  return trie;
-}
-
-template <typename T>
-const T* Trie<T>::Lookup(const Trie<T>* trie, const char* key, intptr_t* end) {
-  intptr_t i = 0;
-  for (; key[i] != '\0'; i++) {
-    auto const index = ChildIndex(key[i]);
-    ASSERT(index < kNumValidChars);
-    if (index < 0) {
-      if (end == nullptr) return nullptr;
-      break;
-    }
-    // Still find the longest valid trie prefix when no stored value.
-    if (trie == nullptr) continue;
-    trie = trie->children_[index];
-  }
-  if (end != nullptr) {
-    *end = i;
-  }
-  if (trie == nullptr) return nullptr;
-  return trie->value_;
-}
-
 Dwarf::Dwarf(Zone* zone, StreamingWriteStream* stream, Elf* elf)
     : zone_(zone),
       elf_(elf),
-      reverse_obfuscation_trie_(CreateReverseObfuscationTrie(zone)),
       asm_stream_(stream),
       bin_stream_(nullptr),
       codes_(zone, 1024),
@@ -333,7 +287,7 @@ void Dwarf::WriteCompilationUnit() {
 
   u2(2);              // DWARF version 2
   u4(0);              // debug_abbrev_offset
-  u1(ADDR_SIZE);      // address_size
+  u1(sizeof(void*));  // address_size
 
   // Compilation Unit DIE. We describe the entire Dart program as a single
   // compilation unit. Note we write attributes in the same order we declared
@@ -401,8 +355,8 @@ void Dwarf::WriteAbstractFunctions() {
     const Function& function = *(functions_[i]);
     name = function.QualifiedUserVisibleName();
     script = function.script();
-    const intptr_t file = LookupScript(script);
-    const intptr_t line = 0;  // Unknown, script already lost its token stream.
+    intptr_t file = LookupScript(script);
+    intptr_t line = 0;  // Not known. Script has already lost its token stream.
 
     if (asm_stream_) {
       Print(".Lfunc%" Pd ":\n",
@@ -410,14 +364,12 @@ void Dwarf::WriteAbstractFunctions() {
     } else {
       abstract_origins_[i] = position();
     }
-    auto const name_cstr = Deobfuscate(name.ToCString());
-
     uleb128(kAbstractFunction);
-    string(name_cstr);        // DW_AT_name
-    uleb128(file);            // DW_AT_decl_file
-    uleb128(line);            // DW_AT_decl_line
-    uleb128(DW_INL_inlined);  // DW_AT_inline
-    uleb128(0);               // End of children.
+    string(name.ToCString());  // DW_AT_name
+    uleb128(file);             // DW_AT_decl_file
+    uleb128(line);             // DW_AT_decl_line
+    uleb128(DW_INL_inlined);   // DW_AT_inline
+    uleb128(0);                // End of children.
   }
 }
 
@@ -585,9 +537,9 @@ void Dwarf::WriteInliningNode(InliningNode* node,
     const char* asm_name =
         namer->AssemblyNameFor(root_code_index, *codes_[root_code_index]);
     // DW_AT_low_pc
-    Print(FORM_ADDR " %s + %" Pd32 "\n", asm_name, node->start_pc_offset);
+    Print(FORM_ADDR " %s + %d\n", asm_name, node->start_pc_offset);
     // DW_AT_high_pc
-    Print(FORM_ADDR " %s + %" Pd32 "\n", asm_name, node->end_pc_offset);
+    Print(FORM_ADDR " %s + %d\n", asm_name, node->end_pc_offset);
   } else {
     // DW_AT_low_pc
     addr(root_code_offset + node->start_pc_offset);
@@ -683,10 +635,8 @@ void Dwarf::WriteLines() {
   for (intptr_t i = 0; i < scripts_.length(); i++) {
     const Script& script = *(scripts_[i]);
     uri = script.url();
-    auto const uri_cstr = Deobfuscate(uri.ToCString());
-    RELEASE_ASSERT(strlen(uri_cstr) != 0);
-
-    string(uri_cstr);  // NOLINT
+    RELEASE_ASSERT(strlen(uri.ToCString()) != 0);
+    string(uri.ToCString());  // NOLINT
     uleb128(0);  // Include directory index.
     uleb128(0);  // File modification time.
     uleb128(0);  // File length.
@@ -782,11 +732,11 @@ void Dwarf::WriteLines() {
           // 4. Update LNP pc.
           if (previous_code_offset == -1) {
             // This variant is relocatable.
-            u1(0);              // This is an extended opcode
-            u1(1 + ADDR_SIZE);  // that is 5 or 9 bytes long
+            u1(0);                  // This is an extended opcode
+            u1(1 + sizeof(void*));  // that is 5 or 9 bytes long
             u1(DW_LNE_set_address);
             if (asm_stream_) {
-              Print(FORM_ADDR " %s + %" Pd32 "\n", asm_name, current_pc_offset);
+              Print(FORM_ADDR " %s + %d\n", asm_name, current_pc_offset);
             } else {
               addr(current_code_offset + current_pc_offset);
             }
@@ -871,50 +821,6 @@ void Dwarf::WriteLines() {
     elf_->AddDebug(".debug_line", buffer, stream.bytes_written());
     bin_stream_ = nullptr;
   }
-}
-
-const char* Dwarf::Deobfuscate(const char* cstr) {
-  if (reverse_obfuscation_trie_ == nullptr) return cstr;
-  TextBuffer buffer(256);
-  // Used to avoid Zone-allocating strings if no deobfuscation was performed.
-  bool changed = false;
-  intptr_t i = 0;
-  while (cstr[i] != '\0') {
-    intptr_t offset;
-    auto const value = reverse_obfuscation_trie_->Lookup(cstr + i, &offset);
-    if (offset == 0) {
-      // The first character was an invalid key element (that isn't the null
-      // terminator due to the while condition), copy it and skip to the next.
-      buffer.AddChar(cstr[i++]);
-    } else if (value != nullptr) {
-      changed = true;
-      buffer.AddString(value);
-    } else {
-      buffer.AddRaw(reinterpret_cast<const uint8_t*>(cstr + i), offset);
-    }
-    i += offset;
-  }
-  if (!changed) return cstr;
-  return OS::SCreate(zone_, "%s", buffer.buf());
-}
-
-Trie<const char>* Dwarf::CreateReverseObfuscationTrie(Zone* zone) {
-  auto const I = Thread::Current()->isolate();
-  auto const map_array = I->obfuscation_map();
-  if (map_array == nullptr) return nullptr;
-
-  Trie<const char>* trie = nullptr;
-  for (intptr_t i = 0; map_array[i] != nullptr; i += 2) {
-    auto const key = map_array[i];
-    auto const value = map_array[i + 1];
-    ASSERT(value != nullptr);
-    // Don't include identity mappings.
-    if (strcmp(key, value) == 0) continue;
-    // Otherwise, any value in the obfuscation map should be a valid key.
-    ASSERT(Trie<const char>::IsValidKey(value));
-    trie = Trie<const char>::AddString(zone, trie, value, key);
-  }
-  return trie;
 }
 
 #endif  // DART_PRECOMPILER

@@ -244,12 +244,11 @@ constexpr bool kDartUseBackgroundCompilation = true;
 // List of VM-global (i.e. non-isolate specific) flags.
 //
 // The value used for those flags at snapshot generation time needs to be the
-// same as during runtime. Currently only boolean flags are supported.
+// same as during runtime.
 //
 // Usage:
 //   V(name, command-line-flag-name)
 #define VM_GLOBAL_FLAG_LIST(V)                                                 \
-  V(dwarf_stack_traces, FLAG_dwarf_stack_traces)                               \
   V(use_bare_instructions, FLAG_use_bare_instructions)
 
 #endif  // RUNTIME_VM_FLAG_LIST_H_

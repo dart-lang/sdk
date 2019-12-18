@@ -118,7 +118,6 @@ static const char* kSnapshotKindNames[] = {
   V(elf, elf_filename)                                                         \
   V(load_compilation_trace, load_compilation_trace_filename)                   \
   V(load_type_feedback, load_type_feedback_filename)                           \
-  V(save_debugging_info, debugging_info_filename)                              \
   V(save_obfuscation_map, obfuscation_map_filename)
 
 #define BOOL_OPTIONS_LIST(V)                                                   \
@@ -172,7 +171,6 @@ static void PrintUsage() {
 "as a static or dynamic library:                                             \n"
 "--snapshot_kind=app-aot-assembly                                            \n"
 "--assembly=<output-file>                                                    \n"
-"[--save-debugging-info=<debug-filename>]                                    \n"
 "[--obfuscate]                                                               \n"
 "[--save-obfuscation-map=<map-filename>]                                     \n"
 "<dart-kernel-file>                                                          \n"
@@ -182,7 +180,6 @@ static void PrintUsage() {
 "--elf=<output-file>                                                         \n"
 "[--strip]                                                                   \n"
 "[--obfuscate]                                                               \n"
-"[--save-debugging-info=<debug-filename>]                                    \n"
 "[--save-obfuscation-map=<map-filename>]                                     \n"
 "<dart-kernel-file>                                                          \n"
 "                                                                            \n"
@@ -336,28 +333,14 @@ static int ParseArguments(int argc,
 
   if (!obfuscate && obfuscation_map_filename != NULL) {
     Syslog::PrintErr(
-        "--save-obfuscation_map=<...> should only be specified when "
-        "obfuscation is enabled by the --obfuscate flag.\n\n");
+        "--obfuscation_map=<...> should only be specified when obfuscation is "
+        "enabled by --obfuscate flag.\n\n");
     return -1;
   }
 
   if (obfuscate && !IsSnapshottingForPrecompilation()) {
     Syslog::PrintErr(
         "Obfuscation can only be enabled when building AOT snapshot.\n\n");
-    return -1;
-  }
-
-  if (debugging_info_filename != nullptr &&
-      !IsSnapshottingForPrecompilation()) {
-    Syslog::PrintErr(
-        "--save-debugging-info=<...> can only be enabled when building an AOT "
-        "snapshot.\n\n");
-    return -1;
-  }
-
-  if (strip && snapshot_kind != kAppAOTElf) {
-    Syslog::PrintErr(
-        "Stripping can only be enabled when building an ELF AOT snapshot.\n\n");
     return -1;
   }
 
@@ -630,31 +613,16 @@ static void CreateAndWritePrecompiledSnapshot() {
     result = Dart_CreateAppAOTSnapshotAsAssembly(StreamingWriteCallback, file);
     CHECK_RESULT(result);
   } else if (snapshot_kind == kAppAOTElf) {
+    if (strip) {
+      Syslog::PrintErr(
+          "Warning: Generating ELF library without DWARF debugging"
+          " information.\n");
+    }
     File* file = OpenFile(elf_filename);
     RefCntReleaseScope<File> rs(file);
-    if (debugging_info_filename != nullptr) {
-      File* debug_file = OpenFile(debugging_info_filename);
-      RefCntReleaseScope<File> rsd(debug_file);
-      result = Dart_CreateAppAOTSnapshotAsElf(StreamingWriteCallback, file,
-                                              strip, debug_file);
-    } else {
-      if (strip) {
-        Syslog::PrintErr(
-            "Warning: Generating ELF library without DWARF debugging"
-            " information.\n");
-      }
-      result =
-          Dart_CreateAppAOTSnapshotAsElf(StreamingWriteCallback, file, strip,
-                                         /*debug_callback_data=*/nullptr);
-    }
+    result =
+        Dart_CreateAppAOTSnapshotAsElf(StreamingWriteCallback, file, strip);
     CHECK_RESULT(result);
-    if (obfuscate && !strip) {
-      Syslog::PrintErr(
-          "Warning: The generated ELF library contains unobfuscated DWARF "
-          "debugging information.\n"
-          "         To avoid this, use --strip to remove it and "
-          "--save-debugging-info=<...> to save it to a separate file.\n");
-    }
   } else if (snapshot_kind == kAppAOTBlobs) {
     Syslog::PrintErr(
         "WARNING: app-aot-blobs snapshots have been deprecated and support for "
@@ -709,17 +677,6 @@ static void CreateAndWritePrecompiledSnapshot() {
     result = Dart_GetObfuscationMap(&buffer, &size);
     CHECK_RESULT(result);
     WriteFile(obfuscation_map_filename, buffer, size);
-  }
-
-  // Output separate debugging information if not generating ELF (otherwise we
-  // have already generated it as part of that process).
-  if (debugging_info_filename != nullptr && snapshot_kind != kAppAOTElf) {
-    File* debug_file = OpenFile(debugging_info_filename);
-    RefCntReleaseScope<File> rsd(debug_file);
-    result = Dart_CreateAppAOTSnapshotAsElf(StreamingWriteCallback,
-                                            /*callback_data=*/nullptr,
-                                            /*strip=*/false, debug_file);
-    CHECK_RESULT(result);
   }
 }
 
