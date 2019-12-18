@@ -2370,10 +2370,11 @@ class InferenceVisitor
     // TODO(johnniwinther): Check that the inferred type is potentially
     //  nullable.
     inferrer.flowAnalysis.nonNullAssert_end(node.operand);
-    // TODO(johnniwinther): Return `NonNull(inferredType)`.
-    return new ExpressionInferenceResult(
-        operandResult.inferredType.withNullability(Nullability.nonNullable),
-        node);
+    DartType nonNullableResultType = operandResult.inferredType ==
+            inferrer.coreTypes.nullType
+        ? const NeverType(Nullability.nonNullable)
+        : operandResult.inferredType.withNullability(Nullability.nonNullable);
+    return new ExpressionInferenceResult(nonNullableResultType, node);
   }
 
   ExpressionInferenceResult visitNullAwareMethodInvocation(
