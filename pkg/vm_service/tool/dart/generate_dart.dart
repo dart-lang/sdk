@@ -1334,7 +1334,7 @@ class Type extends Member {
         'json == null ? null : ${name}._fromJson(json);');
     gen.writeln();
 
-    if (name == 'Response') {
+    if (name == 'Response' || name == 'TimelineEvent') {
       gen.writeln('Map<String, dynamic> json;');
     }
     if (name == 'Script') {
@@ -1364,7 +1364,7 @@ class Type extends Member {
 
     // Build from JSON.
     String superCall = superName == null ? '' : ": super._fromJson(json) ";
-    if (name == 'Response') {
+    if (name == 'Response' || name == 'TimelineEvent') {
       gen.write('${name}._fromJson(this.json)');
     } else {
       gen.write('${name}._fromJson(Map<String, dynamic> json) ${superCall}');
@@ -1492,6 +1492,16 @@ Map<String, dynamic> toJson() {
   result['type'] = type ?? 'Response';
   return result;
 }''');
+    } else if (name == 'TimelineEvent') {
+      // TimelineEvent doesn't have any declared properties as the response is
+      // fairly dynamic. Return the json directly.
+      gen.writeln('''
+          Map<String, dynamic> toJson() {
+            var result = json == null ? <String, dynamic>{} : Map.of(json);
+            result['type'] = 'TimelineEvent';
+            return result;
+          }
+      ''');
     } else {
       if (isResponse) {
         gen.writeln('@override');

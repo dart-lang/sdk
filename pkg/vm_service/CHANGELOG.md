@@ -1,4 +1,7 @@
 # Changelog
+## 2.1.4
+- Fixed issue where `TimelineEvent` always had no content.
+
 ## 2.1.3
 - Fixed issue where exception would be thrown when attempting to parse a
   List entry in a response which is not present. This occurs when connected to
