@@ -1042,11 +1042,12 @@ bool _isLegacy(Type type) => JS<bool>('!', '$type instanceof $LegacyType');
 
 /// Returns `true` if [type] is the [Null] type.
 @notNull
-bool _isNullType(Object type) => identical(type, unwrapType(Null));
+bool _isNullType(Object type) =>
+    JS<bool>('!', '# === #', type, unwrapType(Null));
 
 @notNull
 bool _isFutureOr(type) =>
-    identical(getGenericClass(type), getGenericClass(FutureOr));
+    JS<bool>('!', '# === #', getGenericClass(type), getGenericClass(FutureOr));
 
 bool _isSubtype(t1, t2, bool strictMode) => JS('bool', '''(() => {
   if (!$strictMode) {

@@ -169,7 +169,9 @@ _computeLibraryMetadata() {
   for (var name in modules) {
     // Add libraries from each module.
     var module = getModuleLibraries(name);
-    var libraries = getOwnPropertyNames(module);
+    // TODO(nshahan) Can we optimize this cast and the one below to use
+    // JsArray.of() to be more efficient?
+    var libraries = getOwnPropertyNames(module).cast<String>();
     _libraries!.addAll(libraries);
     for (var library in libraries) {
       _libraryObjects![library] = JS('', '#.#', module, library);
@@ -177,7 +179,7 @@ _computeLibraryMetadata() {
 
     // Add parts from each module.
     var partMap = getModulePartMap(name);
-    libraries = getOwnPropertyNames(partMap);
+    libraries = getOwnPropertyNames(partMap).cast<String>();
     for (var library in libraries) {
       _parts![library] = List.from(JS('List', '#.#', partMap, library));
     }

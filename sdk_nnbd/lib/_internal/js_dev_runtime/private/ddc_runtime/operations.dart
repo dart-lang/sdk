@@ -266,7 +266,9 @@ _checkAndCall(f, ftype, obj, typeArgs, args, named, displayName) =>
     return $noSuchMethod(originalTarget, new $InvocationImpl.new(
         $displayName, $args, {
           namedArguments: $named,
-          typeArguments: $typeArgs,
+          // Repeated the default value here to avoid passing null from JS to a
+          // non-nullable argument.
+          typeArguments: $typeArgs || [],
           isMethod: true,
           failureMessage: errorMessage
         }));

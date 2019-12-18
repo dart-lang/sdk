@@ -772,7 +772,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     emitClassRef(InterfaceType t) {
       // TODO(jmesserly): investigate this. It seems like `lazyJSType` is
       // invalid for use in an `extends` clause, hence this workaround.
-      return _emitJSInterop(t.classNode) ?? visitInterfaceType(t);
+      return _emitJSInterop(t.classNode) ??
+          _emitInterfaceType(t, emitNullability: false);
     }
 
     getBaseClass(int count) {
@@ -837,7 +838,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         getBaseClass(isMixinAliasClass(c) ? 0 : mixins.length),
         emitDeferredType(supertype),
       ]));
-      supertype = _coreTypes.legacyRawType(supertype.classNode);
+      supertype =
+          _coreTypes.rawType(supertype.classNode, _currentLibrary.nonNullable);
     }
     var baseClass = emitClassRef(supertype);
 
@@ -1183,7 +1185,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       body.add(js.statement('#[#.implements] = () => [#];', [
         className,
         runtimeModule,
-        interfaces.map((i) => _emitType(i.asInterfaceType))
+        interfaces.map((i) =>
+            _emitInterfaceType(i.asInterfaceType, emitNullability: false))
       ]));
     }
 
@@ -2559,7 +2562,16 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Expression visitNeverType(NeverType type) => runtimeCall('Never');
 
   @override
-  js_ast.Expression visitInterfaceType(InterfaceType type) {
+  js_ast.Expression visitInterfaceType(InterfaceType type) =>
+      _emitInterfaceType(type);
+
+  /// Emits the representation of [type].
+  ///
+  /// Will avoid emitting the type wrappers for null safety when
+  /// [emitNullability] is `false` to avoid cases where marking [type] with
+  /// nullability information makes no sense in the context.
+  js_ast.Expression _emitInterfaceType(InterfaceType type,
+      {bool emitNullability = true}) {
     var c = type.classNode;
     _declareBeforeUse(c);
 
@@ -2596,7 +2608,30 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       return _cacheTypes ? _typeTable.nameType(type, typeRep) : typeRep;
     }
 
-    return _emitTopLevelNameNoInterop(type.classNode);
+    var typeRep = _emitTopLevelNameNoInterop(type.classNode);
+    if (!emitNullability ||
+        !_options.enableNullSafety ||
+        type == _coreTypes.nullType) {
+      // Avoid emitting the null safety wrapper types when:
+      // * The non-nullable experiment is not enabled.
+      // * This specific InterfaceType is known to be from a context where
+      //   the nullability is meaningless (ie. class A extends B) where B is the
+      //   InterfaceType.
+      // * The InterfaceType is the Null type.
+      return typeRep;
+    }
+
+    switch (type.nullability) {
+      case Nullability.legacy:
+        return runtimeCall('legacy(#)', [typeRep]);
+      case Nullability.nonNullable:
+        // No wrapper for types that are non-nullable.
+        return typeRep;
+      case Nullability.nullable:
+        return runtimeCall('nullable(#)', [typeRep]);
+      default:
+        throw UnsupportedError('Undetermined Nullability');
+    }
   }
 
   bool get _emittingClassSignatures =>
@@ -2732,7 +2767,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   /// Emits an expression that lets you access statics on a [type] from code.
   js_ast.Expression _emitConstructorAccess(InterfaceType type) {
-    return _emitJSInterop(type.classNode) ?? _emitType(type);
+    return _emitJSInterop(type.classNode) ??
+        _emitInterfaceType(type, emitNullability: false);
   }
 
   js_ast.Expression _emitConstructorName(InterfaceType type, Member c) {
@@ -3203,7 +3239,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     if (node is AsExpression && node.isTypeError) {
       assert(node.getStaticType(_staticTypeContext) ==
-          _types.coreTypes.boolLegacyRawType);
+          _types.coreTypes.boolRawType(currentLibrary.nonNullable));
       return runtimeCall('dtest(#)', [_visitExpression(node.operand)]);
     }
 
@@ -3333,8 +3369,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var conditionType = condition.getStaticType(_staticTypeContext);
     var jsCondition = _visitExpression(condition);
 
-    var boolType = _coreTypes.boolLegacyRawType;
-    if (conditionType != boolType) {
+    if (conditionType != _coreTypes.boolLegacyRawType &&
+        conditionType != _coreTypes.boolNullableRawType &&
+        conditionType != _coreTypes.boolNonNullableRawType) {
       jsCondition = runtimeCall('dtest(#)', [jsCondition]);
     } else if (isNullable(condition)) {
       jsCondition = runtimeCall('test(#)', [jsCondition]);
@@ -3570,7 +3607,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     //
     // TODO(jmesserly): we may want a helper if these become common. For now the
     // full desugaring seems okay.
-    var streamIterator = _coreTypes.legacyRawType(_asyncStreamIteratorClass);
+    var streamIterator = _coreTypes.rawType(
+        _asyncStreamIteratorClass, currentLibrary.nonNullable);
     var createStreamIter = js_ast.Call(
         _emitConstructorName(
             streamIterator,
@@ -4844,7 +4882,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
 
     var type = ctorClass.typeParameters.isEmpty
-        ? _coreTypes.legacyRawType(ctorClass)
+        ? _coreTypes.nonNullableRawType(ctorClass)
         : InterfaceType(ctorClass, Nullability.legacy, args.types);
 
     if (isFromEnvironmentInvocation(_coreTypes, node)) {

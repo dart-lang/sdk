@@ -23,13 +23,13 @@ final Function(Object, Object,
     bool? configurable,
     bool? writable}) defineAccessor = JS('', 'Object.defineProperty');
 
-final Function(Object, Object) getOwnPropertyDescriptor =
+final dynamic Function(Object, Object) getOwnPropertyDescriptor =
     JS('', 'Object.getOwnPropertyDescriptor');
 
-final Iterable<String> Function(Object) getOwnPropertyNames =
+final List Function(Object) getOwnPropertyNames =
     JS('', 'Object.getOwnPropertyNames');
 
-final Function(Object) getOwnPropertySymbols =
+final List Function(Object) getOwnPropertySymbols =
     JS('', 'Object.getOwnPropertySymbols');
 
 final Function(Object) getPrototypeOf = JS('', 'Object.getPrototypeOf');
