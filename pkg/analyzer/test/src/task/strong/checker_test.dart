@@ -2242,11 +2242,11 @@ Future<List<String>> foo() async {
   test_implicitDynamic_field() async {
     addFile(r'''
 class C {
-  var /*error:IMPLICIT_DYNAMIC_FIELD*/x0;
-  var /*error:IMPLICIT_DYNAMIC_FIELD*/x1 = (<dynamic>[])[0];
-  var /*error:IMPLICIT_DYNAMIC_FIELD*/x2,
+  var x0;
+  var x1 = (<dynamic>[])[0];
+  var x2,
       x3 = 42,
-      /*error:IMPLICIT_DYNAMIC_FIELD*/x4;
+      x4;
   dynamic y0;
   dynamic y1 = (<dynamic>[])[0];
 }
@@ -2262,22 +2262,22 @@ T b<T>() => null;
 void main<S>() {
   dynamic d;
   int i;
-  /*error:IMPLICIT_DYNAMIC_FUNCTION*/a(d);
+  a(d);
   a(42);
-  /*error:IMPLICIT_DYNAMIC_FUNCTION*/b();
-  d = /*error:IMPLICIT_DYNAMIC_FUNCTION*/b();
+  b();
+  d = b();
   i = b();
 
   void f<T>(T t) {};
   T g<T>() => null;
 
-  /*error:IMPLICIT_DYNAMIC_FUNCTION*/f(d);
+  f(d);
   f(42);
-  /*error:IMPLICIT_DYNAMIC_FUNCTION*/g();
-  d = /*error:IMPLICIT_DYNAMIC_FUNCTION*/g();
+  g();
+  d = g();
   i = g();
 
-  /*error:IMPLICIT_DYNAMIC_INVOKE*/(<T>(T t) => t)(d);
+  (<T>(T t) => t)(d);
   (<T>(T t) => t)(42);
   (<T>() => /*info:UNNECESSARY_CAST*/null as T)<int>();
 }
@@ -2288,11 +2288,11 @@ void main<S>() {
   test_implicitDynamic_listLiteral() async {
     addFile(r'''
 
-var l0 = /*error:IMPLICIT_DYNAMIC_LIST_LITERAL*/[];
-List l1 = /*error:IMPLICIT_DYNAMIC_LIST_LITERAL*/[];
-List<dynamic> l2 = /*error:IMPLICIT_DYNAMIC_LIST_LITERAL*/[];
+var l0 = [];
+List l1 = [];
+List<dynamic> l2 = [];
 dynamic d = 42;
-var l3 = /*error:IMPLICIT_DYNAMIC_LIST_LITERAL*/[d, d];
+var l3 = [d, d];
 
 var l4 = <dynamic>[];
 var l5 = <int>[];
@@ -2304,13 +2304,13 @@ var l7 = [42];
 
   test_implicitDynamic_mapLiteral() async {
     addFile(r'''
-var m0 = /*error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{};
-Map m1 = /*error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{};
-Map<dynamic, dynamic> m2 = /*error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{};
+var m0 = {};
+Map m1 = {};
+Map<dynamic, dynamic> m2 = {};
 dynamic d = 42;
-var m3 = /*error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{d: d};
-var m4 = /*error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{'x': d, 'y': d};
-var m5 = /*error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{d: 'x'};
+var m3 = {d: d};
+var m4 = {'x': d, 'y': d};
+var m5 = {d: 'x'};
 
 var m6 = <dynamic, dynamic>{};
 var m7 = <String, String>{};
@@ -2333,16 +2333,16 @@ class D<E> {
 void f() {
   dynamic d;
   int i;
-  new C()./*error:IMPLICIT_DYNAMIC_METHOD*/m(d);
+  new C().m(d);
   new C().m(42);
-  new C()./*error:IMPLICIT_DYNAMIC_METHOD*/n();
-  d = new C()./*error:IMPLICIT_DYNAMIC_METHOD*/n();
+  new C().n();
+  d = new C().n();
   i = new C().n();
 
-  new D<int>()./*error:IMPLICIT_DYNAMIC_METHOD*/m(d);
+  new D<int>().m(d);
   new D<int>().m(42);
-  new D<int>()./*error:IMPLICIT_DYNAMIC_METHOD*/n();
-  d = new D<int>()./*error:IMPLICIT_DYNAMIC_METHOD*/n();
+  new D<int>().n();
+  d = new D<int>().n();
   i = new D<int>().n();
 }
     ''');
@@ -2354,31 +2354,31 @@ void f() {
 const dynamic DYNAMIC_VALUE = 42;
 
 // simple formal
-void f0(/*error:IMPLICIT_DYNAMIC_PARAMETER*/x) {}
+void f0(x) {}
 void f1(dynamic x) {}
 
 // default formal
-void df0([/*error:IMPLICIT_DYNAMIC_PARAMETER*/x = DYNAMIC_VALUE]) {}
+void df0([x = DYNAMIC_VALUE]) {}
 void df1([dynamic x = DYNAMIC_VALUE]) {}
 
 // https://github.com/dart-lang/sdk/issues/25794
-void df2([/*error:IMPLICIT_DYNAMIC_PARAMETER*/x = 42]) {}
+void df2([x = 42]) {}
 
 // default formal (named)
-void nf0({/*error:IMPLICIT_DYNAMIC_PARAMETER*/x: DYNAMIC_VALUE}) {}
+void nf0({x: DYNAMIC_VALUE}) {}
 void nf1({dynamic x: DYNAMIC_VALUE}) {}
 
 // https://github.com/dart-lang/sdk/issues/25794
-void nf2({/*error:IMPLICIT_DYNAMIC_PARAMETER*/x: 42}) {}
+void nf2({x: 42}) {}
 
 // field formal
 class C {
-  var /*error:IMPLICIT_DYNAMIC_FIELD*/x;
+  var x;
   C(this.x);
 }
 
 // function typed formal
-void ftf0(void x(/*error:IMPLICIT_DYNAMIC_PARAMETER*/y)) {}
+void ftf0(void x(y)) {}
 void ftf1(void x(int y)) {}
     ''');
     await check(implicitDynamic: false);
@@ -2387,12 +2387,12 @@ void ftf1(void x(int y)) {}
   test_implicitDynamic_return() async {
     addFile(r'''
 // function
-/*error:IMPLICIT_DYNAMIC_RETURN*/f0() {return f0();}
+f0() {return f0();}
 dynamic f1() { return 42; }
 
 // nested function
 void main() {
-  /*error:IMPLICIT_DYNAMIC_RETURN*/g0() {return g0();}
+  g0() {return g0();}
   dynamic g1() { return 42; }
 }
 
@@ -2401,18 +2401,18 @@ class B {
   int m1() => 42;
 }
 class C extends B {
-  /*error:IMPLICIT_DYNAMIC_RETURN*/m0() => 123;
+  m0() => 123;
   m1() => 123;
   dynamic m2() => 'hi';
 }
 
 // accessors
 set x(int value) {}
-get /*error:IMPLICIT_DYNAMIC_RETURN*/y0 => 42;
+get y0 => 42;
 dynamic get y1 => 42;
 
 // function typed formals
-void ftf0(/*error:IMPLICIT_DYNAMIC_RETURN*/f(int x)) {}
+void ftf0(f(int x)) {}
 void ftf1(dynamic f(int x)) {}
 
 // function expressions
@@ -2440,21 +2440,21 @@ void main() {
   test_implicitDynamic_type() async {
     addFile(r'''
 class C<T> {}
-class M1<T extends /*error:IMPLICIT_DYNAMIC_TYPE*/List> {}
+class M1<T extends List> {}
 class M2<T> {}
 class I<T> {}
-class D<T, S> extends /*error:IMPLICIT_DYNAMIC_TYPE*/C
-    with M1, /*error:IMPLICIT_DYNAMIC_TYPE*/M2
-    implements /*error:IMPLICIT_DYNAMIC_TYPE*/I {}
-class D2<T, S> = /*error:IMPLICIT_DYNAMIC_TYPE*/C
-    with M1, /*error:IMPLICIT_DYNAMIC_TYPE*/M2
-    implements /*error:IMPLICIT_DYNAMIC_TYPE*/I;
+class D<T, S> extends C
+    with M1, M2
+    implements I {}
+class D2<T, S> = C
+    with M1, M2
+    implements I;
 
 C f(D d) {
-  D x = new /*error:IMPLICIT_DYNAMIC_TYPE*/D();
-  D<int, dynamic> y = new /*error:IMPLICIT_DYNAMIC_TYPE*/D();
-  D<dynamic, int> z = new /*error:IMPLICIT_DYNAMIC_TYPE*/D();
-  return new /*error:IMPLICIT_DYNAMIC_TYPE*/C();
+  D x = new D();
+  D<int, dynamic> y = new D();
+  D<dynamic, int> z = new D();
+  return new C();
 }
 
 class A<T extends num> {}
@@ -2472,11 +2472,11 @@ A g(B b) {
 
   test_implicitDynamic_variable() async {
     addFile(r'''
-var /*error:IMPLICIT_DYNAMIC_VARIABLE*/x0;
-var /*error:IMPLICIT_DYNAMIC_VARIABLE*/x1 = (<dynamic>[])[0];
-var /*error:IMPLICIT_DYNAMIC_VARIABLE*/x2,
+var x0;
+var x1 = (<dynamic>[])[0];
+var x2,
     x3 = 42,
-    /*error:IMPLICIT_DYNAMIC_VARIABLE*/x4;
+    x4;
 dynamic y0;
 dynamic y1 = (<dynamic>[])[0];
     ''');

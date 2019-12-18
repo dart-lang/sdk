@@ -8609,17 +8609,6 @@ class StaticWarningCodeWithUniqueName extends StaticWarningCode {
  * levels, so they are grouped for clarity.
  */
 class StrongModeCode extends ErrorCode {
-  /**
-   * This is appended to the end of an error message about implicit dynamic.
-   *
-   * The idea is to make sure the user is aware that this error message is the
-   * result of turning on a particular option, and they are free to turn it
-   * back off.
-   */
-  static const String _implicitDynamicCorrection =
-      "Try adding an explicit type like 'dynamic', or "
-      "enable implicit-dynamic in your analysis options file.";
-
   static const StrongModeCode INVALID_PARAMETER_DECLARATION = StrongModeCode(
       ErrorType.COMPILE_TIME_ERROR,
       'INVALID_PARAMETER_DECLARATION',
@@ -8691,66 +8680,6 @@ class StrongModeCode extends ErrorCode {
 
   static const StrongModeCode DYNAMIC_INVOKE = StrongModeCode(
       ErrorType.HINT, 'DYNAMIC_INVOKE', "'{0}' requires a dynamic invoke.");
-
-  static const StrongModeCode IMPLICIT_DYNAMIC_PARAMETER = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'IMPLICIT_DYNAMIC_PARAMETER',
-      "Missing parameter type for '{0}'.",
-      correction: _implicitDynamicCorrection);
-
-  static const StrongModeCode IMPLICIT_DYNAMIC_RETURN = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'IMPLICIT_DYNAMIC_RETURN',
-      "Missing return type for '{0}'.",
-      correction: _implicitDynamicCorrection);
-
-  static const StrongModeCode IMPLICIT_DYNAMIC_VARIABLE = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'IMPLICIT_DYNAMIC_VARIABLE',
-      "Missing variable type for '{0}'.",
-      correction: _implicitDynamicCorrection);
-
-  static const StrongModeCode IMPLICIT_DYNAMIC_FIELD = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'IMPLICIT_DYNAMIC_FIELD',
-      "Missing field type for '{0}'.",
-      correction: _implicitDynamicCorrection);
-
-  static const StrongModeCode IMPLICIT_DYNAMIC_TYPE = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'IMPLICIT_DYNAMIC_TYPE',
-      "Missing type arguments for generic type '{0}'.",
-      correction: _implicitDynamicCorrection);
-
-  static const StrongModeCode IMPLICIT_DYNAMIC_LIST_LITERAL = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'IMPLICIT_DYNAMIC_LIST_LITERAL',
-      "Missing type argument for list literal.",
-      correction: _implicitDynamicCorrection);
-
-  static const StrongModeCode IMPLICIT_DYNAMIC_MAP_LITERAL = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'IMPLICIT_DYNAMIC_MAP_LITERAL',
-      "Missing type arguments for map literal.",
-      correction: _implicitDynamicCorrection);
-
-  static const StrongModeCode IMPLICIT_DYNAMIC_FUNCTION = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'IMPLICIT_DYNAMIC_FUNCTION',
-      "Missing type arguments for generic function '{0}<{1}>'.",
-      correction: _implicitDynamicCorrection);
-
-  static const StrongModeCode IMPLICIT_DYNAMIC_METHOD = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'IMPLICIT_DYNAMIC_METHOD',
-      "Missing type arguments for generic method '{0}<{1}>'.",
-      correction: _implicitDynamicCorrection);
-
-  static const StrongModeCode IMPLICIT_DYNAMIC_INVOKE = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'IMPLICIT_DYNAMIC_INVOKE',
-      "Missing type arguments for calling generic function type '{0}'.",
-      correction: _implicitDynamicCorrection);
 
   static const StrongModeCode NOT_INSTANTIATED_BOUND = StrongModeCode(
       ErrorType.COMPILE_TIME_ERROR,
