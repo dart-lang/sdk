@@ -3,12 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 import 'package:expect/expect.dart';
 
+// Requirements=nnbd
+
 void main() {
   int x = 42;
   int? y;
 
   Expect.equals(null, y);
-  Expect.throws(() { x = y!;});
+  Expect.throws(() {
+    x = y!;
+  });
   Expect.equals(42, x);
 
   y = 17;
