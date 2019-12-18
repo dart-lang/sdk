@@ -1018,6 +1018,26 @@ void f(dynamic a) {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_downcast_dynamic_type_argument() async {
+    // This pattern is common and seems to have this as a best migration. It is
+    // less clear, but plausible, that this holds for other types of type
+    // parameter downcasts.
+    var content = '''
+List<int> f(List a) => a;
+void main() {
+  f(<int>[null]);
+}
+''';
+
+    var expected = '''
+List<int?> f(List a) => a;
+void main() {
+  f(<int?>[null]);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   @failingTest
   test_downcast_not_widest_type_type_parameters() async {
     // Fails because a hard assignment from List<int/*1*/> to List<int/*2*/>
@@ -1049,6 +1069,26 @@ void f(dynamic a) {
   nonNullNonNull = hardToNonNullNonNull
   nonNullNull = hardToNonNullNull
   nullNonNull = hardToNullNonNull
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_downcast_type_argument_preserve_nullability() async {
+    // There are no examples in front of us yet where anyone downcasts a type
+    // with a nullable type parameter. This is maybe correct, maybe not, and it
+    // unblocks us to find out which at a later point in time.
+    var content = '''
+List<int> f(Iterable<num> a) => a;
+void main() {
+  f(<num>[null]);
+}
+''';
+
+    var expected = '''
+List<int?> f(Iterable<num?> a) => a;
+void main() {
+  f(<num?>[null]);
 }
 ''';
     await _checkSingleFileChanges(content, expected);

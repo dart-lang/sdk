@@ -2528,11 +2528,18 @@ mixin _AssignmentChecker {
           destination: _getTypeParameterTypeBound(destination),
           hard: false);
     } else if (destinationType is InterfaceType) {
-      assert(source.typeArguments.isEmpty,
-          'downcast from interface type with type args not supported.');
-      for (final param in destinationType.element.typeParameters) {
-        assert(param.bound == null,
-            'downcast to type parameters with bounds not supported');
+      if (source.type is InterfaceType) {
+        final target = _decoratedClassHierarchy.asInstanceOf(
+            destination, source.type.element as ClassElement);
+        for (var i = 0; i < source.typeArguments.length; ++i) {
+          _checkDowncast(origin,
+              source: source.typeArguments[i],
+              destination: target.typeArguments[i],
+              hard: false);
+        }
+      } else {
+        assert(false,
+            'downcasting from ${source.type.runtimeType} to interface type');
       }
     } else if (destinationType is FunctionType) {
       if (source.type.isDartCoreFunction) {

@@ -195,7 +195,6 @@ class AssignmentCheckerTest extends Object
     assertNoEdge(t.typeArguments[0].node, anyNode);
   }
 
-  @failingTest
   test_generic_to_generic_downcast() {
     var t1 = list(list(object()));
     var t2 = myListOfList(object());
@@ -210,6 +209,14 @@ class AssignmentCheckerTest extends Object
     var c = _myListOfListSupertype.typeArguments[0].typeArguments[0].node;
     // Then there should be an edge from b to substitute(a, c)
     assertEdge(b, substitutionNode(a, c), hard: false);
+  }
+
+  test_generic_to_generic_downcast_same_element() {
+    var t1 = list(object());
+    var t2 = list(int_());
+    assign(t1, t2, hard: true);
+    assertEdge(t1.node, t2.node, hard: true);
+    assertEdge(t1.typeArguments[0].node, t2.typeArguments[0].node, hard: false);
   }
 
   test_generic_to_generic_same_element() {
