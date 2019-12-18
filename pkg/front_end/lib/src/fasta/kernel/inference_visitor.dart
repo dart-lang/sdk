@@ -1216,14 +1216,14 @@ class InferenceVisitor
 
   DartType getSpreadElementType(DartType spreadType, bool isNullAware) {
     if (spreadType is InterfaceType) {
+      if (spreadType.classNode == inferrer.coreTypes.nullClass) {
+        return isNullAware ? spreadType : null;
+      }
       List<DartType> supertypeArguments = inferrer.typeSchemaEnvironment
           .getTypeArgumentsAsInstanceOf(
               spreadType, inferrer.coreTypes.iterableClass);
-      if (supertypeArguments != null) return supertypeArguments[0];
-      if (spreadType.classNode == inferrer.coreTypes.nullClass && isNullAware) {
-        return spreadType;
-      }
-      return null;
+      if (supertypeArguments == null) return null;
+      return supertypeArguments.single;
     }
     if (spreadType is DynamicType) return const DynamicType();
     return null;
@@ -1614,15 +1614,18 @@ class InferenceVisitor
   void storeSpreadMapEntryElementTypes(DartType spreadMapEntryType,
       bool isNullAware, List<DartType> output, int offset) {
     if (spreadMapEntryType is InterfaceType) {
-      List<DartType> supertypeArguments = inferrer.typeSchemaEnvironment
-          .getTypeArgumentsAsInstanceOf(
-              spreadMapEntryType, inferrer.coreTypes.mapClass);
-      if (supertypeArguments != null) {
-        output[offset] = supertypeArguments[0];
-        output[offset + 1] = supertypeArguments[1];
-      } else if (spreadMapEntryType.classNode == inferrer.coreTypes.nullClass &&
-          isNullAware) {
-        output[offset] = output[offset + 1] = spreadMapEntryType;
+      if (spreadMapEntryType.classNode == inferrer.coreTypes.nullClass) {
+        if (isNullAware) {
+          output[offset] = output[offset + 1] = spreadMapEntryType;
+        }
+      } else {
+        List<DartType> supertypeArguments = inferrer.typeSchemaEnvironment
+            .getTypeArgumentsAsInstanceOf(
+                spreadMapEntryType, inferrer.coreTypes.mapClass);
+        if (supertypeArguments != null) {
+          output[offset] = supertypeArguments[0];
+          output[offset + 1] = supertypeArguments[1];
+        }
       }
     }
     if (spreadMapEntryType is DynamicType) {

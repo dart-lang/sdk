@@ -17,7 +17,8 @@ nullAwareListSpread(List<String> list) {
     /*cfe:nnbd.String!*/
     'foo',
     /*invoke: void*/
-    /*current: String*/
+    /*cfe|dart2js.current: String*/
+    /*cfe:nnbd.current: String!*/
     ...?
     /*cfe|dart2js.List<String>*/
     /*cfe:nnbd.List<String!>!*/
@@ -38,7 +39,8 @@ nullAwareSetSpread(Set<String> set) {
     /*cfe:nnbd.String!*/
     'foo',
     /*invoke: bool*/
-    /*current: String*/
+    /*cfe|dart2js.current: String*/
+    /*cfe:nnbd.current: String!*/
     ...?
     /*cfe|dart2js.Set<String>*/
     /*cfe:nnbd.Set<String!>!*/

@@ -66,7 +66,8 @@ asyncForInDynamic(Stream<dynamic> stream) async {
 }
 
 asyncForInInt(Stream<int> stream) async {
-  /*current: int*/
+  /*cfe|dart2js.current: int*/
+  /*cfe:nnbd.current: int!*/
   await for (var e in
       /*cfe|dart2js.Stream<int>*/
       /*cfe:nnbd.Stream<int!>!*/
@@ -77,7 +78,8 @@ asyncForInInt(Stream<int> stream) async {
 }
 
 asyncForInIntToNum(Stream<int> stream) async {
-  /*current: int*/
+  /*cfe|dart2js.current: int*/
+  /*cfe:nnbd.current: int!*/
   await for (num e in
       /*cfe|dart2js.Stream<int>*/
       /*cfe:nnbd.Stream<int!>!*/
@@ -161,7 +163,8 @@ customStreamIterator(StreamWithCustomIterator stream) async {
 }
 
 void genericIterable<T extends Iterable<T>>(T x) {
-  /*current: T*/
+  /*cfe|dart2js.current: T*/
+  /*cfe:nnbd.current: T!*/
   for (var y in
       /*cfe|dart2js.T*/
       /*cfe:nnbd.T!*/
@@ -171,7 +174,8 @@ void genericIterable<T extends Iterable<T>>(T x) {
 }
 
 void genericStream<T extends Stream<T>>(T x) async {
-  /*current: T*/
+  /*cfe|dart2js.current: T*/
+  /*cfe:nnbd.current: T!*/
   await for (var y in
       /*cfe|dart2js.T*/
       /*cfe:nnbd.T!*/
