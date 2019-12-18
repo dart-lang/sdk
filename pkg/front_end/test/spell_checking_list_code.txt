@@ -199,6 +199,7 @@ coordinated
 coordinating
 core
 core's
+corelib
 corrected
 cosmetic
 counters

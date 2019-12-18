@@ -384,12 +384,22 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       loader.target.enableNonNullable &&
       library.languageVersionMajor >= enableNonNullableDefaultMajorVersion &&
       library.languageVersionMinor >= enableNonNullableDefaultMinorVersion &&
-      !isOptOut(library.importUri);
+      !isOptOutPackage(library.importUri) &&
+      !isOptOutTest(library.importUri);
 
-  bool isOptOut(Uri uri) {
+  bool isOptOutPackage(Uri uri) {
     if (!uri.isScheme('package')) return false;
     String packageName = uri.pathSegments.first;
     return optOutPackages.contains(packageName);
+  }
+
+  bool isOptOutTest(Uri uri) {
+    String path = uri.path;
+    int start = path.indexOf('/tests/');
+    if (start == -1) return false;
+    int end = path.indexOf('/', start + '/tests/'.length + 1);
+    if (end == -1) return false;
+    return optOutTestPaths.contains(path.substring(start, end));
   }
 
   // TODO(johnniwinther): remove this logic. Opted out packages should be
@@ -503,6 +513,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     'web_components',
     'web_socket_channel',
     'yaml',
+  };
+
+  static final Set<String> optOutTestPaths = {
+    '/tests/co19_2',
+    '/tests/corelib_2',
+    '/tests/language_2',
+    '/tests/lib_2',
+    '/tests/standalone_2',
   };
 
   @override
