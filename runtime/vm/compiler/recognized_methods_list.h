@@ -335,8 +335,13 @@ namespace dart {
   V(_Float32x4, get:z, Float32x4ShuffleZ, 0x2414f84c)                          \
   V(_Float32x4, get:w, Float32x4ShuffleW, 0x06553cce)                          \
   V(_Float32x4, *, Float32x4Mul, 0xf817cb64)                                   \
+  V(_Float32x4, /, Float32x4Div, 0xd36681e1)                                   \
   V(_Float32x4, -, Float32x4Sub, 0xeff9bb27)                                   \
   V(_Float32x4, +, Float32x4Add, 0xcac0f0b6)                                   \
+  V(_Float64x2, *, Float64x2Mul, 0x589c7905)                                   \
+  V(_Float64x2, /, Float64x2Div, 0x33eb2fa1)                                   \
+  V(_Float64x2, -, Float64x2Sub, 0x507e68c8)                                   \
+  V(_Float64x2, +, Float64x2Add, 0x2b459e57)                                   \
 
 #define GRAPH_CORE_INTRINSICS_LIST(V)                                          \
   V(_List, get:length, ObjectArrayLength, 0x05176aac)                          \

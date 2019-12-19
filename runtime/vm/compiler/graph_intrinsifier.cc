@@ -570,12 +570,32 @@ bool GraphIntrinsifier::Build_Float32x4Mul(FlowGraph* flow_graph) {
   return BuildSimdOp(flow_graph, kFloat32x4Cid, Token::kMUL);
 }
 
+bool GraphIntrinsifier::Build_Float32x4Div(FlowGraph* flow_graph) {
+  return BuildSimdOp(flow_graph, kFloat32x4Cid, Token::kDIV);
+}
+
 bool GraphIntrinsifier::Build_Float32x4Sub(FlowGraph* flow_graph) {
   return BuildSimdOp(flow_graph, kFloat32x4Cid, Token::kSUB);
 }
 
 bool GraphIntrinsifier::Build_Float32x4Add(FlowGraph* flow_graph) {
   return BuildSimdOp(flow_graph, kFloat32x4Cid, Token::kADD);
+}
+
+bool GraphIntrinsifier::Build_Float64x2Mul(FlowGraph* flow_graph) {
+  return BuildSimdOp(flow_graph, kFloat64x2Cid, Token::kMUL);
+}
+
+bool GraphIntrinsifier::Build_Float64x2Div(FlowGraph* flow_graph) {
+  return BuildSimdOp(flow_graph, kFloat64x2Cid, Token::kDIV);
+}
+
+bool GraphIntrinsifier::Build_Float64x2Sub(FlowGraph* flow_graph) {
+  return BuildSimdOp(flow_graph, kFloat64x2Cid, Token::kSUB);
+}
+
+bool GraphIntrinsifier::Build_Float64x2Add(FlowGraph* flow_graph) {
+  return BuildSimdOp(flow_graph, kFloat64x2Cid, Token::kADD);
 }
 
 static bool BuildFloat32x4Shuffle(FlowGraph* flow_graph,

@@ -7837,17 +7837,24 @@ class CheckSmiInstr : public TemplateInstruction<1, NoThrow, Pure> {
 };
 
 // CheckNull instruction takes one input (`value`) and tests it for `null`.
-// If `value` is `null`, then `NoSuchMethodError` is thrown. Otherwise,
-// execution proceeds to the next instruction.
+// If `value` is `null`, then an exception is thrown according to
+// `exception_type`. Otherwise, execution proceeds to the next instruction.
 class CheckNullInstr : public TemplateDefinition<1, Throws, Pure> {
  public:
+  enum ExceptionType {
+    kNoSuchMethod,
+    kArgumentError,
+  };
+
   CheckNullInstr(Value* value,
                  const String& function_name,
                  intptr_t deopt_id,
-                 TokenPosition token_pos)
+                 TokenPosition token_pos,
+                 ExceptionType exception_type = kNoSuchMethod)
       : TemplateDefinition(deopt_id),
         token_pos_(token_pos),
-        function_name_(function_name) {
+        function_name_(function_name),
+        exception_type_(exception_type) {
     ASSERT(function_name.IsNotTemporaryScopedHandle());
     SetInputAt(0, value);
   }
@@ -7855,6 +7862,8 @@ class CheckNullInstr : public TemplateDefinition<1, Throws, Pure> {
   Value* value() const { return inputs_[0]; }
   virtual TokenPosition token_pos() const { return token_pos_; }
   const String& function_name() const { return function_name_; }
+  bool IsArgumentCheck() const { return exception_type_ == kArgumentError; }
+  ExceptionType exception_type() const { return exception_type_; }
 
   bool UseSharedSlowPathStub(bool is_optimizing) const {
     return SlowPathSharingSupported(is_optimizing);
@@ -7872,7 +7881,7 @@ class CheckNullInstr : public TemplateDefinition<1, Throws, Pure> {
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
-  virtual bool AttributesEqual(Instruction* other) const { return true; }
+  virtual bool AttributesEqual(Instruction* other) const;
 
   static void AddMetadataForRuntimeCall(CheckNullInstr* check_null,
                                         FlowGraphCompiler* compiler);
@@ -7881,9 +7890,12 @@ class CheckNullInstr : public TemplateDefinition<1, Throws, Pure> {
 
   ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT
 
+  PRINT_OPERANDS_TO_SUPPORT
+
  private:
   const TokenPosition token_pos_;
   const String& function_name_;
+  const ExceptionType exception_type_;
 
   DISALLOW_COPY_AND_ASSIGN(CheckNullInstr);
 };
@@ -8402,6 +8414,8 @@ class SimdOpInstr : public Definition {
                              intptr_t deopt_id) {
     return new SimdOpInstr(KindForMethod(kind), left, deopt_id);
   }
+
+  static Kind KindForOperator(MethodRecognizer::Kind kind);
 
   static Kind KindForMethod(MethodRecognizer::Kind method_kind);
 

@@ -352,6 +352,11 @@ void Definition::PrintTo(BufferFormatter* f) const {
   }
 }
 
+void CheckNullInstr::PrintOperandsTo(BufferFormatter* f) const {
+  Definition::PrintOperandsTo(f);
+  f->Print(IsArgumentCheck() ? ", ArgumentError" : ", NoSuchMethodError");
+}
+
 void Definition::PrintOperandsTo(BufferFormatter* f) const {
   for (int i = 0; i < InputCount(); ++i) {
     if (i > 0) f->Print(", ");

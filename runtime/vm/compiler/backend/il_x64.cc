@@ -5537,8 +5537,12 @@ void CheckSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 void CheckNullInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  NullErrorSlowPath* slow_path =
-      new NullErrorSlowPath(this, compiler->CurrentTryIndex());
+  ThrowErrorSlowPathCode* slow_path = nullptr;
+  if (IsArgumentCheck()) {
+    slow_path = new NullArgErrorSlowPath(this, compiler->CurrentTryIndex());
+  } else {
+    slow_path = new NullErrorSlowPath(this, compiler->CurrentTryIndex());
+  }
   compiler->AddSlowPathCode(slow_path);
 
   Register value_reg = locs()->in(0).reg();
@@ -5551,6 +5555,11 @@ void CheckNullInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 void NullErrorSlowPath::EmitSharedStubCall(FlowGraphCompiler* compiler,
                                            bool save_fpu_registers) {
   compiler->assembler()->CallNullErrorShared(save_fpu_registers);
+}
+
+void NullArgErrorSlowPath::EmitSharedStubCall(FlowGraphCompiler* compiler,
+                                              bool save_fpu_registers) {
+  compiler->assembler()->CallNullArgErrorShared(save_fpu_registers);
 }
 
 LocationSummary* CheckClassIdInstr::MakeLocationSummary(Zone* zone,

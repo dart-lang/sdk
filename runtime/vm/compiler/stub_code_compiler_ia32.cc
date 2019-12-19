@@ -297,6 +297,16 @@ void StubCodeCompiler::GenerateNullErrorSharedWithFPURegsStub(
   __ Breakpoint();
 }
 
+void StubCodeCompiler::GenerateNullArgErrorSharedWithoutFPURegsStub(
+    Assembler* assembler) {
+  __ Breakpoint();
+}
+
+void StubCodeCompiler::GenerateNullArgErrorSharedWithFPURegsStub(
+    Assembler* assembler) {
+  __ Breakpoint();
+}
+
 void StubCodeCompiler::GenerateStackOverflowSharedWithoutFPURegsStub(
     Assembler* assembler) {
   // TODO(sjindel): implement.

@@ -3543,6 +3543,36 @@ static bool InlineSimdOp(FlowGraph* flow_graph,
     case MethodRecognizer::kFloat64x2Zero:
       *last = SimdOpInstr::CreateFromFactoryCall(Z, kind, call);
       break;
+    case MethodRecognizer::kFloat32x4Mul:
+    case MethodRecognizer::kFloat32x4Div:
+    case MethodRecognizer::kFloat32x4Add:
+    case MethodRecognizer::kFloat32x4Sub:
+    case MethodRecognizer::kFloat64x2Mul:
+    case MethodRecognizer::kFloat64x2Div:
+    case MethodRecognizer::kFloat64x2Add:
+    case MethodRecognizer::kFloat64x2Sub:
+      *last = SimdOpInstr::CreateFromCall(Z, kind, receiver, call);
+      if (FLAG_precompiled_mode) {
+        // Add null-checks in case of the arguments are known to be compatible
+        // but they are possibly nullable.
+        // By inserting the null-check, we can allow the unbox instruction later
+        // inserted to be non-speculative.
+        CheckNullInstr* check1 =
+            new (Z) CheckNullInstr(new (Z) Value(receiver), Symbols::FirstArg(),
+                                   call->deopt_id(), call->token_pos());
+
+        CheckNullInstr* check2 = new (Z)
+            CheckNullInstr(new (Z) Value(call->ArgumentAt(1)),
+                           Symbols::SecondArg(), call->deopt_id(),
+                           call->token_pos(), CheckNullInstr::kArgumentError);
+
+        (*last)->SetInputAt(0, new (Z) Value(check1));
+        (*last)->SetInputAt(1, new (Z) Value(check2));
+
+        flow_graph->InsertBefore(call, check1, call->env(), FlowGraph::kValue);
+        flow_graph->InsertBefore(call, check2, call->env(), FlowGraph::kValue);
+      }
+      break;
     default:
       *last = SimdOpInstr::CreateFromCall(Z, kind, receiver, call);
       break;
@@ -4056,6 +4086,14 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
     case MethodRecognizer::kInt32x4ShuffleMix:
     case MethodRecognizer::kFloat32x4Shuffle:
     case MethodRecognizer::kInt32x4Shuffle:
+    case MethodRecognizer::kFloat32x4Mul:
+    case MethodRecognizer::kFloat32x4Div:
+    case MethodRecognizer::kFloat32x4Add:
+    case MethodRecognizer::kFloat32x4Sub:
+    case MethodRecognizer::kFloat64x2Mul:
+    case MethodRecognizer::kFloat64x2Div:
+    case MethodRecognizer::kFloat64x2Add:
+    case MethodRecognizer::kFloat64x2Sub:
       return InlineSimdOp(flow_graph, call, receiver, kind, graph_entry, entry,
                           last, result);
 

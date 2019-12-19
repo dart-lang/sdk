@@ -478,6 +478,12 @@ static const char* NameOfStubIsolateSpecificStub(ObjectStore* object_store,
   } else if (code.raw() ==
              object_store->null_error_stub_without_fpu_regs_stub()) {
     return "_iso_stub_NullErrorSharedWithoutFPURegsStub";
+  } else if (code.raw() ==
+             object_store->null_arg_error_stub_with_fpu_regs_stub()) {
+    return "_iso_stub_NullArgErrorSharedWithFPURegsStub";
+  } else if (code.raw() ==
+             object_store->null_arg_error_stub_without_fpu_regs_stub()) {
+    return "_iso_stub_NullArgErrorSharedWithoutFPURegsStub";
   } else if (code.raw() == object_store->allocate_mint_with_fpu_regs_stub()) {
     return "_iso_stub_AllocateMintWithFPURegsStub";
   } else if (code.raw() ==

@@ -72,6 +72,8 @@ namespace dart {
   V(AsynchronousGapMarker)                                                     \
   V(NullErrorSharedWithFPURegs)                                                \
   V(NullErrorSharedWithoutFPURegs)                                             \
+  V(NullArgErrorSharedWithFPURegs)                                             \
+  V(NullArgErrorSharedWithoutFPURegs)                                          \
   V(StackOverflowSharedWithFPURegs)                                            \
   V(StackOverflowSharedWithoutFPURegs)                                         \
   V(OneArgCheckInlineCacheWithExactnessCheck)                                  \

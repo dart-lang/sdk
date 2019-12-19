@@ -6200,11 +6200,17 @@ void CheckNullInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   auto object_store = compiler->isolate()->object_store();
   const bool live_fpu_regs = locs()->live_registers()->FpuRegisterCount() > 0;
-  const auto& stub = Code::ZoneHandle(
+  const Code& stub = Code::ZoneHandle(
       compiler->zone(),
-      live_fpu_regs ? object_store->null_error_stub_with_fpu_regs_stub()
-                    : object_store->null_error_stub_without_fpu_regs_stub());
+      IsArgumentCheck()
+          ? (live_fpu_regs
+                 ? object_store->null_arg_error_stub_with_fpu_regs_stub()
+                 : object_store->null_arg_error_stub_without_fpu_regs_stub())
+          : (live_fpu_regs
+                 ? object_store->null_error_stub_with_fpu_regs_stub()
+                 : object_store->null_error_stub_without_fpu_regs_stub()));
   const bool using_shared_stub = locs()->call_on_shared_slow_path();
+
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions &&
       using_shared_stub && !stub.InVMIsolateHeap()) {
     compiler->AddPcRelativeCallStubTarget(stub);
@@ -6221,8 +6227,12 @@ void CheckNullInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     return;
   }
 
-  NullErrorSlowPath* slow_path =
-      new NullErrorSlowPath(this, compiler->CurrentTryIndex());
+  ThrowErrorSlowPathCode* slow_path = nullptr;
+  if (IsArgumentCheck()) {
+    slow_path = new NullArgErrorSlowPath(this, compiler->CurrentTryIndex());
+  } else {
+    slow_path = new NullErrorSlowPath(this, compiler->CurrentTryIndex());
+  }
   compiler->AddSlowPathCode(slow_path);
 
   __ BranchIf(EQUAL, slow_path->entry_label());
@@ -6231,6 +6241,11 @@ void CheckNullInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 void NullErrorSlowPath::EmitSharedStubCall(FlowGraphCompiler* compiler,
                                            bool save_fpu_registers) {
   compiler->assembler()->CallNullErrorShared(save_fpu_registers);
+}
+
+void NullArgErrorSlowPath::EmitSharedStubCall(FlowGraphCompiler* compiler,
+                                              bool save_fpu_registers) {
+  compiler->assembler()->CallNullArgErrorShared(save_fpu_registers);
 }
 
 LocationSummary* CheckClassIdInstr::MakeLocationSummary(Zone* zone,

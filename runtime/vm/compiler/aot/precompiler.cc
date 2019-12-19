@@ -295,6 +295,18 @@ void Precompiler::DoCompileAll() {
                 global_object_pool_builder());
         I->object_store()->set_null_error_stub_without_fpu_regs_stub(stub_code);
 
+        stub_code =
+            StubCode::BuildIsolateSpecificNullArgErrorSharedWithFPURegsStub(
+                global_object_pool_builder());
+        I->object_store()->set_null_arg_error_stub_with_fpu_regs_stub(
+            stub_code);
+
+        stub_code =
+            StubCode::BuildIsolateSpecificNullArgErrorSharedWithoutFPURegsStub(
+                global_object_pool_builder());
+        I->object_store()->set_null_arg_error_stub_without_fpu_regs_stub(
+            stub_code);
+
         stub_code = StubCode::BuildIsolateSpecificAllocateMintWithFPURegsStub(
             global_object_pool_builder());
         I->object_store()->set_allocate_mint_with_fpu_regs_stub(stub_code);

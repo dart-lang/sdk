@@ -5201,8 +5201,12 @@ void CheckSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 void CheckNullInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  NullErrorSlowPath* slow_path =
-      new NullErrorSlowPath(this, compiler->CurrentTryIndex());
+  ThrowErrorSlowPathCode* slow_path = nullptr;
+  if (IsArgumentCheck()) {
+    slow_path = new NullArgErrorSlowPath(this, compiler->CurrentTryIndex());
+  } else {
+    slow_path = new NullErrorSlowPath(this, compiler->CurrentTryIndex());
+  }
   compiler->AddSlowPathCode(slow_path);
 
   Register value_reg = locs()->in(0).reg();
@@ -5232,6 +5236,28 @@ void NullErrorSlowPath::EmitSharedStubCall(FlowGraphCompiler* compiler,
   }
 
   compiler->assembler()->CallNullErrorShared(save_fpu_registers);
+}
+
+void NullArgErrorSlowPath::EmitSharedStubCall(FlowGraphCompiler* compiler,
+                                              bool save_fpu_registers) {
+  auto check_null = instruction()->AsCheckNull();
+  auto locs = check_null->locs();
+
+  const bool live_fpu_regs = locs->live_registers()->FpuRegisterCount() > 0;
+  auto object_store = compiler->isolate()->object_store();
+  const auto& stub = Code::ZoneHandle(
+      compiler->zone(),
+      live_fpu_regs
+          ? object_store->null_arg_error_stub_with_fpu_regs_stub()
+          : object_store->null_arg_error_stub_without_fpu_regs_stub());
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions &&
+      !stub.InVMIsolateHeap()) {
+    compiler->AddPcRelativeCallStubTarget(stub);
+    compiler->assembler()->GenerateUnRelocatedPcRelativeCall();
+    return;
+  }
+
+  compiler->assembler()->CallNullArgErrorShared(save_fpu_registers);
 }
 
 LocationSummary* CheckArrayBoundInstr::MakeLocationSummary(Zone* zone,

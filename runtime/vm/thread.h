@@ -111,6 +111,10 @@ class Thread;
     StubCode::NullErrorSharedWithoutFPURegs().raw(), NULL)                     \
   V(RawCode*, null_error_shared_with_fpu_regs_stub_,                           \
     StubCode::NullErrorSharedWithFPURegs().raw(), NULL)                        \
+  V(RawCode*, null_arg_error_shared_without_fpu_regs_stub_,                    \
+    StubCode::NullArgErrorSharedWithoutFPURegs().raw(), nullptr)               \
+  V(RawCode*, null_arg_error_shared_with_fpu_regs_stub_,                       \
+    StubCode::NullArgErrorSharedWithFPURegs().raw(), nullptr)                  \
   V(RawCode*, allocate_mint_with_fpu_regs_stub_,                               \
     StubCode::AllocateMintWithFPURegs().raw(), NULL)                           \
   V(RawCode*, allocate_mint_without_fpu_regs_stub_,                            \
@@ -162,6 +166,10 @@ class Thread;
     StubCode::NullErrorSharedWithoutFPURegs().EntryPoint(), 0)                 \
   V(uword, null_error_shared_with_fpu_regs_entry_point_,                       \
     StubCode::NullErrorSharedWithFPURegs().EntryPoint(), 0)                    \
+  V(uword, null_arg_error_shared_without_fpu_regs_entry_point_,                \
+    StubCode::NullArgErrorSharedWithoutFPURegs().EntryPoint(), 0)              \
+  V(uword, null_arg_error_shared_with_fpu_regs_entry_point_,                   \
+    StubCode::NullArgErrorSharedWithFPURegs().EntryPoint(), 0)                 \
   V(uword, allocate_mint_with_fpu_regs_entry_point_,                           \
     StubCode::AllocateMintWithFPURegs().EntryPoint(), 0)                       \
   V(uword, allocate_mint_without_fpu_regs_entry_point_,                        \

@@ -3597,6 +3597,13 @@ Definition* CheckNullInstr::Canonicalize(FlowGraph* flow_graph) {
   return (!value()->Type()->is_nullable()) ? value()->definition() : this;
 }
 
+bool CheckNullInstr::AttributesEqual(Instruction* other) const {
+  CheckNullInstr* other_check = other->AsCheckNull();
+  ASSERT(other_check != nullptr);
+  return function_name().Equals(other_check->function_name()) &&
+         exception_type() == other_check->exception_type();
+}
+
 BoxInstr* BoxInstr::Create(Representation from, Value* value) {
   switch (from) {
     case kUnboxedInt32:
@@ -5458,13 +5465,53 @@ Representation FfiCallInstr::representation() const {
 
 // SIMD
 
+SimdOpInstr::Kind SimdOpInstr::KindForOperator(MethodRecognizer::Kind kind) {
+  switch (kind) {
+    case MethodRecognizer::kFloat32x4Mul:
+      return SimdOpInstr::kFloat32x4Mul;
+    case MethodRecognizer::kFloat32x4Div:
+      return SimdOpInstr::kFloat32x4Div;
+    case MethodRecognizer::kFloat32x4Add:
+      return SimdOpInstr::kFloat32x4Add;
+    case MethodRecognizer::kFloat32x4Sub:
+      return SimdOpInstr::kFloat32x4Sub;
+    case MethodRecognizer::kFloat64x2Mul:
+      return SimdOpInstr::kFloat64x2Mul;
+    case MethodRecognizer::kFloat64x2Div:
+      return SimdOpInstr::kFloat64x2Div;
+    case MethodRecognizer::kFloat64x2Add:
+      return SimdOpInstr::kFloat64x2Add;
+    case MethodRecognizer::kFloat64x2Sub:
+      return SimdOpInstr::kFloat64x2Sub;
+    default:
+      break;
+  }
+  UNREACHABLE();
+  return SimdOpInstr::kIllegalSimdOp;
+}
+
 SimdOpInstr* SimdOpInstr::CreateFromCall(Zone* zone,
                                          MethodRecognizer::Kind kind,
                                          Definition* receiver,
                                          Instruction* call,
                                          intptr_t mask /* = 0 */) {
-  SimdOpInstr* op =
-      new (zone) SimdOpInstr(KindForMethod(kind), call->deopt_id());
+  SimdOpInstr* op;
+  switch (kind) {
+    case MethodRecognizer::kFloat32x4Mul:
+    case MethodRecognizer::kFloat32x4Div:
+    case MethodRecognizer::kFloat32x4Add:
+    case MethodRecognizer::kFloat32x4Sub:
+    case MethodRecognizer::kFloat64x2Mul:
+    case MethodRecognizer::kFloat64x2Div:
+    case MethodRecognizer::kFloat64x2Add:
+    case MethodRecognizer::kFloat64x2Sub:
+      op = new (zone) SimdOpInstr(KindForOperator(kind), call->deopt_id());
+      break;
+    default:
+      op = new (zone) SimdOpInstr(KindForMethod(kind), call->deopt_id());
+      break;
+  }
+
   if (receiver != nullptr) {
     op->SetInputAt(0, new (zone) Value(receiver));
   }

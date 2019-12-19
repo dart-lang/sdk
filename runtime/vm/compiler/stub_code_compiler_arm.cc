@@ -485,6 +485,22 @@ void StubCodeCompiler::GenerateNullErrorSharedWithFPURegsStub(
       /*allow_return=*/false);
 }
 
+void StubCodeCompiler::GenerateNullArgErrorSharedWithoutFPURegsStub(
+    Assembler* assembler) {
+  GenerateSharedStub(
+      assembler, /*save_fpu_registers=*/false, &kArgumentNullErrorRuntimeEntry,
+      target::Thread::null_arg_error_shared_without_fpu_regs_stub_offset(),
+      /*allow_return=*/false);
+}
+
+void StubCodeCompiler::GenerateNullArgErrorSharedWithFPURegsStub(
+    Assembler* assembler) {
+  GenerateSharedStub(
+      assembler, /*save_fpu_registers=*/true, &kArgumentNullErrorRuntimeEntry,
+      target::Thread::null_arg_error_shared_with_fpu_regs_stub_offset(),
+      /*allow_return=*/false);
+}
+
 void StubCodeCompiler::GenerateStackOverflowSharedWithoutFPURegsStub(
     Assembler* assembler) {
   GenerateSharedStub(

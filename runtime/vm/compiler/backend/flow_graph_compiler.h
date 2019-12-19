@@ -311,7 +311,28 @@ class NullErrorSlowPath : public ThrowErrorSlowPathCode {
                                kNumberOfArguments,
                                try_index) {}
 
-  const char* name() override { return "check null"; }
+  const char* name() override { return "check null (nsm)"; }
+
+  void EmitSharedStubCall(FlowGraphCompiler* compiler,
+                          bool save_fpu_registers) override;
+
+  void AddMetadataForRuntimeCall(FlowGraphCompiler* compiler) override {
+    CheckNullInstr::AddMetadataForRuntimeCall(instruction()->AsCheckNull(),
+                                              compiler);
+  }
+};
+
+class NullArgErrorSlowPath : public ThrowErrorSlowPathCode {
+ public:
+  static const intptr_t kNumberOfArguments = 0;
+
+  NullArgErrorSlowPath(CheckNullInstr* instruction, intptr_t try_index)
+      : ThrowErrorSlowPathCode(instruction,
+                               kArgumentNullErrorRuntimeEntry,
+                               kNumberOfArguments,
+                               try_index) {}
+
+  const char* name() override { return "check null (arg)"; }
 
   void EmitSharedStubCall(FlowGraphCompiler* compiler,
                           bool save_fpu_registers) override;
@@ -851,6 +872,7 @@ class FlowGraphCompiler : public ValueObject {
   friend class BoxInt64Instr;            // For AddPcRelativeCallStubTarget().
   friend class CheckNullInstr;           // For AddPcRelativeCallStubTarget().
   friend class NullErrorSlowPath;        // For AddPcRelativeCallStubTarget().
+  friend class NullArgErrorSlowPath;     // For AddPcRelativeCallStubTarget().
   friend class CheckStackOverflowInstr;  // For AddPcRelativeCallStubTarget().
   friend class StoreIndexedInstr;        // For AddPcRelativeCallStubTarget().
   friend class StoreInstanceFieldInstr;  // For AddPcRelativeCallStubTarget().
