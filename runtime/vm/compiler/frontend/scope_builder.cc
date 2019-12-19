@@ -5,6 +5,7 @@
 #include "vm/compiler/frontend/scope_builder.h"
 
 #include "vm/compiler/backend/il.h"  // For CompileType.
+#include "vm/compiler/frontend/kernel_translation_helper.h"
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
@@ -287,15 +288,26 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
         parsed_function_->set_receiver_var(variable);
       }
       if (is_setter) {
-        result_->setter_value = MakeVariable(
-            TokenPosition::kNoSource, TokenPosition::kNoSource,
-            Symbols::Value(),
-            AbstractType::ZoneHandle(Z, function.ParameterTypeAt(pos)));
+        const auto& field = Field::Handle(Z, function.accessor_field());
+        if (FLAG_precompiled_mode) {
+          const intptr_t kernel_offset = field.kernel_offset();
+          const InferredTypeMetadata parameter_type =
+              inferred_type_metadata_helper_.GetInferredType(kernel_offset);
+          result_->setter_value = MakeVariable(
+              TokenPosition::kNoSource, TokenPosition::kNoSource,
+              Symbols::Value(),
+              AbstractType::ZoneHandle(Z, function.ParameterTypeAt(pos)),
+              &parameter_type);
+        } else {
+          result_->setter_value = MakeVariable(
+              TokenPosition::kNoSource, TokenPosition::kNoSource,
+              Symbols::Value(),
+              AbstractType::ZoneHandle(Z, function.ParameterTypeAt(pos)));
+        }
         scope_->InsertParameterAt(pos++, result_->setter_value);
 
         if (is_method &&
             MethodCanSkipTypeChecksForNonCovariantArguments(function, attrs)) {
-          const auto& field = Field::Handle(Z, function.accessor_field());
           if (field.is_covariant()) {
             result_->setter_value->set_is_explicit_covariant_parameter();
           } else if (!field.is_generic_covariant_impl() ||
@@ -1339,7 +1351,7 @@ void ScopeBuilder::VisitDartType() {
 
 void ScopeBuilder::VisitInterfaceType(bool simple) {
   helper_.ReadNullability();  // read nullability.
-  helper_.ReadUInt();  // read klass_name.
+  helper_.ReadUInt();         // read klass_name.
   if (!simple) {
     intptr_t length = helper_.ReadListLength();  // read number of types.
     for (intptr_t i = 0; i < length; ++i) {
@@ -1381,7 +1393,7 @@ void ScopeBuilder::VisitFunctionType(bool simple) {
     for (intptr_t i = 0; i < named_count; ++i) {
       // read string reference (i.e. named_parameters[i].name).
       helper_.SkipStringReference();
-      VisitDartType();  // read named_parameters[i].type.
+      VisitDartType();     // read named_parameters[i].type.
       helper_.ReadByte();  // read flags
     }
   }

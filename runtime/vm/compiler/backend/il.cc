@@ -4810,6 +4810,9 @@ void UnboxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     switch (representation()) {
       case kUnboxedDouble:
       case kUnboxedFloat:
+      case kUnboxedFloat32x4:
+      case kUnboxedFloat64x2:
+      case kUnboxedInt32x4:
         EmitLoadFromBox(compiler);
         break;
 

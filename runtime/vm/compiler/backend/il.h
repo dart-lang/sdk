@@ -4732,6 +4732,13 @@ class StoreInstanceFieldInstr : public TemplateInstruction<2, NoThrow> {
                                 token_pos,
                                 kind) {}
 
+  virtual SpeculativeMode speculative_mode() const {
+    // In AOT unbox is done based on TFA, therefore it was proven to be correct
+    // and it can never deoptmize.
+    return (IsUnboxedStore() && FLAG_precompiled_mode) ? kNotSpeculative
+                                                       : kGuardInputs;
+  }
+
   DECLARE_INSTRUCTION(StoreInstanceField)
 
   enum { kInstancePos = 0, kValuePos = 1 };

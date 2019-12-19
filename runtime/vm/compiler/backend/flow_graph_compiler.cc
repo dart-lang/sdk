@@ -180,6 +180,12 @@ bool FlowGraphCompiler::IsUnboxedField(const Field& field) {
 }
 
 bool FlowGraphCompiler::IsPotentialUnboxedField(const Field& field) {
+  if (FLAG_precompiled_mode) {
+    // kernel_loader.cc:ReadInferredType sets the guarded cid for fields based
+    // on inferred types from TFA (if available). The guarded cid is therefore
+    // proven to be correct.
+    return IsUnboxedField(field);
+  }
   return field.is_unboxing_candidate() &&
          (FlowGraphCompiler::IsUnboxedField(field) ||
           (field.guarded_cid() == kIllegalCid));
