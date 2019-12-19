@@ -27,32 +27,32 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
  */
 class DartStatementCompletion {
   static const NO_COMPLETION =
-      const StatementCompletionKind('No_COMPLETION', 'No completion available');
-  static const SIMPLE_ENTER = const StatementCompletionKind(
+      StatementCompletionKind('No_COMPLETION', 'No completion available');
+  static const SIMPLE_ENTER = StatementCompletionKind(
       'SIMPLE_ENTER', "Insert a newline at the end of the current line");
-  static const SIMPLE_SEMICOLON = const StatementCompletionKind(
+  static const SIMPLE_SEMICOLON = StatementCompletionKind(
       'SIMPLE_SEMICOLON', "Add a semicolon and newline");
-  static const COMPLETE_CLASS_DECLARATION = const StatementCompletionKind(
+  static const COMPLETE_CLASS_DECLARATION = StatementCompletionKind(
       'COMPLETE_CLASS_DECLARATION', "Complete class declaration");
-  static const COMPLETE_CONTROL_FLOW_BLOCK = const StatementCompletionKind(
+  static const COMPLETE_CONTROL_FLOW_BLOCK = StatementCompletionKind(
       'COMPLETE_CONTROL_FLOW_BLOCK', "Complete control flow block");
-  static const COMPLETE_DO_STMT = const StatementCompletionKind(
-      'COMPLETE_DO_STMT', "Complete do-statement");
-  static const COMPLETE_IF_STMT = const StatementCompletionKind(
-      'COMPLETE_IF_STMT', "Complete if-statement");
-  static const COMPLETE_FOR_STMT = const StatementCompletionKind(
-      'COMPLETE_FOR_STMT', "Complete for-statement");
-  static const COMPLETE_FOR_EACH_STMT = const StatementCompletionKind(
+  static const COMPLETE_DO_STMT =
+      StatementCompletionKind('COMPLETE_DO_STMT', "Complete do-statement");
+  static const COMPLETE_IF_STMT =
+      StatementCompletionKind('COMPLETE_IF_STMT', "Complete if-statement");
+  static const COMPLETE_FOR_STMT =
+      StatementCompletionKind('COMPLETE_FOR_STMT', "Complete for-statement");
+  static const COMPLETE_FOR_EACH_STMT = StatementCompletionKind(
       'COMPLETE_FOR_EACH_STMT', "Complete for-each-statement");
-  static const COMPLETE_FUNCTION_DECLARATION = const StatementCompletionKind(
+  static const COMPLETE_FUNCTION_DECLARATION = StatementCompletionKind(
       'COMPLETE_FUNCTION_DECLARATION', "Complete function declaration");
-  static const COMPLETE_SWITCH_STMT = const StatementCompletionKind(
+  static const COMPLETE_SWITCH_STMT = StatementCompletionKind(
       'COMPLETE_SWITCH_STMT', "Complete switch-statement");
-  static const COMPLETE_TRY_STMT = const StatementCompletionKind(
-      'COMPLETE_TRY_STMT', "Complete try-statement");
-  static const COMPLETE_VARIABLE_DECLARATION = const StatementCompletionKind(
+  static const COMPLETE_TRY_STMT =
+      StatementCompletionKind('COMPLETE_TRY_STMT', "Complete try-statement");
+  static const COMPLETE_VARIABLE_DECLARATION = StatementCompletionKind(
       'COMPLETE_VARIABLE_DECLARATION', "Complete variable declaration");
-  static const COMPLETE_WHILE_STMT = const StatementCompletionKind(
+  static const COMPLETE_WHILE_STMT = StatementCompletionKind(
       'COMPLETE_WHILE_STMT', "Complete while-statement");
 }
 

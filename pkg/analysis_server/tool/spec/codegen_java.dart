@@ -41,14 +41,12 @@ class CodegenJavaVisitor extends HierarchicalApiVisitor with CodeGenerator {
    * Variable names which must be changed in order to avoid conflict with
    * reserved words in Java.
    */
-  static const Map<String, String> _variableRenames = const {
-    'default': 'defaultSdk'
-  };
+  static const Map<String, String> _variableRenames = {'default': 'defaultSdk'};
 
   /**
    * Type references in the spec that are named something else in Java.
    */
-  static const Map<String, String> _typeRenames = const {
+  static const Map<String, String> _typeRenames = {
     'bool': 'boolean',
     'double': 'double',
     'int': 'int',

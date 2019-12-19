@@ -16,17 +16,17 @@ import 'package:test/test.dart';
 import 'integration_test_methods.dart';
 import 'protocol_matchers.dart';
 
-const Matcher isBool = const TypeMatcher<bool>();
+const Matcher isBool = TypeMatcher<bool>();
 
-const Matcher isDouble = const TypeMatcher<double>();
+const Matcher isDouble = TypeMatcher<double>();
 
-const Matcher isInt = const TypeMatcher<int>();
+const Matcher isInt = TypeMatcher<int>();
 
-const Matcher isNotification = const MatchesJsonObject(
-    'notification', const {'event': isString},
-    optionalFields: const {'params': isMap});
+const Matcher isNotification = MatchesJsonObject(
+    'notification', {'event': isString},
+    optionalFields: {'params': isMap});
 
-const Matcher isString = const TypeMatcher<String>();
+const Matcher isString = TypeMatcher<String>();
 
 final Matcher isResponse = MatchesJsonObject('response', {'id': isString},
     optionalFields: {'result': anything, 'error': isRequestError});
@@ -94,7 +94,7 @@ abstract class AbstractAnalysisServerIntegrationTest
    * Amount of time to give the server to respond to a shutdown request before
    * forcibly terminating it.
    */
-  static const Duration SHUTDOWN_TIMEOUT = const Duration(seconds: 60);
+  static const Duration SHUTDOWN_TIMEOUT = Duration(seconds: 60);
 
   /**
    * Connection to the analysis server.

@@ -20,8 +20,8 @@ class ExchangeOperandsTest extends AssistProcessorTest {
   AssistKind get kind => DartAssistKind.EXCHANGE_OPERANDS;
 
   test_compare() async {
-    const initialOperators = const ['<', '<=', '>', '>='];
-    const resultOperators = const ['>', '>=', '<', '<='];
+    const initialOperators = ['<', '<=', '>', '>='];
+    const resultOperators = ['>', '>=', '<', '<='];
     for (int i = 0; i <= 0; i++) {
       String initialOperator = initialOperators[i];
       String resultOperator = resultOperators[i];

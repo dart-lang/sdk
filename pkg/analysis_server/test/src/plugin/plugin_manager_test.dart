@@ -408,7 +408,7 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
     pkg1Dir.deleteSync(recursive: true);
   }
 
-  @TestTimeout(const Timeout.factor(4))
+  @TestTimeout(Timeout.factor(4))
   @SkippedTest(
       reason: 'flaky timeouts',
       issue: 'https://github.com/dart-lang/sdk/issues/38629')

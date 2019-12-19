@@ -103,22 +103,22 @@ class OverriddenElements {
 }
 
 class _OverriddenElementsFinder {
-  static const List<ElementKind> FIELD_KINDS = const <ElementKind>[
+  static const List<ElementKind> FIELD_KINDS = <ElementKind>[
     ElementKind.FIELD,
     ElementKind.GETTER,
     ElementKind.SETTER
   ];
 
-  static const List<ElementKind> GETTER_KINDS = const <ElementKind>[
+  static const List<ElementKind> GETTER_KINDS = <ElementKind>[
     ElementKind.FIELD,
     ElementKind.GETTER
   ];
 
-  static const List<ElementKind> METHOD_KINDS = const <ElementKind>[
+  static const List<ElementKind> METHOD_KINDS = <ElementKind>[
     ElementKind.METHOD
   ];
 
-  static const List<ElementKind> SETTER_KINDS = const <ElementKind>[
+  static const List<ElementKind> SETTER_KINDS = <ElementKind>[
     ElementKind.FIELD,
     ElementKind.SETTER
   ];

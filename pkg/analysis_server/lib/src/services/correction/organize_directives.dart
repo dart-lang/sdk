@@ -233,15 +233,15 @@ class _DirectiveInfo implements Comparable<_DirectiveInfo> {
 }
 
 class _DirectivePriority {
-  static const IMPORT_SDK = const _DirectivePriority('IMPORT_SDK', 0);
-  static const IMPORT_PKG = const _DirectivePriority('IMPORT_PKG', 1);
-  static const IMPORT_OTHER = const _DirectivePriority('IMPORT_OTHER', 2);
-  static const IMPORT_REL = const _DirectivePriority('IMPORT_REL', 3);
-  static const EXPORT_SDK = const _DirectivePriority('EXPORT_SDK', 4);
-  static const EXPORT_PKG = const _DirectivePriority('EXPORT_PKG', 5);
-  static const EXPORT_OTHER = const _DirectivePriority('EXPORT_OTHER', 6);
-  static const EXPORT_REL = const _DirectivePriority('EXPORT_REL', 7);
-  static const PART = const _DirectivePriority('PART', 8);
+  static const IMPORT_SDK = _DirectivePriority('IMPORT_SDK', 0);
+  static const IMPORT_PKG = _DirectivePriority('IMPORT_PKG', 1);
+  static const IMPORT_OTHER = _DirectivePriority('IMPORT_OTHER', 2);
+  static const IMPORT_REL = _DirectivePriority('IMPORT_REL', 3);
+  static const EXPORT_SDK = _DirectivePriority('EXPORT_SDK', 4);
+  static const EXPORT_PKG = _DirectivePriority('EXPORT_PKG', 5);
+  static const EXPORT_OTHER = _DirectivePriority('EXPORT_OTHER', 6);
+  static const EXPORT_REL = _DirectivePriority('EXPORT_REL', 7);
+  static const PART = _DirectivePriority('PART', 8);
 
   final String name;
   final int ordinal;

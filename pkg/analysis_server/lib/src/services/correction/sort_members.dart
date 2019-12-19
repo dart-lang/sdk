@@ -419,15 +419,15 @@ class _DirectiveInfo implements Comparable<_DirectiveInfo> {
 }
 
 class _DirectivePriority {
-  static const IMPORT_SDK = const _DirectivePriority('IMPORT_SDK', 0);
-  static const IMPORT_PKG = const _DirectivePriority('IMPORT_PKG', 1);
-  static const IMPORT_OTHER = const _DirectivePriority('IMPORT_OTHER', 2);
-  static const IMPORT_REL = const _DirectivePriority('IMPORT_REL', 3);
-  static const EXPORT_SDK = const _DirectivePriority('EXPORT_SDK', 4);
-  static const EXPORT_PKG = const _DirectivePriority('EXPORT_PKG', 5);
-  static const EXPORT_OTHER = const _DirectivePriority('EXPORT_OTHER', 6);
-  static const EXPORT_REL = const _DirectivePriority('EXPORT_REL', 7);
-  static const PART = const _DirectivePriority('PART', 8);
+  static const IMPORT_SDK = _DirectivePriority('IMPORT_SDK', 0);
+  static const IMPORT_PKG = _DirectivePriority('IMPORT_PKG', 1);
+  static const IMPORT_OTHER = _DirectivePriority('IMPORT_OTHER', 2);
+  static const IMPORT_REL = _DirectivePriority('IMPORT_REL', 3);
+  static const EXPORT_SDK = _DirectivePriority('EXPORT_SDK', 4);
+  static const EXPORT_PKG = _DirectivePriority('EXPORT_PKG', 5);
+  static const EXPORT_OTHER = _DirectivePriority('EXPORT_OTHER', 6);
+  static const EXPORT_REL = _DirectivePriority('EXPORT_REL', 7);
+  static const PART = _DirectivePriority('PART', 8);
 
   final String name;
   final int ordinal;
@@ -458,20 +458,19 @@ class _MemberInfo {
 }
 
 class _MemberKind {
-  static const CLASS_ACCESSOR = const _MemberKind('CLASS_ACCESSOR');
-  static const CLASS_CONSTRUCTOR = const _MemberKind('CLASS_CONSTRUCTOR');
-  static const CLASS_FIELD = const _MemberKind('CLASS_FIELD');
-  static const CLASS_METHOD = const _MemberKind('CLASS_METHOD');
-  static const UNIT_ACCESSOR = const _MemberKind('UNIT_ACCESSOR');
-  static const UNIT_CLASS = const _MemberKind('UNIT_CLASS');
-  static const UNIT_EXTENSION = const _MemberKind('UNIT_EXTENSION');
-  static const UNIT_FUNCTION = const _MemberKind('UNIT_FUNCTION');
-  static const UNIT_FUNCTION_MAIN = const _MemberKind('UNIT_FUNCTION_MAIN');
-  static const UNIT_FUNCTION_TYPE = const _MemberKind('UNIT_FUNCTION_TYPE');
-  static const UNIT_GENERIC_TYPE_ALIAS =
-      const _MemberKind('UNIT_GENERIC_TYPE_ALIAS');
-  static const UNIT_VARIABLE = const _MemberKind('UNIT_VARIABLE');
-  static const UNIT_VARIABLE_CONST = const _MemberKind('UNIT_VARIABLE_CONST');
+  static const CLASS_ACCESSOR = _MemberKind('CLASS_ACCESSOR');
+  static const CLASS_CONSTRUCTOR = _MemberKind('CLASS_CONSTRUCTOR');
+  static const CLASS_FIELD = _MemberKind('CLASS_FIELD');
+  static const CLASS_METHOD = _MemberKind('CLASS_METHOD');
+  static const UNIT_ACCESSOR = _MemberKind('UNIT_ACCESSOR');
+  static const UNIT_CLASS = _MemberKind('UNIT_CLASS');
+  static const UNIT_EXTENSION = _MemberKind('UNIT_EXTENSION');
+  static const UNIT_FUNCTION = _MemberKind('UNIT_FUNCTION');
+  static const UNIT_FUNCTION_MAIN = _MemberKind('UNIT_FUNCTION_MAIN');
+  static const UNIT_FUNCTION_TYPE = _MemberKind('UNIT_FUNCTION_TYPE');
+  static const UNIT_GENERIC_TYPE_ALIAS = _MemberKind('UNIT_GENERIC_TYPE_ALIAS');
+  static const UNIT_VARIABLE = _MemberKind('UNIT_VARIABLE');
+  static const UNIT_VARIABLE_CONST = _MemberKind('UNIT_VARIABLE_CONST');
 
   final String name;
 

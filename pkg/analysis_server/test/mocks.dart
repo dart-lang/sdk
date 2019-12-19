@@ -16,7 +16,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/timestamped_data.dart';
 import 'package:test/test.dart';
 
-const _jsonEncoder = const JsonEncoder.withIndent('    ');
+const _jsonEncoder = JsonEncoder.withIndent('    ');
 
 /**
  * A [Matcher] that check that the given [Response] has an expected identifier

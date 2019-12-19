@@ -25,10 +25,6 @@ analyzer:
     # TODO(srawlins): At the time of writing, 20 violations in lib/. The fix
     # is not mechanical; each violation probably needs to be scrutinized.
     unawaited_futures: ignore
-    # TODO(srawlins): At the time of writing, 1100 violations in lib/. The fix
-    # is mechanical, via `dartfmt --fix-optional-const`, but not worth the
-    # churn today.
-    unnecessary_const: ignore
 
 linter:
   rules:

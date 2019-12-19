@@ -9,7 +9,7 @@ import 'package:analysis_server/src/lsp/json_parsing.dart';
 
 const jsonRpcVersion = '2.0';
 
-const NullJsonHandler = const LspJsonHandler<Null>(_alwaysTrue, _alwaysNull);
+const NullJsonHandler = LspJsonHandler<Null>(_alwaysTrue, _alwaysNull);
 
 ErrorOr<R> cancelled<R>([R t]) =>
     error(ErrorCodes.RequestCancelled, 'Request was cancelled', null);

@@ -20,7 +20,7 @@ main() {
 
 @reflectiveTest
 class ResultConverterTest extends ProtocolTestUtilities {
-  static const List<String> strings = const <String>[
+  static const List<String> strings = <String>[
     'a',
     'b',
     'c',

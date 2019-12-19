@@ -17,7 +17,7 @@ main() {
 
 @reflectiveTest
 class GetPostfixCompletionTest extends AbstractAnalysisServerIntegrationTest {
-  @TestTimeout(const Timeout.factor(2))
+  @TestTimeout(Timeout.factor(2))
   test_postfix_completion() async {
     String pathname = sourcePath('test.dart');
     String text = r'''

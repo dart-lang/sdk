@@ -7,7 +7,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 
 class ProtocolTestUtilities {
-  static const List<String> strings = const <String>[
+  static const List<String> strings = <String>[
     'aa',
     'ab',
     'ac',

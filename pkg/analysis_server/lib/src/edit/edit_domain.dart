@@ -897,7 +897,7 @@ class EditDomainHandler extends AbstractRequestHandler {
  */
 class _RefactoringManager {
   static const List<RefactoringProblem> EMPTY_PROBLEM_LIST =
-      const <RefactoringProblem>[];
+      <RefactoringProblem>[];
 
   final AnalysisServer server;
   final RefactoringWorkspace refactoringWorkspace;

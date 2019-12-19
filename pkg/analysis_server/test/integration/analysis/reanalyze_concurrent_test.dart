@@ -23,7 +23,7 @@ main() {
 
 @reflectiveTest
 class ReanalyzeTest extends AbstractAnalysisServerIntegrationTest {
-  @TestTimeout(const Timeout.factor(2))
+  @TestTimeout(Timeout.factor(2))
   test_reanalyze_concurrent() {
     String pathname = sourcePath('test.dart');
     String text = '''

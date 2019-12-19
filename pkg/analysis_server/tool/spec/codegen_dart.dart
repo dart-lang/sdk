@@ -11,7 +11,7 @@ class DartCodegenVisitor extends HierarchicalApiVisitor {
   /**
    * Type references in the spec that are named something else in Dart.
    */
-  static const Map<String, String> _typeRenames = const {
+  static const Map<String, String> _typeRenames = {
     'long': 'int',
     'object': 'Map',
   };

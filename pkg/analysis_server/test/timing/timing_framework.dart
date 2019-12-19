@@ -145,7 +145,7 @@ abstract class TimingTest extends IntegrationTestMixin {
    * The amount of time to give the server to respond to a shutdown request
    * before forcibly terminating it.
    */
-  static const Duration SHUTDOWN_TIMEOUT = const Duration(seconds: 5);
+  static const Duration SHUTDOWN_TIMEOUT = Duration(seconds: 5);
 
   /**
    * The connection to the analysis server.

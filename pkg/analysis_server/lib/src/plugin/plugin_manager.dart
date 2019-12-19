@@ -887,14 +887,13 @@ class PluginSession {
    * The maximum number of milliseconds that server should wait for a response
    * from a plugin before deciding that the plugin is hung.
    */
-  static const Duration MAXIMUM_RESPONSE_TIME = const Duration(minutes: 2);
+  static const Duration MAXIMUM_RESPONSE_TIME = Duration(minutes: 2);
 
   /**
    * The length of time to wait after sending a 'plugin.shutdown' request before
    * a failure to terminate will cause the isolate to be killed.
    */
-  static const Duration WAIT_FOR_SHUTDOWN_DURATION =
-      const Duration(seconds: 10);
+  static const Duration WAIT_FOR_SHUTDOWN_DURATION = Duration(seconds: 10);
 
   /**
    * The information about the plugin being executed.

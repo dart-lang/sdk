@@ -17,7 +17,7 @@ const allFixes = <DartFixInfo>[
   //
   // Required fixes due to errors or upcoming language changes
   //
-  const DartFixInfo(
+  DartFixInfo(
     'fix-named-constructor-type-arguments',
     '''
 Move named constructor type arguments from the name to the type.
@@ -30,7 +30,7 @@ will be converted to
     FixErrorTask.fixNamedConstructorTypeArgs,
     isRequired: true,
   ),
-  const DartFixInfo(
+  DartFixInfo(
     'use-mixin',
     '''
 Convert classes used as a mixin to the new mixin syntax.
@@ -52,7 +52,7 @@ a message is displayed and the class is not converted to a mixin.''',
   //
   // Pedantic lint fixes.
   //
-  const DartFixInfo(
+  DartFixInfo(
     'null-closures',
     '''
 Convert nulls to closures that return null where expected.
@@ -65,7 +65,7 @@ will be converted to
     BasicFixLintErrorTask.nullClosures,
     isPedantic: true,
   ),
-  const DartFixInfo(
+  DartFixInfo(
     'prefer-equal-for-default-values',
     '''
 Convert declarations to use = to separate a named parameter from its default value.
@@ -78,7 +78,7 @@ will be converted to
     BasicFixLintErrorTask.preferEqualForDefaultValues,
     isPedantic: true,
   ),
-  const DartFixInfo(
+  DartFixInfo(
     'prefer-is-empty',
     '''
 Convert to using 'isEmpty' when checking if a collection or iterable is empty.
@@ -92,7 +92,7 @@ will be converted to
     isDefault: false,
     isPedantic: true,
   ),
-  const DartFixInfo(
+  DartFixInfo(
     'prefer-is-not-empty',
     '''
 Convert to using 'isNotEmpty' when checking if a collection or iterable is not empty.
@@ -106,7 +106,7 @@ will be converted to
     isDefault: false,
     isPedantic: true,
   ),
-  const DartFixInfo(
+  DartFixInfo(
     'prefer-single-quotes',
     '''
 Convert strings using a dobule quote to use a single quote.''',
@@ -114,7 +114,7 @@ Convert strings using a dobule quote to use a single quote.''',
     isDefault: false,
     isPedantic: true,
   ),
-  const DartFixInfo(
+  DartFixInfo(
     'unnecessary-const',
     '''
 Remove unnecessary `const` keywords.
@@ -128,7 +128,7 @@ will be converted to
     isDefault: false,
     isPedantic: true,
   ),
-  const DartFixInfo(
+  DartFixInfo(
     'unnecessary-new',
     '''
 Remove unnecessary `new` keywords.
@@ -145,7 +145,7 @@ will be converted to
   //
   // Other fixes
   //
-  const DartFixInfo(
+  DartFixInfo(
     'double-to-int',
     '''
 Find double literals ending in .0 and remove the .0
@@ -159,7 +159,7 @@ will be converted to
     BasicFixLintAssistTask.preferIntLiterals,
     isDefault: false,
   ),
-  const DartFixInfo(
+  DartFixInfo(
     'use-spread-collections',
     '''
 Convert to using collection spread operators.
@@ -174,7 +174,7 @@ will be converted to
     BasicFixLintAssistTask.preferSpreadCollections,
     isDefault: false,
   ),
-  const DartFixInfo(
+  DartFixInfo(
     'collection-if-elements',
     '''
 Convert to using if elements when building collections.
@@ -187,7 +187,7 @@ will be converted to
     BasicFixLintAssistTask.preferIfElementsToConditionalExpressions,
     isDefault: false,
   ),
-  const DartFixInfo(
+  DartFixInfo(
     'map-for-elements',
     '''
 Convert to for elements when building maps from iterables.
@@ -203,7 +203,7 @@ will be converted to
   //
   // Experimental fixes
   //
-  const DartFixInfo(
+  DartFixInfo(
     'non-nullable',
     // TODO(danrubel) update description and make default/required
     // when NNBD fix is ready

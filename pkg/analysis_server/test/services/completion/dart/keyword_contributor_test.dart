@@ -23,7 +23,7 @@ main() {
 
 @reflectiveTest
 class KeywordContributorTest extends DartCompletionContributorTest {
-  static const List<Keyword> COLLECTION_ELEMENT_START = const [
+  static const List<Keyword> COLLECTION_ELEMENT_START = [
     Keyword.CONST,
     Keyword.FALSE,
     Keyword.FOR,
@@ -33,9 +33,9 @@ class KeywordContributorTest extends DartCompletionContributorTest {
     Keyword.TRUE,
   ];
 
-  static const List<String> NO_PSEUDO_KEYWORDS = const [];
+  static const List<String> NO_PSEUDO_KEYWORDS = [];
 
-  static const List<Keyword> EXPRESSION_START_INSTANCE = const [
+  static const List<Keyword> EXPRESSION_START_INSTANCE = [
     Keyword.CONST,
     Keyword.FALSE,
     Keyword.NEW,
@@ -45,7 +45,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
     Keyword.TRUE,
   ];
 
-  static const List<Keyword> EXPRESSION_START_NO_INSTANCE = const [
+  static const List<Keyword> EXPRESSION_START_NO_INSTANCE = [
     Keyword.CONST,
     Keyword.FALSE,
     Keyword.NEW,

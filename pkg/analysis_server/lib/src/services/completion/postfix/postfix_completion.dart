@@ -23,55 +23,47 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
  * An enumeration of possible postfix completion kinds.
  */
 class DartPostfixCompletion {
-  static const NO_TEMPLATE =
-      const PostfixCompletionKind('', 'no change', null, null);
+  static const NO_TEMPLATE = PostfixCompletionKind('', 'no change', null, null);
 
-  static const List<PostfixCompletionKind> ALL_TEMPLATES = const [
-    const PostfixCompletionKind("assert", "expr.assert -> assert(expr);",
+  static const List<PostfixCompletionKind> ALL_TEMPLATES = [
+    PostfixCompletionKind("assert", "expr.assert -> assert(expr);",
         isAssertContext, expandAssert),
-    const PostfixCompletionKind(
+    PostfixCompletionKind(
         "fori",
         "limit.fori -> for(var i = 0; i < limit; i++) {}",
         isIntContext,
         expandFori),
-    const PostfixCompletionKind(
-        "for",
-        "values.for -> for(var value in values) {}",
-        isIterableContext,
-        expandFor),
-    const PostfixCompletionKind(
-        "iter",
-        "values.iter -> for(var value in values) {}",
-        isIterableContext,
-        expandFor),
-    const PostfixCompletionKind(
+    PostfixCompletionKind("for", "values.for -> for(var value in values) {}",
+        isIterableContext, expandFor),
+    PostfixCompletionKind("iter", "values.iter -> for(var value in values) {}",
+        isIterableContext, expandFor),
+    PostfixCompletionKind(
         "not", "bool.not -> !bool", isBoolContext, expandNegate),
-    const PostfixCompletionKind(
-        "!", "bool! -> !bool", isBoolContext, expandNegate),
-    const PostfixCompletionKind(
+    PostfixCompletionKind("!", "bool! -> !bool", isBoolContext, expandNegate),
+    PostfixCompletionKind(
         "else", "bool.else -> if (!bool) {}", isBoolContext, expandElse),
-    const PostfixCompletionKind(
+    PostfixCompletionKind(
         "if", "bool.if -> if (bool) {}", isBoolContext, expandIf),
-    const PostfixCompletionKind("nn", "expr.nn -> if (expr != null) {}",
+    PostfixCompletionKind("nn", "expr.nn -> if (expr != null) {}",
         isObjectContext, expandNotNull),
-    const PostfixCompletionKind("notnull",
-        "expr.notnull -> if (expr != null) {}", isObjectContext, expandNotNull),
-    const PostfixCompletionKind("null", "expr.null -> if (expr == null) {}",
+    PostfixCompletionKind("notnull", "expr.notnull -> if (expr != null) {}",
+        isObjectContext, expandNotNull),
+    PostfixCompletionKind("null", "expr.null -> if (expr == null) {}",
         isObjectContext, expandNull),
-    const PostfixCompletionKind(
+    PostfixCompletionKind(
         "par", "expr.par -> (expr)", isObjectContext, expandParen),
-    const PostfixCompletionKind(
+    PostfixCompletionKind(
         "return", "expr.return -> return expr", isObjectContext, expandReturn),
-    const PostfixCompletionKind("switch", "expr.switch -> switch (expr) {}",
+    PostfixCompletionKind("switch", "expr.switch -> switch (expr) {}",
         isSwitchContext, expandSwitch),
-    const PostfixCompletionKind("try", "stmt.try -> try {stmt} catch (e,s) {}",
+    PostfixCompletionKind("try", "stmt.try -> try {stmt} catch (e,s) {}",
         isStatementContext, expandTry),
-    const PostfixCompletionKind(
+    PostfixCompletionKind(
         "tryon",
         "stmt.try -> try {stmt} on Exception catch (e,s) {}",
         isStatementContext,
         expandTryon),
-    const PostfixCompletionKind(
+    PostfixCompletionKind(
         "while", "expr.while -> while (expr) {}", isBoolContext, expandWhile),
   ];
 

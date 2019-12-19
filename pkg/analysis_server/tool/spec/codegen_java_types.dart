@@ -18,7 +18,7 @@ import 'implied_types.dart';
  *
  * private static final int ABSTRACT = 0x01;
  */
-const Map<String, String> _extraFieldsOnElement = const {
+const Map<String, String> _extraFieldsOnElement = {
   'ABSTRACT': '0x01',
   'CONST': '0x02',
   'FINAL': '0x04',
@@ -34,7 +34,7 @@ const Map<String, String> _extraFieldsOnElement = const {
  *   return (flags & FINAL) != 0;
  * }
  */
-const Map<String, String> _extraMethodsOnElement = const {
+const Map<String, String> _extraMethodsOnElement = {
   'isAbstract': 'ABSTRACT',
   'isConst': 'CONST',
   'isDeprecated': 'DEPRECATED',
@@ -46,7 +46,7 @@ const Map<String, String> _extraMethodsOnElement = const {
 /**
  * Type references in the spec that are named something else in Java.
  */
-const Map<String, String> _typeRenames = const {
+const Map<String, String> _typeRenames = {
   'Override': 'OverrideMember',
 };
 

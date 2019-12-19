@@ -123,7 +123,7 @@ abstract class Page {
   }
 
   void prettyJson(Map<String, dynamic> data) {
-    const jsonEncoder = const JsonEncoder.withIndent('  ');
+    const jsonEncoder = JsonEncoder.withIndent('  ');
     pre(() {
       buf.write(jsonEncoder.convert(data));
     });

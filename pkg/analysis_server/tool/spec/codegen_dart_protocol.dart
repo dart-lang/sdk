@@ -18,7 +18,7 @@ import 'to_html.dart';
  * Special flags that need to be inserted into the declaration of the Element
  * class.
  */
-const Map<String, String> specialElementFlags = const {
+const Map<String, String> specialElementFlags = {
   'abstract': '0x01',
   'const': '0x02',
   'final': '0x04',
@@ -70,11 +70,11 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
    * if the member is not an optional part of the protocol.  For list types,
    * the constructor will default the member to the empty list.
    */
-  static const Map<String, List<String>> _optionalConstructorArguments = const {
-    'AnalysisErrorFixes': const ['fixes'],
-    'SourceChange': const ['edits', 'linkedEditGroups'],
-    'SourceFileEdit': const ['edits'],
-    'TypeHierarchyItem': const ['interfaces', 'mixins', 'subclasses'],
+  static const Map<String, List<String>> _optionalConstructorArguments = {
+    'AnalysisErrorFixes': ['fixes'],
+    'SourceChange': ['edits', 'linkedEditGroups'],
+    'SourceFileEdit': ['edits'],
+    'TypeHierarchyItem': ['interfaces', 'mixins', 'subclasses'],
   };
 
   /**

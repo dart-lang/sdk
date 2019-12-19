@@ -29,7 +29,7 @@ typedef void ElementProcessor(dom.Element element);
 typedef void TextProcessor(dom.Text text);
 
 class ApiReader {
-  static const List<String> specialElements = const [
+  static const List<String> specialElements = [
     'domain',
     'feedback',
     'object',
