@@ -14,7 +14,7 @@ import 'dartfuzz_type_table.dart';
 // Version of DartFuzz. Increase this each time changes are made
 // to preserve the property that a given version of DartFuzz yields
 // the same fuzzed program for a deterministic random seed.
-const String version = '1.80';
+const String version = '1.81';
 
 // Restriction on statements and expressions.
 const int stmtDepth = 1;
@@ -1472,6 +1472,8 @@ class DartFuzz {
 
   void emitBool() => emit(coinFlip() ? 'true' : 'false');
 
+  void emitNull() => emit("null");
+
   void emitSmallPositiveInt({int limit = 50, bool includeSemicolon = false}) {
     emit('${choose(limit)}');
     if (includeSemicolon) {
@@ -1680,7 +1682,9 @@ class DartFuzz {
       {bool smallPositiveValue = false, RhsFilter rhsFilter}) {
     // Randomly specialize interface if possible. E.g. num to int.
     tp = maybeSpecializeInterface(tp);
-    if (tp == DartType.BOOL) {
+    if (tp == DartType.NULL) {
+      emitNull();
+    } else if (tp == DartType.BOOL) {
       emitBool();
     } else if (tp == DartType.INT) {
       if (smallPositiveValue) {
@@ -1694,6 +1698,10 @@ class DartFuzz {
       emitNum(smallPositiveValue: smallPositiveValue);
     } else if (tp == DartType.STRING) {
       emitString();
+    } else if (tp == DartType.ENDIAN) {
+      // The Endian type doesn't have a public constructor, so we emit a
+      // library call instead.
+      emitLibraryCall(depth, tp);
     } else if (dartType.constructors(tp).isNotEmpty) {
       // Constructors serve as literals for non trivially constructable types.
       // Important note: We have to test for existence of a non trivial

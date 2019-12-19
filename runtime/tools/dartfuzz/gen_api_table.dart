@@ -42,41 +42,33 @@ class DartLib {
   const DartLib(this.name, this.proto, this.restrictions, this.isMethod);
 }
 
-// Lists of recognized methods, organized by return type.
-var boolTable = <DartLib>[];
-var doubleTable = <DartLib>[];
-var float32ListTable = <DartLib>[];
-var float32x4ListTable = <DartLib>[];
-var float32x4Table = <DartLib>[];
-var float64ListTable = <DartLib>[];
-var float64x2ListTable = <DartLib>[];
-var float64x2Table = <DartLib>[];
-var int16ListTable = <DartLib>[];
-var int32ListTable = <DartLib>[];
-var int32x4ListTable = <DartLib>[];
-var int32x4Table = <DartLib>[];
-var int64ListTable = <DartLib>[];
-var int8ListTable = <DartLib>[];
-var intTable = <DartLib>[];
-var listTable = <DartLib>[];
-var mapTable = <DartLib>[];
-var setTable = <DartLib>[];
-var stringTable = <DartLib>[];
-var uint16ListTable = <DartLib>[];
-var uint32ListTable = <DartLib>[];
-var uint64ListTable = <DartLib>[];
-var uint8ClampedListTable = <DartLib>[];
-var uint8ListTable = <DartLib>[];
-var voidTable = <DartLib>[];
-
+// Constants for strings corresponding to the DartType.
+const abstractClassInstantiationErrorEncoding =
+    'DartType.ABSTRACTCLASSINSTANTIATIONERROR';
+const argumentErrorEncoding = 'DartType.ARGUMENTERROR';
+const assertionErrorEncoding = 'DartType.ERROR';
 const boolEncoding = 'DartType.BOOL';
+const byteDataEncoding = 'DartType.BYTEDATA';
+const castErrorEncoding = 'DartType.CASTERROR';
+const concurrentModificationErrorEncoding =
+    'DartType.CONCURRENTMODIFICATIONERROR';
+const cyclicInitializationErrorEncoding = 'DartType.CYCLICINITIALIZATIONERROR';
+const deprecatedEncoding = 'DartType.DEPRECATED';
 const doubleEncoding = 'DartType.DOUBLE';
+const endianEncoding = 'DartType.ENDIAN';
+const errorEncoding = 'DartType.ERROR';
+const exceptionEncoding = 'DartType.EXCEPTION';
+const expandoDoubleEncoding = 'DartType.EXPANDO_DOUBLE';
+const expandoIntEncoding = 'DartType.EXPANDO_INT';
+const fallThroughErrorEncoding = 'DartType.FALLTHROUGHERROR';
 const float32ListEncoding = 'DartType.FLOAT32LIST';
 const float32x4Encoding = 'DartType.FLOAT32X4';
 const float32x4ListEncoding = 'DartType.FLOAT32X4LIST';
 const float64ListEncoding = 'DartType.FLOAT64LIST';
 const float64x2Encoding = 'DartType.FLOAT64X2';
 const float64x2ListEncoding = 'DartType.FLOAT64X2LIST';
+const formatExceptionEncoding = 'DartType.FORMATEXCEPTION';
+const indexErrorEncoding = 'DartType.INDEXERROR';
 const int16ListEncoding = 'DartType.INT16LIST';
 const int32ListEncoding = 'DartType.INT32LIST';
 const int32x4Encoding = 'DartType.INT32X4';
@@ -84,25 +76,63 @@ const int32x4ListEncoding = 'DartType.INT32X4LIST';
 const int64ListEncoding = 'DartType.INT64LIST';
 const int8ListEncoding = 'DartType.INT8LIST';
 const intEncoding = 'DartType.INT';
+const integerDivisionByZeroExceptionEncoding =
+    'DartType.INTEGERDIVISIONBYZEROEXCEPTION';
 const listIntEncoding = 'DartType.LIST_INT';
+const mapEntryIntStringEncoding = 'DartType.MAPENTRY_INT_STRING';
 const mapIntStringEncoding = 'DartType.MAP_INT_STRING';
+const nullEncoding = 'DartType.NULL';
+const nullThrownErrorEncoding = 'DartType.NULLTHROWNERROR';
+const numEncoding = 'DartType.NUM';
+const outOfMemoryErrorEncoding = 'DartType.OUTOFMEMORYERROR';
+const provisionalEncoding = 'DartType.PROVISIONAL';
+const rangeErrorEncoding = 'DartType.RANGEERROR';
+const regExpEncoding = 'DartType.REGEXP';
+const runeIteratorEncoding = 'DartType.RUNEITERATOR';
+const runesEncoding = 'DartType.RUNES';
 const setIntEncoding = 'DartType.SET_INT';
+const stackOverflowErrorEncoding = 'DartType.STACKOVERFLOWERROR';
+const stateErrorEncoding = 'DartType.STATEERROR';
+const stopwatchEncoding = 'DartType.STOPWATCH';
+const stringBufferEncoding = 'DartType.STRINGBUFFER';
 const stringEncoding = 'DartType.STRING';
+const symbolEncoding = 'DartType.SYMBOL';
+const typeErrorEncoding = 'DartType.TYPEERROR';
 const uint16ListEncoding = 'DartType.UINT16LIST';
 const uint32ListEncoding = 'DartType.UINT32LIST';
 const uint64ListEncoding = 'DartType.UINT64LIST';
 const uint8ClampedListEncoding = 'DartType.UINT8CLAMPEDLIST';
 const uint8ListEncoding = 'DartType.UINT8LIST';
+const unimplementedErrorEncoding = 'DartType.UNIMPLEMENTEDERROR';
+const unsupportedErrorEncoding = 'DartType.UNSUPPORTEDERROR';
 const voidEncoding = 'DartType.VOID';
 
+// Constants for the library methods lists' names in dart_api_table.dart.
+final abstractClassInstantiationErrorLibs =
+    'abstractClassInstantiationErrorLibs';
+final argumentErrorLibs = 'argumentErrorLibs';
+final assertionErrorLibs = 'assertionErrorLibs';
 final boolLibs = 'boolLibs';
+final byteDataLibs = 'byteDataLibs';
+final castErrorLibs = 'castErrorLibs';
+final concurrentModificationErrorLibs = 'concurrentModificationErrorLibs';
+final cyclicInitializationErrorLibs = 'cyclicInitializationErrorLibs';
+final deprecatedLibs = 'deprecatedLibs';
 final doubleLibs = 'doubleLibs';
+final endianLibs = 'endianLibs';
+final errorLibs = 'errorLibs';
+final exceptionLibs = 'exceptionLibs';
+final expandoDoubleLibs = 'expandoDoubleLibs';
+final expandoIntLibs = 'expandoIntLibs';
+final fallThroughErrorLibs = 'fallThroughErrorLibs';
 final float32ListLibs = 'float32ListLibs';
 final float32x4Libs = 'float32x4Libs';
 final float32x4ListLibs = 'float32x4ListLibs';
 final float64ListLibs = 'float64ListLibs';
 final float64x2Libs = 'float64x2Libs';
 final float64x2ListLibs = 'float64x2ListLibs';
+final formatExceptionLibs = 'formatExceptionLibs';
+final indexErrorLibs = 'indexErrorLibs';
 final int16ListLibs = 'int16ListLibs';
 final int32ListLibs = 'int32ListLibs';
 final int32x4Libs = 'int32x4Libs';
@@ -110,26 +140,62 @@ final int32x4ListLibs = 'int32x4ListLibs';
 final int64ListLibs = 'int64ListLibs';
 final int8ListLibs = 'int8ListLibs';
 final intLibs = 'intLibs';
+final integerDivisionByZeroExceptionLibs = 'integerDivisionByZeroExceptionLibs';
 final listLibs = 'listLibs';
+final mapEntryIntStringLibs = 'mapEntryIntStringLibs';
 final mapLibs = 'mapLibs';
+final nullLibs = 'nullLibs';
+final nullThrownErrorLibs = 'nullThrownErrorLibs';
+final numLibs = 'numLibs';
+final outOfMemoryErrorLibs = 'outOfMemoryErrorLibs';
+final provisionalLibs = 'provisionalLibs';
+final rangeErrorLibs = 'rangeErrorLibs';
+final regExpLibs = 'regExpLibs';
+final runeIteratorLibs = 'runeIteratorLibs';
+final runesLibs = 'runesLibs';
 final setLibs = 'setLibs';
+final stackOverflowErrorLibs = 'stackOverflowErrorLibs';
+final stateErrorLibs = 'stateErrorLibs';
+final stopwatchLibs = 'stopwatchLibs';
+final stringBufferLibs = 'stringBufferLibs';
 final stringLibs = 'stringLibs';
+final symbolLibs = 'symbolLibs';
+final typeErrorLibs = 'typeErrorLibs';
 final uint16ListLibs = 'uint16ListLibs';
 final uint32ListLibs = 'uint32ListLibs';
 final uint64ListLibs = 'uint64ListLibs';
 final uint8ClampedListLibs = 'uint8ClampedListLibs';
 final uint8ListLibs = 'uint8ListLibs';
+final unimplementedErrorLibs = 'unimplementedErrorLibs';
+final unsupportedErrorLibs = 'unsupportedErrorLibs';
 final voidLibs = 'voidLibs';
 
+// Map from the DartType (string) to the name of the library methods list.
 final Map<String, String> typeToLibraryMethodsListName = {
+  abstractClassInstantiationErrorEncoding: abstractClassInstantiationErrorLibs,
+  argumentErrorEncoding: argumentErrorLibs,
+  assertionErrorEncoding: assertionErrorLibs,
   boolEncoding: boolLibs,
+  byteDataEncoding: byteDataLibs,
+  castErrorEncoding: castErrorLibs,
+  concurrentModificationErrorEncoding: concurrentModificationErrorLibs,
+  cyclicInitializationErrorEncoding: cyclicInitializationErrorLibs,
+  deprecatedEncoding: deprecatedLibs,
   doubleEncoding: doubleLibs,
+  endianEncoding: endianLibs,
+  errorEncoding: errorLibs,
+  exceptionEncoding: exceptionLibs,
+  expandoDoubleEncoding: expandoDoubleLibs,
+  expandoIntEncoding: expandoIntLibs,
+  fallThroughErrorEncoding: fallThroughErrorLibs,
   float32ListEncoding: float32ListLibs,
   float32x4Encoding: float32x4Libs,
   float32x4ListEncoding: float32x4ListLibs,
   float64ListEncoding: float64ListLibs,
   float64x2Encoding: float64x2Libs,
   float64x2ListEncoding: float64x2ListLibs,
+  formatExceptionEncoding: formatExceptionLibs,
+  indexErrorEncoding: indexErrorLibs,
   int16ListEncoding: int16ListLibs,
   int32ListEncoding: int32ListLibs,
   int32x4Encoding: int32x4Libs,
@@ -137,27 +203,65 @@ final Map<String, String> typeToLibraryMethodsListName = {
   int64ListEncoding: int64ListLibs,
   int8ListEncoding: int8ListLibs,
   intEncoding: intLibs,
+  integerDivisionByZeroExceptionEncoding: integerDivisionByZeroExceptionLibs,
   listIntEncoding: listLibs,
+  mapEntryIntStringEncoding: mapEntryIntStringLibs,
   mapIntStringEncoding: mapLibs,
+  nullEncoding: nullLibs,
+  nullThrownErrorEncoding: nullThrownErrorLibs,
+  numEncoding: numLibs,
+  outOfMemoryErrorEncoding: outOfMemoryErrorLibs,
+  provisionalEncoding: provisionalLibs,
+  rangeErrorEncoding: rangeErrorLibs,
+  regExpEncoding: regExpLibs,
+  runeIteratorEncoding: runeIteratorLibs,
+  runesEncoding: runesLibs,
   setIntEncoding: setLibs,
+  stackOverflowErrorEncoding: stackOverflowErrorLibs,
+  stateErrorEncoding: stateErrorLibs,
+  stopwatchEncoding: stopwatchLibs,
+  stringBufferEncoding: stringBufferLibs,
   stringEncoding: stringLibs,
+  stringEncoding: stringLibs,
+  symbolEncoding: symbolLibs,
+  typeErrorEncoding: typeErrorLibs,
   uint16ListEncoding: uint16ListLibs,
   uint32ListEncoding: uint32ListLibs,
   uint64ListEncoding: uint64ListLibs,
   uint8ClampedListEncoding: uint8ClampedListLibs,
   uint8ListEncoding: uint8ListLibs,
+  unimplementedErrorEncoding: unimplementedErrorLibs,
+  unsupportedErrorEncoding: unsupportedErrorLibs,
   voidEncoding: voidLibs
 };
 
+// Map from return type encoding to list of recognized methods with that
+// return type.
 final Map<String, List<DartLib>> typeToLibraryMethodsList = {
+  abstractClassInstantiationErrorEncoding: <DartLib>[],
+  argumentErrorEncoding: <DartLib>[],
+  assertionErrorEncoding: <DartLib>[],
   boolEncoding: <DartLib>[],
+  byteDataEncoding: <DartLib>[],
+  castErrorEncoding: <DartLib>[],
+  concurrentModificationErrorEncoding: <DartLib>[],
+  cyclicInitializationErrorEncoding: <DartLib>[],
+  deprecatedEncoding: <DartLib>[],
   doubleEncoding: <DartLib>[],
+  endianEncoding: <DartLib>[],
+  errorEncoding: <DartLib>[],
+  exceptionEncoding: <DartLib>[],
+  expandoDoubleEncoding: <DartLib>[],
+  expandoIntEncoding: <DartLib>[],
+  fallThroughErrorEncoding: <DartLib>[],
   float32ListEncoding: <DartLib>[],
   float32x4Encoding: <DartLib>[],
   float32x4ListEncoding: <DartLib>[],
   float64ListEncoding: <DartLib>[],
   float64x2Encoding: <DartLib>[],
   float64x2ListEncoding: <DartLib>[],
+  formatExceptionEncoding: <DartLib>[],
+  indexErrorEncoding: <DartLib>[],
   int16ListEncoding: <DartLib>[],
   int32ListEncoding: <DartLib>[],
   int32x4Encoding: <DartLib>[],
@@ -165,15 +269,34 @@ final Map<String, List<DartLib>> typeToLibraryMethodsList = {
   int64ListEncoding: <DartLib>[],
   int8ListEncoding: <DartLib>[],
   intEncoding: <DartLib>[],
+  integerDivisionByZeroExceptionEncoding: <DartLib>[],
   listIntEncoding: <DartLib>[],
+  mapEntryIntStringEncoding: <DartLib>[],
   mapIntStringEncoding: <DartLib>[],
+  nullEncoding: <DartLib>[],
+  nullThrownErrorEncoding: <DartLib>[],
+  numEncoding: <DartLib>[],
+  outOfMemoryErrorEncoding: <DartLib>[],
+  provisionalEncoding: <DartLib>[],
+  rangeErrorEncoding: <DartLib>[],
+  regExpEncoding: <DartLib>[],
+  runeIteratorEncoding: <DartLib>[],
+  runesEncoding: <DartLib>[],
   setIntEncoding: <DartLib>[],
+  stackOverflowErrorEncoding: <DartLib>[],
+  stateErrorEncoding: <DartLib>[],
+  stopwatchEncoding: <DartLib>[],
+  stringBufferEncoding: <DartLib>[],
   stringEncoding: <DartLib>[],
+  symbolEncoding: <DartLib>[],
+  typeErrorEncoding: <DartLib>[],
   uint16ListEncoding: <DartLib>[],
   uint32ListEncoding: <DartLib>[],
   uint64ListEncoding: <DartLib>[],
   uint8ClampedListEncoding: <DartLib>[],
   uint8ListEncoding: <DartLib>[],
+  unimplementedErrorEncoding: <DartLib>[],
+  unsupportedErrorEncoding: <DartLib>[],
   voidEncoding: <DartLib>[]
 };
 
@@ -341,8 +464,34 @@ String typeString(DartType type) {
   // TODO(ajcbik): inspect type structure semantically, not by display name
   //               and unify DartFuzz's DartType with analyzer DartType.
   switch (type.displayName) {
+    case 'AbstractClassInstantiationError':
+      return abstractClassInstantiationErrorEncoding;
+    case 'ArgumentError':
+      return argumentErrorEncoding;
+    case 'AssertionError':
+      return assertionErrorEncoding;
+    case 'CastError':
+      return castErrorEncoding;
+    case 'ConcurrentModificationError':
+      return concurrentModificationErrorEncoding;
+    case 'CyclicInitializationError':
+      return cyclicInitializationErrorEncoding;
+    case 'Deprecated':
+      return deprecatedEncoding;
     case 'E':
       return intEncoding;
+    case 'Endian':
+      return endianEncoding;
+    case 'Error':
+      return errorEncoding;
+    case 'Exception':
+      return exceptionEncoding;
+    case 'Expando<double>':
+      return expandoDoubleEncoding;
+    case 'Expando<int>':
+      return expandoIntEncoding;
+    case 'FallThroughError':
+      return fallThroughErrorEncoding;
     case 'Float32List':
       return float32ListEncoding;
     case 'Float32x4':
@@ -355,6 +504,10 @@ String typeString(DartType type) {
       return float64x2Encoding;
     case 'Float64x2List':
       return float64x2ListEncoding;
+    case 'FormatException':
+      return formatExceptionEncoding;
+    case 'IndexError':
+      return indexErrorEncoding;
     case 'Int16List':
       return int16ListEncoding;
     case 'Int32List':
@@ -367,6 +520,8 @@ String typeString(DartType type) {
       return int64ListEncoding;
     case 'Int8List':
       return int8ListEncoding;
+    case 'IntegerDivisionByZeroException':
+      return integerDivisionByZeroExceptionEncoding;
     case 'List':
     case 'List<E>':
     case 'List<Object>':
@@ -378,12 +533,45 @@ String typeString(DartType type) {
     case 'Map<dynamic, dynamic>':
     case 'Map<int, String>':
       return mapIntStringEncoding;
+    case 'MapEntry':
+    case 'MapEntry<K, V>':
+    case 'MapEntry<dynamic, dynamic>':
+    case 'MapEntry<int, String>':
+      return mapEntryIntStringEncoding;
+    case 'Null':
+      return nullEncoding;
+    case 'NullThrownError':
+      return nullThrownErrorEncoding;
+    case 'OutOfMemoryError':
+      return outOfMemoryErrorEncoding;
+    case 'Provisional':
+      return provisionalEncoding;
+    case 'RangeError':
+      return rangeErrorEncoding;
+    case 'RegExp':
+      return regExpEncoding;
+    case 'RuneIterator':
+      return runeIteratorEncoding;
+    case 'Runes':
+      return runesEncoding;
     case 'Set':
     case 'Set<E>':
     case 'Set<Object>':
     case 'Set<dynamic>':
     case 'Set<int>':
       return setIntEncoding;
+    case 'StackOverflowError':
+      return stackOverflowErrorEncoding;
+    case 'StateError':
+      return stateErrorEncoding;
+    case 'Stopwatch':
+      return stopwatchEncoding;
+    case 'StringBuffer':
+      return stringBufferEncoding;
+    case 'Symbol':
+      return symbolEncoding;
+    case 'TypeError':
+      return typeErrorEncoding;
     case 'Uint16List':
       return uint16ListEncoding;
     case 'Uint32List':
@@ -394,6 +582,10 @@ String typeString(DartType type) {
       return uint8ClampedListEncoding;
     case 'Uint8List':
       return uint8ListEncoding;
+    case 'UnimplementedError':
+      return unimplementedErrorEncoding;
+    case 'UnsupportedError':
+      return unsupportedErrorEncoding;
     case 'num':
       return doubleEncoding;
     case 'void':
