@@ -76,10 +76,13 @@
       "tests/co19_2/co19_2-runtime.status",
       "tests/compiler/",
       "tests/corelib_2/",
+      "tests/corelib/",
       "tests/dart/",
       "tests/kernel/",
       "tests/language_2/",
+      "tests/language/",
       "tests/lib_2/",
+      "tests/lib/",
       "tests/light_unittest.dart",
       "tests/search/",
       "tests/standalone_2/",
@@ -1386,18 +1389,16 @@
           "arguments": ["--nnbd", "dartdevc_test"]
         },
         {
-          "name": "ddc nnbd strong tests",
-          "arguments": [
-            "-ndartdevk-strong-linux-release-chrome",
-            "dartdevc_native"
-          ]
-        },
-        {
           "name": "ddc nnbd weak tests",
           "arguments": [
             "-ndartdevk-weak-linux-release-chrome",
+            "language",
+            "corelib",
+            "lib",
             "dartdevc_native"
-          ]
+          ],
+          "shards": 6,
+          "fileset": "dart2js_nnbd"
         },
         {
           "name": "ddc legacy weak tests",
@@ -1406,6 +1407,18 @@
             "language_2",
             "corelib_2",
             "lib_2"
+          ],
+          "shards": 6,
+          "fileset": "dart2js_nnbd"
+        },
+        {
+          "name": "ddc nnbd strong tests",
+          "arguments": [
+            "-ndartdevk-strong-linux-release-chrome",
+            "language",
+            "corelib",
+            "lib",
+            "dartdevc_native"
           ]
         }
       ]
