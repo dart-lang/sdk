@@ -967,8 +967,7 @@ void FlowGraphCompiler::GenerateDartCall(intptr_t deopt_id,
                                          RawPcDescriptors::Kind kind,
                                          LocationSummary* locs,
                                          Code::EntryKind entry_kind) {
-  // TODO(sjindel/entrypoints): Support multiple entrypoints on ARM64.
-  __ BranchLinkPatchable(stub);
+  __ BranchLinkPatchable(stub, entry_kind);
   EmitCallsiteMetadata(token_pos, deopt_id, kind, locs);
 }
 
@@ -978,7 +977,6 @@ void FlowGraphCompiler::GenerateStaticDartCall(intptr_t deopt_id,
                                                LocationSummary* locs,
                                                const Function& target,
                                                Code::EntryKind entry_kind) {
-  // TODO(sjindel/entrypoints): Support multiple entrypoints on ARM64.
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
     AddPcRelativeCallTarget(target, entry_kind);
     __ GenerateUnRelocatedPcRelativeCall();
@@ -990,7 +988,7 @@ void FlowGraphCompiler::GenerateStaticDartCall(intptr_t deopt_id,
     // instead.
     ASSERT(is_optimizing());
     const auto& stub = StubCode::CallStaticFunction();
-    __ BranchLinkWithEquivalence(stub, target);
+    __ BranchLinkWithEquivalence(stub, target, entry_kind);
     EmitCallsiteMetadata(token_pos, deopt_id, kind, locs);
     AddStaticCallTarget(target, entry_kind);
   }
@@ -1026,7 +1024,6 @@ void FlowGraphCompiler::EmitOptimizedInstanceCall(const Code& stub,
                                                   TokenPosition token_pos,
                                                   LocationSummary* locs,
                                                   Code::EntryKind entry_kind) {
-  // TODO(sjindel/entrypoints): Support multiple entrypoints on ARM64.
   ASSERT(Array::Handle(zone(), ic_data.arguments_descriptor()).Length() > 0);
   // Each ICData propagated from unoptimized to optimized code contains the
   // function that corresponds to the Dart function of that IC call. Due
@@ -1038,7 +1035,8 @@ void FlowGraphCompiler::EmitOptimizedInstanceCall(const Code& stub,
   __ LoadObject(R6, parsed_function().function());
   __ LoadFromOffset(R0, SP, (ic_data.CountWithoutTypeArgs() - 1) * kWordSize);
   __ LoadUniqueObject(R5, ic_data);
-  GenerateDartCall(deopt_id, token_pos, stub, RawPcDescriptors::kIcCall, locs);
+  GenerateDartCall(deopt_id, token_pos, stub, RawPcDescriptors::kIcCall, locs,
+                   entry_kind);
   __ Drop(ic_data.CountWithTypeArgs());
 }
 
@@ -1122,7 +1120,6 @@ void FlowGraphCompiler::EmitInstanceCallAOT(const ICData& ic_data,
                                             TokenPosition token_pos,
                                             LocationSummary* locs,
                                             Code::EntryKind entry_kind) {
-  // TODO(34162): Support multiple entry-points on ARM64.
   ASSERT(ic_data.NumArgsTested() == 1);
   const Code& initial_stub = StubCode::UnlinkedCall();
   const UnlinkedCall& data =
@@ -1147,9 +1144,13 @@ void FlowGraphCompiler::EmitInstanceCallAOT(const ICData& ic_data,
   } else {
     __ LoadDoubleWordFromPoolOffset(R5, CODE_REG,
                                     ObjectPool::element_offset(data_index));
-    __ ldr(LR, compiler::FieldAddress(
-                   CODE_REG,
-                   Code::entry_point_offset(Code::EntryKind::kMonomorphic)));
+    const intptr_t entry_point_offset =
+        entry_kind == Code::EntryKind::kNormal
+            ? compiler::target::Code::entry_point_offset(
+                  Code::EntryKind::kMonomorphic)
+            : compiler::target::Code::entry_point_offset(
+                  Code::EntryKind::kMonomorphicUnchecked);
+    __ ldr(LR, compiler::FieldAddress(CODE_REG, entry_point_offset));
   }
   __ blr(LR);
 
@@ -1164,12 +1165,11 @@ void FlowGraphCompiler::EmitUnoptimizedStaticCall(intptr_t count_with_type_args,
                                                   LocationSummary* locs,
                                                   const ICData& ic_data,
                                                   Code::EntryKind entry_kind) {
-  // TODO(34162): Support multiple entry-points on ARM64.
   const Code& stub =
       StubCode::UnoptimizedStaticCallEntry(ic_data.NumArgsTested());
   __ LoadObject(R5, ic_data);
   GenerateDartCall(deopt_id, token_pos, stub,
-                   RawPcDescriptors::kUnoptStaticCall, locs);
+                   RawPcDescriptors::kUnoptStaticCall, locs, entry_kind);
   __ Drop(count_with_type_args);
 }
 
@@ -1181,7 +1181,6 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
     TokenPosition token_pos,
     LocationSummary* locs,
     Code::EntryKind entry_kind) {
-  // TODO(sjindel/entrypoints): Support multiple entrypoints on ARM64.
   ASSERT(!function.IsClosureFunction());
   if (function.HasOptionalParameters() || function.IsGeneric()) {
     __ LoadObject(R4, arguments_descriptor);
@@ -1193,7 +1192,7 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
   // Do not use the code from the function, but let the code be patched so that
   // we can record the outgoing edges to other code.
   GenerateStaticDartCall(deopt_id, token_pos, RawPcDescriptors::kOther, locs,
-                         function);
+                         function, entry_kind);
   __ Drop(count_with_type_args);
 }
 

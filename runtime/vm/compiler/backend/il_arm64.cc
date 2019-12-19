@@ -265,7 +265,8 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // R0: Function.
   ASSERT(locs()->in(0).reg() == R0);
   __ LoadFieldFromOffset(CODE_REG, R0, Function::code_offset());
-  __ LoadFieldFromOffset(R2, R0, Function::entry_point_offset());
+  __ LoadFieldFromOffset(
+      R2, CODE_REG, compiler::target::Code::entry_point_offset(entry_kind()));
 
   // R2: instructions.
   // R5: Smi 0 (no IC data; the lazy-compile stub expects a GC-safe value).

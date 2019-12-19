@@ -8426,8 +8426,9 @@ RawCode* Function::EnsureHasCode() const {
 }
 
 bool Function::MayHaveUncheckedEntryPoint(Isolate* I) const {
-// TODO(#34162): Support the other architectures.
-#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM)
+// TODO(#34162): Support IA32.
+#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM) ||                    \
+    defined(TARGET_ARCH_ARM64)
   return FLAG_enable_multiple_entrypoints &&
          (NeedsArgumentTypeChecks(I) || IsImplicitClosureFunction());
 #else
