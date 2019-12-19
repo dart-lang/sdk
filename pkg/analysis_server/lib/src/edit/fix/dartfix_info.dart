@@ -107,6 +107,14 @@ will be converted to
     isPedantic: true,
   ),
   const DartFixInfo(
+    'prefer-single-quotes',
+    '''
+Convert strings using a dobule quote to use a single quote.''',
+    BasicFixLintErrorTask.preferSingleQuotes,
+    isDefault: false,
+    isPedantic: true,
+  ),
+  const DartFixInfo(
     'unnecessary-const',
     '''
 Remove unnecessary `const` keywords.
@@ -117,6 +125,7 @@ For example, this
 will be converted to
   static const digits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];''',
     BasicFixLintErrorTask.unnecessaryConst,
+    isDefault: false,
     isPedantic: true,
   ),
   const DartFixInfo(
@@ -130,6 +139,7 @@ For example, this
 will be converted to
   var marker = Object();''',
     BasicFixLintErrorTask.unnecessaryNew,
+    isDefault: false,
     isPedantic: true,
   ),
   //

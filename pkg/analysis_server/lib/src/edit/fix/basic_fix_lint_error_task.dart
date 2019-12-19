@@ -48,6 +48,15 @@ class BasicFixLintErrorTask extends FixLintTask {
     );
   }
 
+  static void preferSingleQuotes(DartFixRegistrar registrar,
+      DartFixListener listener, EditDartfixParams params) {
+    registrar.registerLintTask(
+      Registry.ruleRegistry['prefer_single_quotes'],
+      BasicFixLintErrorTask(
+          DartFixKind.CONVERT_TO_SINGLE_QUOTED_STRING, listener),
+    );
+  }
+
   static void unnecessaryConst(DartFixRegistrar registrar,
       DartFixListener listener, EditDartfixParams params) {
     registrar.registerLintTask(
