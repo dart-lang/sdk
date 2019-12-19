@@ -15,6 +15,7 @@
 
 import("../build/dart/copy_tree.gni")
 import("../runtime/runtime_args.gni")
+import("../sdk_args.gni")
 
 declare_args() {
   # Build a SDK with less stuff. It excludes dart2js, ddc, and web libraries.
@@ -861,7 +862,7 @@ action("write_version_file") {
   visibility = [ ":create_common_sdk" ]
   inputs = [
     "../tools/VERSION",
-    "../.git/logs/HEAD",
+    "$default_git_folder/logs/HEAD",
   ]
   output = "$root_out_dir/dart-sdk/version"
   outputs = [
@@ -878,7 +879,7 @@ action("write_version_file") {
 action("write_revision_file") {
   visibility = [ ":create_common_sdk" ]
   inputs = [
-    "../.git/logs/HEAD",
+    "$default_git_folder/logs/HEAD",
   ]
   output = "$root_out_dir/dart-sdk/revision"
   outputs = [
@@ -937,7 +938,7 @@ copy("copy_license") {
 action("write_dartdoc_options") {
   visibility = [ ":create_common_sdk" ]
   inputs = [
-    "../.git/logs/HEAD",
+    "$default_git_folder/logs/HEAD",
   ]
   output = "$root_out_dir/dart-sdk/dartdoc_options.yaml"
   outputs = [

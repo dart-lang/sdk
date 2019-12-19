@@ -2,6 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+import("../sdk_args.gni")
 import("configs.gni")
 import("runtime_args.gni")
 
@@ -257,7 +258,7 @@ action("generate_version_cc_file") {
     "vm/version_in.cc",
   ]
   if (dart_version_git_info) {
-    inputs += [ "../.git/logs/HEAD" ]
+    inputs += [ "$default_git_folder/logs/HEAD" ]
   }
   output = "$target_gen_dir/version.cc"
   outputs = [
