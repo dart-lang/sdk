@@ -146,7 +146,7 @@ class AnalyzerImpl {
     files.clear();
     errorsResults.clear();
     Uri libraryUri = libraryFile.uri;
-    if (libraryUri.scheme == 'package' && libraryUri.pathSegments.length > 0) {
+    if (libraryUri.scheme == 'package' && libraryUri.pathSegments.isNotEmpty) {
       _selfPackageName = libraryUri.pathSegments[0];
     }
   }

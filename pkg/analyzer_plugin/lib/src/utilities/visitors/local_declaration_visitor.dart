@@ -281,7 +281,7 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
             SimpleIdentifier id = declaration.name;
             if (id != null) {
               String name = id.name;
-              if (name != null && name.length > 0) {
+              if (name != null && name.isNotEmpty) {
                 declaredFunction(declaration);
                 _visitTypeParameters(
                   declaration,

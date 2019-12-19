@@ -36,8 +36,8 @@ linter:
     - prefer_for_elements_to_map_fromIterable
     #- prefer_generic_function_type_aliases # 12
     #- prefer_if_null_operators # 12
-    #- prefer_is_empty # 3
-    #- prefer_is_not_empty # 8
+    - prefer_is_empty
+    - prefer_is_not_empty
     - prefer_iterable_whereType
     #- prefer_single_quotes # 2076
     - prefer_spread_collections

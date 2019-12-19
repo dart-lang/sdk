@@ -57,14 +57,14 @@ mixin ElementSuggestionBuilder {
       }
     }
     String completion = element.displayName;
-    if (prefix != null && prefix.length > 0) {
-      if (completion == null || completion.length <= 0) {
+    if (prefix != null && prefix.isNotEmpty) {
+      if (completion == null || completion.isEmpty) {
         completion = prefix;
       } else {
         completion = '$prefix.$completion';
       }
     }
-    if (completion == null || completion.length <= 0) {
+    if (completion == null || completion.isEmpty) {
       return;
     }
     SuggestionBuilderImpl builder = SuggestionBuilderImpl(resourceProvider);

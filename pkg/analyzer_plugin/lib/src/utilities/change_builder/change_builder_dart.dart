@@ -950,7 +950,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       Set<String> usedNames, DartType type, Expression expression, int index) {
     List<String> suggestions =
         _getVariableNameSuggestionsForExpression(type, expression, usedNames);
-    if (suggestions.length != 0) {
+    if (suggestions.isNotEmpty) {
       return suggestions;
     }
     // TODO(brianwilkerson) Verify that the name below is not in the set of used names.
