@@ -22,10 +22,10 @@ import 'package:analysis_server/src/protocol/protocol_internal.dart'
     show listEqual, mapEqual;
 import 'package:analyzer/src/generated/utilities_general.dart';
 
-const jsonEncoder = const JsonEncoder.withIndent('    ');
+const jsonEncoder = JsonEncoder.withIndent('    ');
 
 class ApplyWorkspaceEditParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       ApplyWorkspaceEditParams.canParse, ApplyWorkspaceEditParams.fromJson);
 
   ApplyWorkspaceEditParams(this.label, this.edit) {
@@ -112,7 +112,7 @@ class ApplyWorkspaceEditParams implements ToJsonable {
 }
 
 class ApplyWorkspaceEditResponse implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       ApplyWorkspaceEditResponse.canParse, ApplyWorkspaceEditResponse.fromJson);
 
   ApplyWorkspaceEditResponse(this.applied, this.failureReason) {
@@ -203,7 +203,7 @@ class ApplyWorkspaceEditResponse implements ToJsonable {
 
 class CancelParams implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(CancelParams.canParse, CancelParams.fromJson);
+      LspJsonHandler(CancelParams.canParse, CancelParams.fromJson);
 
   CancelParams(this.id) {
     if (id == null) {
@@ -274,8 +274,8 @@ class CancelParams implements ToJsonable {
 }
 
 class ClientCapabilities implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      ClientCapabilities.canParse, ClientCapabilities.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(ClientCapabilities.canParse, ClientCapabilities.fromJson);
 
   ClientCapabilities(this.workspace, this.textDocument, this.experimental);
   static ClientCapabilities fromJson(Map<String, dynamic> json) {
@@ -384,7 +384,7 @@ class ClientCapabilities implements ToJsonable {
 /// supplied, the `edit` is applied first, then the `command` is executed.
 class CodeAction implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(CodeAction.canParse, CodeAction.fromJson);
+      LspJsonHandler(CodeAction.canParse, CodeAction.fromJson);
 
   CodeAction(this.title, this.kind, this.diagnostics, this.edit, this.command) {
     if (title == null) {
@@ -542,8 +542,8 @@ class CodeAction implements ToJsonable {
 /// Contains additional diagnostic information about the context in which a code
 /// action is run.
 class CodeActionContext implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      CodeActionContext.canParse, CodeActionContext.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(CodeActionContext.canParse, CodeActionContext.fromJson);
 
   CodeActionContext(this.diagnostics, this.only) {
     if (diagnostics == null) {
@@ -657,13 +657,13 @@ class CodeActionKind {
   }
 
   /// Empty kind.
-  static const Empty = const CodeActionKind('');
+  static const Empty = CodeActionKind('');
 
   /// Base kind for quickfix actions: 'quickfix'
-  static const QuickFix = const CodeActionKind('quickfix');
+  static const QuickFix = CodeActionKind('quickfix');
 
   /// Base kind for refactoring actions: 'refactor'
-  static const Refactor = const CodeActionKind('refactor');
+  static const Refactor = CodeActionKind('refactor');
 
   /// Base kind for refactoring extraction actions: 'refactor.extract'
   ///
@@ -674,7 +674,7 @@ class CodeActionKind {
   /// - Extract variable
   /// - Extract interface from class
   /// - ...
-  static const RefactorExtract = const CodeActionKind('refactor.extract');
+  static const RefactorExtract = CodeActionKind('refactor.extract');
 
   /// Base kind for refactoring inline actions: 'refactor.inline'
   ///
@@ -684,7 +684,7 @@ class CodeActionKind {
   /// - Inline variable
   /// - Inline constant
   /// - ...
-  static const RefactorInline = const CodeActionKind('refactor.inline');
+  static const RefactorInline = CodeActionKind('refactor.inline');
 
   /// Base kind for refactoring rewrite actions: 'refactor.rewrite'
   ///
@@ -696,16 +696,15 @@ class CodeActionKind {
   /// - Make method static
   /// - Move method to base class
   /// - ...
-  static const RefactorRewrite = const CodeActionKind('refactor.rewrite');
+  static const RefactorRewrite = CodeActionKind('refactor.rewrite');
 
   /// Base kind for source actions: `source`
   ///
   /// Source code actions apply to the entire file.
-  static const Source = const CodeActionKind('source');
+  static const Source = CodeActionKind('source');
 
   /// Base kind for an organize imports source action: `source.organizeImports`
-  static const SourceOrganizeImports =
-      const CodeActionKind('source.organizeImports');
+  static const SourceOrganizeImports = CodeActionKind('source.organizeImports');
 
   Object toJson() => _value;
 
@@ -720,8 +719,8 @@ class CodeActionKind {
 
 /// Code Action options.
 class CodeActionOptions implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      CodeActionOptions.canParse, CodeActionOptions.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(CodeActionOptions.canParse, CodeActionOptions.fromJson);
 
   CodeActionOptions(this.codeActionKinds);
   static CodeActionOptions fromJson(Map<String, dynamic> json) {
@@ -793,8 +792,8 @@ class CodeActionOptions implements ToJsonable {
 
 /// Params for the CodeActionRequest
 class CodeActionParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      CodeActionParams.canParse, CodeActionParams.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(CodeActionParams.canParse, CodeActionParams.fromJson);
 
   CodeActionParams(this.textDocument, this.range, this.context) {
     if (textDocument == null) {
@@ -923,7 +922,7 @@ class CodeActionParams implements ToJsonable {
 
 class CodeActionRegistrationOptions
     implements TextDocumentRegistrationOptions, CodeActionOptions, ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       CodeActionRegistrationOptions.canParse,
       CodeActionRegistrationOptions.fromJson);
 
@@ -1027,7 +1026,7 @@ class CodeActionRegistrationOptions
 /// in two stages.
 class CodeLens implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(CodeLens.canParse, CodeLens.fromJson);
+      LspJsonHandler(CodeLens.canParse, CodeLens.fromJson);
 
   CodeLens(this.range, this.command, this.data) {
     if (range == null) {
@@ -1137,7 +1136,7 @@ class CodeLens implements ToJsonable {
 /// Code Lens options.
 class CodeLensOptions implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(CodeLensOptions.canParse, CodeLensOptions.fromJson);
+      LspJsonHandler(CodeLensOptions.canParse, CodeLensOptions.fromJson);
 
   CodeLensOptions(this.resolveProvider);
   static CodeLensOptions fromJson(Map<String, dynamic> json) {
@@ -1196,7 +1195,7 @@ class CodeLensOptions implements ToJsonable {
 
 class CodeLensParams implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(CodeLensParams.canParse, CodeLensParams.fromJson);
+      LspJsonHandler(CodeLensParams.canParse, CodeLensParams.fromJson);
 
   CodeLensParams(this.textDocument) {
     if (textDocument == null) {
@@ -1267,7 +1266,7 @@ class CodeLensParams implements ToJsonable {
 
 class CodeLensRegistrationOptions
     implements TextDocumentRegistrationOptions, ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       CodeLensRegistrationOptions.canParse,
       CodeLensRegistrationOptions.fromJson);
 
@@ -1356,8 +1355,7 @@ class CodeLensRegistrationOptions
 
 /// Represents a color in RGBA space.
 class Color implements ToJsonable {
-  static const jsonHandler =
-      const LspJsonHandler(Color.canParse, Color.fromJson);
+  static const jsonHandler = LspJsonHandler(Color.canParse, Color.fromJson);
 
   Color(this.red, this.green, this.blue, this.alpha) {
     if (red == null) {
@@ -1506,8 +1504,8 @@ class Color implements ToJsonable {
 }
 
 class ColorInformation implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      ColorInformation.canParse, ColorInformation.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(ColorInformation.canParse, ColorInformation.fromJson);
 
   ColorInformation(this.range, this.color) {
     if (range == null) {
@@ -1600,8 +1598,8 @@ class ColorInformation implements ToJsonable {
 }
 
 class ColorPresentation implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      ColorPresentation.canParse, ColorPresentation.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(ColorPresentation.canParse, ColorPresentation.fromJson);
 
   ColorPresentation(this.label, this.textEdit, this.additionalTextEdits) {
     if (label == null) {
@@ -1720,7 +1718,7 @@ class ColorPresentation implements ToJsonable {
 }
 
 class ColorPresentationParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       ColorPresentationParams.canParse, ColorPresentationParams.fromJson);
 
   ColorPresentationParams(this.textDocument, this.color, this.range) {
@@ -1847,7 +1845,7 @@ class ColorPresentationParams implements ToJsonable {
 
 /// Color provider options.
 class ColorProviderOptions implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       ColorProviderOptions.canParse, ColorProviderOptions.fromJson);
 
   static ColorProviderOptions fromJson(Map<String, dynamic> json) {
@@ -1887,8 +1885,7 @@ class ColorProviderOptions implements ToJsonable {
 }
 
 class Command implements ToJsonable {
-  static const jsonHandler =
-      const LspJsonHandler(Command.canParse, Command.fromJson);
+  static const jsonHandler = LspJsonHandler(Command.canParse, Command.fromJson);
 
   Command(this.title, this.command, this.arguments) {
     if (title == null) {
@@ -2008,8 +2005,8 @@ class Command implements ToJsonable {
 /// Contains additional information about the context in which a completion
 /// request is triggered.
 class CompletionContext implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      CompletionContext.canParse, CompletionContext.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(CompletionContext.canParse, CompletionContext.fromJson);
 
   CompletionContext(this.triggerKind, this.triggerCharacter) {
     if (triggerKind == null) {
@@ -2101,7 +2098,7 @@ class CompletionContext implements ToJsonable {
 
 class CompletionItem implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(CompletionItem.canParse, CompletionItem.fromJson);
+      LspJsonHandler(CompletionItem.canParse, CompletionItem.fromJson);
 
   CompletionItem(
       this.label,
@@ -2531,31 +2528,31 @@ class CompletionItemKind {
     return obj is num;
   }
 
-  static const Text = const CompletionItemKind(1);
-  static const Method = const CompletionItemKind(2);
-  static const Function = const CompletionItemKind(3);
-  static const Constructor = const CompletionItemKind(4);
-  static const Field = const CompletionItemKind(5);
-  static const Variable = const CompletionItemKind(6);
-  static const Class = const CompletionItemKind(7);
-  static const Interface = const CompletionItemKind(8);
-  static const Module = const CompletionItemKind(9);
-  static const Property = const CompletionItemKind(10);
-  static const Unit = const CompletionItemKind(11);
-  static const Value = const CompletionItemKind(12);
-  static const Enum = const CompletionItemKind(13);
-  static const Keyword = const CompletionItemKind(14);
-  static const Snippet = const CompletionItemKind(15);
-  static const Color = const CompletionItemKind(16);
-  static const File = const CompletionItemKind(17);
-  static const Reference = const CompletionItemKind(18);
-  static const Folder = const CompletionItemKind(19);
-  static const EnumMember = const CompletionItemKind(20);
-  static const Constant = const CompletionItemKind(21);
-  static const Struct = const CompletionItemKind(22);
-  static const Event = const CompletionItemKind(23);
-  static const Operator = const CompletionItemKind(24);
-  static const TypeParameter = const CompletionItemKind(25);
+  static const Text = CompletionItemKind(1);
+  static const Method = CompletionItemKind(2);
+  static const Function = CompletionItemKind(3);
+  static const Constructor = CompletionItemKind(4);
+  static const Field = CompletionItemKind(5);
+  static const Variable = CompletionItemKind(6);
+  static const Class = CompletionItemKind(7);
+  static const Interface = CompletionItemKind(8);
+  static const Module = CompletionItemKind(9);
+  static const Property = CompletionItemKind(10);
+  static const Unit = CompletionItemKind(11);
+  static const Value = CompletionItemKind(12);
+  static const Enum = CompletionItemKind(13);
+  static const Keyword = CompletionItemKind(14);
+  static const Snippet = CompletionItemKind(15);
+  static const Color = CompletionItemKind(16);
+  static const File = CompletionItemKind(17);
+  static const Reference = CompletionItemKind(18);
+  static const Folder = CompletionItemKind(19);
+  static const EnumMember = CompletionItemKind(20);
+  static const Constant = CompletionItemKind(21);
+  static const Struct = CompletionItemKind(22);
+  static const Event = CompletionItemKind(23);
+  static const Operator = CompletionItemKind(24);
+  static const TypeParameter = CompletionItemKind(25);
 
   Object toJson() => _value;
 
@@ -2572,7 +2569,7 @@ class CompletionItemKind {
 /// presented in the editor.
 class CompletionList implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(CompletionList.canParse, CompletionList.fromJson);
+      LspJsonHandler(CompletionList.canParse, CompletionList.fromJson);
 
   CompletionList(this.isIncomplete, this.items) {
     if (isIncomplete == null) {
@@ -2676,8 +2673,8 @@ class CompletionList implements ToJsonable {
 
 /// Completion options.
 class CompletionOptions implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      CompletionOptions.canParse, CompletionOptions.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(CompletionOptions.canParse, CompletionOptions.fromJson);
 
   CompletionOptions(this.resolveProvider, this.triggerCharacters);
   static CompletionOptions fromJson(Map<String, dynamic> json) {
@@ -2761,8 +2758,8 @@ class CompletionOptions implements ToJsonable {
 }
 
 class CompletionParams implements TextDocumentPositionParams, ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      CompletionParams.canParse, CompletionParams.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(CompletionParams.canParse, CompletionParams.fromJson);
 
   CompletionParams(this.context, this.textDocument, this.position) {
     if (textDocument == null) {
@@ -2886,7 +2883,7 @@ class CompletionParams implements TextDocumentPositionParams, ToJsonable {
 
 class CompletionRegistrationOptions
     implements TextDocumentRegistrationOptions, ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       CompletionRegistrationOptions.canParse,
       CompletionRegistrationOptions.fromJson);
 
@@ -3061,15 +3058,14 @@ class CompletionTriggerKind {
 
   /// Completion was triggered by typing an identifier (24x7 code complete),
   /// manual invocation (e.g Ctrl+Space) or via API.
-  static const Invoked = const CompletionTriggerKind._(1);
+  static const Invoked = CompletionTriggerKind._(1);
 
   /// Completion was triggered by a trigger character specified by the
   /// `triggerCharacters` properties of the `CompletionRegistrationOptions`.
-  static const TriggerCharacter = const CompletionTriggerKind._(2);
+  static const TriggerCharacter = CompletionTriggerKind._(2);
 
   /// Completion was re-triggered as the current completion list is incomplete.
-  static const TriggerForIncompleteCompletions =
-      const CompletionTriggerKind._(3);
+  static const TriggerForIncompleteCompletions = CompletionTriggerKind._(3);
 
   Object toJson() => _value;
 
@@ -3084,8 +3080,8 @@ class CompletionTriggerKind {
 }
 
 class ConfigurationItem implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      ConfigurationItem.canParse, ConfigurationItem.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(ConfigurationItem.canParse, ConfigurationItem.fromJson);
 
   ConfigurationItem(this.scopeUri, this.section);
   static ConfigurationItem fromJson(Map<String, dynamic> json) {
@@ -3159,7 +3155,7 @@ class ConfigurationItem implements ToJsonable {
 }
 
 class ConfigurationParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       ConfigurationParams.canParse, ConfigurationParams.fromJson);
 
   ConfigurationParams(this.items) {
@@ -3235,7 +3231,7 @@ class ConfigurationParams implements ToJsonable {
 /// Create file operation
 class CreateFile implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(CreateFile.canParse, CreateFile.fromJson);
+      LspJsonHandler(CreateFile.canParse, CreateFile.fromJson);
 
   CreateFile(this.kind, this.uri, this.options) {
     if (kind == null) {
@@ -3352,8 +3348,8 @@ class CreateFile implements ToJsonable {
 
 /// Options to create a file.
 class CreateFileOptions implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      CreateFileOptions.canParse, CreateFileOptions.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(CreateFileOptions.canParse, CreateFileOptions.fromJson);
 
   CreateFileOptions(this.overwrite, this.ignoreIfExists);
   static CreateFileOptions fromJson(Map<String, dynamic> json) {
@@ -3431,7 +3427,7 @@ class CreateFileOptions implements ToJsonable {
 /// Delete file operation
 class DeleteFile implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(DeleteFile.canParse, DeleteFile.fromJson);
+      LspJsonHandler(DeleteFile.canParse, DeleteFile.fromJson);
 
   DeleteFile(this.kind, this.uri, this.options) {
     if (kind == null) {
@@ -3548,8 +3544,8 @@ class DeleteFile implements ToJsonable {
 
 /// Delete file options
 class DeleteFileOptions implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      DeleteFileOptions.canParse, DeleteFileOptions.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(DeleteFileOptions.canParse, DeleteFileOptions.fromJson);
 
   DeleteFileOptions(this.recursive, this.ignoreIfNotExists);
   static DeleteFileOptions fromJson(Map<String, dynamic> json) {
@@ -3627,7 +3623,7 @@ class DeleteFileOptions implements ToJsonable {
 
 class Diagnostic implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(Diagnostic.canParse, Diagnostic.fromJson);
+      LspJsonHandler(Diagnostic.canParse, Diagnostic.fromJson);
 
   Diagnostic(this.range, this.severity, this.code, this.source, this.message,
       this.relatedInformation) {
@@ -3819,7 +3815,7 @@ class Diagnostic implements ToJsonable {
 /// should be used to point to code locations that cause or related to a
 /// diagnostics, e.g when duplicating a symbol in a scope.
 class DiagnosticRelatedInformation implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       DiagnosticRelatedInformation.canParse,
       DiagnosticRelatedInformation.fromJson);
 
@@ -3927,16 +3923,16 @@ class DiagnosticSeverity {
   }
 
   /// Reports an error.
-  static const Error = const DiagnosticSeverity(1);
+  static const Error = DiagnosticSeverity(1);
 
   /// Reports a warning.
-  static const Warning = const DiagnosticSeverity(2);
+  static const Warning = DiagnosticSeverity(2);
 
   /// Reports an information.
-  static const Information = const DiagnosticSeverity(3);
+  static const Information = DiagnosticSeverity(3);
 
   /// Reports a hint.
-  static const Hint = const DiagnosticSeverity(4);
+  static const Hint = DiagnosticSeverity(4);
 
   Object toJson() => _value;
 
@@ -3950,7 +3946,7 @@ class DiagnosticSeverity {
 }
 
 class DidChangeConfigurationParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       DidChangeConfigurationParams.canParse,
       DidChangeConfigurationParams.fromJson);
 
@@ -4011,7 +4007,7 @@ class DidChangeConfigurationParams implements ToJsonable {
 }
 
 class DidChangeTextDocumentParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       DidChangeTextDocumentParams.canParse,
       DidChangeTextDocumentParams.fromJson);
 
@@ -4129,7 +4125,7 @@ class DidChangeTextDocumentParams implements ToJsonable {
 }
 
 class DidChangeWatchedFilesParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       DidChangeWatchedFilesParams.canParse,
       DidChangeWatchedFilesParams.fromJson);
 
@@ -4207,7 +4203,7 @@ class DidChangeWatchedFilesParams implements ToJsonable {
 
 /// Describe options to be used when registering for file system change events.
 class DidChangeWatchedFilesRegistrationOptions implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       DidChangeWatchedFilesRegistrationOptions.canParse,
       DidChangeWatchedFilesRegistrationOptions.fromJson);
 
@@ -4286,7 +4282,7 @@ class DidChangeWatchedFilesRegistrationOptions implements ToJsonable {
 }
 
 class DidChangeWorkspaceFoldersParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       DidChangeWorkspaceFoldersParams.canParse,
       DidChangeWorkspaceFoldersParams.fromJson);
 
@@ -4357,7 +4353,7 @@ class DidChangeWorkspaceFoldersParams implements ToJsonable {
 }
 
 class DidCloseTextDocumentParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       DidCloseTextDocumentParams.canParse, DidCloseTextDocumentParams.fromJson);
 
   DidCloseTextDocumentParams(this.textDocument) {
@@ -4428,7 +4424,7 @@ class DidCloseTextDocumentParams implements ToJsonable {
 }
 
 class DidOpenTextDocumentParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       DidOpenTextDocumentParams.canParse, DidOpenTextDocumentParams.fromJson);
 
   DidOpenTextDocumentParams(this.textDocument) {
@@ -4499,7 +4495,7 @@ class DidOpenTextDocumentParams implements ToJsonable {
 }
 
 class DidSaveTextDocumentParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       DidSaveTextDocumentParams.canParse, DidSaveTextDocumentParams.fromJson);
 
   DidSaveTextDocumentParams(this.textDocument, this.text) {
@@ -4589,7 +4585,7 @@ class DidSaveTextDocumentParams implements ToJsonable {
 
 class DocumentFilter implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(DocumentFilter.canParse, DocumentFilter.fromJson);
+      LspJsonHandler(DocumentFilter.canParse, DocumentFilter.fromJson);
 
   DocumentFilter(this.language, this.scheme, this.pattern);
   static DocumentFilter fromJson(Map<String, dynamic> json) {
@@ -4695,7 +4691,7 @@ class DocumentFilter implements ToJsonable {
 }
 
 class DocumentFormattingParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       DocumentFormattingParams.canParse, DocumentFormattingParams.fromJson);
 
   DocumentFormattingParams(this.textDocument, this.options) {
@@ -4800,8 +4796,8 @@ class DocumentFormattingParams implements ToJsonable {
 /// special attention. Usually a document highlight is visualized by changing
 /// the background color of its range.
 class DocumentHighlight implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      DocumentHighlight.canParse, DocumentHighlight.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(DocumentHighlight.canParse, DocumentHighlight.fromJson);
 
   DocumentHighlight(this.range, this.kind) {
     if (range == null) {
@@ -4899,13 +4895,13 @@ class DocumentHighlightKind {
   }
 
   /// A textual occurrence.
-  static const Text = const DocumentHighlightKind(1);
+  static const Text = DocumentHighlightKind(1);
 
   /// Read-access of a symbol, like reading a variable.
-  static const Read = const DocumentHighlightKind(2);
+  static const Read = DocumentHighlightKind(2);
 
   /// Write-access of a symbol, like writing to a variable.
-  static const Write = const DocumentHighlightKind(3);
+  static const Write = DocumentHighlightKind(3);
 
   Object toJson() => _value;
 
@@ -4923,7 +4919,7 @@ class DocumentHighlightKind {
 /// external resource, like another text document or a web site.
 class DocumentLink implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(DocumentLink.canParse, DocumentLink.fromJson);
+      LspJsonHandler(DocumentLink.canParse, DocumentLink.fromJson);
 
   DocumentLink(this.range, this.target, this.data) {
     if (range == null) {
@@ -5029,7 +5025,7 @@ class DocumentLink implements ToJsonable {
 
 /// Document link options.
 class DocumentLinkOptions implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       DocumentLinkOptions.canParse, DocumentLinkOptions.fromJson);
 
   DocumentLinkOptions(this.resolveProvider);
@@ -5088,8 +5084,8 @@ class DocumentLinkOptions implements ToJsonable {
 }
 
 class DocumentLinkParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      DocumentLinkParams.canParse, DocumentLinkParams.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(DocumentLinkParams.canParse, DocumentLinkParams.fromJson);
 
   DocumentLinkParams(this.textDocument) {
     if (textDocument == null) {
@@ -5160,7 +5156,7 @@ class DocumentLinkParams implements ToJsonable {
 
 class DocumentLinkRegistrationOptions
     implements TextDocumentRegistrationOptions, ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       DocumentLinkRegistrationOptions.canParse,
       DocumentLinkRegistrationOptions.fromJson);
 
@@ -5249,7 +5245,7 @@ class DocumentLinkRegistrationOptions
 
 /// Format document on type options.
 class DocumentOnTypeFormattingOptions implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       DocumentOnTypeFormattingOptions.canParse,
       DocumentOnTypeFormattingOptions.fromJson);
 
@@ -5347,7 +5343,7 @@ class DocumentOnTypeFormattingOptions implements ToJsonable {
 }
 
 class DocumentOnTypeFormattingParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       DocumentOnTypeFormattingParams.canParse,
       DocumentOnTypeFormattingParams.fromJson);
 
@@ -5508,7 +5504,7 @@ class DocumentOnTypeFormattingParams implements ToJsonable {
 
 class DocumentOnTypeFormattingRegistrationOptions
     implements TextDocumentRegistrationOptions, ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       DocumentOnTypeFormattingRegistrationOptions.canParse,
       DocumentOnTypeFormattingRegistrationOptions.fromJson);
 
@@ -5635,7 +5631,7 @@ class DocumentOnTypeFormattingRegistrationOptions
 }
 
 class DocumentRangeFormattingParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       DocumentRangeFormattingParams.canParse,
       DocumentRangeFormattingParams.fromJson);
 
@@ -5770,7 +5766,7 @@ class DocumentRangeFormattingParams implements ToJsonable {
 /// most interesting range, e.g. the range of an identifier.
 class DocumentSymbol implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(DocumentSymbol.canParse, DocumentSymbol.fromJson);
+      LspJsonHandler(DocumentSymbol.canParse, DocumentSymbol.fromJson);
 
   DocumentSymbol(this.name, this.detail, this.kind, this.deprecated, this.range,
       this.selectionRange, this.children) {
@@ -5992,7 +5988,7 @@ class DocumentSymbol implements ToJsonable {
 }
 
 class DocumentSymbolParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       DocumentSymbolParams.canParse, DocumentSymbolParams.fromJson);
 
   DocumentSymbolParams(this.textDocument) {
@@ -6073,19 +6069,19 @@ class ErrorCodes {
   }
 
   /// Defined by JSON RPC
-  static const ParseError = const ErrorCodes(-32700);
-  static const InvalidRequest = const ErrorCodes(-32600);
-  static const MethodNotFound = const ErrorCodes(-32601);
-  static const InvalidParams = const ErrorCodes(-32602);
-  static const InternalError = const ErrorCodes(-32603);
-  static const serverErrorStart = const ErrorCodes(-32099);
-  static const serverErrorEnd = const ErrorCodes(-32000);
-  static const ServerNotInitialized = const ErrorCodes(-32002);
-  static const UnknownErrorCode = const ErrorCodes(-32001);
+  static const ParseError = ErrorCodes(-32700);
+  static const InvalidRequest = ErrorCodes(-32600);
+  static const MethodNotFound = ErrorCodes(-32601);
+  static const InvalidParams = ErrorCodes(-32602);
+  static const InternalError = ErrorCodes(-32603);
+  static const serverErrorStart = ErrorCodes(-32099);
+  static const serverErrorEnd = ErrorCodes(-32000);
+  static const ServerNotInitialized = ErrorCodes(-32002);
+  static const UnknownErrorCode = ErrorCodes(-32001);
 
   /// Defined by the protocol.
-  static const RequestCancelled = const ErrorCodes(-32800);
-  static const ContentModified = const ErrorCodes(-32801);
+  static const RequestCancelled = ErrorCodes(-32800);
+  static const ContentModified = ErrorCodes(-32801);
 
   Object toJson() => _value;
 
@@ -6100,7 +6096,7 @@ class ErrorCodes {
 
 /// Execute command options.
 class ExecuteCommandOptions implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       ExecuteCommandOptions.canParse, ExecuteCommandOptions.fromJson);
 
   ExecuteCommandOptions(this.commands) {
@@ -6173,7 +6169,7 @@ class ExecuteCommandOptions implements ToJsonable {
 }
 
 class ExecuteCommandParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       ExecuteCommandParams.canParse, ExecuteCommandParams.fromJson);
 
   ExecuteCommandParams(this.command, this.arguments) {
@@ -6266,7 +6262,7 @@ class ExecuteCommandParams implements ToJsonable {
 
 /// Execute command registration options.
 class ExecuteCommandRegistrationOptions implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       ExecuteCommandRegistrationOptions.canParse,
       ExecuteCommandRegistrationOptions.fromJson);
 
@@ -6359,21 +6355,21 @@ class FailureHandlingKind {
   /// Applying the workspace change is simply aborted if one of the changes
   /// provided fails. All operations executed before the failing operation stay
   /// executed.
-  static const Abort = const FailureHandlingKind._('abort');
+  static const Abort = FailureHandlingKind._('abort');
 
   /// All operations are executed transactionally. That means they either all
   /// succeed or no changes at all are applied to the workspace.
-  static const Transactional = const FailureHandlingKind._('transactional');
+  static const Transactional = FailureHandlingKind._('transactional');
 
   /// If the workspace edit contains only textual file changes they are executed
   /// transactionally. If resource changes (create, rename or delete file) are
   /// part of the change the failure handling strategy is abort.
   static const TextOnlyTransactional =
-      const FailureHandlingKind._('textOnlyTransactional');
+      FailureHandlingKind._('textOnlyTransactional');
 
   /// The client tries to undo the operations already executed. But there is no
   /// guarantee that this succeeds.
-  static const Undo = const FailureHandlingKind._('undo');
+  static const Undo = FailureHandlingKind._('undo');
 
   Object toJson() => _value;
 
@@ -6398,13 +6394,13 @@ class FileChangeType {
   }
 
   /// The file got created.
-  static const Created = const FileChangeType(1);
+  static const Created = FileChangeType(1);
 
   /// The file got changed.
-  static const Changed = const FileChangeType(2);
+  static const Changed = FileChangeType(2);
 
   /// The file got deleted.
-  static const Deleted = const FileChangeType(3);
+  static const Deleted = FileChangeType(3);
 
   Object toJson() => _value;
 
@@ -6420,7 +6416,7 @@ class FileChangeType {
 /// An event describing a file change.
 class FileEvent implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(FileEvent.canParse, FileEvent.fromJson);
+      LspJsonHandler(FileEvent.canParse, FileEvent.fromJson);
 
   FileEvent(this.uri, this.type) {
     if (uri == null) {
@@ -6513,8 +6509,8 @@ class FileEvent implements ToJsonable {
 }
 
 class FileSystemWatcher implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      FileSystemWatcher.canParse, FileSystemWatcher.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(FileSystemWatcher.canParse, FileSystemWatcher.fromJson);
 
   FileSystemWatcher(this.globPattern, this.kind) {
     if (globPattern == null) {
@@ -6615,7 +6611,7 @@ class FileSystemWatcher implements ToJsonable {
 /// Represents a folding range.
 class FoldingRange implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(FoldingRange.canParse, FoldingRange.fromJson);
+      LspJsonHandler(FoldingRange.canParse, FoldingRange.fromJson);
 
   FoldingRange(this.startLine, this.startCharacter, this.endLine,
       this.endCharacter, this.kind) {
@@ -6785,13 +6781,13 @@ class FoldingRangeKind {
   }
 
   /// Folding range for a comment
-  static const Comment = const FoldingRangeKind(r'comment');
+  static const Comment = FoldingRangeKind(r'comment');
 
   /// Folding range for a imports or includes
-  static const Imports = const FoldingRangeKind(r'imports');
+  static const Imports = FoldingRangeKind(r'imports');
 
   /// Folding range for a region (e.g. `#region`)
-  static const Region = const FoldingRangeKind(r'region');
+  static const Region = FoldingRangeKind(r'region');
 
   Object toJson() => _value;
 
@@ -6805,8 +6801,8 @@ class FoldingRangeKind {
 }
 
 class FoldingRangeParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      FoldingRangeParams.canParse, FoldingRangeParams.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(FoldingRangeParams.canParse, FoldingRangeParams.fromJson);
 
   FoldingRangeParams(this.textDocument) {
     if (textDocument == null) {
@@ -6877,7 +6873,7 @@ class FoldingRangeParams implements ToJsonable {
 
 /// Folding range provider options.
 class FoldingRangeProviderOptions implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       FoldingRangeProviderOptions.canParse,
       FoldingRangeProviderOptions.fromJson);
 
@@ -6919,8 +6915,8 @@ class FoldingRangeProviderOptions implements ToJsonable {
 
 /// Value-object describing what options formatting should use.
 class FormattingOptions implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      FormattingOptions.canParse, FormattingOptions.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(FormattingOptions.canParse, FormattingOptions.fromJson);
 
   FormattingOptions(this.tabSize, this.insertSpaces) {
     if (tabSize == null) {
@@ -7018,8 +7014,7 @@ class FormattingOptions implements ToJsonable {
 
 /// The result of a hover request.
 class Hover implements ToJsonable {
-  static const jsonHandler =
-      const LspJsonHandler(Hover.canParse, Hover.fromJson);
+  static const jsonHandler = LspJsonHandler(Hover.canParse, Hover.fromJson);
 
   Hover(this.contents, this.range) {
     if (contents == null) {
@@ -7113,8 +7108,8 @@ class Hover implements ToJsonable {
 }
 
 class InitializeParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      InitializeParams.canParse, InitializeParams.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(InitializeParams.canParse, InitializeParams.fromJson);
 
   InitializeParams(
       this.processId,
@@ -7323,8 +7318,8 @@ class InitializeParams implements ToJsonable {
 }
 
 class InitializeResult implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      InitializeResult.canParse, InitializeResult.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(InitializeResult.canParse, InitializeResult.fromJson);
 
   InitializeResult(this.capabilities) {
     if (capabilities == null) {
@@ -7394,8 +7389,8 @@ class InitializeResult implements ToJsonable {
 }
 
 class InitializedParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      InitializedParams.canParse, InitializedParams.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(InitializedParams.canParse, InitializedParams.fromJson);
 
   static InitializedParams fromJson(Map<String, dynamic> json) {
     return InitializedParams();
@@ -7451,7 +7446,7 @@ class InsertTextFormat {
   }
 
   /// The primary text to be inserted is treated as a plain string.
-  static const PlainText = const InsertTextFormat._(1);
+  static const PlainText = InsertTextFormat._(1);
 
   /// The primary text to be inserted is treated as a snippet.
   ///
@@ -7459,7 +7454,7 @@ class InsertTextFormat {
   /// `${3:foo}`. `$0` defines the final tab stop, it defaults to the end of the
   /// snippet. Placeholders with equal identifiers are linked, that is typing in
   /// one will update others too.
-  static const Snippet = const InsertTextFormat._(2);
+  static const Snippet = InsertTextFormat._(2);
 
   Object toJson() => _value;
 
@@ -7474,7 +7469,7 @@ class InsertTextFormat {
 
 class Location implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(Location.canParse, Location.fromJson);
+      LspJsonHandler(Location.canParse, Location.fromJson);
 
   Location(this.uri, this.range) {
     if (uri == null) {
@@ -7565,7 +7560,7 @@ class Location implements ToJsonable {
 
 class LocationLink implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(LocationLink.canParse, LocationLink.fromJson);
+      LspJsonHandler(LocationLink.canParse, LocationLink.fromJson);
 
   LocationLink(this.originSelectionRange, this.targetUri, this.targetRange,
       this.targetSelectionRange) {
@@ -7725,8 +7720,8 @@ class LocationLink implements ToJsonable {
 }
 
 class LogMessageParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      LogMessageParams.canParse, LogMessageParams.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(LogMessageParams.canParse, LogMessageParams.fromJson);
 
   LogMessageParams(this.type, this.message) {
     if (type == null) {
@@ -7844,7 +7839,7 @@ class LogMessageParams implements ToJsonable {
 /// could decide to remove HTML from the markdown to avoid script execution.
 class MarkupContent implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(MarkupContent.canParse, MarkupContent.fromJson);
+      LspJsonHandler(MarkupContent.canParse, MarkupContent.fromJson);
 
   MarkupContent(this.kind, this.value) {
     if (kind == null) {
@@ -7958,10 +7953,10 @@ class MarkupKind {
   }
 
   /// Plain text is supported as a content format
-  static const PlainText = const MarkupKind._(r'plaintext');
+  static const PlainText = MarkupKind._(r'plaintext');
 
   /// Markdown is supported as a content format
-  static const Markdown = const MarkupKind._(r'markdown');
+  static const Markdown = MarkupKind._(r'markdown');
 
   Object toJson() => _value;
 
@@ -7975,8 +7970,7 @@ class MarkupKind {
 }
 
 class Message implements ToJsonable {
-  static const jsonHandler =
-      const LspJsonHandler(Message.canParse, Message.fromJson);
+  static const jsonHandler = LspJsonHandler(Message.canParse, Message.fromJson);
 
   Message(this.jsonrpc) {
     if (jsonrpc == null) {
@@ -8052,8 +8046,8 @@ class Message implements ToJsonable {
 }
 
 class MessageActionItem implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      MessageActionItem.canParse, MessageActionItem.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(MessageActionItem.canParse, MessageActionItem.fromJson);
 
   MessageActionItem(this.title) {
     if (title == null) {
@@ -8130,16 +8124,16 @@ class MessageType {
   }
 
   /// An error message.
-  static const Error = const MessageType(1);
+  static const Error = MessageType(1);
 
   /// A warning message.
-  static const Warning = const MessageType(2);
+  static const Warning = MessageType(2);
 
   /// An information message.
-  static const Info = const MessageType(3);
+  static const Info = MessageType(3);
 
   /// A log message.
-  static const Log = const MessageType(4);
+  static const Log = MessageType(4);
 
   Object toJson() => _value;
 
@@ -8164,172 +8158,160 @@ class Method {
   }
 
   /// Constant for the '$/cancelRequest' method.
-  static const cancelRequest = const Method(r'$/cancelRequest');
+  static const cancelRequest = Method(r'$/cancelRequest');
 
   /// Constant for the 'initialize' method.
-  static const initialize = const Method(r'initialize');
+  static const initialize = Method(r'initialize');
 
   /// Constant for the 'initialized' method.
-  static const initialized = const Method(r'initialized');
+  static const initialized = Method(r'initialized');
 
   /// Constant for the 'shutdown' method.
-  static const shutdown = const Method(r'shutdown');
+  static const shutdown = Method(r'shutdown');
 
   /// Constant for the 'exit' method.
-  static const exit = const Method(r'exit');
+  static const exit = Method(r'exit');
 
   /// Constant for the 'window/showMessage' method.
-  static const window_showMessage = const Method(r'window/showMessage');
+  static const window_showMessage = Method(r'window/showMessage');
 
   /// Constant for the 'window/showMessageRequest' method.
-  static const window_showMessageRequest =
-      const Method(r'window/showMessageRequest');
+  static const window_showMessageRequest = Method(r'window/showMessageRequest');
 
   /// Constant for the 'window/logMessage' method.
-  static const window_logMessage = const Method(r'window/logMessage');
+  static const window_logMessage = Method(r'window/logMessage');
 
   /// Constant for the 'telemetry/event' method.
-  static const telemetry_event = const Method(r'telemetry/event');
+  static const telemetry_event = Method(r'telemetry/event');
 
   /// Constant for the 'client/registerCapability' method.
-  static const client_registerCapability =
-      const Method(r'client/registerCapability');
+  static const client_registerCapability = Method(r'client/registerCapability');
 
   /// Constant for the 'client/unregisterCapability' method.
   static const client_unregisterCapability =
-      const Method(r'client/unregisterCapability');
+      Method(r'client/unregisterCapability');
 
   /// Constant for the 'workspace/workspaceFolders' method.
   static const workspace_workspaceFolders =
-      const Method(r'workspace/workspaceFolders');
+      Method(r'workspace/workspaceFolders');
 
   /// Constant for the 'workspace/didChangeWorkspaceFolders' method.
   static const workspace_didChangeWorkspaceFolders =
-      const Method(r'workspace/didChangeWorkspaceFolders');
+      Method(r'workspace/didChangeWorkspaceFolders');
 
   /// Constant for the 'workspace/configuration' method.
-  static const workspace_configuration =
-      const Method(r'workspace/configuration');
+  static const workspace_configuration = Method(r'workspace/configuration');
 
   /// Constant for the 'workspace/didChangeWatchedFiles' method.
   static const workspace_didChangeWatchedFiles =
-      const Method(r'workspace/didChangeWatchedFiles');
+      Method(r'workspace/didChangeWatchedFiles');
 
   /// Constant for the 'workspace/symbol' method.
-  static const workspace_symbol = const Method(r'workspace/symbol');
+  static const workspace_symbol = Method(r'workspace/symbol');
 
   /// Constant for the 'workspace/executeCommand' method.
-  static const workspace_executeCommand =
-      const Method(r'workspace/executeCommand');
+  static const workspace_executeCommand = Method(r'workspace/executeCommand');
 
   /// Constant for the 'workspace/applyEdit' method.
-  static const workspace_applyEdit = const Method(r'workspace/applyEdit');
+  static const workspace_applyEdit = Method(r'workspace/applyEdit');
 
   /// Constant for the 'textDocument/didOpen' method.
-  static const textDocument_didOpen = const Method(r'textDocument/didOpen');
+  static const textDocument_didOpen = Method(r'textDocument/didOpen');
 
   /// Constant for the 'textDocument/didChange' method.
-  static const textDocument_didChange = const Method(r'textDocument/didChange');
+  static const textDocument_didChange = Method(r'textDocument/didChange');
 
   /// Constant for the 'textDocument/willSave' method.
-  static const textDocument_willSave = const Method(r'textDocument/willSave');
+  static const textDocument_willSave = Method(r'textDocument/willSave');
 
   /// Constant for the 'textDocument/willSaveWaitUntil' method.
   static const textDocument_willSaveWaitUntil =
-      const Method(r'textDocument/willSaveWaitUntil');
+      Method(r'textDocument/willSaveWaitUntil');
 
   /// Constant for the 'textDocument/didClose' method.
-  static const textDocument_didClose = const Method(r'textDocument/didClose');
+  static const textDocument_didClose = Method(r'textDocument/didClose');
 
   /// Constant for the 'textDocument/publishDiagnostics' method.
   static const textDocument_publishDiagnostics =
-      const Method(r'textDocument/publishDiagnostics');
+      Method(r'textDocument/publishDiagnostics');
 
   /// Constant for the 'textDocument/completion' method.
-  static const textDocument_completion =
-      const Method(r'textDocument/completion');
+  static const textDocument_completion = Method(r'textDocument/completion');
 
   /// Constant for the 'completionItem/resolve' method.
-  static const completionItem_resolve = const Method(r'completionItem/resolve');
+  static const completionItem_resolve = Method(r'completionItem/resolve');
 
   /// Constant for the 'textDocument/hover' method.
-  static const textDocument_hover = const Method(r'textDocument/hover');
+  static const textDocument_hover = Method(r'textDocument/hover');
 
   /// Constant for the 'textDocument/signatureHelp' method.
   static const textDocument_signatureHelp =
-      const Method(r'textDocument/signatureHelp');
+      Method(r'textDocument/signatureHelp');
 
   /// Constant for the 'textDocument/declaration' method.
-  static const textDocument_declaration =
-      const Method(r'textDocument/declaration');
+  static const textDocument_declaration = Method(r'textDocument/declaration');
 
   /// Constant for the 'textDocument/definition' method.
-  static const textDocument_definition =
-      const Method(r'textDocument/definition');
+  static const textDocument_definition = Method(r'textDocument/definition');
 
   /// Constant for the 'textDocument/typeDefinition' method.
   static const textDocument_typeDefinition =
-      const Method(r'textDocument/typeDefinition');
+      Method(r'textDocument/typeDefinition');
 
   /// Constant for the 'textDocument/implementation' method.
   static const textDocument_implementation =
-      const Method(r'textDocument/implementation');
+      Method(r'textDocument/implementation');
 
   /// Constant for the 'textDocument/references' method.
-  static const textDocument_references =
-      const Method(r'textDocument/references');
+  static const textDocument_references = Method(r'textDocument/references');
 
   /// Constant for the 'textDocument/documentHighlight' method.
   static const textDocument_documentHighlight =
-      const Method(r'textDocument/documentHighlight');
+      Method(r'textDocument/documentHighlight');
 
   /// Constant for the 'textDocument/documentSymbol' method.
   static const textDocument_documentSymbol =
-      const Method(r'textDocument/documentSymbol');
+      Method(r'textDocument/documentSymbol');
 
   /// Constant for the 'textDocument/codeAction' method.
-  static const textDocument_codeAction =
-      const Method(r'textDocument/codeAction');
+  static const textDocument_codeAction = Method(r'textDocument/codeAction');
 
   /// Constant for the 'textDocument/codeLens' method.
-  static const textDocument_codeLens = const Method(r'textDocument/codeLens');
+  static const textDocument_codeLens = Method(r'textDocument/codeLens');
 
   /// Constant for the 'codeLens/resolve' method.
-  static const codeLens_resolve = const Method(r'codeLens/resolve');
+  static const codeLens_resolve = Method(r'codeLens/resolve');
 
   /// Constant for the 'textDocument/documentLink' method.
-  static const textDocument_documentLink =
-      const Method(r'textDocument/documentLink');
+  static const textDocument_documentLink = Method(r'textDocument/documentLink');
 
   /// Constant for the 'documentLink/resolve' method.
-  static const documentLink_resolve = const Method(r'documentLink/resolve');
+  static const documentLink_resolve = Method(r'documentLink/resolve');
 
   /// Constant for the 'textDocument/documentColor' method.
   static const textDocument_documentColor =
-      const Method(r'textDocument/documentColor');
+      Method(r'textDocument/documentColor');
 
   /// Constant for the 'textDocument/colorPresentation' method.
   static const textDocument_colorPresentation =
-      const Method(r'textDocument/colorPresentation');
+      Method(r'textDocument/colorPresentation');
 
   /// Constant for the 'textDocument/formatting' method.
-  static const textDocument_formatting =
-      const Method(r'textDocument/formatting');
+  static const textDocument_formatting = Method(r'textDocument/formatting');
 
   /// Constant for the 'textDocument/onTypeFormatting' method.
   static const textDocument_onTypeFormatting =
-      const Method(r'textDocument/onTypeFormatting');
+      Method(r'textDocument/onTypeFormatting');
 
   /// Constant for the 'textDocument/rename' method.
-  static const textDocument_rename = const Method(r'textDocument/rename');
+  static const textDocument_rename = Method(r'textDocument/rename');
 
   /// Constant for the 'textDocument/prepareRename' method.
   static const textDocument_prepareRename =
-      const Method(r'textDocument/prepareRename');
+      Method(r'textDocument/prepareRename');
 
   /// Constant for the 'textDocument/foldingRange' method.
-  static const textDocument_foldingRange =
-      const Method(r'textDocument/foldingRange');
+  static const textDocument_foldingRange = Method(r'textDocument/foldingRange');
 
   Object toJson() => _value;
 
@@ -8343,7 +8325,7 @@ class Method {
 }
 
 class NotificationMessage implements Message, IncomingMessage, ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       NotificationMessage.canParse, NotificationMessage.fromJson);
 
   NotificationMessage(this.method, this.params, this.jsonrpc) {
@@ -8460,7 +8442,7 @@ class NotificationMessage implements Message, IncomingMessage, ToJsonable {
 /// Represents a parameter of a callable-signature. A parameter can have a label
 /// and a doc-comment.
 class ParameterInformation implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       ParameterInformation.canParse, ParameterInformation.fromJson);
 
   ParameterInformation(this.label, this.documentation) {
@@ -8569,7 +8551,7 @@ class ParameterInformation implements ToJsonable {
 
 class Position implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(Position.canParse, Position.fromJson);
+      LspJsonHandler(Position.canParse, Position.fromJson);
 
   Position(this.line, this.character) {
     if (line == null) {
@@ -8668,7 +8650,7 @@ class Position implements ToJsonable {
 }
 
 class PublishDiagnosticsParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       PublishDiagnosticsParams.canParse, PublishDiagnosticsParams.fromJson);
 
   PublishDiagnosticsParams(this.uri, this.diagnostics) {
@@ -8771,8 +8753,7 @@ class PublishDiagnosticsParams implements ToJsonable {
 }
 
 class Range implements ToJsonable {
-  static const jsonHandler =
-      const LspJsonHandler(Range.canParse, Range.fromJson);
+  static const jsonHandler = LspJsonHandler(Range.canParse, Range.fromJson);
 
   Range(this.start, this.end) {
     if (start == null) {
@@ -8866,7 +8847,7 @@ class Range implements ToJsonable {
 }
 
 class RangeAndPlaceholder implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       RangeAndPlaceholder.canParse, RangeAndPlaceholder.fromJson);
 
   RangeAndPlaceholder(this.range, this.placeholder) {
@@ -8958,8 +8939,8 @@ class RangeAndPlaceholder implements ToJsonable {
 }
 
 class ReferenceContext implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      ReferenceContext.canParse, ReferenceContext.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(ReferenceContext.canParse, ReferenceContext.fromJson);
 
   ReferenceContext(this.includeDeclaration) {
     if (includeDeclaration == null) {
@@ -9028,7 +9009,7 @@ class ReferenceContext implements ToJsonable {
 
 class ReferenceParams implements TextDocumentPositionParams, ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(ReferenceParams.canParse, ReferenceParams.fromJson);
+      LspJsonHandler(ReferenceParams.canParse, ReferenceParams.fromJson);
 
   ReferenceParams(this.context, this.textDocument, this.position) {
     if (context == null) {
@@ -9159,7 +9140,7 @@ class ReferenceParams implements TextDocumentPositionParams, ToJsonable {
 /// General parameters to register for a capability.
 class Registration implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(Registration.canParse, Registration.fromJson);
+      LspJsonHandler(Registration.canParse, Registration.fromJson);
 
   Registration(this.id, this.method, this.registerOptions) {
     if (id == null) {
@@ -9273,8 +9254,8 @@ class Registration implements ToJsonable {
 }
 
 class RegistrationParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      RegistrationParams.canParse, RegistrationParams.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(RegistrationParams.canParse, RegistrationParams.fromJson);
 
   RegistrationParams(this.registrations) {
     if (registrations == null) {
@@ -9350,7 +9331,7 @@ class RegistrationParams implements ToJsonable {
 /// Rename file operation
 class RenameFile implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(RenameFile.canParse, RenameFile.fromJson);
+      LspJsonHandler(RenameFile.canParse, RenameFile.fromJson);
 
   RenameFile(this.kind, this.oldUri, this.newUri, this.options) {
     if (kind == null) {
@@ -9494,8 +9475,8 @@ class RenameFile implements ToJsonable {
 
 /// Rename file options
 class RenameFileOptions implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      RenameFileOptions.canParse, RenameFileOptions.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(RenameFileOptions.canParse, RenameFileOptions.fromJson);
 
   RenameFileOptions(this.overwrite, this.ignoreIfExists);
   static RenameFileOptions fromJson(Map<String, dynamic> json) {
@@ -9573,7 +9554,7 @@ class RenameFileOptions implements ToJsonable {
 /// Rename options
 class RenameOptions implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(RenameOptions.canParse, RenameOptions.fromJson);
+      LspJsonHandler(RenameOptions.canParse, RenameOptions.fromJson);
 
   RenameOptions(this.prepareProvider);
   static RenameOptions fromJson(Map<String, dynamic> json) {
@@ -9632,7 +9613,7 @@ class RenameOptions implements ToJsonable {
 
 class RenameParams implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(RenameParams.canParse, RenameParams.fromJson);
+      LspJsonHandler(RenameParams.canParse, RenameParams.fromJson);
 
   RenameParams(this.textDocument, this.position, this.newName) {
     if (textDocument == null) {
@@ -9762,7 +9743,7 @@ class RenameParams implements ToJsonable {
 
 class RenameRegistrationOptions
     implements TextDocumentRegistrationOptions, ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       RenameRegistrationOptions.canParse, RenameRegistrationOptions.fromJson);
 
   RenameRegistrationOptions(this.prepareProvider, this.documentSelector);
@@ -9850,7 +9831,7 @@ class RenameRegistrationOptions
 
 class RequestMessage implements Message, IncomingMessage, ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(RequestMessage.canParse, RequestMessage.fromJson);
+      LspJsonHandler(RequestMessage.canParse, RequestMessage.fromJson);
 
   RequestMessage(this.id, this.method, this.params, this.jsonrpc) {
     if (id == null) {
@@ -10010,13 +9991,13 @@ class ResourceOperationKind {
   }
 
   /// Supports creating new files and folders.
-  static const Create = const ResourceOperationKind._('create');
+  static const Create = ResourceOperationKind._('create');
 
   /// Supports renaming existing files and folders.
-  static const Rename = const ResourceOperationKind._('rename');
+  static const Rename = ResourceOperationKind._('rename');
 
   /// Supports deleting existing files and folders.
-  static const Delete = const ResourceOperationKind._('delete');
+  static const Delete = ResourceOperationKind._('delete');
 
   Object toJson() => _value;
 
@@ -10032,7 +10013,7 @@ class ResourceOperationKind {
 
 class ResponseError<D> implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(ResponseError.canParse, ResponseError.fromJson);
+      LspJsonHandler(ResponseError.canParse, ResponseError.fromJson);
 
   ResponseError(this.code, this.message, this.data) {
     if (code == null) {
@@ -10149,7 +10130,7 @@ class ResponseError<D> implements ToJsonable {
 
 class ResponseMessage implements Message, ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(ResponseMessage.canParse, ResponseMessage.fromJson);
+      LspJsonHandler(ResponseMessage.canParse, ResponseMessage.fromJson);
 
   ResponseMessage(this.id, this.result, this.error, this.jsonrpc) {
     if (jsonrpc == null) {
@@ -10285,7 +10266,7 @@ class ResponseMessage implements Message, ToJsonable {
 /// Save options.
 class SaveOptions implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(SaveOptions.canParse, SaveOptions.fromJson);
+      LspJsonHandler(SaveOptions.canParse, SaveOptions.fromJson);
 
   SaveOptions(this.includeText);
   static SaveOptions fromJson(Map<String, dynamic> json) {
@@ -10342,8 +10323,8 @@ class SaveOptions implements ToJsonable {
 }
 
 class ServerCapabilities implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      ServerCapabilities.canParse, ServerCapabilities.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(ServerCapabilities.canParse, ServerCapabilities.fromJson);
 
   ServerCapabilities(
       this.textDocumentSync,
@@ -10962,7 +10943,7 @@ class ServerCapabilities implements ToJsonable {
 }
 
 class ServerCapabilitiesWorkspace implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       ServerCapabilitiesWorkspace.canParse,
       ServerCapabilitiesWorkspace.fromJson);
 
@@ -11028,7 +11009,7 @@ class ServerCapabilitiesWorkspace implements ToJsonable {
 }
 
 class ServerCapabilitiesWorkspaceFolders implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       ServerCapabilitiesWorkspaceFolders.canParse,
       ServerCapabilitiesWorkspaceFolders.fromJson);
 
@@ -11114,8 +11095,8 @@ class ServerCapabilitiesWorkspaceFolders implements ToJsonable {
 }
 
 class ShowMessageParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      ShowMessageParams.canParse, ShowMessageParams.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(ShowMessageParams.canParse, ShowMessageParams.fromJson);
 
   ShowMessageParams(this.type, this.message) {
     if (type == null) {
@@ -11210,7 +11191,7 @@ class ShowMessageParams implements ToJsonable {
 }
 
 class ShowMessageRequestParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       ShowMessageRequestParams.canParse, ShowMessageRequestParams.fromJson);
 
   ShowMessageRequestParams(this.type, this.message, this.actions) {
@@ -11336,7 +11317,7 @@ class ShowMessageRequestParams implements ToJsonable {
 /// multiple signature but only one active and only one active parameter.
 class SignatureHelp implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(SignatureHelp.canParse, SignatureHelp.fromJson);
+      LspJsonHandler(SignatureHelp.canParse, SignatureHelp.fromJson);
 
   SignatureHelp(this.signatures, this.activeSignature, this.activeParameter) {
     if (signatures == null) {
@@ -11461,7 +11442,7 @@ class SignatureHelp implements ToJsonable {
 
 /// Signature help options.
 class SignatureHelpOptions implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       SignatureHelpOptions.canParse, SignatureHelpOptions.fromJson);
 
   SignatureHelpOptions(this.triggerCharacters);
@@ -11527,7 +11508,7 @@ class SignatureHelpOptions implements ToJsonable {
 
 class SignatureHelpRegistrationOptions
     implements TextDocumentRegistrationOptions, ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       SignatureHelpRegistrationOptions.canParse,
       SignatureHelpRegistrationOptions.fromJson);
 
@@ -11624,7 +11605,7 @@ class SignatureHelpRegistrationOptions
 /// Represents the signature of something callable. A signature can have a
 /// label, like a function-name, a doc-comment, and a set of parameters.
 class SignatureInformation implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       SignatureInformation.canParse, SignatureInformation.fromJson);
 
   SignatureInformation(this.label, this.documentation, this.parameters) {
@@ -11750,7 +11731,7 @@ class SignatureInformation implements ToJsonable {
 
 /// Static registration options to be returned in the initialize request.
 class StaticRegistrationOptions implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       StaticRegistrationOptions.canParse, StaticRegistrationOptions.fromJson);
 
   StaticRegistrationOptions(this.id);
@@ -11811,8 +11792,8 @@ class StaticRegistrationOptions implements ToJsonable {
 /// Represents information about programming constructs like variables, classes,
 /// interfaces etc.
 class SymbolInformation implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      SymbolInformation.canParse, SymbolInformation.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(SymbolInformation.canParse, SymbolInformation.fromJson);
 
   SymbolInformation(this.name, this.kind, this.deprecated, this.location,
       this.containerName) {
@@ -11995,32 +11976,32 @@ class SymbolKind {
     return obj is num;
   }
 
-  static const File = const SymbolKind(1);
-  static const Module = const SymbolKind(2);
-  static const Namespace = const SymbolKind(3);
-  static const Package = const SymbolKind(4);
-  static const Class = const SymbolKind(5);
-  static const Method = const SymbolKind(6);
-  static const Property = const SymbolKind(7);
-  static const Field = const SymbolKind(8);
-  static const Constructor = const SymbolKind(9);
-  static const Enum = const SymbolKind(10);
-  static const Interface = const SymbolKind(11);
-  static const Function = const SymbolKind(12);
-  static const Variable = const SymbolKind(13);
-  static const Constant = const SymbolKind(14);
-  static const Str = const SymbolKind(15);
-  static const Number = const SymbolKind(16);
-  static const Boolean = const SymbolKind(17);
-  static const Array = const SymbolKind(18);
-  static const Obj = const SymbolKind(19);
-  static const Key = const SymbolKind(20);
-  static const Null = const SymbolKind(21);
-  static const EnumMember = const SymbolKind(22);
-  static const Struct = const SymbolKind(23);
-  static const Event = const SymbolKind(24);
-  static const Operator = const SymbolKind(25);
-  static const TypeParameter = const SymbolKind(26);
+  static const File = SymbolKind(1);
+  static const Module = SymbolKind(2);
+  static const Namespace = SymbolKind(3);
+  static const Package = SymbolKind(4);
+  static const Class = SymbolKind(5);
+  static const Method = SymbolKind(6);
+  static const Property = SymbolKind(7);
+  static const Field = SymbolKind(8);
+  static const Constructor = SymbolKind(9);
+  static const Enum = SymbolKind(10);
+  static const Interface = SymbolKind(11);
+  static const Function = SymbolKind(12);
+  static const Variable = SymbolKind(13);
+  static const Constant = SymbolKind(14);
+  static const Str = SymbolKind(15);
+  static const Number = SymbolKind(16);
+  static const Boolean = SymbolKind(17);
+  static const Array = SymbolKind(18);
+  static const Obj = SymbolKind(19);
+  static const Key = SymbolKind(20);
+  static const Null = SymbolKind(21);
+  static const EnumMember = SymbolKind(22);
+  static const Struct = SymbolKind(23);
+  static const Event = SymbolKind(24);
+  static const Operator = SymbolKind(25);
+  static const TypeParameter = SymbolKind(26);
 
   Object toJson() => _value;
 
@@ -12037,7 +12018,7 @@ class SymbolKind {
 /// events.
 class TextDocumentChangeRegistrationOptions
     implements TextDocumentRegistrationOptions, ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentChangeRegistrationOptions.canParse,
       TextDocumentChangeRegistrationOptions.fromJson);
 
@@ -12141,7 +12122,7 @@ class TextDocumentChangeRegistrationOptions
 
 /// Text document specific client capabilities.
 class TextDocumentClientCapabilities implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilities.canParse,
       TextDocumentClientCapabilities.fromJson);
 
@@ -12730,7 +12711,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesCodeAction implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesCodeAction.canParse,
       TextDocumentClientCapabilitiesCodeAction.fromJson);
 
@@ -12823,7 +12804,7 @@ class TextDocumentClientCapabilitiesCodeAction implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesCodeActionKind implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesCodeActionKind.canParse,
       TextDocumentClientCapabilitiesCodeActionKind.fromJson);
 
@@ -12905,7 +12886,7 @@ class TextDocumentClientCapabilitiesCodeActionKind implements ToJsonable {
 
 class TextDocumentClientCapabilitiesCodeActionLiteralSupport
     implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesCodeActionLiteralSupport.canParse,
       TextDocumentClientCapabilitiesCodeActionLiteralSupport.fromJson);
 
@@ -12983,7 +12964,7 @@ class TextDocumentClientCapabilitiesCodeActionLiteralSupport
 }
 
 class TextDocumentClientCapabilitiesCodeLens implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesCodeLens.canParse,
       TextDocumentClientCapabilitiesCodeLens.fromJson);
 
@@ -13045,7 +13026,7 @@ class TextDocumentClientCapabilitiesCodeLens implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesColorProvider implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesColorProvider.canParse,
       TextDocumentClientCapabilitiesColorProvider.fromJson);
 
@@ -13110,7 +13091,7 @@ class TextDocumentClientCapabilitiesColorProvider implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesCompletion implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesCompletion.canParse,
       TextDocumentClientCapabilitiesCompletion.fromJson);
 
@@ -13240,7 +13221,7 @@ class TextDocumentClientCapabilitiesCompletion implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesCompletionItem implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesCompletionItem.canParse,
       TextDocumentClientCapabilitiesCompletionItem.fromJson);
 
@@ -13400,7 +13381,7 @@ class TextDocumentClientCapabilitiesCompletionItem implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesCompletionItemKind implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesCompletionItemKind.canParse,
       TextDocumentClientCapabilitiesCompletionItemKind.fromJson);
 
@@ -13475,7 +13456,7 @@ class TextDocumentClientCapabilitiesCompletionItemKind implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesDeclaration implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesDeclaration.canParse,
       TextDocumentClientCapabilitiesDeclaration.fromJson);
 
@@ -13563,7 +13544,7 @@ class TextDocumentClientCapabilitiesDeclaration implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesDefinition implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesDefinition.canParse,
       TextDocumentClientCapabilitiesDefinition.fromJson);
 
@@ -13646,7 +13627,7 @@ class TextDocumentClientCapabilitiesDefinition implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesDocumentHighlight implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesDocumentHighlight.canParse,
       TextDocumentClientCapabilitiesDocumentHighlight.fromJson);
 
@@ -13708,7 +13689,7 @@ class TextDocumentClientCapabilitiesDocumentHighlight implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesDocumentLink implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesDocumentLink.canParse,
       TextDocumentClientCapabilitiesDocumentLink.fromJson);
 
@@ -13770,7 +13751,7 @@ class TextDocumentClientCapabilitiesDocumentLink implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesDocumentSymbol implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesDocumentSymbol.canParse,
       TextDocumentClientCapabilitiesDocumentSymbol.fromJson);
 
@@ -13881,7 +13862,7 @@ class TextDocumentClientCapabilitiesDocumentSymbol implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesFoldingRange implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesFoldingRange.canParse,
       TextDocumentClientCapabilitiesFoldingRange.fromJson);
 
@@ -13991,7 +13972,7 @@ class TextDocumentClientCapabilitiesFoldingRange implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesFormatting implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesFormatting.canParse,
       TextDocumentClientCapabilitiesFormatting.fromJson);
 
@@ -14053,7 +14034,7 @@ class TextDocumentClientCapabilitiesFormatting implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesHover implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesHover.canParse,
       TextDocumentClientCapabilitiesHover.fromJson);
 
@@ -14144,7 +14125,7 @@ class TextDocumentClientCapabilitiesHover implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesImplementation implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesImplementation.canParse,
       TextDocumentClientCapabilitiesImplementation.fromJson);
 
@@ -14232,7 +14213,7 @@ class TextDocumentClientCapabilitiesImplementation implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesOnTypeFormatting implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesOnTypeFormatting.canParse,
       TextDocumentClientCapabilitiesOnTypeFormatting.fromJson);
 
@@ -14294,7 +14275,7 @@ class TextDocumentClientCapabilitiesOnTypeFormatting implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesParameterInformation implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesParameterInformation.canParse,
       TextDocumentClientCapabilitiesParameterInformation.fromJson);
 
@@ -14360,7 +14341,7 @@ class TextDocumentClientCapabilitiesParameterInformation implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesPublishDiagnostics implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesPublishDiagnostics.canParse,
       TextDocumentClientCapabilitiesPublishDiagnostics.fromJson);
 
@@ -14422,7 +14403,7 @@ class TextDocumentClientCapabilitiesPublishDiagnostics implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesRangeFormatting implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesRangeFormatting.canParse,
       TextDocumentClientCapabilitiesRangeFormatting.fromJson);
 
@@ -14484,7 +14465,7 @@ class TextDocumentClientCapabilitiesRangeFormatting implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesReferences implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesReferences.canParse,
       TextDocumentClientCapabilitiesReferences.fromJson);
 
@@ -14546,7 +14527,7 @@ class TextDocumentClientCapabilitiesReferences implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesRename implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesRename.canParse,
       TextDocumentClientCapabilitiesRename.fromJson);
 
@@ -14630,7 +14611,7 @@ class TextDocumentClientCapabilitiesRename implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesSignatureHelp implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesSignatureHelp.canParse,
       TextDocumentClientCapabilitiesSignatureHelp.fromJson);
 
@@ -14720,7 +14701,7 @@ class TextDocumentClientCapabilitiesSignatureHelp implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesSignatureInformation implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesSignatureInformation.canParse,
       TextDocumentClientCapabilitiesSignatureInformation.fromJson);
 
@@ -14816,7 +14797,7 @@ class TextDocumentClientCapabilitiesSignatureInformation implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesSymbolKind implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesSymbolKind.canParse,
       TextDocumentClientCapabilitiesSymbolKind.fromJson);
 
@@ -14890,7 +14871,7 @@ class TextDocumentClientCapabilitiesSymbolKind implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesSynchronization implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesSynchronization.canParse,
       TextDocumentClientCapabilitiesSynchronization.fromJson);
 
@@ -15012,7 +14993,7 @@ class TextDocumentClientCapabilitiesSynchronization implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesTypeDefinition implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesTypeDefinition.canParse,
       TextDocumentClientCapabilitiesTypeDefinition.fromJson);
 
@@ -15103,7 +15084,7 @@ class TextDocumentClientCapabilitiesTypeDefinition implements ToJsonable {
 /// are omitted the new text is considered to be the full content of the
 /// document.
 class TextDocumentContentChangeEvent implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentContentChangeEvent.canParse,
       TextDocumentContentChangeEvent.fromJson);
 
@@ -15209,8 +15190,8 @@ class TextDocumentContentChangeEvent implements ToJsonable {
 }
 
 class TextDocumentEdit implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      TextDocumentEdit.canParse, TextDocumentEdit.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(TextDocumentEdit.canParse, TextDocumentEdit.fromJson);
 
   TextDocumentEdit(this.textDocument, this.edits) {
     if (textDocument == null) {
@@ -15315,7 +15296,7 @@ class TextDocumentEdit implements ToJsonable {
 }
 
 class TextDocumentIdentifier implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentIdentifier.canParse, TextDocumentIdentifier.fromJson);
 
   TextDocumentIdentifier(this.uri) {
@@ -15386,8 +15367,8 @@ class TextDocumentIdentifier implements ToJsonable {
 }
 
 class TextDocumentItem implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      TextDocumentItem.canParse, TextDocumentItem.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(TextDocumentItem.canParse, TextDocumentItem.fromJson);
 
   TextDocumentItem(this.uri, this.languageId, this.version, this.text) {
     if (uri == null) {
@@ -15539,7 +15520,7 @@ class TextDocumentItem implements ToJsonable {
 }
 
 class TextDocumentPositionParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentPositionParams.canParse, TextDocumentPositionParams.fromJson);
 
   TextDocumentPositionParams(this.textDocument, this.position) {
@@ -15646,7 +15627,7 @@ class TextDocumentPositionParams implements ToJsonable {
 }
 
 class TextDocumentRegistrationOptions implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentRegistrationOptions.canParse,
       TextDocumentRegistrationOptions.fromJson);
 
@@ -15756,13 +15737,13 @@ class TextDocumentSaveReason {
 
   /// Manually triggered, e.g. by the user pressing save, by starting debugging,
   /// or by an API call.
-  static const Manual = const TextDocumentSaveReason(1);
+  static const Manual = TextDocumentSaveReason(1);
 
   /// Automatic after a delay.
-  static const AfterDelay = const TextDocumentSaveReason(2);
+  static const AfterDelay = TextDocumentSaveReason(2);
 
   /// When the editor lost focus.
-  static const FocusOut = const TextDocumentSaveReason(3);
+  static const FocusOut = TextDocumentSaveReason(3);
 
   Object toJson() => _value;
 
@@ -15778,7 +15759,7 @@ class TextDocumentSaveReason {
 
 class TextDocumentSaveRegistrationOptions
     implements TextDocumentRegistrationOptions, ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentSaveRegistrationOptions.canParse,
       TextDocumentSaveRegistrationOptions.fromJson);
 
@@ -15879,14 +15860,14 @@ class TextDocumentSyncKind {
   }
 
   /// Documents should not be synced at all.
-  static const None = const TextDocumentSyncKind(0);
+  static const None = TextDocumentSyncKind(0);
 
   /// Documents are synced by always sending the full content of the document.
-  static const Full = const TextDocumentSyncKind(1);
+  static const Full = TextDocumentSyncKind(1);
 
   /// Documents are synced by sending the full content on open. After that only
   /// incremental updates to the document are send.
-  static const Incremental = const TextDocumentSyncKind(2);
+  static const Incremental = TextDocumentSyncKind(2);
 
   Object toJson() => _value;
 
@@ -15900,7 +15881,7 @@ class TextDocumentSyncKind {
 }
 
 class TextDocumentSyncOptions implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentSyncOptions.canParse, TextDocumentSyncOptions.fromJson);
 
   TextDocumentSyncOptions(this.openClose, this.change, this.willSave,
@@ -16047,7 +16028,7 @@ class TextDocumentSyncOptions implements ToJsonable {
 
 class TextEdit implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(TextEdit.canParse, TextEdit.fromJson);
+      LspJsonHandler(TextEdit.canParse, TextEdit.fromJson);
 
   TextEdit(this.range, this.newText) {
     if (range == null) {
@@ -16144,7 +16125,7 @@ class TextEdit implements ToJsonable {
 /// General parameters to unregister a capability.
 class Unregistration implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(Unregistration.canParse, Unregistration.fromJson);
+      LspJsonHandler(Unregistration.canParse, Unregistration.fromJson);
 
   Unregistration(this.id, this.method) {
     if (id == null) {
@@ -16238,7 +16219,7 @@ class Unregistration implements ToJsonable {
 }
 
 class UnregistrationParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       UnregistrationParams.canParse, UnregistrationParams.fromJson);
 
   UnregistrationParams(this.unregisterations) {
@@ -16314,7 +16295,7 @@ class UnregistrationParams implements ToJsonable {
 
 class VersionedTextDocumentIdentifier
     implements TextDocumentIdentifier, ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       VersionedTextDocumentIdentifier.canParse,
       VersionedTextDocumentIdentifier.fromJson);
 
@@ -16419,13 +16400,13 @@ class WatchKind {
   }
 
   /// Interested in create events.
-  static const Create = const WatchKind(1);
+  static const Create = WatchKind(1);
 
   /// Interested in change events
-  static const Change = const WatchKind(2);
+  static const Change = WatchKind(2);
 
   /// Interested in delete events
-  static const Delete = const WatchKind(4);
+  static const Delete = WatchKind(4);
 
   Object toJson() => _value;
 
@@ -16440,7 +16421,7 @@ class WatchKind {
 
 /// The parameters send in a will save text document notification.
 class WillSaveTextDocumentParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       WillSaveTextDocumentParams.canParse, WillSaveTextDocumentParams.fromJson);
 
   WillSaveTextDocumentParams(this.textDocument, this.reason) {
@@ -16540,7 +16521,7 @@ class WillSaveTextDocumentParams implements ToJsonable {
 
 /// Workspace specific client capabilities.
 class WorkspaceClientCapabilities implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       WorkspaceClientCapabilities.canParse,
       WorkspaceClientCapabilities.fromJson);
 
@@ -16780,7 +16761,7 @@ class WorkspaceClientCapabilities implements ToJsonable {
 }
 
 class WorkspaceClientCapabilitiesDidChangeConfiguration implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       WorkspaceClientCapabilitiesDidChangeConfiguration.canParse,
       WorkspaceClientCapabilitiesDidChangeConfiguration.fromJson);
 
@@ -16843,7 +16824,7 @@ class WorkspaceClientCapabilitiesDidChangeConfiguration implements ToJsonable {
 }
 
 class WorkspaceClientCapabilitiesDidChangeWatchedFiles implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       WorkspaceClientCapabilitiesDidChangeWatchedFiles.canParse,
       WorkspaceClientCapabilitiesDidChangeWatchedFiles.fromJson);
 
@@ -16908,7 +16889,7 @@ class WorkspaceClientCapabilitiesDidChangeWatchedFiles implements ToJsonable {
 }
 
 class WorkspaceClientCapabilitiesExecuteCommand implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       WorkspaceClientCapabilitiesExecuteCommand.canParse,
       WorkspaceClientCapabilitiesExecuteCommand.fromJson);
 
@@ -16970,7 +16951,7 @@ class WorkspaceClientCapabilitiesExecuteCommand implements ToJsonable {
 }
 
 class WorkspaceClientCapabilitiesSymbol implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       WorkspaceClientCapabilitiesSymbol.canParse,
       WorkspaceClientCapabilitiesSymbol.fromJson);
 
@@ -17055,7 +17036,7 @@ class WorkspaceClientCapabilitiesSymbol implements ToJsonable {
 }
 
 class WorkspaceClientCapabilitiesSymbolKind implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       WorkspaceClientCapabilitiesSymbolKind.canParse,
       WorkspaceClientCapabilitiesSymbolKind.fromJson);
 
@@ -17129,7 +17110,7 @@ class WorkspaceClientCapabilitiesSymbolKind implements ToJsonable {
 }
 
 class WorkspaceClientCapabilitiesWorkspaceEdit implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       WorkspaceClientCapabilitiesWorkspaceEdit.canParse,
       WorkspaceClientCapabilitiesWorkspaceEdit.fromJson);
 
@@ -17244,7 +17225,7 @@ class WorkspaceClientCapabilitiesWorkspaceEdit implements ToJsonable {
 
 class WorkspaceEdit implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(WorkspaceEdit.canParse, WorkspaceEdit.fromJson);
+      LspJsonHandler(WorkspaceEdit.canParse, WorkspaceEdit.fromJson);
 
   WorkspaceEdit(this.changes, this.documentChanges);
   static WorkspaceEdit fromJson(Map<String, dynamic> json) {
@@ -17376,7 +17357,7 @@ class WorkspaceEdit implements ToJsonable {
 
 class WorkspaceFolder implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(WorkspaceFolder.canParse, WorkspaceFolder.fromJson);
+      LspJsonHandler(WorkspaceFolder.canParse, WorkspaceFolder.fromJson);
 
   WorkspaceFolder(this.uri, this.name) {
     if (uri == null) {
@@ -17471,7 +17452,7 @@ class WorkspaceFolder implements ToJsonable {
 
 /// The workspace folder change event.
 class WorkspaceFoldersChangeEvent implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       WorkspaceFoldersChangeEvent.canParse,
       WorkspaceFoldersChangeEvent.fromJson);
 
@@ -17582,7 +17563,7 @@ class WorkspaceFoldersChangeEvent implements ToJsonable {
 
 /// The parameters of a Workspace Symbol Request.
 class WorkspaceSymbolParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       WorkspaceSymbolParams.canParse, WorkspaceSymbolParams.fromJson);
 
   WorkspaceSymbolParams(this.query) {

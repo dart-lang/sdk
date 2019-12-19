@@ -22,10 +22,10 @@ import 'package:analysis_server/src/protocol/protocol_internal.dart'
     show listEqual, mapEqual;
 import 'package:analyzer/src/generated/utilities_general.dart';
 
-const jsonEncoder = const JsonEncoder.withIndent('    ');
+const jsonEncoder = JsonEncoder.withIndent('    ');
 
 class AnalyzerStatusParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       AnalyzerStatusParams.canParse, AnalyzerStatusParams.fromJson);
 
   AnalyzerStatusParams(this.isAnalyzing) {
@@ -94,7 +94,7 @@ class AnalyzerStatusParams implements ToJsonable {
 
 class ClosingLabel implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(ClosingLabel.canParse, ClosingLabel.fromJson);
+      LspJsonHandler(ClosingLabel.canParse, ClosingLabel.fromJson);
 
   ClosingLabel(this.range, this.label) {
     if (range == null) {
@@ -184,7 +184,7 @@ class ClosingLabel implements ToJsonable {
 }
 
 class CompletionItemResolutionInfo implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       CompletionItemResolutionInfo.canParse,
       CompletionItemResolutionInfo.fromJson);
 
@@ -383,7 +383,7 @@ class CompletionItemResolutionInfo implements ToJsonable {
 }
 
 class DartDiagnosticServer implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       DartDiagnosticServer.canParse, DartDiagnosticServer.fromJson);
 
   DartDiagnosticServer(this.port) {
@@ -450,8 +450,7 @@ class DartDiagnosticServer implements ToJsonable {
 }
 
 class Element implements ToJsonable {
-  static const jsonHandler =
-      const LspJsonHandler(Element.canParse, Element.fromJson);
+  static const jsonHandler = LspJsonHandler(Element.canParse, Element.fromJson);
 
   Element(this.range, this.name, this.kind, this.parameters,
       this.typeParameters, this.returnType) {
@@ -610,7 +609,7 @@ class Element implements ToJsonable {
 
 class FlutterOutline implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(FlutterOutline.canParse, FlutterOutline.fromJson);
+      LspJsonHandler(FlutterOutline.canParse, FlutterOutline.fromJson);
 
   FlutterOutline(
       this.kind,
@@ -856,7 +855,7 @@ class FlutterOutline implements ToJsonable {
 }
 
 class FlutterOutlineAttribute implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       FlutterOutlineAttribute.canParse, FlutterOutlineAttribute.fromJson);
 
   FlutterOutlineAttribute(this.name, this.label) {
@@ -947,8 +946,7 @@ class FlutterOutlineAttribute implements ToJsonable {
 }
 
 class Outline implements ToJsonable {
-  static const jsonHandler =
-      const LspJsonHandler(Outline.canParse, Outline.fromJson);
+  static const jsonHandler = LspJsonHandler(Outline.canParse, Outline.fromJson);
 
   Outline(this.element, this.range, this.codeRange, this.children) {
     if (element == null) {
@@ -1092,7 +1090,7 @@ class Outline implements ToJsonable {
 }
 
 class PublishClosingLabelsParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       PublishClosingLabelsParams.canParse, PublishClosingLabelsParams.fromJson);
 
   PublishClosingLabelsParams(this.uri, this.labels) {
@@ -1191,7 +1189,7 @@ class PublishClosingLabelsParams implements ToJsonable {
 }
 
 class PublishFlutterOutlineParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       PublishFlutterOutlineParams.canParse,
       PublishFlutterOutlineParams.fromJson);
 
@@ -1286,7 +1284,7 @@ class PublishFlutterOutlineParams implements ToJsonable {
 }
 
 class PublishOutlineParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       PublishOutlineParams.canParse, PublishOutlineParams.fromJson);
 
   PublishOutlineParams(this.uri, this.outline) {

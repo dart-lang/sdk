@@ -269,7 +269,7 @@ void _writeConstructor(IndentableStringBuffer buffer, Interface interface) {
 void _writeJsonHandler(IndentableStringBuffer buffer, Interface interface) {
   buffer
     ..writeIndented('static const jsonHandler = ')
-    ..write('const LspJsonHandler(')
+    ..write('LspJsonHandler(')
     ..write('${interface.name}.canParse, ${interface.name}.fromJson')
     ..writeln(');')
     ..writeln();
