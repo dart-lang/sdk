@@ -76,5 +76,5 @@ abstract class B {
 main() {
   A? a;
   String? s = '';
-  a?..foo().length..x27 = s!..toString().length;
+  a?..foo().length..x27 = s!.toString().length;
 }
