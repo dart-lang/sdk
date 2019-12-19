@@ -2556,7 +2556,7 @@ void BytecodeReaderHelper::ReadLibraryDeclaration(const Library& library,
   ASSERT(!library.Loaded());
   ASSERT(library.toplevel_class() == Object::null());
 
-  // TODO(alexmarkov): fill in library.owned_scripts.
+  // TODO(alexmarkov): fill in library.used_scripts.
 
   const intptr_t flags = reader_.ReadUInt();
   if (((flags & kUsesDartMirrorsFlag) != 0) && !FLAG_enable_mirrors) {

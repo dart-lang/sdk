@@ -4254,8 +4254,8 @@ class Library : public Object {
   RawClass* toplevel_class() const { return raw_ptr()->toplevel_class_; }
   void set_toplevel_class(const Class& value) const;
 
-  RawGrowableObjectArray* owned_scripts() const {
-    return raw_ptr()->owned_scripts_;
+  RawGrowableObjectArray* used_scripts() const {
+    return raw_ptr()->used_scripts_;
   }
 
   // Library imports.

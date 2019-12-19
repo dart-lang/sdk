@@ -246,7 +246,7 @@ type Library {
   List<Field> fields;
   List<Procedure> procedures;
 
-  List<UInt> sourceReferences; // list of sources owned by library, indexes into UriSource on Component.
+  List<UInt> sourceReferences; // list of sources used by library, indexes into UriSource on Component.
 
   // Library index. Offsets are used to get start (inclusive) and end (exclusive) byte positions for
   // a specific class or procedure. Note the "+1" to account for needing the end of the last entry.

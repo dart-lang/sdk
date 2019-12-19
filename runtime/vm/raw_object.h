@@ -1268,7 +1268,7 @@ class RawLibrary : public RawObject {
   RawArray* dictionary_;              // Top-level names in this library.
   RawGrowableObjectArray* metadata_;  // Metadata on classes, methods etc.
   RawClass* toplevel_class_;          // Class containing top-level elements.
-  RawGrowableObjectArray* owned_scripts_;
+  RawGrowableObjectArray* used_scripts_;
   RawArray* imports_;        // List of Namespaces imported without prefix.
   RawArray* exports_;        // List of re-exported Namespaces.
   RawExternalTypedData* kernel_data_;

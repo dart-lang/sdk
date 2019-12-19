@@ -10848,7 +10848,7 @@ RawArray* Library::LoadedScripts() const {
   // cached in loaded_scripts_.
   if (loaded_scripts() == Array::null()) {
     // TODO(jensj): This can be cleaned up.
-    // It really should just return the content of `owned_scripts`, and there
+    // It really should just return the content of `used_scripts`, and there
     // should be no need to do the O(n) call to `AddScriptIfUnique` per script.
 
     // Iterate over the library dictionary and collect all scripts.
@@ -10873,7 +10873,7 @@ RawArray* Library::LoadedScripts() const {
     }
 
     // Add all scripts from patch classes.
-    GrowableObjectArray& patches = GrowableObjectArray::Handle(owned_scripts());
+    GrowableObjectArray& patches = GrowableObjectArray::Handle(used_scripts());
     for (intptr_t i = 0; i < patches.Length(); i++) {
       entry = patches.At(i);
       if (entry.IsClass()) {
@@ -11329,7 +11329,7 @@ RawLibrary* Library::NewLibraryHelper(const String& url, bool import_core_lib) {
                       GrowableObjectArray::New(4, Heap::kOld));
   result.StorePointer(&result.raw_ptr()->toplevel_class_, Class::null());
   result.StorePointer(
-      &result.raw_ptr()->owned_scripts_,
+      &result.raw_ptr()->used_scripts_,
       GrowableObjectArray::New(Object::empty_array(), Heap::kOld));
   result.StorePointer(&result.raw_ptr()->imports_, Object::empty_array().raw());
   result.StorePointer(&result.raw_ptr()->exports_, Object::empty_array().raw());

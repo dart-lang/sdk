@@ -240,7 +240,7 @@ IsolateTest setBreakpointAtLine(int line) {
   return (Isolate isolate) async {
     print("Setting breakpoint for line $line");
     Library lib = await isolate.rootLibrary.load();
-    Script script = lib.scripts.single;
+    Script script = lib.scripts.firstWhere((s) => s.uri == lib.uri);
 
     Breakpoint bpt = await isolate.addBreakpoint(script, line);
     print("Breakpoint is $bpt");
@@ -253,7 +253,7 @@ IsolateTest setBreakpointAtLineColumn(int line, int column) {
   return (Isolate isolate) async {
     print("Setting breakpoint for line $line column $column");
     Library lib = await isolate.rootLibrary.load();
-    Script script = lib.scripts.single;
+    Script script = lib.scripts.firstWhere((s) => s.uri == lib.uri);
 
     Breakpoint bpt = await isolate.addBreakpoint(script, line, column);
     print("Breakpoint is $bpt");

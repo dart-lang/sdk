@@ -3703,21 +3703,28 @@ BreakpointLocation* Debugger::BreakpointLocationAtLineCol(
   Script& script = Script::Handle(zone);
   const GrowableObjectArray& libs =
       GrowableObjectArray::Handle(isolate_->object_store()->libraries());
-  const GrowableObjectArray& scripts =
-      GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
   bool is_package = script_url.StartsWith(Symbols::PackageScheme());
+  Script& script_for_lib = Script::Handle(zone);
   for (intptr_t i = 0; i < libs.Length(); i++) {
     lib ^= libs.At(i);
     // Ensure that all top-level members are loaded so their scripts
     // are available for look up. When certain script only contains
     // top level functions, scripts could still be loaded correctly.
     lib.EnsureTopLevelClassIsFinalized();
-    script = lib.LookupScript(script_url, !is_package);
-    if (!script.IsNull()) {
-      scripts.Add(script);
+    script_for_lib = lib.LookupScript(script_url, !is_package);
+    if (!script_for_lib.IsNull()) {
+      if (script.IsNull()) {
+        script = script_for_lib.raw();
+      } else if (script.raw() != script_for_lib.raw()) {
+        if (FLAG_verbose_debug) {
+          OS::PrintErr("Multiple scripts match url '%s'\n",
+                       script_url.ToCString());
+        }
+        return NULL;
+      }
     }
   }
-  if (scripts.Length() == 0) {
+  if (script.IsNull()) {
     // No script found with given url. Create a latent breakpoint which
     // will be set if the url is loaded later.
     BreakpointLocation* latent_bpt =
@@ -3730,13 +3737,6 @@ BreakpointLocation* Debugger::BreakpointLocationAtLineCol(
     }
     return latent_bpt;
   }
-  if (scripts.Length() > 1) {
-    if (FLAG_verbose_debug) {
-      OS::PrintErr("Multiple scripts match url '%s'\n", script_url.ToCString());
-    }
-    return NULL;
-  }
-  script ^= scripts.At(0);
   TokenPosition first_token_idx, last_token_idx;
   script.TokenRangeAtLine(line_number, &first_token_idx, &last_token_idx);
   if (!first_token_idx.IsReal()) {
