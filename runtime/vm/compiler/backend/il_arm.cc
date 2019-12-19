@@ -4595,11 +4595,18 @@ LocationSummary* BoxInt64Instr::MakeLocationSummary(Zone* zone,
                                                     bool opt) const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = ValueFitsSmi() ? 0 : 1;
+  // Shared slow path is used in BoxInt64Instr::EmitNativeCode in
+  // FLAG_use_bare_instructions mode and only after VM isolate stubs where
+  // replaced with isolate-specific stubs.
   LocationSummary* summary = new (zone) LocationSummary(
       zone, kNumInputs, kNumTemps,
       ValueFitsSmi()
           ? LocationSummary::kNoCall
-          : ((SlowPathSharingSupported(opt) && FLAG_use_bare_instructions)
+          : ((SlowPathSharingSupported(opt) && FLAG_use_bare_instructions &&
+              !Isolate::Current()
+                   ->object_store()
+                   ->allocate_mint_with_fpu_regs_stub()
+                   ->InVMIsolateHeap())
                  ? LocationSummary::kCallOnSharedSlowPath
                  : LocationSummary::kCallOnSlowPath));
   summary->set_in(0, Location::Pair(Location::RequiresRegister(),
