@@ -4597,10 +4597,11 @@ LocationSummary* BoxInt64Instr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumTemps = ValueFitsSmi() ? 0 : 1;
   LocationSummary* summary = new (zone) LocationSummary(
       zone, kNumInputs, kNumTemps,
-      ValueFitsSmi() ? LocationSummary::kNoCall
-                     : (SlowPathSharingSupported(opt)
-                            ? LocationSummary::kCallOnSharedSlowPath
-                            : LocationSummary::kCallOnSlowPath));
+      ValueFitsSmi()
+          ? LocationSummary::kNoCall
+          : ((SlowPathSharingSupported(opt) && FLAG_use_bare_instructions)
+                 ? LocationSummary::kCallOnSharedSlowPath
+                 : LocationSummary::kCallOnSlowPath));
   summary->set_in(0, Location::Pair(Location::RequiresRegister(),
                                     Location::RequiresRegister()));
   if (!ValueFitsSmi()) {
@@ -4642,7 +4643,11 @@ void BoxInt64Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
         live_fpu_regs ? object_store->allocate_mint_with_fpu_regs_stub()
                       : object_store->allocate_mint_without_fpu_regs_stub());
 
-    if (locs()->call_on_shared_slow_path() && !stub.InVMIsolateHeap()) {
+    if (locs()->call_on_shared_slow_path()) {
+      // BoxInt64Instr uses shared slow path only if stub can be reached
+      // via PC-relative call.
+      ASSERT(FLAG_use_bare_instructions);
+      ASSERT(!stub.InVMIsolateHeap());
       compiler->AddPcRelativeCallStubTarget(stub);
       __ GenerateUnRelocatedPcRelativeCall();
 
