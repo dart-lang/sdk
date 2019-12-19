@@ -2511,12 +2511,13 @@ class GenericInferrer {
                 .substituteType(typeParam.bound));
       }
 
-      inferredTypes[i] = downwardsInferPhase || !typeParam.isLegacyCovariant
+      inferredTypes[i] = downwardsInferPhase
           ? _inferTypeParameterFromContext(
               constraints[typeParam], extendsClause,
               isContravariant: typeParam.variance.isContravariant)
           : _inferTypeParameterFromAll(constraints[typeParam], extendsClause,
-              isContravariant: typeParam.variance.isContravariant);
+              isContravariant: typeParam.variance.isContravariant,
+              preferUpwardsInference: !typeParam.isLegacyCovariant);
     }
 
     // If the downwards infer phase has failed, we'll catch this in the upwards
@@ -2793,13 +2794,14 @@ class GenericInferrer {
 
   DartType _inferTypeParameterFromAll(
       List<_TypeConstraint> constraints, _TypeConstraint extendsClause,
-      {@required bool isContravariant}) {
+      {@required bool isContravariant, @required bool preferUpwardsInference}) {
     // See if we already fixed this type from downwards inference.
-    // If so, then we aren't allowed to change it based on argument types.
+    // If so, then we aren't allowed to change it based on argument types unless
+    // [preferUpwardsInference] is true.
     DartType t = _inferTypeParameterFromContext(
         constraints.where((c) => c.isDownwards), extendsClause,
         isContravariant: isContravariant);
-    if (UnknownInferredType.isKnown(t)) {
+    if (!preferUpwardsInference && UnknownInferredType.isKnown(t)) {
       // Remove constraints that aren't downward ones; we'll ignore these for
       // error reporting, because inference already succeeded.
       constraints.removeWhere((c) => !c.isDownwards);
