@@ -852,7 +852,7 @@ typedef ZoneGrowableHandlePtrArray<const AbstractType>* TrailPtr;
 typedef ZoneGrowableHandlePtrArray<const String> URIs;
 
 // Keep in sync with package:kernel/lib/ast.dart
-enum class Nullability {
+enum class Nullability : int8_t {
   kUndetermined = 0,
   kNullable = 1,
   kNonNullable = 2,

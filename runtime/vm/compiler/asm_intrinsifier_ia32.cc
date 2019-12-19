@@ -1827,7 +1827,7 @@ void AsmIntrinsifier::Type_getHashCode(Assembler* assembler,
 
 void AsmIntrinsifier::Type_equality(Assembler* assembler,
                                     Label* normal_ir_body) {
-  Label equal, not_equal;
+  Label equal, not_equal, equiv_cids, check_legacy;
 
   __ movl(EDI, Address(ESP, +1 * target::kWordSize));
   __ movl(EBX, Address(ESP, +2 * target::kWordSize));
@@ -1841,17 +1841,37 @@ void AsmIntrinsifier::Type_equality(Assembler* assembler,
   __ j(NOT_EQUAL, normal_ir_body);
 
   // Check if types are syntactically equal.
-  __ movl(EDI, FieldAddress(EDI, target::Type::type_class_id_offset()));
-  __ SmiUntag(EDI);
-  __ movl(EBX, FieldAddress(EBX, target::Type::type_class_id_offset()));
-  __ SmiUntag(EBX);
-  EquivalentClassIds(assembler, normal_ir_body, normal_ir_body, &not_equal, EDI,
-                     EBX, EAX);
+  __ movl(ECX, FieldAddress(EDI, target::Type::type_class_id_offset()));
+  __ SmiUntag(ECX);
+  __ movl(EDX, FieldAddress(EBX, target::Type::type_class_id_offset()));
+  __ SmiUntag(EDX);
+  EquivalentClassIds(assembler, normal_ir_body, &equiv_cids, &not_equal, ECX,
+                     EDX, EAX);
 
-  // TODO(liama): Check nullability.
+  // Check nullability.
+  __ Bind(&equiv_cids);
+  __ movzxb(EDI, FieldAddress(EDI, target::Type::nullability_offset()));
+  __ movzxb(EBX, FieldAddress(EBX, target::Type::nullability_offset()));
+  __ cmpl(EDI, EBX);
+  __ j(NOT_EQUAL, &check_legacy, Assembler::kNearJump);
+  // Fall through to equal case if nullability is strictly equal.
+
   __ Bind(&equal);
   __ LoadObject(EAX, CastHandle<Object>(TrueObject()));
   __ ret();
+
+  // At this point the nullabilities are different, so they can only be
+  // syntactically equivalent if they're both either kNonNullable or kLegacy.
+  // These are the two largest values of the enum, so we can just do a < check.
+  ASSERT(target::Nullability::kUndetermined <
+             target::Nullability::kNonNullable &&
+         target::Nullability::kNullable < target::Nullability::kNonNullable &&
+         target::Nullability::kNonNullable < target::Nullability::kLegacy);
+  __ Bind(&check_legacy);
+  __ cmpl(EDI, Immediate(target::Nullability::kNonNullable));
+  __ j(LESS, &not_equal, Assembler::kNearJump);
+  __ cmpl(EBX, Immediate(target::Nullability::kNonNullable));
+  __ j(GREATER_EQUAL, &equal, Assembler::kNearJump);
 
   __ Bind(&not_equal);
   __ LoadObject(EAX, CastHandle<Object>(FalseObject()));

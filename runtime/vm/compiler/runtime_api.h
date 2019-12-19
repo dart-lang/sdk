@@ -553,6 +553,14 @@ class TypeRef : public AllStatic {
   static word type_offset();
 };
 
+class Nullability : public AllStatic {
+ public:
+  static const int8_t kUndetermined;
+  static const int8_t kNullable;
+  static const int8_t kNonNullable;
+  static const int8_t kLegacy;
+};
+
 class Double : public AllStatic {
  public:
   static word value_offset();

@@ -1662,7 +1662,7 @@ static void EquivalentClassIds(Assembler* assembler,
   __ movzxw(scratch,
             FieldAddress(scratch, target::Class::num_type_arguments_offset()));
   __ cmpq(scratch, Immediate(0));
-  __ j(NOT_EQUAL, normal_ir_body, Assembler::kNearJump);
+  __ j(NOT_EQUAL, normal_ir_body);
   __ jmp(equal);
 
   // Class ids are different. Check if we are comparing two string types (with
@@ -1743,7 +1743,7 @@ void AsmIntrinsifier::Type_getHashCode(Assembler* assembler,
 
 void AsmIntrinsifier::Type_equality(Assembler* assembler,
                                     Label* normal_ir_body) {
-  Label equal, not_equal;
+  Label equal, not_equal, equiv_cids, check_legacy;
 
   __ movq(RCX, Address(RSP, +1 * target::kWordSize));
   __ movq(RDX, Address(RSP, +2 * target::kWordSize));
@@ -1757,17 +1757,37 @@ void AsmIntrinsifier::Type_equality(Assembler* assembler,
   __ j(NOT_EQUAL, normal_ir_body);
 
   // Check if types are syntactically equal.
-  __ movq(RCX, FieldAddress(RCX, target::Type::type_class_id_offset()));
-  __ SmiUntag(RCX);
-  __ movq(RDX, FieldAddress(RDX, target::Type::type_class_id_offset()));
-  __ SmiUntag(RDX);
-  EquivalentClassIds(assembler, normal_ir_body, normal_ir_body, &not_equal, RCX,
-                     RDX, RAX);
+  __ movq(RDI, FieldAddress(RCX, target::Type::type_class_id_offset()));
+  __ SmiUntag(RDI);
+  __ movq(RSI, FieldAddress(RDX, target::Type::type_class_id_offset()));
+  __ SmiUntag(RSI);
+  EquivalentClassIds(assembler, normal_ir_body, &equiv_cids, &not_equal, RDI,
+                     RSI, RAX);
 
-  // TODO(liama): Check nullability.
+  // Check nullability.
+  __ Bind(&equiv_cids);
+  __ movzxb(RCX, FieldAddress(RCX, target::Type::nullability_offset()));
+  __ movzxb(RDX, FieldAddress(RDX, target::Type::nullability_offset()));
+  __ cmpq(RCX, RDX);
+  __ j(NOT_EQUAL, &check_legacy, Assembler::kNearJump);
+  // Fall through to equal case if nullability is strictly equal.
+
   __ Bind(&equal);
   __ LoadObject(RAX, CastHandle<Object>(TrueObject()));
   __ ret();
+
+  // At this point the nullabilities are different, so they can only be
+  // syntactically equivalent if they're both either kNonNullable or kLegacy.
+  // These are the two largest values of the enum, so we can just do a < check.
+  ASSERT(target::Nullability::kUndetermined <
+             target::Nullability::kNonNullable &&
+         target::Nullability::kNullable < target::Nullability::kNonNullable &&
+         target::Nullability::kNonNullable < target::Nullability::kLegacy);
+  __ Bind(&check_legacy);
+  __ cmpq(RCX, Immediate(target::Nullability::kNonNullable));
+  __ j(LESS, &not_equal, Assembler::kNearJump);
+  __ cmpq(RDX, Immediate(target::Nullability::kNonNullable));
+  __ j(GREATER_EQUAL, &equal, Assembler::kNearJump);
 
   __ Bind(&not_equal);
   __ LoadObject(RAX, CastHandle<Object>(FalseObject()));

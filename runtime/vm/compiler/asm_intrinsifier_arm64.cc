@@ -1785,7 +1785,7 @@ void AsmIntrinsifier::Type_getHashCode(Assembler* assembler,
 
 void AsmIntrinsifier::Type_equality(Assembler* assembler,
                                     Label* normal_ir_body) {
-  Label equal, not_equal;
+  Label equal, not_equal, equiv_cids, check_legacy;
 
   __ ldp(R1, R2, Address(SP, 0 * target::kWordSize, Address::PairOffset));
   __ cmp(R1, Operand(R2));
@@ -1798,17 +1798,39 @@ void AsmIntrinsifier::Type_equality(Assembler* assembler,
   __ b(normal_ir_body, NE);
 
   // Check if types are syntactically equal.
-  __ ldr(R1, FieldAddress(R1, target::Type::type_class_id_offset()));
-  __ SmiUntag(R1);
-  __ ldr(R2, FieldAddress(R2, target::Type::type_class_id_offset()));
-  __ SmiUntag(R2);
-  EquivalentClassIds(assembler, normal_ir_body, normal_ir_body, &not_equal, R1,
-                     R2, R0);
+  __ ldr(R3, FieldAddress(R1, target::Type::type_class_id_offset()));
+  __ SmiUntag(R3);
+  __ ldr(R4, FieldAddress(R2, target::Type::type_class_id_offset()));
+  __ SmiUntag(R4);
+  EquivalentClassIds(assembler, normal_ir_body, &equiv_cids, &not_equal, R3, R4,
+                     R0);
 
-  // TODO(liama): Check nullability.
+  // Check nullability.
+  __ Bind(&equiv_cids);
+  __ ldr(R1, FieldAddress(R1, target::Type::nullability_offset()),
+         kUnsignedByte);
+  __ ldr(R2, FieldAddress(R2, target::Type::nullability_offset()),
+         kUnsignedByte);
+  __ cmp(R1, Operand(R2));
+  __ b(&check_legacy, NE);
+  // Fall through to equal case if nullability is strictly equal.
+
   __ Bind(&equal);
   __ LoadObject(R0, CastHandle<Object>(TrueObject()));
   __ Ret();
+
+  // At this point the nullabilities are different, so they can only be
+  // syntactically equivalent if they're both either kNonNullable or kLegacy.
+  // These are the two largest values of the enum, so we can just do a < check.
+  ASSERT(target::Nullability::kUndetermined <
+             target::Nullability::kNonNullable &&
+         target::Nullability::kNullable < target::Nullability::kNonNullable &&
+         target::Nullability::kNonNullable < target::Nullability::kLegacy);
+  __ Bind(&check_legacy);
+  __ CompareImmediate(R1, target::Nullability::kNonNullable);
+  __ b(&not_equal, LT);
+  __ CompareImmediate(R2, target::Nullability::kNonNullable);
+  __ b(&equal, GE);
 
   __ Bind(&not_equal);
   __ LoadObject(R0, CastHandle<Object>(FalseObject()));

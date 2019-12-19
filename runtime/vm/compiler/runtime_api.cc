@@ -618,6 +618,15 @@ const word Symbols::kNullCharCodeSymbolOffset =
 
 const word String::kHashBits = dart::String::kHashBits;
 
+const int8_t Nullability::kUndetermined =
+    static_cast<int8_t>(dart::Nullability::kUndetermined);
+const int8_t Nullability::kNullable =
+    static_cast<int8_t>(dart::Nullability::kNullable);
+const int8_t Nullability::kNonNullable =
+    static_cast<int8_t>(dart::Nullability::kNonNullable);
+const int8_t Nullability::kLegacy =
+    static_cast<int8_t>(dart::Nullability::kLegacy);
+
 bool Heap::IsAllocatableInNewSpace(intptr_t instance_size) {
   return dart::Heap::IsAllocatableInNewSpace(instance_size);
 }
