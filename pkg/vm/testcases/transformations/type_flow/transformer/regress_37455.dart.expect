@@ -17,7 +17,7 @@ class B extends core::Object {
 [@vm.procedure-attributes.metadata=hasDynamicUses:false,hasTearOffUses:false]  method _foo([@vm.inferred-type.metadata=dart._internal::ListIterator<dart.core::int*>] core::Iterator<core::int*>* iter) → core::List<dynamic>* {
     core::List<dynamic>* result = <dynamic>[];
     while ([@vm.direct-call.metadata=dart._internal::ListIterator::moveNext] [@vm.inferred-type.metadata=dart.core::bool (skip check)] iter.{core::Iterator::moveNext}()) {
-      if([@vm.inferred-type.metadata=dart.core::bool?] [@vm.direct-call.metadata=dart._internal::ListIterator::current] iter.{core::Iterator::current}.{core::num::<}(0)) {
+      if([@vm.direct-call.metadata=dart.core::_IntegerImplementation::<??] [@vm.inferred-type.metadata=dart.core::bool (skip check)] [@vm.direct-call.metadata=dart._internal::ListIterator::current] [@vm.inferred-type.metadata=int?] iter.{core::Iterator::current}.{core::num::<}(0)) {
         return result;
       }
       [@vm.call-site-attributes.metadata=receiverType:dart.core::List<dynamic>*] [@vm.direct-call.metadata=dart.core::_GrowableList::add] [@vm.inferred-type.metadata=!? (skip check)] result.{core::List::add}(new self::A::•([@vm.direct-call.metadata=#lib::B::_foo] [@vm.inferred-type.metadata=dart.core::_GrowableList<dynamic> (skip check)] this.{self::B::_foo}(iter)));

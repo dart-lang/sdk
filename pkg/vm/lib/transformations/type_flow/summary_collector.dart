@@ -672,7 +672,19 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   }
 
   Call _makeCall(TreeNode node, Selector selector, Args<TypeExpr> args) {
-    Call call = new Call(selector, args);
+    Type staticResultType = null;
+    Member target;
+    if (selector is DirectSelector) {
+      target = selector.member;
+    } else if (selector is InterfaceSelector) {
+      target = selector.member;
+    }
+    if (target is Procedure &&
+        target.function.returnType is TypeParameterType &&
+        node is Expression) {
+      staticResultType = _staticType(node);
+    }
+    Call call = new Call(selector, args, staticResultType);
     _summary.add(call);
     if (node != null) {
       callSites[node] = call;

@@ -176,8 +176,9 @@ class Use extends Statement {
 class Call extends Statement {
   final Selector selector;
   final Args<TypeExpr> args;
+  final Type staticResultType;
 
-  Call(this.selector, this.args) {
+  Call(this.selector, this.args, this.staticResultType) {
     // TODO(sjindel/tfa): Support inferring unchecked entry-points for dynamic
     // and direct calls as well.
     if (selector is DynamicSelector || selector is DirectSelector) {
@@ -211,6 +212,9 @@ class Call extends Statement {
         this, selector, new Args<Type>(argTypes, names: args.names),
         isResultUsed: isResultUsed);
     if (isResultUsed) {
+      if (staticResultType != null) {
+        result = result.intersection(staticResultType, typeHierarchy);
+      }
       result = result.specialize(typeHierarchy);
       _observeResultType(result, typeHierarchy);
     }
