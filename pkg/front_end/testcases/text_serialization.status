@@ -1225,3 +1225,4 @@ unified_collections/mixed_entries: TextSerializationFailure
 variance/class_type_parameter_modifier: TextSerializationFailure
 variance/generic_covariance_sound_variance: TextSerializationFailure
 variance/mixin_type_parameter_modifier: TextSerializationFailure
+variance/unconstrained_inference: TextSerializationFailure

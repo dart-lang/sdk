@@ -89,6 +89,7 @@ consts
 contract
 conversion
 conversions
+cov
 crashes
 cumulative
 dacoharkes
