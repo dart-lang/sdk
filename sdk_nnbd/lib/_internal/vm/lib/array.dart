@@ -8,7 +8,7 @@
 
 @pragma("vm:entry-point")
 class _List<E> extends FixedLengthListBase<E> {
-  @pragma("vm:exact-result-type", _List)
+  @pragma("vm:exact-result-type", _List) // <- cannot use _List<T> here.
   @pragma("vm:prefer-inline")
   factory _List(length) native "List_allocate";
 

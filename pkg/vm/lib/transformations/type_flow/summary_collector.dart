@@ -318,6 +318,8 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   // Currently only used for factory constructors.
   Map<TypeParameter, TypeExpr> _fnTypeVariables;
 
+  Member _privateListConstructor;
+
   SummaryCollector(
       this.target,
       this._environment,
@@ -328,6 +330,8 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
       this._genericInterfacesInfo) {
     assertx(_genericInterfacesInfo != null);
     constantAllocationCollector = new ConstantAllocationCollector(this);
+    _privateListConstructor =
+        _environment.coreTypes.index.getMember('dart:core', '_List', '');
   }
 
   Summary createSummary(Member member,
@@ -471,17 +475,30 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
       }
 
       if (function.body == null) {
-        Type type = _nativeCodeOracle.handleNativeProcedure(
-            member, _entryPointsListener, _typesBuilder);
-        if (type is! ConcreteType) {
-          // Runtime type could be more precise than static type, so
-          // calculate intersection.
-          final runtimeType = _translator.translate(function.returnType);
-          final typeCheck = new TypeCheck(type, runtimeType, function, type);
-          _summary.add(typeCheck);
-          _returnValue.values.add(typeCheck);
+        if (member == _privateListConstructor) {
+          // We have an intrinsic summary for the _List factory to ensure the
+          // correct type arguments are used.
+          // TODO(39769): Find a way to generalize this to other classes.
+          _returnValue.values.add(_translator.instantiateConcreteType(
+              _nativeCodeOracle.handleNativeProcedure(
+                  member, _entryPointsListener, _typesBuilder),
+              [
+                TypeParameterType(
+                    function.typeParameters.first, Nullability.legacy)
+              ]));
         } else {
-          _returnValue.values.add(type);
+          Type type = _nativeCodeOracle.handleNativeProcedure(
+              member, _entryPointsListener, _typesBuilder);
+          if (type is! ConcreteType) {
+            // Runtime type could be more precise than static type, so
+            // calculate intersection.
+            final runtimeType = _translator.translate(function.returnType);
+            final typeCheck = new TypeCheck(type, runtimeType, function, type);
+            _summary.add(typeCheck);
+            _returnValue.values.add(typeCheck);
+          } else {
+            _returnValue.values.add(type);
+          }
         }
       } else {
         _visit(function.body);
