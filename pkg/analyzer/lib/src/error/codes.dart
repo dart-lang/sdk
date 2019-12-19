@@ -2965,20 +2965,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction: "Try removing the modifier.");
 
   /**
-   * It is an error if an optional parameter (named or otherwise) with no
-   * default value has a potentially non-nullable type. This is produced in
-   * cases where there is no valid default value.
-   */
-  static const CompileTimeErrorCode INVALID_OPTIONAL_PARAMETER_TYPE =
-      CompileTimeErrorCode(
-          'INVALID_OPTIONAL_PARAMETER_TYPE',
-          "The parameter '{0}' can't have a value of 'null' because of its "
-              "type, but no non-null default value is provided.",
-          correction: "Try making this nullable (by adding a '?'), "
-              "adding a default value, or "
-              "making this a required parameter.");
-
-  /**
    * Parameters:
    * 0: the name of the declared member that is not a valid override.
    * 1: the name of the interface that declares the member.

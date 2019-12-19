@@ -192,7 +192,6 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR,
   CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER,
   CompileTimeErrorCode.INVALID_INLINE_FUNCTION_TYPE,
-  CompileTimeErrorCode.INVALID_OPTIONAL_PARAMETER_TYPE,
   CompileTimeErrorCode.INVALID_OVERRIDE,
   CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS,
   CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST,

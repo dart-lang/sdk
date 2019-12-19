@@ -26,19 +26,19 @@ void f12(int? a) {}
 
 class A {
   var f;
-  A(void this.f({String s})) {} //# 03: compile-time error
+  A(void this.f({String s})) {}
 }
-typedef void f13({String s}); //# 04: compile-time error
-void printToLog(void f({String s})) {} //# 05: compile-time error
-void Function({String s})? f14; //# 06: compile-time error
+typedef void f13({String s});
+void printToLog(void f({String s})) {}
+void Function({String s})? f14;
 
 class B<T extends Object?> {
   // Potentially non-nullable types
-  void f15({T a = null}) {} //# 07: compile-time error
-  void f16({T a}) {} //# 08: compile-time error
+  void f15({T a = null}) {} //# 03: compile-time error
+  void f16({T a}) {} //# 04: compile-time error
   void f17({required T a}) {}
-  void f18([T a = null]) {} //# 09: compile-time error
-  void f19([T a]) {} //# 10: compile-time error
+  void f18([T a = null]) {} //# 05: compile-time error
+  void f19([T a]) {} //# 06: compile-time error
   void f20(T a) {}
 
   // Nullable types
@@ -52,11 +52,11 @@ class B<T extends Object?> {
 
 class C<T extends Object> {
   // Non-nullable types
-  void f27({T a = null}) {} //# 11: compile-time error
-  void f28({T a}) {} //# 12: compile-time error
+  void f27({T a = null}) {} //# 07: compile-time error
+  void f28({T a}) {} //# 08: compile-time error
   void f29({required T a}) {}
-  void f30([T a = null]) {} //# 13: compile-time error
-  void f31([T a]) {} //# 14: compile-time error
+  void f30([T a = null]) {} //# 09: compile-time error
+  void f31([T a]) {} //# 10: compile-time error
   void f32(T a) {}
 
   // Nullable types

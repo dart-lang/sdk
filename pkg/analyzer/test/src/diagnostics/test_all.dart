@@ -145,8 +145,6 @@ import 'invalid_language_override_test.dart' as invalid_language_override;
 import 'invalid_literal_annotation_test.dart' as invalid_literal_annotation;
 import 'invalid_non_virtual_annotation_test.dart'
     as invalid_non_virtual_annotation;
-import 'invalid_optional_parameter_type_test.dart'
-    as invalid_optional_parameter_type;
 import 'invalid_override_different_default_values_named_test.dart'
     as invalid_override_different_default_values_named;
 import 'invalid_override_different_default_values_positional_test.dart'
@@ -499,7 +497,6 @@ main() {
     invalid_language_override.main();
     invalid_literal_annotation.main();
     invalid_non_virtual_annotation.main();
-    invalid_optional_parameter_type.main();
     invalid_override_different_default_values_named.main();
     invalid_override_different_default_values_positional.main();
     invalid_override_of_non_virtual_member.main();

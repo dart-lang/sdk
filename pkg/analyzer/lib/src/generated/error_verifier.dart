@@ -5529,38 +5529,31 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   void _checkUseOfDefaultValuesInParameters(FormalParameterList node) {
     if (!_isNonNullableByDefault) return;
 
-    AstNode parent = node.parent;
+    var parent = node.parent;
     var defaultValuesAreAllowed = parent is ConstructorDeclaration ||
         parent is FunctionExpression ||
         parent is MethodDeclaration;
 
-    NodeList<FormalParameter> parameters = node.parameters;
-    int length = parameters.length;
-    for (int i = 0; i < length; i++) {
-      FormalParameter parameter = parameters[i];
-      if (parameter.isOptional) {
-        DartType type = parameter.declaredElement.type;
-        if ((parameter as DefaultFormalParameter).defaultValue == null) {
-          if (_typeSystem.isPotentiallyNonNullable(type)) {
-            SimpleIdentifier parameterName = _parameterName(parameter);
-            if (!defaultValuesAreAllowed || type is TypeParameterType) {
-              _errorReporter.reportErrorForNode(
-                  CompileTimeErrorCode.INVALID_OPTIONAL_PARAMETER_TYPE,
-                  parameterName ?? parameter,
-                  [parameterName?.name ?? '?']);
-            } else {
-              _errorReporter.reportErrorForNode(
-                  CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER,
-                  parameterName ?? parameter,
-                  [parameterName?.name ?? '?']);
-            }
-          }
-        }
-      } else if (parameter.isRequiredNamed) {
-        if ((parameter as DefaultFormalParameter).defaultValue != null) {
-          _errorReporter.reportErrorForNode(
+    for (var parameter in node.parameters) {
+      if (parameter is DefaultFormalParameter) {
+        if (parameter.isRequiredNamed) {
+          if (parameter.defaultValue != null) {
+            var parameterName = _parameterName(parameter);
+            _errorReporter.reportErrorForNode(
               CompileTimeErrorCode.DEFAULT_VALUE_ON_REQUIRED_PARAMETER,
-              _parameterName(parameter) ?? parameter);
+              parameterName ?? parameter,
+            );
+          }
+        } else if (defaultValuesAreAllowed && parameter.defaultValue == null) {
+          var type = parameter.declaredElement.type;
+          if (_typeSystem.isPotentiallyNonNullable(type)) {
+            var parameterName = _parameterName(parameter);
+            _errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER,
+              parameterName ?? parameter,
+              [parameterName?.name ?? '?'],
+            );
+          }
         }
       }
     }
