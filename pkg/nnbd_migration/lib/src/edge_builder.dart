@@ -2530,6 +2530,7 @@ mixin _AssignmentChecker {
     assert(_typeSystem.isSubtypeOf(destinationType, source.type));
     // Nullability should narrow to maintain subtype relationship.
     _connect(source.node, destination.node, origin, hard: hard);
+
     if (source.type.isDynamic) {
       if (destinationType is InterfaceType) {
         for (final param in destinationType.element.typeParameters) {
@@ -2541,13 +2542,17 @@ mixin _AssignmentChecker {
         // Nothing else to do.
         return;
       }
-    } else if (destinationType is TypeParameterType &&
-        source.type is! TypeParameterType) {
-      // Assume an assignment to the type parameter's bound.
-      _checkAssignment(origin,
-          source: source,
-          destination: _getTypeParameterTypeBound(destination),
-          hard: false);
+    } else if (destinationType is TypeParameterType) {
+      if (source.type is! TypeParameterType) {
+        // Assume an assignment to the type parameter's bound.
+        _checkAssignment(origin,
+            source: source,
+            destination: _getTypeParameterTypeBound(destination),
+            hard: false);
+      } else if (destinationType == source.type) {
+        // Nothing to do.
+        return;
+      }
     } else if (destinationType is InterfaceType) {
       if (source.type is InterfaceType) {
         final target = _decoratedClassHierarchy.asInstanceOf(

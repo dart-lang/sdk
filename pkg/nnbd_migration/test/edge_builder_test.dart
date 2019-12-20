@@ -211,6 +211,17 @@ class AssignmentCheckerTest extends Object
     assertEdge(b, substitutionNode(a, c), hard: false);
   }
 
+  test_generic_to_generic_downcast_of_type_parameter() {
+    var t = typeParameterType(typeParameter('T', object()));
+    var t1 = iterable(t);
+    var t2 = list(t);
+    assign(t1, t2, hard: true);
+    assertEdge(t1.node, t2.node, hard: true);
+    var a = t1.typeArguments[0].node;
+    var b = t2.typeArguments[0].node;
+    assertEdge(a, b, hard: false);
+  }
+
   test_generic_to_generic_downcast_same_element() {
     var t1 = list(object());
     var t2 = list(int_());
@@ -6007,6 +6018,16 @@ class _DecoratedClassHierarchyForTesting implements DecoratedClassHierarchy {
     if (class_.name == 'MyListOfList' && superclass.name == 'List') {
       return assignmentCheckerTest._myListOfListSupertype
           .substitute({class_.typeParameters[0]: type.typeArguments[0]});
+    }
+    if (class_.name == 'List' && superclass.name == 'Iterable') {
+      return DecoratedType(
+        superclass.instantiate(
+          typeArguments: [type.typeArguments[0].type],
+          nullabilitySuffix: NullabilitySuffix.star,
+        ),
+        type.node,
+        typeArguments: [type.typeArguments[0]],
+      );
     }
     if (class_.name == 'Future' && superclass.name == 'FutureOr') {
       return DecoratedType(

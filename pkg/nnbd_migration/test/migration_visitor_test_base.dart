@@ -96,6 +96,11 @@ mixin DecoratedTypeTester implements DecoratedTypeTesterBase {
   DecoratedType int_({NullabilityNode node}) =>
       DecoratedType(typeProvider.intType, node ?? newNode());
 
+  DecoratedType iterable(DecoratedType elementType, {NullabilityNode node}) =>
+      DecoratedType(
+          typeProvider.iterableType2(elementType.type), node ?? newNode(),
+          typeArguments: [elementType]);
+
   DecoratedType list(DecoratedType elementType, {NullabilityNode node}) =>
       DecoratedType(typeProvider.listType2(elementType.type), node ?? newNode(),
           typeArguments: [elementType]);
