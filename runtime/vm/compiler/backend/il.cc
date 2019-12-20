@@ -5524,7 +5524,7 @@ SimdOpInstr* SimdOpInstr::CreateFromCall(Zone* zone,
     op->SetInputAt(0, new (zone) Value(receiver));
   }
   for (intptr_t i = (receiver != nullptr ? 1 : 0); i < op->InputCount(); i++) {
-    op->SetInputAt(i, call->PushArgumentAt(i)->value()->CopyWithType(zone));
+    op->SetInputAt(i, call->ArgumentValueAt(i)->CopyWithType(zone));
   }
   if (op->HasMask()) {
     op->set_mask(mask);
@@ -5540,7 +5540,7 @@ SimdOpInstr* SimdOpInstr::CreateFromFactoryCall(Zone* zone,
       new (zone) SimdOpInstr(KindForMethod(kind), call->deopt_id());
   for (intptr_t i = 0; i < op->InputCount(); i++) {
     // Note: ArgumentAt(0) is type arguments which we don't need.
-    op->SetInputAt(i, call->PushArgumentAt(i + 1)->value()->CopyWithType(zone));
+    op->SetInputAt(i, call->ArgumentValueAt(i + 1)->CopyWithType(zone));
   }
   ASSERT(call->ArgumentCount() == (op->InputCount() + 1));
   return op;

@@ -1417,7 +1417,7 @@ class CallSiteInliner : public ValueObject {
 
       GrowableArray<Value*> arguments(call->ArgumentCount());
       for (int i = 0; i < call->ArgumentCount(); ++i) {
-        arguments.Add(call->PushArgumentAt(i)->value());
+        arguments.Add(call->ArgumentValueAt(i));
       }
       InlinedCallData call_data(
           call, Array::ZoneHandle(Z, call->GetArgumentsDescriptor()),
@@ -1482,7 +1482,7 @@ class CallSiteInliner : public ValueObject {
 
       GrowableArray<Value*> arguments(call->ArgumentCount());
       for (int i = 0; i < call->ArgumentCount(); ++i) {
-        arguments.Add(call->PushArgumentAt(i)->value());
+        arguments.Add(call->ArgumentValueAt(i));
       }
       const Array& arguments_descriptor =
           Array::ZoneHandle(Z, call->GetArgumentsDescriptor());
@@ -1748,7 +1748,7 @@ bool PolymorphicInliner::TryInliningPoly(const TargetInfo& target_info) {
 
   GrowableArray<Value*> arguments(call_->ArgumentCount());
   for (int i = 0; i < call_->ArgumentCount(); ++i) {
-    arguments.Add(call_->PushArgumentAt(i)->value());
+    arguments.Add(call_->ArgumentValueAt(i));
   }
   const Array& arguments_descriptor =
       Array::ZoneHandle(Z, call_->instance_call()->GetArgumentsDescriptor());
@@ -2822,8 +2822,8 @@ static bool InlineLoadClassId(FlowGraph* flow_graph,
       new (Z) FunctionEntryInstr(graph_entry, flow_graph->allocate_block_id(),
                                  call->GetBlock()->try_index(), DeoptId::kNone);
   (*entry)->InheritDeoptTarget(Z, call);
-  auto load_cid = new (Z)
-      LoadClassIdInstr(call->PushArgumentAt(0)->value()->CopyWithType(Z));
+  auto load_cid =
+      new (Z) LoadClassIdInstr(call->ArgumentValueAt(0)->CopyWithType(Z));
   flow_graph->InsertBefore(call, load_cid, nullptr, FlowGraph::kValue);
   *last = load_cid;
   *result = load_cid->AsDefinition();
@@ -3651,8 +3651,8 @@ static bool InlineMathIntPow(FlowGraph* flow_graph,
   // Thus, try to inline some very obvious cases.
   // TODO(ajcbik): useful to generalize?
   intptr_t val = 0;
-  Value* x = call->PushArgumentAt(0)->value();
-  Value* y = call->PushArgumentAt(1)->value();
+  Value* x = call->ArgumentValueAt(0);
+  Value* y = call->ArgumentValueAt(1);
   // Use x^0 == 1, x^1 == x, and x^c == x * .. * x for small c.
   const intptr_t small_exponent = 5;
   if (IsSmiValue(y, &val)) {

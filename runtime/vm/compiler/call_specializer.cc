@@ -108,8 +108,7 @@ bool CallSpecializer::TryCreateICData(InstanceCallInstr* call) {
   ASSERT(call->ic_data()->NumArgsTested() <=
          call->ArgumentCountWithoutTypeArgs());
   for (intptr_t i = 0; i < call->ic_data()->NumArgsTested(); i++) {
-    class_ids.Add(
-        call->PushArgumentAt(receiver_index + i)->value()->Type()->ToCid());
+    class_ids.Add(call->ArgumentValueAt(receiver_index + i)->Type()->ToCid());
   }
 
   const Token::Kind op_kind = call->token_kind();
@@ -1203,7 +1202,7 @@ bool CallSpecializer::TryOptimizeInstanceOfUsingStaticTypes(
   }
 
   const intptr_t receiver_index = call->FirstArgIndex();
-  Value* left_value = call->PushArgumentAt(receiver_index)->value();
+  Value* left_value = call->ArgumentValueAt(receiver_index);
 
   if (left_value->Type()->IsSubtypeOf(mode, type)) {
     Definition* replacement = new (Z) StrictCompareInstr(
@@ -1598,7 +1597,7 @@ void TypedDataSpecializer::TryInlineCall(TemplateDartCall<0>* call) {
 
 void TypedDataSpecializer::ReplaceWithLengthGetter(TemplateDartCall<0>* call) {
   const intptr_t receiver_idx = call->FirstArgIndex();
-  auto array = call->PushArgumentAt(receiver_idx + 0)->value()->definition();
+  auto array = call->ArgumentAt(receiver_idx + 0);
 
   if (array->Type()->is_nullable()) {
     AppendNullCheck(call, &array);
@@ -1611,8 +1610,8 @@ void TypedDataSpecializer::ReplaceWithLengthGetter(TemplateDartCall<0>* call) {
 void TypedDataSpecializer::ReplaceWithIndexGet(TemplateDartCall<0>* call,
                                                classid_t cid) {
   const intptr_t receiver_idx = call->FirstArgIndex();
-  auto array = call->PushArgumentAt(receiver_idx + 0)->value()->definition();
-  auto index = call->PushArgumentAt(receiver_idx + 1)->value()->definition();
+  auto array = call->ArgumentAt(receiver_idx + 0);
+  auto index = call->ArgumentAt(receiver_idx + 1);
 
   if (array->Type()->is_nullable()) {
     AppendNullCheck(call, &array);
@@ -1629,9 +1628,9 @@ void TypedDataSpecializer::ReplaceWithIndexGet(TemplateDartCall<0>* call,
 void TypedDataSpecializer::ReplaceWithIndexSet(TemplateDartCall<0>* call,
                                                classid_t cid) {
   const intptr_t receiver_idx = call->FirstArgIndex();
-  auto array = call->PushArgumentAt(receiver_idx + 0)->value()->definition();
-  auto index = call->PushArgumentAt(receiver_idx + 1)->value()->definition();
-  auto value = call->PushArgumentAt(receiver_idx + 2)->value()->definition();
+  auto array = call->ArgumentAt(receiver_idx + 0);
+  auto index = call->ArgumentAt(receiver_idx + 1);
+  auto value = call->ArgumentAt(receiver_idx + 2);
 
   if (array->Type()->is_nullable()) {
     AppendNullCheck(call, &array);

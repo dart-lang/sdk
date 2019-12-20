@@ -813,6 +813,7 @@ class Instruction : public ZoneAllocated {
     UNREACHABLE();
     return NULL;
   }
+  inline Value* ArgumentValueAt(intptr_t index) const;
   inline Definition* ArgumentAt(intptr_t index) const;
 
   // Repairs trailing PushArgs in environment.
@@ -2679,8 +2680,12 @@ class PushArgumentInstr : public TemplateDefinition<1, NoThrow> {
   DISALLOW_COPY_AND_ASSIGN(PushArgumentInstr);
 };
 
+inline Value* Instruction::ArgumentValueAt(intptr_t index) const {
+  return PushArgumentAt(index)->value();
+}
+
 inline Definition* Instruction::ArgumentAt(intptr_t index) const {
-  return PushArgumentAt(index)->value()->definition();
+  return ArgumentValueAt(index)->definition();
 }
 
 class ReturnInstr : public TemplateInstruction<1, NoThrow> {

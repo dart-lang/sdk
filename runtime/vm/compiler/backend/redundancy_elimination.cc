@@ -1776,7 +1776,7 @@ class LoadOptimizer : public ValueObject {
                 const Slot& type_args_slot = Slot::GetTypeArgumentsSlotFor(
                     graph_->thread(), alloc->cls());
                 if (slot->IsIdentical(type_args_slot)) {
-                  forward_def = alloc->PushArgumentAt(0)->value()->definition();
+                  forward_def = alloc->ArgumentAt(0);
                 }
               }
               gen->Add(place_id);

@@ -464,8 +464,8 @@ bool AotCallSpecializer::TryOptimizeIntegerOperation(TemplateDartCall<0>* instr,
 
   Definition* replacement = NULL;
   if (instr->ArgumentCount() == 2) {
-    Value* left_value = instr->PushArgumentAt(0)->value();
-    Value* right_value = instr->PushArgumentAt(1)->value();
+    Value* left_value = instr->ArgumentValueAt(0);
+    Value* right_value = instr->ArgumentValueAt(1);
     CompileType* left_type = left_value->Type();
     CompileType* right_type = right_value->Type();
 
@@ -593,7 +593,7 @@ bool AotCallSpecializer::TryOptimizeIntegerOperation(TemplateDartCall<0>* instr,
         break;
     }
   } else if (instr->ArgumentCount() == 1) {
-    Value* left_value = instr->PushArgumentAt(0)->value();
+    Value* left_value = instr->ArgumentValueAt(0);
     CompileType* left_type = left_value->Type();
 
     // We only support unary operations on nullable integers.
@@ -637,8 +637,8 @@ bool AotCallSpecializer::TryOptimizeDoubleOperation(TemplateDartCall<0>* instr,
   Definition* replacement = NULL;
 
   if (instr->ArgumentCount() == 2) {
-    Value* left_value = instr->PushArgumentAt(0)->value();
-    Value* right_value = instr->PushArgumentAt(1)->value();
+    Value* left_value = instr->ArgumentValueAt(0);
+    Value* right_value = instr->ArgumentValueAt(1);
     CompileType* left_type = left_value->Type();
     CompileType* right_type = right_value->Type();
 
@@ -714,7 +714,7 @@ bool AotCallSpecializer::TryOptimizeDoubleOperation(TemplateDartCall<0>* instr,
         break;
     }
   } else if (instr->ArgumentCount() == 1) {
-    Value* left_value = instr->PushArgumentAt(0)->value();
+    Value* left_value = instr->ArgumentValueAt(0);
     CompileType* left_type = left_value->Type();
 
     // We only support unary operations on nullable doubles.
@@ -891,7 +891,7 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
 
   // No IC data checks. Try resolve target using the propagated cid.
   const intptr_t receiver_cid =
-      instr->PushArgumentAt(receiver_idx)->value()->Type()->ToCid();
+      instr->ArgumentValueAt(receiver_idx)->Type()->ToCid();
   if (receiver_cid != kDynamicCid) {
     const Class& receiver_class =
         Class::Handle(Z, isolate()->class_table()->At(receiver_cid));
@@ -1121,7 +1121,7 @@ bool AotCallSpecializer::TryExpandCallThroughGetter(const Class& receiver_class,
 
   PushArgumentsArray* get_arguments = new (Z) PushArgumentsArray(1);
   get_arguments->Add(new (Z) PushArgumentInstr(
-      call->PushArgumentAt(receiver_idx)->value()->CopyWithType()));
+      call->ArgumentValueAt(receiver_idx)->CopyWithType(Z)));
   InstanceCallInstr* invoke_get = new (Z) InstanceCallInstr(
       call->token_pos(), getter_name, Token::kGET, get_arguments,
       /*type_args_len=*/0,
@@ -1135,13 +1135,13 @@ bool AotCallSpecializer::TryExpandCallThroughGetter(const Class& receiver_class,
   PushArgumentsArray* call_arguments =
       new (Z) PushArgumentsArray(call->ArgumentCount());
   if (call->type_args_len() > 0) {
-    call_arguments->Add(new (Z) PushArgumentInstr(
-        call->PushArgumentAt(0)->value()->CopyWithType()));
+    call_arguments->Add(
+        new (Z) PushArgumentInstr(call->ArgumentValueAt(0)->CopyWithType(Z)));
   }
   call_arguments->Add(new (Z) PushArgumentInstr(new (Z) Value(invoke_get)));
   for (intptr_t i = receiver_idx + 1; i < call->ArgumentCount(); i++) {
-    call_arguments->Add(new (Z) PushArgumentInstr(
-        call->PushArgumentAt(i)->value()->CopyWithType()));
+    call_arguments->Add(
+        new (Z) PushArgumentInstr(call->ArgumentValueAt(i)->CopyWithType(Z)));
   }
 
   InstanceCallInstr* invoke_call = new (Z) InstanceCallInstr(
@@ -1192,7 +1192,7 @@ void AotCallSpecializer::VisitPolymorphicInstanceCall(
     PolymorphicInstanceCallInstr* call) {
   const intptr_t receiver_idx = call->type_args_len() > 0 ? 1 : 0;
   const intptr_t receiver_cid =
-      call->PushArgumentAt(receiver_idx)->value()->Type()->ToCid();
+      call->ArgumentValueAt(receiver_idx)->Type()->ToCid();
   if (receiver_cid != kDynamicCid) {
     const Class& receiver_class =
         Class::Handle(Z, isolate()->class_table()->At(receiver_cid));
