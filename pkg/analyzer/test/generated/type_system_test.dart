@@ -871,7 +871,9 @@ class ConstraintMatchingTest extends AbstractTypeSystemTest {
       DartType t1, DartType t2, Iterable<TypeParameterType> typeFormals,
       {bool covariant}) {
     var inferrer = GenericInferrer(
-        typeProvider, typeSystem, typeFormals.map((t) => t.element));
+      typeSystem,
+      typeFormals.map((t) => t.element),
+    );
     var success =
         inferrer.tryMatchSubtypeOf(t1, t2, null, covariant: covariant);
     expect(success, isFalse);
@@ -887,7 +889,9 @@ class ConstraintMatchingTest extends AbstractTypeSystemTest {
       Iterable<String> expectedConstraints,
       {bool covariant}) {
     var inferrer = GenericInferrer(
-        typeProvider, typeSystem, typeFormals.map((t) => t.element));
+      typeSystem,
+      typeFormals.map((t) => t.element),
+    );
     var success =
         inferrer.tryMatchSubtypeOf(t1, t2, null, covariant: covariant);
     expect(success, isTrue);

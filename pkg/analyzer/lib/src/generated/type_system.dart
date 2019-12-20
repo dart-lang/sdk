@@ -612,7 +612,7 @@ class Dart2TypeSystem extends TypeSystem {
     // inferred. It will optimistically assume these type parameters can be
     // subtypes (or supertypes) as necessary, and track the constraints that
     // are implied by this.
-    var inferrer = GenericInferrer(typeProvider, this, fnType.typeFormals);
+    var inferrer = GenericInferrer(this, fnType.typeFormals);
     inferrer.constrainGenericFunctionInContext(fnType, contextType);
 
     // Infer and instantiate the resulting type.
@@ -665,12 +665,7 @@ class Dart2TypeSystem extends TypeSystem {
     // inferred. It will optimistically assume these type parameters can be
     // subtypes (or supertypes) as necessary, and track the constraints that
     // are implied by this.
-    var inferrer = GenericInferrer(
-      typeProvider,
-      this,
-      typeParameters,
-      isNonNullableByDefault: isNonNullableByDefault,
-    );
+    var inferrer = GenericInferrer(this, typeParameters);
 
     if (contextReturnType != null) {
       if (isConst) {
@@ -2425,8 +2420,6 @@ class Dart2TypeSystem extends TypeSystem {
 /// infer a single call and discarded immediately afterwards.
 class GenericInferrer {
   final TypeSystemImpl _typeSystem;
-  final TypeProvider typeProvider;
-  final bool isNonNullableByDefault;
   final Map<TypeParameterElement, List<_TypeConstraint>> constraints = {};
 
   /// Buffer recording constraints recorded while performing a recursive call to
@@ -2434,13 +2427,18 @@ class GenericInferrer {
   /// the failed match can be rewound.
   final _undoBuffer = <_TypeConstraint>[];
 
-  GenericInferrer(this.typeProvider, this._typeSystem,
-      Iterable<TypeParameterElement> typeFormals,
-      {this.isNonNullableByDefault = false}) {
+  GenericInferrer(
+    this._typeSystem,
+    Iterable<TypeParameterElement> typeFormals,
+  ) {
     for (var formal in typeFormals) {
       constraints[formal] = [];
     }
   }
+
+  bool get isNonNullableByDefault => _typeSystem.isNonNullableByDefault;
+
+  TypeProvider get typeProvider => _typeSystem.typeProvider;
 
   /// Apply an argument constraint, which asserts that the [argument] staticType
   /// is a subtype of the [parameterType].
@@ -3800,7 +3798,7 @@ abstract class TypeSystem implements public.TypeSystem {
     List<DartType> destTypes,
   ) {
     var typeParameters = mixinElement.typeParameters;
-    var inferrer = GenericInferrer(typeProvider, this, typeParameters);
+    var inferrer = GenericInferrer(this, typeParameters);
     for (int i = 0; i < srcTypes.length; i++) {
       inferrer.constrainReturnType(srcTypes[i], destTypes[i]);
       inferrer.constrainReturnType(destTypes[i], srcTypes[i]);

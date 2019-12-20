@@ -254,11 +254,7 @@ class ExtensionMemberResolver {
     var instantiatedExtensions = <_InstantiatedExtension>[];
     for (var candidate in candidates) {
       var typeParameters = candidate.extension.typeParameters;
-      var inferrer = GenericInferrer(
-        _typeProvider,
-        _typeSystem,
-        typeParameters,
-      );
+      var inferrer = GenericInferrer(_typeSystem, typeParameters);
       inferrer.constrainArgument(
         type,
         candidate.extension.extendedType,
@@ -368,11 +364,7 @@ class ExtensionMemberResolver {
         return _listOfDynamic(typeParameters);
       }
     } else {
-      var inferrer = GenericInferrer(
-        _typeProvider,
-        _typeSystem,
-        typeParameters,
-      );
+      var inferrer = GenericInferrer(_typeSystem, typeParameters);
       inferrer.constrainArgument(
         receiverType,
         element.extendedType,
