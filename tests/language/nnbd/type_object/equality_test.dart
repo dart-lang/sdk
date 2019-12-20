@@ -4,9 +4,13 @@
 
 import "package:expect/expect.dart";
 
+import "legacy_library.dart";
+
 class A {}
 
 class B {}
+
+Type type<T>() => T;
 
 main() {
   var a = new A();
@@ -25,5 +29,13 @@ main() {
   Expect.isTrue(String == "x".runtimeType);
   Expect.isTrue(String == "\u{1D11E}".runtimeType);
 
-  // TODO(liama): Test nullability cases.
+  Expect.isTrue(type<int?>() == type<int?>());
+  Expect.isFalse(type<int?>() == type<int>());
+  Expect.isFalse(type<int?>() == legacyType<int>());
+  Expect.isFalse(type<int>() == type<int?>());
+  Expect.isTrue(type<int>() == type<int>());
+  Expect.isTrue(type<int>() == legacyType<int>());
+  Expect.isFalse(legacyType<int>() == type<int?>());
+  Expect.isTrue(legacyType<int>() == type<int>());
+  Expect.isTrue(legacyType<int>() == legacyType<int>());
 }
