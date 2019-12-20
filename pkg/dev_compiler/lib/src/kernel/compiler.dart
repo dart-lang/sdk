@@ -1894,7 +1894,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   js_ast.Expression emitConstructorAccess(InterfaceType type) {
-    return _emitJSInterop(type.classNode) ?? visitInterfaceType(type);
+    return _emitJSInterop(type.classNode) ??
+        _emitInterfaceType(type, emitNullability: false);
   }
 
   /// This is called whenever a derived class needs to introduce a new field,
