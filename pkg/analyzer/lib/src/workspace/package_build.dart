@@ -111,18 +111,20 @@ class PackageBuildPackageUriResolver extends UriResolver {
         return Uri.parse('package:${uriParts[0]}/${uriParts[1]}');
       }
     }
-    return source.uri;
+
+    return _normalUriResolver.restoreAbsolute(source);
   }
 
   List<String> _restoreUriParts(String filePath) {
     String relative = _context.relative(filePath, from: _workspace.root);
     List<String> components = _context.split(relative);
-    if (components.length > 4 &&
-        components[0] == 'build' &&
-        components[1] == 'generated' &&
-        components[3] == 'lib') {
-      String packageName = components[2];
-      String pathInLib = components.skip(4).join('/');
+    if (components.length > 5 &&
+        components[0] == '.dart_tool' &&
+        components[1] == 'build' &&
+        components[2] == 'generated' &&
+        components[4] == 'lib') {
+      String packageName = components[3];
+      String pathInLib = components.skip(5).join('/');
       return [packageName, pathInLib];
     }
     return null;
