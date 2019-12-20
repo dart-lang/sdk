@@ -1599,7 +1599,8 @@ void DartTimelineEventHelpers::ReportTaskEvent(Thread* thread,
                                                char* name,
                                                char* args) {
   ASSERT(phase != NULL);
-  ASSERT((phase[0] == 'n') || (phase[0] == 'b') || (phase[0] == 'e'));
+  ASSERT((phase[0] == 'n') || (phase[0] == 'b') || (phase[0] == 'e') ||
+         (phase[0] == 'B') || (phase[0] == 'E'));
   ASSERT(phase[1] == '\0');
   switch (phase[0]) {
     case 'n':
@@ -1610,6 +1611,12 @@ void DartTimelineEventHelpers::ReportTaskEvent(Thread* thread,
       break;
     case 'e':
       event->AsyncEnd(name, id, start);
+      break;
+    case 'B':
+      event->Begin(name, start, id);
+      break;
+    case 'E':
+      event->End(name, start, id);
       break;
     default:
       UNREACHABLE();

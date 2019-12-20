@@ -118,6 +118,7 @@ class Timeline {
       block.flow = flow;
     }
     _stack.add(block);
+    block._startSync();
   }
 
   /// Finish the last synchronous operation that was started.
@@ -308,12 +309,18 @@ class _SyncBlock {
 
   _SyncBlock._(this.name, this._start, this._startCpu);
 
+  /// Start this block of time.
+  void _startSync() {
+    _reportTaskEvent(
+        _start, _startCpu, 'B', category, name, _argumentsAsJson(_arguments));
+  }
+
   /// Finish this block of time. At this point, this block can no longer be
   /// used.
   void finish() {
     // Report event to runtime.
-    _reportCompleteEvent(
-        _start, _startCpu, category, name, _argumentsAsJson(_arguments));
+    _reportTaskEvent(_getTraceClock(), _getThreadCpuClock(), 'E', category,
+        name, _argumentsAsJson(_arguments));
     if (_flow != null) {
       _reportFlowEvent(_start, _startCpu, category, "${_flow.id}", _flow._type,
           _flow.id, _argumentsAsJson(null));

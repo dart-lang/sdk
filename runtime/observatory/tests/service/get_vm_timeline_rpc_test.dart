@@ -125,7 +125,8 @@ var tests = <VMTest>[
     allEventsHaveIsolateNumber(result['traceEvents']);
     expect(
         eventsContains(dartEvents, 'i', 'ISYNC', {'fruit': 'banana'}), isTrue);
-    expect(eventsContains(dartEvents, 'X', 'apple'), isTrue);
+    expect(eventsContains(dartEvents, 'B', 'apple'), isTrue);
+    expect(eventsContains(dartEvents, 'E', 'apple'), isTrue);
     expect(
         eventsContains(dartEvents, 'b', 'TASK1', {
           'task1-start-key': 'task1-start-value',
@@ -141,9 +142,12 @@ var tests = <VMTest>[
             {'task1-instant-key': 'task1-instant-value'}),
         isTrue);
     expect(eventsContains(dartEvents, 'q', 'ITASK'), isFalse);
-    expect(eventsContains(dartEvents, 'X', 'peach'), isTrue);
-    expect(eventsContains(dartEvents, 'X', 'watermelon'), isTrue);
-    expect(eventsContains(dartEvents, 'X', 'pear'), isTrue);
+    expect(eventsContains(dartEvents, 'B', 'peach'), isTrue);
+    expect(eventsContains(dartEvents, 'E', 'peach'), isTrue);
+    expect(eventsContains(dartEvents, 'B', 'watermelon'), isTrue);
+    expect(eventsContains(dartEvents, 'E', 'watermelon'), isTrue);
+    expect(eventsContains(dartEvents, 'B', 'pear'), isTrue);
+    expect(eventsContains(dartEvents, 'E', 'pear'), isTrue);
     expect(eventsContains(dartEvents, 's', '123'), isTrue);
     expect(eventsContains(dartEvents, 't', '123'), isTrue);
     expect(eventsContains(dartEvents, 'f', '123'), isTrue);
