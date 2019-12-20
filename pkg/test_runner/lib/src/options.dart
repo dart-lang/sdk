@@ -449,6 +449,15 @@ compiler.''',
         // The argument does not start with "-" or "--" and is therefore not an
         // option. Use it as a test selector pattern.
         var patterns = configuration.putIfAbsent("selectors", () => <String>[]);
+
+        // Allow the selector to include "tests" at the beginning so that users
+        // can tab complete on the command line. Likewise, if they tab complete
+        // to a single test, ignore the ".dart".
+        if (arg.startsWith("tests/") || arg.startsWith("tests\\")) {
+          arg = arg.substring(6);
+        }
+        if (arg.endsWith(".dart")) arg = arg.substring(0, arg.length - 5);
+
         patterns.add(arg);
         continue;
       }
