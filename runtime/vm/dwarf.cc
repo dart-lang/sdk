@@ -796,7 +796,6 @@ void Dwarf::WriteLines() {
 
           // 4. Update LNP pc.
           if (previous_code_index < 0) {
-            ASSERT(previous_code_address < 0);
             // This variant is relocatable.
             u1(0);                    // This is an extended opcode
             u1(1 + kTargetWordSize);  // that is 5 or 9 bytes long
@@ -805,10 +804,10 @@ void Dwarf::WriteLines() {
               PrintNamedAddressWithOffset(asm_name, current_pc_offset);
             }
             if (elf_ != nullptr) {
+              ASSERT(previous_code_address < 0);
               addr(current_code_address + current_pc_offset);
             }
           } else {
-            ASSERT(previous_code_address >= 0);
             u1(DW_LNS_advance_pc);
             if (asm_stream_ != nullptr) {
               const char* previous_asm_name = namer.AssemblyNameFor(
@@ -817,6 +816,7 @@ void Dwarf::WriteLines() {
                     current_pc_offset - previous_pc_offset);
             }
             if (elf_ != nullptr) {
+              ASSERT(previous_code_address >= 0);
               intptr_t delta = current_code_address - previous_code_address +
                                current_pc_offset - previous_pc_offset;
               RELEASE_ASSERT(delta > 0);
