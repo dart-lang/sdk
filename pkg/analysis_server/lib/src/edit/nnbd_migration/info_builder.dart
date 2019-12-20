@@ -580,6 +580,42 @@ class InfoBuilder {
     return resourceProvider.pathContext.split(filePath).contains('test');
   }
 
+  /// Return the navigation target corresponding to the given [node] in the file
+  /// with the given [filePath].
+  ///
+  /// Rather than a NavigationTarget targeting exactly [node], heuristics are
+  /// made to point to a narrower target, for example the name of a
+  /// method declaration, rather the the entire declaration.
+  NavigationTarget _proximateTargetForNode(String filePath, AstNode node) {
+    if (node == null) {
+      return null;
+    }
+    AstNode parent = node.parent;
+    CompilationUnit unit = node.thisOrAncestorOfType<CompilationUnit>();
+    if (node is ConstructorDeclaration) {
+      if (node.name != null) {
+        return _targetForNode(filePath, node.name, unit);
+      } else {
+        return _targetForNode(filePath, node.returnType, unit);
+      }
+    } else if (node is MethodDeclaration) {
+      // Rather than create a NavigationTarget for an entire method declaration
+      // (starting at its doc comment, ending at `}`, return a target pointing
+      // to the method's name.
+      return _targetForNode(filePath, node.name, unit);
+    } else if (parent is ReturnStatement) {
+      // Rather than create a NavigationTarget for an entire expression, return
+      // a target pointing to the `return` token.
+      return _targetForNode(filePath, parent.returnKeyword, unit);
+    } else if (parent is ExpressionFunctionBody) {
+      // Rather than create a NavigationTarget for an entire expression function
+      // body, return a target pointing to the `=>` token.
+      return _targetForNode(filePath, parent.functionDefinition, unit);
+    } else {
+      return _targetForNode(filePath, node, unit);
+    }
+  }
+
   /// Return the navigation target in the file with the given [filePath] at the
   /// given [offset] ans with the given [length].
   NavigationTarget _targetForNode(
@@ -605,39 +641,6 @@ class InfoBuilder {
         NavigationTarget(filePath, offset, null /* line */, length);
     unitInfo.targets.add(target);
     return target;
-  }
-
-  /// Return the navigation target corresponding to the given [node] in the file
-  /// with the given [filePath].
-  ///
-  /// Rather than a NavigationTarget targeting exactly [node], heuristics are
-  /// made to point to a narrower target, for example the name of a
-  /// method declaration, rather the the entire declaration.
-  NavigationTarget _proximateTargetForNode(String filePath, AstNode node) {
-    AstNode parent = node.parent;
-    CompilationUnit unit = node.thisOrAncestorOfType<CompilationUnit>();
-    if (node is ConstructorDeclaration) {
-      if (node.name != null) {
-        return _targetForNode(filePath, node.name, unit);
-      } else {
-        return _targetForNode(filePath, node.returnType, unit);
-      }
-    } else if (node is MethodDeclaration) {
-      // Rather than create a NavigationTarget for an entire method declaration
-      // (starting at its doc comment, ending at `}`, return a target pointing
-      // to the method's name.
-      return _targetForNode(filePath, node.name, unit);
-    } else if (parent is ReturnStatement) {
-      // Rather than create a NavigationTarget for an entire expression, return
-      // a target pointing to the `return` token.
-      return _targetForNode(filePath, parent.returnKeyword, unit);
-    } else if (parent is ExpressionFunctionBody) {
-      // Rather than create a NavigationTarget for an entire expression function
-      // body, return a target pointing to the `=>` token.
-      return _targetForNode(filePath, parent.functionDefinition, unit);
-    } else {
-      return _targetForNode(filePath, node, unit);
-    }
   }
 
   /// Return the unit info for the file at the given [path].
