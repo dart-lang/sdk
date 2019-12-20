@@ -133,6 +133,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   /// return statements.
   DecoratedType _currentFunctionType;
 
+  /// The [ClassElement] of the current class being visited, or null.
+  ClassElement _currentClass;
+
   /// The [DecoratedType] of the innermost list or set literal being visited, or
   /// `null` if the visitor is not inside any list or set.
   ///
@@ -241,7 +244,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         elementType = element.type;
       } else if (element is ConstructorElement) {
         elementType = element.type;
-      } else if (element is PropertyAccessorMember) {
+      } else if (element is PropertyAccessorElement) {
         elementType = element.type;
       } else {
         throw element.runtimeType; // TODO(paulberry)
@@ -452,18 +455,24 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitClassDeclaration(ClassDeclaration node) {
-    _fieldsNotInitializedAtDeclaration = {
-      for (var member in node.members)
-        if (member is FieldDeclaration)
-          for (var field in member.fields.variables)
-            if (field.initializer == null) field.declaredElement as FieldElement
-    };
-    if (node.declaredElement.unnamedConstructor?.isSynthetic == true) {
-      _handleUninitializedFields(node, _fieldsNotInitializedAtDeclaration);
+    try {
+      _currentClass = node.declaredElement;
+      _fieldsNotInitializedAtDeclaration = {
+        for (var member in node.members)
+          if (member is FieldDeclaration)
+            for (var field in member.fields.variables)
+              if (field.initializer == null)
+                field.declaredElement as FieldElement
+      };
+      if (node.declaredElement.unnamedConstructor?.isSynthetic == true) {
+        _handleUninitializedFields(node, _fieldsNotInitializedAtDeclaration);
+      }
+      node.metadata.accept(this);
+      node.members.accept(this);
+      _fieldsNotInitializedAtDeclaration = null;
+    } finally {
+      _currentClass = null;
     }
-    node.metadata.accept(this);
-    node.members.accept(this);
-    _fieldsNotInitializedAtDeclaration = null;
     return null;
   }
 
@@ -935,6 +944,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       } else {
         targetType = _handleTarget(target, node.methodName.name);
       }
+    } else if (target == null && callee.enclosingElement is ClassElement) {
+      targetType = _thisOrSuper(node);
     }
     if (callee == null) {
       // Dynamic dispatch.  The return type is `dynamic`.
@@ -1206,9 +1217,15 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     } else if (staticElement is FunctionElement ||
         staticElement is MethodElement ||
         staticElement is ConstructorElement) {
-      return getOrComputeElementType(staticElement);
+      return getOrComputeElementType(staticElement,
+          targetType: staticElement.enclosingElement is ClassElement
+              ? _thisOrSuper(node)
+              : null);
     } else if (staticElement is PropertyAccessorElement) {
-      var elementType = getOrComputeElementType(staticElement);
+      var elementType = getOrComputeElementType(staticElement,
+          targetType: staticElement.enclosingElement is ClassElement
+              ? _thisOrSuper(node)
+              : null);
       return staticElement.isGetter
           ? elementType.returnType
           : elementType.positionalParameters[0];
@@ -1294,7 +1311,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitSuperExpression(SuperExpression node) {
-    return _handleThisOrSuper(node);
+    return _thisOrSuper(node);
   }
 
   @override
@@ -1323,7 +1340,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitThisExpression(ThisExpression node) {
-    return _handleThisOrSuper(node);
+    return _thisOrSuper(node);
   }
 
   @override
@@ -2175,8 +2192,12 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     }
   }
 
-  DecoratedType _handleThisOrSuper(Expression node) {
-    var type = node.staticType as InterfaceType;
+  DecoratedType _thisOrSuper(Expression node) {
+    if (_currentClass == null) {
+      return null;
+    }
+
+    final type = _currentClass.thisType;
     // Instantiate the type, and any type arguments, with non-nullable types,
     // because the type of `this` is always `ClassName<Param, Param, ...>` with
     // no `?`s.  (Even if some of the type parameters are allowed to be

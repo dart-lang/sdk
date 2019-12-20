@@ -70,7 +70,8 @@ class DecoratedType implements DecoratedTypeInfo {
         assert(typeFormalBounds.isEmpty);
         assert(typeArguments.length == type.typeArguments.length);
         for (int i = 0; i < typeArguments.length; i++) {
-          assert(typeArguments[i].type == type.typeArguments[i]);
+          assert(typeArguments[i].type == type.typeArguments[i],
+              '${typeArguments[i].type} != ${type.typeArguments[i]}');
         }
       } else if (type is FunctionType) {
         assert(typeFormalBounds.length == type.typeFormals.length);

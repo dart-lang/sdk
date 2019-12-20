@@ -3472,6 +3472,64 @@ class C<T extends num> {}
         hard: true);
   }
 
+  test_methodInvocation_generic_onResultOfImplicitSuper() async {
+    await analyze('''
+class Base<T1> {
+  Base<T1> noop() => this;
+}
+
+class Sub<T2> extends Base<T2> {
+  void implicitSuper() => noop().noop();
+}
+''');
+    // Don't bother checking any edges; the assertions in the DecoratedType
+    // constructor verify that we've substituted the bound correctly.
+  }
+
+  test_methodInvocation_implicitSuper_generic() async {
+    await analyze('''
+class Base<T1> {
+  Base<T1> f(T1 x) => this;
+}
+
+class Sub<T2> extends Base<T2> {
+  void g() => f(null);
+}
+''');
+    assertEdge(
+        inSet(alwaysPlus),
+        substitutionNode(
+          substitutionNode(
+            anyNode, // non-null for `this`.
+            decoratedTypeAnnotation('T2> {').node,
+          ),
+          decoratedTypeAnnotation('T1 x').node,
+        ),
+        hard: false);
+  }
+
+  test_methodInvocation_implicitSuper_tearOff() async {
+    await analyze('''
+class Base<T1> {
+  Base<T1> f(T1 x) => this;
+}
+
+class Sub<T2> extends Base<T2> {
+  void g() => (f)(null);
+}
+''');
+    assertEdge(
+        inSet(alwaysPlus),
+        substitutionNode(
+          substitutionNode(
+            anyNode, // non-null for `this`.
+            decoratedTypeAnnotation('T2> {').node,
+          ),
+          decoratedTypeAnnotation('T1 x').node,
+        ),
+        hard: false);
+  }
+
   test_methodInvocation_object_method() async {
     await analyze('''
 String f(int i) => i.toString();
@@ -4897,6 +4955,42 @@ C<int> f(C<int> x) => ++x;
         substitutionNode(
             xType.typeArguments[0].node, plusReturnType.typeArguments[0].node),
         fReturnType.typeArguments[0].node,
+        hard: false);
+  }
+
+  test_property_generic_onResultOfImplicitSuper() async {
+    await analyze('''
+class Base<T1> {
+  Base<T1> x;
+}
+
+class Sub<T2> extends Base<T2> {
+  void implicitSuper() => x.x;
+}
+''');
+    // Don't bother checking any edges; the assertions in the DecoratedType
+    // constructor verify that we've substituted the bound correctly.
+  }
+
+  test_property_implicitSuper_assignment() async {
+    await analyze('''
+class Base<T1> {
+  T1 x;
+}
+
+class Sub<T2> extends Base<T2> {
+  void g() => x = null;
+}
+''');
+    assertEdge(
+        inSet(alwaysPlus),
+        substitutionNode(
+          substitutionNode(
+            anyNode, // non-null for `this`.
+            decoratedTypeAnnotation('T2> {').node,
+          ),
+          decoratedTypeAnnotation('T1 x').node,
+        ),
         hard: false);
   }
 
