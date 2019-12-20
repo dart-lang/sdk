@@ -30,6 +30,7 @@ import 'package:analyzer/src/dart/resolver/method_invocation_resolver.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/error/nullable_dereference_verifier.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
 import 'package:analyzer/src/generated/element_type_provider.dart';
@@ -464,6 +465,9 @@ class ResolverVisitor extends ScopedVisitor {
 
   final ElementTypeProvider _elementTypeProvider;
 
+  /// Helper for checking potentially nullable dereferences.
+  NullableDereferenceVerifier nullableDereferenceVerifier;
+
   /// Helper for extension method resolution.
   ExtensionMemberResolver extensionResolver;
 
@@ -579,6 +583,10 @@ class ResolverVisitor extends ScopedVisitor {
         super(definingLibrary, source, typeProvider, errorListener,
             nameScope: nameScope) {
     this._promoteManager = TypePromotionManager(typeSystem);
+    this.nullableDereferenceVerifier = NullableDereferenceVerifier(
+      typeSystem,
+      errorReporter,
+    );
     this.extensionResolver = ExtensionMemberResolver(this);
     this.elementResolver = ElementResolver(this,
         reportConstEvaluationErrors: reportConstEvaluationErrors,

@@ -305,6 +305,20 @@ m() {
     ]);
   }
 
+  test_getter_nullable_notNullableExtension() async {
+    await assertErrorsInCode(r'''
+extension E on int {
+  int get foo => 0;
+}
+
+m(int? x) {
+  x.foo;
+}
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_GETTER, 60, 3),
+    ]);
+  }
+
   test_if_nonNullable() async {
     await assertNoErrorsInCode(r'''
 m() {
@@ -536,6 +550,20 @@ m() {
     ]);
   }
 
+  test_method_nullable_notNullableExtension() async {
+    await assertErrorsInCode(r'''
+extension E on int {
+  void foo() {}
+}
+
+m(int? x) {
+  x.foo();
+}
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_METHOD, 56, 3),
+    ]);
+  }
+
   test_method_questionDot_nullable() async {
     await assertNoErrorsInCode(r'''
 m() {
@@ -551,6 +579,24 @@ m(int x) {
   x.toString();
 }
 ''');
+  }
+
+  test_methodInvocation_call_notNullable() async {
+    await assertNoErrorsInCode(r'''
+m(Function x) {
+  x.call();
+}
+''');
+  }
+
+  test_methodInvocation_call_nullable() async {
+    await assertErrorsInCode(r'''
+m(Function? x) {
+  x.call();
+}
+''', [
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 19, 1),
+    ]);
   }
 
   test_minusEq_nonNullable() async {
@@ -682,6 +728,22 @@ m(int? x) {
     ]);
   }
 
+  test_operatorPostfixInc_nullable_notNullableExtension() async {
+    await assertErrorsInCode(r'''
+class A {}
+
+extension E on A {
+  A operator +(int _) => this;
+}
+
+m(A? x) {
+  x++;
+}
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 78, 2),
+    ]);
+  }
+
   test_operatorPrefixDec_nonNullable() async {
     await assertNoErrorsInCode(r'''
 m() {
@@ -739,6 +801,22 @@ m() {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 13, 1),
       error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 19, 1),
+    ]);
+  }
+
+  test_operatorUnaryMinus_nullable_notNullableExtension() async {
+    await assertErrorsInCode(r'''
+class A {}
+
+extension E on A {
+  A operator -() => this;
+}
+
+m(A? x) {
+  -x;
+}
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 72, 1),
     ]);
   }
 

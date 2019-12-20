@@ -148,7 +148,8 @@ class MethodInvocationResolver {
     }
 
     if (receiverType is InterfaceType) {
-      _resolveReceiverInterfaceType(node, receiverType, nameNode, name);
+      _resolveReceiverInterfaceType(
+          node, receiver, receiverType, nameNode, name);
       return;
     }
 
@@ -509,16 +510,20 @@ class MethodInvocationResolver {
     );
   }
 
-  void _resolveReceiverInterfaceType(MethodInvocation node,
+  void _resolveReceiverInterfaceType(MethodInvocation node, Expression receiver,
       InterfaceType receiverType, SimpleIdentifier nameNode, String name) {
     if (_isCoreFunction(receiverType) &&
         name == FunctionElement.CALL_METHOD_NAME) {
+      _resolver.nullableDereferenceVerifier
+          .methodInvocation(receiver, receiverType, name);
       _setDynamicResolution(node);
       return;
     }
 
     var target = _inheritance.getMember(receiverType, _currentName);
     if (target != null) {
+      _resolver.nullableDereferenceVerifier
+          .methodInvocation(receiver, receiverType, name);
       target = _resolver.toLegacyElement(target);
       nameNode.staticElement = target;
       if (target is PropertyAccessorElement) {

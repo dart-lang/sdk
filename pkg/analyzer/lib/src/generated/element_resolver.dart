@@ -175,8 +175,9 @@ class ElementResolver extends SimpleAstVisitor<void> {
         String methodName = operatorType.lexeme;
         // TODO(brianwilkerson) Change the [methodNameNode] from the left hand
         //  side to the operator.
-        var result = _newPropertyResolver()
-            .resolve(leftHandSide, staticType, methodName, leftHandSide);
+        var result = _newPropertyResolver().resolve(
+            leftHandSide, staticType, methodName, leftHandSide,
+            isNullAware: false);
         node.staticElement = result.getter;
         if (_shouldReportInvalidMember(staticType, result)) {
           _recordUndefinedToken(
@@ -490,8 +491,9 @@ class ElementResolver extends SimpleAstVisitor<void> {
     if (target is ExtensionOverride) {
       result = _extensionResolver.getOverrideMember(target, getterMethodName);
     } else {
-      result = _newPropertyResolver()
-          .resolve(target, targetType, getterMethodName, target);
+      result = _newPropertyResolver().resolve(
+          target, targetType, getterMethodName, target,
+          isNullAware: node.isNullAware);
     }
 
     bool isInGetterContext = node.inGetterContext();
@@ -563,7 +565,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
     String methodName = _getPostfixOperator(node);
     DartType staticType = _getStaticType(operand);
     var result = _newPropertyResolver()
-        .resolve(operand, staticType, methodName, operand);
+        .resolve(operand, staticType, methodName, operand, isNullAware: false);
     node.staticElement = result.getter;
     if (_shouldReportInvalidMember(staticType, result)) {
       if (operand is SuperExpression) {
@@ -686,8 +688,9 @@ class ElementResolver extends SimpleAstVisitor<void> {
         return;
       }
       DartType staticType = _getStaticType(operand, read: true);
-      var result = _newPropertyResolver()
-          .resolve(operand, staticType, methodName, operand);
+      var result = _newPropertyResolver().resolve(
+          operand, staticType, methodName, operand,
+          isNullAware: false);
       node.staticElement = result.getter;
       if (_shouldReportInvalidMember(staticType, result)) {
         if (operand is SuperExpression) {
@@ -888,7 +891,8 @@ class ElementResolver extends SimpleAstVisitor<void> {
         enclosingClass != null) {
       InterfaceType enclosingType = enclosingClass.thisType;
       var propertyResolver = _newPropertyResolver();
-      propertyResolver.resolve(null, enclosingType, node.name, node);
+      propertyResolver.resolve(null, enclosingType, node.name, node,
+          isNullAware: false);
       node.auxiliaryElements = AuxiliaryElements(
         propertyResolver.result.getter,
       );
@@ -1153,7 +1157,8 @@ class ElementResolver extends SimpleAstVisitor<void> {
     } else if (invokeType is InterfaceType) {
       var propertyResolver = _newPropertyResolver();
       propertyResolver.resolve(null, invokeType,
-          FunctionElement.CALL_METHOD_NAME, invocation.function);
+          FunctionElement.CALL_METHOD_NAME, invocation.function,
+          isNullAware: false);
       ExecutableElement callMethod = propertyResolver.result.getter;
       invocation.staticElement = callMethod;
       parameterizableType = _elementTypeProvider.safeExecutableType(callMethod);
@@ -1488,8 +1493,9 @@ class ElementResolver extends SimpleAstVisitor<void> {
         return;
       }
       DartType leftType = _getStaticType(leftOperand);
-      ResolutionResult result = _newPropertyResolver()
-          .resolve(leftOperand, leftType, methodName, node);
+      ResolutionResult result = _newPropertyResolver().resolve(
+          leftOperand, leftType, methodName, node,
+          isNullAware: methodName == '==');
 
       node.staticElement = result.getter;
       node.staticInvokeType =
@@ -1779,8 +1785,9 @@ class ElementResolver extends SimpleAstVisitor<void> {
       return;
     }
 
-    var result = _newPropertyResolver()
-        .resolve(target, staticType, propertyName.name, propertyName);
+    var result = _newPropertyResolver().resolve(
+        target, staticType, propertyName.name, propertyName,
+        isNullAware: isNullAware);
 
     if (propertyName.inGetterContext()) {
       var shouldReportUndefinedGetter = false;
@@ -1855,7 +1862,8 @@ class ElementResolver extends SimpleAstVisitor<void> {
           if (enclosingClass != null) {
             var propertyResolver = _newPropertyResolver();
             propertyResolver.resolve(
-                null, enclosingClass.thisType, identifier.name, identifier);
+                null, enclosingClass.thisType, identifier.name, identifier,
+                isNullAware: false);
             setter = propertyResolver.result.setter;
           }
         }
@@ -1893,7 +1901,8 @@ class ElementResolver extends SimpleAstVisitor<void> {
       if (element == null && enclosingType != null) {
         var propertyResolver = _newPropertyResolver();
         propertyResolver.resolve(
-            null, enclosingType, identifier.name, identifier);
+            null, enclosingType, identifier.name, identifier,
+            isNullAware: false);
         if (identifier.inSetterContext() ||
             identifier.parent is CommentReference) {
           element = propertyResolver.result.setter;
@@ -2071,8 +2080,9 @@ class _PropertyResolver {
     Expression target,
     DartType type,
     String name,
-    Expression errorNode,
-  ) {
+    Expression errorNode, {
+    @required bool isNullAware,
+  }) {
     type = _resolveTypeParameter(type);
 
     ExecutableElement typeGetter;
@@ -2119,6 +2129,10 @@ class _PropertyResolver {
 
     if (typeGetter != null || typeSetter != null) {
       result = ResolutionResult(getter: typeGetter, setter: typeSetter);
+    }
+
+    if (!isNullAware && result.isSingle) {
+      _resolver.nullableDereferenceVerifier.propertyAccess(target, type, name);
     }
 
     if (result.isNone) {

@@ -1448,6 +1448,21 @@ class ExtensionMethodsExternalReferenceWithNnbdTest
   @override
   bool get typeToStringWithNullability => true;
 
+  test_instance_getter_fromInstance_nullable() async {
+    await assertNoErrorsInCode('''
+extension E on int? {
+  int get foo => 0;
+}
+
+f(int? a) {
+  a.foo;
+}
+''');
+    var access = findNode.prefixed('a.foo');
+    assertElement(access, findElement.getter('foo', of: 'E'));
+    assertType(access, 'int');
+  }
+
   test_instance_getter_fromInstance_nullAware() async {
     await assertNoErrorsInCode('''
 extension E on int {
@@ -1461,6 +1476,21 @@ f(int? a) {
     var identifier = findNode.simple('foo;');
     assertElement(identifier, findElement.getter('foo', of: 'E'));
     assertType(identifier, 'int');
+  }
+
+  test_instance_method_fromInstance_nullable() async {
+    await assertNoErrorsInCode('''
+extension E on int? {
+  void foo() {}
+}
+
+f(int? a) {
+  a.foo();
+}
+''');
+    var invocation = findNode.methodInvocation('a.foo()');
+    assertElement(invocation, findElement.method('foo', of: 'E'));
+    assertInvokeType(invocation, 'void Function()');
   }
 
   test_instance_method_fromInstance_nullAware() async {
@@ -1478,7 +1508,38 @@ f(int? a) {
     assertInvokeType(invocation, 'void Function()');
   }
 
-  test_instance_operator_index_formInstance_nullAware() async {
+  test_instance_operator_binary_fromInstance_nullable() async {
+    await assertNoErrorsInCode('''
+class A {}
+
+extension E on A? {
+  int operator +(int _) => 0;
+}
+
+f(A? a) {
+  a + 1;
+}
+''');
+    var binary = findNode.binary('a + 1');
+    assertElement(binary, findElement.method('+'));
+    assertType(binary, 'int');
+  }
+
+  test_instance_operator_index_fromInstance_nullable() async {
+    await assertNoErrorsInCode('''
+extension E on int? {
+  int operator [](int index) => 0;
+}
+
+f(int? a) {
+  a[0];
+}
+''');
+    var index = findNode.index('a[0]');
+    assertElement(index, findElement.method('[]'));
+  }
+
+  test_instance_operator_index_fromInstance_nullAware() async {
     await assertNoErrorsInCode('''
 extension E on int {
   int operator [](int index) => 0;
@@ -1489,7 +1550,72 @@ f(int? a) {
 }
 ''');
     var index = findNode.index('a?.[0]');
-    assertElement(index, findElement.method('[]', of: 'E'));
+    assertElement(index, findElement.method('[]'));
+  }
+
+  test_instance_operator_postfixInc_fromInstance_nullable() async {
+    await assertNoErrorsInCode('''
+class A {}
+
+extension E on A? {
+  A? operator +(int _) => this;
+}
+
+f(A? a) {
+  a++;
+}
+''');
+    var expression = findNode.postfix('a++');
+    assertElement(expression, findElement.method('+'));
+    assertType(expression, 'A?');
+  }
+
+  test_instance_operator_prefixInc_fromInstance_nullable() async {
+    await assertNoErrorsInCode('''
+class A {}
+
+extension E on A? {
+  A? operator +(int _) => this;
+}
+
+f(A? a) {
+  ++a;
+}
+''');
+    var expression = findNode.prefix('++a');
+    assertElement(expression, findElement.method('+'));
+    assertType(expression, 'A?');
+  }
+
+  test_instance_operator_unaryMinus_fromInstance_nullable() async {
+    await assertNoErrorsInCode('''
+class A {}
+
+extension E on A? {
+  A? operator -() => this;
+}
+
+f(A? a) {
+  -a;
+}
+''');
+    var expression = findNode.prefix('-a');
+    assertElement(expression, findElement.method('unary-'));
+    assertType(expression, 'A?');
+  }
+
+  test_instance_setter_fromInstance_nullable() async {
+    await assertNoErrorsInCode('''
+extension E on int? {
+  set foo(int _) {}
+}
+
+f(int? a) {
+  a.foo = 1;
+}
+''');
+    var access = findNode.prefixed('a.foo');
+    assertElement(access, findElement.setter('foo'));
   }
 
   test_instance_setter_fromInstance_nullAware() async {

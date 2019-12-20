@@ -39,20 +39,6 @@ import 'package:meta/meta.dart';
  */
 class ErrorVerifier extends RecursiveAstVisitor<void> {
   /**
-   * Properties on the object class which are safe to call on nullable types.
-   *
-   * Note that this must include tear-offs.
-   *
-   * TODO(mfairhurst): Calculate these fields rather than hard-code them.
-   */
-  static final _objectPropertyNames = {
-    'hashCode',
-    'runtimeType',
-    'noSuchMethod',
-    'toString',
-  };
-
-  /**
    * The error reporter by which errors will be reported.
    */
   final ErrorReporter _errorReporter;
@@ -415,7 +401,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
           promoteParameterToNullable: true);
     } else if (type != TokenType.QUESTION_QUESTION) {
       _checkForArgumentTypeNotAssignableForArgument(node.rightOperand);
-      _checkForNullableDereference(node.leftOperand);
     } else {
       _checkForArgumentTypeNotAssignableForArgument(node.rightOperand);
     }
@@ -932,8 +917,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         node.realTarget,
         node.period ?? node.leftBracket,
       );
-    } else {
-      _checkForNullableDereference(node.realTarget);
     }
     super.visitIndexExpression(node);
   }
@@ -1040,11 +1023,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     _typeArgumentsVerifier.checkMethodInvocation(node);
     _checkForNullableDereference(methodName);
     _requiredParametersVerifier.visitMethodInvocation(node);
-    if (!node.isNullAware &&
-        methodName.name != 'toString' &&
-        methodName.name != 'noSuchMethod') {
-      _checkForNullableDereference(target);
-    }
     super.visitMethodInvocation(node);
   }
 
@@ -1106,7 +1084,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     } else {
       _checkForAssignmentToFinal(node.operand);
       _checkForIntNotAssignable(node.operand);
-      _checkForNullableDereference(node.operand);
     }
     super.visitPostfixExpression(node);
   }
@@ -1119,11 +1096,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       SimpleIdentifier name = node.identifier;
       _checkForStaticAccessToInstanceMember(typeReference, name);
       _checkForInstanceAccessToStaticMember(typeReference, node.prefix, name);
-    }
-    String property = node.identifier.name;
-    if (node.staticElement is ExecutableElement &&
-        !_objectPropertyNames.contains(property)) {
-      _checkForNullableDereference(node.prefix);
     }
     super.visitPrefixedIdentifier(node);
   }
@@ -1138,7 +1110,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       if (operatorType.isIncrementOperator) {
         _checkForAssignmentToFinal(operand);
       }
-      _checkForNullableDereference(operand);
       _checkForUseOfVoidResult(operand);
       _checkForIntNotAssignable(operand);
     }
@@ -1153,10 +1124,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     _checkForStaticAccessToInstanceMember(typeReference, propertyName);
     _checkForInstanceAccessToStaticMember(
         typeReference, node.target, propertyName);
-    if (!node.isNullAware &&
-        !_objectPropertyNames.contains(propertyName.name)) {
-      _checkForNullableDereference(target);
-    }
     _checkForUnnecessaryNullAware(target, node.operator);
     super.visitPropertyAccess(node);
   }
