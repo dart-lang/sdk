@@ -19,6 +19,9 @@ class SExpression;
 class SExpList;
 enum class NNBDMode;
 
+template <typename T>
+class GrowableArray;
+
 // CompileType describes type of a value produced by a definition.
 //
 // It captures the following properties:
@@ -217,6 +220,8 @@ class CompileType : public ZoneAllocated {
     }
     return false;
   }
+
+  bool Specialize(GrowableArray<intptr_t>* class_ids);
 
   void PrintTo(BufferFormatter* f) const;
   SExpression* ToSExpression(FlowGraphSerializer* s) const;

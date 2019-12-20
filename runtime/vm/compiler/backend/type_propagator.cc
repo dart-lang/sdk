@@ -832,6 +832,22 @@ bool CompileType::IsSubtypeOf(NNBDMode mode, const AbstractType& other) {
   return ToAbstractType()->IsSubtypeOf(mode, other, Heap::kOld);
 }
 
+bool CompileType::Specialize(GrowableArray<intptr_t>* class_ids) {
+  ToNullableCid();
+  if (cid_ != kDynamicCid) {
+    class_ids->Add(cid_);
+    return true;
+  }
+  if (type_ != nullptr && type_->type_class_id() != kIllegalCid) {
+    const Class& type_class = Class::Handle(type_->type_class());
+    if (!CHA::ConcreteSubclasses(type_class, class_ids)) return false;
+    if (is_nullable_) {
+      class_ids->Add(kNullCid);
+    }
+  }
+  return false;
+}
+
 void CompileType::PrintTo(BufferFormatter* f) const {
   const char* type_name = "?";
   if (IsNone()) {

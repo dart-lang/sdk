@@ -12,6 +12,7 @@
 namespace dart {
 
 class Class;
+class CompileType;
 class Function;
 template <typename T>
 class ZoneGrowableArray;

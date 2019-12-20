@@ -906,6 +906,40 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
     }
   }
 
+  // Check for x == y, where x has type T?, there are no subtypes of T, and
+  // T does not override ==. Replace with StrictCompare.
+  if (instr->token_kind() == Token::kEQ || instr->token_kind() == Token::kNE) {
+    GrowableArray<intptr_t> class_ids(6);
+    if (instr->PushArgumentAt(receiver_idx)
+            ->value()
+            ->Type()
+            ->Specialize(&class_ids)) {
+      bool is_object_eq = true;
+      for (intptr_t i = 0; i < class_ids.length(); i++) {
+        const intptr_t cid = class_ids[i];
+        const Class& cls = Class::Handle(Z, isolate()->class_table()->At(cid));
+        const Function& target =
+            Function::Handle(Z, instr->ResolveForReceiverClass(cls));
+        if (target.recognized_kind() != MethodRecognizer::kObjectEquals) {
+          is_object_eq = false;
+          break;
+        }
+      }
+      if (is_object_eq) {
+        auto* replacement = new (Z) StrictCompareInstr(
+            instr->token_pos(),
+            (instr->token_kind() == Token::kEQ) ? Token::kEQ_STRICT
+                                                : Token::kNE_STRICT,
+            instr->PushArgumentAt(0)->value()->CopyWithType(Z),
+            instr->PushArgumentAt(1)->value()->CopyWithType(Z),
+            /*needs_number_check=*/false, DeoptId::kNone);
+        ReplaceCall(instr, replacement);
+        RefineUseTypes(replacement);
+        return;
+      }
+    }
+  }
+
   Definition* callee_receiver = instr->ArgumentAt(receiver_idx);
   const Function& function = flow_graph()->function();
   Class& receiver_class = Class::Handle(Z);
