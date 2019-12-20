@@ -518,7 +518,7 @@ Future<T> withGlobalOptions<T>(
     }
 
     return f(c, parsedArguments.arguments);
-  });
+  }, errorOnMissingInput: problem == null);
 }
 
 Message computeUsage(String programName, bool verbose) {
