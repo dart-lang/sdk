@@ -521,7 +521,8 @@ void Snapshot::GenerateAppAOTAsBlobs(const char* snapshot_filename) {
   Dart_Handle result = Dart_CreateAppAOTSnapshotAsBlobs(
       &vm_data_buffer, &vm_data_size, &vm_instructions_buffer,
       &vm_instructions_size, &isolate_data_buffer, &isolate_data_size,
-      &isolate_instructions_buffer, &isolate_instructions_size);
+      &isolate_instructions_buffer, &isolate_instructions_size,
+      /*callback=*/nullptr, /*debug_callback_info=*/nullptr);
   if (Dart_IsError(result)) {
     ErrorExit(kErrorExitCode, "%s\n", Dart_GetError(result));
   }
@@ -547,8 +548,9 @@ void Snapshot::GenerateAppAOTAsAssembly(const char* snapshot_filename) {
     ErrorExit(kErrorExitCode, "Unable to open file %s for writing snapshot\n",
               snapshot_filename);
   }
-  Dart_Handle result =
-      Dart_CreateAppAOTSnapshotAsAssembly(StreamingWriteCallback, file);
+  Dart_Handle result = Dart_CreateAppAOTSnapshotAsAssembly(
+      StreamingWriteCallback, file, /*strip=*/false,
+      /*debug_callback_data=*/nullptr);
   if (Dart_IsError(result)) {
     ErrorExit(kErrorExitCode, "%s\n", Dart_GetError(result));
   }

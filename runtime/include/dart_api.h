@@ -3394,11 +3394,19 @@ typedef void (*Dart_StreamingWriteCallback)(void* callback_data,
  *
  *  The callback will be invoked one or more times to provide the assembly code.
  *
+ *  If stripped is true, then the assembly code will not include DWARF
+ *  debugging sections.
+ *
+ *  If debug_callback_data is provided, debug_callback_data will be used with
+ *  the callback to provide separate debugging information.
+ *
  *  \return A valid handle if no error occurs during the operation.
  */
 DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
 Dart_CreateAppAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
-                                    void* callback_data);
+                                    void* callback_data,
+                                    bool stripped,
+                                    void* debug_callback_data);
 
 /**
  *  Creates a precompiled snapshot.
@@ -3419,6 +3427,9 @@ Dart_CreateAppAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
  *
  *  The callback will be invoked one or more times to provide the binary output.
  *
+ *  If stripped is true, then the binary output will not include DWARF
+ *  debugging sections.
+ *
  *  If debug_callback_data is provided, debug_callback_data will be used with
  *  the callback to provide separate debugging information.
  *
@@ -3432,7 +3443,9 @@ Dart_CreateAppAOTSnapshotAsElf(Dart_StreamingWriteCallback callback,
 
 /**
  *  Like Dart_CreateAppAOTSnapshotAsAssembly, but only includes
- *  kDartVmSnapshotData and kDartVmSnapshotInstructions.
+ *  kDartVmSnapshotData and kDartVmSnapshotInstructions. It also does
+ *  not strip DWARF information from the generated assembly or allow for
+ *  separate debug information.
  */
 DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
 Dart_CreateVMAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
@@ -3447,6 +3460,9 @@ Dart_CreateVMAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
  *  This function has been DEPRECATED. Please use Dart_CreateAppAOTSnapshotAsELF
  *  or Dart_CreateAppAOTSnapshotAsAssembly instead. A portable ELF loader is
  *  available in the target //runtime/bin:elf_loader.
+ *
+ *  If callback and debug_callback_data are provided, debug_callback_data will
+ *  be used with the callback to provide separate debugging information.
  */
 DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
 Dart_CreateAppAOTSnapshotAsBlobs(uint8_t** vm_snapshot_data_buffer,
@@ -3456,7 +3472,9 @@ Dart_CreateAppAOTSnapshotAsBlobs(uint8_t** vm_snapshot_data_buffer,
                                  uint8_t** isolate_snapshot_data_buffer,
                                  intptr_t* isolate_snapshot_data_size,
                                  uint8_t** isolate_snapshot_instructions_buffer,
-                                 intptr_t* isolate_snapshot_instructions_size);
+                                 intptr_t* isolate_snapshot_instructions_size,
+                                 Dart_StreamingWriteCallback callback,
+                                 void* debug_callback_data);
 
 /**
  * Sorts the class-ids in depth first traversal order of the inheritance

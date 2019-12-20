@@ -83,15 +83,15 @@ struct FunctionIndexPair {
 
 typedef DirectChainedHashMap<FunctionIndexPair> FunctionIndexMap;
 
-struct CodeIndexPair {
+struct CodeAddressPair {
   // Typedefs needed for the DirectChainedHashMap template.
   typedef const Code* Key;
   typedef intptr_t Value;
-  typedef CodeIndexPair Pair;
+  typedef CodeAddressPair Pair;
 
   static Key KeyOf(Pair kv) { return kv.code_; }
 
-  static Value ValueOf(Pair kv) { return kv.index_; }
+  static Value ValueOf(Pair kv) { return kv.address_; }
 
   static inline intptr_t Hashcode(Key key) {
     // Code objects are always allocated in old space, so they don't move.
@@ -102,20 +102,22 @@ struct CodeIndexPair {
     return pair.code_->raw() == key->raw();
   }
 
-  CodeIndexPair(const Code* c, intptr_t index) : code_(c), index_(index) {
+  CodeAddressPair(const Code* c, intptr_t address)
+      : code_(c), address_(address) {
     ASSERT(!c->IsNull());
     ASSERT(c->IsNotTemporaryScopedHandle());
+    ASSERT(address >= 0);
   }
 
-  CodeIndexPair() : code_(NULL), index_(-1) {}
+  CodeAddressPair() : code_(NULL), address_(-1) {}
 
   void Print() const;
 
   const Code* code_;
-  intptr_t index_;
+  intptr_t address_;
 };
 
-typedef DirectChainedHashMap<CodeIndexPair> CodeIndexMap;
+typedef DirectChainedHashMap<CodeAddressPair> CodeAddressMap;
 
 template <typename T>
 class Trie : public ZoneAllocated {
@@ -195,8 +197,14 @@ class Dwarf : public ZoneAllocated {
  public:
   Dwarf(Zone* zone, StreamingWriteStream* stream, Elf* elf);
 
-  void AddCode(const Code& code, intptr_t offset);
-  intptr_t AddCode(const Code& code);
+  Elf* elf() const { return elf_; }
+
+  // Stores the code object for later creating the line number program.
+  //
+  // If [elf()] is not nullptr, then [virtual_address] must be non-negative.
+  //
+  // Returns the stored index of the code object.
+  intptr_t AddCode(const Code& code, intptr_t virtual_address = -1);
   intptr_t AddFunction(const Function& function);
   intptr_t AddScript(const Script& script);
   intptr_t LookupFunction(const Function& function);
@@ -258,10 +266,25 @@ class Dwarf : public ZoneAllocated {
   };
 
   void Print(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
+
+#if defined(TARGET_ARCH_IS_32_BIT)
+#define FORM_ADDR ".4byte"
+#elif defined(TARGET_ARCH_IS_64_BIT)
+#define FORM_ADDR ".8byte"
+#endif
+
+  void PrintNamedAddress(const char* name) { Print(FORM_ADDR " %s\n", name); }
+  void PrintNamedAddressWithOffset(const char* name, intptr_t offset) {
+    Print(FORM_ADDR " %s + %" Pd "\n", name, offset);
+  }
+
+#undef FORM_ADDR
+
   void sleb128(intptr_t value) {
-    if (asm_stream_) {
+    if (asm_stream_ != nullptr) {
       Print(".sleb128 %" Pd "\n", value);
-    } else {
+    }
+    if (elf_ != nullptr) {
       bool is_last_part = false;
       while (!is_last_part) {
         uint8_t part = value & 0x7F;
@@ -278,9 +301,10 @@ class Dwarf : public ZoneAllocated {
     }
   }
   void uleb128(uintptr_t value) {
-    if (asm_stream_) {
+    if (asm_stream_ != nullptr) {
       Print(".uleb128 %" Pd "\n", value);
-    } else {
+    }
+    if (elf_ != nullptr) {
       bool is_last_part = false;
       while (!is_last_part) {
         uint8_t part = value & 0x7F;
@@ -296,72 +320,68 @@ class Dwarf : public ZoneAllocated {
     }
   }
   void u1(uint8_t value) {
-    if (asm_stream_) {
+    if (asm_stream_ != nullptr) {
       Print(".byte %u\n", value);
-    } else {
+    }
+    if (elf_ != nullptr) {
       bin_stream_->WriteBytes(reinterpret_cast<const uint8_t*>(&value),
                               sizeof(value));
     }
   }
   void u2(uint16_t value) {
-    if (asm_stream_) {
+    if (asm_stream_ != nullptr) {
       Print(".2byte %u\n", value);
-    } else {
+    }
+    if (elf_ != nullptr) {
       bin_stream_->WriteBytes(reinterpret_cast<const uint8_t*>(&value),
                               sizeof(value));
     }
   }
   intptr_t u4(uint32_t value) {
-    if (asm_stream_) {
+    if (asm_stream_ != nullptr) {
       Print(".4byte %" Pu32 "\n", value);
-      return -1;
-    } else {
+    }
+    if (elf_ != nullptr) {
       intptr_t fixup = position();
       bin_stream_->WriteBytes(reinterpret_cast<const uint8_t*>(&value),
                               sizeof(value));
       return fixup;
     }
+    return -1;
   }
   void fixup_u4(intptr_t position, uint32_t value) {
-    if (asm_stream_) {
-      UNREACHABLE();
-    } else {
-      memmove(bin_stream_->buffer() + position, &value, sizeof(value));
-    }
+    RELEASE_ASSERT(elf_ != nullptr);
+    memmove(bin_stream_->buffer() + position, &value, sizeof(value));
   }
   void u8(uint64_t value) {
-    if (asm_stream_) {
+    if (asm_stream_ != nullptr) {
       Print(".8byte %" Pu64 "\n", value);
-    } else {
+    }
+    if (elf_ != nullptr) {
       bin_stream_->WriteBytes(reinterpret_cast<const uint8_t*>(&value),
                               sizeof(value));
     }
   }
   void addr(uword value) {
-    if (asm_stream_) {
-      UNREACHABLE();
-    } else {
+    RELEASE_ASSERT(elf_ != nullptr);
 #if defined(TARGET_ARCH_IS_32_BIT)
-      u4(value);
+    u4(value);
 #else
-      u8(value);
+    u8(value);
 #endif
-    }
   }
   void string(const char* cstr) {  // NOLINT
-    if (asm_stream_) {
+    if (asm_stream_ != nullptr) {
       Print(".string \"%s\"\n", cstr);  // NOLINT
-    } else {
+    }
+    if (elf_ != nullptr) {
       bin_stream_->WriteBytes(reinterpret_cast<const uint8_t*>(cstr),
                               strlen(cstr) + 1);
     }
   }
   intptr_t position() {
-    if (asm_stream_) {
-      UNREACHABLE();
-    } else {
-      return bin_stream_->Position();
-    }
+    RELEASE_ASSERT(elf_ != nullptr);
+    return bin_stream_->Position();
   }
 
   void WriteAbbreviations();
@@ -385,7 +405,7 @@ class Dwarf : public ZoneAllocated {
   StreamingWriteStream* asm_stream_;
   WriteStream* bin_stream_;
   ZoneGrowableArray<const Code*> codes_;
-  CodeIndexMap code_to_index_;
+  CodeAddressMap code_to_address_;
   ZoneGrowableArray<const Function*> functions_;
   FunctionIndexMap function_to_index_;
   ZoneGrowableArray<const Script*> scripts_;

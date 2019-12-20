@@ -6111,9 +6111,17 @@ DART_EXPORT Dart_Handle Dart_Precompile() {
 #endif
 }
 
+// Used for StreamingWriteStream/BlobImageWriter sizes for ELF and blobs.
+#if !defined(TARGET_ARCH_IA32) && defined(DART_PRECOMPILER)
+static const intptr_t kInitialSize = 2 * MB;
+static const intptr_t kInitialDebugSize = 1 * MB;
+#endif
+
 DART_EXPORT Dart_Handle
 Dart_CreateAppAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
-                                    void* callback_data) {
+                                    void* callback_data,
+                                    bool strip,
+                                    void* debug_callback_data) {
 #if defined(TARGET_ARCH_IA32)
   return Api::NewError("AOT compilation is not supported on IA32.");
 #elif defined(TARGET_OS_WINDOWS)
@@ -6133,7 +6141,15 @@ Dart_CreateAppAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
   CHECK_NULL(callback);
 
   TIMELINE_DURATION(T, Isolate, "WriteAppAOTSnapshot");
-  AssemblyImageWriter image_writer(T, callback, callback_data);
+  const bool generate_debug = debug_callback_data != nullptr;
+
+  StreamingWriteStream debug_stream(generate_debug ? kInitialDebugSize : 0,
+                                    callback, debug_callback_data);
+
+  Elf* elf =
+      generate_debug ? new (Z) Elf(Z, nullptr, strip, &debug_stream) : nullptr;
+
+  AssemblyImageWriter image_writer(T, callback, callback_data, strip, elf);
   uint8_t* vm_snapshot_data_buffer = NULL;
   uint8_t* isolate_snapshot_data_buffer = NULL;
   FullSnapshotWriter writer(Snapshot::kFullAOT, &vm_snapshot_data_buffer,
@@ -6142,6 +6158,9 @@ Dart_CreateAppAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
 
   writer.WriteFullSnapshot();
   image_writer.Finalize();
+  if (elf != nullptr) {
+    elf->Finalize();
+  }
 
   return Api::Success();
 #endif
@@ -6196,18 +6215,14 @@ Dart_CreateAppAOTSnapshotAsElf(Dart_StreamingWriteCallback callback,
   uint8_t* isolate_snapshot_data_buffer = nullptr;
   uint8_t* isolate_snapshot_instructions_buffer = nullptr;
 
-  const bool generate_elf = callback_data != nullptr;
   const bool generate_debug = debug_callback_data != nullptr;
 
-  const intptr_t kInitialSize = 2 * MB;
-  StreamingWriteStream elf_stream(generate_elf ? kInitialSize : 0, callback,
-                                  callback_data);
-  const intptr_t kInitialDebugSize = generate_debug ? 1 * MB : 0;
-  StreamingWriteStream debug_stream(kInitialDebugSize, callback,
-                                    debug_callback_data);
+  StreamingWriteStream elf_stream(kInitialSize, callback, callback_data);
+  StreamingWriteStream debug_stream(generate_debug ? kInitialDebugSize : 0,
+                                    callback, debug_callback_data);
 
-  Elf* elf = new (Z) Elf(Z, generate_elf ? &elf_stream : nullptr, strip,
-                         generate_debug ? &debug_stream : nullptr);
+  Elf* elf = new (Z)
+      Elf(Z, &elf_stream, strip, generate_debug ? &debug_stream : nullptr);
   Dwarf* dwarf = nullptr;
   if (!strip || generate_debug) {
     dwarf = new (Z) Dwarf(Z, nullptr, elf);
@@ -6253,7 +6268,9 @@ Dart_CreateAppAOTSnapshotAsBlobs(uint8_t** vm_snapshot_data_buffer,
                                  uint8_t** isolate_snapshot_data_buffer,
                                  intptr_t* isolate_snapshot_data_size,
                                  uint8_t** isolate_snapshot_instructions_buffer,
-                                 intptr_t* isolate_snapshot_instructions_size) {
+                                 intptr_t* isolate_snapshot_instructions_size,
+                                 Dart_StreamingWriteCallback callback,
+                                 void* debug_callback_data) {
 #if defined(TARGET_ARCH_IA32)
   return Api::NewError("AOT compilation is not supported on IA32.");
 #elif !defined(DART_PRECOMPILER)
@@ -6278,11 +6295,25 @@ Dart_CreateAppAOTSnapshotAsBlobs(uint8_t** vm_snapshot_data_buffer,
   CHECK_NULL(isolate_snapshot_instructions_size);
 
   TIMELINE_DURATION(T, Isolate, "WriteAppAOTSnapshot");
+
+  const bool generate_debug = debug_callback_data != nullptr;
+
+  StreamingWriteStream debug_stream(generate_debug ? kInitialDebugSize : 0,
+                                    callback, debug_callback_data);
+
+  Elf* elf = nullptr;
+  Dwarf* dwarf = nullptr;
+  if (generate_debug) {
+    elf = new (Z) Elf(Z, nullptr, /*strip=*/false, &debug_stream);
+    dwarf = new (Z) Dwarf(Z, nullptr, elf);
+  }
+
   BlobImageWriter vm_image_writer(T, vm_snapshot_instructions_buffer,
-                                  ApiReallocate, 2 * MB /* initial_size */);
+                                  ApiReallocate, kInitialSize, /*bss_base=*/0,
+                                  elf, dwarf);
   BlobImageWriter isolate_image_writer(T, isolate_snapshot_instructions_buffer,
-                                       ApiReallocate,
-                                       2 * MB /* initial_size */);
+                                       ApiReallocate, kInitialSize,
+                                       /*bss_base=*/0, elf, dwarf);
   FullSnapshotWriter writer(Snapshot::kFullAOT, vm_snapshot_data_buffer,
                             isolate_snapshot_data_buffer, ApiReallocate,
                             &vm_image_writer, &isolate_image_writer);
@@ -6293,6 +6324,11 @@ Dart_CreateAppAOTSnapshotAsBlobs(uint8_t** vm_snapshot_data_buffer,
   *isolate_snapshot_data_size = writer.IsolateSnapshotSize();
   *isolate_snapshot_instructions_size =
       isolate_image_writer.InstructionsBlobSize();
+
+  if (generate_debug) {
+    dwarf->Write();
+    elf->Finalize();
+  }
 
   return Api::Success();
 #endif

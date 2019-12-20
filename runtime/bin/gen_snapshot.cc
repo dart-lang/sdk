@@ -172,8 +172,9 @@ static void PrintUsage() {
 "as a static or dynamic library:                                             \n"
 "--snapshot_kind=app-aot-assembly                                            \n"
 "--assembly=<output-file>                                                    \n"
-"[--save-debugging-info=<debug-filename>]                                    \n"
+"[--strip]                                                                   \n"
 "[--obfuscate]                                                               \n"
+"[--save-debugging-info=<debug-filename>]                                    \n"
 "[--save-obfuscation-map=<map-filename>]                                     \n"
 "<dart-kernel-file>                                                          \n"
 "                                                                            \n"
@@ -341,24 +342,25 @@ static int ParseArguments(int argc,
     return -1;
   }
 
-  if (obfuscate && !IsSnapshottingForPrecompilation()) {
-    Syslog::PrintErr(
-        "Obfuscation can only be enabled when building AOT snapshot.\n\n");
-    return -1;
-  }
+  if (!IsSnapshottingForPrecompilation()) {
+    if (obfuscate) {
+      Syslog::PrintErr(
+          "Obfuscation can only be enabled when building an AOT snapshot.\n\n");
+      return -1;
+    }
 
-  if (debugging_info_filename != nullptr &&
-      !IsSnapshottingForPrecompilation()) {
-    Syslog::PrintErr(
-        "--save-debugging-info=<...> can only be enabled when building an AOT "
-        "snapshot.\n\n");
-    return -1;
-  }
+    if (debugging_info_filename != nullptr) {
+      Syslog::PrintErr(
+          "--save-debugging-info=<...> can only be enabled when building an "
+          "AOT snapshot.\n\n");
+      return -1;
+    }
 
-  if (strip && snapshot_kind != kAppAOTElf) {
-    Syslog::PrintErr(
-        "Stripping can only be enabled when building an ELF AOT snapshot.\n\n");
-    return -1;
+    if (strip) {
+      Syslog::PrintErr(
+          "Stripping can only be enabled when building an AOT snapshot.\n\n");
+      return -1;
+    }
   }
 
   return 0;
@@ -627,26 +629,38 @@ static void CreateAndWritePrecompiledSnapshot() {
   if (snapshot_kind == kAppAOTAssembly) {
     File* file = OpenFile(assembly_filename);
     RefCntReleaseScope<File> rs(file);
-    result = Dart_CreateAppAOTSnapshotAsAssembly(StreamingWriteCallback, file);
+    File* debug_file = nullptr;
+    if (debugging_info_filename != nullptr) {
+      debug_file = OpenFile(debugging_info_filename);
+    } else if (strip) {
+      Syslog::PrintErr(
+          "Warning: Generating assembly code without DWARF debugging"
+          " information.\n");
+    }
+    result = Dart_CreateAppAOTSnapshotAsAssembly(StreamingWriteCallback, file,
+                                                 strip, debug_file);
+    if (debug_file != nullptr) debug_file->Release();
     CHECK_RESULT(result);
+    if (obfuscate && !strip) {
+      Syslog::PrintErr(
+          "Warning: The generated assembly code contains unobfuscated DWARF "
+          "debugging information.\n"
+          "         To avoid this, use --strip to remove it.\n");
+    }
   } else if (snapshot_kind == kAppAOTElf) {
     File* file = OpenFile(elf_filename);
     RefCntReleaseScope<File> rs(file);
+    File* debug_file = nullptr;
     if (debugging_info_filename != nullptr) {
-      File* debug_file = OpenFile(debugging_info_filename);
-      RefCntReleaseScope<File> rsd(debug_file);
-      result = Dart_CreateAppAOTSnapshotAsElf(StreamingWriteCallback, file,
-                                              strip, debug_file);
-    } else {
-      if (strip) {
-        Syslog::PrintErr(
-            "Warning: Generating ELF library without DWARF debugging"
-            " information.\n");
-      }
-      result =
-          Dart_CreateAppAOTSnapshotAsElf(StreamingWriteCallback, file, strip,
-                                         /*debug_callback_data=*/nullptr);
+      debug_file = OpenFile(debugging_info_filename);
+    } else if (strip) {
+      Syslog::PrintErr(
+          "Warning: Generating ELF library without DWARF debugging"
+          " information.\n");
     }
+    result = Dart_CreateAppAOTSnapshotAsElf(StreamingWriteCallback, file, strip,
+                                            debug_file);
+    if (debug_file != nullptr) debug_file->Release();
     CHECK_RESULT(result);
     if (obfuscate && !strip) {
       Syslog::PrintErr(
@@ -671,12 +685,18 @@ static void CreateAndWritePrecompiledSnapshot() {
     intptr_t isolate_snapshot_data_size = 0;
     uint8_t* isolate_snapshot_instructions_buffer = NULL;
     intptr_t isolate_snapshot_instructions_size = 0;
+    File* debug_file = nullptr;
+    if (debugging_info_filename != nullptr) {
+      debug_file = OpenFile(debugging_info_filename);
+    }
     result = Dart_CreateAppAOTSnapshotAsBlobs(
         &vm_snapshot_data_buffer, &vm_snapshot_data_size,
         &vm_snapshot_instructions_buffer, &vm_snapshot_instructions_size,
         &isolate_snapshot_data_buffer, &isolate_snapshot_data_size,
         &isolate_snapshot_instructions_buffer,
-        &isolate_snapshot_instructions_size);
+        &isolate_snapshot_instructions_size, StreamingWriteCallback,
+        debug_file);
+    if (debug_file != nullptr) debug_file->Release();
     CHECK_RESULT(result);
 
     if (blobs_container_filename != NULL) {
@@ -709,17 +729,6 @@ static void CreateAndWritePrecompiledSnapshot() {
     result = Dart_GetObfuscationMap(&buffer, &size);
     CHECK_RESULT(result);
     WriteFile(obfuscation_map_filename, buffer, size);
-  }
-
-  // Output separate debugging information if not generating ELF (otherwise we
-  // have already generated it as part of that process).
-  if (debugging_info_filename != nullptr && snapshot_kind != kAppAOTElf) {
-    File* debug_file = OpenFile(debugging_info_filename);
-    RefCntReleaseScope<File> rsd(debug_file);
-    result = Dart_CreateAppAOTSnapshotAsElf(StreamingWriteCallback,
-                                            /*callback_data=*/nullptr,
-                                            /*strip=*/false, debug_file);
-    CHECK_RESULT(result);
   }
 }
 
