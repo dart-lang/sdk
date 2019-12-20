@@ -102,7 +102,7 @@ void typeParametersNullableBounds<IQ extends int?, BQ extends bool?, LQ extends 
   while (cond) {} //# 71: compile-time error
   for (;cond;){} //# 72: compile-time error
   do {} while (cond); //# 73: compile-time error
-  cond!; //# 74: runtime error
+  cond!; //# 74: ok
   cond ?? null; //# 75: ok
   cond == null; //# 76: ok
   cond != null; //# 77: ok
@@ -153,7 +153,7 @@ void typeParametersNullableUses<I extends int, B extends bool, L extends List, F
   while (cond) {} //# 111: compile-time error
   for (;cond;) {} //# 112: compile-time error
   do {} while (cond); //# 113: compile-time error
-  cond!; //# 114: runtime error
+  cond!; //# 114: ok
   cond ?? null; //# 115: ok
   cond == null; //# 116: ok
   cond != null; //# 117: ok
