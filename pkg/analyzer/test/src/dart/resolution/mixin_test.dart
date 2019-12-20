@@ -1302,7 +1302,7 @@ mixin M<T> on C<T> {}
 M<T> f<T>() => null;
 ''');
     var fInvocation = findNode.methodInvocation('f()');
-    expect(fInvocation.staticInvokeType.toString(), 'M<int> Function()');
+    assertInvokeType(fInvocation, 'M<int> Function()');
   }
 
   test_onClause() async {

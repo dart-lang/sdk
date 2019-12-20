@@ -1236,7 +1236,8 @@ class _InheritanceManager3Base extends DriverResolutionTest {
       var enclosingElement = element.enclosingElement;
       if (enclosingElement.name == 'Object') continue;
 
-      lines.add('${enclosingElement.name}.${element.name}: $type');
+      var typeStr = type.getDisplayString(withNullability: false);
+      lines.add('${enclosingElement.name}.${element.name}: $typeStr');
     }
 
     lines.sort();

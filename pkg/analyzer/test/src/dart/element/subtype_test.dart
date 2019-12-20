@@ -5919,17 +5919,17 @@ class SubtypeTest extends _SubtypingTestBase {
         var base = typeParameter.declaration;
         var baseBound = base.bound as TypeImpl;
         if (baseBound != null) {
-          var baseBoundStr = baseBound.toString(withNullability: true);
+          var baseBoundStr = _typeStr(baseBound);
           typeStr += ', ${typeParameter.name} extends ' + baseBoundStr;
         }
 
         var bound = typeParameter.bound as TypeImpl;
-        var boundStr = bound.toString(withNullability: true);
+        var boundStr = _typeStr(bound);
         typeStr += ', ${typeParameter.name} & ' + boundStr;
       } else {
         var bound = typeParameter.bound as TypeImpl;
         if (bound != null) {
-          var boundStr = bound.toString(withNullability: true);
+          var boundStr = _typeStr(bound);
           typeStr += ', ${typeParameter.name} extends ' + boundStr;
         }
       }
@@ -5938,7 +5938,7 @@ class SubtypeTest extends _SubtypingTestBase {
   }
 
   static String _typeStr(DartType type) {
-    return (type as TypeImpl).toString(withNullability: true);
+    return type.getDisplayString(withNullability: true);
   }
 }
 
@@ -6107,7 +6107,7 @@ class _SubtypingCompoundTestBase extends _SubtypingTestBase {
   }
 
   static String _typeStr(DartType type) {
-    return (type as TypeImpl).toString(withNullability: true);
+    return type.getDisplayString(withNullability: true);
   }
 }
 

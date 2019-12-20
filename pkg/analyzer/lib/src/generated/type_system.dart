@@ -2448,8 +2448,12 @@ class GenericInferrer {
       DartType argumentType, DartType parameterType, String parameterName,
       {ClassElement genericClass}) {
     var origin = _TypeConstraintFromArgument(
-        argumentType, parameterType, parameterName,
-        genericClass: genericClass);
+      argumentType,
+      parameterType,
+      parameterName,
+      genericClass: genericClass,
+      isNonNullableByDefault: isNonNullableByDefault,
+    );
     tryMatchSubtypeOf(argumentType, parameterType, origin, covariant: false);
   }
 
@@ -2457,7 +2461,11 @@ class GenericInferrer {
   /// [contextType].
   void constrainGenericFunctionInContext(
       FunctionType fnType, DartType contextType) {
-    var origin = _TypeConstraintFromFunctionContext(fnType, contextType);
+    var origin = _TypeConstraintFromFunctionContext(
+      fnType,
+      contextType,
+      isNonNullableByDefault: isNonNullableByDefault,
+    );
 
     // Since we're trying to infer the instantiation, we want to ignore type
     // formals as we check the parameters and return type.
@@ -2473,7 +2481,11 @@ class GenericInferrer {
   /// Apply a return type constraint, which asserts that the [declaredType]
   /// is a subtype of the [contextType].
   void constrainReturnType(DartType declaredType, DartType contextType) {
-    var origin = _TypeConstraintFromReturnType(declaredType, contextType);
+    var origin = _TypeConstraintFromReturnType(
+      declaredType,
+      contextType,
+      isNonNullableByDefault: isNonNullableByDefault,
+    );
     tryMatchSubtypeOf(declaredType, contextType, origin, covariant: true);
   }
 
@@ -2506,9 +2518,11 @@ class GenericInferrer {
       _TypeConstraint extendsClause;
       if (considerExtendsClause && typeParam.bound != null) {
         extendsClause = _TypeConstraint.fromExtends(
-            typeParam,
-            Substitution.fromPairs(typeFormals, inferredTypes)
-                .substituteType(typeParam.bound));
+          typeParam,
+          Substitution.fromPairs(typeFormals, inferredTypes)
+              .substituteType(typeParam.bound),
+          isNonNullableByDefault: isNonNullableByDefault,
+        );
       }
 
       inferredTypes[i] = downwardsInferPhase
@@ -2541,8 +2555,11 @@ class GenericInferrer {
           constraints.every((c) => c.isSatisifedBy(_typeSystem, inferred));
       if (success && !typeParamBound.isDynamic) {
         // If everything else succeeded, check the `extends` constraint.
-        var extendsConstraint =
-            _TypeConstraint.fromExtends(typeParam, typeParamBound);
+        var extendsConstraint = _TypeConstraint.fromExtends(
+          typeParam,
+          typeParamBound,
+          isNonNullableByDefault: isNonNullableByDefault,
+        );
         constraints.add(extendsConstraint);
         success = extendsConstraint.isSatisifedBy(_typeSystem, inferred);
       }
@@ -2565,7 +2582,7 @@ class GenericInferrer {
         errorReporter
             ?.reportErrorForNode(StrongModeCode.COULD_NOT_INFER, errorNode, [
           typeParam.name,
-          ' Inferred candidate type $inferred has type parameters'
+          ' Inferred candidate type ${_typeStr(inferred)} has type parameters'
               ' ${(inferred as FunctionType).typeFormals}, but a function with'
               ' type parameters cannot be used as a type argument.'
         ]);
@@ -2724,7 +2741,10 @@ class GenericInferrer {
 
   String _formatError(TypeParameterElement typeParam, DartType inferred,
       Iterable<_TypeConstraint> constraints) {
-    var intro = "Tried to infer '$inferred' for '${typeParam.name}'"
+    var inferredStr = inferred.getDisplayString(
+      withNullability: isNonNullableByDefault,
+    );
+    var intro = "Tried to infer '$inferredStr' for '${typeParam.name}'"
         " which doesn't work:";
 
     var constraintsByOrigin = <_TypeConstraintOrigin, List<_TypeConstraint>>{};
@@ -2744,7 +2764,7 @@ class GenericInferrer {
 
     assert(unsatisified.isNotEmpty);
     if (satisified.isNotEmpty) {
-      satisified = "\nThe type '$inferred' was inferred from:\n$satisified";
+      satisified = "\nThe type '$inferredStr' was inferred from:\n$satisified";
     }
 
     return '\n\n$intro\n$unsatisified$satisified\n\n'
@@ -3110,6 +3130,10 @@ class GenericInferrer {
   DartType _toLegacyType(DartType type) {
     if (isNonNullableByDefault) return type;
     return NullabilityEliminator.perform(typeProvider, type);
+  }
+
+  String _typeStr(DartType type) {
+    return type.getDisplayString(withNullability: isNonNullableByDefault);
   }
 
   static String _formatConstraints(Iterable<_TypeConstraint> constraints) {
@@ -4127,8 +4151,15 @@ class _TypeConstraint extends _TypeRange {
       : super(upper: upper, lower: lower);
 
   _TypeConstraint.fromExtends(
-      TypeParameterElement element, DartType extendsType)
-      : this(_TypeConstraintFromExtendsClause(element, extendsType), element,
+      TypeParameterElement element, DartType extendsType,
+      {@required bool isNonNullableByDefault})
+      : this(
+            _TypeConstraintFromExtendsClause(
+              element,
+              extendsType,
+              isNonNullableByDefault: isNonNullableByDefault,
+            ),
+            element,
             upper: extendsType);
 
   bool get isDownwards => origin is! _TypeConstraintFromArgument;
@@ -4151,7 +4182,8 @@ class _TypeConstraintFromArgument extends _TypeConstraintOrigin {
 
   _TypeConstraintFromArgument(
       this.argumentType, this.parameterType, this.parameterName,
-      {this.genericClass});
+      {this.genericClass, @required bool isNonNullableByDefault})
+      : super(isNonNullableByDefault: isNonNullableByDefault);
 
   @override
   formatError() {
@@ -4173,8 +4205,8 @@ class _TypeConstraintFromArgument extends _TypeConstraintOrigin {
 
     return [
       prefix,
-      "declared as     '$parameterType'",
-      "but argument is '$argumentType'."
+      "declared as     '${_typeStr(parameterType)}'",
+      "but argument is '${_typeStr(argumentType)}'."
     ];
   }
 }
@@ -4183,13 +4215,15 @@ class _TypeConstraintFromExtendsClause extends _TypeConstraintOrigin {
   final TypeParameterElement typeParam;
   final DartType extendsType;
 
-  _TypeConstraintFromExtendsClause(this.typeParam, this.extendsType);
+  _TypeConstraintFromExtendsClause(this.typeParam, this.extendsType,
+      {@required bool isNonNullableByDefault})
+      : super(isNonNullableByDefault: isNonNullableByDefault);
 
   @override
   formatError() {
     return [
       "Type parameter '${typeParam.name}'",
-      "declared to extend '$extendsType'."
+      "declared to extend '${_typeStr(extendsType)}'."
     ];
   }
 }
@@ -4198,14 +4232,16 @@ class _TypeConstraintFromFunctionContext extends _TypeConstraintOrigin {
   final DartType contextType;
   final DartType functionType;
 
-  _TypeConstraintFromFunctionContext(this.functionType, this.contextType);
+  _TypeConstraintFromFunctionContext(this.functionType, this.contextType,
+      {@required bool isNonNullableByDefault})
+      : super(isNonNullableByDefault: isNonNullableByDefault);
 
   @override
   formatError() {
     return [
       "Function type",
-      "declared as '$functionType'",
-      "used where  '$contextType' is required."
+      "declared as '${_typeStr(functionType)}'",
+      "used where  '${_typeStr(contextType)}' is required."
     ];
   }
 }
@@ -4214,14 +4250,16 @@ class _TypeConstraintFromReturnType extends _TypeConstraintOrigin {
   final DartType contextType;
   final DartType declaredType;
 
-  _TypeConstraintFromReturnType(this.declaredType, this.contextType);
+  _TypeConstraintFromReturnType(this.declaredType, this.contextType,
+      {@required bool isNonNullableByDefault})
+      : super(isNonNullableByDefault: isNonNullableByDefault);
 
   @override
   formatError() {
     return [
       "Return type",
-      "declared as '$declaredType'",
-      "used where  '$contextType' is required."
+      "declared as '${_typeStr(declaredType)}'",
+      "used where  '${_typeStr(contextType)}' is required."
     ];
   }
 }
@@ -4230,7 +4268,15 @@ class _TypeConstraintFromReturnType extends _TypeConstraintOrigin {
 /// readable error message during type inference as well as determining whether
 /// the constraint was used to fix the type parameter or not.
 abstract class _TypeConstraintOrigin {
+  final bool isNonNullableByDefault;
+
+  _TypeConstraintOrigin({@required this.isNonNullableByDefault});
+
   List<String> formatError();
+
+  String _typeStr(DartType type) {
+    return type.getDisplayString(withNullability: isNonNullableByDefault);
+  }
 }
 
 class _TypeRange {
@@ -4285,16 +4331,20 @@ class _TypeRange {
   /// For example, if [typeName] is 'T' and the range has bounds int and Object
   /// respectively, the returned string will be 'int <: T <: Object'.
   @visibleForTesting
-  String format(String typeName) {
+  String format(String typeName, {@required bool withNullability}) {
+    String typeStr(DartType type) {
+      return type.getDisplayString(withNullability: withNullability);
+    }
+
     var lowerString = identical(lowerBound, UnknownInferredType.instance)
         ? ''
-        : '$lowerBound <: ';
+        : '${typeStr(lowerBound)} <: ';
     var upperString = identical(upperBound, UnknownInferredType.instance)
         ? ''
-        : ' <: $upperBound';
+        : ' <: ${typeStr(upperBound)}';
     return '$lowerString$typeName$upperString';
   }
 
   @override
-  String toString() => format('(type)');
+  String toString() => format('(type)', withNullability: true);
 }

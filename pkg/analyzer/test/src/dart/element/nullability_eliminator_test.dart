@@ -292,7 +292,7 @@ class NullabilityEliminatorTest with ElementsTypesMixin {
   }
 
   String _typeToString(TypeImpl type) {
-    return type.toString(withNullability: true);
+    return type.getDisplayString(withNullability: true);
   }
 
   void _verify(DartType input, DartType expected) {

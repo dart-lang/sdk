@@ -2150,17 +2150,17 @@ class _BoundsTestBase with ElementsTypesMixin {
         var base = typeParameter.declaration;
         var baseBound = base.bound as TypeImpl;
         if (baseBound != null) {
-          var baseBoundStr = baseBound.toString(withNullability: true);
+          var baseBoundStr = baseBound.getDisplayString(withNullability: true);
           typeStr += ', ${typeParameter.name} extends ' + baseBoundStr;
         }
 
         var bound = typeParameter.bound as TypeImpl;
-        var boundStr = bound.toString(withNullability: true);
+        var boundStr = bound.getDisplayString(withNullability: true);
         typeStr += ', ${typeParameter.name} & ' + boundStr;
       } else {
         var bound = typeParameter.bound as TypeImpl;
         if (bound != null) {
-          var boundStr = bound.toString(withNullability: true);
+          var boundStr = bound.getDisplayString(withNullability: true);
           typeStr += ', ${typeParameter.name} extends ' + boundStr;
         }
       }
@@ -2170,7 +2170,8 @@ class _BoundsTestBase with ElementsTypesMixin {
 
   String _typeString(TypeImpl type) {
     if (type == null) return null;
-    return type.toString(withNullability: true) + _typeParametersStr(type);
+    return type.getDisplayString(withNullability: true) +
+        _typeParametersStr(type);
   }
 }
 

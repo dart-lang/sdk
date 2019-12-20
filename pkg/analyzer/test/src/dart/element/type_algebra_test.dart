@@ -103,7 +103,7 @@ class SubstituteFromUpperAndLowerBoundsTest extends _Base {
       {T: typeProvider.intType},
       {T: NeverTypeImpl.instance},
     ).substituteType(type);
-    expect(result.toString(), 'int Function(Never)');
+    assertElementTypeString(result, 'int Function(Never)');
   }
 }
 
@@ -399,9 +399,10 @@ class _Base with ElementsTypesMixin {
   bool get typeToStringWithNullability => useNnbd;
 
   void assertElementTypeString(DartType type, String expected) {
-    TypeImpl typeImpl = type;
-    expect(typeImpl.toString(withNullability: typeToStringWithNullability),
-        expected);
+    var typeStr = type.getDisplayString(
+      withNullability: typeToStringWithNullability,
+    );
+    expect(typeStr, expected);
   }
 
   void _assertSubstitution(

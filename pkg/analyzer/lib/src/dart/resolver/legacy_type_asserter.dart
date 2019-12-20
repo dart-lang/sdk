@@ -144,7 +144,7 @@ class LegacyTypeAsserter extends GeneralizingAstVisitor {
     }
 
     throw StateError('Expected all legacy types, but got '
-        '${(type as TypeImpl).toString(withNullability: true)} '
+        '${type.getDisplayString(withNullability: true)} '
         '(${type.runtimeType})');
   }
 

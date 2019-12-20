@@ -1939,8 +1939,10 @@ void main() {}
       error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 65, 3),
     ]);
     // Instantiate-to-bounds should have instantiated "Bar" to "Bar<Foo>".
-    expect(result.unit.declaredElement.getType('Baz').supertype.toString(),
-        'Bar<Foo<dynamic>>');
+    assertElementTypeString(
+      result.unit.declaredElement.getType('Baz').supertype,
+      'Bar<Foo<dynamic>>',
+    );
   }
 
   test_instantiateEnum_const() async {
@@ -2628,7 +2630,7 @@ abstract class Directory implements FileSystemEntity, ioDirectory {}
 mixin DirectoryAddOnsMixin implements Directory {}
 ''');
     var mixins = result.unit.declaredElement.getType('_LocalDirectory').mixins;
-    expect(mixins[0].toString(), 'ForwardingDirectory<_LocalDirectory>');
+    assertElementTypeString(mixins[0], 'ForwardingDirectory<_LocalDirectory>');
   }
 
   test_mixinInheritsFromNotObject_classDeclaration_extends() async {

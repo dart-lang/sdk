@@ -60,7 +60,7 @@ abstract class AbstractTypeSystemTest with ElementsTypesMixin {
   }
 
   String _typeString(TypeImpl type) {
-    return type.toString(withNullability: true);
+    return type.getDisplayString(withNullability: true);
   }
 }
 
@@ -894,7 +894,12 @@ class ConstraintMatchingTest extends AbstractTypeSystemTest {
     var formattedConstraints = <String>[];
     inferrer.constraints.forEach((typeParameter, constraintsForTypeParameter) {
       for (var constraint in constraintsForTypeParameter) {
-        formattedConstraints.add(constraint.format(typeParameter.toString()));
+        formattedConstraints.add(
+          constraint.format(
+            typeParameter.toString(),
+            withNullability: false,
+          ),
+        );
       }
     });
     expect(formattedConstraints, unorderedEquals(expectedConstraints));
@@ -974,14 +979,14 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
     var cOfB = interfaceTypeStar(C, typeArguments: [typeB]);
     // B b;
     // cOfB.m(b); // infer <B>
-    expect(_inferCall2(cOfB.getMethod('m').type, [typeB]).toString(),
-        'B Function(B)');
+    _assertType(
+        _inferCall2(cOfB.getMethod('m').type, [typeB]), 'B Function(B)');
     // cOfA.m(b); // infer <B>
-    expect(_inferCall2(cOfA.getMethod('m').type, [typeB]).toString(),
-        'B Function(B)');
+    _assertType(
+        _inferCall2(cOfA.getMethod('m').type, [typeB]), 'B Function(B)');
     // cOfObject.m(b); // infer <B>
-    expect(_inferCall2(cOfObject.getMethod('m').type, [typeB]).toString(),
-        'B Function(B)');
+    _assertType(
+        _inferCall2(cOfObject.getMethod('m').type, [typeB]), 'B Function(B)');
   }
 
   void test_boundedByOuterClassSubstituted() {
@@ -1028,13 +1033,13 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
     // List<B> b;
     var listOfB = listStar(typeB);
     // cOfB.m(b); // infer <B>
-    expect(_inferCall2(cOfB.getMethod('m').type, [listOfB]).toString(),
+    _assertType(_inferCall2(cOfB.getMethod('m').type, [listOfB]),
         'List<B> Function(List<B>)');
     // cOfA.m(b); // infer <B>
-    expect(_inferCall2(cOfA.getMethod('m').type, [listOfB]).toString(),
+    _assertType(_inferCall2(cOfA.getMethod('m').type, [listOfB]),
         'List<B> Function(List<B>)');
     // cOfObject.m(b); // infer <B>
-    expect(_inferCall2(cOfObject.getMethod('m').type, [listOfB]).toString(),
+    _assertType(_inferCall2(cOfObject.getMethod('m').type, [listOfB]),
         'List<B> Function(List<B>)');
   }
 
@@ -1452,6 +1457,11 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
       returnType: typeParameterTypeStar(T),
     );
     expect(_inferCall(f, []), [numStar]);
+  }
+
+  void _assertType(DartType type, String expected) {
+    var typeStr = type.getDisplayString(withNullability: false);
+    expect(typeStr, expected);
   }
 
   List<DartType> _inferCall(FunctionTypeImpl ft, List<DartType> arguments,
@@ -2689,7 +2699,7 @@ class LeastUpperBoundTest extends BoundTestBase {
       returnType: voidNone,
     );
     expect(
-      type1.toString(withNullability: true),
+      _typeString(type1),
       'void Function(void Function(void Function(String*, int*, int*)*)*)*',
     );
 
@@ -2716,7 +2726,7 @@ class LeastUpperBoundTest extends BoundTestBase {
       returnType: voidNone,
     );
     expect(
-      type2.toString(withNullability: true),
+      _typeString(type2),
       'void Function(void Function(void Function(int*, double*, num*)*)*)*',
     );
     var expected = functionTypeStar(
@@ -2742,7 +2752,7 @@ class LeastUpperBoundTest extends BoundTestBase {
       returnType: voidNone,
     );
     expect(
-      expected.toString(withNullability: true),
+      _typeString(expected),
       'void Function(void Function(void Function(Never*, Never*, int*)*)*)*',
     );
 

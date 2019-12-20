@@ -58,6 +58,20 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
 
   AsserterBuilder<Element, DartType> _hasElement;
 
+  void assertElementTypeString(DartType type, String expected) {
+    if (expected == null) {
+      expect(type, isNull);
+    } else {
+      var typeStr = type.getDisplayString(withNullability: false);
+      expect(typeStr, expected);
+    }
+  }
+
+  void assertInvokeType(InvocationExpression expression, String expected) {
+    DartType actual = expression.staticInvokeType;
+    assertElementTypeString(actual, expected);
+  }
+
   @override
   Future<TestAnalysisResult> computeAnalysisResult(Source source) async {
     TestAnalysisResult result = await super.computeAnalysisResult(source);
@@ -1198,7 +1212,7 @@ test() {
         .variables
         .variables[0];
     var call = h.initializer as MethodInvocation;
-    expect(call.staticInvokeType.toString(), 'Null Function(Null, Null)');
+    assertInvokeType(call, 'Null Function(Null, Null)');
   }
 
   test_inference_error_extendsFromReturn2() async {
@@ -1311,8 +1325,7 @@ void _mergeSort<T>(T Function(T) list, int compare(T a, T b), T Function(T) targ
     var stmts = body.block.statements;
     for (ExpressionStatement stmt in stmts) {
       MethodInvocation invoke = stmt.expression;
-      FunctionType fType = invoke.staticInvokeType;
-      expect('$fType',
+      assertInvokeType(invoke,
           'void Function(T Function(T), int Function(T, T), T Function(T))');
     }
   }
@@ -1339,8 +1352,8 @@ void _mergeSort<T>(List<T> list, int compare(T a, T b), List<T> target) {
     var stmts = body.block.statements;
     for (ExpressionStatement stmt in stmts) {
       MethodInvocation invoke = stmt.expression;
-      FunctionType fType = invoke.staticInvokeType;
-      expect('$fType', 'void Function(List<T>, int Function(T, T), List<T>)');
+      assertInvokeType(
+          invoke, 'void Function(List<T>, int Function(T, T), List<T>)');
     }
   }
 
@@ -1366,8 +1379,7 @@ void _mergeSort<T>(T list, int compare(T a, T b), T target) {
     var stmts = body.block.statements;
     for (ExpressionStatement stmt in stmts) {
       MethodInvocation invoke = stmt.expression;
-      FunctionType fType = invoke.staticInvokeType;
-      expect('$fType', 'void Function(T, int Function(T, T), T)');
+      assertInvokeType(invoke, 'void Function(T, int Function(T, T), T)');
     }
   }
 
@@ -1390,10 +1402,9 @@ test() {
         .variables[0];
     _isDynamic(h.declaredElement.type);
     var fCall = h.initializer as MethodInvocation;
-    expect(fCall.staticInvokeType.toString(),
-        'dynamic Function(dynamic Function(dynamic))');
+    assertInvokeType(fCall, 'dynamic Function(dynamic Function(dynamic))');
     var g = fCall.argumentList.arguments[0];
-    expect(g.staticType.toString(), 'dynamic Function(dynamic)');
+    assertElementTypeString(g.staticType, 'dynamic Function(dynamic)');
   }
 
   test_inferGenericInstantiation2() async {
@@ -1418,11 +1429,11 @@ num test(Iterable values) => values.fold(values.first as num, max);
             .functionExpression
             .body as ExpressionFunctionBody)
         .expression as MethodInvocation;
-    expect(fold.staticInvokeType.toString(),
-        'num Function(num, num Function(num, dynamic))');
+    assertInvokeType(fold, 'num Function(num, num Function(num, dynamic))');
     var max = fold.argumentList.arguments[1];
     // TODO(jmesserly): arguably num Function(num, num) is better here.
-    expect(max.staticType.toString(), 'dynamic Function(dynamic, dynamic)');
+    assertElementTypeString(
+        max.staticType, 'dynamic Function(dynamic, dynamic)');
   }
 
   test_inferredFieldDeclaration_propagation() async {
@@ -2204,8 +2215,8 @@ class B<T2, U2> {
     ConstructorName redirected = bConstructor.redirectedConstructor;
 
     TypeName typeName = redirected.type;
-    expect(typeName.type.toString(), 'A<T2, U2>');
-    expect(typeName.type.toString(), 'A<T2, U2>');
+    assertElementTypeString(typeName.type, 'A<T2, U2>');
+    assertElementTypeString(typeName.type, 'A<T2, U2>');
 
     var constructorMember = redirected.staticElement;
     expect(constructorMember.toString(), 'A<T2, U2> A.named()');
@@ -2241,8 +2252,8 @@ class B<T2, U2> {
     ConstructorName redirected = bConstructor.redirectedConstructor;
 
     TypeName typeName = redirected.type;
-    expect(typeName.type.toString(), 'A<T2, U2>');
-    expect(typeName.type.toString(), 'A<T2, U2>');
+    assertElementTypeString(typeName.type, 'A<T2, U2>');
+    assertElementTypeString(typeName.type, 'A<T2, U2>');
 
     expect(redirected.name, isNull);
     expect(redirected.staticElement.toString(), 'A<T2, U2> A()');
@@ -2507,9 +2518,9 @@ class B<T2, U2> {
 
 @reflectiveTest
 class StrongModeStaticTypeAnalyzer2Test extends StaticTypeAnalyzer2TestShared {
-  void expectStaticInvokeType(String search, String type) {
+  void expectStaticInvokeType(String search, String expected) {
     var invocation = findNode.simple(search).parent as MethodInvocation;
-    expect(invocation.staticInvokeType.toString(), type);
+    assertInvokeType(invocation, expected);
   }
 
   test_dynamicObjectGetter_hashCode() async {
@@ -2581,7 +2592,7 @@ void main() {
     SimpleIdentifier f = findNode.simple('f');
     FunctionElementImpl e = f.staticElement;
     FunctionType ft = e.type.instantiate([typeProvider.stringType]);
-    expect(ft.toString(), 'String Function(String)');
+    assertElementTypeString(ft, 'String Function(String)');
   }
 
   test_genericFunction_bounds() async {
@@ -2596,7 +2607,7 @@ void g(T f<T>(T x)) {}
 ''');
     var type = expectFunctionType2('f', 'T Function<T>(T)');
     FunctionType ft = type.instantiate([typeProvider.stringType]);
-    expect(ft.toString(), 'String Function(String)');
+    assertElementTypeString(ft, 'String Function(String)');
   }
 
   test_genericFunction_static() async {
@@ -2610,7 +2621,7 @@ class C<E> {
     SimpleIdentifier f = findNode.simple('f');
     MethodElementImpl e = f.staticElement;
     FunctionType ft = e.type.instantiate([typeProvider.stringType]);
-    expect(ft.toString(), 'String Function(String)');
+    assertElementTypeString(ft, 'String Function(String)');
   }
 
   test_genericFunction_typedef() async {
@@ -2719,7 +2730,7 @@ main() {
 ''');
     MethodInvocation f = findNode.simple('f<int>').parent;
     FunctionType ft = f.staticInvokeType;
-    expect(ft.toString(), 'List<int> Function(String)');
+    assertElementTypeString(ft, 'List<int> Function(String)');
 
     var x = findElement.localVar('x');
     expect(x.type, typeProvider.listType2(typeProvider.intType));
@@ -2945,11 +2956,9 @@ void foo() {
         'map((e) => 3);', 'T Function<T>(T Function(dynamic))');
 
     MethodInvocation m1 = findNode.methodInvocation('map((e) => e);');
-    expect(m1.staticInvokeType.toString(),
-        'dynamic Function(dynamic Function(dynamic))');
+    assertInvokeType(m1, 'dynamic Function(dynamic Function(dynamic))');
     MethodInvocation m2 = findNode.methodInvocation('map((e) => 3);');
-    expect(
-        m2.staticInvokeType.toString(), 'int Function(int Function(dynamic))');
+    assertInvokeType(m2, 'int Function(int Function(dynamic))');
   }
 
   test_genericMethod_max_doubleDouble() async {
@@ -3024,7 +3033,7 @@ class C<T> {
 }
 ''');
     MethodInvocation f = findNode.methodInvocation('f<int>(3);');
-    expect(f.staticInvokeType.toString(), 'S Function(int)');
+    assertInvokeType(f, 'S Function(int)');
 
     expectIdentifierType('f;', 'S Function<S₀>(S₀)');
   }
@@ -3041,7 +3050,7 @@ class C<T> {
 }
 ''');
     MethodInvocation f = findNode.methodInvocation('f<int>(3);');
-    expect(f.staticInvokeType.toString(), 'S Function(int)');
+    assertInvokeType(f, 'S Function(int)');
     FunctionType ft = f.staticInvokeType;
     expect('${ft.typeArguments}', '[S, int]');
 
@@ -3079,7 +3088,7 @@ class D extends C {
     SimpleIdentifier f = findNode.simple('f<T>(T x) => null; // from D');
     MethodElementImpl e = f.staticElement;
     FunctionType ft = e.type.instantiate([typeProvider.stringType]);
-    expect(ft.toString(), 'String Function(String)');
+    assertElementTypeString(ft, 'String Function(String)');
   }
 
   test_genericMethod_override_bounds() async {

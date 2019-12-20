@@ -1894,7 +1894,7 @@ class C extends A<B> with M {}
     CompilationUnit unit = result.unit;
     ClassElement classC = unit.declaredElement.getType('C');
     expect(classC.mixins, hasLength(1));
-    expect(classC.mixins[0].toString(), 'M<B>');
+    assertElementTypeString(classC.mixins[0], 'M<B>');
   }
 
   test_infer_mixin_with_substitution_functionType_new_syntax() async {
@@ -1916,7 +1916,7 @@ class C extends A<int Function(String)> with M {}
     CompilationUnit unit = result.unit;
     ClassElement classC = unit.declaredElement.getType('C');
     expect(classC.mixins, hasLength(1));
-    expect(classC.mixins[0].toString(), 'M<int, String>');
+    assertElementTypeString(classC.mixins[0], 'M<int, String>');
   }
 
   test_infer_mixin_with_substitution_new_syntax() async {
@@ -1932,7 +1932,7 @@ class C extends A<List<B>> with M {}
     CompilationUnit unit = result.unit;
     ClassElement classC = unit.declaredElement.getType('C');
     expect(classC.mixins, hasLength(1));
-    expect(classC.mixins[0].toString(), 'M<B>');
+    assertElementTypeString(classC.mixins[0], 'M<B>');
   }
 
   test_initializingFormalForNonExistentField() async {
@@ -2621,7 +2621,7 @@ void main() {
     var z = result.unit.declaredElement.topLevelVariables
         .where((e) => e.name == 'z')
         .single;
-    expect(z.type.toString(), 'List<String>');
+    assertElementTypeString(z.type, 'List<String>');
   }
 
   test_issue_35320_lists() async {
@@ -2860,7 +2860,7 @@ class B<T> = Object with A<T>;
 class C = Object with B;
 ''');
     var bReference = result.unit.declaredElement.getType('C').mixins[0];
-    expect(bReference.typeArguments[0].toString(), 'dynamic');
+    assertElementTypeDynamic(bReference.typeArguments[0]);
   }
 
   test_mixin_of_mixin_type_argument_inference_cascaded_mixin() async {
@@ -2877,7 +2877,7 @@ class Base implements A1<int> {}
 class C = Base with B;
 ''');
     var bReference = result.unit.declaredElement.getType('C').mixins[0];
-    expect(bReference.typeArguments[0].toString(), 'int');
+    assertElementTypeString(bReference.typeArguments[0], 'int');
   }
 
   test_mixinDeclaresConstructor() async {
@@ -2918,7 +2918,7 @@ void main () {
     var mainBody = main.functionExpression.body as BlockFunctionBody;
     var xDecl = mainBody.block.statements[0] as VariableDeclarationStatement;
     var xElem = xDecl.variables.variables[0].declaredElement;
-    expect(xElem.type.toString(), 'int');
+    assertElementTypeString(xElem.type, 'int');
   }
 
   test_mixinInheritsFromNotObject_classDeclaration_extends_new_syntax() async {
@@ -3739,7 +3739,7 @@ main() {}
     mainDecl.metadata.forEach((metadata) {
       final value = metadata.elementAnnotation.computeConstantValue();
       expect(value, isNotNull);
-      expect(value.type.toString(), 'B');
+      assertElementTypeString(value.type, 'B');
       final unbounded = value.getField('unbounded');
       final bounded = value.getField('bounded');
       if (!unbounded.isNull) {

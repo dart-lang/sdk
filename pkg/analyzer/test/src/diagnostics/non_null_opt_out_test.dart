@@ -450,7 +450,7 @@ main() {
     _assertLegacyMember(
       instanceCreation.staticElement,
       _import_a.unnamedConstructor('A'),
-      expectedSubstitution: {'T': 'int'},
+      expectedSubstitution: {'T': 'int*'},
     );
   }
 

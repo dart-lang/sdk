@@ -301,7 +301,7 @@ class _ElementWriter {
       ConstructorElement redirected = e.redirectedConstructor;
       if (redirected != null) {
         buffer.write(' = ');
-        buffer.write(redirected.returnType);
+        writeType(redirected.returnType);
         if (redirected.name.isNotEmpty) {
           buffer.write('.');
           buffer.write(redirected.name);
@@ -1029,11 +1029,8 @@ class _ElementWriter {
   }
 
   void writeType(DartType type) {
-    buffer.write(
-      type.getDisplayString(
-        withNullability: annotateNullability,
-      ),
-    );
+    var typeStr = _typeStr(type);
+    buffer.write(typeStr);
   }
 
   void writeType2(DartType type) {
@@ -1153,11 +1150,23 @@ class _ElementWriter {
     return components.join(';');
   }
 
+  String _typeStr(DartType type) {
+    return type?.getDisplayString(
+      withNullability: annotateNullability,
+    );
+  }
+
   void _withIndent(void Function() f) {
     var indent = this.indent;
     this.indent = '$indent  ';
     f();
     this.indent = indent;
+  }
+
+  void _writelnTypeWithIndent(String name, DartType type) {
+    buffer.write(indent);
+    buffer.write('$name: ');
+    buffer.writeln(_typeStr(type));
   }
 
   void _writelnWithIndent(String line) {
@@ -1194,8 +1203,8 @@ class _ElementWriter {
         for (TypeParameterElementImpl e in elements) {
           _writelnWithIndent(e.name);
           _withIndent(() {
-            _writelnWithIndent('bound: ${e.bound}');
-            _writelnWithIndent('defaultType: ${e.defaultType}');
+            _writelnTypeWithIndent('bound', e.bound);
+            _writelnTypeWithIndent('defaultType', e.defaultType);
             _writeResolvedMetadata(e.metadata);
           });
         }

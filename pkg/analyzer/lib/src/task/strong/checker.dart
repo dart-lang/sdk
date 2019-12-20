@@ -991,6 +991,14 @@ class CodeChecker extends RecursiveAstVisitor {
   }
 
   void _recordMessage(AstNode node, ErrorCode errorCode, List arguments) {
+    arguments = arguments.map((argument) {
+      if (argument is DartType) {
+        return argument.getDisplayString(withNullability: false);
+      } else {
+        return argument;
+      }
+    }).toList();
+
     // Compute the right severity taking the analysis options into account.
     // We construct a dummy error to make the common case where we end up
     // ignoring the strong mode message cheaper.

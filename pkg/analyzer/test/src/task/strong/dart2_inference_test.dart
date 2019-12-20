@@ -68,7 +68,7 @@ main() {
     await resolveTestCode(code);
     void assertType(String prefix) {
       var invocation = findNode.methodInvocation(prefix);
-      expect(invocation.staticInvokeType.toString(), 'bool Function()');
+      assertInvokeType(invocation, 'bool Function()');
     }
 
     assertType('f() || f(); // 1');
@@ -96,7 +96,7 @@ main() {
     await resolveTestCode(code);
     void assertType(String prefix) {
       var invocation = findNode.methodInvocation(prefix);
-      expect(invocation.staticInvokeType.toString(), 'bool Function()');
+      assertInvokeType(invocation, 'bool Function()');
     }
 
     assertType('f()) {} // 1');
@@ -114,7 +114,7 @@ void main() {
 ''';
     await resolveTestCode(code);
     Expression closure = findNode.expression('() => 42');
-    expect(closure.staticType.toString(), 'List<int> Function()');
+    assertType(closure, 'List<int> Function()');
   }
 
   test_closure_downwardReturnType_block() async {
@@ -128,7 +128,7 @@ void main() {
 ''';
     await resolveTestCode(code);
     Expression closure = findNode.expression('() { // mark');
-    expect(closure.staticType.toString(), 'List<int> Function()');
+    assertType(closure, 'List<int> Function()');
   }
 
   test_compoundAssignment_index() async {
@@ -549,16 +549,16 @@ class C {
   }
 }''';
     await resolveTestCode(code);
-    void assertType(String prefix) {
+    void assertInvocationType(String prefix) {
       var invocation = findNode.methodInvocation(prefix);
-      expect(invocation.staticType.toString(), 'Iterable<A>');
+      assertType(invocation, 'Iterable<A>');
     }
 
-    assertType('f()) {} // local');
-    assertType('f()) {} // field');
-    assertType('f()) {} // setter');
-    assertType('f()) {} // top variable');
-    assertType('f()) {} // top setter');
+    assertInvocationType('f()) {} // local');
+    assertInvocationType('f()) {} // field');
+    assertInvocationType('f()) {} // setter');
+    assertInvocationType('f()) {} // top variable');
+    assertInvocationType('f()) {} // top setter');
   }
 
   test_forIn_variable() async {
@@ -579,7 +579,7 @@ void test(Iterable<num> iter) {
       expect(element.type, typeProvider.dynamicType);
 
       var invocation = findNode.methodInvocation('f()) {} // 1');
-      expect(invocation.staticType.toString(), 'Iterable<dynamic>');
+      assertType(invocation, 'Iterable<dynamic>');
     }
 
     {
@@ -597,7 +597,7 @@ void test(Iterable<num> iter) {
       expect(element.type, typeProvider.numType);
 
       var invocation = findNode.methodInvocation('f()) {} // 3');
-      expect(invocation.staticType.toString(), 'Iterable<num>');
+      assertType(invocation, 'Iterable<num>');
     }
   }
 
@@ -622,10 +622,10 @@ void test(List<A> listA, List<B> listB) {
       var node = findNode.simple(vSearch);
 
       var element = node.staticElement as LocalVariableElement;
-      expect(element.type.toString(), vType);
+      assertElementTypeString(element.type, vType);
 
       var invocation = findNode.methodInvocation(fSearch);
-      expect(invocation.staticType.toString(), fType);
+      assertType(invocation, fType);
     }
 
     assertTypes('a1 in', 'A', 'f(listA)) {} // 1', 'List<A>');
@@ -696,11 +696,11 @@ var y = {};
     await resolveTestCode(code);
     var xNode = findNode.simple('x = ');
     var xElement = xNode.staticElement as VariableElement;
-    expect(xElement.type.toString(), 'List<dynamic>');
+    assertElementTypeString(xElement.type, 'List<dynamic>');
 
     var yNode = findNode.simple('y = ');
     var yElement = yNode.staticElement as VariableElement;
-    expect(yElement.type.toString(), 'Map<dynamic, dynamic>');
+    assertElementTypeString(yElement.type, 'Map<dynamic, dynamic>');
   }
 
   test_listMap_null() async {
@@ -711,11 +711,11 @@ var y = {null: null};
     await resolveTestCode(code);
     var xNode = findNode.simple('x = ');
     var xElement = xNode.staticElement as VariableElement;
-    expect(xElement.type.toString(), 'List<Null>');
+    assertElementTypeString(xElement.type, 'List<Null>');
 
     var yNode = findNode.simple('y = ');
     var yElement = yNode.staticElement as VariableElement;
-    expect(yElement.type.toString(), 'Map<Null, Null>');
+    assertElementTypeString(yElement.type, 'Map<Null, Null>');
   }
 
   test_switchExpression_asContext_forCases() async {
@@ -734,7 +734,7 @@ void test(C<int> x) {
 }''';
     await resolveTestCode(code);
     var node = findNode.instanceCreation('const C():');
-    expect(node.staticType.toString(), 'C<int>');
+    assertType(node, 'C<int>');
   }
 
   test_voidType_method() async {
@@ -803,7 +803,7 @@ main() {
           String expectedType = types[comment.offset];
           if (expectedType != null) {
             VariableElement element = node.staticElement;
-            String actualType = element.type.toString();
+            String actualType = typeString(element.type);
             expect(actualType, expectedType, reason: '@${comment.offset}');
           }
         }

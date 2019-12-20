@@ -1641,18 +1641,18 @@ notSimplyBounded class C<T extends U, U> {
 ''');
   }
 
-  test_class_type_parameters_variance_covariant() async {
-    var library = await checkLibrary('class C<out T> {}');
-    checkElementText(library, r'''
-class C<out T> {
-}
-''');
-  }
-
   test_class_type_parameters_variance_contravariant() async {
     var library = await checkLibrary('class C<in T> {}');
     checkElementText(library, r'''
 class C<in T> {
+}
+''');
+  }
+
+  test_class_type_parameters_variance_covariant() async {
+    var library = await checkLibrary('class C<out T> {}');
+    checkElementText(library, r'''
+class C<out T> {
 }
 ''');
   }
@@ -2544,12 +2544,15 @@ const Object y = const
         library.definingCompilationUnit.topLevelVariables[0];
     InstanceCreationExpression xExpr = x.constantInitializer;
     var xType = xExpr.constructorName.staticElement.returnType;
-    expect(xType.toString(), 'C<int>');
+    _assertTypeStr(
+      xType,
+      'C<int>',
+    );
     TopLevelVariableElementImpl y =
         library.definingCompilationUnit.topLevelVariables[0];
     InstanceCreationExpression yExpr = y.constantInitializer;
     var yType = yExpr.constructorName.staticElement.returnType;
-    expect(yType.toString(), 'C<int>');
+    _assertTypeStr(yType, 'C<int>');
   }
 
   test_const_finalField_hasConstConstructor() async {
@@ -6377,7 +6380,7 @@ FutureOr<int> x;
 ''');
     var variables = library.definingCompilationUnit.topLevelVariables;
     expect(variables, hasLength(1));
-    expect(variables[0].type.toString(), 'FutureOr<int>');
+    _assertTypeStr(variables[0].type, 'FutureOr<int>');
   }
 
   test_futureOr_const() async {
@@ -6391,7 +6394,7 @@ const Type x =
     var variables = library.definingCompilationUnit.topLevelVariables;
     expect(variables, hasLength(1));
     var x = variables[0] as ConstTopLevelVariableElementImpl;
-    expect(x.type.toString(), 'Type');
+    _assertTypeStr(x.type, 'Type');
     expect(x.constantInitializer.toString(), 'FutureOr');
   }
 
@@ -6414,8 +6417,8 @@ FutureOr<int> f() {}
     expect(x.name, 'x');
     var y = variables[1];
     expect(y.name, 'y');
-    expect(x.type.toString(), 'FutureOr<int>');
-    expect(y.type.toString(), 'dynamic');
+    _assertTypeStr(x.type, 'FutureOr<int>');
+    _assertTypeStr(y.type, 'dynamic');
   }
 
   test_generic_function_type_nullability_none() async {
@@ -7876,21 +7879,6 @@ class C {
 ''');
   }
 
-  test_part_emptyUri() async {
-    allowMissingFiles = true;
-    var library = await checkLibrary(r'''
-part '';
-class B extends A {}
-''');
-    checkElementText(library, r'''
-part 'test.dart';
-class B {
-}
-class B {
-}
-''');
-  }
-
   test_invalidUris() async {
     allowMissingFiles = true;
     var library = await checkLibrary(r'''
@@ -9166,18 +9154,18 @@ mixin B on A {
 ''');
   }
 
-  test_mixin_type_parameters_variance_covariant() async {
-    var library = await checkLibrary('mixin M<out T> {}');
-    checkElementText(library, r'''
-mixin M<out T> on Object {
-}
-''');
-  }
-
   test_mixin_type_parameters_variance_contravariant() async {
     var library = await checkLibrary('mixin M<in T> {}');
     checkElementText(library, r'''
 mixin M<in T> on Object {
+}
+''');
+  }
+
+  test_mixin_type_parameters_variance_covariant() async {
+    var library = await checkLibrary('mixin M<out T> {}');
+    checkElementText(library, r'''
+mixin M<out T> on Object {
 }
 ''');
   }
@@ -9664,6 +9652,21 @@ void named({x: 1}) {}
     checkElementText(library, r'''
 void positional([dynamic x = 1]) {}
 void named({dynamic x: 1}) {}
+''');
+  }
+
+  test_part_emptyUri() async {
+    allowMissingFiles = true;
+    var library = await checkLibrary(r'''
+part '';
+class B extends A {}
+''');
+    checkElementText(library, r'''
+part 'test.dart';
+class B {
+}
+class B {
+}
 ''');
   }
 
@@ -11418,6 +11421,11 @@ const A<int> a;
 int i;
 int j;
 ''');
+  }
+
+  void _assertTypeStr(DartType type, String expected) {
+    var typeStr = type.getDisplayString(withNullability: false);
+    expect(typeStr, expected);
   }
 }
 

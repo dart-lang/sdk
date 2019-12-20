@@ -343,6 +343,11 @@ class AnalysisDriverSchedulerTest with ResourceProviderMixin {
 
 @reflectiveTest
 class AnalysisDriverTest extends BaseAnalysisDriverTest {
+  void assertElementTypeString(DartType type, String expected) {
+    var typeStr = type.getDisplayString(withNullability: false);
+    expect(typeStr, expected);
+  }
+
   test_addedFiles() async {
     var a = convertPath('/test/lib/a.dart');
     var b = convertPath('/test/lib/b.dart');
@@ -672,7 +677,7 @@ var A = B;
     expect(allResults, hasLength(1));
     {
       ResolvedUnitResult ar = allResults.firstWhere((r) => r.path == a);
-      expect(_getTopLevelVarType(ar.unit, 'A'), 'int');
+      _assertTopLevelVarType(ar.unit, 'A', 'int');
     }
     allResults.clear();
 
@@ -689,7 +694,7 @@ var A = B;
     expect(allResults, hasLength(1));
     {
       ResolvedUnitResult ar = allResults.firstWhere((r) => r.path == a);
-      expect(_getTopLevelVarType(ar.unit, 'A'), 'double');
+      _assertTopLevelVarType(ar.unit, 'A', 'double');
     }
   }
 
@@ -743,12 +748,12 @@ var B1 = A1;
     expect(allResults, hasLength(2));
     {
       ResolvedUnitResult ar = allResults.firstWhere((r) => r.path == a);
-      expect(_getTopLevelVarType(ar.unit, 'A1'), 'int');
-      expect(_getTopLevelVarType(ar.unit, 'A2'), 'int');
+      _assertTopLevelVarType(ar.unit, 'A1', 'int');
+      _assertTopLevelVarType(ar.unit, 'A2', 'int');
     }
     {
       ResolvedUnitResult br = allResults.firstWhere((r) => r.path == b);
-      expect(_getTopLevelVarType(br.unit, 'B1'), 'int');
+      _assertTopLevelVarType(br.unit, 'B1', 'int');
     }
 
     // Clear the results and update "a".
@@ -766,12 +771,12 @@ var A2 = B1;
     expect(allResults, hasLength(2));
     {
       ResolvedUnitResult ar = allResults.firstWhere((r) => r.path == a);
-      expect(_getTopLevelVarType(ar.unit, 'A1'), 'double');
-      expect(_getTopLevelVarType(ar.unit, 'A2'), 'double');
+      _assertTopLevelVarType(ar.unit, 'A1', 'double');
+      _assertTopLevelVarType(ar.unit, 'A2', 'double');
     }
     {
       ResolvedUnitResult br = allResults.firstWhere((r) => r.path == b);
-      expect(_getTopLevelVarType(br.unit, 'B1'), 'double');
+      _assertTopLevelVarType(br.unit, 'B1', 'double');
     }
   }
 
@@ -784,7 +789,7 @@ var A2 = B1;
       expect(allResults, hasLength(1));
       ResolvedUnitResult result = allResults[0];
       expect(result.path, testFile);
-      expect(_getTopLevelVarType(result.unit, 'V'), 'int');
+      _assertTopLevelVarType(result.unit, 'V', 'int');
     }
 
     // Update the file, but don't notify the driver.
@@ -807,7 +812,7 @@ var A2 = B1;
       expect(allResults, hasLength(1));
       ResolvedUnitResult result = allResults[0];
       expect(result.path, testFile);
-      expect(_getTopLevelVarType(result.unit, 'V'), 'double');
+      _assertTopLevelVarType(result.unit, 'V', 'double');
     }
   }
 
@@ -1367,8 +1372,8 @@ class B {}
     expect(result.errors, hasLength(0));
 
     var f = result.unit.declarations[0] as FunctionDeclaration;
-    expect(f.declaredElement.type.toString(), 'int Function()');
-    expect(f.returnType.type.toString(), 'int');
+    assertElementTypeString(f.declaredElement.type, 'int Function()');
+    assertElementTypeString(f.returnType.type, 'int');
 
     // The same result is also received through the stream.
     await waitForIdleWithoutExceptions();
@@ -1499,7 +1504,7 @@ class C {
     await waitForIdleWithoutExceptions();
 
     ResolvedUnitResult result = await driver.getResult(testFile);
-    expect(_getClassFieldType(result.unit, 'C', 'f'), 'int');
+    _assertClassFieldType(result.unit, 'C', 'f', 'int');
   }
 
   test_getResult_inferTypes_instanceMethod() async {
@@ -1514,8 +1519,8 @@ class B extends A {
     await waitForIdleWithoutExceptions();
 
     ResolvedUnitResult result = await driver.getResult(testFile);
-    expect(_getClassMethodReturnType(result.unit, 'A', 'm'), 'int');
-    expect(_getClassMethodReturnType(result.unit, 'B', 'm'), 'int');
+    _assertClassMethodReturnType(result.unit, 'A', 'm', 'int');
+    _assertClassMethodReturnType(result.unit, 'B', 'm', 'int');
   }
 
   test_getResult_invalid_annotation_functionAsConstructor() async {
@@ -1725,7 +1730,7 @@ var VC = new A<double>();
       ResolvedUnitResult result = await driver.getResult(b);
       expect(_getImportSource(result.unit, 0).uri.toString(),
           'package:test/a.dart');
-      expect(_getTopLevelVarType(result.unit, 'VB'), 'A<int>');
+      _assertTopLevelVarType(result.unit, 'VB', 'A<int>');
     }
 
     {
@@ -1734,7 +1739,7 @@ var VC = new A<double>();
         _getImportSource(result.unit, 0).uri,
         toUri('/test/lib/a.dart'),
       );
-      expect(_getTopLevelVarType(result.unit, 'VC'), 'A<double>');
+      _assertTopLevelVarType(result.unit, 'VC', 'A<double>');
     }
   }
 
@@ -1757,8 +1762,8 @@ var B1 = A1;
 
     {
       ResolvedUnitResult result = await driver.getResult(a);
-      expect(_getTopLevelVarType(result.unit, 'A1'), 'int');
-      expect(_getTopLevelVarType(result.unit, 'A2'), 'int');
+      _assertTopLevelVarType(result.unit, 'A1', 'int');
+      _assertTopLevelVarType(result.unit, 'A2', 'int');
     }
 
     // Update "a" so that "A1" is now "double".
@@ -1777,8 +1782,8 @@ var A2 = B1;
 
     {
       ResolvedUnitResult result = await driver.getResult(a);
-      expect(_getTopLevelVarType(result.unit, 'A1'), 'double');
-      expect(_getTopLevelVarType(result.unit, 'A2'), 'double');
+      _assertTopLevelVarType(result.unit, 'A1', 'double');
+      _assertTopLevelVarType(result.unit, 'A2', 'double');
     }
   }
 
@@ -1982,7 +1987,7 @@ var b = new B();
 
     ResolvedUnitResult result = await driver.getResult(a);
     expect(result.errors, isEmpty);
-    expect(_getTopLevelVarType(result.unit, 'b'), 'B');
+    _assertTopLevelVarType(result.unit, 'b', 'B');
   }
 
   test_importOfNonLibrary_part_afterLibrary() async {
@@ -2287,15 +2292,15 @@ var b = new B();
     {
       ResolvedUnitResult result = await driver.getResult(a);
       expect(result.errors, isEmpty);
-      expect(_getTopLevelVarType(result.unit, 'c'), 'C');
+      _assertTopLevelVarType(result.unit, 'c', 'C');
     }
 
     // Now c.dart can be resolved without errors in the context of a.dart
     {
       ResolvedUnitResult result = await driver.getResult(c);
       expect(result.errors, isEmpty);
-      expect(_getTopLevelVarType(result.unit, 'a'), 'A');
-      expect(_getTopLevelVarType(result.unit, 'b'), 'B');
+      _assertTopLevelVarType(result.unit, 'a', 'A');
+      _assertTopLevelVarType(result.unit, 'b', 'B');
     }
   }
 
@@ -2326,8 +2331,8 @@ var b = new B();
     // So, A and B references are resolved.
     ResolvedUnitResult result = await driver.getResult(c);
     expect(result.errors, isEmpty);
-    expect(_getTopLevelVarType(result.unit, 'a'), 'A');
-    expect(_getTopLevelVarType(result.unit, 'b'), 'B');
+    _assertTopLevelVarType(result.unit, 'a', 'A');
+    _assertTopLevelVarType(result.unit, 'b', 'B');
   }
 
   test_part_getResult_changePart_invalidatesLibraryCycle() async {
@@ -2664,11 +2669,11 @@ var A = B;
     expect(allResults, hasLength(2));
     {
       ResolvedUnitResult ar = allResults.firstWhere((r) => r.path == a);
-      expect(_getTopLevelVarType(ar.unit, 'A'), 'int');
+      _assertTopLevelVarType(ar.unit, 'A', 'int');
     }
     {
       ResolvedUnitResult br = allResults.firstWhere((r) => r.path == b);
-      expect(_getTopLevelVarType(br.unit, 'B'), 'int');
+      _assertTopLevelVarType(br.unit, 'B', 'int');
     }
     allResults.clear();
 
@@ -2684,7 +2689,7 @@ var A = B;
     expect(allResults, hasLength(1));
     {
       ResolvedUnitResult ar = allResults.firstWhere((r) => r.path == a);
-      expect(_getTopLevelVarType(ar.unit, 'A'), 'double');
+      _assertTopLevelVarType(ar.unit, 'A', 'double');
     }
   }
 
@@ -2897,8 +2902,8 @@ class F extends X {}
     expect(result.errors, hasLength(0));
 
     var f = result.unit.declarations[0] as FunctionDeclaration;
-    expect(f.declaredElement.type.toString(), 'int Function()');
-    expect(f.returnType.type.toString(), 'int');
+    assertElementTypeString(f.declaredElement.type, 'int Function()');
+    assertElementTypeString(f.returnType.type, 'int');
   }
 
   test_results_priorityFirst() async {
@@ -3018,6 +3023,26 @@ var v = 0
     }
   }
 
+  void _assertClassFieldType(CompilationUnit unit, String className,
+      String fieldName, String expected) {
+    var node = _getClassField(unit, className, fieldName);
+    var type = node.declaredElement.type;
+    assertElementTypeString(type, expected);
+  }
+
+  void _assertClassMethodReturnType(CompilationUnit unit, String className,
+      String fieldName, String expected) {
+    var node = _getClassMethod(unit, className, fieldName);
+    var type = node.declaredElement.returnType;
+    assertElementTypeString(type, expected);
+  }
+
+  void _assertTopLevelVarType(
+      CompilationUnit unit, String name, String expected) {
+    VariableDeclaration variable = _getTopLevelVar(unit, name);
+    assertElementTypeString(variable.declaredElement.type, expected);
+  }
+
   void _expectCircularityError(EvaluationResultImpl evaluationResult) {
     expect(evaluationResult, isNotNull);
     expect(evaluationResult.value, isNull);
@@ -3052,14 +3077,6 @@ var v = 0
     fail('Cannot find the field $fieldName in the class $className in\n$unit');
   }
 
-  String _getClassFieldType(
-      CompilationUnit unit, String className, String fieldName) {
-    return _getClassField(unit, className, fieldName)
-        .declaredElement
-        .type
-        .toString();
-  }
-
   MethodDeclaration _getClassMethod(
       CompilationUnit unit, String className, String methodName) {
     ClassDeclaration classDeclaration = _getClass(unit, className);
@@ -3071,15 +3088,6 @@ var v = 0
     }
     fail('Cannot find the method $methodName in the class $className in\n'
         '$unit');
-  }
-
-  String _getClassMethodReturnType(
-      CompilationUnit unit, String className, String fieldName) {
-    return _getClassMethod(unit, className, fieldName)
-        .declaredElement
-        .type
-        .returnType
-        .toString();
   }
 
   ImportElement _getImportElement(CompilationUnit unit, int directiveIndex) {
@@ -3102,11 +3110,6 @@ var v = 0
       }
     }
     fail('Cannot find the top-level variable $name in\n$unit');
-  }
-
-  String _getTopLevelVarType(CompilationUnit unit, String name) {
-    VariableDeclaration variable = _getTopLevelVar(unit, name);
-    return variable.declaredElement.type.toString();
   }
 }
 
