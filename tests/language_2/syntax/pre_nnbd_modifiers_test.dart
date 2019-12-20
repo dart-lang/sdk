@@ -5,8 +5,8 @@
 // This test ensures that the modifiers added as part of NNBD are not enabled
 // until NNBD is enabled by default. At that time, this test should be removed.
 
-// NNBD note: This test is specific to legacy mode and deliberately does not
-// have a counter-part in language/.
+// [NNBD non-migrated] Note: This test is specific to legacy mode and
+// deliberately does not have a counter-part in language/.
 
 import 'package:expect/expect.dart';
 

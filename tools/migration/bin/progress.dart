@@ -26,6 +26,11 @@ const _nonCoreLibs = [
   "standalone_2/io/",
 ];
 
+/// Some legacy files test behavior that doesn't apply to NNBD at all which
+/// means they don't end up in the migrated directory but are done. We put this
+/// comment in the *legacy* file to track that it has been migrated.
+const _nonMigratedMarker = "[NNBD non-migrated]";
+
 void main(List<String> arguments) {
   var totalFiles = 0;
   var totalLines = 0;
@@ -44,15 +49,14 @@ void main(List<String> arguments) {
       }
 
       files++;
-      var lineCount = readFileLines(legacyPath).length;
-      lines += lineCount;
+      var sourceLines = readFileLines(legacyPath);
+      lines += sourceLines.length;
 
       var nnbdPath = toNnbdPath(legacyPath);
-      // TODO(rnystrom): Look for a marker comment in legacy files that we know
-      // are not intended to be migrated and count those as done.
-      if (fileExists(nnbdPath)) {
+      if (fileExists(nnbdPath) ||
+          sourceLines.any((line) => line.contains(_nonMigratedMarker))) {
         migratedFiles++;
-        migratedLines += lineCount;
+        migratedLines += sourceLines.length;
       }
     }
 
