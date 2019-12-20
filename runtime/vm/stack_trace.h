@@ -64,85 +64,35 @@ class StackTraceUtils : public AllStatic {
                                              Array* async_code_array,
                                              Array* async_pc_offset_array);
 
-  // Find the closure corresponding to `function` in (presumably) its parent
-  // stack frame (based on the frame's SP).
-  static RawClosure* FindClosureInFrame(RawObject** last_object_in_caller,
-                                        const Function& function,
-                                        bool is_interpreted) {
-    NoSafepointScope nsp;
+  // The number of frames involved in a "sync-async" gap: a synchronous initial
+  // invocation of an asynchronous function. See CheckAndSkipAsync.
+  static constexpr intptr_t kSyncAsyncFrameGap = 2;
 
-    // The callee has function signature
-    //   :async_op([result, exception, stack])
-    // So we are guaranteed to
-    //   a) have only (up to three) tagged arguments on the stack until we find
-    //      the :async_op closure, and
-    //   b) find the async closure.
-    auto& closure = Closure::Handle();
-    for (intptr_t i = 0; i < 4; i++) {
-      // KBC builds the stack upwards instead of the usual downwards stack.
-      RawObject* arg = last_object_in_caller[(is_interpreted ? -i : i)];
-      if (arg->IsHeapObject() && arg->GetClassId() == kClosureCid) {
-        closure = Closure::RawCast(arg);
-        if (closure.function() == function.raw()) {
-          return closure.raw();
-        }
-      }
+  // A synchronous invocation of an async function involves the following
+  // frames:
+  //   <async function>__<anonymous_closure>    (0)
+  //   _Closure.call                            (1)
+  //   _AsyncAwaitCompleter.start               (2)
+  //   <async_function>                         (3)
+  //
+  // Alternatively, for bytecode or optimized frames, we may see:
+  //   <async function>__<anonymous_closure>    (0)
+  //   _AsyncAwaitCompleter.start               (1)
+  //   <async_function>                         (2)
+  static bool CheckAndSkipAsync(int* skip_sync_async_frames_count,
+                                const String& function_name) {
+    ASSERT(*skip_sync_async_frames_count > 0);
+    if (function_name.Equals(Symbols::_AsyncAwaitCompleterStart())) {
+      *skip_sync_async_frames_count = 0;
+      return true;
     }
-    UNREACHABLE();
+    if (function_name.Equals(Symbols::_ClosureCall()) &&
+        *skip_sync_async_frames_count == 2) {
+      (*skip_sync_async_frames_count)--;
+      return true;
+    }
+    return false;
   }
-};
-
-// Helper class for finding the closure of the caller.
-// This is done via the _AsyncAwaitCompleter which holds a
-// FutureResultOrListeners which in turn holds a callback.
-class CallerClosureFinder {
- public:
-  // Instance caches library and field references.
-  // This way we don't have to do the look-ups for every frame in the stack.
-  explicit CallerClosureFinder(Zone* zone);
-
-  RawClosure* FindCallerInAsyncClosure(const Context& receiver_context);
-
-  RawClosure* FindCallerInAsyncGenClosure(const Context& receiver_context);
-
-  RawClosure* FindCaller(const Closure& receiver_closure);
-
-  bool IsRunningAsync(const Closure& receiver_closure);
-
- private:
-  // Keep in sync with
-  // sdk/lib/async/stream_controller.dart:_StreamController._STATE_SUBSCRIBED.
-  const intptr_t kStreamController_StateSubscribed = 1;
-
-  Context& receiver_context_;
-  Function& receiver_function_;
-
-  Object& context_entry_;
-  Object& is_sync;
-  Object& future_;
-  Object& listener_;
-  Object& callback_;
-  Object& controller_;
-  Object& state_;
-  Object& var_data_;
-
-  Class& future_impl_class;
-  Class& async_await_completer_class;
-  Class& future_listener_class;
-  Class& async_start_stream_controller_class;
-  Class& stream_controller_class;
-  Class& controller_subscription_class;
-  Class& buffering_stream_subscription_class;
-  Class& async_stream_controller_class;
-
-  Field& completer_is_sync_field;
-  Field& completer_future_field;
-  Field& future_result_or_listeners_field;
-  Field& callback_field;
-  Field& controller_controller_field;
-  Field& var_data_field;
-  Field& state_field;
-  Field& on_data_field;
 };
 
 }  // namespace dart

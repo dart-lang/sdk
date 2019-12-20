@@ -807,7 +807,6 @@ abstract class _AsyncStreamControllerDispatch<T>
 // TODO(lrn): Use common superclass for callback-controllers when VM supports
 // constructors in mixin superclasses.
 
-@pragma("vm:entry-point")
 class _AsyncStreamController<T> = _StreamController<T>
     with _AsyncStreamControllerDispatch<T>;
 

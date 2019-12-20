@@ -2313,10 +2313,10 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
 #if defined(DART_PRECOMPILED_RUNTIME)
   // Causal async stacks are not supported in the AOT runtime.
   ASSERT(!FLAG_async_debugger);
-  return nullptr;
+  return NULL;
 #else
   if (!FLAG_async_debugger) {
-    return nullptr;
+    return NULL;
   }
 
   Thread* thread = Thread::Current();
@@ -2337,148 +2337,163 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
   Closure& async_activation = Closure::Handle(zone);
   Object& next_async_activation = Object::Handle(zone);
   Array& deopt_frame = Array::Handle(zone);
-  // Note: 'class' since Debugger declares a method by the same name.
   class StackTrace& async_stack_trace = StackTrace::Handle(zone);
   bool stack_has_async_function = false;
-  Closure& closure = Closure::Handle(zone);
-  CallerClosureFinder caller_closure_finder(zone);
 
-  for (StackFrame* frame = iterator.NextFrame(); frame != nullptr;
+  // Number of frames we are trying to skip that form "sync async" entry.
+  int skip_sync_async_frames_count = -1;
+  String& function_name = String::Handle(zone);
+  for (StackFrame* frame = iterator.NextFrame(); frame != NULL;
        frame = iterator.NextFrame()) {
     ASSERT(frame->IsValid());
     if (FLAG_trace_debugger_stacktrace) {
       OS::PrintErr("CollectAwaiterReturnStackTrace: visiting frame:\n\t%s\n",
                    frame->ToCString());
     }
-    if (!frame->IsDartFrame()) {
-      continue;
-    }
-
-    if (frame->is_interpreted()) {
-      bytecode = frame->LookupDartBytecode();
-      function = bytecode.function();
-      if (function.IsNull()) {
-        continue;  // Skip bytecode stub frame.
-      }
-
-      if (function.IsAsyncClosure() || function.IsAsyncGenClosure()) {
-        ActivationFrame* activation =
-            CollectDartFrame(isolate, frame->pc(), frame, bytecode,
-                             ActivationFrame::kAsyncActivation);
-        ASSERT(activation != nullptr);
-        stack_trace->AddActivation(activation);
-        stack_has_async_function = true;
-        // Grab the awaiter.
-        async_activation ^= activation->GetAsyncAwaiter();
-        async_stack_trace ^= activation->GetCausalStack();
-
-        // Bail if we've reach the end of the sync execution stack.
-        RawObject** last_caller_obj =
-            reinterpret_cast<RawObject**>(frame->GetCallerSp());
-        closure = StackTraceUtils::FindClosureInFrame(last_caller_obj, function,
-                                                      frame->is_interpreted());
-        if (caller_closure_finder.IsRunningAsync(closure)) {
-          // We've reached the end of the stack of the sync execution.
-          break;
+    if (frame->IsDartFrame()) {
+      if (frame->is_interpreted()) {
+        bytecode = frame->LookupDartBytecode();
+        function = bytecode.function();
+        if (function.IsNull()) {
+          continue;  // Skip bytecode stub frame.
         }
-      } else {
-        stack_trace->AddActivation(
-            CollectDartFrame(isolate, frame->pc(), frame, bytecode));
-      }
-    } else {
-      code = frame->LookupDartCode();
-      if (code.is_optimized()) {
-        if (code.is_force_optimized()) {
-          if (FLAG_trace_debugger_stacktrace) {
-            function = code.function();
-            ASSERT(!function.IsNull());
-            OS::PrintErr(
-                "CollectAwaiterReturnStackTrace: "
-                "skipping force-optimized function: %s\n",
-                function.ToFullyQualifiedCString());
-          }
-          // Skip frame of force-optimized (and non-debuggable) function.
-          continue;
-        }
-        deopt_frame = DeoptimizeToArray(thread, frame, code);
-        bool found_async_awaiter = false;
-        bool abort_attempt_to_navigate_through_sync_async = false;
-        for (InlinedFunctionsIterator it(code, frame->pc()); !it.Done();
-             it.Advance()) {
-          inlined_code = it.code();
-          function = it.function();
 
-          if (FLAG_trace_debugger_stacktrace) {
-            ASSERT(!function.IsNull());
-            OS::PrintErr(
-                "CollectAwaiterReturnStackTrace: "
-                "visiting inlined function: %s\n ",
-                function.ToFullyQualifiedCString());
+        if (skip_sync_async_frames_count > 0) {
+          function_name = function.QualifiedScrubbedName();
+          if (!StackTraceUtils::CheckAndSkipAsync(&skip_sync_async_frames_count,
+                                                  function_name)) {
+            // Unexpected function in synchronous call of async function.
+            break;
           }
-          intptr_t deopt_frame_offset = it.GetDeoptFpOffset();
-          if (function.IsAsyncClosure() || function.IsAsyncGenClosure()) {
-            ActivationFrame* activation = CollectDartFrame(
-                isolate, it.pc(), frame, inlined_code, deopt_frame,
-                deopt_frame_offset, ActivationFrame::kAsyncActivation);
-            stack_trace->AddActivation(activation);
-            stack_has_async_function = true;
-            // Grab the awaiter.
-            async_activation ^= activation->GetAsyncAwaiter();
-            found_async_awaiter = true;
-
-            // Bail if we've reach the end of the sync execution stack.
-            RawObject** last_caller_obj =
-                reinterpret_cast<RawObject**>(frame->GetCallerSp());
-            closure = StackTraceUtils::FindClosureInFrame(
-                last_caller_obj, function, frame->is_interpreted());
-            if (caller_closure_finder.IsRunningAsync(closure)) {
-              abort_attempt_to_navigate_through_sync_async = true;
-              break;
-            }
-          } else {
-            stack_trace->AddActivation(
-                CollectDartFrame(isolate, it.pc(), frame, inlined_code,
-                                 deopt_frame, deopt_frame_offset));
-          }
-        }  // for (InlinedFunctionsIterator)
-        // Break out of outer loop.
-        if (found_async_awaiter ||
-            abort_attempt_to_navigate_through_sync_async) {
-          break;
         }
-      } else {  // code.is_optimized()
-        function = code.function();
 
         if (function.IsAsyncClosure() || function.IsAsyncGenClosure()) {
-          ActivationFrame* activation = CollectDartFrame(
-              isolate, frame->pc(), frame, code, Object::null_array(), 0,
-              ActivationFrame::kAsyncActivation);
-          ASSERT(activation != nullptr);
+          ActivationFrame* activation =
+              CollectDartFrame(isolate, frame->pc(), frame, bytecode,
+                               ActivationFrame::kAsyncActivation);
+          ASSERT(activation != NULL);
           stack_trace->AddActivation(activation);
           stack_has_async_function = true;
           // Grab the awaiter.
           async_activation ^= activation->GetAsyncAwaiter();
           async_stack_trace ^= activation->GetCausalStack();
+          // Interpreted bytecode does not invoke _ClosureCall().
+          // Skip _AsyncAwaitCompleterStart() only.
+          skip_sync_async_frames_count = 1;
+        } else {
+          stack_trace->AddActivation(
+              CollectDartFrame(isolate, frame->pc(), frame, bytecode));
+        }
+      } else {
+        code = frame->LookupDartCode();
+        if (code.is_optimized()) {
+          if (code.is_force_optimized()) {
+            if (FLAG_trace_debugger_stacktrace) {
+              function = code.function();
+              ASSERT(!function.IsNull());
+              OS::PrintErr(
+                  "CollectAwaiterReturnStackTrace: "
+                  "skipping force-optimized function: %s\n",
+                  function.ToFullyQualifiedCString());
+            }
+            // Skip frame of force-optimized (and non-debuggable) function.
+            continue;
+          }
+          deopt_frame = DeoptimizeToArray(thread, frame, code);
+          bool found_async_awaiter = false;
+          bool abort_attempt_to_navigate_through_sync_async = false;
+          for (InlinedFunctionsIterator it(code, frame->pc()); !it.Done();
+               it.Advance()) {
+            inlined_code = it.code();
+            function = it.function();
 
-          // Bail if we've reach the end of sync execution stack.
-          RawObject** last_caller_obj =
-              reinterpret_cast<RawObject**>(frame->GetCallerSp());
-          closure = StackTraceUtils::FindClosureInFrame(
-              last_caller_obj, function, frame->is_interpreted());
-          if (caller_closure_finder.IsRunningAsync(closure)) {
+            if (skip_sync_async_frames_count > 0) {
+              function_name ^= function.QualifiedScrubbedName();
+              if (!StackTraceUtils::CheckAndSkipAsync(
+                      &skip_sync_async_frames_count, function_name)) {
+                // Unexpected function in sync async call
+                skip_sync_async_frames_count = -1;
+                abort_attempt_to_navigate_through_sync_async = true;
+                break;
+              }
+            }
+
+            if (FLAG_trace_debugger_stacktrace) {
+              ASSERT(!function.IsNull());
+              OS::PrintErr(
+                  "CollectAwaiterReturnStackTrace: "
+                  "visiting inlined function: %s\n ",
+                  function.ToFullyQualifiedCString());
+            }
+            intptr_t deopt_frame_offset = it.GetDeoptFpOffset();
+            if (function.IsAsyncClosure() || function.IsAsyncGenClosure()) {
+              ActivationFrame* activation = CollectDartFrame(
+                  isolate, it.pc(), frame, inlined_code, deopt_frame,
+                  deopt_frame_offset, ActivationFrame::kAsyncActivation);
+              ASSERT(activation != NULL);
+              stack_trace->AddActivation(activation);
+              stack_has_async_function = true;
+              // Grab the awaiter.
+              async_activation ^= activation->GetAsyncAwaiter();
+              found_async_awaiter = true;
+              // async function might have been called synchronously, in which
+              // case we need to keep going down the stack.
+              // To determine how we are called we peek few more frames further
+              // expecting to see Closure_call followed by
+              // AsyncAwaitCompleter_start.
+              // If we are able to see those functions we continue going down
+              // thestack, if we are not, we break out of the loop as we are
+              // not interested in exploring rest of the stack - there is only
+              // dart-internal code left.
+              skip_sync_async_frames_count = 2;
+            } else {
+              stack_trace->AddActivation(
+                  CollectDartFrame(isolate, it.pc(), frame, inlined_code,
+                                   deopt_frame, deopt_frame_offset));
+            }
+          }
+          // Break out of outer loop.
+          if (found_async_awaiter ||
+              abort_attempt_to_navigate_through_sync_async) {
             break;
           }
         } else {
-          stack_trace->AddActivation(CollectDartFrame(
-              isolate, frame->pc(), frame, code, Object::null_array(), 0));
+          function = code.function();
+
+          if (skip_sync_async_frames_count > 0) {
+            function_name ^= function.QualifiedScrubbedName();
+            if (!StackTraceUtils::CheckAndSkipAsync(
+                    &skip_sync_async_frames_count, function_name)) {
+              // Unexpected function in synchronous call of async function.
+              break;
+            }
+          }
+
+          if (function.IsAsyncClosure() || function.IsAsyncGenClosure()) {
+            ActivationFrame* activation = CollectDartFrame(
+                isolate, frame->pc(), frame, code, Object::null_array(), 0,
+                ActivationFrame::kAsyncActivation);
+            ASSERT(activation != NULL);
+            stack_trace->AddActivation(activation);
+            stack_has_async_function = true;
+            // Grab the awaiter.
+            async_activation ^= activation->GetAsyncAwaiter();
+            async_stack_trace ^= activation->GetCausalStack();
+            // see comment regarding skipping frames of async functions called
+            // synchronously above.
+            skip_sync_async_frames_count = 2;
+          } else {
+            stack_trace->AddActivation(CollectDartFrame(
+                isolate, frame->pc(), frame, code, Object::null_array(), 0));
+          }
         }
       }
     }
-  }  // for (frame in iterator)
+  }
 
-  // If the stack doesn't have any async functions on it, return nullptr.
+  // If the stack doesn't have any async functions on it, return NULL.
   if (!stack_has_async_function) {
-    return nullptr;
+    return NULL;
   }
 
   // Append the awaiter return call stack.
@@ -2499,7 +2514,7 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
       break;
     }
     async_activation = Closure::RawCast(next_async_activation.raw());
-  }  // while (!async_activation.IsNull())
+  }
 
   // Now we append the asynchronous causal stack trace. These are not active
   // frames but a historical record of how this asynchronous function was
@@ -2554,7 +2569,7 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
     }
     // Follow the link.
     async_stack_trace = async_stack_trace.async_link();
-  }  // while (!async_stack_trace.IsNull())
+  }
 
   return stack_trace;
 #endif  // defined(DART_PRECOMPILED_RUNTIME)

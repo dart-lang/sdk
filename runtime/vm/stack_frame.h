@@ -132,12 +132,6 @@ class StackFrame : public ValueObject {
 
   static void DumpCurrentTrace();
 
-  uword GetCallerSp() const {
-    return fp() +
-           ((is_interpreted() ? kKBCCallerSpSlotFromFp : kCallerSpSlotFromFp) *
-            kWordSize);
-  }
-
  protected:
   explicit StackFrame(Thread* thread)
       : fp_(0), sp_(0), pc_(0), thread_(thread), is_interpreted_(false) {}
@@ -156,6 +150,12 @@ class StackFrame : public ValueObject {
  private:
   RawCode* GetCodeObject() const;
   RawBytecode* GetBytecodeObject() const;
+
+  uword GetCallerSp() const {
+    return fp() +
+           ((is_interpreted() ? kKBCCallerSpSlotFromFp : kCallerSpSlotFromFp) *
+            kWordSize);
+  }
 
   uword GetCallerFp() const {
     return *(reinterpret_cast<uword*>(
