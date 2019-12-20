@@ -18,9 +18,11 @@ main() {
     defineReflectiveTests(ExtensionMethodsDeclarationTest);
     defineReflectiveTests(ExtensionMethodsDeclarationWithNnbdTest);
     defineReflectiveTests(ExtensionMethodsExtendedTypeTest);
+    defineReflectiveTests(ExtensionMethodsExtendedTypeWithNnbdTest);
     defineReflectiveTests(ExtensionMethodsExternalReferenceTest);
     defineReflectiveTests(ExtensionMethodsExternalReferenceWithNnbdTest);
     defineReflectiveTests(ExtensionMethodsInternalReferenceTest);
+    defineReflectiveTests(ExtensionMethodsInternalReferenceWithNnbdTest);
   });
 }
 
@@ -480,6 +482,18 @@ extension on M {}
     assertElement(extendedType, findElement.mixin('M'));
     assertType(extendedType, 'M');
   }
+}
+
+@reflectiveTest
+class ExtensionMethodsExtendedTypeWithNnbdTest
+    extends ExtensionMethodsExtendedTypeTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..contextFeatures = FeatureSet.forTesting(
+        sdkVersion: '2.6.0', additionalFeatures: [Feature.non_nullable]);
+
+  @override
+  bool get typeToStringWithNullability => true;
 }
 
 /// Tests that extension members can be correctly resolved when referenced
@@ -1046,10 +1060,10 @@ f(C c) {
   test_instance_operator_postfix_fromExtendedType() async {
     await assertNoErrorsInCode('''
 class C {
-  void operator +(int i) {}
+  C operator +(int i) => this;
 }
 extension E on C {
-  void operator +(int i) {}
+  C operator +(int i) => this;
 }
 f(C c) {
   c++;
@@ -1062,7 +1076,7 @@ f(C c) {
   test_instance_operator_postfix_fromExtension_functionType() async {
     await assertNoErrorsInCode('''
 extension E on int Function(int) {
-  void operator +(int i) {}
+  int Function(int) operator +(int i) => this;
 }
 g(int Function(int) f) {
   f++;
@@ -1076,7 +1090,7 @@ g(int Function(int) f) {
     await assertNoErrorsInCode('''
 class C {}
 extension E on C {
-  void operator +(int i) {}
+  C operator +(int i) => this;
 }
 f(C c) {
   c++;
@@ -1089,10 +1103,10 @@ f(C c) {
   test_instance_operator_prefix_fromExtendedType() async {
     await assertNoErrorsInCode('''
 class C {
-  void operator +(int i) {}
+  C operator +(int i) => this;
 }
 extension E on C {
-  void operator +(int i) {}
+  C operator +(int i) => this;
 }
 f(C c) {
   ++c;
@@ -1105,7 +1119,7 @@ f(C c) {
   test_instance_operator_prefix_fromExtension_functionType() async {
     await assertNoErrorsInCode('''
 extension E on int Function(int) {
-  void operator +(int i) {}
+  int Function(int) operator +(int i) => this;
 }
 g(int Function(int) f) {
   ++f;
@@ -1119,7 +1133,7 @@ g(int Function(int) f) {
     await assertNoErrorsInCode('''
 class C {}
 extension E on C {
-  void operator +(int i) {}
+  C operator +(int i) => this;
 }
 f(C c) {
   ++c;
@@ -1132,10 +1146,10 @@ f(C c) {
   test_instance_operator_unary_fromExtendedType() async {
     await assertNoErrorsInCode('''
 class C {
-  void operator -() {}
+  C operator -() => this;
 }
 extension E on C {
-  void operator -() {}
+  C operator -() => this;
 }
 f(C c) {
   -c;
@@ -1162,7 +1176,7 @@ g(int Function(int) f) {
     await assertNoErrorsInCode('''
 class C {}
 extension E on C {
-  void operator -() {}
+  C operator -() => this;
 }
 f(C c) {
   -c;
@@ -1425,7 +1439,7 @@ extension on Function {
 
 @reflectiveTest
 class ExtensionMethodsExternalReferenceWithNnbdTest
-    extends BaseExtensionMethodsTest {
+    extends ExtensionMethodsExternalReferenceTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
     ..contextFeatures = FeatureSet.forTesting(
@@ -2030,4 +2044,16 @@ extension E on C {
     var identifier = findNode.simple('a = 0;');
     assertElement(identifier, findElement.topSet('a'));
   }
+}
+
+@reflectiveTest
+class ExtensionMethodsInternalReferenceWithNnbdTest
+    extends ExtensionMethodsInternalReferenceTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..contextFeatures = FeatureSet.forTesting(
+        sdkVersion: '2.6.0', additionalFeatures: [Feature.non_nullable]);
+
+  @override
+  bool get typeToStringWithNullability => true;
 }
