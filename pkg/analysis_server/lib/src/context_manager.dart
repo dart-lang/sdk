@@ -26,7 +26,6 @@ import 'package:analyzer/src/manifest/manifest_validator.dart';
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/source/path_filter.dart';
-import 'package:analyzer/src/source/sdk_ext.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/glob.dart';
 import 'package:analyzer/src/util/uri.dart';
@@ -1775,11 +1774,11 @@ class PackageMapDisposition extends FolderDisposition {
 
   @override
   Iterable<UriResolver> createPackageUriResolvers(
-          ResourceProvider resourceProvider) =>
-      <UriResolver>[
-        SdkExtUriResolver(packageMap),
-        PackageMapUriResolver(resourceProvider, packageMap)
-      ];
+      ResourceProvider resourceProvider) {
+    return <UriResolver>[
+      PackageMapUriResolver(resourceProvider, packageMap),
+    ];
+  }
 
   @override
   EmbedderYamlLocator getEmbedderLocator(ResourceProvider resourceProvider) {
@@ -1827,9 +1826,10 @@ class PackagesFileDisposition extends FolderDisposition {
   Iterable<UriResolver> createPackageUriResolvers(
       ResourceProvider resourceProvider) {
     if (packages != null) {
-      // Construct package map for the SdkExtUriResolver.
       Map<String, List<Folder>> packageMap = buildPackageMap(resourceProvider);
-      return <UriResolver>[SdkExtUriResolver(packageMap)];
+      return <UriResolver>[
+        PackageMapUriResolver(resourceProvider, packageMap),
+      ];
     } else {
       return const <UriResolver>[];
     }
