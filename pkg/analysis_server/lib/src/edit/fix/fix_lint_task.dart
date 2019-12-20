@@ -21,6 +21,6 @@ mixin FixLintProcessor implements FixErrorProcessor {
 }
 
 /// A task for fixing a particular lint.
-abstract class FixLintTask extends FixErrorTask {
+class FixLintTask extends FixErrorTask {
   FixLintTask(DartFixListener listener) : super(listener);
 }
