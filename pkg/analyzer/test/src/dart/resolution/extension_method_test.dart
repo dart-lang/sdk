@@ -19,6 +19,7 @@ main() {
     defineReflectiveTests(ExtensionMethodsDeclarationWithNnbdTest);
     defineReflectiveTests(ExtensionMethodsExtendedTypeTest);
     defineReflectiveTests(ExtensionMethodsExternalReferenceTest);
+    defineReflectiveTests(ExtensionMethodsExternalReferenceWithNnbdTest);
     defineReflectiveTests(ExtensionMethodsInternalReferenceTest);
   });
 }
@@ -1419,6 +1420,76 @@ extension on Function {
   }
 }
 ''');
+  }
+}
+
+@reflectiveTest
+class ExtensionMethodsExternalReferenceWithNnbdTest
+    extends BaseExtensionMethodsTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..contextFeatures = FeatureSet.forTesting(
+        sdkVersion: '2.6.0', additionalFeatures: [Feature.non_nullable]);
+
+  @override
+  bool get typeToStringWithNullability => true;
+
+  test_instance_getter_fromInstance_nullAware() async {
+    await assertNoErrorsInCode('''
+extension E on int {
+  int get foo => 0;
+}
+
+f(int? a) {
+  a?.foo;
+}
+''');
+    var identifier = findNode.simple('foo;');
+    assertElement(identifier, findElement.getter('foo', of: 'E'));
+    assertType(identifier, 'int');
+  }
+
+  test_instance_method_fromInstance_nullAware() async {
+    await assertNoErrorsInCode('''
+extension E on int {
+  void foo() {}
+}
+
+f(int? a) {
+  a?.foo();
+}
+''');
+    var invocation = findNode.methodInvocation('a?.foo()');
+    assertElement(invocation, findElement.method('foo', of: 'E'));
+    assertInvokeType(invocation, 'void Function()');
+  }
+
+  test_instance_operator_index_formInstance_nullAware() async {
+    await assertNoErrorsInCode('''
+extension E on int {
+  int operator [](int index) => 0;
+}
+
+f(int? a) {
+  a?.[0];
+}
+''');
+    var index = findNode.index('a?.[0]');
+    assertElement(index, findElement.method('[]', of: 'E'));
+  }
+
+  test_instance_setter_fromInstance_nullAware() async {
+    await assertNoErrorsInCode('''
+extension E on int {
+  set foo(int _) {}
+}
+
+f(int? a) {
+  a?.foo = 1;
+}
+''');
+    var access = findNode.propertyAccess('a?.foo');
+    assertElement(access, findElement.setter('foo'));
   }
 }
 

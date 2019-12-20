@@ -71,6 +71,8 @@ class MethodInvocationResolver {
   /// The scope used to resolve identifiers.
   Scope get nameScope => _resolver.nameScope;
 
+  TypeSystemImpl get _typeSystem => _resolver.typeSystem;
+
   void resolve(MethodInvocation node) {
     _invocation = node;
 
@@ -141,6 +143,10 @@ class MethodInvocationResolver {
     DartType receiverType = receiver.staticType;
     receiverType = _resolveTypeParameter(receiverType);
 
+    if (node.isNullAware) {
+      receiverType = _typeSystem.promoteToNonNull(receiverType);
+    }
+
     if (receiverType is InterfaceType) {
       _resolveReceiverInterfaceType(node, receiverType, nameNode, name);
       return;
@@ -202,7 +208,7 @@ class MethodInvocationResolver {
     if (typeFormals.isNotEmpty) {
       if (arguments == null) {
         var typeArguments =
-            _resolver.typeSystem.instantiateTypeFormalsToBounds(typeFormals);
+            _typeSystem.instantiateTypeFormalsToBounds(typeFormals);
         _invocation.typeArgumentTypes = typeArguments;
         return invokeType.instantiate(typeArguments);
       } else {

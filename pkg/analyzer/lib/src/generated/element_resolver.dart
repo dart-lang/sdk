@@ -29,6 +29,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/super_context.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
+import 'package:meta/meta.dart';
 
 /**
  * An object used by instances of [ResolverVisitor] to resolve references within
@@ -476,7 +477,11 @@ class ElementResolver extends SimpleAstVisitor<void> {
   @override
   void visitIndexExpression(IndexExpression node) {
     Expression target = node.realTarget;
-    DartType staticType = _getStaticType(target);
+    DartType targetType = _getStaticType(target);
+
+    if (node.isNullAware) {
+      targetType = _resolver.typeSystem.promoteToNonNull(targetType);
+    }
 
     String getterMethodName = TokenType.INDEX.lexeme;
     String setterMethodName = TokenType.INDEX_EQ.lexeme;
@@ -486,7 +491,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
       result = _extensionResolver.getOverrideMember(target, getterMethodName);
     } else {
       result = _newPropertyResolver()
-          .resolve(target, staticType, getterMethodName, target);
+          .resolve(target, targetType, getterMethodName, target);
     }
 
     bool isInGetterContext = node.inGetterContext();
@@ -502,11 +507,11 @@ class ElementResolver extends SimpleAstVisitor<void> {
 
     if (isInGetterContext) {
       _checkForUndefinedIndexOperator(
-          node, target, getterMethodName, result, result.getter, staticType);
+          node, target, getterMethodName, result, result.getter, targetType);
     }
     if (isInSetterContext) {
       _checkForUndefinedIndexOperator(
-          node, target, setterMethodName, result, result.setter, staticType);
+          node, target, setterMethodName, result, result.setter, targetType);
     }
   }
 
@@ -652,7 +657,12 @@ class ElementResolver extends SimpleAstVisitor<void> {
     // Otherwise, the prefix is really an expression that happens to be a simple
     // identifier and this is really equivalent to a property access node.
     //
-    _resolvePropertyAccess(prefix, identifier, false);
+    _resolvePropertyAccess(
+      prefix,
+      identifier,
+      isCascaded: false,
+      isNullAware: false,
+    );
   }
 
   @override
@@ -752,7 +762,12 @@ class ElementResolver extends SimpleAstVisitor<void> {
       return;
     }
     SimpleIdentifier propertyName = node.propertyName;
-    _resolvePropertyAccess(target, propertyName, node.isCascaded);
+    _resolvePropertyAccess(
+      target,
+      propertyName,
+      isCascaded: node.isCascaded,
+      isNullAware: node.isNullAware,
+    );
   }
 
   @override
@@ -1544,7 +1559,11 @@ class ElementResolver extends SimpleAstVisitor<void> {
   }
 
   void _resolvePropertyAccess(
-      Expression target, SimpleIdentifier propertyName, bool isCascaded) {
+    Expression target,
+    SimpleIdentifier propertyName, {
+    @required bool isCascaded,
+    @required bool isNullAware,
+  }) {
     DartType staticType = _getStaticType(target);
 
     //
@@ -1746,6 +1765,10 @@ class ElementResolver extends SimpleAstVisitor<void> {
 
     if (staticType == null || staticType.isDynamic) {
       return;
+    }
+
+    if (isNullAware) {
+      staticType = _resolver.typeSystem.promoteToNonNull(staticType);
     }
 
     if (staticType.isVoid) {
