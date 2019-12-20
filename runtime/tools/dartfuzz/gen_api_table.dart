@@ -93,7 +93,6 @@ const runesEncoding = 'DartType.RUNES';
 const setIntEncoding = 'DartType.SET_INT';
 const stackOverflowErrorEncoding = 'DartType.STACKOVERFLOWERROR';
 const stateErrorEncoding = 'DartType.STATEERROR';
-const stopwatchEncoding = 'DartType.STOPWATCH';
 const stringBufferEncoding = 'DartType.STRINGBUFFER';
 const stringEncoding = 'DartType.STRING';
 const symbolEncoding = 'DartType.SYMBOL';
@@ -156,7 +155,6 @@ final runesLibs = 'runesLibs';
 final setLibs = 'setLibs';
 final stackOverflowErrorLibs = 'stackOverflowErrorLibs';
 final stateErrorLibs = 'stateErrorLibs';
-final stopwatchLibs = 'stopwatchLibs';
 final stringBufferLibs = 'stringBufferLibs';
 final stringLibs = 'stringLibs';
 final symbolLibs = 'symbolLibs';
@@ -219,7 +217,6 @@ final Map<String, String> typeToLibraryMethodsListName = {
   setIntEncoding: setLibs,
   stackOverflowErrorEncoding: stackOverflowErrorLibs,
   stateErrorEncoding: stateErrorLibs,
-  stopwatchEncoding: stopwatchLibs,
   stringBufferEncoding: stringBufferLibs,
   stringEncoding: stringLibs,
   stringEncoding: stringLibs,
@@ -285,7 +282,6 @@ final Map<String, List<DartLib>> typeToLibraryMethodsList = {
   setIntEncoding: <DartLib>[],
   stackOverflowErrorEncoding: <DartLib>[],
   stateErrorEncoding: <DartLib>[],
-  stopwatchEncoding: <DartLib>[],
   stringBufferEncoding: <DartLib>[],
   stringEncoding: <DartLib>[],
   symbolEncoding: <DartLib>[],
@@ -564,8 +560,6 @@ String typeString(DartType type) {
       return stackOverflowErrorEncoding;
     case 'StateError':
       return stateErrorEncoding;
-    case 'Stopwatch':
-      return stopwatchEncoding;
     case 'StringBuffer':
       return stringBufferEncoding;
     case 'Symbol':

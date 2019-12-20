@@ -96,7 +96,6 @@ class DartLib {
     DartLib('isNotEmpty', [DartType.STRINGBUFFER, DartType.VOID], false),
     DartLib('isNotEmpty', [DartType.STRING, DartType.VOID], false),
     DartLib('isOdd', [DartType.INT, DartType.VOID], false),
-    DartLib('isRunning', [DartType.STOPWATCH, DartType.VOID], false),
     DartLib('isUnicode', [DartType.REGEXP, DartType.VOID], false),
     DartLib('moveNext', [DartType.RUNEITERATOR, DartType.VOID], true),
     DartLib('movePrevious', [DartType.RUNEITERATOR, DartType.VOID], true),
@@ -878,14 +877,10 @@ class DartLib {
     DartLib('compareTo', [DartType.STRING, DartType.STRING], true),
     DartLib('current', [DartType.RUNEITERATOR, DartType.VOID], false),
     DartLib('currentSize', [DartType.RUNEITERATOR, DartType.VOID], false),
-    DartLib('elapsedMicroseconds', [DartType.STOPWATCH, DartType.VOID], false),
-    DartLib('elapsedMilliseconds', [DartType.STOPWATCH, DartType.VOID], false),
-    DartLib('elapsedTicks', [DartType.STOPWATCH, DartType.VOID], false),
     DartLib('end', [DartType.INDEXERROR, DartType.VOID], false),
     DartLib('floor', [DartType.DOUBLE, DartType.VOID], true),
     DartLib('floor', [DartType.DOUBLE, DartType.VOID], true),
     DartLib('floor', [DartType.INT, DartType.VOID], true),
-    DartLib('frequency', [DartType.STOPWATCH, DartType.VOID], false),
     DartLib('gcd', [DartType.INT, DartType.INT], true),
     DartLib('indexOf', [DartType.LIST_INT, DartType.INT, DartType.INT], true),
     DartLib('int.fromEnvironment', [DartType.VOID, DartType.STRING], true),
@@ -1141,9 +1136,6 @@ class DartLib {
     DartLib(
         'removeRange', [DartType.LIST_INT, DartType.INT, DartType.INT], true),
     DartLib('reset', [DartType.RUNEITERATOR, DartType.INT], true),
-    DartLib('reset', [DartType.STOPWATCH, DartType.VOID], true),
-    DartLib('start', [DartType.STOPWATCH, DartType.VOID], true),
-    DartLib('stop', [DartType.STOPWATCH, DartType.VOID], true),
     DartLib('writeCharCode', [DartType.STRINGBUFFER, DartType.INT], true),
   ];
 }

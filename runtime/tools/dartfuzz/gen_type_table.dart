@@ -1291,11 +1291,10 @@ visitCompilationUnit(CompilationUnitElement unit, Set<InterfaceType> allTypes) {
           (classElement.name == 'NoSuchMethodError') ||
           (classElement.name == 'Comparable') ||
           (classElement.name == 'BidirectionalIterator') ||
-          (classElement.name == 'Iterator')) {
+          (classElement.name == 'Iterator') ||
+          (classElement.name == 'Stopwatch')) {
         continue;
       }
-      ;
-
       allTypes.add(classElement.thisType);
     }
   }
