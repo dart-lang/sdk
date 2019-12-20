@@ -5067,7 +5067,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var lhs = _visitExpression(operand);
     var typeofName = _typeRep.typeFor(type).primitiveTypeOf;
     // Inline primitives other than int (which requires a Math.floor check).
-    if (typeofName != null && type != _types.coreTypes.intLegacyRawType) {
+    if (typeofName != null &&
+        type != _types.coreTypes.intLegacyRawType &&
+        type != _types.coreTypes.intNonNullableRawType &&
+        type != _types.coreTypes.intNullableRawType) {
       return js.call('typeof # == #', [lhs, js.string(typeofName, "'")]);
     } else {
       return js.call('#.is(#)', [_emitType(type), lhs]);
