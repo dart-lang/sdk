@@ -863,7 +863,7 @@ Fragment BaseFlowGraphBuilder::InstantiateType(const AbstractType& type) {
   Value* instantiator_type_args = Pop();
   InstantiateTypeInstr* instr = new (Z) InstantiateTypeInstr(
       TokenPosition::kNoSource, type, instantiator_type_args,
-      function_type_args, GetNextDeoptId());
+      function_type_args, GetNextDeoptId(), nnbd_mode());
   Push(instr);
   return Fragment(instr);
 }
@@ -875,7 +875,8 @@ Fragment BaseFlowGraphBuilder::InstantiateTypeArguments(
   const Class& instantiator_class = Class::ZoneHandle(Z, function_.Owner());
   InstantiateTypeArgumentsInstr* instr = new (Z) InstantiateTypeArgumentsInstr(
       TokenPosition::kNoSource, type_arguments, instantiator_class, function_,
-      instantiator_type_args, function_type_args, GetNextDeoptId());
+      instantiator_type_args, function_type_args, GetNextDeoptId(),
+      nnbd_mode());
   Push(instr);
   return Fragment(instr);
 }
@@ -1101,7 +1102,7 @@ Fragment BaseFlowGraphBuilder::AssertAssignable(
 
   AssertAssignableInstr* instr = new (Z) AssertAssignableInstr(
       position, value, instantiator_type_args, function_type_args, dst_type,
-      dst_name, GetNextDeoptId(), kind);
+      dst_name, GetNextDeoptId(), nnbd_mode(), kind);
   Push(instr);
 
   return Fragment(instr);

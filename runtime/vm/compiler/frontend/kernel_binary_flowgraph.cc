@@ -3624,6 +3624,8 @@ Fragment StreamingFlowGraphBuilder::BuildIsExpression(TokenPosition* p) {
 
   const AbstractType& type = T.BuildType();  // read type.
 
+  const NNBDMode nnbd_mode = parsed_function()->function().nnbd_mode();
+
   // The VM does not like an instanceOf call with a dynamic type. We need to
   // special case this situation.
   const Type& object_type = Type::Handle(Z, Type::ObjectType());
@@ -3665,9 +3667,12 @@ Fragment StreamingFlowGraphBuilder::BuildIsExpression(TokenPosition* p) {
     instructions += Constant(type);
     instructions += PushArgument();  // Type.
 
+    instructions += IntConstant(static_cast<intptr_t>(nnbd_mode));
+    instructions += PushArgument();  // nnbd_mode.
+
     instructions += InstanceCall(
         position, Library::PrivateCoreLibName(Symbols::_instanceOf()),
-        Token::kIS, 4);
+        Token::kIS, 5);
   }
   return instructions;
 }
@@ -4808,9 +4813,12 @@ Fragment StreamingFlowGraphBuilder::BuildTryCatch() {
       catch_body += PushArgument();  // function type arguments
       catch_body += Constant(*type_guard);
       catch_body += PushArgument();  // guard type
+      const NNBDMode nnbd_mode = parsed_function()->function().nnbd_mode();
+      catch_body += IntConstant(static_cast<intptr_t>(nnbd_mode));
+      catch_body += PushArgument();  // nnbd_mode
       catch_body += InstanceCall(
           position, Library::PrivateCoreLibName(Symbols::_instanceOf()),
-          Token::kIS, 4);
+          Token::kIS, 5);
 
       TargetEntryInstr* catch_entry;
       TargetEntryInstr* next_catch_entry;

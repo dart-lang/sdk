@@ -133,7 +133,7 @@ DEFINE_NATIVE_ENTRY(Object_haveSameRuntimeType, 0, 2) {
       .raw();
 }
 
-DEFINE_NATIVE_ENTRY(Object_instanceOf, 0, 4) {
+DEFINE_NATIVE_ENTRY(Object_instanceOf, 0, 5) {
   const Instance& instance =
       Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
   const TypeArguments& instantiator_type_arguments =
@@ -142,10 +142,11 @@ DEFINE_NATIVE_ENTRY(Object_instanceOf, 0, 4) {
       TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(2));
   const AbstractType& type =
       AbstractType::CheckedHandle(zone, arguments->NativeArgAt(3));
+  const NNBDMode nnbd_mode = static_cast<NNBDMode>(
+      Smi::CheckedHandle(zone, arguments->NativeArgAt(4)).Value());
   ASSERT(type.IsFinalized());
-  const bool is_instance_of = instance.IsInstanceOf(NNBDMode::kLegacy, type,
-                                                    instantiator_type_arguments,
-                                                    function_type_arguments);
+  const bool is_instance_of = instance.IsInstanceOf(
+      nnbd_mode, type, instantiator_type_arguments, function_type_arguments);
   if (FLAG_trace_type_checks) {
     const char* result_str = is_instance_of ? "true" : "false";
     OS::PrintErr("Native Object.instanceOf: result %s\n", result_str);

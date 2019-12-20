@@ -928,6 +928,9 @@ class Class : public Object {
   // to this class.
   RawClass* Mixin() const;
 
+  // The NNBD mode to use when compiling type tests.
+  NNBDMode nnbd_mode() const;
+
   bool IsInFullSnapshot() const;
 
   virtual RawString* DictionaryName() const { return Name(); }
@@ -2270,6 +2273,9 @@ class Function : public Object {
   RawClass* origin() const;
   RawScript* script() const;
   RawObject* RawOwner() const { return raw_ptr()->owner_; }
+
+  // The NNBD mode to use when compiling type tests.
+  NNBDMode nnbd_mode() const { return Class::Handle(origin()).nnbd_mode(); }
 
   RawRegExp* regexp() const;
   intptr_t string_specialization_cid() const;
@@ -6853,6 +6859,23 @@ class TypeArguments : public Instance {
       NNBDMode mode,
       const TypeArguments& instantiator_type_arguments,
       const TypeArguments& function_type_arguments) const;
+
+  // Each cached instantiation consists of a 4-tuple in the instantiations_
+  // array stored in each canonical uninstantiated type argument vector.
+  enum Instantiation {
+    kInstantiatorTypeArgsIndex = 0,
+    kFunctionTypeArgsIndex,
+    kNnbdModeIndex,
+    kInstantiatedTypeArgsIndex,
+    kSizeInWords,
+  };
+
+  // The array is terminated by the value kNoInstantiator occuring in place of
+  // the instantiator type args of the 4-tuple that would otherwise follow.
+  // Therefore, kNoInstantiator must be distinct from any type arguments vector,
+  // even a null one. Since arrays are initialized with 0, the instantiations_
+  // array is properly terminated upon initialization.
+  static const intptr_t kNoInstantiator = 0;
 
   // Return true if this type argument vector has cached instantiations.
   bool HasInstantiations() const;

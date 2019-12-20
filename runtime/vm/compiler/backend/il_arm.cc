@@ -1383,7 +1383,10 @@ void LoadClassIdInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register object = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();
   const AbstractType& value_type = *this->object()->Type()->ToAbstractType();
-  if (CompileType::Smi().IsAssignableTo(value_type) ||
+  // Using NNBDMode::kLegacy is safe, because it throws a wider net over the
+  // types accepting a Smi value, especially during the nnbd migration that
+  // does not guarantee soundness.
+  if (CompileType::Smi().IsAssignableTo(NNBDMode::kLegacy, value_type) ||
       value_type.IsTypeParameter()) {
     __ LoadTaggedClassIdMayBeSmi(result, object);
   } else {
@@ -2727,7 +2730,8 @@ void InstanceOfInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->in(1).reg() == R2);  // Instantiator type arguments.
   ASSERT(locs()->in(2).reg() == R1);  // Function type arguments.
 
-  compiler->GenerateInstanceOf(token_pos(), deopt_id(), type(), locs());
+  compiler->GenerateInstanceOf(token_pos(), deopt_id(), type(), nnbd_mode(),
+                               locs());
   ASSERT(locs()->out(0).reg() == R0);
 }
 
@@ -3000,9 +3004,10 @@ void InstantiateTypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ PushObject(type());
   __ PushList((1 << instantiator_type_args_reg) |
               (1 << function_type_args_reg));
+  __ PushImmediate(Smi::RawValue(static_cast<intptr_t>(nnbd_mode())));
   compiler->GenerateRuntimeCall(token_pos(), deopt_id(),
-                                kInstantiateTypeRuntimeEntry, 3, locs());
-  __ Drop(3);          // Drop 2 type argument vectors and uninstantiated type.
+                                kInstantiateTypeRuntimeEntry, 4, locs());
+  __ Drop(4);          // Drop mode, 2 type vectors, and uninstantiated type.
   __ Pop(result_reg);  // Pop instantiated type.
 }
 
@@ -3057,31 +3062,32 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
   // therefore guaranteed to contain kNoInstantiator. No length check needed.
   compiler::Label loop, next, found, slow_case;
   __ Bind(&loop);
-  __ ldr(
-      R2,
-      compiler::Address(
-          R3,
-          0 * compiler::target::kWordSize));  // Cached instantiator type args.
+  __ ldr(R2, compiler::Address(
+                 R3, TypeArguments::Instantiation::kInstantiatorTypeArgsIndex *
+                         compiler::target::kWordSize));
   __ cmp(R2, compiler::Operand(instantiator_type_args_reg));
   __ b(&next, NE);
-  __ ldr(IP,
-         compiler::Address(
-             R3,
-             1 * compiler::target::kWordSize));  // Cached function type args.
+  __ ldr(IP, compiler::Address(
+                 R3, TypeArguments::Instantiation::kFunctionTypeArgsIndex *
+                         compiler::target::kWordSize));
   __ cmp(IP, compiler::Operand(function_type_args_reg));
+  __ b(&next, NE);
+  __ ldr(IP,
+         compiler::Address(R3, TypeArguments::Instantiation::kNnbdModeIndex *
+                                   compiler::target::kWordSize));
+  __ CompareImmediate(IP, Smi::RawValue(static_cast<intptr_t>(nnbd_mode())));
   __ b(&found, EQ);
   __ Bind(&next);
-  __ AddImmediate(
-      R3, StubCode::kInstantiationSizeInWords * compiler::target::kWordSize);
-  __ CompareImmediate(R2,
-                      compiler::target::ToRawSmi(StubCode::kNoInstantiator));
+  __ AddImmediate(R3, TypeArguments::Instantiation::kSizeInWords *
+                          compiler::target::kWordSize);
+  __ CompareImmediate(R2, Smi::RawValue(TypeArguments::kNoInstantiator));
   __ b(&loop, NE);
   __ b(&slow_case);
   __ Bind(&found);
   __ ldr(result_reg,
          compiler::Address(
-             R3,
-             2 * compiler::target::kWordSize));  // Cached instantiated args.
+             R3, TypeArguments::Instantiation::kInstantiatedTypeArgsIndex *
+                     compiler::target::kWordSize));
   __ b(&type_arguments_instantiated);
 
   __ Bind(&slow_case);
@@ -3091,10 +3097,11 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
   __ PushObject(type_arguments());
   __ PushList((1 << instantiator_type_args_reg) |
               (1 << function_type_args_reg));
+  __ PushImmediate(Smi::RawValue(static_cast<intptr_t>(nnbd_mode())));
   compiler->GenerateRuntimeCall(token_pos(), deopt_id(),
-                                kInstantiateTypeArgumentsRuntimeEntry, 3,
+                                kInstantiateTypeArgumentsRuntimeEntry, 4,
                                 locs());
-  __ Drop(3);          // Drop 2 type argument vectors and uninstantiated args.
+  __ Drop(4);          // Drop mode, 2 type vectors, and uninstantiated type.
   __ Pop(result_reg);  // Pop instantiated type arguments.
   __ Bind(&type_arguments_instantiated);
 }

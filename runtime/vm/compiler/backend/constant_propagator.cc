@@ -404,7 +404,8 @@ void ConstantPropagator::VisitAssertAssignable(AssertAssignableInstr* instr) {
   } else if (IsConstant(value)) {
     // We are ignoring the instantiator and instantiator_type_arguments, but
     // still monotonic and safe.
-    if (instr->value()->Type()->IsAssignableTo(instr->dst_type())) {
+    if (instr->value()->Type()->IsAssignableTo(instr->nnbd_mode(),
+                                               instr->dst_type())) {
       SetValue(instr, value);
     } else {
       SetValue(instr, non_constant_);
@@ -838,7 +839,7 @@ void ConstantPropagator::VisitInstanceOf(InstanceOfInstr* instr) {
       if (instr->instantiator_type_arguments()->BindsToConstantNull() &&
           instr->function_type_arguments()->BindsToConstantNull()) {
         bool is_instance = instance.IsInstanceOf(
-            NNBDMode::kLegacy, checked_type, Object::null_type_arguments(),
+            instr->nnbd_mode(), checked_type, Object::null_type_arguments(),
             Object::null_type_arguments());
         SetValue(instr, Bool::Get(is_instance));
         return;

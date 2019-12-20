@@ -368,7 +368,8 @@ static Definition* MakeAssertAssignable(CompilerState* S,
                                    new Value(flow_graph->constant_null()),
                                    new Value(flow_graph->constant_null()),
                                    AbstractType::ZoneHandle(Type::ObjectType()),
-                                   Symbols::Empty(), S->GetNextDeoptId());
+                                   Symbols::Empty(), S->GetNextDeoptId(),
+                                   NNBDMode::kLegacy);
 }
 
 ISOLATE_UNIT_TEST_CASE(LoadOptimizer_RedefinitionAliasing_CheckNull_NoEscape) {

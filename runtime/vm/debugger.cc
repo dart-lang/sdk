@@ -952,6 +952,7 @@ bool ActivationFrame::HandlesException(const Instance& exc_obj) {
     handlers = code().exception_handlers();
   }
   ASSERT(!handlers.IsNull());
+  const NNBDMode nnbd_mode = function().nnbd_mode();
   intptr_t num_handlers_checked = 0;
   while (try_index != kInvalidTryIndex) {
     // Detect circles in the exception handler data.
@@ -969,8 +970,7 @@ bool ActivationFrame::HandlesException(const Instance& exc_obj) {
         if (type.IsDynamicType()) {
           return true;
         }
-        if (exc_obj.IsInstanceOf(NNBDMode::kLegacy, type,
-                                 Object::null_type_arguments(),
+        if (exc_obj.IsInstanceOf(nnbd_mode, type, Object::null_type_arguments(),
                                  Object::null_type_arguments())) {
           return true;
         }

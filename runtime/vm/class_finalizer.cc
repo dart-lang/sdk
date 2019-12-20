@@ -623,12 +623,10 @@ void ClassFinalizer::FinalizeTypeArguments(const Class& cls,
             arguments.SetTypeAt(i, super_type_arg);
             continue;
           }
-          // The nullability of the supertype should never be relevant.
-          // TODO(regis): Should we introduce a kIgnore mode in addition to
-          // the kLegacy mode of instantiation so that unnecessary cloning
-          // never occurs?
+          // TODO(regis): Verify that we use the correct nnbd mode to
+          // instantiate the type arguments of the super type.
           super_type_arg = super_type_arg.InstantiateFrom(
-              NNBDMode::kLegacy, arguments, Object::null_type_arguments(),
+              super_class.nnbd_mode(), arguments, Object::null_type_arguments(),
               kNoneFree, instantiation_trail, Heap::kOld);
           if (super_type_arg.IsBeingFinalized()) {
             // The super_type_arg was instantiated from a type being finalized.
@@ -786,7 +784,7 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
           const TypeArguments& instantiator_type_arguments =
               TypeArguments::Handle(zone, fun_type.arguments());
           signature = signature.InstantiateSignatureFrom(
-              NNBDMode::kLegacy, instantiator_type_arguments,
+              scope_class.nnbd_mode(), instantiator_type_arguments,
               Object::null_type_arguments(), kNoneFree, Heap::kOld);
           // Note that if instantiator_type_arguments contains type parameters,
           // as in F<K>, the signature is still uninstantiated (the typedef type

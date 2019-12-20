@@ -2523,6 +2523,10 @@ RawClass* Class::Mixin() const {
   return raw();
 }
 
+NNBDMode Class::nnbd_mode() const {
+  return Library::Handle(library()).nnbd_mode();
+}
+
 bool Class::IsInFullSnapshot() const {
   NoSafepointScope no_safepoint;
   return RawLibrary::InFullSnapshotBit::decode(
@@ -3674,9 +3678,12 @@ RawObject* Class::InvokeSetter(const String& setter_name,
                                InvocationMirror::kSetter);
     }
     parameter_type = setter.ParameterTypeAt(0);
-    // TODO(regis): Make type check nullability aware.
+    if (nnbd_mode() != NNBDMode::kLegacy) {
+      // TODO(regis): Make type check nullability aware.
+      UNIMPLEMENTED();
+    }
     if (!argument_type.IsNullType() && !parameter_type.IsDynamicType() &&
-        !value.IsInstanceOf(NNBDMode::kLegacy, parameter_type,
+        !value.IsInstanceOf(nnbd_mode(), parameter_type,
                             Object::null_type_arguments(),
                             Object::null_type_arguments())) {
       const String& argument_name =
@@ -3699,9 +3706,12 @@ RawObject* Class::InvokeSetter(const String& setter_name,
   }
 
   parameter_type = field.type();
-  // TODO(regis): Make type check nullability aware.
+  if (nnbd_mode() != NNBDMode::kLegacy) {
+    // TODO(regis): Make type check nullability aware.
+    UNIMPLEMENTED();
+  }
   if (!argument_type.IsNullType() && !parameter_type.IsDynamicType() &&
-      !value.IsInstanceOf(NNBDMode::kLegacy, parameter_type,
+      !value.IsInstanceOf(nnbd_mode(), parameter_type,
                           Object::null_type_arguments(),
                           Object::null_type_arguments())) {
     const String& argument_name = String::Handle(zone, field.name());
@@ -4523,7 +4533,7 @@ bool Class::IsSubtypeOf(NNBDMode mode,
                         const TypeArguments& other_type_arguments,
                         Heap::Space space) {
   if (mode != NNBDMode::kLegacy) {
-    UNIMPLEMENTED();
+    // TODO(regis): Implement.
   }
   // Use the 'this_class' object as if it was the receiver of this method, but
   // instead of recursing, reset it to the super class and loop.
@@ -5438,8 +5448,9 @@ intptr_t TypeArguments::NumInstantiations() const {
   ASSERT(prior_instantiations.Length() > 0);  // Always at least a sentinel.
   intptr_t num = 0;
   intptr_t i = 0;
-  while (prior_instantiations.At(i) != Smi::New(StubCode::kNoInstantiator)) {
-    i += StubCode::kInstantiationSizeInWords;
+  while (prior_instantiations.At(i) !=
+         Smi::New(TypeArguments::kNoInstantiator)) {
+    i += TypeArguments::Instantiation::kSizeInWords;
     num++;
   }
   return num;
@@ -5696,7 +5707,9 @@ RawTypeArguments* TypeArguments::InstantiateAndCanonicalizeFrom(
          instantiator_type_arguments.IsCanonical());
   ASSERT(function_type_arguments.IsNull() ||
          function_type_arguments.IsCanonical());
-  // Lookup instantiator and, if found, return paired instantiated result.
+  const Smi& nnbd_mode_as_smi =
+      Smi::Handle(Smi::New(static_cast<intptr_t>(mode)));
+  // Lookup instantiators and mode, and if found, return instantiated result.
   Array& prior_instantiations = Array::Handle(instantiations());
   ASSERT(!prior_instantiations.IsNull() && prior_instantiations.IsArray());
   // The instantiations cache is initialized with Object::zero_array() and is
@@ -5704,14 +5717,24 @@ RawTypeArguments* TypeArguments::InstantiateAndCanonicalizeFrom(
   ASSERT(prior_instantiations.Length() > 0);  // Always at least a sentinel.
   intptr_t index = 0;
   while (true) {
-    if ((prior_instantiations.At(index) == instantiator_type_arguments.raw()) &&
-        (prior_instantiations.At(index + 1) == function_type_arguments.raw())) {
-      return TypeArguments::RawCast(prior_instantiations.At(index + 2));
+    if ((prior_instantiations.At(
+             index +
+             TypeArguments::Instantiation::kInstantiatorTypeArgsIndex) ==
+         instantiator_type_arguments.raw()) &&
+        (prior_instantiations.At(
+             index + TypeArguments::Instantiation::kFunctionTypeArgsIndex) ==
+         function_type_arguments.raw()) &&
+        (prior_instantiations.At(
+             index + TypeArguments::Instantiation::kNnbdModeIndex) ==
+         nnbd_mode_as_smi.raw())) {
+      return TypeArguments::RawCast(prior_instantiations.At(
+          index + TypeArguments::Instantiation::kInstantiatedTypeArgsIndex));
     }
-    if (prior_instantiations.At(index) == Smi::New(StubCode::kNoInstantiator)) {
+    if (prior_instantiations.At(index) ==
+        Smi::New(TypeArguments::kNoInstantiator)) {
       break;
     }
-    index += StubCode::kInstantiationSizeInWords;
+    index += TypeArguments::Instantiation::kSizeInWords;
   }
   // Cache lookup failed. Instantiate the type arguments.
   TypeArguments& result = TypeArguments::Handle();
@@ -5724,23 +5747,33 @@ RawTypeArguments* TypeArguments::InstantiateAndCanonicalizeFrom(
   ASSERT(prior_instantiations.raw() == instantiations());
   // Add instantiator and function type args and result to instantiations array.
   intptr_t length = prior_instantiations.Length();
-  if ((index + StubCode::kInstantiationSizeInWords) >= length) {
+  if ((index + TypeArguments::Instantiation::kSizeInWords) >= length) {
     // TODO(regis): Should we limit the number of cached instantiations?
     // Grow the instantiations array by about 50%, but at least by 1.
     // The initial array is Object::zero_array() of length 1.
-    intptr_t entries = (length - 1) / StubCode::kInstantiationSizeInWords;
+    intptr_t entries =
+        (length - 1) / TypeArguments::Instantiation::kSizeInWords;
     intptr_t new_entries = entries + (entries >> 1) + 1;
-    length = new_entries * StubCode::kInstantiationSizeInWords + 1;
+    length = new_entries * TypeArguments::Instantiation::kSizeInWords + 1;
     prior_instantiations =
         Array::Grow(prior_instantiations, length, Heap::kOld);
     set_instantiations(prior_instantiations);
-    ASSERT((index + StubCode::kInstantiationSizeInWords) < length);
+    ASSERT((index + TypeArguments::Instantiation::kSizeInWords) < length);
   }
-  prior_instantiations.SetAt(index + 0, instantiator_type_arguments);
-  prior_instantiations.SetAt(index + 1, function_type_arguments);
-  prior_instantiations.SetAt(index + 2, result);
-  prior_instantiations.SetAt(index + 3,
-                             Smi::Handle(Smi::New(StubCode::kNoInstantiator)));
+  prior_instantiations.SetAt(
+      index + TypeArguments::Instantiation::kInstantiatorTypeArgsIndex,
+      instantiator_type_arguments);
+  prior_instantiations.SetAt(
+      index + TypeArguments::Instantiation::kFunctionTypeArgsIndex,
+      function_type_arguments);
+  prior_instantiations.SetAt(
+      index + TypeArguments::Instantiation::kNnbdModeIndex, nnbd_mode_as_smi);
+  prior_instantiations.SetAt(
+      index + TypeArguments::Instantiation::kInstantiatedTypeArgsIndex, result);
+  prior_instantiations.SetAt(
+      index + TypeArguments::Instantiation::kSizeInWords +
+          TypeArguments::Instantiation::kInstantiatorTypeArgsIndex,
+      Smi::Handle(Smi::New(TypeArguments::kNoInstantiator)));
   return result.raw();
 }
 
@@ -5761,7 +5794,7 @@ RawTypeArguments* TypeArguments::New(intptr_t len, Heap::Space space) {
   }
   // The zero array should have been initialized.
   ASSERT(Object::zero_array().raw() != Array::null());
-  COMPILE_ASSERT(StubCode::kNoInstantiator == 0);
+  COMPILE_ASSERT(TypeArguments::kNoInstantiator == 0);
   result.set_instantiations(Object::zero_array());
   return result.raw();
 }
@@ -7041,7 +7074,6 @@ bool Function::AreValidArguments(NNBDMode mode,
   }
   if (mode != NNBDMode::kLegacy) {
     // TODO(regis): Check required named arguments.
-    UNIMPLEMENTED();
   }
   // Verify that all argument names are valid parameter names.
   Zone* zone = Thread::Current()->zone();
@@ -7437,7 +7469,6 @@ bool Function::IsSubtypeOf(NNBDMode mode,
                            Heap::Space space) const {
   if (mode != NNBDMode::kLegacy) {
     // TODO(regis): Check required named parameters.
-    UNIMPLEMENTED();
   }
   const intptr_t num_fixed_params = num_fixed_parameters();
   const intptr_t num_opt_pos_params = NumOptionalPositionalParameters();
@@ -11507,7 +11538,7 @@ RawObject* Library::InvokeSetter(const String& setter_name,
     }
     setter_type = field.type();
     if (!argument_type.IsNullType() && !setter_type.IsDynamicType() &&
-        !value.IsInstanceOf(NNBDMode::kLegacy, setter_type,
+        !value.IsInstanceOf(nnbd_mode(), setter_type,
                             Object::null_type_arguments(),
                             Object::null_type_arguments())) {
       return ThrowTypeError(field.token_pos(), value, setter_type, setter_name);
@@ -11548,7 +11579,7 @@ RawObject* Library::InvokeSetter(const String& setter_name,
 
   setter_type = setter.ParameterTypeAt(0);
   if (!argument_type.IsNullType() && !setter_type.IsDynamicType() &&
-      !value.IsInstanceOf(NNBDMode::kLegacy, setter_type,
+      !value.IsInstanceOf(nnbd_mode(), setter_type,
                           Object::null_type_arguments(),
                           Object::null_type_arguments())) {
     return ThrowTypeError(setter.token_pos(), value, setter_type, setter_name);
@@ -16869,7 +16900,7 @@ bool Instance::IsInstanceOf(
   ASSERT(!other.IsDynamicType());
   ASSERT(!other.IsTypeRef());  // Must be dereferenced at compile time.
   if (mode != NNBDMode::kLegacy) {
-    UNIMPLEMENTED();
+    // TODO(regis): Implement.
   }
   if (other.IsVoidType()) {
     return true;

@@ -786,10 +786,12 @@ const AbstractType* CompileType::ToAbstractType() {
   return type_;
 }
 
-bool CompileType::CanComputeIsInstanceOf(const AbstractType& type,
+bool CompileType::CanComputeIsInstanceOf(NNBDMode mode,
+                                         const AbstractType& type,
                                          bool is_nullable,
                                          bool* is_instance) {
   ASSERT(is_instance != NULL);
+  // TODO(regis): Take mode into consideration.
   if (type.IsDynamicType() || type.IsObjectType() || type.IsVoidType()) {
     *is_instance = true;
     return true;
@@ -818,16 +820,16 @@ bool CompileType::CanComputeIsInstanceOf(const AbstractType& type,
     return false;
   }
 
-  *is_instance = compile_type.IsSubtypeOf(NNBDMode::kLegacy, type, Heap::kOld);
+  *is_instance = compile_type.IsSubtypeOf(mode, type, Heap::kOld);
   return *is_instance;
 }
 
-bool CompileType::IsSubtypeOf(const AbstractType& other) {
+bool CompileType::IsSubtypeOf(NNBDMode mode, const AbstractType& other) {
   if (IsNone()) {
     return false;
   }
 
-  return ToAbstractType()->IsSubtypeOf(NNBDMode::kLegacy, other, Heap::kOld);
+  return ToAbstractType()->IsSubtypeOf(mode, other, Heap::kOld);
 }
 
 void CompileType::PrintTo(BufferFormatter* f) const {
@@ -908,6 +910,7 @@ bool PhiInstr::RecomputeType() {
 }
 
 CompileType RedefinitionInstr::ComputeType() const {
+  // TODO(regis): Revisit for NNBD support.
   if (constrained_type_ != NULL) {
     // Check if the type associated with this redefinition is more specific
     // than the type of its input. If yes, return it. Otherwise, fall back
@@ -926,7 +929,8 @@ CompileType RedefinitionInstr::ComputeType() const {
       return CompileType::CreateNullable(is_nullable,
                                          constrained_type_->ToNullableCid());
     }
-    if (value()->Type()->IsSubtypeOf(*constrained_type_->ToAbstractType())) {
+    if (value()->Type()->IsSubtypeOf(NNBDMode::kLegacy,
+                                     *constrained_type_->ToAbstractType())) {
       return is_nullable ? *value()->Type()
                          : value()->Type()->CopyNonNullable();
     } else {
@@ -1143,7 +1147,7 @@ CompileType ConstantInstr::ComputeType() const {
 CompileType AssertAssignableInstr::ComputeType() const {
   CompileType* value_type = value()->Type();
 
-  if (value_type->IsSubtypeOf(dst_type())) {
+  if (value_type->IsSubtypeOf(nnbd_mode(), dst_type())) {
     return *value_type;
   }
 

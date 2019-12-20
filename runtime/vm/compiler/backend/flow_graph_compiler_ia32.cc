@@ -601,6 +601,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateInlineInstanceof(
 void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
                                            intptr_t deopt_id,
                                            const AbstractType& type,
+                                           NNBDMode mode,
                                            LocationSummary* locs) {
   ASSERT(type.IsFinalized());
   ASSERT(!type.IsObjectType() && !type.IsDynamicType() && !type.IsVoidType());
@@ -645,10 +646,12 @@ void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
     __ pushl(ECX);                              // Function type arguments.
     __ LoadObject(EAX, test_cache);
     __ pushl(EAX);
-    GenerateRuntimeCall(token_pos, deopt_id, kInstanceofRuntimeEntry, 5, locs);
+    __ PushObject(
+        Smi::ZoneHandle(zone(), Smi::New(static_cast<intptr_t>(mode))));
+    GenerateRuntimeCall(token_pos, deopt_id, kInstanceofRuntimeEntry, 6, locs);
     // Pop the parameters supplied to the runtime entry. The result of the
     // instanceof runtime call will be left as the result of the operation.
-    __ Drop(5);
+    __ Drop(6);
     __ popl(EAX);
     __ jmp(&done, compiler::Assembler::kNearJump);
   }
@@ -679,6 +682,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
                                                  intptr_t deopt_id,
                                                  const AbstractType& dst_type,
                                                  const String& dst_name,
+                                                 NNBDMode mode,
                                                  LocationSummary* locs) {
   ASSERT(!token_pos.IsClassifying());
   ASSERT(!dst_type.IsNull());
@@ -714,10 +718,11 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
   __ LoadObject(EAX, test_cache);
   __ pushl(EAX);
   __ PushObject(Smi::ZoneHandle(zone(), Smi::New(kTypeCheckFromInline)));
-  GenerateRuntimeCall(token_pos, deopt_id, kTypeCheckRuntimeEntry, 7, locs);
+  __ PushObject(Smi::ZoneHandle(zone(), Smi::New(static_cast<intptr_t>(mode))));
+  GenerateRuntimeCall(token_pos, deopt_id, kTypeCheckRuntimeEntry, 8, locs);
   // Pop the parameters supplied to the runtime entry. The result of the
   // type check runtime call is the checked value.
-  __ Drop(7);
+  __ Drop(8);
   __ popl(EAX);
 
   __ Bind(&is_assignable);

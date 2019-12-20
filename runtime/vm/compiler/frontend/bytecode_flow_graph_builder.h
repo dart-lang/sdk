@@ -203,11 +203,14 @@ class BytecodeFlowGraphBuilder {
   Thread* thread() const { return flow_graph_builder_->thread_; }
   Isolate* isolate() const { return thread()->isolate(); }
 
-  ParsedFunction* parsed_function() {
+  ParsedFunction* parsed_function() const {
     ASSERT(!is_generating_interpreter());
     return parsed_function_;
   }
-  const Function& function() { return parsed_function()->function(); }
+  const Function& function() const { return parsed_function()->function(); }
+
+  // The NNBD mode to use when compiling type tests.
+  NNBDMode nnbd_mode() const { return function().nnbd_mode(); }
 
   BaseFlowGraphBuilder* flow_graph_builder_;
   Zone* zone_;

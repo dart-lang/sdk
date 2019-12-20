@@ -899,14 +899,14 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr) {
         }
       }
 
-      InsertBefore(
-          instr,
-          new (Z) AssertAssignableInstr(
-              instr->token_pos(), new (Z) Value(instr->ArgumentAt(1)),
-              new (Z) Value(instantiator_type_args),
-              new (Z) Value(function_type_args), dst_type,
-              String::ZoneHandle(zone(), field.name()), instr->deopt_id()),
-          instr->env(), FlowGraph::kEffect);
+      InsertBefore(instr,
+                   new (Z) AssertAssignableInstr(
+                       instr->token_pos(), new (Z) Value(instr->ArgumentAt(1)),
+                       new (Z) Value(instantiator_type_args),
+                       new (Z) Value(function_type_args), dst_type,
+                       String::ZoneHandle(zone(), field.name()),
+                       instr->deopt_id(), target.nnbd_mode()),
+                   instr->env(), FlowGraph::kEffect);
     }
   }
 
@@ -1063,6 +1063,7 @@ bool CallSpecializer::TryInlineInstanceMethod(InstanceCallInstr* call) {
 // An instance-of test returning all same results can be converted to a class
 // check.
 RawBool* CallSpecializer::InstanceOfAsBool(
+    NNBDMode mode,
     const ICData& ic_data,
     const AbstractType& type,
     ZoneGrowableArray<intptr_t>* results) const {
@@ -1103,13 +1104,15 @@ RawBool* CallSpecializer::InstanceOfAsBool(
     // As of Dart 1.5, the Null type is a subtype of (and is more specific than)
     // any type. However, we are checking instances here and not types. The
     // null instance is only an instance of Null, Object, and dynamic.
+    // TODO(regis): Consider nullability of type if mode is not kLegacy, or if
+    // strong mode is enabled.
     const bool is_subtype =
         cls.IsNullClass()
             ? (type_class.IsNullClass() || type_class.IsObjectClass() ||
                type_class.IsDynamicClass())
-            : Class::IsSubtypeOf(NNBDMode::kLegacy, cls,
-                                 Object::null_type_arguments(), type_class,
-                                 Object::null_type_arguments(), Heap::kOld);
+            : Class::IsSubtypeOf(mode, cls, Object::null_type_arguments(),
+                                 type_class, Object::null_type_arguments(),
+                                 Heap::kOld);
     results->Add(cls.id());
     results->Add(static_cast<intptr_t>(is_subtype));
     if (prev.IsNull()) {
@@ -1124,7 +1127,8 @@ RawBool* CallSpecializer::InstanceOfAsBool(
 }
 
 // Returns true if checking against this type is a direct class id comparison.
-bool CallSpecializer::TypeCheckAsClassEquality(const AbstractType& type) {
+bool CallSpecializer::TypeCheckAsClassEquality(NNBDMode mode,
+                                               const AbstractType& type) {
   ASSERT(type.IsFinalized());
   // Requires CHA.
   if (!type.IsInstantiated()) return false;
@@ -1136,6 +1140,10 @@ bool CallSpecializer::TypeCheckAsClassEquality(const AbstractType& type) {
   // Check if there are subclasses.
   if (CHA::HasSubclasses(type_class)) {
     return false;
+  }
+
+  if (mode != NNBDMode::kLegacy) {
+    return false;  // TODO(regis): Implement.
   }
 
   // Private classes cannot be subclassed by later loaded libs.
@@ -1180,10 +1188,15 @@ bool CallSpecializer::TryReplaceInstanceOfWithRangeCheck(
 }
 
 bool CallSpecializer::TryOptimizeInstanceOfUsingStaticTypes(
+    NNBDMode mode,
     InstanceCallInstr* call,
     const AbstractType& type) {
   ASSERT(I->can_use_strong_mode_types());
   ASSERT(Token::IsTypeTestOperator(call->token_kind()));
+
+  if (mode != NNBDMode::kLegacy) {
+    return false;  // TODO(regis): Implement.
+  }
 
   if (type.IsDynamicType() || type.IsObjectType() || !type.IsInstantiated()) {
     return false;
@@ -1192,7 +1205,7 @@ bool CallSpecializer::TryOptimizeInstanceOfUsingStaticTypes(
   const intptr_t receiver_index = call->FirstArgIndex();
   Value* left_value = call->PushArgumentAt(receiver_index)->value();
 
-  if (left_value->Type()->IsSubtypeOf(type)) {
+  if (left_value->Type()->IsSubtypeOf(mode, type)) {
     Definition* replacement = new (Z) StrictCompareInstr(
         call->token_pos(),
         type.IsNullType() ? Token::kEQ_STRICT : Token::kNE_STRICT,
@@ -1218,24 +1231,29 @@ void CallSpecializer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
   Definition* instantiator_type_args = NULL;
   Definition* function_type_args = NULL;
   AbstractType& type = AbstractType::ZoneHandle(Z);
+  NNBDMode nnbd_mode;
   ASSERT(call->type_args_len() == 0);
   if (call->ArgumentCount() == 2) {
     instantiator_type_args = flow_graph()->constant_null();
     function_type_args = flow_graph()->constant_null();
     ASSERT(call->MatchesCoreName(Symbols::_simpleInstanceOf()));
     type = AbstractType::Cast(call->ArgumentAt(1)->AsConstant()->value()).raw();
+    nnbd_mode = NNBDMode::kLegacy;  // mode is irrelevant in _simpleInstanceOf.
   } else {
+    ASSERT(call->ArgumentCount() == 5);
     instantiator_type_args = call->ArgumentAt(1);
     function_type_args = call->ArgumentAt(2);
     type = AbstractType::Cast(call->ArgumentAt(3)->AsConstant()->value()).raw();
+    nnbd_mode = static_cast<NNBDMode>(
+        Smi::Cast(call->ArgumentAt(4)->AsConstant()->value()).Value());
   }
 
   if (I->can_use_strong_mode_types() &&
-      TryOptimizeInstanceOfUsingStaticTypes(call, type)) {
+      TryOptimizeInstanceOfUsingStaticTypes(nnbd_mode, call, type)) {
     return;
   }
 
-  if (TypeCheckAsClassEquality(type)) {
+  if (TypeCheckAsClassEquality(nnbd_mode, type)) {
     LoadClassIdInstr* left_cid = new (Z) LoadClassIdInstr(new (Z) Value(left));
     InsertBefore(call, left_cid, NULL, FlowGraph::kValue);
     const intptr_t type_cid = Class::Handle(Z, type.type_class()).id();
@@ -1259,11 +1277,12 @@ void CallSpecializer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
   if (number_of_checks > 0 && number_of_checks <= FLAG_max_polymorphic_checks) {
     ZoneGrowableArray<intptr_t>* results =
         new (Z) ZoneGrowableArray<intptr_t>(number_of_checks * 2);
-    const Bool& as_bool =
-        Bool::ZoneHandle(Z, InstanceOfAsBool(unary_checks, type, results));
+    const Bool& as_bool = Bool::ZoneHandle(
+        Z, InstanceOfAsBool(nnbd_mode, unary_checks, type, results));
     if (as_bool.IsNull() || FLAG_precompiled_mode) {
       if (results->length() == number_of_checks * 2) {
-        const bool can_deopt = SpecializeTestCidsForNumericTypes(results, type);
+        const bool can_deopt =
+            SpecializeTestCidsForNumericTypes(nnbd_mode, results, type);
         if (can_deopt &&
             !speculative_policy_->IsAllowedForInlining(call->deopt_id())) {
           // Guard against repeated speculative inlining.
@@ -1295,7 +1314,7 @@ void CallSpecializer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
   InstanceOfInstr* instance_of = new (Z) InstanceOfInstr(
       call->token_pos(), new (Z) Value(left),
       new (Z) Value(instantiator_type_args), new (Z) Value(function_type_args),
-      type, call->deopt_id());
+      type, call->deopt_id(), nnbd_mode);
   ReplaceCall(call, instance_of);
 }
 
@@ -1414,6 +1433,7 @@ static void PurgeNegativeTestCidsEntries(ZoneGrowableArray<intptr_t>* results) {
 }
 
 bool CallSpecializer::SpecializeTestCidsForNumericTypes(
+    NNBDMode mode,
     ZoneGrowableArray<intptr_t>* results,
     const AbstractType& type) {
   ASSERT(results->length() >= 2);  // At least on entry.
@@ -1421,8 +1441,10 @@ bool CallSpecializer::SpecializeTestCidsForNumericTypes(
   if ((*results)[0] != kSmiCid) {
     const Class& smi_class = Class::Handle(class_table.At(kSmiCid));
     const Class& type_class = Class::Handle(type.type_class());
+    // TODO(regis): Consider nullability of type if mode is not kLegacy, or if
+    // strong mode is enabled.
     const bool smi_is_subtype = Class::IsSubtypeOf(
-        NNBDMode::kLegacy, smi_class, Object::null_type_arguments(), type_class,
+        mode, smi_class, Object::null_type_arguments(), type_class,
         Object::null_type_arguments(), Heap::kOld);
     results->Add((*results)[results->length() - 2]);
     results->Add((*results)[results->length() - 2]);
@@ -1547,10 +1569,12 @@ void TypedDataSpecializer::TryInlineCall(TemplateDartCall<0>* call) {
       value_type = call->ArgumentAt(receiver_index + 2)->Type();
     }
 
+    // TODO(regis): Revisit for NNBD support.
+
     auto& type_class = Class::Handle(zone_);
 #define TRY_INLINE(iface, member_name, type, cid)                              \
   if (!member_name.IsNull()) {                                                 \
-    if (receiver_type->IsAssignableTo(member_name)) {                          \
+    if (receiver_type->IsAssignableTo(NNBDMode::kLegacy, member_name)) {       \
       if (is_length_getter) {                                                  \
         type_class = member_name.type_class();                                 \
         ReplaceWithLengthGetter(call);                                         \
@@ -1560,7 +1584,7 @@ void TypedDataSpecializer::TryInlineCall(TemplateDartCall<0>* call) {
         ReplaceWithIndexGet(call, cid);                                        \
       } else {                                                                 \
         if (!index_type->IsNullableInt()) return;                              \
-        if (!value_type->IsAssignableTo(type)) return;                         \
+        if (!value_type->IsAssignableTo(NNBDMode::kLegacy, type)) return;      \
         type_class = member_name.type_class();                                 \
         ReplaceWithIndexSet(call, cid);                                        \
       }                                                                        \

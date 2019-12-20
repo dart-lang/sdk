@@ -2253,6 +2253,8 @@ void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
     compiler::Label* done) {
   TypeUsageInfo* type_usage_info = thread()->type_usage_info();
 
+  // TODO(regis): Take nnbd_mode() into account and pass it in a register.
+
   // If the int type is assignable to [dst_type] we special case it on the
   // caller side!
   const Type& int_type = Type::Handle(zone(), Type::IntType());

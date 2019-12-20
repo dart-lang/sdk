@@ -941,6 +941,7 @@ static void ComputeTokenKindAndCheckedArguments(
     *checked_argument_count = 2;
     *token_kind = Token::kIS;
   } else if (Library::IsPrivateCoreLibName(name, Symbols::_instanceOf())) {
+    ASSERT(arg_desc.Count() == 5);
     *token_kind = Token::kIS;
   }
 }
@@ -1408,7 +1409,7 @@ void BytecodeFlowGraphBuilder::BuildAssertAssignable() {
 
   AssertAssignableInstr* instr = new (Z) AssertAssignableInstr(
       position_, value, instantiator_type_args, function_type_args, dst_type,
-      dst_name, B->GetNextDeoptId());
+      dst_name, B->GetNextDeoptId(), nnbd_mode());
 
   code_ <<= instr;
 
@@ -1428,9 +1429,9 @@ void BytecodeFlowGraphBuilder::BuildAssertSubtype() {
   Value* function_type_args = Pop();
   Value* instantiator_type_args = Pop();
 
-  AssertSubtypeInstr* instr = new (Z)
-      AssertSubtypeInstr(position_, instantiator_type_args, function_type_args,
-                         sub_type, super_type, dst_name, B->GetNextDeoptId());
+  AssertSubtypeInstr* instr = new (Z) AssertSubtypeInstr(
+      position_, instantiator_type_args, function_type_args, sub_type,
+      super_type, dst_name, B->GetNextDeoptId(), nnbd_mode());
   code_ <<= instr;
 }
 

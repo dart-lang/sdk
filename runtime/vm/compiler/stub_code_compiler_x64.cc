@@ -2972,8 +2972,11 @@ static void InvokeTypeCheckFromTypeTestStub(Assembler* assembler,
   __ PushObject(NullObject());
   __ pushq(kSubtypeTestCacheReg);
   __ PushImmediate(Immediate(target::ToRawSmi(mode)));
-  __ CallRuntime(kTypeCheckRuntimeEntry, 7);
-  __ Drop(1);
+  // TODO(regis): Pass nnbd mode in a register from call site.
+  __ PushImmediate(
+      Immediate(target::ToRawSmi(static_cast<intptr_t>(NNBDMode::kLegacy))));
+  __ CallRuntime(kTypeCheckRuntimeEntry, 8);
+  __ Drop(2);  // mode and nnbd_mode
   __ popq(kSubtypeTestCacheReg);
   __ Drop(1);
   __ popq(kFunctionTypeArgumentsReg);
@@ -3015,6 +3018,10 @@ void StubCodeCompiler::GenerateSlowTypeTestStub(Assembler* assembler) {
 
 #ifdef DEBUG
   // Guaranteed by caller.
+  // TODO(regis): This will change when supporting NNBD, because the caller may
+  // not always determine the test result for a null instance, as for example
+  // in the case of a still uninstantiated test type, which may become nullable
+  // or non-nullable after instantiation in the runtime.
   Label no_error;
   __ CompareObject(kInstanceReg, NullObject());
   __ BranchIf(NOT_EQUAL, &no_error);

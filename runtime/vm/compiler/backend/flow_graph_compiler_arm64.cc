@@ -599,6 +599,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateInlineInstanceof(
 void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
                                            intptr_t deopt_id,
                                            const AbstractType& type,
+                                           NNBDMode mode,
                                            LocationSummary* locs) {
   ASSERT(type.IsFinalized());
   ASSERT(!type.IsObjectType() && !type.IsDynamicType() && !type.IsVoidType());
@@ -640,10 +641,11 @@ void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
     __ PushPair(kInstantiatorTypeArgumentsReg, TMP);
     __ LoadUniqueObject(R0, test_cache);
     __ PushPair(R0, kFunctionTypeArgumentsReg);
-    GenerateRuntimeCall(token_pos, deopt_id, kInstanceofRuntimeEntry, 5, locs);
+    __ PushImmediate(Smi::RawValue(static_cast<intptr_t>(mode)));
+    GenerateRuntimeCall(token_pos, deopt_id, kInstanceofRuntimeEntry, 6, locs);
     // Pop the parameters supplied to the runtime entry. The result of the
     // instanceof runtime call will be left as the result of the operation.
-    __ Drop(5);
+    __ Drop(6);
     __ Pop(R0);
     __ b(&done);
   }
@@ -674,6 +676,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
                                                  intptr_t deopt_id,
                                                  const AbstractType& dst_type,
                                                  const String& dst_name,
+                                                 NNBDMode mode,
                                                  LocationSummary* locs) {
   ASSERT(!TokenPosition(token_pos).IsClassifying());
   ASSERT(!dst_type.IsNull());
@@ -714,10 +717,11 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
     __ LoadUniqueObject(R0, test_cache);
     __ LoadObject(TMP, Smi::ZoneHandle(zone(), Smi::New(kTypeCheckFromInline)));
     __ PushPair(TMP, R0);
-    GenerateRuntimeCall(token_pos, deopt_id, kTypeCheckRuntimeEntry, 7, locs);
+    __ PushImmediate(Smi::RawValue(static_cast<intptr_t>(mode)));
+    GenerateRuntimeCall(token_pos, deopt_id, kTypeCheckRuntimeEntry, 8, locs);
     // Pop the parameters supplied to the runtime entry. The result of the
     // type check runtime call is the checked value.
-    __ Drop(7);
+    __ Drop(8);
     __ Pop(R0);
     __ Bind(&is_assignable);
     __ PopPair(kFunctionTypeArgumentsReg, kInstantiatorTypeArgumentsReg);

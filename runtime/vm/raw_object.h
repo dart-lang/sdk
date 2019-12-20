@@ -2070,10 +2070,7 @@ class RawTypeArguments : public RawInstance {
 
   VISIT_FROM(RawObject*, instantiations_)
   // The instantiations_ array remains empty for instantiated type arguments.
-  RawArray* instantiations_;  // Array of paired canonical vectors:
-                              // Even index: instantiator.
-                              // Odd index: instantiated (without bound error).
-  // Instantiations leading to bound errors do not get cached.
+  RawArray* instantiations_;  // Of 4-tuple: 2 instantiators, mode, result.
   RawSmi* length_;
   RawSmi* hash_;
 
