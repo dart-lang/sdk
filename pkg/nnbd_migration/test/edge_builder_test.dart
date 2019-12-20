@@ -2138,6 +2138,38 @@ void f(List<int> l) {
         hard: false);
   }
 
+  test_for_each_on_type_parameter_type() async {
+    await analyze('''
+void f<T extends List<int>>(T l) {
+  for (int i in l) {}
+}
+''');
+    // TODO(mfairhurst): fix this: https://github.com/dart-lang/sdk/issues/39852
+    //assertEdge(decoratedTypeAnnotation('List<int>').node, never, hard: true);
+    assertEdge(decoratedTypeAnnotation('T l').node, never, hard: true);
+    assertEdge(
+        substitutionNode(
+            decoratedTypeAnnotation('int>').node, inSet(pointsToNever)),
+        decoratedTypeAnnotation('int i').node,
+        hard: false);
+  }
+
+  test_for_each_on_type_parameter_type_bound_bound() async {
+    await analyze('''
+void f<T extends R, R extends List<int>>(T l) {
+  for (int i in l) {}
+}
+''');
+    // TODO(mfairhurst): fix this: https://github.com/dart-lang/sdk/issues/39852
+    //assertEdge(decoratedTypeAnnotation('List<int>').node, never, hard: true);
+    assertEdge(decoratedTypeAnnotation('T l').node, never, hard: true);
+    assertEdge(
+        substitutionNode(
+            decoratedTypeAnnotation('int>').node, inSet(pointsToNever)),
+        decoratedTypeAnnotation('int i').node,
+        hard: false);
+  }
+
   test_for_each_with_declaration() async {
     await analyze('''
 void f(List<int> l) {
@@ -5668,6 +5700,77 @@ void f(C<int> c) {}
     assertEdge(decoratedTypeAnnotation('int>').node,
         decoratedTypeAnnotation('Object>').node,
         hard: true);
+  }
+
+  test_type_parameter_method_call_bound() async {
+    await analyze('''
+class Foo {
+  void bar(int x) {}
+}
+
+void f<T extends Foo>(T t) {
+  t.bar(null);
+}
+''');
+    assertEdge(decoratedTypeAnnotation('T t').node, never, hard: true);
+    // TODO(mfairhurst): fix this: https://github.com/dart-lang/sdk/issues/39852
+    //assertEdge(decoratedTypeAnnotation('Foo>').node, never, hard: true);
+    assertEdge(inSet(alwaysPlus), decoratedTypeAnnotation('int x').node,
+        hard: false);
+  }
+
+  test_type_parameter_method_call_bound_bound() async {
+    await analyze('''
+class Foo {
+  void bar(int x) {}
+}
+
+void f<T extends R, R extends Foo>(T t) {
+  t.bar(null);
+}
+''');
+    assertEdge(decoratedTypeAnnotation('T t').node, never, hard: true);
+    // TODO(mfairhurst): fix this: https://github.com/dart-lang/sdk/issues/39852
+    //assertEdge(decoratedTypeAnnotation('Foo>').node, never, hard: true);
+    assertEdge(inSet(alwaysPlus), decoratedTypeAnnotation('int x').node,
+        hard: false);
+  }
+
+  test_type_parameter_method_call_bound_generic() async {
+    await analyze('''
+class Foo<T> {
+  void bar(int x) {}
+}
+
+void f<T extends Foo<dynamic>>(T t) {
+  t.bar(null);
+}
+''');
+    assertEdge(decoratedTypeAnnotation('T t').node, never, hard: true);
+    // TODO(mfairhurst): fix this: https://github.com/dart-lang/sdk/issues/39852
+    //assertEdge(decoratedTypeAnnotation('Foo>').node, never, hard: true);
+    assertEdge(inSet(alwaysPlus), decoratedTypeAnnotation('int x').node,
+        hard: false);
+  }
+
+  test_type_parameter_method_call_bound_generic_complex() async {
+    await analyze('''
+class Foo<T> {
+  void bar(T x) {}
+}
+
+void f<R extends Object, T extends Foo<R>>(T t) {
+  t.bar(null);
+}
+''');
+    assertEdge(decoratedTypeAnnotation('T t').node, never, hard: true);
+    // TODO(mfairhurst): fix this: https://github.com/dart-lang/sdk/issues/39852
+    //assertEdge(decoratedTypeAnnotation('Foo>').node, never, hard: true);
+    assertEdge(
+        inSet(alwaysPlus),
+        substitutionNode(decoratedTypeAnnotation('R>').node,
+            decoratedTypeAnnotation('T x').node),
+        hard: false);
   }
 
   test_type_parameterized_migrated_bound_class() async {
