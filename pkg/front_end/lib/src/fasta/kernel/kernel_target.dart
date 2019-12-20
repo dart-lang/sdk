@@ -57,6 +57,7 @@ import '../builder/procedure_builder.dart';
 import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_declaration_builder.dart';
+import '../builder/type_variable_builder.dart';
 
 import '../compiler_context.dart' show CompilerContext;
 
@@ -481,7 +482,8 @@ class KernelTarget extends TargetImplementation {
               builder.cls, builder.cls.mixin, constructor, substitutionMap));
         }
       }
-    } else if (supertype is InvalidTypeDeclarationBuilder) {
+    } else if (supertype is InvalidTypeDeclarationBuilder ||
+        supertype is TypeVariableBuilder) {
       builder.addSyntheticConstructor(makeDefaultConstructor(builder.cls));
     } else {
       unhandled("${supertype.runtimeType}", "installForwardingConstructors",

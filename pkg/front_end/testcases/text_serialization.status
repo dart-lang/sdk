@@ -165,6 +165,7 @@ general/error_locations/error_location_04: TextSerializationFailure
 general/error_locations/error_location_05: TextSerializationFailure
 general/error_locations/error_location_06: TextSerializationFailure
 general/escape: TextSerializationFailure # Was: Pass
+general/extend_with_type_variable: TextSerializationFailure
 general/export_main: TextSerializationFailure # Was: Pass
 general/export_test: TextSerializationFailure # Was: Pass
 general/expressions: TextSerializationFailure # Was: RuntimeError
