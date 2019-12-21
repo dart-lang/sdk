@@ -95,7 +95,7 @@ class MethodInvocationResolver {
     }
 
     if (receiver is NullLiteral) {
-      _setDynamicResolution(node);
+      _resolveReceiverNullLiteral(receiver, nameNode, name);
       return;
     }
 
@@ -661,6 +661,18 @@ class MethodInvocationResolver {
     }
 
     return _reportUndefinedMethod(node, name, enclosingClass);
+  }
+
+  void _resolveReceiverNullLiteral(
+      Expression receiver, SimpleIdentifier nameNode, String name) {
+    var receiverType = receiver.staticType;
+
+    var result = _resolveExtension(_invocation, receiverType, nameNode, name);
+    if (result.isSingle) {
+      return;
+    }
+
+    _setDynamicResolution(_invocation);
   }
 
   void _resolveReceiverPrefix(MethodInvocation node, SimpleIdentifier receiver,

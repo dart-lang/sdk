@@ -1493,6 +1493,21 @@ f(int? a) {
     assertInvokeType(invocation, 'void Function()');
   }
 
+  test_instance_method_fromInstance_nullable_nullLiteral() async {
+    await assertNoErrorsInCode('''
+extension E on int? {
+  void foo() {}
+}
+
+f(int? a) {
+  null.foo();
+}
+''');
+    var invocation = findNode.methodInvocation('null.foo()');
+    assertElement(invocation, findElement.method('foo', of: 'E'));
+    assertInvokeType(invocation, 'void Function()');
+  }
+
   test_instance_method_fromInstance_nullAware() async {
     await assertNoErrorsInCode('''
 extension E on int {
@@ -1505,6 +1520,25 @@ f(int? a) {
 ''');
     var invocation = findNode.methodInvocation('a?.foo()');
     assertElement(invocation, findElement.method('foo', of: 'E'));
+    assertInvokeType(invocation, 'void Function()');
+  }
+
+  test_instance_method_fromInstance_nullLiteral() async {
+    await assertNoErrorsInCode('''
+extension E<T> on T {
+  void foo() {}
+}
+
+f() {
+  null.foo();
+}
+''');
+    var invocation = findNode.methodInvocation('null.foo()');
+    assertMember(
+      invocation,
+      findElement.method('foo', of: 'E'),
+      {'T': 'Null'},
+    );
     assertInvokeType(invocation, 'void Function()');
   }
 
