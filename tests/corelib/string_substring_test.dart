@@ -28,4 +28,9 @@ main() {
   Expect.equals("abc".substring(3, null), "");
   Expect.throwsRangeError(() => "abc".substring(4, null));
   Expect.throwsRangeError(() => "abc".substring(-1, null));
+
+  // test negative indexes
+  Expect.equals("hello world".substring(-1), "d");
+  Expect.equals("hello world".substring(1, -1), "ello worl");
+  Expect.equals("hello world".substring(-5, -1), "worl");
 }

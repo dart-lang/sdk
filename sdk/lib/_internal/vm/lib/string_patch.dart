@@ -384,6 +384,13 @@ abstract class _StringBase implements String {
   String substring(int startIndex, [int endIndex]) {
     endIndex ??= this.length;
 
+    if (startIndex < 0) {
+      startIndex = this.length + startIndex;
+    }
+    if (endIndex < 0) {
+      endIndex = this.length + endIndex;
+    }
+
     if ((startIndex < 0) || (startIndex > this.length)) {
       throw new RangeError.value(startIndex);
     }
