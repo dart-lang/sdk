@@ -688,10 +688,21 @@ class InfoBuilder {
         } else {
           baseDescription = "the function";
         }
+      } else if (node is FieldDeclaration) {
+        var field = node.thisOrAncestorOfType<VariableDeclaration>();
+        if (field == null) {
+          field = node.fields.variables[0];
+        }
+        functionName = field.name.name;
+        baseDescription = "the field";
+      } else {
+        // Throwing here allows us to gather more information. Not throwing here
+        // causes an NPE on line 709.
+        throw ArgumentError("Can't describe function in ${node.runtimeType}");
       }
     }
 
-    ClassMember enclosingClassMember = node.thisOrAncestorOfType<ClassMember>();
+    var enclosingClassMember = node.thisOrAncestorOfType<ClassMember>();
 
     if (enclosingClassMember != null) {
       describeFunction(enclosingClassMember);
