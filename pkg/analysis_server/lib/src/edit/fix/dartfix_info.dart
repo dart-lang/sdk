@@ -55,13 +55,36 @@ a message is displayed and the class is not converted to a mixin.''',
   //
   // Pedantic lint fixes.
   //
+  // TODO(brianwilkerson) The commented out fixes below involve potentially
+  //  non-local changes, so they can't currently be applied together. I have an
+  //  idea for how to update FixProcessor to support these fixes.
+//  LintFixInfo.alwaysDeclareReturnTypes,
+//  LintFixInfo.alwaysRequireNonNullNamedParameters,
+  LintFixInfo.annotateOverrides,
+  LintFixInfo.avoidEmptyElse,
+  LintFixInfo.avoidInitToNull,
+  LintFixInfo.avoidRelativLibImports,
+  LintFixInfo.avoidReturnTypesOnSetters,
+  LintFixInfo.curlyBracesInFlowControlStructures,
+  LintFixInfo.emptyCatches,
+  LintFixInfo.emptyConstructorBodies,
+  LintFixInfo.noDuplicateCaseValues,
   LintFixInfo.nullClosures,
+  LintFixInfo.preferConditionalAssignment,
   LintFixInfo.preferEqualForDefaultValues,
+  LintFixInfo.preferFinalFields,
+  LintFixInfo.preferForElementsToMapFromIterable,
   LintFixInfo.preferIsEmpty,
   LintFixInfo.preferIsNotEmpty,
   LintFixInfo.preferSingleQuotes,
+  LintFixInfo.preferSpreadCollections,
+  LintFixInfo.slashForDocComments,
+  LintFixInfo.typeInitFormals,
+  LintFixInfo.unawaitedFutures,
   LintFixInfo.unnecessaryConst,
   LintFixInfo.unnecessaryNew,
+  LintFixInfo.unnecessaryThis,
+  LintFixInfo.useRethrowWhenPossible,
   //
   // Other fixes
   //
@@ -181,6 +204,82 @@ class DartFixInfo {
 
 /// Information about a fix that applies to a lint.
 class LintFixInfo extends DartFixInfo {
+  // TODO(brianwilkerson) Add fixes in FixProcessor for the following pedantic
+  //  lints:
+  // avoid_null_checks_in_equality_operators
+  // avoid_shadowing_type_parameters
+  // avoid_types_as_parameter_names
+  // camel_case_extensions
+  // library_names
+  // omit_local_variable_types
+  // prefer_adjacent_string_concatenation
+  // prefer_collection_literals
+  // prefer_contains
+  // prefer_generic_function_type_aliases
+  // prefer_if_null_operators
+  // prefer_iterable_whereType
+  // recursive_getters
+  // unnecessary_null_in_if_null_operators
+  // unrelated_type_equality_checks
+  // use_function_type_syntax_for_parameters
+  // valid_regexps
+
+  static final alwaysDeclareReturnTypes = LintFixInfo(
+      'always_declare_return_types',
+      DartFixKind.ADD_RETURN_TYPE,
+      'Add a return type where possible.',
+      isPedantic: true);
+
+  static final alwaysRequireNonNullNamedParameters = LintFixInfo(
+      'always_require_non_null_named_parameters',
+      DartFixKind.ADD_REQUIRED,
+      'Add an @required annotation.',
+      isPedantic: true);
+
+  static final annotateOverrides = LintFixInfo('annotate_overrides',
+      DartFixKind.ADD_OVERRIDE, 'Add an @override annotation.',
+      isPedantic: true);
+
+  static final avoidEmptyElse = LintFixInfo('avoid_empty_else',
+      DartFixKind.REMOVE_EMPTY_ELSE, 'Remove the empty else.',
+      isPedantic: true);
+
+  static final avoidInitToNull = LintFixInfo('avoid_init_to_null',
+      DartFixKind.REMOVE_INITIALIZER, 'Remove the initializer.',
+      isPedantic: true);
+
+  static final avoidRelativLibImports = LintFixInfo(
+      'avoid_relative_lib_imports',
+      DartFixKind.CONVERT_TO_PACKAGE_IMPORT,
+      'Convert the import to a package: import.',
+      isPedantic: true);
+
+  static final avoidReturnTypesOnSetters = LintFixInfo(
+      'avoid_return_types_on_setters',
+      DartFixKind.REMOVE_TYPE_ANNOTATION,
+      'Remove the return type.',
+      isPedantic: true);
+
+  static final curlyBracesInFlowControlStructures = LintFixInfo(
+      'curly_braces_in_flow_control_structures',
+      DartFixKind.ADD_CURLY_BRACES,
+      'Add curly braces.',
+      isPedantic: true);
+
+  static final emptyCatches = LintFixInfo('empty_catches',
+      DartFixKind.REMOVE_EMPTY_CATCH, 'Remove the empty catch clause.',
+      isPedantic: true);
+
+  static final emptyConstructorBodies = LintFixInfo(
+      'empty_constructor_bodies',
+      DartFixKind.REMOVE_EMPTY_CONSTRUCTOR_BODY,
+      'Remove the empoty catch clause.',
+      isPedantic: true);
+
+  static final noDuplicateCaseValues = LintFixInfo('no_duplicate_case_values',
+      DartFixKind.REMOVE_DUPLICATE_CASE, 'Remove the duplicate case clause.',
+      isPedantic: true);
+
   static final nullClosures = LintFixInfo(
     'null_closures',
     DartFixKind.REPLACE_NULL_WITH_CLOSURE,
@@ -195,6 +294,12 @@ will be converted to
     isPedantic: true,
   );
 
+  static final preferConditionalAssignment = LintFixInfo(
+      'prefer_conditional_assignment',
+      DartFixKind.REPLACE_WITH_CONDITIONAL_ASSIGNMENT,
+      'Replace with a conditional assignment.',
+      isPedantic: true);
+
   static final preferEqualForDefaultValues = LintFixInfo(
     'prefer_equal_for_default_values',
     DartFixKind.REPLACE_COLON_WITH_EQUALS,
@@ -208,6 +313,16 @@ will be converted to
   f({a = 1}) { }''',
     isPedantic: true,
   );
+
+  static final preferFinalFields = LintFixInfo(
+      'prefer_final_fields', DartFixKind.MAKE_FINAL, 'Make the field final.',
+      isPedantic: true);
+
+  static final preferForElementsToMapFromIterable = LintFixInfo(
+      'prefer_for_elements_to_map_fromIterable',
+      DartFixKind.CONVERT_TO_FOR_ELEMENT,
+      'Convert to a for element.',
+      isPedantic: true);
 
   static final preferIsEmpty = LintFixInfo(
     'prefer_is_empty',
@@ -248,6 +363,26 @@ Convert strings using a dobule quote to use a single quote.''',
     isPedantic: true,
   );
 
+  static final preferSpreadCollections = LintFixInfo(
+      'prefer_spread_collections',
+      // TODO(brianwilkerson) There are two possible fixes here, but not under
+      //  user control.
+      DartFixKind.CONVERT_TO_SPREAD,
+      'Convert to a spread operator.',
+      isPedantic: true);
+
+  static final slashForDocComments = LintFixInfo('slash_for_doc_comments',
+      DartFixKind.CONVERT_TO_LINE_COMMENT, 'Convert to a line comment.',
+      isPedantic: true);
+
+  static final typeInitFormals = LintFixInfo('type_init_formals',
+      DartFixKind.REMOVE_TYPE_ANNOTATION, 'Remove the type annotation.',
+      isPedantic: true);
+
+  static final unawaitedFutures = LintFixInfo(
+      'unawaited_futures', DartFixKind.ADD_AWAIT, 'Add await.',
+      isPedantic: true);
+
   static final unnecessaryConst = LintFixInfo(
     'unnecessary_const',
     DartFixKind.REMOVE_UNNECESSARY_CONST,
@@ -277,6 +412,14 @@ will be converted to
     isDefault: false,
     isPedantic: true,
   );
+
+  static final unnecessaryThis = LintFixInfo(
+      'unnecessary_this', DartFixKind.REMOVE_THIS_EXPRESSION, 'Remove this.',
+      isPedantic: true);
+
+  static final useRethrowWhenPossible = LintFixInfo('use_rethrow_when_possible',
+      DartFixKind.USE_RETHROW, 'Replace with rethrow.',
+      isPedantic: true);
 
   /// The name of the lint to be fixed.
   final String lintName;

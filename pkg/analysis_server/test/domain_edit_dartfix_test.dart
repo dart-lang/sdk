@@ -136,7 +136,9 @@ const double myDouble = 42.0;
 
   test_fixNamedConstructorTypeArgs() async {
     addTestFile('''
-class A<T> { A.from(Object obj) { } }
+class A<T> {
+  A.from(Object obj);
+}
 main() {
   print(A.from<String>([]));
 }
@@ -144,9 +146,11 @@ main() {
     createProject();
     EditDartfixResult result = await performFix();
     expect(result.suggestions, hasLength(1));
-    expectSuggestion(result.suggestions[0], 'type arguments', 61, 8);
+    expectSuggestion(result.suggestions[0], 'type arguments', 60, 8);
     expectEdits(result.edits, '''
-class A<T> { A.from(Object obj) { } }
+class A<T> {
+  A.from(Object obj);
+}
 main() {
   print(A<String>.from([]));
 }
