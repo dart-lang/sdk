@@ -12,13 +12,11 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/source/error_processor.dart' show ErrorProcessor;
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart' show StrongModeCode;
 import 'package:analyzer/src/generated/element_type_provider.dart';
-import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -104,19 +102,14 @@ class CodeChecker extends RecursiveAstVisitor {
   final TypeProvider typeProvider;
   final InheritanceManager3 inheritance;
   final AnalysisErrorListener reporter;
-  final AnalysisOptionsImpl _options;
 
   FeatureSet _featureSet;
 
-  bool _failure = false;
-
   CodeChecker(TypeProvider typeProvider, TypeSystemImpl rules, this.inheritance,
-      AnalysisErrorListener reporter, this._options)
+      AnalysisErrorListener reporter)
       : typeProvider = typeProvider,
         rules = rules,
         reporter = reporter;
-
-  bool get failure => _failure;
 
   bool get _isNonNullableByDefault =>
       _featureSet.isEnabled(Feature.non_nullable);
@@ -234,10 +227,6 @@ class CodeChecker extends RecursiveAstVisitor {
 
   DartType getAnnotatedType(TypeAnnotation type) {
     return type?.type ?? DynamicTypeImpl.instance;
-  }
-
-  void reset() {
-    _failure = false;
   }
 
   @override
@@ -998,22 +987,6 @@ class CodeChecker extends RecursiveAstVisitor {
         return argument;
       }
     }).toList();
-
-    // Compute the right severity taking the analysis options into account.
-    // We construct a dummy error to make the common case where we end up
-    // ignoring the strong mode message cheaper.
-    var processor = ErrorProcessor.getProcessor(
-        _options, AnalysisError.forValues(null, -1, 0, errorCode, null, null));
-    var severity =
-        (processor != null) ? processor.severity : errorCode.errorSeverity;
-
-    if (severity == ErrorSeverity.ERROR) {
-      _failure = true;
-    }
-    if (errorCode.type == ErrorType.HINT &&
-        errorCode.name.startsWith('TOP_LEVEL_')) {
-      severity = ErrorSeverity.ERROR;
-    }
 
     int begin = node is AnnotatedNode
         ? node.firstTokenAfterCommentAndMetadata.offset

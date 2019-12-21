@@ -377,7 +377,6 @@ class LibraryAnalyzer {
       _typeSystem,
       _inheritance,
       errorListener,
-      _analysisOptions,
     );
     checker.visitCompilationUnit(unit);
 
