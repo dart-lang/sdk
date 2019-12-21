@@ -713,13 +713,14 @@ main(Object o) {
     ]);
   }
 
-  test_error_undefinedMethod_OK_null() async {
-    await resolveTestCode(r'''
+  test_error_undefinedMethod_null() async {
+    await assertErrorsInCode(r'''
 main() {
   null.foo();
 }
-''');
-    assertNoTestErrors();
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_METHOD, 16, 3),
+    ]);
     _assertUnresolvedMethodInvocation('foo();');
   }
 
