@@ -1021,7 +1021,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _checkForNullableDereference(node.function);
     }
     _typeArgumentsVerifier.checkMethodInvocation(node);
-    _checkForNullableDereference(methodName);
     _requiredParametersVerifier.visitMethodInvocation(node);
     super.visitMethodInvocation(node);
   }
