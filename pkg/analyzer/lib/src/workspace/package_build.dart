@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
 import 'dart:core';
 
 import 'package:analyzer/file_system/file_system.dart';
@@ -57,11 +56,6 @@ class PackageBuildPackageUriResolver extends UriResolver {
   final UriResolver _normalUriResolver;
   final path.Context _context;
 
-  /**
-   * The cache of absolute [Uri]s to [Source]s mappings.
-   */
-  final Map<Uri, Source> _sourceCache = HashMap<Uri, Source>();
-
   PackageBuildPackageUriResolver(
       PackageBuildWorkspace workspace, this._normalUriResolver)
       : _workspace = workspace,
@@ -70,35 +64,33 @@ class PackageBuildPackageUriResolver extends UriResolver {
   @override
   Source resolveAbsolute(Uri _ignore, [Uri uri]) {
     uri ??= _ignore;
-    return _sourceCache.putIfAbsent(uri, () {
-      if (uri.scheme != 'package') {
-        return null;
-      }
+    if (uri.scheme != 'package') {
+      return null;
+    }
 
-      Source basicResolverSource = _normalUriResolver.resolveAbsolute(uri);
-      if (basicResolverSource != null && basicResolverSource.exists()) {
-        return basicResolverSource;
-      }
-
-      String uriPath = uri.path;
-      int slash = uriPath.indexOf('/');
-
-      // If the path either starts with a slash or has no slash, it is invalid.
-      if (slash < 1) {
-        return null;
-      }
-
-      String packageName = uriPath.substring(0, slash);
-      String fileUriPart = uriPath.substring(slash + 1);
-      String filePath = fileUriPart.replaceAll('/', _context.separator);
-
-      File file = _workspace.builtFile(
-          _workspace.builtPackageSourcePath(filePath), packageName);
-      if (file != null && file.exists) {
-        return file.createSource(uri);
-      }
+    Source basicResolverSource = _normalUriResolver.resolveAbsolute(uri);
+    if (basicResolverSource != null && basicResolverSource.exists()) {
       return basicResolverSource;
-    });
+    }
+
+    String uriPath = uri.path;
+    int slash = uriPath.indexOf('/');
+
+    // If the path either starts with a slash or has no slash, it is invalid.
+    if (slash < 1) {
+      return null;
+    }
+
+    String packageName = uriPath.substring(0, slash);
+    String fileUriPart = uriPath.substring(slash + 1);
+    String filePath = fileUriPart.replaceAll('/', _context.separator);
+
+    File file = _workspace.builtFile(
+        _workspace.builtPackageSourcePath(filePath), packageName);
+    if (file != null && file.exists) {
+      return file.createSource(uri);
+    }
+    return basicResolverSource;
   }
 
   @override
