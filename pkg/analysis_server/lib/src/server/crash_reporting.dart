@@ -38,9 +38,15 @@ class CrashReportingInstrumentation extends NoopInstrumentationService {
     dynamic exception,
     StackTrace stackTrace,
   ) {
-    String comment = 'plugin: ${plugin.name}';
+    // TODO(devoncarew): Temporarily disabled; re-enable after deciding on a
+    // plan of action for the AngularDart analysis plugin.
+    const String angularPluginName = 'Angular Analysis Plugin';
+    if (plugin.name == angularPluginName) {
+      return;
+    }
+
     reporter
-        .sendReport(exception, stackTrace, comment: comment)
+        .sendReport(exception, stackTrace, comment: 'plugin: ${plugin.name}')
         .catchError((error) {
       // We silently ignore errors sending crash reports (network issues, ...).
     });
