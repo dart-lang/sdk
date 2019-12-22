@@ -207,6 +207,19 @@ abstract class AbstractClassElementImpl extends ElementImpl
   }
 
   @override
+  InterfaceType instantiateToBounds({
+    @required NullabilitySuffix nullabilitySuffix,
+  }) {
+    var typeArguments = typeParameters.map((typeParameter) {
+      return (typeParameter as TypeParameterElementImpl).defaultType;
+    }).toList();
+    return instantiate(
+      typeArguments: typeArguments,
+      nullabilitySuffix: nullabilitySuffix,
+    );
+  }
+
+  @override
   MethodElement lookUpConcreteMethod(
           String methodName, LibraryElement library) =>
       _first(_implementationsOfMethod(methodName).where(
@@ -4957,6 +4970,19 @@ class GenericTypeAliasElementImpl extends ElementImpl
     @required List<DartType> typeArguments,
     @required NullabilitySuffix nullabilitySuffix,
   }) {
+    return instantiate(
+      typeArguments: typeArguments,
+      nullabilitySuffix: nullabilitySuffix,
+    );
+  }
+
+  @override
+  FunctionType instantiateToBounds({
+    @required NullabilitySuffix nullabilitySuffix,
+  }) {
+    var typeArguments = typeParameters.map((typeParameter) {
+      return (typeParameter as TypeParameterElementImpl).defaultType;
+    }).toList();
     return instantiate(
       typeArguments: typeArguments,
       nullabilitySuffix: nullabilitySuffix,

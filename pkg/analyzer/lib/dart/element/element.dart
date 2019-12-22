@@ -229,6 +229,13 @@ abstract class ClassElement
     @required NullabilitySuffix nullabilitySuffix,
   });
 
+  /// Create the [InterfaceType] for this class with type arguments that
+  /// correspond to the bounds of the type parameters, and the given
+  /// [nullabilitySuffix].
+  InterfaceType instantiateToBounds({
+    @required NullabilitySuffix nullabilitySuffix,
+  });
+
   /// Return the element representing the method that results from looking up
   /// the given [methodName] in this class with respect to the given [library],
   /// ignoring abstract methods, or `null` if the look up fails. The behavior of
@@ -1157,6 +1164,19 @@ abstract class FunctionTypeAliasElement
   @Deprecated('Use instantiate() instead')
   FunctionType instantiate2({
     @required List<DartType> typeArguments,
+    @required NullabilitySuffix nullabilitySuffix,
+  });
+
+  /// Produces the function type resulting from instantiating this typedef with
+  /// type arguments that correspond to the bounds of the type parameters, and
+  /// the given [nullabilitySuffix].
+  ///
+  /// Note that this always instantiates the typedef itself, so for a
+  /// [GenericTypeAliasElement] the returned [FunctionType] might still be a
+  /// generic function, with type formals. For example, if the typedef is:
+  ///     typedef F<T> = void Function<U>(T, U);
+  /// then `F<int>` will produce `void Function<U>(int, U)`.
+  FunctionType instantiateToBounds({
     @required NullabilitySuffix nullabilitySuffix,
   });
 }
