@@ -21,6 +21,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:nnbd_migration/src/decorated_class_hierarchy.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
+import 'package:nnbd_migration/src/fix_aggregator.dart';
 import 'package:nnbd_migration/src/variables.dart';
 
 /// Problem reported by [FixBuilder] when encountering a compound assignment
@@ -55,9 +56,13 @@ class CompoundAssignmentReadNullable implements Problem {
 /// graph propagation, to figure out what changes need to be made.  It doesn't
 /// actually make the changes; it simply reports what changes are necessary
 /// through abstract methods.
-abstract class FixBuilder {
+class FixBuilder {
   /// The type provider providing non-nullable types.
   final TypeProvider typeProvider;
+
+  final Map<AstNode, NodeChange> changes = {};
+
+  final Map<AstNode, Set<Problem>> problems = {};
 
   /// The NNBD type system.
   final TypeSystemImpl _typeSystem;
@@ -115,16 +120,16 @@ abstract class FixBuilder {
         MigrationResolutionHooksImpl(this));
   }
 
-  /// Called whenever an AST node is found that needs to be changed.
-  void addChange(AstNode node, NodeChange change);
-
-  /// Called whenever code is found that can't be automatically fixed.
-  void addProblem(AstNode node, Problem problem);
-
   /// Visits the entire compilation [unit] using the analyzer's resolver and
   /// makes note of changes that need to be made.
   void visitAll(CompilationUnit unit) {
     unit.accept(_resolver);
+  }
+
+  /// Called whenever an AST node is found that needs to be changed.
+  void _addChange(AstNode node, NodeChange change) {
+    assert(!changes.containsKey(node));
+    changes[node] = change;
   }
 
   /// Computes the type that [element] will have after migration.
@@ -171,14 +176,6 @@ abstract class FixBuilder {
         strictInference: typeSystem.strictInference,
         typeProvider: nnbdTypeProvider);
   }
-}
-
-/// [NodeChange] reprensenting a type annotation that needs to have a question
-/// mark added to it, to make it nullable.
-class MakeNullable implements NodeChange {
-  factory MakeNullable() => const MakeNullable._();
-
-  const MakeNullable._();
 }
 
 /// Implementation of [MigrationResolutionHooks] that interfaces with
@@ -256,7 +253,7 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
   }
 
   DartType _addNullCheck(Expression node, DartType type) {
-    _fixBuilder.addChange(node, NullCheck());
+    _fixBuilder._addChange(node, NullCheck());
     _flowAnalysis.nonNullAssert_end(node);
     return _fixBuilder._typeSystem.promoteToNonNull(type as TypeImpl);
   }
@@ -278,7 +275,7 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
     var decoratedType =
         _fixBuilder._variables.decoratedTypeAnnotation(source, node);
     if (!decoratedType.type.isDynamic && decoratedType.node.isNullable) {
-      _fixBuilder.addChange(node, MakeNullable());
+      _fixBuilder._addChange(node, MakeNullable());
     }
     if (node is TypeName) {
       var typeArguments = node.typeArguments;
@@ -336,17 +333,5 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
   }
 }
 
-/// Base class representing a change the FixBuilder wishes to make to an AST
-/// node.
-abstract class NodeChange {}
-
-/// [NodeChange] representing an expression that needs to have a null check
-/// added to it.
-class NullCheck implements NodeChange {
-  factory NullCheck() => const NullCheck._();
-
-  const NullCheck._();
-}
-
-/// Common supertype for problems reported by [FixBuilder.addProblem].
+/// Common supertype for problems reported by [FixBuilder._addProblem].
 abstract class Problem {}

@@ -4,17 +4,13 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
-import 'package:nnbd_migration/src/decorated_class_hierarchy.dart';
+import 'package:nnbd_migration/src/fix_aggregator.dart';
 import 'package:nnbd_migration/src/fix_builder.dart';
-import 'package:nnbd_migration/src/variables.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -42,6 +38,10 @@ class AssignmentTargetInfo {
 
 @reflectiveTest
 class FixBuilderTest extends EdgeBuilderTestBase {
+  static const isNullCheck = TypeMatcher<NullCheck>();
+
+  static const isMakeNullable = TypeMatcher<MakeNullable>();
+
   DartType get dynamicType => postMigrationTypeProvider.dynamicType;
 
   DartType get objectType => postMigrationTypeProvider.objectType;
@@ -55,6 +55,20 @@ class FixBuilderTest extends EdgeBuilderTestBase {
     graph.propagate();
     return unit;
   }
+
+  Map<AstNode, NodeChange> scopedChanges(
+          FixBuilder fixBuilder, AstNode scope) =>
+      {
+        for (var entry in fixBuilder.changes.entries)
+          if (_isInScope(entry.key, scope)) entry.key: entry.value
+      };
+
+  Map<AstNode, Set<Problem>> scopedProblems(
+          FixBuilder fixBuilder, AstNode scope) =>
+      {
+        for (var entry in fixBuilder.problems.entries)
+          if (_isInScope(entry.key, scope)) entry.key: entry.value
+      };
 
   test_assignmentExpression_compound_combined_nullable_noProblem() async {
     await analyze('''
@@ -109,7 +123,7 @@ abstract class _E {
 _f(dynamic x, int/*?*/ y) => x += y + 1;
 ''');
     visitSubexpression(findNode.assignment('+='), 'dynamic',
-        changes: {findNode.simple('y +'): NullCheck()});
+        changes: {findNode.simple('y +'): isNullCheck});
   }
 
   test_assignmentExpression_compound_intRules() async {
@@ -148,7 +162,7 @@ f(bool/*?*/ x, bool/*?*/ y) => x != null && (x = y);
     // assignment `x = y` should be null checked because the RHS of `&&` cannot
     // be nullable.
     visitSubexpression(findNode.binary('&&'), 'bool',
-        changes: {findNode.parenthesized('x = y'): NullCheck()});
+        changes: {findNode.parenthesized('x = y'): isNullCheck});
   }
 
   test_assignmentExpression_compound_rhs_nonNullable() async {
@@ -172,7 +186,7 @@ abstract class _D extends _C {}
 _f(_C/*!*/ x, int/*?*/ y) => x += y;
 ''');
     visitSubexpression(findNode.assignment('+='), '_D',
-        changes: {findNode.simple('y;'): NullCheck()});
+        changes: {findNode.simple('y;'): isNullCheck});
   }
 
   test_assignmentExpression_compound_rhs_nullable_noCheck() async {
@@ -198,8 +212,8 @@ _f(bool/*?*/ b, int/*?*/ i) {
     // `??=`, so a null check is inserted at 2.  This does promote i, so no null
     // check is inserted at 3.
     visitStatement(findNode.block('{'), changes: {
-      findNode.simple('i.isEven; // 1'): NullCheck(),
-      findNode.simple('i.isEven; // 2'): NullCheck()
+      findNode.simple('i.isEven; // 1'): isNullCheck,
+      findNode.simple('i.isEven; // 2'): isNullCheck
     });
   }
 
@@ -252,7 +266,7 @@ _f(int/*?*/ x, int/*!*/ y) => x = y;
 _f(int/*!*/ x, int/*?*/ y) => x = y;
 ''');
     visitSubexpression(findNode.assignment('= '), 'int',
-        changes: {findNode.simple('y;'): NullCheck()});
+        changes: {findNode.simple('y;'): isNullCheck});
   }
 
   test_assignmentExpression_simple_nullable_to_nullable() async {
@@ -300,7 +314,7 @@ class _C {
 _f(_C/*?*/ c) => c['foo'] += 0;
 ''');
     visitAssignmentTarget(findNode.index('c['), 'int', 'num',
-        changes: {findNode.simple('c['): NullCheck()});
+        changes: {findNode.simple('c['): isNullCheck});
   }
 
   @FailingTest(reason: 'TODO(paulberry): decide if this is worth caring about')
@@ -313,7 +327,7 @@ class _C {
 _f(_C c, String/*?*/ s) => c[s] += 0;
 ''');
     visitAssignmentTarget(findNode.index('c['), 'int', 'num',
-        changes: {findNode.simple('s]'): NullCheck()});
+        changes: {findNode.simple('s]'): isNullCheck});
   }
 
   test_assignmentTarget_indexExpression_compound_substituted() async {
@@ -337,7 +351,7 @@ class _C<T, U> {
 _f(_C<int, String/*!*/> c, String/*?*/ s) => c[s] += 1;
 ''');
     visitAssignmentTarget(findNode.index('c['), 'int', 'int',
-        changes: {findNode.simple('s]'): NullCheck()});
+        changes: {findNode.simple('s]'): isNullCheck});
   }
 
   test_assignmentTarget_indexExpression_compound_substituted_no_check_rhs() async {
@@ -378,7 +392,7 @@ class _C {
 _f(_C/*?*/ c) => c['foo'] = 0;
 ''');
     visitAssignmentTarget(findNode.index('c['), null, 'num',
-        changes: {findNode.simple('c['): NullCheck()});
+        changes: {findNode.simple('c['): isNullCheck});
   }
 
   test_assignmentTarget_indexExpression_simple_check_rhs() async {
@@ -390,7 +404,7 @@ class _C {
 _f(_C c, String/*?*/ s) => c[s] = 0;
 ''');
     visitAssignmentTarget(findNode.index('c['), null, 'num',
-        changes: {findNode.simple('s]'): NullCheck()});
+        changes: {findNode.simple('s]'): isNullCheck});
   }
 
   test_assignmentTarget_indexExpression_substituted() async {
@@ -413,7 +427,7 @@ class _C<T, U> {
 _f(_C<int, String/*!*/> c, String/*?*/ s) => c[s] = 1;
 ''');
     visitAssignmentTarget(findNode.index('c['), null, 'int',
-        changes: {findNode.simple('s]'): NullCheck()});
+        changes: {findNode.simple('s]'): isNullCheck});
   }
 
   test_assignmentTarget_indexExpression_substituted_no_check_rhs() async {
@@ -499,7 +513,7 @@ abstract class _C {
 _f(_C/*?*/ c) => (c).x += 1;
 ''');
     visitAssignmentTarget(findNode.propertyAccess('(c).x'), 'int', 'num',
-        changes: {findNode.parenthesized('(c).x'): NullCheck()});
+        changes: {findNode.parenthesized('(c).x'): isNullCheck});
   }
 
   test_assignmentTarget_propertyAccess_getter_setter_nonNullable() async {
@@ -723,7 +737,7 @@ _f(bool/*?*/ x, bool/*?*/ y) => x && y;
     var xRef = findNode.simple('x &&');
     var yRef = findNode.simple('y;');
     visitSubexpression(findNode.binary('&&'), 'bool',
-        changes: {xRef: NullCheck(), yRef: NullCheck()});
+        changes: {xRef: isNullCheck, yRef: isNullCheck});
   }
 
   test_binaryExpression_bang_eq() async {
@@ -760,7 +774,7 @@ _f(Object/*?*/ x, Object/*?*/ y) {
     var xRef = findNode.simple('x ||');
     var yRef = findNode.simple('y;');
     visitSubexpression(findNode.binary('||'), 'bool',
-        changes: {xRef: NullCheck(), yRef: NullCheck()});
+        changes: {xRef: isNullCheck, yRef: isNullCheck});
   }
 
   test_binaryExpression_eq_eq() async {
@@ -789,7 +803,7 @@ _f(int/*?*/ x, int/*?*/ y) =>
     // The null check on the RHS of the `??` doesn't promote, because it is not
     // guaranteed to execute.
     visitSubexpression(findNode.listLiteral('['), 'List<dynamic>',
-        changes: {findNode.simple('y +'): NullCheck()});
+        changes: {findNode.simple('y +'): isNullCheck});
   }
 
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/39642')
@@ -801,7 +815,7 @@ Object/*!*/ _f(int/*?*/ x, double/*?*/ y) {
 ''');
     var yRef = findNode.simple('y;');
     visitSubexpression(findNode.binary('??'), 'num',
-        changes: {yRef: NullCheck()});
+        changes: {yRef: isNullCheck});
   }
 
   test_binaryExpression_userDefinable_dynamic() async {
@@ -836,7 +850,7 @@ class _C {
 _f(_C/*?*/ c) => c + 'foo';
 ''');
     visitSubexpression(findNode.binary('c +'), 'int',
-        changes: {findNode.simple('c +'): NullCheck()});
+        changes: {findNode.simple('c +'): isNullCheck});
   }
 
   test_binaryExpression_userDefinable_simple_check_rhs() async {
@@ -847,7 +861,7 @@ class _C {
 _f(_C c, String/*?*/ s) => c + s;
 ''');
     visitSubexpression(findNode.binary('c +'), 'int',
-        changes: {findNode.simple('s;'): NullCheck()});
+        changes: {findNode.simple('s;'): isNullCheck});
   }
 
   test_binaryExpression_userDefinable_substituted() async {
@@ -868,7 +882,7 @@ class _C<T, U> {
 _f(_C<int, String/*!*/> c, String/*?*/ s) => c + s;
 ''');
     visitSubexpression(findNode.binary('c +'), 'int',
-        changes: {findNode.simple('s;'): NullCheck()});
+        changes: {findNode.simple('s;'): isNullCheck});
   }
 
   test_binaryExpression_userDefinable_substituted_no_check_rhs() async {
@@ -891,8 +905,8 @@ _f(int/*?*/ x, int/*?*/ y) {
 }
 ''');
     visitStatement(findNode.statement('{ // block'), changes: {
-      findNode.simple('x + 1'): NullCheck(),
-      findNode.simple('y + 1'): NullCheck()
+      findNode.simple('x + 1'): isNullCheck,
+      findNode.simple('y + 1'): isNullCheck
     });
   }
 
@@ -919,7 +933,7 @@ _f(bool/*?*/ x) => x ? (x && true) : (x && true);
     // No explicit check needs to be added to either `x && true`, because there
     // is already an explicit null check inserted for the condition.
     visitSubexpression(findNode.conditionalExpression('x ?'), 'bool',
-        changes: {findNode.simple('x ?'): NullCheck()});
+        changes: {findNode.simple('x ?'): isNullCheck});
   }
 
   test_conditionalExpression_flow_then_else() async {
@@ -930,8 +944,8 @@ _f(bool x, bool/*?*/ y) => (x ? (y && true) : (y && true)) && y;
     // because null checks are added to the "then" and "else" branches promoting
     // y.
     visitSubexpression(findNode.binary('&& y'), 'bool', changes: {
-      findNode.simple('y && true) '): NullCheck(),
-      findNode.simple('y && true))'): NullCheck()
+      findNode.simple('y && true) '): isNullCheck,
+      findNode.simple('y && true))'): isNullCheck
     });
   }
 
@@ -966,7 +980,7 @@ _f(int/*!*/ x, int/*?*/ y) {
 }
 ''');
     visitStatement(findNode.statement('x = y'),
-        changes: {findNode.simple('y;'): NullCheck()});
+        changes: {findNode.simple('y;'): isNullCheck});
   }
 
   test_functionExpressionInvocation_dynamic() async {
@@ -982,7 +996,7 @@ _f(Function/*?*/ func) => func();
 ''');
     visitSubexpression(
         findNode.functionExpressionInvocation('func('), 'dynamic',
-        changes: {findNode.simple('func()'): NullCheck()});
+        changes: {findNode.simple('func()'): isNullCheck});
   }
 
   test_functionExpressionInvocation_getter() async {
@@ -1013,7 +1027,7 @@ abstract class _C {
 _f(_C c) => (c.f)();
 ''');
     visitSubexpression(findNode.functionExpressionInvocation('c.f'), 'int',
-        changes: {findNode.parenthesized('c.f'): NullCheck()});
+        changes: {findNode.parenthesized('c.f'): isNullCheck});
   }
 
   test_functionExpressionInvocation_getter_nullChecked_looksLikeMethodCall() async {
@@ -1024,7 +1038,7 @@ abstract class _C {
 _f(_C c) => c.f();
 ''');
     visitSubexpression(findNode.functionExpressionInvocation('c.f'), 'int',
-        changes: {findNode.propertyAccess('c.f'): NullCheck()});
+        changes: {findNode.propertyAccess('c.f'): isNullCheck});
   }
 
   test_ifStatement_flow_promote_in_else() async {
@@ -1038,7 +1052,7 @@ _f(int/*?*/ x) {
 }
 ''');
     visitStatement(findNode.statement('if'),
-        changes: {findNode.simple('x + 1'): NullCheck()});
+        changes: {findNode.simple('x + 1'): isNullCheck});
   }
 
   test_ifStatement_flow_promote_in_then() async {
@@ -1052,7 +1066,7 @@ _f(int/*?*/ x) {
 }
 ''');
     visitStatement(findNode.statement('if'),
-        changes: {findNode.simple('x + 2'): NullCheck()});
+        changes: {findNode.simple('x + 2'): isNullCheck});
   }
 
   test_ifStatement_flow_promote_in_then_no_else() async {
@@ -1091,7 +1105,7 @@ class _C {
 _f(_C/*?*/ c) => c['foo'];
 ''');
     visitSubexpression(findNode.index('c['), 'int',
-        changes: {findNode.simple('c['): NullCheck()});
+        changes: {findNode.simple('c['): isNullCheck});
   }
 
   test_indexExpression_simple_check_rhs() async {
@@ -1102,7 +1116,7 @@ class _C {
 _f(_C c, String/*?*/ s) => c[s];
 ''');
     visitSubexpression(findNode.index('c['), 'int',
-        changes: {findNode.simple('s]'): NullCheck()});
+        changes: {findNode.simple('s]'): isNullCheck});
   }
 
   test_indexExpression_substituted() async {
@@ -1123,7 +1137,7 @@ class _C<T, U> {
 _f(_C<int, String/*!*/> c, String/*?*/ s) => c[s];
 ''');
     visitSubexpression(findNode.index('c['), 'int',
-        changes: {findNode.simple('s]'): NullCheck()});
+        changes: {findNode.simple('s]'): isNullCheck});
   }
 
   test_indexExpression_substituted_no_check_rhs() async {
@@ -1155,7 +1169,7 @@ _f() => <int>[];
 _f(int/*?*/ x) => <int/*!*/>[x];
 ''');
     visitSubexpression(findNode.listLiteral('['), 'List<int>',
-        changes: {findNode.simple('x]'): NullCheck()});
+        changes: {findNode.simple('x]'): isNullCheck});
   }
 
   test_methodInvocation_dynamic() async {
@@ -1173,7 +1187,7 @@ abstract class _C {
 _f(_C c, int/*?*/ y) => c.f(x: y);
 ''');
     visitSubexpression(findNode.methodInvocation('c.f'), 'int',
-        changes: {findNode.simple('y);'): NullCheck()});
+        changes: {findNode.simple('y);'): isNullCheck});
   }
 
   test_methodInvocation_ordinaryParameter() async {
@@ -1184,7 +1198,7 @@ abstract class _C {
 _f(_C c, int/*?*/ y) => c.f(y);
 ''');
     visitSubexpression(findNode.methodInvocation('c.f'), 'int',
-        changes: {findNode.simple('y);'): NullCheck()});
+        changes: {findNode.simple('y);'): isNullCheck});
   }
 
   test_methodInvocation_return_nonNullable() async {
@@ -1205,7 +1219,7 @@ abstract class _C {
 _f(_C/*?*/ c) => c.f();
 ''');
     visitSubexpression(findNode.methodInvocation('c.f'), 'int',
-        changes: {findNode.simple('c.f'): NullCheck()});
+        changes: {findNode.simple('c.f'): isNullCheck});
   }
 
   test_methodInvocation_return_nonNullable_nullAware() async {
@@ -1262,7 +1276,7 @@ _f(bool/*?*/ x) => x && x;
     // Only the first `x` is null-checked because thereafter, the type of `x` is
     // promoted to `bool`.
     visitSubexpression(findNode.binary('&&'), 'bool',
-        changes: {findNode.simple('x &&'): NullCheck()});
+        changes: {findNode.simple('x &&'): isNullCheck});
   }
 
   test_nullLiteral() async {
@@ -1346,7 +1360,7 @@ _f(_C/*?*/ c) { // method
 _g(_C/*!*/ c) {}
 ''');
     visitStatement(findNode.block('{ // method'),
-        changes: {findNode.simple('c);'): NullCheck()});
+        changes: {findNode.simple('c);'): isNullCheck});
   }
 
   test_postfixExpression_dynamic() async {
@@ -1370,7 +1384,7 @@ _f(_C/*?*/ c) { // method
 _g(_C/*!*/ c) {}
 ''');
     visitStatement(findNode.block('{ // method'),
-        changes: {findNode.simple('c);'): NullCheck()});
+        changes: {findNode.simple('c);'): isNullCheck});
   }
 
   @FailingTest(reason: 'TODO(paulberry)')
@@ -1438,7 +1452,7 @@ abstract class _C {
 _f(_C/*?*/ c) => c.x;
 ''');
     visitSubexpression(findNode.prefixed('c.x'), 'int',
-        changes: {findNode.simple('c.x'): NullCheck()});
+        changes: {findNode.simple('c.x'): isNullCheck});
   }
 
   test_prefixedIdentifier_getter_nonNullable() async {
@@ -1514,7 +1528,7 @@ _f(bool/*!*/ x) => !x;
 _f(bool/*?*/ x) => !x;
 ''');
     visitSubexpression(findNode.prefix('!x'), 'bool',
-        changes: {findNode.simple('x;'): NullCheck()});
+        changes: {findNode.simple('x;'): isNullCheck});
   }
 
   @FailingTest(reason: 'TODO(paulberry)')
@@ -1578,7 +1592,7 @@ _f(_C/*?*/ c) { // method
 _g(_C/*!*/ c) {}
 ''');
     visitStatement(findNode.block('{ // method'),
-        changes: {findNode.simple('c);'): NullCheck()});
+        changes: {findNode.simple('c);'): isNullCheck});
   }
 
   test_prefixExpression_increment_undoes_promotion() async {
@@ -1595,7 +1609,7 @@ _f(_C/*?*/ c) { // method
 _g(_C/*!*/ c) {}
 ''');
     visitStatement(findNode.block('{ // method'),
-        changes: {findNode.simple('c);'): NullCheck()});
+        changes: {findNode.simple('c);'): isNullCheck});
   }
 
   test_prefixExpression_intRules() async {
@@ -1643,7 +1657,7 @@ _f(int/*!*/ x) => -x;
 _f(int/*?*/ x) => -x;
 ''');
     visitSubexpression(findNode.prefix('-x'), 'int',
-        changes: {findNode.simple('x;'): NullCheck()});
+        changes: {findNode.simple('x;'): isNullCheck});
   }
 
   test_prefixExpression_minus_substitution() async {
@@ -1686,7 +1700,7 @@ _f(int/*!*/ x) => ~x;
 _f(int/*?*/ x) => ~x;
 ''');
     visitSubexpression(findNode.prefix('~x'), 'int',
-        changes: {findNode.simple('x;'): NullCheck()});
+        changes: {findNode.simple('x;'): isNullCheck});
   }
 
   test_prefixExpression_tilde_substitution() async {
@@ -1734,7 +1748,7 @@ abstract class _C {
 _f(_C/*?*/ c) => (c).x;
 ''');
     visitSubexpression(findNode.propertyAccess('(c).x'), 'int',
-        changes: {findNode.parenthesized('(c).x'): NullCheck()});
+        changes: {findNode.parenthesized('(c).x'): isNullCheck});
   }
 
   test_propertyAccess_getter_nonNullable() async {
@@ -1964,7 +1978,7 @@ _f(int/*?*/ i) {
 _f(int/*?*/ i) => throw i;
 ''');
     visitSubexpression(findNode.throw_('throw'), 'Never',
-        changes: {findNode.simple('i;'): NullCheck()});
+        changes: {findNode.simple('i;'): isNullCheck});
   }
 
   test_throw_simple() async {
@@ -2000,7 +2014,7 @@ void _f() {
 ''');
     var listIntAnnotation = findNode.typeAnnotation('List<int>');
     visitTypeAnnotation(listIntAnnotation, 'List<int>?',
-        changes: {listIntAnnotation: MakeNullable()});
+        changes: {listIntAnnotation: isMakeNullable});
   }
 
   test_typeName_generic_nullable_arg() async {
@@ -2010,7 +2024,7 @@ void _f() {
 }
 ''');
     visitTypeAnnotation(findNode.typeAnnotation('List<int>'), 'List<int?>',
-        changes: {findNode.typeAnnotation('int'): MakeNullable()});
+        changes: {findNode.typeAnnotation('int'): isMakeNullable});
   }
 
   test_typeName_simple_nonNullable() async {
@@ -2030,7 +2044,7 @@ void _f() {
 ''');
     var intAnnotation = findNode.typeAnnotation('int');
     visitTypeAnnotation((intAnnotation), 'int?',
-        changes: {intAnnotation: MakeNullable()});
+        changes: {intAnnotation: isMakeNullable});
   }
 
   test_typeName_void() async {
@@ -2067,7 +2081,7 @@ void _f() {
 }
 ''');
     visitStatement(findNode.statement('int x'),
-        changes: {findNode.typeAnnotation('int'): MakeNullable()});
+        changes: {findNode.typeAnnotation('int'): isMakeNullable});
   }
 
   test_variableDeclaration_typed_uninitialized() async {
@@ -2104,14 +2118,14 @@ void _f(bool/*?*/ x, bool/*?*/ y) {
 }
 ''');
     visitStatement(findNode.statement('bool z'), changes: {
-      findNode.simple('x &&'): NullCheck(),
-      findNode.simple('y;'): NullCheck()
+      findNode.simple('x &&'): isNullCheck,
+      findNode.simple('y;'): isNullCheck
     });
   }
 
   void visitAssignmentTarget(
       Expression node, String expectedReadType, String expectedWriteType,
-      {Map<AstNode, NodeChange> changes = const <Expression, NodeChange>{},
+      {Map<AstNode, Matcher> changes = const <Expression, Matcher>{},
       Map<AstNode, Set<Problem>> problems = const <AstNode, Set<Problem>>{}}) {
     var fixBuilder = _createFixBuilder(node);
     fixBuilder.visitAll(node.thisOrAncestorOfType<CompilationUnit>());
@@ -2124,43 +2138,43 @@ void _f(bool/*?*/ x, bool/*?*/ y) {
     }
     expect((targetInfo.writeType as TypeImpl).toString(withNullability: true),
         expectedWriteType);
-    expect(fixBuilder.changes, changes);
-    expect(fixBuilder.problems, problems);
+    expect(scopedChanges(fixBuilder, node), changes);
+    expect(scopedProblems(fixBuilder, node), problems);
   }
 
   void visitStatement(Statement node,
-      {Map<AstNode, NodeChange> changes = const <Expression, NodeChange>{},
+      {Map<AstNode, Matcher> changes = const <Expression, Matcher>{},
       Map<AstNode, Set<Problem>> problems = const <AstNode, Set<Problem>>{}}) {
-    _FixBuilder fixBuilder = _createFixBuilder(node);
+    var fixBuilder = _createFixBuilder(node);
     fixBuilder.visitAll(node.thisOrAncestorOfType<CompilationUnit>());
-    expect(fixBuilder.changes, changes);
-    expect(fixBuilder.problems, problems);
+    expect(scopedChanges(fixBuilder, node), changes);
+    expect(scopedProblems(fixBuilder, node), problems);
   }
 
   void visitSubexpression(Expression node, String expectedType,
-      {Map<AstNode, NodeChange> changes = const <Expression, NodeChange>{},
+      {Map<AstNode, Matcher> changes = const <Expression, Matcher>{},
       Map<AstNode, Set<Problem>> problems = const <AstNode, Set<Problem>>{}}) {
-    _FixBuilder fixBuilder = _createFixBuilder(node);
+    var fixBuilder = _createFixBuilder(node);
     fixBuilder.visitAll(node.thisOrAncestorOfType<CompilationUnit>());
     var type = node.staticType;
     expect((type as TypeImpl).toString(withNullability: true), expectedType);
-    expect(fixBuilder.changes, changes);
-    expect(fixBuilder.problems, problems);
+    expect(scopedChanges(fixBuilder, node), changes);
+    expect(scopedProblems(fixBuilder, node), problems);
   }
 
   void visitTypeAnnotation(TypeAnnotation node, String expectedType,
-      {Map<AstNode, NodeChange> changes = const <AstNode, NodeChange>{},
+      {Map<AstNode, Matcher> changes = const <AstNode, Matcher>{},
       Map<AstNode, Set<Problem>> problems = const <AstNode, Set<Problem>>{}}) {
-    _FixBuilder fixBuilder = _createFixBuilder(node);
+    var fixBuilder = _createFixBuilder(node);
     fixBuilder.visitAll(node.thisOrAncestorOfType<CompilationUnit>());
     var type = node.type;
     expect((type as TypeImpl).toString(withNullability: true), expectedType);
-    expect(fixBuilder.changes, changes);
-    expect(fixBuilder.problems, problems);
+    expect(scopedChanges(fixBuilder, node), changes);
+    expect(scopedProblems(fixBuilder, node), problems);
   }
 
   AssignmentTargetInfo _computeAssignmentTargetInfo(
-      Expression node, _FixBuilder fixBuilder) {
+      Expression node, FixBuilder fixBuilder) {
     var assignment = node.thisOrAncestorOfType<AssignmentExpression>();
     var isReadWrite = assignment.operator.type != TokenType.EQ;
     var readType = isReadWrite
@@ -2173,50 +2187,14 @@ void _f(bool/*?*/ x, bool/*?*/ y) {
     return AssignmentTargetInfo(readType, writeType);
   }
 
-  _FixBuilder _createFixBuilder(AstNode scope) {
+  FixBuilder _createFixBuilder(AstNode scope) {
     var unit = scope.thisOrAncestorOfType<CompilationUnit>();
     var definingLibrary = unit.declaredElement.library;
-    return _FixBuilder(scope, unit, testSource, decoratedClassHierarchy,
-        typeProvider, typeSystem, variables, definingLibrary);
-  }
-}
-
-class _FixBuilder extends FixBuilder {
-  final AstNode scope;
-
-  final CompilationUnit unit;
-
-  final Map<AstNode, NodeChange> changes = {};
-
-  final Map<AstNode, Set<Problem>> problems = {};
-
-  _FixBuilder(
-      this.scope,
-      this.unit,
-      Source source,
-      DecoratedClassHierarchy decoratedClassHierarchy,
-      TypeProvider typeProvider,
-      TypeSystemImpl typeSystem,
-      Variables variables,
-      LibraryElement definingLibrary)
-      : super(source, decoratedClassHierarchy, typeProvider, typeSystem,
-            variables, definingLibrary);
-
-  @override
-  void addChange(AstNode node, NodeChange change) {
-    if (!_isInScope(node)) return;
-    expect(changes, isNot(contains(node)));
-    changes[node] = change;
+    return FixBuilder(testSource, decoratedClassHierarchy, typeProvider,
+        typeSystem, variables, definingLibrary);
   }
 
-  @override
-  void addProblem(AstNode node, Problem problem) {
-    if (!_isInScope(node)) return;
-    var newlyAdded = (problems[node] ??= {}).add(problem);
-    expect(newlyAdded, true);
-  }
-
-  bool _isInScope(AstNode node) {
+  bool _isInScope(AstNode node, AstNode scope) {
     return node
             .thisOrAncestorMatching((ancestor) => identical(ancestor, scope)) !=
         null;
