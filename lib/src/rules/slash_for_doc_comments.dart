@@ -64,6 +64,7 @@ class SlashForDocComments extends LintRule implements NodeLintRule {
     registry.addFieldDeclaration(this, visitor);
     registry.addFunctionDeclaration(this, visitor);
     registry.addFunctionTypeAlias(this, visitor);
+    registry.addGenericTypeAlias(this, visitor);
     registry.addLibraryDirective(this, visitor);
     registry.addMethodDeclaration(this, visitor);
     registry.addMixinDeclaration(this, visitor);
@@ -124,6 +125,11 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
+    checkComment(node.documentationComment);
+  }
+
+  @override
+  void visitGenericTypeAlias(GenericTypeAlias node) {
     checkComment(node.documentationComment);
   }
 

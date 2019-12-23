@@ -33,6 +33,9 @@ enum G {
 /** f */ //LINT
 typedef bool F();
 
+/** f */ //LINT
+typedef F2 = bool Function();
+
 /** z */ //LINT
 z() => null;
 
