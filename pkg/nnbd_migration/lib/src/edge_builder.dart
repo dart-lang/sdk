@@ -239,17 +239,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       decoratedBaseType = _variables.decoratedElementType(baseElement);
     }
     if (substitution != null) {
-      DartType elementType;
-      if (element is MethodElement) {
-        elementType = element.type;
-      } else if (element is ConstructorElement) {
-        elementType = element.type;
-      } else if (element is PropertyAccessorElement) {
-        elementType = element.type;
-      } else {
-        throw element.runtimeType; // TODO(paulberry)
-      }
-      return decoratedBaseType.substitute(substitution, elementType);
+      return decoratedBaseType.substitute(substitution);
     } else {
       return decoratedBaseType;
     }

@@ -3680,6 +3680,27 @@ void g(C c, int j) {
         assertEdge(nullable_j.node, inSet(pointsToNever), hard: true));
   }
 
+  test_methodInvocation_promoted_in_new_flow_analysis() async {
+    await analyze('''
+class C<T> {
+  void f(T t) {}
+}
+void g(C<num> c, int i) {
+  if (c is! C<int>) {
+    return;
+  }
+
+  c.f(i/*check*/);
+}
+''');
+
+    // Mostly here to check DecoratedType's assertions, but here are some edge
+    // checks anyways.
+    var nullable_i = decoratedTypeAnnotation('int i').node;
+    var nullable_t = decoratedTypeAnnotation('T t').node;
+    assertEdge(nullable_i, substitutionNode(anyNode, nullable_t), hard: false);
+  }
+
   test_methodInvocation_resolves_to_getter() async {
     await analyze('''
 abstract class C {
