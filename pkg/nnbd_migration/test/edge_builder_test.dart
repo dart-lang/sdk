@@ -5257,6 +5257,16 @@ int g() => 1;
     // No assertions; just checking that it doesn't crash.
   }
 
+  test_return_from_async_null() async {
+    await analyze('''
+Future<int> f() async {
+  return null;
+}
+''');
+    assertEdge(inSet(alwaysPlus), decoratedTypeAnnotation('int>').node,
+        hard: false);
+  }
+
   test_return_function_type_simple() async {
     await analyze('''
 int/*1*/ Function() f(int/*2*/ Function() x) => x;
