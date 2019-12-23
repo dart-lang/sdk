@@ -198,6 +198,10 @@ class DartAssistKind {
       'dart.assist.convert.ifElseToConditional',
       30,
       "Replace 'if-else' with conditional ('c ? x : y')");
+  static const REPLACE_WITH_VAR = AssistKind(
+      'dart.assist.convert.replaceWithVar',
+      30,
+      "Replace type annotation with 'var'");
   static const SORT_CHILD_PROPERTY_LAST = AssistKind(
       'dart.assist.sort.child.properties.last',
       30,

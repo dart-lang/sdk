@@ -24,6 +24,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
@@ -142,6 +143,9 @@ class AssistProcessor extends BaseProcessor {
     await _addProposal_reparentFlutterList();
     await _addProposal_replaceConditionalWithIfElse();
     await _addProposal_replaceIfElseWithConditional();
+    if (!_containsErrorCode({LintNames.omit_local_variable_types})) {
+      await _addProposal_replaceWithVar();
+    }
     if (!_containsErrorCode(
       {LintNames.sort_child_properties_last},
     )) {
@@ -2829,6 +2833,56 @@ class AssistProcessor extends BaseProcessor {
       });
       _addAssistFromBuilder(
           changeBuilder, DartAssistKind.REPLACE_IF_ELSE_WITH_CONDITIONAL);
+    }
+  }
+
+  Future<void> _addProposal_replaceWithVar() async {
+    /// Return `true` if the type in the [node] can be replaced with `var`.
+    bool canConvertVariableDeclarationList(VariableDeclarationList node) {
+      final staticType = node?.type?.type;
+      if (staticType == null || staticType.isDynamic) {
+        return false;
+      }
+      for (final child in node.variables) {
+        var initializer = child.initializer;
+        if (initializer == null || initializer.staticType != staticType) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    /// Return `true` if the given node can be replaced with `var`.
+    bool canReplaceWithVar() {
+      var parent = node.parent;
+      while (parent != null) {
+        if (parent is VariableDeclarationStatement) {
+          return canConvertVariableDeclarationList(parent.variables);
+        } else if (parent is ForPartsWithDeclarations) {
+          return canConvertVariableDeclarationList(parent.variables);
+        } else if (parent is ForEachPartsWithDeclaration) {
+          final loopVariableType = parent.loopVariable.type;
+          final staticType = loopVariableType?.type;
+          if (staticType == null || staticType.isDynamic) {
+            return false;
+          }
+          final iterableType = parent.iterable.staticType;
+          if (iterableType is InterfaceTypeImpl) {
+            var foo = iterableType.asInstanceOf(typeProvider.iterableElement);
+            if (foo?.typeArguments?.first == staticType) {
+              return true;
+            }
+          }
+          return false;
+        }
+        parent = parent.parent;
+      }
+      return false;
+    }
+
+    if (canReplaceWithVar()) {
+      var changeBuilder = await createBuilder_replaceWithVar();
+      _addAssistFromBuilder(changeBuilder, DartAssistKind.REPLACE_WITH_VAR);
     }
   }
 

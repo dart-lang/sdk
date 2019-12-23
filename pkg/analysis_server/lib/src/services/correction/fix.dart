@@ -361,6 +361,8 @@ class DartFixKind {
       "Replace the '.' with a '?.' in the invocation");
   static const REPLACE_WITH_TEAR_OFF = FixKind(
       'REPLACE_WITH_TEAR_OFF', 50, "Replace function literal with tear-off");
+  static const REPLACE_WITH_VAR =
+      FixKind('REPLACE_WITH_VAR', 50, "Replace type annotation with 'var'");
   static const SORT_CHILD_PROPERTY_LAST = FixKind('SORT_CHILD_PROPERTY_LAST',
       50, "Move child property to end of arguments");
   static const UPDATE_SDK_CONSTRAINTS =

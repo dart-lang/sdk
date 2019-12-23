@@ -31,6 +31,7 @@ class LintNames {
   static const String non_constant_identifier_names =
       'non_constant_identifier_names';
   static const String null_closures = 'null_closures';
+  static const String omit_local_variable_types = 'omit_local_variable_types';
   static const String prefer_collection_literals = 'prefer_collection_literals';
   static const String prefer_conditional_assignment =
       'prefer_conditional_assignment';

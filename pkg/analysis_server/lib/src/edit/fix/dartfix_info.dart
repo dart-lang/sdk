@@ -70,6 +70,7 @@ a message is displayed and the class is not converted to a mixin.''',
   LintFixInfo.emptyConstructorBodies,
   LintFixInfo.noDuplicateCaseValues,
   LintFixInfo.nullClosures,
+  LintFixInfo.omitLocalVariableTypes,
   LintFixInfo.preferConditionalAssignment,
   LintFixInfo.preferEqualForDefaultValues,
   LintFixInfo.preferFinalFields,
@@ -211,7 +212,6 @@ class LintFixInfo extends DartFixInfo {
   // avoid_types_as_parameter_names
   // camel_case_extensions
   // library_names
-  // omit_local_variable_types
   // prefer_adjacent_string_concatenation
   // prefer_collection_literals
   // prefer_contains
@@ -293,6 +293,10 @@ will be converted to
   [1, 3, 5].firstWhere((e) => e.isOdd, orElse: () => null);''',
     isPedantic: true,
   );
+
+  static final omitLocalVariableTypes = LintFixInfo('omit_local_variable_types',
+      DartFixKind.REPLACE_WITH_VAR, "Replace the type annotation with 'var'",
+      isPedantic: true);
 
   static final preferConditionalAssignment = LintFixInfo(
       'prefer_conditional_assignment',

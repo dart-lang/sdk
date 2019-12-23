@@ -1191,6 +1191,75 @@ abstract class BaseProcessor {
     return changeBuilder;
   }
 
+  Future<ChangeBuilder> createBuilder_replaceWithVar() async {
+    final TypeAnnotation type = node.thisOrAncestorOfType<TypeAnnotation>();
+    if (type == null) {
+      return null;
+    }
+    var parent = type.parent;
+    var grandparent = parent?.parent;
+    if (parent is VariableDeclarationList &&
+        (grandparent is VariableDeclarationStatement ||
+            grandparent is ForPartsWithDeclarations)) {
+      var variables = parent.variables;
+      if (variables.length != 1) {
+        return null;
+      }
+      var initializer = variables[0].initializer;
+      String typeArgumentsText;
+      int typeArgumentsOffset;
+      if (type is NamedType && type.typeArguments != null) {
+        if (initializer is TypedLiteral) {
+          if (initializer.typeArguments == null) {
+            typeArgumentsText = utils.getNodeText(type.typeArguments);
+            typeArgumentsOffset = initializer.offset;
+          }
+        } else if (initializer is InstanceCreationExpression) {
+          if (initializer.constructorName.type.typeArguments == null) {
+            typeArgumentsText = utils.getNodeText(type.typeArguments);
+            typeArgumentsOffset = initializer.constructorName.type.end;
+          }
+        }
+      }
+      if (initializer is SetOrMapLiteral &&
+          initializer.typeArguments == null &&
+          typeArgumentsText == null) {
+        // TODO(brianwilkerson) This is to prevent the fix from converting a
+        //  valid map or set literal into an ambiguous literal. We could apply
+        //  this in more places by examining the elements of the collection.
+        return null;
+      }
+      var changeBuilder = _newDartChangeBuilder();
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+        builder.addSimpleReplacement(range.node(type), 'var');
+        if (typeArgumentsText != null) {
+          builder.addSimpleInsertion(typeArgumentsOffset, typeArgumentsText);
+        }
+      });
+      return changeBuilder;
+    } else if (parent is DeclaredIdentifier &&
+        grandparent is ForEachPartsWithDeclaration) {
+      String typeArgumentsText;
+      int typeArgumentsOffset;
+      if (type is NamedType && type.typeArguments != null) {
+        var iterable = grandparent.iterable;
+        if (iterable is TypedLiteral && iterable.typeArguments == null) {
+          typeArgumentsText = utils.getNodeText(type.typeArguments);
+          typeArgumentsOffset = iterable.offset;
+        }
+      }
+      var changeBuilder = _newDartChangeBuilder();
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+        builder.addSimpleReplacement(range.node(type), 'var');
+        if (typeArgumentsText != null) {
+          builder.addSimpleInsertion(typeArgumentsOffset, typeArgumentsText);
+        }
+      });
+      return changeBuilder;
+    }
+    return null;
+  }
+
   Future<ChangeBuilder> createBuilder_sortChildPropertyLast() async {
     NamedExpression childProp = flutter.findNamedExpression(node, 'child');
     if (childProp == null) {
