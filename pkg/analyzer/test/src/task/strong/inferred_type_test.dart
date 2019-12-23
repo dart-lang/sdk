@@ -2118,20 +2118,6 @@ main() {
 ''');
   }
 
-  test_genericMethods_inferJSBuiltin() async {
-    // TODO(jmesserly): we should change how this inference works.
-    // For now this test will cover what we use.
-    await checkFileElement('''
-import /*error:IMPORT_INTERNAL_LIBRARY*/'dart:_foreign_helper' show JS;
-main() {
-  String x = /*error:INVALID_ASSIGNMENT*/JS('int', '42');
-  var y = JS('String', '"hello"');
-  y = "world";
-  y = /*error:INVALID_ASSIGNMENT*/42;
-}
-''');
-  }
-
   test_genericMethods_IterableAndFuture() async {
     await checkFileElement('''
 import 'dart:async';

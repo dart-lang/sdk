@@ -811,8 +811,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   void visitMethodInvocation(MethodInvocation node) {
     _inferGenericInvocationExpression(node);
     // Record static return type of the static element.
-    bool inferredStaticType = _inferMethodInvocationObject(node) ||
-        _inferMethodInvocationInlineJS(node);
+    bool inferredStaticType = _inferMethodInvocationObject(node);
 
     if (!inferredStaticType) {
       DartType staticStaticType = _computeInvokeReturnType(
@@ -1434,35 +1433,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   }
 
   /**
-   * If the given element name can be mapped to the name of a class defined within the given
-   * library, return the type specified by the argument.
-   *
-   * @param library the library in which the specified type would be defined
-   * @param elementName the name of the element for which a type is being sought
-   * @param nameMap an optional map used to map the element name to a type name
-   * @return the type specified by the first argument in the argument list
-   */
-  DartType _getElementNameAsType(
-      LibraryElement library, String elementName, Map<String, String> nameMap) {
-    if (elementName != null) {
-      if (nameMap != null) {
-        elementName = nameMap[elementName.toLowerCase()];
-      }
-      ClassElement returnType = library.getType(elementName);
-      if (returnType != null) {
-        return returnType.instantiate(
-          typeArguments: List.filled(
-            returnType.typeParameters.length,
-            _dynamicType,
-          ),
-          nullabilitySuffix: _noneOrStarSuffix,
-        );
-      }
-    }
-    return null;
-  }
-
-  /**
    * Gets the definite type of expression, which can be used in cases where
    * the most precise type is desired, for example computing the least upper
    * bound.
@@ -1473,24 +1443,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   DartType _getExpressionType(Expression expr, {bool read = false}) =>
       getExpressionType(expr, _typeSystem, _typeProvider,
           read: read, elementTypeProvider: _elementTypeProvider);
-
-  /**
-   * If the given argument list contains at least one argument, and if the argument is a simple
-   * string literal, return the String value of the argument.
-   *
-   * @param argumentList the list of arguments from which a string value is to be extracted
-   * @return the string specified by the first argument in the argument list
-   */
-  String _getFirstArgumentAsString(ArgumentList argumentList) {
-    NodeList<Expression> arguments = argumentList.arguments;
-    if (arguments.isNotEmpty) {
-      Expression argument = arguments[0];
-      if (argument is SimpleStringLiteral) {
-        return argument.value;
-      }
-    }
-    return null;
-  }
 
   /**
    * Return the static type of the given [expression].
@@ -1814,38 +1766,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
         );
       }
     }
-  }
-
-  /**
-   * Given a method invocation [node], attempt to infer a better
-   * type for the result if it is an inline JS invocation
-   */
-  // TODO(jmesserly): we should remove this, and infer type from context, rather
-  // than try to understand the dart2js type grammar.
-  // (At the very least, we should lookup type name in the correct scope.)
-  bool _inferMethodInvocationInlineJS(MethodInvocation node) {
-    Element e = node.methodName.staticElement;
-    if (e is FunctionElement &&
-        e.library.source.uri.toString() == 'dart:_foreign_helper' &&
-        e.name == 'JS') {
-      String typeStr = _getFirstArgumentAsString(node.argumentList);
-      DartType returnType;
-      if (typeStr == '-dynamic') {
-        returnType = _typeProvider.bottomType;
-      } else {
-        var components = typeStr.split('|');
-        if (components.remove('Null')) {
-          typeStr = components.join('|');
-        }
-        returnType = _getElementNameAsType(
-            _typeProvider.objectType.element.library, typeStr, null);
-      }
-      if (returnType != null) {
-        _recordStaticType(node, returnType);
-        return true;
-      }
-    }
-    return false;
   }
 
   /**
