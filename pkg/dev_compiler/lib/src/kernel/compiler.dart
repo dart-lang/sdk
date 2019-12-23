@@ -2619,6 +2619,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       //   the nullability is meaningless (ie. class A extends B) where B is the
       //   InterfaceType.
       // * The InterfaceType is the Null type.
+      // * Non-null constructor calls.
       return typeRep;
     }
 
@@ -2981,8 +2982,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       }
 
       var returnType = _expectedReturnType(function, _coreTypes.iterableClass);
-      var syncIterable = _emitType(
-          InterfaceType(_syncIterableClass, Nullability.legacy, [returnType]));
+      var syncIterable = _emitInterfaceType(
+          InterfaceType(_syncIterableClass, Nullability.legacy, [returnType]),
+          emitNullability: false);
       return js.call('new #.new(#)', [syncIterable, gen]);
     }
 
@@ -2997,9 +2999,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       var gen = emitGeneratorFn((_) => [_asyncStarController]);
 
       var returnType = _expectedReturnType(function, _coreTypes.streamClass);
-      var asyncStarImpl =
-          InterfaceType(_asyncStarImplClass, Nullability.legacy, [returnType]);
-      return js.call('new #.new(#).stream', [_emitType(asyncStarImpl), gen]);
+      var asyncStarImpl = _emitInterfaceType(
+          InterfaceType(_asyncStarImplClass, Nullability.legacy, [returnType]),
+          emitNullability: false);
+      return js.call('new #.new(#).stream', [asyncStarImpl, gen]);
     }
 
     assert(function.asyncMarker == AsyncMarker.Async);
@@ -4942,18 +4945,24 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   js_ast.Expression _emitMapImplType(InterfaceType type, {bool identity}) {
     var typeArgs = type.typeArguments;
-    if (typeArgs.isEmpty) return _emitType(type);
+    if (typeArgs.isEmpty) {
+      return _emitInterfaceType(type, emitNullability: false);
+    }
     identity ??= _typeRep.isPrimitive(typeArgs[0]);
     var c = identity ? _identityHashMapImplClass : _linkedHashMapImplClass;
-    return _emitType(InterfaceType(c, Nullability.legacy, typeArgs));
+    return _emitInterfaceType(InterfaceType(c, Nullability.legacy, typeArgs),
+        emitNullability: false);
   }
 
   js_ast.Expression _emitSetImplType(InterfaceType type, {bool identity}) {
     var typeArgs = type.typeArguments;
-    if (typeArgs.isEmpty) return _emitType(type);
+    if (typeArgs.isEmpty) {
+      return _emitInterfaceType(type, emitNullability: false);
+    }
     identity ??= _typeRep.isPrimitive(typeArgs[0]);
     var c = identity ? _identityHashSetImplClass : _linkedHashSetImplClass;
-    return _emitType(InterfaceType(c, Nullability.legacy, typeArgs));
+    return _emitInterfaceType(InterfaceType(c, Nullability.legacy, typeArgs),
+        emitNullability: false);
   }
 
   js_ast.Expression _emitObjectLiteral(Arguments node) {
@@ -5177,9 +5186,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     if (itemType == const DynamicType()) return list;
 
     // Call `new JSArray<E>.of(list)`
-    var arrayType =
-        InterfaceType(_jsArrayClass, Nullability.legacy, [itemType]);
-    return js.call('#.of(#)', [_emitType(arrayType), list]);
+    var arrayType = _emitInterfaceType(
+        InterfaceType(_jsArrayClass, Nullability.legacy, [itemType]),
+        emitNullability: false);
+    return js.call('#.of(#)', [arrayType, list]);
   }
 
   js_ast.Expression _emitConstList(
@@ -5194,8 +5204,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Expression visitSetLiteral(SetLiteral node) {
     // TODO(markzipan): remove const check when we use front-end const eval
     if (!node.isConst) {
-      var setType = visitInterfaceType(InterfaceType(
-          _linkedHashSetClass, Nullability.legacy, [node.typeArgument]));
+      var setType = _emitInterfaceType(
+          InterfaceType(
+              _linkedHashSetClass, Nullability.legacy, [node.typeArgument]),
+          emitNullability: false);
       if (node.expressions.isEmpty) {
         return js.call('#.new()', [setType]);
       }
