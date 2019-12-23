@@ -217,9 +217,10 @@ lsp.CompletionItem declarationToCompletionItem(
       supportedCompletionItemKinds, declaration.kind);
 
   var relevanceBoost = 0;
-  if (declaration.relevanceTags != null)
+  if (declaration.relevanceTags != null) {
     declaration.relevanceTags.forEach(
         (t) => relevanceBoost = max(relevanceBoost, tagBoosts[t] ?? 0));
+  }
   final itemRelevance = includedSuggestionSet.relevance + relevanceBoost;
 
   // Because we potentially send thousands of these items, we should minimise

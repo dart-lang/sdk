@@ -102,15 +102,13 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
     }
   }
 
-  /**
-   * Return the [ImportDirective] node that corresponds to the [element].
-   */
+  /// Return the [ImportDirective] node that corresponds to the [element].
   ImportDirective _findNode() {
     LibraryElement library = element.library;
     String path = library.source.fullName;
     CompilationUnit unit = session.getParsedUnit(path).unit;
     int index = library.imports.indexOf(element);
-    return unit.directives.where((d) => d is ImportDirective).toList()[index];
+    return unit.directives.whereType<ImportDirective>().elementAt(index);
   }
 
   /**

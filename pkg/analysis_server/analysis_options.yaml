@@ -14,9 +14,7 @@ analyzer:
     # enabled according to the value provided.
     avoid_init_to_null: ignore
     avoid_return_types_on_setters: ignore
-    curly_braces_in_flow_control_structures: ignore
     empty_catches: ignore
-    prefer_iterable_wheretype: ignore
     prefer_contains: ignore
     # TODO(srawlins): At the time of writing, 2400 violations in lib/. The fix
     # is mechanical, via `dartfmt --fix-doc-comments`, but not worth the churn
