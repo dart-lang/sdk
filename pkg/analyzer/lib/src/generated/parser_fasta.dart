@@ -372,6 +372,7 @@ class _Parser2 extends ParserAdapter {
   /**
    * The source being parsed.
    */
+  @override
   final Source _source;
 
   @override
@@ -394,5 +395,6 @@ class _Parser2 extends ParserAdapter {
       : super(null, errorReporter, fileUri, featureSet,
             allowNativeClause: allowNativeClause);
 
+  @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

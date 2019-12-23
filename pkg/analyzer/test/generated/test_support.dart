@@ -393,6 +393,7 @@ class TestSource extends Source {
 
   TestSource([this._name = '/test.dart', this._contents]);
 
+  @override
   TimestampedData<String> get contents {
     readCount++;
     if (generateExceptionOnRead) {
@@ -402,14 +403,18 @@ class TestSource extends Source {
     return TimestampedData<String>(0, _contents);
   }
 
+  @override
   String get encoding => _name;
 
+  @override
   String get fullName {
     return _name;
   }
 
+  @override
   int get hashCode => 0;
 
+  @override
   bool get isInSystemLibrary {
     return false;
   }
@@ -418,16 +423,20 @@ class TestSource extends Source {
   int get modificationStamp =>
       generateExceptionOnRead ? -1 : _modificationStamp;
 
+  @override
   String get shortName {
     return _name;
   }
 
+  @override
   Uri get uri => Uri.file(_name);
 
+  @override
   UriKind get uriKind {
     throw UnsupportedError('uriKind');
   }
 
+  @override
   bool operator ==(Object other) {
     if (other is TestSource) {
       return other._name == _name;
@@ -435,6 +444,7 @@ class TestSource extends Source {
     return false;
   }
 
+  @override
   bool exists() => exists2;
 
   Source resolve(String uri) {
@@ -452,13 +462,16 @@ class TestSource extends Source {
 }
 
 class TestSourceWithUri extends TestSource {
+  @override
   final Uri uri;
 
   TestSourceWithUri(String path, this.uri, [String content])
       : super(path, content);
 
+  @override
   String get encoding => uri.toString();
 
+  @override
   UriKind get uriKind {
     if (uri == null) {
       return UriKind.FILE_URI;
@@ -470,6 +483,7 @@ class TestSourceWithUri extends TestSource {
     return UriKind.FILE_URI;
   }
 
+  @override
   bool operator ==(Object other) {
     if (other is TestSource) {
       return other.uri == uri;

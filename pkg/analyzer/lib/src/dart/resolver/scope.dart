@@ -957,6 +957,7 @@ class PrefixedNamespace implements Namespace {
    * A table mapping names that are defined in this namespace to the element
    * representing the thing declared with that name.
    */
+  @override
   final Map<String, Element> _definedNames;
 
   /**

@@ -23,6 +23,7 @@ typedef ContentCacheVisitor = void Function(
 /// Base class providing implementations for the methods in [Source] that don't
 /// require filesystem access.
 abstract class BasicSource extends Source {
+  @override
   final Uri uri;
 
   BasicSource(this.uri);

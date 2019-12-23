@@ -924,5 +924,6 @@ class _MockLintRule implements LintRule {
   @override
   String get name => _name;
 
+  @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

@@ -26,6 +26,7 @@ class LintCode extends ErrorCode {
    * pattern (we know how to identify a lint even if we don't know the specific
    * subclass the lint's code is defined in.
    */
+  @override
   String get uniqueName => "LintCode.$name";
 
   @override

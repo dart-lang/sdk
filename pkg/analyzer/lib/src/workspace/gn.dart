@@ -44,6 +44,7 @@ class GnWorkspace extends Workspace {
    * The absolute workspace root path (the directory containing the `.jiri_root`
    * directory).
    */
+  @override
   final String root;
 
   /**
@@ -301,8 +302,10 @@ class GnWorkspace extends Workspace {
  * a given package in a GnWorkspace.
  */
 class GnWorkspacePackage extends WorkspacePackage {
+  @override
   final String root;
 
+  @override
   final GnWorkspace workspace;
 
   GnWorkspacePackage(this.root, this.workspace);

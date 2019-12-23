@@ -177,6 +177,7 @@ class AstBuilder extends StackListener {
     errorReporter.reportMessage(message, charOffset, length);
   }
 
+  @override
   void beginCascade(Token token) {
     assert(optional('..', token) || optional('?..', token));
     debugEvent("beginCascade");
@@ -253,10 +254,12 @@ class AstBuilder extends StackListener {
   @override
   void beginFormalParameterDefaultValueExpression() {}
 
+  @override
   void beginIfControlFlow(Token ifToken) {
     push(ifToken);
   }
 
+  @override
   void beginLiteralString(Token literalString) {
     assert(identical(literalString.kind, STRING_TOKEN));
     debugEvent("beginLiteralString");
@@ -312,6 +315,7 @@ class AstBuilder extends StackListener {
     push(_Modifiers()..abstractKeyword = abstractToken);
   }
 
+  @override
   void beginTopLevelMethod(Token lastConsumed, Token externalToken) {
     push(_Modifiers()..externalKeyword = externalToken);
   }
@@ -526,6 +530,7 @@ class AstBuilder extends StackListener {
 
   void doPropertyGet() {}
 
+  @override
   void endArguments(int count, Token leftParenthesis, Token rightParenthesis) {
     assert(optional('(', leftParenthesis));
     assert(optional(')', rightParenthesis));
@@ -573,6 +578,7 @@ class AstBuilder extends StackListener {
     }
   }
 
+  @override
   void endAwaitExpression(Token awaitKeyword, Token endToken) {
     assert(optional('await', awaitKeyword));
     debugEvent("AwaitExpression");
@@ -611,6 +617,7 @@ class AstBuilder extends StackListener {
     }
   }
 
+  @override
   void endBlock(
       int count, Token leftBracket, Token rightBracket, BlockKind blockKind) {
     assert(optional('{', leftBracket));
@@ -621,6 +628,7 @@ class AstBuilder extends StackListener {
     push(ast.block(leftBracket, statements, rightBracket));
   }
 
+  @override
   void endBlockFunctionBody(int count, Token leftBracket, Token rightBracket) {
     assert(optional('{', leftBracket));
     assert(optional('}', rightBracket));
@@ -639,6 +647,7 @@ class AstBuilder extends StackListener {
     }
   }
 
+  @override
   void endCascade() {
     debugEvent("Cascade");
 
@@ -950,6 +959,7 @@ class AstBuilder extends StackListener {
     push(unit);
   }
 
+  @override
   void endConditionalExpression(Token question, Token colon) {
     assert(optional('?', question));
     assert(optional(':', colon));
@@ -964,6 +974,7 @@ class AstBuilder extends StackListener {
         condition, question, thenExpression, colon, elseExpression));
   }
 
+  @override
   void endConditionalUri(Token ifKeyword, Token leftParen, Token equalSign) {
     assert(optional('if', ifKeyword));
     assert(optionalOrNull('(', leftParen));
@@ -1064,6 +1075,7 @@ class AstBuilder extends StackListener {
         leftBrace, constants, leftBrace?.endGroup));
   }
 
+  @override
   void endExport(Token exportKeyword, Token semicolon) {
     assert(optional('export', exportKeyword));
     assert(optional(';', semicolon));
@@ -1192,6 +1204,7 @@ class AstBuilder extends StackListener {
         getOrSet, beginToken, beginParam, beginInitializers, endToken);
   }
 
+  @override
   void endFieldInitializer(Token assignment, Token token) {
     assert(optional('=', assignment));
     debugEvent("FieldInitializer");
@@ -1360,6 +1373,7 @@ class AstBuilder extends StackListener {
     debugEvent("FormalParameterDefaultValueExpression");
   }
 
+  @override
   void endFormalParameters(
       int count, Token leftParen, Token rightParen, MemberKind kind) {
     assert(optional('(', leftParen));
@@ -1526,6 +1540,7 @@ class AstBuilder extends StackListener {
         ifToken, condition, thenElement, elseToken, elseElement);
   }
 
+  @override
   void endIfStatement(Token ifToken, Token elseToken) {
     assert(optional('if', ifToken));
     assert(optionalOrNull('else', elseToken));
@@ -1578,6 +1593,7 @@ class AstBuilder extends StackListener {
         semicolon));
   }
 
+  @override
   void endInitializedIdentifier(Token nameToken) {
     debugEvent("InitializedIdentifier");
 
@@ -1601,6 +1617,7 @@ class AstBuilder extends StackListener {
     push(variable);
   }
 
+  @override
   void endInitializers(int count, Token colon, Token endToken) {
     assert(optional(':', colon));
     debugEvent("Initializers");
@@ -1626,6 +1643,7 @@ class AstBuilder extends StackListener {
     push(initializers);
   }
 
+  @override
   void endInvalidAwaitExpression(
       Token awaitKeyword, Token endToken, MessageCode errorCode) {
     debugEvent("InvalidAwaitExpression");
@@ -1694,6 +1712,7 @@ class AstBuilder extends StackListener {
     }
   }
 
+  @override
   void endLiteralSymbol(Token hashToken, int tokenCount) {
     assert(optional('#', hashToken));
     debugEvent("LiteralSymbol");
@@ -1916,6 +1935,7 @@ class AstBuilder extends StackListener {
     push(ast.expressionStatement(expression, semicolon));
   }
 
+  @override
   void endReturnStatement(
       bool hasExpression, Token returnKeyword, Token semicolon) {
     assert(optional('return', returnKeyword));
@@ -2043,6 +2063,7 @@ class AstBuilder extends StackListener {
     debugEvent("TopLevelDeclaration");
   }
 
+  @override
   void endTopLevelFields(
       Token staticToken,
       Token covariantToken,
@@ -2068,6 +2089,7 @@ class AstBuilder extends StackListener {
         comment, metadata, variableList, semicolon));
   }
 
+  @override
   void endTopLevelMethod(Token beginToken, Token getOrSet, Token endToken) {
     // TODO(paulberry): set up scopes properly to resolve parameters and type
     // variables.
@@ -2095,6 +2117,7 @@ class AstBuilder extends StackListener {
         ast.functionExpression(typeParameters, parameters, body)));
   }
 
+  @override
   void endTryStatement(int catchCount, Token tryKeyword, Token finallyKeyword) {
     assert(optional('try', tryKeyword));
     assert(optionalOrNull('finally', finallyKeyword));
@@ -2163,6 +2186,7 @@ class AstBuilder extends StackListener {
     push(ast.typeParameterList(beginToken, typeParameters, endToken));
   }
 
+  @override
   void endVariableInitializer(Token assignmentOperator) {
     assert(optionalOrNull('=', assignmentOperator));
     debugEvent("VariableInitializer");
@@ -2224,6 +2248,7 @@ class AstBuilder extends StackListener {
     push(ast.yieldStatement(yieldToken, starToken, expression, semicolon));
   }
 
+  @override
   void handleAsOperator(Token asOperator) {
     assert(optional('as', asOperator));
     debugEvent("AsOperator");
@@ -2233,6 +2258,7 @@ class AstBuilder extends StackListener {
     push(ast.asExpression(expression, asOperator, type));
   }
 
+  @override
   void handleAssignmentExpression(Token token) {
     assert(token.type.isAssignmentOperator);
     debugEvent("AssignmentExpression");
@@ -2253,6 +2279,7 @@ class AstBuilder extends StackListener {
     }
   }
 
+  @override
   void handleAsyncModifier(Token asyncToken, Token starToken) {
     assert(asyncToken == null ||
         optional('async', asyncToken) ||
@@ -2286,6 +2313,7 @@ class AstBuilder extends StackListener {
         <Label>[], caseKeyword, expression, colon, <Statement>[]));
   }
 
+  @override
   void handleCatchBlock(Token onKeyword, Token catchKeyword, Token comma) {
     assert(optionalOrNull('on', onKeyword));
     assert(optionalOrNull('catch', catchKeyword));
@@ -2465,6 +2493,7 @@ class AstBuilder extends StackListener {
     translateErrorToken(token, errorReporter.reportScannerError);
   }
 
+  @override
   void handleExpressionFunctionBody(Token arrowToken, Token semicolon) {
     assert(optional('=>', arrowToken) || optional('=', arrowToken));
     assert(optionalOrNull(';', semicolon));
@@ -2481,6 +2510,7 @@ class AstBuilder extends StackListener {
     }
   }
 
+  @override
   void handleExpressionStatement(Token semicolon) {
     assert(optional(';', semicolon));
     debugEvent("ExpressionStatement");
@@ -2616,12 +2646,14 @@ class AstBuilder extends StackListener {
     push(forLoopParts);
   }
 
+  @override
   void handleFormalParameterWithoutValue(Token token) {
     debugEvent("FormalParameterWithoutValue");
 
     push(NullValue.ParameterDefaultValue);
   }
 
+  @override
   void handleIdentifier(Token token, IdentifierContext context) {
     assert(token.isKeywordOrIdentifier);
     debugEvent("handleIdentifier");
@@ -2672,6 +2704,7 @@ class AstBuilder extends StackListener {
     push(deferredKeyword ?? NullValue.Deferred);
   }
 
+  @override
   void handleIndexedExpression(Token leftBracket, Token rightBracket) {
     assert(optional('[', leftBracket) ||
         (enableNonNullable && optional('?.[', leftBracket)));
@@ -2731,6 +2764,7 @@ class AstBuilder extends StackListener {
         operatorKeyword, ast.simpleIdentifier(token, isDeclaration: true)));
   }
 
+  @override
   void handleInvalidTopLevelBlock(Token token) {
     // TODO(danrubel): Consider improved recovery by adding this block
     // as part of a synthetic top level function.
@@ -2759,6 +2793,7 @@ class AstBuilder extends StackListener {
     }
   }
 
+  @override
   void handleIsOperator(Token isOperator, Token not) {
     assert(optional('is', isOperator));
     assert(optionalOrNull('!', not));
@@ -2778,6 +2813,7 @@ class AstBuilder extends StackListener {
     push(ast.label(name, colon));
   }
 
+  @override
   void handleLiteralBool(Token token) {
     bool value = identical(token.stringValue, "true");
     assert(value || identical(token.stringValue, "false"));
@@ -2786,6 +2822,7 @@ class AstBuilder extends StackListener {
     push(ast.booleanLiteral(token, value));
   }
 
+  @override
   void handleLiteralDouble(Token token) {
     assert(token.type == TokenType.DOUBLE);
     debugEvent("LiteralDouble");
@@ -2793,6 +2830,7 @@ class AstBuilder extends StackListener {
     push(ast.doubleLiteral(token, double.parse(token.lexeme)));
   }
 
+  @override
   void handleLiteralInt(Token token) {
     assert(identical(token.kind, INT_TOKEN) ||
         identical(token.kind, HEXADECIMAL_TOKEN));
@@ -2801,6 +2839,7 @@ class AstBuilder extends StackListener {
     push(ast.integerLiteral(token, int.tryParse(token.lexeme)));
   }
 
+  @override
   void handleLiteralList(
       int count, Token leftBracket, Token constKeyword, Token rightBracket) {
     assert(optional('[', leftBracket));
@@ -2836,6 +2875,7 @@ class AstBuilder extends StackListener {
     }
   }
 
+  @override
   void handleLiteralMapEntry(Token colon, Token endToken) {
     assert(optional(':', colon));
     debugEvent("LiteralMapEntry");
@@ -2845,6 +2885,7 @@ class AstBuilder extends StackListener {
     push(ast.mapLiteralEntry(key, colon, value));
   }
 
+  @override
   void handleLiteralNull(Token token) {
     assert(optional('null', token));
     debugEvent("LiteralNull");
@@ -2989,6 +3030,7 @@ class AstBuilder extends StackListener {
     }
   }
 
+  @override
   void handleNamedArgument(Token colon) {
     assert(optional(':', colon));
     debugEvent("NamedArgument");
@@ -3043,6 +3085,7 @@ class AstBuilder extends StackListener {
     push(_makeVariableDeclaration(name, null, null));
   }
 
+  @override
   void handleNoInitializers() {
     debugEvent("NoInitializers");
 
@@ -3066,6 +3109,7 @@ class AstBuilder extends StackListener {
     debugEvent("NoVariableInitializer");
   }
 
+  @override
   void handleOperator(Token operatorToken) {
     assert(operatorToken.isUserDefinableOperator);
     debugEvent("Operator");
@@ -3215,6 +3259,7 @@ class AstBuilder extends StackListener {
     }
   }
 
+  @override
   void handleScript(Token token) {
     assert(identical(token.type, TokenType.SCRIPT_TAG));
     debugEvent("Script");
@@ -3222,6 +3267,7 @@ class AstBuilder extends StackListener {
     scriptTag = ast.scriptTag(token);
   }
 
+  @override
   void handleSend(Token beginToken, Token endToken) {
     debugEvent("Send");
 
@@ -3250,6 +3296,7 @@ class AstBuilder extends StackListener {
     }
   }
 
+  @override
   void handleStringJuxtaposition(int literalCount) {
     debugEvent("StringJuxtaposition");
 
@@ -3272,6 +3319,7 @@ class AstBuilder extends StackListener {
     push(ast.superExpression(superKeyword));
   }
 
+  @override
   void handleSymbolVoid(Token voidKeyword) {
     assert(optional('void', voidKeyword));
     debugEvent("SymbolVoid");
@@ -3287,6 +3335,7 @@ class AstBuilder extends StackListener {
     push(ast.thisExpression(thisKeyword));
   }
 
+  @override
   void handleThrowExpression(Token throwToken, Token endToken) {
     assert(optional('throw', throwToken));
     debugEvent("ThrowExpression");
@@ -3313,6 +3362,7 @@ class AstBuilder extends StackListener {
     push(popTypedList(count, List<TypeParameter>(count)));
   }
 
+  @override
   void handleUnaryPostfixAssignmentExpression(Token operator) {
     assert(operator.type.isUnaryPostfixOperator);
     debugEvent("UnaryPostfixAssignmentExpression");
@@ -3326,6 +3376,7 @@ class AstBuilder extends StackListener {
     push(ast.postfixExpression(expression, operator));
   }
 
+  @override
   void handleUnaryPrefixAssignmentExpression(Token operator) {
     assert(operator.type.isUnaryPrefixOperator);
     debugEvent("UnaryPrefixAssignmentExpression");
@@ -3339,6 +3390,7 @@ class AstBuilder extends StackListener {
     push(ast.prefixExpression(operator, expression));
   }
 
+  @override
   void handleUnaryPrefixExpression(Token operator) {
     assert(operator.type.isUnaryPrefixOperator);
     debugEvent("UnaryPrefixExpression");
@@ -3346,6 +3398,7 @@ class AstBuilder extends StackListener {
     push(ast.prefixExpression(operator, pop()));
   }
 
+  @override
   void handleValuedFormalParameter(Token equals, Token token) {
     assert(optional('=', equals) || optional(':', equals));
     debugEvent("ValuedFormalParameter");
@@ -3568,6 +3621,7 @@ class _InvalidCollectionElement implements CollectionElement {
 
   const _InvalidCollectionElement._();
 
+  @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 

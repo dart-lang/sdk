@@ -91,6 +91,7 @@ class TestAnalysisContext implements AnalysisContext {
     return _typeSystemNonNullableByDefault;
   }
 
+  @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
   void _setLibraryTypeSystem(LibraryElementImpl libraryElement) {
@@ -108,6 +109,7 @@ class _MockSource implements Source {
   @override
   String get encoding => '$uri';
 
+  @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
@@ -118,5 +120,6 @@ class _MockSourceFactory implements SourceFactory {
     return _MockSource(uri);
   }
 
+  @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

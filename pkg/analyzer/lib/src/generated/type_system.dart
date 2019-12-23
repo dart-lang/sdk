@@ -80,6 +80,7 @@ class Dart2TypeSystem extends TypeSystem {
   /// This option is experimental and subject to change.
   final bool strictInference;
 
+  @override
   final TypeProvider typeProvider;
 
   /// The cached instance of `Object?`.
@@ -353,6 +354,7 @@ class Dart2TypeSystem extends TypeSystem {
    * https://github.com/dart-lang/language
    * See `resources/type-system/upper-lower-bounds.md`
    */
+  @override
   DartType getLeastUpperBound(DartType T1, DartType T2) {
     // UP(T, T) = T
     if (identical(T1, T2)) {
@@ -703,6 +705,7 @@ class Dart2TypeSystem extends TypeSystem {
    * TODO(scheglov) Move this method to elements for classes, typedefs,
    * and generic functions; compute lazily and cache.
    */
+  @override
   DartType instantiateToBounds(DartType type,
       {List<bool> hasError, Map<TypeParameterElement, DartType> knownTypes}) {
     List<TypeParameterElement> typeFormals = typeFormalsAsElements(type);
@@ -721,6 +724,7 @@ class Dart2TypeSystem extends TypeSystem {
    *
    * https://github.com/dart-lang/sdk/issues/27526#issuecomment-260021397
    */
+  @override
   List<DartType> instantiateTypeFormalsToBounds(
       List<TypeParameterElement> typeFormals,
       {List<bool> hasError,
@@ -3705,6 +3709,7 @@ abstract class TypeSystem implements public.TypeSystem {
    * Return `true` if the [leftType] is assignable to the [rightType] (that is,
    * if leftType <==> rightType).
    */
+  @override
   bool isAssignableTo(DartType leftType, DartType rightType);
 
   /**
@@ -3775,6 +3780,7 @@ abstract class TypeSystem implements public.TypeSystem {
    * Return `true` if the [leftType] is a subtype of the [rightType] (that is,
    * if leftType <: rightType).
    */
+  @override
   bool isSubtypeOf(DartType leftType, DartType rightType);
 
   @override
@@ -3847,6 +3853,7 @@ abstract class TypeSystem implements public.TypeSystem {
 
   /// Returns a non-nullable version of [type].  This is equivalent to the
   /// operation `NonNull` defined in the spec.
+  @override
   DartType promoteToNonNull(DartType type) {
     if (type.isDartCoreNull) return NeverTypeImpl.instance;
 

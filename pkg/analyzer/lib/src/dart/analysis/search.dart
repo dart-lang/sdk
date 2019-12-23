@@ -659,6 +659,7 @@ class _ContainingElementFinder extends GeneralizingElementVisitor {
 
   _ContainingElementFinder(this.offset);
 
+  @override
   visitElement(Element element) {
     if (element is ElementImpl) {
       if (element.codeOffset != null &&

@@ -41,6 +41,7 @@ class AbstractTypeTest with ElementsTypesMixin {
   TestAnalysisContext _analysisContext;
   TypeProvider _typeProvider;
 
+  @override
   TypeProvider get typeProvider => _typeProvider;
 
   void setUp() {

@@ -28,16 +28,20 @@ class MockContextBuilder implements ContextBuilder {
   Map<Packages, Map<String, List<Folder>>> packagesToMapMap =
       <Packages, Map<String, List<Folder>>>{};
 
+  @override
   Map<String, List<Folder>> convertPackagesToMap(Packages packages) =>
       packagesToMapMap[packages];
 
+  @override
   Packages createPackageMap(String rootDirectoryPath) =>
       packagesMapMap[rootDirectoryPath];
 
+  @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class MockPackages implements Packages {
+  @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 

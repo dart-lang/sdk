@@ -235,6 +235,7 @@ class ImportFindElement extends _FindElementBase {
 
   PrefixElement get prefix => import.prefix;
 
+  @override
   CompilationUnitElement get unitElement {
     return importedLibrary.definingCompilationUnit;
   }

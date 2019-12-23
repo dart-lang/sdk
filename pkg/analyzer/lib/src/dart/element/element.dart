@@ -1276,6 +1276,7 @@ class ClassElementImpl extends AbstractClassElementImpl
 /// A concrete implementation of a [CompilationUnitElement].
 class CompilationUnitElementImpl extends UriReferencedElementImpl
     implements CompilationUnitElement {
+  @override
   final LinkedUnitContext linkedContext;
 
   /// The source that corresponds to this compilation unit.
@@ -1290,6 +1291,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   /// This is the same as the source of the containing [LibraryElement],
   /// except that it does not require the containing [LibraryElement] to be
   /// computed.
+  @override
   Source librarySource;
 
   /// A list containing all of the top-level accessors (getters and setters)
@@ -1961,6 +1963,7 @@ abstract class ConstFieldElementImpl_ofEnum extends ConstFieldElementImpl {
     assert(false);
   }
 
+  @override
   set type(DartType type) {
     assert(false);
   }
@@ -2181,6 +2184,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
     );
   }
 
+  @override
   set returnType(DartType returnType) {
     assert(false);
   }
@@ -2197,6 +2201,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
     );
   }
 
+  @override
   set type(FunctionType type) {
     assert(false);
   }
@@ -2452,6 +2457,7 @@ class ElementAnnotationImpl implements ElementAnnotation {
 
   /// The element representing the field, variable, or constructor being used as
   /// an annotation.
+  @override
   Element element;
 
   /// The compilation unit in which this annotation appears.
@@ -2601,6 +2607,7 @@ class ElementAnnotationImpl implements ElementAnnotation {
       element.library?.name == _META_LIB_NAME;
 
   /// Get the library containing this annotation.
+  @override
   Source get librarySource => compilationUnit.librarySource;
 
   @override
@@ -2632,6 +2639,7 @@ abstract class ElementImpl implements Element {
 
   static int _NEXT_ID = 0;
 
+  @override
   final int id = _NEXT_ID++;
 
   /// The enclosing element of this element, or `null` if this element is at the
@@ -2984,6 +2992,7 @@ abstract class ElementImpl implements Element {
     return _cachedLocation;
   }
 
+  @override
   List<ElementAnnotation> get metadata {
     if (linkedNode != null) {
       if (_metadata != null) return _metadata;
@@ -3946,6 +3955,7 @@ class ExportElementImpl extends UriReferencedElementImpl
   @override
   ElementKind get kind => ElementKind.EXPORT;
 
+  @override
   set metadata(List<ElementAnnotation> metadata) {
     super.metadata = metadata;
   }
@@ -4623,6 +4633,7 @@ class GenericFunctionTypeElementImpl extends ElementImpl
 
   /// Set the return type defined by this function type element to the given
   /// [returnType].
+  @override
   set returnType(DartType returnType) {
     _returnType = _checkElementOfType(returnType);
   }
@@ -5131,6 +5142,7 @@ class ImportElementImpl extends UriReferencedElementImpl
   @override
   ElementKind get kind => ElementKind.IMPORT;
 
+  @override
   set metadata(List<ElementAnnotation> metadata) {
     super.metadata = metadata;
   }
@@ -5150,6 +5162,7 @@ class ImportElementImpl extends UriReferencedElementImpl
         NamespaceBuilder().createImportNamespaceForDirective(this);
   }
 
+  @override
   PrefixElement get prefix {
     if (_prefix != null) return _prefix;
 
@@ -5275,6 +5288,7 @@ class LabelElementImpl extends ElementImpl implements LabelElement {
 /// A concrete implementation of a [LibraryElement].
 class LibraryElementImpl extends ElementImpl implements LibraryElement {
   /// The analysis context in which this library is defined.
+  @override
   final AnalysisContext context;
 
   @override
@@ -5287,6 +5301,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   TypeSystemImpl typeSystem;
 
   /// The context of the defining unit.
+  @override
   final LinkedUnitContext linkedContext;
 
   @override
@@ -5398,6 +5413,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     return super.documentationComment;
   }
 
+  @override
   FunctionElement get entryPoint {
     if (_entryPoint != null) return _entryPoint;
 
@@ -6193,6 +6209,7 @@ class Modifier implements Comparable<Modifier> {
 /// A concrete implementation of a [MultiplyDefinedElement].
 class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   /// The unique integer identifier of this element.
+  @override
   final int id = ElementImpl._NEXT_ID++;
 
   /// The analysis context in which the multiply defined elements are defined.
@@ -6666,6 +6683,7 @@ class ParameterElementImpl extends VariableElementImpl
 
   /// Set the function representing this variable's initializer to the given
   /// [function].
+  @override
   set initializer(FunctionElement function) {
     super.initializer = function;
   }
@@ -7069,6 +7087,7 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
 class PropertyAccessorElementImpl extends ExecutableElementImpl
     implements PropertyAccessorElement {
   /// The variable associated with this accessor.
+  @override
   PropertyInducingElement variable;
 
   /// Initialize a newly created property accessor element to have the given
@@ -7311,11 +7330,13 @@ class PropertyAccessorElementImpl_ImplicitSetter
 abstract class PropertyInducingElementImpl
     extends NonParameterVariableElementImpl implements PropertyInducingElement {
   /// The getter associated with this element.
+  @override
   PropertyAccessorElement getter;
 
   /// The setter associated with this element, or `null` if the element is
   /// effectively `final` and therefore does not have a setter associated with
   /// it.
+  @override
   PropertyAccessorElement setter;
 
   /// Initialize a newly created synthetic element to have the given [name] and
@@ -7525,6 +7546,7 @@ class TypeParameterElementImpl extends ElementImpl
     isSynthetic = true;
   }
 
+  @override
   DartType get bound {
     if (_bound != null) return _bound;
 
@@ -7734,6 +7756,7 @@ abstract class UriReferencedElementImpl extends ElementImpl
       : super.forSerialized(enclosingElement);
 
   /// Return the URI that is specified by this directive.
+  @override
   String get uri => _uri;
 
   /// Set the URI that is specified by this directive to be the given [uri].
@@ -7743,6 +7766,7 @@ abstract class UriReferencedElementImpl extends ElementImpl
 
   /// Return the offset of the character immediately following the last
   /// character of this node's URI, or `-1` if this node is synthetic.
+  @override
   int get uriEnd => _uriEnd;
 
   /// Set the offset of the character immediately following the last character
@@ -7753,6 +7777,7 @@ abstract class UriReferencedElementImpl extends ElementImpl
 
   /// Return the offset of the URI in the file, or `-1` if this node is
   /// synthetic.
+  @override
   int get uriOffset => _uriOffset;
 
   /// Set the offset of the URI in the file to the given [offset].

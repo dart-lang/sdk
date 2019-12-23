@@ -169,6 +169,7 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
     return ResultState.VALID;
   }
 
+  @override
   TypeProvider get typeProvider => element.typeProvider;
 
   @override

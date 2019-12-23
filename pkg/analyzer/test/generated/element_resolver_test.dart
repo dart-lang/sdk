@@ -322,6 +322,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
    */
   ElementResolver _resolver;
 
+  @override
   TypeProvider get typeProvider => _typeProvider;
 
   void fail_visitExportDirective_combinators() {

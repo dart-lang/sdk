@@ -220,6 +220,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
    */
   TypeProvider _typeProvider;
 
+  @override
   TypeProvider get typeProvider => _definingLibrary.typeProvider;
 
   /**

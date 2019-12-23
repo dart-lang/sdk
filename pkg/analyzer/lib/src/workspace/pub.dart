@@ -65,8 +65,10 @@ class PubWorkspace extends SimpleWorkspace {
 /// understand whether arbitrary file paths represent libraries declared within
 /// a given package in a [PubWorkspace].
 class PubWorkspacePackage extends WorkspacePackage {
+  @override
   final String root;
 
+  @override
   final PubWorkspace workspace;
 
   PubWorkspacePackage(this.root, this.workspace);

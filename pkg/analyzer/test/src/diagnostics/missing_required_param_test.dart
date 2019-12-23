@@ -19,6 +19,7 @@ main() {
 
 @reflectiveTest
 class MissingRequiredParamTest extends DriverResolutionTest with PackageMixin {
+  @override
   setUp() {
     super.setUp();
     addMetaPackage();

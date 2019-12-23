@@ -208,6 +208,7 @@ class AnalysisErrorInfoImpl implements AnalysisErrorInfo {
 
   /// The line information associated with the errors, or `null` if there are no
   /// errors.
+  @override
   final LineInfo lineInfo;
 
   /// Initialize an newly created error info with the given [errors] and
@@ -467,6 +468,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   /// `true`.
   List<Linter> _lintRules;
 
+  @override
   Map<String, List<String>> patchPaths = {};
 
   @override
@@ -606,6 +608,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   set enableAsync(bool enable) {}
 
   /// A flag indicating whether interface libraries are to be supported (DEP 40).
+  @override
   bool get enableConditionalDirectives => true;
 
   @deprecated

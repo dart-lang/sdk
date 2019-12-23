@@ -565,6 +565,7 @@ class FolderBasedDartSdk extends AbstractDartSdk {
    * This method should not be used outside of `analyzer` and `analyzer_cli`
    * packages.
    */
+  @override
   PackageBundle getSummarySdkBundle() {
     String rootPath = directory.path;
     String name = 'strong.sum';

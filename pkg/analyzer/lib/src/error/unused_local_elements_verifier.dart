@@ -222,6 +222,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor {
       this._inheritanceManager, LibraryElement library)
       : _libraryUri = library.source.uri;
 
+  @override
   visitSimpleIdentifier(SimpleIdentifier node) {
     if (node.inDeclarationContext()) {
       var element = node.staticElement;

@@ -1902,6 +1902,7 @@ class FastaParserTestCase
   @override
   bool allowNativeClause = false;
 
+  @override
   set enableOptionalNewAndConst(bool enable) {
     // ignored
   }
@@ -2026,6 +2027,7 @@ class FastaParserTestCase
     return cascadeExpression.cascadeSections.first;
   }
 
+  @override
   CommentReference parseCommentReference(
       String referenceSource, int sourceOffset) {
     String padding = ' '.padLeft(sourceOffset - 4, 'a');
@@ -3266,6 +3268,7 @@ class ParserProxy extends analyzer.ParserAdapter {
     fastaParser.listener = _eventListener;
   }
 
+  @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
   @override
@@ -3283,6 +3286,7 @@ class ParserProxy extends analyzer.ParserAdapter {
     return _run('ClassOrMixinBody', () => super.parseClassMember(className));
   }
 
+  @override
   List<Combinator> parseCombinators() {
     return _run('Import', () => super.parseCombinators());
   }

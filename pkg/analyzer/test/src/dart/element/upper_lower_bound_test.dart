@@ -2075,6 +2075,7 @@ actual: $resultStr
 
 @reflectiveTest
 class _BoundsTestBase with ElementsTypesMixin {
+  @override
   TypeProvider typeProvider;
 
   TypeSystemImpl typeSystem;

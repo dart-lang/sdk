@@ -46,6 +46,7 @@ class Glob {
   @override
   int get hashCode => _pattern.hashCode;
 
+  @override
   bool operator ==(other) => other is Glob && _pattern == other._pattern;
 
   /**

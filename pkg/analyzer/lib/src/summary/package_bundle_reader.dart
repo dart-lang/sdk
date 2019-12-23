@@ -36,6 +36,7 @@ include the same source.
   ''';
   }
 
+  @override
   String toString() => _message;
 
   /// Given a set of file paths, find a common prefix.

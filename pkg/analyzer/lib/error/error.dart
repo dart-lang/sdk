@@ -933,6 +933,7 @@ class AnalysisError implements Diagnostic {
     _contextMessages = contextMessages;
   }
 
+  @override
   List<DiagnosticMessage> get contextMessages => _contextMessages;
 
   /**

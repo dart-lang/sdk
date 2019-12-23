@@ -55,8 +55,6 @@ class AnalysisDriverResolutionTest extends BaseAnalysisDriverTest
 
   InterfaceType get doubleType => typeProvider.doubleType;
 
-  DynamicTypeImpl get dynamicType => DynamicTypeImpl.instance;
-
   ClassElement get futureElement => typeProvider.futureElement;
 
   ClassElement get intElement => typeProvider.intType.element;
@@ -73,6 +71,7 @@ class AnalysisDriverResolutionTest extends BaseAnalysisDriverTest
 
   ClassElement get stringElement => typeProvider.stringType.element;
 
+  @override
   TypeProvider get typeProvider => result.typeProvider;
 
   void assertDeclaredVariableType(SimpleIdentifier node, String expected) {
@@ -8798,6 +8797,7 @@ main() {
  */
 @reflectiveTest
 class DriverResolutionWithExperimentsTest extends BaseAnalysisDriverTest {
+  @override
   AnalysisOptionsImpl createAnalysisOptions() => super.createAnalysisOptions()
     ..enabledExperiments = _computeActiveExperimentNames();
 

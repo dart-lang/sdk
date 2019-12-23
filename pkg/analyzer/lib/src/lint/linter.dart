@@ -472,6 +472,7 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
       this.details,
       this.maturity = Maturity.stable});
 
+  @override
   LintCode get lintCode => _LintCode(name, description);
 
   @override

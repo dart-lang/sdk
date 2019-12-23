@@ -37,6 +37,7 @@ class ExpectedResult {
   ExpectedResult(this.enclosingElement, this.kind, this.offset, this.length,
       {this.isResolved = true, this.isQualified = false});
 
+  @override
   bool operator ==(Object result) {
     return result is SearchResult &&
         result.kind == this.kind &&

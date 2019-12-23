@@ -52,6 +52,7 @@ abstract class AbstractLinterContextTest extends DriverResolutionTest {
 
 @reflectiveTest
 class CanBeConstConstructorTest extends AbstractLinterContextTest {
+  @override
   LinterContextImpl context;
 
   void assertCanBeConstConstructor(String search, bool expectedResult) {

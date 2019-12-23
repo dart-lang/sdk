@@ -217,5 +217,6 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
 }
 
 class _AnalysisSessionForLinking implements AnalysisSession {
+  @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

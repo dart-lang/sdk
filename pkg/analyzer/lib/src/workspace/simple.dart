@@ -21,6 +21,7 @@ abstract class SimpleWorkspace extends Workspace {
   final ResourceProvider provider;
 
   /// The absolute workspace root path.
+  @override
   final String root;
 
   final ContextBuilder _builder;

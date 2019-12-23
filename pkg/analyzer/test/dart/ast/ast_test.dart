@@ -1517,10 +1517,12 @@ class _AssignmentKind {
 
   const _AssignmentKind(this.name, this.ordinal);
 
+  @override
   int get hashCode => ordinal;
 
   int compareTo(_AssignmentKind other) => ordinal - other.ordinal;
 
+  @override
   String toString() => name;
 }
 
@@ -1549,9 +1551,11 @@ class _WrapperKind {
 
   const _WrapperKind(this.name, this.ordinal);
 
+  @override
   int get hashCode => ordinal;
 
   int compareTo(_WrapperKind other) => ordinal - other.ordinal;
 
+  @override
   String toString() => name;
 }

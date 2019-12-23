@@ -35,19 +35,24 @@ abstract class BaseTest extends FileSystemTestSupport {
 
   /// The absolute path to the temporary directory in which all of the tests are
   /// to work.
+  @override
   String tempPath;
 
   /// A path to a folder within the [tempPath] that can be used by tests.
+  @override
   String defaultFolderPath;
 
   /// A path to a file within the [defaultFolderPath] that can be used by tests.
+  @override
   String defaultFilePath;
 
   /// The content used for the file at the [defaultFilePath] if it is created
   /// and no other content is provided.
+  @override
   String get defaultFileContent => 'a';
 
   /// Return the resource provider to be used by the tests.
+  @override
   MemoryResourceProvider get provider => _provider ??= createProvider();
 
   /// Create the resource provider to be used by the tests. Subclasses can
@@ -55,6 +60,7 @@ abstract class BaseTest extends FileSystemTestSupport {
   /// used.
   MemoryResourceProvider createProvider() => MemoryResourceProvider();
 
+  @override
   File getFile({@required bool exists, String content, String filePath}) {
     if (filePath == null) {
       filePath = defaultFilePath;
@@ -67,6 +73,7 @@ abstract class BaseTest extends FileSystemTestSupport {
     return provider.getFile(filePath);
   }
 
+  @override
   Folder getFolder({@required bool exists, String folderPath}) {
     if (folderPath == null) {
       folderPath = defaultFolderPath;
@@ -102,6 +109,7 @@ class MemoryFileSourceExistingTest extends BaseTest {
   String sourcePath;
   Source source;
 
+  @override
   setUp() {
     super.setUp();
     File file = getFile(exists: true);
@@ -181,6 +189,7 @@ class MemoryFileSourceNotExistingTest extends BaseTest {
   String sourcePath;
   Source source;
 
+  @override
   setUp() {
     super.setUp();
     File file = getFile(exists: false);

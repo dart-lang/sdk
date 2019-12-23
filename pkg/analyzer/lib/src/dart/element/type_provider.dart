@@ -189,6 +189,7 @@ class TypeProviderImpl extends TypeProviderBase {
     return _futureDynamicType;
   }
 
+  @override
   ClassElement get futureElement {
     return _futureElement ??= _getClassElement(_asyncLibrary, 'Future');
   }
@@ -203,6 +204,7 @@ class TypeProviderImpl extends TypeProviderBase {
     return _futureNullType;
   }
 
+  @override
   ClassElement get futureOrElement {
     return _futureOrElement ??= _getClassElement(_asyncLibrary, 'FutureOr');
   }

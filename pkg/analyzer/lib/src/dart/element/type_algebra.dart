@@ -276,16 +276,19 @@ class _FreshTypeParametersSubstitutor extends _TypeSubstitutor {
     return freshElements;
   }
 
+  @override
   DartType lookup(TypeParameterElement parameter, bool upperBound) {
     return substitution[parameter];
   }
 }
 
 class _MapSubstitution extends MapSubstitution {
+  @override
   final Map<TypeParameterElement, DartType> map;
 
   _MapSubstitution(this.map);
 
+  @override
   DartType getSubstitute(TypeParameterElement parameter, bool upperBound) {
     return map[parameter];
   }
@@ -302,6 +305,7 @@ class _NullSubstitution extends MapSubstitution {
   @override
   Map<TypeParameterElement, DartType> get map => const {};
 
+  @override
   DartType getSubstitute(TypeParameterElement parameter, bool upperBound) {
     return TypeParameterTypeImpl(parameter);
   }
@@ -322,6 +326,7 @@ class _TopSubstitutor extends _TypeSubstitutor {
     }
   }
 
+  @override
   List<TypeParameterElement> freshTypeParameters(
       List<TypeParameterElement> parameters) {
     throw 'Create a fresh environment first';
@@ -585,6 +590,7 @@ class _UpperLowerBoundsSubstitution extends Substitution {
 
   _UpperLowerBoundsSubstitution(this.upper, this.lower);
 
+  @override
   DartType getSubstitute(TypeParameterElement parameter, bool upperBound) {
     return upperBound ? upper[parameter] : lower[parameter];
   }

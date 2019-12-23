@@ -21,6 +21,7 @@ main() {
 
 @reflectiveTest
 class InterfaceLeastUpperBoundHelperTest with ElementsTypesMixin {
+  @override
   final TestTypeProvider typeProvider = TestTypeProvider();
 
   void test_computeLongestInheritancePathToObject_multipleInterfacePaths() {

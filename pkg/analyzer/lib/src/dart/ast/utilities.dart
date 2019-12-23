@@ -3145,6 +3145,7 @@ class NodeReplacer implements AstVisitor<bool> {
     return visitNode(node);
   }
 
+  @override
   bool visitExtensionDeclaration(ExtensionDeclaration node) {
     if (identical(node.documentationComment, _oldNode)) {
       node.documentationComment = _newNode as Comment;

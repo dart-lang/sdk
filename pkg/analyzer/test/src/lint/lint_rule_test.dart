@@ -72,11 +72,13 @@ class CollectingReporter extends ErrorReporter {
   CollectingReporter(AnalysisErrorListener listener, Source source)
       : super(listener, source, isNonNullableByDefault: false);
 
+  @override
   void reportErrorForElement(ErrorCode errorCode, Element element,
       [List<Object> arguments]) {
     code = errorCode;
   }
 
+  @override
   void reportErrorForNode(ErrorCode errorCode, AstNode node,
       [List<Object> arguments]) {
     code = errorCode;

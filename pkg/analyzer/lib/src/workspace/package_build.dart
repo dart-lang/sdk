@@ -156,6 +156,7 @@ class PackageBuildWorkspace extends Workspace {
    * The absolute workspace root path (the directory containing the `.dart_tool`
    * directory).
    */
+  @override
   final String root;
 
   /**
@@ -333,8 +334,10 @@ class PackageBuildWorkspace extends Workspace {
  * a given package in a PackageBuildWorkspace.
  */
 class PackageBuildWorkspacePackage extends WorkspacePackage {
+  @override
   final String root;
 
+  @override
   final PackageBuildWorkspace workspace;
 
   PackageBuildWorkspacePackage(this.root, this.workspace);

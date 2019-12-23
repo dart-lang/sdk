@@ -20,8 +20,12 @@ class NamedTypeBuilder extends TypeBuilder {
   /// Indicates whether the library is opted into NNBD.
   final bool isNNBD;
 
+  @override
   final Element element;
+
   final List<DartType> arguments;
+
+  @override
   final NullabilitySuffix nullabilitySuffix;
 
   /// The node for which this builder is created, or `null` if the builder

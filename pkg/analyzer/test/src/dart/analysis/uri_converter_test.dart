@@ -83,8 +83,13 @@ class DriverBasedUriConverterTest with ResourceProviderMixin {
 }
 
 class MockAnalysisDriver implements AnalysisDriver {
+  @override
   ResourceProvider resourceProvider;
+
+  @override
   SourceFactory sourceFactory;
+
+  @override
   ContextRoot contextRoot;
 
   @override

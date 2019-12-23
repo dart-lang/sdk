@@ -26,6 +26,7 @@ VoidTypeImpl get voidType => VoidTypeImpl.instance;
 
 @reflectiveTest
 class FunctionTypeTest with ElementsTypesMixin {
+  @override
   final TypeProvider typeProvider = TestTypeProvider();
 
   InterfaceType get intType => typeProvider.intType;
@@ -500,6 +501,7 @@ class MockCompilationUnitElement implements CompilationUnitElement {
   @override
   get enclosingElement => const MockLibraryElement();
 
+  @override
   noSuchMethod(Invocation invocation) {
     return super.noSuchMethod(invocation);
   }
@@ -531,6 +533,7 @@ class MockFunctionTypedElement implements FunctionTypedElement {
       this.enclosingElement = const MockCompilationUnitElement()})
       : returnType = null;
 
+  @override
   noSuchMethod(Invocation invocation) {
     return super.noSuchMethod(invocation);
   }
@@ -542,6 +545,7 @@ class MockLibraryElement implements LibraryElement {
   @override
   get enclosingElement => null;
 
+  @override
   noSuchMethod(Invocation invocation) {
     return super.noSuchMethod(invocation);
   }

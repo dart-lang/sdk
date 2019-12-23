@@ -42,6 +42,7 @@ class InSummarySourceTest {
 }
 
 class MockSummaryDataStore implements SummaryDataStore {
+  @override
   final Map<String, String> uriToSummaryPath;
 
   MockSummaryDataStore(this.uriToSummaryPath);
@@ -50,5 +51,6 @@ class MockSummaryDataStore implements SummaryDataStore {
     return MockSummaryDataStore(uriToSummary);
   }
 
+  @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

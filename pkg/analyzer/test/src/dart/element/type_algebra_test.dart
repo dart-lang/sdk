@@ -382,6 +382,7 @@ class SubstituteWithNullabilityTest extends _Base {
 }
 
 class _Base with ElementsTypesMixin {
+  @override
   final TestTypeProvider typeProvider;
 
   final bool useNnbd;

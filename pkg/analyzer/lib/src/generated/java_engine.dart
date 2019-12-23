@@ -268,8 +268,13 @@ class StringUtilities {
 
 class UUID {
   static const int __nextId = 0;
+
   final String id;
+
   UUID(this.id);
+
+  @override
   String toString() => id;
+
   static UUID randomUUID() => UUID((__nextId).toString());
 }

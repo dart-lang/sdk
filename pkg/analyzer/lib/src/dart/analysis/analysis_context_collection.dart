@@ -16,6 +16,7 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
   final ResourceProvider resourceProvider;
 
   /// The list of analysis contexts.
+  @override
   final List<AnalysisContext> contexts = [];
 
   /// Initialize a newly created analysis context manager.

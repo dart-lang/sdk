@@ -3944,6 +3944,7 @@ class StringUtilitiesTest {
 }
 
 class _ExceptionThrowingVisitor extends SimpleAstVisitor {
+  @override
   visitNullLiteral(NullLiteral node) {
     throw ArgumentError('');
   }

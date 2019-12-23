@@ -6113,6 +6113,7 @@ class _SubtypingCompoundTestBase extends _SubtypingTestBase {
 
 @reflectiveTest
 class _SubtypingTestBase with ElementsTypesMixin {
+  @override
   TypeProvider typeProvider;
 
   TypeSystemImpl typeSystem;

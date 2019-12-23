@@ -396,6 +396,7 @@ class _ErrorExpectation {
         e.errorCode.name == typeName;
   }
 
+  @override
   String toString() => '@$offset ${severity.displayName}: [$typeName]';
 
   static _ErrorExpectation parse(int offset, String descriptor) {

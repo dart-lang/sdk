@@ -129,6 +129,7 @@ class B {}''');
 
 @reflectiveTest
 class ResolutionCopierTest with ElementsTypesMixin {
+  @override
   final TypeProvider typeProvider = TestTypeProvider();
 
   void test_visitAdjacentStrings() {

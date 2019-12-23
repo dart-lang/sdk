@@ -1090,6 +1090,7 @@ abstract class FieldElement
   /// Return `true` if this element is a static element. A static element is an
   /// element that is not associated with a particular instance, but rather with
   /// an entire library or class.
+  @override
   bool get isStatic;
 }
 

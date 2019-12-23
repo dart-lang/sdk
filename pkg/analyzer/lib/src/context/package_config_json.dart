@@ -19,6 +19,7 @@ class LanguageVersion {
 
   const LanguageVersion(this.major, this.minor);
 
+  @override
   bool operator ==(Object other) {
     return other is LanguageVersion &&
         other.major == major &&

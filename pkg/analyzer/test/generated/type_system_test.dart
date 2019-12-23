@@ -472,6 +472,7 @@ actual: $resultStr
 class ConstraintMatchingTest extends AbstractTypeSystemTest {
   TypeParameterType T;
 
+  @override
   void setUp() {
     super.setUp();
     T = typeParameterTypeStar(
@@ -3352,5 +3353,6 @@ class _MockSource implements Source {
   @override
   String get encoding => '$uri';
 
+  @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

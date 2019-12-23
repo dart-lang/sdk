@@ -2077,6 +2077,7 @@ abstract class TypeImpl implements DartType {
   /**
    * The name of this type, or `null` if the type does not have a name.
    */
+  @override
   final String name;
 
   /**

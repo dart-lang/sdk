@@ -76,6 +76,7 @@ abstract class AbstractRecoveryTest extends FastaParserTestCase {
  * they differ in any important ways.
  */
 class ResultComparator extends AstComparator {
+  @override
   bool failDifferentLength(List first, List second) {
     StringBuffer buffer = StringBuffer();
     buffer.writeln('Expected a list of length ${second.length}');

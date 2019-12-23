@@ -553,6 +553,7 @@ class Name {
   final bool isPublic;
 
   /// The cached, pre-computed hash code.
+  @override
   final int hashCode;
 
   factory Name(Uri libraryUri, String name) {

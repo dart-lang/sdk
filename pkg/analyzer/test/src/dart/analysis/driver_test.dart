@@ -3115,6 +3115,7 @@ var v = 0
 
 @reflectiveTest
 class CacheAllAnalysisDriverTest extends BaseAnalysisDriverTest {
+  @override
   bool get disableChangesAndCacheAllResults => true;
 
   test_addFile() async {

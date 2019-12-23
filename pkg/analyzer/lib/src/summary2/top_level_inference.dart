@@ -215,6 +215,7 @@ class _FunctionElementForLink_Initializer implements FunctionElementImpl {
     return LazyAst.getType(_node._node);
   }
 
+  @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 

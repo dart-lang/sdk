@@ -37,6 +37,7 @@ abstract class BaseExtensionMethodsTest extends DriverResolutionTest {
 /// resolved correctly.
 @reflectiveTest
 class ExtensionMethodsDeclarationTest extends BaseExtensionMethodsTest {
+  @override
   List<MockSdkLibrary> get additionalMockSdkLibraries => [
         MockSdkLibrary([
           MockSdkLibraryUnit('dart:test1', 'test1/test1.dart', r'''

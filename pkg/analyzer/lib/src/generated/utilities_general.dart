@@ -100,6 +100,7 @@ class JenkinsSmiHash {
   }
 
   /// Finalizes the hash and return the resulting hashcode.
+  @override
   int get hashCode => finish(_hash);
 }
 
@@ -248,6 +249,7 @@ class _PerformanceTagImpl implements PerformanceTag {
     return previous;
   }
 
+  @override
   E makeCurrentWhile<E>(E Function() f) {
     PerformanceTag prevTag = makeCurrent();
     try {
