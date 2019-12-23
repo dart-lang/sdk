@@ -57,6 +57,7 @@ class SlashForDocComments extends LintRule implements NodeLintRule {
     final visitor = _Visitor(this);
     registry.addClassDeclaration(this, visitor);
     registry.addClassTypeAlias(this, visitor);
+    registry.addCompilationUnit(this, visitor);
     registry.addConstructorDeclaration(this, visitor);
     registry.addEnumConstantDeclaration(this, visitor);
     registry.addEnumDeclaration(this, visitor);
@@ -65,7 +66,6 @@ class SlashForDocComments extends LintRule implements NodeLintRule {
     registry.addFunctionDeclaration(this, visitor);
     registry.addFunctionTypeAlias(this, visitor);
     registry.addGenericTypeAlias(this, visitor);
-    registry.addLibraryDirective(this, visitor);
     registry.addMethodDeclaration(this, visitor);
     registry.addMixinDeclaration(this, visitor);
     registry.addTopLevelVariableDeclaration(this, visitor);
@@ -91,6 +91,14 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitClassTypeAlias(ClassTypeAlias node) {
     checkComment(node.documentationComment);
+  }
+
+  @override
+  void visitCompilationUnit(CompilationUnit node) {
+    var directives = node.directives;
+    if (directives.isNotEmpty) {
+      checkComment(directives[0].documentationComment);
+    }
   }
 
   @override
@@ -130,11 +138,6 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitGenericTypeAlias(GenericTypeAlias node) {
-    checkComment(node.documentationComment);
-  }
-
-  @override
-  void visitLibraryDirective(LibraryDirective node) {
     checkComment(node.documentationComment);
   }
 
