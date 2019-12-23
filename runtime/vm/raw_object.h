@@ -279,6 +279,141 @@ class RawObject {
     COMPILE_ASSERT(sizeof(std::atomic<uint32_t>) == sizeof(uint32_t));
   };
 
+#if defined(FAST_HASH_FOR_32_BIT)  // 32 bit platform
+  class HashWasRetrievedBit
+      : public BitField<uint32_t, bool, kHashWasRetrievedBit, 1> {};
+
+  class HasAppendedHashBit
+      : public BitField<uint32_t, bool, kHasAppendedHashBit, 1> {};
+
+  void SetAppendedHashObjectMarkBit(bool value) {
+    ASSERT(HasAppendedHashObject());
+    FromAddr(AppendedHashObjectAddress())
+        ->ptr()
+        ->tags_.UpdateUnsynchronized<OldAndNotMarkedBit>(value);
+  }
+
+  uword AppendedHashObjectAddress() const {
+    ASSERT(HasAppendedHashObject());
+    return reinterpret_cast<uword>(ptr()) - AppendedSize();
+  }
+
+  uword AppendedHashAddress() const {
+    ASSERT(HasAppendedHashObject());
+    return reinterpret_cast<uword>(ptr()) - kWordSize;
+  }
+
+  bool HasAppendedHashObject() const {
+    return HasAppendedHashBit::decode(ptr()->tags_);
+  }
+
+  bool HashWasRetrieved() const {
+    return HashWasRetrievedBit::decode(ptr()->tags_);
+  }
+
+  void SetHashCodeRetrievedBit() const {
+    ASSERT(!HashWasRetrieved());
+    ptr()->tags_.UpdateBool<HashWasRetrievedBit>(true);
+  }
+
+  uint32_t GetHash() const {
+    if (HasAppendedHashObject()) {
+      return GetAppendedHash();
+    }
+    uintptr_t value = reinterpret_cast<uintptr_t>(this) & 0x7FFFFFFF;
+    if (!HashWasRetrieved()) {
+      SetHashCodeRetrievedBit();
+    }
+    return static_cast<uint32_t>(value);
+  }
+
+  uint32_t GetAppendedHash() const {
+    ASSERT(HasAppendedHashObject());
+    return static_cast<uint32_t>(
+        ValueFromRawSmi(*reinterpret_cast<RawSmi**>(AppendedHashAddress())));
+  }
+
+  // Extra size (in bytes) used for storing the hashCode.
+  uint8_t AppendedSize() const {
+    if (HasAppendedHashObject()) {
+      return kObjectAlignment;
+    }
+    return 0;
+  }
+
+  // Extra size (in bytes) required for storing the hashCode if the object is
+  // reallocated to another address.
+  uint8_t ReallocationExtraSize() const {
+    ASSERT(IsHeapObject());
+    if (HasAppendedHashObject() || HashWasRetrieved()) {
+      return kObjectAlignment;
+    }
+    return 0;
+  }
+
+  void InitializeTags(intptr_t class_id, intptr_t size) {
+    uint32_t tags = 0;
+    tags = SizeTag::update(size, tags);
+    tags = ClassIdTag::update(class_id, tags);
+    const bool is_old = IsOldObject();
+    tags = OldBit::update(is_old, tags);
+    tags = OldAndNotMarkedBit::update(is_old, tags);
+    tags = OldAndNotRememberedBit::update(is_old, tags);
+    tags = NewBit::update(!is_old, tags);
+    ptr()->tags_ = tags;
+  }
+
+  void UpdateTagsToHasAppendedHashObject() {
+    ASSERT(HashWasRetrieved() && !HasAppendedHashObject());
+    uint32_t tags = ptr()->tags_;
+    tags = HashWasRetrievedBit::update(false, tags);
+    tags = HasAppendedHashBit::update(true, tags);
+    ptr()->tags_ = tags;
+  }
+
+  void CreateAppendedHashObject(uword addr, uint32_t hash) {
+    memset(reinterpret_cast<void*>(addr), NULL, kObjectAlignment);
+    RawObject* hash_obj = FromAddr(addr);
+    hash_obj->InitializeTags(kAppendedObjectCid, kObjectAlignment);
+    UpdateTagsToHasAppendedHashObject();
+    *reinterpret_cast<RawSmi**>(addr + kWordSize) = ValueToRawSmi(hash);
+  }
+#endif
+
+  intptr_t ReallocationHeapSize() const {
+#if defined(FAST_HASH_FOR_32_BIT)
+    return HeapSize() + ReallocationExtraSize();
+#else
+    return HeapSize();
+#endif
+  }
+
+  void Reallocate(uword new_addr, size_t size) {
+    uword old_addr = reinterpret_cast<uword>(ptr());
+#if defined(FAST_HASH_FOR_32_BIT)
+    uint8_t extra_size = ReallocationExtraSize();
+    if (extra_size > 0) {
+      if (HasAppendedHashObject()) {
+        old_addr -= extra_size;
+        size += extra_size;
+        extra_size = 0;
+      } else {
+        new_addr += extra_size;
+      }
+    }
+#endif
+    ASSERT(IsHeapObject());
+    ASSERT(static_cast<intptr_t>(size) == HeapSize());
+    memmove(reinterpret_cast<void*>(new_addr),
+            reinterpret_cast<void*>(old_addr), size);
+#if defined(FAST_HASH_FOR_32_BIT)
+    if (extra_size > 0) {
+      RawObject* raw_new = FromAddr(new_addr);
+      raw_new->CreateAppendedHashObject(new_addr - extra_size, GetHash());
+    }
+#endif
+  }
+
   bool IsWellFormed() const {
     uword value = reinterpret_cast<uword>(this);
     return (value & kSmiTagMask) == 0 ||
@@ -332,25 +467,47 @@ class RawObject {
     ASSERT(IsOldObject());
     return !ptr()->tags_.Read<OldAndNotMarkedBit>();
   }
+
   void SetMarkBit() {
     ASSERT(IsOldObject());
     ASSERT(!IsMarked());
     ptr()->tags_.UpdateBool<OldAndNotMarkedBit>(false);
+#if defined(FAST_HASH_FOR_32_BIT)
+    if (HasAppendedHashObject()) {
+      SetAppendedHashObjectMarkBit(false);
+    }
+#endif
   }
   void SetMarkBitUnsynchronized() {
     ASSERT(IsOldObject());
     ASSERT(!IsMarked());
     ptr()->tags_.UpdateUnsynchronized<OldAndNotMarkedBit>(false);
+#if defined(FAST_HASH_FOR_32_BIT)
+    if (HasAppendedHashObject()) {
+      SetAppendedHashObjectMarkBit(false);
+    }
+#endif
   }
   void ClearMarkBit() {
     ASSERT(IsOldObject());
     ASSERT(IsMarked());
     ptr()->tags_.UpdateBool<OldAndNotMarkedBit>(true);
+#if defined(FAST_HASH_FOR_32_BIT)
+    if (HasAppendedHashObject()) {
+      SetAppendedHashObjectMarkBit(true);
+    }
+#endif
   }
+
   // Returns false if the bit was already set.
   DART_WARN_UNUSED_RESULT
   bool TryAcquireMarkBit() {
     ASSERT(IsOldObject());
+#if defined(FAST_HASH_FOR_32_BIT)
+    if (HasAppendedHashObject()) {
+      SetAppendedHashObjectMarkBit(false);
+    }
+#endif
     return ptr()->tags_.TryClear<OldAndNotMarkedBit>();
   }
 
