@@ -45,6 +45,12 @@ var D = String;
 /** Z */ //LINT
 class Z = B with C;
 
+/** M1 */ //LINT
+mixin M1 {}
+
+/* meh */ //OK
+mixin M2 {}
+
 /** Ext */ //LINT
 extension Ext on Object {
   /** e */ // LINT
