@@ -201,6 +201,22 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
   }
 
   @override
+  visitEnumDeclaration(EnumDeclaration node) {
+    node.metadata.accept(this);
+    node.name.accept(this);
+    var classElement = node.declaredElement;
+    _variables.recordDecoratedElementType(
+        classElement, DecoratedType(classElement.thisType, _graph.never));
+    for (var item in node.constants) {
+      final node = NullabilityNode.forInferredType();
+      _graph.makeNonNullable(node, EnumValueOrigin(source, item));
+      _variables.recordDecoratedElementType(
+          item.declaredElement, DecoratedType(classElement.thisType, node));
+    }
+    return null;
+  }
+
+  @override
   DecoratedType visitFieldFormalParameter(FieldFormalParameter node) {
     return _handleFormalParameter(
         node, node.type, node.typeParameters, node.parameters);

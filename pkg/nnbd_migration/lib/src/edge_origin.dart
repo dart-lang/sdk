@@ -99,6 +99,15 @@ abstract class EdgeOrigin extends EdgeOriginInfo {
         node = null;
 }
 
+/// An edge origin used for edges that originated because of a reference to an
+/// enum value, which cannot be null.
+class EnumValueOrigin extends EdgeOrigin {
+  EnumValueOrigin(Source source, AstNode node) : super(source, node);
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.enumValue;
+}
+
 /// Edge origin resulting from the relationship between a field formal parameter
 /// and the corresponding field.
 class FieldFormalParameterOrigin extends EdgeOrigin {

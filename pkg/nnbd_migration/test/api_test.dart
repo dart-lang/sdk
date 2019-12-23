@@ -1226,6 +1226,24 @@ String f(dynamic x) => x.toString();
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_enum() async {
+    var content = '''
+enum E {
+  value
+};
+
+E f() => E.value;
+''';
+    var expected = '''
+enum E {
+  value
+};
+
+E f() => E.value;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_explicit_nullable_overrides_hard_edge() async {
     var content = '''
 int f(int/*?*/ i) => i + 1;

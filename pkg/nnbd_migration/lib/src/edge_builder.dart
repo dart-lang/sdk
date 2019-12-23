@@ -1221,6 +1221,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           : elementType.positionalParameters[0];
     } else if (staticElement is TypeDefiningElement) {
       return _makeNonNullLiteralType(node);
+    } else if (staticElement.enclosingElement is ClassElement &&
+        (staticElement.enclosingElement as ClassElement).isEnum) {
+      return getOrComputeElementType(staticElement);
     } else {
       // TODO(paulberry)
       _unimplemented(node,
