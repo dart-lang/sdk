@@ -216,6 +216,8 @@ class DartAssistKind {
       AssistKind('dart.assist.surround.forIn', 25, "Surround with 'for-in'");
   static const SURROUND_WITH_IF =
       AssistKind('dart.assist.surround.if', 23, "Surround with 'if'");
+  static const SURROUND_WITH_SET_STATE = AssistKind(
+      'dart.assist.surround.setState', 27, "Surround with 'setState'");
   static const SURROUND_WITH_TRY_CATCH = AssistKind(
       'dart.assist.surround.tryCatch', 28, "Surround with 'try-catch'");
   static const SURROUND_WITH_TRY_FINALLY = AssistKind(

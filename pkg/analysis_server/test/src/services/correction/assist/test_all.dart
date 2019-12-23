@@ -49,6 +49,7 @@ import 'flutter_convert_to_stateful_widget_test.dart'
 import 'flutter_move_down_test.dart' as flutter_move_down;
 import 'flutter_move_up_test.dart' as flutter_move_up;
 import 'flutter_remove_widget_test.dart' as flutter_remove_widget;
+import 'flutter_surround_with_set_state_test.dart' as surround_with_set_state;
 import 'flutter_swap_with_child_test.dart' as flutter_swap_with_child;
 import 'flutter_swap_with_parent_test.dart' as flutter_swap_with_parent;
 import 'flutter_wrap_center_test.dart' as flutter_wrap_center;
@@ -151,6 +152,7 @@ main() {
     surround_with_for.main();
     surround_with_for_in.main();
     surround_with_if.main();
+    surround_with_set_state.main();
     surround_with_try_catch.main();
     surround_with_try_finally.main();
     surround_with_while.main();

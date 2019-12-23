@@ -3188,6 +3188,28 @@ class AssistProcessor extends BaseProcessor {
       _addAssistFromBuilder(
           changeBuilder, DartAssistKind.SURROUND_WITH_TRY_FINALLY);
     }
+
+    // flutter "setState((){ .. });"
+    {
+      ClassDeclaration classDeclaration =
+          node.parent.thisOrAncestorOfType<ClassDeclaration>();
+      if (classDeclaration != null &&
+          flutter.isState(classDeclaration.declaredElement)) {
+        final changeBuilder = _newDartChangeBuilder();
+        await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+          builder.addReplacement(statementsRange, (DartEditBuilder builder) {
+            builder.write(indentOld);
+            builder.writeln('setState(() {');
+            builder.write(indentedCode);
+            builder.write(indentOld);
+            builder.selectHere();
+            builder.writeln('});');
+          });
+        });
+        _addAssistFromBuilder(
+            changeBuilder, DartAssistKind.SURROUND_WITH_SET_STATE);
+      }
+    }
   }
 
   Future<void> _addProposal_useCurlyBraces() async {
