@@ -13,26 +13,20 @@ import 'package:analysis_server_client/src/protocol/protocol_common.dart';
 import 'package:analysis_server_client/src/protocol/protocol_internal.dart';
 import 'package:analysis_server_client/src/protocol/protocol_util.dart';
 
-/**
- * analysis.analyzedFiles params
- *
- * {
- *   "directories": List<FilePath>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.analyzedFiles params
+///
+/// {
+///   "directories": List<FilePath>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisAnalyzedFilesParams implements HasToJson {
   List<String> _directories;
 
-  /**
-   * A list of the paths of the files that are being analyzed.
-   */
+  /// A list of the paths of the files that are being analyzed.
   List<String> get directories => _directories;
 
-  /**
-   * A list of the paths of the files that are being analyzed.
-   */
+  /// A list of the paths of the files that are being analyzed.
   void set directories(List<String> value) {
     assert(value != null);
     this._directories = value;
@@ -99,54 +93,44 @@ class AnalysisAnalyzedFilesParams implements HasToJson {
   }
 }
 
-/**
- * analysis.closingLabels params
- *
- * {
- *   "file": FilePath
- *   "labels": List<ClosingLabel>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.closingLabels params
+///
+/// {
+///   "file": FilePath
+///   "labels": List<ClosingLabel>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisClosingLabelsParams implements HasToJson {
   String _file;
 
   List<ClosingLabel> _labels;
 
-  /**
-   * The file the closing labels relate to.
-   */
+  /// The file the closing labels relate to.
   String get file => _file;
 
-  /**
-   * The file the closing labels relate to.
-   */
+  /// The file the closing labels relate to.
   void set file(String value) {
     assert(value != null);
     this._file = value;
   }
 
-  /**
-   * Closing labels relevant to the file. Each item represents a useful label
-   * associated with some range with may be useful to display to the user
-   * within the editor at the end of the range to indicate what construct is
-   * closed at that location. Closing labels include constructor/method calls
-   * and List arguments that span multiple lines. Note that the ranges that are
-   * returned can overlap each other because they may be associated with
-   * constructs that can be nested.
-   */
+  /// Closing labels relevant to the file. Each item represents a useful label
+  /// associated with some range with may be useful to display to the user
+  /// within the editor at the end of the range to indicate what construct is
+  /// closed at that location. Closing labels include constructor/method calls
+  /// and List arguments that span multiple lines. Note that the ranges that
+  /// are returned can overlap each other because they may be associated with
+  /// constructs that can be nested.
   List<ClosingLabel> get labels => _labels;
 
-  /**
-   * Closing labels relevant to the file. Each item represents a useful label
-   * associated with some range with may be useful to display to the user
-   * within the editor at the end of the range to indicate what construct is
-   * closed at that location. Closing labels include constructor/method calls
-   * and List arguments that span multiple lines. Note that the ranges that are
-   * returned can overlap each other because they may be associated with
-   * constructs that can be nested.
-   */
+  /// Closing labels relevant to the file. Each item represents a useful label
+  /// associated with some range with may be useful to display to the user
+  /// within the editor at the end of the range to indicate what construct is
+  /// closed at that location. Closing labels include constructor/method calls
+  /// and List arguments that span multiple lines. Note that the ranges that
+  /// are returned can overlap each other because they may be associated with
+  /// constructs that can be nested.
   void set labels(List<ClosingLabel> value) {
     assert(value != null);
     this._labels = value;
@@ -227,42 +211,32 @@ class AnalysisClosingLabelsParams implements HasToJson {
   }
 }
 
-/**
- * AnalysisErrorFixes
- *
- * {
- *   "error": AnalysisError
- *   "fixes": List<SourceChange>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// AnalysisErrorFixes
+///
+/// {
+///   "error": AnalysisError
+///   "fixes": List<SourceChange>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisErrorFixes implements HasToJson {
   AnalysisError _error;
 
   List<SourceChange> _fixes;
 
-  /**
-   * The error with which the fixes are associated.
-   */
+  /// The error with which the fixes are associated.
   AnalysisError get error => _error;
 
-  /**
-   * The error with which the fixes are associated.
-   */
+  /// The error with which the fixes are associated.
   void set error(AnalysisError value) {
     assert(value != null);
     this._error = value;
   }
 
-  /**
-   * The fixes associated with the error.
-   */
+  /// The fixes associated with the error.
   List<SourceChange> get fixes => _fixes;
 
-  /**
-   * The fixes associated with the error.
-   */
+  /// The fixes associated with the error.
   void set fixes(List<SourceChange> value) {
     assert(value != null);
     this._fixes = value;
@@ -337,42 +311,32 @@ class AnalysisErrorFixes implements HasToJson {
   }
 }
 
-/**
- * analysis.errors params
- *
- * {
- *   "file": FilePath
- *   "errors": List<AnalysisError>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.errors params
+///
+/// {
+///   "file": FilePath
+///   "errors": List<AnalysisError>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisErrorsParams implements HasToJson {
   String _file;
 
   List<AnalysisError> _errors;
 
-  /**
-   * The file containing the errors.
-   */
+  /// The file containing the errors.
   String get file => _file;
 
-  /**
-   * The file containing the errors.
-   */
+  /// The file containing the errors.
   void set file(String value) {
     assert(value != null);
     this._file = value;
   }
 
-  /**
-   * The errors contained in the file.
-   */
+  /// The errors contained in the file.
   List<AnalysisError> get errors => _errors;
 
-  /**
-   * The errors contained in the file.
-   */
+  /// The errors contained in the file.
   void set errors(List<AnalysisError> value) {
     assert(value != null);
     this._errors = value;
@@ -451,26 +415,20 @@ class AnalysisErrorsParams implements HasToJson {
   }
 }
 
-/**
- * analysis.flushResults params
- *
- * {
- *   "files": List<FilePath>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.flushResults params
+///
+/// {
+///   "files": List<FilePath>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisFlushResultsParams implements HasToJson {
   List<String> _files;
 
-  /**
-   * The files that are no longer being analyzed.
-   */
+  /// The files that are no longer being analyzed.
   List<String> get files => _files;
 
-  /**
-   * The files that are no longer being analyzed.
-   */
+  /// The files that are no longer being analyzed.
   void set files(List<String> value) {
     assert(value != null);
     this._files = value;
@@ -536,42 +494,32 @@ class AnalysisFlushResultsParams implements HasToJson {
   }
 }
 
-/**
- * analysis.folding params
- *
- * {
- *   "file": FilePath
- *   "regions": List<FoldingRegion>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.folding params
+///
+/// {
+///   "file": FilePath
+///   "regions": List<FoldingRegion>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisFoldingParams implements HasToJson {
   String _file;
 
   List<FoldingRegion> _regions;
 
-  /**
-   * The file containing the folding regions.
-   */
+  /// The file containing the folding regions.
   String get file => _file;
 
-  /**
-   * The file containing the folding regions.
-   */
+  /// The file containing the folding regions.
   void set file(String value) {
     assert(value != null);
     this._file = value;
   }
 
-  /**
-   * The folding regions contained in the file.
-   */
+  /// The folding regions contained in the file.
   List<FoldingRegion> get regions => _regions;
 
-  /**
-   * The folding regions contained in the file.
-   */
+  /// The folding regions contained in the file.
   void set regions(List<FoldingRegion> value) {
     assert(value != null);
     this._regions = value;
@@ -650,26 +598,20 @@ class AnalysisFoldingParams implements HasToJson {
   }
 }
 
-/**
- * analysis.getErrors params
- *
- * {
- *   "file": FilePath
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.getErrors params
+///
+/// {
+///   "file": FilePath
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisGetErrorsParams implements RequestParams {
   String _file;
 
-  /**
-   * The file for which errors are being requested.
-   */
+  /// The file for which errors are being requested.
   String get file => _file;
 
-  /**
-   * The file for which errors are being requested.
-   */
+  /// The file for which errors are being requested.
   void set file(String value) {
     assert(value != null);
     this._file = value;
@@ -733,26 +675,20 @@ class AnalysisGetErrorsParams implements RequestParams {
   }
 }
 
-/**
- * analysis.getErrors result
- *
- * {
- *   "errors": List<AnalysisError>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.getErrors result
+///
+/// {
+///   "errors": List<AnalysisError>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisGetErrorsResult implements ResponseResult {
   List<AnalysisError> _errors;
 
-  /**
-   * The errors associated with the file.
-   */
+  /// The errors associated with the file.
   List<AnalysisError> get errors => _errors;
 
-  /**
-   * The errors associated with the file.
-   */
+  /// The errors associated with the file.
   void set errors(List<AnalysisError> value) {
     assert(value != null);
     this._errors = value;
@@ -824,42 +760,32 @@ class AnalysisGetErrorsResult implements ResponseResult {
   }
 }
 
-/**
- * analysis.getHover params
- *
- * {
- *   "file": FilePath
- *   "offset": int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.getHover params
+///
+/// {
+///   "file": FilePath
+///   "offset": int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisGetHoverParams implements RequestParams {
   String _file;
 
   int _offset;
 
-  /**
-   * The file in which hover information is being requested.
-   */
+  /// The file in which hover information is being requested.
   String get file => _file;
 
-  /**
-   * The file in which hover information is being requested.
-   */
+  /// The file in which hover information is being requested.
   void set file(String value) {
     assert(value != null);
     this._file = value;
   }
 
-  /**
-   * The offset for which hover information is being requested.
-   */
+  /// The offset for which hover information is being requested.
   int get offset => _offset;
 
-  /**
-   * The offset for which hover information is being requested.
-   */
+  /// The offset for which hover information is being requested.
   void set offset(int value) {
     assert(value != null);
     this._offset = value;
@@ -932,34 +858,28 @@ class AnalysisGetHoverParams implements RequestParams {
   }
 }
 
-/**
- * analysis.getHover result
- *
- * {
- *   "hovers": List<HoverInformation>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.getHover result
+///
+/// {
+///   "hovers": List<HoverInformation>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisGetHoverResult implements ResponseResult {
   List<HoverInformation> _hovers;
 
-  /**
-   * The hover information associated with the location. The list will be empty
-   * if no information could be determined for the location. The list can
-   * contain multiple items if the file is being analyzed in multiple contexts
-   * in conflicting ways (such as a part that is included in multiple
-   * libraries).
-   */
+  /// The hover information associated with the location. The list will be
+  /// empty if no information could be determined for the location. The list
+  /// can contain multiple items if the file is being analyzed in multiple
+  /// contexts in conflicting ways (such as a part that is included in multiple
+  /// libraries).
   List<HoverInformation> get hovers => _hovers;
 
-  /**
-   * The hover information associated with the location. The list will be empty
-   * if no information could be determined for the location. The list can
-   * contain multiple items if the file is being analyzed in multiple contexts
-   * in conflicting ways (such as a part that is included in multiple
-   * libraries).
-   */
+  /// The hover information associated with the location. The list will be
+  /// empty if no information could be determined for the location. The list
+  /// can contain multiple items if the file is being analyzed in multiple
+  /// contexts in conflicting ways (such as a part that is included in multiple
+  /// libraries).
   void set hovers(List<HoverInformation> value) {
     assert(value != null);
     this._hovers = value;
@@ -1031,17 +951,15 @@ class AnalysisGetHoverResult implements ResponseResult {
   }
 }
 
-/**
- * analysis.getImportedElements params
- *
- * {
- *   "file": FilePath
- *   "offset": int
- *   "length": int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.getImportedElements params
+///
+/// {
+///   "file": FilePath
+///   "offset": int
+///   "length": int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisGetImportedElementsParams implements RequestParams {
   String _file;
 
@@ -1049,40 +967,28 @@ class AnalysisGetImportedElementsParams implements RequestParams {
 
   int _length;
 
-  /**
-   * The file in which import information is being requested.
-   */
+  /// The file in which import information is being requested.
   String get file => _file;
 
-  /**
-   * The file in which import information is being requested.
-   */
+  /// The file in which import information is being requested.
   void set file(String value) {
     assert(value != null);
     this._file = value;
   }
 
-  /**
-   * The offset of the region for which import information is being requested.
-   */
+  /// The offset of the region for which import information is being requested.
   int get offset => _offset;
 
-  /**
-   * The offset of the region for which import information is being requested.
-   */
+  /// The offset of the region for which import information is being requested.
   void set offset(int value) {
     assert(value != null);
     this._offset = value;
   }
 
-  /**
-   * The length of the region for which import information is being requested.
-   */
+  /// The length of the region for which import information is being requested.
   int get length => _length;
 
-  /**
-   * The length of the region for which import information is being requested.
-   */
+  /// The length of the region for which import information is being requested.
   void set length(int value) {
     assert(value != null);
     this._length = value;
@@ -1167,28 +1073,22 @@ class AnalysisGetImportedElementsParams implements RequestParams {
   }
 }
 
-/**
- * analysis.getImportedElements result
- *
- * {
- *   "elements": List<ImportedElements>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.getImportedElements result
+///
+/// {
+///   "elements": List<ImportedElements>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisGetImportedElementsResult implements ResponseResult {
   List<ImportedElements> _elements;
 
-  /**
-   * The information about the elements that are referenced in the specified
-   * region of the specified file that come from imported libraries.
-   */
+  /// The information about the elements that are referenced in the specified
+  /// region of the specified file that come from imported libraries.
   List<ImportedElements> get elements => _elements;
 
-  /**
-   * The information about the elements that are referenced in the specified
-   * region of the specified file that come from imported libraries.
-   */
+  /// The information about the elements that are referenced in the specified
+  /// region of the specified file that come from imported libraries.
   void set elements(List<ImportedElements> value) {
     assert(value != null);
     this._elements = value;
@@ -1261,11 +1161,9 @@ class AnalysisGetImportedElementsResult implements ResponseResult {
   }
 }
 
-/**
- * analysis.getLibraryDependencies params
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.getLibraryDependencies params
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisGetLibraryDependenciesParams implements RequestParams {
   @override
   Map<String, dynamic> toJson() => <String, dynamic>{};
@@ -1289,46 +1187,38 @@ class AnalysisGetLibraryDependenciesParams implements RequestParams {
   }
 }
 
-/**
- * analysis.getLibraryDependencies result
- *
- * {
- *   "libraries": List<FilePath>
- *   "packageMap": Map<String, Map<String, List<FilePath>>>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.getLibraryDependencies result
+///
+/// {
+///   "libraries": List<FilePath>
+///   "packageMap": Map<String, Map<String, List<FilePath>>>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisGetLibraryDependenciesResult implements ResponseResult {
   List<String> _libraries;
 
   Map<String, Map<String, List<String>>> _packageMap;
 
-  /**
-   * A list of the paths of library elements referenced by files in existing
-   * analysis roots.
-   */
+  /// A list of the paths of library elements referenced by files in existing
+  /// analysis roots.
   List<String> get libraries => _libraries;
 
-  /**
-   * A list of the paths of library elements referenced by files in existing
-   * analysis roots.
-   */
+  /// A list of the paths of library elements referenced by files in existing
+  /// analysis roots.
   void set libraries(List<String> value) {
     assert(value != null);
     this._libraries = value;
   }
 
-  /**
-   * A mapping from context source roots to package maps which map package
-   * names to source directories for use in client-side package URI resolution.
-   */
+  /// A mapping from context source roots to package maps which map package
+  /// names to source directories for use in client-side package URI
+  /// resolution.
   Map<String, Map<String, List<String>>> get packageMap => _packageMap;
 
-  /**
-   * A mapping from context source roots to package maps which map package
-   * names to source directories for use in client-side package URI resolution.
-   */
+  /// A mapping from context source roots to package maps which map package
+  /// names to source directories for use in client-side package URI
+  /// resolution.
   void set packageMap(Map<String, Map<String, List<String>>> value) {
     assert(value != null);
     this._packageMap = value;
@@ -1421,17 +1311,15 @@ class AnalysisGetLibraryDependenciesResult implements ResponseResult {
   }
 }
 
-/**
- * analysis.getNavigation params
- *
- * {
- *   "file": FilePath
- *   "offset": int
- *   "length": int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.getNavigation params
+///
+/// {
+///   "file": FilePath
+///   "offset": int
+///   "length": int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisGetNavigationParams implements RequestParams {
   String _file;
 
@@ -1439,44 +1327,32 @@ class AnalysisGetNavigationParams implements RequestParams {
 
   int _length;
 
-  /**
-   * The file in which navigation information is being requested.
-   */
+  /// The file in which navigation information is being requested.
   String get file => _file;
 
-  /**
-   * The file in which navigation information is being requested.
-   */
+  /// The file in which navigation information is being requested.
   void set file(String value) {
     assert(value != null);
     this._file = value;
   }
 
-  /**
-   * The offset of the region for which navigation information is being
-   * requested.
-   */
+  /// The offset of the region for which navigation information is being
+  /// requested.
   int get offset => _offset;
 
-  /**
-   * The offset of the region for which navigation information is being
-   * requested.
-   */
+  /// The offset of the region for which navigation information is being
+  /// requested.
   void set offset(int value) {
     assert(value != null);
     this._offset = value;
   }
 
-  /**
-   * The length of the region for which navigation information is being
-   * requested.
-   */
+  /// The length of the region for which navigation information is being
+  /// requested.
   int get length => _length;
 
-  /**
-   * The length of the region for which navigation information is being
-   * requested.
-   */
+  /// The length of the region for which navigation information is being
+  /// requested.
   void set length(int value) {
     assert(value != null);
     this._length = value;
@@ -1561,17 +1437,15 @@ class AnalysisGetNavigationParams implements RequestParams {
   }
 }
 
-/**
- * analysis.getNavigation result
- *
- * {
- *   "files": List<FilePath>
- *   "targets": List<NavigationTarget>
- *   "regions": List<NavigationRegion>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.getNavigation result
+///
+/// {
+///   "files": List<FilePath>
+///   "targets": List<NavigationTarget>
+///   "regions": List<NavigationRegion>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisGetNavigationResult implements ResponseResult {
   List<String> _files;
 
@@ -1579,44 +1453,32 @@ class AnalysisGetNavigationResult implements ResponseResult {
 
   List<NavigationRegion> _regions;
 
-  /**
-   * A list of the paths of files that are referenced by the navigation
-   * targets.
-   */
+  /// A list of the paths of files that are referenced by the navigation
+  /// targets.
   List<String> get files => _files;
 
-  /**
-   * A list of the paths of files that are referenced by the navigation
-   * targets.
-   */
+  /// A list of the paths of files that are referenced by the navigation
+  /// targets.
   void set files(List<String> value) {
     assert(value != null);
     this._files = value;
   }
 
-  /**
-   * A list of the navigation targets that are referenced by the navigation
-   * regions.
-   */
+  /// A list of the navigation targets that are referenced by the navigation
+  /// regions.
   List<NavigationTarget> get targets => _targets;
 
-  /**
-   * A list of the navigation targets that are referenced by the navigation
-   * regions.
-   */
+  /// A list of the navigation targets that are referenced by the navigation
+  /// regions.
   void set targets(List<NavigationTarget> value) {
     assert(value != null);
     this._targets = value;
   }
 
-  /**
-   * A list of the navigation regions within the requested region of the file.
-   */
+  /// A list of the navigation regions within the requested region of the file.
   List<NavigationRegion> get regions => _regions;
 
-  /**
-   * A list of the navigation regions within the requested region of the file.
-   */
+  /// A list of the navigation regions within the requested region of the file.
   void set regions(List<NavigationRegion> value) {
     assert(value != null);
     this._regions = value;
@@ -1717,26 +1579,20 @@ class AnalysisGetNavigationResult implements ResponseResult {
   }
 }
 
-/**
- * analysis.getReachableSources params
- *
- * {
- *   "file": FilePath
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.getReachableSources params
+///
+/// {
+///   "file": FilePath
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisGetReachableSourcesParams implements RequestParams {
   String _file;
 
-  /**
-   * The file for which reachable source information is being requested.
-   */
+  /// The file for which reachable source information is being requested.
   String get file => _file;
 
-  /**
-   * The file for which reachable source information is being requested.
-   */
+  /// The file for which reachable source information is being requested.
   void set file(String value) {
     assert(value != null);
     this._file = value;
@@ -1801,36 +1657,32 @@ class AnalysisGetReachableSourcesParams implements RequestParams {
   }
 }
 
-/**
- * analysis.getReachableSources result
- *
- * {
- *   "sources": Map<String, List<String>>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.getReachableSources result
+///
+/// {
+///   "sources": Map<String, List<String>>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisGetReachableSourcesResult implements ResponseResult {
   Map<String, List<String>> _sources;
 
-  /**
-   * A mapping from source URIs to directly reachable source URIs. For example,
-   * a file "foo.dart" that imports "bar.dart" would have the corresponding
-   * mapping { "file:///foo.dart" : ["file:///bar.dart"] }. If "bar.dart" has
-   * further imports (or exports) there will be a mapping from the URI
-   * "file:///bar.dart" to them. To check if a specific URI is reachable from a
-   * given file, clients can check for its presence in the resulting key set.
-   */
+  /// A mapping from source URIs to directly reachable source URIs. For
+  /// example, a file "foo.dart" that imports "bar.dart" would have the
+  /// corresponding mapping { "file:///foo.dart" : ["file:///bar.dart"] }. If
+  /// "bar.dart" has further imports (or exports) there will be a mapping from
+  /// the URI "file:///bar.dart" to them. To check if a specific URI is
+  /// reachable from a given file, clients can check for its presence in the
+  /// resulting key set.
   Map<String, List<String>> get sources => _sources;
 
-  /**
-   * A mapping from source URIs to directly reachable source URIs. For example,
-   * a file "foo.dart" that imports "bar.dart" would have the corresponding
-   * mapping { "file:///foo.dart" : ["file:///bar.dart"] }. If "bar.dart" has
-   * further imports (or exports) there will be a mapping from the URI
-   * "file:///bar.dart" to them. To check if a specific URI is reachable from a
-   * given file, clients can check for its presence in the resulting key set.
-   */
+  /// A mapping from source URIs to directly reachable source URIs. For
+  /// example, a file "foo.dart" that imports "bar.dart" would have the
+  /// corresponding mapping { "file:///foo.dart" : ["file:///bar.dart"] }. If
+  /// "bar.dart" has further imports (or exports) there will be a mapping from
+  /// the URI "file:///bar.dart" to them. To check if a specific URI is
+  /// reachable from a given file, clients can check for its presence in the
+  /// resulting key set.
   void set sources(Map<String, List<String>> value) {
     assert(value != null);
     this._sources = value;
@@ -1903,42 +1755,32 @@ class AnalysisGetReachableSourcesResult implements ResponseResult {
   }
 }
 
-/**
- * analysis.getSignature params
- *
- * {
- *   "file": FilePath
- *   "offset": int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.getSignature params
+///
+/// {
+///   "file": FilePath
+///   "offset": int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisGetSignatureParams implements RequestParams {
   String _file;
 
   int _offset;
 
-  /**
-   * The file in which signature information is being requested.
-   */
+  /// The file in which signature information is being requested.
   String get file => _file;
 
-  /**
-   * The file in which signature information is being requested.
-   */
+  /// The file in which signature information is being requested.
   void set file(String value) {
     assert(value != null);
     this._file = value;
   }
 
-  /**
-   * The location for which signature information is being requested.
-   */
+  /// The location for which signature information is being requested.
   int get offset => _offset;
 
-  /**
-   * The location for which signature information is being requested.
-   */
+  /// The location for which signature information is being requested.
   void set offset(int value) {
     assert(value != null);
     this._offset = value;
@@ -2012,17 +1854,15 @@ class AnalysisGetSignatureParams implements RequestParams {
   }
 }
 
-/**
- * analysis.getSignature result
- *
- * {
- *   "name": String
- *   "parameters": List<ParameterInfo>
- *   "dartdoc": optional String
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.getSignature result
+///
+/// {
+///   "name": String
+///   "parameters": List<ParameterInfo>
+///   "dartdoc": optional String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisGetSignatureResult implements ResponseResult {
   String _name;
 
@@ -2030,50 +1870,38 @@ class AnalysisGetSignatureResult implements ResponseResult {
 
   String _dartdoc;
 
-  /**
-   * The name of the function being invoked at the given offset.
-   */
+  /// The name of the function being invoked at the given offset.
   String get name => _name;
 
-  /**
-   * The name of the function being invoked at the given offset.
-   */
+  /// The name of the function being invoked at the given offset.
   void set name(String value) {
     assert(value != null);
     this._name = value;
   }
 
-  /**
-   * A list of information about each of the parameters of the function being
-   * invoked.
-   */
+  /// A list of information about each of the parameters of the function being
+  /// invoked.
   List<ParameterInfo> get parameters => _parameters;
 
-  /**
-   * A list of information about each of the parameters of the function being
-   * invoked.
-   */
+  /// A list of information about each of the parameters of the function being
+  /// invoked.
   void set parameters(List<ParameterInfo> value) {
     assert(value != null);
     this._parameters = value;
   }
 
-  /**
-   * The dartdoc associated with the function being invoked. Other than the
-   * removal of the comment delimiters, including leading asterisks in the case
-   * of a block comment, the dartdoc is unprocessed markdown. This data is
-   * omitted if there is no referenced element, or if the element has no
-   * dartdoc.
-   */
+  /// The dartdoc associated with the function being invoked. Other than the
+  /// removal of the comment delimiters, including leading asterisks in the
+  /// case of a block comment, the dartdoc is unprocessed markdown. This data
+  /// is omitted if there is no referenced element, or if the element has no
+  /// dartdoc.
   String get dartdoc => _dartdoc;
 
-  /**
-   * The dartdoc associated with the function being invoked. Other than the
-   * removal of the comment delimiters, including leading asterisks in the case
-   * of a block comment, the dartdoc is unprocessed markdown. This data is
-   * omitted if there is no referenced element, or if the element has no
-   * dartdoc.
-   */
+  /// The dartdoc associated with the function being invoked. Other than the
+  /// removal of the comment delimiters, including leading asterisks in the
+  /// case of a block comment, the dartdoc is unprocessed markdown. This data
+  /// is omitted if there is no referenced element, or if the element has no
+  /// dartdoc.
   void set dartdoc(String value) {
     this._dartdoc = value;
   }
@@ -2167,50 +1995,40 @@ class AnalysisGetSignatureResult implements ResponseResult {
   }
 }
 
-/**
- * analysis.highlights params
- *
- * {
- *   "file": FilePath
- *   "regions": List<HighlightRegion>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.highlights params
+///
+/// {
+///   "file": FilePath
+///   "regions": List<HighlightRegion>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisHighlightsParams implements HasToJson {
   String _file;
 
   List<HighlightRegion> _regions;
 
-  /**
-   * The file containing the highlight regions.
-   */
+  /// The file containing the highlight regions.
   String get file => _file;
 
-  /**
-   * The file containing the highlight regions.
-   */
+  /// The file containing the highlight regions.
   void set file(String value) {
     assert(value != null);
     this._file = value;
   }
 
-  /**
-   * The highlight regions contained in the file. Each highlight region
-   * represents a particular syntactic or semantic meaning associated with some
-   * range. Note that the highlight regions that are returned can overlap other
-   * highlight regions if there is more than one meaning associated with a
-   * particular region.
-   */
+  /// The highlight regions contained in the file. Each highlight region
+  /// represents a particular syntactic or semantic meaning associated with
+  /// some range. Note that the highlight regions that are returned can overlap
+  /// other highlight regions if there is more than one meaning associated with
+  /// a particular region.
   List<HighlightRegion> get regions => _regions;
 
-  /**
-   * The highlight regions contained in the file. Each highlight region
-   * represents a particular syntactic or semantic meaning associated with some
-   * range. Note that the highlight regions that are returned can overlap other
-   * highlight regions if there is more than one meaning associated with a
-   * particular region.
-   */
+  /// The highlight regions contained in the file. Each highlight region
+  /// represents a particular syntactic or semantic meaning associated with
+  /// some range. Note that the highlight regions that are returned can overlap
+  /// other highlight regions if there is more than one meaning associated with
+  /// a particular region.
   void set regions(List<HighlightRegion> value) {
     assert(value != null);
     this._regions = value;
@@ -2289,17 +2107,15 @@ class AnalysisHighlightsParams implements HasToJson {
   }
 }
 
-/**
- * analysis.implemented params
- *
- * {
- *   "file": FilePath
- *   "classes": List<ImplementedClass>
- *   "members": List<ImplementedMember>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.implemented params
+///
+/// {
+///   "file": FilePath
+///   "classes": List<ImplementedClass>
+///   "members": List<ImplementedMember>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisImplementedParams implements HasToJson {
   String _file;
 
@@ -2307,40 +2123,28 @@ class AnalysisImplementedParams implements HasToJson {
 
   List<ImplementedMember> _members;
 
-  /**
-   * The file with which the implementations are associated.
-   */
+  /// The file with which the implementations are associated.
   String get file => _file;
 
-  /**
-   * The file with which the implementations are associated.
-   */
+  /// The file with which the implementations are associated.
   void set file(String value) {
     assert(value != null);
     this._file = value;
   }
 
-  /**
-   * The classes defined in the file that are implemented or extended.
-   */
+  /// The classes defined in the file that are implemented or extended.
   List<ImplementedClass> get classes => _classes;
 
-  /**
-   * The classes defined in the file that are implemented or extended.
-   */
+  /// The classes defined in the file that are implemented or extended.
   void set classes(List<ImplementedClass> value) {
     assert(value != null);
     this._classes = value;
   }
 
-  /**
-   * The member defined in the file that are implemented or overridden.
-   */
+  /// The member defined in the file that are implemented or overridden.
   List<ImplementedMember> get members => _members;
 
-  /**
-   * The member defined in the file that are implemented or overridden.
-   */
+  /// The member defined in the file that are implemented or overridden.
   void set members(List<ImplementedMember> value) {
     assert(value != null);
     this._members = value;
@@ -2437,18 +2241,16 @@ class AnalysisImplementedParams implements HasToJson {
   }
 }
 
-/**
- * analysis.invalidate params
- *
- * {
- *   "file": FilePath
- *   "offset": int
- *   "length": int
- *   "delta": int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.invalidate params
+///
+/// {
+///   "file": FilePath
+///   "offset": int
+///   "length": int
+///   "delta": int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisInvalidateParams implements HasToJson {
   String _file;
 
@@ -2458,57 +2260,41 @@ class AnalysisInvalidateParams implements HasToJson {
 
   int _delta;
 
-  /**
-   * The file whose information has been invalidated.
-   */
+  /// The file whose information has been invalidated.
   String get file => _file;
 
-  /**
-   * The file whose information has been invalidated.
-   */
+  /// The file whose information has been invalidated.
   void set file(String value) {
     assert(value != null);
     this._file = value;
   }
 
-  /**
-   * The offset of the invalidated region.
-   */
+  /// The offset of the invalidated region.
   int get offset => _offset;
 
-  /**
-   * The offset of the invalidated region.
-   */
+  /// The offset of the invalidated region.
   void set offset(int value) {
     assert(value != null);
     this._offset = value;
   }
 
-  /**
-   * The length of the invalidated region.
-   */
+  /// The length of the invalidated region.
   int get length => _length;
 
-  /**
-   * The length of the invalidated region.
-   */
+  /// The length of the invalidated region.
   void set length(int value) {
     assert(value != null);
     this._length = value;
   }
 
-  /**
-   * The delta to be applied to the offsets in information that follows the
-   * invalidated region in order to update it so that it doesn't need to be
-   * re-requested.
-   */
+  /// The delta to be applied to the offsets in information that follows the
+  /// invalidated region in order to update it so that it doesn't need to be
+  /// re-requested.
   int get delta => _delta;
 
-  /**
-   * The delta to be applied to the offsets in information that follows the
-   * invalidated region in order to update it so that it doesn't need to be
-   * re-requested.
-   */
+  /// The delta to be applied to the offsets in information that follows the
+  /// invalidated region in order to update it so that it doesn't need to be
+  /// re-requested.
   void set delta(int value) {
     assert(value != null);
     this._delta = value;
@@ -2601,18 +2387,16 @@ class AnalysisInvalidateParams implements HasToJson {
   }
 }
 
-/**
- * analysis.navigation params
- *
- * {
- *   "file": FilePath
- *   "regions": List<NavigationRegion>
- *   "targets": List<NavigationTarget>
- *   "files": List<FilePath>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.navigation params
+///
+/// {
+///   "file": FilePath
+///   "regions": List<NavigationRegion>
+///   "targets": List<NavigationTarget>
+///   "files": List<FilePath>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisNavigationParams implements HasToJson {
   String _file;
 
@@ -2622,69 +2406,53 @@ class AnalysisNavigationParams implements HasToJson {
 
   List<String> _files;
 
-  /**
-   * The file containing the navigation regions.
-   */
+  /// The file containing the navigation regions.
   String get file => _file;
 
-  /**
-   * The file containing the navigation regions.
-   */
+  /// The file containing the navigation regions.
   void set file(String value) {
     assert(value != null);
     this._file = value;
   }
 
-  /**
-   * The navigation regions contained in the file. The regions are sorted by
-   * their offsets. Each navigation region represents a list of targets
-   * associated with some range. The lists will usually contain a single
-   * target, but can contain more in the case of a part that is included in
-   * multiple libraries or in Dart code that is compiled against multiple
-   * versions of a package. Note that the navigation regions that are returned
-   * do not overlap other navigation regions.
-   */
+  /// The navigation regions contained in the file. The regions are sorted by
+  /// their offsets. Each navigation region represents a list of targets
+  /// associated with some range. The lists will usually contain a single
+  /// target, but can contain more in the case of a part that is included in
+  /// multiple libraries or in Dart code that is compiled against multiple
+  /// versions of a package. Note that the navigation regions that are returned
+  /// do not overlap other navigation regions.
   List<NavigationRegion> get regions => _regions;
 
-  /**
-   * The navigation regions contained in the file. The regions are sorted by
-   * their offsets. Each navigation region represents a list of targets
-   * associated with some range. The lists will usually contain a single
-   * target, but can contain more in the case of a part that is included in
-   * multiple libraries or in Dart code that is compiled against multiple
-   * versions of a package. Note that the navigation regions that are returned
-   * do not overlap other navigation regions.
-   */
+  /// The navigation regions contained in the file. The regions are sorted by
+  /// their offsets. Each navigation region represents a list of targets
+  /// associated with some range. The lists will usually contain a single
+  /// target, but can contain more in the case of a part that is included in
+  /// multiple libraries or in Dart code that is compiled against multiple
+  /// versions of a package. Note that the navigation regions that are returned
+  /// do not overlap other navigation regions.
   void set regions(List<NavigationRegion> value) {
     assert(value != null);
     this._regions = value;
   }
 
-  /**
-   * The navigation targets referenced in the file. They are referenced by
-   * NavigationRegions by their index in this array.
-   */
+  /// The navigation targets referenced in the file. They are referenced by
+  /// NavigationRegions by their index in this array.
   List<NavigationTarget> get targets => _targets;
 
-  /**
-   * The navigation targets referenced in the file. They are referenced by
-   * NavigationRegions by their index in this array.
-   */
+  /// The navigation targets referenced in the file. They are referenced by
+  /// NavigationRegions by their index in this array.
   void set targets(List<NavigationTarget> value) {
     assert(value != null);
     this._targets = value;
   }
 
-  /**
-   * The files containing navigation targets referenced in the file. They are
-   * referenced by NavigationTargets by their index in this array.
-   */
+  /// The files containing navigation targets referenced in the file. They are
+  /// referenced by NavigationTargets by their index in this array.
   List<String> get files => _files;
 
-  /**
-   * The files containing navigation targets referenced in the file. They are
-   * referenced by NavigationTargets by their index in this array.
-   */
+  /// The files containing navigation targets referenced in the file. They are
+  /// referenced by NavigationTargets by their index in this array.
   void set files(List<String> value) {
     assert(value != null);
     this._files = value;
@@ -2791,42 +2559,32 @@ class AnalysisNavigationParams implements HasToJson {
   }
 }
 
-/**
- * analysis.occurrences params
- *
- * {
- *   "file": FilePath
- *   "occurrences": List<Occurrences>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.occurrences params
+///
+/// {
+///   "file": FilePath
+///   "occurrences": List<Occurrences>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisOccurrencesParams implements HasToJson {
   String _file;
 
   List<Occurrences> _occurrences;
 
-  /**
-   * The file in which the references occur.
-   */
+  /// The file in which the references occur.
   String get file => _file;
 
-  /**
-   * The file in which the references occur.
-   */
+  /// The file in which the references occur.
   void set file(String value) {
     assert(value != null);
     this._file = value;
   }
 
-  /**
-   * The occurrences of references to elements within the file.
-   */
+  /// The occurrences of references to elements within the file.
   List<Occurrences> get occurrences => _occurrences;
 
-  /**
-   * The occurrences of references to elements within the file.
-   */
+  /// The occurrences of references to elements within the file.
   void set occurrences(List<Occurrences> value) {
     assert(value != null);
     this._occurrences = value;
@@ -2906,22 +2664,20 @@ class AnalysisOccurrencesParams implements HasToJson {
   }
 }
 
-/**
- * AnalysisOptions
- *
- * {
- *   "enableAsync": optional bool
- *   "enableDeferredLoading": optional bool
- *   "enableEnums": optional bool
- *   "enableNullAwareOperators": optional bool
- *   "enableSuperMixins": optional bool
- *   "generateDart2jsHints": optional bool
- *   "generateHints": optional bool
- *   "generateLints": optional bool
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// AnalysisOptions
+///
+/// {
+///   "enableAsync": optional bool
+///   "enableDeferredLoading": optional bool
+///   "enableEnums": optional bool
+///   "enableNullAwareOperators": optional bool
+///   "enableSuperMixins": optional bool
+///   "generateDart2jsHints": optional bool
+///   "generateHints": optional bool
+///   "generateLints": optional bool
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisOptions implements HasToJson {
   bool _enableAsync;
 
@@ -2939,126 +2695,96 @@ class AnalysisOptions implements HasToJson {
 
   bool _generateLints;
 
-  /**
-   * Deprecated: this feature is always enabled.
-   *
-   * True if the client wants to enable support for the proposed async feature.
-   */
+  /// Deprecated: this feature is always enabled.
+  ///
+  /// True if the client wants to enable support for the proposed async
+  /// feature.
   bool get enableAsync => _enableAsync;
 
-  /**
-   * Deprecated: this feature is always enabled.
-   *
-   * True if the client wants to enable support for the proposed async feature.
-   */
+  /// Deprecated: this feature is always enabled.
+  ///
+  /// True if the client wants to enable support for the proposed async
+  /// feature.
   void set enableAsync(bool value) {
     this._enableAsync = value;
   }
 
-  /**
-   * Deprecated: this feature is always enabled.
-   *
-   * True if the client wants to enable support for the proposed deferred
-   * loading feature.
-   */
+  /// Deprecated: this feature is always enabled.
+  ///
+  /// True if the client wants to enable support for the proposed deferred
+  /// loading feature.
   bool get enableDeferredLoading => _enableDeferredLoading;
 
-  /**
-   * Deprecated: this feature is always enabled.
-   *
-   * True if the client wants to enable support for the proposed deferred
-   * loading feature.
-   */
+  /// Deprecated: this feature is always enabled.
+  ///
+  /// True if the client wants to enable support for the proposed deferred
+  /// loading feature.
   void set enableDeferredLoading(bool value) {
     this._enableDeferredLoading = value;
   }
 
-  /**
-   * Deprecated: this feature is always enabled.
-   *
-   * True if the client wants to enable support for the proposed enum feature.
-   */
+  /// Deprecated: this feature is always enabled.
+  ///
+  /// True if the client wants to enable support for the proposed enum feature.
   bool get enableEnums => _enableEnums;
 
-  /**
-   * Deprecated: this feature is always enabled.
-   *
-   * True if the client wants to enable support for the proposed enum feature.
-   */
+  /// Deprecated: this feature is always enabled.
+  ///
+  /// True if the client wants to enable support for the proposed enum feature.
   void set enableEnums(bool value) {
     this._enableEnums = value;
   }
 
-  /**
-   * Deprecated: this feature is always enabled.
-   *
-   * True if the client wants to enable support for the proposed "null aware
-   * operators" feature.
-   */
+  /// Deprecated: this feature is always enabled.
+  ///
+  /// True if the client wants to enable support for the proposed "null aware
+  /// operators" feature.
   bool get enableNullAwareOperators => _enableNullAwareOperators;
 
-  /**
-   * Deprecated: this feature is always enabled.
-   *
-   * True if the client wants to enable support for the proposed "null aware
-   * operators" feature.
-   */
+  /// Deprecated: this feature is always enabled.
+  ///
+  /// True if the client wants to enable support for the proposed "null aware
+  /// operators" feature.
   void set enableNullAwareOperators(bool value) {
     this._enableNullAwareOperators = value;
   }
 
-  /**
-   * True if the client wants to enable support for the proposed "less
-   * restricted mixins" proposal (DEP 34).
-   */
+  /// True if the client wants to enable support for the proposed "less
+  /// restricted mixins" proposal (DEP 34).
   bool get enableSuperMixins => _enableSuperMixins;
 
-  /**
-   * True if the client wants to enable support for the proposed "less
-   * restricted mixins" proposal (DEP 34).
-   */
+  /// True if the client wants to enable support for the proposed "less
+  /// restricted mixins" proposal (DEP 34).
   void set enableSuperMixins(bool value) {
     this._enableSuperMixins = value;
   }
 
-  /**
-   * True if hints that are specific to dart2js should be generated. This
-   * option is ignored if generateHints is false.
-   */
+  /// True if hints that are specific to dart2js should be generated. This
+  /// option is ignored if generateHints is false.
   bool get generateDart2jsHints => _generateDart2jsHints;
 
-  /**
-   * True if hints that are specific to dart2js should be generated. This
-   * option is ignored if generateHints is false.
-   */
+  /// True if hints that are specific to dart2js should be generated. This
+  /// option is ignored if generateHints is false.
   void set generateDart2jsHints(bool value) {
     this._generateDart2jsHints = value;
   }
 
-  /**
-   * True if hints should be generated as part of generating errors and
-   * warnings.
-   */
+  /// True if hints should be generated as part of generating errors and
+  /// warnings.
   bool get generateHints => _generateHints;
 
-  /**
-   * True if hints should be generated as part of generating errors and
-   * warnings.
-   */
+  /// True if hints should be generated as part of generating errors and
+  /// warnings.
   void set generateHints(bool value) {
     this._generateHints = value;
   }
 
-  /**
-   * True if lints should be generated as part of generating errors and
-   * warnings.
-   */
+  /// True if lints should be generated as part of generating errors and
+  /// warnings.
   bool get generateLints => _generateLints;
 
-  /**
-   * True if lints should be generated as part of generating errors and
-   * warnings.
-   */
+  /// True if lints should be generated as part of generating errors and
+  /// warnings.
   void set generateLints(bool value) {
     this._generateLints = value;
   }
@@ -3206,18 +2932,16 @@ class AnalysisOptions implements HasToJson {
   }
 }
 
-/**
- * analysis.outline params
- *
- * {
- *   "file": FilePath
- *   "kind": FileKind
- *   "libraryName": optional String
- *   "outline": Outline
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.outline params
+///
+/// {
+///   "file": FilePath
+///   "kind": FileKind
+///   "libraryName": optional String
+///   "outline": Outline
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisOutlineParams implements HasToJson {
   String _file;
 
@@ -3227,60 +2951,44 @@ class AnalysisOutlineParams implements HasToJson {
 
   Outline _outline;
 
-  /**
-   * The file with which the outline is associated.
-   */
+  /// The file with which the outline is associated.
   String get file => _file;
 
-  /**
-   * The file with which the outline is associated.
-   */
+  /// The file with which the outline is associated.
   void set file(String value) {
     assert(value != null);
     this._file = value;
   }
 
-  /**
-   * The kind of the file.
-   */
+  /// The kind of the file.
   FileKind get kind => _kind;
 
-  /**
-   * The kind of the file.
-   */
+  /// The kind of the file.
   void set kind(FileKind value) {
     assert(value != null);
     this._kind = value;
   }
 
-  /**
-   * The name of the library defined by the file using a "library" directive,
-   * or referenced by a "part of" directive. If both "library" and "part of"
-   * directives are present, then the "library" directive takes precedence.
-   * This field will be omitted if the file has neither "library" nor "part of"
-   * directives.
-   */
+  /// The name of the library defined by the file using a "library" directive,
+  /// or referenced by a "part of" directive. If both "library" and "part of"
+  /// directives are present, then the "library" directive takes precedence.
+  /// This field will be omitted if the file has neither "library" nor "part
+  /// of" directives.
   String get libraryName => _libraryName;
 
-  /**
-   * The name of the library defined by the file using a "library" directive,
-   * or referenced by a "part of" directive. If both "library" and "part of"
-   * directives are present, then the "library" directive takes precedence.
-   * This field will be omitted if the file has neither "library" nor "part of"
-   * directives.
-   */
+  /// The name of the library defined by the file using a "library" directive,
+  /// or referenced by a "part of" directive. If both "library" and "part of"
+  /// directives are present, then the "library" directive takes precedence.
+  /// This field will be omitted if the file has neither "library" nor "part
+  /// of" directives.
   void set libraryName(String value) {
     this._libraryName = value;
   }
 
-  /**
-   * The outline associated with the file.
-   */
+  /// The outline associated with the file.
   Outline get outline => _outline;
 
-  /**
-   * The outline associated with the file.
-   */
+  /// The outline associated with the file.
   void set outline(Outline value) {
     assert(value != null);
     this._outline = value;
@@ -3377,42 +3085,32 @@ class AnalysisOutlineParams implements HasToJson {
   }
 }
 
-/**
- * analysis.overrides params
- *
- * {
- *   "file": FilePath
- *   "overrides": List<Override>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.overrides params
+///
+/// {
+///   "file": FilePath
+///   "overrides": List<Override>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisOverridesParams implements HasToJson {
   String _file;
 
   List<Override> _overrides;
 
-  /**
-   * The file with which the overrides are associated.
-   */
+  /// The file with which the overrides are associated.
   String get file => _file;
 
-  /**
-   * The file with which the overrides are associated.
-   */
+  /// The file with which the overrides are associated.
   void set file(String value) {
     assert(value != null);
     this._file = value;
   }
 
-  /**
-   * The overrides associated with the file.
-   */
+  /// The overrides associated with the file.
   List<Override> get overrides => _overrides;
 
-  /**
-   * The overrides associated with the file.
-   */
+  /// The overrides associated with the file.
   void set overrides(List<Override> value) {
     assert(value != null);
     this._overrides = value;
@@ -3491,11 +3189,9 @@ class AnalysisOverridesParams implements HasToJson {
   }
 }
 
-/**
- * analysis.reanalyze params
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.reanalyze params
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisReanalyzeParams implements RequestParams {
   @override
   Map<String, dynamic> toJson() => <String, dynamic>{};
@@ -3519,11 +3215,9 @@ class AnalysisReanalyzeParams implements RequestParams {
   }
 }
 
-/**
- * analysis.reanalyze result
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.reanalyze result
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisReanalyzeResult implements ResponseResult {
   @override
   Map<String, dynamic> toJson() => <String, dynamic>{};
@@ -3547,23 +3241,21 @@ class AnalysisReanalyzeResult implements ResponseResult {
   }
 }
 
-/**
- * AnalysisService
- *
- * enum {
- *   CLOSING_LABELS
- *   FOLDING
- *   HIGHLIGHTS
- *   IMPLEMENTED
- *   INVALIDATE
- *   NAVIGATION
- *   OCCURRENCES
- *   OUTLINE
- *   OVERRIDES
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// AnalysisService
+///
+/// enum {
+///   CLOSING_LABELS
+///   FOLDING
+///   HIGHLIGHTS
+///   IMPLEMENTED
+///   INVALIDATE
+///   NAVIGATION
+///   OCCURRENCES
+///   OUTLINE
+///   OVERRIDES
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisService implements Enum {
   static const AnalysisService CLOSING_LABELS =
       AnalysisService._("CLOSING_LABELS");
@@ -3574,10 +3266,8 @@ class AnalysisService implements Enum {
 
   static const AnalysisService IMPLEMENTED = AnalysisService._("IMPLEMENTED");
 
-  /**
-   * This service is not currently implemented and will become a
-   * GeneralAnalysisService in a future release.
-   */
+  /// This service is not currently implemented and will become a
+  /// GeneralAnalysisService in a future release.
   static const AnalysisService INVALIDATE = AnalysisService._("INVALIDATE");
 
   static const AnalysisService NAVIGATION = AnalysisService._("NAVIGATION");
@@ -3588,9 +3278,7 @@ class AnalysisService implements Enum {
 
   static const AnalysisService OVERRIDES = AnalysisService._("OVERRIDES");
 
-  /**
-   * A list containing all of the enum values that are defined.
-   */
+  /// A list containing all of the enum values that are defined.
   static const List<AnalysisService> VALUES = <AnalysisService>[
     CLOSING_LABELS,
     FOLDING,
@@ -3650,17 +3338,15 @@ class AnalysisService implements Enum {
   String toJson() => name;
 }
 
-/**
- * analysis.setAnalysisRoots params
- *
- * {
- *   "included": List<FilePath>
- *   "excluded": List<FilePath>
- *   "packageRoots": optional Map<FilePath, FilePath>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.setAnalysisRoots params
+///
+/// {
+///   "included": List<FilePath>
+///   "excluded": List<FilePath>
+///   "packageRoots": optional Map<FilePath, FilePath>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisSetAnalysisRootsParams implements RequestParams {
   List<String> _included;
 
@@ -3668,78 +3354,66 @@ class AnalysisSetAnalysisRootsParams implements RequestParams {
 
   Map<String, String> _packageRoots;
 
-  /**
-   * A list of the files and directories that should be analyzed.
-   */
+  /// A list of the files and directories that should be analyzed.
   List<String> get included => _included;
 
-  /**
-   * A list of the files and directories that should be analyzed.
-   */
+  /// A list of the files and directories that should be analyzed.
   void set included(List<String> value) {
     assert(value != null);
     this._included = value;
   }
 
-  /**
-   * A list of the files and directories within the included directories that
-   * should not be analyzed.
-   */
+  /// A list of the files and directories within the included directories that
+  /// should not be analyzed.
   List<String> get excluded => _excluded;
 
-  /**
-   * A list of the files and directories within the included directories that
-   * should not be analyzed.
-   */
+  /// A list of the files and directories within the included directories that
+  /// should not be analyzed.
   void set excluded(List<String> value) {
     assert(value != null);
     this._excluded = value;
   }
 
-  /**
-   * A mapping from source directories to package roots that should override
-   * the normal package: URI resolution mechanism.
-   *
-   * If a package root is a directory, then the analyzer will behave as though
-   * the associated source directory in the map contains a special pubspec.yaml
-   * file which resolves any package: URI to the corresponding path within that
-   * package root directory. The effect is the same as specifying the package
-   * root directory as a "--package_root" parameter to the Dart VM when
-   * executing any Dart file inside the source directory.
-   *
-   * If a package root is a file, then the analyzer will behave as though that
-   * file is a ".packages" file in the source directory. The effect is the same
-   * as specifying the file as a "--packages" parameter to the Dart VM when
-   * executing any Dart file inside the source directory.
-   *
-   * Files in any directories that are not overridden by this mapping have
-   * their package: URI's resolved using the normal pubspec.yaml mechanism. If
-   * this field is absent, or the empty map is specified, that indicates that
-   * the normal pubspec.yaml mechanism should always be used.
-   */
+  /// A mapping from source directories to package roots that should override
+  /// the normal package: URI resolution mechanism.
+  ///
+  /// If a package root is a directory, then the analyzer will behave as though
+  /// the associated source directory in the map contains a special
+  /// pubspec.yaml file which resolves any package: URI to the corresponding
+  /// path within that package root directory. The effect is the same as
+  /// specifying the package root directory as a "--package_root" parameter to
+  /// the Dart VM when executing any Dart file inside the source directory.
+  ///
+  /// If a package root is a file, then the analyzer will behave as though that
+  /// file is a ".packages" file in the source directory. The effect is the
+  /// same as specifying the file as a "--packages" parameter to the Dart VM
+  /// when executing any Dart file inside the source directory.
+  ///
+  /// Files in any directories that are not overridden by this mapping have
+  /// their package: URI's resolved using the normal pubspec.yaml mechanism. If
+  /// this field is absent, or the empty map is specified, that indicates that
+  /// the normal pubspec.yaml mechanism should always be used.
   Map<String, String> get packageRoots => _packageRoots;
 
-  /**
-   * A mapping from source directories to package roots that should override
-   * the normal package: URI resolution mechanism.
-   *
-   * If a package root is a directory, then the analyzer will behave as though
-   * the associated source directory in the map contains a special pubspec.yaml
-   * file which resolves any package: URI to the corresponding path within that
-   * package root directory. The effect is the same as specifying the package
-   * root directory as a "--package_root" parameter to the Dart VM when
-   * executing any Dart file inside the source directory.
-   *
-   * If a package root is a file, then the analyzer will behave as though that
-   * file is a ".packages" file in the source directory. The effect is the same
-   * as specifying the file as a "--packages" parameter to the Dart VM when
-   * executing any Dart file inside the source directory.
-   *
-   * Files in any directories that are not overridden by this mapping have
-   * their package: URI's resolved using the normal pubspec.yaml mechanism. If
-   * this field is absent, or the empty map is specified, that indicates that
-   * the normal pubspec.yaml mechanism should always be used.
-   */
+  /// A mapping from source directories to package roots that should override
+  /// the normal package: URI resolution mechanism.
+  ///
+  /// If a package root is a directory, then the analyzer will behave as though
+  /// the associated source directory in the map contains a special
+  /// pubspec.yaml file which resolves any package: URI to the corresponding
+  /// path within that package root directory. The effect is the same as
+  /// specifying the package root directory as a "--package_root" parameter to
+  /// the Dart VM when executing any Dart file inside the source directory.
+  ///
+  /// If a package root is a file, then the analyzer will behave as though that
+  /// file is a ".packages" file in the source directory. The effect is the
+  /// same as specifying the file as a "--packages" parameter to the Dart VM
+  /// when executing any Dart file inside the source directory.
+  ///
+  /// Files in any directories that are not overridden by this mapping have
+  /// their package: URI's resolved using the normal pubspec.yaml mechanism. If
+  /// this field is absent, or the empty map is specified, that indicates that
+  /// the normal pubspec.yaml mechanism should always be used.
   void set packageRoots(Map<String, String> value) {
     this._packageRoots = value;
   }
@@ -3831,11 +3505,9 @@ class AnalysisSetAnalysisRootsParams implements RequestParams {
   }
 }
 
-/**
- * analysis.setAnalysisRoots result
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.setAnalysisRoots result
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisSetAnalysisRootsResult implements ResponseResult {
   @override
   Map<String, dynamic> toJson() => <String, dynamic>{};
@@ -3859,26 +3531,20 @@ class AnalysisSetAnalysisRootsResult implements ResponseResult {
   }
 }
 
-/**
- * analysis.setGeneralSubscriptions params
- *
- * {
- *   "subscriptions": List<GeneralAnalysisService>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.setGeneralSubscriptions params
+///
+/// {
+///   "subscriptions": List<GeneralAnalysisService>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisSetGeneralSubscriptionsParams implements RequestParams {
   List<GeneralAnalysisService> _subscriptions;
 
-  /**
-   * A list of the services being subscribed to.
-   */
+  /// A list of the services being subscribed to.
   List<GeneralAnalysisService> get subscriptions => _subscriptions;
 
-  /**
-   * A list of the services being subscribed to.
-   */
+  /// A list of the services being subscribed to.
   void set subscriptions(List<GeneralAnalysisService> value) {
     assert(value != null);
     this._subscriptions = value;
@@ -3951,11 +3617,9 @@ class AnalysisSetGeneralSubscriptionsParams implements RequestParams {
   }
 }
 
-/**
- * analysis.setGeneralSubscriptions result
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.setGeneralSubscriptions result
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisSetGeneralSubscriptionsResult implements ResponseResult {
   @override
   Map<String, dynamic> toJson() => <String, dynamic>{};
@@ -3979,26 +3643,20 @@ class AnalysisSetGeneralSubscriptionsResult implements ResponseResult {
   }
 }
 
-/**
- * analysis.setPriorityFiles params
- *
- * {
- *   "files": List<FilePath>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.setPriorityFiles params
+///
+/// {
+///   "files": List<FilePath>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisSetPriorityFilesParams implements RequestParams {
   List<String> _files;
 
-  /**
-   * The files that are to be a priority for analysis.
-   */
+  /// The files that are to be a priority for analysis.
   List<String> get files => _files;
 
-  /**
-   * The files that are to be a priority for analysis.
-   */
+  /// The files that are to be a priority for analysis.
   void set files(List<String> value) {
     assert(value != null);
     this._files = value;
@@ -4064,11 +3722,9 @@ class AnalysisSetPriorityFilesParams implements RequestParams {
   }
 }
 
-/**
- * analysis.setPriorityFiles result
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.setPriorityFiles result
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisSetPriorityFilesResult implements ResponseResult {
   @override
   Map<String, dynamic> toJson() => <String, dynamic>{};
@@ -4092,28 +3748,22 @@ class AnalysisSetPriorityFilesResult implements ResponseResult {
   }
 }
 
-/**
- * analysis.setSubscriptions params
- *
- * {
- *   "subscriptions": Map<AnalysisService, List<FilePath>>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.setSubscriptions params
+///
+/// {
+///   "subscriptions": Map<AnalysisService, List<FilePath>>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisSetSubscriptionsParams implements RequestParams {
   Map<AnalysisService, List<String>> _subscriptions;
 
-  /**
-   * A table mapping services to a list of the files being subscribed to the
-   * service.
-   */
+  /// A table mapping services to a list of the files being subscribed to the
+  /// service.
   Map<AnalysisService, List<String>> get subscriptions => _subscriptions;
 
-  /**
-   * A table mapping services to a list of the files being subscribed to the
-   * service.
-   */
+  /// A table mapping services to a list of the files being subscribed to the
+  /// service.
   void set subscriptions(Map<AnalysisService, List<String>> value) {
     assert(value != null);
     this._subscriptions = value;
@@ -4189,11 +3839,9 @@ class AnalysisSetSubscriptionsParams implements RequestParams {
   }
 }
 
-/**
- * analysis.setSubscriptions result
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.setSubscriptions result
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisSetSubscriptionsResult implements ResponseResult {
   @override
   Map<String, dynamic> toJson() => <String, dynamic>{};
@@ -4217,44 +3865,34 @@ class AnalysisSetSubscriptionsResult implements ResponseResult {
   }
 }
 
-/**
- * AnalysisStatus
- *
- * {
- *   "isAnalyzing": bool
- *   "analysisTarget": optional String
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// AnalysisStatus
+///
+/// {
+///   "isAnalyzing": bool
+///   "analysisTarget": optional String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisStatus implements HasToJson {
   bool _isAnalyzing;
 
   String _analysisTarget;
 
-  /**
-   * True if analysis is currently being performed.
-   */
+  /// True if analysis is currently being performed.
   bool get isAnalyzing => _isAnalyzing;
 
-  /**
-   * True if analysis is currently being performed.
-   */
+  /// True if analysis is currently being performed.
   void set isAnalyzing(bool value) {
     assert(value != null);
     this._isAnalyzing = value;
   }
 
-  /**
-   * The name of the current target of analysis. This field is omitted if
-   * analyzing is false.
-   */
+  /// The name of the current target of analysis. This field is omitted if
+  /// analyzing is false.
   String get analysisTarget => _analysisTarget;
 
-  /**
-   * The name of the current target of analysis. This field is omitted if
-   * analyzing is false.
-   */
+  /// The name of the current target of analysis. This field is omitted if
+  /// analyzing is false.
   void set analysisTarget(String value) {
     this._analysisTarget = value;
   }
@@ -4319,28 +3957,22 @@ class AnalysisStatus implements HasToJson {
   }
 }
 
-/**
- * analysis.updateContent params
- *
- * {
- *   "files": Map<FilePath, AddContentOverlay | ChangeContentOverlay | RemoveContentOverlay>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.updateContent params
+///
+/// {
+///   "files": Map<FilePath, AddContentOverlay | ChangeContentOverlay | RemoveContentOverlay>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisUpdateContentParams implements RequestParams {
   Map<String, dynamic> _files;
 
-  /**
-   * A table mapping the files whose content has changed to a description of
-   * the content change.
-   */
+  /// A table mapping the files whose content has changed to a description of
+  /// the content change.
   Map<String, dynamic> get files => _files;
 
-  /**
-   * A table mapping the files whose content has changed to a description of
-   * the content change.
-   */
+  /// A table mapping the files whose content has changed to a description of
+  /// the content change.
   void set files(Map<String, dynamic> value) {
     assert(value != null);
     this._files = value;
@@ -4416,14 +4048,12 @@ class AnalysisUpdateContentParams implements RequestParams {
   }
 }
 
-/**
- * analysis.updateContent result
- *
- * {
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.updateContent result
+///
+/// {
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisUpdateContentResult implements ResponseResult {
   AnalysisUpdateContentResult();
 
@@ -4476,26 +4106,20 @@ class AnalysisUpdateContentResult implements ResponseResult {
   }
 }
 
-/**
- * analysis.updateOptions params
- *
- * {
- *   "options": AnalysisOptions
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.updateOptions params
+///
+/// {
+///   "options": AnalysisOptions
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisUpdateOptionsParams implements RequestParams {
   AnalysisOptions _options;
 
-  /**
-   * The options that are to be used to control analysis.
-   */
+  /// The options that are to be used to control analysis.
   AnalysisOptions get options => _options;
 
-  /**
-   * The options that are to be used to control analysis.
-   */
+  /// The options that are to be used to control analysis.
   void set options(AnalysisOptions value) {
     assert(value != null);
     this._options = value;
@@ -4561,11 +4185,9 @@ class AnalysisUpdateOptionsParams implements RequestParams {
   }
 }
 
-/**
- * analysis.updateOptions result
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.updateOptions result
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisUpdateOptionsResult implements ResponseResult {
   @override
   Map<String, dynamic> toJson() => <String, dynamic>{};
@@ -4589,26 +4211,20 @@ class AnalysisUpdateOptionsResult implements ResponseResult {
   }
 }
 
-/**
- * analytics.enable params
- *
- * {
- *   "value": bool
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analytics.enable params
+///
+/// {
+///   "value": bool
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalyticsEnableParams implements RequestParams {
   bool _value;
 
-  /**
-   * Enable or disable analytics.
-   */
+  /// Enable or disable analytics.
   bool get value => _value;
 
-  /**
-   * Enable or disable analytics.
-   */
+  /// Enable or disable analytics.
   void set value(bool value) {
     assert(value != null);
     this._value = value;
@@ -4672,11 +4288,9 @@ class AnalyticsEnableParams implements RequestParams {
   }
 }
 
-/**
- * analytics.enable result
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analytics.enable result
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalyticsEnableResult implements ResponseResult {
   @override
   Map<String, dynamic> toJson() => <String, dynamic>{};
@@ -4700,11 +4314,9 @@ class AnalyticsEnableResult implements ResponseResult {
   }
 }
 
-/**
- * analytics.isEnabled params
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analytics.isEnabled params
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalyticsIsEnabledParams implements RequestParams {
   @override
   Map<String, dynamic> toJson() => <String, dynamic>{};
@@ -4728,26 +4340,20 @@ class AnalyticsIsEnabledParams implements RequestParams {
   }
 }
 
-/**
- * analytics.isEnabled result
- *
- * {
- *   "enabled": bool
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analytics.isEnabled result
+///
+/// {
+///   "enabled": bool
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalyticsIsEnabledResult implements ResponseResult {
   bool _enabled;
 
-  /**
-   * Whether sending analytics is enabled or not.
-   */
+  /// Whether sending analytics is enabled or not.
   bool get enabled => _enabled;
 
-  /**
-   * Whether sending analytics is enabled or not.
-   */
+  /// Whether sending analytics is enabled or not.
   void set enabled(bool value) {
     assert(value != null);
     this._enabled = value;
@@ -4814,26 +4420,20 @@ class AnalyticsIsEnabledResult implements ResponseResult {
   }
 }
 
-/**
- * analytics.sendEvent params
- *
- * {
- *   "action": String
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analytics.sendEvent params
+///
+/// {
+///   "action": String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalyticsSendEventParams implements RequestParams {
   String _action;
 
-  /**
-   * The value used to indicate which action was performed.
-   */
+  /// The value used to indicate which action was performed.
   String get action => _action;
 
-  /**
-   * The value used to indicate which action was performed.
-   */
+  /// The value used to indicate which action was performed.
   void set action(String value) {
     assert(value != null);
     this._action = value;
@@ -4897,11 +4497,9 @@ class AnalyticsSendEventParams implements RequestParams {
   }
 }
 
-/**
- * analytics.sendEvent result
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analytics.sendEvent result
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalyticsSendEventResult implements ResponseResult {
   @override
   Map<String, dynamic> toJson() => <String, dynamic>{};
@@ -4925,42 +4523,32 @@ class AnalyticsSendEventResult implements ResponseResult {
   }
 }
 
-/**
- * analytics.sendTiming params
- *
- * {
- *   "event": String
- *   "millis": int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analytics.sendTiming params
+///
+/// {
+///   "event": String
+///   "millis": int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalyticsSendTimingParams implements RequestParams {
   String _event;
 
   int _millis;
 
-  /**
-   * The name of the event.
-   */
+  /// The name of the event.
   String get event => _event;
 
-  /**
-   * The name of the event.
-   */
+  /// The name of the event.
   void set event(String value) {
     assert(value != null);
     this._event = value;
   }
 
-  /**
-   * The duration of the event in milliseconds.
-   */
+  /// The duration of the event in milliseconds.
   int get millis => _millis;
 
-  /**
-   * The duration of the event in milliseconds.
-   */
+  /// The duration of the event in milliseconds.
   void set millis(int value) {
     assert(value != null);
     this._millis = value;
@@ -5033,11 +4621,9 @@ class AnalyticsSendTimingParams implements RequestParams {
   }
 }
 
-/**
- * analytics.sendTiming result
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analytics.sendTiming result
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalyticsSendTimingResult implements ResponseResult {
   @override
   Map<String, dynamic> toJson() => <String, dynamic>{};
@@ -5061,23 +4647,21 @@ class AnalyticsSendTimingResult implements ResponseResult {
   }
 }
 
-/**
- * AvailableSuggestion
- *
- * {
- *   "label": String
- *   "declaringLibraryUri": String
- *   "element": Element
- *   "defaultArgumentListString": optional String
- *   "defaultArgumentListTextRanges": optional List<int>
- *   "parameterNames": optional List<String>
- *   "parameterTypes": optional List<String>
- *   "relevanceTags": optional List<AvailableSuggestionRelevanceTag>
- *   "requiredParameterCount": optional int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// AvailableSuggestion
+///
+/// {
+///   "label": String
+///   "declaringLibraryUri": String
+///   "element": Element
+///   "defaultArgumentListString": optional String
+///   "defaultArgumentListTextRanges": optional List<int>
+///   "parameterNames": optional List<String>
+///   "parameterTypes": optional List<String>
+///   "relevanceTags": optional List<AvailableSuggestionRelevanceTag>
+///   "requiredParameterCount": optional int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AvailableSuggestion implements HasToJson {
   String _label;
 
@@ -5097,127 +4681,95 @@ class AvailableSuggestion implements HasToJson {
 
   int _requiredParameterCount;
 
-  /**
-   * The identifier to present to the user for code completion.
-   */
+  /// The identifier to present to the user for code completion.
   String get label => _label;
 
-  /**
-   * The identifier to present to the user for code completion.
-   */
+  /// The identifier to present to the user for code completion.
   void set label(String value) {
     assert(value != null);
     this._label = value;
   }
 
-  /**
-   * The URI of the library that declares the element being suggested, not the
-   * URI of the library associated with the enclosing AvailableSuggestionSet.
-   */
+  /// The URI of the library that declares the element being suggested, not the
+  /// URI of the library associated with the enclosing AvailableSuggestionSet.
   String get declaringLibraryUri => _declaringLibraryUri;
 
-  /**
-   * The URI of the library that declares the element being suggested, not the
-   * URI of the library associated with the enclosing AvailableSuggestionSet.
-   */
+  /// The URI of the library that declares the element being suggested, not the
+  /// URI of the library associated with the enclosing AvailableSuggestionSet.
   void set declaringLibraryUri(String value) {
     assert(value != null);
     this._declaringLibraryUri = value;
   }
 
-  /**
-   * Information about the element reference being suggested.
-   */
+  /// Information about the element reference being suggested.
   Element get element => _element;
 
-  /**
-   * Information about the element reference being suggested.
-   */
+  /// Information about the element reference being suggested.
   void set element(Element value) {
     assert(value != null);
     this._element = value;
   }
 
-  /**
-   * A default String for use in generating argument list source contents on
-   * the client side.
-   */
+  /// A default String for use in generating argument list source contents on
+  /// the client side.
   String get defaultArgumentListString => _defaultArgumentListString;
 
-  /**
-   * A default String for use in generating argument list source contents on
-   * the client side.
-   */
+  /// A default String for use in generating argument list source contents on
+  /// the client side.
   void set defaultArgumentListString(String value) {
     this._defaultArgumentListString = value;
   }
 
-  /**
-   * Pairs of offsets and lengths describing 'defaultArgumentListString' text
-   * ranges suitable for use by clients to set up linked edits of default
-   * argument source contents. For example, given an argument list string 'x,
-   * y', the corresponding text range [0, 1, 3, 1], indicates two text ranges
-   * of length 1, starting at offsets 0 and 3. Clients can use these ranges to
-   * treat the 'x' and 'y' values specially for linked edits.
-   */
+  /// Pairs of offsets and lengths describing 'defaultArgumentListString' text
+  /// ranges suitable for use by clients to set up linked edits of default
+  /// argument source contents. For example, given an argument list string 'x,
+  /// y', the corresponding text range [0, 1, 3, 1], indicates two text ranges
+  /// of length 1, starting at offsets 0 and 3. Clients can use these ranges to
+  /// treat the 'x' and 'y' values specially for linked edits.
   List<int> get defaultArgumentListTextRanges => _defaultArgumentListTextRanges;
 
-  /**
-   * Pairs of offsets and lengths describing 'defaultArgumentListString' text
-   * ranges suitable for use by clients to set up linked edits of default
-   * argument source contents. For example, given an argument list string 'x,
-   * y', the corresponding text range [0, 1, 3, 1], indicates two text ranges
-   * of length 1, starting at offsets 0 and 3. Clients can use these ranges to
-   * treat the 'x' and 'y' values specially for linked edits.
-   */
+  /// Pairs of offsets and lengths describing 'defaultArgumentListString' text
+  /// ranges suitable for use by clients to set up linked edits of default
+  /// argument source contents. For example, given an argument list string 'x,
+  /// y', the corresponding text range [0, 1, 3, 1], indicates two text ranges
+  /// of length 1, starting at offsets 0 and 3. Clients can use these ranges to
+  /// treat the 'x' and 'y' values specially for linked edits.
   void set defaultArgumentListTextRanges(List<int> value) {
     this._defaultArgumentListTextRanges = value;
   }
 
-  /**
-   * If the element is an executable, the names of the formal parameters of all
-   * kinds - required, optional positional, and optional named. The names of
-   * positional parameters are empty strings. Omitted if the element is not an
-   * executable.
-   */
+  /// If the element is an executable, the names of the formal parameters of
+  /// all kinds - required, optional positional, and optional named. The names
+  /// of positional parameters are empty strings. Omitted if the element is not
+  /// an executable.
   List<String> get parameterNames => _parameterNames;
 
-  /**
-   * If the element is an executable, the names of the formal parameters of all
-   * kinds - required, optional positional, and optional named. The names of
-   * positional parameters are empty strings. Omitted if the element is not an
-   * executable.
-   */
+  /// If the element is an executable, the names of the formal parameters of
+  /// all kinds - required, optional positional, and optional named. The names
+  /// of positional parameters are empty strings. Omitted if the element is not
+  /// an executable.
   void set parameterNames(List<String> value) {
     this._parameterNames = value;
   }
 
-  /**
-   * If the element is an executable, the declared types of the formal
-   * parameters of all kinds - required, optional positional, and optional
-   * named. Omitted if the element is not an executable.
-   */
+  /// If the element is an executable, the declared types of the formal
+  /// parameters of all kinds - required, optional positional, and optional
+  /// named. Omitted if the element is not an executable.
   List<String> get parameterTypes => _parameterTypes;
 
-  /**
-   * If the element is an executable, the declared types of the formal
-   * parameters of all kinds - required, optional positional, and optional
-   * named. Omitted if the element is not an executable.
-   */
+  /// If the element is an executable, the declared types of the formal
+  /// parameters of all kinds - required, optional positional, and optional
+  /// named. Omitted if the element is not an executable.
   void set parameterTypes(List<String> value) {
     this._parameterTypes = value;
   }
 
-  /**
-   * This field is set if the relevance of this suggestion might be changed
-   * depending on where completion is requested.
-   */
+  /// This field is set if the relevance of this suggestion might be changed
+  /// depending on where completion is requested.
   List<String> get relevanceTags => _relevanceTags;
 
-  /**
-   * This field is set if the relevance of this suggestion might be changed
-   * depending on where completion is requested.
-   */
+  /// This field is set if the relevance of this suggestion might be changed
+  /// depending on where completion is requested.
   void set relevanceTags(List<String> value) {
     this._relevanceTags = value;
   }
@@ -5384,17 +4936,15 @@ class AvailableSuggestion implements HasToJson {
   }
 }
 
-/**
- * AvailableSuggestionSet
- *
- * {
- *   "id": int
- *   "uri": String
- *   "items": List<AvailableSuggestion>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// AvailableSuggestionSet
+///
+/// {
+///   "id": int
+///   "uri": String
+///   "items": List<AvailableSuggestion>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AvailableSuggestionSet implements HasToJson {
   int _id;
 
@@ -5402,27 +4952,19 @@ class AvailableSuggestionSet implements HasToJson {
 
   List<AvailableSuggestion> _items;
 
-  /**
-   * The id associated with the library.
-   */
+  /// The id associated with the library.
   int get id => _id;
 
-  /**
-   * The id associated with the library.
-   */
+  /// The id associated with the library.
   void set id(int value) {
     assert(value != null);
     this._id = value;
   }
 
-  /**
-   * The URI of the library.
-   */
+  /// The URI of the library.
   String get uri => _uri;
 
-  /**
-   * The URI of the library.
-   */
+  /// The URI of the library.
   void set uri(String value) {
     assert(value != null);
     this._uri = value;
@@ -5509,17 +5051,15 @@ class AvailableSuggestionSet implements HasToJson {
   }
 }
 
-/**
- * ClosingLabel
- *
- * {
- *   "offset": int
- *   "length": int
- *   "label": String
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// ClosingLabel
+///
+/// {
+///   "offset": int
+///   "length": int
+///   "label": String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ClosingLabel implements HasToJson {
   int _offset;
 
@@ -5527,40 +5067,30 @@ class ClosingLabel implements HasToJson {
 
   String _label;
 
-  /**
-   * The offset of the construct being labelled.
-   */
+  /// The offset of the construct being labelled.
   int get offset => _offset;
 
-  /**
-   * The offset of the construct being labelled.
-   */
+  /// The offset of the construct being labelled.
   void set offset(int value) {
     assert(value != null);
     this._offset = value;
   }
 
-  /**
-   * The length of the whole construct to be labelled.
-   */
+  /// The length of the whole construct to be labelled.
   int get length => _length;
 
-  /**
-   * The length of the whole construct to be labelled.
-   */
+  /// The length of the whole construct to be labelled.
   void set length(int value) {
     assert(value != null);
     this._length = value;
   }
 
-  /**
-   * The label associated with this range that should be displayed to the user.
-   */
+  /// The label associated with this range that should be displayed to the
+  /// user.
   String get label => _label;
 
-  /**
-   * The label associated with this range that should be displayed to the user.
-   */
+  /// The label associated with this range that should be displayed to the
+  /// user.
   void set label(String value) {
     assert(value != null);
     this._label = value;
@@ -5634,43 +5164,33 @@ class ClosingLabel implements HasToJson {
   }
 }
 
-/**
- * completion.availableSuggestions params
- *
- * {
- *   "changedLibraries": optional List<AvailableSuggestionSet>
- *   "removedLibraries": optional List<int>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// completion.availableSuggestions params
+///
+/// {
+///   "changedLibraries": optional List<AvailableSuggestionSet>
+///   "removedLibraries": optional List<int>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class CompletionAvailableSuggestionsParams implements HasToJson {
   List<AvailableSuggestionSet> _changedLibraries;
 
   List<int> _removedLibraries;
 
-  /**
-   * A list of pre-computed, potential completions coming from this set of
-   * completion suggestions.
-   */
+  /// A list of pre-computed, potential completions coming from this set of
+  /// completion suggestions.
   List<AvailableSuggestionSet> get changedLibraries => _changedLibraries;
 
-  /**
-   * A list of pre-computed, potential completions coming from this set of
-   * completion suggestions.
-   */
+  /// A list of pre-computed, potential completions coming from this set of
+  /// completion suggestions.
   void set changedLibraries(List<AvailableSuggestionSet> value) {
     this._changedLibraries = value;
   }
 
-  /**
-   * A list of library ids that no longer apply.
-   */
+  /// A list of library ids that no longer apply.
   List<int> get removedLibraries => _removedLibraries;
 
-  /**
-   * A list of library ids that no longer apply.
-   */
+  /// A list of library ids that no longer apply.
   void set removedLibraries(List<int> value) {
     this._removedLibraries = value;
   }
@@ -5759,42 +5279,32 @@ class CompletionAvailableSuggestionsParams implements HasToJson {
   }
 }
 
-/**
- * completion.existingImports params
- *
- * {
- *   "file": FilePath
- *   "imports": ExistingImports
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// completion.existingImports params
+///
+/// {
+///   "file": FilePath
+///   "imports": ExistingImports
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class CompletionExistingImportsParams implements HasToJson {
   String _file;
 
   ExistingImports _imports;
 
-  /**
-   * The defining file of the library.
-   */
+  /// The defining file of the library.
   String get file => _file;
 
-  /**
-   * The defining file of the library.
-   */
+  /// The defining file of the library.
   void set file(String value) {
     assert(value != null);
     this._file = value;
   }
 
-  /**
-   * The existing imports in the library.
-   */
+  /// The existing imports in the library.
   ExistingImports get imports => _imports;
 
-  /**
-   * The existing imports in the library.
-   */
+  /// The existing imports in the library.
   void set imports(ExistingImports value) {
     assert(value != null);
     this._imports = value;
@@ -5869,18 +5379,16 @@ class CompletionExistingImportsParams implements HasToJson {
   }
 }
 
-/**
- * completion.getSuggestionDetails params
- *
- * {
- *   "file": FilePath
- *   "id": int
- *   "label": String
- *   "offset": int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// completion.getSuggestionDetails params
+///
+/// {
+///   "file": FilePath
+///   "id": int
+///   "label": String
+///   "offset": int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class CompletionGetSuggestionDetailsParams implements RequestParams {
   String _file;
 
@@ -5890,57 +5398,41 @@ class CompletionGetSuggestionDetailsParams implements RequestParams {
 
   int _offset;
 
-  /**
-   * The path of the file into which this completion is being inserted.
-   */
+  /// The path of the file into which this completion is being inserted.
   String get file => _file;
 
-  /**
-   * The path of the file into which this completion is being inserted.
-   */
+  /// The path of the file into which this completion is being inserted.
   void set file(String value) {
     assert(value != null);
     this._file = value;
   }
 
-  /**
-   * The identifier of the AvailableSuggestionSet containing the selected
-   * label.
-   */
+  /// The identifier of the AvailableSuggestionSet containing the selected
+  /// label.
   int get id => _id;
 
-  /**
-   * The identifier of the AvailableSuggestionSet containing the selected
-   * label.
-   */
+  /// The identifier of the AvailableSuggestionSet containing the selected
+  /// label.
   void set id(int value) {
     assert(value != null);
     this._id = value;
   }
 
-  /**
-   * The label from the AvailableSuggestionSet with the `id` for which
-   * insertion information is requested.
-   */
+  /// The label from the AvailableSuggestionSet with the `id` for which
+  /// insertion information is requested.
   String get label => _label;
 
-  /**
-   * The label from the AvailableSuggestionSet with the `id` for which
-   * insertion information is requested.
-   */
+  /// The label from the AvailableSuggestionSet with the `id` for which
+  /// insertion information is requested.
   void set label(String value) {
     assert(value != null);
     this._label = value;
   }
 
-  /**
-   * The offset in the file where the completion will be inserted.
-   */
+  /// The offset in the file where the completion will be inserted.
   int get offset => _offset;
 
-  /**
-   * The offset in the file where the completion will be inserted.
-   */
+  /// The offset in the file where the completion will be inserted.
   void set offset(int value) {
     assert(value != null);
     this._offset = value;
@@ -6036,46 +5528,36 @@ class CompletionGetSuggestionDetailsParams implements RequestParams {
   }
 }
 
-/**
- * completion.getSuggestionDetails result
- *
- * {
- *   "completion": String
- *   "change": optional SourceChange
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// completion.getSuggestionDetails result
+///
+/// {
+///   "completion": String
+///   "change": optional SourceChange
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class CompletionGetSuggestionDetailsResult implements ResponseResult {
   String _completion;
 
   SourceChange _change;
 
-  /**
-   * The full text to insert, including any optional import prefix.
-   */
+  /// The full text to insert, including any optional import prefix.
   String get completion => _completion;
 
-  /**
-   * The full text to insert, including any optional import prefix.
-   */
+  /// The full text to insert, including any optional import prefix.
   void set completion(String value) {
     assert(value != null);
     this._completion = value;
   }
 
-  /**
-   * A change for the client to apply in case the library containing the
-   * accepted completion suggestion needs to be imported. The field will be
-   * omitted if there are no additional changes that need to be made.
-   */
+  /// A change for the client to apply in case the library containing the
+  /// accepted completion suggestion needs to be imported. The field will be
+  /// omitted if there are no additional changes that need to be made.
   SourceChange get change => _change;
 
-  /**
-   * A change for the client to apply in case the library containing the
-   * accepted completion suggestion needs to be imported. The field will be
-   * omitted if there are no additional changes that need to be made.
-   */
+  /// A change for the client to apply in case the library containing the
+  /// accepted completion suggestion needs to be imported. The field will be
+  /// omitted if there are no additional changes that need to be made.
   void set change(SourceChange value) {
     this._change = value;
   }
@@ -6153,42 +5635,32 @@ class CompletionGetSuggestionDetailsResult implements ResponseResult {
   }
 }
 
-/**
- * completion.getSuggestions params
- *
- * {
- *   "file": FilePath
- *   "offset": int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// completion.getSuggestions params
+///
+/// {
+///   "file": FilePath
+///   "offset": int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class CompletionGetSuggestionsParams implements RequestParams {
   String _file;
 
   int _offset;
 
-  /**
-   * The file containing the point at which suggestions are to be made.
-   */
+  /// The file containing the point at which suggestions are to be made.
   String get file => _file;
 
-  /**
-   * The file containing the point at which suggestions are to be made.
-   */
+  /// The file containing the point at which suggestions are to be made.
   void set file(String value) {
     assert(value != null);
     this._file = value;
   }
 
-  /**
-   * The offset within the file at which suggestions are to be made.
-   */
+  /// The offset within the file at which suggestions are to be made.
   int get offset => _offset;
 
-  /**
-   * The offset within the file at which suggestions are to be made.
-   */
+  /// The offset within the file at which suggestions are to be made.
   void set offset(int value) {
     assert(value != null);
     this._offset = value;
@@ -6262,26 +5734,20 @@ class CompletionGetSuggestionsParams implements RequestParams {
   }
 }
 
-/**
- * completion.getSuggestions result
- *
- * {
- *   "id": CompletionId
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// completion.getSuggestions result
+///
+/// {
+///   "id": CompletionId
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class CompletionGetSuggestionsResult implements ResponseResult {
   String _id;
 
-  /**
-   * The identifier used to associate results with this completion request.
-   */
+  /// The identifier used to associate results with this completion request.
   String get id => _id;
 
-  /**
-   * The identifier used to associate results with this completion request.
-   */
+  /// The identifier used to associate results with this completion request.
   void set id(String value) {
     assert(value != null);
     this._id = value;
@@ -6348,26 +5814,20 @@ class CompletionGetSuggestionsResult implements ResponseResult {
   }
 }
 
-/**
- * completion.listTokenDetails params
- *
- * {
- *   "file": FilePath
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// completion.listTokenDetails params
+///
+/// {
+///   "file": FilePath
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class CompletionListTokenDetailsParams implements RequestParams {
   String _file;
 
-  /**
-   * The path to the file from which tokens should be returned.
-   */
+  /// The path to the file from which tokens should be returned.
   String get file => _file;
 
-  /**
-   * The path to the file from which tokens should be returned.
-   */
+  /// The path to the file from which tokens should be returned.
   void set file(String value) {
     assert(value != null);
     this._file = value;
@@ -6432,28 +5892,22 @@ class CompletionListTokenDetailsParams implements RequestParams {
   }
 }
 
-/**
- * completion.listTokenDetails result
- *
- * {
- *   "tokens": List<TokenDetails>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// completion.listTokenDetails result
+///
+/// {
+///   "tokens": List<TokenDetails>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class CompletionListTokenDetailsResult implements ResponseResult {
   List<TokenDetails> _tokens;
 
-  /**
-   * A list of the file's scanned tokens including analysis information about
-   * them.
-   */
+  /// A list of the file's scanned tokens including analysis information about
+  /// them.
   List<TokenDetails> get tokens => _tokens;
 
-  /**
-   * A list of the file's scanned tokens including analysis information about
-   * them.
-   */
+  /// A list of the file's scanned tokens including analysis information about
+  /// them.
   void set tokens(List<TokenDetails> value) {
     assert(value != null);
     this._tokens = value;
@@ -6526,32 +5980,26 @@ class CompletionListTokenDetailsResult implements ResponseResult {
   }
 }
 
-/**
- * completion.registerLibraryPaths params
- *
- * {
- *   "paths": List<LibraryPathSet>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// completion.registerLibraryPaths params
+///
+/// {
+///   "paths": List<LibraryPathSet>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class CompletionRegisterLibraryPathsParams implements RequestParams {
   List<LibraryPathSet> _paths;
 
-  /**
-   * A list of objects each containing a path and the additional libraries from
-   * which the client is interested in receiving completion suggestions. If one
-   * configured path is beneath another, the descendent will override the
-   * ancestors' configured libraries of interest.
-   */
+  /// A list of objects each containing a path and the additional libraries
+  /// from which the client is interested in receiving completion suggestions.
+  /// If one configured path is beneath another, the descendent will override
+  /// the ancestors' configured libraries of interest.
   List<LibraryPathSet> get paths => _paths;
 
-  /**
-   * A list of objects each containing a path and the additional libraries from
-   * which the client is interested in receiving completion suggestions. If one
-   * configured path is beneath another, the descendent will override the
-   * ancestors' configured libraries of interest.
-   */
+  /// A list of objects each containing a path and the additional libraries
+  /// from which the client is interested in receiving completion suggestions.
+  /// If one configured path is beneath another, the descendent will override
+  /// the ancestors' configured libraries of interest.
   void set paths(List<LibraryPathSet> value) {
     assert(value != null);
     this._paths = value;
@@ -6622,11 +6070,9 @@ class CompletionRegisterLibraryPathsParams implements RequestParams {
   }
 }
 
-/**
- * completion.registerLibraryPaths result
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// completion.registerLibraryPaths result
+///
+/// Clients may not extend, implement or mix-in this class.
 class CompletionRegisterLibraryPathsResult implements ResponseResult {
   @override
   Map<String, dynamic> toJson() => <String, dynamic>{};
@@ -6650,23 +6096,21 @@ class CompletionRegisterLibraryPathsResult implements ResponseResult {
   }
 }
 
-/**
- * completion.results params
- *
- * {
- *   "id": CompletionId
- *   "replacementOffset": int
- *   "replacementLength": int
- *   "results": List<CompletionSuggestion>
- *   "isLast": bool
- *   "libraryFile": optional FilePath
- *   "includedSuggestionSets": optional List<IncludedSuggestionSet>
- *   "includedElementKinds": optional List<ElementKind>
- *   "includedSuggestionRelevanceTags": optional List<IncludedSuggestionRelevanceTag>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// completion.results params
+///
+/// {
+///   "id": CompletionId
+///   "replacementOffset": int
+///   "replacementLength": int
+///   "results": List<CompletionSuggestion>
+///   "isLast": bool
+///   "libraryFile": optional FilePath
+///   "includedSuggestionSets": optional List<IncludedSuggestionSet>
+///   "includedElementKinds": optional List<ElementKind>
+///   "includedSuggestionRelevanceTags": optional List<IncludedSuggestionRelevanceTag>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class CompletionResultsParams implements HasToJson {
   String _id;
 
@@ -6686,167 +6130,133 @@ class CompletionResultsParams implements HasToJson {
 
   List<IncludedSuggestionRelevanceTag> _includedSuggestionRelevanceTags;
 
-  /**
-   * The id associated with the completion.
-   */
+  /// The id associated with the completion.
   String get id => _id;
 
-  /**
-   * The id associated with the completion.
-   */
+  /// The id associated with the completion.
   void set id(String value) {
     assert(value != null);
     this._id = value;
   }
 
-  /**
-   * The offset of the start of the text to be replaced. This will be different
-   * than the offset used to request the completion suggestions if there was a
-   * portion of an identifier before the original offset. In particular, the
-   * replacementOffset will be the offset of the beginning of said identifier.
-   */
+  /// The offset of the start of the text to be replaced. This will be
+  /// different than the offset used to request the completion suggestions if
+  /// there was a portion of an identifier before the original offset. In
+  /// particular, the replacementOffset will be the offset of the beginning of
+  /// said identifier.
   int get replacementOffset => _replacementOffset;
 
-  /**
-   * The offset of the start of the text to be replaced. This will be different
-   * than the offset used to request the completion suggestions if there was a
-   * portion of an identifier before the original offset. In particular, the
-   * replacementOffset will be the offset of the beginning of said identifier.
-   */
+  /// The offset of the start of the text to be replaced. This will be
+  /// different than the offset used to request the completion suggestions if
+  /// there was a portion of an identifier before the original offset. In
+  /// particular, the replacementOffset will be the offset of the beginning of
+  /// said identifier.
   void set replacementOffset(int value) {
     assert(value != null);
     this._replacementOffset = value;
   }
 
-  /**
-   * The length of the text to be replaced if the remainder of the identifier
-   * containing the cursor is to be replaced when the suggestion is applied
-   * (that is, the number of characters in the existing identifier).
-   */
+  /// The length of the text to be replaced if the remainder of the identifier
+  /// containing the cursor is to be replaced when the suggestion is applied
+  /// (that is, the number of characters in the existing identifier).
   int get replacementLength => _replacementLength;
 
-  /**
-   * The length of the text to be replaced if the remainder of the identifier
-   * containing the cursor is to be replaced when the suggestion is applied
-   * (that is, the number of characters in the existing identifier).
-   */
+  /// The length of the text to be replaced if the remainder of the identifier
+  /// containing the cursor is to be replaced when the suggestion is applied
+  /// (that is, the number of characters in the existing identifier).
   void set replacementLength(int value) {
     assert(value != null);
     this._replacementLength = value;
   }
 
-  /**
-   * The completion suggestions being reported. The notification contains all
-   * possible completions at the requested cursor position, even those that do
-   * not match the characters the user has already typed. This allows the
-   * client to respond to further keystrokes from the user without having to
-   * make additional requests.
-   */
+  /// The completion suggestions being reported. The notification contains all
+  /// possible completions at the requested cursor position, even those that do
+  /// not match the characters the user has already typed. This allows the
+  /// client to respond to further keystrokes from the user without having to
+  /// make additional requests.
   List<CompletionSuggestion> get results => _results;
 
-  /**
-   * The completion suggestions being reported. The notification contains all
-   * possible completions at the requested cursor position, even those that do
-   * not match the characters the user has already typed. This allows the
-   * client to respond to further keystrokes from the user without having to
-   * make additional requests.
-   */
+  /// The completion suggestions being reported. The notification contains all
+  /// possible completions at the requested cursor position, even those that do
+  /// not match the characters the user has already typed. This allows the
+  /// client to respond to further keystrokes from the user without having to
+  /// make additional requests.
   void set results(List<CompletionSuggestion> value) {
     assert(value != null);
     this._results = value;
   }
 
-  /**
-   * True if this is that last set of results that will be returned for the
-   * indicated completion.
-   */
+  /// True if this is that last set of results that will be returned for the
+  /// indicated completion.
   bool get isLast => _isLast;
 
-  /**
-   * True if this is that last set of results that will be returned for the
-   * indicated completion.
-   */
+  /// True if this is that last set of results that will be returned for the
+  /// indicated completion.
   void set isLast(bool value) {
     assert(value != null);
     this._isLast = value;
   }
 
-  /**
-   * The library file that contains the file where completion was requested.
-   * The client might use it for example together with the existingImports
-   * notification to filter out available suggestions. If there were changes to
-   * existing imports in the library, the corresponding existingImports
-   * notification will be sent before the completion notification.
-   */
+  /// The library file that contains the file where completion was requested.
+  /// The client might use it for example together with the existingImports
+  /// notification to filter out available suggestions. If there were changes
+  /// to existing imports in the library, the corresponding existingImports
+  /// notification will be sent before the completion notification.
   String get libraryFile => _libraryFile;
 
-  /**
-   * The library file that contains the file where completion was requested.
-   * The client might use it for example together with the existingImports
-   * notification to filter out available suggestions. If there were changes to
-   * existing imports in the library, the corresponding existingImports
-   * notification will be sent before the completion notification.
-   */
+  /// The library file that contains the file where completion was requested.
+  /// The client might use it for example together with the existingImports
+  /// notification to filter out available suggestions. If there were changes
+  /// to existing imports in the library, the corresponding existingImports
+  /// notification will be sent before the completion notification.
   void set libraryFile(String value) {
     this._libraryFile = value;
   }
 
-  /**
-   * References to AvailableSuggestionSet objects previously sent to the
-   * client. The client can include applicable names from the referenced
-   * library in code completion suggestions.
-   */
+  /// References to AvailableSuggestionSet objects previously sent to the
+  /// client. The client can include applicable names from the referenced
+  /// library in code completion suggestions.
   List<IncludedSuggestionSet> get includedSuggestionSets =>
       _includedSuggestionSets;
 
-  /**
-   * References to AvailableSuggestionSet objects previously sent to the
-   * client. The client can include applicable names from the referenced
-   * library in code completion suggestions.
-   */
+  /// References to AvailableSuggestionSet objects previously sent to the
+  /// client. The client can include applicable names from the referenced
+  /// library in code completion suggestions.
   void set includedSuggestionSets(List<IncludedSuggestionSet> value) {
     this._includedSuggestionSets = value;
   }
 
-  /**
-   * The client is expected to check this list against the ElementKind sent in
-   * IncludedSuggestionSet to decide whether or not these symbols should should
-   * be presented to the user.
-   */
+  /// The client is expected to check this list against the ElementKind sent in
+  /// IncludedSuggestionSet to decide whether or not these symbols should
+  /// should be presented to the user.
   List<ElementKind> get includedElementKinds => _includedElementKinds;
 
-  /**
-   * The client is expected to check this list against the ElementKind sent in
-   * IncludedSuggestionSet to decide whether or not these symbols should should
-   * be presented to the user.
-   */
+  /// The client is expected to check this list against the ElementKind sent in
+  /// IncludedSuggestionSet to decide whether or not these symbols should
+  /// should be presented to the user.
   void set includedElementKinds(List<ElementKind> value) {
     this._includedElementKinds = value;
   }
 
-  /**
-   * The client is expected to check this list against the values of the field
-   * relevanceTags of AvailableSuggestion to decide if the suggestion should be
-   * given a different relevance than the IncludedSuggestionSet that contains
-   * it. This might be used for example to give higher relevance to suggestions
-   * of matching types.
-   *
-   * If an AvailableSuggestion has relevance tags that match more than one
-   * IncludedSuggestionRelevanceTag, the maximum relevance boost is used.
-   */
+  /// The client is expected to check this list against the values of the field
+  /// relevanceTags of AvailableSuggestion to decide if the suggestion should
+  /// be given a different relevance than the IncludedSuggestionSet that
+  /// contains it. This might be used for example to give higher relevance to
+  /// suggestions of matching types.
+  ///
+  /// If an AvailableSuggestion has relevance tags that match more than one
+  /// IncludedSuggestionRelevanceTag, the maximum relevance boost is used.
   List<IncludedSuggestionRelevanceTag> get includedSuggestionRelevanceTags =>
       _includedSuggestionRelevanceTags;
 
-  /**
-   * The client is expected to check this list against the values of the field
-   * relevanceTags of AvailableSuggestion to decide if the suggestion should be
-   * given a different relevance than the IncludedSuggestionSet that contains
-   * it. This might be used for example to give higher relevance to suggestions
-   * of matching types.
-   *
-   * If an AvailableSuggestion has relevance tags that match more than one
-   * IncludedSuggestionRelevanceTag, the maximum relevance boost is used.
-   */
+  /// The client is expected to check this list against the values of the field
+  /// relevanceTags of AvailableSuggestion to decide if the suggestion should
+  /// be given a different relevance than the IncludedSuggestionSet that
+  /// contains it. This might be used for example to give higher relevance to
+  /// suggestions of matching types.
+  ///
+  /// If an AvailableSuggestion has relevance tags that match more than one
+  /// IncludedSuggestionRelevanceTag, the maximum relevance boost is used.
   void set includedSuggestionRelevanceTags(
       List<IncludedSuggestionRelevanceTag> value) {
     this._includedSuggestionRelevanceTags = value;
@@ -7036,31 +6446,25 @@ class CompletionResultsParams implements HasToJson {
   }
 }
 
-/**
- * CompletionService
- *
- * enum {
- *   AVAILABLE_SUGGESTION_SETS
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// CompletionService
+///
+/// enum {
+///   AVAILABLE_SUGGESTION_SETS
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class CompletionService implements Enum {
-  /**
-   * The client will receive availableSuggestions notifications once subscribed
-   * with completion suggestion sets from the libraries of interest. The client
-   * should keep an up-to-date record of these in memory so that it will be
-   * able to union these candidates with other completion suggestions when
-   * applicable at completion time.
-   *
-   * The client will also receive existingImports notifications.
-   */
+  /// The client will receive availableSuggestions notifications once
+  /// subscribed with completion suggestion sets from the libraries of
+  /// interest. The client should keep an up-to-date record of these in memory
+  /// so that it will be able to union these candidates with other completion
+  /// suggestions when applicable at completion time.
+  ///
+  /// The client will also receive existingImports notifications.
   static const CompletionService AVAILABLE_SUGGESTION_SETS =
       CompletionService._("AVAILABLE_SUGGESTION_SETS");
 
-  /**
-   * A list containing all of the enum values that are defined.
-   */
+  /// A list containing all of the enum values that are defined.
   static const List<CompletionService> VALUES = <CompletionService>[
     AVAILABLE_SUGGESTION_SETS
   ];
@@ -7096,26 +6500,20 @@ class CompletionService implements Enum {
   String toJson() => name;
 }
 
-/**
- * completion.setSubscriptions params
- *
- * {
- *   "subscriptions": List<CompletionService>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// completion.setSubscriptions params
+///
+/// {
+///   "subscriptions": List<CompletionService>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class CompletionSetSubscriptionsParams implements RequestParams {
   List<CompletionService> _subscriptions;
 
-  /**
-   * A list of the services being subscribed to.
-   */
+  /// A list of the services being subscribed to.
   List<CompletionService> get subscriptions => _subscriptions;
 
-  /**
-   * A list of the services being subscribed to.
-   */
+  /// A list of the services being subscribed to.
   void set subscriptions(List<CompletionService> value) {
     assert(value != null);
     this._subscriptions = value;
@@ -7186,11 +6584,9 @@ class CompletionSetSubscriptionsParams implements RequestParams {
   }
 }
 
-/**
- * completion.setSubscriptions result
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// completion.setSubscriptions result
+///
+/// Clients may not extend, implement or mix-in this class.
 class CompletionSetSubscriptionsResult implements ResponseResult {
   @override
   Map<String, dynamic> toJson() => <String, dynamic>{};
@@ -7214,19 +6610,17 @@ class CompletionSetSubscriptionsResult implements ResponseResult {
   }
 }
 
-/**
- * ContextData
- *
- * {
- *   "name": String
- *   "explicitFileCount": int
- *   "implicitFileCount": int
- *   "workItemQueueLength": int
- *   "cacheEntryExceptions": List<String>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// ContextData
+///
+/// {
+///   "name": String
+///   "explicitFileCount": int
+///   "implicitFileCount": int
+///   "workItemQueueLength": int
+///   "cacheEntryExceptions": List<String>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ContextData implements HasToJson {
   String _name;
 
@@ -7238,66 +6632,46 @@ class ContextData implements HasToJson {
 
   List<String> _cacheEntryExceptions;
 
-  /**
-   * The name of the context.
-   */
+  /// The name of the context.
   String get name => _name;
 
-  /**
-   * The name of the context.
-   */
+  /// The name of the context.
   void set name(String value) {
     assert(value != null);
     this._name = value;
   }
 
-  /**
-   * Explicitly analyzed files.
-   */
+  /// Explicitly analyzed files.
   int get explicitFileCount => _explicitFileCount;
 
-  /**
-   * Explicitly analyzed files.
-   */
+  /// Explicitly analyzed files.
   void set explicitFileCount(int value) {
     assert(value != null);
     this._explicitFileCount = value;
   }
 
-  /**
-   * Implicitly analyzed files.
-   */
+  /// Implicitly analyzed files.
   int get implicitFileCount => _implicitFileCount;
 
-  /**
-   * Implicitly analyzed files.
-   */
+  /// Implicitly analyzed files.
   void set implicitFileCount(int value) {
     assert(value != null);
     this._implicitFileCount = value;
   }
 
-  /**
-   * The number of work items in the queue.
-   */
+  /// The number of work items in the queue.
   int get workItemQueueLength => _workItemQueueLength;
 
-  /**
-   * The number of work items in the queue.
-   */
+  /// The number of work items in the queue.
   void set workItemQueueLength(int value) {
     assert(value != null);
     this._workItemQueueLength = value;
   }
 
-  /**
-   * Exceptions associated with cache entries.
-   */
+  /// Exceptions associated with cache entries.
   List<String> get cacheEntryExceptions => _cacheEntryExceptions;
 
-  /**
-   * Exceptions associated with cache entries.
-   */
+  /// Exceptions associated with cache entries.
   void set cacheEntryExceptions(List<String> value) {
     assert(value != null);
     this._cacheEntryExceptions = value;
@@ -7400,11 +6774,9 @@ class ContextData implements HasToJson {
   }
 }
 
-/**
- * convertGetterToMethod feedback
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// convertGetterToMethod feedback
+///
+/// Clients may not extend, implement or mix-in this class.
 class ConvertGetterToMethodFeedback extends RefactoringFeedback
     implements HasToJson {
   @override
@@ -7421,11 +6793,9 @@ class ConvertGetterToMethodFeedback extends RefactoringFeedback
   }
 }
 
-/**
- * convertGetterToMethod options
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// convertGetterToMethod options
+///
+/// Clients may not extend, implement or mix-in this class.
 class ConvertGetterToMethodOptions extends RefactoringOptions
     implements HasToJson {
   @override
@@ -7442,11 +6812,9 @@ class ConvertGetterToMethodOptions extends RefactoringOptions
   }
 }
 
-/**
- * convertMethodToGetter feedback
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// convertMethodToGetter feedback
+///
+/// Clients may not extend, implement or mix-in this class.
 class ConvertMethodToGetterFeedback extends RefactoringFeedback
     implements HasToJson {
   @override
@@ -7463,11 +6831,9 @@ class ConvertMethodToGetterFeedback extends RefactoringFeedback
   }
 }
 
-/**
- * convertMethodToGetter options
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// convertMethodToGetter options
+///
+/// Clients may not extend, implement or mix-in this class.
 class ConvertMethodToGetterOptions extends RefactoringOptions
     implements HasToJson {
   @override
@@ -7484,17 +6850,15 @@ class ConvertMethodToGetterOptions extends RefactoringOptions
   }
 }
 
-/**
- * DartFix
- *
- * {
- *   "name": String
- *   "description": optional String
- *   "isRequired": optional bool
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// DartFix
+///
+/// {
+///   "name": String
+///   "description": optional String
+///   "isRequired": optional bool
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class DartFix implements HasToJson {
   String _name;
 
@@ -7502,39 +6866,27 @@ class DartFix implements HasToJson {
 
   bool _isRequired;
 
-  /**
-   * The name of the fix.
-   */
+  /// The name of the fix.
   String get name => _name;
 
-  /**
-   * The name of the fix.
-   */
+  /// The name of the fix.
   void set name(String value) {
     assert(value != null);
     this._name = value;
   }
 
-  /**
-   * A human readable description of the fix.
-   */
+  /// A human readable description of the fix.
   String get description => _description;
 
-  /**
-   * A human readable description of the fix.
-   */
+  /// A human readable description of the fix.
   void set description(String value) {
     this._description = value;
   }
 
-  /**
-   * `true` if the fix is in the "required" fixes group.
-   */
+  /// `true` if the fix is in the "required" fixes group.
   bool get isRequired => _isRequired;
 
-  /**
-   * `true` if the fix is in the "required" fixes group.
-   */
+  /// `true` if the fix is in the "required" fixes group.
   void set isRequired(bool value) {
     this._isRequired = value;
   }
@@ -7609,42 +6961,32 @@ class DartFix implements HasToJson {
   }
 }
 
-/**
- * DartFixSuggestion
- *
- * {
- *   "description": String
- *   "location": optional Location
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// DartFixSuggestion
+///
+/// {
+///   "description": String
+///   "location": optional Location
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class DartFixSuggestion implements HasToJson {
   String _description;
 
   Location _location;
 
-  /**
-   * A human readable description of the suggested change.
-   */
+  /// A human readable description of the suggested change.
   String get description => _description;
 
-  /**
-   * A human readable description of the suggested change.
-   */
+  /// A human readable description of the suggested change.
   void set description(String value) {
     assert(value != null);
     this._description = value;
   }
 
-  /**
-   * The location of the suggested change.
-   */
+  /// The location of the suggested change.
   Location get location => _location;
 
-  /**
-   * The location of the suggested change.
-   */
+  /// The location of the suggested change.
   void set location(Location value) {
     this._location = value;
   }
@@ -7708,11 +7050,9 @@ class DartFixSuggestion implements HasToJson {
   }
 }
 
-/**
- * diagnostic.getDiagnostics params
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// diagnostic.getDiagnostics params
+///
+/// Clients may not extend, implement or mix-in this class.
 class DiagnosticGetDiagnosticsParams implements RequestParams {
   @override
   Map<String, dynamic> toJson() => <String, dynamic>{};
@@ -7736,26 +7076,20 @@ class DiagnosticGetDiagnosticsParams implements RequestParams {
   }
 }
 
-/**
- * diagnostic.getDiagnostics result
- *
- * {
- *   "contexts": List<ContextData>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// diagnostic.getDiagnostics result
+///
+/// {
+///   "contexts": List<ContextData>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class DiagnosticGetDiagnosticsResult implements ResponseResult {
   List<ContextData> _contexts;
 
-  /**
-   * The list of analysis contexts.
-   */
+  /// The list of analysis contexts.
   List<ContextData> get contexts => _contexts;
 
-  /**
-   * The list of analysis contexts.
-   */
+  /// The list of analysis contexts.
   void set contexts(List<ContextData> value) {
     assert(value != null);
     this._contexts = value;
@@ -7828,11 +7162,9 @@ class DiagnosticGetDiagnosticsResult implements ResponseResult {
   }
 }
 
-/**
- * diagnostic.getServerPort params
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// diagnostic.getServerPort params
+///
+/// Clients may not extend, implement or mix-in this class.
 class DiagnosticGetServerPortParams implements RequestParams {
   @override
   Map<String, dynamic> toJson() => <String, dynamic>{};
@@ -7856,26 +7188,20 @@ class DiagnosticGetServerPortParams implements RequestParams {
   }
 }
 
-/**
- * diagnostic.getServerPort result
- *
- * {
- *   "port": int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// diagnostic.getServerPort result
+///
+/// {
+///   "port": int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class DiagnosticGetServerPortResult implements ResponseResult {
   int _port;
 
-  /**
-   * The diagnostic server port.
-   */
+  /// The diagnostic server port.
   int get port => _port;
 
-  /**
-   * The diagnostic server port.
-   */
+  /// The diagnostic server port.
   void set port(int value) {
     assert(value != null);
     this._port = value;
@@ -7942,21 +7268,19 @@ class DiagnosticGetServerPortResult implements ResponseResult {
   }
 }
 
-/**
- * edit.dartfix params
- *
- * {
- *   "included": List<FilePath>
- *   "includedFixes": optional List<String>
- *   "includePedanticFixes": optional bool
- *   "includeRequiredFixes": optional bool
- *   "excludedFixes": optional List<String>
- *   "port": optional int
- *   "outputDir": optional FilePath
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// edit.dartfix params
+///
+/// {
+///   "included": List<FilePath>
+///   "includedFixes": optional List<String>
+///   "includePedanticFixes": optional bool
+///   "includeRequiredFixes": optional bool
+///   "excludedFixes": optional List<String>
+///   "port": optional int
+///   "outputDir": optional FilePath
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class EditDartfixParams implements RequestParams {
   List<String> _included;
 
@@ -7972,113 +7296,85 @@ class EditDartfixParams implements RequestParams {
 
   String _outputDir;
 
-  /**
-   * A list of the files and directories for which edits should be suggested.
-   *
-   * If a request is made with a path that is invalid, e.g. is not absolute and
-   * normalized, an error of type INVALID_FILE_PATH_FORMAT will be generated.
-   * If a request is made for a file which does not exist, or which is not
-   * currently subject to analysis (e.g. because it is not associated with any
-   * analysis root specified to analysis.setAnalysisRoots), an error of type
-   * FILE_NOT_ANALYZED will be generated.
-   */
+  /// A list of the files and directories for which edits should be suggested.
+  ///
+  /// If a request is made with a path that is invalid, e.g. is not absolute
+  /// and normalized, an error of type INVALID_FILE_PATH_FORMAT will be
+  /// generated. If a request is made for a file which does not exist, or which
+  /// is not currently subject to analysis (e.g. because it is not associated
+  /// with any analysis root specified to analysis.setAnalysisRoots), an error
+  /// of type FILE_NOT_ANALYZED will be generated.
   List<String> get included => _included;
 
-  /**
-   * A list of the files and directories for which edits should be suggested.
-   *
-   * If a request is made with a path that is invalid, e.g. is not absolute and
-   * normalized, an error of type INVALID_FILE_PATH_FORMAT will be generated.
-   * If a request is made for a file which does not exist, or which is not
-   * currently subject to analysis (e.g. because it is not associated with any
-   * analysis root specified to analysis.setAnalysisRoots), an error of type
-   * FILE_NOT_ANALYZED will be generated.
-   */
+  /// A list of the files and directories for which edits should be suggested.
+  ///
+  /// If a request is made with a path that is invalid, e.g. is not absolute
+  /// and normalized, an error of type INVALID_FILE_PATH_FORMAT will be
+  /// generated. If a request is made for a file which does not exist, or which
+  /// is not currently subject to analysis (e.g. because it is not associated
+  /// with any analysis root specified to analysis.setAnalysisRoots), an error
+  /// of type FILE_NOT_ANALYZED will be generated.
   void set included(List<String> value) {
     assert(value != null);
     this._included = value;
   }
 
-  /**
-   * A list of names indicating which fixes should be applied.
-   *
-   * If a name is specified that does not match the name of a known fix, an
-   * error of type UNKNOWN_FIX will be generated.
-   */
+  /// A list of names indicating which fixes should be applied.
+  ///
+  /// If a name is specified that does not match the name of a known fix, an
+  /// error of type UNKNOWN_FIX will be generated.
   List<String> get includedFixes => _includedFixes;
 
-  /**
-   * A list of names indicating which fixes should be applied.
-   *
-   * If a name is specified that does not match the name of a known fix, an
-   * error of type UNKNOWN_FIX will be generated.
-   */
+  /// A list of names indicating which fixes should be applied.
+  ///
+  /// If a name is specified that does not match the name of a known fix, an
+  /// error of type UNKNOWN_FIX will be generated.
   void set includedFixes(List<String> value) {
     this._includedFixes = value;
   }
 
-  /**
-   * A flag indicating whether "pedantic" fixes should be applied.
-   */
+  /// A flag indicating whether "pedantic" fixes should be applied.
   bool get includePedanticFixes => _includePedanticFixes;
 
-  /**
-   * A flag indicating whether "pedantic" fixes should be applied.
-   */
+  /// A flag indicating whether "pedantic" fixes should be applied.
   void set includePedanticFixes(bool value) {
     this._includePedanticFixes = value;
   }
 
-  /**
-   * A flag indicating whether "required" fixes should be applied.
-   */
+  /// A flag indicating whether "required" fixes should be applied.
   bool get includeRequiredFixes => _includeRequiredFixes;
 
-  /**
-   * A flag indicating whether "required" fixes should be applied.
-   */
+  /// A flag indicating whether "required" fixes should be applied.
   void set includeRequiredFixes(bool value) {
     this._includeRequiredFixes = value;
   }
 
-  /**
-   * A list of names indicating which fixes should not be applied.
-   *
-   * If a name is specified that does not match the name of a known fix, an
-   * error of type UNKNOWN_FIX will be generated.
-   */
+  /// A list of names indicating which fixes should not be applied.
+  ///
+  /// If a name is specified that does not match the name of a known fix, an
+  /// error of type UNKNOWN_FIX will be generated.
   List<String> get excludedFixes => _excludedFixes;
 
-  /**
-   * A list of names indicating which fixes should not be applied.
-   *
-   * If a name is specified that does not match the name of a known fix, an
-   * error of type UNKNOWN_FIX will be generated.
-   */
+  /// A list of names indicating which fixes should not be applied.
+  ///
+  /// If a name is specified that does not match the name of a known fix, an
+  /// error of type UNKNOWN_FIX will be generated.
   void set excludedFixes(List<String> value) {
     this._excludedFixes = value;
   }
 
-  /**
-   * Deprecated: This field is now ignored by server.
-   */
+  /// Deprecated: This field is now ignored by server.
   int get port => _port;
 
-  /**
-   * Deprecated: This field is now ignored by server.
-   */
+  /// Deprecated: This field is now ignored by server.
   void set port(int value) {
     this._port = value;
   }
 
-  /**
-   * Deprecated: This field is now ignored by server.
-   */
+  /// Deprecated: This field is now ignored by server.
   String get outputDir => _outputDir;
 
-  /**
-   * Deprecated: This field is now ignored by server.
-   */
+  /// Deprecated: This field is now ignored by server.
   void set outputDir(String value) {
     this._outputDir = value;
   }
@@ -8222,21 +7518,19 @@ class EditDartfixParams implements RequestParams {
   }
 }
 
-/**
- * edit.dartfix result
- *
- * {
- *   "suggestions": List<DartFixSuggestion>
- *   "otherSuggestions": List<DartFixSuggestion>
- *   "hasErrors": bool
- *   "edits": List<SourceFileEdit>
- *   "details": optional List<String>
- *   "port": optional int
- *   "urls": optional List<String>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// edit.dartfix result
+///
+/// {
+///   "suggestions": List<DartFixSuggestion>
+///   "otherSuggestions": List<DartFixSuggestion>
+///   "hasErrors": bool
+///   "edits": List<SourceFileEdit>
+///   "details": optional List<String>
+///   "port": optional int
+///   "urls": optional List<String>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class EditDartfixResult implements ResponseResult {
   List<DartFixSuggestion> _suggestions;
 
@@ -8252,108 +7546,80 @@ class EditDartfixResult implements ResponseResult {
 
   List<String> _urls;
 
-  /**
-   * A list of recommended changes that can be automatically made by applying
-   * the 'edits' included in this response.
-   */
+  /// A list of recommended changes that can be automatically made by applying
+  /// the 'edits' included in this response.
   List<DartFixSuggestion> get suggestions => _suggestions;
 
-  /**
-   * A list of recommended changes that can be automatically made by applying
-   * the 'edits' included in this response.
-   */
+  /// A list of recommended changes that can be automatically made by applying
+  /// the 'edits' included in this response.
   void set suggestions(List<DartFixSuggestion> value) {
     assert(value != null);
     this._suggestions = value;
   }
 
-  /**
-   * A list of recommended changes that could not be automatically made.
-   */
+  /// A list of recommended changes that could not be automatically made.
   List<DartFixSuggestion> get otherSuggestions => _otherSuggestions;
 
-  /**
-   * A list of recommended changes that could not be automatically made.
-   */
+  /// A list of recommended changes that could not be automatically made.
   void set otherSuggestions(List<DartFixSuggestion> value) {
     assert(value != null);
     this._otherSuggestions = value;
   }
 
-  /**
-   * True if the analyzed source contains errors that might impact the
-   * correctness of the recommended changes that can be automatically applied.
-   */
+  /// True if the analyzed source contains errors that might impact the
+  /// correctness of the recommended changes that can be automatically applied.
   bool get hasErrors => _hasErrors;
 
-  /**
-   * True if the analyzed source contains errors that might impact the
-   * correctness of the recommended changes that can be automatically applied.
-   */
+  /// True if the analyzed source contains errors that might impact the
+  /// correctness of the recommended changes that can be automatically applied.
   void set hasErrors(bool value) {
     assert(value != null);
     this._hasErrors = value;
   }
 
-  /**
-   * A list of source edits to apply the recommended changes.
-   */
+  /// A list of source edits to apply the recommended changes.
   List<SourceFileEdit> get edits => _edits;
 
-  /**
-   * A list of source edits to apply the recommended changes.
-   */
+  /// A list of source edits to apply the recommended changes.
   void set edits(List<SourceFileEdit> value) {
     assert(value != null);
     this._edits = value;
   }
 
-  /**
-   * Messages that should be displayed to the user that describe details of the
-   * fix generation. For example, the messages might (a) point out details that
-   * users might want to explore before committing the changes or (b) describe
-   * exceptions that were thrown but that did not stop the fixes from being
-   * produced. The list will be omitted if it is empty.
-   */
+  /// Messages that should be displayed to the user that describe details of
+  /// the fix generation. For example, the messages might (a) point out details
+  /// that users might want to explore before committing the changes or (b)
+  /// describe exceptions that were thrown but that did not stop the fixes from
+  /// being produced. The list will be omitted if it is empty.
   List<String> get details => _details;
 
-  /**
-   * Messages that should be displayed to the user that describe details of the
-   * fix generation. For example, the messages might (a) point out details that
-   * users might want to explore before committing the changes or (b) describe
-   * exceptions that were thrown but that did not stop the fixes from being
-   * produced. The list will be omitted if it is empty.
-   */
+  /// Messages that should be displayed to the user that describe details of
+  /// the fix generation. For example, the messages might (a) point out details
+  /// that users might want to explore before committing the changes or (b)
+  /// describe exceptions that were thrown but that did not stop the fixes from
+  /// being produced. The list will be omitted if it is empty.
   void set details(List<String> value) {
     this._details = value;
   }
 
-  /**
-   * The port on which the preview tool will respond to GET requests. The field
-   * is omitted if a preview was not requested.
-   */
+  /// The port on which the preview tool will respond to GET requests. The
+  /// field is omitted if a preview was not requested.
   int get port => _port;
 
-  /**
-   * The port on which the preview tool will respond to GET requests. The field
-   * is omitted if a preview was not requested.
-   */
+  /// The port on which the preview tool will respond to GET requests. The
+  /// field is omitted if a preview was not requested.
   void set port(int value) {
     this._port = value;
   }
 
-  /**
-   * The URLs that users can visit in a browser to see a preview of the
-   * proposed changes. There is one URL for each of the included file paths.
-   * The field is omitted if a preview was not requested.
-   */
+  /// The URLs that users can visit in a browser to see a preview of the
+  /// proposed changes. There is one URL for each of the included file paths.
+  /// The field is omitted if a preview was not requested.
   List<String> get urls => _urls;
 
-  /**
-   * The URLs that users can visit in a browser to see a preview of the
-   * proposed changes. There is one URL for each of the included file paths.
-   * The field is omitted if a preview was not requested.
-   */
+  /// The URLs that users can visit in a browser to see a preview of the
+  /// proposed changes. There is one URL for each of the included file paths.
+  /// The field is omitted if a preview was not requested.
   void set urls(List<String> value) {
     this._urls = value;
   }
@@ -8508,18 +7774,16 @@ class EditDartfixResult implements ResponseResult {
   }
 }
 
-/**
- * edit.format params
- *
- * {
- *   "file": FilePath
- *   "selectionOffset": int
- *   "selectionLength": int
- *   "lineLength": optional int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// edit.format params
+///
+/// {
+///   "file": FilePath
+///   "selectionOffset": int
+///   "selectionLength": int
+///   "lineLength": optional int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class EditFormatParams implements RequestParams {
   String _file;
 
@@ -8529,53 +7793,37 @@ class EditFormatParams implements RequestParams {
 
   int _lineLength;
 
-  /**
-   * The file containing the code to be formatted.
-   */
+  /// The file containing the code to be formatted.
   String get file => _file;
 
-  /**
-   * The file containing the code to be formatted.
-   */
+  /// The file containing the code to be formatted.
   void set file(String value) {
     assert(value != null);
     this._file = value;
   }
 
-  /**
-   * The offset of the current selection in the file.
-   */
+  /// The offset of the current selection in the file.
   int get selectionOffset => _selectionOffset;
 
-  /**
-   * The offset of the current selection in the file.
-   */
+  /// The offset of the current selection in the file.
   void set selectionOffset(int value) {
     assert(value != null);
     this._selectionOffset = value;
   }
 
-  /**
-   * The length of the current selection in the file.
-   */
+  /// The length of the current selection in the file.
   int get selectionLength => _selectionLength;
 
-  /**
-   * The length of the current selection in the file.
-   */
+  /// The length of the current selection in the file.
   void set selectionLength(int value) {
     assert(value != null);
     this._selectionLength = value;
   }
 
-  /**
-   * The line length to be used by the formatter.
-   */
+  /// The line length to be used by the formatter.
   int get lineLength => _lineLength;
 
-  /**
-   * The line length to be used by the formatter.
-   */
+  /// The line length to be used by the formatter.
   void set lineLength(int value) {
     this._lineLength = value;
   }
@@ -8673,17 +7921,15 @@ class EditFormatParams implements RequestParams {
   }
 }
 
-/**
- * edit.format result
- *
- * {
- *   "edits": List<SourceEdit>
- *   "selectionOffset": int
- *   "selectionLength": int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// edit.format result
+///
+/// {
+///   "edits": List<SourceEdit>
+///   "selectionOffset": int
+///   "selectionLength": int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class EditFormatResult implements ResponseResult {
   List<SourceEdit> _edits;
 
@@ -8691,42 +7937,30 @@ class EditFormatResult implements ResponseResult {
 
   int _selectionLength;
 
-  /**
-   * The edit(s) to be applied in order to format the code. The list will be
-   * empty if the code was already formatted (there are no changes).
-   */
+  /// The edit(s) to be applied in order to format the code. The list will be
+  /// empty if the code was already formatted (there are no changes).
   List<SourceEdit> get edits => _edits;
 
-  /**
-   * The edit(s) to be applied in order to format the code. The list will be
-   * empty if the code was already formatted (there are no changes).
-   */
+  /// The edit(s) to be applied in order to format the code. The list will be
+  /// empty if the code was already formatted (there are no changes).
   void set edits(List<SourceEdit> value) {
     assert(value != null);
     this._edits = value;
   }
 
-  /**
-   * The offset of the selection after formatting the code.
-   */
+  /// The offset of the selection after formatting the code.
   int get selectionOffset => _selectionOffset;
 
-  /**
-   * The offset of the selection after formatting the code.
-   */
+  /// The offset of the selection after formatting the code.
   void set selectionOffset(int value) {
     assert(value != null);
     this._selectionOffset = value;
   }
 
-  /**
-   * The length of the selection after formatting the code.
-   */
+  /// The length of the selection after formatting the code.
   int get selectionLength => _selectionLength;
 
-  /**
-   * The length of the selection after formatting the code.
-   */
+  /// The length of the selection after formatting the code.
   void set selectionLength(int value) {
     assert(value != null);
     this._selectionLength = value;
@@ -8820,17 +8054,15 @@ class EditFormatResult implements ResponseResult {
   }
 }
 
-/**
- * edit.getAssists params
- *
- * {
- *   "file": FilePath
- *   "offset": int
- *   "length": int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// edit.getAssists params
+///
+/// {
+///   "file": FilePath
+///   "offset": int
+///   "length": int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class EditGetAssistsParams implements RequestParams {
   String _file;
 
@@ -8838,40 +8070,28 @@ class EditGetAssistsParams implements RequestParams {
 
   int _length;
 
-  /**
-   * The file containing the code for which assists are being requested.
-   */
+  /// The file containing the code for which assists are being requested.
   String get file => _file;
 
-  /**
-   * The file containing the code for which assists are being requested.
-   */
+  /// The file containing the code for which assists are being requested.
   void set file(String value) {
     assert(value != null);
     this._file = value;
   }
 
-  /**
-   * The offset of the code for which assists are being requested.
-   */
+  /// The offset of the code for which assists are being requested.
   int get offset => _offset;
 
-  /**
-   * The offset of the code for which assists are being requested.
-   */
+  /// The offset of the code for which assists are being requested.
   void set offset(int value) {
     assert(value != null);
     this._offset = value;
   }
 
-  /**
-   * The length of the code for which assists are being requested.
-   */
+  /// The length of the code for which assists are being requested.
   int get length => _length;
 
-  /**
-   * The length of the code for which assists are being requested.
-   */
+  /// The length of the code for which assists are being requested.
   void set length(int value) {
     assert(value != null);
     this._length = value;
@@ -8955,26 +8175,20 @@ class EditGetAssistsParams implements RequestParams {
   }
 }
 
-/**
- * edit.getAssists result
- *
- * {
- *   "assists": List<SourceChange>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// edit.getAssists result
+///
+/// {
+///   "assists": List<SourceChange>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class EditGetAssistsResult implements ResponseResult {
   List<SourceChange> _assists;
 
-  /**
-   * The assists that are available at the given location.
-   */
+  /// The assists that are available at the given location.
   List<SourceChange> get assists => _assists;
 
-  /**
-   * The assists that are available at the given location.
-   */
+  /// The assists that are available at the given location.
   void set assists(List<SourceChange> value) {
     assert(value != null);
     this._assists = value;
@@ -9046,17 +8260,15 @@ class EditGetAssistsResult implements ResponseResult {
   }
 }
 
-/**
- * edit.getAvailableRefactorings params
- *
- * {
- *   "file": FilePath
- *   "offset": int
- *   "length": int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// edit.getAvailableRefactorings params
+///
+/// {
+///   "file": FilePath
+///   "offset": int
+///   "length": int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class EditGetAvailableRefactoringsParams implements RequestParams {
   String _file;
 
@@ -9064,40 +8276,28 @@ class EditGetAvailableRefactoringsParams implements RequestParams {
 
   int _length;
 
-  /**
-   * The file containing the code on which the refactoring would be based.
-   */
+  /// The file containing the code on which the refactoring would be based.
   String get file => _file;
 
-  /**
-   * The file containing the code on which the refactoring would be based.
-   */
+  /// The file containing the code on which the refactoring would be based.
   void set file(String value) {
     assert(value != null);
     this._file = value;
   }
 
-  /**
-   * The offset of the code on which the refactoring would be based.
-   */
+  /// The offset of the code on which the refactoring would be based.
   int get offset => _offset;
 
-  /**
-   * The offset of the code on which the refactoring would be based.
-   */
+  /// The offset of the code on which the refactoring would be based.
   void set offset(int value) {
     assert(value != null);
     this._offset = value;
   }
 
-  /**
-   * The length of the code on which the refactoring would be based.
-   */
+  /// The length of the code on which the refactoring would be based.
   int get length => _length;
 
-  /**
-   * The length of the code on which the refactoring would be based.
-   */
+  /// The length of the code on which the refactoring would be based.
   void set length(int value) {
     assert(value != null);
     this._length = value;
@@ -9182,26 +8382,20 @@ class EditGetAvailableRefactoringsParams implements RequestParams {
   }
 }
 
-/**
- * edit.getAvailableRefactorings result
- *
- * {
- *   "kinds": List<RefactoringKind>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// edit.getAvailableRefactorings result
+///
+/// {
+///   "kinds": List<RefactoringKind>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class EditGetAvailableRefactoringsResult implements ResponseResult {
   List<RefactoringKind> _kinds;
 
-  /**
-   * The kinds of refactorings that are valid for the given selection.
-   */
+  /// The kinds of refactorings that are valid for the given selection.
   List<RefactoringKind> get kinds => _kinds;
 
-  /**
-   * The kinds of refactorings that are valid for the given selection.
-   */
+  /// The kinds of refactorings that are valid for the given selection.
   void set kinds(List<RefactoringKind> value) {
     assert(value != null);
     this._kinds = value;
@@ -9274,14 +8468,12 @@ class EditGetAvailableRefactoringsResult implements ResponseResult {
   }
 }
 
-/**
- * edit.getDartfixInfo params
- *
- * {
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// edit.getDartfixInfo params
+///
+/// {
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class EditGetDartfixInfoParams implements RequestParams {
   EditGetDartfixInfoParams();
 
@@ -9331,26 +8523,20 @@ class EditGetDartfixInfoParams implements RequestParams {
   }
 }
 
-/**
- * edit.getDartfixInfo result
- *
- * {
- *   "fixes": List<DartFix>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// edit.getDartfixInfo result
+///
+/// {
+///   "fixes": List<DartFix>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class EditGetDartfixInfoResult implements ResponseResult {
   List<DartFix> _fixes;
 
-  /**
-   * A list of fixes that can be specified in an edit.dartfix request.
-   */
+  /// A list of fixes that can be specified in an edit.dartfix request.
   List<DartFix> get fixes => _fixes;
 
-  /**
-   * A list of fixes that can be specified in an edit.dartfix request.
-   */
+  /// A list of fixes that can be specified in an edit.dartfix request.
   void set fixes(List<DartFix> value) {
     assert(value != null);
     this._fixes = value;
@@ -9420,42 +8606,32 @@ class EditGetDartfixInfoResult implements ResponseResult {
   }
 }
 
-/**
- * edit.getFixes params
- *
- * {
- *   "file": FilePath
- *   "offset": int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// edit.getFixes params
+///
+/// {
+///   "file": FilePath
+///   "offset": int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class EditGetFixesParams implements RequestParams {
   String _file;
 
   int _offset;
 
-  /**
-   * The file containing the errors for which fixes are being requested.
-   */
+  /// The file containing the errors for which fixes are being requested.
   String get file => _file;
 
-  /**
-   * The file containing the errors for which fixes are being requested.
-   */
+  /// The file containing the errors for which fixes are being requested.
   void set file(String value) {
     assert(value != null);
     this._file = value;
   }
 
-  /**
-   * The offset used to select the errors for which fixes will be returned.
-   */
+  /// The offset used to select the errors for which fixes will be returned.
   int get offset => _offset;
 
-  /**
-   * The offset used to select the errors for which fixes will be returned.
-   */
+  /// The offset used to select the errors for which fixes will be returned.
   void set offset(int value) {
     assert(value != null);
     this._offset = value;
@@ -9528,26 +8704,20 @@ class EditGetFixesParams implements RequestParams {
   }
 }
 
-/**
- * edit.getFixes result
- *
- * {
- *   "fixes": List<AnalysisErrorFixes>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// edit.getFixes result
+///
+/// {
+///   "fixes": List<AnalysisErrorFixes>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class EditGetFixesResult implements ResponseResult {
   List<AnalysisErrorFixes> _fixes;
 
-  /**
-   * The fixes that are available for the errors at the given offset.
-   */
+  /// The fixes that are available for the errors at the given offset.
   List<AnalysisErrorFixes> get fixes => _fixes;
 
-  /**
-   * The fixes that are available for the errors at the given offset.
-   */
+  /// The fixes that are available for the errors at the given offset.
   void set fixes(List<AnalysisErrorFixes> value) {
     assert(value != null);
     this._fixes = value;
@@ -9619,17 +8789,15 @@ class EditGetFixesResult implements ResponseResult {
   }
 }
 
-/**
- * edit.getPostfixCompletion params
- *
- * {
- *   "file": FilePath
- *   "key": String
- *   "offset": int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// edit.getPostfixCompletion params
+///
+/// {
+///   "file": FilePath
+///   "key": String
+///   "offset": int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class EditGetPostfixCompletionParams implements RequestParams {
   String _file;
 
@@ -9637,42 +8805,30 @@ class EditGetPostfixCompletionParams implements RequestParams {
 
   int _offset;
 
-  /**
-   * The file containing the postfix template to be expanded.
-   */
+  /// The file containing the postfix template to be expanded.
   String get file => _file;
 
-  /**
-   * The file containing the postfix template to be expanded.
-   */
+  /// The file containing the postfix template to be expanded.
   void set file(String value) {
     assert(value != null);
     this._file = value;
   }
 
-  /**
-   * The unique name that identifies the template in use.
-   */
+  /// The unique name that identifies the template in use.
   String get key => _key;
 
-  /**
-   * The unique name that identifies the template in use.
-   */
+  /// The unique name that identifies the template in use.
   void set key(String value) {
     assert(value != null);
     this._key = value;
   }
 
-  /**
-   * The offset used to identify the code to which the template will be
-   * applied.
-   */
+  /// The offset used to identify the code to which the template will be
+  /// applied.
   int get offset => _offset;
 
-  /**
-   * The offset used to identify the code to which the template will be
-   * applied.
-   */
+  /// The offset used to identify the code to which the template will be
+  /// applied.
   void set offset(int value) {
     assert(value != null);
     this._offset = value;
@@ -9755,26 +8911,20 @@ class EditGetPostfixCompletionParams implements RequestParams {
   }
 }
 
-/**
- * edit.getPostfixCompletion result
- *
- * {
- *   "change": SourceChange
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// edit.getPostfixCompletion result
+///
+/// {
+///   "change": SourceChange
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class EditGetPostfixCompletionResult implements ResponseResult {
   SourceChange _change;
 
-  /**
-   * The change to be applied in order to complete the statement.
-   */
+  /// The change to be applied in order to complete the statement.
   SourceChange get change => _change;
 
-  /**
-   * The change to be applied in order to complete the statement.
-   */
+  /// The change to be applied in order to complete the statement.
   void set change(SourceChange value) {
     assert(value != null);
     this._change = value;
@@ -9842,20 +8992,18 @@ class EditGetPostfixCompletionResult implements ResponseResult {
   }
 }
 
-/**
- * edit.getRefactoring params
- *
- * {
- *   "kind": RefactoringKind
- *   "file": FilePath
- *   "offset": int
- *   "length": int
- *   "validateOnly": bool
- *   "options": optional RefactoringOptions
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// edit.getRefactoring params
+///
+/// {
+///   "kind": RefactoringKind
+///   "file": FilePath
+///   "offset": int
+///   "length": int
+///   "validateOnly": bool
+///   "options": optional RefactoringOptions
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class EditGetRefactoringParams implements RequestParams {
   RefactoringKind _kind;
 
@@ -9869,89 +9017,65 @@ class EditGetRefactoringParams implements RequestParams {
 
   RefactoringOptions _options;
 
-  /**
-   * The kind of refactoring to be performed.
-   */
+  /// The kind of refactoring to be performed.
   RefactoringKind get kind => _kind;
 
-  /**
-   * The kind of refactoring to be performed.
-   */
+  /// The kind of refactoring to be performed.
   void set kind(RefactoringKind value) {
     assert(value != null);
     this._kind = value;
   }
 
-  /**
-   * The file containing the code involved in the refactoring.
-   */
+  /// The file containing the code involved in the refactoring.
   String get file => _file;
 
-  /**
-   * The file containing the code involved in the refactoring.
-   */
+  /// The file containing the code involved in the refactoring.
   void set file(String value) {
     assert(value != null);
     this._file = value;
   }
 
-  /**
-   * The offset of the region involved in the refactoring.
-   */
+  /// The offset of the region involved in the refactoring.
   int get offset => _offset;
 
-  /**
-   * The offset of the region involved in the refactoring.
-   */
+  /// The offset of the region involved in the refactoring.
   void set offset(int value) {
     assert(value != null);
     this._offset = value;
   }
 
-  /**
-   * The length of the region involved in the refactoring.
-   */
+  /// The length of the region involved in the refactoring.
   int get length => _length;
 
-  /**
-   * The length of the region involved in the refactoring.
-   */
+  /// The length of the region involved in the refactoring.
   void set length(int value) {
     assert(value != null);
     this._length = value;
   }
 
-  /**
-   * True if the client is only requesting that the values of the options be
-   * validated and no change be generated.
-   */
+  /// True if the client is only requesting that the values of the options be
+  /// validated and no change be generated.
   bool get validateOnly => _validateOnly;
 
-  /**
-   * True if the client is only requesting that the values of the options be
-   * validated and no change be generated.
-   */
+  /// True if the client is only requesting that the values of the options be
+  /// validated and no change be generated.
   void set validateOnly(bool value) {
     assert(value != null);
     this._validateOnly = value;
   }
 
-  /**
-   * Data used to provide values provided by the user. The structure of the
-   * data is dependent on the kind of refactoring being performed. The data
-   * that is expected is documented in the section titled Refactorings, labeled
-   * as "Options". This field can be omitted if the refactoring does not
-   * require any options or if the values of those options are not known.
-   */
+  /// Data used to provide values provided by the user. The structure of the
+  /// data is dependent on the kind of refactoring being performed. The data
+  /// that is expected is documented in the section titled Refactorings,
+  /// labeled as "Options". This field can be omitted if the refactoring does
+  /// not require any options or if the values of those options are not known.
   RefactoringOptions get options => _options;
 
-  /**
-   * Data used to provide values provided by the user. The structure of the
-   * data is dependent on the kind of refactoring being performed. The data
-   * that is expected is documented in the section titled Refactorings, labeled
-   * as "Options". This field can be omitted if the refactoring does not
-   * require any options or if the values of those options are not known.
-   */
+  /// Data used to provide values provided by the user. The structure of the
+  /// data is dependent on the kind of refactoring being performed. The data
+  /// that is expected is documented in the section titled Refactorings,
+  /// labeled as "Options". This field can be omitted if the refactoring does
+  /// not require any options or if the values of those options are not known.
   void set options(RefactoringOptions value) {
     this._options = value;
   }
@@ -10072,20 +9196,18 @@ class EditGetRefactoringParams implements RequestParams {
   }
 }
 
-/**
- * edit.getRefactoring result
- *
- * {
- *   "initialProblems": List<RefactoringProblem>
- *   "optionsProblems": List<RefactoringProblem>
- *   "finalProblems": List<RefactoringProblem>
- *   "feedback": optional RefactoringFeedback
- *   "change": optional SourceChange
- *   "potentialEdits": optional List<String>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// edit.getRefactoring result
+///
+/// {
+///   "initialProblems": List<RefactoringProblem>
+///   "optionsProblems": List<RefactoringProblem>
+///   "finalProblems": List<RefactoringProblem>
+///   "feedback": optional RefactoringFeedback
+///   "change": optional SourceChange
+///   "potentialEdits": optional List<String>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class EditGetRefactoringResult implements ResponseResult {
   List<RefactoringProblem> _initialProblems;
 
@@ -10099,111 +9221,89 @@ class EditGetRefactoringResult implements ResponseResult {
 
   List<String> _potentialEdits;
 
-  /**
-   * The initial status of the refactoring, i.e. problems related to the
-   * context in which the refactoring is requested. The array will be empty if
-   * there are no known problems.
-   */
+  /// The initial status of the refactoring, i.e. problems related to the
+  /// context in which the refactoring is requested. The array will be empty if
+  /// there are no known problems.
   List<RefactoringProblem> get initialProblems => _initialProblems;
 
-  /**
-   * The initial status of the refactoring, i.e. problems related to the
-   * context in which the refactoring is requested. The array will be empty if
-   * there are no known problems.
-   */
+  /// The initial status of the refactoring, i.e. problems related to the
+  /// context in which the refactoring is requested. The array will be empty if
+  /// there are no known problems.
   void set initialProblems(List<RefactoringProblem> value) {
     assert(value != null);
     this._initialProblems = value;
   }
 
-  /**
-   * The options validation status, i.e. problems in the given options, such as
-   * light-weight validation of a new name, flags compatibility, etc. The array
-   * will be empty if there are no known problems.
-   */
+  /// The options validation status, i.e. problems in the given options, such
+  /// as light-weight validation of a new name, flags compatibility, etc. The
+  /// array will be empty if there are no known problems.
   List<RefactoringProblem> get optionsProblems => _optionsProblems;
 
-  /**
-   * The options validation status, i.e. problems in the given options, such as
-   * light-weight validation of a new name, flags compatibility, etc. The array
-   * will be empty if there are no known problems.
-   */
+  /// The options validation status, i.e. problems in the given options, such
+  /// as light-weight validation of a new name, flags compatibility, etc. The
+  /// array will be empty if there are no known problems.
   void set optionsProblems(List<RefactoringProblem> value) {
     assert(value != null);
     this._optionsProblems = value;
   }
 
-  /**
-   * The final status of the refactoring, i.e. problems identified in the
-   * result of a full, potentially expensive validation and / or change
-   * creation. The array will be empty if there are no known problems.
-   */
+  /// The final status of the refactoring, i.e. problems identified in the
+  /// result of a full, potentially expensive validation and / or change
+  /// creation. The array will be empty if there are no known problems.
   List<RefactoringProblem> get finalProblems => _finalProblems;
 
-  /**
-   * The final status of the refactoring, i.e. problems identified in the
-   * result of a full, potentially expensive validation and / or change
-   * creation. The array will be empty if there are no known problems.
-   */
+  /// The final status of the refactoring, i.e. problems identified in the
+  /// result of a full, potentially expensive validation and / or change
+  /// creation. The array will be empty if there are no known problems.
   void set finalProblems(List<RefactoringProblem> value) {
     assert(value != null);
     this._finalProblems = value;
   }
 
-  /**
-   * Data used to provide feedback to the user. The structure of the data is
-   * dependent on the kind of refactoring being created. The data that is
-   * returned is documented in the section titled Refactorings, labeled as
-   * "Feedback".
-   */
+  /// Data used to provide feedback to the user. The structure of the data is
+  /// dependent on the kind of refactoring being created. The data that is
+  /// returned is documented in the section titled Refactorings, labeled as
+  /// "Feedback".
   RefactoringFeedback get feedback => _feedback;
 
-  /**
-   * Data used to provide feedback to the user. The structure of the data is
-   * dependent on the kind of refactoring being created. The data that is
-   * returned is documented in the section titled Refactorings, labeled as
-   * "Feedback".
-   */
+  /// Data used to provide feedback to the user. The structure of the data is
+  /// dependent on the kind of refactoring being created. The data that is
+  /// returned is documented in the section titled Refactorings, labeled as
+  /// "Feedback".
   void set feedback(RefactoringFeedback value) {
     this._feedback = value;
   }
 
-  /**
-   * The changes that are to be applied to affect the refactoring. This field
-   * will be omitted if there are problems that prevent a set of changes from
-   * being computed, such as having no options specified for a refactoring that
-   * requires them, or if only validation was requested.
-   */
+  /// The changes that are to be applied to affect the refactoring. This field
+  /// will be omitted if there are problems that prevent a set of changes from
+  /// being computed, such as having no options specified for a refactoring
+  /// that requires them, or if only validation was requested.
   SourceChange get change => _change;
 
-  /**
-   * The changes that are to be applied to affect the refactoring. This field
-   * will be omitted if there are problems that prevent a set of changes from
-   * being computed, such as having no options specified for a refactoring that
-   * requires them, or if only validation was requested.
-   */
+  /// The changes that are to be applied to affect the refactoring. This field
+  /// will be omitted if there are problems that prevent a set of changes from
+  /// being computed, such as having no options specified for a refactoring
+  /// that requires them, or if only validation was requested.
   void set change(SourceChange value) {
     this._change = value;
   }
 
-  /**
-   * The ids of source edits that are not known to be valid. An edit is not
-   * known to be valid if there was insufficient type information for the
-   * server to be able to determine whether or not the code needs to be
-   * modified, such as when a member is being renamed and there is a reference
-   * to a member from an unknown type. This field will be omitted if the change
-   * field is omitted or if there are no potential edits for the refactoring.
-   */
+  /// The ids of source edits that are not known to be valid. An edit is not
+  /// known to be valid if there was insufficient type information for the
+  /// server to be able to determine whether or not the code needs to be
+  /// modified, such as when a member is being renamed and there is a reference
+  /// to a member from an unknown type. This field will be omitted if the
+  /// change field is omitted or if there are no potential edits for the
+  /// refactoring.
   List<String> get potentialEdits => _potentialEdits;
 
-  /**
-   * The ids of source edits that are not known to be valid. An edit is not
-   * known to be valid if there was insufficient type information for the
-   * server to be able to determine whether or not the code needs to be
-   * modified, such as when a member is being renamed and there is a reference
-   * to a member from an unknown type. This field will be omitted if the change
-   * field is omitted or if there are no potential edits for the refactoring.
-   */
+  /// The ids of source edits that are not known to be valid. An edit is not
+  /// known to be valid if there was insufficient type information for the
+  /// server to be able to determine whether or not the code needs to be
+  /// modified, such as when a member is being renamed and there is a reference
+  /// to a member from an unknown type. This field will be omitted if the
+  /// change field is omitted or if there are no potential edits for the
+  /// refactoring.
   void set potentialEdits(List<String> value) {
     this._potentialEdits = value;
   }
@@ -10351,42 +9451,32 @@ class EditGetRefactoringResult implements ResponseResult {
   }
 }
 
-/**
- * edit.getStatementCompletion params
- *
- * {
- *   "file": FilePath
- *   "offset": int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// edit.getStatementCompletion params
+///
+/// {
+///   "file": FilePath
+///   "offset": int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class EditGetStatementCompletionParams implements RequestParams {
   String _file;
 
   int _offset;
 
-  /**
-   * The file containing the statement to be completed.
-   */
+  /// The file containing the statement to be completed.
   String get file => _file;
 
-  /**
-   * The file containing the statement to be completed.
-   */
+  /// The file containing the statement to be completed.
   void set file(String value) {
     assert(value != null);
     this._file = value;
   }
 
-  /**
-   * The offset used to identify the statement to be completed.
-   */
+  /// The offset used to identify the statement to be completed.
   int get offset => _offset;
 
-  /**
-   * The offset used to identify the statement to be completed.
-   */
+  /// The offset used to identify the statement to be completed.
   void set offset(int value) {
     assert(value != null);
     this._offset = value;
@@ -10460,44 +9550,34 @@ class EditGetStatementCompletionParams implements RequestParams {
   }
 }
 
-/**
- * edit.getStatementCompletion result
- *
- * {
- *   "change": SourceChange
- *   "whitespaceOnly": bool
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// edit.getStatementCompletion result
+///
+/// {
+///   "change": SourceChange
+///   "whitespaceOnly": bool
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class EditGetStatementCompletionResult implements ResponseResult {
   SourceChange _change;
 
   bool _whitespaceOnly;
 
-  /**
-   * The change to be applied in order to complete the statement.
-   */
+  /// The change to be applied in order to complete the statement.
   SourceChange get change => _change;
 
-  /**
-   * The change to be applied in order to complete the statement.
-   */
+  /// The change to be applied in order to complete the statement.
   void set change(SourceChange value) {
     assert(value != null);
     this._change = value;
   }
 
-  /**
-   * Will be true if the change contains nothing but whitespace characters, or
-   * is empty.
-   */
+  /// Will be true if the change contains nothing but whitespace characters, or
+  /// is empty.
   bool get whitespaceOnly => _whitespaceOnly;
 
-  /**
-   * Will be true if the change contains nothing but whitespace characters, or
-   * is empty.
-   */
+  /// Will be true if the change contains nothing but whitespace characters, or
+  /// is empty.
   void set whitespaceOnly(bool value) {
     assert(value != null);
     this._whitespaceOnly = value;
@@ -10575,17 +9655,15 @@ class EditGetStatementCompletionResult implements ResponseResult {
   }
 }
 
-/**
- * edit.importElements params
- *
- * {
- *   "file": FilePath
- *   "elements": List<ImportedElements>
- *   "offset": optional int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// edit.importElements params
+///
+/// {
+///   "file": FilePath
+///   "elements": List<ImportedElements>
+///   "offset": optional int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class EditImportElementsParams implements RequestParams {
   String _file;
 
@@ -10593,46 +9671,34 @@ class EditImportElementsParams implements RequestParams {
 
   int _offset;
 
-  /**
-   * The file in which the specified elements are to be made accessible.
-   */
+  /// The file in which the specified elements are to be made accessible.
   String get file => _file;
 
-  /**
-   * The file in which the specified elements are to be made accessible.
-   */
+  /// The file in which the specified elements are to be made accessible.
   void set file(String value) {
     assert(value != null);
     this._file = value;
   }
 
-  /**
-   * The elements to be made accessible in the specified file.
-   */
+  /// The elements to be made accessible in the specified file.
   List<ImportedElements> get elements => _elements;
 
-  /**
-   * The elements to be made accessible in the specified file.
-   */
+  /// The elements to be made accessible in the specified file.
   void set elements(List<ImportedElements> value) {
     assert(value != null);
     this._elements = value;
   }
 
-  /**
-   * The offset at which the specified elements need to be made accessible. If
-   * provided, this is used to guard against adding imports for text that would
-   * be inserted into a comment, string literal, or other location where the
-   * imports would not be necessary.
-   */
+  /// The offset at which the specified elements need to be made accessible. If
+  /// provided, this is used to guard against adding imports for text that
+  /// would be inserted into a comment, string literal, or other location where
+  /// the imports would not be necessary.
   int get offset => _offset;
 
-  /**
-   * The offset at which the specified elements need to be made accessible. If
-   * provided, this is used to guard against adding imports for text that would
-   * be inserted into a comment, string literal, or other location where the
-   * imports would not be necessary.
-   */
+  /// The offset at which the specified elements need to be made accessible. If
+  /// provided, this is used to guard against adding imports for text that
+  /// would be inserted into a comment, string literal, or other location where
+  /// the imports would not be necessary.
   void set offset(int value) {
     this._offset = value;
   }
@@ -10722,36 +9788,30 @@ class EditImportElementsParams implements RequestParams {
   }
 }
 
-/**
- * edit.importElements result
- *
- * {
- *   "edit": optional SourceFileEdit
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// edit.importElements result
+///
+/// {
+///   "edit": optional SourceFileEdit
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class EditImportElementsResult implements ResponseResult {
   SourceFileEdit _edit;
 
-  /**
-   * The edits to be applied in order to make the specified elements
-   * accessible. The file to be edited will be the defining compilation unit of
-   * the library containing the file specified in the request, which can be
-   * different than the file specified in the request if the specified file is
-   * a part file. This field will be omitted if there are no edits that need to
-   * be applied.
-   */
+  /// The edits to be applied in order to make the specified elements
+  /// accessible. The file to be edited will be the defining compilation unit
+  /// of the library containing the file specified in the request, which can be
+  /// different than the file specified in the request if the specified file is
+  /// a part file. This field will be omitted if there are no edits that need
+  /// to be applied.
   SourceFileEdit get edit => _edit;
 
-  /**
-   * The edits to be applied in order to make the specified elements
-   * accessible. The file to be edited will be the defining compilation unit of
-   * the library containing the file specified in the request, which can be
-   * different than the file specified in the request if the specified file is
-   * a part file. This field will be omitted if there are no edits that need to
-   * be applied.
-   */
+  /// The edits to be applied in order to make the specified elements
+  /// accessible. The file to be edited will be the defining compilation unit
+  /// of the library containing the file specified in the request, which can be
+  /// different than the file specified in the request if the specified file is
+  /// a part file. This field will be omitted if there are no edits that need
+  /// to be applied.
   void set edit(SourceFileEdit value) {
     this._edit = value;
   }
@@ -10817,17 +9877,15 @@ class EditImportElementsResult implements ResponseResult {
   }
 }
 
-/**
- * edit.isPostfixCompletionApplicable params
- *
- * {
- *   "file": FilePath
- *   "key": String
- *   "offset": int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// edit.isPostfixCompletionApplicable params
+///
+/// {
+///   "file": FilePath
+///   "key": String
+///   "offset": int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class EditIsPostfixCompletionApplicableParams implements RequestParams {
   String _file;
 
@@ -10835,42 +9893,30 @@ class EditIsPostfixCompletionApplicableParams implements RequestParams {
 
   int _offset;
 
-  /**
-   * The file containing the postfix template to be expanded.
-   */
+  /// The file containing the postfix template to be expanded.
   String get file => _file;
 
-  /**
-   * The file containing the postfix template to be expanded.
-   */
+  /// The file containing the postfix template to be expanded.
   void set file(String value) {
     assert(value != null);
     this._file = value;
   }
 
-  /**
-   * The unique name that identifies the template in use.
-   */
+  /// The unique name that identifies the template in use.
   String get key => _key;
 
-  /**
-   * The unique name that identifies the template in use.
-   */
+  /// The unique name that identifies the template in use.
   void set key(String value) {
     assert(value != null);
     this._key = value;
   }
 
-  /**
-   * The offset used to identify the code to which the template will be
-   * applied.
-   */
+  /// The offset used to identify the code to which the template will be
+  /// applied.
   int get offset => _offset;
 
-  /**
-   * The offset used to identify the code to which the template will be
-   * applied.
-   */
+  /// The offset used to identify the code to which the template will be
+  /// applied.
   void set offset(int value) {
     assert(value != null);
     this._offset = value;
@@ -10953,26 +9999,20 @@ class EditIsPostfixCompletionApplicableParams implements RequestParams {
   }
 }
 
-/**
- * edit.isPostfixCompletionApplicable result
- *
- * {
- *   "value": bool
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// edit.isPostfixCompletionApplicable result
+///
+/// {
+///   "value": bool
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class EditIsPostfixCompletionApplicableResult implements ResponseResult {
   bool _value;
 
-  /**
-   * True if the template can be expanded at the given location.
-   */
+  /// True if the template can be expanded at the given location.
   bool get value => _value;
 
-  /**
-   * True if the template can be expanded at the given location.
-   */
+  /// True if the template can be expanded at the given location.
   void set value(bool value) {
     assert(value != null);
     this._value = value;
@@ -11040,11 +10080,9 @@ class EditIsPostfixCompletionApplicableResult implements ResponseResult {
   }
 }
 
-/**
- * edit.listPostfixCompletionTemplates params
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// edit.listPostfixCompletionTemplates params
+///
+/// Clients may not extend, implement or mix-in this class.
 class EditListPostfixCompletionTemplatesParams implements RequestParams {
   @override
   Map<String, dynamic> toJson() => <String, dynamic>{};
@@ -11068,26 +10106,20 @@ class EditListPostfixCompletionTemplatesParams implements RequestParams {
   }
 }
 
-/**
- * edit.listPostfixCompletionTemplates result
- *
- * {
- *   "templates": List<PostfixTemplateDescriptor>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// edit.listPostfixCompletionTemplates result
+///
+/// {
+///   "templates": List<PostfixTemplateDescriptor>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class EditListPostfixCompletionTemplatesResult implements ResponseResult {
   List<PostfixTemplateDescriptor> _templates;
 
-  /**
-   * The list of available templates.
-   */
+  /// The list of available templates.
   List<PostfixTemplateDescriptor> get templates => _templates;
 
-  /**
-   * The list of available templates.
-   */
+  /// The list of available templates.
   void set templates(List<PostfixTemplateDescriptor> value) {
     assert(value != null);
     this._templates = value;
@@ -11164,26 +10196,20 @@ class EditListPostfixCompletionTemplatesResult implements ResponseResult {
   }
 }
 
-/**
- * edit.organizeDirectives params
- *
- * {
- *   "file": FilePath
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// edit.organizeDirectives params
+///
+/// {
+///   "file": FilePath
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class EditOrganizeDirectivesParams implements RequestParams {
   String _file;
 
-  /**
-   * The Dart file to organize directives in.
-   */
+  /// The Dart file to organize directives in.
   String get file => _file;
 
-  /**
-   * The Dart file to organize directives in.
-   */
+  /// The Dart file to organize directives in.
   void set file(String value) {
     assert(value != null);
     this._file = value;
@@ -11248,28 +10274,22 @@ class EditOrganizeDirectivesParams implements RequestParams {
   }
 }
 
-/**
- * edit.organizeDirectives result
- *
- * {
- *   "edit": SourceFileEdit
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// edit.organizeDirectives result
+///
+/// {
+///   "edit": SourceFileEdit
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class EditOrganizeDirectivesResult implements ResponseResult {
   SourceFileEdit _edit;
 
-  /**
-   * The file edit that is to be applied to the given file to effect the
-   * organizing.
-   */
+  /// The file edit that is to be applied to the given file to effect the
+  /// organizing.
   SourceFileEdit get edit => _edit;
 
-  /**
-   * The file edit that is to be applied to the given file to effect the
-   * organizing.
-   */
+  /// The file edit that is to be applied to the given file to effect the
+  /// organizing.
   void set edit(SourceFileEdit value) {
     assert(value != null);
     this._edit = value;
@@ -11337,26 +10357,20 @@ class EditOrganizeDirectivesResult implements ResponseResult {
   }
 }
 
-/**
- * edit.sortMembers params
- *
- * {
- *   "file": FilePath
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// edit.sortMembers params
+///
+/// {
+///   "file": FilePath
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class EditSortMembersParams implements RequestParams {
   String _file;
 
-  /**
-   * The Dart file to sort.
-   */
+  /// The Dart file to sort.
   String get file => _file;
 
-  /**
-   * The Dart file to sort.
-   */
+  /// The Dart file to sort.
   void set file(String value) {
     assert(value != null);
     this._file = value;
@@ -11420,28 +10434,22 @@ class EditSortMembersParams implements RequestParams {
   }
 }
 
-/**
- * edit.sortMembers result
- *
- * {
- *   "edit": SourceFileEdit
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// edit.sortMembers result
+///
+/// {
+///   "edit": SourceFileEdit
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class EditSortMembersResult implements ResponseResult {
   SourceFileEdit _edit;
 
-  /**
-   * The file edit that is to be applied to the given file to effect the
-   * sorting.
-   */
+  /// The file edit that is to be applied to the given file to effect the
+  /// sorting.
   SourceFileEdit get edit => _edit;
 
-  /**
-   * The file edit that is to be applied to the given file to effect the
-   * sorting.
-   */
+  /// The file edit that is to be applied to the given file to effect the
+  /// sorting.
   void set edit(SourceFileEdit value) {
     assert(value != null);
     this._edit = value;
@@ -11508,25 +10516,23 @@ class EditSortMembersResult implements ResponseResult {
   }
 }
 
-/**
- * ElementDeclaration
- *
- * {
- *   "name": String
- *   "kind": ElementKind
- *   "fileIndex": int
- *   "offset": int
- *   "line": int
- *   "column": int
- *   "codeOffset": int
- *   "codeLength": int
- *   "className": optional String
- *   "mixinName": optional String
- *   "parameters": optional String
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// ElementDeclaration
+///
+/// {
+///   "name": String
+///   "kind": ElementKind
+///   "fileIndex": int
+///   "offset": int
+///   "line": int
+///   "column": int
+///   "codeOffset": int
+///   "codeLength": int
+///   "className": optional String
+///   "mixinName": optional String
+///   "parameters": optional String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ElementDeclaration implements HasToJson {
   String _name;
 
@@ -11550,156 +10556,112 @@ class ElementDeclaration implements HasToJson {
 
   String _parameters;
 
-  /**
-   * The name of the declaration.
-   */
+  /// The name of the declaration.
   String get name => _name;
 
-  /**
-   * The name of the declaration.
-   */
+  /// The name of the declaration.
   void set name(String value) {
     assert(value != null);
     this._name = value;
   }
 
-  /**
-   * The kind of the element that corresponds to the declaration.
-   */
+  /// The kind of the element that corresponds to the declaration.
   ElementKind get kind => _kind;
 
-  /**
-   * The kind of the element that corresponds to the declaration.
-   */
+  /// The kind of the element that corresponds to the declaration.
   void set kind(ElementKind value) {
     assert(value != null);
     this._kind = value;
   }
 
-  /**
-   * The index of the file (in the enclosing response).
-   */
+  /// The index of the file (in the enclosing response).
   int get fileIndex => _fileIndex;
 
-  /**
-   * The index of the file (in the enclosing response).
-   */
+  /// The index of the file (in the enclosing response).
   void set fileIndex(int value) {
     assert(value != null);
     this._fileIndex = value;
   }
 
-  /**
-   * The offset of the declaration name in the file.
-   */
+  /// The offset of the declaration name in the file.
   int get offset => _offset;
 
-  /**
-   * The offset of the declaration name in the file.
-   */
+  /// The offset of the declaration name in the file.
   void set offset(int value) {
     assert(value != null);
     this._offset = value;
   }
 
-  /**
-   * The one-based index of the line containing the declaration name.
-   */
+  /// The one-based index of the line containing the declaration name.
   int get line => _line;
 
-  /**
-   * The one-based index of the line containing the declaration name.
-   */
+  /// The one-based index of the line containing the declaration name.
   void set line(int value) {
     assert(value != null);
     this._line = value;
   }
 
-  /**
-   * The one-based index of the column containing the declaration name.
-   */
+  /// The one-based index of the column containing the declaration name.
   int get column => _column;
 
-  /**
-   * The one-based index of the column containing the declaration name.
-   */
+  /// The one-based index of the column containing the declaration name.
   void set column(int value) {
     assert(value != null);
     this._column = value;
   }
 
-  /**
-   * The offset of the first character of the declaration code in the file.
-   */
+  /// The offset of the first character of the declaration code in the file.
   int get codeOffset => _codeOffset;
 
-  /**
-   * The offset of the first character of the declaration code in the file.
-   */
+  /// The offset of the first character of the declaration code in the file.
   void set codeOffset(int value) {
     assert(value != null);
     this._codeOffset = value;
   }
 
-  /**
-   * The length of the declaration code in the file.
-   */
+  /// The length of the declaration code in the file.
   int get codeLength => _codeLength;
 
-  /**
-   * The length of the declaration code in the file.
-   */
+  /// The length of the declaration code in the file.
   void set codeLength(int value) {
     assert(value != null);
     this._codeLength = value;
   }
 
-  /**
-   * The name of the class enclosing this declaration. If the declaration is
-   * not a class member, this field will be absent.
-   */
+  /// The name of the class enclosing this declaration. If the declaration is
+  /// not a class member, this field will be absent.
   String get className => _className;
 
-  /**
-   * The name of the class enclosing this declaration. If the declaration is
-   * not a class member, this field will be absent.
-   */
+  /// The name of the class enclosing this declaration. If the declaration is
+  /// not a class member, this field will be absent.
   void set className(String value) {
     this._className = value;
   }
 
-  /**
-   * The name of the mixin enclosing this declaration. If the declaration is
-   * not a mixin member, this field will be absent.
-   */
+  /// The name of the mixin enclosing this declaration. If the declaration is
+  /// not a mixin member, this field will be absent.
   String get mixinName => _mixinName;
 
-  /**
-   * The name of the mixin enclosing this declaration. If the declaration is
-   * not a mixin member, this field will be absent.
-   */
+  /// The name of the mixin enclosing this declaration. If the declaration is
+  /// not a mixin member, this field will be absent.
   void set mixinName(String value) {
     this._mixinName = value;
   }
 
-  /**
-   * The parameter list for the element. If the element is not a method or
-   * function this field will not be defined. If the element doesn't have
-   * parameters (e.g. getter), this field will not be defined. If the element
-   * has zero parameters, this field will have a value of "()". The value
-   * should not be treated as exact presentation of parameters, it is just
-   * approximation of parameters to give the user general idea.
-   */
+  /// The parameter list for the element. If the element is not a method or
+  /// function this field will not be defined. If the element doesn't have
+  /// parameters (e.g. getter), this field will not be defined. If the element
+  /// has zero parameters, this field will have a value of "()". The value
+  /// should not be treated as exact presentation of parameters, it is just
+  /// approximation of parameters to give the user general idea.
   String get parameters => _parameters;
 
-  /**
-   * The parameter list for the element. If the element is not a method or
-   * function this field will not be defined. If the element doesn't have
-   * parameters (e.g. getter), this field will not be defined. If the element
-   * has zero parameters, this field will have a value of "()". The value
-   * should not be treated as exact presentation of parameters, it is just
-   * approximation of parameters to give the user general idea.
-   */
+  /// The parameter list for the element. If the element is not a method or
+  /// function this field will not be defined. If the element doesn't have
+  /// parameters (e.g. getter), this field will not be defined. If the element
+  /// has zero parameters, this field will have a value of "()". The value
+  /// should not be treated as exact presentation of parameters, it is just
+  /// approximation of parameters to give the user general idea.
   void set parameters(String value) {
     this._parameters = value;
   }
@@ -11863,42 +10825,32 @@ class ElementDeclaration implements HasToJson {
   }
 }
 
-/**
- * ExecutableFile
- *
- * {
- *   "file": FilePath
- *   "kind": ExecutableKind
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// ExecutableFile
+///
+/// {
+///   "file": FilePath
+///   "kind": ExecutableKind
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ExecutableFile implements HasToJson {
   String _file;
 
   ExecutableKind _kind;
 
-  /**
-   * The path of the executable file.
-   */
+  /// The path of the executable file.
   String get file => _file;
 
-  /**
-   * The path of the executable file.
-   */
+  /// The path of the executable file.
   void set file(String value) {
     assert(value != null);
     this._file = value;
   }
 
-  /**
-   * The kind of the executable file.
-   */
+  /// The kind of the executable file.
   ExecutableKind get kind => _kind;
 
-  /**
-   * The kind of the executable file.
-   */
+  /// The kind of the executable file.
   void set kind(ExecutableKind value) {
     assert(value != null);
     this._kind = value;
@@ -11962,18 +10914,16 @@ class ExecutableFile implements HasToJson {
   }
 }
 
-/**
- * ExecutableKind
- *
- * enum {
- *   CLIENT
- *   EITHER
- *   NOT_EXECUTABLE
- *   SERVER
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// ExecutableKind
+///
+/// enum {
+///   CLIENT
+///   EITHER
+///   NOT_EXECUTABLE
+///   SERVER
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ExecutableKind implements Enum {
   static const ExecutableKind CLIENT = ExecutableKind._("CLIENT");
 
@@ -11984,9 +10934,7 @@ class ExecutableKind implements Enum {
 
   static const ExecutableKind SERVER = ExecutableKind._("SERVER");
 
-  /**
-   * A list containing all of the enum values that are defined.
-   */
+  /// A list containing all of the enum values that are defined.
   static const List<ExecutableKind> VALUES = <ExecutableKind>[
     CLIENT,
     EITHER,
@@ -12031,28 +10979,22 @@ class ExecutableKind implements Enum {
   String toJson() => name;
 }
 
-/**
- * execution.createContext params
- *
- * {
- *   "contextRoot": FilePath
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// execution.createContext params
+///
+/// {
+///   "contextRoot": FilePath
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ExecutionCreateContextParams implements RequestParams {
   String _contextRoot;
 
-  /**
-   * The path of the Dart or HTML file that will be launched, or the path of
-   * the directory containing the file.
-   */
+  /// The path of the Dart or HTML file that will be launched, or the path of
+  /// the directory containing the file.
   String get contextRoot => _contextRoot;
 
-  /**
-   * The path of the Dart or HTML file that will be launched, or the path of
-   * the directory containing the file.
-   */
+  /// The path of the Dart or HTML file that will be launched, or the path of
+  /// the directory containing the file.
   void set contextRoot(String value) {
     assert(value != null);
     this._contextRoot = value;
@@ -12118,26 +11060,20 @@ class ExecutionCreateContextParams implements RequestParams {
   }
 }
 
-/**
- * execution.createContext result
- *
- * {
- *   "id": ExecutionContextId
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// execution.createContext result
+///
+/// {
+///   "id": ExecutionContextId
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ExecutionCreateContextResult implements ResponseResult {
   String _id;
 
-  /**
-   * The identifier used to refer to the execution context that was created.
-   */
+  /// The identifier used to refer to the execution context that was created.
   String get id => _id;
 
-  /**
-   * The identifier used to refer to the execution context that was created.
-   */
+  /// The identifier used to refer to the execution context that was created.
   void set id(String value) {
     assert(value != null);
     this._id = value;
@@ -12204,26 +11140,20 @@ class ExecutionCreateContextResult implements ResponseResult {
   }
 }
 
-/**
- * execution.deleteContext params
- *
- * {
- *   "id": ExecutionContextId
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// execution.deleteContext params
+///
+/// {
+///   "id": ExecutionContextId
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ExecutionDeleteContextParams implements RequestParams {
   String _id;
 
-  /**
-   * The identifier of the execution context that is to be deleted.
-   */
+  /// The identifier of the execution context that is to be deleted.
   String get id => _id;
 
-  /**
-   * The identifier of the execution context that is to be deleted.
-   */
+  /// The identifier of the execution context that is to be deleted.
   void set id(String value) {
     assert(value != null);
     this._id = value;
@@ -12288,11 +11218,9 @@ class ExecutionDeleteContextParams implements RequestParams {
   }
 }
 
-/**
- * execution.deleteContext result
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// execution.deleteContext result
+///
+/// Clients may not extend, implement or mix-in this class.
 class ExecutionDeleteContextResult implements ResponseResult {
   @override
   Map<String, dynamic> toJson() => <String, dynamic>{};
@@ -12316,20 +11244,18 @@ class ExecutionDeleteContextResult implements ResponseResult {
   }
 }
 
-/**
- * execution.getSuggestions params
- *
- * {
- *   "code": String
- *   "offset": int
- *   "contextFile": FilePath
- *   "contextOffset": int
- *   "variables": List<RuntimeCompletionVariable>
- *   "expressions": optional List<RuntimeCompletionExpression>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// execution.getSuggestions params
+///
+/// {
+///   "code": String
+///   "offset": int
+///   "contextFile": FilePath
+///   "contextOffset": int
+///   "variables": List<RuntimeCompletionVariable>
+///   "expressions": optional List<RuntimeCompletionExpression>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ExecutionGetSuggestionsParams implements RequestParams {
   String _code;
 
@@ -12343,103 +11269,81 @@ class ExecutionGetSuggestionsParams implements RequestParams {
 
   List<RuntimeCompletionExpression> _expressions;
 
-  /**
-   * The code to get suggestions in.
-   */
+  /// The code to get suggestions in.
   String get code => _code;
 
-  /**
-   * The code to get suggestions in.
-   */
+  /// The code to get suggestions in.
   void set code(String value) {
     assert(value != null);
     this._code = value;
   }
 
-  /**
-   * The offset within the code to get suggestions at.
-   */
+  /// The offset within the code to get suggestions at.
   int get offset => _offset;
 
-  /**
-   * The offset within the code to get suggestions at.
-   */
+  /// The offset within the code to get suggestions at.
   void set offset(int value) {
     assert(value != null);
     this._offset = value;
   }
 
-  /**
-   * The path of the context file, e.g. the file of the current debugger frame.
-   * The combination of the context file and context offset can be used to
-   * ensure that all variables of the context are available for completion
-   * (with their static types).
-   */
+  /// The path of the context file, e.g. the file of the current debugger
+  /// frame. The combination of the context file and context offset can be used
+  /// to ensure that all variables of the context are available for completion
+  /// (with their static types).
   String get contextFile => _contextFile;
 
-  /**
-   * The path of the context file, e.g. the file of the current debugger frame.
-   * The combination of the context file and context offset can be used to
-   * ensure that all variables of the context are available for completion
-   * (with their static types).
-   */
+  /// The path of the context file, e.g. the file of the current debugger
+  /// frame. The combination of the context file and context offset can be used
+  /// to ensure that all variables of the context are available for completion
+  /// (with their static types).
   void set contextFile(String value) {
     assert(value != null);
     this._contextFile = value;
   }
 
-  /**
-   * The offset in the context file, e.g. the line offset in the current
-   * debugger frame.
-   */
+  /// The offset in the context file, e.g. the line offset in the current
+  /// debugger frame.
   int get contextOffset => _contextOffset;
 
-  /**
-   * The offset in the context file, e.g. the line offset in the current
-   * debugger frame.
-   */
+  /// The offset in the context file, e.g. the line offset in the current
+  /// debugger frame.
   void set contextOffset(int value) {
     assert(value != null);
     this._contextOffset = value;
   }
 
-  /**
-   * The runtime context variables that are potentially referenced in the code.
-   */
+  /// The runtime context variables that are potentially referenced in the
+  /// code.
   List<RuntimeCompletionVariable> get variables => _variables;
 
-  /**
-   * The runtime context variables that are potentially referenced in the code.
-   */
+  /// The runtime context variables that are potentially referenced in the
+  /// code.
   void set variables(List<RuntimeCompletionVariable> value) {
     assert(value != null);
     this._variables = value;
   }
 
-  /**
-   * The list of sub-expressions in the code for which the client wants to
-   * provide runtime types. It does not have to be the full list of expressions
-   * requested by the server, for missing expressions their static types will
-   * be used.
-   *
-   * When this field is omitted, the server will return completion suggestions
-   * only when there are no interesting sub-expressions in the given code. The
-   * client may provide an empty list, in this case the server will return
-   * completion suggestions.
-   */
+  /// The list of sub-expressions in the code for which the client wants to
+  /// provide runtime types. It does not have to be the full list of
+  /// expressions requested by the server, for missing expressions their static
+  /// types will be used.
+  ///
+  /// When this field is omitted, the server will return completion suggestions
+  /// only when there are no interesting sub-expressions in the given code. The
+  /// client may provide an empty list, in this case the server will return
+  /// completion suggestions.
   List<RuntimeCompletionExpression> get expressions => _expressions;
 
-  /**
-   * The list of sub-expressions in the code for which the client wants to
-   * provide runtime types. It does not have to be the full list of expressions
-   * requested by the server, for missing expressions their static types will
-   * be used.
-   *
-   * When this field is omitted, the server will return completion suggestions
-   * only when there are no interesting sub-expressions in the given code. The
-   * client may provide an empty list, in this case the server will return
-   * completion suggestions.
-   */
+  /// The list of sub-expressions in the code for which the client wants to
+  /// provide runtime types. It does not have to be the full list of
+  /// expressions requested by the server, for missing expressions their static
+  /// types will be used.
+  ///
+  /// When this field is omitted, the server will return completion suggestions
+  /// only when there are no interesting sub-expressions in the given code. The
+  /// client may provide an empty list, in this case the server will return
+  /// completion suggestions.
   void set expressions(List<RuntimeCompletionExpression> value) {
     this._expressions = value;
   }
@@ -12581,61 +11485,51 @@ class ExecutionGetSuggestionsParams implements RequestParams {
   }
 }
 
-/**
- * execution.getSuggestions result
- *
- * {
- *   "suggestions": optional List<CompletionSuggestion>
- *   "expressions": optional List<RuntimeCompletionExpression>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// execution.getSuggestions result
+///
+/// {
+///   "suggestions": optional List<CompletionSuggestion>
+///   "expressions": optional List<RuntimeCompletionExpression>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ExecutionGetSuggestionsResult implements ResponseResult {
   List<CompletionSuggestion> _suggestions;
 
   List<RuntimeCompletionExpression> _expressions;
 
-  /**
-   * The completion suggestions. In contrast to usual completion request,
-   * suggestions for private elements also will be provided.
-   *
-   * If there are sub-expressions that can have different runtime types, and
-   * are considered to be safe to evaluate at runtime (e.g. getters), so using
-   * their actual runtime types can improve completion results, the server
-   * omits this field in the response, and instead will return the
-   * "expressions" field.
-   */
+  /// The completion suggestions. In contrast to usual completion request,
+  /// suggestions for private elements also will be provided.
+  ///
+  /// If there are sub-expressions that can have different runtime types, and
+  /// are considered to be safe to evaluate at runtime (e.g. getters), so using
+  /// their actual runtime types can improve completion results, the server
+  /// omits this field in the response, and instead will return the
+  /// "expressions" field.
   List<CompletionSuggestion> get suggestions => _suggestions;
 
-  /**
-   * The completion suggestions. In contrast to usual completion request,
-   * suggestions for private elements also will be provided.
-   *
-   * If there are sub-expressions that can have different runtime types, and
-   * are considered to be safe to evaluate at runtime (e.g. getters), so using
-   * their actual runtime types can improve completion results, the server
-   * omits this field in the response, and instead will return the
-   * "expressions" field.
-   */
+  /// The completion suggestions. In contrast to usual completion request,
+  /// suggestions for private elements also will be provided.
+  ///
+  /// If there are sub-expressions that can have different runtime types, and
+  /// are considered to be safe to evaluate at runtime (e.g. getters), so using
+  /// their actual runtime types can improve completion results, the server
+  /// omits this field in the response, and instead will return the
+  /// "expressions" field.
   void set suggestions(List<CompletionSuggestion> value) {
     this._suggestions = value;
   }
 
-  /**
-   * The list of sub-expressions in the code for which the server would like to
-   * know runtime types to provide better completion suggestions.
-   *
-   * This field is omitted the field "suggestions" is returned.
-   */
+  /// The list of sub-expressions in the code for which the server would like
+  /// to know runtime types to provide better completion suggestions.
+  ///
+  /// This field is omitted the field "suggestions" is returned.
   List<RuntimeCompletionExpression> get expressions => _expressions;
 
-  /**
-   * The list of sub-expressions in the code for which the server would like to
-   * know runtime types to provide better completion suggestions.
-   *
-   * This field is omitted the field "suggestions" is returned.
-   */
+  /// The list of sub-expressions in the code for which the server would like
+  /// to know runtime types to provide better completion suggestions.
+  ///
+  /// This field is omitted the field "suggestions" is returned.
   void set expressions(List<RuntimeCompletionExpression> value) {
     this._expressions = value;
   }
@@ -12732,17 +11626,15 @@ class ExecutionGetSuggestionsResult implements ResponseResult {
   }
 }
 
-/**
- * execution.launchData params
- *
- * {
- *   "file": FilePath
- *   "kind": optional ExecutableKind
- *   "referencedFiles": optional List<FilePath>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// execution.launchData params
+///
+/// {
+///   "file": FilePath
+///   "kind": optional ExecutableKind
+///   "referencedFiles": optional List<FilePath>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ExecutionLaunchDataParams implements HasToJson {
   String _file;
 
@@ -12750,45 +11642,33 @@ class ExecutionLaunchDataParams implements HasToJson {
 
   List<String> _referencedFiles;
 
-  /**
-   * The file for which launch data is being provided. This will either be a
-   * Dart library or an HTML file.
-   */
+  /// The file for which launch data is being provided. This will either be a
+  /// Dart library or an HTML file.
   String get file => _file;
 
-  /**
-   * The file for which launch data is being provided. This will either be a
-   * Dart library or an HTML file.
-   */
+  /// The file for which launch data is being provided. This will either be a
+  /// Dart library or an HTML file.
   void set file(String value) {
     assert(value != null);
     this._file = value;
   }
 
-  /**
-   * The kind of the executable file. This field is omitted if the file is not
-   * a Dart file.
-   */
+  /// The kind of the executable file. This field is omitted if the file is not
+  /// a Dart file.
   ExecutableKind get kind => _kind;
 
-  /**
-   * The kind of the executable file. This field is omitted if the file is not
-   * a Dart file.
-   */
+  /// The kind of the executable file. This field is omitted if the file is not
+  /// a Dart file.
   void set kind(ExecutableKind value) {
     this._kind = value;
   }
 
-  /**
-   * A list of the Dart files that are referenced by the file. This field is
-   * omitted if the file is not an HTML file.
-   */
+  /// A list of the Dart files that are referenced by the file. This field is
+  /// omitted if the file is not an HTML file.
   List<String> get referencedFiles => _referencedFiles;
 
-  /**
-   * A list of the Dart files that are referenced by the file. This field is
-   * omitted if the file is not an HTML file.
-   */
+  /// A list of the Dart files that are referenced by the file. This field is
+  /// omitted if the file is not an HTML file.
   void set referencedFiles(List<String> value) {
     this._referencedFiles = value;
   }
@@ -12876,17 +11756,15 @@ class ExecutionLaunchDataParams implements HasToJson {
   }
 }
 
-/**
- * execution.mapUri params
- *
- * {
- *   "id": ExecutionContextId
- *   "file": optional FilePath
- *   "uri": optional String
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// execution.mapUri params
+///
+/// {
+///   "id": ExecutionContextId
+///   "file": optional FilePath
+///   "uri": optional String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ExecutionMapUriParams implements RequestParams {
   String _id;
 
@@ -12894,39 +11772,27 @@ class ExecutionMapUriParams implements RequestParams {
 
   String _uri;
 
-  /**
-   * The identifier of the execution context in which the URI is to be mapped.
-   */
+  /// The identifier of the execution context in which the URI is to be mapped.
   String get id => _id;
 
-  /**
-   * The identifier of the execution context in which the URI is to be mapped.
-   */
+  /// The identifier of the execution context in which the URI is to be mapped.
   void set id(String value) {
     assert(value != null);
     this._id = value;
   }
 
-  /**
-   * The path of the file to be mapped into a URI.
-   */
+  /// The path of the file to be mapped into a URI.
   String get file => _file;
 
-  /**
-   * The path of the file to be mapped into a URI.
-   */
+  /// The path of the file to be mapped into a URI.
   void set file(String value) {
     this._file = value;
   }
 
-  /**
-   * The URI to be mapped into a file path.
-   */
+  /// The URI to be mapped into a file path.
   String get uri => _uri;
 
-  /**
-   * The URI to be mapped into a file path.
-   */
+  /// The URI to be mapped into a file path.
   void set uri(String value) {
     this._uri = value;
   }
@@ -13007,45 +11873,35 @@ class ExecutionMapUriParams implements RequestParams {
   }
 }
 
-/**
- * execution.mapUri result
- *
- * {
- *   "file": optional FilePath
- *   "uri": optional String
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// execution.mapUri result
+///
+/// {
+///   "file": optional FilePath
+///   "uri": optional String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ExecutionMapUriResult implements ResponseResult {
   String _file;
 
   String _uri;
 
-  /**
-   * The file to which the URI was mapped. This field is omitted if the uri
-   * field was not given in the request.
-   */
+  /// The file to which the URI was mapped. This field is omitted if the uri
+  /// field was not given in the request.
   String get file => _file;
 
-  /**
-   * The file to which the URI was mapped. This field is omitted if the uri
-   * field was not given in the request.
-   */
+  /// The file to which the URI was mapped. This field is omitted if the uri
+  /// field was not given in the request.
   void set file(String value) {
     this._file = value;
   }
 
-  /**
-   * The URI to which the file path was mapped. This field is omitted if the
-   * file field was not given in the request.
-   */
+  /// The URI to which the file path was mapped. This field is omitted if the
+  /// file field was not given in the request.
   String get uri => _uri;
 
-  /**
-   * The URI to which the file path was mapped. This field is omitted if the
-   * file field was not given in the request.
-   */
+  /// The URI to which the file path was mapped. This field is omitted if the
+  /// file field was not given in the request.
   void set uri(String value) {
     this._uri = value;
   }
@@ -13119,21 +11975,17 @@ class ExecutionMapUriResult implements ResponseResult {
   }
 }
 
-/**
- * ExecutionService
- *
- * enum {
- *   LAUNCH_DATA
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// ExecutionService
+///
+/// enum {
+///   LAUNCH_DATA
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ExecutionService implements Enum {
   static const ExecutionService LAUNCH_DATA = ExecutionService._("LAUNCH_DATA");
 
-  /**
-   * A list containing all of the enum values that are defined.
-   */
+  /// A list containing all of the enum values that are defined.
   static const List<ExecutionService> VALUES = <ExecutionService>[LAUNCH_DATA];
 
   @override
@@ -13167,26 +12019,20 @@ class ExecutionService implements Enum {
   String toJson() => name;
 }
 
-/**
- * execution.setSubscriptions params
- *
- * {
- *   "subscriptions": List<ExecutionService>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// execution.setSubscriptions params
+///
+/// {
+///   "subscriptions": List<ExecutionService>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ExecutionSetSubscriptionsParams implements RequestParams {
   List<ExecutionService> _subscriptions;
 
-  /**
-   * A list of the services being subscribed to.
-   */
+  /// A list of the services being subscribed to.
   List<ExecutionService> get subscriptions => _subscriptions;
 
-  /**
-   * A list of the services being subscribed to.
-   */
+  /// A list of the services being subscribed to.
   void set subscriptions(List<ExecutionService> value) {
     assert(value != null);
     this._subscriptions = value;
@@ -13257,11 +12103,9 @@ class ExecutionSetSubscriptionsParams implements RequestParams {
   }
 }
 
-/**
- * execution.setSubscriptions result
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// execution.setSubscriptions result
+///
+/// Clients may not extend, implement or mix-in this class.
 class ExecutionSetSubscriptionsResult implements ResponseResult {
   @override
   Map<String, dynamic> toJson() => <String, dynamic>{};
@@ -13285,44 +12129,34 @@ class ExecutionSetSubscriptionsResult implements ResponseResult {
   }
 }
 
-/**
- * ExistingImport
- *
- * {
- *   "uri": int
- *   "elements": List<int>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// ExistingImport
+///
+/// {
+///   "uri": int
+///   "elements": List<int>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ExistingImport implements HasToJson {
   int _uri;
 
   List<int> _elements;
 
-  /**
-   * The URI of the imported library. It is an index in the strings field, in
-   * the enclosing ExistingImports and its ImportedElementSet object.
-   */
+  /// The URI of the imported library. It is an index in the strings field, in
+  /// the enclosing ExistingImports and its ImportedElementSet object.
   int get uri => _uri;
 
-  /**
-   * The URI of the imported library. It is an index in the strings field, in
-   * the enclosing ExistingImports and its ImportedElementSet object.
-   */
+  /// The URI of the imported library. It is an index in the strings field, in
+  /// the enclosing ExistingImports and its ImportedElementSet object.
   void set uri(int value) {
     assert(value != null);
     this._uri = value;
   }
 
-  /**
-   * The list of indexes of elements, in the enclosing ExistingImports object.
-   */
+  /// The list of indexes of elements, in the enclosing ExistingImports object.
   List<int> get elements => _elements;
 
-  /**
-   * The list of indexes of elements, in the enclosing ExistingImports object.
-   */
+  /// The list of indexes of elements, in the enclosing ExistingImports object.
   void set elements(List<int> value) {
     assert(value != null);
     this._elements = value;
@@ -13387,42 +12221,32 @@ class ExistingImport implements HasToJson {
   }
 }
 
-/**
- * ExistingImports
- *
- * {
- *   "elements": ImportedElementSet
- *   "imports": List<ExistingImport>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// ExistingImports
+///
+/// {
+///   "elements": ImportedElementSet
+///   "imports": List<ExistingImport>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ExistingImports implements HasToJson {
   ImportedElementSet _elements;
 
   List<ExistingImport> _imports;
 
-  /**
-   * The set of all unique imported elements for all imports.
-   */
+  /// The set of all unique imported elements for all imports.
   ImportedElementSet get elements => _elements;
 
-  /**
-   * The set of all unique imported elements for all imports.
-   */
+  /// The set of all unique imported elements for all imports.
   void set elements(ImportedElementSet value) {
     assert(value != null);
     this._elements = value;
   }
 
-  /**
-   * The list of imports in the library.
-   */
+  /// The list of imports in the library.
   List<ExistingImport> get imports => _imports;
 
-  /**
-   * The list of imports in the library.
-   */
+  /// The list of imports in the library.
   void set imports(List<ExistingImport> value) {
     assert(value != null);
     this._imports = value;
@@ -13493,19 +12317,17 @@ class ExistingImports implements HasToJson {
   }
 }
 
-/**
- * extractLocalVariable feedback
- *
- * {
- *   "coveringExpressionOffsets": optional List<int>
- *   "coveringExpressionLengths": optional List<int>
- *   "names": List<String>
- *   "offsets": List<int>
- *   "lengths": List<int>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// extractLocalVariable feedback
+///
+/// {
+///   "coveringExpressionOffsets": optional List<int>
+///   "coveringExpressionLengths": optional List<int>
+///   "names": List<String>
+///   "offsets": List<int>
+///   "lengths": List<int>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ExtractLocalVariableFeedback extends RefactoringFeedback {
   List<int> _coveringExpressionOffsets;
 
@@ -13517,76 +12339,56 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback {
 
   List<int> _lengths;
 
-  /**
-   * The offsets of the expressions that cover the specified selection, from
-   * the down most to the up most.
-   */
+  /// The offsets of the expressions that cover the specified selection, from
+  /// the down most to the up most.
   List<int> get coveringExpressionOffsets => _coveringExpressionOffsets;
 
-  /**
-   * The offsets of the expressions that cover the specified selection, from
-   * the down most to the up most.
-   */
+  /// The offsets of the expressions that cover the specified selection, from
+  /// the down most to the up most.
   void set coveringExpressionOffsets(List<int> value) {
     this._coveringExpressionOffsets = value;
   }
 
-  /**
-   * The lengths of the expressions that cover the specified selection, from
-   * the down most to the up most.
-   */
+  /// The lengths of the expressions that cover the specified selection, from
+  /// the down most to the up most.
   List<int> get coveringExpressionLengths => _coveringExpressionLengths;
 
-  /**
-   * The lengths of the expressions that cover the specified selection, from
-   * the down most to the up most.
-   */
+  /// The lengths of the expressions that cover the specified selection, from
+  /// the down most to the up most.
   void set coveringExpressionLengths(List<int> value) {
     this._coveringExpressionLengths = value;
   }
 
-  /**
-   * The proposed names for the local variable.
-   */
+  /// The proposed names for the local variable.
   List<String> get names => _names;
 
-  /**
-   * The proposed names for the local variable.
-   */
+  /// The proposed names for the local variable.
   void set names(List<String> value) {
     assert(value != null);
     this._names = value;
   }
 
-  /**
-   * The offsets of the expressions that would be replaced by a reference to
-   * the variable.
-   */
+  /// The offsets of the expressions that would be replaced by a reference to
+  /// the variable.
   List<int> get offsets => _offsets;
 
-  /**
-   * The offsets of the expressions that would be replaced by a reference to
-   * the variable.
-   */
+  /// The offsets of the expressions that would be replaced by a reference to
+  /// the variable.
   void set offsets(List<int> value) {
     assert(value != null);
     this._offsets = value;
   }
 
-  /**
-   * The lengths of the expressions that would be replaced by a reference to
-   * the variable. The lengths correspond to the offsets. In other words, for a
-   * given expression, if the offset of that expression is offsets[i], then the
-   * length of that expression is lengths[i].
-   */
+  /// The lengths of the expressions that would be replaced by a reference to
+  /// the variable. The lengths correspond to the offsets. In other words, for
+  /// a given expression, if the offset of that expression is offsets[i], then
+  /// the length of that expression is lengths[i].
   List<int> get lengths => _lengths;
 
-  /**
-   * The lengths of the expressions that would be replaced by a reference to
-   * the variable. The lengths correspond to the offsets. In other words, for a
-   * given expression, if the offset of that expression is offsets[i], then the
-   * length of that expression is lengths[i].
-   */
+  /// The lengths of the expressions that would be replaced by a reference to
+  /// the variable. The lengths correspond to the offsets. In other words, for
+  /// a given expression, if the offset of that expression is offsets[i], then
+  /// the length of that expression is lengths[i].
   void set lengths(List<int> value) {
     assert(value != null);
     this._lengths = value;
@@ -13697,48 +12499,38 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback {
   }
 }
 
-/**
- * extractLocalVariable options
- *
- * {
- *   "name": String
- *   "extractAll": bool
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// extractLocalVariable options
+///
+/// {
+///   "name": String
+///   "extractAll": bool
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ExtractLocalVariableOptions extends RefactoringOptions {
   String _name;
 
   bool _extractAll;
 
-  /**
-   * The name that the local variable should be given.
-   */
+  /// The name that the local variable should be given.
   String get name => _name;
 
-  /**
-   * The name that the local variable should be given.
-   */
+  /// The name that the local variable should be given.
   void set name(String value) {
     assert(value != null);
     this._name = value;
   }
 
-  /**
-   * True if all occurrences of the expression within the scope in which the
-   * variable will be defined should be replaced by a reference to the local
-   * variable. The expression used to initiate the refactoring will always be
-   * replaced.
-   */
+  /// True if all occurrences of the expression within the scope in which the
+  /// variable will be defined should be replaced by a reference to the local
+  /// variable. The expression used to initiate the refactoring will always be
+  /// replaced.
   bool get extractAll => _extractAll;
 
-  /**
-   * True if all occurrences of the expression within the scope in which the
-   * variable will be defined should be replaced by a reference to the local
-   * variable. The expression used to initiate the refactoring will always be
-   * replaced.
-   */
+  /// True if all occurrences of the expression within the scope in which the
+  /// variable will be defined should be replaced by a reference to the local
+  /// variable. The expression used to initiate the refactoring will always be
+  /// replaced.
   void set extractAll(bool value) {
     assert(value != null);
     this._extractAll = value;
@@ -13809,22 +12601,20 @@ class ExtractLocalVariableOptions extends RefactoringOptions {
   }
 }
 
-/**
- * extractMethod feedback
- *
- * {
- *   "offset": int
- *   "length": int
- *   "returnType": String
- *   "names": List<String>
- *   "canCreateGetter": bool
- *   "parameters": List<RefactoringMethodParameter>
- *   "offsets": List<int>
- *   "lengths": List<int>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// extractMethod feedback
+///
+/// {
+///   "offset": int
+///   "length": int
+///   "returnType": String
+///   "names": List<String>
+///   "canCreateGetter": bool
+///   "parameters": List<RefactoringMethodParameter>
+///   "offsets": List<int>
+///   "lengths": List<int>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ExtractMethodFeedback extends RefactoringFeedback {
   int _offset;
 
@@ -13842,119 +12632,87 @@ class ExtractMethodFeedback extends RefactoringFeedback {
 
   List<int> _lengths;
 
-  /**
-   * The offset to the beginning of the expression or statements that will be
-   * extracted.
-   */
+  /// The offset to the beginning of the expression or statements that will be
+  /// extracted.
   int get offset => _offset;
 
-  /**
-   * The offset to the beginning of the expression or statements that will be
-   * extracted.
-   */
+  /// The offset to the beginning of the expression or statements that will be
+  /// extracted.
   void set offset(int value) {
     assert(value != null);
     this._offset = value;
   }
 
-  /**
-   * The length of the expression or statements that will be extracted.
-   */
+  /// The length of the expression or statements that will be extracted.
   int get length => _length;
 
-  /**
-   * The length of the expression or statements that will be extracted.
-   */
+  /// The length of the expression or statements that will be extracted.
   void set length(int value) {
     assert(value != null);
     this._length = value;
   }
 
-  /**
-   * The proposed return type for the method. If the returned element does not
-   * have a declared return type, this field will contain an empty string.
-   */
+  /// The proposed return type for the method. If the returned element does not
+  /// have a declared return type, this field will contain an empty string.
   String get returnType => _returnType;
 
-  /**
-   * The proposed return type for the method. If the returned element does not
-   * have a declared return type, this field will contain an empty string.
-   */
+  /// The proposed return type for the method. If the returned element does not
+  /// have a declared return type, this field will contain an empty string.
   void set returnType(String value) {
     assert(value != null);
     this._returnType = value;
   }
 
-  /**
-   * The proposed names for the method.
-   */
+  /// The proposed names for the method.
   List<String> get names => _names;
 
-  /**
-   * The proposed names for the method.
-   */
+  /// The proposed names for the method.
   void set names(List<String> value) {
     assert(value != null);
     this._names = value;
   }
 
-  /**
-   * True if a getter could be created rather than a method.
-   */
+  /// True if a getter could be created rather than a method.
   bool get canCreateGetter => _canCreateGetter;
 
-  /**
-   * True if a getter could be created rather than a method.
-   */
+  /// True if a getter could be created rather than a method.
   void set canCreateGetter(bool value) {
     assert(value != null);
     this._canCreateGetter = value;
   }
 
-  /**
-   * The proposed parameters for the method.
-   */
+  /// The proposed parameters for the method.
   List<RefactoringMethodParameter> get parameters => _parameters;
 
-  /**
-   * The proposed parameters for the method.
-   */
+  /// The proposed parameters for the method.
   void set parameters(List<RefactoringMethodParameter> value) {
     assert(value != null);
     this._parameters = value;
   }
 
-  /**
-   * The offsets of the expressions or statements that would be replaced by an
-   * invocation of the method.
-   */
+  /// The offsets of the expressions or statements that would be replaced by an
+  /// invocation of the method.
   List<int> get offsets => _offsets;
 
-  /**
-   * The offsets of the expressions or statements that would be replaced by an
-   * invocation of the method.
-   */
+  /// The offsets of the expressions or statements that would be replaced by an
+  /// invocation of the method.
   void set offsets(List<int> value) {
     assert(value != null);
     this._offsets = value;
   }
 
-  /**
-   * The lengths of the expressions or statements that would be replaced by an
-   * invocation of the method. The lengths correspond to the offsets. In other
-   * words, for a given expression (or block of statements), if the offset of
-   * that expression is offsets[i], then the length of that expression is
-   * lengths[i].
-   */
+  /// The lengths of the expressions or statements that would be replaced by an
+  /// invocation of the method. The lengths correspond to the offsets. In other
+  /// words, for a given expression (or block of statements), if the offset of
+  /// that expression is offsets[i], then the length of that expression is
+  /// lengths[i].
   List<int> get lengths => _lengths;
 
-  /**
-   * The lengths of the expressions or statements that would be replaced by an
-   * invocation of the method. The lengths correspond to the offsets. In other
-   * words, for a given expression (or block of statements), if the offset of
-   * that expression is offsets[i], then the length of that expression is
-   * lengths[i].
-   */
+  /// The lengths of the expressions or statements that would be replaced by an
+  /// invocation of the method. The lengths correspond to the offsets. In other
+  /// words, for a given expression (or block of statements), if the offset of
+  /// that expression is offsets[i], then the length of that expression is
+  /// lengths[i].
   void set lengths(List<int> value) {
     assert(value != null);
     this._lengths = value;
@@ -14103,19 +12861,17 @@ class ExtractMethodFeedback extends RefactoringFeedback {
   }
 }
 
-/**
- * extractMethod options
- *
- * {
- *   "returnType": String
- *   "createGetter": bool
- *   "name": String
- *   "parameters": List<RefactoringMethodParameter>
- *   "extractAll": bool
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// extractMethod options
+///
+/// {
+///   "returnType": String
+///   "createGetter": bool
+///   "name": String
+///   "parameters": List<RefactoringMethodParameter>
+///   "extractAll": bool
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ExtractMethodOptions extends RefactoringOptions {
   String _returnType;
 
@@ -14127,90 +12883,70 @@ class ExtractMethodOptions extends RefactoringOptions {
 
   bool _extractAll;
 
-  /**
-   * The return type that should be defined for the method.
-   */
+  /// The return type that should be defined for the method.
   String get returnType => _returnType;
 
-  /**
-   * The return type that should be defined for the method.
-   */
+  /// The return type that should be defined for the method.
   void set returnType(String value) {
     assert(value != null);
     this._returnType = value;
   }
 
-  /**
-   * True if a getter should be created rather than a method. It is an error if
-   * this field is true and the list of parameters is non-empty.
-   */
+  /// True if a getter should be created rather than a method. It is an error
+  /// if this field is true and the list of parameters is non-empty.
   bool get createGetter => _createGetter;
 
-  /**
-   * True if a getter should be created rather than a method. It is an error if
-   * this field is true and the list of parameters is non-empty.
-   */
+  /// True if a getter should be created rather than a method. It is an error
+  /// if this field is true and the list of parameters is non-empty.
   void set createGetter(bool value) {
     assert(value != null);
     this._createGetter = value;
   }
 
-  /**
-   * The name that the method should be given.
-   */
+  /// The name that the method should be given.
   String get name => _name;
 
-  /**
-   * The name that the method should be given.
-   */
+  /// The name that the method should be given.
   void set name(String value) {
     assert(value != null);
     this._name = value;
   }
 
-  /**
-   * The parameters that should be defined for the method.
-   *
-   * It is an error if a REQUIRED or NAMED parameter follows a POSITIONAL
-   * parameter. It is an error if a REQUIRED or POSITIONAL parameter follows a
-   * NAMED parameter.
-   *
-   * - To change the order and/or update proposed parameters, add parameters
-   *   with the same identifiers as proposed.
-   * - To add new parameters, omit their identifier.
-   * - To remove some parameters, omit them in this list.
-   */
+  /// The parameters that should be defined for the method.
+  ///
+  /// It is an error if a REQUIRED or NAMED parameter follows a POSITIONAL
+  /// parameter. It is an error if a REQUIRED or POSITIONAL parameter follows a
+  /// NAMED parameter.
+  ///
+  /// - To change the order and/or update proposed parameters, add parameters
+  ///   with the same identifiers as proposed.
+  /// - To add new parameters, omit their identifier.
+  /// - To remove some parameters, omit them in this list.
   List<RefactoringMethodParameter> get parameters => _parameters;
 
-  /**
-   * The parameters that should be defined for the method.
-   *
-   * It is an error if a REQUIRED or NAMED parameter follows a POSITIONAL
-   * parameter. It is an error if a REQUIRED or POSITIONAL parameter follows a
-   * NAMED parameter.
-   *
-   * - To change the order and/or update proposed parameters, add parameters
-   *   with the same identifiers as proposed.
-   * - To add new parameters, omit their identifier.
-   * - To remove some parameters, omit them in this list.
-   */
+  /// The parameters that should be defined for the method.
+  ///
+  /// It is an error if a REQUIRED or NAMED parameter follows a POSITIONAL
+  /// parameter. It is an error if a REQUIRED or POSITIONAL parameter follows a
+  /// NAMED parameter.
+  ///
+  /// - To change the order and/or update proposed parameters, add parameters
+  ///   with the same identifiers as proposed.
+  /// - To add new parameters, omit their identifier.
+  /// - To remove some parameters, omit them in this list.
   void set parameters(List<RefactoringMethodParameter> value) {
     assert(value != null);
     this._parameters = value;
   }
 
-  /**
-   * True if all occurrences of the expression or statements should be replaced
-   * by an invocation of the method. The expression or statements used to
-   * initiate the refactoring will always be replaced.
-   */
+  /// True if all occurrences of the expression or statements should be
+  /// replaced by an invocation of the method. The expression or statements
+  /// used to initiate the refactoring will always be replaced.
   bool get extractAll => _extractAll;
 
-  /**
-   * True if all occurrences of the expression or statements should be replaced
-   * by an invocation of the method. The expression or statements used to
-   * initiate the refactoring will always be replaced.
-   */
+  /// True if all occurrences of the expression or statements should be
+  /// replaced by an invocation of the method. The expression or statements
+  /// used to initiate the refactoring will always be replaced.
   void set extractAll(bool value) {
     assert(value != null);
     this._extractAll = value;
@@ -14326,14 +13062,12 @@ class ExtractMethodOptions extends RefactoringOptions {
   }
 }
 
-/**
- * extractWidget feedback
- *
- * {
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// extractWidget feedback
+///
+/// {
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ExtractWidgetFeedback extends RefactoringFeedback {
   ExtractWidgetFeedback();
 
@@ -14373,26 +13107,20 @@ class ExtractWidgetFeedback extends RefactoringFeedback {
   }
 }
 
-/**
- * extractWidget options
- *
- * {
- *   "name": String
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// extractWidget options
+///
+/// {
+///   "name": String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ExtractWidgetOptions extends RefactoringOptions {
   String _name;
 
-  /**
-   * The name that the widget class should be given.
-   */
+  /// The name that the widget class should be given.
   String get name => _name;
 
-  /**
-   * The name that the widget class should be given.
-   */
+  /// The name that the widget class should be given.
   void set name(String value) {
     assert(value != null);
     this._name = value;
@@ -14452,24 +13180,20 @@ class ExtractWidgetOptions extends RefactoringOptions {
   }
 }
 
-/**
- * FileKind
- *
- * enum {
- *   LIBRARY
- *   PART
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// FileKind
+///
+/// enum {
+///   LIBRARY
+///   PART
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class FileKind implements Enum {
   static const FileKind LIBRARY = FileKind._("LIBRARY");
 
   static const FileKind PART = FileKind._("PART");
 
-  /**
-   * A list containing all of the enum values that are defined.
-   */
+  /// A list containing all of the enum values that are defined.
   static const List<FileKind> VALUES = <FileKind>[LIBRARY, PART];
 
   @override
@@ -14505,42 +13229,32 @@ class FileKind implements Enum {
   String toJson() => name;
 }
 
-/**
- * flutter.getWidgetDescription params
- *
- * {
- *   "file": FilePath
- *   "offset": int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// flutter.getWidgetDescription params
+///
+/// {
+///   "file": FilePath
+///   "offset": int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class FlutterGetWidgetDescriptionParams implements RequestParams {
   String _file;
 
   int _offset;
 
-  /**
-   * The file where the widget instance is created.
-   */
+  /// The file where the widget instance is created.
   String get file => _file;
 
-  /**
-   * The file where the widget instance is created.
-   */
+  /// The file where the widget instance is created.
   void set file(String value) {
     assert(value != null);
     this._file = value;
   }
 
-  /**
-   * The offset in the file where the widget instance is created.
-   */
+  /// The offset in the file where the widget instance is created.
   int get offset => _offset;
 
-  /**
-   * The offset in the file where the widget instance is created.
-   */
+  /// The offset in the file where the widget instance is created.
   void set offset(int value) {
     assert(value != null);
     this._offset = value;
@@ -14614,32 +13328,26 @@ class FlutterGetWidgetDescriptionParams implements RequestParams {
   }
 }
 
-/**
- * flutter.getWidgetDescription result
- *
- * {
- *   "properties": List<FlutterWidgetProperty>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// flutter.getWidgetDescription result
+///
+/// {
+///   "properties": List<FlutterWidgetProperty>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class FlutterGetWidgetDescriptionResult implements ResponseResult {
   List<FlutterWidgetProperty> _properties;
 
-  /**
-   * The list of properties of the widget. Some of the properties might be read
-   * only, when their editor is not set. This might be because they have type
-   * that we don't know how to edit, or for compound properties that work as
-   * containers for sub-properties.
-   */
+  /// The list of properties of the widget. Some of the properties might be
+  /// read only, when their editor is not set. This might be because they have
+  /// type that we don't know how to edit, or for compound properties that work
+  /// as containers for sub-properties.
   List<FlutterWidgetProperty> get properties => _properties;
 
-  /**
-   * The list of properties of the widget. Some of the properties might be read
-   * only, when their editor is not set. This might be because they have type
-   * that we don't know how to edit, or for compound properties that work as
-   * containers for sub-properties.
-   */
+  /// The list of properties of the widget. Some of the properties might be
+  /// read only, when their editor is not set. This might be because they have
+  /// type that we don't know how to edit, or for compound properties that work
+  /// as containers for sub-properties.
   void set properties(List<FlutterWidgetProperty> value) {
     assert(value != null);
     this._properties = value;
@@ -14713,26 +13421,24 @@ class FlutterGetWidgetDescriptionResult implements ResponseResult {
   }
 }
 
-/**
- * FlutterOutline
- *
- * {
- *   "kind": FlutterOutlineKind
- *   "offset": int
- *   "length": int
- *   "codeOffset": int
- *   "codeLength": int
- *   "label": optional String
- *   "dartElement": optional Element
- *   "attributes": optional List<FlutterOutlineAttribute>
- *   "className": optional String
- *   "parentAssociationLabel": optional String
- *   "variableName": optional String
- *   "children": optional List<FlutterOutline>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// FlutterOutline
+///
+/// {
+///   "kind": FlutterOutlineKind
+///   "offset": int
+///   "length": int
+///   "codeOffset": int
+///   "codeLength": int
+///   "label": optional String
+///   "dartElement": optional Element
+///   "attributes": optional List<FlutterOutlineAttribute>
+///   "className": optional String
+///   "parentAssociationLabel": optional String
+///   "variableName": optional String
+///   "children": optional List<FlutterOutline>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class FlutterOutline implements HasToJson {
   FlutterOutlineKind _kind;
 
@@ -14758,173 +13464,125 @@ class FlutterOutline implements HasToJson {
 
   List<FlutterOutline> _children;
 
-  /**
-   * The kind of the node.
-   */
+  /// The kind of the node.
   FlutterOutlineKind get kind => _kind;
 
-  /**
-   * The kind of the node.
-   */
+  /// The kind of the node.
   void set kind(FlutterOutlineKind value) {
     assert(value != null);
     this._kind = value;
   }
 
-  /**
-   * The offset of the first character of the element. This is different than
-   * the offset in the Element, which is the offset of the name of the element.
-   * It can be used, for example, to map locations in the file back to an
-   * outline.
-   */
+  /// The offset of the first character of the element. This is different than
+  /// the offset in the Element, which is the offset of the name of the
+  /// element. It can be used, for example, to map locations in the file back
+  /// to an outline.
   int get offset => _offset;
 
-  /**
-   * The offset of the first character of the element. This is different than
-   * the offset in the Element, which is the offset of the name of the element.
-   * It can be used, for example, to map locations in the file back to an
-   * outline.
-   */
+  /// The offset of the first character of the element. This is different than
+  /// the offset in the Element, which is the offset of the name of the
+  /// element. It can be used, for example, to map locations in the file back
+  /// to an outline.
   void set offset(int value) {
     assert(value != null);
     this._offset = value;
   }
 
-  /**
-   * The length of the element.
-   */
+  /// The length of the element.
   int get length => _length;
 
-  /**
-   * The length of the element.
-   */
+  /// The length of the element.
   void set length(int value) {
     assert(value != null);
     this._length = value;
   }
 
-  /**
-   * The offset of the first character of the element code, which is neither
-   * documentation, nor annotation.
-   */
+  /// The offset of the first character of the element code, which is neither
+  /// documentation, nor annotation.
   int get codeOffset => _codeOffset;
 
-  /**
-   * The offset of the first character of the element code, which is neither
-   * documentation, nor annotation.
-   */
+  /// The offset of the first character of the element code, which is neither
+  /// documentation, nor annotation.
   void set codeOffset(int value) {
     assert(value != null);
     this._codeOffset = value;
   }
 
-  /**
-   * The length of the element code.
-   */
+  /// The length of the element code.
   int get codeLength => _codeLength;
 
-  /**
-   * The length of the element code.
-   */
+  /// The length of the element code.
   void set codeLength(int value) {
     assert(value != null);
     this._codeLength = value;
   }
 
-  /**
-   * The text label of the node children of the node. It is provided for any
-   * FlutterOutlineKind.GENERIC node, where better information is not
-   * available.
-   */
+  /// The text label of the node children of the node. It is provided for any
+  /// FlutterOutlineKind.GENERIC node, where better information is not
+  /// available.
   String get label => _label;
 
-  /**
-   * The text label of the node children of the node. It is provided for any
-   * FlutterOutlineKind.GENERIC node, where better information is not
-   * available.
-   */
+  /// The text label of the node children of the node. It is provided for any
+  /// FlutterOutlineKind.GENERIC node, where better information is not
+  /// available.
   void set label(String value) {
     this._label = value;
   }
 
-  /**
-   * If this node is a Dart element, the description of it; omitted otherwise.
-   */
+  /// If this node is a Dart element, the description of it; omitted otherwise.
   Element get dartElement => _dartElement;
 
-  /**
-   * If this node is a Dart element, the description of it; omitted otherwise.
-   */
+  /// If this node is a Dart element, the description of it; omitted otherwise.
   void set dartElement(Element value) {
     this._dartElement = value;
   }
 
-  /**
-   * Additional attributes for this node, which might be interesting to display
-   * on the client. These attributes are usually arguments for the instance
-   * creation or the invocation that created the widget.
-   */
+  /// Additional attributes for this node, which might be interesting to
+  /// display on the client. These attributes are usually arguments for the
+  /// instance creation or the invocation that created the widget.
   List<FlutterOutlineAttribute> get attributes => _attributes;
 
-  /**
-   * Additional attributes for this node, which might be interesting to display
-   * on the client. These attributes are usually arguments for the instance
-   * creation or the invocation that created the widget.
-   */
+  /// Additional attributes for this node, which might be interesting to
+  /// display on the client. These attributes are usually arguments for the
+  /// instance creation or the invocation that created the widget.
   void set attributes(List<FlutterOutlineAttribute> value) {
     this._attributes = value;
   }
 
-  /**
-   * If the node creates a new class instance, or a reference to an instance,
-   * this field has the name of the class.
-   */
+  /// If the node creates a new class instance, or a reference to an instance,
+  /// this field has the name of the class.
   String get className => _className;
 
-  /**
-   * If the node creates a new class instance, or a reference to an instance,
-   * this field has the name of the class.
-   */
+  /// If the node creates a new class instance, or a reference to an instance,
+  /// this field has the name of the class.
   void set className(String value) {
     this._className = value;
   }
 
-  /**
-   * A short text description how this node is associated with the parent node.
-   * For example "appBar" or "body" in Scaffold.
-   */
+  /// A short text description how this node is associated with the parent
+  /// node. For example "appBar" or "body" in Scaffold.
   String get parentAssociationLabel => _parentAssociationLabel;
 
-  /**
-   * A short text description how this node is associated with the parent node.
-   * For example "appBar" or "body" in Scaffold.
-   */
+  /// A short text description how this node is associated with the parent
+  /// node. For example "appBar" or "body" in Scaffold.
   void set parentAssociationLabel(String value) {
     this._parentAssociationLabel = value;
   }
 
-  /**
-   * If FlutterOutlineKind.VARIABLE, the name of the variable.
-   */
+  /// If FlutterOutlineKind.VARIABLE, the name of the variable.
   String get variableName => _variableName;
 
-  /**
-   * If FlutterOutlineKind.VARIABLE, the name of the variable.
-   */
+  /// If FlutterOutlineKind.VARIABLE, the name of the variable.
   void set variableName(String value) {
     this._variableName = value;
   }
 
-  /**
-   * The children of the node. The field will be omitted if the node has no
-   * children.
-   */
+  /// The children of the node. The field will be omitted if the node has no
+  /// children.
   List<FlutterOutline> get children => _children;
 
-  /**
-   * The children of the node. The field will be omitted if the node has no
-   * children.
-   */
+  /// The children of the node. The field will be omitted if the node has no
+  /// children.
   void set children(List<FlutterOutline> value) {
     this._children = value;
   }
@@ -15126,21 +13784,19 @@ class FlutterOutline implements HasToJson {
   }
 }
 
-/**
- * FlutterOutlineAttribute
- *
- * {
- *   "name": String
- *   "label": String
- *   "literalValueBoolean": optional bool
- *   "literalValueInteger": optional int
- *   "literalValueString": optional String
- *   "nameLocation": optional Location
- *   "valueLocation": optional Location
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// FlutterOutlineAttribute
+///
+/// {
+///   "name": String
+///   "label": String
+///   "literalValueBoolean": optional bool
+///   "literalValueInteger": optional int
+///   "literalValueString": optional String
+///   "nameLocation": optional Location
+///   "valueLocation": optional Location
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class FlutterOutlineAttribute implements HasToJson {
   String _name;
 
@@ -15156,104 +13812,76 @@ class FlutterOutlineAttribute implements HasToJson {
 
   Location _valueLocation;
 
-  /**
-   * The name of the attribute.
-   */
+  /// The name of the attribute.
   String get name => _name;
 
-  /**
-   * The name of the attribute.
-   */
+  /// The name of the attribute.
   void set name(String value) {
     assert(value != null);
     this._name = value;
   }
 
-  /**
-   * The label of the attribute value, usually the Dart code. It might be quite
-   * long, the client should abbreviate as needed.
-   */
+  /// The label of the attribute value, usually the Dart code. It might be
+  /// quite long, the client should abbreviate as needed.
   String get label => _label;
 
-  /**
-   * The label of the attribute value, usually the Dart code. It might be quite
-   * long, the client should abbreviate as needed.
-   */
+  /// The label of the attribute value, usually the Dart code. It might be
+  /// quite long, the client should abbreviate as needed.
   void set label(String value) {
     assert(value != null);
     this._label = value;
   }
 
-  /**
-   * The boolean literal value of the attribute. This field is absent if the
-   * value is not a boolean literal.
-   */
+  /// The boolean literal value of the attribute. This field is absent if the
+  /// value is not a boolean literal.
   bool get literalValueBoolean => _literalValueBoolean;
 
-  /**
-   * The boolean literal value of the attribute. This field is absent if the
-   * value is not a boolean literal.
-   */
+  /// The boolean literal value of the attribute. This field is absent if the
+  /// value is not a boolean literal.
   void set literalValueBoolean(bool value) {
     this._literalValueBoolean = value;
   }
 
-  /**
-   * The integer literal value of the attribute. This field is absent if the
-   * value is not an integer literal.
-   */
+  /// The integer literal value of the attribute. This field is absent if the
+  /// value is not an integer literal.
   int get literalValueInteger => _literalValueInteger;
 
-  /**
-   * The integer literal value of the attribute. This field is absent if the
-   * value is not an integer literal.
-   */
+  /// The integer literal value of the attribute. This field is absent if the
+  /// value is not an integer literal.
   void set literalValueInteger(int value) {
     this._literalValueInteger = value;
   }
 
-  /**
-   * The string literal value of the attribute. This field is absent if the
-   * value is not a string literal.
-   */
+  /// The string literal value of the attribute. This field is absent if the
+  /// value is not a string literal.
   String get literalValueString => _literalValueString;
 
-  /**
-   * The string literal value of the attribute. This field is absent if the
-   * value is not a string literal.
-   */
+  /// The string literal value of the attribute. This field is absent if the
+  /// value is not a string literal.
   void set literalValueString(String value) {
     this._literalValueString = value;
   }
 
-  /**
-   * If the attribute is a named argument, the location of the name, without
-   * the colon.
-   */
+  /// If the attribute is a named argument, the location of the name, without
+  /// the colon.
   Location get nameLocation => _nameLocation;
 
-  /**
-   * If the attribute is a named argument, the location of the name, without
-   * the colon.
-   */
+  /// If the attribute is a named argument, the location of the name, without
+  /// the colon.
   void set nameLocation(Location value) {
     this._nameLocation = value;
   }
 
-  /**
-   * The location of the value.
-   *
-   * This field is always available, but marked optional for backward
-   * compatibility between new clients with older servers.
-   */
+  /// The location of the value.
+  ///
+  /// This field is always available, but marked optional for backward
+  /// compatibility between new clients with older servers.
   Location get valueLocation => _valueLocation;
 
-  /**
-   * The location of the value.
-   *
-   * This field is always available, but marked optional for backward
-   * compatibility between new clients with older servers.
-   */
+  /// The location of the value.
+  ///
+  /// This field is always available, but marked optional for backward
+  /// compatibility between new clients with older servers.
   void set valueLocation(Location value) {
     this._valueLocation = value;
   }
@@ -15381,60 +14009,44 @@ class FlutterOutlineAttribute implements HasToJson {
   }
 }
 
-/**
- * FlutterOutlineKind
- *
- * enum {
- *   DART_ELEMENT
- *   GENERIC
- *   NEW_INSTANCE
- *   INVOCATION
- *   VARIABLE
- *   PLACEHOLDER
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// FlutterOutlineKind
+///
+/// enum {
+///   DART_ELEMENT
+///   GENERIC
+///   NEW_INSTANCE
+///   INVOCATION
+///   VARIABLE
+///   PLACEHOLDER
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class FlutterOutlineKind implements Enum {
-  /**
-   * A dart element declaration.
-   */
+  /// A dart element declaration.
   static const FlutterOutlineKind DART_ELEMENT =
       FlutterOutlineKind._("DART_ELEMENT");
 
-  /**
-   * A generic Flutter element, without additional information.
-   */
+  /// A generic Flutter element, without additional information.
   static const FlutterOutlineKind GENERIC = FlutterOutlineKind._("GENERIC");
 
-  /**
-   * A new instance creation.
-   */
+  /// A new instance creation.
   static const FlutterOutlineKind NEW_INSTANCE =
       FlutterOutlineKind._("NEW_INSTANCE");
 
-  /**
-   * An invocation of a method, a top-level function, a function expression,
-   * etc.
-   */
+  /// An invocation of a method, a top-level function, a function expression,
+  /// etc.
   static const FlutterOutlineKind INVOCATION =
       FlutterOutlineKind._("INVOCATION");
 
-  /**
-   * A reference to a local variable, or a field.
-   */
+  /// A reference to a local variable, or a field.
   static const FlutterOutlineKind VARIABLE = FlutterOutlineKind._("VARIABLE");
 
-  /**
-   * The parent node has a required Widget. The node works as a placeholder
-   * child to drop a new Widget to.
-   */
+  /// The parent node has a required Widget. The node works as a placeholder
+  /// child to drop a new Widget to.
   static const FlutterOutlineKind PLACEHOLDER =
       FlutterOutlineKind._("PLACEHOLDER");
 
-  /**
-   * A list containing all of the enum values that are defined.
-   */
+  /// A list containing all of the enum values that are defined.
   static const List<FlutterOutlineKind> VALUES = <FlutterOutlineKind>[
     DART_ELEMENT,
     GENERIC,
@@ -15485,42 +14097,32 @@ class FlutterOutlineKind implements Enum {
   String toJson() => name;
 }
 
-/**
- * flutter.outline params
- *
- * {
- *   "file": FilePath
- *   "outline": FlutterOutline
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// flutter.outline params
+///
+/// {
+///   "file": FilePath
+///   "outline": FlutterOutline
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class FlutterOutlineParams implements HasToJson {
   String _file;
 
   FlutterOutline _outline;
 
-  /**
-   * The file with which the outline is associated.
-   */
+  /// The file with which the outline is associated.
   String get file => _file;
 
-  /**
-   * The file with which the outline is associated.
-   */
+  /// The file with which the outline is associated.
   void set file(String value) {
     assert(value != null);
     this._file = value;
   }
 
-  /**
-   * The outline associated with the file.
-   */
+  /// The outline associated with the file.
   FlutterOutline get outline => _outline;
 
-  /**
-   * The outline associated with the file.
-   */
+  /// The outline associated with the file.
   void set outline(FlutterOutline value) {
     assert(value != null);
     this._outline = value;
@@ -15593,21 +14195,17 @@ class FlutterOutlineParams implements HasToJson {
   }
 }
 
-/**
- * FlutterService
- *
- * enum {
- *   OUTLINE
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// FlutterService
+///
+/// enum {
+///   OUTLINE
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class FlutterService implements Enum {
   static const FlutterService OUTLINE = FlutterService._("OUTLINE");
 
-  /**
-   * A list containing all of the enum values that are defined.
-   */
+  /// A list containing all of the enum values that are defined.
   static const List<FlutterService> VALUES = <FlutterService>[OUTLINE];
 
   @override
@@ -15641,28 +14239,22 @@ class FlutterService implements Enum {
   String toJson() => name;
 }
 
-/**
- * flutter.setSubscriptions params
- *
- * {
- *   "subscriptions": Map<FlutterService, List<FilePath>>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// flutter.setSubscriptions params
+///
+/// {
+///   "subscriptions": Map<FlutterService, List<FilePath>>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class FlutterSetSubscriptionsParams implements RequestParams {
   Map<FlutterService, List<String>> _subscriptions;
 
-  /**
-   * A table mapping services to a list of the files being subscribed to the
-   * service.
-   */
+  /// A table mapping services to a list of the files being subscribed to the
+  /// service.
   Map<FlutterService, List<String>> get subscriptions => _subscriptions;
 
-  /**
-   * A table mapping services to a list of the files being subscribed to the
-   * service.
-   */
+  /// A table mapping services to a list of the files being subscribed to the
+  /// service.
   void set subscriptions(Map<FlutterService, List<String>> value) {
     assert(value != null);
     this._subscriptions = value;
@@ -15738,11 +14330,9 @@ class FlutterSetSubscriptionsParams implements RequestParams {
   }
 }
 
-/**
- * flutter.setSubscriptions result
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// flutter.setSubscriptions result
+///
+/// Clients may not extend, implement or mix-in this class.
 class FlutterSetSubscriptionsResult implements ResponseResult {
   @override
   Map<String, dynamic> toJson() => <String, dynamic>{};
@@ -15766,66 +14356,56 @@ class FlutterSetSubscriptionsResult implements ResponseResult {
   }
 }
 
-/**
- * flutter.setWidgetPropertyValue params
- *
- * {
- *   "id": int
- *   "value": optional FlutterWidgetPropertyValue
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// flutter.setWidgetPropertyValue params
+///
+/// {
+///   "id": int
+///   "value": optional FlutterWidgetPropertyValue
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class FlutterSetWidgetPropertyValueParams implements RequestParams {
   int _id;
 
   FlutterWidgetPropertyValue _value;
 
-  /**
-   * The identifier of the property, previously returned as a part of a
-   * FlutterWidgetProperty.
-   *
-   * An error of type FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_ID is generated
-   * if the identifier is not valid.
-   */
+  /// The identifier of the property, previously returned as a part of a
+  /// FlutterWidgetProperty.
+  ///
+  /// An error of type FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_ID is
+  /// generated if the identifier is not valid.
   int get id => _id;
 
-  /**
-   * The identifier of the property, previously returned as a part of a
-   * FlutterWidgetProperty.
-   *
-   * An error of type FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_ID is generated
-   * if the identifier is not valid.
-   */
+  /// The identifier of the property, previously returned as a part of a
+  /// FlutterWidgetProperty.
+  ///
+  /// An error of type FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_ID is
+  /// generated if the identifier is not valid.
   void set id(int value) {
     assert(value != null);
     this._id = value;
   }
 
-  /**
-   * The new value to set for the property.
-   *
-   * If absent, indicates that the property should be removed. If the property
-   * corresponds to an optional parameter, the corresponding named argument is
-   * removed. If the property isRequired is true,
-   * FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED error is generated.
-   *
-   * If the expression is not a syntactically valid Dart code, then
-   * FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION is reported.
-   */
+  /// The new value to set for the property.
+  ///
+  /// If absent, indicates that the property should be removed. If the property
+  /// corresponds to an optional parameter, the corresponding named argument is
+  /// removed. If the property isRequired is true,
+  /// FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED error is generated.
+  ///
+  /// If the expression is not a syntactically valid Dart code, then
+  /// FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION is reported.
   FlutterWidgetPropertyValue get value => _value;
 
-  /**
-   * The new value to set for the property.
-   *
-   * If absent, indicates that the property should be removed. If the property
-   * corresponds to an optional parameter, the corresponding named argument is
-   * removed. If the property isRequired is true,
-   * FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED error is generated.
-   *
-   * If the expression is not a syntactically valid Dart code, then
-   * FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION is reported.
-   */
+  /// The new value to set for the property.
+  ///
+  /// If absent, indicates that the property should be removed. If the property
+  /// corresponds to an optional parameter, the corresponding named argument is
+  /// removed. If the property isRequired is true,
+  /// FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED error is generated.
+  ///
+  /// If the expression is not a syntactically valid Dart code, then
+  /// FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION is reported.
   void set value(FlutterWidgetPropertyValue value) {
     this._value = value;
   }
@@ -15900,26 +14480,20 @@ class FlutterSetWidgetPropertyValueParams implements RequestParams {
   }
 }
 
-/**
- * flutter.setWidgetPropertyValue result
- *
- * {
- *   "change": SourceChange
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// flutter.setWidgetPropertyValue result
+///
+/// {
+///   "change": SourceChange
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class FlutterSetWidgetPropertyValueResult implements ResponseResult {
   SourceChange _change;
 
-  /**
-   * The change that should be applied.
-   */
+  /// The change that should be applied.
   SourceChange get change => _change;
 
-  /**
-   * The change that should be applied.
-   */
+  /// The change that should be applied.
   void set change(SourceChange value) {
     assert(value != null);
     this._change = value;
@@ -15987,23 +14561,21 @@ class FlutterSetWidgetPropertyValueResult implements ResponseResult {
   }
 }
 
-/**
- * FlutterWidgetProperty
- *
- * {
- *   "documentation": optional String
- *   "expression": optional String
- *   "id": int
- *   "isRequired": bool
- *   "isSafeToUpdate": bool
- *   "name": String
- *   "children": optional List<FlutterWidgetProperty>
- *   "editor": optional FlutterWidgetPropertyEditor
- *   "value": optional FlutterWidgetPropertyValue
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// FlutterWidgetProperty
+///
+/// {
+///   "documentation": optional String
+///   "expression": optional String
+///   "id": int
+///   "isRequired": bool
+///   "isSafeToUpdate": bool
+///   "name": String
+///   "children": optional List<FlutterWidgetProperty>
+///   "editor": optional FlutterWidgetPropertyEditor
+///   "value": optional FlutterWidgetPropertyValue
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class FlutterWidgetProperty implements HasToJson {
   String _documentation;
 
@@ -16023,144 +14595,108 @@ class FlutterWidgetProperty implements HasToJson {
 
   FlutterWidgetPropertyValue _value;
 
-  /**
-   * The documentation of the property to show to the user. Omitted if the
-   * server does not know the documentation, e.g. because the corresponding
-   * field is not documented.
-   */
+  /// The documentation of the property to show to the user. Omitted if the
+  /// server does not know the documentation, e.g. because the corresponding
+  /// field is not documented.
   String get documentation => _documentation;
 
-  /**
-   * The documentation of the property to show to the user. Omitted if the
-   * server does not know the documentation, e.g. because the corresponding
-   * field is not documented.
-   */
+  /// The documentation of the property to show to the user. Omitted if the
+  /// server does not know the documentation, e.g. because the corresponding
+  /// field is not documented.
   void set documentation(String value) {
     this._documentation = value;
   }
 
-  /**
-   * If the value of this property is set, the Dart code of the expression of
-   * this property.
-   */
+  /// If the value of this property is set, the Dart code of the expression of
+  /// this property.
   String get expression => _expression;
 
-  /**
-   * If the value of this property is set, the Dart code of the expression of
-   * this property.
-   */
+  /// If the value of this property is set, the Dart code of the expression of
+  /// this property.
   void set expression(String value) {
     this._expression = value;
   }
 
-  /**
-   * The unique identifier of the property, must be passed back to the server
-   * when updating the property value. Identifiers become invalid on any source
-   * code change.
-   */
+  /// The unique identifier of the property, must be passed back to the server
+  /// when updating the property value. Identifiers become invalid on any
+  /// source code change.
   int get id => _id;
 
-  /**
-   * The unique identifier of the property, must be passed back to the server
-   * when updating the property value. Identifiers become invalid on any source
-   * code change.
-   */
+  /// The unique identifier of the property, must be passed back to the server
+  /// when updating the property value. Identifiers become invalid on any
+  /// source code change.
   void set id(int value) {
     assert(value != null);
     this._id = value;
   }
 
-  /**
-   * True if the property is required, e.g. because it corresponds to a
-   * required parameter of a constructor.
-   */
+  /// True if the property is required, e.g. because it corresponds to a
+  /// required parameter of a constructor.
   bool get isRequired => _isRequired;
 
-  /**
-   * True if the property is required, e.g. because it corresponds to a
-   * required parameter of a constructor.
-   */
+  /// True if the property is required, e.g. because it corresponds to a
+  /// required parameter of a constructor.
   void set isRequired(bool value) {
     assert(value != null);
     this._isRequired = value;
   }
 
-  /**
-   * If the property expression is a concrete value (e.g. a literal, or an enum
-   * constant), then it is safe to replace the expression with another concrete
-   * value. In this case this field is true. Otherwise, for example when the
-   * expression is a reference to a field, so that its value is provided from
-   * outside, this field is false.
-   */
+  /// If the property expression is a concrete value (e.g. a literal, or an
+  /// enum constant), then it is safe to replace the expression with another
+  /// concrete value. In this case this field is true. Otherwise, for example
+  /// when the expression is a reference to a field, so that its value is
+  /// provided from outside, this field is false.
   bool get isSafeToUpdate => _isSafeToUpdate;
 
-  /**
-   * If the property expression is a concrete value (e.g. a literal, or an enum
-   * constant), then it is safe to replace the expression with another concrete
-   * value. In this case this field is true. Otherwise, for example when the
-   * expression is a reference to a field, so that its value is provided from
-   * outside, this field is false.
-   */
+  /// If the property expression is a concrete value (e.g. a literal, or an
+  /// enum constant), then it is safe to replace the expression with another
+  /// concrete value. In this case this field is true. Otherwise, for example
+  /// when the expression is a reference to a field, so that its value is
+  /// provided from outside, this field is false.
   void set isSafeToUpdate(bool value) {
     assert(value != null);
     this._isSafeToUpdate = value;
   }
 
-  /**
-   * The name of the property to display to the user.
-   */
+  /// The name of the property to display to the user.
   String get name => _name;
 
-  /**
-   * The name of the property to display to the user.
-   */
+  /// The name of the property to display to the user.
   void set name(String value) {
     assert(value != null);
     this._name = value;
   }
 
-  /**
-   * The list of children properties, if any. For example any property of type
-   * EdgeInsets will have four children properties of type double - left / top
-   * / right / bottom.
-   */
+  /// The list of children properties, if any. For example any property of type
+  /// EdgeInsets will have four children properties of type double - left / top
+  /// / right / bottom.
   List<FlutterWidgetProperty> get children => _children;
 
-  /**
-   * The list of children properties, if any. For example any property of type
-   * EdgeInsets will have four children properties of type double - left / top
-   * / right / bottom.
-   */
+  /// The list of children properties, if any. For example any property of type
+  /// EdgeInsets will have four children properties of type double - left / top
+  /// / right / bottom.
   void set children(List<FlutterWidgetProperty> value) {
     this._children = value;
   }
 
-  /**
-   * The editor that should be used by the client. This field is omitted if the
-   * server does not know the editor for this property, for example because it
-   * does not have one of the supported types.
-   */
+  /// The editor that should be used by the client. This field is omitted if
+  /// the server does not know the editor for this property, for example
+  /// because it does not have one of the supported types.
   FlutterWidgetPropertyEditor get editor => _editor;
 
-  /**
-   * The editor that should be used by the client. This field is omitted if the
-   * server does not know the editor for this property, for example because it
-   * does not have one of the supported types.
-   */
+  /// The editor that should be used by the client. This field is omitted if
+  /// the server does not know the editor for this property, for example
+  /// because it does not have one of the supported types.
   void set editor(FlutterWidgetPropertyEditor value) {
     this._editor = value;
   }
 
-  /**
-   * If the expression is set, and the server knows the value of the
-   * expression, this field is set.
-   */
+  /// If the expression is set, and the server knows the value of the
+  /// expression, this field is set.
   FlutterWidgetPropertyValue get value => _value;
 
-  /**
-   * If the expression is set, and the server knows the value of the
-   * expression, this field is set.
-   */
+  /// If the expression is set, and the server knows the value of the
+  /// expression, this field is set.
   void set value(FlutterWidgetPropertyValue value) {
     this._value = value;
   }
@@ -16317,16 +14853,14 @@ class FlutterWidgetProperty implements HasToJson {
   }
 }
 
-/**
- * FlutterWidgetPropertyEditor
- *
- * {
- *   "kind": FlutterWidgetPropertyEditorKind
- *   "enumItems": optional List<FlutterWidgetPropertyValueEnumItem>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// FlutterWidgetPropertyEditor
+///
+/// {
+///   "kind": FlutterWidgetPropertyEditorKind
+///   "enumItems": optional List<FlutterWidgetPropertyValueEnumItem>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class FlutterWidgetPropertyEditor implements HasToJson {
   FlutterWidgetPropertyEditorKind _kind;
 
@@ -16417,62 +14951,47 @@ class FlutterWidgetPropertyEditor implements HasToJson {
   }
 }
 
-/**
- * FlutterWidgetPropertyEditorKind
- *
- * enum {
- *   BOOL
- *   DOUBLE
- *   ENUM
- *   ENUM_LIKE
- *   INT
- *   STRING
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// FlutterWidgetPropertyEditorKind
+///
+/// enum {
+///   BOOL
+///   DOUBLE
+///   ENUM
+///   ENUM_LIKE
+///   INT
+///   STRING
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class FlutterWidgetPropertyEditorKind implements Enum {
-  /**
-   * The editor for a property of type bool.
-   */
+  /// The editor for a property of type bool.
   static const FlutterWidgetPropertyEditorKind BOOL =
       FlutterWidgetPropertyEditorKind._("BOOL");
 
-  /**
-   * The editor for a property of the type double.
-   */
+  /// The editor for a property of the type double.
   static const FlutterWidgetPropertyEditorKind DOUBLE =
       FlutterWidgetPropertyEditorKind._("DOUBLE");
 
-  /**
-   * The editor for choosing an item of an enumeration, see the enumItems field
-   * of FlutterWidgetPropertyEditor.
-   */
+  /// The editor for choosing an item of an enumeration, see the enumItems
+  /// field of FlutterWidgetPropertyEditor.
   static const FlutterWidgetPropertyEditorKind ENUM =
       FlutterWidgetPropertyEditorKind._("ENUM");
 
-  /**
-   * The editor for either choosing a pre-defined item from a list of provided
-   * static field references (like ENUM), or specifying a free-form expression.
-   */
+  /// The editor for either choosing a pre-defined item from a list of provided
+  /// static field references (like ENUM), or specifying a free-form
+  /// expression.
   static const FlutterWidgetPropertyEditorKind ENUM_LIKE =
       FlutterWidgetPropertyEditorKind._("ENUM_LIKE");
 
-  /**
-   * The editor for a property of type int.
-   */
+  /// The editor for a property of type int.
   static const FlutterWidgetPropertyEditorKind INT =
       FlutterWidgetPropertyEditorKind._("INT");
 
-  /**
-   * The editor for a property of the type String.
-   */
+  /// The editor for a property of the type String.
   static const FlutterWidgetPropertyEditorKind STRING =
       FlutterWidgetPropertyEditorKind._("STRING");
 
-  /**
-   * A list containing all of the enum values that are defined.
-   */
+  /// A list containing all of the enum values that are defined.
   static const List<FlutterWidgetPropertyEditorKind> VALUES =
       <FlutterWidgetPropertyEditorKind>[
     BOOL,
@@ -16525,20 +15044,18 @@ class FlutterWidgetPropertyEditorKind implements Enum {
   String toJson() => name;
 }
 
-/**
- * FlutterWidgetPropertyValue
- *
- * {
- *   "boolValue": optional bool
- *   "doubleValue": optional double
- *   "intValue": optional int
- *   "stringValue": optional String
- *   "enumValue": optional FlutterWidgetPropertyValueEnumItem
- *   "expression": optional String
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// FlutterWidgetPropertyValue
+///
+/// {
+///   "boolValue": optional bool
+///   "doubleValue": optional double
+///   "intValue": optional int
+///   "stringValue": optional String
+///   "enumValue": optional FlutterWidgetPropertyValueEnumItem
+///   "expression": optional String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class FlutterWidgetPropertyValue implements HasToJson {
   bool _boolValue;
 
@@ -16582,14 +15099,10 @@ class FlutterWidgetPropertyValue implements HasToJson {
     this._enumValue = value;
   }
 
-  /**
-   * A free-form expression, which will be used as the value as is.
-   */
+  /// A free-form expression, which will be used as the value as is.
   String get expression => _expression;
 
-  /**
-   * A free-form expression, which will be used as the value as is.
-   */
+  /// A free-form expression, which will be used as the value as is.
   void set expression(String value) {
     this._expression = value;
   }
@@ -16710,18 +15223,16 @@ class FlutterWidgetPropertyValue implements HasToJson {
   }
 }
 
-/**
- * FlutterWidgetPropertyValueEnumItem
- *
- * {
- *   "libraryUri": String
- *   "className": String
- *   "name": String
- *   "documentation": optional String
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// FlutterWidgetPropertyValueEnumItem
+///
+/// {
+///   "libraryUri": String
+///   "className": String
+///   "name": String
+///   "documentation": optional String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class FlutterWidgetPropertyValueEnumItem implements HasToJson {
   String _libraryUri;
 
@@ -16731,61 +15242,47 @@ class FlutterWidgetPropertyValueEnumItem implements HasToJson {
 
   String _documentation;
 
-  /**
-   * The URI of the library containing the className. When the enum item is
-   * passed back, this will allow the server to import the corresponding
-   * library if necessary.
-   */
+  /// The URI of the library containing the className. When the enum item is
+  /// passed back, this will allow the server to import the corresponding
+  /// library if necessary.
   String get libraryUri => _libraryUri;
 
-  /**
-   * The URI of the library containing the className. When the enum item is
-   * passed back, this will allow the server to import the corresponding
-   * library if necessary.
-   */
+  /// The URI of the library containing the className. When the enum item is
+  /// passed back, this will allow the server to import the corresponding
+  /// library if necessary.
   void set libraryUri(String value) {
     assert(value != null);
     this._libraryUri = value;
   }
 
-  /**
-   * The name of the class or enum.
-   */
+  /// The name of the class or enum.
   String get className => _className;
 
-  /**
-   * The name of the class or enum.
-   */
+  /// The name of the class or enum.
   void set className(String value) {
     assert(value != null);
     this._className = value;
   }
 
-  /**
-   * The name of the field in the enumeration, or the static field in the
-   * class.
-   */
+  /// The name of the field in the enumeration, or the static field in the
+  /// class.
   String get name => _name;
 
-  /**
-   * The name of the field in the enumeration, or the static field in the
-   * class.
-   */
+  /// The name of the field in the enumeration, or the static field in the
+  /// class.
   void set name(String value) {
     assert(value != null);
     this._name = value;
   }
 
-  /**
-   * The documentation to show to the user. Omitted if the server does not know
-   * the documentation, e.g. because the corresponding field is not documented.
-   */
+  /// The documentation to show to the user. Omitted if the server does not
+  /// know the documentation, e.g. because the corresponding field is not
+  /// documented.
   String get documentation => _documentation;
 
-  /**
-   * The documentation to show to the user. Omitted if the server does not know
-   * the documentation, e.g. because the corresponding field is not documented.
-   */
+  /// The documentation to show to the user. Omitted if the server does not
+  /// know the documentation, e.g. because the corresponding field is not
+  /// documented.
   void set documentation(String value) {
     this._documentation = value;
   }
@@ -16875,22 +15372,18 @@ class FlutterWidgetPropertyValueEnumItem implements HasToJson {
   }
 }
 
-/**
- * GeneralAnalysisService
- *
- * enum {
- *   ANALYZED_FILES
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// GeneralAnalysisService
+///
+/// enum {
+///   ANALYZED_FILES
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class GeneralAnalysisService implements Enum {
   static const GeneralAnalysisService ANALYZED_FILES =
       GeneralAnalysisService._("ANALYZED_FILES");
 
-  /**
-   * A list containing all of the enum values that are defined.
-   */
+  /// A list containing all of the enum values that are defined.
   static const List<GeneralAnalysisService> VALUES = <GeneralAnalysisService>[
     ANALYZED_FILES
   ];
@@ -16926,26 +15419,24 @@ class GeneralAnalysisService implements Enum {
   String toJson() => name;
 }
 
-/**
- * HoverInformation
- *
- * {
- *   "offset": int
- *   "length": int
- *   "containingLibraryPath": optional String
- *   "containingLibraryName": optional String
- *   "containingClassDescription": optional String
- *   "dartdoc": optional String
- *   "elementDescription": optional String
- *   "elementKind": optional String
- *   "isDeprecated": optional bool
- *   "parameter": optional String
- *   "propagatedType": optional String
- *   "staticType": optional String
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// HoverInformation
+///
+/// {
+///   "offset": int
+///   "length": int
+///   "containingLibraryPath": optional String
+///   "containingLibraryName": optional String
+///   "containingClassDescription": optional String
+///   "dartdoc": optional String
+///   "elementDescription": optional String
+///   "elementKind": optional String
+///   "isDeprecated": optional bool
+///   "parameter": optional String
+///   "propagatedType": optional String
+///   "staticType": optional String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class HoverInformation implements HasToJson {
   int _offset;
 
@@ -16971,186 +15462,140 @@ class HoverInformation implements HasToJson {
 
   String _staticType;
 
-  /**
-   * The offset of the range of characters that encompasses the cursor position
-   * and has the same hover information as the cursor position.
-   */
+  /// The offset of the range of characters that encompasses the cursor
+  /// position and has the same hover information as the cursor position.
   int get offset => _offset;
 
-  /**
-   * The offset of the range of characters that encompasses the cursor position
-   * and has the same hover information as the cursor position.
-   */
+  /// The offset of the range of characters that encompasses the cursor
+  /// position and has the same hover information as the cursor position.
   void set offset(int value) {
     assert(value != null);
     this._offset = value;
   }
 
-  /**
-   * The length of the range of characters that encompasses the cursor position
-   * and has the same hover information as the cursor position.
-   */
+  /// The length of the range of characters that encompasses the cursor
+  /// position and has the same hover information as the cursor position.
   int get length => _length;
 
-  /**
-   * The length of the range of characters that encompasses the cursor position
-   * and has the same hover information as the cursor position.
-   */
+  /// The length of the range of characters that encompasses the cursor
+  /// position and has the same hover information as the cursor position.
   void set length(int value) {
     assert(value != null);
     this._length = value;
   }
 
-  /**
-   * The path to the defining compilation unit of the library in which the
-   * referenced element is declared. This data is omitted if there is no
-   * referenced element, or if the element is declared inside an HTML file.
-   */
+  /// The path to the defining compilation unit of the library in which the
+  /// referenced element is declared. This data is omitted if there is no
+  /// referenced element, or if the element is declared inside an HTML file.
   String get containingLibraryPath => _containingLibraryPath;
 
-  /**
-   * The path to the defining compilation unit of the library in which the
-   * referenced element is declared. This data is omitted if there is no
-   * referenced element, or if the element is declared inside an HTML file.
-   */
+  /// The path to the defining compilation unit of the library in which the
+  /// referenced element is declared. This data is omitted if there is no
+  /// referenced element, or if the element is declared inside an HTML file.
   void set containingLibraryPath(String value) {
     this._containingLibraryPath = value;
   }
 
-  /**
-   * The URI of the containing library, examples here include "dart:core",
-   * "package:.." and file uris represented by the path on disk, "/..". The
-   * data is omitted if the element is declared inside an HTML file.
-   */
+  /// The URI of the containing library, examples here include "dart:core",
+  /// "package:.." and file uris represented by the path on disk, "/..". The
+  /// data is omitted if the element is declared inside an HTML file.
   String get containingLibraryName => _containingLibraryName;
 
-  /**
-   * The URI of the containing library, examples here include "dart:core",
-   * "package:.." and file uris represented by the path on disk, "/..". The
-   * data is omitted if the element is declared inside an HTML file.
-   */
+  /// The URI of the containing library, examples here include "dart:core",
+  /// "package:.." and file uris represented by the path on disk, "/..". The
+  /// data is omitted if the element is declared inside an HTML file.
   void set containingLibraryName(String value) {
     this._containingLibraryName = value;
   }
 
-  /**
-   * A human-readable description of the class declaring the element being
-   * referenced. This data is omitted if there is no referenced element, or if
-   * the element is not a class member.
-   */
+  /// A human-readable description of the class declaring the element being
+  /// referenced. This data is omitted if there is no referenced element, or if
+  /// the element is not a class member.
   String get containingClassDescription => _containingClassDescription;
 
-  /**
-   * A human-readable description of the class declaring the element being
-   * referenced. This data is omitted if there is no referenced element, or if
-   * the element is not a class member.
-   */
+  /// A human-readable description of the class declaring the element being
+  /// referenced. This data is omitted if there is no referenced element, or if
+  /// the element is not a class member.
   void set containingClassDescription(String value) {
     this._containingClassDescription = value;
   }
 
-  /**
-   * The dartdoc associated with the referenced element. Other than the removal
-   * of the comment delimiters, including leading asterisks in the case of a
-   * block comment, the dartdoc is unprocessed markdown. This data is omitted
-   * if there is no referenced element, or if the element has no dartdoc.
-   */
+  /// The dartdoc associated with the referenced element. Other than the
+  /// removal of the comment delimiters, including leading asterisks in the
+  /// case of a block comment, the dartdoc is unprocessed markdown. This data
+  /// is omitted if there is no referenced element, or if the element has no
+  /// dartdoc.
   String get dartdoc => _dartdoc;
 
-  /**
-   * The dartdoc associated with the referenced element. Other than the removal
-   * of the comment delimiters, including leading asterisks in the case of a
-   * block comment, the dartdoc is unprocessed markdown. This data is omitted
-   * if there is no referenced element, or if the element has no dartdoc.
-   */
+  /// The dartdoc associated with the referenced element. Other than the
+  /// removal of the comment delimiters, including leading asterisks in the
+  /// case of a block comment, the dartdoc is unprocessed markdown. This data
+  /// is omitted if there is no referenced element, or if the element has no
+  /// dartdoc.
   void set dartdoc(String value) {
     this._dartdoc = value;
   }
 
-  /**
-   * A human-readable description of the element being referenced. This data is
-   * omitted if there is no referenced element.
-   */
+  /// A human-readable description of the element being referenced. This data
+  /// is omitted if there is no referenced element.
   String get elementDescription => _elementDescription;
 
-  /**
-   * A human-readable description of the element being referenced. This data is
-   * omitted if there is no referenced element.
-   */
+  /// A human-readable description of the element being referenced. This data
+  /// is omitted if there is no referenced element.
   void set elementDescription(String value) {
     this._elementDescription = value;
   }
 
-  /**
-   * A human-readable description of the kind of element being referenced (such
-   * as "class" or "function type alias"). This data is omitted if there is no
-   * referenced element.
-   */
+  /// A human-readable description of the kind of element being referenced
+  /// (such as "class" or "function type alias"). This data is omitted if there
+  /// is no referenced element.
   String get elementKind => _elementKind;
 
-  /**
-   * A human-readable description of the kind of element being referenced (such
-   * as "class" or "function type alias"). This data is omitted if there is no
-   * referenced element.
-   */
+  /// A human-readable description of the kind of element being referenced
+  /// (such as "class" or "function type alias"). This data is omitted if there
+  /// is no referenced element.
   void set elementKind(String value) {
     this._elementKind = value;
   }
 
-  /**
-   * True if the referenced element is deprecated.
-   */
+  /// True if the referenced element is deprecated.
   bool get isDeprecated => _isDeprecated;
 
-  /**
-   * True if the referenced element is deprecated.
-   */
+  /// True if the referenced element is deprecated.
   void set isDeprecated(bool value) {
     this._isDeprecated = value;
   }
 
-  /**
-   * A human-readable description of the parameter corresponding to the
-   * expression being hovered over. This data is omitted if the location is not
-   * in an argument to a function.
-   */
+  /// A human-readable description of the parameter corresponding to the
+  /// expression being hovered over. This data is omitted if the location is
+  /// not in an argument to a function.
   String get parameter => _parameter;
 
-  /**
-   * A human-readable description of the parameter corresponding to the
-   * expression being hovered over. This data is omitted if the location is not
-   * in an argument to a function.
-   */
+  /// A human-readable description of the parameter corresponding to the
+  /// expression being hovered over. This data is omitted if the location is
+  /// not in an argument to a function.
   void set parameter(String value) {
     this._parameter = value;
   }
 
-  /**
-   * The name of the propagated type of the expression. This data is omitted if
-   * the location does not correspond to an expression or if there is no
-   * propagated type information.
-   */
+  /// The name of the propagated type of the expression. This data is omitted
+  /// if the location does not correspond to an expression or if there is no
+  /// propagated type information.
   String get propagatedType => _propagatedType;
 
-  /**
-   * The name of the propagated type of the expression. This data is omitted if
-   * the location does not correspond to an expression or if there is no
-   * propagated type information.
-   */
+  /// The name of the propagated type of the expression. This data is omitted
+  /// if the location does not correspond to an expression or if there is no
+  /// propagated type information.
   void set propagatedType(String value) {
     this._propagatedType = value;
   }
 
-  /**
-   * The name of the static type of the expression. This data is omitted if the
-   * location does not correspond to an expression.
-   */
+  /// The name of the static type of the expression. This data is omitted if
+  /// the location does not correspond to an expression.
   String get staticType => _staticType;
 
-  /**
-   * The name of the static type of the expression. This data is omitted if the
-   * location does not correspond to an expression.
-   */
+  /// The name of the static type of the expression. This data is omitted if
+  /// the location does not correspond to an expression.
   void set staticType(String value) {
     this._staticType = value;
   }
@@ -17344,42 +15789,32 @@ class HoverInformation implements HasToJson {
   }
 }
 
-/**
- * ImplementedClass
- *
- * {
- *   "offset": int
- *   "length": int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// ImplementedClass
+///
+/// {
+///   "offset": int
+///   "length": int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ImplementedClass implements HasToJson {
   int _offset;
 
   int _length;
 
-  /**
-   * The offset of the name of the implemented class.
-   */
+  /// The offset of the name of the implemented class.
   int get offset => _offset;
 
-  /**
-   * The offset of the name of the implemented class.
-   */
+  /// The offset of the name of the implemented class.
   void set offset(int value) {
     assert(value != null);
     this._offset = value;
   }
 
-  /**
-   * The length of the name of the implemented class.
-   */
+  /// The length of the name of the implemented class.
   int get length => _length;
 
-  /**
-   * The length of the name of the implemented class.
-   */
+  /// The length of the name of the implemented class.
   void set length(int value) {
     assert(value != null);
     this._length = value;
@@ -17442,42 +15877,32 @@ class ImplementedClass implements HasToJson {
   }
 }
 
-/**
- * ImplementedMember
- *
- * {
- *   "offset": int
- *   "length": int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// ImplementedMember
+///
+/// {
+///   "offset": int
+///   "length": int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ImplementedMember implements HasToJson {
   int _offset;
 
   int _length;
 
-  /**
-   * The offset of the name of the implemented member.
-   */
+  /// The offset of the name of the implemented member.
   int get offset => _offset;
 
-  /**
-   * The offset of the name of the implemented member.
-   */
+  /// The offset of the name of the implemented member.
   void set offset(int value) {
     assert(value != null);
     this._offset = value;
   }
 
-  /**
-   * The length of the name of the implemented member.
-   */
+  /// The length of the name of the implemented member.
   int get length => _length;
 
-  /**
-   * The length of the name of the implemented member.
-   */
+  /// The length of the name of the implemented member.
   void set length(int value) {
     assert(value != null);
     this._length = value;
@@ -17540,17 +15965,15 @@ class ImplementedMember implements HasToJson {
   }
 }
 
-/**
- * ImportedElementSet
- *
- * {
- *   "strings": List<String>
- *   "uris": List<int>
- *   "names": List<int>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// ImportedElementSet
+///
+/// {
+///   "strings": List<String>
+///   "uris": List<int>
+///   "names": List<int>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ImportedElementSet implements HasToJson {
   List<String> _strings;
 
@@ -17558,40 +15981,28 @@ class ImportedElementSet implements HasToJson {
 
   List<int> _names;
 
-  /**
-   * The list of unique strings in this object.
-   */
+  /// The list of unique strings in this object.
   List<String> get strings => _strings;
 
-  /**
-   * The list of unique strings in this object.
-   */
+  /// The list of unique strings in this object.
   void set strings(List<String> value) {
     assert(value != null);
     this._strings = value;
   }
 
-  /**
-   * The library URI part of the element. It is an index in the strings field.
-   */
+  /// The library URI part of the element. It is an index in the strings field.
   List<int> get uris => _uris;
 
-  /**
-   * The library URI part of the element. It is an index in the strings field.
-   */
+  /// The library URI part of the element. It is an index in the strings field.
   void set uris(List<int> value) {
     assert(value != null);
     this._uris = value;
   }
 
-  /**
-   * The name part of a the element. It is an index in the strings field.
-   */
+  /// The name part of a the element. It is an index in the strings field.
   List<int> get names => _names;
 
-  /**
-   * The name part of a the element. It is an index in the strings field.
-   */
+  /// The name part of a the element. It is an index in the strings field.
   void set names(List<int> value) {
     assert(value != null);
     this._names = value;
@@ -17669,17 +16080,15 @@ class ImportedElementSet implements HasToJson {
   }
 }
 
-/**
- * ImportedElements
- *
- * {
- *   "path": FilePath
- *   "prefix": String
- *   "elements": List<String>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// ImportedElements
+///
+/// {
+///   "path": FilePath
+///   "prefix": String
+///   "elements": List<String>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ImportedElements implements HasToJson {
   String _path;
 
@@ -17687,42 +16096,30 @@ class ImportedElements implements HasToJson {
 
   List<String> _elements;
 
-  /**
-   * The absolute and normalized path of the file containing the library.
-   */
+  /// The absolute and normalized path of the file containing the library.
   String get path => _path;
 
-  /**
-   * The absolute and normalized path of the file containing the library.
-   */
+  /// The absolute and normalized path of the file containing the library.
   void set path(String value) {
     assert(value != null);
     this._path = value;
   }
 
-  /**
-   * The prefix that was used when importing the library into the original
-   * source.
-   */
+  /// The prefix that was used when importing the library into the original
+  /// source.
   String get prefix => _prefix;
 
-  /**
-   * The prefix that was used when importing the library into the original
-   * source.
-   */
+  /// The prefix that was used when importing the library into the original
+  /// source.
   void set prefix(String value) {
     assert(value != null);
     this._prefix = value;
   }
 
-  /**
-   * The names of the elements imported from the library.
-   */
+  /// The names of the elements imported from the library.
   List<String> get elements => _elements;
 
-  /**
-   * The names of the elements imported from the library.
-   */
+  /// The names of the elements imported from the library.
   void set elements(List<String> value) {
     assert(value != null);
     this._elements = value;
@@ -17797,46 +16194,36 @@ class ImportedElements implements HasToJson {
   }
 }
 
-/**
- * IncludedSuggestionRelevanceTag
- *
- * {
- *   "tag": AvailableSuggestionRelevanceTag
- *   "relevanceBoost": int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// IncludedSuggestionRelevanceTag
+///
+/// {
+///   "tag": AvailableSuggestionRelevanceTag
+///   "relevanceBoost": int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class IncludedSuggestionRelevanceTag implements HasToJson {
   String _tag;
 
   int _relevanceBoost;
 
-  /**
-   * The opaque value of the tag.
-   */
+  /// The opaque value of the tag.
   String get tag => _tag;
 
-  /**
-   * The opaque value of the tag.
-   */
+  /// The opaque value of the tag.
   void set tag(String value) {
     assert(value != null);
     this._tag = value;
   }
 
-  /**
-   * The boost to the relevance of the completion suggestions that match this
-   * tag, which is added to the relevance of the containing
-   * IncludedSuggestionSet.
-   */
+  /// The boost to the relevance of the completion suggestions that match this
+  /// tag, which is added to the relevance of the containing
+  /// IncludedSuggestionSet.
   int get relevanceBoost => _relevanceBoost;
 
-  /**
-   * The boost to the relevance of the completion suggestions that match this
-   * tag, which is added to the relevance of the containing
-   * IncludedSuggestionSet.
-   */
+  /// The boost to the relevance of the completion suggestions that match this
+  /// tag, which is added to the relevance of the containing
+  /// IncludedSuggestionSet.
   void set relevanceBoost(int value) {
     assert(value != null);
     this._relevanceBoost = value;
@@ -17901,17 +16288,15 @@ class IncludedSuggestionRelevanceTag implements HasToJson {
   }
 }
 
-/**
- * IncludedSuggestionSet
- *
- * {
- *   "id": int
- *   "relevance": int
- *   "displayUri": optional String
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// IncludedSuggestionSet
+///
+/// {
+///   "id": int
+///   "relevance": int
+///   "displayUri": optional String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class IncludedSuggestionSet implements HasToJson {
   int _id;
 
@@ -17919,56 +16304,44 @@ class IncludedSuggestionSet implements HasToJson {
 
   String _displayUri;
 
-  /**
-   * Clients should use it to access the set of precomputed completions to be
-   * displayed to the user.
-   */
+  /// Clients should use it to access the set of precomputed completions to be
+  /// displayed to the user.
   int get id => _id;
 
-  /**
-   * Clients should use it to access the set of precomputed completions to be
-   * displayed to the user.
-   */
+  /// Clients should use it to access the set of precomputed completions to be
+  /// displayed to the user.
   void set id(int value) {
     assert(value != null);
     this._id = value;
   }
 
-  /**
-   * The relevance of completion suggestions from this library where a higher
-   * number indicates a higher relevance.
-   */
+  /// The relevance of completion suggestions from this library where a higher
+  /// number indicates a higher relevance.
   int get relevance => _relevance;
 
-  /**
-   * The relevance of completion suggestions from this library where a higher
-   * number indicates a higher relevance.
-   */
+  /// The relevance of completion suggestions from this library where a higher
+  /// number indicates a higher relevance.
   void set relevance(int value) {
     assert(value != null);
     this._relevance = value;
   }
 
-  /**
-   * The optional string that should be displayed instead of the uri of the
-   * referenced AvailableSuggestionSet.
-   *
-   * For example libraries in the "test" directory of a package have only
-   * "file://" URIs, so are usually long, and don't look nice, but actual
-   * import directives will use relative URIs, which are short, so we probably
-   * want to display such relative URIs to the user.
-   */
+  /// The optional string that should be displayed instead of the uri of the
+  /// referenced AvailableSuggestionSet.
+  ///
+  /// For example libraries in the "test" directory of a package have only
+  /// "file://" URIs, so are usually long, and don't look nice, but actual
+  /// import directives will use relative URIs, which are short, so we probably
+  /// want to display such relative URIs to the user.
   String get displayUri => _displayUri;
 
-  /**
-   * The optional string that should be displayed instead of the uri of the
-   * referenced AvailableSuggestionSet.
-   *
-   * For example libraries in the "test" directory of a package have only
-   * "file://" URIs, so are usually long, and don't look nice, but actual
-   * import directives will use relative URIs, which are short, so we probably
-   * want to display such relative URIs to the user.
-   */
+  /// The optional string that should be displayed instead of the uri of the
+  /// referenced AvailableSuggestionSet.
+  ///
+  /// For example libraries in the "test" directory of a package have only
+  /// "file://" URIs, so are usually long, and don't look nice, but actual
+  /// import directives will use relative URIs, which are short, so we probably
+  /// want to display such relative URIs to the user.
   void set displayUri(String value) {
     this._displayUri = value;
   }
@@ -18043,42 +16416,32 @@ class IncludedSuggestionSet implements HasToJson {
   }
 }
 
-/**
- * inlineLocalVariable feedback
- *
- * {
- *   "name": String
- *   "occurrences": int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// inlineLocalVariable feedback
+///
+/// {
+///   "name": String
+///   "occurrences": int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class InlineLocalVariableFeedback extends RefactoringFeedback {
   String _name;
 
   int _occurrences;
 
-  /**
-   * The name of the variable being inlined.
-   */
+  /// The name of the variable being inlined.
   String get name => _name;
 
-  /**
-   * The name of the variable being inlined.
-   */
+  /// The name of the variable being inlined.
   void set name(String value) {
     assert(value != null);
     this._name = value;
   }
 
-  /**
-   * The number of times the variable occurs.
-   */
+  /// The number of times the variable occurs.
   int get occurrences => _occurrences;
 
-  /**
-   * The number of times the variable occurs.
-   */
+  /// The number of times the variable occurs.
   void set occurrences(int value) {
     assert(value != null);
     this._occurrences = value;
@@ -18143,11 +16506,9 @@ class InlineLocalVariableFeedback extends RefactoringFeedback {
   }
 }
 
-/**
- * inlineLocalVariable options
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// inlineLocalVariable options
+///
+/// Clients may not extend, implement or mix-in this class.
 class InlineLocalVariableOptions extends RefactoringOptions
     implements HasToJson {
   @override
@@ -18164,17 +16525,15 @@ class InlineLocalVariableOptions extends RefactoringOptions
   }
 }
 
-/**
- * inlineMethod feedback
- *
- * {
- *   "className": optional String
- *   "methodName": String
- *   "isDeclaration": bool
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// inlineMethod feedback
+///
+/// {
+///   "className": optional String
+///   "methodName": String
+///   "isDeclaration": bool
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class InlineMethodFeedback extends RefactoringFeedback {
   String _className;
 
@@ -18182,43 +16541,31 @@ class InlineMethodFeedback extends RefactoringFeedback {
 
   bool _isDeclaration;
 
-  /**
-   * The name of the class enclosing the method being inlined. If not a class
-   * member is being inlined, this field will be absent.
-   */
+  /// The name of the class enclosing the method being inlined. If not a class
+  /// member is being inlined, this field will be absent.
   String get className => _className;
 
-  /**
-   * The name of the class enclosing the method being inlined. If not a class
-   * member is being inlined, this field will be absent.
-   */
+  /// The name of the class enclosing the method being inlined. If not a class
+  /// member is being inlined, this field will be absent.
   void set className(String value) {
     this._className = value;
   }
 
-  /**
-   * The name of the method (or function) being inlined.
-   */
+  /// The name of the method (or function) being inlined.
   String get methodName => _methodName;
 
-  /**
-   * The name of the method (or function) being inlined.
-   */
+  /// The name of the method (or function) being inlined.
   void set methodName(String value) {
     assert(value != null);
     this._methodName = value;
   }
 
-  /**
-   * True if the declaration of the method is selected. So all references
-   * should be inlined.
-   */
+  /// True if the declaration of the method is selected. So all references
+  /// should be inlined.
   bool get isDeclaration => _isDeclaration;
 
-  /**
-   * True if the declaration of the method is selected. So all references
-   * should be inlined.
-   */
+  /// True if the declaration of the method is selected. So all references
+  /// should be inlined.
   void set isDeclaration(bool value) {
     assert(value != null);
     this._isDeclaration = value;
@@ -18297,46 +16644,36 @@ class InlineMethodFeedback extends RefactoringFeedback {
   }
 }
 
-/**
- * inlineMethod options
- *
- * {
- *   "deleteSource": bool
- *   "inlineAll": bool
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// inlineMethod options
+///
+/// {
+///   "deleteSource": bool
+///   "inlineAll": bool
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class InlineMethodOptions extends RefactoringOptions {
   bool _deleteSource;
 
   bool _inlineAll;
 
-  /**
-   * True if the method being inlined should be removed. It is an error if this
-   * field is true and inlineAll is false.
-   */
+  /// True if the method being inlined should be removed. It is an error if
+  /// this field is true and inlineAll is false.
   bool get deleteSource => _deleteSource;
 
-  /**
-   * True if the method being inlined should be removed. It is an error if this
-   * field is true and inlineAll is false.
-   */
+  /// True if the method being inlined should be removed. It is an error if
+  /// this field is true and inlineAll is false.
   void set deleteSource(bool value) {
     assert(value != null);
     this._deleteSource = value;
   }
 
-  /**
-   * True if all invocations of the method should be inlined, or false if only
-   * the invocation site used to create this refactoring should be inlined.
-   */
+  /// True if all invocations of the method should be inlined, or false if only
+  /// the invocation site used to create this refactoring should be inlined.
   bool get inlineAll => _inlineAll;
 
-  /**
-   * True if all invocations of the method should be inlined, or false if only
-   * the invocation site used to create this refactoring should be inlined.
-   */
+  /// True if all invocations of the method should be inlined, or false if only
+  /// the invocation site used to create this refactoring should be inlined.
   void set inlineAll(bool value) {
     assert(value != null);
     this._inlineAll = value;
@@ -18407,28 +16744,22 @@ class InlineMethodOptions extends RefactoringOptions {
   }
 }
 
-/**
- * kythe.getKytheEntries params
- *
- * {
- *   "file": FilePath
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// kythe.getKytheEntries params
+///
+/// {
+///   "file": FilePath
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class KytheGetKytheEntriesParams implements RequestParams {
   String _file;
 
-  /**
-   * The file containing the code for which the Kythe Entry objects are being
-   * requested.
-   */
+  /// The file containing the code for which the Kythe Entry objects are being
+  /// requested.
   String get file => _file;
 
-  /**
-   * The file containing the code for which the Kythe Entry objects are being
-   * requested.
-   */
+  /// The file containing the code for which the Kythe Entry objects are being
+  /// requested.
   void set file(String value) {
     assert(value != null);
     this._file = value;
@@ -18493,48 +16824,38 @@ class KytheGetKytheEntriesParams implements RequestParams {
   }
 }
 
-/**
- * kythe.getKytheEntries result
- *
- * {
- *   "entries": List<KytheEntry>
- *   "files": List<FilePath>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// kythe.getKytheEntries result
+///
+/// {
+///   "entries": List<KytheEntry>
+///   "files": List<FilePath>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class KytheGetKytheEntriesResult implements ResponseResult {
   List<KytheEntry> _entries;
 
   List<String> _files;
 
-  /**
-   * The list of KytheEntry objects for the queried file.
-   */
+  /// The list of KytheEntry objects for the queried file.
   List<KytheEntry> get entries => _entries;
 
-  /**
-   * The list of KytheEntry objects for the queried file.
-   */
+  /// The list of KytheEntry objects for the queried file.
   void set entries(List<KytheEntry> value) {
     assert(value != null);
     this._entries = value;
   }
 
-  /**
-   * The set of files paths that were required, but not in the file system, to
-   * give a complete and accurate Kythe graph for the file. This could be due
-   * to a referenced file that does not exist or generated files not being
-   * generated or passed before the call to "getKytheEntries".
-   */
+  /// The set of files paths that were required, but not in the file system, to
+  /// give a complete and accurate Kythe graph for the file. This could be due
+  /// to a referenced file that does not exist or generated files not being
+  /// generated or passed before the call to "getKytheEntries".
   List<String> get files => _files;
 
-  /**
-   * The set of files paths that were required, but not in the file system, to
-   * give a complete and accurate Kythe graph for the file. This could be due
-   * to a referenced file that does not exist or generated files not being
-   * generated or passed before the call to "getKytheEntries".
-   */
+  /// The set of files paths that were required, but not in the file system, to
+  /// give a complete and accurate Kythe graph for the file. This could be due
+  /// to a referenced file that does not exist or generated files not being
+  /// generated or passed before the call to "getKytheEntries".
   void set files(List<String> value) {
     assert(value != null);
     this._files = value;
@@ -18618,48 +16939,38 @@ class KytheGetKytheEntriesResult implements ResponseResult {
   }
 }
 
-/**
- * LibraryPathSet
- *
- * {
- *   "scope": FilePath
- *   "libraryPaths": List<FilePath>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// LibraryPathSet
+///
+/// {
+///   "scope": FilePath
+///   "libraryPaths": List<FilePath>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class LibraryPathSet implements HasToJson {
   String _scope;
 
   List<String> _libraryPaths;
 
-  /**
-   * The filepath for which this request's libraries should be active in
-   * completion suggestions. This object associates filesystem regions to
-   * libraries and library directories of interest to the client.
-   */
+  /// The filepath for which this request's libraries should be active in
+  /// completion suggestions. This object associates filesystem regions to
+  /// libraries and library directories of interest to the client.
   String get scope => _scope;
 
-  /**
-   * The filepath for which this request's libraries should be active in
-   * completion suggestions. This object associates filesystem regions to
-   * libraries and library directories of interest to the client.
-   */
+  /// The filepath for which this request's libraries should be active in
+  /// completion suggestions. This object associates filesystem regions to
+  /// libraries and library directories of interest to the client.
   void set scope(String value) {
     assert(value != null);
     this._scope = value;
   }
 
-  /**
-   * The paths of the libraries of interest to the client for completion
-   * suggestions.
-   */
+  /// The paths of the libraries of interest to the client for completion
+  /// suggestions.
   List<String> get libraryPaths => _libraryPaths;
 
-  /**
-   * The paths of the libraries of interest to the client for completion
-   * suggestions.
-   */
+  /// The paths of the libraries of interest to the client for completion
+  /// suggestions.
   void set libraryPaths(List<String> value) {
     assert(value != null);
     this._libraryPaths = value;
@@ -18725,11 +17036,9 @@ class LibraryPathSet implements HasToJson {
   }
 }
 
-/**
- * moveFile feedback
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// moveFile feedback
+///
+/// Clients may not extend, implement or mix-in this class.
 class MoveFileFeedback extends RefactoringFeedback implements HasToJson {
   @override
   bool operator ==(other) {
@@ -18745,26 +17054,20 @@ class MoveFileFeedback extends RefactoringFeedback implements HasToJson {
   }
 }
 
-/**
- * moveFile options
- *
- * {
- *   "newFile": FilePath
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// moveFile options
+///
+/// {
+///   "newFile": FilePath
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class MoveFileOptions extends RefactoringOptions {
   String _newFile;
 
-  /**
-   * The new file path to which the given file is being moved.
-   */
+  /// The new file path to which the given file is being moved.
   String get newFile => _newFile;
 
-  /**
-   * The new file path to which the given file is being moved.
-   */
+  /// The new file path to which the given file is being moved.
   void set newFile(String value) {
     assert(value != null);
     this._newFile = value;
@@ -18825,42 +17128,32 @@ class MoveFileOptions extends RefactoringOptions {
   }
 }
 
-/**
- * OverriddenMember
- *
- * {
- *   "element": Element
- *   "className": String
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// OverriddenMember
+///
+/// {
+///   "element": Element
+///   "className": String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class OverriddenMember implements HasToJson {
   Element _element;
 
   String _className;
 
-  /**
-   * The element that is being overridden.
-   */
+  /// The element that is being overridden.
   Element get element => _element;
 
-  /**
-   * The element that is being overridden.
-   */
+  /// The element that is being overridden.
   void set element(Element value) {
     assert(value != null);
     this._element = value;
   }
 
-  /**
-   * The name of the class in which the member is defined.
-   */
+  /// The name of the class in which the member is defined.
   String get className => _className;
 
-  /**
-   * The name of the class in which the member is defined.
-   */
+  /// The name of the class in which the member is defined.
   void set className(String value) {
     assert(value != null);
     this._className = value;
@@ -18925,18 +17218,16 @@ class OverriddenMember implements HasToJson {
   }
 }
 
-/**
- * Override
- *
- * {
- *   "offset": int
- *   "length": int
- *   "superclassMember": optional OverriddenMember
- *   "interfaceMembers": optional List<OverriddenMember>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// Override
+///
+/// {
+///   "offset": int
+///   "length": int
+///   "superclassMember": optional OverriddenMember
+///   "interfaceMembers": optional List<OverriddenMember>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class Override implements HasToJson {
   int _offset;
 
@@ -18946,60 +17237,44 @@ class Override implements HasToJson {
 
   List<OverriddenMember> _interfaceMembers;
 
-  /**
-   * The offset of the name of the overriding member.
-   */
+  /// The offset of the name of the overriding member.
   int get offset => _offset;
 
-  /**
-   * The offset of the name of the overriding member.
-   */
+  /// The offset of the name of the overriding member.
   void set offset(int value) {
     assert(value != null);
     this._offset = value;
   }
 
-  /**
-   * The length of the name of the overriding member.
-   */
+  /// The length of the name of the overriding member.
   int get length => _length;
 
-  /**
-   * The length of the name of the overriding member.
-   */
+  /// The length of the name of the overriding member.
   void set length(int value) {
     assert(value != null);
     this._length = value;
   }
 
-  /**
-   * The member inherited from a superclass that is overridden by the
-   * overriding member. The field is omitted if there is no superclass member,
-   * in which case there must be at least one interface member.
-   */
+  /// The member inherited from a superclass that is overridden by the
+  /// overriding member. The field is omitted if there is no superclass member,
+  /// in which case there must be at least one interface member.
   OverriddenMember get superclassMember => _superclassMember;
 
-  /**
-   * The member inherited from a superclass that is overridden by the
-   * overriding member. The field is omitted if there is no superclass member,
-   * in which case there must be at least one interface member.
-   */
+  /// The member inherited from a superclass that is overridden by the
+  /// overriding member. The field is omitted if there is no superclass member,
+  /// in which case there must be at least one interface member.
   void set superclassMember(OverriddenMember value) {
     this._superclassMember = value;
   }
 
-  /**
-   * The members inherited from interfaces that are overridden by the
-   * overriding member. The field is omitted if there are no interface members,
-   * in which case there must be a superclass member.
-   */
+  /// The members inherited from interfaces that are overridden by the
+  /// overriding member. The field is omitted if there are no interface
+  /// members, in which case there must be a superclass member.
   List<OverriddenMember> get interfaceMembers => _interfaceMembers;
 
-  /**
-   * The members inherited from interfaces that are overridden by the
-   * overriding member. The field is omitted if there are no interface members,
-   * in which case there must be a superclass member.
-   */
+  /// The members inherited from interfaces that are overridden by the
+  /// overriding member. The field is omitted if there are no interface
+  /// members, in which case there must be a superclass member.
   void set interfaceMembers(List<OverriddenMember> value) {
     this._interfaceMembers = value;
   }
@@ -19094,17 +17369,15 @@ class Override implements HasToJson {
   }
 }
 
-/**
- * PostfixTemplateDescriptor
- *
- * {
- *   "name": String
- *   "key": String
- *   "example": String
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// PostfixTemplateDescriptor
+///
+/// {
+///   "name": String
+///   "key": String
+///   "example": String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class PostfixTemplateDescriptor implements HasToJson {
   String _name;
 
@@ -19112,42 +17385,30 @@ class PostfixTemplateDescriptor implements HasToJson {
 
   String _example;
 
-  /**
-   * The template name, shown in the UI.
-   */
+  /// The template name, shown in the UI.
   String get name => _name;
 
-  /**
-   * The template name, shown in the UI.
-   */
+  /// The template name, shown in the UI.
   void set name(String value) {
     assert(value != null);
     this._name = value;
   }
 
-  /**
-   * The unique template key, not shown in the UI.
-   */
+  /// The unique template key, not shown in the UI.
   String get key => _key;
 
-  /**
-   * The unique template key, not shown in the UI.
-   */
+  /// The unique template key, not shown in the UI.
   void set key(String value) {
     assert(value != null);
     this._key = value;
   }
 
-  /**
-   * A short example of the transformation performed when the template is
-   * applied.
-   */
+  /// A short example of the transformation performed when the template is
+  /// applied.
   String get example => _example;
 
-  /**
-   * A short example of the transformation performed when the template is
-   * applied.
-   */
+  /// A short example of the transformation performed when the template is
+  /// applied.
   void set example(String value) {
     assert(value != null);
     this._example = value;
@@ -19220,28 +17481,22 @@ class PostfixTemplateDescriptor implements HasToJson {
   }
 }
 
-/**
- * PubStatus
- *
- * {
- *   "isListingPackageDirs": bool
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// PubStatus
+///
+/// {
+///   "isListingPackageDirs": bool
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class PubStatus implements HasToJson {
   bool _isListingPackageDirs;
 
-  /**
-   * True if the server is currently running pub to produce a list of package
-   * directories.
-   */
+  /// True if the server is currently running pub to produce a list of package
+  /// directories.
   bool get isListingPackageDirs => _isListingPackageDirs;
 
-  /**
-   * True if the server is currently running pub to produce a list of package
-   * directories.
-   */
+  /// True if the server is currently running pub to produce a list of package
+  /// directories.
   void set isListingPackageDirs(bool value) {
     assert(value != null);
     this._isListingPackageDirs = value;
@@ -19296,14 +17551,12 @@ class PubStatus implements HasToJson {
   }
 }
 
-/**
- * RefactoringFeedback
- *
- * {
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// RefactoringFeedback
+///
+/// {
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class RefactoringFeedback implements HasToJson {
   RefactoringFeedback();
 
@@ -19337,14 +17590,12 @@ class RefactoringFeedback implements HasToJson {
   }
 }
 
-/**
- * RefactoringOptions
- *
- * {
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// RefactoringOptions
+///
+/// {
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class RefactoringOptions implements HasToJson {
   RefactoringOptions();
 
@@ -19377,18 +17628,16 @@ class RefactoringOptions implements HasToJson {
   }
 }
 
-/**
- * rename feedback
- *
- * {
- *   "offset": int
- *   "length": int
- *   "elementKindName": String
- *   "oldName": String
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// rename feedback
+///
+/// {
+///   "offset": int
+///   "length": int
+///   "elementKindName": String
+///   "oldName": String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class RenameFeedback extends RefactoringFeedback {
   int _offset;
 
@@ -19398,57 +17647,41 @@ class RenameFeedback extends RefactoringFeedback {
 
   String _oldName;
 
-  /**
-   * The offset to the beginning of the name selected to be renamed, or -1 if
-   * the name does not exist yet.
-   */
+  /// The offset to the beginning of the name selected to be renamed, or -1 if
+  /// the name does not exist yet.
   int get offset => _offset;
 
-  /**
-   * The offset to the beginning of the name selected to be renamed, or -1 if
-   * the name does not exist yet.
-   */
+  /// The offset to the beginning of the name selected to be renamed, or -1 if
+  /// the name does not exist yet.
   void set offset(int value) {
     assert(value != null);
     this._offset = value;
   }
 
-  /**
-   * The length of the name selected to be renamed.
-   */
+  /// The length of the name selected to be renamed.
   int get length => _length;
 
-  /**
-   * The length of the name selected to be renamed.
-   */
+  /// The length of the name selected to be renamed.
   void set length(int value) {
     assert(value != null);
     this._length = value;
   }
 
-  /**
-   * The human-readable description of the kind of element being renamed (such
-   * as "class" or "function type alias").
-   */
+  /// The human-readable description of the kind of element being renamed (such
+  /// as "class" or "function type alias").
   String get elementKindName => _elementKindName;
 
-  /**
-   * The human-readable description of the kind of element being renamed (such
-   * as "class" or "function type alias").
-   */
+  /// The human-readable description of the kind of element being renamed (such
+  /// as "class" or "function type alias").
   void set elementKindName(String value) {
     assert(value != null);
     this._elementKindName = value;
   }
 
-  /**
-   * The old name of the element before the refactoring.
-   */
+  /// The old name of the element before the refactoring.
   String get oldName => _oldName;
 
-  /**
-   * The old name of the element before the refactoring.
-   */
+  /// The old name of the element before the refactoring.
   void set oldName(String value) {
     assert(value != null);
     this._oldName = value;
@@ -19535,26 +17768,20 @@ class RenameFeedback extends RefactoringFeedback {
   }
 }
 
-/**
- * rename options
- *
- * {
- *   "newName": String
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// rename options
+///
+/// {
+///   "newName": String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class RenameOptions extends RefactoringOptions {
   String _newName;
 
-  /**
-   * The name that the element should have after the refactoring.
-   */
+  /// The name that the element should have after the refactoring.
   String get newName => _newName;
 
-  /**
-   * The name that the element should have after the refactoring.
-   */
+  /// The name that the element should have after the refactoring.
   void set newName(String value) {
     assert(value != null);
     this._newName = value;
@@ -19615,17 +17842,15 @@ class RenameOptions extends RefactoringOptions {
   }
 }
 
-/**
- * RequestError
- *
- * {
- *   "code": RequestErrorCode
- *   "message": String
- *   "stackTrace": optional String
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// RequestError
+///
+/// {
+///   "code": RequestErrorCode
+///   "message": String
+///   "stackTrace": optional String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class RequestError implements HasToJson {
   RequestErrorCode _code;
 
@@ -19633,42 +17858,30 @@ class RequestError implements HasToJson {
 
   String _stackTrace;
 
-  /**
-   * A code that uniquely identifies the error that occurred.
-   */
+  /// A code that uniquely identifies the error that occurred.
   RequestErrorCode get code => _code;
 
-  /**
-   * A code that uniquely identifies the error that occurred.
-   */
+  /// A code that uniquely identifies the error that occurred.
   void set code(RequestErrorCode value) {
     assert(value != null);
     this._code = value;
   }
 
-  /**
-   * A short description of the error.
-   */
+  /// A short description of the error.
   String get message => _message;
 
-  /**
-   * A short description of the error.
-   */
+  /// A short description of the error.
   void set message(String value) {
     assert(value != null);
     this._message = value;
   }
 
-  /**
-   * The stack trace associated with processing the request, used for debugging
-   * the server.
-   */
+  /// The stack trace associated with processing the request, used for
+  /// debugging the server.
   String get stackTrace => _stackTrace;
 
-  /**
-   * The stack trace associated with processing the request, used for debugging
-   * the server.
-   */
+  /// The stack trace associated with processing the request, used for
+  /// debugging the server.
   void set stackTrace(String value) {
     this._stackTrace = value;
   }
@@ -19744,284 +17957,214 @@ class RequestError implements HasToJson {
   }
 }
 
-/**
- * RequestErrorCode
- *
- * enum {
- *   CONTENT_MODIFIED
- *   DEBUG_PORT_COULD_NOT_BE_OPENED
- *   FILE_NOT_ANALYZED
- *   FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET
- *   FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION
- *   FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_ID
- *   FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED
- *   FORMAT_INVALID_FILE
- *   FORMAT_WITH_ERRORS
- *   GET_ERRORS_INVALID_FILE
- *   GET_IMPORTED_ELEMENTS_INVALID_FILE
- *   GET_KYTHE_ENTRIES_INVALID_FILE
- *   GET_NAVIGATION_INVALID_FILE
- *   GET_REACHABLE_SOURCES_INVALID_FILE
- *   GET_SIGNATURE_INVALID_FILE
- *   GET_SIGNATURE_INVALID_OFFSET
- *   GET_SIGNATURE_UNKNOWN_FUNCTION
- *   IMPORT_ELEMENTS_INVALID_FILE
- *   INVALID_ANALYSIS_ROOT
- *   INVALID_EXECUTION_CONTEXT
- *   INVALID_FILE_PATH_FORMAT
- *   INVALID_OVERLAY_CHANGE
- *   INVALID_PARAMETER
- *   INVALID_REQUEST
- *   ORGANIZE_DIRECTIVES_ERROR
- *   REFACTORING_REQUEST_CANCELLED
- *   SERVER_ALREADY_STARTED
- *   SERVER_ERROR
- *   SORT_MEMBERS_INVALID_FILE
- *   SORT_MEMBERS_PARSE_ERRORS
- *   UNKNOWN_FIX
- *   UNKNOWN_REQUEST
- *   UNSUPPORTED_FEATURE
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// RequestErrorCode
+///
+/// enum {
+///   CONTENT_MODIFIED
+///   DEBUG_PORT_COULD_NOT_BE_OPENED
+///   FILE_NOT_ANALYZED
+///   FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET
+///   FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION
+///   FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_ID
+///   FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED
+///   FORMAT_INVALID_FILE
+///   FORMAT_WITH_ERRORS
+///   GET_ERRORS_INVALID_FILE
+///   GET_IMPORTED_ELEMENTS_INVALID_FILE
+///   GET_KYTHE_ENTRIES_INVALID_FILE
+///   GET_NAVIGATION_INVALID_FILE
+///   GET_REACHABLE_SOURCES_INVALID_FILE
+///   GET_SIGNATURE_INVALID_FILE
+///   GET_SIGNATURE_INVALID_OFFSET
+///   GET_SIGNATURE_UNKNOWN_FUNCTION
+///   IMPORT_ELEMENTS_INVALID_FILE
+///   INVALID_ANALYSIS_ROOT
+///   INVALID_EXECUTION_CONTEXT
+///   INVALID_FILE_PATH_FORMAT
+///   INVALID_OVERLAY_CHANGE
+///   INVALID_PARAMETER
+///   INVALID_REQUEST
+///   ORGANIZE_DIRECTIVES_ERROR
+///   REFACTORING_REQUEST_CANCELLED
+///   SERVER_ALREADY_STARTED
+///   SERVER_ERROR
+///   SORT_MEMBERS_INVALID_FILE
+///   SORT_MEMBERS_PARSE_ERRORS
+///   UNKNOWN_FIX
+///   UNKNOWN_REQUEST
+///   UNSUPPORTED_FEATURE
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class RequestErrorCode implements Enum {
-  /**
-   * An "analysis.getErrors" or "analysis.getNavigation" request could not be
-   * satisfied because the content of the file changed before the requested
-   * results could be computed.
-   */
+  /// An "analysis.getErrors" or "analysis.getNavigation" request could not be
+  /// satisfied because the content of the file changed before the requested
+  /// results could be computed.
   static const RequestErrorCode CONTENT_MODIFIED =
       RequestErrorCode._("CONTENT_MODIFIED");
 
-  /**
-   * The server was unable to open a port for the diagnostic server.
-   */
+  /// The server was unable to open a port for the diagnostic server.
   static const RequestErrorCode DEBUG_PORT_COULD_NOT_BE_OPENED =
       RequestErrorCode._("DEBUG_PORT_COULD_NOT_BE_OPENED");
 
-  /**
-   * A request specified a FilePath which does not match a file in an analysis
-   * root, or the requested operation is not available for the file.
-   */
+  /// A request specified a FilePath which does not match a file in an analysis
+  /// root, or the requested operation is not available for the file.
   static const RequestErrorCode FILE_NOT_ANALYZED =
       RequestErrorCode._("FILE_NOT_ANALYZED");
 
-  /**
-   * The given location does not have a supported widget.
-   */
+  /// The given location does not have a supported widget.
   static const RequestErrorCode FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET =
       RequestErrorCode._("FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET");
 
-  /**
-   * The given property expression is invalid, e.g. has a syntax error.
-   */
+  /// The given property expression is invalid, e.g. has a syntax error.
   static const RequestErrorCode
       FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION = RequestErrorCode._(
           "FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION");
 
-  /**
-   * The given property identifier is not valid. It might have never been
-   * valid, or a change to code invalidated it, or its TTL was exceeded.
-   */
+  /// The given property identifier is not valid. It might have never been
+  /// valid, or a change to code invalidated it, or its TTL was exceeded.
   static const RequestErrorCode FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_ID =
       RequestErrorCode._("FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_ID");
 
-  /**
-   * The value of the property cannot be removed, for example because the
-   * corresponding constructor argument is required, and the server does not
-   * know what default value to use.
-   */
+  /// The value of the property cannot be removed, for example because the
+  /// corresponding constructor argument is required, and the server does not
+  /// know what default value to use.
   static const RequestErrorCode FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED =
       RequestErrorCode._("FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED");
 
-  /**
-   * An "edit.format" request specified a FilePath which does not match a Dart
-   * file in an analysis root.
-   */
+  /// An "edit.format" request specified a FilePath which does not match a Dart
+  /// file in an analysis root.
   static const RequestErrorCode FORMAT_INVALID_FILE =
       RequestErrorCode._("FORMAT_INVALID_FILE");
 
-  /**
-   * An "edit.format" request specified a file that contains syntax errors.
-   */
+  /// An "edit.format" request specified a file that contains syntax errors.
   static const RequestErrorCode FORMAT_WITH_ERRORS =
       RequestErrorCode._("FORMAT_WITH_ERRORS");
 
-  /**
-   * An "analysis.getErrors" request specified a FilePath which does not match
-   * a file currently subject to analysis.
-   */
+  /// An "analysis.getErrors" request specified a FilePath which does not match
+  /// a file currently subject to analysis.
   static const RequestErrorCode GET_ERRORS_INVALID_FILE =
       RequestErrorCode._("GET_ERRORS_INVALID_FILE");
 
-  /**
-   * An "analysis.getImportedElements" request specified a FilePath that does
-   * not match a file currently subject to analysis.
-   */
+  /// An "analysis.getImportedElements" request specified a FilePath that does
+  /// not match a file currently subject to analysis.
   static const RequestErrorCode GET_IMPORTED_ELEMENTS_INVALID_FILE =
       RequestErrorCode._("GET_IMPORTED_ELEMENTS_INVALID_FILE");
 
-  /**
-   * An "analysis.getKytheEntries" request specified a FilePath that does not
-   * match a file that is currently subject to analysis.
-   */
+  /// An "analysis.getKytheEntries" request specified a FilePath that does not
+  /// match a file that is currently subject to analysis.
   static const RequestErrorCode GET_KYTHE_ENTRIES_INVALID_FILE =
       RequestErrorCode._("GET_KYTHE_ENTRIES_INVALID_FILE");
 
-  /**
-   * An "analysis.getNavigation" request specified a FilePath which does not
-   * match a file currently subject to analysis.
-   */
+  /// An "analysis.getNavigation" request specified a FilePath which does not
+  /// match a file currently subject to analysis.
   static const RequestErrorCode GET_NAVIGATION_INVALID_FILE =
       RequestErrorCode._("GET_NAVIGATION_INVALID_FILE");
 
-  /**
-   * An "analysis.getReachableSources" request specified a FilePath which does
-   * not match a file currently subject to analysis.
-   */
+  /// An "analysis.getReachableSources" request specified a FilePath which does
+  /// not match a file currently subject to analysis.
   static const RequestErrorCode GET_REACHABLE_SOURCES_INVALID_FILE =
       RequestErrorCode._("GET_REACHABLE_SOURCES_INVALID_FILE");
 
-  /**
-   * An "analysis.getSignature" request specified a FilePath which does not
-   * match a file currently subject to analysis.
-   */
+  /// An "analysis.getSignature" request specified a FilePath which does not
+  /// match a file currently subject to analysis.
   static const RequestErrorCode GET_SIGNATURE_INVALID_FILE =
       RequestErrorCode._("GET_SIGNATURE_INVALID_FILE");
 
-  /**
-   * An "analysis.getSignature" request specified an offset which is not a
-   * valid location within for the contents of the file specified FilePath.
-   */
+  /// An "analysis.getSignature" request specified an offset which is not a
+  /// valid location within for the contents of the file specified FilePath.
   static const RequestErrorCode GET_SIGNATURE_INVALID_OFFSET =
       RequestErrorCode._("GET_SIGNATURE_INVALID_OFFSET");
 
-  /**
-   * An "analysis.getSignature" request specified an offset that could not be
-   * matched to a function call.
-   */
+  /// An "analysis.getSignature" request specified an offset that could not be
+  /// matched to a function call.
   static const RequestErrorCode GET_SIGNATURE_UNKNOWN_FUNCTION =
       RequestErrorCode._("GET_SIGNATURE_UNKNOWN_FUNCTION");
 
-  /**
-   * An "edit.importElements" request specified a FilePath that does not match
-   * a file currently subject to analysis.
-   */
+  /// An "edit.importElements" request specified a FilePath that does not match
+  /// a file currently subject to analysis.
   static const RequestErrorCode IMPORT_ELEMENTS_INVALID_FILE =
       RequestErrorCode._("IMPORT_ELEMENTS_INVALID_FILE");
 
-  /**
-   * A path passed as an argument to a request (such as analysis.reanalyze) is
-   * required to be an analysis root, but isn't.
-   */
+  /// A path passed as an argument to a request (such as analysis.reanalyze) is
+  /// required to be an analysis root, but isn't.
   static const RequestErrorCode INVALID_ANALYSIS_ROOT =
       RequestErrorCode._("INVALID_ANALYSIS_ROOT");
 
-  /**
-   * The context root used to create an execution context does not exist.
-   */
+  /// The context root used to create an execution context does not exist.
   static const RequestErrorCode INVALID_EXECUTION_CONTEXT =
       RequestErrorCode._("INVALID_EXECUTION_CONTEXT");
 
-  /**
-   * The format of the given file path is invalid, e.g. is not absolute and
-   * normalized.
-   */
+  /// The format of the given file path is invalid, e.g. is not absolute and
+  /// normalized.
   static const RequestErrorCode INVALID_FILE_PATH_FORMAT =
       RequestErrorCode._("INVALID_FILE_PATH_FORMAT");
 
-  /**
-   * An "analysis.updateContent" request contained a ChangeContentOverlay
-   * object which can't be applied, due to an edit having an offset or length
-   * that is out of range.
-   */
+  /// An "analysis.updateContent" request contained a ChangeContentOverlay
+  /// object which can't be applied, due to an edit having an offset or length
+  /// that is out of range.
   static const RequestErrorCode INVALID_OVERLAY_CHANGE =
       RequestErrorCode._("INVALID_OVERLAY_CHANGE");
 
-  /**
-   * One of the method parameters was invalid.
-   */
+  /// One of the method parameters was invalid.
   static const RequestErrorCode INVALID_PARAMETER =
       RequestErrorCode._("INVALID_PARAMETER");
 
-  /**
-   * A malformed request was received.
-   */
+  /// A malformed request was received.
   static const RequestErrorCode INVALID_REQUEST =
       RequestErrorCode._("INVALID_REQUEST");
 
-  /**
-   * An "edit.organizeDirectives" request specified a Dart file that cannot be
-   * analyzed. The reason is described in the message.
-   */
+  /// An "edit.organizeDirectives" request specified a Dart file that cannot be
+  /// analyzed. The reason is described in the message.
   static const RequestErrorCode ORGANIZE_DIRECTIVES_ERROR =
       RequestErrorCode._("ORGANIZE_DIRECTIVES_ERROR");
 
-  /**
-   * Another refactoring request was received during processing of this one.
-   */
+  /// Another refactoring request was received during processing of this one.
   static const RequestErrorCode REFACTORING_REQUEST_CANCELLED =
       RequestErrorCode._("REFACTORING_REQUEST_CANCELLED");
 
-  /**
-   * The analysis server has already been started (and hence won't accept new
-   * connections).
-   *
-   * This error is included for future expansion; at present the analysis
-   * server can only speak to one client at a time so this error will never
-   * occur.
-   */
+  /// The analysis server has already been started (and hence won't accept new
+  /// connections).
+  ///
+  /// This error is included for future expansion; at present the analysis
+  /// server can only speak to one client at a time so this error will never
+  /// occur.
   static const RequestErrorCode SERVER_ALREADY_STARTED =
       RequestErrorCode._("SERVER_ALREADY_STARTED");
 
-  /**
-   * An internal error occurred in the analysis server. Also see the
-   * server.error notification.
-   */
+  /// An internal error occurred in the analysis server. Also see the
+  /// server.error notification.
   static const RequestErrorCode SERVER_ERROR =
       RequestErrorCode._("SERVER_ERROR");
 
-  /**
-   * An "edit.sortMembers" request specified a FilePath which does not match a
-   * Dart file in an analysis root.
-   */
+  /// An "edit.sortMembers" request specified a FilePath which does not match a
+  /// Dart file in an analysis root.
   static const RequestErrorCode SORT_MEMBERS_INVALID_FILE =
       RequestErrorCode._("SORT_MEMBERS_INVALID_FILE");
 
-  /**
-   * An "edit.sortMembers" request specified a Dart file that has scan or parse
-   * errors.
-   */
+  /// An "edit.sortMembers" request specified a Dart file that has scan or
+  /// parse errors.
   static const RequestErrorCode SORT_MEMBERS_PARSE_ERRORS =
       RequestErrorCode._("SORT_MEMBERS_PARSE_ERRORS");
 
-  /**
-   * A dartfix request was received containing the name of a fix which does not
-   * match the name of any known fixes.
-   */
+  /// A dartfix request was received containing the name of a fix which does
+  /// not match the name of any known fixes.
   static const RequestErrorCode UNKNOWN_FIX = RequestErrorCode._("UNKNOWN_FIX");
 
-  /**
-   * A request was received which the analysis server does not recognize, or
-   * cannot handle in its current configuration.
-   */
+  /// A request was received which the analysis server does not recognize, or
+  /// cannot handle in its current configuration.
   static const RequestErrorCode UNKNOWN_REQUEST =
       RequestErrorCode._("UNKNOWN_REQUEST");
 
-  /**
-   * The analysis server was requested to perform an action which is not
-   * supported.
-   *
-   * This is a legacy error; it will be removed before the API reaches version
-   * 1.0.
-   */
+  /// The analysis server was requested to perform an action which is not
+  /// supported.
+  ///
+  /// This is a legacy error; it will be removed before the API reaches version
+  /// 1.0.
   static const RequestErrorCode UNSUPPORTED_FEATURE =
       RequestErrorCode._("UNSUPPORTED_FEATURE");
 
-  /**
-   * A list containing all of the enum values that are defined.
-   */
+  /// A list containing all of the enum values that are defined.
   static const List<RequestErrorCode> VALUES = <RequestErrorCode>[
     CONTENT_MODIFIED,
     DEBUG_PORT_COULD_NOT_BE_OPENED,
@@ -20153,17 +18296,15 @@ class RequestErrorCode implements Enum {
   String toJson() => name;
 }
 
-/**
- * RuntimeCompletionExpression
- *
- * {
- *   "offset": int
- *   "length": int
- *   "type": optional RuntimeCompletionExpressionType
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// RuntimeCompletionExpression
+///
+/// {
+///   "offset": int
+///   "length": int
+///   "type": optional RuntimeCompletionExpressionType
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class RuntimeCompletionExpression implements HasToJson {
   int _offset;
 
@@ -20171,44 +18312,32 @@ class RuntimeCompletionExpression implements HasToJson {
 
   RuntimeCompletionExpressionType _type;
 
-  /**
-   * The offset of the expression in the code for completion.
-   */
+  /// The offset of the expression in the code for completion.
   int get offset => _offset;
 
-  /**
-   * The offset of the expression in the code for completion.
-   */
+  /// The offset of the expression in the code for completion.
   void set offset(int value) {
     assert(value != null);
     this._offset = value;
   }
 
-  /**
-   * The length of the expression in the code for completion.
-   */
+  /// The length of the expression in the code for completion.
   int get length => _length;
 
-  /**
-   * The length of the expression in the code for completion.
-   */
+  /// The length of the expression in the code for completion.
   void set length(int value) {
     assert(value != null);
     this._length = value;
   }
 
-  /**
-   * When the expression is sent from the server to the client, the type is
-   * omitted. The client should fill the type when it sends the request to the
-   * server again.
-   */
+  /// When the expression is sent from the server to the client, the type is
+  /// omitted. The client should fill the type when it sends the request to the
+  /// server again.
   RuntimeCompletionExpressionType get type => _type;
 
-  /**
-   * When the expression is sent from the server to the client, the type is
-   * omitted. The client should fill the type when it sends the request to the
-   * server again.
-   */
+  /// When the expression is sent from the server to the client, the type is
+  /// omitted. The client should fill the type when it sends the request to the
+  /// server again.
   void set type(RuntimeCompletionExpressionType value) {
     this._type = value;
   }
@@ -20283,21 +18412,19 @@ class RuntimeCompletionExpression implements HasToJson {
   }
 }
 
-/**
- * RuntimeCompletionExpressionType
- *
- * {
- *   "libraryPath": optional FilePath
- *   "kind": RuntimeCompletionExpressionTypeKind
- *   "name": optional String
- *   "typeArguments": optional List<RuntimeCompletionExpressionType>
- *   "returnType": optional RuntimeCompletionExpressionType
- *   "parameterTypes": optional List<RuntimeCompletionExpressionType>
- *   "parameterNames": optional List<String>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// RuntimeCompletionExpressionType
+///
+/// {
+///   "libraryPath": optional FilePath
+///   "kind": RuntimeCompletionExpressionTypeKind
+///   "name": optional String
+///   "typeArguments": optional List<RuntimeCompletionExpressionType>
+///   "returnType": optional RuntimeCompletionExpressionType
+///   "parameterTypes": optional List<RuntimeCompletionExpressionType>
+///   "parameterNames": optional List<String>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class RuntimeCompletionExpressionType implements HasToJson {
   String _libraryPath;
 
@@ -20313,105 +18440,77 @@ class RuntimeCompletionExpressionType implements HasToJson {
 
   List<String> _parameterNames;
 
-  /**
-   * The path of the library that has this type. Omitted if the type is not
-   * declared in any library, e.g. "dynamic", or "void".
-   */
+  /// The path of the library that has this type. Omitted if the type is not
+  /// declared in any library, e.g. "dynamic", or "void".
   String get libraryPath => _libraryPath;
 
-  /**
-   * The path of the library that has this type. Omitted if the type is not
-   * declared in any library, e.g. "dynamic", or "void".
-   */
+  /// The path of the library that has this type. Omitted if the type is not
+  /// declared in any library, e.g. "dynamic", or "void".
   void set libraryPath(String value) {
     this._libraryPath = value;
   }
 
-  /**
-   * The kind of the type.
-   */
+  /// The kind of the type.
   RuntimeCompletionExpressionTypeKind get kind => _kind;
 
-  /**
-   * The kind of the type.
-   */
+  /// The kind of the type.
   void set kind(RuntimeCompletionExpressionTypeKind value) {
     assert(value != null);
     this._kind = value;
   }
 
-  /**
-   * The name of the type. Omitted if the type does not have a name, e.g. an
-   * inline function type.
-   */
+  /// The name of the type. Omitted if the type does not have a name, e.g. an
+  /// inline function type.
   String get name => _name;
 
-  /**
-   * The name of the type. Omitted if the type does not have a name, e.g. an
-   * inline function type.
-   */
+  /// The name of the type. Omitted if the type does not have a name, e.g. an
+  /// inline function type.
   void set name(String value) {
     this._name = value;
   }
 
-  /**
-   * The type arguments of the type. Omitted if the type does not have type
-   * parameters.
-   */
+  /// The type arguments of the type. Omitted if the type does not have type
+  /// parameters.
   List<RuntimeCompletionExpressionType> get typeArguments => _typeArguments;
 
-  /**
-   * The type arguments of the type. Omitted if the type does not have type
-   * parameters.
-   */
+  /// The type arguments of the type. Omitted if the type does not have type
+  /// parameters.
   void set typeArguments(List<RuntimeCompletionExpressionType> value) {
     this._typeArguments = value;
   }
 
-  /**
-   * If the type is a function type, the return type of the function. Omitted
-   * if the type is not a function type.
-   */
+  /// If the type is a function type, the return type of the function. Omitted
+  /// if the type is not a function type.
   RuntimeCompletionExpressionType get returnType => _returnType;
 
-  /**
-   * If the type is a function type, the return type of the function. Omitted
-   * if the type is not a function type.
-   */
+  /// If the type is a function type, the return type of the function. Omitted
+  /// if the type is not a function type.
   void set returnType(RuntimeCompletionExpressionType value) {
     this._returnType = value;
   }
 
-  /**
-   * If the type is a function type, the types of the function parameters of
-   * all kinds - required, optional positional, and optional named. Omitted if
-   * the type is not a function type.
-   */
+  /// If the type is a function type, the types of the function parameters of
+  /// all kinds - required, optional positional, and optional named. Omitted if
+  /// the type is not a function type.
   List<RuntimeCompletionExpressionType> get parameterTypes => _parameterTypes;
 
-  /**
-   * If the type is a function type, the types of the function parameters of
-   * all kinds - required, optional positional, and optional named. Omitted if
-   * the type is not a function type.
-   */
+  /// If the type is a function type, the types of the function parameters of
+  /// all kinds - required, optional positional, and optional named. Omitted if
+  /// the type is not a function type.
   void set parameterTypes(List<RuntimeCompletionExpressionType> value) {
     this._parameterTypes = value;
   }
 
-  /**
-   * If the type is a function type, the names of the function parameters of
-   * all kinds - required, optional positional, and optional named. The names
-   * of positional parameters are empty strings. Omitted if the type is not a
-   * function type.
-   */
+  /// If the type is a function type, the names of the function parameters of
+  /// all kinds - required, optional positional, and optional named. The names
+  /// of positional parameters are empty strings. Omitted if the type is not a
+  /// function type.
   List<String> get parameterNames => _parameterNames;
 
-  /**
-   * If the type is a function type, the names of the function parameters of
-   * all kinds - required, optional positional, and optional named. The names
-   * of positional parameters are empty strings. Omitted if the type is not a
-   * function type.
-   */
+  /// If the type is a function type, the names of the function parameters of
+  /// all kinds - required, optional positional, and optional named. The names
+  /// of positional parameters are empty strings. Omitted if the type is not a
+  /// function type.
   void set parameterNames(List<String> value) {
     this._parameterNames = value;
   }
@@ -20566,17 +18665,15 @@ class RuntimeCompletionExpressionType implements HasToJson {
   }
 }
 
-/**
- * RuntimeCompletionExpressionTypeKind
- *
- * enum {
- *   DYNAMIC
- *   FUNCTION
- *   INTERFACE
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// RuntimeCompletionExpressionTypeKind
+///
+/// enum {
+///   DYNAMIC
+///   FUNCTION
+///   INTERFACE
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class RuntimeCompletionExpressionTypeKind implements Enum {
   static const RuntimeCompletionExpressionTypeKind DYNAMIC =
       RuntimeCompletionExpressionTypeKind._("DYNAMIC");
@@ -20587,9 +18684,7 @@ class RuntimeCompletionExpressionTypeKind implements Enum {
   static const RuntimeCompletionExpressionTypeKind INTERFACE =
       RuntimeCompletionExpressionTypeKind._("INTERFACE");
 
-  /**
-   * A list containing all of the enum values that are defined.
-   */
+  /// A list containing all of the enum values that are defined.
   static const List<RuntimeCompletionExpressionTypeKind> VALUES =
       <RuntimeCompletionExpressionTypeKind>[DYNAMIC, FUNCTION, INTERFACE];
 
@@ -20629,46 +18724,36 @@ class RuntimeCompletionExpressionTypeKind implements Enum {
   String toJson() => name;
 }
 
-/**
- * RuntimeCompletionVariable
- *
- * {
- *   "name": String
- *   "type": RuntimeCompletionExpressionType
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// RuntimeCompletionVariable
+///
+/// {
+///   "name": String
+///   "type": RuntimeCompletionExpressionType
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class RuntimeCompletionVariable implements HasToJson {
   String _name;
 
   RuntimeCompletionExpressionType _type;
 
-  /**
-   * The name of the variable. The name "this" has a special meaning and is
-   * used as an implicit target for runtime completion, and in explicit "this"
-   * references.
-   */
+  /// The name of the variable. The name "this" has a special meaning and is
+  /// used as an implicit target for runtime completion, and in explicit "this"
+  /// references.
   String get name => _name;
 
-  /**
-   * The name of the variable. The name "this" has a special meaning and is
-   * used as an implicit target for runtime completion, and in explicit "this"
-   * references.
-   */
+  /// The name of the variable. The name "this" has a special meaning and is
+  /// used as an implicit target for runtime completion, and in explicit "this"
+  /// references.
   void set name(String value) {
     assert(value != null);
     this._name = value;
   }
 
-  /**
-   * The type of the variable.
-   */
+  /// The type of the variable.
   RuntimeCompletionExpressionType get type => _type;
 
-  /**
-   * The type of the variable.
-   */
+  /// The type of the variable.
   void set type(RuntimeCompletionExpressionType value) {
     assert(value != null);
     this._type = value;
@@ -20732,17 +18817,15 @@ class RuntimeCompletionVariable implements HasToJson {
   }
 }
 
-/**
- * search.findElementReferences params
- *
- * {
- *   "file": FilePath
- *   "offset": int
- *   "includePotential": bool
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// search.findElementReferences params
+///
+/// {
+///   "file": FilePath
+///   "offset": int
+///   "includePotential": bool
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class SearchFindElementReferencesParams implements RequestParams {
   String _file;
 
@@ -20750,44 +18833,32 @@ class SearchFindElementReferencesParams implements RequestParams {
 
   bool _includePotential;
 
-  /**
-   * The file containing the declaration of or reference to the element used to
-   * define the search.
-   */
+  /// The file containing the declaration of or reference to the element used
+  /// to define the search.
   String get file => _file;
 
-  /**
-   * The file containing the declaration of or reference to the element used to
-   * define the search.
-   */
+  /// The file containing the declaration of or reference to the element used
+  /// to define the search.
   void set file(String value) {
     assert(value != null);
     this._file = value;
   }
 
-  /**
-   * The offset within the file of the declaration of or reference to the
-   * element.
-   */
+  /// The offset within the file of the declaration of or reference to the
+  /// element.
   int get offset => _offset;
 
-  /**
-   * The offset within the file of the declaration of or reference to the
-   * element.
-   */
+  /// The offset within the file of the declaration of or reference to the
+  /// element.
   void set offset(int value) {
     assert(value != null);
     this._offset = value;
   }
 
-  /**
-   * True if potential matches are to be included in the results.
-   */
+  /// True if potential matches are to be included in the results.
   bool get includePotential => _includePotential;
 
-  /**
-   * True if potential matches are to be included in the results.
-   */
+  /// True if potential matches are to be included in the results.
   void set includePotential(bool value) {
     assert(value != null);
     this._includePotential = value;
@@ -20874,53 +18945,43 @@ class SearchFindElementReferencesParams implements RequestParams {
   }
 }
 
-/**
- * search.findElementReferences result
- *
- * {
- *   "id": optional SearchId
- *   "element": optional Element
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// search.findElementReferences result
+///
+/// {
+///   "id": optional SearchId
+///   "element": optional Element
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class SearchFindElementReferencesResult implements ResponseResult {
   String _id;
 
   Element _element;
 
-  /**
-   * The identifier used to associate results with this search request.
-   *
-   * If no element was found at the given location, this field will be absent,
-   * and no results will be reported via the search.results notification.
-   */
+  /// The identifier used to associate results with this search request.
+  ///
+  /// If no element was found at the given location, this field will be absent,
+  /// and no results will be reported via the search.results notification.
   String get id => _id;
 
-  /**
-   * The identifier used to associate results with this search request.
-   *
-   * If no element was found at the given location, this field will be absent,
-   * and no results will be reported via the search.results notification.
-   */
+  /// The identifier used to associate results with this search request.
+  ///
+  /// If no element was found at the given location, this field will be absent,
+  /// and no results will be reported via the search.results notification.
   void set id(String value) {
     this._id = value;
   }
 
-  /**
-   * The element referenced or defined at the given offset and whose references
-   * will be returned in the search results.
-   *
-   * If no element was found at the given location, this field will be absent.
-   */
+  /// The element referenced or defined at the given offset and whose
+  /// references will be returned in the search results.
+  ///
+  /// If no element was found at the given location, this field will be absent.
   Element get element => _element;
 
-  /**
-   * The element referenced or defined at the given offset and whose references
-   * will be returned in the search results.
-   *
-   * If no element was found at the given location, this field will be absent.
-   */
+  /// The element referenced or defined at the given offset and whose
+  /// references will be returned in the search results.
+  ///
+  /// If no element was found at the given location, this field will be absent.
   void set element(Element value) {
     this._element = value;
   }
@@ -20996,26 +19057,20 @@ class SearchFindElementReferencesResult implements ResponseResult {
   }
 }
 
-/**
- * search.findMemberDeclarations params
- *
- * {
- *   "name": String
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// search.findMemberDeclarations params
+///
+/// {
+///   "name": String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class SearchFindMemberDeclarationsParams implements RequestParams {
   String _name;
 
-  /**
-   * The name of the declarations to be found.
-   */
+  /// The name of the declarations to be found.
   String get name => _name;
 
-  /**
-   * The name of the declarations to be found.
-   */
+  /// The name of the declarations to be found.
   void set name(String value) {
     assert(value != null);
     this._name = value;
@@ -21080,26 +19135,20 @@ class SearchFindMemberDeclarationsParams implements RequestParams {
   }
 }
 
-/**
- * search.findMemberDeclarations result
- *
- * {
- *   "id": SearchId
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// search.findMemberDeclarations result
+///
+/// {
+///   "id": SearchId
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class SearchFindMemberDeclarationsResult implements ResponseResult {
   String _id;
 
-  /**
-   * The identifier used to associate results with this search request.
-   */
+  /// The identifier used to associate results with this search request.
   String get id => _id;
 
-  /**
-   * The identifier used to associate results with this search request.
-   */
+  /// The identifier used to associate results with this search request.
   void set id(String value) {
     assert(value != null);
     this._id = value;
@@ -21166,26 +19215,20 @@ class SearchFindMemberDeclarationsResult implements ResponseResult {
   }
 }
 
-/**
- * search.findMemberReferences params
- *
- * {
- *   "name": String
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// search.findMemberReferences params
+///
+/// {
+///   "name": String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class SearchFindMemberReferencesParams implements RequestParams {
   String _name;
 
-  /**
-   * The name of the references to be found.
-   */
+  /// The name of the references to be found.
   String get name => _name;
 
-  /**
-   * The name of the references to be found.
-   */
+  /// The name of the references to be found.
   void set name(String value) {
     assert(value != null);
     this._name = value;
@@ -21250,26 +19293,20 @@ class SearchFindMemberReferencesParams implements RequestParams {
   }
 }
 
-/**
- * search.findMemberReferences result
- *
- * {
- *   "id": SearchId
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// search.findMemberReferences result
+///
+/// {
+///   "id": SearchId
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class SearchFindMemberReferencesResult implements ResponseResult {
   String _id;
 
-  /**
-   * The identifier used to associate results with this search request.
-   */
+  /// The identifier used to associate results with this search request.
   String get id => _id;
 
-  /**
-   * The identifier used to associate results with this search request.
-   */
+  /// The identifier used to associate results with this search request.
   void set id(String value) {
     assert(value != null);
     this._id = value;
@@ -21336,28 +19373,22 @@ class SearchFindMemberReferencesResult implements ResponseResult {
   }
 }
 
-/**
- * search.findTopLevelDeclarations params
- *
- * {
- *   "pattern": String
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// search.findTopLevelDeclarations params
+///
+/// {
+///   "pattern": String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class SearchFindTopLevelDeclarationsParams implements RequestParams {
   String _pattern;
 
-  /**
-   * The regular expression used to match the names of the declarations to be
-   * found.
-   */
+  /// The regular expression used to match the names of the declarations to be
+  /// found.
   String get pattern => _pattern;
 
-  /**
-   * The regular expression used to match the names of the declarations to be
-   * found.
-   */
+  /// The regular expression used to match the names of the declarations to be
+  /// found.
   void set pattern(String value) {
     assert(value != null);
     this._pattern = value;
@@ -21423,26 +19454,20 @@ class SearchFindTopLevelDeclarationsParams implements RequestParams {
   }
 }
 
-/**
- * search.findTopLevelDeclarations result
- *
- * {
- *   "id": SearchId
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// search.findTopLevelDeclarations result
+///
+/// {
+///   "id": SearchId
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class SearchFindTopLevelDeclarationsResult implements ResponseResult {
   String _id;
 
-  /**
-   * The identifier used to associate results with this search request.
-   */
+  /// The identifier used to associate results with this search request.
   String get id => _id;
 
-  /**
-   * The identifier used to associate results with this search request.
-   */
+  /// The identifier used to associate results with this search request.
   void set id(String value) {
     assert(value != null);
     this._id = value;
@@ -21509,17 +19534,15 @@ class SearchFindTopLevelDeclarationsResult implements ResponseResult {
   }
 }
 
-/**
- * search.getElementDeclarations params
- *
- * {
- *   "file": optional FilePath
- *   "pattern": optional String
- *   "maxResults": optional int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// search.getElementDeclarations params
+///
+/// {
+///   "file": optional FilePath
+///   "pattern": optional String
+///   "maxResults": optional int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class SearchGetElementDeclarationsParams implements RequestParams {
   String _file;
 
@@ -21527,44 +19550,32 @@ class SearchGetElementDeclarationsParams implements RequestParams {
 
   int _maxResults;
 
-  /**
-   * If this field is provided, return only declarations in this file. If this
-   * field is missing, return declarations in all files.
-   */
+  /// If this field is provided, return only declarations in this file. If this
+  /// field is missing, return declarations in all files.
   String get file => _file;
 
-  /**
-   * If this field is provided, return only declarations in this file. If this
-   * field is missing, return declarations in all files.
-   */
+  /// If this field is provided, return only declarations in this file. If this
+  /// field is missing, return declarations in all files.
   void set file(String value) {
     this._file = value;
   }
 
-  /**
-   * The regular expression used to match the names of declarations. If this
-   * field is missing, return all declarations.
-   */
+  /// The regular expression used to match the names of declarations. If this
+  /// field is missing, return all declarations.
   String get pattern => _pattern;
 
-  /**
-   * The regular expression used to match the names of declarations. If this
-   * field is missing, return all declarations.
-   */
+  /// The regular expression used to match the names of declarations. If this
+  /// field is missing, return all declarations.
   void set pattern(String value) {
     this._pattern = value;
   }
 
-  /**
-   * The maximum number of declarations to return. If this field is missing,
-   * return all matching declarations.
-   */
+  /// The maximum number of declarations to return. If this field is missing,
+  /// return all matching declarations.
   int get maxResults => _maxResults;
 
-  /**
-   * The maximum number of declarations to return. If this field is missing,
-   * return all matching declarations.
-   */
+  /// The maximum number of declarations to return. If this field is missing,
+  /// return all matching declarations.
   void set maxResults(int value) {
     this._maxResults = value;
   }
@@ -21652,42 +19663,32 @@ class SearchGetElementDeclarationsParams implements RequestParams {
   }
 }
 
-/**
- * search.getElementDeclarations result
- *
- * {
- *   "declarations": List<ElementDeclaration>
- *   "files": List<FilePath>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// search.getElementDeclarations result
+///
+/// {
+///   "declarations": List<ElementDeclaration>
+///   "files": List<FilePath>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class SearchGetElementDeclarationsResult implements ResponseResult {
   List<ElementDeclaration> _declarations;
 
   List<String> _files;
 
-  /**
-   * The list of declarations.
-   */
+  /// The list of declarations.
   List<ElementDeclaration> get declarations => _declarations;
 
-  /**
-   * The list of declarations.
-   */
+  /// The list of declarations.
   void set declarations(List<ElementDeclaration> value) {
     assert(value != null);
     this._declarations = value;
   }
 
-  /**
-   * The list of the paths of files with declarations.
-   */
+  /// The list of the paths of files with declarations.
   List<String> get files => _files;
 
-  /**
-   * The list of the paths of files with declarations.
-   */
+  /// The list of the paths of files with declarations.
   void set files(List<String> value) {
     assert(value != null);
     this._files = value;
@@ -21772,17 +19773,15 @@ class SearchGetElementDeclarationsResult implements ResponseResult {
   }
 }
 
-/**
- * search.getTypeHierarchy params
- *
- * {
- *   "file": FilePath
- *   "offset": int
- *   "superOnly": optional bool
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// search.getTypeHierarchy params
+///
+/// {
+///   "file": FilePath
+///   "offset": int
+///   "superOnly": optional bool
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class SearchGetTypeHierarchyParams implements RequestParams {
   String _file;
 
@@ -21790,44 +19789,32 @@ class SearchGetTypeHierarchyParams implements RequestParams {
 
   bool _superOnly;
 
-  /**
-   * The file containing the declaration or reference to the type for which a
-   * hierarchy is being requested.
-   */
+  /// The file containing the declaration or reference to the type for which a
+  /// hierarchy is being requested.
   String get file => _file;
 
-  /**
-   * The file containing the declaration or reference to the type for which a
-   * hierarchy is being requested.
-   */
+  /// The file containing the declaration or reference to the type for which a
+  /// hierarchy is being requested.
   void set file(String value) {
     assert(value != null);
     this._file = value;
   }
 
-  /**
-   * The offset of the name of the type within the file.
-   */
+  /// The offset of the name of the type within the file.
   int get offset => _offset;
 
-  /**
-   * The offset of the name of the type within the file.
-   */
+  /// The offset of the name of the type within the file.
   void set offset(int value) {
     assert(value != null);
     this._offset = value;
   }
 
-  /**
-   * True if the client is only requesting superclasses and interfaces
-   * hierarchy.
-   */
+  /// True if the client is only requesting superclasses and interfaces
+  /// hierarchy.
   bool get superOnly => _superOnly;
 
-  /**
-   * True if the client is only requesting superclasses and interfaces
-   * hierarchy.
-   */
+  /// True if the client is only requesting superclasses and interfaces
+  /// hierarchy.
   void set superOnly(bool value) {
     this._superOnly = value;
   }
@@ -21912,42 +19899,36 @@ class SearchGetTypeHierarchyParams implements RequestParams {
   }
 }
 
-/**
- * search.getTypeHierarchy result
- *
- * {
- *   "hierarchyItems": optional List<TypeHierarchyItem>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// search.getTypeHierarchy result
+///
+/// {
+///   "hierarchyItems": optional List<TypeHierarchyItem>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class SearchGetTypeHierarchyResult implements ResponseResult {
   List<TypeHierarchyItem> _hierarchyItems;
 
-  /**
-   * A list of the types in the requested hierarchy. The first element of the
-   * list is the item representing the type for which the hierarchy was
-   * requested. The index of other elements of the list is unspecified, but
-   * correspond to the integers used to reference supertype and subtype items
-   * within the items.
-   *
-   * This field will be absent if the code at the given file and offset does
-   * not represent a type, or if the file has not been sufficiently analyzed to
-   * allow a type hierarchy to be produced.
-   */
+  /// A list of the types in the requested hierarchy. The first element of the
+  /// list is the item representing the type for which the hierarchy was
+  /// requested. The index of other elements of the list is unspecified, but
+  /// correspond to the integers used to reference supertype and subtype items
+  /// within the items.
+  ///
+  /// This field will be absent if the code at the given file and offset does
+  /// not represent a type, or if the file has not been sufficiently analyzed
+  /// to allow a type hierarchy to be produced.
   List<TypeHierarchyItem> get hierarchyItems => _hierarchyItems;
 
-  /**
-   * A list of the types in the requested hierarchy. The first element of the
-   * list is the item representing the type for which the hierarchy was
-   * requested. The index of other elements of the list is unspecified, but
-   * correspond to the integers used to reference supertype and subtype items
-   * within the items.
-   *
-   * This field will be absent if the code at the given file and offset does
-   * not represent a type, or if the file has not been sufficiently analyzed to
-   * allow a type hierarchy to be produced.
-   */
+  /// A list of the types in the requested hierarchy. The first element of the
+  /// list is the item representing the type for which the hierarchy was
+  /// requested. The index of other elements of the list is unspecified, but
+  /// correspond to the integers used to reference supertype and subtype items
+  /// within the items.
+  ///
+  /// This field will be absent if the code at the given file and offset does
+  /// not represent a type, or if the file has not been sufficiently analyzed
+  /// to allow a type hierarchy to be produced.
   void set hierarchyItems(List<TypeHierarchyItem> value) {
     this._hierarchyItems = value;
   }
@@ -22020,18 +20001,16 @@ class SearchGetTypeHierarchyResult implements ResponseResult {
   }
 }
 
-/**
- * SearchResult
- *
- * {
- *   "location": Location
- *   "kind": SearchResultKind
- *   "isPotential": bool
- *   "path": List<Element>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// SearchResult
+///
+/// {
+///   "location": Location
+///   "kind": SearchResultKind
+///   "isPotential": bool
+///   "path": List<Element>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class SearchResult implements HasToJson {
   Location _location;
 
@@ -22041,63 +20020,47 @@ class SearchResult implements HasToJson {
 
   List<Element> _path;
 
-  /**
-   * The location of the code that matched the search criteria.
-   */
+  /// The location of the code that matched the search criteria.
   Location get location => _location;
 
-  /**
-   * The location of the code that matched the search criteria.
-   */
+  /// The location of the code that matched the search criteria.
   void set location(Location value) {
     assert(value != null);
     this._location = value;
   }
 
-  /**
-   * The kind of element that was found or the kind of reference that was
-   * found.
-   */
+  /// The kind of element that was found or the kind of reference that was
+  /// found.
   SearchResultKind get kind => _kind;
 
-  /**
-   * The kind of element that was found or the kind of reference that was
-   * found.
-   */
+  /// The kind of element that was found or the kind of reference that was
+  /// found.
   void set kind(SearchResultKind value) {
     assert(value != null);
     this._kind = value;
   }
 
-  /**
-   * True if the result is a potential match but cannot be confirmed to be a
-   * match. For example, if all references to a method m defined in some class
-   * were requested, and a reference to a method m from an unknown class were
-   * found, it would be marked as being a potential match.
-   */
+  /// True if the result is a potential match but cannot be confirmed to be a
+  /// match. For example, if all references to a method m defined in some class
+  /// were requested, and a reference to a method m from an unknown class were
+  /// found, it would be marked as being a potential match.
   bool get isPotential => _isPotential;
 
-  /**
-   * True if the result is a potential match but cannot be confirmed to be a
-   * match. For example, if all references to a method m defined in some class
-   * were requested, and a reference to a method m from an unknown class were
-   * found, it would be marked as being a potential match.
-   */
+  /// True if the result is a potential match but cannot be confirmed to be a
+  /// match. For example, if all references to a method m defined in some class
+  /// were requested, and a reference to a method m from an unknown class were
+  /// found, it would be marked as being a potential match.
   void set isPotential(bool value) {
     assert(value != null);
     this._isPotential = value;
   }
 
-  /**
-   * The elements that contain the result, starting with the most immediately
-   * enclosing ancestor and ending with the library.
-   */
+  /// The elements that contain the result, starting with the most immediately
+  /// enclosing ancestor and ending with the library.
   List<Element> get path => _path;
 
-  /**
-   * The elements that contain the result, starting with the most immediately
-   * enclosing ancestor and ending with the library.
-   */
+  /// The elements that contain the result, starting with the most immediately
+  /// enclosing ancestor and ending with the library.
   void set path(List<Element> value) {
     assert(value != null);
     this._path = value;
@@ -22189,61 +20152,43 @@ class SearchResult implements HasToJson {
   }
 }
 
-/**
- * SearchResultKind
- *
- * enum {
- *   DECLARATION
- *   INVOCATION
- *   READ
- *   READ_WRITE
- *   REFERENCE
- *   UNKNOWN
- *   WRITE
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// SearchResultKind
+///
+/// enum {
+///   DECLARATION
+///   INVOCATION
+///   READ
+///   READ_WRITE
+///   REFERENCE
+///   UNKNOWN
+///   WRITE
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class SearchResultKind implements Enum {
-  /**
-   * The declaration of an element.
-   */
+  /// The declaration of an element.
   static const SearchResultKind DECLARATION = SearchResultKind._("DECLARATION");
 
-  /**
-   * The invocation of a function or method.
-   */
+  /// The invocation of a function or method.
   static const SearchResultKind INVOCATION = SearchResultKind._("INVOCATION");
 
-  /**
-   * A reference to a field, parameter or variable where it is being read.
-   */
+  /// A reference to a field, parameter or variable where it is being read.
   static const SearchResultKind READ = SearchResultKind._("READ");
 
-  /**
-   * A reference to a field, parameter or variable where it is being read and
-   * written.
-   */
+  /// A reference to a field, parameter or variable where it is being read and
+  /// written.
   static const SearchResultKind READ_WRITE = SearchResultKind._("READ_WRITE");
 
-  /**
-   * A reference to an element.
-   */
+  /// A reference to an element.
   static const SearchResultKind REFERENCE = SearchResultKind._("REFERENCE");
 
-  /**
-   * Some other kind of search result.
-   */
+  /// Some other kind of search result.
   static const SearchResultKind UNKNOWN = SearchResultKind._("UNKNOWN");
 
-  /**
-   * A reference to a field, parameter or variable where it is being written.
-   */
+  /// A reference to a field, parameter or variable where it is being written.
   static const SearchResultKind WRITE = SearchResultKind._("WRITE");
 
-  /**
-   * A list containing all of the enum values that are defined.
-   */
+  /// A list containing all of the enum values that are defined.
   static const List<SearchResultKind> VALUES = <SearchResultKind>[
     DECLARATION,
     INVOCATION,
@@ -22297,17 +20242,15 @@ class SearchResultKind implements Enum {
   String toJson() => name;
 }
 
-/**
- * search.results params
- *
- * {
- *   "id": SearchId
- *   "results": List<SearchResult>
- *   "isLast": bool
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// search.results params
+///
+/// {
+///   "id": SearchId
+///   "results": List<SearchResult>
+///   "isLast": bool
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class SearchResultsParams implements HasToJson {
   String _id;
 
@@ -22315,42 +20258,30 @@ class SearchResultsParams implements HasToJson {
 
   bool _isLast;
 
-  /**
-   * The id associated with the search.
-   */
+  /// The id associated with the search.
   String get id => _id;
 
-  /**
-   * The id associated with the search.
-   */
+  /// The id associated with the search.
   void set id(String value) {
     assert(value != null);
     this._id = value;
   }
 
-  /**
-   * The search results being reported.
-   */
+  /// The search results being reported.
   List<SearchResult> get results => _results;
 
-  /**
-   * The search results being reported.
-   */
+  /// The search results being reported.
   void set results(List<SearchResult> value) {
     assert(value != null);
     this._results = value;
   }
 
-  /**
-   * True if this is that last set of results that will be returned for the
-   * indicated search.
-   */
+  /// True if this is that last set of results that will be returned for the
+  /// indicated search.
   bool get isLast => _isLast;
 
-  /**
-   * True if this is that last set of results that will be returned for the
-   * indicated search.
-   */
+  /// True if this is that last set of results that will be returned for the
+  /// indicated search.
   void set isLast(bool value) {
     assert(value != null);
     this._isLast = value;
@@ -22439,42 +20370,32 @@ class SearchResultsParams implements HasToJson {
   }
 }
 
-/**
- * server.connected params
- *
- * {
- *   "version": String
- *   "pid": int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// server.connected params
+///
+/// {
+///   "version": String
+///   "pid": int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ServerConnectedParams implements HasToJson {
   String _version;
 
   int _pid;
 
-  /**
-   * The version number of the analysis server.
-   */
+  /// The version number of the analysis server.
   String get version => _version;
 
-  /**
-   * The version number of the analysis server.
-   */
+  /// The version number of the analysis server.
   void set version(String value) {
     assert(value != null);
     this._version = value;
   }
 
-  /**
-   * The process id of the analysis server process.
-   */
+  /// The process id of the analysis server process.
   int get pid => _pid;
 
-  /**
-   * The process id of the analysis server process.
-   */
+  /// The process id of the analysis server process.
   void set pid(int value) {
     assert(value != null);
     this._pid = value;
@@ -22547,17 +20468,15 @@ class ServerConnectedParams implements HasToJson {
   }
 }
 
-/**
- * server.error params
- *
- * {
- *   "isFatal": bool
- *   "message": String
- *   "stackTrace": String
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// server.error params
+///
+/// {
+///   "isFatal": bool
+///   "message": String
+///   "stackTrace": String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ServerErrorParams implements HasToJson {
   bool _isFatal;
 
@@ -22565,44 +20484,32 @@ class ServerErrorParams implements HasToJson {
 
   String _stackTrace;
 
-  /**
-   * True if the error is a fatal error, meaning that the server will shutdown
-   * automatically after sending this notification.
-   */
+  /// True if the error is a fatal error, meaning that the server will shutdown
+  /// automatically after sending this notification.
   bool get isFatal => _isFatal;
 
-  /**
-   * True if the error is a fatal error, meaning that the server will shutdown
-   * automatically after sending this notification.
-   */
+  /// True if the error is a fatal error, meaning that the server will shutdown
+  /// automatically after sending this notification.
   void set isFatal(bool value) {
     assert(value != null);
     this._isFatal = value;
   }
 
-  /**
-   * The error message indicating what kind of error was encountered.
-   */
+  /// The error message indicating what kind of error was encountered.
   String get message => _message;
 
-  /**
-   * The error message indicating what kind of error was encountered.
-   */
+  /// The error message indicating what kind of error was encountered.
   void set message(String value) {
     assert(value != null);
     this._message = value;
   }
 
-  /**
-   * The stack trace associated with the generation of the error, used for
-   * debugging the server.
-   */
+  /// The stack trace associated with the generation of the error, used for
+  /// debugging the server.
   String get stackTrace => _stackTrace;
 
-  /**
-   * The stack trace associated with the generation of the error, used for
-   * debugging the server.
-   */
+  /// The stack trace associated with the generation of the error, used for
+  /// debugging the server.
   void set stackTrace(String value) {
     assert(value != null);
     this._stackTrace = value;
@@ -22688,11 +20595,9 @@ class ServerErrorParams implements HasToJson {
   }
 }
 
-/**
- * server.getVersion params
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// server.getVersion params
+///
+/// Clients may not extend, implement or mix-in this class.
 class ServerGetVersionParams implements RequestParams {
   @override
   Map<String, dynamic> toJson() => <String, dynamic>{};
@@ -22716,26 +20621,20 @@ class ServerGetVersionParams implements RequestParams {
   }
 }
 
-/**
- * server.getVersion result
- *
- * {
- *   "version": String
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// server.getVersion result
+///
+/// {
+///   "version": String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ServerGetVersionResult implements ResponseResult {
   String _version;
 
-  /**
-   * The version number of the analysis server.
-   */
+  /// The version number of the analysis server.
   String get version => _version;
 
-  /**
-   * The version number of the analysis server.
-   */
+  /// The version number of the analysis server.
   void set version(String value) {
     assert(value != null);
     this._version = value;
@@ -22802,17 +20701,15 @@ class ServerGetVersionResult implements ResponseResult {
   }
 }
 
-/**
- * ServerLogEntry
- *
- * {
- *   "time": int
- *   "kind": ServerLogEntryKind
- *   "data": String
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// ServerLogEntry
+///
+/// {
+///   "time": int
+///   "kind": ServerLogEntryKind
+///   "data": String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ServerLogEntry implements HasToJson {
   int _time;
 
@@ -22820,46 +20717,34 @@ class ServerLogEntry implements HasToJson {
 
   String _data;
 
-  /**
-   * The time (milliseconds since epoch) at which the server created this log
-   * entry.
-   */
+  /// The time (milliseconds since epoch) at which the server created this log
+  /// entry.
   int get time => _time;
 
-  /**
-   * The time (milliseconds since epoch) at which the server created this log
-   * entry.
-   */
+  /// The time (milliseconds since epoch) at which the server created this log
+  /// entry.
   void set time(int value) {
     assert(value != null);
     this._time = value;
   }
 
-  /**
-   * The kind of the entry, used to determine how to interpret the "data"
-   * field.
-   */
+  /// The kind of the entry, used to determine how to interpret the "data"
+  /// field.
   ServerLogEntryKind get kind => _kind;
 
-  /**
-   * The kind of the entry, used to determine how to interpret the "data"
-   * field.
-   */
+  /// The kind of the entry, used to determine how to interpret the "data"
+  /// field.
   void set kind(ServerLogEntryKind value) {
     assert(value != null);
     this._kind = value;
   }
 
-  /**
-   * The payload of the entry, the actual format is determined by the "kind"
-   * field.
-   */
+  /// The payload of the entry, the actual format is determined by the "kind"
+  /// field.
   String get data => _data;
 
-  /**
-   * The payload of the entry, the actual format is determined by the "kind"
-   * field.
-   */
+  /// The payload of the entry, the actual format is determined by the "kind"
+  /// field.
   void set data(String value) {
     assert(value != null);
     this._data = value;
@@ -22932,59 +20817,49 @@ class ServerLogEntry implements HasToJson {
   }
 }
 
-/**
- * ServerLogEntryKind
- *
- * enum {
- *   NOTIFICATION
- *   RAW
- *   REQUEST
- *   RESPONSE
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// ServerLogEntryKind
+///
+/// enum {
+///   NOTIFICATION
+///   RAW
+///   REQUEST
+///   RESPONSE
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ServerLogEntryKind implements Enum {
-  /**
-   * A notification from the server, such as "analysis.highlights". The "data"
-   * field contains a JSON object with abbreviated notification.
-   */
+  /// A notification from the server, such as "analysis.highlights". The "data"
+  /// field contains a JSON object with abbreviated notification.
   static const ServerLogEntryKind NOTIFICATION =
       ServerLogEntryKind._("NOTIFICATION");
 
-  /**
-   * Arbitrary string, describing some event that happened in the server, e.g.
-   * starting a file analysis, and details which files were accessed. These
-   * entries are not structured, but provide context information about requests
-   * and notification, and can be related by "time" for further manual
-   * analysis.
-   */
+  /// Arbitrary string, describing some event that happened in the server, e.g.
+  /// starting a file analysis, and details which files were accessed. These
+  /// entries are not structured, but provide context information about
+  /// requests and notification, and can be related by "time" for further
+  /// manual analysis.
   static const ServerLogEntryKind RAW = ServerLogEntryKind._("RAW");
 
-  /**
-   * A request from the client, as the server views it, e.g. "edit.getAssists".
-   * The "data" field contains a JSON object with abbreviated request.
-   */
+  /// A request from the client, as the server views it, e.g.
+  /// "edit.getAssists". The "data" field contains a JSON object with
+  /// abbreviated request.
   static const ServerLogEntryKind REQUEST = ServerLogEntryKind._("REQUEST");
 
-  /**
-   * Various counters and measurements related to execution of a request. The
-   * "data" field contains a JSON object with following fields:
-   *
-   * - "id" - the id of the request - copied from the request.
-   * - "method" - the method of the request, e.g. "edit.getAssists".
-   * - "clientRequestTime" - the time (milliseconds since epoch) at which the
-   *   client made the request - copied from the request.
-   * - "serverRequestTime" - the time (milliseconds since epoch) at which the
-   *   server received and decoded the JSON request.
-   * - "responseTime" - the time (milliseconds since epoch) at which the server
-   *   created the response to be encoded into JSON and sent to the client.
-   */
+  /// Various counters and measurements related to execution of a request. The
+  /// "data" field contains a JSON object with following fields:
+  ///
+  /// - "id" - the id of the request - copied from the request.
+  /// - "method" - the method of the request, e.g. "edit.getAssists".
+  /// - "clientRequestTime" - the time (milliseconds since epoch) at which the
+  ///   client made the request - copied from the request.
+  /// - "serverRequestTime" - the time (milliseconds since epoch) at which the
+  ///   server received and decoded the JSON request.
+  /// - "responseTime" - the time (milliseconds since epoch) at which the
+  ///   server created the response to be encoded into JSON and sent to the
+  ///   client.
   static const ServerLogEntryKind RESPONSE = ServerLogEntryKind._("RESPONSE");
 
-  /**
-   * A list containing all of the enum values that are defined.
-   */
+  /// A list containing all of the enum values that are defined.
   static const List<ServerLogEntryKind> VALUES = <ServerLogEntryKind>[
     NOTIFICATION,
     RAW,
@@ -23029,15 +20904,13 @@ class ServerLogEntryKind implements Enum {
   String toJson() => name;
 }
 
-/**
- * server.log params
- *
- * {
- *   "entry": ServerLogEntry
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// server.log params
+///
+/// {
+///   "entry": ServerLogEntry
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ServerLogParams implements HasToJson {
   ServerLogEntry _entry;
 
@@ -23106,24 +20979,20 @@ class ServerLogParams implements HasToJson {
   }
 }
 
-/**
- * ServerService
- *
- * enum {
- *   LOG
- *   STATUS
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// ServerService
+///
+/// enum {
+///   LOG
+///   STATUS
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ServerService implements Enum {
   static const ServerService LOG = ServerService._("LOG");
 
   static const ServerService STATUS = ServerService._("STATUS");
 
-  /**
-   * A list containing all of the enum values that are defined.
-   */
+  /// A list containing all of the enum values that are defined.
   static const List<ServerService> VALUES = <ServerService>[LOG, STATUS];
 
   @override
@@ -23159,26 +21028,20 @@ class ServerService implements Enum {
   String toJson() => name;
 }
 
-/**
- * server.setSubscriptions params
- *
- * {
- *   "subscriptions": List<ServerService>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// server.setSubscriptions params
+///
+/// {
+///   "subscriptions": List<ServerService>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ServerSetSubscriptionsParams implements RequestParams {
   List<ServerService> _subscriptions;
 
-  /**
-   * A list of the services being subscribed to.
-   */
+  /// A list of the services being subscribed to.
   List<ServerService> get subscriptions => _subscriptions;
 
-  /**
-   * A list of the services being subscribed to.
-   */
+  /// A list of the services being subscribed to.
   void set subscriptions(List<ServerService> value) {
     assert(value != null);
     this._subscriptions = value;
@@ -23249,11 +21112,9 @@ class ServerSetSubscriptionsParams implements RequestParams {
   }
 }
 
-/**
- * server.setSubscriptions result
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// server.setSubscriptions result
+///
+/// Clients may not extend, implement or mix-in this class.
 class ServerSetSubscriptionsResult implements ResponseResult {
   @override
   Map<String, dynamic> toJson() => <String, dynamic>{};
@@ -23277,11 +21138,9 @@ class ServerSetSubscriptionsResult implements ResponseResult {
   }
 }
 
-/**
- * server.shutdown params
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// server.shutdown params
+///
+/// Clients may not extend, implement or mix-in this class.
 class ServerShutdownParams implements RequestParams {
   @override
   Map<String, dynamic> toJson() => <String, dynamic>{};
@@ -23305,11 +21164,9 @@ class ServerShutdownParams implements RequestParams {
   }
 }
 
-/**
- * server.shutdown result
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// server.shutdown result
+///
+/// Clients may not extend, implement or mix-in this class.
 class ServerShutdownResult implements ResponseResult {
   @override
   Map<String, dynamic> toJson() => <String, dynamic>{};
@@ -23333,49 +21190,41 @@ class ServerShutdownResult implements ResponseResult {
   }
 }
 
-/**
- * server.status params
- *
- * {
- *   "analysis": optional AnalysisStatus
- *   "pub": optional PubStatus
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// server.status params
+///
+/// {
+///   "analysis": optional AnalysisStatus
+///   "pub": optional PubStatus
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ServerStatusParams implements HasToJson {
   AnalysisStatus _analysis;
 
   PubStatus _pub;
 
-  /**
-   * The current status of analysis, including whether analysis is being
-   * performed and if so what is being analyzed.
-   */
+  /// The current status of analysis, including whether analysis is being
+  /// performed and if so what is being analyzed.
   AnalysisStatus get analysis => _analysis;
 
-  /**
-   * The current status of analysis, including whether analysis is being
-   * performed and if so what is being analyzed.
-   */
+  /// The current status of analysis, including whether analysis is being
+  /// performed and if so what is being analyzed.
   void set analysis(AnalysisStatus value) {
     this._analysis = value;
   }
 
-  /**
-   * The current status of pub execution, indicating whether we are currently
-   * running pub.
-   *
-   * Note: this status type is deprecated, and is no longer sent by the server.
-   */
+  /// The current status of pub execution, indicating whether we are currently
+  /// running pub.
+  ///
+  /// Note: this status type is deprecated, and is no longer sent by the
+  /// server.
   PubStatus get pub => _pub;
 
-  /**
-   * The current status of pub execution, indicating whether we are currently
-   * running pub.
-   *
-   * Note: this status type is deprecated, and is no longer sent by the server.
-   */
+  /// The current status of pub execution, indicating whether we are currently
+  /// running pub.
+  ///
+  /// Note: this status type is deprecated, and is no longer sent by the
+  /// server.
   void set pub(PubStatus value) {
     this._pub = value;
   }
@@ -23447,18 +21296,16 @@ class ServerStatusParams implements HasToJson {
   }
 }
 
-/**
- * TokenDetails
- *
- * {
- *   "lexeme": String
- *   "type": optional String
- *   "validElementKinds": optional List<String>
- *   "offset": int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// TokenDetails
+///
+/// {
+///   "lexeme": String
+///   "type": optional String
+///   "validElementKinds": optional List<String>
+///   "offset": int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class TokenDetails implements HasToJson {
   String _lexeme;
 
@@ -23468,61 +21315,45 @@ class TokenDetails implements HasToJson {
 
   int _offset;
 
-  /**
-   * The token's lexeme.
-   */
+  /// The token's lexeme.
   String get lexeme => _lexeme;
 
-  /**
-   * The token's lexeme.
-   */
+  /// The token's lexeme.
   void set lexeme(String value) {
     assert(value != null);
     this._lexeme = value;
   }
 
-  /**
-   * A unique id for the type of the identifier. Omitted if the token is not an
-   * identifier in a reference position.
-   */
+  /// A unique id for the type of the identifier. Omitted if the token is not
+  /// an identifier in a reference position.
   String get type => _type;
 
-  /**
-   * A unique id for the type of the identifier. Omitted if the token is not an
-   * identifier in a reference position.
-   */
+  /// A unique id for the type of the identifier. Omitted if the token is not
+  /// an identifier in a reference position.
   void set type(String value) {
     this._type = value;
   }
 
-  /**
-   * An indication of whether this token is in a declaration or reference
-   * position. (If no other purpose is found for this field then it should be
-   * renamed and converted to a boolean value.) Omitted if the token is not an
-   * identifier.
-   */
+  /// An indication of whether this token is in a declaration or reference
+  /// position. (If no other purpose is found for this field then it should be
+  /// renamed and converted to a boolean value.) Omitted if the token is not an
+  /// identifier.
   List<String> get validElementKinds => _validElementKinds;
 
-  /**
-   * An indication of whether this token is in a declaration or reference
-   * position. (If no other purpose is found for this field then it should be
-   * renamed and converted to a boolean value.) Omitted if the token is not an
-   * identifier.
-   */
+  /// An indication of whether this token is in a declaration or reference
+  /// position. (If no other purpose is found for this field then it should be
+  /// renamed and converted to a boolean value.) Omitted if the token is not an
+  /// identifier.
   void set validElementKinds(List<String> value) {
     this._validElementKinds = value;
   }
 
-  /**
-   * The offset of the first character of the token in the file which it
-   * originated from.
-   */
+  /// The offset of the first character of the token in the file which it
+  /// originated from.
   int get offset => _offset;
 
-  /**
-   * The offset of the first character of the token in the file which it
-   * originated from.
-   */
+  /// The offset of the first character of the token in the file which it
+  /// originated from.
   void set offset(int value) {
     assert(value != null);
     this._offset = value;
@@ -23612,21 +21443,19 @@ class TokenDetails implements HasToJson {
   }
 }
 
-/**
- * TypeHierarchyItem
- *
- * {
- *   "classElement": Element
- *   "displayName": optional String
- *   "memberElement": optional Element
- *   "superclass": optional int
- *   "interfaces": List<int>
- *   "mixins": List<int>
- *   "subclasses": List<int>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// TypeHierarchyItem
+///
+/// {
+///   "classElement": Element
+///   "displayName": optional String
+///   "memberElement": optional Element
+///   "superclass": optional int
+///   "interfaces": List<int>
+///   "mixins": List<int>
+///   "subclasses": List<int>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class TypeHierarchyItem implements HasToJson {
   Element _classElement;
 
@@ -23642,111 +21471,85 @@ class TypeHierarchyItem implements HasToJson {
 
   List<int> _subclasses;
 
-  /**
-   * The class element represented by this item.
-   */
+  /// The class element represented by this item.
   Element get classElement => _classElement;
 
-  /**
-   * The class element represented by this item.
-   */
+  /// The class element represented by this item.
   void set classElement(Element value) {
     assert(value != null);
     this._classElement = value;
   }
 
-  /**
-   * The name to be displayed for the class. This field will be omitted if the
-   * display name is the same as the name of the element. The display name is
-   * different if there is additional type information to be displayed, such as
-   * type arguments.
-   */
+  /// The name to be displayed for the class. This field will be omitted if the
+  /// display name is the same as the name of the element. The display name is
+  /// different if there is additional type information to be displayed, such
+  /// as type arguments.
   String get displayName => _displayName;
 
-  /**
-   * The name to be displayed for the class. This field will be omitted if the
-   * display name is the same as the name of the element. The display name is
-   * different if there is additional type information to be displayed, such as
-   * type arguments.
-   */
+  /// The name to be displayed for the class. This field will be omitted if the
+  /// display name is the same as the name of the element. The display name is
+  /// different if there is additional type information to be displayed, such
+  /// as type arguments.
   void set displayName(String value) {
     this._displayName = value;
   }
 
-  /**
-   * The member in the class corresponding to the member on which the hierarchy
-   * was requested. This field will be omitted if the hierarchy was not
-   * requested for a member or if the class does not have a corresponding
-   * member.
-   */
+  /// The member in the class corresponding to the member on which the
+  /// hierarchy was requested. This field will be omitted if the hierarchy was
+  /// not requested for a member or if the class does not have a corresponding
+  /// member.
   Element get memberElement => _memberElement;
 
-  /**
-   * The member in the class corresponding to the member on which the hierarchy
-   * was requested. This field will be omitted if the hierarchy was not
-   * requested for a member or if the class does not have a corresponding
-   * member.
-   */
+  /// The member in the class corresponding to the member on which the
+  /// hierarchy was requested. This field will be omitted if the hierarchy was
+  /// not requested for a member or if the class does not have a corresponding
+  /// member.
   void set memberElement(Element value) {
     this._memberElement = value;
   }
 
-  /**
-   * The index of the item representing the superclass of this class. This
-   * field will be omitted if this item represents the class Object.
-   */
+  /// The index of the item representing the superclass of this class. This
+  /// field will be omitted if this item represents the class Object.
   int get superclass => _superclass;
 
-  /**
-   * The index of the item representing the superclass of this class. This
-   * field will be omitted if this item represents the class Object.
-   */
+  /// The index of the item representing the superclass of this class. This
+  /// field will be omitted if this item represents the class Object.
   void set superclass(int value) {
     this._superclass = value;
   }
 
-  /**
-   * The indexes of the items representing the interfaces implemented by this
-   * class. The list will be empty if there are no implemented interfaces.
-   */
+  /// The indexes of the items representing the interfaces implemented by this
+  /// class. The list will be empty if there are no implemented interfaces.
   List<int> get interfaces => _interfaces;
 
-  /**
-   * The indexes of the items representing the interfaces implemented by this
-   * class. The list will be empty if there are no implemented interfaces.
-   */
+  /// The indexes of the items representing the interfaces implemented by this
+  /// class. The list will be empty if there are no implemented interfaces.
   void set interfaces(List<int> value) {
     assert(value != null);
     this._interfaces = value;
   }
 
-  /**
-   * The indexes of the items representing the mixins referenced by this class.
-   * The list will be empty if there are no classes mixed in to this class.
-   */
+  /// The indexes of the items representing the mixins referenced by this
+  /// class. The list will be empty if there are no classes mixed in to this
+  /// class.
   List<int> get mixins => _mixins;
 
-  /**
-   * The indexes of the items representing the mixins referenced by this class.
-   * The list will be empty if there are no classes mixed in to this class.
-   */
+  /// The indexes of the items representing the mixins referenced by this
+  /// class. The list will be empty if there are no classes mixed in to this
+  /// class.
   void set mixins(List<int> value) {
     assert(value != null);
     this._mixins = value;
   }
 
-  /**
-   * The indexes of the items representing the subtypes of this class. The list
-   * will be empty if there are no subtypes or if this item represents a
-   * supertype of the pivot type.
-   */
+  /// The indexes of the items representing the subtypes of this class. The
+  /// list will be empty if there are no subtypes or if this item represents a
+  /// supertype of the pivot type.
   List<int> get subclasses => _subclasses;
 
-  /**
-   * The indexes of the items representing the subtypes of this class. The list
-   * will be empty if there are no subtypes or if this item represents a
-   * supertype of the pivot type.
-   */
+  /// The indexes of the items representing the subtypes of this class. The
+  /// list will be empty if there are no subtypes or if this item represents a
+  /// supertype of the pivot type.
   void set subclasses(List<int> value) {
     assert(value != null);
     this._subclasses = value;

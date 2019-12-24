@@ -13,42 +13,32 @@ import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
-/**
- * AnalysisErrorFixes
- *
- * {
- *   "error": AnalysisError
- *   "fixes": List<PrioritizedSourceChange>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// AnalysisErrorFixes
+///
+/// {
+///   "error": AnalysisError
+///   "fixes": List<PrioritizedSourceChange>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisErrorFixes implements HasToJson {
   AnalysisError _error;
 
   List<PrioritizedSourceChange> _fixes;
 
-  /**
-   * The error with which the fixes are associated.
-   */
+  /// The error with which the fixes are associated.
   AnalysisError get error => _error;
 
-  /**
-   * The error with which the fixes are associated.
-   */
+  /// The error with which the fixes are associated.
   set error(AnalysisError value) {
     assert(value != null);
     this._error = value;
   }
 
-  /**
-   * The fixes associated with the error.
-   */
+  /// The fixes associated with the error.
   List<PrioritizedSourceChange> get fixes => _fixes;
 
-  /**
-   * The fixes associated with the error.
-   */
+  /// The fixes associated with the error.
   set fixes(List<PrioritizedSourceChange> value) {
     assert(value != null);
     this._fixes = value;
@@ -124,42 +114,32 @@ class AnalysisErrorFixes implements HasToJson {
   }
 }
 
-/**
- * analysis.errors params
- *
- * {
- *   "file": FilePath
- *   "errors": List<AnalysisError>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.errors params
+///
+/// {
+///   "file": FilePath
+///   "errors": List<AnalysisError>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisErrorsParams implements HasToJson {
   String _file;
 
   List<AnalysisError> _errors;
 
-  /**
-   * The file containing the errors.
-   */
+  /// The file containing the errors.
   String get file => _file;
 
-  /**
-   * The file containing the errors.
-   */
+  /// The file containing the errors.
   set file(String value) {
     assert(value != null);
     this._file = value;
   }
 
-  /**
-   * The errors contained in the file.
-   */
+  /// The errors contained in the file.
   List<AnalysisError> get errors => _errors;
 
-  /**
-   * The errors contained in the file.
-   */
+  /// The errors contained in the file.
   set errors(List<AnalysisError> value) {
     assert(value != null);
     this._errors = value;
@@ -238,42 +218,32 @@ class AnalysisErrorsParams implements HasToJson {
   }
 }
 
-/**
- * analysis.folding params
- *
- * {
- *   "file": FilePath
- *   "regions": List<FoldingRegion>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.folding params
+///
+/// {
+///   "file": FilePath
+///   "regions": List<FoldingRegion>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisFoldingParams implements HasToJson {
   String _file;
 
   List<FoldingRegion> _regions;
 
-  /**
-   * The file containing the folding regions.
-   */
+  /// The file containing the folding regions.
   String get file => _file;
 
-  /**
-   * The file containing the folding regions.
-   */
+  /// The file containing the folding regions.
   set file(String value) {
     assert(value != null);
     this._file = value;
   }
 
-  /**
-   * The folding regions contained in the file.
-   */
+  /// The folding regions contained in the file.
   List<FoldingRegion> get regions => _regions;
 
-  /**
-   * The folding regions contained in the file.
-   */
+  /// The folding regions contained in the file.
   set regions(List<FoldingRegion> value) {
     assert(value != null);
     this._regions = value;
@@ -352,17 +322,15 @@ class AnalysisFoldingParams implements HasToJson {
   }
 }
 
-/**
- * analysis.getNavigation params
- *
- * {
- *   "file": FilePath
- *   "offset": int
- *   "length": int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.getNavigation params
+///
+/// {
+///   "file": FilePath
+///   "offset": int
+///   "length": int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisGetNavigationParams implements RequestParams {
   String _file;
 
@@ -370,44 +338,32 @@ class AnalysisGetNavigationParams implements RequestParams {
 
   int _length;
 
-  /**
-   * The file in which navigation information is being requested.
-   */
+  /// The file in which navigation information is being requested.
   String get file => _file;
 
-  /**
-   * The file in which navigation information is being requested.
-   */
+  /// The file in which navigation information is being requested.
   set file(String value) {
     assert(value != null);
     this._file = value;
   }
 
-  /**
-   * The offset of the region for which navigation information is being
-   * requested.
-   */
+  /// The offset of the region for which navigation information is being
+  /// requested.
   int get offset => _offset;
 
-  /**
-   * The offset of the region for which navigation information is being
-   * requested.
-   */
+  /// The offset of the region for which navigation information is being
+  /// requested.
   set offset(int value) {
     assert(value != null);
     this._offset = value;
   }
 
-  /**
-   * The length of the region for which navigation information is being
-   * requested.
-   */
+  /// The length of the region for which navigation information is being
+  /// requested.
   int get length => _length;
 
-  /**
-   * The length of the region for which navigation information is being
-   * requested.
-   */
+  /// The length of the region for which navigation information is being
+  /// requested.
   set length(int value) {
     assert(value != null);
     this._length = value;
@@ -492,17 +448,15 @@ class AnalysisGetNavigationParams implements RequestParams {
   }
 }
 
-/**
- * analysis.getNavigation result
- *
- * {
- *   "files": List<FilePath>
- *   "targets": List<NavigationTarget>
- *   "regions": List<NavigationRegion>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.getNavigation result
+///
+/// {
+///   "files": List<FilePath>
+///   "targets": List<NavigationTarget>
+///   "regions": List<NavigationRegion>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisGetNavigationResult implements ResponseResult {
   List<String> _files;
 
@@ -510,44 +464,32 @@ class AnalysisGetNavigationResult implements ResponseResult {
 
   List<NavigationRegion> _regions;
 
-  /**
-   * A list of the paths of files that are referenced by the navigation
-   * targets.
-   */
+  /// A list of the paths of files that are referenced by the navigation
+  /// targets.
   List<String> get files => _files;
 
-  /**
-   * A list of the paths of files that are referenced by the navigation
-   * targets.
-   */
+  /// A list of the paths of files that are referenced by the navigation
+  /// targets.
   set files(List<String> value) {
     assert(value != null);
     this._files = value;
   }
 
-  /**
-   * A list of the navigation targets that are referenced by the navigation
-   * regions.
-   */
+  /// A list of the navigation targets that are referenced by the navigation
+  /// regions.
   List<NavigationTarget> get targets => _targets;
 
-  /**
-   * A list of the navigation targets that are referenced by the navigation
-   * regions.
-   */
+  /// A list of the navigation targets that are referenced by the navigation
+  /// regions.
   set targets(List<NavigationTarget> value) {
     assert(value != null);
     this._targets = value;
   }
 
-  /**
-   * A list of the navigation regions within the requested region of the file.
-   */
+  /// A list of the navigation regions within the requested region of the file.
   List<NavigationRegion> get regions => _regions;
 
-  /**
-   * A list of the navigation regions within the requested region of the file.
-   */
+  /// A list of the navigation regions within the requested region of the file.
   set regions(List<NavigationRegion> value) {
     assert(value != null);
     this._regions = value;
@@ -648,26 +590,20 @@ class AnalysisGetNavigationResult implements ResponseResult {
   }
 }
 
-/**
- * analysis.handleWatchEvents params
- *
- * {
- *   "events": List<WatchEvent>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.handleWatchEvents params
+///
+/// {
+///   "events": List<WatchEvent>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisHandleWatchEventsParams implements RequestParams {
   List<WatchEvent> _events;
 
-  /**
-   * The watch events that the plugin should handle.
-   */
+  /// The watch events that the plugin should handle.
   List<WatchEvent> get events => _events;
 
-  /**
-   * The watch events that the plugin should handle.
-   */
+  /// The watch events that the plugin should handle.
   set events(List<WatchEvent> value) {
     assert(value != null);
     this._events = value;
@@ -738,11 +674,9 @@ class AnalysisHandleWatchEventsParams implements RequestParams {
   }
 }
 
-/**
- * analysis.handleWatchEvents result
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.handleWatchEvents result
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisHandleWatchEventsResult implements ResponseResult {
   @override
   Map<String, dynamic> toJson() => <String, dynamic>{};
@@ -766,42 +700,32 @@ class AnalysisHandleWatchEventsResult implements ResponseResult {
   }
 }
 
-/**
- * analysis.highlights params
- *
- * {
- *   "file": FilePath
- *   "regions": List<HighlightRegion>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.highlights params
+///
+/// {
+///   "file": FilePath
+///   "regions": List<HighlightRegion>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisHighlightsParams implements HasToJson {
   String _file;
 
   List<HighlightRegion> _regions;
 
-  /**
-   * The file containing the highlight regions.
-   */
+  /// The file containing the highlight regions.
   String get file => _file;
 
-  /**
-   * The file containing the highlight regions.
-   */
+  /// The file containing the highlight regions.
   set file(String value) {
     assert(value != null);
     this._file = value;
   }
 
-  /**
-   * The highlight regions contained in the file.
-   */
+  /// The highlight regions contained in the file.
   List<HighlightRegion> get regions => _regions;
 
-  /**
-   * The highlight regions contained in the file.
-   */
+  /// The highlight regions contained in the file.
   set regions(List<HighlightRegion> value) {
     assert(value != null);
     this._regions = value;
@@ -880,18 +804,16 @@ class AnalysisHighlightsParams implements HasToJson {
   }
 }
 
-/**
- * analysis.navigation params
- *
- * {
- *   "file": FilePath
- *   "regions": List<NavigationRegion>
- *   "targets": List<NavigationTarget>
- *   "files": List<FilePath>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.navigation params
+///
+/// {
+///   "file": FilePath
+///   "regions": List<NavigationRegion>
+///   "targets": List<NavigationTarget>
+///   "files": List<FilePath>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisNavigationParams implements HasToJson {
   String _file;
 
@@ -901,57 +823,41 @@ class AnalysisNavigationParams implements HasToJson {
 
   List<String> _files;
 
-  /**
-   * The file containing the navigation regions.
-   */
+  /// The file containing the navigation regions.
   String get file => _file;
 
-  /**
-   * The file containing the navigation regions.
-   */
+  /// The file containing the navigation regions.
   set file(String value) {
     assert(value != null);
     this._file = value;
   }
 
-  /**
-   * The navigation regions contained in the file.
-   */
+  /// The navigation regions contained in the file.
   List<NavigationRegion> get regions => _regions;
 
-  /**
-   * The navigation regions contained in the file.
-   */
+  /// The navigation regions contained in the file.
   set regions(List<NavigationRegion> value) {
     assert(value != null);
     this._regions = value;
   }
 
-  /**
-   * The navigation targets referenced in the file. They are referenced by
-   * NavigationRegions by their index in this array.
-   */
+  /// The navigation targets referenced in the file. They are referenced by
+  /// NavigationRegions by their index in this array.
   List<NavigationTarget> get targets => _targets;
 
-  /**
-   * The navigation targets referenced in the file. They are referenced by
-   * NavigationRegions by their index in this array.
-   */
+  /// The navigation targets referenced in the file. They are referenced by
+  /// NavigationRegions by their index in this array.
   set targets(List<NavigationTarget> value) {
     assert(value != null);
     this._targets = value;
   }
 
-  /**
-   * The files containing navigation targets referenced in the file. They are
-   * referenced by NavigationTargets by their index in this array.
-   */
+  /// The files containing navigation targets referenced in the file. They are
+  /// referenced by NavigationTargets by their index in this array.
   List<String> get files => _files;
 
-  /**
-   * The files containing navigation targets referenced in the file. They are
-   * referenced by NavigationTargets by their index in this array.
-   */
+  /// The files containing navigation targets referenced in the file. They are
+  /// referenced by NavigationTargets by their index in this array.
   set files(List<String> value) {
     assert(value != null);
     this._files = value;
@@ -1058,42 +964,32 @@ class AnalysisNavigationParams implements HasToJson {
   }
 }
 
-/**
- * analysis.occurrences params
- *
- * {
- *   "file": FilePath
- *   "occurrences": List<Occurrences>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.occurrences params
+///
+/// {
+///   "file": FilePath
+///   "occurrences": List<Occurrences>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisOccurrencesParams implements HasToJson {
   String _file;
 
   List<Occurrences> _occurrences;
 
-  /**
-   * The file in which the references occur.
-   */
+  /// The file in which the references occur.
   String get file => _file;
 
-  /**
-   * The file in which the references occur.
-   */
+  /// The file in which the references occur.
   set file(String value) {
     assert(value != null);
     this._file = value;
   }
 
-  /**
-   * The occurrences of references to elements within the file.
-   */
+  /// The occurrences of references to elements within the file.
   List<Occurrences> get occurrences => _occurrences;
 
-  /**
-   * The occurrences of references to elements within the file.
-   */
+  /// The occurrences of references to elements within the file.
   set occurrences(List<Occurrences> value) {
     assert(value != null);
     this._occurrences = value;
@@ -1173,42 +1069,32 @@ class AnalysisOccurrencesParams implements HasToJson {
   }
 }
 
-/**
- * analysis.outline params
- *
- * {
- *   "file": FilePath
- *   "outline": List<Outline>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.outline params
+///
+/// {
+///   "file": FilePath
+///   "outline": List<Outline>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisOutlineParams implements HasToJson {
   String _file;
 
   List<Outline> _outline;
 
-  /**
-   * The file with which the outline is associated.
-   */
+  /// The file with which the outline is associated.
   String get file => _file;
 
-  /**
-   * The file with which the outline is associated.
-   */
+  /// The file with which the outline is associated.
   set file(String value) {
     assert(value != null);
     this._file = value;
   }
 
-  /**
-   * The outline fragments associated with the file.
-   */
+  /// The outline fragments associated with the file.
   List<Outline> get outline => _outline;
 
-  /**
-   * The outline fragments associated with the file.
-   */
+  /// The outline fragments associated with the file.
   set outline(List<Outline> value) {
     assert(value != null);
     this._outline = value;
@@ -1285,19 +1171,17 @@ class AnalysisOutlineParams implements HasToJson {
   }
 }
 
-/**
- * AnalysisService
- *
- * enum {
- *   FOLDING
- *   HIGHLIGHTS
- *   NAVIGATION
- *   OCCURRENCES
- *   OUTLINE
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// AnalysisService
+///
+/// enum {
+///   FOLDING
+///   HIGHLIGHTS
+///   NAVIGATION
+///   OCCURRENCES
+///   OUTLINE
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisService implements Enum {
   static const AnalysisService FOLDING = AnalysisService._("FOLDING");
 
@@ -1309,9 +1193,7 @@ class AnalysisService implements Enum {
 
   static const AnalysisService OUTLINE = AnalysisService._("OUTLINE");
 
-  /**
-   * A list containing all of the enum values that are defined.
-   */
+  /// A list containing all of the enum values that are defined.
   static const List<AnalysisService> VALUES = <AnalysisService>[
     FOLDING,
     HIGHLIGHTS,
@@ -1359,26 +1241,20 @@ class AnalysisService implements Enum {
   String toJson() => name;
 }
 
-/**
- * analysis.setContextRoots params
- *
- * {
- *   "roots": List<ContextRoot>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.setContextRoots params
+///
+/// {
+///   "roots": List<ContextRoot>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisSetContextRootsParams implements RequestParams {
   List<ContextRoot> _roots;
 
-  /**
-   * A list of the context roots that should be analyzed.
-   */
+  /// A list of the context roots that should be analyzed.
   List<ContextRoot> get roots => _roots;
 
-  /**
-   * A list of the context roots that should be analyzed.
-   */
+  /// A list of the context roots that should be analyzed.
   set roots(List<ContextRoot> value) {
     assert(value != null);
     this._roots = value;
@@ -1448,11 +1324,9 @@ class AnalysisSetContextRootsParams implements RequestParams {
   }
 }
 
-/**
- * analysis.setContextRoots result
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.setContextRoots result
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisSetContextRootsResult implements ResponseResult {
   @override
   Map<String, dynamic> toJson() => <String, dynamic>{};
@@ -1476,26 +1350,20 @@ class AnalysisSetContextRootsResult implements ResponseResult {
   }
 }
 
-/**
- * analysis.setPriorityFiles params
- *
- * {
- *   "files": List<FilePath>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.setPriorityFiles params
+///
+/// {
+///   "files": List<FilePath>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisSetPriorityFilesParams implements RequestParams {
   List<String> _files;
 
-  /**
-   * The files that are to be a priority for analysis.
-   */
+  /// The files that are to be a priority for analysis.
   List<String> get files => _files;
 
-  /**
-   * The files that are to be a priority for analysis.
-   */
+  /// The files that are to be a priority for analysis.
   set files(List<String> value) {
     assert(value != null);
     this._files = value;
@@ -1561,11 +1429,9 @@ class AnalysisSetPriorityFilesParams implements RequestParams {
   }
 }
 
-/**
- * analysis.setPriorityFiles result
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.setPriorityFiles result
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisSetPriorityFilesResult implements ResponseResult {
   @override
   Map<String, dynamic> toJson() => <String, dynamic>{};
@@ -1589,28 +1455,22 @@ class AnalysisSetPriorityFilesResult implements ResponseResult {
   }
 }
 
-/**
- * analysis.setSubscriptions params
- *
- * {
- *   "subscriptions": Map<AnalysisService, List<FilePath>>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.setSubscriptions params
+///
+/// {
+///   "subscriptions": Map<AnalysisService, List<FilePath>>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisSetSubscriptionsParams implements RequestParams {
   Map<AnalysisService, List<String>> _subscriptions;
 
-  /**
-   * A table mapping services to a list of the files being subscribed to the
-   * service.
-   */
+  /// A table mapping services to a list of the files being subscribed to the
+  /// service.
   Map<AnalysisService, List<String>> get subscriptions => _subscriptions;
 
-  /**
-   * A table mapping services to a list of the files being subscribed to the
-   * service.
-   */
+  /// A table mapping services to a list of the files being subscribed to the
+  /// service.
   set subscriptions(Map<AnalysisService, List<String>> value) {
     assert(value != null);
     this._subscriptions = value;
@@ -1686,11 +1546,9 @@ class AnalysisSetSubscriptionsParams implements RequestParams {
   }
 }
 
-/**
- * analysis.setSubscriptions result
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.setSubscriptions result
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisSetSubscriptionsResult implements ResponseResult {
   @override
   Map<String, dynamic> toJson() => <String, dynamic>{};
@@ -1714,28 +1572,22 @@ class AnalysisSetSubscriptionsResult implements ResponseResult {
   }
 }
 
-/**
- * analysis.updateContent params
- *
- * {
- *   "files": Map<FilePath, AddContentOverlay | ChangeContentOverlay | RemoveContentOverlay>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.updateContent params
+///
+/// {
+///   "files": Map<FilePath, AddContentOverlay | ChangeContentOverlay | RemoveContentOverlay>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisUpdateContentParams implements RequestParams {
   Map<String, dynamic> _files;
 
-  /**
-   * A table mapping the files whose content has changed to a description of
-   * the content change.
-   */
+  /// A table mapping the files whose content has changed to a description of
+  /// the content change.
   Map<String, dynamic> get files => _files;
 
-  /**
-   * A table mapping the files whose content has changed to a description of
-   * the content change.
-   */
+  /// A table mapping the files whose content has changed to a description of
+  /// the content change.
   set files(Map<String, dynamic> value) {
     assert(value != null);
     this._files = value;
@@ -1811,11 +1663,9 @@ class AnalysisUpdateContentParams implements RequestParams {
   }
 }
 
-/**
- * analysis.updateContent result
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.updateContent result
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisUpdateContentResult implements ResponseResult {
   @override
   Map<String, dynamic> toJson() => <String, dynamic>{};
@@ -1839,42 +1689,32 @@ class AnalysisUpdateContentResult implements ResponseResult {
   }
 }
 
-/**
- * completion.getSuggestions params
- *
- * {
- *   "file": FilePath
- *   "offset": int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// completion.getSuggestions params
+///
+/// {
+///   "file": FilePath
+///   "offset": int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class CompletionGetSuggestionsParams implements RequestParams {
   String _file;
 
   int _offset;
 
-  /**
-   * The file containing the point at which suggestions are to be made.
-   */
+  /// The file containing the point at which suggestions are to be made.
   String get file => _file;
 
-  /**
-   * The file containing the point at which suggestions are to be made.
-   */
+  /// The file containing the point at which suggestions are to be made.
   set file(String value) {
     assert(value != null);
     this._file = value;
   }
 
-  /**
-   * The offset within the file at which suggestions are to be made.
-   */
+  /// The offset within the file at which suggestions are to be made.
   int get offset => _offset;
 
-  /**
-   * The offset within the file at which suggestions are to be made.
-   */
+  /// The offset within the file at which suggestions are to be made.
   set offset(int value) {
     assert(value != null);
     this._offset = value;
@@ -1948,17 +1788,15 @@ class CompletionGetSuggestionsParams implements RequestParams {
   }
 }
 
-/**
- * completion.getSuggestions result
- *
- * {
- *   "replacementOffset": int
- *   "replacementLength": int
- *   "results": List<CompletionSuggestion>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// completion.getSuggestions result
+///
+/// {
+///   "replacementOffset": int
+///   "replacementLength": int
+///   "results": List<CompletionSuggestion>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class CompletionGetSuggestionsResult implements ResponseResult {
   int _replacementOffset;
 
@@ -1966,58 +1804,48 @@ class CompletionGetSuggestionsResult implements ResponseResult {
 
   List<CompletionSuggestion> _results;
 
-  /**
-   * The offset of the start of the text to be replaced. This will be different
-   * than the offset used to request the completion suggestions if there was a
-   * portion of an identifier before the original offset. In particular, the
-   * replacementOffset will be the offset of the beginning of said identifier.
-   */
+  /// The offset of the start of the text to be replaced. This will be
+  /// different than the offset used to request the completion suggestions if
+  /// there was a portion of an identifier before the original offset. In
+  /// particular, the replacementOffset will be the offset of the beginning of
+  /// said identifier.
   int get replacementOffset => _replacementOffset;
 
-  /**
-   * The offset of the start of the text to be replaced. This will be different
-   * than the offset used to request the completion suggestions if there was a
-   * portion of an identifier before the original offset. In particular, the
-   * replacementOffset will be the offset of the beginning of said identifier.
-   */
+  /// The offset of the start of the text to be replaced. This will be
+  /// different than the offset used to request the completion suggestions if
+  /// there was a portion of an identifier before the original offset. In
+  /// particular, the replacementOffset will be the offset of the beginning of
+  /// said identifier.
   set replacementOffset(int value) {
     assert(value != null);
     this._replacementOffset = value;
   }
 
-  /**
-   * The length of the text to be replaced if the remainder of the identifier
-   * containing the cursor is to be replaced when the suggestion is applied
-   * (that is, the number of characters in the existing identifier).
-   */
+  /// The length of the text to be replaced if the remainder of the identifier
+  /// containing the cursor is to be replaced when the suggestion is applied
+  /// (that is, the number of characters in the existing identifier).
   int get replacementLength => _replacementLength;
 
-  /**
-   * The length of the text to be replaced if the remainder of the identifier
-   * containing the cursor is to be replaced when the suggestion is applied
-   * (that is, the number of characters in the existing identifier).
-   */
+  /// The length of the text to be replaced if the remainder of the identifier
+  /// containing the cursor is to be replaced when the suggestion is applied
+  /// (that is, the number of characters in the existing identifier).
   set replacementLength(int value) {
     assert(value != null);
     this._replacementLength = value;
   }
 
-  /**
-   * The completion suggestions being reported. The notification contains all
-   * possible completions at the requested cursor position, even those that do
-   * not match the characters the user has already typed. This allows the
-   * client to respond to further keystrokes from the user without having to
-   * make additional requests.
-   */
+  /// The completion suggestions being reported. The notification contains all
+  /// possible completions at the requested cursor position, even those that do
+  /// not match the characters the user has already typed. This allows the
+  /// client to respond to further keystrokes from the user without having to
+  /// make additional requests.
   List<CompletionSuggestion> get results => _results;
 
-  /**
-   * The completion suggestions being reported. The notification contains all
-   * possible completions at the requested cursor position, even those that do
-   * not match the characters the user has already typed. This allows the
-   * client to respond to further keystrokes from the user without having to
-   * make additional requests.
-   */
+  /// The completion suggestions being reported. The notification contains all
+  /// possible completions at the requested cursor position, even those that do
+  /// not match the characters the user has already typed. This allows the
+  /// client to respond to further keystrokes from the user without having to
+  /// make additional requests.
   set results(List<CompletionSuggestion> value) {
     assert(value != null);
     this._results = value;
@@ -2114,17 +1942,15 @@ class CompletionGetSuggestionsResult implements ResponseResult {
   }
 }
 
-/**
- * ContextRoot
- *
- * {
- *   "root": FilePath
- *   "exclude": List<FilePath>
- *   "optionsFile": optional FilePath
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// ContextRoot
+///
+/// {
+///   "root": FilePath
+///   "exclude": List<FilePath>
+///   "optionsFile": optional FilePath
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ContextRoot implements HasToJson {
   String _root;
 
@@ -2132,46 +1958,34 @@ class ContextRoot implements HasToJson {
 
   String _optionsFile;
 
-  /**
-   * The absolute path of the root directory containing the files to be
-   * analyzed.
-   */
+  /// The absolute path of the root directory containing the files to be
+  /// analyzed.
   String get root => _root;
 
-  /**
-   * The absolute path of the root directory containing the files to be
-   * analyzed.
-   */
+  /// The absolute path of the root directory containing the files to be
+  /// analyzed.
   set root(String value) {
     assert(value != null);
     this._root = value;
   }
 
-  /**
-   * A list of the absolute paths of files and directories within the root
-   * directory that should not be analyzed.
-   */
+  /// A list of the absolute paths of files and directories within the root
+  /// directory that should not be analyzed.
   List<String> get exclude => _exclude;
 
-  /**
-   * A list of the absolute paths of files and directories within the root
-   * directory that should not be analyzed.
-   */
+  /// A list of the absolute paths of files and directories within the root
+  /// directory that should not be analyzed.
   set exclude(List<String> value) {
     assert(value != null);
     this._exclude = value;
   }
 
-  /**
-   * The absolute path of the analysis options file that should be used to
-   * control the analysis of the files in the context.
-   */
+  /// The absolute path of the analysis options file that should be used to
+  /// control the analysis of the files in the context.
   String get optionsFile => _optionsFile;
 
-  /**
-   * The absolute path of the analysis options file that should be used to
-   * control the analysis of the files in the context.
-   */
+  /// The absolute path of the analysis options file that should be used to
+  /// control the analysis of the files in the context.
   set optionsFile(String value) {
     this._optionsFile = value;
   }
@@ -2246,11 +2060,9 @@ class ContextRoot implements HasToJson {
   }
 }
 
-/**
- * convertGetterToMethod feedback
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// convertGetterToMethod feedback
+///
+/// Clients may not extend, implement or mix-in this class.
 class ConvertGetterToMethodFeedback extends RefactoringFeedback
     implements HasToJson {
   @override
@@ -2267,11 +2079,9 @@ class ConvertGetterToMethodFeedback extends RefactoringFeedback
   }
 }
 
-/**
- * convertGetterToMethod options
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// convertGetterToMethod options
+///
+/// Clients may not extend, implement or mix-in this class.
 class ConvertGetterToMethodOptions extends RefactoringOptions
     implements HasToJson {
   @override
@@ -2288,11 +2098,9 @@ class ConvertGetterToMethodOptions extends RefactoringOptions
   }
 }
 
-/**
- * convertMethodToGetter feedback
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// convertMethodToGetter feedback
+///
+/// Clients may not extend, implement or mix-in this class.
 class ConvertMethodToGetterFeedback extends RefactoringFeedback
     implements HasToJson {
   @override
@@ -2309,11 +2117,9 @@ class ConvertMethodToGetterFeedback extends RefactoringFeedback
   }
 }
 
-/**
- * convertMethodToGetter options
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// convertMethodToGetter options
+///
+/// Clients may not extend, implement or mix-in this class.
 class ConvertMethodToGetterOptions extends RefactoringOptions
     implements HasToJson {
   @override
@@ -2330,17 +2136,15 @@ class ConvertMethodToGetterOptions extends RefactoringOptions
   }
 }
 
-/**
- * edit.getAssists params
- *
- * {
- *   "file": FilePath
- *   "offset": int
- *   "length": int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// edit.getAssists params
+///
+/// {
+///   "file": FilePath
+///   "offset": int
+///   "length": int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class EditGetAssistsParams implements RequestParams {
   String _file;
 
@@ -2348,40 +2152,28 @@ class EditGetAssistsParams implements RequestParams {
 
   int _length;
 
-  /**
-   * The file containing the code for which assists are being requested.
-   */
+  /// The file containing the code for which assists are being requested.
   String get file => _file;
 
-  /**
-   * The file containing the code for which assists are being requested.
-   */
+  /// The file containing the code for which assists are being requested.
   set file(String value) {
     assert(value != null);
     this._file = value;
   }
 
-  /**
-   * The offset of the code for which assists are being requested.
-   */
+  /// The offset of the code for which assists are being requested.
   int get offset => _offset;
 
-  /**
-   * The offset of the code for which assists are being requested.
-   */
+  /// The offset of the code for which assists are being requested.
   set offset(int value) {
     assert(value != null);
     this._offset = value;
   }
 
-  /**
-   * The length of the code for which assists are being requested.
-   */
+  /// The length of the code for which assists are being requested.
   int get length => _length;
 
-  /**
-   * The length of the code for which assists are being requested.
-   */
+  /// The length of the code for which assists are being requested.
   set length(int value) {
     assert(value != null);
     this._length = value;
@@ -2465,26 +2257,20 @@ class EditGetAssistsParams implements RequestParams {
   }
 }
 
-/**
- * edit.getAssists result
- *
- * {
- *   "assists": List<PrioritizedSourceChange>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// edit.getAssists result
+///
+/// {
+///   "assists": List<PrioritizedSourceChange>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class EditGetAssistsResult implements ResponseResult {
   List<PrioritizedSourceChange> _assists;
 
-  /**
-   * The assists that are available at the given location.
-   */
+  /// The assists that are available at the given location.
   List<PrioritizedSourceChange> get assists => _assists;
 
-  /**
-   * The assists that are available at the given location.
-   */
+  /// The assists that are available at the given location.
   set assists(List<PrioritizedSourceChange> value) {
     assert(value != null);
     this._assists = value;
@@ -2556,17 +2342,15 @@ class EditGetAssistsResult implements ResponseResult {
   }
 }
 
-/**
- * edit.getAvailableRefactorings params
- *
- * {
- *   "file": FilePath
- *   "offset": int
- *   "length": int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// edit.getAvailableRefactorings params
+///
+/// {
+///   "file": FilePath
+///   "offset": int
+///   "length": int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class EditGetAvailableRefactoringsParams implements RequestParams {
   String _file;
 
@@ -2574,40 +2358,28 @@ class EditGetAvailableRefactoringsParams implements RequestParams {
 
   int _length;
 
-  /**
-   * The file containing the code on which the refactoring would be based.
-   */
+  /// The file containing the code on which the refactoring would be based.
   String get file => _file;
 
-  /**
-   * The file containing the code on which the refactoring would be based.
-   */
+  /// The file containing the code on which the refactoring would be based.
   set file(String value) {
     assert(value != null);
     this._file = value;
   }
 
-  /**
-   * The offset of the code on which the refactoring would be based.
-   */
+  /// The offset of the code on which the refactoring would be based.
   int get offset => _offset;
 
-  /**
-   * The offset of the code on which the refactoring would be based.
-   */
+  /// The offset of the code on which the refactoring would be based.
   set offset(int value) {
     assert(value != null);
     this._offset = value;
   }
 
-  /**
-   * The length of the code on which the refactoring would be based.
-   */
+  /// The length of the code on which the refactoring would be based.
   int get length => _length;
 
-  /**
-   * The length of the code on which the refactoring would be based.
-   */
+  /// The length of the code on which the refactoring would be based.
   set length(int value) {
     assert(value != null);
     this._length = value;
@@ -2692,36 +2464,30 @@ class EditGetAvailableRefactoringsParams implements RequestParams {
   }
 }
 
-/**
- * edit.getAvailableRefactorings result
- *
- * {
- *   "kinds": List<RefactoringKind>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// edit.getAvailableRefactorings result
+///
+/// {
+///   "kinds": List<RefactoringKind>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class EditGetAvailableRefactoringsResult implements ResponseResult {
   List<RefactoringKind> _kinds;
 
-  /**
-   * The kinds of refactorings that are valid for the given selection.
-   *
-   * The list of refactoring kinds is currently limited to those defined by the
-   * server API, preventing plugins from adding their own refactorings.
-   * However, plugins can support pre-defined refactorings, such as a rename
-   * refactoring, at locations not supported by server.
-   */
+  /// The kinds of refactorings that are valid for the given selection.
+  ///
+  /// The list of refactoring kinds is currently limited to those defined by
+  /// the server API, preventing plugins from adding their own refactorings.
+  /// However, plugins can support pre-defined refactorings, such as a rename
+  /// refactoring, at locations not supported by server.
   List<RefactoringKind> get kinds => _kinds;
 
-  /**
-   * The kinds of refactorings that are valid for the given selection.
-   *
-   * The list of refactoring kinds is currently limited to those defined by the
-   * server API, preventing plugins from adding their own refactorings.
-   * However, plugins can support pre-defined refactorings, such as a rename
-   * refactoring, at locations not supported by server.
-   */
+  /// The kinds of refactorings that are valid for the given selection.
+  ///
+  /// The list of refactoring kinds is currently limited to those defined by
+  /// the server API, preventing plugins from adding their own refactorings.
+  /// However, plugins can support pre-defined refactorings, such as a rename
+  /// refactoring, at locations not supported by server.
   set kinds(List<RefactoringKind> value) {
     assert(value != null);
     this._kinds = value;
@@ -2794,42 +2560,32 @@ class EditGetAvailableRefactoringsResult implements ResponseResult {
   }
 }
 
-/**
- * edit.getFixes params
- *
- * {
- *   "file": FilePath
- *   "offset": int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// edit.getFixes params
+///
+/// {
+///   "file": FilePath
+///   "offset": int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class EditGetFixesParams implements RequestParams {
   String _file;
 
   int _offset;
 
-  /**
-   * The file containing the errors for which fixes are being requested.
-   */
+  /// The file containing the errors for which fixes are being requested.
   String get file => _file;
 
-  /**
-   * The file containing the errors for which fixes are being requested.
-   */
+  /// The file containing the errors for which fixes are being requested.
   set file(String value) {
     assert(value != null);
     this._file = value;
   }
 
-  /**
-   * The offset used to select the errors for which fixes will be returned.
-   */
+  /// The offset used to select the errors for which fixes will be returned.
   int get offset => _offset;
 
-  /**
-   * The offset used to select the errors for which fixes will be returned.
-   */
+  /// The offset used to select the errors for which fixes will be returned.
   set offset(int value) {
     assert(value != null);
     this._offset = value;
@@ -2902,26 +2658,20 @@ class EditGetFixesParams implements RequestParams {
   }
 }
 
-/**
- * edit.getFixes result
- *
- * {
- *   "fixes": List<AnalysisErrorFixes>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// edit.getFixes result
+///
+/// {
+///   "fixes": List<AnalysisErrorFixes>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class EditGetFixesResult implements ResponseResult {
   List<AnalysisErrorFixes> _fixes;
 
-  /**
-   * The fixes that are available for the errors at the given offset.
-   */
+  /// The fixes that are available for the errors at the given offset.
   List<AnalysisErrorFixes> get fixes => _fixes;
 
-  /**
-   * The fixes that are available for the errors at the given offset.
-   */
+  /// The fixes that are available for the errors at the given offset.
   set fixes(List<AnalysisErrorFixes> value) {
     assert(value != null);
     this._fixes = value;
@@ -2993,20 +2743,18 @@ class EditGetFixesResult implements ResponseResult {
   }
 }
 
-/**
- * edit.getRefactoring params
- *
- * {
- *   "kind": RefactoringKind
- *   "file": FilePath
- *   "offset": int
- *   "length": int
- *   "validateOnly": bool
- *   "options": optional RefactoringOptions
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// edit.getRefactoring params
+///
+/// {
+///   "kind": RefactoringKind
+///   "file": FilePath
+///   "offset": int
+///   "length": int
+///   "validateOnly": bool
+///   "options": optional RefactoringOptions
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class EditGetRefactoringParams implements RequestParams {
   RefactoringKind _kind;
 
@@ -3020,89 +2768,65 @@ class EditGetRefactoringParams implements RequestParams {
 
   RefactoringOptions _options;
 
-  /**
-   * The kind of refactoring to be performed.
-   */
+  /// The kind of refactoring to be performed.
   RefactoringKind get kind => _kind;
 
-  /**
-   * The kind of refactoring to be performed.
-   */
+  /// The kind of refactoring to be performed.
   set kind(RefactoringKind value) {
     assert(value != null);
     this._kind = value;
   }
 
-  /**
-   * The file containing the code involved in the refactoring.
-   */
+  /// The file containing the code involved in the refactoring.
   String get file => _file;
 
-  /**
-   * The file containing the code involved in the refactoring.
-   */
+  /// The file containing the code involved in the refactoring.
   set file(String value) {
     assert(value != null);
     this._file = value;
   }
 
-  /**
-   * The offset of the region involved in the refactoring.
-   */
+  /// The offset of the region involved in the refactoring.
   int get offset => _offset;
 
-  /**
-   * The offset of the region involved in the refactoring.
-   */
+  /// The offset of the region involved in the refactoring.
   set offset(int value) {
     assert(value != null);
     this._offset = value;
   }
 
-  /**
-   * The length of the region involved in the refactoring.
-   */
+  /// The length of the region involved in the refactoring.
   int get length => _length;
 
-  /**
-   * The length of the region involved in the refactoring.
-   */
+  /// The length of the region involved in the refactoring.
   set length(int value) {
     assert(value != null);
     this._length = value;
   }
 
-  /**
-   * True if the client is only requesting that the values of the options be
-   * validated and no change be generated.
-   */
+  /// True if the client is only requesting that the values of the options be
+  /// validated and no change be generated.
   bool get validateOnly => _validateOnly;
 
-  /**
-   * True if the client is only requesting that the values of the options be
-   * validated and no change be generated.
-   */
+  /// True if the client is only requesting that the values of the options be
+  /// validated and no change be generated.
   set validateOnly(bool value) {
     assert(value != null);
     this._validateOnly = value;
   }
 
-  /**
-   * Data used to provide values provided by the user. The structure of the
-   * data is dependent on the kind of refactoring being performed. The data
-   * that is expected is documented in the section titled Refactorings, labeled
-   * as "Options". This field can be omitted if the refactoring does not
-   * require any options or if the values of those options are not known.
-   */
+  /// Data used to provide values provided by the user. The structure of the
+  /// data is dependent on the kind of refactoring being performed. The data
+  /// that is expected is documented in the section titled Refactorings,
+  /// labeled as "Options". This field can be omitted if the refactoring does
+  /// not require any options or if the values of those options are not known.
   RefactoringOptions get options => _options;
 
-  /**
-   * Data used to provide values provided by the user. The structure of the
-   * data is dependent on the kind of refactoring being performed. The data
-   * that is expected is documented in the section titled Refactorings, labeled
-   * as "Options". This field can be omitted if the refactoring does not
-   * require any options or if the values of those options are not known.
-   */
+  /// Data used to provide values provided by the user. The structure of the
+  /// data is dependent on the kind of refactoring being performed. The data
+  /// that is expected is documented in the section titled Refactorings,
+  /// labeled as "Options". This field can be omitted if the refactoring does
+  /// not require any options or if the values of those options are not known.
   set options(RefactoringOptions value) {
     this._options = value;
   }
@@ -3223,20 +2947,18 @@ class EditGetRefactoringParams implements RequestParams {
   }
 }
 
-/**
- * edit.getRefactoring result
- *
- * {
- *   "initialProblems": List<RefactoringProblem>
- *   "optionsProblems": List<RefactoringProblem>
- *   "finalProblems": List<RefactoringProblem>
- *   "feedback": optional RefactoringFeedback
- *   "change": optional SourceChange
- *   "potentialEdits": optional List<String>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// edit.getRefactoring result
+///
+/// {
+///   "initialProblems": List<RefactoringProblem>
+///   "optionsProblems": List<RefactoringProblem>
+///   "finalProblems": List<RefactoringProblem>
+///   "feedback": optional RefactoringFeedback
+///   "change": optional SourceChange
+///   "potentialEdits": optional List<String>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class EditGetRefactoringResult implements ResponseResult {
   List<RefactoringProblem> _initialProblems;
 
@@ -3250,111 +2972,87 @@ class EditGetRefactoringResult implements ResponseResult {
 
   List<String> _potentialEdits;
 
-  /**
-   * The initial status of the refactoring, that is, problems related to the
-   * context in which the refactoring is requested. The list should be empty if
-   * there are no known problems.
-   */
+  /// The initial status of the refactoring, that is, problems related to the
+  /// context in which the refactoring is requested. The list should be empty
+  /// if there are no known problems.
   List<RefactoringProblem> get initialProblems => _initialProblems;
 
-  /**
-   * The initial status of the refactoring, that is, problems related to the
-   * context in which the refactoring is requested. The list should be empty if
-   * there are no known problems.
-   */
+  /// The initial status of the refactoring, that is, problems related to the
+  /// context in which the refactoring is requested. The list should be empty
+  /// if there are no known problems.
   set initialProblems(List<RefactoringProblem> value) {
     assert(value != null);
     this._initialProblems = value;
   }
 
-  /**
-   * The options validation status, that is, problems in the given options,
-   * such as light-weight validation of a new name, flags compatibility, etc.
-   * The list should be empty if there are no known problems.
-   */
+  /// The options validation status, that is, problems in the given options,
+  /// such as light-weight validation of a new name, flags compatibility, etc.
+  /// The list should be empty if there are no known problems.
   List<RefactoringProblem> get optionsProblems => _optionsProblems;
 
-  /**
-   * The options validation status, that is, problems in the given options,
-   * such as light-weight validation of a new name, flags compatibility, etc.
-   * The list should be empty if there are no known problems.
-   */
+  /// The options validation status, that is, problems in the given options,
+  /// such as light-weight validation of a new name, flags compatibility, etc.
+  /// The list should be empty if there are no known problems.
   set optionsProblems(List<RefactoringProblem> value) {
     assert(value != null);
     this._optionsProblems = value;
   }
 
-  /**
-   * The final status of the refactoring, that is, problems identified in the
-   * result of a full, potentially expensive validation and / or change
-   * creation. The list should be empty if there are no known problems.
-   */
+  /// The final status of the refactoring, that is, problems identified in the
+  /// result of a full, potentially expensive validation and / or change
+  /// creation. The list should be empty if there are no known problems.
   List<RefactoringProblem> get finalProblems => _finalProblems;
 
-  /**
-   * The final status of the refactoring, that is, problems identified in the
-   * result of a full, potentially expensive validation and / or change
-   * creation. The list should be empty if there are no known problems.
-   */
+  /// The final status of the refactoring, that is, problems identified in the
+  /// result of a full, potentially expensive validation and / or change
+  /// creation. The list should be empty if there are no known problems.
   set finalProblems(List<RefactoringProblem> value) {
     assert(value != null);
     this._finalProblems = value;
   }
 
-  /**
-   * Data used to provide feedback to the user. The structure of the data is
-   * dependent on the kind of refactoring being created. The data that is
-   * returned is documented in the section titled Refactorings, labeled as
-   * "Feedback".
-   */
+  /// Data used to provide feedback to the user. The structure of the data is
+  /// dependent on the kind of refactoring being created. The data that is
+  /// returned is documented in the section titled Refactorings, labeled as
+  /// "Feedback".
   RefactoringFeedback get feedback => _feedback;
 
-  /**
-   * Data used to provide feedback to the user. The structure of the data is
-   * dependent on the kind of refactoring being created. The data that is
-   * returned is documented in the section titled Refactorings, labeled as
-   * "Feedback".
-   */
+  /// Data used to provide feedback to the user. The structure of the data is
+  /// dependent on the kind of refactoring being created. The data that is
+  /// returned is documented in the section titled Refactorings, labeled as
+  /// "Feedback".
   set feedback(RefactoringFeedback value) {
     this._feedback = value;
   }
 
-  /**
-   * The changes that are to be applied to affect the refactoring. This field
-   * can be omitted if there are problems that prevent a set of changes from
-   * being computed, such as having no options specified for a refactoring that
-   * requires them, or if only validation was requested.
-   */
+  /// The changes that are to be applied to affect the refactoring. This field
+  /// can be omitted if there are problems that prevent a set of changes from
+  /// being computed, such as having no options specified for a refactoring
+  /// that requires them, or if only validation was requested.
   SourceChange get change => _change;
 
-  /**
-   * The changes that are to be applied to affect the refactoring. This field
-   * can be omitted if there are problems that prevent a set of changes from
-   * being computed, such as having no options specified for a refactoring that
-   * requires them, or if only validation was requested.
-   */
+  /// The changes that are to be applied to affect the refactoring. This field
+  /// can be omitted if there are problems that prevent a set of changes from
+  /// being computed, such as having no options specified for a refactoring
+  /// that requires them, or if only validation was requested.
   set change(SourceChange value) {
     this._change = value;
   }
 
-  /**
-   * The ids of source edits that are not known to be valid. An edit is not
-   * known to be valid if there was insufficient type information for the
-   * plugin to be able to determine whether or not the code needs to be
-   * modified, such as when a member is being renamed and there is a reference
-   * to a member from an unknown type. This field can be omitted if the change
-   * field is omitted or if there are no potential edits for the refactoring.
-   */
+  /// The ids of source edits that are not known to be valid. An edit is not
+  /// known to be valid if there was insufficient type information for the
+  /// plugin to be able to determine whether or not the code needs to be
+  /// modified, such as when a member is being renamed and there is a reference
+  /// to a member from an unknown type. This field can be omitted if the change
+  /// field is omitted or if there are no potential edits for the refactoring.
   List<String> get potentialEdits => _potentialEdits;
 
-  /**
-   * The ids of source edits that are not known to be valid. An edit is not
-   * known to be valid if there was insufficient type information for the
-   * plugin to be able to determine whether or not the code needs to be
-   * modified, such as when a member is being renamed and there is a reference
-   * to a member from an unknown type. This field can be omitted if the change
-   * field is omitted or if there are no potential edits for the refactoring.
-   */
+  /// The ids of source edits that are not known to be valid. An edit is not
+  /// known to be valid if there was insufficient type information for the
+  /// plugin to be able to determine whether or not the code needs to be
+  /// modified, such as when a member is being renamed and there is a reference
+  /// to a member from an unknown type. This field can be omitted if the change
+  /// field is omitted or if there are no potential edits for the refactoring.
   set potentialEdits(List<String> value) {
     this._potentialEdits = value;
   }
@@ -3502,19 +3200,17 @@ class EditGetRefactoringResult implements ResponseResult {
   }
 }
 
-/**
- * extractLocalVariable feedback
- *
- * {
- *   "coveringExpressionOffsets": optional List<int>
- *   "coveringExpressionLengths": optional List<int>
- *   "names": List<String>
- *   "offsets": List<int>
- *   "lengths": List<int>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// extractLocalVariable feedback
+///
+/// {
+///   "coveringExpressionOffsets": optional List<int>
+///   "coveringExpressionLengths": optional List<int>
+///   "names": List<String>
+///   "offsets": List<int>
+///   "lengths": List<int>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ExtractLocalVariableFeedback extends RefactoringFeedback {
   List<int> _coveringExpressionOffsets;
 
@@ -3526,76 +3222,56 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback {
 
   List<int> _lengths;
 
-  /**
-   * The offsets of the expressions that cover the specified selection, from
-   * the down most to the up most.
-   */
+  /// The offsets of the expressions that cover the specified selection, from
+  /// the down most to the up most.
   List<int> get coveringExpressionOffsets => _coveringExpressionOffsets;
 
-  /**
-   * The offsets of the expressions that cover the specified selection, from
-   * the down most to the up most.
-   */
+  /// The offsets of the expressions that cover the specified selection, from
+  /// the down most to the up most.
   set coveringExpressionOffsets(List<int> value) {
     this._coveringExpressionOffsets = value;
   }
 
-  /**
-   * The lengths of the expressions that cover the specified selection, from
-   * the down most to the up most.
-   */
+  /// The lengths of the expressions that cover the specified selection, from
+  /// the down most to the up most.
   List<int> get coveringExpressionLengths => _coveringExpressionLengths;
 
-  /**
-   * The lengths of the expressions that cover the specified selection, from
-   * the down most to the up most.
-   */
+  /// The lengths of the expressions that cover the specified selection, from
+  /// the down most to the up most.
   set coveringExpressionLengths(List<int> value) {
     this._coveringExpressionLengths = value;
   }
 
-  /**
-   * The proposed names for the local variable.
-   */
+  /// The proposed names for the local variable.
   List<String> get names => _names;
 
-  /**
-   * The proposed names for the local variable.
-   */
+  /// The proposed names for the local variable.
   set names(List<String> value) {
     assert(value != null);
     this._names = value;
   }
 
-  /**
-   * The offsets of the expressions that would be replaced by a reference to
-   * the variable.
-   */
+  /// The offsets of the expressions that would be replaced by a reference to
+  /// the variable.
   List<int> get offsets => _offsets;
 
-  /**
-   * The offsets of the expressions that would be replaced by a reference to
-   * the variable.
-   */
+  /// The offsets of the expressions that would be replaced by a reference to
+  /// the variable.
   set offsets(List<int> value) {
     assert(value != null);
     this._offsets = value;
   }
 
-  /**
-   * The lengths of the expressions that would be replaced by a reference to
-   * the variable. The lengths correspond to the offsets. In other words, for a
-   * given expression, if the offset of that expression is offsets[i], then the
-   * length of that expression is lengths[i].
-   */
+  /// The lengths of the expressions that would be replaced by a reference to
+  /// the variable. The lengths correspond to the offsets. In other words, for
+  /// a given expression, if the offset of that expression is offsets[i], then
+  /// the length of that expression is lengths[i].
   List<int> get lengths => _lengths;
 
-  /**
-   * The lengths of the expressions that would be replaced by a reference to
-   * the variable. The lengths correspond to the offsets. In other words, for a
-   * given expression, if the offset of that expression is offsets[i], then the
-   * length of that expression is lengths[i].
-   */
+  /// The lengths of the expressions that would be replaced by a reference to
+  /// the variable. The lengths correspond to the offsets. In other words, for
+  /// a given expression, if the offset of that expression is offsets[i], then
+  /// the length of that expression is lengths[i].
   set lengths(List<int> value) {
     assert(value != null);
     this._lengths = value;
@@ -3706,48 +3382,38 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback {
   }
 }
 
-/**
- * extractLocalVariable options
- *
- * {
- *   "name": String
- *   "extractAll": bool
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// extractLocalVariable options
+///
+/// {
+///   "name": String
+///   "extractAll": bool
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ExtractLocalVariableOptions extends RefactoringOptions {
   String _name;
 
   bool _extractAll;
 
-  /**
-   * The name that the local variable should be given.
-   */
+  /// The name that the local variable should be given.
   String get name => _name;
 
-  /**
-   * The name that the local variable should be given.
-   */
+  /// The name that the local variable should be given.
   set name(String value) {
     assert(value != null);
     this._name = value;
   }
 
-  /**
-   * True if all occurrences of the expression within the scope in which the
-   * variable will be defined should be replaced by a reference to the local
-   * variable. The expression used to initiate the refactoring will always be
-   * replaced.
-   */
+  /// True if all occurrences of the expression within the scope in which the
+  /// variable will be defined should be replaced by a reference to the local
+  /// variable. The expression used to initiate the refactoring will always be
+  /// replaced.
   bool get extractAll => _extractAll;
 
-  /**
-   * True if all occurrences of the expression within the scope in which the
-   * variable will be defined should be replaced by a reference to the local
-   * variable. The expression used to initiate the refactoring will always be
-   * replaced.
-   */
+  /// True if all occurrences of the expression within the scope in which the
+  /// variable will be defined should be replaced by a reference to the local
+  /// variable. The expression used to initiate the refactoring will always be
+  /// replaced.
   set extractAll(bool value) {
     assert(value != null);
     this._extractAll = value;
@@ -3818,22 +3484,20 @@ class ExtractLocalVariableOptions extends RefactoringOptions {
   }
 }
 
-/**
- * extractMethod feedback
- *
- * {
- *   "offset": int
- *   "length": int
- *   "returnType": String
- *   "names": List<String>
- *   "canCreateGetter": bool
- *   "parameters": List<RefactoringMethodParameter>
- *   "offsets": List<int>
- *   "lengths": List<int>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// extractMethod feedback
+///
+/// {
+///   "offset": int
+///   "length": int
+///   "returnType": String
+///   "names": List<String>
+///   "canCreateGetter": bool
+///   "parameters": List<RefactoringMethodParameter>
+///   "offsets": List<int>
+///   "lengths": List<int>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ExtractMethodFeedback extends RefactoringFeedback {
   int _offset;
 
@@ -3851,119 +3515,87 @@ class ExtractMethodFeedback extends RefactoringFeedback {
 
   List<int> _lengths;
 
-  /**
-   * The offset to the beginning of the expression or statements that will be
-   * extracted.
-   */
+  /// The offset to the beginning of the expression or statements that will be
+  /// extracted.
   int get offset => _offset;
 
-  /**
-   * The offset to the beginning of the expression or statements that will be
-   * extracted.
-   */
+  /// The offset to the beginning of the expression or statements that will be
+  /// extracted.
   set offset(int value) {
     assert(value != null);
     this._offset = value;
   }
 
-  /**
-   * The length of the expression or statements that will be extracted.
-   */
+  /// The length of the expression or statements that will be extracted.
   int get length => _length;
 
-  /**
-   * The length of the expression or statements that will be extracted.
-   */
+  /// The length of the expression or statements that will be extracted.
   set length(int value) {
     assert(value != null);
     this._length = value;
   }
 
-  /**
-   * The proposed return type for the method. If the returned element does not
-   * have a declared return type, this field will contain an empty string.
-   */
+  /// The proposed return type for the method. If the returned element does not
+  /// have a declared return type, this field will contain an empty string.
   String get returnType => _returnType;
 
-  /**
-   * The proposed return type for the method. If the returned element does not
-   * have a declared return type, this field will contain an empty string.
-   */
+  /// The proposed return type for the method. If the returned element does not
+  /// have a declared return type, this field will contain an empty string.
   set returnType(String value) {
     assert(value != null);
     this._returnType = value;
   }
 
-  /**
-   * The proposed names for the method.
-   */
+  /// The proposed names for the method.
   List<String> get names => _names;
 
-  /**
-   * The proposed names for the method.
-   */
+  /// The proposed names for the method.
   set names(List<String> value) {
     assert(value != null);
     this._names = value;
   }
 
-  /**
-   * True if a getter could be created rather than a method.
-   */
+  /// True if a getter could be created rather than a method.
   bool get canCreateGetter => _canCreateGetter;
 
-  /**
-   * True if a getter could be created rather than a method.
-   */
+  /// True if a getter could be created rather than a method.
   set canCreateGetter(bool value) {
     assert(value != null);
     this._canCreateGetter = value;
   }
 
-  /**
-   * The proposed parameters for the method.
-   */
+  /// The proposed parameters for the method.
   List<RefactoringMethodParameter> get parameters => _parameters;
 
-  /**
-   * The proposed parameters for the method.
-   */
+  /// The proposed parameters for the method.
   set parameters(List<RefactoringMethodParameter> value) {
     assert(value != null);
     this._parameters = value;
   }
 
-  /**
-   * The offsets of the expressions or statements that would be replaced by an
-   * invocation of the method.
-   */
+  /// The offsets of the expressions or statements that would be replaced by an
+  /// invocation of the method.
   List<int> get offsets => _offsets;
 
-  /**
-   * The offsets of the expressions or statements that would be replaced by an
-   * invocation of the method.
-   */
+  /// The offsets of the expressions or statements that would be replaced by an
+  /// invocation of the method.
   set offsets(List<int> value) {
     assert(value != null);
     this._offsets = value;
   }
 
-  /**
-   * The lengths of the expressions or statements that would be replaced by an
-   * invocation of the method. The lengths correspond to the offsets. In other
-   * words, for a given expression (or block of statements), if the offset of
-   * that expression is offsets[i], then the length of that expression is
-   * lengths[i].
-   */
+  /// The lengths of the expressions or statements that would be replaced by an
+  /// invocation of the method. The lengths correspond to the offsets. In other
+  /// words, for a given expression (or block of statements), if the offset of
+  /// that expression is offsets[i], then the length of that expression is
+  /// lengths[i].
   List<int> get lengths => _lengths;
 
-  /**
-   * The lengths of the expressions or statements that would be replaced by an
-   * invocation of the method. The lengths correspond to the offsets. In other
-   * words, for a given expression (or block of statements), if the offset of
-   * that expression is offsets[i], then the length of that expression is
-   * lengths[i].
-   */
+  /// The lengths of the expressions or statements that would be replaced by an
+  /// invocation of the method. The lengths correspond to the offsets. In other
+  /// words, for a given expression (or block of statements), if the offset of
+  /// that expression is offsets[i], then the length of that expression is
+  /// lengths[i].
   set lengths(List<int> value) {
     assert(value != null);
     this._lengths = value;
@@ -4112,19 +3744,17 @@ class ExtractMethodFeedback extends RefactoringFeedback {
   }
 }
 
-/**
- * extractMethod options
- *
- * {
- *   "returnType": String
- *   "createGetter": bool
- *   "name": String
- *   "parameters": List<RefactoringMethodParameter>
- *   "extractAll": bool
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// extractMethod options
+///
+/// {
+///   "returnType": String
+///   "createGetter": bool
+///   "name": String
+///   "parameters": List<RefactoringMethodParameter>
+///   "extractAll": bool
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ExtractMethodOptions extends RefactoringOptions {
   String _returnType;
 
@@ -4136,90 +3766,70 @@ class ExtractMethodOptions extends RefactoringOptions {
 
   bool _extractAll;
 
-  /**
-   * The return type that should be defined for the method.
-   */
+  /// The return type that should be defined for the method.
   String get returnType => _returnType;
 
-  /**
-   * The return type that should be defined for the method.
-   */
+  /// The return type that should be defined for the method.
   set returnType(String value) {
     assert(value != null);
     this._returnType = value;
   }
 
-  /**
-   * True if a getter should be created rather than a method. It is an error if
-   * this field is true and the list of parameters is non-empty.
-   */
+  /// True if a getter should be created rather than a method. It is an error
+  /// if this field is true and the list of parameters is non-empty.
   bool get createGetter => _createGetter;
 
-  /**
-   * True if a getter should be created rather than a method. It is an error if
-   * this field is true and the list of parameters is non-empty.
-   */
+  /// True if a getter should be created rather than a method. It is an error
+  /// if this field is true and the list of parameters is non-empty.
   set createGetter(bool value) {
     assert(value != null);
     this._createGetter = value;
   }
 
-  /**
-   * The name that the method should be given.
-   */
+  /// The name that the method should be given.
   String get name => _name;
 
-  /**
-   * The name that the method should be given.
-   */
+  /// The name that the method should be given.
   set name(String value) {
     assert(value != null);
     this._name = value;
   }
 
-  /**
-   * The parameters that should be defined for the method.
-   *
-   * It is an error if a REQUIRED or NAMED parameter follows a POSITIONAL
-   * parameter. It is an error if a REQUIRED or POSITIONAL parameter follows a
-   * NAMED parameter.
-   *
-   * - To change the order and/or update proposed parameters, add parameters
-   *   with the same identifiers as proposed.
-   * - To add new parameters, omit their identifier.
-   * - To remove some parameters, omit them in this list.
-   */
+  /// The parameters that should be defined for the method.
+  ///
+  /// It is an error if a REQUIRED or NAMED parameter follows a POSITIONAL
+  /// parameter. It is an error if a REQUIRED or POSITIONAL parameter follows a
+  /// NAMED parameter.
+  ///
+  /// - To change the order and/or update proposed parameters, add parameters
+  ///   with the same identifiers as proposed.
+  /// - To add new parameters, omit their identifier.
+  /// - To remove some parameters, omit them in this list.
   List<RefactoringMethodParameter> get parameters => _parameters;
 
-  /**
-   * The parameters that should be defined for the method.
-   *
-   * It is an error if a REQUIRED or NAMED parameter follows a POSITIONAL
-   * parameter. It is an error if a REQUIRED or POSITIONAL parameter follows a
-   * NAMED parameter.
-   *
-   * - To change the order and/or update proposed parameters, add parameters
-   *   with the same identifiers as proposed.
-   * - To add new parameters, omit their identifier.
-   * - To remove some parameters, omit them in this list.
-   */
+  /// The parameters that should be defined for the method.
+  ///
+  /// It is an error if a REQUIRED or NAMED parameter follows a POSITIONAL
+  /// parameter. It is an error if a REQUIRED or POSITIONAL parameter follows a
+  /// NAMED parameter.
+  ///
+  /// - To change the order and/or update proposed parameters, add parameters
+  ///   with the same identifiers as proposed.
+  /// - To add new parameters, omit their identifier.
+  /// - To remove some parameters, omit them in this list.
   set parameters(List<RefactoringMethodParameter> value) {
     assert(value != null);
     this._parameters = value;
   }
 
-  /**
-   * True if all occurrences of the expression or statements should be replaced
-   * by an invocation of the method. The expression or statements used to
-   * initiate the refactoring will always be replaced.
-   */
+  /// True if all occurrences of the expression or statements should be
+  /// replaced by an invocation of the method. The expression or statements
+  /// used to initiate the refactoring will always be replaced.
   bool get extractAll => _extractAll;
 
-  /**
-   * True if all occurrences of the expression or statements should be replaced
-   * by an invocation of the method. The expression or statements used to
-   * initiate the refactoring will always be replaced.
-   */
+  /// True if all occurrences of the expression or statements should be
+  /// replaced by an invocation of the method. The expression or statements
+  /// used to initiate the refactoring will always be replaced.
   set extractAll(bool value) {
     assert(value != null);
     this._extractAll = value;
@@ -4335,42 +3945,32 @@ class ExtractMethodOptions extends RefactoringOptions {
   }
 }
 
-/**
- * inlineLocalVariable feedback
- *
- * {
- *   "name": String
- *   "occurrences": int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// inlineLocalVariable feedback
+///
+/// {
+///   "name": String
+///   "occurrences": int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class InlineLocalVariableFeedback extends RefactoringFeedback {
   String _name;
 
   int _occurrences;
 
-  /**
-   * The name of the variable being inlined.
-   */
+  /// The name of the variable being inlined.
   String get name => _name;
 
-  /**
-   * The name of the variable being inlined.
-   */
+  /// The name of the variable being inlined.
   set name(String value) {
     assert(value != null);
     this._name = value;
   }
 
-  /**
-   * The number of times the variable occurs.
-   */
+  /// The number of times the variable occurs.
   int get occurrences => _occurrences;
 
-  /**
-   * The number of times the variable occurs.
-   */
+  /// The number of times the variable occurs.
   set occurrences(int value) {
     assert(value != null);
     this._occurrences = value;
@@ -4435,11 +4035,9 @@ class InlineLocalVariableFeedback extends RefactoringFeedback {
   }
 }
 
-/**
- * inlineLocalVariable options
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// inlineLocalVariable options
+///
+/// Clients may not extend, implement or mix-in this class.
 class InlineLocalVariableOptions extends RefactoringOptions
     implements HasToJson {
   @override
@@ -4456,17 +4054,15 @@ class InlineLocalVariableOptions extends RefactoringOptions
   }
 }
 
-/**
- * inlineMethod feedback
- *
- * {
- *   "className": optional String
- *   "methodName": String
- *   "isDeclaration": bool
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// inlineMethod feedback
+///
+/// {
+///   "className": optional String
+///   "methodName": String
+///   "isDeclaration": bool
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class InlineMethodFeedback extends RefactoringFeedback {
   String _className;
 
@@ -4474,43 +4070,31 @@ class InlineMethodFeedback extends RefactoringFeedback {
 
   bool _isDeclaration;
 
-  /**
-   * The name of the class enclosing the method being inlined. If not a class
-   * member is being inlined, this field will be absent.
-   */
+  /// The name of the class enclosing the method being inlined. If not a class
+  /// member is being inlined, this field will be absent.
   String get className => _className;
 
-  /**
-   * The name of the class enclosing the method being inlined. If not a class
-   * member is being inlined, this field will be absent.
-   */
+  /// The name of the class enclosing the method being inlined. If not a class
+  /// member is being inlined, this field will be absent.
   set className(String value) {
     this._className = value;
   }
 
-  /**
-   * The name of the method (or function) being inlined.
-   */
+  /// The name of the method (or function) being inlined.
   String get methodName => _methodName;
 
-  /**
-   * The name of the method (or function) being inlined.
-   */
+  /// The name of the method (or function) being inlined.
   set methodName(String value) {
     assert(value != null);
     this._methodName = value;
   }
 
-  /**
-   * True if the declaration of the method is selected and all references
-   * should be inlined.
-   */
+  /// True if the declaration of the method is selected and all references
+  /// should be inlined.
   bool get isDeclaration => _isDeclaration;
 
-  /**
-   * True if the declaration of the method is selected and all references
-   * should be inlined.
-   */
+  /// True if the declaration of the method is selected and all references
+  /// should be inlined.
   set isDeclaration(bool value) {
     assert(value != null);
     this._isDeclaration = value;
@@ -4589,46 +4173,36 @@ class InlineMethodFeedback extends RefactoringFeedback {
   }
 }
 
-/**
- * inlineMethod options
- *
- * {
- *   "deleteSource": bool
- *   "inlineAll": bool
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// inlineMethod options
+///
+/// {
+///   "deleteSource": bool
+///   "inlineAll": bool
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class InlineMethodOptions extends RefactoringOptions {
   bool _deleteSource;
 
   bool _inlineAll;
 
-  /**
-   * True if the method being inlined should be removed. It is an error if this
-   * field is true and inlineAll is false.
-   */
+  /// True if the method being inlined should be removed. It is an error if
+  /// this field is true and inlineAll is false.
   bool get deleteSource => _deleteSource;
 
-  /**
-   * True if the method being inlined should be removed. It is an error if this
-   * field is true and inlineAll is false.
-   */
+  /// True if the method being inlined should be removed. It is an error if
+  /// this field is true and inlineAll is false.
   set deleteSource(bool value) {
     assert(value != null);
     this._deleteSource = value;
   }
 
-  /**
-   * True if all invocations of the method should be inlined, or false if only
-   * the invocation site used to create this refactoring should be inlined.
-   */
+  /// True if all invocations of the method should be inlined, or false if only
+  /// the invocation site used to create this refactoring should be inlined.
   bool get inlineAll => _inlineAll;
 
-  /**
-   * True if all invocations of the method should be inlined, or false if only
-   * the invocation site used to create this refactoring should be inlined.
-   */
+  /// True if all invocations of the method should be inlined, or false if only
+  /// the invocation site used to create this refactoring should be inlined.
   set inlineAll(bool value) {
     assert(value != null);
     this._inlineAll = value;
@@ -4699,28 +4273,22 @@ class InlineMethodOptions extends RefactoringOptions {
   }
 }
 
-/**
- * kythe.getKytheEntries params
- *
- * {
- *   "file": FilePath
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// kythe.getKytheEntries params
+///
+/// {
+///   "file": FilePath
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class KytheGetKytheEntriesParams implements RequestParams {
   String _file;
 
-  /**
-   * The file containing the code for which the Kythe Entry objects are being
-   * requested.
-   */
+  /// The file containing the code for which the Kythe Entry objects are being
+  /// requested.
   String get file => _file;
 
-  /**
-   * The file containing the code for which the Kythe Entry objects are being
-   * requested.
-   */
+  /// The file containing the code for which the Kythe Entry objects are being
+  /// requested.
   set file(String value) {
     assert(value != null);
     this._file = value;
@@ -4785,48 +4353,38 @@ class KytheGetKytheEntriesParams implements RequestParams {
   }
 }
 
-/**
- * kythe.getKytheEntries result
- *
- * {
- *   "entries": List<KytheEntry>
- *   "files": List<FilePath>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// kythe.getKytheEntries result
+///
+/// {
+///   "entries": List<KytheEntry>
+///   "files": List<FilePath>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class KytheGetKytheEntriesResult implements ResponseResult {
   List<KytheEntry> _entries;
 
   List<String> _files;
 
-  /**
-   * The list of KytheEntry objects for the queried file.
-   */
+  /// The list of KytheEntry objects for the queried file.
   List<KytheEntry> get entries => _entries;
 
-  /**
-   * The list of KytheEntry objects for the queried file.
-   */
+  /// The list of KytheEntry objects for the queried file.
   set entries(List<KytheEntry> value) {
     assert(value != null);
     this._entries = value;
   }
 
-  /**
-   * The set of files paths that were required, but not in the file system, to
-   * give a complete and accurate Kythe graph for the file. This could be due
-   * to a referenced file that does not exist or generated files not being
-   * generated or passed before the call to "getKytheEntries".
-   */
+  /// The set of files paths that were required, but not in the file system, to
+  /// give a complete and accurate Kythe graph for the file. This could be due
+  /// to a referenced file that does not exist or generated files not being
+  /// generated or passed before the call to "getKytheEntries".
   List<String> get files => _files;
 
-  /**
-   * The set of files paths that were required, but not in the file system, to
-   * give a complete and accurate Kythe graph for the file. This could be due
-   * to a referenced file that does not exist or generated files not being
-   * generated or passed before the call to "getKytheEntries".
-   */
+  /// The set of files paths that were required, but not in the file system, to
+  /// give a complete and accurate Kythe graph for the file. This could be due
+  /// to a referenced file that does not exist or generated files not being
+  /// generated or passed before the call to "getKytheEntries".
   set files(List<String> value) {
     assert(value != null);
     this._files = value;
@@ -4910,11 +4468,9 @@ class KytheGetKytheEntriesResult implements ResponseResult {
   }
 }
 
-/**
- * moveFile feedback
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// moveFile feedback
+///
+/// Clients may not extend, implement or mix-in this class.
 class MoveFileFeedback extends RefactoringFeedback implements HasToJson {
   @override
   bool operator ==(other) {
@@ -4930,26 +4486,20 @@ class MoveFileFeedback extends RefactoringFeedback implements HasToJson {
   }
 }
 
-/**
- * moveFile options
- *
- * {
- *   "newFile": FilePath
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// moveFile options
+///
+/// {
+///   "newFile": FilePath
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class MoveFileOptions extends RefactoringOptions {
   String _newFile;
 
-  /**
-   * The new file path to which the given file is being moved.
-   */
+  /// The new file path to which the given file is being moved.
   String get newFile => _newFile;
 
-  /**
-   * The new file path to which the given file is being moved.
-   */
+  /// The new file path to which the given file is being moved.
   set newFile(String value) {
     assert(value != null);
     this._newFile = value;
@@ -5010,17 +4560,15 @@ class MoveFileOptions extends RefactoringOptions {
   }
 }
 
-/**
- * plugin.error params
- *
- * {
- *   "isFatal": bool
- *   "message": String
- *   "stackTrace": String
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// plugin.error params
+///
+/// {
+///   "isFatal": bool
+///   "message": String
+///   "stackTrace": String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class PluginErrorParams implements HasToJson {
   bool _isFatal;
 
@@ -5028,48 +4576,36 @@ class PluginErrorParams implements HasToJson {
 
   String _stackTrace;
 
-  /**
-   * A flag indicating whether the error is a fatal error, meaning that the
-   * plugin will shutdown automatically after sending this notification. If
-   * true, the server will not expect any other responses or notifications from
-   * the plugin.
-   */
+  /// A flag indicating whether the error is a fatal error, meaning that the
+  /// plugin will shutdown automatically after sending this notification. If
+  /// true, the server will not expect any other responses or notifications
+  /// from the plugin.
   bool get isFatal => _isFatal;
 
-  /**
-   * A flag indicating whether the error is a fatal error, meaning that the
-   * plugin will shutdown automatically after sending this notification. If
-   * true, the server will not expect any other responses or notifications from
-   * the plugin.
-   */
+  /// A flag indicating whether the error is a fatal error, meaning that the
+  /// plugin will shutdown automatically after sending this notification. If
+  /// true, the server will not expect any other responses or notifications
+  /// from the plugin.
   set isFatal(bool value) {
     assert(value != null);
     this._isFatal = value;
   }
 
-  /**
-   * The error message indicating what kind of error was encountered.
-   */
+  /// The error message indicating what kind of error was encountered.
   String get message => _message;
 
-  /**
-   * The error message indicating what kind of error was encountered.
-   */
+  /// The error message indicating what kind of error was encountered.
   set message(String value) {
     assert(value != null);
     this._message = value;
   }
 
-  /**
-   * The stack trace associated with the generation of the error, used for
-   * debugging the plugin.
-   */
+  /// The stack trace associated with the generation of the error, used for
+  /// debugging the plugin.
   String get stackTrace => _stackTrace;
 
-  /**
-   * The stack trace associated with the generation of the error, used for
-   * debugging the plugin.
-   */
+  /// The stack trace associated with the generation of the error, used for
+  /// debugging the plugin.
   set stackTrace(String value) {
     assert(value != null);
     this._stackTrace = value;
@@ -5155,11 +4691,9 @@ class PluginErrorParams implements HasToJson {
   }
 }
 
-/**
- * plugin.shutdown params
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// plugin.shutdown params
+///
+/// Clients may not extend, implement or mix-in this class.
 class PluginShutdownParams implements RequestParams {
   @override
   Map<String, dynamic> toJson() => <String, dynamic>{};
@@ -5183,11 +4717,9 @@ class PluginShutdownParams implements RequestParams {
   }
 }
 
-/**
- * plugin.shutdown result
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// plugin.shutdown result
+///
+/// Clients may not extend, implement or mix-in this class.
 class PluginShutdownResult implements ResponseResult {
   @override
   Map<String, dynamic> toJson() => <String, dynamic>{};
@@ -5211,17 +4743,15 @@ class PluginShutdownResult implements ResponseResult {
   }
 }
 
-/**
- * plugin.versionCheck params
- *
- * {
- *   "byteStorePath": FilePath
- *   "sdkPath": FilePath
- *   "version": String
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// plugin.versionCheck params
+///
+/// {
+///   "byteStorePath": FilePath
+///   "sdkPath": FilePath
+///   "version": String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class PluginVersionCheckParams implements RequestParams {
   String _byteStorePath;
 
@@ -5229,46 +4759,34 @@ class PluginVersionCheckParams implements RequestParams {
 
   String _version;
 
-  /**
-   * The path to the directory containing the on-disk byte store that is to be
-   * used by any analysis drivers that are created.
-   */
+  /// The path to the directory containing the on-disk byte store that is to be
+  /// used by any analysis drivers that are created.
   String get byteStorePath => _byteStorePath;
 
-  /**
-   * The path to the directory containing the on-disk byte store that is to be
-   * used by any analysis drivers that are created.
-   */
+  /// The path to the directory containing the on-disk byte store that is to be
+  /// used by any analysis drivers that are created.
   set byteStorePath(String value) {
     assert(value != null);
     this._byteStorePath = value;
   }
 
-  /**
-   * The path to the directory containing the SDK that is to be used by any
-   * analysis drivers that are created.
-   */
+  /// The path to the directory containing the SDK that is to be used by any
+  /// analysis drivers that are created.
   String get sdkPath => _sdkPath;
 
-  /**
-   * The path to the directory containing the SDK that is to be used by any
-   * analysis drivers that are created.
-   */
+  /// The path to the directory containing the SDK that is to be used by any
+  /// analysis drivers that are created.
   set sdkPath(String value) {
     assert(value != null);
     this._sdkPath = value;
   }
 
-  /**
-   * The version number of the plugin spec supported by the analysis server
-   * that is executing the plugin.
-   */
+  /// The version number of the plugin spec supported by the analysis server
+  /// that is executing the plugin.
   String get version => _version;
 
-  /**
-   * The version number of the plugin spec supported by the analysis server
-   * that is executing the plugin.
-   */
+  /// The version number of the plugin spec supported by the analysis server
+  /// that is executing the plugin.
   set version(String value) {
     assert(value != null);
     this._version = value;
@@ -5356,19 +4874,17 @@ class PluginVersionCheckParams implements RequestParams {
   }
 }
 
-/**
- * plugin.versionCheck result
- *
- * {
- *   "isCompatible": bool
- *   "name": String
- *   "version": String
- *   "contactInfo": optional String
- *   "interestingFiles": List<String>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// plugin.versionCheck result
+///
+/// {
+///   "isCompatible": bool
+///   "name": String
+///   "version": String
+///   "contactInfo": optional String
+///   "interestingFiles": List<String>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class PluginVersionCheckResult implements ResponseResult {
   bool _isCompatible;
 
@@ -5380,81 +4896,61 @@ class PluginVersionCheckResult implements ResponseResult {
 
   List<String> _interestingFiles;
 
-  /**
-   * A flag indicating whether the plugin supports the same version of the
-   * plugin spec as the analysis server. If the value is false, then the plugin
-   * is expected to shutdown after returning the response.
-   */
+  /// A flag indicating whether the plugin supports the same version of the
+  /// plugin spec as the analysis server. If the value is false, then the
+  /// plugin is expected to shutdown after returning the response.
   bool get isCompatible => _isCompatible;
 
-  /**
-   * A flag indicating whether the plugin supports the same version of the
-   * plugin spec as the analysis server. If the value is false, then the plugin
-   * is expected to shutdown after returning the response.
-   */
+  /// A flag indicating whether the plugin supports the same version of the
+  /// plugin spec as the analysis server. If the value is false, then the
+  /// plugin is expected to shutdown after returning the response.
   set isCompatible(bool value) {
     assert(value != null);
     this._isCompatible = value;
   }
 
-  /**
-   * The name of the plugin. This value is only used when the server needs to
-   * identify the plugin, either to the user or for debugging purposes.
-   */
+  /// The name of the plugin. This value is only used when the server needs to
+  /// identify the plugin, either to the user or for debugging purposes.
   String get name => _name;
 
-  /**
-   * The name of the plugin. This value is only used when the server needs to
-   * identify the plugin, either to the user or for debugging purposes.
-   */
+  /// The name of the plugin. This value is only used when the server needs to
+  /// identify the plugin, either to the user or for debugging purposes.
   set name(String value) {
     assert(value != null);
     this._name = value;
   }
 
-  /**
-   * The version of the plugin. This value is only used when the server needs
-   * to identify the plugin, either to the user or for debugging purposes.
-   */
+  /// The version of the plugin. This value is only used when the server needs
+  /// to identify the plugin, either to the user or for debugging purposes.
   String get version => _version;
 
-  /**
-   * The version of the plugin. This value is only used when the server needs
-   * to identify the plugin, either to the user or for debugging purposes.
-   */
+  /// The version of the plugin. This value is only used when the server needs
+  /// to identify the plugin, either to the user or for debugging purposes.
   set version(String value) {
     assert(value != null);
     this._version = value;
   }
 
-  /**
-   * Information that the user can use to use to contact the maintainers of the
-   * plugin when there is a problem.
-   */
+  /// Information that the user can use to use to contact the maintainers of
+  /// the plugin when there is a problem.
   String get contactInfo => _contactInfo;
 
-  /**
-   * Information that the user can use to use to contact the maintainers of the
-   * plugin when there is a problem.
-   */
+  /// Information that the user can use to use to contact the maintainers of
+  /// the plugin when there is a problem.
   set contactInfo(String value) {
     this._contactInfo = value;
   }
 
-  /**
-   * The glob patterns of the files for which the plugin will provide
-   * information. This value is ignored if the isCompatible field is false.
-   * Otherwise, it will be used to identify the files for which the plugin
-   * should be notified of changes.
-   */
+  /// The glob patterns of the files for which the plugin will provide
+  /// information. This value is ignored if the isCompatible field is false.
+  /// Otherwise, it will be used to identify the files for which the plugin
+  /// should be notified of changes.
   List<String> get interestingFiles => _interestingFiles;
 
-  /**
-   * The glob patterns of the files for which the plugin will provide
-   * information. This value is ignored if the isCompatible field is false.
-   * Otherwise, it will be used to identify the files for which the plugin
-   * should be notified of changes.
-   */
+  /// The glob patterns of the files for which the plugin will provide
+  /// information. This value is ignored if the isCompatible field is false.
+  /// Otherwise, it will be used to identify the files for which the plugin
+  /// should be notified of changes.
   set interestingFiles(List<String> value) {
     assert(value != null);
     this._interestingFiles = value;
@@ -5571,44 +5067,34 @@ class PluginVersionCheckResult implements ResponseResult {
   }
 }
 
-/**
- * PrioritizedSourceChange
- *
- * {
- *   "priority": int
- *   "change": SourceChange
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// PrioritizedSourceChange
+///
+/// {
+///   "priority": int
+///   "change": SourceChange
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class PrioritizedSourceChange implements HasToJson {
   int _priority;
 
   SourceChange _change;
 
-  /**
-   * The priority of the change. The value is expected to be non-negative, and
-   * zero (0) is the lowest priority.
-   */
+  /// The priority of the change. The value is expected to be non-negative, and
+  /// zero (0) is the lowest priority.
   int get priority => _priority;
 
-  /**
-   * The priority of the change. The value is expected to be non-negative, and
-   * zero (0) is the lowest priority.
-   */
+  /// The priority of the change. The value is expected to be non-negative, and
+  /// zero (0) is the lowest priority.
   set priority(int value) {
     assert(value != null);
     this._priority = value;
   }
 
-  /**
-   * The change with which the relevance is associated.
-   */
+  /// The change with which the relevance is associated.
   SourceChange get change => _change;
 
-  /**
-   * The change with which the relevance is associated.
-   */
+  /// The change with which the relevance is associated.
   set change(SourceChange value) {
     assert(value != null);
     this._change = value;
@@ -5673,14 +5159,12 @@ class PrioritizedSourceChange implements HasToJson {
   }
 }
 
-/**
- * RefactoringFeedback
- *
- * {
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// RefactoringFeedback
+///
+/// {
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class RefactoringFeedback implements HasToJson {
   RefactoringFeedback();
 
@@ -5714,14 +5198,12 @@ class RefactoringFeedback implements HasToJson {
   }
 }
 
-/**
- * RefactoringOptions
- *
- * {
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// RefactoringOptions
+///
+/// {
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class RefactoringOptions implements HasToJson {
   RefactoringOptions();
 
@@ -5754,18 +5236,16 @@ class RefactoringOptions implements HasToJson {
   }
 }
 
-/**
- * rename feedback
- *
- * {
- *   "offset": int
- *   "length": int
- *   "elementKindName": String
- *   "oldName": String
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// rename feedback
+///
+/// {
+///   "offset": int
+///   "length": int
+///   "elementKindName": String
+///   "oldName": String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class RenameFeedback extends RefactoringFeedback {
   int _offset;
 
@@ -5775,55 +5255,39 @@ class RenameFeedback extends RefactoringFeedback {
 
   String _oldName;
 
-  /**
-   * The offset to the beginning of the name selected to be renamed.
-   */
+  /// The offset to the beginning of the name selected to be renamed.
   int get offset => _offset;
 
-  /**
-   * The offset to the beginning of the name selected to be renamed.
-   */
+  /// The offset to the beginning of the name selected to be renamed.
   set offset(int value) {
     assert(value != null);
     this._offset = value;
   }
 
-  /**
-   * The length of the name selected to be renamed.
-   */
+  /// The length of the name selected to be renamed.
   int get length => _length;
 
-  /**
-   * The length of the name selected to be renamed.
-   */
+  /// The length of the name selected to be renamed.
   set length(int value) {
     assert(value != null);
     this._length = value;
   }
 
-  /**
-   * The human-readable description of the kind of element being renamed (such
-   * as “class” or “function type alias”).
-   */
+  /// The human-readable description of the kind of element being renamed (such
+  /// as “class” or “function type alias”).
   String get elementKindName => _elementKindName;
 
-  /**
-   * The human-readable description of the kind of element being renamed (such
-   * as “class” or “function type alias”).
-   */
+  /// The human-readable description of the kind of element being renamed (such
+  /// as “class” or “function type alias”).
   set elementKindName(String value) {
     assert(value != null);
     this._elementKindName = value;
   }
 
-  /**
-   * The old name of the element before the refactoring.
-   */
+  /// The old name of the element before the refactoring.
   String get oldName => _oldName;
 
-  /**
-   * The old name of the element before the refactoring.
-   */
+  /// The old name of the element before the refactoring.
   set oldName(String value) {
     assert(value != null);
     this._oldName = value;
@@ -5910,26 +5374,20 @@ class RenameFeedback extends RefactoringFeedback {
   }
 }
 
-/**
- * rename options
- *
- * {
- *   "newName": String
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// rename options
+///
+/// {
+///   "newName": String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class RenameOptions extends RefactoringOptions {
   String _newName;
 
-  /**
-   * The name that the element should have after the refactoring.
-   */
+  /// The name that the element should have after the refactoring.
   String get newName => _newName;
 
-  /**
-   * The name that the element should have after the refactoring.
-   */
+  /// The name that the element should have after the refactoring.
   set newName(String value) {
     assert(value != null);
     this._newName = value;
@@ -5990,17 +5448,15 @@ class RenameOptions extends RefactoringOptions {
   }
 }
 
-/**
- * RequestError
- *
- * {
- *   "code": RequestErrorCode
- *   "message": String
- *   "stackTrace": optional String
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// RequestError
+///
+/// {
+///   "code": RequestErrorCode
+///   "message": String
+///   "stackTrace": optional String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class RequestError implements HasToJson {
   RequestErrorCode _code;
 
@@ -6008,42 +5464,30 @@ class RequestError implements HasToJson {
 
   String _stackTrace;
 
-  /**
-   * A code that uniquely identifies the error that occurred.
-   */
+  /// A code that uniquely identifies the error that occurred.
   RequestErrorCode get code => _code;
 
-  /**
-   * A code that uniquely identifies the error that occurred.
-   */
+  /// A code that uniquely identifies the error that occurred.
   set code(RequestErrorCode value) {
     assert(value != null);
     this._code = value;
   }
 
-  /**
-   * A short description of the error.
-   */
+  /// A short description of the error.
   String get message => _message;
 
-  /**
-   * A short description of the error.
-   */
+  /// A short description of the error.
   set message(String value) {
     assert(value != null);
     this._message = value;
   }
 
-  /**
-   * The stack trace associated with processing the request, used for debugging
-   * the plugin.
-   */
+  /// The stack trace associated with processing the request, used for
+  /// debugging the plugin.
   String get stackTrace => _stackTrace;
 
-  /**
-   * The stack trace associated with processing the request, used for debugging
-   * the plugin.
-   */
+  /// The stack trace associated with processing the request, used for
+  /// debugging the plugin.
   set stackTrace(String value) {
     this._stackTrace = value;
   }
@@ -6119,55 +5563,43 @@ class RequestError implements HasToJson {
   }
 }
 
-/**
- * RequestErrorCode
- *
- * enum {
- *   INVALID_OVERLAY_CHANGE
- *   INVALID_PARAMETER
- *   PLUGIN_ERROR
- *   UNKNOWN_REQUEST
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// RequestErrorCode
+///
+/// enum {
+///   INVALID_OVERLAY_CHANGE
+///   INVALID_PARAMETER
+///   PLUGIN_ERROR
+///   UNKNOWN_REQUEST
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class RequestErrorCode implements Enum {
-  /**
-   * An "analysis.updateContent" request contained a ChangeContentOverlay
-   * object that can't be applied. This can happen for two reasons:
-   *
-   * - there was no preceding AddContentOverlay and hence no content to which
-   *   the edits could be applied, or
-   * - one or more of the specified edits have an offset or length that is out
-   *   of range.
-   */
+  /// An "analysis.updateContent" request contained a ChangeContentOverlay
+  /// object that can't be applied. This can happen for two reasons:
+  ///
+  /// - there was no preceding AddContentOverlay and hence no content to which
+  ///   the edits could be applied, or
+  /// - one or more of the specified edits have an offset or length that is out
+  ///   of range.
   static const RequestErrorCode INVALID_OVERLAY_CHANGE =
       RequestErrorCode._("INVALID_OVERLAY_CHANGE");
 
-  /**
-   * One of the method parameters was invalid.
-   */
+  /// One of the method parameters was invalid.
   static const RequestErrorCode INVALID_PARAMETER =
       RequestErrorCode._("INVALID_PARAMETER");
 
-  /**
-   * An internal error occurred in the plugin while attempting to respond to a
-   * request. Also see the plugin.error notification for errors that occur
-   * outside of handling a request.
-   */
+  /// An internal error occurred in the plugin while attempting to respond to a
+  /// request. Also see the plugin.error notification for errors that occur
+  /// outside of handling a request.
   static const RequestErrorCode PLUGIN_ERROR =
       RequestErrorCode._("PLUGIN_ERROR");
 
-  /**
-   * A request was received that the plugin does not recognize, or cannot
-   * handle in its current configuration.
-   */
+  /// A request was received that the plugin does not recognize, or cannot
+  /// handle in its current configuration.
   static const RequestErrorCode UNKNOWN_REQUEST =
       RequestErrorCode._("UNKNOWN_REQUEST");
 
-  /**
-   * A list containing all of the enum values that are defined.
-   */
+  /// A list containing all of the enum values that are defined.
   static const List<RequestErrorCode> VALUES = <RequestErrorCode>[
     INVALID_OVERLAY_CHANGE,
     INVALID_PARAMETER,
@@ -6212,42 +5644,32 @@ class RequestErrorCode implements Enum {
   String toJson() => name;
 }
 
-/**
- * WatchEvent
- *
- * {
- *   "type": WatchEventType
- *   "path": FilePath
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// WatchEvent
+///
+/// {
+///   "type": WatchEventType
+///   "path": FilePath
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class WatchEvent implements HasToJson {
   WatchEventType _type;
 
   String _path;
 
-  /**
-   * The type of change represented by this event.
-   */
+  /// The type of change represented by this event.
   WatchEventType get type => _type;
 
-  /**
-   * The type of change represented by this event.
-   */
+  /// The type of change represented by this event.
   set type(WatchEventType value) {
     assert(value != null);
     this._type = value;
   }
 
-  /**
-   * The absolute path of the file or directory that changed.
-   */
+  /// The absolute path of the file or directory that changed.
   String get path => _path;
 
-  /**
-   * The absolute path of the file or directory that changed.
-   */
+  /// The absolute path of the file or directory that changed.
   set path(String value) {
     assert(value != null);
     this._path = value;
@@ -6311,36 +5733,26 @@ class WatchEvent implements HasToJson {
   }
 }
 
-/**
- * WatchEventType
- *
- * enum {
- *   ADD
- *   MODIFY
- *   REMOVE
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// WatchEventType
+///
+/// enum {
+///   ADD
+///   MODIFY
+///   REMOVE
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class WatchEventType implements Enum {
-  /**
-   * An indication that the file or directory was added.
-   */
+  /// An indication that the file or directory was added.
   static const WatchEventType ADD = WatchEventType._("ADD");
 
-  /**
-   * An indication that the file was modified.
-   */
+  /// An indication that the file was modified.
   static const WatchEventType MODIFY = WatchEventType._("MODIFY");
 
-  /**
-   * An indication that the file or directory was removed.
-   */
+  /// An indication that the file or directory was removed.
   static const WatchEventType REMOVE = WatchEventType._("REMOVE");
 
-  /**
-   * A list containing all of the enum values that are defined.
-   */
+  /// A list containing all of the enum values that are defined.
   static const List<WatchEventType> VALUES = <WatchEventType>[
     ADD,
     MODIFY,

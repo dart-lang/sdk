@@ -20,6 +20,9 @@ final GeneratedFile target = GeneratedFile(
 class CodegenVisitor extends DartCodegenVisitor with CodeGenerator {
   CodegenVisitor(Api api) : super(api) {
     codeGeneratorSettings.commentLineLength = 79;
+    codeGeneratorSettings.docCommentStartMarker = null;
+    codeGeneratorSettings.docCommentLineLeader = '/// ';
+    codeGeneratorSettings.docCommentEndMarker = null;
     codeGeneratorSettings.languageName = 'dart';
   }
 

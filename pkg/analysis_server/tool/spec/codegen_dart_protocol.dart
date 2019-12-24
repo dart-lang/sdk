@@ -119,6 +119,9 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
         impliedTypes = computeImpliedTypes(api),
         super(api) {
     codeGeneratorSettings.commentLineLength = 79;
+    codeGeneratorSettings.docCommentStartMarker = null;
+    codeGeneratorSettings.docCommentLineLeader = '/// ';
+    codeGeneratorSettings.docCommentEndMarker = null;
     codeGeneratorSettings.languageName = 'dart';
   }
 
@@ -324,9 +327,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
         writeln();
       }
 
-      writeln('/**');
-      writeln(' * A list containing all of the enum values that are defined.');
-      writeln(' */');
+      writeln('/// A list containing all of the enum values that are defined.');
       write('static const List<');
       write(className);
       write('> VALUES = <');

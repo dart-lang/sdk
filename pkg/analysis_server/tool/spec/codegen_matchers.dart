@@ -36,6 +36,9 @@ class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
       : toHtmlVisitor = ToHtmlVisitor(api),
         super(api) {
     codeGeneratorSettings.commentLineLength = 79;
+    codeGeneratorSettings.docCommentStartMarker = null;
+    codeGeneratorSettings.docCommentLineLeader = '/// ';
+    codeGeneratorSettings.docCommentEndMarker = null;
     codeGeneratorSettings.languageName = 'dart';
   }
 
@@ -98,9 +101,7 @@ class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
   visitApi() {
     outputHeader(year: '2017');
     writeln();
-    writeln('/**');
-    writeln(' * Matchers for data types defined in the analysis server API');
-    writeln(' */');
+    writeln('/// Matchers for data types defined in the analysis server API.');
     writeln("import 'package:test/test.dart';");
     writeln();
     writeln("import 'integration_tests.dart';");

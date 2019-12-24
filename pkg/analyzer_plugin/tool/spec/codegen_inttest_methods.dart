@@ -53,6 +53,9 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
       : toHtmlVisitor = ToHtmlVisitor(api),
         super(api) {
     codeGeneratorSettings.commentLineLength = 79;
+    codeGeneratorSettings.docCommentStartMarker = null;
+    codeGeneratorSettings.docCommentLineLeader = '/// ';
+    codeGeneratorSettings.docCommentEndMarker = null;
     codeGeneratorSettings.languageName = 'dart';
   }
 
@@ -99,9 +102,7 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
   visitApi() {
     outputHeader(year: '2017');
     writeln();
-    writeln('/**');
-    writeln(' * Convenience methods for running integration tests');
-    writeln(' */');
+    writeln('/// Convenience methods for running integration tests.');
     writeln("import 'dart:async';");
     writeln();
     writeln("import 'package:$packageName/protocol/protocol_generated.dart';");
@@ -117,9 +118,7 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
       writeln("';");
     }
     writeln();
-    writeln('/**');
-    writeln(' * Convenience methods for running integration tests');
-    writeln(' */');
+    writeln('/// Convenience methods for running integration tests.');
     writeln('abstract class IntegrationTestMixin {');
     indent(() {
       writeln('Server get server;');
