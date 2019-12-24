@@ -138,6 +138,7 @@ import 'instance_access_to_static_member_test.dart'
 import 'instantiate_abstract_class_test.dart' as instantiate_abstract_class;
 import 'invalid_assignment_test.dart' as invalid_assignment;
 import 'invalid_cast_new_expr_test.dart' as invalid_cast_new_expr;
+import 'invalid_constant_test.dart' as invalid_constant;
 import 'invalid_exception_value_test.dart' as invalid_exception_value;
 import 'invalid_extension_argument_count_test.dart'
     as invalid_extension_argument_count;
@@ -249,6 +250,7 @@ import 'non_constant_map_value_from_deferred_library_test.dart'
 import 'non_constant_map_value_test.dart' as non_constant_map_value;
 import 'non_constant_set_element_test.dart' as non_constant_set_element;
 import 'non_constant_type_argument_test.dart' as non_constant_type_argument;
+import 'non_generative_constructor_test.dart' as non_generative_constructor;
 import 'non_native_function_type_argument_to_pointer_test.dart'
     as non_native_function_type_argument_to_pointer;
 import 'non_null_opt_out_test.dart' as non_null_opt_out;
@@ -279,6 +281,10 @@ import 'nullable_type_in_implements_clause_test.dart'
     as nullable_type_in_implements_clause;
 import 'nullable_type_in_on_clause_test.dart' as nullable_type_in_on_clause;
 import 'nullable_type_in_with_clause_test.dart' as nullable_type_in_with_clause;
+import 'object_cannot_extend_another_class_test.dart'
+    as object_cannot_extend_another_class;
+import 'optional_parameter_in_operator_test.dart'
+    as optional_parameter_in_operator;
 import 'override_equals_but_not_hashcode_test.dart'
     as override_equals_but_not_hashcode;
 import 'override_on_non_overriding_field_test.dart'
@@ -290,6 +296,11 @@ import 'override_on_non_overriding_method_test.dart'
 import 'override_on_non_overriding_setter_test.dart'
     as override_on_non_overriding_setter;
 import 'part_of_different_library_test.dart' as part_of_different_library;
+import 'part_of_non_part_test.dart' as part_of_non_part;
+import 'prefix_collides_with_top_level_member_test.dart'
+    as prefix_collides_with_top_level_member;
+import 'prefix_identifier_not_followed_by_dot_test.dart'
+    as prefix_identifier_not_followed_by_dot;
 import 'private_collision_in_mixin_application_test.dart'
     as private_collision_in_mixin_application;
 import 'private_optional_parameter_test.dart' as private_optional_parameter;
@@ -518,6 +529,7 @@ main() {
     instantiate_abstract_class.main();
     invalid_assignment.main();
     invalid_cast_new_expr.main();
+    invalid_constant.main();
     invalid_exception_value.main();
     invalid_extension_argument_count.main();
     invalid_factory_annotation.main();
@@ -597,6 +609,7 @@ main() {
     non_constant_map_value_from_deferred_library.main();
     non_constant_set_element.main();
     non_constant_type_argument.main();
+    non_generative_constructor.main();
     non_native_function_type_argument_to_pointer.main();
     non_null_opt_out.main();
     non_type_in_catch_clause.main();
@@ -618,12 +631,17 @@ main() {
     nullable_type_in_implements_clause.main();
     nullable_type_in_on_clause.main();
     nullable_type_in_with_clause.main();
+    object_cannot_extend_another_class.main();
+    optional_parameter_in_operator.main();
     override_equals_but_not_hashcode.main();
     override_on_non_overriding_field.main();
     override_on_non_overriding_getter.main();
     override_on_non_overriding_method.main();
     override_on_non_overriding_setter.main();
     part_of_different_library.main();
+    part_of_non_part.main();
+    prefix_collides_with_top_level_member.main();
+    prefix_identifier_not_followed_by_dot.main();
     private_collision_in_mixin_application.main();
     private_optional_parameter.main();
     recursive_compile_time_constant.main();

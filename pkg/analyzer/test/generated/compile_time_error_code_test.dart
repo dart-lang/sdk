@@ -30,12 +30,6 @@ class CompileTimeErrorCodeTest extends CompileTimeErrorCodeTestBase {
   test_constEvalThrowsException() {
     return super.test_constEvalThrowsException();
   }
-
-  @override
-  @failingTest
-  test_objectCannotExtendAnotherClass() {
-    return super.test_objectCannotExtendAnotherClass();
-  }
 }
 
 @reflectiveTest
