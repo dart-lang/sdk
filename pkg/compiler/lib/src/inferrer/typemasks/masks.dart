@@ -756,9 +756,27 @@ class CommonMasks implements AbstractValueDomain {
 
   @override
   AbstractBool isInterceptor(TypeMask value) {
+    // TODO(39874): Remove cache when [TypeMask.isDisjoint] is faster.
+    var result = _isInterceptorCache[value];
+    if (result == null) {
+      result = _isInterceptorCacheSecondChance[value] ?? _isInterceptor(value);
+      if (_isInterceptorCache.length >= _kIsInterceptorCacheLimit) {
+        _isInterceptorCacheSecondChance = _isInterceptorCache;
+        _isInterceptorCache = {};
+      }
+      _isInterceptorCache[value] = result;
+    }
+    return result;
+  }
+
+  AbstractBool _isInterceptor(TypeMask value) {
     return AbstractBool.maybeOrFalse(
         !interceptorType.isDisjoint(value, _closedWorld));
   }
+
+  static const _kIsInterceptorCacheLimit = 500;
+  Map<TypeMask, AbstractBool> _isInterceptorCache = {};
+  Map<TypeMask, AbstractBool> _isInterceptorCacheSecondChance = {};
 
   @override
   bool isMap(TypeMask value) {
