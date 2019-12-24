@@ -10,6 +10,7 @@
 
 import 'dart:io';
 
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -127,6 +128,7 @@ main(List<String> args) async {
   assert(listener.numExceptions == 0);
   for (var package in packages) {
     print('Migrating $package');
+    listener.currentPackage = package.name;
     var testUri = thisSdkUri.resolve(package.packagePath);
     var contextCollection = AnalysisContextCollectionImpl(
         includedPaths: [testUri.toFilePath()], sdkPath: sdk.sdkPath);
@@ -140,11 +142,17 @@ main(List<String> args) async {
       var migration = NullabilityMigration(listener, permissive: true);
       for (var file in localFiles) {
         var resolvedUnit = await context.currentSession.getResolvedUnit(file);
-        migration.prepareInput(resolvedUnit);
+        if (!resolvedUnit.errors.any((e) => e.severity == Severity.error)) {
+          migration.prepareInput(resolvedUnit);
+        } else {
+          print('Skipping $file, it has errors.');
+        }
       }
       for (var file in localFiles) {
         var resolvedUnit = await context.currentSession.getResolvedUnit(file);
-        migration.processInput(resolvedUnit);
+        if (!resolvedUnit.errors.any((e) => e.severity == Severity.error)) {
+          migration.processInput(resolvedUnit);
+        }
       }
       migration.finish();
     }
@@ -161,10 +169,17 @@ main(List<String> args) async {
   print('${listener.numExceptions} exceptions in '
       '${listener.groupedExceptions.length} categories');
   print('Exception categories:');
-  var sortedExceptions = listener.groupedExceptions.entries.toList();
-  sortedExceptions.sort((e1, e2) => e2.value.length.compareTo(e1.value.length));
+  var sortedExceptions = listener.groupedExceptions.entries
+      .map((entry) => MapEntry(
+          entry.key,
+          entry.value.entries.toList()
+            ..sort((e1, e2) => e2.value.compareTo(e1.value))))
+      .toList()
+        ..sort((e1, e2) => e2.value.length.compareTo(e1.value.length));
   for (var entry in sortedExceptions) {
-    print('  ${entry.key} (x${entry.value.length})');
+    final packages =
+        entry.value.map((entry) => "${entry.key} x${entry.value}").join(', ');
+    print('  ${entry.key} ($packages)');
   }
 
   if (categoryOfInterest == null) {
@@ -212,7 +227,8 @@ class _Listener implements NullabilityMigrationListener {
   /// if its category contains the string.
   final String categoryOfInterest;
 
-  final groupedExceptions = <String, List<String>>{};
+  /// Exception mapped to a map of packages & exception counts.
+  final groupedExceptions = <String, Map<String, int>>{};
 
   int numExceptions = 0;
 
@@ -225,6 +241,8 @@ class _Listener implements NullabilityMigrationListener {
   int numRequiredAnnotationsAdded = 0;
 
   int numDeadCodeSegmentsFound = 0;
+
+  String currentPackage;
 
   _Listener(this.categoryOfInterest, {this.printExceptionNodeOnly = false});
 
@@ -272,7 +290,8 @@ $stackTrace
         print(detail);
       }
     }
-    (groupedExceptions[category] ??= []).add(detail);
+    (groupedExceptions[category] ??= <String, int>{})
+        .update(currentPackage, (value) => ++value, ifAbsent: () => 1);
     ++numExceptions;
   }
 
