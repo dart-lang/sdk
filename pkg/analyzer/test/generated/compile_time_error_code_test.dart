@@ -33,12 +33,6 @@ class CompileTimeErrorCodeTest extends CompileTimeErrorCodeTestBase {
 
   @override
   @failingTest
-  test_mixinOfNonClass() {
-    return super.test_mixinOfNonClass();
-  }
-
-  @override
-  @failingTest
   test_objectCannotExtendAnotherClass() {
     return super.test_objectCannotExtendAnotherClass();
   }

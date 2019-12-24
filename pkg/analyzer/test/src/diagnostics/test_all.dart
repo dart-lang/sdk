@@ -182,6 +182,8 @@ import 'is_double_test.dart' as is_double;
 import 'is_int_test.dart' as is_int;
 import 'is_not_double_test.dart' as is_not_double;
 import 'is_not_int_test.dart' as is_not_int;
+import 'label_in_outer_scope_test.dart' as label_in_outer_scope;
+import 'label_undefined_test.dart' as label_undefined;
 import 'late_final_field_with_const_constructor_test.dart'
     as late_final_field_with_const_constructor;
 import 'list_element_type_not_assignable_test.dart'
@@ -190,6 +192,7 @@ import 'map_entry_not_in_map_test.dart' as map_entry_not_in_map;
 import 'map_key_type_not_assignable_test.dart' as map_key_type_not_assignable;
 import 'map_value_type_not_assignable_test.dart'
     as map_value_type_not_assignable;
+import 'member_with_class_name_test.dart' as member_with_class_name;
 import 'mismatched_annotation_on_struct_field_test.dart'
     as mismatched_annotation_on_struct_field;
 import 'mismatched_getter_and_setter_types_test.dart'
@@ -204,11 +207,21 @@ import 'missing_field_type_in_struct_test.dart' as missing_field_type_in_struct;
 import 'missing_js_lib_annotation_test.dart' as missing_js_lib_annotation;
 import 'missing_required_param_test.dart' as missing_required_param;
 import 'missing_return_test.dart' as missing_return;
+import 'mixin_application_not_implemented_interface_test.dart'
+    as mixin_application_not_implemented_interface;
+import 'mixin_class_declares_constructor_test.dart'
+    as mixin_class_declares_constructor;
+import 'mixin_deferred_class_test.dart' as mixin_deferred_class;
+import 'mixin_inherits_from_not_object_test.dart'
+    as mixin_inherits_from_not_object;
 import 'mixin_of_disallowed_class_test.dart' as mixin_of_disallowed_class;
 import 'mixin_of_non_class_test.dart' as mixin_of_non_class;
 import 'mixin_on_sealed_class_test.dart' as mixin_on_sealed_class;
+import 'mixin_references_super_test.dart' as mixin_references_super;
 import 'mixin_super_class_constraint_non_interface_test.dart'
     as mixin_super_class_constraint_non_interface;
+import 'mixin_with_non_class_superclass_test.dart'
+    as mixin_with_non_class_superclass;
 import 'must_be_a_native_function_type_test.dart'
     as must_be_a_native_function_type;
 import 'must_be_a_subtype_test.dart' as must_be_a_subtype;
@@ -525,11 +538,14 @@ main() {
     is_int.main();
     is_not_double.main();
     is_not_int.main();
+    label_in_outer_scope.main();
+    label_undefined.main();
     late_final_field_with_const_constructor.main();
     list_element_type_not_assignable.main();
     map_entry_not_in_map.main();
     map_key_type_not_assignable.main();
     map_value_type_not_assignable.main();
+    member_with_class_name.main();
     mismatched_annotation_on_struct_field.main();
     mismatched_getter_and_setter_types.main();
     missing_annotation_on_struct_field.main();
@@ -540,10 +556,16 @@ main() {
     missing_js_lib_annotation.main();
     missing_required_param.main();
     missing_return.main();
+    mixin_application_not_implemented_interface.main();
+    mixin_class_declares_constructor.main();
+    mixin_deferred_class.main();
+    mixin_inherits_from_not_object.main();
     mixin_of_disallowed_class.main();
     mixin_of_non_class.main();
     mixin_on_sealed_class.main();
+    mixin_references_super.main();
     mixin_super_class_constraint_non_interface.main();
+    mixin_with_non_class_superclass.main();
     must_be_a_native_function_type.main();
     must_be_a_subtype.main();
     must_be_immutable.main();
