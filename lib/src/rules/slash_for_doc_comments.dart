@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
@@ -64,6 +65,7 @@ class SlashForDocComments extends LintRule implements NodeLintRule {
     registry.addExtensionDeclaration(this, visitor);
     registry.addFieldDeclaration(this, visitor);
     registry.addFunctionDeclaration(this, visitor);
+    registry.addFunctionDeclarationStatement(this, visitor);
     registry.addFunctionTypeAlias(this, visitor);
     registry.addGenericTypeAlias(this, visitor);
     registry.addMethodDeclaration(this, visitor);
@@ -129,6 +131,14 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     checkComment(node.documentationComment);
+  }
+
+  @override
+  void visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
+    var comment = node.beginToken.precedingComments;
+    if (comment != null && comment.lexeme.startsWith('/**')) {
+      rule.reportLintForToken(comment);
+    }
   }
 
   @override

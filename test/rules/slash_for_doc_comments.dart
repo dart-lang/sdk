@@ -20,7 +20,10 @@ class B {
   var x;
 
   /** y */ //LINT
-  y() => null;
+  y() {
+    /** l */ //LINT
+    void l() {}
+  }
 }
 
 /** G */ //LINT
