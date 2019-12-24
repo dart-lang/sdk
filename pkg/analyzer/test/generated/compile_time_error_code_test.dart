@@ -36,12 +36,6 @@ class CompileTimeErrorCodeTest extends CompileTimeErrorCodeTestBase {
   test_objectCannotExtendAnotherClass() {
     return super.test_objectCannotExtendAnotherClass();
   }
-
-  @override
-  @failingTest
-  test_superInitializerInObject() {
-    return super.test_superInitializerInObject();
-  }
 }
 
 @reflectiveTest

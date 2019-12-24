@@ -17,8 +17,8 @@ main() {
   });
 }
 
-/// TODO(paulberry): move other tests from [CheckedModeCompileTimeErrorCodeTest]
-/// and [CompileTimeErrorCodeTestBase] to this class.
+/// TODO(paulberry): move other tests from [CompileTimeErrorCodeTestBase] to
+/// this class.
 @reflectiveTest
 class ConstEvalThrowsExceptionTest extends DriverResolutionTest {
   test_CastError_intToDouble_constructor_importAnalyzedAfter() async {
@@ -121,6 +121,43 @@ main() {
     expect(otherFileResult.errors, isEmpty);
   }
 
+  test_finalAlreadySet_initializer() async {
+    // If a final variable has an initializer at the site of its declaration,
+    // and at the site of the constructor, then invoking that constructor would
+    // produce a runtime error; hence invoking that constructor via the "const"
+    // keyword results in a compile-time error.
+    await assertErrorsInCode('''
+class C {
+  final x = 1;
+  const C() : x = 2;
+}
+var x = const C();
+''', [
+      error(StaticWarningCode.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION,
+          39, 1),
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 56, 9),
+    ]);
+  }
+
+  test_finalAlreadySet_initializing_formal() async {
+    // If a final variable has an initializer at the site of its declaration,
+    // and it is initialized using an initializing formal at the site of the
+    // constructor, then invoking that constructor would produce a runtime
+    // error; hence invoking that constructor via the "const" keyword results
+    // in a compile-time error.
+    await assertErrorsInCode('''
+class C {
+  final x = 1;
+  const C(this.x);
+}
+var x = const C(2);
+''', [
+      error(StaticWarningCode.FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR,
+          40, 1),
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 54, 10),
+    ]);
+  }
+
   test_fromEnvironment_assertInitializer() async {
     await assertNoErrorsInCode('''
 class A {
@@ -207,6 +244,48 @@ const c = [if (0 < 1) 3 else nil + 1];
                 error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 37, 25),
               ]);
   }
+
+  test_invalid_constructorFieldInitializer_fromSeparateLibrary() async {
+    newFile('/test/lib/lib.dart', content: r'''
+class A<T> {
+  final int f;
+  const A() : f = T.foo;
+}
+''');
+    await assertErrorsInCode(r'''
+import 'lib.dart';
+const a = const A();
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 29, 9),
+    ]);
+  }
+
+  test_unaryBitNot_null() async {
+    await assertErrorsInCode('''
+const dynamic D = null;
+const C = ~D;
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 34, 2),
+    ]);
+  }
+
+  test_unaryNegated_null() async {
+    await assertErrorsInCode('''
+const dynamic D = null;
+const C = -D;
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 34, 2),
+    ]);
+  }
+
+  test_unaryNot_null() async {
+    await assertErrorsInCode('''
+const dynamic D = null;
+const C = !D;
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 34, 2),
+    ]);
+  }
 }
 
 @reflectiveTest
@@ -217,6 +296,38 @@ class ConstEvalThrowsExceptionWithConstantUpdateTest
     ..enabledExperiments = [
       EnableString.constant_update_2018,
     ];
+
+  test_binaryMinus_null() async {
+    await assertErrorsInCode('''
+const dynamic D = null;
+const C = D - 5;
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 34, 5),
+    ]);
+
+    await assertErrorsInCode('''
+const dynamic D = null;
+const C = 5 - D;
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 34, 5),
+    ]);
+  }
+
+  test_binaryPlus_null() async {
+    await assertErrorsInCode('''
+const dynamic D = null;
+const C = D + 5;
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 34, 5),
+    ]);
+
+    await assertErrorsInCode('''
+const dynamic D = null;
+const C = 5 + D;
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 34, 5),
+    ]);
+  }
 
   test_eqEq_nonPrimitiveRightOperand() async {
     await assertNoErrorsInCode('''

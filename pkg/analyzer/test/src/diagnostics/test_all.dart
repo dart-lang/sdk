@@ -292,6 +292,12 @@ import 'override_on_non_overriding_setter_test.dart'
 import 'part_of_different_library_test.dart' as part_of_different_library;
 import 'private_collision_in_mixin_application_test.dart'
     as private_collision_in_mixin_application;
+import 'private_optional_parameter_test.dart' as private_optional_parameter;
+import 'recursive_compile_time_constant_test.dart'
+    as recursive_compile_time_constant;
+import 'recursive_constructor_redirect_test.dart'
+    as recursive_constructor_redirect;
+import 'recursive_factory_redirect_test.dart' as recursive_factory_redirect;
 import 'redirect_generative_to_missing_constructor_test.dart'
     as redirect_generative_to_missing_constructor;
 import 'redirect_generative_to_non_generative_constructor_test.dart'
@@ -347,6 +353,7 @@ import 'super_in_extension_test.dart' as super_in_extension;
 import 'super_in_invalid_context_test.dart' as super_in_invalid_context;
 import 'super_in_redirecting_constructor_test.dart'
     as super_in_redirecting_constructor;
+import 'super_initializer_in_object_test.dart' as super_initializer_in_object;
 import 'switch_expression_not_assignable_test.dart'
     as switch_expression_not_assignable;
 import 'top_level_instance_getter_test.dart' as top_level_instance_getter;
@@ -369,6 +376,10 @@ import 'unchecked_use_of_nullable_value_test.dart'
 import 'undefined_annotation_test.dart' as undefined_annotation;
 import 'undefined_class_boolean_test.dart' as undefined_class_boolean;
 import 'undefined_class_test.dart' as undefined_class;
+import 'undefined_constructor_in_initializer_default_test.dart'
+    as undefined_constructor_in_initializer_default;
+import 'undefined_constructor_in_initializer_test.dart'
+    as undefined_constructor_in_initializer;
 import 'undefined_extension_getter_test.dart' as undefined_extension_getter;
 import 'undefined_extension_method_test.dart' as undefined_extension_method;
 import 'undefined_extension_operator_test.dart' as undefined_extension_operator;
@@ -614,6 +625,10 @@ main() {
     override_on_non_overriding_setter.main();
     part_of_different_library.main();
     private_collision_in_mixin_application.main();
+    private_optional_parameter.main();
+    recursive_compile_time_constant.main();
+    recursive_constructor_redirect.main();
+    recursive_factory_redirect.main();
     redirect_generative_to_missing_constructor.main();
     redirect_generative_to_non_generative_constructor.main();
     redirect_to_invalid_function_type.main();
@@ -649,6 +664,7 @@ main() {
     super_in_extension.main();
     super_in_invalid_context.main();
     super_in_redirecting_constructor.main();
+    super_initializer_in_object.main();
     switch_expression_not_assignable.main();
     top_level_instance_getter.main();
     top_level_instance_method.main();
@@ -664,6 +680,8 @@ main() {
     undefined_annotation.main();
     undefined_class_boolean.main();
     undefined_class.main();
+    undefined_constructor_in_initializer_default.main();
+    undefined_constructor_in_initializer.main();
     undefined_extension_getter.main();
     undefined_extension_method.main();
     undefined_extension_operator.main();
