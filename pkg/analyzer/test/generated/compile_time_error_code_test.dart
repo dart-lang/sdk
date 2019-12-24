@@ -12,7 +12,6 @@ import 'compile_time_error_code.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CompileTimeErrorCodeTest);
-    defineReflectiveTests(CompileTimeErrorCodeTest_WithUIAsCode);
     defineReflectiveTests(ControlFlowCollectionsTest);
     defineReflectiveTests(InvalidTypeArgumentInConstSetTest);
   });
@@ -48,29 +47,6 @@ class CompileTimeErrorCodeTest extends CompileTimeErrorCodeTestBase {
   @failingTest
   test_superInitializerInObject() {
     return super.test_superInitializerInObject();
-  }
-}
-
-@reflectiveTest
-class CompileTimeErrorCodeTest_WithUIAsCode extends DriverResolutionTest {
-  test_defaultValueInFunctionTypeAlias_new_named() async {
-    // This test used to fail with UI as code enabled. Test the fix here.
-    await assertErrorsInCode('''
-typedef F = int Function({Map<String, String> m: const {}});
-''', [
-      error(ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE, 47, 1),
-    ]);
-  }
-
-  test_defaultValueInFunctionTypeAlias_new_named_ambiguous() async {
-    // Test that the strong checker does not crash when given an ambiguous
-    // set or map literal.
-    await assertErrorsInCode('''
-typedef F = int Function({Object m: const {1, 2: 3}});
-''', [
-      error(ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE, 34, 1),
-      error(CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH, 36, 15),
-    ]);
   }
 }
 

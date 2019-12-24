@@ -1016,58 +1016,6 @@ f() {
     ]);
   }
 
-  test_defaultValueInFunctionTypeAlias_new_named() async {
-    await assertErrorsInCode('''
-typedef F = int Function({Map<String, String> m: const {}});
-''', [
-      error(ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE, 47, 1),
-    ]);
-  }
-
-  test_defaultValueInFunctionTypeAlias_new_positional() async {
-    await assertErrorsInCode('''
-typedef F = int Function([Map<String, String> m = const {}]);
-''', [
-      error(ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE, 48, 1),
-    ]);
-  }
-
-  test_defaultValueInFunctionTypeAlias_old_named() async {
-    await assertErrorsInCode('''
-typedef F([x = 0]);
-''', [
-      error(ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE, 13, 1),
-    ]);
-  }
-
-  test_defaultValueInFunctionTypeAlias_old_positional() async {
-    await assertErrorsInCode('''
-typedef F([x = 0]);
-''', [
-      error(ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE, 13, 1),
-    ]);
-  }
-
-  test_defaultValueInFunctionTypedParameter_named() async {
-    await assertErrorsInCode('''
-f(g({p: null})) {}
-''', [
-      error(
-          CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPED_PARAMETER, 5, 7),
-      error(ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE, 6, 1),
-    ]);
-  }
-
-  test_defaultValueInFunctionTypedParameter_optional() async {
-    await assertErrorsInCode('''
-f(g([p = null])) {}
-''', [
-      error(
-          CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPED_PARAMETER, 5, 8),
-      error(ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE, 7, 1),
-    ]);
-  }
-
   test_defaultValueInRedirectingFactoryConstructor() async {
     await assertErrorsInCode(r'''
 class A {

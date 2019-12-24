@@ -53,6 +53,10 @@ import 'dead_code_test.dart' as dead_code;
 import 'dead_null_coalesce_test.dart' as dead_null_coalesce;
 import 'default_list_constructor_mismatch_test.dart'
     as default_list_constructor_mismatch;
+import 'default_value_in_function_type_test.dart'
+    as default_value_in_function_type;
+import 'default_value_in_function_typed_parameter_test.dart'
+    as default_value_in_function_typed_parameter;
 import 'default_value_on_required_parameter_test.dart'
     as default_value_on_required_parameter;
 import 'deferred_import_of_extension_test.dart' as deferred_import_of_extension;
@@ -434,6 +438,8 @@ main() {
     dead_code.main();
     dead_null_coalesce.main();
     default_list_constructor_mismatch.main();
+    default_value_in_function_type.main();
+    default_value_in_function_typed_parameter.main();
     default_value_on_required_parameter.main();
     deferred_import_of_extension.main();
     deprecated_extends_function.main();
