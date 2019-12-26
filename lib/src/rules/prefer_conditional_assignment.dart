@@ -31,7 +31,7 @@ String get fullName {
 **GOOD:**
 ```
 String get fullName {
-  return _fullName ??= getFullUserName(this);;
+  return _fullName ??= getFullUserName(this);
 }
 ```
 
