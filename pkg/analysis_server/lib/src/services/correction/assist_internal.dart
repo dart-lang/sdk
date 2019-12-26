@@ -2861,15 +2861,16 @@ class AssistProcessor extends BaseProcessor {
         } else if (parent is ForPartsWithDeclarations) {
           return canConvertVariableDeclarationList(parent.variables);
         } else if (parent is ForEachPartsWithDeclaration) {
-          final loopVariableType = parent.loopVariable.type;
-          final staticType = loopVariableType?.type;
+          var loopVariableType = parent.loopVariable.type;
+          var staticType = loopVariableType?.type;
           if (staticType == null || staticType.isDynamic) {
             return false;
           }
           final iterableType = parent.iterable.staticType;
           if (iterableType is InterfaceTypeImpl) {
-            var foo = iterableType.asInstanceOf(typeProvider.iterableElement);
-            if (foo?.typeArguments?.first == staticType) {
+            var instantiatedType =
+                iterableType.asInstanceOf(typeProvider.iterableElement);
+            if (instantiatedType?.typeArguments?.first == staticType) {
               return true;
             }
           }
