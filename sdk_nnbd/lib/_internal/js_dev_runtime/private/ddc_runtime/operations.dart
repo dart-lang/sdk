@@ -419,7 +419,9 @@ dsetindex(obj, index, value) =>
 @JSExportName('is')
 bool instanceOf(obj, type) {
   if (obj == null) {
-    return identical(type, unwrapType(Null)) || _isTop(type);
+    return identical(type, unwrapType(Null)) ||
+        _isTop(type) ||
+        _isNullable(type);
   }
   return isSubtypeOf(getReifiedType(obj), type);
 }
