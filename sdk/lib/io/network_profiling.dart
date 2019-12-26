@@ -67,7 +67,7 @@ abstract class _NetworkProfiling {
   static String getVersion() => json.encode({
         'type': 'Version',
         'major': 1,
-        'minor': 0,
+        'minor': 1,
       });
 }
 
@@ -134,12 +134,14 @@ abstract class _SocketProfile {
         assert(object is int);
         stats.readBytes ??= 0;
         stats.readBytes += object;
+        stats.lastReadTime = Timeline.now;
         break;
       case _SocketProfileType.writeBytes:
         if (object == null) return;
         assert(object is int);
         stats.writeBytes ??= 0;
         stats.writeBytes += object;
+        stats.lastWriteTime = Timeline.now;
         break;
       default:
         throw ArgumentError('type ${type} does not exist');
@@ -190,6 +192,8 @@ class _SocketStatistic {
   String socketType;
   int readBytes = 0;
   int writeBytes = 0;
+  int lastWriteTime;
+  int lastReadTime;
 
   _SocketStatistic(this.id);
 
@@ -204,6 +208,8 @@ class _SocketStatistic {
     _setIfNotNull(map, 'socketType', socketType);
     _setIfNotNull(map, 'readBytes', readBytes);
     _setIfNotNull(map, 'writeBytes', writeBytes);
+    _setIfNotNull(map, 'lastWriteTime', lastWriteTime);
+    _setIfNotNull(map, 'lastReadTime', lastReadTime);
     return map;
   }
 

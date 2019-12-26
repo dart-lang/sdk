@@ -1,4 +1,4 @@
-# Dart VM Service Protocol Extension
+# Dart VM Service Protocol Extension 1.1
 
 This protocol describes service extensions that are made available through
 the Dart core libraries, but are not part of the core
@@ -10,7 +10,7 @@ invoked by prepending the service extension name (e.g.,
 
 ## dart:io Extensions
 
-This section describes _version 1.0_ of the dart:io service protocol extensions.
+This section describes _version 1.1_ of the dart:io service protocol extensions.
 
 ### getVersion
 
@@ -100,6 +100,12 @@ class SocketStatistic {
   // The time, in microseconds, that this socket was closed.
   int endTime [optional];
 
+  // The time, in microseconds, that this socket was last read from.
+  int lastReadTime [optional];
+
+  // The time, in microseconds, that this socket was last written to.
+  int lastWriteTime [optional];
+
   // The address of socket.
   String address;
 
@@ -141,3 +147,9 @@ class Version extends Response {
   int minor;
 }
 ```
+
+## Revision History
+version | comments
+------- | --------
+1.0 | Initial revision.
+1.1 | Added `lastReadTime` and `lastWriteTime` properties to `SocketStatistic`.

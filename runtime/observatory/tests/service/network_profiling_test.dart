@@ -117,16 +117,24 @@ var tests = <IsolateTest>[
       expect(socket['address'], contains(localhost));
       if (socket['socketType'] == 'tcp') {
         expect(socket['writeBytes'], content.length);
+        expect(socket.containsKey('lastWriteTime'), true);
+        expect(socket['lastWriteTime'] > 0, true);
       } else {
         // 2 udp sockets, one of them is writing and the other is listening.
         expect(socket['socketType'], 'udp');
         if (socket['readBytes'] == 0) {
           // [1, 2, 3] was sent.
           expect(socket['writeBytes'], 3 + udpContent.length);
+          expect(socket.containsKey('lastWriteTime'), true);
+          expect(socket['lastWriteTime'] > 0, true);
+          expect(socket.containsKey('lastReadTime'), false);
         } else {
           // [1, 2, 3] was sent.
           expect(socket['writeBytes'], 0);
           expect(socket['readBytes'], 3 + udpContent.length);
+          expect(socket.containsKey('lastWriteTime'), false);
+          expect(socket.containsKey('lastReadTime'), true);
+          expect(socket['lastReadTime'] > 0, true);
         }
       }
     });
