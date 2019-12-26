@@ -290,6 +290,8 @@ class DartFixKind {
       FixKind('REMOVE_METHOD_DECLARATION', 50, "Remove method declaration");
   static const REMOVE_NAME_FROM_COMBINATOR =
       FixKind('REMOVE_NAME_FROM_COMBINATOR', 50, "Remove name from '{0}'");
+  static const REMOVE_OPERATOR =
+      FixKind('REMOVE_OPERATOR', 50, "Remove the operator");
   static const REMOVE_PARAMETERS_IN_GETTER_DECLARATION = FixKind(
       'REMOVE_PARAMETERS_IN_GETTER_DECLARATION',
       50,

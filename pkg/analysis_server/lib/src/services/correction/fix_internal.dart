@@ -655,6 +655,9 @@ class FixProcessor extends BaseProcessor {
       if (name == LintNames.omit_local_variable_types) {
         await _addFix_replaceWithVar();
       }
+      if (name == LintNames.prefer_adjacent_string_concatenation) {
+        await _addFix_removeOperator();
+      }
       if (name == LintNames.prefer_conditional_assignment) {
         await _addFix_replaceWithConditionalAssignment();
       }
@@ -3442,6 +3445,19 @@ class FixProcessor extends BaseProcessor {
         builder.addDeletion(range.startStart(newToken, newToken.next));
       });
       _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_UNNECESSARY_NEW);
+    }
+  }
+
+  Future<void> _addFix_removeOperator() async {
+    if (node is BinaryExpression) {
+      var expression = node as BinaryExpression;
+      var operator = expression.operator;
+      var rightOperand = expression.rightOperand;
+      var changeBuilder = _newDartChangeBuilder();
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+        builder.addDeletion(range.startStart(operator, rightOperand));
+      });
+      _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_OPERATOR);
     }
   }
 

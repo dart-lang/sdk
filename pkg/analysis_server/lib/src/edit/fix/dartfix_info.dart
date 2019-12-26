@@ -212,7 +212,6 @@ class LintFixInfo extends DartFixInfo {
   // avoid_types_as_parameter_names
   // camel_case_extensions
   // library_names
-  // prefer_adjacent_string_concatenation
   // prefer_collection_literals
   // prefer_contains
   // prefer_generic_function_type_aliases
@@ -296,6 +295,12 @@ will be converted to
 
   static final omitLocalVariableTypes = LintFixInfo('omit_local_variable_types',
       DartFixKind.REPLACE_WITH_VAR, "Replace the type annotation with 'var'",
+      isPedantic: true);
+
+  static final preferAdjacentStringConcatenation = LintFixInfo(
+      'prefer_adjacent_string_concatenation',
+      DartFixKind.REMOVE_OPERATOR,
+      "Remove the '+' operator.",
       isPedantic: true);
 
   static final preferConditionalAssignment = LintFixInfo(
