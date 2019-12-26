@@ -88,7 +88,9 @@ class AssistProcessor extends BaseProcessor {
     }
     await _addProposal_convertToFieldParameter();
     await _addProposal_convertToForIndexLoop();
-    await _addProposal_convertToGenericFunctionSyntax();
+    if (!_containsErrorCode({LintNames.prefer_generic_function_type_aliases})) {
+      await _addProposal_convertToGenericFunctionSyntax();
+    }
     if (!_containsErrorCode(
       {LintNames.prefer_int_literals},
     )) {
@@ -1086,21 +1088,9 @@ class AssistProcessor extends BaseProcessor {
   }
 
   Future<void> _addProposal_convertToGenericFunctionSyntax() async {
-    AstNode node = this.node;
-    while (node != null) {
-      if (node is FunctionTypeAlias) {
-        await _convertFunctionTypeAliasToGenericTypeAlias(node);
-        return;
-      } else if (node is FunctionTypedFormalParameter) {
-        await _convertFunctionTypedFormalParameterToSimpleFormalParameter(node);
-        return;
-      } else if (node is FormalParameterList) {
-        // It would be confusing for this assist to alter a surrounding context
-        // when the selection is inside a parameter list.
-        return;
-      }
-      node = node.parent;
-    }
+    var changeBuilder = await createBuilder_convertToGenericFunctionSyntax();
+    _addAssistFromBuilder(
+        changeBuilder, DartAssistKind.CONVERT_INTO_GENERIC_FUNCTION_SYNTAX);
   }
 
   Future<void> _addProposal_convertToIntLiteral() async {
@@ -3285,26 +3275,6 @@ class AssistProcessor extends BaseProcessor {
     _addAssistFromBuilder(changeBuilder, DartAssistKind.ADD_TYPE_ANNOTATION);
   }
 
-  /**
-   * Return `true` if all of the parameters in the given list of [parameters]
-   * have an explicit type annotation.
-   */
-  bool _allParametersHaveTypes(FormalParameterList parameters) {
-    for (FormalParameter parameter in parameters.parameters) {
-      if (parameter is DefaultFormalParameter) {
-        parameter = (parameter as DefaultFormalParameter).parameter;
-      }
-      if (parameter is SimpleFormalParameter) {
-        if (parameter.type == null) {
-          return false;
-        }
-      } else if (parameter is! FunctionTypedFormalParameter) {
-        return false;
-      }
-    }
-    return true;
-  }
-
   bool _containsErrorCode(Set<String> errorCodes) {
     final fileOffset = node.offset;
     for (var error in context.resolveResult.errors) {
@@ -3362,62 +3332,6 @@ class AssistProcessor extends BaseProcessor {
       newChildArgSrc = "$prefix$newChildArgSrc,$eol$indentOld]";
       builder.addSimpleReplacement(range.node(childArg), newChildArgSrc);
     }
-  }
-
-  Future<void> _convertFunctionTypeAliasToGenericTypeAlias(
-      FunctionTypeAlias node) async {
-    if (!_allParametersHaveTypes(node.parameters)) {
-      return;
-    }
-    String returnType;
-    if (node.returnType != null) {
-      returnType = utils.getNodeText(node.returnType);
-    }
-    String functionName = utils.getRangeText(
-        range.startEnd(node.name, node.typeParameters ?? node.name));
-    String parameters = utils.getNodeText(node.parameters);
-    String replacement;
-    if (returnType == null) {
-      replacement = '$functionName = Function$parameters';
-    } else {
-      replacement = '$functionName = $returnType Function$parameters';
-    }
-    // add change
-    var changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addSimpleReplacement(
-          range.startStart(node.typedefKeyword.next, node.semicolon),
-          replacement);
-    });
-    _addAssistFromBuilder(
-        changeBuilder, DartAssistKind.CONVERT_INTO_GENERIC_FUNCTION_SYNTAX);
-  }
-
-  Future<void> _convertFunctionTypedFormalParameterToSimpleFormalParameter(
-      FunctionTypedFormalParameter node) async {
-    if (!_allParametersHaveTypes(node.parameters)) {
-      return;
-    }
-    String returnType;
-    if (node.returnType != null) {
-      returnType = utils.getNodeText(node.returnType);
-    }
-    String functionName = utils.getRangeText(range.startEnd(
-        node.identifier, node.typeParameters ?? node.identifier));
-    String parameters = utils.getNodeText(node.parameters);
-    String replacement;
-    if (returnType == null) {
-      replacement = 'Function$parameters $functionName';
-    } else {
-      replacement = '$returnType Function$parameters $functionName';
-    }
-    // add change
-    var changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addSimpleReplacement(range.node(node), replacement);
-    });
-    _addAssistFromBuilder(
-        changeBuilder, DartAssistKind.CONVERT_INTO_GENERIC_FUNCTION_SYNTAX);
   }
 
   Future<void> _convertQuotes(bool fromDouble, AssistKind kind) async {

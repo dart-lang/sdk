@@ -42,6 +42,8 @@ import 'convert_flutter_child_test.dart' as convert_flutter_child;
 import 'convert_flutter_children_test.dart' as convert_flutter_children;
 import 'convert_into_expression_body_test.dart' as convert_into_expression_body;
 import 'convert_to_for_element_test.dart' as convert_to_for_element;
+import 'convert_to_generic_function_syntax_test.dart'
+    as convert_to_generic_function_syntax;
 import 'convert_to_if_element_test.dart' as convert_to_if_element;
 import 'convert_to_int_literal_test.dart' as convert_to_int_literal;
 import 'convert_to_named_arguments_test.dart' as convert_to_named_arguments;
@@ -172,6 +174,7 @@ main() {
     convert_flutter_children.main();
     convert_into_expression_body.main();
     convert_to_for_element.main();
+    convert_to_generic_function_syntax.main();
     convert_to_if_element.main();
     convert_to_int_literal.main();
     convert_to_named_arguments.main();

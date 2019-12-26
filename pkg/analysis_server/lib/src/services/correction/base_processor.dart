@@ -869,6 +869,24 @@ abstract class BaseProcessor {
     return changeBuilder;
   }
 
+  Future<ChangeBuilder> createBuilder_convertToGenericFunctionSyntax() async {
+    AstNode node = this.node;
+    while (node != null) {
+      if (node is FunctionTypeAlias) {
+        return _createBuilder_convertFunctionTypeAliasToGenericTypeAlias(node);
+      } else if (node is FunctionTypedFormalParameter) {
+        return _createBuilder_convertFunctionTypedFormalParameterToGenericTypeAlias(
+            node);
+      } else if (node is FormalParameterList) {
+        // It would be confusing for this assist to alter a surrounding context
+        // when the selection is inside a parameter list.
+        return null;
+      }
+      node = node.parent;
+    }
+    return null;
+  }
+
   Future<ChangeBuilder> createBuilder_convertToIntLiteral() async {
     if (node is! DoubleLiteral) {
       _coverageMarker();
@@ -1535,6 +1553,26 @@ abstract class BaseProcessor {
     return node != null;
   }
 
+  /**
+   * Return `true` if all of the parameters in the given list of [parameters]
+   * have an explicit type annotation.
+   */
+  bool _allParametersHaveTypes(FormalParameterList parameters) {
+    for (FormalParameter parameter in parameters.parameters) {
+      if (parameter is DefaultFormalParameter) {
+        parameter = (parameter as DefaultFormalParameter).parameter;
+      }
+      if (parameter is SimpleFormalParameter) {
+        if (parameter.type == null) {
+          return false;
+        }
+      } else if (parameter is! FunctionTypedFormalParameter) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   /// Configures [utils] using given [target].
   void _configureTargetLocation(Object target) {
     utils.targetClassElement = null;
@@ -1545,6 +1583,62 @@ abstract class BaseProcessor {
         utils.targetClassElement = targetClassDeclaration.declaredElement;
       }
     }
+  }
+
+  Future<ChangeBuilder>
+      _createBuilder_convertFunctionTypeAliasToGenericTypeAlias(
+          FunctionTypeAlias node) async {
+    if (!_allParametersHaveTypes(node.parameters)) {
+      return null;
+    }
+    String returnType;
+    if (node.returnType != null) {
+      returnType = utils.getNodeText(node.returnType);
+    }
+    String functionName = utils.getRangeText(
+        range.startEnd(node.name, node.typeParameters ?? node.name));
+    String parameters = utils.getNodeText(node.parameters);
+    String replacement;
+    if (returnType == null) {
+      replacement = '$functionName = Function$parameters';
+    } else {
+      replacement = '$functionName = $returnType Function$parameters';
+    }
+    // add change
+    var changeBuilder = _newDartChangeBuilder();
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+      builder.addSimpleReplacement(
+          range.startStart(node.typedefKeyword.next, node.semicolon),
+          replacement);
+    });
+    return changeBuilder;
+  }
+
+  Future<ChangeBuilder>
+      _createBuilder_convertFunctionTypedFormalParameterToGenericTypeAlias(
+          FunctionTypedFormalParameter node) async {
+    if (!_allParametersHaveTypes(node.parameters)) {
+      return null;
+    }
+    String returnType;
+    if (node.returnType != null) {
+      returnType = utils.getNodeText(node.returnType);
+    }
+    String functionName = utils.getRangeText(range.startEnd(
+        node.identifier, node.typeParameters ?? node.identifier));
+    String parameters = utils.getNodeText(node.parameters);
+    String replacement;
+    if (returnType == null) {
+      replacement = 'Function$parameters $functionName';
+    } else {
+      replacement = '$returnType Function$parameters $functionName';
+    }
+    // add change
+    var changeBuilder = _newDartChangeBuilder();
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+      builder.addSimpleReplacement(range.node(node), replacement);
+    });
+    return changeBuilder;
   }
 
   /// Returns the text of the given node in the unit.

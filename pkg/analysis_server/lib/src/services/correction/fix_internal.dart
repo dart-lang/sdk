@@ -679,6 +679,9 @@ class FixProcessor extends BaseProcessor {
       if (name == LintNames.prefer_final_locals) {
         await _addFix_makeVariableFinal();
       }
+      if (name == LintNames.prefer_generic_function_type_aliases) {
+        await _addFix_convertToGenericFunctionSyntax();
+      }
       if (errorCode.name ==
           LintNames.prefer_if_elements_to_conditional_expressions) {
         await _addFix_convertConditionalToIfElement();
@@ -1456,6 +1459,12 @@ class FixProcessor extends BaseProcessor {
   Future<void> _addFix_convertToExpressionBody() async {
     final changeBuilder = await createBuilder_convertToExpressionFunctionBody();
     _addFixFromBuilder(changeBuilder, DartFixKind.CONVERT_INTO_EXPRESSION_BODY);
+  }
+
+  Future<void> _addFix_convertToGenericFunctionSyntax() async {
+    var changeBuilder = await createBuilder_convertToGenericFunctionSyntax();
+    _addFixFromBuilder(
+        changeBuilder, DartFixKind.CONVERT_TO_GENERIC_FUNCTION_SYNTAX);
   }
 
   Future<void> _addFix_convertToInlineAdd() async {

@@ -333,6 +333,12 @@ will be converted to
       'Convert to a for element.',
       isPedantic: true);
 
+  static final preferGenericFunctionTypeAliases = LintFixInfo(
+      'prefer_generic_function_type_aliases',
+      DartFixKind.CONVERT_TO_GENERIC_FUNCTION_SYNTAX,
+      "Convert into 'Function' syntax",
+      isPedantic: true);
+
   static final preferIsEmpty = LintFixInfo(
     'prefer_is_empty',
     DartFixKind.REPLACE_WITH_IS_EMPTY,

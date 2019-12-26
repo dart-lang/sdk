@@ -189,6 +189,10 @@ class DartFixKind {
       FixKind('CONVERT_INTO_EXPRESSION_BODY', 50, "Convert to expression body");
   static const CONVERT_TO_FOR_ELEMENT =
       FixKind('CONVERT_TO_FOR_ELEMENT', 50, "Convert to a 'for' element");
+  static const CONVERT_TO_GENERIC_FUNCTION_SYNTAX = FixKind(
+      'CONVERT_TO_GENERIC_FUNCTION_SYNTAX',
+      50,
+      "Convert into 'Function' syntax");
   static const CONVERT_TO_IF_ELEMENT =
       FixKind('CONVERT_TO_IF_ELEMENT', 50, "Convert to an 'if' element");
   static const CONVERT_TO_INT_LITERAL =
