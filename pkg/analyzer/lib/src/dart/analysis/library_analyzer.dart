@@ -700,9 +700,6 @@ class LibraryAnalyzer {
         _libraryElement, source, _typeProvider, errorListener,
         nameScope: _libraryScope));
 
-    unit.accept(PartialResolverVisitor(_inheritance, _libraryElement, source,
-        _typeProvider, AnalysisErrorListener.NULL_LISTENER, unit.featureSet));
-
     // Nothing for RESOLVED_UNIT8?
     // Nothing for RESOLVED_UNIT9?
     // Nothing for RESOLVED_UNIT10?

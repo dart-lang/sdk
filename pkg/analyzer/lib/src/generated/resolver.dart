@@ -305,104 +305,6 @@ class InstanceFieldResolverVisitor extends ResolverVisitor {
   }
 }
 
-/// An AST visitor that is used to resolve some of the nodes within a single
-/// compilation unit. The nodes that are skipped are those that are within
-/// function bodies.
-class PartialResolverVisitor extends ResolverVisitor {
-  /// The static variables and fields that have an initializer. These are the
-  /// variables that need to be re-resolved after static variables have their
-  /// types inferred. A subset of these variables are those whose types should
-  /// be inferred.
-  final List<VariableElement> staticVariables = <VariableElement>[];
-
-  /// Initialize a newly created visitor to resolve the nodes in an AST node.
-  ///
-  /// The [definingLibrary] is the element for the library containing the node
-  /// being visited. The [source] is the source representing the compilation
-  /// unit containing the node being visited. The [typeProvider] is the object
-  /// used to access the types from the core library. The [errorListener] is the
-  /// error listener that will be informed of any errors that are found during
-  /// resolution. The [nameScope] is the scope used to resolve identifiers in
-  /// the node that will first be visited.  If `null` or unspecified, a new
-  /// [LibraryScope] will be created based on [definingLibrary] and
-  /// [typeProvider].
-  PartialResolverVisitor(
-      InheritanceManager3 inheritance,
-      LibraryElement definingLibrary,
-      Source source,
-      TypeProvider typeProvider,
-      AnalysisErrorListener errorListener,
-      FeatureSet featureSet,
-      {Scope nameScope})
-      : super(inheritance, definingLibrary, source, typeProvider, errorListener,
-            featureSet: featureSet, nameScope: nameScope);
-
-  @override
-  void visitBlockFunctionBody(BlockFunctionBody node) {
-    if (_shouldBeSkipped(node)) {
-      return null;
-    }
-    super.visitBlockFunctionBody(node);
-  }
-
-  @override
-  void visitExpressionFunctionBody(ExpressionFunctionBody node) {
-    if (_shouldBeSkipped(node)) {
-      return null;
-    }
-    super.visitExpressionFunctionBody(node);
-  }
-
-  @override
-  void visitFieldDeclaration(FieldDeclaration node) {
-    if (node.isStatic) {
-      _addStaticVariables(node.fields.variables);
-    }
-    super.visitFieldDeclaration(node);
-  }
-
-  @override
-  void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-    _addStaticVariables(node.variables.variables);
-    super.visitTopLevelVariableDeclaration(node);
-  }
-
-  /// Add all of the [variables] with initializers to the list of variables
-  /// whose type can be inferred. Technically, we only infer the types of
-  /// variables that do not have a static type, but all variables with
-  /// initializers potentially need to be re-resolved after inference because
-  /// they might refer to a field whose type was inferred.
-  void _addStaticVariables(List<VariableDeclaration> variables) {
-    int length = variables.length;
-    for (int i = 0; i < length; i++) {
-      VariableDeclaration variable = variables[i];
-      if (variable.name.name.isNotEmpty && variable.initializer != null) {
-        staticVariables.add(variable.declaredElement);
-      }
-    }
-  }
-
-  /// Return `true` if the given function body should be skipped because it is
-  /// the body of a top-level function, method or constructor.
-  bool _shouldBeSkipped(FunctionBody body) {
-    AstNode parent = body.parent;
-    if (parent is MethodDeclaration) {
-      return parent.body == body;
-    }
-    if (parent is ConstructorDeclaration) {
-      return parent.body == body;
-    }
-    if (parent is FunctionExpression) {
-      AstNode parent2 = parent.parent;
-      if (parent2 is FunctionDeclaration &&
-          parent2.parent is! FunctionDeclarationStatement) {
-        return parent.body == body;
-      }
-    }
-    return false;
-  }
-}
-
 /// The enumeration `ResolverErrorCode` defines the error codes used for errors
 /// detected by the resolver. The convention for this class is for the name of
 /// the error code to indicate the problem that caused the error to be generated
@@ -1224,16 +1126,18 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   @override
+  void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+    node.metadata?.accept(this);
+    super.visitEnumConstantDeclaration(node);
+  }
+
+  @override
   void visitEnumDeclaration(EnumDeclaration node) {
     //
     // Resolve the metadata in the library scope
     // and associate the annotations with the element.
     //
-    if (node.metadata != null) {
-      node.metadata.accept(this);
-      ElementResolver.resolveMetadata(node);
-      node.constants.forEach(ElementResolver.resolveMetadata);
-    }
+    node.metadata?.accept(this);
     //
     // Continue the enum resolution.
     //

@@ -376,6 +376,11 @@ class ElementResolver extends SimpleAstVisitor<void> {
   }
 
   @override
+  void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+    resolveMetadata(node);
+  }
+
+  @override
   void visitEnumDeclaration(EnumDeclaration node) {
     resolveMetadata(node);
   }
