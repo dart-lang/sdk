@@ -63,7 +63,7 @@ class A {
     }
   }
 }''', [
-      error(ResolverErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER, 105, 1),
+      error(CompileTimeErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER, 105, 1),
     ]);
   }
 
@@ -77,7 +77,7 @@ class A {
     }
   }
 }''', [
-      error(ResolverErrorCode.CONTINUE_LABEL_ON_SWITCH, 79, 1),
+      error(CompileTimeErrorCode.CONTINUE_LABEL_ON_SWITCH, 79, 1),
     ]);
   }
 

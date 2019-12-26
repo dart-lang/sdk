@@ -220,51 +220,6 @@ class INIT_STATE implements Comparable<INIT_STATE> {
   String toString() => name;
 }
 
-/// The enumeration `ResolverErrorCode` defines the error codes used for errors
-/// detected by the resolver. The convention for this class is for the name of
-/// the error code to indicate the problem that caused the error to be generated
-/// and for the error message to explain what is wrong and, when appropriate,
-/// how the problem can be corrected.
-class ResolverErrorCode extends ErrorCode {
-  static const ResolverErrorCode BREAK_LABEL_ON_SWITCH_MEMBER =
-      ResolverErrorCode('BREAK_LABEL_ON_SWITCH_MEMBER',
-          "Break label resolves to case or default statement");
-
-  static const ResolverErrorCode CONTINUE_LABEL_ON_SWITCH = ResolverErrorCode(
-      'CONTINUE_LABEL_ON_SWITCH',
-      "A continue label resolves to switch, must be loop or switch member");
-
-  /// Parts: It is a static warning if the referenced part declaration
-  /// <i>p</i> names a library that does not have a library tag.
-  ///
-  /// Parameters:
-  /// 0: the URI of the expected library
-  /// 1: the non-matching actual library name from the "part of" declaration
-  static const ResolverErrorCode PART_OF_UNNAMED_LIBRARY = ResolverErrorCode(
-      'PART_OF_UNNAMED_LIBRARY',
-      "Library is unnamed. Expected a URI not a library name '{0}' in the "
-          "part-of directive.",
-      correction:
-          "Try changing the part-of directive to a URI, or try including a"
-          " different part.");
-
-  /// Initialize a newly created error code to have the given [name]. The
-  /// message associated with the error will be created from the given [message]
-  /// template. The correction associated with the error will be created from
-  /// the given [correction] template.
-  const ResolverErrorCode(String name, String message,
-      {String correction, bool hasPublishedDocs})
-      : super.temporary(name, message,
-            correction: correction,
-            hasPublishedDocs: hasPublishedDocs ?? false);
-
-  @override
-  ErrorSeverity get errorSeverity => type.severity;
-
-  @override
-  ErrorType get type => ErrorType.COMPILE_TIME_ERROR;
-}
-
 /// Instances of the class `ResolverVisitor` are used to resolve the nodes
 /// within a single compilation unit.
 class ResolverVisitor extends ScopedVisitor {

@@ -14,7 +14,6 @@ import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
-import 'package:analyzer/src/generated/resolver.dart' show ResolverErrorCode;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/manifest/manifest_warning_code.dart';
 
@@ -78,6 +77,7 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT,
   CompileTimeErrorCode.AWAIT_IN_LATE_LOCAL_VARIABLE_INITIALIZER,
   CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT,
+  CompileTimeErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER,
   CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_EXTENSION_NAME,
   CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_PREFIX_NAME,
   CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE,
@@ -124,6 +124,7 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS,
   CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR,
   CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT,
+  CompileTimeErrorCode.CONTINUE_LABEL_ON_SWITCH,
   CompileTimeErrorCode.DEFAULT_LIST_CONSTRUCTOR_MISMATCH,
   CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPED_PARAMETER,
   CompileTimeErrorCode.DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR,
@@ -273,6 +274,7 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.ON_REPEATED,
   CompileTimeErrorCode.OPTIONAL_PARAMETER_IN_OPERATOR,
   CompileTimeErrorCode.PART_OF_NON_PART,
+  CompileTimeErrorCode.PART_OF_UNNAMED_LIBRARY,
   CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER,
   CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
   CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION,
@@ -650,9 +652,6 @@ const List<ErrorCode> errorCodeValues = [
   ParserErrorCode.WITH_BEFORE_EXTENDS,
   ParserErrorCode.WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER,
   ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP,
-  ResolverErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER,
-  ResolverErrorCode.CONTINUE_LABEL_ON_SWITCH,
-  ResolverErrorCode.PART_OF_UNNAMED_LIBRARY,
   ScannerErrorCode.EXPECTED_TOKEN,
   ScannerErrorCode.ILLEGAL_CHARACTER,
   ScannerErrorCode.MISSING_DIGIT,

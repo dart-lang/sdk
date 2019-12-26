@@ -449,7 +449,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       Element labelElement = labelNode.staticElement;
       if (labelElement is LabelElementImpl && labelElement.isOnSwitchMember) {
         _errorReporter.reportErrorForNode(
-            ResolverErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER, labelNode);
+            CompileTimeErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER, labelNode);
       }
     }
   }
@@ -599,7 +599,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       if (labelElement is LabelElementImpl &&
           labelElement.isOnSwitchStatement) {
         _errorReporter.reportErrorForNode(
-            ResolverErrorCode.CONTINUE_LABEL_ON_SWITCH, labelNode);
+            CompileTimeErrorCode.CONTINUE_LABEL_ON_SWITCH, labelNode);
       }
     }
   }

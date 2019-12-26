@@ -19,7 +19,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
-import 'package:analyzer/src/generated/resolver.dart' show ResolverErrorCode;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -496,7 +495,7 @@ part of lib;
     ResolvedUnitResult libResult = await driver.getResult(lib);
     List<AnalysisError> errors = libResult.errors;
     expect(errors, hasLength(1));
-    expect(errors[0].errorCode, ResolverErrorCode.PART_OF_UNNAMED_LIBRARY);
+    expect(errors[0].errorCode, CompileTimeErrorCode.PART_OF_UNNAMED_LIBRARY);
   }
 
   test_analyze_resolveDirectives_error_partOfDifferentLibrary_byName() async {

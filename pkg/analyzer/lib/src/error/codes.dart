@@ -481,6 +481,10 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction:
               "Try marking the function body with either 'async' or 'async*'.");
 
+  static const CompileTimeErrorCode BREAK_LABEL_ON_SWITCH_MEMBER =
+      CompileTimeErrorCode('BREAK_LABEL_ON_SWITCH_MEMBER',
+          "Break label resolves to case or default statement");
+
   /**
    * Parameters:
    * 0: the built-in identifier that is being used
@@ -1273,6 +1277,10 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       CompileTimeErrorCode('CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT',
           "The class '{0}' doesn't have a default constant constructor.",
           correction: "Try calling a different constructor.");
+
+  static const CompileTimeErrorCode CONTINUE_LABEL_ON_SWITCH =
+      CompileTimeErrorCode('CONTINUE_LABEL_ON_SWITCH',
+          "A continue label resolves to switch, must be loop or switch member");
 
   /**
    * It is an error to call the default List constructor with a length argument
@@ -4442,6 +4450,21 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       'PART_OF_NON_PART',
       "The included part '{0}' must have a part-of directive.",
       correction: "Try adding a part-of directive to '{0}'.");
+
+  /// Parts: It is a static warning if the referenced part declaration
+  /// <i>p</i> names a library that does not have a library tag.
+  ///
+  /// Parameters:
+  /// 0: the URI of the expected library
+  /// 1: the non-matching actual library name from the "part of" declaration
+  static const CompileTimeErrorCode PART_OF_UNNAMED_LIBRARY =
+      CompileTimeErrorCode(
+          'PART_OF_UNNAMED_LIBRARY',
+          "Library is unnamed. Expected a URI not a library name '{0}' in the "
+              "part-of directive.",
+          correction:
+              "Try changing the part-of directive to a URI, or try including a"
+              " different part.");
 
   /**
    * 14.1 Imports: It is a compile-time error if the current library declares a

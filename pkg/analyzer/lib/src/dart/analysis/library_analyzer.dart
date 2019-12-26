@@ -631,7 +631,9 @@ class LibraryAnalyzer {
             if (name != null) {
               if (libraryNameNode == null) {
                 libraryErrorReporter.reportErrorForNode(
-                    ResolverErrorCode.PART_OF_UNNAMED_LIBRARY, partUri, [name]);
+                    CompileTimeErrorCode.PART_OF_UNNAMED_LIBRARY,
+                    partUri,
+                    [name]);
               } else if (libraryNameNode.name != name) {
                 libraryErrorReporter.reportErrorForNode(
                     StaticWarningCode.PART_OF_DIFFERENT_LIBRARY,
