@@ -917,7 +917,7 @@ class _DeclarationStorage {
           ? d.defaultArgumentListString
           : null,
       defaultArgumentListTextRanges: d.defaultArgumentListTextRanges.isNotEmpty
-          ? d.defaultArgumentListTextRanges
+          ? d.defaultArgumentListTextRanges.toList()
           : null,
       docComplete: hasDoc ? d.docComplete : null,
       docSummary: hasDoc ? d.docSummary : null,
@@ -933,7 +933,7 @@ class _DeclarationStorage {
       locationStartLine: d.locationStartLine,
       name: d.name,
       parameters: hasParameters ? d.parameters : null,
-      parameterNames: hasParameters ? d.parameterNames : null,
+      parameterNames: hasParameters ? d.parameterNames.toList() : null,
       parameterTypes: hasParameters ? d.parameterTypes.toList() : null,
       parent: parent,
       relevanceTags: relevanceTags,
