@@ -71,10 +71,12 @@ a message is displayed and the class is not converted to a mixin.''',
   LintFixInfo.noDuplicateCaseValues,
   LintFixInfo.nullClosures,
   LintFixInfo.omitLocalVariableTypes,
+  LintFixInfo.preferAdjacentStringConcatenation,
   LintFixInfo.preferConditionalAssignment,
   LintFixInfo.preferEqualForDefaultValues,
   LintFixInfo.preferFinalFields,
   LintFixInfo.preferForElementsToMapFromIterable,
+  LintFixInfo.preferGenericFunctionTypeAliases,
   LintFixInfo.preferIsEmpty,
   LintFixInfo.preferIsNotEmpty,
   LintFixInfo.preferSingleQuotes,
@@ -214,7 +216,6 @@ class LintFixInfo extends DartFixInfo {
   // library_names
   // prefer_collection_literals
   // prefer_contains
-  // prefer_generic_function_type_aliases
   // prefer_if_null_operators
   // prefer_iterable_whereType
   // recursive_getters
