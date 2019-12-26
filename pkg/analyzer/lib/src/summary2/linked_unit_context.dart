@@ -9,11 +9,11 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -650,12 +650,6 @@ class LinkedUnitContext {
     return node.bound;
   }
 
-  Token getTypeParameterVariance(TypeParameter node) {
-    // TODO (kallentu) : Clean up TypeParameterImpl casting once variance is
-    // added to the interface.
-    return (node as TypeParameterImpl).varianceKeyword;
-  }
-
   TypeParameterList getTypeParameters2(AstNode node) {
     if (node is ClassDeclaration) {
       return node.typeParameters;
@@ -691,6 +685,12 @@ class LinkedUnitContext {
     } else {
       throw UnimplementedError('${node.runtimeType}');
     }
+  }
+
+  Token getTypeParameterVariance(TypeParameter node) {
+    // TODO (kallentu) : Clean up TypeParameterImpl casting once variance is
+    // added to the interface.
+    return (node as TypeParameterImpl).varianceKeyword;
   }
 
   WithClause getWithClause(AstNode node) {

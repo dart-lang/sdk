@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/constant/value.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
-import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 
 /// An object used to provide access to the values of variables that have been
 /// defined on the command line using the `-D` option.
