@@ -13,6 +13,7 @@ import 'rule_test.dart' as rule_test;
 import 'utils_test.dart' as utils_test;
 import 'validate_format_test.dart' as validate_format;
 import 'validate_headers_test.dart' as validate_headers;
+import 'validate_metadata.dart' as validate_metadata;
 import 'version_test.dart' as version_test;
 
 void main() {
@@ -27,5 +28,6 @@ void main() {
   utils_test.main();
   validate_format.main();
   validate_headers.main();
+  validate_metadata.main();
   version_test.main();
 }

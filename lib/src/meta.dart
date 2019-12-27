@@ -9,21 +9,21 @@ library linter_meta;
 /// a given list of rules `r1`...`rn`.
 ///
 /// For example, the incompatibility between `prefer_local_finals` and
-/// `unnecessary_finals` could be captured in the `PreferFinalLocals` class
+/// `unnecessary_final` could be captured in the `PreferFinalLocals` class
 /// declaration like this:
 ///
-///     @IncompatibleWith(['unnecessary_finals'])
+///     @IncompatibleWith(['unnecessary_final'])
 ///     class PreferFinalLocals extends LintRule implements NodeLintRule {
 ///         ...
 ///     }
 ///
 /// For consistency of documentation, incompatibility should be declared in both
 /// directions.  That is, all conflicting rules `r1`...`rn` should annotate
-/// their incompatibility with `r`.  In this case, `'unnecessary_finals'` would
+/// their incompatibility with `r`.  In this case, `'unnecessary_final'` would
 /// look like this:
 ///
 ///     @IncompatibleWith(['prefer_local_finals'])
-///     class UnnecessaryFinals extends LintRule implements NodeLintRule {
+///     class UnnecessaryFinal extends LintRule implements NodeLintRule {
 ///         ...
 ///     }
 ///
