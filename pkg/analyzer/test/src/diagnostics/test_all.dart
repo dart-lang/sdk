@@ -72,6 +72,12 @@ import 'duplicate_import_test.dart' as duplicate_import;
 import 'duplicate_shown_name_test.dart' as duplicate_shown_name;
 import 'equal_elements_in_const_set_test.dart' as equal_elements_in_const_set;
 import 'equal_keys_in_const_map_test.dart' as equal_keys_in_const_map;
+import 'expected_one_list_type_arguments_test.dart'
+    as expected_one_list_type_arguments;
+import 'expected_one_set_type_arguments_test.dart'
+    as expected_one_set_type_arguments;
+import 'expected_two_map_type_arguments_test.dart'
+    as expected_two_map_type_arguments;
 import 'export_duplicated_library_named_test.dart'
     as export_duplicated_library_named;
 import 'export_legacy_symbol_test.dart' as export_legacy_symbol;
@@ -113,6 +119,10 @@ import 'final_initialized_in_delcaration_and_constructor_test.dart'
 import 'final_not_initialized_constructor_test.dart'
     as final_not_initialized_constructor;
 import 'final_not_initialized_test.dart' as final_not_initialized;
+import 'for_in_of_invalid_element_type_test.dart'
+    as for_in_of_invalid_element_type;
+import 'for_in_of_invalid_type_test.dart' as for_in_of_invalid_type;
+import 'for_in_with_const_variable_test.dart' as for_in_with_const_variable;
 import 'generic_struct_subclass_test.dart' as generic_struct_subclass;
 import 'if_element_condition_from_deferred_library_test.dart'
     as if_element_condition_from_deferred_library;
@@ -164,6 +174,12 @@ import 'invalid_required_optional_positional_param_test.dart'
 import 'invalid_required_positional_param_test.dart'
     as invalid_required_positional_param;
 import 'invalid_sealed_annotation_test.dart' as invalid_sealed_annotation;
+import 'invalid_type_argument_in_const_list_test.dart'
+    as invalid_type_argument_in_const_list;
+import 'invalid_type_argument_in_const_map_test.dart'
+    as invalid_type_argument_in_const_map;
+import 'invalid_type_argument_in_const_set_test.dart'
+    as invalid_type_argument_in_const_set;
 import 'invalid_uri_test.dart' as invalid_uri;
 import 'invalid_use_of_covariant_in_extension_test.dart'
     as invalid_use_of_covariant_in_extension;
@@ -488,6 +504,9 @@ main() {
     duplicate_shown_name.main();
     equal_elements_in_const_set.main();
     equal_keys_in_const_map.main();
+    expected_one_list_type_arguments.main();
+    expected_one_set_type_arguments.main();
+    expected_two_map_type_arguments.main();
     export_duplicated_library_named.main();
     export_legacy_symbol.main();
     expression_in_map.main();
@@ -513,6 +532,9 @@ main() {
     final_initialized_in_declaration_and_constructor.main();
     final_not_initialized_constructor.main();
     final_not_initialized.main();
+    for_in_of_invalid_element_type.main();
+    for_in_of_invalid_type.main();
+    for_in_with_const_variable.main();
     generic_struct_subclass.main();
     if_element_condition_from_deferred_library.main();
     implements_disallowed_class.main();
@@ -548,6 +570,9 @@ main() {
     invalid_required_optional_positional_param.main();
     invalid_required_positional_param.main();
     invalid_sealed_annotation.main();
+    invalid_type_argument_in_const_list.main();
+    invalid_type_argument_in_const_map.main();
+    invalid_type_argument_in_const_set.main();
     invalid_uri.main();
     invalid_use_of_covariant_in_extension.main();
     invalid_use_of_never_value.main();

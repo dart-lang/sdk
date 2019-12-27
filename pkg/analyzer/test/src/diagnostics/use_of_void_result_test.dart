@@ -215,18 +215,6 @@ void main() {
     ]);
   }
 
-  test_useOfInForeachIterableError() async {
-    await assertErrorsInCode('''
-void main() {
-  void x;
-  for (var v in x) {}
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 35, 1),
-      error(StaticWarningCode.USE_OF_VOID_RESULT, 40, 1),
-    ]);
-  }
-
   test_useOfVoidAsIndexAssignError() async {
     await assertErrorsInCode('''
 void main(List list) {
@@ -348,6 +336,31 @@ void main() {
   x;
 }
 ''');
+  }
+
+  test_useOfVoidInForeachIterableError_declaredVariable() async {
+    await assertErrorsInCode('''
+void main() {
+  void x;
+  for (var v in x) {}
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 35, 1),
+      error(StaticWarningCode.USE_OF_VOID_RESULT, 40, 1),
+    ]);
+  }
+
+  test_useOfVoidInForeachIterableError() async {
+    await assertErrorsInCode(r'''
+void main() {
+  void x;
+  var y;
+  for (y in x) {}
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 30, 1),
+      error(StaticWarningCode.USE_OF_VOID_RESULT, 45, 1),
+    ]);
   }
 
   @failingTest // This test may be completely invalid.

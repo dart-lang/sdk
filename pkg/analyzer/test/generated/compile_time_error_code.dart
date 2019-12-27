@@ -1324,17 +1324,6 @@ f() {
     ]);
   }
 
-  test_forInWithConstVariable_forEach_loopVariable() async {
-    await assertErrorsInCode(r'''
-f() {
-  for (const x in [0, 1, 2]) {}
-}
-''', [
-      error(CompileTimeErrorCode.FOR_IN_WITH_CONST_VARIABLE, 13, 7),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 19, 1),
-    ]);
-  }
-
   test_fromEnvironment_bool_badArgs() async {
     await assertErrorsInCode(r'''
 var b1 = const bool.fromEnvironment(1);
@@ -2185,30 +2174,6 @@ set x(v) sync* {}
 ''', [
       error(CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER, 9, 4),
       error(CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER, 9, 4),
-    ]);
-  }
-
-  test_invalidTypeArgumentInConstList() async {
-    await assertErrorsInCode(r'''
-class A<E> {
-  m() {
-    return const <E>[];
-  }
-}
-''', [
-      error(CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST, 39, 1),
-    ]);
-  }
-
-  test_invalidTypeArgumentInConstMap() async {
-    await assertErrorsInCode(r'''
-class A<E> {
-  m() {
-    return const <String, E>{};
-  }
-}
-''', [
-      error(CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP, 47, 1),
     ]);
   }
 
