@@ -20,7 +20,10 @@ class B {
   var x;
 
   /** y */ //LINT
-  y() => null;
+  y() {
+    /** l */ //LINT
+    void l() {}
+  }
 }
 
 /** G */ //LINT
@@ -33,6 +36,9 @@ enum G {
 /** f */ //LINT
 typedef bool F();
 
+/** f */ //LINT
+typedef F2 = bool Function();
+
 /** z */ //LINT
 z() => null;
 
@@ -44,6 +50,12 @@ var D = String;
 
 /** Z */ //LINT
 class Z = B with C;
+
+/** M1 */ //LINT
+mixin M1 {}
+
+/* meh */ //OK
+mixin M2 {}
 
 /** Ext */ //LINT
 extension Ext on Object {

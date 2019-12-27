@@ -57,15 +57,18 @@ class SlashForDocComments extends LintRule implements NodeLintRule {
     final visitor = _Visitor(this);
     registry.addClassDeclaration(this, visitor);
     registry.addClassTypeAlias(this, visitor);
+    registry.addCompilationUnit(this, visitor);
     registry.addConstructorDeclaration(this, visitor);
     registry.addEnumConstantDeclaration(this, visitor);
     registry.addEnumDeclaration(this, visitor);
     registry.addExtensionDeclaration(this, visitor);
     registry.addFieldDeclaration(this, visitor);
     registry.addFunctionDeclaration(this, visitor);
+    registry.addFunctionDeclarationStatement(this, visitor);
     registry.addFunctionTypeAlias(this, visitor);
-    registry.addLibraryDirective(this, visitor);
+    registry.addGenericTypeAlias(this, visitor);
     registry.addMethodDeclaration(this, visitor);
+    registry.addMixinDeclaration(this, visitor);
     registry.addTopLevelVariableDeclaration(this, visitor);
   }
 }
@@ -89,6 +92,14 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitClassTypeAlias(ClassTypeAlias node) {
     checkComment(node.documentationComment);
+  }
+
+  @override
+  void visitCompilationUnit(CompilationUnit node) {
+    var directives = node.directives;
+    if (directives.isNotEmpty) {
+      checkComment(directives[0].documentationComment);
+    }
   }
 
   @override
@@ -122,17 +133,30 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   @override
+  void visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
+    var comment = node.beginToken.precedingComments;
+    if (comment != null && comment.lexeme.startsWith('/**')) {
+      rule.reportLintForToken(comment);
+    }
+  }
+
+  @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
     checkComment(node.documentationComment);
   }
 
   @override
-  void visitLibraryDirective(LibraryDirective node) {
+  void visitGenericTypeAlias(GenericTypeAlias node) {
     checkComment(node.documentationComment);
   }
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
+    checkComment(node.documentationComment);
+  }
+
+  @override
+  void visitMixinDeclaration(MixinDeclaration node) {
     checkComment(node.documentationComment);
   }
 
