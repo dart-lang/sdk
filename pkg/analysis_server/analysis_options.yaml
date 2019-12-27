@@ -37,7 +37,7 @@ linter:
     - avoid_null_checks_in_equality_operators
     - camel_case_extensions
     #- omit_local_variable_types # 8650
-    #- prefer_adjacent_string_concatenation # 1
+    - prefer_adjacent_string_concatenation
     #- prefer_collection_literals # 130
     #- prefer_conditional_assignment # 191
     #- prefer_final_fields # 35

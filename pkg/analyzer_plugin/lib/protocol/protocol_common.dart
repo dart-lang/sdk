@@ -43,7 +43,7 @@ class AddContentOverlay implements HasToJson {
     }
     if (json is Map) {
       if (json["type"] != "add") {
-        throw jsonDecoder.mismatch(jsonPath, "equal " + "add", json);
+        throw jsonDecoder.mismatch(jsonPath, "equal add", json);
       }
       String content;
       if (json.containsKey("content")) {
@@ -553,7 +553,7 @@ class ChangeContentOverlay implements HasToJson {
     }
     if (json is Map) {
       if (json["type"] != "change") {
-        throw jsonDecoder.mismatch(jsonPath, "equal " + "change", json);
+        throw jsonDecoder.mismatch(jsonPath, "equal change", json);
       }
       List<SourceEdit> edits;
       if (json.containsKey("edits")) {
@@ -5035,7 +5035,7 @@ class RemoveContentOverlay implements HasToJson {
     }
     if (json is Map) {
       if (json["type"] != "remove") {
-        throw jsonDecoder.mismatch(jsonPath, "equal " + "remove", json);
+        throw jsonDecoder.mismatch(jsonPath, "equal remove", json);
       }
       return RemoveContentOverlay();
     } else {

@@ -688,7 +688,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
             writeln('if ($fieldAccessor != $valueString) {');
             indent(() {
               writeln(
-                  'throw jsonDecoder.mismatch(jsonPath, "equal " + $valueString, json);');
+                  'throw jsonDecoder.mismatch(jsonPath, "equal ${field.value}", json);');
             });
             writeln('}');
             continue;
@@ -901,9 +901,8 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
         return true;
       case 'SourceEdit':
         docComment([
-          dom.Text('Get the result of applying a set of ' +
-              '[edits] to the given [code].  Edits are applied in the order ' +
-              'they appear in [edits].')
+          dom.Text('Get the result of applying a set of [edits] to the given '
+              '[code]. Edits are applied in the order they appear in [edits].')
         ]);
         writeln(
             'static String applySequence(String code, Iterable<SourceEdit> edits) =>');
