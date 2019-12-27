@@ -23,7 +23,7 @@ import 'fletcher16_test.dart' as fletcher16_test;
 import 'index_test.dart' as index;
 import 'mutex_test.dart' as mutex;
 import 'referenced_names_test.dart' as referenced_names;
-import 'results_test.dart' as results;
+import 'results/test_all.dart' as results;
 import 'search_test.dart' as search;
 import 'session_helper_test.dart' as session_helper;
 import 'session_test.dart' as session;

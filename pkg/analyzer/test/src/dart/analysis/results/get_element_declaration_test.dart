@@ -2,42 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../resolution/driver_resolution.dart';
+import '../../resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetElementDeclarationParsedTest);
-    defineReflectiveTests(GetElementDeclarationParsedWithExtensionMethodsTest);
     defineReflectiveTests(GetElementDeclarationResolvedTest);
-    defineReflectiveTests(
-        GetElementDeclarationResolvedWithExtensionMethodsTest);
   });
-}
-
-mixin ExtensionMethodsMixin implements GetElementDeclarationMixin {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
-
-  test_extension() async {
-    await resolveTestCode(r'''
-extension E on int {}
-''');
-    var element = findNode.extensionDeclaration('E').declaredElement;
-    var result = await getElementDeclaration(element);
-    ExtensionDeclaration node = result.node;
-    expect(node.name.name, 'E');
-  }
 }
 
 mixin GetElementDeclarationMixin implements DriverResolutionTest {
@@ -230,6 +208,16 @@ enum MyEnum {a, b, c}
     var result = await getElementDeclaration(element);
     EnumConstantDeclaration node = result.node;
     expect(node.name.name, 'a');
+  }
+
+  test_extension() async {
+    await resolveTestCode(r'''
+extension E on int {}
+''');
+    var element = findNode.extensionDeclaration('E').declaredElement;
+    var result = await getElementDeclaration(element);
+    ExtensionDeclaration node = result.node;
+    expect(node.name.name, 'E');
   }
 
   test_field() async {
@@ -431,10 +419,6 @@ class GetElementDeclarationParsedTest extends DriverResolutionTest
 }
 
 @reflectiveTest
-class GetElementDeclarationParsedWithExtensionMethodsTest
-    extends GetElementDeclarationParsedTest with ExtensionMethodsMixin {}
-
-@reflectiveTest
 class GetElementDeclarationResolvedTest extends DriverResolutionTest
     with GetElementDeclarationMixin {
   @override
@@ -449,7 +433,3 @@ class GetElementDeclarationResolvedTest extends DriverResolutionTest
     return driver.getResolvedLibrary(path);
   }
 }
-
-@reflectiveTest
-class GetElementDeclarationResolvedWithExtensionMethodsTest
-    extends GetElementDeclarationResolvedTest with ExtensionMethodsMixin {}
