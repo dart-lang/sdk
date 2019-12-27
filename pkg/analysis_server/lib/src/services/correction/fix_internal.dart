@@ -3508,6 +3508,19 @@ class FixProcessor extends BaseProcessor {
   }
 
   Future<void> _addFix_removeThisExpression() async {
+    if (node is ConstructorFieldInitializer) {
+      var initializer = node as ConstructorFieldInitializer;
+      var thisKeyword = initializer.thisKeyword;
+      if (thisKeyword != null) {
+        var changeBuilder = _newDartChangeBuilder();
+        await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+          var fieldName = initializer.fieldName;
+          builder.addDeletion(range.startStart(thisKeyword, fieldName));
+        });
+        _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_THIS_EXPRESSION);
+      }
+      return;
+    }
     final thisExpression = node is ThisExpression
         ? node
         : node.thisOrAncestorOfType<ThisExpression>();
