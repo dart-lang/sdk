@@ -22,6 +22,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/error/constructor_fields_verifier.dart';
 import 'package:analyzer/src/error/duplicate_definition_verifier.dart';
 import 'package:analyzer/src/error/literal_element_verifier.dart';
 import 'package:analyzer/src/error/required_parameters_verifier.dart';
@@ -214,22 +215,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    */
   List<ReturnStatement> _returnsWithout = <ReturnStatement>[];
 
-  /**
-   * This map is initialized when visiting the contents of a class declaration.
-   * If the visitor is not in an enclosing class declaration, then the map is
-   * set to `null`.
-   *
-   * When set the map maps the set of [FieldElement]s in the class to an
-   * [INIT_STATE.NOT_INIT] or [INIT_STATE.INIT_IN_DECLARATION]. The `checkFor*`
-   * methods, specifically [_checkForAllFinalInitializedErrorCodes], can make a
-   * copy of the map to compute error code states. The `checkFor*` methods
-   * should only ever make a copy, or read from this map after it has been set
-   * in [visitClassDeclaration].
-   *
-   * See [visitClassDeclaration], and [_checkForAllFinalInitializedErrorCodes].
-   */
-  Map<FieldElement, INIT_STATE> _initialFieldElementsMap;
-
   /// A table mapping name of the library to the export directive which export
   /// this library.
   final Map<String, LibraryElement> _nameToExportElement =
@@ -269,6 +254,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   final RequiredParametersVerifier _requiredParametersVerifier;
   final DuplicateDefinitionVerifier _duplicateDefinitionVerifier;
   TypeArgumentsVerifier _typeArgumentsVerifier;
+  ConstructorFieldsVerifier _constructorFieldsVerifier;
 
   /**
    * Initialize a newly created error verifier.
@@ -295,6 +281,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     _options = _currentLibrary.context.analysisOptions;
     _typeArgumentsVerifier =
         TypeArgumentsVerifier(_options, _typeSystem, _errorReporter);
+    _constructorFieldsVerifier = ConstructorFieldsVerifier(
+      typeSystem: _typeSystem,
+      errorReporter: _errorReporter,
+    );
   }
 
   /**
@@ -493,14 +483,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         _checkClassInheritance(node, superclass, withClause, implementsClause);
       }
 
-      _initializeInitialFieldElementsMap(_enclosingClass.fields);
+      _constructorFieldsVerifier.enterClass(node);
       _checkForFinalNotInitializedInClass(members);
       _checkForBadFunctionUse(node);
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
       super.visitClassDeclaration(node);
     } finally {
       _isInNativeClass = false;
-      _initialFieldElementsMap = null;
+      _constructorFieldsVerifier.leaveClassOrMixin();
       _enclosingClass = outerClass;
     }
   }
@@ -558,7 +548,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
           node.body, CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR);
       _checkForConstConstructorWithNonFinalField(node, constructorElement);
       _checkForConstConstructorWithNonConstSuper(node);
-      _checkForAllFinalInitializedErrorCodes(node);
+      _constructorFieldsVerifier.verify(node);
       _checkForRedirectingConstructorErrorCodes(node);
       _checkForMultipleSuperInitializers(node);
       _checkForRecursiveConstructorRedirect(node, constructorElement);
@@ -1048,13 +1038,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         _checkMixinInheritance(node, onClause, implementsClause);
       }
 
-      _initializeInitialFieldElementsMap(_enclosingClass.fields);
+      _constructorFieldsVerifier.enterMixin(node);
       _checkForFinalNotInitializedInClass(members);
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
       //      _checkForBadFunctionUse(node);
       super.visitMixinDeclaration(node);
     } finally {
-      _initialFieldElementsMap = null;
+      _constructorFieldsVerifier.leaveClassOrMixin();
       _enclosingClass = outerClass;
     }
   }
@@ -1426,162 +1416,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     _errorReporter.reportErrorForNode(
         StaticWarningCode.RETURN_WITHOUT_VALUE, statement);
     return;
-  }
-
-  /**
-   * Verify that the given [constructor] declaration does not violate any of the
-   * error codes relating to the initialization of fields in the enclosing
-   * class.
-   *
-   * See [_initialFieldElementsMap],
-   * [StaticWarningCode.FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR], and
-   * [CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES].
-   */
-  void _checkForAllFinalInitializedErrorCodes(
-      ConstructorDeclaration constructor) {
-    if (constructor.factoryKeyword != null ||
-        constructor.redirectedConstructor != null ||
-        constructor.externalKeyword != null) {
-      return;
-    }
-    // Ignore if native class.
-    if (_isInNativeClass) {
-      return;
-    }
-
-    Map<FieldElement, INIT_STATE> fieldElementsMap =
-        HashMap<FieldElement, INIT_STATE>.from(_initialFieldElementsMap);
-    // Visit all of the field formal parameters
-    NodeList<FormalParameter> formalParameters =
-        constructor.parameters.parameters;
-    for (FormalParameter formalParameter in formalParameters) {
-      FormalParameter baseParameter(FormalParameter parameter) {
-        if (parameter is DefaultFormalParameter) {
-          return parameter.parameter;
-        }
-        return parameter;
-      }
-
-      FormalParameter parameter = baseParameter(formalParameter);
-      if (parameter is FieldFormalParameter) {
-        FieldElement fieldElement =
-            (parameter.declaredElement as FieldFormalParameterElementImpl)
-                .field;
-        INIT_STATE state = fieldElementsMap[fieldElement];
-        if (state == INIT_STATE.NOT_INIT) {
-          fieldElementsMap[fieldElement] = INIT_STATE.INIT_IN_FIELD_FORMAL;
-        } else if (state == INIT_STATE.INIT_IN_DECLARATION) {
-          if (fieldElement.isFinal || fieldElement.isConst) {
-            _errorReporter.reportErrorForNode(
-                StaticWarningCode
-                    .FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR,
-                formalParameter.identifier,
-                [fieldElement.displayName]);
-          }
-        } else if (state == INIT_STATE.INIT_IN_FIELD_FORMAL) {
-          if (fieldElement.isFinal || fieldElement.isConst) {
-            _errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES,
-                formalParameter.identifier,
-                [fieldElement.displayName]);
-          }
-        }
-      }
-    }
-    // Visit all of the initializers
-    NodeList<ConstructorInitializer> initializers = constructor.initializers;
-    for (ConstructorInitializer constructorInitializer in initializers) {
-      if (constructorInitializer is RedirectingConstructorInvocation) {
-        return;
-      }
-      if (constructorInitializer is ConstructorFieldInitializer) {
-        SimpleIdentifier fieldName = constructorInitializer.fieldName;
-        Element element = fieldName.staticElement;
-        if (element is FieldElement) {
-          INIT_STATE state = fieldElementsMap[element];
-          if (state == INIT_STATE.NOT_INIT) {
-            fieldElementsMap[element] = INIT_STATE.INIT_IN_INITIALIZERS;
-          } else if (state == INIT_STATE.INIT_IN_DECLARATION) {
-            if (element.isFinal || element.isConst) {
-              _errorReporter.reportErrorForNode(
-                  StaticWarningCode
-                      .FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION,
-                  fieldName);
-            }
-          } else if (state == INIT_STATE.INIT_IN_FIELD_FORMAL) {
-            _errorReporter.reportErrorForNode(
-                CompileTimeErrorCode
-                    .FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER,
-                fieldName);
-          } else if (state == INIT_STATE.INIT_IN_INITIALIZERS) {
-            _errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS,
-                fieldName,
-                [element.displayName]);
-          }
-        }
-      }
-    }
-
-    // Prepare lists of not initialized fields.
-    List<FieldElement> notInitFinalFields = <FieldElement>[];
-    List<FieldElement> notInitNonNullableFields = <FieldElement>[];
-    fieldElementsMap.forEach((FieldElement field, INIT_STATE state) {
-      if (state != INIT_STATE.NOT_INIT) return;
-      if (field.isLate) return;
-
-      if (field.isFinal) {
-        notInitFinalFields.add(field);
-      } else if (_isNonNullableByDefault &&
-          _typeSystem.isPotentiallyNonNullable(field.type)) {
-        notInitNonNullableFields.add(field);
-      }
-    });
-
-    // Visit all of the states in the map to ensure that none were never
-    // initialized.
-    fieldElementsMap.forEach((FieldElement fieldElement, INIT_STATE state) {
-      if (state == INIT_STATE.NOT_INIT) {
-        if (fieldElement.isConst) {
-          _errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.CONST_NOT_INITIALIZED,
-              constructor.returnType,
-              [fieldElement.name]);
-        }
-      }
-    });
-
-    if (notInitFinalFields.isNotEmpty) {
-      List<String> names = notInitFinalFields.map((item) => item.name).toList();
-      names.sort();
-      if (names.length == 1) {
-        _errorReporter.reportErrorForNode(
-            StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1,
-            constructor.returnType,
-            names);
-      } else if (names.length == 2) {
-        _errorReporter.reportErrorForNode(
-            StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2,
-            constructor.returnType,
-            names);
-      } else {
-        _errorReporter.reportErrorForNode(
-            StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS,
-            constructor.returnType,
-            [names[0], names[1], names.length - 2]);
-      }
-    }
-
-    if (notInitNonNullableFields.isNotEmpty) {
-      var names = notInitNonNullableFields.map((f) => f.name).toList()..sort();
-      for (var name in names) {
-        _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode
-                .NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD_CONSTRUCTOR,
-            constructor.returnType,
-            [name]);
-      }
-    }
   }
 
   /**
@@ -5757,18 +5591,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       current = current.redirectedConstructor?.declaration;
     }
     return false;
-  }
-
-  void _initializeInitialFieldElementsMap(List<FieldElement> fields) {
-    _initialFieldElementsMap = HashMap<FieldElement, INIT_STATE>();
-    for (FieldElement fieldElement in fields) {
-      if (!fieldElement.isSynthetic) {
-        _initialFieldElementsMap[fieldElement] =
-            fieldElement.initializer == null
-                ? INIT_STATE.NOT_INIT
-                : INIT_STATE.INIT_IN_DECLARATION;
-      }
-    }
   }
 
   bool _isFunctionType(DartType type) {

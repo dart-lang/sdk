@@ -176,47 +176,6 @@ class InferenceContext {
   }
 }
 
-/// The four states of a field initialization state through a constructor
-/// signature, not initialized, initialized in the field declaration,
-/// initialized in the field formal, and finally, initialized in the
-/// initializers list.
-class INIT_STATE implements Comparable<INIT_STATE> {
-  static const INIT_STATE NOT_INIT = INIT_STATE('NOT_INIT', 0);
-
-  static const INIT_STATE INIT_IN_DECLARATION =
-      INIT_STATE('INIT_IN_DECLARATION', 1);
-
-  static const INIT_STATE INIT_IN_FIELD_FORMAL =
-      INIT_STATE('INIT_IN_FIELD_FORMAL', 2);
-
-  static const INIT_STATE INIT_IN_INITIALIZERS =
-      INIT_STATE('INIT_IN_INITIALIZERS', 3);
-
-  static const List<INIT_STATE> values = [
-    NOT_INIT,
-    INIT_IN_DECLARATION,
-    INIT_IN_FIELD_FORMAL,
-    INIT_IN_INITIALIZERS
-  ];
-
-  /// The name of this init state.
-  final String name;
-
-  /// The ordinal value of the init state.
-  final int ordinal;
-
-  const INIT_STATE(this.name, this.ordinal);
-
-  @override
-  int get hashCode => ordinal;
-
-  @override
-  int compareTo(INIT_STATE other) => ordinal - other.ordinal;
-
-  @override
-  String toString() => name;
-}
-
 /// Instances of the class `ResolverVisitor` are used to resolve the nodes
 /// within a single compilation unit.
 class ResolverVisitor extends ScopedVisitor {
