@@ -141,7 +141,7 @@ class _InstrumentationTest extends AbstractContextTest {
     migration.finish();
   }
 
-  test_explicitTypeNullability() async {
+  Future<void> test_explicitTypeNullability() async {
     var content = '''
 int x = 1;
 int y = null;
@@ -153,7 +153,7 @@ int y = null;
         true);
   }
 
-  test_externalDecoratedType() async {
+  Future<void> test_externalDecoratedType() async {
     await analyze('''
 main() {
   print(1);
@@ -166,7 +166,7 @@ main() {
         'void Function(Object)');
   }
 
-  test_externalDecoratedTypeParameterBound() async {
+  Future<void> test_externalDecoratedTypeParameterBound() async {
     await analyze('''
 import 'dart:math';
 f(Point<int> x) {}
@@ -180,7 +180,7 @@ f(Point<int> x) {}
         'num');
   }
 
-  test_externalType_nullability_dynamic_edge() async {
+  Future<void> test_externalType_nullability_dynamic_edge() async {
     await analyze('''
 f(List<int> x) {}
 ''');
@@ -200,7 +200,7 @@ f(List<int> x) {}
     expect(origin.node, null);
   }
 
-  test_fix_reason_edge() async {
+  Future<void> test_fix_reason_edge() async {
     await analyze('''
 void f(int x) {
   print(x.isEven);
@@ -229,7 +229,7 @@ main() {
     expect(edgeOrigin[edge].node, same(yUsage));
   }
 
-  test_fix_reason_node() async {
+  Future<void> test_fix_reason_node() async {
     await analyze('''
 int x = null;
 ''');
@@ -242,7 +242,7 @@ int x = null;
     expect(reasons.single, same(explicitTypeNullability[intAnnotation]));
   }
 
-  test_graphEdge() async {
+  Future<void> test_graphEdge() async {
     await analyze('''
 int f(int x) => x;
 ''');
@@ -254,7 +254,7 @@ int f(int x) => x;
         hasLength(1));
   }
 
-  test_graphEdge_guards() async {
+  Future<void> test_graphEdge_guards() async {
     await analyze('''
 int f(int i, int j) {
   if (i == null) {
@@ -274,7 +274,7 @@ int f(int i, int j) {
     expect(matchingEdges.single.guards.single, iNode);
   }
 
-  test_graphEdge_hard() async {
+  Future<void> test_graphEdge_hard() async {
     await analyze('''
 int f(int x) => x;
 ''');
@@ -288,7 +288,7 @@ int f(int x) => x;
     expect(matchingEdges.single.isHard, true);
   }
 
-  test_graphEdge_isSatisfied() async {
+  Future<void> test_graphEdge_isSatisfied() async {
     await analyze('''
 void f1(int i, bool b) {
   f2(i, b);
@@ -330,7 +330,7 @@ main() {
     expect(kToL.isSatisfied, true);
   }
 
-  test_graphEdge_isUpstreamTriggered() async {
+  Future<void> test_graphEdge_isUpstreamTriggered() async {
     await analyze('''
 void f(int i, bool b) {
   assert(i != null);
@@ -394,7 +394,7 @@ void h(int k) {}
     expect(hCallEdge.isUpstreamTriggered, false);
   }
 
-  test_graphEdge_origin() async {
+  Future<void> test_graphEdge_origin() async {
     await analyze('''
 int f(int x) => x;
 ''');
@@ -408,7 +408,7 @@ int f(int x) => x;
     expect(origin.node, findNode.simple('x;'));
   }
 
-  test_graphEdge_origin_dynamic_assignment() async {
+  Future<void> test_graphEdge_origin_dynamic_assignment() async {
     await analyze('''
 int f(dynamic x) => x;
 ''');
@@ -423,7 +423,7 @@ int f(dynamic x) => x;
     expect(origin.node, findNode.simple('x;'));
   }
 
-  test_graphEdge_soft() async {
+  Future<void> test_graphEdge_soft() async {
     await analyze('''
 int f(int x, bool b) {
   if (b) return x;
@@ -440,7 +440,7 @@ int f(int x, bool b) {
     expect(matchingEdges.single.isHard, false);
   }
 
-  test_graphEdge_union() async {
+  Future<void> test_graphEdge_union() async {
     await analyze('''
 class C {
   int i;
@@ -466,7 +466,7 @@ class C {
     expect(matchingEdges.single.isHard, true);
   }
 
-  test_immutableNode_always() async {
+  Future<void> test_immutableNode_always() async {
     await analyze('''
 int x = null;
 ''');
@@ -480,7 +480,7 @@ int x = null;
     expect(upstreamEdge.sourceNode, always);
   }
 
-  test_immutableNode_never() async {
+  Future<void> test_immutableNode_never() async {
     await analyze('''
 bool f(int x) => x.isEven;
 ''');
@@ -491,7 +491,7 @@ bool f(int x) => x.isEven;
     expect(edge.destinationNode, never);
   }
 
-  test_implicitReturnType_constructor() async {
+  Future<void> test_implicitReturnType_constructor() async {
     await analyze('''
 class C {
   factory C() => f(true);
@@ -508,7 +508,7 @@ C f(bool b) => b ? C.named() : null;
         hasLength(1));
   }
 
-  test_implicitReturnType_formalParameter() async {
+  Future<void> test_implicitReturnType_formalParameter() async {
     await analyze('''
 Object f(callback()) => callback();
 ''');
@@ -524,7 +524,7 @@ Object f(callback()) => callback();
         hasLength(1));
   }
 
-  test_implicitReturnType_function() async {
+  Future<void> test_implicitReturnType_function() async {
     await analyze('''
 f() => 1;
 Object g() => f();
@@ -539,7 +539,7 @@ Object g() => f();
         hasLength(1));
   }
 
-  test_implicitReturnType_functionExpression() async {
+  Future<void> test_implicitReturnType_functionExpression() async {
     await analyze('''
 main() {
   int Function() f = () => g();
@@ -564,7 +564,7 @@ int g() => 1;
   }
 
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/39370')
-  test_implicitReturnType_functionTypeAlias() async {
+  Future<void> test_implicitReturnType_functionTypeAlias() async {
     await analyze('''
 typedef F();
 Object f(F callback) => callback();
@@ -580,7 +580,7 @@ Object f(F callback) => callback();
         hasLength(1));
   }
 
-  test_implicitReturnType_genericFunctionType() async {
+  Future<void> test_implicitReturnType_genericFunctionType() async {
     await analyze('''
 Object f(Function() callback) => callback();
 ''');
@@ -595,7 +595,7 @@ Object f(Function() callback) => callback();
         hasLength(1));
   }
 
-  test_implicitReturnType_method() async {
+  Future<void> test_implicitReturnType_method() async {
     await analyze('''
 abstract class Base {
   int f();
@@ -615,7 +615,7 @@ abstract class Derived extends Base {
         hasLength(1));
   }
 
-  test_implicitType_catch_exception() async {
+  Future<void> test_implicitType_catch_exception() async {
     await analyze('''
 void f() {
   try {} catch (e) {
@@ -630,7 +630,7 @@ void f() {
         hasLength(1));
   }
 
-  test_implicitType_catch_stackTrace() async {
+  Future<void> test_implicitType_catch_stackTrace() async {
     await analyze('''
 void f() {
   try {} catch (e, st) {
@@ -646,7 +646,8 @@ void f() {
         hasLength(1));
   }
 
-  test_implicitType_declaredIdentifier_forEachPartsWithDeclaration() async {
+  Future<void>
+      test_implicitType_declaredIdentifier_forEachPartsWithDeclaration() async {
     await analyze('''
 void f(List<int> l) {
   for (var x in l) {
@@ -664,7 +665,7 @@ void f(List<int> l) {
         hasLength(1));
   }
 
-  test_implicitType_formalParameter() async {
+  Future<void> test_implicitType_formalParameter() async {
     await analyze('''
 abstract class Base {
   void f(int i);
@@ -684,7 +685,7 @@ abstract class Derived extends Base {
         hasLength(1));
   }
 
-  test_implicitType_namedParameter() async {
+  Future<void> test_implicitType_namedParameter() async {
     await analyze('''
 abstract class Base {
   void f(void callback({int i}));
@@ -706,7 +707,7 @@ abstract class Derived extends Base {
         hasLength(1));
   }
 
-  test_implicitType_positionalParameter() async {
+  Future<void> test_implicitType_positionalParameter() async {
     await analyze('''
 abstract class Base {
   void f(void callback(int i));
@@ -728,7 +729,7 @@ abstract class Derived extends Base {
         hasLength(1));
   }
 
-  test_implicitType_returnType() async {
+  Future<void> test_implicitType_returnType() async {
     await analyze('''
 abstract class Base {
   void f(int callback());
@@ -748,7 +749,7 @@ abstract class Derived extends Base {
         hasLength(1));
   }
 
-  test_implicitType_typeArgument() async {
+  Future<void> test_implicitType_typeArgument() async {
     await analyze('''
 abstract class Base {
   void f(List<int> x);
@@ -770,7 +771,7 @@ abstract class Derived extends Base {
         hasLength(1));
   }
 
-  test_implicitType_variableDeclarationList() async {
+  Future<void> test_implicitType_variableDeclarationList() async {
     await analyze('''
 void f(int i) {
   var j = i;
@@ -783,7 +784,7 @@ void f(int i) {
         hasLength(1));
   }
 
-  test_implicitTypeArguments_genericFunctionCall() async {
+  Future<void> test_implicitTypeArguments_genericFunctionCall() async {
     await analyze('''
 List<T> g<T>(T t) {}
 List<int> f() => g(null);
@@ -806,7 +807,7 @@ List<int> f() => g(null);
     }), hasLength(1));
   }
 
-  test_implicitTypeArguments_genericMethodCall() async {
+  Future<void> test_implicitTypeArguments_genericMethodCall() async {
     await analyze('''
 class C {
   List<T> g<T>(T t) {}
@@ -833,7 +834,7 @@ List<int> f(C c) => c.g(null);
     }), hasLength(1));
   }
 
-  test_implicitTypeArguments_instanceCreationExpression() async {
+  Future<void> test_implicitTypeArguments_instanceCreationExpression() async {
     await analyze('''
 class C<T> {
   C(T t);
@@ -857,7 +858,7 @@ C<int> f() => C(null);
         hasLength(1));
   }
 
-  test_implicitTypeArguments_listLiteral() async {
+  Future<void> test_implicitTypeArguments_listLiteral() async {
     await analyze('''
 List<int> f() => [null];
 ''');
@@ -877,7 +878,7 @@ List<int> f() => [null];
         hasLength(1));
   }
 
-  test_implicitTypeArguments_mapLiteral() async {
+  Future<void> test_implicitTypeArguments_mapLiteral() async {
     await analyze('''
 Map<int, String> f() => {1: null};
 ''');
@@ -911,7 +912,7 @@ Map<int, String> f() => {1: null};
         hasLength(1));
   }
 
-  test_implicitTypeArguments_setLiteral() async {
+  Future<void> test_implicitTypeArguments_setLiteral() async {
     await analyze('''
 Set<int> f() => {null};
 ''');
@@ -931,7 +932,7 @@ Set<int> f() => {null};
         hasLength(1));
   }
 
-  test_implicitTypeArguments_typeAnnotation() async {
+  Future<void> test_implicitTypeArguments_typeAnnotation() async {
     await analyze('''
 List<Object> f(List l) => l;
 ''');
@@ -946,7 +947,7 @@ List<Object> f(List l) => l;
         hasLength(1));
   }
 
-  test_propagationStep_downstream() async {
+  Future<void> test_propagationStep_downstream() async {
     await analyze('''
 int x = null;
 ''');
@@ -958,7 +959,7 @@ int x = null;
     expect(step.edge.destinationNode, xNode);
   }
 
-  test_propagationStep_upstream() async {
+  Future<void> test_propagationStep_upstream() async {
     await analyze('''
 void f(int x) {
   assert(x != null);
@@ -972,7 +973,7 @@ void f(int x) {
     expect(step.edge.destinationNode, never);
   }
 
-  test_substitutionNode() async {
+  Future<void> test_substitutionNode() async {
     await analyze('''
 class C<T> {
   void f(T t) {}

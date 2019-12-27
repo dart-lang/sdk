@@ -27,7 +27,7 @@ class DecoratedClassHierarchyTest extends MigrationVisitorTestBase {
     return unit;
   }
 
-  test_asInstanceOf_complex() async {
+  Future<void> test_asInstanceOf_complex() async {
     await analyze('''
 class Base<T> {}
 class Derived<U> extends Base<List<U>> {}
@@ -46,7 +46,7 @@ Derived<int> x;
     expect(substitution.outerNode, same(listOfUType.typeArguments[0].node));
   }
 
-  test_getDecoratedSupertype_complex() async {
+  Future<void> test_getDecoratedSupertype_complex() async {
     await analyze('''
 class Base<T> {}
 class Intermediate<U> extends Base<List<U>> {}
@@ -79,7 +79,7 @@ class Derived<V> extends Intermediate<Map<int, V>> {}
     expect(mapArgs[1].node, same(vRef.node));
   }
 
-  test_getDecoratedSupertype_extends_simple() async {
+  Future<void> test_getDecoratedSupertype_extends_simple() async {
     await analyze('''
 class Base<T, U> {}
 class Derived<V, W> extends Base<V, W> {}
@@ -97,7 +97,7 @@ class Derived<V, W> extends Base<V, W> {}
     expect(decoratedSupertype.typeArguments[1].node, same(wRef.node));
   }
 
-  test_getDecoratedSupertype_implements_simple() async {
+  Future<void> test_getDecoratedSupertype_implements_simple() async {
     await analyze('''
 class Base<T, U> {}
 class Derived<V, W> implements Base<V, W> {}
@@ -115,7 +115,7 @@ class Derived<V, W> implements Base<V, W> {}
     expect(decoratedSupertype.typeArguments[1].node, same(wRef.node));
   }
 
-  test_getDecoratedSupertype_not_generic() async {
+  Future<void> test_getDecoratedSupertype_not_generic() async {
     await analyze('''
 class Base {}
 class Derived<T> extends Base {}
@@ -127,7 +127,7 @@ class Derived<T> extends Base {}
     expect(decoratedSupertype.typeArguments, isEmpty);
   }
 
-  test_getDecoratedSupertype_on_simple() async {
+  Future<void> test_getDecoratedSupertype_on_simple() async {
     await analyze('''
 class Base<T, U> {}
 mixin Derived<V, W> on Base<V, W> {}
@@ -145,7 +145,7 @@ mixin Derived<V, W> on Base<V, W> {}
     expect(decoratedSupertype.typeArguments[1].node, same(wRef.node));
   }
 
-  test_getDecoratedSupertype_unrelated_type() async {
+  Future<void> test_getDecoratedSupertype_unrelated_type() async {
     await analyze('''
 class A<T> {}
 class B<T> {}
@@ -156,7 +156,7 @@ class B<T> {}
         throwsA(TypeMatcher<StateError>()));
   }
 
-  test_getDecoratedSupertype_with_simple() async {
+  Future<void> test_getDecoratedSupertype_with_simple() async {
     await analyze('''
 class Base<T, U> {}
 class Derived<V, W> extends Object with Base<V, W> {}

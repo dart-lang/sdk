@@ -14,7 +14,7 @@ main() {
 
 @reflectiveTest
 class EdgeBuilderFlowAnalysisTest extends EdgeBuilderTestBase {
-  test_as() async {
+  Future<void> test_as() async {
     await analyze('''
 void f(num n) {
   h(n);
@@ -34,7 +34,7 @@ void h(num m) {}
     assertEdge(nNode, mNode, hard: true);
   }
 
-  test_assert_initializer_condition_promotes_to_message() async {
+  Future<void> test_assert_initializer_condition_promotes_to_message() async {
     await analyze('''
 class C {
   C(int i)
@@ -55,7 +55,7 @@ void h(int k) {}
     assertEdge(iNode, kNode, hard: true);
   }
 
-  test_assert_initializer_does_not_promote_beyond_assert() async {
+  Future<void> test_assert_initializer_does_not_promote_beyond_assert() async {
     await analyze('''
 class C {
   C(int i)
@@ -77,7 +77,7 @@ void h(int k) {}
     assertNoEdge(iNode, kNode);
   }
 
-  test_assert_statement_condition_promotes_to_message() async {
+  Future<void> test_assert_statement_condition_promotes_to_message() async {
     await analyze('''
 void f(int i) {
   assert(i == null, g(i));
@@ -96,7 +96,7 @@ void h(int k) {}
     assertEdge(iNode, kNode, hard: true);
   }
 
-  test_assert_statement_does_not_promote_beyond_assert() async {
+  Future<void> test_assert_statement_does_not_promote_beyond_assert() async {
     await analyze('''
 void f(int i) {
   assert(i != null);
@@ -116,7 +116,7 @@ void h(int k) {}
     assertNoEdge(iNode, kNode);
   }
 
-  test_assignmentExpression() async {
+  Future<void> test_assignmentExpression() async {
     await analyze('''
 void f(int i, int j) {
   if (i != null) {
@@ -141,7 +141,7 @@ void h(int l) {}
     assertEdge(jNode, iNode, hard: false);
   }
 
-  test_assignmentExpression_lhs_before_rhs() async {
+  Future<void> test_assignmentExpression_lhs_before_rhs() async {
     await analyze('''
 void f(int i, List<int> l) {
   if (i != null) {
@@ -164,7 +164,7 @@ int h(int k) => 1;
     assertEdge(gReturnNode, iNode, hard: false);
   }
 
-  test_assignmentExpression_null_aware() async {
+  Future<void> test_assignmentExpression_null_aware() async {
     await analyze('''
 void f(bool b, int i, int j) {
   if (b) {
@@ -187,7 +187,7 @@ void h(int l) {}
     assertEdge(iNode, kNode, hard: false);
   }
 
-  test_assignmentExpression_write_after_rhs() async {
+  Future<void> test_assignmentExpression_write_after_rhs() async {
     await analyze('''
 void f(int i) {
   if (i != null) {
@@ -211,7 +211,7 @@ void h(int k) {}
     assertEdge(gReturnNode, iNode, hard: false);
   }
 
-  test_binaryExpression_ampersandAmpersand_left() async {
+  Future<void> test_binaryExpression_ampersandAmpersand_left() async {
     await analyze('''
 bool f(int i) => i != null && i.isEven;
 bool g(int j) => j.isEven;
@@ -224,7 +224,7 @@ bool g(int j) => j.isEven;
     assertEdge(jNode, inSet(pointsToNever), hard: true);
   }
 
-  test_binaryExpression_ampersandAmpersand_right() async {
+  Future<void> test_binaryExpression_ampersandAmpersand_right() async {
     await analyze('''
 void f(bool b, int i, int j) {
   if (b && i != null) {
@@ -241,7 +241,7 @@ void f(bool b, int i, int j) {
     assertEdge(jNode, inSet(pointsToNever), hard: false);
   }
 
-  test_binaryExpression_barBar_left() async {
+  Future<void> test_binaryExpression_barBar_left() async {
     await analyze('''
 bool f(int i) => i == null || i.isEven;
 bool g(int j) => j.isEven;
@@ -254,7 +254,7 @@ bool g(int j) => j.isEven;
     assertEdge(jNode, inSet(pointsToNever), hard: true);
   }
 
-  test_binaryExpression_barBar_right() async {
+  Future<void> test_binaryExpression_barBar_right() async {
     await analyze('''
 void f(bool b, int i, int j) {
   if (b || i == null) {} else {
@@ -271,7 +271,7 @@ void f(bool b, int i, int j) {
     assertEdge(jNode, inSet(pointsToNever), hard: false);
   }
 
-  test_booleanLiteral_false() async {
+  Future<void> test_booleanLiteral_false() async {
     await analyze('''
 void f(int i, int j) {
   if (i != null || false) {} else return;
@@ -289,7 +289,7 @@ void f(int i, int j) {
     assertEdge(jNode, inSet(pointsToNever), hard: false);
   }
 
-  test_booleanLiteral_true() async {
+  Future<void> test_booleanLiteral_true() async {
     await analyze('''
 void f(int i, int j) {
   if (i == null && true) return;
@@ -307,7 +307,7 @@ void f(int i, int j) {
     assertEdge(jNode, inSet(pointsToNever), hard: false);
   }
 
-  test_break_labeled() async {
+  Future<void> test_break_labeled() async {
     await analyze('''
 void f(int i) {
   L: while(true) {
@@ -332,7 +332,7 @@ void h(int k) {}
     assertEdge(iNode, jNode, hard: false);
   }
 
-  test_break_unlabeled() async {
+  Future<void> test_break_unlabeled() async {
     await analyze('''
 void f(int i) {
   while (true) {
@@ -355,7 +355,8 @@ void h(int k) {}
     assertEdge(iNode, jNode, hard: false);
   }
 
-  test_catch_cancels_promotions_based_on_assignments_in_body() async {
+  Future<void>
+      test_catch_cancels_promotions_based_on_assignments_in_body() async {
     await analyze('''
 void f(int i) {
   if (i == null) return;
@@ -381,7 +382,7 @@ void h(int k) {}
     assertEdge(iNode, kNode, hard: false);
   }
 
-  test_catch_falls_through_to_after_try() async {
+  Future<void> test_catch_falls_through_to_after_try() async {
     await analyze('''
 void f(int i) {
   try {
@@ -404,7 +405,7 @@ void h(int k) {}
     assertEdge(iNode, jNode, hard: true);
   }
 
-  test_catch_resets_to_state_before_try() async {
+  Future<void> test_catch_resets_to_state_before_try() async {
     await analyze('''
 void f(int i) {
   try {
@@ -427,7 +428,7 @@ void h(int k) {}
     assertEdge(iNode, kNode, hard: false);
   }
 
-  test_conditionalExpression() async {
+  Future<void> test_conditionalExpression() async {
     await analyze('''
 int f(int i) => i == null ? g(i) : h(i);
 int g(int j) => 1;
@@ -444,7 +445,7 @@ int h(int k) => 1;
     assertEdge(iNode, jNode, hard: false);
   }
 
-  test_conditionalExpression_propagates_promotions() async {
+  Future<void> test_conditionalExpression_propagates_promotions() async {
     await analyze('''
 void f(bool b, int i, int j, int k) {
   if (b ? (i != null && j != null) : (i != null && k != null)) {
@@ -464,7 +465,7 @@ void f(bool b, int i, int j, int k) {
     assertEdge(kNode, inSet(pointsToNever), hard: false);
   }
 
-  test_constructorDeclaration_assert() async {
+  Future<void> test_constructorDeclaration_assert() async {
     await analyze('''
 class C {
   C(int i, int j) : assert(i == null || i.isEven, j.isEven);
@@ -478,7 +479,7 @@ class C {
     assertEdge(jNode, inSet(pointsToNever), hard: true);
   }
 
-  test_constructorDeclaration_initializer() async {
+  Future<void> test_constructorDeclaration_initializer() async {
     await analyze('''
 class C {
   bool b1;
@@ -494,7 +495,7 @@ class C {
     assertEdge(jNode, inSet(pointsToNever), hard: true);
   }
 
-  test_constructorDeclaration_redirection() async {
+  Future<void> test_constructorDeclaration_redirection() async {
     await analyze('''
 class C {
   C(bool b1, bool b2);
@@ -509,7 +510,7 @@ class C {
     assertEdge(jNode, inSet(pointsToNever), hard: true);
   }
 
-  test_continue_labeled() async {
+  Future<void> test_continue_labeled() async {
     await analyze('''
 void f(int i) {
   L: do {
@@ -532,7 +533,7 @@ bool h(int k) => true;
     assertEdge(iNode, jNode, hard: false);
   }
 
-  test_continue_unlabeled() async {
+  Future<void> test_continue_unlabeled() async {
     await analyze('''
 void f(int i) {
   do {
@@ -554,7 +555,7 @@ void h(int k) {}
     assertEdge(iNode, kNode, hard: false);
   }
 
-  test_do_break_target() async {
+  Future<void> test_do_break_target() async {
     await analyze('''
 void f(int i) {
   L: do {
@@ -580,7 +581,7 @@ void h(int k) {}
     assertEdge(iNode, jNode, hard: false);
   }
 
-  test_do_cancels_promotions_for_assignments_in_body() async {
+  Future<void> test_do_cancels_promotions_for_assignments_in_body() async {
     await analyze('''
 void f(int i, int j) {
   if (i == null) return;
@@ -600,7 +601,7 @@ void f(int i, int j) {
     assertEdge(jNode, inSet(pointsToNever), hard: false);
   }
 
-  test_do_cancels_promotions_for_assignments_in_condition() async {
+  Future<void> test_do_cancels_promotions_for_assignments_in_condition() async {
     await analyze('''
 void f(int i, int j) {
   if (i == null) return;
@@ -617,7 +618,7 @@ bool g(int k) => true;
     assertEdge(jNode, inSet(pointsToNever), hard: false);
   }
 
-  test_do_continue_target() async {
+  Future<void> test_do_continue_target() async {
     await analyze('''
 void f(int i) {
   L: do {
@@ -640,7 +641,7 @@ bool h(int k) => true;
     assertEdge(iNode, jNode, hard: false);
   }
 
-  test_field_initializer() async {
+  Future<void> test_field_initializer() async {
     await analyze('''
 bool b1 = true;
 bool b2 = true;
@@ -652,7 +653,7 @@ class C {
     // field doesn't cause flow analysis to crash.
   }
 
-  test_finally_promotions_are_preserved() async {
+  Future<void> test_finally_promotions_are_preserved() async {
     await analyze('''
 void f(int i) {
   try {
@@ -675,7 +676,7 @@ void h(int k) {}
     assertEdge(iNode, jNode, hard: true);
   }
 
-  test_finally_temporarily_resets_to_state_before_try() async {
+  Future<void> test_finally_temporarily_resets_to_state_before_try() async {
     await analyze('''
 void f(int i) {
   try {
@@ -699,7 +700,7 @@ void h(int k) {}
     assertEdge(iNode, kNode, hard: false);
   }
 
-  test_for_break_target() async {
+  Future<void> test_for_break_target() async {
     await analyze('''
 void f(int i) {
   L: for (;;) {
@@ -725,7 +726,7 @@ void h(int k) {}
     assertEdge(iNode, jNode, hard: false);
   }
 
-  test_for_cancels_promotions_for_assignments_in_body() async {
+  Future<void> test_for_cancels_promotions_for_assignments_in_body() async {
     await analyze('''
 void f(int i, int j) {
   if (i == null) return;
@@ -745,7 +746,7 @@ void f(int i, int j) {
     assertEdge(jNode, inSet(pointsToNever), hard: false);
   }
 
-  test_for_cancels_promotions_for_assignments_in_updaters() async {
+  Future<void> test_for_cancels_promotions_for_assignments_in_updaters() async {
     await analyze('''
 void f(int i, int j) {
   if (i == null) return;
@@ -764,7 +765,8 @@ void f(int i, int j) {
     assertEdge(jNode, inSet(pointsToNever), hard: false);
   }
 
-  test_for_collection_cancels_promotions_for_assignments_in_body() async {
+  Future<void>
+      test_for_collection_cancels_promotions_for_assignments_in_body() async {
     await analyze('''
 void f(int i, int j) {
   if (i == null) return;
@@ -780,7 +782,8 @@ void f(int i, int j) {
     assertEdge(jNode, inSet(pointsToNever), hard: false);
   }
 
-  test_for_collection_cancels_promotions_for_assignments_in_updaters() async {
+  Future<void>
+      test_for_collection_cancels_promotions_for_assignments_in_updaters() async {
     await analyze('''
 void f(int i, int j) {
   if (i == null) return;
@@ -796,7 +799,8 @@ void f(int i, int j) {
     assertEdge(jNode, inSet(pointsToNever), hard: false);
   }
 
-  test_for_collection_preserves_promotions_for_assignments_in_initializer() async {
+  Future<void>
+      test_for_collection_preserves_promotions_for_assignments_in_initializer() async {
     await analyze('''
 void f(int i, int j) {
   if (i == null) return;
@@ -813,7 +817,7 @@ int h(bool b) => 0;
     assertEdge(jNode, inSet(pointsToNever), hard: false);
   }
 
-  test_for_continue_target() async {
+  Future<void> test_for_continue_target() async {
     await analyze('''
 void f(int i) {
   L: for (; b(); h(i)) {
@@ -837,7 +841,7 @@ void h(int k) {}
     assertEdge(iNode, jNode, hard: false);
   }
 
-  test_for_each_assigns_to_declared_var() async {
+  Future<void> test_for_each_assigns_to_declared_var() async {
     await analyze('''
 void f(Iterable<int> x) {
   for (int i in x) {
@@ -851,7 +855,7 @@ void g(int j) {}
     assertNoEdge(never, iNode);
   }
 
-  test_for_each_assigns_to_identifier() async {
+  Future<void> test_for_each_assigns_to_identifier() async {
     await analyze('''
 void f(Iterable<int> x) {
   int i;
@@ -866,7 +870,8 @@ void g(int j) {}
     assertNoEdge(never, iNode);
   }
 
-  test_for_each_cancels_promotions_for_assignments_in_body() async {
+  Future<void>
+      test_for_each_cancels_promotions_for_assignments_in_body() async {
     await analyze('''
 void f(int i, int j, Iterable<Object> x) {
   if (i == null) return;
@@ -886,7 +891,7 @@ void f(int i, int j, Iterable<Object> x) {
     assertEdge(jNode, inSet(pointsToNever), hard: false);
   }
 
-  test_for_each_collection_assigns_to_declared_var() async {
+  Future<void> test_for_each_collection_assigns_to_declared_var() async {
     await analyze('''
 void f(Iterable<int> x) {
   [for (int i in x) g(i)];
@@ -898,7 +903,7 @@ void g(int j) {}
     assertNoEdge(never, iNode);
   }
 
-  test_for_each_collection_assigns_to_identifier() async {
+  Future<void> test_for_each_collection_assigns_to_identifier() async {
     await analyze('''
 void f(Iterable<int> x) {
   int i;
@@ -911,7 +916,8 @@ void g(int j) {}
     assertNoEdge(never, iNode);
   }
 
-  test_for_each_collection_cancels_promotions_for_assignments_in_body() async {
+  Future<void>
+      test_for_each_collection_cancels_promotions_for_assignments_in_body() async {
     await analyze('''
 void f(int i, int j, Iterable<Object> x) {
   if (i == null) return;
@@ -927,7 +933,8 @@ void f(int i, int j, Iterable<Object> x) {
     assertEdge(jNode, inSet(pointsToNever), hard: false);
   }
 
-  test_for_each_collection_preserves_promotions_for_assignments_in_iterable() async {
+  Future<void>
+      test_for_each_collection_preserves_promotions_for_assignments_in_iterable() async {
     await analyze('''
 void f(int i, int j) {
   if (i == null) return;
@@ -944,7 +951,8 @@ Iterable<Object> h(bool b) => <Object>[];
     assertEdge(jNode, inSet(pointsToNever), hard: false);
   }
 
-  test_for_each_preserves_promotions_for_assignments_in_iterable() async {
+  Future<void>
+      test_for_each_preserves_promotions_for_assignments_in_iterable() async {
     await analyze('''
 void f(int i, int j) {
   if (i == null) return;
@@ -961,7 +969,8 @@ Iterable<Object> h(bool b) => <Object>[];
     assertEdge(jNode, inSet(pointsToNever), hard: false);
   }
 
-  test_for_preserves_promotions_for_assignments_in_initializer() async {
+  Future<void>
+      test_for_preserves_promotions_for_assignments_in_initializer() async {
     await analyze('''
 void f(int i, int j) {
   if (i == null) return;
@@ -978,7 +987,7 @@ int h(bool b) => 0;
     assertEdge(jNode, inSet(pointsToNever), hard: false);
   }
 
-  test_functionDeclaration() async {
+  Future<void> test_functionDeclaration() async {
     await analyze('''
 void f(int i, int j) {
   if (i == null) return;
@@ -994,7 +1003,7 @@ void f(int i, int j) {
     assertEdge(jNode, inSet(pointsToNever), hard: false);
   }
 
-  test_functionDeclaration_expression_body() async {
+  Future<void> test_functionDeclaration_expression_body() async {
     await analyze('''
 bool f(int i) => i == null || i.isEven;
 bool g(int j) => j.isEven;
@@ -1007,7 +1016,8 @@ bool g(int j) => j.isEven;
     assertEdge(jNode, inSet(pointsToNever), hard: true);
   }
 
-  test_functionDeclaration_resets_unconditional_control_flow() async {
+  Future<void>
+      test_functionDeclaration_resets_unconditional_control_flow() async {
     await analyze('''
 void f(bool b, int i, int j) {
   assert(i != null);
@@ -1023,7 +1033,7 @@ void g(int k) {
     assertEdge(decoratedTypeAnnotation('int k').node, never, hard: true);
   }
 
-  test_functionExpression_parameters() async {
+  Future<void> test_functionExpression_parameters() async {
     await analyze('''
 void f() {
   var g = (int i, int j) {
@@ -1041,7 +1051,7 @@ void f() {
     assertEdge(jNode, inSet(pointsToNever), hard: false);
   }
 
-  test_if() async {
+  Future<void> test_if() async {
     await analyze('''
 void f(int i) {
   if (i == null) {
@@ -1063,7 +1073,7 @@ void h(int k) {}
     assertEdge(iNode, jNode, hard: false, guards: [iNode]);
   }
 
-  test_if_without_else() async {
+  Future<void> test_if_without_else() async {
     await analyze('''
 void f(int i) {
   if (i == null) {
@@ -1085,7 +1095,7 @@ void h(int k) {}
     assertEdge(iNode, jNode, hard: false, guards: [iNode]);
   }
 
-  test_ifNull() async {
+  Future<void> test_ifNull() async {
     await analyze('''
 void f(int i, int x) {
   x ?? (i == null ? throw 'foo' : g(i));
@@ -1104,7 +1114,7 @@ void h(int k) {}
     assertEdge(iNode, kNode, hard: true);
   }
 
-  test_is() async {
+  Future<void> test_is() async {
     await analyze('''
 void f(num n) {
   if (n is int) {
@@ -1125,7 +1135,7 @@ void h(num m) {}
     assertEdge(nNode, mNode, hard: true);
   }
 
-  test_is_not() async {
+  Future<void> test_is_not() async {
     await analyze('''
 void f(num n) {
   if (n is! int) {} else {
@@ -1146,7 +1156,7 @@ void h(num m) {}
     assertEdge(nNode, mNode, hard: true);
   }
 
-  test_local_function_parameters() async {
+  Future<void> test_local_function_parameters() async {
     await analyze('''
 void f() {
   void g(int i, int j) {
@@ -1164,7 +1174,7 @@ void f() {
     assertEdge(jNode, inSet(pointsToNever), hard: false);
   }
 
-  test_not() async {
+  Future<void> test_not() async {
     await analyze('''
 void f(int i) {
   if (!(i == null)) {
@@ -1186,7 +1196,7 @@ void h(int k) {}
     assertEdge(iNode, jNode, hard: false);
   }
 
-  test_postfixDecrement() async {
+  Future<void> test_postfixDecrement() async {
     await analyze('''
 void f(C c1) {
   if (c1 != null) {
@@ -1211,7 +1221,7 @@ class C {
     assertEdge(c1Node, c3Node, hard: false);
   }
 
-  test_postfixIncrement() async {
+  Future<void> test_postfixIncrement() async {
     await analyze('''
 void f(C c1) {
   if (c1 != null) {
@@ -1236,7 +1246,7 @@ class C {
     assertEdge(c1Node, c3Node, hard: false);
   }
 
-  test_prefixDecrement() async {
+  Future<void> test_prefixDecrement() async {
     await analyze('''
 void f(C c1) {
   if (c1 != null) {
@@ -1261,7 +1271,7 @@ class C {
     assertEdge(c1Node, c3Node, hard: false);
   }
 
-  test_prefixIncrement() async {
+  Future<void> test_prefixIncrement() async {
     await analyze('''
 void f(C c1) {
   if (c1 != null) {
@@ -1286,7 +1296,7 @@ class C {
     assertEdge(c1Node, c3Node, hard: false);
   }
 
-  test_rethrow() async {
+  Future<void> test_rethrow() async {
     await analyze('''
 void f(int i, int j) {
   try {
@@ -1307,7 +1317,7 @@ void g() {}
     assertEdge(jNode, inSet(pointsToNever), hard: false);
   }
 
-  test_return() async {
+  Future<void> test_return() async {
     await analyze('''
 void f(int i, int j) {
   if (i == null) return;
@@ -1323,7 +1333,7 @@ void f(int i, int j) {
     assertEdge(jNode, inSet(pointsToNever), hard: false);
   }
 
-  test_switch_break_target() async {
+  Future<void> test_switch_break_target() async {
     await analyze('''
 void f(int i, int x, int y) {
   L: switch (x) {
@@ -1353,7 +1363,7 @@ void h(int k) {}
     assertEdge(iNode, jNode, hard: false);
   }
 
-  test_switch_cancels_promotions_for_labeled_cases() async {
+  Future<void> test_switch_cancels_promotions_for_labeled_cases() async {
     await analyze('''
 void f(int i, int x, bool b) {
   if (i == null) return;
@@ -1382,7 +1392,7 @@ void h(int k) {}
     assertEdge(iNode, jNode, hard: false);
   }
 
-  test_switch_default() async {
+  Future<void> test_switch_default() async {
     await analyze('''
 void f(int i, int j, int x, int y) {
   if (i == null) {
@@ -1409,7 +1419,7 @@ void f(int i, int j, int x, int y) {
     assertEdge(jNode, inSet(pointsToNever), hard: false);
   }
 
-  test_throw() async {
+  Future<void> test_throw() async {
     await analyze('''
 void f(int i, int j) {
   if (i == null) throw 'foo';
@@ -1425,7 +1435,7 @@ void f(int i, int j) {
     assertEdge(jNode, inSet(pointsToNever), hard: true);
   }
 
-  test_topLevelVar_initializer() async {
+  Future<void> test_topLevelVar_initializer() async {
     await analyze('''
 bool b1 = true;
 bool b2 = true;
@@ -1435,7 +1445,7 @@ bool b3 = b1 || b2;
     // top level variable doesn't cause flow analysis to crash.
   }
 
-  test_try_falls_through_to_after_try() async {
+  Future<void> test_try_falls_through_to_after_try() async {
     await analyze('''
 void f(int i) {
   try {
@@ -1458,7 +1468,7 @@ void h(int k) {}
     assertEdge(iNode, jNode, hard: true);
   }
 
-  test_while_break_target() async {
+  Future<void> test_while_break_target() async {
     await analyze('''
 void f(int i) {
   L: while (true) {
@@ -1484,7 +1494,7 @@ void h(int k) {}
     assertEdge(iNode, jNode, hard: false);
   }
 
-  test_while_cancels_promotions_for_assignments_in_body() async {
+  Future<void> test_while_cancels_promotions_for_assignments_in_body() async {
     await analyze('''
 void f(int i, int j) {
   if (i == null) return;
@@ -1504,7 +1514,8 @@ void f(int i, int j) {
     assertEdge(jNode, inSet(pointsToNever), hard: false);
   }
 
-  test_while_cancels_promotions_for_assignments_in_condition() async {
+  Future<void>
+      test_while_cancels_promotions_for_assignments_in_condition() async {
     await analyze('''
 void f(int i, int j) {
   if (i == null) return;
@@ -1521,7 +1532,7 @@ bool g(int k) => true;
     assertEdge(jNode, inSet(pointsToNever), hard: false);
   }
 
-  test_while_promotes() async {
+  Future<void> test_while_promotes() async {
     await analyze('''
 void f(int i, int j) {
   while (i != null) {

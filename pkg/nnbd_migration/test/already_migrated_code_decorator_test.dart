@@ -138,11 +138,11 @@ class _AlreadyMigratedCodeDecoratorTestBase extends Object with EdgeTester {
     return decoratedType;
   }
 
-  test_decorate_dynamic() {
+  void test_decorate_dynamic() {
     checkDynamic(decorate(typeProvider.dynamicType));
   }
 
-  test_decorate_functionType_generic_bounded() {
+  void test_decorate_functionType_generic_bounded() {
     var typeFormal = TypeParameterElementImpl.synthetic('T')
       ..bound = typeProvider.numType;
     var decoratedType = decorate(
@@ -159,7 +159,7 @@ class _AlreadyMigratedCodeDecoratorTestBase extends Object with EdgeTester {
         decoratedType.returnType, checkExplicitlyNonNullable, typeFormal);
   }
 
-  test_decorate_functionType_generic_no_explicit_bound() {
+  void test_decorate_functionType_generic_no_explicit_bound() {
     var typeFormal = TypeParameterElementImpl.synthetic('T');
     var decoratedType = decorate(
       FunctionTypeImpl(
@@ -175,7 +175,7 @@ class _AlreadyMigratedCodeDecoratorTestBase extends Object with EdgeTester {
         decoratedType.returnType, checkExplicitlyNonNullable, typeFormal);
   }
 
-  test_decorate_functionType_named_parameter() {
+  void test_decorate_functionType_named_parameter() {
     checkDynamic(
       decorate(
         FunctionTypeImpl(
@@ -194,7 +194,7 @@ class _AlreadyMigratedCodeDecoratorTestBase extends Object with EdgeTester {
     );
   }
 
-  test_decorate_functionType_ordinary_parameter() {
+  void test_decorate_functionType_ordinary_parameter() {
     checkDynamic(
       decorate(
         FunctionTypeImpl(
@@ -213,7 +213,7 @@ class _AlreadyMigratedCodeDecoratorTestBase extends Object with EdgeTester {
     );
   }
 
-  test_decorate_functionType_positional_parameter() {
+  void test_decorate_functionType_positional_parameter() {
     checkDynamic(
       decorate(
         FunctionTypeImpl(
@@ -232,7 +232,7 @@ class _AlreadyMigratedCodeDecoratorTestBase extends Object with EdgeTester {
     );
   }
 
-  test_decorate_functionType_question() {
+  void test_decorate_functionType_question() {
     checkExplicitlyNullable(
       decorate(
         FunctionTypeImpl(
@@ -245,7 +245,7 @@ class _AlreadyMigratedCodeDecoratorTestBase extends Object with EdgeTester {
     );
   }
 
-  test_decorate_functionType_returnType() {
+  void test_decorate_functionType_returnType() {
     checkDynamic(
       decorate(
         FunctionTypeImpl(
@@ -258,7 +258,7 @@ class _AlreadyMigratedCodeDecoratorTestBase extends Object with EdgeTester {
     );
   }
 
-  test_decorate_functionType_star() {
+  void test_decorate_functionType_star() {
     checkExplicitlyNonNullable(
       decorate(
         FunctionTypeImpl(
@@ -271,26 +271,26 @@ class _AlreadyMigratedCodeDecoratorTestBase extends Object with EdgeTester {
     );
   }
 
-  test_decorate_interfaceType_simple_question() {
+  void test_decorate_interfaceType_simple_question() {
     checkInt(
         decorate(InterfaceTypeImpl(typeProvider.intType.element,
             nullabilitySuffix: NullabilitySuffix.question)),
         checkExplicitlyNullable);
   }
 
-  test_decorate_interfaceType_simple_star() {
+  void test_decorate_interfaceType_simple_star() {
     checkInt(
         decorate(InterfaceTypeImpl(typeProvider.intType.element,
             nullabilitySuffix: suffix)),
         checkExplicitlyNonNullable);
   }
 
-  test_decorate_iterable_dynamic() {
+  void test_decorate_iterable_dynamic() {
     var decorated = decorate(typeProvider.iterableDynamicType);
     checkIterable(decorated, checkExplicitlyNonNullable, checkDynamic);
   }
 
-  test_decorate_typeParameterType_question() {
+  void test_decorate_typeParameterType_question() {
     var element = TypeParameterElementImpl.synthetic('T');
     checkTypeParameter(
         decorate(TypeParameterTypeImpl(element,
@@ -299,7 +299,7 @@ class _AlreadyMigratedCodeDecoratorTestBase extends Object with EdgeTester {
         element);
   }
 
-  test_decorate_typeParameterType_star() {
+  void test_decorate_typeParameterType_star() {
     var element = TypeParameterElementImpl.synthetic('T');
     checkTypeParameter(
         decorate(TypeParameterTypeImpl(element, nullabilitySuffix: suffix)),
@@ -307,11 +307,11 @@ class _AlreadyMigratedCodeDecoratorTestBase extends Object with EdgeTester {
         element);
   }
 
-  test_decorate_void() {
+  void test_decorate_void() {
     checkVoid(decorate(typeProvider.voidType));
   }
 
-  test_getImmediateSupertypes_future() {
+  void test_getImmediateSupertypes_future() {
     var class_ = element = typeProvider.futureElement;
     var decoratedSupertypes = decorator.getImmediateSupertypes(class_).toList();
     var typeParam = class_.typeParameters[0];
@@ -324,7 +324,7 @@ class _AlreadyMigratedCodeDecoratorTestBase extends Object with EdgeTester {
         (t) => checkTypeParameter(t, checkExplicitlyNonNullable, typeParam));
   }
 
-  test_getImmediateSupertypes_generic() {
+  void test_getImmediateSupertypes_generic() {
     var t = ElementFactory.typeParameterElement('T');
     var class_ = element = ElementFactory.classElement3(
       name: 'C',
@@ -339,7 +339,7 @@ class _AlreadyMigratedCodeDecoratorTestBase extends Object with EdgeTester {
         (type) => checkTypeParameter(type, checkExplicitlyNonNullable, t));
   }
 
-  test_getImmediateSupertypes_interface() {
+  void test_getImmediateSupertypes_interface() {
     var class_ =
         element = ElementFactory.classElement('C', typeProvider.objectType);
     class_.interfaces = [typeProvider.numType];
@@ -349,7 +349,7 @@ class _AlreadyMigratedCodeDecoratorTestBase extends Object with EdgeTester {
     checkNum(decoratedSupertypes[1], checkExplicitlyNonNullable);
   }
 
-  test_getImmediateSupertypes_mixin() {
+  void test_getImmediateSupertypes_mixin() {
     var class_ =
         element = ElementFactory.classElement('C', typeProvider.objectType);
     class_.mixins = [typeProvider.numType];
@@ -359,7 +359,7 @@ class _AlreadyMigratedCodeDecoratorTestBase extends Object with EdgeTester {
     checkNum(decoratedSupertypes[1], checkExplicitlyNonNullable);
   }
 
-  test_getImmediateSupertypes_superclassConstraint() {
+  void test_getImmediateSupertypes_superclassConstraint() {
     var class_ = element = ElementFactory.mixinElement(
         name: 'C', constraints: [typeProvider.numType]);
     var decoratedSupertypes = decorator.getImmediateSupertypes(class_).toList();
@@ -367,7 +367,7 @@ class _AlreadyMigratedCodeDecoratorTestBase extends Object with EdgeTester {
     checkNum(decoratedSupertypes[0], checkExplicitlyNonNullable);
   }
 
-  test_getImmediateSupertypes_supertype() {
+  void test_getImmediateSupertypes_supertype() {
     var class_ =
         element = ElementFactory.classElement('C', typeProvider.objectType);
     var decoratedSupertypes = decorator.getImmediateSupertypes(class_).toList();

@@ -35,7 +35,7 @@ class EditPlanTest extends AbstractSingleUnitTest {
   EditPlan extract(AstNode inner, AstNode outer) =>
       EditPlan.extract(outer, EditPlan.passThrough(inner));
 
-  test_cascadeSearchLimit() async {
+  Future<void> test_cascadeSearchLimit() async {
     // Ok, we have to ask each parent if it represents a cascade section.
     // If we create a passThrough at node N, then when we create an enclosing
     // passThrough, the first thing we'll check is N's parent.
@@ -76,7 +76,7 @@ class EditPlanTest extends AbstractSingleUnitTest {
     }
   }
 
-  test_extract_add_parens() async {
+  Future<void> test_extract_add_parens() async {
     await analyze('f(g) => 1 * g(2, 3 + 4, 5);');
     checkPlan(
         extract(
@@ -84,7 +84,7 @@ class EditPlanTest extends AbstractSingleUnitTest {
         'f(g) => 1 * (3 + 4);');
   }
 
-  test_extract_inner_endsInCascade() async {
+  Future<void> test_extract_inner_endsInCascade() async {
     await analyze('f(a, g) => a..b = g(0, 1..isEven, 2);');
     expect(
         extract(findNode.cascade('1..isEven'),
@@ -98,19 +98,19 @@ class EditPlanTest extends AbstractSingleUnitTest {
         false);
   }
 
-  test_extract_left() async {
+  Future<void> test_extract_left() async {
     await analyze('var x = 1 + 2;');
     checkPlan(extract(findNode.integerLiteral('1'), findNode.binary('+')),
         'var x = 1;');
   }
 
-  test_extract_no_parens_needed() async {
+  Future<void> test_extract_no_parens_needed() async {
     await analyze('var x = 1 + 2 * 3;');
     checkPlan(extract(findNode.integerLiteral('2'), findNode.binary('*')),
         'var x = 1 + 2;');
   }
 
-  test_extract_preserve_parens() async {
+  Future<void> test_extract_preserve_parens() async {
     // Note: extra spaces to verify that we are really preserving the parens
     // rather than removing them and adding new ones.
     await analyze('var x = ( 1 << 2 ) * 3 + 4;');
@@ -118,13 +118,13 @@ class EditPlanTest extends AbstractSingleUnitTest {
         'var x = ( 1 << 2 ) + 4;');
   }
 
-  test_extract_remove_parens() async {
+  Future<void> test_extract_remove_parens() async {
     await analyze('var x = (1 + 2) * 3 << 4;');
     checkPlan(extract(findNode.binary('+'), findNode.binary('*')),
         'var x = 1 + 2 << 4;');
   }
 
-  test_finalize_compilationUnit() async {
+  Future<void> test_finalize_compilationUnit() async {
     // Verify that an edit plan referring to the entire compilation unit can be
     // finalized.  (This is an important corner case because the entire
     // compilation unit is an AstNode with no parent).
@@ -135,7 +135,7 @@ class EditPlanTest extends AbstractSingleUnitTest {
         'var x = 0; var y = 0;');
   }
 
-  test_surround_allowCascade() async {
+  Future<void> test_surround_allowCascade() async {
     await analyze('f(x) => 1..isEven;');
     checkPlan(
         EditPlan.surround(EditPlan.passThrough(findNode.cascade('..')),
@@ -147,7 +147,7 @@ class EditPlanTest extends AbstractSingleUnitTest {
         'f(x) => x = 1..isEven;');
   }
 
-  test_surround_associative() async {
+  Future<void> test_surround_associative() async {
     await analyze('var x = 1 - 2;');
     checkPlan(
         EditPlan.surround(EditPlan.passThrough(findNode.binary('-')),
@@ -161,7 +161,7 @@ class EditPlanTest extends AbstractSingleUnitTest {
         'var x = 0 - (1 - 2);');
   }
 
-  test_surround_endsInCascade() async {
+  Future<void> test_surround_endsInCascade() async {
     await analyze('f(x) => x..y = 1;');
     checkPlan(
         EditPlan.surround(EditPlan.passThrough(findNode.integerLiteral('1')),
@@ -173,7 +173,8 @@ class EditPlanTest extends AbstractSingleUnitTest {
         'f(x) => x..y = (1..isEven);');
   }
 
-  test_surround_endsInCascade_does_not_propagate_through_added_parens() async {
+  Future<void>
+      test_surround_endsInCascade_does_not_propagate_through_added_parens() async {
     await analyze('f(a) => a..b = 0;');
     checkPlan(
         EditPlan.surround(
@@ -192,7 +193,7 @@ class EditPlanTest extends AbstractSingleUnitTest {
         'f(a) => true ? (throw a..b = 0) : 2;');
   }
 
-  test_surround_endsInCascade_internal_throw() async {
+  Future<void> test_surround_endsInCascade_internal_throw() async {
     await analyze('f(x, g) => g(0, throw x, 1);');
     checkPlan(
         EditPlan.surround(EditPlan.passThrough(findNode.simple('x, 1')),
@@ -200,7 +201,7 @@ class EditPlanTest extends AbstractSingleUnitTest {
         'f(x, g) => g(0, throw x..y, 1);');
   }
 
-  test_surround_endsInCascade_propagates() async {
+  Future<void> test_surround_endsInCascade_propagates() async {
     await analyze('f(a) => a..b = 0;');
     checkPlan(
         EditPlan.surround(
@@ -220,7 +221,7 @@ class EditPlanTest extends AbstractSingleUnitTest {
         'f(a) => a..b = true ? throw 0 : 2;');
   }
 
-  test_surround_precedence() async {
+  Future<void> test_surround_precedence() async {
     await analyze('var x = 1 == true;');
     checkPlan(
         EditPlan.surround(EditPlan.passThrough(findNode.integerLiteral('1')),
@@ -234,7 +235,7 @@ class EditPlanTest extends AbstractSingleUnitTest {
         'var x = (1 == 2) == true;');
   }
 
-  test_surround_prefix() async {
+  Future<void> test_surround_prefix() async {
     await analyze('var x = 1;');
     checkPlan(
         EditPlan.surround(EditPlan.passThrough(findNode.integerLiteral('1')),
@@ -242,7 +243,7 @@ class EditPlanTest extends AbstractSingleUnitTest {
         'var x = throw 1;');
   }
 
-  test_surround_suffix() async {
+  Future<void> test_surround_suffix() async {
     await analyze('var x = 1;');
     checkPlan(
         EditPlan.surround(EditPlan.passThrough(findNode.integerLiteral('1')),
@@ -250,7 +251,7 @@ class EditPlanTest extends AbstractSingleUnitTest {
         'var x = 1..isEven;');
   }
 
-  test_surround_threshold() async {
+  Future<void> test_surround_threshold() async {
     await analyze('var x = 1 < 2;');
     checkPlan(
         EditPlan.surround(EditPlan.passThrough(findNode.binary('<')),
@@ -267,18 +268,18 @@ class EditPlanTest extends AbstractSingleUnitTest {
 
 @reflectiveTest
 class EndsInCascadeTest extends AbstractSingleUnitTest {
-  test_ignore_subexpression_not_at_end() async {
+  Future<void> test_ignore_subexpression_not_at_end() async {
     await resolveTestUnit('f(g) => g(0..isEven, 1);');
     expect(findNode.functionExpressionInvocation('g(').endsInCascade, false);
     expect(findNode.cascade('..').endsInCascade, true);
   }
 
-  test_no_cascade() async {
+  Future<void> test_no_cascade() async {
     await resolveTestUnit('var x = 0;');
     expect(findNode.integerLiteral('0').endsInCascade, false);
   }
 
-  test_stop_searching_when_parens_encountered() async {
+  Future<void> test_stop_searching_when_parens_encountered() async {
     await resolveTestUnit('f(x) => x = (x = 0..isEven);');
     expect(findNode.assignment('= (x').endsInCascade, false);
     expect(findNode.parenthesized('(x =').endsInCascade, false);
@@ -298,41 +299,41 @@ class EndsInCascadeTest extends AbstractSingleUnitTest {
 /// parentheses that are actually present.
 @reflectiveTest
 class PrecedenceTest extends AbstractSingleUnitTest {
-  void checkPrecedence(String content) async {
+  Future<void> checkPrecedence(String content) async {
     await resolveTestUnit(content);
     testUnit.accept(_PrecedenceChecker());
   }
 
-  void test_precedence_as() async {
+  Future<void> test_precedence_as() async {
     await checkPrecedence('''
 f(a) => (a as num) as int;
 g(a, b) => a | b as int;
 ''');
   }
 
-  void test_precedence_assignment() async {
+  Future<void> test_precedence_assignment() async {
     await checkPrecedence('f(a, b, c) => a = b = c;');
   }
 
-  void test_precedence_assignment_in_cascade_with_parens() async {
+  Future<void> test_precedence_assignment_in_cascade_with_parens() async {
     await checkPrecedence('f(a, c, e) => a..b = (c..d = e);');
   }
 
-  void test_precedence_await() async {
+  Future<void> test_precedence_await() async {
     await checkPrecedence('''
 f(a) async => await -a;
 g(a, b) async => await (a*b);
     ''');
   }
 
-  void test_precedence_binary_equality() async {
+  Future<void> test_precedence_binary_equality() async {
     await checkPrecedence('''
 f(a, b, c) => (a == b) == c;
 g(a, b, c) => a == (b == c);
 ''');
   }
 
-  void test_precedence_binary_left_associative() async {
+  Future<void> test_precedence_binary_left_associative() async {
     // Associativity logic is the same for all operators except relational and
     // equality, so we just test `+` as a stand-in for all the others.
     await checkPrecedence('''
@@ -341,21 +342,21 @@ g(a, b, c) => a + (b + c);
 ''');
   }
 
-  void test_precedence_binary_relational() async {
+  Future<void> test_precedence_binary_relational() async {
     await checkPrecedence('''
 f(a, b, c) => (a < b) < c;
 g(a, b, c) => a < (b < c);
 ''');
   }
 
-  void test_precedence_conditional() async {
+  Future<void> test_precedence_conditional() async {
     await checkPrecedence('''
 g(a, b, c, d, e, f) => a ?? b ? c = d : e = f;
 h(a, b, c, d, e) => (a ? b : c) ? d : e;
 ''');
   }
 
-  void test_precedence_extension_override() async {
+  Future<void> test_precedence_extension_override() async {
     await checkPrecedence('''
 extension E on Object {
   void f() {}
@@ -364,21 +365,21 @@ void g(x) => E(x).f();
 ''');
   }
 
-  void test_precedence_functionExpressionInvocation() async {
+  Future<void> test_precedence_functionExpressionInvocation() async {
     await checkPrecedence('''
 f(g) => g[0](1);
 h(x) => (x + 2)(3);
 ''');
   }
 
-  void test_precedence_is() async {
+  Future<void> test_precedence_is() async {
     await checkPrecedence('''
 f(a) => (a as num) is int;
 g(a, b) => a | b is int;
 ''');
   }
 
-  void test_precedence_postfix_and_index() async {
+  Future<void> test_precedence_postfix_and_index() async {
     await checkPrecedence('''
 f(a, b, c) => a[b][c];
 g(a, b) => a[b]++;
@@ -386,32 +387,32 @@ h(a, b) => (-a)[b];
 ''');
   }
 
-  void test_precedence_prefix() async {
+  Future<void> test_precedence_prefix() async {
     await checkPrecedence('''
 f(a) => ~-a;
 g(a, b) => -(a*b);
 ''');
   }
 
-  void test_precedence_prefixedIdentifier() async {
+  Future<void> test_precedence_prefixedIdentifier() async {
     await checkPrecedence('f(a) => a.b;');
   }
 
-  void test_precedence_propertyAccess() async {
+  Future<void> test_precedence_propertyAccess() async {
     await checkPrecedence('''
 f(a) => a?.b?.c;
 g(a) => (-a)?.b;
 ''');
   }
 
-  void test_precedence_throw() async {
+  Future<void> test_precedence_throw() async {
     await checkPrecedence('''
 f(a, b) => throw a = b;
 g(a, c) => a..b = throw (c..d);
 ''');
   }
 
-  void test_precedenceChecker_detects_unnecessary_paren() async {
+  Future<void> test_precedenceChecker_detects_unnecessary_paren() async {
     await resolveTestUnit('var x = (1);');
     expect(() => testUnit.accept(_PrecedenceChecker()),
         throwsA(TypeMatcher<TestFailure>()));

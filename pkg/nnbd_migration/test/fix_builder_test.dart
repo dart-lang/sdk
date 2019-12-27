@@ -70,7 +70,8 @@ class FixBuilderTest extends EdgeBuilderTestBase {
           if (_isInScope(entry.key, scope)) entry.key: entry.value
       };
 
-  test_assignmentExpression_compound_combined_nullable_noProblem() async {
+  Future<void>
+      test_assignmentExpression_compound_combined_nullable_noProblem() async {
     await analyze('''
 abstract class _C {
   _D/*?*/ operator+(int/*!*/ value);
@@ -85,7 +86,8 @@ abstract class _E {
     visitSubexpression(findNode.assignment('+='), '_D?');
   }
 
-  test_assignmentExpression_compound_combined_nullable_noProblem_dynamic() async {
+  Future<void>
+      test_assignmentExpression_compound_combined_nullable_noProblem_dynamic() async {
     await analyze('''
 abstract class _E {
   dynamic get x;
@@ -98,7 +100,8 @@ abstract class _E {
   }
 
   @FailingTest(reason: 'TODO(paulberry)')
-  test_assignmentExpression_compound_combined_nullable_problem() async {
+  Future<void>
+      test_assignmentExpression_compound_combined_nullable_problem() async {
     await analyze('''
 abstract class _C {
   _D/*?*/ operator+(int/*!*/ value);
@@ -116,7 +119,7 @@ abstract class _E {
     });
   }
 
-  test_assignmentExpression_compound_dynamic() async {
+  Future<void> test_assignmentExpression_compound_dynamic() async {
     // To confirm that the RHS is visited, we check that a null check was
     // properly inserted into a subexpression of the RHS.
     await analyze('''
@@ -126,7 +129,7 @@ _f(dynamic x, int/*?*/ y) => x += y + 1;
         changes: {findNode.simple('y +'): isNullCheck});
   }
 
-  test_assignmentExpression_compound_intRules() async {
+  Future<void> test_assignmentExpression_compound_intRules() async {
     await analyze('''
 _f(int x, int y) => x += y;
 ''');
@@ -134,7 +137,7 @@ _f(int x, int y) => x += y;
   }
 
   @FailingTest(reason: 'TODO(paulberry)')
-  test_assignmentExpression_compound_lhs_nullable_problem() async {
+  Future<void> test_assignmentExpression_compound_lhs_nullable_problem() async {
     await analyze('''
 abstract class _C {
   _D/*!*/ operator+(int/*!*/ value);
@@ -153,7 +156,7 @@ abstract class _E {
   }
 
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/39641')
-  test_assignmentExpression_compound_promoted() async {
+  Future<void> test_assignmentExpression_compound_promoted() async {
     await analyze('''
 f(bool/*?*/ x, bool/*?*/ y) => x != null && (x = y);
 ''');
@@ -165,7 +168,7 @@ f(bool/*?*/ x, bool/*?*/ y) => x != null && (x = y);
         changes: {findNode.parenthesized('x = y'): isNullCheck});
   }
 
-  test_assignmentExpression_compound_rhs_nonNullable() async {
+  Future<void> test_assignmentExpression_compound_rhs_nonNullable() async {
     await analyze('''
 abstract class _C {
   _D/*!*/ operator+(int/*!*/ value);
@@ -177,7 +180,7 @@ _f(_C/*!*/ x, int/*!*/ y) => x += y;
   }
 
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/39642')
-  test_assignmentExpression_compound_rhs_nullable_check() async {
+  Future<void> test_assignmentExpression_compound_rhs_nullable_check() async {
     await analyze('''
 abstract class _C {
   _D/*!*/ operator+(int/*!*/ value);
@@ -189,7 +192,7 @@ _f(_C/*!*/ x, int/*?*/ y) => x += y;
         changes: {findNode.simple('y;'): isNullCheck});
   }
 
-  test_assignmentExpression_compound_rhs_nullable_noCheck() async {
+  Future<void> test_assignmentExpression_compound_rhs_nullable_noCheck() async {
     await analyze('''
 abstract class _C {
   _D/*!*/ operator+(int/*?*/ value);
@@ -200,7 +203,8 @@ _f(_C/*!*/ x, int/*?*/ y) => x += y;
     visitSubexpression(findNode.assignment('+='), '_D');
   }
 
-  test_assignmentExpression_null_aware_rhs_does_not_promote() async {
+  Future<void>
+      test_assignmentExpression_null_aware_rhs_does_not_promote() async {
     await analyze('''
 _f(bool/*?*/ b, int/*?*/ i) {
   b ??= i.isEven; // 1
@@ -217,7 +221,7 @@ _f(bool/*?*/ b, int/*?*/ i) {
     });
   }
 
-  test_assignmentExpression_null_aware_rhs_nonNullable() async {
+  Future<void> test_assignmentExpression_null_aware_rhs_nonNullable() async {
     await analyze('''
 abstract class _B {}
 abstract class _C extends _B {}
@@ -232,7 +236,7 @@ abstract class _F {
     visitSubexpression(findNode.assignment('??='), '_C');
   }
 
-  test_assignmentExpression_null_aware_rhs_nullable() async {
+  Future<void> test_assignmentExpression_null_aware_rhs_nullable() async {
     await analyze('''
 abstract class _B {}
 abstract class _C extends _B {}
@@ -247,21 +251,24 @@ abstract class _F {
     visitSubexpression(findNode.assignment('??='), '_C?');
   }
 
-  test_assignmentExpression_simple_nonNullable_to_nonNullable() async {
+  Future<void>
+      test_assignmentExpression_simple_nonNullable_to_nonNullable() async {
     await analyze('''
 _f(int/*!*/ x, int/*!*/ y) => x = y;
 ''');
     visitSubexpression(findNode.assignment('= '), 'int');
   }
 
-  test_assignmentExpression_simple_nonNullable_to_nullable() async {
+  Future<void>
+      test_assignmentExpression_simple_nonNullable_to_nullable() async {
     await analyze('''
 _f(int/*?*/ x, int/*!*/ y) => x = y;
 ''');
     visitSubexpression(findNode.assignment('= '), 'int');
   }
 
-  test_assignmentExpression_simple_nullable_to_nonNullable() async {
+  Future<void>
+      test_assignmentExpression_simple_nullable_to_nonNullable() async {
     await analyze('''
 _f(int/*!*/ x, int/*?*/ y) => x = y;
 ''');
@@ -269,7 +276,7 @@ _f(int/*!*/ x, int/*?*/ y) => x = y;
         changes: {findNode.simple('y;'): isNullCheck});
   }
 
-  test_assignmentExpression_simple_nullable_to_nullable() async {
+  Future<void> test_assignmentExpression_simple_nullable_to_nullable() async {
     await analyze('''
 _f(int/*?*/ x, int/*?*/ y) => x = y;
 ''');
@@ -277,7 +284,7 @@ _f(int/*?*/ x, int/*?*/ y) => x = y;
   }
 
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/39641')
-  test_assignmentExpression_simple_promoted() async {
+  Future<void> test_assignmentExpression_simple_promoted() async {
     await analyze('''
 _f(bool/*?*/ x, bool/*?*/ y) => x != null && (x = y) != null;
 ''');
@@ -287,14 +294,14 @@ _f(bool/*?*/ x, bool/*?*/ y) => x != null && (x = y) != null;
     visitSubexpression(findNode.binary('&&'), 'bool');
   }
 
-  test_assignmentTarget_indexExpression_compound_dynamic() async {
+  Future<void> test_assignmentTarget_indexExpression_compound_dynamic() async {
     await analyze('''
 _f(dynamic d, int/*?*/ i) => d[i] += 0;
 ''');
     visitAssignmentTarget(findNode.index('d[i]'), 'dynamic', 'dynamic');
   }
 
-  test_assignmentTarget_indexExpression_compound_simple() async {
+  Future<void> test_assignmentTarget_indexExpression_compound_simple() async {
     await analyze('''
 class _C {
   int operator[](String s) => 1;
@@ -305,7 +312,8 @@ _f(_C c) => c['foo'] += 0;
     visitAssignmentTarget(findNode.index('c['), 'int', 'num');
   }
 
-  test_assignmentTarget_indexExpression_compound_simple_check_lhs() async {
+  Future<void>
+      test_assignmentTarget_indexExpression_compound_simple_check_lhs() async {
     await analyze('''
 class _C {
   int operator[](String s) => 1;
@@ -318,7 +326,8 @@ _f(_C/*?*/ c) => c['foo'] += 0;
   }
 
   @FailingTest(reason: 'TODO(paulberry): decide if this is worth caring about')
-  test_assignmentTarget_indexExpression_compound_simple_check_rhs() async {
+  Future<void>
+      test_assignmentTarget_indexExpression_compound_simple_check_rhs() async {
     await analyze('''
 class _C {
   int operator[](String/*!*/ s) => 1;
@@ -330,7 +339,8 @@ _f(_C c, String/*?*/ s) => c[s] += 0;
         changes: {findNode.simple('s]'): isNullCheck});
   }
 
-  test_assignmentTarget_indexExpression_compound_substituted() async {
+  Future<void>
+      test_assignmentTarget_indexExpression_compound_substituted() async {
     await analyze('''
 class _C<T, U> {
   T operator[](U u) => throw 'foo';
@@ -342,7 +352,8 @@ _f(_C<int, String> c) => c['foo'] += 1;
   }
 
   @FailingTest(reason: 'TODO(paulberry): decide if this is worth caring about')
-  test_assignmentTarget_indexExpression_compound_substituted_check_rhs() async {
+  Future<void>
+      test_assignmentTarget_indexExpression_compound_substituted_check_rhs() async {
     await analyze('''
 class _C<T, U> {
   T operator[](U u) => throw 'foo';
@@ -354,7 +365,8 @@ _f(_C<int, String/*!*/> c, String/*?*/ s) => c[s] += 1;
         changes: {findNode.simple('s]'): isNullCheck});
   }
 
-  test_assignmentTarget_indexExpression_compound_substituted_no_check_rhs() async {
+  Future<void>
+      test_assignmentTarget_indexExpression_compound_substituted_no_check_rhs() async {
     await analyze('''
 class _C<T, U> {
   T operator[](U u) => throw 'foo';
@@ -365,14 +377,14 @@ _f(_C<int, String/*?*/> c, String/*?*/ s) => c[s] += 0;
     visitAssignmentTarget(findNode.index('c['), 'int', 'int');
   }
 
-  test_assignmentTarget_indexExpression_dynamic() async {
+  Future<void> test_assignmentTarget_indexExpression_dynamic() async {
     await analyze('''
 _f(dynamic d, int/*?*/ i) => d[i] = 0;
 ''');
     visitAssignmentTarget(findNode.index('d[i]'), null, 'dynamic');
   }
 
-  test_assignmentTarget_indexExpression_simple() async {
+  Future<void> test_assignmentTarget_indexExpression_simple() async {
     await analyze('''
 class _C {
   int operator[](String s) => 1;
@@ -383,7 +395,7 @@ _f(_C c) => c['foo'] = 0;
     visitAssignmentTarget(findNode.index('c['), null, 'num');
   }
 
-  test_assignmentTarget_indexExpression_simple_check_lhs() async {
+  Future<void> test_assignmentTarget_indexExpression_simple_check_lhs() async {
     await analyze('''
 class _C {
   int operator[](String s) => 1;
@@ -395,7 +407,7 @@ _f(_C/*?*/ c) => c['foo'] = 0;
         changes: {findNode.simple('c['): isNullCheck});
   }
 
-  test_assignmentTarget_indexExpression_simple_check_rhs() async {
+  Future<void> test_assignmentTarget_indexExpression_simple_check_rhs() async {
     await analyze('''
 class _C {
   int operator[](String/*?*/ s) => 1;
@@ -407,7 +419,7 @@ _f(_C c, String/*?*/ s) => c[s] = 0;
         changes: {findNode.simple('s]'): isNullCheck});
   }
 
-  test_assignmentTarget_indexExpression_substituted() async {
+  Future<void> test_assignmentTarget_indexExpression_substituted() async {
     await analyze('''
 class _C<T, U> {
   T operator[](U u) => throw 'foo';
@@ -418,7 +430,8 @@ _f(_C<int, String> c) => c['foo'] = 1;
     visitAssignmentTarget(findNode.index('c['), null, 'int');
   }
 
-  test_assignmentTarget_indexExpression_substituted_check_rhs() async {
+  Future<void>
+      test_assignmentTarget_indexExpression_substituted_check_rhs() async {
     await analyze('''
 class _C<T, U> {
   T operator[](U u) => throw 'foo';
@@ -430,7 +443,8 @@ _f(_C<int, String/*!*/> c, String/*?*/ s) => c[s] = 1;
         changes: {findNode.simple('s]'): isNullCheck});
   }
 
-  test_assignmentTarget_indexExpression_substituted_no_check_rhs() async {
+  Future<void>
+      test_assignmentTarget_indexExpression_substituted_no_check_rhs() async {
     await analyze('''
 class _C<T, U> {
   T operator[](U u) => throw 'foo';
@@ -441,14 +455,14 @@ _f(_C<int, String/*?*/> c, String/*?*/ s) => c[s] = 0;
     visitAssignmentTarget(findNode.index('c['), null, 'int');
   }
 
-  test_assignmentTarget_prefixedIdentifier_dynamic() async {
+  Future<void> test_assignmentTarget_prefixedIdentifier_dynamic() async {
     await analyze('''
 Object/*!*/ _f(dynamic d) => d.x += 1;
 ''');
     visitAssignmentTarget(findNode.prefixed('d.x'), 'dynamic', 'dynamic');
   }
 
-  test_assignmentTarget_propertyAccess_dynamic() async {
+  Future<void> test_assignmentTarget_propertyAccess_dynamic() async {
     await analyze('''
 _f(dynamic d) => (d).x += 1;
 ''');
@@ -456,14 +470,15 @@ _f(dynamic d) => (d).x += 1;
         findNode.propertyAccess('(d).x'), 'dynamic', 'dynamic');
   }
 
-  test_assignmentTarget_propertyAccess_dynamic_notCompound() async {
+  Future<void>
+      test_assignmentTarget_propertyAccess_dynamic_notCompound() async {
     await analyze('''
 _f(dynamic d) => (d).x = 1;
 ''');
     visitAssignmentTarget(findNode.propertyAccess('(d).x'), null, 'dynamic');
   }
 
-  test_assignmentTarget_propertyAccess_field_nonNullable() async {
+  Future<void> test_assignmentTarget_propertyAccess_field_nonNullable() async {
     await analyze('''
 class _C {
   int/*!*/ x = 0;
@@ -473,7 +488,8 @@ _f(_C c) => (c).x += 1;
     visitAssignmentTarget(findNode.propertyAccess('(c).x'), 'int', 'int');
   }
 
-  test_assignmentTarget_propertyAccess_field_nonNullable_notCompound() async {
+  Future<void>
+      test_assignmentTarget_propertyAccess_field_nonNullable_notCompound() async {
     await analyze('''
 class _C {
   int/*!*/ x = 0;
@@ -483,7 +499,7 @@ _f(_C c) => (c).x = 1;
     visitAssignmentTarget(findNode.propertyAccess('(c).x'), null, 'int');
   }
 
-  test_assignmentTarget_propertyAccess_field_nullable() async {
+  Future<void> test_assignmentTarget_propertyAccess_field_nullable() async {
     await analyze('''
 class _C {
   int/*?*/ x = 0;
@@ -493,7 +509,7 @@ _f(_C c) => (c).x += 1;
     visitAssignmentTarget(findNode.propertyAccess('(c).x'), 'int?', 'int?');
   }
 
-  test_assignmentTarget_propertyAccess_getter_nullable() async {
+  Future<void> test_assignmentTarget_propertyAccess_getter_nullable() async {
     await analyze('''
 abstract class _C {
   int/*?*/ get x;
@@ -504,7 +520,8 @@ _f(_C c) => (c).x += 1;
     visitAssignmentTarget(findNode.propertyAccess('(c).x'), 'int?', 'num?');
   }
 
-  test_assignmentTarget_propertyAccess_getter_setter_check_lhs() async {
+  Future<void>
+      test_assignmentTarget_propertyAccess_getter_setter_check_lhs() async {
     await analyze('''
 abstract class _C {
   int get x;
@@ -516,7 +533,8 @@ _f(_C/*?*/ c) => (c).x += 1;
         changes: {findNode.parenthesized('(c).x'): isNullCheck});
   }
 
-  test_assignmentTarget_propertyAccess_getter_setter_nonNullable() async {
+  Future<void>
+      test_assignmentTarget_propertyAccess_getter_setter_nonNullable() async {
     await analyze('''
 abstract class _C {
   int/*!*/ get x;
@@ -527,7 +545,7 @@ _f(_C c) => (c).x += 1;
     visitAssignmentTarget(findNode.propertyAccess('(c).x'), 'int', 'num');
   }
 
-  test_assignmentTarget_propertyAccess_nullAware_dynamic() async {
+  Future<void> test_assignmentTarget_propertyAccess_nullAware_dynamic() async {
     await analyze('''
 _f(dynamic d) => d?.x += 1;
 ''');
@@ -535,7 +553,8 @@ _f(dynamic d) => d?.x += 1;
         findNode.propertyAccess('d?.x'), 'dynamic', 'dynamic');
   }
 
-  test_assignmentTarget_propertyAccess_nullAware_field_nonNullable() async {
+  Future<void>
+      test_assignmentTarget_propertyAccess_nullAware_field_nonNullable() async {
     await analyze('''
 class _C {
   int/*!*/ x = 0;
@@ -545,7 +564,8 @@ _f(_C/*?*/ c) => c?.x += 1;
     visitAssignmentTarget(findNode.propertyAccess('c?.x'), 'int', 'int');
   }
 
-  test_assignmentTarget_propertyAccess_nullAware_field_nullable() async {
+  Future<void>
+      test_assignmentTarget_propertyAccess_nullAware_field_nullable() async {
     await analyze('''
 class _C {
   int/*?*/ x = 0;
@@ -555,7 +575,8 @@ _f(_C/*?*/ c) => c?.x += 1;
     visitAssignmentTarget(findNode.propertyAccess('c?.x'), 'int?', 'int?');
   }
 
-  test_assignmentTarget_propertyAccess_nullAware_getter_setter_nonNullable() async {
+  Future<void>
+      test_assignmentTarget_propertyAccess_nullAware_getter_setter_nonNullable() async {
     await analyze('''
 abstract class _C {
   int/*!*/ get x;
@@ -566,7 +587,8 @@ _f(_C/*?*/ c) => c?.x += 1;
     visitAssignmentTarget(findNode.propertyAccess('c?.x'), 'int', 'num');
   }
 
-  test_assignmentTarget_propertyAccess_nullAware_getter_setter_nullable() async {
+  Future<void>
+      test_assignmentTarget_propertyAccess_nullAware_getter_setter_nullable() async {
     await analyze('''
 abstract class _C {
   int/*?*/ get x;
@@ -577,7 +599,8 @@ _f(_C/*?*/ c) => c?.x += 1;
     visitAssignmentTarget(findNode.propertyAccess('c?.x'), 'int?', 'num?');
   }
 
-  test_assignmentTarget_propertyAccess_nullAware_substituted() async {
+  Future<void>
+      test_assignmentTarget_propertyAccess_nullAware_substituted() async {
     await analyze('''
 abstract class _C<T> {
   _E<T> get x;
@@ -594,7 +617,7 @@ _f(_C<int>/*?*/ c) => c?.x += 1;
         findNode.propertyAccess('c?.x'), '_E<int>', '_D<int>');
   }
 
-  test_assignmentTarget_propertyAccess_substituted() async {
+  Future<void> test_assignmentTarget_propertyAccess_substituted() async {
     await analyze('''
 abstract class _C<T> {
   _E<T> get x;
@@ -611,7 +634,7 @@ _f(_C<int> c) => (c).x += 1;
         findNode.propertyAccess('(c).x'), '_E<int>', '_D<int>');
   }
 
-  test_assignmentTarget_simpleIdentifier_field_generic() async {
+  Future<void> test_assignmentTarget_simpleIdentifier_field_generic() async {
     await analyze('''
 abstract class _C<T> {
   _C<T> operator+(int i);
@@ -625,7 +648,8 @@ class _D<T> {
     visitAssignmentTarget(findNode.simple('x +='), '_C<T>', '_C<T>');
   }
 
-  test_assignmentTarget_simpleIdentifier_field_nonNullable() async {
+  Future<void>
+      test_assignmentTarget_simpleIdentifier_field_nonNullable() async {
     await analyze('''
 class _C {
   int/*!*/ x;
@@ -635,7 +659,7 @@ class _C {
     visitAssignmentTarget(findNode.simple('x '), 'int', 'int');
   }
 
-  test_assignmentTarget_simpleIdentifier_field_nullable() async {
+  Future<void> test_assignmentTarget_simpleIdentifier_field_nullable() async {
     await analyze('''
 class _C {
   int/*?*/ x;
@@ -645,7 +669,7 @@ class _C {
     visitAssignmentTarget(findNode.simple('x '), 'int?', 'int?');
   }
 
-  test_assignmentTarget_simpleIdentifier_getset_generic() async {
+  Future<void> test_assignmentTarget_simpleIdentifier_getset_generic() async {
     await analyze('''
 abstract class _C<T> {
   _C<T> operator+(int i);
@@ -660,7 +684,8 @@ abstract class _E<T> {
     visitAssignmentTarget(findNode.simple('x +='), '_D<T>', '_C<T>');
   }
 
-  test_assignmentTarget_simpleIdentifier_getset_getterNullable() async {
+  Future<void>
+      test_assignmentTarget_simpleIdentifier_getset_getterNullable() async {
     await analyze('''
 class _C {
   int/*?*/ get x => 1;
@@ -671,7 +696,8 @@ class _C {
     visitAssignmentTarget(findNode.simple('x +='), 'int?', 'int');
   }
 
-  test_assignmentTarget_simpleIdentifier_getset_setterNullable() async {
+  Future<void>
+      test_assignmentTarget_simpleIdentifier_getset_setterNullable() async {
     await analyze('''
 class _C {
   int/*!*/ get x => 1;
@@ -682,21 +708,24 @@ class _C {
     visitAssignmentTarget(findNode.simple('x +='), 'int', 'int?');
   }
 
-  test_assignmentTarget_simpleIdentifier_localVariable_nonNullable() async {
+  Future<void>
+      test_assignmentTarget_simpleIdentifier_localVariable_nonNullable() async {
     await analyze('''
 _f(int/*!*/ x) => x += 0;
 ''');
     visitAssignmentTarget(findNode.simple('x '), 'int', 'int');
   }
 
-  test_assignmentTarget_simpleIdentifier_localVariable_nullable() async {
+  Future<void>
+      test_assignmentTarget_simpleIdentifier_localVariable_nullable() async {
     await analyze('''
 _f(int/*?*/ x) => x += 0;
 ''');
     visitAssignmentTarget(findNode.simple('x '), 'int?', 'int?');
   }
 
-  test_assignmentTarget_simpleIdentifier_setter_nonNullable() async {
+  Future<void>
+      test_assignmentTarget_simpleIdentifier_setter_nonNullable() async {
     await analyze('''
 class _C {
   void set x(int/*!*/ value) {}
@@ -706,7 +735,7 @@ class _C {
     visitAssignmentTarget(findNode.simple('x '), null, 'int');
   }
 
-  test_assignmentTarget_simpleIdentifier_setter_nullable() async {
+  Future<void> test_assignmentTarget_simpleIdentifier_setter_nullable() async {
     await analyze('''
 class _C {
   void set x(int/*?*/ value) {}
@@ -716,21 +745,21 @@ class _C {
     visitAssignmentTarget(findNode.simple('x '), null, 'int?');
   }
 
-  test_binaryExpression_ampersand_ampersand() async {
+  Future<void> test_binaryExpression_ampersand_ampersand() async {
     await analyze('''
 _f(bool x, bool y) => x && y;
 ''');
     visitSubexpression(findNode.binary('&&'), 'bool');
   }
 
-  test_binaryExpression_ampersand_ampersand_flow() async {
+  Future<void> test_binaryExpression_ampersand_ampersand_flow() async {
     await analyze('''
 _f(bool/*?*/ x) => x != null && x;
 ''');
     visitSubexpression(findNode.binary('&&'), 'bool');
   }
 
-  test_binaryExpression_ampersand_ampersand_nullChecked() async {
+  Future<void> test_binaryExpression_ampersand_ampersand_nullChecked() async {
     await analyze('''
 _f(bool/*?*/ x, bool/*?*/ y) => x && y;
 ''');
@@ -740,14 +769,14 @@ _f(bool/*?*/ x, bool/*?*/ y) => x && y;
         changes: {xRef: isNullCheck, yRef: isNullCheck});
   }
 
-  test_binaryExpression_bang_eq() async {
+  Future<void> test_binaryExpression_bang_eq() async {
     await analyze('''
 _f(Object/*?*/ x, Object/*?*/ y) => x != y;
 ''');
     visitSubexpression(findNode.binary('!='), 'bool');
   }
 
-  test_binaryExpression_bar_bar() async {
+  Future<void> test_binaryExpression_bar_bar() async {
     await analyze('''
 _f(bool x, bool y) {
   return x || y;
@@ -756,7 +785,7 @@ _f(bool x, bool y) {
     visitSubexpression(findNode.binary('||'), 'bool');
   }
 
-  test_binaryExpression_bar_bar_flow() async {
+  Future<void> test_binaryExpression_bar_bar_flow() async {
     await analyze('''
 _f(bool/*?*/ x) {
   return x == null || x;
@@ -765,7 +794,7 @@ _f(bool/*?*/ x) {
     visitSubexpression(findNode.binary('||'), 'bool');
   }
 
-  test_binaryExpression_bar_bar_nullChecked() async {
+  Future<void> test_binaryExpression_bar_bar_nullChecked() async {
     await analyze('''
 _f(Object/*?*/ x, Object/*?*/ y) {
   return x || y;
@@ -777,7 +806,7 @@ _f(Object/*?*/ x, Object/*?*/ y) {
         changes: {xRef: isNullCheck, yRef: isNullCheck});
   }
 
-  test_binaryExpression_eq_eq() async {
+  Future<void> test_binaryExpression_eq_eq() async {
     await analyze('''
 _f(Object/*?*/ x, Object/*?*/ y) {
   return x == y;
@@ -786,7 +815,7 @@ _f(Object/*?*/ x, Object/*?*/ y) {
     visitSubexpression(findNode.binary('=='), 'bool');
   }
 
-  test_binaryExpression_question_question() async {
+  Future<void> test_binaryExpression_question_question() async {
     await analyze('''
 _f(int/*?*/ x, double/*?*/ y) {
   return x ?? y;
@@ -795,7 +824,7 @@ _f(int/*?*/ x, double/*?*/ y) {
     visitSubexpression(findNode.binary('??'), 'num?');
   }
 
-  test_binaryExpression_question_question_flow() async {
+  Future<void> test_binaryExpression_question_question_flow() async {
     await analyze('''
 _f(int/*?*/ x, int/*?*/ y) =>
     <dynamic>[x ?? (y != null ? 1 : throw 'foo'), y + 1];
@@ -807,7 +836,7 @@ _f(int/*?*/ x, int/*?*/ y) =>
   }
 
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/39642')
-  test_binaryExpression_question_question_nullChecked() async {
+  Future<void> test_binaryExpression_question_question_nullChecked() async {
     await analyze('''
 Object/*!*/ _f(int/*?*/ x, double/*?*/ y) {
   return x ?? y;
@@ -818,21 +847,21 @@ Object/*!*/ _f(int/*?*/ x, double/*?*/ y) {
         changes: {yRef: isNullCheck});
   }
 
-  test_binaryExpression_userDefinable_dynamic() async {
+  Future<void> test_binaryExpression_userDefinable_dynamic() async {
     await analyze('''
 Object/*!*/ _f(dynamic d, int/*?*/ i) => d + i;
 ''');
     visitSubexpression(findNode.binary('+'), 'dynamic');
   }
 
-  test_binaryExpression_userDefinable_intRules() async {
+  Future<void> test_binaryExpression_userDefinable_intRules() async {
     await analyze('''
 _f(int i, int j) => i + j;
 ''');
     visitSubexpression(findNode.binary('+'), 'int');
   }
 
-  test_binaryExpression_userDefinable_simple() async {
+  Future<void> test_binaryExpression_userDefinable_simple() async {
     await analyze('''
 class _C {
   int operator+(String s) => 1;
@@ -842,7 +871,7 @@ _f(_C c) => c + 'foo';
     visitSubexpression(findNode.binary('c +'), 'int');
   }
 
-  test_binaryExpression_userDefinable_simple_check_lhs() async {
+  Future<void> test_binaryExpression_userDefinable_simple_check_lhs() async {
     await analyze('''
 class _C {
   int operator+(String s) => 1;
@@ -853,7 +882,7 @@ _f(_C/*?*/ c) => c + 'foo';
         changes: {findNode.simple('c +'): isNullCheck});
   }
 
-  test_binaryExpression_userDefinable_simple_check_rhs() async {
+  Future<void> test_binaryExpression_userDefinable_simple_check_rhs() async {
     await analyze('''
 class _C {
   int operator+(String/*!*/ s) => 1;
@@ -864,7 +893,7 @@ _f(_C c, String/*?*/ s) => c + s;
         changes: {findNode.simple('s;'): isNullCheck});
   }
 
-  test_binaryExpression_userDefinable_substituted() async {
+  Future<void> test_binaryExpression_userDefinable_substituted() async {
     await analyze('''
 class _C<T, U> {
   T operator+(U u) => throw 'foo';
@@ -874,7 +903,8 @@ _f(_C<int, String> c) => c + 'foo';
     visitSubexpression(findNode.binary('c +'), 'int');
   }
 
-  test_binaryExpression_userDefinable_substituted_check_rhs() async {
+  Future<void>
+      test_binaryExpression_userDefinable_substituted_check_rhs() async {
     await analyze('''
 class _C<T, U> {
   T operator+(U/*!*/ u) => throw 'foo';
@@ -885,7 +915,8 @@ _f(_C<int, String/*!*/> c, String/*?*/ s) => c + s;
         changes: {findNode.simple('s;'): isNullCheck});
   }
 
-  test_binaryExpression_userDefinable_substituted_no_check_rhs() async {
+  Future<void>
+      test_binaryExpression_userDefinable_substituted_no_check_rhs() async {
     await analyze('''
 class _C<T, U> {
   T operator+(U u) => throw 'foo';
@@ -895,7 +926,7 @@ _f(_C<int, String/*?*/> c, String/*?*/ s) => c + s;
     visitSubexpression(findNode.binary('c +'), 'int');
   }
 
-  test_block() async {
+  Future<void> test_block() async {
     await analyze('''
 _f(int/*?*/ x, int/*?*/ y) {
   { // block
@@ -910,14 +941,14 @@ _f(int/*?*/ x, int/*?*/ y) {
     });
   }
 
-  test_booleanLiteral() async {
+  Future<void> test_booleanLiteral() async {
     await analyze('''
 f() => true;
 ''');
     visitSubexpression(findNode.booleanLiteral('true'), 'bool');
   }
 
-  test_conditionalExpression_flow_as_condition() async {
+  Future<void> test_conditionalExpression_flow_as_condition() async {
     await analyze('''
 _f(bool x, int/*?*/ y) => (x ? y != null : y != null) ? y + 1 : 0;
 ''');
@@ -926,7 +957,7 @@ _f(bool x, int/*?*/ y) => (x ? y != null : y != null) ? y + 1 : 0;
     visitSubexpression(findNode.conditionalExpression('y + 1'), 'int');
   }
 
-  test_conditionalExpression_flow_condition() async {
+  Future<void> test_conditionalExpression_flow_condition() async {
     await analyze('''
 _f(bool/*?*/ x) => x ? (x && true) : (x && true);
 ''');
@@ -936,7 +967,7 @@ _f(bool/*?*/ x) => x ? (x && true) : (x && true);
         changes: {findNode.simple('x ?'): isNullCheck});
   }
 
-  test_conditionalExpression_flow_then_else() async {
+  Future<void> test_conditionalExpression_flow_then_else() async {
     await analyze('''
 _f(bool x, bool/*?*/ y) => (x ? (y && true) : (y && true)) && y;
 ''');
@@ -949,14 +980,14 @@ _f(bool x, bool/*?*/ y) => (x ? (y && true) : (y && true)) && y;
     });
   }
 
-  test_conditionalExpression_lub() async {
+  Future<void> test_conditionalExpression_lub() async {
     await analyze('''
 _f(bool b) => b ? 1 : 1.0;
 ''');
     visitSubexpression(findNode.conditionalExpression('1.0'), 'num');
   }
 
-  test_conditionalExpression_throw_promotes() async {
+  Future<void> test_conditionalExpression_throw_promotes() async {
     await analyze('''
 _f(int/*?*/ x) =>
     <dynamic>[(x != null ? 1 : throw 'foo'), x + 1];
@@ -966,14 +997,14 @@ _f(int/*?*/ x) =>
     visitSubexpression(findNode.listLiteral('['), 'List<dynamic>');
   }
 
-  test_doubleLiteral() async {
+  Future<void> test_doubleLiteral() async {
     await analyze('''
 f() => 1.0;
 ''');
     visitSubexpression(findNode.doubleLiteral('1.0'), 'double');
   }
 
-  test_expressionStatement() async {
+  Future<void> test_expressionStatement() async {
     await analyze('''
 _f(int/*!*/ x, int/*?*/ y) {
   x = y;
@@ -983,14 +1014,14 @@ _f(int/*!*/ x, int/*?*/ y) {
         changes: {findNode.simple('y;'): isNullCheck});
   }
 
-  test_functionExpressionInvocation_dynamic() async {
+  Future<void> test_functionExpressionInvocation_dynamic() async {
     await analyze('''
 _f(dynamic d) => d();
 ''');
     visitSubexpression(findNode.functionExpressionInvocation('d('), 'dynamic');
   }
 
-  test_functionExpressionInvocation_function_checked() async {
+  Future<void> test_functionExpressionInvocation_function_checked() async {
     await analyze('''
 _f(Function/*?*/ func) => func();
 ''');
@@ -999,7 +1030,7 @@ _f(Function/*?*/ func) => func();
         changes: {findNode.simple('func()'): isNullCheck});
   }
 
-  test_functionExpressionInvocation_getter() async {
+  Future<void> test_functionExpressionInvocation_getter() async {
     await analyze('''
 abstract class _C {
   int Function() get f;
@@ -1009,7 +1040,8 @@ _f(_C c) => (c.f)();
     visitSubexpression(findNode.functionExpressionInvocation('c.f'), 'int');
   }
 
-  test_functionExpressionInvocation_getter_looksLikeMethodCall() async {
+  Future<void>
+      test_functionExpressionInvocation_getter_looksLikeMethodCall() async {
     await analyze('''
 abstract class _C {
   int Function() get f;
@@ -1019,7 +1051,7 @@ _f(_C c) => c.f();
     visitSubexpression(findNode.functionExpressionInvocation('c.f'), 'int');
   }
 
-  test_functionExpressionInvocation_getter_nullChecked() async {
+  Future<void> test_functionExpressionInvocation_getter_nullChecked() async {
     await analyze('''
 abstract class _C {
   int Function()/*?*/ get f;
@@ -1030,7 +1062,8 @@ _f(_C c) => (c.f)();
         changes: {findNode.parenthesized('c.f'): isNullCheck});
   }
 
-  test_functionExpressionInvocation_getter_nullChecked_looksLikeMethodCall() async {
+  Future<void>
+      test_functionExpressionInvocation_getter_nullChecked_looksLikeMethodCall() async {
     await analyze('''
 abstract class _C {
   int Function()/*?*/ get f;
@@ -1041,7 +1074,7 @@ _f(_C c) => c.f();
         changes: {findNode.propertyAccess('c.f'): isNullCheck});
   }
 
-  test_ifStatement_flow_promote_in_else() async {
+  Future<void> test_ifStatement_flow_promote_in_else() async {
     await analyze('''
 _f(int/*?*/ x) {
   if (x == null) {
@@ -1055,7 +1088,7 @@ _f(int/*?*/ x) {
         changes: {findNode.simple('x + 1'): isNullCheck});
   }
 
-  test_ifStatement_flow_promote_in_then() async {
+  Future<void> test_ifStatement_flow_promote_in_then() async {
     await analyze('''
 _f(int/*?*/ x) {
   if (x != null) {
@@ -1069,7 +1102,7 @@ _f(int/*?*/ x) {
         changes: {findNode.simple('x + 2'): isNullCheck});
   }
 
-  test_ifStatement_flow_promote_in_then_no_else() async {
+  Future<void> test_ifStatement_flow_promote_in_then_no_else() async {
     await analyze('''
 _f(int/*?*/ x) {
   if (x != null) {
@@ -1080,14 +1113,14 @@ _f(int/*?*/ x) {
     visitStatement(findNode.statement('if'));
   }
 
-  test_indexExpression_dynamic() async {
+  Future<void> test_indexExpression_dynamic() async {
     await analyze('''
 Object/*!*/ _f(dynamic d, int/*?*/ i) => d[i];
 ''');
     visitSubexpression(findNode.index('d[i]'), 'dynamic');
   }
 
-  test_indexExpression_simple() async {
+  Future<void> test_indexExpression_simple() async {
     await analyze('''
 class _C {
   int operator[](String s) => 1;
@@ -1097,7 +1130,7 @@ _f(_C c) => c['foo'];
     visitSubexpression(findNode.index('c['), 'int');
   }
 
-  test_indexExpression_simple_check_lhs() async {
+  Future<void> test_indexExpression_simple_check_lhs() async {
     await analyze('''
 class _C {
   int operator[](String s) => 1;
@@ -1108,7 +1141,7 @@ _f(_C/*?*/ c) => c['foo'];
         changes: {findNode.simple('c['): isNullCheck});
   }
 
-  test_indexExpression_simple_check_rhs() async {
+  Future<void> test_indexExpression_simple_check_rhs() async {
     await analyze('''
 class _C {
   int operator[](String/*!*/ s) => 1;
@@ -1119,7 +1152,7 @@ _f(_C c, String/*?*/ s) => c[s];
         changes: {findNode.simple('s]'): isNullCheck});
   }
 
-  test_indexExpression_substituted() async {
+  Future<void> test_indexExpression_substituted() async {
     await analyze('''
 class _C<T, U> {
   T operator[](U u) => throw 'foo';
@@ -1129,7 +1162,7 @@ _f(_C<int, String> c) => c['foo'];
     visitSubexpression(findNode.index('c['), 'int');
   }
 
-  test_indexExpression_substituted_check_rhs() async {
+  Future<void> test_indexExpression_substituted_check_rhs() async {
     await analyze('''
 class _C<T, U> {
   T operator[](U/*!*/ u) => throw 'foo';
@@ -1140,7 +1173,7 @@ _f(_C<int, String/*!*/> c, String/*?*/ s) => c[s];
         changes: {findNode.simple('s]'): isNullCheck});
   }
 
-  test_indexExpression_substituted_no_check_rhs() async {
+  Future<void> test_indexExpression_substituted_no_check_rhs() async {
     await analyze('''
 class _C<T, U> {
   T operator[](U u) => throw 'foo';
@@ -1150,21 +1183,21 @@ _f(_C<int, String/*?*/> c, String/*?*/ s) => c[s];
     visitSubexpression(findNode.index('c['), 'int');
   }
 
-  test_integerLiteral() async {
+  Future<void> test_integerLiteral() async {
     await analyze('''
 f() => 1;
 ''');
     visitSubexpression(findNode.integerLiteral('1'), 'int');
   }
 
-  test_listLiteral_typed() async {
+  Future<void> test_listLiteral_typed() async {
     await analyze('''
 _f() => <int>[];
 ''');
     visitSubexpression(findNode.listLiteral('['), 'List<int>');
   }
 
-  test_listLiteral_typed_visit_contents() async {
+  Future<void> test_listLiteral_typed_visit_contents() async {
     await analyze('''
 _f(int/*?*/ x) => <int/*!*/>[x];
 ''');
@@ -1172,14 +1205,14 @@ _f(int/*?*/ x) => <int/*!*/>[x];
         changes: {findNode.simple('x]'): isNullCheck});
   }
 
-  test_methodInvocation_dynamic() async {
+  Future<void> test_methodInvocation_dynamic() async {
     await analyze('''
 Object/*!*/ _f(dynamic d) => d.f();
 ''');
     visitSubexpression(findNode.methodInvocation('d.f'), 'dynamic');
   }
 
-  test_methodInvocation_namedParameter() async {
+  Future<void> test_methodInvocation_namedParameter() async {
     await analyze('''
 abstract class _C {
   int f({int/*!*/ x});
@@ -1190,7 +1223,7 @@ _f(_C c, int/*?*/ y) => c.f(x: y);
         changes: {findNode.simple('y);'): isNullCheck});
   }
 
-  test_methodInvocation_ordinaryParameter() async {
+  Future<void> test_methodInvocation_ordinaryParameter() async {
     await analyze('''
 abstract class _C {
   int f(int/*!*/ x);
@@ -1201,7 +1234,7 @@ _f(_C c, int/*?*/ y) => c.f(y);
         changes: {findNode.simple('y);'): isNullCheck});
   }
 
-  test_methodInvocation_return_nonNullable() async {
+  Future<void> test_methodInvocation_return_nonNullable() async {
     await analyze('''
 abstract class _C {
   int f();
@@ -1211,7 +1244,7 @@ _f(_C c) => c.f();
     visitSubexpression(findNode.methodInvocation('c.f'), 'int');
   }
 
-  test_methodInvocation_return_nonNullable_check_target() async {
+  Future<void> test_methodInvocation_return_nonNullable_check_target() async {
     await analyze('''
 abstract class _C {
   int f();
@@ -1222,7 +1255,7 @@ _f(_C/*?*/ c) => c.f();
         changes: {findNode.simple('c.f'): isNullCheck});
   }
 
-  test_methodInvocation_return_nonNullable_nullAware() async {
+  Future<void> test_methodInvocation_return_nonNullable_nullAware() async {
     await analyze('''
 abstract class _C {
   int f();
@@ -1232,7 +1265,7 @@ _f(_C/*?*/ c) => c?.f();
     visitSubexpression(findNode.methodInvocation('c?.f'), 'int?');
   }
 
-  test_methodInvocation_return_nullable() async {
+  Future<void> test_methodInvocation_return_nullable() async {
     await analyze('''
 abstract class _C {
   int/*?*/ f();
@@ -1242,7 +1275,7 @@ _f(_C c) => c.f();
     visitSubexpression(findNode.methodInvocation('c.f'), 'int?');
   }
 
-  test_methodInvocation_static() async {
+  Future<void> test_methodInvocation_static() async {
     await analyze('''
 _f() => _C.g();
 class _C {
@@ -1252,7 +1285,7 @@ class _C {
     visitSubexpression(findNode.methodInvocation('_C.g();'), 'int');
   }
 
-  test_methodInvocation_topLevel() async {
+  Future<void> test_methodInvocation_topLevel() async {
     await analyze('''
 _f() => _g();
 int _g() => 1;
@@ -1261,7 +1294,7 @@ int _g() => 1;
   }
 
   @FailingTest(reason: 'TODO(paulberry)')
-  test_methodInvocation_toString() async {
+  Future<void> test_methodInvocation_toString() async {
     await analyze('''
 abstract class _C {}
 _f(_C/*?*/ c) => c.toString();
@@ -1269,7 +1302,7 @@ _f(_C/*?*/ c) => c.toString();
     visitSubexpression(findNode.methodInvocation('c.toString'), 'String');
   }
 
-  test_nullAssertion_promotes() async {
+  Future<void> test_nullAssertion_promotes() async {
     await analyze('''
 _f(bool/*?*/ x) => x && x;
 ''');
@@ -1279,28 +1312,28 @@ _f(bool/*?*/ x) => x && x;
         changes: {findNode.simple('x &&'): isNullCheck});
   }
 
-  test_nullLiteral() async {
+  Future<void> test_nullLiteral() async {
     await analyze('''
 f() => null;
 ''');
     visitSubexpression(findNode.nullLiteral('null'), 'Null');
   }
 
-  test_parenthesizedExpression() async {
+  Future<void> test_parenthesizedExpression() async {
     await analyze('''
 f() => (1);
 ''');
     visitSubexpression(findNode.integerLiteral('1'), 'int');
   }
 
-  test_parenthesizedExpression_flow() async {
+  Future<void> test_parenthesizedExpression_flow() async {
     await analyze('''
 _f(bool/*?*/ x) => ((x) != (null)) && x;
 ''');
     visitSubexpression(findNode.binary('&&'), 'bool');
   }
 
-  test_postfixExpression_combined_nullable_noProblem() async {
+  Future<void> test_postfixExpression_combined_nullable_noProblem() async {
     await analyze('''
 abstract class _C {
   _D/*?*/ operator+(int/*!*/ value);
@@ -1316,7 +1349,8 @@ abstract class _E {
   }
 
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38833')
-  test_postfixExpression_combined_nullable_noProblem_dynamic() async {
+  Future<void>
+      test_postfixExpression_combined_nullable_noProblem_dynamic() async {
     await analyze('''
 abstract class _E {
   dynamic get x;
@@ -1328,7 +1362,7 @@ abstract class _E {
   }
 
   @FailingTest(reason: 'TODO(paulberry)')
-  test_postfixExpression_combined_nullable_problem() async {
+  Future<void> test_postfixExpression_combined_nullable_problem() async {
     await analyze('''
 abstract class _C {
   _D/*?*/ operator+(int/*!*/ value);
@@ -1346,7 +1380,7 @@ abstract class _E {
     });
   }
 
-  test_postfixExpression_decrement_undoes_promotion() async {
+  Future<void> test_postfixExpression_decrement_undoes_promotion() async {
     await analyze('''
 abstract class _C {
   _C/*?*/ operator-(int value);
@@ -1363,14 +1397,14 @@ _g(_C/*!*/ c) {}
         changes: {findNode.simple('c);'): isNullCheck});
   }
 
-  test_postfixExpression_dynamic() async {
+  Future<void> test_postfixExpression_dynamic() async {
     await analyze('''
 _f(dynamic x) => x++;
 ''');
     visitSubexpression(findNode.postfix('++'), 'dynamic');
   }
 
-  test_postfixExpression_increment_undoes_promotion() async {
+  Future<void> test_postfixExpression_increment_undoes_promotion() async {
     await analyze('''
 abstract class _C {
   _C/*?*/ operator+(int value);
@@ -1388,7 +1422,7 @@ _g(_C/*!*/ c) {}
   }
 
   @FailingTest(reason: 'TODO(paulberry)')
-  test_postfixExpression_lhs_nullable_problem() async {
+  Future<void> test_postfixExpression_lhs_nullable_problem() async {
     await analyze('''
 abstract class _C {
   _D/*!*/ operator+(int/*!*/ value);
@@ -1406,7 +1440,7 @@ abstract class _E {
     });
   }
 
-  test_postfixExpression_rhs_nonNullable() async {
+  Future<void> test_postfixExpression_rhs_nonNullable() async {
     await analyze('''
 abstract class _C {
   _D/*!*/ operator+(int/*!*/ value);
@@ -1417,14 +1451,14 @@ _f(_C/*!*/ x) => x++;
     visitSubexpression(findNode.postfix('++'), '_C');
   }
 
-  test_prefixedIdentifier_dynamic() async {
+  Future<void> test_prefixedIdentifier_dynamic() async {
     await analyze('''
 Object/*!*/ _f(dynamic d) => d.x;
 ''');
     visitSubexpression(findNode.prefixed('d.x'), 'dynamic');
   }
 
-  test_prefixedIdentifier_field_nonNullable() async {
+  Future<void> test_prefixedIdentifier_field_nonNullable() async {
     await analyze('''
 class _C {
   int/*!*/ x = 0;
@@ -1434,7 +1468,7 @@ _f(_C c) => c.x;
     visitSubexpression(findNode.prefixed('c.x'), 'int');
   }
 
-  test_prefixedIdentifier_field_nullable() async {
+  Future<void> test_prefixedIdentifier_field_nullable() async {
     await analyze('''
 class _C {
   int/*?*/ x = 0;
@@ -1444,7 +1478,7 @@ _f(_C c) => c.x;
     visitSubexpression(findNode.prefixed('c.x'), 'int?');
   }
 
-  test_prefixedIdentifier_getter_check_lhs() async {
+  Future<void> test_prefixedIdentifier_getter_check_lhs() async {
     await analyze('''
 abstract class _C {
   int get x;
@@ -1455,7 +1489,7 @@ _f(_C/*?*/ c) => c.x;
         changes: {findNode.simple('c.x'): isNullCheck});
   }
 
-  test_prefixedIdentifier_getter_nonNullable() async {
+  Future<void> test_prefixedIdentifier_getter_nonNullable() async {
     await analyze('''
 abstract class _C {
   int/*!*/ get x;
@@ -1465,7 +1499,7 @@ _f(_C c) => c.x;
     visitSubexpression(findNode.prefixed('c.x'), 'int');
   }
 
-  test_prefixedIdentifier_getter_nullable() async {
+  Future<void> test_prefixedIdentifier_getter_nullable() async {
     await analyze('''
 abstract class _C {
   int/*?*/ get x;
@@ -1476,7 +1510,7 @@ _f(_C c) => c.x;
   }
 
   @FailingTest(reason: 'TODO(paulberry)')
-  test_prefixedIdentifier_object_getter() async {
+  Future<void> test_prefixedIdentifier_object_getter() async {
     await analyze('''
 class _C {}
 _f(_C/*?*/ c) => c.hashCode;
@@ -1485,7 +1519,7 @@ _f(_C/*?*/ c) => c.hashCode;
   }
 
   @FailingTest(reason: 'TODO(paulberry)')
-  test_prefixedIdentifier_object_tearoff() async {
+  Future<void> test_prefixedIdentifier_object_tearoff() async {
     await analyze('''
 class _C {}
 _f(_C/*?*/ c) => c.toString;
@@ -1493,7 +1527,7 @@ _f(_C/*?*/ c) => c.toString;
     visitSubexpression(findNode.prefixed('c.toString'), 'String Function()');
   }
 
-  test_prefixedIdentifier_substituted() async {
+  Future<void> test_prefixedIdentifier_substituted() async {
     await analyze('''
 abstract class _C<T> {
   List<T> get x;
@@ -1503,7 +1537,7 @@ _f(_C<int> c) => c.x;
     visitSubexpression(findNode.prefixed('c.x'), 'List<int>');
   }
 
-  test_prefixExpression_bang_flow() async {
+  Future<void> test_prefixExpression_bang_flow() async {
     await analyze('''
 _f(int/*?*/ x) {
   if (!(x == null)) {
@@ -1516,14 +1550,14 @@ _f(int/*?*/ x) {
     visitStatement(findNode.statement('if'));
   }
 
-  test_prefixExpression_bang_nonNullable() async {
+  Future<void> test_prefixExpression_bang_nonNullable() async {
     await analyze('''
 _f(bool/*!*/ x) => !x;
 ''');
     visitSubexpression(findNode.prefix('!x'), 'bool');
   }
 
-  test_prefixExpression_bang_nullable() async {
+  Future<void> test_prefixExpression_bang_nullable() async {
     await analyze('''
 _f(bool/*?*/ x) => !x;
 ''');
@@ -1532,7 +1566,7 @@ _f(bool/*?*/ x) => !x;
   }
 
   @FailingTest(reason: 'TODO(paulberry)')
-  test_prefixExpression_combined_nullable_noProblem() async {
+  Future<void> test_prefixExpression_combined_nullable_noProblem() async {
     await analyze('''
 abstract class _C {
   _D/*?*/ operator+(int/*!*/ value);
@@ -1547,7 +1581,8 @@ abstract class _E {
     visitSubexpression(findNode.prefix('++'), '_D?');
   }
 
-  test_prefixExpression_combined_nullable_noProblem_dynamic() async {
+  Future<void>
+      test_prefixExpression_combined_nullable_noProblem_dynamic() async {
     await analyze('''
 abstract class _E {
   dynamic get x;
@@ -1560,7 +1595,7 @@ abstract class _E {
   }
 
   @FailingTest(reason: 'TODO(paulberry)')
-  test_prefixExpression_combined_nullable_problem() async {
+  Future<void> test_prefixExpression_combined_nullable_problem() async {
     await analyze('''
 abstract class _C {
   _D/*?*/ operator+(int/*!*/ value);
@@ -1578,7 +1613,7 @@ abstract class _E {
     });
   }
 
-  test_prefixExpression_decrement_undoes_promotion() async {
+  Future<void> test_prefixExpression_decrement_undoes_promotion() async {
     await analyze('''
 abstract class _C {
   _C/*?*/ operator-(int value);
@@ -1595,7 +1630,7 @@ _g(_C/*!*/ c) {}
         changes: {findNode.simple('c);'): isNullCheck});
   }
 
-  test_prefixExpression_increment_undoes_promotion() async {
+  Future<void> test_prefixExpression_increment_undoes_promotion() async {
     await analyze('''
 abstract class _C {
   _C/*?*/ operator+(int value);
@@ -1612,7 +1647,7 @@ _g(_C/*!*/ c) {}
         changes: {findNode.simple('c);'): isNullCheck});
   }
 
-  test_prefixExpression_intRules() async {
+  Future<void> test_prefixExpression_intRules() async {
     await analyze('''
 _f(int x) => ++x;
 ''');
@@ -1620,7 +1655,7 @@ _f(int x) => ++x;
   }
 
   @FailingTest(reason: 'TODO(paulberry)')
-  test_prefixExpression_lhs_nullable_problem() async {
+  Future<void> test_prefixExpression_lhs_nullable_problem() async {
     await analyze('''
 abstract class _C {
   _D/*!*/ operator+(int/*!*/ value);
@@ -1638,21 +1673,21 @@ abstract class _E {
     });
   }
 
-  test_prefixExpression_minus_dynamic() async {
+  Future<void> test_prefixExpression_minus_dynamic() async {
     await analyze('''
 _f(dynamic x) => -x;
 ''');
     visitSubexpression(findNode.prefix('-x'), 'dynamic');
   }
 
-  test_prefixExpression_minus_nonNullable() async {
+  Future<void> test_prefixExpression_minus_nonNullable() async {
     await analyze('''
 _f(int/*!*/ x) => -x;
 ''');
     visitSubexpression(findNode.prefix('-x'), 'int');
   }
 
-  test_prefixExpression_minus_nullable() async {
+  Future<void> test_prefixExpression_minus_nullable() async {
     await analyze('''
 _f(int/*?*/ x) => -x;
 ''');
@@ -1660,7 +1695,7 @@ _f(int/*?*/ x) => -x;
         changes: {findNode.simple('x;'): isNullCheck});
   }
 
-  test_prefixExpression_minus_substitution() async {
+  Future<void> test_prefixExpression_minus_substitution() async {
     await analyze('''
 abstract class _C<T> {
   List<T> operator-();
@@ -1670,7 +1705,7 @@ _f(_C<int> x) => -x;
     visitSubexpression(findNode.prefix('-x'), 'List<int>');
   }
 
-  test_prefixExpression_rhs_nonNullable() async {
+  Future<void> test_prefixExpression_rhs_nonNullable() async {
     await analyze('''
 abstract class _C {
   _D/*!*/ operator+(int/*!*/ value);
@@ -1681,21 +1716,21 @@ _f(_C/*!*/ x) => ++x;
     visitSubexpression(findNode.prefix('++'), '_D');
   }
 
-  test_prefixExpression_tilde_dynamic() async {
+  Future<void> test_prefixExpression_tilde_dynamic() async {
     await analyze('''
 _f(dynamic x) => ~x;
 ''');
     visitSubexpression(findNode.prefix('~x'), 'dynamic');
   }
 
-  test_prefixExpression_tilde_nonNullable() async {
+  Future<void> test_prefixExpression_tilde_nonNullable() async {
     await analyze('''
 _f(int/*!*/ x) => ~x;
 ''');
     visitSubexpression(findNode.prefix('~x'), 'int');
   }
 
-  test_prefixExpression_tilde_nullable() async {
+  Future<void> test_prefixExpression_tilde_nullable() async {
     await analyze('''
 _f(int/*?*/ x) => ~x;
 ''');
@@ -1703,7 +1738,7 @@ _f(int/*?*/ x) => ~x;
         changes: {findNode.simple('x;'): isNullCheck});
   }
 
-  test_prefixExpression_tilde_substitution() async {
+  Future<void> test_prefixExpression_tilde_substitution() async {
     await analyze('''
 abstract class _C<T> {
   List<T> operator~();
@@ -1713,14 +1748,14 @@ _f(_C<int> x) => ~x;
     visitSubexpression(findNode.prefix('~x'), 'List<int>');
   }
 
-  test_propertyAccess_dynamic() async {
+  Future<void> test_propertyAccess_dynamic() async {
     await analyze('''
 Object/*!*/ _f(dynamic d) => (d).x;
 ''');
     visitSubexpression(findNode.propertyAccess('(d).x'), 'dynamic');
   }
 
-  test_propertyAccess_field_nonNullable() async {
+  Future<void> test_propertyAccess_field_nonNullable() async {
     await analyze('''
 class _C {
   int/*!*/ x = 0;
@@ -1730,7 +1765,7 @@ _f(_C c) => (c).x;
     visitSubexpression(findNode.propertyAccess('(c).x'), 'int');
   }
 
-  test_propertyAccess_field_nullable() async {
+  Future<void> test_propertyAccess_field_nullable() async {
     await analyze('''
 class _C {
   int/*?*/ x = 0;
@@ -1740,7 +1775,7 @@ _f(_C c) => (c).x;
     visitSubexpression(findNode.propertyAccess('(c).x'), 'int?');
   }
 
-  test_propertyAccess_getter_check_lhs() async {
+  Future<void> test_propertyAccess_getter_check_lhs() async {
     await analyze('''
 abstract class _C {
   int get x;
@@ -1751,7 +1786,7 @@ _f(_C/*?*/ c) => (c).x;
         changes: {findNode.parenthesized('(c).x'): isNullCheck});
   }
 
-  test_propertyAccess_getter_nonNullable() async {
+  Future<void> test_propertyAccess_getter_nonNullable() async {
     await analyze('''
 abstract class _C {
   int/*!*/ get x;
@@ -1761,7 +1796,7 @@ _f(_C c) => (c).x;
     visitSubexpression(findNode.propertyAccess('(c).x'), 'int');
   }
 
-  test_propertyAccess_getter_nullable() async {
+  Future<void> test_propertyAccess_getter_nullable() async {
     await analyze('''
 abstract class _C {
   int/*?*/ get x;
@@ -1771,14 +1806,14 @@ _f(_C c) => (c).x;
     visitSubexpression(findNode.propertyAccess('(c).x'), 'int?');
   }
 
-  test_propertyAccess_nullAware_dynamic() async {
+  Future<void> test_propertyAccess_nullAware_dynamic() async {
     await analyze('''
 Object/*!*/ _f(dynamic d) => d?.x;
 ''');
     visitSubexpression(findNode.propertyAccess('d?.x'), 'dynamic');
   }
 
-  test_propertyAccess_nullAware_field_nonNullable() async {
+  Future<void> test_propertyAccess_nullAware_field_nonNullable() async {
     await analyze('''
 class _C {
   int/*!*/ x = 0;
@@ -1788,7 +1823,7 @@ _f(_C/*?*/ c) => c?.x;
     visitSubexpression(findNode.propertyAccess('c?.x'), 'int?');
   }
 
-  test_propertyAccess_nullAware_field_nullable() async {
+  Future<void> test_propertyAccess_nullAware_field_nullable() async {
     await analyze('''
 class _C {
   int/*?*/ x = 0;
@@ -1798,7 +1833,7 @@ _f(_C/*?*/ c) => c?.x;
     visitSubexpression(findNode.propertyAccess('c?.x'), 'int?');
   }
 
-  test_propertyAccess_nullAware_getter_nonNullable() async {
+  Future<void> test_propertyAccess_nullAware_getter_nonNullable() async {
     await analyze('''
 abstract class _C {
   int/*!*/ get x;
@@ -1808,7 +1843,7 @@ _f(_C/*?*/ c) => c?.x;
     visitSubexpression(findNode.propertyAccess('c?.x'), 'int?');
   }
 
-  test_propertyAccess_nullAware_getter_nullable() async {
+  Future<void> test_propertyAccess_nullAware_getter_nullable() async {
     await analyze('''
 abstract class _C {
   int/*?*/ get x;
@@ -1818,7 +1853,7 @@ _f(_C/*?*/ c) => c?.x;
     visitSubexpression(findNode.propertyAccess('c?.x'), 'int?');
   }
 
-  test_propertyAccess_nullAware_object_getter() async {
+  Future<void> test_propertyAccess_nullAware_object_getter() async {
     await analyze('''
 class _C {}
 _f(_C/*?*/ c) => c?.hashCode;
@@ -1826,7 +1861,7 @@ _f(_C/*?*/ c) => c?.hashCode;
     visitSubexpression(findNode.propertyAccess('c?.hashCode'), 'int?');
   }
 
-  test_propertyAccess_nullAware_object_tearoff() async {
+  Future<void> test_propertyAccess_nullAware_object_tearoff() async {
     await analyze('''
 class _C {}
 _f(_C/*?*/ c) => c?.toString;
@@ -1835,7 +1870,7 @@ _f(_C/*?*/ c) => c?.toString;
         findNode.propertyAccess('c?.toString'), 'String Function()?');
   }
 
-  test_propertyAccess_nullAware_substituted() async {
+  Future<void> test_propertyAccess_nullAware_substituted() async {
     await analyze('''
 abstract class _C<T> {
   List<T> get x;
@@ -1846,7 +1881,7 @@ _f(_C<int>/*?*/ c) => c?.x;
   }
 
   @FailingTest(reason: 'TODO(paulberry)')
-  test_propertyAccess_object_getter() async {
+  Future<void> test_propertyAccess_object_getter() async {
     await analyze('''
 class _C {}
 _f(_C/*?*/ c) => (c).hashCode;
@@ -1855,7 +1890,7 @@ _f(_C/*?*/ c) => (c).hashCode;
   }
 
   @FailingTest(reason: 'TODO(paulberry)')
-  test_propertyAccess_object_tearoff() async {
+  Future<void> test_propertyAccess_object_tearoff() async {
     await analyze('''
 class _C {}
 _f(_C/*?*/ c) => (c).toString;
@@ -1864,7 +1899,7 @@ _f(_C/*?*/ c) => (c).toString;
         findNode.propertyAccess('(c).toString'), 'String Function()');
   }
 
-  test_propertyAccess_substituted() async {
+  Future<void> test_propertyAccess_substituted() async {
     await analyze('''
 abstract class _C<T> {
   List<T> get x;
@@ -1874,14 +1909,14 @@ _f(_C<int> c) => (c).x;
     visitSubexpression(findNode.propertyAccess('(c).x'), 'List<int>');
   }
 
-  test_simpleIdentifier_className() async {
+  Future<void> test_simpleIdentifier_className() async {
     await analyze('''
 _f() => int;
 ''');
     visitSubexpression(findNode.simple('int'), 'Type');
   }
 
-  test_simpleIdentifier_field() async {
+  Future<void> test_simpleIdentifier_field() async {
     await analyze('''
 class _C {
   int i = 1;
@@ -1891,7 +1926,7 @@ class _C {
     visitSubexpression(findNode.simple('i;'), 'int');
   }
 
-  test_simpleIdentifier_field_generic() async {
+  Future<void> test_simpleIdentifier_field_generic() async {
     await analyze('''
 class _C<T> {
   List<T> x = null;
@@ -1901,7 +1936,7 @@ class _C<T> {
     visitSubexpression(findNode.simple('x;'), 'List<T>?');
   }
 
-  test_simpleIdentifier_field_nullable() async {
+  Future<void> test_simpleIdentifier_field_nullable() async {
     await analyze('''
 class _C {
   int/*?*/ i = 1;
@@ -1911,7 +1946,7 @@ class _C {
     visitSubexpression(findNode.simple('i;'), 'int?');
   }
 
-  test_simpleIdentifier_getter() async {
+  Future<void> test_simpleIdentifier_getter() async {
     await analyze('''
 class _C {
   int get i => 1;
@@ -1921,7 +1956,7 @@ class _C {
     visitSubexpression(findNode.simple('i;'), 'int');
   }
 
-  test_simpleIdentifier_getter_nullable() async {
+  Future<void> test_simpleIdentifier_getter_nullable() async {
     await analyze('''
 class _C {
   int/*?*/ get i => 1;
@@ -1931,7 +1966,7 @@ class _C {
     visitSubexpression(findNode.simple('i;'), 'int?');
   }
 
-  test_simpleIdentifier_localVariable_nonNullable() async {
+  Future<void> test_simpleIdentifier_localVariable_nonNullable() async {
     await analyze('''
 _f(int x) {
   return x;
@@ -1940,7 +1975,7 @@ _f(int x) {
     visitSubexpression(findNode.simple('x;'), 'int');
   }
 
-  test_simpleIdentifier_localVariable_nullable() async {
+  Future<void> test_simpleIdentifier_localVariable_nullable() async {
     await analyze('''
 _f(int/*?*/ x) {
   return x;
@@ -1949,21 +1984,21 @@ _f(int/*?*/ x) {
     visitSubexpression(findNode.simple('x;'), 'int?');
   }
 
-  test_stringLiteral() async {
+  Future<void> test_stringLiteral() async {
     await analyze('''
 f() => 'foo';
 ''');
     visitSubexpression(findNode.stringLiteral("'foo'"), 'String');
   }
 
-  test_symbolLiteral() async {
+  Future<void> test_symbolLiteral() async {
     await analyze('''
 f() => #foo;
 ''');
     visitSubexpression(findNode.symbolLiteral('#foo'), 'Symbol');
   }
 
-  test_throw_flow() async {
+  Future<void> test_throw_flow() async {
     await analyze('''
 _f(int/*?*/ i) {
   if (i == null) throw 'foo';
@@ -1973,7 +2008,7 @@ _f(int/*?*/ i) {
     visitStatement(findNode.block('{'));
   }
 
-  test_throw_nullable() async {
+  Future<void> test_throw_nullable() async {
     await analyze('''
 _f(int/*?*/ i) => throw i;
 ''');
@@ -1981,14 +2016,14 @@ _f(int/*?*/ i) => throw i;
         changes: {findNode.simple('i;'): isNullCheck});
   }
 
-  test_throw_simple() async {
+  Future<void> test_throw_simple() async {
     await analyze('''
 _f() => throw 'foo';
 ''');
     visitSubexpression(findNode.throw_('throw'), 'Never');
   }
 
-  test_typeName_dynamic() async {
+  Future<void> test_typeName_dynamic() async {
     await analyze('''
 void _f() {
   dynamic d = null;
@@ -1997,7 +2032,7 @@ void _f() {
     visitTypeAnnotation(findNode.typeAnnotation('dynamic'), 'dynamic');
   }
 
-  test_typeName_generic_nonNullable() async {
+  Future<void> test_typeName_generic_nonNullable() async {
     await analyze('''
 void _f() {
   List<int> i = [0];
@@ -2006,7 +2041,7 @@ void _f() {
     visitTypeAnnotation(findNode.typeAnnotation('List<int>'), 'List<int>');
   }
 
-  test_typeName_generic_nullable() async {
+  Future<void> test_typeName_generic_nullable() async {
     await analyze('''
 void _f() {
   List<int> i = null;
@@ -2017,7 +2052,7 @@ void _f() {
         changes: {listIntAnnotation: isMakeNullable});
   }
 
-  test_typeName_generic_nullable_arg() async {
+  Future<void> test_typeName_generic_nullable_arg() async {
     await analyze('''
 void _f() {
   List<int> i = [null];
@@ -2027,7 +2062,7 @@ void _f() {
         changes: {findNode.typeAnnotation('int'): isMakeNullable});
   }
 
-  test_typeName_simple_nonNullable() async {
+  Future<void> test_typeName_simple_nonNullable() async {
     await analyze('''
 void _f() {
   int i = 0;
@@ -2036,7 +2071,7 @@ void _f() {
     visitTypeAnnotation(findNode.typeAnnotation('int'), 'int');
   }
 
-  test_typeName_simple_nullable() async {
+  Future<void> test_typeName_simple_nullable() async {
     await analyze('''
 void _f() {
   int i = null;
@@ -2047,7 +2082,7 @@ void _f() {
         changes: {intAnnotation: isMakeNullable});
   }
 
-  test_typeName_void() async {
+  Future<void> test_typeName_void() async {
     await analyze('''
 void _f() {
   void v;
@@ -2056,7 +2091,7 @@ void _f() {
     visitTypeAnnotation(findNode.typeAnnotation('void v'), 'void');
   }
 
-  test_use_of_dynamic() async {
+  Future<void> test_use_of_dynamic() async {
     // Use of `dynamic` in a context requiring non-null is not explicitly null
     // checked.
     await analyze('''
@@ -2065,7 +2100,7 @@ bool _f(dynamic d, bool b) => d && b;
     visitSubexpression(findNode.binary('&&'), 'bool');
   }
 
-  test_variableDeclaration_typed_initialized_nonNullable() async {
+  Future<void> test_variableDeclaration_typed_initialized_nonNullable() async {
     await analyze('''
 void _f() {
   int x = 0;
@@ -2074,7 +2109,7 @@ void _f() {
     visitStatement(findNode.statement('int x'));
   }
 
-  test_variableDeclaration_typed_initialized_nullable() async {
+  Future<void> test_variableDeclaration_typed_initialized_nullable() async {
     await analyze('''
 void _f() {
   int x = null;
@@ -2084,7 +2119,7 @@ void _f() {
         changes: {findNode.typeAnnotation('int'): isMakeNullable});
   }
 
-  test_variableDeclaration_typed_uninitialized() async {
+  Future<void> test_variableDeclaration_typed_uninitialized() async {
     await analyze('''
 void _f() {
   int x;
@@ -2093,7 +2128,7 @@ void _f() {
     visitStatement(findNode.statement('int x'));
   }
 
-  test_variableDeclaration_untyped_initialized() async {
+  Future<void> test_variableDeclaration_untyped_initialized() async {
     await analyze('''
 void _f() {
   var x = 0;
@@ -2102,7 +2137,7 @@ void _f() {
     visitStatement(findNode.statement('var x'));
   }
 
-  test_variableDeclaration_untyped_uninitialized() async {
+  Future<void> test_variableDeclaration_untyped_uninitialized() async {
     await analyze('''
 void _f() {
   var x;
@@ -2111,7 +2146,7 @@ void _f() {
     visitStatement(findNode.statement('var x'));
   }
 
-  test_variableDeclaration_visit_initializer() async {
+  Future<void> test_variableDeclaration_visit_initializer() async {
     await analyze('''
 void _f(bool/*?*/ x, bool/*?*/ y) {
   bool z = x && y;
