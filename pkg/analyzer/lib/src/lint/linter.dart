@@ -169,12 +169,12 @@ class Group implements Comparable<Group> {
   static const Group pub = Group._('pub',
       description: 'Pub-related rules.',
       link: Hyperlink('See the <strong>Pubspec Format</strong>',
-          'https://www.dartlang.org/tools/pub/pubspec.html'));
+          'https://dart.dev/tools/pub/pubspec'));
   static const Group style = Group._('style',
       description:
           'Matters of style, largely derived from the official Dart Style Guide.',
       link: Hyperlink('See the <strong>Style Guide</strong>',
-          'https://www.dartlang.org/articles/style-guide/'));
+          'https://dart.dev/guides/language/effective-dart/style'));
 
   /// List of builtin groups in presentation order.
   static const Iterable<Group> builtin = [errors, style, pub];
