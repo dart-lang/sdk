@@ -465,12 +465,16 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
   /// constitute AnalysisErrorInfos.
   final List<AnalysisErrorInfo> _locationInfo = <AnalysisErrorInfo>[];
 
-  LintRule(
-      {this.name,
-      this.group,
-      this.description,
-      this.details,
-      this.maturity = Maturity.stable});
+  LintRule({
+    this.name,
+    this.group,
+    this.description,
+    this.details,
+    this.maturity = Maturity.stable,
+  });
+
+  /// A list of incompatible rule ids.
+  List<String> get incompatibleRules => const [];
 
   @override
   LintCode get lintCode => _LintCode(name, description);
