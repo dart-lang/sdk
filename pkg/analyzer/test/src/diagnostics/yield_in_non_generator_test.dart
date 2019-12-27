@@ -28,6 +28,14 @@ f() async {
     ]);
   }
 
+  test_asyncStar() async {
+    await assertNoErrorsInCode(r'''
+f() async* {
+  yield 0;
+}
+''');
+  }
+
   @FailingTest(
       reason: 'We are currently trying to parse the yield statement as a '
           'binary expression.')
@@ -39,5 +47,13 @@ f() {
 ''', [
       error(CompileTimeErrorCode.YIELD_IN_NON_GENERATOR, 0, 0),
     ]);
+  }
+
+  test_syncStar() async {
+    await assertNoErrorsInCode(r'''
+f() sync* {
+  yield 0;
+}
+''');
   }
 }

@@ -34,4 +34,12 @@ class A {
       error(CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR, 16, 8),
     ]);
   }
+
+  test_return_without_value() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A() { return; }
+}
+''');
+  }
 }

@@ -24,4 +24,14 @@ f() {
       error(CompileTimeErrorCode.RETHROW_OUTSIDE_CATCH, 8, 7),
     ]);
   }
+
+  test_insideCatch() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  void m() {
+    try {} catch (e) {rethrow;}
+  }
+}
+''');
+  }
 }

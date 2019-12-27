@@ -33,6 +33,37 @@ class WrongNumberOfParametersForOperatorTest extends DriverResolutionTest {
     await _checkTooFewAndTooMany('[]');
   }
 
+  test_correct_number_of_parameters_binary() async {
+    await _checkCorrectSingle("<");
+    await _checkCorrectSingle(">");
+    await _checkCorrectSingle("<=");
+    await _checkCorrectSingle(">=");
+    await _checkCorrectSingle("+");
+    await _checkCorrectSingle("/");
+    await _checkCorrectSingle("~/");
+    await _checkCorrectSingle("*");
+    await _checkCorrectSingle("%");
+    await _checkCorrectSingle("|");
+    await _checkCorrectSingle("^");
+    await _checkCorrectSingle("&");
+    await _checkCorrectSingle("<<");
+    await _checkCorrectSingle(">>");
+    await _checkCorrectSingle("[]");
+  }
+
+  test_correct_number_of_parameters_index_assignment() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  operator []=(a, b) {}
+}
+''');
+  }
+
+  test_correct_number_of_parameters_minus() async {
+    await _checkCorrect("-", "");
+    await _checkCorrect("-", "a");
+  }
+
   test_unaryMinus() async {
     await assertErrorsInCode(r'''
 class A {
@@ -58,6 +89,18 @@ class A {
       error(
           CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR, 21, 1),
     ]);
+  }
+
+  Future<void> _checkCorrect(String name, String parameters) async {
+    await assertNoErrorsInCode('''
+class A {
+  operator $name($parameters) {}
+}
+''');
+  }
+
+  Future<void> _checkCorrectSingle(String name) async {
+    await _checkCorrect(name, 'a');
   }
 
   Future<void> _checkTooFewAndTooMany(String name) async {

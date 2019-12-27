@@ -60,6 +60,19 @@ f(A a) {
     ]);
   }
 
+  test_index_defined() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  operator [](a) {}
+  operator []=(a, b) {}
+}
+f(A a) {
+  a[0];
+  a[0] = 1;
+}
+''');
+  }
+
   test_index_getter() async {
     await assertErrorsInCode(r'''
 class A {}
@@ -236,6 +249,13 @@ m() {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 13, 1),
       error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 18, 2),
     ]);
+  }
+
+  test_tilde_defined() async {
+    await assertNoErrorsInCode(r'''
+const A = 3;
+const B = ~((1 << A) - 1);
+''');
   }
 
   test_unaryMinus_null() async {

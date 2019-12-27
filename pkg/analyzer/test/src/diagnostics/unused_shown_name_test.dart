@@ -31,6 +31,17 @@ A a;
     ]);
   }
 
+  test_unresolved() async {
+    await assertErrorsInCode(r'''
+import 'dart:math' show max, FooBar;
+main() {
+  print(max(1, 2));
+}
+''', [
+      error(HintCode.UNDEFINED_SHOWN_NAME, 29, 6),
+    ]);
+  }
+
   test_unusedShownName_as() async {
     newFile('/test/lib/lib1.dart', content: r'''
 class A {}

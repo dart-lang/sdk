@@ -34,4 +34,12 @@ class A {
       error(CompileTimeErrorCode.OPTIONAL_PARAMETER_IN_OPERATOR, 24, 1),
     ]);
   }
+
+  test_single_required_parameter() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  operator +(p) {}
+}
+''');
+  }
 }

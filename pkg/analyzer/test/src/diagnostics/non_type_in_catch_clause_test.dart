@@ -15,6 +15,39 @@ main() {
 
 @reflectiveTest
 class NonTypeInCatchClauseTest extends DriverResolutionTest {
+  test_isClass() async {
+    await assertNoErrorsInCode(r'''
+f() {
+  try {
+  } on String catch (e) {
+  }
+}
+''');
+  }
+
+  test_isFunctionTypeAlias() async {
+    await assertNoErrorsInCode(r'''
+typedef F();
+f() {
+  try {
+  } on F catch (e) {
+  }
+}
+''');
+  }
+
+  test_isTypeParameter() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {
+  f() {
+    try {
+    } on T catch (e) {
+    }
+  }
+}
+''');
+  }
+
   test_notDefined() async {
     await assertErrorsInCode('''
 f() {
@@ -40,5 +73,15 @@ f() {
       error(StaticWarningCode.NON_TYPE_IN_CATCH_CLAUSE, 32, 1),
       error(HintCode.UNUSED_CATCH_CLAUSE, 41, 1),
     ]);
+  }
+
+  test_noType() async {
+    await assertNoErrorsInCode(r'''
+f() {
+  try {
+  } catch (e) {
+  }
+}
+''');
   }
 }

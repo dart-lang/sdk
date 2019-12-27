@@ -28,6 +28,18 @@ class B extends A {
     ]);
   }
 
+  test_generative() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A.named() {}
+  factory A() => null;
+}
+class B extends A {
+  B() : super.named();
+}
+''');
+  }
+
   test_implicit() async {
     await assertErrorsInCode(r'''
 class A {

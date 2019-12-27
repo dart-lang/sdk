@@ -18,6 +18,17 @@ main() {
 
 @reflectiveTest
 class StaticAccessToInstanceMemberTest extends DriverResolutionTest {
+  test_annotation() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  const A.name();
+}
+@A.name()
+main() {
+}
+''');
+  }
+
   test_method_invocation() async {
     await assertErrorsInCode('''
 class A {
@@ -76,6 +87,43 @@ main() {
 }''', [
       error(StaticWarningCode.STATIC_ACCESS_TO_INSTANCE_MEMBER, 39, 1),
     ]);
+  }
+
+  test_static_method() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  static m() {}
+}
+main() {
+  A.m;
+  A.m();
+}
+''');
+  }
+
+  test_static_propertyAccess_field() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  static var f;
+}
+main() {
+  A.f;
+  A.f = 1;
+}
+''');
+  }
+
+  test_static_propertyAccess_propertyAccessor() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  static get f => 42;
+  static set f(x) {}
+}
+main() {
+  A.f;
+  A.f = 1;
+}
+''');
   }
 }
 

@@ -109,4 +109,20 @@ var v = super.y;
       error(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT, 8, 5),
     ]);
   }
+
+  test_valid() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  m() {}
+}
+class B extends A {
+  B() {
+    var v = super.m();
+  }
+  n() {
+    var v = super.m();
+  }
+}
+''');
+  }
 }

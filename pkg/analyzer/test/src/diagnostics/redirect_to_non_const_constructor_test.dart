@@ -77,4 +77,13 @@ class A {
           8),
     ]);
   }
+
+  test_redirect_to_const() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  const A.a();
+  const factory A.b() = A.a;
+}
+''');
+  }
 }

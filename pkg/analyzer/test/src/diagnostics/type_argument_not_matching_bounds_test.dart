@@ -63,6 +63,17 @@ f() { return const G<B>(); }
     ]);
   }
 
+  test_const_matching() async {
+    await assertNoErrorsInCode(r'''
+class A {}
+class B extends A {}
+class G<E extends A> {
+  const G();
+}
+f() { return const G<B>(); }
+''');
+  }
+
   test_extends() async {
     await assertErrorsInCode(r'''
 class A {}
@@ -232,6 +243,15 @@ f() { return new G<B>(); }
     ]);
   }
 
+  test_new_matching() async {
+    await assertNoErrorsInCode(r'''
+class A {}
+class B extends A {}
+class G<E extends A> {}
+f() { return new G<B>(); }
+''');
+  }
+
   test_new_superTypeOfUpperBound() async {
     await assertErrorsInCode(r'''
 class A {}
@@ -253,6 +273,34 @@ F<B> fff;
 ''', [
       error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 50, 1),
     ]);
+  }
+
+  test_ofFunctionTypeAlias_hasBound2_matching() async {
+    await assertNoErrorsInCode(r'''
+class MyClass<T> {}
+typedef MyFunction<T, P extends MyClass<T>>();
+class A<T, P extends MyClass<T>> {
+  MyFunction<T, P> f;
+}
+''');
+  }
+
+  test_ofFunctionTypeAlias_hasBound_matching() async {
+    await assertNoErrorsInCode(r'''
+class A {}
+class B extends A {}
+typedef F<T extends A>();
+F<A> fa;
+F<B> fb;
+''');
+  }
+
+  test_ofFunctionTypeAlias_noBound_matching() async {
+    await assertNoErrorsInCode(r'''
+typedef F<T>();
+F<int> f1;
+F<String> f2;
+''');
   }
 
   test_parameter() async {

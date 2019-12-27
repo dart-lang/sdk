@@ -105,6 +105,15 @@ typedef A(List<A> a);
     ]);
   }
 
+  test_referencesReturnType_inTypeAlias() async {
+    await assertNoErrorsInCode(r'''
+typedef B A();
+class B {
+  A a;
+}
+''');
+  }
+
   test_returnClass_withTypeAlias() async {
     // A typedef is allowed to indirectly reference itself via a class.
     await assertNoErrorsInCode(r'''

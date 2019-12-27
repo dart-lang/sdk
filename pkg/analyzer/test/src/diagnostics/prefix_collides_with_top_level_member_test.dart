@@ -29,6 +29,20 @@ p.A a;
     ]);
   }
 
+  test_no_collision() async {
+    newFile("/test/lib/lib.dart", content: r'''
+library lib;
+class A {}''');
+    await assertNoErrorsInCode(r'''
+import 'lib.dart' as p;
+typedef P();
+p2() {}
+var p3;
+class p4 {}
+p.A a;
+''');
+  }
+
   test_topLevelFunction() async {
     newFile("/test/lib/lib.dart", content: r'''
 library lib;

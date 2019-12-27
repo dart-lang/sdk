@@ -17,7 +17,34 @@ main() {
 }
 
 @reflectiveTest
-class UndefinedMethodTest extends DriverResolutionTest {}
+class UndefinedMethodTest extends DriverResolutionTest {
+  test_functionExpression_callMethod_defined() async {
+    await assertNoErrorsInCode(r'''
+main() {
+  (() => null).call();
+}
+''');
+  }
+
+  test_functionExpression_directCall_defined() async {
+    await assertNoErrorsInCode(r'''
+main() {
+  (() => null)();
+}
+''');
+  }
+
+  test_static_conditionalAccess_defined() async {
+    // The conditional access operator '?.' can be used to access static
+    // methods.
+    await assertNoErrorsInCode('''
+class A {
+  static void m() {}
+}
+f() { A?.m(); }
+''');
+  }
+}
 
 @reflectiveTest
 class UndefinedMethodWithExtensionMethodsTest extends UndefinedMethodTest {
@@ -25,22 +52,6 @@ class UndefinedMethodWithExtensionMethodsTest extends UndefinedMethodTest {
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
     ..contextFeatures = FeatureSet.forTesting(
         sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
-
-  test_withExtension() async {
-    await assertErrorsInCode(r'''
-class C {}
-
-extension E on C {
-  void a() {}
-}
-
-f(C c) {
-  c.c();
-}
-''', [
-      error(StaticTypeWarningCode.UNDEFINED_METHOD, 61, 1),
-    ]);
-  }
 
   test_definedInPrivateExtension() async {
     newFile('/test/lib/lib.dart', content: '''
@@ -77,6 +88,22 @@ f(C c) {
 }
 ''', [
       error(StaticTypeWarningCode.UNDEFINED_METHOD, 33, 1),
+    ]);
+  }
+
+  test_withExtension() async {
+    await assertErrorsInCode(r'''
+class C {}
+
+extension E on C {
+  void a() {}
+}
+
+f(C c) {
+  c.c();
+}
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_METHOD, 61, 1),
     ]);
   }
 }

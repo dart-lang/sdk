@@ -25,4 +25,38 @@ class B extends A {
       error(CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER, 39, 13),
     ]);
   }
+
+  test_explicit_named_defined() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A.named() {}
+}
+class B extends A {
+  B() : super.named();
+}
+''');
+  }
+
+  test_explicit_unnamed_defined() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A() {}
+}
+class B extends A {
+  B() : super();
+}
+''');
+  }
+
+  test_redirecting_defined() async {
+    await assertNoErrorsInCode(r'''
+class Foo {
+  Foo.ctor();
+}
+class Bar extends Foo {
+  Bar() : this.ctor();
+  Bar.ctor() : super.ctor();
+}
+''');
+  }
 }

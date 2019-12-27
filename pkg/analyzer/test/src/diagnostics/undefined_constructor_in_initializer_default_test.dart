@@ -16,6 +16,17 @@ main() {
 @reflectiveTest
 class UndefinedConstructorInInitializerDefaultTest
     extends DriverResolutionTest {
+  test_hasOptionalParameters_defined() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A([p]) {}
+}
+class B extends A {
+  B();
+}
+''');
+  }
+
   test_implicit() async {
     await assertErrorsInCode(r'''
 class A {
@@ -28,6 +39,17 @@ class B extends A {
       error(CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT,
           49, 1),
     ]);
+  }
+
+  test_implicit_defined() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A() {}
+}
+class B extends A {
+  B();
+}
+''');
   }
 
   test_unnamed() async {

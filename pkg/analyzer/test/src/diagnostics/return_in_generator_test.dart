@@ -15,6 +15,14 @@ main() {
 
 @reflectiveTest
 class ReturnInGeneratorTest extends DriverResolutionTest {
+  test_async() async {
+    await assertNoErrorsInCode(r'''
+f() async {
+  return 0;
+}
+''');
+  }
+
   test_asyncStar() async {
     await assertErrorsInCode(r'''
 f() async* {
@@ -26,6 +34,23 @@ f() async* {
     ]);
   }
 
+  test_asyncStar_no_return_value() async {
+    await assertNoErrorsInCode('''
+import 'dart:async';
+Stream<int> f() async* {
+  return;
+}
+''');
+  }
+
+  test_sync() async {
+    await assertNoErrorsInCode(r'''
+f() {
+  return 0;
+}
+''');
+  }
+
   test_syncStar() async {
     await assertErrorsInCode(r'''
 f() sync* {
@@ -35,5 +60,13 @@ f() sync* {
       error(CompileTimeErrorCode.RETURN_IN_GENERATOR, 14, 9),
       error(CompileTimeErrorCode.RETURN_IN_GENERATOR, 14, 6),
     ]);
+  }
+
+  test_syncStar_no_return_value() async {
+    await assertNoErrorsInCode('''
+Iterable<int> f() sync* {
+  return;
+}
+''');
   }
 }

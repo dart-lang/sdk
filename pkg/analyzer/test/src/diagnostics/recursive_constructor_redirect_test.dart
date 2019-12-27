@@ -15,6 +15,16 @@ main() {
 
 @reflectiveTest
 class RecursiveConstructorRedirectTest extends DriverResolutionTest {
+  test_directSelfReference() async {
+    await assertErrorsInCode(r'''
+class A {
+  A() : this();
+}
+''', [
+      error(CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT, 18, 6),
+    ]);
+  }
+
   test_recursive() async {
     await assertErrorsInCode(r'''
 class A {
@@ -27,13 +37,13 @@ class A {
     ]);
   }
 
-  test_directSelfReference() async {
-    await assertErrorsInCode(r'''
+  test_valid_redirect() async {
+    await assertNoErrorsInCode(r'''
 class A {
-  A() : this();
+  A.a() : this.b();
+  A.b() : this.c();
+  A.c() {}
 }
-''', [
-      error(CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT, 18, 6),
-    ]);
+''');
   }
 }

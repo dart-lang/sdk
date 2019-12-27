@@ -15,6 +15,14 @@ main() {
 
 @reflectiveTest
 class WrongNumberOfParametersForSetterTest extends DriverResolutionTest {
+  test_correct_number_of_parameters() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  set x(a) {}
+}
+''');
+  }
+
   test_function_named() async {
     await assertErrorsInCode('''
 set x({p}) {}

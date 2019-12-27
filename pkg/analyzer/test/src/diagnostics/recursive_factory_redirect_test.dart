@@ -15,27 +15,6 @@ main() {
 
 @reflectiveTest
 class RecursiveFactoryRedirectTest extends DriverResolutionTest {
-  test_loop() async {
-    await assertErrorsInCode(r'''
-class A implements B {
-  factory A() = C;
-}
-class B implements C {
-  factory B() = A;
-}
-class C implements A {
-  factory C() = B;
-}
-''', [
-      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 6, 1),
-      error(CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT, 39, 1),
-      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 50, 1),
-      error(CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT, 83, 1),
-      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 94, 1),
-      error(CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT, 127, 1),
-    ]);
-  }
-
   test_directSelfReference() async {
     await assertErrorsInCode(r'''
 class A {
@@ -83,6 +62,27 @@ class C<T> implements A<T> {
     ]);
   }
 
+  test_loop() async {
+    await assertErrorsInCode(r'''
+class A implements B {
+  factory A() = C;
+}
+class B implements C {
+  factory B() = A;
+}
+class C implements A {
+  factory C() = B;
+}
+''', [
+      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 6, 1),
+      error(CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT, 39, 1),
+      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 50, 1),
+      error(CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT, 83, 1),
+      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 94, 1),
+      error(CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT, 127, 1),
+    ]);
+  }
+
   test_named() async {
     await assertErrorsInCode(r'''
 class A implements B {
@@ -123,5 +123,19 @@ class C implements A, B {
       error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 81, 1),
       error(CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT, 117, 1),
     ]);
+  }
+
+  test_valid_redirect() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  factory A() = B;
+}
+class B implements A {
+  factory B() = C;
+}
+class C implements B {
+  factory C() => null;
+}
+''');
   }
 }

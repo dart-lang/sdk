@@ -93,6 +93,12 @@ int f(int x) {
     ]);
   }
 
+  test_noReturnType() async {
+    await assertNoErrorsInCode('''
+f() { return; }
+''');
+  }
+
   test_Null() async {
     // Test that block bodied functions with return type Null and an empty
     // return cause a static warning.
@@ -100,6 +106,12 @@ int f(int x) {
 Null f() {
   return;
 }
+''');
+  }
+
+  test_void() async {
+    await assertNoErrorsInCode('''
+void f() { return; }
 ''');
   }
 }

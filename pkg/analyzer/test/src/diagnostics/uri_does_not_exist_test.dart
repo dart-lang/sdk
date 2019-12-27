@@ -93,4 +93,25 @@ part 'unknown.dart';
       error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 18, 14),
     ]);
   }
+
+  test_valid_dll() async {
+    newFile("/test/lib/lib.dll");
+    await assertNoErrorsInCode('''
+import 'dart-ext:lib';
+''');
+  }
+
+  test_valid_dylib() async {
+    newFile("/test/lib/lib.dylib");
+    await assertNoErrorsInCode('''
+import 'dart-ext:lib';
+''');
+  }
+
+  test_valid_so() async {
+    newFile("/test/lib/lib.so");
+    await assertNoErrorsInCode('''
+import 'dart-ext:lib';
+''');
+  }
 }
