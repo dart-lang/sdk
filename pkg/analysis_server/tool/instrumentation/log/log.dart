@@ -14,7 +14,7 @@ import 'package:path/path.dart' as path;
 /**
  * A boolean-valued function of one argument.
  */
-typedef bool Predicate<T>(T value);
+typedef Predicate<T> = bool Function(T value);
 
 /**
  * A description of a group of log entries.

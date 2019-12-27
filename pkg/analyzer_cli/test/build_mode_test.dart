@@ -18,7 +18,7 @@ main() {
   defineReflectiveTests(WorkerLoopTest);
 }
 
-typedef void _TestWorkerLoopAnalyze(CommandLineOptions options);
+typedef _TestWorkerLoopAnalyze = void Function(CommandLineOptions options);
 
 /**
  * [AnalyzerWorkerLoop] for testing.

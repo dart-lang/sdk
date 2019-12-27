@@ -42,7 +42,7 @@ linter:
     #- prefer_conditional_assignment # 191
     #- prefer_final_fields # 35
     - prefer_for_elements_to_map_fromIterable
-    #- prefer_generic_function_type_aliases # 18
+    - prefer_generic_function_type_aliases
     #- prefer_if_null_operators # 22
     #- prefer_single_quotes # 6653
     #- prefer_spread_collections # 3

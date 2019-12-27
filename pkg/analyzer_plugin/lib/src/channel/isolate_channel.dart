@@ -14,7 +14,7 @@ import 'package:analyzer_plugin/protocol/protocol_generated.dart';
 /**
  * The type of the function used to run a built-in plugin in an isolate.
  */
-typedef void EntryPoint(SendPort sendPort);
+typedef EntryPoint = void Function(SendPort sendPort);
 
 /**
  * A communication channel appropriate for built-in plugins.

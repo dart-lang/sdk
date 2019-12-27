@@ -42,12 +42,12 @@ void visitLibraryTopLevelElements(
  * An [Element] processor function type.
  * If `true` is returned, children of [element] will be visited.
  */
-typedef bool BoolElementProcessor(Element element);
+typedef BoolElementProcessor = bool Function(Element element);
 
 /**
  * An [Element] processor function type.
  */
-typedef void VoidElementProcessor(Element element);
+typedef VoidElementProcessor = void Function(Element element);
 
 /**
  * A visitor that finds the deep-most [Element] that contains the [nameOffset].

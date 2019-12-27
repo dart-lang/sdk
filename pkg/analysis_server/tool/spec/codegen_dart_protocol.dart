@@ -55,11 +55,11 @@ GeneratedFile serverTarget(bool responseRequiresRequestTime) {
 /**
  * Callback type used to represent arbitrary code generation.
  */
-typedef void CodegenCallback();
+typedef CodegenCallback = void Function();
 
-typedef String FromJsonSnippetCallback(String jsonPath, String json);
+typedef FromJsonSnippetCallback = String Function(String jsonPath, String json);
 
-typedef String ToJsonSnippetCallback(String value);
+typedef ToJsonSnippetCallback = String Function(String value);
 
 /**
  * Visitor which produces Dart code representing the API.

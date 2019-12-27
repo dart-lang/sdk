@@ -6,7 +6,7 @@
  * A function used to determine whether results should be collected for the
  * file with the given [path].
  */
-typedef bool ShouldCollectPredicate(String path);
+typedef ShouldCollectPredicate = bool Function(String path);
 
 /**
  * An object used to collect partial results (of type [E]) where the partial

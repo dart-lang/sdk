@@ -14,7 +14,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 import 'package:analyzer_plugin/utilities/completion/relevance.dart';
 
-typedef int SuggestionsFilter(DartType dartType, int relevance);
+typedef SuggestionsFilter = int Function(DartType dartType, int relevance);
 
 /**
  * An [AstVisitor] for determining whether top level suggestions or invocation

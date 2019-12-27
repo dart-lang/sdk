@@ -38,7 +38,7 @@ Element findChildElement(Element root, String name, [ElementKind kind]) {
 /**
  * A function to be called for every [Element].
  */
-typedef void _ElementVisitorFunction(Element element);
+typedef _ElementVisitorFunction = void Function(Element element);
 
 class AbstractContextTest with ResourceProviderMixin {
   AnalysisDriver _driver;

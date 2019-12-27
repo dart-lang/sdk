@@ -226,7 +226,7 @@ RefactoringOptions refactoringOptionsFromJson(JsonDecoder jsonDecoder,
  * string describing the part of the JSON object being decoded, and [value] is
  * the part to decode.
  */
-typedef E JsonDecoderCallback<E>(String jsonPath, dynamic value);
+typedef JsonDecoderCallback<E> = E Function(String jsonPath, dynamic value);
 
 /**
  * Instances of the class [HasToJson] implement [toJson] method that returns

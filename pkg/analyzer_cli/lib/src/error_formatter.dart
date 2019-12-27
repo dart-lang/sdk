@@ -33,7 +33,7 @@ ErrorSeverity _severityIdentity(AnalysisError error) =>
 
 /// Returns desired severity for the given [error] (or `null` if it's to be
 /// suppressed).
-typedef ErrorSeverity SeverityProcessor(AnalysisError error);
+typedef SeverityProcessor = ErrorSeverity Function(AnalysisError error);
 
 /// Analysis statistics counter.
 class AnalysisStats {

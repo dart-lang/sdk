@@ -7,7 +7,7 @@ import 'dart:convert';
 import '../log/log.dart';
 import '../server.dart';
 
-typedef void Writer(StringSink sink);
+typedef Writer = void Function(StringSink sink);
 
 /**
  * A class used to write an HTML page.

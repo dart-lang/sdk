@@ -11,7 +11,7 @@ import 'package:analysis_server_client/protocol.dart';
 import 'package:path/path.dart';
 
 /// Type of callbacks used to process notifications.
-typedef void NotificationProcessor(Notification notification);
+typedef NotificationProcessor = void Function(Notification notification);
 
 /// Instances of the class [Server] manage a server process,
 /// and facilitate communication to and from the server.

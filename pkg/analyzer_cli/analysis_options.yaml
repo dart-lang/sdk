@@ -39,7 +39,7 @@ linter:
     #- prefer_equal_for_default_values # 9
     - prefer_final_fields
     - prefer_for_elements_to_map_fromIterable
-    #- prefer_generic_function_type_aliases # 4
+    - prefer_generic_function_type_aliases
     #- prefer_if_null_operators # 1
     - prefer_is_empty
     - prefer_is_not_empty

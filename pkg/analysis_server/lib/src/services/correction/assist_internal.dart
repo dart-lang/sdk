@@ -36,7 +36,7 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' hide context;
 
-typedef _SimpleIdentifierVisitor(SimpleIdentifier node);
+typedef _SimpleIdentifierVisitor = void Function(SimpleIdentifier node);
 
 /**
  * The computer for Dart assists.

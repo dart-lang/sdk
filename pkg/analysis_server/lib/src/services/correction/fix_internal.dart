@@ -56,7 +56,7 @@ import 'package:path/path.dart';
 /**
  * A predicate is a one-argument function that returns a boolean value.
  */
-typedef bool ElementPredicate(Element argument);
+typedef ElementPredicate = bool Function(Element argument);
 
 /**
  * A fix contributor that provides the default set of fixes for Dart files.

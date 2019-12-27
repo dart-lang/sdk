@@ -31,7 +31,7 @@ void printAndFail(String message, {int exitCode: 15}) {
 /// Exit handler.
 ///
 /// *Visible for testing.*
-typedef void ExitHandler(int code);
+typedef ExitHandler = void Function(int code);
 
 /// Analyzer commandline configuration options.
 class CommandLineOptions {

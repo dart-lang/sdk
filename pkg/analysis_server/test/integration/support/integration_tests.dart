@@ -73,17 +73,18 @@ String _defaultFailFormatter(
 /**
  * Type of closures used by LazyMatcher.
  */
-typedef Matcher MatcherCreator();
+typedef MatcherCreator = Matcher Function();
 
 /**
  * Type of closures used by MatchesJsonObject to record field mismatches.
  */
-typedef Description MismatchDescriber(Description mismatchDescription);
+typedef MismatchDescriber = Description Function(
+    Description mismatchDescription);
 
 /**
  * Type of callbacks used to process notifications.
  */
-typedef void NotificationProcessor(String event, params);
+typedef NotificationProcessor = void Function(String event, Map params);
 
 /**
  * Base class for analysis server integration tests.

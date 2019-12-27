@@ -73,7 +73,7 @@ import 'package:telemetry/crash_reporting.dart';
 import 'package:telemetry/telemetry.dart' as telemetry;
 import 'package:watcher/watcher.dart';
 
-typedef void OptionUpdater(AnalysisOptionsImpl options);
+typedef OptionUpdater = void Function(AnalysisOptionsImpl options);
 
 /// Instances of the class [AnalysisServer] implement a server that listens on a
 /// [CommunicationChannel] for analysis requests and process them.

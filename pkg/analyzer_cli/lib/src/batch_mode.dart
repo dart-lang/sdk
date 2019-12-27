@@ -8,7 +8,7 @@ import 'dart:io' show exitCode, stdin;
 
 import 'package:analyzer/error/error.dart';
 
-typedef Future<ErrorSeverity> BatchRunnerHandler(List<String> args);
+typedef BatchRunnerHandler = Future<ErrorSeverity> Function(List<String> args);
 
 /// Provides a framework to read command line options from stdin and feed them
 /// to a callback.

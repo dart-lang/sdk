@@ -24,9 +24,9 @@ Api readApi(String pkgPath) {
   return reader.readApi();
 }
 
-typedef void ElementProcessor(dom.Element element);
+typedef ElementProcessor = void Function(dom.Element element);
 
-typedef void TextProcessor(dom.Text text);
+typedef TextProcessor = void Function(dom.Text text);
 
 class ApiReader {
   static const List<String> specialElements = [
