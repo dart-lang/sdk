@@ -943,66 +943,6 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
     _listener.assertNoErrors();
   }
 
-  void test_visitListLiteral_empty() {
-    // []
-    Expression node = AstTestFactory.listLiteral();
-    DartType resultType = _analyze(node);
-    _assertType2(
-        _typeProvider.listType2(_typeProvider.dynamicType), resultType);
-    _listener.assertNoErrors();
-  }
-
-  void test_visitListLiteral_nonEmpty() {
-    // [0]
-    Expression node = AstTestFactory.listLiteral([_resolvedInteger(0)]);
-    DartType resultType = _analyze(node);
-    _assertType2(_typeProvider.listType2(_typeProvider.intType), resultType);
-    _listener.assertNoErrors();
-  }
-
-  void test_visitListLiteral_unresolved() {
-    // [a] // where 'a' is not resolved
-    Identifier identifier = AstTestFactory.identifier3('a');
-    Expression node = AstTestFactory.listLiteral([identifier]);
-    DartType resultType = _analyze(node);
-    _assertType2(
-        _typeProvider.listType2(_typeProvider.dynamicType), resultType);
-    _listener.assertNoErrors();
-  }
-
-  void test_visitListLiteral_unresolved_multiple() {
-    // [0, a, 1] // where 'a' is not resolved
-    Identifier identifier = AstTestFactory.identifier3('a');
-    Expression node = AstTestFactory.listLiteral(
-        [_resolvedInteger(0), identifier, _resolvedInteger(1)]);
-    DartType resultType = _analyze(node);
-    _assertType2(_typeProvider.listType2(_typeProvider.intType), resultType);
-    _listener.assertNoErrors();
-  }
-
-  void test_visitMapLiteral_empty() {
-    // {}
-    Expression node = AstTestFactory.setOrMapLiteral(null, null);
-    DartType resultType = _analyze(node);
-    _assertType2(
-        _typeProvider.mapType2(
-            _typeProvider.dynamicType, _typeProvider.dynamicType),
-        resultType);
-    _listener.assertNoErrors();
-  }
-
-  void test_visitMapLiteral_nonEmpty() {
-    // {"k" : 0}
-    Expression node = AstTestFactory.setOrMapLiteral(
-        null, null, [AstTestFactory.mapLiteralEntry("k", _resolvedInteger(0))]);
-    DartType resultType = _analyze(node);
-    _assertType2(
-        _typeProvider.mapType2(
-            _typeProvider.dynamicType, _typeProvider.intType),
-        resultType);
-    _listener.assertNoErrors();
-  }
-
   void test_visitMethodInvocation_then() {
     // then()
     Expression node = AstTestFactory.methodInvocation(null, "then");

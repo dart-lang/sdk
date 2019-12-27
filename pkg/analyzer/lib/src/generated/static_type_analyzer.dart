@@ -21,7 +21,6 @@ import 'package:analyzer/src/generated/element_type_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/migration.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/generated/variable_type_provider.dart';
 import 'package:analyzer/src/task/strong/checker.dart'
     show getExpressionType, getReadType;
@@ -103,12 +102,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   /// Is `true` if the library being analyzed is non-nullable by default.
   bool get _isNonNullableByDefault =>
       _featureSet.isEnabled(Feature.non_nullable);
-
-  NullabilitySuffix get _noneOrStarSuffix {
-    return _isNonNullableByDefault
-        ? NullabilitySuffix.none
-        : NullabilitySuffix.star;
-  }
 
   /**
    * Given an iterable expression from a foreach loop, attempt to infer
@@ -210,109 +203,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       }
     }
     return inferred;
-  }
-
-  DartType inferListType(ListLiteral node, {bool downwards = false}) {
-    DartType contextType = InferenceContext.getContext(node);
-
-    var element = _typeProvider.listElement;
-    var typeParameters = element.typeParameters;
-    var genericElementType = typeParameters[0].instantiate(
-      nullabilitySuffix: _noneOrStarSuffix,
-    );
-
-    List<DartType> elementTypes;
-    List<ParameterElement> parameters;
-
-    if (downwards) {
-      if (contextType == null) {
-        return null;
-      }
-      elementTypes = [];
-      parameters = [];
-    } else {
-      // Also use upwards information to infer the type.
-      elementTypes = node.elements
-          .map((element) => _computeElementType(element))
-          .where((t) => t != null)
-          .toList();
-      var syntheticParameter = ParameterElementImpl.synthetic(
-          'element', genericElementType, ParameterKind.POSITIONAL);
-      parameters = List.filled(elementTypes.length, syntheticParameter);
-    }
-    if (_strictInference && parameters.isEmpty && contextType == null) {
-      // We cannot infer the type of a collection literal with no elements, and
-      // no context type. If there are any elements, inference has not failed,
-      // as the types of those elements are considered resolved.
-      _resolver.errorReporter.reportErrorForNode(
-          HintCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL, node, ['List']);
-    }
-
-    var typeArguments = _typeSystem.inferGenericFunctionOrType(
-      typeParameters: typeParameters,
-      parameters: parameters,
-      declaredReturnType: element.thisType,
-      argumentTypes: elementTypes,
-      contextReturnType: contextType,
-      downwards: downwards,
-      isConst: node.isConst,
-      errorReporter: _resolver.errorReporter,
-      errorNode: node,
-      isNonNullableByDefault: _isNonNullableByDefault,
-    );
-    return element.instantiate(
-      typeArguments: typeArguments,
-      nullabilitySuffix: _noneOrStarSuffix,
-    );
-  }
-
-  InterfaceType inferMapTypeDownwards(
-      SetOrMapLiteral node, DartType contextType) {
-    if (contextType == null) {
-      return null;
-    }
-
-    var element = _typeProvider.mapElement;
-    var typeArguments = _typeSystem.inferGenericFunctionOrType(
-      typeParameters: element.typeParameters,
-      parameters: const [],
-      declaredReturnType: element.thisType,
-      argumentTypes: const [],
-      contextReturnType: contextType,
-      downwards: true,
-      isConst: node.isConst,
-      errorReporter: _resolver.errorReporter,
-      errorNode: node,
-      isNonNullableByDefault: _isNonNullableByDefault,
-    );
-    return element.instantiate(
-      typeArguments: typeArguments,
-      nullabilitySuffix: _noneOrStarSuffix,
-    );
-  }
-
-  DartType inferSetTypeDownwards(SetOrMapLiteral node, DartType contextType) {
-    if (contextType == null) {
-      return null;
-    }
-
-    var element = _typeProvider.setElement;
-    var typeArguments = _typeSystem.inferGenericFunctionOrType(
-      typeParameters: element.typeParameters,
-      parameters: const [],
-      declaredReturnType: element.thisType,
-      argumentTypes: const [],
-      contextReturnType: contextType,
-      downwards: true,
-      isConst: node.isConst,
-      errorReporter: _resolver.errorReporter,
-      errorNode: node,
-      isNonNullableByDefault: _isNonNullableByDefault,
-    );
-    return element.instantiate(
-      typeArguments: typeArguments,
-      nullabilitySuffix: _noneOrStarSuffix,
-    );
   }
 
   /**
@@ -729,49 +619,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   }
 
   /**
-   * The Dart Language Specification, 12.6: <blockquote>The static type of a list literal of the
-   * form <i><b>const</b> &lt;E&gt;[e<sub>1</sub>, &hellip;, e<sub>n</sub>]</i> or the form
-   * <i>&lt;E&gt;[e<sub>1</sub>, &hellip;, e<sub>n</sub>]</i> is `List&lt;E&gt;`. The static
-   * type a list literal of the form <i><b>const</b> [e<sub>1</sub>, &hellip;, e<sub>n</sub>]</i> or
-   * the form <i>[e<sub>1</sub>, &hellip;, e<sub>n</sub>]</i> is `List&lt;dynamic&gt;`
-   * .</blockquote>
-   */
-  @override
-  void visitListLiteral(ListLiteral node) {
-    TypeArgumentList typeArguments = node.typeArguments;
-
-    // If we have explicit arguments, use them.
-    if (typeArguments != null) {
-      DartType staticType = _dynamicType;
-      NodeList<TypeAnnotation> arguments = typeArguments.arguments;
-      if (arguments != null && arguments.length == 1) {
-        DartType argumentType = _getType(arguments[0]);
-        if (argumentType != null) {
-          staticType = argumentType;
-        }
-      }
-      _recordStaticType(
-          node, _nonNullable(_typeProvider.listType2(staticType)));
-      return;
-    }
-
-    DartType listDynamicType = _typeProvider.listType2(_dynamicType);
-
-    // If there are no type arguments, try to infer some arguments.
-    DartType inferred = inferListType(node);
-
-    if (inferred != listDynamicType) {
-      // TODO(brianwilkerson) Determine whether we need to make the inferred
-      //  type non-nullable here or whether it will already be non-nullable.
-      _recordStaticType(node, inferred);
-      return;
-    }
-
-    // If we have no type arguments and couldn't infer any, use dynamic.
-    _recordStaticType(node, listDynamicType);
-  }
-
-  /**
    * The Dart Language Specification, 12.15.1: <blockquote>An ordinary method invocation <i>i</i>
    * has the form <i>o.m(a<sub>1</sub>, &hellip;, a<sub>n</sub>, x<sub>n+1</sub>: a<sub>n+1</sub>,
    * &hellip;, x<sub>n+k</sub>: a<sub>n+k</sub>)</i>.
@@ -1048,58 +895,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     _recordStaticType(node, _typeProvider.bottomType);
   }
 
-  @override
-  void visitSetOrMapLiteral(SetOrMapLiteral node) {
-    var typeArguments = node.typeArguments?.arguments;
-
-    // If we have type arguments, use them.
-    // TODO(paulberry): this logic seems redundant with
-    //  ResolverVisitor._fromTypeArguments
-    if (typeArguments != null) {
-      if (typeArguments.length == 1) {
-        (node as SetOrMapLiteralImpl).becomeSet();
-        var elementType = _getType(typeArguments[0]) ?? _dynamicType;
-        _recordStaticType(
-            node, _nonNullable(_typeProvider.setType2(elementType)));
-        return;
-      } else if (typeArguments.length == 2) {
-        (node as SetOrMapLiteralImpl).becomeMap();
-        var keyType = _getType(typeArguments[0]) ?? _dynamicType;
-        var valueType = _getType(typeArguments[1]) ?? _dynamicType;
-        _recordStaticType(
-            node, _nonNullable(_typeProvider.mapType2(keyType, valueType)));
-        return;
-      }
-      // If we get here, then a nonsense number of type arguments were provided,
-      // so treat it as though no type arguments were provided.
-    }
-    DartType literalType = _inferSetOrMapLiteralType(node);
-    if (literalType.isDynamic) {
-      // The literal is ambiguous, and further analysis won't resolve the
-      // ambiguity.  Leave it as neither a set nor a map.
-    } else if (literalType.element == _typeProvider.mapElement) {
-      (node as SetOrMapLiteralImpl).becomeMap();
-    } else {
-      assert(literalType.element == _typeProvider.setElement);
-      (node as SetOrMapLiteralImpl).becomeSet();
-    }
-    if (_strictInference &&
-        node.elements.isEmpty &&
-        InferenceContext.getContext(node) == null) {
-      // We cannot infer the type of a collection literal with no elements, and
-      // no context type. If there are any elements, inference has not failed,
-      // as the types of those elements are considered resolved.
-      _resolver.errorReporter.reportErrorForNode(
-          HintCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL,
-          node,
-          [node.isMap ? 'Map' : 'Set']);
-    }
-    // TODO(brianwilkerson) Decide whether the literalType needs to be made
-    //  non-nullable here or whether that will have happened in
-    //  _inferSetOrMapLiteralType.
-    _recordStaticType(node, literalType);
-  }
-
   /**
    * The Dart Language Specification, 12.30: <blockquote>Evaluation of an identifier expression
    * <i>e</i> of the form <i>id</i> proceeds as follows:
@@ -1302,42 +1097,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     }
   }
 
-  DartType _computeElementType(CollectionElement element) {
-    if (element is ForElement) {
-      return _computeElementType(element.body);
-    } else if (element is IfElement) {
-      DartType thenType = _computeElementType(element.thenElement);
-      if (element.elseElement == null) {
-        return thenType;
-      }
-      DartType elseType = _computeElementType(element.elseElement);
-      return _typeSystem.leastUpperBound(thenType, elseType);
-    } else if (element is Expression) {
-      return element.staticType;
-    } else if (element is MapLiteralEntry) {
-      // This error will be reported elsewhere.
-      return _typeProvider.dynamicType;
-    } else if (element is SpreadElement) {
-      DartType expressionType = element.expression.staticType;
-      bool isNull = expressionType.isDartCoreNull;
-      if (!isNull && expressionType is InterfaceType) {
-        if (_typeSystem.isSubtypeOf(
-            expressionType, _typeProvider.iterableObjectType)) {
-          InterfaceType iterableType = (expressionType as InterfaceTypeImpl)
-              .asInstanceOf(_typeProvider.iterableElement);
-          return iterableType.typeArguments[0];
-        }
-      } else if (expressionType.isDynamic) {
-        return expressionType;
-      } else if (isNull && element.isNullAware) {
-        return expressionType;
-      }
-      // TODO(brianwilkerson) Report this as an error.
-      return _typeProvider.dynamicType;
-    }
-    throw StateError('Unhandled element type ${element.runtimeType}');
-  }
-
   /**
    * Compute the return type of the method or function represented by the given
    * type that is being invoked.
@@ -1516,68 +1275,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       return _dynamicType;
     }
     return functionType.returnType;
-  }
-
-  _InferredCollectionElementTypeInformation _inferCollectionElementType(
-      CollectionElement element) {
-    if (element is ForElement) {
-      return _inferCollectionElementType(element.body);
-    } else if (element is IfElement) {
-      _InferredCollectionElementTypeInformation thenType =
-          _inferCollectionElementType(element.thenElement);
-      if (element.elseElement == null) {
-        return thenType;
-      }
-      _InferredCollectionElementTypeInformation elseType =
-          _inferCollectionElementType(element.elseElement);
-      return _InferredCollectionElementTypeInformation.forIfElement(
-          _typeSystem, thenType, elseType);
-    } else if (element is Expression) {
-      return _InferredCollectionElementTypeInformation(
-          elementType: element.staticType, keyType: null, valueType: null);
-    } else if (element is MapLiteralEntry) {
-      return _InferredCollectionElementTypeInformation(
-          elementType: null,
-          keyType: element.key.staticType,
-          valueType: element.value.staticType);
-    } else if (element is SpreadElement) {
-      DartType expressionType = element.expression.staticType;
-      bool isNull = expressionType.isDartCoreNull;
-      if (!isNull && expressionType is InterfaceType) {
-        if (_typeSystem.isSubtypeOf(
-            expressionType, _typeProvider.iterableForSetMapDisambiguation)) {
-          InterfaceType iterableType = (expressionType as InterfaceTypeImpl)
-              .asInstanceOf(_typeProvider.iterableElement);
-          return _InferredCollectionElementTypeInformation(
-              elementType: iterableType.typeArguments[0],
-              keyType: null,
-              valueType: null);
-        } else if (_typeSystem.isSubtypeOf(
-            expressionType, _typeProvider.mapForSetMapDisambiguation)) {
-          InterfaceType mapType = (expressionType as InterfaceTypeImpl)
-              .asInstanceOf(_typeProvider.mapElement);
-          List<DartType> typeArguments = mapType.typeArguments;
-          return _InferredCollectionElementTypeInformation(
-              elementType: null,
-              keyType: typeArguments[0],
-              valueType: typeArguments[1]);
-        }
-      } else if (expressionType.isDynamic) {
-        return _InferredCollectionElementTypeInformation(
-            elementType: expressionType,
-            keyType: expressionType,
-            valueType: expressionType);
-      } else if (isNull && element.isNullAware) {
-        return _InferredCollectionElementTypeInformation(
-            elementType: expressionType,
-            keyType: expressionType,
-            valueType: expressionType);
-      }
-      return _InferredCollectionElementTypeInformation(
-          elementType: null, keyType: null, valueType: null);
-    } else {
-      throw StateError('Unknown element type ${element.runtimeType}');
-    }
   }
 
   /**
@@ -1847,64 +1544,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     return false;
   }
 
-  DartType _inferSetOrMapLiteralType(SetOrMapLiteral literal) {
-    var literalImpl = literal as SetOrMapLiteralImpl;
-    DartType contextType = literalImpl.contextType;
-    literalImpl.contextType = null; // Not needed anymore.
-    NodeList<CollectionElement> elements = literal.elements;
-    List<_InferredCollectionElementTypeInformation> inferredTypes = [];
-    bool canBeAMap = true;
-    bool mustBeAMap = false;
-    bool canBeASet = true;
-    bool mustBeASet = false;
-    for (CollectionElement element in elements) {
-      _InferredCollectionElementTypeInformation inferredType =
-          _inferCollectionElementType(element);
-      inferredTypes.add(inferredType);
-      canBeAMap = canBeAMap && inferredType.canBeAMap;
-      mustBeAMap = mustBeAMap || inferredType.mustBeAMap;
-      canBeASet = canBeASet && inferredType.canBeASet;
-      mustBeASet = mustBeASet || inferredType.mustBeASet;
-    }
-    if (canBeASet && mustBeASet) {
-      return _toSetType(literal, contextType, inferredTypes);
-    } else if (canBeAMap && mustBeAMap) {
-      return _toMapType(literal, contextType, inferredTypes);
-    }
-    // Note: according to the spec, the following computations should be based
-    // on the greatest closure of the context type (unless the context type is
-    // `?`).  In practice, we can just use the context type directly, because
-    // the only way the greatest closure of the context type could possibly have
-    // a different subtype relationship to `Iterable<Object>` and
-    // `Map<Object, Object>` is if the context type is `?`.
-    bool contextProvidesAmbiguityResolutionClues =
-        contextType != null && contextType is! UnknownInferredType;
-    bool contextIsIterable = contextProvidesAmbiguityResolutionClues &&
-        _typeSystem.isSubtypeOf(
-            contextType, _typeProvider.iterableForSetMapDisambiguation);
-    bool contextIsMap = contextProvidesAmbiguityResolutionClues &&
-        _typeSystem.isSubtypeOf(
-            contextType, _typeProvider.mapForSetMapDisambiguation);
-    if (contextIsIterable && !contextIsMap) {
-      return _toSetType(literal, contextType, inferredTypes);
-    } else if ((contextIsMap && !contextIsIterable) || elements.isEmpty) {
-      return _toMapType(literal, contextType, inferredTypes);
-    } else {
-      // Ambiguous.  We're not going to get any more information to resolve the
-      // ambiguity.  We don't want to make an arbitrary decision at this point
-      // because it will interfere with future type inference (see
-      // dartbug.com/36210), so we return a type of `dynamic`.
-      if (mustBeAMap && mustBeASet) {
-        _resolver.errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH, literal);
-      } else {
-        _resolver.errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER, literal);
-      }
-      return _typeProvider.dynamicType;
-    }
-  }
-
   /**
    * Given an uninstantiated generic function type, referenced by the
    * [identifier] in the tear-off [expression], try to infer the instantiated
@@ -2031,76 +1670,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     }
   }
 
-  DartType _toMapType(SetOrMapLiteral node, DartType contextType,
-      List<_InferredCollectionElementTypeInformation> inferredTypes) {
-    DartType dynamicType = _typeProvider.dynamicType;
-
-    var element = _typeProvider.mapElement;
-    var typeParameters = element.typeParameters;
-    var genericKeyType = typeParameters[0].instantiate(
-      nullabilitySuffix: _noneOrStarSuffix,
-    );
-    var genericValueType = typeParameters[1].instantiate(
-      nullabilitySuffix: _noneOrStarSuffix,
-    );
-
-    var parameters = List<ParameterElement>(2 * inferredTypes.length);
-    var argumentTypes = List<DartType>(2 * inferredTypes.length);
-    for (var i = 0; i < inferredTypes.length; i++) {
-      parameters[2 * i + 0] = ParameterElementImpl.synthetic(
-          'key', genericKeyType, ParameterKind.POSITIONAL);
-      parameters[2 * i + 1] = ParameterElementImpl.synthetic(
-          'value', genericValueType, ParameterKind.POSITIONAL);
-      argumentTypes[2 * i + 0] = inferredTypes[i].keyType ?? dynamicType;
-      argumentTypes[2 * i + 1] = inferredTypes[i].valueType ?? dynamicType;
-    }
-
-    var typeArguments = _typeSystem.inferGenericFunctionOrType(
-      typeParameters: typeParameters,
-      parameters: parameters,
-      declaredReturnType: element.thisType,
-      argumentTypes: argumentTypes,
-      contextReturnType: contextType,
-      isNonNullableByDefault: _isNonNullableByDefault,
-    );
-    return element.instantiate(
-      typeArguments: typeArguments,
-      nullabilitySuffix: _noneOrStarSuffix,
-    );
-  }
-
-  DartType _toSetType(SetOrMapLiteral node, DartType contextType,
-      List<_InferredCollectionElementTypeInformation> inferredTypes) {
-    DartType dynamicType = _typeProvider.dynamicType;
-
-    var element = _typeProvider.setElement;
-    var typeParameters = element.typeParameters;
-    var genericElementType = typeParameters[0].instantiate(
-      nullabilitySuffix: _noneOrStarSuffix,
-    );
-
-    var parameters = List<ParameterElement>(inferredTypes.length);
-    var argumentTypes = List<DartType>(inferredTypes.length);
-    for (var i = 0; i < inferredTypes.length; i++) {
-      parameters[i] = ParameterElementImpl.synthetic(
-          'element', genericElementType, ParameterKind.POSITIONAL);
-      argumentTypes[i] = inferredTypes[i].elementType ?? dynamicType;
-    }
-
-    var typeArguments = _typeSystem.inferGenericFunctionOrType(
-      typeParameters: typeParameters,
-      parameters: parameters,
-      declaredReturnType: element.thisType,
-      argumentTypes: argumentTypes,
-      contextReturnType: contextType,
-      isNonNullableByDefault: _isNonNullableByDefault,
-    );
-    return element.instantiate(
-      typeArguments: typeArguments,
-      nullabilitySuffix: _noneOrStarSuffix,
-    );
-  }
-
   static DartType _getFreshType(DartType type) {
     if (type is FunctionType) {
       var parameters = getFreshTypeParameters(type.typeFormals);
@@ -2128,79 +1697,5 @@ class StaticTypeAnalyzerForMigration extends StaticTypeAnalyzer {
         expression,
         (_elementTypeProvider as MigrationResolutionHooks)
             .modifyExpressionType(expression, type ?? _dynamicType));
-  }
-}
-
-class _InferredCollectionElementTypeInformation {
-  final DartType elementType;
-  final DartType keyType;
-  final DartType valueType;
-
-  _InferredCollectionElementTypeInformation(
-      {this.elementType, this.keyType, this.valueType});
-
-  factory _InferredCollectionElementTypeInformation.forIfElement(
-      TypeSystemImpl typeSystem,
-      _InferredCollectionElementTypeInformation thenInfo,
-      _InferredCollectionElementTypeInformation elseInfo) {
-    if (thenInfo.isDynamic) {
-      DartType dynamic = thenInfo.elementType;
-      return _InferredCollectionElementTypeInformation(
-          elementType: _dynamicOrNull(elseInfo.elementType, dynamic),
-          keyType: _dynamicOrNull(elseInfo.keyType, dynamic),
-          valueType: _dynamicOrNull(elseInfo.valueType, dynamic));
-    } else if (elseInfo.isDynamic) {
-      DartType dynamic = elseInfo.elementType;
-      return _InferredCollectionElementTypeInformation(
-          elementType: _dynamicOrNull(thenInfo.elementType, dynamic),
-          keyType: _dynamicOrNull(thenInfo.keyType, dynamic),
-          valueType: _dynamicOrNull(thenInfo.valueType, dynamic));
-    }
-    return _InferredCollectionElementTypeInformation(
-        elementType: _leastUpperBoundOfTypes(
-            typeSystem, thenInfo.elementType, elseInfo.elementType),
-        keyType: _leastUpperBoundOfTypes(
-            typeSystem, thenInfo.keyType, elseInfo.keyType),
-        valueType: _leastUpperBoundOfTypes(
-            typeSystem, thenInfo.valueType, elseInfo.valueType));
-  }
-
-  bool get canBeAMap => keyType != null || valueType != null;
-
-  bool get canBeASet => elementType != null;
-
-  bool get isDynamic =>
-      elementType != null &&
-      elementType.isDynamic &&
-      keyType != null &&
-      keyType.isDynamic &&
-      valueType != null &&
-      valueType.isDynamic;
-
-  bool get mustBeAMap => canBeAMap && elementType == null;
-
-  bool get mustBeASet => canBeASet && keyType == null && valueType == null;
-
-  @override
-  String toString() {
-    return '($elementType, $keyType, $valueType)';
-  }
-
-  static DartType _dynamicOrNull(DartType type, DartType dynamic) {
-    if (type == null) {
-      return null;
-    }
-    return dynamic;
-  }
-
-  static DartType _leastUpperBoundOfTypes(
-      TypeSystemImpl typeSystem, DartType first, DartType second) {
-    if (first == null) {
-      return second;
-    } else if (second == null) {
-      return first;
-    } else {
-      return typeSystem.leastUpperBound(first, second);
-    }
   }
 }

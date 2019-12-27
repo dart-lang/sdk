@@ -122,6 +122,20 @@ var a = [1, '2', 3];
     assertType(findNode.listLiteral('['), 'List<Object>');
   }
 
+  test_noContext_noTypeArgs_expressions_unresolved() async {
+    await resolveTestCode('''
+var a = [x];
+''');
+    assertType(findNode.listLiteral('['), 'List<dynamic>');
+  }
+
+  test_noContext_noTypeArgs_expressions_unresolved_multiple() async {
+    await resolveTestCode('''
+var a = [0, x, 2];
+''');
+    assertType(findNode.listLiteral('['), 'List<dynamic>');
+  }
+
   test_noContext_noTypeArgs_forEachWithDeclaration() async {
     await resolveTestCode('''
 List<int> c;
