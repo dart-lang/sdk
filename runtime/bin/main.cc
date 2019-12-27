@@ -191,13 +191,6 @@ static Dart_Handle SetupCoreLibraries(Dart_Isolate isolate,
   result = DartUtils::PrepareForScriptLoading(false, Options::trace_loading());
   if (Dart_IsError(result)) return result;
 
-  if (Dart_IsVMFlagSet("support_service") || !Dart_IsPrecompiledRuntime()) {
-    // Set up the load port provided by the service isolate so that we can
-    // load scripts.
-    result = DartUtils::SetupServiceLoadPort();
-    if (Dart_IsError(result)) return result;
-  }
-
   // Setup packages config if specified.
   result = DartUtils::SetupPackageConfig(packages_file);
   if (Dart_IsError(result)) return result;

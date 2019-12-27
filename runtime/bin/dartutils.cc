@@ -208,7 +208,7 @@ bool DartUtils::IsHttpSchemeURL(const char* url_name) {
 
 bool DartUtils::IsDartExtensionSchemeURL(const char* url_name) {
   static const intptr_t kDartExtensionSchemeLen = strlen(kDartExtensionScheme);
-  // If the URL starts with "dartext:" then it is considered as a special
+  // If the URL starts with "dart-ext:" then it is considered as a special
   // extension library URL which is handled differently from other URLs.
   return (strncmp(url_name, kDartExtensionScheme, kDartExtensionSchemeLen) ==
           0);
@@ -512,16 +512,6 @@ Dart_Handle DartUtils::PrepareCLILibrary(Dart_Handle cli_lib) {
   RETURN_IF_ERROR(wait_for_event_handle);
   return Dart_SetField(cli_lib, NewString("_waitForEventClosure"),
                        wait_for_event_handle);
-}
-
-Dart_Handle DartUtils::SetupServiceLoadPort() {
-  // Wait for the service isolate to initialize the load port.
-  Dart_Port load_port = Dart_ServiceWaitForLoadPort();
-  if (load_port == ILLEGAL_PORT) {
-    return Dart_NewUnhandledExceptionError(
-        NewDartUnsupportedError("Service did not return load port."));
-  }
-  return Builtin::SetLoadPort(load_port);
 }
 
 Dart_Handle DartUtils::SetupPackageConfig(const char* packages_config) {

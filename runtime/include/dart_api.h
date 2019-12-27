@@ -3262,14 +3262,6 @@ DART_EXPORT void Dart_SetDartLibrarySourcesKernel(
 DART_EXPORT bool Dart_IsServiceIsolate(Dart_Isolate isolate);
 
 /**
- * Returns the port that script load requests should be sent on.
- *
- * \return Returns the port for load requests or ILLEGAL_PORT if the service
- * isolate failed to startup or does not support load requests.
- */
-DART_EXPORT Dart_Port Dart_ServiceWaitForLoadPort();
-
-/**
  * Writes the CPU profile to the timeline as a series of 'instant' events.
  *
  * Note that this is an expensive operation.

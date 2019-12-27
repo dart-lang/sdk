@@ -5,7 +5,6 @@
 # This file contains all Dart sources for the dart:io implementation of
 # the VM Service server.
 vmservice_sources = [
-  "loader.dart",
   "server.dart",
   "vmservice_io.dart",
 ]

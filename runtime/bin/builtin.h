@@ -33,24 +33,12 @@ class Builtin {
     kCLILibrary,
   };
 
-  // Get source of part file specified in 'uri'.
-  static Dart_Handle PartSource(BuiltinLibraryId id, const char* part_uri);
-
   // Setup native resolver method built in library specified in 'id'.
   static void SetNativeResolver(BuiltinLibraryId id);
-
-  static BuiltinLibraryId FindId(const char* url_string);
 
   // Check if built in library specified in 'id' is already loaded, if not
   // load it.
   static Dart_Handle LoadAndCheckLibrary(BuiltinLibraryId id);
-
-  static Dart_Handle SetLoadPort(Dart_Port port);
-
-  static Dart_Port LoadPort() {
-    ASSERT(load_port_ != ILLEGAL_PORT);
-    return load_port_;
-  }
 
  private:
   // Native method support.
@@ -60,7 +48,6 @@ class Builtin {
 
   static const uint8_t* NativeSymbol(Dart_NativeFunction nf);
 
-  static Dart_Port load_port_;
   static const int num_libs_;
 
   typedef struct {

@@ -14,7 +14,6 @@ import 'dart:isolate';
 import 'dart:typed_data';
 import 'dart:_vmservice';
 
-part 'loader.dart';
 part 'server.dart';
 
 // The TCP ip/port that the HTTP server listens on.
@@ -58,7 +57,6 @@ _lazyServerBoot() {
 }
 
 Future cleanupCallback() async {
-  shutdownLoaders();
   // Cancel the sigquit subscription.
   if (_signalSubscription != null) {
     await _signalSubscription.cancel();
@@ -264,11 +262,9 @@ main() {
     // scheduled microtasks.
     Timer.run(() {});
   }
-  scriptLoadPort.handler = _processLoadRequest;
   // Register signal handler after a small delay to avoid stalling main
   // isolate startup.
   _registerSignalHandlerTimer = new Timer(shortDelay, _registerSignalHandler);
-  return scriptLoadPort;
 }
 
 _shutdown() native "VMServiceIO_Shutdown";

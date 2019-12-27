@@ -78,7 +78,6 @@ Monitor* ServiceIsolate::monitor_ = new Monitor();
 ServiceIsolate::State ServiceIsolate::state_ = ServiceIsolate::kStopped;
 Isolate* ServiceIsolate::isolate_ = NULL;
 Dart_Port ServiceIsolate::port_ = ILLEGAL_PORT;
-Dart_Port ServiceIsolate::load_port_ = ILLEGAL_PORT;
 Dart_Port ServiceIsolate::origin_ = ILLEGAL_PORT;
 char* ServiceIsolate::server_address_ = NULL;
 char* ServiceIsolate::startup_failure_reason_ = nullptr;
@@ -142,22 +141,11 @@ Dart_Port ServiceIsolate::Port() {
   return port_;
 }
 
-Dart_Port ServiceIsolate::WaitForLoadPort() {
-  VMTagScope tagScope(Thread::Current(), VMTag::kLoadWaitTagId);
-  return WaitForLoadPortInternal();
-}
-
-Dart_Port ServiceIsolate::WaitForLoadPortInternal() {
+void ServiceIsolate::WaitForServiceIsolateStartup() {
   MonitorLocker ml(monitor_);
-  while (state_ == kStarting && (load_port_ == ILLEGAL_PORT)) {
+  while (state_ == kStarting) {
     ml.Wait();
   }
-  return load_port_;
-}
-
-Dart_Port ServiceIsolate::LoadPort() {
-  MonitorLocker ml(monitor_);
-  return load_port_;
 }
 
 bool ServiceIsolate::SendServiceRpc(uint8_t* request_json,
@@ -190,8 +178,7 @@ bool ServiceIsolate::SendServiceRpc(uint8_t* request_json,
   request.type = Dart_CObject_kArray;
   request.value.as_array.values = request_array;
   request.value.as_array.length = ARRAY_SIZE(request_array);
-
-  ServiceIsolate::WaitForLoadPortInternal();
+  ServiceIsolate::WaitForServiceIsolateStartup();
   Dart_Port service_port = ServiceIsolate::Port();
 
   const bool success = Dart_PostCObject(service_port, &request);
@@ -301,11 +288,6 @@ void ServiceIsolate::SetServiceIsolate(Isolate* isolate) {
     isolate_->set_is_service_isolate(true);
     origin_ = isolate_->origin_id();
   }
-}
-
-void ServiceIsolate::SetLoadPort(Dart_Port port) {
-  MonitorLocker ml(monitor_);
-  load_port_ = port;
 }
 
 void ServiceIsolate::MaybeMakeServiceIsolate(Isolate* I) {
@@ -452,7 +434,7 @@ class RunServiceTask : public ThreadPool::Task {
     ASSERT(I == T->isolate());
     StackZone zone(T);
     HANDLESCOPE(T);
-    // Invoke main which will return the loadScriptPort.
+    // Invoke main which will set up the service port.
     const Library& root_library =
         Library::Handle(Z, I->object_store()->root_library());
     if (root_library.IsNull()) {
@@ -479,7 +461,6 @@ class RunServiceTask : public ThreadPool::Task {
     ASSERT(!entry.IsNull());
     const Object& result = Object::Handle(
         Z, DartEntry::InvokeFunction(entry, Object::empty_array()));
-    ASSERT(!result.IsNull());
     if (result.IsError()) {
       // Service isolate did not initialize properly.
       if (FLAG_trace_service) {
@@ -493,9 +474,6 @@ class RunServiceTask : public ThreadPool::Task {
       }
       return false;
     }
-    ASSERT(result.IsReceivePort());
-    const ReceivePort& rp = ReceivePort::Cast(result);
-    ServiceIsolate::SetLoadPort(rp.Id());
     return false;
   }
 };

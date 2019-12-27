@@ -247,7 +247,7 @@ def _CheckClangTidy(input_api, output_api):
     files = []
     for f in input_api.AffectedFiles():
         path = f.LocalPath()
-        if is_cpp_file(path): files.append(path)
+        if is_cpp_file(path) and os.path.isfile(path): files.append(path)
 
     if not files:
         return []

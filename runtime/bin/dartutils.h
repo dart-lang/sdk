@@ -151,7 +151,6 @@ class DartUtils {
   static Dart_Handle MakeUint8Array(const uint8_t* buffer, intptr_t length);
   static Dart_Handle PrepareForScriptLoading(bool is_service_isolate,
                                              bool trace_loading);
-  static Dart_Handle SetupServiceLoadPort();
   static Dart_Handle SetupPackageConfig(const char* packages_file);
 
   static Dart_Handle SetupIOLibrary(const char* namespc_path,

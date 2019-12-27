@@ -5732,10 +5732,6 @@ DART_EXPORT bool Dart_IsServiceIsolate(Dart_Isolate isolate) {
   return ServiceIsolate::IsServiceIsolate(iso);
 }
 
-DART_EXPORT Dart_Port Dart_ServiceWaitForLoadPort() {
-  return ServiceIsolate::WaitForLoadPort();
-}
-
 DART_EXPORT int64_t Dart_TimelineGetMicros() {
   return OS::GetCurrentMonotonicMicros();
 }
