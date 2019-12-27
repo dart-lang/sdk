@@ -96,10 +96,10 @@ namespace dart {
   V(_Float32x4, unary-, Float32x4Negate, 0xae8af7f1)                           \
   V(_Float32x4, abs, Float32x4Abs, 0xb34e9b8d)                                 \
   V(_Float32x4, clamp, Float32x4Clamp, 0xbed4ce62)                             \
-  V(_Float32x4, withX, Float32x4WithX, 0xe204ec19)                             \
-  V(_Float32x4, withY, Float32x4WithY, 0xff17a63f)                             \
-  V(_Float32x4, withZ, Float32x4WithZ, 0x0e7144f2)                             \
-  V(_Float32x4, withW, Float32x4WithW, 0x0802b80f)                             \
+  V(_Float32x4, _withX, Float32x4WithX, 0xf0211c74)                            \
+  V(_Float32x4, _withY, Float32x4WithY, 0x074539fc)                            \
+  V(_Float32x4, _withZ, Float32x4WithZ, 0xf026c2e5)                            \
+  V(_Float32x4, _withW, Float32x4WithW, 0xe364aa0f)                            \
   V(Float64x2, _Float64x2FromDoubles, Float64x2FromDoubles, 0x1ca49394)        \
   V(Float64x2, Float64x2.zero, Float64x2Zero, 0x5e70f315)                      \
   V(Float64x2, _Float64x2Splat, Float64x2Splat, 0x05711520)                    \
@@ -111,8 +111,8 @@ namespace dart {
   V(_Float64x2, sqrt, Float64x2Sqrt, 0x6fe8ae8d)                               \
   V(_Float64x2, get:signMask, Float64x2GetSignMask, 0x2931936f)                \
   V(_Float64x2, scale, Float64x2Scale, 0xad124c9b)                             \
-  V(_Float64x2, withX, Float64x2WithX, 0xa4ee82af)                             \
-  V(_Float64x2, withY, Float64x2WithY, 0xc2013cd5)                             \
+  V(_Float64x2, _withX, Float64x2WithX, 0xb30ab30a)                            \
+  V(_Float64x2, _withY, Float64x2WithY, 0xca2ed092)                            \
   V(_Float64x2, min, Float64x2Min,  0x57938495)                                \
   V(_Float64x2, max, Float64x2Max,  0x39c30666)                                \
   V(Int32x4, _Int32x4FromInts, Int32x4FromInts, 0xbce3fab8)                    \
@@ -126,10 +126,10 @@ namespace dart {
   V(_Int32x4, shuffle, Int32x4Shuffle, 0x00cff856)                             \
   V(_Int32x4, shuffleMix, Int32x4ShuffleMix, 0x57a21961)                       \
   V(_Int32x4, select, Int32x4Select, 0xafd1fc25)                               \
-  V(_Int32x4, withFlagX, Int32x4WithFlagX, 0x7a1fe4b5)                         \
-  V(_Int32x4, withFlagY, Int32x4WithFlagY, 0x8c658940)                         \
-  V(_Int32x4, withFlagZ, Int32x4WithFlagZ, 0x97d3a01c)                         \
-  V(_Int32x4, withFlagW, Int32x4WithFlagW, 0x80e3723b)                         \
+  V(_Int32x4, _withFlagX, Int32x4WithFlagX, 0x7d654214)                        \
+  V(_Int32x4, _withFlagY, Int32x4WithFlagY, 0x7e67ec85)                        \
+  V(_Int32x4, _withFlagZ, Int32x4WithFlagZ, 0x9363a67c)                        \
+  V(_Int32x4, _withFlagW, Int32x4WithFlagW, 0x7035cb54)                        \
   V(_HashVMBase, get:_index, LinkedHashMap_getIndex, 0x09db1d9d)               \
   V(_HashVMBase, set:_index, LinkedHashMap_setIndex, 0xb643fb19)               \
   V(_HashVMBase, get:_data, LinkedHashMap_getData, 0x9a54182a)                 \
