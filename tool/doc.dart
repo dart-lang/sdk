@@ -38,9 +38,9 @@ to indicate that they are under review.  Lints that are marked as **deprecated**
 should not be used and are subject to removal in future Linter releases.
 
 Rules can be selectively enabled in the analyzer using
-[analysis options](https://pub.dartlang.org/packages/analyzer)
+[analysis options](https://pub.dev/packages/analyzer)
 or through an
-[analysis options file](https://www.dartlang.org/guides/language/analysis-options#the-analysis-options-file). 
+[analysis options file](https://dart.dev/guides/language/analysis-options#the-analysis-options-file). 
 
 * **An auto-generated list enabling all options is provided [here](options/options.html).** 
 
@@ -473,7 +473,7 @@ linter:
             <p>
                Auto-generated options enabling all lints.
                Add these to your
-               <a href="https://www.dartlang.org/guides/language/analysis-options#the-analysis-options-file">analysis_options.yaml file</a>
+               <a href="https://dart.dev/guides/language/analysis-options#the-analysis-options-file">analysis_options.yaml file</a>
                and tailor to fit!
             </p>
 
