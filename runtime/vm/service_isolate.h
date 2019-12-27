@@ -100,13 +100,6 @@ class ServiceIsolate : public AllStatic {
   static bool IsServiceIsolateDescendant(const Isolate* isolate) {
     return false;
   }
-  static bool SendServiceRpc(uint8_t* request_json,
-                             intptr_t request_json_length,
-                             Dart_Port reply_port,
-                             char** error) {
-    UNREACHABLE();
-    return false;
-  }
   static void Run() {}
   static bool SendIsolateStartupMessage() { return false; }
   static bool SendIsolateShutdownMessage() { return false; }
@@ -116,7 +109,6 @@ class ServiceIsolate : public AllStatic {
 
  protected:
   static void SetServiceIsolate(Isolate* isolate) { UNREACHABLE(); }
-  static void MaybeMakeServiceIsolate(Isolate* isolate) { UNREACHABLE(); }
 #endif  // !defined(PRODUCT)
 
   friend class Dart;

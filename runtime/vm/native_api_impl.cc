@@ -178,6 +178,9 @@ DART_EXPORT bool Dart_InvokeVMServiceMethod(uint8_t* request_json,
     return false;
   }
 #else   // !defined(PRODUCT)
+  if (error != nullptr) {
+    *error = strdup("VM Service is not supoorted in PRODUCT mode.");
+  }
   return false;
 #endif  // !defined(PRODUCT)
 }
