@@ -32,6 +32,24 @@ class D = G<B> with C;
     ]);
   }
 
+  test_not_matching_bounds() async {
+    // There should be an error, because Bar's type argument T is Foo, which
+    // doesn't extends Foo<T>.
+    await assertErrorsInCode('''
+class Foo<T> {}
+class Bar<T extends Foo<T>> {}
+class Baz extends Bar {}
+void main() {}
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 65, 3),
+    ]);
+    // Instantiate-to-bounds should have instantiated "Bar" to "Bar<Foo>".
+    assertElementTypeString(
+      result.unit.declaredElement.getType('Baz').supertype,
+      'Bar<Foo<dynamic>>',
+    );
+  }
+
   test_const() async {
     await assertErrorsInCode(r'''
 class A {}

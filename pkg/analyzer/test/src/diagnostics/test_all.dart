@@ -128,6 +128,7 @@ import 'if_element_condition_from_deferred_library_test.dart'
     as if_element_condition_from_deferred_library;
 import 'implements_disallowed_class_test.dart' as implements_disallowed_class;
 import 'implements_non_class_test.dart' as implements_non_class;
+import 'implements_super_class_test.dart' as implements_super_class;
 import 'implicit_this_reference_in_initializer_test.dart'
     as implicit_this_reference_in_initializer;
 import 'import_deferred_library_with_load_function_test.dart'
@@ -146,18 +147,27 @@ import 'inference_failure_on_untyped_parameter_test.dart'
 import 'instance_access_to_static_member_test.dart'
     as instance_access_to_static_member;
 import 'instantiate_abstract_class_test.dart' as instantiate_abstract_class;
+import 'invalid_annotation_test.dart' as invalid_annotation;
+import 'invalid_annotation_from_deferred_library_test.dart'
+    as invalid_annotation_from_deferred_library;
+import 'invalid_annotation_getter_test.dart' as invalid_annotation_getter;
 import 'invalid_assignment_test.dart' as invalid_assignment;
 import 'invalid_cast_new_expr_test.dart' as invalid_cast_new_expr;
 import 'invalid_constant_test.dart' as invalid_constant;
+import 'invalid_constructor_name_test.dart' as invalid_constructor_name;
 import 'invalid_exception_value_test.dart' as invalid_exception_value;
 import 'invalid_extension_argument_count_test.dart'
     as invalid_extension_argument_count;
 import 'invalid_factory_annotation_test.dart' as invalid_factory_annotation;
 import 'invalid_factory_method_impl_test.dart' as invalid_factory_method_impl;
+import 'invalid_factory_name_not_a_class_test.dart'
+    as invalid_factory_name_not_a_class;
 import 'invalid_field_type_in_struct_test.dart' as invalid_field_type_in_struct;
 import 'invalid_immutable_annotation_test.dart' as invalid_immutable_annotation;
 import 'invalid_language_override_test.dart' as invalid_language_override;
 import 'invalid_literal_annotation_test.dart' as invalid_literal_annotation;
+import 'invalid_modifier_on_constructor_test.dart'
+    as invalid_modifier_on_constructor;
 import 'invalid_non_virtual_annotation_test.dart'
     as invalid_non_virtual_annotation;
 import 'invalid_override_different_default_values_named_test.dart'
@@ -539,6 +549,7 @@ main() {
     if_element_condition_from_deferred_library.main();
     implements_disallowed_class.main();
     implements_non_class.main();
+    implements_super_class.main();
     implicit_this_reference_in_initializer.main();
     import_deferred_library_with_load_function.main();
     import_duplicated_library_named.main();
@@ -549,17 +560,23 @@ main() {
     inference_failure_on_untyped_parameter.main();
     instance_access_to_static_member.main();
     instantiate_abstract_class.main();
+    invalid_annotation.main();
+    invalid_annotation_from_deferred_library.main();
+    invalid_annotation_getter.main();
     invalid_assignment.main();
     invalid_cast_new_expr.main();
     invalid_constant.main();
+    invalid_constructor_name.main();
     invalid_exception_value.main();
     invalid_extension_argument_count.main();
     invalid_factory_annotation.main();
     invalid_factory_method_impl.main();
+    invalid_factory_name_not_a_class.main();
     invalid_field_type_in_struct.main();
     invalid_immutable_annotation.main();
     invalid_language_override.main();
     invalid_literal_annotation.main();
+    invalid_modifier_on_constructor.main();
     invalid_non_virtual_annotation.main();
     invalid_override_different_default_values_named.main();
     invalid_override_different_default_values_positional.main();

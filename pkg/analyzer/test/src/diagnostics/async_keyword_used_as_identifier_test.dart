@@ -81,4 +81,16 @@ f() sync* {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 18, 5),
     ]);
   }
+
+  test_async_async() async {
+    await assertErrorsInCode(r'''
+class A {
+  m() async {
+    int async;
+  }
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 32, 5),
+    ]);
+  }
 }
