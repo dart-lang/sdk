@@ -23,6 +23,8 @@
 #include "vm/thread_pool.h"
 #include "vm/timeline.h"
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+
 namespace dart {
 
 #define Z (T->zone())
@@ -977,3 +979,5 @@ void KernelIsolate::NotifyAboutIsolateShutdown(const Isolate* isolate) {
 }
 
 }  // namespace dart
+
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)

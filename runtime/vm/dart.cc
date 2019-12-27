@@ -790,9 +790,8 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
   if (FLAG_print_class_table) {
     I->class_table()->Print();
   }
-  ServiceIsolate::MaybeMakeServiceIsolate(I);
-
 #if !defined(PRODUCT)
+  ServiceIsolate::MaybeMakeServiceIsolate(I);
   if (!ServiceIsolate::IsServiceIsolate(I) &&
       !KernelIsolate::IsKernelIsolate(I)) {
     I->message_handler()->set_should_pause_on_start(

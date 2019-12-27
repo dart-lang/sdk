@@ -22,6 +22,8 @@
 #include "vm/thread_pool.h"
 #include "vm/timeline.h"
 
+#if !defined(PRODUCT)
+
 namespace dart {
 
 #define Z (T->zone())
@@ -586,3 +588,5 @@ void ServiceIsolate::BootVmServiceLibrary() {
 void ServiceIsolate::VisitObjectPointers(ObjectPointerVisitor* visitor) {}
 
 }  // namespace dart
+
+#endif  // !defined(PRODUCT)

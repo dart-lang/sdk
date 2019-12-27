@@ -27,8 +27,10 @@
 
 namespace dart {
 
+#if !defined(PRODUCT)
 DECLARE_FLAG(bool, trace_service);
 DECLARE_FLAG(bool, trace_service_verbose);
+#endif  // !defined(PRODUCT)
 
 Thread::~Thread() {
   // We should cleanly exit any isolate before destruction.
@@ -471,10 +473,12 @@ void Thread::DeferOOBMessageInterrupts() {
       stack_limit_ = saved_stack_limit_;
     }
   }
+#if !defined(PRODUCT)
   if (FLAG_trace_service && FLAG_trace_service_verbose) {
     OS::PrintErr("[+%" Pd64 "ms] Isolate %s deferring OOB interrupts\n",
                  Dart::UptimeMillis(), isolate()->name());
   }
+#endif  // !defined(PRODUCT)
 }
 
 void Thread::RestoreOOBMessageInterrupts() {
@@ -493,10 +497,12 @@ void Thread::RestoreOOBMessageInterrupts() {
     stack_limit_ |= deferred_interrupts_;
     deferred_interrupts_ = 0;
   }
+#if !defined(PRODUCT)
   if (FLAG_trace_service && FLAG_trace_service_verbose) {
     OS::PrintErr("[+%" Pd64 "ms] Isolate %s restoring OOB interrupts\n",
                  Dart::UptimeMillis(), isolate()->name());
   }
+#endif  // !defined(PRODUCT)
 }
 
 RawError* Thread::HandleInterrupts() {

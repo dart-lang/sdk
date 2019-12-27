@@ -524,6 +524,7 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
                                                  Dart_IsolateFlags* flags,
                                                  char** error,
                                                  int* exit_code) {
+#if !defined(PRODUCT)
   ASSERT(script_uri != NULL);
   Dart_Isolate isolate = NULL;
   auto isolate_group_data = new IsolateGroupData(
@@ -580,6 +581,9 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
   Dart_ExitScope();
   Dart_ExitIsolate();
   return isolate;
+#else   // !defined(PRODUCT)
+  return NULL;
+#endif  // !defined(PRODUCT)
 }
 
 // Returns newly created Isolate on success, NULL on failure.
@@ -989,8 +993,8 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
 
 #undef CHECK_RESULT
 
-// Observatory assets are only needed in the regular dart binary.
-#if !defined(NO_OBSERVATORY)
+// Observatory assets are not included in a product build.
+#if !defined(PRODUCT)
 extern unsigned int observatory_assets_archive_len;
 extern const uint8_t* observatory_assets_archive;
 
@@ -1005,9 +1009,9 @@ Dart_Handle GetVMServiceAssetsArchiveCallback() {
   free(decompressed);
   return tar_file;
 }
-#else   // !defined(NO_OBSERVATORY)
+#else   // !defined(PRODUCT)
 static Dart_GetVMServiceAssetsArchive GetVMServiceAssetsArchiveCallback = NULL;
-#endif  // !defined(NO_OBSERVATORY)
+#endif  // !defined(PRODUCT)
 
 void main(int argc, char** argv) {
   char* script_name;

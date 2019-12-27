@@ -17,6 +17,8 @@ class ObjectPointerVisitor;
 class SendPort;
 
 class ServiceIsolate : public AllStatic {
+#if !defined(PRODUCT)
+
  public:
   static const char* kName;
   static bool NameEquals(const char* name);
@@ -88,6 +90,34 @@ class ServiceIsolate : public AllStatic {
   // If starting the service-isolate failed, this error might provide the reason
   // for the failure.
   static char* startup_failure_reason_;
+#else
+
+ public:
+  static bool NameEquals(const char* name) { return false; }
+  static bool Exists() { return false; }
+  static bool IsRunning() { return false; }
+  static bool IsServiceIsolate(const Isolate* isolate) { return false; }
+  static bool IsServiceIsolateDescendant(const Isolate* isolate) {
+    return false;
+  }
+  static bool SendServiceRpc(uint8_t* request_json,
+                             intptr_t request_json_length,
+                             Dart_Port reply_port,
+                             char** error) {
+    UNREACHABLE();
+    return false;
+  }
+  static void Run() {}
+  static bool SendIsolateStartupMessage() { return false; }
+  static bool SendIsolateShutdownMessage() { return false; }
+  static void SendServiceExitMessage() {}
+  static void Shutdown() {}
+  static void VisitObjectPointers(ObjectPointerVisitor* visitor) {}
+
+ protected:
+  static void SetServiceIsolate(Isolate* isolate) { UNREACHABLE(); }
+  static void MaybeMakeServiceIsolate(Isolate* isolate) { UNREACHABLE(); }
+#endif  // !defined(PRODUCT)
 
   friend class Dart;
   friend class Isolate;
