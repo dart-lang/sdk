@@ -609,6 +609,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitFieldFormalParameter(FieldFormalParameter node) {
+    node.metadata.accept(this);
     var parameterElement = node.declaredElement as FieldFormalParameterElement;
     var parameterType = _variables.decoratedElementType(parameterElement);
     var field = parameterElement.field;

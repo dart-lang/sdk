@@ -4106,6 +4106,88 @@ class Derived extends Base {
     assertEdge(derived2.node, base1.node, hard: true);
   }
 
+  Future<void> test_parameter_field_metadata() async {
+    await analyze('''
+const bar = null;
+class C {
+  int foo;
+  C(@bar this.foo);
+}
+''');
+    // No assertions needed; the AnnotationTracker mixin verifies that the
+    // metadata was visited.
+  }
+
+  Future<void> test_parameter_named_field_metadata() async {
+    await analyze('''
+const bar = null;
+class C {
+  int foo;
+  C({@bar this.foo});
+}
+''');
+    // No assertions needed; the AnnotationTracker mixin verifies that the
+    // metadata was visited.
+  }
+
+  Future<void> test_parameter_named_field_with_default_metadata() async {
+    await analyze('''
+const bar = null;
+class C {
+  int foo;
+  C({@bar this.foo = 0});
+}
+''');
+    // No assertions needed; the AnnotationTracker mixin verifies that the
+    // metadata was visited.
+  }
+
+  Future<void> test_parameter_named_metadata() async {
+    await analyze('''
+void f({@deprecated int foo}) {}
+''');
+    // No assertions needed; the AnnotationTracker mixin verifies that the
+    // metadata was visited.
+  }
+
+  Future<void> test_parameter_named_with_default_metadata() async {
+    await analyze('''
+void f({@deprecated int foo = 0}) {}
+''');
+    // No assertions needed; the AnnotationTracker mixin verifies that the
+    // metadata was visited.
+  }
+
+  Future<void> test_parameter_normal_metadata() async {
+    await analyze('''
+const foo = null;
+void f(@foo int foo) {}
+''');
+    // No assertions needed; the AnnotationTracker mixin verifies that the
+    // metadata was visited.
+  }
+
+  Future<void> test_parameter_optional_positional_field_metadata() async {
+    await analyze('''
+const bar = null;
+class C {
+  int foo;
+  C([@bar this.foo]);
+}
+''');
+    // No assertions needed; the AnnotationTracker mixin verifies that the
+    // metadata was visited.
+  }
+
+  Future<void> test_parameter_optional_positional_metadata() async {
+    await analyze('''
+const foo = null;
+void f([@foo int foo]) {}
+''');
+    // No assertions needed; the AnnotationTracker mixin verifies that the
+    // metadata was visited.
+  }
+
   Future<void> test_parenthesizedExpression() async {
     await analyze('''
 int f() {
