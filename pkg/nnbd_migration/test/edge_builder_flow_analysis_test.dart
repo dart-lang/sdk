@@ -1196,6 +1196,30 @@ void h(int k) {}
     assertEdge(iNode, jNode, hard: false);
   }
 
+  Future<void> test_not_null_then_promote() async {
+    await analyze('''
+void f(dynamic n) {
+  if (n == null) {
+    return;
+  } else if (n is List<int>) {
+    n.length; // Ensure this doesn't crash during method lookup.
+    g(n); // Test this is wired correctly in graph.
+  }
+}
+void g(List<int> j) {}
+''');
+    var nNode = decoratedTypeAnnotation('dynamic n').node;
+    var jNode = decoratedTypeAnnotation('List<int> j').node;
+    var jParamNode = decoratedTypeAnnotation('int> j').node;
+    var intParamNode = decoratedTypeAnnotation('int>)').node;
+    // No edge from n to g because i is known to be non-nullable at the site of
+    // the call to g()
+    assertNoEdge(nNode, jNode);
+    // But there is an edge from nonNull(List<int>) to j
+    assertEdge(inSet(neverClosure), jNode, hard: false);
+    assertEdge(intParamNode, jParamNode, hard: false);
+  }
+
   Future<void> test_postfixDecrement() async {
     await analyze('''
 void f(C c1) {
