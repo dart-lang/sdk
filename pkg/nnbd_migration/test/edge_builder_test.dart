@@ -2563,6 +2563,24 @@ int/*2*/ g() {
             hard: false));
   }
 
+  Future<void> test_functionInvocation_typeParameter_inferred() async {
+    await analyze('''
+T h<T>(T t) => t;
+T Function<T>(T) get f => h;
+void g() {
+  int y;
+  int x = f(y);
+}
+''');
+    var int_y = decoratedTypeAnnotation('int y').node;
+    var int_x = decoratedTypeAnnotation('int x').node;
+    var t_ret = decoratedTypeAnnotation('T Function').node;
+    var t_param = decoratedTypeAnnotation('T)').node;
+
+    assertEdge(substitutionNode(anyNode, t_ret), int_x, hard: false);
+    assertEdge(int_y, substitutionNode(anyNode, t_param), hard: true);
+  }
+
   Future<void> test_functionTypeAlias_inExpression() async {
     await analyze('''
 typedef bool _P<T>(T value);
@@ -3948,6 +3966,26 @@ class C<T> {
     assertEdge(int_y, t_param, hard: true);
     assertEdge(t_param, t_ret, hard: true);
     assertEdge(t_ret, int_x, hard: false);
+  }
+
+  Future<void> test_methodInvocation_variable_typeParameter_inferred() async {
+    await analyze('''
+T h<T>(T t) => t;
+class C {
+  void g() {
+    T Function<T>(T) f = h;
+    int y;
+    int x = f(y);
+  }
+}
+''');
+    var int_y = decoratedTypeAnnotation('int y').node;
+    var int_x = decoratedTypeAnnotation('int x').node;
+    var t_ret = decoratedTypeAnnotation('T Function').node;
+    var t_param = decoratedTypeAnnotation('T)').node;
+
+    assertEdge(substitutionNode(anyNode, t_ret), int_x, hard: false);
+    assertEdge(int_y, substitutionNode(anyNode, t_param), hard: true);
   }
 
   Future<void> test_never() async {

@@ -680,8 +680,19 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType visitFunctionExpressionInvocation(
       FunctionExpressionInvocation node) {
-    return _handleFunctionExpressionInvocation(node, node.function,
-        node.argumentList, node.typeArguments, node.typeArgumentTypes);
+    final argumentList = node.argumentList;
+    final typeArguments = node.typeArguments;
+    DecoratedType calleeType = _checkExpressionNotNull(node.function);
+    if (calleeType.type is FunctionType) {
+      return _handleInvocationArguments(node, argumentList.arguments,
+          typeArguments, node.typeArgumentTypes, calleeType, null,
+          invokeType: node.staticInvokeType);
+    } else {
+      // Invocation of type `dynamic` or `Function`.
+      typeArguments?.accept(this);
+      argumentList.accept(this);
+      return _makeNullableDynamicType(node);
+    }
   }
 
   @override
@@ -944,10 +955,6 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       node.typeArguments?.accept(this);
       node.argumentList.accept(this);
       return _makeNullableDynamicType(node);
-    } else if (callee is VariableElement) {
-      // Function expression invocation that looks like a method invocation.
-      return _handleFunctionExpressionInvocation(node, node.methodName,
-          node.argumentList, node.typeArguments, node.typeArgumentTypes);
     }
     var calleeType = getOrComputeElementType(callee, targetType: targetType);
     if (callee is PropertyAccessorElement) {
@@ -2029,24 +2036,6 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     });
   }
 
-  DecoratedType _handleFunctionExpressionInvocation(
-      AstNode node,
-      Expression function,
-      ArgumentList argumentList,
-      TypeArgumentList typeArguments,
-      List<DartType> typeArgumentTypes) {
-    DecoratedType calleeType = _checkExpressionNotNull(function);
-    if (calleeType.type is FunctionType) {
-      return _handleInvocationArguments(node, argumentList.arguments,
-          typeArguments, typeArgumentTypes, calleeType, null);
-    } else {
-      // Invocation of type `dynamic` or `Function`.
-      typeArguments?.accept(this);
-      argumentList.accept(this);
-      return _makeNullableDynamicType(node);
-    }
-  }
-
   /// Creates the necessary constraint(s) for an [ArgumentList] when invoking an
   /// executable element whose type is [calleeType].
   ///
@@ -2091,7 +2080,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           assert(
               false,
               'invoke type should be a non-null function type, or '
-              'dynamic/Function, which have no type arguments.');
+              'dynamic/Function, which have no type arguments. '
+              '(got $invokeType)');
         }
       }
     }
