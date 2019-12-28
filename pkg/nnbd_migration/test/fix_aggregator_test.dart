@@ -18,6 +18,13 @@ main() {
 
 @reflectiveTest
 class FixAggregatorTest extends FixAggregatorTestBase {
+  Future<void> test_addRequired() async {
+    await analyze('f({int x}) => 0;');
+    var previewInfo =
+        run({findNode.defaultParameter('int x'): const AddRequiredKeyword()});
+    expect(previewInfo.applyTo(code), 'f({required int x}) => 0;');
+  }
+
   Future<void> test_adjacentFixes() async {
     await analyze('f(a, b) => a + b;');
     var aRef = findNode.simple('a +');

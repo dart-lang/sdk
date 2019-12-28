@@ -6,6 +6,7 @@ import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -125,12 +126,19 @@ class FixBuilder {
   /// makes note of changes that need to be made.
   void visitAll(CompilationUnit unit) {
     unit.accept(_resolver);
+    unit.accept(_AdditionalMigrationsVisitor(this));
   }
 
   /// Called whenever an AST node is found that needs to be changed.
   void _addChange(AstNode node, NodeChange change) {
     assert(!changes.containsKey(node));
     changes[node] = change;
+  }
+
+  /// Called whenever an AST node is found that can't be automatically fixed.
+  void _addProblem(AstNode node, Problem problem) {
+    var newlyAdded = (problems[node] ??= {}).add(problem);
+    assert(newlyAdded);
   }
 
   /// Computes the type that [element] will have after migration.
@@ -334,5 +342,33 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
   }
 }
 
+/// Problem reported by [FixBuilder] when encountering a non-nullable unnamed
+/// optional parameter that lacks a default value.
+class NonNullableUnnamedOptionalParameter implements Problem {
+  const NonNullableUnnamedOptionalParameter();
+}
+
 /// Common supertype for problems reported by [FixBuilder._addProblem].
 abstract class Problem {}
+
+/// Visitor that computes additional migrations on behalf of [FixBuilder] that
+/// don't need to be integrated into the resolver itself.
+class _AdditionalMigrationsVisitor extends RecursiveAstVisitor<void> {
+  final FixBuilder _fixBuilder;
+
+  _AdditionalMigrationsVisitor(this._fixBuilder);
+
+  @override
+  void visitDefaultFormalParameter(DefaultFormalParameter node) {
+    var element = node.declaredElement;
+    if (node.defaultValue == null &&
+        !_fixBuilder._variables.decoratedElementType(element).node.isNullable) {
+      if (element.isNamed) {
+        _fixBuilder._addChange(node, const AddRequiredKeyword());
+      } else {
+        _fixBuilder._addProblem(
+            node, const NonNullableUnnamedOptionalParameter());
+      }
+    }
+  }
+}

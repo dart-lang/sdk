@@ -7,6 +7,23 @@ import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
 
+/// Implementation of [NodeChange] representing the addition of the keyword
+/// `required` to a named parameter.
+///
+/// TODO(paulberry): store additional information necessary to include in the
+/// preview.
+class AddRequiredKeyword extends _NestableChange {
+  const AddRequiredKeyword([NodeChange inner = const NoChange()])
+      : super(inner);
+
+  @override
+  EditPlan apply(AstNode node, EditPlan Function(AstNode) gather) {
+    var innerPlan = _inner.apply(node, gather);
+    return EditPlan.surround(innerPlan,
+        prefix: [const InsertText('required ')]);
+  }
+}
+
 /// Visitor that combines together the changes produced by [FixBuilder] into a
 /// concrete set of source code edits using the infrastructure of [EditPlan].
 class FixAggregator extends UnifyingAstVisitor<void> {

@@ -40,6 +40,8 @@ class AssignmentTargetInfo {
 class FixBuilderTest extends EdgeBuilderTestBase {
   static const isNullCheck = TypeMatcher<NullCheck>();
 
+  static const isAddRequiredKeyword = TypeMatcher<AddRequiredKeyword>();
+
   static const isMakeNullable = TypeMatcher<MakeNullable>();
 
   DartType get dynamicType => postMigrationTypeProvider.dynamicType;
@@ -995,6 +997,42 @@ _f(int/*?*/ x) =>
     // No null check needs to be added to `x + 1`, because there is already an
     // explicit null check.
     visitSubexpression(findNode.listLiteral('['), 'List<dynamic>');
+  }
+
+  Future<void>
+      test_defaultFormalParameter_add_required_no_because_default() async {
+    await analyze('''
+int _f({int x = 0}) => x + 1;
+''');
+    visitAll();
+  }
+
+  Future<void>
+      test_defaultFormalParameter_add_required_no_because_nullable() async {
+    await analyze('''
+int _f({int/*?*/ x}) => 1;
+''');
+    visitAll(changes: {findNode.typeName('int/*?*/ x'): isMakeNullable});
+  }
+
+  Future<void>
+      test_defaultFormalParameter_add_required_no_because_positional() async {
+    await analyze('''
+int _f([int/*!*/ x]) => x + 1;
+''');
+    visitAll(problems: {
+      findNode.defaultParameter('int/*!*/ x'): {
+        const NonNullableUnnamedOptionalParameter()
+      }
+    });
+  }
+
+  Future<void> test_defaultFormalParameter_add_required_yes() async {
+    await analyze('''
+int _f({int x}) => x + 1;
+''');
+    visitAll(
+        changes: {findNode.defaultParameter('int x'): isAddRequiredKeyword});
   }
 
   Future<void> test_doubleLiteral() async {
@@ -2156,6 +2194,15 @@ void _f(bool/*?*/ x, bool/*?*/ y) {
       findNode.simple('x &&'): isNullCheck,
       findNode.simple('y;'): isNullCheck
     });
+  }
+
+  void visitAll(
+      {Map<AstNode, Matcher> changes = const <Expression, Matcher>{},
+      Map<AstNode, Set<Problem>> problems = const <AstNode, Set<Problem>>{}}) {
+    var fixBuilder = _createFixBuilder(testUnit);
+    fixBuilder.visitAll(testUnit);
+    expect(scopedChanges(fixBuilder, testUnit), changes);
+    expect(scopedProblems(fixBuilder, testUnit), problems);
   }
 
   void visitAssignmentTarget(
