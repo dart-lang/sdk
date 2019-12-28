@@ -9,6 +9,10 @@ import 'package:analysis_server/src/utilities/strings.dart' show capitalize;
 import 'codegen_dart.dart';
 import 'typescript.dart';
 
+/// A fabricated field name for indexers in case they result in generation
+/// of type names for inline types.
+const fieldNameForIndexer = 'indexer';
+
 final _validIdentifierCharacters = RegExp('[a-zA-Z0-9_]');
 
 bool isAnyType(TypeBase t) =>
@@ -17,10 +21,6 @@ bool isAnyType(TypeBase t) =>
 bool isNullType(TypeBase t) => t is Type && t.name == 'null';
 
 bool isUndefinedType(TypeBase t) => t is Type && t.name == 'undefined';
-
-/// A fabricated field name for indexers in case they result in generation
-/// of type names for inline types.
-const fieldNameForIndexer = 'indexer';
 
 List<AstNode> parseString(String input) {
   final scanner = Scanner(input);
@@ -47,19 +47,6 @@ class ArrayType extends TypeBase {
   String get dartType => 'List';
   @override
   String get typeArgsString => '<${elementType.dartTypeWithTypeArgs}>';
-}
-
-class MapType extends TypeBase {
-  final TypeBase indexType;
-  final TypeBase valueType;
-
-  MapType(this.indexType, this.valueType);
-
-  @override
-  String get dartType => 'Map';
-  @override
-  String get typeArgsString =>
-      '<${indexType.dartTypeWithTypeArgs}, ${valueType.dartTypeWithTypeArgs}>';
 }
 
 class AstNode {
@@ -129,13 +116,6 @@ class FixedValueField extends Field {
   ) : super(comment, nameToken, type, allowsNull, allowsUndefined);
 }
 
-class InlineInterface extends Interface {
-  InlineInterface(
-    String name,
-    List<Member> members,
-  ) : super(null, Token.identifier(name), [], [], members);
-}
-
 class Indexer extends Member {
   final TypeBase indexType;
   final TypeBase valueType;
@@ -146,6 +126,13 @@ class Indexer extends Member {
   ) : super(comment);
 
   String get name => fieldNameForIndexer;
+}
+
+class InlineInterface extends Interface {
+  InlineInterface(
+    String name,
+    List<Member> members,
+  ) : super(null, Token.identifier(name), [], [], members);
 }
 
 class Interface extends AstNode {
@@ -167,6 +154,19 @@ class Interface extends AstNode {
   String get typeArgsString => typeArgs.isNotEmpty
       ? '<${typeArgs.map((t) => t.lexeme).join(', ')}>'
       : '';
+}
+
+class MapType extends TypeBase {
+  final TypeBase indexType;
+  final TypeBase valueType;
+
+  MapType(this.indexType, this.valueType);
+
+  @override
+  String get dartType => 'Map';
+  @override
+  String get typeArgsString =>
+      '<${indexType.dartTypeWithTypeArgs}, ${valueType.dartTypeWithTypeArgs}>';
 }
 
 class Member extends AstNode {
@@ -233,20 +233,6 @@ class Parser {
     return Const(leadingComment, name, type, value);
   }
 
-  Indexer _indexer(String containerName, Comment leadingComment) {
-    final indexer = _field(containerName, leadingComment);
-    _consume(TokenType.RIGHT_BRACKET, 'Expected ]');
-    _consume(TokenType.COLON, 'Expected :');
-
-    TypeBase type;
-    type = _type(containerName, fieldNameForIndexer, improveTypes: true);
-
-    //_consume(TokenType.RIGHT_BRACE, 'Expected }');
-    _match([TokenType.SEMI_COLON]);
-
-    return Indexer(leadingComment, indexer.type, type);
-  }
-
   /// Ensures the next token is [type] and moves to the next, throwing [message]
   /// if not.
   Token _consume(TokenType type, String message) {
@@ -290,10 +276,6 @@ class Parser {
       type = typeOfLiteral(value.type);
     }
     return Const(leadingComment, name, type, value);
-  }
-
-  String _joinNames(String parent, String child) {
-    return '$parent${capitalize(child)}';
   }
 
   Field _field(String containerName, Comment leadingComment) {
@@ -366,6 +348,39 @@ class Parser {
     return Field(leadingComment, name, type, canBeNull, canBeUndefined);
   }
 
+  /// Remove any duplicate types (for ex. if we map multiple types into dynamic)
+  /// we don't want to end up with `dynamic | dynamic`. Key on dartType to
+  /// ensure we different types that will map down to the same type.
+  List<TypeBase> _getUniqueTypes(List<TypeBase> types) {
+    final uniqueTypes = Map.fromEntries(
+      types.map((t) => MapEntry(t.dartTypeWithTypeArgs, t)),
+    ).values.toList();
+
+    // If our list includes something that maps to dynamic as well as other
+    // types, we should just treat the whole thing as dynamic as we get no value
+    // typing Either4<bool, String, num, dynamic> but it becomes much more
+    // difficult to use.
+    if (uniqueTypes.any(isAnyType)) {
+      return [uniqueTypes.firstWhere(isAnyType)];
+    }
+
+    return uniqueTypes;
+  }
+
+  Indexer _indexer(String containerName, Comment leadingComment) {
+    final indexer = _field(containerName, leadingComment);
+    _consume(TokenType.RIGHT_BRACKET, 'Expected ]');
+    _consume(TokenType.COLON, 'Expected :');
+
+    TypeBase type;
+    type = _type(containerName, fieldNameForIndexer, improveTypes: true);
+
+    //_consume(TokenType.RIGHT_BRACE, 'Expected }');
+    _match([TokenType.SEMI_COLON]);
+
+    return Indexer(leadingComment, indexer.type, type);
+  }
+
   Interface _interface(Comment leadingComment) {
     final name = _consume(TokenType.IDENTIFIER, 'Expected identifier');
     final typeArgs = <Token>[];
@@ -398,6 +413,10 @@ class Parser {
     _consume(TokenType.RIGHT_BRACE, 'Expected }');
 
     return Interface(leadingComment, name, typeArgs, baseTypes, members);
+  }
+
+  String _joinNames(String parent, String child) {
+    return '$parent${capitalize(child)}';
   }
 
   /// Returns [true] an advances if the next token is one of [types], otherwise
@@ -586,25 +605,6 @@ class Parser {
       }
     }
     return type;
-  }
-
-  /// Remove any duplicate types (for ex. if we map multiple types into dynamic)
-  /// we don't want to end up with `dynamic | dynamic`. Key on dartType to
-  /// ensure we different types that will map down to the same type.
-  List<TypeBase> _getUniqueTypes(List<TypeBase> types) {
-    final uniqueTypes = Map.fromEntries(
-      types.map((t) => MapEntry(t.dartTypeWithTypeArgs, t)),
-    ).values.toList();
-
-    // If our list includes something that maps to dynamic as well as other
-    // types, we should just treat the whole thing as dynamic as we get no value
-    // typing Either4<bool, String, num, dynamic> but it becomes much more
-    // difficult to use.
-    if (uniqueTypes.any(isAnyType)) {
-      return [uniqueTypes.firstWhere(isAnyType)];
-    }
-
-    return uniqueTypes;
   }
 
   TypeAlias _typeAlias(Comment leadingComment) {
@@ -856,7 +856,7 @@ class Type extends TypeBase {
   final List<TypeBase> typeArgs;
 
   Type(this.nameToken, this.typeArgs) {
-    if (this.name == 'Array' || this.name.endsWith('[]')) {
+    if (name == 'Array' || name.endsWith('[]')) {
       throw 'Type should not be used for arrays, use ArrayType instead';
     }
   }

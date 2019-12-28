@@ -1418,7 +1418,7 @@ abstract class BaseProcessor {
       return changeBuilder;
     }
 
-    var statement = this.node.thisOrAncestorOfType<Statement>();
+    var statement = node.thisOrAncestorOfType<Statement>();
     var parent = statement?.parent;
 
     if (statement is DoStatement) {

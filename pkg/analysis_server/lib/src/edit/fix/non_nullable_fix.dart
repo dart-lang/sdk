@@ -58,7 +58,7 @@ class NonNullableFix extends FixCodeTask {
   bool _packageIsNNBD = true;
 
   NonNullableFix(this.listener, {List<String> included = const []})
-      : this.includedRoot =
+      : includedRoot =
             _getIncludedRoot(included, listener.server.resourceProvider) {
     instrumentationListener = InstrumentationListener();
     migration = NullabilityMigration(NullabilityMigrationAdapter(listener),

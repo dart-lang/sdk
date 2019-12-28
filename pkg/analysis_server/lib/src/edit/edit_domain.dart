@@ -1283,7 +1283,7 @@ class _RefactoringManager {
       return extractRefactoring.checkName();
     }
     if (refactoring is ExtractMethodRefactoring) {
-      ExtractMethodRefactoring extractRefactoring = this.refactoring;
+      ExtractMethodRefactoring extractRefactoring = refactoring;
       ExtractMethodOptions extractOptions = params.options;
       extractRefactoring.createGetter = extractOptions.createGetter;
       extractRefactoring.extractAll = extractOptions.extractAll;
@@ -1295,20 +1295,20 @@ class _RefactoringManager {
       return extractRefactoring.checkName();
     }
     if (refactoring is ExtractWidgetRefactoring) {
-      ExtractWidgetRefactoring extractRefactoring = this.refactoring;
+      ExtractWidgetRefactoring extractRefactoring = refactoring;
       ExtractWidgetOptions extractOptions = params.options;
       extractRefactoring.name = extractOptions.name;
       return extractRefactoring.checkName();
     }
     if (refactoring is InlineMethodRefactoring) {
-      InlineMethodRefactoring inlineRefactoring = this.refactoring;
+      InlineMethodRefactoring inlineRefactoring = refactoring;
       InlineMethodOptions inlineOptions = params.options;
       inlineRefactoring.deleteSource = inlineOptions.deleteSource;
       inlineRefactoring.inlineAll = inlineOptions.inlineAll;
       return RefactoringStatus();
     }
     if (refactoring is MoveFileRefactoring) {
-      MoveFileRefactoring moveRefactoring = this.refactoring;
+      MoveFileRefactoring moveRefactoring = refactoring;
       MoveFileOptions moveOptions = params.options;
       moveRefactoring.newFile = moveOptions.newFile;
       return RefactoringStatus();

@@ -265,7 +265,7 @@ class _IsResponseFailure extends Matcher {
     description =
         description.add('response with identifier "$_id" and an error');
     if (_code != null) {
-      description = description.add(' with code ${this._code.name}');
+      description = description.add(' with code ${_code.name}');
     }
     return description;
   }

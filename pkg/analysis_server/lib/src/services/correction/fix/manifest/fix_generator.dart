@@ -36,8 +36,8 @@ class HtmlNodeLocator {
   /// If the [end] offset is not provided, then it is considered the same as the
   /// [start] offset.
   HtmlNodeLocator({@required int start, int end})
-      : this._startOffset = start,
-        this._endOffset = end ?? start;
+      : _startOffset = start,
+        _endOffset = end ?? start;
 
   /// Search within the given HTML [node] and return the path to the most deeply
   /// nested node that includes the whole target range, or an empty list if no

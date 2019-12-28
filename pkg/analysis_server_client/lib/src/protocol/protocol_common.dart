@@ -38,7 +38,7 @@ class AddContentOverlay implements HasToJson {
    */
   void set content(String value) {
     assert(value != null);
-    this._content = value;
+    _content = value;
   }
 
   AddContentOverlay(String content) {
@@ -135,7 +135,7 @@ class AnalysisError implements HasToJson {
    */
   void set severity(AnalysisErrorSeverity value) {
     assert(value != null);
-    this._severity = value;
+    _severity = value;
   }
 
   /**
@@ -148,7 +148,7 @@ class AnalysisError implements HasToJson {
    */
   void set type(AnalysisErrorType value) {
     assert(value != null);
-    this._type = value;
+    _type = value;
   }
 
   /**
@@ -161,7 +161,7 @@ class AnalysisError implements HasToJson {
    */
   void set location(Location value) {
     assert(value != null);
-    this._location = value;
+    _location = value;
   }
 
   /**
@@ -176,7 +176,7 @@ class AnalysisError implements HasToJson {
    */
   void set message(String value) {
     assert(value != null);
-    this._message = value;
+    _message = value;
   }
 
   /**
@@ -192,7 +192,7 @@ class AnalysisError implements HasToJson {
    * omitted if there is no correction message associated with the error code.
    */
   void set correction(String value) {
-    this._correction = value;
+    _correction = value;
   }
 
   /**
@@ -205,7 +205,7 @@ class AnalysisError implements HasToJson {
    */
   void set code(String value) {
     assert(value != null);
-    this._code = value;
+    _code = value;
   }
 
   /**
@@ -231,7 +231,7 @@ class AnalysisError implements HasToJson {
    * can proceed with the confidence that there are in fact associated fixes.
    */
   void set hasFix(bool value) {
-    this._hasFix = value;
+    _hasFix = value;
   }
 
   AnalysisError(AnalysisErrorSeverity severity, AnalysisErrorType type,
@@ -533,7 +533,7 @@ class ChangeContentOverlay implements HasToJson {
    */
   void set edits(List<SourceEdit> value) {
     assert(value != null);
-    this._edits = value;
+    _edits = value;
   }
 
   ChangeContentOverlay(List<SourceEdit> edits) {
@@ -679,7 +679,7 @@ class CompletionSuggestion implements HasToJson {
    */
   void set kind(CompletionSuggestionKind value) {
     assert(value != null);
-    this._kind = value;
+    _kind = value;
   }
 
   /**
@@ -694,7 +694,7 @@ class CompletionSuggestion implements HasToJson {
    */
   void set relevance(int value) {
     assert(value != null);
-    this._relevance = value;
+    _relevance = value;
   }
 
   /**
@@ -713,7 +713,7 @@ class CompletionSuggestion implements HasToJson {
    */
   void set completion(String value) {
     assert(value != null);
-    this._completion = value;
+    _completion = value;
   }
 
   /**
@@ -729,7 +729,7 @@ class CompletionSuggestion implements HasToJson {
    * completion. Otherwise it is omitted.
    */
   void set displayText(String value) {
-    this._displayText = value;
+    _displayText = value;
   }
 
   /**
@@ -744,7 +744,7 @@ class CompletionSuggestion implements HasToJson {
    */
   void set selectionOffset(int value) {
     assert(value != null);
-    this._selectionOffset = value;
+    _selectionOffset = value;
   }
 
   /**
@@ -757,7 +757,7 @@ class CompletionSuggestion implements HasToJson {
    */
   void set selectionLength(int value) {
     assert(value != null);
-    this._selectionLength = value;
+    _selectionLength = value;
   }
 
   /**
@@ -770,7 +770,7 @@ class CompletionSuggestion implements HasToJson {
    */
   void set isDeprecated(bool value) {
     assert(value != null);
-    this._isDeprecated = value;
+    _isDeprecated = value;
   }
 
   /**
@@ -785,7 +785,7 @@ class CompletionSuggestion implements HasToJson {
    */
   void set isPotential(bool value) {
     assert(value != null);
-    this._isPotential = value;
+    _isPotential = value;
   }
 
   /**
@@ -801,7 +801,7 @@ class CompletionSuggestion implements HasToJson {
    * the element.
    */
   void set docSummary(String value) {
-    this._docSummary = value;
+    _docSummary = value;
   }
 
   /**
@@ -815,7 +815,7 @@ class CompletionSuggestion implements HasToJson {
    * omitted if there is no Dartdoc associated with the element.
    */
   void set docComplete(String value) {
-    this._docComplete = value;
+    _docComplete = value;
   }
 
   /**
@@ -829,7 +829,7 @@ class CompletionSuggestion implements HasToJson {
    * if the suggested element is not a member of a class.
    */
   void set declaringType(String value) {
-    this._declaringType = value;
+    _declaringType = value;
   }
 
   /**
@@ -843,7 +843,7 @@ class CompletionSuggestion implements HasToJson {
    * the client side.
    */
   void set defaultArgumentListString(String value) {
-    this._defaultArgumentListString = value;
+    _defaultArgumentListString = value;
   }
 
   /**
@@ -865,7 +865,7 @@ class CompletionSuggestion implements HasToJson {
    * treat the 'x' and 'y' values specially for linked edits.
    */
   void set defaultArgumentListTextRanges(List<int> value) {
-    this._defaultArgumentListTextRanges = value;
+    _defaultArgumentListTextRanges = value;
   }
 
   /**
@@ -877,7 +877,7 @@ class CompletionSuggestion implements HasToJson {
    * Information about the element reference being suggested.
    */
   void set element(Element value) {
-    this._element = value;
+    _element = value;
   }
 
   /**
@@ -893,7 +893,7 @@ class CompletionSuggestion implements HasToJson {
    * getter, function or method.
    */
   void set returnType(String value) {
-    this._returnType = value;
+    _returnType = value;
   }
 
   /**
@@ -909,7 +909,7 @@ class CompletionSuggestion implements HasToJson {
    * or method.
    */
   void set parameterNames(List<String> value) {
-    this._parameterNames = value;
+    _parameterNames = value;
   }
 
   /**
@@ -923,7 +923,7 @@ class CompletionSuggestion implements HasToJson {
    * This field is omitted if the parameterNames field is omitted.
    */
   void set parameterTypes(List<String> value) {
-    this._parameterTypes = value;
+    _parameterTypes = value;
   }
 
   /**
@@ -937,7 +937,7 @@ class CompletionSuggestion implements HasToJson {
    * suggested. This field is omitted if the parameterNames field is omitted.
    */
   void set requiredParameterCount(int value) {
-    this._requiredParameterCount = value;
+    _requiredParameterCount = value;
   }
 
   /**
@@ -951,7 +951,7 @@ class CompletionSuggestion implements HasToJson {
    * parameter. This field is omitted if the parameterNames field is omitted.
    */
   void set hasNamedParameters(bool value) {
-    this._hasNamedParameters = value;
+    _hasNamedParameters = value;
   }
 
   /**
@@ -967,7 +967,7 @@ class CompletionSuggestion implements HasToJson {
    * argument list.
    */
   void set parameterName(String value) {
-    this._parameterName = value;
+    _parameterName = value;
   }
 
   /**
@@ -981,7 +981,7 @@ class CompletionSuggestion implements HasToJson {
    * if the parameterName field is omitted.
    */
   void set parameterType(String value) {
-    this._parameterType = value;
+    _parameterType = value;
   }
 
   /**
@@ -995,7 +995,7 @@ class CompletionSuggestion implements HasToJson {
    * import to be added to be in scope.
    */
   void set importUri(String value) {
-    this._importUri = value;
+    _importUri = value;
   }
 
   CompletionSuggestion(
@@ -1524,7 +1524,7 @@ class Element implements HasToJson {
    */
   void set kind(ElementKind value) {
     assert(value != null);
-    this._kind = value;
+    _kind = value;
   }
 
   /**
@@ -1539,7 +1539,7 @@ class Element implements HasToJson {
    */
   void set name(String value) {
     assert(value != null);
-    this._name = value;
+    _name = value;
   }
 
   /**
@@ -1551,7 +1551,7 @@ class Element implements HasToJson {
    * The location of the name in the declaration of the element.
    */
   void set location(Location value) {
-    this._location = value;
+    _location = value;
   }
 
   /**
@@ -1580,7 +1580,7 @@ class Element implements HasToJson {
    */
   void set flags(int value) {
     assert(value != null);
-    this._flags = value;
+    _flags = value;
   }
 
   /**
@@ -1598,7 +1598,7 @@ class Element implements HasToJson {
    * has zero parameters, this field will have a value of "()".
    */
   void set parameters(String value) {
-    this._parameters = value;
+    _parameters = value;
   }
 
   /**
@@ -1614,7 +1614,7 @@ class Element implements HasToJson {
    * return type, this field will contain an empty string.
    */
   void set returnType(String value) {
-    this._returnType = value;
+    _returnType = value;
   }
 
   /**
@@ -1628,7 +1628,7 @@ class Element implements HasToJson {
    * parameters, this field will not be defined.
    */
   void set typeParameters(String value) {
-    this._typeParameters = value;
+    _typeParameters = value;
   }
 
   Element(ElementKind kind, String name, int flags,
@@ -2084,7 +2084,7 @@ class FoldingRegion implements HasToJson {
    */
   void set kind(FoldingKind value) {
     assert(value != null);
-    this._kind = value;
+    _kind = value;
   }
 
   /**
@@ -2097,7 +2097,7 @@ class FoldingRegion implements HasToJson {
    */
   void set offset(int value) {
     assert(value != null);
-    this._offset = value;
+    _offset = value;
   }
 
   /**
@@ -2110,7 +2110,7 @@ class FoldingRegion implements HasToJson {
    */
   void set length(int value) {
     assert(value != null);
-    this._length = value;
+    _length = value;
   }
 
   FoldingRegion(FoldingKind kind, int offset, int length) {
@@ -2210,7 +2210,7 @@ class HighlightRegion implements HasToJson {
    */
   void set type(HighlightRegionType value) {
     assert(value != null);
-    this._type = value;
+    _type = value;
   }
 
   /**
@@ -2223,7 +2223,7 @@ class HighlightRegion implements HasToJson {
    */
   void set offset(int value) {
     assert(value != null);
-    this._offset = value;
+    _offset = value;
   }
 
   /**
@@ -2236,7 +2236,7 @@ class HighlightRegion implements HasToJson {
    */
   void set length(int value) {
     assert(value != null);
-    this._length = value;
+    _length = value;
   }
 
   HighlightRegion(HighlightRegionType type, int offset, int length) {
@@ -3036,7 +3036,7 @@ class KytheEntry implements HasToJson {
    */
   void set source(KytheVName value) {
     assert(value != null);
-    this._source = value;
+    _source = value;
   }
 
   /**
@@ -3048,7 +3048,7 @@ class KytheEntry implements HasToJson {
    * An edge label. The schema defines which labels are meaningful.
    */
   void set kind(String value) {
-    this._kind = value;
+    _kind = value;
   }
 
   /**
@@ -3060,7 +3060,7 @@ class KytheEntry implements HasToJson {
    * The ticket of the target node.
    */
   void set target(KytheVName value) {
-    this._target = value;
+    _target = value;
   }
 
   /**
@@ -3073,7 +3073,7 @@ class KytheEntry implements HasToJson {
    */
   void set fact(String value) {
     assert(value != null);
-    this._fact = value;
+    _fact = value;
   }
 
   /**
@@ -3085,7 +3085,7 @@ class KytheEntry implements HasToJson {
    * The String value of the fact.
    */
   void set value(List<int> value) {
-    this._value = value;
+    _value = value;
   }
 
   KytheEntry(KytheVName source, String fact,
@@ -3214,7 +3214,7 @@ class KytheVName implements HasToJson {
    */
   void set signature(String value) {
     assert(value != null);
-    this._signature = value;
+    _signature = value;
   }
 
   /**
@@ -3231,7 +3231,7 @@ class KytheVName implements HasToJson {
    */
   void set corpus(String value) {
     assert(value != null);
-    this._corpus = value;
+    _corpus = value;
   }
 
   /**
@@ -3248,7 +3248,7 @@ class KytheVName implements HasToJson {
    */
   void set root(String value) {
     assert(value != null);
-    this._root = value;
+    _root = value;
   }
 
   /**
@@ -3263,7 +3263,7 @@ class KytheVName implements HasToJson {
    */
   void set path(String value) {
     assert(value != null);
-    this._path = value;
+    _path = value;
   }
 
   /**
@@ -3276,7 +3276,7 @@ class KytheVName implements HasToJson {
    */
   void set language(String value) {
     assert(value != null);
-    this._language = value;
+    _language = value;
   }
 
   KytheVName(String signature, String corpus, String root, String path,
@@ -3398,7 +3398,7 @@ class LinkedEditGroup implements HasToJson {
    */
   void set positions(List<Position> value) {
     assert(value != null);
-    this._positions = value;
+    _positions = value;
   }
 
   /**
@@ -3411,7 +3411,7 @@ class LinkedEditGroup implements HasToJson {
    */
   void set length(int value) {
     assert(value != null);
-    this._length = value;
+    _length = value;
   }
 
   /**
@@ -3426,7 +3426,7 @@ class LinkedEditGroup implements HasToJson {
    */
   void set suggestions(List<LinkedEditSuggestion> value) {
     assert(value != null);
-    this._suggestions = value;
+    _suggestions = value;
   }
 
   LinkedEditGroup(List<Position> positions, int length,
@@ -3556,7 +3556,7 @@ class LinkedEditSuggestion implements HasToJson {
    */
   void set value(String value) {
     assert(value != null);
-    this._value = value;
+    _value = value;
   }
 
   /**
@@ -3569,7 +3569,7 @@ class LinkedEditSuggestion implements HasToJson {
    */
   void set kind(LinkedEditSuggestionKind value) {
     assert(value != null);
-    this._kind = value;
+    _kind = value;
   }
 
   LinkedEditSuggestion(String value, LinkedEditSuggestionKind kind) {
@@ -3732,7 +3732,7 @@ class Location implements HasToJson {
    */
   void set file(String value) {
     assert(value != null);
-    this._file = value;
+    _file = value;
   }
 
   /**
@@ -3745,7 +3745,7 @@ class Location implements HasToJson {
    */
   void set offset(int value) {
     assert(value != null);
-    this._offset = value;
+    _offset = value;
   }
 
   /**
@@ -3758,7 +3758,7 @@ class Location implements HasToJson {
    */
   void set length(int value) {
     assert(value != null);
-    this._length = value;
+    _length = value;
   }
 
   /**
@@ -3773,7 +3773,7 @@ class Location implements HasToJson {
    */
   void set startLine(int value) {
     assert(value != null);
-    this._startLine = value;
+    _startLine = value;
   }
 
   /**
@@ -3788,7 +3788,7 @@ class Location implements HasToJson {
    */
   void set startColumn(int value) {
     assert(value != null);
-    this._startColumn = value;
+    _startColumn = value;
   }
 
   Location(
@@ -3910,7 +3910,7 @@ class NavigationRegion implements HasToJson {
    */
   void set offset(int value) {
     assert(value != null);
-    this._offset = value;
+    _offset = value;
   }
 
   /**
@@ -3923,7 +3923,7 @@ class NavigationRegion implements HasToJson {
    */
   void set length(int value) {
     assert(value != null);
-    this._length = value;
+    _length = value;
   }
 
   /**
@@ -3940,7 +3940,7 @@ class NavigationRegion implements HasToJson {
    */
   void set targets(List<int> value) {
     assert(value != null);
-    this._targets = value;
+    _targets = value;
   }
 
   NavigationRegion(int offset, int length, List<int> targets) {
@@ -4049,7 +4049,7 @@ class NavigationTarget implements HasToJson {
    */
   void set kind(ElementKind value) {
     assert(value != null);
-    this._kind = value;
+    _kind = value;
   }
 
   /**
@@ -4064,7 +4064,7 @@ class NavigationTarget implements HasToJson {
    */
   void set fileIndex(int value) {
     assert(value != null);
-    this._fileIndex = value;
+    _fileIndex = value;
   }
 
   /**
@@ -4077,7 +4077,7 @@ class NavigationTarget implements HasToJson {
    */
   void set offset(int value) {
     assert(value != null);
-    this._offset = value;
+    _offset = value;
   }
 
   /**
@@ -4090,7 +4090,7 @@ class NavigationTarget implements HasToJson {
    */
   void set length(int value) {
     assert(value != null);
-    this._length = value;
+    _length = value;
   }
 
   /**
@@ -4105,7 +4105,7 @@ class NavigationTarget implements HasToJson {
    */
   void set startLine(int value) {
     assert(value != null);
-    this._startLine = value;
+    _startLine = value;
   }
 
   /**
@@ -4120,7 +4120,7 @@ class NavigationTarget implements HasToJson {
    */
   void set startColumn(int value) {
     assert(value != null);
-    this._startColumn = value;
+    _startColumn = value;
   }
 
   NavigationTarget(ElementKind kind, int fileIndex, int offset, int length,
@@ -4255,7 +4255,7 @@ class Occurrences implements HasToJson {
    */
   void set element(Element value) {
     assert(value != null);
-    this._element = value;
+    _element = value;
   }
 
   /**
@@ -4268,7 +4268,7 @@ class Occurrences implements HasToJson {
    */
   void set offsets(List<int> value) {
     assert(value != null);
-    this._offsets = value;
+    _offsets = value;
   }
 
   /**
@@ -4281,7 +4281,7 @@ class Occurrences implements HasToJson {
    */
   void set length(int value) {
     assert(value != null);
-    this._length = value;
+    _length = value;
   }
 
   Occurrences(Element element, List<int> offsets, int length) {
@@ -4391,7 +4391,7 @@ class Outline implements HasToJson {
    */
   void set element(Element value) {
     assert(value != null);
-    this._element = value;
+    _element = value;
   }
 
   /**
@@ -4410,7 +4410,7 @@ class Outline implements HasToJson {
    */
   void set offset(int value) {
     assert(value != null);
-    this._offset = value;
+    _offset = value;
   }
 
   /**
@@ -4423,7 +4423,7 @@ class Outline implements HasToJson {
    */
   void set length(int value) {
     assert(value != null);
-    this._length = value;
+    _length = value;
   }
 
   /**
@@ -4438,7 +4438,7 @@ class Outline implements HasToJson {
    */
   void set codeOffset(int value) {
     assert(value != null);
-    this._codeOffset = value;
+    _codeOffset = value;
   }
 
   /**
@@ -4451,7 +4451,7 @@ class Outline implements HasToJson {
    */
   void set codeLength(int value) {
     assert(value != null);
-    this._codeLength = value;
+    _codeLength = value;
   }
 
   /**
@@ -4465,7 +4465,7 @@ class Outline implements HasToJson {
    * children. Children are sorted by offset.
    */
   void set children(List<Outline> value) {
-    this._children = value;
+    _children = value;
   }
 
   Outline(
@@ -4608,7 +4608,7 @@ class ParameterInfo implements HasToJson {
    */
   void set kind(ParameterKind value) {
     assert(value != null);
-    this._kind = value;
+    _kind = value;
   }
 
   /**
@@ -4621,7 +4621,7 @@ class ParameterInfo implements HasToJson {
    */
   void set name(String value) {
     assert(value != null);
-    this._name = value;
+    _name = value;
   }
 
   /**
@@ -4634,7 +4634,7 @@ class ParameterInfo implements HasToJson {
    */
   void set type(String value) {
     assert(value != null);
-    this._type = value;
+    _type = value;
   }
 
   /**
@@ -4648,7 +4648,7 @@ class ParameterInfo implements HasToJson {
    * parameter does not have a default value.
    */
   void set defaultValue(String value) {
-    this._defaultValue = value;
+    _defaultValue = value;
   }
 
   ParameterInfo(ParameterKind kind, String name, String type,
@@ -4828,7 +4828,7 @@ class Position implements HasToJson {
    */
   void set file(String value) {
     assert(value != null);
-    this._file = value;
+    _file = value;
   }
 
   /**
@@ -4841,7 +4841,7 @@ class Position implements HasToJson {
    */
   void set offset(int value) {
     assert(value != null);
-    this._offset = value;
+    _offset = value;
   }
 
   Position(String file, int offset) {
@@ -5041,7 +5041,7 @@ class RefactoringMethodParameter implements HasToJson {
    * the parameters they want to add.
    */
   void set id(String value) {
-    this._id = value;
+    _id = value;
   }
 
   /**
@@ -5054,7 +5054,7 @@ class RefactoringMethodParameter implements HasToJson {
    */
   void set kind(RefactoringMethodParameterKind value) {
     assert(value != null);
-    this._kind = value;
+    _kind = value;
   }
 
   /**
@@ -5069,7 +5069,7 @@ class RefactoringMethodParameter implements HasToJson {
    */
   void set type(String value) {
     assert(value != null);
-    this._type = value;
+    _type = value;
   }
 
   /**
@@ -5082,7 +5082,7 @@ class RefactoringMethodParameter implements HasToJson {
    */
   void set name(String value) {
     assert(value != null);
-    this._name = value;
+    _name = value;
   }
 
   /**
@@ -5098,7 +5098,7 @@ class RefactoringMethodParameter implements HasToJson {
    * type has zero parameters, this field will have a value of '()'.
    */
   void set parameters(String value) {
-    this._parameters = value;
+    _parameters = value;
   }
 
   RefactoringMethodParameter(
@@ -5285,7 +5285,7 @@ class RefactoringProblem implements HasToJson {
    */
   void set severity(RefactoringProblemSeverity value) {
     assert(value != null);
-    this._severity = value;
+    _severity = value;
   }
 
   /**
@@ -5298,7 +5298,7 @@ class RefactoringProblem implements HasToJson {
    */
   void set message(String value) {
     assert(value != null);
-    this._message = value;
+    _message = value;
   }
 
   /**
@@ -5314,7 +5314,7 @@ class RefactoringProblem implements HasToJson {
    * location where an element being renamed will be shadowed).
    */
   void set location(Location value) {
-    this._location = value;
+    _location = value;
   }
 
   RefactoringProblem(RefactoringProblemSeverity severity, String message,
@@ -5576,7 +5576,7 @@ class SourceChange implements HasToJson {
    */
   void set message(String value) {
     assert(value != null);
-    this._message = value;
+    _message = value;
   }
 
   /**
@@ -5589,7 +5589,7 @@ class SourceChange implements HasToJson {
    */
   void set edits(List<SourceFileEdit> value) {
     assert(value != null);
-    this._edits = value;
+    _edits = value;
   }
 
   /**
@@ -5604,7 +5604,7 @@ class SourceChange implements HasToJson {
    */
   void set linkedEditGroups(List<LinkedEditGroup> value) {
     assert(value != null);
-    this._linkedEditGroups = value;
+    _linkedEditGroups = value;
   }
 
   /**
@@ -5616,7 +5616,7 @@ class SourceChange implements HasToJson {
    * The position that should be selected after the edits have been applied.
    */
   void set selection(Position value) {
-    this._selection = value;
+    _selection = value;
   }
 
   /**
@@ -5630,7 +5630,7 @@ class SourceChange implements HasToJson {
    * even if the message changes, or is parameterized.
    */
   void set id(String value) {
-    this._id = value;
+    _id = value;
   }
 
   SourceChange(String message,
@@ -5815,7 +5815,7 @@ class SourceEdit implements HasToJson {
    */
   void set offset(int value) {
     assert(value != null);
-    this._offset = value;
+    _offset = value;
   }
 
   /**
@@ -5828,7 +5828,7 @@ class SourceEdit implements HasToJson {
    */
   void set length(int value) {
     assert(value != null);
-    this._length = value;
+    _length = value;
   }
 
   /**
@@ -5841,7 +5841,7 @@ class SourceEdit implements HasToJson {
    */
   void set replacement(String value) {
     assert(value != null);
-    this._replacement = value;
+    _replacement = value;
   }
 
   /**
@@ -5867,7 +5867,7 @@ class SourceEdit implements HasToJson {
    * need to be referenced will not have an id.
    */
   void set id(String value) {
-    this._id = value;
+    _id = value;
   }
 
   SourceEdit(int offset, int length, String replacement, {String id}) {
@@ -5987,7 +5987,7 @@ class SourceFileEdit implements HasToJson {
    */
   void set file(String value) {
     assert(value != null);
-    this._file = value;
+    _file = value;
   }
 
   /**
@@ -6008,7 +6008,7 @@ class SourceFileEdit implements HasToJson {
    */
   void set fileStamp(int value) {
     assert(value != null);
-    this._fileStamp = value;
+    _fileStamp = value;
   }
 
   /**
@@ -6021,7 +6021,7 @@ class SourceFileEdit implements HasToJson {
    */
   void set edits(List<SourceEdit> value) {
     assert(value != null);
-    this._edits = value;
+    _edits = value;
   }
 
   SourceFileEdit(String file, int fileStamp, {List<SourceEdit> edits}) {

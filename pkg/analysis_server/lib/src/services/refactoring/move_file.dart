@@ -38,7 +38,7 @@ class MoveFileRefactoringImpl extends RefactoringImpl
 
   MoveFileRefactoringImpl(this.resourceProvider, this.refactoringWorkspace,
       this.resolvedUnit, this.oldFile)
-      : this.pathContext = resourceProvider.pathContext;
+      : pathContext = resourceProvider.pathContext;
 
   @override
   String get refactoringName => 'Move File';

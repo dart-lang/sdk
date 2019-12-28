@@ -482,7 +482,7 @@ class AnalysisServer extends AbstractAnalysisServer {
     if (notificationManager != null) {
       notificationManager.setSubscriptions(subscriptions);
     }
-    this.analysisServices = subscriptions;
+    analysisServices = subscriptions;
     Set<String> allNewFiles =
         subscriptions.values.expand((files) => files).toSet();
     for (String file in allNewFiles) {
@@ -497,7 +497,7 @@ class AnalysisServer extends AbstractAnalysisServer {
 
   /// Implementation for `flutter.setSubscriptions`.
   void setFlutterSubscriptions(Map<FlutterService, Set<String>> subscriptions) {
-    this.flutterServices = subscriptions;
+    flutterServices = subscriptions;
     Set<String> allNewFiles =
         subscriptions.values.expand((files) => files).toSet();
     for (String file in allNewFiles) {

@@ -44,8 +44,8 @@ class Server {
   StreamSubscription<String> _stdoutSubscription;
 
   Server({ServerListener listener, Process process})
-      : this._listener = listener,
-        this._process = process;
+      : _listener = listener,
+        _process = process;
 
   /// Force kill the server. Returns exit code future.
   Future<int> kill({String reason = 'none'}) {

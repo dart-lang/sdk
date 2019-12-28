@@ -65,11 +65,11 @@ class CompletionRunner {
       bool printQuality,
       bool timing,
       bool verbose})
-      : this.output = output ?? NullStringSink(),
-        this.printMissing = printMissing ?? false,
-        this.printQuality = printQuality ?? false,
-        this.timing = timing ?? false,
-        this.verbose = verbose ?? false;
+      : output = output ?? NullStringSink(),
+        printMissing = printMissing ?? false,
+        printQuality = printQuality ?? false,
+        timing = timing ?? false,
+        verbose = verbose ?? false;
 
   /**
    * Test the completion engine at the locations of each of the identifiers in

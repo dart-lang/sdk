@@ -49,7 +49,7 @@ linter:
     - unnecessary_const
     - unnecessary_new
     - unnecessary_null_in_if_null_operators
-    #- unnecessary_this # 535
+    - unnecessary_this
     - unrelated_type_equality_checks
     #- use_function_type_syntax_for_parameters # 4
     - use_rethrow_when_possible

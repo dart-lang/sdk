@@ -129,7 +129,7 @@ abstract class RefactoringTest extends AbstractSingleUnitTest {
   Future assertSuccessfulRefactoring(String expectedCode) async {
     await assertRefactoringConditionsOK();
     SourceChange change = await refactoring.createChange();
-    this.refactoringChange = change;
+    refactoringChange = change;
     assertTestChangeResult(expectedCode);
   }
 

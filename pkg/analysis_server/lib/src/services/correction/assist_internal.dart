@@ -246,7 +246,7 @@ class AssistProcessor extends BaseProcessor {
   }
 
   Future<void> _addProposal_addNotNullAssert() async {
-    final identifier = this.node;
+    final identifier = node;
     if (identifier is SimpleIdentifier) {
       if (identifier.parent is FormalParameter) {
         final exp = identifier.parent.thisOrAncestorMatching(
@@ -307,6 +307,7 @@ class AssistProcessor extends BaseProcessor {
   Future<void> _addProposal_assignToLocalVariable() async {
     // prepare enclosing ExpressionStatement
     ExpressionStatement expressionStatement;
+    // ignore: unnecessary_this
     for (AstNode node = this.node; node != null; node = node.parent) {
       if (node is ExpressionStatement) {
         expressionStatement = node;

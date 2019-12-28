@@ -675,7 +675,7 @@ class CompletionTargetTest extends _Base {
   test_MapLiteral_expression() async {
     super.setUp();
     final experimentStatus =
-        (this.driver.analysisOptions as analyzer.AnalysisOptionsImpl)
+        (driver.analysisOptions as analyzer.AnalysisOptionsImpl)
             .experimentStatus;
     if (experimentStatus.control_flow_collections ||
         experimentStatus.spread_collections) {

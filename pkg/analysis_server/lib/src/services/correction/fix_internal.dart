@@ -1479,7 +1479,7 @@ class FixProcessor extends BaseProcessor {
   }
 
   Future<void> _addFix_convertToNamedArgument() async {
-    var argumentList = this.node;
+    var argumentList = node;
     if (argumentList is ArgumentList) {
       // Prepare parameters.
       List<ParameterElement> parameters;
@@ -3176,7 +3176,7 @@ class FixProcessor extends BaseProcessor {
           orElse: () => null);
     }
 
-    AstNode node = this.coveredNode;
+    AstNode node = coveredNode;
     if (node is Annotation) {
       await addFix(node);
     } else if (node is DefaultFormalParameter) {
@@ -3239,7 +3239,7 @@ class FixProcessor extends BaseProcessor {
   }
 
   Future<void> _addFix_removeDeadCode() async {
-    AstNode coveringNode = this.coveredNode;
+    AstNode coveringNode = coveredNode;
     if (coveringNode is Expression) {
       AstNode parent = coveredNode.parent;
       if (parent is BinaryExpression) {
@@ -3426,7 +3426,7 @@ class FixProcessor extends BaseProcessor {
       return range.startStart(name, names[index + 1]);
     }
 
-    AstNode node = this.coveredNode;
+    AstNode node = coveredNode;
     if (node is SimpleIdentifier) {
       AstNode parent = coveredNode.parent;
       if (parent is Combinator) {
@@ -3794,7 +3794,7 @@ class FixProcessor extends BaseProcessor {
     if (node is! SimpleIdentifier) {
       return;
     }
-    SimpleIdentifier identifier = this.node;
+    SimpleIdentifier identifier = node;
 
     // Prepare the new name.
     List<String> words = identifier.name.split('_');

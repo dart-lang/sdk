@@ -82,7 +82,7 @@ class CompletionTestCase extends CompletionDomainHandlerListTokenDetailsTest {
     return Future(() {
       String content = spec.source;
       newFile(testFile, content: content);
-      this.testCode = content;
+      testCode = content;
       completionOffset = spec.testLocation;
       if (extraFiles != null) {
         extraFiles.forEach((String fileName, String content) {

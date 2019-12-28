@@ -53,7 +53,7 @@ class ImportedReferenceContributor extends DartCompletionContributor {
     }
 
     this.request = request;
-    this.optype = (request as DartCompletionRequestImpl).opType;
+    optype = (request as DartCompletionRequestImpl).opType;
     List<CompletionSuggestion> suggestions = <CompletionSuggestion>[];
 
     // Traverse imports including dart:core

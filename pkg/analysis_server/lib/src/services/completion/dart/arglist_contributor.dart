@@ -145,7 +145,7 @@ class ArgListContributor extends DartCompletionContributor {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     this.request = request;
-    this.suggestions = <CompletionSuggestion>[];
+    suggestions = <CompletionSuggestion>[];
 
     var executable = request.target.executableElement;
     if (executable == null) {

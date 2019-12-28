@@ -1770,7 +1770,7 @@ main(bool p, bool p2, bool p3) {
     assertRefactoringStatusOK(status);
     // change
     SourceChange change = await refactoring.createChange();
-    this.refactoringChange = change;
+    refactoringChange = change;
     assertTestChangeResult(expectedCode);
   }
 

@@ -429,7 +429,7 @@ class AnalysisTestHelper with ResourceProviderMixin {
    * the given [code].
    */
   void createSingleFileProject(code) {
-    this.testCode = _getCodeString(code);
+    testCode = _getCodeString(code);
     newFolder(projectPath);
     newFile(testFile, content: testCode);
     Request request =

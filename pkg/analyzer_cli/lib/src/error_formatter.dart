@@ -150,17 +150,16 @@ class CLIError implements Comparable<CLIError> {
   @override
   int compareTo(CLIError other) {
     // severity
-    int compare =
-        _severityCompare[other.severity] - _severityCompare[this.severity];
+    int compare = _severityCompare[other.severity] - _severityCompare[severity];
     if (compare != 0) return compare;
 
     // path
     compare = Comparable.compare(
-        this.sourcePath.toLowerCase(), other.sourcePath.toLowerCase());
+        sourcePath.toLowerCase(), other.sourcePath.toLowerCase());
     if (compare != 0) return compare;
 
     // offset
-    return this.offset - other.offset;
+    return offset - other.offset;
   }
 }
 

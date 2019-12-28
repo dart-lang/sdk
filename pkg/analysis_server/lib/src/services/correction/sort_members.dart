@@ -48,8 +48,8 @@ class MemberSorter {
   String endOfLine;
 
   MemberSorter(this.initialCode, this.unit) {
-    this.code = initialCode;
-    this.endOfLine = getEOL(code);
+    code = initialCode;
+    endOfLine = getEOL(code);
   }
 
   /**

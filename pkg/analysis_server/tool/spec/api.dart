@@ -45,8 +45,8 @@ class ApiNode {
   final dom.Element html;
 
   ApiNode(this.html, bool experimental, bool deprecated)
-      : this.experimental = experimental ?? false,
-        this.deprecated = deprecated ?? false;
+      : experimental = experimental ?? false,
+        deprecated = deprecated ?? false;
 }
 
 /**

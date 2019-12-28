@@ -25,9 +25,9 @@ class DirectiveOrganizer {
 
   DirectiveOrganizer(this.initialCode, this.unit, this.errors,
       {this.removeUnused = true}) {
-    this.code = initialCode;
-    this.endOfLine = getEOL(code);
-    this.hasUnresolvedIdentifierError = errors.any((error) {
+    code = initialCode;
+    endOfLine = getEOL(code);
+    hasUnresolvedIdentifierError = errors.any((error) {
       return error.errorCode.isUnresolvedIdentifier;
     });
   }

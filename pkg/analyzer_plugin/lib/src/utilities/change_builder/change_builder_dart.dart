@@ -420,11 +420,11 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     bool invokeSuper: false,
   }) {
     void withCarbonCopyBuffer(f()) {
-      this._carbonCopyBuffer = displayTextBuffer;
+      _carbonCopyBuffer = displayTextBuffer;
       try {
         f();
       } finally {
-        this._carbonCopyBuffer = null;
+        _carbonCopyBuffer = null;
       }
     }
 

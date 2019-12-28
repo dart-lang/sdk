@@ -54,8 +54,8 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   final List<CompletionSuggestion> suggestions;
 
   _KeywordVisitor(DartCompletionRequest request, this.suggestions)
-      : this.request = request,
-        this.entity = request.target.entity;
+      : request = request,
+        entity = request.target.entity;
 
   Token get droppedToken => request.target.droppedToken;
 
@@ -620,6 +620,12 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   }
 
   @override
+  visitSwitchCase(SwitchCase node) {
+    _addStatementKeywords(node);
+    return super.visitSwitchCase(node);
+  }
+
+  @override
   visitSwitchStatement(SwitchStatement node) {
     if (entity == node.expression) {
       _addExpressionKeywords(node);
@@ -643,12 +649,6 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
         _addStatementKeywords(node);
       }
     }
-  }
-
-  @override
-  visitSwitchCase(SwitchCase node) {
-    _addStatementKeywords(node);
-    return super.visitSwitchCase(node);
   }
 
   @override
@@ -676,23 +676,6 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
       Keyword.COVARIANT,
       Keyword.DYNAMIC,
       Keyword.FACTORY,
-      Keyword.FINAL,
-      Keyword.GET,
-      Keyword.OPERATOR,
-      Keyword.SET,
-      Keyword.STATIC,
-      Keyword.VAR,
-      Keyword.VOID
-    ]);
-    if (request.featureSet.isEnabled(Feature.non_nullable)) {
-      _addSuggestion(Keyword.LATE);
-    }
-  }
-
-  void _addExtensionBodyKeywords() {
-    _addSuggestions([
-      Keyword.CONST,
-      Keyword.DYNAMIC,
       Keyword.FINAL,
       Keyword.GET,
       Keyword.OPERATOR,
@@ -761,6 +744,23 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
     }
     if (_inAsyncMethodOrFunction(node)) {
       _addSuggestion(Keyword.AWAIT);
+    }
+  }
+
+  void _addExtensionBodyKeywords() {
+    _addSuggestions([
+      Keyword.CONST,
+      Keyword.DYNAMIC,
+      Keyword.FINAL,
+      Keyword.GET,
+      Keyword.OPERATOR,
+      Keyword.SET,
+      Keyword.STATIC,
+      Keyword.VAR,
+      Keyword.VOID
+    ]);
+    if (request.featureSet.isEnabled(Feature.non_nullable)) {
+      _addSuggestion(Keyword.LATE);
     }
   }
 

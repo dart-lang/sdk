@@ -432,6 +432,6 @@ class _InsertionDescription {
   final int newLinesAfter;
 
   _InsertionDescription(this.offset, {int before = 0, int after = 0})
-      : this.newLinesBefore = before,
-        this.newLinesAfter = after;
+      : newLinesBefore = before,
+        newLinesAfter = after;
 }

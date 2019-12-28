@@ -44,7 +44,7 @@ class CompletionRequestImpl implements CompletionRequest {
    * Initialize a newly created completion request based on the given arguments.
    */
   CompletionRequestImpl(this.result, int offset, this.performance)
-      : this.offset = offset,
+      : offset = offset,
         replacementOffset = offset,
         replacementLength = 0;
 

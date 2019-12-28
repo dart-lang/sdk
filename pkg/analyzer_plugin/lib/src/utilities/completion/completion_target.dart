@@ -256,11 +256,10 @@ class CompletionTarget {
    */
   CompletionTarget._(this.unit, this.offset, AstNode containingNode,
       Object entity, this.isCommentText)
-      : this.containingNode = containingNode,
-        this.entity = entity,
-        this.argIndex = _computeArgIndex(containingNode, entity),
-        this.droppedToken =
-            _computeDroppedToken(containingNode, entity, offset);
+      : containingNode = containingNode,
+        entity = entity,
+        argIndex = _computeArgIndex(containingNode, entity),
+        droppedToken = _computeDroppedToken(containingNode, entity, offset);
 
   /**
    * If the target is an argument in an argument list, and the invocation is

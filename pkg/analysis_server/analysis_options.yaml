@@ -46,5 +46,5 @@ linter:
     #- prefer_if_null_operators # 22
     #- prefer_single_quotes # 6653
     #- prefer_spread_collections # 3
-    #- unnecessary_this # 475
+    - unnecessary_this
     #- use_function_type_syntax_for_parameters # 90

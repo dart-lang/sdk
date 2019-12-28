@@ -94,7 +94,7 @@ class AbstractAnalysisTest with ResourceProviderMixin {
 
   String addTestFile(String content) {
     newFile(testFile, content: content);
-    this.testCode = content;
+    testCode = content;
     return testFile;
   }
 
@@ -181,7 +181,7 @@ class AbstractAnalysisTest with ResourceProviderMixin {
 
   String modifyTestFile(String content) {
     modifyFile(testFile, content);
-    this.testCode = content;
+    testCode = content;
     return testFile;
   }
 

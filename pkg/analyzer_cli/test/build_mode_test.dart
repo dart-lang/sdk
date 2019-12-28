@@ -44,7 +44,7 @@ class WorkerLoopTest {
   TestAsyncWorkerConnection connection;
 
   WorkerLoopTest() {
-    connection = TestAsyncWorkerConnection(this.stdinStream, this.stdoutStream);
+    connection = TestAsyncWorkerConnection(stdinStream, stdoutStream);
   }
 
   void setUp() {}
