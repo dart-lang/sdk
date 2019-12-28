@@ -32,7 +32,7 @@ class AnalysisErrorFixes implements HasToJson {
   /// The error with which the fixes are associated.
   set error(AnalysisError value) {
     assert(value != null);
-    this._error = value;
+    _error = value;
   }
 
   /// The fixes associated with the error.
@@ -41,7 +41,7 @@ class AnalysisErrorFixes implements HasToJson {
   /// The fixes associated with the error.
   set fixes(List<PrioritizedSourceChange> value) {
     assert(value != null);
-    this._fixes = value;
+    _fixes = value;
   }
 
   AnalysisErrorFixes(AnalysisError error,
@@ -133,7 +133,7 @@ class AnalysisErrorsParams implements HasToJson {
   /// The file containing the errors.
   set file(String value) {
     assert(value != null);
-    this._file = value;
+    _file = value;
   }
 
   /// The errors contained in the file.
@@ -142,7 +142,7 @@ class AnalysisErrorsParams implements HasToJson {
   /// The errors contained in the file.
   set errors(List<AnalysisError> value) {
     assert(value != null);
-    this._errors = value;
+    _errors = value;
   }
 
   AnalysisErrorsParams(String file, List<AnalysisError> errors) {
@@ -237,7 +237,7 @@ class AnalysisFoldingParams implements HasToJson {
   /// The file containing the folding regions.
   set file(String value) {
     assert(value != null);
-    this._file = value;
+    _file = value;
   }
 
   /// The folding regions contained in the file.
@@ -246,7 +246,7 @@ class AnalysisFoldingParams implements HasToJson {
   /// The folding regions contained in the file.
   set regions(List<FoldingRegion> value) {
     assert(value != null);
-    this._regions = value;
+    _regions = value;
   }
 
   AnalysisFoldingParams(String file, List<FoldingRegion> regions) {
@@ -344,7 +344,7 @@ class AnalysisGetNavigationParams implements RequestParams {
   /// The file in which navigation information is being requested.
   set file(String value) {
     assert(value != null);
-    this._file = value;
+    _file = value;
   }
 
   /// The offset of the region for which navigation information is being
@@ -355,7 +355,7 @@ class AnalysisGetNavigationParams implements RequestParams {
   /// requested.
   set offset(int value) {
     assert(value != null);
-    this._offset = value;
+    _offset = value;
   }
 
   /// The length of the region for which navigation information is being
@@ -366,7 +366,7 @@ class AnalysisGetNavigationParams implements RequestParams {
   /// requested.
   set length(int value) {
     assert(value != null);
-    this._length = value;
+    _length = value;
   }
 
   AnalysisGetNavigationParams(String file, int offset, int length) {
@@ -472,7 +472,7 @@ class AnalysisGetNavigationResult implements ResponseResult {
   /// targets.
   set files(List<String> value) {
     assert(value != null);
-    this._files = value;
+    _files = value;
   }
 
   /// A list of the navigation targets that are referenced by the navigation
@@ -483,7 +483,7 @@ class AnalysisGetNavigationResult implements ResponseResult {
   /// regions.
   set targets(List<NavigationTarget> value) {
     assert(value != null);
-    this._targets = value;
+    _targets = value;
   }
 
   /// A list of the navigation regions within the requested region of the file.
@@ -492,7 +492,7 @@ class AnalysisGetNavigationResult implements ResponseResult {
   /// A list of the navigation regions within the requested region of the file.
   set regions(List<NavigationRegion> value) {
     assert(value != null);
-    this._regions = value;
+    _regions = value;
   }
 
   AnalysisGetNavigationResult(List<String> files,
@@ -606,7 +606,7 @@ class AnalysisHandleWatchEventsParams implements RequestParams {
   /// The watch events that the plugin should handle.
   set events(List<WatchEvent> value) {
     assert(value != null);
-    this._events = value;
+    _events = value;
   }
 
   AnalysisHandleWatchEventsParams(List<WatchEvent> events) {
@@ -719,7 +719,7 @@ class AnalysisHighlightsParams implements HasToJson {
   /// The file containing the highlight regions.
   set file(String value) {
     assert(value != null);
-    this._file = value;
+    _file = value;
   }
 
   /// The highlight regions contained in the file.
@@ -728,7 +728,7 @@ class AnalysisHighlightsParams implements HasToJson {
   /// The highlight regions contained in the file.
   set regions(List<HighlightRegion> value) {
     assert(value != null);
-    this._regions = value;
+    _regions = value;
   }
 
   AnalysisHighlightsParams(String file, List<HighlightRegion> regions) {
@@ -829,7 +829,7 @@ class AnalysisNavigationParams implements HasToJson {
   /// The file containing the navigation regions.
   set file(String value) {
     assert(value != null);
-    this._file = value;
+    _file = value;
   }
 
   /// The navigation regions contained in the file.
@@ -838,7 +838,7 @@ class AnalysisNavigationParams implements HasToJson {
   /// The navigation regions contained in the file.
   set regions(List<NavigationRegion> value) {
     assert(value != null);
-    this._regions = value;
+    _regions = value;
   }
 
   /// The navigation targets referenced in the file. They are referenced by
@@ -849,7 +849,7 @@ class AnalysisNavigationParams implements HasToJson {
   /// NavigationRegions by their index in this array.
   set targets(List<NavigationTarget> value) {
     assert(value != null);
-    this._targets = value;
+    _targets = value;
   }
 
   /// The files containing navigation targets referenced in the file. They are
@@ -860,7 +860,7 @@ class AnalysisNavigationParams implements HasToJson {
   /// referenced by NavigationTargets by their index in this array.
   set files(List<String> value) {
     assert(value != null);
-    this._files = value;
+    _files = value;
   }
 
   AnalysisNavigationParams(String file, List<NavigationRegion> regions,
@@ -983,7 +983,7 @@ class AnalysisOccurrencesParams implements HasToJson {
   /// The file in which the references occur.
   set file(String value) {
     assert(value != null);
-    this._file = value;
+    _file = value;
   }
 
   /// The occurrences of references to elements within the file.
@@ -992,7 +992,7 @@ class AnalysisOccurrencesParams implements HasToJson {
   /// The occurrences of references to elements within the file.
   set occurrences(List<Occurrences> value) {
     assert(value != null);
-    this._occurrences = value;
+    _occurrences = value;
   }
 
   AnalysisOccurrencesParams(String file, List<Occurrences> occurrences) {
@@ -1088,7 +1088,7 @@ class AnalysisOutlineParams implements HasToJson {
   /// The file with which the outline is associated.
   set file(String value) {
     assert(value != null);
-    this._file = value;
+    _file = value;
   }
 
   /// The outline fragments associated with the file.
@@ -1097,7 +1097,7 @@ class AnalysisOutlineParams implements HasToJson {
   /// The outline fragments associated with the file.
   set outline(List<Outline> value) {
     assert(value != null);
-    this._outline = value;
+    _outline = value;
   }
 
   AnalysisOutlineParams(String file, List<Outline> outline) {
@@ -1257,7 +1257,7 @@ class AnalysisSetContextRootsParams implements RequestParams {
   /// A list of the context roots that should be analyzed.
   set roots(List<ContextRoot> value) {
     assert(value != null);
-    this._roots = value;
+    _roots = value;
   }
 
   AnalysisSetContextRootsParams(List<ContextRoot> roots) {
@@ -1366,7 +1366,7 @@ class AnalysisSetPriorityFilesParams implements RequestParams {
   /// The files that are to be a priority for analysis.
   set files(List<String> value) {
     assert(value != null);
-    this._files = value;
+    _files = value;
   }
 
   AnalysisSetPriorityFilesParams(List<String> files) {
@@ -1473,7 +1473,7 @@ class AnalysisSetSubscriptionsParams implements RequestParams {
   /// service.
   set subscriptions(Map<AnalysisService, List<String>> value) {
     assert(value != null);
-    this._subscriptions = value;
+    _subscriptions = value;
   }
 
   AnalysisSetSubscriptionsParams(
@@ -1590,7 +1590,7 @@ class AnalysisUpdateContentParams implements RequestParams {
   /// the content change.
   set files(Map<String, dynamic> value) {
     assert(value != null);
-    this._files = value;
+    _files = value;
   }
 
   AnalysisUpdateContentParams(Map<String, dynamic> files) {
@@ -1708,7 +1708,7 @@ class CompletionGetSuggestionsParams implements RequestParams {
   /// The file containing the point at which suggestions are to be made.
   set file(String value) {
     assert(value != null);
-    this._file = value;
+    _file = value;
   }
 
   /// The offset within the file at which suggestions are to be made.
@@ -1717,7 +1717,7 @@ class CompletionGetSuggestionsParams implements RequestParams {
   /// The offset within the file at which suggestions are to be made.
   set offset(int value) {
     assert(value != null);
-    this._offset = value;
+    _offset = value;
   }
 
   CompletionGetSuggestionsParams(String file, int offset) {
@@ -1818,7 +1818,7 @@ class CompletionGetSuggestionsResult implements ResponseResult {
   /// said identifier.
   set replacementOffset(int value) {
     assert(value != null);
-    this._replacementOffset = value;
+    _replacementOffset = value;
   }
 
   /// The length of the text to be replaced if the remainder of the identifier
@@ -1831,7 +1831,7 @@ class CompletionGetSuggestionsResult implements ResponseResult {
   /// (that is, the number of characters in the existing identifier).
   set replacementLength(int value) {
     assert(value != null);
-    this._replacementLength = value;
+    _replacementLength = value;
   }
 
   /// The completion suggestions being reported. The notification contains all
@@ -1848,7 +1848,7 @@ class CompletionGetSuggestionsResult implements ResponseResult {
   /// make additional requests.
   set results(List<CompletionSuggestion> value) {
     assert(value != null);
-    this._results = value;
+    _results = value;
   }
 
   CompletionGetSuggestionsResult(int replacementOffset, int replacementLength,
@@ -1966,7 +1966,7 @@ class ContextRoot implements HasToJson {
   /// analyzed.
   set root(String value) {
     assert(value != null);
-    this._root = value;
+    _root = value;
   }
 
   /// A list of the absolute paths of files and directories within the root
@@ -1977,7 +1977,7 @@ class ContextRoot implements HasToJson {
   /// directory that should not be analyzed.
   set exclude(List<String> value) {
     assert(value != null);
-    this._exclude = value;
+    _exclude = value;
   }
 
   /// The absolute path of the analysis options file that should be used to
@@ -1987,7 +1987,7 @@ class ContextRoot implements HasToJson {
   /// The absolute path of the analysis options file that should be used to
   /// control the analysis of the files in the context.
   set optionsFile(String value) {
-    this._optionsFile = value;
+    _optionsFile = value;
   }
 
   ContextRoot(String root, List<String> exclude, {String optionsFile}) {
@@ -2158,7 +2158,7 @@ class EditGetAssistsParams implements RequestParams {
   /// The file containing the code for which assists are being requested.
   set file(String value) {
     assert(value != null);
-    this._file = value;
+    _file = value;
   }
 
   /// The offset of the code for which assists are being requested.
@@ -2167,7 +2167,7 @@ class EditGetAssistsParams implements RequestParams {
   /// The offset of the code for which assists are being requested.
   set offset(int value) {
     assert(value != null);
-    this._offset = value;
+    _offset = value;
   }
 
   /// The length of the code for which assists are being requested.
@@ -2176,7 +2176,7 @@ class EditGetAssistsParams implements RequestParams {
   /// The length of the code for which assists are being requested.
   set length(int value) {
     assert(value != null);
-    this._length = value;
+    _length = value;
   }
 
   EditGetAssistsParams(String file, int offset, int length) {
@@ -2273,7 +2273,7 @@ class EditGetAssistsResult implements ResponseResult {
   /// The assists that are available at the given location.
   set assists(List<PrioritizedSourceChange> value) {
     assert(value != null);
-    this._assists = value;
+    _assists = value;
   }
 
   EditGetAssistsResult(List<PrioritizedSourceChange> assists) {
@@ -2364,7 +2364,7 @@ class EditGetAvailableRefactoringsParams implements RequestParams {
   /// The file containing the code on which the refactoring would be based.
   set file(String value) {
     assert(value != null);
-    this._file = value;
+    _file = value;
   }
 
   /// The offset of the code on which the refactoring would be based.
@@ -2373,7 +2373,7 @@ class EditGetAvailableRefactoringsParams implements RequestParams {
   /// The offset of the code on which the refactoring would be based.
   set offset(int value) {
     assert(value != null);
-    this._offset = value;
+    _offset = value;
   }
 
   /// The length of the code on which the refactoring would be based.
@@ -2382,7 +2382,7 @@ class EditGetAvailableRefactoringsParams implements RequestParams {
   /// The length of the code on which the refactoring would be based.
   set length(int value) {
     assert(value != null);
-    this._length = value;
+    _length = value;
   }
 
   EditGetAvailableRefactoringsParams(String file, int offset, int length) {
@@ -2490,7 +2490,7 @@ class EditGetAvailableRefactoringsResult implements ResponseResult {
   /// refactoring, at locations not supported by server.
   set kinds(List<RefactoringKind> value) {
     assert(value != null);
-    this._kinds = value;
+    _kinds = value;
   }
 
   EditGetAvailableRefactoringsResult(List<RefactoringKind> kinds) {
@@ -2579,7 +2579,7 @@ class EditGetFixesParams implements RequestParams {
   /// The file containing the errors for which fixes are being requested.
   set file(String value) {
     assert(value != null);
-    this._file = value;
+    _file = value;
   }
 
   /// The offset used to select the errors for which fixes will be returned.
@@ -2588,7 +2588,7 @@ class EditGetFixesParams implements RequestParams {
   /// The offset used to select the errors for which fixes will be returned.
   set offset(int value) {
     assert(value != null);
-    this._offset = value;
+    _offset = value;
   }
 
   EditGetFixesParams(String file, int offset) {
@@ -2674,7 +2674,7 @@ class EditGetFixesResult implements ResponseResult {
   /// The fixes that are available for the errors at the given offset.
   set fixes(List<AnalysisErrorFixes> value) {
     assert(value != null);
-    this._fixes = value;
+    _fixes = value;
   }
 
   EditGetFixesResult(List<AnalysisErrorFixes> fixes) {
@@ -2774,7 +2774,7 @@ class EditGetRefactoringParams implements RequestParams {
   /// The kind of refactoring to be performed.
   set kind(RefactoringKind value) {
     assert(value != null);
-    this._kind = value;
+    _kind = value;
   }
 
   /// The file containing the code involved in the refactoring.
@@ -2783,7 +2783,7 @@ class EditGetRefactoringParams implements RequestParams {
   /// The file containing the code involved in the refactoring.
   set file(String value) {
     assert(value != null);
-    this._file = value;
+    _file = value;
   }
 
   /// The offset of the region involved in the refactoring.
@@ -2792,7 +2792,7 @@ class EditGetRefactoringParams implements RequestParams {
   /// The offset of the region involved in the refactoring.
   set offset(int value) {
     assert(value != null);
-    this._offset = value;
+    _offset = value;
   }
 
   /// The length of the region involved in the refactoring.
@@ -2801,7 +2801,7 @@ class EditGetRefactoringParams implements RequestParams {
   /// The length of the region involved in the refactoring.
   set length(int value) {
     assert(value != null);
-    this._length = value;
+    _length = value;
   }
 
   /// True if the client is only requesting that the values of the options be
@@ -2812,7 +2812,7 @@ class EditGetRefactoringParams implements RequestParams {
   /// validated and no change be generated.
   set validateOnly(bool value) {
     assert(value != null);
-    this._validateOnly = value;
+    _validateOnly = value;
   }
 
   /// Data used to provide values provided by the user. The structure of the
@@ -2828,7 +2828,7 @@ class EditGetRefactoringParams implements RequestParams {
   /// labeled as "Options". This field can be omitted if the refactoring does
   /// not require any options or if the values of those options are not known.
   set options(RefactoringOptions value) {
-    this._options = value;
+    _options = value;
   }
 
   EditGetRefactoringParams(RefactoringKind kind, String file, int offset,
@@ -2982,7 +2982,7 @@ class EditGetRefactoringResult implements ResponseResult {
   /// if there are no known problems.
   set initialProblems(List<RefactoringProblem> value) {
     assert(value != null);
-    this._initialProblems = value;
+    _initialProblems = value;
   }
 
   /// The options validation status, that is, problems in the given options,
@@ -2995,7 +2995,7 @@ class EditGetRefactoringResult implements ResponseResult {
   /// The list should be empty if there are no known problems.
   set optionsProblems(List<RefactoringProblem> value) {
     assert(value != null);
-    this._optionsProblems = value;
+    _optionsProblems = value;
   }
 
   /// The final status of the refactoring, that is, problems identified in the
@@ -3008,7 +3008,7 @@ class EditGetRefactoringResult implements ResponseResult {
   /// creation. The list should be empty if there are no known problems.
   set finalProblems(List<RefactoringProblem> value) {
     assert(value != null);
-    this._finalProblems = value;
+    _finalProblems = value;
   }
 
   /// Data used to provide feedback to the user. The structure of the data is
@@ -3022,7 +3022,7 @@ class EditGetRefactoringResult implements ResponseResult {
   /// returned is documented in the section titled Refactorings, labeled as
   /// "Feedback".
   set feedback(RefactoringFeedback value) {
-    this._feedback = value;
+    _feedback = value;
   }
 
   /// The changes that are to be applied to affect the refactoring. This field
@@ -3036,7 +3036,7 @@ class EditGetRefactoringResult implements ResponseResult {
   /// being computed, such as having no options specified for a refactoring
   /// that requires them, or if only validation was requested.
   set change(SourceChange value) {
-    this._change = value;
+    _change = value;
   }
 
   /// The ids of source edits that are not known to be valid. An edit is not
@@ -3054,7 +3054,7 @@ class EditGetRefactoringResult implements ResponseResult {
   /// to a member from an unknown type. This field can be omitted if the change
   /// field is omitted or if there are no potential edits for the refactoring.
   set potentialEdits(List<String> value) {
-    this._potentialEdits = value;
+    _potentialEdits = value;
   }
 
   EditGetRefactoringResult(
@@ -3229,7 +3229,7 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback {
   /// The offsets of the expressions that cover the specified selection, from
   /// the down most to the up most.
   set coveringExpressionOffsets(List<int> value) {
-    this._coveringExpressionOffsets = value;
+    _coveringExpressionOffsets = value;
   }
 
   /// The lengths of the expressions that cover the specified selection, from
@@ -3239,7 +3239,7 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback {
   /// The lengths of the expressions that cover the specified selection, from
   /// the down most to the up most.
   set coveringExpressionLengths(List<int> value) {
-    this._coveringExpressionLengths = value;
+    _coveringExpressionLengths = value;
   }
 
   /// The proposed names for the local variable.
@@ -3248,7 +3248,7 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback {
   /// The proposed names for the local variable.
   set names(List<String> value) {
     assert(value != null);
-    this._names = value;
+    _names = value;
   }
 
   /// The offsets of the expressions that would be replaced by a reference to
@@ -3259,7 +3259,7 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback {
   /// the variable.
   set offsets(List<int> value) {
     assert(value != null);
-    this._offsets = value;
+    _offsets = value;
   }
 
   /// The lengths of the expressions that would be replaced by a reference to
@@ -3274,7 +3274,7 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback {
   /// the length of that expression is lengths[i].
   set lengths(List<int> value) {
     assert(value != null);
-    this._lengths = value;
+    _lengths = value;
   }
 
   ExtractLocalVariableFeedback(
@@ -3401,7 +3401,7 @@ class ExtractLocalVariableOptions extends RefactoringOptions {
   /// The name that the local variable should be given.
   set name(String value) {
     assert(value != null);
-    this._name = value;
+    _name = value;
   }
 
   /// True if all occurrences of the expression within the scope in which the
@@ -3416,7 +3416,7 @@ class ExtractLocalVariableOptions extends RefactoringOptions {
   /// replaced.
   set extractAll(bool value) {
     assert(value != null);
-    this._extractAll = value;
+    _extractAll = value;
   }
 
   ExtractLocalVariableOptions(String name, bool extractAll) {
@@ -3523,7 +3523,7 @@ class ExtractMethodFeedback extends RefactoringFeedback {
   /// extracted.
   set offset(int value) {
     assert(value != null);
-    this._offset = value;
+    _offset = value;
   }
 
   /// The length of the expression or statements that will be extracted.
@@ -3532,7 +3532,7 @@ class ExtractMethodFeedback extends RefactoringFeedback {
   /// The length of the expression or statements that will be extracted.
   set length(int value) {
     assert(value != null);
-    this._length = value;
+    _length = value;
   }
 
   /// The proposed return type for the method. If the returned element does not
@@ -3543,7 +3543,7 @@ class ExtractMethodFeedback extends RefactoringFeedback {
   /// have a declared return type, this field will contain an empty string.
   set returnType(String value) {
     assert(value != null);
-    this._returnType = value;
+    _returnType = value;
   }
 
   /// The proposed names for the method.
@@ -3552,7 +3552,7 @@ class ExtractMethodFeedback extends RefactoringFeedback {
   /// The proposed names for the method.
   set names(List<String> value) {
     assert(value != null);
-    this._names = value;
+    _names = value;
   }
 
   /// True if a getter could be created rather than a method.
@@ -3561,7 +3561,7 @@ class ExtractMethodFeedback extends RefactoringFeedback {
   /// True if a getter could be created rather than a method.
   set canCreateGetter(bool value) {
     assert(value != null);
-    this._canCreateGetter = value;
+    _canCreateGetter = value;
   }
 
   /// The proposed parameters for the method.
@@ -3570,7 +3570,7 @@ class ExtractMethodFeedback extends RefactoringFeedback {
   /// The proposed parameters for the method.
   set parameters(List<RefactoringMethodParameter> value) {
     assert(value != null);
-    this._parameters = value;
+    _parameters = value;
   }
 
   /// The offsets of the expressions or statements that would be replaced by an
@@ -3581,7 +3581,7 @@ class ExtractMethodFeedback extends RefactoringFeedback {
   /// invocation of the method.
   set offsets(List<int> value) {
     assert(value != null);
-    this._offsets = value;
+    _offsets = value;
   }
 
   /// The lengths of the expressions or statements that would be replaced by an
@@ -3598,7 +3598,7 @@ class ExtractMethodFeedback extends RefactoringFeedback {
   /// lengths[i].
   set lengths(List<int> value) {
     assert(value != null);
-    this._lengths = value;
+    _lengths = value;
   }
 
   ExtractMethodFeedback(
@@ -3772,7 +3772,7 @@ class ExtractMethodOptions extends RefactoringOptions {
   /// The return type that should be defined for the method.
   set returnType(String value) {
     assert(value != null);
-    this._returnType = value;
+    _returnType = value;
   }
 
   /// True if a getter should be created rather than a method. It is an error
@@ -3783,7 +3783,7 @@ class ExtractMethodOptions extends RefactoringOptions {
   /// if this field is true and the list of parameters is non-empty.
   set createGetter(bool value) {
     assert(value != null);
-    this._createGetter = value;
+    _createGetter = value;
   }
 
   /// The name that the method should be given.
@@ -3792,7 +3792,7 @@ class ExtractMethodOptions extends RefactoringOptions {
   /// The name that the method should be given.
   set name(String value) {
     assert(value != null);
-    this._name = value;
+    _name = value;
   }
 
   /// The parameters that should be defined for the method.
@@ -3819,7 +3819,7 @@ class ExtractMethodOptions extends RefactoringOptions {
   /// - To remove some parameters, omit them in this list.
   set parameters(List<RefactoringMethodParameter> value) {
     assert(value != null);
-    this._parameters = value;
+    _parameters = value;
   }
 
   /// True if all occurrences of the expression or statements should be
@@ -3832,7 +3832,7 @@ class ExtractMethodOptions extends RefactoringOptions {
   /// used to initiate the refactoring will always be replaced.
   set extractAll(bool value) {
     assert(value != null);
-    this._extractAll = value;
+    _extractAll = value;
   }
 
   ExtractMethodOptions(String returnType, bool createGetter, String name,
@@ -3964,7 +3964,7 @@ class InlineLocalVariableFeedback extends RefactoringFeedback {
   /// The name of the variable being inlined.
   set name(String value) {
     assert(value != null);
-    this._name = value;
+    _name = value;
   }
 
   /// The number of times the variable occurs.
@@ -3973,7 +3973,7 @@ class InlineLocalVariableFeedback extends RefactoringFeedback {
   /// The number of times the variable occurs.
   set occurrences(int value) {
     assert(value != null);
-    this._occurrences = value;
+    _occurrences = value;
   }
 
   InlineLocalVariableFeedback(String name, int occurrences) {
@@ -4077,7 +4077,7 @@ class InlineMethodFeedback extends RefactoringFeedback {
   /// The name of the class enclosing the method being inlined. If not a class
   /// member is being inlined, this field will be absent.
   set className(String value) {
-    this._className = value;
+    _className = value;
   }
 
   /// The name of the method (or function) being inlined.
@@ -4086,7 +4086,7 @@ class InlineMethodFeedback extends RefactoringFeedback {
   /// The name of the method (or function) being inlined.
   set methodName(String value) {
     assert(value != null);
-    this._methodName = value;
+    _methodName = value;
   }
 
   /// True if the declaration of the method is selected and all references
@@ -4097,7 +4097,7 @@ class InlineMethodFeedback extends RefactoringFeedback {
   /// should be inlined.
   set isDeclaration(bool value) {
     assert(value != null);
-    this._isDeclaration = value;
+    _isDeclaration = value;
   }
 
   InlineMethodFeedback(String methodName, bool isDeclaration,
@@ -4194,7 +4194,7 @@ class InlineMethodOptions extends RefactoringOptions {
   /// this field is true and inlineAll is false.
   set deleteSource(bool value) {
     assert(value != null);
-    this._deleteSource = value;
+    _deleteSource = value;
   }
 
   /// True if all invocations of the method should be inlined, or false if only
@@ -4205,7 +4205,7 @@ class InlineMethodOptions extends RefactoringOptions {
   /// the invocation site used to create this refactoring should be inlined.
   set inlineAll(bool value) {
     assert(value != null);
-    this._inlineAll = value;
+    _inlineAll = value;
   }
 
   InlineMethodOptions(bool deleteSource, bool inlineAll) {
@@ -4291,7 +4291,7 @@ class KytheGetKytheEntriesParams implements RequestParams {
   /// requested.
   set file(String value) {
     assert(value != null);
-    this._file = value;
+    _file = value;
   }
 
   KytheGetKytheEntriesParams(String file) {
@@ -4372,7 +4372,7 @@ class KytheGetKytheEntriesResult implements ResponseResult {
   /// The list of KytheEntry objects for the queried file.
   set entries(List<KytheEntry> value) {
     assert(value != null);
-    this._entries = value;
+    _entries = value;
   }
 
   /// The set of files paths that were required, but not in the file system, to
@@ -4387,7 +4387,7 @@ class KytheGetKytheEntriesResult implements ResponseResult {
   /// generated or passed before the call to "getKytheEntries".
   set files(List<String> value) {
     assert(value != null);
-    this._files = value;
+    _files = value;
   }
 
   KytheGetKytheEntriesResult(List<KytheEntry> entries, List<String> files) {
@@ -4502,7 +4502,7 @@ class MoveFileOptions extends RefactoringOptions {
   /// The new file path to which the given file is being moved.
   set newFile(String value) {
     assert(value != null);
-    this._newFile = value;
+    _newFile = value;
   }
 
   MoveFileOptions(String newFile) {
@@ -4588,7 +4588,7 @@ class PluginErrorParams implements HasToJson {
   /// from the plugin.
   set isFatal(bool value) {
     assert(value != null);
-    this._isFatal = value;
+    _isFatal = value;
   }
 
   /// The error message indicating what kind of error was encountered.
@@ -4597,7 +4597,7 @@ class PluginErrorParams implements HasToJson {
   /// The error message indicating what kind of error was encountered.
   set message(String value) {
     assert(value != null);
-    this._message = value;
+    _message = value;
   }
 
   /// The stack trace associated with the generation of the error, used for
@@ -4608,7 +4608,7 @@ class PluginErrorParams implements HasToJson {
   /// debugging the plugin.
   set stackTrace(String value) {
     assert(value != null);
-    this._stackTrace = value;
+    _stackTrace = value;
   }
 
   PluginErrorParams(bool isFatal, String message, String stackTrace) {
@@ -4767,7 +4767,7 @@ class PluginVersionCheckParams implements RequestParams {
   /// used by any analysis drivers that are created.
   set byteStorePath(String value) {
     assert(value != null);
-    this._byteStorePath = value;
+    _byteStorePath = value;
   }
 
   /// The path to the directory containing the SDK that is to be used by any
@@ -4778,7 +4778,7 @@ class PluginVersionCheckParams implements RequestParams {
   /// analysis drivers that are created.
   set sdkPath(String value) {
     assert(value != null);
-    this._sdkPath = value;
+    _sdkPath = value;
   }
 
   /// The version number of the plugin spec supported by the analysis server
@@ -4789,7 +4789,7 @@ class PluginVersionCheckParams implements RequestParams {
   /// that is executing the plugin.
   set version(String value) {
     assert(value != null);
-    this._version = value;
+    _version = value;
   }
 
   PluginVersionCheckParams(
@@ -4906,7 +4906,7 @@ class PluginVersionCheckResult implements ResponseResult {
   /// plugin is expected to shutdown after returning the response.
   set isCompatible(bool value) {
     assert(value != null);
-    this._isCompatible = value;
+    _isCompatible = value;
   }
 
   /// The name of the plugin. This value is only used when the server needs to
@@ -4917,7 +4917,7 @@ class PluginVersionCheckResult implements ResponseResult {
   /// identify the plugin, either to the user or for debugging purposes.
   set name(String value) {
     assert(value != null);
-    this._name = value;
+    _name = value;
   }
 
   /// The version of the plugin. This value is only used when the server needs
@@ -4928,7 +4928,7 @@ class PluginVersionCheckResult implements ResponseResult {
   /// to identify the plugin, either to the user or for debugging purposes.
   set version(String value) {
     assert(value != null);
-    this._version = value;
+    _version = value;
   }
 
   /// Information that the user can use to use to contact the maintainers of
@@ -4938,7 +4938,7 @@ class PluginVersionCheckResult implements ResponseResult {
   /// Information that the user can use to use to contact the maintainers of
   /// the plugin when there is a problem.
   set contactInfo(String value) {
-    this._contactInfo = value;
+    _contactInfo = value;
   }
 
   /// The glob patterns of the files for which the plugin will provide
@@ -4953,7 +4953,7 @@ class PluginVersionCheckResult implements ResponseResult {
   /// should be notified of changes.
   set interestingFiles(List<String> value) {
     assert(value != null);
-    this._interestingFiles = value;
+    _interestingFiles = value;
   }
 
   PluginVersionCheckResult(bool isCompatible, String name, String version,
@@ -5088,7 +5088,7 @@ class PrioritizedSourceChange implements HasToJson {
   /// zero (0) is the lowest priority.
   set priority(int value) {
     assert(value != null);
-    this._priority = value;
+    _priority = value;
   }
 
   /// The change with which the relevance is associated.
@@ -5097,7 +5097,7 @@ class PrioritizedSourceChange implements HasToJson {
   /// The change with which the relevance is associated.
   set change(SourceChange value) {
     assert(value != null);
-    this._change = value;
+    _change = value;
   }
 
   PrioritizedSourceChange(int priority, SourceChange change) {
@@ -5261,7 +5261,7 @@ class RenameFeedback extends RefactoringFeedback {
   /// The offset to the beginning of the name selected to be renamed.
   set offset(int value) {
     assert(value != null);
-    this._offset = value;
+    _offset = value;
   }
 
   /// The length of the name selected to be renamed.
@@ -5270,7 +5270,7 @@ class RenameFeedback extends RefactoringFeedback {
   /// The length of the name selected to be renamed.
   set length(int value) {
     assert(value != null);
-    this._length = value;
+    _length = value;
   }
 
   /// The human-readable description of the kind of element being renamed (such
@@ -5281,7 +5281,7 @@ class RenameFeedback extends RefactoringFeedback {
   /// as “class” or “function type alias”).
   set elementKindName(String value) {
     assert(value != null);
-    this._elementKindName = value;
+    _elementKindName = value;
   }
 
   /// The old name of the element before the refactoring.
@@ -5290,7 +5290,7 @@ class RenameFeedback extends RefactoringFeedback {
   /// The old name of the element before the refactoring.
   set oldName(String value) {
     assert(value != null);
-    this._oldName = value;
+    _oldName = value;
   }
 
   RenameFeedback(
@@ -5390,7 +5390,7 @@ class RenameOptions extends RefactoringOptions {
   /// The name that the element should have after the refactoring.
   set newName(String value) {
     assert(value != null);
-    this._newName = value;
+    _newName = value;
   }
 
   RenameOptions(String newName) {
@@ -5470,7 +5470,7 @@ class RequestError implements HasToJson {
   /// A code that uniquely identifies the error that occurred.
   set code(RequestErrorCode value) {
     assert(value != null);
-    this._code = value;
+    _code = value;
   }
 
   /// A short description of the error.
@@ -5479,7 +5479,7 @@ class RequestError implements HasToJson {
   /// A short description of the error.
   set message(String value) {
     assert(value != null);
-    this._message = value;
+    _message = value;
   }
 
   /// The stack trace associated with processing the request, used for
@@ -5489,7 +5489,7 @@ class RequestError implements HasToJson {
   /// The stack trace associated with processing the request, used for
   /// debugging the plugin.
   set stackTrace(String value) {
-    this._stackTrace = value;
+    _stackTrace = value;
   }
 
   RequestError(RequestErrorCode code, String message, {String stackTrace}) {
@@ -5663,7 +5663,7 @@ class WatchEvent implements HasToJson {
   /// The type of change represented by this event.
   set type(WatchEventType value) {
     assert(value != null);
-    this._type = value;
+    _type = value;
   }
 
   /// The absolute path of the file or directory that changed.
@@ -5672,7 +5672,7 @@ class WatchEvent implements HasToJson {
   /// The absolute path of the file or directory that changed.
   set path(String value) {
     assert(value != null);
-    this._path = value;
+    _path = value;
   }
 
   WatchEvent(WatchEventType type, String path) {

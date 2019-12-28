@@ -502,7 +502,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
           if (!field.optional) {
             writeln('assert(value != null);');
           }
-          writeln('this._${field.name} = value;');
+          writeln('_${field.name} = value;');
         });
         writeln('}');
         writeln();
