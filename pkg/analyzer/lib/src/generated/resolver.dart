@@ -2204,6 +2204,8 @@ class ResolverVisitorForMigration extends ResolverVisitor {
 /// The abstract class `ScopedVisitor` maintains name and label scopes as an AST
 /// structure is being visited.
 abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
+  static const _nameScopeProperty = 'nameScope';
+
   /// The element for the library containing the compilation unit being visited.
   final LibraryElement definingLibrary;
 
@@ -2291,6 +2293,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
     try {
       EnclosedScope enclosedScope = BlockScope(nameScope, node);
       nameScope = enclosedScope;
+      _setNodeNameScope(node, nameScope);
       super.visitBlock(node);
     } finally {
       nameScope = outerScope;
@@ -2382,6 +2385,12 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
     } finally {
       nameScope = outerScope;
     }
+  }
+
+  @override
+  void visitCompilationUnit(CompilationUnit node) {
+    _setNodeNameScope(node, nameScope);
+    super.visitCompilationUnit(node);
   }
 
   @override
@@ -2487,6 +2496,12 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
   }
 
   @override
+  void visitExpressionFunctionBody(ExpressionFunctionBody node) {
+    _setNodeNameScope(node, nameScope);
+    super.visitExpressionFunctionBody(node);
+  }
+
+  @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
     ExtensionElement extensionElement = node.declaredElement;
     Scope outerScope = nameScope;
@@ -2540,6 +2555,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
     Scope outerNameScope = nameScope;
     try {
       nameScope = EnclosedScope(nameScope);
+      _setNodeNameScope(node, nameScope);
       visitForElementInScope(node);
     } finally {
       nameScope = outerNameScope;
@@ -2579,6 +2595,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
     try {
       nameScope = EnclosedScope(nameScope);
       _implicitLabelScope = _implicitLabelScope.nest(node);
+      _setNodeNameScope(node, nameScope);
       visitForStatementInScope(node);
     } finally {
       nameScope = outerNameScope;
@@ -2850,6 +2867,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
     Scope outerNameScope = nameScope;
     try {
       nameScope = EnclosedScope(nameScope);
+      _setNodeNameScope(node, nameScope);
       node.statements.accept(this);
     } finally {
       nameScope = outerNameScope;
@@ -2861,6 +2879,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
     Scope outerNameScope = nameScope;
     try {
       nameScope = EnclosedScope(nameScope);
+      _setNodeNameScope(node, nameScope);
       node.statements.accept(this);
     } finally {
       nameScope = outerNameScope;
@@ -2929,6 +2948,20 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
       labelScope = LabelScope(labelScope, labelName, node, labelElement);
     }
     return outerScope;
+  }
+
+  /// Return the [Scope] to use while resolving inside the [node].
+  ///
+  /// Not every node has the scope set, for example we set the scopes for
+  /// blocks, but statements don't have separate scopes. The compilation unit
+  /// has the library scope.
+  static Scope getNodeNameScope(AstNode node) {
+    return node.getProperty(_nameScopeProperty);
+  }
+
+  /// Set the [Scope] to use while resolving inside the [node].
+  static void _setNodeNameScope(AstNode node, Scope scope) {
+    node.setProperty(_nameScopeProperty, scope);
   }
 }
 

@@ -24,7 +24,8 @@ import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisErrorInfo, AnalysisErrorInfoImpl, AnalysisOptions;
-import 'package:analyzer/src/generated/resolver.dart' show ConstantVerifier;
+import 'package:analyzer/src/generated/resolver.dart'
+    show ConstantVerifier, ScopedVisitor;
 import 'package:analyzer/src/generated/source.dart' show LineInfo;
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/lint/analysis.dart';
@@ -261,6 +262,12 @@ abstract class LinterContext {
 
   /// Return the result of evaluating the given expression.
   LinterConstantEvaluationResult evaluateConstant(Expression node);
+
+  /// Resolve the name `id` or `id=` (if [setter] is `true`) an the location
+  /// of the [node], according to the "16.35 Lexical Lookup" of the language
+  /// specification.
+  LinterNameInScopeResolutionResult resolveNameInScope(
+      String id, bool setter, AstNode node);
 }
 
 /// Implementation of [LinterContext]
@@ -371,6 +378,47 @@ class LinterContextImpl implements LinterContext {
     return LinterConstantEvaluationResult(value, errorListener.errors);
   }
 
+  @override
+  LinterNameInScopeResolutionResult resolveNameInScope(
+      String id, bool setter, AstNode node) {
+    var library = currentUnit.unit.declaredElement.library;
+    var idEq = '$id=';
+    for (var context = node; context != null; context = context.parent) {
+      var scope = ScopedVisitor.getNodeNameScope(context);
+      if (scope != null) {
+        Element idElement;
+        Element idEqElement;
+
+        void lookupScopeAndEnclosing() {
+          while (scope != null && idElement == null && idEqElement == null) {
+            idElement = scope.localLookup(id, library);
+            idEqElement = scope.localLookup(idEq, library);
+            scope = scope.enclosingScope;
+          }
+        }
+
+        lookupScopeAndEnclosing();
+
+        var requestedElement = setter ? idEqElement : idElement;
+        var differentElement = setter ? idElement : idEqElement;
+
+        if (requestedElement != null) {
+          return LinterNameInScopeResolutionResult._requestedName(
+            requestedElement,
+          );
+        }
+
+        if (differentElement != null) {
+          return LinterNameInScopeResolutionResult._differentName(
+            differentElement,
+          );
+        }
+      }
+    }
+
+    return const LinterNameInScopeResolutionResult._none();
+  }
+
   /// Return `true` if [ConstantVerifier] reports an error for the [node].
   bool _hasConstantVerifierError(AstNode node) {
     var unitElement = currentUnit.unit.declaredElement;
@@ -415,6 +463,38 @@ class LinterException implements Exception {
   @override
   String toString() =>
       message == null ? "LinterException" : "LinterException: $message";
+}
+
+/// The result of resolving of a basename `id` in a scope.
+class LinterNameInScopeResolutionResult {
+  /// The element with the requested basename, `null` is [isNone].
+  final Element element;
+
+  /// The state of the result.
+  final _LinterNameInScopeResolutionResultState _state;
+
+  const LinterNameInScopeResolutionResult._differentName(this.element)
+      : _state = _LinterNameInScopeResolutionResultState.differentName;
+
+  const LinterNameInScopeResolutionResult._none()
+      : element = null,
+        _state = _LinterNameInScopeResolutionResultState.none;
+
+  const LinterNameInScopeResolutionResult._requestedName(this.element)
+      : _state = _LinterNameInScopeResolutionResultState.requestedName;
+
+  bool get isDifferentName =>
+      _state == _LinterNameInScopeResolutionResultState.differentName;
+
+  bool get isNone => _state == _LinterNameInScopeResolutionResultState.none;
+
+  bool get isRequestedName =>
+      _state == _LinterNameInScopeResolutionResultState.requestedName;
+
+  @override
+  String toString() {
+    return '(state: $_state, element: $element)';
+  }
 }
 
 /// Linter options.
@@ -688,4 +768,17 @@ class _LintCode extends LintCode {
       registry.putIfAbsent(name + message, () => _LintCode._(name, message));
 
   _LintCode._(String name, String message) : super(name, message);
+}
+
+/// The state of a [LinterNameInScopeResolutionResult].
+enum _LinterNameInScopeResolutionResultState {
+  /// Indicates that no element was found.
+  none,
+
+  /// Indicates that an element with the requested name was found.
+  requestedName,
+
+  /// Indicates that an element with the same basename, but different name
+  /// was found.
+  differentName
 }
