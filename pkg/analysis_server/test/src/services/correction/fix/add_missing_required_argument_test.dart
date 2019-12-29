@@ -48,6 +48,74 @@ build() {
 ''');
   }
 
+  test_param_child() async {
+    addFlutterPackage();
+    addMetaPackage();
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+import 'package:meta/meta.dart';
+
+class MyWidget extends Widget {
+  MyWidget({@required String foo, @required Widget child});
+}
+
+build() {
+  return new MyWidget(
+    child: null,
+  );
+}
+''');
+    await assertHasFix('''
+import 'package:flutter/widgets.dart';
+import 'package:meta/meta.dart';
+
+class MyWidget extends Widget {
+  MyWidget({@required String foo, @required Widget child});
+}
+
+build() {
+  return new MyWidget(
+    foo: null,
+    child: null,
+  );
+}
+''');
+  }
+
+  test_param_children() async {
+    addFlutterPackage();
+    addMetaPackage();
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+import 'package:meta/meta.dart';
+
+class MyWidget extends Widget {
+  MyWidget({@required String foo, @required List<Widget> children});
+}
+
+build() {
+  return new MyWidget(
+    children: null,
+  );
+}
+''');
+    await assertHasFix('''
+import 'package:flutter/widgets.dart';
+import 'package:meta/meta.dart';
+
+class MyWidget extends Widget {
+  MyWidget({@required String foo, @required List<Widget> children});
+}
+
+build() {
+  return new MyWidget(
+    foo: null,
+    children: null,
+  );
+}
+''');
+  }
+
   test_cons_flutter_hasTrailingComma() async {
     addFlutterPackage();
     addMetaPackage();

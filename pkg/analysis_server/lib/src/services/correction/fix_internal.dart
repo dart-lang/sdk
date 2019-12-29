@@ -1130,6 +1130,7 @@ class FixProcessor extends BaseProcessor {
 
       int offset;
       bool hasTrailingComma = false;
+      bool insertBetweenParams = false;
       List<Expression> arguments = argumentList.arguments;
       if (arguments.isEmpty) {
         offset = argumentList.leftParenthesis.end;
@@ -1137,12 +1138,23 @@ class FixProcessor extends BaseProcessor {
         Expression lastArgument = arguments.last;
         offset = lastArgument.end;
         hasTrailingComma = lastArgument.endToken.next.type == TokenType.COMMA;
+
+        if (lastArgument is NamedExpression &&
+            flutter.isWidgetExpression(creation)) {
+          String paramName = lastArgument?.name?.label?.name;
+          if (flutter.isChildArgument(lastArgument) ||
+              flutter.isChildrenArgument(lastArgument)) {
+            offset = lastArgument.offset;
+            hasTrailingComma = true;
+            insertBetweenParams = true;
+          }
+        }
       }
 
       var changeBuilder = _newDartChangeBuilder();
       await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
         builder.addInsertion(offset, (DartEditBuilder builder) {
-          if (arguments.isNotEmpty) {
+          if (arguments.isNotEmpty && !insertBetweenParams) {
             builder.write(', ');
           }
 
@@ -1151,9 +1163,17 @@ class FixProcessor extends BaseProcessor {
           var defaultValue = getDefaultStringParameterValue(missingParameter);
           builder.addSimpleLinkedEdit('VALUE', defaultValue);
 
-          // Insert a trailing comma after Flutter instance creation params.
-          if (!hasTrailingComma && flutter.isWidgetExpression(creation)) {
-            builder.write(',');
+          if (flutter.isWidgetExpression(creation)) {
+            // Insert a trailing comma after Flutter instance creation params.
+            if (!hasTrailingComma) {
+              builder.write(',');
+            } else if (insertBetweenParams) {
+              builder.writeln(',');
+
+              // Insert indent before the child: or children: param.
+              String indent = utils.getLinePrefix(offset);
+              builder.write(indent);
+            }
           }
         });
       });
