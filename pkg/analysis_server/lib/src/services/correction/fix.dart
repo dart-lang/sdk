@@ -195,6 +195,8 @@ class DartFixKind {
       "Convert into 'Function' syntax");
   static const CONVERT_TO_IF_ELEMENT =
       FixKind('CONVERT_TO_IF_ELEMENT', 50, "Convert to an 'if' element");
+  static const CONVERT_TO_IF_NULL =
+      FixKind('CONVERT_TO_IF_NULL', 50, "Convert to use '??'");
   static const CONVERT_TO_INT_LITERAL =
       FixKind('CONVERT_TO_INT_LITERAL', 50, "Convert to an int literal");
   static const CONVERT_TO_LINE_COMMENT = FixKind(

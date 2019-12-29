@@ -77,6 +77,7 @@ a message is displayed and the class is not converted to a mixin.''',
   LintFixInfo.preferFinalFields,
   LintFixInfo.preferForElementsToMapFromIterable,
   LintFixInfo.preferGenericFunctionTypeAliases,
+  LintFixInfo.preferIfNullOperators,
   LintFixInfo.preferIsEmpty,
   LintFixInfo.preferIsNotEmpty,
   LintFixInfo.preferSingleQuotes,
@@ -338,6 +339,10 @@ will be converted to
       'prefer_generic_function_type_aliases',
       DartFixKind.CONVERT_TO_GENERIC_FUNCTION_SYNTAX,
       "Convert into 'Function' syntax",
+      isPedantic: true);
+
+  static final preferIfNullOperators = LintFixInfo('prefer_if_null_operators',
+      DartFixKind.CONVERT_TO_IF_NULL, "Convert to use '??'.",
       isPedantic: true);
 
   static final preferIsEmpty = LintFixInfo(

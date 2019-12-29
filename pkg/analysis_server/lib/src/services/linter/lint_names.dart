@@ -55,6 +55,7 @@ class LintNames {
       'prefer_if_elements_to_conditional_expressions';
   static const String prefer_is_empty = 'prefer_is_empty';
   static const String prefer_is_not_empty = 'prefer_is_not_empty';
+  static const String prefer_if_null_operators = 'prefer_if_null_operators';
   static const String prefer_null_aware_operators =
       'prefer_null_aware_operators';
   static const String prefer_relative_imports = 'prefer_relative_imports';

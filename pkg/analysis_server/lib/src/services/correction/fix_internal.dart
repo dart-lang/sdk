@@ -702,6 +702,9 @@ class FixProcessor extends BaseProcessor {
         await _addFix_addConst();
         await _addFix_replaceNewWithConst();
       }
+      if (errorCode.name == LintNames.prefer_if_null_operators) {
+        await _addFix_convertToIfNullOperator();
+      }
       if (name == LintNames.prefer_null_aware_operators) {
         await _addFix_convertToNullAware();
       }
@@ -1485,6 +1488,32 @@ class FixProcessor extends BaseProcessor {
     var changeBuilder = await createBuilder_convertToGenericFunctionSyntax();
     _addFixFromBuilder(
         changeBuilder, DartFixKind.CONVERT_TO_GENERIC_FUNCTION_SYNTAX);
+  }
+
+  Future<void> _addFix_convertToIfNullOperator() async {
+    var conditional = node.thisOrAncestorOfType<ConditionalExpression>();
+    if (conditional == null) {
+      return;
+    }
+    var condition = conditional.condition as BinaryExpression;
+    Expression nullableExpression;
+    Expression defaultExpression;
+    if (condition.operator.type == TokenType.EQ_EQ) {
+      nullableExpression = conditional.elseExpression;
+      defaultExpression = conditional.thenExpression;
+    } else {
+      nullableExpression = conditional.thenExpression;
+      defaultExpression = conditional.elseExpression;
+    }
+    var changeBuilder = _newDartChangeBuilder();
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+      builder.addReplacement(range.node(conditional), (builder) {
+        builder.write(utils.getNodeText(nullableExpression));
+        builder.write(' ?? ');
+        builder.write(utils.getNodeText(defaultExpression));
+      });
+    });
+    _addFixFromBuilder(changeBuilder, DartFixKind.CONVERT_TO_IF_NULL);
   }
 
   Future<void> _addFix_convertToInlineAdd() async {

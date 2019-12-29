@@ -45,6 +45,7 @@ import 'convert_to_for_element_test.dart' as convert_to_for_element;
 import 'convert_to_generic_function_syntax_test.dart'
     as convert_to_generic_function_syntax;
 import 'convert_to_if_element_test.dart' as convert_to_if_element;
+import 'convert_to_if_null_test.dart' as convert_to_if_null;
 import 'convert_to_int_literal_test.dart' as convert_to_int_literal;
 import 'convert_to_named_arguments_test.dart' as convert_to_named_arguments;
 import 'convert_to_null_aware_test.dart' as convert_to_null_aware;
@@ -176,6 +177,7 @@ main() {
     convert_to_for_element.main();
     convert_to_generic_function_syntax.main();
     convert_to_if_element.main();
+    convert_to_if_null.main();
     convert_to_int_literal.main();
     convert_to_named_arguments.main();
     convert_to_null_aware.main();
