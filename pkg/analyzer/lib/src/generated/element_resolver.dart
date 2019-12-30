@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/precedence.dart';
-import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -13,11 +11,7 @@ import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart'
-    show
-        ChildEntities,
-        IdentifierImpl,
-        PrefixedIdentifierImpl,
-        SimpleIdentifierImpl;
+    show PrefixedIdentifierImpl, SimpleIdentifierImpl;
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
@@ -1888,8 +1882,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
     } else if (element == null &&
         (identifier.inSetterContext() ||
             identifier.parent is CommentReference)) {
-      Identifier setterId =
-          SyntheticIdentifier('${identifier.name}=', identifier);
+      Identifier setterId = SyntheticIdentifier('${identifier.name}=');
       element = _resolver.nameScope.lookup(setterId, _definingLibrary);
     }
     if (element == null) {
@@ -2018,55 +2011,14 @@ class ElementResolver extends SimpleAstVisitor<void> {
  * AST when the parser could not distinguish between a method invocation and an
  * invocation of a top-level function imported with a prefix.
  */
-class SyntheticIdentifier extends IdentifierImpl {
-  /**
-   * The name of the synthetic identifier.
-   */
+class SyntheticIdentifier implements SimpleIdentifier {
   @override
   final String name;
 
-  /**
-   * The identifier to be highlighted in case of an error
-   */
-  final Identifier targetIdentifier;
-
-  /**
-   * Initialize a newly created synthetic identifier to have the given [name]
-   * and [targetIdentifier].
-   */
-  SyntheticIdentifier(this.name, this.targetIdentifier);
+  SyntheticIdentifier(this.name);
 
   @override
-  Token get beginToken => null;
-
-  @override
-  Iterable<SyntacticEntity> get childEntities {
-    // Should never be called, since a SyntheticIdentifier never appears in the
-    // AST--it is just used for lookup.
-    assert(false);
-    return ChildEntities();
-  }
-
-  @override
-  Token get endToken => null;
-
-  @override
-  int get length => targetIdentifier.length;
-
-  @override
-  int get offset => targetIdentifier.offset;
-
-  @override
-  Precedence get precedence => Precedence.primary;
-
-  @override
-  Element get staticElement => null;
-
-  @override
-  E accept<E>(AstVisitor<E> visitor) => null;
-
-  @override
-  void visitChildren(AstVisitor visitor) {}
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 /// Helper for resolving properties (getters, setters, or methods).
