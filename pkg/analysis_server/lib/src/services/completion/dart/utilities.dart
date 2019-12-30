@@ -142,15 +142,11 @@ CompletionSuggestion createLocalSuggestion(SimpleIdentifier id,
 DefaultArgument getDefaultStringParameterValue(ParameterElement param) {
   if (param != null) {
     DartType type = param.type;
-
-    if (type is InterfaceType && isDartList(type)) {
-      List<DartType> typeArguments = type.typeArguments;
-      if (typeArguments.length == 1) {
-        DartType typeArg = typeArguments.first;
-        String typeInfo = !typeArg.isDynamic ? '<${typeArg.name}>' : '';
-        String text = '$typeInfo[]';
-        return DefaultArgument(text, cursorPosition: text.length - 1);
-      }
+    if (type is InterfaceType && type.isDartCoreList) {
+      DartType typeArg = type.typeArguments[0];
+      String typeInfo = !typeArg.isDynamic ? '<${typeArg.name}>' : '';
+      String text = '$typeInfo[]';
+      return DefaultArgument(text, cursorPosition: text.length - 1);
     } else if (type is FunctionType) {
       String params = type.parameters
           .map((p) => '${getTypeString(p.type)}${p.name}')
@@ -168,14 +164,6 @@ DefaultArgument getDefaultStringParameterValue(ParameterElement param) {
 }
 
 String getTypeString(DartType type) => type.isDynamic ? '' : '${type.name} ';
-
-bool isDartList(DartType type) {
-  ClassElement element = type.element;
-  if (element != null) {
-    return element.name == "List" && element.library.isDartCore;
-  }
-  return false;
-}
 
 /**
  * Return `true` if the @deprecated annotation is present on the given [node].

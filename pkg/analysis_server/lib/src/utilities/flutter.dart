@@ -506,9 +506,7 @@ class Flutter {
    */
   bool isListOfWidgetsType(DartType type) {
     return type is InterfaceType &&
-        type.element.library.isDartCore &&
-        type.element.name == 'List' &&
-        type.typeArguments.length == 1 &&
+        type.isDartCoreList &&
         isWidgetType(type.typeArguments[0]);
   }
 
