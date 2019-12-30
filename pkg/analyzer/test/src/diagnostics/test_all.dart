@@ -57,6 +57,8 @@ import 'default_value_in_function_type_test.dart'
     as default_value_in_function_type;
 import 'default_value_in_function_typed_parameter_test.dart'
     as default_value_in_function_typed_parameter;
+import 'default_value_in_redirecting_factory_constructor_test.dart'
+    as default_value_in_redirecting_factory_constructor;
 import 'default_value_on_required_parameter_test.dart'
     as default_value_on_required_parameter;
 import 'deferred_import_of_extension_test.dart' as deferred_import_of_extension;
@@ -69,6 +71,8 @@ import 'division_optimization_test.dart' as division_optimization;
 import 'duplicate_definition_test.dart' as duplicate_definition;
 import 'duplicate_hidden_name_test.dart' as duplicate_hidden_name;
 import 'duplicate_import_test.dart' as duplicate_import;
+import 'duplicate_named_argument_test.dart' as duplicate_named_argument;
+import 'duplicate_part_test.dart' as duplicate_part;
 import 'duplicate_shown_name_test.dart' as duplicate_shown_name;
 import 'equal_elements_in_const_set_test.dart' as equal_elements_in_const_set;
 import 'equal_keys_in_const_map_test.dart' as equal_keys_in_const_map;
@@ -80,8 +84,11 @@ import 'expected_two_map_type_arguments_test.dart'
     as expected_two_map_type_arguments;
 import 'export_duplicated_library_named_test.dart'
     as export_duplicated_library_named;
+import 'export_internal_library_test.dart' as export_internal_library;
 import 'export_legacy_symbol_test.dart' as export_legacy_symbol;
+import 'export_of_non_library_test.dart' as export_of_non_library;
 import 'expression_in_map_test.dart' as expression_in_map;
+import 'extends_deferred_class_test.dart' as extends_deferred_class;
 import 'extends_disallowed_class_test.dart' as extends_disallowed_class;
 import 'extends_non_class_test.dart' as extends_non_class;
 import 'extension_as_expression_test.dart' as extension_as_expression;
@@ -507,6 +514,7 @@ main() {
     default_list_constructor_mismatch.main();
     default_value_in_function_type.main();
     default_value_in_function_typed_parameter.main();
+    default_value_in_redirecting_factory_constructor.main();
     default_value_on_required_parameter.main();
     deferred_import_of_extension.main();
     deprecated_extends_function.main();
@@ -517,6 +525,8 @@ main() {
     duplicate_definition.main();
     duplicate_hidden_name.main();
     duplicate_import.main();
+    duplicate_named_argument.main();
+    duplicate_part.main();
     duplicate_shown_name.main();
     equal_elements_in_const_set.main();
     equal_keys_in_const_map.main();
@@ -524,8 +534,11 @@ main() {
     expected_one_set_type_arguments.main();
     expected_two_map_type_arguments.main();
     export_duplicated_library_named.main();
+    export_internal_library.main();
     export_legacy_symbol.main();
+    export_of_non_library.main();
     expression_in_map.main();
+    extends_deferred_class.main();
     extends_disallowed_class.main();
     extends_non_class.main();
     extension_as_expression.main();

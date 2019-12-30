@@ -15,6 +15,16 @@ main() {
 
 @reflectiveTest
 class ExportDuplicatedLibraryNamedTest extends DriverResolutionTest {
+  test_no_duplication() async {
+    newFile("/test/lib/lib1.dart");
+    newFile("/test/lib/lib2.dart");
+    await assertNoErrorsInCode(r'''
+library test;
+export 'lib1.dart';
+export 'lib2.dart';
+''');
+  }
+
   test_sameNames() async {
     newFile("/test/lib/lib1.dart", content: "library lib;");
     newFile("/test/lib/lib2.dart", content: "library lib;");

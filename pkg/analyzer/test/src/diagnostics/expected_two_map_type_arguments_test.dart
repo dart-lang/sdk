@@ -34,4 +34,12 @@ main() {
       error(StaticTypeWarningCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS, 11, 15),
     ]);
   }
+
+  test_two_type_arguments() async {
+    await assertNoErrorsInCode(r'''
+main() {
+  <int, int> {};
+}
+''');
+  }
 }

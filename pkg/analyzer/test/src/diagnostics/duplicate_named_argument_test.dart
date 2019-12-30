@@ -9,26 +9,20 @@ import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ExpectedOneListTypeArgumentsTest);
+    defineReflectiveTests(DuplicateNamedArgumentTest);
   });
 }
 
 @reflectiveTest
-class ExpectedOneListTypeArgumentsTest extends DriverResolutionTest {
-  test_one_type_argument() async {
-    await assertNoErrorsInCode(r'''
-main() {
-  <int> [];
-}
-''');
-  }
-
-  test_two_type_arguments() async {
+class DuplicateNamedArgumentTest extends DriverResolutionTest {
+  test_duplicate_named_argument() async {
     await assertErrorsInCode(r'''
+f({a, b}) {}
 main() {
-  <int, int>[];
-}''', [
-      error(StaticTypeWarningCode.EXPECTED_ONE_LIST_TYPE_ARGUMENTS, 11, 10),
+  f(a: 1, a: 2);
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT, 32, 1),
     ]);
   }
 }

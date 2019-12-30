@@ -9,26 +9,17 @@ import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ExpectedOneListTypeArgumentsTest);
+    defineReflectiveTests(ExportInternalLibraryTest);
   });
 }
 
 @reflectiveTest
-class ExpectedOneListTypeArgumentsTest extends DriverResolutionTest {
-  test_one_type_argument() async {
-    await assertNoErrorsInCode(r'''
-main() {
-  <int> [];
-}
-''');
-  }
-
-  test_two_type_arguments() async {
-    await assertErrorsInCode(r'''
-main() {
-  <int, int>[];
-}''', [
-      error(StaticTypeWarningCode.EXPECTED_ONE_LIST_TYPE_ARGUMENTS, 11, 10),
+class ExportInternalLibraryTest extends DriverResolutionTest {
+  test_export_internal_library() async {
+    await assertErrorsInCode('''
+export 'dart:_interceptors';
+''', [
+      error(CompileTimeErrorCode.EXPORT_INTERNAL_LIBRARY, 0, 28),
     ]);
   }
 }

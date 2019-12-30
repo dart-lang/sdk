@@ -954,6 +954,17 @@ main() {
     ]);
   }
 
+  test_emptyName() async {
+    // Note: This code has two FunctionElements '() {}' with an empty name; this
+    // tests that the empty string is not put into the scope (more than once).
+    await assertNoErrorsInCode(r'''
+Map _globalMap = {
+  'a' : () {},
+  'b' : () {}
+};
+''');
+  }
+
   test_for_initializers() async {
     await assertErrorsInCode(r'''
 f() {
@@ -963,6 +974,12 @@ f() {
       error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 24, 1),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 24, 1),
     ]);
+  }
+
+  test_getter_single() async {
+    await assertNoErrorsInCode('''
+bool get a => true;
+''');
   }
 
   test_locals_block_if() async {

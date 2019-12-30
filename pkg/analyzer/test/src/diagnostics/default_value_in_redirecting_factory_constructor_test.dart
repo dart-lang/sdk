@@ -9,26 +9,27 @@ import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ExpectedOneListTypeArgumentsTest);
+    defineReflectiveTests(DefaultValueInRedirectingFactoryConstructorTest);
   });
 }
 
 @reflectiveTest
-class ExpectedOneListTypeArgumentsTest extends DriverResolutionTest {
-  test_one_type_argument() async {
-    await assertNoErrorsInCode(r'''
-main() {
-  <int> [];
-}
-''');
-  }
-
-  test_two_type_arguments() async {
+class DefaultValueInRedirectingFactoryConstructorTest
+    extends DriverResolutionTest {
+  test_default_value() async {
     await assertErrorsInCode(r'''
-main() {
-  <int, int>[];
-}''', [
-      error(StaticTypeWarningCode.EXPECTED_ONE_LIST_TYPE_ARGUMENTS, 11, 10),
+class A {
+  factory A([int x = 0]) = B;
+}
+
+class B implements A {
+  B([int x = 1]) {}
+}
+''', [
+      error(
+          CompileTimeErrorCode.DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR,
+          27,
+          1),
     ]);
   }
 }

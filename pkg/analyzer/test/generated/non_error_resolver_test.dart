@@ -1178,38 +1178,6 @@ A a = new A();
 ''');
   }
 
-  test_duplicateDefinition_emptyName() async {
-    // Note: This code has two FunctionElements '() {}' with an empty name,
-    // this tests that the empty string is not put into the scope
-    // (more than once).
-    await assertNoErrorsInCode(r'''
-Map _globalMap = {
-  'a' : () {},
-  'b' : () {}
-};
-''');
-  }
-
-  test_duplicateDefinition_getter() async {
-    await assertNoErrorsInCode('''
-bool get a => true;
-''');
-  }
-
-  test_duplicatePart() async {
-    newFile('/test/lib/part1.dart', content: '''
-part of lib;
-''');
-    newFile('/test/lib/part2.dart', content: '''
-part of lib;
-''');
-    await assertNoErrorsInCode(r'''
-library lib;
-part 'part1.dart';
-part 'part2.dart';
-''');
-  }
-
   test_dynamicIdentifier() async {
     await assertNoErrorsInCode(r'''
 main() {
@@ -1230,48 +1198,6 @@ Stream<int> f() async* {
     await assertNoErrorsInCode('''
 Iterable<int> f() sync* {
 }
-''');
-  }
-
-  test_expectedOneListTypeArgument() async {
-    await assertNoErrorsInCode(r'''
-main() {
-  <int> [];
-}
-''');
-  }
-
-  test_expectedTwoMapTypeArguments() async {
-    await assertNoErrorsInCode(r'''
-main() {
-  <int, int> {};
-}
-''');
-  }
-
-  test_exportDuplicatedLibraryUnnamed() async {
-    newFile("/test/lib/lib1.dart");
-    newFile("/test/lib/lib2.dart");
-    await assertNoErrorsInCode(r'''
-library test;
-export 'lib1.dart';
-export 'lib2.dart';
-''');
-  }
-
-  test_exportOfNonLibrary_libraryDeclared() async {
-    newFile("/test/lib/lib1.dart", content: "library lib1;");
-    await assertNoErrorsInCode(r'''
-library L;
-export 'lib1.dart';
-''');
-  }
-
-  test_exportOfNonLibrary_libraryNotDeclared() async {
-    newFile("/test/lib/lib1.dart");
-    await assertNoErrorsInCode(r'''
-library L;
-export 'lib1.dart';
 ''');
   }
 
