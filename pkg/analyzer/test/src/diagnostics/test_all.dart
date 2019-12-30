@@ -107,8 +107,12 @@ import 'extra_annotation_on_struct_field_test.dart'
 import 'extra_positional_arguments_test.dart' as extra_positional_arguments;
 import 'field_in_struct_with_initializer_test.dart'
     as field_in_struct_with_initializer;
+import 'field_initialized_by_multiple_initializers_test.dart'
+    as field_initialized_by_multiple_initializers;
 import 'field_initialized_in_initializer_and_declaration_test.dart'
     as field_initialized_in_initializer_and_declaration;
+import 'field_initialized_in_parameter_and_initializer_test.dart'
+    as field_initialized_in_parameter_and_initializer;
 import 'field_initializer_in_struct_test.dart' as field_initializer_in_struct;
 import 'field_initializer_not_assignable_test.dart'
     as field_initializer_not_assignable;
@@ -116,6 +120,8 @@ import 'field_initializing_formal_not_assignable_test.dart'
     as field_initializing_formal_not_assignable;
 import 'final_initialized_in_delcaration_and_constructor_test.dart'
     as final_initialized_in_declaration_and_constructor;
+import 'final_initialized_multiple_times_test.dart'
+    as final_initialized_multiple_times;
 import 'final_not_initialized_constructor_test.dart'
     as final_not_initialized_constructor;
 import 'final_not_initialized_test.dart' as final_not_initialized;
@@ -535,11 +541,14 @@ main() {
     extra_annotation_on_struct_field.main();
     extra_positional_arguments.main();
     field_in_struct_with_initializer.main();
+    field_initialized_by_multiple_initializers.main();
     field_initialized_in_initializer_and_declaration.main();
+    field_initialized_in_parameter_and_initializer.main();
     field_initializer_in_struct.main();
     field_initializer_not_assignable.main();
     field_initializing_formal_not_assignable.main();
     final_initialized_in_declaration_and_constructor.main();
+    final_initialized_multiple_times.main();
     final_not_initialized_constructor.main();
     final_not_initialized.main();
     for_in_of_invalid_element_type.main();

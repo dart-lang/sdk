@@ -1024,7 +1024,18 @@ main() {
     ]);
   }
 
-  test_parameters_constructor() async {
+  test_parameters_constructor_field_first() async {
+    await assertErrorsInCode(r'''
+class A {
+  int a;
+  A(this.a, int a);
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 35, 1),
+    ]);
+  }
+
+  test_parameters_constructor_field_second() async {
     await assertErrorsInCode(r'''
 class A {
   int a;

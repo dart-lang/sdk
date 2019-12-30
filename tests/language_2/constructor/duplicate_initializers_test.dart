@@ -25,7 +25,6 @@
    Class.two_fields(this.field_
     , this.field_
     //     ^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
     // [cfe] 'field_' is a final instance variable that has already been initialized.
     //     ^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.FINAL_INITIALIZED_MULTIPLE_TIMES

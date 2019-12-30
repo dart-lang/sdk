@@ -1342,16 +1342,6 @@ class C {
 ''');
   }
 
-  test_fieldInitializedByMultipleInitializers() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  int x;
-  int y;
-  A() : x = 0, y = 0 {}
-}
-''');
-  }
-
   test_fieldInitializedInInitializerAndDeclaration_fieldNotFinal() async {
     await assertNoErrorsInCode(r'''
 class A {

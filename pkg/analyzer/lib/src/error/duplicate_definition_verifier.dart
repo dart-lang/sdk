@@ -384,6 +384,13 @@ class DuplicateDefinitionVerifier {
     if (previous != null) {
       if (isGetterSetterPair(element, previous)) {
         // OK
+      } else if (previous is ParameterElement &&
+          previous.isInitializingFormal &&
+          element is ParameterElement &&
+          element.isInitializingFormal) {
+        // This case is covered by
+        // CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES; do not report
+        // a second error.
       } else {
         _errorReporter.reportErrorForNode(
           getError(previous, element),

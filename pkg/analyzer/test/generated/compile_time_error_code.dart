@@ -1080,71 +1080,6 @@ class B extends A {
     ]);
   }
 
-  test_fieldFormalParameter_assignedInInitializer() async {
-    await assertErrorsInCode(r'''
-class A {
-  int x;
-  A(this.x) : x = 3 {}
-}
-''', [
-      error(CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER,
-          33, 1),
-    ]);
-  }
-
-  test_fieldInitializedByMultipleInitializers() async {
-    await assertErrorsInCode(r'''
-class A {
-  int x;
-  A() : x = 0, x = 1 {}
-}
-''', [
-      error(CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS, 34,
-          1),
-    ]);
-  }
-
-  test_fieldInitializedByMultipleInitializers_multipleInits() async {
-    await assertErrorsInCode(r'''
-class A {
-  int x;
-  A() : x = 0, x = 1, x = 2 {}
-}
-''', [
-      error(CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS, 34,
-          1),
-      error(CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS, 41,
-          1),
-    ]);
-  }
-
-  test_fieldInitializedByMultipleInitializers_multipleNames() async {
-    await assertErrorsInCode(r'''
-class A {
-  int x;
-  int y;
-  A() : x = 0, x = 1, y = 0, y = 1 {}
-}
-''', [
-      error(CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS, 43,
-          1),
-      error(CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS, 57,
-          1),
-    ]);
-  }
-
-  test_fieldInitializedInParameterAndInitializer() async {
-    await assertErrorsInCode(r'''
-class A {
-  int x;
-  A(this.x) : x = 1 {}
-}
-''', [
-      error(CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER,
-          33, 1),
-    ]);
-  }
-
   test_fieldInitializerFactoryConstructor() async {
     await assertErrorsInCode(r'''
 class A {
@@ -1235,51 +1170,6 @@ class A {
 ''', [
       error(CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR, 38,
           6),
-    ]);
-  }
-
-  test_finalInitializedMultipleTimes_initializers() async {
-    await assertErrorsInCode(r'''
-class A {
-  final x;
-  A() : x = 0, x = 0 {}
-}
-''', [
-      error(CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS, 36,
-          1),
-    ]);
-  }
-
-  /**
-   * This test doesn't test the FINAL_INITIALIZED_MULTIPLE_TIMES code, but tests the
-   * FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER code instead. It is provided here to show
-   * coverage over all of the permutations of initializers in constructor declarations.
-   *
-   * Note: FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER covers a subset of
-   * FINAL_INITIALIZED_MULTIPLE_TIMES, since it more specific, we use it instead of the broader code
-   */
-  test_finalInitializedMultipleTimes_initializingFormal_initializer() async {
-    await assertErrorsInCode(r'''
-class A {
-  final x;
-  A(this.x) : x = 0 {}
-}
-''', [
-      error(CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER,
-          35, 1),
-    ]);
-  }
-
-  test_finalInitializedMultipleTimes_initializingFormals() async {
-    // TODO(brianwilkerson) There should only be one error here.
-    await assertErrorsInCode(r'''
-class A {
-  final x;
-  A(this.x, this.x) {}
-}
-''', [
-      error(CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES, 38, 1),
-      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 38, 1),
     ]);
   }
 
