@@ -97,8 +97,13 @@ main(List<String> args) async {
             (document['fields']['success'] ?? const {})['booleanValue'];
         bool completed =
             (document['fields']['completed'] ?? const {})['booleanValue'];
+        bool activeFailures =
+            (document['fields']['active_failures'] ?? const {})['booleanValue'];
+
         if (completed) {
-          exit(success ? 0 : 1);
+          print('Success: $success');
+          if (activeFailures == true) print('Has active unapproved failures');
+          exit((success && (activeFailures != true)) ? 0 : 1);
         }
         String chunks =
             (document['fields']['num_chunks'] ?? const {})['integerValue'];
