@@ -85,20 +85,6 @@ class ConstructorFieldsVerifier {
       }
     });
 
-    // Visit all of the states in the map to ensure that none were never
-    // initialized.
-    fieldMap.forEach((FieldElement fieldElement, _InitState state) {
-      if (state == _InitState.notInit) {
-        if (fieldElement.isConst) {
-          _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.CONST_NOT_INITIALIZED,
-            node.returnType,
-            [fieldElement.name],
-          );
-        }
-      }
-    });
-
     _reportNotInitializedFinal(node, notInitFinalFields);
     _reportNotInitializedNonNullable(node, notInitNonNullableFields);
   }

@@ -9,8 +9,6 @@ class A {
 
 class B {
   const B() : n = 5;
-  //    ^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_NOT_INITIALIZED
   final n;
   static const a;
   //           ^

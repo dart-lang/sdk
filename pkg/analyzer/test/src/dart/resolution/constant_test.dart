@@ -79,7 +79,6 @@ class C extends B {
 ''');
     assertTestErrorsWithCodes([
       CompileTimeErrorCode.CONST_NOT_INITIALIZED,
-      CompileTimeErrorCode.CONST_NOT_INITIALIZED,
     ]);
   }
 
