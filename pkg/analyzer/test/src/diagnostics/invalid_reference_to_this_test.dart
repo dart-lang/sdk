@@ -18,6 +18,16 @@ main() {
 
 @reflectiveTest
 class InvalidReferenceToThisTest extends DriverResolutionTest {
+  test_constructor_valid() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A() {
+    var v = this;
+  }
+}
+''');
+  }
+
   test_factoryConstructor() async {
     await assertErrorsInCode(r'''
 class A {
@@ -26,6 +36,16 @@ class A {
 ''', [
       error(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, 33, 4),
     ]);
+  }
+
+  test_instanceMethod_valid() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  m() {
+    var v = this;
+  }
+}
+''');
   }
 
   test_instanceVariableInitializer_inConstructor() async {

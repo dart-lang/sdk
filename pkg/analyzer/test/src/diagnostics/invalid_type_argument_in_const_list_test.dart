@@ -26,4 +26,14 @@ class A<E> {
       error(CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST, 39, 1),
     ]);
   }
+
+  test_valid() async {
+    await assertNoErrorsInCode(r'''
+class A<E> {
+  m() {
+    return <E>[];
+  }
+}
+''');
+  }
 }

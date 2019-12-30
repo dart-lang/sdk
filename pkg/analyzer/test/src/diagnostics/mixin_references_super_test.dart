@@ -25,4 +25,13 @@ class B extends Object with A {}
       error(CompileTimeErrorCode.MIXIN_REFERENCES_SUPER, 74, 1),
     ]);
   }
+
+  test_mixin_unconstrained_references_super() async {
+    await assertNoErrorsInCode(r'''
+mixin A {
+  toString() => super.toString();
+}
+class B extends Object with A {}
+''');
+  }
 }

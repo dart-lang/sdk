@@ -25,6 +25,22 @@ class C extends Object with B {}
     ]);
   }
 
+  test_classDeclaration_extends_new_syntax() async {
+    await assertNoErrorsInCode(r'''
+class A {}
+mixin B on A {}
+class C extends A with B {}
+''');
+  }
+
+  test_classDeclaration_mixTypeAlias() async {
+    await assertNoErrorsInCode(r'''
+class A {}
+class B = Object with A;
+class C extends Object with B {}
+''');
+  }
+
   test_classDeclaration_with() async {
     await assertErrorsInCode(r'''
 class A {}
@@ -45,6 +61,14 @@ class C = Object with B;
     ]);
   }
 
+  test_typeAlias_extends_new_syntax() async {
+    await assertNoErrorsInCode(r'''
+class A {}
+mixin B on A {}
+class C = A with B;
+''');
+  }
+
   test_typeAlias_with() async {
     await assertErrorsInCode(r'''
 class A {}
@@ -53,5 +77,13 @@ class C = Object with B;
 ''', [
       error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 66, 1),
     ]);
+  }
+
+  test_typedef_mixTypeAlias() async {
+    await assertNoErrorsInCode(r'''
+class A {}
+class B = Object with A;
+class C = Object with B;
+''');
   }
 }

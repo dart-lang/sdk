@@ -27,6 +27,16 @@ class A<E> {
     ]);
   }
 
+  test_valid() async {
+    await assertNoErrorsInCode(r'''
+class A<E> {
+  m() {
+    return <String, E>{};
+  }
+}
+''');
+  }
+
   test_value() async {
     await assertErrorsInCode(r'''
 class A<E> {

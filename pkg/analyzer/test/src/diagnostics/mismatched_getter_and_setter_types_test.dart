@@ -27,6 +27,54 @@ set g(String v) {}''', [
       error(StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES, 0, 23),
     ]);
   }
+
+  test_instance_sameTypes() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  int get x => 0;
+  set x(int v) {}
+}
+''');
+  }
+
+  test_instance_unspecifiedGetter() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  get x => 0;
+  set x(String v) {}
+}
+''');
+  }
+
+  test_instance_unspecifiedSetter() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  int get x => 0;
+  set x(v) {}
+}
+''');
+  }
+
+  test_topLevel_sameTypes() async {
+    await assertNoErrorsInCode(r'''
+int get x => 0;
+set x(int v) {}
+''');
+  }
+
+  test_topLevel_unspecifiedGetter() async {
+    await assertNoErrorsInCode(r'''
+get x => 0;
+set x(String v) {}
+''');
+  }
+
+  test_topLevel_unspecifiedSetter() async {
+    await assertNoErrorsInCode(r'''
+int get x => 0;
+set x(v) {}
+''');
+  }
 }
 
 @reflectiveTest

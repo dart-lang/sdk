@@ -35,4 +35,12 @@ class A {
       error(CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS, 20, 1),
     ]);
   }
+
+  test_valid() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  factory A() => null;
+}
+''');
+  }
 }

@@ -28,6 +28,28 @@ f() {
     ]);
   }
 
+  test_defined_named() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A.name() {}
+}
+f() {
+  new A.name();
+}
+''');
+  }
+
+  test_defined_unnamed() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A() {}
+}
+f() {
+  new A();
+}
+''');
+  }
+
   test_named() async {
     await assertErrorsInCode('''
 class A {
