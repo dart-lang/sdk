@@ -1144,7 +1144,6 @@ class FixProcessor extends BaseProcessor {
 
         if (lastArgument is NamedExpression &&
             flutter.isWidgetExpression(creation)) {
-          String paramName = lastArgument?.name?.label?.name;
           if (flutter.isChildArgument(lastArgument) ||
               flutter.isChildrenArgument(lastArgument)) {
             offset = lastArgument.offset;
@@ -1163,8 +1162,18 @@ class FixProcessor extends BaseProcessor {
 
           builder.write('$missingParameterName: ');
 
-          var defaultValue = getDefaultStringParameterValue(missingParameter);
-          builder.addSimpleLinkedEdit('VALUE', defaultValue);
+          DefaultArgument defaultValue =
+              getDefaultStringParameterValue(missingParameter);
+          // Use defaultValue.cursorPosition if it's not null.
+          if (defaultValue?.cursorPosition != null) {
+            builder.write(
+                defaultValue.text.substring(0, defaultValue.cursorPosition));
+            builder.selectHere();
+            builder.write(
+                defaultValue.text.substring(defaultValue.cursorPosition));
+          } else {
+            builder.addSimpleLinkedEdit('VALUE', defaultValue?.text);
+          }
 
           if (flutter.isWidgetExpression(creation)) {
             // Insert a trailing comma after Flutter instance creation params.

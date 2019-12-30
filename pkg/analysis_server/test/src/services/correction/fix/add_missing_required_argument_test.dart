@@ -195,7 +195,7 @@ main() {
 import 'package:test/a.dart';
 
 main() {
-  A a = new A(onPressed: () {});
+  A a = new A(onPressed: () {  });
   print(a);
 }
 ''');
@@ -224,7 +224,7 @@ main() {
 import 'package:test/a.dart';
 
 main() {
-  A a = new A(callback: (e) {});
+  A a = new A(callback: (e) {  });
   print(a);
 }
 ''');
@@ -253,7 +253,7 @@ main() {
 import 'package:test/a.dart';
 
 main() {
-  A a = new A(callback: (a, b, c) {});
+  A a = new A(callback: (a, b, c) {  });
   print(a);
 }
 ''');
@@ -282,7 +282,7 @@ main() {
 import 'package:test/a.dart';
 
 main() {
-  A a = new A(callback: (int a, String b, c) {});
+  A a = new A(callback: (int a, String b, c) {  });
   print(a);
 }
 ''');

@@ -142,8 +142,6 @@ class ArgListContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
       DartCompletionRequest request) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     this.request = request;
     suggestions = <CompletionSuggestion>[];
 
@@ -184,10 +182,16 @@ class ArgListContributor extends DartCompletionContributor {
       if (element is ConstructorElement) {
         var flutter = Flutter.of(request.result);
         if (flutter.isWidget(element.enclosingElement)) {
-          String value = getDefaultStringParameterValue(parameter);
-          if (value == '<Widget>[]') {
-            completion += value;
-            selectionOffset = completion.length - 1; // before closing ']'
+          DefaultArgument defaultValue =
+              getDefaultStringParameterValue(parameter);
+          // TODO(devoncarew): Should we remove the check here? We would then
+          // suggest values for param types like closures.
+          if (defaultValue != null && defaultValue.text == '<Widget>[]') {
+            int completionLength = completion.length;
+            completion += defaultValue.text;
+            if (defaultValue.cursorPosition != null) {
+              selectionOffset = completionLength + defaultValue.cursorPosition;
+            }
           }
         }
       }
@@ -226,7 +230,7 @@ class ArgListContributor extends DartCompletionContributor {
     Iterable<ParameterElement> requiredParam =
         parameters.where((ParameterElement p) => p.isRequiredPositional);
     int requiredCount = requiredParam.length;
-    // TODO (jwren) _isAppendingToArgList can be split into two cases (with and
+    // TODO(jwren): _isAppendingToArgList can be split into two cases (with and
     // without preceded), then _isAppendingToArgList,
     // _isInsertingToArgListWithNoSynthetic and
     // _isInsertingToArgListWithSynthetic could be formatted into a single

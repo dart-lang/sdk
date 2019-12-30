@@ -139,26 +139,31 @@ CompletionSuggestion createLocalSuggestion(SimpleIdentifier id,
   return suggestion;
 }
 
-String getDefaultStringParameterValue(ParameterElement param) {
+DefaultArgument getDefaultStringParameterValue(ParameterElement param) {
   if (param != null) {
     DartType type = param.type;
+
     if (type is InterfaceType && isDartList(type)) {
       List<DartType> typeArguments = type.typeArguments;
       if (typeArguments.length == 1) {
         DartType typeArg = typeArguments.first;
         String typeInfo = !typeArg.isDynamic ? '<${typeArg.name}>' : '';
-        return '$typeInfo[]';
+        String text = '$typeInfo[]';
+        return DefaultArgument(text, cursorPosition: text.length - 1);
       }
-    }
-    if (type is FunctionType) {
+    } else if (type is FunctionType) {
       String params = type.parameters
           .map((p) => '${getTypeString(p.type)}${p.name}')
           .join(', ');
-      //TODO(pq): consider adding a `TODO:` message in generated stub
-      return '($params) {}';
+      // TODO(devoncarew): Support having this method return text with newlines.
+      String text = '($params) {  }';
+      return DefaultArgument(text, cursorPosition: text.length - 2);
     }
-    //TODO(pq): support map literals
+
+    // TODO(pq): support map literals
+
   }
+
   return null;
 }
 
@@ -231,5 +236,23 @@ String nameForType(SimpleIdentifier identifier, TypeAnnotation declaredType) {
   return type.toString();
 }
 
-//TODO(pq): fix to use getDefaultStringParameterValue()
+// TODO(pq): fix to use getDefaultStringParameterValue()
 String _getDefaultValue(ParameterElement param) => 'null';
+
+/**
+ * A tuple of text to insert and an (optional) location for the cursor.
+ */
+class DefaultArgument {
+  /**
+   * The text to insert.
+   */
+  final String text;
+
+  /**
+   * An optional location for the cursor, relative to the text's start. This
+   * field can be null.
+   */
+  final int cursorPosition;
+
+  DefaultArgument(this.text, {this.cursorPosition});
+}
