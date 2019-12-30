@@ -447,7 +447,7 @@ class ScopeTest extends DriverResolutionTest {
     VariableElement element2 = ElementFactory.localVariableElement(identifier);
     scope.define(element1);
     scope.define(element2);
-    expect(scope.localLookup('v', null), same(element1));
+    expect(scope.localLookup('v'), same(element1));
   }
 
   void test_isPrivateName_nonPrivate() {
@@ -961,7 +961,5 @@ main() {
 
 class _RootScope extends Scope {
   @override
-  Element internalLookup(Identifier identifier, String name,
-          LibraryElement referencingLibrary) =>
-      null;
+  Element internalLookup(Identifier identifier, String name) => null;
 }

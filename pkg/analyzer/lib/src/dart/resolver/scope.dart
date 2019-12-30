@@ -126,21 +126,19 @@ class EnclosedScope extends Scope {
   EnclosedScope(this.enclosingScope);
 
   @override
-  Element internalLookup(
-      Identifier identifier, String name, LibraryElement referencingLibrary) {
-    Element element = localLookup(name, referencingLibrary);
+  Element internalLookup(Identifier identifier, String name) {
+    Element element = localLookup(name);
     if (element != null) {
       return element;
     }
     // Check enclosing scope.
-    return enclosingScope.internalLookup(identifier, name, referencingLibrary);
+    return enclosingScope.internalLookup(identifier, name);
   }
 
   @override
-  Element _internalLookupPrefixed(PrefixedIdentifier identifier, String prefix,
-      String name, LibraryElement referencingLibrary) {
-    return enclosingScope._internalLookupPrefixed(
-        identifier, prefix, name, referencingLibrary);
+  Element _internalLookupPrefixed(
+      PrefixedIdentifier identifier, String prefix, String name) {
+    return enclosingScope._internalLookupPrefixed(identifier, prefix, name);
   }
 }
 
@@ -426,9 +424,8 @@ class LibraryImportScope extends Scope {
   }
 
   @override
-  Element internalLookup(
-      Identifier identifier, String name, LibraryElement referencingLibrary) {
-    Element element = localLookup(name, referencingLibrary);
+  Element internalLookup(Identifier identifier, String name) {
+    Element element = localLookup(name);
     if (element != null) {
       return element;
     }
@@ -515,8 +512,8 @@ class LibraryImportScope extends Scope {
   }
 
   @override
-  Element _internalLookupPrefixed(PrefixedIdentifier identifier, String prefix,
-      String name, LibraryElement referencingLibrary) {
+  Element _internalLookupPrefixed(
+      PrefixedIdentifier identifier, String prefix, String name) {
     Element element = _localPrefixedLookup(prefix, name);
     if (element != null) {
       return element;
@@ -1072,21 +1069,17 @@ abstract class Scope {
    * Return the element with which the given [name] is associated, or `null` if
    * the name is not defined within this scope. The [identifier] is the
    * identifier node to lookup element for, used to report correct kind of a
-   * problem and associate problem with. The [referencingLibrary] is the library
-   * that contains the reference to the name, used to implement library-level
-   * privacy.
+   * problem and associate problem with.
    */
-  Element internalLookup(
-      Identifier identifier, String name, LibraryElement referencingLibrary);
+  Element internalLookup(Identifier identifier, String name);
 
   /**
    * Return the element with which the given [name] is associated, or `null` if
    * the name is not defined within this scope. This method only returns
    * elements that are directly defined within this scope, not elements that are
-   * defined in an enclosing scope. The [referencingLibrary] is the library that
-   * contains the reference to the name, used to implement library-level privacy.
+   * defined in an enclosing scope.
    */
-  Element localLookup(String name, LibraryElement referencingLibrary) {
+  Element localLookup(String name) {
     if (_definedNames != null) {
       return _definedNames[name];
     }
@@ -1101,10 +1094,10 @@ abstract class Scope {
    */
   Element lookup(Identifier identifier, LibraryElement referencingLibrary) {
     if (identifier is PrefixedIdentifier) {
-      return _internalLookupPrefixed(identifier, identifier.prefix.name,
-          identifier.identifier.name, referencingLibrary);
+      return _internalLookupPrefixed(
+          identifier, identifier.prefix.name, identifier.identifier.name);
     }
-    return internalLookup(identifier, identifier.name, referencingLibrary);
+    return internalLookup(identifier, identifier.name);
   }
 
   /**
@@ -1138,12 +1131,10 @@ abstract class Scope {
    * Return the element with which the given [prefix] and [name] are associated,
    * or `null` if the name is not defined within this scope. The [identifier] is
    * the identifier node to lookup element for, used to report correct kind of a
-   * problem and associate problem with. The [referencingLibrary] is the library
-   * that contains the reference to the name, used to implement library-level
-   * privacy.
+   * problem and associate problem with.
    */
-  Element _internalLookupPrefixed(PrefixedIdentifier identifier, String prefix,
-      String name, LibraryElement referencingLibrary);
+  Element _internalLookupPrefixed(
+      PrefixedIdentifier identifier, String prefix, String name);
 
   /**
    * Return `true` if the given [name] is a library-private name.

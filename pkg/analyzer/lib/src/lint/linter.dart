@@ -381,7 +381,6 @@ class LinterContextImpl implements LinterContext {
   @override
   LinterNameInScopeResolutionResult resolveNameInScope(
       String id, bool setter, AstNode node) {
-    var library = currentUnit.unit.declaredElement.library;
     var idEq = '$id=';
     for (var context = node; context != null; context = context.parent) {
       var scope = ScopedVisitor.getNodeNameScope(context);
@@ -391,8 +390,8 @@ class LinterContextImpl implements LinterContext {
 
         void lookupScopeAndEnclosing() {
           while (scope != null && idElement == null && idEqElement == null) {
-            idElement = scope.localLookup(id, library);
-            idEqElement = scope.localLookup(idEq, library);
+            idElement = scope.localLookup(id);
+            idEqElement = scope.localLookup(idEq);
             scope = scope.enclosingScope;
           }
         }
