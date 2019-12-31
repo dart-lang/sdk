@@ -1341,7 +1341,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
         isConst: isConst,
         errorReporter: _resolver.errorReporter,
         errorNode: errorNode,
-        isNonNullableByDefault: _isNonNullableByDefault,
       );
       if (node is InvocationExpressionImpl) {
         node.typeArgumentTypes = typeArgs;

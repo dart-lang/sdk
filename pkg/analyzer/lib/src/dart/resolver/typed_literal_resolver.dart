@@ -412,7 +412,6 @@ class TypedLiteralResolver {
       isConst: node.isConst,
       errorReporter: _errorReporter,
       errorNode: node,
-      isNonNullableByDefault: _isNonNullableByDefault,
     );
     return element.instantiate(
       typeArguments: typeArguments,
@@ -437,7 +436,6 @@ class TypedLiteralResolver {
       isConst: node.isConst,
       errorReporter: _errorReporter,
       errorNode: node,
-      isNonNullableByDefault: _isNonNullableByDefault,
     );
     return element.instantiate(
       typeArguments: typeArguments,
@@ -519,7 +517,6 @@ class TypedLiteralResolver {
       isConst: node.isConst,
       errorReporter: _errorReporter,
       errorNode: node,
-      isNonNullableByDefault: _isNonNullableByDefault,
     );
     return element.instantiate(
       typeArguments: typeArguments,
@@ -722,7 +719,6 @@ class TypedLiteralResolver {
       declaredReturnType: element.thisType,
       argumentTypes: argumentTypes,
       contextReturnType: contextType,
-      isNonNullableByDefault: _isNonNullableByDefault,
     );
     return element.instantiate(
       typeArguments: typeArguments,
@@ -754,7 +750,6 @@ class TypedLiteralResolver {
       declaredReturnType: element.thisType,
       argumentTypes: argumentTypes,
       contextReturnType: contextType,
-      isNonNullableByDefault: _isNonNullableByDefault,
     );
     return element.instantiate(
       typeArguments: typeArguments,

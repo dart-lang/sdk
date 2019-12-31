@@ -653,7 +653,6 @@ class Dart2TypeSystem extends TypeSystem {
     @required DartType declaredReturnType,
     @required List<DartType> argumentTypes,
     @required DartType contextReturnType,
-    @required bool isNonNullableByDefault,
     ErrorReporter errorReporter,
     AstNode errorNode,
     bool downwards = false,

@@ -514,7 +514,6 @@ class TypeNameResolver {
           declaredReturnType: typeElement.thisType,
           argumentTypes: const [],
           contextReturnType: enclosingClassElement.thisType,
-          isNonNullableByDefault: isNonNullableByDefault,
         );
       }
     }

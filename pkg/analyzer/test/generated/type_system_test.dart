@@ -1488,7 +1488,6 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
       contextReturnType: returnType,
       errorReporter: reporter,
       errorNode: astFactory.nullLiteral(KeywordToken(Keyword.NULL, 0)),
-      isNonNullableByDefault: false,
     );
 
     if (expectError) {

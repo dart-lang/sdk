@@ -1971,7 +1971,6 @@ class ResolverVisitor extends ScopedVisitor {
         isConst: isConst,
         errorReporter: errorReporter,
         errorNode: errorNode,
-        isNonNullableByDefault: _isNonNullableByDefault,
       );
       if (typeArguments != null) {
         return uninstantiatedType.instantiate(typeArguments);
