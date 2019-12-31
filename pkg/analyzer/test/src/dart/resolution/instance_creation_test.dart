@@ -19,7 +19,7 @@ class InstanceCreationDriverResolutionTest extends DriverResolutionTest {
     await assertErrorsInCode(r'''
 final foo = Map<int>();
 ''', [
-      error(StaticWarningCode.NEW_WITH_INVALID_TYPE_PARAMETERS, 12, 8),
+      error(StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 12, 8),
     ]);
 
     var creation = findNode.instanceCreation('Map<int>');

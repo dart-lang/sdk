@@ -4,7 +4,7 @@
 
 final foo = Map<int>();
 //          ^^^^^^^^
-// [analyzer] STATIC_WARNING.NEW_WITH_INVALID_TYPE_PARAMETERS
+// [analyzer] STATIC_TYPE_WARNING.WRONG_NUMBER_OF_TYPE_ARGUMENTS
 // [cfe] Expected 2 type arguments.
 
 main() {}

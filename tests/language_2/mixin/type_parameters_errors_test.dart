@@ -32,11 +32,11 @@ main() {
   a = new A<int>();
   a = new A<String, String>();
   //      ^^^^^^^^^^^^^^^^^
-  // [analyzer] STATIC_WARNING.NEW_WITH_INVALID_TYPE_PARAMETERS
+  // [analyzer] STATIC_TYPE_WARNING.WRONG_NUMBER_OF_TYPE_ARGUMENTS
   // [cfe] Expected 1 type arguments.
   a = new F<int>();
   a = new F<int, String>();
   //      ^^^^^^^^^^^^^^
-  // [analyzer] STATIC_WARNING.NEW_WITH_INVALID_TYPE_PARAMETERS
+  // [analyzer] STATIC_TYPE_WARNING.WRONG_NUMBER_OF_TYPE_ARGUMENTS
   // [cfe] Expected 1 type arguments.
 }

@@ -160,10 +160,10 @@ import 'inference_failure_on_untyped_parameter_test.dart'
 import 'instance_access_to_static_member_test.dart'
     as instance_access_to_static_member;
 import 'instantiate_abstract_class_test.dart' as instantiate_abstract_class;
-import 'invalid_annotation_test.dart' as invalid_annotation;
 import 'invalid_annotation_from_deferred_library_test.dart'
     as invalid_annotation_from_deferred_library;
 import 'invalid_annotation_getter_test.dart' as invalid_annotation_getter;
+import 'invalid_annotation_test.dart' as invalid_annotation;
 import 'invalid_assignment_test.dart' as invalid_assignment;
 import 'invalid_cast_new_expr_test.dart' as invalid_cast_new_expr;
 import 'invalid_constant_test.dart' as invalid_constant;
@@ -267,8 +267,6 @@ import 'must_be_a_native_function_type_test.dart'
 import 'must_be_a_subtype_test.dart' as must_be_a_subtype;
 import 'must_be_immutable_test.dart' as must_be_immutable;
 import 'must_call_super_test.dart' as must_call_super;
-import 'new_with_invalid_type_parameters_test.dart'
-    as new_with_invalid_type_parameters;
 import 'new_with_non_type_test.dart' as new_with_non_type;
 import 'new_with_undefined_constructor_test.dart'
     as new_with_undefined_constructor;
@@ -471,6 +469,8 @@ import 'wrong_number_of_parameters_for_operator_test.dart'
     as wrong_number_of_parameters_for_operator;
 import 'wrong_number_of_parameters_for_setter_test.dart'
     as wrong_number_of_parameters_for_setter;
+import 'wrong_number_of_type_arguments_test.dart'
+    as wrong_number_of_type_arguments;
 import 'wrong_type_parameter_variance_in_superinterface_test.dart'
     as wrong_type_parameter_variance_in_superinterface;
 import 'yield_each_in_non_generator_test.dart' as yield_each_in_non_generator;
@@ -657,7 +657,6 @@ main() {
     must_be_a_subtype.main();
     must_be_immutable.main();
     must_call_super.main();
-    new_with_invalid_type_parameters.main();
     new_with_non_type.main();
     new_with_undefined_constructor.main();
     non_abstract_class_inherits_abstract_member.main();
@@ -800,6 +799,7 @@ main() {
     variable_type_mismatch.main();
     wrong_number_of_parameters_for_operator.main();
     wrong_number_of_parameters_for_setter.main();
+    wrong_number_of_type_arguments.main();
     wrong_type_parameter_variance_in_superinterface.main();
     yield_each_in_non_generator.main();
     yield_in_non_generator.main();

@@ -364,7 +364,7 @@ class TypeNameResolver {
 
     if (argumentCount != parameterCount) {
       reportErrorForNode(
-        _getInvalidTypeParametersErrorCode(node),
+        StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS,
         node,
         [node.name.name, parameterCount, argumentCount],
       );
@@ -407,24 +407,6 @@ class TypeNameResolver {
       if (candidateMixin.element == mixinElement) return candidateMixin;
     }
     return null; // Not found
-  }
-
-  /// The number of type arguments in the given [typeName] does not match the
-  /// number of parameters in the corresponding class element. Return the error
-  /// code that should be used to report this error.
-  ErrorCode _getInvalidTypeParametersErrorCode(TypeName typeName) {
-    AstNode parent = typeName.parent;
-    if (parent is ConstructorName) {
-      parent = parent.parent;
-      if (parent is InstanceCreationExpression) {
-        if (parent.isConst) {
-          return CompileTimeErrorCode.CONST_WITH_INVALID_TYPE_PARAMETERS;
-        } else {
-          return StaticWarningCode.NEW_WITH_INVALID_TYPE_PARAMETERS;
-        }
-      }
-    }
-    return StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS;
   }
 
   NullabilitySuffix _getNullability(bool hasQuestion) {
@@ -655,8 +637,11 @@ class TypeNameResolver {
           typeArguments[i] = _getType(argumentNodes[i]);
         }
       } else {
-        reportErrorForNode(_getInvalidTypeParametersErrorCode(node), node,
-            [typeName.name, parameterCount, argumentCount]);
+        reportErrorForNode(
+          StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS,
+          node,
+          [typeName.name, parameterCount, argumentCount],
+        );
         for (int i = 0; i < parameterCount; i++) {
           typeArguments[i] = dynamicType;
         }

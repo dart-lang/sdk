@@ -1117,28 +1117,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           hasPublishedDocs: true);
 
   /**
-   * 16.12.2 Const: If <i>T</i> is a parameterized type <i>S&lt;U<sub>1</sub>,
-   * &hellip;, U<sub>m</sub>&gt;</i>, let <i>R = S</i>; It is a compile time
-   * error if <i>S</i> is not a generic type with <i>m</i> type parameters.
-   *
-   * Parameters:
-   * 0: the name of the type being referenced (<i>S</i>)
-   * 1: the number of type parameters that were declared
-   * 2: the number of type arguments provided
-   *
-   * See [StaticWarningCode.NEW_WITH_INVALID_TYPE_PARAMETERS], and
-   * [StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS].
-   */
-  static const CompileTimeErrorCode CONST_WITH_INVALID_TYPE_PARAMETERS =
-      CompileTimeErrorCode(
-          'CONST_WITH_INVALID_TYPE_PARAMETERS',
-          "The type '{0}' is declared with {1} type parameters, but {2} type "
-              "arguments were given.",
-          correction:
-              "Try adjusting the number of type arguments to match the number "
-              "of type parameters.");
-
-  /**
    * No parameters.
    */
   // #### Description
@@ -6724,7 +6702,9 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
           'WRONG_NUMBER_OF_TYPE_ARGUMENTS',
           "The type '{0}' is declared with {1} type parameters, "
               "but {2} type arguments were given.",
-          correction: "Try adjusting the number of type arguments.",
+          correction:
+              "Try adjusting the number of type arguments to match the number "
+              "of type parameters.",
           hasPublishedDocs: true);
 
   /**
@@ -7875,46 +7855,6 @@ class StaticWarningCode extends AnalyzerErrorCode {
   @Deprecated('Use StaticWarningCode.INSTANTIATE_ABSTRACT_CLASS')
   static const StaticWarningCode NEW_WITH_ABSTRACT_CLASS =
       INSTANTIATE_ABSTRACT_CLASS;
-
-  /**
-   * Parameters:
-   * 0: the name of the type being referenced (<i>S</i>)
-   * 1: the number of type parameters that were declared
-   * 2: the number of type arguments provided
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when a constructor is invoked and the
-  // number of type arguments doesn't match the number of type parameters
-  // declared for the class.
-  //
-  // #### Example
-  //
-  // The following code produces this diagnostic because `C` declares one type
-  // parameter, but two type arguments are given:
-  //
-  // ```dart
-  // class C<E> {}
-  //
-  // var c = [!C<int, int>!]();
-  // ```
-  //
-  // #### Common fixes
-  //
-  // Change the number of type arguments to match the number of type parameters
-  // declared for the class:
-  //
-  // ```dart
-  // class C<E> {}
-  //
-  // var c = C<int>();
-  // ```
-  static const StaticWarningCode NEW_WITH_INVALID_TYPE_PARAMETERS =
-      StaticWarningCode(
-          'NEW_WITH_INVALID_TYPE_PARAMETERS',
-          "The type '{0}' is declared with {1} type arguments, but {2} type "
-              "arguments were given.",
-          correction: "Try adjusting the number of type arguments.");
 
   /**
    * 12.11.1 New: It is a static warning if <i>T</i> is not a class accessible

@@ -742,45 +742,6 @@ class C {
     ]);
   }
 
-  test_constWithInvalidTypeParameters() async {
-    await assertErrorsInCode(r'''
-class A {
-  const A();
-}
-f() { return const A<A>(); }
-''', [
-      error(CompileTimeErrorCode.CONST_WITH_INVALID_TYPE_PARAMETERS, 44, 4),
-    ]);
-  }
-
-  test_constWithInvalidTypeParameters_tooFew() async {
-    await assertErrorsInCode(r'''
-class A {}
-class C<K, V> {
-  const C();
-}
-f(p) {
-  return const C<A>();
-}
-''', [
-      error(CompileTimeErrorCode.CONST_WITH_INVALID_TYPE_PARAMETERS, 64, 4),
-    ]);
-  }
-
-  test_constWithInvalidTypeParameters_tooMany() async {
-    await assertErrorsInCode(r'''
-class A {}
-class C<E> {
-  const C();
-}
-f(p) {
-  return const C<A, A>();
-}
-''', [
-      error(CompileTimeErrorCode.CONST_WITH_INVALID_TYPE_PARAMETERS, 61, 7),
-    ]);
-  }
-
   test_constWithNonConst() async {
     await assertErrorsInCode(r'''
 class T {

@@ -117,7 +117,6 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS,
   CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET,
   CompileTimeErrorCode.CONST_SPREAD_EXPECTED_MAP,
-  CompileTimeErrorCode.CONST_WITH_INVALID_TYPE_PARAMETERS,
   CompileTimeErrorCode.CONST_WITH_NON_CONST,
   CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT,
   CompileTimeErrorCode.CONST_WITH_NON_TYPE,
@@ -747,7 +746,6 @@ const List<ErrorCode> errorCodeValues = [
   StaticWarningCode.MIXED_RETURN_TYPES,
   // ignore: deprecated_member_use_from_same_package
   StaticWarningCode.NEW_WITH_ABSTRACT_CLASS,
-  StaticWarningCode.NEW_WITH_INVALID_TYPE_PARAMETERS,
   StaticWarningCode.NEW_WITH_NON_TYPE,
   StaticWarningCode.NEW_WITH_UNDEFINED_CONSTRUCTOR,
   StaticWarningCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT,

@@ -3120,39 +3120,6 @@ class C {
 }
 {% endprettify %}
 
-### new_with_invalid_type_parameters
-
-_The type '{0}' is declared with {1} type arguments, but {2} type arguments were
-given._
-
-#### Description
-
-The analyzer produces this diagnostic when a constructor is invoked and the
-number of type arguments doesn't match the number of type parameters
-declared for the class.
-
-#### Example
-
-The following code produces this diagnostic because `C` declares one type
-parameter, but two type arguments are given:
-
-{% prettify dart %}
-class C<E> {}
-
-var c = [!C<int, int>!]();
-{% endprettify %}
-
-#### Common fixes
-
-Change the number of type arguments to match the number of type parameters
-declared for the class:
-
-{% prettify dart %}
-class C<E> {}
-
-var c = C<int>();
-{% endprettify %}
-
 ### new_with_undefined_constructor_default
 
 _The class '{0}' doesn't have a default constructor._
