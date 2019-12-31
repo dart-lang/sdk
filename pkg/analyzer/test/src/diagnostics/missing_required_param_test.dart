@@ -8,6 +8,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/test_utilities/package_mixin.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../generated/test_support.dart';
 import '../dart/resolution/driver_resolution.dart';
 
 main() {
@@ -39,20 +40,6 @@ main() {
 ''');
   }
 
-  test_constructor_hasReason() async {
-    await assertErrorsInCode(r'''
-import 'package:meta/meta.dart';
-class C {
-  C({@Required('must specify an `a`') int a}) {}
-}
-main() {
-  new C();
-}
-''', [
-      error(HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS, 109, 1),
-    ]);
-  }
-
   test_constructor_fieldFormalParameter() async {
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
@@ -67,6 +54,20 @@ main() {
 }
 ''', [
       error(HintCode.MISSING_REQUIRED_PARAM, 102, 1),
+    ]);
+  }
+
+  test_constructor_hasReason() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+class C {
+  C({@Required('must specify an `a`') int a}) {}
+}
+main() {
+  new C();
+}
+''', [
+      error(HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS, 109, 1),
     ]);
   }
 
@@ -204,9 +205,10 @@ f() {
 }
 ''');
 
-    await _resolveTestFile('/a_lib.dart');
-    await _resolveTestFile('/test.dart');
-    assertTestErrorsWithCodes([HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS]);
+    await _resolveFile('/a_lib.dart');
+    await _resolveFile('/test.dart', [
+      error(HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS, 37, 1),
+    ]);
   }
 
   @FailingTest(reason: r'''
@@ -231,11 +233,15 @@ class C {
     ]);
   }
 
-  /// Resolve the test file at [path].
+  /// Resolve the file with the given [path].
   ///
   /// Similar to ResolutionTest.resolveTestFile, but a custom path is supported.
-  Future<void> _resolveTestFile(String path) async {
+  Future<void> _resolveFile(
+    String path, [
+    List<ExpectedError> expectedErrors = const [],
+  ]) async {
     result = await resolveFile(convertPath(path));
+    assertErrorsInResolvedUnit(result, expectedErrors);
   }
 }
 

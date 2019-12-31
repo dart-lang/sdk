@@ -29,13 +29,14 @@ final b = new A().a;
   }
 
   test_referenceInstanceVariable_withoutDeclaredType() async {
-    await resolveTestCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   final a = b + 1;
 }
 final b = new A().a;
-''');
-    assertTestErrorsWithCodes([StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
+''', [
+      error(StrongModeCode.TOP_LEVEL_INSTANCE_GETTER, 49, 1),
+    ]);
 
     assertElementTypeDynamic(findElement.field('a').type);
     assertElementTypeDynamic(findElement.topVar('b').type);

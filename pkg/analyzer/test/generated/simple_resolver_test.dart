@@ -657,16 +657,16 @@ void main() {
   }
 
   test_getterAndSetterWithDifferentTypes() async {
-    await resolveTestCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   int get f => 0;
   void set f(String s) {}
 }
 g (A a) {
   a.f = a.f.toString();
-}''');
-    assertTestErrorsWithCodes(
-        [StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES]);
+}''', [
+      error(StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES, 20, 1),
+    ]);
     verifyTestResolved();
   }
 
@@ -725,7 +725,7 @@ main() {
     // single error generated when the only problem is that an imported file
     // does not exist.
     //
-    await resolveTestCode('''
+    await assertErrorsInCode('''
 import 'missing.dart' as p;
 int a = p.q + p.r.s;
 String b = p.t(a) + p.u(v: 0);
@@ -741,8 +741,9 @@ class G extends Object with p.V {}
 class H extends D<p.W> {
   H(int i) : super(i);
 }
-''');
-    assertTestErrorsWithCodes([CompileTimeErrorCode.URI_DOES_NOT_EXIST]);
+''', [
+      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 14),
+    ]);
     verifyTestResolved();
   }
 
@@ -752,7 +753,7 @@ class H extends D<p.W> {
     // single error generated when the only problem is that an imported file
     // does not exist.
     //
-    await resolveTestCode('''
+    await assertErrorsInCode('''
 import 'missing.dart' show q, r, t, u, T, U, V, W;
 int a = q + r.s;
 String b = t(a) + u(v: 0);
@@ -768,8 +769,9 @@ class G extends Object with V {}
 class H extends D<W> {
   H(int i) : super(i);
 }
-''');
-    assertTestErrorsWithCodes([CompileTimeErrorCode.URI_DOES_NOT_EXIST]);
+''', [
+      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 14),
+    ]);
   }
 
   @failingTest
@@ -801,12 +803,13 @@ f() {
   }
 
   test_indexExpression_typeParameters_invalidAssignmentWarning() async {
-    await resolveTestCode(r'''
+    await assertErrorsInCode(r'''
 f() {
   List<List<int>> b;
   b[0][0] = 'hi';
-}''');
-    assertTestErrorsWithCodes([StaticTypeWarningCode.INVALID_ASSIGNMENT]);
+}''', [
+      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 39, 4),
+    ]);
     verifyTestResolved();
   }
 
@@ -842,12 +845,12 @@ class A {
   }
 
   test_isValidMixin_badSuperclass() async {
-    await resolveTestCode(r'''
+    await assertErrorsInCode(r'''
 class A extends B {}
 class B {}
-class C = Object with A;''');
-    assertTestErrorsWithCodes(
-        [CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT]);
+class C = Object with A;''', [
+      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 54, 1),
+    ]);
     verifyTestResolved();
 
     var a = findElement.class_('A');
@@ -855,14 +858,13 @@ class C = Object with A;''');
   }
 
   test_isValidMixin_constructor() async {
-    await resolveTestCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   A() {}
 }
-class C = Object with A;''');
-    assertTestErrorsWithCodes(
-      [CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR],
-    );
+class C = Object with A;''', [
+      error(CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR, 43, 1),
+    ]);
     verifyTestResolved();
 
     var a = findElement.class_('A');
@@ -883,14 +885,15 @@ class C = Object with A;''');
   }
 
   test_isValidMixin_super() async {
-    await resolveTestCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   toString() {
     return super.toString();
   }
 }
-class C = Object with A;''');
-    assertTestErrorsWithCodes([CompileTimeErrorCode.MIXIN_REFERENCES_SUPER]);
+class C = Object with A;''', [
+      error(CompileTimeErrorCode.MIXIN_REFERENCES_SUPER, 82, 1),
+    ]);
     verifyTestResolved();
 
     var a = findElement.class_('A');

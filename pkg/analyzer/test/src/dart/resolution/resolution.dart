@@ -441,6 +441,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
 //    assertTypeNull(superExpression);
   }
 
+  /// TODO(scheglov) Remove this method.
   void assertTestErrorsWithCodes(List<ErrorCode> expected) {
     assertErrorsWithCodes(result.errors, expected);
   }

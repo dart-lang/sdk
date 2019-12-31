@@ -852,14 +852,15 @@ mixin M {
   }
 
   test_error_mixinInstantiate_default() async {
-    await resolveTestCode(r'''
+    await assertErrorsInCode(r'''
 mixin M {}
 
 main() {
   new M();
 }
-''');
-    assertTestErrorsWithCodes([CompileTimeErrorCode.MIXIN_INSTANTIATE]);
+''', [
+      error(CompileTimeErrorCode.MIXIN_INSTANTIATE, 27, 1),
+    ]);
 
     var creation = findNode.instanceCreation('M();');
     var m = findElement.mixin('M');

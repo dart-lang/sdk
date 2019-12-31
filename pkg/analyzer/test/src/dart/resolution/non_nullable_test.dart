@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/type_system.dart';
@@ -580,13 +581,16 @@ class X = A with B implements C;
   }
 
   test_local_variable_interfaceType_notMigrated() async {
-    await resolveTestCode('''
+    await assertErrorsInCode('''
 main() {
   int? a = 0;
   int b = 0;
 }
-''');
-    assertTestErrorsWithCodes([ParserErrorCode.EXPERIMENT_NOT_ENABLED]);
+''', [
+      error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 14, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 16, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 29, 1),
+    ]);
 
     assertType(findNode.typeName('int? a'), 'int*');
     assertType(findNode.typeName('int b'), 'int*');

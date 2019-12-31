@@ -82,15 +82,16 @@ class A {
   }
 
   test_enclosingElement_invalidLocalFunction() async {
-    await resolveTestCode(r'''
+    await assertErrorsInCode(r'''
 class C {
   C() {
     int get x => 0;
   }
-}''');
-    assertTestErrorsWithCodes([
-      ParserErrorCode.MISSING_FUNCTION_PARAMETERS,
-      ParserErrorCode.EXPECTED_TOKEN
+}''', [
+      error(ParserErrorCode.EXPECTED_TOKEN, 26, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 26, 3),
+      error(HintCode.UNUSED_ELEMENT, 30, 1),
+      error(ParserErrorCode.MISSING_FUNCTION_PARAMETERS, 32, 2),
     ]);
 
     var constructor = findElement.unnamedConstructor('C');

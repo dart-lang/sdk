@@ -19,7 +19,7 @@ main() {
 @reflectiveTest
 class PropertyAccessResolutionTest extends DriverResolutionTest {
   test_get_error_abstractSuperMemberReference_mixinHasNoSuchMethod() async {
-    await resolveTestCode('''
+    await assertErrorsInCode('''
 class A {
   int get foo;
   noSuchMethod(im) => 1;
@@ -29,9 +29,9 @@ class B extends Object with A {
   get foo => super.foo; // ref
   noSuchMethod(im) => 2;
 }
-''');
-    assertTestErrorsWithCodes(
-        [CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
+''', [
+      error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 104, 3),
+    ]);
 
     var access = findNode.propertyAccess('foo; // ref');
     assertPropertyAccess(access, findElement.getter('foo', of: 'A'), 'int');
@@ -58,7 +58,7 @@ class B extends A {
   }
 
   test_set_error_abstractSuperMemberReference_mixinHasNoSuchMethod() async {
-    await resolveTestCode('''
+    await assertErrorsInCode('''
 class A {
   set foo(int a);
   noSuchMethod(im) {}
@@ -68,9 +68,9 @@ class B extends Object with A {
   set foo(v) => super.foo = v; // ref
   noSuchMethod(im) {}
 }
-''');
-    assertTestErrorsWithCodes(
-        [CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
+''', [
+      error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 107, 3),
+    ]);
 
     var access = findNode.propertyAccess('foo = v; // ref');
     assertPropertyAccess(

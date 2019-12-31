@@ -67,7 +67,7 @@ main() {}
   }
 
   test_constNotInitialized() async {
-    await resolveTestCode(r'''
+    await assertErrorsInCode(r'''
 class B {
   const B(_);
 }
@@ -76,9 +76,8 @@ class C extends B {
   static const a;
   const C() : super(a);
 }
-''');
-    assertTestErrorsWithCodes([
-      CompileTimeErrorCode.CONST_NOT_INITIALIZED,
+''', [
+      error(CompileTimeErrorCode.CONST_NOT_INITIALIZED, 62, 1),
     ]);
   }
 
