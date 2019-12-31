@@ -366,31 +366,18 @@ class DuplicateDefinitionVerifier {
       return CompileTimeErrorCode.DUPLICATE_DEFINITION;
     }
 
-    bool isGetterSetterPair(Element a, Element b) {
-      if (a is PropertyAccessorElement && b is PropertyAccessorElement) {
-        return a.isGetter && b.isSetter || a.isSetter && b.isGetter;
-      }
-      return false;
-    }
-
-    String name = identifier.name;
-    if (element is MethodElement && element.isOperator && name == '-') {
-      if (element.parameters.isEmpty) {
-        name = 'unary-';
-      }
+    var name = identifier.name;
+    if (element is MethodElement) {
+      name = element.name;
     }
 
     Element previous = getterScope[name];
     if (previous != null) {
-      if (isGetterSetterPair(element, previous)) {
+      if (_isGetterSetterPair(element, previous)) {
         // OK
-      } else if (previous is ParameterElement &&
-          previous.isInitializingFormal &&
-          element is ParameterElement &&
-          element.isInitializingFormal) {
-        // This case is covered by
-        // CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES; do not report
-        // a second error.
+      } else if (element is FieldFormalParameterElement &&
+          previous is FieldFormalParameterElement) {
+        // Reported as CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES.
       } else {
         _errorReporter.reportErrorForNode(
           getError(previous, element),
@@ -414,5 +401,12 @@ class DuplicateDefinitionVerifier {
         setterScope[name] = element;
       }
     }
+  }
+
+  static bool _isGetterSetterPair(Element a, Element b) {
+    if (a is PropertyAccessorElement && b is PropertyAccessorElement) {
+      return a.isGetter && b.isSetter || a.isSetter && b.isGetter;
+    }
+    return false;
   }
 }
