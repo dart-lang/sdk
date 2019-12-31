@@ -351,57 +351,36 @@ class TypeNameResolver {
       node.type = dynamicType;
       return;
     }
-    if (argumentList != null) {
-      var parameters = const <TypeParameterElement>[];
-      if (element is ClassElement) {
-        parameters = element.typeParameters;
-      } else if (element is FunctionTypeAliasElement) {
-        parameters = element.typeParameters;
-      }
 
-      NodeList<TypeAnnotation> arguments = argumentList.arguments;
-      int argumentCount = arguments.length;
-      int parameterCount = parameters.length;
-      List<DartType> typeArguments = List<DartType>(parameterCount);
-      if (argumentCount == parameterCount) {
-        for (int i = 0; i < parameterCount; i++) {
-          typeArguments[i] = _getType(arguments[i]);
-        }
-      } else {
-        reportErrorForNode(_getInvalidTypeParametersErrorCode(node), node,
-            [typeName.name, parameterCount, argumentCount]);
-        for (int i = 0; i < parameterCount; i++) {
-          typeArguments[i] = dynamicType;
-        }
-      }
-      if (element is GenericTypeAliasElementImpl) {
-        type = element.instantiate(
-          typeArguments: typeArguments,
-          nullabilitySuffix: _getNullability(node.question != null),
-        );
-        type ??= dynamicType;
-      } else {
-        type = typeSystem.instantiateType(type, typeArguments);
-        type = (type as TypeImpl).withNullability(
-          _getNullability(node.question != null),
-        );
-      }
-    } else {
-      if (element is GenericTypeAliasElementImpl) {
-        var typeArguments = typeSystem.instantiateTypeFormalsToBounds(
-          element.typeParameters,
-        );
-        type = element.instantiate(
-          typeArguments: typeArguments,
-          nullabilitySuffix: _getNullability(node.question != null),
-        );
-        type ??= dynamicType;
-      } else {
-        type = typeSystem.instantiateToBounds(type);
-      }
-    }
+    type = _instantiateElement(node, element);
 
     node.type = type;
+  }
+
+  /// Return type arguments, exactly [parameterCount].
+  List<DartType> _buildTypeArguments(TypeName node, int parameterCount) {
+    var arguments = node.typeArguments.arguments;
+    var argumentCount = arguments.length;
+
+    if (argumentCount != parameterCount) {
+      reportErrorForNode(
+        _getInvalidTypeParametersErrorCode(node),
+        node,
+        [node.name.name, parameterCount, argumentCount],
+      );
+      return List.filled(parameterCount, DynamicTypeImpl.instance);
+    }
+
+    if (parameterCount == 0) {
+      return const <DartType>[];
+    }
+
+    var typeArguments = List<DartType>(parameterCount);
+    for (var i = 0; i < parameterCount; i++) {
+      typeArguments[i] = _getType(arguments[i]);
+    }
+
+    return typeArguments;
   }
 
   /// Given the multiple elements to which a single name could potentially be
@@ -518,6 +497,70 @@ class TypeNameResolver {
       }
     }
     return null;
+  }
+
+  DartType _instantiateElement(TypeName node, Element element) {
+    var nullability = _getNullability(node.question != null);
+
+    var argumentList = node.typeArguments;
+    if (argumentList != null) {
+      if (element is ClassElement) {
+        var typeArguments = _buildTypeArguments(
+          node,
+          element.typeParameters.length,
+        );
+        return element.instantiate(
+          typeArguments: typeArguments,
+          nullabilitySuffix: nullability,
+        );
+      } else if (element is DynamicElementImpl) {
+        _buildTypeArguments(node, 0);
+        return DynamicTypeImpl.instance;
+      } else if (element is FunctionTypeAliasElement) {
+        var typeArguments = _buildTypeArguments(
+          node,
+          element.typeParameters.length,
+        );
+        return element.instantiate(
+          typeArguments: typeArguments,
+          nullabilitySuffix: nullability,
+        );
+      } else if (element is NeverElementImpl) {
+        _buildTypeArguments(node, 0);
+        return element.instantiate(
+          nullabilitySuffix: nullability,
+        );
+      } else if (element is TypeParameterElement) {
+        _buildTypeArguments(node, 0);
+        return element.instantiate(
+          nullabilitySuffix: nullability,
+        );
+      } else {
+        throw UnimplementedError('(${element.runtimeType}) $element');
+      }
+    }
+
+    if (element is ClassElement) {
+      return element.instantiateToBounds(
+        nullabilitySuffix: nullability,
+      );
+    } else if (element is DynamicElementImpl) {
+      return DynamicTypeImpl.instance;
+    } else if (element is FunctionTypeAliasElement) {
+      return element.instantiateToBounds(
+        nullabilitySuffix: nullability,
+      );
+    } else if (element is NeverElementImpl) {
+      return element.instantiate(
+        nullabilitySuffix: nullability,
+      );
+    } else if (element is TypeParameterElement) {
+      return element.instantiate(
+        nullabilitySuffix: nullability,
+      );
+    } else {
+      throw UnimplementedError('(${element.runtimeType}) $element');
+    }
   }
 
   /// Return `true` if the given [typeName] is the target in a redirected
