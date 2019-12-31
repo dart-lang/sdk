@@ -149,34 +149,41 @@ class TypedLiteralResolver {
   }
 
   DartType _computeElementType(CollectionElement element) {
-    if (element is ForElement) {
+    if (element is Expression) {
+      return element.staticType;
+    } else if (element is ForElement) {
       return _computeElementType(element.body);
     } else if (element is IfElement) {
-      DartType thenType = _computeElementType(element.thenElement);
-      if (element.elseElement == null) {
+      var thenElement = element.thenElement;
+      var elseElement = element.elseElement;
+
+      var thenType = _computeElementType(thenElement);
+      if (elseElement == null) {
         return thenType;
       }
-      DartType elseType = _computeElementType(element.elseElement);
+
+      var elseType = _computeElementType(elseElement);
       return _typeSystem.leastUpperBound(thenType, elseType);
-    } else if (element is Expression) {
-      return element.staticType;
     } else if (element is MapLiteralEntry) {
       // This error will be reported elsewhere.
       return _typeProvider.dynamicType;
     } else if (element is SpreadElement) {
-      DartType expressionType = element.expression.staticType;
-      bool isNull = expressionType.isDartCoreNull;
-      if (!isNull && expressionType is InterfaceType) {
-        if (_typeSystem.isSubtypeOf(
-            expressionType, _typeProvider.iterableObjectType)) {
-          InterfaceType iterableType = (expressionType as InterfaceTypeImpl)
-              .asInstanceOf(_typeProvider.iterableElement);
-          return iterableType.typeArguments[0];
+      var expressionType = element.expression.staticType;
+      if (expressionType.isDynamic) {
+        return expressionType;
+      } else if (expressionType is InterfaceTypeImpl) {
+        if (expressionType.isDartCoreNull) {
+          if (element.isNullAware) {
+            return expressionType;
+          }
+        } else {
+          var iterableType = expressionType.asInstanceOf(
+            _typeProvider.iterableElement,
+          );
+          if (iterableType != null) {
+            return iterableType.typeArguments[0];
+          }
         }
-      } else if (expressionType.isDynamic) {
-        return expressionType;
-      } else if (isNull && element.isNullAware) {
-        return expressionType;
       }
       // TODO(brianwilkerson) Report this as an error.
       return _typeProvider.dynamicType;
@@ -306,7 +313,10 @@ class TypedLiteralResolver {
 
   _InferredCollectionElementTypeInformation _inferCollectionElementType(
       CollectionElement element) {
-    if (element is ForElement) {
+    if (element is Expression) {
+      return _InferredCollectionElementTypeInformation(
+          elementType: element.staticType, keyType: null, valueType: null);
+    } else if (element is ForElement) {
       return _inferCollectionElementType(element.body);
     } else if (element is IfElement) {
       _InferredCollectionElementTypeInformation thenType =
@@ -318,9 +328,6 @@ class TypedLiteralResolver {
           _inferCollectionElementType(element.elseElement);
       return _InferredCollectionElementTypeInformation.forIfElement(
           _typeSystem, thenType, elseType);
-    } else if (element is Expression) {
-      return _InferredCollectionElementTypeInformation(
-          elementType: element.staticType, keyType: null, valueType: null);
     } else if (element is MapLiteralEntry) {
       return _InferredCollectionElementTypeInformation(
           elementType: null,
@@ -386,10 +393,7 @@ class TypedLiteralResolver {
       parameters = [];
     } else {
       // Also use upwards information to infer the type.
-      elementTypes = node.elements
-          .map((element) => _computeElementType(element))
-          .where((t) => t != null)
-          .toList();
+      elementTypes = node.elements.map(_computeElementType).toList();
       var syntheticParameter = ParameterElementImpl.synthetic(
           'element', genericElementType, ParameterKind.POSITIONAL);
       parameters = List.filled(elementTypes.length, syntheticParameter);
@@ -542,7 +546,9 @@ class TypedLiteralResolver {
       @required DartType iterableType,
       DartType keyType,
       DartType valueType}) {
-    if (element is ForElement) {
+    if (element is Expression) {
+      InferenceContext.setType(element, elementType);
+    } else if (element is ForElement) {
       _pushCollectionTypesDown(element.body,
           elementType: elementType,
           iterableType: iterableType,
@@ -559,8 +565,6 @@ class TypedLiteralResolver {
           iterableType: iterableType,
           keyType: keyType,
           valueType: valueType);
-    } else if (element is Expression) {
-      InferenceContext.setType(element, elementType);
     } else if (element is MapLiteralEntry) {
       InferenceContext.setType(element.key, keyType);
       InferenceContext.setType(element.value, valueType);
@@ -861,15 +865,15 @@ class _LeafElements {
 
   /// Recursively add the given collection [element] to the counts.
   void _count(CollectionElement element) {
-    if (element is ForElement) {
+    if (element is Expression) {
+      if (_isComplete(element)) {
+        expressionCount++;
+      }
+    } else if (element is ForElement) {
       _count(element.body);
     } else if (element is IfElement) {
       _count(element.thenElement);
       _count(element.elseElement);
-    } else if (element is Expression) {
-      if (_isComplete(element)) {
-        expressionCount++;
-      }
     } else if (element is MapLiteralEntry) {
       if (_isComplete(element)) {
         mapEntryCount++;
