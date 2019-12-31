@@ -428,17 +428,14 @@ class TypeNameResolver {
   }
 
   NullabilitySuffix _getNullability(bool hasQuestion) {
-    NullabilitySuffix nullability;
     if (isNonNullableByDefault) {
       if (hasQuestion) {
-        nullability = NullabilitySuffix.question;
+        return NullabilitySuffix.question;
       } else {
-        nullability = NullabilitySuffix.none;
+        return NullabilitySuffix.none;
       }
-    } else {
-      nullability = NullabilitySuffix.star;
     }
-    return nullability;
+    return NullabilitySuffix.star;
   }
 
   /// Return the type represented by the given type [annotation].

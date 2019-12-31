@@ -1137,17 +1137,14 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   NullabilitySuffix _getNullability(bool hasQuestion) {
-    NullabilitySuffix nullability;
     if (_isNonNullableByDefault) {
       if (hasQuestion) {
-        nullability = NullabilitySuffix.question;
+        return NullabilitySuffix.question;
       } else {
-        nullability = NullabilitySuffix.none;
+        return NullabilitySuffix.none;
       }
-    } else {
-      nullability = NullabilitySuffix.star;
     }
-    return nullability;
+    return NullabilitySuffix.star;
   }
 
   void _resolveImplementsClause(ImplementsClause clause) {
