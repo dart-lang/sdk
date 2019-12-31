@@ -8,7 +8,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart'
     show PrefixedIdentifierImpl, SimpleIdentifierImpl;
@@ -163,8 +162,10 @@ class ElementResolver extends SimpleAstVisitor<void> {
     // Example: `y += voidFn()`, not allowed.
     if (operatorType != TokenType.EQ) {
       if (staticType != null && staticType.isVoid) {
-        _recordUndefinedToken(
-            null, StaticWarningCode.USE_OF_VOID_RESULT, operator, []);
+        _errorReporter.reportErrorForToken(
+          StaticWarningCode.USE_OF_VOID_RESULT,
+          operator,
+        );
         return;
       }
     }
@@ -183,11 +184,11 @@ class ElementResolver extends SimpleAstVisitor<void> {
             isNullAware: false);
         node.staticElement = result.getter;
         if (_shouldReportInvalidMember(staticType, result)) {
-          _recordUndefinedToken(
-              staticType.element,
-              StaticTypeWarningCode.UNDEFINED_OPERATOR,
-              operator,
-              [methodName, staticType]);
+          _errorReporter.reportErrorForToken(
+            StaticTypeWarningCode.UNDEFINED_OPERATOR,
+            operator,
+            [methodName, staticType],
+          );
         }
       }
     }
@@ -577,17 +578,17 @@ class ElementResolver extends SimpleAstVisitor<void> {
     node.staticElement = result.getter;
     if (_shouldReportInvalidMember(staticType, result)) {
       if (operand is SuperExpression) {
-        _recordUndefinedToken(
-            staticType.element,
-            StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR,
-            node.operator,
-            [methodName, staticType]);
+        _errorReporter.reportErrorForToken(
+          StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR,
+          node.operator,
+          [methodName, staticType],
+        );
       } else {
-        _recordUndefinedToken(
-            staticType.element,
-            StaticTypeWarningCode.UNDEFINED_OPERATOR,
-            node.operator,
-            [methodName, staticType]);
+        _errorReporter.reportErrorForToken(
+          StaticTypeWarningCode.UNDEFINED_OPERATOR,
+          node.operator,
+          [methodName, staticType],
+        );
       }
     }
   }
@@ -702,17 +703,17 @@ class ElementResolver extends SimpleAstVisitor<void> {
       node.staticElement = result.getter;
       if (_shouldReportInvalidMember(staticType, result)) {
         if (operand is SuperExpression) {
-          _recordUndefinedToken(
-              staticType.element,
-              StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR,
-              operator,
-              [methodName, staticType]);
+          _errorReporter.reportErrorForToken(
+            StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR,
+            operator,
+            [methodName, staticType],
+          );
         } else {
-          _recordUndefinedToken(
-              staticType.element,
-              StaticTypeWarningCode.UNDEFINED_OPERATOR,
-              operator,
-              [methodName, staticType]);
+          _errorReporter.reportErrorForToken(
+            StaticTypeWarningCode.UNDEFINED_OPERATOR,
+            operator,
+            [methodName, staticType],
+          );
         }
       }
     }
@@ -883,14 +884,17 @@ class ElementResolver extends SimpleAstVisitor<void> {
             node,
             [element.name]);
       } else if (node.name == "await" && _resolver.enclosingFunction != null) {
-        _recordUndefinedNode(
-            _resolver.enclosingClass,
-            StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT,
-            node,
-            [_resolver.enclosingFunction.displayName]);
+        _errorReporter.reportErrorForNode(
+          StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT,
+          node,
+          [_resolver.enclosingFunction.displayName],
+        );
       } else if (!_resolver.nameScope.shouldIgnoreUndefined(node)) {
-        _recordUndefinedNode(_resolver.enclosingClass,
-            StaticWarningCode.UNDEFINED_IDENTIFIER, node, [node.name]);
+        _errorReporter.reportErrorForNode(
+          StaticWarningCode.UNDEFINED_IDENTIFIER,
+          node,
+          [node.name],
+        );
       }
     }
     node.staticElement = element;
@@ -1280,32 +1284,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
         _resolver, _typeProvider, _definingLibrary, _extensionResolver);
   }
 
-  /**
-   * Record that the given [node] is undefined, causing an error to be reported
-   * if appropriate. The [declaringElement] is the element inside which no
-   * declaration was found. If this element is a proxy, no error will be
-   * reported. If null, then an error will always be reported. The [errorCode]
-   * is the error code to report. The [arguments] are the arguments to the error
-   * message.
-   */
-  void _recordUndefinedNode(Element declaringElement, ErrorCode errorCode,
-      AstNode node, List<Object> arguments) {
-    _errorReporter.reportErrorForNode(errorCode, node, arguments);
-  }
-
-  /**
-   * Record that the given [token] is undefined, causing an error to be reported
-   * if appropriate. The [declaringElement] is the element inside which no
-   * declaration was found. If this element is a proxy, no error will be
-   * reported. If null, then an error will always be reported. The [errorCode]
-   * is the error code to report. The [arguments] are arguments to the error
-   * message.
-   */
-  void _recordUndefinedToken(Element declaringElement, ErrorCode errorCode,
-      Token token, List<Object> arguments) {
-    _errorReporter.reportErrorForToken(errorCode, token, arguments);
-  }
-
   void _resolveAnnotationConstructorInvocationArguments(
       Annotation annotation, ConstructorElement constructor) {
     ArgumentList argumentList = annotation.arguments;
@@ -1510,17 +1488,17 @@ class ElementResolver extends SimpleAstVisitor<void> {
           _elementTypeProvider.safeExecutableType(result.getter);
       if (_shouldReportInvalidMember(leftType, result)) {
         if (leftOperand is SuperExpression) {
-          _recordUndefinedToken(
-              leftType.element,
-              StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR,
-              node.operator,
-              [methodName, leftType]);
+          _errorReporter.reportErrorForToken(
+            StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR,
+            node.operator,
+            [methodName, leftType],
+          );
         } else {
-          _recordUndefinedToken(
-              leftType.element,
-              StaticTypeWarningCode.UNDEFINED_OPERATOR,
-              node.operator,
-              [methodName, leftType]);
+          _errorReporter.reportErrorForToken(
+            StaticTypeWarningCode.UNDEFINED_OPERATOR,
+            node.operator,
+            [methodName, leftType],
+          );
         }
       }
     }
