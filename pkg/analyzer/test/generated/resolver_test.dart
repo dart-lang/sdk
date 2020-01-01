@@ -962,5 +962,5 @@ main() {
 
 class _RootScope extends Scope {
   @override
-  Element internalLookup(Identifier identifier, String name) => null;
+  Element internalLookup(String name) => null;
 }

@@ -126,19 +126,18 @@ class EnclosedScope extends Scope {
   EnclosedScope(this.enclosingScope);
 
   @override
-  Element internalLookup(Identifier identifier, String name) {
+  Element internalLookup(String name) {
     Element element = localLookup(name);
     if (element != null) {
       return element;
     }
     // Check enclosing scope.
-    return enclosingScope.internalLookup(identifier, name);
+    return enclosingScope.internalLookup(name);
   }
 
   @override
-  Element _internalLookupPrefixed(
-      PrefixedIdentifier identifier, String prefix, String name) {
-    return enclosingScope._internalLookupPrefixed(identifier, prefix, name);
+  Element _internalLookupPrefixed(String prefix, String name) {
+    return enclosingScope._internalLookupPrefixed(prefix, name);
   }
 }
 
@@ -424,13 +423,13 @@ class LibraryImportScope extends Scope {
   }
 
   @override
-  Element internalLookup(Identifier identifier, String name) {
+  Element internalLookup(String name) {
     Element element = localLookup(name);
     if (element != null) {
       return element;
     }
     element = _lookupInImportedNamespaces(
-        identifier, (Namespace namespace) => namespace.get(name));
+        (Namespace namespace) => namespace.get(name));
     if (element != null) {
       defineNameWithoutChecking(name, element);
     }
@@ -512,13 +511,12 @@ class LibraryImportScope extends Scope {
   }
 
   @override
-  Element _internalLookupPrefixed(
-      PrefixedIdentifier identifier, String prefix, String name) {
+  Element _internalLookupPrefixed(String prefix, String name) {
     Element element = _localPrefixedLookup(prefix, name);
     if (element != null) {
       return element;
     }
-    element = _lookupInImportedNamespaces(identifier.identifier,
+    element = _lookupInImportedNamespaces(
         (Namespace namespace) => namespace.getPrefixed(prefix, name));
     if (element != null) {
       _definePrefixedNameWithoutChecking(prefix, name, element);
@@ -541,7 +539,7 @@ class LibraryImportScope extends Scope {
   }
 
   Element _lookupInImportedNamespaces(
-      Identifier identifier, Element Function(Namespace namespace) lookup) {
+      Element Function(Namespace namespace) lookup) {
     Element result;
 
     bool hasPotentialConflict = false;
@@ -1067,11 +1065,9 @@ abstract class Scope {
 
   /**
    * Return the element with which the given [name] is associated, or `null` if
-   * the name is not defined within this scope. The [identifier] is the
-   * identifier node to lookup element for, used to report correct kind of a
-   * problem and associate problem with.
+   * the name is not defined within this scope.
    */
-  Element internalLookup(Identifier identifier, String name);
+  Element internalLookup(String name);
 
   /**
    * Return the element with which the given [name] is associated, or `null` if
@@ -1095,9 +1091,9 @@ abstract class Scope {
   Element lookup(Identifier identifier, LibraryElement referencingLibrary) {
     if (identifier is PrefixedIdentifier) {
       return _internalLookupPrefixed(
-          identifier, identifier.prefix.name, identifier.identifier.name);
+          identifier.prefix.name, identifier.identifier.name);
     }
-    return internalLookup(identifier, identifier.name);
+    return internalLookup(identifier.name);
   }
 
   /**
@@ -1129,12 +1125,9 @@ abstract class Scope {
 
   /**
    * Return the element with which the given [prefix] and [name] are associated,
-   * or `null` if the name is not defined within this scope. The [identifier] is
-   * the identifier node to lookup element for, used to report correct kind of a
-   * problem and associate problem with.
+   * or `null` if the name is not defined within this scope.
    */
-  Element _internalLookupPrefixed(
-      PrefixedIdentifier identifier, String prefix, String name);
+  Element _internalLookupPrefixed(String prefix, String name);
 
   /**
    * Return `true` if the given [name] is a library-private name.
