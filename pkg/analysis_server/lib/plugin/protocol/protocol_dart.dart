@@ -176,7 +176,7 @@ String _getParametersString(engine.Element element) {
     if (parameter.hasRequired) {
       sb.write('@required ');
     }
-    parameter.appendToWithoutDelimiters(sb);
+    parameter.appendToWithoutDelimiters(sb, withNullability: false);
   }
   sb.write(closeOptionalString);
   return '(' + sb.toString() + ')';

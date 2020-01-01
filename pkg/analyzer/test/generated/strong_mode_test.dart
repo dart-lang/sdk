@@ -2219,7 +2219,10 @@ class B<T2, U2> {
     assertElementTypeString(typeName.type, 'A<T2, U2>');
 
     var constructorMember = redirected.staticElement;
-    expect(constructorMember.toString(), 'A<T2, U2> A.named()');
+    expect(
+      constructorMember.getDisplayString(withNullability: false),
+      'A<T2, U2> A.named()',
+    );
     expect(redirected.name.staticElement, constructorMember);
   }
 
@@ -2256,7 +2259,10 @@ class B<T2, U2> {
     assertElementTypeString(typeName.type, 'A<T2, U2>');
 
     expect(redirected.name, isNull);
-    expect(redirected.staticElement.toString(), 'A<T2, U2> A()');
+    expect(
+      redirected.staticElement.getDisplayString(withNullability: false),
+      'A<T2, U2> A()',
+    );
   }
 
   test_redirectingConstructor_propagation() async {
@@ -2587,8 +2593,7 @@ void main() {
 
   test_genericFunction() async {
     await assertNoErrorsInCode(r'T f<T>(T x) => null;');
-    expectFunctionType('f', 'T Function<T>(T)',
-        elementTypeParams: '[T]', typeFormals: '[T]');
+    expectFunctionType('f', 'T Function<T>(T)', typeFormals: '[T]');
     SimpleIdentifier f = findNode.simple('f');
     FunctionElementImpl e = f.staticElement;
     FunctionType ft = e.type.instantiate([typeProvider.stringType]);
@@ -2598,7 +2603,7 @@ void main() {
   test_genericFunction_bounds() async {
     await assertNoErrorsInCode(r'T f<T extends num>(T x) => null;');
     expectFunctionType('f', 'T Function<T extends num>(T)',
-        elementTypeParams: '[T extends num]', typeFormals: '[T extends num]');
+        typeFormals: '[T extends num]');
   }
 
   test_genericFunction_parameter() async {
@@ -2616,8 +2621,7 @@ class C<E> {
   static T f<T>(T x) => null;
 }
 ''');
-    expectFunctionType('f', 'T Function<T>(T)',
-        elementTypeParams: '[T]', typeFormals: '[T]');
+    expectFunctionType('f', 'T Function<T>(T)', typeFormals: '[T]');
     SimpleIdentifier f = findNode.simple('f');
     MethodElementImpl e = f.staticElement;
     FunctionType ft = e.type.instantiate([typeProvider.stringType]);
@@ -3084,7 +3088,7 @@ class D extends C {
 }
 ''');
     expectFunctionType('f<T>(T x) => null; // from D', 'T Function<T>(T)',
-        elementTypeParams: '[T]', typeFormals: '[T]');
+        typeFormals: '[T]');
     SimpleIdentifier f = findNode.simple('f<T>(T x) => null; // from D');
     MethodElementImpl e = f.staticElement;
     FunctionType ft = e.type.instantiate([typeProvider.stringType]);

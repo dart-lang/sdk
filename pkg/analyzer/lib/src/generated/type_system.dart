@@ -2580,11 +2580,13 @@ class GenericInferrer {
 
       if (inferred is FunctionType && inferred.typeFormals.isNotEmpty) {
         if (failAtError) return null;
+        var typeFormals = (inferred as FunctionType).typeFormals;
+        var typeFormalsStr = typeFormals.map(_elementStr).join(', ');
         errorReporter
             ?.reportErrorForNode(StrongModeCode.COULD_NOT_INFER, errorNode, [
           typeParam.name,
           ' Inferred candidate type ${_typeStr(inferred)} has type parameters'
-              ' ${(inferred as FunctionType).typeFormals}, but a function with'
+              ' [$typeFormalsStr], but a function with'
               ' type parameters cannot be used as a type argument.'
         ]);
 
@@ -2738,6 +2740,10 @@ class GenericInferrer {
       }
       return lower;
     }
+  }
+
+  String _elementStr(Element element) {
+    return element.getDisplayString(withNullability: isNonNullableByDefault);
   }
 
   String _formatError(TypeParameterElement typeParam, DartType inferred,

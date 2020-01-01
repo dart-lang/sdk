@@ -262,7 +262,7 @@ class AnalyzerConverter {
           closeOptionalString = ']';
         }
       }
-      parameter.appendToWithoutDelimiters(buffer);
+      parameter.appendToWithoutDelimiters(buffer, withNullability: false);
     }
     buffer.write(closeOptionalString);
     buffer.write(')');

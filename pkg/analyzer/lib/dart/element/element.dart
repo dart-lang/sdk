@@ -656,6 +656,20 @@ abstract class Element implements AnalysisTarget {
   @Deprecated('Use either thisOrAncestorMatching or thisOrAncestorOfType')
   E getAncestor<E extends Element>(Predicate<Element> predicate);
 
+  /// Return the presentation of this element as it should appear when
+  /// presented to users.
+  ///
+  /// If [withNullability] is `true`, then [NullabilitySuffix.question] and
+  /// [NullabilitySuffix.star] in types will be be represented as `?` and `*`.
+  /// [NullabilitySuffix.none] does not have any explicit presentation.
+  ///
+  /// If [withNullability] is `false`, nullability suffixes will not be
+  /// included into the presentation.
+  ///
+  /// Clients should not depend on the content of the returned value as it will
+  /// be changed if doing so would improve the UX.
+  String getDisplayString({@required bool withNullability});
+
   /// Return a display name for the given element that includes the path to the
   /// compilation unit in which the type is defined. If [shortName] is `null`
   /// then [displayName] will be used as the name of this element. Otherwise
@@ -1496,7 +1510,10 @@ abstract class ParameterElement
 
   /// Append the type, name and possibly the default value of this parameter to
   /// the given [buffer].
-  void appendToWithoutDelimiters(StringBuffer buffer);
+  void appendToWithoutDelimiters(
+    StringBuffer buffer, {
+    bool withNullability = false,
+  });
 }
 
 /// A prefix used to import one or more libraries into another library.

@@ -203,8 +203,9 @@ class AnalysisSessionImpl implements AnalysisSession {
 
   void _checkElementOfThisSession(Element element) {
     if (element.session != this) {
+      var elementStr = element.getDisplayString(withNullability: true);
       throw ArgumentError(
-          '(${element.runtimeType}) $element was not produced by '
+          '(${element.runtimeType}) $elementStr was not produced by '
           'this session.');
     }
   }

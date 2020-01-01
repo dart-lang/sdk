@@ -110,7 +110,9 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   void assertConstructors(ClassElement class_, List<String> expected) {
     expect(
-      class_.constructors.map((c) => c.toString()).toList(),
+      class_.constructors.map((c) {
+        return c.getDisplayString(withNullability: false);
+      }).toList(),
       unorderedEquals(expected),
     );
   }

@@ -703,30 +703,25 @@ class StaticTypeAnalyzer2TestShared extends DriverResolutionTest {
    * output.
    */
   FunctionTypeImpl expectFunctionType(String name, String type,
-      {String elementTypeParams = '[]',
-      String typeParams = '[]',
+      {String typeParams = '[]',
       String typeArgs = '[]',
       String typeFormals = '[]',
       String identifierType}) {
     identifierType ??= type;
 
-    typeParameters(Element element) {
-      if (element is ExecutableElement) {
-        return element.typeParameters;
-      } else if (element is ParameterElement) {
-        return element.typeParameters;
-      }
-      fail('Wrong element type: ${element.runtimeType}');
+    String typeParametersStr(List<TypeParameterElement> elements) {
+      var elementsStr = elements.map((e) {
+        return e.getDisplayString(withNullability: false);
+      }).join(', ');
+      return '[$elementsStr]';
     }
 
     SimpleIdentifier identifier = findNode.simple(name);
-    var element = identifier.staticElement;
     var functionType = _getFunctionTypedElementType(identifier);
     assertElementTypeString(functionType, type);
     expect(identifier.staticType, isNull);
-    expect(typeParameters(element).toString(), elementTypeParams);
     expect(functionType.typeArguments.toString(), typeArgs);
-    expect(functionType.typeFormals.toString(), typeFormals);
+    expect(typeParametersStr(functionType.typeFormals), typeFormals);
     return functionType;
   }
 

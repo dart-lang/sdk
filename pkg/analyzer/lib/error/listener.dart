@@ -134,6 +134,7 @@ class ErrorReporter {
    */
   void reportErrorForOffset(ErrorCode errorCode, int offset, int length,
       [List<Object> arguments]) {
+    _convertElements(arguments);
     _convertTypeNames(arguments);
     _errorListener
         .onError(AnalysisError(_source, offset, length, errorCode, arguments));
@@ -182,6 +183,22 @@ class ErrorReporter {
   void reportTypeErrorForNode(
       ErrorCode errorCode, AstNode node, List<Object> arguments) {
     reportErrorForOffset(errorCode, node.offset, node.length, arguments);
+  }
+
+  /// Convert all [Element]s in the [arguments] into their display strings.
+  void _convertElements(List<Object> arguments) {
+    if (arguments == null) {
+      return;
+    }
+
+    for (var i = 0; i < arguments.length; i++) {
+      var argument = arguments[i];
+      if (argument is Element) {
+        arguments[i] = argument.getDisplayString(
+          withNullability: isNonNullableByDefault,
+        );
+      }
+    }
   }
 
   /**

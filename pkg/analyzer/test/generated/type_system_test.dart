@@ -902,7 +902,9 @@ class ConstraintMatchingTest extends AbstractTypeSystemTest {
       for (var constraint in constraintsForTypeParameter) {
         formattedConstraints.add(
           constraint.format(
-            typeParameter.toString(),
+            typeParameter.getDisplayString(
+              withNullability: typeSystem.isNonNullableByDefault,
+            ),
             withNullability: false,
           ),
         );
