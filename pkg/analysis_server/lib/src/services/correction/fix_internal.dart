@@ -3399,17 +3399,26 @@ class FixProcessor extends BaseProcessor {
   }
 
   Future<void> _addFix_removeInitializer() async {
-    // Retrieve the linted node.
-    VariableDeclaration ancestor =
-        node.thisOrAncestorOfType<VariableDeclaration>();
-    if (ancestor == null) {
+    // Handle formal parameters with default values.
+    var parameter = node.thisOrAncestorOfType<DefaultFormalParameter>();
+    if (parameter != null) {
+      var changeBuilder = _newDartChangeBuilder();
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+        builder.addDeletion(
+            range.endEnd(parameter.identifier, parameter.defaultValue));
+      });
+      _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_INITIALIZER);
       return;
     }
-    var changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addDeletion(range.endEnd(ancestor.name, ancestor.initializer));
-    });
-    _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_INITIALIZER);
+    // Handle variable declarations with default values.
+    var variable = node.thisOrAncestorOfType<VariableDeclaration>();
+    if (variable != null) {
+      var changeBuilder = _newDartChangeBuilder();
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+        builder.addDeletion(range.endEnd(variable.name, variable.initializer));
+      });
+      _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_INITIALIZER);
+    }
   }
 
   Future<void> _addFix_removeInterpolationBraces() async {
