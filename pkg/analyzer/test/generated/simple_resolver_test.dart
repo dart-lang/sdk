@@ -418,8 +418,7 @@ void f() {
   }
 
   test_empty() async {
-    await resolveTestCode('');
-    assertNoTestErrors();
+    await assertNoErrorsInCode('');
   }
 
   test_entryPoint_exported() async {
@@ -427,10 +426,9 @@ void f() {
 main() {}
 ''');
 
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 export 'a.dart';
 ''');
-    assertNoTestErrors();
 
     var library = result.libraryElement;
     var main = library.entryPoint;
@@ -440,10 +438,9 @@ export 'a.dart';
   }
 
   test_entryPoint_local() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 main() {}
 ''');
-    assertNoTestErrors();
 
     var library = result.libraryElement;
     var main = library.entryPoint;
@@ -453,8 +450,7 @@ main() {}
   }
 
   test_entryPoint_none() async {
-    await resolveTestCode('');
-    assertNoTestErrors();
+    await assertNoErrorsInCode('');
 
     var library = result.libraryElement;
     expect(library.entryPoint, isNull);
@@ -464,12 +460,11 @@ main() {}
     newFile('/test/lib/a.dart', content: r'''
 enum EEE {A, B, C}
 ''');
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 import 'a.dart';
 
 void f(EEE e) {}
 ''');
-    assertNoTestErrors();
     verifyTestResolved();
   }
 
@@ -486,13 +481,12 @@ class A {
   }
 
   test_fieldFormalParameter() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 class A {
   int x;
   int y;
   A(this.x) : y = x {}
 }''');
-    assertNoTestErrors();
     verifyTestResolved();
 
     var xParameter = findNode.fieldFormalParameter('this.x');
@@ -541,7 +535,7 @@ class A {
   }
 
   test_getter_and_setter_fromMixins_bare_identifier() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 class B {}
 class M1 {
   get x => null;
@@ -557,7 +551,6 @@ class C extends B with M1, M2 {
   }
 }
 ''');
-    assertNoTestErrors();
     verifyTestResolved();
 
     // Verify that both the getter and setter for "x" in C.f() refer to the
@@ -574,7 +567,7 @@ class C extends B with M1, M2 {
   }
 
   test_getter_and_setter_fromMixins_property_access() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 class B {}
 class M1 {
   get x => null;
@@ -589,7 +582,6 @@ void main() {
   new C().x += 1;
 }
 ''');
-    assertNoTestErrors();
     verifyTestResolved();
 
     // Verify that both the getter and setter for "x" in "new C().x" refer to
@@ -606,7 +598,7 @@ void main() {
   }
 
   test_getter_fromMixins_bare_identifier() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 class B {}
 class M1 {
   get x => null;
@@ -620,7 +612,6 @@ class C extends B with M1, M2 {
   }
 }
 ''');
-    assertNoTestErrors();
     verifyTestResolved();
 
     // Verify that the getter for "x" in C.f() refers to the getter defined in
@@ -632,7 +623,7 @@ class C extends B with M1, M2 {
   }
 
   test_getter_fromMixins_property_access() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 class B {}
 class M1 {
   get x => null;
@@ -645,7 +636,6 @@ void main() {
   var y = new C().x;
 }
 ''');
-    assertNoTestErrors();
     verifyTestResolved();
 
     // Verify that the getter for "x" in "new C().x" refers to the getter
@@ -671,10 +661,9 @@ g (A a) {
   }
 
   test_hasReferenceToSuper() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 class A {}
 class B {toString() => super.toString();}''');
-    assertNoTestErrors();
     verifyTestResolved();
 
     var a = findElement.class_('A');
@@ -692,7 +681,7 @@ class A {}''');
     newFile('/test/lib/lib2.dart', content: r'''
 set foo(value) {}''');
 
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 import 'lib1.dart' hide foo;
 import 'lib2.dart';
 
@@ -700,7 +689,6 @@ main() {
   foo = 0;
 }
 A a;''');
-    assertNoTestErrors();
     verifyTestResolved();
   }
 
@@ -710,12 +698,11 @@ f(int x) {
   return x * x;
 }''');
 
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 import 'a.dart' as _a;
 main() {
   _a.f(0);
 }''');
-    assertNoTestErrors();
     verifyTestResolved();
   }
 
@@ -872,12 +859,11 @@ class C = Object with A;''', [
   }
 
   test_isValidMixin_factoryConstructor() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 class A {
   factory A() => null;
 }
 class C = Object with A;''');
-    assertNoTestErrors();
     verifyTestResolved();
 
     var a = findElement.class_('A');
@@ -937,10 +923,9 @@ main() {
   }
 
   test_metadata_class() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 const A = null;
 @A class C<A> {}''');
-    assertNoTestErrors();
     verifyTestResolved();
 
     var annotations = findElement.class_('C').metadata;
@@ -954,12 +939,11 @@ const A = null;
   }
 
   test_metadata_field() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 const A = null;
 class C {
   @A int f;
 }''');
-    assertNoTestErrors();
     verifyTestResolved();
 
     var metadata = findElement.field('f').metadata;
@@ -967,13 +951,12 @@ class C {
   }
 
   test_metadata_fieldFormalParameter() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 const A = null;
 class C {
   int f;
   C(@A this.f);
 }''');
-    assertNoTestErrors();
     verifyTestResolved();
 
     var metadata = findElement.fieldFormalParameter('f').metadata;
@@ -981,10 +964,9 @@ class C {
   }
 
   test_metadata_function() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 const A = null;
 @A f() {}''');
-    assertNoTestErrors();
     verifyTestResolved();
 
     var annotations = findElement.topFunction('f').metadata;
@@ -992,10 +974,9 @@ const A = null;
   }
 
   test_metadata_functionTypedParameter() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 const A = null;
 f(@A int p(int x)) {}''');
-    assertNoTestErrors();
     verifyTestResolved();
 
     var metadata = findElement.parameter('p').metadata;
@@ -1003,10 +984,9 @@ f(@A int p(int x)) {}''');
   }
 
   test_metadata_libraryDirective() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 @A library lib;
 const A = null;''');
-    assertNoTestErrors();
     verifyTestResolved();
 
     var metadata = result.libraryElement.metadata;
@@ -1014,12 +994,11 @@ const A = null;''');
   }
 
   test_metadata_method() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 const A = null;
 class C {
   @A void m() {}
 }''');
-    assertNoTestErrors();
     verifyTestResolved();
 
     var metadata = findElement.method('m').metadata;
@@ -1027,10 +1006,9 @@ class C {
   }
 
   test_metadata_namedParameter() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 const A = null;
 f({@A int p : 0}) {}''');
-    assertNoTestErrors();
     verifyTestResolved();
 
     var metadata = findElement.parameter('p').metadata;
@@ -1038,10 +1016,9 @@ f({@A int p : 0}) {}''');
   }
 
   test_metadata_positionalParameter() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 const A = null;
 f([@A int p = 0]) {}''');
-    assertNoTestErrors();
     verifyTestResolved();
 
     var metadata = findElement.parameter('p').metadata;
@@ -1049,10 +1026,9 @@ f([@A int p = 0]) {}''');
   }
 
   test_metadata_simpleParameter() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 const A = null;
 f(@A p1, @A int p2) {}''');
-    assertNoTestErrors();
     verifyTestResolved();
 
     expect(findElement.parameter('p1').metadata, hasLength(1));
@@ -1060,10 +1036,9 @@ f(@A p1, @A int p2) {}''');
   }
 
   test_metadata_typedef() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 const A = null;
 @A typedef F<A>();''');
-    assertNoTestErrors();
     verifyTestResolved();
 
     expect(
@@ -1076,7 +1051,7 @@ const A = null;
   }
 
   test_method_fromMixin() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 class B {
   bar() => 1;
 }
@@ -1088,12 +1063,11 @@ class C extends B with A {
   bar() => super.bar();
   foo() => super.foo();
 }''');
-    assertNoTestErrors();
     verifyTestResolved();
   }
 
   test_method_fromMixins() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 class B {}
 class M1 {
   void f() {}
@@ -1106,7 +1080,6 @@ void main() {
   new C().f();
 }
 ''');
-    assertNoTestErrors();
     verifyTestResolved();
 
     expect(
@@ -1116,7 +1089,7 @@ void main() {
   }
 
   test_method_fromMixins_bare_identifier() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 class B {}
 class M1 {
   void f() {}
@@ -1130,7 +1103,6 @@ class C extends B with M1, M2 {
   }
 }
 ''');
-    assertNoTestErrors();
     verifyTestResolved();
 
     expect(
@@ -1140,7 +1112,7 @@ class C extends B with M1, M2 {
   }
 
   test_method_fromMixins_invoked_from_outside_class() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 class B {}
 class M1 {
   void f() {}
@@ -1153,7 +1125,6 @@ void main() {
   new C().f();
 }
 ''');
-    assertNoTestErrors();
     verifyTestResolved();
 
     expect(
@@ -1163,7 +1134,7 @@ void main() {
   }
 
   test_method_fromSuperclassMixin() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 class A {
   void m1() {}
 }
@@ -1174,12 +1145,11 @@ class C extends B {
 f(C c) {
   c.m1();
 }''');
-    assertNoTestErrors();
     verifyTestResolved();
   }
 
   test_methodCascades() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 class A {
   void m1() {}
   void m2() {}
@@ -1189,12 +1159,11 @@ class A {
      ..m2();
   }
 }''');
-    assertNoTestErrors();
     verifyTestResolved();
   }
 
   test_methodCascades_withSetter() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 class A {
   String name;
   void m1() {}
@@ -1206,22 +1175,20 @@ class A {
      ..m2();
   }
 }''');
-    assertNoTestErrors();
     verifyTestResolved();
   }
 
   test_resolveAgainstNull() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 f(var p) {
   return null == p;
 }''');
-    assertNoTestErrors();
     verifyTestResolved();
   }
 
   test_setter_fromMixins_bare_identifier() async {
     await resolveTestCode('''
-class B {}
+class B {}assertNoErrorsInCode
 class M1 {
   set x(value) {}
 }
@@ -1234,7 +1201,6 @@ class C extends B with M1, M2 {
   }
 }
 ''');
-    assertNoTestErrors();
     verifyTestResolved();
 
     expect(
@@ -1244,7 +1210,7 @@ class C extends B with M1, M2 {
   }
 
   test_setter_fromMixins_property_access() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 class B {}
 class M1 {
   set x(value) {}
@@ -1257,7 +1223,6 @@ void main() {
   new C().x = 1;
 }
 ''');
-    assertNoTestErrors();
     verifyTestResolved();
 
     expect(
@@ -1267,7 +1232,7 @@ void main() {
   }
 
   test_setter_inherited() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 class A {
   int get x => 0;
   set x(int p) {}
@@ -1276,19 +1241,17 @@ class B extends A {
   int get x => super.x == null ? 0 : super.x;
   int f() => x = 1;
 }''');
-    assertNoTestErrors();
     verifyTestResolved();
   }
 
   test_setter_static() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 set s(x) {
 }
 
 main() {
   s = 123;
 }''');
-    assertNoTestErrors();
     verifyTestResolved();
   }
 

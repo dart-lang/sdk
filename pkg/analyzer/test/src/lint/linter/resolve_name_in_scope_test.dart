@@ -6,9 +6,11 @@ import 'dart:async';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../generated/test_support.dart';
 import 'linter_context_impl_test.dart';
 
 main() {
@@ -20,9 +22,12 @@ main() {
 @reflectiveTest
 class ResolveNameInScopeTest extends AbstractLinterContextTest {
   @override
-  Future<void> resolve(String content) async {
+  Future<void> resolve(
+    String content, [
+    List<ExpectedError> expectedErrors = const [],
+  ]) async {
     await super.resolve(content);
-    assertNoTestErrors();
+    assertErrorsInResolvedUnit(result, expectedErrors);
   }
 
   test_class_getter_different_fromExtends_thisClassSetter() async {
@@ -223,7 +228,9 @@ class A {
     }
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 50, 3),
+    ]);
     _checkMethodRequestedLocalVariable();
   }
 
@@ -236,7 +243,9 @@ class A {
     return [ for (var foo in []) this.foo() ];
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 71, 3),
+    ]);
     _checkMethodRequestedLocalVariable();
   }
 
@@ -251,7 +260,9 @@ class A {
     }
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 55, 3),
+    ]);
     _checkMethodRequestedLocalVariable();
   }
 
@@ -266,7 +277,9 @@ class A {
     }
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 55, 3),
+    ]);
     _checkMethodRequestedLocalVariable();
   }
 
@@ -280,7 +293,9 @@ class A {
     var foo = 0;
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 66, 3),
+    ]);
     _checkMethodRequestedLocalVariable();
   }
 
@@ -294,7 +309,9 @@ class A {
     this.foo();
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 50, 3),
+    ]);
     _checkMethodRequestedLocalVariable();
   }
 

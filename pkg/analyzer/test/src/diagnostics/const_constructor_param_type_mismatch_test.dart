@@ -26,21 +26,20 @@ class D {
 }
 const D constant2 = const D(constant);
 ''');
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 class C {
   final double d;
   const C(this.d);
 }
 const C constant = const C(0);
 ''');
-    assertNoTestErrors();
     var otherFileResult =
         await resolveFile(convertPath('/test/lib/other.dart'));
     expect(otherFileResult.errors, isEmpty);
   }
 
   test_int_to_double_reference_from_other_library_other_file_before() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 class C {
   final double d;
   const C(this.d);
@@ -58,18 +57,16 @@ const D constant2 = const D(constant);
     var otherFileResult =
         await resolveFile(convertPath('/test/lib/other.dart'));
     expect(otherFileResult.errors, isEmpty);
-    assertNoTestErrors();
   }
 
   test_int_to_double_single_library() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 class C {
   final double d;
   const C(this.d);
 }
 const C constant = const C(0);
 ''');
-    assertNoTestErrors();
   }
 
   test_int_to_double_via_default_value_other_file_after() async {
@@ -79,14 +76,13 @@ class C {
   const C([this.x = 0]);
 }
 ''');
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 import 'other.dart';
 
 void main() {
   const c = C();
 }
 ''');
-    assertNoTestErrors();
     var otherFileResult =
         await resolveFile(convertPath('/test/lib/other.dart'));
     expect(otherFileResult.errors, isEmpty);
@@ -103,13 +99,12 @@ class C {
         await resolveFile(convertPath('/test/lib/other.dart'));
     expect(otherFileResult.errors, isEmpty);
 
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 import 'other.dart';
 
 void main() {
   const c = C();
 }
 ''');
-    assertNoTestErrors();
   }
 }

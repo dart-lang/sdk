@@ -70,12 +70,11 @@ import 'a.dart';
 class B {}
 ''');
 
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 import 'b.dart';
 
 B b;
 ''');
-    assertNoTestErrors();
 
     var classB = findNode.typeName('B b;').name.staticElement;
     var annotation = classB.metadata.single;
@@ -99,12 +98,11 @@ import 'a.dart';
 class B {}
 ''');
 
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 import 'b.dart';
 
 B b;
 ''');
-    assertNoTestErrors();
 
     var classB = findNode.typeName('B b;').name.staticElement;
     var annotation = classB.metadata.single;
@@ -129,12 +127,11 @@ class B {
 class C {}
 ''');
 
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 import 'a.dart';
 
 C c;
 ''');
-    assertNoTestErrors();
 
     var classC = findNode.typeName('C c;').name.staticElement;
     var annotation = classC.metadata.single;

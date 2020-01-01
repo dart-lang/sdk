@@ -39,7 +39,7 @@ class B extends Object with A {
   }
 
   test_get_error_abstractSuperMemberReference_OK_superHasNoSuchMethod() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 class A {
   int get foo;
   noSuchMethod(im) => 1;
@@ -50,7 +50,6 @@ class B extends A {
   noSuchMethod(im) => 2;
 }
 ''');
-    assertNoTestErrors();
 
     var access = findNode.propertyAccess('super.foo; // ref');
     assertPropertyAccess(access, findElement.getter('foo', of: 'A'), 'int');
@@ -82,7 +81,7 @@ class B extends Object with A {
   }
 
   test_set_error_abstractSuperMemberReference_OK_superHasNoSuchMethod() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 class A {
   set foo(int a);
   noSuchMethod(im) => 1;
@@ -93,7 +92,6 @@ class B extends A {
   noSuchMethod(im) => 2;
 }
 ''');
-    assertNoTestErrors();
 
     var access = findNode.propertyAccess('foo = v; // ref');
     assertPropertyAccess(

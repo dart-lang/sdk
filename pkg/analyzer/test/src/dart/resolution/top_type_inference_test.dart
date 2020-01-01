@@ -16,13 +16,12 @@ main() {
 @reflectiveTest
 class TopTypeInferenceDriverResolutionTest extends DriverResolutionTest {
   test_referenceInstanceVariable_withDeclaredType() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 class A {
   final int a = b + 1;
 }
 final b = new A().a;
 ''');
-    assertNoTestErrors();
 
     assertElementTypeString(findElement.field('a').type, 'int');
     assertElementTypeString(findElement.topVar('b').type, 'int');

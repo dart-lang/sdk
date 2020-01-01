@@ -30,14 +30,13 @@ class NonNullableTest extends DriverResolutionTest {
   bool get typeToStringWithNullability => true;
 
   test_class_hierarchy() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 class A {}
 
 class X1 extends A {} // 1
 class X2 implements A {} // 2
 class X3 with A {} // 3
 ''');
-    assertNoTestErrors();
 
     assertType(findNode.typeName('A {} // 1'), 'A');
     assertType(findNode.typeName('A {} // 2'), 'A');
@@ -45,14 +44,13 @@ class X3 with A {} // 3
   }
 
   test_classTypeAlias_hierarchy() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 class A {}
 class B {}
 class C {}
 
 class X = A with B implements C;
 ''');
-    assertNoTestErrors();
 
     assertType(findNode.typeName('A with'), 'A');
     assertType(findNode.typeName('B implements'), 'B');
@@ -94,32 +92,30 @@ import 'a.dart';
   }
 
   test_local_getterNullAwareAccess_interfaceType() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 main() {
   int? x;
   return x?.isEven;
 }
 ''');
 
-    assertNoTestErrors();
     assertType(findNode.propertyAccess('x?.isEven'), 'bool?');
   }
 
   test_local_interfaceType() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 main() {
   int? a = 0;
   int b = 0;
 }
 ''');
-    assertNoTestErrors();
 
     assertType(findNode.typeName('int? a'), 'int?');
     assertType(findNode.typeName('int b'), 'int');
   }
 
   test_local_interfaceType_generic() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 main() {
   List<int?>? a = [];
   List<int>? b = [];
@@ -127,7 +123,6 @@ main() {
   List<int> d = [];
 }
 ''');
-    assertNoTestErrors();
 
     assertType(findNode.typeName('List<int?>? a'), 'List<int?>?');
     assertType(findNode.typeName('List<int>? b'), 'List<int>?');
@@ -136,7 +131,7 @@ main() {
   }
 
   test_local_methodNullAwareCall_interfaceType() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 class C {
   bool x() => true;
 }
@@ -147,76 +142,69 @@ main() {
 }
 ''');
 
-    assertNoTestErrors();
     assertType(findNode.methodInvocation('c?.x()'), 'bool?');
   }
 
   test_local_nullCoalesce_nullableInt_int() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 main() {
   int? x;
   int y = 0;
   x ?? y;
 }
 ''');
-    assertNoTestErrors();
     assertType(findNode.binary('x ?? y'), 'int');
   }
 
   test_local_nullCoalesce_nullableInt_nullableInt() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 main() {
   int? x;
   x ?? x;
 }
 ''');
-    assertNoTestErrors();
     assertType(findNode.binary('x ?? x'), 'int?');
   }
 
   test_local_nullCoalesceAssign_nullableInt_int() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 main() {
   int? x;
   int y = 0;
   x ??= y;
 }
 ''');
-    assertNoTestErrors();
     assertType(findNode.assignment('x ??= y'), 'int');
   }
 
   test_local_nullCoalesceAssign_nullableInt_nullableInt() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 main() {
   int? x;
   x ??= x;
 }
 ''');
-    assertNoTestErrors();
     assertType(findNode.assignment('x ??= x'), 'int?');
   }
 
   test_local_typeParameter() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 main<T>(T a) {
   T x = a;
   T? y;
 }
 ''');
-    assertNoTestErrors();
 
     assertType(findNode.typeName('T x'), 'T');
     assertType(findNode.typeName('T? y'), 'T?');
   }
 
   test_local_variable_genericFunctionType() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 main() {
   int? Function(bool, String?)? a;
 }
 ''');
-    assertNoTestErrors();
 
     assertType(
       findNode.genericFunctionType('Function('),
@@ -225,25 +213,23 @@ main() {
   }
 
   test_localFunction_parameter_interfaceType() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 main() {
   f(int? a, int b) {}
 }
 ''');
-    assertNoTestErrors();
 
     assertType(findNode.typeName('int? a'), 'int?');
     assertType(findNode.typeName('int b'), 'int');
   }
 
   test_localFunction_returnType_interfaceType() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 main() {
   int? f() => 0;
   int g() => 0;
 }
 ''');
-    assertNoTestErrors();
 
     assertType(findNode.typeName('int? f'), 'int?');
     assertType(findNode.typeName('int g'), 'int');
@@ -262,13 +248,12 @@ m<T extends Function>() {
   }
 
   test_mixin_hierarchy() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 class A {}
 
 mixin X1 on A {} // 1
 mixin X2 implements A {} // 2
 ''');
-    assertNoTestErrors();
 
     assertType(findNode.typeName('A {} // 1'), 'A');
     assertType(findNode.typeName('A {} // 2'), 'A');
@@ -288,24 +273,22 @@ class C<T> {
   }
 
   test_null_assertion_operator_changes_null_to_never() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 main() {
   Null x = null;
   x!;
 }
 ''');
-    assertNoTestErrors();
     assertType(findNode.postfix('x!'), 'Never');
   }
 
   test_null_assertion_operator_removes_nullability() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 main() {
   Object? x = null;
   x!;
 }
 ''');
-    assertNoTestErrors();
     assertType(findNode.postfix('x!'), 'Object');
   }
 
@@ -377,11 +360,10 @@ f() {
   }
 
   test_parameter_genericFunctionType() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 main(int? Function(bool, String?)? a) {
 }
 ''');
-    assertNoTestErrors();
 
     assertType(
       findNode.genericFunctionType('Function('),
@@ -390,33 +372,30 @@ main(int? Function(bool, String?)? a) {
   }
 
   test_parameter_getterNullAwareAccess_interfaceType() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 main(int? x) {
   return x?.isEven;
 }
 ''');
 
-    assertNoTestErrors();
     assertType(findNode.propertyAccess('x?.isEven'), 'bool?');
   }
 
   test_parameter_interfaceType() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 main(int? a, int b) {
 }
 ''');
-    assertNoTestErrors();
 
     assertType(findNode.typeName('int? a'), 'int?');
     assertType(findNode.typeName('int b'), 'int');
   }
 
   test_parameter_interfaceType_generic() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 main(List<int?>? a, List<int>? b, List<int?> c, List<int> d) {
 }
 ''');
-    assertNoTestErrors();
 
     assertType(findNode.typeName('List<int?>? a'), 'List<int?>?');
     assertType(findNode.typeName('List<int>? b'), 'List<int>?');
@@ -425,7 +404,7 @@ main(List<int?>? a, List<int>? b, List<int?> c, List<int> d) {
   }
 
   test_parameter_methodNullAwareCall_interfaceType() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 class C {
   bool x() => true;
 }
@@ -435,83 +414,75 @@ main(C? c) {
 }
 ''');
 
-    assertNoTestErrors();
     assertType(findNode.methodInvocation('c?.x()'), 'bool?');
   }
 
   test_parameter_nullCoalesce_nullableInt_int() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 main(int? x, int y) {
   x ?? y;
 }
 ''');
-    assertNoTestErrors();
     assertType(findNode.binary('x ?? y'), 'int');
   }
 
   test_parameter_nullCoalesce_nullableInt_nullableInt() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 main(int? x) {
   x ?? x;
 }
 ''');
-    assertNoTestErrors();
     assertType(findNode.binary('x ?? x'), 'int?');
   }
 
   test_parameter_nullCoalesceAssign_nullableInt_int() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 main(int? x, int y) {
   x ??= y;
 }
 ''');
-    assertNoTestErrors();
     assertType(findNode.assignment('x ??= y'), 'int');
   }
 
   test_parameter_nullCoalesceAssign_nullableInt_nullableInt() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 main(int? x) {
   x ??= x;
 }
 ''');
-    assertNoTestErrors();
     assertType(findNode.assignment('x ??= x'), 'int?');
   }
 
   test_parameter_typeParameter() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 main<T>(T a, T? b) {
 }
 ''');
-    assertNoTestErrors();
 
     assertType(findNode.typeName('T a'), 'T');
     assertType(findNode.typeName('T? b'), 'T?');
   }
 
   test_typedef_classic() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 typedef int? F(bool a, String? b);
 
 main() {
   F? a;
 }
 ''');
-    assertNoTestErrors();
 
     assertType(findNode.typeName('F? a'), 'int? Function(bool, String?)?');
   }
 
   test_typedef_function() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 typedef F<T> = int? Function(bool, T, T?);
 
 main() {
   F<String>? a;
 }
 ''');
-    assertNoTestErrors();
 
     assertType(
       findNode.typeName('F<String>'),
@@ -551,14 +522,13 @@ class NullableTest extends DriverResolutionTest {
   bool get typeToStringWithNullability => true;
 
   test_class_hierarchy() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 class A {}
 
 class X1 extends A {} // 1
 class X2 implements A {} // 2
 class X3 with A {} // 3
 ''');
-    assertNoTestErrors();
 
     assertType(findNode.typeName('A {} // 1'), 'A*');
     assertType(findNode.typeName('A {} // 2'), 'A*');
@@ -566,14 +536,13 @@ class X3 with A {} // 3
   }
 
   test_classTypeAlias_hierarchy() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 class A {}
 class B {}
 class C {}
 
 class X = A with B implements C;
 ''');
-    assertNoTestErrors();
 
     assertType(findNode.typeName('A with'), 'A*');
     assertType(findNode.typeName('B implements'), 'B*');
@@ -597,13 +566,12 @@ main() {
   }
 
   test_mixin_hierarchy() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 class A {}
 
 mixin X1 on A {} // 1
 mixin X2 implements A {} // 2
 ''');
-    assertNoTestErrors();
 
     assertType(findNode.typeName('A {} // 1'), 'A*');
     assertType(findNode.typeName('A {} // 2'), 'A*');

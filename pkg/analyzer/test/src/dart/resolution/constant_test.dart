@@ -24,11 +24,10 @@ class A {
   const A({int p});
 }
 ''');
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 import 'a.dart';
 const a = const A();
 ''');
-    assertNoTestErrors();
 
     var aLib = findElement.import('package:test/a.dart').importedLibrary;
     var aConstructor = aLib.getType('A').constructors.single;
@@ -41,7 +40,7 @@ const a = const A();
   }
 
   test_constFactoryRedirection_super() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 class I {
   const factory I(int f) = B;
 }
@@ -59,7 +58,6 @@ class B extends A {
 @I(42)
 main() {}
 ''');
-    assertNoTestErrors();
 
     var node = findNode.annotation('@I');
     var value = node.elementAnnotation.constantValue;
@@ -90,12 +88,11 @@ class C<T> {
   const C();
 }
 ''');
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 import 'a.dart';
 
 const v = a;
 ''');
-    assertNoTestErrors();
 
     var v = findElement.topVar('v') as ConstVariableElement;
     var value = v.computeConstantValue();

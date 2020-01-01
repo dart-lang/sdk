@@ -95,7 +95,6 @@ main() {
   p.Future;
 }
 ''');
-    assertNoTestErrors();
 
     var pRef = findNode.simple('p.Future');
     assertElement(pRef, findElement.prefix('p'));

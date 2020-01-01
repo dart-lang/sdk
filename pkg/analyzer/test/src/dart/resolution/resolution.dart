@@ -397,6 +397,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
     assertNoTestErrors();
   }
 
+  /// TODO(scheglov) Remove this method.
+  @deprecated
   void assertNoTestErrors() {
     assertTestErrorsWithCodes(const <ErrorCode>[]);
   }
@@ -444,6 +446,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
   }
 
   /// TODO(scheglov) Remove this method.
+  @deprecated
   void assertTestErrorsWithCodes(List<ErrorCode> expected) {
     assertErrorsWithCodes(result.errors, expected);
   }
