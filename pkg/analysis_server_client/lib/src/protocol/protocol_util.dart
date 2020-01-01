@@ -50,5 +50,6 @@ class JenkinsSmiHash {
   }
 
   /// Finalizes the hash and return the resulting hashcode.
+  @override
   int get hashCode => finish(_hash);
 }

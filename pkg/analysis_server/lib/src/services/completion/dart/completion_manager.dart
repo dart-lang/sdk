@@ -414,6 +414,7 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
     return null;
   }
 
+  @override
   OpType get opType {
     if (_opType == null) {
       _opType = OpType.forCompletion(target, offset);
@@ -433,6 +434,7 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
   /**
    * Throw [AbortCompletion] if the completion request has been aborted.
    */
+  @override
   void checkAborted() {
     _originalRequest.checkAborted();
   }

@@ -368,6 +368,7 @@ class CreateGetterWithExtensionMethodsTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.CREATE_GETTER;
 
+  @override
   void setUp() {
     createAnalysisOptionsFile(experiments: ['extension-methods']);
     super.setUp();

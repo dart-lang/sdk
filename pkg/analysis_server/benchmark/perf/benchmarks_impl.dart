@@ -23,6 +23,7 @@ class ColdAnalysisBenchmark extends Benchmark {
                 'existing driver cache.',
             kind: 'group');
 
+  @override
   int get maxIterations => 3;
 
   @override

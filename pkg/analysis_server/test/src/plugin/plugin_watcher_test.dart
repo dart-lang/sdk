@@ -108,10 +108,14 @@ class PluginWatcherTest with ResourceProviderMixin {
 }
 
 class TestDriver implements AnalysisDriver {
+  @override
   final MemoryResourceProvider resourceProvider;
 
+  @override
   SourceFactory sourceFactory;
+  @override
   AnalysisSession currentSession;
+  @override
   AnalysisOptionsImpl analysisOptions = AnalysisOptionsImpl();
 
   final _resultController = StreamController<ResolvedUnitResult>();
@@ -133,8 +137,10 @@ class TestDriver implements AnalysisDriver {
     currentSession = AnalysisSessionImpl(this);
   }
 
+  @override
   Stream<ResolvedUnitResult> get results => _resultController.stream;
 
+  @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
@@ -150,6 +156,7 @@ class TestPluginManager implements PluginManager {
     return null;
   }
 
+  @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
   @override

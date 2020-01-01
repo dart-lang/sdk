@@ -187,6 +187,7 @@ class AnalysisNotificationNavigationTest extends AbstractNavigationTest {
     assertRegionsSorted();
   }
 
+  @override
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_NAVIGATION) {
       var params = AnalysisNavigationParams.fromNotification(notification);

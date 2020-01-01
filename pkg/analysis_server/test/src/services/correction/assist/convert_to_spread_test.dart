@@ -22,6 +22,7 @@ class ConvertToSpreadTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.CONVERT_TO_SPREAD;
 
+  @override
   void setUp() {
     createAnalysisOptionsFile(experiments: [EnableString.spread_collections]);
     super.setUp();
@@ -120,6 +121,7 @@ class ConvertToSpreadWithControlFlowTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.CONVERT_TO_SPREAD;
 
+  @override
   void setUp() {
     createAnalysisOptionsFile(experiments: [
       EnableString.control_flow_collections,

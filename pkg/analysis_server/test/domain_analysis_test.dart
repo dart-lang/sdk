@@ -305,6 +305,7 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
 class AnalysisDomainTest extends AbstractAnalysisTest {
   Map<String, List<AnalysisError>> filesErrors = {};
 
+  @override
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_ERRORS) {
       var decoded = AnalysisErrorsParams.fromNotification(notification);
@@ -545,6 +546,7 @@ class SetSubscriptionsTest extends AbstractAnalysisTest {
 
   Completer _resultsAvailable = Completer();
 
+  @override
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_HIGHLIGHTS) {
       var params = AnalysisHighlightsParams.fromNotification(notification);

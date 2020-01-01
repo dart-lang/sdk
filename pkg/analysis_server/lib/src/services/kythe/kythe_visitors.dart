@@ -92,8 +92,11 @@ class CodedBufferWriter {
 /// Schema here https://kythe.io/docs/schema/.  This visitor handles all nodes,
 /// facts and edges.
 class KytheDartVisitor extends GeneralizingAstVisitor with OutputUtils {
+  @override
   final ResourceProvider resourceProvider;
+  @override
   final List<KytheEntry> entries;
+  @override
   final String corpus;
   final InheritanceManager3 _inheritanceManager;
   final String _contents;

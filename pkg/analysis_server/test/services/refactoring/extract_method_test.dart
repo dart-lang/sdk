@@ -21,6 +21,7 @@ main() {
 
 @reflectiveTest
 class ExtractMethodTest extends RefactoringTest {
+  @override
   ExtractMethodRefactoringImpl refactoring;
 
   test_bad_assignmentLeftHandSide() async {

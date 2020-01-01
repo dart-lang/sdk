@@ -38,6 +38,7 @@ main async() {}
 
   Completer _regionsReceived;
 
+  @override
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_FOLDING) {
       var params = AnalysisFoldingParams.fromNotification(notification);

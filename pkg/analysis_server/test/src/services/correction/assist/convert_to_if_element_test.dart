@@ -21,6 +21,7 @@ class ConvertToIfElementTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.CONVERT_TO_IF_ELEMENT;
 
+  @override
   void setUp() {
     createAnalysisOptionsFile(
         experiments: [EnableString.control_flow_collections]);

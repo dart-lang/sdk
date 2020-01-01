@@ -34,6 +34,7 @@ void main() {
 const _debug = false;
 
 class TestHandler with NotificationHandler, ConnectionHandler {
+  @override
   final Server server;
 
   TestHandler(this.server);

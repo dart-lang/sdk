@@ -50,12 +50,14 @@ class CompletionHandler
       LspAnalysisServer server, this.suggestFromUnimportedLibraries)
       : super(server);
 
+  @override
   Method get handlesMessage => Method.textDocument_completion;
 
   @override
   LspJsonHandler<CompletionParams> get jsonHandler =>
       CompletionParams.jsonHandler;
 
+  @override
   Future<ErrorOr<List<CompletionItem>>> handle(
       CompletionParams params, CancellationToken token) async {
     if (!isDartDocument(params.textDocument)) {

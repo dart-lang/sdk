@@ -18,6 +18,7 @@ class ExitMessageHandler extends MessageHandler<void, void> {
     this.clientDidCallShutdown = false,
   }) : super(server);
 
+  @override
   Method get handlesMessage => Method.exit;
 
   @override

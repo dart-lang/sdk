@@ -27,6 +27,7 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
     with ElementSuggestionBuilder {
   final DartCompletionRequest request;
   final OpType optype;
+  @override
   CompletionSuggestionKind kind;
   final String prefix;
 

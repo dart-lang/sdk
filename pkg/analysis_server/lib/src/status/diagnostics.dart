@@ -385,6 +385,7 @@ class ContextsPage extends DiagnosticPageWithNav {
             description:
                 'An analysis context defines the options and the set of sources being analyzed.');
 
+  @override
   String get navDetail => printInteger(server.driverMap.length);
 
   String describe(AnalysisOptionsImpl options) {
@@ -643,6 +644,7 @@ abstract class DiagnosticPage extends Page {
 ''');
   }
 
+  @override
   Future<void> generatePage(Map<String, String> params) async {
     buf.writeln('<!DOCTYPE html><html lang="en">');
     buf.write('<head>');
@@ -675,12 +677,14 @@ abstract class DiagnosticPageWithNav extends DiagnosticPage {
       {String description})
       : super(site, id, title, description: description);
 
+  @override
   bool get isNavPage => true;
 
   String get navDetail => null;
 
   bool get showInNav => true;
 
+  @override
   Future<void> generateContainer(Map<String, String> params) async {
     buf.writeln('<div class="columns docs-layout">');
 
@@ -762,11 +766,14 @@ class DiagnosticsSite extends Site implements AbstractGetHandler {
     pages.add(ElementModelPage(this));
   }
 
+  @override
   String get customCss => kCustomCss;
 
+  @override
   Page createExceptionPage(String message, StackTrace trace) =>
       ExceptionPage(this, message, trace);
 
+  @override
   Page createUnknownPage(String unknownPath) => NotFoundPage(this, unknownPath);
 }
 
@@ -844,6 +851,7 @@ class ExceptionPage extends DiagnosticPage {
   ExceptionPage(DiagnosticsSite site, String message, this.trace)
       : super(site, '', '500 Oops', description: message);
 
+  @override
   Future generateContent(Map<String, String> params) async {
     p(trace.toString(), style: 'white-space: pre');
   }
@@ -856,6 +864,7 @@ class ExceptionsPage extends DiagnosticPageWithNav {
 
   Iterable<ServerException> get exceptions => server.exceptions.items;
 
+  @override
   String get navDetail => printInteger(exceptions.length);
 
   @override
@@ -1039,6 +1048,7 @@ class MemoryAndCpuPage extends DiagnosticPageWithNav {
 }
 
 class MLCompletionPage extends DiagnosticPageWithNav {
+  @override
   final AbstractAnalysisServer server;
 
   MLCompletionPage(DiagnosticsSite site, this.server)
@@ -1133,11 +1143,13 @@ href="https://github.com/dart-lang/sdk/wiki/Previewing-Dart-code-completions-pow
 }
 
 class NotFoundPage extends DiagnosticPage {
+  @override
   final String path;
 
   NotFoundPage(DiagnosticsSite site, this.path)
       : super(site, '', '404 Not found', description: "'$path' not found.");
 
+  @override
   Future generateContent(Map<String, String> params) async {}
 }
 

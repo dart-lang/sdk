@@ -83,14 +83,19 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
   CorrectionUtils utils;
   final Set<Source> librariesToImport = Set<Source>();
 
+  @override
   String returnType = '';
   String variableType;
   String name;
   bool extractAll = true;
+  @override
   bool canCreateGetter = false;
   bool createGetter = false;
+  @override
   final List<String> names = <String>[];
+  @override
   final List<int> offsets = <int>[];
+  @override
   final List<int> lengths = <int>[];
 
   /**

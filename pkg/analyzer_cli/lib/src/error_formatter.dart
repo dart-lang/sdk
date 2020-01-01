@@ -231,6 +231,7 @@ class HumanErrorFormatter extends ErrorFormatter {
     ansi = AnsiLogger(this.options.color);
   }
 
+  @override
   void flush() {
     // sort
     List<CLIError> sortedErrors = batchedErrors.toList()..sort();
@@ -280,6 +281,7 @@ class HumanErrorFormatter extends ErrorFormatter {
     batchedErrors.clear();
   }
 
+  @override
   void formatError(
       Map<AnalysisError, ErrorsResult> errorToLine, AnalysisError error) {
     Source source = error.source;
@@ -349,8 +351,10 @@ class MachineErrorFormatter extends ErrorFormatter {
       {SeverityProcessor severityProcessor})
       : super(out, options, stats, severityProcessor: severityProcessor);
 
+  @override
   void flush() {}
 
+  @override
   void formatError(
       Map<AnalysisError, ErrorsResult> errorToLine, AnalysisError error) {
     // Ensure we don't over-report (#36062).

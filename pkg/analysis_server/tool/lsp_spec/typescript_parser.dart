@@ -74,6 +74,7 @@ class Const extends Member {
   Token valueToken;
   Const(Comment comment, this.nameToken, this.type, this.valueToken)
       : super(comment);
+  @override
   String get name => nameToken.lexeme;
 
   String get valueAsLiteral {
@@ -101,6 +102,7 @@ class Field extends Member {
     this.allowsUndefined,
   ) : super(comment);
 
+  @override
   String get name => nameToken.lexeme;
 }
 
@@ -125,6 +127,7 @@ class Indexer extends Member {
     this.valueType,
   ) : super(comment);
 
+  @override
   String get name => fieldNameForIndexer;
 }
 
@@ -148,6 +151,7 @@ class Interface extends AstNode {
     this.baseTypes,
     this.members,
   ) : super(comment);
+  @override
   String get name => nameToken.lexeme;
   String get nameWithTypeArgs => '$name$typeArgsString';
 
@@ -182,6 +186,7 @@ class Namespace extends AstNode {
     this.members,
   ) : super(comment);
 
+  @override
   String get name => nameToken.lexeme;
 }
 
@@ -912,6 +917,7 @@ class TypeAlias extends AstNode {
     this.baseType,
   ) : super(comment);
 
+  @override
   String get name => nameToken.lexeme;
 }
 

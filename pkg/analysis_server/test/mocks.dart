@@ -59,6 +59,7 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
   /**
    * Future that will be completed when the input stream is closed.
    */
+  @override
   Future get closed {
     return _closed.future;
   }

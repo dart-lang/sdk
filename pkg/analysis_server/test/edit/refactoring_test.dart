@@ -269,6 +269,7 @@ class ExtractLocalVariableTest extends _AbstractGetRefactoring_Test {
     return sendExtractRequest(offset, length, name, extractAll);
   }
 
+  @override
   void tearDown() {
     test_simulateRefactoringException_init = false;
     test_simulateRefactoringException_final = false;
@@ -1341,6 +1342,7 @@ class RenameTest extends _AbstractGetRefactoring_Test {
     return serverChannel.sendRequest(request);
   }
 
+  @override
   void tearDown() {
     test_simulateRefactoringReset_afterInitialConditions = false;
     test_simulateRefactoringReset_afterFinalConditions = false;

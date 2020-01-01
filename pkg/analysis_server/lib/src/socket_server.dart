@@ -27,6 +27,7 @@ abstract class AbstractSocketServer {
  * encode and decode the JSON messages exchanged with the client.
  */
 class SocketServer implements AbstractSocketServer {
+  @override
   final AnalysisServerOptions analysisServerOptions;
 
   /**
@@ -36,6 +37,7 @@ class SocketServer implements AbstractSocketServer {
 
   final InstrumentationService instrumentationService;
   final RequestStatisticsHelper requestStatistics;
+  @override
   final DiagnosticServer diagnosticServer;
   final DetachableFileSystemManager detachableFileSystemManager;
 
@@ -43,6 +45,7 @@ class SocketServer implements AbstractSocketServer {
    * The analysis server that was created when a client established a
    * connection, or `null` if no such connection has yet been established.
    */
+  @override
   AnalysisServer analysisServer;
 
   SocketServer(

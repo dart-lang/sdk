@@ -25,11 +25,13 @@ class CompletionResolveHandler
 
   CompletionResolveHandler(LspAnalysisServer server) : super(server);
 
+  @override
   Method get handlesMessage => Method.completionItem_resolve;
 
   @override
   LspJsonHandler<CompletionItem> get jsonHandler => CompletionItem.jsonHandler;
 
+  @override
   Future<ErrorOr<CompletionItem>> handle(
       CompletionItem item, CancellationToken token) async {
     // If this isn't an item with resolution data, return the same item back.

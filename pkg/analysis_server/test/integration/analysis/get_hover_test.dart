@@ -134,6 +134,7 @@ main() {
     });
   }
 
+  @override
   setUp() {
     return super.setUp().then((_) {
       pathname = sourcePath('test.dart');

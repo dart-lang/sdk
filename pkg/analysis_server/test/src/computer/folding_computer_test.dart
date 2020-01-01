@@ -22,6 +22,7 @@ main() {
 class FoldingComputerTest extends AbstractContextTest {
   String sourcePath;
 
+  @override
   setUp() {
     super.setUp();
     sourcePath = convertPath('/home/test/lib/test.dart');

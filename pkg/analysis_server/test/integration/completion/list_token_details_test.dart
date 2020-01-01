@@ -19,6 +19,7 @@ main() {
 class ListTokenDetailsTest extends AbstractAnalysisServerIntegrationTest {
   String testPackagePath;
 
+  @override
   Future setUp() async {
     await super.setUp();
     testPackagePath = path.join(sourceDirectory.path, 'test_package');

@@ -39,10 +39,12 @@ abstract class AbstractLspAnalysisServerTest
   MockLspServerChannel channel;
   LspAnalysisServer server;
 
+  @override
   Stream<Message> get serverToClient => channel.serverToClient;
 
   /// Sends a request to the server and unwraps the result. Throws if the
   /// response was not successful or returned an error.
+  @override
   Future<T> expectSuccessfulResponseTo<T>(RequestMessage request) async {
     final resp = await sendRequestToServer(request);
     if (resp.error != null) {
@@ -52,15 +54,18 @@ abstract class AbstractLspAnalysisServerTest
     }
   }
 
+  @override
   Future sendNotificationToServer(NotificationMessage notification) async {
     channel.sendNotificationToServer(notification);
     await pumpEventQueue();
   }
 
+  @override
   Future<ResponseMessage> sendRequestToServer(RequestMessage request) {
     return channel.sendRequestToServer(request);
   }
 
+  @override
   void sendResponseToServer(ResponseMessage response) {
     channel.sendResponseToServer(response);
   }

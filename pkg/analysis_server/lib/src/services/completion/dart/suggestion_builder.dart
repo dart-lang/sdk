@@ -186,7 +186,9 @@ mixin ElementSuggestionBuilder {
  */
 class LibraryElementSuggestionBuilder extends SimpleElementVisitor
     with ElementSuggestionBuilder {
+  @override
   final LibraryElement containingLibrary;
+  @override
   final CompletionSuggestionKind kind;
   final bool typesOnly;
   final bool instCreation;

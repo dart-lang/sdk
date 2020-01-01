@@ -333,6 +333,7 @@ class MockAnalysisSession implements AnalysisSession {
   @override
   FileResult getFile(String path) => fileResults[path];
 
+  @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 

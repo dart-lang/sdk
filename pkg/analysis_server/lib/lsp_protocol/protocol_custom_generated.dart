@@ -40,6 +40,7 @@ class AnalyzerStatusParams implements ToJsonable {
 
   final bool isAnalyzing;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['isAnalyzing'] =
@@ -113,6 +114,7 @@ class ClosingLabel implements ToJsonable {
   final String label;
   final Range range;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['range'] = range ?? (throw 'range is required but was not set');
@@ -227,6 +229,7 @@ class CompletionItemResolutionInfo implements ToJsonable {
   final num rLength;
   final num rOffset;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['file'] = file ?? (throw 'file is required but was not set');
@@ -398,6 +401,7 @@ class DartDiagnosticServer implements ToJsonable {
 
   final num port;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['port'] = port ?? (throw 'port is required but was not set');
@@ -478,6 +482,7 @@ class Element implements ToJsonable {
   final String returnType;
   final String typeParameters;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (range != null) {
@@ -665,6 +670,7 @@ class FlutterOutline implements ToJsonable {
   final Range range;
   final String variableName;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['kind'] = kind ?? (throw 'kind is required but was not set');
@@ -875,6 +881,7 @@ class FlutterOutlineAttribute implements ToJsonable {
   final String label;
   final String name;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['name'] = name ?? (throw 'name is required but was not set');
@@ -977,6 +984,7 @@ class Outline implements ToJsonable {
   final Element element;
   final Range range;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['element'] =
@@ -1113,6 +1121,7 @@ class PublishClosingLabelsParams implements ToJsonable {
   final List<ClosingLabel> labels;
   final String uri;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['uri'] = uri ?? (throw 'uri is required but was not set');
@@ -1212,6 +1221,7 @@ class PublishFlutterOutlineParams implements ToJsonable {
   final FlutterOutline outline;
   final String uri;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['uri'] = uri ?? (throw 'uri is required but was not set');
@@ -1305,6 +1315,7 @@ class PublishOutlineParams implements ToJsonable {
   final Outline outline;
   final String uri;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['uri'] = uri ?? (throw 'uri is required but was not set');

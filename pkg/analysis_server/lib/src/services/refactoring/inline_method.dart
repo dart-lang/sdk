@@ -195,6 +195,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
   CorrectionUtils utils;
   SourceChange change;
 
+  @override
   bool isDeclaration = false;
   bool deleteSource = false;
   bool inlineAll = true;

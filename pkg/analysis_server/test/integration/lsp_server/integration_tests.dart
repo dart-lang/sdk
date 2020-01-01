@@ -24,6 +24,7 @@ class AbstractLspAnalysisServerIntegrationTest
 
   /// Sends a request to the server and unwraps the result. Throws if the
   /// response was not successful or returned an error.
+  @override
   Future<T> expectSuccessfulResponseTo<T>(RequestMessage request) async {
     final resp = await sendRequestToServer(request);
     if (resp.error != null) {

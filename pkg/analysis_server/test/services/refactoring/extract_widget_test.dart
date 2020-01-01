@@ -21,6 +21,7 @@ main() {
 
 @reflectiveTest
 class ExtractWidgetTest extends RefactoringTest {
+  @override
   ExtractWidgetRefactoringImpl refactoring;
 
   test_checkAllConditions_selection() async {

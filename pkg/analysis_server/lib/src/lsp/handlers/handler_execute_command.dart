@@ -28,12 +28,14 @@ class ExecuteCommandHandler
         },
         super(server);
 
+  @override
   Method get handlesMessage => Method.workspace_executeCommand;
 
   @override
   LspJsonHandler<ExecuteCommandParams> get jsonHandler =>
       ExecuteCommandParams.jsonHandler;
 
+  @override
   Future<ErrorOr<Object>> handle(
       ExecuteCommandParams params, CancellationToken token) async {
     final handler = commandHandlers[params.command];

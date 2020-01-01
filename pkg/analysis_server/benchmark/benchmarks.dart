@@ -47,6 +47,7 @@ class ListCommand extends Command {
   @override
   String get invocation => '${runner.executableName} $name';
 
+  @override
   void run() {
     if (argResults['machine'] as bool) {
       final Map map = {
@@ -86,6 +87,7 @@ class RunCommand extends Command {
   @override
   String get invocation => '${runner.executableName} $name <benchmark-id>';
 
+  @override
   Future run() async {
     if (argResults.rest.isEmpty) {
       printUsage();
@@ -170,6 +172,7 @@ abstract class Benchmark {
   Map toJson() =>
       {'id': id, 'description': description, 'enabled': enabled, 'kind': kind};
 
+  @override
   String toString() => '$id: $description';
 }
 
@@ -189,6 +192,7 @@ class BenchMarkResult {
 
   Map toJson() => {kindName: value};
 
+  @override
   String toString() => '$kindName: ${nf.format(value)}';
 }
 
@@ -203,6 +207,7 @@ class CompoundBenchMarkResult extends BenchMarkResult {
     results[name] = result;
   }
 
+  @override
   BenchMarkResult combine(BenchMarkResult other) {
     BenchMarkResult _combine(BenchMarkResult a, BenchMarkResult b) {
       if (a == null) return b;
@@ -223,6 +228,7 @@ class CompoundBenchMarkResult extends BenchMarkResult {
     return combined;
   }
 
+  @override
   Map toJson() {
     Map m = {};
     for (String key in results.keys) {
@@ -231,6 +237,7 @@ class CompoundBenchMarkResult extends BenchMarkResult {
     return m;
   }
 
+  @override
   String toString() => '${toJson()}';
 }
 

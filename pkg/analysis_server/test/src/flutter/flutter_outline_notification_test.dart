@@ -52,6 +52,7 @@ class FlutterNotificationOutlineTest extends AbstractAnalysisTest {
     return _outlineReceived.future;
   }
 
+  @override
   void processNotification(Notification notification) {
     if (notification.event == FLUTTER_NOTIFICATION_OUTLINE) {
       var params = FlutterOutlineParams.fromNotification(notification);

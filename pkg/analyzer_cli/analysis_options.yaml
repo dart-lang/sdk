@@ -15,7 +15,7 @@ linter:
     #
     #- always_declare_return_types # 89
     - always_require_non_null_named_parameters
-    #- annotate_overrides # 12
+    - annotate_overrides
     - avoid_empty_else
     - avoid_init_to_null
     - avoid_null_checks_in_equality_operators

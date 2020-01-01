@@ -13,12 +13,14 @@ class InitializeMessageHandler
     extends MessageHandler<InitializeParams, InitializeResult> {
   InitializeMessageHandler(LspAnalysisServer server) : super(server);
 
+  @override
   Method get handlesMessage => Method.initialize;
 
   @override
   LspJsonHandler<InitializeParams> get jsonHandler =>
       InitializeParams.jsonHandler;
 
+  @override
   ErrorOr<InitializeResult> handle(
       InitializeParams params, CancellationToken token) {
     server.handleClientConnection(

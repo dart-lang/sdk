@@ -33,6 +33,7 @@ class AnalysisNotificationOutlineTest extends AbstractAnalysisTest {
     return _outlineReceived.future;
   }
 
+  @override
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_OUTLINE) {
       var params = AnalysisOutlineParams.fromNotification(notification);

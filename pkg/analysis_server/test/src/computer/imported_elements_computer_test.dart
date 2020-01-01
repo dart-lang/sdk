@@ -44,6 +44,7 @@ class ImportedElementsComputerTest extends AbstractContextTest {
     }
   }
 
+  @override
   setUp() {
     super.setUp();
     sourcePath = convertPath('/home/test/lib/test.dart');

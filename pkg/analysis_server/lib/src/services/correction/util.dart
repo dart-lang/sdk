@@ -1419,6 +1419,7 @@ class TokenUtils {
 class _CollectReferencedUnprefixedNames extends RecursiveAstVisitor {
   final Set<String> names = Set<String>();
 
+  @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     if (!_isPrefixed(node)) {
       names.add(node.name);

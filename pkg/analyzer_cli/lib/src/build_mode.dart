@@ -167,12 +167,14 @@ class AnalyzerWorkerLoop extends AsyncWorkerLoop {
  * Analyzer used when the "--build-mode" option is supplied.
  */
 class BuildMode with HasContextMixin {
+  @override
   final ResourceProvider resourceProvider;
   final CommandLineOptions options;
   final AnalysisStats stats;
   final PerformanceLog logger;
   final PackageBundleProvider packageBundleProvider;
 
+  @override
   final ContextCache contextCache;
 
   SummaryDataStore summaryDataStore;

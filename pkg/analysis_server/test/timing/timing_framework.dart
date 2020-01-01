@@ -150,6 +150,7 @@ abstract class TimingTest extends IntegrationTestMixin {
   /**
    * The connection to the analysis server.
    */
+  @override
   Server server;
 
   /**

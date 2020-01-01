@@ -13,6 +13,7 @@ import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 class PrepareRenameHandler
     extends MessageHandler<TextDocumentPositionParams, RangeAndPlaceholder> {
   PrepareRenameHandler(LspAnalysisServer server) : super(server);
+  @override
   Method get handlesMessage => Method.textDocument_prepareRename;
 
   @override
@@ -65,6 +66,7 @@ class PrepareRenameHandler
 class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit> {
   RenameHandler(LspAnalysisServer server) : super(server);
 
+  @override
   Method get handlesMessage => Method.textDocument_rename;
 
   @override

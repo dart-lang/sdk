@@ -21,6 +21,7 @@ import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
 class ReferencesHandler
     extends MessageHandler<ReferenceParams, List<Location>> {
   ReferencesHandler(LspAnalysisServer server) : super(server);
+  @override
   Method get handlesMessage => Method.textDocument_references;
 
   @override

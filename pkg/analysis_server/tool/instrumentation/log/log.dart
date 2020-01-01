@@ -168,6 +168,7 @@ class GenericPluginEntry extends GenericEntry with PluginEntryMixin {
   /**
    * The components describing the plugin associated with this entry.
    */
+  @override
   final List<String> pluginData;
 
   /**
@@ -575,6 +576,7 @@ abstract class JsonBasedPluginEntry extends JsonBasedEntry
   /**
    * The components describing the plugin associated with this entry.
    */
+  @override
   final List<String> pluginData;
 
   /**

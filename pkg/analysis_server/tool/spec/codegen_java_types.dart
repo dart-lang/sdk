@@ -118,6 +118,7 @@ class CodegenJavaType extends CodegenJavaVisitor {
   /**
    * Get the name of the consumer class for responses to this request.
    */
+  @override
   String consumerName(Request request) {
     return camelJoin([request.method, 'consumer'], doCapitalize: true);
   }

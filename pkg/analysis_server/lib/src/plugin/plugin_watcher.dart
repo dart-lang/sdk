@@ -51,6 +51,7 @@ class PluginWatcher implements DriverWatcher {
    * The context manager has just added the given analysis [driver]. This method
    * must be called before the driver has been allowed to perform any analysis.
    */
+  @override
   void addedDriver(AnalysisDriver driver, ContextRoot contextRoot) {
     _driverInfo[driver] = _DriverInfo(
         contextRoot, <String>[contextRoot.root, _getSdkPath(driver)]);
@@ -87,6 +88,7 @@ class PluginWatcher implements DriverWatcher {
   /**
    * The context manager has just removed the given analysis [driver].
    */
+  @override
   void removedDriver(AnalysisDriver driver) {
     _DriverInfo info = _driverInfo[driver];
     if (info == null) {

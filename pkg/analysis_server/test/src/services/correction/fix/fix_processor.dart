@@ -31,6 +31,7 @@ abstract class FixProcessorLintTest extends FixProcessorTest {
   /// using the [errorFilter] to filter out errors that should be ignored, and
   /// expecting that there is a single remaining error. The error filter should
   /// return `true` if the error should not be ignored.
+  @override
   Future<AnalysisError> _findErrorToFix(
       bool Function(AnalysisError) errorFilter,
       {int length}) async {

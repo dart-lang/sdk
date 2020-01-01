@@ -41,6 +41,7 @@ List<SourceReference> getSourceReferences(List<SearchMatch> matches) {
  * Abstract implementation of [Refactoring].
  */
 abstract class RefactoringImpl implements Refactoring {
+  @override
   final List<String> potentialEditIds = <String>[];
 
   @override

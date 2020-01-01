@@ -25,6 +25,7 @@ class AbstractCompletionDomainTest extends AbstractAnalysisTest {
   bool suggestionsDone = false;
   Map<String, List<CompletionSuggestion>> allSuggestions = {};
 
+  @override
   String addTestFile(String content, {int offset}) {
     completionOffset = content.indexOf('^');
     if (offset != null) {
@@ -102,6 +103,7 @@ class AbstractCompletionDomainTest extends AbstractAnalysisTest {
     expect(suggestionsDone, isTrue);
   }
 
+  @override
   processNotification(Notification notification) async {
     if (notification.event == COMPLETION_RESULTS) {
       var params = CompletionResultsParams.fromNotification(notification);

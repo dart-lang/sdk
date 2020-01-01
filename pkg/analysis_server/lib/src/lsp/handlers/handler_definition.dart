@@ -16,12 +16,14 @@ import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
 class DefinitionHandler
     extends MessageHandler<TextDocumentPositionParams, List<Location>> {
   DefinitionHandler(LspAnalysisServer server) : super(server);
+  @override
   Method get handlesMessage => Method.textDocument_definition;
 
   @override
   LspJsonHandler<TextDocumentPositionParams> get jsonHandler =>
       TextDocumentPositionParams.jsonHandler;
 
+  @override
   Future<ErrorOr<List<Location>>> handle(
       TextDocumentPositionParams params, CancellationToken token) async {
     if (!isDartDocument(params.textDocument)) {

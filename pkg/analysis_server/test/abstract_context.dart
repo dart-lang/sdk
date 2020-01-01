@@ -218,6 +218,7 @@ test:file:///home/test/lib
 class _ElementVisitorFunctionWrapper extends GeneralizingElementVisitor {
   final _ElementVisitorFunction function;
   _ElementVisitorFunctionWrapper(this.function);
+  @override
   visitElement(Element element) {
     function(element);
     super.visitElement(element);

@@ -23,6 +23,7 @@ main() {
 
 @reflectiveTest
 class ExtractLocalTest extends RefactoringTest {
+  @override
   ExtractLocalRefactoringImpl refactoring;
 
   test_checkFinalConditions_sameVariable_after() async {

@@ -40,6 +40,7 @@ Widget build(BuildContext context) {
 
   Completer _labelsReceived;
 
+  @override
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_CLOSING_LABELS) {
       var params = AnalysisClosingLabelsParams.fromNotification(notification);

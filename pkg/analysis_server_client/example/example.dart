@@ -64,6 +64,7 @@ void printUsageAndExit(String errorMessage) {
 }
 
 class _Handler with NotificationHandler, ConnectionHandler {
+  @override
   final Server server;
   int errorCount = 0;
 

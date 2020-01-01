@@ -39,6 +39,7 @@ class AnalysisNotificationAnalyzedFilesTest extends AbstractAnalysisTest {
     await pumpEventQueue(times: 5000);
   }
 
+  @override
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_ANALYZED_FILES) {
       AnalysisAnalyzedFilesParams params =
@@ -48,6 +49,7 @@ class AnalysisNotificationAnalyzedFilesTest extends AbstractAnalysisTest {
     }
   }
 
+  @override
   void setUp() {
     generateSummaryFiles = true;
     super.setUp();

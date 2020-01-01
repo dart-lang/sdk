@@ -100,6 +100,7 @@ class AnalysisNotificationImplementedTest extends AbstractAnalysisTest {
     return waitForImplementedElements();
   }
 
+  @override
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_IMPLEMENTED) {
       var params = AnalysisImplementedParams.fromNotification(notification);
@@ -110,6 +111,7 @@ class AnalysisNotificationImplementedTest extends AbstractAnalysisTest {
     }
   }
 
+  @override
   void setUp() {
     super.setUp();
     createProject();

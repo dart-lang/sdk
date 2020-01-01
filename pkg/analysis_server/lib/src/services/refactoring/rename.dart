@@ -67,7 +67,9 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
   final RefactoringWorkspace workspace;
   final SearchEngine searchEngine;
   final Element _element;
+  @override
   final String elementKindName;
+  @override
   final String oldName;
   SourceChange change;
 

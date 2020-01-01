@@ -48,6 +48,7 @@ class Either2<T1, T2> {
   @override
   get hashCode => map((t) => t.hashCode, (t) => t.hashCode);
 
+  @override
   bool operator ==(o) => o is Either2<T1, T2> && o._t1 == _t1 && o._t2 == _t2;
 
   T map<T>(T Function(T1) f1, T Function(T2) f2) {
@@ -85,6 +86,7 @@ class Either3<T1, T2, T3> {
   @override
   get hashCode => map((t) => t.hashCode, (t) => t.hashCode, (t) => t.hashCode);
 
+  @override
   bool operator ==(o) =>
       o is Either3<T1, T2, T3> && o._t1 == _t1 && o._t2 == _t2 && o._t3 == _t3;
 
@@ -146,6 +148,7 @@ class Either4<T1, T2, T3, T4> {
   get hashCode => map((t) => t.hashCode, (t) => t.hashCode, (t) => t.hashCode,
       (t) => t.hashCode);
 
+  @override
   bool operator ==(o) =>
       o is Either4<T1, T2, T3, T4> &&
       o._t1 == _t1 &&

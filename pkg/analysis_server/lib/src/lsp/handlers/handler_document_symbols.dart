@@ -42,12 +42,14 @@ final defaultSupportedSymbolKinds = HashSet<SymbolKind>.of([
 class DocumentSymbolHandler extends MessageHandler<DocumentSymbolParams,
     Either2<List<DocumentSymbol>, List<SymbolInformation>>> {
   DocumentSymbolHandler(LspAnalysisServer server) : super(server);
+  @override
   Method get handlesMessage => Method.textDocument_documentSymbol;
 
   @override
   LspJsonHandler<DocumentSymbolParams> get jsonHandler =>
       DocumentSymbolParams.jsonHandler;
 
+  @override
   Future<ErrorOr<Either2<List<DocumentSymbol>, List<SymbolInformation>>>>
       handle(DocumentSymbolParams params, CancellationToken token) async {
     if (!isDartDocument(params.textDocument)) {

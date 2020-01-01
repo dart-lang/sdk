@@ -20,6 +20,7 @@ main() {
 
 @reflectiveTest
 class MoveFileTest extends RefactoringTest {
+  @override
   MoveFileRefactoring refactoring;
 
   test_file_containing_imports_exports_parts() async {

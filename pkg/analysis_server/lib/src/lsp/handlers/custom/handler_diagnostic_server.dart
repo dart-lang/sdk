@@ -14,6 +14,7 @@ import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 class DiagnosticServerHandler
     extends MessageHandler<void, DartDiagnosticServer> {
   DiagnosticServerHandler(LspAnalysisServer server) : super(server);
+  @override
   Method get handlesMessage => CustomMethods.DiagnosticServer;
 
   @override

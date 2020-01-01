@@ -22,10 +22,12 @@ class FlutterAnalyzeBenchmark extends Benchmark {
           kind: 'cpu',
         );
 
+  @override
   bool get needsSetup => true;
 
   Directory flutterDir;
 
+  @override
   Future oneTimeSetup() async {
     flutterDir = Directory.systemTemp.createTempSync('flutter');
 
@@ -48,6 +50,7 @@ class FlutterAnalyzeBenchmark extends Benchmark {
     await _runProcess(flutterTool, ['update-packages'], cwd: flutterDir.path);
   }
 
+  @override
   Future oneTimeCleanup() {
     try {
       flutterDir.deleteSync(recursive: true);
@@ -58,6 +61,7 @@ class FlutterAnalyzeBenchmark extends Benchmark {
     return Future.value();
   }
 
+  @override
   int get maxIterations => 3;
 
   @override

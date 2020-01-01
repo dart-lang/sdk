@@ -55,6 +55,7 @@ class ImportElementsComputerTest extends AbstractContextTest {
     computer = ImportElementsComputer(resourceProvider, result);
   }
 
+  @override
   void setUp() {
     super.setUp();
     path = convertPath('/home/test/lib/test.dart');

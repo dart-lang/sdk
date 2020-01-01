@@ -19,6 +19,7 @@ main() {
 
 @reflectiveTest
 class InlineLocalTest extends RefactoringTest {
+  @override
   InlineLocalRefactoringImpl refactoring;
 
   test_access() async {

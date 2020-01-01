@@ -33,7 +33,7 @@ linter:
     #
     #- always_declare_return_types # 5645
     - always_require_non_null_named_parameters
-    #- annotate_overrides # 447
+    - annotate_overrides
     - avoid_null_checks_in_equality_operators
     - camel_case_extensions
     #- omit_local_variable_types # 8650

@@ -12,6 +12,7 @@ class CancelRequestHandler extends MessageHandler<CancelParams, void> {
 
   CancelRequestHandler(LspAnalysisServer server) : super(server);
 
+  @override
   Method get handlesMessage => Method.cancelRequest;
 
   @override
@@ -27,6 +28,7 @@ class CancelRequestHandler extends MessageHandler<CancelParams, void> {
     return token;
   }
 
+  @override
   ErrorOr<void> handle(CancelParams params, CancellationToken token) {
     // Don't assume this is in the map as it's possible the client sent a
     // cancellation that we processed after already starting to send the response

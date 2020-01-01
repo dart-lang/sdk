@@ -196,6 +196,7 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
   String byteStorePath = '/byteStore';
   PluginManager manager;
 
+  @override
   void setUp() {
     super.setUp();
     manager = PluginManager(resourceProvider, byteStorePath, '',
@@ -948,6 +949,7 @@ class TestServerCommunicationChannel implements ServerCommunicationChannel {
     closeCount++;
   }
 
+  @override
   void kill() {
     fail('Unexpected invocation of kill');
   }

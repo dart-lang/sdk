@@ -211,6 +211,7 @@ class _LocalElementsCollector extends GeneralizingAstVisitor<void> {
 
   _LocalElementsCollector(this.name);
 
+  @override
   visitSimpleIdentifier(SimpleIdentifier node) {
     Element element = node.staticElement;
     if (element is LocalElement && element.name == name) {

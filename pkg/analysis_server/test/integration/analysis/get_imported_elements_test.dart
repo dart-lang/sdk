@@ -92,6 +92,7 @@ class AnalysisGetImportedElementsIntegrationTest
     expect(result.elements, hasLength(0));
   }
 
+  @override
   setUp() {
     return super.setUp().then((_) {
       pathname = sourcePath('test.dart');

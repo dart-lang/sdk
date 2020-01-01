@@ -57,6 +57,7 @@ class _ElementByNameOffsetVisitor extends GeneralizingElementVisitor {
 
   _ElementByNameOffsetVisitor(this.nameOffset);
 
+  @override
   visitElement(Element element) {
     if (element.nameOffset != -1 &&
         !element.isSynthetic &&

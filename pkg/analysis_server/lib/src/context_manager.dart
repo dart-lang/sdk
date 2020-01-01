@@ -479,12 +479,14 @@ class ContextManagerImpl implements ContextManager {
    * The list of excluded paths (folders and files) most recently passed to
    * [setRoots].
    */
+  @override
   List<String> excludedPaths = <String>[];
 
   /**
    * The list of included paths (folders and files) most recently passed to
    * [setRoots].
    */
+  @override
   List<String> includedPaths = <String>[];
 
   /**
@@ -547,6 +549,7 @@ class ContextManagerImpl implements ContextManager {
    */
   bool definesEmbeddedLibs(Map map) => map[_EMBEDDED_LIB_MAP_KEY] != null;
 
+  @override
   Folder getContextFolderFor(String path) {
     return _getInnermostContextInfoFor(path)?.folder;
   }
@@ -595,6 +598,7 @@ class ContextManagerImpl implements ContextManager {
    * Determine whether the given [path], when interpreted relative to innermost
    * context root, contains a folder whose name starts with '.'.
    */
+  @override
   bool isContainedInDotFolder(String path) {
     ContextInfo info = _getInnermostContextInfoFor(path);
     return info != null && _isContainedInDotFolder(info.folder.path, path);

@@ -971,6 +971,7 @@ class HighlightsTestSupport extends AbstractAnalysisTest {
     return _resultsAvailable.future;
   }
 
+  @override
   void processNotification(Notification notification) {
     if (notification.event == SERVER_NOTIFICATION_ERROR) {
       print('SERVER_NOTIFICATION_ERROR: ${notification.toJson()}');

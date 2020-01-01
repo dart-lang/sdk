@@ -316,5 +316,6 @@ class _SourceMock implements Source {
 
   _SourceMock(this.fullName, this.uri);
 
+  @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

@@ -15,12 +15,14 @@ class WorkspaceFoldersHandler
   WorkspaceFoldersHandler(LspAnalysisServer server, this.updateAnalysisRoots)
       : super(server);
 
+  @override
   Method get handlesMessage => Method.workspace_didChangeWorkspaceFolders;
 
   @override
   LspJsonHandler<DidChangeWorkspaceFoldersParams> get jsonHandler =>
       DidChangeWorkspaceFoldersParams.jsonHandler;
 
+  @override
   ErrorOr<void> handle(
       DidChangeWorkspaceFoldersParams params, CancellationToken token) {
     // Don't do anything if our analysis roots are not based on open workspaces.

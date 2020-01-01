@@ -351,6 +351,7 @@ class Driver implements ServerStarter {
   /**
    * Use the given command-line [arguments] to start this server.
    */
+  @override
   void start(List<String> arguments) {
     CommandLineParser parser = _createArgParser();
     ArgResults results = parser.parse(arguments, <String, String>{});

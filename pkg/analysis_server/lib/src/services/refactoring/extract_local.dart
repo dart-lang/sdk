@@ -40,10 +40,15 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
 
   String name;
   bool extractAll = true;
+  @override
   final List<int> coveringExpressionOffsets = <int>[];
+  @override
   final List<int> coveringExpressionLengths = <int>[];
+  @override
   final List<String> names = <String>[];
+  @override
   final List<int> offsets = <int>[];
+  @override
   final List<int> lengths = <int>[];
 
   FunctionBody coveringFunctionBody;
@@ -589,6 +594,7 @@ class _TokenLocalElementVisitor extends RecursiveAstVisitor {
 
   _TokenLocalElementVisitor(this.map);
 
+  @override
   visitSimpleIdentifier(SimpleIdentifier node) {
     Element element = node.staticElement;
     if (element is LocalVariableElement) {

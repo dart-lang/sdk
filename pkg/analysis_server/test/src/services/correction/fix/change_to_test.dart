@@ -337,6 +337,7 @@ class ChangeToWithExtensionMethodsTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.CHANGE_TO;
 
+  @override
   void setUp() {
     createAnalysisOptionsFile(experiments: ['extension-methods']);
     super.setUp();

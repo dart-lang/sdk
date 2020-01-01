@@ -263,6 +263,7 @@ class RequestDecoder extends JsonDecoder {
 
   RequestDecoder(this._request);
 
+  @override
   RefactoringKind get refactoringKind {
     // Refactoring feedback objects should never appear in requests.
     return null;
@@ -302,6 +303,7 @@ abstract class RequestParams implements HasToJson {
  * used only for testing.  Errors are reported using bare [Exception] objects.
  */
 class ResponseDecoder extends JsonDecoder {
+  @override
   final RefactoringKind refactoringKind;
 
   ResponseDecoder(this.refactoringKind);

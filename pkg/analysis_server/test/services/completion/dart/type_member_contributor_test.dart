@@ -4087,6 +4087,7 @@ class TypeMemberContributorWithExtensionMethodsTest
     return TypeMemberContributor();
   }
 
+  @override
   void setUp() {
     createAnalysisOptionsFile(experiments: ['extension-methods']);
     super.setUp();

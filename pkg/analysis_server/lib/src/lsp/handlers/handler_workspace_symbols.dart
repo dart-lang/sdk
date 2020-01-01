@@ -17,12 +17,14 @@ import 'package:analysis_server/src/search/workspace_symbols.dart' as search;
 class WorkspaceSymbolHandler
     extends MessageHandler<WorkspaceSymbolParams, List<SymbolInformation>> {
   WorkspaceSymbolHandler(LspAnalysisServer server) : super(server);
+  @override
   Method get handlesMessage => Method.workspace_symbol;
 
   @override
   LspJsonHandler<WorkspaceSymbolParams> get jsonHandler =>
       WorkspaceSymbolParams.jsonHandler;
 
+  @override
   Future<ErrorOr<List<SymbolInformation>>> handle(
       WorkspaceSymbolParams params, CancellationToken token) async {
     // Respond to empty queries with an empty list. The spec says this should

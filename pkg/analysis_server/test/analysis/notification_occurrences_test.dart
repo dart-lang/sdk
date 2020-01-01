@@ -82,6 +82,7 @@ class AnalysisNotificationOccurrencesTest extends AbstractAnalysisTest {
     return _resultsAvailable.future;
   }
 
+  @override
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_OCCURRENCES) {
       var params = AnalysisOccurrencesParams.fromNotification(notification);

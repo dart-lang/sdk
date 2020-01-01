@@ -55,11 +55,16 @@ class MockAnalysisErrorInfo implements AnalysisErrorInfo {
 
 class MockCommandLineOptions implements CommandLineOptions {
   bool enableTypeChecks = false;
+  @override
   bool infosAreFatal = false;
+  @override
   bool machineFormat = false;
+  @override
   bool verbose = false;
+  @override
   bool color = false;
 
+  @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 

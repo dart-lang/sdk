@@ -24,6 +24,7 @@ class Highlights2ComputerTest extends AbstractContextTest {
   String content;
   List<HighlightRegion> highlights;
 
+  @override
   setUp() {
     super.setUp();
     sourcePath = convertPath('/home/test/lib/test.dart');

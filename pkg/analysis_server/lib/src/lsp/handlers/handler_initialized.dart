@@ -15,12 +15,14 @@ class IntializedMessageHandler extends MessageHandler<InitializedParams, void> {
     LspAnalysisServer server,
     this.openWorkspacePaths,
   ) : super(server);
+  @override
   Method get handlesMessage => Method.initialized;
 
   @override
   LspJsonHandler<InitializedParams> get jsonHandler =>
       InitializedParams.jsonHandler;
 
+  @override
   ErrorOr<void> handle(InitializedParams params, CancellationToken token) {
     server.messageHandler = InitializedStateMessageHandler(
       server,

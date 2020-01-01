@@ -22,6 +22,7 @@ main() {
 class HierarchyTest extends AbstractSingleUnitTest {
   SearchEngineImpl searchEngine;
 
+  @override
   void setUp() {
     super.setUp();
     searchEngine = SearchEngineImpl([driver]);

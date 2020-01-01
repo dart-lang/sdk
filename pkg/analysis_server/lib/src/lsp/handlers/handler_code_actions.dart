@@ -29,12 +29,14 @@ import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 class CodeActionHandler extends MessageHandler<CodeActionParams,
     List<Either2<Command, CodeAction>>> {
   CodeActionHandler(LspAnalysisServer server) : super(server);
+  @override
   Method get handlesMessage => Method.textDocument_codeAction;
 
   @override
   LspJsonHandler<CodeActionParams> get jsonHandler =>
       CodeActionParams.jsonHandler;
 
+  @override
   Future<ErrorOr<List<Either2<Command, CodeAction>>>> handle(
       CodeActionParams params, CancellationToken token) async {
     if (!isDartDocument(params.textDocument)) {

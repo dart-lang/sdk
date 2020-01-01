@@ -81,6 +81,7 @@ class AnalysisGetImportElementsIntegrationTest
     expect(result.edit, isNull);
   }
 
+  @override
   Future setUp() async {
     await super.setUp();
     pathname = sourcePath('test.dart');

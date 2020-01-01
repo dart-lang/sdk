@@ -22,6 +22,7 @@ main() {
 
 @reflectiveTest
 class InlineMethodTest extends RefactoringTest {
+  @override
   InlineMethodRefactoringImpl refactoring;
   bool deleteSource;
   bool inlineAll;

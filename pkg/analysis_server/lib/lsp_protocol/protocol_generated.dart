@@ -47,6 +47,7 @@ class ApplyWorkspaceEditParams implements ToJsonable {
   /// user interface for example on an undo stack to undo the workspace edit.
   final String label;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (label != null) {
@@ -134,6 +135,7 @@ class ApplyWorkspaceEditResponse implements ToJsonable {
   /// suitable error for a request that triggered the edit.
   final String failureReason;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['applied'] =
@@ -222,6 +224,7 @@ class CancelParams implements ToJsonable {
   /// The request id to cancel.
   final Either2<num, String> id;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['id'] = id ?? (throw 'id is required but was not set');
@@ -298,6 +301,7 @@ class ClientCapabilities implements ToJsonable {
   /// Workspace specific client capabilities.
   final WorkspaceClientCapabilities workspace;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (workspace != null) {
@@ -424,6 +428,7 @@ class CodeAction implements ToJsonable {
   /// A short, human-readable, title for this code action.
   final String title;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['title'] = title ?? (throw 'title is required but was not set');
@@ -571,6 +576,7 @@ class CodeActionContext implements ToJsonable {
   /// shown. So servers can omit computing them.
   final List<CodeActionKind> only;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['diagnostics'] =
@@ -714,6 +720,7 @@ class CodeActionKind {
   @override
   get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object o) => o is CodeActionKind && o._value == _value;
 }
 
@@ -740,6 +747,7 @@ class CodeActionOptions implements ToJsonable {
   /// the server may list out every specific kind they provide.
   final List<CodeActionKind> codeActionKinds;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (codeActionKinds != null) {
@@ -826,6 +834,7 @@ class CodeActionParams implements ToJsonable {
   /// The document in which the command was invoked.
   final TextDocumentIdentifier textDocument;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['textDocument'] =
@@ -943,12 +952,15 @@ class CodeActionRegistrationOptions
   ///
   /// The list of kinds may be generic, such as `CodeActionKind.Refactor`, or
   /// the server may list out every specific kind they provide.
+  @override
   final List<CodeActionKind> codeActionKinds;
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
+  @override
   final List<DocumentFilter> documentSelector;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['documentSelector'] = documentSelector;
@@ -1052,6 +1064,7 @@ class CodeLens implements ToJsonable {
   /// line.
   final Range range;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['range'] = range ?? (throw 'range is required but was not set');
@@ -1147,6 +1160,7 @@ class CodeLensOptions implements ToJsonable {
   /// Code lens has a resolve provider as well.
   final bool resolveProvider;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (resolveProvider != null) {
@@ -1212,6 +1226,7 @@ class CodeLensParams implements ToJsonable {
   /// The document to request code lens for.
   final TextDocumentIdentifier textDocument;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['textDocument'] =
@@ -1282,11 +1297,13 @@ class CodeLensRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
+  @override
   final List<DocumentFilter> documentSelector;
 
   /// Code lens has a resolve provider as well.
   final bool resolveProvider;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (resolveProvider != null) {
@@ -1391,6 +1408,7 @@ class Color implements ToJsonable {
   /// The red component of this color in the range [0-1].
   final num red;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['red'] = red ?? (throw 'red is required but was not set');
@@ -1527,6 +1545,7 @@ class ColorInformation implements ToJsonable {
   /// The range in the document where this color appears.
   final Range range;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['range'] = range ?? (throw 'range is required but was not set');
@@ -1632,6 +1651,7 @@ class ColorPresentation implements ToJsonable {
   /// [label](#ColorPresentation.label) is used.
   final TextEdit textEdit;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['label'] = label ?? (throw 'label is required but was not set');
@@ -1750,6 +1770,7 @@ class ColorPresentationParams implements ToJsonable {
   /// The text document.
   final TextDocumentIdentifier textDocument;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['textDocument'] =
@@ -1852,6 +1873,7 @@ class ColorProviderOptions implements ToJsonable {
     return ColorProviderOptions();
   }
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     return __result;
@@ -1912,6 +1934,7 @@ class Command implements ToJsonable {
   /// Title of the command, like `save`.
   final String title;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['title'] = title ?? (throw 'title is required but was not set');
@@ -2028,6 +2051,7 @@ class CompletionContext implements ToJsonable {
   /// How the completion was triggered.
   final CompletionTriggerKind triggerKind;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['triggerKind'] =
@@ -2254,6 +2278,7 @@ class CompletionItem implements ToJsonable {
   /// contain the position at which completion has been requested.
   final TextEdit textEdit;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['label'] = label ?? (throw 'label is required but was not set');
@@ -2562,6 +2587,7 @@ class CompletionItemKind {
   @override
   get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object o) => o is CompletionItemKind && o._value == _value;
 }
 
@@ -2595,6 +2621,7 @@ class CompletionList implements ToJsonable {
   /// The completion items.
   final List<CompletionItem> items;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['isIncomplete'] =
@@ -2693,6 +2720,7 @@ class CompletionOptions implements ToJsonable {
   /// The characters that trigger completion automatically.
   final List<String> triggerCharacters;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (resolveProvider != null) {
@@ -2787,11 +2815,14 @@ class CompletionParams implements TextDocumentPositionParams, ToJsonable {
   final CompletionContext context;
 
   /// The position inside the text document.
+  @override
   final Position position;
 
   /// The text document.
+  @override
   final TextDocumentIdentifier textDocument;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (context != null) {
@@ -2920,6 +2951,7 @@ class CompletionRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
+  @override
   final List<DocumentFilter> documentSelector;
 
   /// The server provides support to resolve additional information for a
@@ -2938,6 +2970,7 @@ class CompletionRegistrationOptions
   /// `triggerCharacters`.
   final List<String> triggerCharacters;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (triggerCharacters != null) {
@@ -3075,6 +3108,7 @@ class CompletionTriggerKind {
   @override
   get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object o) =>
       o is CompletionTriggerKind && o._value == _value;
 }
@@ -3096,6 +3130,7 @@ class ConfigurationItem implements ToJsonable {
   /// The configuration section asked for.
   final String section;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (scopeUri != null) {
@@ -3173,6 +3208,7 @@ class ConfigurationParams implements ToJsonable {
 
   final List<ConfigurationItem> items;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['items'] = items ?? (throw 'items is required but was not set');
@@ -3259,6 +3295,7 @@ class CreateFile implements ToJsonable {
   /// The resource to create.
   final String uri;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['kind'] = kind ?? (throw 'kind is required but was not set');
@@ -3364,6 +3401,7 @@ class CreateFileOptions implements ToJsonable {
   /// Overwrite existing file. Overwrite wins over `ignoreIfExists`
   final bool overwrite;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (overwrite != null) {
@@ -3455,6 +3493,7 @@ class DeleteFile implements ToJsonable {
   /// The file to delete.
   final String uri;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['kind'] = kind ?? (throw 'kind is required but was not set');
@@ -3560,6 +3599,7 @@ class DeleteFileOptions implements ToJsonable {
   /// Delete the content recursively if a folder is denoted.
   final bool recursive;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (recursive != null) {
@@ -3672,6 +3712,7 @@ class Diagnostic implements ToJsonable {
   /// 'typescript' or 'super lint'.
   final String source;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['range'] = range ?? (throw 'range is required but was not set');
@@ -3840,6 +3881,7 @@ class DiagnosticRelatedInformation implements ToJsonable {
   /// The message of this related diagnostic information.
   final String message;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['location'] =
@@ -3942,6 +3984,7 @@ class DiagnosticSeverity {
   @override
   get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object o) => o is DiagnosticSeverity && o._value == _value;
 }
 
@@ -3959,6 +4002,7 @@ class DidChangeConfigurationParams implements ToJsonable {
   /// The actual changed settings
   final dynamic settings;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['settings'] = settings;
@@ -4040,6 +4084,7 @@ class DidChangeTextDocumentParams implements ToJsonable {
   /// after all provided content changes have been applied.
   final VersionedTextDocumentIdentifier textDocument;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['textDocument'] =
@@ -4145,6 +4190,7 @@ class DidChangeWatchedFilesParams implements ToJsonable {
   /// The actual file events.
   final List<FileEvent> changes;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['changes'] =
@@ -4224,6 +4270,7 @@ class DidChangeWatchedFilesRegistrationOptions implements ToJsonable {
   /// The watchers to register.
   final List<FileSystemWatcher> watchers;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['watchers'] =
@@ -4301,6 +4348,7 @@ class DidChangeWorkspaceFoldersParams implements ToJsonable {
   /// The actual workspace folder change event.
   final WorkspaceFoldersChangeEvent event;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['event'] = event ?? (throw 'event is required but was not set');
@@ -4371,6 +4419,7 @@ class DidCloseTextDocumentParams implements ToJsonable {
   /// The document that was closed.
   final TextDocumentIdentifier textDocument;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['textDocument'] =
@@ -4442,6 +4491,7 @@ class DidOpenTextDocumentParams implements ToJsonable {
   /// The document that was opened.
   final TextDocumentItem textDocument;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['textDocument'] =
@@ -4518,6 +4568,7 @@ class DidSaveTextDocumentParams implements ToJsonable {
   /// The document that was saved.
   final TextDocumentIdentifier textDocument;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['textDocument'] =
@@ -4616,6 +4667,7 @@ class DocumentFilter implements ToJsonable {
   /// A Uri [scheme](#Uri.scheme), like `file` or `untitled`.
   final String scheme;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (language != null) {
@@ -4718,6 +4770,7 @@ class DocumentFormattingParams implements ToJsonable {
   /// The document to format.
   final TextDocumentIdentifier textDocument;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['textDocument'] =
@@ -4818,6 +4871,7 @@ class DocumentHighlight implements ToJsonable {
   /// The range this highlight applies to.
   final Range range;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['range'] = range ?? (throw 'range is required but was not set');
@@ -4911,6 +4965,7 @@ class DocumentHighlightKind {
   @override
   get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object o) =>
       o is DocumentHighlightKind && o._value == _value;
 }
@@ -4943,6 +4998,7 @@ class DocumentLink implements ToJsonable {
   /// The uri this link points to. If missing a resolve request is sent later.
   final String target;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['range'] = range ?? (throw 'range is required but was not set');
@@ -5037,6 +5093,7 @@ class DocumentLinkOptions implements ToJsonable {
   /// Document links have a resolve provider as well.
   final bool resolveProvider;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (resolveProvider != null) {
@@ -5102,6 +5159,7 @@ class DocumentLinkParams implements ToJsonable {
   /// The document to provide document links for.
   final TextDocumentIdentifier textDocument;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['textDocument'] =
@@ -5172,11 +5230,13 @@ class DocumentLinkRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
+  @override
   final List<DocumentFilter> documentSelector;
 
   /// Document links have a resolve provider as well.
   final bool resolveProvider;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (resolveProvider != null) {
@@ -5271,6 +5331,7 @@ class DocumentOnTypeFormattingOptions implements ToJsonable {
   /// More trigger characters.
   final List<String> moreTriggerCharacter;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['firstTriggerCharacter'] = firstTriggerCharacter ??
@@ -5387,6 +5448,7 @@ class DocumentOnTypeFormattingParams implements ToJsonable {
   /// The document to format.
   final TextDocumentIdentifier textDocument;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['textDocument'] =
@@ -5531,6 +5593,7 @@ class DocumentOnTypeFormattingRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
+  @override
   final List<DocumentFilter> documentSelector;
 
   /// A character on which formatting should be triggered, like `}`.
@@ -5539,6 +5602,7 @@ class DocumentOnTypeFormattingRegistrationOptions
   /// More trigger characters.
   final List<String> moreTriggerCharacter;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['firstTriggerCharacter'] = firstTriggerCharacter ??
@@ -5666,6 +5730,7 @@ class DocumentRangeFormattingParams implements ToJsonable {
   /// The document to format.
   final TextDocumentIdentifier textDocument;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['textDocument'] =
@@ -5828,6 +5893,7 @@ class DocumentSymbol implements ToJsonable {
   /// picked, e.g the name of a function. Must be contained by the `range`.
   final Range selectionRange;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['name'] = name ?? (throw 'name is required but was not set');
@@ -6006,6 +6072,7 @@ class DocumentSymbolParams implements ToJsonable {
   /// The text document.
   final TextDocumentIdentifier textDocument;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['textDocument'] =
@@ -6091,6 +6158,7 @@ class ErrorCodes {
   @override
   get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object o) => o is ErrorCodes && o._value == _value;
 }
 
@@ -6113,6 +6181,7 @@ class ExecuteCommandOptions implements ToJsonable {
   /// The commands to be executed on the server
   final List<String> commands;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['commands'] =
@@ -6190,6 +6259,7 @@ class ExecuteCommandParams implements ToJsonable {
   /// The identifier of the actual command handler.
   final String command;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['command'] =
@@ -6280,6 +6350,7 @@ class ExecuteCommandRegistrationOptions implements ToJsonable {
   /// The commands to be executed on the server
   final List<String> commands;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['commands'] =
@@ -6379,6 +6450,7 @@ class FailureHandlingKind {
   @override
   get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object o) => o is FailureHandlingKind && o._value == _value;
 }
 
@@ -6410,6 +6482,7 @@ class FileChangeType {
   @override
   get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object o) => o is FileChangeType && o._value == _value;
 }
 
@@ -6438,6 +6511,7 @@ class FileEvent implements ToJsonable {
   /// The file's URI.
   final String uri;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['uri'] = uri ?? (throw 'uri is required but was not set');
@@ -6542,6 +6616,7 @@ class FileSystemWatcher implements ToJsonable {
   /// | WatchKind.Change | WatchKind.Delete which is 7.
   final WatchKind kind;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['globPattern'] =
@@ -6652,6 +6727,7 @@ class FoldingRange implements ToJsonable {
   /// The zero-based line number from where the folded range starts.
   final num startLine;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['startLine'] =
@@ -6797,6 +6873,7 @@ class FoldingRangeKind {
   @override
   get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object o) => o is FoldingRangeKind && o._value == _value;
 }
 
@@ -6819,6 +6896,7 @@ class FoldingRangeParams implements ToJsonable {
   /// The text document.
   final TextDocumentIdentifier textDocument;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['textDocument'] =
@@ -6881,6 +6959,7 @@ class FoldingRangeProviderOptions implements ToJsonable {
     return FoldingRangeProviderOptions();
   }
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     return __result;
@@ -6938,6 +7017,7 @@ class FormattingOptions implements ToJsonable {
   /// Size of a tab in spaces.
   final num tabSize;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['tabSize'] =
@@ -7040,6 +7120,7 @@ class Hover implements ToJsonable {
   /// visualize a hover, e.g. by changing the background color.
   final Range range;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['contents'] =
@@ -7172,6 +7253,7 @@ class InitializeParams implements ToJsonable {
   /// Since 3.6.0
   final List<WorkspaceFolder> workspaceFolders;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['processId'] = processId;
@@ -7336,6 +7418,7 @@ class InitializeResult implements ToJsonable {
   /// The capabilities the language server provides.
   final ServerCapabilities capabilities;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['capabilities'] =
@@ -7396,6 +7479,7 @@ class InitializedParams implements ToJsonable {
     return InitializedParams();
   }
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     return __result;
@@ -7464,6 +7548,7 @@ class InsertTextFormat {
   @override
   get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object o) => o is InsertTextFormat && o._value == _value;
 }
 
@@ -7488,6 +7573,7 @@ class Location implements ToJsonable {
   final Range range;
   final String uri;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['uri'] = uri ?? (throw 'uri is required but was not set');
@@ -7609,6 +7695,7 @@ class LocationLink implements ToJsonable {
   /// The target resource identifier of this link.
   final String targetUri;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (originSelectionRange != null) {
@@ -7744,6 +7831,7 @@ class LogMessageParams implements ToJsonable {
   /// The message type.
   final MessageType type;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['type'] = type ?? (throw 'type is required but was not set');
@@ -7862,6 +7950,7 @@ class MarkupContent implements ToJsonable {
   /// The content itself
   final String value;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['kind'] = kind ?? (throw 'kind is required but was not set');
@@ -7966,6 +8055,7 @@ class MarkupKind {
   @override
   get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object o) => o is MarkupKind && o._value == _value;
 }
 
@@ -7993,6 +8083,7 @@ class Message implements ToJsonable {
 
   final String jsonrpc;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['jsonrpc'] =
@@ -8062,6 +8153,7 @@ class MessageActionItem implements ToJsonable {
   /// A short title like 'Retry', 'Open Log' etc.
   final String title;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['title'] = title ?? (throw 'title is required but was not set');
@@ -8143,6 +8235,7 @@ class MessageType {
   @override
   get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object o) => o is MessageType && o._value == _value;
 }
 
@@ -8321,6 +8414,7 @@ class Method {
   @override
   get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object o) => o is Method && o._value == _value;
 }
 
@@ -8344,14 +8438,18 @@ class NotificationMessage implements Message, IncomingMessage, ToJsonable {
     return NotificationMessage(method, params, jsonrpc);
   }
 
+  @override
   final String jsonrpc;
 
   /// The method to be invoked.
+  @override
   final Method method;
 
   /// The notification's params.
+  @override
   final dynamic params;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['method'] = method ?? (throw 'method is required but was not set');
@@ -8480,6 +8578,7 @@ class ParameterInformation implements ToJsonable {
   /// part in the `SignatureInformation.label`.
   final String label;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['label'] = label ?? (throw 'label is required but was not set');
@@ -8578,6 +8677,7 @@ class Position implements ToJsonable {
   /// Line position in a document (zero-based).
   final num line;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['line'] = line ?? (throw 'line is required but was not set');
@@ -8676,6 +8776,7 @@ class PublishDiagnosticsParams implements ToJsonable {
   /// The URI for which diagnostic information is reported.
   final String uri;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['uri'] = uri ?? (throw 'uri is required but was not set');
@@ -8776,6 +8877,7 @@ class Range implements ToJsonable {
   /// The range's start position.
   final Position start;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['start'] = start ?? (throw 'start is required but was not set');
@@ -8867,6 +8969,7 @@ class RangeAndPlaceholder implements ToJsonable {
   final String placeholder;
   final Range range;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['range'] = range ?? (throw 'range is required but was not set');
@@ -8955,6 +9058,7 @@ class ReferenceContext implements ToJsonable {
   /// Include the declaration of the current symbol.
   final bool includeDeclaration;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['includeDeclaration'] = includeDeclaration ??
@@ -9037,11 +9141,14 @@ class ReferenceParams implements TextDocumentPositionParams, ToJsonable {
   final ReferenceContext context;
 
   /// The position inside the text document.
+  @override
   final Position position;
 
   /// The text document.
+  @override
   final TextDocumentIdentifier textDocument;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['context'] =
@@ -9167,6 +9274,7 @@ class Registration implements ToJsonable {
   /// Options necessary for the registration.
   final dynamic registerOptions;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['id'] = id ?? (throw 'id is required but was not set');
@@ -9272,6 +9380,7 @@ class RegistrationParams implements ToJsonable {
 
   final List<Registration> registrations;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['registrations'] =
@@ -9366,6 +9475,7 @@ class RenameFile implements ToJsonable {
   /// Rename options.
   final RenameFileOptions options;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['kind'] = kind ?? (throw 'kind is required but was not set');
@@ -9491,6 +9601,7 @@ class RenameFileOptions implements ToJsonable {
   /// Overwrite target if existing. Overwrite wins over `ignoreIfExists`
   final bool overwrite;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (overwrite != null) {
@@ -9565,6 +9676,7 @@ class RenameOptions implements ToJsonable {
   /// Renames should be checked and tested before being executed.
   final bool prepareProvider;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (prepareProvider != null) {
@@ -9646,6 +9758,7 @@ class RenameParams implements ToJsonable {
   /// The document to rename.
   final TextDocumentIdentifier textDocument;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['textDocument'] =
@@ -9758,11 +9871,13 @@ class RenameRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
+  @override
   final List<DocumentFilter> documentSelector;
 
   /// Renames should be checked and tested for validity before being executed.
   final bool prepareProvider;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (prepareProvider != null) {
@@ -9859,14 +9974,18 @@ class RequestMessage implements Message, IncomingMessage, ToJsonable {
 
   /// The request id.
   final Either2<num, String> id;
+  @override
   final String jsonrpc;
 
   /// The method to be invoked.
+  @override
   final Method method;
 
   /// The method's params.
+  @override
   final dynamic params;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['id'] = id ?? (throw 'id is required but was not set');
@@ -10007,6 +10126,7 @@ class ResourceOperationKind {
   @override
   get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object o) =>
       o is ResourceOperationKind && o._value == _value;
 }
@@ -10041,6 +10161,7 @@ class ResponseError<D> implements ToJsonable {
   /// A string providing a short description of the error.
   final String message;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['code'] = code ?? (throw 'code is required but was not set');
@@ -10158,12 +10279,14 @@ class ResponseMessage implements Message, ToJsonable {
 
   /// The request id.
   final Either2<num, String> id;
+  @override
   final String jsonrpc;
 
   /// The result of a request. This member is REQUIRED on success. This member
   /// MUST NOT exist if there was an error invoking the method.
   final dynamic result;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['id'] = id;
@@ -10277,6 +10400,7 @@ class SaveOptions implements ToJsonable {
   /// The client is supposed to include the content on save.
   final bool includeText;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (includeText != null) {
@@ -10537,6 +10661,7 @@ class ServerCapabilities implements ToJsonable {
   /// The server provides workspace symbol support.
   final bool workspaceSymbolProvider;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (textDocumentSync != null) {
@@ -10960,6 +11085,7 @@ class ServerCapabilitiesWorkspace implements ToJsonable {
   /// Since 3.6.0
   final ServerCapabilitiesWorkspaceFolders workspaceFolders;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (workspaceFolders != null) {
@@ -11032,6 +11158,7 @@ class ServerCapabilitiesWorkspaceFolders implements ToJsonable {
   /// The server has support for workspace folders
   final bool supported;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (supported != null) {
@@ -11119,6 +11246,7 @@ class ShowMessageParams implements ToJsonable {
   /// The message type.
   final MessageType type;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['type'] = type ?? (throw 'type is required but was not set');
@@ -11222,6 +11350,7 @@ class ShowMessageRequestParams implements ToJsonable {
   /// The message type.
   final MessageType type;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['type'] = type ?? (throw 'type is required but was not set');
@@ -11354,6 +11483,7 @@ class SignatureHelp implements ToJsonable {
   /// One or more signatures.
   final List<SignatureInformation> signatures;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['signatures'] =
@@ -11457,6 +11587,7 @@ class SignatureHelpOptions implements ToJsonable {
   /// The characters that trigger signature help automatically.
   final List<String> triggerCharacters;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (triggerCharacters != null) {
@@ -11529,11 +11660,13 @@ class SignatureHelpRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
+  @override
   final List<DocumentFilter> documentSelector;
 
   /// The characters that trigger signature help automatically.
   final List<String> triggerCharacters;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (triggerCharacters != null) {
@@ -11642,6 +11775,7 @@ class SignatureInformation implements ToJsonable {
   /// The parameters of this signature.
   final List<ParameterInformation> parameters;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['label'] = label ?? (throw 'label is required but was not set');
@@ -11744,6 +11878,7 @@ class StaticRegistrationOptions implements ToJsonable {
   /// request again. See also Registration#id.
   final String id;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (id != null) {
@@ -11844,6 +11979,7 @@ class SymbolInformation implements ToJsonable {
   /// The name of this symbol.
   final String name;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['name'] = name ?? (throw 'name is required but was not set');
@@ -12011,6 +12147,7 @@ class SymbolKind {
   @override
   get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object o) => o is SymbolKind && o._value == _value;
 }
 
@@ -12041,12 +12178,14 @@ class TextDocumentChangeRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
+  @override
   final List<DocumentFilter> documentSelector;
 
   /// How documents are synced to the server. See TextDocumentSyncKind.Full and
   /// TextDocumentSyncKind.Incremental.
   final TextDocumentSyncKind syncKind;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['syncKind'] =
@@ -12321,6 +12460,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
   /// Since 3.6.0
   final TextDocumentClientCapabilitiesTypeDefinition typeDefinition;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (synchronization != null) {
@@ -12738,6 +12878,7 @@ class TextDocumentClientCapabilitiesCodeAction implements ToJsonable {
   /// Whether code action supports dynamic registration.
   final bool dynamicRegistration;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (dynamicRegistration != null) {
@@ -12827,6 +12968,7 @@ class TextDocumentClientCapabilitiesCodeActionKind implements ToJsonable {
   /// gracefully and falls back to a default value when unknown.
   final List<CodeActionKind> valueSet;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['valueSet'] =
@@ -12908,6 +13050,7 @@ class TextDocumentClientCapabilitiesCodeActionLiteralSupport
   /// The code action kind is support with the following value set.
   final TextDocumentClientCapabilitiesCodeActionKind codeActionKind;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['codeActionKind'] =
@@ -12978,6 +13121,7 @@ class TextDocumentClientCapabilitiesCodeLens implements ToJsonable {
   /// Whether code lens supports dynamic registration.
   final bool dynamicRegistration;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (dynamicRegistration != null) {
@@ -13043,6 +13187,7 @@ class TextDocumentClientCapabilitiesColorProvider implements ToJsonable {
   /// for the corresponding server capability as well.
   final bool dynamicRegistration;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (dynamicRegistration != null) {
@@ -13124,6 +13269,7 @@ class TextDocumentClientCapabilitiesCompletion implements ToJsonable {
   /// Whether completion supports dynamic registration.
   final bool dynamicRegistration;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (dynamicRegistration != null) {
@@ -13270,6 +13416,7 @@ class TextDocumentClientCapabilitiesCompletionItem implements ToJsonable {
   /// one will update others too.
   final bool snippetSupport;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (snippetSupport != null) {
@@ -13404,6 +13551,7 @@ class TextDocumentClientCapabilitiesCompletionItemKind implements ToJsonable {
   /// of the protocol.
   final List<CompletionItemKind> valueSet;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (valueSet != null) {
@@ -13481,6 +13629,7 @@ class TextDocumentClientCapabilitiesDeclaration implements ToJsonable {
   /// Since 3.14.0
   final bool linkSupport;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (dynamicRegistration != null) {
@@ -13564,6 +13713,7 @@ class TextDocumentClientCapabilitiesDefinition implements ToJsonable {
   /// The client supports additional metadata in the form of definition links.
   final bool linkSupport;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (dynamicRegistration != null) {
@@ -13641,6 +13791,7 @@ class TextDocumentClientCapabilitiesDocumentHighlight implements ToJsonable {
   /// Whether document highlight supports dynamic registration.
   final bool dynamicRegistration;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (dynamicRegistration != null) {
@@ -13703,6 +13854,7 @@ class TextDocumentClientCapabilitiesDocumentLink implements ToJsonable {
   /// Whether document link supports dynamic registration.
   final bool dynamicRegistration;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (dynamicRegistration != null) {
@@ -13778,6 +13930,7 @@ class TextDocumentClientCapabilitiesDocumentSymbol implements ToJsonable {
   /// Specific capabilities for the `SymbolKind`.
   final TextDocumentClientCapabilitiesSymbolKind symbolKind;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (dynamicRegistration != null) {
@@ -13894,6 +14047,7 @@ class TextDocumentClientCapabilitiesFoldingRange implements ToJsonable {
   /// limit.
   final num rangeLimit;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (dynamicRegistration != null) {
@@ -13986,6 +14140,7 @@ class TextDocumentClientCapabilitiesFormatting implements ToJsonable {
   /// Whether formatting supports dynamic registration.
   final bool dynamicRegistration;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (dynamicRegistration != null) {
@@ -14058,6 +14213,7 @@ class TextDocumentClientCapabilitiesHover implements ToJsonable {
   /// Whether hover supports dynamic registration.
   final bool dynamicRegistration;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (dynamicRegistration != null) {
@@ -14150,6 +14306,7 @@ class TextDocumentClientCapabilitiesImplementation implements ToJsonable {
   /// Since 3.14.0
   final bool linkSupport;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (dynamicRegistration != null) {
@@ -14227,6 +14384,7 @@ class TextDocumentClientCapabilitiesOnTypeFormatting implements ToJsonable {
   /// Whether on type formatting supports dynamic registration.
   final bool dynamicRegistration;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (dynamicRegistration != null) {
@@ -14293,6 +14451,7 @@ class TextDocumentClientCapabilitiesParameterInformation implements ToJsonable {
   /// Since 3.14.0
   final bool labelOffsetSupport;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (labelOffsetSupport != null) {
@@ -14355,6 +14514,7 @@ class TextDocumentClientCapabilitiesPublishDiagnostics implements ToJsonable {
   /// Whether the clients accepts diagnostics with related information.
   final bool relatedInformation;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (relatedInformation != null) {
@@ -14417,6 +14577,7 @@ class TextDocumentClientCapabilitiesRangeFormatting implements ToJsonable {
   /// Whether range formatting supports dynamic registration.
   final bool dynamicRegistration;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (dynamicRegistration != null) {
@@ -14479,6 +14640,7 @@ class TextDocumentClientCapabilitiesReferences implements ToJsonable {
   /// Whether references supports dynamic registration.
   final bool dynamicRegistration;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (dynamicRegistration != null) {
@@ -14548,6 +14710,7 @@ class TextDocumentClientCapabilitiesRename implements ToJsonable {
   /// execution.
   final bool prepareSupport;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (dynamicRegistration != null) {
@@ -14635,6 +14798,7 @@ class TextDocumentClientCapabilitiesSignatureHelp implements ToJsonable {
   /// properties.
   final TextDocumentClientCapabilitiesSignatureInformation signatureInformation;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (dynamicRegistration != null) {
@@ -14728,6 +14892,7 @@ class TextDocumentClientCapabilitiesSignatureInformation implements ToJsonable {
   /// Client capabilities specific to parameter information.
   final TextDocumentClientCapabilitiesParameterInformation parameterInformation;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (documentationFormat != null) {
@@ -14819,6 +14984,7 @@ class TextDocumentClientCapabilitiesSymbolKind implements ToJsonable {
   /// from `File` to `Array` as defined in the initial version of the protocol.
   final List<SymbolKind> valueSet;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (valueSet != null) {
@@ -14901,6 +15067,7 @@ class TextDocumentClientCapabilitiesSynchronization implements ToJsonable {
   /// saved.
   final bool willSaveWaitUntil;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (dynamicRegistration != null) {
@@ -15018,6 +15185,7 @@ class TextDocumentClientCapabilitiesTypeDefinition implements ToJsonable {
   /// Since 3.14.0
   final bool linkSupport;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (dynamicRegistration != null) {
@@ -15109,6 +15277,7 @@ class TextDocumentContentChangeEvent implements ToJsonable {
   /// The new text of the range/document.
   final String text;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (range != null) {
@@ -15218,6 +15387,7 @@ class TextDocumentEdit implements ToJsonable {
   /// The text document to change.
   final VersionedTextDocumentIdentifier textDocument;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['textDocument'] =
@@ -15315,6 +15485,7 @@ class TextDocumentIdentifier implements ToJsonable {
   /// The text document's URI.
   final String uri;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['uri'] = uri ?? (throw 'uri is required but was not set');
@@ -15405,6 +15576,7 @@ class TextDocumentItem implements ToJsonable {
   /// including undo/redo).
   final num version;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['uri'] = uri ?? (throw 'uri is required but was not set');
@@ -15552,6 +15724,7 @@ class TextDocumentPositionParams implements ToJsonable {
   /// The text document.
   final TextDocumentIdentifier textDocument;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['textDocument'] =
@@ -15674,6 +15847,7 @@ class TextDocumentRegistrationOptions implements ToJsonable {
   /// null the document selector provided on the client side will be used.
   final List<DocumentFilter> documentSelector;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['documentSelector'] = documentSelector;
@@ -15753,6 +15927,7 @@ class TextDocumentSaveReason {
   @override
   get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object o) =>
       o is TextDocumentSaveReason && o._value == _value;
 }
@@ -15776,11 +15951,13 @@ class TextDocumentSaveRegistrationOptions
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
+  @override
   final List<DocumentFilter> documentSelector;
 
   /// The client is supposed to include the content on save.
   final bool includeText;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (includeText != null) {
@@ -15877,6 +16054,7 @@ class TextDocumentSyncKind {
   @override
   get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object o) => o is TextDocumentSyncKind && o._value == _value;
 }
 
@@ -15921,6 +16099,7 @@ class TextDocumentSyncOptions implements ToJsonable {
   /// omitted the request should not be sent.
   final bool willSaveWaitUntil;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (openClose != null) {
@@ -16051,6 +16230,7 @@ class TextEdit implements ToJsonable {
   /// document create a range where start === end.
   final Range range;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['range'] = range ?? (throw 'range is required but was not set');
@@ -16148,6 +16328,7 @@ class Unregistration implements ToJsonable {
   /// The method / capability to unregister for.
   final String method;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['id'] = id ?? (throw 'id is required but was not set');
@@ -16237,6 +16418,7 @@ class UnregistrationParams implements ToJsonable {
 
   final List<Unregistration> unregisterations;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['unregisterations'] = unregisterations ??
@@ -16311,6 +16493,7 @@ class VersionedTextDocumentIdentifier
   }
 
   /// The text document's URI.
+  @override
   final String uri;
 
   /// The version number of this document. If a versioned text document
@@ -16323,6 +16506,7 @@ class VersionedTextDocumentIdentifier
   /// including undo/redo. The number doesn't need to be consecutive.
   final num version;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['version'] = version;
@@ -16416,6 +16600,7 @@ class WatchKind {
   @override
   get hashCode => _value.hashCode;
 
+  @override
   bool operator ==(Object o) => o is WatchKind && o._value == _value;
 }
 
@@ -16446,6 +16631,7 @@ class WillSaveTextDocumentParams implements ToJsonable {
   /// The document that will be saved.
   final TextDocumentIdentifier textDocument;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['textDocument'] =
@@ -16600,6 +16786,7 @@ class WorkspaceClientCapabilities implements ToJsonable {
   /// Since 3.6.0
   final bool workspaceFolders;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (applyEdit != null) {
@@ -16776,6 +16963,7 @@ class WorkspaceClientCapabilitiesDidChangeConfiguration implements ToJsonable {
   /// Did change configuration notification supports dynamic registration.
   final bool dynamicRegistration;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (dynamicRegistration != null) {
@@ -16841,6 +17029,7 @@ class WorkspaceClientCapabilitiesDidChangeWatchedFiles implements ToJsonable {
   /// for file changes from the server side.
   final bool dynamicRegistration;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (dynamicRegistration != null) {
@@ -16903,6 +17092,7 @@ class WorkspaceClientCapabilitiesExecuteCommand implements ToJsonable {
   /// Execute command supports dynamic registration.
   final bool dynamicRegistration;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (dynamicRegistration != null) {
@@ -16971,6 +17161,7 @@ class WorkspaceClientCapabilitiesSymbol implements ToJsonable {
   /// request.
   final WorkspaceClientCapabilitiesSymbolKind symbolKind;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (dynamicRegistration != null) {
@@ -17058,6 +17249,7 @@ class WorkspaceClientCapabilitiesSymbolKind implements ToJsonable {
   /// from `File` to `Array` as defined in the initial version of the protocol.
   final List<SymbolKind> valueSet;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (valueSet != null) {
@@ -17142,6 +17334,7 @@ class WorkspaceClientCapabilitiesWorkspaceEdit implements ToJsonable {
   /// support 'create', 'rename' and 'delete' files and folders.
   final List<ResourceOperationKind> resourceOperations;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (documentChanges != null) {
@@ -17278,6 +17471,7 @@ class WorkspaceEdit implements ToJsonable {
           List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>>
       documentChanges;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     if (changes != null) {
@@ -17380,6 +17574,7 @@ class WorkspaceFolder implements ToJsonable {
   /// The associated URI for this workspace folder.
   final String uri;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['uri'] = uri ?? (throw 'uri is required but was not set');
@@ -17482,6 +17677,7 @@ class WorkspaceFoldersChangeEvent implements ToJsonable {
   /// The array of the removed workspace folders
   final List<WorkspaceFolder> removed;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['added'] = added ?? (throw 'added is required but was not set');
@@ -17579,6 +17775,7 @@ class WorkspaceSymbolParams implements ToJsonable {
   /// A non-empty query string
   final String query;
 
+  @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['query'] = query ?? (throw 'query is required but was not set');

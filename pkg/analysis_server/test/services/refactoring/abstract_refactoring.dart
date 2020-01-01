@@ -154,6 +154,7 @@ abstract class RefactoringTest extends AbstractSingleUnitTest {
     addSource(file, code);
   }
 
+  @override
   void setUp() {
     super.setUp();
     searchEngine = SearchEngineImpl([driver]);

@@ -37,6 +37,7 @@ class UsageInfo {
 
   double get memoryMB => memoryKB / 1024;
 
+  @override
   String toString() => '$cpuPercentage% ${memoryMB.toStringAsFixed(1)}MB';
 }
 

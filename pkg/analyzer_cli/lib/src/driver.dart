@@ -75,6 +75,7 @@ class Driver with HasContextMixin implements CommandLineStarter {
 
   static final ByteStore analysisDriverMemoryByteStore = MemoryByteStore();
 
+  @override
   ContextCache contextCache;
 
   /// The driver that was most recently created by a call to [_analyzeAll], or

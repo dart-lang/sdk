@@ -21,17 +21,20 @@ import 'package:analyzer/src/generated/sdk.dart';
  * encode and decode the JSON messages exchanged with the client.
  */
 class LspSocketServer implements AbstractSocketServer {
+  @override
   final AnalysisServerOptions analysisServerOptions;
   /**
    * The analysis server that was created when a client established a
    * connection, or `null` if no such connection has yet been established.
    */
+  @override
   LspAnalysisServer analysisServer;
 
   /**
    * The function used to create a new SDK using the default SDK.
    */
   final DartSdkManager sdkManager;
+  @override
   final DiagnosticServer diagnosticServer;
   final InstrumentationService instrumentationService;
 

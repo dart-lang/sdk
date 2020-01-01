@@ -15,6 +15,7 @@ import 'abstract_refactoring.dart';
  * The base class for all [RenameRefactoring] tests.
  */
 class RenameRefactoringTest extends RefactoringTest {
+  @override
   RenameRefactoring refactoring;
 
   /**

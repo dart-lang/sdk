@@ -100,6 +100,7 @@ abstract class AbstractAnalysisServerIntegrationTest
   /**
    * Connection to the analysis server.
    */
+  @override
   final Server server = Server();
 
   /**
@@ -791,6 +792,7 @@ class ServerErrorMessage {
 
   dynamic get error => message['error'];
 
+  @override
   String toString() => message.toString();
 }
 

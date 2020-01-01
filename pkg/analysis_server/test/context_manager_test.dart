@@ -1726,8 +1726,10 @@ abstract class ContextManagerTest with ResourceProviderMixin {
 
 @reflectiveTest
 class ContextManagerWithNewOptionsTest extends ContextManagerWithOptionsTest {
+  @override
   String get optionsFileName => AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE;
 
+  @override
   @failingTest
   test_analysis_options_parse_failure() async {
     // We have lost the ability to detect errors of this form.
@@ -1737,6 +1739,7 @@ class ContextManagerWithNewOptionsTest extends ContextManagerWithOptionsTest {
 
 @reflectiveTest
 class ContextManagerWithOldOptionsTest extends ContextManagerWithOptionsTest {
+  @override
   String get optionsFileName => AnalysisEngine.ANALYSIS_OPTIONS_FILE;
 }
 

@@ -20,6 +20,7 @@ main() {
 
 @reflectiveTest
 class ConvertGetterToMethodTest extends RefactoringTest {
+  @override
   ConvertGetterToMethodRefactoring refactoring;
 
   test_change_function() async {
