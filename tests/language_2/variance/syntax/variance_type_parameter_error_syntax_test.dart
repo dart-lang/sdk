@@ -8,7 +8,7 @@
 
 void A(out int foo) {
 //     ^^^
-// [analyzer] COMPILE_TIME_ERROR.BUILT_IN_IDENTIFIER_AS_TYPE
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
 // [cfe] 'out' isn't a type.
 //     ^
 // [cfe] Type 'out' not found.
@@ -35,7 +35,7 @@ void A(out int foo) {
 
 void B(out foo) {}
 //     ^^^
-// [analyzer] COMPILE_TIME_ERROR.BUILT_IN_IDENTIFIER_AS_TYPE
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
 // [cfe] 'out' isn't a type.
 //     ^
 // [cfe] Type 'out' not found.

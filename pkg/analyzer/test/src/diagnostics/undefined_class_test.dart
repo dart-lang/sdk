@@ -26,6 +26,16 @@ f() {
     ]);
   }
 
+  test_dynamic_coreWithPrefix() async {
+    await assertErrorsInCode('''
+import 'dart:core' as core;
+
+dynamic x;
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 29, 7),
+    ]);
+  }
+
   test_instanceCreation() async {
     await assertErrorsInCode('''
 f() { new C(); }

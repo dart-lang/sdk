@@ -887,7 +887,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
         _errorReporter.reportErrorForNode(
           StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT,
           node,
-          [_resolver.enclosingFunction.displayName],
         );
       } else if (!_resolver.nameScope.shouldIgnoreUndefined(node)) {
         _errorReporter.reportErrorForNode(

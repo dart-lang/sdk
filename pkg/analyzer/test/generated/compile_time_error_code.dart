@@ -135,16 +135,6 @@ import 'dart:async' as abstract;
     ]);
   }
 
-  test_builtInIdentifierAsType_dynamicMissingPrefix() async {
-    await assertErrorsInCode('''
-import 'dart:core' as core;
-
-dynamic x;
-''', [
-      error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE, 29, 7),
-    ]);
-  }
-
   test_builtInIdentifierAsType_formalParameter_field() async {
     await assertErrorsInCode(r'''
 class A {

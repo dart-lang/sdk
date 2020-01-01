@@ -13,6 +13,8 @@ class A<T> {
   //                 ^
   // [analyzer] STATIC_WARNING.NEW_WITH_NON_TYPE
   // [cfe] Method not found: 'T'.
+  //                 ^
+  // [analyzer] STATIC_WARNING.TYPE_PARAMETER_REFERENCED_BY_STATIC
 
   // OK when used within instance method, but not in static method.
   m3() => new A<T>();

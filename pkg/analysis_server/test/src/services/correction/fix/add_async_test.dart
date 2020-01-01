@@ -70,8 +70,7 @@ Future<int> f() async {
   return 1;
 }
 ''', errorFilter: (AnalysisError error) {
-      return error.errorCode ==
-          CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE;
+      return error.errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT;
     });
   }
 
