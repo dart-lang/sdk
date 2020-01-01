@@ -63,7 +63,7 @@ a message is displayed and the class is not converted to a mixin.''',
   LintFixInfo.annotateOverrides,
   LintFixInfo.avoidEmptyElse,
   LintFixInfo.avoidInitToNull,
-  LintFixInfo.avoidRelativLibImports,
+  LintFixInfo.avoidRelativeLibImports,
   LintFixInfo.avoidReturnTypesOnSetters,
   LintFixInfo.curlyBracesInFlowControlStructures,
   LintFixInfo.emptyCatches,
@@ -217,7 +217,6 @@ class LintFixInfo extends DartFixInfo {
   // library_names
   // prefer_collection_literals
   // prefer_contains
-  // prefer_if_null_operators
   // prefer_iterable_whereType
   // recursive_getters
   // unnecessary_null_in_if_null_operators
@@ -249,7 +248,7 @@ class LintFixInfo extends DartFixInfo {
       DartFixKind.REMOVE_INITIALIZER, 'Remove the initializer.',
       isPedantic: true);
 
-  static final avoidRelativLibImports = LintFixInfo(
+  static final avoidRelativeLibImports = LintFixInfo(
       'avoid_relative_lib_imports',
       DartFixKind.CONVERT_TO_PACKAGE_IMPORT,
       'Convert the import to a package: import.',
