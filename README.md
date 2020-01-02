@@ -37,10 +37,18 @@ If a specific lint warning should be ignored, it can be flagged with a comment. 
 
 ```dart
    // ignore: avoid_as
-   (pm as Person).firstName = 'Seth'
+   (pm as Person).firstName = 'Seth';
 ```
 
-tells the `dartanalyzer` to ignore this instance of `avoid_as` warning.  As lints are treated the same as errors and warnings by the analyzer, their severity can similarly be configured in an options file.  For example, an analysis options file that specifies
+tells the `dartanalyzer` to ignore this instance of `avoid_as` warning.
+
+End-of-line comments are supported as well.  The following communicates the same thing:
+
+```dart
+   (pm as Person).firstName = 'Seth'; // ignore: avoid_as
+```
+
+As lints are treated the same as errors and warnings by the analyzer, their severity can similarly be configured in an options file.  For example, an analysis options file that specifies
 
 ```yaml
 linter:
@@ -55,7 +63,7 @@ tells the analyzer to treat `avoid_as` lints as errors.  For more on configuring
 
 ## Contributing
 
-Feedback is, of course, greatly appreciated and contributions are welcome! Please read the
+Feedback is greatly appreciated and contributions are welcome! Please read the
 [contribution guidelines](CONTRIBUTING.md); mechanics of writing lints are covered [here](doc/WritingLints.MD).
 
 ## Features and bugs
