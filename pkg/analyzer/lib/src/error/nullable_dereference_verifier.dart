@@ -8,6 +8,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
+import 'package:meta/meta.dart';
 
 /// Helper for checking potentially nullable dereferences.
 class NullableDereferenceVerifier {
@@ -26,7 +27,19 @@ class NullableDereferenceVerifier {
   final TypeSystemImpl _typeSystem;
   final ErrorReporter _errorReporter;
 
-  NullableDereferenceVerifier(this._typeSystem, this._errorReporter);
+  NullableDereferenceVerifier({
+    @required TypeSystemImpl typeSystem,
+    @required ErrorReporter errorReporter,
+  })  : _typeSystem = typeSystem,
+        _errorReporter = errorReporter;
+
+  bool expression(Expression expression) {
+    if (!_typeSystem.isNonNullableByDefault) {
+      return false;
+    }
+
+    return _check(expression, expression.staticType);
+  }
 
   void methodInvocation(
     Expression receiver,
@@ -57,15 +70,16 @@ class NullableDereferenceVerifier {
   }
 
   /// If the [receiverType] is potentially nullable, report it.
-  void _check(Expression receiver, DartType receiverType) {
+  bool _check(Expression receiver, DartType receiverType) {
     if (identical(receiverType, DynamicTypeImpl.instance) ||
         !_typeSystem.isPotentiallyNullable(receiverType)) {
-      return;
+      return false;
     }
 
     var errorCode = receiverType == _typeSystem.typeProvider.nullType
         ? StaticWarningCode.INVALID_USE_OF_NULL_VALUE
         : StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE;
     _errorReporter.reportErrorForNode(errorCode, receiver);
+    return true;
   }
 }

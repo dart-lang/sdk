@@ -310,8 +310,8 @@ class ResolverVisitor extends ScopedVisitor {
             nameScope: nameScope) {
     this._promoteManager = TypePromotionManager(typeSystem);
     this.nullableDereferenceVerifier = NullableDereferenceVerifier(
-      typeSystem,
-      errorReporter,
+      typeSystem: typeSystem,
+      errorReporter: errorReporter,
     );
     this._typedLiteralResolver = TypedLiteralResolver(this, _featureSet);
     this.extensionResolver = ExtensionMemberResolver(this);
