@@ -110,7 +110,7 @@ class Timeline {
       _stack.add(null);
       return;
     }
-    var block = new _SyncBlock._(name, _getTraceClock(), _getThreadCpuClock());
+    var block = new _SyncBlock._(name);
     if (arguments != null) {
       block._arguments = arguments;
     }
@@ -151,8 +151,7 @@ class Timeline {
     if (arguments != null) {
       instantArguments = new Map.from(arguments);
     }
-    _reportInstantEvent(
-        _getTraceClock(), 'Dart', name, _argumentsAsJson(instantArguments));
+    _reportInstantEvent('Dart', name, _argumentsAsJson(instantArguments));
   }
 
   /// A utility method to time a synchronous [function]. Internally calls
@@ -225,8 +224,8 @@ class TimelineTask {
     if (arguments != null) {
       instantArguments = new Map.from(arguments);
     }
-    _reportTaskEvent(_getTraceClock(), _taskId, 'n', 'Dart', name,
-        _argumentsAsJson(instantArguments));
+    _reportTaskEvent(
+        _taskId, 'n', 'Dart', name, _argumentsAsJson(instantArguments));
   }
 
   /// Finish the last synchronous operation that was started.
@@ -276,14 +275,12 @@ class _AsyncBlock {
 
   // Emit the start event.
   void _start(Map arguments) {
-    _reportTaskEvent(_getTraceClock(), _taskId, 'b', category, name,
-        _argumentsAsJson(arguments));
+    _reportTaskEvent(_taskId, 'b', category, name, _argumentsAsJson(arguments));
   }
 
   // Emit the finish event.
   void _finish(Map arguments) {
-    _reportTaskEvent(_getTraceClock(), _taskId, 'e', category, name,
-        _argumentsAsJson(arguments));
+    _reportTaskEvent(_taskId, 'e', category, name, _argumentsAsJson(arguments));
   }
 }
 
@@ -299,31 +296,25 @@ class _SyncBlock {
   /// An (optional) set of arguments which will be serialized to JSON and
   /// associated with this block.
   Map _arguments;
-  // The start time stamp.
-  final int _start;
-  // The start time stamp of the thread cpu clock.
-  final int _startCpu;
 
   /// An (optional) flow event associated with this block.
   Flow _flow;
 
-  _SyncBlock._(this.name, this._start, this._startCpu);
+  _SyncBlock._(this.name);
 
   /// Start this block of time.
   void _startSync() {
-    _reportTaskEvent(
-        _start, _startCpu, 'B', category, name, _argumentsAsJson(_arguments));
+    _reportTaskEvent(0, 'B', category, name, _argumentsAsJson(_arguments));
   }
 
   /// Finish this block of time. At this point, this block can no longer be
   /// used.
   void finish() {
     // Report event to runtime.
-    _reportTaskEvent(_getTraceClock(), _getThreadCpuClock(), 'E', category,
-        name, _argumentsAsJson(_arguments));
+    _reportTaskEvent(0, 'E', category, name, _argumentsAsJson(_arguments));
     if (_flow != null) {
-      _reportFlowEvent(_start, _startCpu, category, "${_flow.id}", _flow._type,
-          _flow.id, _argumentsAsJson(null));
+      _reportFlowEvent(category, "${_flow.id}", _flow._type, _flow.id,
+          _argumentsAsJson(null));
     }
   }
 
@@ -349,21 +340,14 @@ external int _getNextAsyncId();
 /// Returns the current value from the trace clock.
 external int _getTraceClock();
 
-/// Returns the current value from the thread CPU usage clock.
-external int _getThreadCpuClock();
-
 /// Reports an event for a task.
-external void _reportTaskEvent(int start, int taskId, String phase,
-    String category, String name, String argumentsAsJson);
-
-/// Reports a complete synchronous event.
-external void _reportCompleteEvent(int start, int startCpu, String category,
+external void _reportTaskEvent(int taskId, String phase, String category,
     String name, String argumentsAsJson);
 
 /// Reports a flow event.
-external void _reportFlowEvent(int start, int startCpu, String category,
-    String name, int type, int id, String argumentsAsJson);
+external void _reportFlowEvent(
+    String category, String name, int type, int id, String argumentsAsJson);
 
 /// Reports an instant event.
 external void _reportInstantEvent(
-    int start, String category, String name, String argumentsAsJson);
+    String category, String name, String argumentsAsJson);

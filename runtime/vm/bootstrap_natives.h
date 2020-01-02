@@ -168,12 +168,10 @@ namespace dart {
   V(Stopwatch_frequency, 0)                                                    \
   V(Timeline_getNextAsyncId, 0)                                                \
   V(Timeline_getTraceClock, 0)                                                 \
-  V(Timeline_getThreadCpuClock, 0)                                             \
   V(Timeline_isDartStreamEnabled, 0)                                           \
-  V(Timeline_reportCompleteEvent, 5)                                           \
-  V(Timeline_reportFlowEvent, 7)                                               \
-  V(Timeline_reportInstantEvent, 4)                                            \
-  V(Timeline_reportTaskEvent, 6)                                               \
+  V(Timeline_reportFlowEvent, 5)                                               \
+  V(Timeline_reportInstantEvent, 3)                                            \
+  V(Timeline_reportTaskEvent, 5)                                               \
   V(TypedData_Int8Array_new, 2)                                                \
   V(TypedData_Uint8Array_new, 2)                                               \
   V(TypedData_Uint8ClampedArray_new, 2)                                        \

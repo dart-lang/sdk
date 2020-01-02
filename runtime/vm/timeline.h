@@ -951,25 +951,14 @@ class DartTimelineEventHelpers : public AllStatic {
  public:
   static void ReportTaskEvent(Thread* thread,
                               TimelineEvent* event,
-                              int64_t start,
                               int64_t id,
                               const char* phase,
                               const char* category,
                               char* name,
                               char* args);
 
-  static void ReportCompleteEvent(Thread* thread,
-                                  TimelineEvent* event,
-                                  int64_t start,
-                                  int64_t start_cpu,
-                                  const char* category,
-                                  char* name,
-                                  char* args);
-
   static void ReportFlowEvent(Thread* thread,
                               TimelineEvent* event,
-                              int64_t start,
-                              int64_t start_cpu,
                               const char* category,
                               char* name,
                               int64_t type,
@@ -978,7 +967,6 @@ class DartTimelineEventHelpers : public AllStatic {
 
   static void ReportInstantEvent(Thread* thread,
                                  TimelineEvent* event,
-                                 int64_t start,
                                  const char* category,
                                  char* name,
                                  char* args);
