@@ -207,12 +207,26 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var classElement = node.declaredElement;
     _variables.recordDecoratedElementType(
         classElement, DecoratedType(classElement.thisType, _graph.never));
-    for (var item in node.constants) {
-      final node = NullabilityNode.forInferredType();
-      _graph.makeNonNullable(node, EnumValueOrigin(source, item));
-      _variables.recordDecoratedElementType(
-          item.declaredElement, DecoratedType(classElement.thisType, node));
+
+    makeNonNullNode([AstNode forNode]) {
+      forNode ??= node;
+      final graphNode = NullabilityNode.forInferredType();
+      _graph.makeNonNullable(graphNode, EnumValueOrigin(source, forNode));
+      return graphNode;
     }
+
+    for (var item in node.constants) {
+      _variables.recordDecoratedElementType(item.declaredElement,
+          DecoratedType(classElement.thisType, makeNonNullNode(item)));
+    }
+    final valuesGetter = classElement.getGetter('values');
+    _variables.recordDecoratedElementType(
+        valuesGetter,
+        DecoratedType(valuesGetter.type, makeNonNullNode(),
+            returnType: DecoratedType(
+                valuesGetter.returnType, makeNonNullNode(), typeArguments: [
+              DecoratedType(classElement.thisType, makeNonNullNode())
+            ])));
     return null;
   }
 

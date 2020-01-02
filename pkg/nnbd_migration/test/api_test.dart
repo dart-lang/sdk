@@ -1240,6 +1240,11 @@ enum E {
 };
 
 E f() => E.value;
+
+void g() {
+  for(var value in E.values) {}
+  E.values.forEach((value) {});
+}
 ''';
     var expected = '''
 enum E {
@@ -1247,6 +1252,11 @@ enum E {
 };
 
 E f() => E.value;
+
+void g() {
+  for(var value in E.values) {}
+  E.values.forEach((value) {});
+}
 ''';
     await _checkSingleFileChanges(content, expected);
   }
