@@ -55,8 +55,7 @@ const _AlwaysThrows alwaysThrows = _AlwaysThrows();
 /// its superclass. The actual argument will be checked at runtime to ensure it
 /// is a subtype of the overridden parameter type.
 ///
-/// DEPRECATED: Use the `covariant` modifier instead.
-@deprecated
+@Deprecated('Use the `covariant` modifier instead')
 const _Checked checked = _Checked();
 
 /// Used to annotate a library, or any declaration that is part of the public
@@ -222,7 +221,7 @@ const _Sealed sealed = _Sealed();
 /// Deprecated: Most of strong mode is now the default in 2.0, but the notion of
 /// virtual fields was dropped, so this annotation no longer has any meaning.
 /// Uses of the annotation should be removed.
-@deprecated
+@Deprecated('No longer has meaning')
 const _Virtual virtual = _Virtual();
 
 /// Used to annotate an instance member that was made public so that it could be
@@ -326,7 +325,7 @@ class _Sealed {
   const _Sealed();
 }
 
-@deprecated
+@Deprecated('No longer has meaning')
 class _Virtual {
   const _Virtual();
 }
