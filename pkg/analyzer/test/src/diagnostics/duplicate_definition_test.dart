@@ -957,12 +957,14 @@ main() {
   test_emptyName() async {
     // Note: This code has two FunctionElements '() {}' with an empty name; this
     // tests that the empty string is not put into the scope (more than once).
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 Map _globalMap = {
   'a' : () {},
   'b' : () {}
 };
-''');
+''', [
+      error(HintCode.UNUSED_ELEMENT, 4, 10),
+    ]);
   }
 
   test_for_initializers() async {

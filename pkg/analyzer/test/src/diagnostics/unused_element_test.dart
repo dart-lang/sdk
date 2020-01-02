@@ -343,14 +343,16 @@ class C extends B {
   }
 
   test_getter_isUsed_invocation_implicitThis() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   get _g => null;
   useGetter() {
     var v = _g;
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 52, 1),
+    ]);
   }
 
   test_getter_isUsed_invocation_parameterized() async {
@@ -390,25 +392,29 @@ class B extends A<int> {
   }
 
   test_getter_isUsed_invocation_PrefixedIdentifier() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   get _g => null;
 }
 main(A a) {
   var v = a._g;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 48, 1),
+    ]);
   }
 
   test_getter_isUsed_invocation_PropertyAccess() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   get _g => null;
 }
 main() {
   var v = new A()._g;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 45, 1),
+    ]);
   }
 
   test_getter_isUsed_invocation_subclass_plusPlus() async {

@@ -27,11 +27,13 @@ I m(A a, B b) {
   }
 
   test_dynamic_type() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 m(v) {
   var b = v as Object;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 13, 1),
+    ]);
   }
 
   test_function() async {
@@ -44,7 +46,7 @@ void main() {
   }
 
   test_function2() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class A {}
 
 class B<T extends A> {
@@ -54,7 +56,9 @@ class B<T extends A> {
     g = f as A Function(A);
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 89, 1),
+    ]);
   }
 
   test_generics() async {
@@ -86,11 +90,13 @@ class B<E> {
   }
 
   test_type_dynamic() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 m(v) {
   var b = Object as dynamic;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 13, 1),
+    ]);
   }
 
   test_type_supertype() async {

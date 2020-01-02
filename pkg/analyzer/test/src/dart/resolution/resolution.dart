@@ -394,13 +394,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
   Future<void> assertNoErrorsInCode(String code) async {
     addTestFile(code);
     await resolveTestFile();
-    assertNoTestErrors();
-  }
 
-  /// TODO(scheglov) Remove this method.
-  @deprecated
-  void assertNoTestErrors() {
-    assertTestErrorsWithCodes(const <ErrorCode>[]);
+    assertErrorsInResolvedUnit(result, const []);
   }
 
   void assertParameterElement(
@@ -443,12 +438,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     // It is just a signal to look for implemented method in the supertype.
     // With mixins there isn't a type anyway.
 //    assertTypeNull(superExpression);
-  }
-
-  /// TODO(scheglov) Remove this method.
-  @deprecated
-  void assertTestErrorsWithCodes(List<ErrorCode> expected) {
-    assertErrorsWithCodes(result.errors, expected);
   }
 
   void assertTopGetRef(String search, String name) {

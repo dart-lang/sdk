@@ -32,14 +32,16 @@ f() {
   }
 
   test_on_class_nonNullable() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 class A {}
 f() {
   try {
   } on A catch (e) {
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_CATCH_CLAUSE, 41, 1),
+    ]);
   }
 
   test_on_class_nullable() async {

@@ -86,12 +86,14 @@ void f(void x) {}
   test_assignToVoid_notStrong_error() async {
     // See StrongModeStaticTypeAnalyzer2Test.test_assignToVoidOk
     // for testing that this does not have errors in strong mode.
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 void main() {
   void x;
   x = 42;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 21, 1),
+    ]);
   }
 
   test_await() async {
@@ -103,14 +105,16 @@ main() async {
   }
 
   test_implicitReturnValue() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 f() {}
 class A {
   n() {
     var a = f();
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 33, 1),
+    ]);
   }
 
   test_inForLoop_error() async {
@@ -127,13 +131,16 @@ class A {
   }
 
   test_inForLoop_ok() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 class A {
   void m() {}
   n() {
     for(void a = m();;) {}
   }
-}''');
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 45, 1),
+    ]);
   }
 
   test_interpolateVoidValueError() async {
@@ -160,12 +167,14 @@ void main() {
   }
 
   test_nonVoidReturnValue() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 int f() => 1;
 g() {
   var a = f();
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 26, 1),
+    ]);
   }
 
   test_orVoidLhsError() async {
@@ -338,18 +347,6 @@ void main() {
 ''');
   }
 
-  test_useOfVoidInForeachIterableError_declaredVariable() async {
-    await assertErrorsInCode('''
-void main() {
-  void x;
-  for (var v in x) {}
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 35, 1),
-      error(StaticWarningCode.USE_OF_VOID_RESULT, 40, 1),
-    ]);
-  }
-
   test_useOfVoidInForeachIterableError() async {
     await assertErrorsInCode(r'''
 void main() {
@@ -360,6 +357,18 @@ void main() {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 30, 1),
       error(StaticWarningCode.USE_OF_VOID_RESULT, 45, 1),
+    ]);
+  }
+
+  test_useOfVoidInForeachIterableError_declaredVariable() async {
+    await assertErrorsInCode('''
+void main() {
+  void x;
+  for (var v in x) {}
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 35, 1),
+      error(StaticWarningCode.USE_OF_VOID_RESULT, 40, 1),
     ]);
   }
 
@@ -428,12 +437,14 @@ void main() {
   }
 
   test_useOfVoidInMapLiteralKeyOk() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 void main() {
   void x;
   var m2 = <void, int>{x : 4}; // not strong mode; we have to specify <void>.
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 30, 2),
+    ]);
   }
 
   test_useOfVoidInMapLiteralValueError() async {
@@ -449,12 +460,14 @@ void main() {
   }
 
   test_useOfVoidInMapLiteralValueOk() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 void main() {
   void x;
   var m1 = <int, void>{4: x}; // not strong mode; we have to specify <void>.
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 30, 2),
+    ]);
   }
 
   test_useOfVoidInNullOperatorLhsError() async {
@@ -568,12 +581,14 @@ void main() {
   }
 
   test_useOfVoidWithInitializerOk() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 void main() {
   void x;
   void y = x;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 31, 1),
+    ]);
   }
 
   test_variableDeclaration_function_error() async {
@@ -590,13 +605,16 @@ class A {
   }
 
   test_variableDeclaration_function_ok() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 void f() {}
 class A {
   n() {
     void a = f();
   }
-}''');
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 39, 1),
+    ]);
   }
 
   test_variableDeclaration_method2() async {
@@ -628,13 +646,16 @@ class A {
   }
 
   test_variableDeclaration_method_ok() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 class A {
   void m() {}
   n() {
     void a = m();
   }
-}''');
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 41, 1),
+    ]);
   }
 
   test_yieldStarVoid_asyncStar() async {

@@ -285,12 +285,14 @@ m() {
   }
 
   test_forLoop_nonNullable() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 m() {
   List x = [];
   for (var y in x) {}
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 32, 1),
+    ]);
   }
 
   test_forLoop_nullable() async {
@@ -600,12 +602,14 @@ m(Function? x) {
   }
 
   test_minusEq_nonNullable() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 m() {
   int x = 0;
   x -= 1;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 12, 1),
+    ]);
   }
 
   test_minusEq_nullable() async {
@@ -690,12 +694,14 @@ m() {
   }
 
   test_operatorPostfixDec_nonNullable() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 m() {
   int x = 0;
   x--;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 12, 1),
+    ]);
   }
 
   test_operatorPostfixDec_nullable() async {
@@ -745,12 +751,14 @@ m(A? x) {
   }
 
   test_operatorPrefixDec_nonNullable() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 m() {
   int x = 0;
   --x;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 12, 1),
+    ]);
   }
 
   test_operatorPrefixDec_nullable() async {
@@ -784,12 +792,14 @@ m(int? x) {
   }
 
   test_operatorUnaryMinus_nonNullable() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 m() {
   int x = 0;
   -x;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 12, 1),
+    ]);
   }
 
   test_operatorUnaryMinus_nullable() async {

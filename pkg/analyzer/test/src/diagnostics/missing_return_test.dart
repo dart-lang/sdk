@@ -86,28 +86,34 @@ int f() {}
   }
 
   test_functionExpression_declared() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 main() {
   f() {} // no hint
 }
-''');
+''', [
+      error(HintCode.UNUSED_ELEMENT, 11, 1),
+    ]);
   }
 
   test_functionExpression_expression() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 main() {
   int Function() f = () => null; // no hint
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 26, 1),
+    ]);
   }
 
   test_functionExpression_futureOrDynamic() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'dart:async';
 main() {
   FutureOr<dynamic> Function() f = () { print(42); };
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 61, 1),
+    ]);
   }
 
   test_functionExpression_futureOrInt() async {
@@ -134,11 +140,13 @@ main() {
   }
 
   test_functionExpression_inferred_dynamic() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 main() {
   Function() f = () { print(42); }; // no hint
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 22, 1),
+    ]);
   }
 
   test_functionExpressionAsync_inferred() async {
@@ -153,11 +161,13 @@ main() {
   }
 
   test_functionExpressionAsync_inferred_dynamic() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 main() {
   Future Function() f = () async { print(42); }; // no hint
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 29, 1),
+    ]);
   }
 
   test_method() async {

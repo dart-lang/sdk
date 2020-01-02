@@ -111,7 +111,7 @@ var v = super.y;
   }
 
   test_valid() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   m() {}
 }
@@ -123,6 +123,9 @@ class B extends A {
     var v = super.m();
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 57, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 92, 1),
+    ]);
   }
 }

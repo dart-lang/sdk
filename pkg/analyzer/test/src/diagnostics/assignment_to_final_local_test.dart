@@ -145,14 +145,17 @@ class AssignmentToFinalLocalWithNnbdTest extends DriverResolutionTest {
         sdkVersion: '2.3.0', additionalFeatures: [Feature.non_nullable]);
 
   test_localVariable_late() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 void f() {
   late final int a;
   late final int b = 0;
   a = 1;
   b = 1;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 28, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 48, 1),
+    ]);
   }
 
   test_topLevelVariable_late() async {

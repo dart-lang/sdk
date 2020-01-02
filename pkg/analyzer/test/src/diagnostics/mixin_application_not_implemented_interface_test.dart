@@ -81,7 +81,7 @@ class C extends Object with M<int> {}
 
   test_recursiveSubtypeCheck_new_syntax() async {
     // See dartbug.com/32353 for a detailed explanation.
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 class ioDirectory implements ioFileSystemEntity {}
 
 class ioFileSystemEntity {}
@@ -106,7 +106,9 @@ mixin ForwardingDirectory<T extends Directory>
 abstract class Directory implements FileSystemEntity, ioDirectory {}
 
 mixin DirectoryAddOnsMixin implements Directory {}
-''');
+''', [
+      error(HintCode.UNUSED_ELEMENT, 96, 15),
+    ]);
     var mixins = result.unit.declaredElement.getType('_LocalDirectory').mixins;
     assertElementTypeString(mixins[0], 'ForwardingDirectory<_LocalDirectory>');
   }

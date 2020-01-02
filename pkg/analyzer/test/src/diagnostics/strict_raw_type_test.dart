@@ -96,11 +96,13 @@ void f() {
   }
 
   test_genericTypeArgument_withTypeArg() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f() {
   var a = <List<int>>[];
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 17, 1),
+    ]);
   }
 
   test_isExpression() async {

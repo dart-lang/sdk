@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -76,13 +77,15 @@ class C {
   const C([this.x = 0]);
 }
 ''');
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 import 'other.dart';
 
 void main() {
   const c = C();
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 44, 1),
+    ]);
     var otherFileResult =
         await resolveFile(convertPath('/test/lib/other.dart'));
     expect(otherFileResult.errors, isEmpty);
@@ -99,12 +102,14 @@ class C {
         await resolveFile(convertPath('/test/lib/other.dart'));
     expect(otherFileResult.errors, isEmpty);
 
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 import 'other.dart';
 
 void main() {
   const c = C();
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 44, 1),
+    ]);
   }
 }

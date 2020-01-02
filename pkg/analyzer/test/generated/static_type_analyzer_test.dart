@@ -71,31 +71,37 @@ void useSet(Set<int> s) {
 @reflectiveTest
 class StaticTypeAnalyzer2Test extends StaticTypeAnalyzer2TestShared {
   test_FunctionExpressionInvocation_block() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 main() {
   var foo = (() { return 1; })();
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 3),
+    ]);
     expectInitializerType('foo', 'int');
   }
 
   test_FunctionExpressionInvocation_curried() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 typedef int F();
 F f() => null;
 main() {
   var foo = f()();
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 47, 3),
+    ]);
     expectInitializerType('foo', 'int');
   }
 
   test_FunctionExpressionInvocation_expression() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 main() {
   var foo = (() => 1)();
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 3),
+    ]);
     expectInitializerType('foo', 'int');
   }
 
@@ -175,11 +181,13 @@ main() {
 @reflectiveTest
 class StaticTypeAnalyzer3Test extends StaticTypeAnalyzer2TestShared {
   test_emptyMapLiteral_initializer_var() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 main() {
   var v = {};
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 1),
+    ]);
     expectExpressionType('{}', 'Map<dynamic, dynamic>');
   }
 

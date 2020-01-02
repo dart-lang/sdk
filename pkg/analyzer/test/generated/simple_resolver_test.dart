@@ -502,12 +502,16 @@ class A {
   }
 
   test_forEachLoops_nonConflicting() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 f() {
   List list = [1,2,3];
   for (int x in list) {}
   for (int x in list) {}
-}''');
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 40, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 65, 1),
+    ]);
     verifyTestResolved();
   }
 
@@ -623,7 +627,7 @@ class C extends B with M1, M2 {
   }
 
   test_getter_fromMixins_property_access() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 class B {}
 class M1 {
   get x => null;
@@ -635,7 +639,9 @@ class C extends B with M1, M2 {}
 void main() {
   var y = new C().x;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 124, 1),
+    ]);
     verifyTestResolved();
 
     // Verify that the getter for "x" in "new C().x" refers to the getter

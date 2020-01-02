@@ -19,13 +19,15 @@ main() {
 @reflectiveTest
 class InvalidReferenceToThisTest extends DriverResolutionTest {
   test_constructor_valid() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   A() {
     var v = this;
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 26, 1),
+    ]);
   }
 
   test_factoryConstructor() async {
@@ -39,13 +41,15 @@ class A {
   }
 
   test_instanceMethod_valid() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   m() {
     var v = this;
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 26, 1),
+    ]);
   }
 
   test_instanceVariableInitializer_inConstructor() async {
@@ -119,13 +123,15 @@ int x = this;
   }
 
   test_variableInitializer_inMethod_notLate() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   f() {
     var r = this;
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 26, 1),
+    ]);
   }
 }
 

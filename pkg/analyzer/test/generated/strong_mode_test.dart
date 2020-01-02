@@ -19,6 +19,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import '../src/dart/resolution/driver_resolution.dart';
 import '../utils.dart';
 import 'resolver_test_case.dart';
+import 'test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -2530,13 +2531,14 @@ class StrongModeStaticTypeAnalyzer2Test extends StaticTypeAnalyzer2TestShared {
   }
 
   test_dynamicObjectGetter_hashCode() async {
-    String code = r'''
+    await assertErrorsInCode(r'''
 main() {
   dynamic a = null;
   var foo = a.hashCode;
 }
-''';
-    await assertNoErrorsInCode(code);
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 35, 3),
+    ]);
     expectInitializerType('foo', 'int');
   }
 
@@ -2583,12 +2585,14 @@ main() {
   }
 
   test_generalizedVoid_assignToVoidOk() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void main() {
   void x;
   x = 42;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 21, 1),
+    ]);
   }
 
   test_genericFunction() async {
@@ -2697,14 +2701,16 @@ List<Object> eee = [new Object()];
   }
 
   test_genericMethod() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class C<E> {
   List<T> f<T>(E e) => null;
 }
 main() {
   C<String> cOfString;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 65, 9),
+    ]);
     assertElementTypeString(
       findElement.method('f').type,
       'List<T> Function<T>(E)',
@@ -2723,7 +2729,7 @@ main() {
   }
 
   test_genericMethod_explicitTypeParams() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class C<E> {
   List<T> f<T>(E e) => null;
 }
@@ -2731,7 +2737,9 @@ main() {
   C<String> cOfString;
   var x = cOfString.f<int>('hi');
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 82, 1),
+    ]);
     MethodInvocation f = findNode.simple('f<int>').parent;
     FunctionType ft = f.staticInvokeType;
     assertElementTypeString(ft, 'List<int> Function(String)');
@@ -2741,7 +2749,7 @@ main() {
   }
 
   test_genericMethod_functionExpressionInvocation_explicit() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class C<E> {
   T f<T>(T e) => null;
   static T g<T>(T e) => null;
@@ -2763,7 +2771,16 @@ void test<S>(T Function<T>(T) pf) {
   var localCall = (lf)<int>(3);
   var paramCall = (pf)<int>(3);
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 237, 10),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 281, 10),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 315, 10),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 349, 15),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 388, 10),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 423, 12),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 460, 9),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 492, 9),
+    ]);
     _assertLocalVarType('lambdaCall', "int");
     _assertLocalVarType('methodCall', "int");
     _assertLocalVarType('staticCall', "int");
@@ -2775,25 +2792,29 @@ void test<S>(T Function<T>(T) pf) {
   }
 
   test_genericMethod_functionExpressionInvocation_functionTypedParameter_explicit() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void test<S>(T pf<T>(T e)) {
   var paramCall = (pf)<int>(3);
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 35, 9),
+    ]);
     _assertLocalVarType('paramCall', "int");
   }
 
   test_genericMethod_functionExpressionInvocation_functionTypedParameter_inferred() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void test<S>(T pf<T>(T e)) {
   var paramCall = (pf)(3);
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 35, 9),
+    ]);
     _assertLocalVarType('paramCall', "int");
   }
 
   test_genericMethod_functionExpressionInvocation_inferred() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class C<E> {
   T f<T>(T e) => null;
   static T g<T>(T e) => null;
@@ -2815,7 +2836,16 @@ void test<S>(T Function<T>(T) pf) {
   var localCall = (lf)(3);
   var paramCall = (pf)(3);
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 237, 10),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 276, 10),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 305, 10),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 334, 15),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 368, 10),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 398, 12),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 430, 9),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 457, 9),
+    ]);
     _assertLocalVarType('lambdaCall', "int");
     _assertLocalVarType('methodCall', "int");
     _assertLocalVarType('staticCall', "int");
@@ -2827,7 +2857,7 @@ void test<S>(T Function<T>(T) pf) {
   }
 
   test_genericMethod_functionInvocation_explicit() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class C<E> {
   T f<T>(T e) => null;
   static T g<T>(T e) => null;
@@ -2847,7 +2877,15 @@ void test<S>(T Function<T>(T) pf) {
   var localCall = lf<int>(3);
   var paramCall = pf<int>(3);
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 236, 10),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 268, 10),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 300, 15),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 337, 10),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 370, 12),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 405, 9),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 435, 9),
+    ]);
     _assertLocalVarType('methodCall', "int");
     _assertLocalVarType('staticCall', "int");
     _assertLocalVarType('staticFieldCall', "int");
@@ -2858,25 +2896,29 @@ void test<S>(T Function<T>(T) pf) {
   }
 
   test_genericMethod_functionInvocation_functionTypedParameter_explicit() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void test<S>(T pf<T>(T e)) {
   var paramCall = pf<int>(3);
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 35, 9),
+    ]);
     _assertLocalVarType('paramCall', "int");
   }
 
   test_genericMethod_functionInvocation_functionTypedParameter_inferred() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void test<S>(T pf<T>(T e)) {
   var paramCall = pf(3);
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 35, 9),
+    ]);
     _assertLocalVarType('paramCall', "int");
   }
 
   test_genericMethod_functionInvocation_inferred() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class C<E> {
   T f<T>(T e) => null;
   static T g<T>(T e) => null;
@@ -2896,7 +2938,15 @@ void test<S>(T Function<T>(T) pf) {
   var localCall = lf(3);
   var paramCall = pf(3);
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 236, 10),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 263, 10),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 290, 15),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 322, 10),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 350, 12),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 380, 9),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 405, 9),
+    ]);
     _assertLocalVarType('methodCall', "int");
     _assertLocalVarType('staticCall', "int");
     _assertLocalVarType('staticFieldCall', "int");
@@ -2907,14 +2957,16 @@ void test<S>(T Function<T>(T) pf) {
   }
 
   test_genericMethod_functionTypedParameter() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class C<E> {
   List<T> f<T>(T f(E e)) => null;
 }
 main() {
   C<String> cOfString;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 70, 9),
+    ]);
     assertElementTypeString(
       findElement.method('f').type,
       'List<T> Function<T>(T Function(E))',
@@ -2933,11 +2985,13 @@ main() {
   }
 
   test_genericMethod_functionTypedParameter_tearoff() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void test<S>(T pf<T>(T e)) {
   var paramTearOff = pf;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 35, 12),
+    ]);
     _assertLocalVarType('paramTearOff', "T Function<T>(T)");
   }
 
@@ -2966,52 +3020,62 @@ void foo() {
   }
 
   test_genericMethod_max_doubleDouble() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'dart:math';
 main() {
   var foo = max(1.0, 2.0);
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 35, 3),
+    ]);
     expectInitializerType('foo', 'double');
   }
 
   test_genericMethod_max_doubleDouble_prefixed() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'dart:math' as math;
 main() {
   var foo = math.max(1.0, 2.0);
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 43, 3),
+    ]);
     expectInitializerType('foo', 'double');
   }
 
   test_genericMethod_max_doubleInt() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'dart:math';
 main() {
   var foo = max(1.0, 2);
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 35, 3),
+    ]);
     expectInitializerType('foo', 'num');
   }
 
   test_genericMethod_max_intDouble() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'dart:math';
 main() {
   var foo = max(1, 2.0);
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 35, 3),
+    ]);
     expectInitializerType('foo', 'num');
   }
 
   test_genericMethod_max_intInt() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'dart:math';
 main() {
   var foo = max(1, 2);
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 35, 3),
+    ]);
     expectInitializerType('foo', 'int');
   }
 
@@ -3062,12 +3126,14 @@ class C<T> {
   }
 
   test_genericMethod_nestedFunctions() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 S f<S>(S x) {
   g<S>(S x) => f;
   return null;
 }
-''');
+''', [
+      error(HintCode.UNUSED_ELEMENT, 16, 1),
+    ]);
     assertElementTypeString(
       findElement.topFunction('f').type,
       'S Function<S>(S)',
@@ -3202,7 +3268,7 @@ class D extends C {
     // example won't work, as we now compute a static type and therefore discard
     // the propagated type. So a new test was created that doesn't run under
     // strong mode.
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 abstract class Iter {
   List<S> map<S>(S f(x));
 }
@@ -3212,12 +3278,15 @@ C toSpan(dynamic element) {
     var y = element.map(toSpan);
   }
   return null;
-}''');
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 122, 1),
+    ]);
     _assertLocalVarType('y', 'List<C>');
   }
 
   test_genericMethod_tearoff() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class C<E> {
   T f<T>(E e) => null;
   static T g<T>(T e) => null;
@@ -3237,7 +3306,15 @@ void test<S>(T Function<T>(T) pf) {
   var localTearOff = lf;
   var paramTearOff = pf;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 236, 13),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 263, 13),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 290, 18),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 322, 13),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 350, 15),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 380, 12),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 405, 12),
+    ]);
     _assertLocalVarType('methodTearOff', "T Function<T>(int)");
     _assertLocalVarType('staticTearOff', "T Function<T>(T)");
     _assertLocalVarType('staticFieldTearOff', "T Function<T>(T)");
@@ -3280,27 +3357,31 @@ void test<S>(T pf<T>(T e)) {
   }
 
   test_genericMethod_then() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'dart:async';
 String toString(int x) => x.toString();
 main() {
   Future<int> bar = null;
   var foo = bar.then(toString);
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 102, 3),
+    ]);
 
     expectInitializerType('foo', 'Future<String>');
   }
 
   test_genericMethod_then_prefixed() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'dart:async' as async;
 String toString(int x) => x.toString();
 main() {
   async.Future<int> bar = null;
   var foo = bar.then(toString);
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 117, 3),
+    ]);
     expectInitializerType('foo', 'Future<String>');
   }
 
@@ -3324,7 +3405,7 @@ void main() {
   }
 
   test_genericMethod_toplevel_field_staticTearoff() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class C<E> {
   static T g<T>(T e) => null;
   static T Function<T>(T) h = null;
@@ -3333,12 +3414,14 @@ class C<E> {
 void test() {
   var fieldRead = C.h;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 102, 9),
+    ]);
     _assertLocalVarType('fieldRead', "T Function<T>(T)");
   }
 
   test_implicitBounds() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class A<T> {}
 
 class B<T extends num> {}
@@ -3353,7 +3436,14 @@ void test() {
   var bb = new B();
   var cc = new C();
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 116, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 124, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 132, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 142, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 162, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 182, 2),
+    ]);
     _assertLocalVarType('ai', "A<dynamic>");
     _assertLocalVarType('bi', "B<num>");
     _assertLocalVarType('ci', "C<int, B<int>, A<dynamic>>");
@@ -3464,7 +3554,7 @@ C c;
   }
 
   test_instantiateToBounds_class_ok_simpleBounds() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class A<T> {}
 class B<T extends num> {}
 class C<T extends List<int>> {}
@@ -3475,7 +3565,12 @@ void main() {
   C c;
   D d;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 114, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 121, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 128, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 135, 1),
+    ]);
     _assertLocalVarType('a', 'A<dynamic>');
     _assertLocalVarType('b', 'B<num>');
     _assertLocalVarType('c', 'C<List<int>>');
@@ -3749,7 +3844,15 @@ void main() {
   (f)..toString();
   (f)..toString;
   (f)..hashCode;
-}''');
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 69, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 94, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 117, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 183, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 210, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 235, 2),
+    ]);
   }
 
   test_objectMethodOnFunctions_Function() async {
@@ -3775,7 +3878,15 @@ void main() {
   (f)..toString();
   (f)..toString;
   (f)..hashCode;
-}''');
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 63, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 88, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 111, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 177, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 204, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 229, 2),
+    ]);
   }
 
   test_objectMethodOnFunctions_Static() async {
@@ -3801,7 +3912,15 @@ void main() {
   (f)..toString();
   (f)..toString;
   (f)..hashCode;
-}''');
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 71, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 96, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 119, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 185, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 212, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 237, 2),
+    ]);
   }
 
   test_objectMethodOnFunctions_Typedef() async {
@@ -3829,7 +3948,15 @@ void main() {
   (f)..toString();
   (f)..toString;
   (f)..hashCode;
-}''');
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 107, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 132, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 155, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 221, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 248, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 273, 2),
+    ]);
   }
 
   test_returnOfInvalidType_object_void() async {
@@ -3897,20 +4024,24 @@ Object set g(x) => null;
   }
 
   test_ternaryOperator_null_left() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 main() {
   var foo = (true) ? null : 3;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 3),
+    ]);
     expectInitializerType('foo', 'int');
   }
 
   test_ternaryOperator_null_right() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 main() {
   var foo = (true) ? 3 : null;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 3),
+    ]);
     expectInitializerType('foo', 'int');
   }
 
@@ -3924,8 +4055,9 @@ main() {
     assertElementTypeString(element.type, expectedType);
   }
 
-  Future<void> _objectMethodOnFunctions_helper2(String code) async {
-    await assertNoErrorsInCode(code);
+  Future<void> _objectMethodOnFunctions_helper2(
+      String code, List<ExpectedError> expectedErrors) async {
+    await assertErrorsInCode(code, expectedErrors);
     _assertLocalVarType('t0', "String");
     _assertLocalVarType('t1', "String Function()");
     _assertLocalVarType('t2', "int");

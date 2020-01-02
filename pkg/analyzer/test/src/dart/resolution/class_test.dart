@@ -612,13 +612,15 @@ class A {
   int get _foo => 0;
 }
 ''');
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'a.dart';
 
 class B extends A {
   set _foo(String _) {}
 }
-''');
+''', [
+      error(HintCode.UNUSED_ELEMENT, 44, 4),
+    ]);
   }
 
   test_error_mismatchedGetterAndSetterTypes_OK_private_interfaces() async {
@@ -663,13 +665,15 @@ class A {
   set _foo(String _) {}
 }
 ''');
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'a.dart';
 
 class B extends A {
   int get _foo => 0;
 }
-''');
+''', [
+      error(HintCode.UNUSED_ELEMENT, 48, 4),
+    ]);
   }
 
   test_error_mismatchedGetterAndSetterTypes_OK_setterParameter_0() async {

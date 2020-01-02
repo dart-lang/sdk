@@ -1291,7 +1291,7 @@ mixin M {}
   }
 
   test_methodCallTypeInference_mixinType() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 main() {
   C<int> c = f();
 }
@@ -1301,7 +1301,9 @@ class C<T> {}
 mixin M<T> on C<T> {}
 
 M<T> f<T>() => null;
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 18, 1),
+    ]);
     var fInvocation = findNode.methodInvocation('f()');
     assertInvokeType(fInvocation, 'M<int> Function()');
   }

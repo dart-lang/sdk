@@ -103,26 +103,34 @@ main() {
   }
 
   test_local_interfaceType() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 main() {
   int? a = 0;
   int b = 0;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 16, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 29, 1),
+    ]);
 
     assertType(findNode.typeName('int? a'), 'int?');
     assertType(findNode.typeName('int b'), 'int');
   }
 
   test_local_interfaceType_generic() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 main() {
   List<int?>? a = [];
   List<int>? b = [];
   List<int?> c = [];
   List<int> d = [];
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 23, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 44, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 65, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 85, 1),
+    ]);
 
     assertType(findNode.typeName('List<int?>? a'), 'List<int?>?');
     assertType(findNode.typeName('List<int>? b'), 'List<int>?');
@@ -188,23 +196,28 @@ main() {
   }
 
   test_local_typeParameter() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 main<T>(T a) {
   T x = a;
   T? y;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 19, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 31, 1),
+    ]);
 
     assertType(findNode.typeName('T x'), 'T');
     assertType(findNode.typeName('T? y'), 'T?');
   }
 
   test_local_variable_genericFunctionType() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 main() {
   int? Function(bool, String?)? a;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 41, 1),
+    ]);
 
     assertType(
       findNode.genericFunctionType('Function('),
@@ -213,23 +226,28 @@ main() {
   }
 
   test_localFunction_parameter_interfaceType() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 main() {
   f(int? a, int b) {}
 }
-''');
+''', [
+      error(HintCode.UNUSED_ELEMENT, 11, 1),
+    ]);
 
     assertType(findNode.typeName('int? a'), 'int?');
     assertType(findNode.typeName('int b'), 'int');
   }
 
   test_localFunction_returnType_interfaceType() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 main() {
   int? f() => 0;
   int g() => 0;
 }
-''');
+''', [
+      error(HintCode.UNUSED_ELEMENT, 16, 1),
+      error(HintCode.UNUSED_ELEMENT, 32, 1),
+    ]);
 
     assertType(findNode.typeName('int? f'), 'int?');
     assertType(findNode.typeName('int g'), 'int');
@@ -260,7 +278,7 @@ mixin X2 implements A {} // 2
   }
 
   test_nonNullPromotion_typeParameter() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class C<T> {
   void foo(T? t) {
     T temp = t!;
@@ -269,26 +287,32 @@ class C<T> {
     return t!;
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 38, 4),
+    ]);
   }
 
   test_null_assertion_operator_changes_null_to_never() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 main() {
   Null x = null;
   x!;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 16, 1),
+    ]);
     assertType(findNode.postfix('x!'), 'Never');
   }
 
   test_null_assertion_operator_removes_nullability() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 main() {
   Object? x = null;
   x!;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 19, 1),
+    ]);
     assertType(findNode.postfix('x!'), 'Object');
   }
 
@@ -338,13 +362,17 @@ class A {
   }
 
   test_parameter_functionTyped_local() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 f() {
   void f1(void p1()) {}
   void f2(void p2()?) {}
   void f3({void p3()?}) {}
 }
-''');
+''', [
+      error(HintCode.UNUSED_ELEMENT, 13, 2),
+      error(HintCode.UNUSED_ELEMENT, 37, 2),
+      error(HintCode.UNUSED_ELEMENT, 62, 2),
+    ]);
     assertElementTypeString(
       findElement.parameter('p1').type,
       'void Function()',
@@ -464,25 +492,29 @@ main<T>(T a, T? b) {
   }
 
   test_typedef_classic() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 typedef int? F(bool a, String? b);
 
 main() {
   F? a;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 50, 1),
+    ]);
 
     assertType(findNode.typeName('F? a'), 'int? Function(bool, String?)?');
   }
 
   test_typedef_function() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 typedef F<T> = int? Function(bool, T, T?);
 
 main() {
   F<String>? a;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 66, 1),
+    ]);
 
     assertType(
       findNode.typeName('F<String>'),
@@ -502,14 +534,17 @@ main(F<int> a, F<double>? b) {}
   }
 
   test_typedef_function_nullable_local() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 typedef F<T> = int Function(T)?;
 
 main() {
   F<int> a;
   F<double>? b;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 52, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 68, 1),
+    ]);
 
     assertType(findNode.typeName('F<int>'), 'int Function(int)?');
     assertType(findNode.typeName('F<double>?'), 'int Function(double)?');

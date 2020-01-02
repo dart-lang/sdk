@@ -231,14 +231,16 @@ extension E on C {
   int get a => 1;
 }
 ''');
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 import 'lib.dart';
 
 f(C c) {
   double E = 2.71;
   c.a;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 38, 1),
+    ]);
     var access = findNode.prefixed('c.a');
     var import = findElement.importFind('package:test/lib.dart');
     assertElement(access, import.extension_('E').getGetter('a'));
@@ -246,7 +248,7 @@ f(C c) {
   }
 
   test_visibility_shadowed_byLocal_local() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 class C {}
 extension E on C {
   int get a => 1;
@@ -255,7 +257,9 @@ f(C c) {
   double E = 2.71;
   c.a;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 68, 1),
+    ]);
     var access = findNode.prefixed('c.a');
     assertElement(access, findElement.getter('a'));
     assertType(access, 'int');

@@ -301,12 +301,16 @@ f() {
   }
 
   test_deadCatch_onCatchSupertype() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class A {}
 class B extends A {}
 f() {
   try {} on B catch (e) {} on A catch (e) {} catch (e) {}
-}''');
+}
+''', [
+      error(HintCode.UNUSED_CATCH_CLAUSE, 59, 1),
+      error(HintCode.UNUSED_CATCH_CLAUSE, 77, 1),
+    ]);
   }
 
   test_deadFinalBreakInCase() async {
@@ -404,11 +408,14 @@ f() {
   }
 
   test_deadOperandLHS_or_debugConst() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 const bool DEBUG = true;
 f() {
   bool b = DEBUG || true;
-}''');
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 38, 1),
+    ]);
   }
 
   test_deadOperandLHS_or_nested() async {

@@ -712,13 +712,15 @@ void f() {
   }
 
   test_futureOr_questionArgument_none() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 import 'dart:async';
 
 f() {
   FutureOr<int?> v;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 45, 1),
+    ]);
   }
 
   test_hasInitializer() async {
@@ -926,11 +928,13 @@ f<T>() {
   }
 
   test_notUsed() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 void f() {
   int v;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 17, 1),
+    ]);
   }
 
   test_nullable() async {
@@ -1222,27 +1226,33 @@ void f() {
   }
 
   test_type_dynamic() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 f() {
   dynamic v;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 16, 1),
+    ]);
   }
 
   test_type_dynamicImplicit() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 f() {
   var v;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 12, 1),
+    ]);
   }
 
   test_type_void() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 f() {
   void v;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 13, 1),
+    ]);
   }
 
   test_while_condition() async {

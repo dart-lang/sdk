@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/test_utilities/function_ast_visitor.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -257,7 +258,7 @@ void test9(Test<double, double> t) {
   }
 
   test_compoundAssignment_prefixedIdentifier() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 int getInt() => 0;
 num getNum() => 0;
 double getDouble() => 0.0;
@@ -331,7 +332,58 @@ void test9(Test<double, double> t) {
   var /*@type=double*/ v10 = ++t.x;
   var /*@type=double*/ v11 = t.x++;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 189, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 230, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 271, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 314, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 357, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 399, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 441, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 474, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 541, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 582, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 626, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 670, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 713, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 756, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 802, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 844, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 889, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 934, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 967, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1034, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1075, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1119, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1163, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1206, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1249, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1295, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1337, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1379, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1424, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1457, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1527, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1568, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1612, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1656, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1699, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1745, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1794, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1839, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1884, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1932, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1968, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2041, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2085, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2129, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2175, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2224, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2269, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2314, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2362, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2398, 3),
+    ]);
     _assertTypeAnnotations();
   }
 
@@ -341,7 +393,7 @@ void test9(Test<double, double> t) {
     var t5 = 'new Test<num, num>()';
     var t8 = 'new Test<double, num>()';
     var t9 = 'new Test<double, double>()';
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 int getInt() => 0;
 num getNum() => 0;
 double getDouble() => 0.0;
@@ -415,12 +467,63 @@ void test9() {
   var /*@type=double*/ v10 = ++$t9.x;
   var /*@type=double*/ v11 = $t9.x++;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 173, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 233, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 293, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 355, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 417, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 478, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 539, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 591, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 661, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 721, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 784, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 847, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 909, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 971, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1036, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1097, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1161, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1225, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1277, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1347, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1407, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1470, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1533, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1595, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1657, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1722, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1783, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1844, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1908, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1960, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2030, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2093, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2159, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2225, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2290, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2358, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2429, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2496, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2563, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2633, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2691, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2764, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2833, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2902, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2973, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 3047, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 3117, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 3187, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 3260, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 3321, 3),
+    ]);
     _assertTypeAnnotations();
   }
 
   test_compoundAssignment_simpleIdentifier() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 int getInt() => 0;
 num getNum() => 0;
 double getDouble() => 0.0;
@@ -504,12 +607,63 @@ class Test9 extends Test<double, double> {
     var /*@type=double*/ v11 = x++;
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 214, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 255, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 296, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 339, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 382, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 424, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 466, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 499, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 593, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 634, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 678, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 722, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 765, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 808, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 854, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 896, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 941, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 986, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1019, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1113, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1154, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1198, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1242, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1285, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1328, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1374, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1416, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1458, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1503, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1536, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1633, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1674, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1718, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1762, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1805, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1851, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1900, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1945, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1990, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2038, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2074, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2174, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2218, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2262, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2308, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2357, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2402, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2447, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2495, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2531, 3),
+    ]);
     _assertTypeAnnotations();
   }
 
   test_compoundAssignment_simpleIdentifier_topLevel() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class A {}
 
 class B extends A {
@@ -523,7 +677,9 @@ void set topLevel(A value) {}
 main() {
   var /*@type=B*/ v = topLevel += 1;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 152, 1),
+    ]);
     _assertTypeAnnotations();
   }
 

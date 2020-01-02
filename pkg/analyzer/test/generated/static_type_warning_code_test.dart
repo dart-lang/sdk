@@ -64,13 +64,15 @@ f() async {
   }
 
   test_awaitForIn_declaredVariableRightType() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 import 'dart:async';
 f() async {
   Stream<int> stream;
   await for (int i in stream) {}
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 72, 1),
+    ]);
   }
 
   test_awaitForIn_declaredVariableWrongType() async {
@@ -87,43 +89,51 @@ f() async {
   }
 
   test_awaitForIn_downcast() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 import 'dart:async';
 f() async {
   Stream<num> stream;
   await for (int i in stream) {}
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 72, 1),
+    ]);
   }
 
   test_awaitForIn_dynamicStream() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 f() async {
   dynamic stream;
   await for (int i in stream) {}
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 47, 1),
+    ]);
   }
 
   test_awaitForIn_dynamicVariable() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 import 'dart:async';
 f() async {
   Stream<int> stream;
   await for (var i in stream) {}
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 72, 1),
+    ]);
   }
 
   test_awaitForIn_existingVariableRightType() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 import 'dart:async';
 f() async {
   Stream<int> stream;
   int i;
   await for (i in stream) {}
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 61, 1),
+    ]);
   }
 
   test_awaitForIn_existingVariableWrongType() async {
@@ -152,23 +162,27 @@ f() async {
   }
 
   test_awaitForIn_streamOfDynamic() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 import 'dart:async';
 f() async {
   Stream stream;
   await for (int i in stream) {}
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 67, 1),
+    ]);
   }
 
   test_awaitForIn_upcast() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 import 'dart:async';
 f() async {
   Stream<int> stream;
   await for (num i in stream) {}
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 72, 1),
+    ]);
   }
 
   test_bug21912() async {
@@ -229,11 +243,13 @@ main() {
   }
 
   test_forIn_declaredVariableRightType() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 f() {
   for (int i in <int>[]) {}
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 17, 1),
+    ]);
   }
 
   test_forIn_declaredVariableWrongType() async {
@@ -248,46 +264,56 @@ f() {
   }
 
   test_forIn_downcast() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 f() {
   for (int i in <num>[]) {}
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 17, 1),
+    ]);
   }
 
   test_forIn_dynamic() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 f() {
   dynamic d; // Could be [].
   for (var i in d) {}
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 46, 1),
+    ]);
   }
 
   test_forIn_dynamicIterable() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 f() {
   dynamic iterable;
   for (int i in iterable) {}
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 37, 1),
+    ]);
   }
 
   test_forIn_dynamicVariable() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 f() {
   for (var i in <int>[]) {}
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 17, 1),
+    ]);
   }
 
   test_forIn_existingVariableRightType() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 f() {
   int i;
   for (i in <int>[]) {}
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 12, 1),
+    ]);
   }
 
   test_forIn_existingVariableWrongType() async {
@@ -303,11 +329,13 @@ f() {
   }
 
   test_forIn_iterableOfDynamic() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 f() {
   for (int i in []) {}
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 17, 1),
+    ]);
   }
 
   test_forIn_notIterable() async {
@@ -322,12 +350,14 @@ f() {
   }
 
   test_forIn_object() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 f() {
   Object o; // Could be [].
   for (var i in o) {}
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 45, 1),
+    ]);
   }
 
   test_forIn_typeBoundBad() async {
@@ -344,21 +374,25 @@ class Foo<T extends Iterable<int>> {
   }
 
   test_forIn_typeBoundGood() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 class Foo<T extends Iterable<int>> {
   void method(T iterable) {
     for (var i in iterable) {}
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 78, 1),
+    ]);
   }
 
   test_forIn_upcast() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 f() {
   for (num i in <int>[]) {}
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 17, 1),
+    ]);
   }
 
   test_illegalAsyncGeneratorReturnType_function_nonStream() async {
@@ -1511,14 +1545,16 @@ main() {
   }
 
   test_undefinedMethodWithConstructor() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class C {
   C.m();
 }
 f() {
   C c = C.m();
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 31, 1),
+    ]);
   }
 
   test_undefinedOperator_indexBoth() async {

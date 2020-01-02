@@ -128,7 +128,7 @@ class C extends A with A {}
   }
 
   test_class_superclassAndMixin_sameLibrary() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 class A {
   void _foo() {}
 }
@@ -138,7 +138,10 @@ class B {
 }
 
 class C extends Object with A, B {}
-''');
+''', [
+      error(HintCode.UNUSED_ELEMENT, 17, 4),
+      error(HintCode.UNUSED_ELEMENT, 47, 4),
+    ]);
   }
 
   test_class_superclassAndMixin_setter2() async {

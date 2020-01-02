@@ -173,7 +173,7 @@ class A {
 class One {}
 topLevelFunction() {}
 ''');
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'lib1.dart' hide topLevelFunction;
 import 'lib1.dart' as one show topLevelFunction;
 class A {
@@ -182,7 +182,9 @@ class A {
     one.topLevelFunction();
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 129, 1),
+    ]);
   }
 
   test_prefix_topLevelFunction2() async {
@@ -190,7 +192,7 @@ class A {
 class One {}
 topLevelFunction() {}
 ''');
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'lib1.dart' hide topLevelFunction;
 import 'lib1.dart' as one show topLevelFunction;
 import 'lib1.dart' as two show topLevelFunction;
@@ -201,7 +203,9 @@ class A {
     two.topLevelFunction();
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 178, 1),
+    ]);
   }
 
   test_show() async {

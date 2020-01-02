@@ -30,13 +30,15 @@ main() {
   }
 
   test_hideInBlock_comment() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 main() {
   /// [v] is a variable.
   var v = 2;
 }
 print(x) {}
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 40, 1),
+    ]);
   }
 
   test_hideInBlock_function() async {

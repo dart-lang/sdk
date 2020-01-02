@@ -353,37 +353,43 @@ f() {
     // In the code below, the type of (() => f()) has a return type which is
     // a class, and that class is inferred from the return type of the typedef
     // F.
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 class C {}
 typedef C F();
 F f;
 main() {
   F f2 = (() => f());
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 44, 2),
+    ]);
   }
 
   test_assignability_function_expr_rettype_from_typedef_typedef() async {
     // In the code below, the type of (() => f()) has a return type which is
     // a typedef, and that typedef is inferred from the return type of the
     // typedef F.
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 typedef G F();
 typedef G();
 F f;
 main() {
   F f2 = (() => f());
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 46, 2),
+    ]);
   }
 
   test_assignmentToFinal_prefixNegate() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 f() {
   final x = 0;
   -x;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 14, 1),
+    ]);
   }
 
   test_assignmentToFinalNoSetter_prefixedIdentifier() async {
@@ -450,13 +456,15 @@ dynamic f() async {}
   }
 
   test_async_expression_function_type() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 import 'dart:async';
 typedef Future<int> F(int i);
 main() {
   F f = (int i) async => i;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 64, 1),
+    ]);
   }
 
   test_async_flattened() async {
@@ -588,41 +596,49 @@ f() async {}
   }
 
   test_asyncForInWrongContext_async() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 f(list) async {
   await for (var e in list) {
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 33, 1),
+    ]);
   }
 
   test_asyncForInWrongContext_asyncStar() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 f(list) async* {
   await for (var e in list) {
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 34, 1),
+    ]);
   }
 
   test_await_flattened() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 import 'dart:async';
 Future<Future<int>> ffi() => null;
 f() async {
   Future<int> b = await ffi();
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 82, 1),
+    ]);
   }
 
   test_await_simple() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 import 'dart:async';
 Future<int> fi() => null;
 f() async {
   int a = await fi();
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 65, 1),
+    ]);
   }
 
   test_awaitInWrongContext_async() async {
@@ -675,11 +691,13 @@ typedef Foo(param);
   }
 
   test_builtInIdentifierAsType_dynamic() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 f() {
   dynamic x;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 16, 1),
+    ]);
   }
 
   test_caseBlockNotTerminated() async {
@@ -1064,11 +1082,13 @@ class A {
   }
 
   test_constNotInitialized_local() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 main() {
   const int x = 0;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 21, 1),
+    ]);
   }
 
   test_constRedirectSkipsSupertype() async {
@@ -1179,11 +1199,13 @@ A a = new A();
   }
 
   test_dynamicIdentifier() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 main() {
   var v = dynamic;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 1),
+    ]);
   }
 
   test_empty_generator_async() async {
@@ -1912,12 +1934,14 @@ class A {
   static var _m;
 }
 ''');
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'lib.dart';
 class B extends A {
   _m() {}
 }
-''');
+''', [
+      error(HintCode.UNUSED_ELEMENT, 41, 2),
+    ]);
   }
 
   test_instanceMethodNameCollidesWithSuperclassStatic_method() async {
@@ -1927,12 +1951,14 @@ class A {
   static _m() {}
 }
 ''');
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'lib.dart';
 class B extends A {
   _m() {}
 }
-''');
+''', [
+      error(HintCode.UNUSED_ELEMENT, 41, 2),
+    ]);
   }
 
   test_integerLiteralOutOfRange_negative_leadingZeros() async {
@@ -2080,7 +2106,7 @@ main() {
   }
 
   test_invalidIdentifierInAsync() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   m() {
     int async;
@@ -2088,7 +2114,11 @@ class A {
     int yield;
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 26, 5),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 41, 5),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 56, 5),
+    ]);
   }
 
   test_invalidMethodOverrideNamedParamType() async {
@@ -2506,7 +2536,7 @@ class B extends Object with A {}
   }
 
   test_mixinInference_with_actual_mixins() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 class I<X> {}
 
 mixin M0<T> on I<T> {}
@@ -2520,7 +2550,9 @@ class A = I<int> with M0, M1;
 void main () {
   var x = new A().foo();
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 135, 1),
+    ]);
     var main = result.unit.declarations.last as FunctionDeclaration;
     var mainBody = main.functionExpression.body as BlockFunctionBody;
     var xDecl = mainBody.block.statements[0] as VariableDeclarationStatement;
@@ -2599,7 +2631,7 @@ f(bool pb, pd) {
   }
 
   test_nonBoolNegationExpression_dynamic() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 f1(bool dynamic) {
   !dynamic;
 }
@@ -2607,7 +2639,9 @@ f2() {
   bool dynamic = true;
   !dynamic;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 47, 7),
+    ]);
   }
 
   test_nonBoolOperand_and_bool() async {
@@ -2762,11 +2796,13 @@ f() {
   }
 
   test_nonConstMapAsExpressionStatement_notExpressionStatement() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 f() {
   var m = {'a' : 0, 'b' : 1};
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 12, 1),
+    ]);
   }
 
   test_nonConstMapAsExpressionStatement_typeArguments() async {
@@ -3040,14 +3076,16 @@ main() {}
   test_parameterScope_local() async {
     // Parameter names shouldn't conflict with the name of the function they
     // are enclosed in.
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 f() {
   g(g) {
     h(g);
   }
 }
 h(x) {}
-''');
+''', [
+      error(HintCode.UNUSED_ELEMENT, 8, 1),
+    ]);
   }
 
   test_parameterScope_method() async {
@@ -3110,36 +3148,42 @@ class B<S> extends A<S> {
   }
 
   test_referenceToDeclaredVariableInInitializer_constructorName() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   A.x() {}
 }
 f() {
   var x = new A.x();
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 35, 1),
+    ]);
   }
 
   test_referenceToDeclaredVariableInInitializer_methodName() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   x() {}
 }
 f(A a) {
   var x = a.x();
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 36, 1),
+    ]);
   }
 
   test_referenceToDeclaredVariableInInitializer_propertyName() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   var x;
 }
 f(A a) {
   var x = a.x;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 36, 1),
+    ]);
   }
 
   test_regress34906() async {
@@ -3161,7 +3205,7 @@ class A {
   }
 
   test_returnOfInvalidType_dynamic() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class TypeError {}
 class A {
   static void testLogicalOp() {
@@ -3174,7 +3218,10 @@ class A {
     }
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_ELEMENT, 65, 6),
+      error(HintCode.UNUSED_CATCH_CLAUSE, 156, 1),
+    ]);
   }
 
   test_returnOfInvalidType_subtype() async {
@@ -3331,7 +3378,7 @@ main(FuncA f) {
   }
 
   test_typePromotion_functionType_return_ignoreIfNotMoreSpecific() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class A {}
 typedef FuncAtoDyn(A a);
 typedef FuncDynToDyn(x);
@@ -3340,11 +3387,13 @@ main(FuncAtoDyn f) {
     A a = f(new A());
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 115, 1),
+    ]);
   }
 
   test_typePromotion_functionType_return_voidToDynamic() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 typedef FuncDynToDyn(x);
 typedef void FuncDynToVoid(x);
 class A {}
@@ -3353,7 +3402,9 @@ main(FuncDynToVoid f) {
     A a = f(null);
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 124, 1),
+    ]);
   }
 
   test_typePromotion_if_accessedInClosure_noAssignment() async {
@@ -3425,7 +3476,7 @@ main(A<V> p) {
   }
 
   test_typePromotion_if_inClosure_assignedAfter_inSameFunction() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 main() {
   f(Object p) {
     if (p is String) {
@@ -3434,7 +3485,9 @@ main() {
     p = 0;
   };
 }
-''');
+''', [
+      error(HintCode.UNUSED_ELEMENT, 11, 1),
+    ]);
   }
 
   test_typePromotion_if_is_and_left() async {

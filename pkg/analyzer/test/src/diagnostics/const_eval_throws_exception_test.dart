@@ -89,13 +89,15 @@ class C {
     : assert(m != null);
 }
 ''');
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 import 'other.dart';
 
 main() {
   var c = const C();
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 37, 1),
+    ]);
     var otherFileResult =
         await resolveFile(convertPath('/test/lib/other.dart'));
     expect(otherFileResult.errors, isEmpty);
@@ -109,13 +111,15 @@ class C {
     : assert(m != null);
 }
 ''');
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 import 'other.dart';
 
 main() {
   var c = const C();
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 37, 1),
+    ]);
     var otherFileResult =
         await resolveFile(convertPath('/test/lib/other.dart'));
     expect(otherFileResult.errors, isEmpty);

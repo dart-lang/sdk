@@ -15,17 +15,19 @@ main() {
 
 @reflectiveTest
 class InvalidAssignmentTest extends DriverResolutionTest {
-  test_assingment_to_dynamic() async {
-    await assertNoErrorsInCode(r'''
+  test_assignment_to_dynamic() async {
+    await assertErrorsInCode(r'''
 f() {
   var g;
   g = () => 0;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 12, 1),
+    ]);
   }
 
   test_compoundAssignment() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class byte {
   int _value;
   byte(this._value);
@@ -36,7 +38,10 @@ void main() {
   byte b = new byte(52);
   b += 3;
 }
-''');
+''', [
+      error(HintCode.UNUSED_FIELD, 19, 6),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 116, 1),
+    ]);
   }
 
   test_defaultValue_named() async {
@@ -164,13 +169,15 @@ f(var y) {
   }
 
   test_invalidAssignment() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 f() {
   var x;
   var y;
   x = y;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 12, 1),
+    ]);
   }
 
   test_localVariable() async {
@@ -243,7 +250,7 @@ f(C c) {
   }
 
   test_promotedTypeParameter_regress35306() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class A {}
 class B extends A {}
 class C extends D {}
@@ -257,7 +264,12 @@ void f<X extends A, Y extends B>(X x) {
     Y y = x;
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 127, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 140, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 153, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 167, 1),
+    ]);
   }
 
   test_staticVariable() async {

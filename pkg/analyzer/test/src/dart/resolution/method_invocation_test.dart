@@ -1660,13 +1660,15 @@ main() {
   }
 
   test_typeArgumentTypes_generic_inferred() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 U foo<T, U>(T a) => null;
 
 main() {
   bool v = foo(0);
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 43, 1),
+    ]);
 
     var invocation = findNode.methodInvocation('foo(0)');
     assertTypeArgumentTypes(invocation, ['int', 'bool']);
