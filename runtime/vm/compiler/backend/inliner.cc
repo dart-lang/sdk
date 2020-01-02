@@ -211,7 +211,7 @@ class GraphInfoCollector : public ValueObject {
           // TODO(fschneider): Determine new heuristic parameters that avoid
           // these checks entirely.
           if (!call->IsSureToCallSingleRecognizedTarget() &&
-              (call->instance_call()->token_kind() != Token::kEQ)) {
+              (call->token_kind() != Token::kEQ)) {
             ++call_site_count_;
           }
         }
@@ -1015,7 +1015,7 @@ class CallSiteInliner : public ValueObject {
           entry_kind = instr->entry_kind();
         } else if (PolymorphicInstanceCallInstr* instr =
                        call_data->call->AsPolymorphicInstanceCall()) {
-          entry_kind = instr->instance_call()->entry_kind();
+          entry_kind = instr->entry_kind();
         } else if (ClosureCallInstr* instr = call_data->call->AsClosureCall()) {
           entry_kind = instr->entry_kind();
         }
@@ -1508,9 +1508,8 @@ class CallSiteInliner : public ValueObject {
       PolymorphicInstanceCallInstr* call = call_info[call_idx].call;
       // PolymorphicInliner introduces deoptimization paths.
       if (!call->complete() && !FLAG_polymorphic_with_deopt) {
-        TRACE_INLINING(
-            THR_Print("  => %s\n     Bailout: call with checks\n",
-                      call->instance_call()->function_name().ToCString()));
+        TRACE_INLINING(THR_Print("  => %s\n     Bailout: call with checks\n",
+                                 call->function_name().ToCString()));
         continue;
       }
       const Function& cl = call_info[call_idx].caller();
@@ -1751,13 +1750,12 @@ bool PolymorphicInliner::TryInliningPoly(const TargetInfo& target_info) {
     arguments.Add(call_->ArgumentValueAt(i));
   }
   const Array& arguments_descriptor =
-      Array::ZoneHandle(Z, call_->instance_call()->GetArgumentsDescriptor());
-  InlinedCallData call_data(call_, arguments_descriptor,
-                            call_->instance_call()->FirstArgIndex(), &arguments,
-                            caller_function_, caller_inlining_id_);
+      Array::ZoneHandle(Z, call_->GetArgumentsDescriptor());
+  InlinedCallData call_data(call_, arguments_descriptor, call_->FirstArgIndex(),
+                            &arguments, caller_function_, caller_inlining_id_);
   Function& target = Function::ZoneHandle(zone(), target_info.target->raw());
-  if (!owner_->TryInlining(target, call_->instance_call()->argument_names(),
-                           &call_data, false)) {
+  if (!owner_->TryInlining(target, call_->argument_names(), &call_data,
+                           false)) {
     return false;
   }
 
@@ -1799,8 +1797,7 @@ bool PolymorphicInliner::TryInlineRecognizedMethod(intptr_t receiver_cid,
       owner_->caller_graph()->alloc_ssa_temp_index());
   if (FlowGraphInliner::TryInlineRecognizedMethod(
           owner_->caller_graph(), receiver_cid, target, call_, redefinition,
-          call_->instance_call()->token_pos(),
-          call_->instance_call()->ic_data(), graph_entry, &entry, &last,
+          call_->token_pos(), call_->ic_data(), graph_entry, &entry, &last,
           &result, owner_->inliner_->speculative_policy())) {
     // The empty Object constructor is the only case where the inlined body is
     // empty and there is no result.
@@ -1811,9 +1808,8 @@ bool PolymorphicInliner::TryInlineRecognizedMethod(intptr_t receiver_cid,
     redefinition->InsertAfter(entry);
     InlineExitCollector* exit_collector =
         new (Z) InlineExitCollector(owner_->caller_graph(), call_);
-    ReturnInstr* return_result =
-        new (Z) ReturnInstr(call_->instance_call()->token_pos(),
-                            new (Z) Value(result), DeoptId::kNone);
+    ReturnInstr* return_result = new (Z)
+        ReturnInstr(call_->token_pos(), new (Z) Value(result), DeoptId::kNone);
     owner_->caller_graph()->AppendTo(
         last, return_result,
         call_->env(),  // Return can become deoptimization target.
@@ -1935,9 +1931,8 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
         ConstantInstr* cid_constant_end =
             owner_->caller_graph()->GetConstant(cid_end);
         RelationalOpInstr* compare_top = new RelationalOpInstr(
-            call_->instance_call()->token_pos(), Token::kLTE,
-            new Value(load_cid), new Value(cid_constant_end), kSmiCid,
-            call_->deopt_id());
+            call_->token_pos(), Token::kLTE, new Value(load_cid),
+            new Value(cid_constant_end), kSmiCid, call_->deopt_id());
         BranchInstr* branch_top = upper_limit_branch =
             new BranchInstr(compare_top, DeoptId::kNone);
         branch_top->InheritDeoptTarget(zone(), call_);
@@ -1953,15 +1948,14 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
         *branch_top->true_successor_address() = below_target;
 
         RelationalOpInstr* compare_bottom = new RelationalOpInstr(
-            call_->instance_call()->token_pos(), Token::kGTE,
-            new Value(load_cid), new Value(cid_constant), kSmiCid,
-            call_->deopt_id());
+            call_->token_pos(), Token::kGTE, new Value(load_cid),
+            new Value(cid_constant), kSmiCid, call_->deopt_id());
         branch = new BranchInstr(compare_bottom, DeoptId::kNone);
       } else {
-        StrictCompareInstr* compare = new StrictCompareInstr(
-            call_->instance_call()->token_pos(), Token::kEQ_STRICT,
-            new Value(load_cid), new Value(cid_constant),
-            /* number_check = */ false, DeoptId::kNone);
+        StrictCompareInstr* compare =
+            new StrictCompareInstr(call_->token_pos(), Token::kEQ_STRICT,
+                                   new Value(load_cid), new Value(cid_constant),
+                                   /* number_check = */ false, DeoptId::kNone);
         branch = new BranchInstr(compare, DeoptId::kNone);
       }
 
@@ -2064,15 +2058,14 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
       cursor = push;
     }
     PolymorphicInstanceCallInstr* fallback_call =
-        new PolymorphicInstanceCallInstr(
-            call_->instance_call(), *non_inlined_variants_, call_->complete());
+        PolymorphicInstanceCallInstr::FromCall(Z, call_, *non_inlined_variants_,
+                                               call_->complete());
     fallback_call->set_ssa_temp_index(
         owner_->caller_graph()->alloc_ssa_temp_index());
     fallback_call->InheritDeoptTarget(zone(), call_);
     fallback_call->set_total_call_count(call_->CallCount());
-    ReturnInstr* fallback_return =
-        new ReturnInstr(call_->instance_call()->token_pos(),
-                        new Value(fallback_call), DeoptId::kNone);
+    ReturnInstr* fallback_return = new ReturnInstr(
+        call_->token_pos(), new Value(fallback_call), DeoptId::kNone);
     fallback_return->InheritDeoptTargetAfter(owner_->caller_graph(), call_,
                                              fallback_call);
     AppendInstruction(AppendInstruction(cursor, fallback_call),

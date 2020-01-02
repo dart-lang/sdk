@@ -910,10 +910,7 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
   // T does not override ==. Replace with StrictCompare.
   if (instr->token_kind() == Token::kEQ || instr->token_kind() == Token::kNE) {
     GrowableArray<intptr_t> class_ids(6);
-    if (instr->PushArgumentAt(receiver_idx)
-            ->value()
-            ->Type()
-            ->Specialize(&class_ids)) {
+    if (instr->ArgumentValueAt(receiver_idx)->Type()->Specialize(&class_ids)) {
       bool is_object_eq = true;
       for (intptr_t i = 0; i < class_ids.length(); i++) {
         const intptr_t cid = class_ids[i];
@@ -930,8 +927,8 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
             instr->token_pos(),
             (instr->token_kind() == Token::kEQ) ? Token::kEQ_STRICT
                                                 : Token::kNE_STRICT,
-            instr->PushArgumentAt(0)->value()->CopyWithType(Z),
-            instr->PushArgumentAt(1)->value()->CopyWithType(Z),
+            instr->ArgumentValueAt(0)->CopyWithType(Z),
+            instr->ArgumentValueAt(1)->CopyWithType(Z),
             /*needs_number_check=*/false, DeoptId::kNone);
         ReplaceCall(instr, replacement);
         RefineUseTypes(replacement);
@@ -1047,8 +1044,8 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
         const CallTargets* targets = CallTargets::Create(Z, ic_data);
         ASSERT(!targets->is_empty());
         PolymorphicInstanceCallInstr* call =
-            new (Z) PolymorphicInstanceCallInstr(instr, *targets,
-                                                 /* complete = */ true);
+            PolymorphicInstanceCallInstr::FromCall(Z, instr, *targets,
+                                                   /* complete = */ true);
         instr->ReplaceWith(call, current_iterator());
         return;
       }
@@ -1068,8 +1065,8 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
     // OK to use checks with PolymorphicInstanceCallInstr since no
     // deoptimization is allowed.
     PolymorphicInstanceCallInstr* call =
-        new (Z) PolymorphicInstanceCallInstr(instr, targets,
-                                             /* complete = */ false);
+        PolymorphicInstanceCallInstr::FromCall(Z, instr, targets,
+                                               /* complete = */ false);
     instr->ReplaceWith(call, current_iterator());
     return;
   }
@@ -1196,8 +1193,8 @@ void AotCallSpecializer::VisitPolymorphicInstanceCall(
   if (receiver_cid != kDynamicCid) {
     const Class& receiver_class =
         Class::Handle(Z, isolate()->class_table()->At(receiver_cid));
-    const Function& function = Function::ZoneHandle(
-        Z, call->instance_call()->ResolveForReceiverClass(receiver_class));
+    const Function& function =
+        Function::ZoneHandle(Z, call->ResolveForReceiverClass(receiver_class));
     if (!function.IsNull()) {
       // Only one target. Replace by static call.
       StaticCallInstr* new_call =

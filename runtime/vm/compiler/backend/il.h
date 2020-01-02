@@ -3595,9 +3595,7 @@ class TemplateDartCall : public TemplateDefinition<kInputCount, Throws> {
   }
 
   intptr_t FirstArgIndex() const { return type_args_len_ > 0 ? 1 : 0; }
-  Value* Receiver() const {
-    return this->PushArgumentAt(FirstArgIndex())->value();
-  }
+  Value* Receiver() const { return this->ArgumentValueAt(FirstArgIndex()); }
   intptr_t ArgumentCountWithoutTypeArgs() const {
     return arguments_->length() - FirstArgIndex();
   }
@@ -3832,40 +3830,27 @@ class InstanceCallInstr : public TemplateDartCall<0> {
   DISALLOW_COPY_AND_ASSIGN(InstanceCallInstr);
 };
 
-class PolymorphicInstanceCallInstr : public TemplateDefinition<0, Throws> {
+class PolymorphicInstanceCallInstr : public TemplateDartCall<0> {
  public:
-  PolymorphicInstanceCallInstr(InstanceCallInstr* instance_call,
-                               const CallTargets& targets,
-                               bool complete)
-      : TemplateDefinition(instance_call->deopt_id()),
-        instance_call_(instance_call),
-        targets_(targets),
-        complete_(complete) {
-    ASSERT(instance_call_ != NULL);
-    ASSERT(targets.length() != 0);
-    total_call_count_ = CallCount();
+  // Generate a replacement polymorphic call instruction.
+  static PolymorphicInstanceCallInstr* FromCall(Zone* zone,
+                                                InstanceCallInstr* call,
+                                                const CallTargets& targets,
+                                                bool complete) {
+    return FromCall(zone, call, call, targets, complete);
   }
 
-  InstanceCallInstr* instance_call() const { return instance_call_; }
-  bool complete() const { return complete_; }
-  virtual TokenPosition token_pos() const {
-    return instance_call_->token_pos();
+  static PolymorphicInstanceCallInstr* FromCall(
+      Zone* zone,
+      PolymorphicInstanceCallInstr* call,
+      const CallTargets& targets,
+      bool complete) {
+    return FromCall(zone, call, call->instance_call(), targets, complete);
   }
+
+  bool complete() const { return complete_; }
 
   virtual CompileType ComputeType() const;
-
-  virtual intptr_t ArgumentCount() const {
-    return instance_call()->ArgumentCount();
-  }
-  virtual PushArgumentInstr* PushArgumentAt(intptr_t index) const {
-    return instance_call()->PushArgumentAt(index);
-  }
-  const Array& argument_names() const {
-    return instance_call()->argument_names();
-  }
-  intptr_t type_args_len() const { return instance_call()->type_args_len(); }
-
-  Value* Receiver() const { return instance_call()->Receiver(); }
 
   bool HasOnlyDispatcherOrImplicitAccessorTargets() const;
 
@@ -3899,14 +3884,58 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0, Throws> {
 
   CompileType* result_type() const { return instance_call()->result_type(); }
   intptr_t result_cid() const { return instance_call()->result_cid(); }
-
+  const String& function_name() const {
+    return instance_call()->function_name();
+  }
+  Token::Kind token_kind() const { return instance_call()->token_kind(); }
   Code::EntryKind entry_kind() const { return instance_call()->entry_kind(); }
+  const ICData* ic_data() const { return instance_call()->ic_data(); }
+  bool has_unique_selector() const {
+    return instance_call()->has_unique_selector();
+  }
+  RawFunction* ResolveForReceiverClass(const Class& cls) {
+    return instance_call()->ResolveForReceiverClass(cls);
+  }
 
   PRINT_OPERANDS_TO_SUPPORT
   ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT
   ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT
 
  private:
+  PolymorphicInstanceCallInstr(InstanceCallInstr* instance_call,
+                               PushArgumentsArray* arguments,
+                               const CallTargets& targets,
+                               bool complete)
+      : TemplateDartCall<0>(instance_call->deopt_id(),
+                            instance_call->type_args_len(),
+                            instance_call->argument_names(),
+                            arguments,
+                            instance_call->token_pos()),
+        instance_call_(instance_call),
+        targets_(targets),
+        complete_(complete) {
+    ASSERT(instance_call_ != nullptr);
+    ASSERT(targets.length() != 0);
+    total_call_count_ = CallCount();
+  }
+
+  static PolymorphicInstanceCallInstr* FromCall(
+      Zone* zone,
+      Instruction* call_for_arguments,
+      InstanceCallInstr* call_for_attributes,
+      const CallTargets& targets,
+      bool complete) {
+    PushArgumentsArray* args = new (zone)
+        PushArgumentsArray(zone, call_for_arguments->ArgumentCount());
+    for (intptr_t i = 0, n = call_for_arguments->ArgumentCount(); i < n; ++i) {
+      args->Add(call_for_arguments->PushArgumentAt(i));
+    }
+    return new (zone) PolymorphicInstanceCallInstr(call_for_attributes, args,
+                                                   targets, complete);
+  }
+
+  InstanceCallInstr* instance_call() const { return instance_call_; }
+
   InstanceCallInstr* instance_call_;
   const CallTargets& targets_;
   const bool complete_;

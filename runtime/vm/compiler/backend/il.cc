@@ -4464,12 +4464,10 @@ intptr_t PolymorphicInstanceCallInstr::CallCount() const {
 }
 
 void PolymorphicInstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ArgumentsInfo args_info(instance_call()->type_args_len(),
-                          instance_call()->ArgumentCount(),
-                          instance_call()->argument_names());
-  compiler->EmitPolymorphicInstanceCall(
-      targets_, *instance_call(), args_info, deopt_id(),
-      instance_call()->token_pos(), locs(), complete(), total_call_count());
+  ArgumentsInfo args_info(type_args_len(), ArgumentCount(), argument_names());
+  compiler->EmitPolymorphicInstanceCall(targets_, *instance_call(), args_info,
+                                        deopt_id(), token_pos(), locs(),
+                                        complete(), total_call_count());
 }
 
 RawType* PolymorphicInstanceCallInstr::ComputeRuntimeType(

@@ -187,7 +187,7 @@ void CallSpecializer::SpecializePolymorphicInstanceCall(
     return;  // No information about receiver was infered.
   }
 
-  const ICData& ic_data = *call->instance_call()->ic_data();
+  const ICData& ic_data = *call->ic_data();
 
   const CallTargets* targets =
       FlowGraphCompiler::ResolveCallTargetsForReceiverCid(

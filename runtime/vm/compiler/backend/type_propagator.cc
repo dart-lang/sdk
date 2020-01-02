@@ -338,13 +338,13 @@ void FlowGraphTypePropagator::VisitInstanceCall(InstanceCallInstr* instr) {
 
 void FlowGraphTypePropagator::VisitPolymorphicInstanceCall(
     PolymorphicInstanceCallInstr* instr) {
-  if (instr->instance_call()->has_unique_selector()) {
+  if (instr->has_unique_selector()) {
     SetCid(instr->Receiver()->definition(),
            instr->targets().MonomorphicReceiverCid());
     return;
   }
   CheckNonNullSelector(instr, instr->Receiver()->definition(),
-                       instr->instance_call()->function_name());
+                       instr->function_name());
 }
 
 void FlowGraphTypePropagator::VisitGuardFieldClass(
