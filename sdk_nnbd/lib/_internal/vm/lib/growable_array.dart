@@ -121,6 +121,10 @@ class _GrowableList<T> extends ListBase<T> {
     int old_capacity = _capacity;
     int new_capacity = new_length;
     if (new_capacity > old_capacity) {
+      if (null is! T) {
+        throw UnsupportedError(
+            "Cannot grow array with non-nullable element type");
+      }
       _grow(new_capacity);
       _setLength(new_length);
       return;
@@ -136,7 +140,7 @@ class _GrowableList<T> extends ListBase<T> {
       _shrink(new_capacity, new_length);
     } else {
       for (int i = new_length; i < length; i++) {
-        this[i] = null;
+        _setIndexed(i, null);
       }
     }
     _setLength(new_length);
@@ -152,7 +156,7 @@ class _GrowableList<T> extends ListBase<T> {
     _setIndexed(index, value);
   }
 
-  void _setIndexed(int index, T value) native "GrowableList_setIndexed";
+  void _setIndexed(int index, T? value) native "GrowableList_setIndexed";
 
   @pragma("vm:entry-point", "call")
   @pragma("vm:prefer-inline")
@@ -378,19 +382,19 @@ class _GrowableList<T> extends ListBase<T> {
   List<T> toList({bool growable: true}) {
     var length = this.length;
     if (length > 0) {
-      List list = growable ? new _List(length) : new _List<T>(length);
+      final list = new _List<T>(length);
       for (int i = 0; i < length; i++) {
         list[i] = this[i];
       }
       if (!growable) return list;
-      var result = new _GrowableList<T>._withData(list);
+      final result = new _GrowableList<T>._withData(list);
       result._setLength(length);
       return result;
     }
-    return growable ? <T>[] : new List<T>(0);
+    return growable ? <T>[] : List<T>.empty(growable: growable);
   }
 
   Set<T> toSet() {
-    return new Set<T>.from(this);
+    return new Set<T>.of(this);
   }
 }

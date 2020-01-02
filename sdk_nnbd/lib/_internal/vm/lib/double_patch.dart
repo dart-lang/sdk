@@ -13,7 +13,7 @@ class double {
   static double _nativeParse(String str, int start, int end)
       native "Double_parse";
 
-  static double _tryParseDouble(var str, var start, var end) {
+  static double? _tryParseDouble(String str, int start, int end) {
     assert(start < end);
     const int _DOT = 0x2e; // '.'
     const int _ZERO = 0x30; // '0'
@@ -93,7 +93,7 @@ class double {
     return sign * (doubleValue * P10[exponent]);
   }
 
-  static double _parse(var str) {
+  static double? _parse(String str) {
     int len = str.length;
     int start = str._firstNonWhitespace();
     if (start == len) return null; // All whitespace.
@@ -116,5 +116,5 @@ class double {
   }
 
   @patch
-  static double tryParse(String source) => _parse(source);
+  static double? tryParse(String source) => _parse(source);
 }

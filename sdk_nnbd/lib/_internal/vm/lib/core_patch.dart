@@ -117,41 +117,46 @@ class _SyncIterable<T> extends IterableBase<T> {
 }
 
 class _SyncIterator<T> implements Iterator<T> {
-  _SyncGeneratorCallback<T> _moveNextFn;
-  Iterator<T> _yieldEachIterator;
+  _SyncGeneratorCallback<T>? _moveNextFn;
+  Iterator<T>? _yieldEachIterator;
 
   // These two fields are set by generated code for the yield and yield*
   // statement.
-  T _current;
-  Iterable<T> _yieldEachIterable;
+  T? _current;
+  Iterable<T>? _yieldEachIterable;
 
-  T get current =>
-      _yieldEachIterator != null ? _yieldEachIterator.current : _current;
+  T get current {
+    final iterator = _yieldEachIterator;
+    return iterator != null ? iterator.current : _current as T;
+  }
 
   _SyncIterator(this._moveNextFn);
 
   bool moveNext() {
-    if (_moveNextFn == null) {
+    final moveNextFn = _moveNextFn;
+    if (moveNextFn == null) {
       return false;
     }
     while (true) {
-      if (_yieldEachIterator != null) {
-        if (_yieldEachIterator.moveNext()) {
+      final iterator = _yieldEachIterator;
+      if (iterator != null) {
+        if (iterator.moveNext()) {
           return true;
         }
         _yieldEachIterator = null;
       }
       // _moveNextFn() will update the values of _yieldEachIterable
       //  and _current.
-      if (!_moveNextFn(this)) {
+      if (!moveNextFn(this)) {
         _moveNextFn = null;
         _current = null;
         return false;
       }
-      if (_yieldEachIterable != null) {
+      final yieldEachIterable = _yieldEachIterable;
+      if (yieldEachIterable != null) {
         // Spec mandates: it is a dynamic error if the class of [the object
         // returned by yield*] does not implement Iterable.
-        _yieldEachIterator = _yieldEachIterable.iterator;
+        _yieldEachIterator = yieldEachIterable.iterator;
         _yieldEachIterable = null;
         _current = null;
         continue;

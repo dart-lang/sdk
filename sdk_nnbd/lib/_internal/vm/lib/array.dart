@@ -37,7 +37,7 @@ class _List<E> extends FixedLengthListBase<E> {
     }
   }
 
-  List _sliceInternal(int start, int count, bool needsTypeArgument)
+  _List _sliceInternal(int start, int count, bool needsTypeArgument)
       native "List_slice";
 
   // List interface.
@@ -53,12 +53,12 @@ class _List<E> extends FixedLengthListBase<E> {
     if (identical(this, iterable)) {
       Lists.copy(this, skipCount, this, start, length);
     } else if (ClassID.getID(iterable) == ClassID.cidArray) {
-      final _List<E> iterableAsList = iterable;
+      final _List<E> iterableAsList = unsafeCast<_List<E>>(iterable);
       Lists.copy(iterableAsList, skipCount, this, start, length);
     } else if (iterable is List<E>) {
       Lists.copy(iterable, skipCount, this, start, length);
     } else {
-      Iterator it = iterable.iterator;
+      Iterator<E> it = iterable.iterator;
       while (skipCount > 0) {
         if (!it.moveNext()) return;
         skipCount--;
@@ -94,8 +94,9 @@ class _List<E> extends FixedLengthListBase<E> {
     Lists.copy(iterableAsList, 0, this, index, length);
   }
 
-  List<E> sublist(int start, [int end]) {
-    end = RangeError.checkValidRange(start, end, this.length);
+  List<E> sublist(int start, [int? end]) {
+    final int listLength = this.length;
+    end = RangeError.checkValidRange(start, end, listLength);
     int length = end - start;
     if (length == 0) return <E>[];
     var result = new _GrowableList<E>._withData(_slice(start, length, false));
@@ -216,16 +217,21 @@ class _ImmutableList<E> extends UnmodifiableListBase<E> {
   }
 
   List<E> toList({bool growable: true}) {
-    var length = this.length;
+    final int length = this.length;
     if (length > 0) {
-      List list = growable ? new _List(length) : new _List<E>(length);
-      for (int i = 0; i < length; i++) {
-        list[i] = this[i];
+      if (growable) {
+        final list = new _List(length);
+        for (int i = 0; i < length; i++) {
+          list[i] = this[i];
+        }
+        return _GrowableList<E>._withData(list).._setLength(length);
+      } else {
+        final list = new _List<E>(length);
+        for (int i = 0; i < length; i++) {
+          list[i] = this[i];
+        }
+        return list;
       }
-      if (!growable) return list;
-      var result = new _GrowableList<E>._withData(list);
-      result._setLength(length);
-      return result;
     }
     return growable ? <E>[] : new _List<E>(0);
   }

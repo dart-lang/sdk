@@ -32,7 +32,7 @@ class DateTime {
   static const _MONTH_INDEX = 7;
   static const _YEAR_INDEX = 8;
 
-  List __parts;
+  List? __parts;
 
   @patch
   DateTime.fromMillisecondsSinceEpoch(int millisecondsSinceEpoch,
@@ -182,8 +182,7 @@ class DateTime {
   }
 
   get _parts {
-    __parts ??= _computeUpperPart(_localDateInUtcMicros);
-    return __parts;
+    return __parts ??= _computeUpperPart(_localDateInUtcMicros);
   }
 
   @patch

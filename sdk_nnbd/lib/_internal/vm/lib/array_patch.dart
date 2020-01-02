@@ -9,6 +9,11 @@
 @patch
 class List<E> {
   @patch
+  factory List.empty({bool growable = true}) {
+    return growable ? <E>[] : _List<E>(0);
+  }
+
+  @patch
   factory List([int length]) native "List_new";
 
   @patch
