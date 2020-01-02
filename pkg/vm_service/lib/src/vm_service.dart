@@ -770,9 +770,9 @@ abstract class VmServiceInterface {
   ///
   /// This method immediately returns success. The VM will then begin delivering
   /// binary events on the `HeapSnapshot` event stream. The binary data in these
-  /// events, when concatenated together, conforms to the SnapshotGraph type.
+  /// events, when concatenated together, conforms to the [SnapshotGraph] type.
   /// The splitting of the SnapshotGraph into events can happen at any byte
-  /// offset, including the middle of scalar fields.
+  /// offset.
   Future<Success> requestHeapSnapshot(String isolateId);
 
   /// The `resume` RPC is used to resume execution of a paused isolate.
@@ -6079,12 +6079,15 @@ class TimelineEvent {
   static TimelineEvent parse(Map<String, dynamic> json) =>
       json == null ? null : TimelineEvent._fromJson(json);
 
+  Map<String, dynamic> json;
+
   TimelineEvent();
-  TimelineEvent._fromJson(Map<String, dynamic> json);
+  TimelineEvent._fromJson(this.json);
 
   Map<String, dynamic> toJson() {
-    var json = <String, dynamic>{};
-    return json;
+    var result = json == null ? <String, dynamic>{} : Map.of(json);
+    result['type'] = 'TimelineEvent';
+    return result;
   }
 
   String toString() => '[TimelineEvent ]';

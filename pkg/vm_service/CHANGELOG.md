@@ -1,4 +1,7 @@
 # Changelog
+## 2.2.1
+- Fixed issue where `TimelineEvent.toJson` always returned an empty map.
+
 ## 2.2.0
 - Added support for interacting with dart:io service extensions.
 - Bumped minimum SDK requirement to 2.6.0.
