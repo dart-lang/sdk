@@ -851,15 +851,16 @@ void HeapSnapshotWriter::Write() {
   WriteUnsigned(0);           // Flags.
   WriteUtf8(isolate()->name());
   Heap* H = thread()->heap();
-  WriteUnsigned(
-      (H->new_space()->UsedInWords() + H->old_space()->UsedInWords()) *
-      kWordSize);
-  WriteUnsigned(
-      (H->new_space()->CapacityInWords() + H->old_space()->CapacityInWords()) *
-      kWordSize);
-  WriteUnsigned(
-      (H->new_space()->ExternalInWords() + H->old_space()->ExternalInWords()) *
-      kWordSize);
+
+  {
+    intptr_t used = H->TotalUsedInWords() << kWordSizeLog2;
+    intptr_t capacity = H->TotalCapacityInWords() << kWordSizeLog2;
+    intptr_t external = H->TotalExternalInWords() << kWordSizeLog2;
+    intptr_t image = H->old_space()->ImageInWords() << kWordSizeLog2;
+    WriteUnsigned(used + image);
+    WriteUnsigned(capacity + image);
+    WriteUnsigned(external);
+  }
 
   {
     HANDLESCOPE(thread());

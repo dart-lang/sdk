@@ -317,6 +317,14 @@ class PageSpace {
     MutexLocker ml(&pages_lock_);
     return usage_;
   }
+  int64_t ImageInWords() const {
+    int64_t size = 0;
+    MutexLocker ml(&pages_lock_);
+    for (HeapPage* page = image_pages_; page != nullptr; page = page->next()) {
+      size += page->memory_->size();
+    }
+    return size >> kWordSizeLog2;
+  }
 
   bool Contains(uword addr) const;
   bool Contains(uword addr, HeapPage::PageType type) const;
