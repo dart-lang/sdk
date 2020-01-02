@@ -48,14 +48,27 @@ final Map<String, List<String>> additionalRequiredClasses = {
   ],
 };
 
+/// Additional indexed top level methods required by the dev_compiler.
+final Map<String, List<String>> requiredMethods = {
+  'dart:_runtime': ['assertInterop'],
+};
+
 void main() {
   final allRequiredTypes =
       _combineMaps(CoreTypes.requiredClasses, additionalRequiredClasses);
+  final allRequiredLibraries = {
+    ...allRequiredTypes.keys,
+    ...requiredMethods.keys
+  };
   final testCoreLibraries = [
-    for (String requiredLibrary in allRequiredTypes.keys)
+    for (String requiredLibrary in allRequiredLibraries)
       Library(Uri.parse(requiredLibrary), classes: [
-        for (String requiredClass in allRequiredTypes[requiredLibrary])
+        for (String requiredClass in allRequiredTypes[requiredLibrary] ?? [])
           Class(name: requiredClass),
+      ], procedures: [
+        for (var requiredMethod in requiredMethods[requiredLibrary] ?? [])
+          Procedure(Name(requiredMethod), ProcedureKind.Method,
+              FunctionNode(EmptyStatement())),
       ]),
   ];
 

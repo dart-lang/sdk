@@ -511,7 +511,7 @@ Object _putIfAbsent(weakMap, o, getValue(o)) {
   return value;
 }
 
-Expando<Function> _interopExpando = Expando<Function>();
+Expando<dynamic> _interopExpando = Expando<dynamic>();
 
 /// Returns a wrapper around function [f] that can be called from JavaScript
 /// using `package:js` JavaScript interop.

@@ -91,17 +91,42 @@ class DynamicType extends DartType {
 bool _isJsObject(obj) => JS('!', '# === #', getReifiedType(obj), jsobject);
 
 /// Asserts that [f] is a native JS functions and returns it if so.
-/// This function should be used to ensure that a function is a native
-/// JS functions in contexts that expect that.
+///
+/// This function should be used to ensure that a function is a native JS
+/// function before it is passed to native JS code.
+@NoReifyGeneric()
 F assertInterop<F extends Function>(F f) {
-  // TODO(vsm): Throw a more specific error if this fails.
-  assert(_isJsObject(f));
+  assert(_isJsObject(f) || !JS('bool', '# instanceof #.Function', f, global_),
+      'Dart function requires `allowInterop` to be passed to JavaScript.');
   return f;
 }
 
 bool isDartFunction(obj) =>
     JS<bool>('!', '# instanceof Function', obj) &&
     JS<bool>('!', '#[#] != null', obj, _runtimeType);
+
+Expando<Function> _assertInteropExpando = Expando<Function>();
+
+@NoReifyGeneric()
+F tearoffInterop<F extends Function>(F f) {
+  // Wrap a JS function with a closure that ensures all function arguments are
+  // native JS functions.
+  if (!_isJsObject(f)) return f;
+  var ret = _assertInteropExpando[f];
+  if (ret == null) {
+    ret = JS(
+        '',
+        'function (...arguments) {'
+            ' var args = arguments.map(#);'
+            ' return #.apply(this, args);'
+            '}',
+        assertInterop,
+        f);
+    _assertInteropExpando[f] = ret;
+  }
+  // Suppress a cast back to F.
+  return JS('', '#', ret);
+}
 
 /// The Dart type that represents a JavaScript class(/constructor) type.
 ///

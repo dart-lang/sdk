@@ -212,6 +212,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// The dart:async `StreamIterator<T>` type.
   final Class _asyncStreamIteratorClass;
 
+  final Procedure _assertInteropMethod;
+
   final DevCompilerConstants _constants;
 
   final NullableInference _nullableInference;
@@ -262,7 +264,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         _identityHashSetImplClass =
             sdk.getClass('dart:collection', '_IdentityHashSet'),
         _syncIterableClass = sdk.getClass('dart:_js_helper', 'SyncIterable'),
-        _asyncStarImplClass = sdk.getClass('dart:async', '_AsyncStarImpl');
+        _asyncStarImplClass = sdk.getClass('dart:async', '_AsyncStarImpl'),
+        _assertInteropMethod = sdk.getTopLevelMember(
+            'dart:_runtime', 'assertInterop') as Procedure;
 
   @override
   Uri get currentLibraryUri => _currentLibrary.importUri;
@@ -2335,6 +2339,23 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return propertyName(name);
   }
 
+  /// If [f] is a function passed to JS, make it throw at runtime when called if
+  /// it isn't wrapped with `allowInterop`.
+  ///
+  /// Arguments which are _directly_ wrapped at the site they are passed are
+  /// unmodified.
+  Expression _assertInterop(Expression f) {
+    var type = f.getStaticType(_staticTypeContext);
+    if (type is FunctionType ||
+        (type is InterfaceType && type.classNode == _coreTypes.functionClass)) {
+      if (!isAllowInterop(f)) {
+        return StaticInvocation(
+            _assertInteropMethod, Arguments([f], types: [type]));
+      }
+    }
+    return f;
+  }
+
   js_ast.Expression _emitJSInteropStaticMemberName(NamedNode n) {
     if (!usesJSInterop(n)) return null;
     var name = _annotationName(n, isPublicJSAnnotation);
@@ -4048,6 +4069,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     if (_reifyTearoff(member)) {
       return runtimeCall('bind(#, #)', [jsReceiver, jsName]);
+    } else if (isJsMember(member) &&
+        member is Procedure &&
+        !member.isAccessor) {
+      return runtimeCall(
+          'tearoffInterop(#)', [js_ast.PropertyAccess(jsReceiver, jsName)]);
     } else {
       return js_ast.PropertyAccess(jsReceiver, jsName);
     }
@@ -4063,6 +4089,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       [String memberName]) {
     var jsName =
         _emitMemberName(memberName ?? member.name.name, member: member);
+
+    if (member != null && isJsMember(member)) {
+      value = _assertInterop(value);
+    }
 
     var jsReceiver = _visitExpression(receiver);
     var jsValue = _visitExpression(value);
@@ -4108,8 +4138,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   js_ast.Expression visitStaticSet(StaticSet node) {
-    return _visitExpression(node.value)
-        .toAssignExpression(_emitStaticTarget(node.target));
+    var target = node.target;
+    var value = isJsMember(target) ? _assertInterop(node.value) : node.value;
+    return _visitExpression(value)
+        .toAssignExpression(_emitStaticTarget(target));
   }
 
   @override
@@ -4126,7 +4158,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Expression _emitMethodCall(Expression receiver, Member target,
       Arguments arguments, InvocationExpression node) {
     var name = node.name.name;
-
     if (isOperatorMethodName(name) && arguments.named.isEmpty) {
       int argLength = arguments.positional.length;
       if (argLength == 0) {
@@ -4740,6 +4771,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   List<js_ast.Expression> _emitArgumentList(Arguments node,
       {bool types = true, Member target}) {
     types = types && _reifyGenericFunction(target);
+    final isJsInterop = target != null && isJsMember(target);
     return [
       if (types) for (var typeArg in node.types) _emitType(typeArg),
       for (var arg in node.positional)
@@ -4747,6 +4779,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
             isJSSpreadInvocation(arg.target) &&
             arg.arguments.positional.length == 1)
           js_ast.Spread(_visitExpression(arg.arguments.positional[0]))
+        else if (isJsInterop)
+          _visitExpression(_assertInterop(arg))
         else
           _visitExpression(arg),
       if (node.named.isNotEmpty)
@@ -5426,8 +5460,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     if (node is TearOffConstant) {
       // JS() or external JS consts should not be lazily loaded.
       var isSdk = node.procedure.enclosingLibrary.importUri.scheme == "dart";
-      if ((node.procedure.isExternal && !isSdk) || _isInForeignJS) {
+      if (_isInForeignJS) {
         return _emitStaticTarget(node.procedure);
+      }
+      if (node.procedure.isExternal && !isSdk) {
+        return runtimeCall(
+            'tearoffInterop(#)', [_emitStaticTarget(node.procedure)]);
       }
     }
     if (isSdkInternalRuntime(_currentLibrary) || node is PrimitiveConstant) {

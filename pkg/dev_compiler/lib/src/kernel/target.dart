@@ -69,6 +69,7 @@ class DevCompilerTarget extends Target {
           'dart:_interceptors',
           'dart:_js_helper',
           'dart:_native_typed_data',
+          'dart:_runtime',
         ];
 
   final TargetFlags flags;
