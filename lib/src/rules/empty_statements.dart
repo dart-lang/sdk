@@ -11,7 +11,7 @@ const _desc = r'Avoid empty statements.';
 
 const _details = r'''
 
-**AVOID** empty statments.
+**AVOID** empty statements.
 
 Empty statements almost always indicate a bug.
 

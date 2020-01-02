@@ -192,7 +192,7 @@ allow_Future_void_for_void() {
   f = () async {}; // OK
 }
 
-allow_expression_fonction_body() {
+allow_expression_function_body() {
   forget(void Function() f) {}
   int i;
   forget(() => i); // OK

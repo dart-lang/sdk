@@ -111,7 +111,7 @@ mock_code                               1
         });
       });
 
-      group('machine-ouptut', () {
+      group('machine-output', () {
         test('write', () {
           out.buffer.clear();
           SimpleFormatter([info], null, out,

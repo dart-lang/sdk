@@ -18,7 +18,7 @@ With the introduction of generic functions, function type aliases
 parameterization that users might want to express. Generic function type aliases
 (`typedef F = void Function()`) fixed that issue.
 
-For consistancy and readability reasons, it's better to only use one syntax and
+For consistency and readability reasons, it's better to only use one syntax and
 thus prefer generic function type aliases.
 
 **BAD:**

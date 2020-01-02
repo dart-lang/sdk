@@ -14,7 +14,7 @@ const _details = r'''
 **DON'T** put any logic in `createState()`.
 
 Implementations of  `createState()` should return a new instance
-of a State object and do nothing more.  Since state access is prefered 
+of a State object and do nothing more.  Since state access is preferred 
 via the `widget` field,  passing data to `State` objects using custom
 constructor parameters should also be avoided and so further, the State
 constructor is required to be passed no arguments.

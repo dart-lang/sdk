@@ -18,7 +18,7 @@ overriding `hashCode`.
 Every object in Dart has a `hashCode`.  Both the `==` operator and the
 `hashCode` property of objects must be consistent in order for a common hash
 map implementation to function properly.  Thus, when overriding `==`, the
-`hashCode` should also be overriden to maintain consistency. Similarly, if
+`hashCode` should also be overridden to maintain consistency. Similarly, if
 `hashCode` is overridden, `==` should be also.
 
 **BAD:**

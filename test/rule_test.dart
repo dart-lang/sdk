@@ -180,8 +180,8 @@ void defineRuleUnitTests() {
       var bad = ['if', '42', '3', '2f'];
       testEach(bad, isValidDartIdentifier, isFalse);
     });
-    group('libary_name_prefixes', () {
-      bool isGoodPrefx(List<String> v) => matchesOrIsPrefixedBy(
+    group('library_name_prefixes', () {
+      bool isGoodPrefix(List<String> v) => matchesOrIsPrefixedBy(
           v[3],
           Analyzer.facade.createLibraryNamePrefix(
               libraryPath: v[0], projectRoot: v[1], packageName: v[2]));
@@ -193,7 +193,7 @@ void defineRuleUnitTests() {
         ['/u/b/c/test/data/a.dart', '/u/b/c', 'acme', 'acme.test.data.a'],
         ['/u/b/c/lib/acme.dart', '/u/b/c', 'acme', 'acme']
       ];
-      testEach(good, isGoodPrefx, isTrue);
+      testEach(good, isGoodPrefix, isTrue);
 
       var bad = [
         ['/u/b/c/lib/src/a.dart', '/u/b/c', 'acme', 'acme.a'],
@@ -201,7 +201,7 @@ void defineRuleUnitTests() {
         ['/u/b/c/test/a.dart', '/u/b/c', 'acme', 'acme.a'],
         ['/u/b/c/test/data/a.dart', '/u/b/c', 'acme', 'acme.test.a']
       ];
-      testEach(bad, isGoodPrefx, isFalse);
+      testEach(bad, isGoodPrefix, isFalse);
     });
   });
 }

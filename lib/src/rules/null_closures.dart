@@ -38,7 +38,7 @@ in the following locations:
 #### Static functions
 
 * From `dart:async`
-  * `sheduleMicrotask` at the 0th positional parameter
+  * `scheduleMicrotask` at the 0th positional parameter
   * `Future.doWhile` at the 0th positional parameter
   * `Future.forEach` at the 0th positional parameter
   * `Future.wait` at the named parameter `cleanup`

@@ -26,7 +26,7 @@ void someFunction4() {
 
 void someFunction4_1() {
   List list;
-  if(list.remove(null)) print('someFucntion4_1');
+  if(list.remove(null)) print('someFunction4_1');
 }
 
 void someFunction5_1() {
