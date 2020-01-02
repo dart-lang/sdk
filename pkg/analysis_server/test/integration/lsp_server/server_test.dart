@@ -18,9 +18,6 @@ main() {
 
 @reflectiveTest
 class ServerTest extends AbstractLspAnalysisServerIntegrationTest {
-  @SkippedTest(
-      reason: 'flaky timeouts',
-      issue: 'https://github.com/dart-lang/sdk/issues/38629')
   test_diagnosticServer() async {
     await initialize();
 
@@ -41,9 +38,6 @@ class ServerTest extends AbstractLspAnalysisServerIntegrationTest {
     expect(responseBody, contains('<title>Analysis Server</title>'));
   }
 
-  @SkippedTest(
-      reason: 'flaky timeouts',
-      issue: 'https://github.com/dart-lang/sdk/issues/38629')
   test_exit_inintializedWithShutdown() async {
     await initialize();
     await sendShutdown();
@@ -59,9 +53,6 @@ class ServerTest extends AbstractLspAnalysisServerIntegrationTest {
     expect(exitCode, equals(0));
   }
 
-  @SkippedTest(
-      reason: 'flaky timeouts',
-      issue: 'https://github.com/dart-lang/sdk/issues/38629')
   test_exit_initializedWithoutShutdown() async {
     // Send a request that we can wait for, to ensure the server is fully ready
     // before we send exit. Otherwise the exit notification won't be handled for
@@ -79,9 +70,6 @@ class ServerTest extends AbstractLspAnalysisServerIntegrationTest {
     expect(exitCode, equals(1));
   }
 
-  @SkippedTest(
-      reason: 'flaky timeouts',
-      issue: 'https://github.com/dart-lang/sdk/issues/38629')
   test_exit_uninintializedWithShutdown() async {
     await sendShutdown();
     sendExit();
@@ -96,9 +84,6 @@ class ServerTest extends AbstractLspAnalysisServerIntegrationTest {
     expect(exitCode, equals(0));
   }
 
-  @SkippedTest(
-      reason: 'flaky timeouts',
-      issue: 'https://github.com/dart-lang/sdk/issues/38629')
   test_exit_uninitializedWithoutShutdown() async {
     // This tests the same as test_exit_withoutShutdown but without sending
     // initialize. It can't be as strict with the timeout as the server may take
