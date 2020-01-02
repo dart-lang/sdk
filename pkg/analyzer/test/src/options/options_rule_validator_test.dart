@@ -30,7 +30,7 @@ class DeprecatedLint extends LintRule {
 @reflectiveTest
 class OptionsRuleValidatorTest extends Object with ResourceProviderMixin {
   LinterRuleOptionsValidator validator = LinterRuleOptionsValidator(
-      provider: () => [DeprecatedLint(), StableLint()]);
+      provider: () => [DeprecatedLint(), StableLint(), RuleNeg(), RulePos()]);
 
 /**
  * Assert that when the validator is used on the given [content] the
@@ -64,6 +64,15 @@ linter:
       ''', [DUPLICATE_RULE_HINT]);
   }
 
+  test_incompatible_rule() {
+    assertErrors('''
+linter:
+  rules:
+    - rule_pos
+    - rule_neg
+      ''', [INCOMPATIBLE_LINT_WARNING]);
+  }
+
   test_stable_rule() {
     assertErrors('''
 linter:
@@ -85,4 +94,16 @@ class StableLint extends LintRule {
   StableLint()
       : super(
             name: 'stable_lint', group: Group.style, maturity: Maturity.stable);
+}
+
+class RuleNeg extends LintRule {
+  RuleNeg() : super(name: 'rule_neg', group: Group.style);
+  @override
+  List<String> get incompatibleRules => ['rule_pos'];
+}
+
+class RulePos extends LintRule {
+  RulePos() : super(name: 'rule_pos', group: Group.style);
+  @override
+  List<String> get incompatibleRules => ['rule_neg'];
 }
