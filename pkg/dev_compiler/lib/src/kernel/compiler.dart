@@ -5578,8 +5578,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       return js_ast.Property(symbol, constant);
     }
 
-    var type =
-        visitInterfaceType(node.getType(_staticTypeContext) as InterfaceType);
+    var type = _emitInterfaceType(
+        node.getType(_staticTypeContext) as InterfaceType,
+        emitNullability: false);
     var prototype = js.call("#.prototype", [type]);
     var properties = [
       js_ast.Property(propertyName("__proto__"), prototype),
