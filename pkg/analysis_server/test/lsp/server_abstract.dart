@@ -267,6 +267,31 @@ mixin ClientCapabilitiesHelperMixin {
       'synchronization': {'dynamicRegistration': true}
     });
   }
+
+  TextDocumentClientCapabilities withAllSupportedDynamicRegistrations(
+    TextDocumentClientCapabilities source,
+  ) {
+    // This list should match all of the fields listed in
+    // `ClientDynamicRegistrations.supported`.
+    return extendTextDocumentCapabilities(source, {
+      'synchronization': {'dynamicRegistration': true},
+      'completion': {'dynamicRegistration': true},
+      'hover': {'dynamicRegistration': true},
+      'signatureHelp': {'dynamicRegistration': true},
+      'references': {'dynamicRegistration': true},
+      'documentHighlight': {'dynamicRegistration': true},
+      'documentSymbol': {'dynamicRegistration': true},
+      'synchronization': {'dynamicRegistration': true},
+      'formatting': {'dynamicRegistration': true},
+      'onTypeFormatting': {'dynamicRegistration': true},
+      'declaration': {'dynamicRegistration': true},
+      'definition': {'dynamicRegistration': true},
+      'implementation': {'dynamicRegistration': true},
+      'codeAction': {'dynamicRegistration': true},
+      'rename': {'dynamicRegistration': true},
+      'foldingRange': {'dynamicRegistration': true},
+    });
+  }
 }
 
 mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
