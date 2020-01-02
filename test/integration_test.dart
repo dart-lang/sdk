@@ -107,7 +107,7 @@ void defineTests() {
                   ['4 files analyzed, 1 issue found (2 filtered), in']));
           expect(exitCode, 1);
         });
-        test('overrrides', () async {
+        test('overrides', () async {
           await cli
               .run(['test/_data/p2', '-c', 'test/_data/p2/lintconfig2.yaml']);
           expect(collectingOut.trim(),
