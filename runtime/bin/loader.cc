@@ -23,14 +23,12 @@ namespace bin {
 extern DFE dfe;
 #endif
 
-void Loader::InitForSnapshot(const char* snapshot_uri,
-                             IsolateData* isolate_data) {
+Dart_Handle Loader::InitForSnapshot(const char* snapshot_uri,
+                                    IsolateData* isolate_data) {
   ASSERT(isolate_data != NULL);
 
-  Dart_Handle result =
-      Loader::Init(isolate_data->packages_file(),
-                   DartUtils::original_working_directory, snapshot_uri);
-  ASSERT(!Dart_IsError(result));
+  return Loader::Init(isolate_data->packages_file(),
+                      DartUtils::original_working_directory, snapshot_uri);
 }
 
 // Initialize package resolution state.

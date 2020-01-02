@@ -17,8 +17,8 @@ namespace bin {
 
 class Loader {
  public:
-  static void InitForSnapshot(const char* snapshot_uri,
-                              IsolateData* isolate_data);
+  static Dart_Handle InitForSnapshot(const char* snapshot_uri,
+                                     IsolateData* isolate_data);
 
   static Dart_Handle ReloadNativeExtensions();
 

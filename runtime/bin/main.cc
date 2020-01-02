@@ -248,7 +248,8 @@ static bool OnIsolateInitialize(void** child_callback_data, char** error) {
 
   if (isolate_run_app_snapshot) {
     if (Dart_IsVMFlagSet("support_service") || !Dart_IsPrecompiledRuntime()) {
-      Loader::InitForSnapshot(script_uri, isolate_data);
+      result = Loader::InitForSnapshot(script_uri, isolate_data);
+      if (Dart_IsError(result)) goto failed;
     }
   } else {
     result = DartUtils::ResolveScript(Dart_NewStringFromCString(script_uri));
@@ -261,8 +262,9 @@ static bool OnIsolateInitialize(void** child_callback_data, char** error) {
       // bypasses normal source code loading paths that initialize it.
       const char* resolved_script_uri = NULL;
       result = Dart_StringToCString(result, &resolved_script_uri);
-      if (Dart_IsError(result)) return result != nullptr;
-      Loader::InitForSnapshot(resolved_script_uri, isolate_data);
+      if (Dart_IsError(result)) goto failed;
+      result = Loader::InitForSnapshot(resolved_script_uri, isolate_data);
+      if (Dart_IsError(result)) goto failed;
     }
   }
 
@@ -364,7 +366,8 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
 
   if (isolate_run_app_snapshot) {
     if (Dart_IsVMFlagSet("support_service") || !Dart_IsPrecompiledRuntime()) {
-      Loader::InitForSnapshot(script_uri, isolate_data);
+      Dart_Handle result = Loader::InitForSnapshot(script_uri, isolate_data);
+      CHECK_RESULT(result);
     }
 #if !defined(DART_PRECOMPILED_RUNTIME)
     if (is_main_isolate) {
@@ -392,7 +395,8 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
       const char* resolved_script_uri = NULL;
       result = Dart_StringToCString(uri, &resolved_script_uri);
       CHECK_RESULT(result);
-      Loader::InitForSnapshot(resolved_script_uri, isolate_data);
+      result = Loader::InitForSnapshot(resolved_script_uri, isolate_data);
+      CHECK_RESULT(result);
     }
     Dart_TimelineEvent("LoadScript", Dart_TimelineGetMicros(),
                        Dart_GetMainPortId(), Dart_Timeline_Event_Async_End, 0,
