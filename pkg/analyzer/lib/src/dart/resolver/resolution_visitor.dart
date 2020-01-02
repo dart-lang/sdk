@@ -110,8 +110,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       typeProvider,
       isNonNullableByDefault,
       libraryElement,
-      unitSource,
-      errorListener,
+      errorReporter,
     );
 
     return ResolutionVisitor._(

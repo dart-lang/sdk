@@ -7,7 +7,6 @@ import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
@@ -18,7 +17,6 @@ import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/type_system.dart';
 
 /// Helper for resolving types.
@@ -30,8 +28,7 @@ class TypeNameResolver {
   final bool isNonNullableByDefault;
   final AnalysisOptionsImpl analysisOptions;
   final LibraryElement definingLibrary;
-  final Source source;
-  final AnalysisErrorListener errorListener;
+  final ErrorReporter errorReporter;
 
   /// Indicates whether bare typenames in "with" clauses should have their type
   /// inferred type arguments loaded from the element model.
@@ -49,13 +46,8 @@ class TypeNameResolver {
   /// [ConstructorName]. Otherwise this field will be set `null`.
   ConstructorName rewriteResult;
 
-  TypeNameResolver(
-      this.typeSystem,
-      TypeProvider typeProvider,
-      this.isNonNullableByDefault,
-      this.definingLibrary,
-      this.source,
-      this.errorListener,
+  TypeNameResolver(this.typeSystem, TypeProvider typeProvider,
+      this.isNonNullableByDefault, this.definingLibrary, this.errorReporter,
       {this.shouldUseWithClauseInferredTypes = true})
       : dynamicType = typeProvider.dynamicType,
         analysisOptions = definingLibrary.context.analysisOptions;
@@ -64,18 +56,6 @@ class TypeNameResolver {
     return isNonNullableByDefault
         ? NullabilitySuffix.none
         : NullabilitySuffix.star;
-  }
-
-  /// Report an error with the given error code and arguments.
-  ///
-  /// @param errorCode the error code of the error to be reported
-  /// @param node the node specifying the location of the error
-  /// @param arguments the arguments to the error, used to compose the error
-  ///        message
-  void reportErrorForNode(ErrorCode errorCode, AstNode node,
-      [List<Object> arguments]) {
-    errorListener.onError(
-        AnalysisError(source, node.offset, node.length, errorCode, arguments));
   }
 
   /// Resolve the given [TypeName] - set its element and static type. Only the
@@ -126,17 +106,19 @@ class TypeNameResolver {
                 grandParent.isConst) {
               // If, if this is a const expression, then generate a
               // CompileTimeErrorCode.CONST_WITH_NON_TYPE error.
-              reportErrorForNode(
-                  CompileTimeErrorCode.CONST_WITH_NON_TYPE,
-                  prefixedIdentifier.identifier,
-                  [prefixedIdentifier.identifier.name]);
+              errorReporter.reportErrorForNode(
+                CompileTimeErrorCode.CONST_WITH_NON_TYPE,
+                prefixedIdentifier.identifier,
+                [prefixedIdentifier.identifier.name],
+              );
             } else {
               // Else, if this expression is a new expression, report a
               // NEW_WITH_NON_TYPE warning.
-              reportErrorForNode(
-                  StaticWarningCode.NEW_WITH_NON_TYPE,
-                  prefixedIdentifier.identifier,
-                  [prefixedIdentifier.identifier.name]);
+              errorReporter.reportErrorForNode(
+                StaticWarningCode.NEW_WITH_NON_TYPE,
+                prefixedIdentifier.identifier,
+                [prefixedIdentifier.identifier.name],
+              );
             }
             _setElement(prefix, element);
             return;
@@ -168,7 +150,7 @@ class TypeNameResolver {
       return;
     }
 
-    var errorHelper = _ErrorHelper(source, errorListener);
+    var errorHelper = _ErrorHelper(errorReporter);
     if (errorHelper.checkNewWithNonType(node, element)) {
       _setElement(typeName, element);
       node.type = dynamicType;
@@ -197,10 +179,11 @@ class TypeNameResolver {
               prefixElement.getNamedConstructor(identifier.name);
         }
         if (constructorElement != null) {
-          reportErrorForNode(
-              StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
-              argumentList,
-              [prefix.name, identifier.name]);
+          errorReporter.reportErrorForNode(
+            StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+            argumentList,
+            [prefix.name, identifier.name],
+          );
           prefix.staticElement = prefixElement;
           identifier.staticElement = constructorElement;
           AstNode grandParent = node.parent.parent;
@@ -234,8 +217,11 @@ class TypeNameResolver {
             rewriteResult = newConstructorName;
           }
         } else {
-          reportErrorForNode(
-              CompileTimeErrorCode.UNDEFINED_CLASS, typeName, [typeName.name]);
+          errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.UNDEFINED_CLASS,
+            typeName,
+            [typeName.name],
+          );
         }
       } else {
         errorHelper.reportUnresolvedElement(node);
@@ -285,7 +271,7 @@ class TypeNameResolver {
     var argumentCount = arguments.length;
 
     if (argumentCount != parameterCount) {
-      reportErrorForNode(
+      errorReporter.reportErrorForNode(
         StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS,
         node,
         [node.name.name, parameterCount, argumentCount],
@@ -429,17 +415,25 @@ class TypeNameResolver {
   void _reportInvalidNullableType(TypeName typeName) {
     AstNode parent = typeName.parent;
     if (parent is ExtendsClause || parent is ClassTypeAlias) {
-      reportErrorForNode(
-          CompileTimeErrorCode.NULLABLE_TYPE_IN_EXTENDS_CLAUSE, typeName);
+      errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.NULLABLE_TYPE_IN_EXTENDS_CLAUSE,
+        typeName,
+      );
     } else if (parent is ImplementsClause) {
-      reportErrorForNode(
-          CompileTimeErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE, typeName);
+      errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE,
+        typeName,
+      );
     } else if (parent is OnClause) {
-      reportErrorForNode(
-          CompileTimeErrorCode.NULLABLE_TYPE_IN_ON_CLAUSE, typeName);
+      errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.NULLABLE_TYPE_IN_ON_CLAUSE,
+        typeName,
+      );
     } else if (parent is WithClause) {
-      reportErrorForNode(
-          CompileTimeErrorCode.NULLABLE_TYPE_IN_WITH_CLAUSE, typeName);
+      errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.NULLABLE_TYPE_IN_WITH_CLAUSE,
+        typeName,
+      );
     }
   }
 
@@ -461,7 +455,7 @@ class TypeNameResolver {
           typeArguments[i] = _getType(argumentNodes[i]);
         }
       } else {
-        reportErrorForNode(
+        errorReporter.reportErrorForNode(
           StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS,
           node,
           [typeName.name, parameterCount, argumentCount],
@@ -538,10 +532,9 @@ class TypeNameResolver {
 
 /// Helper for reporting errors during type name resolution.
 class _ErrorHelper {
-  final Source source;
-  final AnalysisErrorListener errorListener;
+  final ErrorReporter errorReporter;
 
-  _ErrorHelper(this.source, this.errorListener);
+  _ErrorHelper(this.errorReporter);
 
   bool checkNewWithNonType(TypeName node, Element element) {
     if (element != null && element is! ClassElement) {
@@ -552,13 +545,13 @@ class _ErrorHelper {
           var identifier = node.name;
           var simpleIdentifier = _getSimpleIdentifier(identifier);
           if (instanceCreation.isConst) {
-            reportErrorForNode(
+            errorReporter.reportErrorForNode(
               CompileTimeErrorCode.CONST_WITH_NON_TYPE,
               simpleIdentifier,
               [identifier],
             );
           } else {
-            reportErrorForNode(
+            errorReporter.reportErrorForNode(
               StaticWarningCode.NEW_WITH_NON_TYPE,
               simpleIdentifier,
               [identifier],
@@ -576,33 +569,53 @@ class _ErrorHelper {
     var typeName = node.name;
     SimpleIdentifier typeNameSimple = _getSimpleIdentifier(typeName);
     if (typeNameSimple.name == "boolean") {
-      reportErrorForNode(
-          StaticWarningCode.UNDEFINED_CLASS_BOOLEAN, typeNameSimple, []);
+      errorReporter.reportErrorForNode(
+        StaticWarningCode.UNDEFINED_CLASS_BOOLEAN,
+        typeNameSimple,
+      );
       return true;
     } else if (_isTypeInCatchClause(node)) {
-      reportErrorForNode(StaticWarningCode.NON_TYPE_IN_CATCH_CLAUSE, typeName,
-          [typeName.name]);
+      errorReporter.reportErrorForNode(
+        StaticWarningCode.NON_TYPE_IN_CATCH_CLAUSE,
+        typeName,
+        [typeName.name],
+      );
       return true;
     } else if (_isTypeInAsExpression(node)) {
-      reportErrorForNode(
-          StaticWarningCode.CAST_TO_NON_TYPE, typeName, [typeName.name]);
+      errorReporter.reportErrorForNode(
+        StaticWarningCode.CAST_TO_NON_TYPE,
+        typeName,
+        [typeName.name],
+      );
       return true;
     } else if (_isTypeInIsExpression(node)) {
       if (element != null) {
-        reportErrorForNode(StaticWarningCode.TYPE_TEST_WITH_NON_TYPE, typeName,
-            [typeName.name]);
+        errorReporter.reportErrorForNode(
+          StaticWarningCode.TYPE_TEST_WITH_NON_TYPE,
+          typeName,
+          [typeName.name],
+        );
       } else {
-        reportErrorForNode(StaticWarningCode.TYPE_TEST_WITH_UNDEFINED_NAME,
-            typeName, [typeName.name]);
+        errorReporter.reportErrorForNode(
+          StaticWarningCode.TYPE_TEST_WITH_UNDEFINED_NAME,
+          typeName,
+          [typeName.name],
+        );
       }
       return true;
     } else if (_isRedirectingConstructor(node)) {
-      reportErrorForNode(CompileTimeErrorCode.REDIRECT_TO_NON_CLASS, typeName,
-          [typeName.name]);
+      errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.REDIRECT_TO_NON_CLASS,
+        typeName,
+        [typeName.name],
+      );
       return true;
     } else if (_isTypeInTypeArgumentList(node)) {
-      reportErrorForNode(StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT,
-          typeName, [typeName.name]);
+      errorReporter.reportErrorForNode(
+        StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT,
+        typeName,
+        [typeName.name],
+      );
       return true;
     } else if (element != null) {
       AstNode parent = typeName.parent;
@@ -617,40 +630,34 @@ class _ErrorHelper {
       } else if (element is LocalVariableElement ||
           (element is FunctionElement &&
               element.enclosingElement is ExecutableElement)) {
-        errorListener.onError(DiagnosticFactory()
-            .referencedBeforeDeclaration(source, typeName, element: element));
+        errorReporter.reportError(
+          DiagnosticFactory().referencedBeforeDeclaration(
+            errorReporter.source,
+            typeName,
+            element: element,
+          ),
+        );
       } else {
-        reportErrorForNode(
-            StaticWarningCode.NOT_A_TYPE, typeName, [typeName.name]);
+        errorReporter.reportErrorForNode(
+          StaticWarningCode.NOT_A_TYPE,
+          typeName,
+          [typeName.name],
+        );
       }
       return true;
     }
     return false;
   }
 
-  /// Report an error with the given error code and arguments.
-  ///
-  /// TODO(scheglov) this is duplicate
-  ///
-  /// @param errorCode the error code of the error to be reported
-  /// @param node the node specifying the location of the error
-  /// @param arguments the arguments to the error, used to compose the error
-  ///        message
-  void reportErrorForNode(ErrorCode errorCode, AstNode node,
-      [List<Object> arguments]) {
-    errorListener.onError(
-        AnalysisError(source, node.offset, node.length, errorCode, arguments));
-  }
-
   void reportUnresolvedElement(TypeName node) {
     var identifier = node.name;
     if (identifier is SimpleIdentifier && identifier.name == 'await') {
-      reportErrorForNode(
+      errorReporter.reportErrorForNode(
         StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT,
         node,
       );
     } else {
-      reportErrorForNode(
+      errorReporter.reportErrorForNode(
         CompileTimeErrorCode.UNDEFINED_CLASS,
         identifier,
         [identifier.name],
