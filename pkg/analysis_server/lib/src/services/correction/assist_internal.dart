@@ -10,6 +10,10 @@ import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
 import 'package:analysis_server/plugin/edit/assist/assist_dart.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/base_processor.dart';
+import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_null_aware.dart';
+import 'package:analysis_server/src/services/correction/dart/exchange_operands.dart';
+import 'package:analysis_server/src/services/correction/dart/split_and_condition.dart';
 import 'package:analysis_server/src/services/correction/name_suggestion.dart';
 import 'package:analysis_server/src/services/correction/selection_analyzer.dart';
 import 'package:analysis_server/src/services/correction/statement_analyzer.dart';
@@ -102,11 +106,6 @@ class AssistProcessor extends BaseProcessor {
     await _addProposal_convertToMultilineString();
     await _addProposal_convertToNormalParameter();
     if (!_containsErrorCode(
-      {LintNames.prefer_null_aware_operators},
-    )) {
-      await _addProposal_convertToNullAware();
-    }
-    if (!_containsErrorCode(
       {LintNames.avoid_relative_lib_imports},
     )) {
       await _addProposal_convertToPackageImport();
@@ -117,7 +116,6 @@ class AssistProcessor extends BaseProcessor {
       await _addProposal_convertToSingleQuotedString();
     }
     await _addProposal_encapsulateField();
-    await _addProposal_exchangeOperands();
     await _addProposal_flutterConvertToChildren();
     await _addProposal_flutterConvertToStatefulWidget();
     await _addProposal_flutterMoveWidgetDown();
@@ -153,7 +151,6 @@ class AssistProcessor extends BaseProcessor {
     )) {
       await _addProposal_sortChildPropertyLast();
     }
-    await _addProposal_splitAndCondition();
     await _addProposal_splitVariableDeclaration();
     await _addProposal_surroundWith();
     if (!_containsErrorCode(
@@ -194,6 +191,8 @@ class AssistProcessor extends BaseProcessor {
             convertToSpreads: !preferSpreadsLintFound);
       }
     }
+
+    await _addFromProducers();
 
     return assists;
   }
@@ -237,6 +236,53 @@ class AssistProcessor extends BaseProcessor {
     change.id = kind.id;
     change.message = formatList(kind.message, args);
     assists.add(Assist(kind, change));
+  }
+
+  Future<void> _addFromProducers() async {
+    var context = CorrectionProducerContext(
+      selectionOffset: selectionOffset,
+      selectionLength: selectionLength,
+      resolvedResult: resolvedResult,
+      workspace: workspace,
+    );
+
+    var setupSuccess = context.setupCompute();
+    if (!setupSuccess) {
+      return;
+    }
+
+    Future<void> compute(CorrectionProducer producer, AssistKind kind) async {
+      producer.configure(context);
+
+      var builder = _newDartChangeBuilder();
+      await producer.compute(builder);
+
+      _addAssistFromBuilder(builder, kind);
+    }
+
+    Future<void> computeIfNotErrorCode(
+      CorrectionProducer producer,
+      AssistKind kind,
+      Set<String> errorCodes,
+    ) async {
+      if (!_containsErrorCode(errorCodes)) {
+        await compute(producer, kind);
+      }
+    }
+
+    await computeIfNotErrorCode(
+      ConvertToNullAware(),
+      DartAssistKind.CONVERT_TO_NULL_AWARE,
+      {LintNames.prefer_null_aware_operators},
+    );
+    await compute(
+      ExchangeOperands(),
+      DartAssistKind.EXCHANGE_OPERANDS,
+    );
+    await compute(
+      SplitAndCondition(),
+      DartAssistKind.SPLIT_AND_CONDITION,
+    );
   }
 
   Future<void> _addProposal_addDiagnosticPropertyReference() async {
@@ -1332,11 +1378,6 @@ class AssistProcessor extends BaseProcessor {
     }
   }
 
-  Future<void> _addProposal_convertToNullAware() async {
-    final changeBuilder = await createBuilder_convertToNullAware();
-    _addAssistFromBuilder(changeBuilder, DartAssistKind.CONVERT_TO_NULL_AWARE);
-  }
-
   Future<void> _addProposal_convertToPackageImport() async {
     final changeBuilder = await createBuilder_convertToPackageImport();
     _addAssistFromBuilder(
@@ -1444,61 +1485,6 @@ class AssistProcessor extends BaseProcessor {
       });
     });
     _addAssistFromBuilder(changeBuilder, DartAssistKind.ENCAPSULATE_FIELD);
-  }
-
-  Future<void> _addProposal_exchangeOperands() async {
-    // check that user invokes quick assist on binary expression
-    if (node is! BinaryExpression) {
-      _coverageMarker();
-      return;
-    }
-    BinaryExpression binaryExpression = node as BinaryExpression;
-    // prepare operator position
-    if (!_isOperatorSelected(
-        binaryExpression, selectionOffset, selectionLength)) {
-      _coverageMarker();
-      return;
-    }
-    // add edits
-    Expression leftOperand = binaryExpression.leftOperand;
-    Expression rightOperand = binaryExpression.rightOperand;
-    // find "wide" enclosing binary expression with same operator
-    while (binaryExpression.parent is BinaryExpression) {
-      BinaryExpression newBinaryExpression =
-          binaryExpression.parent as BinaryExpression;
-      if (newBinaryExpression.operator.type != binaryExpression.operator.type) {
-        _coverageMarker();
-        break;
-      }
-      binaryExpression = newBinaryExpression;
-    }
-    // exchange parts of "wide" expression parts
-    SourceRange leftRange = range.startEnd(binaryExpression, leftOperand);
-    SourceRange rightRange = range.startEnd(rightOperand, binaryExpression);
-    // maybe replace the operator
-    Token operator = binaryExpression.operator;
-    // prepare a new operator
-    String newOperator = null;
-    TokenType operatorType = operator.type;
-    if (operatorType == TokenType.LT) {
-      newOperator = '>';
-    } else if (operatorType == TokenType.LT_EQ) {
-      newOperator = '>=';
-    } else if (operatorType == TokenType.GT) {
-      newOperator = '<';
-    } else if (operatorType == TokenType.GT_EQ) {
-      newOperator = '<=';
-    }
-    var changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addSimpleReplacement(leftRange, _getRangeText(rightRange));
-      builder.addSimpleReplacement(rightRange, _getRangeText(leftRange));
-      // Optionally replace the operator.
-      if (newOperator != null) {
-        builder.addSimpleReplacement(range.token(operator), newOperator);
-      }
-    });
-    _addAssistFromBuilder(changeBuilder, DartAssistKind.EXCHANGE_OPERANDS);
   }
 
   Future<void> _addProposal_flutterConvertToChildren() async {
@@ -2884,97 +2870,6 @@ class AssistProcessor extends BaseProcessor {
         changeBuilder, DartAssistKind.SORT_CHILD_PROPERTY_LAST);
   }
 
-  Future<void> _addProposal_splitAndCondition() async {
-    // check that user invokes quick assist on binary expression
-    if (node is! BinaryExpression) {
-      _coverageMarker();
-      return;
-    }
-    BinaryExpression binaryExpression = node as BinaryExpression;
-    // prepare operator position
-    if (!_isOperatorSelected(
-        binaryExpression, selectionOffset, selectionLength)) {
-      _coverageMarker();
-      return;
-    }
-    // should be &&
-    if (binaryExpression.operator.type != TokenType.AMPERSAND_AMPERSAND) {
-      _coverageMarker();
-      return;
-    }
-    // prepare "if"
-    Statement statement = node.thisOrAncestorOfType<Statement>();
-    if (statement is! IfStatement) {
-      _coverageMarker();
-      return;
-    }
-    IfStatement ifStatement = statement as IfStatement;
-    // no support "else"
-    if (ifStatement.elseStatement != null) {
-      _coverageMarker();
-      return;
-    }
-    // check that binary expression is part of first level && condition of "if"
-    BinaryExpression condition = binaryExpression;
-    while (condition.parent is BinaryExpression &&
-        (condition.parent as BinaryExpression).operator.type ==
-            TokenType.AMPERSAND_AMPERSAND) {
-      condition = condition.parent as BinaryExpression;
-    }
-    if (ifStatement.condition != condition) {
-      _coverageMarker();
-      return;
-    }
-    // prepare environment
-    String prefix = utils.getNodePrefix(ifStatement);
-    String indent = utils.getIndent(1);
-    // prepare "rightCondition"
-    String rightConditionSource;
-    {
-      SourceRange rightConditionRange =
-          range.startEnd(binaryExpression.rightOperand, condition);
-      rightConditionSource = _getRangeText(rightConditionRange);
-    }
-
-    var changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      // remove "&& rightCondition"
-      builder
-          .addDeletion(range.endEnd(binaryExpression.leftOperand, condition));
-      // update "then" statement
-      Statement thenStatement = ifStatement.thenStatement;
-      if (thenStatement is Block) {
-        Block thenBlock = thenStatement;
-        SourceRange thenBlockRange = range.node(thenBlock);
-        // insert inner "if" with right part of "condition"
-        int thenBlockInsideOffset = thenBlockRange.offset + 1;
-        builder.addSimpleInsertion(thenBlockInsideOffset,
-            '$eol$prefix${indent}if ($rightConditionSource) {');
-        // insert closing "}" for inner "if"
-        int thenBlockEnd = thenBlockRange.end;
-        // insert before outer "then" block "}"
-        builder.addSimpleInsertion(thenBlockEnd - 1, '$indent}$eol$prefix');
-      } else {
-        // insert inner "if" with right part of "condition"
-        String source = '$eol$prefix${indent}if ($rightConditionSource)';
-        builder.addSimpleInsertion(
-            ifStatement.rightParenthesis.offset + 1, source);
-      }
-      // indent "then" statements to correspond inner "if"
-      {
-        List<Statement> thenStatements = getStatements(thenStatement);
-        SourceRange linesRange = utils.getLinesRangeStatements(thenStatements);
-        String thenIndentOld = '$prefix$indent';
-        String thenIndentNew = '$thenIndentOld$indent';
-        builder.addSimpleReplacement(
-            linesRange,
-            utils.replaceSourceRangeIndent(
-                linesRange, thenIndentOld, thenIndentNew));
-      }
-    });
-    _addAssistFromBuilder(changeBuilder, DartAssistKind.SPLIT_AND_CONDITION);
-  }
-
   Future<void> _addProposal_splitVariableDeclaration() async {
     var variableList = node?.thisOrAncestorOfType<VariableDeclarationList>();
 
@@ -3474,33 +3369,6 @@ class AssistProcessor extends BaseProcessor {
    * https://code.google.com/p/dart/issues/detail?id=19912
    */
   static void _coverageMarker() {}
-
-  /**
-   * Returns `true` if the selection covers an operator of the given
-   * [BinaryExpression].
-   */
-  static bool _isOperatorSelected(
-      BinaryExpression binaryExpression, int offset, int length) {
-    AstNode left = binaryExpression.leftOperand;
-    AstNode right = binaryExpression.rightOperand;
-    // between the nodes
-    if (offset >= left.endToken.end && offset + length <= right.offset) {
-      _coverageMarker();
-      return true;
-    }
-    // or exactly select the node (but not with infix expressions)
-    if (offset == left.offset && offset + length == right.endToken.end) {
-      if (left is BinaryExpression || right is BinaryExpression) {
-        _coverageMarker();
-        return false;
-      }
-      _coverageMarker();
-      return true;
-    }
-    // invalid selection (part of node, etc)
-    _coverageMarker();
-    return false;
-  }
 
   static String _replaceSourceIndent(
       String source, String indentOld, String indentNew) {

@@ -10,6 +10,8 @@ import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analysis_server/src/services/correction/base_processor.dart';
+import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_null_aware.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix/dart/top_level_declarations.dart';
 import 'package:analysis_server/src/services/correction/levenshtein.dart';
@@ -700,9 +702,6 @@ class FixProcessor extends BaseProcessor {
       if (errorCode.name == LintNames.prefer_if_null_operators) {
         await _addFix_convertToIfNullOperator();
       }
-      if (name == LintNames.prefer_null_aware_operators) {
-        await _addFix_convertToNullAware();
-      }
       if (name == LintNames.prefer_relative_imports) {
         await _addFix_convertToRelativeImport();
       }
@@ -746,6 +745,9 @@ class FixProcessor extends BaseProcessor {
         await _addFix_replaceWithRethrow();
       }
     }
+
+    await _addFromProducers();
+
     // done
     return fixes;
   }
@@ -1605,11 +1607,6 @@ class FixProcessor extends BaseProcessor {
       });
       _addFixFromBuilder(changeBuilder, DartFixKind.CONVERT_TO_NAMED_ARGUMENTS);
     }
-  }
-
-  Future<void> _addFix_convertToNullAware() async {
-    final changeBuilder = await createBuilder_convertToNullAware();
-    _addFixFromBuilder(changeBuilder, DartFixKind.CONVERT_TO_NULL_AWARE);
   }
 
   Future<void> _addFix_convertToPackageImport() async {
@@ -4613,6 +4610,40 @@ class FixProcessor extends BaseProcessor {
     }
     change.message = formatList(kind.message, args);
     fixes.add(Fix(kind, change));
+  }
+
+  Future<void> _addFromProducers() async {
+    var context = CorrectionProducerContext(
+      selectionOffset: errorOffset,
+      selectionLength: 0,
+      resolvedResult: resolvedResult,
+      workspace: workspace,
+    );
+
+    var setupSuccess = context.setupCompute();
+    if (!setupSuccess) {
+      return;
+    }
+
+    Future<void> compute(CorrectionProducer producer, FixKind kind) async {
+      producer.configure(context);
+
+      var builder = _newDartChangeBuilder();
+      await producer.compute(builder);
+
+      _addFixFromBuilder(builder, kind);
+    }
+
+    var errorCode = error.errorCode;
+    if (errorCode is LintCode) {
+      String name = errorCode.name;
+      if (name == LintNames.prefer_null_aware_operators) {
+        await compute(
+          ConvertToNullAware(),
+          DartFixKind.CONVERT_TO_NULL_AWARE,
+        );
+      }
+    }
   }
 
   /**
