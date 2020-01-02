@@ -13,7 +13,221 @@ import '../dart/resolution/driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UncheckedUseOfNullableValueTest);
+    defineReflectiveTests(UncheckedUseOfNullableValueInsideExtensionTest);
   });
+}
+
+@reflectiveTest
+class UncheckedUseOfNullableValueInsideExtensionTest
+    extends DriverResolutionTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions =>
+      AnalysisOptionsImpl()..enabledExperiments = [EnableString.non_nullable];
+
+  @override
+  bool get typeToStringWithNullability => true;
+
+  test_indexExpression_nonNullable() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int operator[](int index) => 0;
+
+  operator[]=(int index, int value) {}
+}
+
+extension E on A {
+  void bar() {
+    this[0];
+
+    this[0] = 0;
+  }
+}
+''');
+  }
+
+  test_indexExpression_nullable() async {
+    await assertErrorsInCode(r'''
+class A {
+  int operator[](int index) => 0;
+
+  operator[]=(int index, int value) {}
+}
+
+extension E on A? {
+  void bar() {
+    this[0];
+    this?.[0];
+
+    this[0] = 0;
+    this?.[0] = 0;
+  }
+}
+''', [
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 126, 4),
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 155, 4),
+    ]);
+  }
+
+  test_methodInvocation_nonNullable() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  void foo() {}
+}
+
+extension E on A {
+  void bar() {
+    foo();
+    this.foo();
+
+    bar();
+    this.bar();
+  }
+}
+''');
+  }
+
+  test_methodInvocation_nullable() async {
+    await assertErrorsInCode(r'''
+class A {
+  void foo() {}
+}
+
+extension E on A? {
+  void bar() {
+    foo();
+    this.foo();
+    this?.foo();
+
+    bar();
+    this.bar();
+    this?.bar();
+  }
+}
+''', [
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 68, 3),
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 79, 4),
+    ]);
+  }
+
+  test_prefixExpression_minus_nonNullable() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A operator-() => this;
+}
+
+extension E on A {
+  void bar() {
+    -this;
+  }
+}
+''');
+  }
+
+  test_prefixExpression_minus_nullable() async {
+    await assertErrorsInCode(r'''
+class A {
+  A operator-() => this;
+}
+
+extension E on A? {
+  void bar() {
+    -this;
+  }
+}
+''', [
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 78, 4),
+    ]);
+  }
+
+  test_propertyAccess_getter_nonNullable() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int get foo => 0;
+}
+
+extension E on A {
+  int get bar => 0;
+
+  void baz() {
+    foo;
+    this.foo;
+
+    bar;
+    this.bar;
+  }
+}
+''');
+  }
+
+  test_propertyAccess_getter_nullable() async {
+    await assertErrorsInCode(r'''
+class A {
+  int get foo => 0;
+}
+
+extension E on A? {
+  int get bar => 0;
+
+  void baz() {
+    foo;
+    this.foo;
+    this?.foo;
+
+    bar;
+    this.bar;
+    this?.bar;
+  }
+}
+''', [
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 93, 3),
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 102, 4),
+    ]);
+  }
+
+  test_propertyAccess_setter_nonNullable() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  set foo(int _) {}
+}
+
+extension E on A {
+  set bar(int _) {}
+
+  void baz() {
+    foo = 0;
+    this.foo = 0;
+
+    bar = 0;
+    this.bar = 0;
+  }
+}
+''');
+  }
+
+  test_propertyAccess_setter_nullable() async {
+    await assertErrorsInCode(r'''
+class A {
+  set foo(int _) {}
+}
+
+extension E on A? {
+  set bar(int _) {}
+
+  void baz() {
+    foo = 0;
+    this.foo = 0;
+    this?.foo = 0;
+
+    bar = 0;
+    this.bar = 0;
+    this?.bar = 0;
+  }
+}
+''', [
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 93, 3),
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 106, 4),
+    ]);
+  }
 }
 
 @reflectiveTest
@@ -307,7 +521,7 @@ m() {
     ]);
   }
 
-  test_getter_nullable_notNullableExtension() async {
+  test_getter_nullable_nonNullableExtension() async {
     await assertErrorsInCode(r'''
 extension E on int {
   int get foo => 0;
@@ -583,7 +797,7 @@ m(int x) {
 ''');
   }
 
-  test_methodInvocation_call_notNullable() async {
+  test_methodInvocation_call_nonNullable() async {
     await assertNoErrorsInCode(r'''
 m(Function x) {
   x.call();
@@ -734,7 +948,7 @@ m(int? x) {
     ]);
   }
 
-  test_operatorPostfixInc_nullable_notNullableExtension() async {
+  test_operatorPostfixInc_nullable_nonNullableExtension() async {
     await assertErrorsInCode(r'''
 class A {}
 
@@ -814,7 +1028,7 @@ m() {
     ]);
   }
 
-  test_operatorUnaryMinus_nullable_notNullableExtension() async {
+  test_operatorUnaryMinus_nullable_nonNullableExtension() async {
     await assertErrorsInCode(r'''
 class A {}
 

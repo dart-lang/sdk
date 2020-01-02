@@ -41,6 +41,14 @@ class NullableDereferenceVerifier {
     return _check(expression, expression.staticType);
   }
 
+  void implicitThis(AstNode errorNode, DartType thisType) {
+    if (!_typeSystem.isNonNullableByDefault) {
+      return;
+    }
+
+    _check(errorNode, thisType);
+  }
+
   void methodInvocation(
     Expression receiver,
     DartType receiverType,
@@ -57,7 +65,7 @@ class NullableDereferenceVerifier {
     _check(receiver, receiverType);
   }
 
-  void propertyAccess(Expression receiver, DartType receiverType, String name) {
+  void propertyAccess(AstNode errorNode, DartType receiverType, String name) {
     if (!_typeSystem.isNonNullableByDefault) {
       return;
     }
@@ -66,11 +74,14 @@ class NullableDereferenceVerifier {
       return;
     }
 
-    _check(receiver, receiverType);
+    _check(errorNode, receiverType);
   }
 
   /// If the [receiverType] is potentially nullable, report it.
-  bool _check(Expression receiver, DartType receiverType) {
+  ///
+  /// The [errorNode] is usually the receiver of the invocation, but if the
+  /// receiver is the implicit `this`, the name of the invocation.
+  bool _check(AstNode errorNode, DartType receiverType) {
     if (identical(receiverType, DynamicTypeImpl.instance) ||
         !_typeSystem.isPotentiallyNullable(receiverType)) {
       return false;
@@ -79,7 +90,7 @@ class NullableDereferenceVerifier {
     var errorCode = receiverType == _typeSystem.typeProvider.nullType
         ? StaticWarningCode.INVALID_USE_OF_NULL_VALUE
         : StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE;
-    _errorReporter.reportErrorForNode(errorCode, receiver);
+    _errorReporter.reportErrorForNode(errorCode, errorNode);
     return true;
   }
 }

@@ -353,6 +353,7 @@ class MethodInvocationResolver {
   /// not why.
   ResolutionResult _resolveExtension(
     MethodInvocation node,
+    Expression receiver,
     DartType receiverType,
     SimpleIdentifier nameNode,
     String name,
@@ -530,7 +531,8 @@ class MethodInvocationResolver {
     }
 
     // Look for an applicable extension.
-    var result = _resolveExtension(node, receiverType, nameNode, name);
+    var result =
+        _resolveExtension(node, receiver, receiverType, nameNode, name);
     if (result.isSingle) {
       return;
     }
@@ -601,6 +603,10 @@ class MethodInvocationResolver {
       }
       var extendedType =
           _resolveTypeParameter(_resolver.enclosingExtension.extendedType);
+      _resolver.nullableDereferenceVerifier.implicitThis(
+        nameNode,
+        extendedType,
+      );
       if (extendedType is InterfaceType) {
         receiverType = extendedType;
       } else if (extendedType is FunctionType) {
