@@ -3178,12 +3178,13 @@ Definition* IntConverterInstr::Canonicalize(FlowGraph* flow_graph) {
 
   IntConverterInstr* box_defn = value()->definition()->AsIntConverter();
   if ((box_defn != NULL) && (box_defn->representation() == from())) {
+    // Do not erase truncating conversions from 64-bit value to 32-bit values
+    // because such conversions erase upper 32 bits.
+    if ((box_defn->from() == kUnboxedInt64) && box_defn->is_truncating()) {
+      return this;
+    }
+
     if (box_defn->from() == to()) {
-      // Do not erase truncating conversions from 64-bit value to 32-bit values
-      // because such conversions erase upper 32 bits.
-      if ((box_defn->from() == kUnboxedInt64) && box_defn->is_truncating()) {
-        return this;
-      }
       return box_defn->value()->definition();
     }
 

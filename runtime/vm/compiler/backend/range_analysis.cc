@@ -2938,8 +2938,10 @@ void UnboxInt64Instr::InferRange(RangeAnalysis* analysis, Range* range) {
 
 void IntConverterInstr::InferRange(RangeAnalysis* analysis, Range* range) {
   if (from() == kUntagged || to() == kUntagged) {
-    ASSERT((from() == kUntagged && to() == kUnboxedIntPtr) ||
-           (from() == kUnboxedIntPtr && to() == kUntagged));
+    ASSERT((from() == kUntagged &&
+            (to() == kUnboxedIntPtr || to() == kUnboxedFfiIntPtr)) ||
+           ((from() == kUnboxedIntPtr || from() == kUnboxedFfiIntPtr) &&
+            to() == kUntagged));
   } else {
     ASSERT(from() == kUnboxedInt32 || from() == kUnboxedInt64 ||
            from() == kUnboxedUint32);
