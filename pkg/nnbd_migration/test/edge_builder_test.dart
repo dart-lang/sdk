@@ -5341,6 +5341,13 @@ class C {
         hard: true);
   }
 
+  Future<void> test_return_from_async_bottom() async {
+    await analyze('''
+Future<int> f() async => throw '';
+''');
+    assertNoEdge(always, anyNode);
+  }
+
   Future<void> test_return_from_async_closureBody_future() async {
     await analyze('''
 Future<int> f() {

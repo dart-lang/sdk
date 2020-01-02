@@ -2313,7 +2313,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   /// upcast T to that type if possible, skipping the flatten when not
   /// necessary.
   DecoratedType _wrapFuture(DecoratedType type) {
-    if (type.type.isDartCoreNull) {
+    if (type.type.isDartCoreNull || type.type.isBottom) {
       return _futureOf(type);
     }
 
