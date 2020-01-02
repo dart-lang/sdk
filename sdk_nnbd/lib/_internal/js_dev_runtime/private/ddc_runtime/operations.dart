@@ -428,7 +428,7 @@ bool instanceOf(obj, type) {
 
 @JSExportName('as')
 cast(obj, type, @notNull bool isImplicit) {
-  if (obj == null) return obj;
+  if (obj == null && (_isNullable(type) || _isNullType(type))) return obj;
   var actual = getReifiedType(obj);
   if (isSubtypeOf(actual, type)) {
     return obj;

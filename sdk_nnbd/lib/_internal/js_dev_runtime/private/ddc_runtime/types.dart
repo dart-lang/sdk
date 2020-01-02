@@ -292,6 +292,19 @@ class NullableType extends DartType {
 
   @override
   String toString() => name;
+
+  @JSExportName('is')
+  bool is_T(obj) => obj == null || JS<bool>('!', '#.is(#)', type, obj);
+
+  @JSExportName('as')
+  as_T(obj) => obj == null || JS<bool>('!', '#.is(#)', type, obj)
+      ? obj
+      : cast(obj, this, false);
+
+  @JSExportName('_check')
+  check_T(obj) => obj == null || JS<bool>('!', '#.is(#)', type, obj)
+      ? obj
+      : cast(obj, this, true);
 }
 
 /// A wrapper to identify a legacy (star, *) type of the form [type]*.
@@ -307,6 +320,19 @@ class LegacyType extends DartType {
 
   @override
   String toString() => name;
+
+  @JSExportName('is')
+  bool is_T(obj) => obj != null && JS<bool>('!', '#.is(#)', type, obj);
+
+  @JSExportName('as')
+  as_T(obj) => obj == null || JS<bool>('!', '#.is(#)', type, obj)
+      ? obj
+      : cast(obj, this, false);
+
+  @JSExportName('_check')
+  check_T(obj) => obj == null || JS<bool>('!', '#.is(#)', type, obj)
+      ? obj
+      : cast(obj, this, true);
 }
 
 // TODO(nshahan) Add override optimizations for is, as and _check?
