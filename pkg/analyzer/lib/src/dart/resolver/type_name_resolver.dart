@@ -84,26 +84,19 @@ class TypeNameResolver {
   /// The client must set [nameScope] before calling [resolveTypeName].
   void resolveTypeName(TypeName node) {
     rewriteResult = null;
+
     Identifier typeName = node.name;
+
+    if (typeName is SimpleIdentifier && typeName.name == 'void') {
+      node.type = VoidTypeImpl.instance;
+      return;
+    }
+
     _setElement(typeName, null); // Clear old Elements from previous run.
+
     TypeArgumentList argumentList = node.typeArguments;
     Element element = nameScope.lookup(typeName, definingLibrary);
     if (element == null) {
-      //
-      // Check to see whether the type name is either 'dynamic' or 'void',
-      // neither of which are in the name scope and hence will not be found by
-      // normal means.
-      //
-      VoidTypeImpl voidType = VoidTypeImpl.instance;
-      if (typeName.name == voidType.name) {
-        // There is no element for 'void'.
-//        if (argumentList != null) {
-//          // TODO(brianwilkerson) Report this error
-//          reporter.reportError(StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, node, voidType.getName(), 0, argumentList.getArguments().size());
-//        }
-        node.type = voidType;
-        return;
-      }
       if (nameScope.shouldIgnoreUndefined(typeName)) {
         node.type = dynamicType;
         return;
