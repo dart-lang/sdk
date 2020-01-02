@@ -29,16 +29,28 @@ const _previewOption = 'preview';
 const _serverSnapshot = 'server';
 const _verboseOption = 'verbose';
 
+// options not supported yet by any server
+const _dependencies = 'migrate-dependencies';
+
+/// Command line options for `dartfix upgrade`.
+class UpgradeOptions {
+  final bool dependencies;
+  final bool preview;
+
+  UpgradeOptions._fromCommand(ArgResults results)
+      : dependencies = results[_dependencies] as bool,
+        preview = results[_previewOption] as bool;
+}
+
 /// Command line options for `dartfix`.
 class Options {
   final Context context;
   Logger logger;
 
+  UpgradeOptions upgradeOptions;
   List<String> targets;
   final String sdkPath;
   final String serverSnapshot;
-
-  bool isUpgrade = false;
 
   final bool pedanticFixes;
   final bool requiredFixes;
@@ -48,7 +60,6 @@ class Options {
   final bool force;
   final bool showHelp;
   bool overwrite;
-  final bool preview;
   final bool useColor;
   final bool verbose;
 
@@ -58,7 +69,6 @@ class Options {
         excludeFixes = (results[excludeFixOption] as List ?? []).cast<String>(),
         overwrite = results[overwriteOption] as bool,
         pedanticFixes = results[pedanticOption] as bool,
-        preview = results[_previewOption] as bool,
         requiredFixes = results[requiredOption] as bool,
         sdkPath = results[sdkOption] as String ?? _getSdkPath(),
         serverSnapshot = results[_serverSnapshot] as String,
@@ -68,6 +78,8 @@ class Options {
             ? results[_colorOption] as bool
             : null,
         verbose = results[_verboseOption] as bool;
+
+  bool get isUpgrade => upgradeOptions != null;
 
   String makeAbsoluteAndNormalize(String target) {
     if (!path.isAbsolute(target)) {
@@ -104,11 +116,6 @@ class Options {
           help: 'Display this help message.',
           defaultsTo: false,
           negatable: false)
-      ..addFlag(_previewOption,
-          help: 'Open the preview tool to view changes.',
-          defaultsTo: true,
-          negatable: true,
-          hide: true)
       ..addOption(sdkOption,
           help: 'Path to the SDK to analyze against.',
           valueHelp: 'path',
@@ -124,11 +131,22 @@ class Options {
           negatable: false)
       ..addFlag(_colorOption,
           help: 'Use ansi colors when printing messages.',
-          defaultsTo: Ansi.terminalSupportsAnsi)
-      //
-      // Commands.
-      //
-      ..addCommand('upgrade');
+          defaultsTo: Ansi.terminalSupportsAnsi);
+
+    //
+    // Commands.
+    //
+    parser.addCommand('upgrade')
+      ..addFlag(_dependencies,
+          help: 'Upgrade dependencies automatically (not yet implemented)',
+          defaultsTo: false,
+          negatable: true,
+          hide: true)
+      ..addFlag(_previewOption,
+          help: 'Open the preview tool to view changes.',
+          defaultsTo: true,
+          negatable: true,
+          hide: true);
 
     context ??= Context();
 
@@ -177,26 +195,28 @@ class Options {
     var command = results.command;
     if (command != null) {
       if (command.name == 'upgrade') {
-        options.isUpgrade = true;
+        options.upgradeOptions = UpgradeOptions._fromCommand(results.command);
         var rest = command.rest;
         if (rest.isNotEmpty) {
           if (rest[0] == 'sdk') {
-            if (options.includeFixes.isNotEmpty) {
+            if (results.wasParsed(includeFixOption)) {
               logger.stderr('Cannot define includeFixes when using upgrade.');
               context.exit(22);
             }
-            if (options.excludeFixes.isNotEmpty) {
+            if (results.wasParsed(excludeFixOption)) {
               logger.stderr('Cannot define excludeFixes when using upgrade.');
               context.exit(22);
             }
-            if (options.pedanticFixes) {
+            if (results.wasParsed(pedanticOption) && options.pedanticFixes) {
               logger.stderr('Cannot use pedanticFixes when using upgrade.');
               context.exit(22);
             }
-            if (options.requiredFixes) {
+            if (results.wasParsed(requiredOption) && options.requiredFixes) {
               logger.stderr('Cannot use requiredFixes when using upgrade.');
               context.exit(22);
             }
+            // TODO(jcollins-g): prevent non-nullable outside of upgrade
+            // command.
             options.includeFixes.add('non-nullable');
             if (rest.length > 1) {
               options.targets = command.rest.sublist(1);

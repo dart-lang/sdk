@@ -305,7 +305,7 @@ These fixes are NOT automatically applied, but may be enabled using --$includeFi
               'might affect the accuracy of the upgrade.');
           options.overwrite = false;
         }
-        if (options.preview) {
+        if (options.isUpgrade && options.upgradeOptions.preview) {
           logger.stdout('');
           String open;
           if (urls.length == 1) {

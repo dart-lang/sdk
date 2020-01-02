@@ -28,6 +28,7 @@ void main() {
     List<String> excludeFixes = const <String>[],
     bool showHelp = false,
     String normalOut,
+    bool dependencies = false,
     bool pedanticFixes = false,
     bool requiredFixes = false,
     bool overwrite = false,
@@ -156,6 +157,13 @@ void main() {
         var options =
             parse(['upgrade', 'sdk', target], includeFixes: ['non-nullable']);
         expect(options.targets, [target]);
+      });
+
+      test('dependencies', () {
+        var options = parse(
+            ['upgrade', 'sdk', '--migrate-dependencies', p('/pkg/foo')],
+            includeFixes: ['non-nullable']);
+        expect(options.upgradeOptions.dependencies, isTrue);
       });
     });
   });
