@@ -1,3 +1,11 @@
+# 0.1.107
+
+* miscellaneous doc cleanup (typos, etc)
+* new lint: `avoid_redundant_argument_values`
+* updated `slash_for_doc_comments` to check mixin declarations
+* (internal) updates to use new `LinterContext.evaluateConstant` API
+* improved docs for `always_require_non_null_named_parameters`
+
 # 0.1.106
 
 * improved docs for `comment_references`
