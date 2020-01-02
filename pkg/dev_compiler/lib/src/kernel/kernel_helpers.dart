@@ -274,47 +274,48 @@ bool hasLabeledContinue(SwitchStatement node) {
   return visitor.found;
 }
 
-class LabelContinueFinder extends StatementVisitor {
+class LabelContinueFinder extends StatementVisitor<void> {
   var found = false;
 
-  visit(Statement s) {
+  void visit(Statement s) {
     if (!found && s != null) s.accept(this);
   }
 
   @override
-  visitBlock(Block node) => node.statements.forEach(visit);
+  void visitBlock(Block node) => node.statements.forEach(visit);
   @override
-  visitAssertBlock(AssertBlock node) => node.statements.forEach(visit);
+  void visitAssertBlock(AssertBlock node) => node.statements.forEach(visit);
   @override
-  visitWhileStatement(WhileStatement node) => visit(node.body);
+  void visitWhileStatement(WhileStatement node) => visit(node.body);
   @override
-  visitDoStatement(DoStatement node) => visit(node.body);
+  void visitDoStatement(DoStatement node) => visit(node.body);
   @override
-  visitForStatement(ForStatement node) => visit(node.body);
+  void visitForStatement(ForStatement node) => visit(node.body);
   @override
-  visitForInStatement(ForInStatement node) => visit(node.body);
+  void visitForInStatement(ForInStatement node) => visit(node.body);
   @override
-  visitContinueSwitchStatement(ContinueSwitchStatement node) => found = true;
+  void visitContinueSwitchStatement(ContinueSwitchStatement node) =>
+      found = true;
 
   @override
-  visitSwitchStatement(SwitchStatement node) {
+  void visitSwitchStatement(SwitchStatement node) {
     node.cases.forEach((c) => visit(c.body));
   }
 
   @override
-  visitIfStatement(IfStatement node) {
+  void visitIfStatement(IfStatement node) {
     visit(node.then);
     visit(node.otherwise);
   }
 
   @override
-  visitTryCatch(TryCatch node) {
+  void visitTryCatch(TryCatch node) {
     visit(node.body);
     node.catches.forEach((c) => visit(c.body));
   }
 
   @override
-  visitTryFinally(TryFinally node) {
+  void visitTryFinally(TryFinally node) {
     visit(node.body);
     visit(node.finalizer);
   }

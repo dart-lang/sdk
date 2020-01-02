@@ -773,14 +773,14 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       return defer(t);
     }
 
-    emitClassRef(InterfaceType t) {
+    js_ast.Expression emitClassRef(InterfaceType t) {
       // TODO(jmesserly): investigate this. It seems like `lazyJSType` is
       // invalid for use in an `extends` clause, hence this workaround.
       return _emitJSInterop(t.classNode) ??
           _emitInterfaceType(t, emitNullability: false);
     }
 
-    getBaseClass(int count) {
+    js_ast.Expression getBaseClass(int count) {
       var base = emitDeferredType(
           c.getThisType(_coreTypes, c.enclosingLibrary.nonNullable));
       while (--count >= 0) {
@@ -934,7 +934,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       return body;
     }
 
-    addConstructor(String name, js_ast.Expression jsCtor) {
+    void addConstructor(String name, js_ast.Expression jsCtor) {
       body.add(_addConstructorToClass(c, className, name, jsCtor));
     }
 
@@ -1362,11 +1362,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         !f.namedParameters.any(isCovariantParameter)) {
       result = f.thisFunctionType;
     } else {
-      reifyParameter(VariableDeclaration p) => isCovariantParameter(p)
+      DartType reifyParameter(VariableDeclaration p) => isCovariantParameter(p)
           ? _coreTypes.objectClass.getThisType(
               _coreTypes, _coreTypes.objectClass.enclosingLibrary.nonNullable)
           : p.type;
-      reifyNamedParameter(VariableDeclaration p) =>
+      NamedType reifyNamedParameter(VariableDeclaration p) =>
           NamedType(p.name, reifyParameter(p));
 
       // TODO(jmesserly): do covariant type parameter bounds also need to be
@@ -1534,7 +1534,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
 
     var body = <js_ast.Statement>[];
-    emitFieldInit(Field f, Expression initializer, TreeNode hoverInfo) {
+    void emitFieldInit(Field f, Expression initializer, TreeNode hoverInfo) {
       var access = _classProperties.virtualFields[f] ?? _declareMemberName(f);
       var jsInit = _visitInitializer(initializer, f.annotations);
       body.add(jsInit
@@ -1797,7 +1797,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     if (superMember == null) return const [];
 
-    substituteType(DartType t) {
+    DartType substituteType(DartType t) {
       return _typeFromClass(t, superMember.enclosingClass, enclosingClass);
     }
 
@@ -2719,7 +2719,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     if (typeFormals.isNotEmpty) {
       var tf = _emitTypeFormals(typeFormals);
 
-      addTypeFormalsAsParameters(List<js_ast.Expression> elements) {
+      js_ast.Expression addTypeFormalsAsParameters(
+          List<js_ast.Expression> elements) {
         var names = _typeTable.discharge(typeFormals);
         return names.isEmpty
             ? js.call('(#) => [#]', [tf, elements])
@@ -2739,7 +2740,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       ///
       /// Kernel represents `<T>` as `<T extends Object = dynamic>`. We can find
       /// explicit bounds by looking for anything *except* that.
-      typeParameterHasExplicitBound(TypeParameter t) =>
+      bool typeParameterHasExplicitBound(TypeParameter t) =>
           t.bound != _types.coreTypes.objectLegacyRawType ||
           t.defaultType != const DynamicType();
 
@@ -2755,7 +2756,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         ///
         /// Because `dynamic` and `Object` are both top types, they'll behave
         /// identically for the purposes of type checks.
-        emitTypeParameterBound(TypeParameter t) =>
+        js_ast.Expression emitTypeParameterBound(TypeParameter t) =>
             typeParameterHasExplicitBound(t)
                 ? _emitType(t.bound)
                 : visitDynamicType(const DynamicType());
@@ -2937,7 +2938,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// called directly.
   js_ast.Expression _emitGeneratorFunctionExpression(
       FunctionNode function, String name) {
-    emitGeneratorFn(List<js_ast.Parameter> getParameters(js_ast.Block jsBody)) {
+    js_ast.Expression emitGeneratorFn(
+        List<js_ast.Parameter> getParameters(js_ast.Block jsBody)) {
       var savedController = _asyncStarController;
       _asyncStarController = function.asyncMarker == AsyncMarker.AsyncStar
           ? _emitTemporaryId('stream')
@@ -3123,7 +3125,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     _emitCovarianceBoundsCheck(f.typeParameters, body);
 
-    initParameter(VariableDeclaration p, js_ast.Identifier jsParam) {
+    void initParameter(VariableDeclaration p, js_ast.Identifier jsParam) {
       if (isCovariantParameter(p)) {
         var castExpr = _emitCast(jsParam, p.type);
         if (!identical(castExpr, jsParam)) body.add(castExpr.toStatement());
@@ -3566,7 +3568,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   @override
   js_ast.For visitForStatement(ForStatement node) {
     return _translateLoop(node, () {
-      emitForInitializer(VariableDeclaration v) =>
+      js_ast.VariableInitialization emitForInitializer(VariableDeclaration v) =>
           js_ast.VariableInitialization(_emitVariableDef(v),
               _visitInitializer(v.initializer, v.annotations));
 
@@ -5408,7 +5410,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var parent = f.parent;
 
     // SDK libraries can skip reification if they request it.
-    reifyFunctionTypes(Expression a) =>
+    bool reifyFunctionTypes(Expression a) =>
         isBuiltinAnnotation(a, '_js_helper', 'ReifyFunctionTypes');
     while (parent != null) {
       var a = findAnnotation(parent, reifyFunctionTypes);
@@ -5564,7 +5566,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   @override
   js_ast.Expression visitInstanceConstant(InstanceConstant node) {
     _declareBeforeUse(node.classNode);
-    entryToProperty(MapEntry<Reference, Constant> entry) {
+    js_ast.Property entryToProperty(MapEntry<Reference, Constant> entry) {
       var constant = visitConstant(entry.value);
       var member = entry.key.asField;
       var cls = member.enclosingClass;

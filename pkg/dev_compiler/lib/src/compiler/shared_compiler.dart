@@ -625,28 +625,28 @@ class _IdentifierFinder extends js_ast.BaseVisitor<void> {
   static final instance = _IdentifierFinder();
 
   @override
-  visitIdentifier(node) {
+  void visitIdentifier(node) {
     if (node.name == nameToFind) found = true;
   }
 
   @override
-  visitNode(node) {
+  void visitNode(node) {
     if (!found) super.visitNode(node);
   }
 }
 
-class YieldFinder extends js_ast.BaseVisitor {
+class YieldFinder extends js_ast.BaseVisitor<void> {
   bool hasYield = false;
   bool hasThis = false;
   bool _nestedFunction = false;
 
   @override
-  visitThis(js_ast.This node) {
+  void visitThis(js_ast.This node) {
     hasThis = true;
   }
 
   @override
-  visitFunctionExpression(js_ast.FunctionExpression node) {
+  void visitFunctionExpression(js_ast.FunctionExpression node) {
     var savedNested = _nestedFunction;
     _nestedFunction = true;
     super.visitFunctionExpression(node);
@@ -654,13 +654,13 @@ class YieldFinder extends js_ast.BaseVisitor {
   }
 
   @override
-  visitYield(js_ast.Yield node) {
+  void visitYield(js_ast.Yield node) {
     if (!_nestedFunction) hasYield = true;
     super.visitYield(node);
   }
 
   @override
-  visitNode(js_ast.Node node) {
+  void visitNode(js_ast.Node node) {
     if (hasYield && hasThis) return; // found both, nothing more to do.
     super.visitNode(node);
   }
@@ -691,17 +691,17 @@ class _ThisOrSuperFinder extends js_ast.BaseVisitor<void> {
   static final instance = _ThisOrSuperFinder();
 
   @override
-  visitThis(js_ast.This node) {
+  void visitThis(js_ast.This node) {
     found = true;
   }
 
   @override
-  visitSuper(js_ast.Super node) {
+  void visitSuper(js_ast.Super node) {
     found = true;
   }
 
   @override
-  visitNode(js_ast.Node node) {
+  void visitNode(js_ast.Node node) {
     if (!found) super.visitNode(node);
   }
 }

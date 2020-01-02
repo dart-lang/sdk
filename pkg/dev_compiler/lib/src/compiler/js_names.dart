@@ -30,7 +30,7 @@ class TemporaryId extends Identifier {
   // However we may need to fix this if we want hover to work well for things
   // like library prefixes and field-initializing formals.
   @override
-  get sourceInformation => null;
+  dynamic get sourceInformation => null;
   @override
   set sourceInformation(Object obj) {}
 
@@ -147,7 +147,7 @@ class _RenameVisitor extends VariableDeclarationVisitor {
   }
 
   @override
-  declare(Identifier node) {
+  void declare(Identifier node) {
     var id = identifierKey(node);
     var notAlreadyDeclared = scope.declared.add(id);
     // Normal identifiers can be declared multiple times, because we don't
@@ -157,7 +157,7 @@ class _RenameVisitor extends VariableDeclarationVisitor {
   }
 
   @override
-  visitIdentifier(Identifier node) {
+  void visitIdentifier(Identifier node) {
     var id = identifierKey(node);
 
     // Find where the node was declared.
@@ -173,7 +173,7 @@ class _RenameVisitor extends VariableDeclarationVisitor {
     _markUsed(node, id, declScope);
   }
 
-  _markUsed(Identifier node, Object id, _FunctionScope declScope) {
+  void _markUsed(Identifier node, Object id, _FunctionScope declScope) {
     // If it needs rename, we can't add it to the used name set yet, instead we
     // will record all scopes it is visible in.
     Set<_FunctionScope> usedIn;
@@ -191,13 +191,13 @@ class _RenameVisitor extends VariableDeclarationVisitor {
   }
 
   @override
-  visitFunctionExpression(FunctionExpression node) {
+  void visitFunctionExpression(FunctionExpression node) {
     // Visit nested functions after all identifiers are declared.
     scope.childScopes[node] = _FunctionScope(scope);
   }
 
   @override
-  visitClassExpression(ClassExpression node) {
+  void visitClassExpression(ClassExpression node) {
     scope.childScopes[node] = _FunctionScope(scope);
   }
 
