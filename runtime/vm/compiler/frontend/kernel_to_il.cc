@@ -387,10 +387,9 @@ Fragment FlowGraphBuilder::FfiCall(
 
 Fragment FlowGraphBuilder::ThrowException(TokenPosition position) {
   Fragment instructions;
-  const intptr_t kNumArguments = 1;
-  ArgumentArray arguments = GetArguments(kNumArguments);
+  Value* exception = Pop();
   instructions +=
-      Fragment(new (Z) ThrowInstr(position, GetNextDeoptId(), arguments))
+      Fragment(new (Z) ThrowInstr(position, GetNextDeoptId(), exception))
           .closed();
   // Use it's side effect of leaving a constant on the stack (does not change
   // the graph).
@@ -402,11 +401,12 @@ Fragment FlowGraphBuilder::ThrowException(TokenPosition position) {
 Fragment FlowGraphBuilder::RethrowException(TokenPosition position,
                                             int catch_try_index) {
   Fragment instructions;
-  const intptr_t kNumArguments = 2;
-  ArgumentArray arguments = GetArguments(kNumArguments);
-  instructions += Fragment(new (Z) ReThrowInstr(position, catch_try_index,
-                                                GetNextDeoptId(), arguments))
-                      .closed();
+  Value* stacktrace = Pop();
+  Value* exception = Pop();
+  instructions +=
+      Fragment(new (Z) ReThrowInstr(position, catch_try_index, GetNextDeoptId(),
+                                    exception, stacktrace))
+          .closed();
   // Use it's side effect of leaving a constant on the stack (does not change
   // the graph).
   NullConstant();
@@ -748,7 +748,6 @@ Fragment FlowGraphBuilder::ThrowTypeError() {
   instructions += Drop();
 
   // Throw the exception
-  instructions += PushArgument();
   instructions += ThrowException(TokenPosition::kNoSource);
 
   return instructions;

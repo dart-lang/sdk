@@ -3740,9 +3740,7 @@ Fragment StreamingFlowGraphBuilder::BuildRethrow(TokenPosition* p) {
 
   Fragment instructions = DebugStepCheck(position);
   instructions += LoadLocal(catch_block()->exception_var());
-  instructions += PushArgument();
   instructions += LoadLocal(catch_block()->stack_trace_var());
-  instructions += PushArgument();
   instructions += RethrowException(position, catch_block()->catch_try_index());
 
   return instructions;
@@ -3759,7 +3757,6 @@ Fragment StreamingFlowGraphBuilder::BuildThrow(TokenPosition* p) {
   if (NeedsDebugStepCheck(stack(), position)) {
     instructions = DebugStepCheck(position) + instructions;
   }
-  instructions += PushArgument();
   instructions += ThrowException(position);
   ASSERT(instructions.is_closed());
 
@@ -4180,7 +4177,6 @@ Fragment StreamingFlowGraphBuilder::BuildAssertStatement() {
   // paren, not the beginning of 'assert'.
   otherwise_fragment +=
       StaticCall(condition_start_offset, target, 3, ICData::kStatic);
-  otherwise_fragment += PushArgument();
   otherwise_fragment += ThrowException(TokenPosition::kNoSource);
   otherwise_fragment += Drop();
 
@@ -4516,7 +4512,6 @@ Fragment StreamingFlowGraphBuilder::BuildSwitchStatement() {
       body_fragment += Drop();
 
       // Throw the exception
-      body_fragment += PushArgument();
       body_fragment += ThrowException(TokenPosition::kNoSource);
       body_fragment += Drop();
     }
@@ -4836,9 +4831,7 @@ Fragment StreamingFlowGraphBuilder::BuildTryCatch() {
   // handler).
   if (catch_body.is_open()) {
     catch_body += LoadLocal(CurrentException());
-    catch_body += PushArgument();
     catch_body += LoadLocal(CurrentStackTrace());
-    catch_body += PushArgument();
     catch_body += RethrowException(TokenPosition::kNoSource, try_handler_index);
     Drop();
   }
@@ -4921,9 +4914,7 @@ Fragment StreamingFlowGraphBuilder::BuildTryFinally() {
   finally_body += BuildStatement();  // read finalizer
   if (finally_body.is_open()) {
     finally_body += LoadLocal(CurrentException());
-    finally_body += PushArgument();
     finally_body += LoadLocal(CurrentStackTrace());
-    finally_body += PushArgument();
     finally_body +=
         RethrowException(TokenPosition::kNoSource, try_handler_index);
     Drop();
@@ -4999,9 +4990,7 @@ Fragment StreamingFlowGraphBuilder::BuildYieldStatement() {
 
     Fragment rethrow(error);
     rethrow += LoadLocal(exception_var);
-    rethrow += PushArgument();
     rethrow += LoadLocal(stack_trace_var);
-    rethrow += PushArgument();
     rethrow += RethrowException(position, kInvalidTryIndex);
     Drop();
 

@@ -1692,19 +1692,19 @@ void BytecodeFlowGraphBuilder::BuildThrow() {
 
   if (DecodeOperandA().value() == 0) {
     // throw
-    const intptr_t kNumArguments = 1;
-    LoadStackSlots(kNumArguments);
-    ArgumentArray arguments = GetArguments(kNumArguments);
+    LoadStackSlots(1);
+    Value* exception = Pop();
     code_ +=
-        Fragment(new (Z) ThrowInstr(position_, B->GetNextDeoptId(), arguments))
+        Fragment(new (Z) ThrowInstr(position_, B->GetNextDeoptId(), exception))
             .closed();
   } else {
     // rethrow
-    const intptr_t kNumArguments = 2;
-    LoadStackSlots(kNumArguments);
-    ArgumentArray arguments = GetArguments(kNumArguments);
+    LoadStackSlots(2);
+    Value* stacktrace = Pop();
+    Value* exception = Pop();
     code_ += Fragment(new (Z) ReThrowInstr(position_, kInvalidTryIndex,
-                                           B->GetNextDeoptId(), arguments))
+                                           B->GetNextDeoptId(), exception,
+                                           stacktrace))
                  .closed();
   }
 

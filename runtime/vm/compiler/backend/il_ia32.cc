@@ -6317,21 +6317,38 @@ void UnboxedWidthExtenderInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 LocationSummary* ThrowInstr::MakeLocationSummary(Zone* zone, bool opt) const {
-  return new (zone) LocationSummary(zone, 0, 0, LocationSummary::kCall);
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
+  summary->set_in(0, Location::RegisterLocation(EAX));
+  return summary;
 }
 
 void ThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const Register exception_reg = locs()->in(0).reg();
+  __ pushl(exception_reg);
   compiler->GenerateRuntimeCall(token_pos(), deopt_id(), kThrowRuntimeEntry, 1,
                                 locs());
   __ int3();
 }
 
 LocationSummary* ReThrowInstr::MakeLocationSummary(Zone* zone, bool opt) const {
-  return new (zone) LocationSummary(zone, 0, 0, LocationSummary::kCall);
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
+  summary->set_in(0, Location::RegisterLocation(EAX));
+  summary->set_in(1, Location::RegisterLocation(EDX));
+  return summary;
 }
 
 void ReThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const Register exception_reg = locs()->in(0).reg();
+  const Register stacktrace_reg = locs()->in(1).reg();
   compiler->SetNeedsStackTrace(catch_try_index());
+  __ pushl(exception_reg);
+  __ pushl(stacktrace_reg);
   compiler->GenerateRuntimeCall(token_pos(), deopt_id(), kReThrowRuntimeEntry,
                                 2, locs());
   __ int3();
