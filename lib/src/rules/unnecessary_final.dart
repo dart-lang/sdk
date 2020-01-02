@@ -6,7 +6,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
-import '../meta.dart';
 
 const _desc = "Don't use `final` for local variables.";
 
@@ -36,7 +35,6 @@ void goodMethod() {
 ```
 ''';
 
-@IncompatibleWith(['prefer_final_locals'])
 class UnnecessaryFinal extends LintRule implements NodeLintRule {
   UnnecessaryFinal()
       : super(

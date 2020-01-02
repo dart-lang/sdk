@@ -6,7 +6,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
-import '../meta.dart';
 
 const _desc =
     r'Prefer final for variable declarations if they are not reassigned.';
@@ -47,7 +46,6 @@ void mutableCase() {
 
 ''';
 
-@IncompatibleWith(['unnecessary_final'])
 class PreferFinalLocals extends LintRule implements NodeLintRule {
   PreferFinalLocals()
       : super(
