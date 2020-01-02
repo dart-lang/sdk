@@ -36,7 +36,7 @@ class AddContentOverlay implements HasToJson {
   /**
    * The new content of the file.
    */
-  void set content(String value) {
+  set content(String value) {
     assert(value != null);
     _content = value;
   }
@@ -133,7 +133,7 @@ class AnalysisError implements HasToJson {
   /**
    * The severity of the error.
    */
-  void set severity(AnalysisErrorSeverity value) {
+  set severity(AnalysisErrorSeverity value) {
     assert(value != null);
     _severity = value;
   }
@@ -146,7 +146,7 @@ class AnalysisError implements HasToJson {
   /**
    * The type of the error.
    */
-  void set type(AnalysisErrorType value) {
+  set type(AnalysisErrorType value) {
     assert(value != null);
     _type = value;
   }
@@ -159,7 +159,7 @@ class AnalysisError implements HasToJson {
   /**
    * The location associated with the error.
    */
-  void set location(Location value) {
+  set location(Location value) {
     assert(value != null);
     _location = value;
   }
@@ -174,7 +174,7 @@ class AnalysisError implements HasToJson {
    * The message to be displayed for this error. The message should indicate
    * what is wrong with the code and why it is wrong.
    */
-  void set message(String value) {
+  set message(String value) {
     assert(value != null);
     _message = value;
   }
@@ -191,7 +191,7 @@ class AnalysisError implements HasToJson {
    * message should indicate how the user can fix the error. The field is
    * omitted if there is no correction message associated with the error code.
    */
-  void set correction(String value) {
+  set correction(String value) {
     _correction = value;
   }
 
@@ -203,7 +203,7 @@ class AnalysisError implements HasToJson {
   /**
    * The name, as a string, of the error code associated with this error.
    */
-  void set code(String value) {
+  set code(String value) {
     assert(value != null);
     _code = value;
   }
@@ -230,7 +230,7 @@ class AnalysisError implements HasToJson {
    * no false positives should be returned. If a client sees this flag set they
    * can proceed with the confidence that there are in fact associated fixes.
    */
-  void set hasFix(bool value) {
+  set hasFix(bool value) {
     _hasFix = value;
   }
 
@@ -531,7 +531,7 @@ class ChangeContentOverlay implements HasToJson {
   /**
    * The edits to be applied to the file.
    */
-  void set edits(List<SourceEdit> value) {
+  set edits(List<SourceEdit> value) {
     assert(value != null);
     _edits = value;
   }
@@ -677,7 +677,7 @@ class CompletionSuggestion implements HasToJson {
   /**
    * The kind of element being suggested.
    */
-  void set kind(CompletionSuggestionKind value) {
+  set kind(CompletionSuggestionKind value) {
     assert(value != null);
     _kind = value;
   }
@@ -692,7 +692,7 @@ class CompletionSuggestion implements HasToJson {
    * The relevance of this completion suggestion where a higher number
    * indicates a higher relevance.
    */
-  void set relevance(int value) {
+  set relevance(int value) {
     assert(value != null);
     _relevance = value;
   }
@@ -711,7 +711,7 @@ class CompletionSuggestion implements HasToJson {
    * additionally insert a template for the parameters. The information
    * required in order to do so is contained in other fields.
    */
-  void set completion(String value) {
+  set completion(String value) {
     assert(value != null);
     _completion = value;
   }
@@ -728,7 +728,7 @@ class CompletionSuggestion implements HasToJson {
    * only defined if the displayed text should be different than the
    * completion. Otherwise it is omitted.
    */
-  void set displayText(String value) {
+  set displayText(String value) {
     _displayText = value;
   }
 
@@ -742,7 +742,7 @@ class CompletionSuggestion implements HasToJson {
    * The offset, relative to the beginning of the completion, of where the
    * selection should be placed after insertion.
    */
-  void set selectionOffset(int value) {
+  set selectionOffset(int value) {
     assert(value != null);
     _selectionOffset = value;
   }
@@ -755,7 +755,7 @@ class CompletionSuggestion implements HasToJson {
   /**
    * The number of characters that should be selected after insertion.
    */
-  void set selectionLength(int value) {
+  set selectionLength(int value) {
     assert(value != null);
     _selectionLength = value;
   }
@@ -768,7 +768,7 @@ class CompletionSuggestion implements HasToJson {
   /**
    * True if the suggested element is deprecated.
    */
-  void set isDeprecated(bool value) {
+  set isDeprecated(bool value) {
     assert(value != null);
     _isDeprecated = value;
   }
@@ -783,7 +783,7 @@ class CompletionSuggestion implements HasToJson {
    * True if the element is not known to be valid for the target. This happens
    * if the type of the target is dynamic.
    */
-  void set isPotential(bool value) {
+  set isPotential(bool value) {
     assert(value != null);
     _isPotential = value;
   }
@@ -800,7 +800,7 @@ class CompletionSuggestion implements HasToJson {
    * suggested. This field is omitted if there is no Dartdoc associated with
    * the element.
    */
-  void set docSummary(String value) {
+  set docSummary(String value) {
     _docSummary = value;
   }
 
@@ -814,7 +814,7 @@ class CompletionSuggestion implements HasToJson {
    * The Dartdoc associated with the element being suggested. This field is
    * omitted if there is no Dartdoc associated with the element.
    */
-  void set docComplete(String value) {
+  set docComplete(String value) {
     _docComplete = value;
   }
 
@@ -828,7 +828,7 @@ class CompletionSuggestion implements HasToJson {
    * The class that declares the element being suggested. This field is omitted
    * if the suggested element is not a member of a class.
    */
-  void set declaringType(String value) {
+  set declaringType(String value) {
     _declaringType = value;
   }
 
@@ -842,7 +842,7 @@ class CompletionSuggestion implements HasToJson {
    * A default String for use in generating argument list source contents on
    * the client side.
    */
-  void set defaultArgumentListString(String value) {
+  set defaultArgumentListString(String value) {
     _defaultArgumentListString = value;
   }
 
@@ -864,7 +864,7 @@ class CompletionSuggestion implements HasToJson {
    * of length 1, starting at offsets 0 and 3. Clients can use these ranges to
    * treat the 'x' and 'y' values specially for linked edits.
    */
-  void set defaultArgumentListTextRanges(List<int> value) {
+  set defaultArgumentListTextRanges(List<int> value) {
     _defaultArgumentListTextRanges = value;
   }
 
@@ -876,7 +876,7 @@ class CompletionSuggestion implements HasToJson {
   /**
    * Information about the element reference being suggested.
    */
-  void set element(Element value) {
+  set element(Element value) {
     _element = value;
   }
 
@@ -892,7 +892,7 @@ class CompletionSuggestion implements HasToJson {
    * being suggested. This field is omitted if the suggested element is not a
    * getter, function or method.
    */
-  void set returnType(String value) {
+  set returnType(String value) {
     _returnType = value;
   }
 
@@ -908,7 +908,7 @@ class CompletionSuggestion implements HasToJson {
    * This field is omitted if the suggested element is not a setter, function
    * or method.
    */
-  void set parameterNames(List<String> value) {
+  set parameterNames(List<String> value) {
     _parameterNames = value;
   }
 
@@ -922,7 +922,7 @@ class CompletionSuggestion implements HasToJson {
    * The types of the parameters of the function or method being suggested.
    * This field is omitted if the parameterNames field is omitted.
    */
-  void set parameterTypes(List<String> value) {
+  set parameterTypes(List<String> value) {
     _parameterTypes = value;
   }
 
@@ -936,7 +936,7 @@ class CompletionSuggestion implements HasToJson {
    * The number of required parameters for the function or method being
    * suggested. This field is omitted if the parameterNames field is omitted.
    */
-  void set requiredParameterCount(int value) {
+  set requiredParameterCount(int value) {
     _requiredParameterCount = value;
   }
 
@@ -950,7 +950,7 @@ class CompletionSuggestion implements HasToJson {
    * True if the function or method being suggested has at least one named
    * parameter. This field is omitted if the parameterNames field is omitted.
    */
-  void set hasNamedParameters(bool value) {
+  set hasNamedParameters(bool value) {
     _hasNamedParameters = value;
   }
 
@@ -966,7 +966,7 @@ class CompletionSuggestion implements HasToJson {
    * if the suggestion is not the addition of an optional argument within an
    * argument list.
    */
-  void set parameterName(String value) {
+  set parameterName(String value) {
     _parameterName = value;
   }
 
@@ -980,7 +980,7 @@ class CompletionSuggestion implements HasToJson {
    * The type of the options parameter being suggested. This field is omitted
    * if the parameterName field is omitted.
    */
-  void set parameterType(String value) {
+  set parameterType(String value) {
     _parameterType = value;
   }
 
@@ -994,7 +994,7 @@ class CompletionSuggestion implements HasToJson {
    * The import to be added if the suggestion is out of scope and needs an
    * import to be added to be in scope.
    */
-  void set importUri(String value) {
+  set importUri(String value) {
     _importUri = value;
   }
 
@@ -1522,7 +1522,7 @@ class Element implements HasToJson {
   /**
    * The kind of the element.
    */
-  void set kind(ElementKind value) {
+  set kind(ElementKind value) {
     assert(value != null);
     _kind = value;
   }
@@ -1537,7 +1537,7 @@ class Element implements HasToJson {
    * The name of the element. This is typically used as the label in the
    * outline.
    */
-  void set name(String value) {
+  set name(String value) {
     assert(value != null);
     _name = value;
   }
@@ -1550,7 +1550,7 @@ class Element implements HasToJson {
   /**
    * The location of the name in the declaration of the element.
    */
-  void set location(Location value) {
+  set location(Location value) {
     _location = value;
   }
 
@@ -1578,7 +1578,7 @@ class Element implements HasToJson {
    * - 0x10 - set if the element is private
    * - 0x20 - set if the element is deprecated
    */
-  void set flags(int value) {
+  set flags(int value) {
     assert(value != null);
     _flags = value;
   }
@@ -1597,7 +1597,7 @@ class Element implements HasToJson {
    * parameters (e.g. getter), this field will not be defined. If the element
    * has zero parameters, this field will have a value of "()".
    */
-  void set parameters(String value) {
+  set parameters(String value) {
     _parameters = value;
   }
 
@@ -1613,7 +1613,7 @@ class Element implements HasToJson {
    * this field will not be defined. If the element does not have a declared
    * return type, this field will contain an empty string.
    */
-  void set returnType(String value) {
+  set returnType(String value) {
     _returnType = value;
   }
 
@@ -1627,7 +1627,7 @@ class Element implements HasToJson {
    * The type parameter list for the element. If the element doesn't have type
    * parameters, this field will not be defined.
    */
-  void set typeParameters(String value) {
+  set typeParameters(String value) {
     _typeParameters = value;
   }
 
@@ -2082,7 +2082,7 @@ class FoldingRegion implements HasToJson {
   /**
    * The kind of the region.
    */
-  void set kind(FoldingKind value) {
+  set kind(FoldingKind value) {
     assert(value != null);
     _kind = value;
   }
@@ -2095,7 +2095,7 @@ class FoldingRegion implements HasToJson {
   /**
    * The offset of the region to be folded.
    */
-  void set offset(int value) {
+  set offset(int value) {
     assert(value != null);
     _offset = value;
   }
@@ -2108,7 +2108,7 @@ class FoldingRegion implements HasToJson {
   /**
    * The length of the region to be folded.
    */
-  void set length(int value) {
+  set length(int value) {
     assert(value != null);
     _length = value;
   }
@@ -2208,7 +2208,7 @@ class HighlightRegion implements HasToJson {
   /**
    * The type of highlight associated with the region.
    */
-  void set type(HighlightRegionType value) {
+  set type(HighlightRegionType value) {
     assert(value != null);
     _type = value;
   }
@@ -2221,7 +2221,7 @@ class HighlightRegion implements HasToJson {
   /**
    * The offset of the region to be highlighted.
    */
-  void set offset(int value) {
+  set offset(int value) {
     assert(value != null);
     _offset = value;
   }
@@ -2234,7 +2234,7 @@ class HighlightRegion implements HasToJson {
   /**
    * The length of the region to be highlighted.
    */
-  void set length(int value) {
+  set length(int value) {
     assert(value != null);
     _length = value;
   }
@@ -3034,7 +3034,7 @@ class KytheEntry implements HasToJson {
   /**
    * The ticket of the source node.
    */
-  void set source(KytheVName value) {
+  set source(KytheVName value) {
     assert(value != null);
     _source = value;
   }
@@ -3047,7 +3047,7 @@ class KytheEntry implements HasToJson {
   /**
    * An edge label. The schema defines which labels are meaningful.
    */
-  void set kind(String value) {
+  set kind(String value) {
     _kind = value;
   }
 
@@ -3059,7 +3059,7 @@ class KytheEntry implements HasToJson {
   /**
    * The ticket of the target node.
    */
-  void set target(KytheVName value) {
+  set target(KytheVName value) {
     _target = value;
   }
 
@@ -3071,7 +3071,7 @@ class KytheEntry implements HasToJson {
   /**
    * A fact label. The schema defines which fact labels are meaningful.
    */
-  void set fact(String value) {
+  set fact(String value) {
     assert(value != null);
     _fact = value;
   }
@@ -3084,7 +3084,7 @@ class KytheEntry implements HasToJson {
   /**
    * The String value of the fact.
    */
-  void set value(List<int> value) {
+  set value(List<int> value) {
     _value = value;
   }
 
@@ -3212,7 +3212,7 @@ class KytheVName implements HasToJson {
   /**
    * An opaque signature generated by the analyzer.
    */
-  void set signature(String value) {
+  set signature(String value) {
     assert(value != null);
     _signature = value;
   }
@@ -3229,7 +3229,7 @@ class KytheVName implements HasToJson {
    * a collection of related files, such as the contents of a given source
    * repository.
    */
-  void set corpus(String value) {
+  set corpus(String value) {
     assert(value != null);
     _corpus = value;
   }
@@ -3246,7 +3246,7 @@ class KytheVName implements HasToJson {
    * identifier, denoting a distinct subset of the corpus. This may also be
    * used to designate virtual collections like generated files.
    */
-  void set root(String value) {
+  set root(String value) {
     assert(value != null);
     _root = value;
   }
@@ -3261,7 +3261,7 @@ class KytheVName implements HasToJson {
    * A path-structured label describing the “location” of the named object
    * relative to the corpus and the root.
    */
-  void set path(String value) {
+  set path(String value) {
     assert(value != null);
     _path = value;
   }
@@ -3274,7 +3274,7 @@ class KytheVName implements HasToJson {
   /**
    * The language this name belongs to.
    */
-  void set language(String value) {
+  set language(String value) {
     assert(value != null);
     _language = value;
   }
@@ -3396,7 +3396,7 @@ class LinkedEditGroup implements HasToJson {
   /**
    * The positions of the regions that should be edited simultaneously.
    */
-  void set positions(List<Position> value) {
+  set positions(List<Position> value) {
     assert(value != null);
     _positions = value;
   }
@@ -3409,7 +3409,7 @@ class LinkedEditGroup implements HasToJson {
   /**
    * The length of the regions that should be edited simultaneously.
    */
-  void set length(int value) {
+  set length(int value) {
     assert(value != null);
     _length = value;
   }
@@ -3424,7 +3424,7 @@ class LinkedEditGroup implements HasToJson {
    * Pre-computed suggestions for what every region might want to be changed
    * to.
    */
-  void set suggestions(List<LinkedEditSuggestion> value) {
+  set suggestions(List<LinkedEditSuggestion> value) {
     assert(value != null);
     _suggestions = value;
   }
@@ -3554,7 +3554,7 @@ class LinkedEditSuggestion implements HasToJson {
   /**
    * The value that could be used to replace all of the linked edit regions.
    */
-  void set value(String value) {
+  set value(String value) {
     assert(value != null);
     _value = value;
   }
@@ -3567,7 +3567,7 @@ class LinkedEditSuggestion implements HasToJson {
   /**
    * The kind of value being proposed.
    */
-  void set kind(LinkedEditSuggestionKind value) {
+  set kind(LinkedEditSuggestionKind value) {
     assert(value != null);
     _kind = value;
   }
@@ -3730,7 +3730,7 @@ class Location implements HasToJson {
   /**
    * The file containing the range.
    */
-  void set file(String value) {
+  set file(String value) {
     assert(value != null);
     _file = value;
   }
@@ -3743,7 +3743,7 @@ class Location implements HasToJson {
   /**
    * The offset of the range.
    */
-  void set offset(int value) {
+  set offset(int value) {
     assert(value != null);
     _offset = value;
   }
@@ -3756,7 +3756,7 @@ class Location implements HasToJson {
   /**
    * The length of the range.
    */
-  void set length(int value) {
+  set length(int value) {
     assert(value != null);
     _length = value;
   }
@@ -3771,7 +3771,7 @@ class Location implements HasToJson {
    * The one-based index of the line containing the first character of the
    * range.
    */
-  void set startLine(int value) {
+  set startLine(int value) {
     assert(value != null);
     _startLine = value;
   }
@@ -3786,7 +3786,7 @@ class Location implements HasToJson {
    * The one-based index of the column containing the first character of the
    * range.
    */
-  void set startColumn(int value) {
+  set startColumn(int value) {
     assert(value != null);
     _startColumn = value;
   }
@@ -3908,7 +3908,7 @@ class NavigationRegion implements HasToJson {
   /**
    * The offset of the region from which the user can navigate.
    */
-  void set offset(int value) {
+  set offset(int value) {
     assert(value != null);
     _offset = value;
   }
@@ -3921,7 +3921,7 @@ class NavigationRegion implements HasToJson {
   /**
    * The length of the region from which the user can navigate.
    */
-  void set length(int value) {
+  set length(int value) {
     assert(value != null);
     _length = value;
   }
@@ -3938,7 +3938,7 @@ class NavigationRegion implements HasToJson {
    * the given region is bound. By opening the target, clients can implement
    * one form of navigation. This list cannot be empty.
    */
-  void set targets(List<int> value) {
+  set targets(List<int> value) {
     assert(value != null);
     _targets = value;
   }
@@ -4047,7 +4047,7 @@ class NavigationTarget implements HasToJson {
   /**
    * The kind of the element.
    */
-  void set kind(ElementKind value) {
+  set kind(ElementKind value) {
     assert(value != null);
     _kind = value;
   }
@@ -4062,7 +4062,7 @@ class NavigationTarget implements HasToJson {
    * The index of the file (in the enclosing navigation response) to navigate
    * to.
    */
-  void set fileIndex(int value) {
+  set fileIndex(int value) {
     assert(value != null);
     _fileIndex = value;
   }
@@ -4075,7 +4075,7 @@ class NavigationTarget implements HasToJson {
   /**
    * The offset of the region to which the user can navigate.
    */
-  void set offset(int value) {
+  set offset(int value) {
     assert(value != null);
     _offset = value;
   }
@@ -4088,7 +4088,7 @@ class NavigationTarget implements HasToJson {
   /**
    * The length of the region to which the user can navigate.
    */
-  void set length(int value) {
+  set length(int value) {
     assert(value != null);
     _length = value;
   }
@@ -4103,7 +4103,7 @@ class NavigationTarget implements HasToJson {
    * The one-based index of the line containing the first character of the
    * region.
    */
-  void set startLine(int value) {
+  set startLine(int value) {
     assert(value != null);
     _startLine = value;
   }
@@ -4118,7 +4118,7 @@ class NavigationTarget implements HasToJson {
    * The one-based index of the column containing the first character of the
    * region.
    */
-  void set startColumn(int value) {
+  set startColumn(int value) {
     assert(value != null);
     _startColumn = value;
   }
@@ -4253,7 +4253,7 @@ class Occurrences implements HasToJson {
   /**
    * The element that was referenced.
    */
-  void set element(Element value) {
+  set element(Element value) {
     assert(value != null);
     _element = value;
   }
@@ -4266,7 +4266,7 @@ class Occurrences implements HasToJson {
   /**
    * The offsets of the name of the referenced element within the file.
    */
-  void set offsets(List<int> value) {
+  set offsets(List<int> value) {
     assert(value != null);
     _offsets = value;
   }
@@ -4279,7 +4279,7 @@ class Occurrences implements HasToJson {
   /**
    * The length of the name of the referenced element.
    */
-  void set length(int value) {
+  set length(int value) {
     assert(value != null);
     _length = value;
   }
@@ -4389,7 +4389,7 @@ class Outline implements HasToJson {
   /**
    * A description of the element represented by this node.
    */
-  void set element(Element value) {
+  set element(Element value) {
     assert(value != null);
     _element = value;
   }
@@ -4408,7 +4408,7 @@ class Outline implements HasToJson {
    * It can be used, for example, to map locations in the file back to an
    * outline.
    */
-  void set offset(int value) {
+  set offset(int value) {
     assert(value != null);
     _offset = value;
   }
@@ -4421,7 +4421,7 @@ class Outline implements HasToJson {
   /**
    * The length of the element.
    */
-  void set length(int value) {
+  set length(int value) {
     assert(value != null);
     _length = value;
   }
@@ -4436,7 +4436,7 @@ class Outline implements HasToJson {
    * The offset of the first character of the element code, which is neither
    * documentation, nor annotation.
    */
-  void set codeOffset(int value) {
+  set codeOffset(int value) {
     assert(value != null);
     _codeOffset = value;
   }
@@ -4449,7 +4449,7 @@ class Outline implements HasToJson {
   /**
    * The length of the element code.
    */
-  void set codeLength(int value) {
+  set codeLength(int value) {
     assert(value != null);
     _codeLength = value;
   }
@@ -4464,7 +4464,7 @@ class Outline implements HasToJson {
    * The children of the node. The field will be omitted if the node has no
    * children. Children are sorted by offset.
    */
-  void set children(List<Outline> value) {
+  set children(List<Outline> value) {
     _children = value;
   }
 
@@ -4606,7 +4606,7 @@ class ParameterInfo implements HasToJson {
   /**
    * The kind of the parameter.
    */
-  void set kind(ParameterKind value) {
+  set kind(ParameterKind value) {
     assert(value != null);
     _kind = value;
   }
@@ -4619,7 +4619,7 @@ class ParameterInfo implements HasToJson {
   /**
    * The name of the parameter.
    */
-  void set name(String value) {
+  set name(String value) {
     assert(value != null);
     _name = value;
   }
@@ -4632,7 +4632,7 @@ class ParameterInfo implements HasToJson {
   /**
    * The type of the parameter.
    */
-  void set type(String value) {
+  set type(String value) {
     assert(value != null);
     _type = value;
   }
@@ -4647,7 +4647,7 @@ class ParameterInfo implements HasToJson {
    * The default value for this parameter. This value will be omitted if the
    * parameter does not have a default value.
    */
-  void set defaultValue(String value) {
+  set defaultValue(String value) {
     _defaultValue = value;
   }
 
@@ -4826,7 +4826,7 @@ class Position implements HasToJson {
   /**
    * The file containing the position.
    */
-  void set file(String value) {
+  set file(String value) {
     assert(value != null);
     _file = value;
   }
@@ -4839,7 +4839,7 @@ class Position implements HasToJson {
   /**
    * The offset of the position.
    */
-  void set offset(int value) {
+  set offset(int value) {
     assert(value != null);
     _offset = value;
   }
@@ -5040,7 +5040,7 @@ class RefactoringMethodParameter implements HasToJson {
    * The unique identifier of the parameter. Clients may omit this field for
    * the parameters they want to add.
    */
-  void set id(String value) {
+  set id(String value) {
     _id = value;
   }
 
@@ -5052,7 +5052,7 @@ class RefactoringMethodParameter implements HasToJson {
   /**
    * The kind of the parameter.
    */
-  void set kind(RefactoringMethodParameterKind value) {
+  set kind(RefactoringMethodParameterKind value) {
     assert(value != null);
     _kind = value;
   }
@@ -5067,7 +5067,7 @@ class RefactoringMethodParameter implements HasToJson {
    * The type that should be given to the parameter, or the return type of the
    * parameter's function type.
    */
-  void set type(String value) {
+  set type(String value) {
     assert(value != null);
     _type = value;
   }
@@ -5080,7 +5080,7 @@ class RefactoringMethodParameter implements HasToJson {
   /**
    * The name that should be given to the parameter.
    */
-  void set name(String value) {
+  set name(String value) {
     assert(value != null);
     _name = value;
   }
@@ -5097,7 +5097,7 @@ class RefactoringMethodParameter implements HasToJson {
    * not of a function type, this field will not be defined. If the function
    * type has zero parameters, this field will have a value of '()'.
    */
-  void set parameters(String value) {
+  set parameters(String value) {
     _parameters = value;
   }
 
@@ -5283,7 +5283,7 @@ class RefactoringProblem implements HasToJson {
   /**
    * The severity of the problem being represented.
    */
-  void set severity(RefactoringProblemSeverity value) {
+  set severity(RefactoringProblemSeverity value) {
     assert(value != null);
     _severity = value;
   }
@@ -5296,7 +5296,7 @@ class RefactoringProblem implements HasToJson {
   /**
    * A human-readable description of the problem being represented.
    */
-  void set message(String value) {
+  set message(String value) {
     assert(value != null);
     _message = value;
   }
@@ -5313,7 +5313,7 @@ class RefactoringProblem implements HasToJson {
    * unless there is a specific location associated with the problem (such as a
    * location where an element being renamed will be shadowed).
    */
-  void set location(Location value) {
+  set location(Location value) {
     _location = value;
   }
 
@@ -5574,7 +5574,7 @@ class SourceChange implements HasToJson {
   /**
    * A human-readable description of the change to be applied.
    */
-  void set message(String value) {
+  set message(String value) {
     assert(value != null);
     _message = value;
   }
@@ -5587,7 +5587,7 @@ class SourceChange implements HasToJson {
   /**
    * A list of the edits used to effect the change, grouped by file.
    */
-  void set edits(List<SourceFileEdit> value) {
+  set edits(List<SourceFileEdit> value) {
     assert(value != null);
     _edits = value;
   }
@@ -5602,7 +5602,7 @@ class SourceChange implements HasToJson {
    * A list of the linked editing groups used to customize the changes that
    * were made.
    */
-  void set linkedEditGroups(List<LinkedEditGroup> value) {
+  set linkedEditGroups(List<LinkedEditGroup> value) {
     assert(value != null);
     _linkedEditGroups = value;
   }
@@ -5615,7 +5615,7 @@ class SourceChange implements HasToJson {
   /**
    * The position that should be selected after the edits have been applied.
    */
-  void set selection(Position value) {
+  set selection(Position value) {
     _selection = value;
   }
 
@@ -5629,7 +5629,7 @@ class SourceChange implements HasToJson {
    * The optional identifier of the change kind. The identifier remains stable
    * even if the message changes, or is parameterized.
    */
-  void set id(String value) {
+  set id(String value) {
     _id = value;
   }
 
@@ -5813,7 +5813,7 @@ class SourceEdit implements HasToJson {
   /**
    * The offset of the region to be modified.
    */
-  void set offset(int value) {
+  set offset(int value) {
     assert(value != null);
     _offset = value;
   }
@@ -5826,7 +5826,7 @@ class SourceEdit implements HasToJson {
   /**
    * The length of the region to be modified.
    */
-  void set length(int value) {
+  set length(int value) {
     assert(value != null);
     _length = value;
   }
@@ -5839,7 +5839,7 @@ class SourceEdit implements HasToJson {
   /**
    * The code that is to replace the specified region in the original code.
    */
-  void set replacement(String value) {
+  set replacement(String value) {
     assert(value != null);
     _replacement = value;
   }
@@ -5866,7 +5866,7 @@ class SourceEdit implements HasToJson {
    * id so that they can be referenced. Edits in the same response that do not
    * need to be referenced will not have an id.
    */
-  void set id(String value) {
+  set id(String value) {
     _id = value;
   }
 
@@ -5985,7 +5985,7 @@ class SourceFileEdit implements HasToJson {
   /**
    * The file containing the code to be modified.
    */
-  void set file(String value) {
+  set file(String value) {
     assert(value != null);
     _file = value;
   }
@@ -6006,7 +6006,7 @@ class SourceFileEdit implements HasToJson {
    * sure that the file was not changed since then, so it is safe to apply the
    * change.
    */
-  void set fileStamp(int value) {
+  set fileStamp(int value) {
     assert(value != null);
     _fileStamp = value;
   }
@@ -6019,7 +6019,7 @@ class SourceFileEdit implements HasToJson {
   /**
    * A list of the edits used to effect the change.
    */
-  void set edits(List<SourceEdit> value) {
+  set edits(List<SourceEdit> value) {
     assert(value != null);
     _edits = value;
   }

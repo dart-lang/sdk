@@ -27,7 +27,7 @@ class AnalysisAnalyzedFilesParams implements HasToJson {
   List<String> get directories => _directories;
 
   /// A list of the paths of the files that are being analyzed.
-  void set directories(List<String> value) {
+  set directories(List<String> value) {
     assert(value != null);
     _directories = value;
   }
@@ -110,7 +110,7 @@ class AnalysisClosingLabelsParams implements HasToJson {
   String get file => _file;
 
   /// The file the closing labels relate to.
-  void set file(String value) {
+  set file(String value) {
     assert(value != null);
     _file = value;
   }
@@ -131,7 +131,7 @@ class AnalysisClosingLabelsParams implements HasToJson {
   /// and List arguments that span multiple lines. Note that the ranges that
   /// are returned can overlap each other because they may be associated with
   /// constructs that can be nested.
-  void set labels(List<ClosingLabel> value) {
+  set labels(List<ClosingLabel> value) {
     assert(value != null);
     _labels = value;
   }
@@ -228,7 +228,7 @@ class AnalysisErrorFixes implements HasToJson {
   AnalysisError get error => _error;
 
   /// The error with which the fixes are associated.
-  void set error(AnalysisError value) {
+  set error(AnalysisError value) {
     assert(value != null);
     _error = value;
   }
@@ -237,7 +237,7 @@ class AnalysisErrorFixes implements HasToJson {
   List<SourceChange> get fixes => _fixes;
 
   /// The fixes associated with the error.
-  void set fixes(List<SourceChange> value) {
+  set fixes(List<SourceChange> value) {
     assert(value != null);
     _fixes = value;
   }
@@ -328,7 +328,7 @@ class AnalysisErrorsParams implements HasToJson {
   String get file => _file;
 
   /// The file containing the errors.
-  void set file(String value) {
+  set file(String value) {
     assert(value != null);
     _file = value;
   }
@@ -337,7 +337,7 @@ class AnalysisErrorsParams implements HasToJson {
   List<AnalysisError> get errors => _errors;
 
   /// The errors contained in the file.
-  void set errors(List<AnalysisError> value) {
+  set errors(List<AnalysisError> value) {
     assert(value != null);
     _errors = value;
   }
@@ -429,7 +429,7 @@ class AnalysisFlushResultsParams implements HasToJson {
   List<String> get files => _files;
 
   /// The files that are no longer being analyzed.
-  void set files(List<String> value) {
+  set files(List<String> value) {
     assert(value != null);
     _files = value;
   }
@@ -511,7 +511,7 @@ class AnalysisFoldingParams implements HasToJson {
   String get file => _file;
 
   /// The file containing the folding regions.
-  void set file(String value) {
+  set file(String value) {
     assert(value != null);
     _file = value;
   }
@@ -520,7 +520,7 @@ class AnalysisFoldingParams implements HasToJson {
   List<FoldingRegion> get regions => _regions;
 
   /// The folding regions contained in the file.
-  void set regions(List<FoldingRegion> value) {
+  set regions(List<FoldingRegion> value) {
     assert(value != null);
     _regions = value;
   }
@@ -612,7 +612,7 @@ class AnalysisGetErrorsParams implements RequestParams {
   String get file => _file;
 
   /// The file for which errors are being requested.
-  void set file(String value) {
+  set file(String value) {
     assert(value != null);
     _file = value;
   }
@@ -689,7 +689,7 @@ class AnalysisGetErrorsResult implements ResponseResult {
   List<AnalysisError> get errors => _errors;
 
   /// The errors associated with the file.
-  void set errors(List<AnalysisError> value) {
+  set errors(List<AnalysisError> value) {
     assert(value != null);
     _errors = value;
   }
@@ -777,7 +777,7 @@ class AnalysisGetHoverParams implements RequestParams {
   String get file => _file;
 
   /// The file in which hover information is being requested.
-  void set file(String value) {
+  set file(String value) {
     assert(value != null);
     _file = value;
   }
@@ -786,7 +786,7 @@ class AnalysisGetHoverParams implements RequestParams {
   int get offset => _offset;
 
   /// The offset for which hover information is being requested.
-  void set offset(int value) {
+  set offset(int value) {
     assert(value != null);
     _offset = value;
   }
@@ -880,7 +880,7 @@ class AnalysisGetHoverResult implements ResponseResult {
   /// can contain multiple items if the file is being analyzed in multiple
   /// contexts in conflicting ways (such as a part that is included in multiple
   /// libraries).
-  void set hovers(List<HoverInformation> value) {
+  set hovers(List<HoverInformation> value) {
     assert(value != null);
     _hovers = value;
   }
@@ -971,7 +971,7 @@ class AnalysisGetImportedElementsParams implements RequestParams {
   String get file => _file;
 
   /// The file in which import information is being requested.
-  void set file(String value) {
+  set file(String value) {
     assert(value != null);
     _file = value;
   }
@@ -980,7 +980,7 @@ class AnalysisGetImportedElementsParams implements RequestParams {
   int get offset => _offset;
 
   /// The offset of the region for which import information is being requested.
-  void set offset(int value) {
+  set offset(int value) {
     assert(value != null);
     _offset = value;
   }
@@ -989,7 +989,7 @@ class AnalysisGetImportedElementsParams implements RequestParams {
   int get length => _length;
 
   /// The length of the region for which import information is being requested.
-  void set length(int value) {
+  set length(int value) {
     assert(value != null);
     _length = value;
   }
@@ -1089,7 +1089,7 @@ class AnalysisGetImportedElementsResult implements ResponseResult {
 
   /// The information about the elements that are referenced in the specified
   /// region of the specified file that come from imported libraries.
-  void set elements(List<ImportedElements> value) {
+  set elements(List<ImportedElements> value) {
     assert(value != null);
     _elements = value;
   }
@@ -1206,7 +1206,7 @@ class AnalysisGetLibraryDependenciesResult implements ResponseResult {
 
   /// A list of the paths of library elements referenced by files in existing
   /// analysis roots.
-  void set libraries(List<String> value) {
+  set libraries(List<String> value) {
     assert(value != null);
     _libraries = value;
   }
@@ -1219,7 +1219,7 @@ class AnalysisGetLibraryDependenciesResult implements ResponseResult {
   /// A mapping from context source roots to package maps which map package
   /// names to source directories for use in client-side package URI
   /// resolution.
-  void set packageMap(Map<String, Map<String, List<String>>> value) {
+  set packageMap(Map<String, Map<String, List<String>>> value) {
     assert(value != null);
     _packageMap = value;
   }
@@ -1331,7 +1331,7 @@ class AnalysisGetNavigationParams implements RequestParams {
   String get file => _file;
 
   /// The file in which navigation information is being requested.
-  void set file(String value) {
+  set file(String value) {
     assert(value != null);
     _file = value;
   }
@@ -1342,7 +1342,7 @@ class AnalysisGetNavigationParams implements RequestParams {
 
   /// The offset of the region for which navigation information is being
   /// requested.
-  void set offset(int value) {
+  set offset(int value) {
     assert(value != null);
     _offset = value;
   }
@@ -1353,7 +1353,7 @@ class AnalysisGetNavigationParams implements RequestParams {
 
   /// The length of the region for which navigation information is being
   /// requested.
-  void set length(int value) {
+  set length(int value) {
     assert(value != null);
     _length = value;
   }
@@ -1459,7 +1459,7 @@ class AnalysisGetNavigationResult implements ResponseResult {
 
   /// A list of the paths of files that are referenced by the navigation
   /// targets.
-  void set files(List<String> value) {
+  set files(List<String> value) {
     assert(value != null);
     _files = value;
   }
@@ -1470,7 +1470,7 @@ class AnalysisGetNavigationResult implements ResponseResult {
 
   /// A list of the navigation targets that are referenced by the navigation
   /// regions.
-  void set targets(List<NavigationTarget> value) {
+  set targets(List<NavigationTarget> value) {
     assert(value != null);
     _targets = value;
   }
@@ -1479,7 +1479,7 @@ class AnalysisGetNavigationResult implements ResponseResult {
   List<NavigationRegion> get regions => _regions;
 
   /// A list of the navigation regions within the requested region of the file.
-  void set regions(List<NavigationRegion> value) {
+  set regions(List<NavigationRegion> value) {
     assert(value != null);
     _regions = value;
   }
@@ -1593,7 +1593,7 @@ class AnalysisGetReachableSourcesParams implements RequestParams {
   String get file => _file;
 
   /// The file for which reachable source information is being requested.
-  void set file(String value) {
+  set file(String value) {
     assert(value != null);
     _file = value;
   }
@@ -1683,7 +1683,7 @@ class AnalysisGetReachableSourcesResult implements ResponseResult {
   /// the URI "file:///bar.dart" to them. To check if a specific URI is
   /// reachable from a given file, clients can check for its presence in the
   /// resulting key set.
-  void set sources(Map<String, List<String>> value) {
+  set sources(Map<String, List<String>> value) {
     assert(value != null);
     _sources = value;
   }
@@ -1772,7 +1772,7 @@ class AnalysisGetSignatureParams implements RequestParams {
   String get file => _file;
 
   /// The file in which signature information is being requested.
-  void set file(String value) {
+  set file(String value) {
     assert(value != null);
     _file = value;
   }
@@ -1781,7 +1781,7 @@ class AnalysisGetSignatureParams implements RequestParams {
   int get offset => _offset;
 
   /// The location for which signature information is being requested.
-  void set offset(int value) {
+  set offset(int value) {
     assert(value != null);
     _offset = value;
   }
@@ -1874,7 +1874,7 @@ class AnalysisGetSignatureResult implements ResponseResult {
   String get name => _name;
 
   /// The name of the function being invoked at the given offset.
-  void set name(String value) {
+  set name(String value) {
     assert(value != null);
     _name = value;
   }
@@ -1885,7 +1885,7 @@ class AnalysisGetSignatureResult implements ResponseResult {
 
   /// A list of information about each of the parameters of the function being
   /// invoked.
-  void set parameters(List<ParameterInfo> value) {
+  set parameters(List<ParameterInfo> value) {
     assert(value != null);
     _parameters = value;
   }
@@ -1902,7 +1902,7 @@ class AnalysisGetSignatureResult implements ResponseResult {
   /// case of a block comment, the dartdoc is unprocessed markdown. This data
   /// is omitted if there is no referenced element, or if the element has no
   /// dartdoc.
-  void set dartdoc(String value) {
+  set dartdoc(String value) {
     _dartdoc = value;
   }
 
@@ -2012,7 +2012,7 @@ class AnalysisHighlightsParams implements HasToJson {
   String get file => _file;
 
   /// The file containing the highlight regions.
-  void set file(String value) {
+  set file(String value) {
     assert(value != null);
     _file = value;
   }
@@ -2029,7 +2029,7 @@ class AnalysisHighlightsParams implements HasToJson {
   /// some range. Note that the highlight regions that are returned can overlap
   /// other highlight regions if there is more than one meaning associated with
   /// a particular region.
-  void set regions(List<HighlightRegion> value) {
+  set regions(List<HighlightRegion> value) {
     assert(value != null);
     _regions = value;
   }
@@ -2127,7 +2127,7 @@ class AnalysisImplementedParams implements HasToJson {
   String get file => _file;
 
   /// The file with which the implementations are associated.
-  void set file(String value) {
+  set file(String value) {
     assert(value != null);
     _file = value;
   }
@@ -2136,7 +2136,7 @@ class AnalysisImplementedParams implements HasToJson {
   List<ImplementedClass> get classes => _classes;
 
   /// The classes defined in the file that are implemented or extended.
-  void set classes(List<ImplementedClass> value) {
+  set classes(List<ImplementedClass> value) {
     assert(value != null);
     _classes = value;
   }
@@ -2145,7 +2145,7 @@ class AnalysisImplementedParams implements HasToJson {
   List<ImplementedMember> get members => _members;
 
   /// The member defined in the file that are implemented or overridden.
-  void set members(List<ImplementedMember> value) {
+  set members(List<ImplementedMember> value) {
     assert(value != null);
     _members = value;
   }
@@ -2264,7 +2264,7 @@ class AnalysisInvalidateParams implements HasToJson {
   String get file => _file;
 
   /// The file whose information has been invalidated.
-  void set file(String value) {
+  set file(String value) {
     assert(value != null);
     _file = value;
   }
@@ -2273,7 +2273,7 @@ class AnalysisInvalidateParams implements HasToJson {
   int get offset => _offset;
 
   /// The offset of the invalidated region.
-  void set offset(int value) {
+  set offset(int value) {
     assert(value != null);
     _offset = value;
   }
@@ -2282,7 +2282,7 @@ class AnalysisInvalidateParams implements HasToJson {
   int get length => _length;
 
   /// The length of the invalidated region.
-  void set length(int value) {
+  set length(int value) {
     assert(value != null);
     _length = value;
   }
@@ -2295,7 +2295,7 @@ class AnalysisInvalidateParams implements HasToJson {
   /// The delta to be applied to the offsets in information that follows the
   /// invalidated region in order to update it so that it doesn't need to be
   /// re-requested.
-  void set delta(int value) {
+  set delta(int value) {
     assert(value != null);
     _delta = value;
   }
@@ -2410,7 +2410,7 @@ class AnalysisNavigationParams implements HasToJson {
   String get file => _file;
 
   /// The file containing the navigation regions.
-  void set file(String value) {
+  set file(String value) {
     assert(value != null);
     _file = value;
   }
@@ -2431,7 +2431,7 @@ class AnalysisNavigationParams implements HasToJson {
   /// multiple libraries or in Dart code that is compiled against multiple
   /// versions of a package. Note that the navigation regions that are returned
   /// do not overlap other navigation regions.
-  void set regions(List<NavigationRegion> value) {
+  set regions(List<NavigationRegion> value) {
     assert(value != null);
     _regions = value;
   }
@@ -2442,7 +2442,7 @@ class AnalysisNavigationParams implements HasToJson {
 
   /// The navigation targets referenced in the file. They are referenced by
   /// NavigationRegions by their index in this array.
-  void set targets(List<NavigationTarget> value) {
+  set targets(List<NavigationTarget> value) {
     assert(value != null);
     _targets = value;
   }
@@ -2453,7 +2453,7 @@ class AnalysisNavigationParams implements HasToJson {
 
   /// The files containing navigation targets referenced in the file. They are
   /// referenced by NavigationTargets by their index in this array.
-  void set files(List<String> value) {
+  set files(List<String> value) {
     assert(value != null);
     _files = value;
   }
@@ -2576,7 +2576,7 @@ class AnalysisOccurrencesParams implements HasToJson {
   String get file => _file;
 
   /// The file in which the references occur.
-  void set file(String value) {
+  set file(String value) {
     assert(value != null);
     _file = value;
   }
@@ -2585,7 +2585,7 @@ class AnalysisOccurrencesParams implements HasToJson {
   List<Occurrences> get occurrences => _occurrences;
 
   /// The occurrences of references to elements within the file.
-  void set occurrences(List<Occurrences> value) {
+  set occurrences(List<Occurrences> value) {
     assert(value != null);
     _occurrences = value;
   }
@@ -2705,7 +2705,7 @@ class AnalysisOptions implements HasToJson {
   ///
   /// True if the client wants to enable support for the proposed async
   /// feature.
-  void set enableAsync(bool value) {
+  set enableAsync(bool value) {
     _enableAsync = value;
   }
 
@@ -2719,7 +2719,7 @@ class AnalysisOptions implements HasToJson {
   ///
   /// True if the client wants to enable support for the proposed deferred
   /// loading feature.
-  void set enableDeferredLoading(bool value) {
+  set enableDeferredLoading(bool value) {
     _enableDeferredLoading = value;
   }
 
@@ -2731,7 +2731,7 @@ class AnalysisOptions implements HasToJson {
   /// Deprecated: this feature is always enabled.
   ///
   /// True if the client wants to enable support for the proposed enum feature.
-  void set enableEnums(bool value) {
+  set enableEnums(bool value) {
     _enableEnums = value;
   }
 
@@ -2745,7 +2745,7 @@ class AnalysisOptions implements HasToJson {
   ///
   /// True if the client wants to enable support for the proposed "null aware
   /// operators" feature.
-  void set enableNullAwareOperators(bool value) {
+  set enableNullAwareOperators(bool value) {
     _enableNullAwareOperators = value;
   }
 
@@ -2755,7 +2755,7 @@ class AnalysisOptions implements HasToJson {
 
   /// True if the client wants to enable support for the proposed "less
   /// restricted mixins" proposal (DEP 34).
-  void set enableSuperMixins(bool value) {
+  set enableSuperMixins(bool value) {
     _enableSuperMixins = value;
   }
 
@@ -2765,7 +2765,7 @@ class AnalysisOptions implements HasToJson {
 
   /// True if hints that are specific to dart2js should be generated. This
   /// option is ignored if generateHints is false.
-  void set generateDart2jsHints(bool value) {
+  set generateDart2jsHints(bool value) {
     _generateDart2jsHints = value;
   }
 
@@ -2775,7 +2775,7 @@ class AnalysisOptions implements HasToJson {
 
   /// True if hints should be generated as part of generating errors and
   /// warnings.
-  void set generateHints(bool value) {
+  set generateHints(bool value) {
     _generateHints = value;
   }
 
@@ -2785,7 +2785,7 @@ class AnalysisOptions implements HasToJson {
 
   /// True if lints should be generated as part of generating errors and
   /// warnings.
-  void set generateLints(bool value) {
+  set generateLints(bool value) {
     _generateLints = value;
   }
 
@@ -2955,7 +2955,7 @@ class AnalysisOutlineParams implements HasToJson {
   String get file => _file;
 
   /// The file with which the outline is associated.
-  void set file(String value) {
+  set file(String value) {
     assert(value != null);
     _file = value;
   }
@@ -2964,7 +2964,7 @@ class AnalysisOutlineParams implements HasToJson {
   FileKind get kind => _kind;
 
   /// The kind of the file.
-  void set kind(FileKind value) {
+  set kind(FileKind value) {
     assert(value != null);
     _kind = value;
   }
@@ -2981,7 +2981,7 @@ class AnalysisOutlineParams implements HasToJson {
   /// directives are present, then the "library" directive takes precedence.
   /// This field will be omitted if the file has neither "library" nor "part
   /// of" directives.
-  void set libraryName(String value) {
+  set libraryName(String value) {
     _libraryName = value;
   }
 
@@ -2989,7 +2989,7 @@ class AnalysisOutlineParams implements HasToJson {
   Outline get outline => _outline;
 
   /// The outline associated with the file.
-  void set outline(Outline value) {
+  set outline(Outline value) {
     assert(value != null);
     _outline = value;
   }
@@ -3102,7 +3102,7 @@ class AnalysisOverridesParams implements HasToJson {
   String get file => _file;
 
   /// The file with which the overrides are associated.
-  void set file(String value) {
+  set file(String value) {
     assert(value != null);
     _file = value;
   }
@@ -3111,7 +3111,7 @@ class AnalysisOverridesParams implements HasToJson {
   List<Override> get overrides => _overrides;
 
   /// The overrides associated with the file.
-  void set overrides(List<Override> value) {
+  set overrides(List<Override> value) {
     assert(value != null);
     _overrides = value;
   }
@@ -3358,7 +3358,7 @@ class AnalysisSetAnalysisRootsParams implements RequestParams {
   List<String> get included => _included;
 
   /// A list of the files and directories that should be analyzed.
-  void set included(List<String> value) {
+  set included(List<String> value) {
     assert(value != null);
     _included = value;
   }
@@ -3369,7 +3369,7 @@ class AnalysisSetAnalysisRootsParams implements RequestParams {
 
   /// A list of the files and directories within the included directories that
   /// should not be analyzed.
-  void set excluded(List<String> value) {
+  set excluded(List<String> value) {
     assert(value != null);
     _excluded = value;
   }
@@ -3414,7 +3414,7 @@ class AnalysisSetAnalysisRootsParams implements RequestParams {
   /// their package: URI's resolved using the normal pubspec.yaml mechanism. If
   /// this field is absent, or the empty map is specified, that indicates that
   /// the normal pubspec.yaml mechanism should always be used.
-  void set packageRoots(Map<String, String> value) {
+  set packageRoots(Map<String, String> value) {
     _packageRoots = value;
   }
 
@@ -3545,7 +3545,7 @@ class AnalysisSetGeneralSubscriptionsParams implements RequestParams {
   List<GeneralAnalysisService> get subscriptions => _subscriptions;
 
   /// A list of the services being subscribed to.
-  void set subscriptions(List<GeneralAnalysisService> value) {
+  set subscriptions(List<GeneralAnalysisService> value) {
     assert(value != null);
     _subscriptions = value;
   }
@@ -3657,7 +3657,7 @@ class AnalysisSetPriorityFilesParams implements RequestParams {
   List<String> get files => _files;
 
   /// The files that are to be a priority for analysis.
-  void set files(List<String> value) {
+  set files(List<String> value) {
     assert(value != null);
     _files = value;
   }
@@ -3764,7 +3764,7 @@ class AnalysisSetSubscriptionsParams implements RequestParams {
 
   /// A table mapping services to a list of the files being subscribed to the
   /// service.
-  void set subscriptions(Map<AnalysisService, List<String>> value) {
+  set subscriptions(Map<AnalysisService, List<String>> value) {
     assert(value != null);
     _subscriptions = value;
   }
@@ -3882,7 +3882,7 @@ class AnalysisStatus implements HasToJson {
   bool get isAnalyzing => _isAnalyzing;
 
   /// True if analysis is currently being performed.
-  void set isAnalyzing(bool value) {
+  set isAnalyzing(bool value) {
     assert(value != null);
     _isAnalyzing = value;
   }
@@ -3893,7 +3893,7 @@ class AnalysisStatus implements HasToJson {
 
   /// The name of the current target of analysis. This field is omitted if
   /// analyzing is false.
-  void set analysisTarget(String value) {
+  set analysisTarget(String value) {
     _analysisTarget = value;
   }
 
@@ -3973,7 +3973,7 @@ class AnalysisUpdateContentParams implements RequestParams {
 
   /// A table mapping the files whose content has changed to a description of
   /// the content change.
-  void set files(Map<String, dynamic> value) {
+  set files(Map<String, dynamic> value) {
     assert(value != null);
     _files = value;
   }
@@ -4120,7 +4120,7 @@ class AnalysisUpdateOptionsParams implements RequestParams {
   AnalysisOptions get options => _options;
 
   /// The options that are to be used to control analysis.
-  void set options(AnalysisOptions value) {
+  set options(AnalysisOptions value) {
     assert(value != null);
     _options = value;
   }
@@ -4225,7 +4225,7 @@ class AnalyticsEnableParams implements RequestParams {
   bool get value => _value;
 
   /// Enable or disable analytics.
-  void set value(bool value) {
+  set value(bool value) {
     assert(value != null);
     _value = value;
   }
@@ -4354,7 +4354,7 @@ class AnalyticsIsEnabledResult implements ResponseResult {
   bool get enabled => _enabled;
 
   /// Whether sending analytics is enabled or not.
-  void set enabled(bool value) {
+  set enabled(bool value) {
     assert(value != null);
     _enabled = value;
   }
@@ -4434,7 +4434,7 @@ class AnalyticsSendEventParams implements RequestParams {
   String get action => _action;
 
   /// The value used to indicate which action was performed.
-  void set action(String value) {
+  set action(String value) {
     assert(value != null);
     _action = value;
   }
@@ -4540,7 +4540,7 @@ class AnalyticsSendTimingParams implements RequestParams {
   String get event => _event;
 
   /// The name of the event.
-  void set event(String value) {
+  set event(String value) {
     assert(value != null);
     _event = value;
   }
@@ -4549,7 +4549,7 @@ class AnalyticsSendTimingParams implements RequestParams {
   int get millis => _millis;
 
   /// The duration of the event in milliseconds.
-  void set millis(int value) {
+  set millis(int value) {
     assert(value != null);
     _millis = value;
   }
@@ -4685,7 +4685,7 @@ class AvailableSuggestion implements HasToJson {
   String get label => _label;
 
   /// The identifier to present to the user for code completion.
-  void set label(String value) {
+  set label(String value) {
     assert(value != null);
     _label = value;
   }
@@ -4696,7 +4696,7 @@ class AvailableSuggestion implements HasToJson {
 
   /// The URI of the library that declares the element being suggested, not the
   /// URI of the library associated with the enclosing AvailableSuggestionSet.
-  void set declaringLibraryUri(String value) {
+  set declaringLibraryUri(String value) {
     assert(value != null);
     _declaringLibraryUri = value;
   }
@@ -4705,7 +4705,7 @@ class AvailableSuggestion implements HasToJson {
   Element get element => _element;
 
   /// Information about the element reference being suggested.
-  void set element(Element value) {
+  set element(Element value) {
     assert(value != null);
     _element = value;
   }
@@ -4716,7 +4716,7 @@ class AvailableSuggestion implements HasToJson {
 
   /// A default String for use in generating argument list source contents on
   /// the client side.
-  void set defaultArgumentListString(String value) {
+  set defaultArgumentListString(String value) {
     _defaultArgumentListString = value;
   }
 
@@ -4734,7 +4734,7 @@ class AvailableSuggestion implements HasToJson {
   /// y', the corresponding text range [0, 1, 3, 1], indicates two text ranges
   /// of length 1, starting at offsets 0 and 3. Clients can use these ranges to
   /// treat the 'x' and 'y' values specially for linked edits.
-  void set defaultArgumentListTextRanges(List<int> value) {
+  set defaultArgumentListTextRanges(List<int> value) {
     _defaultArgumentListTextRanges = value;
   }
 
@@ -4748,7 +4748,7 @@ class AvailableSuggestion implements HasToJson {
   /// all kinds - required, optional positional, and optional named. The names
   /// of positional parameters are empty strings. Omitted if the element is not
   /// an executable.
-  void set parameterNames(List<String> value) {
+  set parameterNames(List<String> value) {
     _parameterNames = value;
   }
 
@@ -4760,7 +4760,7 @@ class AvailableSuggestion implements HasToJson {
   /// If the element is an executable, the declared types of the formal
   /// parameters of all kinds - required, optional positional, and optional
   /// named. Omitted if the element is not an executable.
-  void set parameterTypes(List<String> value) {
+  set parameterTypes(List<String> value) {
     _parameterTypes = value;
   }
 
@@ -4770,13 +4770,13 @@ class AvailableSuggestion implements HasToJson {
 
   /// This field is set if the relevance of this suggestion might be changed
   /// depending on where completion is requested.
-  void set relevanceTags(List<String> value) {
+  set relevanceTags(List<String> value) {
     _relevanceTags = value;
   }
 
   int get requiredParameterCount => _requiredParameterCount;
 
-  void set requiredParameterCount(int value) {
+  set requiredParameterCount(int value) {
     _requiredParameterCount = value;
   }
 
@@ -4956,7 +4956,7 @@ class AvailableSuggestionSet implements HasToJson {
   int get id => _id;
 
   /// The id associated with the library.
-  void set id(int value) {
+  set id(int value) {
     assert(value != null);
     _id = value;
   }
@@ -4965,14 +4965,14 @@ class AvailableSuggestionSet implements HasToJson {
   String get uri => _uri;
 
   /// The URI of the library.
-  void set uri(String value) {
+  set uri(String value) {
     assert(value != null);
     _uri = value;
   }
 
   List<AvailableSuggestion> get items => _items;
 
-  void set items(List<AvailableSuggestion> value) {
+  set items(List<AvailableSuggestion> value) {
     assert(value != null);
     _items = value;
   }
@@ -5071,7 +5071,7 @@ class ClosingLabel implements HasToJson {
   int get offset => _offset;
 
   /// The offset of the construct being labelled.
-  void set offset(int value) {
+  set offset(int value) {
     assert(value != null);
     _offset = value;
   }
@@ -5080,7 +5080,7 @@ class ClosingLabel implements HasToJson {
   int get length => _length;
 
   /// The length of the whole construct to be labelled.
-  void set length(int value) {
+  set length(int value) {
     assert(value != null);
     _length = value;
   }
@@ -5091,7 +5091,7 @@ class ClosingLabel implements HasToJson {
 
   /// The label associated with this range that should be displayed to the
   /// user.
-  void set label(String value) {
+  set label(String value) {
     assert(value != null);
     _label = value;
   }
@@ -5183,7 +5183,7 @@ class CompletionAvailableSuggestionsParams implements HasToJson {
 
   /// A list of pre-computed, potential completions coming from this set of
   /// completion suggestions.
-  void set changedLibraries(List<AvailableSuggestionSet> value) {
+  set changedLibraries(List<AvailableSuggestionSet> value) {
     _changedLibraries = value;
   }
 
@@ -5191,7 +5191,7 @@ class CompletionAvailableSuggestionsParams implements HasToJson {
   List<int> get removedLibraries => _removedLibraries;
 
   /// A list of library ids that no longer apply.
-  void set removedLibraries(List<int> value) {
+  set removedLibraries(List<int> value) {
     _removedLibraries = value;
   }
 
@@ -5296,7 +5296,7 @@ class CompletionExistingImportsParams implements HasToJson {
   String get file => _file;
 
   /// The defining file of the library.
-  void set file(String value) {
+  set file(String value) {
     assert(value != null);
     _file = value;
   }
@@ -5305,7 +5305,7 @@ class CompletionExistingImportsParams implements HasToJson {
   ExistingImports get imports => _imports;
 
   /// The existing imports in the library.
-  void set imports(ExistingImports value) {
+  set imports(ExistingImports value) {
     assert(value != null);
     _imports = value;
   }
@@ -5402,7 +5402,7 @@ class CompletionGetSuggestionDetailsParams implements RequestParams {
   String get file => _file;
 
   /// The path of the file into which this completion is being inserted.
-  void set file(String value) {
+  set file(String value) {
     assert(value != null);
     _file = value;
   }
@@ -5413,7 +5413,7 @@ class CompletionGetSuggestionDetailsParams implements RequestParams {
 
   /// The identifier of the AvailableSuggestionSet containing the selected
   /// label.
-  void set id(int value) {
+  set id(int value) {
     assert(value != null);
     _id = value;
   }
@@ -5424,7 +5424,7 @@ class CompletionGetSuggestionDetailsParams implements RequestParams {
 
   /// The label from the AvailableSuggestionSet with the `id` for which
   /// insertion information is requested.
-  void set label(String value) {
+  set label(String value) {
     assert(value != null);
     _label = value;
   }
@@ -5433,7 +5433,7 @@ class CompletionGetSuggestionDetailsParams implements RequestParams {
   int get offset => _offset;
 
   /// The offset in the file where the completion will be inserted.
-  void set offset(int value) {
+  set offset(int value) {
     assert(value != null);
     _offset = value;
   }
@@ -5545,7 +5545,7 @@ class CompletionGetSuggestionDetailsResult implements ResponseResult {
   String get completion => _completion;
 
   /// The full text to insert, including any optional import prefix.
-  void set completion(String value) {
+  set completion(String value) {
     assert(value != null);
     _completion = value;
   }
@@ -5558,7 +5558,7 @@ class CompletionGetSuggestionDetailsResult implements ResponseResult {
   /// A change for the client to apply in case the library containing the
   /// accepted completion suggestion needs to be imported. The field will be
   /// omitted if there are no additional changes that need to be made.
-  void set change(SourceChange value) {
+  set change(SourceChange value) {
     _change = value;
   }
 
@@ -5652,7 +5652,7 @@ class CompletionGetSuggestionsParams implements RequestParams {
   String get file => _file;
 
   /// The file containing the point at which suggestions are to be made.
-  void set file(String value) {
+  set file(String value) {
     assert(value != null);
     _file = value;
   }
@@ -5661,7 +5661,7 @@ class CompletionGetSuggestionsParams implements RequestParams {
   int get offset => _offset;
 
   /// The offset within the file at which suggestions are to be made.
-  void set offset(int value) {
+  set offset(int value) {
     assert(value != null);
     _offset = value;
   }
@@ -5748,7 +5748,7 @@ class CompletionGetSuggestionsResult implements ResponseResult {
   String get id => _id;
 
   /// The identifier used to associate results with this completion request.
-  void set id(String value) {
+  set id(String value) {
     assert(value != null);
     _id = value;
   }
@@ -5828,7 +5828,7 @@ class CompletionListTokenDetailsParams implements RequestParams {
   String get file => _file;
 
   /// The path to the file from which tokens should be returned.
-  void set file(String value) {
+  set file(String value) {
     assert(value != null);
     _file = value;
   }
@@ -5908,7 +5908,7 @@ class CompletionListTokenDetailsResult implements ResponseResult {
 
   /// A list of the file's scanned tokens including analysis information about
   /// them.
-  void set tokens(List<TokenDetails> value) {
+  set tokens(List<TokenDetails> value) {
     assert(value != null);
     _tokens = value;
   }
@@ -6000,7 +6000,7 @@ class CompletionRegisterLibraryPathsParams implements RequestParams {
   /// from which the client is interested in receiving completion suggestions.
   /// If one configured path is beneath another, the descendent will override
   /// the ancestors' configured libraries of interest.
-  void set paths(List<LibraryPathSet> value) {
+  set paths(List<LibraryPathSet> value) {
     assert(value != null);
     _paths = value;
   }
@@ -6134,7 +6134,7 @@ class CompletionResultsParams implements HasToJson {
   String get id => _id;
 
   /// The id associated with the completion.
-  void set id(String value) {
+  set id(String value) {
     assert(value != null);
     _id = value;
   }
@@ -6151,7 +6151,7 @@ class CompletionResultsParams implements HasToJson {
   /// there was a portion of an identifier before the original offset. In
   /// particular, the replacementOffset will be the offset of the beginning of
   /// said identifier.
-  void set replacementOffset(int value) {
+  set replacementOffset(int value) {
     assert(value != null);
     _replacementOffset = value;
   }
@@ -6164,7 +6164,7 @@ class CompletionResultsParams implements HasToJson {
   /// The length of the text to be replaced if the remainder of the identifier
   /// containing the cursor is to be replaced when the suggestion is applied
   /// (that is, the number of characters in the existing identifier).
-  void set replacementLength(int value) {
+  set replacementLength(int value) {
     assert(value != null);
     _replacementLength = value;
   }
@@ -6181,7 +6181,7 @@ class CompletionResultsParams implements HasToJson {
   /// not match the characters the user has already typed. This allows the
   /// client to respond to further keystrokes from the user without having to
   /// make additional requests.
-  void set results(List<CompletionSuggestion> value) {
+  set results(List<CompletionSuggestion> value) {
     assert(value != null);
     _results = value;
   }
@@ -6192,7 +6192,7 @@ class CompletionResultsParams implements HasToJson {
 
   /// True if this is that last set of results that will be returned for the
   /// indicated completion.
-  void set isLast(bool value) {
+  set isLast(bool value) {
     assert(value != null);
     _isLast = value;
   }
@@ -6209,7 +6209,7 @@ class CompletionResultsParams implements HasToJson {
   /// notification to filter out available suggestions. If there were changes
   /// to existing imports in the library, the corresponding existingImports
   /// notification will be sent before the completion notification.
-  void set libraryFile(String value) {
+  set libraryFile(String value) {
     _libraryFile = value;
   }
 
@@ -6222,7 +6222,7 @@ class CompletionResultsParams implements HasToJson {
   /// References to AvailableSuggestionSet objects previously sent to the
   /// client. The client can include applicable names from the referenced
   /// library in code completion suggestions.
-  void set includedSuggestionSets(List<IncludedSuggestionSet> value) {
+  set includedSuggestionSets(List<IncludedSuggestionSet> value) {
     _includedSuggestionSets = value;
   }
 
@@ -6234,7 +6234,7 @@ class CompletionResultsParams implements HasToJson {
   /// The client is expected to check this list against the ElementKind sent in
   /// IncludedSuggestionSet to decide whether or not these symbols should
   /// should be presented to the user.
-  void set includedElementKinds(List<ElementKind> value) {
+  set includedElementKinds(List<ElementKind> value) {
     _includedElementKinds = value;
   }
 
@@ -6257,7 +6257,7 @@ class CompletionResultsParams implements HasToJson {
   ///
   /// If an AvailableSuggestion has relevance tags that match more than one
   /// IncludedSuggestionRelevanceTag, the maximum relevance boost is used.
-  void set includedSuggestionRelevanceTags(
+  set includedSuggestionRelevanceTags(
       List<IncludedSuggestionRelevanceTag> value) {
     _includedSuggestionRelevanceTags = value;
   }
@@ -6514,7 +6514,7 @@ class CompletionSetSubscriptionsParams implements RequestParams {
   List<CompletionService> get subscriptions => _subscriptions;
 
   /// A list of the services being subscribed to.
-  void set subscriptions(List<CompletionService> value) {
+  set subscriptions(List<CompletionService> value) {
     assert(value != null);
     _subscriptions = value;
   }
@@ -6636,7 +6636,7 @@ class ContextData implements HasToJson {
   String get name => _name;
 
   /// The name of the context.
-  void set name(String value) {
+  set name(String value) {
     assert(value != null);
     _name = value;
   }
@@ -6645,7 +6645,7 @@ class ContextData implements HasToJson {
   int get explicitFileCount => _explicitFileCount;
 
   /// Explicitly analyzed files.
-  void set explicitFileCount(int value) {
+  set explicitFileCount(int value) {
     assert(value != null);
     _explicitFileCount = value;
   }
@@ -6654,7 +6654,7 @@ class ContextData implements HasToJson {
   int get implicitFileCount => _implicitFileCount;
 
   /// Implicitly analyzed files.
-  void set implicitFileCount(int value) {
+  set implicitFileCount(int value) {
     assert(value != null);
     _implicitFileCount = value;
   }
@@ -6663,7 +6663,7 @@ class ContextData implements HasToJson {
   int get workItemQueueLength => _workItemQueueLength;
 
   /// The number of work items in the queue.
-  void set workItemQueueLength(int value) {
+  set workItemQueueLength(int value) {
     assert(value != null);
     _workItemQueueLength = value;
   }
@@ -6672,7 +6672,7 @@ class ContextData implements HasToJson {
   List<String> get cacheEntryExceptions => _cacheEntryExceptions;
 
   /// Exceptions associated with cache entries.
-  void set cacheEntryExceptions(List<String> value) {
+  set cacheEntryExceptions(List<String> value) {
     assert(value != null);
     _cacheEntryExceptions = value;
   }
@@ -6870,7 +6870,7 @@ class DartFix implements HasToJson {
   String get name => _name;
 
   /// The name of the fix.
-  void set name(String value) {
+  set name(String value) {
     assert(value != null);
     _name = value;
   }
@@ -6879,7 +6879,7 @@ class DartFix implements HasToJson {
   String get description => _description;
 
   /// A human readable description of the fix.
-  void set description(String value) {
+  set description(String value) {
     _description = value;
   }
 
@@ -6887,7 +6887,7 @@ class DartFix implements HasToJson {
   bool get isRequired => _isRequired;
 
   /// `true` if the fix is in the "required" fixes group.
-  void set isRequired(bool value) {
+  set isRequired(bool value) {
     _isRequired = value;
   }
 
@@ -6978,7 +6978,7 @@ class DartFixSuggestion implements HasToJson {
   String get description => _description;
 
   /// A human readable description of the suggested change.
-  void set description(String value) {
+  set description(String value) {
     assert(value != null);
     _description = value;
   }
@@ -6987,7 +6987,7 @@ class DartFixSuggestion implements HasToJson {
   Location get location => _location;
 
   /// The location of the suggested change.
-  void set location(Location value) {
+  set location(Location value) {
     _location = value;
   }
 
@@ -7090,7 +7090,7 @@ class DiagnosticGetDiagnosticsResult implements ResponseResult {
   List<ContextData> get contexts => _contexts;
 
   /// The list of analysis contexts.
-  void set contexts(List<ContextData> value) {
+  set contexts(List<ContextData> value) {
     assert(value != null);
     _contexts = value;
   }
@@ -7202,7 +7202,7 @@ class DiagnosticGetServerPortResult implements ResponseResult {
   int get port => _port;
 
   /// The diagnostic server port.
-  void set port(int value) {
+  set port(int value) {
     assert(value != null);
     _port = value;
   }
@@ -7314,7 +7314,7 @@ class EditDartfixParams implements RequestParams {
   /// is not currently subject to analysis (e.g. because it is not associated
   /// with any analysis root specified to analysis.setAnalysisRoots), an error
   /// of type FILE_NOT_ANALYZED will be generated.
-  void set included(List<String> value) {
+  set included(List<String> value) {
     assert(value != null);
     _included = value;
   }
@@ -7329,7 +7329,7 @@ class EditDartfixParams implements RequestParams {
   ///
   /// If a name is specified that does not match the name of a known fix, an
   /// error of type UNKNOWN_FIX will be generated.
-  void set includedFixes(List<String> value) {
+  set includedFixes(List<String> value) {
     _includedFixes = value;
   }
 
@@ -7337,7 +7337,7 @@ class EditDartfixParams implements RequestParams {
   bool get includePedanticFixes => _includePedanticFixes;
 
   /// A flag indicating whether "pedantic" fixes should be applied.
-  void set includePedanticFixes(bool value) {
+  set includePedanticFixes(bool value) {
     _includePedanticFixes = value;
   }
 
@@ -7345,7 +7345,7 @@ class EditDartfixParams implements RequestParams {
   bool get includeRequiredFixes => _includeRequiredFixes;
 
   /// A flag indicating whether "required" fixes should be applied.
-  void set includeRequiredFixes(bool value) {
+  set includeRequiredFixes(bool value) {
     _includeRequiredFixes = value;
   }
 
@@ -7359,7 +7359,7 @@ class EditDartfixParams implements RequestParams {
   ///
   /// If a name is specified that does not match the name of a known fix, an
   /// error of type UNKNOWN_FIX will be generated.
-  void set excludedFixes(List<String> value) {
+  set excludedFixes(List<String> value) {
     _excludedFixes = value;
   }
 
@@ -7367,7 +7367,7 @@ class EditDartfixParams implements RequestParams {
   int get port => _port;
 
   /// Deprecated: This field is now ignored by server.
-  void set port(int value) {
+  set port(int value) {
     _port = value;
   }
 
@@ -7375,7 +7375,7 @@ class EditDartfixParams implements RequestParams {
   String get outputDir => _outputDir;
 
   /// Deprecated: This field is now ignored by server.
-  void set outputDir(String value) {
+  set outputDir(String value) {
     _outputDir = value;
   }
 
@@ -7552,7 +7552,7 @@ class EditDartfixResult implements ResponseResult {
 
   /// A list of recommended changes that can be automatically made by applying
   /// the 'edits' included in this response.
-  void set suggestions(List<DartFixSuggestion> value) {
+  set suggestions(List<DartFixSuggestion> value) {
     assert(value != null);
     _suggestions = value;
   }
@@ -7561,7 +7561,7 @@ class EditDartfixResult implements ResponseResult {
   List<DartFixSuggestion> get otherSuggestions => _otherSuggestions;
 
   /// A list of recommended changes that could not be automatically made.
-  void set otherSuggestions(List<DartFixSuggestion> value) {
+  set otherSuggestions(List<DartFixSuggestion> value) {
     assert(value != null);
     _otherSuggestions = value;
   }
@@ -7572,7 +7572,7 @@ class EditDartfixResult implements ResponseResult {
 
   /// True if the analyzed source contains errors that might impact the
   /// correctness of the recommended changes that can be automatically applied.
-  void set hasErrors(bool value) {
+  set hasErrors(bool value) {
     assert(value != null);
     _hasErrors = value;
   }
@@ -7581,7 +7581,7 @@ class EditDartfixResult implements ResponseResult {
   List<SourceFileEdit> get edits => _edits;
 
   /// A list of source edits to apply the recommended changes.
-  void set edits(List<SourceFileEdit> value) {
+  set edits(List<SourceFileEdit> value) {
     assert(value != null);
     _edits = value;
   }
@@ -7598,7 +7598,7 @@ class EditDartfixResult implements ResponseResult {
   /// that users might want to explore before committing the changes or (b)
   /// describe exceptions that were thrown but that did not stop the fixes from
   /// being produced. The list will be omitted if it is empty.
-  void set details(List<String> value) {
+  set details(List<String> value) {
     _details = value;
   }
 
@@ -7608,7 +7608,7 @@ class EditDartfixResult implements ResponseResult {
 
   /// The port on which the preview tool will respond to GET requests. The
   /// field is omitted if a preview was not requested.
-  void set port(int value) {
+  set port(int value) {
     _port = value;
   }
 
@@ -7620,7 +7620,7 @@ class EditDartfixResult implements ResponseResult {
   /// The URLs that users can visit in a browser to see a preview of the
   /// proposed changes. There is one URL for each of the included file paths.
   /// The field is omitted if a preview was not requested.
-  void set urls(List<String> value) {
+  set urls(List<String> value) {
     _urls = value;
   }
 
@@ -7797,7 +7797,7 @@ class EditFormatParams implements RequestParams {
   String get file => _file;
 
   /// The file containing the code to be formatted.
-  void set file(String value) {
+  set file(String value) {
     assert(value != null);
     _file = value;
   }
@@ -7806,7 +7806,7 @@ class EditFormatParams implements RequestParams {
   int get selectionOffset => _selectionOffset;
 
   /// The offset of the current selection in the file.
-  void set selectionOffset(int value) {
+  set selectionOffset(int value) {
     assert(value != null);
     _selectionOffset = value;
   }
@@ -7815,7 +7815,7 @@ class EditFormatParams implements RequestParams {
   int get selectionLength => _selectionLength;
 
   /// The length of the current selection in the file.
-  void set selectionLength(int value) {
+  set selectionLength(int value) {
     assert(value != null);
     _selectionLength = value;
   }
@@ -7824,7 +7824,7 @@ class EditFormatParams implements RequestParams {
   int get lineLength => _lineLength;
 
   /// The line length to be used by the formatter.
-  void set lineLength(int value) {
+  set lineLength(int value) {
     _lineLength = value;
   }
 
@@ -7943,7 +7943,7 @@ class EditFormatResult implements ResponseResult {
 
   /// The edit(s) to be applied in order to format the code. The list will be
   /// empty if the code was already formatted (there are no changes).
-  void set edits(List<SourceEdit> value) {
+  set edits(List<SourceEdit> value) {
     assert(value != null);
     _edits = value;
   }
@@ -7952,7 +7952,7 @@ class EditFormatResult implements ResponseResult {
   int get selectionOffset => _selectionOffset;
 
   /// The offset of the selection after formatting the code.
-  void set selectionOffset(int value) {
+  set selectionOffset(int value) {
     assert(value != null);
     _selectionOffset = value;
   }
@@ -7961,7 +7961,7 @@ class EditFormatResult implements ResponseResult {
   int get selectionLength => _selectionLength;
 
   /// The length of the selection after formatting the code.
-  void set selectionLength(int value) {
+  set selectionLength(int value) {
     assert(value != null);
     _selectionLength = value;
   }
@@ -8074,7 +8074,7 @@ class EditGetAssistsParams implements RequestParams {
   String get file => _file;
 
   /// The file containing the code for which assists are being requested.
-  void set file(String value) {
+  set file(String value) {
     assert(value != null);
     _file = value;
   }
@@ -8083,7 +8083,7 @@ class EditGetAssistsParams implements RequestParams {
   int get offset => _offset;
 
   /// The offset of the code for which assists are being requested.
-  void set offset(int value) {
+  set offset(int value) {
     assert(value != null);
     _offset = value;
   }
@@ -8092,7 +8092,7 @@ class EditGetAssistsParams implements RequestParams {
   int get length => _length;
 
   /// The length of the code for which assists are being requested.
-  void set length(int value) {
+  set length(int value) {
     assert(value != null);
     _length = value;
   }
@@ -8189,7 +8189,7 @@ class EditGetAssistsResult implements ResponseResult {
   List<SourceChange> get assists => _assists;
 
   /// The assists that are available at the given location.
-  void set assists(List<SourceChange> value) {
+  set assists(List<SourceChange> value) {
     assert(value != null);
     _assists = value;
   }
@@ -8280,7 +8280,7 @@ class EditGetAvailableRefactoringsParams implements RequestParams {
   String get file => _file;
 
   /// The file containing the code on which the refactoring would be based.
-  void set file(String value) {
+  set file(String value) {
     assert(value != null);
     _file = value;
   }
@@ -8289,7 +8289,7 @@ class EditGetAvailableRefactoringsParams implements RequestParams {
   int get offset => _offset;
 
   /// The offset of the code on which the refactoring would be based.
-  void set offset(int value) {
+  set offset(int value) {
     assert(value != null);
     _offset = value;
   }
@@ -8298,7 +8298,7 @@ class EditGetAvailableRefactoringsParams implements RequestParams {
   int get length => _length;
 
   /// The length of the code on which the refactoring would be based.
-  void set length(int value) {
+  set length(int value) {
     assert(value != null);
     _length = value;
   }
@@ -8396,7 +8396,7 @@ class EditGetAvailableRefactoringsResult implements ResponseResult {
   List<RefactoringKind> get kinds => _kinds;
 
   /// The kinds of refactorings that are valid for the given selection.
-  void set kinds(List<RefactoringKind> value) {
+  set kinds(List<RefactoringKind> value) {
     assert(value != null);
     _kinds = value;
   }
@@ -8537,7 +8537,7 @@ class EditGetDartfixInfoResult implements ResponseResult {
   List<DartFix> get fixes => _fixes;
 
   /// A list of fixes that can be specified in an edit.dartfix request.
-  void set fixes(List<DartFix> value) {
+  set fixes(List<DartFix> value) {
     assert(value != null);
     _fixes = value;
   }
@@ -8623,7 +8623,7 @@ class EditGetFixesParams implements RequestParams {
   String get file => _file;
 
   /// The file containing the errors for which fixes are being requested.
-  void set file(String value) {
+  set file(String value) {
     assert(value != null);
     _file = value;
   }
@@ -8632,7 +8632,7 @@ class EditGetFixesParams implements RequestParams {
   int get offset => _offset;
 
   /// The offset used to select the errors for which fixes will be returned.
-  void set offset(int value) {
+  set offset(int value) {
     assert(value != null);
     _offset = value;
   }
@@ -8718,7 +8718,7 @@ class EditGetFixesResult implements ResponseResult {
   List<AnalysisErrorFixes> get fixes => _fixes;
 
   /// The fixes that are available for the errors at the given offset.
-  void set fixes(List<AnalysisErrorFixes> value) {
+  set fixes(List<AnalysisErrorFixes> value) {
     assert(value != null);
     _fixes = value;
   }
@@ -8809,7 +8809,7 @@ class EditGetPostfixCompletionParams implements RequestParams {
   String get file => _file;
 
   /// The file containing the postfix template to be expanded.
-  void set file(String value) {
+  set file(String value) {
     assert(value != null);
     _file = value;
   }
@@ -8818,7 +8818,7 @@ class EditGetPostfixCompletionParams implements RequestParams {
   String get key => _key;
 
   /// The unique name that identifies the template in use.
-  void set key(String value) {
+  set key(String value) {
     assert(value != null);
     _key = value;
   }
@@ -8829,7 +8829,7 @@ class EditGetPostfixCompletionParams implements RequestParams {
 
   /// The offset used to identify the code to which the template will be
   /// applied.
-  void set offset(int value) {
+  set offset(int value) {
     assert(value != null);
     _offset = value;
   }
@@ -8925,7 +8925,7 @@ class EditGetPostfixCompletionResult implements ResponseResult {
   SourceChange get change => _change;
 
   /// The change to be applied in order to complete the statement.
-  void set change(SourceChange value) {
+  set change(SourceChange value) {
     assert(value != null);
     _change = value;
   }
@@ -9021,7 +9021,7 @@ class EditGetRefactoringParams implements RequestParams {
   RefactoringKind get kind => _kind;
 
   /// The kind of refactoring to be performed.
-  void set kind(RefactoringKind value) {
+  set kind(RefactoringKind value) {
     assert(value != null);
     _kind = value;
   }
@@ -9030,7 +9030,7 @@ class EditGetRefactoringParams implements RequestParams {
   String get file => _file;
 
   /// The file containing the code involved in the refactoring.
-  void set file(String value) {
+  set file(String value) {
     assert(value != null);
     _file = value;
   }
@@ -9039,7 +9039,7 @@ class EditGetRefactoringParams implements RequestParams {
   int get offset => _offset;
 
   /// The offset of the region involved in the refactoring.
-  void set offset(int value) {
+  set offset(int value) {
     assert(value != null);
     _offset = value;
   }
@@ -9048,7 +9048,7 @@ class EditGetRefactoringParams implements RequestParams {
   int get length => _length;
 
   /// The length of the region involved in the refactoring.
-  void set length(int value) {
+  set length(int value) {
     assert(value != null);
     _length = value;
   }
@@ -9059,7 +9059,7 @@ class EditGetRefactoringParams implements RequestParams {
 
   /// True if the client is only requesting that the values of the options be
   /// validated and no change be generated.
-  void set validateOnly(bool value) {
+  set validateOnly(bool value) {
     assert(value != null);
     _validateOnly = value;
   }
@@ -9076,7 +9076,7 @@ class EditGetRefactoringParams implements RequestParams {
   /// that is expected is documented in the section titled Refactorings,
   /// labeled as "Options". This field can be omitted if the refactoring does
   /// not require any options or if the values of those options are not known.
-  void set options(RefactoringOptions value) {
+  set options(RefactoringOptions value) {
     _options = value;
   }
 
@@ -9229,7 +9229,7 @@ class EditGetRefactoringResult implements ResponseResult {
   /// The initial status of the refactoring, i.e. problems related to the
   /// context in which the refactoring is requested. The array will be empty if
   /// there are no known problems.
-  void set initialProblems(List<RefactoringProblem> value) {
+  set initialProblems(List<RefactoringProblem> value) {
     assert(value != null);
     _initialProblems = value;
   }
@@ -9242,7 +9242,7 @@ class EditGetRefactoringResult implements ResponseResult {
   /// The options validation status, i.e. problems in the given options, such
   /// as light-weight validation of a new name, flags compatibility, etc. The
   /// array will be empty if there are no known problems.
-  void set optionsProblems(List<RefactoringProblem> value) {
+  set optionsProblems(List<RefactoringProblem> value) {
     assert(value != null);
     _optionsProblems = value;
   }
@@ -9255,7 +9255,7 @@ class EditGetRefactoringResult implements ResponseResult {
   /// The final status of the refactoring, i.e. problems identified in the
   /// result of a full, potentially expensive validation and / or change
   /// creation. The array will be empty if there are no known problems.
-  void set finalProblems(List<RefactoringProblem> value) {
+  set finalProblems(List<RefactoringProblem> value) {
     assert(value != null);
     _finalProblems = value;
   }
@@ -9270,7 +9270,7 @@ class EditGetRefactoringResult implements ResponseResult {
   /// dependent on the kind of refactoring being created. The data that is
   /// returned is documented in the section titled Refactorings, labeled as
   /// "Feedback".
-  void set feedback(RefactoringFeedback value) {
+  set feedback(RefactoringFeedback value) {
     _feedback = value;
   }
 
@@ -9284,7 +9284,7 @@ class EditGetRefactoringResult implements ResponseResult {
   /// will be omitted if there are problems that prevent a set of changes from
   /// being computed, such as having no options specified for a refactoring
   /// that requires them, or if only validation was requested.
-  void set change(SourceChange value) {
+  set change(SourceChange value) {
     _change = value;
   }
 
@@ -9304,7 +9304,7 @@ class EditGetRefactoringResult implements ResponseResult {
   /// to a member from an unknown type. This field will be omitted if the
   /// change field is omitted or if there are no potential edits for the
   /// refactoring.
-  void set potentialEdits(List<String> value) {
+  set potentialEdits(List<String> value) {
     _potentialEdits = value;
   }
 
@@ -9468,7 +9468,7 @@ class EditGetStatementCompletionParams implements RequestParams {
   String get file => _file;
 
   /// The file containing the statement to be completed.
-  void set file(String value) {
+  set file(String value) {
     assert(value != null);
     _file = value;
   }
@@ -9477,7 +9477,7 @@ class EditGetStatementCompletionParams implements RequestParams {
   int get offset => _offset;
 
   /// The offset used to identify the statement to be completed.
-  void set offset(int value) {
+  set offset(int value) {
     assert(value != null);
     _offset = value;
   }
@@ -9567,7 +9567,7 @@ class EditGetStatementCompletionResult implements ResponseResult {
   SourceChange get change => _change;
 
   /// The change to be applied in order to complete the statement.
-  void set change(SourceChange value) {
+  set change(SourceChange value) {
     assert(value != null);
     _change = value;
   }
@@ -9578,7 +9578,7 @@ class EditGetStatementCompletionResult implements ResponseResult {
 
   /// Will be true if the change contains nothing but whitespace characters, or
   /// is empty.
-  void set whitespaceOnly(bool value) {
+  set whitespaceOnly(bool value) {
     assert(value != null);
     _whitespaceOnly = value;
   }
@@ -9675,7 +9675,7 @@ class EditImportElementsParams implements RequestParams {
   String get file => _file;
 
   /// The file in which the specified elements are to be made accessible.
-  void set file(String value) {
+  set file(String value) {
     assert(value != null);
     _file = value;
   }
@@ -9684,7 +9684,7 @@ class EditImportElementsParams implements RequestParams {
   List<ImportedElements> get elements => _elements;
 
   /// The elements to be made accessible in the specified file.
-  void set elements(List<ImportedElements> value) {
+  set elements(List<ImportedElements> value) {
     assert(value != null);
     _elements = value;
   }
@@ -9699,7 +9699,7 @@ class EditImportElementsParams implements RequestParams {
   /// provided, this is used to guard against adding imports for text that
   /// would be inserted into a comment, string literal, or other location where
   /// the imports would not be necessary.
-  void set offset(int value) {
+  set offset(int value) {
     _offset = value;
   }
 
@@ -9812,7 +9812,7 @@ class EditImportElementsResult implements ResponseResult {
   /// different than the file specified in the request if the specified file is
   /// a part file. This field will be omitted if there are no edits that need
   /// to be applied.
-  void set edit(SourceFileEdit value) {
+  set edit(SourceFileEdit value) {
     _edit = value;
   }
 
@@ -9897,7 +9897,7 @@ class EditIsPostfixCompletionApplicableParams implements RequestParams {
   String get file => _file;
 
   /// The file containing the postfix template to be expanded.
-  void set file(String value) {
+  set file(String value) {
     assert(value != null);
     _file = value;
   }
@@ -9906,7 +9906,7 @@ class EditIsPostfixCompletionApplicableParams implements RequestParams {
   String get key => _key;
 
   /// The unique name that identifies the template in use.
-  void set key(String value) {
+  set key(String value) {
     assert(value != null);
     _key = value;
   }
@@ -9917,7 +9917,7 @@ class EditIsPostfixCompletionApplicableParams implements RequestParams {
 
   /// The offset used to identify the code to which the template will be
   /// applied.
-  void set offset(int value) {
+  set offset(int value) {
     assert(value != null);
     _offset = value;
   }
@@ -10013,7 +10013,7 @@ class EditIsPostfixCompletionApplicableResult implements ResponseResult {
   bool get value => _value;
 
   /// True if the template can be expanded at the given location.
-  void set value(bool value) {
+  set value(bool value) {
     assert(value != null);
     _value = value;
   }
@@ -10120,7 +10120,7 @@ class EditListPostfixCompletionTemplatesResult implements ResponseResult {
   List<PostfixTemplateDescriptor> get templates => _templates;
 
   /// The list of available templates.
-  void set templates(List<PostfixTemplateDescriptor> value) {
+  set templates(List<PostfixTemplateDescriptor> value) {
     assert(value != null);
     _templates = value;
   }
@@ -10210,7 +10210,7 @@ class EditOrganizeDirectivesParams implements RequestParams {
   String get file => _file;
 
   /// The Dart file to organize directives in.
-  void set file(String value) {
+  set file(String value) {
     assert(value != null);
     _file = value;
   }
@@ -10290,7 +10290,7 @@ class EditOrganizeDirectivesResult implements ResponseResult {
 
   /// The file edit that is to be applied to the given file to effect the
   /// organizing.
-  void set edit(SourceFileEdit value) {
+  set edit(SourceFileEdit value) {
     assert(value != null);
     _edit = value;
   }
@@ -10371,7 +10371,7 @@ class EditSortMembersParams implements RequestParams {
   String get file => _file;
 
   /// The Dart file to sort.
-  void set file(String value) {
+  set file(String value) {
     assert(value != null);
     _file = value;
   }
@@ -10450,7 +10450,7 @@ class EditSortMembersResult implements ResponseResult {
 
   /// The file edit that is to be applied to the given file to effect the
   /// sorting.
-  void set edit(SourceFileEdit value) {
+  set edit(SourceFileEdit value) {
     assert(value != null);
     _edit = value;
   }
@@ -10560,7 +10560,7 @@ class ElementDeclaration implements HasToJson {
   String get name => _name;
 
   /// The name of the declaration.
-  void set name(String value) {
+  set name(String value) {
     assert(value != null);
     _name = value;
   }
@@ -10569,7 +10569,7 @@ class ElementDeclaration implements HasToJson {
   ElementKind get kind => _kind;
 
   /// The kind of the element that corresponds to the declaration.
-  void set kind(ElementKind value) {
+  set kind(ElementKind value) {
     assert(value != null);
     _kind = value;
   }
@@ -10578,7 +10578,7 @@ class ElementDeclaration implements HasToJson {
   int get fileIndex => _fileIndex;
 
   /// The index of the file (in the enclosing response).
-  void set fileIndex(int value) {
+  set fileIndex(int value) {
     assert(value != null);
     _fileIndex = value;
   }
@@ -10587,7 +10587,7 @@ class ElementDeclaration implements HasToJson {
   int get offset => _offset;
 
   /// The offset of the declaration name in the file.
-  void set offset(int value) {
+  set offset(int value) {
     assert(value != null);
     _offset = value;
   }
@@ -10596,7 +10596,7 @@ class ElementDeclaration implements HasToJson {
   int get line => _line;
 
   /// The one-based index of the line containing the declaration name.
-  void set line(int value) {
+  set line(int value) {
     assert(value != null);
     _line = value;
   }
@@ -10605,7 +10605,7 @@ class ElementDeclaration implements HasToJson {
   int get column => _column;
 
   /// The one-based index of the column containing the declaration name.
-  void set column(int value) {
+  set column(int value) {
     assert(value != null);
     _column = value;
   }
@@ -10614,7 +10614,7 @@ class ElementDeclaration implements HasToJson {
   int get codeOffset => _codeOffset;
 
   /// The offset of the first character of the declaration code in the file.
-  void set codeOffset(int value) {
+  set codeOffset(int value) {
     assert(value != null);
     _codeOffset = value;
   }
@@ -10623,7 +10623,7 @@ class ElementDeclaration implements HasToJson {
   int get codeLength => _codeLength;
 
   /// The length of the declaration code in the file.
-  void set codeLength(int value) {
+  set codeLength(int value) {
     assert(value != null);
     _codeLength = value;
   }
@@ -10634,7 +10634,7 @@ class ElementDeclaration implements HasToJson {
 
   /// The name of the class enclosing this declaration. If the declaration is
   /// not a class member, this field will be absent.
-  void set className(String value) {
+  set className(String value) {
     _className = value;
   }
 
@@ -10644,7 +10644,7 @@ class ElementDeclaration implements HasToJson {
 
   /// The name of the mixin enclosing this declaration. If the declaration is
   /// not a mixin member, this field will be absent.
-  void set mixinName(String value) {
+  set mixinName(String value) {
     _mixinName = value;
   }
 
@@ -10662,7 +10662,7 @@ class ElementDeclaration implements HasToJson {
   /// has zero parameters, this field will have a value of "()". The value
   /// should not be treated as exact presentation of parameters, it is just
   /// approximation of parameters to give the user general idea.
-  void set parameters(String value) {
+  set parameters(String value) {
     _parameters = value;
   }
 
@@ -10842,7 +10842,7 @@ class ExecutableFile implements HasToJson {
   String get file => _file;
 
   /// The path of the executable file.
-  void set file(String value) {
+  set file(String value) {
     assert(value != null);
     _file = value;
   }
@@ -10851,7 +10851,7 @@ class ExecutableFile implements HasToJson {
   ExecutableKind get kind => _kind;
 
   /// The kind of the executable file.
-  void set kind(ExecutableKind value) {
+  set kind(ExecutableKind value) {
     assert(value != null);
     _kind = value;
   }
@@ -10995,7 +10995,7 @@ class ExecutionCreateContextParams implements RequestParams {
 
   /// The path of the Dart or HTML file that will be launched, or the path of
   /// the directory containing the file.
-  void set contextRoot(String value) {
+  set contextRoot(String value) {
     assert(value != null);
     _contextRoot = value;
   }
@@ -11074,7 +11074,7 @@ class ExecutionCreateContextResult implements ResponseResult {
   String get id => _id;
 
   /// The identifier used to refer to the execution context that was created.
-  void set id(String value) {
+  set id(String value) {
     assert(value != null);
     _id = value;
   }
@@ -11154,7 +11154,7 @@ class ExecutionDeleteContextParams implements RequestParams {
   String get id => _id;
 
   /// The identifier of the execution context that is to be deleted.
-  void set id(String value) {
+  set id(String value) {
     assert(value != null);
     _id = value;
   }
@@ -11273,7 +11273,7 @@ class ExecutionGetSuggestionsParams implements RequestParams {
   String get code => _code;
 
   /// The code to get suggestions in.
-  void set code(String value) {
+  set code(String value) {
     assert(value != null);
     _code = value;
   }
@@ -11282,7 +11282,7 @@ class ExecutionGetSuggestionsParams implements RequestParams {
   int get offset => _offset;
 
   /// The offset within the code to get suggestions at.
-  void set offset(int value) {
+  set offset(int value) {
     assert(value != null);
     _offset = value;
   }
@@ -11297,7 +11297,7 @@ class ExecutionGetSuggestionsParams implements RequestParams {
   /// frame. The combination of the context file and context offset can be used
   /// to ensure that all variables of the context are available for completion
   /// (with their static types).
-  void set contextFile(String value) {
+  set contextFile(String value) {
     assert(value != null);
     _contextFile = value;
   }
@@ -11308,7 +11308,7 @@ class ExecutionGetSuggestionsParams implements RequestParams {
 
   /// The offset in the context file, e.g. the line offset in the current
   /// debugger frame.
-  void set contextOffset(int value) {
+  set contextOffset(int value) {
     assert(value != null);
     _contextOffset = value;
   }
@@ -11319,7 +11319,7 @@ class ExecutionGetSuggestionsParams implements RequestParams {
 
   /// The runtime context variables that are potentially referenced in the
   /// code.
-  void set variables(List<RuntimeCompletionVariable> value) {
+  set variables(List<RuntimeCompletionVariable> value) {
     assert(value != null);
     _variables = value;
   }
@@ -11344,7 +11344,7 @@ class ExecutionGetSuggestionsParams implements RequestParams {
   /// only when there are no interesting sub-expressions in the given code. The
   /// client may provide an empty list, in this case the server will return
   /// completion suggestions.
-  void set expressions(List<RuntimeCompletionExpression> value) {
+  set expressions(List<RuntimeCompletionExpression> value) {
     _expressions = value;
   }
 
@@ -11516,7 +11516,7 @@ class ExecutionGetSuggestionsResult implements ResponseResult {
   /// their actual runtime types can improve completion results, the server
   /// omits this field in the response, and instead will return the
   /// "expressions" field.
-  void set suggestions(List<CompletionSuggestion> value) {
+  set suggestions(List<CompletionSuggestion> value) {
     _suggestions = value;
   }
 
@@ -11530,7 +11530,7 @@ class ExecutionGetSuggestionsResult implements ResponseResult {
   /// to know runtime types to provide better completion suggestions.
   ///
   /// This field is omitted the field "suggestions" is returned.
-  void set expressions(List<RuntimeCompletionExpression> value) {
+  set expressions(List<RuntimeCompletionExpression> value) {
     _expressions = value;
   }
 
@@ -11648,7 +11648,7 @@ class ExecutionLaunchDataParams implements HasToJson {
 
   /// The file for which launch data is being provided. This will either be a
   /// Dart library or an HTML file.
-  void set file(String value) {
+  set file(String value) {
     assert(value != null);
     _file = value;
   }
@@ -11659,7 +11659,7 @@ class ExecutionLaunchDataParams implements HasToJson {
 
   /// The kind of the executable file. This field is omitted if the file is not
   /// a Dart file.
-  void set kind(ExecutableKind value) {
+  set kind(ExecutableKind value) {
     _kind = value;
   }
 
@@ -11669,7 +11669,7 @@ class ExecutionLaunchDataParams implements HasToJson {
 
   /// A list of the Dart files that are referenced by the file. This field is
   /// omitted if the file is not an HTML file.
-  void set referencedFiles(List<String> value) {
+  set referencedFiles(List<String> value) {
     _referencedFiles = value;
   }
 
@@ -11776,7 +11776,7 @@ class ExecutionMapUriParams implements RequestParams {
   String get id => _id;
 
   /// The identifier of the execution context in which the URI is to be mapped.
-  void set id(String value) {
+  set id(String value) {
     assert(value != null);
     _id = value;
   }
@@ -11785,7 +11785,7 @@ class ExecutionMapUriParams implements RequestParams {
   String get file => _file;
 
   /// The path of the file to be mapped into a URI.
-  void set file(String value) {
+  set file(String value) {
     _file = value;
   }
 
@@ -11793,7 +11793,7 @@ class ExecutionMapUriParams implements RequestParams {
   String get uri => _uri;
 
   /// The URI to be mapped into a file path.
-  void set uri(String value) {
+  set uri(String value) {
     _uri = value;
   }
 
@@ -11892,7 +11892,7 @@ class ExecutionMapUriResult implements ResponseResult {
 
   /// The file to which the URI was mapped. This field is omitted if the uri
   /// field was not given in the request.
-  void set file(String value) {
+  set file(String value) {
     _file = value;
   }
 
@@ -11902,7 +11902,7 @@ class ExecutionMapUriResult implements ResponseResult {
 
   /// The URI to which the file path was mapped. This field is omitted if the
   /// file field was not given in the request.
-  void set uri(String value) {
+  set uri(String value) {
     _uri = value;
   }
 
@@ -12033,7 +12033,7 @@ class ExecutionSetSubscriptionsParams implements RequestParams {
   List<ExecutionService> get subscriptions => _subscriptions;
 
   /// A list of the services being subscribed to.
-  void set subscriptions(List<ExecutionService> value) {
+  set subscriptions(List<ExecutionService> value) {
     assert(value != null);
     _subscriptions = value;
   }
@@ -12148,7 +12148,7 @@ class ExistingImport implements HasToJson {
 
   /// The URI of the imported library. It is an index in the strings field, in
   /// the enclosing ExistingImports and its ImportedElementSet object.
-  void set uri(int value) {
+  set uri(int value) {
     assert(value != null);
     _uri = value;
   }
@@ -12157,7 +12157,7 @@ class ExistingImport implements HasToJson {
   List<int> get elements => _elements;
 
   /// The list of indexes of elements, in the enclosing ExistingImports object.
-  void set elements(List<int> value) {
+  set elements(List<int> value) {
     assert(value != null);
     _elements = value;
   }
@@ -12238,7 +12238,7 @@ class ExistingImports implements HasToJson {
   ImportedElementSet get elements => _elements;
 
   /// The set of all unique imported elements for all imports.
-  void set elements(ImportedElementSet value) {
+  set elements(ImportedElementSet value) {
     assert(value != null);
     _elements = value;
   }
@@ -12247,7 +12247,7 @@ class ExistingImports implements HasToJson {
   List<ExistingImport> get imports => _imports;
 
   /// The list of imports in the library.
-  void set imports(List<ExistingImport> value) {
+  set imports(List<ExistingImport> value) {
     assert(value != null);
     _imports = value;
   }
@@ -12345,7 +12345,7 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback {
 
   /// The offsets of the expressions that cover the specified selection, from
   /// the down most to the up most.
-  void set coveringExpressionOffsets(List<int> value) {
+  set coveringExpressionOffsets(List<int> value) {
     _coveringExpressionOffsets = value;
   }
 
@@ -12355,7 +12355,7 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback {
 
   /// The lengths of the expressions that cover the specified selection, from
   /// the down most to the up most.
-  void set coveringExpressionLengths(List<int> value) {
+  set coveringExpressionLengths(List<int> value) {
     _coveringExpressionLengths = value;
   }
 
@@ -12363,7 +12363,7 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback {
   List<String> get names => _names;
 
   /// The proposed names for the local variable.
-  void set names(List<String> value) {
+  set names(List<String> value) {
     assert(value != null);
     _names = value;
   }
@@ -12374,7 +12374,7 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback {
 
   /// The offsets of the expressions that would be replaced by a reference to
   /// the variable.
-  void set offsets(List<int> value) {
+  set offsets(List<int> value) {
     assert(value != null);
     _offsets = value;
   }
@@ -12389,7 +12389,7 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback {
   /// the variable. The lengths correspond to the offsets. In other words, for
   /// a given expression, if the offset of that expression is offsets[i], then
   /// the length of that expression is lengths[i].
-  void set lengths(List<int> value) {
+  set lengths(List<int> value) {
     assert(value != null);
     _lengths = value;
   }
@@ -12516,7 +12516,7 @@ class ExtractLocalVariableOptions extends RefactoringOptions {
   String get name => _name;
 
   /// The name that the local variable should be given.
-  void set name(String value) {
+  set name(String value) {
     assert(value != null);
     _name = value;
   }
@@ -12531,7 +12531,7 @@ class ExtractLocalVariableOptions extends RefactoringOptions {
   /// variable will be defined should be replaced by a reference to the local
   /// variable. The expression used to initiate the refactoring will always be
   /// replaced.
-  void set extractAll(bool value) {
+  set extractAll(bool value) {
     assert(value != null);
     _extractAll = value;
   }
@@ -12638,7 +12638,7 @@ class ExtractMethodFeedback extends RefactoringFeedback {
 
   /// The offset to the beginning of the expression or statements that will be
   /// extracted.
-  void set offset(int value) {
+  set offset(int value) {
     assert(value != null);
     _offset = value;
   }
@@ -12647,7 +12647,7 @@ class ExtractMethodFeedback extends RefactoringFeedback {
   int get length => _length;
 
   /// The length of the expression or statements that will be extracted.
-  void set length(int value) {
+  set length(int value) {
     assert(value != null);
     _length = value;
   }
@@ -12658,7 +12658,7 @@ class ExtractMethodFeedback extends RefactoringFeedback {
 
   /// The proposed return type for the method. If the returned element does not
   /// have a declared return type, this field will contain an empty string.
-  void set returnType(String value) {
+  set returnType(String value) {
     assert(value != null);
     _returnType = value;
   }
@@ -12667,7 +12667,7 @@ class ExtractMethodFeedback extends RefactoringFeedback {
   List<String> get names => _names;
 
   /// The proposed names for the method.
-  void set names(List<String> value) {
+  set names(List<String> value) {
     assert(value != null);
     _names = value;
   }
@@ -12676,7 +12676,7 @@ class ExtractMethodFeedback extends RefactoringFeedback {
   bool get canCreateGetter => _canCreateGetter;
 
   /// True if a getter could be created rather than a method.
-  void set canCreateGetter(bool value) {
+  set canCreateGetter(bool value) {
     assert(value != null);
     _canCreateGetter = value;
   }
@@ -12685,7 +12685,7 @@ class ExtractMethodFeedback extends RefactoringFeedback {
   List<RefactoringMethodParameter> get parameters => _parameters;
 
   /// The proposed parameters for the method.
-  void set parameters(List<RefactoringMethodParameter> value) {
+  set parameters(List<RefactoringMethodParameter> value) {
     assert(value != null);
     _parameters = value;
   }
@@ -12696,7 +12696,7 @@ class ExtractMethodFeedback extends RefactoringFeedback {
 
   /// The offsets of the expressions or statements that would be replaced by an
   /// invocation of the method.
-  void set offsets(List<int> value) {
+  set offsets(List<int> value) {
     assert(value != null);
     _offsets = value;
   }
@@ -12713,7 +12713,7 @@ class ExtractMethodFeedback extends RefactoringFeedback {
   /// words, for a given expression (or block of statements), if the offset of
   /// that expression is offsets[i], then the length of that expression is
   /// lengths[i].
-  void set lengths(List<int> value) {
+  set lengths(List<int> value) {
     assert(value != null);
     _lengths = value;
   }
@@ -12887,7 +12887,7 @@ class ExtractMethodOptions extends RefactoringOptions {
   String get returnType => _returnType;
 
   /// The return type that should be defined for the method.
-  void set returnType(String value) {
+  set returnType(String value) {
     assert(value != null);
     _returnType = value;
   }
@@ -12898,7 +12898,7 @@ class ExtractMethodOptions extends RefactoringOptions {
 
   /// True if a getter should be created rather than a method. It is an error
   /// if this field is true and the list of parameters is non-empty.
-  void set createGetter(bool value) {
+  set createGetter(bool value) {
     assert(value != null);
     _createGetter = value;
   }
@@ -12907,7 +12907,7 @@ class ExtractMethodOptions extends RefactoringOptions {
   String get name => _name;
 
   /// The name that the method should be given.
-  void set name(String value) {
+  set name(String value) {
     assert(value != null);
     _name = value;
   }
@@ -12934,7 +12934,7 @@ class ExtractMethodOptions extends RefactoringOptions {
   ///   with the same identifiers as proposed.
   /// - To add new parameters, omit their identifier.
   /// - To remove some parameters, omit them in this list.
-  void set parameters(List<RefactoringMethodParameter> value) {
+  set parameters(List<RefactoringMethodParameter> value) {
     assert(value != null);
     _parameters = value;
   }
@@ -12947,7 +12947,7 @@ class ExtractMethodOptions extends RefactoringOptions {
   /// True if all occurrences of the expression or statements should be
   /// replaced by an invocation of the method. The expression or statements
   /// used to initiate the refactoring will always be replaced.
-  void set extractAll(bool value) {
+  set extractAll(bool value) {
     assert(value != null);
     _extractAll = value;
   }
@@ -13121,7 +13121,7 @@ class ExtractWidgetOptions extends RefactoringOptions {
   String get name => _name;
 
   /// The name that the widget class should be given.
-  void set name(String value) {
+  set name(String value) {
     assert(value != null);
     _name = value;
   }
@@ -13246,7 +13246,7 @@ class FlutterGetWidgetDescriptionParams implements RequestParams {
   String get file => _file;
 
   /// The file where the widget instance is created.
-  void set file(String value) {
+  set file(String value) {
     assert(value != null);
     _file = value;
   }
@@ -13255,7 +13255,7 @@ class FlutterGetWidgetDescriptionParams implements RequestParams {
   int get offset => _offset;
 
   /// The offset in the file where the widget instance is created.
-  void set offset(int value) {
+  set offset(int value) {
     assert(value != null);
     _offset = value;
   }
@@ -13348,7 +13348,7 @@ class FlutterGetWidgetDescriptionResult implements ResponseResult {
   /// read only, when their editor is not set. This might be because they have
   /// type that we don't know how to edit, or for compound properties that work
   /// as containers for sub-properties.
-  void set properties(List<FlutterWidgetProperty> value) {
+  set properties(List<FlutterWidgetProperty> value) {
     assert(value != null);
     _properties = value;
   }
@@ -13468,7 +13468,7 @@ class FlutterOutline implements HasToJson {
   FlutterOutlineKind get kind => _kind;
 
   /// The kind of the node.
-  void set kind(FlutterOutlineKind value) {
+  set kind(FlutterOutlineKind value) {
     assert(value != null);
     _kind = value;
   }
@@ -13483,7 +13483,7 @@ class FlutterOutline implements HasToJson {
   /// the offset in the Element, which is the offset of the name of the
   /// element. It can be used, for example, to map locations in the file back
   /// to an outline.
-  void set offset(int value) {
+  set offset(int value) {
     assert(value != null);
     _offset = value;
   }
@@ -13492,7 +13492,7 @@ class FlutterOutline implements HasToJson {
   int get length => _length;
 
   /// The length of the element.
-  void set length(int value) {
+  set length(int value) {
     assert(value != null);
     _length = value;
   }
@@ -13503,7 +13503,7 @@ class FlutterOutline implements HasToJson {
 
   /// The offset of the first character of the element code, which is neither
   /// documentation, nor annotation.
-  void set codeOffset(int value) {
+  set codeOffset(int value) {
     assert(value != null);
     _codeOffset = value;
   }
@@ -13512,7 +13512,7 @@ class FlutterOutline implements HasToJson {
   int get codeLength => _codeLength;
 
   /// The length of the element code.
-  void set codeLength(int value) {
+  set codeLength(int value) {
     assert(value != null);
     _codeLength = value;
   }
@@ -13525,7 +13525,7 @@ class FlutterOutline implements HasToJson {
   /// The text label of the node children of the node. It is provided for any
   /// FlutterOutlineKind.GENERIC node, where better information is not
   /// available.
-  void set label(String value) {
+  set label(String value) {
     _label = value;
   }
 
@@ -13533,7 +13533,7 @@ class FlutterOutline implements HasToJson {
   Element get dartElement => _dartElement;
 
   /// If this node is a Dart element, the description of it; omitted otherwise.
-  void set dartElement(Element value) {
+  set dartElement(Element value) {
     _dartElement = value;
   }
 
@@ -13545,7 +13545,7 @@ class FlutterOutline implements HasToJson {
   /// Additional attributes for this node, which might be interesting to
   /// display on the client. These attributes are usually arguments for the
   /// instance creation or the invocation that created the widget.
-  void set attributes(List<FlutterOutlineAttribute> value) {
+  set attributes(List<FlutterOutlineAttribute> value) {
     _attributes = value;
   }
 
@@ -13555,7 +13555,7 @@ class FlutterOutline implements HasToJson {
 
   /// If the node creates a new class instance, or a reference to an instance,
   /// this field has the name of the class.
-  void set className(String value) {
+  set className(String value) {
     _className = value;
   }
 
@@ -13565,7 +13565,7 @@ class FlutterOutline implements HasToJson {
 
   /// A short text description how this node is associated with the parent
   /// node. For example "appBar" or "body" in Scaffold.
-  void set parentAssociationLabel(String value) {
+  set parentAssociationLabel(String value) {
     _parentAssociationLabel = value;
   }
 
@@ -13573,7 +13573,7 @@ class FlutterOutline implements HasToJson {
   String get variableName => _variableName;
 
   /// If FlutterOutlineKind.VARIABLE, the name of the variable.
-  void set variableName(String value) {
+  set variableName(String value) {
     _variableName = value;
   }
 
@@ -13583,7 +13583,7 @@ class FlutterOutline implements HasToJson {
 
   /// The children of the node. The field will be omitted if the node has no
   /// children.
-  void set children(List<FlutterOutline> value) {
+  set children(List<FlutterOutline> value) {
     _children = value;
   }
 
@@ -13816,7 +13816,7 @@ class FlutterOutlineAttribute implements HasToJson {
   String get name => _name;
 
   /// The name of the attribute.
-  void set name(String value) {
+  set name(String value) {
     assert(value != null);
     _name = value;
   }
@@ -13827,7 +13827,7 @@ class FlutterOutlineAttribute implements HasToJson {
 
   /// The label of the attribute value, usually the Dart code. It might be
   /// quite long, the client should abbreviate as needed.
-  void set label(String value) {
+  set label(String value) {
     assert(value != null);
     _label = value;
   }
@@ -13838,7 +13838,7 @@ class FlutterOutlineAttribute implements HasToJson {
 
   /// The boolean literal value of the attribute. This field is absent if the
   /// value is not a boolean literal.
-  void set literalValueBoolean(bool value) {
+  set literalValueBoolean(bool value) {
     _literalValueBoolean = value;
   }
 
@@ -13848,7 +13848,7 @@ class FlutterOutlineAttribute implements HasToJson {
 
   /// The integer literal value of the attribute. This field is absent if the
   /// value is not an integer literal.
-  void set literalValueInteger(int value) {
+  set literalValueInteger(int value) {
     _literalValueInteger = value;
   }
 
@@ -13858,7 +13858,7 @@ class FlutterOutlineAttribute implements HasToJson {
 
   /// The string literal value of the attribute. This field is absent if the
   /// value is not a string literal.
-  void set literalValueString(String value) {
+  set literalValueString(String value) {
     _literalValueString = value;
   }
 
@@ -13868,7 +13868,7 @@ class FlutterOutlineAttribute implements HasToJson {
 
   /// If the attribute is a named argument, the location of the name, without
   /// the colon.
-  void set nameLocation(Location value) {
+  set nameLocation(Location value) {
     _nameLocation = value;
   }
 
@@ -13882,7 +13882,7 @@ class FlutterOutlineAttribute implements HasToJson {
   ///
   /// This field is always available, but marked optional for backward
   /// compatibility between new clients with older servers.
-  void set valueLocation(Location value) {
+  set valueLocation(Location value) {
     _valueLocation = value;
   }
 
@@ -14114,7 +14114,7 @@ class FlutterOutlineParams implements HasToJson {
   String get file => _file;
 
   /// The file with which the outline is associated.
-  void set file(String value) {
+  set file(String value) {
     assert(value != null);
     _file = value;
   }
@@ -14123,7 +14123,7 @@ class FlutterOutlineParams implements HasToJson {
   FlutterOutline get outline => _outline;
 
   /// The outline associated with the file.
-  void set outline(FlutterOutline value) {
+  set outline(FlutterOutline value) {
     assert(value != null);
     _outline = value;
   }
@@ -14255,7 +14255,7 @@ class FlutterSetSubscriptionsParams implements RequestParams {
 
   /// A table mapping services to a list of the files being subscribed to the
   /// service.
-  void set subscriptions(Map<FlutterService, List<String>> value) {
+  set subscriptions(Map<FlutterService, List<String>> value) {
     assert(value != null);
     _subscriptions = value;
   }
@@ -14381,7 +14381,7 @@ class FlutterSetWidgetPropertyValueParams implements RequestParams {
   ///
   /// An error of type FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_ID is
   /// generated if the identifier is not valid.
-  void set id(int value) {
+  set id(int value) {
     assert(value != null);
     _id = value;
   }
@@ -14406,7 +14406,7 @@ class FlutterSetWidgetPropertyValueParams implements RequestParams {
   ///
   /// If the expression is not a syntactically valid Dart code, then
   /// FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION is reported.
-  void set value(FlutterWidgetPropertyValue value) {
+  set value(FlutterWidgetPropertyValue value) {
     _value = value;
   }
 
@@ -14494,7 +14494,7 @@ class FlutterSetWidgetPropertyValueResult implements ResponseResult {
   SourceChange get change => _change;
 
   /// The change that should be applied.
-  void set change(SourceChange value) {
+  set change(SourceChange value) {
     assert(value != null);
     _change = value;
   }
@@ -14603,7 +14603,7 @@ class FlutterWidgetProperty implements HasToJson {
   /// The documentation of the property to show to the user. Omitted if the
   /// server does not know the documentation, e.g. because the corresponding
   /// field is not documented.
-  void set documentation(String value) {
+  set documentation(String value) {
     _documentation = value;
   }
 
@@ -14613,7 +14613,7 @@ class FlutterWidgetProperty implements HasToJson {
 
   /// If the value of this property is set, the Dart code of the expression of
   /// this property.
-  void set expression(String value) {
+  set expression(String value) {
     _expression = value;
   }
 
@@ -14625,7 +14625,7 @@ class FlutterWidgetProperty implements HasToJson {
   /// The unique identifier of the property, must be passed back to the server
   /// when updating the property value. Identifiers become invalid on any
   /// source code change.
-  void set id(int value) {
+  set id(int value) {
     assert(value != null);
     _id = value;
   }
@@ -14636,7 +14636,7 @@ class FlutterWidgetProperty implements HasToJson {
 
   /// True if the property is required, e.g. because it corresponds to a
   /// required parameter of a constructor.
-  void set isRequired(bool value) {
+  set isRequired(bool value) {
     assert(value != null);
     _isRequired = value;
   }
@@ -14653,7 +14653,7 @@ class FlutterWidgetProperty implements HasToJson {
   /// concrete value. In this case this field is true. Otherwise, for example
   /// when the expression is a reference to a field, so that its value is
   /// provided from outside, this field is false.
-  void set isSafeToUpdate(bool value) {
+  set isSafeToUpdate(bool value) {
     assert(value != null);
     _isSafeToUpdate = value;
   }
@@ -14662,7 +14662,7 @@ class FlutterWidgetProperty implements HasToJson {
   String get name => _name;
 
   /// The name of the property to display to the user.
-  void set name(String value) {
+  set name(String value) {
     assert(value != null);
     _name = value;
   }
@@ -14675,7 +14675,7 @@ class FlutterWidgetProperty implements HasToJson {
   /// The list of children properties, if any. For example any property of type
   /// EdgeInsets will have four children properties of type double - left / top
   /// / right / bottom.
-  void set children(List<FlutterWidgetProperty> value) {
+  set children(List<FlutterWidgetProperty> value) {
     _children = value;
   }
 
@@ -14687,7 +14687,7 @@ class FlutterWidgetProperty implements HasToJson {
   /// The editor that should be used by the client. This field is omitted if
   /// the server does not know the editor for this property, for example
   /// because it does not have one of the supported types.
-  void set editor(FlutterWidgetPropertyEditor value) {
+  set editor(FlutterWidgetPropertyEditor value) {
     _editor = value;
   }
 
@@ -14697,7 +14697,7 @@ class FlutterWidgetProperty implements HasToJson {
 
   /// If the expression is set, and the server knows the value of the
   /// expression, this field is set.
-  void set value(FlutterWidgetPropertyValue value) {
+  set value(FlutterWidgetPropertyValue value) {
     _value = value;
   }
 
@@ -14868,14 +14868,14 @@ class FlutterWidgetPropertyEditor implements HasToJson {
 
   FlutterWidgetPropertyEditorKind get kind => _kind;
 
-  void set kind(FlutterWidgetPropertyEditorKind value) {
+  set kind(FlutterWidgetPropertyEditorKind value) {
     assert(value != null);
     _kind = value;
   }
 
   List<FlutterWidgetPropertyValueEnumItem> get enumItems => _enumItems;
 
-  void set enumItems(List<FlutterWidgetPropertyValueEnumItem> value) {
+  set enumItems(List<FlutterWidgetPropertyValueEnumItem> value) {
     _enumItems = value;
   }
 
@@ -15071,31 +15071,31 @@ class FlutterWidgetPropertyValue implements HasToJson {
 
   bool get boolValue => _boolValue;
 
-  void set boolValue(bool value) {
+  set boolValue(bool value) {
     _boolValue = value;
   }
 
   double get doubleValue => _doubleValue;
 
-  void set doubleValue(double value) {
+  set doubleValue(double value) {
     _doubleValue = value;
   }
 
   int get intValue => _intValue;
 
-  void set intValue(int value) {
+  set intValue(int value) {
     _intValue = value;
   }
 
   String get stringValue => _stringValue;
 
-  void set stringValue(String value) {
+  set stringValue(String value) {
     _stringValue = value;
   }
 
   FlutterWidgetPropertyValueEnumItem get enumValue => _enumValue;
 
-  void set enumValue(FlutterWidgetPropertyValueEnumItem value) {
+  set enumValue(FlutterWidgetPropertyValueEnumItem value) {
     _enumValue = value;
   }
 
@@ -15103,7 +15103,7 @@ class FlutterWidgetPropertyValue implements HasToJson {
   String get expression => _expression;
 
   /// A free-form expression, which will be used as the value as is.
-  void set expression(String value) {
+  set expression(String value) {
     _expression = value;
   }
 
@@ -15250,7 +15250,7 @@ class FlutterWidgetPropertyValueEnumItem implements HasToJson {
   /// The URI of the library containing the className. When the enum item is
   /// passed back, this will allow the server to import the corresponding
   /// library if necessary.
-  void set libraryUri(String value) {
+  set libraryUri(String value) {
     assert(value != null);
     _libraryUri = value;
   }
@@ -15259,7 +15259,7 @@ class FlutterWidgetPropertyValueEnumItem implements HasToJson {
   String get className => _className;
 
   /// The name of the class or enum.
-  void set className(String value) {
+  set className(String value) {
     assert(value != null);
     _className = value;
   }
@@ -15270,7 +15270,7 @@ class FlutterWidgetPropertyValueEnumItem implements HasToJson {
 
   /// The name of the field in the enumeration, or the static field in the
   /// class.
-  void set name(String value) {
+  set name(String value) {
     assert(value != null);
     _name = value;
   }
@@ -15283,7 +15283,7 @@ class FlutterWidgetPropertyValueEnumItem implements HasToJson {
   /// The documentation to show to the user. Omitted if the server does not
   /// know the documentation, e.g. because the corresponding field is not
   /// documented.
-  void set documentation(String value) {
+  set documentation(String value) {
     _documentation = value;
   }
 
@@ -15468,7 +15468,7 @@ class HoverInformation implements HasToJson {
 
   /// The offset of the range of characters that encompasses the cursor
   /// position and has the same hover information as the cursor position.
-  void set offset(int value) {
+  set offset(int value) {
     assert(value != null);
     _offset = value;
   }
@@ -15479,7 +15479,7 @@ class HoverInformation implements HasToJson {
 
   /// The length of the range of characters that encompasses the cursor
   /// position and has the same hover information as the cursor position.
-  void set length(int value) {
+  set length(int value) {
     assert(value != null);
     _length = value;
   }
@@ -15492,7 +15492,7 @@ class HoverInformation implements HasToJson {
   /// The path to the defining compilation unit of the library in which the
   /// referenced element is declared. This data is omitted if there is no
   /// referenced element, or if the element is declared inside an HTML file.
-  void set containingLibraryPath(String value) {
+  set containingLibraryPath(String value) {
     _containingLibraryPath = value;
   }
 
@@ -15504,7 +15504,7 @@ class HoverInformation implements HasToJson {
   /// The URI of the containing library, examples here include "dart:core",
   /// "package:.." and file uris represented by the path on disk, "/..". The
   /// data is omitted if the element is declared inside an HTML file.
-  void set containingLibraryName(String value) {
+  set containingLibraryName(String value) {
     _containingLibraryName = value;
   }
 
@@ -15516,7 +15516,7 @@ class HoverInformation implements HasToJson {
   /// A human-readable description of the class declaring the element being
   /// referenced. This data is omitted if there is no referenced element, or if
   /// the element is not a class member.
-  void set containingClassDescription(String value) {
+  set containingClassDescription(String value) {
     _containingClassDescription = value;
   }
 
@@ -15532,7 +15532,7 @@ class HoverInformation implements HasToJson {
   /// case of a block comment, the dartdoc is unprocessed markdown. This data
   /// is omitted if there is no referenced element, or if the element has no
   /// dartdoc.
-  void set dartdoc(String value) {
+  set dartdoc(String value) {
     _dartdoc = value;
   }
 
@@ -15542,7 +15542,7 @@ class HoverInformation implements HasToJson {
 
   /// A human-readable description of the element being referenced. This data
   /// is omitted if there is no referenced element.
-  void set elementDescription(String value) {
+  set elementDescription(String value) {
     _elementDescription = value;
   }
 
@@ -15554,7 +15554,7 @@ class HoverInformation implements HasToJson {
   /// A human-readable description of the kind of element being referenced
   /// (such as "class" or "function type alias"). This data is omitted if there
   /// is no referenced element.
-  void set elementKind(String value) {
+  set elementKind(String value) {
     _elementKind = value;
   }
 
@@ -15562,7 +15562,7 @@ class HoverInformation implements HasToJson {
   bool get isDeprecated => _isDeprecated;
 
   /// True if the referenced element is deprecated.
-  void set isDeprecated(bool value) {
+  set isDeprecated(bool value) {
     _isDeprecated = value;
   }
 
@@ -15574,7 +15574,7 @@ class HoverInformation implements HasToJson {
   /// A human-readable description of the parameter corresponding to the
   /// expression being hovered over. This data is omitted if the location is
   /// not in an argument to a function.
-  void set parameter(String value) {
+  set parameter(String value) {
     _parameter = value;
   }
 
@@ -15586,7 +15586,7 @@ class HoverInformation implements HasToJson {
   /// The name of the propagated type of the expression. This data is omitted
   /// if the location does not correspond to an expression or if there is no
   /// propagated type information.
-  void set propagatedType(String value) {
+  set propagatedType(String value) {
     _propagatedType = value;
   }
 
@@ -15596,7 +15596,7 @@ class HoverInformation implements HasToJson {
 
   /// The name of the static type of the expression. This data is omitted if
   /// the location does not correspond to an expression.
-  void set staticType(String value) {
+  set staticType(String value) {
     _staticType = value;
   }
 
@@ -15806,7 +15806,7 @@ class ImplementedClass implements HasToJson {
   int get offset => _offset;
 
   /// The offset of the name of the implemented class.
-  void set offset(int value) {
+  set offset(int value) {
     assert(value != null);
     _offset = value;
   }
@@ -15815,7 +15815,7 @@ class ImplementedClass implements HasToJson {
   int get length => _length;
 
   /// The length of the name of the implemented class.
-  void set length(int value) {
+  set length(int value) {
     assert(value != null);
     _length = value;
   }
@@ -15894,7 +15894,7 @@ class ImplementedMember implements HasToJson {
   int get offset => _offset;
 
   /// The offset of the name of the implemented member.
-  void set offset(int value) {
+  set offset(int value) {
     assert(value != null);
     _offset = value;
   }
@@ -15903,7 +15903,7 @@ class ImplementedMember implements HasToJson {
   int get length => _length;
 
   /// The length of the name of the implemented member.
-  void set length(int value) {
+  set length(int value) {
     assert(value != null);
     _length = value;
   }
@@ -15985,7 +15985,7 @@ class ImportedElementSet implements HasToJson {
   List<String> get strings => _strings;
 
   /// The list of unique strings in this object.
-  void set strings(List<String> value) {
+  set strings(List<String> value) {
     assert(value != null);
     _strings = value;
   }
@@ -15994,7 +15994,7 @@ class ImportedElementSet implements HasToJson {
   List<int> get uris => _uris;
 
   /// The library URI part of the element. It is an index in the strings field.
-  void set uris(List<int> value) {
+  set uris(List<int> value) {
     assert(value != null);
     _uris = value;
   }
@@ -16003,7 +16003,7 @@ class ImportedElementSet implements HasToJson {
   List<int> get names => _names;
 
   /// The name part of a the element. It is an index in the strings field.
-  void set names(List<int> value) {
+  set names(List<int> value) {
     assert(value != null);
     _names = value;
   }
@@ -16100,7 +16100,7 @@ class ImportedElements implements HasToJson {
   String get path => _path;
 
   /// The absolute and normalized path of the file containing the library.
-  void set path(String value) {
+  set path(String value) {
     assert(value != null);
     _path = value;
   }
@@ -16111,7 +16111,7 @@ class ImportedElements implements HasToJson {
 
   /// The prefix that was used when importing the library into the original
   /// source.
-  void set prefix(String value) {
+  set prefix(String value) {
     assert(value != null);
     _prefix = value;
   }
@@ -16120,7 +16120,7 @@ class ImportedElements implements HasToJson {
   List<String> get elements => _elements;
 
   /// The names of the elements imported from the library.
-  void set elements(List<String> value) {
+  set elements(List<String> value) {
     assert(value != null);
     _elements = value;
   }
@@ -16211,7 +16211,7 @@ class IncludedSuggestionRelevanceTag implements HasToJson {
   String get tag => _tag;
 
   /// The opaque value of the tag.
-  void set tag(String value) {
+  set tag(String value) {
     assert(value != null);
     _tag = value;
   }
@@ -16224,7 +16224,7 @@ class IncludedSuggestionRelevanceTag implements HasToJson {
   /// The boost to the relevance of the completion suggestions that match this
   /// tag, which is added to the relevance of the containing
   /// IncludedSuggestionSet.
-  void set relevanceBoost(int value) {
+  set relevanceBoost(int value) {
     assert(value != null);
     _relevanceBoost = value;
   }
@@ -16310,7 +16310,7 @@ class IncludedSuggestionSet implements HasToJson {
 
   /// Clients should use it to access the set of precomputed completions to be
   /// displayed to the user.
-  void set id(int value) {
+  set id(int value) {
     assert(value != null);
     _id = value;
   }
@@ -16321,7 +16321,7 @@ class IncludedSuggestionSet implements HasToJson {
 
   /// The relevance of completion suggestions from this library where a higher
   /// number indicates a higher relevance.
-  void set relevance(int value) {
+  set relevance(int value) {
     assert(value != null);
     _relevance = value;
   }
@@ -16342,7 +16342,7 @@ class IncludedSuggestionSet implements HasToJson {
   /// "file://" URIs, so are usually long, and don't look nice, but actual
   /// import directives will use relative URIs, which are short, so we probably
   /// want to display such relative URIs to the user.
-  void set displayUri(String value) {
+  set displayUri(String value) {
     _displayUri = value;
   }
 
@@ -16433,7 +16433,7 @@ class InlineLocalVariableFeedback extends RefactoringFeedback {
   String get name => _name;
 
   /// The name of the variable being inlined.
-  void set name(String value) {
+  set name(String value) {
     assert(value != null);
     _name = value;
   }
@@ -16442,7 +16442,7 @@ class InlineLocalVariableFeedback extends RefactoringFeedback {
   int get occurrences => _occurrences;
 
   /// The number of times the variable occurs.
-  void set occurrences(int value) {
+  set occurrences(int value) {
     assert(value != null);
     _occurrences = value;
   }
@@ -16547,7 +16547,7 @@ class InlineMethodFeedback extends RefactoringFeedback {
 
   /// The name of the class enclosing the method being inlined. If not a class
   /// member is being inlined, this field will be absent.
-  void set className(String value) {
+  set className(String value) {
     _className = value;
   }
 
@@ -16555,7 +16555,7 @@ class InlineMethodFeedback extends RefactoringFeedback {
   String get methodName => _methodName;
 
   /// The name of the method (or function) being inlined.
-  void set methodName(String value) {
+  set methodName(String value) {
     assert(value != null);
     _methodName = value;
   }
@@ -16566,7 +16566,7 @@ class InlineMethodFeedback extends RefactoringFeedback {
 
   /// True if the declaration of the method is selected. So all references
   /// should be inlined.
-  void set isDeclaration(bool value) {
+  set isDeclaration(bool value) {
     assert(value != null);
     _isDeclaration = value;
   }
@@ -16663,7 +16663,7 @@ class InlineMethodOptions extends RefactoringOptions {
 
   /// True if the method being inlined should be removed. It is an error if
   /// this field is true and inlineAll is false.
-  void set deleteSource(bool value) {
+  set deleteSource(bool value) {
     assert(value != null);
     _deleteSource = value;
   }
@@ -16674,7 +16674,7 @@ class InlineMethodOptions extends RefactoringOptions {
 
   /// True if all invocations of the method should be inlined, or false if only
   /// the invocation site used to create this refactoring should be inlined.
-  void set inlineAll(bool value) {
+  set inlineAll(bool value) {
     assert(value != null);
     _inlineAll = value;
   }
@@ -16760,7 +16760,7 @@ class KytheGetKytheEntriesParams implements RequestParams {
 
   /// The file containing the code for which the Kythe Entry objects are being
   /// requested.
-  void set file(String value) {
+  set file(String value) {
     assert(value != null);
     _file = value;
   }
@@ -16841,7 +16841,7 @@ class KytheGetKytheEntriesResult implements ResponseResult {
   List<KytheEntry> get entries => _entries;
 
   /// The list of KytheEntry objects for the queried file.
-  void set entries(List<KytheEntry> value) {
+  set entries(List<KytheEntry> value) {
     assert(value != null);
     _entries = value;
   }
@@ -16856,7 +16856,7 @@ class KytheGetKytheEntriesResult implements ResponseResult {
   /// give a complete and accurate Kythe graph for the file. This could be due
   /// to a referenced file that does not exist or generated files not being
   /// generated or passed before the call to "getKytheEntries".
-  void set files(List<String> value) {
+  set files(List<String> value) {
     assert(value != null);
     _files = value;
   }
@@ -16960,7 +16960,7 @@ class LibraryPathSet implements HasToJson {
   /// The filepath for which this request's libraries should be active in
   /// completion suggestions. This object associates filesystem regions to
   /// libraries and library directories of interest to the client.
-  void set scope(String value) {
+  set scope(String value) {
     assert(value != null);
     _scope = value;
   }
@@ -16971,7 +16971,7 @@ class LibraryPathSet implements HasToJson {
 
   /// The paths of the libraries of interest to the client for completion
   /// suggestions.
-  void set libraryPaths(List<String> value) {
+  set libraryPaths(List<String> value) {
     assert(value != null);
     _libraryPaths = value;
   }
@@ -17068,7 +17068,7 @@ class MoveFileOptions extends RefactoringOptions {
   String get newFile => _newFile;
 
   /// The new file path to which the given file is being moved.
-  void set newFile(String value) {
+  set newFile(String value) {
     assert(value != null);
     _newFile = value;
   }
@@ -17145,7 +17145,7 @@ class OverriddenMember implements HasToJson {
   Element get element => _element;
 
   /// The element that is being overridden.
-  void set element(Element value) {
+  set element(Element value) {
     assert(value != null);
     _element = value;
   }
@@ -17154,7 +17154,7 @@ class OverriddenMember implements HasToJson {
   String get className => _className;
 
   /// The name of the class in which the member is defined.
-  void set className(String value) {
+  set className(String value) {
     assert(value != null);
     _className = value;
   }
@@ -17241,7 +17241,7 @@ class Override implements HasToJson {
   int get offset => _offset;
 
   /// The offset of the name of the overriding member.
-  void set offset(int value) {
+  set offset(int value) {
     assert(value != null);
     _offset = value;
   }
@@ -17250,7 +17250,7 @@ class Override implements HasToJson {
   int get length => _length;
 
   /// The length of the name of the overriding member.
-  void set length(int value) {
+  set length(int value) {
     assert(value != null);
     _length = value;
   }
@@ -17263,7 +17263,7 @@ class Override implements HasToJson {
   /// The member inherited from a superclass that is overridden by the
   /// overriding member. The field is omitted if there is no superclass member,
   /// in which case there must be at least one interface member.
-  void set superclassMember(OverriddenMember value) {
+  set superclassMember(OverriddenMember value) {
     _superclassMember = value;
   }
 
@@ -17275,7 +17275,7 @@ class Override implements HasToJson {
   /// The members inherited from interfaces that are overridden by the
   /// overriding member. The field is omitted if there are no interface
   /// members, in which case there must be a superclass member.
-  void set interfaceMembers(List<OverriddenMember> value) {
+  set interfaceMembers(List<OverriddenMember> value) {
     _interfaceMembers = value;
   }
 
@@ -17389,7 +17389,7 @@ class PostfixTemplateDescriptor implements HasToJson {
   String get name => _name;
 
   /// The template name, shown in the UI.
-  void set name(String value) {
+  set name(String value) {
     assert(value != null);
     _name = value;
   }
@@ -17398,7 +17398,7 @@ class PostfixTemplateDescriptor implements HasToJson {
   String get key => _key;
 
   /// The unique template key, not shown in the UI.
-  void set key(String value) {
+  set key(String value) {
     assert(value != null);
     _key = value;
   }
@@ -17409,7 +17409,7 @@ class PostfixTemplateDescriptor implements HasToJson {
 
   /// A short example of the transformation performed when the template is
   /// applied.
-  void set example(String value) {
+  set example(String value) {
     assert(value != null);
     _example = value;
   }
@@ -17497,7 +17497,7 @@ class PubStatus implements HasToJson {
 
   /// True if the server is currently running pub to produce a list of package
   /// directories.
-  void set isListingPackageDirs(bool value) {
+  set isListingPackageDirs(bool value) {
     assert(value != null);
     _isListingPackageDirs = value;
   }
@@ -17653,7 +17653,7 @@ class RenameFeedback extends RefactoringFeedback {
 
   /// The offset to the beginning of the name selected to be renamed, or -1 if
   /// the name does not exist yet.
-  void set offset(int value) {
+  set offset(int value) {
     assert(value != null);
     _offset = value;
   }
@@ -17662,7 +17662,7 @@ class RenameFeedback extends RefactoringFeedback {
   int get length => _length;
 
   /// The length of the name selected to be renamed.
-  void set length(int value) {
+  set length(int value) {
     assert(value != null);
     _length = value;
   }
@@ -17673,7 +17673,7 @@ class RenameFeedback extends RefactoringFeedback {
 
   /// The human-readable description of the kind of element being renamed (such
   /// as "class" or "function type alias").
-  void set elementKindName(String value) {
+  set elementKindName(String value) {
     assert(value != null);
     _elementKindName = value;
   }
@@ -17682,7 +17682,7 @@ class RenameFeedback extends RefactoringFeedback {
   String get oldName => _oldName;
 
   /// The old name of the element before the refactoring.
-  void set oldName(String value) {
+  set oldName(String value) {
     assert(value != null);
     _oldName = value;
   }
@@ -17782,7 +17782,7 @@ class RenameOptions extends RefactoringOptions {
   String get newName => _newName;
 
   /// The name that the element should have after the refactoring.
-  void set newName(String value) {
+  set newName(String value) {
     assert(value != null);
     _newName = value;
   }
@@ -17862,7 +17862,7 @@ class RequestError implements HasToJson {
   RequestErrorCode get code => _code;
 
   /// A code that uniquely identifies the error that occurred.
-  void set code(RequestErrorCode value) {
+  set code(RequestErrorCode value) {
     assert(value != null);
     _code = value;
   }
@@ -17871,7 +17871,7 @@ class RequestError implements HasToJson {
   String get message => _message;
 
   /// A short description of the error.
-  void set message(String value) {
+  set message(String value) {
     assert(value != null);
     _message = value;
   }
@@ -17882,7 +17882,7 @@ class RequestError implements HasToJson {
 
   /// The stack trace associated with processing the request, used for
   /// debugging the server.
-  void set stackTrace(String value) {
+  set stackTrace(String value) {
     _stackTrace = value;
   }
 
@@ -18316,7 +18316,7 @@ class RuntimeCompletionExpression implements HasToJson {
   int get offset => _offset;
 
   /// The offset of the expression in the code for completion.
-  void set offset(int value) {
+  set offset(int value) {
     assert(value != null);
     _offset = value;
   }
@@ -18325,7 +18325,7 @@ class RuntimeCompletionExpression implements HasToJson {
   int get length => _length;
 
   /// The length of the expression in the code for completion.
-  void set length(int value) {
+  set length(int value) {
     assert(value != null);
     _length = value;
   }
@@ -18338,7 +18338,7 @@ class RuntimeCompletionExpression implements HasToJson {
   /// When the expression is sent from the server to the client, the type is
   /// omitted. The client should fill the type when it sends the request to the
   /// server again.
-  void set type(RuntimeCompletionExpressionType value) {
+  set type(RuntimeCompletionExpressionType value) {
     _type = value;
   }
 
@@ -18446,7 +18446,7 @@ class RuntimeCompletionExpressionType implements HasToJson {
 
   /// The path of the library that has this type. Omitted if the type is not
   /// declared in any library, e.g. "dynamic", or "void".
-  void set libraryPath(String value) {
+  set libraryPath(String value) {
     _libraryPath = value;
   }
 
@@ -18454,7 +18454,7 @@ class RuntimeCompletionExpressionType implements HasToJson {
   RuntimeCompletionExpressionTypeKind get kind => _kind;
 
   /// The kind of the type.
-  void set kind(RuntimeCompletionExpressionTypeKind value) {
+  set kind(RuntimeCompletionExpressionTypeKind value) {
     assert(value != null);
     _kind = value;
   }
@@ -18465,7 +18465,7 @@ class RuntimeCompletionExpressionType implements HasToJson {
 
   /// The name of the type. Omitted if the type does not have a name, e.g. an
   /// inline function type.
-  void set name(String value) {
+  set name(String value) {
     _name = value;
   }
 
@@ -18475,7 +18475,7 @@ class RuntimeCompletionExpressionType implements HasToJson {
 
   /// The type arguments of the type. Omitted if the type does not have type
   /// parameters.
-  void set typeArguments(List<RuntimeCompletionExpressionType> value) {
+  set typeArguments(List<RuntimeCompletionExpressionType> value) {
     _typeArguments = value;
   }
 
@@ -18485,7 +18485,7 @@ class RuntimeCompletionExpressionType implements HasToJson {
 
   /// If the type is a function type, the return type of the function. Omitted
   /// if the type is not a function type.
-  void set returnType(RuntimeCompletionExpressionType value) {
+  set returnType(RuntimeCompletionExpressionType value) {
     _returnType = value;
   }
 
@@ -18497,7 +18497,7 @@ class RuntimeCompletionExpressionType implements HasToJson {
   /// If the type is a function type, the types of the function parameters of
   /// all kinds - required, optional positional, and optional named. Omitted if
   /// the type is not a function type.
-  void set parameterTypes(List<RuntimeCompletionExpressionType> value) {
+  set parameterTypes(List<RuntimeCompletionExpressionType> value) {
     _parameterTypes = value;
   }
 
@@ -18511,7 +18511,7 @@ class RuntimeCompletionExpressionType implements HasToJson {
   /// all kinds - required, optional positional, and optional named. The names
   /// of positional parameters are empty strings. Omitted if the type is not a
   /// function type.
-  void set parameterNames(List<String> value) {
+  set parameterNames(List<String> value) {
     _parameterNames = value;
   }
 
@@ -18745,7 +18745,7 @@ class RuntimeCompletionVariable implements HasToJson {
   /// The name of the variable. The name "this" has a special meaning and is
   /// used as an implicit target for runtime completion, and in explicit "this"
   /// references.
-  void set name(String value) {
+  set name(String value) {
     assert(value != null);
     _name = value;
   }
@@ -18754,7 +18754,7 @@ class RuntimeCompletionVariable implements HasToJson {
   RuntimeCompletionExpressionType get type => _type;
 
   /// The type of the variable.
-  void set type(RuntimeCompletionExpressionType value) {
+  set type(RuntimeCompletionExpressionType value) {
     assert(value != null);
     _type = value;
   }
@@ -18839,7 +18839,7 @@ class SearchFindElementReferencesParams implements RequestParams {
 
   /// The file containing the declaration of or reference to the element used
   /// to define the search.
-  void set file(String value) {
+  set file(String value) {
     assert(value != null);
     _file = value;
   }
@@ -18850,7 +18850,7 @@ class SearchFindElementReferencesParams implements RequestParams {
 
   /// The offset within the file of the declaration of or reference to the
   /// element.
-  void set offset(int value) {
+  set offset(int value) {
     assert(value != null);
     _offset = value;
   }
@@ -18859,7 +18859,7 @@ class SearchFindElementReferencesParams implements RequestParams {
   bool get includePotential => _includePotential;
 
   /// True if potential matches are to be included in the results.
-  void set includePotential(bool value) {
+  set includePotential(bool value) {
     assert(value != null);
     _includePotential = value;
   }
@@ -18968,7 +18968,7 @@ class SearchFindElementReferencesResult implements ResponseResult {
   ///
   /// If no element was found at the given location, this field will be absent,
   /// and no results will be reported via the search.results notification.
-  void set id(String value) {
+  set id(String value) {
     _id = value;
   }
 
@@ -18982,7 +18982,7 @@ class SearchFindElementReferencesResult implements ResponseResult {
   /// references will be returned in the search results.
   ///
   /// If no element was found at the given location, this field will be absent.
-  void set element(Element value) {
+  set element(Element value) {
     _element = value;
   }
 
@@ -19071,7 +19071,7 @@ class SearchFindMemberDeclarationsParams implements RequestParams {
   String get name => _name;
 
   /// The name of the declarations to be found.
-  void set name(String value) {
+  set name(String value) {
     assert(value != null);
     _name = value;
   }
@@ -19149,7 +19149,7 @@ class SearchFindMemberDeclarationsResult implements ResponseResult {
   String get id => _id;
 
   /// The identifier used to associate results with this search request.
-  void set id(String value) {
+  set id(String value) {
     assert(value != null);
     _id = value;
   }
@@ -19229,7 +19229,7 @@ class SearchFindMemberReferencesParams implements RequestParams {
   String get name => _name;
 
   /// The name of the references to be found.
-  void set name(String value) {
+  set name(String value) {
     assert(value != null);
     _name = value;
   }
@@ -19307,7 +19307,7 @@ class SearchFindMemberReferencesResult implements ResponseResult {
   String get id => _id;
 
   /// The identifier used to associate results with this search request.
-  void set id(String value) {
+  set id(String value) {
     assert(value != null);
     _id = value;
   }
@@ -19389,7 +19389,7 @@ class SearchFindTopLevelDeclarationsParams implements RequestParams {
 
   /// The regular expression used to match the names of the declarations to be
   /// found.
-  void set pattern(String value) {
+  set pattern(String value) {
     assert(value != null);
     _pattern = value;
   }
@@ -19468,7 +19468,7 @@ class SearchFindTopLevelDeclarationsResult implements ResponseResult {
   String get id => _id;
 
   /// The identifier used to associate results with this search request.
-  void set id(String value) {
+  set id(String value) {
     assert(value != null);
     _id = value;
   }
@@ -19556,7 +19556,7 @@ class SearchGetElementDeclarationsParams implements RequestParams {
 
   /// If this field is provided, return only declarations in this file. If this
   /// field is missing, return declarations in all files.
-  void set file(String value) {
+  set file(String value) {
     _file = value;
   }
 
@@ -19566,7 +19566,7 @@ class SearchGetElementDeclarationsParams implements RequestParams {
 
   /// The regular expression used to match the names of declarations. If this
   /// field is missing, return all declarations.
-  void set pattern(String value) {
+  set pattern(String value) {
     _pattern = value;
   }
 
@@ -19576,7 +19576,7 @@ class SearchGetElementDeclarationsParams implements RequestParams {
 
   /// The maximum number of declarations to return. If this field is missing,
   /// return all matching declarations.
-  void set maxResults(int value) {
+  set maxResults(int value) {
     _maxResults = value;
   }
 
@@ -19680,7 +19680,7 @@ class SearchGetElementDeclarationsResult implements ResponseResult {
   List<ElementDeclaration> get declarations => _declarations;
 
   /// The list of declarations.
-  void set declarations(List<ElementDeclaration> value) {
+  set declarations(List<ElementDeclaration> value) {
     assert(value != null);
     _declarations = value;
   }
@@ -19689,7 +19689,7 @@ class SearchGetElementDeclarationsResult implements ResponseResult {
   List<String> get files => _files;
 
   /// The list of the paths of files with declarations.
-  void set files(List<String> value) {
+  set files(List<String> value) {
     assert(value != null);
     _files = value;
   }
@@ -19795,7 +19795,7 @@ class SearchGetTypeHierarchyParams implements RequestParams {
 
   /// The file containing the declaration or reference to the type for which a
   /// hierarchy is being requested.
-  void set file(String value) {
+  set file(String value) {
     assert(value != null);
     _file = value;
   }
@@ -19804,7 +19804,7 @@ class SearchGetTypeHierarchyParams implements RequestParams {
   int get offset => _offset;
 
   /// The offset of the name of the type within the file.
-  void set offset(int value) {
+  set offset(int value) {
     assert(value != null);
     _offset = value;
   }
@@ -19815,7 +19815,7 @@ class SearchGetTypeHierarchyParams implements RequestParams {
 
   /// True if the client is only requesting superclasses and interfaces
   /// hierarchy.
-  void set superOnly(bool value) {
+  set superOnly(bool value) {
     _superOnly = value;
   }
 
@@ -19929,7 +19929,7 @@ class SearchGetTypeHierarchyResult implements ResponseResult {
   /// This field will be absent if the code at the given file and offset does
   /// not represent a type, or if the file has not been sufficiently analyzed
   /// to allow a type hierarchy to be produced.
-  void set hierarchyItems(List<TypeHierarchyItem> value) {
+  set hierarchyItems(List<TypeHierarchyItem> value) {
     _hierarchyItems = value;
   }
 
@@ -20024,7 +20024,7 @@ class SearchResult implements HasToJson {
   Location get location => _location;
 
   /// The location of the code that matched the search criteria.
-  void set location(Location value) {
+  set location(Location value) {
     assert(value != null);
     _location = value;
   }
@@ -20035,7 +20035,7 @@ class SearchResult implements HasToJson {
 
   /// The kind of element that was found or the kind of reference that was
   /// found.
-  void set kind(SearchResultKind value) {
+  set kind(SearchResultKind value) {
     assert(value != null);
     _kind = value;
   }
@@ -20050,7 +20050,7 @@ class SearchResult implements HasToJson {
   /// match. For example, if all references to a method m defined in some class
   /// were requested, and a reference to a method m from an unknown class were
   /// found, it would be marked as being a potential match.
-  void set isPotential(bool value) {
+  set isPotential(bool value) {
     assert(value != null);
     _isPotential = value;
   }
@@ -20061,7 +20061,7 @@ class SearchResult implements HasToJson {
 
   /// The elements that contain the result, starting with the most immediately
   /// enclosing ancestor and ending with the library.
-  void set path(List<Element> value) {
+  set path(List<Element> value) {
     assert(value != null);
     _path = value;
   }
@@ -20262,7 +20262,7 @@ class SearchResultsParams implements HasToJson {
   String get id => _id;
 
   /// The id associated with the search.
-  void set id(String value) {
+  set id(String value) {
     assert(value != null);
     _id = value;
   }
@@ -20271,7 +20271,7 @@ class SearchResultsParams implements HasToJson {
   List<SearchResult> get results => _results;
 
   /// The search results being reported.
-  void set results(List<SearchResult> value) {
+  set results(List<SearchResult> value) {
     assert(value != null);
     _results = value;
   }
@@ -20282,7 +20282,7 @@ class SearchResultsParams implements HasToJson {
 
   /// True if this is that last set of results that will be returned for the
   /// indicated search.
-  void set isLast(bool value) {
+  set isLast(bool value) {
     assert(value != null);
     _isLast = value;
   }
@@ -20387,7 +20387,7 @@ class ServerConnectedParams implements HasToJson {
   String get version => _version;
 
   /// The version number of the analysis server.
-  void set version(String value) {
+  set version(String value) {
     assert(value != null);
     _version = value;
   }
@@ -20396,7 +20396,7 @@ class ServerConnectedParams implements HasToJson {
   int get pid => _pid;
 
   /// The process id of the analysis server process.
-  void set pid(int value) {
+  set pid(int value) {
     assert(value != null);
     _pid = value;
   }
@@ -20490,7 +20490,7 @@ class ServerErrorParams implements HasToJson {
 
   /// True if the error is a fatal error, meaning that the server will shutdown
   /// automatically after sending this notification.
-  void set isFatal(bool value) {
+  set isFatal(bool value) {
     assert(value != null);
     _isFatal = value;
   }
@@ -20499,7 +20499,7 @@ class ServerErrorParams implements HasToJson {
   String get message => _message;
 
   /// The error message indicating what kind of error was encountered.
-  void set message(String value) {
+  set message(String value) {
     assert(value != null);
     _message = value;
   }
@@ -20510,7 +20510,7 @@ class ServerErrorParams implements HasToJson {
 
   /// The stack trace associated with the generation of the error, used for
   /// debugging the server.
-  void set stackTrace(String value) {
+  set stackTrace(String value) {
     assert(value != null);
     _stackTrace = value;
   }
@@ -20635,7 +20635,7 @@ class ServerGetVersionResult implements ResponseResult {
   String get version => _version;
 
   /// The version number of the analysis server.
-  void set version(String value) {
+  set version(String value) {
     assert(value != null);
     _version = value;
   }
@@ -20723,7 +20723,7 @@ class ServerLogEntry implements HasToJson {
 
   /// The time (milliseconds since epoch) at which the server created this log
   /// entry.
-  void set time(int value) {
+  set time(int value) {
     assert(value != null);
     _time = value;
   }
@@ -20734,7 +20734,7 @@ class ServerLogEntry implements HasToJson {
 
   /// The kind of the entry, used to determine how to interpret the "data"
   /// field.
-  void set kind(ServerLogEntryKind value) {
+  set kind(ServerLogEntryKind value) {
     assert(value != null);
     _kind = value;
   }
@@ -20745,7 +20745,7 @@ class ServerLogEntry implements HasToJson {
 
   /// The payload of the entry, the actual format is determined by the "kind"
   /// field.
-  void set data(String value) {
+  set data(String value) {
     assert(value != null);
     _data = value;
   }
@@ -20916,7 +20916,7 @@ class ServerLogParams implements HasToJson {
 
   ServerLogEntry get entry => _entry;
 
-  void set entry(ServerLogEntry value) {
+  set entry(ServerLogEntry value) {
     assert(value != null);
     _entry = value;
   }
@@ -21042,7 +21042,7 @@ class ServerSetSubscriptionsParams implements RequestParams {
   List<ServerService> get subscriptions => _subscriptions;
 
   /// A list of the services being subscribed to.
-  void set subscriptions(List<ServerService> value) {
+  set subscriptions(List<ServerService> value) {
     assert(value != null);
     _subscriptions = value;
   }
@@ -21209,7 +21209,7 @@ class ServerStatusParams implements HasToJson {
 
   /// The current status of analysis, including whether analysis is being
   /// performed and if so what is being analyzed.
-  void set analysis(AnalysisStatus value) {
+  set analysis(AnalysisStatus value) {
     _analysis = value;
   }
 
@@ -21225,7 +21225,7 @@ class ServerStatusParams implements HasToJson {
   ///
   /// Note: this status type is deprecated, and is no longer sent by the
   /// server.
-  void set pub(PubStatus value) {
+  set pub(PubStatus value) {
     _pub = value;
   }
 
@@ -21319,7 +21319,7 @@ class TokenDetails implements HasToJson {
   String get lexeme => _lexeme;
 
   /// The token's lexeme.
-  void set lexeme(String value) {
+  set lexeme(String value) {
     assert(value != null);
     _lexeme = value;
   }
@@ -21330,7 +21330,7 @@ class TokenDetails implements HasToJson {
 
   /// A unique id for the type of the identifier. Omitted if the token is not
   /// an identifier in a reference position.
-  void set type(String value) {
+  set type(String value) {
     _type = value;
   }
 
@@ -21344,7 +21344,7 @@ class TokenDetails implements HasToJson {
   /// position. (If no other purpose is found for this field then it should be
   /// renamed and converted to a boolean value.) Omitted if the token is not an
   /// identifier.
-  void set validElementKinds(List<String> value) {
+  set validElementKinds(List<String> value) {
     _validElementKinds = value;
   }
 
@@ -21354,7 +21354,7 @@ class TokenDetails implements HasToJson {
 
   /// The offset of the first character of the token in the file which it
   /// originated from.
-  void set offset(int value) {
+  set offset(int value) {
     assert(value != null);
     _offset = value;
   }
@@ -21475,7 +21475,7 @@ class TypeHierarchyItem implements HasToJson {
   Element get classElement => _classElement;
 
   /// The class element represented by this item.
-  void set classElement(Element value) {
+  set classElement(Element value) {
     assert(value != null);
     _classElement = value;
   }
@@ -21490,7 +21490,7 @@ class TypeHierarchyItem implements HasToJson {
   /// display name is the same as the name of the element. The display name is
   /// different if there is additional type information to be displayed, such
   /// as type arguments.
-  void set displayName(String value) {
+  set displayName(String value) {
     _displayName = value;
   }
 
@@ -21504,7 +21504,7 @@ class TypeHierarchyItem implements HasToJson {
   /// hierarchy was requested. This field will be omitted if the hierarchy was
   /// not requested for a member or if the class does not have a corresponding
   /// member.
-  void set memberElement(Element value) {
+  set memberElement(Element value) {
     _memberElement = value;
   }
 
@@ -21514,7 +21514,7 @@ class TypeHierarchyItem implements HasToJson {
 
   /// The index of the item representing the superclass of this class. This
   /// field will be omitted if this item represents the class Object.
-  void set superclass(int value) {
+  set superclass(int value) {
     _superclass = value;
   }
 
@@ -21524,7 +21524,7 @@ class TypeHierarchyItem implements HasToJson {
 
   /// The indexes of the items representing the interfaces implemented by this
   /// class. The list will be empty if there are no implemented interfaces.
-  void set interfaces(List<int> value) {
+  set interfaces(List<int> value) {
     assert(value != null);
     _interfaces = value;
   }
@@ -21537,7 +21537,7 @@ class TypeHierarchyItem implements HasToJson {
   /// The indexes of the items representing the mixins referenced by this
   /// class. The list will be empty if there are no classes mixed in to this
   /// class.
-  void set mixins(List<int> value) {
+  set mixins(List<int> value) {
     assert(value != null);
     _mixins = value;
   }
@@ -21550,7 +21550,7 @@ class TypeHierarchyItem implements HasToJson {
   /// The indexes of the items representing the subtypes of this class. The
   /// list will be empty if there are no subtypes or if this item represents a
   /// supertype of the pivot type.
-  void set subclasses(List<int> value) {
+  set subclasses(List<int> value) {
     assert(value != null);
     _subclasses = value;
   }
