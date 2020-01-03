@@ -5106,7 +5106,12 @@ Definition* StringInterpolateInstr::Canonicalize(FlowGraph* flow_graph) {
   }
 
   CreateArrayInstr* create_array = value()->definition()->AsCreateArray();
-  ASSERT(create_array != NULL);
+  if (create_array == nullptr) {
+    // Do not try to fold interpolate if array is an OSR argument.
+    ASSERT(flow_graph->IsCompiledForOsr());
+    ASSERT(value()->definition()->IsPhi());
+    return this;
+  }
   // Check if the string interpolation has only constant inputs.
   Value* num_elements = create_array->num_elements();
   if (!num_elements->BindsToConstant() ||
