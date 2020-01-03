@@ -156,6 +156,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
         case TypeUseKind.NATIVE_INSTANTIATION:
           break;
         case TypeUseKind.IS_CHECK:
+        case TypeUseKind.CATCH_TYPE:
           onIsCheck(type, transformed);
           break;
         case TypeUseKind.AS_CAST:
@@ -174,14 +175,12 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
           }
           break;
         case TypeUseKind.PARAMETER_CHECK:
+        case TypeUseKind.TYPE_VARIABLE_BOUND_CHECK:
           if (_annotationsData
               .getParameterCheckPolicy(worldImpact.member)
               .isEmitted) {
             onIsCheck(type, transformed);
           }
-          break;
-        case TypeUseKind.CATCH_TYPE:
-          onIsCheck(type, transformed);
           break;
         case TypeUseKind.TYPE_LITERAL:
           _customElementsResolutionAnalysis.registerTypeLiteral(type);

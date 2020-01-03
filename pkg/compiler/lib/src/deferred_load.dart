@@ -348,6 +348,7 @@ abstract class DeferredLoadTask extends CompilerTask {
               }
               break;
             case TypeUseKind.PARAMETER_CHECK:
+            case TypeUseKind.TYPE_VARIABLE_BOUND_CHECK:
               if (closedWorld.annotationsData
                   .getParameterCheckPolicy(element)
                   .isEmitted) {

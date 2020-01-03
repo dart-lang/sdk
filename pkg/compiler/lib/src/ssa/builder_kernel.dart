@@ -51,7 +51,7 @@ import '../universe/member_usage.dart' show MemberAccess;
 import '../universe/selector.dart';
 import '../universe/side_effects.dart' show SideEffects;
 import '../universe/target_checks.dart' show TargetChecks;
-import '../universe/use.dart' show ConstantUse, StaticUse;
+import '../universe/use.dart' show ConstantUse, StaticUse, TypeUse;
 import '../world.dart';
 import 'jump_handler.dart';
 import 'kernel_string_builder.dart';
@@ -1499,6 +1499,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
         if (bound is! DynamicType &&
             bound is! VoidType &&
             bound != _commonElements.objectType) {
+          registry.registerTypeUse(TypeUse.typeVariableBoundCheck(bound));
           if (options.experimentNewRti) {
             _checkTypeBound(newParameter, bound, local.name);
           } else {
