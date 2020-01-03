@@ -1625,6 +1625,12 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
    * @param type the static type of the node
    */
   void _recordStaticType(Expression expression, DartType type) {
+    var elementTypeProvider = this._elementTypeProvider;
+    if (elementTypeProvider is MigrationResolutionHooks) {
+      type = elementTypeProvider.modifyExpressionType(
+          expression, type ?? _dynamicType);
+    }
+
     if (type == null) {
       expression.staticType = _dynamicType;
     } else {
@@ -1676,25 +1682,5 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     } else {
       return type;
     }
-  }
-}
-
-/// Override of [FlowAnalysisHelper] that invokes methods of
-/// [MigrationResolutionHooks] when appropriate.
-class StaticTypeAnalyzerForMigration extends StaticTypeAnalyzer {
-  StaticTypeAnalyzerForMigration(
-      ResolverVisitor resolver,
-      FeatureSet featureSet,
-      FlowAnalysisHelper flowAnalysis,
-      MigrationResolutionHooks migrationResolutionHooks)
-      : super(resolver, featureSet, flowAnalysis,
-            elementTypeProvider: migrationResolutionHooks);
-
-  @override
-  void _recordStaticType(Expression expression, DartType type) {
-    super._recordStaticType(
-        expression,
-        (_elementTypeProvider as MigrationResolutionHooks)
-            .modifyExpressionType(expression, type ?? _dynamicType));
   }
 }

@@ -319,7 +319,12 @@ class ResolverVisitor extends ScopedVisitor {
         reportConstEvaluationErrors: reportConstEvaluationErrors,
         elementTypeProvider: _elementTypeProvider);
     this.inferenceContext = InferenceContext._(this);
-    this.typeAnalyzer = _makeStaticTypeAnalyzer(featureSet, _flowAnalysis);
+    this.typeAnalyzer = StaticTypeAnalyzer(
+      this,
+      featureSet,
+      _flowAnalysis,
+      elementTypeProvider: _elementTypeProvider,
+    );
   }
 
   /// Return the element representing the function containing the current node,
@@ -1772,7 +1777,13 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   @override
-  void visitTypeName(TypeName node) {}
+  void visitTypeName(TypeName node) {
+    var elementTypeProvider = _elementTypeProvider;
+    if (elementTypeProvider is MigrationResolutionHooks) {
+      node.type =
+          elementTypeProvider.getMigratedTypeAnnotationType(source, node);
+    }
+  }
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
@@ -2045,10 +2056,6 @@ class ResolverVisitor extends ScopedVisitor {
         node.argumentList, inferred ?? node.staticInvokeType);
   }
 
-  StaticTypeAnalyzer _makeStaticTypeAnalyzer(
-          FeatureSet featureSet, FlowAnalysisHelper flowAnalysis) =>
-      StaticTypeAnalyzer(this, featureSet, flowAnalysis);
-
   /// Continues resolution of the [FunctionExpressionInvocation] node after
   /// resolving its function.
   void _visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
@@ -2185,19 +2192,6 @@ class ResolverVisitorForMigration extends ResolverVisitor {
             FlowAnalysisHelperForMigration(
                 typeSystem, migrationResolutionHooks),
             migrationResolutionHooks);
-
-  @override
-  void visitTypeName(TypeName node) {
-    // TODO(paulberry): Need to handle generic function types too
-    node.type = (_elementTypeProvider as MigrationResolutionHooks)
-        .getMigratedTypeAnnotationType(source, node);
-  }
-
-  @override
-  StaticTypeAnalyzer _makeStaticTypeAnalyzer(
-          FeatureSet featureSet, FlowAnalysisHelper flowAnalysis) =>
-      StaticTypeAnalyzerForMigration(
-          this, featureSet, flowAnalysis, _elementTypeProvider);
 }
 
 /// The abstract class `ScopedVisitor` maintains name and label scopes as an AST
