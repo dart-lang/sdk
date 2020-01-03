@@ -618,10 +618,7 @@ class _ErrorHelper {
       );
       return true;
     } else if (element != null) {
-      AstNode parent = typeName.parent;
-      while (parent is TypeName) {
-        parent = parent.parent;
-      }
+      var parent = node.parent;
       if (parent is ExtendsClause ||
           parent is ImplementsClause ||
           parent is WithClause ||
