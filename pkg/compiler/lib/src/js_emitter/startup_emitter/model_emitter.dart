@@ -69,6 +69,7 @@ import '../constant_ordering.dart' show ConstantOrdering;
 import '../headers.dart';
 import '../js_emitter.dart' show buildTearOffCode, NativeGenerator;
 import '../model.dart';
+import '../native_emitter.dart';
 
 part 'fragment_emitter.dart';
 
@@ -81,6 +82,7 @@ class ModelEmitter {
   final CompilerTask _task;
   final Emitter _emitter;
   ConstantEmitter _constantEmitter;
+  final NativeEmitter _nativeEmitter;
   final bool _shouldGenerateSourceMap;
   final JClosedWorld _closedWorld;
   final ConstantOrdering _constantOrdering;
@@ -109,6 +111,7 @@ class ModelEmitter {
       this._closedWorld,
       this._task,
       this._emitter,
+      this._nativeEmitter,
       this._sourceInformationStrategy,
       RuntimeTypesEncoder rtiEncoder,
       RecipeEncoder rtiRecipeEncoder,
@@ -189,6 +192,7 @@ class ModelEmitter {
         _emitter,
         _constantEmitter,
         this,
+        _nativeEmitter,
         _closedWorld,
         codegenWorld);
 

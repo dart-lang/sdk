@@ -94,6 +94,7 @@ class CodeEmitterTask extends CompilerTask {
           closedWorld,
           codegen.rtiEncoder,
           codegen.rtiRecipeEncoder,
+          _nativeEmitter,
           _backendStrategy.sourceInformationStrategy,
           this,
           _generateSourceMap);

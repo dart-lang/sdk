@@ -594,6 +594,7 @@ class FragmentEmitter {
   final Emitter _emitter;
   final ConstantEmitter _constantEmitter;
   final ModelEmitter _modelEmitter;
+  final NativeEmitter _nativeEmitter;
   final JClosedWorld _closedWorld;
   final CodegenWorld _codegenWorld;
   RecipeEncoder _recipeEncoder;
@@ -622,6 +623,7 @@ class FragmentEmitter {
       this._emitter,
       this._constantEmitter,
       this._modelEmitter,
+      this._nativeEmitter,
       this._closedWorld,
       this._codegenWorld) {
     if (_options.experimentNewRti) {
@@ -1977,6 +1979,9 @@ class FragmentEmitter {
     ClassEntity jsObjectClass = _commonElements.jsJavaScriptObjectClass;
     InterfaceType jsObjectType = _elementEnvironment.getThisType(jsObjectClass);
 
+    Map<Class, List<Class>> nativeRedirections =
+        _nativeEmitter.typeRedirections;
+
     Ruleset ruleset = Ruleset.empty();
     Map<ClassEntity, int> erasedTypes = {};
     Iterable<Class> classes =
@@ -1990,10 +1995,9 @@ class FragmentEmitter {
         erasedTypes[element] = targetType.typeArguments.length;
       }
 
-      if (cls.classChecksNewRti == null) return;
       bool isInterop = _nativeData.isJsInteropClass(element);
 
-      Iterable<TypeCheck> checks = cls.classChecksNewRti.checks;
+      Iterable<TypeCheck> checks = cls.classChecksNewRti?.checks ?? [];
       Iterable<InterfaceType> supertypes = isInterop
           ? checks
               .map((check) => _elementEnvironment.getJsInteropType(check.cls))
@@ -2001,6 +2005,10 @@ class FragmentEmitter {
               .map((check) => _dartTypes.asInstanceOf(targetType, check.cls));
 
       Map<TypeVariableType, DartType> typeVariables = {};
+      Set<TypeVariableType> namedTypeVariables = cls.namedTypeVariablesNewRti;
+      nativeRedirections[cls]?.forEach((Class redirectee) {
+        namedTypeVariables.addAll(redirectee.namedTypeVariablesNewRti);
+      });
       for (TypeVariableType typeVariable in cls.namedTypeVariablesNewRti) {
         TypeVariableEntity element = typeVariable.element;
         InterfaceType supertype = isInterop
@@ -2025,6 +2033,12 @@ class FragmentEmitter {
         ruleset.addRedirection(subtype, jsObjectClass);
       });
     }
+
+    nativeRedirections.forEach((Class target, List<Class> redirectees) {
+      for (Class redirectee in redirectees) {
+        ruleset.addRedirection(redirectee.element, target.element);
+      }
+    });
 
     if (ruleset.isNotEmpty) {
       FunctionEntity addRules = _closedWorld.commonElements.rtiAddRulesMethod;
