@@ -2353,6 +2353,11 @@ class PhiInstr : public Definition {
 
   virtual void set_representation(Representation r) { representation_ = r; }
 
+  // In AOT mode Phi instructions do not check types of inputs when unboxing.
+  virtual SpeculativeMode speculative_mode() const {
+    return FLAG_precompiled_mode ? kNotSpeculative : kGuardInputs;
+  }
+
   virtual intptr_t Hashcode() const {
     UNREACHABLE();
     return 0;
