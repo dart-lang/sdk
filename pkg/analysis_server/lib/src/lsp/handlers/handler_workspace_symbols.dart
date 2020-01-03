@@ -97,8 +97,13 @@ class WorkspaceSymbolHandler
       range,
     );
 
+    final hasParameters =
+        declaration.parameters != null && declaration.parameters.isNotEmpty;
+    final nameSuffix =
+        hasParameters ? (declaration.parameters == '()' ? '()' : '(…)') : '';
+
     return SymbolInformation(
-        declaration.name,
+        '${declaration.name}$nameSuffix',
         kind,
         null, // We don't have easy access to isDeprecated here.
         location,
