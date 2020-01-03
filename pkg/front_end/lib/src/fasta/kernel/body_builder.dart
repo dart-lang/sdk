@@ -90,7 +90,7 @@ import '../messages.dart' as messages show getLocationFromUri;
 import '../modifier.dart'
     show Modifier, constMask, covariantMask, finalMask, lateMask;
 
-import '../names.dart' show callName, emptyName, minusName, plusName;
+import '../names.dart' show emptyName, minusName, plusName;
 
 import '../problems.dart'
     show internalProblem, unexpected, unhandled, unsupported;
@@ -1511,9 +1511,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     } else if (receiver is ParserRecovery) {
       return new ParserErrorGenerator(this, null, fasta.messageSyntheticToken);
     } else {
-      return buildMethodInvocation(
-          toValue(receiver), callName, arguments, charOffset,
-          isImplicitCall: true);
+      return forest.createExpressionInvocation(
+          charOffset, toValue(receiver), arguments);
     }
   }
 
@@ -5598,9 +5597,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       Expression receiver, Name name, Arguments arguments, int offset,
       {bool isConstantExpression: false,
       bool isNullAware: false,
-      bool isImplicitCall: false,
-      bool isSuper: false,
-      Member interfaceTarget}) {
+      bool isSuper: false}) {
     if (constantContext != ConstantContext.none && !isConstantExpression) {
       return buildProblem(
           fasta.templateNotConstantExpression
@@ -5629,11 +5626,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       }
 
       receiver = new SuperPropertyGet(name, target)..fileOffset = offset;
-      MethodInvocation node = new MethodInvocationImpl(
-          receiver, callName, arguments,
-          isImplicitCall: true)
-        ..fileOffset = arguments.fileOffset;
-      return node;
+      return forest.createExpressionInvocation(
+          arguments.fileOffset, receiver, arguments);
     }
 
     if (isNullAware) {
@@ -5641,14 +5635,15 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           forest.createVariableDeclarationForValue(receiver);
       return new NullAwareMethodInvocation(
           variable,
-          forest.createMethodInvocation(offset,
-              createVariableGet(variable, receiver.fileOffset), name, arguments,
-              isImplicitCall: isImplicitCall, interfaceTarget: interfaceTarget))
+          forest.createMethodInvocation(
+              offset,
+              createVariableGet(variable, receiver.fileOffset),
+              name,
+              arguments))
         ..fileOffset = receiver.fileOffset;
     } else {
-      MethodInvocation node = forest.createMethodInvocation(
-          offset, receiver, name, arguments,
-          isImplicitCall: isImplicitCall, interfaceTarget: interfaceTarget);
+      MethodInvocation node =
+          forest.createMethodInvocation(offset, receiver, name, arguments);
       return node;
     }
   }

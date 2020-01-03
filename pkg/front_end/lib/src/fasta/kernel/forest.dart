@@ -8,8 +8,6 @@ import 'dart:core' hide MapEntry;
 
 import 'package:kernel/ast.dart';
 
-import '../names.dart';
-
 import '../problems.dart' show unsupported;
 
 import 'collections.dart'
@@ -623,21 +621,18 @@ class Forest {
     return new FunctionExpression(function)..fileOffset = fileOffset;
   }
 
-  MethodInvocation createFunctionInvocation(
+  Expression createExpressionInvocation(
       int fileOffset, Expression expression, Arguments arguments) {
     assert(fileOffset != null);
-    return new MethodInvocationImpl(expression, callName, arguments)
+    return new ExpressionInvocation(expression, arguments)
       ..fileOffset = fileOffset;
   }
 
   MethodInvocation createMethodInvocation(
-      int fileOffset, Expression expression, Name name, Arguments arguments,
-      {bool isImplicitCall: false, Member interfaceTarget}) {
+      int fileOffset, Expression expression, Name name, Arguments arguments) {
     assert(fileOffset != null);
-    return new MethodInvocationImpl(expression, name, arguments,
-        isImplicitCall: isImplicitCall)
-      ..fileOffset = fileOffset
-      ..interfaceTarget = interfaceTarget;
+    return new MethodInvocation(expression, name, arguments)
+      ..fileOffset = fileOffset;
   }
 
   NamedExpression createNamedExpression(

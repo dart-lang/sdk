@@ -104,11 +104,7 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
 
   Expression buildMethodInvocation(
       Expression receiver, Name name, Arguments arguments, int offset,
-      {bool isConstantExpression,
-      bool isNullAware,
-      bool isImplicitCall,
-      bool isSuper,
-      Member interfaceTarget});
+      {bool isConstantExpression, bool isNullAware, bool isSuper});
 
   Expression buildConstructorInvocation(
       TypeDeclarationBuilder type,

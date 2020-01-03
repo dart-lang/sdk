@@ -340,6 +340,7 @@ enum InternalExpressionKind {
   CompoundSuperIndexSet,
   DeferredCheck,
   Equals,
+  ExpressionInvocation,
   ExtensionIndexSet,
   ExtensionTearOff,
   ExtensionSet,
@@ -763,15 +764,42 @@ class ShadowInvalidFieldInitializer extends LocalInitializer
   }
 }
 
-/// Front end specific implementation of [MethodInvocation].
-class MethodInvocationImpl extends MethodInvocation {
-  /// Indicates whether this method invocation is a call to a `call` method
-  /// resulting from the invocation of a function expression.
-  final bool isImplicitCall;
+class ExpressionInvocation extends InternalExpression {
+  Expression expression;
+  Arguments arguments;
 
-  MethodInvocationImpl(Expression receiver, Name name, ArgumentsImpl arguments,
-      {this.isImplicitCall: false, Member interfaceTarget})
-      : super(receiver, name, arguments, interfaceTarget);
+  ExpressionInvocation(this.expression, this.arguments) {
+    expression?.parent = this;
+    arguments?.parent = this;
+  }
+
+  @override
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
+    return visitor.visitExpressionInvocation(this, typeContext);
+  }
+
+  @override
+  InternalExpressionKind get kind =>
+      InternalExpressionKind.ExpressionInvocation;
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    expression?.accept(v);
+    arguments?.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    if (expression != null) {
+      expression = expression.accept<TreeNode>(v);
+      expression?.parent = this;
+    }
+    if (arguments != null) {
+      arguments = arguments.accept<TreeNode>(v);
+      arguments?.parent = this;
+    }
+  }
 }
 
 /// Concrete shadow object representing a named function expression.

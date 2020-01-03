@@ -2245,9 +2245,40 @@ class InferenceVisitor
 
   @override
   ExpressionInferenceResult visitMethodInvocation(
-      covariant MethodInvocationImpl node, DartType typeContext) {
+      MethodInvocation node, DartType typeContext) {
     assert(node.name != unaryMinusName);
-    return inferrer.inferMethodInvocation(node, typeContext);
+    ExpressionInferenceResult result =
+        inferrer.inferExpression(node.receiver, const UnknownType(), true);
+    Expression receiver;
+    Link<NullAwareGuard> nullAwareGuards;
+    if (inferrer.isNonNullableByDefault) {
+      nullAwareGuards = result.nullAwareGuards;
+      receiver = result.nullAwareAction;
+    } else {
+      receiver = result.expression;
+    }
+    DartType receiverType = result.inferredType;
+    return inferrer.inferMethodInvocation(node.fileOffset, nullAwareGuards,
+        receiver, receiverType, node.name, node.arguments, typeContext,
+        isExpressionInvocation: false);
+  }
+
+  ExpressionInferenceResult visitExpressionInvocation(
+      ExpressionInvocation node, DartType typeContext) {
+    ExpressionInferenceResult result =
+        inferrer.inferExpression(node.expression, const UnknownType(), true);
+    Expression receiver;
+    Link<NullAwareGuard> nullAwareGuards;
+    if (inferrer.isNonNullableByDefault) {
+      nullAwareGuards = result.nullAwareGuards;
+      receiver = result.nullAwareAction;
+    } else {
+      receiver = result.expression;
+    }
+    DartType receiverType = result.inferredType;
+    return inferrer.inferMethodInvocation(node.fileOffset, nullAwareGuards,
+        receiver, receiverType, callName, node.arguments, typeContext,
+        isExpressionInvocation: true);
   }
 
   ExpressionInferenceResult visitNamedFunctionExpressionJudgment(
@@ -4741,6 +4772,7 @@ class InferenceVisitor
           'target',
           new InstrumentationValueForMember(node.interfaceTarget));
     }
+    assert(node.interfaceTarget == null || node.interfaceTarget is Procedure);
     return inferrer.inferSuperMethodInvocation(
         node,
         typeContext,
