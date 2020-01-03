@@ -2451,10 +2451,12 @@ mixin _AssignmentChecker {
     if (sourceType.isBottom || sourceType.isDartCoreNull) {
       // No further edges need to be created, since all types are trivially
       // supertypes of bottom (and of Null, in the pre-migration world).
-    } else if (destinationType.isDynamic || destinationType.isVoid) {
+    } else if (destinationType.isDynamic ||
+        destinationType.isVoid ||
+        destinationType.isDartCoreObject) {
       // No further edges need to be created, since all types are trivially
-      // subtypes of dynamic (and of void, since void is treated as equivalent
-      // to dynamic for subtyping purposes).
+      // subtypes of dynamic, Object, and void, since all are treated as
+      // equivalent to dynamic for subtyping purposes.
     } else if (sourceType is TypeParameterType) {
       if (destinationType is TypeParameterType) {
         // No further edges need to be created, since type parameter types

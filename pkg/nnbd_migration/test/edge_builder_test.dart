@@ -173,6 +173,15 @@ class AssignmentCheckerTest extends Object
     assertEdge(t1.returnType.node, t2.returnType.node, hard: false);
   }
 
+  void test_function_void_to_function_object() {
+    // This is not an ideal pattern, but void is assignable to Object in certain
+    // cases such as those with compound types here. We must support it.
+    var t1 = function(void_);
+    var t2 = function(object());
+    assign(t1, t2, hard: true);
+    assertEdge(t1.returnType.node, t2.returnType.node, hard: false);
+  }
+
   void test_future_int_to_future_or_int() {
     var t1 = future(int_());
     var t2 = futureOr(int_());
