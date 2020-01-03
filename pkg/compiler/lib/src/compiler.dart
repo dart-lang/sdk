@@ -184,8 +184,10 @@ abstract class Compiler {
     return new JsBackendStrategy(this);
   }
 
-  ResolutionWorldBuilder get resolutionWorldBuilder =>
-      enqueuer.resolution.worldBuilder;
+  ResolutionWorldBuilder resolutionWorldBuilderForTesting;
+
+  KClosedWorld get frontendClosedWorldForTesting =>
+      resolutionWorldBuilderForTesting.closedWorldForTesting;
 
   CodegenWorldBuilder get codegenWorldBuilder {
     assert(
@@ -301,24 +303,12 @@ abstract class Compiler {
     }
   }
 
-  /// Starts the resolution phase, creating the [ResolutionEnqueuer] if not
-  /// already created.
-  ///
-  /// During normal compilation resolution only started once, but through
-  /// [analyzeUri] resolution is started repeatedly.
-  ResolutionEnqueuer startResolution() {
-    ResolutionEnqueuer resolutionEnqueuer;
-    if (enqueuer.hasResolution) {
-      resolutionEnqueuer = enqueuer.resolution;
-    } else {
-      resolutionEnqueuer = enqueuer.createResolutionEnqueuer();
-      frontendStrategy.onResolutionStart();
-    }
-    return resolutionEnqueuer;
-  }
-
   JClosedWorld computeClosedWorld(Uri rootLibraryUri, Iterable<Uri> libraries) {
-    ResolutionEnqueuer resolutionEnqueuer = startResolution();
+    ResolutionEnqueuer resolutionEnqueuer = enqueuer.createResolutionEnqueuer();
+    if (retainDataForTesting) {
+      resolutionWorldBuilderForTesting = resolutionEnqueuer.worldBuilder;
+    }
+    frontendStrategy.onResolutionStart();
     for (LibraryEntity library
         in frontendStrategy.elementEnvironment.libraries) {
       frontendStrategy.elementEnvironment.forEachClass(library,
@@ -361,7 +351,8 @@ abstract class Compiler {
     assert(mainFunction != null);
     checkQueue(resolutionEnqueuer);
 
-    JClosedWorld closedWorld = closeResolution(mainFunction);
+    JClosedWorld closedWorld =
+        closeResolution(mainFunction, resolutionEnqueuer.worldBuilder);
     if (retainDataForTesting) {
       backendClosedWorldForTesting = closedWorld;
     }
@@ -444,7 +435,8 @@ abstract class Compiler {
   }
 
   /// Perform the steps needed to fully end the resolution phase.
-  JClosedWorld closeResolution(FunctionEntity mainFunction) {
+  JClosedWorld closeResolution(FunctionEntity mainFunction,
+      ResolutionWorldBuilder resolutionWorldBuilder) {
     phase = PHASE_DONE_RESOLVING;
 
     KClosedWorld kClosedWorld = resolutionWorldBuilder.closeWorld(reporter);

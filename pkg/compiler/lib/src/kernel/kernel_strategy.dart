@@ -81,9 +81,6 @@ class KernelFrontendStrategy extends FrontendStrategy {
 
   KFieldAnalysis _fieldAnalysis;
 
-  /// Backend transformation methods for the world impacts.
-  ImpactTransformer impactTransformer;
-
   @override
   NoSuchMethodRegistry noSuchMethodRegistry;
 
@@ -166,7 +163,7 @@ class KernelFrontendStrategy extends FrontendStrategy {
     // before creating the resolution enqueuer.
     AnnotationsData annotationsData = new AnnotationsDataImpl(
         compiler.options, annotationsDataBuilder.pragmaAnnotations);
-    impactTransformer = new JavaScriptImpactTransformer(
+    ImpactTransformer impactTransformer = new JavaScriptImpactTransformer(
         elementEnvironment,
         commonElements,
         impacts,

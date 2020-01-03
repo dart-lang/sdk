@@ -58,7 +58,7 @@ abstract class ComputeValueMixin {
 
   KernelFrontendStrategy get frontendStrategy => compiler.frontendStrategy;
   ResolutionWorldBuilder get resolutionWorldBuilder =>
-      compiler.resolutionWorldBuilder;
+      compiler.resolutionWorldBuilderForTesting;
   RuntimeTypesNeedBuilderImpl get rtiNeedBuilder =>
       frontendStrategy.runtimeTypesNeedBuilderForTesting;
   RuntimeTypesNeedImpl get rtiNeed =>
@@ -275,8 +275,8 @@ class RtiNeedDataComputer extends DataComputer<String> {
 abstract class IrMixin implements ComputeValueMixin {
   @override
   MemberEntity getFrontendMember(MemberEntity backendMember) {
-    ElementEnvironment elementEnvironment = compiler
-        .resolutionWorldBuilder.closedWorldForTesting.elementEnvironment;
+    ElementEnvironment elementEnvironment =
+        compiler.frontendClosedWorldForTesting.elementEnvironment;
     LibraryEntity frontendLibrary =
         elementEnvironment.lookupLibrary(backendMember.library.canonicalUri);
     if (backendMember.enclosingClass != null) {
@@ -300,8 +300,8 @@ abstract class IrMixin implements ComputeValueMixin {
   @override
   ClassEntity getFrontendClass(ClassEntity backendClass) {
     if (backendClass.isClosure) return null;
-    ElementEnvironment elementEnvironment = compiler
-        .resolutionWorldBuilder.closedWorldForTesting.elementEnvironment;
+    ElementEnvironment elementEnvironment =
+        compiler.frontendClosedWorldForTesting.elementEnvironment;
     LibraryEntity frontendLibrary =
         elementEnvironment.lookupLibrary(backendClass.library.canonicalUri);
     return elementEnvironment.lookupClass(frontendLibrary, backendClass.name);

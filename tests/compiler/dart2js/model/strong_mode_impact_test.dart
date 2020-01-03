@@ -77,8 +77,7 @@ main() {
   Expect.isTrue(result.isSuccess);
   Compiler compiler = result.compiler;
 
-  KClosedWorld closedWorld =
-      compiler.resolutionWorldBuilder.closedWorldForTesting;
+  KClosedWorld closedWorld = compiler.frontendClosedWorldForTesting;
   ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
 
   elementEnvironment.forEachLibraryMember(elementEnvironment.mainLibrary,

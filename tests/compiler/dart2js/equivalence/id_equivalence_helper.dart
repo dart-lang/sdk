@@ -195,7 +195,7 @@ Future<CompiledData<T>> computeData<T>(Uri entryPoint,
   }
 
   dynamic closedWorld = testFrontend
-      ? compiler.resolutionWorldBuilder.closedWorldForTesting
+      ? compiler.frontendClosedWorldForTesting
       : compiler.backendClosedWorldForTesting;
   ElementEnvironment elementEnvironment = closedWorld?.elementEnvironment;
   CommonElements commonElements = closedWorld.commonElements;
