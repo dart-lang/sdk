@@ -255,6 +255,14 @@ class C {
     expect(result.isValid, isTrue);
   }
 
+  test_literal_list_forElement() async {
+    var result = await _getExpressionValue('''
+const [for (var i = 0; i < 4; i++) i]
+''');
+    expect(result.isValid, isFalse);
+    expect(result.errors, isNotEmpty);
+  }
+
   test_literal_map() async {
     var result = await _getExpressionValue(
       "const {'a' : 'm', 'b' : 'n', 'c' : 'o'}",

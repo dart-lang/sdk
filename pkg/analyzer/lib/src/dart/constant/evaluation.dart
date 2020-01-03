@@ -1456,7 +1456,9 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   /// the given [list]. Return `true` if the evaluation of one or more of the
   /// elements failed.
   bool _addElementsToList(List<DartObject> list, CollectionElement element) {
-    if (element is IfElement) {
+    if (element is ForElement) {
+      _error(element, null);
+    } else if (element is IfElement) {
       bool conditionValue = _evaluateCondition(element.condition);
       if (conditionValue == null) {
         return true;
