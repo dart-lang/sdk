@@ -1,4 +1,8 @@
 # Changelog
+
+## 2.3.1
+- Fixed issue where `dart:io` extensions were not being exported.
+
 ## 2.3.0
 - Added `getHttpEnableTimelineLogging` and `setHttpEnableTimelineLogging` methods.
 - Added `HttpTimelineLoggingState` class.`
