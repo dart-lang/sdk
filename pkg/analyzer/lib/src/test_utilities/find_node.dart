@@ -51,6 +51,10 @@ class FindNode {
     return _node(search, (n) => n is ClassDeclaration);
   }
 
+  CollectionElement collectionElement(String search) {
+    return _node(search, (n) => n is CollectionElement);
+  }
+
   CommentReference commentReference(String search) {
     return _node(search, (n) => n is CommentReference);
   }

@@ -403,6 +403,12 @@ class MigrationVisitorTestBase extends AbstractSingleUnitTest with EdgeTester {
   ConditionalDiscard statementDiscard(String text) {
     return variables.conditionalDiscard(findNode.statement(text));
   }
+
+  /// Gets the [ConditionalDiscard] information associated with the collection
+  /// element whose text is [text].
+  ConditionalDiscard elementDiscard(String text) {
+    return variables.conditionalDiscard(findNode.collectionElement(text));
+  }
 }
 
 /// Abstract base class representing a thing that can be matched against

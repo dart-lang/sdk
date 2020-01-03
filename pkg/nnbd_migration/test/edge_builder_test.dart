@@ -2812,9 +2812,7 @@ void f(bool b, int i, int j) {
     assertEdge(decoratedTypeAnnotation('int j').node, never, hard: true);
   }
 
-  @failingTest
   Future<void> test_if_element_guard_equals_null() async {
-    // failing because of an unimplemented exception in conditional modification
     await analyze('''
 dynamic f(int i, int j, int k) {
   <int>[if (i == null) j/*check*/ else k/*check*/];
@@ -2830,7 +2828,7 @@ dynamic f(int i, int j, int k) {
             guards: [nullable_i], hard: false));
     assertNullCheck(checkExpression('k/*check*/'),
         assertEdge(nullable_k, nullable_itemType, hard: false));
-    var discard = statementDiscard('if (i == null)');
+    var discard = elementDiscard('if (i == null)');
     expect(discard.trueGuard, same(nullable_i));
     expect(discard.falseGuard, null);
     expect(discard.pureCondition, true);
