@@ -8,20 +8,32 @@ main() {
   // Integer literals.
   Expect.isTrue(2 is int);
   //                 ^^^
+  // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
+  //                 ^^^
   // [analyzer] STATIC_WARNING.TYPE_TEST_WITH_NON_TYPE
   Expect.equals(2, 2 as int);
+  //                    ^^^
+  // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
   //                    ^^^
   // [analyzer] STATIC_WARNING.CAST_TO_NON_TYPE
   Expect.isTrue(-2 is int);
   //                  ^^^
+  // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
+  //                  ^^^
   // [analyzer] STATIC_WARNING.TYPE_TEST_WITH_NON_TYPE
   Expect.equals(-2, -2 as int);
+  //                      ^^^
+  // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
   //                      ^^^
   // [analyzer] STATIC_WARNING.CAST_TO_NON_TYPE
   Expect.isTrue(0x10 is int);
   //                    ^^^
+  // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
+  //                    ^^^
   // [analyzer] STATIC_WARNING.TYPE_TEST_WITH_NON_TYPE
   Expect.isTrue(-0x10 is int);
+  //                     ^^^
+  // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
   //                     ^^^
   // [analyzer] STATIC_WARNING.TYPE_TEST_WITH_NON_TYPE
   // "a" will be part of hex literal, the following "s" is an error.

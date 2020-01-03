@@ -504,6 +504,18 @@ class A extends v {}
     assertElementType(a.supertype, objectType);
   }
 
+  test_error_extendsNonClass_variable_generic() async {
+    await assertErrorsInCode(r'''
+int v;
+class A extends v<int> {}
+''', [
+      error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 23, 1),
+    ]);
+
+    var a = findElement.class_('A');
+    assertElementType(a.supertype, objectType);
+  }
+
   test_error_implementsRepeated() async {
     await assertErrorsInCode(r'''
 class A {}

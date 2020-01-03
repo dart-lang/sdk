@@ -228,41 +228,14 @@ class TypeNameResolver {
       }
     }
 
-    if (element == null) {
-      node.type = dynamicType;
-      return;
-    }
+    _setElement(typeName, element);
 
     if (element is ClassElement) {
       _resolveClassElement(node, typeName, argumentList, element);
       return;
     }
 
-    DartType type;
-    if (element == DynamicElementImpl.instance) {
-      _setElement(typeName, element);
-      type = DynamicTypeImpl.instance;
-    } else if (element is NeverElementImpl) {
-      _setElement(typeName, element);
-      type = element.instantiate(
-        nullabilitySuffix: _getNullability(node.question != null),
-      );
-    } else if (element is FunctionTypeAliasElement) {
-      _setElement(typeName, element);
-    } else if (element is TypeParameterElement) {
-      _setElement(typeName, element);
-      type = element.instantiate(
-        nullabilitySuffix: _getNullability(node.question != null),
-      );
-    } else {
-      errorHelper.checkNullOrNonTypeElement(node, element);
-      node.type = dynamicType;
-      return;
-    }
-
-    type = _instantiateElement(node, element);
-
-    node.type = type;
+    node.type = _instantiateElement(node, element);
   }
 
   /// Return type arguments, exactly [parameterCount].
@@ -383,7 +356,8 @@ class TypeNameResolver {
           nullabilitySuffix: nullability,
         );
       } else {
-        throw UnimplementedError('(${element.runtimeType}) $element');
+        _ErrorHelper(errorReporter).checkNullOrNonTypeElement(node, element);
+        return dynamicType;
       }
     }
 
@@ -406,7 +380,8 @@ class TypeNameResolver {
         nullabilitySuffix: nullability,
       );
     } else {
-      throw UnimplementedError('(${element.runtimeType}) $element');
+      _ErrorHelper(errorReporter).checkNullOrNonTypeElement(node, element);
+      return dynamicType;
     }
   }
 
@@ -439,8 +414,6 @@ class TypeNameResolver {
 
   void _resolveClassElement(TypeName node, Identifier typeName,
       TypeArgumentList argumentList, ClassElement element) {
-    _setElement(typeName, element);
-
     var typeParameters = element.typeParameters;
     var parameterCount = typeParameters.length;
 
