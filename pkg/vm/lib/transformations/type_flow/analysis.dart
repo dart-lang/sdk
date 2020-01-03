@@ -928,10 +928,10 @@ class GenericInterfacesInfoImpl implements GenericInterfacesInfo {
   final cachedFlattenedTypeArgs = <Class, List<DartType>>{};
   final cachedFlattenedTypeArgsForNonGeneric = <Class, List<Type>>{};
 
-  RuntimeTypeTranslator closedTypeTranslator;
+  RuntimeTypeTranslatorImpl closedTypeTranslator;
 
   GenericInterfacesInfoImpl(this.hierarchy) {
-    closedTypeTranslator = RuntimeTypeTranslator.forClosedTypes(this);
+    closedTypeTranslator = RuntimeTypeTranslatorImpl.forClosedTypes(this);
   }
 
   List<DartType> flattenedTypeArgumentsFor(Class klass, {bool useCache: true}) {

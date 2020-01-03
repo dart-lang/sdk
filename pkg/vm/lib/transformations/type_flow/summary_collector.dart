@@ -312,13 +312,11 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   Join _returnValue;
   Parameter _receiver;
   ConstantAllocationCollector constantAllocationCollector;
-  RuntimeTypeTranslator _translator;
+  RuntimeTypeTranslatorImpl _translator;
   StaticTypeContext _staticTypeContext;
 
   // Currently only used for factory constructors.
   Map<TypeParameter, TypeExpr> _fnTypeVariables;
-
-  Member _privateListConstructor;
 
   SummaryCollector(
       this.target,
@@ -330,8 +328,6 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
       this._genericInterfacesInfo) {
     assertx(_genericInterfacesInfo != null);
     constantAllocationCollector = new ConstantAllocationCollector(this);
-    _privateListConstructor =
-        _environment.coreTypes.index.getMember('dart:core', '_List', '');
   }
 
   Summary createSummary(Member member,
@@ -361,7 +357,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
         _summary = new Summary();
       }
 
-      _translator = new RuntimeTypeTranslator(
+      _translator = new RuntimeTypeTranslatorImpl(
           _summary, _receiver, null, _genericInterfacesInfo);
 
       if (fieldSummaryType == FieldSummaryType.kInitializer) {
@@ -405,7 +401,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
             isReceiver: true);
       }
 
-      _translator = new RuntimeTypeTranslator(
+      _translator = new RuntimeTypeTranslatorImpl(
           _summary, _receiver, _fnTypeVariables, _genericInterfacesInfo);
 
       // Handle forwarding stubs. We need to check types against the types of
@@ -475,30 +471,17 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
       }
 
       if (function.body == null) {
-        if (member == _privateListConstructor) {
-          // We have an intrinsic summary for the _List factory to ensure the
-          // correct type arguments are used.
-          // TODO(39769): Find a way to generalize this to other classes.
-          _returnValue.values.add(_translator.instantiateConcreteType(
-              _nativeCodeOracle.handleNativeProcedure(
-                  member, _entryPointsListener, _typesBuilder),
-              [
-                TypeParameterType(
-                    function.typeParameters.first, Nullability.legacy)
-              ]));
+        TypeExpr type = _nativeCodeOracle.handleNativeProcedure(
+            member, _entryPointsListener, _typesBuilder, _translator);
+        if (type is! ConcreteType && type is! Statement) {
+          // Runtime type could be more precise than static type, so
+          // calculate intersection.
+          final runtimeType = _translator.translate(function.returnType);
+          final typeCheck = new TypeCheck(type, runtimeType, function, type);
+          _summary.add(typeCheck);
+          _returnValue.values.add(typeCheck);
         } else {
-          Type type = _nativeCodeOracle.handleNativeProcedure(
-              member, _entryPointsListener, _typesBuilder);
-          if (type is! ConcreteType) {
-            // Runtime type could be more precise than static type, so
-            // calculate intersection.
-            final runtimeType = _translator.translate(function.returnType);
-            final typeCheck = new TypeCheck(type, runtimeType, function, type);
-            _summary.add(typeCheck);
-            _returnValue.values.add(typeCheck);
-          } else {
-            _returnValue.values.add(type);
-          }
+          _returnValue.values.add(type);
         }
       } else {
         _visit(function.body);
@@ -1520,19 +1503,20 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   }
 }
 
-class RuntimeTypeTranslator extends DartTypeVisitor<TypeExpr> {
+class RuntimeTypeTranslatorImpl extends DartTypeVisitor<TypeExpr>
+    implements RuntimeTypeTranslator {
   final Summary summary;
   final Map<TypeParameter, TypeExpr> functionTypeVariables;
   final Map<DartType, TypeExpr> typesCache = <DartType, TypeExpr>{};
   final TypeExpr receiver;
   final GenericInterfacesInfo genericInterfacesInfo;
 
-  RuntimeTypeTranslator(this.summary, this.receiver, this.functionTypeVariables,
-      this.genericInterfacesInfo) {}
+  RuntimeTypeTranslatorImpl(this.summary, this.receiver,
+      this.functionTypeVariables, this.genericInterfacesInfo) {}
 
   // Create a type translator which can be used only for types with no free type
   // variables.
-  RuntimeTypeTranslator.forClosedTypes(this.genericInterfacesInfo)
+  RuntimeTypeTranslatorImpl.forClosedTypes(this.genericInterfacesInfo)
       : summary = null,
         functionTypeVariables = null,
         receiver = null {}

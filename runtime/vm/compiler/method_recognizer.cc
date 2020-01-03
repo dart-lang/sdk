@@ -61,6 +61,14 @@ intptr_t MethodRecognizer::ResultCidFromPragma(
           }
         }
       }
+    } else if (option.IsArray()) {
+      const Array& array = Array::Cast(option);
+      if (array.Length() > 0) {
+        const Object& type = Object::Handle(Array::Cast(option).At(0));
+        if (type.IsType()) {
+          return Type::Cast(type).type_class_id();
+        }
+      }
     }
   }
 

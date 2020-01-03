@@ -102,6 +102,10 @@ abstract class TypesBuilder {
   }
 }
 
+abstract class RuntimeTypeTranslator {
+  TypeExpr instantiateConcreteType(ConcreteType type, List<DartType> typeArgs);
+}
+
 /// Abstract interface to type hierarchy information used by types.
 abstract class TypeHierarchy extends TypesBuilder
     implements GenericInterfacesInfo {
