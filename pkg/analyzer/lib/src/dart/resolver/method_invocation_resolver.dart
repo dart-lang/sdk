@@ -11,6 +11,7 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
+import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -18,6 +19,7 @@ import 'package:analyzer/src/generated/element_type_provider.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/super_context.dart';
 import 'package:analyzer/src/generated/variable_type_provider.dart';
+import 'package:meta/meta.dart';
 
 class MethodInvocationResolver {
   static final _nameCall = Name(null, 'call');
@@ -53,6 +55,7 @@ class MethodInvocationResolver {
   final ExtensionMemberResolver _extensionResolver;
 
   final ElementTypeProvider _elementTypeProvider;
+  final InvocationInferenceHelper _inferenceHelper;
 
   /// The invocation being resolved.
   MethodInvocationImpl _invocation;
@@ -60,13 +63,17 @@ class MethodInvocationResolver {
   /// The [Name] object of the invocation being resolved by [resolve].
   Name _currentName;
 
-  MethodInvocationResolver(this._resolver, this._elementTypeProvider)
-      : _typeType = _resolver.typeProvider.typeType,
+  MethodInvocationResolver(
+    this._resolver,
+    this._elementTypeProvider, {
+    @required InvocationInferenceHelper inferenceHelper,
+  })  : _typeType = _resolver.typeProvider.typeType,
         _inheritance = _resolver.inheritance,
         _definingLibrary = _resolver.definingLibrary,
         _definingLibraryUri = _resolver.definingLibrary.source.uri,
         _localVariableTypeProvider = _resolver.localVariableTypeProvider,
-        _extensionResolver = _resolver.extensionResolver;
+        _extensionResolver = _resolver.extensionResolver,
+        _inferenceHelper = inferenceHelper;
 
   /// The scope used to resolve identifiers.
   Scope get nameScope => _resolver.nameScope;
@@ -297,6 +304,23 @@ class MethodInvocationResolver {
       StaticWarningCode.USE_OF_VOID_RESULT,
       errorNode,
     );
+  }
+
+  void _resolveArguments_finishInference(MethodInvocation node) {
+    _inferenceHelper.inferArgumentTypesForInvocation(node);
+    node.argumentList.accept(_resolver);
+
+    _inferenceHelper.inferGenericInvocationExpression(node);
+
+    var inferred = _inferenceHelper.inferMethodInvocationObject(node);
+
+    if (!inferred) {
+      DartType staticStaticType = _inferenceHelper.computeInvokeReturnType(
+        node.staticInvokeType,
+        isNullAware: node.isNullAware,
+      );
+      _inferenceHelper.recordStaticType(node, staticStaticType);
+    }
   }
 
   /// Given an [argumentList] and the [executableElement] that will be invoked
@@ -679,6 +703,7 @@ class MethodInvocationResolver {
         node.staticType =
             _elementTypeProvider.safeExecutableReturnType(loadLibraryFunction);
         _setExplicitTypeArgumentTypes();
+        _resolveArguments_finishInference(node);
         return;
       }
     }
@@ -880,11 +905,14 @@ class MethodInvocationResolver {
     node.staticInvokeType = _dynamicType;
     node.staticType = _dynamicType;
     _setExplicitTypeArgumentTypes();
+    _resolveArguments_finishInference(node);
   }
 
   /// Set explicitly specified type argument types, or empty if not specified.
   /// Inference is done in type analyzer, so inferred type arguments might be
   /// set later.
+  ///
+  /// TODO(scheglov) when we do inference in this resolver, do we need this?
   void _setExplicitTypeArgumentTypes() {
     var typeArgumentList = _invocation.typeArguments;
     if (typeArgumentList != null) {
@@ -921,6 +949,8 @@ class MethodInvocationResolver {
         node.argumentList,
         instantiatedType,
       );
+
+      _resolveArguments_finishInference(node);
       return;
     }
 

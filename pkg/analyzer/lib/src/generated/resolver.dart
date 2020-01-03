@@ -25,6 +25,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
+import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/method_invocation_resolver.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/dart/resolver/typed_literal_resolver.dart';
@@ -200,6 +201,8 @@ class ResolverVisitor extends ScopedVisitor {
   /// Helper for resolving [ListLiteral] and [SetOrMapLiteral].
   TypedLiteralResolver _typedLiteralResolver;
 
+  InvocationInferenceHelper inferenceHelper;
+
   /// The object used to resolve the element associated with the current node.
   ElementResolver elementResolver;
 
@@ -315,6 +318,13 @@ class ResolverVisitor extends ScopedVisitor {
     );
     this._typedLiteralResolver = TypedLiteralResolver(this, _featureSet);
     this.extensionResolver = ExtensionMemberResolver(this);
+    this.inferenceHelper = InvocationInferenceHelper(
+      definingLibrary: definingLibrary,
+      elementTypeProvider: _elementTypeProvider,
+      flowAnalysis: _flowAnalysis,
+      errorReporter: errorReporter,
+      typeSystem: typeSystem,
+    );
     this.elementResolver = ElementResolver(this,
         reportConstEvaluationErrors: reportConstEvaluationErrors,
         elementTypeProvider: _elementTypeProvider);
@@ -1498,10 +1508,6 @@ class ResolverVisitor extends ScopedVisitor {
     var functionRewrite = MethodInvocationResolver.getRewriteResult(node);
     if (functionRewrite != null) {
       _visitFunctionExpressionInvocation(functionRewrite);
-    } else {
-      _inferArgumentTypesForInvocation(node);
-      node.argumentList?.accept(this);
-      node.accept(typeAnalyzer);
     }
   }
 
@@ -1965,31 +1971,6 @@ class ResolverVisitor extends ScopedVisitor {
     return false;
   }
 
-  FunctionType _inferArgumentTypesForGeneric(AstNode inferenceNode,
-      DartType uninstantiatedType, TypeArgumentList typeArguments,
-      {AstNode errorNode, bool isConst = false}) {
-    errorNode ??= inferenceNode;
-    if (typeArguments == null &&
-        uninstantiatedType is FunctionType &&
-        uninstantiatedType.typeFormals.isNotEmpty) {
-      var typeArguments = typeSystem.inferGenericFunctionOrType(
-        typeParameters: uninstantiatedType.typeFormals,
-        parameters: const <ParameterElement>[],
-        declaredReturnType: uninstantiatedType.returnType,
-        argumentTypes: const <DartType>[],
-        contextReturnType: InferenceContext.getContext(inferenceNode),
-        downwards: true,
-        isConst: isConst,
-        errorReporter: errorReporter,
-        errorNode: errorNode,
-      );
-      if (typeArguments != null) {
-        return uninstantiatedType.instantiate(typeArguments);
-      }
-    }
-    return null;
-  }
-
   void _inferArgumentTypesForInstanceCreate(InstanceCreationExpression node) {
     ConstructorName constructor = node.constructorName;
     TypeName classTypeName = constructor?.type;
@@ -2022,7 +2003,7 @@ class ResolverVisitor extends ScopedVisitor {
       FunctionType constructorType =
           typeAnalyzer.constructorToGenericFunctionType(rawElement);
 
-      inferred = _inferArgumentTypesForGeneric(
+      inferred = inferenceHelper.inferArgumentTypesForGeneric(
           node, constructorType, constructor.type.typeArguments,
           isConst: node.isConst, errorNode: node.constructorName);
 
@@ -2049,17 +2030,10 @@ class ResolverVisitor extends ScopedVisitor {
     }
   }
 
-  void _inferArgumentTypesForInvocation(InvocationExpression node) {
-    DartType inferred = _inferArgumentTypesForGeneric(
-        node, node.function.staticType, node.typeArguments);
-    InferenceContext.setType(
-        node.argumentList, inferred ?? node.staticInvokeType);
-  }
-
   /// Continues resolution of the [FunctionExpressionInvocation] node after
   /// resolving its function.
   void _visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    _inferArgumentTypesForInvocation(node);
+    inferenceHelper.inferArgumentTypesForInvocation(node);
     node.argumentList?.accept(this);
     node.accept(typeAnalyzer);
   }

@@ -13,7 +13,6 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart' show ConstructorMember;
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -24,7 +23,6 @@ import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/variable_type_provider.dart';
 import 'package:analyzer/src/task/strong/checker.dart'
     show getExpressionType, getReadType;
-import 'package:meta/meta.dart';
 
 /**
  * Instances of the class `StaticTypeAnalyzer` perform two type-related tasks. First, they
@@ -531,9 +529,9 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
    */
   @override
   void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    _inferGenericInvocationExpression(node);
-    DartType staticType =
-        _computeInvokeReturnType(node.staticInvokeType, isNullAware: false);
+    _resolver.inferenceHelper.inferGenericInvocationExpression(node);
+    DartType staticType = _resolver.inferenceHelper
+        .computeInvokeReturnType(node.staticInvokeType, isNullAware: false);
     _recordStaticType(node, staticType);
   }
 
@@ -618,54 +616,9 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     _recordStaticType(node, _nonNullable(_typeProvider.boolType));
   }
 
-  /**
-   * The Dart Language Specification, 12.15.1: <blockquote>An ordinary method invocation <i>i</i>
-   * has the form <i>o.m(a<sub>1</sub>, &hellip;, a<sub>n</sub>, x<sub>n+1</sub>: a<sub>n+1</sub>,
-   * &hellip;, x<sub>n+k</sub>: a<sub>n+k</sub>)</i>.
-   *
-   * Let <i>T</i> be the static type of <i>o</i>. It is a static type warning if <i>T</i> does not
-   * have an accessible instance member named <i>m</i>. If <i>T.m</i> exists, it is a static warning
-   * if the type <i>F</i> of <i>T.m</i> may not be assigned to a function type.
-   *
-   * If <i>T.m</i> does not exist, or if <i>F</i> is not a function type, the static type of
-   * <i>i</i> is dynamic. Otherwise the static type of <i>i</i> is the declared return type of
-   * <i>F</i>.</blockquote>
-   *
-   * The Dart Language Specification, 11.15.3: <blockquote>A static method invocation <i>i</i> has
-   * the form <i>C.m(a<sub>1</sub>, &hellip;, a<sub>n</sub>, x<sub>n+1</sub>: a<sub>n+1</sub>,
-   * &hellip;, x<sub>n+k</sub>: a<sub>n+k</sub>)</i>.
-   *
-   * It is a static type warning if the type <i>F</i> of <i>C.m</i> may not be assigned to a
-   * function type.
-   *
-   * If <i>F</i> is not a function type, or if <i>C.m</i> does not exist, the static type of i is
-   * dynamic. Otherwise the static type of <i>i</i> is the declared return type of
-   * <i>F</i>.</blockquote>
-   *
-   * The Dart Language Specification, 11.15.4: <blockquote>A super method invocation <i>i</i> has
-   * the form <i>super.m(a<sub>1</sub>, &hellip;, a<sub>n</sub>, x<sub>n+1</sub>: a<sub>n+1</sub>,
-   * &hellip;, x<sub>n+k</sub>: a<sub>n+k</sub>)</i>.
-   *
-   * It is a static type warning if <i>S</i> does not have an accessible instance member named m. If
-   * <i>S.m</i> exists, it is a static warning if the type <i>F</i> of <i>S.m</i> may not be
-   * assigned to a function type.
-   *
-   * If <i>S.m</i> does not exist, or if <i>F</i> is not a function type, the static type of
-   * <i>i</i> is dynamic. Otherwise the static type of <i>i</i> is the declared return type of
-   * <i>F</i>.</blockquote>
-   */
   @override
   void visitMethodInvocation(MethodInvocation node) {
-    _inferGenericInvocationExpression(node);
-    // Record static return type of the static element.
-    bool inferredStaticType = _inferMethodInvocationObject(node);
-
-    if (!inferredStaticType) {
-      DartType staticStaticType = _computeInvokeReturnType(
-          node.staticInvokeType,
-          isNullAware: node.isNullAware);
-      _recordStaticType(node, staticStaticType);
-    }
+    throw StateError('Should not be invoked');
   }
 
   @override
@@ -1098,32 +1051,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   }
 
   /**
-   * Compute the return type of the method or function represented by the given
-   * type that is being invoked.
-   */
-  DartType /*!*/ _computeInvokeReturnType(DartType type,
-      {@required bool isNullAware}) {
-    TypeImpl /*!*/ returnType;
-    if (type is InterfaceType) {
-      MethodElement callMethod = type.lookUpMethod2(
-          FunctionElement.CALL_METHOD_NAME, _resolver.definingLibrary);
-      returnType =
-          _elementTypeProvider.safeExecutableType(callMethod)?.returnType ??
-              _dynamicType;
-    } else if (type is FunctionType) {
-      returnType = type.returnType ?? _dynamicType;
-    } else {
-      returnType = _dynamicType;
-    }
-
-    if (isNullAware && _isNonNullableByDefault) {
-      returnType = _typeSystem.makeNullable(returnType);
-    }
-
-    return returnType;
-  }
-
-  /**
    * Given a function body and its return type, compute the return type of
    * the entire function, taking into account whether the function body
    * is `sync*`, `async` or `async*`.
@@ -1163,11 +1090,12 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       FunctionType propertyType =
           _elementTypeProvider.getExecutableType(element);
       if (propertyType != null) {
-        return _computeInvokeReturnType(propertyType.returnType,
+        return _resolver.inferenceHelper.computeInvokeReturnType(
+            propertyType.returnType,
             isNullAware: false);
       }
     } else if (element is ExecutableElement) {
-      return _computeInvokeReturnType(
+      return _resolver.inferenceHelper.computeInvokeReturnType(
           _elementTypeProvider.getExecutableType(element),
           isNullAware: false);
     }
@@ -1278,94 +1206,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   }
 
   /**
-   * Given a possibly generic invocation like `o.m(args)` or `(f)(args)` try to
-   * infer the instantiated generic function type.
-   *
-   * This takes into account both the context type, as well as information from
-   * the argument types.
-   */
-  void _inferGenericInvocationExpression(InvocationExpression node) {
-    ArgumentList arguments = node.argumentList;
-    var type = node.function.staticType;
-    var freshType = _getFreshType(type);
-
-    FunctionType inferred = _inferGenericInvoke(
-        node, freshType, node.typeArguments, arguments, node.function);
-    if (inferred != null && inferred != node.staticInvokeType) {
-      // Fix up the parameter elements based on inferred method.
-      arguments.correspondingStaticParameters =
-          ResolverVisitor.resolveArgumentsToParameters(
-              arguments, inferred.parameters, null);
-      node.staticInvokeType = inferred;
-    }
-  }
-
-  /**
-   * Given a possibly generic invocation or instance creation, such as
-   * `o.m(args)` or `(f)(args)` or `new T(args)` try to infer the instantiated
-   * generic function type.
-   *
-   * This takes into account both the context type, as well as information from
-   * the argument types.
-   */
-  FunctionType _inferGenericInvoke(
-      Expression node,
-      DartType fnType,
-      TypeArgumentList typeArguments,
-      ArgumentList argumentList,
-      AstNode errorNode,
-      {bool isConst = false}) {
-    if (typeArguments == null &&
-        fnType is FunctionType &&
-        fnType.typeFormals.isNotEmpty) {
-      // Get the parameters that correspond to the uninstantiated generic.
-      List<ParameterElement> rawParameters =
-          ResolverVisitor.resolveArgumentsToParameters(
-              argumentList, fnType.parameters, null);
-
-      List<ParameterElement> params = <ParameterElement>[];
-      List<DartType> argTypes = <DartType>[];
-      for (int i = 0, length = rawParameters.length; i < length; i++) {
-        ParameterElement parameter = rawParameters[i];
-        if (parameter != null) {
-          params.add(parameter);
-          argTypes.add(argumentList.arguments[i].staticType);
-        }
-      }
-      var typeArgs = _typeSystem.inferGenericFunctionOrType(
-        typeParameters: fnType.typeFormals,
-        parameters: params,
-        declaredReturnType: fnType.returnType,
-        argumentTypes: argTypes,
-        contextReturnType: InferenceContext.getContext(node),
-        isConst: isConst,
-        errorReporter: _resolver.errorReporter,
-        errorNode: errorNode,
-      );
-      if (node is InvocationExpressionImpl) {
-        node.typeArgumentTypes = typeArgs;
-      }
-      if (typeArgs != null) {
-        return fnType.instantiate(typeArgs);
-      }
-      return fnType;
-    }
-
-    // There is currently no other place where we set type arguments
-    // for FunctionExpressionInvocation(s), so set it here, if not inferred.
-    if (node is FunctionExpressionInvocationImpl) {
-      if (typeArguments != null) {
-        var typeArgs = typeArguments.arguments.map((n) => n.type).toList();
-        node.typeArgumentTypes = typeArgs;
-      } else {
-        node.typeArgumentTypes = const <DartType>[];
-      }
-    }
-
-    return null;
-  }
-
-  /**
    * Given an instance creation of a possibly generic type, infer the type
    * arguments using the current context type as well as the argument types.
    */
@@ -1397,8 +1237,12 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     FunctionType constructorType = constructorToGenericFunctionType(rawElement);
 
     ArgumentList arguments = node.argumentList;
-    FunctionType inferred = _inferGenericInvoke(node, constructorType,
-        constructor.type.typeArguments, arguments, node.constructorName,
+    FunctionType inferred = _resolver.inferenceHelper.inferGenericInvoke(
+        node,
+        constructorType,
+        constructor.type.typeArguments,
+        arguments,
+        node.constructorName,
         isConst: node.isConst);
 
     if (inferred != null &&
@@ -1462,51 +1306,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
         );
       }
     }
-  }
-
-  /**
-   * Given a method invocation [node], attempt to infer a better
-   * type for the result if the target is dynamic and the method
-   * being called is one of the object methods.
-   */
-  // TODO(jmesserly): we should move this logic to ElementResolver.
-  // If we do it here, we won't have correct parameter elements set on the
-  // node's argumentList. (This likely affects only explicit calls to
-  // `Object.noSuchMethod`.)
-  bool _inferMethodInvocationObject(MethodInvocation node) {
-    // If we have a call like `toString()` or `libraryPrefix.toString()`, don't
-    // infer it.
-    Expression target = node.realTarget;
-    if (target == null ||
-        target is SimpleIdentifier && target.staticElement is PrefixElement) {
-      return false;
-    }
-    DartType nodeType = node.staticInvokeType;
-    if (nodeType == null ||
-        !nodeType.isDynamic ||
-        node.argumentList.arguments.isNotEmpty) {
-      return false;
-    }
-    // Object methods called on dynamic targets can have their types improved.
-    String name = node.methodName.name;
-    MethodElement inferredElement =
-        _typeProvider.objectType.element.getMethod(name);
-    if (inferredElement == null || inferredElement.isStatic) {
-      return false;
-    }
-    DartType inferredType =
-        _elementTypeProvider.getExecutableType(inferredElement);
-    if (inferredType is FunctionType) {
-      DartType returnType = inferredType.returnType;
-      if (inferredType.parameters.isEmpty &&
-          returnType is InterfaceType &&
-          _typeProvider.nonSubtypableClasses.contains(returnType.element)) {
-        node.staticInvokeType = inferredType;
-        _recordStaticType(node, inferredType.returnType);
-        return true;
-      }
-    }
-    return false;
   }
 
   /**
@@ -1672,15 +1471,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       node.staticType = _dynamicType;
     } else if (node is SimpleIdentifier) {
       node.staticType = _dynamicType;
-    }
-  }
-
-  static DartType _getFreshType(DartType type) {
-    if (type is FunctionType) {
-      var parameters = getFreshTypeParameters(type.typeFormals);
-      return parameters.applyToFunctionType(type);
-    } else {
-      return type;
     }
   }
 }

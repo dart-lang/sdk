@@ -1061,7 +1061,7 @@ main() {
     assertImportPrefix(invocation.target, import.prefix);
   }
 
-  test_hasReceiver_functionTyped_call() async {
+  test_hasReceiver_functionTyped() async {
     await assertNoErrorsInCode(r'''
 void foo(int _) {}
 
@@ -1078,6 +1078,26 @@ main() {
     );
     assertElement(invocation.target, findElement.topFunction('foo'));
     assertType(invocation.target, 'void Function(int)');
+  }
+
+  test_hasReceiver_functionTyped_generic() async {
+    await assertNoErrorsInCode(r'''
+void foo<T>(T _) {}
+
+main() {
+  foo.call(0);
+}
+''');
+
+    var invocation = findNode.methodInvocation('call(0)');
+    assertMethodInvocation(
+      invocation,
+      null,
+      'void Function(int)',
+      expectedTypeArguments: ['int'],
+    );
+    assertElement(invocation.target, findElement.topFunction('foo'));
+    assertType(invocation.target, 'void Function<T>(T)');
   }
 
   test_hasReceiver_importPrefix_topFunction() async {

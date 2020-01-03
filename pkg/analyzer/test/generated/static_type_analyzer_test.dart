@@ -951,6 +951,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
     _listener.assertNoErrors();
   }
 
+  @FailingTest(reason: 'This is an old unit test, port and remove')
   void test_visitMethodInvocation_then() {
     // then()
     Expression node = AstTestFactory.methodInvocation(null, "then");
