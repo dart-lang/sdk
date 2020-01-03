@@ -3821,6 +3821,27 @@ int g(int y) => C.f(y);
         hard: false);
   }
 
+  Future<void> test_methodInvocation_mixin_super() async {
+    await analyze('''
+class C {
+  void f(int x) {}
+}
+mixin D on C {
+  void g(int y) {
+    super.f(y);
+  }
+  @override
+  void f(int z) {
+  }
+}
+''');
+    assertEdge(decoratedTypeAnnotation('int y').node,
+        decoratedTypeAnnotation('int x').node,
+        hard: true);
+    assertNoEdge(decoratedTypeAnnotation('int y').node,
+        decoratedTypeAnnotation('int z').node);
+  }
+
   Future<void> test_methodInvocation_target_check() async {
     await analyze('''
 class C {

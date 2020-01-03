@@ -443,7 +443,10 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   }
 
   @override
-  DecoratedType visitClassDeclaration(ClassDeclaration node) {
+  DecoratedType visitClassDeclaration(ClassDeclaration node) =>
+      visitClassOrMixinDeclaration(node);
+
+  DecoratedType visitClassOrMixinDeclaration(ClassOrMixinDeclaration node) {
     try {
       _currentClass = node.declaredElement;
       _fieldsNotInitializedAtDeclaration = {
@@ -975,6 +978,10 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     }
     return expressionType;
   }
+
+  @override
+  DecoratedType visitMixinDeclaration(MixinDeclaration node) =>
+      visitClassOrMixinDeclaration(node);
 
   @override
   DecoratedType visitNamespaceDirective(NamespaceDirective node) {
