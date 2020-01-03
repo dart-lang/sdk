@@ -1240,8 +1240,9 @@ enum E {
 };
 
 E f() => E.value;
+int g() => f().index;
 
-void g() {
+void h() {
   for(var value in E.values) {}
   E.values.forEach((value) {});
 }
@@ -1252,8 +1253,9 @@ enum E {
 };
 
 E f() => E.value;
+int g() => f().index;
 
-void g() {
+void h() {
   for(var value in E.values) {}
   E.values.forEach((value) {});
 }
