@@ -2041,8 +2041,7 @@ void Precompiler::BindStaticCalls() {
             CodePatcher::PatchStaticCallAt(pc, code_, target_code_);
           }
         } else {
-          ASSERT(kind == Code::kPcRelativeCall ||
-                 kind == Code::kPcRelativeTailCall);
+          ASSERT(kind == Code::kPcRelativeCall);
           only_call_via_code = false;
         }
       }

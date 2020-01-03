@@ -14839,21 +14839,6 @@ RawFunction* Code::GetStaticCallTargetFunctionAt(uword pc) const {
 #endif
 }
 
-RawCode* Code::GetStaticCallTargetCodeAt(uword pc) const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-  UNREACHABLE();
-  return Code::null();
-#else
-  const intptr_t i = BinarySearchInSCallTable(pc);
-  if (i < 0) {
-    return Code::null();
-  }
-  const Array& array = Array::Handle(raw_ptr()->static_calls_target_table_);
-  StaticCallsTable entries(array);
-  return entries[i].Get<kSCallTableCodeTarget>();
-#endif
-}
-
 void Code::SetStaticCallTargetCodeAt(uword pc, const Code& code) const {
 #if defined(DART_PRECOMPILED_RUNTIME)
   UNREACHABLE();

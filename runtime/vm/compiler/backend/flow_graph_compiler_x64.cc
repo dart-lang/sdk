@@ -35,8 +35,8 @@ void FlowGraphCompiler::ArchSpecificInitialization() {
       assembler_->generate_invoke_write_barrier_wrapper_ = [&](Register reg) {
         const intptr_t offset_into_target =
             Thread::WriteBarrierWrappersOffsetForRegister(reg);
-        AddPcRelativeCallStubTarget(stub);
         assembler_->GenerateUnRelocatedPcRelativeCall(offset_into_target);
+        AddPcRelativeCallStubTarget(stub);
       };
     }
 
@@ -44,8 +44,8 @@ void FlowGraphCompiler::ArchSpecificInitialization() {
         Code::ZoneHandle(object_store->array_write_barrier_stub());
     if (!array_stub.InVMIsolateHeap()) {
       assembler_->generate_invoke_array_write_barrier_ = [&]() {
-        AddPcRelativeCallStubTarget(array_stub);
         assembler_->GenerateUnRelocatedPcRelativeCall();
+        AddPcRelativeCallStubTarget(array_stub);
       };
     }
   }
@@ -961,8 +961,8 @@ void FlowGraphCompiler::GenerateCall(TokenPosition token_pos,
                                      LocationSummary* locs) {
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions &&
       !stub.InVMIsolateHeap()) {
-    AddPcRelativeCallStubTarget(stub);
     __ GenerateUnRelocatedPcRelativeCall();
+    AddPcRelativeCallStubTarget(stub);
     EmitCallsiteMetadata(token_pos, DeoptId::kNone, kind, locs);
   } else {
     ASSERT(!stub.IsNull());
@@ -998,8 +998,8 @@ void FlowGraphCompiler::GenerateStaticDartCall(intptr_t deopt_id,
                                                Code::EntryKind entry_kind) {
   ASSERT(is_optimizing());
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
-    AddPcRelativeCallTarget(target, entry_kind);
     __ GenerateUnRelocatedPcRelativeCall();
+    AddPcRelativeCallTarget(target, entry_kind);
     EmitCallsiteMetadata(token_pos, deopt_id, kind, locs);
   } else {
     // Call sites to the same target can share object pool entries. These

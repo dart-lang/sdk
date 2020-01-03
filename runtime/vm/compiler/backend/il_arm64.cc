@@ -2936,9 +2936,8 @@ class CheckStackOverflowSlowPath
 
       if (FLAG_precompiled_mode && FLAG_use_bare_instructions &&
           using_shared_stub && !stub.InVMIsolateHeap()) {
-        compiler->AddPcRelativeCallStubTarget(stub);
         __ GenerateUnRelocatedPcRelativeCall();
-
+        compiler->AddPcRelativeCallStubTarget(stub);
       } else {
         const uword entry_point_offset =
             Thread::stack_overflow_shared_stub_entry_point_offset(
@@ -5247,8 +5246,8 @@ void NullErrorSlowPath::EmitSharedStubCall(FlowGraphCompiler* compiler,
                     : object_store->null_error_stub_without_fpu_regs_stub());
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions &&
       using_shared_stub && !stub.InVMIsolateHeap()) {
-    compiler->AddPcRelativeCallStubTarget(stub);
     compiler->assembler()->GenerateUnRelocatedPcRelativeCall();
+    compiler->AddPcRelativeCallStubTarget(stub);
     return;
   }
 
@@ -5269,8 +5268,8 @@ void NullArgErrorSlowPath::EmitSharedStubCall(FlowGraphCompiler* compiler,
           : object_store->null_arg_error_stub_without_fpu_regs_stub());
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions &&
       !stub.InVMIsolateHeap()) {
-    compiler->AddPcRelativeCallStubTarget(stub);
     compiler->assembler()->GenerateUnRelocatedPcRelativeCall();
+    compiler->AddPcRelativeCallStubTarget(stub);
     return;
   }
 

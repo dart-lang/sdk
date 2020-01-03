@@ -3427,8 +3427,8 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const bool using_shared_stub = locs()->call_on_shared_slow_path();
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions &&
       using_shared_stub && !stub.InVMIsolateHeap()) {
-    compiler->AddPcRelativeCallStubTarget(stub);
     __ GenerateUnRelocatedPcRelativeCall(LS);
+    compiler->AddPcRelativeCallStubTarget(stub);
 
     // We use the "extended" environment which has the locations updated to
     // reflect live registers being saved in the shared spilling stubs (see
@@ -4662,8 +4662,8 @@ void BoxInt64Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
       // via PC-relative call.
       ASSERT(FLAG_use_bare_instructions);
       ASSERT(!stub.InVMIsolateHeap());
-      compiler->AddPcRelativeCallStubTarget(stub);
       __ GenerateUnRelocatedPcRelativeCall();
+      compiler->AddPcRelativeCallStubTarget(stub);
 
       ASSERT(!locs()->live_registers()->ContainsRegister(R0));
 
@@ -6232,8 +6232,8 @@ void CheckNullInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions &&
       using_shared_stub && !stub.InVMIsolateHeap()) {
-    compiler->AddPcRelativeCallStubTarget(stub);
     __ GenerateUnRelocatedPcRelativeCall(EQUAL);
+    compiler->AddPcRelativeCallStubTarget(stub);
 
     // We use the "extended" environment which has the locations updated to
     // reflect live registers being saved in the shared spilling stubs (see

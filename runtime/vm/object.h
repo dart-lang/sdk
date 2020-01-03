@@ -5480,8 +5480,7 @@ class Code : public Object {
 
   enum CallKind {
     kPcRelativeCall = 1,
-    kPcRelativeTailCall = 2,
-    kCallViaCode = 3,
+    kCallViaCode = 2,
   };
 
   enum CallEntryPoint {
@@ -5523,8 +5522,6 @@ class Code : public Object {
 
   // Returns null if there is no static call at 'pc'.
   RawFunction* GetStaticCallTargetFunctionAt(uword pc) const;
-  // Returns null if there is no static call at 'pc'.
-  RawCode* GetStaticCallTargetCodeAt(uword pc) const;
   // Aborts if there is no static call at 'pc'.
   void SetStaticCallTargetCodeAt(uword pc, const Code& code) const;
   void SetStubCallTargetCodeAt(uword pc, const Code& code) const;
