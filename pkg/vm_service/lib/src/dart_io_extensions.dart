@@ -39,17 +39,42 @@ extension DartIOExtension on VmService {
   Future<SocketProfile> getSocketProfile(String isolateId) =>
       _callHelper('ext.dart.io.getSocketProfile', isolateId);
 
-  Future<T> _callHelper<T>(String method, String isolateId) {
+  /// Gets the current state of HTTP logging for a given isolate.
+  ///
+  /// Warning: The returned [Future] will not complete if the target isolate is paused
+  /// and will only complete when the isolate is resumed.
+  Future<HttpTimelineLoggingState> getHttpEnableTimelineLogging(
+          String isolateId) =>
+      _callHelper('ext.dart.io.getHttpEnableTimelineLogging', isolateId);
+
+  /// Enables or disables HTTP logging for a given isolate.
+  ///
+  /// Warning: The returned [Future] will not complete if the target isolate is paused
+  /// and will only complete when the isolate is resumed.
+  Future<Success> setHttpEnableTimelineLogging(String isolateId, bool enable) =>
+      _callHelper('ext.dart.io.setHttpEnableTimelineLogging', isolateId, args: {
+        'enable': enable,
+      });
+
+  Future<T> _callHelper<T>(String method, String isolateId,
+      {Map args = const {}}) {
     if (!_factoriesRegistered) {
       _registerFactories();
     }
     return extensionCallHelper(
-        this, method, isolateId == null ? null : {'isolateId': isolateId});
+      this,
+      method,
+      {
+        if (isolateId != null) 'isolateId': isolateId,
+        ...args,
+      },
+    );
   }
 
   static void _registerFactories() {
     addTypeFactory('SocketStatistic', SocketStatistic.parse);
     addTypeFactory('SocketProfile', SocketProfile.parse);
+    addTypeFactory('HttpTimelineLoggingState', HttpTimelineLoggingState.parse);
     _factoriesRegistered = true;
   }
 }
@@ -119,4 +144,23 @@ class SocketProfile extends Response {
     sockets = List<SocketStatistic>.from(
         createServiceObject(json['sockets'], const ['SocketStatistic']) ?? []);
   }
+}
+
+/// A [HttpTimelineLoggingState] provides information about the current state of HTTP
+/// request logging for a given isolate.
+class HttpTimelineLoggingState extends Response {
+  static HttpTimelineLoggingState parse(Map json) =>
+      json == null ? null : HttpTimelineLoggingState._fromJson(json);
+
+  HttpTimelineLoggingState({@required this.enabled});
+
+  // TODO(bkonyi): make this part of the vm_service.dart library so we can
+  // call super._fromJson.
+  HttpTimelineLoggingState._fromJson(Map<String, dynamic> json)
+      : enabled = json['enabled'] {
+    type = json['type'];
+  }
+
+  /// Whether or not HttpClient.enableTimelineLogging is set to true for a given isolate.
+  final bool enabled;
 }

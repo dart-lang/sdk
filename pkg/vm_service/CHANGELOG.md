@@ -1,4 +1,8 @@
 # Changelog
+## 2.3.0
+- Added `getHttpEnableTimelineLogging` and `setHttpEnableTimelineLogging` methods.
+- Added `HttpTimelineLoggingState` class.`
+
 ## 2.2.1
 - Fixed issue where `TimelineEvent.toJson` always returned an empty map.
 
