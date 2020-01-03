@@ -8,7 +8,7 @@ import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 
-const _desc = r'Prefer declare const constructors on `@immutable` classes.';
+const _desc = r'Prefer declaring const constructors on `@immutable` classes.';
 
 const _details = r'''
 
