@@ -3212,18 +3212,6 @@ abstract class ElementImpl implements Element {
     return annotations;
   }
 
-  /// If the element associated with the given [type] is a generic function type
-  /// element, then make it a child of this element. Return the [type] as a
-  /// convenience.
-  DartType _checkElementOfType(DartType type) {
-    Element element = type?.element;
-    if (element is GenericFunctionTypeElementImpl &&
-        element.enclosingElement == null) {
-      element.enclosingElement = this;
-    }
-    return type;
-  }
-
   /// If the given [type] is a generic function type, then the element
   /// associated with the type is implicitly a child of this element and should
   /// be visited by the given [visitor].
@@ -3788,7 +3776,7 @@ abstract class ExecutableElementImpl extends ElementImpl
     if (linkedNode != null) {
       linkedContext.setReturnType(linkedNode, returnType);
     }
-    _returnType = _checkElementOfType(returnType);
+    _returnType = returnType;
     // We do this because of return type inference. At the moment when we
     // create a local function element we don't know yet its return type,
     // because we have not done static type analysis yet.
@@ -4687,7 +4675,7 @@ class GenericFunctionTypeElementImpl extends ElementImpl
   /// [returnType].
   @override
   set returnType(DartType returnType) {
-    _returnType = _checkElementOfType(returnType);
+    _returnType = returnType;
   }
 
   @override
@@ -6623,7 +6611,7 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
     if (linkedNode != null) {
       return linkedContext.setVariableType(linkedNode, type);
     }
-    _type = _checkElementOfType(type);
+    _type = type;
   }
 
   @override
@@ -7679,7 +7667,7 @@ class TypeParameterElementImpl extends ElementImpl
   }
 
   set bound(DartType bound) {
-    _bound = _checkElementOfType(bound);
+    _bound = bound;
   }
 
   @override
@@ -8026,7 +8014,7 @@ abstract class VariableElementImpl extends ElementImpl
     if (linkedNode != null) {
       return linkedContext.setVariableType(linkedNode, type);
     }
-    _type = _checkElementOfType(type);
+    _type = type;
   }
 
   /// Return the error reported during type inference for this variable, or
