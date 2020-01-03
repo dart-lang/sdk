@@ -325,25 +325,34 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var leftOperand = node.leftOperand;
     var rightOperand = node.rightOperand;
     if (operatorType == TokenType.EQ_EQ || operatorType == TokenType.BANG_EQ) {
-      assert(leftOperand is! NullLiteral); // TODO(paulberry)
       var leftType = leftOperand.accept(this);
       _flowAnalysis.equalityOp_rightBegin(leftOperand);
-      rightOperand.accept(this);
+      var rightType = rightOperand.accept(this);
       bool notEqual = operatorType == TokenType.BANG_EQ;
       _flowAnalysis.equalityOp_end(node, rightOperand, notEqual: notEqual);
-      if (rightOperand is NullLiteral) {
+
+      void buildNullConditionInfo(NullLiteral nullLiteral,
+          Expression otherOperand, NullabilityNode otherNode) {
+        assert(nullLiteral != otherOperand);
         // TODO(paulberry): only set falseChecksNonNull in unconditional
         // control flow
         // TODO(paulberry): figure out what the rules for isPure should be.
-        bool isPure = leftOperand is SimpleIdentifier;
+        bool isPure = otherOperand is SimpleIdentifier;
         var conditionInfo = _ConditionInfo(node,
             isPure: isPure,
             postDominatingIntent:
-                _postDominatedLocals.isReferenceInScope(node.leftOperand),
-            trueGuard: leftType.node,
-            falseDemonstratesNonNullIntent: leftType.node);
+                _postDominatedLocals.isReferenceInScope(otherOperand),
+            trueGuard: otherNode,
+            falseDemonstratesNonNullIntent: otherNode);
         _conditionInfo = notEqual ? conditionInfo.not(node) : conditionInfo;
       }
+
+      if (rightOperand is NullLiteral) {
+        buildNullConditionInfo(rightOperand, leftOperand, leftType.node);
+      } else if (leftOperand is NullLiteral) {
+        buildNullConditionInfo(leftOperand, rightOperand, rightType.node);
+      }
+
       return _makeNonNullableBoolType(node);
     } else if (operatorType == TokenType.AMPERSAND_AMPERSAND ||
         operatorType == TokenType.BAR_BAR) {

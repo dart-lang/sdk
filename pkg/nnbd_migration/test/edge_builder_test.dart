@@ -1085,6 +1085,42 @@ void h(int k) {}
     assertEdge(iNode, jNode, hard: false, guards: [iNode]);
   }
 
+  Future<void> test_binaryExpression_equal_null_null() async {
+    await analyze('''
+void f(int i) {
+  if (null == null) {
+    g(i);
+  }
+}
+void g(int j) {}
+''');
+    var iNode = decoratedTypeAnnotation('int i').node;
+    var jNode = decoratedTypeAnnotation('int j').node;
+    assertEdge(iNode, jNode, hard: false, guards: [alwaysPlus.toList()[1]]);
+  }
+
+  Future<void> test_binaryExpression_equal_null_yoda_condition() async {
+    await analyze('''
+void f(int i) {
+  if (null == i) {
+    g(i);
+  } else {
+    h(i);
+  }
+}
+void g(int j) {}
+void h(int k) {}
+''');
+    var iNode = decoratedTypeAnnotation('int i').node;
+    var jNode = decoratedTypeAnnotation('int j').node;
+    var kNode = decoratedTypeAnnotation('int k').node;
+    // No edge from i to k because i is known to be non-nullable at the site of
+    // the call to h()
+    assertNoEdge(iNode, kNode);
+    // But there is an edge from i to j
+    assertEdge(iNode, jNode, hard: false, guards: [iNode]);
+  }
+
   Future<void> test_binaryExpression_gt_result_not_null() async {
     await analyze('''
 bool f(int i, int j) => i > j;
@@ -3595,6 +3631,27 @@ class Sub<T2> extends Base<T2> {
         hard: false);
   }
 
+  Future<void> test_methodInvocation_mixin_super() async {
+    await analyze('''
+class C {
+  void f(int x) {}
+}
+mixin D on C {
+  void g(int y) {
+    super.f(y);
+  }
+  @override
+  void f(int z) {
+  }
+}
+''');
+    assertEdge(decoratedTypeAnnotation('int y').node,
+        decoratedTypeAnnotation('int x').node,
+        hard: true);
+    assertNoEdge(decoratedTypeAnnotation('int y').node,
+        decoratedTypeAnnotation('int z').node);
+  }
+
   Future<void> test_methodInvocation_object_method() async {
     await analyze('''
 String f(int i) => i.toString();
@@ -3828,27 +3885,6 @@ int g(int y) => C.f(y);
     assertEdge(decoratedTypeAnnotation('int f').node,
         decoratedTypeAnnotation('int g').node,
         hard: false);
-  }
-
-  Future<void> test_methodInvocation_mixin_super() async {
-    await analyze('''
-class C {
-  void f(int x) {}
-}
-mixin D on C {
-  void g(int y) {
-    super.f(y);
-  }
-  @override
-  void f(int z) {
-  }
-}
-''');
-    assertEdge(decoratedTypeAnnotation('int y').node,
-        decoratedTypeAnnotation('int x').node,
-        hard: true);
-    assertNoEdge(decoratedTypeAnnotation('int y').node,
-        decoratedTypeAnnotation('int z').node);
   }
 
   Future<void> test_methodInvocation_target_check() async {
