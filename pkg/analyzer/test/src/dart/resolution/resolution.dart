@@ -474,9 +474,11 @@ mixin ResolutionTest implements ResourceProviderMixin {
   }
 
   ExpectedError error(ErrorCode code, int offset, int length,
-          {List<ExpectedMessage> expectedMessages =
-              const <ExpectedMessage>[]}) =>
-      ExpectedError(code, offset, length, expectedMessages: expectedMessages);
+          {String text,
+          List<ExpectedContextMessage> contextMessages =
+              const <ExpectedContextMessage>[]}) =>
+      ExpectedError(code, offset, length,
+          message: text, expectedContextMessages: contextMessages);
 
   AuxiliaryElements getNodeAuxElements(AstNode node) {
     if (node is IndexExpression) {
@@ -522,8 +524,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
     }
   }
 
-  ExpectedMessage message(String filePath, int offset, int length) =>
-      ExpectedMessage(convertPath(filePath), offset, length);
+  ExpectedContextMessage message(String filePath, int offset, int length) =>
+      ExpectedContextMessage(convertPath(filePath), offset, length);
 
   Future<ResolvedUnitResult> resolveFile(String path);
 

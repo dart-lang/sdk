@@ -51,7 +51,7 @@ main() {
 print(x) {}
 ''', [
       error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 28, 1,
-          expectedMessages: [message('/test/lib/test.dart', 34, 1)]),
+          contextMessages: [message('/test/lib/test.dart', 34, 1)]),
     ]);
   }
 
@@ -65,7 +65,7 @@ main() {
 print(x) {}
 ''', [
       error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 28, 1,
-          expectedMessages: [message('/test/lib/test.dart', 38, 1)]),
+          contextMessages: [message('/test/lib/test.dart', 38, 1)]),
     ]);
   }
 
@@ -81,7 +81,7 @@ main() {
 print(x) {}
 ''', [
       error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 34, 1,
-          expectedMessages: [message('/test/lib/test.dart', 48, 1)]),
+          contextMessages: [message('/test/lib/test.dart', 48, 1)]),
     ]);
   }
 
@@ -92,7 +92,7 @@ main() {
 }
 ''', [
       error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 25, 1,
-          expectedMessages: [message('/test/lib/test.dart', 15, 1)]),
+          contextMessages: [message('/test/lib/test.dart', 15, 1)]),
     ]);
   }
 
@@ -103,7 +103,7 @@ main() {
 }
 ''', [
       error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 19, 1,
-          expectedMessages: [message('/test/lib/test.dart', 15, 1)]),
+          contextMessages: [message('/test/lib/test.dart', 15, 1)]),
     ]);
   }
 
@@ -116,7 +116,7 @@ void testTypeRef() {
 }
 ''', [
       error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 23, 6,
-          expectedMessages: [message('/test/lib/test.dart', 44, 6)]),
+          contextMessages: [message('/test/lib/test.dart', 44, 6)]),
     ]);
   }
 
@@ -129,7 +129,7 @@ void testTypeRef() {
 }
 ''', [
       error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 23, 6,
-          expectedMessages: [message('/test/lib/test.dart', 44, 6)]),
+          contextMessages: [message('/test/lib/test.dart', 44, 6)]),
     ]);
   }
 }

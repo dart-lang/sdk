@@ -23,7 +23,7 @@ class EqualElementsInConstSetTest extends DriverResolutionTest {
 var c = const {1, 2, 1};
 ''', [
       error(CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET, 21, 1,
-          expectedMessages: [
+          contextMessages: [
             message(resourceProvider.convertPath('/test/lib/test.dart'), 15, 1)
           ]),
     ]);
@@ -37,7 +37,7 @@ var c = const {1, if (1 < 0) 2 else 1};
         analysisOptions.experimentStatus.constant_update_2018
             ? [
                 error(CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET, 36, 1,
-                    expectedMessages: [
+                    contextMessages: [
                       message(
                           resourceProvider.convertPath('/test/lib/test.dart'),
                           15,
@@ -105,7 +105,7 @@ var c = const {1, if (0 < 1) 1};
         analysisOptions.experimentStatus.constant_update_2018
             ? [
                 error(CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET, 29, 1,
-                    expectedMessages: [
+                    contextMessages: [
                       message(
                           resourceProvider.convertPath('/test/lib/test.dart'),
                           15,
@@ -126,7 +126,7 @@ class A<T> {
 var c = const {const A<int>(), const A<int>()};
 ''', [
       error(CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET, 60, 14,
-          expectedMessages: [
+          contextMessages: [
             message(resourceProvider.convertPath('/test/lib/test.dart'), 44, 14)
           ]),
     ]);
@@ -163,7 +163,7 @@ var c = const {1, ...{1}};
         analysisOptions.experimentStatus.constant_update_2018
             ? [
                 error(CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET, 21, 3,
-                    expectedMessages: [
+                    contextMessages: [
                       message(
                           resourceProvider.convertPath('/test/lib/test.dart'),
                           15,
