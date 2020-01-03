@@ -26,7 +26,7 @@ main(List<String> args) {
     await checkTests(dataDir, new IdTestingDataComputer(),
         args: args,
         testedConfigs: [sharedConfig],
-        supportedMarkers: sharedMarkers);
+        supportedMarkers: [cfeMarker, dart2jsMarker]);
   });
 }
 

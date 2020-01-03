@@ -388,7 +388,7 @@ class TestConfig {
 /// [setUpFunction] is called once for every test that is executed.
 /// If [forUserSourceFilesOnly] is true, we examine the elements in the main
 /// file and any supporting libraries.
-Future checkTests<T>(Directory dataDir, DataComputer<T> dataComputer,
+Future<void> checkTests<T>(Directory dataDir, DataComputer<T> dataComputer,
     {List<String> skip: const <String>[],
     bool filterActualData(IdValue idValue, ActualData<T> actualData),
     List<String> options: const <String>[],
@@ -415,12 +415,11 @@ Future checkTests<T>(Directory dataDir, DataComputer<T> dataComputer,
 
   dataComputer.setup();
 
-  Future<bool> checkTest(TestData testData,
+  Future<Map<String, TestResult<T>>> checkTest(TestData testData,
       {bool testAfterFailures,
       bool verbose,
       bool succinct,
       bool printCode}) async {
-    bool hasFailures = false;
     String name = testData.name;
     List<String> testOptions = options.toList();
     if (name.endsWith('_ea.dart')) {
@@ -429,27 +428,26 @@ Future checkTests<T>(Directory dataDir, DataComputer<T> dataComputer,
 
     if (setUpFunction != null) setUpFunction();
 
+    Map<String, TestResult<T>> results = {};
     if (skip.contains(name)) {
       print('--skipped ------------------------------------------------------');
     } else {
       for (TestConfig testConfiguration in testedConfigs) {
         print('--from (${testConfiguration.name})-------------');
-        if (await runTestForConfiguration(
+        results[testConfiguration.marker] = await runTestForConfiguration(
             testConfiguration, dataComputer, testData, testOptions,
             filterActualData: filterActualData,
             verbose: verbose,
             succinct: succinct,
             testAfterFailures: testAfterFailures,
             forUserLibrariesOnly: forUserLibrariesOnly,
-            printCode: printCode)) {
-          hasFailures = true;
-        }
+            printCode: printCode);
       }
     }
-    return hasFailures;
+    return results;
   }
 
-  await runTests(dataDir,
+  await runTests<T>(dataDir,
       args: args,
       shards: shards,
       shardIndex: shardIndex,
@@ -466,7 +464,7 @@ Uri createUriForFileName(String fileName) {
   return Uri.parse('memory:sdk/tests/compiler/dart2js_native/$fileName');
 }
 
-Future<bool> runTestForConfiguration<T>(TestConfig testConfiguration,
+Future<TestResult<T>> runTestForConfiguration<T>(TestConfig testConfiguration,
     DataComputer<T> dataComputer, TestData testData, List<String> options,
     {bool filterActualData(IdValue idValue, ActualData<T> actualData),
     bool verbose: false,

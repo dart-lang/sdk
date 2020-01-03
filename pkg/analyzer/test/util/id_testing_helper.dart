@@ -43,7 +43,7 @@ final TestConfig analyzerNnbdConfig = TestConfig(
 /// tests.
 Uri _defaultDir = Uri.parse('file:///a/b/c/');
 
-Future<bool> checkTests<T>(
+Future<TestResult<T>> checkTests<T>(
     String rawCode, DataComputer<T> dataComputer, FeatureSet featureSet) async {
   AnnotatedCode code =
       AnnotatedCode.fromText(rawCode, commentStart, commentEnd);
@@ -74,24 +74,23 @@ void onFailure(String message) {
 /// Runs [dataComputer] on [testData] for all [testedConfigs].
 ///
 /// Returns `true` if an error was encountered.
-Future<bool> runTest<T>(TestData testData, DataComputer<T> dataComputer,
-    List<TestConfig> testedConfigs,
+Future<Map<String, TestResult<T>>> runTest<T>(TestData testData,
+    DataComputer<T> dataComputer, List<TestConfig> testedConfigs,
     {bool testAfterFailures,
     bool forUserLibrariesOnly = true,
     Iterable<Id> globalIds = const <Id>[],
     void Function(String message) onFailure}) async {
-  bool hasFailures = false;
+  Map<String, TestResult<T>> results = {};
   for (TestConfig config in testedConfigs) {
-    if (await runTestForConfig(testData, dataComputer, config,
-        fatalErrors: !testAfterFailures, onFailure: onFailure)) {
-      hasFailures = true;
-    }
+    results[config.marker] = await runTestForConfig(
+        testData, dataComputer, config,
+        fatalErrors: !testAfterFailures, onFailure: onFailure);
   }
-  return hasFailures;
+  return results;
 }
 
 /// Creates a test runner for [dataComputer] on [testedConfigs].
-RunTestFunction runTestFor<T>(
+RunTestFunction<T> runTestFor<T>(
     DataComputer<T> dataComputer, List<TestConfig> testedConfigs) {
   return (TestData testData,
       {bool testAfterFailures, bool verbose, bool succinct, bool printCode}) {
@@ -103,7 +102,7 @@ RunTestFunction runTestFor<T>(
 /// Runs [dataComputer] on [testData] for [config].
 ///
 /// Returns `true` if an error was encountered.
-Future<bool> runTestForConfig<T>(
+Future<TestResult<T>> runTestForConfig<T>(
     TestData testData, DataComputer<T> dataComputer, TestConfig config,
     {bool fatalErrors, void Function(String message) onFailure}) async {
   MemberAnnotations<IdValue> memberAnnotations =
@@ -148,7 +147,7 @@ Future<bool> runTestForConfig<T>(
     }
 
     onFailure('Errors found:\n  ${errors.map(_formatError).join('\n  ')}');
-    return true;
+    return TestResult<T>.erroneous();
   }
   Map<Uri, Map<Id, ActualData<T>>> actualMaps = <Uri, Map<Id, ActualData<T>>>{};
   Map<Id, ActualData<T>> globalData = <Id, ActualData<T>>{};

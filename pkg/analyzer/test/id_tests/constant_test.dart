@@ -18,7 +18,7 @@ import '../util/id_testing_helper.dart';
 main(List<String> args) async {
   Directory dataDir = Directory.fromUri(Platform.script
       .resolve('../../../_fe_analyzer_shared/test/constants/data'));
-  await runTests(dataDir,
+  await runTests<String>(dataDir,
       args: args,
       supportedMarkers: sharedMarkers,
       createUriForFileName: createUriForFileName,

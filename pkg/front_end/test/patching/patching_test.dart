@@ -11,14 +11,14 @@ import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:front_end/src/fasta/builder/builder.dart';
 import 'package:front_end/src/fasta/builder/class_builder.dart';
 
-import 'package:front_end/src/testing/features.dart';
+import 'package:_fe_analyzer_shared/src/testing/features.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
 import 'package:front_end/src/testing/id_testing_utils.dart';
 import 'package:kernel/ast.dart';
 
 main(List<String> args) async {
   Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
-  await runTests(dataDir,
+  await runTests<Features>(dataDir,
       args: args,
       supportedMarkers: sharedMarkers,
       createUriForFileName: createUriForFileName,

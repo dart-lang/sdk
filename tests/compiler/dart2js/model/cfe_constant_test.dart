@@ -23,7 +23,7 @@ main(List<String> args) {
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script
         .resolve('../../../../pkg/_fe_analyzer_shared/test/constants/data'));
-    await checkTests(dataDir, new ConstantDataComputer(),
+    await checkTests<String>(dataDir, new ConstantDataComputer(),
         args: args,
         testedConfigs: [sharedConfig],
         supportedMarkers: sharedMarkers);

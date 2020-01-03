@@ -15,9 +15,9 @@ import 'package:kernel/ast.dart';
 main(List<String> args) async {
   Directory dataDir = new Directory.fromUri(Platform.script
       .resolve('../../../_fe_analyzer_shared/test/inheritance/data'));
-  await runTests(dataDir,
+  await runTests<String>(dataDir,
       args: args,
-      supportedMarkers: sharedMarkersWithNnbd,
+      supportedMarkers: cfeAnalyzerMarkers,
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
       runTest: runTestFor(

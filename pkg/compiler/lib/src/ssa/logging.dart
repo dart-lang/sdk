@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../elements/entities.dart';
-import 'package:front_end/src/testing/features.dart';
+import 'package:_fe_analyzer_shared/src/testing/features.dart';
 import 'nodes.dart';
 
 /// Log used for unit testing optimizations.

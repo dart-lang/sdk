@@ -2,21 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*cfe|dart2js.library: nnbd=false*/
+/*cfe.library: nnbd=false*/
 /*cfe:nnbd.library: nnbd=true*/
 
 throwing() {
-  /*cfe|dart2js.<bottom>*/
+  /*cfe.<bottom>*/
   /*cfe:nnbd.Never*/
   throw
-      /*cfe|dart2js.String*/
+      /*cfe.String*/
       /*cfe:nnbd.String!*/
       'foo';
 }
 
 rethrowing() {
   try {} catch (_) {
-    /*cfe|dart2js.<bottom>*/
+    /*cfe.<bottom>*/
     /*cfe:nnbd.Never*/
     rethrow;
   }

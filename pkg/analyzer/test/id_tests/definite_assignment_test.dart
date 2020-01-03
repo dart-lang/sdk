@@ -18,9 +18,9 @@ main(List<String> args) async {
   Directory dataDir = Directory.fromUri(Platform.script.resolve(
       '../../../_fe_analyzer_shared/test/flow_analysis/definite_assignment/'
       'data'));
-  await runTests(dataDir,
+  await runTests<String>(dataDir,
       args: args,
-      supportedMarkers: sharedMarkers,
+      supportedMarkers: cfeAnalyzerMarkers,
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
       runTest: runTestFor(

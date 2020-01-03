@@ -5,16 +5,7 @@
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 import 'package:_fe_analyzer_shared/src/testing/id.dart'
     show ActualData, ClassId, Id, IdKind, IdValue, MemberId, NodeId;
-import 'package:_fe_analyzer_shared/src/testing/id_testing.dart'
-    show
-        CompiledData,
-        DataInterpreter,
-        MemberAnnotations,
-        RunTestFunction,
-        TestData,
-        cfeMarker,
-        cfeWithNnbdMarker,
-        checkCode;
+import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:kernel/ast.dart';
 import '../api_prototype/compiler_options.dart'
     show CompilerOptions, DiagnosticMessage;
@@ -188,7 +179,7 @@ Uri createUriForFileName(String fileName) => toTestUri(fileName);
 void onFailure(String message) => throw new StateError(message);
 
 /// Creates a test runner for [dataComputer] on [testedConfigs].
-RunTestFunction runTestFor<T>(
+RunTestFunction<T> runTestFor<T>(
     DataComputer<T> dataComputer, List<TestConfig> testedConfigs) {
   retainDataForTesting = true;
   return (TestData testData,
@@ -205,8 +196,8 @@ RunTestFunction runTestFor<T>(
 /// Runs [dataComputer] on [testData] for all [testedConfigs].
 ///
 /// Returns `true` if an error was encountered.
-Future<bool> runTest<T>(TestData testData, DataComputer<T> dataComputer,
-    List<TestConfig> testedConfigs,
+Future<Map<String, TestResult<T>>> runTest<T>(TestData testData,
+    DataComputer<T> dataComputer, List<TestConfig> testedConfigs,
     {bool testAfterFailures,
     bool verbose,
     bool succinct,
@@ -214,24 +205,23 @@ Future<bool> runTest<T>(TestData testData, DataComputer<T> dataComputer,
     bool forUserLibrariesOnly: true,
     Iterable<Id> globalIds: const <Id>[],
     void onFailure(String message)}) async {
-  bool hasFailures = false;
+  Map<String, TestResult<T>> results = {};
   for (TestConfig config in testedConfigs) {
-    if (await runTestForConfig(testData, dataComputer, config,
+    results[config.marker] = await runTestForConfig(
+        testData, dataComputer, config,
         fatalErrors: !testAfterFailures,
         onFailure: onFailure,
         verbose: verbose,
         succinct: succinct,
-        printCode: printCode)) {
-      hasFailures = true;
-    }
+        printCode: printCode);
   }
-  return hasFailures;
+  return results;
 }
 
 /// Runs [dataComputer] on [testData] for [config].
 ///
 /// Returns `true` if an error was encountered.
-Future<bool> runTestForConfig<T>(
+Future<TestResult<T>> runTestForConfig<T>(
     TestData testData, DataComputer<T> dataComputer, TestConfig config,
     {bool fatalErrors,
     bool verbose,
@@ -419,7 +409,7 @@ Future<bool> runTestForConfig<T>(
     }
   }
 
-  CfeCompiledData compiledData = new CfeCompiledData<T>(
+  CfeCompiledData<T> compiledData = new CfeCompiledData<T>(
       compilerResult, testData.testFileUri, actualMaps, globalData);
   return checkCode(config.name, testData.testFileUri, testData.code,
       memberAnnotations, compiledData, dataComputer.dataValidator,

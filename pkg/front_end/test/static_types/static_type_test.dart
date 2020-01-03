@@ -15,9 +15,9 @@ import 'package:kernel/type_environment.dart';
 
 main(List<String> args) async {
   Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
-  await runTests(dataDir,
+  await runTests<String>(dataDir,
       args: args,
-      supportedMarkers: sharedMarkersWithNnbd,
+      supportedMarkers: cfeMarkersWithNnbd,
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
       runTest: runTestFor(const StaticTypeDataComputer(),

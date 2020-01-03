@@ -18,9 +18,9 @@ import '../util/id_testing_helper.dart';
 main(List<String> args) async {
   Directory dataDir = Directory.fromUri(Platform.script.resolve(
       '../../../_fe_analyzer_shared/test/flow_analysis/reachability/data'));
-  await runTests(dataDir,
+  await runTests<Set<_ReachabilityAssertion>>(dataDir,
       args: args,
-      supportedMarkers: sharedMarkers,
+      supportedMarkers: cfeAnalyzerMarkers,
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
       runTest:
@@ -32,11 +32,12 @@ class FlowTestBase {
 
   /// Resolve the given [code] and track nullability in the unit.
   Future<void> trackCode(String code) async {
-    if (await checkTests(
+    TestResult<Set<_ReachabilityAssertion>> testResult = await checkTests(
         code,
         const _ReachabilityDataComputer(),
         FeatureSet.forTesting(
-            sdkVersion: '2.2.2', additionalFeatures: [Feature.non_nullable]))) {
+            sdkVersion: '2.2.2', additionalFeatures: [Feature.non_nullable]));
+    if (testResult.hasFailures) {
       fail('Failure(s)');
     }
   }

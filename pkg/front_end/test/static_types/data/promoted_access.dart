@@ -7,8 +7,8 @@
 
 class Class<T> {
   method(T o) {
-    if (/*cfe|dart2js.T*/ /*cfe:nnbd.T%*/ o is Class) {
-      /*cfe|dart2js.T & Class<dynamic>*/
+    if (/*cfe.T*/ /*cfe:nnbd.T%*/ o is Class) {
+      /*cfe.T & Class<dynamic>*/
       /*cfe:nnbd.T! & Class<dynamic>!*/
       o. /*invoke: dynamic*/ method(/*Null*/ null);
     }
@@ -16,8 +16,8 @@ class Class<T> {
 }
 
 method<T>(T o) {
-  if (/*cfe|dart2js.T*/ /*cfe:nnbd.T%*/ o is Class) {
-    /*cfe|dart2js.T & Class<dynamic>*/
+  if (/*cfe.T*/ /*cfe:nnbd.T%*/ o is Class) {
+    /*cfe.T & Class<dynamic>*/
     /*cfe:nnbd.T! & Class<dynamic>!*/
     o. /*invoke: dynamic*/ method(/*Null*/ null);
   }
@@ -25,13 +25,13 @@ method<T>(T o) {
 
 main() {
   var c = new
-      /*cfe|dart2js.Class<dynamic>*/
+      /*cfe.Class<dynamic>*/
       /*cfe:nnbd.Class<dynamic>!*/
       Class/*<dynamic>*/();
-  /*cfe|dart2js.Class<dynamic>*/ /*cfe:nnbd.Class<dynamic>!*/ c
+  /*cfe.Class<dynamic>*/ /*cfe:nnbd.Class<dynamic>!*/ c
       . /*invoke: dynamic*/ method(
-          /*cfe|dart2js.Class<dynamic>*/ /*cfe:nnbd.Class<dynamic>!*/ c);
+          /*cfe.Class<dynamic>*/ /*cfe:nnbd.Class<dynamic>!*/ c);
   /*invoke: dynamic*/ method
-      /*cfe|dart2js.<Class<dynamic>>*/ /*cfe:nnbd.<Class<dynamic>!>*/ (
-          /*cfe|dart2js.Class<dynamic>*/ /*cfe:nnbd.Class<dynamic>!*/ c);
+      /*cfe.<Class<dynamic>>*/ /*cfe:nnbd.<Class<dynamic>!>*/ (
+          /*cfe.Class<dynamic>*/ /*cfe:nnbd.Class<dynamic>!*/ c);
 }

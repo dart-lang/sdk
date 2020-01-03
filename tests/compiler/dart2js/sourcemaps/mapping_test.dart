@@ -138,9 +138,9 @@ Future runTest(int index, Test test,
 
   if (expectedLocations.isNotEmpty) {
     print('--Missing source locations:---------------------------------------');
-    AnnotatedCode annotatedCode = new AnnotatedCode(test.code, []);
-    expectedLocations.forEach(
-        (l) => annotatedCode.addAnnotation(l.lineNo, l.columnNo, l.methodName));
+    AnnotatedCode annotatedCode = new AnnotatedCode(test.code, test.code, []);
+    expectedLocations.forEach((l) => annotatedCode.addAnnotation(
+        l.lineNo, l.columnNo, '/*', l.methodName, '*/'));
     print(annotatedCode.toText());
     print('------------------------------------------------------------------');
     Expect.isTrue(
@@ -151,9 +151,9 @@ Future runTest(int index, Test test,
   }
   if (extraLocations.isNotEmpty) {
     print('--Extra source locations:-----------------------------------------');
-    AnnotatedCode annotatedCode = new AnnotatedCode(test.code, []);
-    extraLocations.forEach(
-        (l) => annotatedCode.addAnnotation(l.lineNo, l.columnNo, l.methodName));
+    AnnotatedCode annotatedCode = new AnnotatedCode(test.code, test.code, []);
+    extraLocations.forEach((l) => annotatedCode.addAnnotation(
+        l.lineNo, l.columnNo, '/*', l.methodName, '*/'));
     print(annotatedCode.toText());
     print('------------------------------------------------------------------');
     Expect.isTrue(
