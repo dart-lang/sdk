@@ -105,8 +105,12 @@ List<Annotation> _computeAnnotations<T>(
         // marker.
         newAnnotationsPerMarker[marker] = idValue.annotation;
       } else if (actualData != null) {
-        newAnnotationsPerMarker[marker] =
-            createAnnotationFromData(actualData, null);
+        if (dataInterpreter.isAsExpected(actualData.value, null) != null) {
+          // Insert annotation if the actual value is not equivalent to an
+          // empty value.
+          newAnnotationsPerMarker[marker] =
+              createAnnotationFromData(actualData, null);
+        }
       }
     }
 

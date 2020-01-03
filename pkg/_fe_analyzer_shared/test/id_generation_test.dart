@@ -105,6 +105,39 @@ some code/*test*/some more code
       },
       expectedResult: 'some code/*a.test1*//*b|c.test*/some more code');
 
+  testString('some codesome more code',
+      actualData: {
+        'a': {
+          new NodeId(9, IdKind.node): '',
+        },
+        'b': {
+          new NodeId(9, IdKind.node): '',
+        },
+        'c': {
+          new NodeId(9, IdKind.node): '',
+        },
+      },
+      expectedResult: 'some codesome more code');
+
+  testString('some codesome more code',
+      actualData: {
+        'a': {
+          new NodeId(9, IdKind.node): '',
+        },
+        'b': {
+          new NodeId(9, IdKind.node): '',
+        },
+      },
+      expectedResult: 'some codesome more code');
+
+  testString('some codesome more code',
+      actualData: {
+        'a': {
+          new NodeId(9, IdKind.node): '',
+        },
+      },
+      expectedResult: 'some codesome more code');
+
   testString('''
 some code
 /*member: memberName:test*/
