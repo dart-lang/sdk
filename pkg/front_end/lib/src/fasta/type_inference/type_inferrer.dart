@@ -830,7 +830,8 @@ class TypeInferrerImpl implements TypeInferrer {
         new PropertyGet(new VariableGet(t), callName, callMember)
           ..fileOffset = fileOffset;
     DartType tearoffType =
-        getGetterTypeForMemberTarget(callMember, expressionType);
+        getGetterTypeForMemberTarget(callMember, expressionType)
+            .withNullability(expressionType.nullability);
     ConditionalExpression conditional = new ConditionalExpression(nullCheck,
         new NullLiteral()..fileOffset = fileOffset, tearOff, tearoffType);
     return new TypedTearoff(
@@ -859,7 +860,8 @@ class TypeInferrerImpl implements TypeInferrer {
         if (_shouldTearOffCall(contextType, expressionType)) {
           needsTearoff = true;
           expressionType =
-              getGetterTypeForMemberTarget(callMember, expressionType);
+              getGetterTypeForMemberTarget(callMember, expressionType)
+                  .withNullability(expressionType.nullability);
         }
       }
     }
