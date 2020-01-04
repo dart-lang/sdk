@@ -246,7 +246,7 @@ class ProgramBuilder {
 
     _markEagerClasses();
 
-    if (_options.experimentNewRti) {
+    if (_options.useNewRti) {
       associateNamedTypeVariablesNewRti();
     }
 
@@ -986,7 +986,7 @@ class ProgramBuilder {
 
   js.Expression _generateFunctionType(ClassEntity /*?*/ enclosingClass,
           FunctionType type, OutputUnit outputUnit) =>
-      _options.experimentNewRti
+      _options.useNewRti
           ? _generateFunctionTypeNewRti(enclosingClass, type, outputUnit)
           : _generateFunctionTypeLegacy(enclosingClass, type, outputUnit);
 
@@ -1036,7 +1036,7 @@ class ProgramBuilder {
         _task.nativeEmitter,
         _namer,
         _rtiEncoder,
-        _options.experimentNewRti ? _rtiRecipeEncoder : null,
+        _options.useNewRti ? _rtiRecipeEncoder : null,
         _nativeData,
         _interceptorData,
         _codegenWorld,

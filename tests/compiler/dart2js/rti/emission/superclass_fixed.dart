@@ -5,7 +5,7 @@
 /*class: B:checkedInstance,checks=[],indirectInstance*/
 class B<T> {}
 
-/*class: C:checks=[$asB],instance*/
+/*class: C:checks=[],instance*/
 class C extends B<String> {}
 
 @pragma('dart2js:noInline')

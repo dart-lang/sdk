@@ -7,7 +7,7 @@
 @JS()
 library foo;
 
-/*class: global#JavaScriptObject:checks=[$asA,$isA]*/
+/*class: global#JavaScriptObject:checks=[$isA]*/
 
 import 'package:expect/expect.dart';
 import 'package:js/js.dart';

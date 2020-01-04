@@ -17,22 +17,22 @@ class A<U> = Object with M<U>;
 /*class: B:checks=[],indirectInstance*/
 class B<V> = Object with A<V>;
 
-/*class: C:checks=[$asM],indirectInstance*/
+/*class: C:checks=[],indirectInstance*/
 class C<U> = Object with M<List<U>>;
 
-/*class: D:checks=[$asM],indirectInstance*/
+/*class: D:checks=[],indirectInstance*/
 class D<V> = Object with C<Set<V>>;
 
-/*class: E:checks=[$asM],instance*/
+/*class: E:checks=[],instance*/
 class E extends A<num> {}
 
-/*class: F:checks=[$asM],instance*/
+/*class: F:checks=[],instance*/
 class F extends B<String> {}
 
 /*class: G:checks=[],instance*/
 class G<T> extends C<T> {}
 
-/*class: H:checks=[$asM],instance*/
+/*class: H:checks=[],instance*/
 class H<T> extends D<Map<String, T>> {}
 
 main() {

@@ -689,7 +689,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     node.block.addBefore(node, splitInstruction);
 
     HInstruction typeInfo;
-    if (_options.experimentNewRti) {
+    if (_options.useNewRti) {
       typeInfo = HLoadType.type(
           _closedWorld.elementEnvironment.createInterfaceType(
               commonElements.jsArrayClass, [commonElements.stringType]),
@@ -1409,7 +1409,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
     DartType fieldType = _closedWorld.elementEnvironment.getFieldType(field);
 
-    if (_options.experimentNewRti) {
+    if (_options.useNewRti) {
       AbstractValueWithPrecision checkedType =
           _abstractValueDomain.createFromStaticType(fieldType, nullable: true);
       if (checkedType.isPrecise &&

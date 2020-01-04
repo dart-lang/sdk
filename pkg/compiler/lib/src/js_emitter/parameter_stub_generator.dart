@@ -36,7 +36,7 @@ class ParameterStubGenerator {
   final NativeEmitter _nativeEmitter;
   final Namer _namer;
   final RuntimeTypesEncoder _rtiEncoder;
-  final RecipeEncoder _rtiRecipeEncoder; // `null` if not experimentNewRti.
+  final RecipeEncoder _rtiRecipeEncoder; // `null` if not useNewRti.
   final NativeData _nativeData;
   final InterceptorData _interceptorData;
   final CodegenWorld _codegenWorld;

@@ -380,7 +380,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       case 'USE_CONTENT_SECURITY_POLICY':
         return options.useContentSecurityPolicy;
       case 'USE_NEW_RTI':
-        return options.experimentNewRti;
+        return options.useNewRti;
       case 'VARIANCE':
         return options.enableVariance;
       default:
@@ -517,7 +517,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
                 "Unexpected function signature: "
                 "$targetElement inside a non-closure: $target");
           }
-          if (options.experimentNewRti) {
+          if (options.useNewRti) {
             _buildMethodSignatureNewRti(originalClosureNode);
           } else {
             _buildMethodSignature(originalClosureNode);
@@ -805,7 +805,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       bool needsTypeArguments =
           closedWorld.rtiNeed.classNeedsTypeArguments(cls);
       if (needsTypeArguments) {
-        if (options.experimentNewRti) {
+        if (options.useNewRti) {
           InterfaceType thisType = _elementEnvironment.getThisType(cls);
           HInstruction typeArgument = _typeBuilder.analyzeTypeArgumentNewRti(
               thisType, sourceElement,
@@ -1376,7 +1376,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     if (elementType.containsFreeTypeVariables) {
       // Type must be computed in the entry function, where the type variables
       // are in scope, and passed to the body function.
-      if (options.experimentNewRti) {
+      if (options.useNewRti) {
         inputs
             .add(_typeBuilder.analyzeTypeArgumentNewRti(elementType, function));
       } else {
@@ -1500,8 +1500,9 @@ class KernelSsaGraphBuilder extends ir.Visitor {
             bound is! VoidType &&
             bound != _commonElements.objectType) {
           registry.registerTypeUse(TypeUse.typeVariableBoundCheck(bound));
-          if (options.experimentNewRti) {
-            _checkTypeBound(newParameter, bound, local.name);
+          if (options.useNewRti) {
+            // TODO(sigmund): method name here is not minified, should it be?
+            _checkTypeBound(newParameter, bound, local.name, method.name);
           } else {
             _assertIsType(
                 newParameter,
@@ -3104,7 +3105,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     if (!_rtiNeed.classNeedsTypeArguments(type.element) || type.treatAsRaw) {
       return object;
     }
-    if (options.experimentNewRti) {
+    if (options.useNewRti) {
       // [type] could be `List<T>`, so ensure it is `JSArray<T>`.
       InterfaceType arrayType =
           InterfaceType(_commonElements.jsArrayClass, type.typeArguments);
@@ -4046,7 +4047,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     List<HInstruction> inputs = <HInstruction>[closure];
     List<DartType> typeArguments = <DartType>[];
 
-    if (options.experimentNewRti) {
+    if (options.useNewRti) {
       closedWorld.registerExtractTypeArguments(cls);
       HInstruction instanceType =
           HInstanceEnvironment(object, _abstractValueDomain.dynamicType);
@@ -4695,7 +4696,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
   void _handleForeignGetJSArrayInteropRti(ir.StaticInvocation invocation) {
     if (_unexpectedForeignArguments(invocation,
             minPositional: 0, maxPositional: 0) ||
-        !options.experimentNewRti) {
+        !options.useNewRti) {
       // Result expected on stack.
       stack.add(graph.addConstantNull(closedWorld));
       return;
@@ -5334,18 +5335,21 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     add(assertIsSubtype);
   }
 
-  void _checkTypeBound(
-      HInstruction typeInstruction, DartType bound, String variableName) {
+  void _checkTypeBound(HInstruction typeInstruction, DartType bound,
+      String variableName, String methodName) {
     HInstruction boundInstruction = _typeBuilder.analyzeTypeArgumentNewRti(
         localsHandler.substInContext(bound), sourceElement);
 
     HInstruction variableNameInstruction =
         graph.addConstantString(variableName, closedWorld);
+    HInstruction methodNameInstruction =
+        graph.addConstantString(methodName, closedWorld);
     FunctionEntity element = _commonElements.checkTypeBound;
     var inputs = <HInstruction>[
       typeInstruction,
       boundInstruction,
-      variableNameInstruction
+      variableNameInstruction,
+      methodNameInstruction,
     ];
     HInstruction checkBound = new HInvokeStatic(
         element, inputs, typeInstruction.instructionType, const <DartType>[]);
@@ -5430,7 +5434,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       return;
     }
 
-    if (options.experimentNewRti) {
+    if (options.useNewRti) {
       HInstruction rti =
           _typeBuilder.analyzeTypeArgumentNewRti(typeValue, sourceElement);
       AbstractValueWithPrecision checkedType =
@@ -6055,7 +6059,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       FunctionEntity function, TypeVariableType typeVariable) {
     DartType bound =
         _elementEnvironment.getTypeVariableDefaultType(typeVariable.element);
-    if (bound.containsTypeVariables && !options.experimentNewRti) {
+    if (bound.containsTypeVariables && !options.useNewRti) {
       // TODO(33422): Support type variables in default
       // types. Temporarily using the "any" type (encoded as -2) to
       // avoid failing on bounds checks.

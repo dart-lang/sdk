@@ -58,9 +58,12 @@ const Map<String, List<String>> expectedIsChecksMap =
   'A': const <String>[],
   'B': const <String>[],
   'C': const <String>[r'$isB'],
-  'D': const <String>[r'$isB', r'$asB'],
+  // TODO(sigmund): change these tests to check that the new rti medatada
+  // includes the information we need to check the equivalent of D.$asB and
+  // F.$asB
+  'D': const <String>[r'$isB'],
   'E': const <String>[],
-  'F': const <String>[r'$asB'],
+  'F': const <String>[],
   'G': const <String>[],
   'H': const <String>[r'$isG'],
   'I': const <String>[],

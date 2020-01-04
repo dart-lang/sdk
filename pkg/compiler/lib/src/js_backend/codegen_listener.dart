@@ -122,7 +122,7 @@ class CodegenEnqueuerListener extends EnqueuerListener {
     }
 
     // TODO(fishythefish): Avoid registering unnecessary impacts.
-    if (_options.experimentNewRti && !_isNewRtiUsed) {
+    if (_options.useNewRti && !_isNewRtiUsed) {
       WorldImpactBuilderImpl newRtiImpact = new WorldImpactBuilderImpl();
       newRtiImpact.registerStaticUse(StaticUse.staticInvoke(
           _commonElements.rtiAddRulesMethod, CallStructure.TWO_ARGS));
@@ -189,7 +189,7 @@ class CodegenEnqueuerListener extends EnqueuerListener {
           _elementEnvironment.getThisType(_commonElements
               .getInstantiationClass(constant.typeArguments.length))));
 
-      if (_options.experimentNewRti) {
+      if (_options.useNewRti) {
         impactBuilder.registerStaticUse(StaticUse.staticInvoke(
             _commonElements.instantiatedGenericFunctionTypeNewRti,
             CallStructure.TWO_ARGS));

@@ -5,7 +5,7 @@
 /*class: A:checkedInstance,checks=[],indirectInstance*/
 class A<T> {}
 
-/*class: B:checks=[$asA],instance*/
+/*class: B:checks=[],instance*/
 class B<S, T> extends A<T> {} // Non-trivial substitution of A.
 
 /*class: C:checks=[],instance*/

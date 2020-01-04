@@ -849,11 +849,11 @@ _generalTypeCheckImplementation(object) {
 }
 
 /// Called from generated code.
-checkTypeBound(Rti type, Rti bound, variable) {
+checkTypeBound(Rti type, Rti bound, variable, methodName) {
   if (isSubtype(_theUniverse(), type, bound)) return type;
-  String message = "Type '${_rtiToString(type, null)}'"
-      " is not a subtype of type '${_rtiToString(bound, null)}'"
-      " of '${_Utils.asString(variable)}'";
+  String message = "The type argument '${_rtiToString(type, null)}' is not"
+      " a subtype of the type variable bound '${_rtiToString(bound, null)}'"
+      " of type variable '${_Utils.asString(variable)}' in '$methodName'.";
   throw _TypeError.fromMessage(message);
 }
 

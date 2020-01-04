@@ -626,7 +626,7 @@ class FragmentEmitter {
       this._nativeEmitter,
       this._closedWorld,
       this._codegenWorld) {
-    if (_options.experimentNewRti) {
+    if (_options.useNewRti) {
       _recipeEncoder = RecipeEncoderImpl(
           _closedWorld,
           _options.disableRtiOptimization
@@ -711,8 +711,7 @@ class FragmentEmitter {
           emitEmbeddedGlobalsPart2(program, deferredLoadingState),
       'typeRules': emitTypeRules(fragment),
       'variances': emitVariances(fragment),
-      'sharedTypeRtis':
-          _options.experimentNewRti ? TypeReferenceResource() : [],
+      'sharedTypeRtis': _options.useNewRti ? TypeReferenceResource() : [],
       'nativeSupport': emitNativeSupport(fragment),
       'jsInteropSupport': jsInteropAnalysis.buildJsInteropBootstrap(
               _codegenWorld, _closedWorld.nativeData, _namer) ??
@@ -843,8 +842,7 @@ class FragmentEmitter {
       'types': deferredTypes,
       'nativeSupport': nativeSupport,
       'typesOffset': _namer.typesOffsetName,
-      'sharedTypeRtis':
-          _options.experimentNewRti ? TypeReferenceResource() : [],
+      'sharedTypeRtis': _options.useNewRti ? TypeReferenceResource() : [],
     });
 
     if (_options.experimentStartupFunctions) {
@@ -855,7 +853,7 @@ class FragmentEmitter {
   }
 
   void finalizeTypeReferences(js.Node code) {
-    if (!_options.experimentNewRti) return;
+    if (!_options.useNewRti) return;
 
     TypeReferenceFinalizer finalizer = TypeReferenceFinalizerImpl(
         _emitter, _commonElements, _recipeEncoder, _options.enableMinification);
@@ -1931,7 +1929,7 @@ class FragmentEmitter {
           js.string(TYPE_TO_INTERCEPTOR_MAP), js.LiteralNull()));
     }
 
-    if (_options.experimentNewRti) {
+    if (_options.useNewRti) {
       globals.add(js.Property(js.string(RTI_UNIVERSE), createRtiUniverse()));
     }
 
@@ -1972,7 +1970,7 @@ class FragmentEmitter {
   }
 
   js.Block emitTypeRules(Fragment fragment) {
-    if (!_options.experimentNewRti) return js.Block.empty();
+    if (!_options.useNewRti) return js.Block.empty();
 
     List<js.Statement> statements = [];
     bool addJsObjectRedirections = false;
@@ -2063,7 +2061,7 @@ class FragmentEmitter {
   }
 
   js.Statement emitVariances(Fragment fragment) {
-    if (!_options.enableVariance || !_options.experimentNewRti) {
+    if (!_options.enableVariance || !_options.useNewRti) {
       return js.EmptyStatement();
     }
 

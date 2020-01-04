@@ -16,8 +16,7 @@ class C<T> {
   method(void Function(T) f) {}
 }
 
-/*strong.class: D:checks=[$asC],instance*/
-/*omit.class: D:checks=[],instance*/
+/*class: D:checks=[],instance*/
 class D extends C<B> {}
 
 main() {

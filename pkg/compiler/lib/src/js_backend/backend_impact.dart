@@ -168,7 +168,7 @@ class BackendImpacts {
   BackendImpact get typeVariableBoundCheck {
     return _typeVariableBoundCheck ??= new BackendImpact(staticUses: [
       _commonElements.throwTypeError,
-      if (_options.experimentNewRti)
+      if (_options.useNewRti)
         _commonElements.checkTypeBound
       else
         _commonElements.assertIsSubtype,
@@ -435,7 +435,7 @@ class BackendImpacts {
       _commonElements.typeLiteralClass
     ], staticUses: [
       _commonElements.createRuntimeType,
-      if (_options.experimentNewRti) _commonElements.typeLiteralMaker,
+      if (_options.useNewRti) _commonElements.typeLiteralMaker,
     ]);
   }
 
@@ -785,7 +785,7 @@ class BackendImpacts {
       _genericInstantiation[typeArgumentCount] ??=
           new BackendImpact(staticUses: [
         _commonElements.getInstantiateFunction(typeArgumentCount),
-        ..._options.experimentNewRti
+        ..._options.useNewRti
             ? [
                 _commonElements.instantiatedGenericFunctionTypeNewRti,
                 _commonElements.closureFunctionType
@@ -802,7 +802,7 @@ class BackendImpacts {
   BackendImpact _newRtiImpact;
 
   // TODO(sra): Split into refined impacts.
-  BackendImpact get newRtiImpact => _newRtiImpact ??= _options.experimentNewRti
+  BackendImpact get newRtiImpact => _newRtiImpact ??= _options.useNewRti
       ? BackendImpact(staticUses: [
           _commonElements.findType,
           _commonElements.instanceType,

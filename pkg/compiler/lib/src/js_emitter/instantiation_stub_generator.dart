@@ -81,7 +81,7 @@ class InstantiationStubGenerator {
       parameters.add(new jsAst.Parameter(jsName));
     }
 
-    if (_options.experimentNewRti) {
+    if (_options.useNewRti) {
       for (int i = 0; i < targetSelector.typeArgumentCount; i++) {
         arguments.add(js('this.#.#[#]', [
           _namer.rtiFieldJsName,
@@ -122,7 +122,7 @@ class InstantiationStubGenerator {
     jsAst.Name operatorSignature =
         _namer.asName(_namer.fixedNames.operatorSignature);
 
-    jsAst.Fun function = _options.experimentNewRti
+    jsAst.Fun function = _options.useNewRti
         ? _generateSignatureNewRti(functionField)
         : _generateSignatureLegacy(functionField);
 

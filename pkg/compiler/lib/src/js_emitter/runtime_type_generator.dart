@@ -184,7 +184,7 @@ class RuntimeTypeGenerator {
             checkedClass, _namer.operatorIs(checkedClass), js('1'));
       }
       Substitution substitution = check.substitution;
-      if (substitution != null && !_options.experimentNewRti) {
+      if (substitution != null && !_options.useNewRti) {
         jsAst.Expression body =
             _getSubstitutionCode(emitterTask.emitter, substitution);
         result.addSubstitution(

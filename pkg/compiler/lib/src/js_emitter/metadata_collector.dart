@@ -203,7 +203,7 @@ class MetadataCollector implements jsAst.TokenFinalizer {
   jsAst.Expression addTypeInOutputUnit(DartType type, OutputUnit outputUnit) {
     _typesMap[outputUnit] ??= new Map<DartType, _BoundMetadataEntry>();
     return _typesMap[outputUnit].putIfAbsent(type, () {
-      if (_options.experimentNewRti) {
+      if (_options.useNewRti) {
         return new _BoundMetadataEntry(_computeTypeRepresentationNewRti(type));
       } else {
         return new _BoundMetadataEntry(_computeTypeRepresentation(type));

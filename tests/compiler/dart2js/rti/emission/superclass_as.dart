@@ -13,7 +13,7 @@ class B<T, S> {
   method() => new A<S>();
 }
 
-/*class: C:checks=[$asB],instance*/
+/*class: C:checks=[],instance*/
 class C<T> extends B<T, T> {}
 
 @pragma('dart2js:noInline')

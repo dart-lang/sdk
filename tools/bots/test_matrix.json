@@ -385,17 +385,17 @@
       "options": {
         "host-checked": true
     }},
-    "dart2js-new-rti-(linux|mac|win)-x64-d8": {
+    "dart2js-old-rti-(linux|mac|win)-x64-d8": {
       "options": {
-        "builder-tag": "new_rti",
-        "dart2js-options": ["--experiment-new-rti"],
+        "builder-tag": "old_rti",
+        "dart2js-options": ["--use-old-rti"],
         "host-checked": true
     }},
-    "dart2js-new-rti-minified-csp-(linux|mac|win)-x64-d8": {
+    "dart2js-old-rti-minified-csp-(linux|mac|win)-x64-d8": {
       "options": {
-        "builder-tag": "new_rti",
+        "builder-tag": "old_rti",
         "csp": true,
-        "dart2js-options": ["--experiment-new-rti"],
+        "dart2js-options": ["--use-old-rti"],
         "minified": true,
         "use-sdk": true
     }},
@@ -1674,9 +1674,9 @@
           "arguments": ["dart2js_bot"]
         },
         {
-          "name": "dart2js new-rti tests",
+          "name": "dart2js old-rti tests",
           "arguments": [
-            "-ndart2js-new-rti-linux-x64-d8",
+            "-ndart2js-old-rti-linux-x64-d8",
             "--dart2js-batch",
             "language_2",
             "corelib_2",
@@ -1687,9 +1687,9 @@
           "fileset": "dart2js_hostasserts"
         },
         {
-          "name": "dart2js new-rti minified+csp tests",
+          "name": "dart2js old-rti minified+csp tests",
           "arguments": [
-            "-ndart2js-new-rti-minified-csp-linux-x64-d8",
+            "-ndart2js-old-rti-minified-csp-linux-x64-d8",
             "--dart2js-batch",
             "language_2",
             "corelib_2",

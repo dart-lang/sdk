@@ -35,7 +35,7 @@ class D {
   external factory D();
 }
 
-/*class: E:checkedInstance,checks=[],instance*/
+/*class: E:checks=[],instance,typeLiteral*/
 class E {
   E();
 }

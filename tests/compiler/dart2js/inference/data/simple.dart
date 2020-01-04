@@ -136,5 +136,5 @@ symbolLiteral() => #main;
 /// Return a type literal.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: typeLiteral:[exact=TypeImpl]*/
+/*member: typeLiteral:[exact=_Type]*/
 typeLiteral() => Object;

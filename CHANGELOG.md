@@ -54,6 +54,58 @@ The Linter was updated to `0.1.106`, which includes:
   dependencies by default. Instead they are precompiled on first `pub run`.
   Use `pub get --precompile` to get the previous behavior.
 
+#### dart2js
+
+A new representation of runtime types was enabled by default.
+
+This change is part of a long term goal of making runtime checks cheaper and
+more flexible for upcoming changes in the language. The new representation
+disentangles how types and classes are represented and makes types first-class
+to the compiler.  This makes it possible to do certain kind of optimizations on
+type checks that were not possible before and will enable us to model
+non-nullable types in the near future.
+
+This change should not affect the semantics of your application, but it has some
+relatively small visible effects that we want to highlight:
+
+* Types are now canonicalized, this fixes a long standing bug that Types could
+  not be used in switch cases (issue [17207][]).
+
+* Code-size changes may be visible, but the difference is small overall. It is
+  more visible on smaller apps because the new implementation includes more
+  helper methods. On large apps we have even seen an overall code-size
+  reduction.
+
+* Certain checks are a lot faster.  This is less noticeable if you are compiling
+  apps with `-O3` where checks are omitted altogether. Even with `-O3`, the
+  performance of some `is` checks used by your app may improve.
+
+* When using `-O3` and `-O4` incorrect type annotations could surface as errors.
+  The old type representation was accidentally lenient on some invalid type
+  annotations. We have only encountered this issue on programs that were not
+  tested properly at the js-interop program boundary.
+
+* `Type.toString` has a small change that is rarely visible. For a long time
+  dart2js has had support to erase unused type variables. Today, when dart2js is
+  given `--lax-runtime-type-to-string` (currently included in `-O2`, `-O3`, and
+  `-O4`) and it decides to erase the type variable of a class `Foo<T>`, then it
+  compiles expressions like `foo.runtimeType.toString()` to print `Foo`. With
+  the new representation, this will show `Foo<erased>` instead. This change may
+  be visible in error messages produced by type checks involving erased types.
+
+Because types and classes are represented separately, we will likely reevaluate
+restrictions of deferred libraries in the near future. For example, we could
+support referring to deferred types because types can be downloaded while
+classes are not.
+
+In the unlikely case you run into any issues, please file a bug so we can
+investigate. You can temporarily force the old type representation by passing
+`--use-old-rti` to dart2js if necessary, but our goal is to delete the old type
+representation soon.
+
+
+[17207]: https://github.com/dart-lang/sdk/issues/17207
+
 ## 2.7.0 - 2019-12-11
 
 **Extension methods** -- which we shipped in preview in 2.6.0 -- are no longer

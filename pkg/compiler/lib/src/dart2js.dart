@@ -468,6 +468,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(Flags.generateCodeWithCompileTimeErrors, ignoreOption),
     new OptionHandler(Flags.useMultiSourceInfo, passThrough),
     new OptionHandler(Flags.useNewSourceInfo, passThrough),
+    new OptionHandler(Flags.useOldRti, passThrough),
     new OptionHandler(Flags.testMode, passThrough),
 
     // Experimental features.
@@ -482,7 +483,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(Flags.experimentStartupFunctions, passThrough),
     new OptionHandler(Flags.experimentToBoolean, passThrough),
     new OptionHandler(Flags.experimentCallInstrumentation, passThrough),
-    new OptionHandler(Flags.experimentNewRti, passThrough),
+    new OptionHandler(Flags.experimentNewRti, ignoreOption),
 
     // The following three options must come last.
     new OptionHandler('-D.+=.*', addInEnvironment),

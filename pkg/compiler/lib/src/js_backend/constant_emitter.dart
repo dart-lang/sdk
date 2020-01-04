@@ -238,7 +238,7 @@ class ConstantEmitter extends ModularConstantEmitter {
         .toList(growable: false);
     jsAst.ArrayInitializer array = new jsAst.ArrayInitializer(elements);
     jsAst.Expression value = _makeConstantList(array);
-    if (_options.experimentNewRti) {
+    if (_options.useNewRti) {
       return maybeAddListTypeArgumentsNewRti(constant, constant.type, value);
     } else {
       return maybeAddTypeArguments(constant, constant.type, value);
@@ -261,7 +261,7 @@ class ConstantEmitter extends ModularConstantEmitter {
     ];
 
     if (_rtiNeed.classNeedsTypeArguments(classElement)) {
-      if (_options.experimentNewRti) {
+      if (_options.useNewRti) {
         arguments.add(_reifiedTypeNewRti(sourceType));
       } else {
         arguments
@@ -352,7 +352,7 @@ class ConstantEmitter extends ModularConstantEmitter {
     }
 
     if (_rtiNeed.classNeedsTypeArguments(classElement)) {
-      if (_options.experimentNewRti) {
+      if (_options.useNewRti) {
         arguments.add(_reifiedTypeNewRti(constant.type));
       } else {
         arguments
@@ -373,7 +373,7 @@ class ConstantEmitter extends ModularConstantEmitter {
   jsAst.Expression visitType(TypeConstantValue constant, [_]) {
     DartType type = constant.representedType.unaliased;
 
-    if (_options.experimentNewRti) {
+    if (_options.useNewRti) {
       assert(!type.containsTypeVariables);
 
       jsAst.Expression recipe = _rtiRecipeEncoder.encodeGroundRecipe(
@@ -428,7 +428,7 @@ class ConstantEmitter extends ModularConstantEmitter {
       }
     });
     if (_rtiNeed.classNeedsTypeArguments(constant.type.element)) {
-      if (_options.experimentNewRti) {
+      if (_options.useNewRti) {
         fields.add(_reifiedTypeNewRti(constant.type));
       } else {
         fields
@@ -446,7 +446,7 @@ class ConstantEmitter extends ModularConstantEmitter {
     List<jsAst.Expression> fields = <jsAst.Expression>[
       _constantReferenceGenerator(constant.function)
     ];
-    if (_options.experimentNewRti) {
+    if (_options.useNewRti) {
       fields
           .add(_reifiedTypeNewRti(InterfaceType(cls, constant.typeArguments)));
     } else {
@@ -502,7 +502,7 @@ class ConstantEmitter extends ModularConstantEmitter {
   }
 
   jsAst.Expression _reifiedTypeNewRti(DartType type) {
-    assert(_options.experimentNewRti);
+    assert(_options.useNewRti);
     assert(!type.containsTypeVariables);
     return TypeReference(TypeExpressionRecipe(type))..forConstant = true;
   }

@@ -1497,10 +1497,9 @@ class CommonElementsImpl
 
   ClassEntity _typeLiteralClass;
   @override
-  ClassEntity get typeLiteralClass =>
-      _typeLiteralClass ??= _options.experimentNewRti
-          ? _findRtiClass('_Type')
-          : _findHelperClass('TypeImpl');
+  ClassEntity get typeLiteralClass => _typeLiteralClass ??= _options.useNewRti
+      ? _findRtiClass('_Type')
+      : _findHelperClass('TypeImpl');
 
   ClassEntity _constMapLiteralClass;
   @override
@@ -1787,7 +1786,7 @@ class CommonElementsImpl
       _findHelperFunction('throwNoSuchMethod');
 
   @override
-  FunctionEntity get createRuntimeType => _options.experimentNewRti
+  FunctionEntity get createRuntimeType => _options.useNewRti
       ? _findRtiFunction('createRuntimeType')
       : _findHelperFunction('createRuntimeType');
 

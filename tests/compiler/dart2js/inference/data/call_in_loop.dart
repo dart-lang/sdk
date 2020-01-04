@@ -12,8 +12,8 @@ class Class<T> {
     /*current: [exact=ArrayIterator]*/
     /*moveNext: [exact=ArrayIterator]*/
     for (var a in []) {
-      (T as dynamic) /*invoke: [exact=TypeImpl]*/ (a);
-      (Object as dynamic) /*invoke: [exact=TypeImpl]*/ ();
+      (T as dynamic) /*invoke: [exact=_Type]*/ (a);
+      (Object as dynamic) /*invoke: [exact=_Type]*/ ();
       (this as dynamic) /*invoke: [exact=Class]*/ ();
       (1 as dynamic) /*invoke: [exact=JSUInt31]*/ ();
     }

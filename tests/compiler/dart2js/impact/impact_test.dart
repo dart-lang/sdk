@@ -23,14 +23,17 @@ main(List<String> args) {
     print('==================================================================');
     useImpactDataForTesting = false;
     await checkTests(dataDir, const ImpactDataComputer(),
-        args: args, testedConfigs: [strongConfig]);
+        args: args,
+        supportedMarkers: [strongMarker],
+        testedConfigs: [strongConfig]);
 
     print('Testing computation of ResolutionImpact through ImpactData');
     print('==================================================================');
     useImpactDataForTesting = true;
     await checkTests(dataDir, const ImpactDataComputer(),
         args: args,
-        testedConfigs: allStrongConfigs);
+        supportedMarkers: [strongMarker],
+        testedConfigs: [strongConfig]);
   });
 }
 

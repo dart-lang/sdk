@@ -16,7 +16,7 @@ class B implements A {}
 /*omit.class: C:*/
 class C<T> {}
 
-/*strong.class: D:checks=[$asC,$isC],instance*/
+/*strong.class: D:checks=[$isC],instance*/
 /*omit.class: D:checks=[],instance*/
 class D implements C<B> {}
 

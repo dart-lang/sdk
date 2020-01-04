@@ -424,7 +424,8 @@ testSwitch2() {
   return a;
 }
 
-/*member: testSwitch3:Union([exact=JSString], [null|subclass=JSNumber])*/
+/*strong.member: testSwitch3:Union([null|exact=JSString], [subclass=JSNumber])*/
+/*omit.member: testSwitch3:Union([exact=JSString], [null|subclass=JSNumber])*/
 testSwitch3() {
   dynamic a = 42;
   var b;
@@ -461,7 +462,8 @@ testSwitch5() {
   }
 }
 
-/*member: testContinue1:Union([exact=JSString], [null|subclass=JSNumber])*/
+/*strong.member: testContinue1:Union([null|exact=JSString], [subclass=JSNumber])*/
+/*omit.member: testContinue1:Union([exact=JSString], [null|subclass=JSNumber])*/
 testContinue1() {
   dynamic a = 42;
   var b;
@@ -760,7 +762,7 @@ class C {
   C();
 
   /*member: C.returnInt1:[subclass=JSPositiveInt]*/
-  returnInt1() => /*invoke: [subclass=JSPositiveInt]*/ ++ /*[exact=C]*/ /*update: [exact=C]*/ myField;
+  returnInt1() => /*invoke: [subclass=JSPositiveInt]*/ ++ /*update: [exact=C]*/ /*[exact=C]*/ myField;
 
   /*member: C.returnInt2:[subclass=JSPositiveInt]*/
   returnInt2() => /*invoke: [subclass=JSPositiveInt]*/ ++this
