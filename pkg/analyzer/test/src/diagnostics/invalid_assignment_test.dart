@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/driver_resolution.dart';
@@ -10,7 +12,52 @@ import '../dart/resolution/driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InvalidAssignmentTest);
+    defineReflectiveTests(InvalidAssignmentNnbdTest);
   });
+}
+
+@reflectiveTest
+class InvalidAssignmentNnbdTest extends InvalidAssignmentTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..contextFeatures = FeatureSet.forTesting(
+        sdkVersion: '2.7.0', additionalFeatures: [Feature.non_nullable]);
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38200')
+  test_defaultValue_list_inferredTypeVariable() async {
+    // We have a test somewhere that verifies that we infer `<Null>` type
+    // arguments in constant contexts, probably somewhere in
+    // `ResynthesizeTestCases`. We need a similar test nearby for NNBD enabled.
+    await assertNoErrorsInCode('''
+class Vector<T> {
+  bool contains([List<T> elements = const []]) {
+    return true;
+  }
+}
+''');
+  }
+
+  @override
+  test_ifNullAssignment_sameType() async {
+    // This test is overridden solely to make [j] nullable.
+    await assertNoErrorsInCode('''
+void f(int i) {
+  int? j;
+  j ??= i;
+}
+''');
+  }
+
+  @override
+  test_ifNullAssignment_superType() async {
+    // This test is overridden solely to make [n] nullable.
+    await assertNoErrorsInCode('''
+void f(int i) {
+  num? n;
+  n ??= i;
+}
+''');
+  }
 }
 
 @reflectiveTest
@@ -57,20 +104,20 @@ f([String x = '0']) {
 ''');
   }
 
-  test_ifNullAssignment_compatibleType() async {
-    await assertNoErrorsInCode('''
-void f(int i) {
-  num n;
-  n ??= i;
-}
-''');
-  }
-
   test_ifNullAssignment_sameType() async {
     await assertNoErrorsInCode('''
 void f(int i) {
   int j;
   j ??= i;
+}
+''');
+  }
+
+  test_ifNullAssignment_superType() async {
+    await assertNoErrorsInCode('''
+void f(int i) {
+  num n;
+  n ??= i;
 }
 ''');
   }
@@ -142,7 +189,7 @@ Function f = new C();
     // '(String, [dynamic]) -> Expression'.
     await assertNoErrorsInCode(r'''
 class I {
-  int call([int x]) => 0;
+  int call([int x = 7]) => 0;
 }
 class C implements I {
   noSuchMethod(_) => null;
@@ -155,16 +202,16 @@ VoidToInt f = new C();
   test_instanceVariable() async {
     await assertErrorsInCode(r'''
 class A {
-  int x;
+  int x = 7;
 }
 f(var y) {
-  A a;
+  A a = A();
   if (y is String) {
     a.x = y;
   }
 }
 ''', [
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 70, 1),
+      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 80, 1),
     ]);
   }
 
@@ -212,7 +259,7 @@ class A {
 }
 
 class C {
-  A a;
+  A a = A();
 }
 
 f(C c) {
@@ -240,7 +287,7 @@ class A {
 }
 
 class C {
-  A a;
+  A a = A();
 }
 
 f(C c) {
@@ -275,7 +322,7 @@ void f<X extends A, Y extends B>(X x) {
   test_staticVariable() async {
     await assertErrorsInCode(r'''
 class A {
-  static int x;
+  static int x = 7;
 }
 f(var y) {
   if (y is String) {
@@ -283,7 +330,7 @@ f(var y) {
   }
 }
 ''', [
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 70, 1),
+      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 74, 1),
     ]);
   }
 
