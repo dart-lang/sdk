@@ -435,52 +435,6 @@ class C {
     ]);
   }
 
-  test_illegalAsyncReturnType_function_nonFuture() async {
-    await assertErrorsInCode('''
-int f() async {}
-''', [
-      error(StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE, 0, 3),
-      error(HintCode.MISSING_RETURN, 4, 1),
-    ]);
-  }
-
-  test_illegalAsyncReturnType_function_subtypeOfFuture() async {
-    await assertErrorsInCode('''
-import 'dart:async';
-abstract class SubFuture<T> implements Future<T> {}
-SubFuture<int> f() async {
-  return 0;
-}
-''', [
-      error(StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE, 73, 14),
-    ]);
-  }
-
-  test_illegalAsyncReturnType_method_nonFuture() async {
-    await assertErrorsInCode('''
-class C {
-  int m() async {}
-}
-''', [
-      error(HintCode.MISSING_RETURN, 16, 1),
-      error(StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE, 12, 3),
-    ]);
-  }
-
-  test_illegalAsyncReturnType_method_subtypeOfFuture() async {
-    await assertErrorsInCode('''
-import 'dart:async';
-abstract class SubFuture<T> implements Future<T> {}
-class C {
-  SubFuture<int> m() async {
-    return 0;
-  }
-}
-''', [
-      error(StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE, 85, 14),
-    ]);
-  }
-
   test_illegalSyncGeneratorReturnType_function_nonIterator() async {
     await assertErrorsInCode('''
 int f() sync* {}

@@ -139,6 +139,7 @@ import 'for_in_with_const_variable_test.dart' as for_in_with_const_variable;
 import 'generic_struct_subclass_test.dart' as generic_struct_subclass;
 import 'if_element_condition_from_deferred_library_test.dart'
     as if_element_condition_from_deferred_library;
+import 'illegal_async_return_type_test.dart' as illegal_async_return_type;
 import 'implements_disallowed_class_test.dart' as implements_disallowed_class;
 import 'implements_non_class_test.dart' as implements_non_class;
 import 'implements_super_class_test.dart' as implements_super_class;
@@ -570,6 +571,7 @@ main() {
     for_in_with_const_variable.main();
     generic_struct_subclass.main();
     if_element_condition_from_deferred_library.main();
+    illegal_async_return_type.main();
     implements_disallowed_class.main();
     implements_non_class.main();
     implements_super_class.main();
