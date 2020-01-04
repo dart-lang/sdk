@@ -39,6 +39,21 @@ class TypeNameResolver {
 
   Scope nameScope;
 
+  /// If not `null`, the element of the [ClassDeclaration], or the
+  /// [ClassTypeAlias] being resolved.
+  ClassElement enclosingClass;
+
+  /// If not `null`, a direct child of an [ExtendsClause], [WithClause],
+  /// or [ImplementsClause].
+  TypeName classHierarchy_typeName;
+
+  /// If not `null`, a direct child the [WithClause] in the [enclosingClass].
+  TypeName withClause_typeName;
+
+  /// If not `null`, the [TypeName] of the redirected constructor being
+  /// resolved, in the [enclosingClass].
+  TypeName redirectedConstructor_typeName;
+
   /// If [resolveTypeName] finds out that the given [TypeName] with a
   /// [PrefixedIdentifier] name is actually the name of a class and the name of
   /// the constructor, it rewrites the [ConstructorName] to correctly represent
@@ -229,12 +244,6 @@ class TypeNameResolver {
     }
 
     _setElement(typeName, element);
-
-    if (element is ClassElement) {
-      _resolveClassElement(node, typeName, argumentList, element);
-      return;
-    }
-
     node.type = _instantiateElement(node, element);
   }
 
@@ -264,18 +273,15 @@ class TypeNameResolver {
     return typeArguments;
   }
 
-  DartType _getInferredMixinType(
-      ClassElement classElement, ClassElement mixinElement) {
-    for (var candidateMixin in classElement.mixins) {
-      if (candidateMixin.element == mixinElement) return candidateMixin;
-    }
-    return null; // Not found
-  }
-
-  NullabilitySuffix _getNullability(bool hasQuestion) {
+  NullabilitySuffix _getNullability(TypeName node) {
     if (isNonNullableByDefault) {
-      if (hasQuestion) {
-        return NullabilitySuffix.question;
+      if (node.question != null) {
+        if (identical(node, classHierarchy_typeName)) {
+          _reportInvalidNullableType(node);
+          return NullabilitySuffix.none;
+        } else {
+          return NullabilitySuffix.question;
+        }
       } else {
         return NullabilitySuffix.none;
       }
@@ -292,35 +298,33 @@ class TypeNameResolver {
     return type;
   }
 
-  /// If the [node] is the type name in a redirected factory constructor,
-  /// infer type arguments using the enclosing class declaration. Return `null`
-  /// otherwise.
-  List<DartType> _inferTypeArgumentsForRedirectedConstructor(
-      TypeName node, ClassElement typeElement) {
-    AstNode constructorName = node.parent;
-    AstNode enclosingConstructor = constructorName?.parent;
-    if (constructorName is ConstructorName &&
-        enclosingConstructor is ConstructorDeclaration &&
-        enclosingConstructor.redirectedConstructor == constructorName) {
-      ClassOrMixinDeclaration enclosingClassNode = enclosingConstructor.parent;
-      var enclosingClassElement = enclosingClassNode.declaredElement;
-      if (enclosingClassElement == typeElement) {
-        return typeElement.thisType.typeArguments;
+  /// We are resolving the [TypeName] in a redirecting constructor of the
+  /// [enclosingClass].
+  InterfaceType _inferRedirectedConstructor(ClassElement element) {
+    if (element == enclosingClass) {
+      return element.thisType;
+    } else {
+      var typeParameters = element.typeParameters;
+      if (typeParameters.isEmpty) {
+        return element.thisType;
       } else {
-        return typeSystem.inferGenericFunctionOrType(
-          typeParameters: typeElement.typeParameters,
+        var typeArguments = typeSystem.inferGenericFunctionOrType(
+          typeParameters: typeParameters,
           parameters: const [],
-          declaredReturnType: typeElement.thisType,
+          declaredReturnType: element.thisType,
           argumentTypes: const [],
-          contextReturnType: enclosingClassElement.thisType,
+          contextReturnType: enclosingClass.thisType,
+        );
+        return element.instantiate(
+          typeArguments: typeArguments,
+          nullabilitySuffix: _noneOrStarSuffix,
         );
       }
     }
-    return null;
   }
 
   DartType _instantiateElement(TypeName node, Element element) {
-    var nullability = _getNullability(node.question != null);
+    var nullability = _getNullability(node);
 
     var argumentList = node.typeArguments;
     if (argumentList != null) {
@@ -362,6 +366,18 @@ class TypeNameResolver {
     }
 
     if (element is ClassElement) {
+      if (identical(node, withClause_typeName)) {
+        for (var mixin in enclosingClass.mixins) {
+          if (mixin.element == element) {
+            return mixin;
+          }
+        }
+      }
+
+      if (identical(node, redirectedConstructor_typeName)) {
+        return _inferRedirectedConstructor(element);
+      }
+
       return element.instantiateToBounds(
         nullabilitySuffix: nullability,
       );
@@ -410,81 +426,6 @@ class TypeNameResolver {
         typeName,
       );
     }
-  }
-
-  void _resolveClassElement(TypeName node, Identifier typeName,
-      TypeArgumentList argumentList, ClassElement element) {
-    var typeParameters = element.typeParameters;
-    var parameterCount = typeParameters.length;
-
-    List<DartType> typeArguments;
-    if (argumentList != null) {
-      var argumentNodes = argumentList.arguments;
-      var argumentCount = argumentNodes.length;
-
-      typeArguments = List<DartType>(parameterCount);
-      if (argumentCount == parameterCount) {
-        for (int i = 0; i < parameterCount; i++) {
-          typeArguments[i] = _getType(argumentNodes[i]);
-        }
-      } else {
-        errorReporter.reportErrorForNode(
-          StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS,
-          node,
-          [typeName.name, parameterCount, argumentCount],
-        );
-        for (int i = 0; i < parameterCount; i++) {
-          typeArguments[i] = dynamicType;
-        }
-      }
-    } else if (parameterCount == 0) {
-      typeArguments = const <DartType>[];
-    } else {
-      typeArguments =
-          _inferTypeArgumentsForRedirectedConstructor(node, element);
-      if (typeArguments == null) {
-        typeArguments = typeSystem.instantiateTypeFormalsToBounds2(element);
-      }
-    }
-
-    var parent = node.parent;
-
-    NullabilitySuffix nullabilitySuffix;
-    if (parent is ClassTypeAlias ||
-        parent is ExtendsClause ||
-        parent is ImplementsClause ||
-        parent is OnClause ||
-        parent is WithClause) {
-      if (node.question != null) {
-        _reportInvalidNullableType(node);
-      }
-      if (isNonNullableByDefault) {
-        nullabilitySuffix = NullabilitySuffix.none;
-      } else {
-        nullabilitySuffix = NullabilitySuffix.star;
-      }
-    } else {
-      nullabilitySuffix = _getNullability(node.question != null);
-    }
-
-    var type = InterfaceTypeImpl.explicit(element, typeArguments,
-        nullabilitySuffix: nullabilitySuffix);
-
-    if (shouldUseWithClauseInferredTypes) {
-      if (parent is WithClause && parameterCount != 0) {
-        // Get the (possibly inferred) mixin type from the element model.
-        var grandParent = parent.parent;
-        if (grandParent is ClassDeclaration) {
-          type = _getInferredMixinType(grandParent.declaredElement, element);
-        } else if (grandParent is ClassTypeAlias) {
-          type = _getInferredMixinType(grandParent.declaredElement, element);
-        } else {
-          assert(false, 'Unexpected context for "with" clause');
-        }
-      }
-    }
-
-    node.type = type;
   }
 
   /// Records the new Element for a TypeName's Identifier.

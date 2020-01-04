@@ -215,6 +215,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   void visitClassDeclaration(ClassDeclaration node) {
     ClassElementImpl element = _elementWalker.getClass();
     node.name.staticElement = element;
+    _typeNameResolver.enclosingClass = element;
 
     node.metadata.accept(this);
     _setElementAnnotations(node.metadata, element.metadata);
@@ -246,12 +247,15 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         element.hasReferenceToSuper = _hasReferenceToSuper;
       });
     });
+
+    _typeNameResolver.enclosingClass = null;
   }
 
   @override
   void visitClassTypeAlias(ClassTypeAlias node) {
     ClassElementImpl element = _elementWalker.getClass();
     node.name.staticElement = element;
+    _typeNameResolver.enclosingClass = element;
 
     node.metadata.accept(this);
     _setElementAnnotations(node.metadata, element.metadata);
@@ -271,6 +275,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         _resolveImplementsClause(node.implementsClause);
       });
     });
+
+    _typeNameResolver.enclosingClass = null;
   }
 
   @override
@@ -295,7 +301,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
           );
           _defineParameters(element.parameters);
 
-          node.redirectedConstructor?.accept(this);
+          _resolveRedirectedConstructor(node);
           node.initializers.accept(this);
           node.body?.accept(this);
         });
@@ -1164,6 +1170,18 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     );
   }
 
+  void _resolveRedirectedConstructor(ConstructorDeclaration node) {
+    var redirectedConstructor = node.redirectedConstructor;
+    if (redirectedConstructor == null) return;
+
+    var typeName = redirectedConstructor.type;
+    _typeNameResolver.redirectedConstructor_typeName = typeName;
+
+    redirectedConstructor.accept(this);
+
+    _typeNameResolver.redirectedConstructor_typeName = null;
+  }
+
   /// Return the [InterfaceType] of the given [typeName].
   ///
   /// If the resulting type is not a valid interface type, return `null`.
@@ -1173,7 +1191,9 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   /// classes).
   void _resolveType(TypeName typeName, ErrorCode errorCode,
       {bool asClass = false}) {
+    _typeNameResolver.classHierarchy_typeName = typeName;
     visitTypeName(typeName);
+    _typeNameResolver.classHierarchy_typeName = null;
 
     DartType type = typeName.type;
     if (type is InterfaceType) {
@@ -1211,10 +1231,14 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   void _resolveWithClause(WithClause clause) {
     if (clause == null) return;
 
-    _resolveTypes(
-      clause.mixinTypes,
-      CompileTimeErrorCode.MIXIN_OF_NON_CLASS,
-    );
+    for (var typeName in clause.mixinTypes) {
+      _typeNameResolver.withClause_typeName = typeName;
+      _resolveType(
+        typeName,
+        CompileTimeErrorCode.MIXIN_OF_NON_CLASS,
+      );
+      _typeNameResolver.withClause_typeName = null;
+    }
   }
 
   void _setCodeRange(ElementImpl element, AstNode node) {
