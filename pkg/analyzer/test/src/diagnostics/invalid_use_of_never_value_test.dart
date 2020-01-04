@@ -22,7 +22,63 @@ class InvalidUseOfNeverTest extends DriverResolutionTest {
   AnalysisOptionsImpl get analysisOptions =>
       AnalysisOptionsImpl()..enabledExperiments = [EnableString.non_nullable];
 
-  test_local_invoked() async {
+  @failingTest
+  test_binaryExpression_never_eqEq() async {
+    // We report this as an error even though CFE does not.
+    await assertNoErrorsInCode(r'''
+void main(Never x) {
+  x == 0;
+}
+''');
+  }
+
+  @failingTest
+  test_binaryExpression_never_plus() async {
+    // We report this as an error even though CFE does not.
+    await assertNoErrorsInCode(r'''
+void main(Never x) {
+  x + 0;
+}
+''');
+  }
+
+  @failingTest
+  test_binaryExpression_neverQ_eqEq() async {
+    // We report this as an error even though CFE does not.
+    await assertNoErrorsInCode(r'''
+void main(Never? x) {
+  x == 0;
+}
+''');
+  }
+
+  @failingTest
+  test_binaryExpression_neverQ_plus() async {
+    // We report this as an error even though CFE does not.
+    await assertNoErrorsInCode(r'''
+void main(Never? x) {
+  x + 0;
+}
+''');
+  }
+
+  test_conditionalExpression_falseBranch() async {
+    await assertNoErrorsInCode(r'''
+void main(bool c, Never x) {
+  c ? 0 : x;
+}
+''');
+  }
+
+  test_conditionalExpression_trueBranch() async {
+    await assertNoErrorsInCode(r'''
+void main(bool c, Never x) {
+  c ? x : 0;
+}
+''');
+  }
+
+  test_functionExpressionInvocation_never() async {
     await assertErrorsInCode(r'''
 void main(Never x) {
   x();
@@ -32,46 +88,110 @@ void main(Never x) {
     ]);
   }
 
-  @failingTest
-  test_local_neverQuestion_getter_hashCode() async {
-    // reports undefined getter
+  test_functionExpressionInvocation_neverQ() async {
+    await assertErrorsInCode(r'''
+void main(Never? x) {
+  x();
+}
+''', [
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 24, 1),
+    ]);
+  }
+
+  test_invocationArgument() async {
     await assertNoErrorsInCode(r'''
-void main(Never? neverQ) {
-  neverQ.hashCode;
+void main(f, Never x) {
+  f(x);
 }
 ''');
   }
 
-  @failingTest
-  test_local_neverQuestion_getter_toString() async {
-    // reports undefined getter
-    await assertNoErrorsInCode(r'''
-void main() {
-  (throw '').toString;
+  test_methodInvocation_never() async {
+    await assertErrorsInCode(r'''
+void main(Never x) {
+  x.foo(1 + 2);
 }
-''');
+''', [
+      error(StaticWarningCode.INVALID_USE_OF_NEVER_VALUE, 23, 1),
+    ]);
+
+    assertMethodInvocation(
+      findNode.methodInvocation('.foo(1 + 2)'),
+      null,
+      'dynamic',
+      expectedType: 'Never',
+    );
+
+    // Verify that arguments are resolved.
+    assertType(findNode.binary('1 + 2'), 'int');
   }
 
-  test_local_neverQuestion_methodCall_toString() async {
-    await assertNoErrorsInCode(r'''
-void main(Never? neverQ) {
-  neverQ.toString();
+  test_methodInvocation_never_toString() async {
+    await assertErrorsInCode(r'''
+void main(Never x) {
+  x.toString(1 + 2);
 }
-''');
+''', [
+      error(StaticWarningCode.INVALID_USE_OF_NEVER_VALUE, 23, 1),
+    ]);
+
+    assertMethodInvocation(
+      findNode.methodInvocation('.toString(1 + 2)'),
+      null,
+      'dynamic',
+      expectedType: 'Never',
+    );
+
+    // Verify that arguments are resolved.
+    assertType(findNode.binary('1 + 2'), 'int');
+  }
+
+  test_methodInvocation_neverQ_toString() async {
+    await assertErrorsInCode(r'''
+void main(Never? x) {
+  x.toString(1 + 2);
+}
+''', [
+      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 34, 7),
+    ]);
+
+    assertMethodInvocation(
+      findNode.methodInvocation('.toString(1 + 2)'),
+      typeProvider.objectType.element.getMethod('toString'),
+      'String Function()',
+      expectedType: 'String',
+    );
+
+    // Verify that arguments are resolved.
+    assertType(findNode.binary('1 + 2'), 'int');
   }
 
   @failingTest
-  test_local_neverQuestion_operator_equals() async {
-    // We report this as an error even though CFE does not.
-    await assertNoErrorsInCode(r'''
-void main(Never? neverQ) {
-  neverQ == 0;
+  test_postfixExpression_never_plusPlus() async {
+    // Reports 'undefined operator'
+    await assertErrorsInCode(r'''
+void main(Never x) {
+  x++;
 }
-''');
+''', [
+      error(StaticWarningCode.INVALID_USE_OF_NEVER_VALUE, 70, 1),
+    ]);
   }
 
   @failingTest
-  test_local_operator_plusPlus_prefix() async {
+  test_postfixExpression_neverQ_plusPlus() async {
+    // Reports 'undefined operator'
+    await assertErrorsInCode(r'''
+void main(Never x) {
+  x++;
+}
+''', [
+      error(StaticWarningCode.INVALID_USE_OF_NEVER_VALUE, 70, 1),
+    ]);
+  }
+
+  @failingTest
+  test_prefixExpression_never_plusPlus() async {
     // Reports 'undefined operator'
     await assertErrorsInCode(r'''
 void main(Never x) {
@@ -83,148 +203,71 @@ void main(Never x) {
   }
 
   @failingTest
-  test_local_operator_plusPlus_suffix() async {
+  test_prefixExpression_neverQ_plusPlus() async {
     // Reports 'undefined operator'
     await assertErrorsInCode(r'''
 void main(Never x) {
-  x++;
+  ++x;
 }
 ''', [
       error(StaticWarningCode.INVALID_USE_OF_NEVER_VALUE, 70, 1),
     ]);
   }
 
-  test_member_invoked() async {
+  @FailingTest(reason: 'Types are wrong')
+  test_propertyAccess_never() async {
     await assertErrorsInCode(r'''
-class C {
-  Never get x => throw '';
-}
-
-void main() {
-  C c = C();
-  c.x();
+void main(Never x) {
+  x.foo;
 }
 ''', [
-      error(StaticWarningCode.INVALID_USE_OF_NEVER_VALUE, 69, 3),
+      error(StaticWarningCode.INVALID_USE_OF_NEVER_VALUE, 23, 1),
     ]);
+
+    assertElementNull(findNode.simple('foo;'));
+    assertType(findNode.prefixed('x.foo'), 'Never');
   }
 
   @failingTest
-  test_throw_getter_foo() async {
-    // Reports undefined getter.
-    await assertErrorsInCode(r'''
-void main() {
-  (throw '').foo;
-}
-''', [
-      error(StaticWarningCode.INVALID_USE_OF_NEVER_VALUE, 70, 1),
-    ]);
-  }
-
-  @failingTest
-  test_throw_getter_hashCode() async {
-    // Reports undefined getter.
-    await assertErrorsInCode(r'''
-void main() {
-  (throw '').hashCode;
-}
-''', [
-      error(StaticWarningCode.INVALID_USE_OF_NEVER_VALUE, 70, 1),
-    ]);
-  }
-
-  @failingTest
-  test_throw_getter_toString() async {
-    // Reports undefined getter (it seems to get confused by the tear-off).
-    await assertErrorsInCode(r'''
-void main() {
-  (throw '').toString;
-}
-''', [
-      error(StaticWarningCode.INVALID_USE_OF_NEVER_VALUE, 70, 1),
-    ]);
-  }
-
-  test_throw_invoked() async {
-    await assertErrorsInCode(r'''
-void main() {
-  (throw '')();
-}
-''', [
-      error(StaticWarningCode.INVALID_USE_OF_NEVER_VALUE, 16, 10),
-    ]);
-  }
-
-  test_throw_methodCall_foo() async {
-    await assertErrorsInCode(r'''
-void main() {
-  (throw '').foo();
-}
-''', [
-      error(StaticWarningCode.INVALID_USE_OF_NEVER_VALUE, 16, 10),
-    ]);
-  }
-
-  test_throw_methodCall_toString() async {
-    await assertErrorsInCode(r'''
-void main() {
-  (throw '').toString();
-}
-''', [
-      error(StaticWarningCode.INVALID_USE_OF_NEVER_VALUE, 16, 10),
-    ]);
-  }
-
-  @failingTest
-  test_throw_operator_equals() async {
-    // We report this as an error even though CFE does not.
+  test_propertyAccess_never_hashCode() async {
+    // reports undefined getter
     await assertNoErrorsInCode(r'''
-void main() {
-  (throw '') == 0;
+void main(Never x) {
+  x.hashCode;
 }
 ''');
   }
 
   @failingTest
-  test_throw_operator_plus_lhs() async {
-    // Currently reports "no such operator"
+  test_propertyAccess_never_tearOff_toString() async {
+    // reports undefined getter
+    await assertNoErrorsInCode(r'''
+void main(Never x) {
+  x.toString;
+}
+''');
+  }
+
+  @FailingTest(reason: 'Types are wrong')
+  test_propertyAccess_neverQ() async {
     await assertErrorsInCode(r'''
-void main() {
-  (throw '') + 0;
+void main(Never x) {
+  x.foo;
 }
 ''', [
-      error(StaticWarningCode.INVALID_USE_OF_NEVER_VALUE, 70, 1),
+      error(StaticWarningCode.INVALID_USE_OF_NEVER_VALUE, 23, 1),
     ]);
+
+    assertElementNull(findNode.simple('foo;'));
+    assertType(findNode.prefixed('x.foo'), 'Never');
   }
 
-  test_throw_operator_plus_rhs() async {
+  @failingTest
+  test_propertyAccess_neverQ_hashCode() async {
+    // reports undefined getter
     await assertNoErrorsInCode(r'''
-void main() {
-  0 + (throw '');
-}
-''');
-  }
-
-  test_throw_operator_ternary_falseBranch() async {
-    await assertNoErrorsInCode(r'''
-void f(bool c) {
-  c ? 0 : (throw '');
-}
-''');
-  }
-
-  test_throw_operator_ternary_trueBranch() async {
-    await assertNoErrorsInCode(r'''
-void f(bool c) {
-  c ? (throw '') : 0;
-}
-''');
-  }
-
-  test_throw_param() async {
-    await assertNoErrorsInCode(r'''
-void f(x) {
-  f(throw '');
+void main(Never? x) {
+  x.hashCode;
 }
 ''');
   }
@@ -234,26 +277,26 @@ void f(x) {
 @reflectiveTest
 class InvalidUseOfNeverTest_Legacy extends DriverResolutionTest {
   @failingTest
-  test_throw_getter_hashCode() async {
-    // Reports undefined getter.
+  test_binaryExpression_eqEq() async {
+    // We report this as an error even though CFE does not.
     await assertNoErrorsInCode(r'''
 void main() {
-  (throw '').hashCode;
+  (throw '') == 0;
 }
 ''');
   }
 
   @failingTest
-  test_throw_getter_toString() async {
-    // Reports undefined getter (it seems to get confused by the tear-off).
+  test_binaryExpression_plus() async {
+    // We report this as an error even though CFE does not.
     await assertNoErrorsInCode(r'''
 void main() {
-  (throw '').toString;
+  (throw '') + 0;
 }
 ''');
   }
 
-  test_throw_methodCall_toString() async {
+  test_methodInvocation_toString() async {
     await assertNoErrorsInCode(r'''
 void main() {
   (throw '').toString();
@@ -262,11 +305,21 @@ void main() {
   }
 
   @failingTest
-  test_throw_operator_equals() async {
-    // We report this as an error even though CFE does not.
+  test_propertyAccess_toString() async {
+    // Reports undefined getter (it seems to get confused by the tear-off).
     await assertNoErrorsInCode(r'''
 void main() {
-  (throw '') == 0;
+  (throw '').toString;
+}
+''');
+  }
+
+  @failingTest
+  test_throw_getter_hashCode() async {
+    // Reports undefined getter.
+    await assertNoErrorsInCode(r'''
+void main() {
+  (throw '').hashCode;
 }
 ''');
   }

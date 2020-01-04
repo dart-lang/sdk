@@ -171,8 +171,8 @@ class MethodInvocationResolver {
       return;
     }
 
-    if (receiverType == NeverTypeImpl.instance) {
-      _reportUseOfNeverType(node, receiver);
+    if (receiverType is NeverTypeImpl) {
+      _resolveReceiverNever(node, receiver, receiverType);
       return;
     }
   }
@@ -290,14 +290,6 @@ class MethodInvocationResolver {
     );
   }
 
-  void _reportUseOfNeverType(MethodInvocation node, AstNode errorNode) {
-    _setDynamicResolution(node);
-    _resolver.errorReporter.reportErrorForNode(
-      StaticWarningCode.INVALID_USE_OF_NEVER_VALUE,
-      errorNode,
-    );
-  }
-
   void _reportUseOfVoidType(MethodInvocation node, AstNode errorNode) {
     _setDynamicResolution(node);
     _resolver.errorReporter.reportErrorForNode(
@@ -306,12 +298,19 @@ class MethodInvocationResolver {
     );
   }
 
-  void _resolveArguments_finishInference(MethodInvocation node) {
+  /// [InvocationExpression.staticInvokeType] has been set for the [node].
+  /// Use it to set context for arguments, and resolve them.
+  void _resolveArguments(MethodInvocation node) {
     _inferenceHelper.inferArgumentTypesForInvocation(node);
     node.argumentList.accept(_resolver);
+  }
+
+  void _resolveArguments_finishInference(MethodInvocation node) {
+    _resolveArguments(node);
 
     _inferenceHelper.inferGenericInvocationExpression(node);
 
+    // TODO(scheglov) Call this only when member lookup failed?
     var inferred = _inferenceHelper.inferMethodInvocationObject(node);
 
     if (!inferred) {
@@ -586,6 +585,49 @@ class MethodInvocationResolver {
         nameNode,
         [name, receiverType.element.displayName],
       );
+    }
+  }
+
+  void _resolveReceiverNever(
+    MethodInvocation node,
+    Expression receiver,
+    DartType receiverType,
+  ) {
+    _setExplicitTypeArgumentTypes();
+
+    if (receiverType == NeverTypeImpl.instanceNullable) {
+      var methodName = node.methodName;
+      var objectElement = _resolver.typeProvider.objectElement;
+      var objectMember = objectElement.getMethod(methodName.name);
+      if (objectMember != null) {
+        objectMember = _resolver.toLegacyElement(objectMember);
+        methodName.staticElement = objectMember;
+        _setResolution(
+          node,
+          _elementTypeProvider.getExecutableType(objectMember),
+        );
+      } else {
+        _setDynamicResolution(node);
+        _resolver.errorReporter.reportErrorForNode(
+          StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE,
+          receiver,
+        );
+      }
+      return;
+    }
+
+    if (receiverType == NeverTypeImpl.instance) {
+      node.methodName.staticType = _dynamicType;
+      node.staticInvokeType = _dynamicType;
+      node.staticType = NeverTypeImpl.instance;
+
+      _resolveArguments(node);
+
+      _resolver.errorReporter.reportErrorForNode(
+        StaticWarningCode.INVALID_USE_OF_NEVER_VALUE,
+        receiver,
+      );
+      return;
     }
   }
 
@@ -956,10 +998,6 @@ class MethodInvocationResolver {
 
     if (type is VoidType) {
       return _reportUseOfVoidType(node, node.methodName);
-    }
-
-    if (type == NeverTypeImpl.instance) {
-      return _reportUseOfNeverType(node, node.methodName);
     }
 
     _reportInvocationOfNonFunction(node);

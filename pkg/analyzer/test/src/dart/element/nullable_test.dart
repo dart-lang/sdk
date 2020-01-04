@@ -111,6 +111,8 @@ class IsNonNullableTest extends _NullableBase {
 
   test_never() {
     isNonNullable(neverNone);
+    isNotNonNullable(neverQuestion);
+    isNonNullable(neverStar);
   }
 
   test_null() {
@@ -238,6 +240,8 @@ class IsNullableTest extends _NullableBase {
 
   test_never() {
     isNotNullable(neverNone);
+    isNullable(neverQuestion);
+    isNotNullable(neverStar);
   }
 
   test_null() {
