@@ -11,7 +11,10 @@ import 'package:analysis_server/plugin/edit/assist/assist_dart.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/base_processor.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_list_literal.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_map_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_null_aware.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_set_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/exchange_operands.dart';
 import 'package:analysis_server/src/services/correction/dart/split_and_condition.dart';
 import 'package:analysis_server/src/services/correction/name_suggestion.dart';
@@ -77,11 +80,7 @@ class AssistProcessor extends BaseProcessor {
     }
     await _addProposal_convertIntoFinalField();
     await _addProposal_convertIntoGetter();
-    await _addProposal_convertListConstructorToListLiteral();
-    await _addProposal_convertListToSetToSetLiteral();
-    await _addProposal_convertMapConstructorToMapLiteral();
     await _addProposal_convertPartOfToUri();
-    await _addProposal_convertSetConstructorToSetLiteral();
     await _addProposal_convertToAsyncFunctionBody();
     await _addProposal_convertToBlockFunctionBody();
     await _addProposal_convertToDoubleQuotedString();
@@ -271,9 +270,24 @@ class AssistProcessor extends BaseProcessor {
     }
 
     await computeIfNotErrorCode(
+      ConvertToListLiteral(),
+      DartAssistKind.CONVERT_TO_LIST_LITERAL,
+      {LintNames.prefer_collection_literals},
+    );
+    await computeIfNotErrorCode(
+      ConvertToMapLiteral(),
+      DartAssistKind.CONVERT_TO_MAP_LITERAL,
+      {LintNames.prefer_collection_literals},
+    );
+    await computeIfNotErrorCode(
       ConvertToNullAware(),
       DartAssistKind.CONVERT_TO_NULL_AWARE,
       {LintNames.prefer_null_aware_operators},
+    );
+    await computeIfNotErrorCode(
+      ConvertToSetLiteral(),
+      DartAssistKind.CONVERT_TO_SET_LITERAL,
+      {LintNames.prefer_collection_literals},
     );
     await compute(
       ExchangeOperands(),
@@ -635,128 +649,6 @@ class AssistProcessor extends BaseProcessor {
     _addAssistFromBuilder(changeBuilder, DartAssistKind.CONVERT_INTO_GETTER);
   }
 
-  Future<void> _addProposal_convertListConstructorToListLiteral() async {
-    //
-    // Ensure that this is the default constructor defined on `List`.
-    //
-    InstanceCreationExpression creation = node.thisOrAncestorOfType();
-    if (creation == null ||
-        node.offset > creation.argumentList.offset ||
-        creation.staticType.element != typeProvider.listElement ||
-        creation.constructorName.name != null ||
-        creation.argumentList.arguments.isNotEmpty) {
-      _coverageMarker();
-      return;
-    }
-    //
-    // Extract the information needed to build the edit.
-    //
-    TypeArgumentList constructorTypeArguments =
-        creation.constructorName.type.typeArguments;
-    //
-    // Build the change and return the assist.
-    //
-    DartChangeBuilder changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addReplacement(range.node(creation), (DartEditBuilder builder) {
-        if (constructorTypeArguments != null) {
-          builder.write(_getNodeText(constructorTypeArguments));
-        }
-        builder.write('[]');
-      });
-    });
-    _addAssistFromBuilder(
-        changeBuilder, DartAssistKind.CONVERT_TO_LIST_LITERAL);
-  }
-
-  Future<void> _addProposal_convertListToSetToSetLiteral() async {
-    //
-    // Ensure that this is an invocation of `toSet` on a list literal.
-    //
-    if (node is! SimpleIdentifier) {
-      _coverageMarker();
-      return;
-    }
-    AstNode parent = node.parent;
-    if (parent is! MethodInvocation) {
-      _coverageMarker();
-      return;
-    }
-    MethodInvocation invocation = parent as MethodInvocation;
-    if (invocation.methodName != node ||
-        invocation.methodName.name != 'toSet') {
-      _coverageMarker();
-      return;
-    }
-    //
-    // Extract the information needed to build the edit.
-    //
-    Expression target = invocation.target;
-    bool hasTypeArgs;
-    SourceRange openRange;
-    SourceRange closeRange;
-    if (target is ListLiteral) {
-      hasTypeArgs = target.typeArguments != null;
-      openRange = range.token(target.leftBracket);
-      closeRange = range.startEnd(target.rightBracket, invocation);
-    } else {
-      _coverageMarker();
-      return;
-    }
-    //
-    // Build the change and return the assist.
-    //
-    DartChangeBuilder changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      if (hasTypeArgs || _listHasUnambiguousElement(target)) {
-        builder.addSimpleReplacement(openRange, '{');
-      } else {
-        builder.addSimpleReplacement(openRange, '<dynamic>{');
-      }
-      builder.addSimpleReplacement(closeRange, '}');
-    });
-    _addAssistFromBuilder(changeBuilder, DartAssistKind.CONVERT_TO_SET_LITERAL);
-  }
-
-  Future<void> _addProposal_convertMapConstructorToMapLiteral() async {
-    bool isMapClass(Element element) =>
-        element is ClassElement &&
-        (element == typeProvider.mapElement ||
-            (element.name == 'LinkedHashMap' &&
-                element.library.name == 'dart.collection'));
-    //
-    // Ensure that this is the default constructor defined on either `Map` or
-    // `LinkedHashMap`.
-    //
-    InstanceCreationExpression creation = node.thisOrAncestorOfType();
-    if (creation == null ||
-        node.offset > creation.argumentList.offset ||
-        creation.constructorName.name != null ||
-        creation.argumentList.arguments.isNotEmpty ||
-        !isMapClass(creation.staticType.element)) {
-      _coverageMarker();
-      return;
-    }
-    //
-    // Extract the information needed to build the edit.
-    //
-    TypeArgumentList constructorTypeArguments =
-        creation.constructorName.type.typeArguments;
-    //
-    // Build the change and return the assist.
-    //
-    DartChangeBuilder changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addReplacement(range.node(creation), (DartEditBuilder builder) {
-        if (constructorTypeArguments != null) {
-          builder.write(_getNodeText(constructorTypeArguments));
-        }
-        builder.write('{}');
-      });
-    });
-    _addAssistFromBuilder(changeBuilder, DartAssistKind.CONVERT_TO_MAP_LITERAL);
-  }
-
   Future<void> _addProposal_convertMapFromIterableToForLiteral() async {
     final changeBuilder =
         await createBuilder_convertMapFromIterableToForLiteral();
@@ -778,100 +670,6 @@ class AssistProcessor extends BaseProcessor {
       builder.addSimpleReplacement(replacementRange, "'$uri'");
     });
     _addAssistFromBuilder(changeBuilder, DartAssistKind.CONVERT_PART_OF_TO_URI);
-  }
-
-  Future<void> _addProposal_convertSetConstructorToSetLiteral() async {
-    //
-    // Ensure that this is one of the constructors defined on `Set`.
-    //
-    InstanceCreationExpression creation = node.thisOrAncestorOfType();
-    if (creation == null ||
-        node.offset > creation.argumentList.offset ||
-        creation.staticType.element != typeProvider.setElement) {
-      // TODO(brianwilkerson) Consider also accepting uses of LinkedHashSet.
-      _coverageMarker();
-      return;
-    }
-    //
-    // Extract the information needed to build the edit.
-    //
-    SimpleIdentifier name = creation.constructorName.name;
-    TypeArgumentList constructorTypeArguments =
-        creation.constructorName.type.typeArguments;
-    TypeArgumentList elementTypeArguments;
-    SourceRange elementsRange;
-    if (name == null) {
-      // Handle an invocation of the default constructor `Set()`.
-    } else if (name.name == 'from' || name.name == 'of') {
-      // Handle an invocation of the constructor `Set.from()` or `Set.of()`.
-      NodeList<Expression> arguments = creation.argumentList.arguments;
-      if (arguments.length != 1) {
-        _coverageMarker();
-        return;
-      }
-      if (arguments[0] is ListLiteral) {
-        ListLiteral elements = arguments[0] as ListLiteral;
-        elementTypeArguments = elements.typeArguments;
-        elementsRange =
-            range.endStart(elements.leftBracket, elements.rightBracket);
-      } else {
-        // TODO(brianwilkerson) Consider handling other iterables. Literal sets
-        //  could be treated like lists, and arbitrary iterables by using a
-        //  spread.
-        _coverageMarker();
-        return;
-      }
-    } else {
-      // Invocation of an unhandled constructor.
-      _coverageMarker();
-      return;
-    }
-    Map();
-    //
-    // Determine whether type arguments are strictly required in cases where no
-    // type arguments were explicitly provided.
-    //
-    bool hasUnambiguousElement() {
-      NodeList<Expression> arguments = creation.argumentList.arguments;
-      if (arguments == null || arguments.isEmpty) {
-        return false;
-      }
-      return _listHasUnambiguousElement(arguments[0]);
-    }
-
-    bool setWouldBeInferred() {
-      AstNode parent = creation.parent;
-      if (parent is VariableDeclaration) {
-        AstNode parent2 = parent.parent;
-        if (parent2 is VariableDeclarationList &&
-            parent2.type?.type?.element == typeProvider.setElement) {
-          return true;
-        }
-      }
-      return hasUnambiguousElement();
-    }
-
-    //
-    // Build the change and return the assist.
-    //
-    DartChangeBuilder changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addReplacement(range.node(creation), (DartEditBuilder builder) {
-        if (constructorTypeArguments != null) {
-          builder.write(_getNodeText(constructorTypeArguments));
-        } else if (elementTypeArguments != null) {
-          builder.write(_getNodeText(elementTypeArguments));
-        } else if (!setWouldBeInferred()) {
-          builder.write('<dynamic>');
-        }
-        builder.write('{');
-        if (elementsRange != null) {
-          builder.write(_getRangeText(elementsRange));
-        }
-        builder.write('}');
-      });
-    });
-    _addAssistFromBuilder(changeBuilder, DartAssistKind.CONVERT_TO_SET_LITERAL);
   }
 
   Future<void> _addProposal_convertToAsyncFunctionBody() async {
@@ -3247,34 +3045,6 @@ class AssistProcessor extends BaseProcessor {
    */
   String _getRangeText(SourceRange range) {
     return utils.getRangeText(range);
-  }
-
-  /// Return `true` if the [element] is sufficient to lexically make the
-  /// enclosing literal a set literal rather than a map.
-  bool _isUnambiguousElement(CollectionElement element) {
-    if (element is ForElement) {
-      return _isUnambiguousElement(element.body);
-    } else if (element is IfElement) {
-      return _isUnambiguousElement(element.thenElement) ||
-          _isUnambiguousElement(element.elseElement);
-    } else if (element is Expression) {
-      return true;
-    }
-    return false;
-  }
-
-  /// Return `true` if the given [node] is a list literal whose elements, if
-  /// placed inside curly braces, would lexically make the resulting literal a
-  /// set literal rather than a map literal.
-  bool _listHasUnambiguousElement(AstNode node) {
-    if (node is ListLiteral && node.elements.isNotEmpty) {
-      for (CollectionElement element in node.elements) {
-        if (_isUnambiguousElement(element)) {
-          return true;
-        }
-      }
-    }
-    return false;
   }
 
   DartChangeBuilder _newDartChangeBuilder() {

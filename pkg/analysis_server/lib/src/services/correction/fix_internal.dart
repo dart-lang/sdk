@@ -54,6 +54,9 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart' hide FixContributor;
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:path/path.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_list_literal.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_map_literal.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_set_literal.dart';
 
 /**
  * A predicate is a one-argument function that returns a boolean value.
@@ -4637,7 +4640,20 @@ class FixProcessor extends BaseProcessor {
     var errorCode = error.errorCode;
     if (errorCode is LintCode) {
       String name = errorCode.name;
-      if (name == LintNames.prefer_null_aware_operators) {
+      if (name == LintNames.prefer_collection_literals) {
+        await compute(
+          ConvertToListLiteral(),
+          DartFixKind.CONVERT_TO_LIST_LITERAL,
+        );
+        await compute(
+          ConvertToMapLiteral(),
+          DartFixKind.CONVERT_TO_MAP_LITERAL,
+        );
+        await compute(
+          ConvertToSetLiteral(),
+          DartFixKind.CONVERT_TO_SET_LITERAL,
+        );
+      } else if (name == LintNames.prefer_null_aware_operators) {
         await compute(
           ConvertToNullAware(),
           DartFixKind.CONVERT_TO_NULL_AWARE,

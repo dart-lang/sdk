@@ -29,6 +29,8 @@ abstract class CorrectionProducer {
 
   int get selectionOffset => _context.selectionOffset;
 
+  TypeProvider get typeProvider => _context.typeProvider;
+
   CorrectionUtils get utils => _context.utils;
 
   Future<void> compute(DartChangeBuilder builder);
@@ -37,17 +39,13 @@ abstract class CorrectionProducer {
     _context = context;
   }
 
-  /**
-   * Returns the text of the given range in the unit.
-   */
+  /// Return the text of the given [range] in the unit.
   String getRangeText(SourceRange range) {
     return utils.getRangeText(range);
   }
 
-  /**
-   * Returns `true` if the selection covers an operator of the given
-   * [BinaryExpression].
-   */
+  /// Return `true` if the selection covers an operator of the given
+  /// [binaryExpression].
   bool isOperatorSelected(BinaryExpression binaryExpression) {
     AstNode left = binaryExpression.leftOperand;
     AstNode right = binaryExpression.rightOperand;

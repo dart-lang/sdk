@@ -93,11 +93,9 @@ class DartAssistKind {
       'dart.assist.convert.toIntLiteral', 30, "Convert to an int literal");
   static const CONVERT_TO_LIST_LITERAL = AssistKind(
       'dart.assist.convert.toListLiteral', 30, "Convert to list literal",
-      // todo (brianwilkerson): unify w/ fix
       associatedErrorCodes: <String>['prefer_collection_literals']);
   static const CONVERT_TO_MAP_LITERAL = AssistKind(
       'dart.assist.convert.toMapLiteral', 30, "Convert to map literal",
-      // todo (brianwilkerson): unify w/ fix
       associatedErrorCodes: <String>['prefer_collection_literals']);
   static const CONVERT_TO_MULTILINE_STRING = AssistKind(
       'dart.assist.convert.toMultilineString',
@@ -115,7 +113,6 @@ class DartAssistKind {
       "Convert to 'package:' import");
   static const CONVERT_TO_SET_LITERAL = AssistKind(
       'dart.assist.convert.toSetLiteral', 30, "Convert to set literal",
-      // todo (brianwilkerson): unify w/ fix
       associatedErrorCodes: <String>['prefer_collection_literals']);
   static const CONVERT_TO_SINGLE_QUOTED_STRING = AssistKind(
       'dart.assist.convert.toSingleQuotedString',

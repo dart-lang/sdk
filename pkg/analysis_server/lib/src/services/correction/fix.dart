@@ -201,6 +201,10 @@ class DartFixKind {
       FixKind('CONVERT_TO_INT_LITERAL', 50, "Convert to an int literal");
   static const CONVERT_TO_LINE_COMMENT = FixKind(
       'CONVERT_TO_LINE_COMMENT', 50, "Convert to line documentation comment");
+  static const CONVERT_TO_LIST_LITERAL =
+      FixKind('CONVERT_TO_LIST_LITERAL', 50, "Convert to list literal");
+  static const CONVERT_TO_MAP_LITERAL =
+      FixKind('CONVERT_TO_MAP_LITERAL', 50, "Convert to map literal");
   static const CONVERT_TO_NAMED_ARGUMENTS =
       FixKind('CONVERT_TO_NAMED_ARGUMENTS', 50, "Convert to named arguments");
   static const CONVERT_TO_NULL_AWARE =
@@ -209,6 +213,8 @@ class DartFixKind {
       FixKind('CONVERT_TO_PACKAGE_IMPORT', 50, "Convert to 'package:' import");
   static const CONVERT_TO_RELATIVE_IMPORT =
       FixKind('CONVERT_TO_RELATIVE_IMPORT', 50, "Convert to relative import");
+  static const CONVERT_TO_SET_LITERAL =
+      FixKind('CONVERT_TO_SET_LITERAL', 50, "Convert to set literal");
   static const CONVERT_TO_SINGLE_QUOTED_STRING = FixKind(
       'CONVERT_TO_SINGLE_QUOTED_STRING', 50, "Convert to single quoted string");
   static const CONVERT_TO_SPREAD =

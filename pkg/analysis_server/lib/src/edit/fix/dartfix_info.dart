@@ -304,6 +304,12 @@ will be converted to
       "Remove the '+' operator.",
       isPedantic: true);
 
+  static final preferCollectionLiterals = LintFixInfo(
+      'prefer_collection_literals',
+      DartFixKind.CONVERT_TO_LIST_LITERAL,
+      'Replace with a collection literal.',
+      isPedantic: true);
+
   static final preferConditionalAssignment = LintFixInfo(
       'prefer_conditional_assignment',
       DartFixKind.REPLACE_WITH_CONDITIONAL_ASSIGNMENT,
