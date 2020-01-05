@@ -832,27 +832,6 @@ class Dart2TypeSystem extends TypeSystem {
     return orderedArguments;
   }
 
-  /// Given the type defining [element], instantiate its type formals to
-  /// their bounds.
-  List<DartType> instantiateTypeFormalsToBounds2(Element element) {
-    List<TypeParameterElement> typeParameters;
-    if (element is ClassElement) {
-      typeParameters = element.typeParameters;
-    } else if (element is GenericTypeAliasElement) {
-      typeParameters = element.typeParameters;
-    } else {
-      throw StateError('Unexpected: $element');
-    }
-
-    if (typeParameters.isEmpty) {
-      return const <DartType>[];
-    }
-
-    return typeParameters
-        .map((p) => (p as TypeParameterElementImpl).defaultType)
-        .toList();
-  }
-
   @override
   bool isAssignableTo(DartType fromType, DartType toType) {
     // An actual subtype
