@@ -2164,8 +2164,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * Verify that if the given [constructor] declaration is 'const' then there
    * are no non-final instance variable. The [constructorElement] is the
    * constructor element.
-   *
-   * See [CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD].
    */
   void _checkForConstConstructorWithNonFinalField(
       ConstructorDeclaration constructor,
@@ -2178,8 +2176,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (!classElement.hasNonFinalField) {
       return;
     }
-
-    _errorReporter.reportErrorForNode(
+    // TODO(brianwilkerson) Stop generating
+    //  CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD when either
+    //  CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER or
+    //  CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD is also generated.
+    _errorReporter.reportErrorForName(
         CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD,
         constructor);
   }

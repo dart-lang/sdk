@@ -14,7 +14,7 @@ class B extends A
     with Mixin
 {
   const B(foo) : super(foo);
-//^^^^^^^^^^^^^^^^^^^^^^^^^^
+//      ^
 // [analyzer] COMPILE_TIME_ERROR.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD
 //      ^
 // [analyzer] COMPILE_TIME_ERROR.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD

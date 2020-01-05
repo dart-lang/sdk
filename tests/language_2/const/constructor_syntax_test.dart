@@ -34,7 +34,7 @@ class C0 implements I0 {
 
 class C1 {
   const C1();
-//^^^^^^^^^^^
+//      ^^
 // [analyzer] COMPILE_TIME_ERROR.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD
 //      ^
 // [cfe] Constructor is marked 'const' so all fields must be final.

@@ -398,8 +398,7 @@ class B extends Object with A {
   const B();
 }
 ''', [
-      error(
-          CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD, 55, 10),
+      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD, 61, 1),
       error(
           CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD, 61, 1),
     ]);
@@ -414,21 +413,30 @@ class B extends A {
   const B();
 }
 ''', [
-      error(
-          CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD, 43, 10),
+      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD, 49, 1),
       error(CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER, 49, 1),
     ]);
   }
 
-  test_constConstructorWithNonFinalField_this() async {
+  test_constConstructorWithNonFinalField_this_named() async {
+    await assertErrorsInCode(r'''
+class A {
+  int x;
+  const A.a();
+}
+''', [
+      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD, 27, 3),
+    ]);
+  }
+
+  test_constConstructorWithNonFinalField_this_unnamed() async {
     await assertErrorsInCode(r'''
 class A {
   int x;
   const A();
 }
 ''', [
-      error(
-          CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD, 21, 10),
+      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD, 27, 1),
     ]);
   }
 

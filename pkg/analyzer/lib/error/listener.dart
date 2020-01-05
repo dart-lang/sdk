@@ -5,7 +5,8 @@
 import 'dart:collection';
 
 import 'package:_fe_analyzer_shared/src/messages/codes.dart' show Message;
-import 'package:analyzer/dart/ast/ast.dart' show AstNode;
+import 'package:analyzer/dart/ast/ast.dart'
+    show AstNode, ConstructorDeclaration;
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -117,6 +118,21 @@ class ErrorReporter {
       [List<Object> arguments]) {
     reportErrorForOffset(
         errorCode, element.nameOffset, element.nameLength, arguments);
+  }
+
+  /// Report a diagnostic with the given [code] and [arguments]. The
+  /// location of the diagnostic will be the name of the [constructor].
+  void reportErrorForName(ErrorCode code, ConstructorDeclaration constructor,
+      {List<Object> arguments}) {
+    // TODO(brianwilkerson) Consider extending this method to take any
+    //  declaration and compute the correct range for the name of that
+    //  declaration. This might make it easier to be consistent.
+    if (constructor.name != null) {
+      var offset = constructor.returnType.offset;
+      reportErrorForOffset(code, offset, constructor.name.end - offset);
+    } else {
+      reportErrorForNode(code, constructor.returnType);
+    }
   }
 
   /**
