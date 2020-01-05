@@ -15,7 +15,6 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/type_system.dart';
 
@@ -26,16 +25,8 @@ class TypeNameResolver {
   final TypeSystemImpl typeSystem;
   final DartType dynamicType;
   final bool isNonNullableByDefault;
-  final AnalysisOptionsImpl analysisOptions;
   final LibraryElement definingLibrary;
   final ErrorReporter errorReporter;
-
-  /// Indicates whether bare typenames in "with" clauses should have their type
-  /// inferred type arguments loaded from the element model.
-  ///
-  /// This is needed for mixin type inference, but is incompatible with the old
-  /// task model.
-  final bool shouldUseWithClauseInferredTypes;
 
   Scope nameScope;
 
@@ -62,10 +53,8 @@ class TypeNameResolver {
   ConstructorName rewriteResult;
 
   TypeNameResolver(this.typeSystem, TypeProvider typeProvider,
-      this.isNonNullableByDefault, this.definingLibrary, this.errorReporter,
-      {this.shouldUseWithClauseInferredTypes = true})
-      : dynamicType = typeProvider.dynamicType,
-        analysisOptions = definingLibrary.context.analysisOptions;
+      this.isNonNullableByDefault, this.definingLibrary, this.errorReporter)
+      : dynamicType = typeProvider.dynamicType;
 
   NullabilitySuffix get _noneOrStarSuffix {
     return isNonNullableByDefault
