@@ -911,9 +911,9 @@ class _Base extends AbstractContextTest {
   void assertTarget(
     String entityText,
     String nodeText, {
-    int argIndex: null,
+    int argIndex = null,
     String droppedToken,
-    bool isFunctionalArgument: false,
+    bool isFunctionalArgument = false,
     String expectedExecutable,
     String expectedParameter,
   }) {

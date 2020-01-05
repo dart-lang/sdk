@@ -98,7 +98,7 @@ class AnalyzerImpl {
   /// If [printMode] is `2`, then performance information will be printed, and
   /// it will be marked as being for a cold VM.
   Future<ErrorSeverity> analyze(ErrorFormatter formatter,
-      {int printMode: 1}) async {
+      {int printMode = 1}) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     setupForAnalysis();

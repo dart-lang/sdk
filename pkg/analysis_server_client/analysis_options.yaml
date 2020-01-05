@@ -32,7 +32,7 @@ linter:
     - prefer_collection_literals
     #- prefer_conditional_assignment # 187
     - prefer_contains
-    #- prefer_equal_for_default_values # 9
+    - prefer_equal_for_default_values
     #- prefer_final_fields # 2
     - prefer_for_elements_to_map_fromIterable
     - prefer_generic_function_type_aliases

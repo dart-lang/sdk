@@ -79,8 +79,8 @@ class SuggestionBuilderImpl implements SuggestionBuilder {
   @override
   CompletionSuggestion forElement(Element element,
       {String completion,
-      CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
-      int relevance: DART_RELEVANCE_DEFAULT}) {
+      CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
+      int relevance = DART_RELEVANCE_DEFAULT}) {
     // Copied from analysis_server/lib/src/services/completion/dart/suggestion_builder.dart
     if (element == null) {
       return null;

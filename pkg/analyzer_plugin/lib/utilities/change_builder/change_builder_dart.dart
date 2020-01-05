@@ -69,7 +69,7 @@ abstract class DartEditBuilder implements EditBuilder {
    */
   void writeClassDeclaration(String name,
       {Iterable<DartType> interfaces,
-      bool isAbstract: false,
+      bool isAbstract = false,
       void membersWriter(),
       Iterable<DartType> mixins,
       String nameGroupName,
@@ -100,7 +100,7 @@ abstract class DartEditBuilder implements EditBuilder {
       String constructorNameGroupName,
       List<String> fieldNames,
       void initializerWriter(),
-      bool isConst: false,
+      bool isConst = false,
       void parameterWriter()});
 
   /**
@@ -121,9 +121,9 @@ abstract class DartEditBuilder implements EditBuilder {
    */
   void writeFieldDeclaration(String name,
       {void initializerWriter(),
-      bool isConst: false,
-      bool isFinal: false,
-      bool isStatic: false,
+      bool isConst = false,
+      bool isFinal = false,
+      bool isStatic = false,
       String nameGroupName,
       DartType type,
       String typeGroupName});
@@ -144,7 +144,7 @@ abstract class DartEditBuilder implements EditBuilder {
    */
   void writeFunctionDeclaration(String name,
       {void bodyWriter(),
-      bool isStatic: false,
+      bool isStatic = false,
       String nameGroupName,
       void parameterWriter(),
       DartType returnType,
@@ -163,7 +163,7 @@ abstract class DartEditBuilder implements EditBuilder {
    */
   void writeGetterDeclaration(String name,
       {void bodyWriter(),
-      bool isStatic: false,
+      bool isStatic = false,
       String nameGroupName,
       DartType returnType,
       String returnTypeGroupName});
@@ -185,8 +185,8 @@ abstract class DartEditBuilder implements EditBuilder {
    */
   void writeLocalVariableDeclaration(String name,
       {void initializerWriter(),
-      bool isConst: false,
-      bool isFinal: false,
+      bool isConst = false,
+      bool isFinal = false,
       String nameGroupName,
       DartType type,
       String typeGroupName});
@@ -214,7 +214,7 @@ abstract class DartEditBuilder implements EditBuilder {
   void writeOverride(
     ExecutableElement element, {
     StringBuffer displayTextBuffer,
-    bool invokeSuper: false,
+    bool invokeSuper = false,
   });
 
   /**
@@ -276,7 +276,7 @@ abstract class DartEditBuilder implements EditBuilder {
    */
   void writeSetterDeclaration(String name,
       {void bodyWriter(),
-      bool isStatic: false,
+      bool isStatic = false,
       String nameGroupName,
       DartType parameterType,
       String parameterTypeGroupName});
@@ -300,10 +300,10 @@ abstract class DartEditBuilder implements EditBuilder {
    * Return `true` if some text was written.
    */
   bool writeType(DartType type,
-      {bool addSupertypeProposals: false,
+      {bool addSupertypeProposals = false,
       String groupName,
       ExecutableElement methodBeingCopied,
-      bool required: false});
+      bool required = false});
 
   /**
    * Write the code to declare the given [typeParameter]. The enclosing angle

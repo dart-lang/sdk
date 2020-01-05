@@ -159,12 +159,12 @@ class Server {
     String clientVersion,
     int diagnosticPort,
     String instrumentationLogFile,
-    bool profileServer: false,
+    bool profileServer = false,
     String sdkPath,
     String serverPath,
     int servicesPort,
-    bool suppressAnalytics: true,
-    bool useAnalysisHighlight2: false,
+    bool suppressAnalytics = true,
+    bool useAnalysisHighlight2 = false,
   }) async {
     if (_process != null) {
       throw Exception('Process already started');

@@ -119,7 +119,7 @@ class ApiReader {
    */
   void checkAttributes(
       dom.Element element, List<String> requiredAttributes, String context,
-      {List<String> optionalAttributes: const []}) {
+      {List<String> optionalAttributes = const []}) {
     Set<String> attributesFound = Set<String>();
     element.attributes.forEach((name, value) {
       if (!requiredAttributes.contains(name) &&

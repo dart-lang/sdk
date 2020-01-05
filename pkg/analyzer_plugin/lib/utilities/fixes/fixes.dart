@@ -152,7 +152,7 @@ class FixKind {
    * [appliedTogetherMessage].
    */
   const FixKind(this.name, this.priority, this.message,
-      {this.appliedTogetherMessage: null});
+      {this.appliedTogetherMessage = null});
 
   @override
   int get hashCode => name.hashCode;

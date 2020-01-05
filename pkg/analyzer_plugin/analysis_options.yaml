@@ -31,7 +31,7 @@ linter:
     #- prefer_collection_literals # 9
     #- prefer_conditional_assignment # 72
     - prefer_contains
-    #- prefer_equal_for_default_values # 177
+    - prefer_equal_for_default_values
     #- prefer_final_fields # 5
     - prefer_for_elements_to_map_fromIterable
     - prefer_generic_function_type_aliases

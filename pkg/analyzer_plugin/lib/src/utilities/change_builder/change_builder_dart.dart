@@ -153,7 +153,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   @override
   void writeClassDeclaration(String name,
       {Iterable<DartType> interfaces,
-      bool isAbstract: false,
+      bool isAbstract = false,
       void membersWriter(),
       Iterable<DartType> mixins,
       String nameGroupName,
@@ -196,7 +196,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       String constructorNameGroupName,
       List<String> fieldNames,
       void initializerWriter(),
-      bool isConst: false,
+      bool isConst = false,
       void parameterWriter()}) {
     if (isConst) {
       write(Keyword.CONST.lexeme);
@@ -242,9 +242,9 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   @override
   void writeFieldDeclaration(String name,
       {void initializerWriter(),
-      bool isConst: false,
-      bool isFinal: false,
-      bool isStatic: false,
+      bool isConst = false,
+      bool isFinal = false,
+      bool isStatic = false,
       String nameGroupName,
       DartType type,
       String typeGroupName}) {
@@ -284,7 +284,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   @override
   void writeFunctionDeclaration(String name,
       {void bodyWriter(),
-      bool isStatic: false,
+      bool isStatic = false,
       String nameGroupName,
       void parameterWriter(),
       DartType returnType,
@@ -323,7 +323,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   @override
   void writeGetterDeclaration(String name,
       {void bodyWriter(),
-      bool isStatic: false,
+      bool isStatic = false,
       String nameGroupName,
       DartType returnType,
       String returnTypeGroupName}) {
@@ -354,8 +354,8 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   @override
   void writeLocalVariableDeclaration(String name,
       {void initializerWriter(),
-      bool isConst: false,
-      bool isFinal: false,
+      bool isConst = false,
+      bool isFinal = false,
       String nameGroupName,
       DartType type,
       String typeGroupName}) {
@@ -417,7 +417,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     ExecutableElement element, {
     StringBuffer displayTextBuffer,
     String returnTypeGroupName,
-    bool invokeSuper: false,
+    bool invokeSuper = false,
   }) {
     void withCarbonCopyBuffer(f()) {
       _carbonCopyBuffer = displayTextBuffer;
@@ -684,7 +684,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   @override
   void writeSetterDeclaration(String name,
       {void bodyWriter(),
-      bool isStatic: false,
+      bool isStatic = false,
       String nameGroupName,
       DartType parameterType,
       String parameterTypeGroupName}) {
@@ -718,10 +718,10 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   @override
   bool writeType(DartType type,
-      {bool addSupertypeProposals: false,
+      {bool addSupertypeProposals = false,
       String groupName,
       ExecutableElement methodBeingCopied,
-      bool required: false}) {
+      bool required = false}) {
     bool wroteType = false;
     if (type != null && !type.isDynamic) {
       if (groupName != null) {
@@ -1373,7 +1373,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
         void insert(
             {ImportDirective prev,
             ImportDirective next,
-            bool trailingNewLine: false}) {
+            bool trailingNewLine = false}) {
           LineInfo lineInfo = resolvedUnit.lineInfo;
           if (prev != null) {
             int offset = prev.end;

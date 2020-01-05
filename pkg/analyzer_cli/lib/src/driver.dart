@@ -108,7 +108,7 @@ class Driver with HasContextMixin implements CommandLineStarter {
   /// Create a new Driver instance.
   ///
   /// [isTesting] is true if we're running in a test environment.
-  Driver({bool isTesting: false});
+  Driver({bool isTesting = false});
 
   /**
    * Converts the given [filePath] into absolute and normalized.

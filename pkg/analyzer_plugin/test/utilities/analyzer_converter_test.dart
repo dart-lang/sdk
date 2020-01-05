@@ -39,8 +39,8 @@ class AnalyzerConverterTest extends AbstractContextTest {
   void assertError(
       plugin.AnalysisError pluginError, analyzer.AnalysisError analyzerError,
       {analyzer.ErrorSeverity severity,
-      int startColumn: -1,
-      int startLine: -1}) {
+      int startColumn = -1,
+      int startLine = -1}) {
     analyzer.ErrorCode errorCode = analyzerError.errorCode;
     expect(pluginError, isNotNull);
     plugin.Location location = pluginError.location;

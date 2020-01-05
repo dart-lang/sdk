@@ -41,7 +41,7 @@ Matcher isOneOf(List<Matcher> choiceMatchers) => _OneOf(choiceMatchers);
  * Assert that [actual] matches [matcher].
  */
 void outOfTestExpect(actual, Matcher matcher,
-    {String reason, skip, bool verbose: false}) {
+    {String reason, skip, bool verbose = false}) {
   var matchState = {};
   try {
     if (matcher.matches(actual, matchState)) return;
@@ -215,7 +215,7 @@ abstract class AbstractAnalysisServerIntegrationTest
    * then also enable [SERVER_STATUS] notifications so that [analysisFinished]
    * can be used.
    */
-  Future standardAnalysisSetup({bool subscribeStatus: true}) {
+  Future standardAnalysisSetup({bool subscribeStatus = true}) {
     List<Future> futures = <Future>[];
     // TODO(brianwilkerson) Implement this.
 //    if (subscribeStatus) {
@@ -229,7 +229,7 @@ abstract class AbstractAnalysisServerIntegrationTest
    * Start [server].
    */
   Future startServer(
-          {bool checked: true, int diagnosticPort, int servicesPort}) =>
+          {bool checked = true, int diagnosticPort, int servicesPort}) =>
       server.start(
           checked: checked,
           diagnosticPort: diagnosticPort,
@@ -623,13 +623,13 @@ class Server {
    * "--pause-isolates-on-exit", allowing the observatory to be used.
    */
   Future start(
-      {bool checked: true,
-      bool debugServer: false,
+      {bool checked = true,
+      bool debugServer = false,
       int diagnosticPort,
-      bool profileServer: false,
+      bool profileServer = false,
       String sdkPath,
       int servicesPort,
-      bool useAnalysisHighlight2: false}) {
+      bool useAnalysisHighlight2 = false}) {
     if (_process != null) {
       throw Exception('Process already started');
     }
@@ -693,7 +693,7 @@ class Server {
   /**
    * Deal with bad data received from the server.
    */
-  void _badDataFromServer(String details, {bool silent: false}) {
+  void _badDataFromServer(String details, {bool silent = false}) {
     if (!silent) {
       _recordStdio('BAD DATA FROM SERVER: $details');
     }

@@ -91,7 +91,7 @@ class InheritedReferenceContributor
   }
 
   _addSuggestionsForType(InterfaceType type, OpType optype,
-      {bool isFunctionalArgument: false}) {
+      {bool isFunctionalArgument = false}) {
     if (!isFunctionalArgument) {
       for (PropertyAccessorElement elem in type.accessors) {
         if (elem.isGetter) {
@@ -122,7 +122,7 @@ class InheritedReferenceContributor
 
   void _computeSuggestionsForClass2(CompletionCollector collector,
       CompletionTarget target, ClassElement classElement, OpType optype,
-      {bool skipChildClass: true}) {
+      {bool skipChildClass = true}) {
     bool isFunctionalArgument = target.isFunctionalArgument();
     kind = isFunctionalArgument
         ? CompletionSuggestionKind.IDENTIFIER

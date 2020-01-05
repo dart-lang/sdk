@@ -50,7 +50,7 @@ mixin ElementSuggestionBuilder {
    * Add a suggestion based upon the given element.
    */
   void addSuggestion(Element element,
-      {String prefix, int relevance: DART_RELEVANCE_DEFAULT}) {
+      {String prefix, int relevance = DART_RELEVANCE_DEFAULT}) {
     if (element.isPrivate) {
       if (element.library != containingLibrary) {
         return;

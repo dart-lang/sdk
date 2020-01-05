@@ -40,7 +40,7 @@ main() {
 class AbstractBuildModeTest extends BaseTest {
   Future<void> _doDrive(String path,
       {String uri,
-      List<String> additionalArgs: const [],
+      List<String> additionalArgs = const [],
       String dartSdkSummaryPath}) async {
     path = _p(path);
 
@@ -139,8 +139,8 @@ class BaseTest {
   /// discovered options file.
   Future<void> drive(
     String source, {
-    String options: emptyOptionsFile,
-    List<String> args: const <String>[],
+    String options = emptyOptionsFile,
+    List<String> args = const <String>[],
   }) {
     return driveMany([source], options: options, args: args);
   }
@@ -148,8 +148,8 @@ class BaseTest {
   /// Like [drive], but takes an array of sources.
   Future<void> driveMany(
     List<String> sources, {
-    String options: emptyOptionsFile,
-    List<String> args: const <String>[],
+    String options = emptyOptionsFile,
+    List<String> args = const <String>[],
   }) async {
     options = _p(options);
 

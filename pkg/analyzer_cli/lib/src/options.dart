@@ -23,7 +23,7 @@ ExitHandler exitHandler = exit;
 T cast<T>(dynamic value) => value as T;
 
 /// Print the given [message] to stderr and exit with the given [exitCode].
-void printAndFail(String message, {int exitCode: 15}) {
+void printAndFail(String message, {int exitCode = 15}) {
   errorSink.writeln(message);
   exitHandler(exitCode);
 }
@@ -563,7 +563,7 @@ class CommandLineOptions {
     }
   }
 
-  static _showUsage(ArgParser parser, {bool fromHelp: false}) {
+  static _showUsage(ArgParser parser, {bool fromHelp = false}) {
     errorSink.writeln(
         'Usage: $_binaryName [options...] <directory or list of files>');
 

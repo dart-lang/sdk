@@ -81,7 +81,7 @@ class TestContributor implements NavigationContributor {
    */
   int count = 0;
 
-  TestContributor({this.throwException: false});
+  TestContributor({this.throwException = false});
 
   @override
   void computeNavigation(

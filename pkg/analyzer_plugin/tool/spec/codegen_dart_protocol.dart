@@ -853,7 +853,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
           String flag = 'FLAG_${name.toUpperCase()}';
           String camelName = camelJoin(['is', name]);
           writeln('static const int $flag = $value;');
-          makeFlagsArgs.add('bool $camelName: false');
+          makeFlagsArgs.add('bool $camelName = false');
           makeFlagsStatements.add('if ($camelName) flags |= $flag;');
         });
         writeln();
