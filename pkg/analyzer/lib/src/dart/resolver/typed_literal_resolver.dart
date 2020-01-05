@@ -528,19 +528,6 @@ class TypedLiteralResolver {
     );
   }
 
-  /**
-   * Return the non-nullable variant of the [type] if NNBD is enabled, otherwise
-   * return the type itself.
-   *
-   * TODO(scheglov) Use [_noneOrStarSuffix] instead
-   */
-  DartType _nonNullable(DartType type) {
-    if (_isNonNullableByDefault) {
-      return _typeSystem.promoteToNonNull(type);
-    }
-    return type;
-  }
-
   void _pushCollectionTypesDown(CollectionElement element,
       {DartType elementType,
       @required DartType iterableType,
@@ -613,16 +600,21 @@ class TypedLiteralResolver {
 
     // If we have explicit arguments, use them.
     if (typeArguments != null) {
-      DartType staticType = _dynamicType;
+      DartType elementType = _dynamicType;
       NodeList<TypeAnnotation> arguments = typeArguments.arguments;
       if (arguments != null && arguments.length == 1) {
         DartType argumentType = _getType(arguments[0]);
         if (argumentType != null) {
-          staticType = argumentType;
+          elementType = argumentType;
         }
       }
       _recordStaticType(
-          node, _nonNullable(_typeProvider.listType2(staticType)));
+        node,
+        _typeProvider.listElement.instantiate(
+          typeArguments: [elementType],
+          nullabilitySuffix: _noneOrStarSuffix,
+        ),
+      );
       return;
     }
 
@@ -653,14 +645,24 @@ class TypedLiteralResolver {
         (node as SetOrMapLiteralImpl).becomeSet();
         var elementType = _getType(typeArguments[0]) ?? _dynamicType;
         _recordStaticType(
-            node, _nonNullable(_typeProvider.setType2(elementType)));
+          node,
+          _typeProvider.setElement.instantiate(
+            typeArguments: [elementType],
+            nullabilitySuffix: _noneOrStarSuffix,
+          ),
+        );
         return;
       } else if (typeArguments.length == 2) {
         (node as SetOrMapLiteralImpl).becomeMap();
         var keyType = _getType(typeArguments[0]) ?? _dynamicType;
         var valueType = _getType(typeArguments[1]) ?? _dynamicType;
         _recordStaticType(
-            node, _nonNullable(_typeProvider.mapType2(keyType, valueType)));
+          node,
+          _typeProvider.mapElement.instantiate(
+            typeArguments: [keyType, valueType],
+            nullabilitySuffix: _noneOrStarSuffix,
+          ),
+        );
         return;
       }
       // If we get here, then a nonsense number of type arguments were provided,
