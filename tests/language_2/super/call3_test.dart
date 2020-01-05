@@ -49,11 +49,11 @@ class D extends C {}
 class D2 extends C {
   D2();
 //^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER
 // [cfe] The superclass, 'C', has no unnamed constructor that takes no arguments.
   D2.named() : this.x = 499;
 //^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER
 // [cfe] The superclass, 'C', has no unnamed constructor that takes no arguments.
   var x;
 }

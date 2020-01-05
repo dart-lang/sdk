@@ -5003,12 +5003,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       isUnresolvedIdentifier: true);
 
   /**
-   * 7.6.1 Generative Constructors: Let <i>C</i> be the class in which the
-   * superinitializer appears and let <i>S</i> be the superclass of <i>C</i>.
-   * Let <i>k</i> be a generative constructor. It is a compile-time error if
-   * class <i>S</i> does not declare a generative constructor named <i>S</i>
-   * (respectively <i>S.id</i>)
-   *
    * Parameters:
    * 0: the name of the superclass that does not define the invoked constructor
    * 1: the name of the constructor being invoked
@@ -5020,17 +5014,13 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "invoking a different constructor.");
 
   /**
-   * 7.6.1 Generative Constructors: Let <i>C</i> be the class in which the
-   * superinitializer appears and let <i>S</i> be the superclass of <i>C</i>.
-   * Let <i>k</i> be a generative constructor. It is a compile-time error if
-   * class <i>S</i> does not declare a generative constructor named <i>S</i>
-   * (respectively <i>S.id</i>)
-   *
    * Parameters:
    * 0: the name of the superclass that does not define the invoked constructor
    */
   static const CompileTimeErrorCode
-      UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT = CompileTimeErrorCode(
+      UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT =
+      CompileTimeErrorCodeWithUniqueName(
+          'UNDEFINED_CONSTRUCTOR_IN_INITIALIZER',
           'UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT',
           "The class '{0}' doesn't have an unnamed constructor.",
           correction: "Try defining an unnamed constructor in '{0}', or "
