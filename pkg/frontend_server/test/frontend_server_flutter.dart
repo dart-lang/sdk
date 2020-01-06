@@ -115,6 +115,11 @@ Future<List<String>> attemptStuff(
         "packages/flutter/test/widgets/html_element_view_test.dart") {
       return true;
     }
+    if (pathSegments.sublist(pathSegments.length - 6).join("/") ==
+        "packages/flutter_driver/test/src/web_tests/web_extension_test.dart") {
+      return true;
+    }
+
     return false;
   }
 

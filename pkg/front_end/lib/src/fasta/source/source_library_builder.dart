@@ -681,7 +681,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       imported = coreLibrary
           .loader.builders[new Uri(scheme: 'dart', path: dottedName)];
     }
-    return imported != null ? "true" : "";
+    return imported != null && !imported.isSynthetic ? "true" : "";
   }
 
   void addImport(
