@@ -116,6 +116,11 @@ class AssignmentCheckerTest extends Object
     // Note: no assertions to do; just need to make sure there wasn't a crash.
   }
 
+  void test_dynamic_to_void() {
+    assign(dynamic_, void_);
+    // Note: no assertions to do; just need to make sure there wasn't a crash.
+  }
+
   void test_function_type_named_parameter() {
     var t1 = function(dynamic_, named: {'x': object()});
     var t2 = function(dynamic_, named: {'x': object()});
@@ -294,6 +299,11 @@ class AssignmentCheckerTest extends Object
     assertNoEdge(t1.node, t2.typeArguments[0].node);
   }
 
+  void test_iterable_object_to_list_void() {
+    assign(iterable(object()), list(void_));
+    // Note: no assertions to do; just need to make sure there wasn't a crash.
+  }
+
   void test_null_to_generic() {
     var t = list(object());
     assign(null_, t);
@@ -305,6 +315,11 @@ class AssignmentCheckerTest extends Object
     var t = object();
     assign(null_, t);
     assertEdge(always, t.node, hard: false);
+  }
+
+  void test_object_to_void() {
+    assign(object(), void_);
+    // Note: no assertions to do; just need to make sure there wasn't a crash.
   }
 
   void test_simple_to_dynamic() {

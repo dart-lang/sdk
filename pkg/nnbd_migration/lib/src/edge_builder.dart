@@ -2536,7 +2536,9 @@ mixin _AssignmentChecker {
     // Nullability should narrow to maintain subtype relationship.
     _connect(source.node, destination.node, origin, hard: hard);
 
-    if (source.type.isDynamic) {
+    if (source.type.isDynamic ||
+        source.type.isDartCoreObject ||
+        source.type.isVoid) {
       if (destinationType is InterfaceType) {
         for (final param in destinationType.element.typeParameters) {
           assert(param.bound == null,
@@ -2581,7 +2583,7 @@ mixin _AssignmentChecker {
       assert(
           false,
           'downcasting from ${source.type.runtimeType} to '
-          '${destinationType.runtimeType} not supported.');
+          '${destinationType.runtimeType} not supported. (${source.type} $destinationType)');
     }
   }
 
