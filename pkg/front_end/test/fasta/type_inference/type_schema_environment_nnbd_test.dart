@@ -414,6 +414,14 @@ class TypeSchemaEnvironmentTest {
         "(B*, {A* a}) ->* void", "(B*) ->* void", "(B*, {A* a}) ->* void");
     testLower("({A* a}) -> void", "(B*) -> void", "Never");
     testLower("({A* a}) -> void", "([B*]) ->* void", "Never");
+    testLower("<X>() -> void", "<Y>() -> void", "<Z>() -> void");
+    testLower("<X>(X) -> List<X>", "<Y>(Y) -> List<Y>", "<Z>(Z) -> List<Z>");
+    testLower(
+        "<X1, X2 extends List<X1>>(X1) -> X2",
+        "<Y1, Y2 extends List<Y1>>(Y1) -> Y2",
+        "<Z1, Z2 extends List<Z1>>(Z1) -> Z2");
+    testLower(
+        "<X extends int>(X) -> void", "<Y extends double>(Y) -> void", "Never");
 
     testLower(
         "({required A a, A b, required A c, A d, required A e}) -> A",
@@ -712,6 +720,14 @@ class TypeSchemaEnvironmentTest {
     testUpper("(B*, {A* a}) ->* void", "(B*) ->* void", "(B*) ->* void");
     testUpper("({A* a}) ->* void", "(B*) ->* void", "Function*");
     testUpper("() ->* void", "([B*]) ->* void", "() ->* void");
+    testUpper("<X>() -> void", "<Y>() -> void", "<Z>() -> void");
+    testUpper("<X>(X) -> List<X>", "<Y>(Y) -> List<Y>", "<Z>(Z) -> List<Z>");
+    testUpper(
+        "<X1, X2 extends List<X1>>(X1) -> X2",
+        "<Y1, Y2 extends List<Y1>>(Y1) -> Y2",
+        "<Z1, Z2 extends List<Z1>>(Z1) -> Z2");
+    testUpper("<X extends int>() -> void", "<Y extends double>() -> void",
+        "Function");
 
     testUpper("({required A a, B b}) -> A", "({B a, required A b}) -> B",
         "({required B a, required B b}) -> A");
