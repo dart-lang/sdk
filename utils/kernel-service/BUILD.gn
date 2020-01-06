@@ -59,7 +59,19 @@ application_snapshot("frontend_server") {
     "--platform=$sdk_root/vm_platform_strong.dill",
     rebase_path(main_dart),
   ]
-  output = "$root_out_dir/frontend_server.dart.snapshot"
+  output = "$root_gen_dir/frontend_server.dart.snapshot"
+}
+
+copy("copy_frontend_server") {
+  deps = [
+    ":frontend_server",
+  ]
+  sources = [
+    "$root_gen_dir/frontend_server.dart.snapshot",
+  ]
+  outputs = [
+    "$root_out_dir/frontend_server.dart.snapshot",
+  ]
 }
 
 template("kernel_service_dill") {
