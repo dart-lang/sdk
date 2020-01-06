@@ -843,8 +843,9 @@ const char* Dart::FeaturesString(Isolate* isolate,
     ADD_FLAG(#name, value);                                                    \
   } while (0);
 
-  VM_GLOBAL_FLAG_LIST(ADD_FLAG);
   if (Snapshot::IncludesCode(kind)) {
+    VM_GLOBAL_FLAG_LIST(ADD_FLAG);
+
     // enabling assertions affects deopt ids.
     ADD_ISOLATE_FLAG(asserts, enable_asserts, FLAG_enable_asserts);
     if (kind == Snapshot::kFullJIT) {
@@ -852,9 +853,6 @@ const char* Dart::FeaturesString(Isolate* isolate,
                        FLAG_use_field_guards);
       ADD_ISOLATE_FLAG(use_osr, use_osr, FLAG_use_osr);
     }
-    buffer.AddString(FLAG_causal_async_stacks ? " causal_async_stacks"
-                                              : " no-causal_async_stacks");
-
 #if !defined(PRODUCT)
     buffer.AddString(FLAG_code_comments ? " code-comments"
                                         : " no-code-comments");
@@ -888,10 +886,6 @@ const char* Dart::FeaturesString(Isolate* isolate,
 #else
 #error What architecture?
 #endif
-  }
-
-  if (FLAG_precompiled_mode && FLAG_dwarf_stack_traces) {
-    buffer.AddString(" dwarf-stack-traces");
   }
 
   if (Dart::non_nullable_flag()) {

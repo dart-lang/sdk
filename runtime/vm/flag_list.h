@@ -250,6 +250,8 @@ constexpr bool kDartUseBackgroundCompilation = true;
 //   V(name, command-line-flag-name)
 #define VM_GLOBAL_FLAG_LIST(V)                                                 \
   V(dwarf_stack_traces, FLAG_dwarf_stack_traces)                               \
+  V(causal_async_stacks, FLAG_causal_async_stacks)                             \
+  V(lazy_async_stacks, FLAG_lazy_async_stacks)                                 \
   V(use_bare_instructions, FLAG_use_bare_instructions)
 
 #endif  // RUNTIME_VM_FLAG_LIST_H_
