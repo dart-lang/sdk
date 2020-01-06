@@ -409,18 +409,18 @@ void main(List<String> args) async {
   }
 
   final requestedBuilder = options["builder"];
-  final namedConfigurations =
+  final requestedNamedConfigurations =
       (options["named-configuration"] as List).cast<String>();
   final localConfiguration = options["local-configuration"] as String;
 
-  if (requestedBuilder == null && namedConfigurations.isEmpty) {
+  if (requestedBuilder == null && requestedNamedConfigurations.isEmpty) {
     printUsage(parser,
         error: "Please specify either a configuration (-n) or "
             "a builder (-b)");
     return;
   }
 
-  if (localConfiguration != null && namedConfigurations.length > 1) {
+  if (localConfiguration != null && requestedNamedConfigurations.length > 1) {
     printUsage(parser,
         error: "Local configuration (-N) can only be used with a"
             " single named configuration (-n)");
@@ -446,7 +446,7 @@ void main(List<String> args) async {
       branches,
       buildersConfigurations,
       options["branch"],
-      namedConfigurations,
+      requestedNamedConfigurations,
       requestedBuilder);
   if (configurations == null) {
     // No valid configuration could be found. The error has already been
@@ -454,6 +454,7 @@ void main(List<String> args) async {
     exitCode = 1;
     return;
   }
+  Set<String> namedConfigurations = configurations.configurationNames;
   // Print information about the resolved builders to compare with.
   for (final builder in configurations.builders) {
     if (localConfiguration != null) {
