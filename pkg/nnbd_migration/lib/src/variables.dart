@@ -7,6 +7,8 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/src/already_migrated_code_decorator.dart';
@@ -182,6 +184,11 @@ class Variables implements VariableRecorder, VariableRepository {
     }
 
     DecoratedType decoratedType;
+    if (element is Member) {
+      assert((element as Member).isLegacy);
+      element = element.declaration;
+    }
+
     if (element is FunctionTypedElement) {
       decoratedType =
           _alreadyMigratedCodeDecorator.decorate(element.type, element);
