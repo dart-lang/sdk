@@ -39,7 +39,7 @@ linter:
     #- omit_local_variable_types # 8650
     - prefer_adjacent_string_concatenation
     #- prefer_collection_literals # 130
-    #- prefer_conditional_assignment # 191
+    - prefer_conditional_assignment
     #- prefer_final_fields # 35
     - prefer_for_elements_to_map_fromIterable
     - prefer_generic_function_type_aliases

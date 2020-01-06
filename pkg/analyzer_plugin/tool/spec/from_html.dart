@@ -142,9 +142,7 @@ class ApiReader {
    */
   void checkName(dom.Element element, String expectedName, [String context]) {
     if (element.localName != expectedName) {
-      if (context == null) {
-        context = element.localName;
-      }
+      context ??= element.localName;
       throw Exception(
           '$context: Expected $expectedName, found ${element.localName}');
     }

@@ -257,9 +257,7 @@ class AnalysisServer extends AbstractAnalysisServer {
     if (isAnalysisComplete()) {
       return Future.value();
     }
-    if (_onAnalysisCompleteCompleter == null) {
-      _onAnalysisCompleteCompleter = Completer();
-    }
+    _onAnalysisCompleteCompleter ??= Completer();
     return _onAnalysisCompleteCompleter.future;
   }
 

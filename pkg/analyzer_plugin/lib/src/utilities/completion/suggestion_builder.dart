@@ -89,9 +89,7 @@ class SuggestionBuilderImpl implements SuggestionBuilder {
       // Do not include operators in suggestions
       return null;
     }
-    if (completion == null) {
-      completion = element.displayName;
-    }
+    completion ??= element.displayName;
     bool isDeprecated = element.hasDeprecated;
     CompletionSuggestion suggestion = CompletionSuggestion(
         kind,

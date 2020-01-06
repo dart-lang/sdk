@@ -30,7 +30,7 @@ linter:
     #- omit_local_variable_types # 421
     #- prefer_adjacent_string_concatenation # 3
     - prefer_collection_literals
-    #- prefer_conditional_assignment # 187
+    - prefer_conditional_assignment
     - prefer_contains
     - prefer_equal_for_default_values
     #- prefer_final_fields # 2

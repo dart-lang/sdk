@@ -21,17 +21,13 @@ class AbstractSearchDomainTest extends AbstractAnalysisTest {
 
   void assertHasResult(SearchResultKind kind, String search, [int length]) {
     int offset = findOffset(search);
-    if (length == null) {
-      length = findIdentifierLength(search);
-    }
+    length ??= findIdentifierLength(search);
     findResult(kind, testFile, offset, length, true);
   }
 
   void assertNoResult(SearchResultKind kind, String search, [int length]) {
     int offset = findOffset(search);
-    if (length == null) {
-      length = findIdentifierLength(search);
-    }
+    length ??= findIdentifierLength(search);
     findResult(kind, testFile, offset, length, false);
   }
 

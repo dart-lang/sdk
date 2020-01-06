@@ -165,12 +165,8 @@ class EditDomainHandler extends AbstractRequestHandler {
 
     // Sending null start/length values would violate protocol, so convert back
     // to 0.
-    if (newStart == null) {
-      newStart = 0;
-    }
-    if (newLength == null) {
-      newLength = 0;
-    }
+    newStart ??= 0;
+    newLength ??= 0;
 
     return EditFormatResult(edits, newStart, newLength).toResponse(request.id);
   }
@@ -328,9 +324,7 @@ class EditDomainHandler extends AbstractRequestHandler {
       PostfixCompletion completion = await processor.compute();
       change = completion?.change;
     }
-    if (change == null) {
-      change = SourceChange("", edits: []);
-    }
+    change ??= SourceChange("", edits: []);
 
     Response response =
         EditGetPostfixCompletionResult(change).toResponse(request.id);
@@ -358,9 +352,7 @@ class EditDomainHandler extends AbstractRequestHandler {
       StatementCompletion completion = await processor.compute();
       change = completion.change;
     }
-    if (change == null) {
-      change = SourceChange("", edits: []);
-    }
+    change ??= SourceChange("", edits: []);
 
     Response response =
         EditGetStatementCompletionResult(change, false).toResponse(request.id);

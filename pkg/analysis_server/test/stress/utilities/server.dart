@@ -110,9 +110,7 @@ class RequestData {
     if (_response != null) {
       return Future.value(_response);
     }
-    if (_responseCompleter == null) {
-      _responseCompleter = Completer<Response>();
-    }
+    _responseCompleter ??= Completer<Response>();
     return _responseCompleter.future;
   }
 
@@ -236,9 +234,7 @@ class Server {
    * analysis to finish.
    */
   Future get analysisFinished {
-    if (_analysisFinishedCompleter == null) {
-      _analysisFinishedCompleter = Completer<void>();
-    }
+    _analysisFinishedCompleter ??= Completer<void>();
     return _analysisFinishedCompleter.future;
   }
 

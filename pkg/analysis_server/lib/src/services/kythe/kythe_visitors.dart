@@ -1300,9 +1300,7 @@ mixin OutputUtils {
       KytheVName nodeVName = null,
       String subKind = null,
       String completeFact = null}) {
-    if (nodeVName == null) {
-      nodeVName = _vNameFromElement(element, nodeKind);
-    }
+    nodeVName ??= _vNameFromElement(element, nodeKind);
     addFact(nodeVName, schema.NODE_KIND_FACT, _encode(nodeKind));
     if (subKind != null) {
       addFact(nodeVName, schema.SUBKIND_FACT, _encode(subKind));

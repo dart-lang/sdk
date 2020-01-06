@@ -46,9 +46,7 @@ void outOfTestExpect(actual, Matcher matcher,
   try {
     if (matcher.matches(actual, matchState)) return;
   } catch (e, trace) {
-    if (reason == null) {
-      reason = '${(e is String) ? e : e.toString()} at $trace';
-    }
+    reason ??= '${(e is String) ? e : e.toString()} at $trace';
   }
   fail(_defaultFailFormatter(actual, matcher, reason, matchState, verbose));
 }
@@ -306,9 +304,7 @@ class LazyMatcher implements Matcher {
    * Create the wrapped matcher object, if it hasn't been created already.
    */
   void _createMatcher() {
-    if (_wrappedMatcher == null) {
-      _wrappedMatcher = _creator();
-    }
+    _wrappedMatcher ??= _creator();
   }
 }
 

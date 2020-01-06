@@ -864,10 +864,8 @@ class StatementCompletionProcessor {
     }
     AstNode argList =
         _selectedNode(at: selectionOffset).thisOrAncestorOfType<ArgumentList>();
-    if (argList == null) {
-      argList = _selectedNode(at: parenError.offset)
-          .thisOrAncestorOfType<ArgumentList>();
-    }
+    argList ??= _selectedNode(at: parenError.offset)
+        .thisOrAncestorOfType<ArgumentList>();
     if (argList?.thisOrAncestorMatching((n) => n == node) == null) {
       return false;
     }

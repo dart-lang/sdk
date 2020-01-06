@@ -85,9 +85,7 @@ ImportElement internal_getImportElement(
       return importElement;
     }
     // OK, we have candidate
-    if (candidates == null) {
-      candidates = [];
-    }
+    candidates ??= [];
     candidates.add(importElement);
   }
   // no candidates, probably element is defined in this library

@@ -1786,9 +1786,7 @@ class PackageMapDisposition extends FolderDisposition {
 
   @override
   EmbedderYamlLocator getEmbedderLocator(ResourceProvider resourceProvider) {
-    if (_embedderLocator == null) {
-      _embedderLocator = EmbedderYamlLocator(packageMap);
-    }
+    _embedderLocator ??= EmbedderYamlLocator(packageMap);
     return _embedderLocator;
   }
 }
@@ -1841,9 +1839,7 @@ class PackagesFileDisposition extends FolderDisposition {
 
   @override
   EmbedderYamlLocator getEmbedderLocator(ResourceProvider resourceProvider) {
-    if (_embedderLocator == null) {
-      _embedderLocator = EmbedderYamlLocator(buildPackageMap(resourceProvider));
-    }
+    _embedderLocator ??= EmbedderYamlLocator(buildPackageMap(resourceProvider));
     return _embedderLocator;
   }
 }

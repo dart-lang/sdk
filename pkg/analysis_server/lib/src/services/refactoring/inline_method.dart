@@ -83,9 +83,7 @@ String _getMethodSourceForInvocation(
       // an optional parameter
       argumentPrecedence = Precedence.none;
       argumentSource = parameter.defaultValueCode;
-      if (argumentSource == null) {
-        argumentSource = 'null';
-      }
+      argumentSource ??= 'null';
     }
     // replace all occurrences of this parameter
     for (_ParameterOccurrence occurrence in occurrences) {

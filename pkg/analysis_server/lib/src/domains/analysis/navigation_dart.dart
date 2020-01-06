@@ -155,9 +155,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor {
     {
       AstNode firstNode = node.returnType;
       AstNode lastNode = node.name;
-      if (lastNode == null) {
-        lastNode = firstNode;
-      }
+      lastNode ??= firstNode;
       if (firstNode != null && lastNode != null) {
         computer._addRegion_nodeStart_nodeEnd(
             firstNode, lastNode, node.declaredElement);

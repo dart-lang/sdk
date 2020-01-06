@@ -1192,9 +1192,7 @@ abstract class BaseProcessor {
 
   Future<ChangeBuilder> createBuilder_sortChildPropertyLast() async {
     NamedExpression childProp = flutter.findNamedExpression(node, 'child');
-    if (childProp == null) {
-      childProp = flutter.findNamedExpression(node, 'children');
-    }
+    childProp ??= flutter.findNamedExpression(node, 'children');
     if (childProp == null) {
       return null;
     }

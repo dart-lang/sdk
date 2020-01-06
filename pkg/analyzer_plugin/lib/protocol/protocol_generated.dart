@@ -56,9 +56,7 @@ class AnalysisErrorFixes implements HasToJson {
 
   factory AnalysisErrorFixes.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       AnalysisError error;
       if (json.containsKey("error")) {
@@ -152,9 +150,7 @@ class AnalysisErrorsParams implements HasToJson {
 
   factory AnalysisErrorsParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -256,9 +252,7 @@ class AnalysisFoldingParams implements HasToJson {
 
   factory AnalysisFoldingParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -377,9 +371,7 @@ class AnalysisGetNavigationParams implements RequestParams {
 
   factory AnalysisGetNavigationParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -504,9 +496,7 @@ class AnalysisGetNavigationResult implements ResponseResult {
 
   factory AnalysisGetNavigationResult.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       List<String> files;
       if (json.containsKey("files")) {
@@ -615,9 +605,7 @@ class AnalysisHandleWatchEventsParams implements RequestParams {
 
   factory AnalysisHandleWatchEventsParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       List<WatchEvent> events;
       if (json.containsKey("events")) {
@@ -738,9 +726,7 @@ class AnalysisHighlightsParams implements HasToJson {
 
   factory AnalysisHighlightsParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -873,9 +859,7 @@ class AnalysisNavigationParams implements HasToJson {
 
   factory AnalysisNavigationParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -1002,9 +986,7 @@ class AnalysisOccurrencesParams implements HasToJson {
 
   factory AnalysisOccurrencesParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -1107,9 +1089,7 @@ class AnalysisOutlineParams implements HasToJson {
 
   factory AnalysisOutlineParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -1266,9 +1246,7 @@ class AnalysisSetContextRootsParams implements RequestParams {
 
   factory AnalysisSetContextRootsParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       List<ContextRoot> roots;
       if (json.containsKey("roots")) {
@@ -1375,9 +1353,7 @@ class AnalysisSetPriorityFilesParams implements RequestParams {
 
   factory AnalysisSetPriorityFilesParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       List<String> files;
       if (json.containsKey("files")) {
@@ -1483,9 +1459,7 @@ class AnalysisSetSubscriptionsParams implements RequestParams {
 
   factory AnalysisSetSubscriptionsParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       Map<AnalysisService, List<String>> subscriptions;
       if (json.containsKey("subscriptions")) {
@@ -1599,9 +1573,7 @@ class AnalysisUpdateContentParams implements RequestParams {
 
   factory AnalysisUpdateContentParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       Map<String, dynamic> files;
       if (json.containsKey("files")) {
@@ -1727,9 +1699,7 @@ class CompletionGetSuggestionsParams implements RequestParams {
 
   factory CompletionGetSuggestionsParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -1860,9 +1830,7 @@ class CompletionGetSuggestionsResult implements ResponseResult {
 
   factory CompletionGetSuggestionsResult.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       int replacementOffset;
       if (json.containsKey("replacementOffset")) {
@@ -1998,9 +1966,7 @@ class ContextRoot implements HasToJson {
 
   factory ContextRoot.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String root;
       if (json.containsKey("root")) {
@@ -2187,9 +2153,7 @@ class EditGetAssistsParams implements RequestParams {
 
   factory EditGetAssistsParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -2282,9 +2246,7 @@ class EditGetAssistsResult implements ResponseResult {
 
   factory EditGetAssistsResult.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       List<PrioritizedSourceChange> assists;
       if (json.containsKey("assists")) {
@@ -2393,9 +2355,7 @@ class EditGetAvailableRefactoringsParams implements RequestParams {
 
   factory EditGetAvailableRefactoringsParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -2499,9 +2459,7 @@ class EditGetAvailableRefactoringsResult implements ResponseResult {
 
   factory EditGetAvailableRefactoringsResult.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       List<RefactoringKind> kinds;
       if (json.containsKey("kinds")) {
@@ -2598,9 +2556,7 @@ class EditGetFixesParams implements RequestParams {
 
   factory EditGetFixesParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -2683,9 +2639,7 @@ class EditGetFixesResult implements ResponseResult {
 
   factory EditGetFixesResult.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       List<AnalysisErrorFixes> fixes;
       if (json.containsKey("fixes")) {
@@ -2844,9 +2798,7 @@ class EditGetRefactoringParams implements RequestParams {
 
   factory EditGetRefactoringParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       RefactoringKind kind;
       if (json.containsKey("kind")) {
@@ -3074,9 +3026,7 @@ class EditGetRefactoringResult implements ResponseResult {
 
   factory EditGetRefactoringResult.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       List<RefactoringProblem> initialProblems;
       if (json.containsKey("initialProblems")) {
@@ -3290,9 +3240,7 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback {
 
   factory ExtractLocalVariableFeedback.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       List<int> coveringExpressionOffsets;
       if (json.containsKey("coveringExpressionOffsets")) {
@@ -3426,9 +3374,7 @@ class ExtractLocalVariableOptions extends RefactoringOptions {
 
   factory ExtractLocalVariableOptions.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String name;
       if (json.containsKey("name")) {
@@ -3622,9 +3568,7 @@ class ExtractMethodFeedback extends RefactoringFeedback {
 
   factory ExtractMethodFeedback.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       int offset;
       if (json.containsKey("offset")) {
@@ -3846,9 +3790,7 @@ class ExtractMethodOptions extends RefactoringOptions {
 
   factory ExtractMethodOptions.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String returnType;
       if (json.containsKey("returnType")) {
@@ -3983,9 +3925,7 @@ class InlineLocalVariableFeedback extends RefactoringFeedback {
 
   factory InlineLocalVariableFeedback.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String name;
       if (json.containsKey("name")) {
@@ -4109,9 +4049,7 @@ class InlineMethodFeedback extends RefactoringFeedback {
 
   factory InlineMethodFeedback.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String className;
       if (json.containsKey("className")) {
@@ -4215,9 +4153,7 @@ class InlineMethodOptions extends RefactoringOptions {
 
   factory InlineMethodOptions.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       bool deleteSource;
       if (json.containsKey("deleteSource")) {
@@ -4300,9 +4236,7 @@ class KytheGetKytheEntriesParams implements RequestParams {
 
   factory KytheGetKytheEntriesParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -4397,9 +4331,7 @@ class KytheGetKytheEntriesResult implements ResponseResult {
 
   factory KytheGetKytheEntriesResult.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       List<KytheEntry> entries;
       if (json.containsKey("entries")) {
@@ -4511,9 +4443,7 @@ class MoveFileOptions extends RefactoringOptions {
 
   factory MoveFileOptions.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String newFile;
       if (json.containsKey("newFile")) {
@@ -4619,9 +4549,7 @@ class PluginErrorParams implements HasToJson {
 
   factory PluginErrorParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       bool isFatal;
       if (json.containsKey("isFatal")) {
@@ -4801,9 +4729,7 @@ class PluginVersionCheckParams implements RequestParams {
 
   factory PluginVersionCheckParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String byteStorePath;
       if (json.containsKey("byteStorePath")) {
@@ -4968,9 +4894,7 @@ class PluginVersionCheckResult implements ResponseResult {
 
   factory PluginVersionCheckResult.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       bool isCompatible;
       if (json.containsKey("isCompatible")) {
@@ -5107,9 +5031,7 @@ class PrioritizedSourceChange implements HasToJson {
 
   factory PrioritizedSourceChange.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       int priority;
       if (json.containsKey("priority")) {
@@ -5303,9 +5225,7 @@ class RenameFeedback extends RefactoringFeedback {
 
   factory RenameFeedback.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       int offset;
       if (json.containsKey("offset")) {
@@ -5399,9 +5319,7 @@ class RenameOptions extends RefactoringOptions {
 
   factory RenameOptions.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String newName;
       if (json.containsKey("newName")) {
@@ -5500,9 +5418,7 @@ class RequestError implements HasToJson {
 
   factory RequestError.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       RequestErrorCode code;
       if (json.containsKey("code")) {
@@ -5682,9 +5598,7 @@ class WatchEvent implements HasToJson {
 
   factory WatchEvent.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       WatchEventType type;
       if (json.containsKey("type")) {

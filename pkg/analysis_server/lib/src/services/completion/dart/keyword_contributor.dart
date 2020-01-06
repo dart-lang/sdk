@@ -850,9 +850,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
 
   void _addSuggestion2(String completion,
       {int offset, int relevance = DART_RELEVANCE_KEYWORD}) {
-    if (offset == null) {
-      offset = completion.length;
-    }
+    offset ??= completion.length;
     suggestions.add(CompletionSuggestion(CompletionSuggestionKind.KEYWORD,
         relevance, completion, offset, 0, false, false));
   }

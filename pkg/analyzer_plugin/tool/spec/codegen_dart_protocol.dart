@@ -638,11 +638,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
     writeln(
         'factory $className.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {');
     indent(() {
-      writeln('if (json == null) {');
-      indent(() {
-        writeln('json = {};');
-      });
-      writeln('}');
+      writeln('json ??= {};');
       writeln('if (json is Map) {');
       indent(() {
         List<String> args = <String>[];

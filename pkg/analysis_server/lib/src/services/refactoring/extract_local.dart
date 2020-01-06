@@ -337,9 +337,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
         }
       }
       // set selected expression
-      if (singleExpression == null) {
-        singleExpression = node;
-      }
+      singleExpression ??= node;
       // add the expression range
       coveringExpressionOffsets.add(node.offset);
       coveringExpressionLengths.add(node.length);

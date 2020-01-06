@@ -416,9 +416,7 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
 
   @override
   OpType get opType {
-    if (_opType == null) {
-      _opType = OpType.forCompletion(target, offset);
-    }
+    _opType ??= OpType.forCompletion(target, offset);
     return _opType;
   }
 

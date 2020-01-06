@@ -428,9 +428,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
           }
         }
         int expectedOffset = expectedOffsets[s.completion];
-        if (expectedOffset == null) {
-          expectedOffset = s.completion.length;
-        }
+        expectedOffset ??= s.completion.length;
         expect(
             s.selectionOffset,
             equals(s.completion.endsWith('\'\';')

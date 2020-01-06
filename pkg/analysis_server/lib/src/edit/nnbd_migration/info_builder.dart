@@ -508,9 +508,7 @@ class InfoBuilder {
   UnitInfo _explainUnit(SourceInformation sourceInfo, ResolvedUnitResult result,
       SourceFileEdit fileEdit) {
     UnitInfo unitInfo = _unitForPath(result.path);
-    if (unitInfo.sources == null) {
-      unitInfo.sources = _computeNavigationSources(result);
-    }
+    unitInfo.sources ??= _computeNavigationSources(result);
     String content = result.content;
     List<RegionInfo> regions = unitInfo.regions;
 
@@ -690,9 +688,7 @@ class InfoBuilder {
         }
       } else if (node is FieldDeclaration) {
         var field = node.thisOrAncestorOfType<VariableDeclaration>();
-        if (field == null) {
-          field = node.fields.variables[0];
-        }
+        field ??= node.fields.variables[0];
         functionName = field.name.name;
         baseDescription = "the field";
       } else {

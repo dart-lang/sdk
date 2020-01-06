@@ -115,9 +115,7 @@ class HttpAnalysisServer {
   Future<void> _handleGetRequest(HttpRequest request) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    if (getHandler == null) {
-      getHandler = DiagnosticsSite(socketServer, _printBuffer);
-    }
+    getHandler ??= DiagnosticsSite(socketServer, _printBuffer);
     // TODO(brianwilkerson) Determine if await is necessary, if so, change the
     // return type of [AbstractGetHandler.handleGetRequest] to `Future<void>`.
     await (getHandler.handleGetRequest(request) as dynamic);
