@@ -588,7 +588,7 @@ f(Stream<int> s) {
     expect(hover.containingLibraryName, 'bin/test.dart');
     expect(hover.containingLibraryPath, testFile);
     expect(hover.elementDescription,
-        'Stream<S> Stream.transform<S>(StreamTransformer<int, S> streamTransformer)');
+        'Stream<S> transform<S>(StreamTransformer<int, S> streamTransformer)');
     expect(hover.elementKind, 'method');
     expect(hover.isDeprecated, isFalse);
     // types

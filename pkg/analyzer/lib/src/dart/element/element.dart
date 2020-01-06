@@ -15,13 +15,14 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/constant/compute.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
+import 'package:analyzer/src/dart/element/display_string_builder.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/generated/constant.dart' show EvaluationResultImpl;
 import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisContext, AnalysisEngine, AnalysisOptionsImpl;
+    show AnalysisContext, AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
@@ -937,46 +938,8 @@ class ClassElementImpl extends AbstractClassElementImpl
   }
 
   @override
-  void appendTo(
-    StringBuffer buffer, {
-    @required bool withNullability,
-  }) {
-    if (isAbstract) {
-      buffer.write('abstract ');
-    }
-    buffer.write('class ');
-    String name = displayName;
-    if (name == null) {
-      buffer.write("{unnamed class}");
-    } else {
-      buffer.write(name);
-    }
-    int variableCount = typeParameters.length;
-    if (variableCount > 0) {
-      buffer.write("<");
-      for (int i = 0; i < variableCount; i++) {
-        if (i > 0) {
-          buffer.write(", ");
-        }
-        (typeParameters[i] as TypeParameterElementImpl).appendTo(
-          buffer,
-          withNullability: withNullability,
-        );
-      }
-      buffer.write(">");
-    }
-    if (supertype != null && !supertype.isObject) {
-      buffer.write(' extends ');
-      buffer.write(_typeToString(supertype));
-    }
-    if (mixins.isNotEmpty) {
-      buffer.write(' with ');
-      buffer.write(mixins.map(_typeToString).join(', '));
-    }
-    if (interfaces.isNotEmpty) {
-      buffer.write(' implements ');
-      buffer.write(interfaces.map(_typeToString).join(', '));
-    }
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeClassElement(this);
   }
 
   @override
@@ -1229,12 +1192,6 @@ class ClassElementImpl extends AbstractClassElementImpl
       }
     }
     return false;
-  }
-
-  String _typeToString(DartType type) {
-    return type.getDisplayString(
-      withNullability: library.isNonNullableByDefault,
-    );
   }
 
   static void collectAllSupertypes(List<InterfaceType> supertypes,
@@ -1647,15 +1604,8 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
       visitor.visitCompilationUnitElement(this);
 
   @override
-  void appendTo(
-    StringBuffer buffer, {
-    @required bool withNullability,
-  }) {
-    if (source == null) {
-      buffer.write("{compilation unit}");
-    } else {
-      buffer.write(source.fullName);
-    }
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeCompilationUnitElement(this);
   }
 
   @override
@@ -2220,29 +2170,8 @@ class ConstructorElementImpl extends ExecutableElementImpl
       visitor.visitConstructorElement(this);
 
   @override
-  void appendTo(
-    StringBuffer buffer, {
-    @required bool withNullability,
-  }) {
-    String name;
-    String constructorName = displayName;
-    if (enclosingElement == null) {
-      String message;
-      if (constructorName != null && constructorName.isNotEmpty) {
-        message =
-            'Found constructor element named $constructorName with no enclosing element';
-      } else {
-        message = 'Found unnamed constructor element with no enclosing element';
-      }
-      AnalysisEngine.instance.instrumentationService.logError(message);
-      name = '<unknown class>';
-    } else {
-      name = enclosingElement.displayName;
-    }
-    if (constructorName != null && constructorName.isNotEmpty) {
-      name = '$name.$constructorName';
-    }
-    appendToWithName(buffer, name, withNullability: withNullability);
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeConstructorElement(this);
   }
 
   /// Ensures that dependencies of this constructor, such as default values
@@ -3074,18 +3003,9 @@ abstract class ElementImpl implements Element {
         object.location == location;
   }
 
-  /// Append a textual representation of this element to the given [buffer].
-  void appendTo(
-    StringBuffer buffer, {
-    @required bool withNullability,
-  }) {
-    if (_name == null) {
-      buffer.write("<unnamed ");
-      buffer.write(runtimeType.toString());
-      buffer.write(">");
-    } else {
-      buffer.write(_name);
-    }
+  /// Append a textual representation of this element to the given [builder].
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeAbstractElement(this);
   }
 
   /// Set this element as the enclosing element for given [element].
@@ -3116,9 +3036,12 @@ abstract class ElementImpl implements Element {
 
   @override
   String getDisplayString({@required bool withNullability}) {
-    var buffer = StringBuffer();
-    appendTo(buffer, withNullability: withNullability);
-    return buffer.toString();
+    var builder = ElementDisplayStringBuilder(
+      skipAllDynamicArguments: false,
+      withNullability: withNullability,
+    );
+    appendTo(builder);
+    return builder.toString();
   }
 
   @override
@@ -3519,17 +3442,8 @@ class EnumElementImpl extends AbstractClassElementImpl {
   ConstructorElement get unnamedConstructor => null;
 
   @override
-  void appendTo(
-    StringBuffer buffer, {
-    @required bool withNullability,
-  }) {
-    buffer.write('enum ');
-    String name = displayName;
-    if (name == null) {
-      buffer.write("{unnamed enum}");
-    } else {
-      buffer.write(name);
-    }
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeEnumElement(this);
   }
 
   /// Create the only method enums have - `toString()`.
@@ -3815,89 +3729,8 @@ abstract class ExecutableElementImpl extends ElementImpl
   }
 
   @override
-  void appendTo(
-    StringBuffer buffer, {
-    @required bool withNullability,
-  }) {
-    appendToWithName(buffer, displayName, withNullability: withNullability);
-  }
-
-  /// Append a textual representation of this element to the given [buffer]. The
-  /// [name] is the name of the executable element or `null` if the element has
-  /// no name. If [includeType] is `true` then the return type will be included.
-  void appendToWithName(
-    StringBuffer buffer,
-    String name, {
-    @required bool withNullability,
-  }) {
-    FunctionType functionType = type;
-    if (functionType != null) {
-      buffer.write(
-        functionType.returnType.getDisplayString(
-          withNullability: withNullability,
-        ),
-      );
-      if (name != null) {
-        buffer.write(' ');
-        buffer.write(name);
-      }
-    } else if (name != null) {
-      buffer.write(name);
-    }
-    if (this.kind != ElementKind.GETTER) {
-      int typeParameterCount = typeParameters.length;
-      if (typeParameterCount > 0) {
-        buffer.write('<');
-        for (int i = 0; i < typeParameterCount; i++) {
-          if (i > 0) {
-            buffer.write(', ');
-          }
-          (typeParameters[i] as TypeParameterElementImpl).appendTo(
-            buffer,
-            withNullability: withNullability,
-          );
-        }
-        buffer.write('>');
-      }
-      buffer.write('(');
-      String closing;
-      ParameterKind kind = ParameterKind.REQUIRED;
-      int parameterCount = parameters.length;
-      for (int i = 0; i < parameterCount; i++) {
-        if (i > 0) {
-          buffer.write(', ');
-        }
-        ParameterElement parameter = parameters[i];
-        // ignore: deprecated_member_use_from_same_package
-        ParameterKind parameterKind = parameter.parameterKind;
-        if (parameterKind != kind) {
-          if (closing != null) {
-            buffer.write(closing);
-          }
-          if (parameter.isOptionalPositional) {
-            buffer.write('[');
-            closing = ']';
-          } else if (parameter.isNamed) {
-            buffer.write('{');
-            if (parameter.isRequiredNamed) {
-              buffer.write('required ');
-            }
-            closing = '}';
-          } else {
-            closing = null;
-          }
-        }
-        kind = parameterKind;
-        parameter.appendToWithoutDelimiters(
-          buffer,
-          withNullability: withNullability,
-        );
-      }
-      if (closing != null) {
-        buffer.write(closing);
-      }
-      buffer.write(')');
-    }
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeExecutableElement(this, displayName);
   }
 
   @override
@@ -4011,15 +3844,8 @@ class ExportElementImpl extends UriReferencedElementImpl
   T accept<T>(ElementVisitor<T> visitor) => visitor.visitExportElement(this);
 
   @override
-  void appendTo(
-    StringBuffer buffer, {
-    @required bool withNullability,
-  }) {
-    buffer.write("export ");
-    (exportedLibrary as LibraryElementImpl).appendTo(
-      buffer,
-      withNullability: withNullability,
-    );
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeExportElement(this);
   }
 }
 
@@ -4224,39 +4050,8 @@ class ExtensionElementImpl extends ElementImpl
   }
 
   @override
-  void appendTo(
-    StringBuffer buffer, {
-    @required bool withNullability,
-  }) {
-    buffer.write('extension ');
-    String name = displayName;
-    if (name == null) {
-      buffer.write("(unnamed)");
-    } else {
-      buffer.write(name);
-    }
-    int variableCount = typeParameters.length;
-    if (variableCount > 0) {
-      buffer.write("<");
-      for (int i = 0; i < variableCount; i++) {
-        if (i > 0) {
-          buffer.write(", ");
-        }
-        (typeParameters[i] as TypeParameterElementImpl).appendTo(
-          buffer,
-          withNullability: withNullability,
-        );
-      }
-      buffer.write(">");
-    }
-    if (extendedType != null && !extendedType.isObject) {
-      buffer.write(' on ');
-      buffer.write(
-        extendedType.getDisplayString(
-          withNullability: library.isNonNullableByDefault,
-        ),
-      );
-    }
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeExtensionElement(this);
   }
 
   @override
@@ -4724,48 +4519,8 @@ class GenericFunctionTypeElementImpl extends ElementImpl
   }
 
   @override
-  void appendTo(
-    StringBuffer buffer, {
-    @required bool withNullability,
-  }) {
-    DartType type = returnType;
-    if (type is TypeImpl) {
-      type.appendTo(
-        buffer,
-        withNullability: false,
-        skipAllDynamicArguments: false,
-      );
-      buffer.write(' Function');
-    } else {
-      buffer.write('Function');
-    }
-    List<TypeParameterElement> typeParams = typeParameters;
-    int typeParameterCount = typeParams.length;
-    if (typeParameterCount > 0) {
-      buffer.write('<');
-      for (int i = 0; i < typeParameterCount; i++) {
-        if (i > 0) {
-          buffer.write(', ');
-        }
-        (typeParams[i] as TypeParameterElementImpl).appendTo(
-          buffer,
-          withNullability: withNullability,
-        );
-      }
-      buffer.write('>');
-    }
-    List<ParameterElement> params = parameters;
-    buffer.write('(');
-    for (int i = 0; i < params.length; i++) {
-      if (i > 0) {
-        buffer.write(', ');
-      }
-      (params[i] as ParameterElementImpl).appendTo(
-        buffer,
-        withNullability: withNullability,
-      );
-    }
-    buffer.write(')');
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeGenericFunctionTypeElement(this);
   }
 
   @override
@@ -4961,31 +4716,8 @@ class GenericTypeAliasElementImpl extends ElementImpl
       visitor.visitFunctionTypeAliasElement(this);
 
   @override
-  void appendTo(
-    StringBuffer buffer, {
-    @required bool withNullability,
-  }) {
-    buffer.write("typedef ");
-    buffer.write(displayName);
-    var typeParameters = this.typeParameters;
-    int typeParameterCount = typeParameters.length;
-    if (typeParameterCount > 0) {
-      buffer.write("<");
-      for (int i = 0; i < typeParameterCount; i++) {
-        if (i > 0) {
-          buffer.write(", ");
-        }
-        (typeParameters[i] as TypeParameterElementImpl).appendTo(
-          buffer,
-          withNullability: withNullability,
-        );
-      }
-      buffer.write(">");
-    }
-    buffer.write(" = ");
-    if (function != null) {
-      function.appendTo(buffer, withNullability: withNullability);
-    }
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeGenericTypeAliasElement(this);
   }
 
   @override
@@ -5274,15 +5006,8 @@ class ImportElementImpl extends UriReferencedElementImpl
   T accept<T>(ElementVisitor<T> visitor) => visitor.visitImportElement(this);
 
   @override
-  void appendTo(
-    StringBuffer buffer, {
-    @required bool withNullability,
-  }) {
-    buffer.write("import ");
-    (importedLibrary as LibraryElementImpl).appendTo(
-      buffer,
-      withNullability: withNullability,
-    );
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeImportElement(this);
   }
 
   @override
@@ -5945,16 +5670,6 @@ class LocalVariableElementImpl extends NonParameterVariableElementImpl
   @override
   T accept<T>(ElementVisitor<T> visitor) =>
       visitor.visitLocalVariableElement(this);
-
-  @override
-  void appendTo(
-    StringBuffer buffer, {
-    @required bool withNullability,
-  }) {
-    buffer.write(type);
-    buffer.write(" ");
-    buffer.write(displayName);
-  }
 }
 
 /// A concrete implementation of a [MethodElement].
@@ -6127,41 +5842,8 @@ class MixinElementImpl extends ClassElementImpl {
   }
 
   @override
-  void appendTo(
-    StringBuffer buffer, {
-    @required bool withNullability,
-  }) {
-    buffer.write('mixin ');
-    String name = displayName;
-    if (name == null) {
-      // TODO(brianwilkerson) Can this happen (for either classes or mixins)?
-      buffer.write("{unnamed mixin}");
-    } else {
-      buffer.write(name);
-    }
-    int variableCount = typeParameters.length;
-    if (variableCount > 0) {
-      buffer.write("<");
-      for (int i = 0; i < variableCount; i++) {
-        if (i > 0) {
-          buffer.write(", ");
-        }
-        (typeParameters[i] as TypeParameterElementImpl).appendTo(
-          buffer,
-          withNullability: withNullability,
-        );
-      }
-      buffer.write(">");
-    }
-
-    if (superclassConstraints.isNotEmpty) {
-      buffer.write(' on ');
-      buffer.write(superclassConstraints.map(_typeToString).join(', '));
-    }
-    if (interfaces.isNotEmpty) {
-      buffer.write(' implements ');
-      buffer.write(interfaces.map(_typeToString).join(', '));
-    }
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeMixinElement(this);
   }
 }
 
@@ -6459,11 +6141,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
         } else {
           needsSeparator = true;
         }
-        if (element is ElementImpl) {
-          element.appendTo(buffer, withNullability: true);
-        } else {
-          buffer.write(element);
-        }
+        buffer.write(
+          element.getDisplayString(withNullability: true),
+        );
       }
     }
 
@@ -6929,33 +6609,8 @@ class ParameterElementImpl extends VariableElementImpl
   T accept<T>(ElementVisitor<T> visitor) => visitor.visitParameterElement(this);
 
   @override
-  void appendTo(
-    StringBuffer buffer, {
-    @required bool withNullability,
-  }) {
-    if (isNamed) {
-      buffer.write('{');
-      if (isRequiredNamed) {
-        buffer.write('required ');
-      }
-      appendToWithoutDelimiters(
-        buffer,
-        withNullability: withNullability,
-      );
-      buffer.write('}');
-    } else if (isOptionalPositional) {
-      buffer.write('[');
-      appendToWithoutDelimiters(
-        buffer,
-        withNullability: withNullability,
-      );
-      buffer.write(']');
-    } else {
-      appendToWithoutDelimiters(
-        buffer,
-        withNullability: withNullability,
-      );
-    }
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeFormalParameter(this);
   }
 
   @override
@@ -7176,12 +6831,8 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
   T accept<T>(ElementVisitor<T> visitor) => visitor.visitPrefixElement(this);
 
   @override
-  void appendTo(
-    StringBuffer buffer, {
-    @required bool withNullability,
-  }) {
-    buffer.write("as ");
-    super.appendTo(buffer, withNullability: withNullability);
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writePrefixElement(this);
   }
 }
 
@@ -7308,14 +6959,10 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
       visitor.visitPropertyAccessorElement(this);
 
   @override
-  void appendTo(
-    StringBuffer buffer, {
-    @required bool withNullability,
-  }) {
-    super.appendToWithName(
-      buffer,
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeExecutableElement(
+      this,
       (isGetter ? 'get ' : 'set ') + variable.displayName,
-      withNullability: withNullability,
     );
   }
 }
@@ -7784,22 +7431,8 @@ class TypeParameterElementImpl extends ElementImpl
       visitor.visitTypeParameterElement(this);
 
   @override
-  void appendTo(
-    StringBuffer buffer, {
-    @required bool withNullability,
-  }) {
-    if (!isLegacyCovariant) {
-      buffer.write(variance.toKeywordString() + " ");
-    }
-    buffer.write(displayName);
-    if (bound != null) {
-      buffer.write(" extends ");
-      buffer.write(
-        bound.getDisplayString(
-          withNullability: withNullability,
-        ),
-      );
-    }
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeTypeParameter(this);
   }
 
   @override
@@ -8025,13 +7658,8 @@ abstract class VariableElementImpl extends ElementImpl
   }
 
   @override
-  void appendTo(
-    StringBuffer buffer, {
-    @required bool withNullability,
-  }) {
-    buffer.write(type);
-    buffer.write(" ");
-    buffer.write(displayName);
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeVariableElement(this);
   }
 
   @override

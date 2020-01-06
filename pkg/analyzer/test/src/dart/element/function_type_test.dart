@@ -371,7 +371,7 @@ class FunctionTypeTest with ElementsTypesMixin {
     );
     basicChecks(f,
         element: isNull,
-        displayName: 'dynamic Function({x: Object})',
+        displayName: 'dynamic Function({Object x})',
         namedParameterTypes: {'x': same(objectType)},
         parameters: hasLength(1));
     expect(f.parameters[0].isNamed, isTrue);

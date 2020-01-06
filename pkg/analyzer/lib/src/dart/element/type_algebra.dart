@@ -66,7 +66,7 @@ FunctionType replaceTypeParameters(
   }
 
   var typeArguments = newTypeParameters
-      .map((e) => e.instantiate(nullabilitySuffix: type.nullabilitySuffix))
+      .map((e) => e.instantiate(nullabilitySuffix: NullabilitySuffix.none))
       .toList();
   var substitution = Substitution.fromPairs(type.typeFormals, typeArguments);
 

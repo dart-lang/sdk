@@ -154,7 +154,7 @@ class D = C with M;
     expect(bType.namedParameters, isEmpty);
     var c = findElement.constructor('c', of: 'D');
     var cType = variables.decoratedElementType(c);
-    expect(cType.type.toString(), 'D Function({i: int})');
+    expect(cType.type.toString(), 'D Function({int i})');
     expect(cType.node, same(never));
     expect(cType.typeArguments, isEmpty);
     expect(cType.returnType.type.toString(), 'D');

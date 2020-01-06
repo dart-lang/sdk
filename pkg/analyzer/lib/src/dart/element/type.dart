@@ -10,6 +10,7 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
+import 'package:analyzer/src/dart/element/display_string_builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart';
@@ -67,12 +68,8 @@ class DynamicTypeImpl extends TypeImpl {
   bool operator ==(Object object) => identical(object, this);
 
   @override
-  void appendTo(
-    StringBuffer buffer, {
-    @required bool withNullability,
-    @required bool skipAllDynamicArguments,
-  }) {
-    buffer.write('dynamic');
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeDynamicType();
   }
 
   @override
@@ -261,87 +258,8 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   }
 
   @override
-  void appendTo(
-    StringBuffer buffer, {
-    @required bool withNullability,
-    @required bool skipAllDynamicArguments,
-  }) {
-    if (typeFormals.isNotEmpty) {
-      StringBuffer typeParametersBuffer = StringBuffer();
-      // To print a type with type variables, first make sure we have unique
-      // variable names to print.
-      var freeVariables = <TypeParameterElement>{};
-      _freeVariablesInFunctionType(this, freeVariables);
-
-      var namesToAvoid = <String>{};
-      for (TypeParameterElement arg in freeVariables) {
-        namesToAvoid.add(arg.displayName);
-      }
-
-      List<DartType> instantiateTypeArgs = <DartType>[];
-      List<TypeParameterElement> variables = <TypeParameterElement>[];
-      typeParametersBuffer.write('<');
-      // TODO (kallentu) : Clean up TypeParameterElementImpl casting once
-      // variance is added to the interface.
-      for (TypeParameterElementImpl e in typeFormals) {
-        if (e != typeFormals[0]) {
-          typeParametersBuffer.write(', ');
-        }
-
-        if (!e.isLegacyCovariant) {
-          typeParametersBuffer.write(e.variance.toKeywordString() + ' ');
-        }
-
-        String name = e.name;
-        int counter = 0;
-        while (!namesToAvoid.add(name)) {
-          // Unicode subscript-zero is U+2080, zero is U+0030. Other digits
-          // are sequential from there. Thus +0x2050 will get us the subscript.
-          String subscript = String.fromCharCodes(
-              counter.toString().codeUnits.map((n) => n + 0x2050));
-
-          name = e.name + subscript;
-          counter++;
-        }
-        TypeParameterTypeImpl t = TypeParameterTypeImpl(
-            TypeParameterElementImpl(name, -1),
-            nullabilitySuffix: NullabilitySuffix.none);
-        t.appendTo(
-          typeParametersBuffer,
-          withNullability: withNullability,
-          skipAllDynamicArguments: skipAllDynamicArguments,
-        );
-        instantiateTypeArgs.add(t);
-        variables.add(e);
-        if (e.bound != null) {
-          typeParametersBuffer.write(' extends ');
-          TypeImpl renamed =
-              Substitution.fromPairs(variables, instantiateTypeArgs)
-                  .substituteType(e.bound);
-          renamed.appendTo(
-            typeParametersBuffer,
-            withNullability: withNullability,
-            skipAllDynamicArguments: skipAllDynamicArguments,
-          );
-        }
-      }
-      typeParametersBuffer.write('>');
-
-      // Instantiate it and print the resulting type.
-      this.instantiate(instantiateTypeArgs)._appendToWithTypeParameters(
-            buffer,
-            typeParametersBuffer.toString(),
-            withNullability: withNullability,
-            skipAllDynamicArguments: skipAllDynamicArguments,
-          );
-    } else {
-      _appendToWithTypeParameters(
-        buffer,
-        '',
-        withNullability: withNullability,
-        skipAllDynamicArguments: skipAllDynamicArguments,
-      );
-    }
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeFunctionType(this);
   }
 
   @override
@@ -440,97 +358,6 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     );
   }
 
-  void _appendToWithTypeParameters(
-    StringBuffer buffer,
-    String typeParameters, {
-    @required bool withNullability,
-    @required bool skipAllDynamicArguments,
-  }) {
-    List<DartType> normalParameterTypes = this.normalParameterTypes;
-    List<DartType> optionalParameterTypes = this.optionalParameterTypes;
-    DartType returnType = this.returnType;
-
-    if (returnType == null) {
-      buffer.write('null');
-    } else {
-      (returnType as TypeImpl).appendTo(
-        buffer,
-        withNullability: withNullability,
-        skipAllDynamicArguments: skipAllDynamicArguments,
-      );
-    }
-    buffer.write(' Function');
-    buffer.write(typeParameters);
-    bool needsComma = false;
-
-    void writeSeparator() {
-      if (needsComma) {
-        buffer.write(', ');
-      } else {
-        needsComma = true;
-      }
-    }
-
-    void startOptionalParameters() {
-      if (needsComma) {
-        buffer.write(', ');
-        needsComma = false;
-      }
-    }
-
-    buffer.write('(');
-    if (normalParameterTypes.isNotEmpty) {
-      for (DartType type in normalParameterTypes) {
-        writeSeparator();
-        (type as TypeImpl).appendTo(
-          buffer,
-          withNullability: withNullability,
-          skipAllDynamicArguments: skipAllDynamicArguments,
-        );
-      }
-    }
-    if (optionalParameterTypes.isNotEmpty) {
-      startOptionalParameters();
-      buffer.write('[');
-      for (DartType type in optionalParameterTypes) {
-        writeSeparator();
-        (type as TypeImpl).appendTo(
-          buffer,
-          withNullability: withNullability,
-          skipAllDynamicArguments: skipAllDynamicArguments,
-        );
-      }
-      buffer.write(']');
-      needsComma = true;
-    }
-
-    var namedParameters = parameters.where((e) => e.isNamed).toList();
-    if (namedParameters.isNotEmpty) {
-      startOptionalParameters();
-      buffer.write('{');
-      for (var parameter in namedParameters) {
-        writeSeparator();
-        if (withNullability && parameter.isRequiredNamed) {
-          buffer.write('required ');
-        }
-        buffer.write(parameter.name);
-        buffer.write(': ');
-        (parameter.type as TypeImpl).appendTo(
-          buffer,
-          withNullability: withNullability,
-          skipAllDynamicArguments: skipAllDynamicArguments,
-        );
-      }
-      buffer.write('}');
-      needsComma = true;
-    }
-
-    buffer.write(')');
-    if (withNullability) {
-      _appendNullability(buffer);
-    }
-  }
-
   void _forEachParameterType(
       ParameterKind kind, Function(String name, DartType type) callback) {
     for (var parameter in parameters) {
@@ -538,32 +365,6 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       if (parameter.parameterKind == kind) {
         callback(parameter.name, parameter.type);
       }
-    }
-  }
-
-  void _freeVariablesInFunctionType(
-      FunctionType type, Set<TypeParameterElement> free) {
-    for (var parameter in type.parameters) {
-      _freeVariablesInType(parameter.type, free);
-    }
-    _freeVariablesInType(type.returnType, free);
-    free.removeAll(type.typeFormals);
-  }
-
-  void _freeVariablesInInterfaceType(
-      InterfaceType type, Set<TypeParameterElement> free) {
-    for (DartType typeArg in type.typeArguments) {
-      _freeVariablesInType(typeArg, free);
-    }
-  }
-
-  void _freeVariablesInType(DartType type, Set<TypeParameterElement> free) {
-    if (type is TypeParameterType) {
-      free.add(type.element);
-    } else if (type is FunctionType) {
-      _freeVariablesInFunctionType(type, free);
-    } else if (type is InterfaceType) {
-      _freeVariablesInInterfaceType(type, free);
     }
   }
 
@@ -1147,39 +948,8 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
-  void appendTo(
-    StringBuffer buffer, {
-    @required bool withNullability,
-    @required bool skipAllDynamicArguments,
-  }) {
-    buffer.write(element.name);
-
-    int argumentCount = typeArguments.length;
-
-    bool includeTypeArguments;
-    if (skipAllDynamicArguments) {
-      includeTypeArguments = typeArguments.any((t) => !t.isDynamic);
-    } else {
-      includeTypeArguments = argumentCount > 0;
-    }
-
-    if (includeTypeArguments) {
-      buffer.write("<");
-      for (int i = 0; i < argumentCount; i++) {
-        if (i > 0) {
-          buffer.write(", ");
-        }
-        (typeArguments[i] as TypeImpl).appendTo(
-          buffer,
-          withNullability: withNullability,
-          skipAllDynamicArguments: skipAllDynamicArguments,
-        );
-      }
-      buffer.write(">");
-    }
-    if (withNullability) {
-      _appendNullability(buffer);
-    }
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeInterfaceType(this);
   }
 
   /**
@@ -2014,15 +1784,8 @@ class NeverTypeImpl extends TypeImpl {
   bool operator ==(Object object) => identical(object, this);
 
   @override
-  void appendTo(
-    StringBuffer buffer, {
-    @required bool withNullability,
-    @required bool skipAllDynamicArguments,
-  }) {
-    buffer.write('Never');
-    if (withNullability) {
-      _appendNullability(buffer);
-    }
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeNeverType(this);
   }
 
   @override
@@ -2156,26 +1919,21 @@ abstract class TypeImpl implements DartType {
   NullabilitySuffix get nullabilitySuffix;
 
   /**
-   * Append a textual representation of this type to the given [buffer].
+   * Append a textual representation of this type to the given [builder].
    */
-  void appendTo(
-    StringBuffer buffer, {
-    @required bool withNullability,
-    @required bool skipAllDynamicArguments,
-  });
+  void appendTo(ElementDisplayStringBuilder builder);
 
   @override
   String getDisplayString({
-    bool withNullability = false,
     bool skipAllDynamicArguments = false,
+    bool withNullability = false,
   }) {
-    var buffer = StringBuffer();
-    appendTo(
-      buffer,
-      withNullability: withNullability,
+    var builder = ElementDisplayStringBuilder(
       skipAllDynamicArguments: skipAllDynamicArguments,
+      withNullability: withNullability,
     );
-    return buffer.toString();
+    appendTo(builder);
+    return builder.toString();
   }
 
   /// Replaces all covariant occurrences of `dynamic`, `Object`, and `void` with
@@ -2216,19 +1974,6 @@ abstract class TypeImpl implements DartType {
    * types, please use the methods in [TypeSystemImpl].
    */
   TypeImpl withNullability(NullabilitySuffix nullabilitySuffix);
-
-  void _appendNullability(StringBuffer buffer) {
-    switch (nullabilitySuffix) {
-      case NullabilitySuffix.question:
-        buffer.write('?');
-        break;
-      case NullabilitySuffix.star:
-        buffer.write('*');
-        break;
-      case NullabilitySuffix.none:
-        break;
-    }
-  }
 
   /**
    * Return `true` if corresponding elements of the [first] and [second] lists
@@ -2314,15 +2059,8 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   }
 
   @override
-  void appendTo(
-    StringBuffer buffer, {
-    @required bool withNullability,
-    @required bool skipAllDynamicArguments,
-  }) {
-    buffer.write(element.name);
-    if (withNullability) {
-      _appendNullability(buffer);
-    }
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeTypeParameterType(this);
   }
 
   @override
@@ -2464,12 +2202,8 @@ class VoidTypeImpl extends TypeImpl implements VoidType {
   bool operator ==(Object object) => identical(object, this);
 
   @override
-  void appendTo(
-    StringBuffer buffer, {
-    @required bool withNullability,
-    @required bool skipAllDynamicArguments,
-  }) {
-    buffer.write('void');
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeVoidType();
   }
 
   @override

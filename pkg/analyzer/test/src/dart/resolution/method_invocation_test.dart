@@ -1416,7 +1416,7 @@ main() {
     assertMethodInvocation(
       invocation,
       findElement.topFunction('foo'),
-      'void Function({a: int, b: bool})',
+      'void Function({int a, bool b})',
     );
     assertNamedParameterRef('b: false', 'b');
     assertNamedParameterRef('a: 0', 'a');

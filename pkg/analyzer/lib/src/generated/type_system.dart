@@ -13,6 +13,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart' as public;
 import 'package:analyzer/error/listener.dart' show ErrorReporter;
+import 'package:analyzer/src/dart/element/display_string_builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart' show TypeParameterMember;
 import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
@@ -4046,12 +4047,8 @@ class UnknownInferredType extends TypeImpl {
   bool operator ==(Object object) => identical(object, this);
 
   @override
-  void appendTo(
-    StringBuffer buffer, {
-    bool withNullability = false,
-    @required bool skipAllDynamicArguments,
-  }) {
-    buffer.write('?');
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeUnknownInferredType();
   }
 
   @override

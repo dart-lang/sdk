@@ -37,7 +37,7 @@ main() {}
       '',
       'b: ',
       argIndex: 0,
-      expectedExecutable: 'Foo.<init>: Foo Function({a: int, b: String})',
+      expectedExecutable: 'Foo.<init>: Foo Function({int a, String b})',
       expectedParameter: 'b: String',
     );
   }
@@ -122,7 +122,7 @@ main() {
       'b: ',
       argIndex: 0,
       expectedExecutable:
-          'Foo.<init>: Foo Function({a: int, b: String, c: double})',
+          'Foo.<init>: Foo Function({int a, String b, double c})',
       expectedParameter: 'b: String',
     );
   }
@@ -141,7 +141,7 @@ main() {
       '',
       'b: ',
       argIndex: 0,
-      expectedExecutable: 'Foo.<init>: Foo Function({a: int})',
+      expectedExecutable: 'Foo.<init>: Foo Function({int a})',
     );
   }
 
@@ -247,7 +247,7 @@ main() {
       '',
       'b: ',
       argIndex: 0,
-      expectedExecutable: 'foo: int Function({a: int, b: String, c: double})',
+      expectedExecutable: 'foo: int Function({int a, String b, double c})',
       expectedParameter: 'b: String',
     );
   }
@@ -264,7 +264,7 @@ main() {
       '',
       'f: ',
       argIndex: 0,
-      expectedExecutable: 'foo: int Function({f: int Function(String)})',
+      expectedExecutable: 'foo: int Function({int Function(String) f})',
       expectedParameter: 'f: int Function(String)',
       isFunctionalArgument: true,
     );
@@ -282,7 +282,7 @@ main() {
       '',
       'b: ',
       argIndex: 0,
-      expectedExecutable: 'foo: int Function({a: int})',
+      expectedExecutable: 'foo: int Function({int a})',
     );
   }
 

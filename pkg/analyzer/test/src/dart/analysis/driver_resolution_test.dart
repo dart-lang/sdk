@@ -673,7 +673,7 @@ main() {}
     SimpleIdentifier constructorName = annotation.constructorName;
     expect(constructorName.staticElement, same(constructor));
     assertElementTypeString(
-        constructorName.staticType, 'A Function(int, {b: int})');
+        constructorName.staticType, 'A Function(int, {int b})');
 
     var arguments = annotation.arguments.arguments;
     var parameters = constructor.parameters;
@@ -799,7 +799,7 @@ class A {
     assertTypeNull(prefixed.prefix);
 
     expect(prefixed.identifier.staticElement, same(constructor));
-    assertType(prefixed.identifier, 'A Function(int, {b: int})');
+    assertType(prefixed.identifier, 'A Function(int, {int b})');
 
     expect(annotation.constructorName, isNull);
 
@@ -3421,7 +3421,7 @@ main() {
 
     var invocation = findNode.methodInvocation('f(p: a');
     assertElement(invocation.methodName, f);
-    assertType(invocation.methodName, 'void Function({p: dynamic})');
+    assertType(invocation.methodName, 'void Function({dynamic p})');
     assertType(invocation, 'void');
 
     NamedExpression arg0 = invocation.argumentList.arguments[0];
@@ -3447,7 +3447,7 @@ main() {
 
     var invocation = findNode.methodInvocation('f(p: a');
     assertElement(invocation.methodName, f);
-    assertType(invocation.methodName, 'void Function({p: dynamic})');
+    assertType(invocation.methodName, 'void Function({dynamic p})');
     assertType(invocation, 'void');
 
     NamedExpression arg0 = invocation.argumentList.arguments[0];
@@ -4265,7 +4265,7 @@ void main() {
     FunctionDeclaration fNode = fStatement.functionDeclaration;
     FunctionElement fElement = fNode.declaredElement;
 
-    assertElementTypeString(fElement.type, 'void Function<T>({x: T})');
+    assertElementTypeString(fElement.type, 'void Function<T>({T x})');
     var tElement = fElement.typeParameters[0];
     expect(fElement.type.typeFormals[0], same(tElement));
     expect((fElement.type.parameters[0].type as TypeParameterType).element,
@@ -4299,7 +4299,7 @@ void main() {
   f(1, b: '2', c: true);
 }
 ''');
-    String fTypeString = 'double Function(int, {b: String, c: bool})';
+    String fTypeString = 'double Function(int, {String b, bool c})';
 
     await resolveTestFile();
     List<Statement> mainStatements = _getMainStatements(result);
@@ -5247,7 +5247,7 @@ void g(C c) {
   c.f(1, b: '2', c: true);
 }
 ''');
-    String fTypeString = 'double Function(int, {b: String, c: bool})';
+    String fTypeString = 'double Function(int, {String b, bool c})';
 
     await resolveTestFile();
     ClassDeclaration classDeclaration = result.unit.declarations[0];
@@ -5531,7 +5531,7 @@ class C {
 
     var invocation = findNode.functionExpressionInvocation('f(1');
     assertElement(invocation.function, findElement.getter('f'));
-    assertInvokeType(invocation, 'String Function(int, {b: int})');
+    assertInvokeType(invocation, 'String Function(int, {int b})');
     assertType(invocation, 'String');
 
     List<Expression> arguments = invocation.argumentList.arguments;
@@ -7611,7 +7611,7 @@ void main() {
   f(1, b: '2', c: true);
 }
 ''');
-    String fTypeString = 'double Function(int, {b: String, c: bool})';
+    String fTypeString = 'double Function(int, {String b, bool c})';
 
     await resolveTestFile();
     FunctionDeclaration fDeclaration = result.unit.declarations[0];

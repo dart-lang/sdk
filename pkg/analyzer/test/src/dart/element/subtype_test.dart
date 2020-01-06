@@ -1406,7 +1406,7 @@ class SubtypeTest extends _SubtypingTestBase {
       functionTypeStar(
         returnType: voidNone,
       ),
-      strT0: 'void Function({a: int*})*',
+      strT0: 'void Function({int* a})*',
       strT1: 'void Function()*',
     );
   }
@@ -1425,7 +1425,7 @@ class SubtypeTest extends _SubtypingTestBase {
         ],
         returnType: voidNone,
       ),
-      strT0: 'void Function({a: int*})*',
+      strT0: 'void Function({int* a})*',
       strT1: 'void Function(int*)*',
     );
   }
@@ -1445,7 +1445,7 @@ class SubtypeTest extends _SubtypingTestBase {
         returnType: voidNone,
       ),
       strT0: 'void Function(int*)*',
-      strT1: 'void Function({a: int*})*',
+      strT1: 'void Function({int* a})*',
     );
   }
 
@@ -1463,8 +1463,8 @@ class SubtypeTest extends _SubtypingTestBase {
         ],
         returnType: voidNone,
       ),
-      strT0: 'void Function({a: int*})*',
-      strT1: 'void Function({a: int*})*',
+      strT0: 'void Function({int* a})*',
+      strT1: 'void Function({int* a})*',
     );
   }
 
@@ -1482,8 +1482,8 @@ class SubtypeTest extends _SubtypingTestBase {
         ],
         returnType: voidNone,
       ),
-      strT0: 'void Function({a: int*})*',
-      strT1: 'void Function({b: int*})*',
+      strT0: 'void Function({int* a})*',
+      strT1: 'void Function({int* b})*',
     );
   }
 
@@ -1501,8 +1501,8 @@ class SubtypeTest extends _SubtypingTestBase {
         ],
         returnType: voidNone,
       ),
-      strT0: 'void Function({a: Object*})*',
-      strT1: 'void Function({a: int*})*',
+      strT0: 'void Function({Object* a})*',
+      strT1: 'void Function({int* a})*',
     );
   }
 
@@ -1520,8 +1520,8 @@ class SubtypeTest extends _SubtypingTestBase {
         ],
         returnType: voidNone,
       ),
-      strT0: 'void Function({a: int*})*',
-      strT1: 'void Function({a: Object*})*',
+      strT0: 'void Function({int* a})*',
+      strT1: 'void Function({Object* a})*',
     );
   }
 
@@ -1541,8 +1541,8 @@ class SubtypeTest extends _SubtypingTestBase {
         ],
         returnType: voidNone,
       ),
-      strT0: 'void Function(int*, {a: int*})*',
-      strT1: 'void Function(int*, {a: int*})*',
+      strT0: 'void Function(int*, {int* a})*',
+      strT1: 'void Function(int*, {int* a})*',
     );
   }
 
@@ -1560,8 +1560,8 @@ class SubtypeTest extends _SubtypingTestBase {
         ],
         returnType: voidNone,
       ),
-      strT0: 'void Function({a: int*})*',
-      strT1: 'void Function({a: double*})*',
+      strT0: 'void Function({int* a})*',
+      strT1: 'void Function({double* a})*',
     );
   }
 
@@ -1580,8 +1580,8 @@ class SubtypeTest extends _SubtypingTestBase {
         ],
         returnType: voidNone,
       ),
-      strT0: 'void Function({a: int*})*',
-      strT1: 'void Function({a: int*, b: int*})*',
+      strT0: 'void Function({int* a})*',
+      strT1: 'void Function({int* a, int* b})*',
     );
   }
 
@@ -1600,8 +1600,8 @@ class SubtypeTest extends _SubtypingTestBase {
         ],
         returnType: voidNone,
       ),
-      strT0: 'void Function({a: int*, b: int*})*',
-      strT1: 'void Function({a: int*})*',
+      strT0: 'void Function({int* a, int* b})*',
+      strT1: 'void Function({int* a})*',
     );
   }
 
@@ -1622,8 +1622,8 @@ class SubtypeTest extends _SubtypingTestBase {
         ],
         returnType: voidNone,
       ),
-      strT0: 'void Function({a: int*, b: int*, c: int*})*',
-      strT1: 'void Function({a: int*, c: int*})*',
+      strT0: 'void Function({int* a, int* b, int* c})*',
+      strT1: 'void Function({int* a, int* c})*',
     );
   }
 
@@ -1644,8 +1644,8 @@ class SubtypeTest extends _SubtypingTestBase {
         ],
         returnType: voidNone,
       ),
-      strT0: 'void Function({a: int*, b: int*, c: int*})*',
-      strT1: 'void Function({b: int*, c: int*})*',
+      strT0: 'void Function({int* a, int* b, int* c})*',
+      strT1: 'void Function({int* b, int* c})*',
     );
   }
 
@@ -1665,8 +1665,8 @@ class SubtypeTest extends _SubtypingTestBase {
         ],
         returnType: voidNone,
       ),
-      strT0: 'void Function({a: int*, b: int*, c: int*})*',
-      strT1: 'void Function({c: int*})*',
+      strT0: 'void Function({int* a, int* b, int* c})*',
+      strT1: 'void Function({int* c})*',
     );
   }
 
@@ -1999,8 +1999,8 @@ class SubtypeTest extends _SubtypingTestBase {
         ],
         returnType: numStar,
       ),
-      strT0: 'num* Function({x: num*})*',
-      strT1: 'num* Function({x: int*})*',
+      strT0: 'num* Function({num* x})*',
+      strT1: 'num* Function({int* x})*',
     );
 
     isSubtype(
@@ -2018,8 +2018,8 @@ class SubtypeTest extends _SubtypingTestBase {
         ],
         returnType: numStar,
       ),
-      strT0: 'num* Function(num*, {x: num*})*',
-      strT1: 'num* Function(int*, {x: int*})*',
+      strT0: 'num* Function(num*, {num* x})*',
+      strT1: 'num* Function(int*, {int* x})*',
     );
 
     isSubtype(
@@ -2035,8 +2035,8 @@ class SubtypeTest extends _SubtypingTestBase {
         ],
         returnType: numStar,
       ),
-      strT0: 'int* Function({x: num*})*',
-      strT1: 'num* Function({x: num*})*',
+      strT0: 'int* Function({num* x})*',
+      strT1: 'num* Function({num* x})*',
     );
 
     isNotSubtype(
@@ -2052,8 +2052,8 @@ class SubtypeTest extends _SubtypingTestBase {
         ],
         returnType: numStar,
       ),
-      strT0: 'int* Function({x: int*})*',
-      strT1: 'num* Function({x: num*})*',
+      strT0: 'int* Function({int* x})*',
+      strT1: 'num* Function({num* x})*',
     );
   }
 
@@ -2157,15 +2157,15 @@ class SubtypeTest extends _SubtypingTestBase {
     isSubtype(
       F1,
       F0,
-      strT0: 'void Function({a: int})',
-      strT1: 'void Function({required a: int})',
+      strT0: 'void Function({int a})',
+      strT1: 'void Function({required int a})',
     );
 
     isNotSubtype(
       F0,
       F1,
-      strT0: 'void Function({required a: int})',
-      strT1: 'void Function({a: int})',
+      strT0: 'void Function({required int a})',
+      strT1: 'void Function({int a})',
     );
   }
 
@@ -2180,7 +2180,7 @@ class SubtypeTest extends _SubtypingTestBase {
       functionTypeNone(
         returnType: voidNone,
       ),
-      strT0: 'void Function({required a: int})',
+      strT0: 'void Function({required int a})',
       strT1: 'void Function()',
     );
 
@@ -2198,8 +2198,8 @@ class SubtypeTest extends _SubtypingTestBase {
           namedParameter(name: 'b', type: intNone),
         ],
       ),
-      strT0: 'void Function({required a: int, b: int})',
-      strT1: 'void Function({b: int})',
+      strT0: 'void Function({required int a, int b})',
+      strT1: 'void Function({int b})',
     );
   }
 

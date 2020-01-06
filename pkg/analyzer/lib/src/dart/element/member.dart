@@ -7,6 +7,7 @@ import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/display_string_builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -91,37 +92,8 @@ class ConstructorMember extends ExecutableMember implements ConstructorElement {
       visitor.visitConstructorElement(this);
 
   @override
-  void appendTo(
-    StringBuffer buffer, {
-    @required bool withNullability,
-  }) {
-    ConstructorElement declaration = this.declaration;
-    List<ParameterElement> parameters = this.parameters;
-    FunctionType type = this.type;
-
-    if (type != null) {
-      buffer.write(
-        type.returnType.getDisplayString(
-          withNullability: withNullability,
-        ),
-      );
-      buffer.write(' ');
-    }
-    buffer.write(declaration.enclosingElement.displayName);
-    String name = displayName;
-    if (name != null && name.isNotEmpty) {
-      buffer.write('.');
-      buffer.write(name);
-    }
-    buffer.write('(');
-    int parameterCount = parameters.length;
-    for (int i = 0; i < parameterCount; i++) {
-      if (i > 0) {
-        buffer.write(', ');
-      }
-      buffer.write(parameters[i]);
-    }
-    buffer.write(')');
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeConstructorElement(this);
   }
 
   /**
@@ -232,79 +204,8 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
   }
 
   @override
-  void appendTo(
-    StringBuffer buffer, {
-    @required bool withNullability,
-  }) {
-    MethodElement declaration = this.declaration;
-    List<ParameterElement> parameters = this.parameters;
-    FunctionType type = this.type;
-
-    if (type != null) {
-      buffer.write(type.returnType);
-      buffer.write(' ');
-    }
-    buffer.write(declaration.enclosingElement.displayName);
-    buffer.write('.');
-    buffer.write(declaration.displayName);
-    int typeParameterCount = typeParameters.length;
-    if (typeParameterCount > 0) {
-      buffer.write('<');
-      for (int i = 0; i < typeParameterCount; i++) {
-        if (i > 0) {
-          buffer.write(', ');
-        }
-        // TODO(scheglov) consider always using TypeParameterMember
-        var typeParameter = typeParameters[i];
-        if (typeParameter is TypeParameterElementImpl) {
-          typeParameter.appendTo(
-            buffer,
-            withNullability: withNullability,
-          );
-        } else {
-          (typeParameter as TypeParameterMember).appendTo(
-            buffer,
-            withNullability: withNullability,
-          );
-        }
-      }
-      buffer.write('>');
-    }
-    buffer.write('(');
-    String closing;
-    ParameterKind kind = ParameterKind.REQUIRED;
-    int parameterCount = parameters.length;
-    for (int i = 0; i < parameterCount; i++) {
-      if (i > 0) {
-        buffer.write(', ');
-      }
-      ParameterElement parameter = parameters[i];
-      // ignore: deprecated_member_use_from_same_package
-      ParameterKind parameterKind = parameter.parameterKind;
-      if (parameterKind != kind) {
-        if (closing != null) {
-          buffer.write(closing);
-        }
-        if (parameter.isOptionalPositional) {
-          buffer.write('[');
-          closing = ']';
-        } else if (parameter.isNamed) {
-          buffer.write('{');
-          closing = '}';
-        } else {
-          closing = null;
-        }
-      }
-      kind = parameterKind;
-      parameter.appendToWithoutDelimiters(
-        buffer,
-        withNullability: withNullability,
-      );
-    }
-    if (closing != null) {
-      buffer.write(closing);
-    }
-    buffer.write(')');
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeExecutableElement(this, displayName);
   }
 
   @override
@@ -434,14 +335,6 @@ class FieldMember extends VariableMember implements FieldElement {
 
   @override
   T accept<T>(ElementVisitor<T> visitor) => visitor.visitFieldElement(this);
-
-  @override
-  void appendTo(
-    StringBuffer buffer, {
-    @required bool withNullability,
-  }) {
-    buffer.write('$type $displayName');
-  }
 
   /**
    * If the given [field]'s type is different when any type parameters from the
@@ -637,11 +530,8 @@ abstract class Member implements Element {
    */
   MapSubstitution get substitution => _substitution;
 
-  /// Append a textual representation of this element to the given [buffer].
-  void appendTo(
-    StringBuffer buffer, {
-    @required bool withNullability,
-  });
+  /// Append a textual representation of this element to the given [builder].
+  void appendTo(ElementDisplayStringBuilder builder);
 
   @Deprecated('Use either thisOrAncestorMatching or thisOrAncestorOfType')
   @override
@@ -650,9 +540,12 @@ abstract class Member implements Element {
 
   @override
   String getDisplayString({@required bool withNullability}) {
-    var buffer = StringBuffer();
-    appendTo(buffer, withNullability: withNullability);
-    return buffer.toString();
+    var builder = ElementDisplayStringBuilder(
+      skipAllDynamicArguments: false,
+      withNullability: withNullability,
+    );
+    appendTo(builder);
+    return builder.toString();
   }
 
   @override
@@ -889,24 +782,8 @@ class ParameterMember extends VariableMember
   T accept<T>(ElementVisitor<T> visitor) => visitor.visitParameterElement(this);
 
   @override
-  void appendTo(
-    StringBuffer buffer, {
-    @required bool withNullability,
-  }) {
-    ParameterElement declaration = this.declaration;
-    String left = "";
-    String right = "";
-    while (true) {
-      if (declaration.isNamed) {
-        left = "{";
-        right = "}";
-      } else if (declaration.isOptionalPositional) {
-        left = "[";
-        right = "]";
-      }
-      break;
-    }
-    buffer.write('$left$type ${declaration.displayName}$right');
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeFormalParameter(this);
   }
 
   @Deprecated('Use either thisOrAncestorMatching or thisOrAncestorOfType')
@@ -994,35 +871,11 @@ class PropertyAccessorMember extends ExecutableMember
       visitor.visitPropertyAccessorElement(this);
 
   @override
-  void appendTo(
-    StringBuffer buffer, {
-    @required bool withNullability,
-  }) {
-    PropertyAccessorElement declaration = this.declaration;
-    List<ParameterElement> parameters = this.parameters;
-    FunctionType type = this.type;
-
-    if (type != null) {
-      buffer.write(type.returnType);
-      buffer.write(' ');
-    }
-    if (isGetter) {
-      buffer.write('get ');
-    } else {
-      buffer.write('set ');
-    }
-    buffer.write(declaration.enclosingElement.displayName);
-    buffer.write('.');
-    buffer.write(declaration.displayName);
-    buffer.write('(');
-    int parameterCount = parameters.length;
-    for (int i = 0; i < parameterCount; i++) {
-      if (i > 0) {
-        buffer.write(', ');
-      }
-      buffer.write(parameters[i]);
-    }
-    buffer.write(')');
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeExecutableElement(
+      this,
+      (isGetter ? 'get ' : 'set ') + variable.displayName,
+    );
   }
 
   /**
@@ -1139,15 +992,8 @@ class TypeParameterMember extends Member implements TypeParameterElement {
       visitor.visitTypeParameterElement(this);
 
   @override
-  void appendTo(
-    StringBuffer buffer, {
-    @required bool withNullability,
-  }) {
-    buffer.write(displayName);
-    if (bound != null) {
-      buffer.write(" extends ");
-      buffer.write(bound);
-    }
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeTypeParameter(this);
   }
 
   @override
@@ -1258,13 +1104,8 @@ abstract class VariableMember extends Member implements VariableElement {
   }
 
   @override
-  void appendTo(
-    StringBuffer buffer, {
-    @required bool withNullability,
-  }) {
-    buffer.write(type);
-    buffer.write(" ");
-    buffer.write(displayName);
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeVariableElement(this);
   }
 
   @override

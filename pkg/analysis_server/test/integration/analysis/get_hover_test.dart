@@ -176,8 +176,7 @@ main() {
           isLocal: true,
           docRegexp: 'Documentation for func',
           parameterRegexps: ['.*']));
-      tests.add(checkHover(
-          'add(', 3, ['List', 'add'], 'method', ['dynamic', 'void'],
+      tests.add(checkHover('add(', 3, ['add'], 'method', ['dynamic', 'void'],
           isCore: true, docRegexp: '.*'));
       tests.add(checkHover(
           'localVar)', 8, ['num', 'localVar'], 'local variable', ['num'],

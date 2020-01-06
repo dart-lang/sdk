@@ -351,7 +351,7 @@ class DecoratedTypeTest extends Object
             named: {'x': list(typeParameterType(t, node: never), node: never)},
             node: never)
         .toFinalType(typeProvider) as FunctionType;
-    assertDartType(type, 'dynamic Function<T extends Object>({x: List<T>})');
+    assertDartType(type, 'dynamic Function<T extends Object>({List<T> x})');
     expect(type.typeFormals[0], isNot(same(t)));
     expect(
         ((type.parameters[0].type as InterfaceType).typeArguments[0]
@@ -410,14 +410,14 @@ class DecoratedTypeTest extends Object
     var xType = int_(node: never);
     var type = function(dynamic_, named: {'x': xType}, node: never)
         .toFinalType(typeProvider);
-    assertDartType(type, 'dynamic Function({x: int})');
+    assertDartType(type, 'dynamic Function({int x})');
   }
 
   void test_toFinalType_function_named_parameter_nullable() {
     var xType = int_(node: always);
     var type = function(dynamic_, named: {'x': xType}, node: never)
         .toFinalType(typeProvider);
-    assertDartType(type, 'dynamic Function({x: int?})');
+    assertDartType(type, 'dynamic Function({int? x})');
   }
 
   void test_toFinalType_function_non_nullable() {

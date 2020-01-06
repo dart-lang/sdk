@@ -3140,7 +3140,7 @@ S f<S>(S x) {
     );
     assertElementTypeString(
       findElement.localFunction('g').type,
-      'S Function<S>(S) Function<S>(S)',
+      'S Function<S>(S) Function<S₀>(S₀)',
     );
   }
 

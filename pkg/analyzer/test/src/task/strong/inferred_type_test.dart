@@ -3020,7 +3020,7 @@ String g({int x}) => null;
 var v = [f, g];
 ''');
     var v = mainUnit.topLevelVariables[0];
-    _assertTypeStr(v.type, 'List<Object Function({x: int})>');
+    _assertTypeStr(v.type, 'List<Object Function({int x})>');
   }
 
   test_inferredType_usesSyntheticFunctionType_positionalParam() async {
