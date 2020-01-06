@@ -987,6 +987,19 @@ int h(bool b) => 0;
     assertEdge(jNode, inSet(pointsToNever), hard: false);
   }
 
+  Future<void> test_function_withFormals() async {
+    await analyze('''
+void f(Function<T>() f) {
+  if (f == null) return;
+  f();
+}
+''');
+    var fNode =
+        this.decoratedGenericFunctionTypeAnnotation('Function<T>() f').node;
+    // No edge to never because it had been promoted before invoked.
+    assertNoEdge(fNode, graph.never);
+  }
+
   Future<void> test_functionDeclaration() async {
     await analyze('''
 void f(int i, int j) {

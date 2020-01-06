@@ -440,7 +440,8 @@ class DecoratedType implements DecoratedTypeInfo {
       returnType: returnType,
       positionalParameters: positionalParameters,
       namedParameters: namedParameters,
-      typeArguments: typeArguments);
+      typeArguments: typeArguments,
+      typeFormalBounds: typeFormalBounds);
 
   /// Internal implementation of [_substitute], used as a recursion target.
   DecoratedType _substitute(
