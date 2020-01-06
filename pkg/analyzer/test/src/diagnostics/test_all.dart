@@ -366,6 +366,7 @@ import 'rethrow_outside_catch_test.dart' as rethrow_outside_catch;
 import 'return_in_generative_constructor_test.dart'
     as return_in_generative_constructor;
 import 'return_in_generator_test.dart' as return_in_generator;
+import 'return_of_invalid_type_test.dart' as return_of_invalid_type;
 import 'return_without_value_test.dart' as return_without_value;
 import 'sdk_version_as_expression_in_const_context_test.dart'
     as sdk_version_as_expression_in_const_context;
@@ -724,6 +725,7 @@ main() {
     rethrow_outside_catch.main();
     return_in_generative_constructor.main();
     return_in_generator.main();
+    return_of_invalid_type.main();
     return_without_value.main();
     set_element_from_deferred_library.main();
     sdk_version_as_expression_in_const_context.main();
