@@ -16,7 +16,7 @@ void main() {
 }
 
 class Foo {
-  var foo;
+  void Function() foo;
 
   void fooMethod() {
     /*bl*/ /*s:4*/ /*s:6*/ print("Hello from fooMethod");

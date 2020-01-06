@@ -5,7 +5,7 @@
 /*Debugger:stepOver*/
 
 void main() {
-  var qux;
+  String qux;
   qux = /*bc:1*/ foo() + /*bc:2*/ bar();
   print(qux);
 }

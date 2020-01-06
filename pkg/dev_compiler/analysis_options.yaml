@@ -16,3 +16,4 @@ analyzer:
 linter:
   rules:
     - annotate_overrides
+    - prefer_typing_uninitialized_variables
