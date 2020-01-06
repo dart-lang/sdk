@@ -217,6 +217,8 @@ class Precompiler : public ValueObject {
 
   static Precompiler* Instance() { return singleton_; }
 
+  void AddRetainedStaticField(const Field& field);
+
  private:
   static Precompiler* singleton_;
 
@@ -305,6 +307,7 @@ class Precompiler : public ValueObject {
   compiler::ObjectPoolBuilder global_object_pool_builder_;
   GrowableObjectArray& libraries_;
   const GrowableObjectArray& pending_functions_;
+  FieldSet pending_static_fields_to_retain_;
   SymbolSet sent_selectors_;
   FunctionSet enqueued_functions_;
   FieldSet fields_to_retain_;

@@ -478,6 +478,10 @@ class FlowGraphCompiler : public ValueObject {
     if (stats_ != NULL) stats_->SpecialEnd(tag);
   }
 
+  GrowableArray<const Field*>& used_static_fields() {
+    return used_static_fields_;
+  }
+
   // Constructor is lighweight, major initialization work should occur here.
   // This makes it easier to measure time spent in the compiler.
   void InitCompiler();
@@ -1090,6 +1094,9 @@ class FlowGraphCompiler : public ValueObject {
   GrowableArray<BlockInfo*> block_info_;
   GrowableArray<CompilerDeoptInfo*> deopt_infos_;
   GrowableArray<SlowPathCode*> slow_path_code_;
+  // Fields that were referenced by generated code.
+  // This list is needed by precompiler to ensure they are retained.
+  GrowableArray<const Field*> used_static_fields_;
   // Stores static call targets as well as stub targets.
   // TODO(srdjan): Evaluate if we should store allocation stub targets into a
   // separate table?

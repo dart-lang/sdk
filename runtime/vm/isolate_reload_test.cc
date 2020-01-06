@@ -3752,6 +3752,130 @@ TEST_CASE(IsolateReload_RunNewFieldInitializersWithGenerics) {
       SimpleInvokeStr(lib, "main"));
 }
 
+TEST_CASE(IsolateReload_AddNewStaticField) {
+  const char* kScript =
+      "class C {\n"
+      "}\n"
+      "main() {\n"
+      "  return 'Okay';\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("Okay", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "class C {\n"
+      "  static var x = 42;\n"
+      "}\n"
+      "main() {\n"
+      "  return '${C.x}';\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("42", SimpleInvokeStr(lib, "main"));
+}
+
+TEST_CASE(IsolateReload_StaticFieldInitialValueDoesnotChange) {
+  const char* kScript =
+      "class C {\n"
+      "  static var x = 42;\n"
+      "}\n"
+      "main() {\n"
+      "  return '${C.x}';\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("42", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "class C {\n"
+      "  static var x = 13;\n"
+      "}\n"
+      "main() {\n"
+      "  return '${C.x}';\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  // Newly loaded field maintained old static value
+  EXPECT_STREQ("42", SimpleInvokeStr(lib, "main"));
+}
+
+class FindNoInstancesOfClass : public FindObjectVisitor {
+ public:
+  explicit FindNoInstancesOfClass(intptr_t cid) : cid_(cid) {
+#if defined(DEBUG)
+    EXPECT_GT(Thread::Current()->no_safepoint_scope_depth(), 0);
+#endif
+  }
+  virtual ~FindNoInstancesOfClass() {}
+
+  virtual bool FindObject(RawObject* obj) const {
+    return obj->GetClassId() == cid_;
+  }
+
+ private:
+  intptr_t cid_;
+};
+
+TEST_CASE(IsolateReload_DeleteStaticField) {
+  const char* kScript =
+      "class C {\n"
+      "}\n"
+      "class Foo {\n"
+      "static var x = C();\n"
+      "}\n"
+      "main() {\n"
+      "  return Foo.x;\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  intptr_t cid = 1118;
+  {
+    Dart_EnterScope();
+    Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+    EXPECT_VALID(result);
+    {
+      TransitionNativeToVM transition(thread);
+      cid = Api::ClassId(result);
+    }
+    Dart_ExitScope();
+  }
+
+  const char* kReloadScript =
+      "class C {\n"
+      "}\n"
+      "class Foo {\n"
+      "}\n"
+      "main() {\n"
+      "  return '${Foo()}';\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+  {
+    TransitionNativeToVM transition(thread);
+    GCTestHelper::CollectAllGarbage();
+
+    {
+      HeapIterationScope iteration(thread);
+      NoSafepointScope no_safepoint;
+      FindNoInstancesOfClass find_only(cid);
+      Isolate* isolate = Isolate::Current();
+      Heap* heap = isolate->heap();
+      // We still expect to find references to static field values
+      // because they are not deleted after hot reload.
+      EXPECT_NE(heap->FindObject(&find_only), Object::null());
+    }
+  }
+}
+
 TEST_CASE(IsolateReload_ExistingFieldChangesType) {
   const char* kScript = R"(
     class Foo {

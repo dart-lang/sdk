@@ -280,6 +280,7 @@ Thread* IsolateGroup::ScheduleThreadLocked(MonitorLocker* ml,
     // Set up other values and set the TLS value.
     thread->isolate_ = nullptr;
     thread->isolate_group_ = this;
+    thread->field_table_values_ = nullptr;
     thread->set_os_thread(os_thread);
     ASSERT(thread->execution_state() == Thread::kThreadInNative);
     thread->set_execution_state(Thread::kThreadInVM);
@@ -526,6 +527,10 @@ void Isolate::ValidateClassTable() {
   class_table()->Validate();
 }
 #endif  // DEBUG
+
+void Isolate::RegisterStaticField(const Field& field) {
+  field_table()->Register(field);
+}
 
 void Isolate::RehashConstants() {
   Thread* thread = Thread::Current();
@@ -1224,6 +1229,7 @@ Isolate::Isolate(IsolateGroup* isolate_group,
       ic_miss_code_(Code::null()),
       shared_class_table_(new SharedClassTable()),
       class_table_(shared_class_table_.get()),
+      field_table_(new FieldTable()),
       store_buffer_(new StoreBuffer()),
 #if !defined(DART_PRECOMPILED_RUNTIME)
       native_callback_trampolines_(),
@@ -1325,6 +1331,7 @@ Isolate::~Isolate() {
   delete heap_;
   ASSERT(marking_stack_ == nullptr);
   delete object_store_;
+  delete field_table_;
   delete api_state_;
 #if defined(USING_SIMULATOR)
   delete simulator_;
@@ -2307,6 +2314,9 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   // Visit objects in the class table.
   class_table()->VisitObjectPointers(visitor);
 
+  // Visit objects in the field table.
+  field_table()->VisitObjectPointers(visitor);
+
   // Visit the dart api state for all local and persistent handles.
   if (api_state() != nullptr) {
     api_state()->VisitObjectPointers(visitor);
@@ -3277,6 +3287,7 @@ Thread* Isolate::ScheduleThread(bool is_mutator, bool bypass_safepoint) {
     scheduled_mutator_thread_ = thread;
   }
   thread->isolate_ = this;
+  thread->field_table_values_ = field_table_->table();
 
   ASSERT(heap() != nullptr);
   thread->heap_ = heap();
@@ -3312,6 +3323,7 @@ void Isolate::UnscheduleThread(Thread* thread,
     ASSERT(mutator_thread_ == scheduled_mutator_thread_);
     scheduled_mutator_thread_ = nullptr;
   }
+  thread->field_table_values_ = nullptr;
   group()->UnscheduleThreadLocked(&ml, thread, is_mutator, bypass_safepoint);
 }
 

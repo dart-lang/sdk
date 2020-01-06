@@ -1086,10 +1086,6 @@ bool LoadStaticFieldInstr::AttributesEqual(Instruction* other) const {
   return StaticField().raw() == other_load->StaticField().raw();
 }
 
-const Field& LoadStaticFieldInstr::StaticField() const {
-  return Field::Cast(field_value()->BoundConstant());
-}
-
 bool LoadStaticFieldInstr::IsFieldInitialized() const {
   const Field& field = StaticField();
   return (field.StaticValue() != Object::sentinel().raw()) &&

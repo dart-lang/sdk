@@ -164,7 +164,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment ThrowNoSuchMethodError();
   Fragment Constant(const Object& value);
   Fragment IntConstant(int64_t value);
-  Fragment LoadStaticField();
+  Fragment LoadStaticField(const Field& field);
   Fragment RedefinitionWithType(const AbstractType& type);
   Fragment CheckNull(TokenPosition position,
                      LocalVariable* receiver,

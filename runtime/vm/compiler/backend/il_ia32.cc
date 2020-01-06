@@ -2208,14 +2208,12 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* LoadStaticFieldInstr::MakeLocationSummary(Zone* zone,
                                                            bool opt) const {
-  const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
+  const intptr_t kNumInputs = 0;
+  const intptr_t kNumTemps = 1;
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  summary->set_in(0, Location::RequiresRegister());
-  // By specifying same register as input, our simple register allocator can
-  // generate better code.
-  summary->set_out(0, Location::SameAsFirstInput());
+  summary->set_temp(0, Location::RequiresRegister());
+  summary->set_out(0, Location::RequiresRegister());
   return summary;
 }
 
@@ -2225,9 +2223,18 @@ LocationSummary* LoadStaticFieldInstr::MakeLocationSummary(Zone* zone,
 //
 // This is safe only so long as LoadStaticFieldInstr cannot deoptimize.
 void LoadStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register field = locs()->in(0).reg();
   Register result = locs()->out(0).reg();
-  __ movl(result, compiler::FieldAddress(field, Field::static_value_offset()));
+  Register temp = locs()->temp(0).reg();
+
+  compiler->used_static_fields().Add(&StaticField());
+
+  __ movl(temp,
+          compiler::Address(
+              THR, compiler::target::Thread::field_table_values_offset()));
+  // Note: static fields ids won't be changed by hot-reload.
+  __ movl(result,
+          compiler::Address(
+              temp, compiler::target::FieldTable::OffsetOf(StaticField())));
 }
 
 LocationSummary* StoreStaticFieldInstr::MakeLocationSummary(Zone* zone,
@@ -2244,16 +2251,15 @@ void StoreStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register value = locs()->in(0).reg();
   Register temp = locs()->temp(0).reg();
 
-  __ LoadObject(temp, Field::ZoneHandle(Z, field().Original()));
-  if (this->value()->NeedsWriteBarrier()) {
-    __ StoreIntoObject(
-        temp, compiler::FieldAddress(temp, Field::static_value_offset()), value,
-        CanValueBeSmi());
-  } else {
-    __ StoreIntoObjectNoBarrier(
-        temp, compiler::FieldAddress(temp, Field::static_value_offset()),
-        value);
-  }
+  compiler->used_static_fields().Add(&field());
+
+  __ movl(temp,
+          compiler::Address(
+              THR, compiler::target::Thread::field_table_values_offset()));
+  // Note: static fields ids won't be changed by hot-reload.
+  __ movl(
+      compiler::Address(temp, compiler::target::FieldTable::OffsetOf(field())),
+      value);
 }
 
 LocationSummary* InstanceOfInstr::MakeLocationSummary(Zone* zone,
@@ -2766,22 +2772,25 @@ void InitInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* InitStaticFieldInstr::MakeLocationSummary(Zone* zone,
                                                            bool opt) const {
-  const intptr_t kNumInputs = 1;
+  const intptr_t kNumInputs = 0;
   const intptr_t kNumTemps = 1;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
-  locs->set_in(0, Location::RegisterLocation(EAX));
   locs->set_temp(0, Location::RegisterLocation(ECX));
   return locs;
 }
 
 void InitStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register field = locs()->in(0).reg();
   Register temp = locs()->temp(0).reg();
 
   compiler::Label call_runtime, no_call;
 
-  __ movl(temp, compiler::FieldAddress(field, Field::static_value_offset()));
+  __ movl(temp,
+          compiler::Address(
+              THR, compiler::target::Thread::field_table_values_offset()));
+  // Note: static fields ids won't be changed by hot-reload.
+  __ movl(temp, compiler::Address(
+                    temp, compiler::target::FieldTable::OffsetOf(field())));
   __ CompareObject(temp, Object::sentinel());
   __ j(EQUAL, &call_runtime);
 
@@ -2790,7 +2799,7 @@ void InitStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   __ Bind(&call_runtime);
   __ PushObject(Object::null_object());  // Make room for (unused) result.
-  __ pushl(field);
+  __ PushObject(Field::ZoneHandle(field().Original()));
   compiler->GenerateRuntimeCall(token_pos(), deopt_id(),
                                 kInitStaticFieldRuntimeEntry, 1, locs());
   __ Drop(2);  // Remove argument and unused result.
