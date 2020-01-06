@@ -14,6 +14,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart' show ConstructorMember;
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
+import 'package:analyzer/src/dart/element/type_schema_elimination.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/element_type_provider.dart';
@@ -165,7 +166,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
         if (p.hasImplicitType &&
             (_elementTypeProvider.getVariableType(p) == null ||
                 _elementTypeProvider.getVariableType(p).isDynamic)) {
-          inferredType = _typeSystem.upperBoundForType(inferredType);
+          inferredType = greatestClosure(_typeProvider, inferredType);
           if (inferredType.isDartCoreNull) {
             inferredType = _typeProvider.objectType;
           }

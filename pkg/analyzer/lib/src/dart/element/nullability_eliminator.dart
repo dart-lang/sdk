@@ -14,6 +14,7 @@ import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
+/// TODO(scheglov) Rewrite using `ReplacementVisitor`, once we have it.
 class NullabilityEliminator extends DartTypeVisitor<DartType> {
   final TypeProviderImpl _typeProvider;
 

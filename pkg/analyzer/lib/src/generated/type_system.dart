@@ -20,6 +20,7 @@ import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
 import 'package:analyzer/src/dart/element/top_merge.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
+import 'package:analyzer/src/dart/element/type_schema_elimination.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/error/codes.dart' show HintCode, StrongModeCode;
 import 'package:analyzer/src/generated/utilities_dart.dart' show ParameterKind;
@@ -1449,18 +1450,6 @@ class Dart2TypeSystem extends TypeSystem {
     return false;
   }
 
-  /// Given a [type] T that may have an unknown type `?`, returns a type
-  /// R such that R <: T for any type substituted for `?`.
-  ///
-  /// In practice this will always replace `?` with either bottom or top
-  /// (dynamic), depending on the position of `?`.
-  ///
-  /// This implements the operation the spec calls "least closure", or
-  /// sometimes "least closure with respect to `?`".
-  DartType lowerBoundForType(DartType type) {
-    return _substituteForUnknownType(type, lowerBound: true);
-  }
-
   /**
    * Compute the canonical representation of [T].
    *
@@ -1776,18 +1765,6 @@ class Dart2TypeSystem extends TypeSystem {
     return null;
   }
 
-  /// Given a [type] T that may have an unknown type `?`, returns a type
-  /// R such that T <: R for any type substituted for `?`.
-  ///
-  /// In practice this will always replace `?` with either bottom or top
-  /// (dynamic), depending on the position of `?`.
-  ///
-  /// This implements the operation the spec calls "greatest closure", or
-  /// sometimes "greatest closure with respect to `?`".
-  DartType upperBoundForType(DartType type) {
-    return _substituteForUnknownType(type);
-  }
-
   /**
    * Eliminates type variables from the context [type], replacing them with
    * `Null` or `Object` as appropriate.
@@ -1804,12 +1781,7 @@ class Dart2TypeSystem extends TypeSystem {
    * The equivalent CFE code can be found in the `TypeVariableEliminator` class.
    */
   DartType _eliminateTypeVariables(DartType type) {
-    return _substituteType(type, true, (type, lowerBound) {
-      if (type is TypeParameterType) {
-        return lowerBound ? typeProvider.nullType : typeProvider.objectType;
-      }
-      return type;
-    });
+    return TypeVariableEliminator(typeProvider).substituteType(type);
   }
 
   /**
@@ -2287,94 +2259,11 @@ class Dart2TypeSystem extends TypeSystem {
     return false;
   }
 
-  /**
-   * Returns the greatest or least closure of [type], which replaces `?`
-   * ([UnknownInferredType]) with `dynamic` or `Null` as appropriate.
-   *
-   * If [lowerBound] is true, this will return the "least closure", otherwise
-   * it returns the "greatest closure".
-   */
-  DartType _substituteForUnknownType(DartType type, {bool lowerBound = false}) {
-    return _substituteType(type, lowerBound, (type, lowerBound) {
-      if (identical(type, UnknownInferredType.instance)) {
-        return lowerBound ? typeProvider.nullType : typeProvider.dynamicType;
-      }
-      return type;
-    });
-  }
-
-  /**
-   * Apply the [visitType] substitution to [type], using the result value if
-   * different, otherwise recursively apply the substitution.
-   *
-   * This method is used for substituting `?` ([UnknownInferredType]) with its
-   * greatest/least closure, and for eliminating type parameters for inference
-   * of `const` objects.
-   *
-   * See also [_eliminateTypeVariables] and [_substituteForUnknownType].
-   */
-  DartType _substituteType(DartType type, bool lowerBound,
-      DartType Function(DartType, bool) visitType) {
-    // Apply the substitution to this type, and return the result if different.
-    var newType = visitType(type, lowerBound);
-    if (!identical(newType, type)) {
-      return newType;
-    }
-    if (type is InterfaceTypeImpl) {
-      // Generic types are covariant, so keep the constraint direction.
-      var newTypeArgs = _transformList(
-          type.typeArguments, (t) => _substituteType(t, lowerBound, visitType));
-      if (identical(type.typeArguments, newTypeArgs)) return type;
-      return InterfaceTypeImpl.explicit(type.element, newTypeArgs,
-          nullabilitySuffix: type.nullabilitySuffix);
-    }
-    if (type is FunctionType) {
-      var parameters = type.parameters;
-      var returnType = type.returnType;
-      var newParameters = _transformList(parameters, (ParameterElement p) {
-        // Parameters are contravariant, so flip the constraint direction.
-        var newType = _substituteType(p.type, !lowerBound, visitType);
-        return ParameterElementImpl.synthetic(
-            p.name,
-            newType,
-            // ignore: deprecated_member_use_from_same_package
-            p.parameterKind);
-      });
-      // Return type is covariant.
-      var newReturnType = _substituteType(returnType, lowerBound, visitType);
-      if (identical(parameters, newParameters) &&
-          identical(returnType, newReturnType)) {
-        return type;
-      }
-
-      return FunctionTypeImpl(
-        typeFormals: type.typeFormals,
-        parameters: newParameters,
-        returnType: newReturnType,
-        nullabilitySuffix: (type as TypeImpl).nullabilitySuffix,
-      );
-    }
-    return type;
-  }
-
   DartType _typeParameterResolveToObjectBounds(DartType type) {
     var element = type.element;
     type = type.resolveToBound(typeProvider.objectType);
     return Substitution.fromMap({element: typeProvider.objectType})
         .substituteType(type);
-  }
-
-  static List<T> _transformList<T>(List<T> list, T Function(T t) f) {
-    List<T> newList;
-    for (var i = 0; i < list.length; i++) {
-      var item = list[i];
-      var newItem = f(item);
-      if (!identical(item, newItem)) {
-        newList ??= List.from(list);
-        newList[i] = newItem;
-      }
-    }
-    return newList ?? list;
   }
 }
 
@@ -2699,10 +2588,14 @@ class GenericInferrer {
         return lower;
       }
       if (!identical(UnknownInferredType.instance, upper)) {
-        return toKnownType ? _typeSystem.upperBoundForType(upper) : upper;
+        return toKnownType
+            ? greatestClosure(_typeSystem.typeProvider, upper)
+            : upper;
       }
       if (!identical(UnknownInferredType.instance, lower)) {
-        return toKnownType ? _typeSystem.lowerBoundForType(lower) : lower;
+        return toKnownType
+            ? leastClosure(_typeSystem.typeProvider, lower)
+            : lower;
       }
       return upper;
     } else {
@@ -2713,10 +2606,14 @@ class GenericInferrer {
         return upper;
       }
       if (!identical(UnknownInferredType.instance, lower)) {
-        return toKnownType ? _typeSystem.lowerBoundForType(lower) : lower;
+        return toKnownType
+            ? leastClosure(_typeSystem.typeProvider, lower)
+            : lower;
       }
       if (!identical(UnknownInferredType.instance, upper)) {
-        return toKnownType ? _typeSystem.upperBoundForType(upper) : upper;
+        return toKnownType
+            ? greatestClosure(_typeSystem.typeProvider, upper)
+            : upper;
       }
       return lower;
     }
@@ -4020,6 +3917,17 @@ class TypeSystemImpl extends Dart2TypeSystem {
           strictInference: strictInference,
           typeProvider: typeProvider,
         );
+}
+
+class TypeVariableEliminator extends Substitution {
+  final TypeProvider _typeProvider;
+
+  TypeVariableEliminator(this._typeProvider);
+
+  @override
+  DartType getSubstitute(TypeParameterElement parameter, bool upperBound) {
+    return upperBound ? _typeProvider.nullType : _typeProvider.objectType;
+  }
 }
 
 /// A type that is being inferred but is not currently known.
