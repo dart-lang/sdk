@@ -427,6 +427,15 @@ class TypeSchemaEnvironmentTest {
         "({required A a, A b, required A c, A d, required A e}) -> A",
         "({required B a, required B b, B c, B f, required B g}) -> B",
         "({required A a, A b, A c, A d, A e, B f, B g}) -> B");
+
+    testLower("<X extends dynamic>() -> void", "<Y extends Object?>() -> void",
+        "<Z extends dynamic>() -> void");
+    testLower("<X extends Null?>() -> void", "<Y extends Never?>() -> void",
+        "<Z extends Null?>() -> void");
+    testLower(
+        "<X extends FutureOr<dynamic>?>() -> void",
+        "<Y extends FutureOr<Object?>>() -> void",
+        "<Z extends FutureOr<dynamic>?>() -> void");
   }
 
   void test_lower_bound_identical() {
@@ -731,6 +740,15 @@ class TypeSchemaEnvironmentTest {
 
     testUpper("({required A a, B b}) -> A", "({B a, required A b}) -> B",
         "({required B a, required B b}) -> A");
+
+    testUpper("<X extends dynamic>() -> void", "<Y extends Object?>() -> void",
+        "<Z extends dynamic>() -> void");
+    testUpper("<X extends Null?>() -> void", "<Y extends Never?>() -> void",
+        "<Z extends Null?>() -> void");
+    testUpper(
+        "<X extends FutureOr<dynamic>?>() -> void",
+        "<Y extends FutureOr<Object?>>() -> void",
+        "<Z extends FutureOr<dynamic>?>() -> void");
   }
 
   void test_upper_bound_identical() {

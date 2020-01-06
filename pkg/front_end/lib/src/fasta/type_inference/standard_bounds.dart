@@ -888,17 +888,17 @@ abstract class StandardBounds {
         Map<TypeParameter, DartType> substitutionMap =
             <TypeParameter, DartType>{};
         for (int i = 0; i < m; ++i) {
-          substitutionMap[f.typeParameters[i]] =
+          substitutionMap[g.typeParameters[i]] =
               new TypeParameterType.forAlphaRenaming(
-                  f.typeParameters[i], g.typeParameters[i]);
+                  g.typeParameters[i], f.typeParameters[i]);
         }
         substitution = Substitution.fromMap(substitutionMap);
         for (int i = 0; i < m && boundsMatch; ++i) {
           // TODO(dmitryas): Figure out if a procedure for syntactic equality
           // should be used instead.
           if (!areMutualSubtypes(
-              substitution.substituteType(f.typeParameters[i].bound),
-              g.typeParameters[i].bound,
+              f.typeParameters[i].bound,
+              substitution.substituteType(g.typeParameters[i].bound),
               SubtypeCheckMode.withNullabilities)) {
             boundsMatch = false;
           }
@@ -911,22 +911,22 @@ abstract class StandardBounds {
     int minPos =
         math.min(f.positionalParameters.length, g.positionalParameters.length);
 
-    List<TypeParameter> typeParameters = g.typeParameters;
+    List<TypeParameter> typeParameters = f.typeParameters;
 
     List<DartType> positionalParameters =
         new List<DartType>.filled(maxPos, null);
     for (int i = 0; i < minPos; ++i) {
       positionalParameters[i] = getNullabilityAwareStandardUpperBound(
-          substitution.substituteType(f.positionalParameters[i]),
-          g.positionalParameters[i],
+          f.positionalParameters[i],
+          substitution.substituteType(g.positionalParameters[i]),
           clientLibrary);
     }
     for (int i = minPos; i < f.positionalParameters.length; ++i) {
-      positionalParameters[i] =
-          substitution.substituteType(f.positionalParameters[i]);
+      positionalParameters[i] = f.positionalParameters[i];
     }
     for (int i = minPos; i < g.positionalParameters.length; ++i) {
-      positionalParameters[i] = g.positionalParameters[i];
+      positionalParameters[i] =
+          substitution.substituteType(g.positionalParameters[i]);
     }
 
     List<NamedType> namedParameters = <NamedType>[];
@@ -941,22 +941,20 @@ abstract class StandardBounds {
         int order = named1.name.compareTo(named2.name);
         NamedType named;
         if (order < 0) {
-          named = new NamedType(
-              named1.name, substitution.substituteType(named1.type),
-              isRequired: false);
+          named = new NamedType(named1.name, named1.type, isRequired: false);
           ++i;
         } else if (order > 0) {
           named = !named2.isRequired
               ? named2
-              : new NamedType(named2.name, named2.type, isRequired: false);
+              : new NamedType(
+                  named2.name, substitution.substituteType(named2.type),
+                  isRequired: false);
           ++j;
         } else {
           named = new NamedType(
               named1.name,
-              getNullabilityAwareStandardUpperBound(
-                  substitution.substituteType(named1.type),
-                  named2.type,
-                  clientLibrary),
+              getNullabilityAwareStandardUpperBound(named1.type,
+                  substitution.substituteType(named2.type), clientLibrary),
               isRequired: named1.isRequired && named2.isRequired);
           ++i;
           ++j;
@@ -965,22 +963,22 @@ abstract class StandardBounds {
       }
       while (i < f.namedParameters.length) {
         NamedType named1 = f.namedParameters[i];
-        namedParameters.add(new NamedType(
-            named1.name, substitution.substituteType(named1.type),
-            isRequired: false));
+        namedParameters.add(!named1.isRequired
+            ? named1
+            : new NamedType(named1.name, named1.type, isRequired: false));
         ++i;
       }
       while (j < g.namedParameters.length) {
         NamedType named2 = g.namedParameters[j];
-        namedParameters.add(!named2.isRequired
-            ? named2
-            : new NamedType(named2.name, named2.type, isRequired: false));
+        namedParameters.add(new NamedType(
+            named2.name, substitution.substituteType(named2.type),
+            isRequired: false));
         ++j;
       }
     }
 
     DartType returnType = getNullabilityAwareStandardLowerBound(
-        substitution.substituteType(f.returnType), g.returnType, clientLibrary);
+        f.returnType, substitution.substituteType(g.returnType), clientLibrary);
 
     return new FunctionType(positionalParameters, returnType,
         intersectNullabilities(f.nullability, g.nullability),
@@ -1089,17 +1087,17 @@ abstract class StandardBounds {
         Map<TypeParameter, DartType> substitutionMap =
             <TypeParameter, DartType>{};
         for (int i = 0; i < m; ++i) {
-          substitutionMap[f.typeParameters[i]] =
+          substitutionMap[g.typeParameters[i]] =
               new TypeParameterType.forAlphaRenaming(
-                  f.typeParameters[i], g.typeParameters[i]);
+                  g.typeParameters[i], f.typeParameters[i]);
         }
         substitution = Substitution.fromMap(substitutionMap);
         for (int i = 0; i < m && boundsMatch; ++i) {
           // TODO(dmitryas): Figure out if a procedure for syntactic
           // equality should be used instead.
           if (!areMutualSubtypes(
-              substitution.substituteType(f.typeParameters[i].bound),
-              g.typeParameters[i].bound,
+              f.typeParameters[i].bound,
+              substitution.substituteType(g.typeParameters[i].bound),
               SubtypeCheckMode.withNullabilities)) {
             boundsMatch = false;
           }
@@ -1110,14 +1108,14 @@ abstract class StandardBounds {
     int minPos =
         math.min(f.positionalParameters.length, g.positionalParameters.length);
 
-    List<TypeParameter> typeParameters = g.typeParameters;
+    List<TypeParameter> typeParameters = f.typeParameters;
 
     List<DartType> positionalParameters =
         new List<DartType>.filled(minPos, null);
     for (int i = 0; i < minPos; ++i) {
       positionalParameters[i] = getNullabilityAwareStandardLowerBound(
-          substitution.substituteType(f.positionalParameters[i]),
-          g.positionalParameters[i],
+          f.positionalParameters[i],
+          substitution.substituteType(g.positionalParameters[i]),
           clientLibrary);
     }
 
@@ -1138,10 +1136,8 @@ abstract class StandardBounds {
         } else {
           namedParameters.add(new NamedType(
               named1.name,
-              getNullabilityAwareStandardLowerBound(
-                  substitution.substituteType(named1.type),
-                  named2.type,
-                  clientLibrary),
+              getNullabilityAwareStandardLowerBound(named1.type,
+                  substitution.substituteType(named2.type), clientLibrary),
               isRequired: named1.isRequired || named2.isRequired));
           ++i;
           ++j;
@@ -1150,7 +1146,7 @@ abstract class StandardBounds {
     }
 
     DartType returnType = getNullabilityAwareStandardUpperBound(
-        substitution.substituteType(f.returnType), g.returnType, clientLibrary);
+        f.returnType, substitution.substituteType(g.returnType), clientLibrary);
 
     return new FunctionType(positionalParameters, returnType,
         uniteNullabilities(f.nullability, g.nullability),
