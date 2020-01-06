@@ -859,12 +859,48 @@ enum class Nullability : int8_t {
   kLegacy = 3,
 };
 
-// NNBD modes reflecting the status of the library performing type reification
-// or subtype tests. Weak or strong mode is independent of this mode.
+// The NNBDMode is passed to routines performing type reification and/or subtype
+// tests. The mode consists of two bits, one reflecting the opted-in status of
+// the library performing type reification and/or subtype tests, the other bit
+// specifying whether the type test should be performed according the pre-nnbd
+// semantics (noted LEGACY_SUBTYPE(S, T) in the specification), or according to
+// the nnbd semantics (noted NNBD_SUBTYPE(S, T) in the specification).
+// The first bit is usually passed explicitly from Dart code to the runtime
+// entry, because the runtime cannot efficiently tell if the call originated in
+// an opted-in or legacy library. Then, the bit defining the semantics of the
+// test is computed depending on the actual value of the instance being checked
+// (null or non-null), on the value of the global strong mode flag, and on the
+// nature of the test (instance test or type cast).
+// For more details, see the language specification.
 enum class NNBDMode {
-  kLegacy,
-  kOptedIn,
+  // Status of the library:
+  kLibMask = 1,
+  kLegacyLib = 0,   // Library is legacy.
+  kOptedInLib = 1,  // Library is opted-in.
+
+  // Semantics of the type test:
+  kTestMask = 2,
+  kLegacyTest = 0,       // Legacy type test, i.e. LEGACY_SUBTYPE(S, T).
+  kNonNullableTest = 2,  // Non-nullable type test, i.e. NNBD_SUBTYPE(S, T).
+
+  // All possible values:
+  kLegacyLib_LegacyTest = 0,
+  kOptedInLib_LegacyTest = 1,
+  kLegacyLib_NonNullableTest = 2,
+  kOptedInLib_NonNullableTest = 3,
 };
+
+NNBDMode inline operator|(NNBDMode lhs, NNBDMode rhs) {
+  return static_cast<NNBDMode>(
+      static_cast<std::underlying_type<NNBDMode>::type>(lhs) |
+      static_cast<std::underlying_type<NNBDMode>::type>(rhs));
+}
+
+NNBDMode inline operator&(NNBDMode lhs, NNBDMode rhs) {
+  return static_cast<NNBDMode>(
+      static_cast<std::underlying_type<NNBDMode>::type>(lhs) &
+      static_cast<std::underlying_type<NNBDMode>::type>(rhs));
+}
 
 class Class : public Object {
  public:
@@ -1110,17 +1146,6 @@ class Class : public Object {
                           const Class& other,
                           const TypeArguments& other_type_arguments,
                           Heap::Space space);
-
-  // Returns true if the type specified by cls and type_arguments is a
-  // subtype of FutureOr<T> specified by other class and other_type_arguments.
-  // Returns false if other class is not a FutureOr.
-  static bool IsSubtypeOfFutureOr(Zone* zone,
-                                  NNBDMode mode,
-                                  const Class& cls,
-                                  const TypeArguments& type_arguments,
-                                  const Class& other,
-                                  const TypeArguments& other_type_arguments,
-                                  Heap::Space space);
 
   // Check if this is the top level class.
   bool IsTopLevel() const;
@@ -4302,7 +4327,7 @@ class Library : public Object {
   }
 
   NNBDMode nnbd_mode() const {
-    return is_nnbd() ? NNBDMode::kOptedIn : NNBDMode::kLegacy;
+    return is_nnbd() ? NNBDMode::kOptedInLib : NNBDMode::kLegacyLib;
   }
 
   RawString* PrivateName(const String& name) const;
@@ -6541,6 +6566,13 @@ class Instance : public Object {
                     const TypeArguments& other_instantiator_type_arguments,
                     const TypeArguments& other_function_type_arguments) const;
 
+  // Check if this instance is assignable to the given other type.
+  // The type argument vectors are used to instantiate the other type if needed.
+  bool IsAssignableTo(NNBDMode mode,
+                      const AbstractType& other,
+                      const TypeArguments& other_instantiator_type_arguments,
+                      const TypeArguments& other_function_type_arguments) const;
+
   // Returns true if the type of this instance is a subtype of FutureOr<T>
   // specified by instantiated type 'other'.
   // Returns false if other type is not a FutureOr.
@@ -6624,6 +6656,20 @@ class Instance : public Object {
 #endif
 
  private:
+  // Return true if the runtimeType of this instance is a subtype of other type.
+  bool RuntimeTypeIsSubtypeOf(
+      NNBDMode mode,
+      const AbstractType& other,
+      const TypeArguments& other_instantiator_type_arguments,
+      const TypeArguments& other_function_type_arguments) const;
+
+  // Return true if the null instance is an instance of other type.
+  static bool NullIsInstanceOf(
+      NNBDMode mode,
+      const AbstractType& other,
+      const TypeArguments& other_instantiator_type_arguments,
+      const TypeArguments& other_function_type_arguments);
+
   RawObject** FieldAddrAtOffset(intptr_t offset) const {
     ASSERT(IsValidFieldOffset(offset));
     return reinterpret_cast<RawObject**>(raw_value() - kHeapObjectTag + offset);
@@ -6770,9 +6816,9 @@ class TypeArguments : public Instance {
                                               const TypeArguments& other) const;
 
   // Check if the subvector of length 'len' starting at 'from_index' of this
-  // type argument vector consists solely of DynamicType, ObjectType, or
-  // VoidType.
-  bool IsTopTypes(intptr_t from_index, intptr_t len) const;
+  // type argument vector consists solely of DynamicType, (nullable) ObjectType,
+  // or VoidType.
+  bool IsTopTypes(NNBDMode mode, intptr_t from_index, intptr_t len) const;
 
   // Check the subtype relationship, considering only a subvector of length
   // 'len' starting at 'from_index'.
@@ -7085,16 +7131,16 @@ class AbstractType : public Instance {
   bool IsVoidType() const { return type_class_id() == kVoidCid; }
 
   // Check if this type represents the 'Null' type.
-  bool IsNullType() const { return type_class_id() == kNullCid; }
+  bool IsNullType(NNBDMode mode = NNBDMode::kNonNullableTest) const;
 
   // Check if this type represents the 'Never' type.
-  bool IsNeverType() const { return type_class_id() == kNeverCid; }
+  bool IsNeverType(NNBDMode mode = NNBDMode::kNonNullableTest) const;
 
   // Check if this type represents the 'Object' type.
   bool IsObjectType() const { return type_class_id() == kInstanceCid; }
 
   // Check if this type represents a top type.
-  bool IsTopType() const;
+  bool IsTopType(NNBDMode mode = NNBDMode::kLegacyTest) const;
 
   // Check if this type represents the 'bool' type.
   bool IsBoolType() const { return type_class_id() == kBoolCid; }
@@ -7131,6 +7177,10 @@ class AbstractType : public Instance {
 
   // Check if this type represents the 'Pointer' type from "dart:ffi".
   bool IsFfiPointerType() const;
+
+  // Returns true if this type has the form FutureOr<T> and sets type_arg to T.
+  // Returns false otherwise.
+  bool IsFutureOr(AbstractType* type_arg) const;
 
   // Check the subtype relationship.
   bool IsSubtypeOf(NNBDMode mode,

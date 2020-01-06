@@ -219,8 +219,8 @@ void HierarchyInfo::BuildRangesFor(ClassTable* table,
       test_succeeded = false;
     } else if (use_subtype_test) {
       cls_type = cls.RareType();
-      test_succeeded =
-          cls_type.IsSubtypeOf(NNBDMode::kLegacy, dst_type, Heap::kNew);
+      test_succeeded = cls_type.IsSubtypeOf(NNBDMode::kLegacyLib_LegacyTest,
+                                            dst_type, Heap::kNew);
     } else {
       while (!cls.IsObjectClass()) {
         if (cls.raw() == klass.raw()) {
@@ -3254,7 +3254,7 @@ static bool MayBeNumber(CompileType* type) {
   }
   // Note that type 'Number' is a subtype of itself.
   return compile_type.IsTopType() || compile_type.IsTypeParameter() ||
-         compile_type.IsSubtypeOf(NNBDMode::kLegacy,
+         compile_type.IsSubtypeOf(NNBDMode::kLegacyLib_LegacyTest,
                                   Type::Handle(Type::Number()), Heap::kOld);
 }
 

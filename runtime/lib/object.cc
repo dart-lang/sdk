@@ -169,9 +169,18 @@ DEFINE_NATIVE_ENTRY(Object_simpleInstanceOf, 0, 2) {
       AbstractType::CheckedHandle(zone, arguments->NativeArgAt(1));
   ASSERT(type.IsFinalized());
   ASSERT(type.IsInstantiated());
+  // If the instance is not null, the result of _simpleInstanceOf does not
+  // depend on the nnbd mode, because we only check against a rare type,
+  // i.e. a class. However, we need to determine the correct nnbd mode when
+  // the instance is null.
+  // Since type literals are not imported, a legacy type indicates that the
+  // call originated in a legacy library. Note that the type test against a
+  // non-legacy type (even in a legacy library) such as dynamic, void, or Null
+  // yield the same result independently of the mode used.
+  NNBDMode mode =
+      type.IsLegacy() ? NNBDMode::kLegacyLib : NNBDMode::kOptedInLib;
   const bool is_instance_of = instance.IsInstanceOf(
-      NNBDMode::kLegacy, type, Object::null_type_arguments(),
-      Object::null_type_arguments());
+      mode, type, Object::null_type_arguments(), Object::null_type_arguments());
   return Bool::Get(is_instance_of).raw();
 }
 
@@ -238,7 +247,7 @@ static bool ExtractInterfaceTypeArgs(Zone* zone,
       if (!cur_interface_type_args.IsNull() &&
           !cur_interface_type_args.IsInstantiated()) {
         cur_interface_type_args = cur_interface_type_args.InstantiateFrom(
-            NNBDMode::kLegacy, instance_type_args,
+            cur_cls.nnbd_mode(), instance_type_args,
             Object::null_type_arguments(), kNoneFree, NULL, Heap::kNew);
       }
       if (ExtractInterfaceTypeArgs(zone, cur_interface_cls,
@@ -392,9 +401,10 @@ DEFINE_NATIVE_ENTRY(Internal_boundsCheckForPartialInstantiation, 0, 2) {
     ASSERT(!supertype.IsNull());
 
     // The supertype may not be instantiated.
+    // TODO(regis): What is the correct nnbd mode to use here?
     if (!AbstractType::InstantiateAndTestSubtype(
-            NNBDMode::kLegacy, &subtype, &supertype, instantiator_type_args,
-            function_type_args)) {
+            NNBDMode::kLegacyLib_LegacyTest, &subtype, &supertype,
+            instantiator_type_args, function_type_args)) {
       // Throw a dynamic type error.
       TokenPosition location;
       {

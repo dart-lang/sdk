@@ -1989,7 +1989,9 @@ class FieldInvalidator {
         continue;  // Already guarding.
       }
       value_ = field.StaticValue();
-      CheckValueType(value_, field);
+      if (value_.raw() != Object::sentinel().raw()) {
+        CheckValueType(value_, field);
+      }
     }
   }
 
@@ -2040,10 +2042,7 @@ class FieldInvalidator {
 
   DART_FORCE_INLINE
   void CheckValueType(const Instance& value, const Field& field) {
-    const NNBDMode nnbd_mode = Class::Handle(field.Origin()).nnbd_mode();
-
-    if (value.IsNull()) {
-      // TODO(regis): Consider NNBD mode and nullability of field type.
+    if (!FLAG_strong_non_nullable_type_checks && value.IsNull()) {
       return;
     }
     type_ = field.type();
@@ -2107,8 +2106,9 @@ class FieldInvalidator {
     }
 
     if (!cache_hit) {
-      if (!value.IsInstanceOf(nnbd_mode, type_, instantiator_type_arguments_,
-                              function_type_arguments_)) {
+      const NNBDMode nnbd_mode = Class::Handle(field.Origin()).nnbd_mode();
+      if (!value.IsAssignableTo(nnbd_mode, type_, instantiator_type_arguments_,
+                                function_type_arguments_)) {
         ASSERT(!FLAG_identity_reload);
         field.set_needs_load_guard(true);
       } else {

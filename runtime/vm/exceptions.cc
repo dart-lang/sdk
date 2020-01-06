@@ -842,7 +842,6 @@ void Exceptions::CreateAndThrowTypeError(TokenPosition location,
   const GrowableObjectArray& pieces =
       GrowableObjectArray::Handle(zone, GrowableObjectArray::New(20));
 
-  // If dst_type is malformed or malbounded, only print the embedded error.
   if (!dst_type.IsNull()) {
     // Describe the type error.
     if (!src_type.IsNull()) {

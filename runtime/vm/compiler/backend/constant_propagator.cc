@@ -813,7 +813,8 @@ void ConstantPropagator::VisitInstanceOf(InstanceOfInstr* instr) {
   Definition* def = instr->value()->definition();
   const Object& value = def->constant_value();
   const AbstractType& checked_type = instr->type();
-  if (checked_type.IsTopType()) {
+  // TODO(regis): Revisit the evaluation of the type test.
+  if (checked_type.IsTopType(NNBDMode::kLegacyTest)) {
     SetValue(instr, Bool::True());
   } else if (IsNonConstant(value)) {
     intptr_t value_cid = instr->value()->definition()->Type()->ToCid();

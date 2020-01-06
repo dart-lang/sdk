@@ -547,8 +547,8 @@ DEFINE_RUNTIME_ENTRY(ResolveCallFunction, 2) {
   do {
     call_function = cls.LookupDynamicFunction(Symbols::Call());
     if (!call_function.IsNull()) {
-      if (!call_function.AreValidArguments(NNBDMode::kLegacy, args_desc,
-                                           NULL)) {
+      if (!call_function.AreValidArguments(NNBDMode::kLegacyLib_LegacyTest,
+                                           args_desc, NULL)) {
         call_function = Function::null();
       }
       break;
@@ -815,14 +815,14 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 8) {
   ASSERT(mode == kTypeCheckFromInline);
 #endif
 
-  // TODO(regis): Is it worth merging TypeCheckMode and NNBDMode in one arg?
   const NNBDMode nnbd_mode = static_cast<NNBDMode>(
       Smi::CheckedHandle(zone, arguments.ArgAt(7)).Value());
 
   ASSERT(!dst_type.IsDynamicType());  // No need to check assignment.
-  ASSERT(!src_instance.IsNull());     // Already checked in inlined code.
-
-  const bool is_instance_of = src_instance.IsInstanceOf(
+  // A null instance is already detected and allowed in inlined code, unless
+  // strong checking is enabled.
+  ASSERT(!src_instance.IsNull() || FLAG_strong_non_nullable_type_checks);
+  const bool is_instance_of = src_instance.IsAssignableTo(
       nnbd_mode, dst_type, instantiator_type_arguments,
       function_type_arguments);
 
@@ -841,7 +841,6 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 8) {
       dst_type = dst_type.InstantiateFrom(
           nnbd_mode, instantiator_type_arguments, function_type_arguments,
           kAllFree, NULL, Heap::kNew);
-      // Note that instantiated dst_type may be malbounded.
     }
     if (dst_name.IsNull()) {
 #if !defined(TARGET_ARCH_IA32)
@@ -984,23 +983,6 @@ DEFINE_RUNTIME_ENTRY(NonBoolTypeError, 1) {
       AbstractType::Handle(zone, src_instance.GetType(Heap::kNew));
   Exceptions::CreateAndThrowTypeError(location, src_type, bool_interface,
                                       Symbols::BooleanExpression());
-  UNREACHABLE();
-}
-
-// Report that the type of the type check is malformed or malbounded.
-// Arg0: src value.
-// Arg1: name of destination being assigned to.
-// Arg2: type of destination being assigned to.
-// Return value: none, throws an exception.
-DEFINE_RUNTIME_ENTRY(BadTypeError, 3) {
-  const TokenPosition location = GetCallerLocation();
-  const Instance& src_value = Instance::CheckedHandle(zone, arguments.ArgAt(0));
-  const String& dst_name = String::CheckedHandle(zone, arguments.ArgAt(1));
-  const AbstractType& dst_type =
-      AbstractType::CheckedHandle(zone, arguments.ArgAt(2));
-  const AbstractType& src_type =
-      AbstractType::Handle(zone, src_value.GetType(Heap::kNew));
-  Exceptions::CreateAndThrowTypeError(location, src_type, dst_type, dst_name);
   UNREACHABLE();
 }
 
@@ -1254,12 +1236,19 @@ static void TrySwitchInstanceCall(const ICData& ic_data,
 static RawFunction* ComputeTypeCheckTarget(const Instance& receiver,
                                            const AbstractType& type,
                                            const ArgumentsDescriptor& desc) {
-  // The nnbd mode used here does not matter, since the receiver is not null
-  // and we only check against a rare type, i.e. a class.
-  bool result = receiver.IsInstanceOf(NNBDMode::kLegacy, type,
-                                      Object::null_type_arguments(),
-                                      Object::null_type_arguments());
-  ObjectStore* store = Isolate::Current()->object_store();
+  // If the instance is not null, the result of _simpleInstanceOf does not
+  // depend on the nnbd mode, because we only check against a rare type,
+  // i.e. a class. However, we need to determine the correct nnbd mode when
+  // the instance is null.
+  // Since type literals are not imported, a legacy type indicates that the
+  // call originated in a legacy library. Note that the type test against a
+  // non-legacy type (even in a legacy library) such as dynamic, void, or Null
+  // yield the same result independently of the mode used.
+  NNBDMode mode =
+      type.IsLegacy() ? NNBDMode::kLegacyLib : NNBDMode::kOptedInLib;
+  const bool result = receiver.IsInstanceOf(
+      mode, type, Object::null_type_arguments(), Object::null_type_arguments());
+  const ObjectStore* store = Isolate::Current()->object_store();
   const Function& target =
       Function::Handle(result ? store->simple_instance_of_true_function()
                               : store->simple_instance_of_false_function());
@@ -2122,7 +2111,8 @@ DEFINE_RUNTIME_ENTRY(NoSuchMethodFromCallStub, 4) {
     while (!cls.IsNull()) {
       function = cls.LookupDynamicFunction(target_name);
       if (!function.IsNull()) {
-        ASSERT(!function.AreValidArguments(NNBDMode::kLegacy, args_desc, NULL));
+        ASSERT(!function.AreValidArguments(NNBDMode::kLegacyLib_LegacyTest,
+                                           args_desc, NULL));
         break;  // mismatch, invoke noSuchMethod
       }
       function = cls.LookupDynamicFunction(getter_name);

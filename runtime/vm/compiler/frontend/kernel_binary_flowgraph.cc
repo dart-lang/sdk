@@ -1588,8 +1588,9 @@ Function& StreamingFlowGraphBuilder::FindMatchingFunction(
   while (!iterate_klass.IsNull()) {
     function = iterate_klass.LookupDynamicFunctionAllowPrivate(name);
     if (!function.IsNull()) {
-      if (function.AreValidArguments(NNBDMode::kLegacy, type_args_len,
-                                     argument_count, argument_names,
+      if (function.AreValidArguments(NNBDMode::kLegacyLib_LegacyTest,
+                                     type_args_len, argument_count,
+                                     argument_names,
                                      /* error_message = */ NULL)) {
         return function;
       }
@@ -3332,8 +3333,9 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(TokenPosition* p) {
   instructions += BuildArguments(&argument_names, NULL /* arg count */,
                                  NULL /* positional arg count */,
                                  special_case);  // read arguments.
-  ASSERT(target.AreValidArguments(NNBDMode::kLegacy, type_args_len,
-                                  argument_count, argument_names, NULL));
+  ASSERT(target.AreValidArguments(NNBDMode::kLegacyLib_LegacyTest,
+                                  type_args_len, argument_count, argument_names,
+                                  NULL));
 
   // Special case identical(x, y) call.
   // Note: similar optimization is performed in bytecode flow graph builder -
@@ -3626,12 +3628,10 @@ Fragment StreamingFlowGraphBuilder::BuildIsExpression(TokenPosition* p) {
   const NNBDMode nnbd_mode = parsed_function()->function().nnbd_mode();
 
   // The VM does not like an instanceOf call with a dynamic type. We need to
-  // special case this situation.
-  const Type& object_type = Type::Handle(Z, Type::ObjectType());
-
-  if (type.IsInstantiated() &&
-      object_type.IsSubtypeOf(NNBDMode::kLegacy, type, Heap::kOld)) {
-    // Evaluate the expression on the left but ignore it's result.
+  // special case this situation by detecting a top type (using non-nullable
+  // semantics which is safe in all cases).
+  if (type.IsTopType(NNBDMode::kNonNullableTest)) {
+    // Evaluate the expression on the left but ignore its result.
     instructions += Drop();
 
     // Let condition be always true.

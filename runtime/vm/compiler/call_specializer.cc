@@ -1141,7 +1141,7 @@ bool CallSpecializer::TypeCheckAsClassEquality(NNBDMode mode,
     return false;
   }
 
-  if (mode != NNBDMode::kLegacy) {
+  if (mode != NNBDMode::kLegacyLib_LegacyTest) {
     return false;  // TODO(regis): Implement.
   }
 
@@ -1193,7 +1193,7 @@ bool CallSpecializer::TryOptimizeInstanceOfUsingStaticTypes(
   ASSERT(I->can_use_strong_mode_types());
   ASSERT(Token::IsTypeTestOperator(call->token_kind()));
 
-  if (mode != NNBDMode::kLegacy) {
+  if (mode != NNBDMode::kLegacyLib_LegacyTest) {
     return false;  // TODO(regis): Implement.
   }
 
@@ -1237,7 +1237,11 @@ void CallSpecializer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
     function_type_args = flow_graph()->constant_null();
     ASSERT(call->MatchesCoreName(Symbols::_simpleInstanceOf()));
     type = AbstractType::Cast(call->ArgumentAt(1)->AsConstant()->value()).raw();
-    nnbd_mode = NNBDMode::kLegacy;  // mode is irrelevant in _simpleInstanceOf.
+    // Since type literals are not imported, a legacy type indicates that the
+    // call originated in a legacy library. Note that the type test against a
+    // non-legacy type (even in a legacy library) such as dynamic, void, or Null
+    // yield the same result independently of the mode used.
+    nnbd_mode = type.IsLegacy() ? NNBDMode::kLegacyLib : NNBDMode::kOptedInLib;
   } else {
     ASSERT(call->ArgumentCount() == 5);
     instantiator_type_args = call->ArgumentAt(1);
@@ -1246,6 +1250,8 @@ void CallSpecializer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
     nnbd_mode = static_cast<NNBDMode>(
         Smi::Cast(call->ArgumentAt(4)->AsConstant()->value()).Value());
   }
+
+  // TODO(regis): Revisit call_specializer for NNBD.
 
   if (I->can_use_strong_mode_types() &&
       TryOptimizeInstanceOfUsingStaticTypes(nnbd_mode, call, type)) {
@@ -1573,7 +1579,8 @@ void TypedDataSpecializer::TryInlineCall(TemplateDartCall<0>* call) {
     auto& type_class = Class::Handle(zone_);
 #define TRY_INLINE(iface, member_name, type, cid)                              \
   if (!member_name.IsNull()) {                                                 \
-    if (receiver_type->IsAssignableTo(NNBDMode::kLegacy, member_name)) {       \
+    if (receiver_type->IsAssignableTo(NNBDMode::kLegacyLib_LegacyTest,         \
+                                      member_name)) {                          \
       if (is_length_getter) {                                                  \
         type_class = member_name.type_class();                                 \
         ReplaceWithLengthGetter(call);                                         \
@@ -1583,7 +1590,9 @@ void TypedDataSpecializer::TryInlineCall(TemplateDartCall<0>* call) {
         ReplaceWithIndexGet(call, cid);                                        \
       } else {                                                                 \
         if (!index_type->IsNullableInt()) return;                              \
-        if (!value_type->IsAssignableTo(NNBDMode::kLegacy, type)) return;      \
+        if (!value_type->IsAssignableTo(NNBDMode::kLegacyLib_LegacyTest,       \
+                                        type))                                 \
+          return;                                                              \
         type_class = member_name.type_class();                                 \
         ReplaceWithIndexSet(call, cid);                                        \
       }                                                                        \

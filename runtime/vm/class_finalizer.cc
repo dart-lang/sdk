@@ -384,16 +384,16 @@ void ClassFinalizer::CheckRecursiveType(const Class& cls,
           !pending_arguments.IsSubvectorInstantiated(first_type_param,
                                                      num_type_params)) {
         const TypeArguments& instantiated_arguments = TypeArguments::Handle(
-            zone, arguments.InstantiateFrom(NNBDMode::kLegacy,
+            zone, arguments.InstantiateFrom(NNBDMode::kLegacyLib_LegacyTest,
                                             Object::null_type_arguments(),
                                             Object::null_type_arguments(),
                                             kNoneFree, NULL, Heap::kNew));
         const TypeArguments& instantiated_pending_arguments =
-            TypeArguments::Handle(
-                zone, pending_arguments.InstantiateFrom(
-                          NNBDMode::kLegacy, Object::null_type_arguments(),
-                          Object::null_type_arguments(), kNoneFree, NULL,
-                          Heap::kNew));
+            TypeArguments::Handle(zone, pending_arguments.InstantiateFrom(
+                                            NNBDMode::kLegacyLib_LegacyTest,
+                                            Object::null_type_arguments(),
+                                            Object::null_type_arguments(),
+                                            kNoneFree, NULL, Heap::kNew));
         if (!instantiated_pending_arguments.IsSubvectorEquivalent(
                 instantiated_arguments, first_type_param, num_type_params,
                 /* syntactically = */ true)) {
@@ -427,17 +427,9 @@ intptr_t ClassFinalizer::ExpandAndFinalizeTypeArguments(
   const intptr_t num_type_parameters = type_class.NumTypeParameters();
 
   // Initialize the type argument vector.
-  // Check the number of parsed type arguments, if any.
-  // Specifying no type arguments indicates a raw type, which is not an error.
-  // However, type parameter bounds are checked below, even for a raw type.
+  // A null type argument vector indicates a raw type.
   TypeArguments& arguments = TypeArguments::Handle(zone, type.arguments());
-  if (!arguments.IsNull() && (arguments.Length() != num_type_parameters)) {
-    // Make the type raw and continue without reporting any error.
-    // A static warning should have been reported.
-    // TODO(regis): Check if this is dead code.
-    arguments = TypeArguments::null();
-    type.set_arguments(arguments);
-  }
+  ASSERT(arguments.IsNull() || (arguments.Length() == num_type_parameters));
 
   // Mark the type as being finalized in order to detect self reference and
   // postpone bound checking (if required) until after all types in the graph of
@@ -623,10 +615,8 @@ void ClassFinalizer::FinalizeTypeArguments(const Class& cls,
             arguments.SetTypeAt(i, super_type_arg);
             continue;
           }
-          // TODO(regis): Verify that we use the correct nnbd mode to
-          // instantiate the type arguments of the super type.
           super_type_arg = super_type_arg.InstantiateFrom(
-              super_class.nnbd_mode(), arguments, Object::null_type_arguments(),
+              cls.nnbd_mode(), arguments, Object::null_type_arguments(),
               kNoneFree, instantiation_trail, Heap::kOld);
           if (super_type_arg.IsBeingFinalized()) {
             // The super_type_arg was instantiated from a type being finalized.
@@ -859,7 +849,6 @@ void ClassFinalizer::FinalizeSignature(const Class& cls,
   // Finalize result type.
   type = function.result_type();
   finalized_type = FinalizeType(cls, type, finalization);
-  // The result type may be malformed or malbounded.
   if (finalized_type.raw() != type.raw()) {
     function.set_result_type(finalized_type);
   }
@@ -868,7 +857,6 @@ void ClassFinalizer::FinalizeSignature(const Class& cls,
   for (intptr_t i = 0; i < num_parameters; i++) {
     type = function.ParameterTypeAt(i);
     finalized_type = FinalizeType(cls, type, finalization);
-    // The parameter type may be malformed or malbounded.
     if (type.raw() != finalized_type.raw()) {
       function.SetParameterTypeAt(i, finalized_type);
     }
