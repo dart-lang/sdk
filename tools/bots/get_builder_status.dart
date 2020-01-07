@@ -101,8 +101,14 @@ main(List<String> args) async {
             (document['fields']['active_failures'] ?? const {})['booleanValue'];
 
         if (completed) {
-          print('Success: $success');
-          if (activeFailures == true) print('Has active unapproved failures');
+          if (success) {
+            print('No unapproved new failures');
+            if (activeFailures == true) {
+              print('There are unapproved failures from previous builds');
+            }
+          } else {
+            print('There are unapproved new failures on this build');
+          }
           exit((success && (activeFailures != true)) ? 0 : 1);
         }
         String chunks =
