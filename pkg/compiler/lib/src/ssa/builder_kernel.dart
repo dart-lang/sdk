@@ -4125,6 +4125,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       _handleJsStringConcat(invocation);
     } else if (name == '_createInvocationMirror') {
       _handleCreateInvocationMirror(invocation);
+    } else if (name == 'TYPE_REF') {
+      _handleForeignTypeRef(invocation);
     } else {
       reporter.internalError(
           _elementMap.getSpannable(targetElement, invocation),
@@ -4802,6 +4804,21 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     List<HInstruction> inputs = _visitPositionalArguments(invocation.arguments);
     push(new HStringConcat(
         inputs[0], inputs[1], _abstractValueDomain.stringType));
+  }
+
+  void _handleForeignTypeRef(ir.StaticInvocation invocation) {
+    if (_unexpectedForeignArguments(invocation,
+        minPositional: 0, maxPositional: 0, typeArgumentCount: 1)) {
+      stack.add(
+          // Result expected on stack.
+          graph.addConstantNull(closedWorld));
+      return;
+    }
+    DartType type = _elementMap.getDartType(invocation.arguments.types.single);
+    SourceInformation sourceInformation =
+        _sourceInformationBuilder.buildCall(invocation, invocation);
+    push(HLoadType.type(type, _abstractValueDomain.dynamicType)
+      ..sourceInformation = sourceInformation);
   }
 
   void _pushStaticInvocation(MemberEntity target, List<HInstruction> arguments,
