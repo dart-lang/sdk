@@ -1053,12 +1053,38 @@ main() {
     var import = findElement.importFind('dart:math');
 
     var invocation = findNode.methodInvocation('loadLibrary()');
+    assertImportPrefix(invocation.target, import.prefix);
+
     assertMethodInvocation(
       invocation,
       import.importedLibrary.loadLibraryFunction,
       'Future<dynamic> Function()',
     );
+  }
+
+  test_hasReceiver_deferredImportPrefix_loadLibrary_extraArgument() async {
+    await assertErrorsInCode(r'''
+import 'dart:math' deferred as math;
+
+main() {
+  math.loadLibrary(1 + 2);
+}
+''', [
+      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 65, 7),
+    ]);
+
+    var import = findElement.importFind('dart:math');
+
+    var invocation = findNode.methodInvocation('loadLibrary(1 + 2)');
     assertImportPrefix(invocation.target, import.prefix);
+
+    assertMethodInvocation(
+      invocation,
+      import.importedLibrary.loadLibraryFunction,
+      'Future<dynamic> Function()',
+    );
+
+    assertType(findNode.binary('1 + 2'), 'int');
   }
 
   test_hasReceiver_functionTyped() async {

@@ -1564,7 +1564,6 @@ class B<U> {
     }
   }
 
-  @failingTest
   test_deferredImport_loadLibrary_invocation() async {
     newFile('/test/lib/a.dart');
     addTestFile(r'''
@@ -1589,7 +1588,6 @@ main() {
     assertType(name, 'Future<dynamic> Function()');
   }
 
-  @failingTest
   test_deferredImport_loadLibrary_invocation_argument() async {
     newFile('/test/lib/a.dart');
     addTestFile(r'''

@@ -739,20 +739,11 @@ class MethodInvocationResolver {
       if (imports.length == 1 && imports[0].isDeferred) {
         var importedLibrary = imports[0].importedLibrary;
         var loadLibraryFunction = importedLibrary?.loadLibraryFunction;
-        nameNode.staticElement = loadLibraryFunction;
-        node.staticInvokeType =
-            _elementTypeProvider.safeExecutableType(loadLibraryFunction);
-        node.staticType =
-            _elementTypeProvider.safeExecutableReturnType(loadLibraryFunction);
-        _setExplicitTypeArgumentTypes();
-        _resolveArguments_finishInference(node);
-
-        if (node.argumentList.arguments.isNotEmpty) {
-          _resolver.errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.LOAD_LIBRARY_TAKES_NO_ARGUMENTS, nameNode);
+        if (loadLibraryFunction is ExecutableElement) {
+          nameNode.staticElement = loadLibraryFunction;
+          return _setResolution(node,
+              _elementTypeProvider.getExecutableType(loadLibraryFunction));
         }
-
-        return;
       }
     }
 

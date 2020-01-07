@@ -229,8 +229,6 @@ import 'late_final_field_with_const_constructor_test.dart'
     as late_final_field_with_const_constructor;
 import 'list_element_type_not_assignable_test.dart'
     as list_element_type_not_assignable;
-import 'load_library_takes_no_arguments_test.dart'
-    as load_library_takes_no_arguments;
 import 'map_entry_not_in_map_test.dart' as map_entry_not_in_map;
 import 'map_key_type_not_assignable_test.dart' as map_key_type_not_assignable;
 import 'map_value_type_not_assignable_test.dart'
@@ -635,7 +633,6 @@ main() {
     label_undefined.main();
     late_final_field_with_const_constructor.main();
     list_element_type_not_assignable.main();
-    load_library_takes_no_arguments.main();
     map_entry_not_in_map.main();
     map_key_type_not_assignable.main();
     map_value_type_not_assignable.main();
