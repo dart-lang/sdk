@@ -749,6 +749,9 @@ class TypeSchemaEnvironmentTest {
         "<X extends FutureOr<dynamic>?>() -> void",
         "<Y extends FutureOr<Object?>>() -> void",
         "<Z extends FutureOr<dynamic>?>() -> void");
+
+    testUpper("([dynamic]) -> dynamic", "([dynamic]) -> dynamic",
+        "([dynamic]) -> dynamic");
   }
 
   void test_upper_bound_identical() {

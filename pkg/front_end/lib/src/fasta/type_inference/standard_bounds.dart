@@ -1152,7 +1152,7 @@ abstract class StandardBounds {
         uniteNullabilities(f.nullability, g.nullability),
         namedParameters: namedParameters,
         typeParameters: typeParameters,
-        requiredParameterCount: minPos);
+        requiredParameterCount: f.requiredParameterCount);
   }
 
   DartType _getNullabilityAwareTypeParameterStandardUpperBound(
