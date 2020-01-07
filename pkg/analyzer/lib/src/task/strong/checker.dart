@@ -42,7 +42,7 @@ DartType getReadType(Expression expression,
   if (expression is IndexExpression) {
     var staticElement = expression.auxiliaryElements?.staticElement;
     return staticElement == null
-        ? null
+        ? DynamicTypeImpl.instance
         : elementTypeProvider.getExecutableReturnType(staticElement);
   }
   {
@@ -66,7 +66,7 @@ DartType getReadType(Expression expression,
     if (aux != null) {
       var staticElement = aux.staticElement;
       return staticElement == null
-          ? null
+          ? DynamicTypeImpl.instance
           : elementTypeProvider.getExecutableReturnType(staticElement);
     }
   }
