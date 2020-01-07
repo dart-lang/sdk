@@ -80,3 +80,13 @@ var e1 = new B([]); // OK
 // optional new
 class C {}
 var m16 = A([C()]); // OK
+
+@immutable
+class K {
+  final List<K> children;
+  const K({this.children});
+}
+
+final k = K(
+  children: <K>[for (var i = 0; i < 5; ++i) K()], // OK
+);
