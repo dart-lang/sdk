@@ -74,8 +74,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return null;
     }
 
-    final classElement = member
-        .getAncestor((element) => element is ClassElement) as ClassElement;
+    final classElement = member.thisOrAncestorOfType<ClassElement>();
     if (classElement == null) {
       return null;
     }
