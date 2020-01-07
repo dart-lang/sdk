@@ -118,7 +118,7 @@ mapUpdateMixedKeys() {
 mapUpdateMixedValues() {
   dynamic map = {2: ''};
   return map
-      /*update: Map([subclass=JsLinkedHashMap], key: [exact=JSUInt31], value: Union([exact=JSUInt31], [null|exact=JSString]))*/
+      /*update: Map([subclass=JsLinkedHashMap], key: [exact=JSUInt31], value: Union(null, [exact=JSString], [exact=JSUInt31]))*/
       [2] = 42;
 }
 

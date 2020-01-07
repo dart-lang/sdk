@@ -30,17 +30,19 @@ checkMasks(JClosedWorld closedWorld, List<ClassEntity> allClasses,
     List<FlatTypeMask> disjointMasks,
     FlatTypeMask flattened,
     List<ClassEntity> containedClasses}) {
+  bool isNullable = masks.any((FlatTypeMask mask) => mask.isNullable);
   List<FlatTypeMask> disjoint = <FlatTypeMask>[];
   UnionTypeMask.unionOfHelper(masks, disjoint, closedWorld);
   Expect.listEquals(disjointMasks, disjoint,
       'Unexpected disjoint masks: $disjoint, expected $disjointMasks.');
   if (flattened == null) {
     Expect.throws(
-        () => UnionTypeMask.flatten(disjoint, closedWorld),
+        () => UnionTypeMask.flatten(disjoint, isNullable, closedWorld),
         (e) => e is ArgumentError,
         'Expect argument error on flattening of $disjoint.');
   } else {
-    TypeMask flattenResult = UnionTypeMask.flatten(disjoint, closedWorld);
+    TypeMask flattenResult =
+        UnionTypeMask.flatten(disjoint, isNullable, closedWorld);
     Expect.equals(
         flattened,
         flattenResult,

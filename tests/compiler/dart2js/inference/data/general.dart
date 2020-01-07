@@ -394,7 +394,7 @@ testLabeledIf(/*Value([exact=JSBool], value: true)*/ a) {
   return c;
 }
 
-/*member: testSwitch1:Union([exact=JSUInt31], [null|exact=JSDouble])*/
+/*member: testSwitch1:Union(null, [exact=JSDouble], [exact=JSUInt31])*/
 testSwitch1() {
   var a = null;
   switch (topLevelGetter) {
@@ -424,8 +424,7 @@ testSwitch2() {
   return a;
 }
 
-/*strong.member: testSwitch3:Union([null|exact=JSString], [subclass=JSNumber])*/
-/*omit.member: testSwitch3:Union([exact=JSString], [null|subclass=JSNumber])*/
+/*member: testSwitch3:Union(null, [exact=JSString], [subclass=JSNumber])*/
 testSwitch3() {
   dynamic a = 42;
   var b;
@@ -462,8 +461,7 @@ testSwitch5() {
   }
 }
 
-/*strong.member: testContinue1:Union([null|exact=JSString], [subclass=JSNumber])*/
-/*omit.member: testContinue1:Union([exact=JSString], [null|subclass=JSNumber])*/
+/*member: testContinue1:Union(null, [exact=JSString], [subclass=JSNumber])*/
 testContinue1() {
   dynamic a = 42;
   var b;
@@ -477,7 +475,7 @@ testContinue1() {
   return b;
 }
 
-/*member: testBreak1:Union([null|exact=JSString], [subclass=JSUInt32])*/
+/*member: testBreak1:Union(null, [exact=JSString], [subclass=JSUInt32])*/
 testBreak1() {
   var a = 42;
   var b;
@@ -489,7 +487,7 @@ testBreak1() {
   return b;
 }
 
-/*member: testContinue2:Union([exact=JSString], [null|subclass=JSUInt32])*/
+/*member: testContinue2:Union(null, [exact=JSString], [subclass=JSUInt32])*/
 testContinue2() {
   var a = 42;
   var b;

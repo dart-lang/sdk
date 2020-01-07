@@ -102,11 +102,11 @@
     "Dynamic access of 'forwardTo'.": 1
   },
   "pkg/compiler/lib/src/inferrer/typemasks/union_type_mask.dart": {
-    "Dynamic access of 'isUnion'.": 5,
-    "Dynamic access of 'disjointMasks'.": 4,
-    "Dynamic invocation of 'contains'.": 1,
-    "Dynamic invocation of 'nonNullable'.": 1,
-    "Dynamic invocation of 'every'.": 1
+    "Dynamic invocation of 'nonNullable'.": 2,
+    "Dynamic access of 'isNullable'.": 3,
+    "Dynamic access of 'isUnion'.": 2,
+    "Dynamic access of 'disjointMasks'.": 3,
+    "Dynamic invocation of 'contains'.": 1
   },
   "pkg/compiler/lib/src/helpers/expensive_map.dart": {
     "Dynamic access of 'length'.": 1,

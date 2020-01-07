@@ -13,7 +13,8 @@ TypeMask simplify(TypeMask mask, JClosedWorld closedWorld) {
   if (mask is ForwardingTypeMask) {
     return simplify(mask.forwardTo, closedWorld);
   } else if (mask is UnionTypeMask) {
-    return UnionTypeMask.flatten(mask.disjointMasks, closedWorld);
+    return UnionTypeMask.flatten(
+        mask.disjointMasks, mask.isNullable, closedWorld);
   } else {
     return mask;
   }
