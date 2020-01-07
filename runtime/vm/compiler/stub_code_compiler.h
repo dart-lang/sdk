@@ -56,6 +56,15 @@ class StubCodeCompiler : public AllStatic {
       Optimized optimized,
       CallType type,
       Exactness exactness);
+  static void GenerateNArgsCheckInlineCacheStubForEntryKind(
+      Assembler* assembler,
+      intptr_t num_args,
+      const RuntimeEntry& handle_ic_miss,
+      Token::Kind kind,
+      Optimized optimized,
+      CallType type,
+      Exactness exactness,
+      CodeEntryKind entry_kind);
   static void GenerateUsageCounterIncrement(Assembler* assembler,
                                             Register temp_reg);
   static void GenerateOptimizedUsageCounterIncrement(Assembler* assembler);

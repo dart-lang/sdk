@@ -2336,9 +2336,11 @@ void Assembler::CallRuntime(const RuntimeEntry& entry,
   entry.Call(this, argument_count);
 }
 
-void Assembler::Call(const Code& target, bool movable_target) {
+void Assembler::Call(const Code& target,
+                     bool movable_target,
+                     CodeEntryKind entry_kind) {
   LoadObject(CODE_REG, ToObject(target), movable_target);
-  call(FieldAddress(CODE_REG, target::Code::entry_point_offset()));
+  call(FieldAddress(CODE_REG, target::Code::entry_point_offset(entry_kind)));
 }
 
 void Assembler::CallToRuntime() {

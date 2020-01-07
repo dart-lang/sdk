@@ -640,11 +640,11 @@ void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
                      ESP, 1 * kWordSize));  // Get instantiator type args.
     __ movl(ECX,
             compiler::Address(ESP, 0 * kWordSize));  // Get function type args.
-    __ PushObject(Object::null_object());       // Make room for the result.
-    __ pushl(EAX);                              // Push the instance.
-    __ PushObject(type);                        // Push the type.
-    __ pushl(EDX);                              // Instantiator type arguments.
-    __ pushl(ECX);                              // Function type arguments.
+    __ PushObject(Object::null_object());  // Make room for the result.
+    __ pushl(EAX);                         // Push the instance.
+    __ PushObject(type);                   // Push the type.
+    __ pushl(EDX);                         // Instantiator type arguments.
+    __ pushl(ECX);                         // Function type arguments.
     __ LoadObject(EAX, test_cache);
     __ pushl(EAX);
     __ PushObject(
@@ -710,8 +710,8 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
                    ESP, 1 * kWordSize));  // Get instantiator type args.
   __ movl(ECX,
           compiler::Address(ESP, 0 * kWordSize));  // Get function type args.
-  __ PushObject(Object::null_object());       // Make room for the result.
-  __ pushl(EAX);                              // Push the source object.
+  __ PushObject(Object::null_object());            // Make room for the result.
+  __ pushl(EAX);                                   // Push the source object.
   __ PushObject(dst_type);  // Push the type of the destination.
   __ pushl(EDX);            // Instantiator type arguments.
   __ pushl(ECX);            // Function type arguments.
@@ -869,8 +869,7 @@ void FlowGraphCompiler::GenerateDartCall(intptr_t deopt_id,
                                          RawPcDescriptors::Kind kind,
                                          LocationSummary* locs,
                                          Code::EntryKind entry_kind) {
-  // TODO(sjindel/entrypoints): Support multiple entrypoints on IA32.
-  __ Call(stub);
+  __ Call(stub, /*moveable_target=*/false, entry_kind);
   EmitCallsiteMetadata(token_pos, deopt_id, kind, locs);
 }
 
@@ -880,9 +879,8 @@ void FlowGraphCompiler::GenerateStaticDartCall(intptr_t deopt_id,
                                                LocationSummary* locs,
                                                const Function& target,
                                                Code::EntryKind entry_kind) {
-  // TODO(sjindel/entrypoints): Support multiple entrypoints on IA32.
   const auto& stub = StubCode::CallStaticFunction();
-  __ Call(stub, true /* movable_target */);
+  __ Call(stub, /*movable_target=*/true, entry_kind);
   EmitCallsiteMetadata(token_pos, deopt_id, kind, locs);
   AddStaticCallTarget(target, entry_kind);
 }
@@ -902,12 +900,11 @@ void FlowGraphCompiler::EmitUnoptimizedStaticCall(intptr_t count_with_type_args,
                                                   LocationSummary* locs,
                                                   const ICData& ic_data,
                                                   Code::EntryKind entry_kind) {
-  // TODO(34162): Support multiple entry-points on IA32.
   const Code& stub =
       StubCode::UnoptimizedStaticCallEntry(ic_data.NumArgsTested());
   __ LoadObject(ECX, ic_data);
   GenerateDartCall(deopt_id, token_pos, stub,
-                   RawPcDescriptors::kUnoptStaticCall, locs);
+                   RawPcDescriptors::kUnoptStaticCall, locs, entry_kind);
   __ Drop(count_with_type_args);
 }
 
@@ -930,7 +927,6 @@ void FlowGraphCompiler::EmitOptimizedInstanceCall(const Code& stub,
                                                   TokenPosition token_pos,
                                                   LocationSummary* locs,
                                                   Code::EntryKind entry_kind) {
-  // TODO(sjindel/entrypoints): Support multiple entrypoints on IA32.
   ASSERT(Array::Handle(ic_data.arguments_descriptor()).Length() > 0);
   // Each ICData propagated from unoptimized to optimized code contains the
   // function that corresponds to the Dart function of that IC call. Due
@@ -943,7 +939,8 @@ void FlowGraphCompiler::EmitOptimizedInstanceCall(const Code& stub,
   __ movl(EBX, compiler::Address(
                    ESP, (ic_data.CountWithoutTypeArgs() - 1) * kWordSize));
   __ LoadObject(ECX, ic_data);
-  GenerateDartCall(deopt_id, token_pos, stub, RawPcDescriptors::kIcCall, locs);
+  GenerateDartCall(deopt_id, token_pos, stub, RawPcDescriptors::kIcCall, locs,
+                   entry_kind);
   __ Drop(ic_data.CountWithTypeArgs());
 }
 
@@ -1024,7 +1021,6 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
     TokenPosition token_pos,
     LocationSummary* locs,
     Code::EntryKind entry_kind) {
-  // TODO(sjindel/entrypoints): Support multiple entrypoints on IA32.
   if (function.HasOptionalParameters() || function.IsGeneric()) {
     __ LoadObject(EDX, arguments_descriptor);
   } else {
@@ -1033,7 +1029,7 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
   // Do not use the code from the function, but let the code be patched so that
   // we can record the outgoing edges to other code.
   GenerateStaticDartCall(deopt_id, token_pos, RawPcDescriptors::kOther, locs,
-                         function);
+                         function, entry_kind);
   __ Drop(count_with_type_args);
 }
 

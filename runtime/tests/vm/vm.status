@@ -225,7 +225,7 @@ cc/Service_Profile: SkipByDesign
 [ $compiler == dartkb ]
 dart/generic_field_invocation_test: SkipByDesign # KBC interpreters do not support --no_lazy_dispatchers
 
-[ $builder_tag == bytecode_interpreter || $hot_reload || $hot_reload_rollback || $arch != arm && $arch != simarm && $arch != x64 && $arch != simarm64 && $arch != arm64 || $compiler != dartk && $compiler != dartkp && $compiler != dartkb ]
+[ $builder_tag == bytecode_interpreter || $hot_reload || $hot_reload_rollback || $compiler != dartk && $compiler != dartkp && $compiler != dartkb ]
 dart/entrypoints/*: SkipByDesign # These tests are for compiler optimizations and very sensitive to when functions are optimized, so they are disabled on hotreload and optcounter bots.
 
 [ $builder_tag == crossword || $builder_tag == crossword_ast || $compiler != dartkp || $system != linux && $system != macos && $system != windows ]

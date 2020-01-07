@@ -2418,8 +2418,16 @@ class Function : public Object {
     return OFFSET_OF(RawFunction, result_type_);
   }
 
-  static intptr_t entry_point_offset() {
-    return OFFSET_OF(RawFunction, entry_point_);
+  static intptr_t entry_point_offset(
+      CodeEntryKind entry_kind = CodeEntryKind::kNormal) {
+    switch (entry_kind) {
+      case CodeEntryKind::kNormal:
+        return OFFSET_OF(RawFunction, entry_point_);
+      case CodeEntryKind::kUnchecked:
+        return OFFSET_OF(RawFunction, unchecked_entry_point_);
+      default:
+        UNREACHABLE();
+    }
   }
 
   static intptr_t unchecked_entry_point_offset() {
