@@ -265,7 +265,7 @@ Object nullable(type) {
 /// normalization doc: https://github.com/dart-lang/language/pull/456
 // TODO(nshahan): Update after the normalization doc PR lands.
 @notNull
-DartType legacy(type) {
+Object legacy(type) {
   // TODO(nshahan) Maybe normailize never*,  Null*.
   if (_isLegacy(type) || _isNullable(type) || _isTop(type)) return type;
 

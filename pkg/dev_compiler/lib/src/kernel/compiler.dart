@@ -2621,16 +2621,25 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
 
     var args = type.typeArguments;
+    js_ast.Expression typeRep;
     Iterable<js_ast.Expression> jsArgs;
     if (args.any((a) => a != const DynamicType())) {
       jsArgs = args.map(_emitType);
     }
     if (jsArgs != null) {
-      var typeRep = _emitGenericClassType(type, jsArgs);
-      return _cacheTypes ? _typeTable.nameType(type, typeRep) : typeRep;
+      // We force nullability to non-nullable to prevent caching nullable
+      // and non-nullable generic types separately (e.g., C<T> and C<T>?).
+      // Forward-defined types will only have nullability wrappers around
+      // their type arguments (not the generic type itself).
+      typeRep = _emitGenericClassType(
+          type.withNullability(Nullability.nonNullable), jsArgs);
+      if (_cacheTypes) {
+        typeRep = _typeTable.nameType(
+            type.withNullability(Nullability.nonNullable), typeRep);
+      }
     }
 
-    var typeRep = _emitTopLevelNameNoInterop(type.classNode);
+    typeRep ??= _emitTopLevelNameNoInterop(type.classNode);
     if (!emitNullability ||
         !_options.enableNullSafety ||
         type == _coreTypes.nullType) {
@@ -2640,7 +2649,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       //   the nullability is meaningless (ie. class A extends B) where B is the
       //   InterfaceType.
       // * The InterfaceType is the Null type.
-      // * Non-null constructor calls.
+      // * Emitting non-null constructor calls.
       return typeRep;
     }
 
@@ -2847,7 +2856,26 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   js_ast.Expression visitTypeParameterType(TypeParameterType type) =>
-      _emitTypeParameter(type.parameter);
+      _emitTypeParameterType(type);
+
+  js_ast.Expression _emitTypeParameterType(TypeParameterType type,
+      {bool emitNullability = true}) {
+    var typeParam = _emitTypeParameter(type.parameter);
+
+    // Nullability rules should be synced with _emitInterfaceType.
+    if (!emitNullability || !_options.enableNullSafety) {
+      return typeParam;
+    }
+
+    switch (type.nullability) {
+      case Nullability.legacy:
+        return runtimeCall('legacy(#)', [typeParam]);
+      case Nullability.nullable:
+        return runtimeCall('nullable(#)', [typeParam]);
+      default:
+        return typeParam;
+    }
+  }
 
   js_ast.Identifier _emitTypeParameter(TypeParameter t) =>
       _emitIdentifier(getTypeParameterName(t));
