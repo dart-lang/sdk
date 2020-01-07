@@ -22,7 +22,7 @@ Future<int> f() async {
   return;
 }
 ''', [
-      error(StaticWarningCode.RETURN_WITHOUT_VALUE, 47, 7),
+      error(StaticWarningCode.RETURN_WITHOUT_VALUE, 47, 6),
     ]);
   }
 
@@ -33,7 +33,7 @@ Future<Object> f() async {
   return;
 }
 ''', [
-      error(StaticWarningCode.RETURN_WITHOUT_VALUE, 50, 7),
+      error(StaticWarningCode.RETURN_WITHOUT_VALUE, 50, 6),
     ]);
   }
 
@@ -41,7 +41,7 @@ Future<Object> f() async {
     await assertErrorsInCode('''
 class A { factory A() { return; } }
 ''', [
-      error(StaticWarningCode.RETURN_WITHOUT_VALUE, 24, 7),
+      error(StaticWarningCode.RETURN_WITHOUT_VALUE, 24, 6),
     ]);
   }
 
@@ -49,7 +49,7 @@ class A { factory A() { return; } }
     await assertErrorsInCode('''
 int f() { return; }
 ''', [
-      error(StaticWarningCode.RETURN_WITHOUT_VALUE, 10, 7),
+      error(StaticWarningCode.RETURN_WITHOUT_VALUE, 10, 6),
     ]);
   }
 
@@ -66,7 +66,7 @@ class C {
   }
 }
 ''', [
-      error(StaticWarningCode.RETURN_WITHOUT_VALUE, 71, 7),
+      error(StaticWarningCode.RETURN_WITHOUT_VALUE, 71, 6),
     ]);
   }
 
@@ -74,7 +74,7 @@ class C {
     await assertErrorsInCode('''
 class A { int m() { return; } }
 ''', [
-      error(StaticWarningCode.RETURN_WITHOUT_VALUE, 20, 7),
+      error(StaticWarningCode.RETURN_WITHOUT_VALUE, 20, 6),
     ]);
   }
 
@@ -89,7 +89,7 @@ int f(int x) {
   return;
 }
 ''', [
-      error(StaticWarningCode.RETURN_WITHOUT_VALUE, 50, 7),
+      error(StaticWarningCode.RETURN_WITHOUT_VALUE, 50, 6),
     ]);
   }
 

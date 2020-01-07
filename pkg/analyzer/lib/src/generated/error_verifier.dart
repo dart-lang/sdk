@@ -1419,8 +1419,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return;
     }
     // If we reach here, this is an invalid return
-    _errorReporter.reportErrorForNode(
-        StaticWarningCode.RETURN_WITHOUT_VALUE, statement);
+    _errorReporter.reportErrorForToken(
+        StaticWarningCode.RETURN_WITHOUT_VALUE, statement.returnKeyword);
     return;
   }
 
