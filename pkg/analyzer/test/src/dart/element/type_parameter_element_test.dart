@@ -153,6 +153,29 @@ class TypeParameterTypeTest extends _TypeParameterElementBase {
     expect(typeParameterTypeStar(T1) == typeParameterTypeNone(T2), isFalse);
   }
 
+  test_equal_equalElements_withRecursiveBounds() {
+    var A = class_(name: 'A', typeParameters: [typeParameter('E')]);
+
+    var T1 = typeParameter('T');
+    T1.bound = interfaceTypeStar(A, typeArguments: [
+      typeParameterTypeStar(T1),
+    ]);
+
+    var T2 = typeParameter('T');
+    T2.bound = interfaceTypeStar(A, typeArguments: [
+      typeParameterTypeStar(T2),
+    ]);
+
+    _setEnclosingElement(T1);
+    _setEnclosingElement(T2);
+
+    expect(typeParameterTypeNone(T1) == typeParameterTypeNone(T2), isTrue);
+    expect(typeParameterTypeNone(T2) == typeParameterTypeNone(T1), isTrue);
+
+    expect(typeParameterTypeNone(T1) == typeParameterTypeStar(T2), isFalse);
+    expect(typeParameterTypeStar(T1) == typeParameterTypeNone(T2), isFalse);
+  }
+
   test_equal_sameElement_differentBounds() {
     var T = typeParameter('T');
     _setEnclosingElement(T);

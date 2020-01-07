@@ -2052,10 +2052,28 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
     if (identical(other, this)) {
       return true;
     }
-    return other is TypeParameterTypeImpl &&
-        other.element == element &&
-        other.bound == bound &&
-        other.nullabilitySuffix == nullabilitySuffix;
+
+    if (other is TypeParameterTypeImpl &&
+        other.nullabilitySuffix == nullabilitySuffix &&
+        other.element == element) {
+      // If the same declaration, or the same promoted element.
+      if (identical(other.element, element)) {
+        return true;
+      }
+
+      // If the same declaration, but one or both are promoted.
+      if (identical(other.element.declaration, element.declaration)) {
+        return other.bound == bound;
+      }
+
+      // The rare case when we have equal, but not the same declarations.
+      // This happens when we create fresh elements, when new library context.
+      // Type promotion works only locally, where we have same declarations.
+      // So, there is no need to check bounds.
+      return true;
+    }
+
+    return false;
   }
 
   @override
