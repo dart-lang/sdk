@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert' show htmlEscape, jsonEncode, LineSplitter;
+import 'dart:convert' show HtmlEscape, HtmlEscapeMode, jsonEncode, LineSplitter;
 
 import 'package:analysis_server/src/edit/nnbd_migration/migration_info.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/offset_mapper.dart';
@@ -15,7 +15,12 @@ class UnitRenderer {
   /// A flag indicating whether the incremental workflow is currently supported.
   static const bool supportsIncrementalWorkflow = false;
 
-  /// Display information for a compilation unit.
+  /// A converter which only escapes "&", "<", and ">". Safe for use in HTML
+  /// text, between HTML elements.
+  static const HtmlEscape _htmlEscape =
+      HtmlEscape(HtmlEscapeMode(escapeLtGt: true));
+
+  /// Displays information for a compilation unit.
   final UnitInfo unitInfo;
 
   /// Information for a whole migration, so that libraries can reference each
@@ -43,6 +48,9 @@ class UnitRenderer {
   }
 
   /// Return the content of the file with navigation links and anchors added.
+  ///
+  /// The content of the file (not including added links and anchors) will be
+  /// HTML-escaped.
   String _computeNavigationContent(UnitInfo unitInfo) {
     String unitDir = _directoryContaining(unitInfo);
     String content = unitInfo.content;
@@ -102,13 +110,15 @@ class UnitRenderer {
     StringBuffer navContent2 = StringBuffer();
     int previousOffset2 = 0;
     for (int offset in offsets) {
-      navContent2.write(content.substring(previousOffset2, offset));
+      navContent2.write(
+          _htmlEscape.convert(content.substring(previousOffset2, offset)));
       navContent2.write(closeInsertions[offset] ?? '');
       navContent2.write(openInsertions[offset] ?? '');
       previousOffset2 = offset;
     }
     if (previousOffset2 < content.length) {
-      navContent2.write(content.substring(previousOffset2));
+      navContent2
+          .write(_htmlEscape.convert(content.substring(previousOffset2)));
     }
     return navContent2.toString();
   }
@@ -126,7 +136,7 @@ class UnitRenderer {
       lineIterator.moveNext();
 
       while (true) {
-        regions.write(htmlEscape.convert(lineIterator.current));
+        regions.write(_htmlEscape.convert(lineIterator.current));
         if (lineIterator.moveNext()) {
           // If we're not on the last element, end this table row, and start a
           // new table row.
@@ -156,7 +166,7 @@ class UnitRenderer {
       regions.write('<span class="region $regionClass">'
           '${content.substring(offset, offset + length)}'
           '<span class="tooltip">'
-          '<p>${region.explanation}</p>');
+          '<p>${_htmlEscape.convert(region.explanation)}</p>');
       //
       // Write out any details.
       //
