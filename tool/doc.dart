@@ -45,8 +45,15 @@ or through an
 * **An auto-generated list enabling all options is provided [here](options/options.html).** 
 
 As some lints may contradict each other, only a subset of these will be
-enabled in practice, but this list should provide a
-convenient jumping-off point.
+enabled in practice, but this list should provide a convenient jumping-off point.
+
+Other rulesets to consider are:
+
+* [package:pedantic](https://github.com/dart-lang/pedantic) for rules enforced internally at Google, and 
+* [package:effective_dart](https://github.com/tenhobi/effective_dart) for rules corresponding to the [Effective Dart](https://dart.dev/guides/language/effective-dart) guide
+
+(Rules included in these rulesets are badged in the documentation below;
+rules enforced by the `flutter analyze` command are badged **Flutter** as well.)
 
 These rules are under active development.  Feedback is
 [welcome](https://github.com/dart-lang/linter/issues)!
