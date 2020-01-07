@@ -182,10 +182,6 @@ _full_sdk_snapshots = [
     "pub",
     "../utils/pub",
   ],
-  [
-    "frontend_server",
-    "../utils/kernel-service:frontend_server",
-  ],
 ]
 if (include_dart2native && dart_target_arch != "ia32") {
   _full_sdk_snapshots += [ [
