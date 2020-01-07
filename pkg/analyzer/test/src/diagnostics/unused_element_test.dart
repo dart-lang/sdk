@@ -145,6 +145,55 @@ print(x) {}
     ]);
   }
 
+  test_constructor_isUsed_asRedirectee() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A._constructor();
+  factory A.b() = A._constructor;
+}
+''');
+  }
+
+  test_constructor_isUsed_asRedirectee_viaInitializer() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A._constructor();
+  A() : this._constructor();
+}
+''');
+  }
+
+  test_constructor_isUsed_asRedirectee_viaSuper() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A._constructor();
+}
+
+class B extends A {
+  B() : super._constructor();
+}
+''');
+  }
+
+  test_constructor_isUsed_explicit() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A._constructor();
+}
+A f() => A._constructor();
+''');
+  }
+
+  test_constructor_notUsed() async {
+    await assertErrorsInCode(r'''
+class A {
+  A._constructor();
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 14, 12),
+    ]);
+  }
+
   test_enum_isUsed_fieldReference() async {
     await assertNoErrorsInCode(r'''
 enum _MyEnum {A, B, C}
@@ -161,6 +210,16 @@ main() {
 }
 ''', [
       error(HintCode.UNUSED_ELEMENT, 5, 7),
+    ]);
+  }
+
+  test_factoryConstructor_notUsed() async {
+    await assertErrorsInCode(r'''
+class A {
+  factory A._factory() => null;
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 22, 8),
     ]);
   }
 

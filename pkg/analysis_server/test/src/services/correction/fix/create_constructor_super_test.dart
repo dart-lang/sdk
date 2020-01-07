@@ -128,7 +128,7 @@ class B extends A {
   test_private() async {
     await resolveTestUnit('''
 class A {
-  A._named(p);
+  A._named(p); // ignore: unused_element
 }
 class B extends A {
 }

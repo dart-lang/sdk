@@ -228,6 +228,8 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor {
       var element = node.staticElement;
       if (element is ClassElement) {
         _visitClassElement(element);
+      } else if (element is ConstructorElement) {
+        _visitConstructorElement(element);
       } else if (element is FieldElement) {
         _visitFieldElement(element);
       } else if (element is FunctionElement) {
@@ -342,6 +344,13 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor {
 
   _visitClassElement(ClassElement element) {
     if (!_isUsedElement(element)) {
+      _reportErrorForElement(
+          HintCode.UNUSED_ELEMENT, element, [element.displayName]);
+    }
+  }
+
+  _visitConstructorElement(ConstructorElement element) {
+    if (!_isUsedMember(element)) {
       _reportErrorForElement(
           HintCode.UNUSED_ELEMENT, element, [element.displayName]);
     }

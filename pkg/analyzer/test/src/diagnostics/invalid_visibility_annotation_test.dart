@@ -76,6 +76,7 @@ class C {
 }
 ''', [
       error(HintCode.INVALID_VISIBILITY_ANNOTATION, 45, 18),
+      error(HintCode.UNUSED_ELEMENT, 66, 1),
     ]);
   }
 
