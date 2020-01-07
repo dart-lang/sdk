@@ -1,7 +1,38 @@
-## 0.39.3-dev
+## 0.39.3
 * Bumped the analyzer's SDK requirement to `>=2.6.0`, so that extension methods
   can be used within the analyzer implementation.
 * Deprecated `ErrorReporter.source` setter. One file - one reporter.
+* Deprecated `Element.getAncestor`.  Use thisOrAncestorMatching or
+  thisOrAncestorOfType instead.
+* Deprecated `DartType.displayName`.  Use getDisplayString instead.
+* Deprecated the following methods in `InterfaceType`: `lookupGetter`,
+  `lookUpGetterInSuperclass`, `lookUpInheritedGetter`,
+  `lookUpInheritedGetterOrMethod`, `lookUpInheritedMethod`,
+  `lookUpInheritedSetter`, `lookUpMethod`, `lookUpMethodInSuperclass`,
+  `lookUpSetter`, and `lookUpSetterInSuperclass`.  Use `lookUpGetter2()`,
+  `lookUpMethod2()`, or `lookUpSetter2()` instead, with `concrete` or
+  `inherited` flags as necessary.
+* Deprecated `ErrorReporter.reportTypeErrorForNode`.  Use `reportErrorForNode`
+  instead.
+* Added new error codes: EXPORT_LEGACY_SYMBOL and DEAD_NULL_COALESCE.
+* Removed error codes CONST_WITH_INVALID_TYPE_PARAMETERS and
+  NEW_WITH_INVALID_TYPE_PARAMETERS.  WRONG_NUMBER_OF_TYPE_ARGUMENTS is now
+  reported instead.
+* Removed error codes: DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS,
+  INVALID_OPTIONAL_PARAMETER_TYPE.
+* Reclassified error codes as compile time errors: BREAK_LABEL_ON_SWITCH_MEMBER,
+  CONTINUE_LABEL_ON_SWITCH, PART_OF_UNNAMED_LIBRARY.
+* Removed error codes: ASSIGNMENT_CAST, StrongModeCode.DOWN_CAST_COMPOSITE,
+  DOWN_CAST_IMPLICIT, DOWN_CAST_IMPLICIT_ASSIGN, DYNAMIC_CAST, DYNAMIC_INVOKE,
+  IMPLICIT_DYNAMIC_FIELD, IMPLICIT_DYNAMIC_FUNCTION, IMPLICIT_DYNAMIC_INVOKE,
+  IMPLICIT_DYNAMIC_LIST_LITERAL, IMPLICIT_DYNAMIC_MAP_LITERAL,
+  IMPLICIT_DYNAMIC_METHOD, IMPLICIT_DYNAMIC_PARAMETER, IMPLICIT_DYNAMIC_RETURN,
+  IMPLICIT_DYNAMIC_TYPE, IMPLICIT_DYNAMIC_VARIABLE, INFERRED_TYPE,
+  INFERRED_TYPE_ALLOCATION, INFERRED_TYPE_CLOSURE, INFERRED_TYPE_LITERAL, and
+  NON_GROUND_TYPE_CHECK_INFO.  These were used internally by the analyzer for
+  testing and were not exposed to users.
+* Fixed bugs 37116, 38281, 38859, 39524, 39598, 39651, 39667, 39668, 39709,
+  39711, 39752, 39773, 39848, 39849, and 39880.
 
 ## 0.39.2+1
 * Fixed bug #39702.
