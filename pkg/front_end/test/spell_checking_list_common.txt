@@ -205,6 +205,7 @@ assumed
 assumes
 assuming
 assumption
+assumptions
 asymmetric
 async
 asynchronous
@@ -459,6 +460,7 @@ closure
 closures
 clue
 code
+coinductively
 collapses
 collect
 collected

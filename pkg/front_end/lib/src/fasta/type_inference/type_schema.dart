@@ -13,6 +13,7 @@ import 'package:kernel/ast.dart'
         Nullability,
         TypedefType,
         Visitor;
+import 'package:kernel/src/assumptions.dart';
 
 import 'package:kernel/import_table.dart' show ImportTable;
 
@@ -61,7 +62,11 @@ class UnknownType extends DartType {
 
   const UnknownType();
 
-  bool operator ==(Object other) {
+  @override
+  bool operator ==(Object other) => equals(other, null);
+
+  @override
+  bool equals(Object other, Assumptions assumptions) {
     // This class doesn't have any fields so all instances of `UnknownType` are
     // equal.
     return other is UnknownType;
@@ -77,7 +82,7 @@ class UnknownType extends DartType {
       v.defaultDartType(this, arg);
 
   @override
-  visitChildren(Visitor<dynamic> v) {}
+  void visitChildren(Visitor<dynamic> v) {}
 
   @override
   UnknownType withNullability(Nullability nullability) => this;
