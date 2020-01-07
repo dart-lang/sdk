@@ -3217,6 +3217,10 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction: "Try removing the 'late' modifier, or don't declare "
               "'const' constructors.");
 
+  static const CompileTimeErrorCode LOAD_LIBRARY_TAKES_NO_ARGUMENTS =
+      CompileTimeErrorCode('LOAD_LIBRARY_TAKES_NO_ARGUMENTS',
+          "'loadLibrary' takes no arguments.");
+
   /**
    * No parameters.
    */

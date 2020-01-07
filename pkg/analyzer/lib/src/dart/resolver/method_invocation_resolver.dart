@@ -746,6 +746,12 @@ class MethodInvocationResolver {
             _elementTypeProvider.safeExecutableReturnType(loadLibraryFunction);
         _setExplicitTypeArgumentTypes();
         _resolveArguments_finishInference(node);
+
+        if (node.argumentList.arguments.isNotEmpty) {
+          _resolver.errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.LOAD_LIBRARY_TAKES_NO_ARGUMENTS, nameNode);
+        }
+
         return;
       }
     }

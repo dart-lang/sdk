@@ -4,9 +4,9 @@ void main() {
   // Loadlibrary should be called without arguments.
   lib.loadLibrary(10);
 //^
-// [analyzer] unspecified
 // [cfe] 'loadLibrary' takes no arguments.
   //             ^
-  // [analyzer] unspecified
   // [cfe] Too many positional arguments: 0 allowed, but 1 found.
+//    ^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.LOAD_LIBRARY_TAKES_NO_ARGUMENTS
 }
