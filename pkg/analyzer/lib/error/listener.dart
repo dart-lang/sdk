@@ -129,9 +129,10 @@ class ErrorReporter {
     //  declaration. This might make it easier to be consistent.
     if (constructor.name != null) {
       var offset = constructor.returnType.offset;
-      reportErrorForOffset(code, offset, constructor.name.end - offset);
+      reportErrorForOffset(
+          code, offset, constructor.name.end - offset, arguments);
     } else {
-      reportErrorForNode(code, constructor.returnType);
+      reportErrorForNode(code, constructor.returnType, arguments);
     }
   }
 

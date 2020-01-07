@@ -10,8 +10,8 @@ class Supertype {
   //                    ^
   // [cfe] Redirection constructor target not found: 'Unresolved'
   factory Supertype() = Unresolved;
-//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.DUPLICATE_CONSTRUCTOR_DEFAULT
+//        ^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.DUPLICATE_CONSTRUCTOR
 //        ^
 // [cfe] 'Supertype' is already declared in this scope.
 //                      ^^^^^^^^^^

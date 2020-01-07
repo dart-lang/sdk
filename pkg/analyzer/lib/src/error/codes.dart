@@ -1343,23 +1343,23 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "extensions.");
 
   /**
-   * 3.1 Scoping: It is a compile-time error if there is more than one entity
-   * with the same name declared in the same scope.
+   * No parameters.
    */
   static const CompileTimeErrorCode DUPLICATE_CONSTRUCTOR_DEFAULT =
-      CompileTimeErrorCode('DUPLICATE_CONSTRUCTOR_DEFAULT',
+      CompileTimeErrorCodeWithUniqueName(
+          'DUPLICATE_CONSTRUCTOR',
+          'DUPLICATE_CONSTRUCTOR_DEFAULT',
           "The default constructor is already defined.",
           correction: "Try giving one of the constructors a name.");
 
   /**
-   * 3.1 Scoping: It is a compile-time error if there is more than one entity
-   * with the same name declared in the same scope.
-   *
    * Parameters:
    * 0: the name of the duplicate entity
    */
   static const CompileTimeErrorCode DUPLICATE_CONSTRUCTOR_NAME =
-      CompileTimeErrorCode('DUPLICATE_CONSTRUCTOR_NAME',
+      CompileTimeErrorCodeWithUniqueName(
+          'DUPLICATE_CONSTRUCTOR',
+          'DUPLICATE_CONSTRUCTOR_NAME',
           "The constructor with name '{0}' is already defined.",
           correction: "Try renaming one of the constructors.");
 

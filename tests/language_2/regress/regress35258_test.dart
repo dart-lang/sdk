@@ -19,7 +19,7 @@ class C {
 //^
 // [analyzer] STATIC_WARNING.FINAL_NOT_INITIALIZED_CONSTRUCTOR
   C(this.d) {}
-//^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.DUPLICATE_CONSTRUCTOR_DEFAULT
+//^
+// [analyzer] COMPILE_TIME_ERROR.DUPLICATE_CONSTRUCTOR
 // [cfe] 'C' is already declared in this scope.
 }

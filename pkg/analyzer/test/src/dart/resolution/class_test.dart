@@ -436,7 +436,7 @@ class C {
   C();
 }
 ''', [
-      error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 19, 4),
+      error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 19, 1),
     ]);
   }
 
@@ -447,7 +447,7 @@ class C {
   C.foo();
 }
 ''', [
-      error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME, 23, 8),
+      error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME, 23, 5),
     ]);
   }
 

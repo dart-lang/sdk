@@ -256,13 +256,12 @@ class DuplicateDefinitionVerifier {
         var name = member.name?.name ?? '';
         if (!constructorNames.add(name)) {
           if (name.isEmpty) {
-            _errorReporter.reportErrorForNode(
+            _errorReporter.reportErrorForName(
                 CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, member);
           } else {
-            _errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME,
-                member,
-                [name]);
+            _errorReporter.reportErrorForName(
+                CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME, member,
+                arguments: [name]);
           }
         }
       } else if (member is FieldDeclaration) {
