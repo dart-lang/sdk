@@ -1545,31 +1545,26 @@ void Object::RegisterPrivateClass(const Class& cls,
 // There are three possibilities:
 //   1. Running a Kernel binary.  This function will bootstrap from the KERNEL
 //      file.
-//   2. There is no snapshot.  This function will bootstrap from source.
-//   3. There is a snapshot.  The caller should initialize from the snapshot.
+//   2. There is no vm snapshot.  This function will bootstrap from source.
+//   3. There is a vm snapshot.  The caller should initialize from the snapshot.
 //
-// A non-NULL kernel argument indicates (1).  A NULL kernel indicates (2) or
-// (3), depending on whether the VM is compiled with DART_NO_SNAPSHOT defined or
-// not.
+// A non-NULL kernel argument indicates (1).
+// A NULL kernel indicates (2) or (3).
 RawError* Object::Init(Isolate* isolate,
                        const uint8_t* kernel_buffer,
                        intptr_t kernel_buffer_size) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   ASSERT(isolate == thread->isolate());
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  const bool is_kernel = (kernel_buffer != NULL);
-#endif
   TIMELINE_DURATION(thread, Isolate, "Object::Init");
 
-#if defined(DART_NO_SNAPSHOT)
-  bool bootstrapping =
-      (Dart::vm_snapshot_kind() == Snapshot::kNone) || is_kernel;
-#elif defined(DART_PRECOMPILED_RUNTIME)
-  bool bootstrapping = false;
+#if defined(DART_PRECOMPILED_RUNTIME)
+  const bool bootstrapping = false;
 #else
-  bool bootstrapping = is_kernel;
-#endif
+  const bool is_kernel = (kernel_buffer != NULL);
+  const bool bootstrapping =
+      (Dart::vm_snapshot_kind() == Snapshot::kNone) || is_kernel;
+#endif  // defined(DART_PRECOMPILED_RUNTIME).
 
   if (bootstrapping) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -12607,7 +12602,7 @@ RawObject* Library::GetFunctionClosure(const String& name) const {
   return func.ImplicitStaticClosure();
 }
 
-#if defined(DART_NO_SNAPSHOT) && !defined(PRODUCT)
+#if defined(DEBUG) && !defined(DART_PRECOMPILED_RUNTIME)
 void Library::CheckFunctionFingerprints() {
   GrowableArray<Library*> all_libs;
   Function& func = Function::Handle();
@@ -12671,7 +12666,7 @@ void Library::CheckFunctionFingerprints() {
     FATAL("Fingerprint mismatch.");
   }
 }
-#endif  // defined(DART_NO_SNAPSHOT) && !defined(PRODUCT).
+#endif  // defined(DEBUG) && !defined(DART_PRECOMPILED_RUNTIME).
 
 RawInstructions* Instructions::New(intptr_t size, bool has_single_entry_point) {
   ASSERT(size >= 0);

@@ -66,12 +66,12 @@ namespace dart {
 
 DECLARE_FLAG(bool, print_class_table);
 DECLARE_FLAG(bool, verify_handles);
-#if defined(DART_NO_SNAPSHOT)
+#if defined(DEBUG) && !defined(DART_PRECOMPILED_RUNTIME)
 DEFINE_FLAG(bool,
             check_function_fingerprints,
             true,
             "Check function fingerprints");
-#endif  // defined(DART_NO_SNAPSHOT).
+#endif  // defined(DEBUG) && !defined(DART_PRECOMPILED_RUNTIME).
 DEFINE_FLAG(bool,
             verify_acquired_data,
             false,
@@ -1122,11 +1122,11 @@ static Dart_Isolate CreateIsolate(IsolateGroup* group,
                                    source->kernel_buffer,
                                    source->kernel_buffer_size, isolate_data));
     if (error_obj.IsNull()) {
-#if defined(DART_NO_SNAPSHOT) && !defined(PRODUCT)
+#if defined(DEBUG) && !defined(DART_PRECOMPILED_RUNTIME)
       if (FLAG_check_function_fingerprints && source->kernel_buffer == NULL) {
         Library::CheckFunctionFingerprints();
       }
-#endif  // defined(DART_NO_SNAPSHOT) && !defined(PRODUCT).
+#endif  // defined(DEBUG) && !defined(DART_PRECOMPILED_RUNTIME).
       success = true;
     } else if (error != NULL) {
       *error = strdup(error_obj.ToErrorCString());

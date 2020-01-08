@@ -120,7 +120,6 @@ library_for_all_configs("libdart_lib") {
                ffi_runtime_cc_files + wasm_runtime_cc_files
   sources = [ "bootstrap.cc" ] + rebase_path(allsources, ".", "../lib")
   snapshot_sources = []
-  nosnapshot_sources = []
 }
 
 template("gen_vm_platform") {

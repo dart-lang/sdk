@@ -330,8 +330,6 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
     } else {
 #if defined(DART_PRECOMPILED_RUNTIME)
       return strdup("Precompiled runtime requires a precompiled snapshot");
-#elif !defined(DART_NO_SNAPSHOT)
-      return strdup("Missing vm isolate snapshot");
 #else
       vm_snapshot_kind_ = Snapshot::kNone;
       StubCode::Init();

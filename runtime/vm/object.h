@@ -4470,11 +4470,11 @@ class Library : public Object {
   static RawError* ReadAllBytecode();
 #endif
 
-#if defined(DART_NO_SNAPSHOT)
+#if defined(DEBUG) && !defined(DART_PRECOMPILED_RUNTIME)
   // Checks function fingerprints. Prints mismatches and aborts if
   // mismatch found.
   static void CheckFunctionFingerprints();
-#endif  // defined(DART_NO_SNAPSHOT).
+#endif  // defined(DEBUG) && !defined(DART_PRECOMPILED_RUNTIME).
 
   static bool IsPrivate(const String& name);
 

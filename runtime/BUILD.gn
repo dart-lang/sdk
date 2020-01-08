@@ -59,11 +59,6 @@ config("dart_precompiler_config") {
   defines += [ "DART_PRECOMPILER" ]
 }
 
-config("dart_nosnapshot_config") {
-  defines = []
-  defines += [ "DART_NO_SNAPSHOT" ]
-}
-
 config("dart_os_config") {
   defines = []
 
