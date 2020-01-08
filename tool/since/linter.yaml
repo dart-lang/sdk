@@ -23,6 +23,7 @@ avoid_null_checks_in_equality_operators: 0.1.31
 avoid_positional_boolean_parameters: 0.1.31
 avoid_print: 0.1.93
 avoid_private_typedef_functions: 0.1.46
+avoid_redundant_argument_values : 0.1.107
 avoid_relative_lib_imports: 0.1.44
 avoid_renaming_method_parameters: 0.1.45
 avoid_returning_null: 0.1.31
@@ -68,6 +69,7 @@ list_remove_unrelated_type: 0.1.22
 literal_only_boolean_expressions: 0.1.25
 no_adjacent_strings_in_list: 0.1.30
 no_duplicate_case_values: 0.1.30
+no_logic_in_create_state : 0.1.106
 non_constant_identifier_names: 0.1.1
 null_closures: 0.1.56
 one_member_abstracts: 0.1.1
@@ -148,6 +150,7 @@ unrelated_type_equality_checks: 0.1.16
 unsafe_html : 0.1.90
 use_full_hex_values_for_flutter_colors: 0.1.80
 use_function_type_syntax_for_parameters: 0.1.72
+use_key_in_widget_constructors : 0.1.108
 use_rethrow_when_possible: 0.1.31
 use_setters_to_change_properties: 0.1.31
 use_string_buffers: 0.1.31
