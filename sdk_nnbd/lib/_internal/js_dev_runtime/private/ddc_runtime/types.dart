@@ -322,7 +322,10 @@ class LegacyType extends DartType {
   String toString() => name;
 
   @JSExportName('is')
-  bool is_T(obj) => obj != null && JS<bool>('!', '#.is(#)', type, obj);
+  // Object is the only legacy type that should return true if obj is `null`.
+  bool is_T(obj) => obj == null
+      ? type == unwrapType(Object)
+      : JS<bool>('!', '#.is(#)', type, obj);
 
   @JSExportName('as')
   as_T(obj) => obj == null || JS<bool>('!', '#.is(#)', type, obj)
