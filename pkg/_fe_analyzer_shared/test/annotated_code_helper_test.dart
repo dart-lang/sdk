@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
+
 import 'package:_fe_analyzer_shared/src/testing/annotated_code_helper.dart';
 import 'package:_fe_analyzer_shared/src/testing/id_generation.dart';
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
-import 'package:expect/expect.dart';
 
 main() async {
   await testDir('pkg/_fe_analyzer_shared/test/constants/data', sharedMarkers);
@@ -27,6 +27,12 @@ main() async {
       'pkg/_fe_analyzer_shared/test/inheritance/data', cfeAnalyzerMarkers);
 }
 
+void expectStringEquals(String value1, String value2) {
+  if (value1 != value2) {
+    throw StateError('Strings not equal: $value1 != $value2');
+  }
+}
+
 Future<void> testDir(String dataDirPath, List<String> supportedMarkers) {
   Directory dataDir = Directory(dataDirPath);
   String relativeDir = dataDir.uri.path.replaceAll(Uri.base.path, '');
@@ -42,7 +48,7 @@ Future<void> testDir(String dataDirPath, List<String> supportedMarkers) {
         onFailure: (String message) => throw message);
     print('Test: ${testData.testFileUri}');
     testData.code.forEach((Uri uri, AnnotatedCode code) {
-      Expect.stringEquals(code.annotatedCode, code.toText());
+      expectStringEquals(code.annotatedCode, code.toText());
     });
 
     Map<Uri, List<Annotation>> annotationsPerUri = computeAnnotationsPerUri(
@@ -56,7 +62,7 @@ Future<void> testDir(String dataDirPath, List<String> supportedMarkers) {
       AnnotatedCode original = testData.code[uri];
       AnnotatedCode generated = new AnnotatedCode(
           original.annotatedCode, original.sourceCode, annotations);
-      Expect.stringEquals(generated.annotatedCode, generated.toText());
+      expectStringEquals(generated.annotatedCode, generated.toText());
     });
   }
 }

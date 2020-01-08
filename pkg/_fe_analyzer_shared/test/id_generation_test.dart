@@ -7,7 +7,6 @@ import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:_fe_analyzer_shared/src/testing/id_generation.dart';
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:_fe_analyzer_shared/src/testing/features.dart';
-import 'package:expect/expect.dart';
 
 const List<String> markers = ['a', 'b', 'c'];
 final Uri mainUri = Uri.parse('memory:main.dart');
@@ -489,6 +488,6 @@ void testGeneral<T>(DataInterpreter<T> dataInterpreter, String text,
     print(expectedResult);
     print('---actual---------------------------------------------------------');
     print(actualResult);
-    Expect.stringEquals(expectedResult, actualResult);
+    throw StateError('Expected $expectedResult, got $actualResult');
   }
 }
