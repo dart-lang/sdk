@@ -51,6 +51,20 @@ main() {
     _check(HighlightRegionType.IDENTIFIER_DEFAULT, 'foo');
   }
 
+  test_nullLiteral() async {
+    await _computeHighlights('var x = null;');
+    _check(HighlightRegionType.KEYWORD, 'null');
+  }
+
+  test_throwExpression() async {
+    await _computeHighlights('''
+void main() {
+  throw 'foo';
+}
+  ''');
+    _check(HighlightRegionType.KEYWORD, 'throw');
+  }
+
   void _check(HighlightRegionType expectedType, String expectedText) {
     for (var region in highlights) {
       if (region.type == expectedType) {
