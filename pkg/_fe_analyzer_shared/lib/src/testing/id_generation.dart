@@ -7,6 +7,7 @@ import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 
 Map<Uri, List<Annotation>> computeAnnotationsPerUri<T>(
+    Map<Uri, AnnotatedCode> annotatedCode,
     Map<String, MemberAnnotations<IdValue>> expectedMaps,
     Uri mainUri,
     Map<String, Map<Uri, Map<Id, ActualData<T>>>> actualData,
@@ -53,32 +54,76 @@ Map<Uri, List<Annotation>> computeAnnotationsPerUri<T>(
     Map<Id, Map<String, IdValue>> idValuePerId = idValuePerUri[uri] ?? {};
     Map<Id, Map<String, ActualData<T>>> actualDataPerId =
         actualDataPerUri[uri] ?? {};
-    result[uri] = _computeAnnotations(expectedMaps.keys, actualMarkers,
-        idValuePerId, actualDataPerId, dataInterpreter,
+    result[uri] = _computeAnnotations(annotatedCode[uri], expectedMaps.keys,
+        actualMarkers, idValuePerId, actualDataPerId, dataInterpreter,
         sortMarkers: false);
   }
   return result;
 }
 
 List<Annotation> _computeAnnotations<T>(
+    AnnotatedCode annotatedCode,
     Iterable<String> supportedMarkers,
     Set<String> actualMarkers,
     Map<Id, Map<String, IdValue>> idValuePerId,
     Map<Id, Map<String, ActualData<T>>> actualDataPerId,
     DataInterpreter<T> dataInterpreter,
-    {String prefix: '/*',
-    String suffix: '*/',
+    {String defaultPrefix: '/*',
+    String defaultSuffix: '*/',
     bool sortMarkers: true}) {
+  assert(annotatedCode != null);
+
   Annotation createAnnotationFromData(
       ActualData<T> actualData, Annotation annotation) {
+    int offset;
+    String prefix;
+    String suffix;
+    if (annotation != null) {
+      offset = annotation.offset;
+      prefix = annotation.prefix;
+      suffix = annotation.suffix;
+    } else {
+      Id id = actualData.id;
+      if (id is NodeId) {
+        offset = id.value;
+        prefix = defaultPrefix;
+        suffix = defaultSuffix;
+      } else if (id is ClassId || id is MemberId) {
+        // Place the annotation at the line above at the indentation level of
+        // the class/member.
+        int lineIndex = annotatedCode.getLineIndex(actualData.offset);
+        String line = annotatedCode.getLine(lineIndex);
+        String trimmed = line.trimLeft();
+        String indentation = line.substring(0, line.length - trimmed.length);
+        offset = annotatedCode.getLineStart(lineIndex);
+        prefix = '$indentation$defaultPrefix';
+        suffix = '$defaultSuffix\n';
+      } else if (id is LibraryId) {
+        // Place the annotation on its own line after the copyright comments.
+        int lineIndex = 0;
+        while (lineIndex < annotatedCode.lineCount) {
+          String line = annotatedCode.getLine(lineIndex);
+          if (!line.startsWith('//')) {
+            break;
+          }
+          lineIndex++;
+        }
+        offset = annotatedCode.getLineStart(lineIndex);
+        prefix = '\n$defaultPrefix';
+        suffix = '$defaultSuffix\n';
+      } else {
+        throw 'Unexpected id $id (${id.runtimeType})';
+      }
+    }
+
     return new Annotation(
         annotation?.lineNo ?? -1,
         annotation?.columnNo ?? -1,
-        annotation?.offset ?? actualData.offset,
-        annotation?.prefix ?? prefix,
+        offset,
+        prefix,
         IdValue.idToString(
             actualData.id, dataInterpreter.getText(actualData.value)),
-        annotation?.suffix ?? suffix);
+        suffix);
   }
 
   Set<Id> idSet = {}..addAll(idValuePerId.keys)..addAll(actualDataPerId.keys);

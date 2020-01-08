@@ -46,6 +46,7 @@ Future<void> testDir(String dataDirPath, List<String> supportedMarkers) {
     });
 
     Map<Uri, List<Annotation>> annotationsPerUri = computeAnnotationsPerUri(
+        testData.code,
         testData.expectedMaps,
         testData.entryPoint,
         const {},

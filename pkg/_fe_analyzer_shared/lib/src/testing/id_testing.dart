@@ -740,6 +740,7 @@ Future<void> runTests<T>(Directory dataDir,
         });
 
         Map<Uri, List<Annotation>> annotations = computeAnnotationsPerUri(
+            testData.code,
             testData.expectedMaps,
             testData.entryPoint,
             actualData,

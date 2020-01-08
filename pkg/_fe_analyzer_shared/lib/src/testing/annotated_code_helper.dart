@@ -31,7 +31,8 @@ class Annotation {
   final String suffix;
 
   Annotation(this.lineNo, this.columnNo, this.offset, this.prefix, this.text,
-      this.suffix);
+      this.suffix)
+      : assert(offset != null);
 
   String toString() =>
       'Annotation(lineNo=$lineNo,columnNo=$columnNo,offset=$offset,'
@@ -172,6 +173,41 @@ class AnnotatedCode {
     int offset = _lineStarts[lineNo - 1] + (columnNo - 1);
     annotations
         .add(new Annotation(lineNo, columnNo, offset, prefix, text, suffix));
+  }
+
+  int get lineCount {
+    _ensureLineStarts();
+    return _lineStarts.length;
+  }
+
+  int getLineIndex(int offset) {
+    _ensureLineStarts();
+    int index = 0;
+    while (index + 1 < _lineStarts.length) {
+      if (_lineStarts[index + 1] <= offset) {
+        index++;
+      } else {
+        break;
+      }
+    }
+    return index;
+  }
+
+  int getLineStart(int lineIndex) {
+    _ensureLineStarts();
+    if (lineIndex < 0) {
+      return 0;
+    } else if (lineIndex < _lineStarts.length) {
+      return _lineStarts[lineIndex];
+    } else {
+      return sourceCode.length;
+    }
+  }
+
+  String getLine(int lineIndex) {
+    int startIndex = getLineStart(lineIndex);
+    int endIndex = getLineStart(lineIndex + 1);
+    return sourceCode.substring(startIndex, endIndex);
   }
 
   String toText() {

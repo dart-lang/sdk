@@ -220,6 +220,101 @@ some more code
 
   testString('/*a.test*/', actualData: {'a': {}}, expectedResult: '');
 
+  testString(
+      '''
+some code
+memberName() {}
+some more code
+''',
+      actualData: {
+        'a': {new MemberId('memberName'): 'test'}
+      },
+      memberOffset: 10,
+      expectedResult: '''
+some code
+/*a.member: memberName:test*/
+memberName() {}
+some more code
+''');
+
+  testString(
+      '''
+some code
+void memberName() {}
+some more code
+''',
+      actualData: {
+        'a': {new MemberId('memberName'): 'test'}
+      },
+      memberOffset: 15,
+      expectedResult: '''
+some code
+/*a.member: memberName:test*/
+void memberName() {}
+some more code
+''');
+
+  testString(
+      '''
+class Class {
+  void memberName() {}
+}
+''',
+      actualData: {
+        'a': {new MemberId('memberName'): 'test'}
+      },
+      memberOffset: 21,
+      expectedResult: '''
+class Class {
+  /*a.member: memberName:test*/
+  void memberName() {}
+}
+''');
+
+  testString(
+      '''
+class Class {
+  void memberName() {}
+}
+''',
+      actualData: {
+        'a': {
+          new ClassId('className'): 'test1',
+          new MemberId('memberName'): 'test2',
+        }
+      },
+      classOffset: 6,
+      memberOffset: 21,
+      expectedResult: '''
+/*a.class: className:test1*/
+class Class {
+  /*a.member: memberName:test2*/
+  void memberName() {}
+}
+''');
+
+  testString(
+      '''
+// bla
+// bla
+// bla
+
+class Class {}
+''',
+      actualData: {
+        'a': {new LibraryId(mainUri): 'test'}
+      },
+      memberOffset: 15,
+      expectedResult: '''
+// bla
+// bla
+// bla
+
+/*a.library: test*/
+
+class Class {}
+''');
+
   testFeatures('''
 some code
 /*member: memberName:
@@ -310,17 +405,28 @@ void testString(
   String text, {
   Map<String, Map<Id, String>> actualData: const {},
   String expectedResult,
+  int classOffset: 0,
+  int memberOffset: 0,
 }) {
   testGeneral(const StringDataInterpreter(), text,
-      actualData: actualData, expectedResult: expectedResult);
+      actualData: actualData,
+      expectedResult: expectedResult,
+      classOffset: classOffset,
+      memberOffset: memberOffset);
 
-  testFeatures(text, actualData: actualData, expectedResult: expectedResult);
+  testFeatures(text,
+      actualData: actualData,
+      expectedResult: expectedResult,
+      classOffset: classOffset,
+      memberOffset: memberOffset);
 }
 
 void testFeatures(
   String text, {
   Map<String, Map<Id, String>> actualData: const {},
   String expectedResult,
+  int classOffset: 0,
+  int memberOffset: 0,
 }) {
   Map<String, Map<Id, Features>> actualFeatures = {};
   actualData.forEach((String marker, Map<Id, String> data) {
@@ -330,11 +436,17 @@ void testFeatures(
     });
   });
   testGeneral(const FeaturesDataInterpreter(), text,
-      actualData: actualFeatures, expectedResult: expectedResult);
+      actualData: actualFeatures,
+      expectedResult: expectedResult,
+      classOffset: classOffset,
+      memberOffset: memberOffset);
 }
 
 void testGeneral<T>(DataInterpreter<T> dataInterpreter, String text,
-    {Map<String, Map<Id, T>> actualData: const {}, String expectedResult}) {
+    {Map<String, Map<Id, T>> actualData: const {},
+    String expectedResult,
+    int classOffset: 0,
+    int memberOffset: 0}) {
   expectedResult ??= text;
   AnnotatedCode code =
       new AnnotatedCode.fromText(text, commentStart, commentEnd);
@@ -352,15 +464,21 @@ void testGeneral<T>(DataInterpreter<T> dataInterpreter, String text,
       int offset;
       if (id is NodeId) {
         offset = id.value;
-      } else {
-        offset = 0;
+      } else if (id is MemberId) {
+        offset = memberOffset;
+      } else if (id is ClassId) {
+        offset = classOffset;
       }
       actualData[id] = new ActualData<T>(id, value, mainUri, offset, text);
     });
   });
 
   Map<Uri, List<Annotation>> annotations = computeAnnotationsPerUri<T>(
-      expectedMaps, mainUri, actualAnnotations, dataInterpreter);
+      {mainUri: code},
+      expectedMaps,
+      mainUri,
+      actualAnnotations,
+      dataInterpreter);
   AnnotatedCode generated = new AnnotatedCode(
       code.annotatedCode, code.sourceCode, annotations[mainUri]);
   String actualResult = generated.toText();
