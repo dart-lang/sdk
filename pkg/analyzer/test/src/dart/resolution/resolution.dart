@@ -55,6 +55,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   ClassElement get numElement => typeProvider.numType.element;
 
+  ClassElement get objectElement => typeProvider.objectType.element;
+
   InterfaceType get objectType => typeProvider.objectType;
 
   InterfaceType get stringType => typeProvider.stringType;
@@ -85,6 +87,15 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(actual.declaration, same(expectedBase));
 
     assertSubstitution(actual.substitution, expectedSubstitution);
+  }
+
+  void assertBinaryExpression(
+    BinaryExpression node, {
+    @required ExecutableElement element,
+    @required String type,
+  }) {
+    assertElement(node, element);
+    assertType(node, type);
   }
 
   /// Assert that the given [identifier] is a reference to a class, in the
@@ -221,6 +232,26 @@ mixin ResolutionTest implements ResourceProviderMixin {
   void assertImportPrefix(SimpleIdentifier identifier, PrefixElement element) {
     assertElement(identifier, element);
     assertTypeNull(identifier);
+  }
+
+  void assertIndexExpression(
+    IndexExpression node, {
+    @required MethodElement readElement,
+    @required MethodElement writeElement,
+    @required String type,
+  }) {
+    var isRead = node.inGetterContext();
+    var isWrite = node.inSetterContext();
+    if (isRead && isWrite) {
+      expect(node.auxiliaryElements?.staticElement, readElement);
+      expect(node.staticElement, writeElement);
+    } else if (isRead) {
+      expect(node.staticElement, readElement);
+    } else {
+      expect(isWrite, isTrue);
+      expect(node.staticElement, writeElement);
+    }
+    assertType(node, type);
   }
 
   void assertInstanceCreation(InstanceCreationExpression creation,
@@ -388,6 +419,24 @@ mixin ResolutionTest implements ResourceProviderMixin {
     }
   }
 
+  void assertPostfixExpression(
+    PostfixExpression node, {
+    @required MethodElement element,
+    @required String type,
+  }) {
+    assertElement(node, element);
+    assertType(node, type);
+  }
+
+  void assertPrefixExpression(
+    PrefixExpression node, {
+    @required MethodElement element,
+    @required String type,
+  }) {
+    assertElement(node, element);
+    assertType(node, type);
+  }
+
   void assertPropertyAccess(
     PropertyAccess access,
     Element expectedElement,
@@ -395,6 +444,15 @@ mixin ResolutionTest implements ResourceProviderMixin {
   ) {
     assertElement(access.propertyName, expectedElement);
     assertType(access, expectedType);
+  }
+
+  void assertSimpleIdentifier(
+    SimpleIdentifier identifier, {
+    @required Element element,
+    @required String type,
+  }) {
+    assertElement(identifier, element);
+    assertType(identifier, type);
   }
 
   void assertSubstitution(

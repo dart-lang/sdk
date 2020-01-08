@@ -168,7 +168,7 @@ class A {
 class A {
   B b;
   void f(dynamic context) {
-    context == b.test;
+    context + b.test;
   }
 }
 class B {
@@ -178,7 +178,7 @@ class B {
 class A {
   B b;
   void f(dynamic context) {
-    context == b.test;
+    context + b.test;
   }
 }
 class B {

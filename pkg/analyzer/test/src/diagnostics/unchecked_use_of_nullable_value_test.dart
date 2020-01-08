@@ -531,6 +531,7 @@ m(int? x) {
   x.foo;
 }
 ''', [
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 58, 1),
       error(StaticTypeWarningCode.UNDEFINED_GETTER, 60, 3),
     ]);
   }
@@ -669,6 +670,11 @@ m() {
 ''', [
       error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 18, 1),
     ]);
+    assertSimpleIdentifier(
+      findNode.simple('isEven'),
+      element: intElement.getGetter('isEven'),
+      type: 'bool',
+    );
   }
 
   test_member_parenthesized_hashCode_nullable() async {
@@ -960,7 +966,7 @@ m(A? x) {
   x++;
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 78, 2),
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 77, 1),
     ]);
   }
 
@@ -1040,7 +1046,7 @@ m(A? x) {
   -x;
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 72, 1),
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 73, 1),
     ]);
   }
 

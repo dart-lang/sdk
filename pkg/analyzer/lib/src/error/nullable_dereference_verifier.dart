@@ -77,6 +77,13 @@ class NullableDereferenceVerifier {
     _check(errorNode, receiverType);
   }
 
+  void report(AstNode errorNode, DartType receiverType) {
+    var errorCode = receiverType == _typeSystem.typeProvider.nullType
+        ? StaticWarningCode.INVALID_USE_OF_NULL_VALUE
+        : StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE;
+    _errorReporter.reportErrorForNode(errorCode, errorNode);
+  }
+
   /// If the [receiverType] is potentially nullable, report it.
   ///
   /// The [errorNode] is usually the receiver of the invocation, but if the
@@ -87,10 +94,7 @@ class NullableDereferenceVerifier {
       return false;
     }
 
-    var errorCode = receiverType == _typeSystem.typeProvider.nullType
-        ? StaticWarningCode.INVALID_USE_OF_NULL_VALUE
-        : StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE;
-    _errorReporter.reportErrorForNode(errorCode, errorNode);
+    report(errorNode, receiverType);
     return true;
   }
 }

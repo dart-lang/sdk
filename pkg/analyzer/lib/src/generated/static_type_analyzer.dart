@@ -398,6 +398,12 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       }
       return;
     }
+
+    if (identical(node.leftOperand.staticType, NeverTypeImpl.instance)) {
+      _recordStaticType(node, NeverTypeImpl.instance);
+      return;
+    }
+
     DartType staticType = node.staticInvokeType?.returnType ?? _dynamicType;
     if (node.leftOperand is! ExtensionOverride) {
       staticType = _typeSystem.refineBinaryExpressionType(
@@ -543,20 +549,26 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
    */
   @override
   void visitIndexExpression(IndexExpression node) {
-    DartType type;
-    if (node.inSetterContext()) {
-      var parameters =
-          _elementTypeProvider.safeExecutableParameters(node.staticElement);
-      if (parameters?.length == 2) {
-        type = _elementTypeProvider.getVariableType(parameters[1]);
-      }
+    if (identical(node.realTarget.staticType, NeverTypeImpl.instance)) {
+      _recordStaticType(node, NeverTypeImpl.instance);
     } else {
-      type = _elementTypeProvider.safeExecutableReturnType(node.staticElement);
+      DartType type;
+      if (node.inSetterContext()) {
+        var parameters =
+            _elementTypeProvider.safeExecutableParameters(node.staticElement);
+        if (parameters?.length == 2) {
+          type = _elementTypeProvider.getVariableType(parameters[1]);
+        }
+      } else {
+        type =
+            _elementTypeProvider.safeExecutableReturnType(node.staticElement);
+      }
+
+      type ??= _dynamicType;
+
+      _recordStaticType(node, type);
     }
 
-    type ??= _dynamicType;
-
-    _recordStaticType(node, type);
     _nullShortingTermination(node);
   }
 
@@ -676,6 +688,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
 
     if (node.operator.type == TokenType.BANG) {
       staticType = _typeSystem.promoteToNonNull(staticType);
+    } else if (identical(staticType, NeverTypeImpl.instance)) {
+      _recordStaticType(node, NeverTypeImpl.instance);
     } else {
       DartType operatorReturnType;
       if (staticType.isDartCoreInt) {
@@ -707,6 +721,12 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
 
     if (staticElement is ExtensionElement) {
       _setExtensionIdentifierType(node);
+      return;
+    }
+
+    if (identical(node.prefix.staticType, NeverTypeImpl.instance)) {
+      _recordStaticType(prefixedIdentifier, NeverTypeImpl.instance);
+      _recordStaticType(node, NeverTypeImpl.instance);
       return;
     }
 
@@ -754,6 +774,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     TokenType operator = node.operator.type;
     if (operator == TokenType.BANG) {
       _recordStaticType(node, _nonNullable(_typeProvider.boolType));
+    } else if (identical(node.operand.staticType, NeverTypeImpl.instance)) {
+      _recordStaticType(node, NeverTypeImpl.instance);
     } else {
       // The other cases are equivalent to invoking a method.
       ExecutableElement staticMethodElement = node.staticElement;

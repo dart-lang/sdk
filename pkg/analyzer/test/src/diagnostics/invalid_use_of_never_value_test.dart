@@ -22,44 +22,77 @@ class InvalidUseOfNeverTest extends DriverResolutionTest {
   AnalysisOptionsImpl get analysisOptions =>
       AnalysisOptionsImpl()..enabledExperiments = [EnableString.non_nullable];
 
-  @failingTest
+  @override
+  bool get typeToStringWithNullability => true;
+
   test_binaryExpression_never_eqEq() async {
-    // We report this as an error even though CFE does not.
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void main(Never x) {
-  x == 0;
+  x == 1 + 2;
 }
-''');
+''', [
+      error(StaticWarningCode.INVALID_USE_OF_NEVER_VALUE, 23, 1),
+    ]);
+
+    assertBinaryExpression(
+      findNode.binary('x =='),
+      element: null,
+      type: 'Never',
+    );
+
+    assertType(findNode.binary('1 + 2'), 'int');
   }
 
-  @failingTest
   test_binaryExpression_never_plus() async {
-    // We report this as an error even though CFE does not.
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void main(Never x) {
-  x + 0;
+  x + (1 + 2);
 }
-''');
+''', [
+      error(StaticWarningCode.INVALID_USE_OF_NEVER_VALUE, 23, 1),
+    ]);
+
+    assertBinaryExpression(
+      findNode.binary('x +'),
+      element: null,
+      type: 'Never',
+    );
+
+    assertType(findNode.binary('1 + 2'), 'int');
   }
 
-  @failingTest
   test_binaryExpression_neverQ_eqEq() async {
-    // We report this as an error even though CFE does not.
     await assertNoErrorsInCode(r'''
 void main(Never? x) {
-  x == 0;
+  x == 1 + 2;
 }
 ''');
+
+    assertBinaryExpression(
+      findNode.binary('x =='),
+      element: objectElement.getMethod('=='),
+      type: 'bool',
+    );
+
+    assertType(findNode.binary('1 + 2'), 'int');
   }
 
-  @failingTest
   test_binaryExpression_neverQ_plus() async {
-    // We report this as an error even though CFE does not.
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void main(Never? x) {
-  x + 0;
+  x + (1 + 2);
 }
-''');
+''', [
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 24, 1),
+    ]);
+
+    assertBinaryExpression(
+      findNode.binary('x +'),
+      element: null,
+      type: 'dynamic',
+    );
+
+    assertType(findNode.binary('1 + 2'), 'int');
   }
 
   test_conditionalExpression_falseBranch() async {
@@ -96,6 +129,120 @@ void main(Never? x) {
 ''', [
       error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 24, 1),
     ]);
+  }
+
+  test_indexExpression_never_read() async {
+    await assertErrorsInCode(r'''
+void main(Never x) {
+  x[0];
+}
+''', [
+      error(StaticWarningCode.INVALID_USE_OF_NEVER_VALUE, 23, 1),
+    ]);
+
+    assertIndexExpression(
+      findNode.index('x[0]'),
+      readElement: null,
+      writeElement: null,
+      type: 'Never',
+    );
+  }
+
+  test_indexExpression_never_readWrite() async {
+    await assertErrorsInCode(r'''
+void main(Never x) {
+  x[0] += 1 + 2;
+}
+''', [
+      error(StaticWarningCode.INVALID_USE_OF_NEVER_VALUE, 23, 1),
+    ]);
+
+    assertIndexExpression(
+      findNode.index('x[0]'),
+      readElement: null,
+      writeElement: null,
+      type: 'Never',
+    );
+
+    assertType(findNode.binary('1 + 2'), 'int');
+  }
+
+  test_indexExpression_never_write() async {
+    await assertErrorsInCode(r'''
+void main(Never x) {
+  x[0] = 1 + 2;
+}
+''', [
+      error(StaticWarningCode.INVALID_USE_OF_NEVER_VALUE, 23, 1),
+    ]);
+
+    assertIndexExpression(
+      findNode.index('x[0]'),
+      readElement: null,
+      writeElement: null,
+      type: 'Never',
+    );
+
+    assertType(findNode.binary('1 + 2'), 'int');
+  }
+
+  test_indexExpression_neverQ_read() async {
+    await assertErrorsInCode(r'''
+void main(Never? x) {
+  x[0];
+}
+''', [
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 24, 1),
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 25, 3),
+    ]);
+
+    assertIndexExpression(
+      findNode.index('x[0]'),
+      readElement: null,
+      writeElement: null,
+      type: 'dynamic',
+    );
+  }
+
+  test_indexExpression_neverQ_readWrite() async {
+    await assertErrorsInCode(r'''
+void main(Never? x) {
+  x[0] += 1 + 2;
+}
+''', [
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 24, 1),
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 25, 3),
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 25, 3),
+    ]);
+
+    assertIndexExpression(
+      findNode.index('x[0]'),
+      readElement: null,
+      writeElement: null,
+      type: 'dynamic',
+    );
+
+    assertType(findNode.binary('1 + 2'), 'int');
+  }
+
+  test_indexExpression_neverQ_write() async {
+    await assertErrorsInCode(r'''
+void main(Never? x) {
+  x[0] = 1 + 2;
+}
+''', [
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 24, 1),
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 25, 3),
+    ]);
+
+    assertIndexExpression(
+      findNode.index('x[0]'),
+      readElement: null,
+      writeElement: null,
+      type: 'dynamic',
+    );
+
+    assertType(findNode.binary('1 + 2'), 'int');
   }
 
   test_invocationArgument() async {
@@ -157,7 +304,7 @@ void main(Never? x) {
 
     assertMethodInvocation(
       findNode.methodInvocation('.toString(1 + 2)'),
-      typeProvider.objectType.element.getMethod('toString'),
+      objectElement.getMethod('toString'),
       'String Function()',
       expectedType: 'String',
     );
@@ -166,31 +313,38 @@ void main(Never? x) {
     assertType(findNode.binary('1 + 2'), 'int');
   }
 
-  @failingTest
   test_postfixExpression_never_plusPlus() async {
-    // Reports 'undefined operator'
     await assertErrorsInCode(r'''
 void main(Never x) {
   x++;
 }
 ''', [
-      error(StaticWarningCode.INVALID_USE_OF_NEVER_VALUE, 70, 1),
+      error(StaticWarningCode.INVALID_USE_OF_NEVER_VALUE, 23, 1),
     ]);
+
+    assertPostfixExpression(
+      findNode.postfix('x++'),
+      element: null,
+      type: 'Never',
+    );
   }
 
-  @failingTest
   test_postfixExpression_neverQ_plusPlus() async {
-    // Reports 'undefined operator'
     await assertErrorsInCode(r'''
-void main(Never x) {
+void main(Never? x) {
   x++;
 }
 ''', [
-      error(StaticWarningCode.INVALID_USE_OF_NEVER_VALUE, 70, 1),
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 24, 1),
     ]);
+
+    assertPostfixExpression(
+      findNode.postfix('x++'),
+      element: null,
+      type: 'Never?',
+    );
   }
 
-  @failingTest
   test_prefixExpression_never_plusPlus() async {
     // Reports 'undefined operator'
     await assertErrorsInCode(r'''
@@ -198,102 +352,153 @@ void main(Never x) {
   ++x;
 }
 ''', [
-      error(StaticWarningCode.INVALID_USE_OF_NEVER_VALUE, 70, 1),
+      error(StaticWarningCode.INVALID_USE_OF_NEVER_VALUE, 25, 1),
     ]);
+
+    assertPrefixExpression(
+      findNode.prefix('++x'),
+      element: null,
+      type: 'Never',
+    );
   }
 
-  @failingTest
   test_prefixExpression_neverQ_plusPlus() async {
-    // Reports 'undefined operator'
     await assertErrorsInCode(r'''
-void main(Never x) {
+void main(Never? x) {
   ++x;
 }
 ''', [
-      error(StaticWarningCode.INVALID_USE_OF_NEVER_VALUE, 70, 1),
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 26, 1),
     ]);
+
+    assertPrefixExpression(
+      findNode.prefix('++x'),
+      element: null,
+      type: 'dynamic',
+    );
   }
 
-  @FailingTest(reason: 'Types are wrong')
   test_propertyAccess_never() async {
-    await assertErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 void main(Never x) {
   x.foo;
 }
-''', [
-      error(StaticWarningCode.INVALID_USE_OF_NEVER_VALUE, 23, 1),
-    ]);
+''');
 
-    assertElementNull(findNode.simple('foo;'));
-    assertType(findNode.prefixed('x.foo'), 'Never');
+    assertSimpleIdentifier(
+      findNode.simple('foo'),
+      element: null,
+      type: 'Never',
+    );
   }
 
-  @failingTest
   test_propertyAccess_never_hashCode() async {
-    // reports undefined getter
     await assertNoErrorsInCode(r'''
 void main(Never x) {
   x.hashCode;
 }
 ''');
+
+    assertSimpleIdentifier(
+      findNode.simple('hashCode'),
+      element: objectElement.getGetter('hashCode'),
+      type: 'Never',
+    );
   }
 
-  @failingTest
   test_propertyAccess_never_tearOff_toString() async {
-    // reports undefined getter
     await assertNoErrorsInCode(r'''
 void main(Never x) {
   x.toString;
 }
 ''');
+
+    assertSimpleIdentifier(
+      findNode.simple('toString'),
+      element: objectElement.getMethod('toString'),
+      type: 'Never',
+    );
   }
 
-  @FailingTest(reason: 'Types are wrong')
   test_propertyAccess_neverQ() async {
     await assertErrorsInCode(r'''
-void main(Never x) {
+void main(Never? x) {
   x.foo;
 }
 ''', [
-      error(StaticWarningCode.INVALID_USE_OF_NEVER_VALUE, 23, 1),
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 24, 1),
     ]);
 
-    assertElementNull(findNode.simple('foo;'));
-    assertType(findNode.prefixed('x.foo'), 'Never');
+    assertSimpleIdentifier(
+      findNode.simple('foo'),
+      element: null,
+      type: 'dynamic',
+    );
   }
 
-  @failingTest
   test_propertyAccess_neverQ_hashCode() async {
-    // reports undefined getter
     await assertNoErrorsInCode(r'''
 void main(Never? x) {
   x.hashCode;
 }
 ''');
+
+    assertSimpleIdentifier(
+      findNode.simple('hashCode'),
+      element: objectElement.getGetter('hashCode'),
+      type: 'int',
+    );
+  }
+
+  test_propertyAccess_neverQ_tearOff_toString() async {
+    await assertNoErrorsInCode(r'''
+void main(Never? x) {
+  x.toString;
+}
+''');
+
+    assertSimpleIdentifier(
+      findNode.simple('toString'),
+      element: objectElement.getMethod('toString'),
+      type: 'String Function()',
+    );
   }
 }
 
-/// Construct Never* by using throw expressions and assert no errors.
 @reflectiveTest
 class InvalidUseOfNeverTest_Legacy extends DriverResolutionTest {
-  @failingTest
   test_binaryExpression_eqEq() async {
-    // We report this as an error even though CFE does not.
     await assertNoErrorsInCode(r'''
 void main() {
-  (throw '') == 0;
+  (throw '') == 1 + 2;
 }
 ''');
+
+    assertBinaryExpression(
+      findNode.binary('=='),
+      element: objectElement.getMethod('=='),
+      type: 'bool',
+    );
+
+    assertType(findNode.binary('1 + 2'), 'int');
   }
 
-  @failingTest
   test_binaryExpression_plus() async {
-    // We report this as an error even though CFE does not.
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void main() {
-  (throw '') + 0;
+  (throw '') + (1 + 2);
 }
-''');
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 27, 1),
+    ]);
+
+    assertBinaryExpression(
+      findNode.binary('+ ('),
+      element: null,
+      type: 'dynamic',
+    );
+
+    assertType(findNode.binary('1 + 2'), 'int');
   }
 
   test_methodInvocation_toString() async {
@@ -302,25 +507,40 @@ void main() {
   (throw '').toString();
 }
 ''');
+
+    assertMethodInvocation(
+      findNode.methodInvocation('toString()'),
+      null,
+      'dynamic',
+      expectedType: 'dynamic',
+    );
   }
 
-  @failingTest
   test_propertyAccess_toString() async {
-    // Reports undefined getter (it seems to get confused by the tear-off).
     await assertNoErrorsInCode(r'''
 void main() {
   (throw '').toString;
 }
 ''');
+
+    assertSimpleIdentifier(
+      findNode.simple('toString'),
+      element: objectElement.getMethod('toString'),
+      type: 'String Function()',
+    );
   }
 
-  @failingTest
   test_throw_getter_hashCode() async {
-    // Reports undefined getter.
     await assertNoErrorsInCode(r'''
 void main() {
   (throw '').hashCode;
 }
 ''');
+
+    assertSimpleIdentifier(
+      findNode.simple('hashCode'),
+      element: objectElement.getGetter('hashCode'),
+      type: 'int',
+    );
   }
 }

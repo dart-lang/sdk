@@ -629,6 +629,15 @@ class MethodInvocationResolver {
       );
       return;
     }
+
+    if (receiverType == NeverTypeImpl.instanceLegacy) {
+      node.methodName.staticType = _dynamicType;
+      node.staticInvokeType = _dynamicType;
+      node.staticType = _dynamicType;
+
+      _resolveArguments(node);
+      return;
+    }
   }
 
   void _resolveReceiverNull(

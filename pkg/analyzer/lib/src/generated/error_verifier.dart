@@ -3176,6 +3176,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (lhs == null || rhs == null) {
       return;
     }
+
+    if (lhs is IndexExpression &&
+        identical(lhs.staticType, NeverTypeImpl.instance)) {
+      return;
+    }
+
     VariableElement leftVariableElement = getVariableElement(lhs);
     DartType leftType = (leftVariableElement == null)
         ? getStaticType(lhs)
