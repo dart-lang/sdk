@@ -848,7 +848,7 @@ class D {
     var value = atDI.evaluationResult.value;
     expect(value, isNotNull);
     expect(value.type, isNotNull);
-    assertElementTypeString(value.type, 'D');
+    assertType(value.type, 'D');
     expect(value.fields.keys, ['value']);
     expect(value.getField('value').toIntValue(), 1);
     expect(atDI.evaluationResult.errors, isEmpty);
@@ -2409,11 +2409,11 @@ var b = new B();
       UnitElementResult result = await driver.getUnitElement(c);
       var partUnit = result.element;
 
-      assertElementTypeString(partUnit.topLevelVariables[0].type, 'A');
-      assertElementTypeString(partUnit.topLevelVariables[1].type, 'B');
+      assertType(partUnit.topLevelVariables[0].type, 'A');
+      assertType(partUnit.topLevelVariables[1].type, 'B');
 
       var libraryUnit = partUnit.library.definingCompilationUnit;
-      assertElementTypeString(libraryUnit.topLevelVariables[0].type, 'C');
+      assertType(libraryUnit.topLevelVariables[0].type, 'C');
     }
   }
 
@@ -2445,11 +2445,11 @@ var b = new B();
       UnitElementResult result = await driver.getUnitElement(c);
       var partUnit = result.element;
 
-      assertElementTypeString(partUnit.topLevelVariables[0].type, 'A');
-      assertElementTypeString(partUnit.topLevelVariables[1].type, 'B');
+      assertType(partUnit.topLevelVariables[0].type, 'A');
+      assertType(partUnit.topLevelVariables[1].type, 'B');
 
       var libraryUnit = partUnit.library.definingCompilationUnit;
-      assertElementTypeString(libraryUnit.topLevelVariables[0].type, 'C');
+      assertType(libraryUnit.topLevelVariables[0].type, 'C');
     }
   }
 
@@ -2470,10 +2470,10 @@ var b = new B();
       var partUnit = result.element;
 
       expect(partUnit.topLevelVariables[0].name, 'a');
-      assertElementTypeString(partUnit.topLevelVariables[0].type, 'dynamic');
+      assertType(partUnit.topLevelVariables[0].type, 'dynamic');
 
       expect(partUnit.topLevelVariables[1].name, 'b');
-      assertElementTypeString(partUnit.topLevelVariables[1].type, 'dynamic');
+      assertType(partUnit.topLevelVariables[1].type, 'dynamic');
     }
   }
 

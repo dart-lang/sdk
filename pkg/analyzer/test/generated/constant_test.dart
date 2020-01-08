@@ -62,7 +62,7 @@ class Center extends Align {
     expect(result.isValid, isTrue);
     DartObject value = result.value;
     expect(value, isNotNull);
-    assertElementTypeString(value.type, 'Center');
+    assertType(value.type, 'Center');
     DartObject superclassFields = value.getField(GenericState.SUPERCLASS_FIELD);
     DartObject widthFactor = superclassFields.getField('widthFactor');
     expect(widthFactor, isNotNull);
@@ -78,7 +78,7 @@ class C {
     expect(result.isValid, isTrue);
     DartObject value = result.value;
     expect(value, isNotNull);
-    assertElementTypeString(value.type, 'C');
+    assertType(value.type, 'C');
   }
 
   test_constructorInvocation_fieldInitializer() async {
@@ -91,10 +91,10 @@ class C {
     expect(result.isValid, isTrue);
     DartObject value = result.value;
     expect(value, isNotNull);
-    assertElementTypeString(value.type, 'C');
+    assertType(value.type, 'C');
     DartObject x = value.getField('x');
     expect(x, isNotNull);
-    assertElementTypeString(x.type, 'int');
+    assertType(x.type, 'int');
     expect(x.toIntValue(), 2);
   }
 
@@ -106,7 +106,7 @@ class C {
     expect(result.isValid, isTrue);
     DartObject value = result.value;
     expect(value, isNotNull);
-    assertElementTypeString(value.type, 'C');
+    assertType(value.type, 'C');
   }
 
   test_constructorInvocation_noConstConstructor() async {
@@ -128,7 +128,7 @@ class C {
     expect(result.isValid, isTrue);
     DartObject value = result.value;
     expect(value, isNotNull);
-    assertElementTypeString(value.type, 'C');
+    assertType(value.type, 'C');
   }
 
   test_divide_double_double() async {
@@ -139,7 +139,7 @@ class C {
     var result = await _getExpressionValue("3.2 / 0.0");
     expect(result.isValid, isTrue);
     DartObject value = result.value;
-    assertElementTypeString(value.type, "double");
+    assertType(value.type, "double");
     expect(value.toDoubleValue().isInfinite, isTrue);
   }
 
@@ -462,7 +462,7 @@ const [for (var i = 0; i < 4; i++) i]
   Future<void> _assertValueBool(bool expectedValue, String contents) async {
     var result = await _getExpressionValue(contents);
     DartObject value = result.value;
-    assertElementTypeString(value.type, "bool");
+    assertType(value.type, "bool");
     expect(value.toBoolValue(), expectedValue);
   }
 
@@ -470,7 +470,7 @@ const [for (var i = 0; i < 4; i++) i]
     var result = await _getExpressionValue(contents);
     expect(result.isValid, isTrue);
     DartObject value = result.value;
-    assertElementTypeString(value.type, "double");
+    assertType(value.type, "double");
     expect(value.toDoubleValue(), expectedValue);
   }
 
@@ -478,7 +478,7 @@ const [for (var i = 0; i < 4; i++) i]
     var result = await _getExpressionValue(contents);
     expect(result.isValid, isTrue);
     DartObject value = result.value;
-    assertElementTypeString(value.type, "int");
+    assertType(value.type, "int");
     expect(value.toIntValue(), expectedValue);
   }
 
