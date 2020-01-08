@@ -1083,45 +1083,29 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
       {bool requireConstant: true,
       bool implicitNull: false,
       bool checkCasts: true}) {
-    if (node is ir.ConstantExpression) {
-      ir.Constant constant = constantEvaluator.evaluate(staticTypeContext, node,
-          requireConstant: requireConstant);
-      if (constant == null) {
-        if (requireConstant) {
-          throw new UnsupportedError(
-              'No constant for ${DebugPrinter.prettyPrint(node)}');
-        }
-        return null;
-      } else {
-        return _constantValuefier.visitConstant(constant);
-      }
-    }
-
-    ConstantExpression constant;
     if (node == null) {
       if (!implicitNull) {
         throw failedAt(
             CURRENT_ELEMENT_SPANNABLE, 'No expression for constant.');
       }
-      constant = new NullConstantExpression();
-    } else {
-      constant =
-          new Constantifier(this, requireConstant: requireConstant).visit(node);
+      return new NullConstantValue();
     }
+    ir.Constant constant = constantEvaluator.evaluate(staticTypeContext, node,
+        requireConstant: requireConstant);
     if (constant == null) {
       if (requireConstant) {
         throw new UnsupportedError(
             'No constant for ${DebugPrinter.prettyPrint(node)}');
       }
-      return null;
+    } else {
+      ConstantValue value = _constantValuefier.visitConstant(constant);
+      if (!value.isConstant && !requireConstant) {
+        return null;
+      }
+      return value;
     }
-    ConstantValue value = computeConstantValue(
-        computeSourceSpanFromTreeNode(node), constant,
-        requireConstant: requireConstant, checkCasts: checkCasts);
-    if (!value.isConstant && !requireConstant) {
-      return null;
-    }
-    return value;
+
+    return null;
   }
 
   /// Converts [annotations] into a list of [ConstantValue]s.

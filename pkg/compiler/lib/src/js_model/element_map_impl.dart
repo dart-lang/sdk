@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:front_end/src/api_unstable/dart2js.dart' show Link, LinkBuilder;
+import 'package:front_end/src/api_unstable/dart2js.dart' as ir;
 
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart' as ir;
@@ -30,6 +31,7 @@ import '../elements/types.dart';
 import '../environment.dart';
 import '../ir/cached_static_type.dart';
 import '../ir/closure.dart';
+import '../ir/constants.dart';
 import '../ir/debug.dart';
 import '../ir/element_map.dart';
 import '../ir/types.dart';
@@ -80,6 +82,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   final CompilerOptions options;
   @override
   final DiagnosticReporter reporter;
+  final Environment _environment;
   CommonElementsImpl _commonElements;
   JsElementEnvironment _elementEnvironment;
   DartTypeConverter _typeConverter;
@@ -88,6 +91,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   ir.CoreTypes _coreTypes;
   ir.TypeEnvironment _typeEnvironment;
   ir.ClassHierarchy _classHierarchy;
+  Dart2jsConstantEvaluator _constantEvaluator;
   ConstantValuefier _constantValuefier;
 
   /// Library environment. Used for fast lookup.
@@ -136,7 +140,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
 
   JsKernelToElementMap(
       this.reporter,
-      Environment environment,
+      this._environment,
       KernelToElementMapImpl _elementMap,
       Map<MemberEntity, MemberUsage> liveMemberUsage,
       AnnotationsData annotations)
@@ -144,7 +148,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     _elementEnvironment = new JsElementEnvironment(this);
     _commonElements =
         new CommonElementsImpl(_elementEnvironment, _elementMap.options);
-    _constantEnvironment = new JsConstantEnvironment(this, environment);
+    _constantEnvironment = new JsConstantEnvironment(this, _environment);
     _typeConverter = new DartTypeConverter(this);
     _types = new KernelDartTypes(this);
     _constantValuefier = new ConstantValuefier(this);
@@ -321,10 +325,10 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   }
 
   JsKernelToElementMap.readFromDataSource(this.options, this.reporter,
-      Environment environment, ir.Component component, DataSource source) {
+      this._environment, ir.Component component, DataSource source) {
     _elementEnvironment = new JsElementEnvironment(this);
     _commonElements = new CommonElementsImpl(_elementEnvironment, options);
-    _constantEnvironment = new JsConstantEnvironment(this, environment);
+    _constantEnvironment = new JsConstantEnvironment(this, _environment);
     _typeConverter = new DartTypeConverter(this);
     _types = new KernelDartTypes(this);
     _constantValuefier = new ConstantValuefier(this);
@@ -1224,6 +1228,16 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     return new ir.StaticTypeContext(node, typeEnvironment);
   }
 
+  Dart2jsConstantEvaluator get constantEvaluator {
+    return _constantEvaluator ??= new Dart2jsConstantEvaluator(typeEnvironment,
+        (ir.LocatedMessage message, List<ir.LocatedMessage> context) {
+      reportLocatedMessage(reporter, message, context);
+    },
+        environment: _environment.toMap(),
+        enableTripleShift:
+            options.languageExperiments[ir.ExperimentalFlag.tripleShift]);
+  }
+
   @override
   StaticTypeProvider getStaticTypeProvider(MemberEntity member) {
     MemberDefinition memberDefinition = members.getData(member).definition;
@@ -1517,47 +1531,38 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   }
 
   @override
-  ConstantValue getConstantValue(ir.Expression node,
+  ConstantValue getConstantValue(ir.Member memberContext, ir.Expression node,
       {bool requireConstant: true, bool implicitNull: false}) {
-    if (node is ir.ConstantExpression) {
-      return _constantValuefier.visitConstant(node.constant);
-    }
-
-    ConstantExpression constant;
     if (node == null) {
       if (!implicitNull) {
         throw failedAt(
             CURRENT_ELEMENT_SPANNABLE, 'No expression for constant.');
       }
-      constant = new NullConstantExpression();
+      return new NullConstantValue();
+    } else if (node is ir.ConstantExpression) {
+      return _constantValuefier.visitConstant(node.constant);
     } else {
-      constant =
-          new Constantifier(this, requireConstant: requireConstant).visit(node);
-    }
-    if (constant == null) {
-      if (requireConstant) {
-        throw new UnsupportedError(
-            'No constant for ${DebugPrinter.prettyPrint(node)}');
+      // TODO(johnniwinther,sigmund): Effectively constant expressions should
+      // be replaced in the scope visitor as part of the initializer complexity
+      // computation.
+      ir.StaticTypeContext staticTypeContext =
+          getStaticTypeContext(memberContext);
+      ir.Constant constant = constantEvaluator.evaluate(staticTypeContext, node,
+          requireConstant: requireConstant);
+      if (constant == null) {
+        if (requireConstant) {
+          throw new UnsupportedError(
+              'No constant for ${DebugPrinter.prettyPrint(node)}');
+        }
+      } else {
+        ConstantValue value = _constantValuefier.visitConstant(constant);
+        if (!value.isConstant && !requireConstant) {
+          return null;
+        }
+        return value;
       }
-      return null;
     }
-    ConstantValue value = computeConstantValue(
-        computeSourceSpanFromTreeNode(node), constant,
-        requireConstant: requireConstant);
-    if (!value.isConstant && !requireConstant) {
-      return null;
-    }
-    return value;
-  }
-
-  /// Converts [annotations] into a list of [ConstantValue]s.
-  List<ConstantValue> getMetadata(List<ir.Expression> annotations) {
-    if (annotations.isEmpty) return const <ConstantValue>[];
-    List<ConstantValue> metadata = <ConstantValue>[];
-    annotations.forEach((ir.Expression node) {
-      metadata.add(getConstantValue(node));
-    });
-    return metadata;
+    return null;
   }
 
   @override

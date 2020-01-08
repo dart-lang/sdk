@@ -1623,6 +1623,9 @@ class Namer extends ModularNamer {
       return uniqueNameForTypeConstantElement(
           type.element.library, type.element);
     }
+    if (type is FutureOrType) {
+      return "FutureOr<dynamic>";
+    }
     if (type is FunctionType) {
       // TODO(johnniwinther): Add naming scheme for function type literals.
       // These currently only occur from kernel.

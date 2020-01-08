@@ -789,13 +789,15 @@ class KFunctionDataImpl extends KMemberDataImpl
   @override
   void forEachParameter(JsToElementMap elementMap,
       void f(DartType type, String name, ConstantValue defaultValue)) {
-    void handleParameter(ir.VariableDeclaration node, {bool isOptional: true}) {
-      DartType type = elementMap.getDartType(node.type);
-      String name = node.name;
+    void handleParameter(ir.VariableDeclaration parameter,
+        {bool isOptional: true}) {
+      DartType type = elementMap.getDartType(parameter.type);
+      String name = parameter.name;
       ConstantValue defaultValue;
       if (isOptional) {
-        if (node.initializer != null) {
-          defaultValue = elementMap.getConstantValue(node.initializer);
+        if (parameter.initializer != null) {
+          defaultValue =
+              elementMap.getConstantValue(node, parameter.initializer);
         } else {
           defaultValue = new NullConstantValue();
         }

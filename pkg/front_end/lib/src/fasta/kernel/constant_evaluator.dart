@@ -930,6 +930,11 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
 
   @override
   Constant visitConstructorInvocation(ConstructorInvocation node) {
+    if (!node.isConst) {
+      return reportInvalid(
+          node, 'Non-constant constructor invocation "$node".');
+    }
+
     final Constructor constructor = node.target;
     checkConstructorConst(node, constructor);
 

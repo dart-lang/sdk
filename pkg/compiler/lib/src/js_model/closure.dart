@@ -1089,6 +1089,8 @@ class ClosureFunctionData extends ClosureMemberData
   @override
   final ClassTypeVariableAccess classTypeVariableAccess;
 
+  ir.Member _memberContext;
+
   ClosureFunctionData(
       ClosureMemberDefinition definition,
       InterfaceType memberThisType,
@@ -1121,6 +1123,18 @@ class ClosureFunctionData extends ClosureMemberData
     sink.writeTreeNode(functionNode);
     sink.writeEnum(classTypeVariableAccess);
     sink.end(tag);
+  }
+
+  @override
+  ir.Member get memberContext {
+    if (_memberContext == null) {
+      ir.TreeNode parent = functionNode;
+      while (parent is! ir.Member) {
+        parent = parent.parent;
+      }
+      _memberContext = parent;
+    }
+    return _memberContext;
   }
 
   @override

@@ -634,19 +634,25 @@ abstract class FunctionDataTypeVariablesMixin implements FunctionData {
 abstract class FunctionDataForEachParameterMixin implements FunctionData {
   ir.FunctionNode get functionNode;
 
+  // TODO(johnniwinther,sigmund): Remove this when it's no longer needed for
+  //  `getConstantValue` in [forEachParameter].
+  ir.Member get memberContext;
+
   @override
   void forEachParameter(
       JsToElementMap elementMap,
       ParameterStructure parameterStructure,
       void f(DartType type, String name, ConstantValue defaultValue),
       {bool isNative: false}) {
-    void handleParameter(ir.VariableDeclaration node, {bool isOptional: true}) {
-      DartType type = elementMap.getDartType(node.type);
-      String name = node.name;
+    void handleParameter(ir.VariableDeclaration parameter,
+        {bool isOptional: true}) {
+      DartType type = elementMap.getDartType(parameter.type);
+      String name = parameter.name;
       ConstantValue defaultValue;
       if (isOptional) {
-        if (node.initializer != null) {
-          defaultValue = elementMap.getConstantValue(node.initializer);
+        if (parameter.initializer != null) {
+          defaultValue =
+              elementMap.getConstantValue(memberContext, parameter.initializer);
         } else {
           defaultValue = new NullConstantValue();
         }
@@ -707,6 +713,9 @@ class FunctionDataImpl extends JMemberDataImpl
     staticTypes.writeToDataSink(sink, node);
     sink.end(tag);
   }
+
+  @override
+  ir.Member get memberContext => node;
 
   @override
   FunctionType getFunctionType(covariant JsKernelToElementMap elementMap) {

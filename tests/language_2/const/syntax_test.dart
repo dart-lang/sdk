@@ -85,8 +85,6 @@ const P3 = new Point(0, 0) + 1;
 //         ^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 // [cfe] New expression is not a constant expression.
-//                         ^
-// [cfe] Constant evaluation error:
 
 // Check that we cannot have cyclic references in compile time
 // expressions.
