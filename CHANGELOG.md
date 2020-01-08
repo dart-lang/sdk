@@ -1,3 +1,9 @@
+# 0.1.108
+
+* fixes to `avoid_redundant_argument_values`
+* `always_put_required_parameters` updated for NNBD
+* updated to `package:analyzer` 0.39.3 APIs
+
 # 0.1.107
 
 * miscellaneous doc cleanup (typos, etc)

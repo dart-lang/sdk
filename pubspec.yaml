@@ -1,5 +1,5 @@
 name: linter
-version: 0.1.107
+version: 0.1.108
 
 description: >-
   The implementation of the lint rules supported by the analyzer framework.
