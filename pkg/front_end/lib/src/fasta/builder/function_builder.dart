@@ -26,7 +26,9 @@ import '../messages.dart'
         messagePatchDeclarationMismatch,
         messagePatchDeclarationOrigin,
         messagePatchNonExternal,
-        noLength;
+        noLength,
+        templateRequiredNamedParameterHasDefaultValueError,
+        templateRequiredNamedParameterHasDefaultValueWarning;
 
 import '../modifier.dart';
 
@@ -341,7 +343,7 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
   @override
   bool get isNative => nativeMethodName != null;
 
-  FunctionNode buildFunction(LibraryBuilder library) {
+  FunctionNode buildFunction(SourceLibraryBuilder library) {
     assert(function == null);
     FunctionNode result = new FunctionNode(body, asyncMarker: asyncModifier);
     IncludesTypeParametersNonCovariantly needsCheckVisitor;
@@ -384,6 +386,27 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
         parameter.parent = result;
         if (formal.isRequired) {
           result.requiredParameterCount++;
+        }
+
+        if (library.isNonNullableByDefault &&
+            library.loader.target.performNnbdChecks) {
+          if (formal.isNamedRequired && formal.initializerToken != null) {
+            if (library.loader.nnbdStrongMode) {
+              library.addProblem(
+                  templateRequiredNamedParameterHasDefaultValueError
+                      .withArguments(formal.name),
+                  formal.charOffset,
+                  formal.name.length,
+                  formal.fileUri);
+            } else {
+              library.addProblem(
+                  templateRequiredNamedParameterHasDefaultValueWarning
+                      .withArguments(formal.name),
+                  formal.charOffset,
+                  formal.name.length,
+                  formal.fileUri);
+            }
+          }
         }
       }
     }

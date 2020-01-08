@@ -504,6 +504,10 @@ RedirectingConstructorWithBody/script1: Fail
 RedirectionInNonFactory/part_wrapped_script1: Fail
 RedirectionInNonFactory/script1: Fail
 RedirectionTargetNotFound/example: Fail
+RequiredNamedParameterHasDefaultValueError/analyzerCode: Fail
+RequiredNamedParameterHasDefaultValueError/example: Fail
+RequiredNamedParameterHasDefaultValueWarning/analyzerCode: Fail
+RequiredNamedParameterHasDefaultValueWarning/example: Fail
 RethrowNotCatch/example: Fail
 ReturnTypeFunctionExpression/analyzerCode: Fail
 ReturnTypeFunctionExpression/example: Fail

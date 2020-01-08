@@ -3754,3 +3754,10 @@ ThrowingNotAssignableToObjectError:
 ThrowingNotAssignableToObjectWarning:
   template: "Throwing a value of '#type' that is neither dynamic nor non-nullable."
   severity: WARNING
+
+RequiredNamedParameterHasDefaultValueError:
+  template: "Required named parameter '#name' can't have a default value."
+
+RequiredNamedParameterHasDefaultValueWarning:
+  template: "Required named parameter '#name' has a default value."
+  severity: WARNING

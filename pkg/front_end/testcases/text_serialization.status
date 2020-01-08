@@ -6,7 +6,6 @@
 # the round trip for Kernel textual serialization where the initial binary
 # Kernel files are produced by compiling Dart code via Fasta.
 
-nnbd/issue39659: TextSerializationFailure
 expression/eval: TextSerializationFailure # Was: Pass
 expression/main: TextSerializationFailure # Was: Pass
 extensions/annotations: TextSerializationFailure
@@ -165,10 +164,10 @@ general/error_locations/error_location_04: TextSerializationFailure
 general/error_locations/error_location_05: TextSerializationFailure
 general/error_locations/error_location_06: TextSerializationFailure
 general/escape: TextSerializationFailure # Was: Pass
-general/extend_with_type_variable: TextSerializationFailure
 general/export_main: TextSerializationFailure # Was: Pass
 general/export_test: TextSerializationFailure # Was: Pass
 general/expressions: TextSerializationFailure # Was: RuntimeError
+general/extend_with_type_variable: TextSerializationFailure
 general/external: TextSerializationFailure # Was: Pass
 general/external_import: TextSerializationFailure # Was: RuntimeError # The native extension to import doesn't exist. This is ok.
 general/fallthrough: TextSerializationFailure
@@ -933,6 +932,7 @@ nnbd/function_types: TextSerializationFailure
 nnbd/inheritance_from_opt_in: TypeCheckError
 nnbd/inheritance_from_opt_out: TextSerializationFailure
 nnbd/intersection_types: TextSerializationFailure
+nnbd/issue39659: TextSerializationFailure
 nnbd/issue39822: TextSerializationFailure
 nnbd/issue_39286: TextSerializationFailure
 nnbd/issue_39286_2: TextSerializationFailure
@@ -955,6 +955,7 @@ nnbd/nullable_param: TextSerializationFailure
 nnbd/opt_out: TextSerializationFailure
 nnbd/regress_null_aware: TextSerializationFailure
 nnbd/required: TextSerializationFailure
+nnbd/required_named_parameter: TextSerializationFailure
 nnbd/simple_never: TextSerializationFailure
 nnbd/substitution_in_inference: TextSerializationFailure
 nnbd/type_parameter_types: TextSerializationFailure

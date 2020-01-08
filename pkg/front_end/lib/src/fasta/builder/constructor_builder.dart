@@ -228,7 +228,7 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
   }
 
   @override
-  FunctionNode buildFunction(LibraryBuilder library) {
+  FunctionNode buildFunction(SourceLibraryBuilder library) {
     // According to the specification §9.3 the return type of a constructor
     // function is its enclosing class.
     FunctionNode functionNode = super.buildFunction(library);
