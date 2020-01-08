@@ -1189,7 +1189,7 @@ class FlowModel<Variable, Type> {
     Map<Variable, VariableModel<Type>> newVariableInfo;
     for (Variable variable in writtenVariables) {
       VariableModel<Type> info = infoFor(variable);
-      if (info.promotionChain != null) {
+      if (info.promotedTypes != null) {
         (newVariableInfo ??= new Map<Variable, VariableModel<Type>>.from(
             variableInfo))[variable] = info.discardPromotions();
       }
@@ -1301,7 +1301,7 @@ class FlowModel<Variable, Type> {
     if (info.writeCaptured) {
       return new ExpressionInfo<Variable, Type>(this, this, this);
     }
-    Type previousType = info.promotionChain?.last;
+    Type previousType = info.promotedTypes?.last;
     previousType ??= typeOperations.variableType(variable);
     Type type = typeOperations.promoteToNonNull(previousType);
     if (typeOperations.isSameType(type, previousType)) {
@@ -1328,7 +1328,7 @@ class FlowModel<Variable, Type> {
     if (info.writeCaptured) {
       return new ExpressionInfo<Variable, Type>(this, this, this);
     }
-    Type previousType = info.promotionChain?.last;
+    Type previousType = info.promotedTypes?.last;
     previousType ??= typeOperations.variableType(variable);
 
     Type newType = typeOperations.tryPromoteToType(type, previousType);
@@ -1364,24 +1364,23 @@ class FlowModel<Variable, Type> {
       Variable variable,
       VariableModel<Type> info,
       Type testedType) {
-    List<Type> newPromotionChain =
-        VariableModel._addToPromotionChain(info.promotionChain, testedType);
-    List<Type> newTypesOfInterest = VariableModel._addTypeToUniqueList(
-        info.typesOfInterest, testedType, typeOperations);
-    FlowModel<Variable, Type> modelIfFailed =
-        identical(newTypesOfInterest, info.typesOfInterest)
-            ? this
-            : _updateVariableInfo(
-                variable,
-                new VariableModel<Type>(info.promotionChain, newTypesOfInterest,
-                    info.assigned, info.writeCaptured));
+    List<Type> newPromotedTypes =
+        VariableModel._addToPromotedTypes(info.promotedTypes, testedType);
+    List<Type> newTested = VariableModel._addTypeToUniqueList(
+        info.tested, testedType, typeOperations);
+    FlowModel<Variable, Type> modelIfFailed = identical(newTested, info.tested)
+        ? this
+        : _updateVariableInfo(
+            variable,
+            new VariableModel<Type>(info.promotedTypes, newTested,
+                info.assigned, info.writeCaptured));
     FlowModel<Variable, Type> modelIfSuccessful =
-        identical(newPromotionChain, info.promotionChain) &&
-                identical(newTypesOfInterest, info.typesOfInterest)
+        identical(newPromotedTypes, info.promotedTypes) &&
+                identical(newTested, info.tested)
             ? this
             : _updateVariableInfo(
                 variable,
-                new VariableModel<Type>(newPromotionChain, newTypesOfInterest,
+                new VariableModel<Type>(newPromotedTypes, newTested,
                     info.assigned, info.writeCaptured));
     return new ExpressionInfo<Variable, Type>(
         this, modelIfSuccessful, modelIfFailed);
@@ -1532,11 +1531,11 @@ class VariableModel<Type> {
   /// Sequence of types that the variable has been promoted to, where each
   /// element of the sequence is a subtype of the previous.  Null if the
   /// variable hasn't been promoted.
-  final List<Type> promotionChain;
+  final List<Type> promotedTypes;
 
   /// List of types that the variable has been tested against in all code paths
   /// leading to the given point in the source code.
-  final List<Type> typesOfInterest;
+  final List<Type> tested;
 
   /// Indicates whether the variable has definitely been assigned.
   final bool assigned;
@@ -1544,34 +1543,33 @@ class VariableModel<Type> {
   /// Indicates whether the variable has been write captured.
   final bool writeCaptured;
 
-  VariableModel(this.promotionChain, this.typesOfInterest, this.assigned,
-      this.writeCaptured) {
-    assert(promotionChain == null || promotionChain.isNotEmpty);
-    assert(!writeCaptured || promotionChain == null,
+  VariableModel(
+      this.promotedTypes, this.tested, this.assigned, this.writeCaptured) {
+    assert(promotedTypes == null || promotedTypes.isNotEmpty);
+    assert(!writeCaptured || promotedTypes == null,
         "Write-captured variables can't be promoted");
-    assert(typesOfInterest != null);
+    assert(tested != null);
   }
 
   /// Creates a [VariableModel] representing a variable that's never been seen
   /// before.
   VariableModel.fresh()
-      : promotionChain = null,
-        typesOfInterest = const [],
+      : promotedTypes = null,
+        tested = const [],
         assigned = false,
         writeCaptured = false;
 
   /// Returns a new [VariableModel] in which any promotions present have been
   /// dropped.
   VariableModel<Type> discardPromotions() {
-    assert(promotionChain != null, 'No promotions to discard');
-    return new VariableModel<Type>(
-        null, typesOfInterest, assigned, writeCaptured);
+    assert(promotedTypes != null, 'No promotions to discard');
+    return new VariableModel<Type>(null, tested, assigned, writeCaptured);
   }
 
   /// Returns a new [VariableModel] reflecting the fact that the variable was
   /// just initialized.
   VariableModel<Type> initialize() {
-    if (promotionChain == null && typesOfInterest.isEmpty && assigned) {
+    if (promotedTypes == null && tested.isEmpty && assigned) {
       return this;
     }
     return new VariableModel<Type>(null, const [], true, writeCaptured);
@@ -1582,51 +1580,51 @@ class VariableModel<Type> {
   /// for details.
   VariableModel<Type> restrict(TypeOperations<Object, Type> typeOperations,
       VariableModel<Type> otherModel, bool unsafe) {
-    List<Type> thisPromotionChain = promotionChain;
-    List<Type> otherPromotionChain = otherModel.promotionChain;
+    List<Type> thisPromotedTypes = promotedTypes;
+    List<Type> otherPromotedTypes = otherModel.promotedTypes;
     bool newAssigned = assigned || otherModel.assigned;
     bool newWriteCaptured = writeCaptured || otherModel.writeCaptured;
-    List<Type> newPromotionChain;
+    List<Type> newPromotedTypes;
     if (unsafe) {
       // There was an assignment to the variable in the "this" path, so none of
       // the promotions from the "other" path can be used.
-      newPromotionChain = thisPromotionChain;
-    } else if (otherPromotionChain == null) {
+      newPromotedTypes = thisPromotedTypes;
+    } else if (otherPromotedTypes == null) {
       // The other promotion chain contributes nothing so we just use this
       // promotion chain directly.
-      newPromotionChain = thisPromotionChain;
-    } else if (thisPromotionChain == null) {
+      newPromotedTypes = thisPromotedTypes;
+    } else if (thisPromotedTypes == null) {
       // This promotion chain contributes nothing so we just use the other
       // promotion chain directly.
-      newPromotionChain = otherPromotionChain;
+      newPromotedTypes = otherPromotedTypes;
     } else {
-      // Start with otherPromotionChain and apply each of the promotions in
-      // thisPromotionChain (discarding any that don't follow the ordering
+      // Start with otherPromotedTypes and apply each of the promotions in
+      // thisPromotedTypes (discarding any that don't follow the ordering
       // invariant)
-      newPromotionChain = otherPromotionChain;
-      Type otherPromotedType = otherPromotionChain.last;
-      for (int i = 0; i < thisPromotionChain.length; i++) {
-        Type nextType = thisPromotionChain[i];
+      newPromotedTypes = otherPromotedTypes;
+      Type otherPromotedType = otherPromotedTypes.last;
+      for (int i = 0; i < thisPromotedTypes.length; i++) {
+        Type nextType = thisPromotedTypes[i];
         if (typeOperations.isSubtypeOf(nextType, otherPromotedType) &&
             !typeOperations.isSameType(nextType, otherPromotedType)) {
-          newPromotionChain = otherPromotionChain.toList()
-            ..addAll(thisPromotionChain.skip(i));
+          newPromotedTypes = otherPromotedTypes.toList()
+            ..addAll(thisPromotedTypes.skip(i));
           break;
         }
       }
     }
-    return _identicalOrNew(this, otherModel, newPromotionChain, typesOfInterest,
+    return _identicalOrNew(this, otherModel, newPromotedTypes, tested,
         newAssigned, newWriteCaptured);
   }
 
   @override
   String toString() {
     List<String> parts = [];
-    if (promotionChain != null) {
-      parts.add('promotionChain: $promotionChain');
+    if (promotedTypes != null) {
+      parts.add('promotedTypes: $promotedTypes');
     }
-    if (typesOfInterest.isNotEmpty) {
-      parts.add('typesOfInterest: $typesOfInterest');
+    if (tested.isNotEmpty) {
+      parts.add('tested: $tested');
     }
     if (assigned) {
       parts.add('assigned: true');
@@ -1641,37 +1639,37 @@ class VariableModel<Type> {
   /// just written to.
   VariableModel<Type> write(
       Type writtenType, TypeOperations<Object, Type> typeOperations) {
-    List<Type> newPromotionChain;
-    if (promotionChain == null) {
-      newPromotionChain = null;
-    } else if (typeOperations.isSubtypeOf(writtenType, promotionChain.last)) {
-      newPromotionChain = promotionChain;
+    List<Type> newPromotedTypes;
+    if (promotedTypes == null) {
+      newPromotedTypes = null;
+    } else if (typeOperations.isSubtypeOf(writtenType, promotedTypes.last)) {
+      newPromotedTypes = promotedTypes;
     } else {
-      int numChainElementsToKeep = promotionChain.length - 1;
+      int numChainElementsToKeep = promotedTypes.length - 1;
       while (true) {
         if (numChainElementsToKeep == 0) {
-          newPromotionChain = null;
+          newPromotedTypes = null;
           break;
         } else if (typeOperations.isSubtypeOf(
-            writtenType, promotionChain[numChainElementsToKeep - 1])) {
-          newPromotionChain = promotionChain.sublist(0, numChainElementsToKeep);
+            writtenType, promotedTypes[numChainElementsToKeep - 1])) {
+          newPromotedTypes = promotedTypes.sublist(0, numChainElementsToKeep);
           break;
         } else {
           numChainElementsToKeep--;
         }
       }
     }
-    newPromotionChain = _tryPromoteToTypeOfInterest(
-        typeOperations, newPromotionChain, writtenType);
-    if (identical(promotionChain, newPromotionChain) && assigned) return this;
-    List<Type> newTypesOfInterest;
-    if (newPromotionChain == null && promotionChain != null) {
-      newTypesOfInterest = const [];
+    newPromotedTypes = _tryPromoteToTypeOfInterest(
+        typeOperations, newPromotedTypes, writtenType);
+    if (identical(promotedTypes, newPromotedTypes) && assigned) return this;
+    List<Type> newTested;
+    if (newPromotedTypes == null && promotedTypes != null) {
+      newTested = const [];
     } else {
-      newTypesOfInterest = typesOfInterest;
+      newTested = tested;
     }
     return new VariableModel<Type>(
-        newPromotionChain, newTypesOfInterest, true, writeCaptured);
+        newPromotedTypes, newTested, true, writeCaptured);
   }
 
   /// Returns a new [VariableModel] reflecting the fact that the variable has
@@ -1680,24 +1678,24 @@ class VariableModel<Type> {
     return new VariableModel<Type>(null, const [], assigned, true);
   }
 
-  /// Determines whether a variable with the given [promotionChain] should be
+  /// Determines whether a variable with the given [promotedTypes] should be
   /// promoted to [writtenType] based on types of interest.  If it should,
-  /// returns an updated promotion chain; otherwise returns [promotionChain]
+  /// returns an updated promotion chain; otherwise returns [promotedTypes]
   /// unchanged.
   ///
   /// Note that since promotions chains are considered immutable, if promotion
   /// is required, a new promotion chain will be created and returned.
   List<Type> _tryPromoteToTypeOfInterest(
       TypeOperations<Object, Type> typeOperations,
-      List<Type> promotionChain,
+      List<Type> promotedTypes,
       Type writtenType) {
     // Figure out if we have any promotion candidates (types that are a
     // supertype of writtenType and a proper subtype of the currently-promoted
     // type).  If at any point we find an exact match, we take it immediately.
-    Type currentlyPromotedType = promotionChain?.last;
+    Type currentlyPromotedType = promotedTypes?.last;
     List<Type> candidates = null;
-    for (int i = 0; i < typesOfInterest.length; i++) {
-      Type type = typesOfInterest[i];
+    for (int i = 0; i < tested.length; i++) {
+      Type type = tested[i];
       if (!typeOperations.isSubtypeOf(writtenType, type)) {
         // Can't promote to this type; the type written is not a subtype of
         // it.
@@ -1711,7 +1709,7 @@ class VariableModel<Type> {
         // promoted type.
       } else if (typeOperations.isSameType(type, writtenType)) {
         // This is precisely the type we want to promote to; take it.
-        return _addToPromotionChain(promotionChain, writtenType);
+        return _addToPromotedTypes(promotedTypes, writtenType);
       } else {
         (candidates ??= []).add(type);
       }
@@ -1731,17 +1729,17 @@ class VariableModel<Type> {
         }
         if (promoted != null) {
           // Not unique.  Do not promote.
-          return promotionChain;
+          return promotedTypes;
         } else {
           promoted = candidates[i];
         }
       }
       if (promoted != null) {
-        return _addToPromotionChain(promotionChain, promoted);
+        return _addToPromotedTypes(promotedTypes, promoted);
       }
     }
     // No suitable promotion found.
-    return promotionChain;
+    return promotedTypes;
   }
 
   /// Joins two variable models.  See [FlowModel.join] for details.
@@ -1749,22 +1747,21 @@ class VariableModel<Type> {
       TypeOperations<Object, Type> typeOperations,
       VariableModel<Type> first,
       VariableModel<Type> second) {
-    List<Type> newPromotionChain = joinPromotionChains(
-        first.promotionChain, second.promotionChain, typeOperations);
+    List<Type> newPromotedTypes = joinPromotedTypes(
+        first.promotedTypes, second.promotedTypes, typeOperations);
     bool newAssigned = first.assigned && second.assigned;
     bool newWriteCaptured = first.writeCaptured || second.writeCaptured;
-    List<Type> newTypesOfInterest = newWriteCaptured
+    List<Type> newTested = newWriteCaptured
         ? const []
-        : joinTypesOfInterest(
-            first.typesOfInterest, second.typesOfInterest, typeOperations);
-    return _identicalOrNew(first, second, newPromotionChain, newTypesOfInterest,
+        : joinTested(first.tested, second.tested, typeOperations);
+    return _identicalOrNew(first, second, newPromotedTypes, newTested,
         newAssigned, newWriteCaptured);
   }
 
   /// Performs the portion of the "join" algorithm that applies to promotion
   /// chains.  Briefly, we keep the longest initial subchain that both input
   /// chains share, and discard all other promotions.
-  static List<Type> joinPromotionChains<Type>(List<Type> chain1,
+  static List<Type> joinPromotedTypes<Type>(List<Type> chain1,
       List<Type> chain2, TypeOperations<Object, Type> typeOperations) {
     if (chain1 == null) return chain1;
     if (chain2 == null) return chain2;
@@ -1790,8 +1787,8 @@ class VariableModel<Type> {
   /// - The sense of equality for the union operation is determined by
   ///   [TypeOperations.isSameType].
   /// - The types of interests lists are considered immutable.
-  static List<Type> joinTypesOfInterest<Type>(List<Type> types1,
-      List<Type> types2, TypeOperations<Object, Type> typeOperations) {
+  static List<Type> joinTested<Type>(List<Type> types1, List<Type> types2,
+      TypeOperations<Object, Type> typeOperations) {
     // Ensure that types1 is the shorter list.
     if (types1.length > types2.length) {
       List<Type> tmp = types1;
@@ -1820,11 +1817,11 @@ class VariableModel<Type> {
     return types2;
   }
 
-  static List<Type> _addToPromotionChain<Type>(
-          List<Type> promotionChain, Type promoted) =>
-      promotionChain == null
+  static List<Type> _addToPromotedTypes<Type>(
+          List<Type> promotedTypes, Type promoted) =>
+      promotedTypes == null
           ? [promoted]
-          : (promotionChain.toList()..add(promoted));
+          : (promotedTypes.toList()..add(promoted));
 
   static List<Type> _addTypeToUniqueList<Type>(List<Type> types, Type newType,
       TypeOperations<Object, Type> typeOperations) {
@@ -1837,23 +1834,23 @@ class VariableModel<Type> {
   static VariableModel<Type> _identicalOrNew<Type>(
       VariableModel<Type> first,
       VariableModel<Type> second,
-      List<Type> newPromotionChain,
-      List<Type> newTypesOfInterest,
+      List<Type> newPromotedTypes,
+      List<Type> newTested,
       bool newAssigned,
       bool newWriteCaptured) {
-    if (identical(first.promotionChain, newPromotionChain) &&
-        identical(first.typesOfInterest, newTypesOfInterest) &&
+    if (identical(first.promotedTypes, newPromotedTypes) &&
+        identical(first.tested, newTested) &&
         first.assigned == newAssigned &&
         first.writeCaptured == newWriteCaptured) {
       return first;
-    } else if (identical(second.promotionChain, newPromotionChain) &&
-        identical(second.typesOfInterest, newTypesOfInterest) &&
+    } else if (identical(second.promotedTypes, newPromotedTypes) &&
+        identical(second.tested, newTested) &&
         second.assigned == newAssigned &&
         second.writeCaptured == newWriteCaptured) {
       return second;
     } else {
       return new VariableModel<Type>(
-          newPromotionChain, newTypesOfInterest, newAssigned, newWriteCaptured);
+          newPromotedTypes, newTested, newAssigned, newWriteCaptured);
     }
   }
 
@@ -2357,7 +2354,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
 
   @override
   Type promotedType(Variable variable) {
-    return _current.infoFor(variable).promotionChain?.last;
+    return _current.infoFor(variable).promotedTypes?.last;
   }
 
   @override
@@ -2474,7 +2471,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
   @override
   Type variableRead(Expression expression, Variable variable) {
     _storeExpressionInfo(expression, new _VariableReadInfo(_current, variable));
-    return _current.infoFor(variable).promotionChain?.last;
+    return _current.infoFor(variable).promotedTypes?.last;
   }
 
   @override
