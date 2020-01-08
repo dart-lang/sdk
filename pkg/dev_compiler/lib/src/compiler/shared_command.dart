@@ -212,7 +212,7 @@ Map<String, String> _parseCustomSummaryModules(List<String> summaryPaths,
   var pathToModule = <String, String>{};
   if (summaryPaths == null) return pathToModule;
   for (var summaryPath in summaryPaths) {
-    var equalSign = summaryPath.indexOf("=");
+    var equalSign = summaryPath.indexOf('=');
     String modulePath;
     var summaryPathWithoutExt = summaryExt != null
         ? summaryPath.substring(
@@ -306,7 +306,7 @@ Uri sourcePathToUri(String source, {bool windows}) {
     }
   }
   if (windows) {
-    source = source.replaceAll("\\", "/");
+    source = source.replaceAll('\\', '/');
   }
 
   Uri result = Uri.base.resolve(source);
@@ -353,8 +353,8 @@ Map placeSourceMap(Map sourceMap, String sourceMapPath,
         // custom logic is BUILD specific and could be shared with other tools
         // like dart2js.
         var shortPath = uri.path
-            .replaceAll("/sdk/", "/dart-sdk/")
-            .replaceAll("/sdk_nnbd/", "/dart-sdk/");
+            .replaceAll('/sdk/', '/dart-sdk/')
+            .replaceAll('/sdk_nnbd/', '/dart-sdk/');
         var multiRootPath = "${multiRootOutputPath ?? ''}$shortPath";
         multiRootPath = multiRootPath;
         multiRootPath = p.url.relative(multiRootPath, from: sourceMapDir);

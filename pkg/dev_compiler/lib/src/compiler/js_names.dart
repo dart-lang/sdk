@@ -266,55 +266,55 @@ Object /*String|TemporaryId*/ identifierKey(Identifier node) =>
 bool invalidVariableName(String keyword, {bool strictMode = true}) {
   switch (keyword) {
     // http://www.ecma-international.org/ecma-262/6.0/#sec-future-reserved-words
-    case "await":
+    case 'await':
 
-    case "break":
-    case "case":
-    case "catch":
-    case "class":
-    case "const":
-    case "continue":
-    case "debugger":
-    case "default":
-    case "delete":
-    case "do":
-    case "else":
-    case "enum":
-    case "export":
-    case "extends":
-    case "finally":
-    case "for":
-    case "function":
-    case "if":
-    case "import":
-    case "in":
-    case "instanceof":
-    case "new":
-    case "return":
-    case "super":
-    case "switch":
-    case "this":
-    case "throw":
-    case "try":
-    case "typeof":
-    case "var":
-    case "void":
-    case "while":
-    case "with":
+    case 'break':
+    case 'case':
+    case 'catch':
+    case 'class':
+    case 'const':
+    case 'continue':
+    case 'debugger':
+    case 'default':
+    case 'delete':
+    case 'do':
+    case 'else':
+    case 'enum':
+    case 'export':
+    case 'extends':
+    case 'finally':
+    case 'for':
+    case 'function':
+    case 'if':
+    case 'import':
+    case 'in':
+    case 'instanceof':
+    case 'new':
+    case 'return':
+    case 'super':
+    case 'switch':
+    case 'this':
+    case 'throw':
+    case 'try':
+    case 'typeof':
+    case 'var':
+    case 'void':
+    case 'while':
+    case 'with':
       return true;
-    case "arguments":
-    case "eval":
+    case 'arguments':
+    case 'eval':
     // http://www.ecma-international.org/ecma-262/6.0/#sec-future-reserved-words
     // http://www.ecma-international.org/ecma-262/6.0/#sec-identifiers-static-semantics-early-errors
-    case "implements":
-    case "interface":
-    case "let":
-    case "package":
-    case "private":
-    case "protected":
-    case "public":
-    case "static":
-    case "yield":
+    case 'implements':
+    case 'interface':
+    case 'let':
+    case 'package':
+    case 'private':
+    case 'protected':
+    case 'public':
+    case 'static':
+    case 'yield':
       return strictMode;
   }
   return false;
@@ -329,11 +329,11 @@ bool invalidVariableName(String keyword, {bool strictMode = true}) {
 /// class syntax.
 bool isFunctionPrototypeGetter(String name) {
   switch (name) {
-    case "arguments":
-    case "caller":
-    case "callee":
-    case "name":
-    case "length":
+    case 'arguments':
+    case 'caller':
+    case 'callee':
+    case 'name':
+    case 'length':
       return true;
   }
   return false;
@@ -344,18 +344,18 @@ bool isFunctionPrototypeGetter(String name) {
 /// http://www.ecma-international.org/ecma-262/6.0/#sec-properties-of-the-object-prototype-object
 /// http://www.ecma-international.org/ecma-262/6.0/#sec-additional-properties-of-the-object.prototype-object
 final objectProperties = <String>[
-  "constructor",
-  "toString",
-  "toLocaleString",
-  "valueOf",
-  "hasOwnProperty",
-  "isPrototypeOf",
-  "propertyIsEnumerable",
-  "__defineGetter__",
-  "__lookupGetter__",
-  "__defineSetter__",
-  "__lookupSetter__",
-  "__proto__"
+  'constructor',
+  'toString',
+  'toLocaleString',
+  'valueOf',
+  'hasOwnProperty',
+  'isPrototypeOf',
+  'propertyIsEnumerable',
+  '__defineGetter__',
+  '__lookupGetter__',
+  '__defineSetter__',
+  '__lookupSetter__',
+  '__proto__'
 ].toSet();
 
 /// Returns the JS member name for a public Dart instance member, before it

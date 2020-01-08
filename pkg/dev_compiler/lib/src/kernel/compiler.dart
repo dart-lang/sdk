@@ -61,7 +61,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// Let variables collected for the given function.
   List<js_ast.TemporaryId> _letVariables;
 
-  final _constTable = _emitTemporaryId("CT");
+  final _constTable = _emitTemporaryId('CT');
 
   // Constant getters used to populate the constant table.
   final _constLazyAccessors = List<js_ast.Method>();
@@ -321,7 +321,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     // TODO(markzipan): Don't emit this when compiling the SDK.
     moduleItems
-        .add(js.statement("const # = Object.create(null);", [_constTable]));
+        .add(js.statement('const # = Object.create(null);', [_constTable]));
     _constTableInsertionIndex = moduleItems.length;
 
     // Add implicit dart:core dependency so it is first.
@@ -897,7 +897,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       // and anonymous function names.
       // TODO(leafp:) Eliminate this once the bug is fixed:
       // https://bugs.chromium.org/p/v8/issues/detail?id=7069
-      body.add(js.statement("const # = #", [
+      body.add(js.statement('const # = #', [
         mixinId,
         js_ast.ClassExpression(_emitTemporaryId(mixinName), baseClass, [])
       ]));
@@ -1072,7 +1072,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     if (isClassSymbol == null) {
       // TODO(jmesserly): we could export these symbols, if we want to mark
       // implemented interfaces for user-defined classes.
-      var id = _emitTemporaryId("_is_${getLocalClassName(c)}_default");
+      var id = _emitTemporaryId('_is_${getLocalClassName(c)}_default');
       moduleItems.add(
           js.statement('const # = Symbol(#);', [id, js.string(id.name, "'")]));
       isClassSymbol = id;
@@ -2395,7 +2395,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   bool _isExternal(Member m) {
     // Corresponds to the names in memberNameForDartMember in
     // compiler/js_names.dart.
-    const renamedJsMembers = ["prototype", "constructor"];
+    const renamedJsMembers = ['prototype', 'constructor'];
     if (m is Procedure) {
       if (m.isExternal) return true;
       if (m.isNoSuchMethodForwarder) {
@@ -3716,7 +3716,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var cases = <js_ast.SwitchCase>[];
 
     if (_inLabeledContinueSwitch) {
-      var labelState = _emitTemporaryId("labelState");
+      var labelState = _emitTemporaryId('labelState');
       // TODO(markzipan): Retrieve the real label name with source offsets
       var labelName = 'SL${_switchLabelStates.length}';
       _switchLabelStates[node] = _SwitchLabelState(labelName, labelState);
@@ -3799,7 +3799,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       var jsExpr = node.target.expressions.isEmpty
           ? js.call("Symbol('_default')", [])
           : _visitExpression(node.target.expressions[0]);
-      var setStateStmt = js.statement("# = #", [switchState.variable, jsExpr]);
+      var setStateStmt = js.statement('# = #', [switchState.variable, jsExpr]);
       var continueStmt = js_ast.Continue(switchState.label);
       return js_ast.Block([setStateStmt, continueStmt]);
     }
@@ -4299,7 +4299,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   js_ast.Expression _implicitCallTarget(InterfaceType from) {
     var c = from.classNode;
-    var member = _hierarchy.getInterfaceMember(c, Name("call"));
+    var member = _hierarchy.getInterfaceMember(c, Name('call'));
     if (member is Procedure && !member.isAccessor && !usesJSInterop(c)) {
       return _emitMemberName('call', member: member);
     }
@@ -4852,7 +4852,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         if (args.length > 2) {
           throw ArgumentError(
               "Can't mix template args and string interpolation in JS calls: "
-              "`$node`");
+              '`$node`');
         }
         templateArgs = <Expression>[];
         source = code.expressions.map((expression) {
@@ -5118,31 +5118,31 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   @override
   js_ast.Expression visitListConcatenation(ListConcatenation node) {
     // Only occurs inside unevaluated constants.
-    throw UnsupportedError("List concatenation");
+    throw UnsupportedError('List concatenation');
   }
 
   @override
   js_ast.Expression visitSetConcatenation(SetConcatenation node) {
     // Only occurs inside unevaluated constants.
-    throw UnsupportedError("Set concatenation");
+    throw UnsupportedError('Set concatenation');
   }
 
   @override
   js_ast.Expression visitMapConcatenation(MapConcatenation node) {
     // Only occurs inside unevaluated constants.
-    throw UnsupportedError("Map concatenation");
+    throw UnsupportedError('Map concatenation');
   }
 
   @override
   js_ast.Expression visitInstanceCreation(InstanceCreation node) {
     // Only occurs inside unevaluated constants.
-    throw UnsupportedError("Instance creation");
+    throw UnsupportedError('Instance creation');
   }
 
   @override
   js_ast.Expression visitFileUriExpression(FileUriExpression node) {
     // Only occurs inside unevaluated constants.
-    throw UnsupportedError("File URI expression");
+    throw UnsupportedError('File URI expression');
   }
 
   @override
@@ -5504,7 +5504,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Expression visitConstant(Constant node) {
     if (node is TearOffConstant) {
       // JS() or external JS consts should not be lazily loaded.
-      var isSdk = node.procedure.enclosingLibrary.importUri.scheme == "dart";
+      var isSdk = node.procedure.enclosingLibrary.importUri.scheme == 'dart';
       if (_isInForeignJS) {
         return _emitStaticTarget(node.procedure);
       }
@@ -5520,11 +5520,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     if (constAlias != null) {
       return constAlias;
     }
-    var constAliasString = "C${constAliasCache.length}";
+    var constAliasString = 'C${constAliasCache.length}';
     var constAliasProperty = propertyName(constAliasString);
     var constAliasId = _emitTemporaryId(constAliasString);
     var constAccessor =
-        js.call("# || #.#", [constAliasId, _constTable, constAliasProperty]);
+        js.call('# || #.#', [constAliasId, _constTable, constAliasProperty]);
     constAliasCache[node] = constAccessor;
     var constJs = super.visitConstant(node);
     moduleItems.add(js.statement('let #;', [constAliasId]));
@@ -5532,7 +5532,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var func = js_ast.Fun(
         [],
         js_ast.Block([
-          js.statement("return # = #;", [constAliasId, constJs])
+          js.statement('return # = #;', [constAliasId, constJs])
         ]));
     var accessor = js_ast.Method(constAliasProperty, func, isGetter: true);
     _constLazyAccessors.add(accessor);
@@ -5626,9 +5626,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var type = _emitInterfaceType(
         node.getType(_staticTypeContext) as InterfaceType,
         emitNullability: false);
-    var prototype = js.call("#.prototype", [type]);
+    var prototype = js.call('#.prototype', [type]);
     var properties = [
-      js_ast.Property(propertyName("__proto__"), prototype),
+      js_ast.Property(propertyName('__proto__'), prototype),
       for (var e in node.fieldValues.entries.toList().reversed)
         entryToProperty(e),
     ];

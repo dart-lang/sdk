@@ -204,7 +204,7 @@ Future<CompilerResult> _compile(List<String> args,
   var invalidSummary = summaryPaths.any((s) => !s.endsWith('.dill')) ||
       !sdkSummaryPath.endsWith('.dill');
   if (invalidSummary) {
-    throw StateError("Non-dill file detected in input: $summaryPaths");
+    throw StateError('Non-dill file detected in input: $summaryPaths');
   }
 
   if (librarySpecPath == null) {
@@ -218,9 +218,9 @@ Future<CompilerResult> _compile(List<String> args,
     //
     // Another option: we could make an in-memory file with the relevant info.
     librarySpecPath =
-        p.join(p.dirname(p.dirname(sdkSummaryPath)), "libraries.json");
+        p.join(p.dirname(p.dirname(sdkSummaryPath)), 'libraries.json');
     if (!File(librarySpecPath).existsSync()) {
-      librarySpecPath = p.join(p.dirname(sdkSummaryPath), "libraries.json");
+      librarySpecPath = p.join(p.dirname(sdkSummaryPath), 'libraries.json');
     }
   }
 
@@ -295,9 +295,9 @@ Future<CompilerResult> _compile(List<String> args,
     compilerState = await fe.initializeIncrementalCompiler(
         oldCompilerState,
         {
-          "trackWidgetCreation=$trackWidgetCreation",
-          "multiRootScheme=${fileSystem.markerScheme}",
-          "multiRootRoots=${fileSystem.roots}",
+          'trackWidgetCreation=$trackWidgetCreation',
+          'multiRootScheme=${fileSystem.markerScheme}',
+          'multiRootRoots=${fileSystem.roots}',
         },
         doneInputSummaries,
         compileSdk,
@@ -425,11 +425,11 @@ Future<CompilerResult> _compile(List<String> args,
           .updateNeededDillLibrariesWithHierarchy(result.classHierarchy, null);
       for (Library lib
           in compilerState.incrementalCompiler.neededDillLibraries) {
-        if (lib.importUri.scheme == "dart") continue;
+        if (lib.importUri.scheme == 'dart') continue;
         Uri uri = compilerState.libraryToInputDill[lib.importUri];
         if (uri == null) {
-          throw StateError("Library ${lib.importUri} was recorded as used, "
-              "but was not in the list of known libraries.");
+          throw StateError('Library ${lib.importUri} was recorded as used, '
+              'but was not in the list of known libraries.');
         }
         usedOutlines.add(uri);
       }
@@ -440,7 +440,7 @@ Future<CompilerResult> _compile(List<String> args,
 
     var outputUsedFile = File(argResults['used-inputs-file'] as String);
     outputUsedFile.createSync(recursive: true);
-    outputUsedFile.writeAsStringSync(usedOutlines.join("\n"));
+    outputUsedFile.writeAsStringSync(usedOutlines.join('\n'));
   }
 
   await Future.wait(outFiles);
@@ -649,7 +649,7 @@ String _findPackagesFilePath() {
 
   // Check for $cwd/.packages
   while (true) {
-    var file = File(p.join(dir.path, ".packages"));
+    var file = File(p.join(dir.path, '.packages'));
     if (file.existsSync()) return file.path;
 
     // If we didn't find it, search the parent directory.

@@ -7,9 +7,9 @@
 void main() {
   /*bl*/
   try {
-    /*sl:1*/ var value = "world";
+    /*sl:1*/ var value = 'world';
     // Comment
-    /*sl:2*/ /*nbb:2:7*/ throw "Hello, $value";
+    /*sl:2*/ /*nbb:2:7*/ throw 'Hello, $value';
   }
   // Comment
   catch (e, /*s:3*/ st) {
@@ -18,7 +18,7 @@ void main() {
   }
   try {
     // Comment
-    /*sl:6*/ /*nbb:6:7*/ throw "Hello, world";
+    /*sl:6*/ /*nbb:6:7*/ throw 'Hello, world';
   } catch (e) {
     /*sl:7*/ print(e);
   }

@@ -4,6 +4,6 @@
 
 void main() {
   /*nb*/ // no break on empty line
-  /*bl*/ print("Hello, World!");
+  /*bl*/ print('Hello, World!');
 /*s:1*/
 }

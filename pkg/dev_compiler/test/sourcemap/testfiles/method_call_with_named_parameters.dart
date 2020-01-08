@@ -8,7 +8,7 @@ void main() {
 }
 
 foo(int bar, {int /*bc:3*/ baz}) {
-  /*bc:4*/ print("foo!");
+  /*bc:4*/ print('foo!');
 }
 
 int bar() {

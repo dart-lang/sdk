@@ -9,6 +9,6 @@ void main() {
 }
 
 foo() /*sl:2*/ async {
-  print("hello from foo");
+  print('hello from foo');
 /*s:3*/
 }

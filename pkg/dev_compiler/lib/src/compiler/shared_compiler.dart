@@ -162,7 +162,7 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
   @protected
   js_ast.Block exitFunction(
       String name, List<js_ast.Parameter> formals, js_ast.Block code) {
-    if (name == "==" &&
+    if (name == '==' &&
         formals.isNotEmpty &&
         currentLibraryUri.scheme != 'dart') {
       // In Dart `operator ==` methods are not called with a null argument.
@@ -510,7 +510,7 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
       js_ast.Expression value =
           js_ast.PropertyAccess(extensionSymbolsModule, propertyName(name));
       if (isBuildingSdk) {
-        value = js.call('# = Symbol(#)', [value, js.string("dartx.$name")]);
+        value = js.call('# = Symbol(#)', [value, js.string('dartx.$name')]);
       }
       items.add(js.statement('const # = #;', [id, value]));
     });

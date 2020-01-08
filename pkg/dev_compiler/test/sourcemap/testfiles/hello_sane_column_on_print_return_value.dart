@@ -7,5 +7,5 @@ void main() {
 }
 
 foo() {
-  return /*bc:2*/ "foo!";
+  return /*bc:2*/ 'foo!';
 }

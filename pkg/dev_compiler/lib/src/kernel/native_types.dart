@@ -141,7 +141,7 @@ class NativeTypeSet {
       if (names != null) {
         // Omit the special name "!nonleaf" and any future dart2js hacks
         // starting with "!"
-        return names.split(',').where((peer) => !peer.startsWith("!")).toList();
+        return names.split(',').where((peer) => !peer.startsWith('!')).toList();
       }
     }
     return const [];

@@ -8,5 +8,5 @@ void main() {
 }
 
 foo() {
-  /*s:2*/ print("hello from foo");
+  /*s:2*/ print('hello from foo');
 }

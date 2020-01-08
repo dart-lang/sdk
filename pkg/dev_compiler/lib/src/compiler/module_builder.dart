@@ -185,11 +185,11 @@ class DdcModuleBuilder extends _ModuleBuilder {
         js.fun("function(#) { 'use strict'; #; }", [parameters, statements]),
         true);
 
-    var moduleDef = js.statement("dart_library.library(#, #, #, #)", [
+    var moduleDef = js.statement('dart_library.library(#, #, #, #)', [
       js.string(module.name, "'"),
       LiteralNull(),
       js.commentExpression(
-          "Imports", ArrayInitializer(importNames, multiline: true)),
+          'Imports', ArrayInitializer(importNames, multiline: true)),
       resultModule
     ]);
     return Program(<ModuleItem>[moduleDef]);
@@ -316,4 +316,4 @@ String pathToJSIdentifier(String path) {
 }
 
 // Replacement string for path separators (i.e., '/', '\', '..').
-final encodedSeparator = "__";
+final encodedSeparator = '__';

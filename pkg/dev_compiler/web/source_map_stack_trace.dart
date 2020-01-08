@@ -50,7 +50,7 @@ StackTrace mapStackTrace(Mapping sourceMap, StackTrace stackTrace,
         }
         var packageRoot = '$root/packages';
         if (p.url.isWithin(packageRoot, sourceUrl)) {
-          sourceUrl = "package:" + p.url.relative(sourceUrl, from: packageRoot);
+          sourceUrl = 'package:' + p.url.relative(sourceUrl, from: packageRoot);
           break;
         }
       }

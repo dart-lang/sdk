@@ -239,7 +239,7 @@ bool isUnsupportedFactoryConstructor(Procedure node) {
 /// if the field [f] is storing that information, otherwise returns `null`.
 Iterable<Member> getRedirectingFactories(Field f) {
   // TODO(jmesserly): this relies on implementation details in Kernel
-  if (f.name.name == "_redirecting#") {
+  if (f.name.name == '_redirecting#') {
     assert(f.isStatic);
     var list = f.initializer as ListLiteral;
     return list.expressions.map((e) => (e as StaticGet).target);

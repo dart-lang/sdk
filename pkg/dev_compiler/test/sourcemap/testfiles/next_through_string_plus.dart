@@ -10,5 +10,5 @@ void main() {
   print(qux);
 }
 
-String foo() => "a";
-String bar() => "b";
+String foo() => 'a';
+String bar() => 'b';

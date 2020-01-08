@@ -12,7 +12,7 @@ import 'package:modular_test/src/pipeline.dart';
 import 'package:modular_test/src/suite.dart';
 import 'package:modular_test/src/runner.dart';
 
-Uri sdkRoot = Platform.script.resolve("../../../");
+Uri sdkRoot = Platform.script.resolve('../../../');
 Options _options;
 String _dartdevcScript;
 String _kernelWorkerScript;
@@ -30,9 +30,9 @@ main(List<String> args) async {
       ], cacheSharedModules: true));
 }
 
-const dillId = DataId("dill");
-const jsId = DataId("js");
-const txtId = DataId("txt");
+const dillId = DataId('dill');
+const jsId = DataId('js');
+const txtId = DataId('txt');
 
 class SourceToSummaryDillStep implements IOModularStep {
   @override
@@ -53,7 +53,7 @@ class SourceToSummaryDillStep implements IOModularStep {
   @override
   Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
       List<String> flags) async {
-    if (_options.verbose) print("\nstep: source-to-dill on $module");
+    if (_options.verbose) print('\nstep: source-to-dill on $module');
 
     // We use non file-URI schemes for representing source locations in a
     // root-agnostic way. This allows us to refer to file across modules and
@@ -115,7 +115,7 @@ class SourceToSummaryDillStep implements IOModularStep {
 
   @override
   void notifyCached(Module module) {
-    if (_options.verbose) print("\ncached step: source-to-dill on $module");
+    if (_options.verbose) print('\ncached step: source-to-dill on $module');
   }
 }
 
@@ -138,7 +138,7 @@ class DDKStep implements IOModularStep {
   @override
   Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
       List<String> flags) async {
-    if (_options.verbose) print("\nstep: ddk on $module");
+    if (_options.verbose) print('\nstep: ddk on $module');
 
     Set<Module> transitiveDependencies = computeTransitiveDependencies(module);
     await _createPackagesFile(module, root, transitiveDependencies);
@@ -191,7 +191,7 @@ class DDKStep implements IOModularStep {
 
   @override
   void notifyCached(Module module) {
-    if (_options.verbose) print("\ncached step: ddk on $module");
+    if (_options.verbose) print('\ncached step: ddk on $module');
   }
 }
 
@@ -214,7 +214,7 @@ class RunD8 implements IOModularStep {
   @override
   Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
       List<String> flags) async {
-    if (_options.verbose) print("\nstep: d8 on $module");
+    if (_options.verbose) print('\nstep: d8 on $module');
 
     // Rename sdk.js to dart_sdk.js (the alternative, but more hermetic solution
     // would be to rename the import on all other .js files, but seems
@@ -233,7 +233,7 @@ class RunD8 implements IOModularStep {
     ''';
 
     var wrapper =
-        root.resolveUri(toUri(module, jsId)).toFilePath() + ".wrapper.js";
+        root.resolveUri(toUri(module, jsId)).toFilePath() + '.wrapper.js';
     await File(wrapper).writeAsString(runjs);
     List<String> d8Args = ['--module', wrapper];
     var result = await _runProcess(
@@ -247,7 +247,7 @@ class RunD8 implements IOModularStep {
 
   @override
   void notifyCached(Module module) {
-    if (_options.verbose) print("\ncached step: d8 on $module");
+    if (_options.verbose) print('\ncached step: d8 on $module');
   }
 }
 
@@ -257,9 +257,9 @@ void _checkExitCode(ProcessResult result, IOModularStep step, Module module) {
     stderr.write(result.stderr);
   }
   if (result.exitCode != 0) {
-    throw "${step.runtimeType} failed on $module:\n\n"
-        "stdout:\n${result.stdout}\n\n"
-        "stderr:\n${result.stderr}";
+    throw '${step.runtimeType} failed on $module:\n\n'
+        'stdout:\n${result.stdout}\n\n'
+        'stderr:\n${result.stderr}';
   }
 }
 
@@ -313,7 +313,7 @@ Future<void> _createPackagesFile(
 String _sourceToImportUri(Module module, String rootScheme, Uri relativeUri) {
   if (module.isPackage) {
     var basePath = module.packageBase.path;
-    var packageRelativePath = basePath == "./"
+    var packageRelativePath = basePath == './'
         ? relativeUri.path
         : relativeUri.path.substring(basePath.length);
     return 'package:${module.name}/$packageRelativePath';

@@ -75,7 +75,7 @@ void main(List<String> argv) {
         contents = [
           contents
               .join('\n')
-              .replaceAll(RegExp("^part [^\n]*\$", multiLine: true), "")
+              .replaceAll(RegExp('^part [^\n]*\$', multiLine: true), '')
         ];
       }
 
@@ -338,11 +338,11 @@ class PatchFinder extends GeneralizingAstVisitor {
 }
 
 String _qualifiedName(Declaration node) {
-  var result = "";
+  var result = '';
 
   var parent = node.parent;
   if (parent is ClassDeclaration) {
-    result = "${parent.name.name}.";
+    result = '${parent.name.name}.';
   }
 
   var name = (node as dynamic).name as SimpleIdentifier;
@@ -351,7 +351,7 @@ String _qualifiedName(Declaration node) {
   // Make sure setters and getters don't collide.
   if (node is FunctionDeclaration && node.isSetter ||
       node is MethodDeclaration && node.isSetter) {
-    result += "=";
+    result += '=';
   }
 
   return result;
@@ -459,7 +459,7 @@ class _StringEdit implements Comparable<_StringEdit> {
 }
 
 ParseStringResult _parseString(String source, {bool useNnbd}) {
-  var features = FeatureSet.fromEnableFlags([if (useNnbd) "non-nullable"]);
+  var features = FeatureSet.fromEnableFlags([if (useNnbd) 'non-nullable']);
   return parseString(content: source, featureSet: features);
 }
 
@@ -484,10 +484,10 @@ String relativizeLibraryUri(Uri libRoot, Uri uri, bool useNnbd) {
   String relativePath = relativizeUri(libRoot, uri, isWindows);
   // During the nnbd-migration we may have paths that reach out into the
   // non-nnbd directory.
-  if (relativePath.startsWith("..")) {
+  if (relativePath.startsWith('..')) {
     if (!useNnbd || !relativePath.startsWith('../../sdk/lib/')) {
       print("error: can't handle libraries that live out of the sdk folder"
-          ": $relativePath");
+          ': $relativePath');
       exit(1);
     }
     relativePath = relativePath.replaceFirst('../../sdk/lib/', '');

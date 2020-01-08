@@ -19,7 +19,7 @@ class Foo {
   void Function() foo;
 
   void fooMethod() {
-    /*bl*/ /*s:4*/ /*s:6*/ print("Hello from fooMethod");
+    /*bl*/ /*s:4*/ /*s:6*/ print('Hello from fooMethod');
     /*nbb:0:4*/
   }
 }
