@@ -1,6 +1,7 @@
 # 0.1.108
 
 * fixes to `avoid_redundant_argument_values`
+* new lint: `use_key_in_widget_constructors`
 * `always_put_required_parameters` updated for NNBD
 * updated to `package:analyzer` 0.39.3 APIs
 
