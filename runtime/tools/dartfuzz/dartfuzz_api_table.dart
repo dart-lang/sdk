@@ -171,8 +171,6 @@ class DartLib {
   static const float32x4Libs = [
     DartLib(
         'Float32x4.fromFloat64x2', [DartType.VOID, DartType.FLOAT64X2], true),
-    DartLib(
-        'Float32x4.fromInt32x4Bits', [DartType.VOID, DartType.INT32X4], true),
     DartLib('Float32x4.splat', [DartType.VOID, DartType.DOUBLE], true),
     DartLib('Float32x4.zero', [DartType.VOID, DartType.VOID], true),
     DartLib('abs', [DartType.FLOAT32X4, DartType.VOID], true),

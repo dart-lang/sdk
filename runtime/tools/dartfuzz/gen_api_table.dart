@@ -621,7 +621,10 @@ void addToTable(String ret, String name, List<String> proto,
       // TODO(fizaaluthra): Enable reciprocal and reciprocalSqrt after we resolve
       // https://github.com/dart-lang/sdk/issues/39551
       name == 'reciprocal' ||
-      name == 'reciprocalSqrt') {
+      name == 'reciprocalSqrt' ||
+      // TODO(bkonyi): Enable Float32x4.fromInt32x4Bits after we resolve
+      // https://github.com/dart-lang/sdk/issues/39890
+      name == 'Float32x4.fromInt32x4Bits') {
     return;
   }
 
