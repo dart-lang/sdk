@@ -153,9 +153,7 @@ class DevCompilerTarget extends Target {
       DiagnosticReporter diagnosticReporter,
       {void logger(String msg)}) {
     if (flags.trackWidgetCreation) {
-      if (_widgetTracker == null) {
-        _widgetTracker = WidgetCreatorTracker();
-      }
+      _widgetTracker ??= WidgetCreatorTracker();
       _widgetTracker.transform(component, libraries);
     }
   }
