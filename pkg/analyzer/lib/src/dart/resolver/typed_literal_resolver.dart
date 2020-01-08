@@ -296,21 +296,6 @@ class TypedLiteralResolver {
     return _LiteralResolution(_LiteralResolutionKind.ambiguous, null);
   }
 
-  /**
-   * Return the type represented by the given type [annotation].
-   *
-   * TODO(scheglov) This method should not exist.
-   */
-  DartType _getType(TypeAnnotation annotation) {
-    DartType type = annotation.type;
-    if (type == null) {
-      //TODO(brianwilkerson) Determine the conditions for which the type is
-      // null.
-      return _dynamicType;
-    }
-    return type;
-  }
-
   _InferredCollectionElementTypeInformation _inferCollectionElementType(
       CollectionElement element) {
     if (element is Expression) {
@@ -603,7 +588,7 @@ class TypedLiteralResolver {
       DartType elementType = _dynamicType;
       NodeList<TypeAnnotation> arguments = typeArguments.arguments;
       if (arguments != null && arguments.length == 1) {
-        DartType argumentType = _getType(arguments[0]);
+        DartType argumentType = arguments[0].type;
         if (argumentType != null) {
           elementType = argumentType;
         }
@@ -643,7 +628,7 @@ class TypedLiteralResolver {
     if (typeArguments != null) {
       if (typeArguments.length == 1) {
         (node as SetOrMapLiteralImpl).becomeSet();
-        var elementType = _getType(typeArguments[0]) ?? _dynamicType;
+        var elementType = typeArguments[0].type;
         _recordStaticType(
           node,
           _typeProvider.setElement.instantiate(
@@ -654,8 +639,8 @@ class TypedLiteralResolver {
         return;
       } else if (typeArguments.length == 2) {
         (node as SetOrMapLiteralImpl).becomeMap();
-        var keyType = _getType(typeArguments[0]) ?? _dynamicType;
-        var valueType = _getType(typeArguments[1]) ?? _dynamicType;
+        var keyType = typeArguments[0].type;
+        var valueType = typeArguments[1].type;
         _recordStaticType(
           node,
           _typeProvider.mapElement.instantiate(
