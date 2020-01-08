@@ -12,7 +12,6 @@ import '../common/backend_api.dart' show ImpactTransformer;
 import '../common/codegen.dart' show CodegenImpact;
 import '../common/resolution.dart' show ResolutionImpact;
 import '../common_elements.dart' show ElementEnvironment;
-import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
@@ -275,21 +274,21 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
       }
     }
 
-    for (ConstantExpression constant in worldImpact.constantLiterals) {
+    for (ConstantValue constant in worldImpact.constantLiterals) {
       switch (constant.kind) {
-        case ConstantExpressionKind.NULL:
+        case ConstantValueKind.NULL:
           registerImpact(_impacts.nullLiteral);
           break;
-        case ConstantExpressionKind.BOOL:
+        case ConstantValueKind.BOOL:
           registerImpact(_impacts.boolLiteral);
           break;
-        case ConstantExpressionKind.INT:
+        case ConstantValueKind.INT:
           registerImpact(_impacts.intLiteral);
           break;
-        case ConstantExpressionKind.DOUBLE:
+        case ConstantValueKind.DOUBLE:
           registerImpact(_impacts.doubleLiteral);
           break;
-        case ConstantExpressionKind.STRING:
+        case ConstantValueKind.STRING:
           registerImpact(_impacts.stringLiteral);
           break;
         default:

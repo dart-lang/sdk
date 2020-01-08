@@ -6,16 +6,12 @@ library dart2js.js_model.env;
 
 import 'package:kernel/ast.dart' as ir;
 
-import '../common.dart';
-import '../constants/constructors.dart';
-import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/indexed.dart';
 import '../elements/types.dart';
 import '../ir/element_map.dart';
 import '../ir/static_type_cache.dart';
-import '../ir/visitors.dart';
 import '../ir/util.dart';
 import '../js_model/element_map.dart';
 import '../ordered_typeset.dart';
@@ -869,10 +865,7 @@ class GeneratorBodyFunctionData extends DelegatedFunctionData {
   StaticTypeCache get staticTypes => const StaticTypeCache();
 }
 
-abstract class JConstructorData extends FunctionData {
-  ConstantConstructor getConstructorConstant(
-      JsKernelToElementMap elementMap, ConstructorEntity constructor);
-}
+abstract class JConstructorData extends FunctionData {}
 
 class JConstructorDataImpl extends FunctionDataImpl
     implements JConstructorData {
@@ -880,7 +873,6 @@ class JConstructorDataImpl extends FunctionDataImpl
   /// debugging data stream.
   static const String tag = 'constructor-data';
 
-  ConstantConstructor _constantConstructor;
   JConstructorBody constructorBody;
 
   JConstructorDataImpl(ir.Member node, ir.FunctionNode functionNode,
@@ -917,23 +909,6 @@ class JConstructorDataImpl extends FunctionDataImpl
     assert(constructorBody == null);
     staticTypes.writeToDataSink(sink, node);
     sink.end(tag);
-  }
-
-  @override
-  ConstantConstructor getConstructorConstant(
-      JsKernelToElementMap elementMap, ConstructorEntity constructor) {
-    if (_constantConstructor == null) {
-      if (node is ir.Constructor && constructor.isConst) {
-        _constantConstructor =
-            new Constantifier(elementMap).computeConstantConstructor(node);
-      } else {
-        failedAt(
-            constructor,
-            "Unexpected constructor $constructor in "
-            "ConstructorDataImpl._getConstructorConstant");
-      }
-    }
-    return _constantConstructor;
   }
 
   @override
@@ -990,9 +965,6 @@ class ConstructorBodyDataImpl extends FunctionDataImpl {
 
 abstract class JFieldData extends JMemberData {
   DartType getFieldType(IrToElementMap elementMap);
-
-  ConstantExpression getFieldConstantExpression(
-      JsKernelToElementMap elementMap);
 }
 
 class JFieldDataImpl extends JMemberDataImpl implements JFieldData {
@@ -1001,7 +973,6 @@ class JFieldDataImpl extends JMemberDataImpl implements JFieldData {
   static const String tag = 'field-data';
 
   DartType _type;
-  ConstantExpression _constantExpression;
 
   JFieldDataImpl(
       ir.Field node, MemberDefinition definition, StaticTypeCache staticTypes)
@@ -1034,23 +1005,6 @@ class JFieldDataImpl extends JMemberDataImpl implements JFieldData {
   @override
   DartType getFieldType(covariant JsKernelToElementMap elementMap) {
     return _type ??= elementMap.getDartType(node.type);
-  }
-
-  @override
-  ConstantExpression getFieldConstantExpression(
-      JsKernelToElementMap elementMap) {
-    if (_constantExpression == null) {
-      if (node.isConst) {
-        _constantExpression =
-            new Constantifier(elementMap).visit(node.initializer);
-      } else {
-        failedAt(
-            definition.location,
-            "Unexpected field ${definition} in "
-            "FieldDataImpl.getFieldConstant");
-      }
-    }
-    return _constantExpression;
   }
 
   @override

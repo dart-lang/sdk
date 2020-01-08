@@ -17,10 +17,6 @@ import '../common.dart';
 import '../common/names.dart';
 import '../common/resolution.dart';
 import '../common_elements.dart';
-import '../compile_time_constants.dart';
-import '../constants/constructors.dart';
-import '../constants/evaluation.dart';
-import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/indexed.dart';
@@ -73,7 +69,6 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
   CommonElementsImpl _commonElements;
   KernelElementEnvironment _elementEnvironment;
   DartTypeConverter _typeConverter;
-  KernelConstantEnvironment _constantEnvironment;
   KernelDartTypes _types;
   ir.CoreTypes _coreTypes;
   ir.TypeEnvironment _typeEnvironment;
@@ -125,7 +120,6 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
       this.reporter, this._environment, this._frontendStrategy, this.options) {
     _elementEnvironment = new KernelElementEnvironment(this);
     _commonElements = new CommonElementsImpl(_elementEnvironment, options);
-    _constantEnvironment = new KernelConstantEnvironment(this, _environment);
     _typeConverter = new DartTypeConverter(this);
     _types = new KernelDartTypes(this);
     _constantValuefier = new ConstantValuefier(this);
@@ -560,13 +554,6 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
         namedParameters, namedParameterTypes, typeVariables);
   }
 
-  ConstantValue computeConstantValue(
-      Spannable spannable, ConstantExpression constant,
-      {bool requireConstant: true, bool checkCasts: true}) {
-    return _constantEnvironment._getConstantValue(spannable, constant,
-        constantRequired: requireConstant, checkCasts: checkCasts);
-  }
-
   @override
   DartType substByContext(DartType type, InterfaceType context) {
     return type.subst(
@@ -722,18 +709,6 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     if (data.supertype != null) {
       _forEachClassMember(data.supertype.element, f);
     }
-  }
-
-  ConstantConstructor _getConstructorConstant(IndexedConstructor constructor) {
-    assert(checkFamily(constructor));
-    KConstructorData data = members.getData(constructor);
-    return data.getConstructorConstant(this, constructor);
-  }
-
-  ConstantExpression _getFieldConstantExpression(IndexedField field) {
-    assert(checkFamily(field));
-    KFieldData data = members.getData(field);
-    return data.getFieldConstantExpression(this);
   }
 
   @override
@@ -1765,11 +1740,6 @@ class KernelElementEnvironment extends ElementEnvironment
   }
 
   @override
-  ConstantExpression getFieldConstantForTesting(FieldEntity field) {
-    return elementMap._getFieldConstantExpression(field);
-  }
-
-  @override
   DartType getUnaliasedType(DartType type) => type;
 
   @override
@@ -1944,79 +1914,6 @@ class KernelBehaviorBuilder extends BehaviorBuilder {
   @override
   bool get trustJSInteropTypeAnnotations =>
       _options.trustJSInteropTypeAnnotations;
-}
-
-/// Constant environment mapping [ConstantExpression]s to [ConstantValue]s using
-/// [_EvaluationEnvironment] for the evaluation.
-class KernelConstantEnvironment implements ConstantEnvironment {
-  final KernelToElementMapImpl _elementMap;
-  final Environment _environment;
-
-  Map<ConstantExpression, ConstantValue> _valueMap =
-      <ConstantExpression, ConstantValue>{};
-
-  KernelConstantEnvironment(this._elementMap, this._environment);
-
-  ConstantValue _getConstantValue(
-      Spannable spannable, ConstantExpression expression,
-      {bool constantRequired, bool checkCasts: true}) {
-    return _valueMap.putIfAbsent(expression, () {
-      return expression.evaluate(new KernelEvaluationEnvironment(
-          _elementMap, _environment, spannable,
-          constantRequired: constantRequired, checkCasts: checkCasts));
-    });
-  }
-}
-
-/// Evaluation environment used for computing [ConstantValue]s for
-/// kernel based [ConstantExpression]s.
-class KernelEvaluationEnvironment extends EvaluationEnvironmentBase {
-  final KernelToElementMapImpl _elementMap;
-  final Environment _environment;
-  @override
-  final bool checkCasts;
-
-  KernelEvaluationEnvironment(
-      this._elementMap, this._environment, Spannable spannable,
-      {bool constantRequired, this.checkCasts: true})
-      : super(spannable, constantRequired: constantRequired);
-
-  @override
-  CommonElements get commonElements => _elementMap.commonElements;
-
-  @override
-  DartTypes get types => _elementMap.types;
-
-  @override
-  DartType substByContext(DartType base, InterfaceType target) {
-    return _elementMap.substByContext(base, target);
-  }
-
-  @override
-  ConstantConstructor getConstructorConstant(ConstructorEntity constructor) {
-    return _elementMap._getConstructorConstant(constructor);
-  }
-
-  @override
-  ConstantExpression getFieldConstant(FieldEntity field) {
-    return _elementMap._getFieldConstantExpression(field);
-  }
-
-  @override
-  ConstantExpression getLocalConstant(Local local) {
-    throw new UnimplementedError("_EvaluationEnvironment.getLocalConstant");
-  }
-
-  @override
-  String readFromEnvironment(String name) {
-    return _environment.valueOf(name);
-  }
-
-  @override
-  DiagnosticReporter get reporter => _elementMap.reporter;
-
-  @override
-  bool get enableAssertions => _elementMap.options.enableUserAssertions;
 }
 
 class KernelNativeMemberResolver implements NativeMemberResolver {

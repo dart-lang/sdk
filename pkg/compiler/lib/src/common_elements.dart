@@ -8,7 +8,6 @@ library dart2js.type_system;
 import 'common.dart';
 import 'common/names.dart' show Identifiers, Uris;
 import 'constants/constant_system.dart' as constant_system;
-import 'constants/expressions.dart' show ConstantExpression;
 import 'constants/values.dart';
 import 'elements/entities.dart';
 import 'elements/types.dart';
@@ -2341,9 +2340,6 @@ abstract class KElementEnvironment extends ElementEnvironment {
   /// Calls [f] for each class that is mixed into [cls] or one of its
   /// superclasses.
   void forEachMixin(ClassEntity cls, void f(ClassEntity mixin));
-
-  /// Gets the constant value of [field], or `null` if [field] is non-const.
-  ConstantExpression getFieldConstantForTesting(FieldEntity field);
 
   /// Returns `true` if [member] a the synthetic getter `loadLibrary` injected
   /// on deferred libraries.

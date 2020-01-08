@@ -6,7 +6,6 @@ import 'package:kernel/ast.dart' as ir;
 
 import '../closure.dart';
 import '../common.dart';
-import '../constants/expressions.dart';
 import '../elements/entities.dart';
 import '../elements/names.dart' show Name;
 import '../elements/types.dart';
@@ -1196,15 +1195,6 @@ class ClosureFieldData extends ClosureMemberData implements JFieldData {
           'ClosureFieldData.getFieldType');
     }
     return _type = elementMap.getDartType(type);
-  }
-
-  @override
-  ConstantExpression getFieldConstantExpression(IrToElementMap elementMap) {
-    failedAt(
-        definition.location,
-        "Unexpected field ${definition} in "
-        "ClosureFieldData.getFieldConstantExpression");
-    return null;
   }
 
   @override
