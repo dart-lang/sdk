@@ -238,8 +238,9 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
     // We make a fake [IsolateGroupSource] here, since the "vm-isolate" is not
     // really an isolate itself - it acts more as a container for VM-global
     // objects.
-    std::unique_ptr<IsolateGroupSource> source(new IsolateGroupSource(
-        nullptr, "vm-isolate", nullptr, nullptr, nullptr, -1, api_flags));
+    std::unique_ptr<IsolateGroupSource> source(
+        new IsolateGroupSource(nullptr, "vm-isolate", vm_isolate_snapshot,
+                               instructions_snapshot, nullptr, -1, api_flags));
     auto group = new IsolateGroup(std::move(source), /*embedder_data=*/nullptr);
     IsolateGroup::RegisterIsolateGroup(group);
     vm_isolate_ =
