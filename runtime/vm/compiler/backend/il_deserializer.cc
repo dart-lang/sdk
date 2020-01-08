@@ -916,7 +916,7 @@ AssertAssignableInstr* FlowGraphDeserializer::DeserializeAssertAssignable(
   if (!ParseDartValue(dst_name_sexp, &dst_name)) return nullptr;
 
   // TODO(regis): Serialize/deserialize nnbd_mode.
-  auto nnbd_mode = NNBDMode::kLegacyLib_LegacyTest;
+  auto nnbd_mode = NNBDMode::kLegacyLib;
 
   auto kind = AssertAssignableInstr::Kind::kUnknown;
   if (auto const kind_sexp = CheckSymbol(sexp->ExtraLookupValue("kind"))) {

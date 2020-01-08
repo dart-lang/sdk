@@ -1310,7 +1310,7 @@ bool Interpreter::AssertAssignableField(Thread* thread,
   SP[3] = InterpreterHelpers::GetTypeArguments(thread, instance);
   SP[4] = null_value;  // Implicit setters cannot be generic.
   SP[5] = is_getter ? Symbols::FunctionResult().raw() : field->ptr()->name_;
-  SP[6] = Smi::New(static_cast<intptr_t>(NNBDMode::kLegacyLib_LegacyTest));
+  SP[6] = Smi::New(static_cast<intptr_t>(NNBDMode::kLegacyLib));
   return AssertAssignable(thread, pc, FP, /* call_top */ SP + 6,
                           /* args */ SP + 1, cache);
 }
@@ -3571,8 +3571,7 @@ SwitchDispatch:
         Instance::RawCast(FrameArguments(FP, argc)[receiver_idx]);
     SP[5] = InterpreterHelpers::GetTypeArguments(thread, receiver);
     // TODO(regis): Provide correct nnbd mode.
-    RawSmi* nnbd_mode =
-        Smi::New(static_cast<intptr_t>(NNBDMode::kLegacyLib_LegacyTest));
+    RawSmi* nnbd_mode = Smi::New(static_cast<intptr_t>(NNBDMode::kLegacyLib));
 
     if (type_args_len > 0) {
       SP[6] = FrameArguments(FP, argc)[0];

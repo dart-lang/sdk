@@ -860,47 +860,15 @@ enum class Nullability : int8_t {
 };
 
 // The NNBDMode is passed to routines performing type reification and/or subtype
-// tests. The mode consists of two bits, one reflecting the opted-in status of
-// the library performing type reification and/or subtype tests, the other bit
-// specifying whether the type test should be performed according the pre-nnbd
-// semantics (noted LEGACY_SUBTYPE(S, T) in the specification), or according to
-// the nnbd semantics (noted NNBD_SUBTYPE(S, T) in the specification).
-// The first bit is usually passed explicitly from Dart code to the runtime
-// entry, because the runtime cannot efficiently tell if the call originated in
-// an opted-in or legacy library. Then, the bit defining the semantics of the
-// test is computed depending on the actual value of the instance being checked
-// (null or non-null), on the value of the global strong mode flag, and on the
-// nature of the test (instance test or type cast).
-// For more details, see the language specification.
+// tests. The mode reflects the opted-in status of the library performing type
+// reification and/or subtype tests.
+// Note that the weak or strong testing mode is not reflected in NNBDMode, but
+// imposed globally by the value of FLAG_strong_non_nullable_type_checks.
 enum class NNBDMode {
   // Status of the library:
-  kLibMask = 1,
   kLegacyLib = 0,   // Library is legacy.
   kOptedInLib = 1,  // Library is opted-in.
-
-  // Semantics of the type test:
-  kTestMask = 2,
-  kLegacyTest = 0,       // Legacy type test, i.e. LEGACY_SUBTYPE(S, T).
-  kNonNullableTest = 2,  // Non-nullable type test, i.e. NNBD_SUBTYPE(S, T).
-
-  // All possible values:
-  kLegacyLib_LegacyTest = 0,
-  kOptedInLib_LegacyTest = 1,
-  kLegacyLib_NonNullableTest = 2,
-  kOptedInLib_NonNullableTest = 3,
 };
-
-NNBDMode inline operator|(NNBDMode lhs, NNBDMode rhs) {
-  return static_cast<NNBDMode>(
-      static_cast<std::underlying_type<NNBDMode>::type>(lhs) |
-      static_cast<std::underlying_type<NNBDMode>::type>(rhs));
-}
-
-NNBDMode inline operator&(NNBDMode lhs, NNBDMode rhs) {
-  return static_cast<NNBDMode>(
-      static_cast<std::underlying_type<NNBDMode>::type>(lhs) &
-      static_cast<std::underlying_type<NNBDMode>::type>(rhs));
-}
 
 class Class : public Object {
  public:
@@ -6678,6 +6646,13 @@ class Instance : public Object {
       const TypeArguments& other_instantiator_type_arguments,
       const TypeArguments& other_function_type_arguments);
 
+  // Return true if the null instance is an instance of other type according to
+  // NNBD semantics (independently of the current value of the strong flag).
+  static bool NNBD_NullIsInstanceOf(
+      const AbstractType& other,
+      const TypeArguments& other_instantiator_type_arguments,
+      const TypeArguments& other_function_type_arguments);
+
   RawObject** FieldAddrAtOffset(intptr_t offset) const {
     ASSERT(IsValidFieldOffset(offset));
     return reinterpret_cast<RawObject**>(raw_value() - kHeapObjectTag + offset);
@@ -7139,16 +7114,20 @@ class AbstractType : public Instance {
   bool IsVoidType() const { return type_class_id() == kVoidCid; }
 
   // Check if this type represents the 'Null' type.
-  bool IsNullType(NNBDMode mode = NNBDMode::kNonNullableTest) const;
+  bool IsNullType() const;
 
   // Check if this type represents the 'Never' type.
-  bool IsNeverType(NNBDMode mode = NNBDMode::kNonNullableTest) const;
+  bool IsNeverType() const;
 
   // Check if this type represents the 'Object' type.
   bool IsObjectType() const { return type_class_id() == kInstanceCid; }
 
   // Check if this type represents a top type.
-  bool IsTopType(NNBDMode mode = NNBDMode::kLegacyTest) const;
+  bool IsTopType() const;
+
+  // Check if this type represents a top type according to NNBD
+  // semantics (independently of the current value of the strong flag).
+  bool NNBD_IsTopType() const;
 
   // Check if this type represents the 'bool' type.
   bool IsBoolType() const { return type_class_id() == kBoolCid; }

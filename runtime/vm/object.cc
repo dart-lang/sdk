@@ -3673,7 +3673,7 @@ RawObject* Class::InvokeSetter(const String& setter_name,
                                InvocationMirror::kSetter);
     }
     parameter_type = setter.ParameterTypeAt(0);
-    if (nnbd_mode() != NNBDMode::kLegacyLib_LegacyTest) {
+    if (nnbd_mode() != NNBDMode::kLegacyLib) {
       // TODO(regis): Make type check nullability aware.
       UNIMPLEMENTED();
     }
@@ -3701,7 +3701,7 @@ RawObject* Class::InvokeSetter(const String& setter_name,
   }
 
   parameter_type = field.type();
-  if (nnbd_mode() != NNBDMode::kLegacyLib_LegacyTest) {
+  if (nnbd_mode() != NNBDMode::kLegacyLib) {
     // TODO(regis): Make type check nullability aware.
     UNIMPLEMENTED();
   }
@@ -3767,15 +3767,15 @@ RawObject* Class::Invoke(const String& function_name,
   ArgumentsDescriptor args_descriptor(args_descriptor_array);
   const TypeArguments& type_args = Object::null_type_arguments();
   if (function.IsNull() ||
-      !function.AreValidArguments(NNBDMode::kLegacyLib_LegacyTest,
-                                  args_descriptor, NULL) ||
+      !function.AreValidArguments(NNBDMode::kLegacyLib, args_descriptor,
+                                  NULL) ||
       (respect_reflectable && !function.is_reflectable())) {
     return ThrowNoSuchMethod(
         AbstractType::Handle(zone, RareType()), function_name, args, arg_names,
         InvocationMirror::kStatic, InvocationMirror::kMethod);
   }
   RawObject* type_error = function.DoArgumentTypesMatch(
-      NNBDMode::kLegacyLib_LegacyTest, args, args_descriptor, type_args);
+      NNBDMode::kLegacyLib, args, args_descriptor, type_args);
   if (type_error != Error::null()) {
     return type_error;
   }
@@ -4442,9 +4442,9 @@ void Class::set_declaration_type(const Type& value) const {
   // Since declaration type is used as the runtime type of  instances of a
   // non-generic class, the nullability is set to kNonNullable instead of
   // kLegacy when the non-nullable experiment is enabled.
-  ASSERT(!value.IsNullType() || value.IsNullable());
+  ASSERT(value.type_class_id() != kNullCid || value.IsNullable());
   ASSERT(
-      value.IsNullType() ||
+      value.type_class_id() == kNullCid ||
       (Dart::non_nullable_flag() ? value.IsNonNullable() : value.IsLegacy()));
   StorePointer(&raw_ptr()->declaration_type_, value.raw());
 }
@@ -4547,7 +4547,7 @@ bool Class::IsSubtypeOf(NNBDMode mode,
       }
       const AbstractType& other_type_arg =
           AbstractType::Handle(zone, other_type_arguments.TypeAt(0));
-      if (other_type_arg.IsTopType(mode)) {
+      if (other_type_arg.IsTopType()) {
         return true;
       }
       if (!type_arguments.IsNull() && this_class.IsFutureClass()) {
@@ -4558,10 +4558,10 @@ bool Class::IsSubtypeOf(NNBDMode mode,
         }
       }
       if (other_type_arg.HasTypeClass() &&
-          Class::IsSubtypeOf(mode, this_class, type_arguments,
-                             Class::Handle(zone, other_type_arg.type_class()),
-                             TypeArguments::Handle(other_type_arg.arguments()),
-                             space)) {
+          Class::IsSubtypeOf(
+              mode, this_class, type_arguments,
+              Class::Handle(zone, other_type_arg.type_class()),
+              TypeArguments::Handle(zone, other_type_arg.arguments()), space)) {
         return true;
       }
     }
@@ -5366,7 +5366,7 @@ bool TypeArguments::IsTopTypes(NNBDMode mode,
   AbstractType& type = AbstractType::Handle();
   for (intptr_t i = 0; i < len; i++) {
     type = TypeAt(from_index + i);
-    if (type.IsNull() || !type.IsTopType(mode)) {
+    if (type.IsNull() || !type.IsTopType()) {
       return false;
     }
   }
@@ -7029,7 +7029,7 @@ bool Function::AreValidArguments(NNBDMode mode,
                               num_named_arguments, error_message)) {
     return false;
   }
-  if (mode != NNBDMode::kLegacyLib_LegacyTest) {
+  if (mode != NNBDMode::kLegacyLib) {
     // TODO(regis): Check required named arguments.
   }
   // Verify that all argument names are valid parameter names.
@@ -7379,7 +7379,7 @@ bool Function::IsContravariantParameter(NNBDMode mode,
                                         Heap::Space space) const {
   const AbstractType& param_type =
       AbstractType::Handle(ParameterTypeAt(parameter_position));
-  if (param_type.IsTopType(mode)) {
+  if (param_type.IsTopType()) {
     return true;
   }
   const AbstractType& other_param_type =
@@ -7424,7 +7424,7 @@ bool Function::HasSameTypeParametersAndBounds(const Function& other) const {
 bool Function::IsSubtypeOf(NNBDMode mode,
                            const Function& other,
                            Heap::Space space) const {
-  if (mode != NNBDMode::kLegacyLib_LegacyTest) {
+  if (mode != NNBDMode::kLegacyLib) {
     // TODO(regis): Check required named parameters.
   }
   const intptr_t num_fixed_params = num_fixed_parameters();
@@ -7457,7 +7457,7 @@ bool Function::IsSubtypeOf(NNBDMode mode,
   const AbstractType& other_res_type =
       AbstractType::Handle(zone, other.result_type());
   // 'void Function()' is a subtype of 'Object Function()'.
-  if (!other_res_type.IsTopType(mode)) {
+  if (!other_res_type.IsTopType()) {
     const AbstractType& res_type = AbstractType::Handle(zone, result_type());
     if (!res_type.IsSubtypeOf(mode, other_res_type, space)) {
       return false;
@@ -9471,7 +9471,7 @@ StaticTypeExactnessState StaticTypeExactnessState::Compute(
   for (intptr_t i = path.length() - 2; (i >= 0) && !type.IsInstantiated();
        i--) {
     args = path[i]->arguments();
-    type = type.InstantiateFrom(NNBDMode::kLegacyLib_LegacyTest, args,
+    type = type.InstantiateFrom(NNBDMode::kLegacyLib, args,
                                 TypeArguments::null_type_arguments(), kAllFree,
                                 /*instantiation_trail=*/nullptr, Heap::kNew);
   }
@@ -11411,15 +11411,14 @@ static RawObject* InvokeInstanceFunction(
   // first element.
   ArgumentsDescriptor args_descriptor(args_descriptor_array);
   if (function.IsNull() ||
-      !function.AreValidArguments(NNBDMode::kLegacyLib_LegacyTest,
-                                  args_descriptor, NULL) ||
+      !function.AreValidArguments(NNBDMode::kLegacyLib, args_descriptor,
+                                  NULL) ||
       (respect_reflectable && !function.is_reflectable())) {
     return DartEntry::InvokeNoSuchMethod(receiver, target_name, args,
                                          args_descriptor_array);
   }
-  RawObject* type_error =
-      function.DoArgumentTypesMatch(NNBDMode::kLegacyLib_LegacyTest, args,
-                                    args_descriptor, instantiator_type_args);
+  RawObject* type_error = function.DoArgumentTypesMatch(
+      NNBDMode::kLegacyLib, args, args_descriptor, instantiator_type_args);
   if (type_error != Error::null()) {
     return type_error;
   }
@@ -11608,8 +11607,8 @@ RawObject* Library::Invoke(const String& function_name,
   ArgumentsDescriptor args_descriptor(args_descriptor_array);
   const TypeArguments& type_args = Object::null_type_arguments();
   if (function.IsNull() ||
-      !function.AreValidArguments(NNBDMode::kLegacyLib_LegacyTest,
-                                  args_descriptor, NULL) ||
+      !function.AreValidArguments(NNBDMode::kLegacyLib, args_descriptor,
+                                  NULL) ||
       (respect_reflectable && !function.is_reflectable())) {
     return ThrowNoSuchMethod(
         AbstractType::Handle(Class::Handle(toplevel_class()).RareType()),
@@ -11617,7 +11616,7 @@ RawObject* Library::Invoke(const String& function_name,
         InvocationMirror::kMethod);
   }
   RawObject* type_error = function.DoArgumentTypesMatch(
-      NNBDMode::kLegacyLib_LegacyTest, args, args_descriptor, type_args);
+      NNBDMode::kLegacyLib, args, args_descriptor, type_args);
   if (type_error != Error::null()) {
     return type_error;
   }
@@ -16887,41 +16886,38 @@ bool Instance::IsInstanceOf(
   ASSERT(!other.IsTypeRef());  // Must be dereferenced at compile time.
   // Note that Object::sentinel() has Null class, but !IsNull().
   ASSERT(raw() != Object::sentinel().raw());
-  // The NNBDMode::kNonNullableTest mode cannot be set yet.
-  ASSERT((mode & NNBDMode::kTestMask) != NNBDMode::kNonNullableTest);
   if (FLAG_strong_non_nullable_type_checks) {
     if (IsNull()) {
       // In a legacy library, compute
       //   NNBD_SUBTYPE(other, Null) || NNBD_SUBTYPE(Object, other)
       // In an opted-in library, compute
       //   NNBD_SUBTYPE(Null, other).
-      return Instance::NullIsInstanceOf(
-          mode | NNBDMode::kNonNullableTest, other,
-          other_instantiator_type_arguments, other_function_type_arguments);
+      return Instance::NullIsInstanceOf(mode, other,
+                                        other_instantiator_type_arguments,
+                                        other_function_type_arguments);
     }
     // Compute NNBD_SUBTYPE(runtimeType, other).
-    return RuntimeTypeIsSubtypeOf(mode | NNBDMode::kNonNullableTest, other,
+    return RuntimeTypeIsSubtypeOf(mode, other,
                                   other_instantiator_type_arguments,
                                   other_function_type_arguments);
   }
   if (IsNull()) {
     if (mode == NNBDMode::kOptedInLib) {
       // Compute NNBD_SUBTYPE(Null, other).
-      return Instance::NullIsInstanceOf(
-          NNBDMode::kOptedInLib_NonNullableTest, other,
-          other_instantiator_type_arguments, other_function_type_arguments);
+      return Instance::NNBD_NullIsInstanceOf(other,
+                                             other_instantiator_type_arguments,
+                                             other_function_type_arguments);
     }
     ASSERT(mode == NNBDMode::kLegacyLib);
     // Compute the same subtyping result as pre-nnbd Dart:
     // LEGACY_SUBTYPE(other, Null) || LEGACY_SUBTYPE(Object, other).
-    return Instance::NullIsInstanceOf(NNBDMode::kLegacyLib_LegacyTest, other,
+    return Instance::NullIsInstanceOf(NNBDMode::kLegacyLib, other,
                                       other_instantiator_type_arguments,
                                       other_function_type_arguments);
   }
   // Compute the same subtyping result as pre-nnbd Dart:
   // LEGACY_SUBTYPE(runtimeType, other).
-  return RuntimeTypeIsSubtypeOf(mode | NNBDMode::kLegacyTest, other,
-                                other_instantiator_type_arguments,
+  return RuntimeTypeIsSubtypeOf(mode, other, other_instantiator_type_arguments,
                                 other_function_type_arguments);
 }
 
@@ -16935,39 +16931,30 @@ bool Instance::IsAssignableTo(
   ASSERT(!other.IsTypeRef());  // Must be dereferenced at compile time.
   // Note that Object::sentinel() has Null class, but !IsNull().
   ASSERT(raw() != Object::sentinel().raw());
-  // The NNBDMode::kNonNullableTest mode cannot be set yet.
-  ASSERT((mode & NNBDMode::kTestMask) != NNBDMode::kNonNullableTest);
   // In weak mode type casts, whether in legacy or opted-in libraries, the null
   // instance is detected and handled in inlined code and therefore cannot be
   // encountered here as a Dart null receiver.
   ASSERT(FLAG_strong_non_nullable_type_checks || !IsNull());
   // In strong mode, compute NNBD_SUBTYPE(runtimeType, other).
   // In weak mode, compute LEGACY_SUBTYPE(runtimeType, other).
-  return RuntimeTypeIsSubtypeOf(
-      mode | (FLAG_strong_non_nullable_type_checks ? NNBDMode::kNonNullableTest
-                                                   : NNBDMode::kLegacyTest),
-      other, other_instantiator_type_arguments, other_function_type_arguments);
+  return RuntimeTypeIsSubtypeOf(mode, other, other_instantiator_type_arguments,
+                                other_function_type_arguments);
 }
 
-// For kLegacyLib_NonNullableTest mode:
+// In strong mode, for kLegacyLib mode:
 //   return NNBD_SUBTYPE(other, Null) || NNBD_SUBTYPE(Object, other).
-// For kOptedInLib_NonNullableTest mode:
+// In strong mode, for kOptedInLib mode:
 //   return NNBD_SUBTYPE(Null, other).
-// For kLegacyLib_LegacyTest mode:
+// In weak mode, for kLegacyLib mode:
 //   return LEGACY_SUBTYPE(other, Null) || LEGACY_SUBTYPE(Object, other).
-// The NNBDMode::kOptedInLib_LegacyTest mode is never passed.
+// The NNBDMode::kOptedInLib mode is never passed in weak mode.
 bool Instance::NullIsInstanceOf(
     NNBDMode mode,
     const AbstractType& other,
     const TypeArguments& other_instantiator_type_arguments,
     const TypeArguments& other_function_type_arguments) {
-  ASSERT(mode != NNBDMode::kOptedInLib_LegacyTest);
-
-  // Strong mode must be reflected by mode.
-  ASSERT(!FLAG_strong_non_nullable_type_checks ||
-         (mode & NNBDMode::kTestMask) == NNBDMode::kNonNullableTest);
-
-  if (other.IsNullType(mode) || other.IsTopType(mode)) {
+  ASSERT(FLAG_strong_non_nullable_type_checks || mode != NNBDMode::kOptedInLib);
+  if (other.IsNullType() || other.IsTopType()) {
     return true;
   }
   AbstractType& instantiated_other = AbstractType::Handle(other.raw());
@@ -16978,24 +16965,54 @@ bool Instance::NullIsInstanceOf(
     if (instantiated_other.IsTypeRef()) {
       instantiated_other = TypeRef::Cast(instantiated_other).type();
     }
-    if (instantiated_other.IsNullType(mode) ||
-        instantiated_other.IsTopType(mode)) {
+    if (instantiated_other.IsNullType() || instantiated_other.IsTopType()) {
       return true;
     }
   }
   // instantiated_other is not modified if not FutureOr<T>.
-  if (instantiated_other.IsFutureOr(&instantiated_other)) {
-    if (instantiated_other.IsNullType(mode) ||
-        instantiated_other.IsTopType(mode)) {
-      return true;
-    }
+  while (instantiated_other.IsFutureOr(&instantiated_other)) {
   }
-  if (mode == NNBDMode::kOptedInLib_NonNullableTest) {
+  if (instantiated_other.IsNullType() || instantiated_other.IsTopType()) {
+    return true;
+  }
+  if (FLAG_strong_non_nullable_type_checks) {
     const Nullability other_nullability = instantiated_other.nullability();
     return other_nullability == Nullability::kNullable ||
            other_nullability == Nullability::kLegacy;
   }
   return false;
+}
+
+// Return NNBD_SUBTYPE(Null, other) independently of strong flag value.
+bool Instance::NNBD_NullIsInstanceOf(
+    const AbstractType& other,
+    const TypeArguments& other_instantiator_type_arguments,
+    const TypeArguments& other_function_type_arguments) {
+  Nullability other_nullability = other.nullability();
+  if (other_nullability == Nullability::kNullable ||
+      other_nullability == Nullability::kLegacy) {
+    // This includes Null type and top types when using nnbd testing.
+    // Also, an uninstantiated type that is either nullable or legacy will
+    // be either nullable or legacy after instantiation and cannot throw a
+    // type error during instantiation.
+    return true;
+  }
+  AbstractType& instantiated_other = AbstractType::Handle(other.raw());
+  if (!other.IsInstantiated()) {
+    instantiated_other = other.InstantiateFrom(
+        NNBDMode::kOptedInLib, other_instantiator_type_arguments,
+        other_function_type_arguments, kAllFree, NULL, Heap::kOld);
+    if (instantiated_other.IsTypeRef()) {
+      instantiated_other = TypeRef::Cast(instantiated_other).type();
+    }
+  }
+  // instantiated_other is not modified if not FutureOr<T>.
+  while (instantiated_other.IsFutureOr(&instantiated_other)) {
+  }
+  // Test nullability again after instantiation.
+  other_nullability = instantiated_other.nullability();
+  return other_nullability == Nullability::kNullable ||
+         other_nullability == Nullability::kLegacy;
 }
 
 bool Instance::RuntimeTypeIsSubtypeOf(
@@ -17006,17 +17023,12 @@ bool Instance::RuntimeTypeIsSubtypeOf(
   ASSERT(other.IsFinalized());
   ASSERT(!other.IsDynamicType());
   ASSERT(!other.IsTypeRef());  // Must be dereferenced at compile time.
-
-  // Strong mode must be reflected by mode.
-  ASSERT(!FLAG_strong_non_nullable_type_checks ||
-         (mode & NNBDMode::kTestMask) == NNBDMode::kNonNullableTest);
-
   // Instance may not have runtimeType dynamic, void, or Never.
-  if (other.IsTopType(mode)) {
+  if (other.IsTopType()) {
     return true;
   }
-  // In legacy testing mode, Null type is a subtype of any type.
-  if (IsNull() && ((mode & NNBDMode::kTestMask) == NNBDMode::kLegacyTest)) {
+  // In weak testing mode, Null type is a subtype of any type.
+  if (IsNull() && !FLAG_strong_non_nullable_type_checks) {
     return true;
   }
   Thread* thread = Thread::Current();
@@ -17034,7 +17046,7 @@ bool Instance::RuntimeTypeIsSubtypeOf(
       if (instantiated_other.IsTypeRef()) {
         instantiated_other = TypeRef::Cast(instantiated_other).type();
       }
-      if (instantiated_other.IsTopType(mode) ||
+      if (instantiated_other.IsTopType() ||
           instantiated_other.IsDartFunctionType()) {
         return true;
       }
@@ -17074,7 +17086,7 @@ bool Instance::RuntimeTypeIsSubtypeOf(
     if (instantiated_other.IsTypeRef()) {
       instantiated_other = TypeRef::Cast(instantiated_other).type();
     }
-    if (instantiated_other.IsTopType(mode)) {
+    if (instantiated_other.IsTopType()) {
       return true;
     }
   }
@@ -17082,8 +17094,8 @@ bool Instance::RuntimeTypeIsSubtypeOf(
     return false;
   }
   if (IsNull()) {
-    ASSERT((mode & NNBDMode::kTestMask) == NNBDMode::kNonNullableTest);
-    if (instantiated_other.IsNullType(mode)) {
+    ASSERT(FLAG_strong_non_nullable_type_checks);
+    if (instantiated_other.IsNullType()) {
       return true;
     }
     if (IsFutureOrInstanceOf(zone, mode, instantiated_other)) {
@@ -17111,7 +17123,7 @@ bool Instance::IsFutureOrInstanceOf(Zone* zone,
         TypeArguments::Handle(zone, other.arguments());
     const AbstractType& other_type_arg =
         AbstractType::Handle(zone, other_type_arguments.TypeAt(0));
-    if (other_type_arg.IsTopType(mode)) {
+    if (other_type_arg.IsTopType()) {
       return true;
     }
     if (Class::Handle(zone, clazz()).IsFutureClass()) {
@@ -17356,7 +17368,7 @@ RawAbstractType* AbstractType::CheckInstantiatedNullability(
     Heap::Space space) const {
   Nullability result_nullability;
   const Nullability arg_nullability = nullability();
-  if ((mode & NNBDMode::kLibMask) == NNBDMode::kOptedInLib) {
+  if (mode == NNBDMode::kOptedInLib) {
     const Nullability var_nullability = type_param.nullability();
     // Adjust nullability of result 'arg' instantiated from 'var' (x throws).
     // arg/var ! ? * %
@@ -17700,21 +17712,19 @@ bool AbstractType::IsNullTypeRef() const {
   return IsTypeRef() && (TypeRef::Cast(*this).type() == AbstractType::null());
 }
 
-bool AbstractType::IsNullType(NNBDMode mode) const {
+bool AbstractType::IsNullType() const {
   const classid_t cid = type_class_id();
   return cid == kNullCid ||
          (cid == kNeverCid &&
-          ((mode & NNBDMode::kTestMask) == NNBDMode::kLegacyTest ||
-           IsNullable()));
+          (!FLAG_strong_non_nullable_type_checks || IsNullable()));
 }
 
-bool AbstractType::IsNeverType(NNBDMode mode) const {
-  return type_class_id() == kNeverCid &&
-         (mode & NNBDMode::kTestMask) == NNBDMode::kNonNullableTest &&
+bool AbstractType::IsNeverType() const {
+  return FLAG_strong_non_nullable_type_checks && type_class_id() == kNeverCid &&
          !IsNullable();
 }
 
-bool AbstractType::IsTopType(NNBDMode mode) const {
+bool AbstractType::IsTopType() const {
   const classid_t cid = type_class_id();
   if (cid == kIllegalCid) {  // Includes TypeParameter.
     return false;
@@ -17723,7 +17733,7 @@ bool AbstractType::IsTopType(NNBDMode mode) const {
     return true;
   }
   if (cid == kInstanceCid) {  // Object type.
-    return (mode & NNBDMode::kTestMask) == NNBDMode::kLegacyTest ||
+    return !FLAG_strong_non_nullable_type_checks ||
            !IsNonNullable();  // kLegacy or kNullable.
   }
   // FutureOr<T> where T is a top type behaves as a top type.
@@ -17737,7 +17747,37 @@ bool AbstractType::IsTopType(NNBDMode mode) const {
         TypeArguments::Handle(zone, arguments());
     const AbstractType& type_arg =
         AbstractType::Handle(zone, type_arguments.TypeAt(0));
-    if (type_arg.IsTopType(mode)) {
+    if (type_arg.IsTopType()) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool AbstractType::NNBD_IsTopType() const {
+  const classid_t cid = type_class_id();
+  if (cid == kIllegalCid) {  // Includes TypeParameter.
+    return false;
+  }
+  if (cid == kDynamicCid || cid == kVoidCid) {
+    return true;
+  }
+  if (cid == kInstanceCid) {  // Object type.
+    return !IsNonNullable();  // kLegacy or kNullable.
+  }
+
+  // FutureOr<T> where T is a top type behaves as a top type.
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  if (Class::Handle(zone, type_class()).IsFutureOrClass()) {
+    if (arguments() == TypeArguments::null()) {
+      return true;
+    }
+    const TypeArguments& type_arguments =
+        TypeArguments::Handle(zone, arguments());
+    const AbstractType& type_arg =
+        AbstractType::Handle(zone, type_arguments.TypeAt(0));
+    if (type_arg.NNBD_IsTopType()) {
       return true;
     }
   }
@@ -17818,32 +17858,25 @@ bool AbstractType::IsSubtypeOf(NNBDMode mode,
                                Heap::Space space) const {
   ASSERT(IsFinalized());
   ASSERT(other.IsFinalized());
-  // Strong mode must be reflected by mode.
-  ASSERT(!FLAG_strong_non_nullable_type_checks ||
-         (mode & NNBDMode::kTestMask) == NNBDMode::kNonNullableTest);
-
-  if (other.IsTopType(mode) || IsNeverType(mode)) {
+  if (other.IsTopType() || IsNeverType()) {
     return true;
   }
   if (IsDynamicType() || IsVoidType()) {
     return false;
   }
-  if (IsNullType(mode)) {
-    // In legacy testing mode, Null type is a subtype of any type.
-    if ((mode & NNBDMode::kTestMask) == NNBDMode::kLegacyTest) {
+  if (IsNullType()) {
+    // In weak testing mode, Null type is a subtype of any type.
+    if (!FLAG_strong_non_nullable_type_checks) {
       return true;
     }
-    if (other.IsNullType(mode)) {
-      return true;
+    if (other.IsTypeParameter()) {
+      return false;
     }
     AbstractType& other_type_arg = AbstractType::Handle(other.raw());
     // other_type_arg is not modified if not FutureOr<T>.
-    if (other.IsFutureOr(&other_type_arg)) {
-      if (other_type_arg.IsNullType(mode) || other_type_arg.IsTopType(mode)) {
-        return true;
-      }
+    while (other_type_arg.IsFutureOr(&other_type_arg)) {
     }
-    return !other.IsTypeParameter() && !other_type_arg.IsNonNullable();
+    return !other_type_arg.IsTypeParameter() && !other_type_arg.IsNonNullable();
   }
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
@@ -17936,10 +17969,9 @@ bool AbstractType::IsSubtypeOf(NNBDMode mode,
     }
     return false;
   }
-  if ((mode & NNBDMode::kTestMask) == NNBDMode::kNonNullableTest) {
-    if (IsNullable() && other.IsNonNullable()) {
-      return false;
-    }
+  if (FLAG_strong_non_nullable_type_checks && IsNullable() &&
+      other.IsNonNullable()) {
+    return false;
   }
   return Class::IsSubtypeOf(
       mode, type_cls, TypeArguments::Handle(zone, arguments()), other_type_cls,
@@ -17963,7 +17995,7 @@ bool AbstractType::IsSubtypeOfFutureOr(Zone* zone,
         TypeArguments::Handle(zone, other.arguments());
     const AbstractType& other_type_arg =
         AbstractType::Handle(zone, other_type_arguments.TypeAt(0));
-    if (other_type_arg.IsTopType(mode)) {
+    if (other_type_arg.IsTopType()) {
       return true;
     }
     // Retry the IsSubtypeOf check after unwrapping type arg of FutureOr.
@@ -18452,7 +18484,7 @@ bool Type::IsRecursive() const {
 
 bool Type::IsDeclarationTypeOf(const Class& cls) const {
   ASSERT(type_class() == cls.raw());
-  if (IsNullType()) {
+  if (cls.IsNullClass()) {
     return true;
   }
   if (cls.IsGeneric() || cls.IsClosureClass() || cls.IsTypedefClass()) {
@@ -18490,7 +18522,7 @@ RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
   // Fast canonical lookup/registry for simple types.
   if (IsDeclarationTypeOf(cls)) {
     ASSERT(!IsFunctionType());
-    ASSERT(!IsNullType() || IsNullable());
+    ASSERT(!cls.IsNullClass() || IsNullable());
     Type& type = Type::Handle(zone, cls.declaration_type());
     if (type.IsNull()) {
       ASSERT(!cls.raw()->InVMIsolateHeap() || (isolate == Dart::vm_isolate()));

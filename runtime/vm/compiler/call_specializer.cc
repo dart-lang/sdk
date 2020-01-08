@@ -1141,7 +1141,7 @@ bool CallSpecializer::TypeCheckAsClassEquality(NNBDMode mode,
     return false;
   }
 
-  if (mode != NNBDMode::kLegacyLib_LegacyTest) {
+  if (mode != NNBDMode::kLegacyLib) {
     return false;  // TODO(regis): Implement.
   }
 
@@ -1193,7 +1193,7 @@ bool CallSpecializer::TryOptimizeInstanceOfUsingStaticTypes(
   ASSERT(I->can_use_strong_mode_types());
   ASSERT(Token::IsTypeTestOperator(call->token_kind()));
 
-  if (mode != NNBDMode::kLegacyLib_LegacyTest) {
+  if (mode != NNBDMode::kLegacyLib) {
     return false;  // TODO(regis): Implement.
   }
 
@@ -1579,8 +1579,7 @@ void TypedDataSpecializer::TryInlineCall(TemplateDartCall<0>* call) {
     auto& type_class = Class::Handle(zone_);
 #define TRY_INLINE(iface, member_name, type, cid)                              \
   if (!member_name.IsNull()) {                                                 \
-    if (receiver_type->IsAssignableTo(NNBDMode::kLegacyLib_LegacyTest,         \
-                                      member_name)) {                          \
+    if (receiver_type->IsAssignableTo(NNBDMode::kLegacyLib, member_name)) {    \
       if (is_length_getter) {                                                  \
         type_class = member_name.type_class();                                 \
         ReplaceWithLengthGetter(call);                                         \
@@ -1590,9 +1589,7 @@ void TypedDataSpecializer::TryInlineCall(TemplateDartCall<0>* call) {
         ReplaceWithIndexGet(call, cid);                                        \
       } else {                                                                 \
         if (!index_type->IsNullableInt()) return;                              \
-        if (!value_type->IsAssignableTo(NNBDMode::kLegacyLib_LegacyTest,       \
-                                        type))                                 \
-          return;                                                              \
+        if (!value_type->IsAssignableTo(NNBDMode::kLegacyLib, type)) return;   \
         type_class = member_name.type_class();                                 \
         ReplaceWithIndexSet(call, cid);                                        \
       }                                                                        \

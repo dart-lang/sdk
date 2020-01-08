@@ -270,7 +270,7 @@ void TypeTestingStubGenerator::BuildOptimizedTypeTestStubFastCases(
 
     const Type& int_type = Type::Handle(Type::IntType());
     const bool smi_is_ok =
-        int_type.IsSubtypeOf(NNBDMode::kLegacyLib_LegacyTest, type, Heap::kNew);
+        int_type.IsSubtypeOf(NNBDMode::kLegacyLib, type, Heap::kNew);
 
     BuildOptimizedSubtypeRangeCheck(assembler, ranges, class_id_reg,
                                     instance_reg, smi_is_ok);

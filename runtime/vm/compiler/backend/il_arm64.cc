@@ -1262,11 +1262,10 @@ void LoadClassIdInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register object = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();
   const AbstractType& value_type = *this->object()->Type()->ToAbstractType();
-  // Using NNBDMode::kLegacyLib_LegacyTest is safe, because it throws a wider
+  // Using NNBDMode::kLegacyLib is safe, because it throws a wider
   // net over the types accepting a Smi value, especially during the nnbd
   // migration that does not guarantee soundness.
-  if (CompileType::Smi().IsAssignableTo(NNBDMode::kLegacyLib_LegacyTest,
-                                        value_type) ||
+  if (CompileType::Smi().IsAssignableTo(NNBDMode::kLegacyLib, value_type) ||
       value_type.IsTypeParameter()) {
     __ LoadTaggedClassIdMayBeSmi(result, object);
   } else {

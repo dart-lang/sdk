@@ -270,7 +270,7 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
   const Register kInstanceReg = R0;
   const Type& smi_type = Type::Handle(zone(), Type::SmiType());
   const bool smi_is_ok =
-      smi_type.IsSubtypeOf(NNBDMode::kLegacyLib_LegacyTest, type, Heap::kOld);
+      smi_type.IsSubtypeOf(NNBDMode::kLegacyLib, type, Heap::kOld);
   // Fast case for type = FutureOr<int/num/top-type>.
   __ BranchIfSmi(kInstanceReg,
                  smi_is_ok ? is_instance_lbl : is_not_instance_lbl);
@@ -302,7 +302,7 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
     if (tp_argument.IsType()) {
       // Check if type argument is dynamic, Object, or void.
       const Type& object_type = Type::Handle(zone(), Type::ObjectType());
-      if (object_type.IsSubtypeOf(NNBDMode::kLegacyLib_LegacyTest, tp_argument,
+      if (object_type.IsSubtypeOf(NNBDMode::kLegacyLib, tp_argument,
                                   Heap::kOld)) {
         // Instance class test only necessary.
         return GenerateSubtype1TestCacheLookup(
@@ -351,7 +351,7 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
   const Register kInstanceReg = R0;
   // If instance is Smi, check directly.
   const Class& smi_class = Class::Handle(zone(), Smi::Class());
-  if (Class::IsSubtypeOf(NNBDMode::kLegacyLib_LegacyTest, smi_class,
+  if (Class::IsSubtypeOf(NNBDMode::kLegacyLib, smi_class,
                          Object::null_type_arguments(), type_class,
                          Object::null_type_arguments(), Heap::kOld)) {
     // Fast case for type = int/num/top-type.

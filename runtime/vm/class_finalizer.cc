@@ -384,16 +384,16 @@ void ClassFinalizer::CheckRecursiveType(const Class& cls,
           !pending_arguments.IsSubvectorInstantiated(first_type_param,
                                                      num_type_params)) {
         const TypeArguments& instantiated_arguments = TypeArguments::Handle(
-            zone, arguments.InstantiateFrom(NNBDMode::kLegacyLib_LegacyTest,
+            zone, arguments.InstantiateFrom(NNBDMode::kLegacyLib,
                                             Object::null_type_arguments(),
                                             Object::null_type_arguments(),
                                             kNoneFree, NULL, Heap::kNew));
         const TypeArguments& instantiated_pending_arguments =
-            TypeArguments::Handle(zone, pending_arguments.InstantiateFrom(
-                                            NNBDMode::kLegacyLib_LegacyTest,
-                                            Object::null_type_arguments(),
-                                            Object::null_type_arguments(),
-                                            kNoneFree, NULL, Heap::kNew));
+            TypeArguments::Handle(
+                zone, pending_arguments.InstantiateFrom(
+                          NNBDMode::kLegacyLib, Object::null_type_arguments(),
+                          Object::null_type_arguments(), kNoneFree, NULL,
+                          Heap::kNew));
         if (!instantiated_pending_arguments.IsSubvectorEquivalent(
                 instantiated_arguments, first_type_param, num_type_params,
                 /* syntactically = */ true)) {

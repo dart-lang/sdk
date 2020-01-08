@@ -547,8 +547,8 @@ DEFINE_RUNTIME_ENTRY(ResolveCallFunction, 2) {
   do {
     call_function = cls.LookupDynamicFunction(Symbols::Call());
     if (!call_function.IsNull()) {
-      if (!call_function.AreValidArguments(NNBDMode::kLegacyLib_LegacyTest,
-                                           args_desc, NULL)) {
+      if (!call_function.AreValidArguments(NNBDMode::kLegacyLib, args_desc,
+                                           NULL)) {
         call_function = Function::null();
       }
       break;
@@ -2111,8 +2111,8 @@ DEFINE_RUNTIME_ENTRY(NoSuchMethodFromCallStub, 4) {
     while (!cls.IsNull()) {
       function = cls.LookupDynamicFunction(target_name);
       if (!function.IsNull()) {
-        ASSERT(!function.AreValidArguments(NNBDMode::kLegacyLib_LegacyTest,
-                                           args_desc, NULL));
+        ASSERT(
+            !function.AreValidArguments(NNBDMode::kLegacyLib, args_desc, NULL));
         break;  // mismatch, invoke noSuchMethod
       }
       function = cls.LookupDynamicFunction(getter_name);

@@ -216,11 +216,10 @@ void TypeArguments::PrintJSONImpl(JSONStream* stream, bool ref) const {
       nnbd_mode_as_smi ^= prior_instantiations.At(
           i + TypeArguments::Instantiation::kNnbdModeIndex);
       instantiation.AddProperty(
-          "nnbd_mode",
-          nnbd_mode_as_smi.Value() ==
-                  static_cast<intptr_t>(NNBDMode::kLegacyLib_LegacyTest)
-              ? "legacy"
-              : "opted-in");
+          "nnbd_mode", nnbd_mode_as_smi.Value() ==
+                               static_cast<intptr_t>(NNBDMode::kLegacyLib)
+                           ? "legacy"
+                           : "opted-in");
       type_args ^= prior_instantiations.At(
           i + TypeArguments::Instantiation::kInstantiatedTypeArgsIndex);
       instantiation.AddProperty("instantiated", type_args, true);

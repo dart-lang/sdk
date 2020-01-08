@@ -403,8 +403,8 @@ DEFINE_NATIVE_ENTRY(Internal_boundsCheckForPartialInstantiation, 0, 2) {
     // The supertype may not be instantiated.
     // TODO(regis): What is the correct nnbd mode to use here?
     if (!AbstractType::InstantiateAndTestSubtype(
-            NNBDMode::kLegacyLib_LegacyTest, &subtype, &supertype,
-            instantiator_type_args, function_type_args)) {
+            NNBDMode::kLegacyLib, &subtype, &supertype, instantiator_type_args,
+            function_type_args)) {
       // Throw a dynamic type error.
       TokenPosition location;
       {
