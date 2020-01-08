@@ -233,6 +233,11 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
         DecoratedType(indexGetter.type, makeNonNullNode(),
             returnType:
                 DecoratedType(indexGetter.returnType, makeNonNullNode())));
+    final toString = classElement.getMethod('toString');
+    _variables.recordDecoratedElementType(
+        toString,
+        DecoratedType(toString.type, makeNonNullNode(),
+            returnType: DecoratedType(toString.returnType, makeNonNullNode())));
     return null;
   }
 

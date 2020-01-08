@@ -1245,6 +1245,12 @@ int g() => f().index;
 void h() {
   for(var value in E.values) {}
   E.values.forEach((value) {});
+
+  f().toString();
+  f().runtimeType;
+  f().hashCode;
+  f().noSuchMethod(throw '');
+  f() == f();
 }
 ''';
     var expected = '''
@@ -1258,6 +1264,12 @@ int g() => f().index;
 void h() {
   for(var value in E.values) {}
   E.values.forEach((value) {});
+
+  f().toString();
+  f().runtimeType;
+  f().hashCode;
+  f().noSuchMethod(throw '');
+  f() == f();
 }
 ''';
     await _checkSingleFileChanges(content, expected);
