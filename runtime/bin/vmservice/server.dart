@@ -345,7 +345,9 @@ class Server {
 
     final String path = result;
     if (path == WEBSOCKET_PATH) {
-      WebSocketTransformer.upgrade(request).then((WebSocket webSocket) {
+      WebSocketTransformer.upgrade(request,
+              compression: CompressionOptions.compressionOff)
+          .then((WebSocket webSocket) {
         new WebSocketClient(webSocket, _service);
       });
       return;

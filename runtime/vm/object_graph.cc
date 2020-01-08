@@ -519,6 +519,77 @@ intptr_t ObjectGraph::InboundReferences(Object* obj, const Array& references) {
   return visitor.length();
 }
 
+// Each HeapPage is divided into blocks of size kBlockSize. Each object belongs
+// to the block containing its header word.
+// When generating a heap snapshot, we assign objects sequential ids in heap
+// iteration order. A bitvector is computed that indicates the number of objects
+// in each block, so the id of any object in the block can be found be adding
+// the number of bits set before the object to the block's first id.
+// Compare ForwardingBlock used for heap compaction.
+class CountingBlock {
+ public:
+  void Clear() {
+    base_count_ = 0;
+    count_bitvector_ = 0;
+  }
+
+  intptr_t Lookup(uword addr) const {
+    uword block_offset = addr & ~kBlockMask;
+    intptr_t bitvector_shift = block_offset >> kObjectAlignmentLog2;
+    ASSERT(bitvector_shift < kBitsPerWord);
+    uword preceding_bitmask = (static_cast<uword>(1) << bitvector_shift) - 1;
+    return base_count_ +
+           Utils::CountOneBitsWord(count_bitvector_ & preceding_bitmask);
+  }
+
+  void Record(uword old_addr, intptr_t id) {
+    if (base_count_ == 0) {
+      ASSERT(count_bitvector_ == 0);
+      base_count_ = id;  // First object in the block.
+    }
+
+    uword block_offset = old_addr & ~kBlockMask;
+    intptr_t bitvector_shift = block_offset >> kObjectAlignmentLog2;
+    ASSERT(bitvector_shift < kBitsPerWord);
+    count_bitvector_ |= static_cast<uword>(1) << bitvector_shift;
+  }
+
+ private:
+  intptr_t base_count_;
+  uword count_bitvector_;
+  COMPILE_ASSERT(kBitVectorWordsPerBlock == 1);
+
+  DISALLOW_COPY_AND_ASSIGN(CountingBlock);
+};
+
+class CountingPage {
+ public:
+  void Clear() {
+    for (intptr_t i = 0; i < kBlocksPerPage; i++) {
+      blocks_[i].Clear();
+    }
+  }
+
+  intptr_t Lookup(uword addr) { return BlockFor(addr)->Lookup(addr); }
+  void Record(uword addr, intptr_t id) {
+    return BlockFor(addr)->Record(addr, id);
+  }
+
+  CountingBlock* BlockFor(uword addr) {
+    intptr_t page_offset = addr & ~kPageMask;
+    intptr_t block_number = page_offset / kBlockSize;
+    ASSERT(block_number >= 0);
+    ASSERT(block_number <= kBlocksPerPage);
+    return &blocks_[block_number];
+  }
+
+ private:
+  CountingBlock blocks_[kBlocksPerPage];
+
+  DISALLOW_ALLOCATION();
+  DISALLOW_IMPLICIT_CONSTRUCTORS(CountingPage);
+};
+
 void HeapSnapshotWriter::EnsureAvailable(intptr_t needed) {
   intptr_t available = capacity_ - size_;
   if (available >= needed) {
@@ -571,19 +642,85 @@ void HeapSnapshotWriter::Flush(bool last) {
   capacity_ = 0;
 }
 
-void HeapSnapshotWriter::AssignObjectId(RawObject* obj) {
-  // TODO(rmacnak): We're assigning IDs in iteration order, so we can use the
-  // compator's trick of using a finger table with bit counting to make the
-  // mapping much smaller.
-  ASSERT(obj->IsHeapObject());
-  thread()->heap()->SetObjectId(obj, ++object_count_);
+void HeapSnapshotWriter::SetupCountingPages() {
+  for (intptr_t i = 0; i < kMaxImagePages; i++) {
+    image_page_ranges_[i].base = 0;
+    image_page_ranges_[i].size = 0;
+  }
+  intptr_t next_offset = 0;
+  HeapPage* image_page = Dart::vm_isolate()->heap()->old_space()->image_pages_;
+  while (image_page != NULL) {
+    RELEASE_ASSERT(next_offset <= kMaxImagePages);
+    image_page_ranges_[next_offset].base = image_page->object_start();
+    image_page_ranges_[next_offset].size =
+        image_page->object_end() - image_page->object_start();
+    image_page = image_page->next();
+    next_offset++;
+  }
+  image_page = isolate()->heap()->old_space()->image_pages_;
+  while (image_page != NULL) {
+    RELEASE_ASSERT(next_offset <= kMaxImagePages);
+    image_page_ranges_[next_offset].base = image_page->object_start();
+    image_page_ranges_[next_offset].size =
+        image_page->object_end() - image_page->object_start();
+    image_page = image_page->next();
+    next_offset++;
+  }
+
+  HeapPage* page = isolate()->heap()->old_space()->pages_;
+  while (page != NULL) {
+    page->forwarding_page();
+    CountingPage* counting_page =
+        reinterpret_cast<CountingPage*>(page->forwarding_page());
+    ASSERT(counting_page != NULL);
+    counting_page->Clear();
+    page = page->next();
+  }
 }
 
-intptr_t HeapSnapshotWriter::GetObjectId(RawObject* obj) {
+CountingPage* HeapSnapshotWriter::FindCountingPage(RawObject* obj) const {
+  if (obj->IsOldObject()) {
+    const uword addr = RawObject::ToAddr(obj);
+    for (intptr_t i = 0; i < kMaxImagePages; i++) {
+      if ((addr - image_page_ranges_[i].base) < image_page_ranges_[i].size) {
+        return nullptr;  // On an image page.
+      }
+    }
+    // On a regular or large page.
+    HeapPage* page = HeapPage::Of(obj);
+    return reinterpret_cast<CountingPage*>(page->forwarding_page());
+  }
+
+  // In new space.
+  return nullptr;
+}
+
+void HeapSnapshotWriter::AssignObjectId(RawObject* obj) {
+  ASSERT(obj->IsHeapObject());
+
+  CountingPage* counting_page = FindCountingPage(obj);
+  if (counting_page != nullptr) {
+    // Likely: object on an ordinary page.
+    counting_page->Record(RawObject::ToAddr(obj), ++object_count_);
+  } else {
+    // Unlikely: new space object, or object on a large or image page.
+    thread()->heap()->SetObjectId(obj, ++object_count_);
+  }
+}
+
+intptr_t HeapSnapshotWriter::GetObjectId(RawObject* obj) const {
   if (!obj->IsHeapObject()) {
     return 0;
   }
-  return thread()->heap()->GetObjectId(obj);
+
+  CountingPage* counting_page = FindCountingPage(obj);
+  if (counting_page != nullptr) {
+    // Likely: object on an ordinary page.
+    return counting_page->Lookup(RawObject::ToAddr(obj));
+  } else {
+    // Unlikely: new space object, or object on a large or image page.
+    return thread()->heap()->GetObjectId(obj);
+  }
 }
 
 void HeapSnapshotWriter::ClearObjectIds() {
@@ -964,6 +1101,8 @@ void HeapSnapshotWriter::Write() {
       }
     }
   }
+
+  SetupCountingPages();
 
   {
     Pass1Visitor visitor(this);

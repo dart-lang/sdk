@@ -30,6 +30,12 @@ static const intptr_t kPageSize = 512 * KB;
 static const intptr_t kPageSizeInWords = kPageSize / kWordSize;
 static const intptr_t kPageMask = ~(kPageSize - 1);
 
+static const intptr_t kBitVectorWordsPerBlock = 1;
+static const intptr_t kBlockSize =
+    kObjectAlignment * kBitsPerWord * kBitVectorWordsPerBlock;
+static const intptr_t kBlockMask = ~(kBlockSize - 1);
+static const intptr_t kBlocksPerPage = kPageSize / kBlockSize;
+
 // A page containing old generation objects.
 class HeapPage {
  public:
@@ -543,6 +549,7 @@ class PageSpace {
   friend class ExclusiveCodePageIterator;
   friend class ExclusiveLargePageIterator;
   friend class HeapIterationScope;
+  friend class HeapSnapshotWriter;
   friend class PageSpaceController;
   friend class ConcurrentSweeperTask;
   friend class GCCompactor;
