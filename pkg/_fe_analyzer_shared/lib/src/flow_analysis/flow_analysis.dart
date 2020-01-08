@@ -129,21 +129,6 @@ class AssignedVariables<Node, Variable> {
     storeInfo(node, deferNode(isClosure: isClosure));
   }
 
-  /// Call this method to register that the node [from] for which information
-  /// has been stored is replaced by the node [to].
-  // TODO(johnniwinther): Remove this when unified collections are encoded as
-  // general elements in the front-end.
-  void reassignInfo(Node from, Node to) {
-    assert(!_info.containsKey(to), "Node $to already has info: ${_info[to]}");
-    AssignedVariablesNodeInfo<Variable> info = _info.remove(from);
-    assert(
-        info != null,
-        'No information for $from (${from.hashCode}) in '
-        '{${_info.keys.map((k) => '$k (${k.hashCode})').join(',')}}');
-
-    _info[to] = info;
-  }
-
   /// Call this after visiting the code to be analyzed, to check invariants.
   void finish() {
     assert(() {
@@ -160,6 +145,21 @@ class AssignedVariables<Node, Variable> {
           'Variables captured but not declared: $undeclaredCaptures');
       return true;
     }());
+  }
+
+  /// Call this method to register that the node [from] for which information
+  /// has been stored is replaced by the node [to].
+  // TODO(johnniwinther): Remove this when unified collections are encoded as
+  // general elements in the front-end.
+  void reassignInfo(Node from, Node to) {
+    assert(!_info.containsKey(to), "Node $to already has info: ${_info[to]}");
+    AssignedVariablesNodeInfo<Variable> info = _info.remove(from);
+    assert(
+        info != null,
+        'No information for $from (${from.hashCode}) in '
+        '{${_info.keys.map((k) => '$k (${k.hashCode})').join(',')}}');
+
+    _info[to] = info;
   }
 
   /// This method may be called at any time between a call to [deferNode] and
