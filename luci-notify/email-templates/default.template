@@ -3,6 +3,15 @@ Dart build {{ .Build.Status }} on {{ .Build.Builder.Builder }}
 {{ template "summary" .Build }}
 {{/* If the build is a failure, show failed steps. */}}
 {{ if ne .Build.Status 12 -}}
+<ul>
+<li>
+<a href="https://dart-ci.firebaseapp.com/#{{- .Build.Input.GitilesCommit.Id -}">Test results</a>.
+</li>
+</ul>
+See the documentation at
+<a href="https://goto.google.com/dart-status-file-free-workflow">
+go/dart-status-file-free-workflow</a>.
+<br />
 <br />
 Failed Steps:
 <ul>
@@ -17,9 +26,5 @@ Failed Steps:
 {{ end -}}
 {{ end -}}
 </ul>
-See the documentation at
-<a href="https://goto.google.com/dart-status-file-free-workflow">
-go/dart-status-file-free-workflow</a>.
-<br />
 Completed at: {{ .Build.EndTime | time }}
 {{ end -}}
