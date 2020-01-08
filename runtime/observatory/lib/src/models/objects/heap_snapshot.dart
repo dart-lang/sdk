@@ -6,6 +6,7 @@ part of models;
 
 abstract class HeapSnapshot {
   DateTime get timestamp;
+  String get description;
   int get size;
   SnapshotObject get root;
   HeapSnapshotMergedDominatorNode get mergedDominatorTree;

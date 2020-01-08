@@ -10,6 +10,7 @@ part of heap_snapshot;
 
 class HeapSnapshot implements M.HeapSnapshot {
   SnapshotGraph graph;
+  String get description => graph.description;
   DateTime timestamp;
   int get size => graph.internalSize + graph.externalSize;
   HeapSnapshotMergedDominatorNode mergedDominatorTree;

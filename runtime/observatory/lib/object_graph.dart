@@ -373,6 +373,7 @@ class _InstancesIterator implements Iterator<SnapshotObject> {
 
 abstract class SnapshotClass {
   String get name;
+  String get qualifiedName;
   int get shallowSize;
   int get externalSize;
   int get internalSize;
@@ -385,6 +386,7 @@ class _SnapshotClass implements SnapshotClass {
   final _SnapshotGraph _graph;
   final int _cid;
   final String name;
+  String get qualifiedName => "$libUri $name";
   final String libName;
   final String libUri;
   final Map<int, String> fields = new Map<int, String>();
@@ -411,6 +413,8 @@ class _SnapshotClass implements SnapshotClass {
 }
 
 abstract class SnapshotGraph {
+  String get description;
+
   int get internalSize;
   int get externalSize;
   int get size;
@@ -443,6 +447,8 @@ const kUnknownFieldName = "<unknown>";
 
 class _SnapshotGraph implements SnapshotGraph {
   _SnapshotGraph(Uint8List encoded) : this._encoded = encoded;
+
+  String get description => _description;
 
   int get size => _liveInternalSize + _liveExternalSize;
   int get internalSize => _liveInternalSize;
@@ -566,6 +572,8 @@ class _SnapshotGraph implements SnapshotGraph {
 
   Uint8List _encoded;
 
+  String _description;
+
   int _kStackCid;
   int _kFieldCid;
   int _numCids;
@@ -608,7 +616,7 @@ class _SnapshotGraph implements SnapshotGraph {
       stream.readByte(); // Magic value.
     }
     stream.readUnsigned(); // Flags
-    stream.readUtf8(); // Name
+    _description = stream.readUtf8();
 
     _totalInternalSize = stream.readUnsigned();
     _capacity = stream.readUnsigned();
