@@ -256,7 +256,7 @@ class TypeNameResolver {
 
     var typeArguments = List<DartType>(parameterCount);
     for (var i = 0; i < parameterCount; i++) {
-      typeArguments[i] = _getType(arguments[i]);
+      typeArguments[i] = arguments[i].type;
     }
 
     return typeArguments;
@@ -276,15 +276,6 @@ class TypeNameResolver {
       }
     }
     return NullabilitySuffix.star;
-  }
-
-  /// Return the type represented by the given type [annotation].
-  DartType _getType(TypeAnnotation annotation) {
-    DartType type = annotation.type;
-    if (type == null) {
-      return dynamicType;
-    }
-    return type;
   }
 
   /// We are resolving the [TypeName] in a redirecting constructor of the
