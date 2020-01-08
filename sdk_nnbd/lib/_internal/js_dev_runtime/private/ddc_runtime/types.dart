@@ -1370,6 +1370,9 @@ Object? extractTypeArguments<T>(T instance, Function f) {
     throw ArgumentError('Cannot extract type of null instance.');
   }
   var type = unwrapType(T);
+  // Get underlying type from nullability wrappers if needed.
+  type = JS<Object>('!', '#.type || #', type, type);
+
   if (type is AbstractFunctionType || _isFutureOr(type)) {
     throw ArgumentError('Cannot extract from non-class type ($type).');
   }
