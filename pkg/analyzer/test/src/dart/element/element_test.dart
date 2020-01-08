@@ -1279,7 +1279,7 @@ class FunctionTypeImplTest extends AbstractTypeTest {
     definingClass.methods = <MethodElement>[functionElement];
     FunctionTypeImpl functionType = functionElement.type;
     InterfaceTypeImpl argumentType =
-        InterfaceTypeImpl(ClassElementImpl('D', -1));
+        interfaceTypeStar(ClassElementImpl('D', -1));
     FunctionType result = functionType
         .substitute2(<DartType>[argumentType], <DartType>[parameterType]);
     expect(result.returnType, argumentType);
@@ -1296,11 +1296,11 @@ class FunctionTypeImplTest extends AbstractTypeTest {
 
   @deprecated
   void test_substitute2_notEqual() {
-    DartType returnType = InterfaceTypeImpl(ClassElementImpl('R', -1));
-    DartType normalParameterType = InterfaceTypeImpl(ClassElementImpl('A', -1));
+    DartType returnType = interfaceTypeStar(ClassElementImpl('R', -1));
+    DartType normalParameterType = interfaceTypeStar(ClassElementImpl('A', -1));
     DartType optionalParameterType =
-        InterfaceTypeImpl(ClassElementImpl('B', -1));
-    DartType namedParameterType = InterfaceTypeImpl(ClassElementImpl('C', -1));
+        interfaceTypeStar(ClassElementImpl('B', -1));
+    DartType namedParameterType = interfaceTypeStar(ClassElementImpl('C', -1));
     FunctionElementImpl functionElement = FunctionElementImpl('f', -1);
     String namedParameterName = "c";
     functionElement.parameters = <ParameterElement>[
@@ -1311,7 +1311,7 @@ class FunctionTypeImplTest extends AbstractTypeTest {
     functionElement.returnType = returnType;
     FunctionTypeImpl functionType = functionElement.type;
     InterfaceTypeImpl argumentType =
-        InterfaceTypeImpl(ClassElementImpl('D', -1));
+        interfaceTypeStar(ClassElementImpl('D', -1));
     TypeParameterTypeImpl parameterType =
         TypeParameterTypeImpl(TypeParameterElementImpl('E', -1));
     FunctionType result = functionType
@@ -1415,7 +1415,7 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
   }
 
   void test_creation() {
-    expect(InterfaceTypeImpl(class_(name: 'A')), isNotNull);
+    expect(interfaceTypeStar(class_(name: 'A')), isNotNull);
   }
 
   void test_getAccessors() {
@@ -1425,13 +1425,13 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
     PropertyAccessorElement getterH =
         ElementFactory.getterElement("h", false, null);
     typeElement.accessors = <PropertyAccessorElement>[getterG, getterH];
-    InterfaceTypeImpl type = InterfaceTypeImpl(typeElement);
+    InterfaceTypeImpl type = interfaceTypeStar(typeElement);
     expect(type.accessors.length, 2);
   }
 
   void test_getAccessors_empty() {
     ClassElementImpl typeElement = class_(name: 'A');
-    InterfaceTypeImpl type = InterfaceTypeImpl(typeElement);
+    InterfaceTypeImpl type = interfaceTypeStar(typeElement);
     expect(type.accessors.length, 0);
   }
 
@@ -1445,20 +1445,20 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
       constructorOne,
       constructorTwo
     ];
-    InterfaceTypeImpl type = InterfaceTypeImpl(typeElement);
+    InterfaceTypeImpl type = interfaceTypeStar(typeElement);
     expect(type.constructors, hasLength(2));
   }
 
   void test_getConstructors_empty() {
     ClassElementImpl typeElement = class_(name: 'A');
     typeElement.constructors = const <ConstructorElement>[];
-    InterfaceTypeImpl type = InterfaceTypeImpl(typeElement);
+    InterfaceTypeImpl type = interfaceTypeStar(typeElement);
     expect(type.constructors, isEmpty);
   }
 
   void test_getElement() {
     ClassElementImpl typeElement = class_(name: 'A');
-    InterfaceTypeImpl type = InterfaceTypeImpl(typeElement);
+    InterfaceTypeImpl type = interfaceTypeStar(typeElement);
     expect(type.element, typeElement);
   }
 
@@ -1590,7 +1590,7 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
     //
     InterfaceType typeI = interfaceTypeStar(class_(name: 'I'));
     InterfaceTypeImpl typeAI =
-        InterfaceTypeImpl.explicit(classA, <DartType>[typeI]);
+        interfaceTypeStar(classA, typeArguments: <DartType>[typeI]);
     MethodElement method = typeAI.getMethod(methodName);
     expect(method, isNotNull);
     FunctionType methodType = method.type;
@@ -1612,7 +1612,8 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
     // A<I>
     //
     InterfaceType typeI = interfaceTypeStar(class_(name: 'I'));
-    InterfaceTypeImpl typeAI = InterfaceTypeImpl.explicit(A, <DartType>[typeI]);
+    InterfaceTypeImpl typeAI =
+        interfaceTypeStar(A, typeArguments: <DartType>[typeI]);
     MethodElement method = typeAI.getMethod(methodName);
     expect(method, isNotNull);
     FunctionType methodType = method.type;
@@ -1637,13 +1638,13 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
     MethodElementImpl methodOne = ElementFactory.methodElement("one", null);
     MethodElementImpl methodTwo = ElementFactory.methodElement("two", null);
     typeElement.methods = <MethodElement>[methodOne, methodTwo];
-    InterfaceTypeImpl type = InterfaceTypeImpl(typeElement);
+    InterfaceTypeImpl type = interfaceTypeStar(typeElement);
     expect(type.methods.length, 2);
   }
 
   void test_getMethods_empty() {
     ClassElementImpl typeElement = class_(name: 'A');
-    InterfaceTypeImpl type = InterfaceTypeImpl(typeElement);
+    InterfaceTypeImpl type = interfaceTypeStar(typeElement);
     expect(type.methods.length, 0);
   }
 
@@ -1689,7 +1690,8 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
     // B<I>
     //
     InterfaceType typeI = interfaceTypeStar(class_(name: 'I'));
-    InterfaceTypeImpl typeBI = InterfaceTypeImpl.explicit(B, <DartType>[typeI]);
+    InterfaceTypeImpl typeBI =
+        interfaceTypeStar(B, typeArguments: <DartType>[typeI]);
     List<InterfaceType> interfaces = typeBI.mixins;
     expect(interfaces, hasLength(1));
     InterfaceType result = interfaces[0];
@@ -1725,7 +1727,8 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
     // A<I>
     //
     InterfaceType typeI = interfaceTypeStar(class_(name: 'I'));
-    InterfaceTypeImpl typeAI = InterfaceTypeImpl.explicit(A, <DartType>[typeI]);
+    InterfaceTypeImpl typeAI =
+        interfaceTypeStar(A, typeArguments: <DartType>[typeI]);
     PropertyAccessorElement setter = typeAI.getSetter(setterName);
     expect(setter, isNotNull);
     FunctionType setterType = setter.type;
@@ -1777,7 +1780,7 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
     //
     InterfaceType typeI = interfaceTypeStar(class_(name: 'I'));
     InterfaceTypeImpl typeBI =
-        InterfaceTypeImpl.explicit(classB, <DartType>[typeI]);
+        interfaceTypeStar(classB, typeArguments: <DartType>[typeI]);
     InterfaceType superclass = typeBI.superclass;
     expect(superclass.element, same(A));
     expect(superclass.typeArguments[0], same(typeI));
@@ -1996,7 +1999,8 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
     // B<I>
     //
     InterfaceType typeI = interfaceTypeStar(class_(name: 'I'));
-    InterfaceTypeImpl typeBI = InterfaceTypeImpl.explicit(B, <DartType>[typeI]);
+    InterfaceTypeImpl typeBI =
+        interfaceTypeStar(B, typeArguments: <DartType>[typeI]);
     MethodElement method = typeBI.lookUpMethod(methodName, library);
     expect(method, isNotNull);
     FunctionType methodType = method.type;
@@ -2152,7 +2156,7 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
   void test_substitute_exception() {
     try {
       var classA = class_(name: 'A');
-      InterfaceTypeImpl type = InterfaceTypeImpl(classA);
+      InterfaceTypeImpl type = interfaceTypeStar(classA);
       InterfaceType argumentType = interfaceTypeStar(class_(name: 'B'));
       type.substitute2(<DartType>[argumentType], <DartType>[]);
       fail(
@@ -2170,8 +2174,11 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
     TypeParameterElementImpl parameterElement =
         TypeParameterElementImpl('E', -1);
     TypeParameterTypeImpl parameter = TypeParameterTypeImpl(parameterElement);
-    InterfaceTypeImpl type =
-        InterfaceTypeImpl.explicit(classA, <DartType>[parameter]);
+    InterfaceTypeImpl type = InterfaceTypeImpl(
+      element: classA,
+      typeArguments: <DartType>[parameter],
+      nullabilitySuffix: NullabilitySuffix.star,
+    );
     InterfaceType argumentType = interfaceTypeStar(class_(name: 'B'));
     TypeParameterTypeImpl parameterType =
         TypeParameterTypeImpl(TypeParameterElementImpl('F', -1));
@@ -2403,7 +2410,7 @@ class TypeParameterTypeImplTest extends AbstractTypeTest {
   void test_substitute_equal() {
     TypeParameterElementImpl element = TypeParameterElementImpl('E', -1);
     TypeParameterTypeImpl type = TypeParameterTypeImpl(element);
-    InterfaceTypeImpl argument = InterfaceTypeImpl(ClassElementImpl('A', -1));
+    InterfaceTypeImpl argument = interfaceTypeStar(ClassElementImpl('A', -1));
     TypeParameterTypeImpl parameter = TypeParameterTypeImpl(element);
     expect(type.substitute2(<DartType>[argument], <DartType>[parameter]),
         same(argument));
@@ -2413,7 +2420,7 @@ class TypeParameterTypeImplTest extends AbstractTypeTest {
   void test_substitute_notEqual() {
     TypeParameterTypeImpl type =
         TypeParameterTypeImpl(TypeParameterElementImpl('E', -1));
-    InterfaceTypeImpl argument = InterfaceTypeImpl(ClassElementImpl('A', -1));
+    InterfaceTypeImpl argument = interfaceTypeStar(ClassElementImpl('A', -1));
     TypeParameterTypeImpl parameter =
         TypeParameterTypeImpl(TypeParameterElementImpl('F', -1));
     expect(type.substitute2(<DartType>[argument], <DartType>[parameter]),

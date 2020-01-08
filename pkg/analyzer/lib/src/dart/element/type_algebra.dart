@@ -504,8 +504,11 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
       return type;
     }
 
-    return InterfaceTypeImpl.explicit(type.element, typeArguments,
-        nullabilitySuffix: (type as TypeImpl).nullabilitySuffix);
+    return InterfaceTypeImpl(
+      element: type.element,
+      typeArguments: typeArguments,
+      nullabilitySuffix: (type as TypeImpl).nullabilitySuffix,
+    );
   }
 
   @override

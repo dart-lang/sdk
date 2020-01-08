@@ -3159,9 +3159,9 @@ class InstantiatedClass {
   }
 
   InterfaceType withNullability(NullabilitySuffix nullability) {
-    return InterfaceTypeImpl.explicit(
-      element,
-      arguments,
+    return InterfaceTypeImpl(
+      element: element,
+      typeArguments: arguments,
       nullabilitySuffix: nullability,
     );
   }
@@ -3249,9 +3249,9 @@ class InterfaceLeastUpperBoundHelper {
         }
       }
 
-      return InterfaceTypeImpl.explicit(
-        type1.element,
-        args,
+      return InterfaceTypeImpl(
+        element: type1.element,
+        typeArguments: args,
         nullabilitySuffix: nullability,
       );
     }

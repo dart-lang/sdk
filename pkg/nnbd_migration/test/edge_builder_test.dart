@@ -82,9 +82,14 @@ class AssignmentCheckerTest extends Object
         ..supertype = _myListOfListSupertype.type as InterfaceType;
     }
     return DecoratedType(
-        InterfaceTypeImpl.explicit(_myListOfListClass, [elementType.type]),
-        newNode(),
-        typeArguments: [elementType]);
+      InterfaceTypeImpl(
+        element: _myListOfListClass,
+        typeArguments: [elementType.type],
+        nullabilitySuffix: NullabilitySuffix.star,
+      ),
+      newNode(),
+      typeArguments: [elementType],
+    );
   }
 
   void test_bottom_to_generic() {

@@ -974,9 +974,9 @@ class LinkedUnitContext {
     } else if (kind == LinkedNodeTypeKind.interface) {
       var element = bundleContext.elementOfIndex(linkedType.interfaceClass);
       var nullabilitySuffix = _nullabilitySuffix(linkedType.nullabilitySuffix);
-      return InterfaceTypeImpl.explicit(
-        element,
-        linkedType.interfaceTypeArguments.map(readType).toList(),
+      return InterfaceTypeImpl(
+        element: element,
+        typeArguments: linkedType.interfaceTypeArguments.map(readType).toList(),
         nullabilitySuffix: nullabilitySuffix,
       );
     } else if (kind == LinkedNodeTypeKind.typeParameter) {

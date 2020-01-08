@@ -370,9 +370,13 @@ class DecoratedType implements DecoratedTypeInfo {
         nullabilitySuffix: nullabilitySuffix,
       );
     } else if (type is InterfaceType) {
-      return InterfaceTypeImpl.explicit(type.element,
-          [for (var arg in typeArguments) arg.toFinalType(typeProvider)],
-          nullabilitySuffix: nullabilitySuffix);
+      return InterfaceTypeImpl(
+        element: type.element,
+        typeArguments: [
+          for (var arg in typeArguments) arg.toFinalType(typeProvider)
+        ],
+        nullabilitySuffix: nullabilitySuffix,
+      );
     } else if (type is TypeParameterType) {
       return TypeParameterTypeImpl(type.element,
           nullabilitySuffix: nullabilitySuffix);

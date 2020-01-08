@@ -694,30 +694,11 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    */
   List<MethodElement> _methods;
 
-  /**
-   * Initialize a newly created type to be declared by the given [element].
-   */
-  InterfaceTypeImpl(ClassElement element,
-      {this.nullabilitySuffix = NullabilitySuffix.star})
-      : typeArguments = const <DartType>[],
-        super(element, element.displayName);
-
-  InterfaceTypeImpl.explicit(ClassElement element, this.typeArguments,
-      {this.nullabilitySuffix = NullabilitySuffix.star})
-      : super(element, element.displayName);
-
-  /**
-   * Private constructor.
-   */
-  InterfaceTypeImpl._(Element element, String name,
-      {this.nullabilitySuffix = NullabilitySuffix.star})
-      : typeArguments = const <DartType>[],
-        super(element, name);
-
-  InterfaceTypeImpl._withNullability(InterfaceTypeImpl original,
-      {this.nullabilitySuffix = NullabilitySuffix.star})
-      : typeArguments = original.typeArguments,
-        super(original.element, original.name);
+  InterfaceTypeImpl({
+    @required ClassElement element,
+    @required this.typeArguments,
+    @required this.nullabilitySuffix,
+  }) : super(element, element.displayName);
 
   @override
   List<PropertyAccessorElement> get accessors {
@@ -1445,8 +1426,11 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     if (identical(typeArguments, this.typeArguments)) {
       return this;
     } else {
-      return InterfaceTypeImpl.explicit(element, typeArguments,
-          nullabilitySuffix: nullabilitySuffix);
+      return InterfaceTypeImpl(
+        element: element,
+        typeArguments: typeArguments,
+        nullabilitySuffix: nullabilitySuffix,
+      );
     }
   }
 
@@ -1465,10 +1449,11 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     List<DartType> newTypeArguments =
         TypeImpl.substitute(typeArguments, argumentTypes, parameterTypes);
 
-    InterfaceTypeImpl newType = InterfaceTypeImpl.explicit(
-        element, newTypeArguments,
-        nullabilitySuffix: nullabilitySuffix);
-    return newType;
+    return InterfaceTypeImpl(
+      element: element,
+      typeArguments: newTypeArguments,
+      nullabilitySuffix: nullabilitySuffix,
+    );
   }
 
   @deprecated
@@ -1479,8 +1464,12 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
   TypeImpl withNullability(NullabilitySuffix nullabilitySuffix) {
     if (this.nullabilitySuffix == nullabilitySuffix) return this;
-    return InterfaceTypeImpl._withNullability(this,
-        nullabilitySuffix: nullabilitySuffix);
+
+    return InterfaceTypeImpl(
+      element: element,
+      typeArguments: typeArguments,
+      nullabilitySuffix: nullabilitySuffix,
+    );
   }
 
   /**
@@ -1666,8 +1655,11 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       return NullabilitySuffix.none;
     }
 
-    return InterfaceTypeImpl.explicit(firstElement, lubArguments,
-        nullabilitySuffix: computeNullability());
+    return InterfaceTypeImpl(
+      element: firstElement,
+      typeArguments: lubArguments,
+      nullabilitySuffix: computeNullability(),
+    );
   }
 
   /// Look up the getter with the given name in the interfaces implemented by

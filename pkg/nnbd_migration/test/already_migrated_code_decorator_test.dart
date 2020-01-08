@@ -273,16 +273,28 @@ class _AlreadyMigratedCodeDecoratorTestBase extends Object with EdgeTester {
 
   void test_decorate_interfaceType_simple_question() {
     checkInt(
-        decorate(InterfaceTypeImpl(typeProvider.intType.element,
-            nullabilitySuffix: NullabilitySuffix.question)),
-        checkExplicitlyNullable);
+      decorate(
+        InterfaceTypeImpl(
+          element: typeProvider.intElement,
+          typeArguments: const [],
+          nullabilitySuffix: NullabilitySuffix.question,
+        ),
+      ),
+      checkExplicitlyNullable,
+    );
   }
 
   void test_decorate_interfaceType_simple_star() {
     checkInt(
-        decorate(InterfaceTypeImpl(typeProvider.intType.element,
-            nullabilitySuffix: suffix)),
-        checkExplicitlyNonNullable);
+      decorate(
+        InterfaceTypeImpl(
+          element: typeProvider.intElement,
+          typeArguments: const [],
+          nullabilitySuffix: suffix,
+        ),
+      ),
+      checkExplicitlyNonNullable,
+    );
   }
 
   void test_decorate_iterable_dynamic() {

@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
@@ -268,18 +267,7 @@ class SubstituteTest extends _Base {
   }
 
   test_typeParameter_nullability() async {
-    var typeProvider = TestTypeProvider();
-
-    var intElement = typeProvider.intType.element;
-
-    var intQuestion = InterfaceTypeImpl.explicit(intElement, [],
-        nullabilitySuffix: NullabilitySuffix.question);
-    var intStar = InterfaceTypeImpl.explicit(intElement, [],
-        nullabilitySuffix: NullabilitySuffix.star);
-    var intNone = InterfaceTypeImpl.explicit(intElement, [],
-        nullabilitySuffix: NullabilitySuffix.star);
-
-    var tElement = TypeParameterElementImpl('T', -1);
+    var tElement = typeParameter('T');
 
     void check(
       NullabilitySuffix typeParameterNullability,

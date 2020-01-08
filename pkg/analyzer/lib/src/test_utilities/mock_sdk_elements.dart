@@ -1006,9 +1006,9 @@ class _MockSdkElementsBuilder {
     ClassElement element, {
     List<DartType> typeArguments = const [],
   }) {
-    return InterfaceTypeImpl.explicit(
-      element,
-      typeArguments,
+    return InterfaceTypeImpl(
+      element: element,
+      typeArguments: typeArguments,
       nullabilitySuffix: nullabilitySuffix,
     );
   }

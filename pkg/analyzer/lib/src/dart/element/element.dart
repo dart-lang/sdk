@@ -200,9 +200,9 @@ abstract class AbstractClassElementImpl extends ElementImpl
       var tp = 'typeParameters.length (${typeParameters.length})';
       throw ArgumentError('$ta != $tp');
     }
-    return InterfaceTypeImpl.explicit(
-      this,
-      typeArguments,
+    return InterfaceTypeImpl(
+      element: this,
+      typeArguments: typeArguments,
       nullabilitySuffix: nullabilitySuffix,
     );
   }
@@ -912,7 +912,11 @@ class ClassElementImpl extends AbstractClassElementImpl
       var typeArguments = typeParameters
           .map((e) => e.instantiate(nullabilitySuffix: _noneOrStarSuffix))
           .toList();
-      _type = InterfaceTypeImpl.explicit(this, typeArguments);
+      _type = InterfaceTypeImpl(
+        element: this,
+        typeArguments: typeArguments,
+        nullabilitySuffix: NullabilitySuffix.star,
+      );
     }
     return _type;
   }
@@ -2136,9 +2140,9 @@ class ConstructorElementImpl extends ExecutableElementImpl
     if (_returnType != null) return _returnType;
 
     InterfaceTypeImpl classThisType = enclosingElement.thisType;
-    return _returnType = InterfaceTypeImpl.explicit(
-      classThisType.element,
-      classThisType.typeArguments,
+    return _returnType = InterfaceTypeImpl(
+      element: classThisType.element,
+      typeArguments: classThisType.typeArguments,
       nullabilitySuffix: classThisType.nullabilitySuffix,
     );
   }
@@ -3428,8 +3432,11 @@ class EnumElementImpl extends AbstractClassElementImpl {
   InterfaceType get type {
     if (_type == null) {
       var typeArguments = const <DartType>[];
-      InterfaceTypeImpl type = InterfaceTypeImpl.explicit(this, typeArguments);
-      _type = type;
+      _type = InterfaceTypeImpl(
+        element: this,
+        typeArguments: typeArguments,
+        nullabilitySuffix: NullabilitySuffix.star,
+      );
     }
     return _type;
   }
