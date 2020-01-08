@@ -1582,6 +1582,19 @@ main() {
     assertType(foo, 'void Function(int)');
   }
 
+  test_noReceiver_parameter_call_nullAware() async {
+    await assertNoErrorsInCode(r'''
+double Function(int) foo;
+
+main() {
+  foo?.call(1);
+}
+    ''');
+
+    var invocation = findNode.methodInvocation('call(1)');
+    assertTypeLegacy(invocation.target);
+  }
+
   test_noReceiver_method_superClass() async {
     await assertNoErrorsInCode(r'''
 class A {

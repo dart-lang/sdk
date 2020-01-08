@@ -145,7 +145,7 @@ class MethodInvocationResolver {
     DartType receiverType = receiver.staticType;
     receiverType = _resolveTypeParameter(receiverType);
 
-    if (node.isNullAware) {
+    if (node.isNullAware && _typeSystem.isNonNullableByDefault) {
       receiverType = _typeSystem.promoteToNonNull(receiverType);
     }
 
