@@ -5,7 +5,7 @@ Dart build {{ .Build.Status }} on {{ .Build.Builder.Builder }}
 {{ if ne .Build.Status 12 -}}
 <ul>
 <li>
-<a href="https://dart-ci.firebaseapp.com/#{{- .Build.Input.GitilesCommit.Id -}">Test results</a>.
+<a href="https://dart-ci.firebaseapp.com/#{{- .Build.Input.GitilesCommit.Id -}}">Test results</a>.
 </li>
 </ul>
 See the documentation at
