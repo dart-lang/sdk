@@ -42,7 +42,7 @@ void defineRuleTests() {
   group('rule', () {
     group('dart', () {
       // Rule tests run with default analysis options.
-      testRules(ruleDir, analysisOptions: null);
+      testRules(ruleDir);
 
       // Rule tests run against specific configurations.
       for (var entry in Directory(testConfigDir).listSync()) {

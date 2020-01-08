@@ -216,10 +216,10 @@ class SimpleFormatter implements ReportFormatter {
     writeLints();
     writeSummary();
     if (showStatistics) {
-      out.writeln('');
+      out.writeln();
       writeStatistics();
     }
-    out.writeln('');
+    out.writeln();
   }
 
   void writeCounts() {

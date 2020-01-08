@@ -27,6 +27,7 @@ linter:
 #    - avoid_js_rounded_ints # under review (see #1068)
     - avoid_positional_boolean_parameters
 #    - avoid_private_typedef_functions # under review (see #1068)
+    - avoid_redundant_argument_values
 #    - avoid_renaming_method_parameters # under review (see #1068)
     - avoid_returning_null
     - avoid_returning_null_for_future
@@ -58,7 +59,6 @@ linter:
     - literal_only_boolean_expressions
     - no_adjacent_strings_in_list
 #    - non_constant_identifier_names
-#    - omit_local_variable_types
 #    - one_member_abstracts
     - only_throw_errors
     - overridden_fields
