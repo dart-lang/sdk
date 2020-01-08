@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
 
@@ -62,15 +61,19 @@ class _Visitor extends SimpleAstVisitor {
 
   _Visitor(this.rule, this.context);
 
-  void check(ArgumentList argumentList, List<ParameterElement> parameters) {
-    if (argumentList.arguments.isEmpty || parameters == null) {
+  void check(ArgumentList argumentList) {
+    final arguments = argumentList.arguments;
+    if (arguments.isEmpty) {
       return;
     }
 
-    for (var arg in argumentList.arguments) {
+    for (var i = arguments.length - 1; i >= 0; --i) {
+      var arg = arguments[i];
       final param = arg.staticParameterElement;
-      if (param == null || param.hasRequired) {
+      if (param == null || param.hasRequired || param.isRequiredNamed) {
         continue;
+      } else if (param.isRequiredPositional) {
+        break;
       }
       final value = param.constantValue;
       if (value != null) {
@@ -82,25 +85,19 @@ class _Visitor extends SimpleAstVisitor {
           rule.reportLint(arg);
         }
       }
+      if (param.isOptionalPositional) {
+        break;
+      }
     }
   }
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    check(node.argumentList, node.staticElement?.parameters);
+    check(node.argumentList);
   }
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
-    final element = node.staticInvokeType.element;
-    List<ParameterElement> parameters;
-    if (element is MethodElement) {
-      parameters = element.parameters;
-    }
-    if (element is FunctionElement) {
-      parameters = element.parameters;
-    }
-
-    check(node.argumentList, parameters);
+    check(node.argumentList);
   }
 }
