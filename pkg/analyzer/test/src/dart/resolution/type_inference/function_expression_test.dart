@@ -25,7 +25,7 @@ var v = (bool b) {
 };
 ''');
     var element = findNode.functionExpression('(bool').declaredElement;
-    assertElementTypeString(element.returnType, 'num');
+    assertType(element.returnType, 'num');
   }
 
   test_returnType_blockBody_null_hasReturn() async {
@@ -35,7 +35,7 @@ var v = (bool b) {
 };
 ''');
     var element = findNode.functionExpression('(bool').declaredElement;
-    assertElementTypeString(element.returnType, 'Null');
+    assertType(element.returnType, 'Null');
   }
 
   test_returnType_blockBody_null_noReturn() async {
@@ -43,7 +43,7 @@ var v = (bool b) {
 var v = () {};
 ''');
     var element = findNode.functionExpression('() {}').declaredElement;
-    assertElementTypeString(element.returnType, 'Null');
+    assertType(element.returnType, 'Null');
   }
 
   test_returnType_blockBody_nullable() async {
@@ -54,9 +54,9 @@ var v = (bool b) {
 ''');
     var element = findNode.functionExpression('(bool').declaredElement;
     if (typeToStringWithNullability) {
-      assertElementTypeString(element.returnType, 'int?');
+      assertType(element.returnType, 'int?');
     } else {
-      assertElementTypeString(element.returnType, 'int');
+      assertType(element.returnType, 'int');
     }
   }
 
@@ -66,9 +66,9 @@ var v = () => throw 42;
 ''');
     var element = findNode.functionExpression('() =>').declaredElement;
     if (typeToStringWithNullability) {
-      assertElementTypeString(element.returnType, 'Never');
+      assertType(element.returnType, 'Never');
     } else {
-      assertElementTypeString(element.returnType, 'Null');
+      assertType(element.returnType, 'Null');
     }
   }
 
@@ -77,7 +77,7 @@ var v = () => throw 42;
 var v = () => 42;
 ''');
     var element = findNode.functionExpression('() =>').declaredElement;
-    assertElementTypeString(element.returnType, 'int');
+    assertType(element.returnType, 'int');
   }
 
   test_returnType_expressionBody_Null() async {
@@ -85,7 +85,7 @@ var v = () => 42;
 var v = () => null;
 ''');
     var element = findNode.functionExpression('() =>').declaredElement;
-    assertElementTypeString(element.returnType, 'Null');
+    assertType(element.returnType, 'Null');
   }
 }
 

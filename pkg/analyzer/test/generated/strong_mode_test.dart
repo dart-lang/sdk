@@ -59,18 +59,18 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
 
   AsserterBuilder<Element, DartType> _hasElement;
 
-  void assertElementTypeString(DartType type, String expected) {
+  void assertInvokeType(InvocationExpression expression, String expected) {
+    DartType actual = expression.staticInvokeType;
+    assertType(actual, expected);
+  }
+
+  void assertType(DartType type, String expected) {
     if (expected == null) {
       expect(type, isNull);
     } else {
       var typeStr = type.getDisplayString(withNullability: false);
       expect(typeStr, expected);
     }
-  }
-
-  void assertInvokeType(InvocationExpression expression, String expected) {
-    DartType actual = expression.staticInvokeType;
-    assertElementTypeString(actual, expected);
   }
 
   @override
@@ -1405,7 +1405,7 @@ test() {
     var fCall = h.initializer as MethodInvocation;
     assertInvokeType(fCall, 'dynamic Function(dynamic Function(dynamic))');
     var g = fCall.argumentList.arguments[0];
-    assertElementTypeString(g.staticType, 'dynamic Function(dynamic)');
+    assertType(g.staticType, 'dynamic Function(dynamic)');
   }
 
   test_inferGenericInstantiation2() async {
@@ -1433,8 +1433,7 @@ num test(Iterable values) => values.fold(values.first as num, max);
     assertInvokeType(fold, 'num Function(num, num Function(num, dynamic))');
     var max = fold.argumentList.arguments[1];
     // TODO(jmesserly): arguably num Function(num, num) is better here.
-    assertElementTypeString(
-        max.staticType, 'dynamic Function(dynamic, dynamic)');
+    assertType(max.staticType, 'dynamic Function(dynamic, dynamic)');
   }
 
   test_inferredFieldDeclaration_propagation() async {
@@ -2216,8 +2215,8 @@ class B<T2, U2> {
     ConstructorName redirected = bConstructor.redirectedConstructor;
 
     TypeName typeName = redirected.type;
-    assertElementTypeString(typeName.type, 'A<T2, U2>');
-    assertElementTypeString(typeName.type, 'A<T2, U2>');
+    assertType(typeName.type, 'A<T2, U2>');
+    assertType(typeName.type, 'A<T2, U2>');
 
     var constructorMember = redirected.staticElement;
     expect(
@@ -2256,8 +2255,8 @@ class B<T2, U2> {
     ConstructorName redirected = bConstructor.redirectedConstructor;
 
     TypeName typeName = redirected.type;
-    assertElementTypeString(typeName.type, 'A<T2, U2>');
-    assertElementTypeString(typeName.type, 'A<T2, U2>');
+    assertType(typeName.type, 'A<T2, U2>');
+    assertType(typeName.type, 'A<T2, U2>');
 
     expect(redirected.name, isNull);
     expect(
@@ -2601,7 +2600,7 @@ void main() {
     SimpleIdentifier f = findNode.simple('f');
     FunctionElementImpl e = f.staticElement;
     FunctionType ft = e.type.instantiate([typeProvider.stringType]);
-    assertElementTypeString(ft, 'String Function(String)');
+    assertType(ft, 'String Function(String)');
   }
 
   test_genericFunction_bounds() async {
@@ -2616,7 +2615,7 @@ void g(T f<T>(T x)) {}
 ''');
     var type = expectFunctionType2('f', 'T Function<T>(T)');
     FunctionType ft = type.instantiate([typeProvider.stringType]);
-    assertElementTypeString(ft, 'String Function(String)');
+    assertType(ft, 'String Function(String)');
   }
 
   test_genericFunction_static() async {
@@ -2629,7 +2628,7 @@ class C<E> {
     SimpleIdentifier f = findNode.simple('f');
     MethodElementImpl e = f.staticElement;
     FunctionType ft = e.type.instantiate([typeProvider.stringType]);
-    assertElementTypeString(ft, 'String Function(String)');
+    assertType(ft, 'String Function(String)');
   }
 
   test_genericFunction_typedef() async {
@@ -2711,21 +2710,13 @@ main() {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 65, 9),
     ]);
-    assertElementTypeString(
-      findElement.method('f').type,
-      'List<T> Function<T>(E)',
-    );
+    assertType(findElement.method('f').type, 'List<T> Function<T>(E)');
 
     var cOfString = findElement.localVar('cOfString');
     var ft = (cOfString.type as InterfaceType).getMethod('f').type;
-    assertElementTypeString(
-      ft,
-      'List<T> Function<T>(String)',
-    );
-    assertElementTypeString(
-      ft.instantiate([typeProvider.intType]),
-      'List<int> Function(String)',
-    );
+    assertType(ft, 'List<T> Function<T>(String)');
+    assertType(
+        ft.instantiate([typeProvider.intType]), 'List<int> Function(String)');
   }
 
   test_genericMethod_explicitTypeParams() async {
@@ -2742,7 +2733,7 @@ main() {
     ]);
     MethodInvocation f = findNode.simple('f<int>').parent;
     FunctionType ft = f.staticInvokeType;
-    assertElementTypeString(ft, 'List<int> Function(String)');
+    assertType(ft, 'List<int> Function(String)');
 
     var x = findElement.localVar('x');
     expect(x.type, typeProvider.listType2(typeProvider.intType));
@@ -2967,21 +2958,14 @@ main() {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 70, 9),
     ]);
-    assertElementTypeString(
-      findElement.method('f').type,
-      'List<T> Function<T>(T Function(E))',
-    );
+    assertType(
+        findElement.method('f').type, 'List<T> Function<T>(T Function(E))');
 
     var cOfString = findElement.localVar('cOfString');
     var ft = (cOfString.type as InterfaceType).getMethod('f').type;
-    assertElementTypeString(
-      ft,
-      'List<T> Function<T>(T Function(String))',
-    );
-    assertElementTypeString(
-      ft.instantiate([typeProvider.intType]),
-      'List<int> Function(int Function(String))',
-    );
+    assertType(ft, 'List<T> Function<T>(T Function(String))');
+    assertType(ft.instantiate([typeProvider.intType]),
+        'List<int> Function(int Function(String))');
   }
 
   test_genericMethod_functionTypedParameter_tearoff() async {
@@ -3134,14 +3118,9 @@ S f<S>(S x) {
 ''', [
       error(HintCode.UNUSED_ELEMENT, 16, 1),
     ]);
-    assertElementTypeString(
-      findElement.topFunction('f').type,
-      'S Function<S>(S)',
-    );
-    assertElementTypeString(
-      findElement.localFunction('g').type,
-      'S Function<S>(S) Function<S₀>(S₀)',
-    );
+    assertType(findElement.topFunction('f').type, 'S Function<S>(S)');
+    assertType(findElement.localFunction('g').type,
+        'S Function<S>(S) Function<S₀>(S₀)');
   }
 
   test_genericMethod_override() async {
@@ -3158,7 +3137,7 @@ class D extends C {
     SimpleIdentifier f = findNode.simple('f<T>(T x) => null; // from D');
     MethodElementImpl e = f.staticElement;
     FunctionType ft = e.type.instantiate([typeProvider.stringType]);
-    assertElementTypeString(ft, 'String Function(String)');
+    assertType(ft, 'String Function(String)');
   }
 
   test_genericMethod_override_bounds() async {
@@ -4047,12 +4026,12 @@ main() {
 
   void _assertLocalVarType(String name, String expectedType) {
     var element = findElement.localVar(name);
-    assertElementTypeString(element.type, expectedType);
+    assertType(element.type, expectedType);
   }
 
   void _assertTopVarType(String name, String expectedType) {
     var element = findElement.topVar(name);
-    assertElementTypeString(element.type, expectedType);
+    assertType(element.type, expectedType);
   }
 
   Future<void> _objectMethodOnFunctions_helper2(
@@ -4077,7 +4056,7 @@ main() {
     v; // marker
   }
 }''');
-    assertElementTypeDynamic(findElement.localVar('v').type);
+    assertTypeDynamic(findElement.localVar('v').type);
     assertTypeDynamic(findNode.simple('v; // marker'));
   }
 
@@ -4102,7 +4081,7 @@ main() {
     v; // marker
   }
 }''');
-    assertElementTypeString(findElement.localVar('v').type, 'int');
+    assertType(findElement.localVar('v').type, 'int');
     assertType(findNode.simple('v; // marker'), 'int');
   }
 
@@ -4114,7 +4093,7 @@ main() {
     v; // marker
   }
 }''');
-    assertElementTypeString(findElement.localVar('v').type, 'int');
+    assertType(findElement.localVar('v').type, 'int');
     assertType(findNode.simple('v; // marker'), 'int');
   }
 
@@ -4127,7 +4106,7 @@ main() async {
     v; // marker
   }
 }''');
-    assertElementTypeString(findElement.localVar('v').type, 'int');
+    assertType(findElement.localVar('v').type, 'int');
     assertType(findNode.simple('v; // marker'), 'int');
   }
 
@@ -4156,7 +4135,7 @@ main() {
   var v = null;
   v; // marker
 }''');
-    assertElementTypeDynamic(findElement.localVar('v').type);
+    assertTypeDynamic(findElement.localVar('v').type);
     assertTypeDynamic(findNode.simple('v; // marker'));
   }
 
@@ -4166,7 +4145,7 @@ main() {
   var v = 3;
   v; // marker
 }''');
-    assertElementTypeString(findElement.localVar('v').type, 'int');
+    assertType(findElement.localVar('v').type, 'int');
     assertType(findNode.simple('v; // marker'), 'int');
   }
 
@@ -4176,7 +4155,7 @@ main() {
   dynamic v = 3;
   v; // marker
 }''');
-    assertElementTypeDynamic(findElement.localVar('v').type);
+    assertTypeDynamic(findElement.localVar('v').type);
     assertTypeDynamic(findNode.simple('v; // marker'));
   }
 
@@ -4203,7 +4182,7 @@ class A {
 main() {
 }
 ''');
-    assertElementTypeString(findElement.localVar('v').type, 'int');
+    assertType(findElement.localVar('v').type, 'int');
     assertType(findNode.simple('v; // marker'), 'int');
   }
 
@@ -4219,7 +4198,7 @@ class A {
 main() {
 }
 ''');
-    assertElementTypeString(findElement.localVar('v').type, 'int');
+    assertType(findElement.localVar('v').type, 'int');
     assertType(findNode.simple('v; // marker'), 'int');
   }
 
@@ -4235,7 +4214,7 @@ class A {
 main() {
 }
 ''');
-    assertElementTypeString(findElement.localVar('v').type, 'int');
+    assertType(findElement.localVar('v').type, 'int');
     assertType(findNode.simple('v; // marker'), 'int');
   }
 
@@ -4251,7 +4230,7 @@ class A {
 main() {
 }
 ''');
-    assertElementTypeString(findElement.localVar('v').type, 'int');
+    assertType(findElement.localVar('v').type, 'int');
     assertType(findNode.simple('v; // marker'), 'int');
   }
 
@@ -4262,7 +4241,7 @@ main() {
   var v = x[0];
   v; // marker
 }''');
-    assertElementTypeString(findElement.localVar('v').type, 'int');
+    assertType(findElement.localVar('v').type, 'int');
     assertType(findNode.simple('v; // marker'), 'int');
   }
 
@@ -4273,7 +4252,7 @@ main() {
   var v = x;
   v; // marker
 }''');
-    assertElementTypeString(findElement.localVar('v').type, 'int');
+    assertType(findElement.localVar('v').type, 'int');
     assertType(findNode.simple('v; // marker'), 'int');
   }
 
@@ -4285,7 +4264,7 @@ main() {
   v; // marker
 }
 ''');
-    assertElementTypeString(findElement.localVar('v').type, 'int');
+    assertType(findElement.localVar('v').type, 'int');
     assertType(findNode.simple('v; // marker'), 'int');
   }
 
@@ -4297,7 +4276,7 @@ main() {
 }
 final x = 3;
 ''');
-    assertElementTypeString(findElement.localVar('v').type, 'int');
+    assertType(findElement.localVar('v').type, 'int');
     assertType(findNode.simple('v; // marker'), 'int');
   }
 
@@ -4309,7 +4288,7 @@ main() {
   v; // marker
 }
 ''');
-    assertElementTypeString(findElement.localVar('v').type, 'int');
+    assertType(findElement.localVar('v').type, 'int');
     assertType(findNode.simple('v; // marker'), 'int');
   }
 
@@ -4321,7 +4300,7 @@ main() {
 }
 int x = 3;
 ''');
-    assertElementTypeString(findElement.localVar('v').type, 'int');
+    assertType(findElement.localVar('v').type, 'int');
     assertType(findNode.simple('v; // marker'), 'int');
   }
 }

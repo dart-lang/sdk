@@ -55,10 +55,10 @@ class SubstituteFromInterfaceTypeTest extends _Base {
 
     // A<U>
     var type = interfaceTypeStar(A, typeArguments: [typeParameterType(U)]);
-    assertElementTypeString(type, 'A<U>');
+    assertType(type, 'A<U>');
 
     var result = substitution.substituteType(type);
-    assertElementTypeString(result, 'A<int>');
+    assertType(result, 'A<int>');
   }
 }
 
@@ -82,7 +82,7 @@ class SubstituteFromPairsTest extends _Base {
       [T, U],
       [intType, doubleType],
     ).substituteType(type);
-    assertElementTypeString(result, 'A<int, double>');
+    assertType(result, 'A<int, double>');
   }
 }
 
@@ -102,7 +102,7 @@ class SubstituteFromUpperAndLowerBoundsTest extends _Base {
       {T: typeProvider.intType},
       {T: NeverTypeImpl.instance},
     ).substituteType(type);
-    assertElementTypeString(result, 'int Function(Never)');
+    assertType(result, 'int Function(Never)');
   }
 }
 
@@ -142,7 +142,7 @@ class SubstituteTest extends _Base {
       returnType: typeParameterType(T),
     );
 
-    assertElementTypeString(type, 'T Function(U, bool)');
+    assertType(type, 'T Function(U, bool)');
     _assertSubstitution(
       type,
       {T: intType},
@@ -167,7 +167,7 @@ class SubstituteTest extends _Base {
       returnType: typeParameterType(T),
     );
 
-    assertElementTypeString(type, 'T Function<U extends T>(U)');
+    assertType(type, 'T Function<U extends T>(U)');
     _assertSubstitution(
       type,
       {T: intType},
@@ -197,13 +197,13 @@ class SubstituteTest extends _Base {
       returnType: boolType,
     );
 
-    assertElementTypeString(
+    assertType(
       type,
       'bool Function<T extends Triple<T, U, V>, U>()',
     );
 
     var result = substitute(type, {V: intType}) as FunctionType;
-    assertElementTypeString(
+    assertType(
       result,
       'bool Function<T extends Triple<T, U, int>, U>()',
     );
@@ -224,7 +224,7 @@ class SubstituteTest extends _Base {
       typeParameterType(U),
     ]);
 
-    assertElementTypeString(type, 'A<U>');
+    assertType(type, 'A<U>');
     _assertSubstitution(type, {U: intType}, 'A<int>');
   }
 
@@ -241,7 +241,7 @@ class SubstituteTest extends _Base {
         ],
       )
     ]);
-    assertElementTypeString(type, 'A<List<U>>');
+    assertType(type, 'A<List<U>>');
 
     _assertSubstitution(type, {U: intType}, 'A<List<int>>');
   }
@@ -387,7 +387,7 @@ class _Base with ElementsTypesMixin {
   /// Whether `DartType.toString()` with nullability should be asked.
   bool get typeToStringWithNullability => useNnbd;
 
-  void assertElementTypeString(DartType type, String expected) {
+  void assertType(DartType type, String expected) {
     var typeStr = type.getDisplayString(
       withNullability: typeToStringWithNullability,
     );
@@ -400,6 +400,6 @@ class _Base with ElementsTypesMixin {
     String expected,
   ) {
     var result = substitute(type, substitution);
-    assertElementTypeString(result, expected);
+    assertType(result, expected);
   }
 }

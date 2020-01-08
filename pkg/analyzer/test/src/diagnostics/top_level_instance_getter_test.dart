@@ -23,10 +23,7 @@ class A {
 var a = new A();
 var b = a.g();
 ''');
-    assertElementTypeString(
-      findElement.topVar('b').type,
-      'int',
-    );
+    assertType(findElement.topVar('b').type, 'int');
   }
 
   test_field() async {
@@ -36,10 +33,7 @@ class A {
 }
 var b = new A().g;
 ''');
-    assertElementTypeString(
-      findElement.topVar('b').type,
-      'int',
-    );
+    assertType(findElement.topVar('b').type, 'int');
   }
 
   test_field_call() async {
@@ -50,10 +44,7 @@ class A {
 var a = new A();
 var b = a.g();
 ''');
-    assertElementTypeString(
-      findElement.topVar('b').type,
-      'int',
-    );
+    assertType(findElement.topVar('b').type, 'int');
   }
 
   test_field_imported() async {
@@ -66,10 +57,7 @@ class A {
 import 'a.dart';
 var b = new A().f;
 ''');
-    assertElementTypeString(
-      findElement.topVar('b').type,
-      'int',
-    );
+    assertType(findElement.topVar('b').type, 'int');
   }
 
   test_field_prefixedIdentifier() async {
@@ -80,10 +68,7 @@ class A {
 var a = new A();
 var b = a.g;
 ''');
-    assertElementTypeString(
-      findElement.topVar('b').type,
-      'int',
-    );
+    assertType(findElement.topVar('b').type, 'int');
   }
 
   test_getter() async {
@@ -93,10 +78,7 @@ class A {
 }
 var b = new A().g;
 ''');
-    assertElementTypeString(
-      findElement.topVar('b').type,
-      'int',
-    );
+    assertType(findElement.topVar('b').type, 'int');
   }
 
   test_implicitlyTyped() async {
@@ -478,9 +460,6 @@ class A {
 var a = new A();
 var b = a.g;
 ''');
-    assertElementTypeString(
-      findElement.topVar('b').type,
-      'int',
-    );
+    assertType(findElement.topVar('b').type, 'int');
   }
 }

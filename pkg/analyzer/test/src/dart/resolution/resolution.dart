@@ -104,8 +104,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
   void assertClassRef(
       SimpleIdentifier identifier, ClassElement expectedElement) {
     assertElement(identifier, expectedElement);
-    // TODO(scheglov) Enforce this.
-//    assertTypeNull(identifier);
+    assertTypeNull(identifier);
   }
 
   void assertConstructorElement(
@@ -151,14 +150,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(actual, isNull);
   }
 
-  void assertElementType(DartType type, DartType expected) {
-    expect(type, expected);
-  }
-
-  void assertElementTypeDynamic(DartType type) {
-    expect(type, isDynamicType);
-  }
-
   void assertElementTypes(List<DartType> types, List<DartType> expected,
       {bool ordered = false}) {
     if (ordered) {
@@ -166,10 +157,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     } else {
       expect(types, unorderedEquals(expected));
     }
-  }
-
-  void assertElementTypeString(DartType type, String expected) {
-    expect(typeString(type), expected);
   }
 
   void assertElementTypeStrings(List<DartType> types, List<String> expected) {
@@ -325,20 +312,17 @@ mixin ResolutionTest implements ResourceProviderMixin {
   }
 
   void assertMember(
-    Expression node,
+    Object elementOrNode,
     Element expectedBase,
     Map<String, String> expectedSubstitution,
   ) {
-    Member actual = getNodeElement(node);
-    assertMember2(actual, expectedBase, expectedSubstitution);
-  }
+    Member actual;
+    if (elementOrNode is Member) {
+      actual = elementOrNode;
+    } else {
+      actual = getNodeElement(elementOrNode as AstNode);
+    }
 
-  void assertMember2(
-    Element actualElement,
-    Element expectedBase,
-    Map<String, String> expectedSubstitution,
-  ) {
-    var actual = actualElement as Member;
     expect(actual.declaration, same(expectedBase));
 
     assertSubstitution(actual.substitution, expectedSubstitution);
@@ -377,8 +361,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
     assertType(invocation, expectedType);
 
     expectedMethodNameType ??= expectedInvokeType;
-    assertElementTypeString(
-        invocationImpl.methodNameType, expectedMethodNameType);
+    assertType(invocationImpl.methodNameType, expectedMethodNameType);
   }
 
   void assertNamedParameterRef(String search, String name) {
@@ -415,7 +398,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
     if (expected == null) {
       expect(parameterElement, isNull);
     } else {
-      assertElementTypeString(parameterElement.type, expected);
+      assertType(parameterElement.type, expected);
     }
   }
 
@@ -477,18 +460,25 @@ mixin ResolutionTest implements ResourceProviderMixin {
     assertIdentifierTopGetRef(ref, name);
   }
 
-  void assertType(AstNode node, String expected) {
-    TypeImpl actual;
-    if (node is Expression) {
-      actual = node.staticType;
-    } else if (node is GenericFunctionType) {
-      actual = node.type;
-    } else if (node is TypeName) {
-      actual = node.type;
+  void assertType(Object typeOrNode, String expected) {
+    DartType actual;
+    if (typeOrNode is DartType) {
+      actual = typeOrNode;
+    } else if (typeOrNode is Expression) {
+      actual = typeOrNode.staticType;
+    } else if (typeOrNode is GenericFunctionType) {
+      actual = typeOrNode.type;
+    } else if (typeOrNode is TypeName) {
+      actual = typeOrNode.type;
     } else {
-      fail('Unsupported node: (${node.runtimeType}) $node');
+      fail('Unsupported node: (${typeOrNode.runtimeType}) $typeOrNode');
     }
-    expect(typeString(actual), expected);
+
+    if (expected == null) {
+      expect(actual, isNull);
+    } else {
+      expect(typeString(actual), expected);
+    }
   }
 
   void assertTypeArgumentTypes(
@@ -499,8 +489,15 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(actual, expected);
   }
 
-  void assertTypeDynamic(Expression expression) {
-    DartType actual = expression.staticType;
+  void assertTypeDynamic(Object typeOrExpression) {
+    DartType actual;
+    if (typeOrExpression is DartType) {
+      actual = typeOrExpression;
+      var type = typeOrExpression;
+      expect(type, isDynamicType);
+    } else {
+      actual = (typeOrExpression as Expression).staticType;
+    }
     expect(actual, isDynamicType);
   }
 

@@ -56,9 +56,9 @@ var x = 0;
 var y = a;
 var z = PI;
 ''');
-    assertElementTypeString(findElement.topVar('x').type, 'int*');
-    assertElementTypeString(findElement.topVar('y').type, 'int*');
-    assertElementTypeString(findElement.topVar('z').type, 'double*');
+    assertType(findElement.topVar('x').type, 'int*');
+    assertType(findElement.topVar('y').type, 'int*');
+    assertType(findElement.topVar('z').type, 'double*');
   }
 
   test_jsonConfig_nonNullContext_legacyDependency() async {
@@ -94,8 +94,8 @@ var x = 0;
 var y = a;
 var z = PI;
 ''');
-    assertElementTypeString(findElement.topVar('x').type, 'int');
-    assertElementTypeString(findElement.topVar('y').type, 'int*');
-    assertElementTypeString(findElement.topVar('z').type, 'double');
+    assertType(findElement.topVar('x').type, 'int');
+    assertType(findElement.topVar('y').type, 'int*');
+    assertType(findElement.topVar('z').type, 'double');
   }
 }

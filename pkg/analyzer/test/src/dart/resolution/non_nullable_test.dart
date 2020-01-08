@@ -65,10 +65,7 @@ class C {
   F? f;
 }
 ''');
-    assertElementTypeString(
-      findElement.field('f').type,
-      'T Function<T>(int, T)?',
-    );
+    assertType(findElement.field('f').type, 'T Function<T>(int, T)?');
   }
 
   test_library_typeProvider_typeSystem() async {
@@ -81,13 +78,13 @@ import 'a.dart';
 ''');
     var testLibrary = result.libraryElement;
     var testTypeSystem = testLibrary.typeSystem as TypeSystemImpl;
-    assertElementTypeString(testLibrary.typeProvider.intType, 'int*');
+    assertType(testLibrary.typeProvider.intType, 'int*');
     expect(testTypeSystem.isNonNullableByDefault, isFalse);
 
     var aImport = findElement.importFind('package:test/a.dart');
     var aLibrary = aImport.importedLibrary;
     var aTypeSystem = aLibrary.typeSystem as TypeSystemImpl;
-    assertElementTypeString(aLibrary.typeProvider.intType, 'int');
+    assertType(aLibrary.typeProvider.intType, 'int');
     expect(aTypeSystem.isNonNullableByDefault, isTrue);
   }
 
@@ -322,18 +319,9 @@ void f1(void p1()) {}
 void f2(void p2()?) {}
 void f3({void p3()?}) {}
 ''');
-    assertElementTypeString(
-      findElement.parameter('p1').type,
-      'void Function()',
-    );
-    assertElementTypeString(
-      findElement.parameter('p2').type,
-      'void Function()?',
-    );
-    assertElementTypeString(
-      findElement.parameter('p3').type,
-      'void Function()?',
-    );
+    assertType(findElement.parameter('p1').type, 'void Function()');
+    assertType(findElement.parameter('p2').type, 'void Function()?');
+    assertType(findElement.parameter('p3').type, 'void Function()?');
   }
 
   test_parameter_functionTyped_fieldFormal() async {
@@ -347,18 +335,9 @@ class A {
   A.f3({void this.f3()?});
 }
 ''');
-    assertElementTypeString(
-      findElement.parameter('f1').type,
-      'void Function()',
-    );
-    assertElementTypeString(
-      findElement.parameter('f2').type,
-      'void Function()?',
-    );
-    assertElementTypeString(
-      findElement.parameter('f3').type,
-      'void Function()?',
-    );
+    assertType(findElement.parameter('f1').type, 'void Function()');
+    assertType(findElement.parameter('f2').type, 'void Function()?');
+    assertType(findElement.parameter('f3').type, 'void Function()?');
   }
 
   test_parameter_functionTyped_local() async {
@@ -373,18 +352,9 @@ f() {
       error(HintCode.UNUSED_ELEMENT, 37, 2),
       error(HintCode.UNUSED_ELEMENT, 62, 2),
     ]);
-    assertElementTypeString(
-      findElement.parameter('p1').type,
-      'void Function()',
-    );
-    assertElementTypeString(
-      findElement.parameter('p2').type,
-      'void Function()?',
-    );
-    assertElementTypeString(
-      findElement.parameter('p3').type,
-      'void Function()?',
-    );
+    assertType(findElement.parameter('p1').type, 'void Function()');
+    assertType(findElement.parameter('p2').type, 'void Function()?');
+    assertType(findElement.parameter('p3').type, 'void Function()?');
   }
 
   test_parameter_genericFunctionType() async {

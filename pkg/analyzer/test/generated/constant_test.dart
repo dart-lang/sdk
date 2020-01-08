@@ -485,7 +485,7 @@ const [for (var i = 0; i < 4; i++) i]
   Future<void> _assertValueString(String expectedValue, String contents) async {
     var result = await _getExpressionValue(contents);
     DartObject value = result.value;
-    assertElementTypeString(value.type, 'String');
+    assertType(value.type, 'String');
   }
 
   Future<EvaluationResult> _getExpressionValue(String expressionCode,

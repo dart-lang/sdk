@@ -148,7 +148,7 @@ G<int> g;
 typedef G<T> = T Function(double);
 ''');
     FunctionType type = findElement.topVar('g').type;
-    assertElementTypeString(type, 'int Function(double)');
+    assertType(type, 'int Function(double)');
 
     var typedefG = findElement.functionTypeAlias('G');
     var functionG = typedefG.function;
@@ -172,13 +172,13 @@ typedef F<T extends A> = B Function<U extends B>(T a, U b);
 
     var t = f.typeParameters[0];
     expect(t.name, 'T');
-    assertElementTypeString(t.bound, 'A');
+    assertType(t.bound, 'A');
 
     var ff = f.function;
     expect(ff.typeParameters, hasLength(1));
 
     var u = ff.typeParameters[0];
     expect(u.name, 'U');
-    assertElementTypeString(u.bound, 'B');
+    assertType(u.bound, 'B');
   }
 }

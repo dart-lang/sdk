@@ -718,7 +718,7 @@ class StaticTypeAnalyzer2TestShared extends DriverResolutionTest {
 
     SimpleIdentifier identifier = findNode.simple(name);
     var functionType = _getFunctionTypedElementType(identifier);
-    assertElementTypeString(functionType, type);
+    assertType(functionType, type);
     expect(identifier.staticType, isNull);
     expect(functionType.typeArguments.toString(), typeArgs);
     expect(typeParametersStr(functionType.typeFormals), typeFormals);
@@ -733,7 +733,7 @@ class StaticTypeAnalyzer2TestShared extends DriverResolutionTest {
   FunctionTypeImpl expectFunctionType2(String name, String type) {
     var identifier = findNode.simple(name);
     var functionType = _getFunctionTypedElementType(identifier);
-    assertElementTypeString(functionType, type);
+    assertType(functionType, type);
     return functionType;
   }
 
@@ -773,7 +773,7 @@ class StaticTypeAnalyzer2TestShared extends DriverResolutionTest {
    */
   _expectType(DartType type, expected) {
     if (expected is String) {
-      assertElementTypeString(type, expected);
+      assertType(type, expected);
     } else {
       expect(type, expected);
     }

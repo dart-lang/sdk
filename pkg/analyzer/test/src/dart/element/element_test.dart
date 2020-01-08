@@ -1129,7 +1129,7 @@ enum B {B1, B2, B3}
 
 @reflectiveTest
 class FunctionTypeImplTest extends AbstractTypeTest {
-  void assertElementTypeString(DartType type, String expected) {
+  void assertType(DartType type, String expected) {
     var typeStr = type.getDisplayString(withNullability: false);
     expect(typeStr, expected);
   }
@@ -1333,7 +1333,7 @@ class FunctionTypeImplTest extends AbstractTypeTest {
     var s = ElementFactory.genericTypeAliasElement("s");
     t.function.returnType = functionTypeAliasType(s);
     s.function.returnType = functionTypeAliasType(t);
-    assertElementTypeString(
+    assertType(
       functionTypeAliasType(t),
       'dynamic Function() Function()',
     );
@@ -1346,7 +1346,7 @@ class FunctionTypeImplTest extends AbstractTypeTest {
       typeArguments: [functionTypeAliasType(f)],
       nullabilitySuffix: NullabilitySuffix.star,
     );
-    assertElementTypeString(
+    assertType(
       functionTypeAliasType(f),
       'dynamic Function()',
     );

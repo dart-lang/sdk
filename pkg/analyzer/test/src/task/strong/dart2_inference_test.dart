@@ -778,7 +778,7 @@ void test(List<A> listA, List<B> listB) {
       var node = findNode.simple(vSearch);
 
       var element = node.staticElement as LocalVariableElement;
-      assertElementTypeString(element.type, vType);
+      assertType(element.type, vType);
 
       var invocation = findNode.methodInvocation(fSearch);
       assertType(invocation, fType);
@@ -852,11 +852,11 @@ var y = {};
     await resolveTestCode(code);
     var xNode = findNode.simple('x = ');
     var xElement = xNode.staticElement as VariableElement;
-    assertElementTypeString(xElement.type, 'List<dynamic>');
+    assertType(xElement.type, 'List<dynamic>');
 
     var yNode = findNode.simple('y = ');
     var yElement = yNode.staticElement as VariableElement;
-    assertElementTypeString(yElement.type, 'Map<dynamic, dynamic>');
+    assertType(yElement.type, 'Map<dynamic, dynamic>');
   }
 
   test_listMap_null() async {
@@ -867,11 +867,11 @@ var y = {null: null};
     await resolveTestCode(code);
     var xNode = findNode.simple('x = ');
     var xElement = xNode.staticElement as VariableElement;
-    assertElementTypeString(xElement.type, 'List<Null>');
+    assertType(xElement.type, 'List<Null>');
 
     var yNode = findNode.simple('y = ');
     var yElement = yNode.staticElement as VariableElement;
-    assertElementTypeString(yElement.type, 'Map<Null, Null>');
+    assertType(yElement.type, 'Map<Null, Null>');
   }
 
   test_switchExpression_asContext_forCases() async {

@@ -98,11 +98,11 @@ const v = a;
     var value = v.computeConstantValue();
 
     var type = value.type as InterfaceType;
-    assertElementTypeString(type, 'C<double Function(int)>');
+    assertType(type, 'C<double Function(int)>');
 
     expect(type.typeArguments, hasLength(1));
     var typeArgument = type.typeArguments[0] as FunctionType;
-    assertElementTypeString(typeArgument, 'double Function(int)');
+    assertType(typeArgument, 'double Function(int)');
 
     // The element and type arguments are available for the function type.
     var importFind = findElement.importFind('package:test/a.dart');

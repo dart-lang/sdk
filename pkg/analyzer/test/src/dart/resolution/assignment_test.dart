@@ -862,7 +862,7 @@ bool b = a;
     TopLevelVariableElement bElement = bDeclaration.declaredElement;
     assertElement(bDeclaration.name, findElement.topVar('b'));
     assertTypeNull(bDeclaration.name);
-    assertElementTypeString(bElement.type, 'bool');
+    assertType(bElement.type, 'bool');
 
     SimpleIdentifier aRef = bDeclaration.initializer;
     assertElement(aRef, findElement.topGet('a'));
@@ -880,7 +880,7 @@ const bool b = a;
     TopLevelVariableElement bElement = bDeclaration.declaredElement;
     assertElement(bDeclaration.name, bElement);
     assertTypeNull(bDeclaration.name);
-    assertElementTypeString(bElement.type, 'bool');
+    assertType(bElement.type, 'bool');
 
     SimpleIdentifier aRef = bDeclaration.initializer;
     assertElement(aRef, findElement.topGet('a'));

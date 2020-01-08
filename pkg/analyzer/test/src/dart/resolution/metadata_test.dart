@@ -79,7 +79,7 @@ B b;
     var classB = findNode.typeName('B b;').name.staticElement;
     var annotation = classB.metadata.single;
     var value = annotation.computeConstantValue();
-    assertElementTypeString(value.type, 'A');
+    assertType(value.type, 'A');
     expect(value.getField('f').toIntValue(), 42);
   }
 
@@ -107,7 +107,7 @@ B b;
     var classB = findNode.typeName('B b;').name.staticElement;
     var annotation = classB.metadata.single;
     var value = annotation.computeConstantValue();
-    assertElementTypeString(value.type, 'A');
+    assertType(value.type, 'A');
     expect(value.getField('f').toIntValue(), 42);
   }
 
@@ -136,7 +136,7 @@ C c;
     var classC = findNode.typeName('C c;').name.staticElement;
     var annotation = classC.metadata.single;
     var value = annotation.computeConstantValue();
-    assertElementTypeString(value.type, 'B');
+    assertType(value.type, 'B');
     expect(value.getField('a').getField('f').toIntValue(), 42);
   }
 
@@ -153,7 +153,7 @@ class B {}
 ''');
     var annotation = findElement.class_('B').metadata.single;
     var value = annotation.computeConstantValue();
-    assertElementTypeString(value.type, 'A<int>');
+    assertType(value.type, 'A<int>');
     expect(value.getField('f').toIntValue(), 42);
   }
 

@@ -788,7 +788,7 @@ main() {
   return v; // return
 }''';
     await resolveTestCode(code);
-    assertElementTypeString(findElement.localVar('v').type, 'int');
+    assertType(findElement.localVar('v').type, 'int');
     assertTypeNull(findNode.simple('v; // declare'));
     assertType(findNode.simple('v = null;'), 'int');
     assertType(findNode.simple('v; // return'), 'int');
@@ -814,7 +814,7 @@ f() {
   int v = 0;
   return v;
 }''');
-    assertElementTypeString(findElement.localVar('v').type, 'int');
+    assertType(findElement.localVar('v').type, 'int');
     assertTypeNull(findNode.simple('v = 0;'));
     assertType(findNode.simple('v;'), 'int');
   }
@@ -825,7 +825,7 @@ f() {
   List<int> v = <int>[];
   return v;
 }''');
-    assertElementTypeString(findElement.localVar('v').type, 'List<int>');
+    assertType(findElement.localVar('v').type, 'List<int>');
     assertTypeNull(findNode.simple('v ='));
     assertType(findNode.simple('v;'), 'List<int>');
   }
@@ -836,7 +836,7 @@ main() {
   int v = null;
   return v;
 }''');
-    assertElementTypeString(findElement.localVar('v').type, 'int');
+    assertType(findElement.localVar('v').type, 'int');
     assertTypeNull(findNode.simple('v ='));
     assertType(findNode.simple('v;'), 'int');
   }
@@ -944,7 +944,7 @@ main() {
   dynamic toString = () => null;
   toString(); // marker
 }''');
-    assertElementTypeDynamic(findElement.localVar('toString').type);
+    assertTypeDynamic(findElement.localVar('toString').type);
     assertTypeNull(findNode.simple('toString ='));
     assertTypeDynamic(findNode.simple('toString(); // marker'));
   }

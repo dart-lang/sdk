@@ -77,13 +77,12 @@ const e = E(null).f();
 typedef F = void Function(bool, int a(double b));
 ''');
     var alias = findElement.functionTypeAlias('F');
-    assertElementTypeString(
-      alias.instantiate(
-        typeArguments: const [],
-        nullabilitySuffix: NullabilitySuffix.star,
-      ),
-      'void Function(bool, int Function(double))',
-    );
+    assertType(
+        alias.instantiate(
+          typeArguments: const [],
+          nullabilitySuffix: NullabilitySuffix.star,
+        ),
+        'void Function(bool, int Function(double))');
   }
 
   test_fuzz_02() async {
@@ -147,13 +146,12 @@ class C {
 typedef void F(int a, this.b);
 ''');
     var alias = findElement.functionTypeAlias('F');
-    assertElementTypeString(
-      alias.instantiate(
-        typeArguments: const [],
-        nullabilitySuffix: NullabilitySuffix.star,
-      ),
-      'void Function(int, dynamic)',
-    );
+    assertType(
+        alias.instantiate(
+          typeArguments: const [],
+          nullabilitySuffix: NullabilitySuffix.star,
+        ),
+        'void Function(int, dynamic)');
   }
 
   test_fuzz_10() async {

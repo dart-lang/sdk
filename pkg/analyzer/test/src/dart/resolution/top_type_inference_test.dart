@@ -23,8 +23,8 @@ class A {
 final b = new A().a;
 ''');
 
-    assertElementTypeString(findElement.field('a').type, 'int');
-    assertElementTypeString(findElement.topVar('b').type, 'int');
+    assertType(findElement.field('a').type, 'int');
+    assertType(findElement.topVar('b').type, 'int');
   }
 
   test_referenceInstanceVariable_withoutDeclaredType() async {
@@ -37,7 +37,7 @@ final b = new A().a;
       error(StrongModeCode.TOP_LEVEL_INSTANCE_GETTER, 49, 1),
     ]);
 
-    assertElementTypeDynamic(findElement.field('a').type);
-    assertElementTypeDynamic(findElement.topVar('b').type);
+    assertTypeDynamic(findElement.field('a').type);
+    assertTypeDynamic(findElement.topVar('b').type);
   }
 }

@@ -342,7 +342,7 @@ class AnalysisDriverSchedulerTest with ResourceProviderMixin {
 
 @reflectiveTest
 class AnalysisDriverTest extends BaseAnalysisDriverTest {
-  void assertElementTypeString(DartType type, String expected) {
+  void assertType(DartType type, String expected) {
     var typeStr = type.getDisplayString(withNullability: false);
     expect(typeStr, expected);
   }
@@ -1371,8 +1371,8 @@ class B {}
     expect(result.errors, hasLength(0));
 
     var f = result.unit.declarations[0] as FunctionDeclaration;
-    assertElementTypeString(f.declaredElement.type, 'int Function()');
-    assertElementTypeString(f.returnType.type, 'int');
+    assertType(f.declaredElement.type, 'int Function()');
+    assertType(f.returnType.type, 'int');
 
     // The same result is also received through the stream.
     await waitForIdleWithoutExceptions();
@@ -2901,8 +2901,8 @@ class F extends X {}
     expect(result.errors, hasLength(0));
 
     var f = result.unit.declarations[0] as FunctionDeclaration;
-    assertElementTypeString(f.declaredElement.type, 'int Function()');
-    assertElementTypeString(f.returnType.type, 'int');
+    assertType(f.declaredElement.type, 'int Function()');
+    assertType(f.returnType.type, 'int');
   }
 
   test_results_priorityFirst() async {
@@ -3026,20 +3026,20 @@ var v = 0
       String fieldName, String expected) {
     var node = _getClassField(unit, className, fieldName);
     var type = node.declaredElement.type;
-    assertElementTypeString(type, expected);
+    assertType(type, expected);
   }
 
   void _assertClassMethodReturnType(CompilationUnit unit, String className,
       String fieldName, String expected) {
     var node = _getClassMethod(unit, className, fieldName);
     var type = node.declaredElement.returnType;
-    assertElementTypeString(type, expected);
+    assertType(type, expected);
   }
 
   void _assertTopLevelVarType(
       CompilationUnit unit, String name, String expected) {
     VariableDeclaration variable = _getTopLevelVar(unit, name);
-    assertElementTypeString(variable.declaredElement.type, expected);
+    assertType(variable.declaredElement.type, expected);
   }
 
   void _expectCircularityError(EvaluationResultImpl evaluationResult) {

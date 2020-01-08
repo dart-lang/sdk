@@ -38,7 +38,7 @@ class X = A with B implements C;
     assertTypeName(findNode.typeName('B impl'), findElement.class_('B'), 'B');
     assertTypeName(findNode.typeName('C;'), findElement.class_('C'), 'C');
 
-    assertElementTypeString(x.supertype, 'A');
+    assertType(x.supertype, 'A');
     assertElementTypeStrings(x.mixins, ['B']);
     assertElementTypeStrings(x.interfaces, ['C']);
   }

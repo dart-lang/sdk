@@ -36,7 +36,7 @@ mixin M on A, B {
 }
 ''');
     var p = findElement.method('foo', of: 'M').parameters[0];
-    assertElementTypeDynamic(p.type);
+    assertTypeDynamic(p.type);
   }
 
   test_method_parameter_multiple_named_different() async {
@@ -52,7 +52,7 @@ mixin M on A, B {
 }
 ''');
     var p = findElement.method('foo', of: 'M').parameters[0];
-    assertElementTypeDynamic(p.type);
+    assertTypeDynamic(p.type);
   }
 
   test_method_parameter_multiple_named_same() async {
@@ -68,7 +68,7 @@ mixin M on A, B {
 }
 ''');
     var p = findElement.method('foo', of: 'M').parameters[0];
-    assertElementTypeString(p.type, 'int');
+    assertType(p.type, 'int');
   }
 
   test_method_parameter_multiple_namedAndRequired() async {
@@ -84,7 +84,7 @@ mixin M on A, B {
 }
 ''');
     var p = findElement.method('foo', of: 'M').parameters[0];
-    assertElementTypeDynamic(p.type);
+    assertTypeDynamic(p.type);
   }
 
   test_method_parameter_multiple_optionalAndRequired() async {
@@ -100,7 +100,7 @@ mixin M on A, B {
 }
 ''');
     var p = findElement.method('foo', of: 'M').parameters[0];
-    assertElementTypeString(p.type, 'int');
+    assertType(p.type, 'int');
   }
 
   test_method_parameter_single_generic() async {
@@ -113,7 +113,7 @@ mixin M<T> on A<T> {
 }
 ''');
     var p = findElement.method('foo', of: 'M').parameters[0];
-    assertElementTypeString(p.type, 'T');
+    assertType(p.type, 'T');
   }
 
   test_method_return_multiple_different() async {
@@ -129,7 +129,7 @@ mixin M on A, B {
 }
 ''');
     var foo = findElement.method('foo', of: 'M');
-    assertElementTypeDynamic(foo.returnType);
+    assertTypeDynamic(foo.returnType);
   }
 
   test_method_return_multiple_different_generic() async {
@@ -145,7 +145,7 @@ mixin M on A<int>, B<double> {
 }
 ''');
     var foo = findElement.method('foo', of: 'M');
-    assertElementTypeDynamic(foo.returnType);
+    assertTypeDynamic(foo.returnType);
   }
 
   test_method_return_multiple_different_void() async {
@@ -161,7 +161,7 @@ mixin M on A, B {
 }
 ''');
     var foo = findElement.method('foo', of: 'M');
-    assertElementTypeDynamic(foo.returnType);
+    assertTypeDynamic(foo.returnType);
   }
 
   test_method_return_multiple_dynamic() async {
@@ -177,7 +177,7 @@ mixin M on A, B {
 }
 ''');
     var foo = findElement.method('foo', of: 'M');
-    assertElementTypeDynamic(foo.returnType);
+    assertTypeDynamic(foo.returnType);
   }
 
   test_method_return_multiple_same_generic() async {
@@ -193,7 +193,7 @@ mixin M<T> on A<T>, B<T> {
 }
 ''');
     var foo = findElement.method('foo', of: 'M');
-    assertElementTypeString(foo.returnType, 'T');
+    assertType(foo.returnType, 'T');
   }
 
   test_method_return_multiple_same_nonVoid() async {
@@ -209,7 +209,7 @@ mixin M on A, B {
 }
 ''');
     var foo = findElement.method('foo', of: 'M');
-    assertElementTypeString(foo.returnType, 'int');
+    assertType(foo.returnType, 'int');
   }
 
   test_method_return_multiple_same_void() async {
@@ -225,7 +225,7 @@ mixin M on A, B {
 }
 ''');
     var foo = findElement.method('foo', of: 'M');
-    assertElementTypeString(foo.returnType, 'void');
+    assertType(foo.returnType, 'void');
   }
 
   test_method_return_single() async {
@@ -238,7 +238,7 @@ mixin M on A {
 }
 ''');
     var foo = findElement.method('foo', of: 'M');
-    assertElementTypeString(foo.returnType, 'int');
+    assertType(foo.returnType, 'int');
   }
 
   test_method_return_single_generic() async {
@@ -251,6 +251,6 @@ mixin M<T> on A<T> {
 }
 ''');
     var foo = findElement.method('foo', of: 'M');
-    assertElementTypeString(foo.returnType, 'T');
+    assertType(foo.returnType, 'T');
   }
 }

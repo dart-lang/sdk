@@ -76,7 +76,7 @@ class AnalysisDriverResolutionTest extends BaseAnalysisDriverTest
 
   void assertDeclaredVariableType(SimpleIdentifier node, String expected) {
     VariableElement element = node.staticElement;
-    assertElementTypeString(element.type, expected);
+    assertType(element.type, expected);
   }
 
   void assertDeclaredVariableTypeDynamic(SimpleIdentifier node) {
@@ -94,15 +94,6 @@ class AnalysisDriverResolutionTest extends BaseAnalysisDriverTest
     expect(actual, isNull);
   }
 
-  void assertElementTypeString(DartType type, String expected) {
-    if (expected == null) {
-      expect(type, isNull);
-    } else {
-      var typeStr = type.getDisplayString(withNullability: false);
-      expect(typeStr, expected);
-    }
-  }
-
   void assertIdentifierTopGetRef(SimpleIdentifier ref, String name) {
     var getter = findElement.topGet(name);
     assertElement(ref, getter);
@@ -112,7 +103,7 @@ class AnalysisDriverResolutionTest extends BaseAnalysisDriverTest
 
   void assertInvokeType(InvocationExpression expression, String expected) {
     DartType actual = expression.staticInvokeType;
-    assertElementTypeString(actual, expected);
+    assertType(actual, expected);
   }
 
   void assertInvokeTypeDynamic(InvocationExpression node) {
@@ -121,19 +112,17 @@ class AnalysisDriverResolutionTest extends BaseAnalysisDriverTest
   }
 
   void assertMember(
-    Expression node,
+    Object elementOrNode,
     Element expectedBase,
     Map<String, String> expectedSubstitution,
   ) {
-    Member actual = getNodeElement(node);
-    assertMember2(actual, expectedBase, expectedSubstitution);
-  }
+    Member actual;
+    if (elementOrNode is Member) {
+      actual = elementOrNode;
+    } else {
+      actual = getNodeElement(elementOrNode as AstNode);
+    }
 
-  void assertMember2(
-    Member actual,
-    Element expectedBase,
-    Map<String, String> expectedSubstitution,
-  ) {
     expect(actual.declaration, same(expectedBase));
 
     var actualMapString = actual.substitution.map.map(
@@ -147,18 +136,26 @@ class AnalysisDriverResolutionTest extends BaseAnalysisDriverTest
     assertIdentifierTopGetRef(ref, name);
   }
 
-  void assertType(AstNode node, String expected) {
+  void assertType(Object typeOrNode, String expected) {
     DartType actual;
-    if (node is Expression) {
-      actual = node.staticType;
-    } else if (node is GenericFunctionType) {
-      actual = node.type;
-    } else if (node is TypeName) {
-      actual = node.type;
+    if (typeOrNode is DartType) {
+      actual = typeOrNode;
+    } else if (typeOrNode is Expression) {
+      actual = typeOrNode.staticType;
+    } else if (typeOrNode is GenericFunctionType) {
+      actual = typeOrNode.type;
+    } else if (typeOrNode is TypeName) {
+      actual = typeOrNode.type;
     } else {
-      fail('Unsupported node: (${node.runtimeType}) $node');
+      fail('Unsupported node: (${typeOrNode.runtimeType}) $typeOrNode');
     }
-    assertElementTypeString(actual, expected);
+
+    if (expected == null) {
+      expect(actual, isNull);
+    } else {
+      var typeStr = actual.getDisplayString(withNullability: false);
+      expect(typeStr, expected);
+    }
   }
 
   /// Test that [argumentList] has exactly two type items `int` and `double`.
@@ -672,8 +669,7 @@ main() {}
 
     SimpleIdentifier constructorName = annotation.constructorName;
     expect(constructorName.staticElement, same(constructor));
-    assertElementTypeString(
-        constructorName.staticType, 'A Function(int, {int b})');
+    assertType(constructorName.staticType, 'A Function(int, {int b})');
 
     var arguments = annotation.arguments.arguments;
     var parameters = constructor.parameters;
@@ -1121,7 +1117,7 @@ main() {
       expect(closureElement.returnType, typeProvider.nullType);
       // TODO(scheglov) Make this null.
 //      expect(closureElement.type.element, same(closureElement));
-      assertElementTypeString(closureElement.type, closureTypeStr);
+      assertType(closureElement.type, closureTypeStr);
       expect(closure.staticType, same(closureElement.type));
 
       List<FormalParameter> closureParameters = closure.parameters.parameters;
@@ -1162,7 +1158,7 @@ main() {
 
       expect(closureElement.returnType, typeProvider.nullType);
       expect(closureElement.type.element, same(closureElement));
-      assertElementTypeString(closureElement.type, closureTypeStr);
+      assertType(closureElement.type, closureTypeStr);
       expect(closure.staticType, same(closureElement.type));
 
       List<FormalParameter> closureParameters = closure.parameters.parameters;
@@ -1200,7 +1196,7 @@ void foo(List<T> Function<T>() createList) {}
 
     FunctionElementImpl closureElement = closure.declaredElement;
     expect(closureElement.enclosingElement, findElement.function('main'));
-    assertElementTypeString(closureElement.returnType, 'List<T>');
+    assertType(closureElement.returnType, 'List<T>');
     expect(closureElement.parameters, isEmpty);
 
     var typeParameters = closureElement.typeParameters;
@@ -1525,7 +1521,7 @@ class B<U> {
       ConstructorElement element = constructor.declaredElement;
 
       ConstructorMember actualMember = element.redirectedConstructor;
-      assertMember2(actualMember, expectedElement, {'T': 'U'});
+      assertMember(actualMember, expectedElement, {'T': 'U'});
 
       var constructorName = constructor.redirectedConstructor;
       expect(constructorName.staticElement, same(actualMember));
@@ -1547,7 +1543,7 @@ class B<U> {
       ConstructorElement element = constructor.declaredElement;
 
       ConstructorMember actualMember = element.redirectedConstructor;
-      assertMember2(actualMember, expectedElement, {'T': 'U'});
+      assertMember(actualMember, expectedElement, {'T': 'U'});
 
       var constructorName = constructor.redirectedConstructor;
       expect(constructorName.staticElement, same(actualMember));
@@ -1975,7 +1971,7 @@ class A {
     expect(p.declaredElement, same(pElement));
 
     expect(p.identifier.staticElement, same(pElement));
-    assertElementTypeString(p.identifier.staticType, 'String Function(int)');
+    assertType(p.identifier.staticType, 'String Function(int)');
 
     {
       FunctionType type = p.identifier.staticType;
@@ -4080,7 +4076,7 @@ void main() {
     FunctionExpression fExpression = fNode.functionExpression;
     FunctionElement fElement = fNode.declaredElement;
     expect(fElement, isNotNull);
-    assertElementTypeString(fElement.type, fTypeString);
+    assertType(fElement.type, fTypeString);
 
     expect(fNode.name.staticElement, same(fElement));
     expect(fNode.name.staticType, isNull);
@@ -4175,7 +4171,7 @@ void main() {
     }
 
     expect(fElement, isNotNull);
-    assertElementTypeString(fElement.type, 'T Function<T,U>(T, U)');
+    assertType(fElement.type, 'T Function<T,U>(T, U)');
 
     expect(fNode.name.staticElement, same(fElement));
     expect(fNode.name.staticType, fElement.type);
@@ -4239,10 +4235,8 @@ void main() {
     FunctionDeclaration fNode = fStatement.functionDeclaration;
     FunctionElement fElement = fNode.declaredElement;
 
-    assertElementTypeString(
-      fElement.type,
-      'void Function<T extends U, U, V extends U>(T, U, V)',
-    );
+    assertType(
+        fElement.type, 'void Function<T extends U, U, V extends U>(T, U, V)');
     var tElement = fElement.typeParameters[0];
     var uElement = fElement.typeParameters[1];
     var vElement = fElement.typeParameters[2];
@@ -4263,7 +4257,7 @@ void main() {
     FunctionDeclaration fNode = fStatement.functionDeclaration;
     FunctionElement fElement = fNode.declaredElement;
 
-    assertElementTypeString(fElement.type, 'void Function<T>({T x})');
+    assertType(fElement.type, 'void Function<T>({T x})');
     var tElement = fElement.typeParameters[0];
     expect(fElement.type.typeFormals[0], same(tElement));
     expect((fElement.type.parameters[0].type as TypeParameterType).element,
@@ -4283,7 +4277,7 @@ void main() {
     FunctionDeclaration fNode = fStatement.functionDeclaration;
     FunctionElement fElement = fNode.declaredElement;
 
-    assertElementTypeString(fElement.type, 'void Function<T>([T])');
+    assertType(fElement.type, 'void Function<T>([T])');
     var tElement = fElement.typeParameters[0];
     expect(fElement.type.typeFormals[0], same(tElement));
     expect((fElement.type.parameters[0].type as TypeParameterType).element,
@@ -4309,7 +4303,7 @@ void main() {
     FunctionExpression fExpression = fNode.functionExpression;
     FunctionElement fElement = fNode.declaredElement;
     expect(fElement, isNotNull);
-    assertElementTypeString(fElement.type, fTypeString);
+    assertType(fElement.type, fTypeString);
 
     expect(fNode.name.staticElement, same(fElement));
     expect(fNode.name.staticType, isNull);
@@ -4374,7 +4368,7 @@ void main() {
 
     expect(fNode.returnType, isNull);
     expect(fElement, isNotNull);
-    assertElementTypeString(fElement.type, 'Null Function()');
+    assertType(fElement.type, 'Null Function()');
 
     expect(fNode.name.staticElement, same(fElement));
     expect(fNode.name.staticType, isNull);
@@ -4401,7 +4395,7 @@ void main() {
     FunctionExpression fExpression = fNode.functionExpression;
     FunctionElement fElement = fNode.declaredElement;
     expect(fElement, isNotNull);
-    assertElementTypeString(fElement.type, fTypeString);
+    assertType(fElement.type, fTypeString);
 
     expect(fNode.name.staticElement, same(fElement));
     expect(fNode.name.staticType, isNull);
@@ -4468,10 +4462,7 @@ void f() {
     await resolveTestFile();
     var callbackIdentifier = findNode.simple('callback<');
     var callbackElement = callbackIdentifier.staticElement as ParameterElement;
-    assertElementTypeString(
-      callbackElement.type,
-      'C Function<T extends E>(D)',
-    );
+    assertType(callbackElement.type, 'C Function<T extends E>(D)');
     var cReference = findNode.simple('C callback');
     var cElement = findElement.class_('C');
     assertTypeNull(cReference);
@@ -5255,7 +5246,7 @@ void g(C c) {
     InterfaceType doubleType = typeProvider.doubleType;
 
     expect(methodElement, isNotNull);
-    assertElementTypeString(methodElement.type, fTypeString);
+    assertType(methodElement.type, fTypeString);
 
     expect(methodDeclaration.name.staticElement, same(methodElement));
     expect(methodDeclaration.name.staticType, isNull);
@@ -5329,7 +5320,7 @@ main() {
 
     SimpleIdentifier methodName = invocation.methodName;
     expect(methodName.staticElement, same(callElement));
-    assertElementTypeString(methodName.staticType, 'double Function(int)');
+    assertType(methodName.staticType, 'double Function(int)');
   }
 
   test_methodInvocation_explicitCall_functionTarget() async {
@@ -5356,7 +5347,7 @@ main(double computation(int p)) {
 
     SimpleIdentifier target = invocation.target;
     expect(target.staticElement, same(parameter));
-    assertElementTypeString(target.staticType, 'double Function(int)');
+    assertType(target.staticType, 'double Function(int)');
 
     SimpleIdentifier methodName = invocation.methodName;
     expect(methodName.staticElement, isNull);
@@ -5388,7 +5379,7 @@ main(B b) {
     expect(invocation.methodName.staticElement, same(fooElement));
 
     var invokeTypeStr = 'void Function(int)';
-    assertElementTypeString(invocation.staticType, 'void');
+    assertType(invocation.staticType, 'void');
     assertInvokeType(invocation, invokeTypeStr);
   }
 
@@ -5625,7 +5616,7 @@ class C {
       assertTypeNull(target);
 
       var invokeTypeStr = 'void Function(int)';
-      assertElementTypeString(invocation.staticType, 'void');
+      assertType(invocation.staticType, 'void');
       assertInvokeType(invocation, invokeTypeStr);
       expect(invocation.methodName.staticElement, same(mElement));
       assertType(invocation.methodName, invokeTypeStr);
@@ -5646,7 +5637,7 @@ class C {
       expect(invocation.target, isNull);
 
       var invokeTypeStr = 'void Function(int)';
-      assertElementTypeString(invocation.staticType, 'void');
+      assertType(invocation.staticType, 'void');
       assertInvokeType(invocation, invokeTypeStr);
       expect(invocation.methodName.staticElement, same(mElement));
       assertType(invocation.methodName, invokeTypeStr);
@@ -5675,7 +5666,7 @@ class C<T> {
     ExpressionStatement fooStatement = barBody.block.statements[0];
     MethodInvocation fooInvocation = fooStatement.expression;
     assertInvokeType(fooInvocation, 'T Function(C<T>)');
-    assertElementTypeString(fooInvocation.staticType, 'T');
+    assertType(fooInvocation.staticType, 'T');
     expect(fooInvocation.staticType.element, same(tElement));
   }
 
@@ -6329,7 +6320,7 @@ main(double computation(int p)) {
     PrefixedIdentifier prefixed = statement.expression;
 
     expect(prefixed.prefix.staticElement, same(parameter));
-    assertElementTypeString(prefixed.prefix.staticType, 'double Function(int)');
+    assertType(prefixed.prefix.staticType, 'double Function(int)');
 
     SimpleIdentifier methodName = prefixed.identifier;
     expect(methodName.staticElement, isNull);
@@ -7221,7 +7212,7 @@ class C {
     {
       ConstructorDeclaration node = cNode.members[0];
       expect(node.declaredElement, isNotNull);
-      assertElementTypeString(node.declaredElement.type, 'C Function(int)');
+      assertType(node.declaredElement.type, 'C Function(int)');
       expect(node.returnType.staticElement, same(cElement));
       expect(node.returnType.staticType, isNull);
       expect(node.name, isNull);
@@ -7231,7 +7222,7 @@ class C {
     {
       ConstructorDeclaration node = cNode.members[1];
       expect(node.declaredElement, isNotNull);
-      assertElementTypeString(node.declaredElement.type, 'C Function(int)');
+      assertType(node.declaredElement.type, 'C Function(int)');
       expect(node.returnType.staticElement, same(cElement));
       expect(node.returnType.staticType, isNull);
       expect(node.name.staticElement, same(node.declaredElement));
@@ -7242,8 +7233,7 @@ class C {
     {
       MethodDeclaration node = cNode.members[2];
       expect(node.declaredElement, isNotNull);
-      assertElementTypeString(
-          node.declaredElement.type, 'int Function(double)');
+      assertType(node.declaredElement.type, 'int Function(double)');
 
       // method return type
       TypeName returnType = node.returnType;
@@ -7275,7 +7265,7 @@ class C {
     {
       MethodDeclaration node = cNode.members[3];
       expect(node.declaredElement, isNotNull);
-      assertElementTypeString(node.declaredElement.type, 'int Function()');
+      assertType(node.declaredElement.type, 'int Function()');
 
       // getter return type
       TypeName returnType = node.returnType;
@@ -7293,8 +7283,7 @@ class C {
     {
       MethodDeclaration node = cNode.members[4];
       expect(node.declaredElement, isNotNull);
-      assertElementTypeString(
-          node.declaredElement.type, 'void Function(double)');
+      assertType(node.declaredElement.type, 'void Function(double)');
 
       // setter return type
       TypeName returnType = node.returnType;
@@ -7343,8 +7332,7 @@ void set topSetter(double p) {}
     {
       FunctionDeclaration node = result.unit.declarations[0];
       expect(node.declaredElement, isNotNull);
-      assertElementTypeString(
-          node.declaredElement.type, 'int Function(double)');
+      assertType(node.declaredElement.type, 'int Function(double)');
 
       // function return type
       TypeName returnType = node.returnType;
@@ -7377,7 +7365,7 @@ void set topSetter(double p) {}
     {
       FunctionDeclaration node = result.unit.declarations[1];
       expect(node.declaredElement, isNotNull);
-      assertElementTypeString(node.declaredElement.type, 'int Function()');
+      assertType(node.declaredElement.type, 'int Function()');
 
       // getter return type
       TypeName returnType = node.returnType;
@@ -7395,8 +7383,7 @@ void set topSetter(double p) {}
     {
       FunctionDeclaration node = result.unit.declarations[2];
       expect(node.declaredElement, isNotNull);
-      assertElementTypeString(
-          node.declaredElement.type, 'void Function(double)');
+      assertType(node.declaredElement.type, 'void Function(double)');
 
       // setter return type
       TypeName returnType = node.returnType;
@@ -7618,7 +7605,7 @@ void main() {
     InterfaceType doubleType = typeProvider.doubleType;
 
     expect(fElement, isNotNull);
-    assertElementTypeString(fElement.type, fTypeString);
+    assertType(fElement.type, fTypeString);
 
     expect(fDeclaration.name.staticElement, same(fElement));
     expect(fDeclaration.name.staticType, isNull);
@@ -8680,7 +8667,7 @@ main() {
   void _assertArgumentToParameter2(Expression argument, String expectedType,
       {DartType memberType}) {
     ParameterElement actual = argument.staticParameterElement;
-    assertElementTypeString(actual.type, expectedType);
+    assertType(actual.type, expectedType);
 
     if (argument is NamedExpression) {
       SimpleIdentifier name = argument.name.label;

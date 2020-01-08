@@ -650,7 +650,7 @@ main(A a) {
     assertType(identifier, 'int* Function(int*, int*)*');
 
     MethodElement element = identifier.staticElement;
-    assertElementTypeString(element.type, 'int* Function(int*, int*)*');
+    assertType(element.type, 'int* Function(int*, int*)*');
   }
 
   test_methodInvocation_method_interfaceTarget() async {
@@ -675,7 +675,7 @@ main(A a) {
     assertType(identifier, 'int* Function(int*, int*)*');
 
     MethodElement element = identifier.staticElement;
-    assertElementTypeString(element.type, 'int* Function(int*, int*)*');
+    assertType(element.type, 'int* Function(int*, int*)*');
   }
 
   test_methodInvocation_method_nullTarget() async {
@@ -702,7 +702,7 @@ class B extends A {
     assertType(identifier, 'int* Function(int*, int*)*');
 
     MethodElement element = identifier.staticElement;
-    assertElementTypeString(element.type, 'int* Function(int*, int*)*');
+    assertType(element.type, 'int* Function(int*, int*)*');
   }
 
   test_methodInvocation_method_staticTarget() async {
@@ -727,7 +727,7 @@ main() {
     assertType(identifier, 'int* Function(int*, int*)*');
 
     MethodElement element = identifier.staticElement;
-    assertElementTypeString(element.type, 'int* Function(int*, int*)*');
+    assertType(element.type, 'int* Function(int*, int*)*');
   }
 
   test_methodInvocation_method_superTarget() async {
@@ -754,7 +754,7 @@ class B extends A {
     assertType(identifier, 'int* Function(int*, int*)*');
 
     MethodElement element = identifier.staticElement;
-    assertElementTypeString(element.type, 'int* Function(int*, int*)*');
+    assertType(element.type, 'int* Function(int*, int*)*');
   }
 
   test_nnbd_optOut_invalidSyntax() async {

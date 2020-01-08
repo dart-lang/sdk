@@ -24,7 +24,7 @@ var v = [E1.a, E2.b];
 ''');
 
     var v = findElement.topVar('v');
-    assertElementTypeString(v.type, 'List<Object>');
+    assertType(v.type, 'List<Object>');
   }
 
   test_isConstantEvaluated() async {

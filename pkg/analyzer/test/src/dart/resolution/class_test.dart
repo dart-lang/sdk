@@ -459,7 +459,7 @@ class A extends dynamic {}
     ]);
 
     var a = findElement.class_('A');
-    assertElementType(a.supertype, objectType);
+    assertType(a.supertype, 'Object');
   }
 
   test_error_extendsNonClass_enum() async {
@@ -471,7 +471,7 @@ class A extends E {}
     ]);
 
     var a = findElement.class_('A');
-    assertElementType(a.supertype, objectType);
+    assertType(a.supertype, 'Object');
 
     var eRef = findNode.typeName('E {}');
     assertTypeName(eRef, findElement.enum_('E'), 'E');
@@ -486,7 +486,7 @@ class A extends M {} // ref
     ]);
 
     var a = findElement.class_('A');
-    assertElementType(a.supertype, objectType);
+    assertType(a.supertype, 'Object');
 
     var mRef = findNode.typeName('M {} // ref');
     assertTypeName(mRef, findElement.mixin('M'), 'M');
@@ -501,7 +501,7 @@ class A extends v {}
     ]);
 
     var a = findElement.class_('A');
-    assertElementType(a.supertype, objectType);
+    assertType(a.supertype, 'Object');
   }
 
   test_error_extendsNonClass_variable_generic() async {
@@ -513,7 +513,7 @@ class A extends v<int> {}
     ]);
 
     var a = findElement.class_('A');
-    assertElementType(a.supertype, objectType);
+    assertType(a.supertype, 'Object');
   }
 
   test_error_implementsRepeated() async {
