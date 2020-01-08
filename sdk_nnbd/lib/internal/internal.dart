@@ -164,7 +164,7 @@ int parseHexByte(String source, int index) {
 ///
 /// See this issue for more context:
 /// https://github.com/dart-lang/sdk/issues/31371
-external Object extractTypeArguments<T>(T instance, Function extract);
+external Object? extractTypeArguments<T>(T instance, Function extract);
 
 /// Annotation class marking the version where SDK API was added.
 ///

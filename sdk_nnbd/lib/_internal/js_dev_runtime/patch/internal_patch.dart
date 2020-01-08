@@ -50,5 +50,5 @@ List<T> makeFixedListUnmodifiable<T>(List<T> fixedLengthList) {
 }
 
 @patch
-Object extractTypeArguments<T>(T instance, Function extract) =>
+Object? extractTypeArguments<T>(T instance, Function extract) =>
     dart.extractTypeArguments<T>(instance, extract);

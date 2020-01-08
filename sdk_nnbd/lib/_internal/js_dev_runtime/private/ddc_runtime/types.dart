@@ -1365,7 +1365,7 @@ bool _isInterfaceSubtype(t1, t2, strictMode) => JS('', '''(() => {
   return false;
 })()''');
 
-Object extractTypeArguments<T>(T instance, Function f) {
+Object? extractTypeArguments<T>(T instance, Function f) {
   if (instance == null) {
     throw ArgumentError('Cannot extract type of null instance.');
   }
