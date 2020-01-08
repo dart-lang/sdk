@@ -550,7 +550,7 @@ abstract class _StreamController<T> implements _StreamControllerBase<T> {
     if (_isAddingStream) {
       varData = (varData as _StreamControllerAddStreamState<Object?>).varData;
     }
-    return _varData as _ControllerSubscription<T>;
+    return varData as _ControllerSubscription<T>;
   }
 
   /**
