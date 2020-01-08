@@ -32,7 +32,7 @@ abstract class DartType {
   ///
   /// Clients should not depend on the content of the returned value as it will
   /// be changed if doing so would improve the UX.
-  @deprecated
+  @Deprecated('Use getDisplayString instead')
   String get displayName;
 
   /// Return the element representing the declaration of this type, or `null` if
@@ -324,7 +324,7 @@ abstract class InterfaceType implements ParameterizedType {
   ///   looking up getter (respectively setter) <i>m</i> in <i>S</i> with
   ///   respect to <i>L</i>. Otherwise, we say that the lookup has failed.
   /// </blockquote>
-  @deprecated
+  @Deprecated('Use lookupGetter2 instead')
   PropertyAccessorElement lookUpGetter(String name, LibraryElement library);
 
   /// Return the getter with the given [name].
@@ -360,7 +360,7 @@ abstract class InterfaceType implements ParameterizedType {
   ///   looking up getter (respectively setter) <i>m</i> in <i>S</i> with
   ///   respect to <i>L</i>. Otherwise, we say that the lookup has failed.
   /// </blockquote>
-  @deprecated
+  @Deprecated('Use lookupGetter2 instead')
   PropertyAccessorElement lookUpGetterInSuperclass(
       String name, LibraryElement library);
 
@@ -373,7 +373,7 @@ abstract class InterfaceType implements ParameterizedType {
   ///
   /// The [library] determines if a private member name is visible, and does not
   /// need to be supplied for public names.
-  @deprecated
+  @Deprecated('Use lookupGetter2 instead')
   PropertyAccessorElement lookUpInheritedGetter(String name,
       {LibraryElement library, bool thisType = true});
 
@@ -386,7 +386,7 @@ abstract class InterfaceType implements ParameterizedType {
   ///
   /// The [library] determines if a private member name is visible, and does not
   /// need to be supplied for public names.
-  @deprecated
+  @Deprecated('Use lookupGetter2 and/or lookupMethod2 instead')
   ExecutableElement lookUpInheritedGetterOrMethod(String name,
       {LibraryElement library});
 
@@ -399,7 +399,7 @@ abstract class InterfaceType implements ParameterizedType {
   ///
   /// The [library] determines if a private member name is visible, and does not
   /// need to be supplied for public names.
-  @deprecated
+  @Deprecated('Use lookupMethod2 instead')
   MethodElement lookUpInheritedMethod(String name,
       {LibraryElement library, bool thisType = true});
 
@@ -412,7 +412,7 @@ abstract class InterfaceType implements ParameterizedType {
   ///
   /// The [library] determines if a private member name is visible, and does not
   /// need to be supplied for public names.
-  @deprecated
+  @Deprecated('Use lookupSetter2 instead')
   PropertyAccessorElement lookUpInheritedSetter(String name,
       {LibraryElement library, bool thisType = true});
 
@@ -429,7 +429,7 @@ abstract class InterfaceType implements ParameterizedType {
   ///   lookup is the result of looking up method <i>m</i> in <i>S</i> with
   ///   respect to <i>L</i> Otherwise, we say that the lookup has failed.
   /// </blockquote>
-  @deprecated
+  @Deprecated('Use lookupMethod2 instead')
   MethodElement lookUpMethod(String name, LibraryElement library);
 
   /// Return the method with the given [name].
@@ -465,7 +465,7 @@ abstract class InterfaceType implements ParameterizedType {
   ///   respect to <i>L</i>.
   /// * Otherwise, we say that the lookup has failed.
   /// </blockquote>
-  @deprecated
+  @Deprecated('Use lookupMethod2 instead')
   MethodElement lookUpMethodInSuperclass(String name, LibraryElement library);
 
   /// Return the element representing the setter that results from looking up
@@ -482,7 +482,7 @@ abstract class InterfaceType implements ParameterizedType {
   ///   looking up getter (respectively setter) <i>m</i> in <i>S</i> with
   ///   respect to <i>L</i>. Otherwise, we say that the lookup has failed.
   /// </blockquote>
-  @deprecated
+  @Deprecated('Use lookupSetter2 instead')
   PropertyAccessorElement lookUpSetter(String name, LibraryElement library);
 
   /// Return the setter with the given [name].
@@ -518,7 +518,7 @@ abstract class InterfaceType implements ParameterizedType {
   ///   looking up getter (respectively setter) <i>m</i> in <i>S</i> with
   ///   respect to <i>L</i>. Otherwise, we say that the lookup has failed.
   /// </blockquote>
-  @deprecated
+  @Deprecated('Use lookupSetter2 instead')
   PropertyAccessorElement lookUpSetterInSuperclass(
       String name, LibraryElement library);
 
