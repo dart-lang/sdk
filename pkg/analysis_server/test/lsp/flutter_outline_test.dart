@@ -112,6 +112,8 @@ Widget build(BuildContext context) => Container(
     expect(icon.attributes, hasLength(1));
     expect(icon.attributes[0].name, equals('icon'));
     expect(icon.attributes[0].label, equals('Icons.ac_unit'));
+    expect(icon.attributes[0].valueRange,
+        equals(Range(Position(8, 36), Position(8, 49))));
     expect(icon.dartElement, isNull);
     expect(icon.children, hasLength(0));
   }

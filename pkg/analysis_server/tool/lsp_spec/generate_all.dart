@@ -242,6 +242,7 @@ List<AstNode> getCustomClasses() {
       [
         field('name', type: 'string'),
         field('label', type: 'string'),
+        field('valueRange', type: 'Range', canBeUndefined: true),
       ],
     ),
     interface(

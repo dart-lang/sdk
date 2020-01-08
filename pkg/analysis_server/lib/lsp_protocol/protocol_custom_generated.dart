@@ -859,7 +859,7 @@ class FlutterOutlineAttribute implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
       FlutterOutlineAttribute.canParse, FlutterOutlineAttribute.fromJson);
 
-  FlutterOutlineAttribute(this.name, this.label) {
+  FlutterOutlineAttribute(this.name, this.label, this.valueRange) {
     if (name == null) {
       throw 'name is required but was not provided';
     }
@@ -870,16 +870,22 @@ class FlutterOutlineAttribute implements ToJsonable {
   static FlutterOutlineAttribute fromJson(Map<String, dynamic> json) {
     final name = json['name'];
     final label = json['label'];
-    return FlutterOutlineAttribute(name, label);
+    final valueRange =
+        json['valueRange'] != null ? Range.fromJson(json['valueRange']) : null;
+    return FlutterOutlineAttribute(name, label, valueRange);
   }
 
   final String label;
   final String name;
+  final Range valueRange;
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['name'] = name ?? (throw 'name is required but was not set');
     __result['label'] = label ?? (throw 'label is required but was not set');
+    if (valueRange != null) {
+      __result['valueRange'] = valueRange;
+    }
     return __result;
   }
 
@@ -919,6 +925,16 @@ class FlutterOutlineAttribute implements ToJsonable {
       } finally {
         reporter.pop();
       }
+      reporter.push('valueRange');
+      try {
+        if (obj['valueRange'] != null &&
+            !(Range.canParse(obj['valueRange'], reporter))) {
+          reporter.reportError("must be of type Range");
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
       return true;
     } else {
       reporter.reportError("must be of type FlutterOutlineAttribute");
@@ -929,7 +945,10 @@ class FlutterOutlineAttribute implements ToJsonable {
   @override
   bool operator ==(Object other) {
     if (other is FlutterOutlineAttribute) {
-      return name == other.name && label == other.label && true;
+      return name == other.name &&
+          label == other.label &&
+          valueRange == other.valueRange &&
+          true;
     }
     return false;
   }
@@ -939,6 +958,7 @@ class FlutterOutlineAttribute implements ToJsonable {
     int hash = 0;
     hash = JenkinsSmiHash.combine(hash, name.hashCode);
     hash = JenkinsSmiHash.combine(hash, label.hashCode);
+    hash = JenkinsSmiHash.combine(hash, valueRange.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 

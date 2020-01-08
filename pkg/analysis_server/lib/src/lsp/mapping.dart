@@ -831,7 +831,10 @@ lsp.FlutterOutline toFlutterOutline(
       outline.className,
       outline.variableName,
       outline.attributes != null
-          ? outline.attributes.map(toFlutterOutlineAttribute).toList()
+          ? outline.attributes
+              .map(
+                  (attribute) => toFlutterOutlineAttribute(lineInfo, attribute))
+              .toList()
           : null,
       outline.dartElement != null
           ? toElement(lineInfo, outline.dartElement)
@@ -844,8 +847,14 @@ lsp.FlutterOutline toFlutterOutline(
     );
 
 lsp.FlutterOutlineAttribute toFlutterOutlineAttribute(
-        server.FlutterOutlineAttribute attribute) =>
-    lsp.FlutterOutlineAttribute(attribute.name, attribute.label);
+        server.LineInfo lineInfo, server.FlutterOutlineAttribute attribute) =>
+    lsp.FlutterOutlineAttribute(
+        attribute.name,
+        attribute.label,
+        attribute.valueLocation != null
+            ? toRange(lineInfo, attribute.valueLocation.offset,
+                attribute.valueLocation.length)
+            : null);
 
 lsp.Position toPosition(server.CharacterLocation location) {
   // LSP is zero-based, but analysis server is 1-based.
