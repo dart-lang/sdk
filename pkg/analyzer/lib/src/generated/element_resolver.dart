@@ -416,44 +416,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    Expression function = node.function;
-    DartType functionType;
-    if (function is ExtensionOverride) {
-      var result = _extensionResolver.getOverrideMember(function, 'call');
-      var member = result.getter;
-      if (member == null) {
-        _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.INVOCATION_OF_EXTENSION_WITHOUT_CALL,
-            function,
-            [function.extensionName.name]);
-        functionType = _typeProvider.dynamicType;
-      } else {
-        if (member.isStatic) {
-          _errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER,
-              node.argumentList);
-        }
-        node.staticElement = member;
-        functionType = _elementTypeProvider.getExecutableType(member);
-      }
-    } else {
-      functionType = function.staticType;
-    }
-
-    DartType staticInvokeType =
-        _instantiateGenericMethod(functionType, node.typeArguments, node);
-
-    node.staticInvokeType = staticInvokeType;
-
-    List<ParameterElement> parameters =
-        _computeCorrespondingParameters(node, staticInvokeType);
-    if (parameters != null) {
-      node.argumentList.correspondingStaticParameters = parameters;
-    }
-  }
-
-  @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
     resolveMetadata(node);
   }
@@ -1129,26 +1091,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
   }
 
   /**
-   * Given an [argumentList] and the executable [element] that  will be invoked
-   * using those arguments, compute the list of parameters that correspond to
-   * the list of arguments. Return the parameters that correspond to the
-   * arguments, or `null` if no correspondence could be computed.
-   */
-  List<ParameterElement> _computeCorrespondingParameters(
-      FunctionExpressionInvocation invocation, DartType type) {
-    ArgumentList argumentList = invocation.argumentList;
-    if (type is InterfaceType) {
-      MethodElement callMethod = invocation.staticElement;
-      if (callMethod != null) {
-        return _resolveArgumentsToFunction(argumentList, callMethod);
-      }
-    } else if (type is FunctionType) {
-      return _resolveArgumentsToParameters(argumentList, type.parameters);
-    }
-    return null;
-  }
-
-  /**
    * Assuming that the given [identifier] is a prefix for a deferred import,
    * return the library that is being imported.
    */
@@ -1212,54 +1154,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
       ),
       nullabilitySuffix: _resolver.noneOrStarSuffix,
     );
-  }
-
-  /**
-   * Check for a generic method & apply type arguments if any were passed.
-   */
-  DartType _instantiateGenericMethod(DartType invokeType,
-      TypeArgumentList typeArguments, FunctionExpressionInvocation invocation) {
-    DartType parameterizableType;
-    List<TypeParameterElement> parameters;
-    if (invokeType is FunctionType) {
-      parameterizableType = invokeType;
-      parameters = invokeType.typeFormals;
-    } else if (invokeType is InterfaceType) {
-      var result = _typePropertyResolver.resolve(
-        receiver: null,
-        receiverType: invokeType,
-        name: FunctionElement.CALL_METHOD_NAME,
-        receiverErrorNode: invocation,
-        nameErrorNode: invocation.function,
-      );
-      ExecutableElement callMethod = result.getter;
-      invocation.staticElement = callMethod;
-      parameterizableType = _elementTypeProvider.safeExecutableType(callMethod);
-      parameters = (parameterizableType as FunctionType)?.typeFormals;
-    }
-
-    if (parameterizableType is FunctionType) {
-      NodeList<TypeAnnotation> arguments = typeArguments?.arguments;
-      if (arguments != null && arguments.length != parameters.length) {
-        _errorReporter.reportErrorForNode(
-            StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD,
-            invocation,
-            [parameterizableType, parameters.length, arguments?.length ?? 0]);
-        // Wrong number of type arguments. Ignore them.
-        arguments = null;
-      }
-      if (parameters.isNotEmpty) {
-        if (arguments == null) {
-          return _typeSystem.instantiateToBounds(parameterizableType);
-        } else {
-          return parameterizableType
-              .instantiate(arguments.map((n) => n.type).toList());
-        }
-      }
-
-      return parameterizableType;
-    }
-    return invokeType;
   }
 
   /**

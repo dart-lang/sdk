@@ -25,6 +25,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
+import 'package:analyzer/src/dart/resolver/function_expression_invocation_resolver.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/method_invocation_resolver.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
@@ -205,6 +206,8 @@ class ResolverVisitor extends ScopedVisitor {
   /// Helper for resolving [ListLiteral] and [SetOrMapLiteral].
   TypedLiteralResolver _typedLiteralResolver;
 
+  FunctionExpressionInvocationResolver _functionExpressionInvocationResolver;
+
   InvocationInferenceHelper inferenceHelper;
 
   /// The object used to resolve the element associated with the current node.
@@ -329,6 +332,11 @@ class ResolverVisitor extends ScopedVisitor {
       flowAnalysis: _flowAnalysis,
       errorReporter: errorReporter,
       typeSystem: typeSystem,
+    );
+    this._functionExpressionInvocationResolver =
+        FunctionExpressionInvocationResolver(
+      resolver: this,
+      elementTypeProvider: _elementTypeProvider,
     );
     this.elementResolver = ElementResolver(this,
         reportConstEvaluationErrors: reportConstEvaluationErrors,
@@ -1322,8 +1330,7 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     node.function?.accept(this);
-    node.accept(elementResolver);
-    _visitFunctionExpressionInvocation(node);
+    _functionExpressionInvocationResolver.resolve(node);
   }
 
   @override
@@ -1512,7 +1519,7 @@ class ResolverVisitor extends ScopedVisitor {
 
     var functionRewrite = MethodInvocationResolver.getRewriteResult(node);
     if (functionRewrite != null) {
-      _visitFunctionExpressionInvocation(functionRewrite);
+      _functionExpressionInvocationResolver.resolve2(functionRewrite);
     }
   }
 
@@ -2033,14 +2040,6 @@ class ResolverVisitor extends ScopedVisitor {
       InferenceContext.setType(node.argumentList,
           _elementTypeProvider.safeExecutableType(originalElement));
     }
-  }
-
-  /// Continues resolution of the [FunctionExpressionInvocation] node after
-  /// resolving its function.
-  void _visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    inferenceHelper.inferArgumentTypesForInvocation(node);
-    node.argumentList?.accept(this);
-    node.accept(typeAnalyzer);
   }
 
   /// Given an [argumentList] and the [parameters] related to the element that

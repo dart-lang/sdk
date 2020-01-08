@@ -523,26 +523,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   }
 
   /**
-   * The Dart Language Specification, 12.14.4: <blockquote>A function expression invocation <i>i</i>
-   * has the form <i>e<sub>f</sub>(a<sub>1</sub>, &hellip;, a<sub>n</sub>, x<sub>n+1</sub>:
-   * a<sub>n+1</sub>, &hellip;, x<sub>n+k</sub>: a<sub>n+k</sub>)</i>, where <i>e<sub>f</sub></i> is
-   * an expression.
-   *
-   * It is a static type warning if the static type <i>F</i> of <i>e<sub>f</sub></i> may not be
-   * assigned to a function type.
-   *
-   * If <i>F</i> is not a function type, the static type of <i>i</i> is dynamic. Otherwise the
-   * static type of <i>i</i> is the declared return type of <i>F</i>.</blockquote>
-   */
-  @override
-  void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    _resolver.inferenceHelper.inferGenericInvocationExpression(node);
-    DartType staticType = _resolver.inferenceHelper
-        .computeInvokeReturnType(node.staticInvokeType, isNullAware: false);
-    _recordStaticType(node, staticType);
-  }
-
-  /**
    * The Dart Language Specification, 12.29: <blockquote>An assignable expression of the form
    * <i>e<sub>1</sub>[e<sub>2</sub>]</i> is evaluated as a method invocation of the operator method
    * <i>[]</i> on <i>e<sub>1</sub></i> with argument <i>e<sub>2</sub></i>.</blockquote>
