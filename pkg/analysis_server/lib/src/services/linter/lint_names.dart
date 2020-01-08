@@ -14,6 +14,8 @@ class LintNames {
       'avoid_annotating_with_dynamic';
   static const String avoid_empty_else = 'avoid_empty_else';
   static const String avoid_init_to_null = 'avoid_init_to_null';
+  static const String avoid_redundant_argument_values =
+      'avoid_redundant_argument_values';
   static const String avoid_relative_lib_imports = 'avoid_relative_lib_imports';
   static const String avoid_return_types_on_setters =
       'avoid_return_types_on_setters';

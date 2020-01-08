@@ -616,6 +616,9 @@ class FixProcessor extends BaseProcessor {
       if (name == LintNames.avoid_init_to_null) {
         await _addFix_removeInitializer();
       }
+      if (name == LintNames.avoid_redundant_argument_values) {
+        await _addFix_removeArgument();
+      }
       if (name == LintNames.avoid_relative_lib_imports) {
         await _addFix_convertToPackageImport();
       }
@@ -3247,6 +3250,24 @@ class FixProcessor extends BaseProcessor {
           await addFix(findAnnotation(fieldDeclaration.metadata, 'override'));
         }
       }
+    }
+  }
+
+  Future<void> _addFix_removeArgument() async {
+    var arg = node;
+    if (arg.parent is NamedExpression) {
+      arg = arg.parent;
+    }
+
+    final ArgumentList argumentList =
+        arg.parent.thisOrAncestorOfType<ArgumentList>();
+    if (argumentList != null) {
+      final changeBuilder = _newDartChangeBuilder();
+      await changeBuilder.addFileEdit(file, (builder) {
+        final sourceRange = range.nodeInList(argumentList.arguments, arg);
+        builder.addDeletion(sourceRange);
+      });
+      _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_ARGUMENT);
     }
   }
 

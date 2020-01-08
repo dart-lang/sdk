@@ -73,6 +73,7 @@ bool hasFix(ErrorCode errorCode) =>
             errorCode.name == LintNames.avoid_annotating_with_dynamic ||
             errorCode.name == LintNames.avoid_empty_else ||
             errorCode.name == LintNames.avoid_init_to_null ||
+            errorCode.name == LintNames.avoid_redundant_argument_values ||
             errorCode.name == LintNames.avoid_return_types_on_setters ||
             errorCode.name == LintNames.avoid_types_on_closure_parameters ||
             errorCode.name == LintNames.await_only_futures ||
@@ -279,6 +280,8 @@ class DartFixKind {
       FixKind('QUALIFY_REFERENCE', 50, "Use '{0}'");
   static const REMOVE_ANNOTATION =
       FixKind('REMOVE_ANNOTATION', 50, "Remove the '{0}' annotation");
+  static const REMOVE_ARGUMENT =
+      FixKind('REMOVE_ARGUMENT', 50, "Remove argument");
   static const REMOVE_AWAIT = FixKind('REMOVE_AWAIT', 50, "Remove await");
   static const REMOVE_DEAD_CODE =
       FixKind('REMOVE_DEAD_CODE', 50, "Remove dead code");
