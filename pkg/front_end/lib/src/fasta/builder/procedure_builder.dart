@@ -415,7 +415,7 @@ class ProcedureBuilderImpl extends FunctionBuilderImpl
           typeParameters: tearOffTypeParameters,
           positionalParameters: [extensionThis],
           requiredParameterCount: 1,
-          returnType: closure.function.functionType)
+          returnType: closure.function.computeFunctionType(library.nonNullable))
       ..fileUri = fileUri
       ..fileOffset = fileOffset;
     _extensionTearOff.function.parent = _extensionTearOff;

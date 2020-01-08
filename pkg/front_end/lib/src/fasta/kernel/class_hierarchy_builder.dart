@@ -2424,7 +2424,8 @@ class InterfaceConflict extends DelayedMember {
       } else if (member.isSetter) {
         type = member.setterType;
       } else {
-        type = member.function.functionType;
+        type = member.function
+            .computeFunctionType(member.enclosingLibrary.nonNullable);
       }
     } else if (member is Field) {
       type = member.type;

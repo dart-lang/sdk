@@ -41,7 +41,7 @@ static method Extension|set#field(final self::Class #this, self::Class? value) �
 }
 static method Extension|method(final self::Class #this) → self::Class
   return self::Extension|get#property(#this);
-static method Extension|get#method(final self::Class #this) → () →* self::Class
+static method Extension|get#method(final self::Class #this) → () → self::Class
   return () → self::Class => self::Extension|method(#this);
 static method Extension|[](final self::Class #this, self::Class? key) → self::Class?
   return self::Extension|get#field(#this);

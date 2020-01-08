@@ -424,8 +424,12 @@ class InferenceVisitor
     inferrer.inferConstructorParameterTypes(node.target);
     bool hasExplicitTypeArguments =
         getExplicitTypeArguments(node.arguments) != null;
-    DartType inferredType = inferrer.inferInvocation(typeContext,
-        node.fileOffset, node.target.function.thisFunctionType, node.arguments,
+    DartType inferredType = inferrer.inferInvocation(
+        typeContext,
+        node.fileOffset,
+        node.target.function
+            .computeThisFunctionType(inferrer.library.nonNullable),
+        node.arguments,
         returnType:
             computeConstructorReturnType(node.target, inferrer.coreTypes),
         isConst: node.isConst);
@@ -450,7 +454,7 @@ class InferenceVisitor
   ExpressionInferenceResult visitExtensionTearOff(
       ExtensionTearOff node, DartType typeContext) {
     FunctionType calleeType = node.target != null
-        ? node.target.function.functionType
+        ? node.target.function.computeFunctionType(inferrer.library.nonNullable)
         : new FunctionType(
             [], const DynamicType(), inferrer.library.nonNullable);
     TypeArgumentsInfo typeArgumentsInfo = getTypeArgumentsInfo(node.arguments);
@@ -700,8 +704,12 @@ class InferenceVisitor
       FactoryConstructorInvocationJudgment node, DartType typeContext) {
     bool hadExplicitTypeArguments =
         getExplicitTypeArguments(node.arguments) != null;
-    DartType inferredType = inferrer.inferInvocation(typeContext,
-        node.fileOffset, node.target.function.thisFunctionType, node.arguments,
+    DartType inferredType = inferrer.inferInvocation(
+        typeContext,
+        node.fileOffset,
+        node.target.function
+            .computeThisFunctionType(inferrer.library.nonNullable),
+        node.arguments,
         returnType:
             computeConstructorReturnType(node.target, inferrer.coreTypes),
         isConst: node.isConst);
@@ -1046,8 +1054,9 @@ class InferenceVisitor
     inferrer.inferInvocation(
         null,
         node.fileOffset,
-        substitution.substituteType(
-            node.target.function.thisFunctionType.withoutTypeParameters),
+        substitution.substituteType(node.target.function
+            .computeThisFunctionType(inferrer.library.nonNullable)
+            .withoutTypeParameters),
         node.argumentsJudgment,
         returnType: inferrer.thisType,
         skipTypeArgumentInference: true);
@@ -4548,8 +4557,12 @@ class InferenceVisitor
           classTypeParameters[i], inferrer.library.library);
     }
     ArgumentsImpl.setNonInferrableArgumentTypes(node.arguments, typeArguments);
-    inferrer.inferInvocation(null, node.fileOffset,
-        node.target.function.thisFunctionType, node.arguments,
+    inferrer.inferInvocation(
+        null,
+        node.fileOffset,
+        node.target.function
+            .computeThisFunctionType(inferrer.library.nonNullable),
+        node.arguments,
         returnType: inferrer.coreTypes.thisInterfaceType(
             node.target.enclosingClass, inferrer.library.nonNullable),
         skipTypeArgumentInference: true);
@@ -4708,7 +4721,7 @@ class InferenceVisitor
   ExpressionInferenceResult visitStaticInvocation(
       StaticInvocation node, DartType typeContext) {
     FunctionType calleeType = node.target != null
-        ? node.target.function.functionType
+        ? node.target.function.computeFunctionType(inferrer.library.nonNullable)
         : new FunctionType(
             [], const DynamicType(), inferrer.library.nonNullable);
     TypeArgumentsInfo typeArgumentsInfo = getTypeArgumentsInfo(node.arguments);
@@ -4755,8 +4768,9 @@ class InferenceVisitor
     inferrer.inferInvocation(
         null,
         node.fileOffset,
-        substitution.substituteType(
-            node.target.function.thisFunctionType.withoutTypeParameters),
+        substitution.substituteType(node.target.function
+            .computeThisFunctionType(inferrer.library.nonNullable)
+            .withoutTypeParameters),
         node.arguments,
         returnType: inferrer.thisType,
         skipTypeArgumentInference: true);
@@ -5101,7 +5115,8 @@ class InferenceVisitor
                       createIsSetWrite: createIsSetWrite),
               returnType: node.type))
         ..fileOffset = fileOffset;
-      getVariable.type = getter.function.functionType;
+      getVariable.type =
+          getter.function.computeFunctionType(inferrer.library.nonNullable);
       node.lateGetter = getVariable;
       result.add(getter);
 
@@ -5140,7 +5155,8 @@ class InferenceVisitor
             // TODO(johnniwinther): Reinsert the file offset when the vm doesn't
             //  use it for function declaration identity.
             /*..fileOffset = fileOffset*/;
-        setVariable.type = setter.function.functionType;
+        setVariable.type =
+            setter.function.computeFunctionType(inferrer.library.nonNullable);
         node.lateSetter = setVariable;
         result.add(setter);
       }

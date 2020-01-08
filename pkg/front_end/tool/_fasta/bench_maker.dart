@@ -170,7 +170,9 @@ class BenchMaker implements DartTypeVisitor1<void, StringBuffer> {
     }
     if (callOperator != null) {
       sb.write("{ ");
-      callOperator.function.functionType.accept1(this, sb);
+      callOperator.function
+          .computeFunctionType(cls.enclosingLibrary.nonNullable)
+          .accept1(this, sb);
       sb.write(" }");
     } else {
       sb.write(";");

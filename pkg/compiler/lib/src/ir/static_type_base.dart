@@ -209,7 +209,7 @@ abstract class StaticTypeBase extends ir.Visitor<ir.DartType> {
 
   @override
   ir.DartType visitFunctionExpression(ir.FunctionExpression node) {
-    return node.function.functionType;
+    return node.function.computeFunctionType(staticTypeContext.nonNullable);
   }
 
   @override

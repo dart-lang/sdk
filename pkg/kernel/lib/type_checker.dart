@@ -437,7 +437,10 @@ class TypeCheckingVisitor
     Constructor target = node.target;
     Arguments arguments = node.arguments;
     Class class_ = target.enclosingClass;
-    handleCall(arguments, target.function.thisFunctionType,
+    handleCall(
+        arguments,
+        target.function
+            .computeThisFunctionType(class_.enclosingLibrary.nonNullable),
         typeParameters: class_.typeParameters);
     return new InterfaceType(
         target.enclosingClass, currentLibrary.nonNullable, arguments.types);
@@ -472,7 +475,7 @@ class TypeCheckingVisitor
   @override
   DartType visitFunctionExpression(FunctionExpression node) {
     handleNestedFunctionNode(node.function);
-    return node.function.thisFunctionType;
+    return node.function.computeThisFunctionType(currentLibrary.nonNullable);
   }
 
   @override

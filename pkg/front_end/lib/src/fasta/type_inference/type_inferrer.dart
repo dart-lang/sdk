@@ -1170,7 +1170,8 @@ class TypeInferrerImpl implements TypeInferrer {
         switch (target.extensionMethodKind) {
           case ProcedureKind.Method:
           case ProcedureKind.Operator:
-            FunctionType functionType = target.member.function.functionType;
+            FunctionType functionType =
+                target.member.function.computeFunctionType(library.nonNullable);
             List<TypeParameter> extensionTypeParameters = functionType
                 .typeParameters
                 .take(target.inferredExtensionTypeArguments.length)
@@ -1188,7 +1189,8 @@ class TypeInferrerImpl implements TypeInferrer {
                 requiredParameterCount:
                     functionType.requiredParameterCount - 1));
           case ProcedureKind.Getter:
-            FunctionType functionType = target.member.function.functionType;
+            FunctionType functionType =
+                target.member.function.computeFunctionType(library.nonNullable);
             List<TypeParameter> extensionTypeParameters = functionType
                 .typeParameters
                 .take(target.inferredExtensionTypeArguments.length)
@@ -1272,7 +1274,8 @@ class TypeInferrerImpl implements TypeInferrer {
         switch (target.extensionMethodKind) {
           case ProcedureKind.Method:
           case ProcedureKind.Operator:
-            return target.member.function.functionType;
+            return target.member.function
+                .computeFunctionType(library.nonNullable);
           case ProcedureKind.Getter:
             // TODO(johnniwinther): Handle implicit .call on extension getter.
             return _getFunctionType(target.member.function.returnType);
@@ -1310,7 +1313,8 @@ class TypeInferrerImpl implements TypeInferrer {
       case ObjectAccessTargetKind.extensionMember:
         switch (target.extensionMethodKind) {
           case ProcedureKind.Operator:
-            FunctionType functionType = target.member.function.functionType;
+            FunctionType functionType =
+                target.member.function.computeFunctionType(library.nonNullable);
             DartType returnType = functionType.returnType;
             if (functionType.typeParameters.isNotEmpty) {
               Substitution substitution = Substitution.fromPairs(
@@ -1344,7 +1348,8 @@ class TypeInferrerImpl implements TypeInferrer {
         }
         break;
       case ObjectAccessTargetKind.extensionMember:
-        FunctionType functionType = target.member.function.functionType;
+        FunctionType functionType =
+            target.member.function.computeFunctionType(library.nonNullable);
         if (functionType.positionalParameters.length > index + 1) {
           DartType keyType = functionType.positionalParameters[index + 1];
           if (functionType.typeParameters.isNotEmpty) {
@@ -1397,7 +1402,8 @@ class TypeInferrerImpl implements TypeInferrer {
       case ObjectAccessTargetKind.extensionMember:
         switch (target.extensionMethodKind) {
           case ProcedureKind.Operator:
-            FunctionType functionType = target.member.function.functionType;
+            FunctionType functionType =
+                target.member.function.computeFunctionType(library.nonNullable);
             if (functionType.positionalParameters.length >= 2) {
               DartType keyType = functionType.positionalParameters[1];
               if (functionType.typeParameters.isNotEmpty) {
@@ -1451,7 +1457,8 @@ class TypeInferrerImpl implements TypeInferrer {
       case ObjectAccessTargetKind.extensionMember:
         switch (target.extensionMethodKind) {
           case ProcedureKind.Operator:
-            FunctionType functionType = target.member.function.functionType;
+            FunctionType functionType =
+                target.member.function.computeFunctionType(library.nonNullable);
             if (functionType.positionalParameters.length >= 3) {
               DartType indexType = functionType.positionalParameters[2];
               if (functionType.typeParameters.isNotEmpty) {
@@ -1558,7 +1565,8 @@ class TypeInferrerImpl implements TypeInferrer {
       case ObjectAccessTargetKind.extensionMember:
         switch (target.extensionMethodKind) {
           case ProcedureKind.Setter:
-            FunctionType functionType = target.member.function.functionType;
+            FunctionType functionType =
+                target.member.function.computeFunctionType(library.nonNullable);
             List<TypeParameter> extensionTypeParameters = functionType
                 .typeParameters
                 .take(target.inferredExtensionTypeArguments.length)
@@ -2276,7 +2284,7 @@ class TypeInferrerImpl implements TypeInferrer {
       function.returnType = inferredReturnType;
     }
     this.closureContext = oldClosureContext;
-    return function.functionType;
+    return function.computeFunctionType(library.nonNullable);
   }
 
   @override

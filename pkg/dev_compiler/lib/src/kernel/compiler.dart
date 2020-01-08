@@ -1319,7 +1319,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       for (var ctor in allConstructors) {
         var memberName = _constructorName(ctor.name.name);
         var type = _emitAnnotatedFunctionType(
-            ctor.function.thisFunctionType.withoutTypeParameters, ctor);
+            ctor.function
+                .computeThisFunctionType(c.enclosingLibrary.nonNullable)
+                .withoutTypeParameters,
+            ctor);
         constructors.add(js_ast.Property(memberName, type));
       }
       emitSignature('Constructor', constructors);
@@ -1360,7 +1363,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     FunctionType result;
     if (!f.positionalParameters.any(isCovariantParameter) &&
         !f.namedParameters.any(isCovariantParameter)) {
-      result = f.thisFunctionType;
+      result = f.computeThisFunctionType(member.enclosingLibrary.nonNullable);
     } else {
       DartType reifyParameter(VariableDeclaration p) => isCovariantParameter(p)
           ? _coreTypes.objectClass.getThisType(
@@ -1375,7 +1378,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           f.returnType, Nullability.legacy,
           namedParameters: f.namedParameters.map(reifyNamedParameter).toList()
             ..sort(),
-          typeParameters: f.thisFunctionType.typeParameters,
+          typeParameters: f
+              .computeThisFunctionType(member.enclosingLibrary.nonNullable)
+              .typeParameters,
           requiredParameterCount: f.requiredParameterCount);
     }
     return _typeFromClass(result, member.enclosingClass, fromClass)
@@ -1823,8 +1828,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
     assert(!member.isAccessor);
 
-    var superMethodType =
-        substituteType(superMember.function.thisFunctionType) as FunctionType;
+    var superMethodType = substituteType(superMember.function
+            .computeThisFunctionType(superMember.enclosingLibrary.nonNullable))
+        as FunctionType;
     var function = member.function;
 
     var body = <js_ast.Statement>[];
@@ -2507,7 +2513,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // TODO(jmesserly): do we even need this for mirrors, since statics are not
     // commonly reflected on?
     if (_options.emitMetadata && _reifyFunctionType(p.function)) {
-      body.add(_emitFunctionTagged(nameExpr, p.function.thisFunctionType,
+      body.add(_emitFunctionTagged(
+              nameExpr,
+              p.function
+                  .computeThisFunctionType(p.enclosingLibrary.nonNullable),
               topLevel: true)
           .toStatement());
     }
@@ -3070,14 +3079,17 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var gen = emitGeneratorFn((_) => []);
     // Return type of an async body is `Future<flatten(T)>`, where T is the
     // declared return type.
-    var returnType = _types.unfutureType(function.thisFunctionType.returnType);
+    var returnType = _types.unfutureType(function
+        .computeThisFunctionType(_currentLibrary.nonNullable)
+        .returnType);
     return js.call('#.async(#, #)',
         [emitLibraryName(_coreTypes.asyncLibrary), _emitType(returnType), gen]);
   }
 
   /// Gets the expected return type of a `sync*` or `async*` body.
   DartType _expectedReturnType(FunctionNode f, Class expected) {
-    var type = f.thisFunctionType.returnType;
+    var type =
+        f.computeThisFunctionType(_currentLibrary.nonNullable).returnType;
     if (type is InterfaceType) {
       var matchArguments =
           _hierarchy.getTypeArgumentsAsInstanceOf(type, expected);
@@ -3966,8 +3978,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     if (_reifyFunctionType(func)) {
       declareFn = js_ast.Block([
         declareFn,
-        _emitFunctionTagged(
-                _emitVariableRef(node.variable), func.thisFunctionType)
+        _emitFunctionTagged(_emitVariableRef(node.variable),
+                func.computeThisFunctionType(_currentLibrary.nonNullable))
             .toStatement()
       ]);
     }
@@ -4161,7 +4173,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       // TODO(jmesserly): we could tag static/top-level function types once
       // in the module initialization, rather than at the point where they
       // escape.
-      return _emitFunctionTagged(result, target.function.thisFunctionType);
+      return _emitFunctionTagged(
+          result,
+          target.function
+              .computeThisFunctionType(target.enclosingLibrary.nonNullable));
     }
     return result;
   }

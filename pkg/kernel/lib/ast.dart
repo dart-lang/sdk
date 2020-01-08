@@ -2199,7 +2199,9 @@ class Procedure extends Member {
   }
 
   DartType get getterType {
-    return isGetter ? function.returnType : function.functionType;
+    return isGetter
+        ? function.returnType
+        : function.computeFunctionType(enclosingLibrary.nonNullable);
   }
 
   DartType get setterType {
@@ -2505,7 +2507,7 @@ class FunctionNode extends TreeNode {
   /// is useful in some contexts, especially when reasoning about the function
   /// type of the enclosing generic function and in combination with
   /// [FunctionType.withoutTypeParameters].
-  FunctionType get thisFunctionType {
+  FunctionType computeThisFunctionType(Nullability nullability) {
     TreeNode parent = this.parent;
     List<NamedType> named =
         namedParameters.map(_getNamedTypeOfVariable).toList(growable: false);
@@ -2518,7 +2520,7 @@ class FunctionNode extends TreeNode {
     return new FunctionType(
         positionalParameters.map(_getTypeOfVariable).toList(growable: false),
         returnType,
-        Nullability.legacy,
+        nullability,
         namedParameters: named,
         typeParameters: typeParametersCopy,
         requiredParameterCount: requiredParameterCount);
@@ -2532,11 +2534,11 @@ class FunctionNode extends TreeNode {
   /// parameters constructed after those of the class.  In both cases, if the
   /// resulting function type is generic, a fresh set of type parameters is used
   /// in it.
-  FunctionType get functionType {
+  FunctionType computeFunctionType(Nullability nullability) {
     return typeParameters.isEmpty
-        ? thisFunctionType
+        ? computeThisFunctionType(nullability)
         : getFreshTypeParameters(typeParameters)
-            .applyToFunctionType(thisFunctionType);
+            .applyToFunctionType(computeThisFunctionType(nullability));
   }
 
   R accept<R>(TreeVisitor<R> v) => v.visitFunctionNode(this);
@@ -4368,7 +4370,9 @@ class FunctionExpression extends Expression implements LocalFunction {
     function?.parent = this;
   }
 
-  DartType getStaticType(StaticTypeContext context) => function.functionType;
+  DartType getStaticType(StaticTypeContext context) {
+    return function.computeFunctionType(context.nonNullable);
+  }
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitFunctionExpression(this);
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
@@ -7021,8 +7025,9 @@ class TearOffConstant extends Constant {
         other.procedureReference == procedureReference;
   }
 
-  FunctionType getType(StaticTypeContext context) =>
-      procedure.function.functionType;
+  FunctionType getType(StaticTypeContext context) {
+    return procedure.function.computeFunctionType(context.nonNullable);
+  }
 }
 
 class TypeLiteralConstant extends Constant {

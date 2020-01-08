@@ -1694,7 +1694,8 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
 
     List<DartType> typeArguments =
         getRedirectingFactoryBody(factory.procedure).typeArguments;
-    FunctionType targetFunctionType = target.functionType;
+    FunctionType targetFunctionType =
+        target.computeFunctionType(library.nonNullable);
     if (typeArguments != null &&
         targetFunctionType.typeParameters.length != typeArguments.length) {
       addProblem(
@@ -1772,8 +1773,9 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     // The factory type cannot contain any type parameters other than those of
     // its enclosing class, because constructors cannot specify type parameters
     // of their own.
-    FunctionType factoryType =
-        factory.procedure.function.thisFunctionType.withoutTypeParameters;
+    FunctionType factoryType = factory.procedure.function
+        .computeThisFunctionType(library.nonNullable)
+        .withoutTypeParameters;
     FunctionType redirecteeType =
         computeRedirecteeType(factory, typeEnvironment);
 

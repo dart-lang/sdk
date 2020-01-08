@@ -4367,7 +4367,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
             variable.fileOffset, variable.name.length);
       }
 
-      variable.type = function.functionType;
+      variable.type = function.computeFunctionType(libraryBuilder.nonNullable);
       if (isFunctionExpression) {
         Expression oldInitializer = variable.initializer;
         variable.initializer = new FunctionExpression(function)
