@@ -712,8 +712,10 @@ class InfoBuilder {
         }
       } else if (member is ExtensionDeclaration) {
         if (member.name == null) {
-          String extendedClass = member.extendedType.type.name;
-          return "$baseDescription '$functionName' in unnamed extension on $extendedClass";
+          var extendedTypeString = member.extendedType.type.getDisplayString(
+            withNullability: false,
+          );
+          return "$baseDescription '$functionName' in unnamed extension on $extendedTypeString";
         } else {
           return "$baseDescription '${member.name.name}.$functionName'";
         }

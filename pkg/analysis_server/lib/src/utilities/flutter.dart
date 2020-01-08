@@ -625,7 +625,7 @@ class Flutter {
       return false;
     }
     for (InterfaceType type in element.allSupertypes) {
-      if (type.name == requiredName) {
+      if (type.element.name == requiredName) {
         Uri uri = type.element.source.uri;
         if (uri == requiredUri) {
           return true;

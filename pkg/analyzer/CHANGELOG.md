@@ -1,3 +1,6 @@
+## 0.39.4-dev
+* Deprecated `DartType.name`, use `element` or `getDisplayString()` instead.
+
 ## 0.39.3
 * Bumped the analyzer's SDK requirement to `>=2.6.0`, so that extension methods
   can be used within the analyzer implementation.

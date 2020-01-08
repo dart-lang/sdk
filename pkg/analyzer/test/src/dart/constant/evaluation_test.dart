@@ -142,7 +142,7 @@ class C {}
 ''');
     DartObjectImpl result = _evaluateConstant('a');
     expect(result.type, typeProvider.typeType);
-    expect(result.toTypeValue().name, 'C');
+    assertElementTypeString(result.toTypeValue(), 'C');
   }
 
   test_visitSimpleIdentifier_dynamic() async {

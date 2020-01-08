@@ -132,7 +132,7 @@ extension on List {
     ExtensionDeclaration extension_ = result.unit.declarations.single;
     ClassMember method = extension_.members.single;
     expect(InfoBuilder.buildEnclosingMemberDescription(method),
-        equals("the method 'aaa' in unnamed extension on List"));
+        equals("the method 'aaa' in unnamed extension on List<dynamic>"));
   }
 
   test_mixinMethod() async {

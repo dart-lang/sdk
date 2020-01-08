@@ -49,8 +49,7 @@ class FunctionTypeTest with ElementsTypesMixin {
       parameters = isEmpty,
       typeFormals = isEmpty,
       typeArguments = isEmpty,
-      typeParameters = isEmpty,
-      name = isNull}) {
+      typeParameters = isEmpty}) {
     // DartType properties
     expect(
       f.getDisplayString(withNullability: false),
@@ -58,7 +57,6 @@ class FunctionTypeTest with ElementsTypesMixin {
       reason: 'displayName',
     );
     expect(f.element, element, reason: 'element');
-    expect(f.name, name, reason: 'name');
     // ParameterizedType properties
     expect(f.typeArguments, typeArguments, reason: 'typeArguments');
     // FunctionType properties

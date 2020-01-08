@@ -3939,14 +3939,17 @@ class TypeVariableEliminator extends Substitution {
 class UnknownInferredType extends TypeImpl {
   static final UnknownInferredType instance = UnknownInferredType._();
 
-  UnknownInferredType._()
-      : super(UnknownInferredTypeElement.instance, Keyword.DYNAMIC.lexeme);
+  UnknownInferredType._() : super(UnknownInferredTypeElement.instance);
 
   @override
   int get hashCode => 1;
 
   @override
   bool get isDynamic => true;
+
+  @Deprecated('Check element, or use getDisplayString()')
+  @override
+  String get name => Keyword.DYNAMIC.lexeme;
 
   @override
   NullabilitySuffix get nullabilitySuffix => NullabilitySuffix.star;

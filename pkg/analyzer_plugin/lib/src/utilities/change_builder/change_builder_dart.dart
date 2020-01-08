@@ -980,17 +980,16 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     }
     // use type
     if (expectedType != null && !expectedType.isDynamic) {
-      String typeName = expectedType.name;
-      if ('int' == typeName) {
+      if (expectedType.isDartCoreInt) {
         _addSingleCharacterName(excluded, res, $i);
-      } else if ('double' == typeName) {
+      } else if (expectedType.isDartCoreDouble) {
         _addSingleCharacterName(excluded, res, $d);
-      } else if ('String' == typeName) {
+      } else if (expectedType.isDartCoreString) {
         _addSingleCharacterName(excluded, res, $s);
-      } else {
-        _addAll(excluded, res, _getCamelWordCombinations(typeName));
+      } else if (expectedType is InterfaceType) {
+        var className = expectedType.element.name;
+        _addAll(excluded, res, _getCamelWordCombinations(className));
       }
-      res.remove(typeName);
     }
     // done
     return List.from(res);

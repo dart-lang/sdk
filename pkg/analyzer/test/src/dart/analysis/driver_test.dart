@@ -848,7 +848,7 @@ class D {
     var value = atDI.evaluationResult.value;
     expect(value, isNotNull);
     expect(value.type, isNotNull);
-    expect(value.type.name, 'D');
+    assertElementTypeString(value.type, 'D');
     expect(value.fields.keys, ['value']);
     expect(value.getField('value').toIntValue(), 1);
     expect(atDI.evaluationResult.errors, isEmpty);
@@ -2409,11 +2409,11 @@ var b = new B();
       UnitElementResult result = await driver.getUnitElement(c);
       var partUnit = result.element;
 
-      expect(partUnit.topLevelVariables[0].type.name, 'A');
-      expect(partUnit.topLevelVariables[1].type.name, 'B');
+      assertElementTypeString(partUnit.topLevelVariables[0].type, 'A');
+      assertElementTypeString(partUnit.topLevelVariables[1].type, 'B');
 
       var libraryUnit = partUnit.library.definingCompilationUnit;
-      expect(libraryUnit.topLevelVariables[0].type.name, 'C');
+      assertElementTypeString(libraryUnit.topLevelVariables[0].type, 'C');
     }
   }
 
@@ -2445,11 +2445,11 @@ var b = new B();
       UnitElementResult result = await driver.getUnitElement(c);
       var partUnit = result.element;
 
-      expect(partUnit.topLevelVariables[0].type.name, 'A');
-      expect(partUnit.topLevelVariables[1].type.name, 'B');
+      assertElementTypeString(partUnit.topLevelVariables[0].type, 'A');
+      assertElementTypeString(partUnit.topLevelVariables[1].type, 'B');
 
       var libraryUnit = partUnit.library.definingCompilationUnit;
-      expect(libraryUnit.topLevelVariables[0].type.name, 'C');
+      assertElementTypeString(libraryUnit.topLevelVariables[0].type, 'C');
     }
   }
 
@@ -2470,10 +2470,10 @@ var b = new B();
       var partUnit = result.element;
 
       expect(partUnit.topLevelVariables[0].name, 'a');
-      expect(partUnit.topLevelVariables[0].type.name, 'dynamic');
+      assertElementTypeString(partUnit.topLevelVariables[0].type, 'dynamic');
 
       expect(partUnit.topLevelVariables[1].name, 'b');
-      expect(partUnit.topLevelVariables[1].type.name, 'dynamic');
+      assertElementTypeString(partUnit.topLevelVariables[1].type, 'dynamic');
     }
   }
 

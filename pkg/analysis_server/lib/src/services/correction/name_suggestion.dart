@@ -63,17 +63,16 @@ List<String> getVariableNameSuggestionsForExpression(
   }
   // use type
   if (expectedType != null && !expectedType.isDynamic) {
-    String typeName = expectedType.name;
-    if ('int' == typeName) {
+    if (expectedType.isDartCoreInt) {
       _addSingleCharacterName(excluded, res, 0x69);
-    } else if ('double' == typeName) {
+    } else if (expectedType.isDartCoreDouble) {
       _addSingleCharacterName(excluded, res, 0x64);
-    } else if ('String' == typeName) {
+    } else if (expectedType.isDartCoreString) {
       _addSingleCharacterName(excluded, res, 0x73);
-    } else {
-      _addAll(excluded, res, getCamelWordCombinations(typeName));
+    } else if (expectedType is InterfaceType) {
+      var className = expectedType.element.name;
+      _addAll(excluded, res, getCamelWordCombinations(className));
     }
-    res.remove(typeName);
   }
   // done
   return List.from(res);

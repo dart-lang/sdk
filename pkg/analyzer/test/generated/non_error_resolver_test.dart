@@ -3061,14 +3061,14 @@ main() {}
       final bounded = value.getField('bounded');
       if (!unbounded.isNull) {
         expect(bounded.isNull, true);
-        expect(unbounded.type.name, 'Unbounded');
+        assertElementTypeString(unbounded.type, 'Unbounded<dynamic>');
         expect(unbounded.type.typeArguments, hasLength(1));
         expect(unbounded.type.typeArguments[0].isDynamic, isTrue);
       } else {
         expect(unbounded.isNull, true);
-        expect(bounded.type.name, 'Bounded');
+        assertElementTypeString(bounded.type, 'Bounded<String>');
         expect(bounded.type.typeArguments, hasLength(1));
-        expect(bounded.type.typeArguments[0].name, 'String');
+        assertElementTypeString(bounded.type.typeArguments[0], 'String');
       }
     });
   }

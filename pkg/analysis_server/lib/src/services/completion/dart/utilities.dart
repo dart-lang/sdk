@@ -143,9 +143,20 @@ DefaultArgument getDefaultStringParameterValue(ParameterElement param) {
   if (param != null) {
     DartType type = param.type;
     if (type is InterfaceType && type.isDartCoreList) {
-      DartType typeArg = type.typeArguments[0];
-      String typeInfo = !typeArg.isDynamic ? '<${typeArg.name}>' : '';
-      String text = '$typeInfo[]';
+      String getTypeArgumentsStr() {
+        var elementType = type.typeArguments.single;
+        if (elementType.isDynamic) {
+          return '';
+        } else {
+          var typeArgStr = elementType.getDisplayString(
+            withNullability: false,
+          );
+          return '<$typeArgStr>';
+        }
+      }
+
+      String typeArgumentStr = getTypeArgumentsStr();
+      String text = '$typeArgumentStr[]';
       return DefaultArgument(text, cursorPosition: text.length - 1);
     } else if (type is FunctionType) {
       String params = type.parameters
@@ -163,7 +174,13 @@ DefaultArgument getDefaultStringParameterValue(ParameterElement param) {
   return null;
 }
 
-String getTypeString(DartType type) => type.isDynamic ? '' : '${type.name} ';
+String getTypeString(DartType type) {
+  if (type.isDynamic) {
+    return '';
+  } else {
+    return type.getDisplayString(withNullability: false) + ' ';
+  }
+}
 
 /**
  * Return `true` if the @deprecated annotation is present on the given [node].

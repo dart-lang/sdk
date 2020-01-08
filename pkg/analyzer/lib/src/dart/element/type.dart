@@ -53,13 +53,17 @@ class DynamicTypeImpl extends TypeImpl {
   /**
    * Prevent the creation of instances of this class.
    */
-  DynamicTypeImpl._() : super(DynamicElementImpl(), Keyword.DYNAMIC.lexeme);
+  DynamicTypeImpl._() : super(DynamicElementImpl());
 
   @override
   int get hashCode => 1;
 
   @override
   bool get isDynamic => true;
+
+  @Deprecated('Check element, or use getDisplayString()')
+  @override
+  String get name => Keyword.DYNAMIC.lexeme;
 
   @override
   NullabilitySuffix get nullabilitySuffix => NullabilitySuffix.none;
@@ -133,7 +137,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         returnType = returnType,
         nullabilitySuffix = nullabilitySuffix,
         typeArguments = typeArguments ?? const <DartType>[],
-        super(element, null);
+        super(element);
 
   @deprecated
   FunctionTypeImpl.synthetic(
@@ -144,7 +148,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       : parameters = _sortNamedParameters(parameters),
         typeArguments = typeArguments ?? const <DartType>[],
         nullabilitySuffix = nullabilitySuffix,
-        super(element, null);
+        super(element);
 
   @deprecated
   @override
@@ -182,6 +186,10 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     }
     return code;
   }
+
+  @Deprecated('Check element, or use getDisplayString()')
+  @override
+  String get name => null;
 
   @override
   Map<String, DartType> get namedParameterTypes {
@@ -698,7 +706,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     @required ClassElement element,
     @required this.typeArguments,
     @required this.nullabilitySuffix,
-  }) : super(element, element.displayName);
+  }) : super(element);
 
   @override
   List<PropertyAccessorElement> get accessors {
@@ -892,6 +900,10 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     List<InterfaceType> mixins = element.mixins;
     return _instantiateSuperTypes(mixins);
   }
+
+  @Deprecated('Check element, or use getDisplayString()')
+  @override
+  String get name => element.name;
 
   @override
   InterfaceType get superclass {
@@ -1758,7 +1770,7 @@ class NeverTypeImpl extends TypeImpl {
   /**
    * Prevent the creation of instances of this class.
    */
-  NeverTypeImpl._(this.nullabilitySuffix) : super(NeverElementImpl(), 'Never');
+  NeverTypeImpl._(this.nullabilitySuffix) : super(NeverElementImpl());
 
   @override
   int get hashCode => 0;
@@ -1771,6 +1783,10 @@ class NeverTypeImpl extends TypeImpl {
     // `Never?` is equivalent to `Null`, so make sure it behaves the same.
     return nullabilitySuffix == NullabilitySuffix.question;
   }
+
+  @Deprecated('Check element, or use getDisplayString()')
+  @override
+  String get name => 'Never';
 
   @override
   bool operator ==(Object object) => identical(object, this);
@@ -1830,16 +1846,9 @@ abstract class TypeImpl implements DartType {
   final Element _element;
 
   /**
-   * The name of this type, or `null` if the type does not have a name.
+   * Initialize a newly created type to be declared by the given [element].
    */
-  @override
-  final String name;
-
-  /**
-   * Initialize a newly created type to be declared by the given [element] and
-   * to have the given [name].
-   */
-  TypeImpl(this._element, this.name);
+  TypeImpl(this._element);
 
   @deprecated
   @override
@@ -2025,7 +2034,7 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
    */
   TypeParameterTypeImpl(TypeParameterElement element,
       {this.nullabilitySuffix = NullabilitySuffix.star})
-      : super(element, element.name);
+      : super(element);
 
   @override
   DartType get bound => element.bound ?? DynamicTypeImpl.instance;
@@ -2038,6 +2047,10 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
 
   @override
   int get hashCode => element.hashCode;
+
+  @Deprecated('Check element, or use getDisplayString()')
+  @override
+  String get name => element.name;
 
   @override
   bool operator ==(Object other) {
@@ -2197,13 +2210,17 @@ class VoidTypeImpl extends TypeImpl implements VoidType {
   /**
    * Prevent the creation of instances of this class.
    */
-  VoidTypeImpl._() : super(null, Keyword.VOID.lexeme);
+  VoidTypeImpl._() : super(null);
 
   @override
   int get hashCode => 2;
 
   @override
   bool get isVoid => true;
+
+  @Deprecated('Check element, or use getDisplayString()')
+  @override
+  String get name => Keyword.VOID.lexeme;
 
   @override
   NullabilitySuffix get nullabilitySuffix => NullabilitySuffix.none;

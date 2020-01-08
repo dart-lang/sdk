@@ -111,6 +111,7 @@ abstract class DartType {
 
   /// Return the name of this type, or `null` if the type does not have a name,
   /// such as when the type represents the type of an unnamed function.
+  @Deprecated('Check element, or use getDisplayString()')
   String get name;
 
   /// Return the nullability suffix of this type.
