@@ -186,22 +186,19 @@ class DevCompilerTarget extends Target {
         arguments.positional.single
       ]);
     }
-    var ctorArgs = <Expression>[SymbolLiteral(name)];
-    bool isGeneric = arguments.types.isNotEmpty;
-    if (isGeneric) {
-      ctorArgs.add(
-          ListLiteral(arguments.types.map((t) => TypeLiteral(t)).toList()));
-    } else {
-      ctorArgs.add(NullLiteral());
-    }
-    ctorArgs.add(ListLiteral(arguments.positional));
-    if (arguments.named.isNotEmpty) {
-      ctorArgs.add(MapLiteral(
-          arguments.named
-              .map((n) => MapEntry(SymbolLiteral(n.name), n.value))
-              .toList(),
-          keyType: coreTypes.symbolLegacyRawType));
-    }
+    var ctorArgs = <Expression>[
+      SymbolLiteral(name),
+      if (arguments.types.isNotEmpty)
+        ListLiteral([for (var t in arguments.types) TypeLiteral(t)])
+      else
+        NullLiteral(),
+      ListLiteral(arguments.positional),
+      if (arguments.named.isNotEmpty)
+        MapLiteral([
+          for (var n in arguments.named)
+            MapEntry(SymbolLiteral(n.name), n.value)
+        ], keyType: coreTypes.symbolLegacyRawType),
+    ];
     return createInvocation('method', ctorArgs);
   }
 
