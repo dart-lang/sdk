@@ -67,9 +67,10 @@ void main(List<String> argv) {
 
   stdout.write(result.stdout);
   String errors = result.stderr as String;
-  var count = errors.trim().split('\n').length;
+  var count = errors.isEmpty ? 0 : errors.trim().split('\n').length;
   print('$count analyzer errors. Errors emitted to ${baseUri.path}errors.txt');
   File.fromUri(baseUri.resolve('errors.txt')).writeAsStringSync(errors);
+  exit(count == 0 ? 0 : 1);
 }
 
 final _parser = ArgParser()

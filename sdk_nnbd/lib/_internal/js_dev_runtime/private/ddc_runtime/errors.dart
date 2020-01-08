@@ -100,7 +100,7 @@ final _stackTrace = JS('', 'Symbol("_stackTrace")');
 /// the corresponding stack trace the same way we do for Dart throws. If the
 /// throw object was not an Error, then we don't have a JS trace, so we create
 /// one here.
-StackTrace stackTrace(Object error) {
+StackTrace stackTrace(Object? error) {
   if (JS<bool>('!', '!(# instanceof Error)', error)) {
     // We caught something that isn't a JS Error.
     //

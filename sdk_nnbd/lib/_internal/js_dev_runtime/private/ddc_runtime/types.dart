@@ -576,7 +576,7 @@ class FunctionType extends AbstractFunctionType {
   }
 
   /// Maps argument names to their canonicalized type.
-  Map<String, Object> _createNameMap(List<String> names) {
+  Map<String, Object> _createNameMap(List<Object?> names) {
     var result = <String, Object>{};
     // TODO: Remove this sort if ordering can be conserved.
     JS('', '#.sort()', names);
