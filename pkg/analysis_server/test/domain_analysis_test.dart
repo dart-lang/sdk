@@ -544,14 +544,14 @@ class AnalysisTestHelper with ResourceProviderMixin {
 class SetSubscriptionsTest extends AbstractAnalysisTest {
   Map<String, List<HighlightRegion>> filesHighlights = {};
 
-  Completer _resultsAvailable = Completer();
+  final Completer<void> _resultsAvailable = Completer();
 
   @override
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_HIGHLIGHTS) {
       var params = AnalysisHighlightsParams.fromNotification(notification);
       filesHighlights[params.file] = params.regions;
-      _resultsAvailable.complete(null);
+      _resultsAvailable.complete();
     }
   }
 

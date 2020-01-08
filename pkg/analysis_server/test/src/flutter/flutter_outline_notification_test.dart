@@ -27,7 +27,7 @@ class FlutterNotificationOutlineTest extends AbstractAnalysisTest {
 
   final Map<FlutterService, List<String>> flutterSubscriptions = {};
 
-  Completer _outlineReceived = Completer();
+  final Completer<void> _outlineReceived = Completer();
   FlutterOutline outline;
 
   FlutterDomainHandler get flutterHandler =>
@@ -58,7 +58,7 @@ class FlutterNotificationOutlineTest extends AbstractAnalysisTest {
       var params = FlutterOutlineParams.fromNotification(notification);
       if (params.file == testFile) {
         outline = params.outline;
-        _outlineReceived.complete(null);
+        _outlineReceived.complete();
       }
     }
   }

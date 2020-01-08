@@ -23,7 +23,7 @@ class AnalysisNotificationOverridesTest extends AbstractAnalysisTest {
   List<Override> overridesList;
   Override overrideObject;
 
-  Completer _resultsAvailable = Completer();
+  final Completer<void> _resultsAvailable = Completer();
 
   /**
    * Asserts that there is an overridden interface [OverriddenMember] at the
@@ -128,7 +128,7 @@ class AnalysisNotificationOverridesTest extends AbstractAnalysisTest {
       var params = AnalysisOverridesParams.fromNotification(notification);
       if (params.file == testFile) {
         overridesList = params.overrides;
-        _resultsAvailable.complete(null);
+        _resultsAvailable.complete();
       }
     }
   }

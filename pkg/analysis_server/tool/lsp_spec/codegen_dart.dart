@@ -715,7 +715,7 @@ void _writeTypeCheckCondition(IndentableStringBuffer buffer, String valueCode,
 
 class IndentableStringBuffer extends StringBuffer {
   int _indentLevel = 0;
-  int _indentSpaces = 2;
+  final int _indentSpaces = 2;
 
   int get totalIndent => _indentLevel * _indentSpaces;
   String get _indentString => ' ' * totalIndent;

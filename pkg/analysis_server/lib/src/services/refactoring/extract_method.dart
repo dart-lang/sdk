@@ -127,7 +127,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
   Expression _selectionExpression;
   FunctionExpression _selectionFunctionExpression;
   List<Statement> _selectionStatements;
-  List<_Occurrence> _occurrences = [];
+  final List<_Occurrence> _occurrences = [];
   bool _staticContext = false;
 
   ExtractMethodRefactoringImpl(this.searchEngine, this.resolveResult,

@@ -129,9 +129,9 @@ class _OverriddenElementsFinder {
   String _name;
   List<ElementKind> _kinds;
 
-  List<Element> _superElements = <Element>[];
-  List<Element> _interfaceElements = <Element>[];
-  Set<ClassElement> _visited = Set<ClassElement>();
+  final List<Element> _superElements = <Element>[];
+  final List<Element> _interfaceElements = <Element>[];
+  final Set<ClassElement> _visited = <ClassElement>{};
 
   _OverriddenElementsFinder(Element seed) {
     _seed = seed;

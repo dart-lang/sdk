@@ -72,7 +72,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
   /// The parameters for the new widget class - referenced fields of the
   /// [_enclosingClassElement], local variables referenced by [_expression],
   /// and [_method] parameters.
-  List<_Parameter> _parameters = [];
+  final List<_Parameter> _parameters = [];
 
   ExtractWidgetRefactoringImpl(
       this.searchEngine, this.resolveResult, this.offset, this.length)

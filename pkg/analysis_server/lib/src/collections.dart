@@ -15,16 +15,14 @@ List<E> nullIfEmpty<E>(List<E> list) {
   return list;
 }
 
-/**
- * A container that remembers the last `n` items added to it.
- *
- * It will never grow larger than [capacity]. It's a LIFO queue - the last item
- * added will be the first one returned from [items].
- */
+/// A container that remembers the last `n` items added to it.
+///
+/// It will never grow larger than [capacity]. It's a LIFO queue - the last item
+/// added will be the first one returned from [items].
 class RecentBuffer<T> {
   final int capacity;
 
-  List<T> _buffer = [];
+  final List<T> _buffer = [];
 
   RecentBuffer(this.capacity);
 

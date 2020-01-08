@@ -179,7 +179,7 @@ class AbstractNavigationTest extends AbstractAnalysisTest {
 
 @reflectiveTest
 class AnalysisNotificationNavigationTest extends AbstractNavigationTest {
-  Completer _resultsAvailable = Completer();
+  final Completer<void> _resultsAvailable = Completer();
 
   Future prepareNavigation() async {
     addAnalysisSubscription(AnalysisService.NAVIGATION, testFile);
@@ -195,7 +195,7 @@ class AnalysisNotificationNavigationTest extends AbstractNavigationTest {
         regions = params.regions;
         targets = params.targets;
         targetFiles = params.files;
-        _resultsAvailable.complete(null);
+        _resultsAvailable.complete();
       }
     }
   }

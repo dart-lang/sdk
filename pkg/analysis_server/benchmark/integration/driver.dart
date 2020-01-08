@@ -61,10 +61,8 @@ class Driver extends IntegrationTestMixin {
    */
   final Results results = Results();
 
-  /**
-   * The [Completer] for [runComplete].
-   */
-  Completer<Results> _runCompleter = Completer<Results>();
+  /// The [Completer] for [runComplete].
+  final Completer<Results> _runCompleter = Completer<Results>();
 
   Driver({this.diagnosticPort});
 

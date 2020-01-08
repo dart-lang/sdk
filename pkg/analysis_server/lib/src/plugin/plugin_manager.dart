@@ -336,10 +336,8 @@ class PluginManager {
    */
   final InstrumentationService instrumentationService;
 
-  /**
-   * A table mapping the paths of plugins to information about those plugins.
-   */
-  Map<String, PluginInfo> _pluginMap = <String, PluginInfo>{};
+  /// A table mapping the paths of plugins to information about those plugins.
+  final Map<String, PluginInfo> _pluginMap = <String, PluginInfo>{};
 
   /**
    * The parameters for the last 'analysis.setPriorityFiles' request that was
@@ -355,12 +353,10 @@ class PluginManager {
    */
   AnalysisSetSubscriptionsParams _analysisSetSubscriptionsParams;
 
-  /**
-   * The current state of content overlays. Because plugins are lazily
-   * discovered, the state needs to be retained so that it can be sent after a
-   * plugin has been started.
-   */
-  Map<String, dynamic> _overlayState = <String, dynamic>{};
+  /// The current state of content overlays. Because plugins are lazily
+  /// discovered, the state needs to be retained so that it can be sent after a
+  /// plugin has been started.
+  final Map<String, dynamic> _overlayState = <String, dynamic>{};
 
   /**
    * Initialize a newly created plugin manager. The notifications from the

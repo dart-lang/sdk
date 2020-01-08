@@ -185,11 +185,9 @@ class Server {
    */
   List<String> _analyzedFiles = <String>[];
 
-  /**
-   * A mapping from the absolute paths of files to the most recent set of errors
-   * received for that file.
-   */
-  ErrorMap _errorMap = ErrorMap();
+  /// A mapping from the absolute paths of files to the most recent set of
+  /// errors received for that file.
+  final ErrorMap _errorMap = ErrorMap();
 
   /**
    * The completer that will be completed the next time a 'server.status'

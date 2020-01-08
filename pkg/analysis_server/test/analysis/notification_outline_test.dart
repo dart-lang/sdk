@@ -25,7 +25,7 @@ class AnalysisNotificationOutlineTest extends AbstractAnalysisTest {
   String libraryName;
   Outline outline;
 
-  Completer _outlineReceived = Completer();
+  final Completer<void> _outlineReceived = Completer();
   Completer _highlightsReceived = Completer();
 
   Future prepareOutline() {
@@ -41,7 +41,7 @@ class AnalysisNotificationOutlineTest extends AbstractAnalysisTest {
         fileKind = params.kind;
         libraryName = params.libraryName;
         outline = params.outline;
-        _outlineReceived.complete(null);
+        _outlineReceived.complete();
       }
     }
     if (notification.event == ANALYSIS_NOTIFICATION_HIGHLIGHTS) {

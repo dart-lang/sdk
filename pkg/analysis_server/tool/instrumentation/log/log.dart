@@ -199,41 +199,30 @@ class InstrumentationLog {
    */
   Map<EntryGroup, List<LogEntry>> entryGroups = <EntryGroup, List<LogEntry>>{};
 
-  /**
-   * A table mapping entries that are paired with another entry to the entry
-   * with which they are paired.
-   */
-  Map<LogEntry, LogEntry> _pairedEntries = <LogEntry, LogEntry>{};
+  /// A table mapping entries that are paired with another entry to the entry
+  /// with which they are paired.
+  final Map<LogEntry, LogEntry> _pairedEntries = <LogEntry, LogEntry>{};
 
-  /**
-   * A table mapping the id's of requests to the entry representing the request.
-   */
-  Map<String, RequestEntry> _requestMap = <String, RequestEntry>{};
+  /// A table mapping the id's of requests to the entry representing the
+  /// request.
+  final Map<String, RequestEntry> _requestMap = <String, RequestEntry>{};
 
-  /**
-   * A table mapping the id's of plugin requests to the entry representing the
-   * request.
-   */
-  Map<String, PluginRequestEntry> _pluginRequestMap =
+  /// A table mapping the id's of plugin requests to the entry representing the
+  /// request.
+  final Map<String, PluginRequestEntry> _pluginRequestMap =
       <String, PluginRequestEntry>{};
 
-  /**
-   * A table mapping the id's of responses to the entry representing the
-   * response.
-   */
-  Map<String, ResponseEntry> _responseMap = <String, ResponseEntry>{};
+  /// A table mapping the id's of responses to the entry representing the
+  /// response.
+  final Map<String, ResponseEntry> _responseMap = <String, ResponseEntry>{};
 
-  /**
-   * A table mapping the id's of plugin responses to the entry representing the
-   * response.
-   */
-  Map<String, PluginResponseEntry> _pluginResponseMap =
+  /// A table mapping the id's of plugin responses to the entry representing the
+  /// response.
+  final Map<String, PluginResponseEntry> _pluginResponseMap =
       <String, PluginResponseEntry>{};
 
-  /**
-   * A table mapping the ids of completion events to the events with those ids.
-   */
-  Map<String, List<NotificationEntry>> _completionMap =
+  /// A table mapping the ids of completion events to the events with those ids.
+  final Map<String, List<NotificationEntry>> _completionMap =
       <String, List<NotificationEntry>>{};
 
   /**

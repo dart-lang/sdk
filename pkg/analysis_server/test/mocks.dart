@@ -239,7 +239,7 @@ class MockSource extends StringTypedMock implements Source {
 }
 
 class StringTypedMock {
-  String _toString;
+  final String _toString;
 
   StringTypedMock(this._toString);
 

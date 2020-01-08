@@ -1050,7 +1050,7 @@ class A {
 class HighlightsTestSupport extends AbstractAnalysisTest {
   List<HighlightRegion> regions;
 
-  Completer _resultsAvailable = Completer();
+  final Completer<void> _resultsAvailable = Completer();
 
   void assertHasRawRegion(HighlightRegionType type, int offset, int length) {
     for (HighlightRegion region in regions) {
@@ -1125,14 +1125,14 @@ class HighlightsTestSupport extends AbstractAnalysisTest {
   void processNotification(Notification notification) {
     if (notification.event == SERVER_NOTIFICATION_ERROR) {
       print('SERVER_NOTIFICATION_ERROR: ${notification.toJson()}');
-      _resultsAvailable.complete(null);
+      _resultsAvailable.complete();
       fail('SERVER_NOTIFICATION_ERROR');
     }
     if (notification.event == ANALYSIS_NOTIFICATION_HIGHLIGHTS) {
       var params = AnalysisHighlightsParams.fromNotification(notification);
       if (params.file == testFile) {
         regions = params.regions;
-        _resultsAvailable.complete(null);
+        _resultsAvailable.complete();
       }
     }
   }
