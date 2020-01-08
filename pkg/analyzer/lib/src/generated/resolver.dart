@@ -28,6 +28,7 @@ import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/method_invocation_resolver.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
+import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/dart/resolver/typed_literal_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/nullable_dereference_verifier.dart';
@@ -198,6 +199,9 @@ class ResolverVisitor extends ScopedVisitor {
   /// Helper for extension method resolution.
   ExtensionMemberResolver extensionResolver;
 
+  /// Helper for resolving properties on types.
+  TypePropertyResolver typePropertyResolver;
+
   /// Helper for resolving [ListLiteral] and [SetOrMapLiteral].
   TypedLiteralResolver _typedLiteralResolver;
 
@@ -318,6 +322,7 @@ class ResolverVisitor extends ScopedVisitor {
     );
     this._typedLiteralResolver = TypedLiteralResolver(this, _featureSet);
     this.extensionResolver = ExtensionMemberResolver(this);
+    this.typePropertyResolver = TypePropertyResolver(this);
     this.inferenceHelper = InvocationInferenceHelper(
       definingLibrary: definingLibrary,
       elementTypeProvider: _elementTypeProvider,
