@@ -17,6 +17,12 @@ import 'package:http/http.dart' as http;
 
 const numAttempts = 20;
 
+bool booleanFieldOrFalse(Map<String, dynamic> document, String field) {
+  Map<String, dynamic> fieldObject = document['fields'][field];
+  if (fieldObject == null) return false;
+  return fieldObject['booleanValue'] ?? false;
+}
+
 void usage(ArgParser parser) {
   print('''
 Usage: get_builder_status.dart [OPTIONS]
@@ -93,13 +99,9 @@ main(List<String> args) async {
       final documents = jsonDecode(response.body);
       final document = documents.first['document'];
       if (document != null) {
-        bool success =
-            (document['fields']['success'] ?? const {})['booleanValue'];
-        bool completed =
-            (document['fields']['completed'] ?? const {})['booleanValue'];
-        bool activeFailures =
-            (document['fields']['active_failures'] ?? const {})['booleanValue'];
-
+        bool success = booleanFieldOrFalse(document, 'success');
+        bool completed = booleanFieldOrFalse(document, 'completed');
+        bool activeFailures = booleanFieldOrFalse(document, 'active_failures');
         if (completed) {
           if (success) {
             print('No unapproved new failures');
