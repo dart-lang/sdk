@@ -5918,17 +5918,17 @@ class SubtypeTest extends _SubtypingTestBase {
     for (var typeParameter in typeParameterCollector.typeParameters) {
       if (typeParameter is TypeParameterMember) {
         var base = typeParameter.declaration;
-        var baseBound = base.bound as TypeImpl;
+        var baseBound = base.bound;
         if (baseBound != null) {
           var baseBoundStr = _typeStr(baseBound);
           typeStr += ', ${typeParameter.name} extends ' + baseBoundStr;
         }
 
-        var bound = typeParameter.bound as TypeImpl;
+        var bound = typeParameter.bound;
         var boundStr = _typeStr(bound);
         typeStr += ', ${typeParameter.name} & ' + boundStr;
       } else {
-        var bound = typeParameter.bound as TypeImpl;
+        var bound = typeParameter.bound;
         if (bound != null) {
           var boundStr = _typeStr(bound);
           typeStr += ', ${typeParameter.name} extends ' + boundStr;

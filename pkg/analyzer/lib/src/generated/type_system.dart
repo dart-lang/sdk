@@ -27,15 +27,13 @@ import 'package:analyzer/src/generated/utilities_dart.dart' show ParameterKind;
 import 'package:meta/meta.dart';
 
 bool _isBottom(DartType t) {
-  return (t.isBottom &&
-          (t as TypeImpl).nullabilitySuffix != NullabilitySuffix.question) ||
+  return (t.isBottom && t.nullabilitySuffix != NullabilitySuffix.question) ||
       identical(t, UnknownInferredType.instance);
 }
 
 /// Is [t] the bottom of the legacy type hierarchy.
 bool _isLegacyBottom(DartType t, {@required bool orTrueBottom}) {
-  return (t.isBottom &&
-          (t as TypeImpl).nullabilitySuffix == NullabilitySuffix.question) ||
+  return (t.isBottom && t.nullabilitySuffix == NullabilitySuffix.question) ||
       t.isDartCoreNull ||
       (orTrueBottom ? _isBottom(t) : false);
 }
@@ -46,8 +44,7 @@ bool _isLegacyTop(DartType t, {@required bool orTrueTop}) {
     return _isLegacyTop((t as InterfaceType).typeArguments[0],
         orTrueTop: orTrueTop);
   }
-  if (t.isObject &&
-      (t as TypeImpl).nullabilitySuffix == NullabilitySuffix.none) {
+  if (t.isObject && t.nullabilitySuffix == NullabilitySuffix.none) {
     return true;
   }
   return orTrueTop ? _isTop(t) : false;
@@ -58,8 +55,7 @@ bool _isTop(DartType t) {
     return _isTop((t as InterfaceType).typeArguments[0]);
   }
   return t.isDynamic ||
-      (t.isObject &&
-          (t as TypeImpl).nullabilitySuffix != NullabilitySuffix.none) ||
+      (t.isObject && t.nullabilitySuffix != NullabilitySuffix.none) ||
       t.isVoid ||
       identical(t, UnknownInferredType.instance);
 }
@@ -2343,7 +2339,7 @@ class GenericInferrer {
       typeFormals: const [],
       parameters: fnType.parameters,
       returnType: fnType.returnType,
-      nullabilitySuffix: (fnType as TypeImpl).nullabilitySuffix,
+      nullabilitySuffix: fnType.nullabilitySuffix,
     );
     tryMatchSubtypeOf(inferFnType, contextType, origin, covariant: true);
   }
@@ -3607,8 +3603,7 @@ abstract class TypeSystem implements public.TypeSystem {
   bool isNonNullable(DartType type) {
     if (type.isDynamic || type.isVoid || type.isDartCoreNull) {
       return false;
-    } else if ((type as TypeImpl).nullabilitySuffix ==
-        NullabilitySuffix.question) {
+    } else if (type.nullabilitySuffix == NullabilitySuffix.question) {
       return false;
     } else if (type.isDartAsyncFutureOr) {
       return isNonNullable((type as InterfaceType).typeArguments[0]);
@@ -3622,8 +3617,7 @@ abstract class TypeSystem implements public.TypeSystem {
   bool isNullable(DartType type) {
     if (type.isDynamic || type.isVoid || type.isDartCoreNull) {
       return true;
-    } else if ((type as TypeImpl).nullabilitySuffix ==
-        NullabilitySuffix.question) {
+    } else if (type.nullabilitySuffix == NullabilitySuffix.question) {
       return true;
     } else if (type.isDartAsyncFutureOr) {
       return isNullable((type as InterfaceType).typeArguments[0]);
@@ -3777,7 +3771,7 @@ abstract class TypeSystem implements public.TypeSystem {
         operator == TokenType.EQ_EQ ||
         operator == TokenType.BANG_EQ) {
       if (isNonNullableByDefault) {
-        return promoteToNonNull(typeProvider.boolType as TypeImpl);
+        return promoteToNonNull(typeProvider.boolType);
       }
       return typeProvider.boolType;
     }
@@ -3828,7 +3822,7 @@ abstract class TypeSystem implements public.TypeSystem {
     if (type is TypeParameterTypeImpl) {
       var element = type.element;
 
-      var bound = element.bound as TypeImpl;
+      var bound = element.bound;
       if (bound == null) {
         return typeProvider.objectType;
       }

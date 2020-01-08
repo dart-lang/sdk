@@ -1653,10 +1653,8 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
 
     NullabilitySuffix computeNullability() {
-      NullabilitySuffix first =
-          (firstType as InterfaceTypeImpl).nullabilitySuffix;
-      NullabilitySuffix second =
-          (secondType as InterfaceTypeImpl).nullabilitySuffix;
+      NullabilitySuffix first = firstType.nullabilitySuffix;
+      NullabilitySuffix second = secondType.nullabilitySuffix;
       if (first == NullabilitySuffix.question ||
           second == NullabilitySuffix.question) {
         return NullabilitySuffix.question;
@@ -2014,8 +2012,7 @@ abstract class TypeImpl implements DartType {
     }
     List<DartType> newTypes = List<DartType>(length);
     for (int i = 0; i < length; i++) {
-      newTypes[i] =
-          (types[i] as TypeImpl).substitute2(argumentTypes, parameterTypes);
+      newTypes[i] = types[i].substitute2(argumentTypes, parameterTypes);
     }
     return newTypes;
   }
@@ -2100,12 +2097,10 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
 
     NullabilitySuffix newNullabilitySuffix;
     if (nullabilitySuffix == NullabilitySuffix.question ||
-        (element.bound as TypeImpl).nullabilitySuffix ==
-            NullabilitySuffix.question) {
+        element.bound.nullabilitySuffix == NullabilitySuffix.question) {
       newNullabilitySuffix = NullabilitySuffix.question;
     } else if (nullabilitySuffix == NullabilitySuffix.star ||
-        (element.bound as TypeImpl).nullabilitySuffix ==
-            NullabilitySuffix.star) {
+        element.bound.nullabilitySuffix == NullabilitySuffix.star) {
       newNullabilitySuffix = NullabilitySuffix.star;
     } else {
       newNullabilitySuffix = NullabilitySuffix.none;

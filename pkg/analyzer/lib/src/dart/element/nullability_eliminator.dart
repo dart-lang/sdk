@@ -159,8 +159,7 @@ class NullabilityEliminator extends DartTypeVisitor<DartType> {
   }
 
   void _incrementCounterIfNotLegacy(DartType type) {
-    var typeImpl = type as TypeImpl;
-    if (typeImpl.nullabilitySuffix != NullabilitySuffix.star) {
+    if (type.nullabilitySuffix != NullabilitySuffix.star) {
       _counter++;
     }
   }

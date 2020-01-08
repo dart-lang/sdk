@@ -30,7 +30,7 @@ class AlreadyMigratedCodeDecorator {
       return DecoratedType(type, node);
     }
     NullabilityNode node;
-    var nullabilitySuffix = (type as TypeImpl).nullabilitySuffix;
+    var nullabilitySuffix = type.nullabilitySuffix;
     if (nullabilitySuffix == NullabilitySuffix.question) {
       node = NullabilityNode.forAlreadyMigrated();
       _graph.makeNullable(node, AlreadyMigratedTypeOrigin.forElement(element));

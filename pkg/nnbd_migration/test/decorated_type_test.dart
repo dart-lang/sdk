@@ -43,7 +43,7 @@ class DecoratedTypeTest extends Object
     // Note: by default DartType.toString doesn't print nullability suffixes,
     // so we have to override that behavior in order to make sure the
     // nullability suffixes are correct.
-    expect((type as TypeImpl).toString(withNullability: true), expected);
+    expect(type.getDisplayString(withNullability: true), expected);
   }
 
   void setUp() {

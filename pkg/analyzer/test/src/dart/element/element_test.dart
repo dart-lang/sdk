@@ -2315,8 +2315,7 @@ class TypeParameterTypeImplTest extends AbstractTypeTest {
   void test_resolveToBound_bound_nullableInner() {
     ClassElementImpl classS = class_(name: 'A');
     TypeParameterElementImpl element = TypeParameterElementImpl('E', -1);
-    element.bound = (interfaceTypeStar(classS) as TypeImpl)
-        .withNullability(NullabilitySuffix.question);
+    element.bound = (interfaceTypeQuestion(classS));
     TypeParameterTypeImpl type = TypeParameterTypeImpl(element);
     expect(type.resolveToBound(null), same(element.bound));
   }
@@ -2324,8 +2323,7 @@ class TypeParameterTypeImplTest extends AbstractTypeTest {
   void test_resolveToBound_bound_nullableInnerOuter() {
     ClassElementImpl classS = class_(name: 'A');
     TypeParameterElementImpl element = TypeParameterElementImpl('E', -1);
-    element.bound = (interfaceTypeStar(classS) as TypeImpl)
-        .withNullability(NullabilitySuffix.question);
+    element.bound = interfaceTypeQuestion(classS);
     TypeParameterTypeImpl type = TypeParameterTypeImpl(element)
         .withNullability(NullabilitySuffix.question);
     expect(type.resolveToBound(null), same(element.bound));
@@ -2334,14 +2332,10 @@ class TypeParameterTypeImplTest extends AbstractTypeTest {
   void test_resolveToBound_bound_nullableInnerStarOuter() {
     ClassElementImpl classS = class_(name: 'A');
     TypeParameterElementImpl element = TypeParameterElementImpl('E', -1);
-    element.bound = (interfaceTypeStar(classS) as TypeImpl)
-        .withNullability(NullabilitySuffix.star);
+    element.bound = interfaceTypeQuestion(classS);
     TypeParameterTypeImpl type = TypeParameterTypeImpl(element)
         .withNullability(NullabilitySuffix.question);
-    expect(
-        type.resolveToBound(null),
-        equals((interfaceTypeStar(classS) as TypeImpl)
-            .withNullability(NullabilitySuffix.question)));
+    expect(type.resolveToBound(null), equals(interfaceTypeQuestion(classS)));
   }
 
   void test_resolveToBound_bound_nullableOuter() {
@@ -2350,17 +2344,13 @@ class TypeParameterTypeImplTest extends AbstractTypeTest {
     element.bound = interfaceTypeStar(classS);
     TypeParameterTypeImpl type = TypeParameterTypeImpl(element)
         .withNullability(NullabilitySuffix.question);
-    expect(
-        type.resolveToBound(null),
-        equals((interfaceTypeStar(classS) as TypeImpl)
-            .withNullability(NullabilitySuffix.question)));
+    expect(type.resolveToBound(null), equals(interfaceTypeQuestion(classS)));
   }
 
   void test_resolveToBound_bound_starInner() {
     ClassElementImpl classS = class_(name: 'A');
     TypeParameterElementImpl element = TypeParameterElementImpl('E', -1);
-    element.bound = (interfaceTypeStar(classS) as TypeImpl)
-        .withNullability(NullabilitySuffix.star);
+    element.bound = interfaceTypeStar(classS);
     TypeParameterTypeImpl type = TypeParameterTypeImpl(element);
     expect(type.resolveToBound(null), same(element.bound));
   }
@@ -2368,8 +2358,7 @@ class TypeParameterTypeImplTest extends AbstractTypeTest {
   void test_resolveToBound_bound_starInnerNullableOuter() {
     ClassElementImpl classS = class_(name: 'A');
     TypeParameterElementImpl element = TypeParameterElementImpl('E', -1);
-    element.bound = (interfaceTypeStar(classS) as TypeImpl)
-        .withNullability(NullabilitySuffix.question);
+    element.bound = interfaceTypeQuestion(classS);
     TypeParameterTypeImpl type =
         TypeParameterTypeImpl(element).withNullability(NullabilitySuffix.star);
     expect(type.resolveToBound(null), same(element.bound));
@@ -2381,10 +2370,7 @@ class TypeParameterTypeImplTest extends AbstractTypeTest {
     element.bound = interfaceTypeStar(classS);
     TypeParameterTypeImpl type =
         TypeParameterTypeImpl(element).withNullability(NullabilitySuffix.star);
-    expect(
-        type.resolveToBound(null),
-        (interfaceTypeStar(classS) as TypeImpl)
-            .withNullability(NullabilitySuffix.star));
+    expect(type.resolveToBound(null), interfaceTypeStar(classS));
   }
 
   void test_resolveToBound_nestedBound() {

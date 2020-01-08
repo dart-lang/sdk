@@ -6,7 +6,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
 import 'package:nnbd_migration/src/fix_aggregator.dart';
@@ -2215,10 +2214,10 @@ void _f(bool/*?*/ x, bool/*?*/ y) {
     if (expectedReadType == null) {
       expect(targetInfo.readType, null);
     } else {
-      expect((targetInfo.readType as TypeImpl).toString(withNullability: true),
+      expect(targetInfo.readType.getDisplayString(withNullability: true),
           expectedReadType);
     }
-    expect((targetInfo.writeType as TypeImpl).toString(withNullability: true),
+    expect(targetInfo.writeType.getDisplayString(withNullability: true),
         expectedWriteType);
     expect(scopedChanges(fixBuilder, node), changes);
     expect(scopedProblems(fixBuilder, node), problems);
@@ -2239,7 +2238,7 @@ void _f(bool/*?*/ x, bool/*?*/ y) {
     var fixBuilder = _createFixBuilder(node);
     fixBuilder.visitAll(node.thisOrAncestorOfType<CompilationUnit>());
     var type = node.staticType;
-    expect((type as TypeImpl).toString(withNullability: true), expectedType);
+    expect(type.getDisplayString(withNullability: true), expectedType);
     expect(scopedChanges(fixBuilder, node), changes);
     expect(scopedProblems(fixBuilder, node), problems);
   }
@@ -2250,7 +2249,7 @@ void _f(bool/*?*/ x, bool/*?*/ y) {
     var fixBuilder = _createFixBuilder(node);
     fixBuilder.visitAll(node.thisOrAncestorOfType<CompilationUnit>());
     var type = node.type;
-    expect((type as TypeImpl).toString(withNullability: true), expectedType);
+    expect(type.getDisplayString(withNullability: true), expectedType);
     expect(scopedChanges(fixBuilder, node), changes);
     expect(scopedProblems(fixBuilder, node), problems);
   }

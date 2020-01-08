@@ -127,7 +127,7 @@ class FreshTypeParameters {
         );
       }).toList(),
       returnType: substitute(type.returnType),
-      nullabilitySuffix: (type as TypeImpl).nullabilitySuffix,
+      nullabilitySuffix: type.nullabilitySuffix,
     );
   }
 
@@ -442,7 +442,7 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
       typeFormals: typeFormals,
       parameters: parameters,
       returnType: returnType,
-      nullabilitySuffix: (type as TypeImpl).nullabilitySuffix,
+      nullabilitySuffix: type.nullabilitySuffix,
       element: type.element,
       typeArguments: typeArguments,
     );
@@ -507,7 +507,7 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
     return InterfaceTypeImpl(
       element: type.element,
       typeArguments: typeArguments,
-      nullabilitySuffix: (type as TypeImpl).nullabilitySuffix,
+      nullabilitySuffix: type.nullabilitySuffix,
     );
   }
 
@@ -541,8 +541,8 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
       return type;
     }
 
-    var parameterSuffix = (type as TypeImpl).nullabilitySuffix;
-    var argumentSuffix = (argument as TypeImpl).nullabilitySuffix;
+    var parameterSuffix = type.nullabilitySuffix;
+    var argumentSuffix = argument.nullabilitySuffix;
     var nullability = _computeNullability(parameterSuffix, argumentSuffix);
     return (argument as TypeImpl).withNullability(nullability);
   }

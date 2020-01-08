@@ -271,7 +271,7 @@ class NormalizeTypeTest with ElementsTypesMixin {
   }
 
   void _assertNullability(DartType type, NullabilitySuffix expected) {
-    if ((type as TypeImpl).nullabilitySuffix != expected) {
+    if (type.nullabilitySuffix != expected) {
       fail('Expected $expected in ' + _typeString(type));
     }
   }
@@ -303,17 +303,17 @@ actual: $resultStr
     for (var typeParameter in typeParameterCollector.typeParameters) {
       if (typeParameter is TypeParameterMember) {
         var base = typeParameter.declaration;
-        var baseBound = base.bound as TypeImpl;
+        var baseBound = base.bound;
         if (baseBound != null) {
           var baseBoundStr = baseBound.getDisplayString(withNullability: true);
           typeStr += ', ${typeParameter.name} extends ' + baseBoundStr;
         }
 
-        var bound = typeParameter.bound as TypeImpl;
+        var bound = typeParameter.bound;
         var boundStr = bound.getDisplayString(withNullability: true);
         typeStr += ', ${typeParameter.name} & ' + boundStr;
       } else {
-        var bound = typeParameter.bound as TypeImpl;
+        var bound = typeParameter.bound;
         if (bound != null) {
           var boundStr = bound.getDisplayString(withNullability: true);
           typeStr += ', ${typeParameter.name} extends ' + boundStr;
