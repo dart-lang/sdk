@@ -249,10 +249,8 @@ class KernelFrontendStrategy extends FrontendStrategy {
   @override
   void registerLoadedLibraries(KernelResult kernelResult) {
     _elementMap.addComponent(kernelResult.component);
-    if (_options.useCFEConstants) {
-      _irAnnotationData = processAnnotations(new ModularCore(
-          kernelResult.component, _elementMap.constantEvaluator));
-    }
+    _irAnnotationData = processAnnotations(
+        new ModularCore(kernelResult.component, _elementMap.constantEvaluator));
     _annotationProcessor = new KernelAnnotationProcessor(
         elementMap, nativeBasicDataBuilder, _irAnnotationData);
     for (Uri uri in kernelResult.libraries) {
@@ -435,12 +433,7 @@ class KernelModularStrategy extends ModularStrategy {
 
   @override
   List<PragmaAnnotationData> getPragmaAnnotationData(ir.Member node) {
-    if (_elementMap.options.useCFEConstants) {
-      return computePragmaAnnotationDataFromIr(node);
-    } else {
-      return computePragmaAnnotationData(_elementMap.commonElements,
-          _elementMap.elementEnvironment, _elementMap.getMember(node));
-    }
+    return computePragmaAnnotationDataFromIr(node);
   }
 
   @override

@@ -2045,12 +2045,9 @@ class KernelNativeMemberResolver implements NativeMemberResolver {
   KernelNativeMemberResolver(
       this._elementMap, this._nativeBasicData, this._nativeDataBuilder);
 
-  KElementEnvironment get _elementEnvironment => _elementMap.elementEnvironment;
-
-  CommonElements get _commonElements => _elementMap.commonElements;
-
   @override
   void resolveNativeMember(ir.Member node, IrAnnotationData annotationData) {
+    assert(annotationData != null);
     bool isJsInterop = _isJsInteropMember(node);
     if (node is ir.Procedure || node is ir.Constructor) {
       FunctionEntity method = _elementMap.getMember(node);
@@ -2081,6 +2078,7 @@ class KernelNativeMemberResolver implements NativeMemberResolver {
   /// attributes. Returns `true` of [method] is native.
   bool _processFieldAnnotations(
       ir.Field node, IrAnnotationData annotationData) {
+    assert(annotationData != null);
     if (node.isInstanceMember &&
         _nativeBasicData
             .isNativeClass(_elementMap.getClass(node.enclosingClass))) {
@@ -2106,6 +2104,7 @@ class KernelNativeMemberResolver implements NativeMemberResolver {
   /// attributes. Returns `true` of [method] is native.
   bool _processMethodAnnotations(
       ir.Member node, IrAnnotationData annotationData) {
+    assert(annotationData != null);
     if (_isNativeMethod(node, annotationData)) {
       if (node.enclosingClass != null && !node.isInstanceMember) {
         if (!_nativeBasicData
@@ -2166,24 +2165,8 @@ class KernelNativeMemberResolver implements NativeMemberResolver {
   /// present.
   String _findJsNameFromAnnotation(
       ir.Member node, IrAnnotationData annotationData) {
-    String jsName;
-    if (annotationData != null) {
-      jsName = annotationData.getNativeMemberName(node);
-    } else {
-      SourceSpan sourceSpan = computeSourceSpanFromTreeNode(node);
-      for (ConstantValue value in _elementEnvironment
-          .getMemberMetadata(_elementMap.getMember(node))) {
-        String name = readAnnotationName(
-            sourceSpan, value, _commonElements.annotationJSNameClass);
-        if (jsName == null) {
-          jsName = name;
-        } else if (name != null) {
-          failedAt(
-              sourceSpan, 'Too many JSName annotations: ${value.toDartText()}');
-        }
-      }
-    }
-    return jsName;
+    assert(annotationData != null);
+    return annotationData.getNativeMemberName(node);
   }
 
   NativeBehavior _computeNativeFieldStoreBehavior(covariant KField field) {
@@ -2194,20 +2177,12 @@ class KernelNativeMemberResolver implements NativeMemberResolver {
   NativeBehavior _computeNativeFieldLoadBehavior(
       KField field, IrAnnotationData annotationData,
       {bool isJsInterop}) {
+    assert(annotationData != null);
     ir.Field node = _elementMap.getMemberNode(field);
-    Iterable<String> createsAnnotations;
-    Iterable<String> returnsAnnotations;
-    if (annotationData != null) {
-      createsAnnotations = annotationData.getCreatesAnnotations(node);
-      returnsAnnotations = annotationData.getReturnsAnnotations(node);
-    } else {
-      List<ConstantValue> metadata =
-          _elementEnvironment.getMemberMetadata(field);
-      createsAnnotations = getCreatesAnnotations(
-          _elementMap.reporter, _elementMap.commonElements, metadata);
-      returnsAnnotations = getReturnsAnnotations(
-          _elementMap.reporter, _elementMap.commonElements, metadata);
-    }
+    Iterable<String> createsAnnotations =
+        annotationData.getCreatesAnnotations(node);
+    Iterable<String> returnsAnnotations =
+        annotationData.getReturnsAnnotations(node);
     return _elementMap.getNativeBehaviorForFieldLoad(
         node, createsAnnotations, returnsAnnotations,
         isJsInterop: isJsInterop);
@@ -2216,37 +2191,21 @@ class KernelNativeMemberResolver implements NativeMemberResolver {
   NativeBehavior _computeNativeMethodBehavior(
       KFunction function, IrAnnotationData annotationData,
       {bool isJsInterop}) {
+    assert(annotationData != null);
     ir.Member node = _elementMap.getMemberNode(function);
-    Iterable<String> createsAnnotations;
-    Iterable<String> returnsAnnotations;
-    if (annotationData != null) {
-      createsAnnotations = annotationData.getCreatesAnnotations(node);
-      returnsAnnotations = annotationData.getReturnsAnnotations(node);
-    } else {
-      List<ConstantValue> metadata =
-          _elementEnvironment.getMemberMetadata(function);
-      createsAnnotations = getCreatesAnnotations(
-          _elementMap.reporter, _elementMap.commonElements, metadata);
-      returnsAnnotations = getReturnsAnnotations(
-          _elementMap.reporter, _elementMap.commonElements, metadata);
-    }
+    Iterable<String> createsAnnotations =
+        annotationData.getCreatesAnnotations(node);
+    Iterable<String> returnsAnnotations =
+        annotationData.getReturnsAnnotations(node);
     return _elementMap.getNativeBehaviorForMethod(
         node, createsAnnotations, returnsAnnotations,
         isJsInterop: isJsInterop);
   }
 
   bool _isNativeMethod(ir.Member node, IrAnnotationData annotationData) {
+    assert(annotationData != null);
     if (!maybeEnableNative(node.enclosingLibrary.importUri)) return false;
-    bool hasNativeBody;
-    if (annotationData != null) {
-      hasNativeBody = annotationData.hasNativeBody(node);
-    } else {
-      hasNativeBody = node.annotations.any((ir.Expression expression) {
-        return expression is ir.ConstructorInvocation &&
-            _elementMap.getInterfaceType(expression.constructedType) ==
-                _commonElements.externalNameType;
-      });
-    }
+    bool hasNativeBody = annotationData.hasNativeBody(node);
     if (!hasNativeBody &&
         node.isExternal &&
         !_nativeBasicData.isJsInteropMember(_elementMap.getMember(node))) {
