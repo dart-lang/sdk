@@ -419,7 +419,8 @@ Future<void> checkTests<T>(Directory dataDir, DataComputer<T> dataComputer,
       {bool testAfterFailures,
       bool verbose,
       bool succinct,
-      bool printCode}) async {
+      bool printCode,
+      Map<String, List<String>> skipMap}) async {
     String name = testData.name;
     List<String> testOptions = options.toList();
     if (name.endsWith('_ea.dart')) {
@@ -433,6 +434,9 @@ Future<void> checkTests<T>(Directory dataDir, DataComputer<T> dataComputer,
       print('--skipped ------------------------------------------------------');
     } else {
       for (TestConfig testConfiguration in testedConfigs) {
+        if (skipForConfig(testData.name, testConfiguration.marker, skipMap)) {
+          continue;
+        }
         print('--from (${testConfiguration.name})-------------');
         results[testConfiguration.marker] = await runTestForConfiguration(
             testConfiguration, dataComputer, testData, testOptions,

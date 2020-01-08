@@ -183,13 +183,18 @@ RunTestFunction<T> runTestFor<T>(
     DataComputer<T> dataComputer, List<TestConfig> testedConfigs) {
   retainDataForTesting = true;
   return (TestData testData,
-      {bool testAfterFailures, bool verbose, bool succinct, bool printCode}) {
+      {bool testAfterFailures,
+      bool verbose,
+      bool succinct,
+      bool printCode,
+      Map<String, List<String>> skipMap}) {
     return runTest(testData, dataComputer, testedConfigs,
         testAfterFailures: testAfterFailures,
         verbose: verbose,
         succinct: succinct,
         printCode: printCode,
-        onFailure: onFailure);
+        onFailure: onFailure,
+        skipMap: skipMap);
   };
 }
 
@@ -204,9 +209,13 @@ Future<Map<String, TestResult<T>>> runTest<T>(TestData testData,
     bool printCode,
     bool forUserLibrariesOnly: true,
     Iterable<Id> globalIds: const <Id>[],
-    void onFailure(String message)}) async {
+    void onFailure(String message),
+    Map<String, List<String>> skipMap}) async {
   Map<String, TestResult<T>> results = {};
   for (TestConfig config in testedConfigs) {
+    if (skipForConfig(testData.name, config.name, skipMap)) {
+      continue;
+    }
     results[config.marker] = await runTestForConfig(
         testData, dataComputer, config,
         fatalErrors: !testAfterFailures,

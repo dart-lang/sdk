@@ -79,9 +79,13 @@ Future<Map<String, TestResult<T>>> runTest<T>(TestData testData,
     {bool testAfterFailures,
     bool forUserLibrariesOnly = true,
     Iterable<Id> globalIds = const <Id>[],
-    void Function(String message) onFailure}) async {
+    void Function(String message) onFailure,
+    Map<String, List<String>> skipMap}) async {
   Map<String, TestResult<T>> results = {};
   for (TestConfig config in testedConfigs) {
+    if (skipForConfig(testData.name, config.name, skipMap)) {
+      continue;
+    }
     results[config.marker] = await runTestForConfig(
         testData, dataComputer, config,
         fatalErrors: !testAfterFailures, onFailure: onFailure);
@@ -93,9 +97,15 @@ Future<Map<String, TestResult<T>>> runTest<T>(TestData testData,
 RunTestFunction<T> runTestFor<T>(
     DataComputer<T> dataComputer, List<TestConfig> testedConfigs) {
   return (TestData testData,
-      {bool testAfterFailures, bool verbose, bool succinct, bool printCode}) {
+      {bool testAfterFailures,
+      bool verbose,
+      bool succinct,
+      bool printCode,
+      Map<String, List<String>> skipMap}) {
     return runTest(testData, dataComputer, testedConfigs,
-        testAfterFailures: testAfterFailures, onFailure: onFailure);
+        testAfterFailures: testAfterFailures,
+        onFailure: onFailure,
+        skipMap: skipMap);
   };
 }
 
@@ -104,7 +114,9 @@ RunTestFunction<T> runTestFor<T>(
 /// Returns `true` if an error was encountered.
 Future<TestResult<T>> runTestForConfig<T>(
     TestData testData, DataComputer<T> dataComputer, TestConfig config,
-    {bool fatalErrors, void Function(String message) onFailure}) async {
+    {bool fatalErrors,
+    void Function(String message) onFailure,
+    Map<String, List<String>> skipMap}) async {
   MemberAnnotations<IdValue> memberAnnotations =
       testData.expectedMaps[config.marker];
   var resourceProvider = MemoryResourceProvider();

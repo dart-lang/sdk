@@ -632,7 +632,11 @@ Future<TestResult<T>> checkCode<T>(
 }
 
 typedef Future<Map<String, TestResult<T>>> RunTestFunction<T>(TestData testData,
-    {bool testAfterFailures, bool verbose, bool succinct, bool printCode});
+    {bool testAfterFailures,
+    bool verbose,
+    bool succinct,
+    bool printCode,
+    Map<String, List<String>> skipMap});
 
 /// Check code for all tests in [dataDir] using [runTest].
 Future<void> runTests<T>(Directory dataDir,
@@ -644,7 +648,8 @@ Future<void> runTests<T>(Directory dataDir,
     Uri createUriForFileName(String fileName),
     void onFailure(String message),
     RunTestFunction<T> runTest,
-    List<String> skipList}) async {
+    List<String> skipList,
+    Map<String, List<String>> skipMap}) async {
   // TODO(johnniwinther): Support --show to show actual data for an input.
   args = args.toList();
   bool verbose = args.remove('-v');
@@ -698,7 +703,8 @@ Future<void> runTests<T>(Directory dataDir,
         testAfterFailures: testAfterFailures || generateAnnotations,
         verbose: verbose,
         succinct: succinct,
-        printCode: printCode);
+        printCode: printCode,
+        skipMap: skipMap);
 
     bool hasMismatches = false;
     bool hasErrors = false;
@@ -767,4 +773,23 @@ Future<void> runTests<T>(Directory dataDir,
   if (testCount == 0) {
     onFailure("No files were tested.");
   }
+}
+
+/// Returns `true` if [testName] is marked as skipped in [skipMap] for
+/// the given [configMarker].
+bool skipForConfig(
+    String testName, String configMarker, Map<String, List<String>> skipMap) {
+  if (skipMap != null) {
+    List<String> skipList = skipMap[configMarker];
+    if (skipList != null && skipList.contains(testName)) {
+      print("Skip: ${testName} for config '${configMarker}'");
+      return true;
+    }
+    skipList = skipMap[null];
+    if (skipList != null && skipList.contains(testName)) {
+      print("Skip: ${testName} for config '${configMarker}'");
+      return true;
+    }
+  }
+  return false;
 }
