@@ -792,7 +792,7 @@ class SsaInstructionMerger extends HBaseVisitor with CodegenPhase {
   }
 
   void tryGenerateAtUseSite(HInstruction instruction) {
-    if (instruction.isJsStatement()) return;
+    if (instruction.isControlFlow()) return;
     markAsGenerateAtUseSite(instruction);
   }
 
@@ -803,8 +803,9 @@ class SsaInstructionMerger extends HBaseVisitor with CodegenPhase {
 
   @override
   void visitBasicBlock(HBasicBlock block) {
-    // Compensate from not merging blocks: if the block is the single
-    // predecessor of its single successor, let the successor visit it.
+    // Compensate from not merging blocks: if the block is the
+    // single predecessor of its single successor, let the successor
+    // visit it.
     if (isBlockSinglePredecessor(block)) return;
 
     tryMergingExpressions(block);
@@ -982,17 +983,15 @@ class SsaConditionMerger extends HGraphVisitor with CodegenPhase {
   bool isSafeToGenerateAtUseSite(HInstruction user, HInstruction input) {
     // HCreate evaluates arguments in order and passes them to a constructor.
     if (user is HCreate) return true;
-    // A [HForeign] instruction contains unknown JavaScript code, including
-    // conditional expressions, so if we generate [input] at use site, the
-    // evaluation order might be wrong.
+    // A [HForeign] instruction uses operators and if we generate [input] at use
+    // site, the precedence or evaluation order might be wrong.
     if (user is HForeign) return false;
-
-    // The following instructions use their input multiple times, so it is not
-    // safe to generate the input at the use site.
-    if (user is HBoundsCheck) return false;
-    if (user is HPrimitiveCheck) return false;
+    // A [HCheck] instruction with control flow uses its input
+    // multiple times, so we avoid generating it at use site.
+    if (user is HCheck && user.isControlFlow()) return false;
+    // A [HIs] instruction uses its input multiple times, so we
+    // avoid generating it at use site.
     if (user is HIs) return false;
-
     // Avoid code motion into a loop.
     return user.hasSameLoopHeaderAs(input);
   }

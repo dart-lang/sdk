@@ -502,7 +502,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     do {
       HInstruction current = basicBlock.first;
       while (current != basicBlock.last) {
-        if (current is HPrimitiveCheck || current is HBoundsCheck) {
+        // E.g, bounds check.
+        if (current.isControlFlow()) {
           return TYPE_STATEMENT;
         }
         // HFieldSet generates code on the form "x.y = ...", which isn't valid
@@ -719,7 +720,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
 
     if (needsAssignment &&
-        !instruction.isJsStatement() &&
+        !instruction.isControlFlow() &&
         variableNames.hasName(instruction)) {
       visitExpression(instruction);
       assignVariable(variableNames.getName(instruction), pop(),

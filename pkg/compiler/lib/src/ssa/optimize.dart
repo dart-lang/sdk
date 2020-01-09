@@ -2496,7 +2496,7 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
       HBasicBlock target =
           branch.thenBlock.isLive ? branch.thenBlock : branch.elseBlock;
       HInstruction instruction = target.first;
-      while (instruction is! HControlFlow) {
+      while (!instruction.isControlFlow()) {
         HInstruction next = instruction.next;
         if (instruction is HTypeKnown && instruction.isPinned) break;
         // It might be worth re-running GVN optimizations if we hoisted a
