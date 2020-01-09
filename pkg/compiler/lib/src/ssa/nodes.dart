@@ -1146,9 +1146,6 @@ abstract class HInstruction implements Spannable {
   /// Can this node throw an exception?
   bool canThrow(AbstractValueDomain domain) => false;
 
-  /// Does this node potentially affect control flow.
-  bool isControlFlow() => false;
-
   bool isValue(AbstractValueDomain domain) =>
       domain.isPrimitiveValue(instructionType);
 
@@ -1383,6 +1380,17 @@ abstract class HInstruction implements Spannable {
 
   bool isCodeMotionInvariant() => false;
 
+  /// Is this HInstruction required to be generated in JavaScript statement
+  /// position?
+  ///
+  /// Some instructions, e.g. HBoundsCheck, generate code like
+  /// 'if(...)throw...', so are always JavaScript statements.
+  ///
+  /// Some instructions are statements depending on context, and [isJsStatement]
+  /// can change over time. e.g. HFieldSet should be generated in statement
+  /// position if it has no uses, but can be generated in expression position if
+  /// the value is used. Thus isJsStatement() can change due to optimizations
+  /// like assignment chaining.
   bool isJsStatement() => false;
 
   bool dominates(HInstruction other) {
@@ -1613,8 +1621,7 @@ abstract class HCheck extends HInstruction {
     setUseGvn();
   }
   HInstruction get checkedInput => inputs[0];
-  @override
-  bool isJsStatement() => true;
+
   @override
   bool canThrow(AbstractValueDomain domain) => true;
 
@@ -1642,8 +1649,9 @@ class HBoundsCheck extends HCheck {
   // There can be an additional fourth input which is the index to report to
   // [ioore]. This is used by the expansion of [JSArray.removeLast].
   HInstruction get reportedIndex => inputs.length > 3 ? inputs[3] : index;
+
   @override
-  bool isControlFlow() => true;
+  bool isJsStatement() => true;
 
   @override
   accept(HVisitor visitor) => visitor.visitBoundsCheck(this);
@@ -1669,8 +1677,6 @@ abstract class HControlFlow extends HInstruction {
       // have an `instructionType`, or statement-like [HInstruction]s should
       // have a throwing getter.
       : super(inputs, domain.emptyType);
-  @override
-  bool isControlFlow() => true;
   @override
   bool isJsStatement() => true;
 }
@@ -2226,6 +2232,9 @@ class HReadModifyWrite extends HLateInstruction {
   bool get isAssignOp => opKind == ASSIGN_OP;
 
   @override
+  bool isJsStatement() => usedBy.isEmpty;
+
+  @override
   bool canThrow(AbstractValueDomain domain) =>
       receiver.isNull(domain).isPotentiallyTrue;
 
@@ -2238,8 +2247,6 @@ class HReadModifyWrite extends HLateInstruction {
   @override
   accept(HVisitor visitor) => visitor.visitReadModifyWrite(this);
 
-  @override
-  bool isJsStatement() => isAssignOp;
   @override
   String toString() => "ReadModifyWrite $jsOp $opKind $element";
 }
@@ -2341,6 +2348,7 @@ class HForeignCode extends HForeign {
 
   @override
   bool isJsStatement() => isStatement;
+
   @override
   bool canThrow(AbstractValueDomain domain) {
     if (inputs.length > 0) {
@@ -3606,9 +3614,7 @@ class HTypeConversion extends HCheck {
   accept(HVisitor visitor) => visitor.visitTypeConversion(this);
 
   @override
-  bool isJsStatement() => isControlFlow();
-  @override
-  bool isControlFlow() => false;
+  bool isJsStatement() => false;
 
   @override
   int typeCode() => HInstruction.TYPE_CONVERSION_TYPECODE;
@@ -3720,8 +3726,6 @@ class HPrimitiveCheck extends HCheck {
 
   @override
   bool isJsStatement() => true;
-  @override
-  bool isControlFlow() => true;
 
   @override
   int typeCode() => HInstruction.PRIMITIVE_CHECK_TYPECODE;
@@ -3814,8 +3818,7 @@ class HTypeKnown extends HCheck {
 
   @override
   bool isJsStatement() => false;
-  @override
-  bool isControlFlow() => false;
+
   @override
   bool canThrow(AbstractValueDomain domain) => false;
 
@@ -4525,9 +4528,6 @@ class HAsCheck extends HCheck {
   HInstruction get checkedInput => inputs[1];
 
   @override
-  bool isJsStatement() => false;
-
-  @override
   accept(HVisitor visitor) => visitor.visitAsCheck(this);
 
   @override
@@ -4572,9 +4572,6 @@ class HAsCheckSimple extends HCheck {
 
   @override
   HInstruction get checkedInput => inputs[0];
-
-  @override
-  bool isJsStatement() => false;
 
   @override
   accept(HVisitor visitor) => visitor.visitAsCheckSimple(this);
