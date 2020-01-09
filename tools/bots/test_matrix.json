@@ -144,11 +144,13 @@
       ".packages",
       "out/ReleaseIA32/",
       "out/ReleaseX64/",
+      "out/ReleaseX64NNBD/",
       "pkg/",
       "runtime/tests/",
       "samples-dev/",
       "samples/",
       "sdk/",
+      "sdk_nnbd/",
       "tests/angular/",
       "tests/co19_2/co19_2-analyzer.status",
       "tests/co19_2/co19_2-co19.status",
@@ -558,6 +560,9 @@
 
     }},
     "fasta-(linux|mac|win)": { },
+    "fasta-weak-linux": {
+      "enable-experiment": ["non-nullable"]
+    },
     "analyzer-(linux|mac|win)": {
       "options": {
         "compiler": "dart2analyzer",
@@ -592,7 +597,7 @@
         "front-end-win-release-x64"
       ],
       "meta": {
-        "description": "Runs the front-end unit tests and fasta tests."
+        "description": "Runs the cfe tests."
       },
       "steps": [
         {
@@ -606,7 +611,7 @@
           ]
         },
         {
-          "name": "fasta co19_2 tests",
+          "name": "co19_2 tests",
           "arguments": [
             "-nfasta-${system}",
             "co19_2"
@@ -615,7 +620,7 @@
           "shards": 10
         },
         {
-          "name": "fasta sdk tests",
+          "name": "sdk tests",
           "arguments": ["-nfasta-${system}"],
           "fileset": "front-end",
           "shards": 5
@@ -636,6 +641,62 @@
             "-nfront-end-${system}-release-x64",
             "--verbose"
           ]
+        }
+      ]
+    },
+    {
+      "builders": [
+        "front-end-nnbd-linux-release-x64"
+      ],
+      "meta": {
+        "description": "Runs the front-end tests with NNBD"
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "--nnbd",
+            "create_sdk",
+            "dartdevc_test",
+            "kernel_platform_files",
+            "runtime_kernel"
+          ]
+        },
+        {
+          "name": "weak sdk tests",
+          "arguments": [
+            "-nfasta-weak-${system}",
+            "language",
+            "corelib",
+            "lib"
+          ],
+          "fileset": "front-end",
+          "shards": 3
+        },
+        {
+          "name": "weak co19 tests",
+          "arguments": [
+            "-nfasta-weak-${system}",
+            "co19/LanguageFeatures/nnbd"
+          ],
+          "fileset": "front-end",
+          "shards": 2
+        },
+        {
+          "name": "legacy sdk tests",
+          "arguments": ["-nfasta-weak-${system}"],
+          "fileset": "front-end",
+          "shards": 5
+        },
+        {
+          "name": "legacy co19_2 tests",
+          "arguments": [
+            "-nfasta-weak-${system}",
+            "co19_2"
+          ],
+          "fileset": "front-end",
+          "shards": 6
         }
       ]
     },
