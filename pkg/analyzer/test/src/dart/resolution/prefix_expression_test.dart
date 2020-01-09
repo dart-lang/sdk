@@ -19,6 +19,32 @@ main() {
 
 @reflectiveTest
 class PrefixExpressionResolutionTest extends DriverResolutionTest {
+  test_bang_bool_context() async {
+    await assertNoErrorsInCode(r'''
+T f<T>() {
+  throw 42;
+}
+
+main() {
+  !f();
+}
+''');
+
+    assertMethodInvocation2(
+      findNode.methodInvocation('f();'),
+      element: findElement.topFunction('f'),
+      typeArgumentTypes: ['bool'],
+      invokeType: 'bool Function()',
+      type: 'bool',
+    );
+
+    assertPrefixExpression(
+      findNode.prefix('!f()'),
+      element: boolElement.getMethod('!'),
+      type: 'bool',
+    );
+  }
+
   test_bang_bool_localVariable() async {
     await assertNoErrorsInCode(r'''
 f(bool x) {
@@ -135,7 +161,8 @@ f(int x) {
 }
 
 @reflectiveTest
-class PrefixExpressionResolutionWithNnbdTest extends DriverResolutionTest {
+class PrefixExpressionResolutionWithNnbdTest
+    extends PrefixExpressionResolutionTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
     ..enabledExperiments = [EnableString.non_nullable]

@@ -380,6 +380,19 @@ mixin ResolutionTest implements ResourceProviderMixin {
     assertType(invocationImpl.methodNameType, expectedMethodNameType);
   }
 
+  void assertMethodInvocation2(
+    MethodInvocation node, {
+    @required ExecutableElement element,
+    @required List<String> typeArgumentTypes,
+    @required String invokeType,
+    @required String type,
+  }) {
+    assertElement(node.methodName, element);
+    assertTypeArgumentTypes(node, typeArgumentTypes);
+    assertType(node.staticInvokeType, invokeType);
+    assertType(node.staticType, type);
+  }
+
   void assertNamedParameterRef(String search, String name) {
     var ref = findNode.simple(search);
     assertElement(ref, findElement.parameter(name));

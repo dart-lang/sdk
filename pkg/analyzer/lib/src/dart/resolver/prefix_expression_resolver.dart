@@ -48,14 +48,19 @@ class PrefixExpressionResolver {
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
   void resolve(PrefixExpressionImpl node) {
-    // TODO(scheglov) It seems that we don't set the context type.
-    node.operand.accept(_resolver);
+    var operator = node.operator.type;
+    var operand = node.operand;
+
+    if (operator == TokenType.BANG) {
+      InferenceContext.setType(operand, _typeProvider.boolType);
+    }
+    operand.accept(_resolver);
+
     _resolve1(node);
     _resolve2(node);
 
-    var operator = node.operator.type;
     if (operator == TokenType.BANG) {
-      _flowAnalysis?.flow?.logicalNot_end(node, node.operand);
+      _flowAnalysis?.flow?.logicalNot_end(node, operand);
     }
   }
 

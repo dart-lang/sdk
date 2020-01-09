@@ -12,7 +12,6 @@ import 'function_expression_test.dart' as function_expression;
 import 'list_literal_test.dart' as list_literal;
 import 'logical_boolean_expressions_test.dart' as logical_boolean_expressions;
 import 'map_literal_test.dart' as map_literal;
-import 'prefix_expressions_test.dart' as prefix_expressions;
 import 'set_literal_test.dart' as set_literal;
 import 'statements_test.dart' as statements;
 import 'tear_off_test.dart' as tear_off;
@@ -29,7 +28,6 @@ main() {
     list_literal.main();
     logical_boolean_expressions.main();
     map_literal.main();
-    prefix_expressions.main();
     set_literal.main();
     statements.main();
     tear_off.main();
