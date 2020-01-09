@@ -350,7 +350,12 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor {
   }
 
   _visitConstructorElement(ConstructorElement element) {
-    if (!_isUsedMember(element)) {
+    // Only complain about an unused constructor if it is not the only
+    // constructor in the class. A single unused, private constructor may serve
+    // the purpose of preventing the class from being extended. In serving this
+    // purpose, the constructor is "used."
+    if (element.enclosingElement.constructors.length > 1 &&
+        !_isUsedMember(element)) {
       _reportErrorForElement(
           HintCode.UNUSED_ELEMENT, element, [element.displayName]);
     }

@@ -184,14 +184,23 @@ A f() => A._constructor();
 ''');
   }
 
-  test_constructor_notUsed() async {
+  test_constructor_notUsed_multiple() async {
     await assertErrorsInCode(r'''
 class A {
   A._constructor();
+  A();
 }
 ''', [
       error(HintCode.UNUSED_ELEMENT, 14, 12),
     ]);
+  }
+
+  test_constructor_notUsed_single() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A._constructor();
+}
+''');
   }
 
   test_enum_isUsed_fieldReference() async {
@@ -213,14 +222,23 @@ main() {
     ]);
   }
 
-  test_factoryConstructor_notUsed() async {
+  test_factoryConstructor_notUsed_multiple() async {
     await assertErrorsInCode(r'''
 class A {
   factory A._factory() => null;
+  A();
 }
 ''', [
       error(HintCode.UNUSED_ELEMENT, 22, 8),
     ]);
+  }
+
+  test_factoryConstructor_notUsed_single() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  factory A._factory() => null;
+}
+''');
   }
 
   test_fieldImplicitGetter_isUsed() async {
