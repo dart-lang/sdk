@@ -423,6 +423,7 @@ class UnionTypeMask implements TypeMask {
   MemberEntity locateSingleMember(Selector selector, JClosedWorld closedWorld) {
     MemberEntity candidate;
     for (FlatTypeMask mask in disjointMasks) {
+      if (isNullable) mask = mask.nullable();
       MemberEntity current = mask.locateSingleMember(selector, closedWorld);
       if (current == null) {
         return null;
