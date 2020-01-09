@@ -40,6 +40,7 @@ void f() {
     assertFunctionExpressionInvocation(
       invocation,
       element: findElement.method('call', of: 'E'),
+      typeArgumentTypes: [],
       invokeType: 'void Function()',
       type: 'void',
     );

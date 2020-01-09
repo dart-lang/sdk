@@ -288,7 +288,11 @@ class MethodInvocationResolver {
   void _resolveArguments_finishInference(MethodInvocation node) {
     _resolveArguments(node);
 
-    _inferenceHelper.inferGenericInvocationExpression(node);
+    // TODO(scheglov) This is bad, don't put / get raw FunctionType this way.
+    _inferenceHelper.inferGenericInvocationExpression(
+      node,
+      node.methodName.staticType,
+    );
 
     // TODO(scheglov) Call this only when member lookup failed?
     var inferred = _inferenceHelper.inferMethodInvocationObject(node);
@@ -869,6 +873,7 @@ class MethodInvocationResolver {
     );
     NodeReplacer.replace(node, invocation);
     node.setProperty(_rewriteResultKey, invocation);
+    InferenceContext.setTypeFromNode(invocation, node);
   }
 
   void _setDynamicResolution(MethodInvocation node,

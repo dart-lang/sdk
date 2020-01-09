@@ -64,7 +64,7 @@ class FunctionExpressionInvocationResolver {
     _inferenceHelper.inferArgumentTypesForInvocation(node);
     _resolveArguments(node);
 
-    _inferenceHelper.inferGenericInvocationExpression(node);
+    _inferenceHelper.inferGenericInvocationExpression(node, rawType);
 
     var returnType = _inferenceHelper.computeInvokeReturnType(
       node.staticInvokeType,

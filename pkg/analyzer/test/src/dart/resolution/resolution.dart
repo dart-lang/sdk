@@ -202,10 +202,12 @@ mixin ResolutionTest implements ResourceProviderMixin {
   void assertFunctionExpressionInvocation(
     FunctionExpressionInvocation node, {
     @required ExecutableElement element,
+    @required List<String> typeArgumentTypes,
     @required String invokeType,
     @required String type,
   }) {
     assertElement(node, element);
+    assertTypeArgumentTypes(node, typeArgumentTypes);
     assertInvokeType(node, invokeType);
     assertType(node, type);
   }

@@ -99,9 +99,11 @@ class InvocationInferenceHelper {
   ///
   /// This takes into account both the context type, as well as information from
   /// the argument types.
-  void inferGenericInvocationExpression(InvocationExpression node) {
+  void inferGenericInvocationExpression(
+    InvocationExpression node,
+    DartType type,
+  ) {
     ArgumentList arguments = node.argumentList;
-    var type = node.function.staticType;
     var freshType = _getFreshType(type);
 
     FunctionType inferred = inferGenericInvoke(
