@@ -177,7 +177,8 @@ document.addEventListener("DOMContentLoaded", (event) => {
   const path = window.location.pathname;
   const offset = getOffset(window.location.href);
   const lineNumber = getLine(window.location.href);
-  if (path.length > 1) {
+  const root = document.querySelector(".root").textContent;
+  if (path !== "/" && path !== root) {
     // TODO(srawlins): replaceState?
     loadFile(path, offset, lineNumber,
         () => { pushState(path, offset, lineNumber) });
