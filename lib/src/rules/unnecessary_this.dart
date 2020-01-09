@@ -5,11 +5,8 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/generated/resolver.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
-import '../util/dart_type_utilities.dart';
 
 const _desc = r"Don't access members with `this` unless avoiding shadowing.";
 
@@ -63,57 +60,8 @@ class UnnecessaryThis extends LintRule implements NodeLintRule {
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
     var visitor = _Visitor(this, context);
-    registry.addCompilationUnit(this, visitor);
     registry.addConstructorFieldInitializer(this, visitor);
-  }
-}
-
-// todo (pq): refactor to not use scoped visitor
-class _UnnecessaryThisVisitor extends ScopedVisitor {
-  final LintRule rule;
-
-  _UnnecessaryThisVisitor(
-      this.rule, LinterContext context, CompilationUnit node)
-      : super(
-          node.declaredElement.library,
-          rule.reporter.source,
-          context.typeProvider as TypeProviderImpl,
-          AnalysisErrorListener.NULL_LISTENER,
-        );
-
-  @override
-  void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
-    if (node.thisKeyword != null) {
-      rule.reportLintForToken(node.thisKeyword);
-    }
-  }
-
-  @override
-  void visitThisExpression(ThisExpression node) {
-    final parent = node.parent;
-    Element lookUpElement;
-    Element localElement;
-    if (parent is PropertyAccess) {
-      lookUpElement = DartTypeUtilities.getCanonicalElement(
-          nameScope.lookup(parent.propertyName, definingLibrary));
-      localElement = DartTypeUtilities.getCanonicalElement(
-          parent.propertyName.staticElement);
-    } else if (parent is MethodInvocation) {
-      lookUpElement = DartTypeUtilities.getCanonicalElement(
-          nameScope.lookup(parent.methodName, definingLibrary));
-      localElement = parent.methodName.staticElement;
-    }
-
-    // Error in code
-    if (localElement == null) {
-      return null;
-    }
-    // If localElement was resolved, but lookUpElement was not, that means
-    // the element is defined in an ancestor class.
-    if (lookUpElement == localElement || lookUpElement == null) {
-      rule.reportLint(parent);
-    }
-    return null;
+    registry.addThisExpression(this, visitor);
   }
 }
 
@@ -125,7 +73,62 @@ class _Visitor extends SimpleAstVisitor<void> {
   _Visitor(this.rule, this.context);
 
   @override
-  void visitCompilationUnit(CompilationUnit node) {
-    _UnnecessaryThisVisitor(rule, context, node).visitCompilationUnit(node);
+  void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
+    if (node.thisKeyword != null) {
+      rule.reportLintForToken(node.thisKeyword);
+    }
+  }
+
+  @override
+  void visitThisExpression(ThisExpression node) {
+    final parent = node.parent;
+
+    Element element;
+    if (parent is PropertyAccess) {
+      element = parent.propertyName.staticElement;
+    } else if (parent is MethodInvocation) {
+      element = parent.methodName.staticElement;
+    } else {
+      return;
+    }
+
+    if (_canReferenceElementWithoutThisPrefix(element, node)) {
+      rule.reportLint(parent);
+    }
+  }
+
+  bool _canReferenceElementWithoutThisPrefix(Element element, AstNode node) {
+    if (element == null) {
+      return false;
+    }
+
+    var id = element.displayName;
+    var isSetter = element is PropertyAccessorElement && element.isSetter;
+    var result = context.resolveNameInScope(id, isSetter, node);
+
+    // No result, definitely no shadowing.
+    // The requested element is inherited, or from an extension.
+    if (result.isNone) {
+      return true;
+    }
+
+    // The result has the matching name, might be shadowing.
+    // Check that the element is the same.
+    if (result.isRequestedName) {
+      return result.element == element;
+    }
+
+    // The result has the same basename, but not the same name.
+    // Must be an instance member, so that:
+    //  - not shadowed by a local declaration;
+    //  - prevents us from going up to the library scope;
+    //  - the requested element must be inherited, or from an extension.
+    if (result.isDifferentName) {
+      var enclosing = result.element.enclosingElement;
+      return enclosing is ClassElement;
+    }
+
+    // Should not happen.
+    return false;
   }
 }
