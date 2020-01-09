@@ -656,7 +656,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     node.metadata.accept(this);
     if (_flowAnalysis != null) {
       // This is a local function.
+      _flowAnalysis.functionExpression_begin(node);
       node.functionExpression.accept(this);
+      _flowAnalysis.functionExpression_end();
     } else {
       _createFlowAnalysis(node, node.functionExpression.parameters);
       // Initialize a new postDominator scope that contains only the parameters.
@@ -675,6 +677,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType visitFunctionExpression(FunctionExpression node) {
     // TODO(mfairhurst): enable edge builder "_insideFunction" hard edge tests.
     node.parameters?.accept(this);
+    if (node.parent is! FunctionDeclaration) {
+      _flowAnalysis.functionExpression_begin(node);
+    }
     _addParametersToFlowAnalysis(node.parameters);
     var previousFunctionType = _currentFunctionType;
     _currentFunctionType =
@@ -685,6 +690,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           action: () => node.body.accept(this));
       return _currentFunctionType;
     } finally {
+      if (node.parent is! FunctionDeclaration) {
+        _flowAnalysis.functionExpression_end();
+      }
       _currentFunctionType = previousFunctionType;
     }
   }

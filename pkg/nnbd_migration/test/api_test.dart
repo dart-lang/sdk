@@ -2266,6 +2266,34 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_local_function_doesnt_assign() async {
+    var content = '''
+int f() {
+  int i;
+  g(int j) {
+    i = 1;
+  };
+  ((int j) {
+    i = 1;
+  });
+  return i + 1;
+}
+''';
+    var expected = '''
+int f() {
+  int? i;
+  g(int j) {
+    i = 1;
+  };
+  ((int j) {
+    i = 1;
+  });
+  return i! + 1;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/39404')
   Future<void> test_localVariable_type_inferred() async {
     var content = '''
