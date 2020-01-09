@@ -1295,7 +1295,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
           body += LoadNativeField(Slot::GetTypeArgumentsIndexSlot(
               thread_, Pointer::kNativeTypeArgPos));
           body += LoadNativeField(Slot::Type_arguments());
-          body += PushArgument();  // We instantiate a Pointer<X>.
           body += AllocateObject(TokenPosition::kNoSource, pointer_class, 1);
           LocalVariable* pointer = MakeTemporary();
           body += LoadLocal(pointer);
@@ -1421,7 +1420,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       ASSERT(function.NumTypeParameters() == 1);
       ASSERT(function.NumParameters() == 1);
       body += LoadLocal(parsed_function_->RawTypeArgumentsVariable());
-      body += PushArgument();
       body += AllocateObject(TokenPosition::kNoSource, pointer_class, 1);
       body += LoadLocal(MakeTemporary());  // Duplicate Pointer.
       body += LoadLocal(parsed_function_->RawParameterVariable(0));  // Address.
@@ -2883,7 +2881,6 @@ Fragment FlowGraphBuilder::FfiPointerFromAddress(const Type& result_type) {
 
   Fragment code;
   code += Constant(args);
-  code += PushArgument();
   code += AllocateObject(TokenPosition::kNoSource, result_class, 1);
   LocalVariable* pointer = MakeTemporary();
   code += LoadLocal(pointer);

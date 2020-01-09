@@ -840,9 +840,7 @@ Fragment BaseFlowGraphBuilder::AllocateClosure(
     TokenPosition position,
     const Function& closure_function) {
   const Class& cls = Class::ZoneHandle(Z, I->object_store()->closure_class());
-  ArgumentArray arguments = new (Z) ZoneGrowableArray<PushArgumentInstr*>(Z, 0);
-  AllocateObjectInstr* allocate =
-      new (Z) AllocateObjectInstr(position, cls, arguments);
+  AllocateObjectInstr* allocate = new (Z) AllocateObjectInstr(position, cls);
   allocate->set_closure_function(closure_function);
   Push(allocate);
   return Fragment(allocate);
@@ -890,9 +888,10 @@ Fragment BaseFlowGraphBuilder::LoadClassId() {
 Fragment BaseFlowGraphBuilder::AllocateObject(TokenPosition position,
                                               const Class& klass,
                                               intptr_t argument_count) {
-  ArgumentArray arguments = GetArguments(argument_count);
+  ASSERT((argument_count == 0) || (argument_count == 1));
+  Value* type_arguments = (argument_count > 0) ? Pop() : nullptr;
   AllocateObjectInstr* allocate =
-      new (Z) AllocateObjectInstr(position, klass, arguments);
+      new (Z) AllocateObjectInstr(position, klass, type_arguments);
   Push(allocate);
   return Fragment(allocate);
 }

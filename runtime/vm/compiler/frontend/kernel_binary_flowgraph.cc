@@ -3296,7 +3296,6 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(TokenPosition* p) {
       const TypeArguments& type_arguments =
           PeekArgumentsInstantiatedType(klass);
       instructions += TranslateInstantiatedTypeArguments(type_arguments);
-      instructions += PushArgument();
       instructions += AllocateObject(position, klass, 1);
     } else {
       instructions += AllocateObject(position, klass, 0);
@@ -3394,7 +3393,6 @@ Fragment StreamingFlowGraphBuilder::BuildConstructorInvocation(
       instructions += TranslateInstantiatedTypeArguments(type_arguments);
     }
 
-    instructions += PushArgument();
     instructions += AllocateObject(position, klass, 1);
   } else {
     instructions += AllocateObject(position, klass, 0);

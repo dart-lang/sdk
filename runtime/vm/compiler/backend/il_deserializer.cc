@@ -867,15 +867,14 @@ AllocateObjectInstr* FlowGraphDeserializer::DeserializeAllocateObject(
   auto const cls_sexp = CheckTaggedList(Retrieve(sexp, 1), "Class");
   if (!ParseClass(cls_sexp, &cls)) return nullptr;
 
-  intptr_t args_len = 0;
-  if (auto const len_sexp = CheckInteger(sexp->ExtraLookupValue("args_len"))) {
-    args_len = len_sexp->value();
+  Value* type_arguments = nullptr;
+  if (cls.NumTypeArguments() > 0) {
+    type_arguments = ParseValue(Retrieve(sexp, 2));
+    if (type_arguments == nullptr) return nullptr;
   }
-  auto const arguments = FetchPushedArguments(sexp, args_len);
-  if (arguments == nullptr) return nullptr;
 
   auto const inst =
-      new (zone()) AllocateObjectInstr(info.token_pos, cls, arguments);
+      new (zone()) AllocateObjectInstr(info.token_pos, cls, type_arguments);
 
   if (auto const closure_sexp = CheckTaggedList(
           sexp->ExtraLookupValue("closure_function"), "Function")) {

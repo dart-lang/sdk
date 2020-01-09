@@ -1771,12 +1771,11 @@ class LoadOptimizer : public ValueObject {
               }
 
               Definition* forward_def = graph_->constant_null();
-              if (alloc->ArgumentCount() > 0) {
-                ASSERT(alloc->ArgumentCount() == 1);
+              if (alloc->type_arguments() != nullptr) {
                 const Slot& type_args_slot = Slot::GetTypeArgumentsSlotFor(
                     graph_->thread(), alloc->cls());
                 if (slot->IsIdentical(type_args_slot)) {
-                  forward_def = alloc->ArgumentAt(0);
+                  forward_def = alloc->type_arguments()->definition();
                 }
               }
               gen->Add(place_id);
@@ -3258,11 +3257,11 @@ void AllocationSinking::InsertMaterializations(Definition* alloc) {
     }
   }
 
-  if (alloc->ArgumentCount() > 0) {
-    AllocateObjectInstr* alloc_object = alloc->AsAllocateObject();
-    ASSERT(alloc_object->ArgumentCount() == 1);
-    AddSlot(slots, Slot::GetTypeArgumentsSlotFor(flow_graph_->thread(),
-                                                 alloc_object->cls()));
+  if (auto alloc_object = alloc->AsAllocateObject()) {
+    if (alloc_object->type_arguments() != nullptr) {
+      AddSlot(slots, Slot::GetTypeArgumentsSlotFor(flow_graph_->thread(),
+                                                   alloc_object->cls()));
+    }
   }
 
   // Collect all instructions that mention this object in the environment.

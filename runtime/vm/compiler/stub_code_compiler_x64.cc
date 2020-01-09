@@ -1791,11 +1791,11 @@ void StubCodeCompiler::GenerateArrayWriteBarrierStub(Assembler* assembler) {
 
 // Called for inline allocation of objects.
 // Input parameters:
-//   RSP + 8 : type arguments object (only if class is parameterized).
 //   RSP : points to return address.
+//   kAllocationStubTypeArgumentsReg (RDX) : type arguments object
+//                                           (only if class is parameterized).
 void StubCodeCompiler::GenerateAllocationStubForClass(Assembler* assembler,
                                                       const Class& cls) {
-  const intptr_t kObjectTypeArgumentsOffset = 1 * target::kWordSize;
   // The generated code is different if the class is parameterized.
   const bool is_cls_parameterized = target::Class::NumTypeArguments(cls) > 0;
   ASSERT(!is_cls_parameterized || target::Class::TypeArgumentsFieldOffset(
@@ -1807,10 +1807,11 @@ void StubCodeCompiler::GenerateAllocationStubForClass(Assembler* assembler,
   const intptr_t instance_size = target::Class::GetInstanceSize(cls);
   ASSERT(instance_size > 0);
   __ LoadObject(R9, NullObject());
-  if (is_cls_parameterized) {
-    __ movq(RDX, Address(RSP, kObjectTypeArgumentsOffset));
-    // RDX: instantiated type arguments.
-  }
+
+  // RDX: instantiated type arguments (if is_cls_parameterized).
+  static_assert(kAllocationStubTypeArgumentsReg == RDX,
+                "Adjust register allocation in the AllocationStub");
+
   if (FLAG_inline_alloc &&
       target::Heap::IsAllocatableInNewSpace(instance_size) &&
       !target::Class::TraceAllocation(cls)) {
@@ -1883,7 +1884,8 @@ void StubCodeCompiler::GenerateAllocationStubForClass(Assembler* assembler,
       // RDX: new object type arguments.
       // Set the type arguments in the new object.
       const intptr_t offset = target::Class::TypeArgumentsFieldOffset(cls);
-      __ StoreIntoObjectNoBarrier(RAX, FieldAddress(RAX, offset), RDX);
+      __ StoreIntoObjectNoBarrier(RAX, FieldAddress(RAX, offset),
+                                  kAllocationStubTypeArgumentsReg);
     }
     // Done allocating and initializing the instance.
     // RAX: new object (tagged).
@@ -1900,7 +1902,8 @@ void StubCodeCompiler::GenerateAllocationStubForClass(Assembler* assembler,
   __ PushObject(
       CastHandle<Object>(cls));  // Push class of object to be allocated.
   if (is_cls_parameterized) {
-    __ pushq(RDX);  // Push type arguments of object to be allocated.
+    // Push type arguments of object to be allocated.
+    __ pushq(kAllocationStubTypeArgumentsReg);
   } else {
     __ pushq(R9);  // Push null type arguments.
   }

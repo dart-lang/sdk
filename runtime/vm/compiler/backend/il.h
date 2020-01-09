@@ -5387,35 +5387,43 @@ class TemplateAllocation : public AllocationInstr {
   virtual void RawSetInputAt(intptr_t i, Value* value) { inputs_[i] = value; }
 };
 
-class AllocateObjectInstr : public TemplateAllocation<0, NoThrow> {
+class AllocateObjectInstr : public AllocationInstr {
  public:
   AllocateObjectInstr(TokenPosition token_pos,
                       const Class& cls,
-                      PushArgumentsArray* arguments)
+                      Value* type_arguments = nullptr)
       : token_pos_(token_pos),
         cls_(cls),
-        arguments_(arguments),
+        type_arguments_(type_arguments),
         identity_(AliasIdentity::Unknown()),
         closure_function_(Function::ZoneHandle()) {
-    // Either no arguments or one type-argument and one instantiator.
-    ASSERT(arguments->is_empty() || (arguments->length() == 1));
+    ASSERT((cls.NumTypeArguments() > 0) == (type_arguments != nullptr));
+    if (type_arguments != nullptr) {
+      SetInputAt(0, type_arguments);
+    }
   }
 
   DECLARE_INSTRUCTION(AllocateObject)
   virtual CompileType ComputeType() const;
 
-  virtual intptr_t ArgumentCount() const { return arguments_->length(); }
-  virtual PushArgumentInstr* PushArgumentAt(intptr_t index) const {
-    return (*arguments_)[index];
-  }
-
   const Class& cls() const { return cls_; }
   virtual TokenPosition token_pos() const { return token_pos_; }
+  Value* type_arguments() const { return type_arguments_; }
 
   const Function& closure_function() const { return closure_function_; }
   void set_closure_function(const Function& function) {
     closure_function_ = function.raw();
   }
+
+  virtual intptr_t InputCount() const {
+    return (type_arguments_ != nullptr) ? 1 : 0;
+  }
+  virtual Value* InputAt(intptr_t i) const {
+    ASSERT(type_arguments_ != nullptr && i == 0);
+    return type_arguments_;
+  }
+
+  virtual bool MayThrow() const { return false; }
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
@@ -5437,9 +5445,15 @@ class AllocateObjectInstr : public TemplateAllocation<0, NoThrow> {
   ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT
 
  private:
+  virtual void RawSetInputAt(intptr_t i, Value* value) {
+    ASSERT((type_arguments_ != nullptr) && (i == 0));
+    ASSERT(value != nullptr);
+    type_arguments_ = value;
+  }
+
   const TokenPosition token_pos_;
   const Class& cls_;
-  PushArgumentsArray* const arguments_;
+  Value* type_arguments_;
   AliasIdentity identity_;
   Function& closure_function_;
 

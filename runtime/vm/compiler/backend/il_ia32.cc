@@ -6617,14 +6617,22 @@ void BooleanNegateInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* AllocateObjectInstr::MakeLocationSummary(Zone* zone,
                                                           bool opt) const {
-  return MakeCallSummary(zone);
+  const intptr_t kNumInputs = (type_arguments() != nullptr) ? 1 : 0;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
+  if (type_arguments() != nullptr) {
+    locs->set_in(0,
+                 Location::RegisterLocation(kAllocationStubTypeArgumentsReg));
+  }
+  locs->set_out(0, Location::RegisterLocation(EAX));
+  return locs;
 }
 
 void AllocateObjectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Code& stub = Code::ZoneHandle(
       compiler->zone(), StubCode::GetAllocationStubForClass(cls()));
   compiler->GenerateCall(token_pos(), stub, RawPcDescriptors::kOther, locs());
-  __ Drop(ArgumentCount());  // Discard arguments.
 }
 
 void DebugStepCheckInstr::EmitNativeCode(FlowGraphCompiler* compiler) {

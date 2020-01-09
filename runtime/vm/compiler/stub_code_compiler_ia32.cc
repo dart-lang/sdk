@@ -1440,14 +1440,14 @@ void StubCodeCompiler::GenerateArrayWriteBarrierStub(Assembler* assembler) {
 
 // Called for inline allocation of objects.
 // Input parameters:
-//   ESP + 4 : type arguments object (only if class is parameterized).
 //   ESP : points to return address.
+//   kAllocationStubTypeArgumentsReg (EDX) : type arguments object
+//                                           (only if class is parameterized).
 // Uses EAX, EBX, ECX, EDX, EDI as temporary registers.
 // Returns patch_code_pc offset where patching code for disabling the stub
 // has been generated (similar to regularly generated Dart code).
 void StubCodeCompiler::GenerateAllocationStubForClass(Assembler* assembler,
                                                       const Class& cls) {
-  const intptr_t kObjectTypeArgumentsOffset = 1 * target::kWordSize;
   const Immediate& raw_null = Immediate(target::ToRawPointer(NullObject()));
   // The generated code is different if the class is parameterized.
   const bool is_cls_parameterized = target::Class::NumTypeArguments(cls) > 0;
@@ -1459,10 +1459,11 @@ void StubCodeCompiler::GenerateAllocationStubForClass(Assembler* assembler,
   const int kInlineInstanceSize = 12;  // In words.
   const intptr_t instance_size = target::Class::GetInstanceSize(cls);
   ASSERT(instance_size > 0);
-  if (is_cls_parameterized) {
-    __ movl(EDX, Address(ESP, kObjectTypeArgumentsOffset));
-    // EDX: instantiated type arguments.
-  }
+
+  // EDX: instantiated type arguments (if is_cls_parameterized).
+  static_assert(kAllocationStubTypeArgumentsReg == EDX,
+                "Adjust register allocation in the AllocationStub");
+
   if (FLAG_inline_alloc &&
       target::Heap::IsAllocatableInNewSpace(instance_size) &&
       !target::Class::TraceAllocation(cls)) {
@@ -1530,7 +1531,8 @@ void StubCodeCompiler::GenerateAllocationStubForClass(Assembler* assembler,
       // EDX: new object type arguments.
       // Set the type arguments in the new object.
       const intptr_t offset = target::Class::TypeArgumentsFieldOffset(cls);
-      __ StoreIntoObjectNoBarrier(EAX, FieldAddress(EAX, offset), EDX);
+      __ StoreIntoObjectNoBarrier(EAX, FieldAddress(EAX, offset),
+                                  kAllocationStubTypeArgumentsReg);
     }
     // Done allocating and initializing the instance.
     // EAX: new object (tagged).
@@ -1547,7 +1549,8 @@ void StubCodeCompiler::GenerateAllocationStubForClass(Assembler* assembler,
   __ PushObject(
       CastHandle<Object>(cls));  // Push class of object to be allocated.
   if (is_cls_parameterized) {
-    __ pushl(EDX);  // Push type arguments of object to be allocated.
+    // Push type arguments of object to be allocated.
+    __ pushl(kAllocationStubTypeArgumentsReg);
   } else {
     __ pushl(raw_null);  // Push null type arguments.
   }

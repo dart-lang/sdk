@@ -197,6 +197,13 @@ class GraphInfoCollector : public ValueObject {
           continue;
         }
         ++instruction_count_;
+        // Count inputs of certain instructions as if separate PushArgument
+        // instructions are used for inputs. This is done in order to
+        // preserve inlining behavior and avoid code size growth after
+        // PushArgument instructions are eliminated.
+        if (current->IsAllocateObject()) {
+          instruction_count_ += current->InputCount();
+        }
         if (current->IsInstanceCall() || current->IsStaticCall() ||
             current->IsClosureCall()) {
           ++call_site_count_;

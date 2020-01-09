@@ -1788,7 +1788,8 @@ void StubCodeCompiler::GenerateArrayWriteBarrierStub(Assembler* assembler) {
 // Called for inline allocation of objects.
 // Input parameters:
 //   LR : return address.
-//   SP + 0 : type arguments object (only if class is parameterized).
+//   kAllocationStubTypeArgumentsReg (R3): type arguments object
+//                                         (only if class is parameterized).
 void StubCodeCompiler::GenerateAllocationStubForClass(Assembler* assembler,
                                                       const Class& cls) {
   // The generated code is different if the class is parameterized.
@@ -1798,10 +1799,12 @@ void StubCodeCompiler::GenerateAllocationStubForClass(Assembler* assembler,
 
   const Register kNullReg = R8;
   const Register kOtherNullReg = R9;
-  const Register kTypeArgumentsReg = R3;
+  const Register kTypeArgumentsReg = kAllocationStubTypeArgumentsReg;
   const Register kInstanceReg = R0;
   const Register kEndReg = R1;
   const Register kEndOfInstanceReg = R2;
+  static_assert(kAllocationStubTypeArgumentsReg == R3,
+                "Adjust register allocation in the AllocationStub");
 
   // kInlineInstanceSize is a constant used as a threshold for determining
   // when the object initialization should be done as a loop or as
@@ -1810,9 +1813,6 @@ void StubCodeCompiler::GenerateAllocationStubForClass(Assembler* assembler,
   const intptr_t instance_size = target::Class::GetInstanceSize(cls);
   ASSERT(instance_size > 0);
   ASSERT(instance_size % target::ObjectAlignment::kObjectAlignment == 0);
-  if (is_cls_parameterized) {
-    __ ldr(kTypeArgumentsReg, Address(SP, 0));
-  }
 
   __ LoadObject(kNullReg, NullObject());
   if (FLAG_inline_alloc &&

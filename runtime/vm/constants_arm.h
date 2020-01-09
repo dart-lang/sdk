@@ -292,6 +292,9 @@ const Register kWriteBarrierObjectReg = R1;
 const Register kWriteBarrierValueReg = R0;
 const Register kWriteBarrierSlotReg = R9;
 
+// ABI for allocation stubs.
+const Register kAllocationStubTypeArgumentsReg = R3;
+
 // List of registers used in load/store multiple.
 typedef uint16_t RegList;
 const RegList kAllCpuRegistersList = 0xFFFF;

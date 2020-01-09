@@ -6797,21 +6797,29 @@ void BooleanNegateInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* AllocateObjectInstr::MakeLocationSummary(Zone* zone,
                                                           bool opt) const {
-  return MakeCallSummary(zone);
+  const intptr_t kNumInputs = (type_arguments() != nullptr) ? 1 : 0;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
+  if (type_arguments() != nullptr) {
+    locs->set_in(0,
+                 Location::RegisterLocation(kAllocationStubTypeArgumentsReg));
+  }
+  locs->set_out(0, Location::RegisterLocation(RAX));
+  return locs;
 }
 
 void AllocateObjectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  if (ArgumentCount() == 1) {
+  if (type_arguments() != nullptr) {
     TypeUsageInfo* type_usage_info = compiler->thread()->type_usage_info();
     if (type_usage_info != nullptr) {
       RegisterTypeArgumentsUse(compiler->function(), type_usage_info, cls_,
-                               ArgumentAt(0));
+                               type_arguments()->definition());
     }
   }
   const Code& stub = Code::ZoneHandle(
       compiler->zone(), StubCode::GetAllocationStubForClass(cls()));
   compiler->GenerateCall(token_pos(), stub, RawPcDescriptors::kOther, locs());
-  __ Drop(ArgumentCount());  // Discard arguments.
 }
 
 void DebugStepCheckInstr::EmitNativeCode(FlowGraphCompiler* compiler) {

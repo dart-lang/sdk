@@ -665,11 +665,10 @@ void RelationalOpInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 void AllocateObjectInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s", String::Handle(cls().ScrubbedName()).ToCString());
-  for (intptr_t i = 0; i < ArgumentCount(); i++) {
+  for (intptr_t i = 0; i < InputCount(); ++i) {
     f->Print(", ");
-    ArgumentValueAt(i)->PrintTo(f);
+    InputAt(i)->PrintTo(f);
   }
-
   if (Identity().IsNotAliased()) {
     f->Print(" <not-aliased>");
   }

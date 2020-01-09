@@ -81,6 +81,9 @@ const Register kWriteBarrierObjectReg = EDX;
 const Register kWriteBarrierValueReg = kNoRegister;
 const Register kWriteBarrierSlotReg = EDI;
 
+// ABI for allocation stubs.
+const Register kAllocationStubTypeArgumentsReg = EDX;
+
 typedef uint32_t RegList;
 const RegList kAllCpuRegistersList = 0xFF;
 

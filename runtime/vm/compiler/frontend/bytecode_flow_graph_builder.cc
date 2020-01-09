@@ -1120,11 +1120,7 @@ void BytecodeFlowGraphBuilder::BuildAllocate() {
 
   const Class& klass = Class::Cast(ConstantAt(DecodeOperandD()).value());
 
-  const ArgumentArray arguments =
-      new (Z) ZoneGrowableArray<PushArgumentInstr*>(Z, 0);
-
-  AllocateObjectInstr* allocate =
-      new (Z) AllocateObjectInstr(position_, klass, arguments);
+  AllocateObjectInstr* allocate = new (Z) AllocateObjectInstr(position_, klass);
 
   code_ <<= allocate;
   B->Push(allocate);
@@ -1136,10 +1132,10 @@ void BytecodeFlowGraphBuilder::BuildAllocateT() {
   }
 
   const Class& klass = Class::Cast(PopConstant().value());
-  const ArgumentArray arguments = GetArguments(1);
+  Value* type_arguments = Pop();
 
   AllocateObjectInstr* allocate =
-      new (Z) AllocateObjectInstr(position_, klass, arguments);
+      new (Z) AllocateObjectInstr(position_, klass, type_arguments);
 
   code_ <<= allocate;
   B->Push(allocate);

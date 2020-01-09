@@ -1289,6 +1289,9 @@ void AllocateObjectInstr::AddOperandsToSExpression(
   if (auto const sexp_cls = s->DartValueToSExp(cls())) {
     sexp->Add(sexp_cls);
   }
+  if (type_arguments() != nullptr) {
+    sexp->Add(type_arguments()->ToSExpression(s));
+  }
 }
 
 void AllocateObjectInstr::AddExtraInfoToSExpression(
@@ -1296,9 +1299,6 @@ void AllocateObjectInstr::AddExtraInfoToSExpression(
     FlowGraphSerializer* s) const {
   Instruction::AddExtraInfoToSExpression(sexp, s);
   s->AddExtraInteger(sexp, "size", cls().instance_size());
-  if (ArgumentCount() > 0 || FLAG_verbose_flow_graph_serialization) {
-    s->AddExtraInteger(sexp, "args_len", ArgumentCount());
-  }
   if (auto const closure = s->DartValueToSExp(closure_function())) {
     sexp->AddExtra("closure_function", closure);
   }

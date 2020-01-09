@@ -298,8 +298,8 @@ static void TestAliasingViaRedefinition(
   {
     BlockBuilder builder(H.flow_graph(), b1);
     auto& slot = Slot::Get(field, &H.flow_graph()->parsed_function());
-    v0 = builder.AddDefinition(new AllocateObjectInstr(
-        TokenPosition::kNoSource, cls, new PushArgumentsArray(0)));
+    v0 = builder.AddDefinition(
+        new AllocateObjectInstr(TokenPosition::kNoSource, cls));
     v1 = builder.AddDefinition(
         new LoadFieldInstr(new Value(v0), slot, TokenPosition::kNoSource));
     auto v2 = builder.AddDefinition(make_redefinition(&S, H.flow_graph(), v0));
@@ -474,10 +474,10 @@ static void TestAliasingViaStore(
   {
     BlockBuilder builder(H.flow_graph(), b1);
     auto& slot = Slot::Get(field, &H.flow_graph()->parsed_function());
-    v0 = builder.AddDefinition(new AllocateObjectInstr(
-        TokenPosition::kNoSource, cls, new PushArgumentsArray(0)));
-    v5 = builder.AddDefinition(new AllocateObjectInstr(
-        TokenPosition::kNoSource, cls, new PushArgumentsArray(0)));
+    v0 = builder.AddDefinition(
+        new AllocateObjectInstr(TokenPosition::kNoSource, cls));
+    v5 = builder.AddDefinition(
+        new AllocateObjectInstr(TokenPosition::kNoSource, cls));
     if (!make_host_escape) {
       builder.AddInstruction(new StoreInstanceFieldInstr(
           slot, new Value(v5), new Value(v0), kEmitStoreBarrier,

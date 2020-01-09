@@ -135,6 +135,9 @@ const Register kWriteBarrierObjectReg = R1;
 const Register kWriteBarrierValueReg = R0;
 const Register kWriteBarrierSlotReg = R25;
 
+// ABI for allocation stubs.
+const Register kAllocationStubTypeArgumentsReg = R1;
+
 // Masks, sizes, etc.
 const int kXRegSizeInBits = 64;
 const int kWRegSizeInBits = 32;
