@@ -10,9 +10,9 @@
 
 import 'dart:io';
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:args/args.dart';
@@ -21,74 +21,6 @@ import 'package:path/path.dart' as path;
 
 import 'src/multi_future_tracker.dart';
 import 'src/package.dart';
-
-ArgResults parseArguments(List<String> args) {
-  ArgParser argParser = ArgParser();
-  ArgResults parsedArgs;
-
-  argParser.addFlag('clean',
-      abbr: 'c',
-      defaultsTo: false,
-      help: 'Recursively delete the playground directory before beginning.');
-
-  argParser.addFlag('help', abbr: 'h', help: 'Display options');
-
-  argParser.addFlag('exception_node_only',
-      defaultsTo: false,
-      negatable: true,
-      help: 'Only print the exception node instead of the full stack trace.');
-
-  argParser.addFlag('update',
-      abbr: 'u',
-      defaultsTo: false,
-      negatable: true,
-      help: 'Auto-update fetched packages in the playground.');
-
-  argParser.addOption('sdk',
-      abbr: 's',
-      defaultsTo: path.dirname(path.dirname(Platform.resolvedExecutable)),
-      help: 'Select the root of the SDK to analyze against for this run '
-          '(compiled with --nnbd).  For example: ../../xcodebuild/DebugX64NNBD/dart-sdk');
-
-  argParser.addMultiOption(
-    'git_packages',
-    abbr: 'g',
-    defaultsTo: [],
-    help: 'Shallow-clone the given git repositories into a playground area,'
-        ' run pub get on them, and migrate them.',
-  );
-
-  argParser.addMultiOption(
-    'manual_packages',
-    abbr: 'm',
-    defaultsTo: [],
-    help: 'Run migration against packages in these directories.  Does not '
-        'run pub get, any git commands, or any other preparation.',
-  );
-
-  argParser.addMultiOption(
-    'packages',
-    abbr: 'p',
-    defaultsTo: [],
-    help: 'The list of SDK packages to run the migration against.',
-  );
-
-  try {
-    parsedArgs = argParser.parse(args);
-  } on ArgParserException {
-    stderr.writeln(argParser.usage);
-    exit(1);
-  }
-  if (parsedArgs['help'] as bool) {
-    print(argParser.usage);
-    exit(0);
-  }
-
-  if (parsedArgs.rest.length > 1) {
-    throw 'invalid args. Specify *one* argument to get exceptions of interest.';
-  }
-  return parsedArgs;
-}
 
 main(List<String> args) async {
   ArgResults parsedArgs = parseArguments(args);
@@ -186,6 +118,74 @@ main(List<String> args) async {
     print('\n(Note: to show stack traces & nodes for a particular failure,'
         ' rerun with a search string as an argument.)');
   }
+}
+
+ArgResults parseArguments(List<String> args) {
+  ArgParser argParser = ArgParser();
+  ArgResults parsedArgs;
+
+  argParser.addFlag('clean',
+      abbr: 'c',
+      defaultsTo: false,
+      help: 'Recursively delete the playground directory before beginning.');
+
+  argParser.addFlag('help', abbr: 'h', help: 'Display options');
+
+  argParser.addFlag('exception_node_only',
+      defaultsTo: false,
+      negatable: true,
+      help: 'Only print the exception node instead of the full stack trace.');
+
+  argParser.addFlag('update',
+      abbr: 'u',
+      defaultsTo: false,
+      negatable: true,
+      help: 'Auto-update fetched packages in the playground.');
+
+  argParser.addOption('sdk',
+      abbr: 's',
+      defaultsTo: path.dirname(path.dirname(Platform.resolvedExecutable)),
+      help: 'Select the root of the SDK to analyze against for this run '
+          '(compiled with --nnbd).  For example: ../../xcodebuild/DebugX64NNBD/dart-sdk');
+
+  argParser.addMultiOption(
+    'git_packages',
+    abbr: 'g',
+    defaultsTo: [],
+    help: 'Shallow-clone the given git repositories into a playground area,'
+        ' run pub get on them, and migrate them.',
+  );
+
+  argParser.addMultiOption(
+    'manual_packages',
+    abbr: 'm',
+    defaultsTo: [],
+    help: 'Run migration against packages in these directories.  Does not '
+        'run pub get, any git commands, or any other preparation.',
+  );
+
+  argParser.addMultiOption(
+    'packages',
+    abbr: 'p',
+    defaultsTo: [],
+    help: 'The list of SDK packages to run the migration against.',
+  );
+
+  try {
+    parsedArgs = argParser.parse(args);
+  } on ArgParserException {
+    stderr.writeln(argParser.usage);
+    exit(1);
+  }
+  if (parsedArgs['help'] as bool) {
+    print(argParser.usage);
+    exit(0);
+  }
+
+  if (parsedArgs.rest.length > 1) {
+    throw 'invalid args. Specify *one* argument to get exceptions of interest.';
+  }
+  return parsedArgs;
 }
 
 void printWarning(String warn) {
