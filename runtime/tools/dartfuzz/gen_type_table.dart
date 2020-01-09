@@ -986,7 +986,7 @@ void getOperators(Set<InterfaceType> allTypes) {
       continue;
     }
     for (ConstructorElement constructor in tp.constructors) {
-      if (constructor.name.startsWith('_')) continue;
+      if (shouldFilterConstructor(tp, constructor)) continue;
       List<String> params = new List<String>();
       bool canConstruct = true;
       for (var p in constructor.parameters) {
@@ -1011,6 +1011,20 @@ void getOperators(Set<InterfaceType> allTypes) {
   // Removed redundant specialized parameter types.
   // E.g. if num is already contained remove bool and int.
   filterOperators(allTypes);
+}
+
+bool shouldFilterConstructor(InterfaceType tp, ConstructorElement cons) {
+  // Filter private constructors.
+  if (cons.name.startsWith('_')) {
+    return true;
+  }
+  // Constructor blacklist
+  // TODO(bkonyi): Enable Float32x4.fromInt32x4Bits after we resolve
+  // https://github.com/dart-lang/sdk/issues/39890
+  if ((tp.displayName == 'Float32x4') && (cons.name == 'fromInt32x4Bits')) {
+    return true;
+  }
+  return false;
 }
 
 // Analyze types to extract element and subscript relations
