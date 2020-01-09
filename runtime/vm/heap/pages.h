@@ -471,6 +471,12 @@ class PageSpace {
                                HeapPage::PageType type,
                                GrowthPolicy growth_policy,
                                bool is_locked);
+  uword TryAllocateInFreshLargePage(intptr_t size,
+                                    HeapPage::PageType type,
+                                    GrowthPolicy growth_policy);
+
+  void EvaluateConcurrentMarking(GrowthPolicy growth_policy);
+
   // Makes bump block walkable; do not call concurrently with mutator.
   void MakeIterable() const;
   HeapPage* AllocatePage(HeapPage::PageType type, bool link = true);

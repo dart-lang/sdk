@@ -425,10 +425,7 @@ void PageSpace::FreePages(HeapPage* pages) {
   }
 }
 
-uword PageSpace::TryAllocateInFreshPage(intptr_t size,
-                                        HeapPage::PageType type,
-                                        GrowthPolicy growth_policy,
-                                        bool is_locked) {
+void PageSpace::EvaluateConcurrentMarking(GrowthPolicy growth_policy) {
   if (growth_policy != kForceGrowth) {
     if (heap_ != NULL) {  // Some unit tests.
       Thread* thread = Thread::Current();
@@ -438,8 +435,16 @@ uword PageSpace::TryAllocateInFreshPage(intptr_t size,
       }
     }
   }
+}
 
+uword PageSpace::TryAllocateInFreshPage(intptr_t size,
+                                        HeapPage::PageType type,
+                                        GrowthPolicy growth_policy,
+                                        bool is_locked) {
   ASSERT(size < kAllocatablePageSize);
+
+  EvaluateConcurrentMarking(growth_policy);
+
   uword result = 0;
   SpaceUsage after_allocation = GetCurrentUsage();
   after_allocation.used_in_words += size >> kWordSizeLog2;
@@ -469,6 +474,35 @@ uword PageSpace::TryAllocateInFreshPage(intptr_t size,
   return result;
 }
 
+uword PageSpace::TryAllocateInFreshLargePage(intptr_t size,
+                                             HeapPage::PageType type,
+                                             GrowthPolicy growth_policy) {
+  ASSERT(size >= kAllocatablePageSize);
+
+  EvaluateConcurrentMarking(growth_policy);
+
+  intptr_t page_size_in_words = LargePageSizeInWordsFor(size);
+  if ((page_size_in_words << kWordSizeLog2) < size) {
+    // On overflow we fail to allocate.
+    return 0;
+  }
+
+  uword result = 0;
+  SpaceUsage after_allocation = GetCurrentUsage();
+  after_allocation.used_in_words += size >> kWordSizeLog2;
+  after_allocation.capacity_in_words += page_size_in_words;
+  if (growth_policy == kForceGrowth ||
+      !page_space_controller_.NeedsGarbageCollection(after_allocation)) {
+    HeapPage* page = AllocateLargePage(size, type);
+    if (page != NULL) {
+      result = page->object_start();
+      // Note: usage_.capacity_in_words is increased by AllocateLargePage.
+      usage_.used_in_words += (size >> kWordSizeLog2);
+    }
+  }
+  return result;
+}
+
 uword PageSpace::TryAllocateInternal(intptr_t size,
                                      HeapPage::PageType type,
                                      GrowthPolicy growth_policy,
@@ -490,24 +524,8 @@ uword PageSpace::TryAllocateInternal(intptr_t size,
       usage_.used_in_words += (size >> kWordSizeLog2);
     }
   } else {
-    // Large page allocation.
-    intptr_t page_size_in_words = LargePageSizeInWordsFor(size);
-    if ((page_size_in_words << kWordSizeLog2) < size) {
-      // On overflow we fail to allocate.
-      return 0;
-    }
-    SpaceUsage after_allocation = GetCurrentUsage();
-    after_allocation.used_in_words += size >> kWordSizeLog2;
-    after_allocation.capacity_in_words += page_size_in_words;
-    if (growth_policy == kForceGrowth ||
-        !page_space_controller_.NeedsGarbageCollection(after_allocation)) {
-      HeapPage* page = AllocateLargePage(size, type);
-      if (page != NULL) {
-        result = page->object_start();
-        // Note: usage_.capacity_in_words is increased by AllocateLargePage.
-        usage_.used_in_words += (size >> kWordSizeLog2);
-      }
-    }
+    result = TryAllocateInFreshLargePage(size, type, growth_policy);
+    // usage_ is updated by the call above.
   }
   ASSERT((result & kObjectAlignmentMask) == kOldObjectAlignmentOffset);
   return result;
