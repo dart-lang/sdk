@@ -17,8 +17,8 @@ class AddRequiredKeyword extends _NestableChange {
       : super(inner);
 
   @override
-  EditPlan apply(AstNode node, EditPlan Function(AstNode) gather) {
-    var innerPlan = _inner.apply(node, gather);
+  EditPlan apply(AstNode node, FixAggregator aggregator) {
+    var innerPlan = _inner.apply(node, aggregator);
     return EditPlan.surround(innerPlan,
         prefix: [const InsertText('required ')]);
   }
@@ -36,22 +36,9 @@ class FixAggregator extends UnifyingAstVisitor<void> {
 
   FixAggregator._(this._changes);
 
-  @override
-  void visitNode(AstNode node) {
-    var change = _changes[node];
-    if (change != null) {
-      var innerPlan = change.apply(node, _gather);
-      if (innerPlan != null) {
-        _plans.add(innerPlan);
-      }
-    } else {
-      node.visitChildren(this);
-    }
-  }
-
   /// Gathers all the changes to nodes descended from [node] into a single
   /// [EditPlan].
-  EditPlan _gather(AstNode node) {
+  EditPlan innerPlanForNode(AstNode node) {
     var previousPlans = _plans;
     try {
       _plans = [];
@@ -59,6 +46,19 @@ class FixAggregator extends UnifyingAstVisitor<void> {
       return EditPlan.passThrough(node, innerPlans: _plans);
     } finally {
       _plans = previousPlans;
+    }
+  }
+
+  @override
+  void visitNode(AstNode node) {
+    var change = _changes[node];
+    if (change != null) {
+      var innerPlan = change.apply(node, this);
+      if (innerPlan != null) {
+        _plans.add(innerPlan);
+      }
+    } else {
+      node.visitChildren(this);
     }
   }
 
@@ -91,8 +91,8 @@ class IntroduceAs extends _NestableChange {
       : super(inner);
 
   @override
-  EditPlan apply(AstNode node, EditPlan Function(AstNode) gather) {
-    var innerPlan = _inner.apply(node, gather);
+  EditPlan apply(AstNode node, FixAggregator aggregator) {
+    var innerPlan = _inner.apply(node, aggregator);
     return EditPlan.surround(innerPlan,
         suffix: [InsertText(' as $type')],
         outerPrecedence: Precedence.relational,
@@ -109,8 +109,8 @@ class MakeNullable extends _NestableChange {
   const MakeNullable([NodeChange inner = const NoChange()]) : super(inner);
 
   @override
-  EditPlan apply(AstNode node, EditPlan Function(AstNode) gather) {
-    var innerPlan = _inner.apply(node, gather);
+  EditPlan apply(AstNode node, FixAggregator aggregator) {
+    var innerPlan = _inner.apply(node, aggregator);
     return EditPlan.surround(innerPlan, suffix: [const InsertText('?')]);
   }
 }
@@ -122,8 +122,8 @@ class NoChange extends NodeChange {
   const NoChange();
 
   @override
-  EditPlan apply(AstNode node, EditPlan Function(AstNode) gather) {
-    return gather(node);
+  EditPlan apply(AstNode node, FixAggregator aggregator) {
+    return aggregator.innerPlanForNode(node);
   }
 }
 
@@ -133,15 +133,15 @@ abstract class NodeChange {
   const NodeChange();
 
   /// Applies this change to the given [node], producing an [EditPlan].  The
-  /// [gather] callback is used to gather up any edits to the node's descendants
-  /// into their own [EditPlan].
+  /// [aggregator] may be used to gather up any edits to the node's descendants
+  /// into their own [EditPlan]s.
   ///
   /// Note: the reason the caller can't just gather up the edits and pass them
   /// in is that some changes don't preserve all of the structure of the nodes
   /// below them (e.g. dropping an unnecessary cast), so those changes need to
-  /// be able to call [gather] just on the nodes they need.
-  /// TODO(paulberry): can we just do the gather prior to the call?
-  EditPlan apply(AstNode node, EditPlan Function(AstNode) gather);
+  /// be able to call the appropriate [aggregator] methods just on the nodes
+  /// they need.
+  EditPlan apply(AstNode node, FixAggregator aggregator);
 }
 
 /// Implementation of [NodeChange] representing the addition of a null check to
@@ -153,8 +153,8 @@ class NullCheck extends _NestableChange {
   const NullCheck([NodeChange inner = const NoChange()]) : super(inner);
 
   @override
-  EditPlan apply(AstNode node, EditPlan Function(AstNode) gather) {
-    var innerPlan = _inner.apply(node, gather);
+  EditPlan apply(AstNode node, FixAggregator aggregator) {
+    var innerPlan = _inner.apply(node, aggregator);
     return EditPlan.surround(innerPlan,
         suffix: [const InsertText('!')],
         outerPrecedence: Precedence.postfix,
@@ -172,9 +172,9 @@ class RemoveAs extends _NestableChange {
   const RemoveAs([NodeChange inner = const NoChange()]) : super(inner);
 
   @override
-  EditPlan apply(AstNode node, EditPlan Function(AstNode) gather) {
+  EditPlan apply(AstNode node, FixAggregator aggregator) {
     return EditPlan.extract(
-        node, _inner.apply((node as AsExpression).expression, gather));
+        node, _inner.apply((node as AsExpression).expression, aggregator));
   }
 }
 
