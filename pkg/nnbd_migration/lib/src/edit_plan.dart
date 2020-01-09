@@ -68,90 +68,7 @@ abstract class EditPlan {
   /// The AST node to which the edit plan applies.
   final AstNode sourceNode;
 
-  EditPlan(this.sourceNode);
-
-  /// Creates a new edit plan that consists of executing [innerPlan], and then
-  /// removing from the source code any code that is in [sourceNode] but not in
-  /// [innerPlan.sourceNode].  This is intended to be used to drop unnecessary
-  /// syntax (for example, to drop an unnecessary cast).
-  ///
-  /// If no changes are required to the AST node that is being extracted, the
-  /// caller may create innerPlan using [EditPlan.passThrough].
-  ///
-  /// [innerPlan] will be finalized as a side effect (either immediately or when
-  /// the newly created plan is finalized), so it should not be re-used by the
-  /// caller.
-  factory EditPlan.extract(AstNode sourceNode, EditPlan innerPlan) {
-    innerPlan = innerPlan._incorporateParenParentIfPresent(sourceNode);
-    return _ExtractEditPlan(sourceNode, innerPlan);
-  }
-
-  /// Creates a new edit plan that makes no changes to [node], but may make
-  /// changes to some of its descendants (specified via [innerPlans]).
-  ///
-  /// All plans in [innerPlans] will be finalized as a side effect (either
-  /// immediately or when the newly created plan is finalized), so they should
-  /// not be re-used by the caller.
-  factory EditPlan.passThrough(AstNode node,
-      {Iterable<EditPlan> innerPlans = const []}) {
-    if (node is ParenthesizedExpression) {
-      return _ProvisionalParenEditPlan(
-          node, _PassThroughEditPlan(node.expression, innerPlans: innerPlans));
-    } else {
-      return _PassThroughEditPlan(node, innerPlans: innerPlans);
-    }
-  }
-
-  /// Creates a new edit plan that consists of executing [innerPlan], and then
-  /// surrounding it with [prefix] and [suffix] text.  This could be used, for
-  /// example, to add a cast.
-  ///
-  /// If the edit plan is going to be used in a context where an expression is
-  /// expected, additional arguments should be provided to control the behavior
-  /// of parentheses insertion and deletion: [outerPrecedence] indicates the
-  /// precedence of the resulting expression.  [innerPrecedence] indicates the
-  /// precedence that is required for [innerPlan].  [associative] indicates
-  /// whether it is allowed for [innerPlan]'s precedence to match
-  /// [innerPrecedence].  [allowCascade] indicates whether [innerPlan] can end
-  /// in a cascade section without requiring parentheses.  [endsInCascade]
-  /// indicates whether the resulting plan will end in a cascade.
-  ///
-  /// So, for example, if it is desired to append the suffix ` + foo` to an
-  /// expression, specify `Precedence.additive` for [outerPrecedence] and
-  /// [innerPrecedence], and `true` for [associative] (since addition associates
-  /// to the left).
-  ///
-  /// Note that [endsInCascade] is ignored if there is no [suffix] (since in
-  /// this situation, whether the final plan ends in a cascade section will be
-  /// determined by [innerPlan]).
-  factory EditPlan.surround(EditPlan innerPlan,
-      {List<InsertText> prefix,
-      List<InsertText> suffix,
-      Precedence outerPrecedence = Precedence.primary,
-      Precedence innerPrecedence = Precedence.none,
-      bool associative = false,
-      bool allowCascade = false,
-      bool endsInCascade = false}) {
-    var parensNeeded = innerPlan._parensNeeded(
-        threshold: innerPrecedence,
-        associative: associative,
-        allowCascade: allowCascade);
-    var innerChanges =
-        innerPlan._getChanges(parensNeeded) ?? <int, List<AtomicEdit>>{};
-    if (prefix != null) {
-      (innerChanges[innerPlan.sourceNode.offset] ??= []).insertAll(0, prefix);
-    }
-    if (suffix != null) {
-      (innerChanges[innerPlan.sourceNode.end] ??= []).addAll(suffix);
-    }
-    return _SimpleEditPlan(
-        innerPlan.sourceNode,
-        outerPrecedence,
-        suffix == null
-            ? innerPlan.endsInCascade && !parensNeeded
-            : endsInCascade,
-        innerChanges);
-  }
+  EditPlan._(this.sourceNode);
 
   /// If the result of executing this [EditPlan] will be an expression,
   /// indicates whether the expression will end in an unparenthesized cascade.
@@ -231,6 +148,92 @@ abstract class EditPlan {
       {@required Precedence threshold,
       bool associative = false,
       bool allowCascade = false});
+}
+
+/// Factory class for creating [EditPlan]s.
+class EditPlanner {
+  /// Creates a new edit plan that consists of executing [innerPlan], and then
+  /// removing from the source code any code that is in [sourceNode] but not in
+  /// [innerPlan.sourceNode].  This is intended to be used to drop unnecessary
+  /// syntax (for example, to drop an unnecessary cast).
+  ///
+  /// If no changes are required to the AST node that is being extracted, the
+  /// caller may create innerPlan using [EditPlan.passThrough].
+  ///
+  /// [innerPlan] will be finalized as a side effect (either immediately or when
+  /// the newly created plan is finalized), so it should not be re-used by the
+  /// caller.
+  EditPlan extract(AstNode sourceNode, EditPlan innerPlan) {
+    innerPlan = innerPlan._incorporateParenParentIfPresent(sourceNode);
+    return _ExtractEditPlan(sourceNode, innerPlan);
+  }
+
+  /// Creates a new edit plan that makes no changes to [node], but may make
+  /// changes to some of its descendants (specified via [innerPlans]).
+  ///
+  /// All plans in [innerPlans] will be finalized as a side effect (either
+  /// immediately or when the newly created plan is finalized), so they should
+  /// not be re-used by the caller.
+  EditPlan passThrough(AstNode node,
+      {Iterable<EditPlan> innerPlans = const []}) {
+    if (node is ParenthesizedExpression) {
+      return _ProvisionalParenEditPlan(
+          node, _PassThroughEditPlan(node.expression, innerPlans: innerPlans));
+    } else {
+      return _PassThroughEditPlan(node, innerPlans: innerPlans);
+    }
+  }
+
+  /// Creates a new edit plan that consists of executing [innerPlan], and then
+  /// surrounding it with [prefix] and [suffix] text.  This could be used, for
+  /// example, to add a cast.
+  ///
+  /// If the edit plan is going to be used in a context where an expression is
+  /// expected, additional arguments should be provided to control the behavior
+  /// of parentheses insertion and deletion: [outerPrecedence] indicates the
+  /// precedence of the resulting expression.  [innerPrecedence] indicates the
+  /// precedence that is required for [innerPlan].  [associative] indicates
+  /// whether it is allowed for [innerPlan]'s precedence to match
+  /// [innerPrecedence].  [allowCascade] indicates whether [innerPlan] can end
+  /// in a cascade section without requiring parentheses.  [endsInCascade]
+  /// indicates whether the resulting plan will end in a cascade.
+  ///
+  /// So, for example, if it is desired to append the suffix ` + foo` to an
+  /// expression, specify `Precedence.additive` for [outerPrecedence] and
+  /// [innerPrecedence], and `true` for [associative] (since addition associates
+  /// to the left).
+  ///
+  /// Note that [endsInCascade] is ignored if there is no [suffix] (since in
+  /// this situation, whether the final plan ends in a cascade section will be
+  /// determined by [innerPlan]).
+  EditPlan surround(EditPlan innerPlan,
+      {List<InsertText> prefix,
+      List<InsertText> suffix,
+      Precedence outerPrecedence = Precedence.primary,
+      Precedence innerPrecedence = Precedence.none,
+      bool associative = false,
+      bool allowCascade = false,
+      bool endsInCascade = false}) {
+    var parensNeeded = innerPlan._parensNeeded(
+        threshold: innerPrecedence,
+        associative: associative,
+        allowCascade: allowCascade);
+    var innerChanges =
+        innerPlan._getChanges(parensNeeded) ?? <int, List<AtomicEdit>>{};
+    if (prefix != null) {
+      (innerChanges[innerPlan.sourceNode.offset] ??= []).insertAll(0, prefix);
+    }
+    if (suffix != null) {
+      (innerChanges[innerPlan.sourceNode.end] ??= []).addAll(suffix);
+    }
+    return _SimpleEditPlan(
+        innerPlan.sourceNode,
+        outerPrecedence,
+        suffix == null
+            ? innerPlan.endsInCascade && !parensNeeded
+            : endsInCascade,
+        innerChanges);
+  }
 }
 
 /// Implementation of [AtomicEdit] that inserts a string of new text.
@@ -316,7 +319,7 @@ class _ExtractEditPlan extends _NestedEditPlan {
 abstract class _NestedEditPlan extends EditPlan {
   final EditPlan innerPlan;
 
-  _NestedEditPlan(AstNode sourceNode, this.innerPlan) : super(sourceNode);
+  _NestedEditPlan(AstNode sourceNode, this.innerPlan) : super._(sourceNode);
 
   @override
   bool get endsInCascade => innerPlan.endsInCascade;
@@ -631,7 +634,7 @@ class _SimpleEditPlan extends EditPlan {
 
   _SimpleEditPlan(
       AstNode node, this._precedence, this.endsInCascade, this._innerChanges)
-      : super(node);
+      : super._(node);
 
   @override
   Map<int, List<AtomicEdit>> _getChanges(bool parens) {

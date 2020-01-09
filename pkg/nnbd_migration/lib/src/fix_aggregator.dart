@@ -19,8 +19,8 @@ class AddRequiredKeyword extends _NestableChange {
   @override
   EditPlan apply(AstNode node, FixAggregator aggregator) {
     var innerPlan = _inner.apply(node, aggregator);
-    return EditPlan.surround(innerPlan,
-        prefix: [const InsertText('required ')]);
+    return aggregator.planner
+        .surround(innerPlan, prefix: [const InsertText('required ')]);
   }
 }
 
@@ -34,7 +34,9 @@ class FixAggregator extends UnifyingAstVisitor<void> {
   /// The set of [EditPlan]s being accumulated.
   List<EditPlan> _plans = [];
 
-  FixAggregator._(this._changes);
+  final EditPlanner planner;
+
+  FixAggregator._(this.planner, this._changes);
 
   /// Gathers all the changes to nodes descended from [node] into a single
   /// [EditPlan].
@@ -43,7 +45,7 @@ class FixAggregator extends UnifyingAstVisitor<void> {
     try {
       _plans = [];
       node.visitChildren(this);
-      return EditPlan.passThrough(node, innerPlans: _plans);
+      return planner.passThrough(node, innerPlans: _plans);
     } finally {
       _plans = previousPlans;
     }
@@ -65,14 +67,15 @@ class FixAggregator extends UnifyingAstVisitor<void> {
   /// Runs the [FixAggregator] on a [unit] and returns the resulting edits.
   static Map<int, List<AtomicEdit>> run(
       CompilationUnit unit, Map<AstNode, NodeChange> changes) {
-    var aggregator = FixAggregator._(changes);
+    var planner = EditPlanner();
+    var aggregator = FixAggregator._(planner, changes);
     unit.accept(aggregator);
     if (aggregator._plans.isEmpty) return {};
     EditPlan plan;
     if (aggregator._plans.length == 1) {
       plan = aggregator._plans[0];
     } else {
-      plan = EditPlan.passThrough(unit, innerPlans: aggregator._plans);
+      plan = planner.passThrough(unit, innerPlans: aggregator._plans);
     }
     return plan.finalize();
   }
@@ -93,7 +96,7 @@ class IntroduceAs extends _NestableChange {
   @override
   EditPlan apply(AstNode node, FixAggregator aggregator) {
     var innerPlan = _inner.apply(node, aggregator);
-    return EditPlan.surround(innerPlan,
+    return aggregator.planner.surround(innerPlan,
         suffix: [InsertText(' as $type')],
         outerPrecedence: Precedence.relational,
         innerPrecedence: Precedence.relational);
@@ -111,7 +114,8 @@ class MakeNullable extends _NestableChange {
   @override
   EditPlan apply(AstNode node, FixAggregator aggregator) {
     var innerPlan = _inner.apply(node, aggregator);
-    return EditPlan.surround(innerPlan, suffix: [const InsertText('?')]);
+    return aggregator.planner
+        .surround(innerPlan, suffix: [const InsertText('?')]);
   }
 }
 
@@ -155,7 +159,7 @@ class NullCheck extends _NestableChange {
   @override
   EditPlan apply(AstNode node, FixAggregator aggregator) {
     var innerPlan = _inner.apply(node, aggregator);
-    return EditPlan.surround(innerPlan,
+    return aggregator.planner.surround(innerPlan,
         suffix: [const InsertText('!')],
         outerPrecedence: Precedence.postfix,
         innerPrecedence: Precedence.postfix,
@@ -173,7 +177,7 @@ class RemoveAs extends _NestableChange {
 
   @override
   EditPlan apply(AstNode node, FixAggregator aggregator) {
-    return EditPlan.extract(
+    return aggregator.planner.extract(
         node, _inner.apply((node as AsExpression).expression, aggregator));
   }
 }

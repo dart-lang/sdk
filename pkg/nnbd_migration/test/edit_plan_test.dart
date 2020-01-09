@@ -23,6 +23,8 @@ main() {
 class EditPlanTest extends AbstractSingleUnitTest {
   String code;
 
+  final planner = EditPlanner();
+
   Future<void> analyze(String code) async {
     this.code = code;
     await resolveTestUnit(code);
@@ -33,7 +35,7 @@ class EditPlanTest extends AbstractSingleUnitTest {
   }
 
   EditPlan extract(AstNode inner, AstNode outer) =>
-      EditPlan.extract(outer, EditPlan.passThrough(inner));
+      planner.extract(outer, planner.passThrough(inner));
 
   Future<void> test_cascadeSearchLimit() async {
     // Ok, we have to ask each parent if it represents a cascade section.
@@ -49,26 +51,26 @@ class EditPlanTest extends AbstractSingleUnitTest {
     assert(identical(innerAssignment, one.parent));
     // The tests below will be based on an inner plan that adds `..isEven` after
     // the `1`.
-    EditPlan makeInnerPlan() => EditPlan.surround(EditPlan.passThrough(one),
+    EditPlan makeInnerPlan() => planner.surround(planner.passThrough(one),
         suffix: [InsertText('..isEven')], endsInCascade: true);
     {
       // If we make a plan that passes through `c = 1`, containing a plan that
       // adds `..isEven` to `1`, then we don't necessarily want to add parens yet,
       // because we might not keep the cascade section above it.
       var plan =
-          EditPlan.passThrough(innerAssignment, innerPlans: [makeInnerPlan()]);
+          planner.passThrough(innerAssignment, innerPlans: [makeInnerPlan()]);
       // `endsInCascade` returns true because we haven't committed to adding
       // parens, so we need to remember that the presence of `..isEven` may
       // require parens later.
       expect(plan.endsInCascade, true);
-      checkPlan(EditPlan.extract(cascade, plan), 'f(a, c) => c = 1..isEven;');
+      checkPlan(planner.extract(cascade, plan), 'f(a, c) => c = 1..isEven;');
     }
     {
       // If we make a plan that passes through `..b = c = 1`, containing a plan
       // that adds `..isEven` to `1`, then we do necessarily want to add parens,
       // because we're committed to keeping the cascade section.
       var plan =
-          EditPlan.passThrough(outerAssignment, innerPlans: [makeInnerPlan()]);
+          planner.passThrough(outerAssignment, innerPlans: [makeInnerPlan()]);
       // We can tell that the parens have been finalized because `endsInCascade`
       // returns false now.
       expect(plan.endsInCascade, false);
@@ -130,7 +132,7 @@ class EditPlanTest extends AbstractSingleUnitTest {
     // compilation unit is an AstNode with no parent).
     await analyze('var x = 0;');
     checkPlan(
-        EditPlan.surround(EditPlan.passThrough(testUnit),
+        planner.surround(planner.passThrough(testUnit),
             suffix: [InsertText(' var y = 0;')]),
         'var x = 0; var y = 0;');
   }
@@ -138,11 +140,11 @@ class EditPlanTest extends AbstractSingleUnitTest {
   Future<void> test_surround_allowCascade() async {
     await analyze('f(x) => 1..isEven;');
     checkPlan(
-        EditPlan.surround(EditPlan.passThrough(findNode.cascade('..')),
+        planner.surround(planner.passThrough(findNode.cascade('..')),
             prefix: [InsertText('x..y = ')]),
         'f(x) => x..y = (1..isEven);');
     checkPlan(
-        EditPlan.surround(EditPlan.passThrough(findNode.cascade('..')),
+        planner.surround(planner.passThrough(findNode.cascade('..')),
             prefix: [InsertText('x = ')], allowCascade: true),
         'f(x) => x = 1..isEven;');
   }
@@ -150,13 +152,13 @@ class EditPlanTest extends AbstractSingleUnitTest {
   Future<void> test_surround_associative() async {
     await analyze('var x = 1 - 2;');
     checkPlan(
-        EditPlan.surround(EditPlan.passThrough(findNode.binary('-')),
+        planner.surround(planner.passThrough(findNode.binary('-')),
             suffix: [InsertText(' - 3')],
             innerPrecedence: Precedence.additive,
             associative: true),
         'var x = 1 - 2 - 3;');
     checkPlan(
-        EditPlan.surround(EditPlan.passThrough(findNode.binary('-')),
+        planner.surround(planner.passThrough(findNode.binary('-')),
             prefix: [InsertText('0 - ')], innerPrecedence: Precedence.additive),
         'var x = 0 - (1 - 2);');
   }
@@ -164,11 +166,11 @@ class EditPlanTest extends AbstractSingleUnitTest {
   Future<void> test_surround_endsInCascade() async {
     await analyze('f(x) => x..y = 1;');
     checkPlan(
-        EditPlan.surround(EditPlan.passThrough(findNode.integerLiteral('1')),
+        planner.surround(planner.passThrough(findNode.integerLiteral('1')),
             suffix: [InsertText(' + 2')]),
         'f(x) => x..y = 1 + 2;');
     checkPlan(
-        EditPlan.surround(EditPlan.passThrough(findNode.integerLiteral('1')),
+        planner.surround(planner.passThrough(findNode.integerLiteral('1')),
             suffix: [InsertText('..isEven')], endsInCascade: true),
         'f(x) => x..y = (1..isEven);');
   }
@@ -177,16 +179,16 @@ class EditPlanTest extends AbstractSingleUnitTest {
       test_surround_endsInCascade_does_not_propagate_through_added_parens() async {
     await analyze('f(a) => a..b = 0;');
     checkPlan(
-        EditPlan.surround(
-            EditPlan.surround(EditPlan.passThrough(findNode.cascade('..')),
+        planner.surround(
+            planner.surround(planner.passThrough(findNode.cascade('..')),
                 prefix: [InsertText('1 + ')],
                 innerPrecedence: Precedence.additive),
             prefix: [InsertText('true ? ')],
             suffix: [InsertText(' : 2')]),
         'f(a) => true ? 1 + (a..b = 0) : 2;');
     checkPlan(
-        EditPlan.surround(
-            EditPlan.surround(EditPlan.passThrough(findNode.cascade('..')),
+        planner.surround(
+            planner.surround(planner.passThrough(findNode.cascade('..')),
                 prefix: [InsertText('throw ')], allowCascade: true),
             prefix: [InsertText('true ? ')],
             suffix: [InsertText(' : 2')]),
@@ -196,7 +198,7 @@ class EditPlanTest extends AbstractSingleUnitTest {
   Future<void> test_surround_endsInCascade_internal_throw() async {
     await analyze('f(x, g) => g(0, throw x, 1);');
     checkPlan(
-        EditPlan.surround(EditPlan.passThrough(findNode.simple('x, 1')),
+        planner.surround(planner.passThrough(findNode.simple('x, 1')),
             suffix: [InsertText('..y')], endsInCascade: true),
         'f(x, g) => g(0, throw x..y, 1);');
   }
@@ -204,18 +206,16 @@ class EditPlanTest extends AbstractSingleUnitTest {
   Future<void> test_surround_endsInCascade_propagates() async {
     await analyze('f(a) => a..b = 0;');
     checkPlan(
-        EditPlan.surround(
-            EditPlan.surround(EditPlan.passThrough(findNode.cascade('..')),
+        planner.surround(
+            planner.surround(planner.passThrough(findNode.cascade('..')),
                 prefix: [InsertText('throw ')], allowCascade: true),
             prefix: [InsertText('true ? ')],
             suffix: [InsertText(' : 2')]),
         'f(a) => true ? (throw a..b = 0) : 2;');
     checkPlan(
-        EditPlan.surround(
-            EditPlan.surround(
-                EditPlan.passThrough(findNode.integerLiteral('0')),
-                prefix: [InsertText('throw ')],
-                allowCascade: true),
+        planner.surround(
+            planner.surround(planner.passThrough(findNode.integerLiteral('0')),
+                prefix: [InsertText('throw ')], allowCascade: true),
             prefix: [InsertText('true ? ')],
             suffix: [InsertText(' : 2')]),
         'f(a) => a..b = true ? throw 0 : 2;');
@@ -224,12 +224,12 @@ class EditPlanTest extends AbstractSingleUnitTest {
   Future<void> test_surround_precedence() async {
     await analyze('var x = 1 == true;');
     checkPlan(
-        EditPlan.surround(EditPlan.passThrough(findNode.integerLiteral('1')),
+        planner.surround(planner.passThrough(findNode.integerLiteral('1')),
             suffix: [InsertText(' < 2')],
             outerPrecedence: Precedence.relational),
         'var x = 1 < 2 == true;');
     checkPlan(
-        EditPlan.surround(EditPlan.passThrough(findNode.integerLiteral('1')),
+        planner.surround(planner.passThrough(findNode.integerLiteral('1')),
             suffix: [InsertText(' == 2')],
             outerPrecedence: Precedence.equality),
         'var x = (1 == 2) == true;');
@@ -238,7 +238,7 @@ class EditPlanTest extends AbstractSingleUnitTest {
   Future<void> test_surround_prefix() async {
     await analyze('var x = 1;');
     checkPlan(
-        EditPlan.surround(EditPlan.passThrough(findNode.integerLiteral('1')),
+        planner.surround(planner.passThrough(findNode.integerLiteral('1')),
             prefix: [InsertText('throw ')]),
         'var x = throw 1;');
   }
@@ -246,7 +246,7 @@ class EditPlanTest extends AbstractSingleUnitTest {
   Future<void> test_surround_suffix() async {
     await analyze('var x = 1;');
     checkPlan(
-        EditPlan.surround(EditPlan.passThrough(findNode.integerLiteral('1')),
+        planner.surround(planner.passThrough(findNode.integerLiteral('1')),
             suffix: [InsertText('..isEven')]),
         'var x = 1..isEven;');
   }
@@ -254,12 +254,12 @@ class EditPlanTest extends AbstractSingleUnitTest {
   Future<void> test_surround_threshold() async {
     await analyze('var x = 1 < 2;');
     checkPlan(
-        EditPlan.surround(EditPlan.passThrough(findNode.binary('<')),
+        planner.surround(planner.passThrough(findNode.binary('<')),
             suffix: [InsertText(' == true')],
             innerPrecedence: Precedence.equality),
         'var x = 1 < 2 == true;');
     checkPlan(
-        EditPlan.surround(EditPlan.passThrough(findNode.binary('<')),
+        planner.surround(planner.passThrough(findNode.binary('<')),
             suffix: [InsertText(' as bool')],
             innerPrecedence: Precedence.relational),
         'var x = (1 < 2) as bool;');
@@ -292,10 +292,10 @@ class EndsInCascadeTest extends AbstractSingleUnitTest {
 ///
 /// The way these tests operate is as follows: we have several short snippets of
 /// Dart code exercising Dart syntax with no unnecessary parentheses.  We
-/// recursively visit the AST of each snippet and use [EditPlan.passThrough] to
-/// create an edit plan based on each AST node.  Then we use
-/// [EditPlan.parensNeededFromContext] to check whether parentheses are needed
-/// around each node, and assert that the result agrees with the set of
+/// recursively visit the AST of each snippet and use [EditPlanner.passThrough]
+/// to create an edit plan based on each AST node.  Then we use
+/// [EditPlanner.parensNeededFromContext] to check whether parentheses are
+/// needed around each node, and assert that the result agrees with the set of
 /// parentheses that are actually present.
 @reflectiveTest
 class PrecedenceTest extends AbstractSingleUnitTest {
@@ -420,15 +420,17 @@ g(a, c) => a..b = throw (c..d);
 }
 
 class _PrecedenceChecker extends UnifyingAstVisitor<void> {
+  final planner = EditPlanner();
+
   @override
   void visitNode(AstNode node) {
-    expect(EditPlan.passThrough(node).parensNeededFromContext(null), false);
+    expect(planner.passThrough(node).parensNeededFromContext(null), false);
     node.visitChildren(this);
   }
 
   @override
   void visitParenthesizedExpression(ParenthesizedExpression node) {
-    expect(EditPlan.passThrough(node).parensNeededFromContext(null), true);
+    expect(planner.passThrough(node).parensNeededFromContext(null), true);
     node.expression.visitChildren(this);
   }
 }
