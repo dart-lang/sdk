@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 
@@ -69,12 +70,12 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   bool hasReturnTypeDouble(AstNode node) {
     if (node is FunctionExpression) {
-      var functDeclaration = node.parent;
-      if (functDeclaration is FunctionDeclaration) {
-        return functDeclaration.returnType?.type?.name == 'double';
+      final functionDeclaration = node.parent;
+      if (functionDeclaration is FunctionDeclaration) {
+        return _isDartCoreDoubleTypeAnnotation(functionDeclaration.returnType);
       }
     } else if (node is MethodDeclaration) {
-      return node.returnType?.type?.name == 'double';
+      return _isDartCoreDoubleTypeAnnotation(node.returnType);
     }
     return false;
   }
@@ -82,15 +83,15 @@ class _Visitor extends SimpleAstVisitor<void> {
   bool hasTypeDouble(Expression expression) {
     final parent = expression.parent;
     if (parent is ArgumentList) {
-      return expression.staticParameterElement?.type?.name == 'double';
+      return _isDartCoreDouble(expression.staticParameterElement?.type);
     } else if (parent is ListLiteral) {
       final typeArguments = parent.typeArguments?.arguments;
       return typeArguments?.length == 1 &&
-          typeArguments[0]?.type?.name == 'double';
+          _isDartCoreDoubleTypeAnnotation(typeArguments[0]);
     } else if (parent is NamedExpression) {
       final argList = parent.parent;
       if (argList is ArgumentList) {
-        return parent.staticParameterElement?.type?.name == 'double';
+        return _isDartCoreDouble(parent.staticParameterElement?.type);
       }
     } else if (parent is ExpressionFunctionBody) {
       return hasReturnTypeDouble(parent.parent);
@@ -100,7 +101,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     } else if (parent is VariableDeclaration) {
       final varList = parent.parent;
       if (varList is VariableDeclarationList) {
-        return varList.type?.type?.name == 'double';
+        return _isDartCoreDoubleTypeAnnotation(varList.type);
       }
     }
     return false;
@@ -125,4 +126,9 @@ class _Visitor extends SimpleAstVisitor<void> {
       rule.reportLint(node);
     }
   }
+
+  bool _isDartCoreDouble(DartType type) => type?.isDartCoreDouble == true;
+
+  bool _isDartCoreDoubleTypeAnnotation(TypeAnnotation annotation) =>
+      _isDartCoreDouble(annotation?.type);
 }

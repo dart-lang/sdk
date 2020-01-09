@@ -10,8 +10,6 @@ import 'package:analyzer/dart/element/type.dart';
 import '../analyzer.dart';
 import '../util/dart_type_utilities.dart';
 
-const String _dartCoreLibraryName = 'dart.core';
-
 const _desc =
     r'Equality operator `==` invocation with references of unrelated types.';
 
@@ -146,12 +144,16 @@ bool _hasNonComparableOperands(TypeSystem typeSystem, BinaryExpression node) {
       !(_isFixNumIntX(leftType) && _isCoreInt(rightType));
 }
 
-bool _isCoreInt(DartType type) =>
-    type.name == 'int' && type.element?.library?.name == _dartCoreLibraryName;
+bool _isCoreInt(DartType type) => type.isDartCoreInt;
 
-bool _isFixNumIntX(DartType type) =>
-    (type.name == 'Int32' || type.name == 'Int64') &&
-    type.element?.library?.name == 'fixnum';
+bool _isFixNumIntX(DartType type) {
+  if (type is! InterfaceType) {
+    return false;
+  }
+  final element = type.element;
+  return (element.name == 'Int32' || element.name == 'Int64') &&
+      element.library?.name == 'fixnum';
+}
 
 class UnrelatedTypeEqualityChecks extends LintRule implements NodeLintRule {
   UnrelatedTypeEqualityChecks()

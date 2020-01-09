@@ -141,7 +141,7 @@ class _InvariantBooleansVisitor extends ConditionScopeVisitor {
   @override
   void visitCondition(Expression node) {
     // Right part discards reporting a subexpression already reported.
-    if (node?.staticType?.name != 'bool') {
+    if (node?.staticType?.isDartCoreBool != true) {
       return;
     }
 
