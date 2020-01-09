@@ -83,11 +83,7 @@ abstract class EditPlan {
   /// caller.
   factory EditPlan.extract(AstNode sourceNode, EditPlan innerPlan) {
     innerPlan = innerPlan._incorporateParenParentIfPresent(sourceNode);
-    if (innerPlan is _ProvisionalParenEditPlan) {
-      return _ProvisionalParenExtractEditPlan(sourceNode, innerPlan);
-    } else {
-      return _ExtractEditPlan(sourceNode, innerPlan);
-    }
+    return _ExtractEditPlan(sourceNode, innerPlan);
   }
 
   /// Creates a new edit plan that makes no changes to [node], but may make
@@ -235,23 +231,6 @@ abstract class EditPlan {
       {@required Precedence threshold,
       bool associative = false,
       bool allowCascade = false});
-
-  /// Creates the set of changes needed for an "extract" plan (see
-  /// [EditPlan.extract]).  This is in its own method so that the computation
-  /// can be deferred when appropriate.
-  static Map<int, List<AtomicEdit>> _createExtractChanges(EditPlan innerPlan,
-      AstNode sourceNode, Map<int, List<AtomicEdit>> changes) {
-    // TODO(paulberry): don't remove comments
-    if (innerPlan.sourceNode.offset > sourceNode.offset) {
-      ((changes ??= {})[sourceNode.offset] ??= []).insert(
-          0, DeleteText(innerPlan.sourceNode.offset - sourceNode.offset));
-    }
-    if (innerPlan.sourceNode.end < sourceNode.end) {
-      ((changes ??= {})[innerPlan.sourceNode.end] ??= [])
-          .add(DeleteText(sourceNode.end - innerPlan.sourceNode.end));
-    }
-    return changes;
-  }
 }
 
 /// Implementation of [AtomicEdit] that inserts a string of new text.
@@ -297,20 +276,35 @@ class _EndsInCascadeVisitor extends UnifyingAstVisitor<void> {
 ///
 /// Defers computation of whether parentheses are needed to the inner plan.
 class _ExtractEditPlan extends _NestedEditPlan {
-  final Map<int, List<AtomicEdit>> _innerChanges;
-
-  bool _finalized = false;
-
   _ExtractEditPlan(AstNode sourceNode, EditPlan innerPlan)
-      : _innerChanges = EditPlan._createExtractChanges(
-            innerPlan, sourceNode, innerPlan._getChanges(false)),
-        super(sourceNode, innerPlan);
+      : super(sourceNode, innerPlan);
 
   @override
   Map<int, List<AtomicEdit>> _getChanges(bool parens) {
-    assert(!_finalized);
-    _finalized = true;
-    return parens ? _createAddParenChanges(_innerChanges) : _innerChanges;
+    // Get the inner changes.  If they already have provsional parens and we
+    // need them, use them.
+    var useInnerParens = parens && innerPlan is _ProvisionalParenEditPlan;
+    var changes = innerPlan._getChanges(useInnerParens);
+    // Extract the inner expression.
+    // TODO(paulberry): don't remove comments
+    changes = _removeCode(sourceNode.offset, innerPlan.sourceNode.offset) +
+        changes +
+        _removeCode(innerPlan.sourceNode.end, sourceNode.end);
+    // Apply parens if needed.
+    if (parens && !useInnerParens) {
+      changes = _createAddParenChanges(changes);
+    }
+    return changes;
+  }
+
+  static Map<int, List<AtomicEdit>> _removeCode(int offset, int end) {
+    if (offset < end) {
+      return {
+        offset: [DeleteText(end - offset)]
+      };
+    } else {
+      return null;
+    }
   }
 }
 
@@ -620,22 +614,6 @@ class _ProvisionalParenEditPlan extends _NestedEditPlan {
       (changes[sourceNode.end - 1] ??= []).add(const DeleteText(1));
     }
     return changes;
-  }
-}
-
-/// [EditPlan] representing an "extraction" of an inner AST node that is
-/// parenthesized, e.g. replacing `a * (b + c)` with `b + c`.
-///
-/// Defers computation of whether parentheses are needed to the inner plan.
-class _ProvisionalParenExtractEditPlan extends _NestedEditPlan {
-  _ProvisionalParenExtractEditPlan(
-      AstNode sourceNode, _ProvisionalParenEditPlan innerPlan)
-      : super(sourceNode, innerPlan);
-
-  @override
-  Map<int, List<AtomicEdit>> _getChanges(bool parens) {
-    var changes = innerPlan._getChanges(parens);
-    return EditPlan._createExtractChanges(innerPlan, sourceNode, changes);
   }
 }
 
