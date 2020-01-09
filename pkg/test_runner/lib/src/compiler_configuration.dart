@@ -29,7 +29,7 @@ List<String> _experimentsArgument(
     return const [];
   }
 
-  var experiments = [...configuration.experiments, ...testFile.experiments];
+  var experiments = {...configuration.experiments, ...testFile.experiments};
   return ["--enable-experiment=${experiments.join(',')}"];
 }
 

@@ -159,10 +159,13 @@
       "tests/co19_2/co19_2-kernel.status",
       "tests/co19_2/co19_2-runtime.status",
       "tests/compiler/",
+      "tests/corelib/",
       "tests/corelib_2/",
       "tests/dart/",
       "tests/kernel/",
+      "tests/language/",
       "tests/language_2/",
+      "tests/lib/",
       "tests/lib_2/",
       "tests/light_unittest.dart",
       "tests/search/",
@@ -560,8 +563,10 @@
 
     }},
     "fasta-(linux|mac|win)": { },
-    "fasta-weak-linux": {
-      "enable-experiment": ["non-nullable"]
+    "fasta-weak-(linux|mac|win)": {
+      "options": {
+        "enable-experiment": ["non-nullable"]
+      }
     },
     "analyzer-(linux|mac|win)": {
       "options": {
@@ -574,14 +579,14 @@
         "enable-asserts": true,
         "use-sdk": true
     }},
-    "analyzer-asserts-strong-linux": {
+    "analyzer-asserts-strong-(linux|mac|win)": {
       "options": {
         "compiler": "dart2analyzer",
         "enable-asserts": true,
         "use-sdk": true,
         "enable-experiment": ["non-nullable"]
     }},
-    "analyzer-asserts-weak-linux": {
+    "analyzer-asserts-weak-(linux|mac|win)": {
       "options": {
         "compiler": "dart2analyzer",
         "enable-asserts": true,
