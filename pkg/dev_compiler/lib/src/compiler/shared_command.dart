@@ -401,12 +401,6 @@ Future<CompilerResult> compile(ParsedArguments args,
         'previousResult requires --batch or --bazel_worker mode/');
   }
 
-  // TODO(38777) Cleanup when we delete all the DDC code.
-  if (!args.isKernel) {
-    throw ArgumentError(
-        'Compiling with analyzer based DDC is no longer supported.');
-  }
-
   return kernel_compiler.compile(args.rest,
       compilerState: previousResult?.kernelState,
       isWorker: args.isWorker,
@@ -469,11 +463,6 @@ class ParsedArguments {
   /// See also [isBatchOrWorker].
   final bool isWorker;
 
-  /// Whether to use the Kernel-based back end for dartdevc.
-  ///
-  /// This is always true now and will be removed in a future version.
-  final bool isKernel;
-
   /// Whether to re-use the last compiler result when in a worker.
   ///
   /// This is useful if we are repeatedly compiling things in the same context,
@@ -488,7 +477,6 @@ class ParsedArguments {
   ParsedArguments._(this.rest,
       {this.isBatch = false,
       this.isWorker = false,
-      this.isKernel = true,
       this.reuseResult = false,
       this.useIncrementalCompiler = false});
 
@@ -507,7 +495,6 @@ class ParsedArguments {
     var newArgs = <String>[];
     bool isWorker = false;
     bool isBatch = false;
-    bool isKernel = true;
     bool reuseResult = false;
     bool useIncrementalCompiler = false;
 
@@ -535,7 +522,6 @@ class ParsedArguments {
     return ParsedArguments._(newArgs,
         isWorker: isWorker,
         isBatch: isBatch,
-        isKernel: isKernel,
         reuseResult: reuseResult,
         useIncrementalCompiler: useIncrementalCompiler);
   }
@@ -562,7 +548,6 @@ class ParsedArguments {
     return ParsedArguments._(rest.toList()..addAll(newArgs.rest),
         isWorker: isWorker,
         isBatch: isBatch,
-        isKernel: isKernel,
         reuseResult: reuseResult || newArgs.reuseResult,
         useIncrementalCompiler:
             useIncrementalCompiler || newArgs.useIncrementalCompiler);
