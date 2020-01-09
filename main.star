@@ -475,14 +475,16 @@ def dart_vm_extra_builder(name, on_cq=False, location_regexp=None, **kwargs):
 
 # fasta
 dart_ci_sandbox_builder(
-    "front-end-linux-release-x64", category="fasta|l", on_cq=True)
+    "front-end-linux-release-x64", category="cfe|l", on_cq=True)
 dart_ci_sandbox_builder(
-    "front-end-mac-release-x64", category="fasta|m", dimensions=mac())
+    "front-end-mac-release-x64", category="cfe|m", dimensions=mac())
 dart_ci_sandbox_builder(
-    "front-end-win-release-x64", category="fasta|w", dimensions=windows())
+    "front-end-win-release-x64", category="cfe|w", dimensions=windows())
+dart_ci_sandbox_builder(
+    "front-end-nnbd-linux-release-x64", category="cfe|nn")
 dart_ci_sandbox_builder(
     "flutter-frontend",
-    category="fasta|fl",
+    category="cfe|fl",
     channels=["try"],
     properties={"new_workflow_enabled": False},
     notifies="frontend-team")
