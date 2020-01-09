@@ -24,7 +24,7 @@ class _List<E> extends FixedLengthListBase<E> {
   int get length native "List_getLength";
 
   @pragma("vm:prefer-inline")
-  List _slice(int start, int count, bool needsTypeArgument) {
+  _List _slice(int start, int count, bool needsTypeArgument) {
     if (count <= 64) {
       final result = needsTypeArgument ? new _List<E>(count) : new _List(count);
       for (int i = 0; i < result.length; i++) {
@@ -77,7 +77,7 @@ class _List<E> extends FixedLengthListBase<E> {
     if (identical(this, iterable)) {
       iterableAsList = this;
     } else if (ClassID.getID(iterable) == ClassID.cidArray) {
-      iterableAsList = iterable;
+      iterableAsList = unsafeCast<_List<E>>(iterable);
     } else if (iterable is List<E>) {
       iterableAsList = iterable;
     } else {
@@ -95,8 +95,8 @@ class _List<E> extends FixedLengthListBase<E> {
 
   List<E> sublist(int start, [int? end]) {
     final int listLength = this.length;
-    end = RangeError.checkValidRange(start, end, listLength);
-    int length = end - start;
+    final int actualEnd = RangeError.checkValidRange(start, end, listLength);
+    int length = actualEnd - start;
     if (length == 0) return <E>[];
     var result = new _GrowableList<E>._withData(_slice(start, length, false));
     result._setLength(length);
@@ -137,11 +137,11 @@ class _List<E> extends FixedLengthListBase<E> {
   List<E> toList({bool growable: true}) {
     var length = this.length;
     if (length > 0) {
-      var result = _slice(0, length, !growable);
+      _List result = _slice(0, length, !growable);
       if (growable) {
-        result = new _GrowableList<E>._withData(result).._setLength(length);
+        return new _GrowableList<E>._withData(result).._setLength(length);
       }
-      return result;
+      return unsafeCast<_List<E>>(result);
     }
     // _GrowableList._withData must not be called with empty list.
     return growable ? <E>[] : new List<E>(0);
@@ -171,9 +171,9 @@ class _ImmutableList<E> extends UnmodifiableListBase<E> {
   @pragma("vm:prefer-inline")
   int get length native "List_getLength";
 
-  List<E> sublist(int start, [int end]) {
-    end = RangeError.checkValidRange(start, end, this.length);
-    int length = end - start;
+  List<E> sublist(int start, [int? end]) {
+    final int actualEnd = RangeError.checkValidRange(start, end, this.length);
+    int length = actualEnd - start;
     if (length == 0) return <E>[];
     List list = new _List(length);
     for (int i = 0; i < length; i++) {

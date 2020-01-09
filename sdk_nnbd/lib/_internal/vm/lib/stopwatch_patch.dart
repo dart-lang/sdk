@@ -31,7 +31,7 @@ class Stopwatch {
     }
     // Multiplication would have overflowed.
     int ticksPerSecond = ticks ~/ _frequency;
-    int remainingTicks = ticks.remainder(_frequency);
+    int remainingTicks = unsafeCast<int>(ticks.remainder(_frequency));
     return ticksPerSecond * 1000000 + (remainingTicks * 1000000) ~/ _frequency;
   }
 
@@ -46,7 +46,7 @@ class Stopwatch {
     }
     // Multiplication would have overflowed.
     int ticksPerSecond = ticks ~/ _frequency;
-    int remainingTicks = ticks.remainder(_frequency);
+    int remainingTicks = unsafeCast<int>(ticks.remainder(_frequency));
     return ticksPerSecond * 1000 + (remainingTicks * 1000) ~/ _frequency;
   }
 }

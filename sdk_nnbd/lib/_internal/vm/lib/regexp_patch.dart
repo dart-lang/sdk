@@ -14,7 +14,7 @@ class RegExp {
       bool dotAll: false}) {
     _RegExpHashKey key =
         new _RegExpHashKey(source, multiLine, caseSensitive, unicode, dotAll);
-    _RegExpHashValue value = _cache[key];
+    _RegExpHashValue? value = _cache[key];
 
     if (value == null) {
       if (_cache.length > _MAX_CACHE_SIZE) {
@@ -216,7 +216,7 @@ class _RegExp implements RegExp {
       bool unicode: false,
       bool dotAll: false}) native "RegExp_factory";
 
-  RegExpMatch firstMatch(String str) {
+  RegExpMatch? firstMatch(String str) {
     if (str is! String) throw new ArgumentError(str);
     List match = _ExecuteMatch(str, 0);
     if (match == null) {

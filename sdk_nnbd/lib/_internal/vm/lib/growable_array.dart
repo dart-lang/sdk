@@ -77,9 +77,9 @@ class _GrowableList<T> extends ListBase<T> {
     this.length = this.length - (end - start);
   }
 
-  List<T> sublist(int start, [int end]) {
-    end = RangeError.checkValidRange(start, end, this.length);
-    int length = end - start;
+  List<T> sublist(int start, [int? end]) {
+    final int actualEnd = RangeError.checkValidRange(start, end, this.length);
+    int length = actualEnd - start;
     if (length == 0) return <T>[];
     List list = new _List(length);
     for (int i = 0; i < length; i++) {

@@ -184,7 +184,7 @@ class _BigIntImpl implements BigInt {
     // Read in the source 9 digits at a time.
     // The first part may have a few leading virtual '0's to make the remaining
     // parts all have exactly 9 digits.
-    int digitInPartCount = 9 - source.length.remainder(9);
+    int digitInPartCount = 9 - unsafeCast<int>(source.length.remainder(9));
     if (digitInPartCount == 9) digitInPartCount = 0;
     for (int i = 0; i < source.length; i++) {
       part = part * 10 + source.codeUnitAt(i) - _0;
@@ -322,8 +322,8 @@ class _BigIntImpl implements BigInt {
     }
 
     // The RegExp guarantees that one of the 3 matches is non-null.
-    final match = (decimalMatch ?? nonDecimalMatch ?? hexMatch)!;
-    return _parseRadix(match, radix, isNegative);
+    final nonNullMatch = (decimalMatch ?? nonDecimalMatch ?? hexMatch)!;
+    return _parseRadix(nonNullMatch, radix, isNegative);
   }
 
   static RegExp _parseRE = RegExp(
@@ -370,10 +370,13 @@ class _BigIntImpl implements BigInt {
     if (value == 1) return one;
     if (value == 2) return two;
 
-    if (value.abs() < 0x100000000)
+    if (value.abs() < 0x100000000) {
       return new _BigIntImpl._fromInt(value.toInt());
-    if (value is double) return new _BigIntImpl._fromDouble(value);
-    return new _BigIntImpl._fromInt(value);
+    }
+    if (value is double) {
+      return new _BigIntImpl._fromDouble(value);
+    }
+    return new _BigIntImpl._fromInt(value as int);
   }
 
   factory _BigIntImpl._fromInt(int value) {

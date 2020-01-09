@@ -71,7 +71,7 @@ class double {
         i++;
         if (i == end) return null;
         // int._tryParseSmi treats its end argument as inclusive.
-        int expPart = int._tryParseSmi(str, i, end - 1);
+        final int? expPart = int._tryParseSmi(str, i, end - 1);
         if (expPart == null) return null;
         exponent += expPart;
         break;

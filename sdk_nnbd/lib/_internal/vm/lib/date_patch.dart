@@ -277,7 +277,7 @@ class DateTime {
 
   /// Converts the given broken down date to microseconds.
   @patch
-  static int _brokenDownDateToValue(int year, int month, int day, int hour,
+  static int? _brokenDownDateToValue(int year, int month, int day, int hour,
       int minute, int second, int millisecond, int microsecond, bool isUtc) {
     // Simplify calculations by working with zero-based month.
     --month;

@@ -12,7 +12,7 @@ class List<E> {
   }
 
   @patch
-  factory List([int length]) native "List_new";
+  factory List([int? length]) native "List_new";
 
   @patch
   factory List.filled(int length, E fill, {bool growable: false}) {

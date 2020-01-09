@@ -18,7 +18,7 @@ class int {
   int _shrFromInteger(int other);
   int _shlFromInteger(int other);
 
-  static int _tryParseSmi(String str, int first, int last) {
+  static int? _tryParseSmi(String str, int first, int last) {
     assert(first <= last);
     var ix = first;
     var sign = 1;
@@ -54,7 +54,7 @@ class int {
     }
     if (radix == null || radix == 10) {
       // Try parsing immediately, without trimming whitespace.
-      int result = _tryParseSmi(source, 0, source.length - 1);
+      int? result = _tryParseSmi(source, 0, source.length - 1);
       if (result != null) return result;
     } else if (radix < 2 || radix > 36) {
       throw new RangeError("Radix $radix not in range 2..36");
@@ -106,7 +106,7 @@ class int {
     if (source.isEmpty) return null;
     if (radix == null || radix == 10) {
       // Try parsing immediately, without trimming whitespace.
-      int result = _tryParseSmi(source, 0, source.length - 1);
+      int? result = _tryParseSmi(source, 0, source.length - 1);
       if (result != null) return result;
     } else if (radix < 2 || radix > 36) {
       throw new RangeError("Radix $radix not in range 2..36");
@@ -137,7 +137,7 @@ class int {
     int blockSize = _PARSE_LIMITS[tableIndex];
     int length = end - start;
     if (length <= blockSize) {
-      _Smi? smi = _parseBlock(source, radix, start, end);
+      int? smi = _parseBlock(source, radix, start, end);
       if (smi == null) {
         return _throwFormatException(onError, source, start, radix, null);
       }
@@ -152,7 +152,7 @@ class int {
     int result = 0;
     if (smallBlockSize > 0) {
       int blockEnd = start + smallBlockSize;
-      _Smi? smi = _parseBlock(source, radix, start, blockEnd);
+      int? smi = _parseBlock(source, radix, start, blockEnd);
       if (smi == null) {
         return _throwFormatException(onError, source, start, radix, null);
       }
@@ -170,7 +170,7 @@ class int {
     negativeOverflowLimit = _int64OverflowLimits[tableIndex + 1];
     int blockEnd = start + blockSize;
     do {
-      _Smi? smi = _parseBlock(source, radix, start, blockEnd);
+      int? smi = _parseBlock(source, radix, start, blockEnd);
       if (smi == null) {
         return _throwFormatException(onError, source, start, radix, null);
       }
@@ -299,8 +299,10 @@ class int {
   static int _initInt64OverflowLimits(int tableIndex, int multiplier) {
     _int64OverflowLimits[tableIndex] = _maxInt64 ~/ multiplier;
     _int64OverflowLimits[tableIndex + 1] = _minInt64 ~/ multiplier;
-    _int64OverflowLimits[tableIndex + 2] = _maxInt64.remainder(multiplier);
-    _int64OverflowLimits[tableIndex + 3] = -(_minInt64.remainder(multiplier));
+    _int64OverflowLimits[tableIndex + 2] =
+        unsafeCast<int>(_maxInt64.remainder(multiplier));
+    _int64OverflowLimits[tableIndex + 3] =
+        -unsafeCast<int>(_minInt64.remainder(multiplier));
     return _int64OverflowLimits[tableIndex];
   }
 }
