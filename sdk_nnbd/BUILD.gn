@@ -56,6 +56,7 @@ declare_args() {
 # ........dart2native.dart.snapshot (if `include_dart2native` and not on ia32)
 # ........kernel_worker.dart.snapshot
 # ........pub.dart.snapshot
+# ........frontend_server.dart.snapshot
 # ......resources/
 # ........dartdoc/
 # ...........packages
@@ -181,6 +182,10 @@ _full_sdk_snapshots = [
   [
     "pub",
     "../utils/pub",
+  ],
+  [
+    "frontend_server",
+    "../utils/kernel-service:frontend_server",
   ],
 ]
 if (include_dart2native && dart_target_arch != "ia32") {
@@ -580,6 +585,13 @@ group("copy_full_sdk_scripts") {
 
 # This loop generates "copy" targets that put snapshots into bin/snapshots
 foreach(snapshot, _full_sdk_snapshots) {
+  root = root_gen_dir
+
+  # The frontend_server is output to root_out_dir so that it doesn't conflict
+  # with the flutter snapshot by the same name under root_gen_dir.
+  if (snapshot[0] == "frontend_server") {
+    root = root_out_dir
+  }
   copy("copy_${snapshot[0]}_snapshot") {
     visibility = [
       ":copy_platform_sdk_snapshots",
@@ -589,7 +601,7 @@ foreach(snapshot, _full_sdk_snapshots) {
       snapshot[1],
     ]
     sources = [
-      "$root_gen_dir/${snapshot[0]}.dart.snapshot",
+      "$root/${snapshot[0]}.dart.snapshot",
     ]
     outputs = [
       "$root_out_dir/dart-sdk/bin/snapshots/{{source_file_part}}",
