@@ -745,41 +745,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   }
 
   /**
-   * The Dart Language Specification, 12.27: <blockquote>A unary expression <i>u</i> of the form
-   * <i>op e</i> is equivalent to a method invocation <i>expression e.op()</i>. An expression of the
-   * form <i>op super</i> is equivalent to the method invocation <i>super.op()<i>.</blockquote>
-   */
-  @override
-  void visitPrefixExpression(PrefixExpression node) {
-    TokenType operator = node.operator.type;
-    if (operator == TokenType.BANG) {
-      _recordStaticType(node, _nonNullable(_typeProvider.boolType));
-    } else if (identical(node.operand.staticType, NeverTypeImpl.instance)) {
-      _recordStaticType(node, NeverTypeImpl.instance);
-    } else {
-      // The other cases are equivalent to invoking a method.
-      ExecutableElement staticMethodElement = node.staticElement;
-      DartType staticType = _computeStaticReturnType(staticMethodElement);
-      if (operator.isIncrementOperator) {
-        Expression operand = node.operand;
-        var operandReadType = _getStaticType(operand, read: true);
-        if (operandReadType.isDartCoreInt) {
-          staticType = _nonNullable(_typeProvider.intType);
-        } else {
-          _checkForInvalidAssignmentIncDec(node, operand, staticType);
-        }
-        if (operand is SimpleIdentifier) {
-          var element = operand.staticElement;
-          if (element is PromotableElement) {
-            _flowAnalysis?.flow?.write(element, staticType);
-          }
-        }
-      }
-      _recordStaticType(node, staticType);
-    }
-  }
-
-  /**
    * The Dart Language Specification, 12.13: <blockquote> Property extraction allows for a member of
    * an object to be concisely extracted from the object. If <i>o</i> is an object, and if <i>m</i>
    * is the name of a method member of <i>o</i>, then

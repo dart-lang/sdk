@@ -57,7 +57,11 @@ DartType getReadType(Expression expression,
     if (setter is PropertyAccessorElement && setter.isSetter) {
       var getter = setter.variable.getter;
       if (getter != null) {
-        return elementTypeProvider.getExecutableReturnType(getter);
+        var type = elementTypeProvider.getExecutableReturnType(getter);
+        // The return type might be `null` when we perform top-level inference.
+        // The first stage collects references to build the dependency graph.
+        // TODO(scheglov) Maybe preliminary set types to `dynamic`?
+        return type ?? DynamicTypeImpl.instance;
       }
     }
   }

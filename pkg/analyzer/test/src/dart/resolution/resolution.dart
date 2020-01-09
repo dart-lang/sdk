@@ -36,6 +36,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
   FindNode findNode;
   FindElement findElement;
 
+  ClassElement get boolElement => typeProvider.boolElement;
+
   ClassElement get doubleElement => typeProvider.doubleType.element;
 
   InterfaceType get doubleType => typeProvider.doubleType;

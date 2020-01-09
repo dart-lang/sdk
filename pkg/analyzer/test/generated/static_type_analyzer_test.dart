@@ -1028,62 +1028,6 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
     _listener.assertNoErrors();
   }
 
-  void test_visitPrefixExpression_bang() {
-    // !0
-    PrefixExpression node =
-        AstTestFactory.prefixExpression(TokenType.BANG, _resolvedInteger(0));
-    expect(_analyze(node), same(_typeProvider.boolType));
-    _listener.assertNoErrors();
-  }
-
-  void test_visitPrefixExpression_minus() {
-    // -0
-    PrefixExpression node =
-        AstTestFactory.prefixExpression(TokenType.MINUS, _resolvedInteger(0));
-    MethodElement minusMethod = _typeProvider.numType.getMethod('-');
-    node.staticElement = minusMethod;
-    expect(_analyze(node), _typeProvider.numType);
-    _listener.assertNoErrors();
-  }
-
-  void test_visitPrefixExpression_minusMinus() {
-    // --0
-    PrefixExpression node = AstTestFactory.prefixExpression(
-        TokenType.MINUS_MINUS, _resolvedInteger(0));
-    MethodElement minusMethod = _typeProvider.numType.getMethod('-');
-    node.staticElement = minusMethod;
-    expect(_analyze(node), same(_typeProvider.intType));
-    _listener.assertNoErrors();
-  }
-
-  void test_visitPrefixExpression_not() {
-    // !true
-    Expression node = AstTestFactory.prefixExpression(
-        TokenType.BANG, AstTestFactory.booleanLiteral(true));
-    expect(_analyze(node), same(_typeProvider.boolType));
-    _listener.assertNoErrors();
-  }
-
-  void test_visitPrefixExpression_plusPlus() {
-    // ++0
-    PrefixExpression node = AstTestFactory.prefixExpression(
-        TokenType.PLUS_PLUS, _resolvedInteger(0));
-    MethodElement plusMethod = _typeProvider.numType.getMethod('+');
-    node.staticElement = plusMethod;
-    expect(_analyze(node), same(_typeProvider.intType));
-    _listener.assertNoErrors();
-  }
-
-  void test_visitPrefixExpression_tilde() {
-    // ~0
-    PrefixExpression node =
-        AstTestFactory.prefixExpression(TokenType.TILDE, _resolvedInteger(0));
-    MethodElement tildeMethod = _typeProvider.intType.getMethod('~');
-    node.staticElement = tildeMethod;
-    expect(_analyze(node), _typeProvider.intType);
-    _listener.assertNoErrors();
-  }
-
   void test_visitPropertyAccess_static_getter() {
     DartType boolType = _typeProvider.boolType;
     PropertyAccessorElementImpl getter =

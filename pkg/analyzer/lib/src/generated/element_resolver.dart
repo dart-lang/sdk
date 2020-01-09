@@ -676,62 +676,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitPrefixExpression(PrefixExpression node) {
-    Token operator = node.operator;
-    TokenType operatorType = operator.type;
-    if (operatorType.isUserDefinableOperator ||
-        operatorType.isIncrementOperator) {
-      Expression operand = node.operand;
-      String methodName = _getPrefixOperator(node);
-      if (operand is ExtensionOverride) {
-        ExtensionElement element = operand.extensionName.staticElement;
-        MethodElement member = element.getMethod(methodName);
-        if (member == null) {
-          _errorReporter.reportErrorForToken(
-              CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR,
-              node.operator,
-              [methodName, element.name]);
-        }
-        node.staticElement = member;
-        return;
-      }
-      DartType staticType = _getStaticType(operand, read: true);
-
-      if (identical(staticType, NeverTypeImpl.instance)) {
-        _resolver.errorReporter.reportErrorForNode(
-          StaticWarningCode.INVALID_USE_OF_NEVER_VALUE,
-          operand,
-        );
-        return;
-      }
-
-      var result = _typePropertyResolver.resolve(
-        receiver: operand,
-        receiverType: staticType,
-        name: methodName,
-        receiverErrorNode: operand,
-        nameErrorNode: operand,
-      );
-      node.staticElement = result.getter;
-      if (_shouldReportInvalidMember(staticType, result)) {
-        if (operand is SuperExpression) {
-          _errorReporter.reportErrorForToken(
-            StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR,
-            operator,
-            [methodName, staticType],
-          );
-        } else {
-          _errorReporter.reportErrorForToken(
-            StaticTypeWarningCode.UNDEFINED_OPERATOR,
-            operator,
-            [methodName, staticType],
-          );
-        }
-      }
-    }
-  }
-
-  @override
   void visitPropertyAccess(PropertyAccess node) {
     Expression target = node.realTarget;
     if (target is SuperExpression &&
@@ -1112,23 +1056,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
     } else {
       throw UnsupportedError(
           'Unsupported postfix operator ${expression.operator.lexeme}');
-    }
-  }
-
-  /**
-   * Return the name of the method invoked by the given postfix [expression].
-   */
-  String _getPrefixOperator(PrefixExpression expression) {
-    Token operator = expression.operator;
-    TokenType operatorType = operator.type;
-    if (operatorType == TokenType.PLUS_PLUS) {
-      return TokenType.PLUS.lexeme;
-    } else if (operatorType == TokenType.MINUS_MINUS) {
-      return TokenType.MINUS.lexeme;
-    } else if (operatorType == TokenType.MINUS) {
-      return "unary-";
-    } else {
-      return operator.lexeme;
     }
   }
 

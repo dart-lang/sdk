@@ -28,6 +28,7 @@ import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/function_expression_invocation_resolver.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/method_invocation_resolver.dart';
+import 'package:analyzer/src/dart/resolver/prefix_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/dart/resolver/typed_literal_resolver.dart';
@@ -207,6 +208,7 @@ class ResolverVisitor extends ScopedVisitor {
   TypedLiteralResolver _typedLiteralResolver;
 
   FunctionExpressionInvocationResolver _functionExpressionInvocationResolver;
+  PrefixExpressionResolver _prefixExpressionResolver;
 
   InvocationInferenceHelper inferenceHelper;
 
@@ -336,6 +338,11 @@ class ResolverVisitor extends ScopedVisitor {
     this._functionExpressionInvocationResolver =
         FunctionExpressionInvocationResolver(
       resolver: this,
+      elementTypeProvider: _elementTypeProvider,
+    );
+    this._prefixExpressionResolver = PrefixExpressionResolver(
+      resolver: this,
+      flowAnalysis: _flowAnalysis,
       elementTypeProvider: _elementTypeProvider,
     );
     this.elementResolver = ElementResolver(this,
@@ -1597,12 +1604,7 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitPrefixExpression(PrefixExpression node) {
-    super.visitPrefixExpression(node);
-
-    var operator = node.operator.type;
-    if (operator == TokenType.BANG) {
-      _flowAnalysis?.flow?.logicalNot_end(node, node.operand);
-    }
+    _prefixExpressionResolver.resolve(node);
   }
 
   @override

@@ -943,17 +943,6 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     _listener.assertNoErrors();
   }
 
-  test_visitPrefixExpression() async {
-    InterfaceType numType = _typeProvider.numType;
-    SimpleIdentifier operand = AstTestFactory.identifier3("i");
-    operand.staticType = numType;
-    PrefixExpression expression =
-        AstTestFactory.prefixExpression(TokenType.PLUS_PLUS, operand);
-    _resolveNode(expression);
-    expect(expression.staticElement, numType.getMethod('+'));
-    _listener.assertNoErrors();
-  }
-
   test_visitPropertyAccess_getter_identifier() async {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     _encloseElement(classA);
