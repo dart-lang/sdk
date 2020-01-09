@@ -751,6 +751,9 @@ class BinaryFeedback : public ZoneAllocated {
   friend class Cids;
 };
 
+typedef ZoneGrowableArray<Value*> InputsArray;
+typedef ZoneGrowableArray<PushArgumentInstr*> PushArgumentsArray;
+
 class Instruction : public ZoneAllocated {
  public:
 #define DECLARE_TAG(type, attrs) k##type,
@@ -809,12 +812,24 @@ class Instruction : public ZoneAllocated {
   // Call instructions override this function and return the number of
   // pushed arguments.
   virtual intptr_t ArgumentCount() const { return 0; }
-  virtual PushArgumentInstr* PushArgumentAt(intptr_t index) const {
-    UNREACHABLE();
-    return NULL;
-  }
   inline Value* ArgumentValueAt(intptr_t index) const;
   inline Definition* ArgumentAt(intptr_t index) const;
+
+  // Sets array of PushArgument instructions.
+  virtual void SetPushArguments(PushArgumentsArray* push_arguments) {
+    UNREACHABLE();
+  }
+  // Returns array of PushArgument instructions
+  virtual PushArgumentsArray* GetPushArguments() const {
+    UNREACHABLE();
+    return nullptr;
+  }
+  // Replace inputs with separate PushArgument instructions detached from call.
+  virtual void ReplaceInputsWithPushArguments(
+      PushArgumentsArray* push_arguments) {
+    UNREACHABLE();
+  }
+  bool HasPushArguments() const { return GetPushArguments() != nullptr; }
 
   // Repairs trailing PushArgs in environment.
   void RepairPushArgsInEnvironment() const;
@@ -2686,7 +2701,9 @@ class PushArgumentInstr : public TemplateDefinition<1, NoThrow> {
 };
 
 inline Value* Instruction::ArgumentValueAt(intptr_t index) const {
-  return PushArgumentAt(index)->value();
+  PushArgumentsArray* push_arguments = GetPushArguments();
+  return push_arguments != nullptr ? (*push_arguments)[index]->value()
+                                   : InputAt(index);
 }
 
 inline Definition* Instruction::ArgumentAt(intptr_t index) const {
@@ -2771,8 +2788,6 @@ class NativeReturnInstr : public ReturnInstr {
 
   DISALLOW_COPY_AND_ASSIGN(NativeReturnInstr);
 };
-
-typedef ZoneGrowableArray<PushArgumentInstr*> PushArgumentsArray;
 
 class ThrowInstr : public TemplateInstruction<1, Throws> {
  public:
@@ -3088,8 +3103,11 @@ class BranchInstr : public Instruction {
   virtual intptr_t ArgumentCount() const {
     return comparison()->ArgumentCount();
   }
-  virtual PushArgumentInstr* PushArgumentAt(intptr_t index) const {
-    return comparison()->PushArgumentAt(index);
+  virtual void SetPushArguments(PushArgumentsArray* push_arguments) {
+    comparison()->SetPushArguments(push_arguments);
+  }
+  virtual PushArgumentsArray* GetPushArguments() const {
+    return comparison()->GetPushArguments();
   }
 
   intptr_t InputCount() const { return comparison()->InputCount(); }
@@ -3561,20 +3579,24 @@ struct ArgumentsInfo {
   const Array& argument_names;
 };
 
-template <intptr_t kInputCount>
-class TemplateDartCall : public TemplateDefinition<kInputCount, Throws> {
+template <intptr_t kExtraInputs>
+class TemplateDartCall : public Definition {
  public:
   TemplateDartCall(intptr_t deopt_id,
                    intptr_t type_args_len,
                    const Array& argument_names,
-                   PushArgumentsArray* arguments,
+                   InputsArray* inputs,
                    TokenPosition token_pos)
-      : TemplateDefinition<kInputCount, Throws>(deopt_id),
+      : Definition(deopt_id),
         type_args_len_(type_args_len),
         argument_names_(argument_names),
-        arguments_(arguments),
+        inputs_(inputs),
         token_pos_(token_pos) {
     ASSERT(argument_names.IsZoneHandle() || argument_names.InVMIsolateHeap());
+    ASSERT(inputs_->length() >= kExtraInputs);
+    for (intptr_t i = 0, n = inputs_->length(); i < n; ++i) {
+      SetInputAt(i, (*inputs_)[i]);
+    }
   }
 
   RawString* Selector() {
@@ -3587,16 +3609,43 @@ class TemplateDartCall : public TemplateDefinition<kInputCount, Throws> {
     }
   }
 
+  virtual bool MayThrow() const { return true; }
+
+  virtual intptr_t InputCount() const { return inputs_->length(); }
+  virtual Value* InputAt(intptr_t i) const { return inputs_->At(i); }
+
   intptr_t FirstArgIndex() const { return type_args_len_ > 0 ? 1 : 0; }
   Value* Receiver() const { return this->ArgumentValueAt(FirstArgIndex()); }
   intptr_t ArgumentCountWithoutTypeArgs() const {
-    return arguments_->length() - FirstArgIndex();
+    return ArgumentCount() - FirstArgIndex();
   }
   // ArgumentCount() includes the type argument vector if any.
   // Caution: Must override Instruction::ArgumentCount().
-  virtual intptr_t ArgumentCount() const { return arguments_->length(); }
-  virtual PushArgumentInstr* PushArgumentAt(intptr_t index) const {
-    return (*arguments_)[index];
+  virtual intptr_t ArgumentCount() const {
+    return push_arguments_ != nullptr ? push_arguments_->length()
+                                      : inputs_->length() - kExtraInputs;
+  }
+  virtual void SetPushArguments(PushArgumentsArray* push_arguments) {
+    ASSERT(push_arguments_ == nullptr);
+    push_arguments_ = push_arguments;
+  }
+  virtual PushArgumentsArray* GetPushArguments() const {
+    return push_arguments_;
+  }
+  virtual void ReplaceInputsWithPushArguments(
+      PushArgumentsArray* push_arguments) {
+    ASSERT(push_arguments_ == nullptr);
+    ASSERT(push_arguments->length() == ArgumentCount());
+    SetPushArguments(push_arguments);
+    ASSERT(inputs_->length() == ArgumentCount() + kExtraInputs);
+    const intptr_t extra_inputs_base = inputs_->length() - kExtraInputs;
+    for (intptr_t i = 0, n = ArgumentCount(); i < n; ++i) {
+      InputAt(i)->RemoveFromUseList();
+    }
+    for (intptr_t i = 0; i < kExtraInputs; ++i) {
+      SetInputAt(i, InputAt(extra_inputs_base + i));
+    }
+    inputs_->TruncateTo(kExtraInputs);
   }
   intptr_t type_args_len() const { return type_args_len_; }
   const Array& argument_names() const { return argument_names_; }
@@ -3609,9 +3658,14 @@ class TemplateDartCall : public TemplateDefinition<kInputCount, Throws> {
   ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT
 
  private:
+  virtual void RawSetInputAt(intptr_t i, Value* value) {
+    (*inputs_)[i] = value;
+  }
+
   intptr_t type_args_len_;
   const Array& argument_names_;
-  PushArgumentsArray* arguments_;
+  InputsArray* inputs_;
+  PushArgumentsArray* push_arguments_ = nullptr;
   TokenPosition token_pos_;
 
   DISALLOW_COPY_AND_ASSIGN(TemplateDartCall);
@@ -3619,8 +3673,7 @@ class TemplateDartCall : public TemplateDefinition<kInputCount, Throws> {
 
 class ClosureCallInstr : public TemplateDartCall<1> {
  public:
-  ClosureCallInstr(Value* function,
-                   PushArgumentsArray* arguments,
+  ClosureCallInstr(InputsArray* inputs,
                    intptr_t type_args_len,
                    const Array& argument_names,
                    TokenPosition token_pos,
@@ -3629,12 +3682,9 @@ class ClosureCallInstr : public TemplateDartCall<1> {
       : TemplateDartCall(deopt_id,
                          type_args_len,
                          argument_names,
-                         arguments,
+                         inputs,
                          token_pos),
-        entry_kind_(entry_kind) {
-    ASSERT(!arguments->is_empty());
-    SetInputAt(0, function);
-  }
+        entry_kind_(entry_kind) {}
 
   DECLARE_INSTRUCTION(ClosureCall)
 
@@ -3662,7 +3712,7 @@ class InstanceCallInstr : public TemplateDartCall<0> {
       TokenPosition token_pos,
       const String& function_name,
       Token::Kind token_kind,
-      PushArgumentsArray* arguments,
+      InputsArray* arguments,
       intptr_t type_args_len,
       const Array& argument_names,
       intptr_t checked_argument_count,
@@ -3699,7 +3749,7 @@ class InstanceCallInstr : public TemplateDartCall<0> {
       TokenPosition token_pos,
       const String& function_name,
       Token::Kind token_kind,
-      PushArgumentsArray* arguments,
+      InputsArray* arguments,
       intptr_t type_args_len,
       const Array& argument_names,
       intptr_t checked_argument_count,
@@ -3896,7 +3946,7 @@ class PolymorphicInstanceCallInstr : public TemplateDartCall<0> {
 
  private:
   PolymorphicInstanceCallInstr(InstanceCallInstr* instance_call,
-                               PushArgumentsArray* arguments,
+                               InputsArray* arguments,
                                const CallTargets& targets,
                                bool complete)
       : TemplateDartCall<0>(instance_call->deopt_id(),
@@ -3918,10 +3968,11 @@ class PolymorphicInstanceCallInstr : public TemplateDartCall<0> {
       InstanceCallInstr* call_for_attributes,
       const CallTargets& targets,
       bool complete) {
-    PushArgumentsArray* args = new (zone)
-        PushArgumentsArray(zone, call_for_arguments->ArgumentCount());
+    ASSERT(!call_for_arguments->HasPushArguments());
+    InputsArray* args =
+        new (zone) InputsArray(zone, call_for_arguments->ArgumentCount());
     for (intptr_t i = 0, n = call_for_arguments->ArgumentCount(); i < n; ++i) {
-      args->Add(call_for_arguments->PushArgumentAt(i));
+      args->Add(call_for_arguments->ArgumentValueAt(i)->CopyWithType(zone));
     }
     return new (zone) PolymorphicInstanceCallInstr(call_for_attributes, args,
                                                    targets, complete);
@@ -4232,7 +4283,7 @@ class StaticCallInstr : public TemplateDartCall<0> {
                   const Function& function,
                   intptr_t type_args_len,
                   const Array& argument_names,
-                  PushArgumentsArray* arguments,
+                  InputsArray* arguments,
                   const ZoneGrowableArray<const ICData*>& ic_data_array,
                   intptr_t deopt_id,
                   ICData::RebindRule rebind_rule)
@@ -4257,7 +4308,7 @@ class StaticCallInstr : public TemplateDartCall<0> {
                   const Function& function,
                   intptr_t type_args_len,
                   const Array& argument_names,
-                  PushArgumentsArray* arguments,
+                  InputsArray* arguments,
                   intptr_t deopt_id,
                   intptr_t call_count,
                   ICData::RebindRule rebind_rule)
@@ -4284,10 +4335,10 @@ class StaticCallInstr : public TemplateDartCall<0> {
                                    const C* call,
                                    const Function& target,
                                    intptr_t call_count) {
-    PushArgumentsArray* args =
-        new (zone) PushArgumentsArray(call->ArgumentCount());
+    ASSERT(!call->HasPushArguments());
+    InputsArray* args = new (zone) InputsArray(zone, call->ArgumentCount());
     for (intptr_t i = 0; i < call->ArgumentCount(); i++) {
-      args->Add(call->PushArgumentAt(i));
+      args->Add(call->ArgumentValueAt(i)->CopyWithType());
     }
     StaticCallInstr* new_call = new (zone)
         StaticCallInstr(call->token_pos(), target, call->type_args_len(),
@@ -4295,6 +4346,9 @@ class StaticCallInstr : public TemplateDartCall<0> {
                         call_count, ICData::kNoRebind);
     if (call->result_type() != NULL) {
       new_call->result_type_ = call->result_type();
+    }
+    if (call->has_inlining_id()) {
+      new_call->set_inlining_id(call->inlining_id());
     }
     new_call->set_entry_kind(call->entry_kind());
     return new_call;
@@ -4553,7 +4607,7 @@ class NativeCallInstr : public TemplateDartCall<0> {
                   const Function* function,
                   bool link_lazily,
                   TokenPosition position,
-                  PushArgumentsArray* args)
+                  InputsArray* args)
       : TemplateDartCall(DeoptId::kNone,
                          0,
                          Array::null_array(),

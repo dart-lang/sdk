@@ -82,7 +82,7 @@ LocationSummary* PushArgumentInstr::MakeLocationSummary(Zone* zone,
 
 void PushArgumentInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // In SSA mode, we need an explicit push. Nothing to do in non-SSA mode
-  // where PushArgument is handled by BindInstr::EmitNativeCode.
+  // where arguments are pushed by their definitions.
   if (compiler->is_optimizing()) {
     Location value = locs()->in(0);
     if (value.IsRegister()) {
@@ -883,11 +883,6 @@ Condition RelationalOpInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
     ASSERT(operation_cid() == kDoubleCid);
     return EmitDoubleComparisonOp(compiler, *locs(), kind(), labels);
   }
-}
-
-LocationSummary* NativeCallInstr::MakeLocationSummary(Zone* zone,
-                                                      bool opt) const {
-  return MakeCallSummary(zone);
 }
 
 void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
@@ -5352,12 +5347,6 @@ void TruncDivModInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   __ SmiTag(EAX);
   __ SmiTag(EDX);
-}
-
-LocationSummary* PolymorphicInstanceCallInstr::MakeLocationSummary(
-    Zone* zone,
-    bool opt) const {
-  return MakeCallSummary(zone);
 }
 
 LocationSummary* BranchInstr::MakeLocationSummary(Zone* zone, bool opt) const {

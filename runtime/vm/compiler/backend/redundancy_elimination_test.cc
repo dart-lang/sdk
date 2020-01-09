@@ -291,7 +291,7 @@ static void TestAliasingViaRedefinition(
   auto b1 = H.flow_graph()->graph_entry()->normal_entry();
   AllocateObjectInstr* v0;
   LoadFieldInstr* v1;
-  PushArgumentInstr* push_v1;
+  StaticCallInstr* call;
   LoadFieldInstr* v4;
   ReturnInstr* ret;
 
@@ -303,15 +303,12 @@ static void TestAliasingViaRedefinition(
     v1 = builder.AddDefinition(
         new LoadFieldInstr(new Value(v0), slot, TokenPosition::kNoSource));
     auto v2 = builder.AddDefinition(make_redefinition(&S, H.flow_graph(), v0));
-    auto args = new PushArgumentsArray(2);
-    push_v1 = builder.AddInstruction(new PushArgumentInstr(new Value(v1)));
-    args->Add(push_v1);
+    auto args = new InputsArray(2);
+    args->Add(new Value(v1));
     if (make_it_escape) {
-      auto push_v2 =
-          builder.AddInstruction(new PushArgumentInstr(new Value(v2)));
-      args->Add(push_v2);
+      args->Add(new Value(v2));
     }
-    builder.AddInstruction(new StaticCallInstr(
+    call = builder.AddInstruction(new StaticCallInstr(
         TokenPosition::kNoSource, blackhole, 0, Array::empty_array(), args,
         S.GetNextDeoptId(), 0, ICData::RebindRule::kStatic));
     v4 = builder.AddDefinition(
@@ -332,8 +329,7 @@ static void TestAliasingViaRedefinition(
 
   // v1 should have been removed from the graph and replaced with constant_null.
   EXPECT_PROPERTY(v1, it.next() == nullptr && it.previous() == nullptr);
-  EXPECT_PROPERTY(push_v1,
-                  it.value()->definition() == H.flow_graph()->constant_null());
+  EXPECT_PROPERTY(call, it.ArgumentAt(0) == H.flow_graph()->constant_null());
 
   if (make_it_escape) {
     // v4 however should not be removed from the graph, because v0 escapes into
@@ -467,7 +463,7 @@ static void TestAliasingViaStore(
   AllocateObjectInstr* v0;
   AllocateObjectInstr* v5;
   LoadFieldInstr* v1;
-  PushArgumentInstr* push_v1;
+  StaticCallInstr* call;
   LoadFieldInstr* v4;
   ReturnInstr* ret;
 
@@ -486,22 +482,19 @@ static void TestAliasingViaStore(
     v1 = builder.AddDefinition(
         new LoadFieldInstr(new Value(v0), slot, TokenPosition::kNoSource));
     auto v2 = builder.AddDefinition(make_redefinition(&S, H.flow_graph(), v5));
-    push_v1 = builder.AddInstruction(new PushArgumentInstr(new Value(v1)));
-    auto args = new PushArgumentsArray(2);
-    args->Add(push_v1);
+    auto args = new InputsArray(2);
+    args->Add(new Value(v1));
     if (make_it_escape) {
       auto v6 = builder.AddDefinition(
           new LoadFieldInstr(new Value(v2), slot, TokenPosition::kNoSource));
-      auto push_v6 =
-          builder.AddInstruction(new PushArgumentInstr(new Value(v6)));
-      args->Add(push_v6);
+      args->Add(new Value(v6));
     } else if (make_host_escape) {
       builder.AddInstruction(new StoreInstanceFieldInstr(
           slot, new Value(v2), new Value(v0), kEmitStoreBarrier,
           TokenPosition::kNoSource));
-      args->Add(builder.AddInstruction(new PushArgumentInstr(new Value(v5))));
+      args->Add(new Value(v5));
     }
-    builder.AddInstruction(new StaticCallInstr(
+    call = builder.AddInstruction(new StaticCallInstr(
         TokenPosition::kNoSource, blackhole, 0, Array::empty_array(), args,
         S.GetNextDeoptId(), 0, ICData::RebindRule::kStatic));
     v4 = builder.AddDefinition(
@@ -528,8 +521,7 @@ static void TestAliasingViaStore(
 
   // v1 should have been removed from the graph and replaced with constant_null.
   EXPECT_PROPERTY(v1, it.next() == nullptr && it.previous() == nullptr);
-  EXPECT_PROPERTY(push_v1,
-                  it.value()->definition() == H.flow_graph()->constant_null());
+  EXPECT_PROPERTY(call, it.ArgumentAt(0) == H.flow_graph()->constant_null());
 
   if (make_it_escape || make_host_escape) {
     // v4 however should not be removed from the graph, because v0 escapes into

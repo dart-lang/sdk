@@ -159,7 +159,6 @@ class BytecodeFlowGraphBuilder {
   Value* Pop();
   intptr_t GetStackDepth() const;
   bool IsStackEmpty() const;
-  ArgumentArray GetArguments(int count);
   InferredTypeMetadata GetInferredType(intptr_t pc);
   void PropagateStackState(intptr_t target_pc);
   void DropUnusedValuesFromStack();

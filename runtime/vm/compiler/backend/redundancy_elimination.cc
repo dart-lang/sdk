@@ -1045,8 +1045,7 @@ class AliasedSet : public ZoneAllocated {
     for (Value* use = defn->input_use_list(); use != NULL;
          use = use->next_use()) {
       Instruction* instr = use->instruction();
-      if (instr->IsPushArgument() || instr->IsCheckedSmiOp() ||
-          instr->IsCheckedSmiComparison() ||
+      if (instr->HasUnknownSideEffects() ||
           (instr->IsStoreIndexed() &&
            (use->use_index() == StoreIndexedInstr::kValuePos)) ||
           instr->IsStoreStaticField() || instr->IsPhi()) {
@@ -2831,9 +2830,7 @@ void AllocationSinking::EliminateAllocation(Definition* alloc) {
   alloc->RemoveFromGraph();
   if (alloc->ArgumentCount() > 0) {
     ASSERT(alloc->ArgumentCount() == 1);
-    for (intptr_t i = 0; i < alloc->ArgumentCount(); ++i) {
-      alloc->PushArgumentAt(i)->RemoveFromGraph();
-    }
+    ASSERT(!alloc->HasPushArguments());
   }
 }
 
@@ -3703,6 +3700,7 @@ void DeadCodeElimination::EliminateDeadCode(FlowGraph* flow_graph) {
     BlockEntryInstr* block = block_it.Current();
     for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
       Instruction* current = it.Current();
+      ASSERT(!current->IsPushArgument());
       // TODO(alexmarkov): take control dependencies into account and
       // eliminate dead branches/conditions.
       if (!CanEliminateInstruction(current, block)) {
@@ -3739,9 +3737,7 @@ void DeadCodeElimination::EliminateDeadCode(FlowGraph* flow_graph) {
       for (Environment::DeepIterator it(current->env()); !it.Done();
            it.Advance()) {
         Definition* input = it.CurrentValue()->definition();
-        if (PushArgumentInstr* push_argument = input->AsPushArgument()) {
-          input = push_argument->value()->definition();
-        }
+        ASSERT(!input->IsPushArgument());
         if (input->HasSSATemp() && !live.Contains(input->ssa_temp_index())) {
           worklist.Add(input);
           live.Add(input->ssa_temp_index());
@@ -3768,38 +3764,12 @@ void DeadCodeElimination::EliminateDeadCode(FlowGraph* flow_graph) {
       if (!CanEliminateInstruction(current, block)) {
         continue;
       }
-      // Remove push arguments that correspond to non-live definitions. For
-      // example, if a call is removed but some of its PushArguments are also
-      // have environmental uses in other instructions, then those PushArguments
-      // linger in the graph. However, currently we only run DCE after the
-      // EliminateEnvironments pass, so we are guaranteed those PushArguments
-      // now have no uses.
-      //
-      // TODO(dartbug.com/39767): A better solution is to be able to remove
-      // these push arguments as soon as they go dead (i.e., during environment
-      // elimination) To do this, we'd need a way to go from PushArguments to
-      // the call in which they appear as an argument (if any), but we don't
-      // currently have that, so this fix papers over that for now.
-      if (auto const push_arg = current->AsPushArgument()) {
-        auto const def = push_arg->value()->definition();
-        ASSERT(def->HasSSATemp());
-        if (live.Contains(def->ssa_temp_index())) {
-          continue;
-        }
-      }
+      ASSERT(!current->IsPushArgument());
+      ASSERT((current->ArgumentCount() == 0) || !current->HasPushArguments());
       if (Definition* def = current->AsDefinition()) {
         if (def->HasSSATemp() && live.Contains(def->ssa_temp_index())) {
           continue;
         }
-      }
-      // Remove PushArgument instructions corresponding to 'current'.
-      for (intptr_t i = 0, n = current->ArgumentCount(); i < n; ++i) {
-        PushArgumentInstr* push_arg = current->PushArgumentAt(i);
-        // If the definition referenced by a push argument to dead code is also
-        // dead, then we may have already removed it.
-        if (push_arg->previous() == nullptr) continue;
-        push_arg->ReplaceUsesWith(push_arg->value()->definition());
-        push_arg->RemoveFromGraph();
       }
       current->UnuseAllInputs();
       it.RemoveCurrentFromGraph();

@@ -434,31 +434,6 @@ bool BytecodeFlowGraphBuilder::IsStackEmpty() const {
   return B->GetStackDepth() == 0;
 }
 
-ArgumentArray BytecodeFlowGraphBuilder::GetArguments(int count) {
-  ArgumentArray arguments =
-      new (Z) ZoneGrowableArray<PushArgumentInstr*>(Z, count);
-  arguments->SetLength(count);
-  for (intptr_t i = count - 1; i >= 0; --i) {
-    ASSERT(!IsStackEmpty());
-    Definition* arg_def = B->stack_->definition();
-    ASSERT(arg_def->temp_index() >= i);
-
-    PushArgumentInstr* argument = new (Z) PushArgumentInstr(Pop());
-
-    if (code_.current == arg_def) {
-      code_ <<= argument;
-    } else {
-      Instruction* next = arg_def->next();
-      ASSERT(next != nullptr);
-      arg_def->LinkTo(argument);
-      argument->LinkTo(next);
-    }
-
-    arguments->data()[i] = argument;
-  }
-  return arguments;
-}
-
 InferredTypeMetadata BytecodeFlowGraphBuilder::GetInferredType(intptr_t pc) {
   ASSERT(!inferred_types_attribute_.IsNull());
   intptr_t i = inferred_types_index_;
@@ -890,7 +865,7 @@ void BytecodeFlowGraphBuilder::BuildDirectCallCommon(bool is_unchecked_call) {
       Array::Cast(ConstantAt(DecodeOperandD(), 1).value());
   const ArgumentsDescriptor arg_desc(arg_desc_array);
 
-  ArgumentArray arguments = GetArguments(argc);
+  InputsArray* arguments = B->GetArguments(argc);
 
   StaticCallInstr* call = new (Z) StaticCallInstr(
       position_, target, arg_desc.TypeArgsLen(),
@@ -970,7 +945,7 @@ void BytecodeFlowGraphBuilder::BuildInterfaceCallCommon(
                                       &checked_argument_count);
 
   const intptr_t argc = DecodeOperandF().value();
-  const ArgumentArray arguments = GetArguments(argc);
+  InputsArray* arguments = B->GetArguments(argc);
 
   InstanceCallInstr* call = new (Z) InstanceCallInstr(
       position_, name, token_kind, arguments, arg_desc.TypeArgsLen(),
@@ -1036,12 +1011,11 @@ void BytecodeFlowGraphBuilder::BuildUncheckedClosureCall() {
                         /*clear_temp=*/false);
 
   code_ += B->LoadNativeField(Slot::Closure_function());
-  Value* function = Pop();
 
-  const ArgumentArray arguments = GetArguments(argc);
+  InputsArray* arguments = B->GetArguments(argc + 1);
 
   ClosureCallInstr* call = new (Z) ClosureCallInstr(
-      function, arguments, arg_desc.TypeArgsLen(),
+      arguments, arg_desc.TypeArgsLen(),
       Array::ZoneHandle(Z, arg_desc.GetArgumentNames()), position_,
       B->GetNextDeoptId(), Code::EntryKind::kUnchecked);
 
@@ -1074,7 +1048,7 @@ void BytecodeFlowGraphBuilder::BuildDynamicCall() {
                                       &checked_argument_count);
 
   const intptr_t argc = DecodeOperandF().value();
-  const ArgumentArray arguments = GetArguments(argc);
+  InputsArray* arguments = B->GetArguments(argc);
 
   const Function& interface_target = Function::null_function();
 
@@ -1105,7 +1079,7 @@ void BytecodeFlowGraphBuilder::BuildNativeCall() {
   const auto& name = String::ZoneHandle(Z, function().native_name());
   const intptr_t num_args =
       function().NumParameters() + (function().IsGeneric() ? 1 : 0);
-  ArgumentArray arguments = GetArguments(num_args);
+  InputsArray* arguments = B->GetArguments(num_args);
   auto* call =
       new (Z) NativeCallInstr(&name, &function(), FLAG_link_natives_lazily,
                               function().end_token_pos(), arguments);
@@ -1783,7 +1757,7 @@ void BytecodeFlowGraphBuilder::BuildPrimitiveOp(
   // A DebugStepCheck is performed as part of the calling stub.
 
   LoadStackSlots(num_args);
-  const ArgumentArray arguments = GetArguments(num_args);
+  InputsArray* arguments = B->GetArguments(num_args);
 
   InstanceCallInstr* call = new (Z) InstanceCallInstr(
       position_, name, token_kind, arguments, 0, Array::null_array(), num_args,

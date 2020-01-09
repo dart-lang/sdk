@@ -48,7 +48,6 @@ class FlowGraphDeserializer : ValueObject {
         root_sexp_(ASSERT_NOTNULL(root)),
         parsed_function_(pf),
         block_map_(zone),
-        pushed_stack_map_(zone),
         definition_map_(zone),
         values_map_(zone),
         recursive_types_map_(zone),
@@ -103,7 +102,6 @@ class FlowGraphDeserializer : ValueObject {
   M(LoadField)                                                                 \
   M(NativeCall)                                                                \
   M(Parameter)                                                                 \
-  M(PushArgument)                                                              \
   M(Return)                                                                    \
   M(SpecialParameter)                                                          \
   M(StaticCall)                                                                \
@@ -139,7 +137,6 @@ class FlowGraphDeserializer : ValueObject {
   bool ParseConstantPool(SExpList* pool);
   bool ParseEntries(SExpList* list);
 
-  using PushStack = ZoneGrowableArray<PushArgumentInstr*>;
   using BlockWorklist = GrowableArray<intptr_t>;
 
   // Starts parsing the contents of [list], where the blocks begin at position
@@ -231,14 +228,16 @@ class FlowGraphDeserializer : ValueObject {
     Array& argument_names;
     intptr_t type_args_len = 0;
     intptr_t args_len = 0;
-    PushArgumentsArray* arguments = nullptr;
+    InputsArray* inputs = nullptr;
     CompileType* result_type = nullptr;
     Code::EntryKind entry_kind = Code::EntryKind::kNormal;
   };
 
   // Helper function for parsing call instructions that returns a structure
   // of information common to all calls.
-  bool ParseCallInfo(SExpList* call, CallInfo* out);
+  bool ParseCallInfo(SExpList* call,
+                     CallInfo* out,
+                     intptr_t num_extra_inputs = 0);
 
   // Parses [sexp] as a value form, that is, either the binding name for
   // a definition as a symbol or the form (value <name> { ... }).
@@ -314,24 +313,9 @@ class FlowGraphDeserializer : ValueObject {
   // Helper function for rebinding values pending on this definition.
   bool FixPendingValues(intptr_t index, Definition* def);
 
-  // Creates a PushArgumentsArray of size [len] from [pushed_stack_] if there
-  // are enough and pops the fetched arguments from the stack.
-  //
-  // The [sexp] argument should be the serialized form of the instruction that
-  // needs the pushed arguments and is only used for error reporting.
-  PushArgumentsArray* FetchPushedArguments(SExpList* sexp, intptr_t len);
-
   // Retrieves the block corresponding to the given block ID symbol from
   // [block_map_]. Assumes all blocks have had their header parsed.
   BlockEntryInstr* FetchBlock(SExpSymbol* sym);
-
-  // Checks that the pushed argument stacks for all predecessors of [succ_block]
-  // are the same as [curr_stack]. This check ensures that we can choose an
-  // arbitrary predecessor's pushed argument stack when parsing [succ_block]'s
-  // contents. [list] is used for error reporting.
-  bool AreStacksConsistent(SExpList* list,
-                           PushStack* curr_stack,
-                           BlockEntryInstr* succ_block);
 
   // Utility functions for checking the shape of an S-expression.
   // If these functions return nullptr for a non-null argument, they have the
@@ -369,12 +353,6 @@ class FlowGraphDeserializer : ValueObject {
   // (the graph entry), since it is only used at known points and is already
   // available via [flow_graph_].
   IntMap<BlockEntryInstr*> block_map_;
-
-  // Map from block IDs to pushed argument stacks. Used for PushArgument
-  // instructions, environment parsing, and calls during block parsing. Also
-  // used to check that the final pushed argument stacks for predecessor blocks
-  // are consistent when parsing a JoinEntry.
-  IntMap<PushStack*> pushed_stack_map_;
 
   // Map from variable indexes to definitions.
   IntMap<Definition*> definition_map_;

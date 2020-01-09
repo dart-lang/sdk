@@ -534,7 +534,8 @@ Definition* Definition::OriginalDefinitionIgnoreBoxingAndConstraints() {
   Definition* def = this;
   while (true) {
     Definition* orig;
-    if (def->IsConstraint() || def->IsBox() || def->IsUnbox()) {
+    if (def->IsConstraint() || def->IsBox() || def->IsUnbox() ||
+        def->IsIntConverter()) {
       orig = def->InputAt(0)->definition();
     } else {
       orig = def->OriginalDefinition();
@@ -1484,11 +1485,13 @@ void Instruction::UnuseAllInputs() {
 }
 
 void Instruction::RepairPushArgsInEnvironment() const {
+  PushArgumentsArray* push_arguments = GetPushArguments();
+  ASSERT(push_arguments != nullptr);
   const intptr_t arg_count = ArgumentCount();
   ASSERT(arg_count <= env()->Length());
   const intptr_t env_base = env()->Length() - arg_count;
   for (intptr_t i = 0; i < arg_count; ++i) {
-    env()->ValueAt(env_base + i)->BindToEnvironment(PushArgumentAt(i));
+    env()->ValueAt(env_base + i)->BindToEnvironment(push_arguments->At(i));
   }
 }
 
@@ -4459,6 +4462,12 @@ intptr_t PolymorphicInstanceCallInstr::CallCount() const {
   return targets().AggregateCallCount();
 }
 
+LocationSummary* PolymorphicInstanceCallInstr::MakeLocationSummary(
+    Zone* zone,
+    bool optimizing) const {
+  return MakeCallSummary(zone);
+}
+
 void PolymorphicInstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ArgumentsInfo args_info(type_args_len(), ArgumentCount(), argument_names());
   compiler->EmitPolymorphicInstanceCall(targets_, *instance_call(), args_info,
@@ -5333,6 +5342,11 @@ intptr_t TruncDivModInstr::OutputIndexOf(Token::Kind token) {
       UNIMPLEMENTED();
       return -1;
   }
+}
+
+LocationSummary* NativeCallInstr::MakeLocationSummary(Zone* zone,
+                                                      bool optimizing) const {
+  return MakeCallSummary(zone);
 }
 
 void NativeCallInstr::SetupNative() {

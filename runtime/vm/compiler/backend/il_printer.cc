@@ -489,7 +489,7 @@ void AssertBooleanInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 void ClosureCallInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print(" function=");
-  InputAt(0)->PrintTo(f);
+  InputAt(InputCount() - 1)->PrintTo(f);
   f->Print("<%" Pd ">", type_args_len());
   for (intptr_t i = 0; i < ArgumentCount(); ++i) {
     f->Print(", ");

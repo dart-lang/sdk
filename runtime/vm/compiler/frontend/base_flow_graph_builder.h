@@ -106,8 +106,6 @@ class TestFragment {
   SuccessorAddressArray* false_successor_addresses = nullptr;
 };
 
-typedef ZoneGrowableArray<PushArgumentInstr*>* ArgumentArray;
-
 // Indicates which form of the unchecked entrypoint we are compiling.
 //
 // kNone:
@@ -154,7 +152,6 @@ class BaseFlowGraphBuilder {
         current_try_index_(kInvalidTryIndex),
         next_used_try_index_(0),
         stack_(NULL),
-        pending_argument_count_(0),
         exit_collector_(exit_collector),
         inlining_unchecked_entry_(inlining_unchecked_entry) {}
 
@@ -233,8 +230,7 @@ class BaseFlowGraphBuilder {
   //
   LocalVariable* MakeTemporary();
 
-  Fragment PushArgument();
-  ArgumentArray GetArguments(int count);
+  InputsArray* GetArguments(int count);
 
   TargetEntryInstr* BuildTargetEntry();
   FunctionEntryInstr* BuildFunctionEntry(GraphEntryInstr* graph_entry);
@@ -432,7 +428,6 @@ class BaseFlowGraphBuilder {
   intptr_t next_used_try_index_;
 
   Value* stack_;
-  intptr_t pending_argument_count_;
   InlineExitCollector* exit_collector_;
 
   const bool inlining_unchecked_entry_;

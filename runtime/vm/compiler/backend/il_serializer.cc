@@ -880,7 +880,7 @@ void FlowGraphSerializer::AddDefinitionExtraInfoToSExp(const Definition* def,
 
 SExpression* Definition::ToSExpression(FlowGraphSerializer* s) const {
   // If we don't have a temp index, then this is a Definition that has no
-  // usable result, like PushArgumentInstr.
+  // usable result.
   const bool binds_name = HasSSATemp() || HasTemp();
   // Don't serialize non-binding definitions as definitions unless we either
   // have Definition-specific extra info or we're in verbose mode.
@@ -1126,14 +1126,15 @@ void TailCallInstr::AddOperandsToSExpression(SExpList* sexp,
 
 void NativeCallInstr::AddOperandsToSExpression(SExpList* sexp,
                                                FlowGraphSerializer* s) const {
-  if (auto const func = s->DartValueToSExp(function())) {
-    sexp->Add(func);
-  }
+  Instruction::AddOperandsToSExpression(sexp, s);
 }
 
 void NativeCallInstr::AddExtraInfoToSExpression(SExpList* sexp,
                                                 FlowGraphSerializer* s) const {
   TemplateDartCall<0>::AddExtraInfoToSExpression(sexp, s);
+  if (auto const func = s->DartValueToSExp(function())) {
+    sexp->AddExtra("function", func);
+  }
   if (!native_name().IsNull()) {
     s->AddExtraString(sexp, "name", native_name().ToCString());
   }
@@ -1142,8 +1143,8 @@ void NativeCallInstr::AddExtraInfoToSExpression(SExpList* sexp,
   }
 }
 
-template <intptr_t kInputCount>
-void TemplateDartCall<kInputCount>::AddExtraInfoToSExpression(
+template <intptr_t kExtraInputs>
+void TemplateDartCall<kExtraInputs>::AddExtraInfoToSExpression(
     SExpList* sexp,
     FlowGraphSerializer* s) const {
   Instruction::AddExtraInfoToSExpression(sexp, s);
@@ -1162,6 +1163,8 @@ void TemplateDartCall<kInputCount>::AddExtraInfoToSExpression(
     }
     sexp->AddExtra("arg_names", arg_names_sexp);
   }
+
+  ASSERT(!HasPushArguments());
 }
 
 void ClosureCallInstr::AddExtraInfoToSExpression(SExpList* sexp,
@@ -1173,14 +1176,16 @@ void ClosureCallInstr::AddExtraInfoToSExpression(SExpList* sexp,
 
 void StaticCallInstr::AddOperandsToSExpression(SExpList* sexp,
                                                FlowGraphSerializer* s) const {
-  if (auto const func = s->DartValueToSExp(function())) {
-    sexp->Add(func);
-  }
+  Instruction::AddOperandsToSExpression(sexp, s);
 }
 
 void StaticCallInstr::AddExtraInfoToSExpression(SExpList* sexp,
                                                 FlowGraphSerializer* s) const {
   TemplateDartCall<0>::AddExtraInfoToSExpression(sexp, s);
+
+  if (auto const func = s->DartValueToSExp(function())) {
+    sexp->AddExtra("function", func);
+  }
 
   if (HasICData()) {
     sexp->AddExtra("ic_data", s->ICDataToSExp(ic_data()));
@@ -1208,15 +1213,17 @@ void StaticCallInstr::AddExtraInfoToSExpression(SExpList* sexp,
 
 void InstanceCallInstr::AddOperandsToSExpression(SExpList* sexp,
                                                  FlowGraphSerializer* s) const {
-  if (auto const target = s->DartValueToSExp(interface_target())) {
-    sexp->Add(target);
-  }
+  Instruction::AddOperandsToSExpression(sexp, s);
 }
 
 void InstanceCallInstr::AddExtraInfoToSExpression(
     SExpList* sexp,
     FlowGraphSerializer* s) const {
   TemplateDartCall<0>::AddExtraInfoToSExpression(sexp, s);
+
+  if (auto const target = s->DartValueToSExp(interface_target())) {
+    sexp->AddExtra("interface_target", target);
+  }
 
   if (HasICData()) {
     sexp->AddExtra("ic_data", s->ICDataToSExp(ic_data()));
@@ -1254,13 +1261,16 @@ void InstanceCallInstr::AddExtraInfoToSExpression(
 void PolymorphicInstanceCallInstr::AddOperandsToSExpression(
     SExpList* sexp,
     FlowGraphSerializer* s) const {
-  sexp->Add(instance_call()->ToSExpression(s));
+  Instruction::AddOperandsToSExpression(sexp, s);
 }
 
 void PolymorphicInstanceCallInstr::AddExtraInfoToSExpression(
     SExpList* sexp,
     FlowGraphSerializer* s) const {
-  Instruction::AddExtraInfoToSExpression(sexp, s);
+  TemplateDartCall<0>::AddExtraInfoToSExpression(sexp, s);
+  // TODO(alexmarkov): figure out how to serialize information from
+  // inner InstanceCall
+  // sexp->AddExtra("instance_call", instance_call()->ToSExpression(s));
   if (targets().length() > 0 || FLAG_verbose_flow_graph_serialization) {
     auto elem_list = new (s->zone()) SExpList(s->zone());
     for (intptr_t i = 0; i < targets().length(); i++) {
@@ -1449,29 +1459,11 @@ void CompileType::AddExtraInfoToSExpression(SExpList* sexp,
   }
 }
 
-// TODO(@sstrickl): find a better way, store stack index?
-static intptr_t CountArgs(Environment* env) {
-  if (env != nullptr) {
-    intptr_t arg_count = CountArgs(env->outer());
-    for (intptr_t i = 0, n = env->Length(); i < n; ++i) {
-      if (env->ValueAt(i)->definition()->IsPushArgument()) {
-        arg_count++;
-      }
-    }
-    return arg_count;
-  }
-  return 0;
-}
-
 SExpression* Environment::ToSExpression(FlowGraphSerializer* s) const {
   auto sexp = new (s->zone()) SExpList(s->zone());
-  intptr_t arg_count = CountArgs(outer_);
   for (intptr_t i = 0; i < values_.length(); ++i) {
-    if (values_[i]->definition()->IsPushArgument()) {
-      s->AddSymbol(sexp, OS::SCreate(s->zone(), "a%" Pd "", arg_count++));
-    } else {
-      sexp->Add(values_[i]->ToSExpression(s));
-    }
+    ASSERT(!values_[i]->definition()->IsPushArgument());
+    sexp->Add(values_[i]->ToSExpression(s));
     // TODO(sstrickl): This currently assumes that there are no locations in the
     // environment (e.g. before register allocation). If we ever want to print
     // out environments on steps after AllocateRegisters, we'll need to handle

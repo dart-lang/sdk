@@ -230,7 +230,7 @@ ISOLATE_UNIT_TEST_CASE(TypePropagator_Refinement) {
         new StaticCallInstr(TokenPosition::kNoSource, target_func,
                             /*type_args_len=*/0,
                             /*argument_names=*/Array::empty_array(),
-                            new PushArgumentsArray(0), S.GetNextDeoptId(),
+                            new InputsArray(0), S.GetNextDeoptId(),
                             /*call_count=*/0, ICData::RebindRule::kStatic));
     builder.AddInstruction(new GotoInstr(b4, S.GetNextDeoptId()));
   }

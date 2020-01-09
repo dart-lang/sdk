@@ -203,6 +203,9 @@ class GraphInfoCollector : public ValueObject {
         // PushArgument instructions are eliminated.
         if (current->IsAllocateObject()) {
           instruction_count_ += current->InputCount();
+        } else if (current->ArgumentCount() > 0) {
+          ASSERT(!current->HasPushArguments());
+          instruction_count_ += current->ArgumentCount();
         }
         if (current->IsInstanceCall() || current->IsStaticCall() ||
             current->IsClosureCall()) {
@@ -1360,13 +1363,7 @@ class CallSiteInliner : public ValueObject {
 
     ReplaceParameterStubs(zone(), caller_graph_, call_data, NULL);
 
-    // Remove push arguments of the call.
-    Definition* call = call_data->call;
-    for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
-      PushArgumentInstr* push = call->PushArgumentAt(i);
-      push->ReplaceUsesWith(push->value()->definition());
-      push->RemoveFromGraph();
-    }
+    ASSERT(!call_data->call->HasPushArguments());
   }
 
   static intptr_t CountConstants(const GrowableArray<Value*>& arguments) {
@@ -2054,16 +2051,10 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
     }
   }
 
+  ASSERT(!call_->HasPushArguments());
+
   // Handle any non-inlined variants.
   if (!non_inlined_variants_->is_empty()) {
-    // Move push arguments of the call.
-    for (intptr_t i = 0; i < call_->ArgumentCount(); ++i) {
-      PushArgumentInstr* push = call_->PushArgumentAt(i);
-      push->ReplaceUsesWith(push->value()->definition());
-      push->previous()->LinkTo(push->next());
-      cursor->LinkTo(push);
-      cursor = push;
-    }
     PolymorphicInstanceCallInstr* fallback_call =
         PolymorphicInstanceCallInstr::FromCall(Z, call_, *non_inlined_variants_,
                                                call_->complete());
@@ -2077,16 +2068,8 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
                                              fallback_call);
     AppendInstruction(AppendInstruction(cursor, fallback_call),
                       fallback_return);
-    fallback_call->RepairPushArgsInEnvironment();
     exit_collector_->AddExit(fallback_return);
     cursor = nullptr;
-  } else {
-    // Remove push arguments of the call.
-    for (intptr_t i = 0; i < call_->ArgumentCount(); ++i) {
-      PushArgumentInstr* push = call_->PushArgumentAt(i);
-      push->ReplaceUsesWith(push->value()->definition());
-      push->RemoveFromGraph();
-    }
   }
   return entry;
 }
@@ -3365,12 +3348,8 @@ bool FlowGraphInliner::TryReplaceInstanceCallWithInline(
       flow_graph->AddExactnessGuard(call, receiver_cid);
     }
 
-    // Remove the original push arguments.
-    for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
-      PushArgumentInstr* push = call->PushArgumentAt(i);
-      push->ReplaceUsesWith(push->value()->definition());
-      push->RemoveFromGraph();
-    }
+    ASSERT(!call->HasPushArguments());
+
     // Replace all uses of this definition with the result.
     if (call->HasUses()) {
       ASSERT(result != nullptr && result->HasSSATemp());
@@ -3419,12 +3398,7 @@ bool FlowGraphInliner::TryReplaceStaticCallWithInline(
     ASSERT((last != nullptr && result != nullptr) ||
            (call->function().recognized_kind() ==
             MethodRecognizer::kObjectConstructor));
-    // Remove the original push arguments.
-    for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
-      PushArgumentInstr* push = call->PushArgumentAt(i);
-      push->ReplaceUsesWith(push->value()->definition());
-      push->RemoveFromGraph();
-    }
+    ASSERT(!call->HasPushArguments());
     // Replace all uses of this definition with the result.
     if (call->HasUses()) {
       ASSERT(result->HasSSATemp());

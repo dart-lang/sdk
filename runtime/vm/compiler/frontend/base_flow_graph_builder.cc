@@ -434,13 +434,6 @@ Fragment BaseFlowGraphBuilder::NullConstant() {
   return Constant(Instance::ZoneHandle(Z, Instance::null()));
 }
 
-Fragment BaseFlowGraphBuilder::PushArgument() {
-  PushArgumentInstr* argument = new (Z) PushArgumentInstr(Pop());
-  Push(argument);
-  ++pending_argument_count_;
-  return Fragment(argument);
-}
-
 Fragment BaseFlowGraphBuilder::GuardFieldLength(const Field& field,
                                                 intptr_t deopt_id) {
   return Fragment(new (Z) GuardFieldLengthInstr(Pop(), field, deopt_id));
@@ -622,9 +615,7 @@ LocalVariable* BaseFlowGraphBuilder::MakeTemporary() {
   // will not be cleared (causing them to never be materialized in the
   // expression stack and skew stack depth).
   for (Value* item = stack_; item != nullptr; item = item->next_use()) {
-    if (!item->definition()->IsPushArgument()) {
-      item->definition()->set_ssa_temp_index(0);
-    }
+    item->definition()->set_ssa_temp_index(0);
   }
 
   return variable;
@@ -719,18 +710,12 @@ JoinEntryInstr* BaseFlowGraphBuilder::BuildJoinEntry() {
                                 GetNextDeoptId(), GetStackDepth());
 }
 
-ArgumentArray BaseFlowGraphBuilder::GetArguments(int count) {
-  ArgumentArray arguments =
-      new (Z) ZoneGrowableArray<PushArgumentInstr*>(Z, count);
+InputsArray* BaseFlowGraphBuilder::GetArguments(int count) {
+  InputsArray* arguments = new (Z) ZoneGrowableArray<Value*>(Z, count);
   arguments->SetLength(count);
   for (intptr_t i = count - 1; i >= 0; --i) {
-    ASSERT(stack_->definition()->IsPushArgument());
-    ASSERT(!stack_->definition()->HasSSATemp());
-    arguments->data()[i] = stack_->definition()->AsPushArgument();
-    Drop();
+    arguments->data()[i] = Pop();
   }
-  pending_argument_count_ -= count;
-  ASSERT(pending_argument_count_ >= 0);
   return arguments;
 }
 
@@ -1035,11 +1020,8 @@ Fragment BaseFlowGraphBuilder::BuildEntryPointsIntrospection() {
 
   Fragment call_hook;
   call_hook += Constant(closure);
-  call_hook += PushArgument();
   call_hook += Constant(function_name);
-  call_hook += PushArgument();
   call_hook += LoadLocal(entry_point_num);
-  call_hook += PushArgument();
   call_hook += Constant(Function::ZoneHandle(Z, closure.function()));
   call_hook += ClosureCall(TokenPosition::kNoSource,
                            /*type_args_len=*/0, /*argument_count=*/3,
@@ -1054,14 +1036,12 @@ Fragment BaseFlowGraphBuilder::ClosureCall(TokenPosition position,
                                            intptr_t argument_count,
                                            const Array& argument_names,
                                            bool is_statically_checked) {
-  Value* function = Pop();
-  const intptr_t total_count = argument_count + (type_args_len > 0 ? 1 : 0);
-  ArgumentArray arguments = GetArguments(total_count);
-  ClosureCallInstr* call = new (Z)
-      ClosureCallInstr(function, arguments, type_args_len, argument_names,
-                       position, GetNextDeoptId(),
-                       is_statically_checked ? Code::EntryKind::kUnchecked
-                                             : Code::EntryKind::kNormal);
+  const intptr_t total_count = argument_count + (type_args_len > 0 ? 1 : 0) + 1;
+  InputsArray* arguments = GetArguments(total_count);
+  ClosureCallInstr* call = new (Z) ClosureCallInstr(
+      arguments, type_args_len, argument_names, position, GetNextDeoptId(),
+      is_statically_checked ? Code::EntryKind::kUnchecked
+                            : Code::EntryKind::kNormal);
   Push(call);
   return Fragment(call);
 }

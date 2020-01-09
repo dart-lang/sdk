@@ -83,21 +83,76 @@ LocationSummary* PushArgumentInstr::MakeLocationSummary(Zone* zone,
   return locs;
 }
 
+// Buffers registers in order to use STP to push
+// two registers at once.
+class ArgumentsPusher : public ValueObject {
+ public:
+  ArgumentsPusher() {}
+
+  // Flush all buffered registers.
+  void Flush(FlowGraphCompiler* compiler) {
+    if (pending_register_ != kNoRegister) {
+      __ Push(pending_register_);
+      pending_register_ = kNoRegister;
+    }
+  }
+
+  // Buffer given register. May push buffered registers if needed.
+  void PushRegister(FlowGraphCompiler* compiler, Register reg) {
+    if (pending_register_ != kNoRegister) {
+      __ PushPair(reg, pending_register_);
+      pending_register_ = kNoRegister;
+      return;
+    }
+    pending_register_ = reg;
+  }
+
+  // Returns free temp register to hold argument value.
+  Register GetFreeTempRegister() {
+    // While pushing arguments only Push, PushPair, LoadObject and
+    // LoadFromOffset are used. They do not clobber TMP or LR.
+    static_assert(((1 << LR) & kDartAvailableCpuRegs) == 0,
+                  "LR should not be allocatable");
+    static_assert(((1 << TMP) & kDartAvailableCpuRegs) == 0,
+                  "TMP should not be allocatable");
+    return (pending_register_ == TMP) ? LR : TMP;
+  }
+
+ private:
+  Register pending_register_ = kNoRegister;
+};
+
 void PushArgumentInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // In SSA mode, we need an explicit push. Nothing to do in non-SSA mode
-  // where PushArgument is handled by BindInstr::EmitNativeCode.
+  // where arguments are pushed by their definitions.
   if (compiler->is_optimizing()) {
-    Location value = locs()->in(0);
-    if (value.IsRegister()) {
-      __ Push(value.reg());
-    } else if (value.IsConstant()) {
-      __ PushObject(value.constant());
-    } else {
-      ASSERT(value.IsStackSlot());
-      const intptr_t value_offset = value.ToStackSlotOffset();
-      __ LoadFromOffset(TMP, value.base_reg(), value_offset);
-      __ Push(TMP);
+    if (previous()->IsPushArgument()) {
+      // Already generated.
+      return;
     }
+    ArgumentsPusher pusher;
+    for (PushArgumentInstr* push_arg = this; push_arg != nullptr;
+         push_arg = push_arg->next()->AsPushArgument()) {
+      const Location value = push_arg->locs()->in(0);
+      Register reg = kNoRegister;
+      if (value.IsRegister()) {
+        reg = value.reg();
+      } else if (value.IsConstant()) {
+        if (compiler::IsSameObject(compiler::NullObject(), value.constant())) {
+          reg = NULL_REG;
+        } else {
+          reg = pusher.GetFreeTempRegister();
+          __ LoadObject(reg, value.constant());
+        }
+      } else {
+        ASSERT(value.IsStackSlot());
+        const intptr_t value_offset = value.ToStackSlotOffset();
+        reg = pusher.GetFreeTempRegister();
+        __ LoadFromOffset(reg, value.base_reg(), value_offset);
+      }
+      pusher.PushRegister(compiler, reg);
+    }
+    pusher.Flush(compiler);
   }
 }
 
@@ -812,11 +867,6 @@ Condition RelationalOpInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
     ASSERT(operation_cid() == kDoubleCid);
     return EmitDoubleComparisonOp(compiler, locs(), labels, kind());
   }
-}
-
-LocationSummary* NativeCallInstr::MakeLocationSummary(Zone* zone,
-                                                      bool opt) const {
-  return MakeCallSummary(zone);
 }
 
 void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
@@ -5092,12 +5142,6 @@ void TruncDivModInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ add(TMP, result_mod, compiler::Operand(right));
   __ csel(result_mod, TMP, TMP2, GE);
   __ Bind(&done);
-}
-
-LocationSummary* PolymorphicInstanceCallInstr::MakeLocationSummary(
-    Zone* zone,
-    bool opt) const {
-  return MakeCallSummary(zone);
 }
 
 LocationSummary* BranchInstr::MakeLocationSummary(Zone* zone, bool opt) const {

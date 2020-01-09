@@ -364,7 +364,6 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
               ReadCanonicalNameReference();  // read target_reference.
 
           instructions += LoadLocal(parsed_function()->receiver_var());
-          instructions += PushArgument();
 
           // TODO(jensj): ASSERT(init->arguments()->types().length() == 0);
           Array& argument_names = Array::ZoneHandle(Z);
@@ -391,7 +390,6 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
               ReadCanonicalNameReference();  // read target_reference.
 
           instructions += LoadLocal(parsed_function()->receiver_var());
-          instructions += PushArgument();
 
           // TODO(jensj): ASSERT(init->arguments()->types().length() == 0);
           Array& argument_names = Array::ZoneHandle(Z);
@@ -535,7 +533,6 @@ Fragment StreamingFlowGraphBuilder::SetAsyncStackTrace(
 
   Fragment code;
   code += LoadLocal(async_stack_trace_var);
-  code += PushArgument();
   // Call _asyncSetThreadStackTrace
   code += StaticCall(TokenPosition::kNoSource, target,
                      /* argument_count = */ 1, ICData::kStatic);
@@ -560,15 +557,14 @@ Fragment StreamingFlowGraphBuilder::TypeArgumentsHandling(
 
     if (dart_function.IsGeneric()) {
       prologue += LoadLocal(fn_type_args);
-      prologue += PushArgument();
+
       prologue += LoadLocal(closure);
       prologue += LoadNativeField(Slot::Closure_function_type_arguments());
-      prologue += PushArgument();
+
       prologue += IntConstant(dart_function.NumParentTypeParameters());
-      prologue += PushArgument();
+
       prologue += IntConstant(dart_function.NumTypeParameters() +
                               dart_function.NumParentTypeParameters());
-      prologue += PushArgument();
 
       const Library& dart_internal =
           Library::Handle(Z, Library::InternalLibrary());
@@ -1627,10 +1623,6 @@ Fragment StreamingFlowGraphBuilder::Return(TokenPosition position,
                                      yield_index);
 }
 
-Fragment StreamingFlowGraphBuilder::PushArgument() {
-  return flow_graph_builder_->PushArgument();
-}
-
 Fragment StreamingFlowGraphBuilder::EvaluateAssertion() {
   return flow_graph_builder_->EvaluateAssertion();
 }
@@ -2059,9 +2051,7 @@ const TypeArguments& StreamingFlowGraphBuilder::BuildTypeArguments() {
 
 Fragment StreamingFlowGraphBuilder::BuildArguments(Array* argument_names,
                                                    intptr_t* argument_count,
-                                                   intptr_t* positional_count,
-                                                   bool skip_push_arguments,
-                                                   bool do_drop) {
+                                                   intptr_t* positional_count) {
   intptr_t dummy;
   if (argument_count == NULL) argument_count = &dummy;
   *argument_count = ReadUInt();  // read arguments count.
@@ -2074,22 +2064,17 @@ Fragment StreamingFlowGraphBuilder::BuildArguments(Array* argument_names,
     if (positional_count == NULL) positional_count = &dummy;
     *positional_count = ReadListLength();  // read length of expression list
   }
-  return BuildArgumentsFromActualArguments(argument_names, skip_push_arguments,
-                                           do_drop);
+  return BuildArgumentsFromActualArguments(argument_names);
 }
 
 Fragment StreamingFlowGraphBuilder::BuildArgumentsFromActualArguments(
-    Array* argument_names,
-    bool skip_push_arguments,
-    bool do_drop) {
+    Array* argument_names) {
   Fragment instructions;
 
   // List of positional.
   intptr_t list_length = ReadListLength();  // read list length.
   for (intptr_t i = 0; i < list_length; ++i) {
     instructions += BuildExpression();  // read ith expression.
-    if (!skip_push_arguments) instructions += PushArgument();
-    if (do_drop) instructions += Drop();
   }
 
   // List of named.
@@ -2101,8 +2086,6 @@ Fragment StreamingFlowGraphBuilder::BuildArgumentsFromActualArguments(
     String& name =
         H.DartSymbolObfuscate(ReadStringReference());  // read ith name index.
     instructions += BuildExpression();                 // read ith expression.
-    if (!skip_push_arguments) instructions += PushArgument();
-    if (do_drop) instructions += Drop();
     if (argument_names != NULL) {
       argument_names->SetAt(i, name);
     }
@@ -2270,8 +2253,6 @@ Fragment StreamingFlowGraphBuilder::BuildPropertyGet(TokenPosition* p) {
     instructions += LoadLocal(receiver);
   }
 
-  instructions += PushArgument();
-
   const String& getter_name = ReadNameAsGetterName();  // read name.
 
   const Function* interface_target = &Function::null_function();
@@ -2346,13 +2327,10 @@ Fragment StreamingFlowGraphBuilder::BuildPropertySet(TokenPosition* p) {
     instructions += LoadLocal(receiver);
   }
 
-  instructions += PushArgument();
-
   const String& setter_name = ReadNameAsSetterName();  // read name.
 
   instructions += BuildExpression();  // read value.
   instructions += StoreLocal(TokenPosition::kNoSource, variable);
-  instructions += PushArgument();
 
   const Function* interface_target = &Function::null_function();
   const NameIndex itarget_name =
@@ -2443,27 +2421,22 @@ Fragment StreamingFlowGraphBuilder::BuildAllocateInvocationMirrorCall(
 
   // First argument is receiver.
   instructions += LoadLocal(parsed_function()->receiver_var());
-  instructions += PushArgument();
 
   // Push the arguments for allocating the invocation mirror:
   //   - the name.
   instructions += Constant(String::ZoneHandle(Z, name.raw()));
-  instructions += PushArgument();
 
   //   - the arguments descriptor.
   const Array& args_descriptor =
       Array::Handle(Z, ArgumentsDescriptor::New(num_type_arguments,
                                                 num_arguments, argument_names));
   instructions += Constant(Array::ZoneHandle(Z, args_descriptor.raw()));
-  instructions += PushArgument();
 
   //   - an array containing the actual arguments.
   instructions += LoadLocal(actuals_array);
-  instructions += PushArgument();
 
   //   - [true] indicating this is a `super` NoSuchMethod.
   instructions += Constant(Bool::True());
-  instructions += PushArgument();
 
   const Class& mirror_class =
       Class::Handle(Z, Library::LookupCoreClass(Symbols::InvocationMirror()));
@@ -2531,7 +2504,6 @@ Fragment StreamingFlowGraphBuilder::BuildSuperPropertyGet(TokenPosition* p) {
         /* num_arguments = */ 1,
         /* argument_names = */ Object::empty_array(), actuals_array,
         /* build_rest_of_actuals = */ Fragment());
-    instructions += PushArgument();  // second argument is invocation mirror
 
     Function& nsm_function = GetNoSuchMethodOrDie(Z, parent_klass);
     instructions +=
@@ -2543,7 +2515,6 @@ Fragment StreamingFlowGraphBuilder::BuildSuperPropertyGet(TokenPosition* p) {
     ASSERT(!function.IsNull());
 
     instructions += LoadLocal(parsed_function()->receiver_var());
-    instructions += PushArgument();
 
     instructions +=
         StaticCall(position, Function::ZoneHandle(Z, function.raw()),
@@ -2587,7 +2558,6 @@ Fragment StreamingFlowGraphBuilder::BuildSuperPropertySet(TokenPosition* p) {
         /* num_arguments = */ 2,
         /* argument_names = */ Object::empty_array(), actuals_array,
         build_rest_of_actuals);
-    instructions += PushArgument();  // second argument - invocation mirror
 
     SkipCanonicalNameReference();  // skip target_reference.
 
@@ -2600,11 +2570,9 @@ Fragment StreamingFlowGraphBuilder::BuildSuperPropertySet(TokenPosition* p) {
   } else {
     // receiver
     instructions += LoadLocal(parsed_function()->receiver_var());
-    instructions += PushArgument();
 
     instructions += BuildExpression();  // read value.
     instructions += StoreLocal(position, value);
-    instructions += PushArgument();
 
     SkipCanonicalNameReference();  // skip target_reference.
 
@@ -2665,7 +2633,6 @@ Fragment StreamingFlowGraphBuilder::BuildDirectPropertyGet(TokenPosition* p) {
     ASSERT(target.IsGetterFunction() || target.IsImplicitGetterFunction());
   }
 
-  instructions += PushArgument();
   // Static calls are marked as "no-rebind", which is currently safe because
   // DirectPropertyGet are only used in enums (index in toString) and enums
   // can't change their structure during hot reload.
@@ -2683,7 +2650,6 @@ Fragment StreamingFlowGraphBuilder::BuildDirectPropertySet(TokenPosition* p) {
   LocalVariable* value = MakeTemporary();
 
   instructions += BuildExpression();  // read receiver.
-  instructions += PushArgument();
 
   const NameIndex target_reference =
       ReadCanonicalNameReference();  // read target_reference.
@@ -2694,7 +2660,6 @@ Fragment StreamingFlowGraphBuilder::BuildDirectPropertySet(TokenPosition* p) {
 
   instructions += BuildExpression();  // read value.
   instructions += StoreLocal(TokenPosition::kNoSource, value);
-  instructions += PushArgument();
 
   // Static calls are marked as "no-rebind", which is currently safe because
   // DirectPropertyGet are only used in enums (index in toString) and enums
@@ -2789,7 +2754,6 @@ Fragment StreamingFlowGraphBuilder::BuildStaticSet(TokenPosition* p) {
     LocalVariable* variable = MakeTemporary();
     instructions += LoadLocal(variable);
     if (!setter.IsNull() && field.NeedsSetter()) {
-      instructions += PushArgument();
       instructions += StaticCall(position, setter, 1, ICData::kStatic);
       instructions += Drop();
     } else {
@@ -2805,7 +2769,6 @@ Fragment StreamingFlowGraphBuilder::BuildStaticSet(TokenPosition* p) {
 
     // Prepare argument.
     instructions += LoadLocal(variable);
-    instructions += PushArgument();
 
     // Invoke the setter function.
     const Function& function =
@@ -2866,8 +2829,6 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
         // type arguments here we need to push it between receiver_temp
         // and actual receiver. See the code below.
         type_arguments_temp = MakeTemporary();
-      } else {
-        instructions += PushArgument();
       }
     }
     type_args_len = list_length;
@@ -2891,9 +2852,9 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
        PeekArgumentsFirstPositionalTag() == kNullLiteral)) {
     ASSERT(type_args_len == 0);
     // "==" or "!=" with null on either side.
-    instructions += BuildArguments(NULL /* named */, NULL /* arg count */,
-                                   NULL /* positional arg count */,
-                                   true);  // read arguments.
+    instructions +=
+        BuildArguments(NULL /* named */, NULL /* arg count */,
+                       NULL /* positional arg count */);  // read arguments.
     SkipCanonicalNameReference();          // read interface_target_reference.
     Token::Kind strict_cmp_kind =
         token_kind == Token::kEQ ? Token::kEQ_STRICT : Token::kNE_STRICT;
@@ -2912,12 +2873,9 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
       //   [type_arguments_temp][receiver_temp][type_arguments][receiver] ...
       //
       instructions += LoadLocal(type_arguments_temp);
-      instructions += PushArgument();
     }
     instructions += LoadLocal(receiver_temp);
   }
-
-  instructions += PushArgument();  // push receiver as argument.
 
   intptr_t argument_count;
   intptr_t positional_argument_count;
@@ -3046,7 +3004,6 @@ Fragment StreamingFlowGraphBuilder::BuildDirectMethodInvocation(
       const TypeArguments& type_arguments =
           T.BuildTypeArguments(list_length);  // read types.
       instructions += TranslateInstantiatedTypeArguments(type_arguments);
-      instructions += PushArgument();
     }
     type_args_len = list_length;
   }
@@ -3066,16 +3023,14 @@ Fragment StreamingFlowGraphBuilder::BuildDirectMethodInvocation(
        PeekArgumentsFirstPositionalTag() == kNullLiteral)) {
     ASSERT(type_args_len == 0);
     // "==" or "!=" with null on either side.
-    instructions += BuildArguments(NULL /* names */, NULL /* arg count */,
-                                   NULL /* positional arg count */,
-                                   true);  // read arguments.
+    instructions +=
+        BuildArguments(NULL /* names */, NULL /* arg count */,
+                       NULL /* positional arg count */);  // read arguments.
     Token::Kind strict_cmp_kind =
         token_kind == Token::kEQ ? Token::kEQ_STRICT : Token::kNE_STRICT;
     return instructions +
            StrictCompare(position, strict_cmp_kind, /*number_check = */ true);
   }
-
-  instructions += PushArgument();  // push receiver as argument.
 
   const Function& target =
       Function::ZoneHandle(Z, H.LookupMethodByMember(kernel_name, method_name));
@@ -3190,7 +3145,6 @@ Fragment StreamingFlowGraphBuilder::BuildSuperMethodInvocation(
         position, method_name, type_list_length,
         /* num_arguments = */ argument_count + 1, argument_names, actuals_array,
         build_rest_of_actuals);
-    instructions += PushArgument();  // second argument - invocation mirror
 
     SkipCanonicalNameReference();  //  skip target_reference.
 
@@ -3211,13 +3165,11 @@ Fragment StreamingFlowGraphBuilder::BuildSuperMethodInvocation(
         const TypeArguments& type_arguments =
             T.BuildTypeArguments(list_length);  // read types.
         instructions += TranslateInstantiatedTypeArguments(type_arguments);
-        instructions += PushArgument();
       }
     }
 
     // receiver
     instructions += LoadLocal(parsed_function()->receiver_var());
-    instructions += PushArgument();
 
     Array& argument_names = Array::ZoneHandle(Z);
     intptr_t argument_count;
@@ -3304,7 +3256,6 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(TokenPosition* p) {
     instance_variable = MakeTemporary();
 
     instructions += LoadLocal(instance_variable);
-    instructions += PushArgument();
   } else if (target.IsFactory()) {
     // The VM requires currently a TypeArguments object as first parameter for
     // every factory constructor :-/ !
@@ -3313,7 +3264,6 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(TokenPosition* p) {
     // into Kernel.
     const TypeArguments& type_arguments = PeekArgumentsInstantiatedType(klass);
     instructions += TranslateInstantiatedTypeArguments(type_arguments);
-    instructions += PushArgument();
   } else if (!special_case) {
     AlternativeReadingScope alt(&reader_);
     ReadUInt();                               // read argument count.
@@ -3322,15 +3272,14 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(TokenPosition* p) {
       const TypeArguments& type_arguments =
           T.BuildTypeArguments(list_length);  // read types.
       instructions += TranslateInstantiatedTypeArguments(type_arguments);
-      instructions += PushArgument();
     }
     type_args_len = list_length;
   }
 
   Array& argument_names = Array::ZoneHandle(Z);
-  instructions += BuildArguments(&argument_names, NULL /* arg count */,
-                                 NULL /* positional arg count */,
-                                 special_case);  // read arguments.
+  instructions +=
+      BuildArguments(&argument_names, NULL /* arg count */,
+                     NULL /* positional arg count */);  // read arguments.
   ASSERT(target.AreValidArguments(NNBDMode::kLegacyLib, type_args_len,
                                   argument_count, argument_names, NULL));
 
@@ -3400,7 +3349,6 @@ Fragment StreamingFlowGraphBuilder::BuildConstructorInvocation(
   LocalVariable* variable = MakeTemporary();
 
   instructions += LoadLocal(variable);
-  instructions += PushArgument();
 
   Array& argument_names = Array::ZoneHandle(Z);
   intptr_t argument_count;
@@ -3633,12 +3581,9 @@ Fragment StreamingFlowGraphBuilder::BuildIsExpression(TokenPosition* p) {
     // Let condition be always true.
     instructions += Constant(Bool::True());
   } else {
-    instructions += PushArgument();
-
     // See if simple instanceOf is applicable.
     if (dart::SimpleInstanceOfType(type)) {
       instructions += Constant(type);
-      instructions += PushArgument();  // Type.
       instructions += InstanceCall(
           position, Library::PrivateCoreLibName(Symbols::_simpleInstanceOf()),
           Token::kIS, 2, 2);  // 2 checked arguments.
@@ -3650,20 +3595,16 @@ Fragment StreamingFlowGraphBuilder::BuildIsExpression(TokenPosition* p) {
     } else {
       instructions += NullConstant();
     }
-    instructions += PushArgument();  // Instantiator type arguments.
 
     if (!type.IsInstantiated(kFunctions)) {
       instructions += LoadFunctionTypeArguments();
     } else {
       instructions += NullConstant();
     }
-    instructions += PushArgument();  // Function type arguments.
 
     instructions += Constant(type);
-    instructions += PushArgument();  // Type.
 
     instructions += IntConstant(static_cast<intptr_t>(nnbd_mode));
-    instructions += PushArgument();  // nnbd_mode.
 
     instructions += InstanceCall(
         position, Library::PrivateCoreLibName(Symbols::_instanceOf()),
@@ -3771,7 +3712,6 @@ Fragment StreamingFlowGraphBuilder::BuildListLiteral(TokenPosition* p) {
   LocalVariable* type = MakeTemporary();
 
   instructions += LoadLocal(type);
-  instructions += PushArgument();
   if (length == 0) {
     instructions += Constant(Object::empty_array());
   } else {
@@ -3788,7 +3728,6 @@ Fragment StreamingFlowGraphBuilder::BuildListLiteral(TokenPosition* p) {
       instructions += StoreIndexed(kArrayCid);
     }
   }
-  instructions += PushArgument();  // The array.
 
   const Class& factory_class =
       Class::Handle(Z, Library::LookupCoreClass(Symbols::List()));
@@ -3810,7 +3749,6 @@ Fragment StreamingFlowGraphBuilder::BuildMapLiteral(TokenPosition* p) {
 
   // The type argument for the factory call `new Map<K, V>._fromLiteral(List)`.
   Fragment instructions = TranslateInstantiatedTypeArguments(type_arguments);
-  instructions += PushArgument();
 
   intptr_t length = ReadListLength();  // read list length.
   // Note: there will be "length" map entries (i.e. key and value expressions).
@@ -3838,7 +3776,6 @@ Fragment StreamingFlowGraphBuilder::BuildMapLiteral(TokenPosition* p) {
       instructions += StoreIndexed(kArrayCid);
     }
   }
-  instructions += PushArgument();  // The array.
 
   const Class& map_class =
       Class::Handle(Z, Library::LookupCoreClass(Symbols::Map()));
@@ -3954,7 +3891,6 @@ Fragment StreamingFlowGraphBuilder::BuildFutureNullValue(
 
   Fragment instructions;
   instructions += BuildNullLiteral(position);
-  instructions += PushArgument();
   instructions += StaticCall(TokenPosition::kNoSource, constructor,
                              /* argument_count = */ 1, ICData::kStatic);
   return instructions;
@@ -4000,9 +3936,7 @@ Fragment StreamingFlowGraphBuilder::BuildPartialTearoffInstantiation(
   // when the closure is coming from a tearoff of a top-level method or from a
   // local closure.
   instructions += LoadLocal(original_closure);
-  instructions += PushArgument();
   instructions += LoadLocal(type_args_vec);
-  instructions += PushArgument();
   const Library& dart_internal = Library::Handle(Z, Library::InternalLibrary());
   const Function& bounds_check_function = Function::ZoneHandle(
       Z, dart_internal.LookupFunctionAllowPrivate(
@@ -4137,7 +4071,6 @@ Fragment StreamingFlowGraphBuilder::BuildAssertStatement() {
   const TokenPosition condition_end_offset =
       ReadPosition();  // read condition end offset.
 
-  instructions += PushArgument();
   instructions += EvaluateAssertion();
   instructions += CheckBoolean(condition_start_offset);
   instructions += Constant(Bool::True());
@@ -4157,16 +4090,13 @@ Fragment StreamingFlowGraphBuilder::BuildAssertStatement() {
   // or Throw).
   Fragment otherwise_fragment(otherwise);
   otherwise_fragment += IntConstant(condition_start_offset.Pos());
-  otherwise_fragment += PushArgument();  // start
   otherwise_fragment += IntConstant(condition_end_offset.Pos());
-  otherwise_fragment += PushArgument();  // end
   Tag tag = ReadTag();                   // read (first part of) message.
   if (tag == kSomething) {
     otherwise_fragment += BuildExpression();  // read (rest of) message.
   } else {
     otherwise_fragment += Constant(Instance::ZoneHandle(Z));  // null.
   }
-  otherwise_fragment += PushArgument();  // message
 
   // Note: condition_start_offset points to the first token after the opening
   // paren, not the beginning of 'assert'.
@@ -4373,7 +4303,6 @@ Fragment StreamingFlowGraphBuilder::BuildForInStatement(bool async) {
   TokenPosition iterable_position = TokenPosition::kNoSource;
   Fragment instructions =
       BuildExpression(&iterable_position);  // read iterable.
-  instructions += PushArgument();
 
   const String& iterator_getter =
       String::ZoneHandle(Z, Field::GetterSymbol(Symbols::Iterator()));
@@ -4386,7 +4315,6 @@ Fragment StreamingFlowGraphBuilder::BuildForInStatement(bool async) {
   for_in_depth_inc();
   loop_depth_inc();
   Fragment condition = LoadLocal(iterator);
-  condition += PushArgument();
   condition +=
       InstanceCall(iterable_position, Symbols::MoveNext(), Token::kILLEGAL, 1);
   TargetEntryInstr* body_entry;
@@ -4396,7 +4324,6 @@ Fragment StreamingFlowGraphBuilder::BuildForInStatement(bool async) {
   Fragment body(body_entry);
   body += EnterScope(offset);
   body += LoadLocal(iterator);
-  body += PushArgument();
   const String& current_getter =
       String::ZoneHandle(Z, Field::GetterSymbol(Symbols::Current()));
   body += InstanceCall(body_position, current_getter, Token::kGET, 1);
@@ -4493,14 +4420,9 @@ Fragment StreamingFlowGraphBuilder::BuildSwitchStatement() {
       LocalVariable* instance = MakeTemporary();
 
       // Call _FallThroughError._create constructor.
-      body_fragment += LoadLocal(instance);
-      body_fragment += PushArgument();  // this
-
-      body_fragment += Constant(url);
-      body_fragment += PushArgument();  // url
-
-      body_fragment += NullConstant();
-      body_fragment += PushArgument();  // line
+      body_fragment += LoadLocal(instance);  // this
+      body_fragment += Constant(url);        // url
+      body_fragment += NullConstant();       // line
 
       body_fragment +=
           StaticCall(TokenPosition::kNoSource, constructor, 3, ICData::kStatic);
@@ -4566,9 +4488,7 @@ Fragment StreamingFlowGraphBuilder::BuildSwitchStatement() {
         TokenPosition position = ReadPosition();  // read jth position.
         current_instructions += Constant(
             Instance::ZoneHandle(Z, constant_reader_.ReadConstantExpression()));
-        current_instructions += PushArgument();
         current_instructions += LoadLocal(scopes()->switch_variable);
-        current_instructions += PushArgument();
         current_instructions +=
             InstanceCall(position, Symbols::EqualOperator(), Token::kEQ,
                          /*argument_count=*/2,
@@ -4788,24 +4708,24 @@ Fragment StreamingFlowGraphBuilder::BuildTryCatch() {
 
     if (type_guard != NULL) {
       catch_body += LoadLocal(CurrentException());
-      catch_body += PushArgument();  // exception
+
       if (!type_guard->IsInstantiated(kCurrentClass)) {
         catch_body += LoadInstantiatorTypeArguments();
       } else {
         catch_body += NullConstant();
       }
-      catch_body += PushArgument();  // instantiator type arguments
+
       if (!type_guard->IsInstantiated(kFunctions)) {
         catch_body += LoadFunctionTypeArguments();
       } else {
         catch_body += NullConstant();
       }
-      catch_body += PushArgument();  // function type arguments
+
       catch_body += Constant(*type_guard);
-      catch_body += PushArgument();  // guard type
+
       const NNBDMode nnbd_mode = parsed_function()->function().nnbd_mode();
       catch_body += IntConstant(static_cast<intptr_t>(nnbd_mode));
-      catch_body += PushArgument();  // nnbd_mode
+
       catch_body += InstanceCall(
           position, Library::PrivateCoreLibName(Symbols::_instanceOf()),
           Token::kIS, 5);

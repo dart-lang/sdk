@@ -158,7 +158,6 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment LoadLocal(LocalVariable* variable);
   Fragment Return(TokenPosition position,
                   intptr_t yield_index = RawPcDescriptors::kInvalidYieldIndex);
-  Fragment PushArgument();
   Fragment EvaluateAssertion();
   Fragment RethrowException(TokenPosition position, int catch_try_index);
   Fragment ThrowNoSuchMethodError();
@@ -268,12 +267,8 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   const TypeArguments& BuildTypeArguments();
   Fragment BuildArguments(Array* argument_names,
                           intptr_t* argument_count,
-                          intptr_t* positional_argument_count,
-                          bool skip_push_arguments = false,
-                          bool do_drop = false);
-  Fragment BuildArgumentsFromActualArguments(Array* argument_names,
-                                             bool skip_push_arguments = false,
-                                             bool do_drop = false);
+                          intptr_t* positional_argument_count);
+  Fragment BuildArgumentsFromActualArguments(Array* argument_names);
 
   Fragment BuildInvalidExpression(TokenPosition* position);
   Fragment BuildVariableGet(TokenPosition* position);
