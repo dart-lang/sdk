@@ -4,12 +4,16 @@
 
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:meta/meta.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/decorated_class_hierarchy.dart';
 import 'package:nnbd_migration/src/edge_builder.dart';
+import 'package:nnbd_migration/src/edit_plan.dart';
+import 'package:nnbd_migration/src/fix_aggregator.dart';
+import 'package:nnbd_migration/src/fix_builder.dart';
 import 'package:nnbd_migration/src/node_builder.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
 import 'package:nnbd_migration/src/potential_modification.dart';
@@ -29,24 +33,72 @@ class NullabilityMigrationImpl implements NullabilityMigration {
 
   DecoratedClassHierarchy _decoratedClassHierarchy;
 
+  bool _propagated = false;
+
+  /// Indicates whether migration should use the new [FixBuilder]
+  /// infrastructure.  Once FixBuilder is at feature parity with the old
+  /// implementation, this option will be removed and FixBuilder will be used
+  /// unconditionally.
+  ///
+  /// Currently defaults to `false`.
+  final bool useFixBuilder;
+
   /// Prepares to perform nullability migration.
   ///
   /// If [permissive] is `true`, exception handling logic will try to proceed
   /// as far as possible even though the migration algorithm is not yet
   /// complete.  TODO(paulberry): remove this mode once the migration algorithm
   /// is fully implemented.
+  ///
+  /// [useFixBuilder] indicates whether migration should use the new
+  /// [FixBuilder] infrastructure.  Once FixBuilder is at feature parity with
+  /// the old implementation, this option will be removed and FixBuilder will
+  /// be used unconditionally.
   NullabilityMigrationImpl(NullabilityMigrationListener listener,
       {bool permissive: false,
-      NullabilityMigrationInstrumentation instrumentation})
+      NullabilityMigrationInstrumentation instrumentation,
+      bool useFixBuilder: false})
       : this._(listener, NullabilityGraph(instrumentation: instrumentation),
-            permissive, instrumentation);
+            permissive, instrumentation, useFixBuilder);
 
-  NullabilityMigrationImpl._(
-      this.listener, this._graph, this._permissive, this._instrumentation) {
+  NullabilityMigrationImpl._(this.listener, this._graph, this._permissive,
+      this._instrumentation, this.useFixBuilder) {
     _instrumentation?.immutableNodes(_graph.never, _graph.always);
   }
 
+  @override
+  void finalizeInput(ResolvedUnitResult result) {
+    if (!useFixBuilder) return;
+    if (!_propagated) {
+      _propagated = true;
+      _graph.propagate();
+    }
+    var unit = result.unit;
+    var compilationUnit = unit.declaredElement;
+    var library = compilationUnit.library;
+    var source = compilationUnit.source;
+    var fixBuilder = FixBuilder(
+        source,
+        _decoratedClassHierarchy,
+        result.typeProvider,
+        library.typeSystem as Dart2TypeSystem,
+        _variables,
+        library);
+    fixBuilder.visitAll(unit);
+    var changes = FixAggregator.run(unit, fixBuilder.changes);
+    for (var entry in changes.entries) {
+      final lineInfo = LineInfo.fromContent(source.contents.data);
+      var fix = _SingleNullabilityFix(
+          source, const _DummyPotentialModification(), lineInfo);
+      listener.addFix(fix);
+      // TODO(paulberry): don't pass null to instrumentation.
+      _instrumentation?.fix(fix, null);
+      listener.addEdit(fix, entry.value.toSourceEdit(entry.key));
+    }
+  }
+
   void finish() {
+    if (useFixBuilder) return;
     _graph.propagate();
     if (_graph.unsatisfiedSubstitutions.isNotEmpty) {
       // TODO(paulberry): for now we just ignore unsatisfied substitutions, to
@@ -110,6 +162,25 @@ class NullabilityMigrationImpl implements NullabilityMigration {
       }
     }
   }
+}
+
+/// Dummy implementation of [PotentialModification] used as a temporary bridge
+/// between the old pre-FixBuilder logic and the new FixBuilder logic (which
+/// doesn't use [PotentialModification]).
+///
+/// TODO(paulberry): once we've fully migrated over to the new logic, this class
+/// should go away (as should [PotentialModification]).
+class _DummyPotentialModification implements PotentialModification {
+  const _DummyPotentialModification();
+
+  @override
+  NullabilityFixDescription get description => null;
+
+  @override
+  Iterable<SourceEdit> get modifications => const [];
+
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 /// Implementation of [SingleNullabilityFix] used internally by

@@ -67,7 +67,7 @@ class NonNullableFix extends FixCodeTask {
   }
 
   @override
-  int get numPhases => 2;
+  int get numPhases => 3;
 
   /// Return a list of the Urls corresponding to the included roots.
   List<String> get previewUrls => [
@@ -203,6 +203,9 @@ analyzer:
         break;
       case 1:
         migration.processInput(result);
+        break;
+      case 2:
+        migration.finalizeInput(result);
         break;
       default:
         throw ArgumentError('Unsupported phase $phase');

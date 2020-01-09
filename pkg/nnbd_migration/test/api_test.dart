@@ -15,6 +15,7 @@ main() {
     defineReflectiveTests(_ProvisionalApiTest);
     defineReflectiveTests(_ProvisionalApiTestPermissive);
     defineReflectiveTests(_ProvisionalApiTestWithReset);
+    defineReflectiveTests(_ProvisionalApiTestWithFixBuilder);
   });
 }
 
@@ -23,15 +24,20 @@ main() {
 class _ProvisionalApiTest extends _ProvisionalApiTestBase
     with _ProvisionalApiTestCases {
   @override
+  bool get _useFixBuilder => false;
+
+  @override
   bool get _usePermissiveMode => false;
 }
 
 /// Base class for provisional API tests.
 abstract class _ProvisionalApiTestBase extends AbstractContextTest {
+  bool get _useFixBuilder;
+
   bool get _usePermissiveMode;
 
-  /// Hook invoked after calling `prepareInput` on each input.
-  void _afterPrepare() {}
+  /// Hook invoked between stages of processing inputs.
+  void _betweenStages() {}
 
   /// Verifies that migration of the files in [input] produces the output in
   /// [expectedOutput].
@@ -41,14 +47,18 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
       driver.getFileSync(newFile(path, content: input[path]).path);
     }
     var listener = new TestMigrationListener();
-    var migration =
-        NullabilityMigration(listener, permissive: _usePermissiveMode);
+    var migration = NullabilityMigration(listener,
+        permissive: _usePermissiveMode, useFixBuilder: _useFixBuilder);
     for (var path in input.keys) {
       migration.prepareInput(await session.getResolvedUnit(path));
     }
-    _afterPrepare();
+    _betweenStages();
     for (var path in input.keys) {
       migration.processInput(await session.getResolvedUnit(path));
+    }
+    _betweenStages();
+    for (var path in input.keys) {
+      migration.finalizeInput(await session.getResolvedUnit(path));
     }
     migration.finish();
     var sourceEdits = <String, List<SourceEdit>>{};
@@ -3774,6 +3784,9 @@ class C {
 class _ProvisionalApiTestPermissive extends _ProvisionalApiTestBase
     with _ProvisionalApiTestCases {
   @override
+  bool get _useFixBuilder => false;
+
+  @override
   bool get _usePermissiveMode => true;
 
   // TODO(danrubel): Remove this once the superclass test has been fixed.
@@ -3783,6 +3796,109 @@ class _ProvisionalApiTestPermissive extends _ProvisionalApiTestBase
   }
 }
 
+@reflectiveTest
+class _ProvisionalApiTestWithFixBuilder extends _ProvisionalApiTestBase
+    with _ProvisionalApiTestCases {
+  @override
+  bool get _useFixBuilder => true;
+
+  @override
+  bool get _usePermissiveMode => false;
+
+  @override
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
+  Future<void> test_discard_simple_condition() =>
+      super.test_discard_simple_condition();
+
+  @override
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
+  Future<void> test_downcast_dynamic_function_to_functionType() =>
+      super.test_downcast_dynamic_function_to_functionType();
+
+  @override
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
+  Future<void> test_downcast_dynamic_to_functionType() =>
+      super.test_downcast_dynamic_to_functionType();
+
+  @override
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
+  Future<void> test_downcast_dynamic_type_argument() =>
+      super.test_downcast_dynamic_type_argument();
+
+  @override
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
+  Future<void> test_downcast_type_argument_preserve_nullability() =>
+      super.test_downcast_type_argument_preserve_nullability();
+
+  @override
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
+  Future<void> test_enum() => super.test_enum();
+
+  @override
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
+  Future<void> test_field_initializer_typed_list_literal() =>
+      super.test_field_initializer_typed_list_literal();
+
+  @override
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
+  Future<void> test_field_initializer_untyped_list_literal() =>
+      super.test_field_initializer_untyped_list_literal();
+
+  @override
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
+  Future<void> test_field_initializer_untyped_map_literal() =>
+      super.test_field_initializer_untyped_map_literal();
+
+  @override
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
+  Future<void> test_field_initializer_untyped_set_literal() =>
+      super.test_field_initializer_untyped_set_literal();
+
+  @override
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
+  Future<void> test_for_each_basic() => super.test_for_each_basic();
+
+  @override
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
+  Future<void> test_generic_exact_propagation() =>
+      super.test_generic_exact_propagation();
+
+  @override
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
+  Future<void> test_generic_exact_propagation_premigratedListClass() =>
+      super.test_generic_exact_propagation_premigratedListClass();
+
+  @override
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
+  Future<void> test_instance_creation_generic() =>
+      super.test_instance_creation_generic();
+
+  @override
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
+  Future<void> test_methodInvocation_typeArguments_inferred() =>
+      super.test_methodInvocation_typeArguments_inferred();
+
+  @override
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
+  Future<void> test_named_parameter_no_default_unused_required() =>
+      super.test_named_parameter_no_default_unused_required();
+
+  @override
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
+  Future<void> test_override_return_type_nullable_substitution_complex() =>
+      super.test_override_return_type_nullable_substitution_complex();
+
+  @override
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
+  Future<void> test_postdominating_usage_after_cfg_altered() =>
+      super.test_postdominating_usage_after_cfg_altered();
+
+  /// Test fails under the pre-FixBuilder implementation; passes now.
+  @override
+  Future<void> test_removed_if_element_doesnt_introduce_nullability() =>
+      super.test_removed_if_element_doesnt_introduce_nullability();
+}
+
 /// Tests of the provisional API, where the driver is reset between calls to
 /// `prepareInput` and `processInput`, ensuring that the migration algorithm
 /// sees different AST and element objects during different phases.
@@ -3790,10 +3906,13 @@ class _ProvisionalApiTestPermissive extends _ProvisionalApiTestBase
 class _ProvisionalApiTestWithReset extends _ProvisionalApiTestBase
     with _ProvisionalApiTestCases {
   @override
+  bool get _useFixBuilder => false;
+
+  @override
   bool get _usePermissiveMode => false;
 
   @override
-  void _afterPrepare() {
+  void _betweenStages() {
     driver.resetUriResolution();
   }
 }

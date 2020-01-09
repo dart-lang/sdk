@@ -86,6 +86,12 @@ main(List<String> args) async {
           migration.processInput(resolvedUnit);
         }
       }
+      for (var file in localFiles) {
+        var resolvedUnit = await context.currentSession.getResolvedUnit(file);
+        if (!resolvedUnit.errors.any((e) => e.severity == Severity.error)) {
+          migration.finalizeInput(resolvedUnit);
+        }
+      }
       migration.finish();
     }
 

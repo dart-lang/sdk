@@ -40,6 +40,7 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
         instrumentation: instrumentationListener);
     migration.prepareInput(result);
     migration.processInput(result);
+    migration.finalizeInput(result);
     migration.finish();
     // Build the migration info.
     InstrumentationInformation info = instrumentationListener.data;

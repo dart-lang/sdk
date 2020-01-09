@@ -138,6 +138,7 @@ class _InstrumentationTest extends AbstractContextTest {
     findNode = FindNode(content, result.unit);
     migration.prepareInput(result);
     migration.processInput(result);
+    migration.finalizeInput(result);
     migration.finish();
   }
 
