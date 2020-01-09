@@ -86,7 +86,7 @@ void testListRead(list, index) {
 void testListWrite(list, index) {
   var exception = null;
   try {
-    list[index] = null;
+    list[index] = 0;
   } on RangeError catch (e) {
     exception = e;
   }

@@ -125,7 +125,7 @@ class _BufferingStreamSubscription<T>
    * This can only be done once. The pending events object is used for the
    * rest of the subscription's life cycle.
    */
-  void _setPendingEvents(_PendingEvents<T> pendingEvents) {
+  void _setPendingEvents(_PendingEvents<T>? pendingEvents) {
     assert(_pending == null);
     if (pendingEvents == null) return;
     _pending = pendingEvents;

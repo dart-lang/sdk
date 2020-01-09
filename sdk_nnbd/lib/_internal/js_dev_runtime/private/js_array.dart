@@ -392,9 +392,9 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
   void fillRange(@nullCheck int start, @nullCheck int end, [E? fillValue]) {
     checkMutable('fill range');
     RangeError.checkValidRange(start, end, this.length);
+    E checkedFillValue = fillValue as E;
     for (int i = start; i < end; i++) {
-      // Store is safe since [fillValue] type has been checked as parameter.
-      JS('', '#[#] = #', this, i, fillValue);
+      JS('', '#[#] = #', this, i, checkedFillValue);
     }
   }
 

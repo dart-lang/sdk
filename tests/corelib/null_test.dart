@@ -9,7 +9,8 @@ import "package:expect/expect.dart";
 main() {
   var x;
 
-  Expect.isTrue(x is Object);
+  Expect.isTrue(x is Object?);
+  Expect.isTrue(x is! Object);
   Expect.isTrue(x is dynamic);
   Expect.isTrue(x is! String);
   Expect.isTrue(x is! int);

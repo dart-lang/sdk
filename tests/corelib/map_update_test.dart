@@ -19,8 +19,8 @@ void main() {
   test(new MapView(new HashMap()));
   test(new MapBaseMap());
   test(new MapMixinMap());
-  test(newJsonMap());
-  test(newJsonMapCustomReviver());
+  testNonNull(newJsonMap());
+  testNonNull(newJsonMapCustomReviver());
   testNonNull(new SplayTreeMap());
   testNonNull(new SplayTreeMap((a, b) => Comparable.compare(a!, b!)));
   testNonNull(new MapView(new SplayTreeMap()));
@@ -209,4 +209,4 @@ class TestKeyIterator<K> implements Iterator<K> {
   K get current => _current;
 }
 
-Null unreachable([_, __]) => throw "unreachable";
+Never unreachable([_, __]) => throw "unreachable";

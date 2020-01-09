@@ -7,7 +7,7 @@ import "dart:collection";
 import "dart:typed_data";
 
 main() {
-  var intTest = new Test<int>();
+  var intTest = new Test<int>(0);
   intTest.run("ConstList", createConstList);
   intTest.run("FixedList", createFixedList);
   intTest.run("GrowableList", createGrowableList);
@@ -25,13 +25,17 @@ main() {
   intTest.run("CodeUnits", createCodeUnits);
   intTest.run("TypedList", createTypedList);
 
-  new Test<String>().test("strings", ["a", "b", "c"]);
+  new Test<String>("").test("strings", ["a", "b", "c"]);
 
-  new Test<num>().test("superclass", <int>[1, 2, 3]);
-  new Test<int>().test("subclass", <num>[1, 2, 3]);
+  new Test<num>(0).test("superclass", <int>[1, 2, 3]);
+  new Test<int>(0).test("subclass", <num>[1, 2, 3]);
 }
 
 class Test<E> {
+  final E element;
+
+  Test(this.element);
+
   run(name, Iterable create(int size)) {
     test(name, create(0));
     test(name, create(1));
@@ -53,7 +57,7 @@ class Test<E> {
     var elements = iterable.toList();
     int length = elements.length;
 
-    var list = new List<E?>.unmodifiable(iterable);
+    var list = new List<E>.unmodifiable(iterable);
 
     Expect.isTrue(list is List<E>, "$name-type-$E");
     Expect.isTrue(list is! List<Test>, "$name-!type-!$E");
@@ -79,7 +83,7 @@ class Test<E> {
     }
 
     throws("[]=", () {
-      list[0] = null;
+      list[0] = element;
     });
     throws("length=", () {
       list.length = length + 1;
@@ -91,10 +95,10 @@ class Test<E> {
       list.setAll(0, []);
     });
     throws("add", () {
-      list.add(null);
+      list.add(element);
     });
     throws("insert", () {
-      list.insert(0, null);
+      list.insert(0, element);
     });
     throws("insertAll", () {
       list.insertAll(0, []);
@@ -103,7 +107,7 @@ class Test<E> {
       list.addAll([]);
     });
     throws("remove", () {
-      list.remove(null);
+      list.remove(element);
     });
     throws("removeWhere", () {
       list.removeWhere((x) => true);
@@ -136,7 +140,7 @@ class Test<E> {
       list.replaceRange(0, 1, []);
     });
     throws("fillRange", () {
-      list.fillRange(0, 1, null);
+      list.fillRange(0, 1, element);
     });
 
     success(opName, op(List list), [bool throws = false]) {
@@ -170,8 +174,8 @@ class Test<E> {
       }
     }
 
-    success("indexOf", (l) => l.indexOf(null));
-    success("lastIndexOf", (l) => l.lastIndexOf(null));
+    success("indexOf", (l) => l.indexOf(element));
+    success("lastIndexOf", (l) => l.lastIndexOf(element));
     success("contains", (l) => l.contains(2));
     success("elementAt", (l) => l.elementAt(1), list.length < 2);
     success("reversed", (l) => l.reversed);

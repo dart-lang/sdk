@@ -5,7 +5,7 @@
 import "package:expect/expect.dart";
 import "dart:collection";
 
-test(List list, int start, int end, [fillValue]) {
+test(List list, int start, int end, [fillValue = 42]) {
   List copy = list.toList();
   list.fillRange(start, end, fillValue);
   Expect.equals(copy.length, list.length);

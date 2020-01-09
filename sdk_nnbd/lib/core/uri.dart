@@ -2248,7 +2248,7 @@ class _Uri implements Uri {
     var result = StringBuffer();
     var separator = "";
 
-    void writeParameter(String key, String value) {
+    void writeParameter(String key, String? value) {
       result.write(separator);
       separator = "&";
       result.write(Uri.encodeQueryComponent(key));
