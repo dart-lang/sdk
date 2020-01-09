@@ -525,6 +525,15 @@ class TypeInferrerImpl implements TypeInferrer {
         library.loader.performNnbdChecks;
   }
 
+  DartType computeNonNullable(DartType type) {
+    if (type == coreTypes.nullType) {
+      return isNonNullableByDefault
+          ? const NeverType(Nullability.nonNullable)
+          : type;
+    }
+    return type.withNullability(library.nonNullable);
+  }
+
   void registerIfUnreachableForTesting(TreeNode node, {bool isReachable}) {
     if (dataForTesting == null) return;
     isReachable ??= flowAnalysis.isReachable;

@@ -1091,8 +1091,10 @@ class InferenceVisitor
     // - Let T = greatest closure of K with respect to `?` if K is not `_`, else
     //   UP(t0, t1)
     // - Then the inferred type is T.
+    DartType nonNullableLhsType =
+        inferrer.computeNonNullable(lhsResult.inferredType);
     DartType inferredType = inferrer.typeSchemaEnvironment
-        .getStandardUpperBound(lhsResult.inferredType, rhsResult.inferredType,
+        .getStandardUpperBound(nonNullableLhsType, rhsResult.inferredType,
             inferrer.library.library);
     VariableDeclaration variable =
         createVariable(lhsResult.expression, lhsResult.inferredType);
@@ -1100,8 +1102,13 @@ class InferenceVisitor
         lhsResult.expression.fileOffset,
         createVariableGet(variable),
         equalsMember);
-    ConditionalExpression conditional = new ConditionalExpression(equalsNull,
-        rhsResult.expression, createVariableGet(variable), inferredType);
+    VariableGet variableGet = createVariableGet(variable);
+    if (inferrer.library.isNonNullableByDefault &&
+        nonNullableLhsType.nullability != lhsResult.inferredType.nullability) {
+      variableGet.promotedType = nonNullableLhsType;
+    }
+    ConditionalExpression conditional = new ConditionalExpression(
+        equalsNull, rhsResult.expression, variableGet, inferredType);
     Expression replacement = new Let(variable, conditional)
       ..fileOffset = node.fileOffset;
     return new ExpressionInferenceResult(inferredType, replacement);
@@ -2325,10 +2332,8 @@ class InferenceVisitor
     // TODO(johnniwinther): Check that the inferred type is potentially
     //  nullable.
     inferrer.flowAnalysis.nonNullAssert_end(node.operand);
-    DartType nonNullableResultType = operandResult.inferredType ==
-            inferrer.coreTypes.nullType
-        ? const NeverType(Nullability.nonNullable)
-        : operandResult.inferredType.withNullability(Nullability.nonNullable);
+    DartType nonNullableResultType =
+        inferrer.computeNonNullable(operandResult.inferredType);
     return new ExpressionInferenceResult(nonNullableResultType, node);
   }
 

@@ -1,0 +1,12 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method foo() → core::String?
+  return null;
+static method bar() → core::String
+  return "bar";
+static method main() → dynamic {
+  core::String s = let final core::String? #t1 = self::foo() in #t1.{core::String::==}(null) ?{core::String} self::bar() : #t1{core::String};
+  core::print(s);
+}

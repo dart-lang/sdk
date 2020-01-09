@@ -89,7 +89,7 @@ class B extends self2::A<core::String?> {
 }
 static field core::List<core::String?>* l;
 static field core::String? s;
-static field core::String t;
+static field core::String* t;
 late static field core::int* field;
 static method method(() →? void f, {required core::int* a}) → void
   ;
