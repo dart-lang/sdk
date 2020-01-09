@@ -2122,10 +2122,10 @@ void _f() {
   Future<void> test_typeName_void() async {
     await analyze('''
 void _f() {
-  void v;
+  return;
 }
 ''');
-    visitTypeAnnotation(findNode.typeAnnotation('void v'), 'void');
+    visitTypeAnnotation(findNode.typeAnnotation('void'), 'void');
   }
 
   Future<void> test_use_of_dynamic() async {

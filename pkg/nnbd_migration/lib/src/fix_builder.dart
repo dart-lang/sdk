@@ -283,7 +283,8 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
   DecoratedType _fixTypeAnnotation(Source source, TypeAnnotation node) {
     var decoratedType =
         _fixBuilder._variables.decoratedTypeAnnotation(source, node);
-    if (!decoratedType.type.isDynamic && decoratedType.node.isNullable) {
+    var type = decoratedType.type;
+    if (!type.isDynamic && !type.isVoid && decoratedType.node.isNullable) {
       _fixBuilder._addChange(node, MakeNullable());
     }
     if (node is TypeName) {
