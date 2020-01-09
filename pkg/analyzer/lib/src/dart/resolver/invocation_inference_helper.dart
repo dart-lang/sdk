@@ -87,9 +87,12 @@ class InvocationInferenceHelper {
     return null;
   }
 
-  void inferArgumentTypesForInvocation(InvocationExpression node) {
-    DartType inferred = inferArgumentTypesForGeneric(
-        node, node.function.staticType, node.typeArguments);
+  void inferArgumentTypesForInvocation(
+    InvocationExpression node,
+    DartType type,
+  ) {
+    DartType inferred =
+        inferArgumentTypesForGeneric(node, type, node.typeArguments);
     InferenceContext.setType(
         node.argumentList, inferred ?? node.staticInvokeType);
   }

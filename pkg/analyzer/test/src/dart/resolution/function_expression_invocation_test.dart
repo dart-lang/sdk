@@ -80,6 +80,28 @@ main(A a) {
     );
   }
 
+  test_call_infer_fromArguments_listLiteral() async {
+    await resolveTestCode(r'''
+class A {
+  List<T> call<T>(List<T> _)  {
+    throw 42;
+  }
+}
+
+main(A a) {
+  a([0]);
+}
+''');
+
+    assertFunctionExpressionInvocation(
+      findNode.functionExpressionInvocation('a(['),
+      element: findElement.method('call'),
+      typeArgumentTypes: ['int'],
+      invokeType: 'List<int> Function(List<int>)',
+      type: 'List<int>',
+    );
+  }
+
   test_call_infer_fromContext() async {
     await assertNoErrorsInCode(r'''
 class A {

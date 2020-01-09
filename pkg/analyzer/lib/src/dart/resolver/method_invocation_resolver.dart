@@ -281,7 +281,11 @@ class MethodInvocationResolver {
   /// [InvocationExpression.staticInvokeType] has been set for the [node].
   /// Use it to set context for arguments, and resolve them.
   void _resolveArguments(MethodInvocation node) {
-    _inferenceHelper.inferArgumentTypesForInvocation(node);
+    // TODO(scheglov) This is bad, don't write raw type, carry it
+    _inferenceHelper.inferArgumentTypesForInvocation(
+      node,
+      node.methodName.staticType,
+    );
     node.argumentList.accept(_resolver);
   }
 

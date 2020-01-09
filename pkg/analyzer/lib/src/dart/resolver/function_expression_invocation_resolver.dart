@@ -61,7 +61,7 @@ class FunctionExpressionInvocationResolver {
     );
     argumentList.correspondingStaticParameters = parameters;
 
-    _inferenceHelper.inferArgumentTypesForInvocation(node);
+    _inferenceHelper.inferArgumentTypesForInvocation(node, rawType);
     _resolveArguments(node);
 
     _inferenceHelper.inferGenericInvocationExpression(node, rawType);
