@@ -23,7 +23,7 @@ main() {
 class EditPlanTest extends AbstractSingleUnitTest {
   String code;
 
-  final planner = EditPlanner();
+  var planner = EditPlanner();
 
   Future<void> analyze(String code) async {
     this.code = code;
@@ -124,6 +124,27 @@ class EditPlanTest extends AbstractSingleUnitTest {
     await analyze('var x = (1 + 2) * 3 << 4;');
     checkPlan(extract(findNode.binary('+'), findNode.binary('*')),
         'var x = 1 + 2 << 4;');
+  }
+
+  Future<void> test_extract_using_comments_inner() async {
+    planner = EditPlanner(removeViaComments: true);
+    await analyze('var x = 1 + 2 * 3;');
+    checkPlan(extract(findNode.integerLiteral('2'), findNode.binary('+')),
+        'var x = /* 1 + */ 2 /* * 3 */;');
+  }
+
+  Future<void> test_extract_using_comments_left() async {
+    planner = EditPlanner(removeViaComments: true);
+    await analyze('var x = 1 + 2;');
+    checkPlan(extract(findNode.integerLiteral('1'), findNode.binary('+')),
+        'var x = 1 /* + 2 */;');
+  }
+
+  Future<void> test_extract_using_comments_right() async {
+    planner = EditPlanner(removeViaComments: true);
+    await analyze('var x = 1 + 2;');
+    checkPlan(extract(findNode.integerLiteral('2'), findNode.binary('+')),
+        'var x = /* 1 + */ 2;');
   }
 
   Future<void> test_finalize_compilationUnit() async {

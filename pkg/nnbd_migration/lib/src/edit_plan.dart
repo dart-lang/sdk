@@ -152,6 +152,13 @@ abstract class EditPlan {
 
 /// Factory class for creating [EditPlan]s.
 class EditPlanner {
+  /// Indicates whether code removed by the EditPlanner should be removed by
+  /// commenting it out.  A value of `false` means to actually delete the code
+  /// that is removed.
+  final bool removeViaComments;
+
+  EditPlanner({this.removeViaComments = false});
+
   /// Creates a new edit plan that consists of executing [innerPlan], and then
   /// removing from the source code any code that is in [sourceNode] but not in
   /// [innerPlan.sourceNode].  This is intended to be used to drop unnecessary
@@ -165,7 +172,7 @@ class EditPlanner {
   /// caller.
   EditPlan extract(AstNode sourceNode, EditPlan innerPlan) {
     innerPlan = innerPlan._incorporateParenParentIfPresent(sourceNode);
-    return _ExtractEditPlan(sourceNode, innerPlan);
+    return _ExtractEditPlan(sourceNode, innerPlan, this);
   }
 
   /// Creates a new edit plan that makes no changes to [node], but may make
@@ -279,7 +286,9 @@ class _EndsInCascadeVisitor extends UnifyingAstVisitor<void> {
 ///
 /// Defers computation of whether parentheses are needed to the inner plan.
 class _ExtractEditPlan extends _NestedEditPlan {
-  _ExtractEditPlan(AstNode sourceNode, EditPlan innerPlan)
+  final EditPlanner _planner;
+
+  _ExtractEditPlan(AstNode sourceNode, EditPlan innerPlan, this._planner)
       : super(sourceNode, innerPlan);
 
   @override
@@ -290,9 +299,19 @@ class _ExtractEditPlan extends _NestedEditPlan {
     var changes = innerPlan._getChanges(useInnerParens);
     // Extract the inner expression.
     // TODO(paulberry): don't remove comments
-    changes = _removeCode(sourceNode.offset, innerPlan.sourceNode.offset) +
+    changes = _removeCode(
+            sourceNode.offset,
+            innerPlan.sourceNode.offset,
+            _planner.removeViaComments
+                ? _RemovalStyle.commentSpace
+                : _RemovalStyle.delete) +
         changes +
-        _removeCode(innerPlan.sourceNode.end, sourceNode.end);
+        _removeCode(
+            innerPlan.sourceNode.end,
+            sourceNode.end,
+            _planner.removeViaComments
+                ? _RemovalStyle.spaceComment
+                : _RemovalStyle.delete);
     // Apply parens if needed.
     if (parens && !useInnerParens) {
       changes = _createAddParenChanges(changes);
@@ -300,11 +319,27 @@ class _ExtractEditPlan extends _NestedEditPlan {
     return changes;
   }
 
-  static Map<int, List<AtomicEdit>> _removeCode(int offset, int end) {
+  static Map<int, List<AtomicEdit>> _removeCode(
+      int offset, int end, _RemovalStyle removalStyle) {
     if (offset < end) {
-      return {
-        offset: [DeleteText(end - offset)]
-      };
+      // TODO(paulberry): handle preexisting comments?
+      switch (removalStyle) {
+        case _RemovalStyle.commentSpace:
+          return {
+            offset: [InsertText('/* ')],
+            end: [InsertText('*/ ')]
+          };
+        case _RemovalStyle.delete:
+          return {
+            offset: [DeleteText(end - offset)]
+          };
+        case _RemovalStyle.spaceComment:
+          return {
+            offset: [InsertText(' /*')],
+            end: [InsertText(' */')]
+          };
+      }
+      throw StateError('Null value for removalStyle');
     } else {
       return null;
     }
@@ -618,6 +653,21 @@ class _ProvisionalParenEditPlan extends _NestedEditPlan {
     }
     return changes;
   }
+}
+
+/// Enum used by [_ExtractEditPlan._removeCode] to describe how code should be
+/// removed.
+enum _RemovalStyle {
+  /// Code should be removed by commenting it out.  Inserted comment delimiters
+  /// should be a comment delimiter followed by a space (i.e. `/* ` and `*/ `).
+  commentSpace,
+
+  /// Code should be removed by deleting it.
+  delete,
+
+  /// Code should be removed by commenting it out.  Inserted comment delimiters
+  /// should be a space followed by a comment delimiter (i.e. ` /*` and ` */`).
+  spaceComment,
 }
 
 /// Implementation of [EditPlan] underlying simple cases where no computation
