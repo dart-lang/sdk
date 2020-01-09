@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 // part of dart.core;
 
 // Copyright 2009 The Go Authors. All rights reserved.
@@ -2535,7 +2533,8 @@ class _BigIntImpl implements BigInt {
 
   static _BigIntImpl _ensureSystemBigInt(BigInt bigInt, String parameterName) {
     if (bigInt is _BigIntImpl) return bigInt;
-    throw ArgumentError.value(bigInt, parameterName, "Must be a platform BigInt");
+    throw ArgumentError.value(
+        bigInt, parameterName, "Must be a platform BigInt");
   }
 }
 
@@ -2584,12 +2583,10 @@ class _BigIntMontgomeryReduction implements _BigIntReduction {
       _invDigitPair(args);
     }
     return _BigIntMontgomeryReduction._(
-        modulus, normModulusUsed,
-        modulusDigits, args, digitsPerStep);
+        modulus, normModulusUsed, modulusDigits, args, digitsPerStep);
   }
 
-  _BigIntMontgomeryReduction._(
-      this._modulus, this._normModulusUsed,
+  _BigIntMontgomeryReduction._(this._modulus, this._normModulusUsed,
       this._modulusDigits, this._args, this._digitsPerStep);
 
   // Calculates -1/x % _digitBase, x is 32-bit digit.
@@ -2765,8 +2762,7 @@ class _BigIntClassicReduction implements _BigIntReduction {
     final Uint32List args = _newDigits(4);
     args[_BigIntImpl._divisorLowTopDigit] =
         normModulusDigits[normModulusUsed - 2];
-    args[_BigIntImpl._divisorTopDigit] =
-        normModulusDigits[normModulusUsed - 1];
+    args[_BigIntImpl._divisorTopDigit] = normModulusDigits[normModulusUsed - 1];
     // Negate normModulus so we can use _mulAdd instead of
     // unimplemented  _mulSub.
     final _BigIntImpl negNormModulus =
@@ -2783,15 +2779,8 @@ class _BigIntClassicReduction implements _BigIntReduction {
     // processing.
     final Uint32List tmpDigits = _newDigits(2 * normModulusUsed);
 
-    return _BigIntClassicReduction._(
-      modulus,
-      normModulusUsed,
-      normModulus,
-      normModulusDigits,
-      negNormModulusDigits,
-      nsh,
-      args,
-      tmpDigits);
+    return _BigIntClassicReduction._(modulus, normModulusUsed, normModulus,
+        normModulusDigits, negNormModulusDigits, nsh, args, tmpDigits);
   }
 
   _BigIntClassicReduction._(

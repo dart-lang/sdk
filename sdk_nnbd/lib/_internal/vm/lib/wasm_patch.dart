@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 import 'dart:_internal' show patch;
 import "dart:nativewrappers" show NativeFieldWrapperClass1;
 import 'dart:typed_data';
