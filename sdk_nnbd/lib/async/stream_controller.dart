@@ -15,8 +15,6 @@ typedef void ControllerCallback();
 
 /**
  * Type of stream controller `onCancel` callbacks.
- *
- * The callback may return either `void` or a future.
  */
 typedef FutureOr<void> ControllerCancelCallback();
 
