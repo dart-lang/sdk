@@ -821,9 +821,6 @@ dart_ci_sandbox_builder(
     schedule="0 3,4 * * *")
 
 # Try only builders
-dart_try_builder("cl-linux")
-dart_try_builder("cl-mac", dimensions=mac())
-dart_try_builder("cl-win", dimensions=windows())
 dart_try_builder("benchmark-linux", on_cq=True)
 
 
