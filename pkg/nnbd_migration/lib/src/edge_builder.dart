@@ -132,8 +132,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   /// return statements.
   DecoratedType _currentFunctionType;
 
-  /// The [ClassElement] of the current class being visited, or null.
-  ClassElement _currentClass;
+  /// The [ClassElement] or [ExtensionElement] of the current class or extension
+  /// being visited, or null.
+  Element _currentClassOrExtension;
 
   /// The [DecoratedType] of the innermost list or set literal being visited, or
   /// `null` if the visitor is not inside any list or set.
@@ -453,26 +454,36 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitClassDeclaration(ClassDeclaration node) =>
-      visitClassOrMixinDeclaration(node);
+      visitClassOrMixinOrExtensionDeclaration(node);
 
-  DecoratedType visitClassOrMixinDeclaration(ClassOrMixinDeclaration node) {
+  DecoratedType visitClassOrMixinOrExtensionDeclaration(
+      CompilationUnitMember node) {
+    assert(node is ClassOrMixinDeclaration || node is ExtensionDeclaration);
     try {
-      _currentClass = node.declaredElement;
+      _currentClassOrExtension = node.declaredElement;
+      var members = node is ClassOrMixinDeclaration
+          ? node.members
+          : (node as ExtensionDeclaration).members;
+
       _fieldsNotInitializedAtDeclaration = {
-        for (var member in node.members)
+        for (var member in members)
           if (member is FieldDeclaration)
             for (var field in member.fields.variables)
               if (field.initializer == null)
                 field.declaredElement as FieldElement
       };
-      if (node.declaredElement.unnamedConstructor?.isSynthetic == true) {
+      if (_currentClassOrExtension is ClassElement &&
+          (_currentClassOrExtension as ClassElement)
+                  .unnamedConstructor
+                  ?.isSynthetic ==
+              true) {
         _handleUninitializedFields(node, _fieldsNotInitializedAtDeclaration);
       }
       node.metadata.accept(this);
-      node.members.accept(this);
+      members.accept(this);
       _fieldsNotInitializedAtDeclaration = null;
     } finally {
-      _currentClass = null;
+      _currentClassOrExtension = null;
     }
     return null;
   }
@@ -618,6 +629,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         wrapFuture: node.isAsynchronous);
     return null;
   }
+
+  DecoratedType visitExtensionDeclaration(ExtensionDeclaration node) =>
+      visitClassOrMixinOrExtensionDeclaration(node);
 
   @override
   DecoratedType visitFieldFormalParameter(FieldFormalParameter node) {
@@ -998,7 +1012,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitMixinDeclaration(MixinDeclaration node) =>
-      visitClassOrMixinDeclaration(node);
+      visitClassOrMixinOrExtensionDeclaration(node);
 
   @override
   DecoratedType visitNamespaceDirective(NamespaceDirective node) {
@@ -1251,6 +1265,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           ? elementType.returnType
           : elementType.positionalParameters[0];
     } else if (staticElement is TypeDefiningElement) {
+      return _makeNonNullLiteralType(node);
+    } else if (staticElement is ExtensionElement) {
       return _makeNonNullLiteralType(node);
     } else if (staticElement.enclosingElement is ClassElement &&
         (staticElement.enclosingElement as ClassElement).isEnum) {
@@ -1892,101 +1908,15 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         _handleConstructorRedirection(parameters, redirectedConstructor);
       }
       if (declaredElement is! ConstructorElement) {
-        var classElement = declaredElement.enclosingElement as ClassElement;
-        for (var overriddenElement in _inheritanceManager.getOverridden(
-                classElement.thisType,
-                Name(classElement.library.source.uri, declaredElement.name)) ??
-            const <ExecutableElement>[]) {
-          overriddenElement = overriddenElement.declaration;
-          var overriddenClass =
-              overriddenElement.enclosingElement as ClassElement;
-          var decoratedSupertype = _decoratedClassHierarchy
-              .getDecoratedSupertype(classElement, overriddenClass);
-          var substitution = decoratedSupertype.asSubstitution;
-          if (overriddenElement is PropertyAccessorElement &&
-              overriddenElement.isSynthetic) {
-            assert(node is MethodDeclaration);
-            var method = node as MethodDeclaration;
-            var decoratedOverriddenField =
-                _variables.decoratedElementType(overriddenElement.variable);
-            var overriddenFieldType =
-                decoratedOverriddenField.substitute(substitution);
-            if (method.isGetter) {
-              _checkAssignment(ReturnTypeInheritanceOrigin(source, node),
-                  source: _currentFunctionType.returnType,
-                  destination: overriddenFieldType,
-                  hard: true);
-            } else {
-              assert(method.isSetter);
-              DecoratedType currentParameterType =
-                  _currentFunctionType.positionalParameters.single;
-              DecoratedType overriddenParameterType = overriddenFieldType;
-              _checkAssignment(ParameterInheritanceOrigin(source, node),
-                  source: overriddenParameterType,
-                  destination: currentParameterType,
-                  hard: true);
-            }
-          } else {
-            var decoratedOverriddenFunctionType =
-                _variables.decoratedElementType(overriddenElement);
-            var overriddenFunctionType =
-                decoratedOverriddenFunctionType.substitute(substitution);
-            if (returnType == null) {
-              _unionDecoratedTypes(
-                  _currentFunctionType.returnType,
-                  overriddenFunctionType.returnType,
-                  ReturnTypeInheritanceOrigin(source, node));
-            } else {
-              _checkAssignment(ReturnTypeInheritanceOrigin(source, node),
-                  source: _currentFunctionType.returnType,
-                  destination: overriddenFunctionType.returnType,
-                  hard: true);
-            }
-            if (parameters != null) {
-              int positionalParameterCount = 0;
-              for (var parameter in parameters.parameters) {
-                NormalFormalParameter normalParameter;
-                if (parameter is NormalFormalParameter) {
-                  normalParameter = parameter;
-                } else {
-                  normalParameter =
-                      (parameter as DefaultFormalParameter).parameter;
-                }
-                DecoratedType currentParameterType;
-                DecoratedType overriddenParameterType;
-                if (parameter.isNamed) {
-                  var name = normalParameter.identifier.name;
-                  currentParameterType =
-                      _currentFunctionType.namedParameters[name];
-                  overriddenParameterType =
-                      overriddenFunctionType.namedParameters[name];
-                } else {
-                  if (positionalParameterCount <
-                      _currentFunctionType.positionalParameters.length) {
-                    currentParameterType = _currentFunctionType
-                        .positionalParameters[positionalParameterCount];
-                  }
-                  if (positionalParameterCount <
-                      overriddenFunctionType.positionalParameters.length) {
-                    overriddenParameterType = overriddenFunctionType
-                        .positionalParameters[positionalParameterCount];
-                  }
-                  positionalParameterCount++;
-                }
-                if (overriddenParameterType != null) {
-                  var origin = ParameterInheritanceOrigin(source, node);
-                  if (_isUntypedParameter(normalParameter)) {
-                    _unionDecoratedTypes(
-                        overriddenParameterType, currentParameterType, origin);
-                  } else {
-                    _checkAssignment(origin,
-                        source: overriddenParameterType,
-                        destination: currentParameterType,
-                        hard: true);
-                  }
-                }
-              }
-            }
+        var enclosingElement = declaredElement.enclosingElement;
+        if (enclosingElement is ClassElement) {
+          var overriddenElements = _inheritanceManager.getOverridden(
+              enclosingElement.thisType,
+              Name(enclosingElement.library.source.uri, declaredElement.name));
+          for (var overriddenElement
+              in overriddenElements ?? <ExecutableElement>[]) {
+            _handleExecutableOverriddenDeclaration(node, returnType, parameters,
+                enclosingElement, overriddenElement);
           }
         }
       }
@@ -1996,6 +1926,102 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       _assignedVariables = null;
       _currentFunctionType = null;
       _postDominatedLocals.popScope();
+    }
+  }
+
+  void _handleExecutableOverriddenDeclaration(
+      Declaration node,
+      TypeAnnotation returnType,
+      FormalParameterList parameters,
+      ClassElement classElement,
+      Element overriddenElement) {
+    overriddenElement = overriddenElement.declaration;
+    var overriddenClass = overriddenElement.enclosingElement as ClassElement;
+    var decoratedSupertype = _decoratedClassHierarchy.getDecoratedSupertype(
+        classElement, overriddenClass);
+    var substitution = decoratedSupertype.asSubstitution;
+    if (overriddenElement is PropertyAccessorElement &&
+        overriddenElement.isSynthetic) {
+      assert(node is MethodDeclaration);
+      var method = node as MethodDeclaration;
+      var decoratedOverriddenField =
+          _variables.decoratedElementType(overriddenElement.variable);
+      var overriddenFieldType =
+          decoratedOverriddenField.substitute(substitution);
+      if (method.isGetter) {
+        _checkAssignment(ReturnTypeInheritanceOrigin(source, node),
+            source: _currentFunctionType.returnType,
+            destination: overriddenFieldType,
+            hard: true);
+      } else {
+        assert(method.isSetter);
+        DecoratedType currentParameterType =
+            _currentFunctionType.positionalParameters.single;
+        DecoratedType overriddenParameterType = overriddenFieldType;
+        _checkAssignment(ParameterInheritanceOrigin(source, node),
+            source: overriddenParameterType,
+            destination: currentParameterType,
+            hard: true);
+      }
+    } else {
+      var decoratedOverriddenFunctionType =
+          _variables.decoratedElementType(overriddenElement);
+      var overriddenFunctionType =
+          decoratedOverriddenFunctionType.substitute(substitution);
+      if (returnType == null) {
+        _unionDecoratedTypes(
+            _currentFunctionType.returnType,
+            overriddenFunctionType.returnType,
+            ReturnTypeInheritanceOrigin(source, node));
+      } else {
+        _checkAssignment(ReturnTypeInheritanceOrigin(source, node),
+            source: _currentFunctionType.returnType,
+            destination: overriddenFunctionType.returnType,
+            hard: true);
+      }
+      if (parameters != null) {
+        int positionalParameterCount = 0;
+        for (var parameter in parameters.parameters) {
+          NormalFormalParameter normalParameter;
+          if (parameter is NormalFormalParameter) {
+            normalParameter = parameter;
+          } else {
+            normalParameter = (parameter as DefaultFormalParameter).parameter;
+          }
+          DecoratedType currentParameterType;
+          DecoratedType overriddenParameterType;
+          if (parameter.isNamed) {
+            var name = normalParameter.identifier.name;
+            currentParameterType = _currentFunctionType.namedParameters[name];
+            overriddenParameterType =
+                overriddenFunctionType.namedParameters[name];
+          } else {
+            if (positionalParameterCount <
+                _currentFunctionType.positionalParameters.length) {
+              currentParameterType = _currentFunctionType
+                  .positionalParameters[positionalParameterCount];
+            }
+            if (positionalParameterCount <
+                overriddenFunctionType.positionalParameters.length) {
+              overriddenParameterType = overriddenFunctionType
+                  .positionalParameters[positionalParameterCount];
+            }
+            positionalParameterCount++;
+          }
+          if (overriddenParameterType != null) {
+            var origin = ParameterInheritanceOrigin(source, node);
+            if (_isUntypedParameter(normalParameter)) {
+              _unionDecoratedTypes(
+                  overriddenParameterType, currentParameterType, origin);
+            } else {
+              _checkAssignment(origin,
+                  source: overriddenParameterType,
+                  destination: currentParameterType,
+                  hard: true);
+            }
+          }
+        }
+      }
     }
   }
 
@@ -2266,26 +2292,41 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   }
 
   DecoratedType _thisOrSuper(Expression node) {
-    if (_currentClass == null) {
+    if (_currentClassOrExtension == null) {
       return null;
     }
 
-    final type = _currentClass.thisType;
-    // Instantiate the type, and any type arguments, with non-nullable types,
-    // because the type of `this` is always `ClassName<Param, Param, ...>` with
-    // no `?`s.  (Even if some of the type parameters are allowed to be
-    // instantiated with nullable types at runtime, a reference to `this` can't
-    // be migrated in such a way that forces them to be nullable).
     NullabilityNode makeNonNullableNode() {
       var nullabilityNode = NullabilityNode.forInferredType();
       _graph.makeNonNullable(nullabilityNode, ThisOrSuperOrigin(source, node));
       return nullabilityNode;
     }
 
-    return DecoratedType(type, makeNonNullableNode(),
-        typeArguments: type.typeArguments
-            .map((t) => DecoratedType(t, makeNonNullableNode()))
-            .toList());
+    if (_currentClassOrExtension is ClassElement) {
+      final type = (_currentClassOrExtension as ClassElement).thisType;
+
+      // Instantiate the type, and any type arguments, with non-nullable types,
+      // because the type of `this` is always `ClassName<Param, Param, ...>`
+      // with no `?`s.  (Even if some of the type parameters are allowed to be
+      // instantiated with nullable types at runtime, a reference to `this`
+      // can't be migrated in such a way that forces them to be nullable.)
+      return DecoratedType(type, makeNonNullableNode(),
+          typeArguments: type.typeArguments
+              .map((t) => DecoratedType(t, makeNonNullableNode()))
+              .toList());
+    } else {
+      assert(_currentClassOrExtension is ExtensionElement);
+      final type = (_currentClassOrExtension as ExtensionElement).extendedType;
+
+      if (type is InterfaceType) {
+        return DecoratedType(type, NullabilityNode.forInferredType(),
+            typeArguments: type.typeArguments
+                .map((t) => DecoratedType(t, NullabilityNode.forInferredType()))
+                .toList());
+      } else {
+        _unimplemented(node, 'extension of $type (${type.runtimeType}');
+      }
+    }
   }
 
   @alwaysThrows

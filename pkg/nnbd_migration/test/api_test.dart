@@ -1285,6 +1285,61 @@ int f(int?/*?*/ i) => i! + 1;
     await _checkSingleFileChanges(content, expected);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40023')
+  Future<void> test_extension_nullableOnType_addsNullCheckToThis() async {
+    var content = '''
+extension E on String /*?*/ {
+  void m() => this.length;
+}
+''';
+    var expected = '''
+extension E on String? {
+  void m() => this!.length;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40023')
+  Future<void> test_extension_nullableOnType_viaExplicitInvocation() async {
+    var content = '''
+class C {}
+extension E on C {
+  void m() {}
+}
+void f() => E(null).m();
+''';
+    var expected = '''
+class C {}
+extension E on C? {
+  void m() {}
+}
+void f() => E(null).m();
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40023')
+  Future<void> test_extension_nullableOnType_viaImplicitInvocation() async {
+    var content = '''
+class C {}
+extension E on C {
+  void m() {}
+}
+void f(C c) => c.m();
+void g() => f(null);
+''';
+    var expected = '''
+class C {}
+extension E on C? {
+  void m() {}
+}
+void f(C? c) => c.m();
+void g() => f(null);
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_field_formal_param_typed() async {
     var content = '''
 class C {

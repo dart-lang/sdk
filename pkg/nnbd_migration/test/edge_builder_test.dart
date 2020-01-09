@@ -2107,6 +2107,15 @@ export 'dart:async';
     // metadata was visited.
   }
 
+  Future<void> test_extension_metadata() async {
+    await analyze('''
+@deprecated
+extension E on String {}
+''');
+    // No assertions needed; the AnnotationTracker mixin verifies that the
+    // metadata was visited.
+  }
+
   Future<void> test_field_metadata() async {
     await analyze('''
 class A {
@@ -3588,6 +3597,84 @@ class C<T extends num> {}
     // Make sure the appropriate edge gets created for the instantiation of C.
     assertEdge(decoratedTypeAnnotation('int>').node,
         decoratedTypeAnnotation('num>').node,
+        hard: true);
+  }
+
+  Future<void> test_methodInvocation_extension_conflict() async {
+    await analyze('''
+class C {
+  void f(int w) {}
+}
+extension E on C {
+  void f(int x) {}
+  void g(int y) {
+    this.f(y);
+  }
+  void h(int z) {
+    f(z);
+  }
+}
+''');
+    // `this.f(y)` refers to [C.f], not [E.f].
+    assertEdge(decoratedTypeAnnotation('int y').node,
+        decoratedTypeAnnotation('int w').node,
+        hard: true);
+    assertNoEdge(decoratedTypeAnnotation('int y').node,
+        decoratedTypeAnnotation('int x').node);
+
+    // `f(z)` refers to [E.f], not [C.f].
+    assertEdge(decoratedTypeAnnotation('int z').node,
+        decoratedTypeAnnotation('int x').node,
+        hard: true);
+    assertNoEdge(decoratedTypeAnnotation('int z').node,
+        decoratedTypeAnnotation('int w').node);
+  }
+
+  Future<void> test_methodInvocation_extension_explicitThis() async {
+    await analyze('''
+class C {
+  void f(int x) {}
+}
+extension E on C {
+  void g(int y) {
+    this.f(y);
+  }
+}
+''');
+    assertEdge(decoratedTypeAnnotation('int y').node,
+        decoratedTypeAnnotation('int x').node,
+        hard: true);
+  }
+
+  Future<void> test_methodInvocation_extension_implicitThis() async {
+    await analyze('''
+class C {
+  void f(int x) {}
+}
+extension E on C {
+  void g(int y) {
+    f(y);
+  }
+}
+''');
+    assertEdge(decoratedTypeAnnotation('int y').node,
+        decoratedTypeAnnotation('int x').node,
+        hard: true);
+  }
+
+  Future<void> test_methodInvocation_extension_unnamed() async {
+    await analyze('''
+class C {
+  void f(int x) {}
+}
+extension on C {
+  void g(int y) {
+    f(y);
+  }
+}
+''');
+    assertEdge(decoratedTypeAnnotation('int y').node,
+        decoratedTypeAnnotation('int x').node,
         hard: true);
   }
 

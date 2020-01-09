@@ -126,7 +126,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
   }
 
   @override
-  visitClassTypeAlias(ClassTypeAlias node) {
+  DecoratedType visitClassTypeAlias(ClassTypeAlias node) {
     node.metadata.accept(this);
     node.name.accept(this);
     node.typeParameters?.accept(this);
