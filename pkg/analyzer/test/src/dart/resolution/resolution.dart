@@ -197,6 +197,17 @@ mixin ResolutionTest implements ResourceProviderMixin {
     errorListener.assertErrors(expectedErrors);
   }
 
+  void assertFunctionExpressionInvocation(
+    FunctionExpressionInvocation node, {
+    @required ExecutableElement element,
+    @required String invokeType,
+    @required String type,
+  }) {
+    assertElement(node, element);
+    assertInvokeType(node, invokeType);
+    assertType(node, type);
+  }
+
   void assertHasTestErrors() {
     expect(result.errors, isNotEmpty);
   }

@@ -22,6 +22,29 @@ class ExtensionOverrideAccessToStaticMemberTest extends DriverResolutionTest {
     ..contextFeatures = FeatureSet.forTesting(
         sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
 
+  test_call() async {
+    await assertErrorsInCode('''
+extension E on int {
+  static void call() {}
+}
+
+void f() {
+  E(0)();
+}
+''', [
+      error(CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER, 65,
+          2),
+    ]);
+
+    var invocation = findNode.functionExpressionInvocation('();');
+    assertFunctionExpressionInvocation(
+      invocation,
+      element: findElement.method('call', of: 'E'),
+      invokeType: 'void Function()',
+      type: 'void',
+    );
+  }
+
   test_getter() async {
     await assertErrorsInCode('''
 extension E on String {

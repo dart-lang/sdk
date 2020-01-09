@@ -22,8 +22,6 @@ import 'package:analyzer/src/generated/variable_type_provider.dart';
 import 'package:meta/meta.dart';
 
 class MethodInvocationResolver {
-  static final _nameCall = Name(null, 'call');
-
   /// Resolver visitor is separated from the elements resolver, which calls
   /// this method resolver. If we rewrite a [MethodInvocation] node, we put
   /// the resulting [FunctionExpressionInvocation] into the original node
@@ -177,24 +175,6 @@ class MethodInvocationResolver {
     }
   }
 
-  /// Given an [argumentList] and the executable [element] that  will be invoked
-  /// using those arguments, compute the list of parameters that correspond to
-  /// the list of arguments. Return the parameters that correspond to the
-  /// arguments, or `null` if no correspondence could be computed.
-  List<ParameterElement> _computeCorrespondingParameters(
-      ArgumentList argumentList, DartType type) {
-    if (type is InterfaceType) {
-      MethodElement callMethod = type.lookUpMethod2(
-          FunctionElement.CALL_METHOD_NAME, _definingLibrary);
-      if (callMethod != null) {
-        return _resolveArgumentsToFunction(argumentList, callMethod);
-      }
-    } else if (type is FunctionType) {
-      return _resolveArgumentsToParameters(argumentList, type.parameters);
-    }
-    return null;
-  }
-
   /// Check for a generic type, and apply type arguments.
   FunctionType _instantiateFunctionType(
       FunctionType invokeType, TypeArgumentList typeArguments, AstNode node) {
@@ -320,21 +300,6 @@ class MethodInvocationResolver {
       );
       _inferenceHelper.recordStaticType(node, staticStaticType);
     }
-  }
-
-  /// Given an [argumentList] and the [executableElement] that will be invoked
-  /// using those argument, compute the list of parameters that correspond to
-  /// the list of arguments. An error will be reported if any of the arguments
-  /// cannot be matched to a parameter. Return the parameters that correspond to
-  /// the arguments, or `null` if no correspondence could be computed.
-  List<ParameterElement> _resolveArgumentsToFunction(
-      ArgumentList argumentList, ExecutableElement executableElement) {
-    if (executableElement == null) {
-      return null;
-    }
-    List<ParameterElement> parameters =
-        _elementTypeProvider.getExecutableParameters(executableElement);
-    return _resolveArgumentsToParameters(argumentList, parameters);
   }
 
   /// Given an [argumentList] and the [parameters] related to the element that
@@ -904,45 +869,6 @@ class MethodInvocationResolver {
     );
     NodeReplacer.replace(node, invocation);
     node.setProperty(_rewriteResultKey, invocation);
-
-    FunctionType rawFunctionType;
-    if (targetType is FunctionType) {
-      rawFunctionType = targetType;
-    } else if (targetType is InterfaceType) {
-      var call = _inheritance.getMember(targetType, _nameCall);
-      if (call == null) {
-        var result = _extensionResolver.findExtension(
-            targetType, _nameCall.name, node.methodName);
-        if (result.isSingle) {
-          call = result.getter;
-        } else if (result.isAmbiguous) {
-          return;
-        }
-      }
-      call = _resolver.toLegacyElement(call);
-      if (call != null && call.kind == ElementKind.METHOD) {
-        invocation.staticElement = call;
-        rawFunctionType = _elementTypeProvider.getExecutableType(call);
-      }
-    }
-
-    if (rawFunctionType == null) {
-      invocation.staticInvokeType = _dynamicType;
-      invocation.staticType = _dynamicType;
-      return;
-    }
-
-    var instantiatedType = _instantiateFunctionType(
-      rawFunctionType,
-      invocation.typeArguments,
-      invocation.typeArguments,
-    );
-    instantiatedType = _toSyntheticFunctionType(instantiatedType);
-    invocation.staticInvokeType = instantiatedType;
-    invocation.staticType = instantiatedType.returnType;
-    invocation.argumentList.correspondingStaticParameters =
-        _resolveArgumentsToParameters(
-            invocation.argumentList, instantiatedType.parameters);
   }
 
   void _setDynamicResolution(MethodInvocation node,
@@ -993,9 +919,9 @@ class MethodInvocationResolver {
       node.staticType = instantiatedType.returnType;
       // TODO(scheglov) too much magic
       node.argumentList.correspondingStaticParameters =
-          _computeCorrespondingParameters(
+          _resolveArgumentsToParameters(
         node.argumentList,
-        instantiatedType,
+        instantiatedType.parameters,
       );
 
       _resolveArguments_finishInference(node);

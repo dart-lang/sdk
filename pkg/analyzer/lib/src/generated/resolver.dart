@@ -1519,7 +1519,7 @@ class ResolverVisitor extends ScopedVisitor {
 
     var functionRewrite = MethodInvocationResolver.getRewriteResult(node);
     if (functionRewrite != null) {
-      _functionExpressionInvocationResolver.resolve2(functionRewrite);
+      _functionExpressionInvocationResolver.resolve(functionRewrite);
     }
   }
 
