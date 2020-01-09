@@ -27,6 +27,18 @@ class OptimizationTestLog {
     return features;
   }
 
+  void registerNullCheck(HInstruction original, HNullCheck check) {
+    Features features = new Features();
+    if (check.selector != null) {
+      features['selector'] = check.selector.name;
+    }
+    if (check.field != null) {
+      features['field'] =
+          '${check.field.enclosingClass.name}.${check.field.name}';
+    }
+    entries.add(new OptimizationLogEntry('NullCheck', features));
+  }
+
   void registerFieldGet(HInvokeDynamicGetter original, HFieldGet converted) {
     Features features = new Features();
     if (converted.element != null) {

@@ -1827,6 +1827,12 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   }
 
   @override
+  TypeInformation visitNullCheck(ir.NullCheck node) {
+    TypeInformation operandType = visit(node.operand);
+    return _types.narrowType(operandType, _getStaticType(node));
+  }
+
+  @override
   TypeInformation visitAwaitExpression(ir.AwaitExpression node) {
     TypeInformation futureType = visit(node.operand);
     return _inferrer.registerAwait(node, futureType);

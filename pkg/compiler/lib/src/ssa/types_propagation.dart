@@ -501,6 +501,24 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
   }
 
   @override
+  AbstractValue visitNullCheck(HNullCheck instruction) {
+    HInstruction input = instruction.checkedInput;
+    AbstractValue inputType = input.instructionType;
+    AbstractValue outputType = abstractValueDomain.excludeNull(inputType);
+    if (inputType != outputType) {
+      // Replace dominated uses of input with uses of this check so the uses
+      // benefit from the stronger type.
+      //
+      // Do not replace local accesses, since the local must be a HLocalValue,
+      // not a HNullCheck.
+      if (!(input is HParameterValue && input.usedAsVariable())) {
+        input.replaceAllUsersDominatedBy(instruction.next, instruction);
+      }
+    }
+    return outputType;
+  }
+
+  @override
   AbstractValue visitAsCheck(HAsCheck instruction) {
     return _narrowAsCheck(instruction, instruction.checkedInput,
         instruction.checkedType.abstractValue);
@@ -519,8 +537,8 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
         abstractValueDomain.intersection(checkedType, inputType);
     outputType = _numericFixup(outputType, inputType, checkedType);
     if (inputType != outputType) {
-      // Replace dominated uses of input with uses of this HTypeConversion so
-      // the uses benefit from the stronger type.
+      // Replace dominated uses of input with uses of this check so the uses
+      // benefit from the stronger type.
       //
       // Do not replace local accesses, since the local must be a HLocalValue,
       // not a HAsCheck.

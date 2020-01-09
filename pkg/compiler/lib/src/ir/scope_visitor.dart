@@ -682,6 +682,12 @@ class ScopeModelBuilder extends ir.Visitor<InitializerComplexity>
   }
 
   @override
+  InitializerComplexity visitNullCheck(ir.NullCheck node) {
+    visitNode(node.operand);
+    return const InitializerComplexity.lazy();
+  }
+
+  @override
   InitializerComplexity visitAwaitExpression(ir.AwaitExpression node) {
     visitNode(node.operand);
     return const InitializerComplexity.lazy();

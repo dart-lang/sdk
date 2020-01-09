@@ -249,9 +249,6 @@ class HInstructionStringifier implements HVisitor<String> {
 
   @override
   String visitFieldGet(HFieldGet node) {
-    if (node.isNullCheck) {
-      return 'FieldGet: NullCheck ${temporaryId(node.receiver)}';
-    }
     String fieldName = node.element.name;
     return 'FieldGet: ${temporaryId(node.receiver)}.$fieldName';
   }
@@ -627,6 +624,16 @@ class HInstructionStringifier implements HVisitor<String> {
   String visitBoolConversion(HBoolConversion node) {
     String checkedInput = temporaryId(node.checkedInput);
     return "BoolConversion: $checkedInput";
+  }
+
+  @override
+  String visitNullCheck(HNullCheck node) {
+    String checkedInput = temporaryId(node.checkedInput);
+    var comments = [
+      if (node.selector != null) 'for ${node.selector}',
+      if (node.field != null) 'for ${node.field}',
+    ].join(', ');
+    return "NullCheck: $checkedInput $comments";
   }
 
   @override

@@ -7,7 +7,8 @@ class MyClass {
 
   MyClass(this.fieldName);
 
-  set setterName(int v) => /*1:setterName(inlined)*/ fieldName = v;
+  @pragma('dart2js:tryInline')
+  set setterName(int v) => fieldName = v;
 }
 
 @pragma('dart2js:noInline')

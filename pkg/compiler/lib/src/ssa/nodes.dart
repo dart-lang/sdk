@@ -101,6 +101,7 @@ abstract class HVisitor<R> {
   R visitTypeConversion(HTypeConversion node);
   R visitPrimitiveCheck(HPrimitiveCheck node);
   R visitBoolConversion(HBoolConversion node);
+  R visitNullCheck(HNullCheck node);
   R visitTypeKnown(HTypeKnown node);
   R visitYield(HYield node);
 
@@ -585,6 +586,8 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitTypeConversion(HTypeConversion node) => visitCheck(node);
   @override
   visitBoolConversion(HBoolConversion node) => visitCheck(node);
+  @override
+  visitNullCheck(HNullCheck node) => visitCheck(node);
   @override
   visitPrimitiveCheck(HPrimitiveCheck node) => visitCheck(node);
   @override
@@ -1097,17 +1100,18 @@ abstract class HInstruction implements Spannable {
   static const int GET_LENGTH_TYPECODE = 43;
   static const int ABS_TYPECODE = 44;
   static const int BOOL_CONVERSION_TYPECODE = 45;
-  static const int PRIMITIVE_CHECK_TYPECODE = 46;
+  static const int NULL_CHECK_TYPECODE = 46;
+  static const int PRIMITIVE_CHECK_TYPECODE = 47;
 
-  static const int IS_TEST_TYPECODE = 47;
-  static const int IS_TEST_SIMPLE_TYPECODE = 48;
-  static const int AS_CHECK_TYPECODE = 49;
-  static const int AS_CHECK_SIMPLE_TYPECODE = 50;
-  static const int SUBTYPE_CHECK_TYPECODE = 51;
-  static const int LOAD_TYPE_TYPECODE = 52;
-  static const int INSTANCE_ENVIRONMENT_TYPECODE = 53;
-  static const int TYPE_EVAL_TYPECODE = 54;
-  static const int TYPE_BIND_TYPECODE = 55;
+  static const int IS_TEST_TYPECODE = 48;
+  static const int IS_TEST_SIMPLE_TYPECODE = 49;
+  static const int AS_CHECK_TYPECODE = 50;
+  static const int AS_CHECK_SIMPLE_TYPECODE = 51;
+  static const int SUBTYPE_CHECK_TYPECODE = 52;
+  static const int LOAD_TYPE_TYPECODE = 53;
+  static const int INSTANCE_ENVIRONMENT_TYPECODE = 54;
+  static const int TYPE_EVAL_TYPECODE = 55;
+  static const int TYPE_BIND_TYPECODE = 56;
 
   HInstruction(this.inputs, this.instructionType)
       : id = idCounter++,
@@ -2104,7 +2108,6 @@ class HFieldGet extends HFieldAccess {
   HInstruction getDartReceiver(JClosedWorld closedWorld) => receiver;
   @override
   bool onlyThrowsNSM() => true;
-  bool get isNullCheck => element == null;
 
   @override
   accept(HVisitor visitor) => visitor.visitFieldGet(this);
@@ -2359,6 +2362,15 @@ class HForeignCode extends HForeign {
       nativeBehavior != null &&
       nativeBehavior.isAllocation &&
       isNull(domain).isDefinitelyFalse;
+
+  /// Returns `true` if the template will throw an NoSuchMethod error if
+  /// [receiver] is `null` before having any other side-effects.
+  bool isNullGuardFor(HInstruction receiver) {
+    if (!throwBehavior.isNullNSMGuard) return false;
+    if (inputs.length < 1) return false;
+    if (inputs.first.nonCheck() != receiver.nonCheck()) return false;
+    return true;
+  }
 
   @override
   int typeCode() => HInstruction.FOREIGN_CODE_TYPECODE;
@@ -3789,6 +3801,52 @@ class HBoolConversion extends HCheck {
 
   @override
   toString() => 'HBoolConversion($checkedInput)';
+}
+
+/// A check that the input is not null. This corresponds to the postfix
+/// null-check operator '!'.
+///
+/// A null check is inserted on the receiver when inlining an instance method or
+/// field getter or setter when the receiver might be null. In these cases, the
+/// [selector] and [field] members are assigned.
+class HNullCheck extends HCheck {
+  @override
+  Selector selector;
+  FieldEntity field;
+
+  HNullCheck(HInstruction input, AbstractValue type)
+      : super(<HInstruction>[input], type);
+
+  @override
+  bool isControlFlow() => true;
+  @override
+  bool isJsStatement() => true;
+
+  @override
+  bool isCodeMotionInvariant() => false;
+
+  @override
+  accept(HVisitor visitor) => visitor.visitNullCheck(this);
+
+  @override
+  int typeCode() => HInstruction.NULL_CHECK_TYPECODE;
+  @override
+  bool typeEquals(HInstruction other) => other is HNullCheck;
+  @override
+  bool dataEquals(HNullCheck other) => true;
+
+  bool isRedundant(JClosedWorld closedWorld) {
+    AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
+    AbstractValue inputType = checkedInput.instructionType;
+    return abstractValueDomain.isNull(inputType).isDefinitelyFalse;
+  }
+
+  @override
+  toString() {
+    String fieldString = field == null ? '' : ', $field';
+    String selectorString = selector == null ? '' : ', $selector';
+    return 'HNullCheck($checkedInput$fieldString$selectorString)';
+  }
 }
 
 /// The [HTypeKnown] instruction marks a value with a refined type.

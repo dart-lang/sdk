@@ -798,11 +798,12 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       // Null guard ensures an error if we are being called from an explicit
       // 'new' of the constructor instead of via an upgrade. It is optimized out
       // if there are field initializers.
-      add(new HFieldGet(
-          null, newObject, _abstractValueDomain.dynamicType, sourceInformation,
-          isAssignable: false));
+      newObject = HNullCheck(newObject,
+          _abstractValueDomain.excludeNull(newObject.instructionType))
+        ..sourceInformation = sourceInformation;
+      add(newObject);
       for (int i = 0; i < fields.length; i++) {
-        add(new HFieldSet(_abstractValueDomain, fields[i], newObject,
+        add(HFieldSet(_abstractValueDomain, fields[i], newObject,
             constructorArguments[i]));
       }
     } else {
@@ -2489,6 +2490,17 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     } else {
       stack.add(expressionInstruction);
     }
+  }
+
+  @override
+  void visitNullCheck(ir.NullCheck node) {
+    node.operand.accept(this);
+    HInstruction expression = pop();
+    SourceInformation sourceInformation =
+        _sourceInformationBuilder.buildUnary(node);
+    push(HNullCheck(expression,
+        _abstractValueDomain.excludeNull(expression.instructionType))
+      ..sourceInformation = sourceInformation);
   }
 
   void _generateError(FunctionEntity function, String message,
@@ -5935,16 +5947,17 @@ class KernelSsaGraphBuilder extends ir.Visitor {
             new StaticUse.methodInlining(function, typeArguments));
       }
 
-      // Add an explicit null check on the receiver before doing the
-      // inlining. We use [element] to get the same name in the
-      // NoSuchMethodError message as if we had called it.
+      // Add an explicit null check on the receiver before doing the inlining.
       if (function.isInstanceMember &&
           function is! ConstructorBodyEntity &&
           (mask == null ||
               _abstractValueDomain.isNull(mask).isPotentiallyTrue)) {
-        add(new HFieldGet(null, providedArguments[0],
-            _abstractValueDomain.dynamicType, sourceInformation,
-            isAssignable: false));
+        HNullCheck guard =
+            HNullCheck(providedArguments[0], _abstractValueDomain.dynamicType)
+              ..selector = selector
+              ..sourceInformation = sourceInformation;
+        add(guard);
+        providedArguments[0] = guard;
       }
       List<HInstruction> compiledArguments = _completeCallArgumentsList(
           function, selector, providedArguments, currentNode);

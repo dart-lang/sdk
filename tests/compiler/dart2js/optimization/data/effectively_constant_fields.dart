@@ -54,7 +54,7 @@ method4(Class3 c) {
 
 /*member: method6:
  ConstantFieldGet=[name=Class1.field1&value=IntConstant(0)],
- FieldGet=[name=<null-guard>]
+ NullCheck=[selector=field1]
 */
 @pragma('dart2js:noInline')
 method6(Class1 c) {
@@ -63,7 +63,7 @@ method6(Class1 c) {
 
 /*member: method7:
  ConstantFieldCall=[name=Class3.field4&value=FunctionConstant(_field4)],
- FieldCall=[name=<null-guard>]
+ NullCheck=[selector=field4]
 */
 @pragma('dart2js:noInline')
 method7(Class3 c) {
