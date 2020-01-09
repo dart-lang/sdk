@@ -1245,6 +1245,12 @@ void IsolateGroupReloadContext::FindModifiedSources(
     for (intptr_t script_idx = 0; script_idx < scripts.Length(); script_idx++) {
       script ^= scripts.At(script_idx);
       uri = script.url();
+      const bool dart_scheme = uri.StartsWith(Symbols::DartScheme());
+      if (dart_scheme) {
+        // If a user-defined class mixes in a mixin from dart:*, it's list of scripts will have
+        // a dart:* script as well. We don't consider those during reload.
+        continue;
+      }
       if (ContainsScriptUri(modified_sources_uris, uri.ToCString())) {
         // We've already accounted for this script in a prior library.
         continue;
