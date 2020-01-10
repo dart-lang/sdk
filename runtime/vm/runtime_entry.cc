@@ -2409,8 +2409,9 @@ DEFINE_RUNTIME_ENTRY(AllocateMint, 0) {
   if (FLAG_shared_slow_path_triggers_gc) {
     isolate->heap()->CollectAllGarbage();
   }
-  const auto& integer_box =
-      Integer::Handle(zone, Integer::NewFromUint64(0x00ff00ff00ff0000));
+  constexpr uint64_t val = 0x7fffffff7fffffff;
+  ASSERT(!Smi::IsValid(static_cast<int64_t>(val)));
+  const auto& integer_box = Integer::Handle(zone, Integer::NewFromUint64(val));
   arguments.SetReturn(integer_box);
 };
 

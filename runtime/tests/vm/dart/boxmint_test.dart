@@ -4,24 +4,25 @@
 
 // Test case that tests boxing mint
 
-// VMOptions=--shared-slow-path-triggers-gc
+// VMOptions=--optimization_counter_threshold=10 --deterministic --use-slow-path --shared-slow-path-triggers-gc --stacktrace_filter=foobar
 
 import 'dart:typed_data';
 import 'package:expect/expect.dart';
 
-final l = Uint64List(10);
+final gSize = 100;
+final l = Uint64List(gSize);
 int sum = 0;
 
 foobar() {
   for (int i = 0; i < l.length; ++i) {
     sum += l[i];
   }
-  Expect.equals(sum, 1481763717120);
+  Expect.equals(-9223372036854775808, sum);
 }
 
 main() {
-  for (int i = 0; i < 10; i++) {
-    l[i] = (i + 30) << 32;
+  for (int i = 0; i < gSize; i++) {
+    l[i] = (i + 30) << 62;
   }
   foobar();
 }
