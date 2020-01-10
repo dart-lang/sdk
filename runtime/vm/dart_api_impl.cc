@@ -6142,8 +6142,7 @@ Dart_CreateAppAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
   StreamingWriteStream debug_stream(generate_debug ? kInitialDebugSize : 0,
                                     callback, debug_callback_data);
 
-  Elf* elf =
-      generate_debug ? new (Z) Elf(Z, nullptr, strip, &debug_stream) : nullptr;
+  Elf* elf = generate_debug ? new (Z) Elf(Z, &debug_stream) : nullptr;
 
   AssemblyImageWriter image_writer(T, callback, callback_data, strip, elf);
   uint8_t* vm_snapshot_data_buffer = NULL;
@@ -6217,12 +6216,11 @@ Dart_CreateAppAOTSnapshotAsElf(Dart_StreamingWriteCallback callback,
   StreamingWriteStream debug_stream(generate_debug ? kInitialDebugSize : 0,
                                     callback, debug_callback_data);
 
-  Elf* elf = new (Z)
-      Elf(Z, &elf_stream, strip, generate_debug ? &debug_stream : nullptr);
-  Dwarf* dwarf = nullptr;
-  if (!strip || generate_debug) {
-    dwarf = new (Z) Dwarf(Z, nullptr, elf);
-  }
+  Elf* elf = new (Z) Elf(Z, &elf_stream);
+  Dwarf* elf_dwarf = strip ? nullptr : new (Z) Dwarf(Z, nullptr, elf);
+  Elf* debug_elf = generate_debug ? new (Z) Elf(Z, &debug_stream) : nullptr;
+  Dwarf* debug_dwarf =
+      generate_debug ? new (Z) Dwarf(Z, nullptr, debug_elf) : nullptr;
 
   // Note that the BSS section must come first because it cannot be placed in
   // between any two non-writable segments, due to a bug in Jelly Bean's ELF
@@ -6231,11 +6229,11 @@ Dart_CreateAppAOTSnapshotAsElf(Dart_StreamingWriteCallback callback,
       elf->AddBSSData("_kDartBSSData", sizeof(compiler::target::uword));
 
   BlobImageWriter vm_image_writer(T, &vm_snapshot_instructions_buffer,
-                                  ApiReallocate, kInitialSize, bss_base, elf,
-                                  dwarf);
+                                  ApiReallocate, kInitialSize, debug_dwarf,
+                                  bss_base, elf, elf_dwarf);
   BlobImageWriter isolate_image_writer(T, &isolate_snapshot_instructions_buffer,
-                                       ApiReallocate, kInitialSize, bss_base,
-                                       elf, dwarf);
+                                       ApiReallocate, kInitialSize, debug_dwarf,
+                                       bss_base, elf, elf_dwarf);
   FullSnapshotWriter writer(Snapshot::kFullAOT, &vm_snapshot_data_buffer,
                             &isolate_snapshot_data_buffer, ApiReallocate,
                             &vm_image_writer, &isolate_image_writer);
@@ -6245,12 +6243,17 @@ Dart_CreateAppAOTSnapshotAsElf(Dart_StreamingWriteCallback callback,
                  writer.VmIsolateSnapshotSize());
   elf->AddROData("_kDartIsolateSnapshotData", isolate_snapshot_data_buffer,
                  writer.IsolateSnapshotSize());
-  if (dwarf != nullptr) {
+
+  if (elf_dwarf != nullptr) {
     // TODO(rmacnak): Generate .debug_frame / .eh_frame / .arm.exidx to
     // provide unwinding information.
-    dwarf->Write();
+    elf_dwarf->Write();
   }
   elf->Finalize();
+  if (generate_debug) {
+    debug_dwarf->Write();
+    debug_elf->Finalize();
+  }
 
   return Api::Success();
 #endif
@@ -6300,16 +6303,14 @@ Dart_CreateAppAOTSnapshotAsBlobs(uint8_t** vm_snapshot_data_buffer,
   Elf* elf = nullptr;
   Dwarf* dwarf = nullptr;
   if (generate_debug) {
-    elf = new (Z) Elf(Z, nullptr, /*strip=*/false, &debug_stream);
+    elf = new (Z) Elf(Z, &debug_stream);
     dwarf = new (Z) Dwarf(Z, nullptr, elf);
   }
 
   BlobImageWriter vm_image_writer(T, vm_snapshot_instructions_buffer,
-                                  ApiReallocate, kInitialSize, /*bss_base=*/0,
-                                  elf, dwarf);
+                                  ApiReallocate, kInitialSize, dwarf);
   BlobImageWriter isolate_image_writer(T, isolate_snapshot_instructions_buffer,
-                                       ApiReallocate, kInitialSize,
-                                       /*bss_base=*/0, elf, dwarf);
+                                       ApiReallocate, kInitialSize, dwarf);
   FullSnapshotWriter writer(Snapshot::kFullAOT, vm_snapshot_data_buffer,
                             isolate_snapshot_data_buffer, ApiReallocate,
                             &vm_image_writer, &isolate_image_writer);
