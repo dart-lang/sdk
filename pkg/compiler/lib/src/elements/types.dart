@@ -52,8 +52,11 @@ abstract class DartType {
   bool get containsFreeTypeVariables =>
       _ContainsFreeTypeVariablesVisitor().run(this);
 
-  /// Is `true` if this type is the 'Object' type defined in 'dart:core'.
+  /// Is `true` if this type is the `Object` type defined in `dart:core`.
   bool get isObject => false;
+
+  /// Is `true` if this type is the `Null` type defined in `dart:core`.
+  bool get isNull => false;
 
   /// Applies [f] to each occurrence of a [TypeVariableType] within this
   /// type. This excludes function type variables, whether free or bound.
@@ -79,6 +82,21 @@ abstract class DartType {
   R accept<R, A>(DartTypeVisitor<R, A> visitor, A argument);
 
   bool _equals(DartType other, _Assumptions assumptions);
+
+  /// Returns `true` if `this` is structurally equal to [other] up to renaming
+  /// of bound type variables (trivially true) and equating all top types.
+  ///
+  /// This method handles the common cases of identity and top types. Types
+  /// should add any additional logic by implementing
+  /// [_equalsModuloTopInternal].
+  bool _equalsModuloTop(DartType other) {
+    other = other.unaliased;
+    if (identical(this, other)) return true;
+    if (isTop) return other.isTop;
+    return _equalsModuloTopInternal(other);
+  }
+
+  bool _equalsModuloTopInternal(DartType other);
 
   @override
   String toString() => _DartTypeToStringVisitor().run(this);
@@ -177,6 +195,14 @@ class LegacyType extends DartType {
 
   bool _equalsInternal(LegacyType other, _Assumptions assumptions) =>
       baseType._equals(other.baseType, assumptions);
+
+  @override
+  bool _equalsModuloTopInternal(DartType other) {
+    if (other is LegacyType) {
+      return baseType._equalsModuloTop(other.baseType);
+    }
+    return false;
+  }
 }
 
 class NullableType extends DartType {
@@ -215,6 +241,14 @@ class NullableType extends DartType {
 
   bool _equalsInternal(NullableType other, _Assumptions assumptions) =>
       baseType._equals(other.baseType, assumptions);
+
+  @override
+  bool _equalsModuloTopInternal(DartType other) {
+    if (other is NullableType) {
+      return baseType._equalsModuloTop(other.baseType);
+    }
+    return false;
+  }
 }
 
 class InterfaceType extends DartType {
@@ -228,10 +262,13 @@ class InterfaceType extends DartType {
   bool get isTop => isObject;
 
   @override
-  bool get isObject {
-    return element.name == 'Object' &&
-        element.library.canonicalUri == Uris.dart_core;
-  }
+  bool get isObject =>
+      element.name == 'Object' &&
+      element.library.canonicalUri == Uris.dart_core;
+
+  @override
+  bool get isNull =>
+      element.name == 'Null' && element.library.canonicalUri == Uris.dart_core;
 
   @override
   bool get containsTypeVariables =>
@@ -281,6 +318,15 @@ class InterfaceType extends DartType {
   bool _equalsInternal(InterfaceType other, _Assumptions assumptions) {
     return identical(element, other.element) &&
         _equalTypes(typeArguments, other.typeArguments, assumptions);
+  }
+
+  @override
+  bool _equalsModuloTopInternal(DartType other) {
+    if (other is InterfaceType) {
+      return identical(element, other.element) &&
+          _equalTypesModuloTop(typeArguments, other.typeArguments);
+    }
+    return false;
   }
 }
 
@@ -344,6 +390,12 @@ class TypedefType extends DartType {
     return identical(element, other.element) &&
         _equalTypes(typeArguments, other.typeArguments, assumptions);
   }
+
+  @override
+  bool _equalsModuloTop(DartType other) => unaliased._equalsModuloTop(other);
+
+  @override
+  bool _equalsModuloTopInternal(DartType other) => false;
 }
 
 class TypeVariableType extends DartType {
@@ -374,6 +426,14 @@ class TypeVariableType extends DartType {
 
   @override
   bool _equals(DartType other, _Assumptions assumptions) {
+    if (other is TypeVariableType) {
+      return identical(other.element, element);
+    }
+    return false;
+  }
+
+  @override
+  bool _equalsModuloTopInternal(DartType other) {
     if (other is TypeVariableType) {
       return identical(other.element, element);
     }
@@ -429,6 +489,14 @@ class FunctionTypeVariable extends DartType {
   }
 
   @override
+  bool _equalsModuloTopInternal(DartType other) {
+    if (other is FunctionTypeVariable) {
+      return index == other.index;
+    }
+    return false;
+  }
+
+  @override
   R accept<R, A>(DartTypeVisitor<R, A> visitor, A argument) =>
       visitor.visitFunctionTypeVariable(this, argument);
 }
@@ -448,6 +516,9 @@ class NeverType extends DartType {
   @override
   bool _equals(DartType other, _Assumptions assumptions) =>
       identical(this, other);
+
+  @override
+  bool _equalsModuloTopInternal(DartType other) => false;
 }
 
 class VoidType extends DartType {
@@ -469,6 +540,9 @@ class VoidType extends DartType {
   bool _equals(DartType other, _Assumptions assumptions) {
     return identical(this, other);
   }
+
+  @override
+  bool _equalsModuloTopInternal(DartType other) => false;
 }
 
 class DynamicType extends DartType {
@@ -490,6 +564,9 @@ class DynamicType extends DartType {
   bool _equals(DartType other, _Assumptions assumptions) {
     return identical(this, other);
   }
+
+  @override
+  bool _equalsModuloTopInternal(DartType other) => false;
 }
 
 class ErasedType extends DartType {
@@ -510,6 +587,9 @@ class ErasedType extends DartType {
   @override
   bool _equals(DartType other, _Assumptions assumptions) =>
       identical(this, other);
+
+  @override
+  bool _equalsModuloTopInternal(DartType other) => false;
 }
 
 /// Represents a type which is simultaneously top and bottom.
@@ -541,6 +621,9 @@ class AnyType extends DartType {
   @override
   bool _equals(DartType other, _Assumptions assumptions) =>
       identical(this, other);
+
+  @override
+  bool _equalsModuloTopInternal(DartType other) => false;
 }
 
 class FunctionType extends DartType {
@@ -574,6 +657,11 @@ class FunctionType extends DartType {
         "Invalid named parameter types in $this.");
     assert(!typeVariables.contains(null), "Invalid type variables in $this.");
   }
+
+  bool get isGeneric => typeVariables.isNotEmpty;
+
+  List<DartType> get typeVariableBounds =>
+      typeVariables.map((FunctionTypeVariable v) => v.bound).toList();
 
   @override
   bool get containsTypeVariables {
@@ -662,6 +750,21 @@ class FunctionType extends DartType {
     }
     return result;
   }
+
+  @override
+  bool _equalsModuloTopInternal(DartType other) {
+    if (other is FunctionType) {
+      return returnType._equalsModuloTop(other.returnType) &&
+          _equalTypesModuloTop(parameterTypes, other.parameterTypes) &&
+          _equalTypesModuloTop(
+              optionalParameterTypes, other.optionalParameterTypes) &&
+          equalElements(namedParameters, other.namedParameters) &&
+          _equalTypesModuloTop(
+              namedParameterTypes, other.namedParameterTypes) &&
+          _equalTypesModuloTop(typeVariableBounds, other.typeVariableBounds);
+    }
+    return false;
+  }
 }
 
 class FutureOrType extends DartType {
@@ -704,6 +807,14 @@ class FutureOrType extends DartType {
   bool _equalsInternal(FutureOrType other, _Assumptions assumptions) {
     return typeArgument._equals(other.typeArgument, assumptions);
   }
+
+  @override
+  bool _equalsModuloTopInternal(DartType other) {
+    if (other is FutureOrType) {
+      return typeArgument._equalsModuloTop(other.typeArgument);
+    }
+    return false;
+  }
 }
 
 bool _equalTypes(List<DartType> a, List<DartType> b, _Assumptions assumptions) {
@@ -712,6 +823,14 @@ bool _equalTypes(List<DartType> a, List<DartType> b, _Assumptions assumptions) {
     if (!a[index]._equals(b[index], assumptions)) {
       return false;
     }
+  }
+  return true;
+}
+
+bool _equalTypesModuloTop(List<DartType> a, List<DartType> b) {
+  if (a.length != b.length) return false;
+  for (int i = 0; i < a.length; i++) {
+    if (!a[i]._equalsModuloTop(b[i])) return false;
   }
   return true;
 }
@@ -1466,447 +1585,272 @@ class _DartTypeToStringVisitor extends DartTypeVisitor<void, void> {
   }
 }
 
-/// Abstract visitor for determining relations between types.
-// TODO(fishythefish): Rewrite type relations to support NNBD types and new
-// subtyping algorithm structure.
-abstract class AbstractTypeRelation<T extends DartType>
-    extends BaseDartTypeVisitor<bool, T> {
-  CommonElements get commonElements;
-
-  final _Assumptions assumptions = new _Assumptions();
-
-  /// Ensures that the super hierarchy of [type] is computed.
-  void ensureResolved(InterfaceType type) {}
-
-  /// Returns the unaliased version of [type].
-  T getUnaliased(T type) => type.unaliased;
-
-  /// Returns [type] as an instance of [cls], or `null` if [type] is not subtype
-  /// if [cls].
-  InterfaceType asInstanceOf(InterfaceType type, ClassEntity cls);
-
-  /// Returns the type of the `call` method on [type], or `null` if the class
-  /// of [type] does not have a `call` method.
-  FunctionType getCallType(InterfaceType type);
-
-  /// Returns the declared bound of [element].
-  DartType getTypeVariableBound(TypeVariableEntity element);
-
-  /// Returns the variances for each type parameter in [cls].
-  List<Variance> getTypeVariableVariances(ClassEntity cls);
-
-  @override
-  bool visitType(T t, T s) {
-    throw 'internal error: unknown type ${t}';
-  }
-
-  @override
-  bool visitVoidType(VoidType t, T s) {
-    assert(s is! VoidType);
-    return false;
-  }
-
-  bool invalidTypeArguments(T t, T s);
-
-  bool invalidFunctionReturnTypes(T t, T s);
-
-  bool invalidFunctionParameterTypes(T t, T s);
-
-  bool invalidTypeVariableBounds(T bound, T s);
-
-  bool invalidCallableType(covariant DartType callType, covariant DartType s);
-
-  @override
-  bool visitInterfaceType(InterfaceType t, covariant DartType s) {
-    ensureResolved(t);
-
-    bool checkTypeArguments(InterfaceType instance, InterfaceType other) {
-      List<T> tTypeArgs = instance.typeArguments;
-      List<T> sTypeArgs = other.typeArguments;
-      List<Variance> tVariances = getTypeVariableVariances(instance.element);
-      assert(tTypeArgs.length == sTypeArgs.length);
-      assert(tTypeArgs.length == tVariances.length);
-      for (int i = 0; i < tTypeArgs.length; i++) {
-        switch (tVariances[i]) {
-          case Variance.legacyCovariant:
-          case Variance.covariant:
-            if (invalidTypeArguments(tTypeArgs[i], sTypeArgs[i])) return false;
-            break;
-          case Variance.contravariant:
-            if (invalidTypeArguments(sTypeArgs[i], tTypeArgs[i])) return false;
-            break;
-          case Variance.invariant:
-            if (invalidTypeArguments(tTypeArgs[i], sTypeArgs[i]) ||
-                invalidTypeArguments(sTypeArgs[i], tTypeArgs[i])) return false;
-            break;
-          default:
-            throw StateError(
-                "Invalid variance ${tVariances[i]} used for subtype check.");
-        }
-      }
-      return true;
-    }
-
-    if (s is InterfaceType) {
-      InterfaceType instance = asInstanceOf(t, s.element);
-      if (instance != null && checkTypeArguments(instance, s)) {
-        return true;
-      }
-    }
-
-    FunctionType callType = getCallType(t);
-    if (s == commonElements.functionType && callType != null) {
-      return true;
-    } else if (s is FunctionType) {
-      return callType != null && !invalidCallableType(callType, s);
-    }
-
-    return false;
-  }
-
-  @override
-  bool visitFunctionType(FunctionType t, DartType s) {
-    if (s == commonElements.functionType) {
-      return true;
-    }
-    if (s is! FunctionType) return false;
-    FunctionType tf = t;
-    FunctionType sf = s;
-    int typeVariablesCount = getCommonTypeVariablesCount(tf, sf);
-    if (typeVariablesCount == null) {
-      return false;
-    }
-    for (int i = 0; i < typeVariablesCount; i++) {
-      assumptions.assume(tf.typeVariables[i], sf.typeVariables[i]);
-    }
-    for (int i = 0; i < typeVariablesCount; i++) {
-      if (!tf.typeVariables[i].bound
-          ._equals(sf.typeVariables[i].bound, assumptions)) {
-        return false;
-      }
-    }
-    if (invalidFunctionReturnTypes(tf.returnType, sf.returnType)) {
-      return false;
-    }
-
-    bool result = visitFunctionTypeInternal(tf, sf);
-    for (int i = 0; i < typeVariablesCount; i++) {
-      assumptions.forget(tf.typeVariables[i], sf.typeVariables[i]);
-    }
-    return result;
-  }
-
-  int getCommonTypeVariablesCount(FunctionType t, FunctionType s) {
-    if (t.typeVariables.length == s.typeVariables.length) {
-      return t.typeVariables.length;
-    }
-    return null;
-  }
-
-  bool visitFunctionTypeInternal(FunctionType tf, FunctionType sf) {
-    // TODO(johnniwinther): Rewrite the function subtyping to be more readable
-    // but still as efficient.
-
-    // For the comments we use the following abbreviations:
-    //  x.p     : parameterTypes on [:x:],
-    //  x.o     : optionalParameterTypes on [:x:], and
-    //  len(xs) : length of list [:xs:].
-
-    Iterator<T> tps = tf.parameterTypes.iterator;
-    Iterator<T> sps = sf.parameterTypes.iterator;
-    bool sNotEmpty = sps.moveNext();
-    bool tNotEmpty = tps.moveNext();
-    tNext() => (tNotEmpty = tps.moveNext());
-    sNext() => (sNotEmpty = sps.moveNext());
-
-    bool incompatibleParameters() {
-      while (tNotEmpty && sNotEmpty) {
-        if (invalidFunctionParameterTypes(tps.current, sps.current)) {
-          return true;
-        }
-        tNext();
-        sNext();
-      }
-      return false;
-    }
-
-    if (incompatibleParameters()) return false;
-    if (tNotEmpty) {
-      // We must have [: len(t.p) <= len(s.p) :].
-      return false;
-    }
-    if (!sf.namedParameters.isEmpty) {
-      // We must have [: len(t.p) == len(s.p) :].
-      if (sNotEmpty) {
-        return false;
-      }
-      // Since named parameters are globally ordered we can determine the
-      // subset relation with a linear search for [:sf.namedParameters:]
-      // within [:tf.namedParameters:].
-      List<String> tNames = tf.namedParameters;
-      List<T> tTypes = tf.namedParameterTypes;
-      List<String> sNames = sf.namedParameters;
-      List<T> sTypes = sf.namedParameterTypes;
-      int tIndex = 0;
-      int sIndex = 0;
-      while (tIndex < tNames.length && sIndex < sNames.length) {
-        if (tNames[tIndex] == sNames[sIndex]) {
-          if (invalidFunctionParameterTypes(tTypes[tIndex], sTypes[sIndex])) {
-            return false;
-          }
-          sIndex++;
-        }
-        tIndex++;
-      }
-      if (sIndex < sNames.length) {
-        // We didn't find all names.
-        return false;
-      }
-    } else {
-      // Check the remaining [: s.p :] against [: t.o :].
-      tps = tf.optionalParameterTypes.iterator;
-      tNext();
-      if (incompatibleParameters()) return false;
-      if (sNotEmpty) {
-        // We must have [: len(t.p) + len(t.o) >= len(s.p) :].
-        return false;
-      }
-      if (!sf.optionalParameterTypes.isEmpty) {
-        // Check the remaining [: s.o :] against the remaining [: t.o :].
-        sps = sf.optionalParameterTypes.iterator;
-        sNext();
-        if (incompatibleParameters()) return false;
-        if (sNotEmpty) {
-          // We didn't find enough parameters:
-          // We must have [: len(t.p) + len(t.o) <= len(s.p) + len(s.o) :].
-          return false;
-        }
-      } else {
-        if (sNotEmpty) {
-          // We must have [: len(t.p) + len(t.o) >= len(s.p) :].
-          return false;
-        }
-      }
-    }
-    return true;
-  }
-
-  @override
-  bool visitTypeVariableType(TypeVariableType t, T s) {
-    // Identity check is handled in [isSubtype].
-    DartType bound = getTypeVariableBound(t.element);
-    if (bound is TypeVariableType) {
-      // The bound is potentially cyclic so we need to be extra careful.
-      Set<TypeVariableEntity> seenTypeVariables = new Set<TypeVariableEntity>();
-      seenTypeVariables.add(t.element);
-      while (bound is TypeVariableType) {
-        TypeVariableType typeVariable = bound;
-        if (bound == s) {
-          // [t] extends [s].
-          return true;
-        }
-        if (seenTypeVariables.contains(typeVariable.element)) {
-          // We have a cycle and have already checked all bounds in the cycle
-          // against [s] and can therefore conclude that [t] is not a subtype
-          // of [s].
-          return false;
-        }
-        seenTypeVariables.add(typeVariable.element);
-        bound = getTypeVariableBound(typeVariable.element);
-      }
-    }
-    if (invalidTypeVariableBounds(bound, s)) return false;
-    return true;
-  }
-
-  @override
-  bool visitFunctionTypeVariable(FunctionTypeVariable t, DartType s) {
-    if (s is! FunctionTypeVariable) return false;
-    return assumptions.isAssumed(t, s);
-  }
-}
-
-abstract class MoreSpecificVisitor<T extends DartType>
-    extends AbstractTypeRelation<T> {
-  bool isMoreSpecific(T t, T s) {
-    if (identical(t, s) ||
-        t is AnyType ||
-        s is AnyType ||
-        s.isTop ||
-        s is VoidType ||
-        s == commonElements.objectType ||
-        t == commonElements.nullType) {
-      return true;
-    }
-    if (t.isTop) {
-      return false;
-    }
-
-    t = getUnaliased(t);
-    s = getUnaliased(s);
-
-    return t.accept(this, s);
-  }
-
-  @override
-  bool invalidTypeArguments(T t, T s) {
-    return !isMoreSpecific(t, s);
-  }
-
-  @override
-  bool invalidFunctionReturnTypes(T t, T s) {
-    if (s.isTop && t is VoidType) return true;
-    return s is! VoidType && !isMoreSpecific(t, s);
-  }
-
-  @override
-  bool invalidFunctionParameterTypes(T t, T s) {
-    return !isMoreSpecific(t, s);
-  }
-
-  @override
-  bool invalidTypeVariableBounds(T bound, T s) {
-    return !isMoreSpecific(bound, s);
-  }
-
-  @override
-  bool invalidCallableType(covariant DartType callType, covariant DartType s) {
-    return !isMoreSpecific(callType, s);
-  }
-
-  @override
-  bool visitFutureOrType(FutureOrType t, covariant DartType s) {
-    return false;
-  }
-}
-
-/// Type visitor that determines the subtype relation two types.
-abstract class SubtypeVisitor<T extends DartType>
-    extends MoreSpecificVisitor<T> {
-  bool isSubtype(DartType t, DartType s) {
-    if (t is AnyType || s is AnyType) return true;
-    if (s is FutureOrType) {
-      FutureOrType sFutureOr = s;
-      if (isSubtype(t, sFutureOr.typeArgument)) {
-        return true;
-      } else if (t is InterfaceType) {
-        InterfaceType tInterface = t;
-        if (tInterface.element == commonElements.futureClass &&
-            isSubtype(
-                tInterface.typeArguments.single, sFutureOr.typeArgument)) {
-          return true;
-        }
-      }
-    }
-    return isMoreSpecific(t, s);
-  }
-
-  bool isAssignable(T t, T s) {
-    return isSubtype(t, s) || isSubtype(s, t);
-  }
-
-  @override
-  bool invalidTypeArguments(T t, T s) {
-    return !isSubtype(t, s);
-  }
-
-  @override
-  bool invalidFunctionReturnTypes(T t, T s) {
-    return !isSubtype(t, s);
-  }
-
-  @override
-  bool invalidFunctionParameterTypes(T t, T s) {
-    return !isSubtype(s, t);
-  }
-
-  @override
-  bool invalidTypeVariableBounds(T bound, T s) {
-    return !isSubtype(bound, s);
-  }
-
-  @override
-  bool invalidCallableType(covariant DartType callType, covariant DartType s) {
-    return !isSubtype(callType, s);
-  }
-
-  @override
-  bool visitFutureOrType(FutureOrType t, covariant DartType s) {
-    if (s is FutureOrType) {
-      FutureOrType sFutureOr = s;
-      return isSubtype(t.typeArgument, sFutureOr.typeArgument);
-    }
-    return false;
-  }
-}
-
-/// Type visitor that determines one type could a subtype of another given the
-/// right type variable substitution. The computation is approximate and returns
-/// `false` only if we are sure no such substitution exists.
-abstract class PotentialSubtypeVisitor<T extends DartType>
-    extends SubtypeVisitor<T> {
-  bool _assumeInstantiations = true;
-
-  @override
-  bool isSubtype(DartType t, DartType s) {
-    if (t is AnyType || s is AnyType) return true;
-    if (t is TypeVariableType || s is TypeVariableType) {
-      return true;
-    }
-    if ((t is FunctionTypeVariable || s is FunctionTypeVariable) &&
-        _assumeInstantiations) {
-      return true;
-    }
-    return super.isSubtype(t, s);
-  }
-
-  @override
-  int getCommonTypeVariablesCount(FunctionType t, FunctionType s) {
-    if (t.typeVariables.length == s.typeVariables.length) {
-      return t.typeVariables.length;
-    }
-    if (_assumeInstantiations && s.typeVariables.length == 0) {
-      return 0;
-    }
-    return null;
-  }
-
-  bool isPotentialSubtype(DartType t, DartType s,
-      {bool assumeInstantiations: true}) {
-    _assumeInstantiations = assumeInstantiations;
-    return isSubtype(t, s);
-  }
-}
-
 /// Basic interface for the Dart type system.
 abstract class DartTypes {
   /// The types defined in 'dart:core'.
   CommonElements get commonElements;
 
-  /// Returns `true` if [t] is a subtype of [s].
-  bool isSubtype(DartType t, DartType s);
+  /// Returns `true` if [s] is a subtype of [t].
+  bool isSubtype(DartType s, DartType t) => _subtypeHelper(s, t);
 
-  /// Returns `true` if [t] is assignable to [s].
-  bool isAssignable(DartType t, DartType s);
+  /// Returns `true` if [s] is assignable to [t].
+  bool isAssignable(DartType s, DartType t) =>
+      isSubtype(s, t) || isSubtype(t, s);
 
-  /// Returns `true` if [t] might be a subtype of [s] for some values of
+  /// Returns `true` if [s] might be a subtype of [t] for some values of
   /// type variables in [s] and [t].
   ///
   /// If [assumeInstantiations], generic function types are assumed to be
   /// potentially instantiated.
-  bool isPotentialSubtype(DartType t, DartType s,
-      {bool assumeInstantiations: true});
+  bool isPotentialSubtype(DartType s, DartType t,
+          {bool assumeInstantiations: true}) =>
+      _subtypeHelper(s, t,
+          allowPotentialSubtypes: true,
+          assumeInstantiations: assumeInstantiations);
 
-  static const int IS_SUBTYPE = 1;
-  static const int MAYBE_SUBTYPE = 0;
-  static const int NOT_SUBTYPE = -1;
+  bool _subtypeHelper(DartType s, DartType t,
+      {bool allowPotentialSubtypes: false, bool assumeInstantiations: false}) {
+    /// Based on
+    /// https://github.com/dart-lang/language/blob/master/resources/type-system/subtyping.md.
+    /// See also [_isSubtype] in `dart:_rti`.
+    bool _isSubtype(DartType s, Set<FunctionTypeVariable> sEnv, DartType t,
+        Set<FunctionTypeVariable> tEnv) {
+      s = s.unaliased;
+      t = t.unaliased;
 
-  /// Returns [IS_SUBTYPE], [MAYBE_SUBTYPE], or [NOT_SUBTYPE] if [t] is a
-  /// (potential) subtype of [s]
-  int computeSubtypeRelation(DartType t, DartType s) {
-    // TODO(johnniwinther): Compute this directly in [isPotentialSubtype].
-    if (isSubtype(t, s)) return IS_SUBTYPE;
-    return isPotentialSubtype(t, s) ? MAYBE_SUBTYPE : NOT_SUBTYPE;
+      // Reflexivity:
+      if (s == t) return true;
+      if (s is FunctionTypeVariable &&
+          t is FunctionTypeVariable &&
+          sEnv.contains(s) &&
+          tEnv.contains(t) &&
+          s.index == t.index) return true;
+
+      // Right Top:
+      if (t.isTop) return true;
+
+      if (s is AnyType) return true;
+      if (allowPotentialSubtypes &&
+          (s is TypeVariableType || t is TypeVariableType)) return true;
+      if (assumeInstantiations &&
+          (s is FunctionTypeVariable || t is FunctionTypeVariable)) return true;
+
+      // Left Top:
+      if (s.isTop) return false;
+
+      // Left Bottom:
+      // TODO(fishythefish): Update for NNBD - check for `Never` instead of
+      // `Null`.
+      if (s.isNull) return true;
+
+      // Left Type Variable Bound 1:
+      if (s is TypeVariableType) {
+        if (_isSubtype(getTypeVariableBound(s.element), sEnv, t, tEnv))
+          return true;
+      }
+      if (s is FunctionTypeVariable) {
+        if (_isSubtype(s._bound, sEnv, t, tEnv)) return true;
+      }
+
+      // Left Null:
+      // Note: Interchanging the Left Null and Right Object rules allows us to
+      // reduce casework.
+      if (s.isNull) {
+        if (t is FutureOrType) {
+          return _isSubtype(s, sEnv, t.typeArgument, tEnv);
+        }
+        return t.isNull || t is NullableType || t is LegacyType;
+      }
+
+      // Right Object:
+      if (t.isObject) {
+        if (s is FutureOrType) {
+          return _isSubtype(s.typeArgument, sEnv, t, tEnv);
+        }
+        if (s is LegacyType) {
+          return _isSubtype(s.baseType, sEnv, t, tEnv);
+        }
+        return s is! NullableType;
+      }
+
+      // Left Legacy:
+      if (s is LegacyType) {
+        return _isSubtype(s.baseType, sEnv, t, tEnv);
+      }
+
+      // Right Legacy:
+      if (t is LegacyType) {
+        return _isSubtype(s, sEnv, NullableType(t.baseType), tEnv);
+      }
+
+      // Left FutureOr:
+      if (s is FutureOrType) {
+        DartType typeArgument = s.typeArgument;
+        return _isSubtype(typeArgument, sEnv, t, tEnv) &&
+            _isSubtype(commonElements.futureType(typeArgument), sEnv, t, tEnv);
+      }
+
+      // Left Nullable:
+      if (s is NullableType) {
+        return _isSubtype(commonElements.nullType, sEnv, t, tEnv) &&
+            _isSubtype(s.baseType, sEnv, t, tEnv);
+      }
+
+      // Type Variable Reflexivity 1 is subsumed by Reflexivity and therefore
+      // elided.
+      // Type Variable Reflexivity 2 does not apply because we do not represent
+      // promoted type variables.
+      // Right Promoted Variable does not apply because we do not represent
+      // promoted type variables.
+
+      // Right FutureOr:
+      if (t is FutureOrType) {
+        DartType typeArgument = t.typeArgument;
+        return _isSubtype(s, sEnv, typeArgument, tEnv) ||
+            _isSubtype(s, sEnv, commonElements.futureType(typeArgument), tEnv);
+      }
+
+      // Right Nullable:
+      if (t is NullableType) {
+        return _isSubtype(s, sEnv, commonElements.nullType, tEnv) ||
+            _isSubtype(s, sEnv, t.baseType, tEnv);
+      }
+
+      // Left Promoted Variable does not apply because we do not represent
+      // promoted type variables.
+
+      // Left Type Variable Bound 2:
+      if (s is TypeVariableType) return false;
+      if (s is FunctionTypeVariable) return false;
+
+      // Function Type/Function:
+      if (s is FunctionType && t == commonElements.functionType) {
+        return true;
+      }
+
+      // Positional Function Types + Named Function Types:
+      // TODO(fishythefish): Disallow JavaScriptFunction as a subtype of
+      // function types using features inaccessible from JavaScript.
+      if (t is FunctionType) {
+        if (s == commonElements.jsJavaScriptFunctionType) return true;
+        if (s is FunctionType) {
+          if (t.isGeneric) {
+            if (!s.isGeneric) return false;
+            if (!_equalTypesModuloTop(
+                s.typeVariableBounds, t.typeVariableBounds)) {
+              return false;
+            }
+            sEnv = sEnv.toSet()..addAll(s.typeVariables);
+            tEnv = tEnv.toSet()..addAll(t.typeVariables);
+          }
+
+          if (!_isSubtype(s.returnType, sEnv, t.returnType, tEnv)) return false;
+
+          // TODO(fishythefish): Support required named parameters.
+
+          List<DartType> sRequiredPositional = s.parameterTypes;
+          List<DartType> tRequiredPositional = t.parameterTypes;
+          int sRequiredPositionalLength = sRequiredPositional.length;
+          int tRequiredPositionalLength = tRequiredPositional.length;
+          if (sRequiredPositionalLength > tRequiredPositionalLength) {
+            return false;
+          }
+          int requiredPositionalDelta =
+              tRequiredPositionalLength - sRequiredPositionalLength;
+
+          List<DartType> sOptionalPositional = s.optionalParameterTypes;
+          List<DartType> tOptionalPositional = t.optionalParameterTypes;
+          int sOptionalPositionalLength = sOptionalPositional.length;
+          int tOptionalPositionalLength = tOptionalPositional.length;
+          if (sRequiredPositionalLength + sOptionalPositionalLength <
+              tRequiredPositionalLength + tOptionalPositionalLength) {
+            return false;
+          }
+
+          for (int i = 0; i < sRequiredPositionalLength; i++) {
+            if (!_isSubtype(
+                tRequiredPositional[i], tEnv, sRequiredPositional[i], sEnv)) {
+              return false;
+            }
+          }
+
+          for (int i = 0; i < requiredPositionalDelta; i++) {
+            if (!_isSubtype(tRequiredPositional[sRequiredPositionalLength + i],
+                tEnv, sOptionalPositional[i], sEnv)) {
+              return false;
+            }
+          }
+
+          for (int i = 0; i < tOptionalPositionalLength; i++) {
+            if (!_isSubtype(tOptionalPositional[i], tEnv,
+                sOptionalPositional[requiredPositionalDelta + i], sEnv)) {
+              return false;
+            }
+          }
+
+          List<String> sOptionalNamed = s.namedParameters;
+          List<String> tOptionalNamed = t.namedParameters;
+          List<DartType> sOptionalNamedTypes = s.namedParameterTypes;
+          List<DartType> tOptionalNamedTypes = t.namedParameterTypes;
+          int sOptionalNamedLength = sOptionalNamed.length;
+          int tOptionalNamedLength = tOptionalNamed.length;
+          for (int i = 0, j = 0; j < tOptionalNamedLength; j++) {
+            String sName;
+            String tName = tOptionalNamed[j];
+            int comparison;
+            do {
+              if (i >= sOptionalNamedLength) return false;
+              sName = sOptionalNamed[i++];
+              comparison = sName.compareTo(tName);
+            } while (comparison < 0);
+            if (comparison > 0) return false;
+            if (!_isSubtype(
+                tOptionalNamedTypes[j], tEnv, sOptionalNamedTypes[i - 1], sEnv))
+              return false;
+          }
+          return true;
+        }
+        return false;
+      }
+
+      // Interface Compositionality + Super-Interface:
+      if (s is InterfaceType) {
+        if (t is InterfaceType) {
+          InterfaceType instance =
+              s.element == t.element ? s : asInstanceOf(s, t.element);
+          if (instance == null) return false;
+          List<DartType> sArgs = instance.typeArguments;
+          List<DartType> tArgs = t.typeArguments;
+          List<Variance> variances = getTypeVariableVariances(t.element);
+          assert(sArgs.length == tArgs.length);
+          assert(tArgs.length == variances.length);
+          for (int i = 0; i < variances.length; i++) {
+            switch (variances[i]) {
+              case Variance.legacyCovariant:
+              case Variance.covariant:
+                if (!_isSubtype(sArgs[i], sEnv, tArgs[i], tEnv)) return false;
+                break;
+              case Variance.contravariant:
+                if (!_isSubtype(tArgs[i], tEnv, sArgs[i], sEnv)) return false;
+                break;
+              case Variance.invariant:
+                if (!_isSubtype(sArgs[i], sEnv, tArgs[i], tEnv) ||
+                    !_isSubtype(tArgs[i], tEnv, sArgs[i], sEnv)) return false;
+                break;
+              default:
+                throw StateError(
+                    "Invalid variance ${variances[i]} used for subtype check.");
+            }
+          }
+          return true;
+        }
+        return false;
+      }
+
+      return false;
+    }
+
+    return _isSubtype(s, {}, t, {});
   }
 
   /// Returns [type] as an instance of [cls] or `null` if [type] is not a
@@ -1972,4 +1916,8 @@ abstract class DartTypes {
     // returning in the next statement.
     return contextClass;
   }
+
+  DartType getTypeVariableBound(TypeVariableEntity element);
+
+  List<Variance> getTypeVariableVariances(ClassEntity cls);
 }

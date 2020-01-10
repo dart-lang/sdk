@@ -11,30 +11,8 @@ import 'element_map.dart';
 /// Support for subtype checks of kernel based [DartType]s.
 class KernelDartTypes extends DartTypes {
   final IrToElementMap elementMap;
-  final SubtypeVisitor<DartType> subtypeVisitor;
-  final PotentialSubtypeVisitor<DartType> potentialSubtypeVisitor;
 
-  KernelDartTypes(this.elementMap)
-      : this.subtypeVisitor = new KernelSubtypeVisitor(elementMap),
-        this.potentialSubtypeVisitor =
-            new _KernelPotentialSubtypeVisitor(elementMap);
-
-  @override
-  bool isPotentialSubtype(DartType t, DartType s,
-      {bool assumeInstantiations: true}) {
-    return potentialSubtypeVisitor.isPotentialSubtype(t, s,
-        assumeInstantiations: assumeInstantiations);
-  }
-
-  @override
-  bool isAssignable(DartType t, DartType s) {
-    return isSubtype(t, s) || isSubtype(s, t);
-  }
-
-  @override
-  bool isSubtype(DartType t, DartType s) {
-    return subtypeVisitor.isSubtype(t, s);
-  }
+  KernelDartTypes(this.elementMap);
 
   @override
   InterfaceType getThisType(ClassEntity cls) {
@@ -92,6 +70,15 @@ class KernelDartTypes extends DartTypes {
 
   @override
   CommonElements get commonElements => elementMap.commonElements;
+
+  @override
+  DartType getTypeVariableBound(TypeVariableEntity element) {
+    return elementMap.getTypeVariableBound(element);
+  }
+
+  @override
+  List<Variance> getTypeVariableVariances(ClassEntity cls) =>
+      elementMap.getTypeVariableVariances(cls);
 }
 
 class KernelOrderedTypeSetBuilder extends OrderedTypeSetBuilderBase {
@@ -118,48 +105,4 @@ class KernelOrderedTypeSetBuilder extends OrderedTypeSetBuilderBase {
   OrderedTypeSet getOrderedTypeSet(ClassEntity cls) {
     return elementMap.getOrderedTypeSet(cls);
   }
-}
-
-abstract class AbstractTypeRelationMixin
-    implements AbstractTypeRelation<DartType> {
-  IrToElementMap get elementMap;
-
-  @override
-  CommonElements get commonElements => elementMap.commonElements;
-
-  @override
-  DartType getTypeVariableBound(TypeVariableEntity element) {
-    return elementMap.getTypeVariableBound(element);
-  }
-
-  @override
-  List<Variance> getTypeVariableVariances(ClassEntity cls) {
-    return elementMap.getTypeVariableVariances(cls);
-  }
-
-  @override
-  FunctionType getCallType(InterfaceType type) {
-    return elementMap.getCallType(type);
-  }
-
-  @override
-  InterfaceType asInstanceOf(InterfaceType type, ClassEntity cls) {
-    return elementMap.asInstanceOf(type, cls);
-  }
-}
-
-class KernelSubtypeVisitor extends SubtypeVisitor<DartType>
-    with AbstractTypeRelationMixin {
-  @override
-  final IrToElementMap elementMap;
-
-  KernelSubtypeVisitor(this.elementMap);
-}
-
-class _KernelPotentialSubtypeVisitor extends PotentialSubtypeVisitor<DartType>
-    with AbstractTypeRelationMixin {
-  @override
-  final IrToElementMap elementMap;
-
-  _KernelPotentialSubtypeVisitor(this.elementMap);
 }

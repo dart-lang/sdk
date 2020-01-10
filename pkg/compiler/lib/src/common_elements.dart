@@ -303,6 +303,8 @@ abstract class CommonElements {
 
   ClassEntity get jsJavaScriptFunctionClass;
 
+  InterfaceType get jsJavaScriptFunctionType;
+
   ClassEntity get jsJavaScriptObjectClass;
 
   ClassEntity get jsIndexableClass;
@@ -1327,6 +1329,10 @@ class CommonElementsImpl
   @override
   ClassEntity get jsJavaScriptFunctionClass => _jsJavaScriptFunctionClass ??=
       _findInterceptorsClass('JavaScriptFunction');
+
+  @override
+  InterfaceType get jsJavaScriptFunctionType =>
+      _getRawType(jsJavaScriptFunctionClass);
 
   ClassEntity _jsJavaScriptObjectClass;
   @override
