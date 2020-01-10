@@ -857,6 +857,8 @@ DART_EXPORT DART_WARN_UNUSED_RESULT char* Dart_Cleanup();
  *
  * \return NULL if successful. Returns an error message otherwise.
  *  The caller is responsible for freeing the error message.
+ *
+ * NOTE: This call does not store references to the passed in c-strings.
  */
 DART_EXPORT DART_WARN_UNUSED_RESULT char* Dart_SetVMFlags(int argc,
                                                           const char** argv);
