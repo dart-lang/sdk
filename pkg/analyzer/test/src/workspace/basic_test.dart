@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/workspace/basic.dart';
@@ -26,9 +25,7 @@ class BasicWorkspacePackageTest with ResourceProviderMixin {
   setUp() {
     final contextBuilder = MockContextBuilder();
     final packages = MockPackages();
-    final packageMap = <String, List<Folder>>{'project': []};
     contextBuilder.packagesMapMap[convertPath('/workspace')] = packages;
-    contextBuilder.packagesToMapMap[packages] = packageMap;
 
     newFolder('/workspace');
     workspace = BasicWorkspace.find(
@@ -115,12 +112,6 @@ class BasicWorkspaceTest with ResourceProviderMixin {
 
 class MockContextBuilder implements ContextBuilder {
   Map<String, Packages> packagesMapMap = <String, Packages>{};
-  Map<Packages, Map<String, List<Folder>>> packagesToMapMap =
-      <Packages, Map<String, List<Folder>>>{};
-
-  @override
-  Map<String, List<Folder>> convertPackagesToMap(Packages packages) =>
-      packagesToMapMap[packages];
 
   @override
   Packages createPackageMap(String rootDirectoryPath) =>

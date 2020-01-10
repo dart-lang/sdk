@@ -1119,8 +1119,7 @@ class ContextManagerImpl implements ContextManager {
    */
   AnalysisOptionsProvider _createAnalysisOptionsProvider(Packages packages) {
     Map<String, List<Folder>> packageMap =
-        ContextBuilder(resourceProvider, null, null)
-            .convertPackagesToMap(packages);
+        ContextBuilder.convertPackagesToMap(resourceProvider, packages);
     List<UriResolver> resolvers = <UriResolver>[
       ResourceUriResolver(resourceProvider),
       PackageMapUriResolver(resourceProvider, packageMap),

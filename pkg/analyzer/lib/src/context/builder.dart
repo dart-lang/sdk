@@ -182,16 +182,15 @@ class ContextBuilder {
     return driver;
   }
 
-  Map<String, List<Folder>> convertPackagesToMap(Packages packages) {
-    Map<String, List<Folder>> folderMap = HashMap<String, List<Folder>>();
-    if (packages != null && packages != Packages.noPackages) {
-      var pathContext = resourceProvider.pathContext;
-      packages.asMap().forEach((String packageName, Uri uri) {
-        String path = fileUriToNormalizedPath(pathContext, uri);
-        folderMap[packageName] = [resourceProvider.getFolder(path)];
-      });
+  /**
+   * Return an analysis options object containing the default option values.
+   */
+  AnalysisOptions createDefaultOptions() {
+    AnalysisOptions defaultOptions = builderOptions.defaultOptions;
+    if (defaultOptions == null) {
+      return AnalysisOptionsImpl();
     }
-    return folderMap;
+    return AnalysisOptionsImpl.from(defaultOptions);
   }
 
 //  void _processAnalysisOptions(
@@ -216,17 +215,6 @@ class ContextBuilder {
 //      optionsProcessors.forEach((OptionsProcessor p) => p.onError(e));
 //    }
 //  }
-
-  /**
-   * Return an analysis options object containing the default option values.
-   */
-  AnalysisOptions createDefaultOptions() {
-    AnalysisOptions defaultOptions = builderOptions.defaultOptions;
-    if (defaultOptions == null) {
-      return AnalysisOptionsImpl();
-    }
-    return AnalysisOptionsImpl.from(defaultOptions);
-  }
 
   Packages createPackageMap(String rootDirectoryPath) {
     String filePath = builderOptions.defaultPackageFilePath;
@@ -520,37 +508,20 @@ class ContextBuilder {
    * if neither is found.
    */
   Resource _findPackagesLocation(String path) {
-    Folder folder = resourceProvider.getFolder(path);
-    if (!folder.exists) {
-      return null;
-    }
+    var resource = resourceProvider.getResource(path);
+    while (resource != null) {
+      if (resource is Folder) {
+        var dotPackagesFile = resource.getChildAssumingFile('.packages');
+        if (dotPackagesFile.exists) {
+          return dotPackagesFile;
+        }
 
-    File checkForConfigFile(Folder folder) {
-      File file = folder.getChildAssumingFile('.packages');
-      if (file.exists) {
-        return file;
+        var packagesDirectory = resource.getChildAssumingFolder('packages');
+        if (packagesDirectory.exists) {
+          return packagesDirectory;
+        }
       }
-      return null;
-    }
-
-    // Check for $cwd/.packages
-    File packagesCfgFile = checkForConfigFile(folder);
-    if (packagesCfgFile != null) {
-      return packagesCfgFile;
-    }
-    // Check for $cwd/packages/
-    Folder packagesDir = folder.getChildAssumingFolder("packages");
-    if (packagesDir.exists) {
-      return packagesDir;
-    }
-    // Check for cwd(/..)+/.packages
-    Folder parentDir = folder.parent;
-    while (parentDir != null) {
-      packagesCfgFile = checkForConfigFile(parentDir);
-      if (packagesCfgFile != null) {
-        return packagesCfgFile;
-      }
-      parentDir = parentDir.parent;
+      resource = resource.parent;
     }
     return null;
   }
@@ -573,21 +544,40 @@ class ContextBuilder {
     return null;
   }
 
+  static Map<String, List<Folder>> convertPackagesToMap(
+    ResourceProvider resourceProvider,
+    Packages packages,
+  ) {
+    Map<String, List<Folder>> folderMap = HashMap<String, List<Folder>>();
+    if (packages != null && packages != Packages.noPackages) {
+      var pathContext = resourceProvider.pathContext;
+      packages.asMap().forEach((String packageName, Uri uri) {
+        String path = fileUriToNormalizedPath(pathContext, uri);
+        folderMap[packageName] = [resourceProvider.getFolder(path)];
+      });
+    }
+    return folderMap;
+  }
+
   static Workspace createWorkspace(ResourceProvider resourceProvider,
       String rootPath, ContextBuilder contextBuilder) {
+    var packages = contextBuilder.createPackageMap(rootPath);
+    var packageMap =
+        ContextBuilder.convertPackagesToMap(resourceProvider, packages);
+
     if (_hasPackageFileInPath(resourceProvider, rootPath)) {
       // A Bazel or Gn workspace that includes a '.packages' file is treated
       // like a normal (non-Bazel/Gn) directory. But may still use
       // package:build or Pub.
       return PackageBuildWorkspace.find(
-              resourceProvider, rootPath, contextBuilder) ??
+              resourceProvider, packageMap, rootPath) ??
           PubWorkspace.find(resourceProvider, rootPath, contextBuilder) ??
           BasicWorkspace.find(resourceProvider, rootPath, contextBuilder);
     }
     Workspace workspace = BazelWorkspace.find(resourceProvider, rootPath);
     workspace ??= GnWorkspace.find(resourceProvider, rootPath);
     workspace ??=
-        PackageBuildWorkspace.find(resourceProvider, rootPath, contextBuilder);
+        PackageBuildWorkspace.find(resourceProvider, packageMap, rootPath);
     workspace ??= PubWorkspace.find(resourceProvider, rootPath, contextBuilder);
     return workspace ??
         BasicWorkspace.find(resourceProvider, rootPath, contextBuilder);

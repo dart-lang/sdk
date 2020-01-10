@@ -198,8 +198,8 @@ Set<Source> scanReachableFiles(Uri entryUri) {
 /// sources.
 Future setup(Uri entryUri) async {
   var provider = PhysicalResourceProvider.INSTANCE;
-  var packageMap = new ContextBuilder(provider, null, null)
-      .convertPackagesToMap(await findPackages(entryUri));
+  var packageMap = ContextBuilder.convertPackagesToMap(
+      provider, await findPackages(entryUri));
   sources = new SourceFactory([
     new ResourceUriResolver(provider),
     new PackageMapUriResolver(provider, packageMap),

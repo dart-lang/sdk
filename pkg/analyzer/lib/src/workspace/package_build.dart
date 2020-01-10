@@ -5,7 +5,6 @@
 import 'dart:core';
 
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -153,6 +152,14 @@ class PackageBuildWorkspace extends Workspace {
   final ResourceProvider provider;
 
   /**
+   * The map of package locations indexed by package name.
+   *
+   * This is a cached field.
+   */
+  @override
+  final Map<String, List<Folder>> packageMap;
+
+  /**
    * The absolute workspace root path (the directory containing the `.dart_tool`
    * directory).
    */
@@ -165,22 +172,6 @@ class PackageBuildWorkspace extends Workspace {
    */
   final String projectPackageName;
 
-  final ContextBuilder _builder;
-
-  /**
-   * The map of package locations indexed by package name.
-   *
-   * This is a cached field.
-   */
-  Map<String, List<Folder>> _packageMap;
-
-  /**
-   * The package location strategy.
-   *
-   * This is a cached field.
-   */
-  Packages _packages;
-
   /**
    * The singular package in this workspace.
    *
@@ -189,18 +180,7 @@ class PackageBuildWorkspace extends Workspace {
   PackageBuildWorkspacePackage _theOnlyPackage;
 
   PackageBuildWorkspace._(
-      this.provider, this.root, this.projectPackageName, this._builder);
-
-  @override
-  Map<String, List<Folder>> get packageMap {
-    _packageMap ??= _builder.convertPackagesToMap(packages);
-    return _packageMap;
-  }
-
-  Packages get packages {
-    _packages ??= _builder.createPackageMap(root);
-    return _packages;
-  }
+      this.provider, this.packageMap, this.root, this.projectPackageName);
 
   @override
   UriResolver get packageUriResolver => PackageBuildPackageUriResolver(
@@ -295,8 +275,8 @@ class PackageBuildWorkspace extends Workspace {
    *
    * Return `null` if the filePath is not in a package:build workspace.
    */
-  static PackageBuildWorkspace find(
-      ResourceProvider provider, String filePath, ContextBuilder builder) {
+  static PackageBuildWorkspace find(ResourceProvider provider,
+      Map<String, List<Folder>> packageMap, String filePath) {
     Folder folder = provider.getFolder(filePath);
     while (true) {
       Folder parent = folder.parent;
@@ -316,7 +296,7 @@ class PackageBuildWorkspace extends Workspace {
         try {
           final yaml = loadYaml(pubspec.readAsStringSync());
           return PackageBuildWorkspace._(
-              provider, folder.path, yaml['name'], builder);
+              provider, packageMap, folder.path, yaml['name']);
         } catch (_) {}
       }
 

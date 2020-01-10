@@ -34,7 +34,7 @@ abstract class SimpleWorkspace extends Workspace {
 
   @override
   Map<String, List<Folder>> get packageMap {
-    _packageMap ??= _builder.convertPackagesToMap(packages);
+    _packageMap ??= ContextBuilder.convertPackagesToMap(provider, packages);
     return _packageMap;
   }
 

@@ -231,11 +231,20 @@ linter:
   }
 
   void test_convertPackagesToMap_noPackages() {
-    expect(builder.convertPackagesToMap(Packages.noPackages), isEmpty);
+    expect(
+      ContextBuilder.convertPackagesToMap(
+        resourceProvider,
+        Packages.noPackages,
+      ),
+      isEmpty,
+    );
   }
 
   void test_convertPackagesToMap_null() {
-    expect(builder.convertPackagesToMap(null), isEmpty);
+    expect(
+      ContextBuilder.convertPackagesToMap(resourceProvider, null),
+      isEmpty,
+    );
   }
 
   void test_convertPackagesToMap_packages() {
@@ -247,7 +256,10 @@ linter:
     Uri barUri = resourceProvider.pathContext.toUri(barPath);
 
     MapPackages packages = MapPackages({fooName: fooUri, barName: barUri});
-    Map<String, List<Folder>> result = builder.convertPackagesToMap(packages);
+    Map<String, List<Folder>> result = ContextBuilder.convertPackagesToMap(
+      resourceProvider,
+      packages,
+    );
     expect(result, isNotNull);
     expect(result, hasLength(2));
     expect(result[fooName], hasLength(1));

@@ -142,7 +142,10 @@ class LintDriver {
       builder.builderOptions.defaultPackagesDirectoryPath =
           options.packageRootPath;
       Map<String, List<Folder>> packageMap =
-          builder.convertPackagesToMap(builder.createPackageMap(null));
+          ContextBuilder.convertPackagesToMap(
+        resourceProvider,
+        builder.createPackageMap(null),
+      );
       resolvers.add(PackageMapUriResolver(resourceProvider, packageMap));
     }
 
