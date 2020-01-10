@@ -4646,8 +4646,6 @@ class ForStatementImpl extends StatementImpl
     _body = _becomeParentOf(body);
   }
 
-  ForStatementImpl._();
-
   @override
   Statement get body => _body;
 
