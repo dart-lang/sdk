@@ -517,7 +517,6 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
           writeln();
         }
       } else if (returnType.isVoid) {
-        final isOperator = element.isOperator;
         if (invokeSuper) {
           writeln();
           write(prefix2);
