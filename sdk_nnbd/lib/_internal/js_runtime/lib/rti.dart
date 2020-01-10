@@ -17,9 +17,11 @@ import 'dart:_foreign_helper'
         JS_GET_FLAG,
         JS_GET_NAME,
         JS_STRING_CONCAT,
-        RAW_DART_FUNCTION_REF;
+        RAW_DART_FUNCTION_REF,
+        TYPE_REF;
 
-import 'dart:_interceptors' show JSArray, JSUnmodifiableArray;
+import 'dart:_interceptors'
+    show JavaScriptFunction, JSArray, JSUnmodifiableArray;
 
 import 'dart:_js_names' show unmangleGlobalNameIfPreservedAnyways;
 
@@ -101,15 +103,44 @@ class Rti {
   // Precomputed derived types. These fields are used to hold derived types that
   // are computed eagerly.
   // TODO(sra): Implement precomputed type optimizations.
+
+  /// If kind == kindInterface, holds the first type argument (if any).
+  /// If kind == kindFutureOr, holds Future<T> where T is the base type.
+  /// - This case is lazily initialized during subtype checks.
+  /// If kind == kindStar, holds T? where T is the base type.
+  /// - This case is lazily initialized during subtype checks.
   @pragma('dart2js:noElision')
   dynamic _precomputed1;
+
+  static Object _getPrecomputed1(Rti rti) => rti._precomputed1;
+
+  static void _setPrecomputed1(Rti rti, precomputed) {
+    rti._precomputed1 = precomputed;
+  }
+
+  static Rti _getQuestionFromStar(universe, Rti rti) {
+    assert(_getKind(rti) == kindStar);
+    Rti question = _castToRtiOrNull(_getPrecomputed1(rti));
+    if (question == null) {
+      question = _Universe._lookupQuestionRti(universe, _getStarArgument(rti));
+      Rti._setPrecomputed1(rti, question);
+    }
+    return question;
+  }
+
+  static Rti _getFutureFromFutureOr(universe, Rti rti) {
+    assert(_getKind(rti) == kindFutureOr);
+    Rti future = _castToRtiOrNull(_getPrecomputed1(rti));
+    if (future == null) {
+      future = _Universe._lookupFutureRti(universe, _getFutureOrArgument(rti));
+      Rti._setPrecomputed1(rti, future);
+    }
+    return future;
+  }
+
   dynamic _precomputed2;
   dynamic _precomputed3;
   dynamic _precomputed4;
-
-  static void _setPrecomputed1(Rti rti, Rti precomputed) {
-    rti._precomputed1 = precomputed;
-  }
 
   // Data value used by some tests.
   @pragma('dart2js:noElision')
@@ -1434,11 +1465,12 @@ class _Universe {
   }
 
   static Rti evalTypeVariable(Object universe, Rti environment, String name) {
-    if (Rti._getKind(environment) == Rti.kindBinding) {
+    int kind = Rti._getKind(environment);
+    if (kind == Rti.kindBinding) {
       environment = Rti._getBindingBase(environment);
     }
 
-    assert(Rti._getKind(environment) == Rti.kindInterface);
+    assert(kind == Rti.kindInterface);
     String interfaceName = Rti._getInterfaceName(environment);
     Object rule = _Universe.findRule(universe, interfaceName);
     assert(rule != null);
@@ -1646,11 +1678,16 @@ class _Universe {
     Rti._setRest(rti, typeArguments);
     int length = _Utils.arrayLength(typeArguments);
     if (length > 0) {
-      Rti._setPrecomputed1(rti, _castToRti(_Utils.arrayAt(typeArguments, 0)));
+      Rti._setPrecomputed1(rti, _Utils.arrayAt(typeArguments, 0));
     }
     Rti._setCanonicalRecipe(rti, key);
     return _finishRti(universe, rti);
   }
+
+  static Rti _lookupFutureRti(Object universe, Rti base) => _lookupInterfaceRti(
+      universe,
+      JS_GET_NAME(JsGetName.FUTURE_CLASS_TYPE_NAME),
+      JS('', '[#]', base));
 
   static String _canonicalRecipeOfBinding(Rti base, Object arguments) {
     String s = Rti._getCanonicalRecipe(base);
@@ -2278,104 +2315,162 @@ bool isSubtype(universe, Rti s, Rti t) {
 }
 
 bool _isSubtype(universe, Rti s, sEnv, Rti t, tEnv) {
-  // TODO(fishythefish): Update for NNBD. See
+  // Based on
   // https://github.com/dart-lang/language/blob/master/resources/type-system/subtyping.md#rules
+  // and https://github.com/dart-lang/language/pull/388.
+  // In particular, the bulk of the structure is derived from the former
+  // resource, with a few adaptations taken from the latter.
+  // - We freely skip subcases which would have already been handled by a
+  // previous case.
+  // - Some rules are reordered in conjunction with the previous point to reduce
+  // the amount of casework.
+  // - Left Type Variable Bound in particular is split into two pieces: an
+  // optimistic check performed early in the algorithm to reduce the number of
+  // backtracking cases when a union appears on the right, and a pessimistic
+  // check performed at the usual place in order to completely eliminate the
+  // case.
+  // - Function type rules are applied before interface type rules.
 
-  // Subtyping is reflexive.
+  // Reflexivity:
   if (_Utils.isIdentical(s, t)) return true;
 
-  // Erased types are treated like `dynamic` and handled by the top type case.
-
+  // Right Top:
   if (isTopType(t)) return true;
 
-  if (isJsInteropType(s)) return true;
+  int sKind = Rti._getKind(s);
+  if (sKind == Rti.kindAny) return true;
 
-  if (isTopType(s)) {
-    if (isGenericFunctionTypeParameter(t)) return false;
-    if (isFutureOrType(t)) {
-      // [t] is FutureOr<T>. Check [s] <: T.
-      Rti tTypeArgument = Rti._getFutureOrArgument(t);
-      return _isSubtype(universe, s, sEnv, tTypeArgument, tEnv);
-    }
-    return false;
-  }
+  // Left Top:
+  if (isTopType(s)) return false;
 
+  // Left Bottom:
+  // TODO(fishythefish): Update for NNBD - check for `Never` instead of `Null`.
   if (isNullType(s)) return true;
 
-  if (isFutureOrType(t)) {
-    // [t] is FutureOr<T>.
-    Rti tTypeArgument = Rti._getFutureOrArgument(t);
-    if (isFutureOrType(s)) {
-      // [s] is FutureOr<S>. Check S <: T.
-      Rti sTypeArgument = Rti._getFutureOrArgument(s);
-      return _isSubtype(universe, sTypeArgument, sEnv, tTypeArgument, tEnv);
-    } else if (_isSubtype(universe, s, sEnv, tTypeArgument, tEnv)) {
-      // `true` because [s] <: T.
-      return true;
-    } else {
-      // Check [s] <: Future<T>.
-      String futureClass = JS_GET_NAME(JsGetName.FUTURE_CLASS_TYPE_NAME);
-      var argumentsArray = JS('', '[#]', tTypeArgument);
-      return _isSubtypeOfInterface(
-          universe, s, sEnv, futureClass, argumentsArray, tEnv);
-    }
-  }
-
-  // If [s] and [t] are both generic function type parameters, they must be
-  // equal (as de Bruijn indices). This case is taken care of by the reflexivity
-  // check above, so it suffices to check that B <: [t] where B is the bound of
-  // [s].
-  if (isGenericFunctionTypeParameter(s)) {
+  // Left Type Variable Bound 1:
+  bool leftTypeVariable = sKind == Rti.kindGenericFunctionParameter;
+  if (leftTypeVariable) {
     int index = Rti._getGenericFunctionParameterIndex(s);
     Rti bound = _castToRti(_Utils.arrayAt(sEnv, index));
-    return _isSubtype(universe, bound, sEnv, t, tEnv);
+    if (_isSubtype(universe, bound, sEnv, t, tEnv)) return true;
   }
 
-  if (isGenericFunctionTypeParameter(t)) return false;
+  int tKind = Rti._getKind(t);
 
+  // Left Null:
+  // Note: Interchanging the Left Null and Right Object rules allows us to
+  // reduce casework.
+  if (isNullType(s)) {
+    if (tKind == Rti.kindFutureOr) {
+      return _isSubtype(universe, s, sEnv, Rti._getFutureOrArgument(t), tEnv);
+    }
+    return isNullType(t) || tKind == Rti.kindQuestion || tKind == Rti.kindStar;
+  }
+
+  // Right Object:
+  if (isObjectType(t)) {
+    if (sKind == Rti.kindFutureOr) {
+      return _isSubtype(universe, Rti._getFutureOrArgument(s), sEnv, t, tEnv);
+    }
+    if (sKind == Rti.kindStar) {
+      return _isSubtype(universe, Rti._getStarArgument(s), sEnv, t, tEnv);
+    }
+    return sKind != Rti.kindQuestion;
+  }
+
+  // Left Legacy:
+  if (sKind == Rti.kindStar) {
+    return _isSubtype(universe, Rti._getStarArgument(s), sEnv, t, tEnv);
+  }
+
+  // Right Legacy:
+  if (tKind == Rti.kindStar) {
+    return _isSubtype(
+        universe, s, sEnv, Rti._getQuestionFromStar(universe, t), tEnv);
+  }
+
+  // Left FutureOr:
+  if (sKind == Rti.kindFutureOr) {
+    if (!_isSubtype(universe, Rti._getFutureOrArgument(s), sEnv, t, tEnv)) {
+      return false;
+    }
+    return _isSubtype(
+        universe, Rti._getFutureFromFutureOr(universe, s), sEnv, t, tEnv);
+  }
+
+  // Left Nullable:
+  if (sKind == Rti.kindQuestion) {
+    return _isSubtype(universe, TYPE_REF<Null>(), sEnv, t, tEnv) &&
+        _isSubtype(universe, Rti._getQuestionArgument(s), sEnv, t, tEnv);
+  }
+
+  // Type Variable Reflexivity 1 is subsumed by Reflexivity and therefore
+  // elided.
+  // Type Variable Reflexivity 2 does not apply at runtime.
+  // Right Promoted Variable does not apply at runtime.
+
+  // Right FutureOr:
+  if (tKind == Rti.kindFutureOr) {
+    if (_isSubtype(universe, s, sEnv, Rti._getFutureOrArgument(t), tEnv)) {
+      return true;
+    }
+    return _isSubtype(
+        universe, s, sEnv, Rti._getFutureFromFutureOr(universe, t), tEnv);
+  }
+
+  // Right Nullable:
+  if (tKind == Rti.kindQuestion) {
+    return _isSubtype(universe, s, sEnv, TYPE_REF<Null>(), tEnv) ||
+        _isSubtype(universe, s, sEnv, Rti._getQuestionArgument(t), tEnv);
+  }
+
+  // Left Promoted Variable does not apply at runtime.
+
+  // Left Type Variable Bound 2:
+  if (leftTypeVariable) return false;
+
+  // Function Type/Function:
+  if ((sKind == Rti.kindFunction || sKind == Rti.kindGenericFunction) &&
+      isFunctionType(t)) {
+    return true;
+  }
+
+  // Positional Function Types + Named Function Types:
   // TODO(fishythefish): Disallow JavaScriptFunction as a subtype of function
   // types using features inaccessible from JavaScript.
-
-  if (isGenericFunctionKind(t)) {
+  if (tKind == Rti.kindGenericFunction) {
     if (isJsFunctionType(s)) return true;
-    return _isGenericFunctionSubtype(universe, s, sEnv, t, tEnv);
+    if (sKind != Rti.kindGenericFunction) return false;
+
+    var sBounds = Rti._getGenericFunctionBounds(s);
+    var tBounds = Rti._getGenericFunctionBounds(t);
+    if (!typesEqual(sBounds, tBounds)) return false;
+
+    sEnv = sEnv == null ? sBounds : _Utils.arrayConcat(sBounds, sEnv);
+    tEnv = tEnv == null ? tBounds : _Utils.arrayConcat(tBounds, tEnv);
+
+    return _isFunctionSubtype(universe, Rti._getGenericFunctionBase(s), sEnv,
+        Rti._getGenericFunctionBase(t), tEnv);
   }
-
-  if (isFunctionKind(t)) {
+  if (tKind == Rti.kindFunction) {
     if (isJsFunctionType(s)) return true;
+    if (sKind != Rti.kindFunction) return false;
     return _isFunctionSubtype(universe, s, sEnv, t, tEnv);
   }
 
-  if (isFunctionKind(s) || isGenericFunctionKind(s)) {
-    return isFunctionType(t);
+  // Interface Compositionality + Super-Interface:
+  if (sKind == Rti.kindInterface) {
+    if (tKind != Rti.kindInterface) return false;
+    return _isInterfaceSubtype(universe, s, sEnv, t, tEnv);
   }
 
-  assert(Rti._getKind(t) == Rti.kindInterface);
-  String tName = Rti._getInterfaceName(t);
-  var tArgs = Rti._getInterfaceTypeArguments(t);
-
-  return _isSubtypeOfInterface(universe, s, sEnv, tName, tArgs, tEnv);
-}
-
-bool _isGenericFunctionSubtype(universe, Rti s, sEnv, Rti t, tEnv) {
-  assert(isGenericFunctionKind(t));
-  if (!isGenericFunctionKind(s)) return false;
-
-  var sBounds = Rti._getGenericFunctionBounds(s);
-  var tBounds = Rti._getGenericFunctionBounds(t);
-  if (!typesEqual(sBounds, tBounds)) return false;
-
-  sEnv = sEnv == null ? sBounds : _Utils.arrayConcat(sBounds, sEnv);
-  tEnv = tEnv == null ? tBounds : _Utils.arrayConcat(tBounds, tEnv);
-
-  return _isFunctionSubtype(universe, Rti._getGenericFunctionBase(s), sEnv,
-      Rti._getGenericFunctionBase(t), tEnv);
+  return false;
 }
 
 // TODO(fishythefish): Support required named parameters.
 bool _isFunctionSubtype(universe, Rti s, sEnv, Rti t, tEnv) {
-  assert(isFunctionKind(t));
-  if (!isFunctionKind(s)) return false;
+  assert(Rti._getKind(s) == Rti.kindFunction);
+  assert(Rti._getKind(t) == Rti.kindFunction);
 
   Rti sReturnType = Rti._getReturnType(s);
   Rti tReturnType = Rti._getReturnType(t);
@@ -2445,13 +2540,14 @@ bool _isFunctionSubtype(universe, Rti s, sEnv, Rti t, tEnv) {
   return true;
 }
 
-bool _isSubtypeOfInterface(
-    universe, Rti s, sEnv, String tName, Object tArgs, tEnv) {
-  assert(Rti._getKind(s) == Rti.kindInterface);
+bool _isInterfaceSubtype(universe, Rti s, sEnv, Rti t, tEnv) {
   String sName = Rti._getInterfaceName(s);
+  String tName = Rti._getInterfaceName(t);
 
+  // Interface Compositionality:
   if (sName == tName) {
     var sArgs = Rti._getInterfaceTypeArguments(s);
+    var tArgs = Rti._getInterfaceTypeArguments(t);
     int length = _Utils.arrayLength(sArgs);
     assert(length == _Utils.arrayLength(tArgs));
 
@@ -2493,11 +2589,22 @@ bool _isSubtypeOfInterface(
     return true;
   }
 
+  // The Super-Interface rule says that if [s] has superinterfaces C0,...,Cn,
+  // then we need to check if for some i, Ci <: [t]. However, this requires us
+  // to iterate over the superinterfaces. Instead, we can perform case
+  // analysis on [t]. By this point, [t] can only be Never, a type variable,
+  // or an interface type. (Bindings do not participate in subtype checks and
+  // all other cases have been eliminated.) If [t] is not an interface, then
+  // [s] </: [t]. Therefore, the only remaining case is that [t] is an
+  // interface, so rather than iterating over the Ci, we can instead look up
+  // [t] in our ruleset.
+  // TODO(fishythefish): Handle variance correctly.
   Object rule = _Universe.findRule(universe, sName);
   if (rule == null) return false;
   var supertypeArgs = TypeRule.lookupSupertype(rule, tName);
   if (supertypeArgs == null) return false;
   int length = _Utils.arrayLength(supertypeArgs);
+  var tArgs = Rti._getInterfaceTypeArguments(t);
   assert(length == _Utils.arrayLength(tArgs));
   for (int i = 0; i < length; i++) {
     String recipe = _Utils.asString(_Utils.arrayAt(supertypeArgs, i));
@@ -2505,7 +2612,6 @@ bool _isSubtypeOfInterface(
     Rti tArg = _castToRti(_Utils.arrayAt(tArgs, i));
     if (!_isSubtype(universe, supertypeArg, sEnv, tArg, tEnv)) return false;
   }
-
   return true;
 }
 
@@ -2591,49 +2697,28 @@ bool functionParametersEqual(
     namedTypesEqual(_FunctionParameters._getOptionalNamed(sParameters),
         _FunctionParameters._getOptionalNamed(tParameters));
 
-bool isTopType(Rti t) =>
-    isErasedType(t) ||
-    isDynamicType(t) ||
-    isVoidType(t) ||
-    isObjectType(t) ||
-    isJsInteropType(t);
+// TODO(fishythefish): Update for NNBD - check for `Object?` instead of
+// `Object`.
+bool isTopType(Rti t) {
+  if (isObjectType(t)) return true;
+  int kind = Rti._getKind(t);
+  return kind == Rti.kindDynamic ||
+      kind == Rti.kindVoid ||
+      kind == Rti.kindAny ||
+      kind == Rti.kindErased ||
+      kind == Rti.kindFutureOr && isTopType(Rti._getFutureOrArgument(t));
+}
 
-bool isErasedType(Rti t) => Rti._getKind(t) == Rti.kindErased;
-bool isDynamicType(Rti t) => Rti._getKind(t) == Rti.kindDynamic;
-bool isVoidType(Rti t) => Rti._getKind(t) == Rti.kindVoid;
-bool isJsInteropType(Rti t) => Rti._getKind(t) == Rti.kindAny;
-
-bool isFutureOrType(Rti t) => Rti._getKind(t) == Rti.kindFutureOr;
-
-bool isFunctionKind(Rti t) => Rti._getKind(t) == Rti.kindFunction;
-bool isGenericFunctionKind(Rti t) => Rti._getKind(t) == Rti.kindGenericFunction;
-
-bool isGenericFunctionTypeParameter(Rti t) =>
-    Rti._getKind(t) == Rti.kindGenericFunctionParameter;
-
-bool isObjectType(Rti t) =>
-    Rti._getKind(t) == Rti.kindInterface &&
-    Rti._getInterfaceName(t) == JS_GET_NAME(JsGetName.OBJECT_CLASS_TYPE_NAME);
-
-// TODO(fishythefish): Which representation should we use for NNBD?
-// Do we also need to check for `Never?`, etc.?
-bool isNullType(Rti t) =>
-    Rti._getKind(t) == Rti.kindInterface &&
-    Rti._getInterfaceName(t) == JS_GET_NAME(JsGetName.NULL_CLASS_TYPE_NAME);
-
-bool isFunctionType(Rti t) =>
-    Rti._getKind(t) == Rti.kindInterface &&
-    Rti._getInterfaceName(t) == JS_GET_NAME(JsGetName.FUNCTION_CLASS_TYPE_NAME);
-
+bool isObjectType(Rti t) => _Utils.isIdentical(t, TYPE_REF<Object>());
+bool isNullType(Rti t) => _Utils.isIdentical(t, TYPE_REF<Null>());
+bool isFunctionType(Rti t) => _Utils.isIdentical(t, TYPE_REF<Function>());
 bool isJsFunctionType(Rti t) =>
-    Rti._getKind(t) == Rti.kindInterface &&
-    Rti._getInterfaceName(t) ==
-        JS_GET_NAME(JsGetName.JS_FUNCTION_CLASS_TYPE_NAME);
+    _Utils.isIdentical(t, TYPE_REF<JavaScriptFunction>());
 
 /// Unchecked cast to Rti.
 Rti _castToRti(s) => JS('Rti', '#', s);
+Rti /*?*/ _castToRtiOrNull(s) => JS('Rti|Null', '#', s);
 
-///
 class _Utils {
   static bool asBool(Object o) => JS('bool', '#', o);
   static double asDouble(Object o) => JS('double', '#', o);
@@ -2729,6 +2814,11 @@ bool testingIsSubtype(universe, rti1, rti2) {
 
 Object testingUniverseEval(universe, String recipe) {
   return _Universe.eval(universe, recipe);
+}
+
+void testingUniverseEvalOverride(universe, String recipe, Rti rti) {
+  var cache = _Universe.evalCache(universe);
+  _Universe._cacheSet(cache, recipe, rti);
 }
 
 Object testingEnvironmentEval(universe, environment, String recipe) {
