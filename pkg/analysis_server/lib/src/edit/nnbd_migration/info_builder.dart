@@ -169,6 +169,11 @@ class InfoBuilder {
       nullableValue = "a nullable value";
     }
 
+    if (origin.kind == EdgeOriginKind.listLengthConstructor) {
+      return "List value type must be nullable because a length is specified,"
+          " and the list items are initialized as null.";
+    }
+
     CompilationUnit unit = node.thisOrAncestorOfType<CompilationUnit>();
     int lineNumber = unit.lineInfo.getLocation(node.offset).lineNumber;
 

@@ -143,6 +143,7 @@ enum EdgeOriginKind {
   isCheckComponentType,
   isCheckMainType,
   literal,
+  listLengthConstructor,
   namedParameterNotSupplied,
   nonNullableBoolType,
   nonNullableObjectSuperclass,

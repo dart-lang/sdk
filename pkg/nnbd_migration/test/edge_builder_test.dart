@@ -3401,6 +3401,30 @@ library foo;
     // Passes if no exceptions are thrown.
   }
 
+  Future<void> test_list_constructor_length() async {
+    await analyze('''
+void main() {
+  List<int/*1*/> list = List<int/*2*/>(10);
+}
+''');
+    final variableParam = decoratedTypeAnnotation('int/*1*/');
+    final filledParam = decoratedTypeAnnotation('int/*2*/');
+
+    assertEdge(filledParam.node, variableParam.node, hard: false);
+    assertEdge(always, filledParam.node, hard: false);
+  }
+
+  Future<void> test_list_constructor_length_implicitParam() async {
+    await analyze('''
+void main() {
+  List<int/*1*/> list = List(10);
+}
+''');
+    final variableParam = decoratedTypeAnnotation('int/*1*/');
+
+    assertEdge(inSet(alwaysPlus), variableParam.node, hard: false);
+  }
+
   Future<void> test_listLiteral_noTypeArgument_noNullableElements() async {
     await analyze('''
 List<String> f() {
