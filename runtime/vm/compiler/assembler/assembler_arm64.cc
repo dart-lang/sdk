@@ -1894,6 +1894,48 @@ void Assembler::PopNativeCalleeSavedRegisters() {
   }
 }
 
+bool Assembler::CanGenerateXCbzTbz(Register rn, Condition cond) {
+  if (rn == CSP) {
+    return false;
+  }
+  switch (cond) {
+    case EQ:  // equal
+    case NE:  // not equal
+    case MI:  // minus/negative
+    case LT:  // signed less than
+    case PL:  // plus/positive or zero
+    case GE:  // signed greater than or equal
+      return true;
+    default:
+      return false;
+  }
+}
+
+void Assembler::GenerateXCbzTbz(Register rn, Condition cond, Label* label) {
+  constexpr int32_t bit_no = 63;
+  constexpr OperandSize sz = kDoubleWord;
+  ASSERT(rn != CSP);
+  switch (cond) {
+    case EQ:  // equal
+      cbz(label, rn, sz);
+      return;
+    case NE:  // not equal
+      cbnz(label, rn, sz);
+      return;
+    case MI:  // minus/negative
+    case LT:  // signed less than
+      tbnz(label, rn, bit_no);
+      return;
+    case PL:  // plus/positive or zero
+    case GE:  // signed greater than or equal
+      tbz(label, rn, bit_no);
+      return;
+    default:
+      // Only conditions above allow single instruction emission.
+      UNREACHABLE();
+  }
+}
+
 }  // namespace compiler
 
 }  // namespace dart
