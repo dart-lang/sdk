@@ -961,7 +961,7 @@ class _HttpResponse extends _HttpOutboundMessage<HttpResponse>
   }
 
   String _findReasonPhrase(int statusCode) {
-    var resonPhrase = _reasonPhrase;
+    var reasonPhrase = _reasonPhrase;
     if (reasonPhrase != null) {
       return reasonPhrase;
     }

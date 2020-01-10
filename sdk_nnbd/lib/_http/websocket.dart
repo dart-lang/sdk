@@ -445,7 +445,7 @@ abstract class WebSocket
   /**
    * Closes the WebSocket connection. Set the optional [code] and [reason]
    * arguments to send close information to the remote peer. If they are
-   * omitted, the peer will see [WebSocketStatus.NO_STATUS_RECEIVED] code
+   * omitted, the peer will see [WebSocketStatus.noStatusReceived] code
    * with no reason.
    */
   Future close([int? code, String? reason]);

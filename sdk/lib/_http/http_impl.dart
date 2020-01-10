@@ -2628,7 +2628,6 @@ class _HttpConnection extends LinkedListEntry<_HttpConnection>
   bool get _isActive => _state == _ACTIVE;
   bool get _isIdle => _state == _IDLE;
   bool get _isClosing => _state == _CLOSING;
-  bool get _isDetached => _state == _DETACHED;
 
   String get _serviceTypePath => 'io/http/serverconnections';
   String get _serviceTypeName => 'HttpServerConnection';
@@ -2970,7 +2969,7 @@ class _ProxyConfiguration {
           int port;
           try {
             port = int.parse(portString);
-          } on FormatException catch (e) {
+          } on FormatException {
             throw new HttpException(
                 "Invalid proxy configuration $configuration, "
                 "invalid port '$portString'");
@@ -3270,7 +3269,6 @@ class _HttpClientDigestCredentials extends _HttpClientCredentials
     String qop;
     String cnonce;
     String nc;
-    var x;
     hasher = new _MD5()..add(credentials.ha1.codeUnits)..add([_CharCode.COLON]);
     if (credentials.qop == "auth") {
       qop = credentials.qop;

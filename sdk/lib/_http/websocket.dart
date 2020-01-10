@@ -145,8 +145,7 @@ class CompressionOptions {
         throw new ArgumentError("Illegal 0 padding on value.");
       } else {
         mwb = serverMaxWindowBits == null
-            ? int.parse(part,
-                onError: (source) => _WebSocketImpl.DEFAULT_WINDOW_BITS)
+            ? int.tryParse(part) ?? _WebSocketImpl.DEFAULT_WINDOW_BITS
             : serverMaxWindowBits;
         info.headerValue = "; server_max_window_bits=${mwb}";
         info.maxWindowBits = mwb;
@@ -335,7 +334,7 @@ abstract class WebSocket
    * Set and get the interval for sending ping signals. If a ping message is not
    * answered by a pong message from the peer, the `WebSocket` is assumed
    * disconnected and the connection is closed with a
-   * [WebSocketStatus.GOING_AWAY] close code. When a ping signal is sent, the
+   * [WebSocketStatus.goingAway] close code. When a ping signal is sent, the
    * pong message must be received within [pingInterval].
    *
    * There are never two outstanding pings at any given time, and the next ping
@@ -451,7 +450,7 @@ abstract class WebSocket
   /**
    * Closes the WebSocket connection. Set the optional [code] and [reason]
    * arguments to send close information to the remote peer. If they are
-   * omitted, the peer will see [WebSocketStatus.NO_STATUS_RECEIVED] code
+   * omitted, the peer will see [WebSocketStatus.noStatusReceived] code
    * with no reason.
    */
   Future close([int code, String reason]);

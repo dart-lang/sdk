@@ -347,14 +347,14 @@ class _WebSocketProtocolTransformer extends StreamTransformerBase<List<int>,
   void _controlFrameEnd() {
     switch (_opcode) {
       case _WebSocketOpcode.CLOSE:
-        closeCode = WebSocketStatus.NO_STATUS_RECEIVED;
+        closeCode = WebSocketStatus.noStatusReceived;
         var payload = _payload.takeBytes();
         if (payload.length > 0) {
           if (payload.length == 1) {
             throw new WebSocketException("Protocol error");
           }
           closeCode = payload[0] << 8 | payload[1];
-          if (closeCode == WebSocketStatus.NO_STATUS_RECEIVED) {
+          if (closeCode == WebSocketStatus.noStatusReceived) {
             throw new WebSocketException("Protocol error");
           }
           if (payload.length > 2) {
@@ -1138,9 +1138,9 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
     }, onError: (Object error, StackTrace? stackTrace) {
       _closeTimer?.cancel();
       if (error is FormatException) {
-        _close(WebSocketStatus.INVALID_FRAME_PAYLOAD_DATA);
+        _close(WebSocketStatus.invalidFramePayloadData);
       } else {
-        _close(WebSocketStatus.PROTOCOL_ERROR);
+        _close(WebSocketStatus.protocolError);
       }
       // An error happened, set the close code set above.
       _closeCode = _outCloseCode;
@@ -1195,7 +1195,7 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
       _consumer.add(new _WebSocketPing());
       _pingTimer = new Timer(interval, () {
         // No pong received.
-        _close(WebSocketStatus.GOING_AWAY);
+        _close(WebSocketStatus.goingAway);
       });
     });
   }
@@ -1300,12 +1300,12 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
 
   static bool _isReservedStatusCode(int? code) {
     return code != null &&
-        (code < WebSocketStatus.NORMAL_CLOSURE ||
-            code == WebSocketStatus.RESERVED_1004 ||
-            code == WebSocketStatus.NO_STATUS_RECEIVED ||
-            code == WebSocketStatus.ABNORMAL_CLOSURE ||
-            (code > WebSocketStatus.INTERNAL_SERVER_ERROR &&
-                code < WebSocketStatus.RESERVED_1015) ||
-            (code >= WebSocketStatus.RESERVED_1015 && code < 3000));
+        (code < WebSocketStatus.normalClosure ||
+            code == WebSocketStatus.reserved1004 ||
+            code == WebSocketStatus.noStatusReceived ||
+            code == WebSocketStatus.abnormalClosure ||
+            (code > WebSocketStatus.internalServerError &&
+                code < WebSocketStatus.reserved1015) ||
+            (code >= WebSocketStatus.reserved1015 && code < 3000));
   }
 }
