@@ -1455,6 +1455,14 @@
           "arguments": ["--nnbd", "dartdevc_test"]
         },
         {
+          "name": "check dart nnbd sdk for static errors",
+          "script": "out/ReleaseX64NNBD/dart-sdk/bin/dart",
+          "arguments": [
+            "--enable-experiment=non-nullable",
+            "pkg/dev_compiler/tool/check_nnbd_sdk.dart"
+          ]
+        },
+        {
           "name": "ddc nnbd weak tests",
           "arguments": [
             "-ndartdevk-weak-linux-release-chrome",

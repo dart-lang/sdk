@@ -15,7 +15,7 @@ import 'patch_sdk.dart' as patch;
 
 void main(List<String> argv) {
   var args = _parser.parse(argv);
-  if (args['help'] as bool || argv.isEmpty) {
+  if (args['help'] as bool) {
     print('Apply patch file to the SDK and report analysis errors from the '
         'resulting libraries.\n\n'
         'Usage: ${Platform.script.pathSegments.last} [options...]\n\n'
@@ -52,9 +52,14 @@ void main(List<String> argv) {
   var dart = Uri.base.resolve(Platform.resolvedExecutable);
   var analyzerSnapshot = Uri.base
       .resolve(Platform.resolvedExecutable)
-      .resolve('snapshots/dartanalyzer.dart.snapshot');
+      .resolve('snapshots/dartanalyzer.dart.snapshot')
+      .toFilePath();
   var result = Process.runSync(dart.toFilePath(), [
-    analyzerSnapshot.toFilePath(),
+    // The NNBD dart binaries / snapshots require this flag to be enabled at
+    // VM level.
+    if (analyzerSnapshot.contains('NNBD'))
+      '--enable-experiment=non-nullable',
+    analyzerSnapshot,
     '--dart-sdk=${sdkDir}',
     '--format',
     'machine',
@@ -66,11 +71,42 @@ void main(List<String> argv) {
   ]);
 
   stdout.write(result.stdout);
-  String errors = result.stderr as String;
-  var count = errors.isEmpty ? 0 : errors.trim().split('\n').length;
-  print('$count analyzer errors. Errors emitted to ${baseUri.path}errors.txt');
-  File.fromUri(baseUri.resolve('errors.txt')).writeAsStringSync(errors);
-  exit(count == 0 ? 0 : 1);
+  var errors = result.stderr as String;
+
+  // Trim temporary directory paths and sort errors.
+  errors = errors.replaceAll(sdkDir, '');
+  var errorList = errors.isEmpty ? <String>[] : errors.trim().split('\n');
+  var count = errorList.length;
+  print('$count analyzer errors.');
+  errorList.sort();
+  errors = errorList.join('\n') + '\n';
+  var errorFile = baseUri.resolve('errors.txt');
+  print('Errors emitted to ${errorFile.path}');
+  File.fromUri(errorFile).writeAsStringSync(errors, flush: true);
+
+  // Check against golden file.
+  var goldenFile = Platform.script.resolve('nnbd_sdk_error_golden.txt');
+  var golden = File.fromUri(goldenFile).readAsStringSync();
+  if (errors != golden) {
+    if (args['update-golden'] as bool) {
+      // Update the golden file.
+      File.fromUri(goldenFile).writeAsStringSync(errors, flush: true);
+      print('Golden file updated.');
+      exit(0);
+    } else {
+      // Fail.
+      print('Golden file does not match.');
+      var diff = Process.runSync('diff', [goldenFile.path, errorFile.path]);
+      print(diff.stdout);
+      print('''
+
+To update the golden file, run:
+> <path-to-newly-built-dart-sdk>/bin/dart pkg/dev_compiler/tool/check_nnbd_sdk.dart --update-golden
+''');
+      exit(1);
+    }
+  }
+  exit(0);
 }
 
 final _parser = ArgParser()
@@ -85,4 +121,5 @@ final _parser = ArgParser()
           'and it is used to pick which patch files will be applied.',
       allowed: ['dartdevc', 'dart2js', 'dart2js_server', 'vm', 'flutter'],
       defaultsTo: 'dartdevc')
+  ..addFlag('update-golden', help: 'Update the golden file.', defaultsTo: false)
   ..addFlag('help', abbr: 'h', help: 'Display this message.');
