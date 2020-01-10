@@ -130,6 +130,7 @@ List<Annotation> _computeAnnotations<T>(
     }
 
     return new Annotation(
+        annotation?.index,
         annotation?.lineNo ?? -1,
         annotation?.columnNo ?? -1,
         offset,
@@ -201,6 +202,7 @@ List<Annotation> _computeAnnotations<T>(
         }
         Annotation firstAnnotation = annotations.values.first;
         result.add(new Annotation(
+            firstAnnotation.index,
             firstAnnotation.lineNo,
             firstAnnotation.columnNo,
             firstAnnotation.offset,

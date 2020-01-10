@@ -31,10 +31,8 @@ some code/*a|b|c.test*/some more code
 some code/*test*/some more code
 ''');
   testString('/*a.test1*//*b.test2*//*c.test3*/');
-  testString('/*b.test2*//*a.test1*//*c.test3*/',
-      expectedResult: '/*a.test1*//*b.test2*//*c.test3*/');
-  testString('/*a.test1*//*c.test3*//*b.test2*/',
-      expectedResult: '/*a.test1*//*b.test2*//*c.test3*/');
+  testString('/*b.test2*//*a.test1*//*c.test3*/');
+  testString('/*a.test1*//*c.test3*//*b.test2*/');
 
   testString('some code',
       actualData: {

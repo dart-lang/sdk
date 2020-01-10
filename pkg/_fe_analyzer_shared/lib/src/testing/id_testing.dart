@@ -116,6 +116,7 @@ Annotation createAnnotationsDiff(Annotation expected, Annotation actual) {
   if (identical(expected, actual)) return null;
   if (expected != null && actual != null) {
     return new Annotation(
+        expected.index,
         expected.lineNo,
         expected.columnNo,
         expected.offset,
@@ -126,6 +127,7 @@ Annotation createAnnotationsDiff(Annotation expected, Annotation actual) {
         expected.suffix);
   } else if (expected != null) {
     return new Annotation(
+        expected.index,
         expected.lineNo,
         expected.columnNo,
         expected.offset,
@@ -136,6 +138,7 @@ Annotation createAnnotationsDiff(Annotation expected, Annotation actual) {
         expected.suffix);
   } else if (actual != null) {
     return new Annotation(
+        actual.index,
         actual.lineNo,
         actual.columnNo,
         actual.offset,

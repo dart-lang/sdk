@@ -12,6 +12,11 @@ final Pattern commentStart = new RegExp(r'/\*');
 final Pattern commentEnd = new RegExp(r'\*/\s*');
 
 class Annotation {
+  /// The index of the (corresponding) annotation in the annotated code test, or
+  /// `null` if the annotation doesn't correspond to an annotation in the
+  /// annotated code.
+  final int index;
+
   /// 1-based line number of the annotation.
   final int lineNo;
 
@@ -30,13 +35,13 @@ class Annotation {
   /// The annotation end text.
   final String suffix;
 
-  Annotation(this.lineNo, this.columnNo, this.offset, this.prefix, this.text,
-      this.suffix)
+  Annotation(this.index, this.lineNo, this.columnNo, this.offset, this.prefix,
+      this.text, this.suffix)
       : assert(offset != null);
 
   String toString() =>
-      'Annotation(lineNo=$lineNo,columnNo=$columnNo,offset=$offset,'
-      'prefix=$prefix,text=$text,suffix=$suffix)';
+      'Annotation(index=$index,lineNo=$lineNo,columnNo=$columnNo,'
+      'offset=$offset,prefix=$prefix,text=$text,suffix=$suffix)';
 }
 
 /// A source code text with annotated positions.
@@ -98,8 +103,8 @@ class AnnotatedCode {
               annotatedCode.substring(startMatch.start, startMatch.end);
           String text = annotatedCode.substring(startMatch.end, endMatch.start);
           String suffix = annotatedCode.substring(endMatch.start, endMatch.end);
-          annotations.add(
-              new Annotation(lineNo, columnNo, offset, prefix, text, suffix));
+          annotations.add(new Annotation(annotations.length, lineNo, columnNo,
+              offset, prefix, text, suffix));
           index = endMatch.end;
           continue;
         }
@@ -171,8 +176,8 @@ class AnnotatedCode {
       int lineNo, int columnNo, String prefix, String text, String suffix) {
     _ensureLineStarts();
     int offset = _lineStarts[lineNo - 1] + (columnNo - 1);
-    annotations
-        .add(new Annotation(lineNo, columnNo, offset, prefix, text, suffix));
+    annotations.add(new Annotation(
+        annotations.length, lineNo, columnNo, offset, prefix, text, suffix));
   }
 
   int get lineCount {
@@ -213,7 +218,22 @@ class AnnotatedCode {
   String toText() {
     StringBuffer sb = new StringBuffer();
     List<Annotation> list = annotations.toList()
-      ..sort((a, b) => a.offset.compareTo(b.offset));
+      ..sort((a, b) {
+        int result = a.offset.compareTo(b.offset);
+        if (result == 0) {
+          if (a.index != null && b.index != null) {
+            result = a.index.compareTo(b.index);
+          } else if (a.index != null) {
+            result = -1;
+          } else if (b.index != null) {
+            result = 1;
+          }
+        }
+        if (result == 0) {
+          result = annotations.indexOf(a).compareTo(annotations.indexOf(b));
+        }
+        return result;
+      });
     int offset = 0;
     for (Annotation annotation in list) {
       sb.write(sourceCode.substring(offset, annotation.offset));
@@ -258,6 +278,7 @@ Map<String, AnnotatedCode> splitByPrefixes(
       if (prefixSet.containsAll(markers)) {
         for (String part in markers) {
           Annotation subAnnotation = new Annotation(
+              annotation.index,
               annotation.lineNo,
               annotation.columnNo,
               annotation.offset,
