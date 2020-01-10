@@ -157,7 +157,8 @@ class _Visitor extends SimpleAstVisitor<void> {
       var checker = _FinalExpressionChecker(parameters);
       if (!_containsNullAwareInvocationInChain(node) &&
           checker.isFinalNode(node.target) &&
-          checker.isFinalElement(node.methodName.staticElement)) {
+          checker.isFinalElement(node.methodName.staticElement) &&
+          node.typeArguments == null) {
         rule.reportLint(nodeToLint);
       }
     }

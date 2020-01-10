@@ -147,6 +147,10 @@ void reportedFalsePositive() {
 
   r1(); // prints b
   r2(); // prints a
+
+  // a lambda must be used to specify generics
+  void genFun<T>() => null;
+  Function aGenFun = () => genFun<int>(); // OK
 }
 
 void reportedTruePositive () {
