@@ -144,7 +144,7 @@ class InvalidReferenceToThisTest_NNBD extends InvalidReferenceToThisTest {
   test_instanceVariableInitializer_inDeclaration_late() async {
     await assertNoErrorsInCode(r'''
 class A {
-  late f = this;
+  late var f = this;
 }
 ''');
   }
@@ -152,16 +152,16 @@ class A {
   test_mixinVariableInitializer_inDeclaration_late() async {
     await assertNoErrorsInCode(r'''
 mixin A {
-  late f = this;
+  late var f = this;
 }
 ''');
   }
 
   test_variableInitializer_late() async {
     await assertErrorsInCode('''
-late x = this;
+late var x = this;
 ''', [
-      error(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, 9, 4),
+      error(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, 13, 4),
     ]);
   }
 }

@@ -2416,7 +2416,7 @@ class Parser {
       }
     }
     if (typeInfo == noType) {
-      if (varFinalOrConst == null && lateToken == null) {
+      if (varFinalOrConst == null) {
         reportRecoverableError(name, codes.messageMissingConstFinalVarOrType);
       }
     } else {

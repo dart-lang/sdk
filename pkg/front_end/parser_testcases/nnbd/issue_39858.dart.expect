@@ -1,0 +1,103 @@
+Problems reported:
+
+parser/nnbd/issue_39858:2:8: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+  late x1;
+       ^^
+
+parser/nnbd/issue_39858:3:15: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+  static late x2;
+              ^^
+
+parser/nnbd/issue_39858:4:18: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+  covariant late x3;
+                 ^^
+
+parser/nnbd/issue_39858:5:8: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+  late x4 = 0;
+       ^^
+
+parser/nnbd/issue_39858:6:15: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+  static late x5 = 0;
+              ^^
+
+parser/nnbd/issue_39858:7:18: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+  covariant late x6 = 0;
+                 ^^
+
+beginCompilationUnit(class)
+  beginMetadataStar(class)
+  endMetadataStar(0)
+  beginClassOrNamedMixinApplicationPrelude(class)
+    handleIdentifier(X, classOrMixinDeclaration)
+    handleNoTypeVariables({)
+    beginClassDeclaration(class, null, X)
+      handleNoType(X)
+      handleClassExtends(null)
+      handleClassNoWithClause()
+      handleClassOrMixinImplements(null, 0)
+      handleClassHeader(class, class, null)
+      beginClassOrMixinBody(DeclarationKind.Class, {)
+        beginMetadataStar(late)
+        endMetadataStar(0)
+        beginMember()
+          handleRecoverableError(MissingConstFinalVarOrType, x1, x1)
+          handleNoType(late)
+          handleIdentifier(x1, fieldDeclaration)
+          handleNoFieldInitializer(;)
+        endClassFields(null, null, late, null, 1, late, ;)
+      endMember()
+      beginMetadataStar(static)
+      endMetadataStar(0)
+      beginMember()
+        handleRecoverableError(MissingConstFinalVarOrType, x2, x2)
+        handleNoType(late)
+        handleIdentifier(x2, fieldDeclaration)
+        handleNoFieldInitializer(;)
+      endClassFields(static, null, late, null, 1, static, ;)
+    endMember()
+    beginMetadataStar(covariant)
+    endMetadataStar(0)
+    beginMember()
+      handleRecoverableError(MissingConstFinalVarOrType, x3, x3)
+      handleNoType(late)
+      handleIdentifier(x3, fieldDeclaration)
+      handleNoFieldInitializer(;)
+    endClassFields(null, covariant, late, null, 1, covariant, ;)
+  endMember()
+  beginMetadataStar(late)
+  endMetadataStar(0)
+  beginMember()
+    handleRecoverableError(MissingConstFinalVarOrType, x4, x4)
+    handleNoType(late)
+    handleIdentifier(x4, fieldDeclaration)
+    beginFieldInitializer(=)
+      handleLiteralInt(0)
+    endFieldInitializer(=, ;)
+  endClassFields(null, null, late, null, 1, late, ;)
+endMember()
+beginMetadataStar(static)
+endMetadataStar(0)
+beginMember()
+  handleRecoverableError(MissingConstFinalVarOrType, x5, x5)
+  handleNoType(late)
+  handleIdentifier(x5, fieldDeclaration)
+  beginFieldInitializer(=)
+    handleLiteralInt(0)
+  endFieldInitializer(=, ;)
+endClassFields(static, null, late, null, 1, static, ;)
+endMember()
+beginMetadataStar(covariant)
+endMetadataStar(0)
+beginMember()
+handleRecoverableError(MissingConstFinalVarOrType, x6, x6)
+handleNoType(late)
+handleIdentifier(x6, fieldDeclaration)
+beginFieldInitializer(=)
+  handleLiteralInt(0)
+endFieldInitializer(=, ;)
+endClassFields(null, covariant, late, null, 1, covariant, ;)
+endMember()
+endClassOrMixinBody(DeclarationKind.Class, 6, {, })
+endClassDeclaration(class, })
+endTopLevelDeclaration()
+endCompilationUnit(1, )
