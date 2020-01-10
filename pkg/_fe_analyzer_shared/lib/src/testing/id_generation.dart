@@ -11,14 +11,19 @@ Map<Uri, List<Annotation>> computeAnnotationsPerUri<T>(
     Map<String, MemberAnnotations<IdValue>> expectedMaps,
     Uri mainUri,
     Map<String, Map<Uri, Map<Id, ActualData<T>>>> actualData,
-    DataInterpreter<T> dataInterpreter) {
+    DataInterpreter<T> dataInterpreter,
+    {Annotation Function(Annotation expected, Annotation actual) createDiff}) {
   Set<Uri> uriSet = {};
   Set<String> actualMarkers = actualData.keys.toSet();
   Map<Uri, Map<Id, Map<String, IdValue>>> idValuePerUri = {};
   Map<Uri, Map<Id, Map<String, ActualData<T>>>> actualDataPerUri = {};
 
   void addData(String marker, Uri uri, Map<Id, IdValue> data) {
-    assert(uri != null);
+    if (uri == null) {
+      // TODO(johnniwinther): Avoid `null` URIs.
+      assert(data.isEmpty, "Non-empty data without uri: $data");
+      return;
+    }
     uriSet.add(uri);
     Map<Id, Map<String, IdValue>> idValuePerId = idValuePerUri[uri] ??= {};
     data.forEach((Id id, IdValue value) {
@@ -37,7 +42,11 @@ Map<Uri, List<Annotation>> computeAnnotationsPerUri<T>(
   actualData
       .forEach((String marker, Map<Uri, Map<Id, ActualData<T>>> dataPerUri) {
     dataPerUri.forEach((Uri uri, Map<Id, ActualData<T>> dataMap) {
-      assert(uri != null);
+      if (uri == null) {
+        // TODO(johnniwinther): Avoid `null` URIs.
+        assert(dataMap.isEmpty, "Non-empty data for `null` uri: $dataMap");
+        return;
+      }
       uriSet.add(uri);
       dataMap.forEach((Id id, ActualData<T> data) {
         Map<Id, Map<String, ActualData<T>>> actualDataPerId =
@@ -54,9 +63,12 @@ Map<Uri, List<Annotation>> computeAnnotationsPerUri<T>(
     Map<Id, Map<String, IdValue>> idValuePerId = idValuePerUri[uri] ?? {};
     Map<Id, Map<String, ActualData<T>>> actualDataPerId =
         actualDataPerUri[uri] ?? {};
-    result[uri] = _computeAnnotations(annotatedCode[uri], expectedMaps.keys,
-        actualMarkers, idValuePerId, actualDataPerId, dataInterpreter,
-        sortMarkers: false);
+    AnnotatedCode code = annotatedCode[uri];
+    assert(
+        code != null, "No annotated code for ${uri} in ${annotatedCode.keys}");
+    result[uri] = _computeAnnotations(code, expectedMaps.keys, actualMarkers,
+        idValuePerId, actualDataPerId, dataInterpreter,
+        sortMarkers: false, createDiff: createDiff);
   }
   return result;
 }
@@ -70,7 +82,8 @@ List<Annotation> _computeAnnotations<T>(
     DataInterpreter<T> dataInterpreter,
     {String defaultPrefix: '/*',
     String defaultSuffix: '*/',
-    bool sortMarkers: true}) {
+    bool sortMarkers: true,
+    Annotation Function(Annotation expected, Annotation actual) createDiff}) {
   assert(annotatedCode != null);
 
   Annotation createAnnotationFromData(
@@ -136,26 +149,34 @@ List<Annotation> _computeAnnotations<T>(
     for (String marker in supportedMarkers) {
       IdValue idValue = idValuePerMarker[marker];
       ActualData<T> actualData = actualDataPerMarker[marker];
+      Annotation expectedAnnotation;
+      Annotation actualAnnotation;
       if (idValue != null && actualData != null) {
         if (dataInterpreter.isAsExpected(actualData.value, idValue.value) ==
             null) {
           // Use existing annotation.
-          newAnnotationsPerMarker[marker] = idValue.annotation;
+          expectedAnnotation = actualAnnotation = idValue.annotation;
         } else {
-          newAnnotationsPerMarker[marker] =
+          expectedAnnotation = idValue.annotation;
+          actualAnnotation =
               createAnnotationFromData(actualData, idValue.annotation);
         }
       } else if (idValue != null && !actualMarkers.contains(marker)) {
         // Use existing annotation if no actual data is provided for this
         // marker.
-        newAnnotationsPerMarker[marker] = idValue.annotation;
+        expectedAnnotation = actualAnnotation = idValue.annotation;
       } else if (actualData != null) {
         if (dataInterpreter.isAsExpected(actualData.value, null) != null) {
           // Insert annotation if the actual value is not equivalent to an
           // empty value.
-          newAnnotationsPerMarker[marker] =
-              createAnnotationFromData(actualData, null);
+          actualAnnotation = createAnnotationFromData(actualData, null);
         }
+      }
+      Annotation annotation = createDiff != null
+          ? createDiff(expectedAnnotation, actualAnnotation)
+          : actualAnnotation;
+      if (annotation != null) {
+        newAnnotationsPerMarker[marker] = annotation;
       }
     }
 
