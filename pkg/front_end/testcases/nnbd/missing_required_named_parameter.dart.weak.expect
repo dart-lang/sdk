@@ -1,0 +1,49 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/missing_required_named_parameter.dart:15:6: Warning: Missing required named parameter 's'.
+//   foo();
+//      ^
+//
+// pkg/front_end/testcases/nnbd/missing_required_named_parameter.dart:16:8: Warning: Missing required named parameter 'x'.
+//   new A();
+//        ^
+//
+// pkg/front_end/testcases/nnbd/missing_required_named_parameter.dart:18:8: Warning: Missing required named parameter 'y'.
+//   a.foo();
+//        ^
+//
+// pkg/front_end/testcases/nnbd/missing_required_named_parameter.dart:19:6: Warning: Missing required named parameter 's'.
+//   a.f();
+//      ^
+//
+// pkg/front_end/testcases/nnbd/missing_required_named_parameter.dart:20:4: Warning: Missing required named parameter 's'.
+//   g();
+//    ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  field ({required s: core::String}) → void f = null;
+  constructor •({required core::int x = #C1}) → self::A
+    : super core::Object::•()
+    ;
+  method foo({required core::int y = #C1}) → dynamic {}
+}
+static field ({required s: core::String}) → void g;
+static method foo({required core::String s = #C1}) → void {}
+static method bar() → dynamic {
+  self::foo();
+  new self::A::•();
+  self::A a = new self::A::•(x: 42);
+  a.{self::A::foo}();
+  a.{self::A::f}();
+  self::g.call();
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = null
+}

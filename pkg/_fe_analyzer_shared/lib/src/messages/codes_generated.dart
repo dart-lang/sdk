@@ -8212,6 +8212,56 @@ Message _withArgumentsUseOfDeprecatedIdentifier(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateValueForRequiredParameterNotProvidedError =
+    const Template<Message Function(String name)>(
+        messageTemplate:
+            r"""Required named parameter '#name' must be provided.""",
+        withArguments: _withArgumentsValueForRequiredParameterNotProvidedError);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeValueForRequiredParameterNotProvidedError =
+    const Code<Message Function(String name)>(
+  "ValueForRequiredParameterNotProvidedError",
+  templateValueForRequiredParameterNotProvidedError,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsValueForRequiredParameterNotProvidedError(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeValueForRequiredParameterNotProvidedError,
+      message: """Required named parameter '${name}' must be provided.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateValueForRequiredParameterNotProvidedWarning =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""Missing required named parameter '#name'.""",
+        withArguments:
+            _withArgumentsValueForRequiredParameterNotProvidedWarning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeValueForRequiredParameterNotProvidedWarning =
+    const Code<Message Function(String name)>(
+        "ValueForRequiredParameterNotProvidedWarning",
+        templateValueForRequiredParameterNotProvidedWarning,
+        severity: Severity.warning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsValueForRequiredParameterNotProvidedWarning(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeValueForRequiredParameterNotProvidedWarning,
+      message: """Missing required named parameter '${name}'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeVarAsTypeName = messageVarAsTypeName;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

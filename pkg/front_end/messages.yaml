@@ -3761,3 +3761,10 @@ RequiredNamedParameterHasDefaultValueError:
 RequiredNamedParameterHasDefaultValueWarning:
   template: "Required named parameter '#name' has a default value."
   severity: WARNING
+
+ValueForRequiredParameterNotProvidedError:
+  template: "Required named parameter '#name' must be provided."
+
+ValueForRequiredParameterNotProvidedWarning:
+  template: "Missing required named parameter '#name'."
+  severity: WARNING
