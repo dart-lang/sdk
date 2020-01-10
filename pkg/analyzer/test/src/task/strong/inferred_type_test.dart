@@ -1903,7 +1903,7 @@ class D extends C {
 /*error:INVALID_OVERRIDE*/m(x) => x;
 }
 main() {
-  int y = new D()./*error:WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD*/m<int>(42);
+  int y = new D().m/*error:WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD*/<int>(42);
   print(y);
 }
 ''');

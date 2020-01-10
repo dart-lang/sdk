@@ -969,7 +969,7 @@ main() {
   foo<int>();
 }
 ''', [
-      error(StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD, 26, 3),
+      error(StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD, 29, 5),
     ]);
     assertMethodInvocation(
       findNode.methodInvocation('foo<int>()'),
@@ -987,13 +987,13 @@ main() {
   foo<int>();
 }
 ''', [
-      error(StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD, 55, 3),
+      error(StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD, 58, 5),
     ]);
     assertMethodInvocation(
       findNode.methodInvocation('foo<int>()'),
       findElement.topFunction('foo'),
-      'Map<num, dynamic> Function()',
-      expectedTypeArguments: ['num', 'dynamic'],
+      'Map<dynamic, dynamic> Function()',
+      expectedTypeArguments: ['dynamic', 'dynamic'],
     );
     assertTypeName(findNode.typeName('int>'), intElement, 'int');
   }
@@ -1768,7 +1768,8 @@ main() {
   foo<int, double>();
 }
 ''', [
-      error(StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD, 29, 3),
+      error(
+          StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD, 32, 13),
     ]);
     var invocation = findNode.methodInvocation('foo<int, double>();');
     assertTypeArgumentTypes(invocation, ['dynamic']);

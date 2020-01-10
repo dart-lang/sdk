@@ -175,37 +175,6 @@ class MethodInvocationResolver {
     }
   }
 
-  /// Check for a generic type, and apply type arguments.
-  FunctionType _instantiateFunctionType(
-      FunctionType invokeType, TypeArgumentList typeArguments, AstNode node) {
-    var typeFormals = invokeType.typeFormals;
-    var arguments = typeArguments?.arguments;
-    if (arguments != null && arguments.length != typeFormals.length) {
-      _resolver.errorReporter.reportErrorForNode(
-          StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD,
-          node,
-          [invokeType, typeFormals.length, arguments?.length ?? 0]);
-      arguments = null;
-    }
-
-    if (typeFormals.isNotEmpty) {
-      if (arguments == null) {
-        var typeArguments =
-            _typeSystem.instantiateTypeFormalsToBounds(typeFormals);
-        _invocation.typeArgumentTypes = typeArguments;
-        return invokeType.instantiate(typeArguments);
-      } else {
-        var typeArguments = arguments.map((n) => n.type).toList();
-        _invocation.typeArgumentTypes = typeArguments;
-        return invokeType.instantiate(typeArguments);
-      }
-    } else {
-      _invocation.typeArgumentTypes = const <DartType>[];
-    }
-
-    return invokeType;
-  }
-
   bool _isCoreFunction(DartType type) {
     // TODO(scheglov) Can we optimize this?
     return type is InterfaceType && type.isDartCoreFunction;
@@ -308,17 +277,6 @@ class MethodInvocationResolver {
       );
       _inferenceHelper.recordStaticType(node, staticStaticType);
     }
-  }
-
-  /// Given an [argumentList] and the [parameters] related to the element that
-  /// will be invoked using those arguments, compute the list of parameters that
-  /// correspond to the list of arguments. An error will be reported if any of
-  /// the arguments cannot be matched to a parameter. Return the parameters that
-  /// correspond to the arguments.
-  List<ParameterElement> _resolveArgumentsToParameters(
-      ArgumentList argumentList, List<ParameterElement> parameters) {
-    return ResolverVisitor.resolveArgumentsToParameters(
-        argumentList, parameters, _resolver.errorReporter.reportErrorForNode);
   }
 
   /// Given that we are accessing a property of the given [classElement] with the
@@ -917,23 +875,7 @@ class MethodInvocationResolver {
     }
 
     if (type is FunctionType) {
-      // TODO(scheglov) Extract this when receiver is already FunctionType?
-      var instantiatedType = _instantiateFunctionType(
-        type,
-        node.typeArguments,
-        node.methodName,
-      );
-      instantiatedType = _toSyntheticFunctionType(instantiatedType);
-      node.staticInvokeType = instantiatedType;
-      node.staticType = instantiatedType.returnType;
-      // TODO(scheglov) too much magic
-      node.argumentList.correspondingStaticParameters =
-          _resolveArgumentsToParameters(
-        node.argumentList,
-        instantiatedType.parameters,
-      );
-
-      _resolveArguments_finishInference(node);
+      _inferenceHelper.resolveMethodInvocation(node: node, rawType: type);
       return;
     }
 
@@ -963,31 +905,5 @@ class MethodInvocationResolver {
       }
     }
     return null;
-  }
-
-  /// As an experiment for using synthetic [FunctionType]s, we replace some
-  /// function types with the equivalent synthetic function type instance.
-  /// The assumption that we try to prove is that only the set of parameters,
-  /// with their names, types and kinds is important, but the element that
-  /// encloses them is not (`null` for synthetic function types).
-  static FunctionType _toSyntheticFunctionType(FunctionType type) {
-//    if (type.element is GenericFunctionTypeElement) {
-//      var synthetic = FunctionTypeImpl.synthetic(
-//        type.returnType,
-//        type.typeFormals.map((e) {
-//          return TypeParameterElementImpl.synthetic(e.name)..bound = e.bound;
-//        }).toList(),
-//        type.parameters.map((p) {
-//          return ParameterElementImpl.synthetic(
-//            p.name,
-//            p.type,
-//            // ignore: deprecated_member_use_from_same_package
-//            p.parameterKind,
-//          );
-//        }).toList(),
-//      );
-//      return synthetic;
-//    }
-    return type;
   }
 }

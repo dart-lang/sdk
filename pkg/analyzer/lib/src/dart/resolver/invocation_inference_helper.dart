@@ -240,6 +240,11 @@ class InvocationInferenceHelper {
     }
   }
 
+  /// Finish resolution of the [FunctionExpressionInvocation].
+  ///
+  /// We have already found the invoked [ExecutableElement], and the [rawType]
+  /// is its not yet instantiated type. Here we perform downwards inference,
+  /// resolution of arguments, and upwards inference.
   void resolveFunctionExpressionInvocation({
     @required FunctionExpressionInvocationImpl node,
     @required FunctionType rawType,
@@ -255,6 +260,34 @@ class InvocationInferenceHelper {
 
     node.typeArgumentTypes = _typeArgumentTypes;
     node.staticInvokeType = _invokeType;
+  }
+
+  /// Finish resolution of the [MethodInvocation].
+  ///
+  /// We have already found the invoked [ExecutableElement], and the [rawType]
+  /// is its not yet instantiated type. Here we perform downwards inference,
+  /// resolution of arguments, and upwards inference.
+  void resolveMethodInvocation({
+    @required MethodInvocationImpl node,
+    @required FunctionType rawType,
+  }) {
+    _resolveInvocation(
+      rawType: rawType,
+      typeArgumentList: node.typeArguments,
+      argumentList: node.argumentList,
+      contextType: InferenceContext.getContext(node),
+      isConst: false,
+      errorNode: node.function,
+    );
+
+    node.typeArgumentTypes = _typeArgumentTypes;
+    node.staticInvokeType = _invokeType;
+
+    var returnType = computeInvokeReturnType(
+      _invokeType,
+      isNullAware: node.isNullAware,
+    );
+    recordStaticType(node, returnType);
   }
 
   List<DartType> _inferDownwards({
@@ -389,6 +422,7 @@ class InvocationInferenceHelper {
   }) {
     var typeParameters = rawType.typeFormals;
 
+    List<DartType> typeArguments;
     if (typeArgumentList.arguments.length != typeParameters.length) {
       _errorReporter.reportErrorForNode(
         StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD,
@@ -399,20 +433,23 @@ class InvocationInferenceHelper {
           typeArgumentList.arguments.length,
         ],
       );
-      _typeArgumentTypes = List.filled(
+      typeArguments = List.filled(
         typeParameters.length,
         DynamicTypeImpl.instance,
       );
     } else {
-      _typeArgumentTypes = typeArgumentList.arguments
+      typeArguments = typeArgumentList.arguments
           .map((typeArgument) => typeArgument.type)
           .toList(growable: true);
     }
 
-    _invokeType = rawType.instantiate(_typeArgumentTypes);
-    InferenceContext.setType(argumentList, _invokeType);
+    var invokeType = rawType.instantiate(typeArguments);
+    InferenceContext.setType(argumentList, invokeType);
 
     _resolveArguments(argumentList);
+
+    _typeArgumentTypes = typeArguments;
+    _invokeType = invokeType;
   }
 
   void _setCorrespondingParameters(
