@@ -1,0 +1,15 @@
+Object bar<T1, T2>(T1 t1, T2 t2) => 42;
+
+main() {
+Function f2 = bar;
+f2!<int, String>(42, "42");
+}
+
+
+Object[StringToken] bar[StringToken]<[BeginToken]T1[StringToken],[SimpleToken] T2[StringToken]>[SimpleToken]([BeginToken]T1[StringToken] t1[StringToken],[SimpleToken] T2[StringToken] t2[StringToken])[SimpleToken] =>[SimpleToken] 42[StringToken];[SimpleToken]
+
+main[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+Function[KeywordToken] f2[StringToken] =[SimpleToken] bar[StringToken];[SimpleToken]
+f2[StringToken]![SimpleToken]<[BeginToken]int[StringToken],[SimpleToken] String[StringToken]>[SimpleToken]([BeginToken]42[StringToken],[SimpleToken] "42"[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]
