@@ -888,7 +888,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
             }
             VariableDeclaration originParameter = builder.getFormalParameter(i);
             initializer = typeInferrer?.inferParameterInitializer(
-                this, initializer, originParameter.type);
+                this,
+                initializer,
+                originParameter.type,
+                parameter.hasDeclaredInitializer);
             originParameter.initializer = initializer..parent = originParameter;
             libraryBuilder.loader.transformPostInference(
                 originParameter,

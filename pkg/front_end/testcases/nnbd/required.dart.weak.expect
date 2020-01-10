@@ -1,9 +1,4 @@
 library;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/nnbd/required.dart: Warning: Assigning value of type 'Null?' to a variable of type 'int'.
-//
 import self as self;
 import "dart:core" as core;
 

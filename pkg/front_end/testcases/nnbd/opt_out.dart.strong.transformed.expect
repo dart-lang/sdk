@@ -1,9 +1,4 @@
 library;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/nnbd/opt_out.dart: Error: A value of type 'Null?' can't be assigned to a variable of type 'int'.
-//
 import self as self;
 import "dart:core" as core;
 
@@ -25,7 +20,7 @@ static field core::List<core::String?> l = <core::String?>[];
 static field core::String? s = null;
 static field core::String t = self::s!;
 late static field core::int field = 42;
-static method method(() →? void f, {required core::int a = invalid-expression "pkg/front_end/testcases/nnbd/opt_out.dart: Error: A value of type 'Null?' can't be assigned to a variable of type 'int'."}) → void {}
+static method method(() →? void f, {required core::int a = #C1}) → void {}
 static method main() → dynamic {}
 static method noErrors() → dynamic {
   late core::int local = 42;

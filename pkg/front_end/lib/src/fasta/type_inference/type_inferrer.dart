@@ -439,7 +439,10 @@ abstract class TypeInferrer {
   /// Performs type inference on the given function parameter initializer
   /// expression.
   Expression inferParameterInitializer(
-      InferenceHelper helper, Expression initializer, DartType declaredType);
+      InferenceHelper helper,
+      Expression initializer,
+      DartType declaredType,
+      bool hasDeclaredInitializer);
 
   /// Ensures that all parameter types of [constructor] have been inferred.
   // TODO(johnniwinther): We are still parameters on synthesized mixin
@@ -2840,13 +2843,18 @@ class TypeInferrerImpl implements TypeInferrer {
 
   @override
   Expression inferParameterInitializer(
-      InferenceHelper helper, Expression initializer, DartType declaredType) {
+      InferenceHelper helper,
+      Expression initializer,
+      DartType declaredType,
+      bool hasDeclaredInitializer) {
     assert(closureContext == null);
     this.helper = helper;
     assert(declaredType != null);
     ExpressionInferenceResult result =
         inferExpression(initializer, declaredType, true);
-    initializer = ensureAssignableResult(declaredType, result);
+    if (hasDeclaredInitializer) {
+      initializer = ensureAssignableResult(declaredType, result);
+    }
     this.helper = null;
     return initializer;
   }
