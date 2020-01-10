@@ -75,17 +75,6 @@ abstract class EditPlan {
   @visibleForTesting
   bool get endsInCascade;
 
-  /// Converts this [EditPlan] a representation of the concrete edits that need
-  /// to be made to the source file.  These edits may be converted into
-  /// [SourceEdit]s using the extensions [AtomicEditList] and [AtomicEditMap].
-  ///
-  /// Finalizing an [EditPlan] is a destructive operation; it should not be used
-  /// again after it is finalized.
-  Map<int, List<AtomicEdit>> finalize() {
-    var plan = _incorporateParenParentIfPresent(null);
-    return plan._getChanges(plan.parensNeededFromContext(null));
-  }
-
   /// Determines whether the text produced by this [EditPlan] would need
   /// parentheses if it were to be used as a replacement for its [sourceNode].
   ///
@@ -173,6 +162,18 @@ class EditPlanner {
   EditPlan extract(AstNode sourceNode, EditPlan innerPlan) {
     innerPlan = innerPlan._incorporateParenParentIfPresent(sourceNode);
     return _ExtractEditPlan(sourceNode, innerPlan, this);
+  }
+
+  /// Converts [plan] to a representation of the concrete edits that need
+  /// to be made to the source file.  These edits may be converted into
+  /// [SourceEdit]s using the extensions [AtomicEditList] and [AtomicEditMap].
+  ///
+  /// Finalizing an [EditPlan] is a destructive operation; it should not be used
+  /// again after it is finalized.
+  Map<int, List<AtomicEdit>> finalize(EditPlan plan) {
+    var incorporatedPlan = plan._incorporateParenParentIfPresent(null);
+    return incorporatedPlan
+        ._getChanges(incorporatedPlan.parensNeededFromContext(null));
   }
 
   /// Creates a new edit plan that makes no changes to [node], but may make

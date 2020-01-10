@@ -31,7 +31,7 @@ class EditPlanTest extends AbstractSingleUnitTest {
   }
 
   void checkPlan(EditPlan plan, String expected) {
-    expect(plan.finalize().applyTo(code), expected);
+    expect(planner.finalize(plan).applyTo(code), expected);
   }
 
   EditPlan extract(AstNode inner, AstNode outer) =>
