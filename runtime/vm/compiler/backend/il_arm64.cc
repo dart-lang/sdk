@@ -3976,13 +3976,35 @@ LocationSummary* BoxInt64Instr::MakeLocationSummary(Zone* zone,
                                                     bool opt) const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = ValueFitsSmi() ? 0 : 1;
-  LocationSummary* summary = new (zone)
-      LocationSummary(zone, kNumInputs, kNumTemps,
-                      ValueFitsSmi() ? LocationSummary::kNoCall
-                                     : LocationSummary::kCallOnSlowPath);
+  // Shared slow path is used in BoxInt64Instr::EmitNativeCode in
+  // FLAG_use_bare_instructions mode and only after VM isolate stubs where
+  // replaced with isolate-specific stubs.
+  const bool stubs_in_vm_isolate = (Isolate::Current()
+                                        ->object_store()
+                                        ->allocate_mint_with_fpu_regs_stub()
+                                        ->InVMIsolateHeap() ||
+                                    Isolate::Current()
+                                        ->object_store()
+                                        ->allocate_mint_without_fpu_regs_stub()
+                                        ->InVMIsolateHeap());
+  const bool shared_slow_path_call = SlowPathSharingSupported(opt) &&
+                                     FLAG_use_bare_instructions &&
+                                     !stubs_in_vm_isolate;
+  LocationSummary* summary = new (zone) LocationSummary(
+      zone, kNumInputs, kNumTemps,
+      ValueFitsSmi()
+          ? LocationSummary::kNoCall
+          : shared_slow_path_call ? LocationSummary::kCallOnSharedSlowPath
+                                  : LocationSummary::kCallOnSlowPath);
+
   summary->set_in(0, Location::RequiresRegister());
-  summary->set_out(0, Location::RequiresRegister());
-  if (!ValueFitsSmi()) {
+  if (ValueFitsSmi()) {
+    summary->set_out(0, Location::RequiresRegister());
+  } else if (shared_slow_path_call) {
+    summary->set_out(0, Location::RegisterLocation(R0));
+    summary->set_temp(0, Location::RegisterLocation(R1));
+  } else {
+    summary->set_out(0, Location::RequiresRegister());
     summary->set_temp(0, Location::RequiresRegister());
   }
   return summary;
@@ -3995,7 +4017,6 @@ void BoxInt64Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ SmiTag(out, in);
     return;
   }
-
   ASSERT(kSmiTag == 0);
   __ LslImmediate(out, in, kSmiTagSize);
   compiler::Label done;
@@ -4003,8 +4024,37 @@ void BoxInt64Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ b(&done, EQ);
 
   Register temp = locs()->temp(0).reg();
-  BoxAllocationSlowPath::Allocate(compiler, this, compiler->mint_class(), out,
-                                  temp);
+
+  if (compiler->intrinsic_mode()) {
+    __ TryAllocate(compiler->mint_class(),
+                   compiler->intrinsic_slow_path_label(), out, temp);
+  } else {
+    if (locs()->call_on_shared_slow_path()) {
+      auto object_store = compiler->isolate()->object_store();
+      const bool live_fpu_regs =
+          locs()->live_registers()->FpuRegisterCount() > 0;
+      const auto& stub = Code::ZoneHandle(
+          compiler->zone(),
+          live_fpu_regs ? object_store->allocate_mint_with_fpu_regs_stub()
+                        : object_store->allocate_mint_without_fpu_regs_stub());
+      // BoxInt64Instr uses shared slow path only if stub can be reached
+      // via PC-relative call.
+      ASSERT(FLAG_use_bare_instructions);
+      ASSERT(!stub.InVMIsolateHeap());
+      __ GenerateUnRelocatedPcRelativeCall();
+      compiler->AddPcRelativeCallStubTarget(stub);
+
+      ASSERT(!locs()->live_registers()->ContainsRegister(R0));
+
+      auto extended_env = compiler->SlowPathEnvironmentFor(this, 0);
+      compiler->EmitCallsiteMetadata(token_pos(), DeoptId::kNone,
+                                     RawPcDescriptors::kOther, locs(),
+                                     extended_env);
+    } else {
+      BoxAllocationSlowPath::Allocate(compiler, this, compiler->mint_class(),
+                                      out, temp);
+    }
+  }
 
   __ StoreToOffset(in, out, Mint::value_offset() - kHeapObjectTag);
   __ Bind(&done);

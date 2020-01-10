@@ -180,7 +180,8 @@ void GenerateSharedStub(Assembler* assembler,
                         bool save_fpu_registers,
                         const RuntimeEntry* target,
                         intptr_t self_code_stub_offset_from_thread,
-                        bool allow_return) {
+                        bool allow_return,
+                        bool store_runtime_result_in_r0 = false) {
   // We want the saved registers to appear like part of the caller's frame, so
   // we push them before calling EnterStubFrame.
   RegisterSet all_registers;
@@ -192,12 +193,28 @@ void GenerateSharedStub(Assembler* assembler,
   __ PushRegisters(all_registers);
   __ ldr(CODE_REG, Address(THR, self_code_stub_offset_from_thread));
   __ EnterStubFrame();
+  if (store_runtime_result_in_r0) {
+    ASSERT(all_registers.ContainsRegister(R0));
+    ASSERT(allow_return);
+
+    // Push an even value so it will not be seen as a pointer
+    __ Push(LR);
+  }
   __ CallRuntime(*target, /*argument_count=*/0);
+
+  if (store_runtime_result_in_r0) {
+    __ Pop(R0);
+  }
   if (!allow_return) {
     __ Breakpoint();
     return;
   }
   __ LeaveStubFrame();
+  if (store_runtime_result_in_r0) {
+    // Stores the runtime result in stack where R0 was pushed ( R0 is the very
+    // last register to be pushed by __ PushRegisters(all_registers) )
+    __ str(R0, Address(SP));
+  }
   __ PopRegisters(all_registers);
   __ Pop(LR);
   __ ret(LR);
@@ -1235,12 +1252,38 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
 
 void StubCodeCompiler::GenerateAllocateMintWithFPURegsStub(
     Assembler* assembler) {
-  __ Stop("Unimplemented");
+  // For test purpose call allocation stub without inline allocation attempt.
+  if (!FLAG_use_slow_path) {
+    Label slow_case;
+    __ TryAllocate(compiler::MintClass(), &slow_case, /*instance_reg=*/R0,
+                   /*temp_reg=*/R1);
+    __ Ret();
+
+    __ Bind(&slow_case);
+  }
+  GenerateSharedStub(assembler, /*save_fpu_registers=*/true,
+                     &kAllocateMintRuntimeEntry,
+                     target::Thread::allocate_mint_with_fpu_regs_stub_offset(),
+                     /*allow_return=*/true,
+                     /*store_runtime_result_in_r0=*/true);
 }
 
 void StubCodeCompiler::GenerateAllocateMintWithoutFPURegsStub(
     Assembler* assembler) {
-  __ Stop("Unimplemented");
+  // For test purpose call allocation stub without inline allocation attempt.
+  if (!FLAG_use_slow_path) {
+    Label slow_case;
+    __ TryAllocate(compiler::MintClass(), &slow_case, /*instance_reg=*/R0,
+                   /*temp_reg=*/R1);
+    __ Ret();
+
+    __ Bind(&slow_case);
+  }
+  GenerateSharedStub(
+      assembler, /*save_fpu_registers=*/false, &kAllocateMintRuntimeEntry,
+      target::Thread::allocate_mint_without_fpu_regs_stub_offset(),
+      /*allow_return=*/true,
+      /*store_runtime_result_in_r0=*/true);
 }
 
 // Called when invoking Dart code from C++ (VM code).
