@@ -76,10 +76,6 @@ class SharedCompilerOptions {
   /// This should only set `true` by our REPL compiler.
   bool replCompile;
 
-  /// Mapping from absolute file paths to bazel short path to substitute in
-  /// source maps.
-  final Map<String, String> bazelMapping;
-
   final Map<String, String> summaryModules;
 
   final List<ModuleFormat> moduleFormats;
@@ -103,7 +99,6 @@ class SharedCompilerOptions {
       this.emitMetadata = false,
       this.enableAsserts = true,
       this.replCompile = false,
-      this.bazelMapping = const {},
       this.summaryModules = const {},
       this.moduleFormats = const [],
       this.experiments = const {},
@@ -119,8 +114,6 @@ class SharedCompilerOptions {
             enableAsserts: args['enable-asserts'] as bool,
             experiments: parseExperimentalArguments(
                 args['enable-experiment'] as List<String>),
-            bazelMapping:
-                _parseBazelMappings(args['bazel-mapping'] as List<String>),
             summaryModules: _parseCustomSummaryModules(
                 args['summary'] as List<String>, moduleRoot, summaryExtension),
             moduleFormats: parseModuleFormatOption(args),
@@ -151,12 +144,6 @@ class SharedCompilerOptions {
       ..addOption('module-name',
           help: 'The output module name, used in some JS module formats.\n'
               'Defaults to the output file name (without .js).')
-      // TODO(jmesserly): rename this, it has nothing to do with bazel.
-      ..addMultiOption('bazel-mapping',
-          help: '--bazel-mapping=gen/to/library.dart,to/library.dart\n'
-              'adjusts the path in source maps.',
-          splitCommas: false,
-          hide: hide)
       ..addOption('library-root',
           help: '(deprecated) used to name libraries inside the module, '
               'ignored with -k.',
@@ -233,17 +220,6 @@ Map<String, String> _parseCustomSummaryModules(List<String> summaryPaths,
     pathToModule[summaryPath] = modulePath;
   }
   return pathToModule;
-}
-
-Map<String, String> _parseBazelMappings(List<String> argument) {
-  var mappings = <String, String>{};
-  for (var mapping in argument) {
-    var splitMapping = mapping.split(',');
-    if (splitMapping.length >= 2) {
-      mappings[p.absolute(splitMapping[0])] = splitMapping[1];
-    }
-  }
-  return mappings;
 }
 
 /// Taken from analyzer to implement `--ignore-unrecognized-flags`
@@ -335,8 +311,7 @@ Uri sourcePathToRelativeUri(String source, {bool windows}) {
 /// matching [multiRootScheme] are adjusted to be relative to
 /// [multiRootOutputPath].
 // TODO(jmesserly): find a new home for this.
-Map placeSourceMap(Map sourceMap, String sourceMapPath,
-    Map<String, String> bazelMappings, String multiRootScheme,
+Map placeSourceMap(Map sourceMap, String sourceMapPath, String multiRootScheme,
     {String multiRootOutputPath}) {
   var map = Map.from(sourceMap);
   // Convert to a local file path if it's not.
@@ -365,10 +340,6 @@ Map placeSourceMap(Map sourceMap, String sourceMapPath,
 
     // Convert to a local file path if it's not.
     sourcePath = sourcePathToUri(p.absolute(p.fromUri(uri))).path;
-
-    // Allow bazel mappings to override.
-    var match = bazelMappings != null ? bazelMappings[sourcePath] : null;
-    if (match != null) return match;
 
     // Fall back to a relative path against the source map itself.
     sourcePath = p.url.relative(sourcePath, from: sourceMapDir);
