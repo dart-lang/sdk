@@ -678,20 +678,24 @@ void HeapSnapshotWriter::SetupCountingPages() {
   }
 }
 
-CountingPage* HeapSnapshotWriter::FindCountingPage(RawObject* obj) const {
-  if (obj->IsOldObject()) {
-    const uword addr = RawObject::ToAddr(obj);
-    for (intptr_t i = 0; i < kMaxImagePages; i++) {
-      if ((addr - image_page_ranges_[i].base) < image_page_ranges_[i].size) {
-        return nullptr;  // On an image page.
-      }
+bool HeapSnapshotWriter::OnImagePage(RawObject* obj) const {
+  const uword addr = RawObject::ToAddr(obj);
+  for (intptr_t i = 0; i < kMaxImagePages; i++) {
+    if ((addr - image_page_ranges_[i].base) < image_page_ranges_[i].size) {
+      return true;
     }
+  }
+  return false;
+}
+
+CountingPage* HeapSnapshotWriter::FindCountingPage(RawObject* obj) const {
+  if (obj->IsOldObject() && !OnImagePage(obj)) {
     // On a regular or large page.
     HeapPage* page = HeapPage::Of(obj);
     return reinterpret_cast<CountingPage*>(page->forwarding_page());
   }
 
-  // In new space.
+  // On an image page or in new space.
   return nullptr;
 }
 
@@ -713,14 +717,22 @@ intptr_t HeapSnapshotWriter::GetObjectId(RawObject* obj) const {
     return 0;
   }
 
+  if (FLAG_write_protect_code && obj->IsInstructions() && !OnImagePage(obj)) {
+    // A non-writable alias mapping may exist for instruction pages.
+    obj = HeapPage::ToWritable(obj);
+  }
+
   CountingPage* counting_page = FindCountingPage(obj);
+  intptr_t id;
   if (counting_page != nullptr) {
     // Likely: object on an ordinary page.
-    return counting_page->Lookup(RawObject::ToAddr(obj));
+    id = counting_page->Lookup(RawObject::ToAddr(obj));
   } else {
     // Unlikely: new space object, or object on a large or image page.
-    return thread()->heap()->GetObjectId(obj);
+    id = thread()->heap()->GetObjectId(obj);
   }
+  ASSERT(id != 0);
+  return id;
 }
 
 void HeapSnapshotWriter::ClearObjectIds() {
