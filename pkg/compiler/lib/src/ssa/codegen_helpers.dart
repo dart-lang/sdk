@@ -112,12 +112,30 @@ class SsaInstructionSelection extends HBaseVisitor with CodegenPhase {
         if (current is HGetLength) return current;
         if (current is HIndex) return current;
         if (current is HIndexAssign) return current;
-        if (current is HInvokeDynamic) return current;
+        if (current is HInvokeDynamic) {
+          HInstruction receiver = current.receiver;
+          // Either no interceptor or self-interceptor:
+          if (receiver == nullCheck) return current;
+          return null;
+        }
       }
 
       if (current is HForeignCode) {
         if (current.isNullGuardFor(nullCheck)) return current;
       }
+
+      // TODO(sra): Recognize other usable faulting patterns:
+      //
+      //  - HInstanceEnvironment when the generated code is `receiver.$ti`.
+      //
+      //  - super-calls using aliases.
+      //
+      //  - one-shot interceptor receiver for selector not defined on
+      //    null. The fault will appear to happen in the one-shot
+      //    interceptor.
+      //
+      //  - a constant interceptor can be replaced with a conditional
+      //    HInterceptor (e.g. (a && JSArray_methods).get$first(a)).
 
       if (current.canThrow(_abstractValueDomain) ||
           current.sideEffects.hasSideEffects()) {
