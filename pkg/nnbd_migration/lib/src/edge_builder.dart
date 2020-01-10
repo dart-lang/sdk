@@ -210,11 +210,28 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     Map<TypeParameterElement, DecoratedType> substitution;
     Element baseElement = element.declaration;
     if (targetType != null) {
-      var classElement = baseElement.enclosingElement as ClassElement;
-      if (classElement.typeParameters.isNotEmpty) {
-        substitution = _decoratedClassHierarchy
-            .asInstanceOf(targetType, classElement)
-            .asSubstitution;
+      var enclosingElement = baseElement.enclosingElement;
+      if (enclosingElement is ClassElement) {
+        if (enclosingElement.typeParameters.isNotEmpty) {
+          substitution = _decoratedClassHierarchy
+              .asInstanceOf(targetType, enclosingElement)
+              .asSubstitution;
+        }
+      } else {
+        assert(enclosingElement is ExtensionElement);
+        final extensionElement = enclosingElement as ExtensionElement;
+        final extendedType = extensionElement.extendedType;
+        if (extendedType is InterfaceType) {
+          if (extensionElement.typeParameters.isNotEmpty) {
+            substitution = _decoratedClassHierarchy
+                .asInstanceOf(targetType, extendedType.element)
+                .asSubstitution;
+          }
+        } else {
+          // TODO(srawlins): Handle generic typedef. Others?
+          _unimplemented(
+              null, 'Extension on $extendedType (${extendedType.runtimeType}');
+        }
       }
     }
     DecoratedType decoratedBaseType;
@@ -977,7 +994,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       } else if (isNullAware) {
         targetType = target.accept(this);
       } else {
-        targetType = _handleTarget(target, node.methodName.name);
+        targetType = _handleTarget(target, node.methodName.name, callee);
       }
     } else if (target == null && callee.enclosingElement is ClassElement) {
       targetType = _thisOrSuper(node);
@@ -2191,7 +2208,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     } else if (isNullAware) {
       targetType = target.accept(this);
     } else {
-      targetType = _handleTarget(target, propertyName.name);
+      targetType = _handleTarget(target, propertyName.name, callee);
     }
     if (callee == null) {
       // Dynamic dispatch.
@@ -2217,8 +2234,16 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     }
   }
 
-  DecoratedType _handleTarget(Expression target, String name) {
+  DecoratedType _handleTarget(Expression target, String name, Element method) {
     if (isDeclaredOnObject(name)) {
+      return target.accept(this);
+    } else if (method is MethodElement &&
+        method.enclosingElement is ExtensionElement) {
+      // Extension methods can be called on a `null` target, when the `on` type
+      // of the extension is nullable.
+      _handleAssignment(target,
+          destinationType:
+              _variables.decoratedElementType(method.enclosingElement));
       return target.accept(this);
     } else {
       return _checkExpressionNotNull(target);

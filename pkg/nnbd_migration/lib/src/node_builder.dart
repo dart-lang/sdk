@@ -201,7 +201,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
   }
 
   @override
-  visitEnumDeclaration(EnumDeclaration node) {
+  DecoratedType visitEnumDeclaration(EnumDeclaration node) {
     node.metadata.accept(this);
     node.name.accept(this);
     var classElement = node.declaredElement;
@@ -238,6 +238,16 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
         toString,
         DecoratedType(toString.type, makeNonNullNode(),
             returnType: DecoratedType(toString.returnType, makeNonNullNode())));
+    return null;
+  }
+
+  @override
+  DecoratedType visitExtensionDeclaration(ExtensionDeclaration node) {
+    node.metadata.accept(this);
+    node.typeParameters?.accept(this);
+    var type = node.extendedType.accept(this);
+    _variables.recordDecoratedElementType(node.declaredElement, type);
+    node.members.accept(this);
     return null;
   }
 

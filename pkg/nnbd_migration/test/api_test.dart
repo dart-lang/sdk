@@ -1310,6 +1310,43 @@ extension E on String? {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_extension_nullableOnType_typeArgument() async {
+    var content = '''
+extension E on List<String> {
+  void m() {}
+}
+void f(List<String> list) => list.m();
+void g() => f([null]);
+''';
+    var expected = '''
+extension E on List<String?> {
+  void m() {}
+}
+void f(List<String?> list) => list.m();
+void g() => f([null]);
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40023')
+  Future<void> test_extension_nullableOnType_typeVariable() async {
+    var content = '''
+extension E<T> on List<T> {
+  void m() {}
+}
+void f<U>(List<U> list) => list.m();
+void g() => f([null]);
+''';
+    var expected = '''
+extension E<T> on List<T?> {
+  void m() {}
+}
+void f<U>(List<U?> list) => list.m();
+void g() => f([null]);
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40023')
   Future<void> test_extension_nullableOnType_viaExplicitInvocation() async {
     var content = '''
@@ -1329,7 +1366,6 @@ void f() => E(null).m();
     await _checkSingleFileChanges(content, expected);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40023')
   Future<void> test_extension_nullableOnType_viaImplicitInvocation() async {
     var content = '''
 class C {}
@@ -3833,6 +3869,16 @@ class _ProvisionalApiTestWithFixBuilder extends _ProvisionalApiTestBase
   @override
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
   Future<void> test_enum() => super.test_enum();
+
+  @override
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40023')
+  Future<void> test_extension_nullableOnType_typeArgument() =>
+      super.test_extension_nullableOnType_typeArgument();
+
+  @override
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40023')
+  Future<void> test_extension_nullableOnType_viaImplicitInvocation() =>
+      super.test_extension_nullableOnType_viaImplicitInvocation();
 
   @override
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')

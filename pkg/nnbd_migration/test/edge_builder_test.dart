@@ -3662,6 +3662,22 @@ extension E on C {
         hard: true);
   }
 
+  Future<void> test_methodInvocation_extension_nullTarget() async {
+    await analyze('''
+class C {}
+extension on C /*1*/ {
+  void m() {}
+}
+void f() {
+  C c = null;
+  c.m();
+}
+''');
+    assertEdge(decoratedTypeAnnotation('C c').node,
+        decoratedTypeAnnotation('C /*1*/').node,
+        hard: true);
+  }
+
   Future<void> test_methodInvocation_extension_unnamed() async {
     await analyze('''
 class C {
