@@ -862,7 +862,11 @@ DART_EXPORT DART_WARN_UNUSED_RESULT char* Dart_SetVMFlags(int argc,
                                                           const char** argv);
 
 /**
- * Returns true if the named VM flag is set.
+ * Returns true if the named VM flag is of boolean type, specified, and set to
+ * true.
+ *
+ * \param flag_name The name of the flag without leading punctuation
+ *                  (example: "enable_asserts").
  */
 DART_EXPORT bool Dart_IsVMFlagSet(const char* flag_name);
 
