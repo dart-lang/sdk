@@ -10,9 +10,9 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:meta/meta.dart';
 
-/// Abstract base class representing a single atomic change to a source file,
-/// decoupled from the location at which the change is made.  The [EditPlan]
-/// class performs its duties by creating and manipulating [AtomicEdit] objects.
+/// A single atomic change to a source file, decoupled from the location at
+/// which the change is made. The [EditPlan] class performs its duties by
+/// creating and manipulating [AtomicEdit] objects.
 ///
 /// A list of [AtomicEdit]s may be converted to a [SourceEdit] using the
 /// extension [AtomicEditList], and a map of offsets to lists of [AtomicEdit]s
@@ -20,34 +20,50 @@ import 'package:meta/meta.dart';
 /// [AtomicEditMap].
 ///
 /// May be subclassed to allow additional information to be recorded about the
-/// deletion.
-abstract class AtomicEdit {
-  const AtomicEdit();
-
-  /// Queries the number of source characters that should be deleted by this
-  /// edit, or 0 if no characters should be deleted.
-  int get length;
-
-  /// Queries the source characters that should be inserted by this edit, or
-  /// the empty string if no characters should be inserted.
-  String get replacement;
-}
-
-/// Implementation of [AtomicEdit] that deletes characters of text.
-///
-/// May be subclassed to allow additional information to be recorded about the
-/// deletion.
-class DeleteText extends AtomicEdit {
-  @override
+/// edit.
+class AtomicEdit {
+  /// The number of characters that should be deleted by this edit, or `0` if no
+  /// characters should be deleted.
   final int length;
 
-  const DeleteText(this.length);
+  /// The characters that should be inserted by this edit, or the empty string
+  /// if no characters should be inserted.
+  final String replacement;
+
+  /// Initialize an edit to delete [length] characters.
+  const AtomicEdit.delete(this.length)
+      : assert(length > 0),
+        replacement = '';
+
+  /// Initialize an edit to insert the [replacement] characters.
+  const AtomicEdit.insert(this.replacement)
+      : assert(replacement.length > 0),
+        length = 0;
+
+  /// Initialize an edit to replace [length] characters with the [replacement]
+  /// characters.
+  const AtomicEdit.replace(this.length, this.replacement)
+      : assert(length > 0 || replacement.length > 0);
+
+  /// Return `true` if this edit is a deletion (no characters added).
+  bool get isDeletion => replacement.length == 0;
+
+  /// Return `true` if this edit is an insertion (no characters removed).
+  bool get isInsertion => length == 0;
+
+  /// Return `true` if this edit is a replacement.
+  bool get isReplacement => length > 0 && replacement.length > 0;
 
   @override
-  String get replacement => '';
-
-  @override
-  String toString() => 'DeleteText($length)';
+  String toString() {
+    if (isInsertion) {
+      return 'InsertText(${json.encode(replacement)})';
+    } else if (isDeletion) {
+      return 'DeleteText($length)';
+    } else {
+      return 'ReplaceText($length, ${json.encode(replacement)})';
+    }
+  }
 }
 
 /// An [EditPlan] is a builder capable of accumulating a set of edits to be
@@ -100,8 +116,8 @@ abstract class EditPlan {
   Map<int, List<AtomicEdit>> _createAddParenChanges(
       Map<int, List<AtomicEdit>> changes) {
     changes ??= {};
-    (changes[sourceNode.offset] ??= []).insert(0, const InsertText('('));
-    (changes[sourceNode.end] ??= []).add(const InsertText(')'));
+    (changes[sourceNode.offset] ??= []).insert(0, const AtomicEdit.insert('('));
+    (changes[sourceNode.end] ??= []).add(const AtomicEdit.insert(')'));
     return changes;
   }
 
@@ -215,8 +231,8 @@ class EditPlanner {
   /// this situation, whether the final plan ends in a cascade section will be
   /// determined by [innerPlan]).
   EditPlan surround(EditPlan innerPlan,
-      {List<InsertText> prefix,
-      List<InsertText> suffix,
+      {List<AtomicEdit> prefix,
+      List<AtomicEdit> suffix,
       Precedence outerPrecedence = Precedence.primary,
       Precedence innerPrecedence = Precedence.none,
       bool associative = false,
@@ -242,23 +258,6 @@ class EditPlanner {
             : endsInCascade,
         innerChanges);
   }
-}
-
-/// Implementation of [AtomicEdit] that inserts a string of new text.
-///
-/// May be subclassed to allow additional information to be recorded about the
-/// insertion.
-class InsertText extends AtomicEdit {
-  @override
-  final String replacement;
-
-  const InsertText(this.replacement);
-
-  @override
-  int get length => 0;
-
-  @override
-  String toString() => 'InsertText(${json.encode(replacement)})';
 }
 
 /// Visitor that determines whether a given [AstNode] ends in a cascade.
@@ -327,17 +326,17 @@ class _ExtractEditPlan extends _NestedEditPlan {
       switch (removalStyle) {
         case _RemovalStyle.commentSpace:
           return {
-            offset: [InsertText('/* ')],
-            end: [InsertText('*/ ')]
+            offset: [AtomicEdit.insert('/* ')],
+            end: [AtomicEdit.insert('*/ ')]
           };
         case _RemovalStyle.delete:
           return {
-            offset: [DeleteText(end - offset)]
+            offset: [AtomicEdit.delete(end - offset)]
           };
         case _RemovalStyle.spaceComment:
           return {
-            offset: [InsertText(' /*')],
-            end: [InsertText(' */')]
+            offset: [AtomicEdit.insert(' /*')],
+            end: [AtomicEdit.insert(' */')]
           };
       }
       throw StateError('Null value for removalStyle');
@@ -649,8 +648,8 @@ class _ProvisionalParenEditPlan extends _NestedEditPlan {
     var changes = innerPlan._getChanges(false);
     if (!parens) {
       changes ??= {};
-      (changes[sourceNode.offset] ??= []).insert(0, const DeleteText(1));
-      (changes[sourceNode.end - 1] ??= []).add(const DeleteText(1));
+      (changes[sourceNode.offset] ??= []).insert(0, const AtomicEdit.delete(1));
+      (changes[sourceNode.end - 1] ??= []).add(const AtomicEdit.delete(1));
     }
     return changes;
   }

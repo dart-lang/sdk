@@ -20,7 +20,7 @@ class AddRequiredKeyword extends _NestableChange {
   EditPlan apply(AstNode node, FixAggregator aggregator) {
     var innerPlan = _inner.apply(node, aggregator);
     return aggregator.planner
-        .surround(innerPlan, prefix: [const InsertText('required ')]);
+        .surround(innerPlan, prefix: [const AtomicEdit.insert('required ')]);
   }
 }
 
@@ -97,7 +97,7 @@ class IntroduceAs extends _NestableChange {
   EditPlan apply(AstNode node, FixAggregator aggregator) {
     var innerPlan = _inner.apply(node, aggregator);
     return aggregator.planner.surround(innerPlan,
-        suffix: [InsertText(' as $type')],
+        suffix: [AtomicEdit.insert(' as $type')],
         outerPrecedence: Precedence.relational,
         innerPrecedence: Precedence.relational);
   }
@@ -115,7 +115,7 @@ class MakeNullable extends _NestableChange {
   EditPlan apply(AstNode node, FixAggregator aggregator) {
     var innerPlan = _inner.apply(node, aggregator);
     return aggregator.planner
-        .surround(innerPlan, suffix: [const InsertText('?')]);
+        .surround(innerPlan, suffix: [const AtomicEdit.insert('?')]);
   }
 }
 
@@ -160,7 +160,7 @@ class NullCheck extends _NestableChange {
   EditPlan apply(AstNode node, FixAggregator aggregator) {
     var innerPlan = _inner.apply(node, aggregator);
     return aggregator.planner.surround(innerPlan,
-        suffix: [const InsertText('!')],
+        suffix: [const AtomicEdit.insert('!')],
         outerPrecedence: Precedence.postfix,
         innerPrecedence: Precedence.postfix,
         associative: true);
