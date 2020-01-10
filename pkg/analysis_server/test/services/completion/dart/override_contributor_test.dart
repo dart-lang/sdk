@@ -37,6 +37,45 @@ class B implements A {
     _assertNoOverrideContaining('bar');
   }
 
+  test_customOperator() async {
+    addTestSource('''
+class A {
+  void operator &(A other) { }
+}
+class B extends A {
+  other^
+}
+''');
+    await computeSuggestions();
+    _assertOverride('''
+@override
+  void operator &(A other) {
+    // TODO: implement &
+    super & other;
+  }''',
+        displayText: '&(A other) { … }',
+        selectionOffset: 68,
+        selectionLength: 14);
+  }
+
+  test_equalsOperator() async {
+    addTestSource('''
+class A {
+  other^
+}
+''');
+    await computeSuggestions();
+    _assertOverride('''
+@override
+  bool operator ==(Object other) {
+    // TODO: implement ==
+    return super == other;
+  }''',
+        displayText: '==(Object other) { … }',
+        selectionOffset: 75,
+        selectionLength: 22);
+  }
+
   test_fromMultipleSuperclasses() async {
     addTestSource(r'''
 class A {

@@ -517,20 +517,13 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
           writeln();
         }
       } else if (returnType.isVoid) {
+        final isOperator = element.isOperator;
         if (invokeSuper) {
           writeln();
           write(prefix2);
           selectAll(() {
-            write('super.');
-            write(memberName);
-            write('(');
-            for (int i = 0; i < parameters.length; i++) {
-              if (i > 0) {
-                write(', ');
-              }
-              write(parameters[i].name);
-            }
-            write(');');
+            write('super');
+            _writeSuperMemberInvocation(element, memberName, parameters);
           });
           writeln();
         } else {
@@ -542,16 +535,8 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
         write(prefix2);
         if (invokeSuper) {
           selectAll(() {
-            write('return super.');
-            write(memberName);
-            write('(');
-            for (int i = 0; i < parameters.length; i++) {
-              if (i > 0) {
-                write(', ');
-              }
-              write(parameters[i].name);
-            }
-            write(');');
+            write('return super');
+            _writeSuperMemberInvocation(element, memberName, parameters);
           });
         } else {
           selectAll(() {
@@ -1074,6 +1059,21 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
         write('.');
       }
     }
+  }
+
+  void _writeSuperMemberInvocation(ExecutableElement element, String memberName,
+      List<ParameterElement> parameters) {
+    final isOperator = element.isOperator;
+    write(isOperator ? ' ' : '.');
+    write(memberName);
+    write(isOperator ? ' ' : '(');
+    for (int i = 0; i < parameters.length; i++) {
+      if (i > 0) {
+        write(', ');
+      }
+      write(parameters[i].name);
+    }
+    write(isOperator ? ';' : ');');
   }
 
   /**
