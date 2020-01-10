@@ -515,7 +515,7 @@ abstract class _StreamController<T> implements _StreamControllerBase<T> {
   _PendingEvents<T>? get _pendingEvents {
     assert(_isInitialState);
     if (!_isAddingStream) {
-      return _varData;
+      return _varData as _PendingEvents<T>?;
     }
     var state = _varData as _StreamControllerAddStreamState<T>;
     return state.varData;
@@ -679,7 +679,7 @@ abstract class _StreamController<T> implements _StreamControllerBase<T> {
     _ControllerSubscription<T> subscription = _ControllerSubscription<T>(
         this, onData, onError, onDone, cancelOnError);
 
-    _PendingEvents<T> pendingEvents = _pendingEvents;
+    _PendingEvents<T>? pendingEvents = _pendingEvents;
     _state |= _STATE_SUBSCRIBED;
     if (_isAddingStream) {
       var addState = _varData as _StreamControllerAddStreamState<T>;
