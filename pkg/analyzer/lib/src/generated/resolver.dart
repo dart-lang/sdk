@@ -329,6 +329,7 @@ class ResolverVisitor extends ScopedVisitor {
     this.extensionResolver = ExtensionMemberResolver(this);
     this.typePropertyResolver = TypePropertyResolver(this);
     this.inferenceHelper = InvocationInferenceHelper(
+      resolver: this,
       definingLibrary: definingLibrary,
       elementTypeProvider: _elementTypeProvider,
       flowAnalysis: _flowAnalysis,

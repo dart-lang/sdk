@@ -12,12 +12,14 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/element_type_provider.dart';
 import 'package:analyzer/src/generated/migration.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:meta/meta.dart';
 
 class InvocationInferenceHelper {
+  final ResolverVisitor _resolver;
   final LibraryElementImpl _definingLibrary;
   final ElementTypeProvider _elementTypeProvider;
   final ErrorReporter _errorReporter;
@@ -25,13 +27,18 @@ class InvocationInferenceHelper {
   final TypeSystemImpl _typeSystem;
   final TypeProviderImpl _typeProvider;
 
+  List<DartType> _typeArgumentTypes;
+  FunctionType _invokeType;
+
   InvocationInferenceHelper({
+    @required ResolverVisitor resolver,
     @required LibraryElementImpl definingLibrary,
     @required ElementTypeProvider elementTypeProvider,
     @required ErrorReporter errorReporter,
     @required FlowAnalysisHelper flowAnalysis,
     @required TypeSystemImpl typeSystem,
-  })  : _definingLibrary = definingLibrary,
+  })  : _resolver = resolver,
+        _definingLibrary = definingLibrary,
         _elementTypeProvider = elementTypeProvider,
         _errorReporter = errorReporter,
         _typeSystem = typeSystem,
@@ -137,27 +144,11 @@ class InvocationInferenceHelper {
         fnType is FunctionType &&
         fnType.typeFormals.isNotEmpty) {
       // Get the parameters that correspond to the uninstantiated generic.
-      List<ParameterElement> rawParameters =
-          ResolverVisitor.resolveArgumentsToParameters(
-              argumentList, fnType.parameters, null);
-
-      List<ParameterElement> params = <ParameterElement>[];
-      List<DartType> argTypes = <DartType>[];
-      for (int i = 0, length = rawParameters.length; i < length; i++) {
-        ParameterElement parameter = rawParameters[i];
-        if (parameter != null) {
-          params.add(parameter);
-          argTypes.add(argumentList.arguments[i].staticType);
-        }
-      }
-      var typeArgs = _typeSystem.inferGenericFunctionOrType(
-        typeParameters: fnType.typeFormals,
-        parameters: params,
-        declaredReturnType: fnType.returnType,
-        argumentTypes: argTypes,
-        contextReturnType: InferenceContext.getContext(node),
+      List<DartType> typeArgs = _inferUpwards(
+        rawType: fnType,
+        argumentList: argumentList,
+        contextType: InferenceContext.getContext(node),
         isConst: isConst,
-        errorReporter: _errorReporter,
         errorNode: errorNode,
       );
       if (node is InvocationExpressionImpl) {
@@ -247,6 +238,193 @@ class InvocationInferenceHelper {
         _flowAnalysis?.flow?.handleExit();
       }
     }
+  }
+
+  void resolveFunctionExpressionInvocation({
+    @required FunctionExpressionInvocationImpl node,
+    @required FunctionType rawType,
+  }) {
+    _resolveInvocation(
+      rawType: rawType,
+      typeArgumentList: node.typeArguments,
+      argumentList: node.argumentList,
+      contextType: InferenceContext.getContext(node),
+      isConst: false,
+      errorNode: node.function,
+    );
+
+    node.typeArgumentTypes = _typeArgumentTypes;
+    node.staticInvokeType = _invokeType;
+  }
+
+  List<DartType> _inferDownwards({
+    @required FunctionType rawType,
+    @required DartType contextType,
+    @required bool isConst,
+    @required AstNode errorNode,
+  }) {
+    return _typeSystem.inferGenericFunctionOrType(
+      typeParameters: rawType.typeFormals,
+      parameters: const <ParameterElement>[],
+      declaredReturnType: rawType.returnType,
+      argumentTypes: const <DartType>[],
+      contextReturnType: contextType,
+      downwards: true,
+      isConst: isConst,
+      errorReporter: _errorReporter,
+      errorNode: errorNode,
+    );
+  }
+
+  /// TODO(scheglov) Instead of [isConst] sanitize [contextType] before calling.
+  List<DartType> _inferUpwards({
+    @required FunctionType rawType,
+    @required DartType contextType,
+    @required ArgumentList argumentList,
+    @required bool isConst,
+    @required AstNode errorNode,
+  }) {
+    // Get the parameters that correspond to the uninstantiated generic.
+    List<ParameterElement> rawParameters =
+        ResolverVisitor.resolveArgumentsToParameters(
+            argumentList, rawType.parameters, null);
+
+    List<ParameterElement> params = <ParameterElement>[];
+    List<DartType> argTypes = <DartType>[];
+    for (int i = 0, length = rawParameters.length; i < length; i++) {
+      ParameterElement parameter = rawParameters[i];
+      if (parameter != null) {
+        params.add(parameter);
+        argTypes.add(argumentList.arguments[i].staticType);
+      }
+    }
+    var typeArgs = _typeSystem.inferGenericFunctionOrType(
+      typeParameters: rawType.typeFormals,
+      parameters: params,
+      declaredReturnType: rawType.returnType,
+      argumentTypes: argTypes,
+      contextReturnType: contextType,
+      isConst: isConst,
+      errorReporter: _errorReporter,
+      errorNode: errorNode,
+    );
+    return typeArgs;
+  }
+
+  void _resolveArguments(ArgumentList argumentList) {
+    argumentList.accept(_resolver);
+  }
+
+  void _resolveInvocation({
+    @required FunctionType rawType,
+    @required DartType contextType,
+    @required TypeArgumentList typeArgumentList,
+    @required ArgumentList argumentList,
+    @required bool isConst,
+    @required AstNode errorNode,
+  }) {
+    if (typeArgumentList != null) {
+      _resolveInvocationWithTypeArguments(
+        rawType: rawType,
+        typeArgumentList: typeArgumentList,
+        argumentList: argumentList,
+      );
+    } else {
+      _resolveInvocationWithoutTypeArguments(
+        rawType: rawType,
+        contextType: contextType,
+        argumentList: argumentList,
+        isConst: isConst,
+        errorNode: errorNode,
+      );
+    }
+    _setCorrespondingParameters(argumentList, _invokeType);
+  }
+
+  void _resolveInvocationWithoutTypeArguments({
+    @required FunctionType rawType,
+    @required DartType contextType,
+    @required ArgumentList argumentList,
+    @required bool isConst,
+    @required AstNode errorNode,
+  }) {
+    var typeParameters = rawType.typeFormals;
+
+    if (typeParameters.isEmpty) {
+      InferenceContext.setType(argumentList, rawType);
+      _resolveArguments(argumentList);
+
+      _typeArgumentTypes = const <DartType>[];
+      _invokeType = rawType;
+    } else {
+      rawType = _getFreshType(rawType);
+
+      List<DartType> downwardsTypeArguments = _inferDownwards(
+        rawType: rawType,
+        contextType: contextType,
+        isConst: isConst,
+        errorNode: errorNode,
+      );
+
+      var downwardsInvokeType = rawType.instantiate(downwardsTypeArguments);
+      InferenceContext.setType(argumentList, downwardsInvokeType);
+
+      _resolveArguments(argumentList);
+
+      _typeArgumentTypes = _inferUpwards(
+        rawType: rawType,
+        argumentList: argumentList,
+        contextType: contextType,
+        isConst: isConst,
+        errorNode: errorNode,
+      );
+      _invokeType = rawType.instantiate(_typeArgumentTypes);
+    }
+  }
+
+  void _resolveInvocationWithTypeArguments({
+    FunctionType rawType,
+    TypeArgumentList typeArgumentList,
+    ArgumentList argumentList,
+  }) {
+    var typeParameters = rawType.typeFormals;
+
+    if (typeArgumentList.arguments.length != typeParameters.length) {
+      _errorReporter.reportErrorForNode(
+        StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD,
+        typeArgumentList,
+        [
+          rawType,
+          typeParameters.length,
+          typeArgumentList.arguments.length,
+        ],
+      );
+      _typeArgumentTypes = List.filled(
+        typeParameters.length,
+        DynamicTypeImpl.instance,
+      );
+    } else {
+      _typeArgumentTypes = typeArgumentList.arguments
+          .map((typeArgument) => typeArgument.type)
+          .toList(growable: true);
+    }
+
+    _invokeType = rawType.instantiate(_typeArgumentTypes);
+    InferenceContext.setType(argumentList, _invokeType);
+
+    _resolveArguments(argumentList);
+  }
+
+  void _setCorrespondingParameters(
+    ArgumentList argumentList,
+    FunctionType invokeType,
+  ) {
+    var parameters = ResolverVisitor.resolveArgumentsToParameters(
+      argumentList,
+      invokeType.parameters,
+      _errorReporter.reportErrorForNode,
+    );
+    argumentList.correspondingStaticParameters = parameters;
   }
 
   static DartType _getFreshType(DartType type) {

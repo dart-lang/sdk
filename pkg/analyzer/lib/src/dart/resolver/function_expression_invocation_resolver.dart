@@ -46,11 +46,10 @@ class FunctionExpressionInvocationResolver {
       return;
     }
 
-    if (node.typeArguments != null) {
-      _resolveWithTypeArguments(node, rawType);
-    } else {
-      _resolveWithoutTypeArguments(node, rawType);
-    }
+    _inferenceHelper.resolveFunctionExpressionInvocation(
+      node: node,
+      rawType: rawType,
+    );
 
     var returnType = _inferenceHelper.computeInvokeReturnType(
       node.staticInvokeType,
@@ -117,84 +116,6 @@ class FunctionExpressionInvocationResolver {
     }
 
     return null;
-  }
-
-  void _resolveWithoutTypeArguments(
-      FunctionExpressionInvocationImpl node, FunctionType rawType) {
-    var typeParameters = rawType.typeFormals;
-
-    FunctionType invokeType;
-    if (typeParameters.isEmpty) {
-      InferenceContext.setType(node.argumentList, rawType);
-      _resolveArguments(node);
-
-      invokeType = rawType;
-      node.typeArgumentTypes = const <DartType>[];
-      node.staticInvokeType = rawType;
-    } else {
-      DartType inferred = _inferenceHelper.inferArgumentTypesForGeneric(
-          node, rawType, node.typeArguments);
-      // TODO(scheglov) Why `??`, maybe return the raw type?
-      InferenceContext.setType(node.argumentList, inferred ?? rawType);
-      _resolveArguments(node);
-
-      _inferenceHelper.inferGenericInvocationExpression(node, rawType);
-      invokeType = node.staticInvokeType;
-    }
-
-    _setCorrespondingParameters(node, invokeType);
-  }
-
-  void _resolveWithTypeArguments(
-    FunctionExpressionInvocationImpl node,
-    FunctionType rawType,
-  ) {
-    var typeParameters = rawType.typeFormals;
-    var typeArgumentList = node.typeArguments;
-
-    List<DartType> typeArguments;
-    if (typeArgumentList.arguments.length != typeParameters.length) {
-      // TODO(scheglov) The error is suboptimal for this node type.
-      _errorReporter.reportErrorForNode(
-        StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD,
-        node,
-        [
-          rawType,
-          typeParameters.length,
-          typeArgumentList.arguments.length,
-        ],
-      );
-      typeArguments = List.filled(
-        typeParameters.length,
-        DynamicTypeImpl.instance,
-      );
-    } else {
-      typeArguments = typeArgumentList.arguments
-          .map((typeArgument) => typeArgument.type)
-          .toList(growable: true);
-    }
-
-    var invokeType = rawType.instantiate(typeArguments);
-    InferenceContext.setType(node.argumentList, invokeType);
-
-    _resolveArguments(node);
-
-    node.typeArgumentTypes = typeArguments;
-    node.staticInvokeType = invokeType;
-    _setCorrespondingParameters(node, invokeType);
-  }
-
-  void _setCorrespondingParameters(
-    FunctionExpressionInvocation node,
-    FunctionType invokeType,
-  ) {
-    var argumentList = node.argumentList;
-    var parameters = ResolverVisitor.resolveArgumentsToParameters(
-      argumentList,
-      invokeType.parameters,
-      _errorReporter.reportErrorForNode,
-    );
-    argumentList.correspondingStaticParameters = parameters;
   }
 
   /// Inference cannot be done, we still want to fill type argument types.
