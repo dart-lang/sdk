@@ -1470,7 +1470,6 @@ class _Universe {
       environment = Rti._getBindingBase(environment);
     }
 
-    assert(kind == Rti.kindInterface);
     String interfaceName = Rti._getInterfaceName(environment);
     Object rule = _Universe.findRule(universe, interfaceName);
     assert(rule != null);
