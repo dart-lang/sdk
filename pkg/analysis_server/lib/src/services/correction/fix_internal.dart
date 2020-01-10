@@ -11,7 +11,10 @@ import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analysis_server/src/services/correction/base_processor.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_list_literal.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_map_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_null_aware.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_set_literal.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix/dart/top_level_declarations.dart';
 import 'package:analysis_server/src/services/correction/levenshtein.dart';
@@ -54,9 +57,6 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart' hide FixContributor;
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:path/path.dart';
-import 'package:analysis_server/src/services/correction/dart/convert_to_list_literal.dart';
-import 'package:analysis_server/src/services/correction/dart/convert_to_map_literal.dart';
-import 'package:analysis_server/src/services/correction/dart/convert_to_set_literal.dart';
 
 /**
  * A predicate is a one-argument function that returns a boolean value.
@@ -646,6 +646,9 @@ class FixProcessor extends BaseProcessor {
       if (name == LintNames.empty_statements) {
         await _addFix_removeEmptyStatement();
       }
+      if (name == LintNames.hash_and_equals) {
+        await _addFix_addMissingHashOrEquals();
+      }
       if (name == LintNames.no_duplicate_case_values) {
         await _addFix_removeCaseStatement();
       }
@@ -971,6 +974,42 @@ class FixProcessor extends BaseProcessor {
     });
     _addFixFromBuilder(
         changeBuilder, DartFixKind.ADD_MISSING_ENUM_CASE_CLAUSES);
+  }
+
+  Future<void> _addFix_addMissingHashOrEquals() async {
+    final methodDecl = node.thisOrAncestorOfType<MethodDeclaration>();
+    final classDecl = node.thisOrAncestorOfType<ClassDeclaration>();
+    if (methodDecl != null && classDecl != null) {
+      final classElement = classDecl.declaredElement;
+
+      var element;
+      var memberName;
+      if (methodDecl.name.name == 'hashCode') {
+        memberName = '==';
+        element = classElement.lookUpInheritedMethod(
+            memberName, classElement.library);
+      } else {
+        memberName = 'hashCode';
+        element = classElement.lookUpInheritedConcreteGetter(
+            memberName, classElement.library);
+      }
+
+      final location =
+          utils.prepareNewClassMemberLocation(classDecl, (_) => true);
+
+      final changeBuilder = _newDartChangeBuilder();
+      await changeBuilder.addFileEdit(file, (fileBuilder) {
+        fileBuilder.addInsertion(location.offset, (builder) {
+          builder.write(location.prefix);
+          builder.writeOverride(element, invokeSuper: true);
+          builder.write(location.suffix);
+        });
+      });
+
+      changeBuilder.setSelection(Position(file, location.offset));
+      _addFixFromBuilder(changeBuilder, DartFixKind.CREATE_METHOD,
+          args: [memberName]);
+    }
   }
 
   Future<void> _addFix_addMissingParameter() async {
