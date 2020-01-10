@@ -19,3 +19,7 @@ void goodMethod(int x) {
     print(((String char) => char.length)(char)); // OK
   }
 }
+
+class GoodClass {
+  final int x = 3; // OK
+}

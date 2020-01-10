@@ -50,7 +50,7 @@ class UnnecessaryFinal extends LintRule implements NodeLintRule {
     registry
       ..addFormalParameterList(this, visitor)
       ..addForStatement(this, visitor)
-      ..addVariableDeclaration(this, visitor);
+      ..addVariableDeclarationStatement(this, visitor);
   }
 }
 
@@ -85,9 +85,9 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitVariableDeclaration(VariableDeclaration node) {
-    if (node.isFinal) {
-      rule.reportLint(node.name);
+  void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
+    if (node.variables.isFinal) {
+      rule.reportLint(node.variables);
     }
   }
 }
