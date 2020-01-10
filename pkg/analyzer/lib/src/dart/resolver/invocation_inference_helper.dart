@@ -20,7 +20,6 @@ import 'package:meta/meta.dart';
 
 class InvocationInferenceHelper {
   final ResolverVisitor _resolver;
-  final LibraryElementImpl _definingLibrary;
   final ElementTypeProvider _elementTypeProvider;
   final ErrorReporter _errorReporter;
   final FlowAnalysisHelper _flowAnalysis;
@@ -38,7 +37,6 @@ class InvocationInferenceHelper {
     @required FlowAnalysisHelper flowAnalysis,
     @required TypeSystemImpl typeSystem,
   })  : _resolver = resolver,
-        _definingLibrary = definingLibrary,
         _elementTypeProvider = elementTypeProvider,
         _errorReporter = errorReporter,
         _typeSystem = typeSystem,
@@ -47,16 +45,10 @@ class InvocationInferenceHelper {
 
   /// Compute the return type of the method or function represented by the given
   /// type that is being invoked.
-  DartType /*!*/ computeInvokeReturnType(DartType type,
+  DartType computeInvokeReturnType(DartType type,
       {@required bool isNullAware}) {
-    TypeImpl /*!*/ returnType;
-    if (type is InterfaceType) {
-      MethodElement callMethod = type.lookUpMethod2(
-          FunctionElement.CALL_METHOD_NAME, _definingLibrary);
-      returnType =
-          _elementTypeProvider.safeExecutableType(callMethod)?.returnType ??
-              DynamicTypeImpl.instance;
-    } else if (type is FunctionType) {
+    TypeImpl returnType;
+    if (type is FunctionType) {
       returnType = type.returnType ?? DynamicTypeImpl.instance;
     } else {
       returnType = DynamicTypeImpl.instance;
