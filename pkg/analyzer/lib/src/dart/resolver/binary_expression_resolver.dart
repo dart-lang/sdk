@@ -102,7 +102,11 @@ class BinaryExpressionResolver {
           notEqual: operator == TokenType.BANG_EQ);
     } else {
       if (operator == TokenType.QUESTION_QUESTION) {
-        InferenceContext.setTypeFromNode(left, node);
+        var leftContextType = InferenceContext.getContext(node);
+        if (leftContextType != null && _isNonNullableByDefault) {
+          leftContextType = _typeSystem.makeNullable(leftContextType);
+        }
+        InferenceContext.setType(left, leftContextType);
       }
       // TODO(scheglov) Do we need these checks for null?
       left?.accept(_resolver);
