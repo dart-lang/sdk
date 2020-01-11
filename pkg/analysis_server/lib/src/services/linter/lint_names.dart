@@ -77,5 +77,7 @@ class LintNames {
   static const String unnecessary_new = 'unnecessary_new';
   static const String unnecessary_overrides = 'unnecessary_overrides';
   static const String unnecessary_this = 'unnecessary_this';
+  static const String use_function_type_syntax_for_parameters =
+      'use_function_type_syntax_for_parameters';
   static const String use_rethrow_when_possible = 'use_rethrow_when_possible';
 }

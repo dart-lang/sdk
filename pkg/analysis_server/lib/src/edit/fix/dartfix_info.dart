@@ -89,6 +89,7 @@ a message is displayed and the class is not converted to a mixin.''',
   LintFixInfo.unnecessaryConst,
   LintFixInfo.unnecessaryNew,
   LintFixInfo.unnecessaryThis,
+  LintFixInfo.useFunctionTypeSyntaxForParameters,
   LintFixInfo.useRethrowWhenPossible,
   //
   // Other fixes
@@ -220,7 +221,6 @@ class LintFixInfo extends DartFixInfo {
   // recursive_getters
   // unnecessary_null_in_if_null_operators
   // unrelated_type_equality_checks
-  // use_function_type_syntax_for_parameters
   // valid_regexps
 
   static final alwaysDeclareReturnTypes = LintFixInfo(
@@ -446,6 +446,12 @@ will be converted to
 
   static final unnecessaryThis = LintFixInfo(
       'unnecessary_this', DartFixKind.REMOVE_THIS_EXPRESSION, 'Remove this.',
+      isPedantic: true);
+
+  static final useFunctionTypeSyntaxForParameters = LintFixInfo(
+      'use_function_type_syntax_for_parameters',
+      DartFixKind.CONVERT_TO_GENERIC_FUNCTION_SYNTAX,
+      "Convert into 'Function' syntax",
       isPedantic: true);
 
   static final useRethrowWhenPossible = LintFixInfo('use_rethrow_when_possible',

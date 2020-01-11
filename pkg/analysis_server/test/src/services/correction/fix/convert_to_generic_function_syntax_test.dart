@@ -11,12 +11,13 @@ import 'fix_processor.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ConvertToGenericFunctionSyntaxTest);
+    defineReflectiveTests(PreferGenericFunctionTypeAliasesTest);
+    defineReflectiveTests(UseFunctionTypeSyntaxForParametersTest);
   });
 }
 
 @reflectiveTest
-class ConvertToGenericFunctionSyntaxTest extends FixProcessorLintTest {
+class PreferGenericFunctionTypeAliasesTest extends FixProcessorLintTest {
   @override
   FixKind get kind => DartFixKind.CONVERT_TO_GENERIC_FUNCTION_SYNTAX;
 
@@ -65,6 +66,15 @@ typedef R /*LINT*/F<P, R>(P x);
 typedef F<P, R> = R Function(P x);
 ''');
   }
+}
+
+@reflectiveTest
+class UseFunctionTypeSyntaxForParametersTest extends FixProcessorLintTest {
+  @override
+  FixKind get kind => DartFixKind.CONVERT_TO_GENERIC_FUNCTION_SYNTAX;
+
+  @override
+  String get lintCode => LintNames.use_function_type_syntax_for_parameters;
 
   test_functionTypedParameter_noParameterTypes() async {
     await resolveTestUnit('''

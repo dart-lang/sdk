@@ -751,6 +751,9 @@ class FixProcessor extends BaseProcessor {
       if (name == LintNames.unnecessary_this) {
         await _addFix_removeThisExpression();
       }
+      if (name == LintNames.use_function_type_syntax_for_parameters) {
+        await _addFix_convertToGenericFunctionSyntax();
+      }
       if (name == LintNames.use_rethrow_when_possible) {
         await _addFix_replaceWithRethrow();
       }
