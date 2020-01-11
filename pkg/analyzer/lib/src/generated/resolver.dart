@@ -23,6 +23,7 @@ import 'package:analyzer/src/dart/element/member.dart'
 import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
+import 'package:analyzer/src/dart/resolver/binary_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/function_expression_invocation_resolver.dart';
@@ -207,6 +208,7 @@ class ResolverVisitor extends ScopedVisitor {
   /// Helper for resolving [ListLiteral] and [SetOrMapLiteral].
   TypedLiteralResolver _typedLiteralResolver;
 
+  BinaryExpressionResolver _binaryExpressionResolver;
   FunctionExpressionInvocationResolver _functionExpressionInvocationResolver;
   PrefixExpressionResolver _prefixExpressionResolver;
 
@@ -335,6 +337,12 @@ class ResolverVisitor extends ScopedVisitor {
       flowAnalysis: _flowAnalysis,
       errorReporter: errorReporter,
       typeSystem: typeSystem,
+    );
+    this._binaryExpressionResolver = BinaryExpressionResolver(
+      resolver: this,
+      promoteManager: _promoteManager,
+      flowAnalysis: _flowAnalysis,
+      elementTypeProvider: _elementTypeProvider,
     );
     this._functionExpressionInvocationResolver =
         FunctionExpressionInvocationResolver(
@@ -642,92 +650,7 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitBinaryExpression(BinaryExpression node) {
-    TokenType operator = node.operator.type;
-    Expression left = node.leftOperand;
-    Expression right = node.rightOperand;
-    var flow = _flowAnalysis?.flow;
-
-    if (operator == TokenType.AMPERSAND_AMPERSAND) {
-      InferenceContext.setType(left, typeProvider.boolType);
-      InferenceContext.setType(right, typeProvider.boolType);
-
-      // TODO(scheglov) Do we need these checks for null?
-      left?.accept(this);
-
-      if (_flowAnalysis != null) {
-        flow?.logicalBinaryOp_rightBegin(left, isAnd: true);
-        _flowAnalysis.checkUnreachableNode(right);
-        right.accept(this);
-        flow?.logicalBinaryOp_end(node, right, isAnd: true);
-      } else {
-        _promoteManager.visitBinaryExpression_and_rhs(
-          left,
-          right,
-          () {
-            right.accept(this);
-          },
-        );
-      }
-
-      node.accept(elementResolver);
-    } else if (operator == TokenType.BAR_BAR) {
-      InferenceContext.setType(left, typeProvider.boolType);
-      InferenceContext.setType(right, typeProvider.boolType);
-
-      left?.accept(this);
-
-      flow?.logicalBinaryOp_rightBegin(left, isAnd: false);
-      _flowAnalysis?.checkUnreachableNode(right);
-      right.accept(this);
-      flow?.logicalBinaryOp_end(node, right, isAnd: false);
-
-      node.accept(elementResolver);
-    } else if (operator == TokenType.BANG_EQ || operator == TokenType.EQ_EQ) {
-      left.accept(this);
-      _flowAnalysis?.flow?.equalityOp_rightBegin(left);
-      right.accept(this);
-      node.accept(elementResolver);
-      _flowAnalysis?.flow?.equalityOp_end(node, right,
-          notEqual: operator == TokenType.BANG_EQ);
-    } else {
-      if (operator == TokenType.QUESTION_QUESTION) {
-        InferenceContext.setTypeFromNode(left, node);
-      }
-      left?.accept(this);
-
-      // Call ElementResolver.visitBinaryExpression to resolve the user-defined
-      // operator method, if applicable.
-      node.accept(elementResolver);
-
-      if (operator == TokenType.QUESTION_QUESTION) {
-        // Set the right side, either from the context, or using the information
-        // from the left side if it is more precise.
-        DartType contextType = InferenceContext.getContext(node);
-        DartType leftType = left?.staticType;
-        if (contextType == null || contextType.isDynamic) {
-          contextType = leftType;
-        }
-        InferenceContext.setType(right, contextType);
-      } else {
-        var invokeType = node.staticInvokeType;
-        if (invokeType != null && invokeType.parameters.isNotEmpty) {
-          // If this is a user-defined operator, set the right operand context
-          // using the operator method's parameter type.
-          var rightParam = invokeType.parameters[0];
-          InferenceContext.setType(
-              right, _elementTypeProvider.getVariableType(rightParam));
-        }
-      }
-
-      if (operator == TokenType.QUESTION_QUESTION) {
-        flow?.ifNullExpression_rightBegin(node.leftOperand);
-        right.accept(this);
-        flow?.ifNullExpression_end();
-      } else {
-        right?.accept(this);
-      }
-    }
-    node.accept(typeAnalyzer);
+    _binaryExpressionResolver.resolve(node);
   }
 
   @override

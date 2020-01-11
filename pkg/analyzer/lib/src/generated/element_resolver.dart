@@ -206,16 +206,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitBinaryExpression(BinaryExpression node) {
-    Token operator = node.operator;
-    if (operator.isUserDefinableOperator) {
-      _resolveBinaryExpression(node, operator.lexeme);
-    } else if (operator.type == TokenType.BANG_EQ) {
-      _resolveBinaryExpression(node, TokenType.EQ_EQ.lexeme);
-    }
-  }
-
-  @override
   void visitBreakStatement(BreakStatement node) {
     node.target = _lookupBreakOrContinueTarget(node, node.label, false);
   }
@@ -1338,61 +1328,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
       ArgumentList argumentList, List<ParameterElement> parameters) {
     return ResolverVisitor.resolveArgumentsToParameters(
         argumentList, parameters, _errorReporter.reportErrorForNode);
-  }
-
-  void _resolveBinaryExpression(BinaryExpression node, String methodName) {
-    Expression leftOperand = node.leftOperand;
-
-    if (leftOperand is ExtensionOverride) {
-      ExtensionElement extension = leftOperand.extensionName.staticElement;
-      MethodElement member = extension.getMethod(methodName);
-      if (member == null) {
-        _errorReporter.reportErrorForToken(
-          CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR,
-          node.operator,
-          [methodName, extension.name],
-        );
-      }
-      node.staticElement = member;
-      return;
-    }
-
-    DartType leftType = _getStaticType(leftOperand);
-
-    if (identical(leftType, NeverTypeImpl.instance)) {
-      _resolver.errorReporter.reportErrorForNode(
-        StaticWarningCode.INVALID_USE_OF_NEVER_VALUE,
-        leftOperand,
-      );
-      return;
-    }
-
-    ResolutionResult result = _typePropertyResolver.resolve(
-      receiver: leftOperand,
-      receiverType: leftType,
-      name: methodName,
-      receiverErrorNode: leftOperand,
-      nameErrorNode: node,
-    );
-
-    node.staticElement = result.getter;
-    node.staticInvokeType =
-        _elementTypeProvider.safeExecutableType(result.getter);
-    if (_shouldReportInvalidMember(leftType, result)) {
-      if (leftOperand is SuperExpression) {
-        _errorReporter.reportErrorForToken(
-          StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR,
-          node.operator,
-          [methodName, leftType],
-        );
-      } else {
-        _errorReporter.reportErrorForToken(
-          StaticTypeWarningCode.UNDEFINED_OPERATOR,
-          node.operator,
-          [methodName, leftType],
-        );
-      }
-    }
   }
 
   /**

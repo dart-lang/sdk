@@ -442,57 +442,6 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     _listener.assertNoErrors();
   }
 
-  test_visitBinaryExpression_bangEq() async {
-    // String i;
-    // var j;
-    // i == j
-    InterfaceType stringType = _typeProvider.stringType;
-    SimpleIdentifier left = AstTestFactory.identifier3("i");
-    left.staticType = stringType;
-    BinaryExpression expression = AstTestFactory.binaryExpression(
-        left, TokenType.BANG_EQ, AstTestFactory.identifier3("j"));
-    _resolveNode(expression);
-    var stringElement = stringType.element;
-    expect(expression.staticElement, isNotNull);
-    expect(
-        expression.staticElement,
-        stringElement.lookUpMethod(
-            TokenType.EQ_EQ.lexeme, stringElement.library));
-    _listener.assertNoErrors();
-  }
-
-  test_visitBinaryExpression_eq() async {
-    // String i;
-    // var j;
-    // i == j
-    InterfaceType stringType = _typeProvider.stringType;
-    SimpleIdentifier left = AstTestFactory.identifier3("i");
-    left.staticType = stringType;
-    BinaryExpression expression = AstTestFactory.binaryExpression(
-        left, TokenType.EQ_EQ, AstTestFactory.identifier3("j"));
-    _resolveNode(expression);
-    var stringElement = stringType.element;
-    expect(
-        expression.staticElement,
-        stringElement.lookUpMethod(
-            TokenType.EQ_EQ.lexeme, stringElement.library));
-    _listener.assertNoErrors();
-  }
-
-  test_visitBinaryExpression_plus() async {
-    // num i;
-    // var j;
-    // i + j
-    InterfaceType numType = _typeProvider.numType;
-    SimpleIdentifier left = AstTestFactory.identifier3("i");
-    left.staticType = numType;
-    BinaryExpression expression = AstTestFactory.binaryExpression(
-        left, TokenType.PLUS, AstTestFactory.identifier3("j"));
-    _resolveNode(expression);
-    expect(expression.staticElement, numType.getMethod('+'));
-    _listener.assertNoErrors();
-  }
-
   test_visitBreakStatement_withLabel() async {
     // loop: while (true) {
     //   break loop;
