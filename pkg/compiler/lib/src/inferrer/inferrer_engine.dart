@@ -208,7 +208,7 @@ class InferrerEngine {
     assert(validCallType(callType, node, selector));
     switch (callType) {
       case CallType.access:
-        data.setTypeMask(node, mask);
+        data.setReceiverTypeMask(node, mask);
         break;
       case CallType.indirectAccess:
         // indirect access is not diretly recorded in the result data.
@@ -728,7 +728,7 @@ class InferrerEngine {
   /// inputs must be added or removed. If [init] is false, parameters are
   /// added to the work queue.
   void updateParameterInputs(TypeInformation caller, MemberEntity callee,
-      ArgumentsTypes arguments, Selector selector, AbstractValue mask,
+      ArgumentsTypes arguments, Selector selector,
       {bool remove, bool addToQueue: true}) {
     if (callee.name == Identifiers.noSuchMethod_) return;
     if (callee.isField) {
@@ -961,6 +961,7 @@ class InferrerEngine {
     if (closedWorld.includesClosureCall(selector, mask)) {
       sideEffectsBuilder.setAllSideEffectsAndDependsOnSomething();
     }
+
     closedWorld.locateMembers(selector, mask).forEach((callee) {
       _updateSideEffects(sideEffectsBuilder, selector, callee);
     });
@@ -1324,8 +1325,7 @@ class KernelGlobalTypeInferenceElementData
   /// objects in a debugging data stream.
   static const String tag = 'global-type-inference-element-data';
 
-  // TODO(johnniwinther): Rename this together with [typeOfSend].
-  Map<ir.TreeNode, AbstractValue> _sendMap;
+  Map<ir.TreeNode, AbstractValue> _receiverMap;
 
   Map<ir.ForInStatement, AbstractValue> _iteratorMap;
   Map<ir.ForInStatement, AbstractValue> _currentMap;
@@ -1333,8 +1333,8 @@ class KernelGlobalTypeInferenceElementData
 
   KernelGlobalTypeInferenceElementData();
 
-  KernelGlobalTypeInferenceElementData.internal(
-      this._sendMap, this._iteratorMap, this._currentMap, this._moveNextMap);
+  KernelGlobalTypeInferenceElementData.internal(this._receiverMap,
+      this._iteratorMap, this._currentMap, this._moveNextMap);
 
   /// Deserializes a [GlobalTypeInferenceElementData] object from [source].
   factory KernelGlobalTypeInferenceElementData.readFromDataSource(
@@ -1370,7 +1370,7 @@ class KernelGlobalTypeInferenceElementData
     sink.inMemberContext(context, () {
       sink.begin(tag);
       sink.writeTreeNodeMapInContext(
-          _sendMap,
+          _receiverMap,
           (AbstractValue value) =>
               abstractValueDomain.writeAbstractValueToDataSink(sink, value),
           allowNull: true);
@@ -1395,10 +1395,10 @@ class KernelGlobalTypeInferenceElementData
 
   @override
   GlobalTypeInferenceElementData compress() {
-    if (_sendMap != null) {
-      _sendMap.removeWhere(_mapsToNull);
-      if (_sendMap.isEmpty) {
-        _sendMap = null;
+    if (_receiverMap != null) {
+      _receiverMap.removeWhere(_mapsToNull);
+      if (_receiverMap.isEmpty) {
+        _receiverMap = null;
       }
     }
     if (_iteratorMap != null) {
@@ -1419,7 +1419,7 @@ class KernelGlobalTypeInferenceElementData
         _moveNextMap = null;
       }
     }
-    if (_sendMap == null &&
+    if (_receiverMap == null &&
         _iteratorMap == null &&
         _currentMap == null &&
         _moveNextMap == null) {
@@ -1429,9 +1429,9 @@ class KernelGlobalTypeInferenceElementData
   }
 
   @override
-  AbstractValue typeOfSend(ir.TreeNode node) {
-    if (_sendMap == null) return null;
-    return _sendMap[node];
+  AbstractValue typeOfReceiver(ir.TreeNode node) {
+    if (_receiverMap == null) return null;
+    return _receiverMap[node];
   }
 
   void setCurrentTypeMask(ir.ForInStatement node, AbstractValue mask) {
@@ -1467,15 +1467,9 @@ class KernelGlobalTypeInferenceElementData
     return _iteratorMap[node];
   }
 
-  void setTypeMask(ir.TreeNode node, AbstractValue mask) {
-    _sendMap ??= <ir.TreeNode, AbstractValue>{};
-    _sendMap[node] = mask;
-  }
-
-  @override
-  AbstractValue typeOfGetter(ir.TreeNode node) {
-    if (_sendMap == null) return null;
-    return _sendMap[node];
+  void setReceiverTypeMask(ir.TreeNode node, AbstractValue mask) {
+    _receiverMap ??= <ir.TreeNode, AbstractValue>{};
+    _receiverMap[node] = mask;
   }
 }
 

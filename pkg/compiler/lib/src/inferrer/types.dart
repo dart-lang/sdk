@@ -52,13 +52,9 @@ abstract class GlobalTypeInferenceMemberResult {
   /// The inferred return type when this result belongs to a function element.
   AbstractValue get returnType;
 
-  /// Returns the type of a send [node].
-  // TODO(johnniwinther): Rename this.
-  AbstractValue typeOfSend(ir.TreeNode node);
-
-  /// Returns the type of the getter in a complex send-set [node], for example,
-  /// the type of the `a.f` getter in `a.f += b`.
-  AbstractValue typeOfGetter(ir.TreeNode node);
+  /// Returns the receiver type of a node that is a property get, set, or method
+  /// invocation.
+  AbstractValue typeOfReceiver(ir.TreeNode node);
 
   /// Returns the type of the iterator in a [loop].
   AbstractValue typeOfIterator(ir.TreeNode node);
@@ -88,8 +84,7 @@ abstract class GlobalTypeInferenceElementData {
   GlobalTypeInferenceElementData compress();
 
   // TODO(johnniwinther): Remove this. Maybe split by access/invoke.
-  AbstractValue typeOfSend(ir.TreeNode node);
-  AbstractValue typeOfGetter(ir.TreeNode node);
+  AbstractValue typeOfReceiver(ir.TreeNode node);
 
   AbstractValue typeOfIterator(ir.TreeNode node);
 
@@ -443,9 +438,7 @@ class GlobalTypeInferenceMemberResultImpl
   }
 
   @override
-  AbstractValue typeOfSend(ir.Node node) => _data?.typeOfSend(node);
-  @override
-  AbstractValue typeOfGetter(ir.Node node) => _data?.typeOfGetter(node);
+  AbstractValue typeOfReceiver(ir.Node node) => _data?.typeOfReceiver(node);
   @override
   AbstractValue typeOfIterator(ir.Node node) => _data?.typeOfIterator(node);
   @override
@@ -524,10 +517,7 @@ class TrivialGlobalTypeInferenceMemberResult
   AbstractValue typeOfIterator(ir.Node node) => null;
 
   @override
-  AbstractValue typeOfGetter(ir.Node node) => null;
-
-  @override
-  AbstractValue typeOfSend(ir.Node node) => null;
+  AbstractValue typeOfReceiver(ir.Node node) => null;
 
   @override
   bool get isCalledOnce => false;
@@ -568,10 +558,7 @@ class DeadFieldGlobalTypeInferenceResult
   AbstractValue typeOfIterator(ir.Node node) => null;
 
   @override
-  AbstractValue typeOfGetter(ir.Node node) => null;
-
-  @override
-  AbstractValue typeOfSend(ir.Node node) => null;
+  AbstractValue typeOfReceiver(ir.Node node) => null;
 
   @override
   bool get isCalledOnce => false;
@@ -612,10 +599,7 @@ class DeadMethodGlobalTypeInferenceResult
   AbstractValue typeOfIterator(ir.Node node) => null;
 
   @override
-  AbstractValue typeOfGetter(ir.Node node) => null;
-
-  @override
-  AbstractValue typeOfSend(ir.Node node) => null;
+  AbstractValue typeOfReceiver(ir.Node node) => null;
 
   @override
   bool get isCalledOnce => false;
