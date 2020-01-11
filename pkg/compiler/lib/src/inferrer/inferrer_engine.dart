@@ -675,7 +675,8 @@ class InferrerEngine {
       if (info is StaticCallSiteTypeInformation) {
         MemberEntity member = info.calledElement;
         inferredDataBuilder.addFunctionCalledInLoop(member);
-      } else if (info.mask != null &&
+      } else if (info is DynamicCallSiteTypeInformation &&
+          info.mask != null &&
           abstractValueDomain.containsAll(info.mask).isDefinitelyFalse) {
         // For instance methods, we only register a selector called in a
         // loop if it is a typed selector, to avoid marking too many
@@ -898,7 +899,6 @@ class InferrerEngine {
   TypeInformation registerCalledMember(
       Object node,
       Selector selector,
-      AbstractValue mask,
       MemberEntity caller,
       MemberEntity callee,
       ArgumentsTypes arguments,
@@ -911,7 +911,6 @@ class InferrerEngine {
         caller,
         callee,
         selector,
-        mask,
         arguments,
         inLoop);
     // If this class has a 'call' method then we have essentially created a
@@ -953,8 +952,8 @@ class InferrerEngine {
       {bool inLoop,
       bool isConditional}) {
     if (selector.isClosureCall) {
-      return registerCalledClosure(node, selector, mask, receiverType, caller,
-          arguments, sideEffectsBuilder,
+      return registerCalledClosure(
+          node, selector, receiverType, caller, arguments, sideEffectsBuilder,
           inLoop: inLoop);
     }
 
@@ -1034,7 +1033,6 @@ class InferrerEngine {
   TypeInformation registerCalledClosure(
       ir.Node node,
       Selector selector,
-      AbstractValue mask,
       TypeInformation closure,
       MemberEntity caller,
       ArgumentsTypes arguments,
@@ -1047,7 +1045,6 @@ class InferrerEngine {
         node,
         caller,
         selector,
-        mask,
         closure,
         arguments,
         inLoop);
