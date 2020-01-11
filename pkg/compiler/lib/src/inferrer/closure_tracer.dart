@@ -7,7 +7,6 @@ library compiler.src.inferrer.closure_tracer;
 import '../common/names.dart' show Identifiers, Names;
 import '../elements/entities.dart';
 import '../universe/selector.dart' show Selector;
-import 'abstract_value_domain.dart';
 import 'debug.dart' as debug;
 import 'inferrer_engine.dart';
 import 'node_tracer.dart';
@@ -56,14 +55,13 @@ class ClosureTracerVisitor extends TracerVisitor {
 
   void _analyzeCall(CallSiteTypeInformation info) {
     Selector selector = info.selector;
-    AbstractValue mask = info.mask;
     tracedElements.forEach((FunctionEntity functionElement) {
       if (!selector.callStructure
           .signatureApplies(functionElement.parameterStructure)) {
         return;
       }
       inferrer.updateParameterInputs(
-          info, functionElement, info.arguments, selector, mask,
+          info, functionElement, info.arguments, selector,
           remove: false, addToQueue: false);
     });
   }

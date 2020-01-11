@@ -983,8 +983,7 @@ class StaticCallSiteTypeInformation extends CallSiteTypeInformation {
     if (arguments != null) {
       arguments.forEach((info) => info.addUser(this));
     }
-    inferrer.updateParameterInputs(
-        this, calledElement, arguments, selector, mask,
+    inferrer.updateParameterInputs(this, calledElement, arguments, selector,
         remove: false, addToQueue: false);
   }
 
@@ -1196,8 +1195,7 @@ class DynamicCallSiteTypeInformation<T> extends CallSiteTypeInformation {
           inferrer.types.getInferredTypeOfMember(element);
       _addCall(callee);
       callee.addUser(this);
-      inferrer.updateParameterInputs(
-          this, element, arguments, selector, typeMask,
+      inferrer.updateParameterInputs(this, element, arguments, selector,
           remove: false, addToQueue: false);
     }
   }
@@ -1360,8 +1358,7 @@ class DynamicCallSiteTypeInformation<T> extends CallSiteTypeInformation {
             inferrer.types.getInferredTypeOfMember(element);
         _addCall(callee);
         callee.addUser(this);
-        inferrer.updateParameterInputs(
-            this, element, arguments, selector, typeMask,
+        inferrer.updateParameterInputs(this, element, arguments, selector,
             remove: false, addToQueue: true);
       });
 
@@ -1373,8 +1370,7 @@ class DynamicCallSiteTypeInformation<T> extends CallSiteTypeInformation {
             inferrer.types.getInferredTypeOfMember(element);
         _removeCall(callee);
         callee.removeUser(this);
-        inferrer.updateParameterInputs(
-            this, element, arguments, selector, typeMask,
+        inferrer.updateParameterInputs(this, element, arguments, selector,
             remove: true, addToQueue: true);
       });
     }
@@ -1448,8 +1444,7 @@ class DynamicCallSiteTypeInformation<T> extends CallSiteTypeInformation {
           MemberTypeInformation callee =
               inferrer.types.getInferredTypeOfMember(element);
           callee.addCall(caller, _call);
-          inferrer.updateParameterInputs(
-              this, element, arguments, selector, mask,
+          inferrer.updateParameterInputs(this, element, arguments, selector,
               remove: false, addToQueue: true);
         }
       }
