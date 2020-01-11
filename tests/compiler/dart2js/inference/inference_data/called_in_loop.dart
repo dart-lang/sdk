@@ -84,7 +84,7 @@ class Class {
   Class.constructorNotCalledInForLoop();
 
   // TODO(johnniwinther): Should we track instance calls in loops?
-  /*member: Class.instanceCalledInForLoop:*/
+  /*member: Class.instanceCalledInForLoop:loop*/
   instanceCalledInForLoop() {}
 
   /*member: Class.instanceNotCalledInForLoop:*/

@@ -49,7 +49,7 @@ whileNull() {
 /*member: whileNotNull:[exact=JSString]*/
 whileNotNull() {
   var o = '';
-  while (o != null) {
+  while (o /*invoke: [null|exact=JSString]*/ != null) {
     o = o. /*invoke: [exact=JSString]*/ toString();
   }
   return o;
@@ -62,7 +62,7 @@ whileNotNull() {
 /*member: whileNullUnreachable:[exact=JSString]*/
 whileNullUnreachable() {
   var o = '';
-  while (o == null) {
+  while (o /*invoke: [null|exact=JSString]*/ == null) {
     o = o. /*invoke: [null]*/ toString();
   }
   return o;

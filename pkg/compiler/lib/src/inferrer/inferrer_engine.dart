@@ -965,40 +965,18 @@ class InferrerEngine {
       _updateSideEffects(sideEffectsBuilder, selector, callee);
     });
 
-    CallSiteTypeInformation info;
-
-    // We force using indirection for `==` because it is a very common dynamic
-    // call site on many apps.
-    // TODO(sigmund): it would be even better if we could automatically detect
-    // when dynamic calls are growing too big and add the indirection at that
-    // point.
-    if (selector.name == '==') {
-      info = new IndirectDynamicCallSiteTypeInformation(
-          abstractValueDomain,
-          types.currentMember,
-          node,
-          _typeOfSharedDynamicCall(selector, CallStructure.ONE_ARG),
-          caller,
-          selector,
-          mask,
-          receiverType,
-          arguments,
-          inLoop,
-          isConditional);
-    } else {
-      info = new DynamicCallSiteTypeInformation(
-          abstractValueDomain,
-          types.currentMember,
-          callType,
-          node,
-          caller,
-          selector,
-          mask,
-          receiverType,
-          arguments,
-          inLoop,
-          isConditional);
-    }
+    CallSiteTypeInformation info = new DynamicCallSiteTypeInformation(
+        abstractValueDomain,
+        types.currentMember,
+        callType,
+        node,
+        caller,
+        selector,
+        mask,
+        receiverType,
+        arguments,
+        inLoop,
+        isConditional);
     info.addToGraph(this);
     types.allocatedCalls.add(info);
     return info;
@@ -1140,6 +1118,8 @@ class InferrerEngine {
   /// and call sites, we may have a quadratic number of edges in the graph, so
   /// we add a level of indirection to merge the information and keep the graph
   /// smaller.
+  // TODO(sigmund): start using or delete indirection logic.
+  // ignore: unused_element
   DynamicCallSiteTypeInformation _typeOfSharedDynamicCall(
       Selector selector, CallStructure structure) {
     DynamicCallSiteTypeInformation info = _sharedCalls[selector];
