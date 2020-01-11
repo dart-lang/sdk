@@ -782,6 +782,7 @@ m(int? x) {
   x.foo();
 }
 ''', [
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 54, 1),
       error(StaticTypeWarningCode.UNDEFINED_METHOD, 56, 3),
     ]);
   }

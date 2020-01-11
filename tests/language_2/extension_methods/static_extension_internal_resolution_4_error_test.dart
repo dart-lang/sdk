@@ -259,8 +259,6 @@ class B extends A {
       //        ^^^^^^^^^^^^^^^^^^^^^^
       // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
       // [cfe] The method 'methodInExtensionScope' isn't defined for the class 'B'.
-      //        ^^^^^^^^^^^^^^^^^^^^^^
-      // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_METHOD
       checkExtensionValue(t2);
     }
 

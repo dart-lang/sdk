@@ -224,10 +224,12 @@ main(A a) {
 ''', [
       error(StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 57, 3),
     ]);
-    _assertInvalidInvocation(
-      'a.foo(0)',
-      findElement.method('foo'),
-      expectedNameType: '(int) → void',
+    assertMethodInvocation2(
+      findNode.methodInvocation('a.foo(0)'),
+      element: findElement.method('foo'),
+      typeArgumentTypes: [],
+      invokeType: 'void Function(int)',
+      type: 'void',
     );
   }
 
@@ -783,12 +785,15 @@ class B extends A {
               .UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
           71,
           3),
+      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 74, 3),
     ]);
 
-    _assertInvalidInvocation(
-      'foo(0)',
-      findElement.method('foo'),
-      expectedNameType: '(int) → void',
+    assertMethodInvocation2(
+      findNode.methodInvocation('foo(0)'),
+      element: findElement.method('foo'),
+      typeArgumentTypes: [],
+      invokeType: 'void Function()',
+      type: 'void',
     );
   }
 
@@ -1582,19 +1587,6 @@ main() {
     assertType(foo, 'void Function(int)');
   }
 
-  test_noReceiver_parameter_call_nullAware() async {
-    await assertNoErrorsInCode(r'''
-double Function(int) foo;
-
-main() {
-  foo?.call(1);
-}
-    ''');
-
-    var invocation = findNode.methodInvocation('call(1)');
-    assertTypeLegacy(invocation.target);
-  }
-
   test_noReceiver_method_superClass() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -1633,6 +1625,19 @@ class C {
       findElement.method('foo'),
       'void Function(int)',
     );
+  }
+
+  test_noReceiver_parameter_call_nullAware() async {
+    await assertNoErrorsInCode(r'''
+double Function(int) foo;
+
+main() {
+  foo?.call(1);
+}
+    ''');
+
+    var invocation = findNode.methodInvocation('call(1)');
+    assertTypeLegacy(invocation.target);
   }
 
   test_noReceiver_topFunction() async {
