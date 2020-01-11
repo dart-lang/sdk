@@ -791,8 +791,7 @@ bool CompileType::CanComputeIsInstanceOf(NNBDMode mode,
                                          bool is_nullable,
                                          bool* is_instance) {
   ASSERT(is_instance != NULL);
-  // TODO(regis): Take mode into consideration.
-  if (type.IsDynamicType() || type.IsObjectType() || type.IsVoidType()) {
+  if (type.IsTopType(mode)) {
     *is_instance = true;
     return true;
   }
@@ -804,13 +803,32 @@ bool CompileType::CanComputeIsInstanceOf(NNBDMode mode,
   // Consider the compile type of the value.
   const AbstractType& compile_type = *ToAbstractType();
 
-  // The null instance is an instance of Null, of Object, and of dynamic.
+  // 'null' is an instance of Null, Object*, Object?, void, and dynamic.
+  // In addition, 'null' is an instance of Never and Object with legacy testing,
+  // or of any nullable or legacy type with nnbd testing.
+  // It is also an instance of FutureOr<T> if it is an instance of T.
   // Functions that do not explicitly return a value, implicitly return null,
   // except generative constructors, which return the object being constructed.
   // It is therefore acceptable for void functions to return null.
   if (compile_type.IsNullType()) {
-    *is_instance = is_nullable || type.IsObjectType() || type.IsDynamicType() ||
-                   type.IsNullType() || type.IsVoidType();
+    if (mode == NNBDMode::kLegacyLib) {
+      // Using legacy testing.
+      if (!type.IsInstantiated()) {
+        return false;
+      }
+      AbstractType& type_arg = AbstractType::Handle(type.raw());
+      while (type_arg.IsFutureOr(&type_arg)) {
+      }
+      *is_instance =
+          is_nullable || type_arg.IsNullType() || type_arg.Legacy_IsTopType();
+    } else {
+      ASSERT(mode == NNBDMode::kOptedInLib);
+      // Using nnbd testing.
+      if (type.IsUndetermined()) {
+        return false;
+      }
+      *is_instance = is_nullable || type.IsNullable() || type.IsLegacy();
+    }
     return true;
   }
 

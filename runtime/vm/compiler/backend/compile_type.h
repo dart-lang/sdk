@@ -57,6 +57,7 @@ class CompileType : public ZoneAllocated {
     return *this;
   }
 
+  // TODO(regis): Should we also consider type_.nullability() here?
   bool is_nullable() const { return is_nullable_; }
 
   // Return type such that concrete value's type in runtime is guaranteed to

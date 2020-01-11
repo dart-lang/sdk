@@ -1244,7 +1244,7 @@ static RawFunction* ComputeTypeCheckTarget(const Instance& receiver,
   // call originated in a legacy library. Note that the type test against a
   // non-legacy type (even in a legacy library) such as dynamic, void, or Null
   // yield the same result independently of the mode used.
-  NNBDMode mode =
+  const NNBDMode mode =
       type.IsLegacy() ? NNBDMode::kLegacyLib : NNBDMode::kOptedInLib;
   const bool result = receiver.IsInstanceOf(
       mode, type, Object::null_type_arguments(), Object::null_type_arguments());

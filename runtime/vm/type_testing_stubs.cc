@@ -100,18 +100,14 @@ RawCode* TypeTestingStubGenerator::DefaultCodeForType(
   // `null` and patch these later in `Object::FinishInit()`.
   if (!StubCode::HasBeenInitialized()) {
     ASSERT(type.IsType());
-    ASSERT(cid == kDynamicCid || cid == kVoidCid | cid == kNeverCid);
+    ASSERT(cid == kDynamicCid || cid == kVoidCid || cid == kNeverCid);
     return Code::null();
   }
 
-  // TODO(regis): Revisit when type checking mode is not kLegacy anymore.
-  if (cid == kDynamicCid || cid == kVoidCid || cid == kInstanceCid) {
+  if (cid == kDynamicCid || cid == kVoidCid ||
+      (cid == kInstanceCid &&
+       (!FLAG_strong_non_nullable_type_checks || !type.IsNonNullable()))) {
     return StubCode::TopTypeTypeTest().raw();
-  }
-
-  if (cid == kNeverCid) {
-    // TODO(regis): Revisit.
-    return StubCode::StubCode::DefaultTypeTest().raw();
   }
 
   if (type.IsType() || type.IsTypeParameter()) {

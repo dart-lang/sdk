@@ -854,9 +854,9 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr) {
 
   // Build an AssertAssignable if necessary.
   const AbstractType& dst_type = AbstractType::ZoneHandle(zone(), field.type());
-  if (I->argument_type_checks() && !dst_type.IsTopType()) {
+  if (I->argument_type_checks() && !dst_type.IsTopType(target.nnbd_mode())) {
     // Compute if we need to type check the value. Always type check if
-    // not in strong mode or if at a dynamic invocation.
+    // at a dynamic invocation.
     bool needs_check = true;
     if (!instr->interface_target().IsNull()) {
       if (field.is_covariant()) {
@@ -1095,18 +1095,31 @@ RawBool* CallSpecializer::InstanceOfAsBool(
     if (cls.NumTypeArguments() > 0) {
       return Bool::null();
     }
-    // As of Dart 1.5, the Null type is a subtype of (and is more specific than)
-    // any type. However, we are checking instances here and not types. The
-    // null instance is only an instance of Null, Object, and dynamic.
-    // TODO(regis): Consider nullability of type if mode is not kLegacy, or if
-    // strong mode is enabled.
-    const bool is_subtype =
-        cls.IsNullClass()
-            ? (type_class.IsNullClass() || type_class.IsObjectClass() ||
-               type_class.IsDynamicClass())
-            : Class::IsSubtypeOf(mode, cls, Object::null_type_arguments(),
-                                 type_class, Object::null_type_arguments(),
-                                 Heap::kOld);
+    bool is_subtype = false;
+    if (cls.IsNullClass()) {
+      // 'null' is an instance of Null, Object*, Object?, void, and dynamic.
+      // In addition, 'null' is an instance of Never and Object with legacy
+      // testing, or of any nullable or legacy type with nnbd testing.
+      // It is also an instance of FutureOr<T> if it is an instance of T.
+      if (mode == NNBDMode::kLegacyLib) {
+        // Using legacy testing.
+        ASSERT(type.IsInstantiated());
+        AbstractType& type_arg = AbstractType::Handle(type.raw());
+        while (type_arg.IsFutureOr(&type_arg)) {
+        }
+        is_subtype = type_arg.IsNullType() || type_arg.Legacy_IsTopType();
+      } else {
+        ASSERT(mode == NNBDMode::kOptedInLib);
+        // Using nnbd testing.
+        ASSERT(!type.IsUndetermined());
+        is_subtype =
+            type.IsNullable() || type.IsLegacy() || type.NNBD_IsTopType();
+      }
+    } else {
+      is_subtype = Class::IsSubtypeOf(mode, cls, Object::null_type_arguments(),
+                                      type_class, Object::null_type_arguments(),
+                                      Heap::kOld);
+    }
     results->Add(cls.id());
     results->Add(static_cast<intptr_t>(is_subtype));
     if (prev.IsNull()) {
@@ -1134,10 +1147,6 @@ bool CallSpecializer::TypeCheckAsClassEquality(NNBDMode mode,
   // Check if there are subclasses.
   if (CHA::HasSubclasses(type_class)) {
     return false;
-  }
-
-  if (mode != NNBDMode::kLegacyLib) {
-    return false;  // TODO(regis): Implement.
   }
 
   // Private classes cannot be subclassed by later loaded libs.
@@ -1169,7 +1178,15 @@ bool CallSpecializer::TypeCheckAsClassEquality(NNBDMode mode,
         TypeArguments::Handle(type.arguments());
     const bool is_raw_type = type_arguments.IsNull() ||
                              type_arguments.IsRaw(from_index, num_type_params);
-    return is_raw_type;
+    if (!is_raw_type) {
+      return false;
+    }
+  }
+  if (mode == NNBDMode::kOptedInLib && !type.IsNonNullable()) {
+    // A class id check is not sufficient, since a null instance also satisfies
+    // the test against a nullable or legacy type.
+    // TODO(regis): Add a null check in addition to the class id check?
+    return false;
   }
   return true;
 }
@@ -1188,17 +1205,33 @@ bool CallSpecializer::TryOptimizeInstanceOfUsingStaticTypes(
   ASSERT(I->can_use_strong_mode_types());
   ASSERT(Token::IsTypeTestOperator(call->token_kind()));
 
-  if (mode != NNBDMode::kLegacyLib) {
-    return false;  // TODO(regis): Implement.
-  }
-
-  if (type.IsDynamicType() || type.IsObjectType() || !type.IsInstantiated()) {
+  // The goal is to emit code that will determine the result of 'x is type'
+  // depending solely on the fact that x == null or not.
+  // 'null' is an instance of Null, Object*, Object?, void, and dynamic.
+  // In addition, 'null' is an instance of Never and Object with legacy testing,
+  // or of any nullable or legacy type with nnbd testing.
+  // It is also an instance of FutureOr<T> if it is an instance of T.
+  if (mode == NNBDMode::kLegacyLib) {
+    // Using legacy testing of null instance.
+    if (type.Legacy_IsTopType() || !type.IsInstantiated()) {
+      return false;  // Always true or cannot tell.
+    }
+  } else {
+    ASSERT(mode == NNBDMode::kOptedInLib);
+    // Checking whether the receiver is null cannot help in an opted-in library.
+    // Indeed, its static type would have to be nullable to legally hold null.
+    // For the static type to be a subtype of the tested type, the tested type
+    // has to be nullable as well, in which case it makes no difference if the
+    // receiver is null or not.
     return false;
   }
 
   const intptr_t receiver_index = call->FirstArgIndex();
   Value* left_value = call->ArgumentValueAt(receiver_index);
 
+  // If the static type of the receiver is a subtype of the tested type,
+  // replace 'receiver is type' with 'receiver == null' if type is Null
+  // or with 'receiver != null' otherwise.
   if (left_value->Type()->IsSubtypeOf(mode, type)) {
     Definition* replacement = new (Z) StrictCompareInstr(
         call->token_pos(),
@@ -1246,8 +1279,6 @@ void CallSpecializer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
         Smi::Cast(call->ArgumentAt(4)->AsConstant()->value()).Value());
   }
 
-  // TODO(regis): Revisit call_specializer for NNBD.
-
   if (I->can_use_strong_mode_types() &&
       TryOptimizeInstanceOfUsingStaticTypes(nnbd_mode, call, type)) {
     return;
@@ -1281,8 +1312,7 @@ void CallSpecializer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
         Z, InstanceOfAsBool(nnbd_mode, unary_checks, type, results));
     if (as_bool.IsNull() || FLAG_precompiled_mode) {
       if (results->length() == number_of_checks * 2) {
-        const bool can_deopt =
-            SpecializeTestCidsForNumericTypes(nnbd_mode, results, type);
+        const bool can_deopt = SpecializeTestCidsForNumericTypes(results, type);
         if (can_deopt &&
             !speculative_policy_->IsAllowedForInlining(call->deopt_id())) {
           // Guard against repeated speculative inlining.
@@ -1429,7 +1459,6 @@ static void PurgeNegativeTestCidsEntries(ZoneGrowableArray<intptr_t>* results) {
 }
 
 bool CallSpecializer::SpecializeTestCidsForNumericTypes(
-    NNBDMode mode,
     ZoneGrowableArray<intptr_t>* results,
     const AbstractType& type) {
   ASSERT(results->length() >= 2);  // At least on entry.
@@ -1437,11 +1466,10 @@ bool CallSpecializer::SpecializeTestCidsForNumericTypes(
   if ((*results)[0] != kSmiCid) {
     const Class& smi_class = Class::Handle(class_table.At(kSmiCid));
     const Class& type_class = Class::Handle(type.type_class());
-    // TODO(regis): Consider nullability of type if mode is not kLegacy, or if
-    // strong mode is enabled.
+    // When testing '42 is type', the nullability of type is irrelevant.
     const bool smi_is_subtype = Class::IsSubtypeOf(
-        mode, smi_class, Object::null_type_arguments(), type_class,
-        Object::null_type_arguments(), Heap::kOld);
+        NNBDMode::kLegacyLib, smi_class, Object::null_type_arguments(),
+        type_class, Object::null_type_arguments(), Heap::kOld);
     results->Add((*results)[results->length() - 2]);
     results->Add((*results)[results->length() - 2]);
     for (intptr_t i = results->length() - 3; i > 1; --i) {
@@ -1565,12 +1593,12 @@ void TypedDataSpecializer::TryInlineCall(TemplateDartCall<0>* call) {
       value_type = call->ArgumentAt(receiver_index + 2)->Type();
     }
 
-    // TODO(regis): Revisit for NNBD support.
-
     auto& type_class = Class::Handle(zone_);
 #define TRY_INLINE(iface, member_name, type, cid)                              \
   if (!member_name.IsNull()) {                                                 \
-    if (receiver_type->IsAssignableTo(NNBDMode::kLegacyLib, member_name)) {    \
+    const NNBDMode mode =                                                      \
+        member_name.IsLegacy() ? NNBDMode::kLegacyLib : NNBDMode::kOptedInLib; \
+    if (receiver_type->IsAssignableTo(mode, member_name)) {                    \
       if (is_length_getter) {                                                  \
         type_class = member_name.type_class();                                 \
         ReplaceWithLengthGetter(call);                                         \
@@ -1580,7 +1608,7 @@ void TypedDataSpecializer::TryInlineCall(TemplateDartCall<0>* call) {
         ReplaceWithIndexGet(call, cid);                                        \
       } else {                                                                 \
         if (!index_type->IsNullableInt()) return;                              \
-        if (!value_type->IsAssignableTo(NNBDMode::kLegacyLib, type)) return;   \
+        if (!value_type->IsAssignableTo(mode, type)) return;                   \
         type_class = member_name.type_class();                                 \
         ReplaceWithIndexSet(call, cid);                                        \
       }                                                                        \

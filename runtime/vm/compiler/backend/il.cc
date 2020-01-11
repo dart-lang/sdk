@@ -3242,21 +3242,14 @@ static bool MayBeBoxableNumber(intptr_t cid) {
 }
 
 static bool MayBeNumber(CompileType* type) {
-  // TODO(regis): Does this function depend on NNBDMode?
   if (type->IsNone()) {
     return false;
   }
   auto& compile_type = AbstractType::Handle(type->ToAbstractType()->raw());
-  if (compile_type.IsType() &&
-      Class::Handle(compile_type.type_class()).IsFutureOrClass()) {
-    const auto& type_args = TypeArguments::Handle(compile_type.arguments());
-    if (type_args.IsNull()) {
-      return true;
-    }
-    compile_type = type_args.TypeAt(0);
+  while (compile_type.IsFutureOr(&compile_type)) {
   }
   // Note that type 'Number' is a subtype of itself.
-  return compile_type.IsTopType() || compile_type.IsTypeParameter() ||
+  return compile_type.Legacy_IsTopType() || compile_type.IsTypeParameter() ||
          compile_type.IsSubtypeOf(NNBDMode::kLegacyLib,
                                   Type::Handle(Type::Number()), Heap::kOld);
 }

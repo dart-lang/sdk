@@ -509,10 +509,12 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     // Smi can be handled by type test cache.
     __ Bind(&not_smi);
 
+    // TODO(regis): Revisit the bound check taking NNBD into consideration.
+    // TODO(alexmarkov): Fix issue #40066.
     // If it's guaranteed, by type-parameter bound, that the type parameter will
     // never have a value of a function type, then we can safely do a 4-type
     // test instead of a 6-type test.
-    auto test_kind = !bound.IsTopType() && !bound.IsFunctionType() &&
+    auto test_kind = !bound.NNBD_IsTopType() && !bound.IsFunctionType() &&
                              !bound.IsDartFunctionType() && bound.IsType()
                          ? kTestTypeSixArgs
                          : kTestTypeFourArgs;
@@ -612,7 +614,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateInlineInstanceof(
 
 // If instanceof type test cannot be performed successfully at compile time and
 // therefore eliminated, optimize it by adding inlined tests for:
-// - NULL -> return type == Null (type is not Object or dynamic).
+// - Null -> see comment below.
 // - Smi -> compile time subtype check (only if dst class is not parameterized).
 // - Class equality (only if class is not parameterized).
 // Inputs:
@@ -627,21 +629,33 @@ void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
                                            NNBDMode mode,
                                            LocationSummary* locs) {
   ASSERT(type.IsFinalized());
-  ASSERT(!type.IsObjectType() && !type.IsDynamicType() && !type.IsVoidType());
+  ASSERT(!type.IsTopType(mode));  // Already checked.
 
   compiler::Label is_instance, is_not_instance;
-  // If type is instantiated and non-parameterized, we can inline code
-  // checking whether the tested instance is a Smi.
-  if (type.IsInstantiated()) {
-    // A null object is only an instance of Null, Object, void and dynamic.
-    // Object void and dynamic have already been checked above (if the type is
-    // instantiated). So we can return false here if the instance is null,
-    // unless the type is Null (and if the type is instantiated).
-    // We can only inline this null check if the type is instantiated at compile
-    // time, since an uninstantiated type at compile time could be Null, Object,
-    // or dynamic at run time.
-    __ CompareObject(RAX, Object::null_object());
-    __ j(EQUAL, type.IsNullType() ? &is_instance : &is_not_instance);
+  // 'null' is an instance of Null, Object*, Object?, void, and dynamic.
+  // In addition, 'null' is an instance of Never and Object with legacy testing,
+  // or of any nullable or legacy type with nnbd testing.
+  // It is also an instance of FutureOr<T> if it is an instance of T.
+  if (mode == NNBDMode::kLegacyLib) {
+    // See Legacy_NullIsInstanceOf().
+    if (type.IsInstantiated()) {
+      AbstractType& type_arg = AbstractType::Handle(type.raw());
+      while (type_arg.IsFutureOr(&type_arg)) {
+      }
+      __ CompareObject(RAX, Object::null_object());
+      __ j(EQUAL, (type_arg.IsNullType() || type_arg.Legacy_IsTopType())
+                      ? &is_instance
+                      : &is_not_instance);
+    }
+  } else {
+    ASSERT(mode == NNBDMode::kOptedInLib);
+    // Test is valid on uninstantiated type, unless nullability is undetermined.
+    // See NNBD_NullIsInstanceOf().
+    if (!type.IsUndetermined()) {
+      __ CompareObject(RAX, Object::null_object());
+      __ j(EQUAL, (type.IsNullable() || type.IsLegacy()) ? &is_instance
+                                                         : &is_not_instance);
+    }
   }
 
   // Generate inline instanceof test.
