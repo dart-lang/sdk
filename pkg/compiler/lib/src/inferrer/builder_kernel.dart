@@ -339,9 +339,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
     Selector selector = new Selector(SelectorKind.CALL, constructor.memberName,
         _elementMap.getCallStructure(node.arguments));
-    AbstractValue mask = _memberData.typeOfReceiver(node);
     handleConstructorInvoke(
-        node, node.arguments, selector, mask, constructor, arguments);
+        node, node.arguments, selector, constructor, arguments);
 
     _inferrer.analyze(constructor);
     if (_inferrer.checkIfExposesThis(constructor)) {
@@ -356,9 +355,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
     Selector selector = new Selector(SelectorKind.CALL, constructor.memberName,
         _elementMap.getCallStructure(node.arguments));
-    AbstractValue mask = _memberData.typeOfReceiver(node);
     handleConstructorInvoke(
-        node, node.arguments, selector, mask, constructor, arguments);
+        node, node.arguments, selector, constructor, arguments);
 
     _inferrer.analyze(constructor);
     if (_inferrer.checkIfExposesThis(constructor)) {
@@ -868,7 +866,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       }
 
       TypeInformation type =
-          handleStaticInvoke(node, selector, mask, info.callMethod, arguments);
+          handleStaticInvoke(node, selector, info.callMethod, arguments);
       FunctionType functionType =
           _elementMap.elementEnvironment.getFunctionType(info.callMethod);
       if (functionType.returnType.containsFreeTypeVariables) {
@@ -1029,8 +1027,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
           _closedWorld.commonElements.streamIteratorConstructor;
 
       /// Synthesize a call to the [StreamIterator] constructor.
-      iteratorType = handleStaticInvoke(node, null, null, constructor,
-          new ArgumentsTypes([expressionType], null));
+      iteratorType = handleStaticInvoke(
+          node, null, constructor, new ArgumentsTypes([expressionType], null));
     } else {
       TypeInformation expressionType = visit(node.iterable);
       Selector iteratorSelector = Selectors.iterator;
@@ -1119,9 +1117,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     ConstructorEntity constructor = _elementMap.getConstructor(node.target);
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
     Selector selector = _elementMap.getSelector(node);
-    AbstractValue mask = _memberData.typeOfReceiver(node);
     return handleConstructorInvoke(
-        node, node.arguments, selector, mask, constructor, arguments);
+        node, node.arguments, selector, constructor, arguments);
   }
 
   /// Try to find the length given to a fixed array constructor call.
@@ -1177,11 +1174,10 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       ir.Node node,
       ir.Arguments arguments,
       Selector selector,
-      AbstractValue mask,
       ConstructorEntity constructor,
       ArgumentsTypes argumentsTypes) {
     TypeInformation returnType =
-        handleStaticInvoke(node, selector, mask, constructor, argumentsTypes);
+        handleStaticInvoke(node, selector, constructor, argumentsTypes);
     if (_elementMap.commonElements.isUnnamedListConstructor(constructor)) {
       // We have `new List(...)`.
       if (arguments.positional.isEmpty && arguments.named.isEmpty) {
@@ -1228,17 +1224,16 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   }
 
   TypeInformation handleStaticInvoke(ir.Node node, Selector selector,
-      AbstractValue mask, MemberEntity element, ArgumentsTypes arguments) {
-    return _inferrer.registerCalledMember(node, selector, mask, _analyzedMember,
+      MemberEntity element, ArgumentsTypes arguments) {
+    return _inferrer.registerCalledMember(node, selector, _analyzedMember,
         element, arguments, _sideEffectsBuilder, inLoop);
   }
 
   TypeInformation handleClosureCall(ir.Node node, Selector selector,
-      AbstractValue mask, MemberEntity member, ArgumentsTypes arguments) {
+      MemberEntity member, ArgumentsTypes arguments) {
     return _inferrer.registerCalledClosure(
         node,
         selector,
-        mask,
         _inferrer.typeOfMember(member),
         _analyzedMember,
         arguments,
@@ -1246,14 +1241,10 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
         inLoop: inLoop);
   }
 
-  TypeInformation handleForeignInvoke(
-      ir.StaticInvocation node,
-      FunctionEntity function,
-      ArgumentsTypes arguments,
-      Selector selector,
-      AbstractValue mask) {
+  TypeInformation handleForeignInvoke(ir.StaticInvocation node,
+      FunctionEntity function, ArgumentsTypes arguments, Selector selector) {
     String name = function.name;
-    handleStaticInvoke(node, selector, mask, function, arguments);
+    handleStaticInvoke(node, selector, function, arguments);
     if (name == Identifiers.JS) {
       NativeBehavior nativeBehavior =
           _elementMap.getNativeBehaviorForJsCall(node);
@@ -1282,16 +1273,15 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     MemberEntity member = _elementMap.getMember(node.target);
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
     Selector selector = _elementMap.getSelector(node);
-    AbstractValue mask = _memberData.typeOfReceiver(node);
     if (_closedWorld.commonElements.isForeign(member)) {
-      return handleForeignInvoke(node, member, arguments, selector, mask);
+      return handleForeignInvoke(node, member, arguments, selector);
     } else if (member.isConstructor) {
       return handleConstructorInvoke(
-          node, node.arguments, selector, mask, member, arguments);
+          node, node.arguments, selector, member, arguments);
     } else {
       assert(member.isFunction, "Unexpected static invocation target: $member");
       TypeInformation type =
-          handleStaticInvoke(node, selector, mask, member, arguments);
+          handleStaticInvoke(node, selector, member, arguments);
       FunctionType functionType =
           _elementMap.elementEnvironment.getFunctionType(member);
       if (functionType.returnType.containsFreeTypeVariables) {
@@ -1311,16 +1301,14 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
 
   @override
   TypeInformation visitStaticGet(ir.StaticGet node) {
-    AbstractValue mask = _memberData.typeOfReceiver(node);
-    assert(mask == null);
-    return createStaticGetTypeInformation(node, node.target, mask: mask);
+    return createStaticGetTypeInformation(node, node.target);
   }
 
-  TypeInformation createStaticGetTypeInformation(ir.Node node, ir.Member target,
-      {AbstractValue mask}) {
+  TypeInformation createStaticGetTypeInformation(
+      ir.Node node, ir.Member target) {
     MemberEntity member = _elementMap.getMember(target);
     return handleStaticInvoke(
-        node, new Selector.getter(member.memberName), mask, member, null);
+        node, new Selector.getter(member.memberName), member, null);
   }
 
   @override
@@ -1330,9 +1318,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       _state.markThisAsExposed();
     }
     MemberEntity member = _elementMap.getMember(node.target);
-    AbstractValue mask = _memberData.typeOfReceiver(node);
-    handleStaticInvoke(node, new Selector.setter(member.memberName), mask,
-        member, new ArgumentsTypes([rhsType], null));
+    handleStaticInvoke(node, new Selector.setter(member.memberName), member,
+        new ArgumentsTypes([rhsType], null));
     return rhsType;
   }
 
@@ -1730,13 +1717,13 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     return _types.nonNullEmpty();
   }
 
-  TypeInformation handleSuperNoSuchMethod(ir.Node node, Selector selector,
-      AbstractValue mask, ArgumentsTypes arguments) {
+  TypeInformation handleSuperNoSuchMethod(
+      ir.Node node, Selector selector, ArgumentsTypes arguments) {
     // Ensure we create a node, to make explicit the call to the
     // `noSuchMethod` handler.
     FunctionEntity noSuchMethod =
         _elementMap.getSuperNoSuchMethod(_analyzedMember.enclosingClass);
-    return handleStaticInvoke(node, selector, mask, noSuchMethod, arguments);
+    return handleStaticInvoke(node, selector, noSuchMethod, arguments);
   }
 
   @override
@@ -1748,10 +1735,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     MemberEntity member =
         _elementMap.getSuperMember(_analyzedMember, node.name);
     assert(member != null, "No member found for super property get: $node");
-    AbstractValue mask = _memberData.typeOfReceiver(node);
     Selector selector = new Selector.getter(_elementMap.getName(node.name));
-    TypeInformation type =
-        handleStaticInvoke(node, selector, mask, member, null);
+    TypeInformation type = handleStaticInvoke(node, selector, member, null);
     if (member.isGetter) {
       FunctionType functionType =
           _elementMap.elementEnvironment.getFunctionType(member);
@@ -1781,10 +1766,9 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     MemberEntity member =
         _elementMap.getSuperMember(_analyzedMember, node.name, setter: true);
     assert(member != null, "No member found for super property set: $node");
-    AbstractValue mask = _memberData.typeOfReceiver(node);
     Selector selector = new Selector.setter(_elementMap.getName(node.name));
     ArgumentsTypes arguments = new ArgumentsTypes([rhsType], null);
-    handleStaticInvoke(node, selector, mask, member, arguments);
+    handleStaticInvoke(node, selector, member, arguments);
     return rhsType;
   }
 
@@ -1798,17 +1782,16 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
         _elementMap.getSuperMember(_analyzedMember, node.name);
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
     Selector selector = _elementMap.getSelector(node);
-    AbstractValue mask = _memberData.typeOfReceiver(node);
     if (member == null) {
       // TODO(johnniwinther): This shouldn't be necessary.
-      return handleSuperNoSuchMethod(node, selector, mask, arguments);
+      return handleSuperNoSuchMethod(node, selector, arguments);
     } else {
       assert(member.isFunction, "Unexpected super invocation target: $member");
       if (isIncompatibleInvoke(member, arguments)) {
-        return handleSuperNoSuchMethod(node, selector, mask, arguments);
+        return handleSuperNoSuchMethod(node, selector, arguments);
       } else {
         TypeInformation type =
-            handleStaticInvoke(node, selector, mask, member, arguments);
+            handleStaticInvoke(node, selector, member, arguments);
         FunctionType functionType =
             _elementMap.elementEnvironment.getFunctionType(member);
         if (functionType.returnType.containsFreeTypeVariables) {
