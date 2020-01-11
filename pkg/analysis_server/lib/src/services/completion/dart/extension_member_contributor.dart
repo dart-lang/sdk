@@ -62,11 +62,13 @@ class ExtensionMemberContributor extends DartCompletionContributor {
         // to ensure that we can return the suggestions from other providers.
         return const <CompletionSuggestion>[];
       }
+      var typeSystem = containingLibrary.typeSystem;
       LibraryScope nameScope = LibraryScope(containingLibrary);
       for (var extension in nameScope.extensions) {
         var extendedType =
             _resolveExtendedType(containingLibrary, extension, type);
-        if (extendedType != null) {
+        if (extendedType != null &&
+            typeSystem.isSubtypeOf(type, extendedType)) {
           // TODO(brianwilkerson) We might want to apply the substitution to the
           //  members of the extension for display purposes.
           _addInstanceMembers(extension);

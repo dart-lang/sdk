@@ -144,6 +144,24 @@ void f(List<int> l) {
 
   test_literal_doesNotMatch() async {
     addTestSource('''
+extension E on String {
+  bool a(int b, int c) {}
+  int get b => 0;
+  set c(int d) {}
+}
+
+void f() {
+  0.^
+}
+''');
+    await computeSuggestions();
+    assertNotSuggested('a');
+    assertNotSuggested('b');
+    assertNotSuggested('c');
+  }
+
+  test_literal_doesNotMatch_generic() async {
+    addTestSource('''
 extension E<T extends num> on List<T> {
   bool a(int b, int c) {}
   int get b => 0;
