@@ -15,6 +15,7 @@ import 'package:analysis_server/src/services/correction/dart/convert_to_list_lit
 import 'package:analysis_server/src/services/correction/dart/convert_to_map_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_null_aware.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_set_literal.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_where_type.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix/dart/top_level_declarations.dart';
 import 'package:analysis_server/src/services/correction/levenshtein.dart';
@@ -4712,6 +4713,11 @@ class FixProcessor extends BaseProcessor {
         await compute(
           ConvertToSetLiteral(),
           DartFixKind.CONVERT_TO_SET_LITERAL,
+        );
+      } else if (name == LintNames.prefer_iterable_whereType) {
+        await compute(
+          ConvertToWhereType(),
+          DartFixKind.CONVERT_TO_WHERE_TYPE,
         );
       } else if (name == LintNames.prefer_null_aware_operators) {
         await compute(

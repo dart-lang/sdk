@@ -80,6 +80,7 @@ a message is displayed and the class is not converted to a mixin.''',
   LintFixInfo.preferIfNullOperators,
   LintFixInfo.preferIsEmpty,
   LintFixInfo.preferIsNotEmpty,
+  LintFixInfo.preferIterableWhereType,
   LintFixInfo.preferSingleQuotes,
   LintFixInfo.preferSpreadCollections,
   LintFixInfo.slashForDocComments,
@@ -215,9 +216,7 @@ class LintFixInfo extends DartFixInfo {
   // avoid_types_as_parameter_names
   // camel_case_extensions
   // library_names
-  // prefer_collection_literals
   // prefer_contains
-  // prefer_iterable_whereType
   // recursive_getters
   // unnecessary_null_in_if_null_operators
   // unrelated_type_equality_checks
@@ -379,6 +378,12 @@ will be converted to
     isDefault: false,
     isPedantic: true,
   );
+
+  static final preferIterableWhereType = LintFixInfo(
+      'prefer_iterable_whereType',
+      DartFixKind.CONVERT_TO_WHERE_TYPE,
+      'Add a return type where possible.',
+      isPedantic: true);
 
   static final preferSingleQuotes = LintFixInfo(
     'prefer_single_quotes',

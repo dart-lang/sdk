@@ -52,13 +52,14 @@ class LintNames {
       'prefer_for_elements_to_map_fromIterable';
   static const String prefer_generic_function_type_aliases =
       'prefer_generic_function_type_aliases';
-  static const String prefer_inlined_adds = 'prefer_inlined_adds';
-  static const String prefer_int_literals = 'prefer_int_literals';
   static const String prefer_if_elements_to_conditional_expressions =
       'prefer_if_elements_to_conditional_expressions';
+  static const String prefer_if_null_operators = 'prefer_if_null_operators';
+  static const String prefer_inlined_adds = 'prefer_inlined_adds';
+  static const String prefer_int_literals = 'prefer_int_literals';
   static const String prefer_is_empty = 'prefer_is_empty';
   static const String prefer_is_not_empty = 'prefer_is_not_empty';
-  static const String prefer_if_null_operators = 'prefer_if_null_operators';
+  static const String prefer_iterable_whereType = 'prefer_iterable_whereType';
   static const String prefer_null_aware_operators =
       'prefer_null_aware_operators';
   static const String prefer_relative_imports = 'prefer_relative_imports';
