@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/workspace/simple.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
@@ -23,8 +22,10 @@ class BasicWorkspace extends SimpleWorkspace {
   BasicWorkspacePackage _theOnlyPackage;
 
   BasicWorkspace._(
-      ResourceProvider provider, String root, ContextBuilder builder)
-      : super(provider, root, builder);
+    ResourceProvider provider,
+    Map<String, List<Folder>> packageMap,
+    String root,
+  ) : super(provider, packageMap, root);
 
   @override
   WorkspacePackage findPackageFor(String filePath) {
@@ -45,12 +46,15 @@ class BasicWorkspace extends SimpleWorkspace {
    * (or [path]'s parent if [path] points to a file).
    */
   static BasicWorkspace find(
-      ResourceProvider provider, String path, ContextBuilder builder) {
+    ResourceProvider provider,
+    Map<String, List<Folder>> packageMap,
+    String path,
+  ) {
     Resource resource = provider.getResource(path);
     if (resource is File) {
       path = resource.parent.path;
     }
-    return BasicWorkspace._(provider, path, builder);
+    return BasicWorkspace._(provider, packageMap, path);
   }
 }
 

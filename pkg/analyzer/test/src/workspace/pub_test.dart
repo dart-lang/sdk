@@ -2,10 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/workspace/pub.dart';
-import 'package:package_config/packages.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -18,34 +16,14 @@ main() {
   });
 }
 
-class MockContextBuilder implements ContextBuilder {
-  Map<String, Packages> packagesMapMap = <String, Packages>{};
-
-  @override
-  Packages createPackageMap(String rootDirectoryPath) =>
-      packagesMapMap[rootDirectoryPath];
-
-  @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-class MockPackages implements Packages {
-  @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
 @reflectiveTest
 class PubWorkspacePackageTest with ResourceProviderMixin {
   PubWorkspace workspace;
 
   setUp() {
-    final contextBuilder = MockContextBuilder();
-    final packages = MockPackages();
-    contextBuilder.packagesMapMap[convertPath('/workspace')] = packages;
-
     newFileWithBytes('/workspace/pubspec.yaml', 'name: project'.codeUnits);
-    workspace = PubWorkspace.find(
-        resourceProvider, convertPath('/workspace'), contextBuilder);
+    workspace =
+        PubWorkspace.find(resourceProvider, {}, convertPath('/workspace'));
     expect(workspace.isBazel, isFalse);
   }
 
@@ -102,29 +80,29 @@ class PubWorkspacePackageTest with ResourceProviderMixin {
 class PubWorkspaceTest with ResourceProviderMixin {
   void test_find_directory() {
     newFileWithBytes('/workspace/pubspec.yaml', 'name: project'.codeUnits);
-    PubWorkspace workspace = PubWorkspace.find(
-        resourceProvider, convertPath('/workspace'), MockContextBuilder());
+    PubWorkspace workspace =
+        PubWorkspace.find(resourceProvider, {}, convertPath('/workspace'));
     expect(workspace.isBazel, isFalse);
     expect(workspace.root, convertPath('/workspace'));
   }
 
   void test_find_fail_notAbsolute() {
     expect(
-        () => PubWorkspace.find(resourceProvider, convertPath('not_absolute'),
-            MockContextBuilder()),
+        () => PubWorkspace.find(
+            resourceProvider, {}, convertPath('not_absolute')),
         throwsA(TypeMatcher<ArgumentError>()));
   }
 
   void test_find_file() {
     newFileWithBytes('/workspace/pubspec.yaml', 'name: project'.codeUnits);
-    PubWorkspace workspace = PubWorkspace.find(resourceProvider,
-        convertPath('/workspace/lib/lib1.dart'), MockContextBuilder());
+    PubWorkspace workspace = PubWorkspace.find(
+        resourceProvider, {}, convertPath('/workspace/lib/lib1.dart'));
     expect(workspace.root, convertPath('/workspace'));
   }
 
   void test_find_missingPubspec() {
-    PubWorkspace workspace = PubWorkspace.find(resourceProvider,
-        convertPath('/workspace/lib/lib1.dart'), MockContextBuilder());
+    PubWorkspace workspace = PubWorkspace.find(
+        resourceProvider, {}, convertPath('/workspace/lib/lib1.dart'));
     expect(workspace, isNull);
   }
 }

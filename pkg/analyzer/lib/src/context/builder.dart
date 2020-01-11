@@ -571,16 +571,16 @@ class ContextBuilder {
       // package:build or Pub.
       return PackageBuildWorkspace.find(
               resourceProvider, packageMap, rootPath) ??
-          PubWorkspace.find(resourceProvider, rootPath, contextBuilder) ??
-          BasicWorkspace.find(resourceProvider, rootPath, contextBuilder);
+          PubWorkspace.find(resourceProvider, packageMap, rootPath) ??
+          BasicWorkspace.find(resourceProvider, packageMap, rootPath);
     }
     Workspace workspace = BazelWorkspace.find(resourceProvider, rootPath);
     workspace ??= GnWorkspace.find(resourceProvider, rootPath);
     workspace ??=
         PackageBuildWorkspace.find(resourceProvider, packageMap, rootPath);
-    workspace ??= PubWorkspace.find(resourceProvider, rootPath, contextBuilder);
-    return workspace ??
-        BasicWorkspace.find(resourceProvider, rootPath, contextBuilder);
+    workspace ??= PubWorkspace.find(resourceProvider, packageMap, rootPath);
+    workspace ??= BasicWorkspace.find(resourceProvider, packageMap, rootPath);
+    return workspace;
   }
 
   /**

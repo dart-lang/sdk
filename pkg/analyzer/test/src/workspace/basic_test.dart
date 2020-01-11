@@ -2,10 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/workspace/basic.dart';
-import 'package:package_config/packages.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -23,13 +21,9 @@ class BasicWorkspacePackageTest with ResourceProviderMixin {
   BasicWorkspace workspace;
 
   setUp() {
-    final contextBuilder = MockContextBuilder();
-    final packages = MockPackages();
-    contextBuilder.packagesMapMap[convertPath('/workspace')] = packages;
-
     newFolder('/workspace');
-    workspace = BasicWorkspace.find(
-        resourceProvider, convertPath('/workspace'), contextBuilder);
+    workspace =
+        BasicWorkspace.find(resourceProvider, {}, convertPath('/workspace'));
     expect(workspace.isBazel, isFalse);
   }
 
@@ -89,39 +83,23 @@ class BasicWorkspaceTest with ResourceProviderMixin {
   }
 
   void test_find_directory() {
-    BasicWorkspace workspace = BasicWorkspace.find(
-        resourceProvider, convertPath('/workspace'), MockContextBuilder());
+    BasicWorkspace workspace =
+        BasicWorkspace.find(resourceProvider, {}, convertPath('/workspace'));
     expect(workspace.root, convertPath('/workspace'));
     expect(workspace.isBazel, isFalse);
   }
 
   void test_find_fail_notAbsolute() {
     expect(
-        () => BasicWorkspace.find(resourceProvider, convertPath('not_absolute'),
-            MockContextBuilder()),
+        () => BasicWorkspace.find(
+            resourceProvider, {}, convertPath('not_absolute')),
         throwsA(TypeMatcher<ArgumentError>()));
   }
 
   void test_find_file() {
-    BasicWorkspace workspace = BasicWorkspace.find(resourceProvider,
-        convertPath('/workspace/project/lib/lib1.dart'), MockContextBuilder());
+    BasicWorkspace workspace = BasicWorkspace.find(
+        resourceProvider, {}, convertPath('/workspace/project/lib/lib1.dart'));
     expect(workspace.root, convertPath('/workspace/project/lib'));
     expect(workspace.isBazel, isFalse);
   }
-}
-
-class MockContextBuilder implements ContextBuilder {
-  Map<String, Packages> packagesMapMap = <String, Packages>{};
-
-  @override
-  Packages createPackageMap(String rootDirectoryPath) =>
-      packagesMapMap[rootDirectoryPath];
-
-  @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-class MockPackages implements Packages {
-  @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

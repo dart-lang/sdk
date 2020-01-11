@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/workspace/simple.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
@@ -19,8 +18,11 @@ class PubWorkspace extends SimpleWorkspace {
   /// Each Pub workspace is itself one package.
   PubWorkspacePackage _theOnlyPackage;
 
-  PubWorkspace._(ResourceProvider provider, String root, ContextBuilder builder)
-      : super(provider, root, builder);
+  PubWorkspace._(
+    ResourceProvider provider,
+    Map<String, List<Folder>> packageMap,
+    String root,
+  ) : super(provider, packageMap, root);
 
   @override
   WorkspacePackage findPackageFor(String filePath) {
@@ -35,7 +37,10 @@ class PubWorkspace extends SimpleWorkspace {
 
   /// Find the pub workspace that contains the given [path].
   static PubWorkspace find(
-      ResourceProvider provider, String filePath, ContextBuilder builder) {
+    ResourceProvider provider,
+    Map<String, List<Folder>> packageMap,
+    String filePath,
+  ) {
     Resource resource = provider.getResource(filePath);
     if (resource is File) {
       filePath = resource.parent.path;
@@ -50,7 +55,7 @@ class PubWorkspace extends SimpleWorkspace {
       if (folder.getChildAssumingFile(_pubspecName).exists) {
         // Found the pubspec.yaml file; this is our root.
         String root = folder.path;
-        return PubWorkspace._(provider, root, builder);
+        return PubWorkspace._(provider, packageMap, root);
       }
 
       // Go up a folder.
