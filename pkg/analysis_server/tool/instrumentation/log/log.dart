@@ -434,7 +434,7 @@ class InstrumentationLog {
             String id = entry.param('id');
             if (id != null) {
               _completionMap
-                  .putIfAbsent(id, () => List<NotificationEntry>())
+                  .putIfAbsent(id, () => <NotificationEntry>[])
                   .add(entry);
             }
           }

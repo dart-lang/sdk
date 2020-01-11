@@ -220,7 +220,7 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
   /**
    * Set of types defined in the API.
    */
-  Set<String> definedTypes = Set<String>();
+  Set<String> definedTypes = <String>{};
 
   /**
    * Mappings from HTML elements to API nodes.
@@ -418,7 +418,7 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
    * boldface.
    */
   void showType(String shortDesc, TypeDecl type, [TypeObject typeForBolding]) {
-    Set<String> fieldsToBold = Set<String>();
+    Set<String> fieldsToBold = <String>{};
     if (typeForBolding != null) {
       for (TypeObjectField field in typeForBolding.fields) {
         fieldsToBold.add(field.name);

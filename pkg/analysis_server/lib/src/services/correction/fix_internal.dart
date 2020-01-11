@@ -117,7 +117,7 @@ class DartFixContributor implements FixContributor {
       final List<Fix> fixesListI = await processorI.compute();
       for (Fix f in fixesListI) {
         if (!map.containsKey(f.kind)) {
-          map[f.kind] = List<Fix>()..add(f);
+          map[f.kind] = <Fix>[]..add(f);
         } else {
           map[f.kind].add(f);
         }
@@ -126,7 +126,7 @@ class DartFixContributor implements FixContributor {
 
     // For each FixKind in the HashMap, union each list together, then return
     // the set of unioned Fixes.
-    final List<Fix> result = List<Fix>();
+    final List<Fix> result = <Fix>[];
     map.forEach((FixKind kind, List<Fix> fixesListJ) {
       if (fixesListJ.first.kind.canBeAppliedTogether()) {
         Fix unionFix = _unionFixList(fixesListJ);
@@ -147,7 +147,7 @@ class DartFixContributor implements FixContributor {
     final SourceChange sourceChange =
         SourceChange(fixList[0].kind.appliedTogetherMessage);
     sourceChange.edits = List.from(fixList[0].change.edits);
-    final List<SourceEdit> edits = List<SourceEdit>();
+    final List<SourceEdit> edits = <SourceEdit>[];
     edits.addAll(fixList[0].change.edits[0].edits);
     sourceChange.linkedEditGroups =
         List.from(fixList[0].change.linkedEditGroups);
@@ -1045,7 +1045,7 @@ class FixProcessor extends BaseProcessor {
           builder.addInsertion(offset, (builder) {
             builder.write(prefix);
             builder.writeParameterMatchingArgument(
-                argument, numRequired, Set<String>());
+                argument, numRequired, <String>{});
             builder.write(suffix);
           });
         });
@@ -1119,8 +1119,8 @@ class FixProcessor extends BaseProcessor {
         await changeBuilder.addFileEdit(context.file, (builder) {
           builder.addInsertion(offset, (builder) {
             builder.write(prefix);
-            builder.writeParameterMatchingArgument(
-                namedExpression, 0, Set<String>());
+            builder
+                .writeParameterMatchingArgument(namedExpression, 0, <String>{});
             builder.write(suffix);
           });
         });
@@ -2856,7 +2856,7 @@ class FixProcessor extends BaseProcessor {
     }
     // may be there is an existing import,
     // but it is with prefix and we don't use this prefix
-    var alreadyImportedWithPrefix = Set<String>();
+    var alreadyImportedWithPrefix = <String>{};
     for (ImportElement imp in unitLibraryElement.imports) {
       // prepare element
       LibraryElement libraryElement = imp.importedLibrary;

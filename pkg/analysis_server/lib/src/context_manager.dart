@@ -120,7 +120,7 @@ class ContextInfo {
    * be watched for changes.  I believe the use case for watching these files
    * is no longer relevant.
    */
-  Set<String> _dependencies = Set<String>();
+  Set<String> _dependencies = <String>{};
 
   /**
    * The analysis driver that was created for the [folder].
@@ -1062,7 +1062,7 @@ class ContextManagerImpl implements ContextManager {
       // TODO(paulberry): We shouldn't be using JavaFile here because it
       // makes the code untestable (see dartbug.com/23909).
       JavaFile packagesDirOrFile = JavaFile(packageRoot);
-      Map<String, List<Folder>> packageMap = Map<String, List<Folder>>();
+      Map<String, List<Folder>> packageMap = <String, List<Folder>>{};
       if (packagesDirOrFile.isDirectory()) {
         for (JavaFile file in packagesDirOrFile.listFiles()) {
           // Ensure symlinks in packages directory are canonicalized

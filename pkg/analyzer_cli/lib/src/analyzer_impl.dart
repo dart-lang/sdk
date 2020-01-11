@@ -43,7 +43,7 @@ class AnalyzerImpl {
   final FileState libraryFile;
 
   /// All files references by the analyzed library.
-  final Set<String> files = Set<String>();
+  final Set<String> files = <String>{};
 
   /// All [AnalysisErrorInfo]s in the analyzed library.
   final List<ErrorsResult> errorsResults = [];
@@ -136,8 +136,8 @@ class AnalyzerImpl {
 
   /// Fills [files].
   void prepareSources(LibraryElement library) {
-    var units = Set<CompilationUnitElement>();
-    var libraries = Set<LibraryElement>();
+    var units = <CompilationUnitElement>{};
+    var libraries = <LibraryElement>{};
     addLibrarySources(library, libraries, units);
   }
 

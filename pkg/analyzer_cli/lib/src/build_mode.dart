@@ -564,7 +564,7 @@ class BuildMode with HasContextMixin {
  * Tracks paths to dependencies, really just a thin api around a Set<String>.
  */
 class DependencyTracker {
-  final _dependencies = Set<String>();
+  final _dependencies = <String>{};
 
   /// The path to the file to create once tracking is done.
   final String outputPath;

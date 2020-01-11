@@ -7,7 +7,7 @@
  */
 class CompletionPerformance {
   final DateTime start = DateTime.now();
-  final Map<String, Duration> _startTimes = Map<String, Duration>();
+  final Map<String, Duration> _startTimes = <String, Duration>{};
   final Stopwatch _stopwatch = Stopwatch();
   final List<OperationPerformance> operations = <OperationPerformance>[];
 

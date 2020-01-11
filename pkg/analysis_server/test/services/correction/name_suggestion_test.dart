@@ -25,7 +25,7 @@ main() {
   var res = sortedNodes as String;
 }
 ''');
-    var excluded = Set<String>.from([]);
+    var excluded = <String>{};
     var expr = findNodeAtString('as String', (node) => node is AsExpression);
     expect(getVariableNameSuggestionsForExpression(null, expr, excluded),
         unorderedEquals(['sortedNodes', 'nodes']));
@@ -38,7 +38,7 @@ main() {
   TreeNode node = null;
 }
 ''');
-    Set<String> excluded = Set<String>.from([]);
+    Set<String> excluded = <String>{};
     DartType expectedType = findLocalVariable('node').type;
     Expression assignedExpression =
         findNodeAtString('null;', (node) => node is NullLiteral);
@@ -58,12 +58,12 @@ main() {
     // first choice for "double" is "d"
     expect(
         getVariableNameSuggestionsForExpression(
-            expectedType, assignedExpression, Set.from([])),
+            expectedType, assignedExpression, {}),
         unorderedEquals(['d']));
     // if "d" is used, try "e", "f", etc
     expect(
         getVariableNameSuggestionsForExpression(
-            expectedType, assignedExpression, Set.from(['d', 'e'])),
+            expectedType, assignedExpression, {'d', 'e'}),
         unorderedEquals(['f']));
   }
 
@@ -78,12 +78,12 @@ main() {
     // first choice for "int" is "i"
     expect(
         getVariableNameSuggestionsForExpression(
-            expectedType, assignedExpression, Set.from([])),
+            expectedType, assignedExpression, {}),
         unorderedEquals(['i']));
     // if "i" is used, try "j", "k", etc
     expect(
         getVariableNameSuggestionsForExpression(
-            expectedType, assignedExpression, Set.from(['i', 'j'])),
+            expectedType, assignedExpression, {'i', 'j'}),
         unorderedEquals(['k']));
   }
 
@@ -98,7 +98,7 @@ main() {
     // first choice for "String" is "s"
     expect(
         getVariableNameSuggestionsForExpression(
-            expectedType, assignedExpression, Set.from([])),
+            expectedType, assignedExpression, {}),
         unorderedEquals(['s']));
   }
 
@@ -110,7 +110,7 @@ class A {
   }
 }
 ''');
-    var excluded = Set<String>.from([]);
+    var excluded = <String>{};
     var expr = findNodeAtString('new List');
     expect(
         getVariableNameSuggestionsForExpression(null, expr, excluded,
@@ -129,7 +129,7 @@ main() {
   print(topNodes[0]);
 }
 ''');
-    var excluded = Set<String>.from([]);
+    var excluded = <String>{};
     var expr = findNodeAtString('topNodes[0]').parent;
     var names = getVariableNameSuggestionsForExpression(null, expr, excluded);
     expect(names, unorderedEquals(['topNode', 'node', 'object']));
@@ -145,7 +145,7 @@ main(p) {
   new NoSuchClass.named();
 }
 ''');
-    var excluded = Set<String>.from([]);
+    var excluded = <String>{};
     expect(
         getVariableNameSuggestionsForExpression(
             null, findNodeAtString('new NoSuchClass()'), excluded),
@@ -171,7 +171,7 @@ main() {
   foo(a: 111, c: 333, b: 222);
 }
 ''');
-    var excluded = Set<String>.from([]);
+    var excluded = <String>{};
     {
       var expr = findNodeAtString('111');
       expect(getVariableNameSuggestionsForExpression(null, expr, excluded),
@@ -196,7 +196,7 @@ main() {
   foo(111, 222, 333);
 }
 ''');
-    var excluded = Set<String>.from([]);
+    var excluded = <String>{};
     {
       var expr = findNodeAtString('111');
       expect(getVariableNameSuggestionsForExpression(null, expr, excluded),
@@ -221,7 +221,7 @@ main() {
   foo(111, 222);
 }
 ''');
-    var excluded = Set<String>.from([]);
+    var excluded = <String>{};
     {
       var expr = findNodeAtString('111');
       expect(getVariableNameSuggestionsForExpression(null, expr, excluded),
@@ -240,7 +240,7 @@ main(p) {
   var res = p.getSortedNodes();
 }
 ''');
-    var excluded = Set<String>.from([]);
+    var excluded = <String>{};
     var expr = findNodeAtString('p.get', (node) => node is MethodInvocation);
     expect(getVariableNameSuggestionsForExpression(null, expr, excluded),
         unorderedEquals(['sortedNodes', 'nodes']));
@@ -252,7 +252,7 @@ main(p) {
   var res = p.sortedNodes();
 }
 ''');
-    var excluded = Set<String>.from([]);
+    var excluded = <String>{};
     var expr = findNodeAtString('p.sorted', (node) => node is MethodInvocation);
     expect(getVariableNameSuggestionsForExpression(null, expr, excluded),
         unorderedEquals(['sortedNodes', 'nodes']));
@@ -264,7 +264,7 @@ main(p) {
   var res = p.get();
 }
 ''');
-    var excluded = Set<String>.from([]);
+    var excluded = <String>{};
     var expr = findNodeAtString('p.get', (node) => node is MethodInvocation);
     expect(getVariableNameSuggestionsForExpression(null, expr, excluded),
         unorderedEquals([]));
@@ -276,7 +276,7 @@ main(p) {
   var res = p.sortedNodes;
 }
 ''');
-    var excluded = Set<String>.from([]);
+    var excluded = <String>{};
     expect(
         getVariableNameSuggestionsForExpression(
             null,
@@ -292,7 +292,7 @@ main(p) {
   p._computeSuffix();
 }
 ''');
-    var excluded = Set<String>.from([]);
+    var excluded = <String>{};
     expect(
         getVariableNameSuggestionsForExpression(
             null,
@@ -313,7 +313,7 @@ main(p) {
   var res = p.q.sortedNodes;
 }
 ''');
-    var excluded = Set<String>.from([]);
+    var excluded = <String>{};
     PropertyAccess expression =
         findNodeAtString('p.q.sorted', (node) => node is PropertyAccess);
     expect(getVariableNameSuggestionsForExpression(null, expression, excluded),
@@ -327,7 +327,7 @@ main(p) {
   var res = sortedNodes;
 }
 ''');
-    var excluded = Set<String>.from([]);
+    var excluded = <String>{};
     var expr = findNodeAtString('sortedNodes;');
     expect(getVariableNameSuggestionsForExpression(null, expr, excluded),
         unorderedEquals(['sortedNodes', 'nodes']));
@@ -340,7 +340,7 @@ main(p) {
   var res = getSortedNodes();
 }
 ''');
-    var excluded = Set<String>.from([]);
+    var excluded = <String>{};
     expect(
         getVariableNameSuggestionsForExpression(
             null,
@@ -352,14 +352,14 @@ main(p) {
 
   void test_forText() {
     {
-      Set<String> excluded = Set<String>.from([]);
+      Set<String> excluded = <String>{};
       List<String> suggestions =
           getVariableNameSuggestionsForText('Goodbye, cruel world!', excluded);
       expect(suggestions,
           unorderedEquals(['goodbyeCruelWorld', 'cruelWorld', 'world']));
     }
     {
-      Set<String> excluded = Set<String>.from(['world']);
+      Set<String> excluded = <String>{'world'};
       List<String> suggestions =
           getVariableNameSuggestionsForText('Goodbye, cruel world!', excluded);
       expect(suggestions,

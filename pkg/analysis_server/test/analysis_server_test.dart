@@ -36,7 +36,7 @@ class AnalysisServerTest with ResourceProviderMixin {
    */
   Future do_not_test_no_duplicate_notifications() async {
     // Subscribe to STATUS so we'll know when analysis is done.
-    server.serverServices = [ServerService.STATUS].toSet();
+    server.serverServices = {ServerService.STATUS};
     newFolder('/foo');
     newFolder('/bar');
     newFile('/foo/foo.dart', content: 'import "../bar/bar.dart";');
@@ -45,7 +45,7 @@ class AnalysisServerTest with ResourceProviderMixin {
     Map<AnalysisService, Set<String>> subscriptions =
         <AnalysisService, Set<String>>{};
     for (AnalysisService service in AnalysisService.VALUES) {
-      subscriptions[service] = <String>[bar.path].toSet();
+      subscriptions[service] = <String>{bar.path};
     }
     // The following line causes the isolate to continue running even though the
     // test completes.
@@ -58,7 +58,7 @@ class AnalysisServerTest with ResourceProviderMixin {
     await server.onAnalysisComplete;
     expect(server.statusAnalyzing, isFalse);
     expect(channel.notificationsReceived, isNotEmpty);
-    Set<String> notificationTypesReceived = Set<String>();
+    Set<String> notificationTypesReceived = <String>{};
     for (Notification notification in channel.notificationsReceived) {
       String notificationType = notification.event;
       switch (notificationType) {
@@ -139,7 +139,7 @@ analyzer:
 ''');
     server.setAnalysisRoots('0', [convertPath('/project')], [], {});
     server.setAnalysisSubscriptions(<AnalysisService, Set<String>>{
-      AnalysisService.NAVIGATION: Set<String>.from([path])
+      AnalysisService.NAVIGATION: <String>{path}
     });
 
     // We respect subscriptions, even for excluded files.
@@ -159,7 +159,7 @@ analyzer:
 ''');
     server.setAnalysisRoots('0', [convertPath('/project')], [], {});
     server.setAnalysisSubscriptions(<AnalysisService, Set<String>>{
-      AnalysisService.NAVIGATION: Set<String>.from([path])
+      AnalysisService.NAVIGATION: <String>{path}
     });
 
     // We respect subscriptions, even for excluded files.

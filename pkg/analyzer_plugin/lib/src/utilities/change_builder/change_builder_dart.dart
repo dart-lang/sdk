@@ -638,7 +638,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   void writeParametersMatchingArguments(ArgumentList argumentList) {
     // TODO(brianwilkerson) Handle the case when there are required parameters
     // after named parameters.
-    Set<String> usedNames = Set<String>();
+    Set<String> usedNames = <String>{};
     List<Expression> arguments = argumentList.arguments;
     bool hasNamedParameters = false;
     for (int i = 0; i < arguments.length; i++) {
@@ -712,7 +712,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
         addLinkedEdit(groupName, (LinkedEditBuilder builder) {
           wroteType = _writeType(type, methodBeingCopied: methodBeingCopied);
           if (wroteType && addSupertypeProposals) {
-            _addSuperTypeProposals(builder, type, Set<DartType>());
+            _addSuperTypeProposals(builder, type, <DartType>{});
           }
         });
       } else {
@@ -947,7 +947,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
    */
   List<String> _getVariableNameSuggestionsForExpression(DartType expectedType,
       Expression assignedExpression, Set<String> excluded) {
-    Set<String> res = Set();
+    Set<String> res = {};
     // use expression
     if (assignedExpression != null) {
       String nameFromExpression =
@@ -1623,7 +1623,7 @@ class DartLinkedEditBuilderImpl extends LinkedEditBuilderImpl
 
   @override
   void addSuperTypesAsSuggestions(DartType type) {
-    _addSuperTypesAsSuggestions(type, Set<DartType>());
+    _addSuperTypesAsSuggestions(type, <DartType>{});
   }
 
   /**

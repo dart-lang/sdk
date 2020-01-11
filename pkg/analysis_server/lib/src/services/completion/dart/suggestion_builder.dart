@@ -92,7 +92,7 @@ mixin ElementSuggestionBuilder {
   /**
    * A set of existing completions used to prevent duplicate suggestions.
    */
-  final Set<String> _completions = Set<String>();
+  final Set<String> _completions = <String>{};
 
   /**
    * A map of element names to suggestions for synthetic getters and setters.

@@ -23,7 +23,7 @@ import 'operation.dart';
 abstract class CommonInputConverter extends Converter<String, Operation> {
   static final ERROR_PREFIX = 'Server responded with an error: ';
   final Logger logger = Logger('InstrumentationInputConverter');
-  final Set<String> eventsSeen = Set<String>();
+  final Set<String> eventsSeen = <String>{};
 
   /**
    * A mapping from request/response id to request json
@@ -256,7 +256,7 @@ abstract class CommonInputConverter extends Converter<String, Operation> {
       return result;
     }
     if (json is Map) {
-      Map<String, dynamic> result = Map<String, dynamic>();
+      Map<String, dynamic> result = <String, dynamic>{};
       json.forEach((origKey, value) {
         result[translateSrcPaths(origKey)] = translateSrcPaths(value);
       });

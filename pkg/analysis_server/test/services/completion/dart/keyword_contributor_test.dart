@@ -370,9 +370,9 @@ class KeywordContributorTest extends DartCompletionContributorTest {
   void assertSuggestKeywords(Iterable<Keyword> expectedKeywords,
       {List<String> pseudoKeywords = NO_PSEUDO_KEYWORDS,
       int relevance = DART_RELEVANCE_KEYWORD}) {
-    Set<String> expectedCompletions = Set<String>();
+    Set<String> expectedCompletions = <String>{};
     Map<String, int> expectedOffsets = <String, int>{};
-    Set<String> actualCompletions = Set<String>();
+    Set<String> actualCompletions = <String>{};
     expectedCompletions.addAll(expectedKeywords.map((keyword) {
       String text = keyword.lexeme;
       if (['import', 'export', 'part'].contains(text)) {

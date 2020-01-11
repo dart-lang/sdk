@@ -80,7 +80,7 @@ class ArgListContributorTest extends DartCompletionContributorTest {
       List<int> requiredParamIndices = const <int>[],
       bool includeColon = true,
       bool includeComma = false}) {
-    List<CompletionSuggestion> expected = List<CompletionSuggestion>();
+    List<CompletionSuggestion> expected = <CompletionSuggestion>[];
     int paramIndex = 0;
     namedArgumentsWithTypes.forEach((String name, String type) {
       String completion = includeColon ? '$name: ' : name;
@@ -106,7 +106,7 @@ class ArgListContributorTest extends DartCompletionContributorTest {
    * Assert that the specified suggestions are the only suggestions.
    */
   void assertSuggestions(List<String> suggestions) {
-    List<CompletionSuggestion> expected = List<CompletionSuggestion>();
+    List<CompletionSuggestion> expected = <CompletionSuggestion>[];
     for (String suggestion in suggestions) {
       // Selection offset should be before any trailing commas.
       int selectionOffset =

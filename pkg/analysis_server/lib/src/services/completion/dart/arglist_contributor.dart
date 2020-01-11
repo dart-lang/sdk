@@ -120,7 +120,7 @@ bool _isInsertingToArgListWithSynthetic(DartCompletionRequest request) {
  */
 Iterable<String> _namedArgs(DartCompletionRequest request) {
   AstNode node = request.target.containingNode;
-  List<String> namedArgs = List<String>();
+  List<String> namedArgs = <String>[];
   if (node is ArgumentList) {
     for (Expression arg in node.arguments) {
       if (arg is NamedExpression) {

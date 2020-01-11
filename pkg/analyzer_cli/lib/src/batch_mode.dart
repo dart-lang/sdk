@@ -43,7 +43,7 @@ class BatchRunner {
       }
       // Prepare arguments.
       var lineArgs = line.split(RegExp('\\s+'));
-      var args = List<String>();
+      var args = <String>[];
       args.addAll(sharedArgs);
       args.addAll(lineArgs);
       args.remove('-b');

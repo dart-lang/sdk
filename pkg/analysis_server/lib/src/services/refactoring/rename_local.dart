@@ -112,7 +112,7 @@ class _ConflictValidatorVisitor extends RecursiveAstVisitor {
   final String newName;
   final LocalElement target;
   final Map<Element, SourceRange> visibleRangeMap;
-  final Set<Element> conflictingLocals = Set<Element>();
+  final Set<Element> conflictingLocals = <Element>{};
 
   _ConflictValidatorVisitor(
     this.result,

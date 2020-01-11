@@ -42,7 +42,7 @@ class AnalysisHighlightsTest extends AbstractAnalysisServerIntegrationTest {
         String highlightedText = text.substring(startIndex, endIndex);
         HighlightRegionType type = region.type;
         if (!highlights.containsKey(type)) {
-          highlights[type] = Set<String>();
+          highlights[type] = <String>{};
         }
         highlights[type].add(highlightedText);
       }

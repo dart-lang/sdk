@@ -644,7 +644,7 @@ class CorrectionUtils {
    * declared at [offset].
    */
   Set<String> findPossibleLocalVariableConflicts(int offset) {
-    Set<String> conflicts = Set<String>();
+    Set<String> conflicts = <String>{};
     AstNode enclosingNode = findNode(offset);
     Block enclosingBlock = enclosingNode.thisOrAncestorOfType<Block>();
     if (enclosingBlock != null) {
@@ -1417,7 +1417,7 @@ class TokenUtils {
 }
 
 class _CollectReferencedUnprefixedNames extends RecursiveAstVisitor {
-  final Set<String> names = Set<String>();
+  final Set<String> names = <String>{};
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {

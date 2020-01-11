@@ -72,7 +72,7 @@ abstract class AbstractAnalysisServer {
   final ServerPerformance performanceDuringStartup = ServerPerformance();
 
   /// The set of the files that are currently priority.
-  final Set<String> priorityFiles = Set<String>();
+  final Set<String> priorityFiles = <String>{};
 
   final List<String> analyzableFilePatterns = <String>[
     '**/*.${AnalysisEngine.SUFFIX_DART}',

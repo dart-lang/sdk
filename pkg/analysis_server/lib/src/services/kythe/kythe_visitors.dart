@@ -1120,7 +1120,7 @@ class KytheDartVisitor extends GeneralizingAstVisitor with OutputUtils {
 /// [KytheEntry] protos.
 mixin OutputUtils {
   /// A set of [String]s which have already had a name [KytheVName] created.
-  final Set<String> nameNodes = Set<String>();
+  final Set<String> nameNodes = <String>{};
 
   String get corpus;
 
@@ -1206,7 +1206,7 @@ mixin OutputUtils {
   KytheEntry addEdge(KytheVName source, String edgeKind, KytheVName target,
       {int ordinalIntValue = _notFound}) {
     if (ordinalIntValue == _notFound) {
-      return addEntry(source, edgeKind, target, "/", List<int>());
+      return addEntry(source, edgeKind, target, "/", <int>[]);
     } else {
       return addEntry(source, edgeKind, target, schema.ORDINAL,
           _encodeInt(ordinalIntValue));

@@ -20,7 +20,7 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/lint/registry.dart';
 
 class PreferMixinFix extends FixLintTask implements FixCodeTask {
-  final classesToConvert = Set<Element>();
+  final classesToConvert = <Element>{};
 
   PreferMixinFix(DartFixListener listener) : super(listener);
 

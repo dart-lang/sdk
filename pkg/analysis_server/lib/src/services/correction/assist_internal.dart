@@ -395,7 +395,7 @@ class AssistProcessor extends BaseProcessor {
       return;
     }
     // prepare excluded names
-    Set<String> excluded = Set<String>();
+    Set<String> excluded = <String>{};
     ScopedNameFinder scopedNameFinder = ScopedNameFinder(offset);
     expression.accept(scopedNameFinder);
     excluded.addAll(scopedNameFinder.locals.keys.toSet());
@@ -1357,7 +1357,7 @@ class AssistProcessor extends BaseProcessor {
     String stateName = '_${widgetName}State';
 
     // Find fields assigned in constructors.
-    var fieldsAssignedInConstructors = Set<FieldElement>();
+    var fieldsAssignedInConstructors = <FieldElement>{};
     for (var member in widgetClass.members) {
       if (member is ConstructorDeclaration) {
         member.accept(_SimpleIdentifierRecursiveAstVisitor((node) {
@@ -1387,8 +1387,8 @@ class AssistProcessor extends BaseProcessor {
     }
 
     // Prepare nodes to move.
-    var nodesToMove = Set<ClassMember>();
-    var elementsToMove = Set<Element>();
+    var nodesToMove = <ClassMember>{};
+    var elementsToMove = <Element>{};
     for (var member in widgetClass.members) {
       if (member is FieldDeclaration && !member.isStatic) {
         for (VariableDeclaration fieldNode in member.fields.variables) {
@@ -2065,7 +2065,7 @@ class AssistProcessor extends BaseProcessor {
       statementPrefix = '';
     }
     // prepare excluded names
-    Set<String> excluded = Set<String>();
+    Set<String> excluded = <String>{};
     ScopedNameFinder scopedNameFinder = ScopedNameFinder(offset);
     isExpression.accept(scopedNameFinder);
     excluded.addAll(scopedNameFinder.locals.keys.toSet());

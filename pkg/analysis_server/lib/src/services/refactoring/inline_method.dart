@@ -150,7 +150,7 @@ String _getMethodSourceForInvocation(
  * at [node].
  */
 Set<String> _getNamesConflictingAt(AstNode node) {
-  Set<String> result = Set<String>();
+  Set<String> result = <String>{};
   // local variables and functions
   {
     SourceRange localsRange = _getLocalsConflictingRange(node);
@@ -166,7 +166,7 @@ Set<String> _getNamesConflictingAt(AstNode node) {
   {
     ClassElement enclosingClassElement = getEnclosingClassElement(node);
     if (enclosingClassElement != null) {
-      Set<ClassElement> elements = Set<ClassElement>();
+      Set<ClassElement> elements = <ClassElement>{};
       elements.add(enclosingClassElement);
       elements.addAll(getSuperClasses(enclosingClassElement));
       for (ClassElement classElement in elements) {
@@ -208,7 +208,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
   _SourcePart _methodExpressionPart;
   _SourcePart _methodStatementsPart;
   final List<_ReferenceProcessor> _referenceProcessors = [];
-  final Set<Element> _alreadyMadeAsync = Set<Element>();
+  final Set<Element> _alreadyMadeAsync = <Element>{};
 
   InlineMethodRefactoringImpl(
       this.searchEngine, this.resolveResult, this.offset)

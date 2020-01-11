@@ -15,8 +15,8 @@ class DartUnitClosingLabelsComputer {
   final LineInfo _lineInfo;
   final CompilationUnit _unit;
   final List<ClosingLabel> _closingLabels = [];
-  final Set<ClosingLabel> hasNestingSet = Set();
-  final Set<ClosingLabel> isSingleLineSet = Set();
+  final Set<ClosingLabel> hasNestingSet = {};
+  final Set<ClosingLabel> isSingleLineSet = {};
 
   DartUnitClosingLabelsComputer(this._lineInfo, this._unit);
 

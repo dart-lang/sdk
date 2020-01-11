@@ -23,7 +23,7 @@ class RenameRefactoringTest extends RefactoringTest {
    * of the given [searches].
    */
   void assertPotentialEdits(List<String> searches) {
-    Set<int> expectedOffsets = Set<int>();
+    Set<int> expectedOffsets = <int>{};
     for (String search in searches) {
       int offset = findOffset(search);
       expectedOffsets.add(offset);

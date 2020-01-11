@@ -219,7 +219,7 @@ class CompoundBenchMarkResult extends BenchMarkResult {
 
     CompoundBenchMarkResult combined = CompoundBenchMarkResult(name);
     List<String> keys =
-        (Set<String>()..addAll(results.keys)..addAll(o.results.keys)).toList();
+        (<String>{}..addAll(results.keys)..addAll(o.results.keys)).toList();
 
     for (String key in keys) {
       combined.add(key, _combine(results[key], o.results[key]));

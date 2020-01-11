@@ -69,7 +69,7 @@ class AbstractBuildModeTest extends BaseTest {
   /// Try to find a appropriate directory to pass to "--dart-sdk" that will
   /// allow summaries to be found.
   String _findSdkDirForSummaries() {
-    Set<String> triedDirectories = Set<String>();
+    Set<String> triedDirectories = <String>{};
     bool isSuitable(String sdkDir) {
       triedDirectories.add(sdkDir);
       return File(path.join(sdkDir, 'lib', '_internal', 'strong.sum'))

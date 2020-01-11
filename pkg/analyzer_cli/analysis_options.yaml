@@ -33,7 +33,7 @@ linter:
     - null_closures
     #- omit_local_variable_types # 273
     - prefer_adjacent_string_concatenation
-    #- prefer_collection_literals # 15
+    - prefer_collection_literals
     - prefer_conditional_assignment
     - prefer_contains
     - prefer_equal_for_default_values

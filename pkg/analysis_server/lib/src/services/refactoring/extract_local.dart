@@ -56,7 +56,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
   String stringLiteralPart;
   final List<SourceRange> occurrences = <SourceRange>[];
   final Map<Element, int> elementIds = <Element, int>{};
-  Set<String> excludedVariableNames = Set<String>();
+  Set<String> excludedVariableNames = <String>{};
 
   ExtractLocalRefactoringImpl(
       this.resolveResult, this.selectionOffset, this.selectionLength) {

@@ -146,7 +146,7 @@ void scanFiles(Set<Source> files) {
 /// Load and scans all files we need to process: files reachable from the
 /// entrypoint and all core libraries automatically included by the VM.
 Set<Source> scanReachableFiles(Uri entryUri) {
-  var files = Set<Source>();
+  var files = <Source>{};
   var loadTimer = Stopwatch()..start();
   collectSources(sources.forUri2(entryUri), files);
 

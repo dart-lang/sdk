@@ -196,7 +196,7 @@ abstract class ErrorFormatter {
   void formatErrors(List<ErrorsResult> results) {
     stats.unfilteredCount += results.length;
 
-    List<AnalysisError> errors = List<AnalysisError>();
+    List<AnalysisError> errors = <AnalysisError>[];
     Map<AnalysisError, ErrorsResult> errorToLine = {};
     for (ErrorsResult result in results) {
       for (AnalysisError error in result.errors) {
@@ -222,7 +222,7 @@ class HumanErrorFormatter extends ErrorFormatter {
   AnsiLogger ansi;
 
   // This is a Set in order to de-dup CLI errors.
-  final Set<CLIError> batchedErrors = Set();
+  final Set<CLIError> batchedErrors = {};
 
   HumanErrorFormatter(
       StringSink out, CommandLineOptions options, AnalysisStats stats,

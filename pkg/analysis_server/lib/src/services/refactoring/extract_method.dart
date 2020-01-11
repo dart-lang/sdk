@@ -81,7 +81,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
   final int selectionLength;
   SourceRange selectionRange;
   CorrectionUtils utils;
-  final Set<Source> librariesToImport = Set<Source>();
+  final Set<Source> librariesToImport = <Source>{};
 
   @override
   String returnType = '';
@@ -112,9 +112,9 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
   /**
    * The set of names that are referenced without any qualifier.
    */
-  final Set<String> _unqualifiedNames = Set<String>();
+  final Set<String> _unqualifiedNames = <String>{};
 
-  final Set<String> _excludedNames = Set<String>();
+  final Set<String> _excludedNames = <String>{};
   List<RefactoringMethodParameter> _parameters = <RefactoringMethodParameter>[];
   final Map<String, RefactoringMethodParameter> _parametersMap =
       <String, RefactoringMethodParameter>{};
