@@ -849,10 +849,32 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     return new ArgumentsTypes(positional, named);
   }
 
+  AbstractValue _typeOfReceiver(ir.TreeNode node, ir.TreeNode receiver) {
+    KernelGlobalTypeInferenceElementData data = _memberData;
+    AbstractValue mask = data.typeOfReceiver(node);
+    if (mask != null) return mask;
+    // TODO(sigmund): ensure that this is only called once per node.
+    DartType staticType = _getStaticType(receiver);
+    // TODO(sigmund): this needs to be adjusted when we enable non-nullable
+    // types to handle legacy and nullable wrappers.
+    if (staticType is InterfaceType) {
+      ClassEntity cls = staticType.element;
+      if (receiver is ir.ThisExpression && !_closedWorld.isUsedAsMixin(cls)) {
+        mask = _closedWorld.abstractValueDomain.createNonNullSubclass(cls);
+      } else {
+        mask = _closedWorld.abstractValueDomain.createNullableSubtype(cls);
+      }
+      data.setReceiverTypeMask(node, mask);
+      return mask;
+    }
+    // TODO(sigmund): consider also extracting the bound of type parameters.
+    return null;
+  }
+
   @override
   TypeInformation visitMethodInvocation(ir.MethodInvocation node) {
     Selector selector = _elementMap.getSelector(node);
-    AbstractValue mask = _memberData.typeOfReceiver(node);
+    AbstractValue mask = _typeOfReceiver(node, node.receiver);
 
     ir.TreeNode receiver = node.receiver;
     if (receiver is ir.VariableGet &&
@@ -1323,11 +1345,11 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     return rhsType;
   }
 
-  TypeInformation handlePropertyGet(
-      ir.TreeNode node, TypeInformation receiverType, ir.Member interfaceTarget,
+  TypeInformation handlePropertyGet(ir.TreeNode node, ir.TreeNode receiver,
+      TypeInformation receiverType, ir.Member interfaceTarget,
       {bool isThis}) {
     Selector selector = _elementMap.getSelector(node);
-    AbstractValue mask = _memberData.typeOfReceiver(node);
+    AbstractValue mask = _typeOfReceiver(node, receiver);
     if (isThis) {
       _checkIfExposesThis(
           selector, _types.newTypedSelector(receiverType, mask));
@@ -1350,21 +1372,23 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   @override
   TypeInformation visitPropertyGet(ir.PropertyGet node) {
     TypeInformation receiverType = visit(node.receiver);
-    return handlePropertyGet(node, receiverType, node.interfaceTarget,
+    return handlePropertyGet(
+        node, node.receiver, receiverType, node.interfaceTarget,
         isThis: node.receiver is ir.ThisExpression);
   }
 
   @override
   TypeInformation visitDirectPropertyGet(ir.DirectPropertyGet node) {
     TypeInformation receiverType = thisType;
-    return handlePropertyGet(node, receiverType, node.target, isThis: true);
+    return handlePropertyGet(node, node.receiver, receiverType, node.target,
+        isThis: true);
   }
 
   @override
   TypeInformation visitPropertySet(ir.PropertySet node) {
     TypeInformation receiverType = visit(node.receiver);
     Selector selector = _elementMap.getSelector(node);
-    AbstractValue mask = _memberData.typeOfReceiver(node);
+    AbstractValue mask = _typeOfReceiver(node, node.receiver);
 
     TypeInformation rhsType = visit(node.value);
     if (node.value is ir.ThisExpression) {
