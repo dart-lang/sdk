@@ -52,16 +52,14 @@ class PrefixExpressionResolver {
     var operand = node.operand;
 
     if (operator == TokenType.BANG) {
-      InferenceContext.setType(operand, _typeProvider.boolType);
+      _resolveNegation(node, operand);
+      return;
     }
+
     operand.accept(_resolver);
 
     _resolve1(node);
     _resolve2(node);
-
-    if (operator == TokenType.BANG) {
-      _flowAnalysis?.flow?.logicalNot_end(node, operand);
-    }
   }
 
   /// Check that the result [type] of a prefix or postfix `++` or `--`
@@ -226,9 +224,7 @@ class PrefixExpressionResolver {
 
   void _resolve2(PrefixExpressionImpl node) {
     TokenType operator = node.operator.type;
-    if (operator == TokenType.BANG) {
-      _recordStaticType(node, _nonNullable(_typeProvider.boolType));
-    } else if (identical(node.operand.staticType, NeverTypeImpl.instance)) {
+    if (identical(node.operand.staticType, NeverTypeImpl.instance)) {
       _recordStaticType(node, NeverTypeImpl.instance);
     } else {
       // The other cases are equivalent to invoking a method.
@@ -253,6 +249,16 @@ class PrefixExpressionResolver {
       }
       _recordStaticType(node, staticType);
     }
+  }
+
+  void _resolveNegation(PrefixExpressionImpl node, Expression operand) {
+    InferenceContext.setType(operand, _typeProvider.boolType);
+
+    operand.accept(_resolver);
+
+    _recordStaticType(node, _nonNullable(_typeProvider.boolType));
+
+    _flowAnalysis?.flow?.logicalNot_end(node, operand);
   }
 
   /// If the given [type] is a type parameter, resolve it to the type that should
