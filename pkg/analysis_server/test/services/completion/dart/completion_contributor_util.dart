@@ -8,9 +8,10 @@ import 'package:analysis_server/src/provisional/completion/dart/completion_dart.
 import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart'
-    show DartCompletionRequestImpl;
+    show DartCompletionManager, DartCompletionRequestImpl;
 import 'package:analyzer/src/generated/parser.dart' as analyzer;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
 import '../../../abstract_context.dart';
@@ -21,16 +22,58 @@ int suggestionComparator(CompletionSuggestion s1, CompletionSuggestion s2) {
   return c1.compareTo(c2);
 }
 
-abstract class DartCompletionContributorTest extends AbstractContextTest {
+/// Base class for tests that validate individual [DartCompletionContributor]
+/// suggestions.
+abstract class DartCompletionContributorTest
+    extends _BaseDartCompletionContributorTest {
+  DartCompletionContributor contributor;
+
+  @nonVirtual
+  @override
+  Future<List<CompletionSuggestion>> computeContributedSuggestions(
+      DartCompletionRequest request) async {
+    return contributor.computeSuggestions(request);
+  }
+
+  DartCompletionContributor createContributor();
+
+  @override
+  void setUp() {
+    super.setUp();
+    contributor = createContributor();
+  }
+}
+
+/// Base class for tests that validate [DartCompletionManager] suggestions.
+class DartCompletionManagerTest extends _BaseDartCompletionContributorTest {
+  DartCompletionManager completionManager;
+
+  @nonVirtual
+  @override
+  Future<List<CompletionSuggestion>> computeContributedSuggestions(
+      DartCompletionRequest request) async {
+    final baseRequest = CompletionRequestImpl(
+        request.result, completionOffset, CompletionPerformance());
+    return completionManager.computeSuggestions(baseRequest);
+  }
+
+  @override
+  setUp() {
+    super.setUp();
+    completionManager = DartCompletionManager();
+  }
+}
+
+abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
   static const String _UNCHECKED = '__UNCHECKED__';
   String testFile;
   int completionOffset;
   int replacementOffset;
   int replacementLength;
-  DartCompletionContributor contributor;
-  DartCompletionRequest request;
-  List<CompletionSuggestion> suggestions;
 
+  DartCompletionRequest request;
+
+  List<CompletionSuggestion> suggestions;
   /**
    * If `true` and `null` is specified as the suggestion's expected returnType
    * then the actual suggestion is expected to have a `dynamic` returnType.
@@ -461,6 +504,9 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     return cs;
   }
 
+  Future<List<CompletionSuggestion>> computeContributedSuggestions(
+      DartCompletionRequest request);
+
   Future computeSuggestions({int times = 200}) async {
     var resolveResult = await session.getResolvedUnit(testFile);
     CompletionRequestImpl baseRequest = CompletionRequestImpl(
@@ -474,11 +520,9 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     replacementLength = range.length;
 
     // Request completions
-    suggestions = await contributor.computeSuggestions(request);
+    suggestions = await computeContributedSuggestions(request);
     expect(suggestions, isNotNull, reason: 'expected suggestions');
   }
-
-  DartCompletionContributor createContributor();
 
   void failedCompletion(String message,
       [Iterable<CompletionSuggestion> completions]) {
@@ -546,6 +590,5 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
   void setUp() {
     super.setUp();
     testFile = convertPath('/home/test/lib/test.dart');
-    contributor = createContributor();
   }
 }
