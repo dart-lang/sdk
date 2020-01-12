@@ -52,13 +52,13 @@ class PostfixExpressionResolver {
       elementTypeProvider: _elementTypeProvider,
     );
 
+    if (node.operator.type == TokenType.BANG) {
+      _resolveNullCheck(node, receiverType);
+      return;
+    }
+
     _resolve1(node, receiverType);
     _resolve2(node, receiverType);
-
-    var operator = node.operator.type;
-    if (operator == TokenType.BANG) {
-      _flowAnalysis?.flow?.nonNullAssert_end(node.operand);
-    }
   }
 
   /// Check that the result [type] of a prefix or postfix `++` or `--`
@@ -128,11 +128,6 @@ class PostfixExpressionResolver {
 
   void _resolve1(PostfixExpression node, DartType receiverType) {
     Expression operand = node.operand;
-    if (node.operator.type == TokenType.BANG) {
-      // Null-assertion operator (`!`).  There's nothing to do, since this is a
-      // built-in operation (there's no associated operator declaration).
-      return;
-    }
 
     if (identical(receiverType, NeverTypeImpl.instance)) {
       _resolver.errorReporter.reportErrorForNode(
@@ -171,12 +166,6 @@ class PostfixExpressionResolver {
   void _resolve2(PostfixExpression node, DartType receiverType) {
     Expression operand = node.operand;
 
-    if (node.operator.type == TokenType.BANG) {
-      var type = _typeSystem.promoteToNonNull(receiverType);
-      _inferenceHelper.recordStaticType(node, type);
-      return;
-    }
-
     if (identical(receiverType, NeverTypeImpl.instance)) {
       _inferenceHelper.recordStaticType(node, NeverTypeImpl.instance);
     } else {
@@ -198,6 +187,13 @@ class PostfixExpressionResolver {
     }
 
     _inferenceHelper.recordStaticType(node, receiverType);
+  }
+
+  void _resolveNullCheck(PostfixExpressionImpl node, DartType operandType) {
+    var type = _typeSystem.promoteToNonNull(operandType);
+    _inferenceHelper.recordStaticType(node, type);
+
+    _flowAnalysis?.flow?.nonNullAssert_end(node.operand);
   }
 
   /// Return `true` if we should report an error for the lookup [result] on

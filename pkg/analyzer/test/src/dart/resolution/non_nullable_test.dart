@@ -274,45 +274,6 @@ mixin X2 implements A {} // 2
     assertType(findNode.typeName('A {} // 2'), 'A');
   }
 
-  test_nonNullPromotion_typeParameter() async {
-    await assertErrorsInCode(r'''
-class C<T> {
-  void foo(T? t) {
-    T temp = t!;
-  }
-  T bar(T? t) {
-    return t!;
-  }
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 38, 4),
-    ]);
-  }
-
-  test_null_assertion_operator_changes_null_to_never() async {
-    await assertErrorsInCode('''
-main() {
-  Null x = null;
-  x!;
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 16, 1),
-    ]);
-    assertType(findNode.postfix('x!'), 'Never');
-  }
-
-  test_null_assertion_operator_removes_nullability() async {
-    await assertErrorsInCode('''
-main() {
-  Object? x = null;
-  x!;
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 19, 1),
-    ]);
-    assertType(findNode.postfix('x!'), 'Object');
-  }
-
   test_parameter_functionTyped() async {
     await assertNoErrorsInCode('''
 void f1(void p1()) {}

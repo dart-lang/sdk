@@ -17,7 +17,7 @@ main() {
 
 @reflectiveTest
 class PostfixExpressionResolutionTest extends DriverResolutionTest {
-  test_localVariable_dec() async {
+  test_dec_localVariable() async {
     await assertNoErrorsInCode(r'''
 f(int x) {
   x--;
@@ -31,7 +31,7 @@ f(int x) {
     );
   }
 
-  test_localVariable_inc() async {
+  test_inc_localVariable() async {
     await assertNoErrorsInCode(r'''
 f(int x) {
   x++;
@@ -45,7 +45,7 @@ f(int x) {
     );
   }
 
-  test_property_inc_differentTypes() async {
+  test_inc_property_differentTypes() async {
     await assertNoErrorsInCode(r'''
 dynamic get x => 0;
 
@@ -80,21 +80,7 @@ class PostfixExpressionResolutionWithNnbdTest
   @override
   bool get typeToStringWithNullability => true;
 
-  test_bang() async {
-    await assertNoErrorsInCode(r'''
-f(int? x) {
-  x!;
-}
-''');
-
-    assertPostfixExpression(
-      findNode.postfix('x!'),
-      element: null,
-      type: 'int',
-    );
-  }
-
-  test_localVariable_inc_depromote() async {
+  test_inc_localVariable_depromote() async {
     await assertNoErrorsInCode(r'''
 class A {
   Object operator +(int _) => this;
@@ -117,5 +103,43 @@ f(Object x) {
     );
 
     assertType(findNode.simple('x; // ref'), 'Object');
+  }
+
+  test_nullCheck() async {
+    await assertNoErrorsInCode(r'''
+f(int? x) {
+  x!;
+}
+''');
+
+    assertPostfixExpression(
+      findNode.postfix('x!'),
+      element: null,
+      type: 'int',
+    );
+  }
+
+  test_nullCheck_null() async {
+    await assertNoErrorsInCode('''
+main(Null x) {
+  x!;
+}
+''');
+
+    assertType(findNode.postfix('x!'), 'Never');
+  }
+
+  test_nullCheck_typeParameter() async {
+    await assertNoErrorsInCode(r'''
+f<T>(T? x) {
+  x!;
+}
+''');
+
+    assertPostfixExpression(
+      findNode.postfix('x!'),
+      element: null,
+      type: 'T',
+    );
   }
 }
