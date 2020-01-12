@@ -220,7 +220,6 @@ class LintFixInfo extends DartFixInfo {
   // library_names
   // prefer_contains
   // recursive_getters
-  // unnecessary_null_in_if_null_operators
   // unrelated_type_equality_checks
   // valid_regexps
 
@@ -444,6 +443,12 @@ will be converted to
     isDefault: false,
     isPedantic: true,
   );
+
+  static final unnecessaryNullInIfNullOperators = LintFixInfo(
+      'unnecessary_null_in_if_null_operators',
+      DartFixKind.REMOVE_IF_NULL_OPERATOR,
+      "Remove the '??' operator.",
+      isPedantic: true);
 
   static final unnecessaryThis = LintFixInfo(
       'unnecessary_this', DartFixKind.REMOVE_THIS_EXPRESSION, 'Remove this.',

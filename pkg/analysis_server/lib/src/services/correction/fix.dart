@@ -297,6 +297,8 @@ class DartFixKind {
       FixKind('REMOVE_EMPTY_ELSE', 50, "Remove empty else clause");
   static const REMOVE_EMPTY_STATEMENT =
       FixKind('REMOVE_EMPTY_STATEMENT', 50, "Remove empty statement");
+  static const REMOVE_IF_NULL_OPERATOR =
+      FixKind('REMOVE_IF_NULL_OPERATOR', 50, "Remove the '??' operator");
   static const REMOVE_INITIALIZER =
       FixKind('REMOVE_INITIALIZER', 50, "Remove initializer");
   static const REMOVE_INTERPOLATION_BRACES = FixKind(

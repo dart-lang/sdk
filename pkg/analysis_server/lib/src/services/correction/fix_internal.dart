@@ -16,6 +16,7 @@ import 'package:analysis_server/src/services/correction/dart/convert_to_map_lite
 import 'package:analysis_server/src/services/correction/dart/convert_to_null_aware.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_set_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_where_type.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_if_null_operator.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix/dart/top_level_declarations.dart';
 import 'package:analysis_server/src/services/correction/levenshtein.dart';
@@ -4726,6 +4727,11 @@ class FixProcessor extends BaseProcessor {
         await compute(
           ConvertToNullAware(),
           DartFixKind.CONVERT_TO_NULL_AWARE,
+        );
+      } else if (name == LintNames.unnecessary_null_in_if_null_operators) {
+        await compute(
+          RemoveIfNullOperator(),
+          DartFixKind.REMOVE_IF_NULL_OPERATOR,
         );
       }
     }
