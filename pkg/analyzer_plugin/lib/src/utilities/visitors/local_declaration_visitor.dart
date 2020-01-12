@@ -249,7 +249,7 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
         } else if (param is NormalFormalParameter) {
           normalParam = param;
         }
-        TypeAnnotation type = null;
+        TypeAnnotation type;
         if (normalParam is FieldFormalParameter) {
           type = normalParam.type;
         } else if (normalParam is FunctionTypedFormalParameter) {

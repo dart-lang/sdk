@@ -853,7 +853,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   }
 
   String _getBaseNameFromUnwrappedExpression(Expression expression) {
-    String name = null;
+    String name;
     // analyze expressions
     if (expression is SimpleIdentifier) {
       return expression.name;
@@ -1305,7 +1305,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     return ImportLibraryElementResultImpl(null);
   }
 
-  String importLibraryWithRelativeUri(String uriText, [String prefix = null]) {
+  String importLibraryWithRelativeUri(String uriText, [String prefix]) {
     return _importLibraryWithRelativeUri(uriText, prefix).uriText;
   }
 
@@ -1565,7 +1565,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
    * [uriText].
    */
   _LibraryToImport _importLibraryWithRelativeUri(String uriText,
-      [String prefix = null]) {
+      [String prefix]) {
     var import = librariesToRelativelyImport[uriText];
     if (import == null) {
       import = _LibraryToImport(uriText, prefix);

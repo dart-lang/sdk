@@ -421,7 +421,7 @@ class Server {
   /**
    * Server process object, or null if server hasn't been started yet.
    */
-  Process _process = null;
+  Process _process;
 
   /**
    * Commands that have been sent to the server but not yet acknowledged, and

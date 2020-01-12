@@ -18,7 +18,7 @@ class ChangeBuilderImpl implements ChangeBuilder {
    * The end-of-line marker used in the file being edited, or `null` if the
    * default marker should be used.
    */
-  String eol = null;
+  String eol;
 
   /**
    * A table mapping group ids to the associated linked edit groups.
@@ -174,7 +174,7 @@ class EditBuilderImpl implements EditBuilder {
    * The end-of-line marker used in the file being edited, or `null` if the
    * default marker should be used.
    */
-  String _eol = null;
+  String _eol;
 
   /**
    * The buffer in which the content of the edit is being composed.

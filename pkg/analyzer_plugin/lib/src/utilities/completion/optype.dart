@@ -132,7 +132,7 @@ class OpType {
    * The type that is required by the context in which the completion was
    * activated, or `null` if there is no such type, or it cannot be determined.
    */
-  DartType _requiredType = null;
+  DartType _requiredType;
 
   /**
    * Determine the suggestions that should be made based upon the given
