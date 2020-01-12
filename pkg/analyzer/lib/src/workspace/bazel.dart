@@ -200,9 +200,6 @@ class BazelWorkspace extends Workspace {
   bool get isBazel => true;
 
   @override
-  Map<String, List<Folder>> get packageMap => null;
-
-  @override
   UriResolver get packageUriResolver => BazelPackageUriResolver(this);
 
   @override

@@ -585,15 +585,6 @@ class PackageBuildWorkspaceTest with ResourceProviderMixin {
         workspace.findFile(convertPath('/workspace/web/file.dart')), webFile);
   }
 
-  void test_supports_flutter() {
-    newFolder('/workspace/.dart_tool/build');
-    newFileWithBytes('/workspace/pubspec.yaml', 'name: project'.codeUnits);
-    PackageBuildWorkspace workspace =
-        _createWorkspace('/workspace', ['project', 'flutter']);
-
-    expect(workspace.hasFlutterDependency, true);
-  }
-
   PackageBuildWorkspace _createWorkspace(
       String root, List<String> packageNames) {
     return PackageBuildWorkspace.find(

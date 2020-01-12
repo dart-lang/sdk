@@ -13,6 +13,7 @@ import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 
 /**
@@ -43,14 +44,19 @@ class GnWorkspace extends Workspace {
   @override
   final String root;
 
-  @override
-  Map<String, List<Folder>> packageMap;
+  /**
+   * The map from a package name to the list of its `lib/` folders.
+   */
+  Map<String, List<Folder>> _packageMap;
 
-  GnWorkspace._(this.provider, this.root, this.packageMap);
+  GnWorkspace._(this.provider, this.root, this._packageMap);
+
+  @visibleForTesting
+  Map<String, List<Folder>> get packageMap => _packageMap;
 
   @override
   UriResolver get packageUriResolver =>
-      PackageMapUriResolver(provider, packageMap);
+      PackageMapUriResolver(provider, _packageMap);
 
   @override
   SourceFactory createSourceFactory(DartSdk sdk, SummaryDataStore summaryData) {

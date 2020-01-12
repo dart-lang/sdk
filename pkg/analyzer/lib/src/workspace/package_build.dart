@@ -152,12 +152,9 @@ class PackageBuildWorkspace extends Workspace {
   final ResourceProvider provider;
 
   /**
-   * The map of package locations indexed by package name.
-   *
-   * This is a cached field.
+   * The map from a package name to the list of its `lib/` folders.
    */
-  @override
-  final Map<String, List<Folder>> packageMap;
+  final Map<String, List<Folder>> _packageMap;
 
   /**
    * The absolute workspace root path (the directory containing the `.dart_tool`
@@ -180,11 +177,11 @@ class PackageBuildWorkspace extends Workspace {
   PackageBuildWorkspacePackage _theOnlyPackage;
 
   PackageBuildWorkspace._(
-      this.provider, this.packageMap, this.root, this.projectPackageName);
+      this.provider, this._packageMap, this.root, this.projectPackageName);
 
   @override
   UriResolver get packageUriResolver => PackageBuildPackageUriResolver(
-      this, PackageMapUriResolver(provider, packageMap));
+      this, PackageMapUriResolver(provider, _packageMap));
 
   /**
    * For some package file, which may or may not be a package source (it could
@@ -196,7 +193,7 @@ class PackageBuildWorkspace extends Workspace {
    * to the project root.
    */
   File builtFile(String builtPath, String packageName) {
-    if (!packageMap.containsKey(packageName)) {
+    if (!_packageMap.containsKey(packageName)) {
       return null;
     }
     path.Context context = provider.pathContext;

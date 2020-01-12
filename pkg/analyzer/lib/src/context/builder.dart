@@ -368,11 +368,7 @@ class ContextBuilder {
       }
     } else {
       // Search for the default analysis options.
-      // TODO(danrubel) determine if bazel or gn project depends upon flutter
-      Source source;
-      if (workspace.hasFlutterDependency) {
-        source = sourceFactory.forUri(flutterAnalysisOptionsPath);
-      }
+      Source source = sourceFactory.forUri(flutterAnalysisOptionsPath);
       if (source == null || !source.exists()) {
         source = sourceFactory.forUri(bazelAnalysisOptionsPath);
       }
