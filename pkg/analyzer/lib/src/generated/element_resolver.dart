@@ -539,50 +539,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitPostfixExpression(PostfixExpression node) {
-    Expression operand = node.operand;
-    if (node.operator.type == TokenType.BANG) {
-      // Null-assertion operator (`!`).  There's nothing to do, since this is a
-      // built-in operation (there's no associated operator declaration).
-      return;
-    }
-    DartType staticType = _getStaticType(operand);
-
-    if (identical(staticType, NeverTypeImpl.instance)) {
-      _resolver.errorReporter.reportErrorForNode(
-        StaticWarningCode.INVALID_USE_OF_NEVER_VALUE,
-        operand,
-      );
-      return;
-    }
-
-    String methodName = _getPostfixOperator(node);
-    var result = _typePropertyResolver.resolve(
-      receiver: operand,
-      receiverType: staticType,
-      name: methodName,
-      receiverErrorNode: operand,
-      nameErrorNode: operand,
-    );
-    node.staticElement = result.getter;
-    if (_shouldReportInvalidMember(staticType, result)) {
-      if (operand is SuperExpression) {
-        _errorReporter.reportErrorForToken(
-          StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR,
-          node.operator,
-          [methodName, staticType],
-        );
-      } else {
-        _errorReporter.reportErrorForToken(
-          StaticTypeWarningCode.UNDEFINED_OPERATOR,
-          node.operator,
-          [methodName, staticType],
-        );
-      }
-    }
-  }
-
-  @override
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
     SimpleIdentifier prefix = node.prefix;
     SimpleIdentifier identifier = node.identifier;
@@ -1033,20 +989,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
     List<ImportElement> imports =
         prefixElement.enclosingElement.getImportsWithPrefix(prefixElement);
     return imports[0].importedLibrary;
-  }
-
-  /**
-   * Return the name of the method invoked by the given postfix [expression].
-   */
-  String _getPostfixOperator(PostfixExpression expression) {
-    if (expression.operator.type == TokenType.PLUS_PLUS) {
-      return TokenType.PLUS.lexeme;
-    } else if (expression.operator.type == TokenType.MINUS_MINUS) {
-      return TokenType.MINUS.lexeme;
-    } else {
-      throw UnsupportedError(
-          'Unsupported postfix operator ${expression.operator.lexeme}');
-    }
   }
 
   /**

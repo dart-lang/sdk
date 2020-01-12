@@ -878,22 +878,6 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
     _listener.assertNoErrors();
   }
 
-  void test_visitPostfixExpression_minusMinus() {
-    // 0--
-    PostfixExpression node = AstTestFactory.postfixExpression(
-        _resolvedInteger(0), TokenType.MINUS_MINUS);
-    expect(_analyze(node), same(_typeProvider.intType));
-    _listener.assertNoErrors();
-  }
-
-  void test_visitPostfixExpression_plusPlus() {
-    // 0++
-    PostfixExpression node = AstTestFactory.postfixExpression(
-        _resolvedInteger(0), TokenType.PLUS_PLUS);
-    expect(_analyze(node), same(_typeProvider.intType));
-    _listener.assertNoErrors();
-  }
-
   void test_visitPrefixedIdentifier_getter() {
     DartType boolType = _typeProvider.boolType;
     PropertyAccessorElementImpl getter =

@@ -13,7 +13,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
-import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -746,45 +745,6 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     expect(invocation.methodName.staticElement,
         same(numType.getMethod(methodName)));
     _listener.assertNoErrors();
-  }
-
-  test_visitPostfixExpression() async {
-    InterfaceType numType = _typeProvider.numType;
-    SimpleIdentifier operand = AstTestFactory.identifier3("i");
-    operand.staticType = numType;
-    PostfixExpression expression =
-        AstTestFactory.postfixExpression(operand, TokenType.PLUS_PLUS);
-    _resolveNode(expression);
-    expect(expression.staticElement, numType.getMethod('+'));
-    _listener.assertNoErrors();
-  }
-
-  @failingTest
-  test_visitPostfixExpression_bang() async {
-    InterfaceType numType = _typeProvider.numType;
-    SimpleIdentifier operand = AstTestFactory.identifier3("i");
-    operand.staticType = numType;
-    PostfixExpression expression =
-        AstTestFactory.postfixExpression(operand, TokenType.BANG);
-    // TODO(danrubel): fails with Unsupported operation
-    _resolveNode(expression);
-    _listener.assertErrorsWithCodes([StaticTypeWarningCode.UNDEFINED_OPERATOR]);
-  }
-
-  @failingTest
-  test_visitPostfixExpression_bang_NNBD() async {
-    // TODO(danrubel): enable NNBD
-    InterfaceType numType = _typeProvider.numType;
-    SimpleIdentifier operand = AstTestFactory.identifier3("i");
-    operand.staticType = numType;
-    PostfixExpression expression =
-        AstTestFactory.postfixExpression(operand, TokenType.BANG);
-    _resolveNode(expression);
-    // TODO(danrubel): fails with Unsupported operation
-    expect(expression.staticElement, numType.getMethod('!'));
-    _listener.assertNoErrors();
-    // TODO(scheglov) This is wrong: `expr!` should not be resolved to `num.!`.
-    fail('Expectations are wrong.');
   }
 
   test_visitPrefixedIdentifier_dynamic() async {

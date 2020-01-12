@@ -559,62 +559,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   }
 
   /**
-   * The Dart Language Specification, 12.28: <blockquote>A postfix expression of the form
-   * <i>v++</i>, where <i>v</i> is an identifier, is equivalent to <i>(){var r = v; v = r + 1;
-   * return r}()</i>.
-   *
-   * A postfix expression of the form <i>C.v++</i> is equivalent to <i>(){var r = C.v; C.v = r + 1;
-   * return r}()</i>.
-   *
-   * A postfix expression of the form <i>e1.v++</i> is equivalent to <i>(x){var r = x.v; x.v = r +
-   * 1; return r}(e1)</i>.
-   *
-   * A postfix expression of the form <i>e1[e2]++</i> is equivalent to <i>(a, i){var r = a[i]; a[i]
-   * = r + 1; return r}(e1, e2)</i>
-   *
-   * A postfix expression of the form <i>v--</i>, where <i>v</i> is an identifier, is equivalent to
-   * <i>(){var r = v; v = r - 1; return r}()</i>.
-   *
-   * A postfix expression of the form <i>C.v--</i> is equivalent to <i>(){var r = C.v; C.v = r - 1;
-   * return r}()</i>.
-   *
-   * A postfix expression of the form <i>e1.v--</i> is equivalent to <i>(x){var r = x.v; x.v = r -
-   * 1; return r}(e1)</i>.
-   *
-   * A postfix expression of the form <i>e1[e2]--</i> is equivalent to <i>(a, i){var r = a[i]; a[i]
-   * = r - 1; return r}(e1, e2)</i></blockquote>
-   */
-  @override
-  void visitPostfixExpression(PostfixExpression node) {
-    Expression operand = node.operand;
-    TypeImpl staticType = _getStaticType(operand, read: true);
-
-    if (node.operator.type == TokenType.BANG) {
-      staticType = _typeSystem.promoteToNonNull(staticType);
-    } else if (identical(staticType, NeverTypeImpl.instance)) {
-      _recordStaticType(node, NeverTypeImpl.instance);
-    } else {
-      DartType operatorReturnType;
-      if (staticType.isDartCoreInt) {
-        // No need to check for `intVar++`, the result is `int`.
-        operatorReturnType = staticType;
-      } else {
-        var operatorElement = node.staticElement;
-        operatorReturnType = _computeStaticReturnType(operatorElement);
-        _checkForInvalidAssignmentIncDec(node, operand, operatorReturnType);
-      }
-      if (operand is SimpleIdentifier) {
-        var element = operand.staticElement;
-        if (element is PromotableElement) {
-          _flowAnalysis?.flow?.write(element, operatorReturnType);
-        }
-      }
-    }
-
-    _recordStaticType(node, staticType);
-  }
-
-  /**
    * See [visitSimpleIdentifier].
    */
   @override
@@ -927,20 +871,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     _recordStaticType(node, staticType);
   }
 
-  /// Check that the result [type] of a prefix or postfix `++` or `--`
-  /// expression is assignable to the write type of the [operand].
-  void _checkForInvalidAssignmentIncDec(
-      AstNode node, Expression operand, DartType type) {
-    var operandWriteType = _getStaticType(operand);
-    if (!_typeSystem.isAssignableTo(type, operandWriteType)) {
-      _resolver.errorReporter.reportErrorForNode(
-        StaticTypeWarningCode.INVALID_ASSIGNMENT,
-        node,
-        [type, operandWriteType],
-      );
-    }
-  }
-
   /**
    * Given a function body and its return type, compute the return type of
    * the entire function, taking into account whether the function body
@@ -964,33 +894,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     } else {
       return type;
     }
-  }
-
-  /**
-   * Compute the static return type of the method or function represented by the given element.
-   *
-   * @param element the element representing the method or function invoked by the given node
-   * @return the static return type that was computed
-   */
-  DartType _computeStaticReturnType(Element element) {
-    if (element is PropertyAccessorElement) {
-      //
-      // This is a function invocation expression disguised as something else.
-      // We are invoking a getter and then invoking the returned function.
-      //
-      FunctionType propertyType =
-          _elementTypeProvider.getExecutableType(element);
-      if (propertyType != null) {
-        return _resolver.inferenceHelper.computeInvokeReturnType(
-            propertyType.returnType,
-            isNullAware: false);
-      }
-    } else if (element is ExecutableElement) {
-      return _resolver.inferenceHelper.computeInvokeReturnType(
-          _elementTypeProvider.getExecutableType(element),
-          isNullAware: false);
-    }
-    return _dynamicType;
   }
 
   /**

@@ -1384,7 +1384,6 @@ abstract class _E {
     visitSubexpression(findNode.postfix('++'), '_C');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38833')
   Future<void>
       test_postfixExpression_combined_nullable_noProblem_dynamic() async {
     await analyze('''

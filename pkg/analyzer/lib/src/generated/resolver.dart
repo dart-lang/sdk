@@ -29,6 +29,7 @@ import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/function_expression_invocation_resolver.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/method_invocation_resolver.dart';
+import 'package:analyzer/src/dart/resolver/postfix_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/prefix_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
@@ -210,6 +211,7 @@ class ResolverVisitor extends ScopedVisitor {
 
   BinaryExpressionResolver _binaryExpressionResolver;
   FunctionExpressionInvocationResolver _functionExpressionInvocationResolver;
+  PostfixExpressionResolver _postfixExpressionResolver;
   PrefixExpressionResolver _prefixExpressionResolver;
 
   InvocationInferenceHelper inferenceHelper;
@@ -347,6 +349,11 @@ class ResolverVisitor extends ScopedVisitor {
     this._functionExpressionInvocationResolver =
         FunctionExpressionInvocationResolver(
       resolver: this,
+      elementTypeProvider: _elementTypeProvider,
+    );
+    this._postfixExpressionResolver = PostfixExpressionResolver(
+      resolver: this,
+      flowAnalysis: _flowAnalysis,
       elementTypeProvider: _elementTypeProvider,
     );
     this._prefixExpressionResolver = PrefixExpressionResolver(
@@ -1507,12 +1514,7 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitPostfixExpression(PostfixExpression node) {
-    super.visitPostfixExpression(node);
-
-    var operator = node.operator.type;
-    if (operator == TokenType.BANG) {
-      _flowAnalysis?.flow?.nonNullAssert_end(node.operand);
-    }
+    _postfixExpressionResolver.resolve(node);
   }
 
   @override

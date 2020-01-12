@@ -40,6 +40,7 @@ import 'mixin_test.dart' as mixin_resolution;
 import 'namespace_test.dart' as namespace;
 import 'non_nullable_test.dart' as non_nullable;
 import 'optional_const_test.dart' as optional_const;
+import 'postfix_expression_test.dart' as postfix_expression;
 import 'prefix_expression_test.dart' as prefix_expression;
 import 'prefixed_identifier_test.dart' as prefixed_identifier;
 import 'property_access_test.dart' as property_access;
@@ -82,6 +83,7 @@ main() {
     namespace.main();
     non_nullable.main();
     optional_const.main();
+    postfix_expression.main();
     prefix_expression.main();
     prefixed_identifier.main();
     property_access.main();
