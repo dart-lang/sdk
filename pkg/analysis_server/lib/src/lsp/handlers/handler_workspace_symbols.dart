@@ -52,7 +52,7 @@ class WorkspaceSymbolHandler
     // huge numbers on large projects.
     var remainingResults = 500;
 
-    final filePathsHashSet = LinkedHashSet<String>();
+    final filePathsHashSet = <String>{};
     final tracker = server.declarationsTracker;
     final declarations = search.WorkspaceSymbols(tracker).declarations(
       regex,
