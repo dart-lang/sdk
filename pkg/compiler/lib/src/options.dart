@@ -326,6 +326,14 @@ class CompilerOptions implements DiagnosticOptions {
   /// Whether to use the new RTI representation (default).
   bool useNewRti = true;
 
+  /// Whether null-safety (non-nullable types) are enabled.
+  bool get useNullSafety =>
+      languageExperiments[fe.ExperimentalFlag.nonNullable];
+
+  /// When null-safety is enabled, whether the compiler should emit code with
+  /// weak or strong semantics.
+  bool useWeakNullSafetySemantics = false;
+
   /// The path to the file that contains the profiled allocations.
   ///
   /// The file must contain the Map that was produced by using
@@ -436,7 +444,10 @@ class CompilerOptions implements DiagnosticOptions {
       ..codegenShard = _extractIntOption(options, '${Flags.codegenShard}=')
       ..codegenShards = _extractIntOption(options, '${Flags.codegenShards}=')
       ..cfeOnly = _hasOption(options, Flags.cfeOnly)
-      ..debugGlobalInference = _hasOption(options, Flags.debugGlobalInference);
+      ..debugGlobalInference = _hasOption(options, Flags.debugGlobalInference)
+      ..useWeakNullSafetySemantics = _extractStringOption(
+              options, '${Flags.nonNullableMode}=', 'strong') ==
+          'weak';
   }
 
   void validate() {
