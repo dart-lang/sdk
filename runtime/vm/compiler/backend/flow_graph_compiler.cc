@@ -2241,6 +2241,20 @@ bool FlowGraphCompiler::ShouldUseTypeTestingStubFor(bool optimizing,
           (type.IsTypeParameter() || (type.IsType() && type.IsInstantiated())));
 }
 
+FlowGraphCompiler::TypeTestStubKind
+FlowGraphCompiler::GetTypeTestStubKindForTypeParameter(
+    const TypeParameter& type_param) {
+  // TODO(regis): Revisit the bound check taking NNBD into consideration.
+  // If it's guaranteed, by type-parameter bound, that the type parameter will
+  // never have a value of a function type, then we can safely do a 4-type
+  // test instead of a 6-type test.
+  const AbstractType& bound = AbstractType::Handle(zone(), type_param.bound());
+  return !bound.NNBD_IsTopType() && !bound.IsFunctionType() &&
+                 !bound.IsDartFunctionType() && bound.IsType()
+             ? kTestTypeFourArgs
+             : kTestTypeSixArgs;
+}
+
 void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
     const AbstractType& dst_type,
     const String& dst_name,

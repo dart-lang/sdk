@@ -984,6 +984,10 @@ class FlowGraphCompiler : public ValueObject {
     kTestTypeSixArgs,
   };
 
+  // Returns type test stub kind for a type test against type parameter type.
+  TypeTestStubKind GetTypeTestStubKindForTypeParameter(
+      const TypeParameter& type_param);
+
   RawSubtypeTestCache* GenerateCallSubtypeTestStub(
       TypeTestStubKind test_kind,
       Register instance_reg,
