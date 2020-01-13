@@ -40,13 +40,26 @@ If a specific lint warning should be ignored, it can be flagged with a comment. 
    (pm as Person).firstName = 'Seth';
 ```
 
-tells the `dartanalyzer` to ignore this instance of `avoid_as` warning.
+tells the `dartanalyzer` to ignore this instance of the `avoid_as` warning.
 
 End-of-line comments are supported as well.  The following communicates the same thing:
 
 ```dart
    (pm as Person).firstName = 'Seth'; // ignore: avoid_as
 ```
+
+To ignore a rule for an entire file, use the `ignore_for_file` comment flag.  For example,
+
+```dart
+// ignore_for_file: avoid_as
+
+void main() {
+  ...
+  (pm as Person).firstName = 'Seth';
+}
+```
+
+tells the `dartanalyzer` to ignore all occurences of the `avoid_as` warning in this file.
 
 As lints are treated the same as errors and warnings by the analyzer, their severity can similarly be configured in an options file.  For example, an analysis options file that specifies
 
