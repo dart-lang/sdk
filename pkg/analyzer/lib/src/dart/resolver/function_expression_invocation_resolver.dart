@@ -36,16 +36,33 @@ class FunctionExpressionInvocationResolver {
   ExtensionMemberResolver get _extensionResolver => _resolver.extensionResolver;
 
   void resolve(FunctionExpressionInvocationImpl node) {
-    var rawType = _resolveCallElement(node);
+    var function = node.function;
 
-    if (rawType == null) {
-      _setExplicitTypeArgumentTypes(node);
-      _resolveArguments(node);
-      node.staticInvokeType = DynamicTypeImpl.instance;
-      node.staticType = DynamicTypeImpl.instance;
+    if (function is ExtensionOverride) {
+      _resolveReceiverExtensionOverride(node, function);
       return;
     }
 
+    var receiverType = function.staticType;
+    if (receiverType is FunctionType) {
+      _resolve(node, receiverType);
+      return;
+    }
+
+    if (receiverType is InterfaceType) {
+      _resolveReceiverInterfaceType(node, function, receiverType);
+      return;
+    }
+
+    if (identical(receiverType, NeverTypeImpl.instance)) {
+      _unresolved(node, NeverTypeImpl.instance);
+      return;
+    }
+
+    _unresolved(node, DynamicTypeImpl.instance);
+  }
+
+  void _resolve(FunctionExpressionInvocationImpl node, FunctionType rawType) {
     _inferenceHelper.resolveFunctionExpressionInvocation(
       node: node,
       rawType: rawType,
@@ -62,60 +79,66 @@ class FunctionExpressionInvocationResolver {
     node.argumentList.accept(_resolver);
   }
 
-  FunctionType _resolveCallElement(FunctionExpressionInvocation node) {
-    Expression function = node.function;
+  void _resolveReceiverExtensionOverride(
+    FunctionExpressionInvocation node,
+    ExtensionOverride function,
+  ) {
+    var result = _extensionResolver.getOverrideMember(
+      function,
+      FunctionElement.CALL_METHOD_NAME,
+    );
+    var callElement = result.getter;
+    node.staticElement = callElement;
 
-    if (function is ExtensionOverride) {
-      var result = _extensionResolver.getOverrideMember(
+    if (callElement == null) {
+      _errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.INVOCATION_OF_EXTENSION_WITHOUT_CALL,
         function,
-        FunctionElement.CALL_METHOD_NAME,
+        [function.extensionName.name],
       );
-      var callElement = result.getter;
-      node.staticElement = callElement;
-
-      if (callElement == null) {
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.INVOCATION_OF_EXTENSION_WITHOUT_CALL,
-          function,
-          [function.extensionName.name],
-        );
-        return null;
-      }
-
-      if (callElement.isStatic) {
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER,
-          node.argumentList,
-        );
-      }
-
-      return _elementTypeProvider.getExecutableType(callElement);
+      return _unresolved(node, DynamicTypeImpl.instance);
     }
 
-    var receiverType = function.staticType;
-    if (receiverType is FunctionType) {
-      return receiverType;
-    }
-
-    if (receiverType is InterfaceType) {
-      var result = _typePropertyResolver.resolve(
-        receiver: function,
-        receiverType: receiverType,
-        name: FunctionElement.CALL_METHOD_NAME,
-        receiverErrorNode: function,
-        nameErrorNode: function,
+    if (callElement.isStatic) {
+      _errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER,
+        node.argumentList,
       );
-      var callElement = result.getter;
-
-      if (callElement?.kind != ElementKind.METHOD) {
-        return null;
-      }
-
-      node.staticElement = callElement;
-      return _elementTypeProvider.getExecutableType(callElement);
     }
 
-    return null;
+    var rawType = _elementTypeProvider.getExecutableType(callElement);
+    _resolve(node, rawType);
+  }
+
+  void _resolveReceiverInterfaceType(
+    FunctionExpressionInvocationImpl node,
+    Expression function,
+    InterfaceType receiverType,
+  ) {
+    var result = _typePropertyResolver.resolve(
+      receiver: function,
+      receiverType: receiverType,
+      name: FunctionElement.CALL_METHOD_NAME,
+      receiverErrorNode: function,
+      nameErrorNode: function,
+    );
+    var callElement = result.getter;
+
+    if (callElement?.kind != ElementKind.METHOD) {
+      _unresolved(node, DynamicTypeImpl.instance);
+      return;
+    }
+
+    node.staticElement = callElement;
+    var rawType = _elementTypeProvider.getExecutableType(callElement);
+    _resolve(node, rawType);
+  }
+
+  void _unresolved(FunctionExpressionInvocationImpl node, DartType type) {
+    _setExplicitTypeArgumentTypes(node);
+    _resolveArguments(node);
+    node.staticInvokeType = DynamicTypeImpl.instance;
+    node.staticType = type;
   }
 
   /// Inference cannot be done, we still want to fill type argument types.
