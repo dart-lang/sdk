@@ -9,6 +9,7 @@ import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:meta/meta.dart';
+import 'package:nnbd_migration/instrumentation.dart';
 
 /// A single atomic change to a source file, decoupled from the location at
 /// which the change is made. The [EditPlan] class performs its duties by
@@ -64,6 +65,26 @@ class AtomicEdit {
       return 'ReplaceText($length, ${json.encode(replacement)})';
     }
   }
+}
+
+/// An atomic edit that has a reason associated with it.
+class AtomicEditWithReason extends AtomicEdit {
+  /// The reason for the edit.
+  final FixReasonInfo fixReason;
+
+  /// Initialize an edit to delete [length] characters.
+  const AtomicEditWithReason.delete(int length, this.fixReason)
+      : super.delete(length);
+
+  /// Initialize an edit to insert the [replacement] characters.
+  const AtomicEditWithReason.insert(String replacement, this.fixReason)
+      : super.insert(replacement);
+
+  /// Initialize an edit to replace [length] characters with the [replacement]
+  /// characters.
+  const AtomicEditWithReason.replace(
+      int length, String replacement, this.fixReason)
+      : super.replace(length, replacement);
 }
 
 /// An [EditPlan] is a builder capable of accumulating a set of edits to be

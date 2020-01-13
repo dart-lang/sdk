@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
 
 /// Implementation of [NodeChange] representing the addition of the keyword
@@ -107,19 +108,19 @@ class IntroduceAs extends _NestableChange {
 
 /// Implementation of [NodeChange] representing the addition of a trailing `?`
 /// to a type.
-///
-/// TODO(paulberry): store additional information necessary to include in the
-/// preview.
 class MakeNullable extends _NestableChange {
-  const MakeNullable(
+  /// The decorated type to which a question mark is being added.
+  final DecoratedType decoratedType;
+
+  const MakeNullable(this.decoratedType,
       [NodeChange<NodeProducingEditPlan> inner = const NoChange()])
       : super(inner);
 
   @override
   EditPlan apply(AstNode node, FixAggregator aggregator) {
     var innerPlan = _inner.apply(node, aggregator);
-    return aggregator.planner
-        .surround(innerPlan, suffix: [const AtomicEdit.insert('?')]);
+    return aggregator.planner.surround(innerPlan,
+        suffix: [AtomicEditWithReason.insert('?', decoratedType.node)]);
   }
 }
 

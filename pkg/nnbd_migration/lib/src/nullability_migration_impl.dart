@@ -96,9 +96,13 @@ class NullabilityMigrationImpl implements NullabilityMigration {
       var fix = _SingleNullabilityFix(
           source, const _DummyPotentialModification(), lineInfo);
       listener.addFix(fix);
-      // TODO(paulberry): don't pass null to instrumentation.
-      _instrumentation?.fix(fix, null);
-      listener.addEdit(fix, entry.value.toSourceEdit(entry.key));
+      var edits = entry.value;
+      _instrumentation?.fix(
+          fix,
+          edits
+              .whereType<AtomicEditWithReason>()
+              .map((edit) => edit.fixReason));
+      listener.addEdit(fix, edits.toSourceEdit(entry.key));
     }
   }
 
