@@ -331,6 +331,16 @@ def dart_try_builder(name,
 
 postponed_alt_console_entries = []
 
+# Global builder defaults
+luci.builder.defaults.properties.set({
+    '$recipe_engine/isolated': {
+        "server": "https://isolateserver.appspot.com"
+    },
+    '$recipe_engine/swarming': {
+        "server": "https://chromium-swarm.appspot.com"
+    },
+})
+
 
 def dart_builder(name,
                  bucket,
@@ -480,8 +490,7 @@ dart_ci_sandbox_builder(
     "front-end-mac-release-x64", category="cfe|m", dimensions=mac())
 dart_ci_sandbox_builder(
     "front-end-win-release-x64", category="cfe|w", dimensions=windows())
-dart_ci_sandbox_builder(
-    "front-end-nnbd-linux-release-x64", category="cfe|nn")
+dart_ci_sandbox_builder("front-end-nnbd-linux-release-x64", category="cfe|nn")
 dart_ci_sandbox_builder(
     "flutter-frontend",
     category="cfe|fl",
@@ -501,10 +510,8 @@ dart_ci_sandbox_builder(
 )
 
 # vm|nnbd
-dart_vm_extra_builder(
-    "vm-kernel-nnbd-linux-debug-x64", category="vm|nnbd|d")
-dart_vm_extra_builder(
-    "vm-kernel-nnbd-linux-release-x64", category="vm|nnbd|r")
+dart_vm_extra_builder("vm-kernel-nnbd-linux-debug-x64", category="vm|nnbd|d")
+dart_vm_extra_builder("vm-kernel-nnbd-linux-release-x64", category="vm|nnbd|r")
 
 # vm|app-kernel
 dart_vm_extra_builder(
