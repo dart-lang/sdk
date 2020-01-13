@@ -63,6 +63,9 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitFormalParameterList(FormalParameterList parameterList) {
     for (var node in parameterList.parameters) {
       if (node.isFinal) {
+        // TODO(davidmorgan): for consistency this should report on the
+        // `final` keyword, not the node, but it's hard to get to from
+        // FormalParameter.
         rule.reportLint(node);
       }
     }
@@ -79,7 +82,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       final loopVariable = forLoopParts.loopVariable;
 
       if (loopVariable.isFinal) {
-        rule.reportLint(loopVariable.identifier);
+        rule.reportLintForToken(loopVariable.keyword);
       }
     }
   }
@@ -87,7 +90,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
     if (node.variables.isFinal) {
-      rule.reportLint(node.variables);
+      rule.reportLintForToken(node.variables.keyword);
     }
   }
 }
