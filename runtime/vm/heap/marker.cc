@@ -378,7 +378,113 @@ void GCMarker::Prologue() {
 #endif
 }
 
-void GCMarker::Epilogue() {
+void GCMarker::Epilogue() {}
+
+enum RootSlices {
+  kIsolate = 0,
+  kNewSpace = 1,
+  kNumRootSlices = 2,
+};
+
+void GCMarker::ResetSlices() {
+  root_slices_started_ = 0;
+  root_slices_finished_ = 0;
+  weak_slices_started_ = 0;
+}
+
+void GCMarker::IterateRoots(ObjectPointerVisitor* visitor) {
+  for (;;) {
+    intptr_t slice = root_slices_started_.fetch_add(1);
+    if (slice >= kNumRootSlices) {
+      return;  // No more slices.
+    }
+
+    switch (slice) {
+      case kIsolate: {
+        TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "ProcessIsolate");
+        isolate_->VisitObjectPointers(visitor,
+                                      ValidationPolicy::kDontValidateFrames);
+        break;
+      }
+      case kNewSpace: {
+        TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "ProcessNewSpace");
+        heap_->new_space()->VisitObjectPointers(visitor);
+        break;
+      }
+      default:
+        UNREACHABLE();
+    }
+
+    MonitorLocker ml(&root_slices_monitor_);
+    root_slices_finished_++;
+    if (root_slices_finished_ == kNumRootSlices) {
+      ml.Notify();
+    }
+  }
+}
+
+enum WeakSlices {
+  kWeakHandles = 0,
+  kWeakTables,
+  kObjectIdRing,
+  kRememberedSet,
+  kNumWeakSlices,
+};
+
+void GCMarker::IterateWeakRoots(Thread* thread) {
+  for (;;) {
+    intptr_t slice = weak_slices_started_.fetch_add(1);
+    if (slice >= kNumWeakSlices) {
+      return;  // No more slices.
+    }
+
+    switch (slice) {
+      case kWeakHandles:
+        ProcessWeakHandles(thread);
+        break;
+      case kWeakTables:
+        ProcessWeakTables(thread);
+        break;
+      case kObjectIdRing:
+        ProcessObjectIdTable(thread);
+        break;
+      case kRememberedSet:
+        ProcessRememberedSet(thread);
+        break;
+      default:
+        UNREACHABLE();
+    }
+  }
+}
+
+void GCMarker::ProcessWeakHandles(Thread* thread) {
+  TIMELINE_FUNCTION_GC_DURATION(thread, "ProcessWeakHandles");
+  MarkingWeakVisitor visitor(thread);
+  ApiState* state = isolate_->api_state();
+  ASSERT(state != NULL);
+  isolate_->VisitWeakPersistentHandles(&visitor);
+}
+
+void GCMarker::ProcessWeakTables(Thread* thread) {
+  TIMELINE_FUNCTION_GC_DURATION(thread, "ProcessWeakTables");
+  for (int sel = 0; sel < Heap::kNumWeakSelectors; sel++) {
+    WeakTable* table =
+        heap_->GetWeakTable(Heap::kOld, static_cast<Heap::WeakSelector>(sel));
+    intptr_t size = table->size();
+    for (intptr_t i = 0; i < size; i++) {
+      if (table->IsValidEntryAtExclusive(i)) {
+        RawObject* raw_obj = table->ObjectAtExclusive(i);
+        ASSERT(raw_obj->IsHeapObject());
+        if (!raw_obj->IsMarked()) {
+          table->InvalidateAtExclusive(i);
+        }
+      }
+    }
+  }
+}
+
+void GCMarker::ProcessRememberedSet(Thread* thread) {
+  TIMELINE_FUNCTION_GC_DURATION(thread, "ProcessRememberedSet");
   // Filter collected objects from the remembered set.
   StoreBuffer* store_buffer = isolate_->store_buffer();
   StoreBufferBlock* reading = store_buffer->Blocks();
@@ -407,72 +513,6 @@ void GCMarker::Epilogue() {
   store_buffer->PushBlock(writing, StoreBuffer::kIgnoreThreshold);
 }
 
-enum RootSlices {
-  kIsolate = 0,
-  kNewSpace = 1,
-  kNumRootSlices = 2,
-};
-
-void GCMarker::ResetRootSlices() {
-  root_slices_not_started_ = kNumRootSlices;
-  root_slices_not_finished_ = kNumRootSlices;
-}
-
-void GCMarker::IterateRoots(ObjectPointerVisitor* visitor) {
-  for (;;) {
-    intptr_t task = root_slices_not_started_.fetch_sub(1) - 1;
-    if (task < 0) {
-      return;  // No more tasks.
-    }
-
-    switch (task) {
-      case kIsolate: {
-        TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "ProcessRoots");
-        isolate_->VisitObjectPointers(visitor,
-                                      ValidationPolicy::kDontValidateFrames);
-        break;
-      }
-      case kNewSpace: {
-        TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "ProcessNewSpace");
-        heap_->new_space()->VisitObjectPointers(visitor);
-        break;
-      }
-      default:
-        FATAL1("%" Pd, task);
-        UNREACHABLE();
-    }
-
-    MonitorLocker ml(&root_slices_monitor_);
-    root_slices_not_finished_--;
-    if (root_slices_not_finished_ == 0) {
-      ml.Notify();
-    }
-  }
-}
-
-void GCMarker::IterateWeakRoots(HandleVisitor* visitor) {
-  ApiState* state = isolate_->api_state();
-  ASSERT(state != NULL);
-  isolate_->VisitWeakPersistentHandles(visitor);
-}
-
-void GCMarker::ProcessWeakTables(PageSpace* page_space) {
-  for (int sel = 0; sel < Heap::kNumWeakSelectors; sel++) {
-    WeakTable* table =
-        heap_->GetWeakTable(Heap::kOld, static_cast<Heap::WeakSelector>(sel));
-    intptr_t size = table->size();
-    for (intptr_t i = 0; i < size; i++) {
-      if (table->IsValidEntryAtExclusive(i)) {
-        RawObject* raw_obj = table->ObjectAtExclusive(i);
-        ASSERT(raw_obj->IsHeapObject());
-        if (!raw_obj->IsMarked()) {
-          table->InvalidateAtExclusive(i);
-        }
-      }
-    }
-  }
-}
-
 class ObjectIdRingClearPointerVisitor : public ObjectPointerVisitor {
  public:
   explicit ObjectIdRingClearPointerVisitor(Isolate* isolate)
@@ -490,11 +530,12 @@ class ObjectIdRingClearPointerVisitor : public ObjectPointerVisitor {
   }
 };
 
-void GCMarker::ProcessObjectIdTable() {
+void GCMarker::ProcessObjectIdTable(Thread* thread) {
 #ifndef PRODUCT
   if (!FLAG_support_service) {
     return;
   }
+  TIMELINE_FUNCTION_GC_DURATION(thread, "ProcessObjectIdTable");
   ObjectIdRingClearPointerVisitor visitor(isolate_);
   ObjectIdRing* ring = isolate_->object_id_ring();
   ASSERT(ring != NULL);
@@ -522,7 +563,8 @@ class ParallelMarkTask : public ThreadPool::Task {
         Thread::EnterIsolateAsHelper(isolate_, Thread::kMarkerTask, true);
     ASSERT(result);
     {
-      TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "ParallelMark");
+      Thread* thread = Thread::Current();
+      TIMELINE_FUNCTION_GC_DURATION(thread, "ParallelMark");
       int64_t start = OS::GetCurrentMonotonicMicros();
 
       // Phase 1: Iterate over roots and drain marking stack in tasks.
@@ -582,12 +624,15 @@ class ParallelMarkTask : public ThreadPool::Task {
         barrier_->Sync();
       } while (more_to_mark);
 
+      // Phase 2: deferred marking.
       visitor_->FinalizeDeferredMarking();
-
-      // Phase 2: Weak processing and follow-up marking on main thread.
       barrier_->Sync();
 
-      // Phase 3: Finalize results from all markers (detach code, etc.).
+      // Phase 3: Weak processing.
+      marker_->IterateWeakRoots(thread);
+      barrier_->Sync();
+
+      // Phase 4: Gather statistics from all markers.
       int64_t stop = OS::GetCurrentMonotonicMicros();
       visitor_->AddMicros(stop - start);
       if (FLAG_log_marker_tasks) {
@@ -745,7 +790,7 @@ void GCMarker::StartConcurrentMark(PageSpace* page_space) {
         page_space->concurrent_marker_tasks() + num_tasks);
   }
 
-  ResetRootSlices();
+  ResetSlices();
   for (intptr_t i = 0; i < num_tasks; i++) {
     ASSERT(visitors_[i] == NULL);
     visitors_[i] = new SyncMarkingVisitor(isolate_, page_space, &marking_stack_,
@@ -759,7 +804,7 @@ void GCMarker::StartConcurrentMark(PageSpace* page_space) {
 
   // Wait for roots to be marked before exiting safepoint.
   MonitorLocker ml(&root_slices_monitor_);
-  while (root_slices_not_finished_ > 0) {
+  while (root_slices_finished_ != kNumRootSlices) {
     ml.Wait();
   }
 }
@@ -779,16 +824,12 @@ void GCMarker::MarkObjects(PageSpace* page_space) {
       // Mark everything on main thread.
       UnsyncMarkingVisitor mark(isolate_, page_space, &marking_stack_,
                                 &deferred_marking_stack_);
-      ResetRootSlices();
+      ResetSlices();
       IterateRoots(&mark);
       mark.ProcessDeferredMarking();
       mark.DrainMarkingStack();
       mark.FinalizeDeferredMarking();
-      {
-        TIMELINE_FUNCTION_GC_DURATION(thread, "ProcessWeakHandles");
-        MarkingWeakVisitor mark_weak(thread);
-        IterateWeakRoots(&mark_weak);
-      }
+      IterateWeakRoots(thread);
       // All marking done; detach code, etc.
       int64_t stop = OS::GetCurrentMonotonicMicros();
       mark.AddMicros(stop - start);
@@ -796,7 +837,7 @@ void GCMarker::MarkObjects(PageSpace* page_space) {
     } else {
       ThreadBarrier barrier(num_tasks + 1, heap_->barrier(),
                             heap_->barrier_done());
-      ResetRootSlices();
+      ResetSlices();
       // Used to coordinate draining among tasks; all start out as 'busy'.
       RelaxedAtomic<uintptr_t> num_busy(num_tasks);
       // Phase 1: Iterate over roots and drain marking stack in tasks.
@@ -835,19 +876,16 @@ void GCMarker::MarkObjects(PageSpace* page_space) {
         barrier.Sync();
       } while (more_to_mark);
 
-      // Phase 2: Weak processing on main thread.
-      {
-        TIMELINE_FUNCTION_GC_DURATION(thread, "ProcessWeakHandles");
-        MarkingWeakVisitor mark_weak(thread);
-        IterateWeakRoots(&mark_weak);
-      }
+      // Phase 2: Deferred marking.
       barrier.Sync();
 
-      // Phase 3: Finalize results from all markers (detach code, etc.).
+      // Phase 3: Weak processing.
+      IterateWeakRoots(thread);
+      barrier.Sync();
+
+      // Phase 4: Gather statistics from all markers.
       barrier.Exit();
     }
-    ProcessWeakTables(page_space);
-    ProcessObjectIdTable();
   }
   Epilogue();
 }
