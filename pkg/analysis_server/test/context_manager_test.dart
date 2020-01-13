@@ -1645,7 +1645,7 @@ abstract class ContextManagerTest with ResourceProviderMixin {
 
   TestContextManagerCallbacks callbacks;
 
-  String projPath = null;
+  String projPath;
 
   AnalysisError missing_return =
       AnalysisError(null, 0, 1, HintCode.MISSING_RETURN, [

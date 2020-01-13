@@ -223,7 +223,7 @@ class AssistProcessor extends BaseProcessor {
   }
 
   void _addAssistFromBuilder(DartChangeBuilder builder, AssistKind kind,
-      {List args = null}) {
+      {List args}) {
     if (builder == null) {
       return;
     }
@@ -1051,8 +1051,8 @@ class AssistProcessor extends BaseProcessor {
    */
   Future<void> _addProposal_convertToIsNotEmpty() async {
     // prepare "expr.isEmpty"
-    AstNode isEmptyAccess = null;
-    SimpleIdentifier isEmptyIdentifier = null;
+    AstNode isEmptyAccess;
+    SimpleIdentifier isEmptyIdentifier;
     if (node is SimpleIdentifier) {
       SimpleIdentifier identifier = node as SimpleIdentifier;
       AstNode parent = identifier.parent;
@@ -2442,7 +2442,7 @@ class AssistProcessor extends BaseProcessor {
   }
 
   Future<void> _addProposal_replaceConditionalWithIfElse() async {
-    ConditionalExpression conditional = null;
+    ConditionalExpression conditional;
     // may be on Statement with Conditional
     Statement statement = node.thisOrAncestorOfType<Statement>();
     if (statement == null) {
@@ -2559,8 +2559,8 @@ class AssistProcessor extends BaseProcessor {
       _coverageMarker();
       return;
     }
-    Expression thenExpression = null;
-    Expression elseExpression = null;
+    Expression thenExpression;
+    Expression elseExpression;
     bool hasReturnStatements = false;
     if (thenStatement is ReturnStatement && elseStatement is ReturnStatement) {
       hasReturnStatements = true;

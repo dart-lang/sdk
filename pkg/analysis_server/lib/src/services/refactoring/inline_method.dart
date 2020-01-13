@@ -57,7 +57,7 @@ String _getMethodSourceForInvocation(
   part._parameters.forEach(
       (ParameterElement parameter, List<_ParameterOccurrence> occurrences) {
     // prepare argument
-    Expression argument = null;
+    Expression argument;
     for (Expression arg in arguments) {
       if (arg.staticParameterElement == parameter) {
         argument = arg;
@@ -608,7 +608,7 @@ class _ReferenceProcessor {
       // PropertyAccessorElement
       if (ref._methodElement is PropertyAccessorElement) {
         Expression usage = _node;
-        Expression target = null;
+        Expression target;
         bool cascade = false;
         if (nodeParent is PrefixedIdentifier) {
           PrefixedIdentifier propertyAccess = nodeParent;

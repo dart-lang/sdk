@@ -86,8 +86,8 @@ class ApiReader {
     Api api;
     List<String> versions = <String>[];
     List<Domain> domains = <Domain>[];
-    Types types = null;
-    Refactorings refactorings = null;
+    Types types;
+    Refactorings refactorings;
     recurse(html, 'api', {
       'domain': (dom.Element element) {
         domains.add(domainFromHtml(element));

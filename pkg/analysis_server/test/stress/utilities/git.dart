@@ -219,7 +219,7 @@ class CommitDelta {
     String srcPath = _makeAbsolute(input.substring(startIndex, endIndex));
     startIndex = endIndex + 1;
     // Parse field 14
-    String dstPath = null;
+    String dstPath;
     if (status.startsWith('C') || status.startsWith('R')) {
       endIndex = _findEnd(input, startIndex);
       dstPath = _makeAbsolute(input.substring(startIndex, endIndex));
@@ -406,7 +406,7 @@ class GitRepository {
    *
    * If a [commandSink] is provided, any calls to git will be written to it.
    */
-  GitRepository(this.path, {this.logger = null});
+  GitRepository(this.path, {this.logger});
 
   /**
    * Checkout the given [commit] from the repository. This is done by running

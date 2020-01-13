@@ -60,7 +60,7 @@ ImportElement internal_getImportElement(
   }
   LibraryElement usedLibrary = element.library;
   // find ImportElement that imports used library with used prefix
-  List<ImportElement> candidates = null;
+  List<ImportElement> candidates;
   for (ImportElement importElement in libraryElement.imports) {
     // required library
     if (importElement.importedLibrary != usedLibrary) {
@@ -126,7 +126,7 @@ ImportElement internal_getImportElementInfo(SimpleIdentifier prefixNode) {
   CompilationUnit unit = prefixNode.thisOrAncestorOfType<CompilationUnit>();
   LibraryElement libraryElement = unit.declaredElement.library;
   // prepare used element
-  Element usedElement = null;
+  Element usedElement;
   if (parent is PrefixedIdentifier) {
     PrefixedIdentifier prefixed = parent;
     if (prefixed.prefix == prefixNode) {

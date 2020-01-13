@@ -118,7 +118,7 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
     expect(suggestion.hasNamedParameters, isNotNull);
   }
 
-  void assertNoSuggestions({CompletionSuggestionKind kind = null}) {
+  void assertNoSuggestions({CompletionSuggestionKind kind}) {
     if (kind == null) {
       if (suggestions.isNotEmpty) {
         failedCompletion('Expected no suggestions', suggestions);
@@ -145,7 +145,7 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
   CompletionSuggestion assertSuggest(String completion,
       {CompletionSuggestionKind csKind = CompletionSuggestionKind.INVOCATION,
       int relevance = DART_RELEVANCE_DEFAULT,
-      ElementKind elemKind = null,
+      ElementKind elemKind,
       bool isDeprecated = false,
       bool isPotential = false,
       String elemFile,
@@ -539,9 +539,9 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
   }
 
   CompletionSuggestion getSuggest(
-      {String completion = null,
-      CompletionSuggestionKind csKind = null,
-      ElementKind elemKind = null}) {
+      {String completion,
+      CompletionSuggestionKind csKind,
+      ElementKind elemKind}) {
     CompletionSuggestion cs;
     if (suggestions != null) {
       suggestions.forEach((CompletionSuggestion s) {

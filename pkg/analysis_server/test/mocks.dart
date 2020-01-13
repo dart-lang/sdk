@@ -203,34 +203,34 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
 
 class MockSource extends StringTypedMock implements Source {
   @override
-  TimestampedData<String> contents = null;
+  TimestampedData<String> contents;
 
   @override
-  String encoding = null;
+  String encoding;
 
   @override
-  String fullName = null;
+  String fullName;
 
   @override
-  bool isInSystemLibrary = null;
+  bool isInSystemLibrary;
 
   @override
-  Source librarySource = null;
+  Source librarySource;
 
   @override
-  int modificationStamp = null;
+  int modificationStamp;
 
   @override
-  String shortName = null;
+  String shortName;
 
   @override
-  Source source = null;
+  Source source;
 
   @override
-  Uri uri = null;
+  Uri uri;
 
   @override
-  UriKind uriKind = null;
+  UriKind uriKind;
 
   MockSource([String name = 'mocked.dart']) : super(name);
 

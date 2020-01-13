@@ -1070,7 +1070,7 @@ class CorrectionUtils {
       bool shouldSkip(ClassMember existingMember)) {
     String indent = getIndent(1);
     // Find the last target member.
-    ClassMember targetMember = null;
+    ClassMember targetMember;
     List<ClassMember> members = _getMembers(declaration);
     if (members == null) {
       return null;

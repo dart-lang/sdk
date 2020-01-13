@@ -189,7 +189,7 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
     }
 
     // Assert that none of the fixes are a fix-all fix.
-    Fix foundFix = null;
+    Fix foundFix;
     for (Fix fix in fixes) {
       if (fix.isFixAllFix()) {
         fail('A fix-all fix was found for the error: $error '
@@ -216,7 +216,7 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
     List<Fix> fixes = await _computeFixes(error);
 
     // Assert that there exists such a fix in the list.
-    Fix foundFix = null;
+    Fix foundFix;
     for (Fix fix in fixes) {
       if (fix.kind == kind && fix.isFixAllFix()) {
         foundFix = fix;

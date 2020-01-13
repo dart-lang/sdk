@@ -25,7 +25,7 @@ class InstrumentationInputConverter extends CommonInputConverter {
    * as recorded in the instrumentation log
    * or `null` if not converting a "Read" entry.
    */
-  StringBuffer readBuffer = null;
+  StringBuffer readBuffer;
 
   InstrumentationInputConverter(String tmpSrcDirPath, PathMap srcPathMap)
       : super(tmpSrcDirPath, srcPathMap);

@@ -370,7 +370,7 @@ class Driver {
       // Iterate over the history, applying changes.
       //
       bool firstCheckout = true;
-      ErrorMap expectedErrors = null;
+      ErrorMap expectedErrors;
       Iterable<String> changedPubspecs;
       while (iterator.moveNext()) {
         //
@@ -506,7 +506,7 @@ class Driver {
   /**
    * Display usage information, preceded by the [errorMessage] if one is given.
    */
-  void _showUsage(ArgParser parser, [String errorMessage = null]) {
+  void _showUsage(ArgParser parser, [String errorMessage]) {
     if (errorMessage != null) {
       stderr.writeln(errorMessage);
       stderr.writeln();
@@ -607,7 +607,7 @@ class FileEdit {
     addUpdateContent(AddContentOverlay(content));
     for (List<SourceEdit> editList in editLists.reversed) {
       for (SourceEdit edit in editList.reversed) {
-        var overlay = null;
+        var overlay;
         if (overlayStyle == OverlayStyle.change) {
           overlay = ChangeContentOverlay([edit]);
         } else if (overlayStyle == OverlayStyle.multipleAdd) {

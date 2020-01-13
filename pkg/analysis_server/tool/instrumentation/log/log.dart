@@ -372,9 +372,9 @@ class InstrumentationLog {
     }
     logEntries = <LogEntry>[];
     analysisRanges = <EntryRange>[];
-    NotificationEntry analysisStartEntry = null;
+    NotificationEntry analysisStartEntry;
     int analysisStartIndex = -1;
-    NotificationEntry pubStartEntry = null;
+    NotificationEntry pubStartEntry;
     for (String line in logContent) {
       LogEntry entry = LogEntry.from(logEntries.length, line);
       if (entry != null) {
@@ -626,7 +626,7 @@ abstract class LogEntry {
    * A list containing the descriptions of problems that were found while
    * processing the log file, or `null` if no problems were found.
    */
-  List<String> _problems = null;
+  List<String> _problems;
 
   /**
    * Initialize a newly created log entry with the given [timeStamp].
@@ -1104,12 +1104,12 @@ class TaskEntry extends LogEntry {
   /**
    * The name of the class implementing the task.
    */
-  String _taskName = null;
+  String _taskName;
 
   /**
    * The description of the target of the task.
    */
-  String _target = null;
+  String _target;
 
   /**
    * Initialize a newly created entry with the given [index] and [timeStamp] to

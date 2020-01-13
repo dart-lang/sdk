@@ -1626,7 +1626,7 @@ class FixProcessor extends BaseProcessor {
           argumentList.arguments.skip(numberOfPositionalParameters);
       for (var argument in extraArguments) {
         if (argument is! NamedExpression) {
-          ParameterElement uniqueNamedParameter = null;
+          ParameterElement uniqueNamedParameter;
           for (var namedParameter in namedParameters) {
             if (typeSystem.isSubtypeOf(
                 argument.staticType, namedParameter.type)) {
@@ -1670,8 +1670,8 @@ class FixProcessor extends BaseProcessor {
   }
 
   Future<void> _addFix_createClass() async {
-    Element prefixElement = null;
-    String name = null;
+    Element prefixElement;
+    String name;
     SimpleIdentifier nameNode;
     if (node is SimpleIdentifier) {
       AstNode parent = node.parent;
@@ -1885,9 +1885,9 @@ class FixProcessor extends BaseProcessor {
   }
 
   Future<void> _addFix_createConstructor_named() async {
-    SimpleIdentifier name = null;
-    ConstructorName constructorName = null;
-    InstanceCreationExpression instanceCreation = null;
+    SimpleIdentifier name;
+    ConstructorName constructorName;
+    InstanceCreationExpression instanceCreation;
     if (node is SimpleIdentifier) {
       // name
       name = node as SimpleIdentifier;
@@ -2574,8 +2574,8 @@ class FixProcessor extends BaseProcessor {
   }
 
   Future<void> _addFix_createMixin() async {
-    Element prefixElement = null;
-    String name = null;
+    Element prefixElement;
+    String name;
     SimpleIdentifier nameNode;
     if (node is SimpleIdentifier) {
       AstNode parent = node.parent;
@@ -2828,7 +2828,7 @@ class FixProcessor extends BaseProcessor {
   }
 
   Future<void> _addFix_importLibrary(FixKind kind, Uri library,
-      [String relativeURI = null]) async {
+      [String relativeURI]) async {
     String uriText;
     var changeBuilder = _newDartChangeBuilder();
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
@@ -3228,7 +3228,7 @@ class FixProcessor extends BaseProcessor {
     }
     SimpleIdentifier memberName = node;
     AstNode parent = node.parent;
-    AstNode target = null;
+    AstNode target;
     if (parent is MethodInvocation && node == parent.methodName) {
       target = parent.target;
     } else if (parent is PropertyAccess && node == parent.propertyName) {
@@ -4095,7 +4095,7 @@ class FixProcessor extends BaseProcessor {
       return;
     }
     AstNode parent = node.parent;
-    AstNode target = null;
+    AstNode target;
     if (parent is MethodInvocation && node == parent.methodName) {
       target = parent.target;
     } else if (parent is PropertyAccess && node == parent.propertyName) {
@@ -4282,7 +4282,7 @@ class FixProcessor extends BaseProcessor {
   Future<void> _addFix_undefinedClass_useSimilar() async {
     AstNode node = this.node;
     // Prepare the optional import prefix name.
-    String prefixName = null;
+    String prefixName;
     if (node is SimpleIdentifier && node.staticElement is PrefixElement) {
       AstNode parent = node.parent;
       if (parent is PrefixedIdentifier &&
@@ -4332,7 +4332,7 @@ class FixProcessor extends BaseProcessor {
     AstNode node = this.node;
     if (node is SimpleIdentifier) {
       // prepare target
-      Expression target = null;
+      Expression target;
       if (node.parent is PrefixedIdentifier) {
         target = (node.parent as PrefixedIdentifier).prefix;
       } else if (node.parent is PropertyAccess) {
@@ -4445,7 +4445,7 @@ class FixProcessor extends BaseProcessor {
     AstNode node = this.node;
     if (node is SimpleIdentifier) {
       // Prepare the optional import prefix name.
-      String prefixName = null;
+      String prefixName;
       {
         AstNode invocation = node.parent;
         if (invocation is MethodInvocation && invocation.methodName == node) {
@@ -4561,7 +4561,7 @@ class FixProcessor extends BaseProcessor {
 
   Future<void> _addFix_updateSdkConstraints(String minimumVersion) async {
     Context context = resourceProvider.pathContext;
-    File pubspecFile = null;
+    File pubspecFile;
     Folder folder = resourceProvider.getFolder(context.dirname(file));
     while (folder != null) {
       pubspecFile = folder.getChildAssumingFile('pubspec.yaml');
@@ -4670,7 +4670,7 @@ class FixProcessor extends BaseProcessor {
   }
 
   void _addFixFromBuilder(ChangeBuilder builder, FixKind kind,
-      {List args = null, bool importsOnly = false}) {
+      {List args, bool importsOnly = false}) {
     if (builder == null) return;
     SourceChange change = builder.sourceChange;
     if (change.edits.isEmpty && !importsOnly) {
@@ -5255,7 +5255,7 @@ class _ClosestElementFinder {
   final String _targetName;
   final ElementPredicate _predicate;
 
-  Element _element = null;
+  Element _element;
   int _distance;
 
   _ClosestElementFinder(this._targetName, this._predicate, this._distance);

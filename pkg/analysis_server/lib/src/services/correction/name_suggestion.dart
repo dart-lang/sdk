@@ -178,7 +178,7 @@ String _getBaseNameFromLocationInParent(Expression expression) {
 }
 
 String _getBaseNameFromUnwrappedExpression(Expression expression) {
-  String name = null;
+  String name;
   // analyze expressions
   if (expression is SimpleIdentifier) {
     return expression.name;

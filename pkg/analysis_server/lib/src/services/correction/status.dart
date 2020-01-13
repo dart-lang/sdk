@@ -12,7 +12,7 @@ class RefactoringStatus {
    * The current severity of this [RefactoringStatus] - the maximum of the
    * severities of its [entries].
    */
-  RefactoringProblemSeverity _severity = null;
+  RefactoringProblemSeverity _severity;
 
   /**
    * A list of [RefactoringProblem]s.

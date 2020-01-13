@@ -31,7 +31,7 @@ class CompletionPerformance {
     return '$suggestionCountFirst,  $suggestionCountLast';
   }
 
-  void complete([String tag = null]) {
+  void complete([String tag]) {
     _stopwatch.stop();
     _logDuration(tag ?? 'total time', _stopwatch.elapsed);
   }

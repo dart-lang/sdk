@@ -92,7 +92,7 @@ abstract class AbstractAnalysisServer {
 
   /// A list of the globs used to determine which files should be analyzed. The
   /// list is lazily created and should be accessed using [analyzedFilesGlobs].
-  List<Glob> _analyzedFilesGlobs = null;
+  List<Glob> _analyzedFilesGlobs;
 
   AbstractAnalysisServer(this.options, this.diagnosticServer,
       ResourceProvider baseResourceProvider)

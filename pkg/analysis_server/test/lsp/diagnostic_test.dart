@@ -87,7 +87,7 @@ void f() {
 
     newFile(dotFolderFilePath, content: 'String a = 1;');
 
-    List<Diagnostic> diagnostics = null;
+    List<Diagnostic> diagnostics;
     waitForDiagnostics(dotFolderFileUri).then((d) => diagnostics = d);
 
     // Send a request for a hover.

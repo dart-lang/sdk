@@ -334,7 +334,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
         }
       }
       // prepare declaration source
-      String declarationSource = null;
+      String declarationSource;
       {
         String returnExpressionSource = _getMethodBodySource();
         // closure

@@ -177,7 +177,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
 
   @override
   visitCompilationUnit(CompilationUnit node) {
-    var previousMember = null;
+    var previousMember;
     for (var member in node.childEntities) {
       if (entity == member) {
         break;

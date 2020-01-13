@@ -462,7 +462,7 @@ class PluginManager {
     bool matches(String pattern) =>
         Glob(resourceProvider.pathContext.separator, pattern).matches(filePath);
 
-    WatchEvent event = null;
+    WatchEvent event;
     List<Future<Response>> responses = <Future<Response>>[];
     for (PluginInfo plugin in _pluginMap.values) {
       PluginSession session = plugin.currentSession;

@@ -293,7 +293,7 @@ class PostfixCompletionProcessor {
   PostfixCompletion completion;
   SourceChange change = SourceChange('postfix-completion');
   final Map<String, LinkedEditGroup> linkedPositionGroups = {};
-  Position exitPosition = null;
+  Position exitPosition;
 
   PostfixCompletionProcessor(this.completionContext)
       : utils = CorrectionUtils(completionContext.resolveResult);
@@ -548,7 +548,7 @@ class PostfixCompletionProcessor {
     return expr;
   }
 
-  AstNode _selectedNode({int at = null}) =>
+  AstNode _selectedNode({int at}) =>
       NodeLocator(at == null ? selectionOffset : at)
           .searchWithin(completionContext.resolveResult.unit);
 

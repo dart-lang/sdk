@@ -299,7 +299,7 @@ class DeclarationsTrackerData {
 
   /// When the completion domain subscribes for changes, we start redirecting
   /// changes to this listener.
-  void Function(LibraryChange) _listener = null;
+  void Function(LibraryChange) _listener;
 
   DeclarationsTrackerData(this._tracker) {
     _tracker.changes.listen((change) {

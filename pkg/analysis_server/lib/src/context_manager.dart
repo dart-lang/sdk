@@ -864,7 +864,7 @@ class ContextManagerImpl implements ContextManager {
         _isInTopLevelDocDir(info.folder.path, folder.path)) {
       return;
     }
-    List<Resource> children = null;
+    List<Resource> children;
     try {
       children = folder.getChildren();
     } on FileSystemException {
@@ -1339,7 +1339,7 @@ class ContextManagerImpl implements ContextManager {
   ///
   /// Returns null if there are no embedded/configured options.
   YamlMap _getEmbeddedOptions(ContextInfo info) {
-    Map embeddedOptions = null;
+    Map embeddedOptions;
     EmbedderYamlLocator locator =
         info.disposition.getEmbedderLocator(resourceProvider);
     Iterable<YamlMap> maps = locator.embedderYamls.values;

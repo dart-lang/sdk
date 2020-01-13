@@ -458,7 +458,7 @@ abstract class BaseProcessor {
     String elementText;
     ConvertToSpreadCollectionsChange change =
         ConvertToSpreadCollectionsChange();
-    List<String> args = null;
+    List<String> args;
     if (argument is BinaryExpression &&
         argument.operator.type == TokenType.QUESTION_QUESTION) {
       Expression right = argument.rightOperand;

@@ -22,7 +22,7 @@ class AnalyzerStatusTest extends AbstractLspAnalysisServerTest {
     // To avoid races, set up listeners for the notifications before we initialise
     // and track which event came first to ensure they arrived in the expected
     // order.
-    bool firstNotificationWasAnalyzing = null;
+    bool firstNotificationWasAnalyzing;
     final startNotification = waitForAnalysisStart()
         .then((_) => firstNotificationWasAnalyzing ??= true);
     final completeNotification = waitForAnalysisComplete()
