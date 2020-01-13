@@ -335,15 +335,9 @@ class _VerticesIterator implements Iterator<SnapshotObject> {
   _VerticesIterator(this._graph);
 
   bool moveNext() {
-    while (_nextId <= _graph._N) {
-      // A retained size of zero means the object was unreachable.
-      if (_graph._retainedSizes[_nextId] != 0) {
-        current = new _SnapshotObject._(_nextId++, _graph, "");
-        return true;
-      }
-      _nextId++;
-    }
-    return false;
+    if (_nextId == _graph._N) return false;
+    current = new _SnapshotObject._(_nextId++, _graph, "");
+    return true;
   }
 }
 
@@ -366,10 +360,8 @@ class _InstancesIterator implements Iterator<SnapshotObject> {
   _InstancesIterator(this._graph, this._cid);
 
   bool moveNext() {
-    while (_nextId <= _graph._N) {
-      // A retained size of zero means the object was unreachable.
-      if (_graph._cids[_nextId] == _cid &&
-          _graph._retainedSizes[_nextId] != 0) {
+    while (_nextId < _graph._N) {
+      if (_graph._cids[_nextId] == _cid) {
         current = new _SnapshotObject._(_nextId++, _graph, "");
         return true;
       }
@@ -1185,13 +1177,10 @@ class _SnapshotGraph implements SnapshotGraph {
       cls.liveInstanceCount++;
     }
 
-    // Start with retained size as shallow size + external size. For reachable
-    // objects only; leave unreachable objects with a retained size of 0 so
-    // they can be filtered during graph iterations.
+    // Start with retained size as shallow size + external size.
     var retainedSizes = new Uint32List(N + 1);
-    for (var i = 0; i <= Nconnected; i++) {
-      var v = vertex[i];
-      retainedSizes[v] = internalSizes[v] + externalSizes[v];
+    for (var i = 0; i < N + 1; i++) {
+      retainedSizes[i] = internalSizes[i] + externalSizes[i];
     }
 
     // In post order (bottom up), add retained size to dominator's retained
