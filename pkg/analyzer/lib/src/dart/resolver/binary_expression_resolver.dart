@@ -52,7 +52,13 @@ class BinaryExpressionResolver {
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
   void resolve(BinaryExpressionImpl node) {
-    TokenType operator = node.operator.type;
+    var operator = node.operator.type;
+
+    if (operator == TokenType.QUESTION_QUESTION) {
+      _resolveIfNull(node);
+      return;
+    }
+
     Expression left = node.leftOperand;
     Expression right = node.rightOperand;
     var flow = _flowAnalysis?.flow;
@@ -101,13 +107,6 @@ class BinaryExpressionResolver {
       _flowAnalysis?.flow?.equalityOp_end(node, right,
           notEqual: operator == TokenType.BANG_EQ);
     } else {
-      if (operator == TokenType.QUESTION_QUESTION) {
-        var leftContextType = InferenceContext.getContext(node);
-        if (leftContextType != null && _isNonNullableByDefault) {
-          leftContextType = _typeSystem.makeNullable(leftContextType);
-        }
-        InferenceContext.setType(left, leftContextType);
-      }
       // TODO(scheglov) Do we need these checks for null?
       left?.accept(_resolver);
 
@@ -115,49 +114,19 @@ class BinaryExpressionResolver {
       // operator method, if applicable.
       _resolve1(node);
 
-      if (operator == TokenType.QUESTION_QUESTION) {
-        // Set the right side, either from the context, or using the information
-        // from the left side if it is more precise.
-        DartType contextType = InferenceContext.getContext(node);
-        DartType leftType = left?.staticType;
-        if (contextType == null || contextType.isDynamic) {
-          contextType = leftType;
-        }
-        InferenceContext.setType(right, contextType);
-      } else {
-        var invokeType = node.staticInvokeType;
-        if (invokeType != null && invokeType.parameters.isNotEmpty) {
-          // If this is a user-defined operator, set the right operand context
-          // using the operator method's parameter type.
-          var rightParam = invokeType.parameters[0];
-          InferenceContext.setType(
-              right, _elementTypeProvider.getVariableType(rightParam));
-        }
+      var invokeType = node.staticInvokeType;
+      if (invokeType != null && invokeType.parameters.isNotEmpty) {
+        // If this is a user-defined operator, set the right operand context
+        // using the operator method's parameter type.
+        var rightParam = invokeType.parameters[0];
+        InferenceContext.setType(
+            right, _elementTypeProvider.getVariableType(rightParam));
       }
 
-      if (operator == TokenType.QUESTION_QUESTION) {
-        flow?.ifNullExpression_rightBegin(node.leftOperand);
-        right.accept(_resolver);
-        flow?.ifNullExpression_end();
-      } else {
-        // TODO(scheglov) Do we need these checks for null?
-        right?.accept(_resolver);
-      }
+      // TODO(scheglov) Do we need these checks for null?
+      right?.accept(_resolver);
     }
     _resolve2(node);
-  }
-
-  /// Set the static type of [node] to be the least upper bound of the static
-  /// types of subexpressions [expr1] and [expr2].
-  ///
-  /// TODO(scheglov) this is duplicate
-  void _analyzeLeastUpperBound(
-      Expression node, Expression expr1, Expression expr2,
-      {bool read = false}) {
-    DartType staticType1 = _getExpressionType(expr1, read: read);
-    DartType staticType2 = _getExpressionType(expr2, read: read);
-
-    _analyzeLeastUpperBoundTypes(node, staticType1, staticType2);
   }
 
   /// Set the static type of [node] to be the least upper bound of the static
@@ -221,27 +190,6 @@ class BinaryExpressionResolver {
   }
 
   void _resolve2(BinaryExpressionImpl node) {
-    if (node.operator.type == TokenType.QUESTION_QUESTION) {
-      if (_isNonNullableByDefault) {
-        // The static type of a compound assignment using ??= with NNBD is the
-        // least upper bound of the static types of the LHS and RHS after
-        // promoting the LHS/ to non-null (as we know its value will not be used
-        // if null)
-        _analyzeLeastUpperBoundTypes(
-            node,
-            _typeSystem.promoteToNonNull(
-                _getExpressionType(node.leftOperand, read: true)),
-            _getExpressionType(node.rightOperand, read: true));
-      } else {
-        // Without NNBD, evaluation of an if-null expression e of the form
-        // e1 ?? e2 is equivalent to the evaluation of the expression
-        // ((x) => x == null ? e2 : x)(e1).  The static type of e is the least
-        // upper bound of the static type of e1 and the static type of e2.
-        _analyzeLeastUpperBound(node, node.leftOperand, node.rightOperand);
-      }
-      return;
-    }
-
     if (identical(node.leftOperand.staticType, NeverTypeImpl.instance)) {
       _inferenceHelper.recordStaticType(node, NeverTypeImpl.instance);
       return;
@@ -312,6 +260,43 @@ class BinaryExpressionResolver {
           [methodName, leftType],
         );
       }
+    }
+  }
+
+  void _resolveIfNull(BinaryExpressionImpl node) {
+    var left = node.leftOperand;
+    var right = node.rightOperand;
+    var flow = _flowAnalysis?.flow;
+
+    var leftContextType = InferenceContext.getContext(node);
+    if (leftContextType != null && _isNonNullableByDefault) {
+      leftContextType = _typeSystem.makeNullable(leftContextType);
+    }
+    InferenceContext.setType(left, leftContextType);
+
+    left.accept(_resolver);
+    left = node.leftOperand;
+    var leftType = _getExpressionType(left, read: false);
+
+    var rightContextType = InferenceContext.getContext(node);
+    if (rightContextType == null || rightContextType.isDynamic) {
+      rightContextType = leftType;
+    }
+    InferenceContext.setType(right, rightContextType);
+
+    flow?.ifNullExpression_rightBegin(left);
+    right.accept(_resolver);
+    right = node.rightOperand;
+    flow?.ifNullExpression_end();
+
+    // TODO(scheglov) This (and above) is absolutely wrong, and convoluted.
+    // This is just the status quo, until we can make types straight.
+    var rightType = _getExpressionType(right, read: false);
+    if (_isNonNullableByDefault) {
+      var promotedLeftType = _typeSystem.promoteToNonNull(leftType);
+      _analyzeLeastUpperBoundTypes(node, promotedLeftType, rightType);
+    } else {
+      _analyzeLeastUpperBoundTypes(node, leftType, rightType);
     }
   }
 

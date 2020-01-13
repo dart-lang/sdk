@@ -150,27 +150,6 @@ main() {
     assertType(findNode.methodInvocation('c?.x()'), 'bool?');
   }
 
-  test_local_nullCoalesce_nullableInt_int() async {
-    await assertNoErrorsInCode(r'''
-main() {
-  int? x;
-  int y = 0;
-  x ?? y;
-}
-''');
-    assertType(findNode.binary('x ?? y'), 'int');
-  }
-
-  test_local_nullCoalesce_nullableInt_nullableInt() async {
-    await assertNoErrorsInCode(r'''
-main() {
-  int? x;
-  x ?? x;
-}
-''');
-    assertType(findNode.binary('x ?? x'), 'int?');
-  }
-
   test_local_nullCoalesceAssign_nullableInt_int() async {
     await assertNoErrorsInCode(r'''
 main() {
@@ -374,24 +353,6 @@ main(C? c) {
 ''');
 
     assertType(findNode.methodInvocation('c?.x()'), 'bool?');
-  }
-
-  test_parameter_nullCoalesce_nullableInt_int() async {
-    await assertNoErrorsInCode(r'''
-main(int? x, int y) {
-  x ?? y;
-}
-''');
-    assertType(findNode.binary('x ?? y'), 'int');
-  }
-
-  test_parameter_nullCoalesce_nullableInt_nullableInt() async {
-    await assertNoErrorsInCode(r'''
-main(int? x) {
-  x ?? x;
-}
-''');
-    assertType(findNode.binary('x ?? x'), 'int?');
   }
 
   test_parameter_nullCoalesceAssign_nullableInt_int() async {
