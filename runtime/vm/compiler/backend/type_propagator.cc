@@ -1261,7 +1261,7 @@ CompileType AllocateUninitializedContextInstr::ComputeType() const {
                      &Object::dynamic_type());
 }
 
-CompileType InstanceCallInstr::ComputeType() const {
+CompileType InstanceCallBaseInstr::ComputeType() const {
   // TODO(alexmarkov): calculate type of InstanceCallInstr eagerly
   // (in optimized mode) and avoid keeping separate result_type.
   CompileType* inferred_type = result_type();
@@ -1310,13 +1310,8 @@ CompileType PolymorphicInstanceCallInstr::ComputeType() const {
     }
   }
 
-  if (Isolate::Current()->can_use_strong_mode_types()) {
-    CompileType* type = instance_call()->Type();
-    TraceStrongModeType(this, type);
-    return is_nullable ? *type : type->CopyNonNullable();
-  }
-
-  return CompileType::Dynamic();
+  CompileType type = InstanceCallBaseInstr::ComputeType();
+  return is_nullable ? type : type.CopyNonNullable();
 }
 
 CompileType StaticCallInstr::ComputeType() const {

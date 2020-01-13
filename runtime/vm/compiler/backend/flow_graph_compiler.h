@@ -638,15 +638,14 @@ class FlowGraphCompiler : public ValueObject {
                            LocationSummary* locs,
                            Code::EntryKind entry_kind);
 
-  void EmitPolymorphicInstanceCall(
-      const CallTargets& targets,
-      const InstanceCallInstr& original_instruction,
-      ArgumentsInfo args_info,
-      intptr_t deopt_id,
-      TokenPosition token_pos,
-      LocationSummary* locs,
-      bool complete,
-      intptr_t total_call_count);
+  void EmitPolymorphicInstanceCall(const PolymorphicInstanceCallInstr* call,
+                                   const CallTargets& targets,
+                                   ArgumentsInfo args_info,
+                                   intptr_t deopt_id,
+                                   TokenPosition token_pos,
+                                   LocationSummary* locs,
+                                   bool complete,
+                                   intptr_t total_call_count);
 
   // Pass a value for try-index where block is not available (e.g. slow path).
   void EmitMegamorphicInstanceCall(const String& function_name,

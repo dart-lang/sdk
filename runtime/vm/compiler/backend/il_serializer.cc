@@ -1211,12 +1211,13 @@ void StaticCallInstr::AddExtraInfoToSExpression(SExpList* sexp,
   }
 }
 
-void InstanceCallInstr::AddOperandsToSExpression(SExpList* sexp,
-                                                 FlowGraphSerializer* s) const {
+void InstanceCallBaseInstr::AddOperandsToSExpression(
+    SExpList* sexp,
+    FlowGraphSerializer* s) const {
   Instruction::AddOperandsToSExpression(sexp, s);
 }
 
-void InstanceCallInstr::AddExtraInfoToSExpression(
+void InstanceCallBaseInstr::AddExtraInfoToSExpression(
     SExpList* sexp,
     FlowGraphSerializer* s) const {
   TemplateDartCall<0>::AddExtraInfoToSExpression(sexp, s);
@@ -1243,9 +1244,6 @@ void InstanceCallInstr::AddExtraInfoToSExpression(
   if (token_kind() != Token::kILLEGAL) {
     s->AddExtraSymbol(sexp, "token_kind", Token::Str(token_kind()));
   }
-  if (checked_argument_count() > 0 || FLAG_verbose_flow_graph_serialization) {
-    s->AddExtraInteger(sexp, "checked_arg_count", checked_argument_count());
-  }
 
   if (ShouldSerializeType(result_type())) {
     sexp->AddExtra("result_type", result_type()->ToSExpression(s));
@@ -1258,19 +1256,21 @@ void InstanceCallInstr::AddExtraInfoToSExpression(
   }
 }
 
-void PolymorphicInstanceCallInstr::AddOperandsToSExpression(
+void InstanceCallInstr::AddExtraInfoToSExpression(
     SExpList* sexp,
     FlowGraphSerializer* s) const {
-  Instruction::AddOperandsToSExpression(sexp, s);
+  InstanceCallBaseInstr::AddExtraInfoToSExpression(sexp, s);
+
+  if (checked_argument_count() > 0 || FLAG_verbose_flow_graph_serialization) {
+    s->AddExtraInteger(sexp, "checked_arg_count", checked_argument_count());
+  }
 }
 
 void PolymorphicInstanceCallInstr::AddExtraInfoToSExpression(
     SExpList* sexp,
     FlowGraphSerializer* s) const {
-  TemplateDartCall<0>::AddExtraInfoToSExpression(sexp, s);
-  // TODO(alexmarkov): figure out how to serialize information from
-  // inner InstanceCall
-  // sexp->AddExtra("instance_call", instance_call()->ToSExpression(s));
+  InstanceCallBaseInstr::AddExtraInfoToSExpression(sexp, s);
+
   if (targets().length() > 0 || FLAG_verbose_flow_graph_serialization) {
     auto elem_list = new (s->zone()) SExpList(s->zone());
     for (intptr_t i = 0; i < targets().length(); i++) {

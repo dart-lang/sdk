@@ -496,14 +496,15 @@ struct InstrAttrs {
   M(SimdOp, kNoGC)
 
 #define FOR_EACH_ABSTRACT_INSTRUCTION(M)                                       \
+  M(Allocation, _)                                                             \
+  M(BinaryIntegerOp, _)                                                        \
   M(BlockEntry, _)                                                             \
   M(BoxInteger, _)                                                             \
-  M(UnboxInteger, _)                                                           \
   M(Comparison, _)                                                             \
-  M(UnaryIntegerOp, _)                                                         \
-  M(BinaryIntegerOp, _)                                                        \
+  M(InstanceCallBase, _)                                                       \
   M(ShiftIntegerOp, _)                                                         \
-  M(Allocation, _)
+  M(UnaryIntegerOp, _)                                                         \
+  M(UnboxInteger, _)
 
 #define FORWARD_DECLARATION(type, attrs) class type##Instr;
 FOR_EACH_INSTRUCTION(FORWARD_DECLARATION)
@@ -791,8 +792,10 @@ class Instruction : public ZoneAllocated {
     return GetDeoptId();
   }
 
-  const ICData* GetICData(
-      const ZoneGrowableArray<const ICData*>& ic_data_array) const;
+  static const ICData* GetICData(
+      const ZoneGrowableArray<const ICData*>& ic_data_array,
+      intptr_t deopt_id,
+      bool is_static_call);
 
   virtual TokenPosition token_pos() const { return TokenPosition::kNoSource; }
 
@@ -3706,34 +3709,32 @@ class ClosureCallInstr : public TemplateDartCall<1> {
   DISALLOW_COPY_AND_ASSIGN(ClosureCallInstr);
 };
 
-class InstanceCallInstr : public TemplateDartCall<0> {
+// Common base class for various kinds of instance call instructions
+// (InstanceCallInstr, PolymorphicInstanceCallInstr).
+class InstanceCallBaseInstr : public TemplateDartCall<0> {
  public:
-  InstanceCallInstr(
-      TokenPosition token_pos,
-      const String& function_name,
-      Token::Kind token_kind,
-      InputsArray* arguments,
-      intptr_t type_args_len,
-      const Array& argument_names,
-      intptr_t checked_argument_count,
-      const ZoneGrowableArray<const ICData*>& ic_data_array,
-      intptr_t deopt_id,
-      const Function& interface_target = Function::null_function())
+  InstanceCallBaseInstr(TokenPosition token_pos,
+                        const String& function_name,
+                        Token::Kind token_kind,
+                        InputsArray* arguments,
+                        intptr_t type_args_len,
+                        const Array& argument_names,
+                        const ICData* ic_data,
+                        intptr_t deopt_id,
+                        const Function& interface_target)
       : TemplateDartCall(deopt_id,
                          type_args_len,
                          argument_names,
                          arguments,
                          token_pos),
-        ic_data_(NULL),
+        ic_data_(ic_data),
         function_name_(function_name),
         token_kind_(token_kind),
-        checked_argument_count_(checked_argument_count),
         interface_target_(interface_target),
-        result_type_(NULL),
+        result_type_(nullptr),
         has_unique_selector_(false) {
-    ic_data_ = GetICData(ic_data_array);
     ASSERT(function_name.IsNotTemporaryScopedHandle());
-    ASSERT(interface_target_.IsNotTemporaryScopedHandle());
+    ASSERT(interface_target.IsNotTemporaryScopedHandle());
     ASSERT(!arguments->is_empty());
     ASSERT(Token::IsBinaryOperator(token_kind) ||
            Token::IsEqualityOperator(token_kind) ||
@@ -3744,72 +3745,25 @@ class InstanceCallInstr : public TemplateDartCall<0> {
            Token::IsTypeCastOperator(token_kind) || token_kind == Token::kGET ||
            token_kind == Token::kSET || token_kind == Token::kILLEGAL);
   }
-
-  InstanceCallInstr(
-      TokenPosition token_pos,
-      const String& function_name,
-      Token::Kind token_kind,
-      InputsArray* arguments,
-      intptr_t type_args_len,
-      const Array& argument_names,
-      intptr_t checked_argument_count,
-      intptr_t deopt_id,
-      const Function& interface_target = Function::null_function())
-      : TemplateDartCall(deopt_id,
-                         type_args_len,
-                         argument_names,
-                         arguments,
-                         token_pos),
-        ic_data_(NULL),
-        function_name_(function_name),
-        token_kind_(token_kind),
-        checked_argument_count_(checked_argument_count),
-        interface_target_(interface_target),
-        result_type_(NULL),
-        has_unique_selector_(false) {
-    ASSERT(function_name.IsNotTemporaryScopedHandle());
-    ASSERT(interface_target_.IsNotTemporaryScopedHandle());
-    ASSERT(!arguments->is_empty());
-    ASSERT(Token::IsBinaryOperator(token_kind) ||
-           Token::IsEqualityOperator(token_kind) ||
-           Token::IsRelationalOperator(token_kind) ||
-           Token::IsUnaryOperator(token_kind) ||
-           Token::IsIndexOperator(token_kind) ||
-           Token::IsTypeTestOperator(token_kind) ||
-           Token::IsTypeCastOperator(token_kind) || token_kind == Token::kGET ||
-           token_kind == Token::kSET || token_kind == Token::kILLEGAL);
-  }
-
-  DECLARE_INSTRUCTION(InstanceCall)
 
   const ICData* ic_data() const { return ic_data_; }
-  bool HasICData() const { return (ic_data() != NULL) && !ic_data()->IsNull(); }
+  bool HasICData() const {
+    return (ic_data() != nullptr) && !ic_data()->IsNull();
+  }
 
   // ICData can be replaced by optimizer.
   void set_ic_data(const ICData* value) { ic_data_ = value; }
 
   const String& function_name() const { return function_name_; }
   Token::Kind token_kind() const { return token_kind_; }
-  intptr_t checked_argument_count() const { return checked_argument_count_; }
   const Function& interface_target() const { return interface_target_; }
-
-  void set_receivers_static_type(const AbstractType* receiver_type) {
-    ASSERT(receiver_type != nullptr);
-    receivers_static_type_ = receiver_type;
-  }
 
   bool has_unique_selector() const { return has_unique_selector_; }
   void set_has_unique_selector(bool b) { has_unique_selector_ = b; }
 
-  virtual intptr_t CallCount() const {
-    return ic_data() == NULL ? 0 : ic_data()->AggregateCount();
-  }
-
   virtual CompileType ComputeType() const;
 
   virtual bool ComputeCanDeoptimize() const { return !FLAG_precompiled_mode; }
-
-  virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   virtual bool CanBecomeDeoptimizationTarget() const {
     // Instance calls that are specialized by the optimizer need a
@@ -3826,69 +3780,144 @@ class InstanceCallInstr : public TemplateDartCall<0> {
   CompileType* result_type() const { return result_type_; }
 
   intptr_t result_cid() const {
-    if (result_type_ == NULL) {
+    if (result_type_ == nullptr) {
       return kDynamicCid;
     }
     return result_type_->ToCid();
   }
 
-  PRINT_OPERANDS_TO_SUPPORT
-  ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT
-  ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT
-
-  bool MatchesCoreName(const String& name);
-
   RawFunction* ResolveForReceiverClass(const Class& cls, bool allow_add = true);
 
   Code::EntryKind entry_kind() const { return entry_kind_; }
-
   void set_entry_kind(Code::EntryKind value) { entry_kind_ = value; }
 
-  const CallTargets& Targets();
-  void SetTargets(const CallTargets* targets) { targets_ = targets; }
+  ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT
+  ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT
+  DEFINE_INSTRUCTION_TYPE_CHECK(InstanceCallBase);
+
+ protected:
+  friend class CallSpecializer;
+  void set_ic_data(ICData* value) { ic_data_ = value; }
+  void set_result_type(CompileType* result_type) { result_type_ = result_type; }
+
+ private:
+  const ICData* ic_data_;
+  const String& function_name_;
+  const Token::Kind token_kind_;  // Binary op, unary op, kGET or kILLEGAL.
+  const Function& interface_target_;
+  CompileType* result_type_;  // Inferred result type.
+  bool has_unique_selector_;
+  Code::EntryKind entry_kind_ = Code::EntryKind::kNormal;
+
+  DISALLOW_COPY_AND_ASSIGN(InstanceCallBaseInstr);
+};
+
+class InstanceCallInstr : public InstanceCallBaseInstr {
+ public:
+  InstanceCallInstr(
+      TokenPosition token_pos,
+      const String& function_name,
+      Token::Kind token_kind,
+      InputsArray* arguments,
+      intptr_t type_args_len,
+      const Array& argument_names,
+      intptr_t checked_argument_count,
+      const ZoneGrowableArray<const ICData*>& ic_data_array,
+      intptr_t deopt_id,
+      const Function& interface_target = Function::null_function())
+      : InstanceCallBaseInstr(
+            token_pos,
+            function_name,
+            token_kind,
+            arguments,
+            type_args_len,
+            argument_names,
+            GetICData(ic_data_array, deopt_id, /*is_static_call=*/false),
+            deopt_id,
+            interface_target),
+        checked_argument_count_(checked_argument_count) {}
+
+  InstanceCallInstr(
+      TokenPosition token_pos,
+      const String& function_name,
+      Token::Kind token_kind,
+      InputsArray* arguments,
+      intptr_t type_args_len,
+      const Array& argument_names,
+      intptr_t checked_argument_count,
+      intptr_t deopt_id,
+      const Function& interface_target = Function::null_function())
+      : InstanceCallBaseInstr(token_pos,
+                              function_name,
+                              token_kind,
+                              arguments,
+                              type_args_len,
+                              argument_names,
+                              /*ic_data=*/nullptr,
+                              deopt_id,
+                              interface_target),
+        checked_argument_count_(checked_argument_count) {}
+
+  DECLARE_INSTRUCTION(InstanceCall)
+
+  intptr_t checked_argument_count() const { return checked_argument_count_; }
+
+  virtual intptr_t CallCount() const {
+    return ic_data() == nullptr ? 0 : ic_data()->AggregateCount();
+  }
+
+  void set_receivers_static_type(const AbstractType* receiver_type) {
+    ASSERT(receiver_type != nullptr);
+    receivers_static_type_ = receiver_type;
+  }
+
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
+
+  PRINT_OPERANDS_TO_SUPPORT
+  ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT
+
+  bool MatchesCoreName(const String& name);
 
   const class BinaryFeedback& BinaryFeedback();
   void SetBinaryFeedback(const class BinaryFeedback* binary) {
     binary_ = binary;
   }
 
- protected:
-  friend class CallSpecializer;
-  void set_ic_data(ICData* value) { ic_data_ = value; }
+  const CallTargets& Targets();
+  void SetTargets(const CallTargets* targets) { targets_ = targets; }
 
  private:
-  const ICData* ic_data_;
   const CallTargets* targets_ = nullptr;
   const class BinaryFeedback* binary_ = nullptr;
-  const String& function_name_;
-  const Token::Kind token_kind_;  // Binary op, unary op, kGET or kILLEGAL.
   const intptr_t checked_argument_count_;
-  const Function& interface_target_;
-  CompileType* result_type_;  // Inferred result type.
-  bool has_unique_selector_;
-  Code::EntryKind entry_kind_ = Code::EntryKind::kNormal;
-
   const AbstractType* receivers_static_type_ = nullptr;
 
   DISALLOW_COPY_AND_ASSIGN(InstanceCallInstr);
 };
 
-class PolymorphicInstanceCallInstr : public TemplateDartCall<0> {
+class PolymorphicInstanceCallInstr : public InstanceCallBaseInstr {
  public:
   // Generate a replacement polymorphic call instruction.
   static PolymorphicInstanceCallInstr* FromCall(Zone* zone,
-                                                InstanceCallInstr* call,
+                                                InstanceCallBaseInstr* call,
                                                 const CallTargets& targets,
                                                 bool complete) {
-    return FromCall(zone, call, call, targets, complete);
-  }
-
-  static PolymorphicInstanceCallInstr* FromCall(
-      Zone* zone,
-      PolymorphicInstanceCallInstr* call,
-      const CallTargets& targets,
-      bool complete) {
-    return FromCall(zone, call, call->instance_call(), targets, complete);
+    ASSERT(!call->HasPushArguments());
+    InputsArray* args = new (zone) InputsArray(zone, call->ArgumentCount());
+    for (intptr_t i = 0, n = call->ArgumentCount(); i < n; ++i) {
+      args->Add(call->ArgumentValueAt(i)->CopyWithType(zone));
+    }
+    auto new_call = new (zone) PolymorphicInstanceCallInstr(
+        call->token_pos(), call->function_name(), call->token_kind(), args,
+        call->type_args_len(), call->argument_names(), call->ic_data(),
+        call->deopt_id(), call->interface_target(), targets, complete);
+    if (call->has_inlining_id()) {
+      new_call->set_inlining_id(call->inlining_id());
+    }
+    new_call->set_result_type(call->result_type());
+    new_call->set_entry_kind(call->entry_kind());
+    new_call->set_has_unique_selector(call->has_unique_selector());
+    return new_call;
   }
 
   bool complete() const { return complete_; }
@@ -3917,70 +3946,40 @@ class PolymorphicInstanceCallInstr : public TemplateDartCall<0> {
 
   DECLARE_INSTRUCTION(PolymorphicInstanceCall)
 
-  virtual bool ComputeCanDeoptimize() const { return !FLAG_precompiled_mode; }
-
-  virtual bool HasUnknownSideEffects() const { return true; }
-
   virtual Definition* Canonicalize(FlowGraph* graph);
 
   static RawType* ComputeRuntimeType(const CallTargets& targets);
 
-  CompileType* result_type() const { return instance_call()->result_type(); }
-  intptr_t result_cid() const { return instance_call()->result_cid(); }
-  const String& function_name() const {
-    return instance_call()->function_name();
-  }
-  Token::Kind token_kind() const { return instance_call()->token_kind(); }
-  Code::EntryKind entry_kind() const { return instance_call()->entry_kind(); }
-  const ICData* ic_data() const { return instance_call()->ic_data(); }
-  bool has_unique_selector() const {
-    return instance_call()->has_unique_selector();
-  }
-  RawFunction* ResolveForReceiverClass(const Class& cls) {
-    return instance_call()->ResolveForReceiverClass(cls);
-  }
-
   PRINT_OPERANDS_TO_SUPPORT
-  ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT
   ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT
 
  private:
-  PolymorphicInstanceCallInstr(InstanceCallInstr* instance_call,
+  PolymorphicInstanceCallInstr(TokenPosition token_pos,
+                               const String& function_name,
+                               Token::Kind token_kind,
                                InputsArray* arguments,
+                               intptr_t type_args_len,
+                               const Array& argument_names,
+                               const ICData* ic_data,
+                               intptr_t deopt_id,
+                               const Function& interface_target,
                                const CallTargets& targets,
                                bool complete)
-      : TemplateDartCall<0>(instance_call->deopt_id(),
-                            instance_call->type_args_len(),
-                            instance_call->argument_names(),
-                            arguments,
-                            instance_call->token_pos()),
-        instance_call_(instance_call),
+      : InstanceCallBaseInstr(token_pos,
+                              function_name,
+                              token_kind,
+                              arguments,
+                              type_args_len,
+                              argument_names,
+                              ic_data,
+                              deopt_id,
+                              interface_target),
         targets_(targets),
         complete_(complete) {
-    ASSERT(instance_call_ != nullptr);
     ASSERT(targets.length() != 0);
     total_call_count_ = CallCount();
   }
 
-  static PolymorphicInstanceCallInstr* FromCall(
-      Zone* zone,
-      Instruction* call_for_arguments,
-      InstanceCallInstr* call_for_attributes,
-      const CallTargets& targets,
-      bool complete) {
-    ASSERT(!call_for_arguments->HasPushArguments());
-    InputsArray* args =
-        new (zone) InputsArray(zone, call_for_arguments->ArgumentCount());
-    for (intptr_t i = 0, n = call_for_arguments->ArgumentCount(); i < n; ++i) {
-      args->Add(call_for_arguments->ArgumentValueAt(i)->CopyWithType(zone));
-    }
-    return new (zone) PolymorphicInstanceCallInstr(call_for_attributes, args,
-                                                   targets, complete);
-  }
-
-  InstanceCallInstr* instance_call() const { return instance_call_; }
-
-  InstanceCallInstr* instance_call_;
   const CallTargets& targets_;
   const bool complete_;
   intptr_t total_call_count_;
@@ -4299,7 +4298,7 @@ class StaticCallInstr : public TemplateDartCall<0> {
         result_type_(NULL),
         is_known_list_constructor_(false),
         identity_(AliasIdentity::Unknown()) {
-    ic_data_ = GetICData(ic_data_array);
+    ic_data_ = GetICData(ic_data_array, deopt_id, /*is_static_call=*/true);
     ASSERT(function.IsZoneHandle());
     ASSERT(!function.IsNull());
   }
