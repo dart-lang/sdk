@@ -4,7 +4,9 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'driver_resolution.dart';
@@ -12,6 +14,7 @@ import 'driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MethodInvocationResolutionTest);
+    defineReflectiveTests(MethodInvocationResolutionWithNnbdTest);
   });
 }
 
@@ -1687,5 +1690,152 @@ main() {
 //      'dynamic',
 //      expectedType: 'dynamic',
 //    );
+  }
+}
+
+@reflectiveTest
+class MethodInvocationResolutionWithNnbdTest extends DriverResolutionTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions =>
+      AnalysisOptionsImpl()..enabledExperiments = [EnableString.non_nullable];
+
+  test_hasReceiver_interfaceTypeQ_defined() async {
+    await assertErrorsInCode(r'''
+class A {
+  void foo() {}
+}
+
+main(A? a) {
+  a.foo();
+}
+''', [
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 44, 1),
+    ]);
+
+    assertMethodInvocation2(
+      findNode.methodInvocation('a.foo()'),
+      element: findElement.method('foo', of: 'A'),
+      typeArgumentTypes: [],
+      invokeType: 'void Function()',
+      type: 'void',
+    );
+  }
+
+  test_hasReceiver_interfaceTypeQ_defined_extension() async {
+    await assertErrorsInCode(r'''
+class A {
+  void foo() {}
+}
+
+extension E on A {
+  void foo() {}
+}
+
+main(A? a) {
+  a.foo();
+}
+''', [
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 82, 1),
+    ]);
+
+    assertMethodInvocation2(
+      findNode.methodInvocation('a.foo()'),
+      element: findElement.method('foo', of: 'A'),
+      typeArgumentTypes: [],
+      invokeType: 'void Function()',
+      type: 'void',
+    );
+  }
+
+  test_hasReceiver_interfaceTypeQ_defined_extensionQ() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  void foo() {}
+}
+
+extension E on A? {
+  void foo() {}
+}
+
+main(A? a) {
+  a.foo();
+}
+''');
+
+    assertMethodInvocation2(
+      findNode.methodInvocation('a.foo()'),
+      element: findElement.method('foo', of: 'E'),
+      typeArgumentTypes: [],
+      invokeType: 'void Function()',
+      type: 'void',
+    );
+  }
+
+  test_hasReceiver_interfaceTypeQ_notDefined() async {
+    await assertErrorsInCode(r'''
+class A {}
+
+main(A? a) {
+  a.foo();
+}
+''', [
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 27, 1),
+      error(StaticTypeWarningCode.UNDEFINED_METHOD, 29, 3),
+    ]);
+
+    assertMethodInvocation2(
+      findNode.methodInvocation('a.foo()'),
+      element: null,
+      typeArgumentTypes: [],
+      invokeType: 'dynamic',
+      type: 'dynamic',
+    );
+  }
+
+  test_hasReceiver_interfaceTypeQ_notDefined_extension() async {
+    await assertErrorsInCode(r'''
+class A {}
+
+extension E on A {
+  void foo() {}
+}
+
+main(A? a) {
+  a.foo();
+}
+''', [
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 65, 1),
+      error(StaticTypeWarningCode.UNDEFINED_METHOD, 67, 3),
+    ]);
+
+    assertMethodInvocation2(
+      findNode.methodInvocation('a.foo()'),
+      element: null,
+      typeArgumentTypes: [],
+      invokeType: 'dynamic',
+      type: 'dynamic',
+    );
+  }
+
+  test_hasReceiver_interfaceTypeQ_notDefined_extensionQ() async {
+    await assertNoErrorsInCode(r'''
+class A {}
+
+extension E on A? {
+  void foo() {}
+}
+
+main(A? a) {
+  a.foo();
+}
+''');
+
+    assertMethodInvocation2(
+      findNode.methodInvocation('a.foo()'),
+      element: findElement.method('foo', of: 'E'),
+      typeArgumentTypes: [],
+      invokeType: 'void Function()',
+      type: 'void',
+    );
   }
 }
