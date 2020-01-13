@@ -168,16 +168,61 @@ class EditPlanner {
   /// Creates a new edit plan that makes no changes to [node], but may make
   /// changes to some of its descendants (specified via [innerPlans]).
   ///
+  /// Note that the [innerPlans] must be specified in document order.
+  ///
   /// All plans in [innerPlans] will be finalized as a side effect (either
   /// immediately or when the newly created plan is finalized), so they should
   /// not be re-used by the caller.
   NodeProducingEditPlan passThrough(AstNode node,
       {Iterable<EditPlan> innerPlans = const []}) {
-    if (node is ParenthesizedExpression) {
-      return _ProvisionalParenEditPlan(
-          node, _PassThroughEditPlan(node.expression, innerPlans: innerPlans));
-    } else {
-      return _PassThroughEditPlan(node, innerPlans: innerPlans);
+    // It's possible that some of the inner plans are nested more deeply within
+    // [node] than others.  We want to group these inner plans together into
+    // pass through plans at each level in the AST until we bubble up to [node].
+    // To do so, we form a stack of [_PassThroughBuilder] objects to handle each
+    // level of AST depth, where the first entry in the stack corresponds to
+    // [node], and each subsequent entry will correspond to a child of the
+    // previous.
+    var builderStack = [_PassThroughBuilder(node)];
+    var ancestryPath = <AstNode>[];
+    for (var plan in innerPlans) {
+      // Compute the ancestryPath (the path from `plan.parentNode` up to
+      // `node`).  Note that whereas builderStack walks stepwise down the AST,
+      // ancestryStack will walk stepwise up the AST, with the last entry of
+      // ancestryStack corresponding to the first entry of builderStack.  We
+      // re-use the same list for each loop iteration to reduce GC load.
+      ancestryPath.clear();
+      for (var parent = plan.parentNode;
+          !identical(parent, node);
+          parent = parent.parent) {
+        ancestryPath.add(parent);
+      }
+      ancestryPath.add(node);
+      // Find the deepest entry in builderStack that's on the ancestryPath.
+      var builderIndex = _findMatchingBuilder(builderStack, ancestryPath);
+      // We're finished with all builders beyond that entry.
+      while (builderStack.length > builderIndex + 1) {
+        var passThrough = builderStack.removeLast().finish(this);
+        builderStack.last.add(passThrough);
+      }
+      // And we may need to add new builders to make our way down to
+      // `plan.parentNode`.
+      while (builderStack.length < ancestryPath.length) {
+        // Since builderStack and ancestryPath walk in different directions
+        // through the AST, when building entry builderIndex, we need to count
+        // backwards from the end of ancestryPath to figure out which node to
+        // associate the builder with.
+        builderStack.add(_PassThroughBuilder(
+            ancestryPath[ancestryPath.length - builderStack.length - 1]));
+      }
+      // Now the deepest entry in the builderStack corresponds to
+      // `plan.parentNode`, so we can add the plan to it.
+      builderStack.last.add(plan);
+    }
+    // We're now finished with all builders.
+    while (true) {
+      var passThrough = builderStack.removeLast().finish(this);
+      if (builderStack.isEmpty) return passThrough;
+      builderStack.last.add(passThrough);
     }
   }
 
@@ -230,6 +275,26 @@ class EditPlanner {
             ? innerPlan.endsInCascade && !parensNeeded
             : endsInCascade,
         innerChanges);
+  }
+
+  /// Finds the deepest entry in [builderStack] that matches an entry in
+  /// [ancestryStack], taking advantage of the fact that [builderStack] walks
+  /// stepwise down the AST, and [ancestryStack] walks stepwise up the AST, with
+  /// the last entry of [ancestryStack] corresponding to the first entry of
+  /// [builderStack].
+  int _findMatchingBuilder(
+      List<_PassThroughBuilder> builderStack, List<AstNode> ancestryStack) {
+    var builderIndex = builderStack.length - 1;
+    while (builderIndex > 0) {
+      var ancestryIndex = ancestryStack.length - builderIndex - 1;
+      if (ancestryIndex >= 0 &&
+          identical(
+              builderStack[builderIndex].node, ancestryStack[ancestryIndex])) {
+        break;
+      }
+      --builderIndex;
+    }
+    return builderIndex;
   }
 }
 
@@ -628,17 +693,49 @@ class _ParensNeededFromContextVisitor extends GeneralizingAstVisitor<bool> {
   }
 }
 
+/// Data structure that accumulates together a set of [EditPlans] sharing a
+/// common parent node, and groups them together into an [EditPlan] with a
+/// parent node one level up the AST.
+class _PassThroughBuilder {
+  /// The AST node that is the parent of all the [EditPlan]s being accumulated.
+  final AstNode node;
+
+  /// The [EditPlan]s accumulated so far.
+  final List<EditPlan> innerPlans = [];
+
+  _PassThroughBuilder(this.node);
+
+  /// Accumulate another edit plan.
+  void add(EditPlan innerPlan) {
+    assert(identical(innerPlan.parentNode, node));
+    innerPlans.add(innerPlan);
+  }
+
+  /// Called when no more edit plans need to be added.  Returns the final
+  /// [EditPlan].
+  NodeProducingEditPlan finish(EditPlanner planner) {
+    var node = this.node;
+    if (node is ParenthesizedExpression) {
+      assert(innerPlans.length <= 1);
+      var innerPlan = innerPlans.isEmpty
+          ? planner.passThrough(node.expression)
+          : innerPlans[0];
+      if (innerPlan is NodeProducingEditPlan) {
+        return _ProvisionalParenEditPlan(node, innerPlan);
+      }
+    }
+    return _PassThroughEditPlan(node, innerPlans);
+  }
+}
+
 /// [EditPlan] representing an AstNode that is not to be changed, but may have
 /// some changes applied to some of its descendants.
 class _PassThroughEditPlan extends _SimpleEditPlan {
-  factory _PassThroughEditPlan(AstNode node,
-      {Iterable<EditPlan> innerPlans = const []}) {
+  factory _PassThroughEditPlan(AstNode node, Iterable<EditPlan> innerPlans) {
     bool /*?*/ endsInCascade = node is CascadeExpression ? true : null;
     Map<int, List<AtomicEdit>> changes;
     for (var innerPlan in innerPlans) {
-      if (!identical(innerPlan.parentNode, node)) {
-        innerPlan = innerPlan._incorporateParent();
-      }
+      assert(identical(innerPlan.parentNode, node));
       if (innerPlan is NodeProducingEditPlan) {
         var parensNeeded = innerPlan.parensNeededFromContext(node);
         assert(_checkParenLogic(innerPlan, parensNeeded));

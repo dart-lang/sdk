@@ -74,7 +74,7 @@ class EditPlanTest extends AbstractSingleUnitTest {
       // We can tell that the parens have been finalized because `endsInCascade`
       // returns false now.
       expect(plan.endsInCascade, false);
-      checkPlan(plan, 'f(a, c) => a..b = c = (1..isEven);');
+      checkPlan(plan, 'f(a, c) => a..b = (c = 1..isEven);');
     }
   }
 
@@ -270,6 +270,24 @@ class EditPlanTest extends AbstractSingleUnitTest {
     checkPlan(
         planner.surround(planner.passThrough(findNode.integerLiteral('1')),
             suffix: [AtomicEdit.insert('..isEven')]),
+        'var x = 1..isEven;');
+  }
+
+  Future<void> test_surround_suffix_parenthesized() async {
+    await analyze('var x = (1);');
+    checkPlan(
+        planner.surround(planner.passThrough(findNode.integerLiteral('1')),
+            suffix: [AtomicEdit.insert('..isEven')]),
+        'var x = 1..isEven;');
+  }
+
+  Future<void> test_surround_suffix_parenthesized_passThrough_unit() async {
+    await analyze('var x = (1);');
+    checkPlan(
+        planner.passThrough(testUnit, innerPlans: [
+          planner.surround(planner.passThrough(findNode.integerLiteral('1')),
+              suffix: [AtomicEdit.insert('..isEven')])
+        ]),
         'var x = 1..isEven;');
   }
 
