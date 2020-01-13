@@ -311,6 +311,24 @@ class ListLiteralWithNnbdTest extends DriverResolutionTest {
   @override
   bool get typeToStringWithNullability => true;
 
+  test_context_spread_nullAware() async {
+    await assertNoErrorsInCode('''
+T f<T>(T t) => t;
+
+main() {
+  <int>[...?f(null)];
+}
+''');
+
+    assertMethodInvocation2(
+      findNode.methodInvocation('f(null)'),
+      element: findElement.topFunction('f'),
+      typeArgumentTypes: ['Iterable<int>?'],
+      invokeType: 'Iterable<int>? Function(Iterable<int>?)',
+      type: 'Iterable<int>?',
+    );
+  }
+
   test_nested_hasNull_1() async {
     await assertNoErrorsInCode('''
 main() {

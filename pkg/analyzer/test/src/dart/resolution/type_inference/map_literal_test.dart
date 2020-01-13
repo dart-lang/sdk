@@ -358,4 +358,22 @@ class C<T extends Object?> {
     assertType(setOrMapLiteral('{}; // 3'), 'Map<String, T?>');
     assertType(setOrMapLiteral('{}; // 4'), 'Map<String, T?>');
   }
+
+  test_context_spread_nullAware() async {
+    await assertNoErrorsInCode('''
+T f<T>(T t) => t;
+
+main() {
+  <int, double>{...?f(null)};
+}
+''');
+
+    assertMethodInvocation2(
+      findNode.methodInvocation('f(null)'),
+      element: findElement.topFunction('f'),
+      typeArgumentTypes: ['Map<int, double>?'],
+      invokeType: 'Map<int, double>? Function(Map<int, double>?)',
+      type: 'Map<int, double>?',
+    );
+  }
 }

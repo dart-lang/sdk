@@ -541,6 +541,9 @@ class TypedLiteralResolver {
       InferenceContext.setType(element.key, keyType);
       InferenceContext.setType(element.value, valueType);
     } else if (element is SpreadElement) {
+      if (_isNonNullableByDefault && element.isNullAware) {
+        iterableType = _typeSystem.makeNullable(iterableType);
+      }
       InferenceContext.setType(element.expression, iterableType);
     }
   }
