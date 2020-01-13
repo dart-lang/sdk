@@ -44,7 +44,7 @@ Future<void> executeWithRandomDelay(Function f) =>
         .then((_) async {
       try {
         await f();
-      } on HttpException catch (_) {} on SocketException catch (_) {} on StateError catch (_) {}
+      } on HttpException catch (_) {} on SocketException catch (_) {} on StateError catch (_) {} on OSError catch (_) {}
     });
 
 Uri randomlyAddRequestParams(Uri uri) {
