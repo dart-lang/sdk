@@ -141,11 +141,11 @@ class LintDriver {
     if (options.packageRootPath != null) {
       builder.builderOptions.defaultPackagesDirectoryPath =
           options.packageRootPath;
-      Map<String, List<Folder>> packageMap =
-          ContextBuilder.convertPackagesToMap(
-        resourceProvider,
-        builder.createPackageMap(null),
-      );
+      var packages = builder.createPackageMap(null);
+      var packageMap = <String, List<Folder>>{};
+      for (var package in packages.packages) {
+        packageMap[package.name] = [package.libFolder];
+      }
       resolvers.add(PackageMapUriResolver(resourceProvider, packageMap));
     }
 

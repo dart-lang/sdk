@@ -96,6 +96,8 @@ class Package {
 }
 
 class Packages {
+  static final empty = Packages({});
+
   final Map<String, Package> _map;
 
   Packages(Map<String, Package> map) : _map = map;

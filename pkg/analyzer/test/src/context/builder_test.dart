@@ -6,6 +6,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/command_line/arguments.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/context/context_root.dart';
+import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -24,8 +25,6 @@ import 'package:analyzer/src/workspace/package_build.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:args/args.dart';
-import 'package:package_config/packages.dart';
-import 'package:package_config/src/packages_impl.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -230,44 +229,6 @@ linter:
 //    _expectEqualOptions(options, expected);
   }
 
-  void test_convertPackagesToMap_noPackages() {
-    expect(
-      ContextBuilder.convertPackagesToMap(
-        resourceProvider,
-        Packages.noPackages,
-      ),
-      isEmpty,
-    );
-  }
-
-  void test_convertPackagesToMap_null() {
-    expect(
-      ContextBuilder.convertPackagesToMap(resourceProvider, null),
-      isEmpty,
-    );
-  }
-
-  void test_convertPackagesToMap_packages() {
-    String fooName = 'foo';
-    String fooPath = convertPath('/pkg/foo');
-    Uri fooUri = resourceProvider.pathContext.toUri(fooPath);
-    String barName = 'bar';
-    String barPath = convertPath('/pkg/bar');
-    Uri barUri = resourceProvider.pathContext.toUri(barPath);
-
-    MapPackages packages = MapPackages({fooName: fooUri, barName: barUri});
-    Map<String, List<Folder>> result = ContextBuilder.convertPackagesToMap(
-      resourceProvider,
-      packages,
-    );
-    expect(result, isNotNull);
-    expect(result, hasLength(2));
-    expect(result[fooName], hasLength(1));
-    expect(result[fooName][0].path, fooPath);
-    expect(result[barName], hasLength(1));
-    expect(result[barName][0].path, barPath);
-  }
-
   void test_createDefaultOptions_default() {
     // Invert a subset of the options to ensure that the default options are
     // being returned.
@@ -301,11 +262,13 @@ linter:
     builderOptions.defaultPackagesDirectoryPath = packageDirPath;
 
     Packages packages = builder.createPackageMap(projectPath);
-    expect(packages, isNotNull);
-    Map<String, Uri> map = packages.asMap();
-    expect(map, hasLength(2));
-    expect(map[fooName], convertedDirectoryUri(fooPath));
-    expect(map[barName], convertedDirectoryUri(barPath));
+    _assertPackages(
+      packages,
+      {
+        'foo': convertPath('/root/packages/foo/lib'),
+        'bar': convertPath('/root/packages/bar/lib'),
+      },
+    );
   }
 
   void test_createPackageMap_fromPackageDirectory_inRoot() {
@@ -320,11 +283,13 @@ linter:
     newFolder(barPath);
 
     Packages packages = builder.createPackageMap(projectPath);
-    expect(packages, isNotNull);
-    Map<String, Uri> map = packages.asMap();
-    expect(map, hasLength(2));
-    expect(map[fooName], convertedDirectoryUri(fooPath));
-    expect(map[barName], convertedDirectoryUri(barPath));
+    _assertPackages(
+      packages,
+      {
+        'foo': convertPath('/root/project/packages/foo/lib'),
+        'bar': convertPath('/root/project/packages/bar/lib'),
+      },
+    );
   }
 
   void test_createPackageMap_fromPackageFile_explicit() {
@@ -333,20 +298,20 @@ linter:
     String projectPath = join(rootPath, 'project');
     String packageFilePath = join(rootPath, 'child', '.packages');
     newFolder(projectPath);
-    Uri fooUri = convertedDirectoryUri('/pkg/foo');
-    Uri barUri = convertedDirectoryUri('/pkg/bar');
     newFile(packageFilePath, content: '''
-foo:$fooUri
-bar:$barUri
+foo:${toUriStr('/pkg/foo')}
+bar:${toUriStr('/pkg/bar')}
 ''');
 
     builderOptions.defaultPackageFilePath = packageFilePath;
     Packages packages = builder.createPackageMap(projectPath);
-    expect(packages, isNotNull);
-    Map<String, Uri> map = packages.asMap();
-    expect(map, hasLength(2));
-    expect(map['foo'], fooUri);
-    expect(map['bar'], barUri);
+    _assertPackages(
+      packages,
+      {
+        'foo': convertPath('/pkg/foo'),
+        'bar': convertPath('/pkg/bar'),
+      },
+    );
   }
 
   void test_createPackageMap_fromPackageFile_inParentOfRoot() {
@@ -355,19 +320,19 @@ bar:$barUri
     String projectPath = join(rootPath, 'project');
     String packageFilePath = join(rootPath, '.packages');
     newFolder(projectPath);
-    Uri fooUri = convertedDirectoryUri('/pkg/foo');
-    Uri barUri = convertedDirectoryUri('/pkg/bar');
     newFile(packageFilePath, content: '''
-foo:$fooUri
-bar:$barUri
+foo:${toUriStr('/pkg/foo')}
+bar:${toUriStr('/pkg/bar')}
 ''');
 
     Packages packages = builder.createPackageMap(projectPath);
-    expect(packages, isNotNull);
-    Map<String, Uri> map = packages.asMap();
-    expect(map, hasLength(2));
-    expect(map['foo'], fooUri);
-    expect(map['bar'], barUri);
+    _assertPackages(
+      packages,
+      {
+        'foo': convertPath('/pkg/foo'),
+        'bar': convertPath('/pkg/bar'),
+      },
+    );
   }
 
   void test_createPackageMap_fromPackageFile_inRoot() {
@@ -376,32 +341,32 @@ bar:$barUri
     String projectPath = join(rootPath, 'project');
     String packageFilePath = join(projectPath, '.packages');
     newFolder(projectPath);
-    Uri fooUri = convertedDirectoryUri('/pkg/foo');
-    Uri barUri = convertedDirectoryUri('/pkg/bar');
     newFile(packageFilePath, content: '''
-foo:$fooUri
-bar:$barUri
+foo:${toUriStr('/pkg/foo')}
+bar:${toUriStr('/pkg/bar')}
 ''');
 
     Packages packages = builder.createPackageMap(projectPath);
-    expect(packages, isNotNull);
-    Map<String, Uri> map = packages.asMap();
-    expect(map, hasLength(2));
-    expect(map['foo'], fooUri);
-    expect(map['bar'], barUri);
+    _assertPackages(
+      packages,
+      {
+        'foo': convertPath('/pkg/foo'),
+        'bar': convertPath('/pkg/bar'),
+      },
+    );
   }
 
   void test_createPackageMap_none() {
     String rootPath = convertPath('/root');
     newFolder(rootPath);
     Packages packages = builder.createPackageMap(rootPath);
-    expect(packages, same(Packages.noPackages));
+    expect(packages.packages, isEmpty);
   }
 
   void test_createPackageMap_rootDoesNotExist() {
     String rootPath = convertPath('/root');
     Packages packages = builder.createPackageMap(rootPath);
-    expect(packages, same(Packages.noPackages));
+    expect(packages.packages, isEmpty);
   }
 
   void test_createSourceFactory_bazelWorkspace_fileProvider() {
@@ -858,6 +823,16 @@ environment:
     File result = builder.getOptionsFile(path);
     expect(result, isNotNull);
     expect(result.path, filePath);
+  }
+
+  void _assertPackages(Packages packages, Map<String, String> nameToPath) {
+    expect(packages, isNotNull);
+    expect(packages.packages, hasLength(nameToPath.length));
+    for (var name in nameToPath.keys) {
+      var expectedPath = nameToPath[name];
+      var path = packages[name].libFolder.path;
+      expect(path, expectedPath, reason: 'package $name');
+    }
   }
 
   _defineMockLintRules() {

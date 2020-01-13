@@ -16,6 +16,7 @@ import 'package:analyzer/src/command_line/arguments.dart'
         bazelAnalysisOptionsPath,
         flutterAnalysisOptionsPath;
 import 'package:analyzer/src/context/context_root.dart';
+import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart' as api;
 import 'package:analyzer/src/dart/analysis/driver.dart'
@@ -40,9 +41,7 @@ import 'package:analyzer/src/workspace/package_build.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:args/args.dart';
-import 'package:package_config/packages.dart';
-import 'package:package_config/packages_file.dart';
-import 'package:package_config/src/packages_impl.dart';
+import 'package:package_config/packages.dart' as package_config;
 import 'package:path/src/context.dart';
 import 'package:yaml/yaml.dart';
 
@@ -220,10 +219,7 @@ class ContextBuilder {
     String filePath = builderOptions.defaultPackageFilePath;
     if (filePath != null) {
       File configFile = resourceProvider.getFile(filePath);
-      List<int> bytes = configFile.readAsBytesSync();
-      Map<String, Uri> map = parse(bytes, configFile.toUri());
-      resolveSymbolicLinks(map);
-      return MapPackages(map);
+      return parseDotPackagesFile(resourceProvider, configFile);
     }
     String directoryPath = builderOptions.defaultPackagesDirectoryPath;
     if (directoryPath != null) {
@@ -264,27 +260,20 @@ class ContextBuilder {
    * that is not found, it instead checks for the presence of a `packages/`
    * directory in the same place. If that also fails, it starts checking parent
    * directories for a `.packages` file, and stops if it finds it. Otherwise it
-   * gives up and returns [Packages.noPackages].
+   * gives up and returns [Packages.empty].
    */
   Packages findPackagesFromFile(String path) {
     Resource location = _findPackagesLocation(path);
     if (location is File) {
-      List<int> fileBytes = location.readAsBytesSync();
-      Map<String, Uri> map;
       try {
-        map =
-            parse(fileBytes, resourceProvider.pathContext.toUri(location.path));
-      } catch (exception) {
-        // If we cannot read the file, then we respond as if the file did not
-        // exist.
-        return Packages.noPackages;
+        return parseDotPackagesFile(resourceProvider, location);
+      } catch (_) {
+        return Packages.empty;
       }
-      resolveSymbolicLinks(map);
-      return MapPackages(map);
     } else if (location is Folder) {
       return getPackagesFromFolder(location);
     }
-    return Packages.noPackages;
+    return Packages.empty;
   }
 
   /**
@@ -445,20 +434,29 @@ class ContextBuilder {
    *
    * Package names are resolved as relative to sub-directories of the package
    * directory.
+   *
+   * TODO(scheglov) Remove this feature
    */
   Packages getPackagesFromFolder(Folder folder) {
     Context pathContext = resourceProvider.pathContext;
-    Map<String, Uri> map = HashMap<String, Uri>();
+    var map = <String, Package>{};
     for (Resource child in folder.getChildren()) {
       if (child is Folder) {
         // Inline resolveSymbolicLinks for performance reasons.
         String packageName = pathContext.basename(child.path);
-        String folderPath = resolveSymbolicLink(child);
-        String uriPath = pathContext.join(folderPath, '.');
-        map[packageName] = pathContext.toUri(uriPath);
+        String packagePath = resolveSymbolicLink(child);
+        var rootFolder = resourceProvider.getFolder(packagePath);
+        var libFolder = rootFolder.getChildAssumingFolder('lib');
+        var package = Package(
+          name: packageName,
+          rootFolder: rootFolder,
+          libFolder: libFolder,
+          languageVersion: null,
+        );
+        map[packageName] = package;
       }
     }
-    return MapPackages(map);
+    return Packages(map);
   }
 
   /**
@@ -542,10 +540,10 @@ class ContextBuilder {
 
   static Map<String, List<Folder>> convertPackagesToMap(
     ResourceProvider resourceProvider,
-    Packages packages,
+    package_config.Packages packages,
   ) {
     Map<String, List<Folder>> folderMap = HashMap<String, List<Folder>>();
-    if (packages != null && packages != Packages.noPackages) {
+    if (packages != null && packages != package_config.Packages.noPackages) {
       var pathContext = resourceProvider.pathContext;
       packages.asMap().forEach((String packageName, Uri uri) {
         String path = fileUriToNormalizedPath(pathContext, uri);
@@ -558,8 +556,10 @@ class ContextBuilder {
   static Workspace createWorkspace(ResourceProvider resourceProvider,
       String rootPath, ContextBuilder contextBuilder) {
     var packages = contextBuilder.createPackageMap(rootPath);
-    var packageMap =
-        ContextBuilder.convertPackagesToMap(resourceProvider, packages);
+    var packageMap = <String, List<Folder>>{};
+    for (var package in packages.packages) {
+      packageMap[package.name] = [package.libFolder];
+    }
 
     if (_hasPackageFileInPath(resourceProvider, rootPath)) {
       // A Bazel or Gn workspace that includes a '.packages' file is treated
