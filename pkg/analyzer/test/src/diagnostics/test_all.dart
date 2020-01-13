@@ -4,6 +4,8 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'abstract_super_member_reference_test.dart'
+    as abstract_super_member_reference;
 import 'ambiguous_export_test.dart' as ambiguous_export;
 import 'ambiguous_extension_member_access_test.dart'
     as ambiguous_extension_member_access;
@@ -481,6 +483,7 @@ import 'yield_in_non_generator_test.dart' as yield_in_non_generator;
 
 main() {
   defineReflectiveSuite(() {
+    abstract_super_member_reference.main();
     ambiguous_export.main();
     ambiguous_extension_member_access.main();
     ambiguous_import.main();
