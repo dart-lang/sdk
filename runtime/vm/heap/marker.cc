@@ -90,11 +90,6 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
                      MarkingStack* deferred_marking_stack)
       : ObjectPointerVisitor(isolate),
         thread_(Thread::Current()),
-#ifndef PRODUCT
-        num_classes_(isolate->shared_class_table()->Capacity()),
-        class_stats_count_(new intptr_t[num_classes_]),
-        class_stats_size_(new intptr_t[num_classes_]),
-#endif  // !PRODUCT
         page_space_(page_space),
         work_list_(marking_stack),
         deferred_work_list_(deferred_marking_stack),
@@ -102,32 +97,11 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
         marked_bytes_(0),
         marked_micros_(0) {
     ASSERT(thread_->isolate() == isolate);
-#ifndef PRODUCT
-    for (intptr_t i = 0; i < num_classes_; i++) {
-      class_stats_count_[i] = 0;
-      class_stats_size_[i] = 0;
-    }
-#endif  // !PRODUCT
-  }
-
-  ~MarkingVisitorBase() {
-#ifndef PRODUCT
-    delete[] class_stats_count_;
-    delete[] class_stats_size_;
-#endif  // !PRODUCT
   }
 
   uintptr_t marked_bytes() const { return marked_bytes_; }
   int64_t marked_micros() const { return marked_micros_; }
   void AddMicros(int64_t micros) { marked_micros_ += micros; }
-
-#ifndef PRODUCT
-  intptr_t live_count(intptr_t class_id) {
-    return class_stats_count_[class_id];
-  }
-
-  intptr_t live_size(intptr_t class_id) { return class_stats_size_[class_id]; }
-#endif  // !PRODUCT
 
   bool ProcessPendingWeakProperties() {
     bool marked = false;
@@ -178,7 +152,6 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
           size = ProcessWeakProperty(raw_weak);
         }
         marked_bytes_ += size;
-        NOT_IN_PRODUCT(UpdateLiveOld(class_id, size));
 
         raw_obj = work_list_.Pop();
       } while (raw_obj != NULL);
@@ -252,7 +225,6 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
       // double-counting.
       if (TryAcquireMarkBit(raw_obj)) {
         marked_bytes_ += size;
-        NOT_IN_PRODUCT(UpdateLiveOld(class_id, size));
       }
     }
   }
@@ -344,20 +316,7 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
     PushMarked(raw_obj);
   }
 
-#ifndef PRODUCT
-  void UpdateLiveOld(intptr_t class_id, intptr_t size) {
-    ASSERT(class_id < num_classes_);
-    class_stats_count_[class_id] += 1;
-    class_stats_size_[class_id] += size;
-  }
-#endif  // !PRODUCT
-
   Thread* thread_;
-#ifndef PRODUCT
-  intptr_t num_classes_;
-  intptr_t* class_stats_count_;
-  intptr_t* class_stats_size_;
-#endif  // !PRODUCT
   PageSpace* page_space_;
   MarkerWorkList work_list_;
   MarkerWorkList deferred_work_list_;
