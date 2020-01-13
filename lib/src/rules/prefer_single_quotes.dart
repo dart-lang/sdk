@@ -8,8 +8,7 @@ import 'package:meta/meta.dart';
 
 import '../analyzer.dart';
 
-const _desc =
-    r"Prefer single quotes where they won't require escape sequences.";
+const _desc = r'Only use double quotes for strings containing single quotes.';
 
 const _details = '''
 
