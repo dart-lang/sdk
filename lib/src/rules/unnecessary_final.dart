@@ -79,7 +79,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       final loopVariable = forLoopParts.loopVariable;
 
       if (loopVariable.isFinal) {
-        rule.reportLint(loopVariable.identifier);
+        rule.reportLintForToken(loopVariable.keyword);
       }
     }
   }
@@ -87,7 +87,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
     if (node.variables.isFinal) {
-      rule.reportLint(node.variables);
+      rule.reportLintForToken(node.variables.keyword);
     }
   }
 }
