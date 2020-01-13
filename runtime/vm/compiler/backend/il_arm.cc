@@ -381,15 +381,19 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // R4: Arguments descriptor.
   // R0: Function.
   ASSERT(locs()->in(0).reg() == R0);
-  __ ldr(CODE_REG,
-         compiler::FieldAddress(R0, compiler::target::Function::code_offset()));
-  __ ldr(R2, compiler::FieldAddress(
-                 R0, compiler::target::Code::function_entry_point_offset(
-                         entry_kind())));
+  if (!FLAG_precompiled_mode || !FLAG_use_bare_instructions) {
+    __ ldr(CODE_REG, compiler::FieldAddress(
+                         R0, compiler::target::Function::code_offset()));
+  }
+  __ ldr(R2,
+         compiler::FieldAddress(
+             R0, compiler::target::Function::entry_point_offset(entry_kind())));
 
   // R2: instructions entry point.
-  // R9: Smi 0 (no IC data; the lazy-compile stub expects a GC-safe value).
-  __ LoadImmediate(R9, 0);
+  if (!FLAG_precompiled_mode) {
+    // R9: Smi 0 (no IC data; the lazy-compile stub expects a GC-safe value).
+    __ LoadImmediate(R9, 0);
+  }
   __ blx(R2);
   compiler->EmitCallsiteMetadata(token_pos(), deopt_id(),
                                  RawPcDescriptors::kOther, locs());

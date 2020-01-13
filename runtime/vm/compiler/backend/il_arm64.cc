@@ -319,14 +319,18 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // R4: Arguments descriptor.
   // R0: Function.
   ASSERT(locs()->in(0).reg() == R0);
-  __ LoadFieldFromOffset(CODE_REG, R0, Function::code_offset());
+  if (!FLAG_precompiled_mode || !FLAG_use_bare_instructions) {
+    __ LoadFieldFromOffset(CODE_REG, R0,
+                           compiler::target::Function::code_offset());
+  }
   __ LoadFieldFromOffset(
-      R2, CODE_REG, compiler::target::Code::entry_point_offset(entry_kind()));
+      R2, R0, compiler::target::Function::entry_point_offset(entry_kind()));
 
   // R2: instructions.
-  // R5: Smi 0 (no IC data; the lazy-compile stub expects a GC-safe value).
-  __ LoadImmediate(R5, 0);
-  //??
+  if (!FLAG_precompiled_mode) {
+    // R5: Smi 0 (no IC data; the lazy-compile stub expects a GC-safe value).
+    __ LoadImmediate(R5, 0);
+  }
   __ blr(R2);
   compiler->EmitCallsiteMetadata(token_pos(), deopt_id(),
                                  RawPcDescriptors::kOther, locs());

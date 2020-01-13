@@ -2159,7 +2159,8 @@ static void GenerateRecordEntryPoint(Assembler* assembler) {
   __ b(&done);
   __ BindUncheckedEntryPoint();
   __ LoadImmediate(
-      R8, target::Function::unchecked_entry_point_offset() - kHeapObjectTag);
+      R8, target::Function::entry_point_offset(CodeEntryKind::kUnchecked) -
+              kHeapObjectTag);
   __ Bind(&done);
 }
 

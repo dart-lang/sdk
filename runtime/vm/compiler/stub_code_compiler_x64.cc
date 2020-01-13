@@ -2087,7 +2087,8 @@ static void GenerateRecordEntryPoint(Assembler* assembler) {
           Immediate(target::Function::entry_point_offset() - kHeapObjectTag));
   __ jmp(&done);
   __ BindUncheckedEntryPoint();
-  __ movq(R8, Immediate(target::Function::unchecked_entry_point_offset() -
+  __ movq(R8, Immediate(target::Function::entry_point_offset(
+                            CodeEntryKind::kUnchecked) -
                         kHeapObjectTag));
   __ Bind(&done);
 }
@@ -2329,7 +2330,8 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
     __ Comment("Call target (via unchecked entry point)");
     __ movq(RAX, Address(R13, target_offset));
     __ movq(CODE_REG, FieldAddress(RAX, target::Function::code_offset()));
-    __ jmp(FieldAddress(RAX, target::Function::unchecked_entry_point_offset()));
+    __ jmp(FieldAddress(
+        RAX, target::Function::entry_point_offset(CodeEntryKind::kUnchecked)));
   }
 
 #if !defined(PRODUCT)

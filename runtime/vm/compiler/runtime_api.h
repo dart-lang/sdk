@@ -423,9 +423,8 @@ class Instance : public AllStatic {
 class Function : public AllStatic {
  public:
   static word code_offset();
-  static word entry_point_offset();
+  static word entry_point_offset(CodeEntryKind kind = CodeEntryKind::kNormal);
   static word usage_counter_offset();
-  static word unchecked_entry_point_offset();
 };
 
 class ICData : public AllStatic {
@@ -807,7 +806,6 @@ class Code : public AllStatic {
 
   static word object_pool_offset();
   static word entry_point_offset(CodeEntryKind kind = CodeEntryKind::kNormal);
-  static word function_entry_point_offset(CodeEntryKind kind);
   static word saved_instructions_offset();
   static word owner_offset();
 };
