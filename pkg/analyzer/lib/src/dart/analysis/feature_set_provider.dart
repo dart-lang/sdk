@@ -102,25 +102,7 @@ class FeatureSetProvider {
       return Packages(const {});
     }
 
-    var current = resourceProvider.getFolder(contextRoot.root);
-    for (; current != null; current = current.parent) {
-      try {
-        var jsonFile = current
-            .getChildAssumingFolder('.dart_tool')
-            .getChildAssumingFile('package_config.json');
-        if (jsonFile.exists) {
-          return parsePackageConfigJsonFile(resourceProvider, jsonFile);
-        }
-      } catch (_) {}
-
-      try {
-        var dotFile = current.getChildAssumingFile('.packages');
-        if (dotFile.exists) {
-          return parseDotPackagesFile(resourceProvider, dotFile);
-        }
-      } catch (_) {}
-    }
-
-    return Packages(const {});
+    var rootFolder = resourceProvider.getFolder(contextRoot.root);
+    return findPackagesFrom(resourceProvider, rootFolder);
   }
 }

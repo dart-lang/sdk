@@ -9,6 +9,37 @@ import 'package:meta/meta.dart';
 import 'package:package_config/packages_file.dart' as dot_packages;
 import 'package:pub_semver/pub_semver.dart';
 
+/// Find [Packages] starting from the given [start] resource.
+///
+/// Looks for `.dart_tool/package_config.json` or `.packages` in the given
+/// and parent directories.
+Packages findPackagesFrom(ResourceProvider provider, Resource start) {
+  for (var current = start; current != null; current = current.parent) {
+    if (current is Folder) {
+      try {
+        var jsonFile = current
+            .getChildAssumingFolder('.dart_tool')
+            .getChildAssumingFile('package_config.json');
+        if (jsonFile.exists) {
+          return parsePackageConfigJsonFile(provider, jsonFile);
+        }
+      } catch (e) {
+        return Packages.empty;
+      }
+
+      try {
+        var dotFile = current.getChildAssumingFile('.packages');
+        if (dotFile.exists) {
+          return parseDotPackagesFile(provider, dotFile);
+        }
+      } catch (e) {
+        return Packages.empty;
+      }
+    }
+  }
+  return Packages.empty;
+}
+
 /// Parse the [file] as a `.packages` file.
 Packages parseDotPackagesFile(ResourceProvider provider, File file) {
   var uri = file.toUri();
