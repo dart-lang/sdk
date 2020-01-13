@@ -457,7 +457,7 @@ class Server {
   /**
    * Stopwatch that we use to generate timing information for debug output.
    */
-  Stopwatch _time = Stopwatch();
+  final Stopwatch _time = Stopwatch();
 
   /**
    * The [currentElapseTime] at which the last communication was received from the server

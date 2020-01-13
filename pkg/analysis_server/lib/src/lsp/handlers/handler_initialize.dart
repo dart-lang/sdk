@@ -9,6 +9,83 @@ import 'package:analysis_server/src/lsp/handlers/handler_states.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 
+/// Helper for reading client dynamic registrations which may be ommitted by the
+/// client.
+class ClientDynamicRegistrations {
+  /// All dynamic registrations supported by the Dart LSP server.
+  ///
+  /// Anything listed here and supported by the client will not send a static
+  /// registration but intead dynamically register (usually only for a subset of
+  /// files such as for .dart/pubspec.yaml/etc).
+  ///
+  /// When adding new capabilities that will be registered dynamically, the
+  /// test_dynamicRegistration_XXX tests in `lsp/initialization_test.dart` should
+  /// also be updated to ensure no double-registrations.
+  static const supported = [
+    Method.textDocument_didOpen,
+    Method.textDocument_didChange,
+    Method.textDocument_didClose,
+    Method.textDocument_completion,
+    Method.textDocument_hover,
+    Method.textDocument_signatureHelp,
+    Method.textDocument_references,
+    Method.textDocument_documentHighlight,
+    Method.textDocument_formatting,
+    Method.textDocument_onTypeFormatting,
+    Method.textDocument_definition,
+    Method.textDocument_codeAction,
+    Method.textDocument_rename,
+    Method.textDocument_foldingRange,
+  ];
+  final ClientCapabilities _capabilities;
+
+  ClientDynamicRegistrations(this._capabilities);
+
+  bool get codeActions =>
+      _capabilities.textDocument?.foldingRange?.dynamicRegistration ?? false;
+
+  bool get completion =>
+      _capabilities.textDocument?.completion?.dynamicRegistration ?? false;
+
+  bool get definition =>
+      _capabilities.textDocument?.definition?.dynamicRegistration ?? false;
+
+  bool get documentHighlights =>
+      _capabilities.textDocument?.documentHighlight?.dynamicRegistration ??
+      false;
+
+  bool get documentSymbol =>
+      _capabilities.textDocument?.documentSymbol?.dynamicRegistration ?? false;
+
+  bool get folding =>
+      _capabilities.textDocument?.foldingRange?.dynamicRegistration ?? false;
+
+  bool get formatting =>
+      _capabilities.textDocument?.formatting?.dynamicRegistration ?? false;
+
+  bool get hover =>
+      _capabilities.textDocument?.hover?.dynamicRegistration ?? false;
+
+  bool get implementation =>
+      _capabilities.textDocument?.implementation?.dynamicRegistration ?? false;
+
+  bool get references =>
+      _capabilities.textDocument?.references?.dynamicRegistration ?? false;
+
+  bool get rename =>
+      _capabilities.textDocument?.rename?.dynamicRegistration ?? false;
+
+  bool get signatureHelp =>
+      _capabilities.textDocument?.signatureHelp?.dynamicRegistration ?? false;
+
+  bool get textSync =>
+      _capabilities.textDocument?.synchronization?.dynamicRegistration ?? false;
+
+  bool get typeFormatting =>
+      _capabilities.textDocument?.onTypeFormatting?.dynamicRegistration ??
+      false;
+}
+
 class InitializeMessageHandler
     extends MessageHandler<InitializeParams, InitializeResult> {
   InitializeMessageHandler(LspAnalysisServer server) : super(server);
@@ -142,81 +219,4 @@ class InitializeMessageHandler
 
     return success(InitializeResult(server.capabilities));
   }
-}
-
-/// Helper for reading client dynamic registrations which may be ommitted by the
-/// client.
-class ClientDynamicRegistrations {
-  ClientCapabilities _capabilities;
-  ClientDynamicRegistrations(this._capabilities);
-
-  /// All dynamic registrations supported by the Dart LSP server.
-  ///
-  /// Anything listed here and supported by the client will not send a static
-  /// registration but intead dynamically register (usually only for a subset of
-  /// files such as for .dart/pubspec.yaml/etc).
-  ///
-  /// When adding new capabilities that will be registered dynamically, the
-  /// test_dynamicRegistration_XXX tests in `lsp/initialization_test.dart` should
-  /// also be updated to ensure no double-registrations.
-  static const supported = [
-    Method.textDocument_didOpen,
-    Method.textDocument_didChange,
-    Method.textDocument_didClose,
-    Method.textDocument_completion,
-    Method.textDocument_hover,
-    Method.textDocument_signatureHelp,
-    Method.textDocument_references,
-    Method.textDocument_documentHighlight,
-    Method.textDocument_formatting,
-    Method.textDocument_onTypeFormatting,
-    Method.textDocument_definition,
-    Method.textDocument_codeAction,
-    Method.textDocument_rename,
-    Method.textDocument_foldingRange,
-  ];
-
-  bool get textSync =>
-      _capabilities.textDocument?.synchronization?.dynamicRegistration ?? false;
-
-  bool get hover =>
-      _capabilities.textDocument?.hover?.dynamicRegistration ?? false;
-
-  bool get completion =>
-      _capabilities.textDocument?.completion?.dynamicRegistration ?? false;
-
-  bool get signatureHelp =>
-      _capabilities.textDocument?.signatureHelp?.dynamicRegistration ?? false;
-
-  bool get definition =>
-      _capabilities.textDocument?.definition?.dynamicRegistration ?? false;
-
-  bool get implementation =>
-      _capabilities.textDocument?.implementation?.dynamicRegistration ?? false;
-
-  bool get references =>
-      _capabilities.textDocument?.references?.dynamicRegistration ?? false;
-
-  bool get documentHighlights =>
-      _capabilities.textDocument?.documentHighlight?.dynamicRegistration ??
-      false;
-
-  bool get documentSymbol =>
-      _capabilities.textDocument?.documentSymbol?.dynamicRegistration ?? false;
-
-  bool get formatting =>
-      _capabilities.textDocument?.formatting?.dynamicRegistration ?? false;
-
-  bool get typeFormatting =>
-      _capabilities.textDocument?.onTypeFormatting?.dynamicRegistration ??
-      false;
-
-  bool get folding =>
-      _capabilities.textDocument?.foldingRange?.dynamicRegistration ?? false;
-
-  bool get codeActions =>
-      _capabilities.textDocument?.foldingRange?.dynamicRegistration ?? false;
-
-  bool get rename =>
-      _capabilities.textDocument?.rename?.dynamicRegistration ?? false;
 }

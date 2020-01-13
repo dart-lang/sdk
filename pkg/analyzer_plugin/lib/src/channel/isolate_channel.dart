@@ -89,7 +89,7 @@ class PluginIsolateChannel implements PluginCommunicationChannel {
   /**
    * The port used to send notifications and responses to the server.
    */
-  SendPort _sendPort;
+  final SendPort _sendPort;
 
   /**
    * The port used to receive requests from the server.

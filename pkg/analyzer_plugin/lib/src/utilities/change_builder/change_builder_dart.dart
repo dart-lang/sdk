@@ -94,7 +94,7 @@ class DartChangeBuilderImpl extends ChangeBuilderImpl
  * An [EditBuilder] used to build edits in Dart files.
  */
 class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
-  List<String> _KNOWN_METHOD_NAME_PREFIXES = ['get', 'is', 'to'];
+  final List<String> _KNOWN_METHOD_NAME_PREFIXES = ['get', 'is', 'to'];
 
   /**
    * Whether [_enclosingClass] and [_enclosingExecutable] have been initialized.
