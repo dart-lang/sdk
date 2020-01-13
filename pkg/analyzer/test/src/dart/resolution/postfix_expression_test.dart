@@ -129,6 +129,28 @@ main(Null x) {
     assertType(findNode.postfix('x!'), 'Never');
   }
 
+  test_nullCheck_nullableContext() async {
+    await assertNoErrorsInCode(r'''
+T f<T>(T t) => t;
+
+int g() => f(null)!;
+''');
+
+    assertMethodInvocation2(
+      findNode.methodInvocation('f(null)'),
+      element: findElement.topFunction('f'),
+      typeArgumentTypes: ['int?'],
+      invokeType: 'int? Function(int?)',
+      type: 'int?',
+    );
+
+    assertPostfixExpression(
+      findNode.postfix('f(null)!'),
+      element: null,
+      type: 'int',
+    );
+  }
+
   test_nullCheck_typeParameter() async {
     await assertNoErrorsInCode(r'''
 f<T>(T? x) {
