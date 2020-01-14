@@ -3857,6 +3857,10 @@ class Field : public Object {
   void set_type_test_cache(const SubtypeTestCache& cache) const;
 #endif
 
+  // Unboxed fields require exclusive ownership of the box.
+  // Ensure this by cloning the box if necessary.
+  const Object* CloneForUnboxed(const Object& value) const;
+
  private:
   static void InitializeNew(const Field& result,
                             const String& name,
@@ -6510,10 +6514,7 @@ class Instance : public Object {
 
   RawObject* GetField(const Field& field) const { return *FieldAddr(field); }
 
-  void SetField(const Field& field, const Object& value) const {
-    field.RecordStore(value);
-    StorePointer(FieldAddr(field), value.raw());
-  }
+  void SetField(const Field& field, const Object& value) const;
 
   RawAbstractType* GetType(Heap::Space space) const;
 

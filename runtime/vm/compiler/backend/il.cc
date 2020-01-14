@@ -45,10 +45,7 @@ DEFINE_FLAG(bool,
             two_args_smi_icd,
             true,
             "Generate special IC stubs for two args Smi operations");
-DEFINE_FLAG(bool,
-            unbox_numeric_fields,
-            true,
-            "Support unboxed double and float32x4 fields.");
+DECLARE_FLAG(bool, unbox_numeric_fields);
 
 class SubclassFinder {
  public:
