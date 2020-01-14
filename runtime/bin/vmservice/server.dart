@@ -379,7 +379,7 @@ class Server {
       'uri': serverAddress.toString(),
     };
     final file = File.fromUri(Uri.parse(_serviceInfoFilename));
-    file.writeAsString(json.encode(serviceInfo));
+    return file.writeAsString(json.encode(serviceInfo));
   }
 
   Future startup() async {
@@ -440,7 +440,7 @@ class Server {
       new File(path)..createSync(recursive: true);
     }
     if (_serviceInfoFilename != null && _serviceInfoFilename.isNotEmpty) {
-      _dumpServiceInfoToFile();
+      await _dumpServiceInfoToFile();
     }
     // Server is up and running.
     _notifyServerState(serverAddress.toString());
