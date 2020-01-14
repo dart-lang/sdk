@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 part of dart.cli;
 
 /**
@@ -55,10 +53,10 @@ void Function(int) _getWaitForEvent() => _waitForEvent;
 // native implementation. In the standalone VM this is set to _waitForEvent()
 // above. If it is null, calling waitFor() will throw an UnsupportedError.
 @pragma("vm:entry-point")
-void Function(int) _waitForEventClosure;
+void Function(int)? _waitForEventClosure;
 
 class _WaitForUtils {
-  static void waitForEvent({Duration timeout}) {
+  static void waitForEvent({Duration? timeout}) {
     if (_waitForEventClosure == null) {
       throw new UnsupportedError("waitFor is not supported by this embedder");
     }
@@ -113,11 +111,11 @@ class _WaitForUtils {
  * subsequent calls block waiting for a condition that is only satisfied when
  * an earlier call returns.
  */
-T waitFor<T>(Future<T> future, {Duration timeout}) {
-  T result;
+T waitFor<T>(Future<T> future, {Duration? timeout}) {
+  late T result;
   bool futureCompleted = false;
-  Object error;
-  StackTrace stacktrace;
+  Object? error;
+  StackTrace? stacktrace;
   future.then((r) {
     futureCompleted = true;
     result = r;
@@ -126,13 +124,13 @@ T waitFor<T>(Future<T> future, {Duration timeout}) {
     stacktrace = st;
   });
 
-  Stopwatch s;
+  late Stopwatch s;
   if (timeout != null) {
     s = new Stopwatch()..start();
   }
   Timer.run(() {}); // Enusre there is at least one message.
   while (!futureCompleted && (error == null)) {
-    Duration remaining;
+    Duration? remaining;
     if (timeout != null) {
       if (s.elapsed >= timeout) {
         throw new TimeoutException("waitFor() timed out", timeout);

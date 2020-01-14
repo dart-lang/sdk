@@ -141,9 +141,9 @@
         "uri": "../../sdk/lib/html/dartium/nativewrappers.dart"
       },
       "cli": {
-        "uri": "../../sdk/lib/cli/cli.dart",
+        "uri": "cli/cli.dart",
         "patches": [
-          "../../sdk/lib/_internal/vm/bin/cli_patch.dart"
+          "_internal/vm/bin/cli_patch.dart"
         ]
       },
       "typed_data": {
