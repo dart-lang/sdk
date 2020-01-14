@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -23,15 +24,27 @@ main() {
 class EditPlanTest extends AbstractSingleUnitTest {
   String code;
 
-  var planner = EditPlanner();
+  EditPlanner _planner;
+
+  EditPlanner get planner {
+    if (_planner == null) createPlanner();
+    return _planner;
+  }
 
   Future<void> analyze(String code) async {
     this.code = code;
     await resolveTestUnit(code);
   }
 
-  void checkPlan(EditPlan plan, String expected) {
-    expect(planner.finalize(plan).applyTo(code), expected);
+  Map<int, List<AtomicEdit>> checkPlan(EditPlan plan, String expected) {
+    var changes = planner.finalize(plan);
+    expect(changes.applyTo(code), expected);
+    return changes;
+  }
+
+  void createPlanner({bool removeViaComments: false}) {
+    _planner = EditPlanner(testUnit.lineInfo, code,
+        removeViaComments: removeViaComments);
   }
 
   NodeProducingEditPlan extract(AstNode inner, AstNode outer) =>
@@ -142,22 +155,22 @@ class EditPlanTest extends AbstractSingleUnitTest {
   }
 
   Future<void> test_extract_using_comments_inner() async {
-    planner = EditPlanner(removeViaComments: true);
     await analyze('var x = 1 + 2 * 3;');
+    createPlanner(removeViaComments: true);
     checkPlan(extract(findNode.integerLiteral('2'), findNode.binary('+')),
         'var x = /* 1 + */ 2 /* * 3 */;');
   }
 
   Future<void> test_extract_using_comments_left() async {
-    planner = EditPlanner(removeViaComments: true);
     await analyze('var x = 1 + 2;');
+    createPlanner(removeViaComments: true);
     checkPlan(extract(findNode.integerLiteral('1'), findNode.binary('+')),
         'var x = 1 /* + 2 */;');
   }
 
   Future<void> test_extract_using_comments_right() async {
-    planner = EditPlanner(removeViaComments: true);
     await analyze('var x = 1 + 2;');
+    createPlanner(removeViaComments: true);
     checkPlan(extract(findNode.integerLiteral('2'), findNode.binary('+')),
         'var x = /* 1 + */ 2;');
   }
@@ -171,6 +184,574 @@ class EditPlanTest extends AbstractSingleUnitTest {
         planner.surround(planner.passThrough(testUnit),
             suffix: [AtomicEdit.insert(' var y = 0;')]),
         'var x = 0; var y = 0;');
+  }
+
+  Future<void> test_passThrough_remove_statement() async {
+    await analyze('''
+void f() {
+  var x = () {
+    1;
+    2;
+    3;
+  };
+}
+''');
+    var innerPlan = planner.removeNode(findNode.statement('2'));
+    var outerPlan = planner.passThrough(findNode.variableDeclaration('x'),
+        innerPlans: [innerPlan]);
+    checkPlan(outerPlan, '''
+void f() {
+  var x = () {
+    1;
+    3;
+  };
+}
+''');
+  }
+
+  Future<void> test_remove_argument() async {
+    await analyze('f(dynamic d) => d(1, 2, 3);');
+    var i2 = findNode.integerLiteral('2');
+    var changes = checkPlan(planner.removeNode(i2), 'f(dynamic d) => d(1, 3);');
+    expect(changes.keys, [i2.offset]);
+  }
+
+  Future<void> test_remove_class_member() async {
+    await analyze('''
+class C {
+  int x;
+  int y;
+  int z;
+}
+''');
+    var declaration = findNode.fieldDeclaration('y');
+    var changes = checkPlan(planner.removeNode(declaration), '''
+class C {
+  int x;
+  int z;
+}
+''');
+    expect(changes.keys, [declaration.offset - 2]);
+  }
+
+  Future<void>
+      test_remove_elements_of_related_lists_at_different_levels() async {
+    await analyze('var x = [[1, 2], 3, 4];');
+    var i2 = findNode.integerLiteral('2');
+    var i3 = findNode.integerLiteral('3');
+    checkPlan(
+        planner.passThrough(testUnit,
+            innerPlans: [planner.removeNode(i2), planner.removeNode(i3)]),
+        'var x = [[1], 4];');
+  }
+
+  Future<void>
+      test_remove_elements_of_sibling_lists_passThrough_container() async {
+    await analyze('var x = [[1, 2], [3, 4]];');
+    var i2 = findNode.integerLiteral('2');
+    var i3 = findNode.integerLiteral('3');
+    checkPlan(
+        planner.passThrough(i2.parent.parent,
+            innerPlans: [planner.removeNode(i2), planner.removeNode(i3)]),
+        'var x = [[1], [4]];');
+  }
+
+  Future<void> test_remove_elements_of_sibling_lists_passThrough_unit() async {
+    await analyze('var x = [[1, 2], [3, 4]];');
+    var i2 = findNode.integerLiteral('2');
+    var i3 = findNode.integerLiteral('3');
+    checkPlan(
+        planner.passThrough(testUnit,
+            innerPlans: [planner.removeNode(i2), planner.removeNode(i3)]),
+        'var x = [[1], [4]];');
+  }
+
+  Future<void> test_remove_enum_constant() async {
+    await analyze('''
+enum E {
+  A,
+  B,
+  C
+}
+''');
+    var enumConstant = findNode.simple('B').parent;
+    var changes = checkPlan(planner.removeNode(enumConstant), '''
+enum E {
+  A,
+  C
+}
+''');
+    expect(changes.keys, [enumConstant.offset - 2]);
+  }
+
+  Future<void> test_remove_field_declaration() async {
+    await analyze('''
+class C {
+  int x, y, z;
+}
+''');
+    var declaration = findNode.simple('y').parent;
+    var changes = checkPlan(planner.removeNode(declaration), '''
+class C {
+  int x, z;
+}
+''');
+    expect(changes.keys, [declaration.offset]);
+  }
+
+  Future<void> test_remove_list_element() async {
+    await analyze('var x = [1, 2, 3];');
+    var i2 = findNode.integerLiteral('2');
+    var changes = checkPlan(planner.removeNode(i2), 'var x = [1, 3];');
+    expect(changes.keys, [i2.offset]);
+  }
+
+  Future<void> test_remove_list_element_at_list_end() async {
+    await analyze('var x = [1, 2, 3];');
+    var i2 = findNode.integerLiteral('2');
+    var i3 = findNode.integerLiteral('3');
+    var changes = checkPlan(planner.removeNode(i3), 'var x = [1, 2];');
+    expect(changes.keys, [i2.end]);
+  }
+
+  Future<void> test_remove_list_element_singleton() async {
+    await analyze('var x = [1];');
+    var i1 = findNode.integerLiteral('1');
+    checkPlan(planner.removeNode(i1), 'var x = [];');
+  }
+
+  Future<void> test_remove_list_element_with_trailing_separator() async {
+    await analyze('var x = [1, 2, 3, ];');
+    var i3 = findNode.integerLiteral('3');
+    checkPlan(planner.removeNode(i3), 'var x = [1, 2, ];');
+  }
+
+  Future<void> test_remove_list_elements() async {
+    await analyze('var x = [1, 2, 3, 4, 5];');
+    var i2 = findNode.integerLiteral('2');
+    var i4 = findNode.integerLiteral('4');
+    var changes = checkPlan(
+        planner.passThrough(i2.parent,
+            innerPlans: [planner.removeNode(i2), planner.removeNode(i4)]),
+        'var x = [1, 3, 5];');
+    expect(changes.keys, unorderedEquals([i2.offset, i4.offset]));
+  }
+
+  Future<void> test_remove_list_elements_all() async {
+    await analyze('var x = [1, 2];');
+    var i1 = findNode.integerLiteral('1');
+    var i2 = findNode.integerLiteral('2');
+    checkPlan(
+        planner.passThrough(i1.parent,
+            innerPlans: [planner.removeNode(i1), planner.removeNode(i2)]),
+        'var x = [];');
+  }
+
+  Future<void> test_remove_list_elements_all_asUnit() async {
+    await analyze('var x = [1, 2];');
+    var i1 = findNode.integerLiteral('1');
+    var i2 = findNode.integerLiteral('2');
+    checkPlan(planner.removeNodes(i1, i2), 'var x = [];');
+  }
+
+  Future<void> test_remove_list_elements_all_passThrough_unit() async {
+    await analyze('var x = [1, 2];');
+    var i1 = findNode.integerLiteral('1');
+    var i2 = findNode.integerLiteral('2');
+    checkPlan(
+        planner.passThrough(testUnit,
+            innerPlans: [planner.removeNode(i1), planner.removeNode(i2)]),
+        'var x = [];');
+  }
+
+  Future<void> test_remove_list_elements_at_list_end() async {
+    await analyze('var x = [1, 2, 3];');
+    var i1 = findNode.integerLiteral('1');
+    var i2 = findNode.integerLiteral('2');
+    var i3 = findNode.integerLiteral('3');
+    var changes = checkPlan(
+        planner.passThrough(i2.parent,
+            innerPlans: [planner.removeNode(i2), planner.removeNode(i3)]),
+        'var x = [1];');
+    expect(changes.keys, unorderedEquals([i1.end, i2.end]));
+  }
+
+  Future<void> test_remove_list_elements_at_list_end_asUnit() async {
+    await analyze('var x = [1, 2, 3];');
+    var i1 = findNode.integerLiteral('1');
+    var i2 = findNode.integerLiteral('2');
+    var i3 = findNode.integerLiteral('3');
+    var changes = checkPlan(planner.removeNodes(i2, i3), 'var x = [1];');
+    expect(changes.keys, [i1.end]);
+  }
+
+  Future<void> test_remove_list_elements_consecutive_asUnit() async {
+    await analyze('var x = [1, 2, 3, 4];');
+    var i2 = findNode.integerLiteral('2');
+    var i3 = findNode.integerLiteral('3');
+    var changes = checkPlan(planner.removeNodes(i2, i3), 'var x = [1, 4];');
+    expect(changes.keys, [i2.offset]);
+  }
+
+  Future<void>
+      test_remove_list_elements_consecutive_at_list_end_using_comments() async {
+    await analyze('var x = [1, 2, 3];');
+    var i2 = findNode.integerLiteral('2');
+    var i3 = findNode.integerLiteral('3');
+    createPlanner(removeViaComments: true);
+    checkPlan(
+        planner.passThrough(i2.parent,
+            innerPlans: [planner.removeNode(i2), planner.removeNode(i3)]),
+        'var x = [1/* , 2 *//* , 3 */];');
+  }
+
+  Future<void> test_remove_list_elements_consecutive_using_comments() async {
+    await analyze('var x = [1, 2, 3, 4];');
+    var i2 = findNode.integerLiteral('2');
+    var i3 = findNode.integerLiteral('3');
+    createPlanner(removeViaComments: true);
+    checkPlan(
+        planner.passThrough(i2.parent,
+            innerPlans: [planner.removeNode(i2), planner.removeNode(i3)]),
+        'var x = [1, /* 2, */ /* 3, */ 4];');
+  }
+
+  Future<void> test_remove_list_elements_using_comments() async {
+    await analyze('var x = [1, 2, 3, 4, 5];');
+    var i2 = findNode.integerLiteral('2');
+    var i4 = findNode.integerLiteral('4');
+    createPlanner(removeViaComments: true);
+    checkPlan(
+        planner.passThrough(i2.parent,
+            innerPlans: [planner.removeNode(i2), planner.removeNode(i4)]),
+        'var x = [1, /* 2, */ 3, /* 4, */ 5];');
+  }
+
+  Future<void> test_remove_map_element() async {
+    await analyze('var x = {1: 2, 3: 4, 5: 6};');
+    var entry = findNode.integerLiteral('3').parent;
+    var changes = checkPlan(planner.removeNode(entry), 'var x = {1: 2, 5: 6};');
+    expect(changes.keys, [entry.offset]);
+  }
+
+  Future<void> test_remove_parameter() async {
+    await analyze('f(int x, int y, int z) => null;');
+    var parameter = findNode.simple('y').parent;
+    var changes =
+        checkPlan(planner.removeNode(parameter), 'f(int x, int z) => null;');
+    expect(changes.keys, [parameter.offset]);
+  }
+
+  Future<void> test_remove_set_element() async {
+    await analyze('var x = {1, 2, 3};');
+    var i2 = findNode.integerLiteral('2');
+    var changes = checkPlan(planner.removeNode(i2), 'var x = {1, 3};');
+    expect(changes.keys, [i2.offset]);
+  }
+
+  Future<void> test_remove_statement() async {
+    await analyze('''
+void f() {
+  1;
+  2;
+  3;
+}
+''');
+    checkPlan(planner.removeNode(findNode.statement('2')), '''
+void f() {
+  1;
+  3;
+}
+''');
+  }
+
+  Future<void> test_remove_statement_first_of_many_on_line() async {
+    await analyze('''
+void f() {
+  1;
+  2; 3;
+  4;
+}
+''');
+    checkPlan(planner.removeNode(findNode.statement('2')), '''
+void f() {
+  1;
+  3;
+  4;
+}
+''');
+  }
+
+  Future<void> test_remove_statement_last_of_many_on_line() async {
+    await analyze('''
+void f() {
+  1;
+  2; 3;
+  4;
+}
+''');
+    checkPlan(planner.removeNode(findNode.statement('3')), '''
+void f() {
+  1;
+  2;
+  4;
+}
+''');
+  }
+
+  Future<void> test_remove_statement_middle_of_many_on_line() async {
+    await analyze('''
+void f() {
+  1;
+  2; 3; 4;
+  5;
+}
+''');
+    checkPlan(planner.removeNode(findNode.statement('3')), '''
+void f() {
+  1;
+  2; 4;
+  5;
+}
+''');
+  }
+
+  Future<void> test_remove_statement_using_comments() async {
+    await analyze('''
+void f() {
+  1;
+  2;
+  3;
+}
+''');
+    createPlanner(removeViaComments: true);
+    checkPlan(planner.removeNode(findNode.statement('2')), '''
+void f() {
+  1;
+  /* 2; */
+  3;
+}
+''');
+  }
+
+  Future<void> test_remove_statements_asUnit() async {
+    await analyze('''
+void f() {
+  1;
+  2;
+
+  3;
+  4;
+}
+''');
+    var s2 = findNode.statement('2');
+    var s3 = findNode.statement('3');
+    var changes = checkPlan(planner.removeNodes(s2, s3), '''
+void f() {
+  1;
+  4;
+}
+''');
+    expect(changes, hasLength(1));
+  }
+
+  Future<void> test_remove_statements_consecutive_three() async {
+    await analyze('''
+void f() {
+  1;
+  2;
+
+  3;
+
+  4;
+  5;
+}
+''');
+    var s2 = findNode.statement('2');
+    var s3 = findNode.statement('3');
+    var s4 = findNode.statement('4');
+    var changes = checkPlan(
+        planner.passThrough(s2.parent, innerPlans: [
+          planner.removeNode(s2),
+          planner.removeNode(s3),
+          planner.removeNode(s4)
+        ]),
+        '''
+void f() {
+  1;
+  5;
+}
+''');
+    expect(changes.keys,
+        unorderedEquals([s2.offset - 2, s3.offset - 2, s4.offset - 2]));
+  }
+
+  Future<void> test_remove_statements_consecutive_two() async {
+    await analyze('''
+void f() {
+  1;
+  2;
+
+  3;
+  4;
+}
+''');
+    var s2 = findNode.statement('2');
+    var s3 = findNode.statement('3');
+    var changes = checkPlan(
+        planner.passThrough(s2.parent,
+            innerPlans: [planner.removeNode(s2), planner.removeNode(s3)]),
+        '''
+void f() {
+  1;
+  4;
+}
+''');
+    expect(changes.keys, unorderedEquals([s2.offset - 2, s3.offset - 2]));
+  }
+
+  Future<void> test_remove_statements_nonconsecutive() async {
+    await analyze('''
+void f() {
+  1;
+  2;
+  3;
+  4;
+  5;
+}
+''');
+    var s2 = findNode.statement('2');
+    var s4 = findNode.statement('4');
+    var changes = checkPlan(
+        planner.passThrough(s2.parent,
+            innerPlans: [planner.removeNode(s2), planner.removeNode(s4)]),
+        '''
+void f() {
+  1;
+  3;
+  5;
+}
+''');
+    expect(changes, hasLength(2));
+  }
+
+  Future<void> test_remove_statements_singleton() async {
+    await analyze('''
+void f() {
+  1;
+}
+''');
+    checkPlan(planner.removeNode(findNode.statement('1')), '''
+void f() {}
+''');
+  }
+
+  Future<void> test_remove_statements_singleton_with_following_comment() async {
+    await analyze('''
+void f() {
+  1;
+  // Foo
+}
+''');
+    checkPlan(planner.removeNode(findNode.statement('1')), '''
+void f() {
+  // Foo
+}
+''');
+  }
+
+  Future<void> test_remove_statements_singleton_with_preceding_comment() async {
+    await analyze('''
+void f() {
+  // Foo
+  1;
+}
+''');
+    checkPlan(planner.removeNode(findNode.statement('1')), '''
+void f() {
+  // Foo
+}
+''');
+  }
+
+  Future<void> test_remove_statements_using_comments() async {
+    await analyze('''
+void f() {
+  1;
+  2;
+  3;
+  4;
+}
+''');
+    createPlanner(removeViaComments: true);
+    var s2 = findNode.statement('2');
+    var s3 = findNode.statement('3');
+    checkPlan(
+        planner.passThrough(s2.parent,
+            innerPlans: [planner.removeNode(s2), planner.removeNode(s3)]),
+        '''
+void f() {
+  1;
+  /* 2; */
+  /* 3; */
+  4;
+}
+''');
+  }
+
+  Future<void> test_remove_top_level_declaration() async {
+    await analyze('''
+class C {}
+class D {}
+class E {}
+''');
+    var declaration = findNode.classDeclaration('D');
+    var changes = checkPlan(planner.removeNode(declaration), '''
+class C {}
+class E {}
+''');
+    expect(changes.keys, [declaration.offset]);
+  }
+
+  Future<void> test_remove_top_level_directive() async {
+    await analyze('''
+import 'dart:io';
+import 'dart:async';
+import 'dart:math';
+''');
+    var directive = findNode.import('async');
+    var changes = checkPlan(planner.removeNode(directive), '''
+import 'dart:io';
+import 'dart:math';
+''');
+    expect(changes.keys, [directive.offset]);
+  }
+
+  Future<void> test_remove_type_argument() async {
+    await analyze('''
+class C<T, U, V> {}
+C<int, double, String> c;
+''');
+    var typeArgument = findNode.simple('double').parent;
+    var changes = checkPlan(planner.removeNode(typeArgument), '''
+class C<T, U, V> {}
+C<int, String> c;
+''');
+    expect(changes.keys, [typeArgument.offset]);
+  }
+
+  Future<void> test_remove_type_parameter() async {
+    await analyze('class C<T, U, V> {}');
+    var parameter = findNode.simple('U').parent;
+    var changes = checkPlan(planner.removeNode(parameter), 'class C<T, V> {}');
+    expect(changes.keys, [parameter.offset]);
+  }
+
+  Future<void> test_remove_variable_declaration() async {
+    await analyze('int x, y, z;');
+    var declaration = findNode.simple('y').parent;
+    var changes = checkPlan(planner.removeNode(declaration), 'int x, z;');
+    expect(changes.keys, [declaration.offset]);
   }
 
   Future<void> test_surround_allowCascade() async {
@@ -356,7 +937,7 @@ class EndsInCascadeTest extends AbstractSingleUnitTest {
 class PrecedenceTest extends AbstractSingleUnitTest {
   Future<void> checkPrecedence(String content) async {
     await resolveTestUnit(content);
-    testUnit.accept(_PrecedenceChecker());
+    testUnit.accept(_PrecedenceChecker(testUnit.lineInfo, testCode));
   }
 
   Future<void> test_precedence_as() async {
@@ -469,13 +1050,17 @@ g(a, c) => a..b = throw (c..d);
 
   Future<void> test_precedenceChecker_detects_unnecessary_paren() async {
     await resolveTestUnit('var x = (1);');
-    expect(() => testUnit.accept(_PrecedenceChecker()),
+    expect(
+        () => testUnit.accept(_PrecedenceChecker(testUnit.lineInfo, testCode)),
         throwsA(TypeMatcher<TestFailure>()));
   }
 }
 
 class _PrecedenceChecker extends UnifyingAstVisitor<void> {
-  final planner = EditPlanner();
+  final EditPlanner planner;
+
+  _PrecedenceChecker(LineInfo lineInfo, String sourceText)
+      : planner = EditPlanner(lineInfo, sourceText);
 
   @override
   void visitNode(AstNode node) {

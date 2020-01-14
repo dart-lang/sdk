@@ -6,10 +6,43 @@ import 'dart:convert';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/precedence.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:meta/meta.dart';
 import 'package:nnbd_migration/instrumentation.dart';
+
+Map<int, List<AtomicEdit>> _removeCode(
+    int offset, int end, _RemovalStyle removalStyle) {
+  if (offset < end) {
+    // TODO(paulberry): handle preexisting comments?
+    switch (removalStyle) {
+      case _RemovalStyle.commentSpace:
+        return {
+          offset: [AtomicEdit.insert('/* ')],
+          end: [AtomicEdit.insert('*/ ')]
+        };
+      case _RemovalStyle.delete:
+        return {
+          offset: [AtomicEdit.delete(end - offset)]
+        };
+      case _RemovalStyle.spaceComment:
+        return {
+          offset: [AtomicEdit.insert(' /*')],
+          end: [AtomicEdit.insert(' */')]
+        };
+      case _RemovalStyle.spaceInsideComment:
+        return {
+          offset: [AtomicEdit.insert('/* ')],
+          end: [AtomicEdit.insert(' */')]
+        };
+    }
+    throw StateError('Null value for removalStyle');
+  } else {
+    return null;
+  }
+}
 
 /// A single atomic change to a source file, decoupled from the location at
 /// which the change is made. The [EditPlan] class performs its duties by
@@ -118,7 +151,18 @@ class EditPlanner {
   /// that is removed.
   final bool removeViaComments;
 
-  EditPlanner({this.removeViaComments = false});
+  /// The line info for the source file being edited.  This is used when
+  /// removing statements that fill one or more lines, so that we can remove
+  /// the indentation as well as the statement, and avoid leaving behind ugly
+  /// whitespace.
+  final LineInfo lineInfo;
+
+  /// The text of the source file being edited.  This is used when removing
+  /// code, so that we can figure out if it is safe to remove adjoining
+  /// whitespace.
+  final String sourceText;
+
+  EditPlanner(this.lineInfo, this.sourceText, {this.removeViaComments = false});
 
   /// Creates a [_PassThroughBuilder] object based around [node].
   ///
@@ -226,6 +270,48 @@ class EditPlanner {
     }
   }
 
+  /// Creates a new edit plan that removes [node] from the AST.
+  ///
+  /// [node] must be one element of a variable length sequence maintained by
+  /// [node]'s parent (for example, a statement in a block, an element in a
+  /// list, a declaration in a class, etc.)
+  EditPlan removeNode(AstNode sourceNode) {
+    var parent = sourceNode.parent;
+    var sequenceNodes = _computeSequenceNodes(parent);
+    if (sequenceNodes == null) {
+      throw StateError(
+          'Cannot remove node whose parent is of type ${parent.runtimeType}');
+    }
+    var index = sequenceNodes.indexOf(sourceNode);
+    assert(index != -1);
+    return _RemoveEditPlan(parent, index, index);
+  }
+
+  /// Creates a new edit plan that removes a sequence of adjacent nodes from
+  /// the AST, starting with [firstSourceNode] and ending with [lastSourceNode].
+  ///
+  /// [firstSourceNode] and [lastSourceNode] must be elements of a variable
+  /// length sequence maintained by their (common) parent (for example,
+  /// statements in a block, elements in a list, declarations in a class, etc.)
+  /// [lastSourceNode] must come after [firstSourceNode].
+  ///
+  /// If [firstSourceNode] and [lastSourceNode] are the same node, then the
+  /// behavior is identical to [removeNode] (i.e. just the one node is removed).
+  EditPlan removeNodes(AstNode firstSourceNode, AstNode lastSourceNode) {
+    var parent = firstSourceNode.parent;
+    assert(identical(lastSourceNode.parent, parent));
+    var sequenceNodes = _computeSequenceNodes(parent);
+    if (sequenceNodes == null) {
+      throw StateError(
+          'Cannot remove node whose parent is of type ${parent.runtimeType}');
+    }
+    var firstIndex = sequenceNodes.indexOf(firstSourceNode);
+    assert(firstIndex != -1);
+    var lastIndex = sequenceNodes.indexOf(lastSourceNode, firstIndex);
+    assert(lastIndex >= firstIndex);
+    return _RemoveEditPlan(parent, firstIndex, lastIndex);
+  }
+
   /// Creates a new edit plan that consists of executing [innerPlan], and then
   /// surrounding it with [prefix] and [suffix] text.  This could be used, for
   /// example, to add a cast.
@@ -277,6 +363,27 @@ class EditPlanner {
         innerChanges);
   }
 
+  /// Walks backward through the source text, starting at [offset] and stopping
+  /// before passing any non-whitespace character.
+  ///
+  /// Does not walk further than [limit] (which should be less than or equal to
+  /// [offset]).
+  int _backAcrossWhitespace(int offset, int limit) {
+    assert(limit <= offset);
+    return limit + sourceText.substring(limit, offset).trimRight().length;
+  }
+
+  /// Walks backward through the source text, starting at [offset] and stopping
+  /// when the beginning of the line is reached.
+  ///
+  /// If [offset] is at the beginning of the line, it is returned unchanged.
+  int _backToLineStart(int offset) {
+    var lineNumber = lineInfo.getLocation(offset).lineNumber;
+    // lineNumber is one-based, but lineInfo.lineStarts expects a zero-based
+    // index, so we need `lineInfo.lineStarts[lineNumber - 1]`.
+    return lineInfo.lineStarts[lineNumber - 1];
+  }
+
   /// Finds the deepest entry in [builderStack] that matches an entry in
   /// [ancestryStack], taking advantage of the fact that [builderStack] walks
   /// stepwise down the AST, and [ancestryStack] walks stepwise up the AST, with
@@ -295,6 +402,83 @@ class EditPlanner {
       --builderIndex;
     }
     return builderIndex;
+  }
+
+  /// Walks forward through the source text, starting at [offset] and stopping
+  /// before passing any non-whitespace character.
+  ///
+  /// Does not walk further than [limit] (which should be greater than or equal
+  /// to [offset]).
+  int _forwardAcrossWhitespace(int offset, int limit) {
+    return limit - sourceText.substring(offset, limit).trimLeft().length;
+  }
+
+  /// Walks forward through the source text, starting at [offset] and stopping
+  /// at the beginning of the next line (or at the end of the document, if this
+  /// line is the last line).
+  int _forwardToLineEnd(int offset) {
+    int lineNumber = lineInfo.getLocation(offset).lineNumber;
+    // lineNumber is one-based, so if it is equal to
+    // `lineInfo.lineStarts.length`, then we are on the last line.
+    if (lineNumber >= lineInfo.lineStarts.length) {
+      return sourceText.length;
+    }
+    // lineInfo.lineStarts expects a zero-based index, so
+    // `lineInfo.lineStarts[lineNumber]` gives us the beginning of the next
+    // line.
+    return lineInfo.lineStarts[lineNumber];
+  }
+
+  /// Determines whether the given source [offset] comes just after an opener
+  /// ('(', '[', or '{').
+  bool _isJustAfterOpener(int offset) =>
+      offset > 0 && const ['(', '[', '{'].contains(sourceText[offset - 1]);
+
+  /// Determines whether the given source [end] comes just before a closer
+  /// (')', ']', or '}').
+  bool _isJustBeforeCloser(int end) =>
+      end < sourceText.length &&
+      const [')', ']', '}'].contains(sourceText[end]);
+
+  /// Determines if the characters between [offset] and [end] in the source text
+  /// are all whitespace characters.
+  bool _isWhitespaceRange(int offset, int end) {
+    return sourceText.substring(offset, end).trimRight().isEmpty;
+  }
+
+  /// If the given [node] maintains a variable-length sequence of child nodes,
+  /// returns a list containing those child nodes, otherwise returns `null`.
+  ///
+  /// The returned list may or may not be the exact list used by the node to
+  /// maintain its child nodes.  For example, [CompilationUnit] maintains its
+  /// directives and declarations in separate lists, so the returned list is
+  /// a new list containing both directives and declarations.
+  static List<AstNode> _computeSequenceNodes(AstNode node) {
+    if (node is Block) {
+      return node.statements;
+    } else if (node is ListLiteral) {
+      return node.elements;
+    } else if (node is SetOrMapLiteral) {
+      return node.elements;
+    } else if (node is ArgumentList) {
+      return node.arguments;
+    } else if (node is FormalParameterList) {
+      return node.parameters;
+    } else if (node is VariableDeclarationList) {
+      return node.variables;
+    } else if (node is TypeArgumentList) {
+      return node.arguments;
+    } else if (node is TypeParameterList) {
+      return node.typeParameters;
+    } else if (node is EnumDeclaration) {
+      return node.constants;
+    } else if (node is ClassDeclaration) {
+      return node.members;
+    } else if (node is CompilationUnit) {
+      return [...node.directives, ...node.declarations];
+    } else {
+      return null;
+    }
   }
 }
 
@@ -434,32 +618,6 @@ class _ExtractEditPlan extends _NestedEditPlan {
       changes = _createAddParenChanges(changes);
     }
     return changes;
-  }
-
-  static Map<int, List<AtomicEdit>> _removeCode(
-      int offset, int end, _RemovalStyle removalStyle) {
-    if (offset < end) {
-      // TODO(paulberry): handle preexisting comments?
-      switch (removalStyle) {
-        case _RemovalStyle.commentSpace:
-          return {
-            offset: [AtomicEdit.insert('/* ')],
-            end: [AtomicEdit.insert('*/ ')]
-          };
-        case _RemovalStyle.delete:
-          return {
-            offset: [AtomicEdit.delete(end - offset)]
-          };
-        case _RemovalStyle.spaceComment:
-          return {
-            offset: [AtomicEdit.insert(' /*')],
-            end: [AtomicEdit.insert(' */')]
-          };
-      }
-      throw StateError('Null value for removalStyle');
-    } else {
-      return null;
-    }
   }
 }
 
@@ -706,6 +864,35 @@ class _PassThroughBuilderImpl implements PassThroughBuilder {
   /// The [EditPlan]s accumulated so far.
   final List<EditPlan> innerPlans = [];
 
+  /// The [EditPlanner] currently being used to create this
+  /// [_PassThroughEditPlan].
+  EditPlanner planner;
+
+  /// Determination of whether the resulting [EditPlan] will end in a cascade,
+  /// or `null` if it is not yet known.
+  bool endsInCascade;
+
+  /// The set of changes aggregated together so far.
+  Map<int, List<AtomicEdit>> changes;
+
+  /// Index into [innerPlans] of the plan to process next.
+  int planIndex = 0;
+
+  /// If [node] is a sequence, the list of its child nodes.  Otherwise `null`.
+  List<AstNode> sequenceNodes;
+
+  /// If [node] is a sequence that uses separators (e.g. a list literal, which
+  /// uses comma separators), a list of its separators.  Otherwise `null`.
+  List<Token> separators;
+
+  /// If [separators] is non-null, and nodes are being removed from the
+  /// sequence, this boolean indicates whether each node should be removed along
+  /// with the separator that *precedes* it.
+  ///
+  /// `false` indicates that each node should be removed along with the
+  /// separator that *follows* it.
+  bool removeLeadingSeparators = false;
+
   _PassThroughBuilderImpl(this.node);
 
   @override
@@ -716,6 +903,7 @@ class _PassThroughBuilderImpl implements PassThroughBuilder {
 
   @override
   NodeProducingEditPlan finish(EditPlanner planner) {
+    this.planner = planner;
     var node = this.node;
     if (node is ParenthesizedExpression) {
       assert(innerPlans.length <= 1);
@@ -726,37 +914,15 @@ class _PassThroughBuilderImpl implements PassThroughBuilder {
         return _ProvisionalParenEditPlan(node, innerPlan);
       }
     }
-    return _PassThroughEditPlan(node, innerPlans);
-  }
-}
 
-/// [EditPlan] representing an AstNode that is not to be changed, but may have
-/// some changes applied to some of its descendants.
-class _PassThroughEditPlan extends _SimpleEditPlan {
-  factory _PassThroughEditPlan(AstNode node, Iterable<EditPlan> innerPlans) {
-    bool /*?*/ endsInCascade = node is CascadeExpression ? true : null;
-    Map<int, List<AtomicEdit>> changes;
-    for (var innerPlan in innerPlans) {
-      assert(identical(innerPlan.parentNode, node));
-      if (innerPlan is NodeProducingEditPlan) {
-        var parensNeeded = innerPlan.parensNeededFromContext(node);
-        assert(_checkParenLogic(innerPlan, parensNeeded));
-        if (!parensNeeded && innerPlan is _ProvisionalParenEditPlan) {
-          var innerInnerPlan = innerPlan.innerPlan;
-          if (innerInnerPlan is _PassThroughEditPlan) {
-            // Input source code had redundant parens, so keep them.
-            parensNeeded = true;
-          }
-        }
-        changes += innerPlan._getChanges(parensNeeded);
-        if (endsInCascade == null && innerPlan.sourceNode.end == node.end) {
-          endsInCascade = !parensNeeded && innerPlan.endsInCascade;
-        }
-      } else {
-        // TODO(paulberry): handle this case.
-        throw UnimplementedError('Inner plan is not node-producing');
-      }
-    }
+    // Make a provisional determination of whether the result will end in a
+    // cascade.
+    // TODO(paulberry): can we make some of these computations lazy?
+    endsInCascade = node is CascadeExpression ? true : null;
+    sequenceNodes = EditPlanner._computeSequenceNodes(node);
+    separators =
+        sequenceNodes == null ? null : _computeSeparators(node, sequenceNodes);
+    _processPlans();
     return _PassThroughEditPlan._(
         node,
         node is Expression ? node.precedence : Precedence.primary,
@@ -764,9 +930,173 @@ class _PassThroughEditPlan extends _SimpleEditPlan {
         changes);
   }
 
-  _PassThroughEditPlan._(AstNode node, Precedence precedence,
-      bool endsInCascade, Map<int, List<AtomicEdit>> innerChanges)
-      : super(node, precedence, endsInCascade, innerChanges);
+  /// Starting at index [planIndex] of [innerPlans] (whose value is [plan]),
+  /// scans forward to see if there is a range of inner plans that remove a
+  /// contiguous range of AST nodes.
+  ///
+  /// Returns the index into [innerPlans] of the last such contiguous plan, or
+  /// [planIndex] if a contiguous range of removals wasn't found.
+  int _findConsecutiveRemovals(int planIndex, _RemoveEditPlan plan) {
+    assert(identical(innerPlans[planIndex], plan));
+    var lastRemovePlanIndex = planIndex;
+    var lastRemoveEditPlan = plan;
+    while (lastRemovePlanIndex + 1 < innerPlans.length) {
+      var nextPlan = innerPlans[lastRemovePlanIndex + 1];
+      if (nextPlan is _RemoveEditPlan) {
+        if (nextPlan.firstChildIndex == lastRemoveEditPlan.lastChildIndex + 1) {
+          // Removals are consecutive.  Slurp up.
+          lastRemovePlanIndex++;
+          lastRemoveEditPlan = nextPlan;
+          continue;
+        }
+      }
+      break;
+    }
+    return lastRemovePlanIndex;
+  }
+
+  /// Processes an inner plan of type [NodeProducingEditPlan], and updates
+  /// [planIndex] to point to the next inner plan.
+  void _handleNodeProducingEditPlan(NodeProducingEditPlan innerPlan) {
+    var parensNeeded = innerPlan.parensNeededFromContext(node);
+    assert(_checkParenLogic(innerPlan, parensNeeded));
+    if (!parensNeeded && innerPlan is _ProvisionalParenEditPlan) {
+      var innerInnerPlan = innerPlan.innerPlan;
+      if (innerInnerPlan is _PassThroughEditPlan) {
+        // Input source code had redundant parens, so keep them.
+        parensNeeded = true;
+      }
+    }
+    changes += innerPlan._getChanges(parensNeeded);
+    if (endsInCascade == null && innerPlan.sourceNode.end == node.end) {
+      endsInCascade = !parensNeeded && innerPlan.endsInCascade;
+    }
+    planIndex++;
+  }
+
+  /// Processes one or more inner plans of type [_RemoveEditPlan], and updates
+  /// [planIndex] to point to the next inner plan.
+  void _handleRemoveEditPlans(_RemoveEditPlan firstPlan) {
+    assert(identical(firstPlan.parentNode, node));
+    var firstPlanIndex = planIndex;
+    var lastPlanIndex = _findConsecutiveRemovals(firstPlanIndex, firstPlan);
+    var lastPlan = innerPlans[lastPlanIndex] as _RemoveEditPlan;
+    int lastRemovalEnd;
+    int nextRemovalOffset;
+    removeLeadingSeparators = separators != null &&
+        firstPlan.firstChildIndex != 0 &&
+        lastPlan.lastChildIndex >= separators.length;
+    if (planner.removeViaComments) {
+      nextRemovalOffset = _removalOffset(firstPlan);
+      lastRemovalEnd = _removalEnd(lastPlan);
+    } else {
+      var firstRemovalOffset = _removalOffset(firstPlan);
+      var firstLineStart = planner._backToLineStart(firstRemovalOffset);
+      var startsOnLineBoundary =
+          planner._isWhitespaceRange(firstLineStart, firstRemovalOffset);
+      lastRemovalEnd = _removalEnd(lastPlan);
+      var lastLineEnd = planner._forwardToLineEnd(lastRemovalEnd);
+      var endsOnLineBoundary =
+          planner._isWhitespaceRange(lastRemovalEnd, lastLineEnd);
+      if (!endsOnLineBoundary) {
+        // E.g. removing B and C, and possibly A, from `A; B; C; D;`.  Want to
+        // remove the whitespace after `C;`.
+        lastRemovalEnd =
+            planner._forwardAcrossWhitespace(lastRemovalEnd, lastLineEnd);
+      } else if (!startsOnLineBoundary) {
+        // E.g. removing B and C from `A; B; C;`.  Want to remove the whitespace
+        // before `B`.
+        firstRemovalOffset =
+            planner._backAcrossWhitespace(firstRemovalOffset, firstLineStart);
+      } else {
+        // Removing whole lines.
+        firstRemovalOffset = firstLineStart;
+        lastRemovalEnd = lastLineEnd;
+      }
+      if (firstPlanIndex == 0 && lastPlanIndex == sequenceNodes.length - 1) {
+        // We're removing everything.  Try to remove additional whitespace so
+        // that we're left with just `()`, `{}`, or `[]`.
+        var candidateFirstRemovalOffset =
+            planner._backAcrossWhitespace(firstRemovalOffset, node.offset);
+        if (planner._isJustAfterOpener(candidateFirstRemovalOffset)) {
+          var candidateLastRemovalEnd =
+              planner._forwardAcrossWhitespace(lastRemovalEnd, node.end);
+          if (planner._isJustBeforeCloser(candidateLastRemovalEnd)) {
+            firstRemovalOffset = candidateFirstRemovalOffset;
+            lastRemovalEnd = candidateLastRemovalEnd;
+          }
+        }
+      }
+      nextRemovalOffset = firstRemovalOffset;
+    }
+
+    for (; planIndex <= lastPlanIndex; planIndex++) {
+      var offset = nextRemovalOffset;
+      int end;
+      if (planIndex == lastPlanIndex) {
+        end = lastRemovalEnd;
+      } else {
+        var innerPlan = innerPlans[planIndex + 1] as _RemoveEditPlan;
+        assert(identical(innerPlan.parentNode, node));
+        nextRemovalOffset = _removalOffset(innerPlan);
+        if (planner.removeViaComments) {
+          end = _removalEnd(innerPlans[planIndex] as _RemoveEditPlan);
+        } else {
+          var lineStart = planner._backToLineStart(nextRemovalOffset);
+          if (planner._isWhitespaceRange(lineStart, nextRemovalOffset)) {
+            // The next node to remove starts at the beginning of a line
+            // (possibly with whitespace before it).  Consider the removal of
+            // the whitespace to be part of removing the next node.
+            nextRemovalOffset = lineStart;
+          }
+          end = nextRemovalOffset;
+        }
+      }
+      changes += _removeCode(
+          offset,
+          end,
+          planner.removeViaComments
+              ? _RemovalStyle.spaceInsideComment
+              : _RemovalStyle.delete);
+    }
+  }
+
+  /// Walks through the plans in [innerPlans], adjusting them as necessary and
+  /// collecting their changes in [changes].
+  void _processPlans() {
+    while (planIndex < innerPlans.length) {
+      var innerPlan = innerPlans[planIndex];
+      if (innerPlan is NodeProducingEditPlan) {
+        _handleNodeProducingEditPlan(innerPlan);
+      } else if (innerPlan is _RemoveEditPlan) {
+        _handleRemoveEditPlans(innerPlan);
+      } else {
+        throw UnimplementedError('Unrecognized inner plan type');
+      }
+    }
+  }
+
+  /// Computes the end for the text that should be removed by the given
+  /// [innerPlan].
+  int _removalEnd(_RemoveEditPlan innerPlan) {
+    if (separators != null &&
+        !removeLeadingSeparators &&
+        innerPlan.lastChildIndex < separators.length) {
+      return separators[innerPlan.lastChildIndex].end;
+    } else {
+      return sequenceNodes[innerPlan.lastChildIndex].end;
+    }
+  }
+
+  /// Computes the offset for the text that should be removed by the given
+  /// [innerPlan].
+  int _removalOffset(_RemoveEditPlan innerPlan) {
+    if (separators != null && removeLeadingSeparators) {
+      return separators[innerPlan.firstChildIndex - 1].offset;
+    } else {
+      return sequenceNodes[innerPlan.firstChildIndex].offset;
+    }
+  }
 
   static bool _checkParenLogic(EditPlan innerPlan, bool parensNeeded) {
     if (innerPlan is _SimpleEditPlan && innerPlan._innerChanges == null) {
@@ -777,6 +1107,37 @@ class _PassThroughEditPlan extends _SimpleEditPlan {
     }
     return true;
   }
+
+  /// Compute the set of tokens used by the given [parent] node to separate its
+  /// [childNodes].
+  static List<Token> _computeSeparators(
+      AstNode parent, List<AstNode> childNodes) {
+    if (parent is Block ||
+        parent is ClassDeclaration ||
+        parent is CompilationUnit) {
+      // These parent types don't use separators.
+      return null;
+    } else {
+      var result = <Token>[];
+      for (var child in childNodes) {
+        var separator = child.endToken.next;
+        if (separator != null && separator.type == TokenType.COMMA) {
+          result.add(separator);
+        }
+      }
+      assert(result.length == childNodes.length ||
+          result.length == childNodes.length - 1);
+      return result;
+    }
+  }
+}
+
+/// [EditPlan] representing an AstNode that is not to be changed, but may have
+/// some changes applied to some of its descendants.
+class _PassThroughEditPlan extends _SimpleEditPlan {
+  _PassThroughEditPlan._(AstNode node, Precedence precedence,
+      bool endsInCascade, Map<int, List<AtomicEdit>> innerChanges)
+      : super(node, precedence, endsInCascade, innerChanges);
 }
 
 /// [EditPlan] applying to a [ParenthesizedExpression].  Unlike the normal
@@ -821,6 +1182,30 @@ enum _RemovalStyle {
   /// Code should be removed by commenting it out.  Inserted comment delimiters
   /// should be a space followed by a comment delimiter (i.e. ` /*` and ` */`).
   spaceComment,
+
+  /// Code should be removed by commenting it out.  Inserted comment delimiters
+  /// should have a space inside the comment.
+  spaceInsideComment,
+}
+
+/// [EditPlan] representing one or more AstNodes that are to be removed from
+/// their (common) parent, which must be an AST node that stores a list of
+/// sub-nodes.
+///
+/// If more than one node is to be removed by this [EditPlan], they must be
+/// contiguous.
+class _RemoveEditPlan extends EditPlan {
+  @override
+  final AstNode parentNode;
+
+  /// Index of the node to be removed within the parent.
+  final int firstChildIndex;
+
+  /// Index of the node to be removed within the parent.
+  final int lastChildIndex;
+
+  _RemoveEditPlan(this.parentNode, this.firstChildIndex, this.lastChildIndex)
+      : super._();
 }
 
 /// Implementation of [EditPlan] underlying simple cases where no computation

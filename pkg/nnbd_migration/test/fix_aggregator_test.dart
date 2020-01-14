@@ -210,7 +210,7 @@ class FixAggregatorTestBase extends AbstractSingleUnitTest {
   }
 
   Map<int, List<AtomicEdit>> run(Map<AstNode, NodeChange> changes) {
-    return FixAggregator.run(testUnit, changes);
+    return FixAggregator.run(testUnit, testCode, changes);
   }
 }
 

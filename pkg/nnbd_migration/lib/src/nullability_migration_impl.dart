@@ -90,7 +90,7 @@ class NullabilityMigrationImpl implements NullabilityMigration {
         _variables,
         library);
     fixBuilder.visitAll(unit);
-    var changes = FixAggregator.run(unit, fixBuilder.changes);
+    var changes = FixAggregator.run(unit, result.content, fixBuilder.changes);
     for (var entry in changes.entries) {
       final lineInfo = LineInfo.fromContent(source.contents.data);
       var fix = _SingleNullabilityFix(

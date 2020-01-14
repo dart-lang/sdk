@@ -67,9 +67,9 @@ class FixAggregator extends UnifyingAstVisitor<void> {
   }
 
   /// Runs the [FixAggregator] on a [unit] and returns the resulting edits.
-  static Map<int, List<AtomicEdit>> run(
-      CompilationUnit unit, Map<AstNode, NodeChange> changes) {
-    var planner = EditPlanner();
+  static Map<int, List<AtomicEdit>> run(CompilationUnit unit, String sourceText,
+      Map<AstNode, NodeChange> changes) {
+    var planner = EditPlanner(unit.lineInfo, sourceText);
     var aggregator = FixAggregator._(planner, changes);
     unit.accept(aggregator);
     if (aggregator._plans.isEmpty) return {};

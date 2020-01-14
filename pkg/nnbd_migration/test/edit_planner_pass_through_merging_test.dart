@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -21,7 +22,8 @@ main() {
 class PassThroughMergingTest extends AbstractSingleUnitTest {
   Future<void> test_creates_pass_through_plans_stepwise() async {
     await resolveTestUnit('var x = [[[1]]];');
-    var plan = _EditPlannerForTesting().passThrough(findNode.listLiteral('[[['),
+    var plan = _EditPlannerForTesting(testCode).passThrough(
+        findNode.listLiteral('[[['),
         innerPlans: [_MockPlan(findNode.integerLiteral('1'))]);
     expect(plan.toString(),
         'plan([[[1]]], [plan([[1]], [plan([1], [plan(1)])])])');
@@ -29,29 +31,29 @@ class PassThroughMergingTest extends AbstractSingleUnitTest {
 
   Future<void> test_merge_plans_at_lower_level() async {
     await resolveTestUnit('var x = [[1, 2]];');
-    var plan = _EditPlannerForTesting().passThrough(findNode.listLiteral('[['),
-        innerPlans: [
-          _MockPlan(findNode.integerLiteral('1')),
-          _MockPlan(findNode.integerLiteral('2'))
-        ]);
+    var plan = _EditPlannerForTesting(testCode)
+        .passThrough(findNode.listLiteral('[['), innerPlans: [
+      _MockPlan(findNode.integerLiteral('1')),
+      _MockPlan(findNode.integerLiteral('2'))
+    ]);
     expect(
         plan.toString(), 'plan([[1, 2]], [plan([1, 2], [plan(1), plan(2)])])');
   }
 
   Future<void> test_merge_plans_at_top_level() async {
     await resolveTestUnit('var x = [[1], [2]];');
-    var plan = _EditPlannerForTesting().passThrough(findNode.listLiteral('[['),
-        innerPlans: [
-          _MockPlan(findNode.integerLiteral('1')),
-          _MockPlan(findNode.integerLiteral('2'))
-        ]);
+    var plan = _EditPlannerForTesting(testCode)
+        .passThrough(findNode.listLiteral('[['), innerPlans: [
+      _MockPlan(findNode.integerLiteral('1')),
+      _MockPlan(findNode.integerLiteral('2'))
+    ]);
     expect(plan.toString(),
         'plan([[1], [2]], [plan([1], [plan(1)]), plan([2], [plan(2)])])');
   }
 
   Future<void> test_merge_plans_at_varying_levels() async {
     await resolveTestUnit('var x = [1, [2, 3], 4];');
-    var plan = _EditPlannerForTesting()
+    var plan = _EditPlannerForTesting(testCode)
         .passThrough(findNode.listLiteral('[1'), innerPlans: [
       _MockPlan(findNode.integerLiteral('1')),
       _MockPlan(findNode.integerLiteral('2')),
@@ -66,6 +68,9 @@ class PassThroughMergingTest extends AbstractSingleUnitTest {
 }
 
 class _EditPlannerForTesting extends EditPlanner {
+  _EditPlannerForTesting(String content)
+      : super(LineInfo.fromContent(content), content);
+
   @override
   PassThroughBuilder createPassThroughBuilder(AstNode node) =>
       _MockPassThroughBuilder(node);
