@@ -154,7 +154,7 @@
         "uri": "../../sdk/lib/vmservice/vmservice.dart"
       },
       "vmservice_io": {
-        "uri": "../../runtime/bin/vmservice/vmservice_io.dart"
+        "uri": "../../sdk/lib/_internal/vm/bin/vmservice_io.dart"
       }
     }
   },

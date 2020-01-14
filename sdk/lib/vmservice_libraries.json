@@ -2,7 +2,7 @@
   "vm": {
     "libraries": {
       "vmservice_io": {
-        "uri": "../../runtime/bin/vmservice/vmservice_io.dart"
+        "uri": "_internal/vm/bin/vmservice_io.dart"
       },
       "_vmservice": {
         "uri": "vmservice/vmservice.dart"

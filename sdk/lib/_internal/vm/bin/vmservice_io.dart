@@ -14,7 +14,7 @@ import 'dart:isolate';
 import 'dart:typed_data';
 import 'dart:_vmservice';
 
-part 'server.dart';
+part 'vmservice_server.dart';
 
 // The TCP ip/port that the HTTP server listens on.
 @pragma("vm:entry-point")
