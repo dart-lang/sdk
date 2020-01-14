@@ -120,6 +120,13 @@ class EditPlanner {
 
   EditPlanner({this.removeViaComments = false});
 
+  /// Creates a [_PassThroughBuilder] object based around [node].
+  ///
+  /// Exposed so that we can substitute a mock class in unit tests.
+  @visibleForTesting
+  PassThroughBuilder createPassThroughBuilder(AstNode node) =>
+      _PassThroughBuilderImpl(node);
+
   /// Creates a new edit plan that consists of executing [innerPlan], and then
   /// removing from the source code any code that is in [sourceNode] but not in
   /// [innerPlan.sourceNode].  This is intended to be used to drop unnecessary
@@ -175,7 +182,7 @@ class EditPlanner {
     // level of AST depth, where the first entry in the stack corresponds to
     // [node], and each subsequent entry will correspond to a child of the
     // previous.
-    var builderStack = [_PassThroughBuilder(node)];
+    var builderStack = [createPassThroughBuilder(node)];
     var ancestryPath = <AstNode>[];
     for (var plan in innerPlans) {
       // Compute the ancestryPath (the path from `plan.parentNode` up to
@@ -204,7 +211,7 @@ class EditPlanner {
         // through the AST, when building entry builderIndex, we need to count
         // backwards from the end of ancestryPath to figure out which node to
         // associate the builder with.
-        builderStack.add(_PassThroughBuilder(
+        builderStack.add(createPassThroughBuilder(
             ancestryPath[ancestryPath.length - builderStack.length - 1]));
       }
       // Now the deepest entry in the builderStack corresponds to
@@ -276,7 +283,7 @@ class EditPlanner {
   /// the last entry of [ancestryStack] corresponding to the first entry of
   /// [builderStack].
   int _findMatchingBuilder(
-      List<_PassThroughBuilder> builderStack, List<AstNode> ancestryStack) {
+      List<PassThroughBuilder> builderStack, List<AstNode> ancestryStack) {
     var builderIndex = builderStack.length - 1;
     while (builderIndex > 0) {
       var ancestryIndex = ancestryStack.length - builderIndex - 1;
@@ -351,6 +358,22 @@ abstract class NodeProducingEditPlan extends EditPlan {
       {@required Precedence threshold,
       bool associative = false,
       bool allowCascade = false});
+}
+
+/// Data structure that accumulates together a set of [EditPlans] sharing a
+/// common parent node, and groups them together into an [EditPlan] with a
+/// parent node one level up the AST.
+@visibleForTesting
+abstract class PassThroughBuilder {
+  /// The AST node that is the parent of all the [EditPlan]s being accumulated.
+  AstNode get node;
+
+  /// Accumulate another edit plan.
+  void add(EditPlan innerPlan);
+
+  /// Called when no more edit plans need to be added.  Returns the final
+  /// [EditPlan].
+  NodeProducingEditPlan finish(EditPlanner planner);
 }
 
 /// Visitor that determines whether a given [AstNode] ends in a cascade.
@@ -676,26 +699,22 @@ class _ParensNeededFromContextVisitor extends GeneralizingAstVisitor<bool> {
   }
 }
 
-/// Data structure that accumulates together a set of [EditPlans] sharing a
-/// common parent node, and groups them together into an [EditPlan] with a
-/// parent node one level up the AST.
-class _PassThroughBuilder {
-  /// The AST node that is the parent of all the [EditPlan]s being accumulated.
+class _PassThroughBuilderImpl implements PassThroughBuilder {
+  @override
   final AstNode node;
 
   /// The [EditPlan]s accumulated so far.
   final List<EditPlan> innerPlans = [];
 
-  _PassThroughBuilder(this.node);
+  _PassThroughBuilderImpl(this.node);
 
-  /// Accumulate another edit plan.
+  @override
   void add(EditPlan innerPlan) {
     assert(identical(innerPlan.parentNode, node));
     innerPlans.add(innerPlan);
   }
 
-  /// Called when no more edit plans need to be added.  Returns the final
-  /// [EditPlan].
+  @override
   NodeProducingEditPlan finish(EditPlanner planner) {
     var node = this.node;
     if (node is ParenthesizedExpression) {
