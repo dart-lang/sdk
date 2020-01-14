@@ -245,7 +245,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   /// This is used to determine whether instance properties are available.
   bool inFieldInitializer = false;
 
-  /// `true` if this access is directly in a field initializer of a late field.
+  /// `true` if we are directly in a field initializer of a late field.
   ///
   /// For instance in `<init>` in
   ///
@@ -256,6 +256,23 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   ///    }
   ///
   bool inLateFieldInitializer = false;
+
+  /// `true` if we are directly in the initializer of a late local.
+  ///
+  /// For instance in `<init>` in
+  ///
+  ///    method() {
+  ///      late var foo = <init>;
+  ///    }
+  ///    class Class {
+  ///      method() {
+  ///        late var bar = <init>;
+  ///      }
+  ///    }
+  ///
+  bool get inLateLocalInitializer => _localInitializerState.head;
+
+  Link<bool> _localInitializerState = const Link<bool>().prepend(false);
 
   List<Initializer> _initializers;
 
@@ -401,6 +418,15 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   TypeEnvironment get typeEnvironment => typeInferrer?.typeSchemaEnvironment;
 
   DartType get implicitTypeArgument => const ImplicitTypeArgument();
+
+  void _enterLocalState({bool inLateLocalInitializer: false}) {
+    _localInitializerState =
+        _localInitializerState.prepend(inLateLocalInitializer);
+  }
+
+  void _exitLocalState() {
+    _localInitializerState = _localInitializerState.tail;
+  }
 
   @override
   void registerVariableAssignment(VariableDeclaration variable) {
@@ -2353,6 +2379,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     UnresolvedType type = pop();
     int modifiers = (lateToken != null ? lateMask : 0) |
         Modifier.validateVarFinalOrConst(varFinalOrConst?.lexeme);
+    _enterLocalState(inLateLocalInitializer: lateToken != null);
     super.push(currentLocalVariableModifiers);
     super.push(currentLocalVariableType ?? NullValue.Type);
     currentLocalVariableType = type;
@@ -2405,6 +2432,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       }
       push(forest.variablesDeclaration(variables, uri));
     }
+    _exitLocalState();
   }
 
   /// Stack containing assigned variables info for try statements.
@@ -2706,7 +2734,14 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void endAwaitExpression(Token keyword, Token endToken) {
     debugEvent("AwaitExpression");
-    push(forest.createAwaitExpression(offsetForToken(keyword), popForValue()));
+    int fileOffset = offsetForToken(keyword);
+    Expression value = popForValue();
+    if (inLateLocalInitializer) {
+      push(buildProblem(fasta.messageAwaitInLateLocalInitializer, fileOffset,
+          keyword.charCount));
+    } else {
+      push(forest.createAwaitExpression(fileOffset, value));
+    }
   }
 
   @override
@@ -4337,6 +4372,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   void enterFunction() {
+    _enterLocalState();
     debugEvent("enterFunction");
     functionNestingLevel++;
     push(switchScope ?? NullValue.SwitchScope);
@@ -4356,6 +4392,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     List<TypeVariableBuilder> typeVariables = pop();
     exitLocalScope();
     push(typeVariables ?? NullValue.TypeVariables);
+    _exitLocalState();
   }
 
   @override

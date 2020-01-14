@@ -35,7 +35,8 @@ hest() async {
 }
 
 fisk() async {
-  late String s = await hest();
+  late String s1 = await hest();
+  late String s2 = '${fisk}${await hest()}${fisk}';
   late Function f = () async => await hest();
 }
 

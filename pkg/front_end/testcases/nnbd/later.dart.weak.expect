@@ -47,6 +47,14 @@ library;
 //   await for (late String s in new Stream.fromIterable(["hest"])) {
 //              ^^^^
 //
+// pkg/front_end/testcases/nnbd/later.dart:38:20: Error: `await` expressions are not supported in late local initializers.
+//   late String s1 = await hest();
+//                    ^^^^^
+//
+// pkg/front_end/testcases/nnbd/later.dart:39:30: Error: `await` expressions are not supported in late local initializers.
+//   late String s2 = '${fisk}${await hest()}${fisk}';
+//                              ^^^^^
+//
 import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;
@@ -108,7 +116,16 @@ static method hest() → dynamic async {
   return "hest";
 }
 static method fisk() → dynamic async {
-  late core::String s = await self::hest() as{TypeError} core::String;
+  late core::String s1 = invalid-expression "pkg/front_end/testcases/nnbd/later.dart:38:20: Error: `await` expressions are not supported in late local initializers.
+  late String s1 = await hest();
+                   ^^^^^" as{TypeError} core::String;
+  late core::String s2 = "${#C1}${invalid-expression "pkg/front_end/testcases/nnbd/later.dart:39:30: Error: `await` expressions are not supported in late local initializers.
+  late String s2 = '\${fisk}\${await hest()}\${fisk}';
+                             ^^^^^"}${#C1}";
   late core::Function f = () → asy::Future<dynamic> async => await self::hest();
 }
 static method main() → dynamic {}
+
+constants  {
+  #C1 = tearoff self::fisk
+}
