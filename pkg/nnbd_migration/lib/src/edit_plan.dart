@@ -109,20 +109,6 @@ abstract class EditPlan {
   /// AST node being replaced.  For edit plans that insert or delete AST nodes,
   /// this is the parent of the AST nodes that will be inserted or deleted.
   AstNode get parentNode;
-
-  /// Returns a new [EditPlan] that replicates this [EditPlan], but may
-  /// incorporate relevant information obtained from the parent of [sourceNode].
-  /// For example, if this [EditPlan] would produce an expression that might or
-  /// might not need parentheses, and the parent of [sourceNode] is a
-  /// [ParenthesizedExpression], then an [EditPlan] is produced that will either
-  /// preserve the existing parentheses, or remove them, as appropriate.
-  ///
-  /// May return `this`, if no information needs to be incorporated from the
-  /// parent.
-  ///
-  /// This method is used when composing and finalizing plans, to ensure that
-  /// parentheses are removed when they are no longer needed.
-  NodeProducingEditPlan _incorporateParent();
 }
 
 /// Factory class for creating [EditPlan]s.
@@ -147,8 +133,9 @@ class EditPlanner {
   /// caller.
   NodeProducingEditPlan extract(
       AstNode sourceNode, NodeProducingEditPlan innerPlan) {
-    if (!identical(innerPlan.sourceNode.parent, sourceNode)) {
-      innerPlan = innerPlan._incorporateParent();
+    var parent = innerPlan.sourceNode.parent;
+    if (!identical(parent, sourceNode) && parent is ParenthesizedExpression) {
+      innerPlan = _ProvisionalParenEditPlan(parent, innerPlan);
     }
     return _ExtractEditPlan(sourceNode, innerPlan, this);
   }
@@ -160,9 +147,15 @@ class EditPlanner {
   /// Finalizing an [EditPlan] is a destructive operation; it should not be used
   /// again after it is finalized.
   Map<int, List<AtomicEdit>> finalize(EditPlan plan) {
-    var incorporatedPlan = plan._incorporateParent();
-    return incorporatedPlan
-        ._getChanges(incorporatedPlan.parensNeededFromContext(null));
+    // Convert to a plan for the top level CompilationUnit.
+    var parent = plan.parentNode;
+    if (parent != null) {
+      var unit = parent.thisOrAncestorOfType<CompilationUnit>();
+      plan = passThrough(unit, innerPlans: [plan]);
+    }
+    // The plan for a compilation unit should always be a NodeProducingEditPlan.
+    // So we can just ask it for its changes.
+    return (plan as NodeProducingEditPlan)._getChanges(false);
   }
 
   /// Creates a new edit plan that makes no changes to [node], but may make
@@ -351,16 +344,6 @@ abstract class NodeProducingEditPlan extends EditPlan {
   /// An [EditPlan] for which [_getChanges] has been called is considered to be
   /// finalized.
   Map<int, List<AtomicEdit>> _getChanges(bool parens);
-
-  @override
-  NodeProducingEditPlan _incorporateParent() {
-    var parent = sourceNode.parent;
-    if (parent is ParenthesizedExpression) {
-      return _ProvisionalParenEditPlan(parent, this);
-    } else {
-      return this;
-    }
-  }
 
   /// Determines if the text that would be produced by [EditPlan] needs to be
   /// surrounded by parens, based on the context in which it will be used.

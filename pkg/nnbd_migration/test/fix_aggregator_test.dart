@@ -144,13 +144,21 @@ class FixAggregatorTest extends FixAggregatorTestBase {
   }
 
   Future<void> test_removeAs_parens_needed_due_to_cascade() async {
-    // Note: spaces around parens to verify that we don't remove the old parens
-    // and create new ones.
-    await analyze('f(a, c) => a..b = throw ( c..d ) as int;');
+    // Note: parens are needed, and they could either be around `c..d` or around
+    // `throw c..d`.  In an ideal world, we would see that we can just keep the
+    // parens we have, but this is difficult because we don't see that the
+    // parens are needed until we walk far enough up the AST to see that we're
+    // inside a casade expression.  So we drop the parens and then create new
+    // ones surrounding `throw c..d`.
+    //
+    // Strictly speaking the code we produce is correct, it's just making a
+    // slightly larger edit than necessary.  This is presumably a really rare
+    // corner case so for now we're not worrying about it.
+    await analyze('f(a, c) => a..b = throw (c..d) as int;');
     var cd = findNode.cascade('c..d');
     var cast = cd.parent.parent;
     var previewInfo = run({cast: const RemoveAs()});
-    expect(previewInfo.applyTo(code), 'f(a, c) => a..b = throw ( c..d );');
+    expect(previewInfo.applyTo(code), 'f(a, c) => a..b = (throw c..d);');
   }
 
   Future<void>

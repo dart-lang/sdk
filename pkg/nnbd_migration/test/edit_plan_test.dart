@@ -126,6 +126,21 @@ class EditPlanTest extends AbstractSingleUnitTest {
         'var x = 1 + 2 << 4;');
   }
 
+  Future<void> test_extract_remove_redundant_parens() async {
+    await analyze('var x = (1 * 2) + 3;');
+    var times = findNode.binary('*');
+    checkPlan(extract(times, times.parent), 'var x = 1 * 2 + 3;');
+  }
+
+  Future<void> test_extract_try_to_remove_necessary_parens() async {
+    // This is a weird corner case.  We try to extract the expression `1 + 2`
+    // from `( 1 + 2 )`, meaning we should remove parens.  But the parens are
+    // necessary.  So we create fresh ones (without the spaces).
+    await analyze('var x = ( 1 + 2 ) * 3;');
+    var plus = findNode.binary('+');
+    checkPlan(extract(plus, plus.parent), 'var x = (1 + 2) * 3;');
+  }
+
   Future<void> test_extract_using_comments_inner() async {
     planner = EditPlanner(removeViaComments: true);
     await analyze('var x = 1 + 2 * 3;');
