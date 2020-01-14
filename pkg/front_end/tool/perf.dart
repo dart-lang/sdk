@@ -23,16 +23,15 @@ import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/file_system/physical_file_system.dart'
-    show PhysicalResourceProvider;
-import 'package:analyzer/src/context/builder.dart';
+import 'package:analyzer/file_system/file_system.dart' show Folder;
+import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart' show FolderBasedDartSdk;
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
-import 'package:package_config/discovery.dart';
 import 'package:path/path.dart' as path;
 
 main(List<String> args) async {
@@ -45,7 +44,7 @@ main(List<String> args) async {
   var bench = args[0];
   var entryUri = Uri.base.resolve(args[1]);
 
-  await setup(entryUri);
+  await setup(args[1]);
 
   Set<Source> files = scanReachableFiles(entryUri);
   var handlers = {
@@ -196,10 +195,19 @@ Set<Source> scanReachableFiles(Uri entryUri) {
 
 /// Sets up analyzer to be able to load and resolve app, packages, and sdk
 /// sources.
-Future setup(Uri entryUri) async {
+Future setup(String path) async {
   var provider = PhysicalResourceProvider.INSTANCE;
-  var packageMap = ContextBuilder.convertPackagesToMap(
-      provider, await findPackages(entryUri));
+
+  var packages = findPackagesFrom(
+    provider,
+    provider.getResource(path),
+  );
+
+  var packageMap = <String, List<Folder>>{};
+  for (var package in packages.packages) {
+    packageMap[package.name] = [package.libFolder];
+  }
+
   sources = new SourceFactory([
     new ResourceUriResolver(provider),
     new PackageMapUriResolver(provider, packageMap),

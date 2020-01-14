@@ -10,9 +10,11 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/file_system/file_system.dart'
+    show Folder, ResourceUriResolver;
 import 'package:analyzer/file_system/physical_file_system.dart'
     show PhysicalResourceProvider;
-import 'package:analyzer/src/context/builder.dart';
+import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart' show FolderBasedDartSdk;
@@ -21,7 +23,6 @@ import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
-import 'package:package_config/discovery.dart';
 
 main(List<String> args) async {
   // TODO(sigmund): provide sdk folder as well.
@@ -34,7 +35,7 @@ main(List<String> args) async {
   var bench = args[0];
   var entryUri = Uri.base.resolve(args[1]);
 
-  await setup(entryUri);
+  await setup(args[1]);
 
   if (bench == 'scan') {
     Set<Source> files = scanReachableFiles(entryUri);
@@ -180,10 +181,19 @@ Set<Source> scanReachableFiles(Uri entryUri) {
 
 /// Sets up analyzer to be able to load and resolve app, packages, and sdk
 /// sources.
-Future setup(Uri entryUri) async {
+Future setup(String path) async {
   var provider = PhysicalResourceProvider.INSTANCE;
-  var packageMap = ContextBuilder.convertPackagesToMap(
-      provider, await findPackages(entryUri));
+
+  var packages = findPackagesFrom(
+    provider,
+    provider.getResource(path),
+  );
+
+  var packageMap = <String, List<Folder>>{};
+  for (var package in packages.packages) {
+    packageMap[package.name] = [package.libFolder];
+  }
+
   sources = SourceFactory([
     ResourceUriResolver(provider),
     PackageMapUriResolver(provider, packageMap),
