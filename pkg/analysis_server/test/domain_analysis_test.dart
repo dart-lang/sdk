@@ -319,7 +319,8 @@ class AnalysisDomainTest extends AbstractAnalysisTest {
 library lib_a;
 class A {}
 ''').path;
-    newFile('/project/.packages', content: 'pkgA:file:///packages/pkgA');
+    newFile('/project/.packages',
+        content: 'pkgA:${toUriStr('/packages/pkgA')}');
     addTestFile('''
 import 'package:pkgA/libA.dart';
 main(A a) {

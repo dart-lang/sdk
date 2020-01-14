@@ -170,10 +170,10 @@ class A {}
 class B extends A {}
 ''');
     newFile('/packages/pkgA/.packages',
-        content: 'pkgA:file:///packages/pkgA/lib');
+        content: 'pkgA:${toUriStr('/packages/pkgA/lib')}');
     // reference the package from a project
     newFile('$projectPath/.packages',
-        content: 'pkgA:file:///packages/pkgA/lib');
+        content: 'pkgA:${toUriStr('/packages/pkgA/lib')}');
     addTestFile('''
 import 'package:pkgA/libA.dart';
 class C extends A {}
