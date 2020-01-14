@@ -5,11 +5,14 @@
 import 'package:_fe_analyzer_shared/src/scanner/error_token.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/string_source.dart';
+import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -18,6 +21,7 @@ import 'test_support.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(LineInfoTest);
+    defineReflectiveTests(ScannerTest);
   });
 }
 
@@ -180,6 +184,49 @@ class LineInfoTest {
     Token result = scanner.tokenize();
     listener.setLineInfo(TestSource(), scanner.lineStarts);
     return result;
+  }
+}
+
+@reflectiveTest
+class ScannerTest with ResourceProviderMixin {
+  test_featureSet() {
+    var scanner = _createScanner(r'''
+// @dart = 2.0
+''');
+    var defaultFeatureSet = FeatureSet.fromEnableFlags([]);
+    expect(defaultFeatureSet.isEnabled(Feature.extension_methods), isTrue);
+
+    scanner.configureFeatures(FeatureSet.forTesting());
+    scanner.tokenize();
+
+    var featureSet = scanner.featureSet;
+    expect(featureSet.isEnabled(Feature.extension_methods), isFalse);
+  }
+
+  test_featureSet_majorOverflow() {
+    var scanner = _createScanner(r'''
+// @dart = 99999999999999999999999999999999.0
+''');
+    scanner.configureFeatures(FeatureSet.forTesting());
+    scanner.tokenize();
+    // Don't check features, but should not crash.
+  }
+
+  test_featureSet_minorOverflow() {
+    var scanner = _createScanner(r'''
+// @dart = 2.99999999999999999999999999999999
+''');
+    scanner.configureFeatures(FeatureSet.forTesting());
+    scanner.tokenize();
+    // Don't check features, but should not crash.
+  }
+
+  Scanner _createScanner(String content) {
+    var path = convertPath('/test/lib/a.dart');
+    var source = StringSource(content, path);
+    var reader = CharSequenceReader(content);
+    var errorCollector = RecordingErrorListener();
+    return Scanner(source, reader, errorCollector);
   }
 }
 
