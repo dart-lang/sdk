@@ -43,6 +43,11 @@ class NullabilityMigrationImpl implements NullabilityMigration {
   /// Currently defaults to `false`.
   final bool useFixBuilder;
 
+  /// Indicates whether code removed by the migration engine should be removed
+  /// by commenting it out.  A value of `false` means to actually delete the
+  /// code that is removed.
+  final bool removeViaComments;
+
   /// Prepares to perform nullability migration.
   ///
   /// If [permissive] is `true`, exception handling logic will try to proceed
@@ -57,17 +62,16 @@ class NullabilityMigrationImpl implements NullabilityMigration {
   ///
   /// Optional parameter [removeViaComments] indicates whether dead code should
   /// be removed in its entirety (the default) or removed by commenting it out.
-  /// TODO(paulberry): wire this up.
   NullabilityMigrationImpl(NullabilityMigrationListener listener,
       {bool permissive: false,
       NullabilityMigrationInstrumentation instrumentation,
       bool useFixBuilder: false,
       bool removeViaComments = false})
       : this._(listener, NullabilityGraph(instrumentation: instrumentation),
-            permissive, instrumentation, useFixBuilder);
+            permissive, instrumentation, useFixBuilder, removeViaComments);
 
   NullabilityMigrationImpl._(this.listener, this._graph, this._permissive,
-      this._instrumentation, this.useFixBuilder) {
+      this._instrumentation, this.useFixBuilder, this.removeViaComments) {
     _instrumentation?.immutableNodes(_graph.never, _graph.always);
   }
 
@@ -90,7 +94,8 @@ class NullabilityMigrationImpl implements NullabilityMigration {
         _variables,
         library);
     fixBuilder.visitAll(unit);
-    var changes = FixAggregator.run(unit, result.content, fixBuilder.changes);
+    var changes = FixAggregator.run(unit, result.content, fixBuilder.changes,
+        removeViaComments: removeViaComments);
     for (var entry in changes.entries) {
       final lineInfo = LineInfo.fromContent(source.contents.data);
       var fix = _SingleNullabilityFix(

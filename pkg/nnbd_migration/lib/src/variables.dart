@@ -22,6 +22,8 @@ import 'package:nnbd_migration/src/potential_modification.dart';
 class Variables implements VariableRecorder, VariableRepository {
   final NullabilityGraph _graph;
 
+  final _conditionalDiscards = <Source, Map<int, ConditionalDiscard>>{};
+
   final _decoratedElementTypes = <Element, DecoratedType>{};
 
   final _decoratedTypeParameterBounds = <Element, DecoratedType>{};
@@ -104,12 +106,16 @@ class Variables implements VariableRecorder, VariableRepository {
     }
   }
 
+  ConditionalDiscard getConditionalDiscard(Source source, AstNode node) =>
+      (_conditionalDiscards[source] ?? {})[node.offset];
+
   Map<Source, List<PotentialModification>> getPotentialModifications() =>
       _potentialModifications;
 
   @override
   void recordConditionalDiscard(
       Source source, AstNode node, ConditionalDiscard conditionalDiscard) {
+    (_conditionalDiscards[source] ??= {})[node.offset] = conditionalDiscard;
     _addPotentialModification(
         source, ConditionalModification(node, conditionalDiscard));
   }

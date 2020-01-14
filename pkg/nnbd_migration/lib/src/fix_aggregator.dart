@@ -75,6 +75,9 @@ class EliminateDeadIf extends NodeChange {
     return aggregator.planner
         .extract(node, aggregator.planner.passThrough(nodeToKeep));
   }
+
+  @override
+  String toString() => 'EliminateDeadIf($conditionValue)';
 }
 
 /// Visitor that combines together the changes produced by [FixBuilder] into a

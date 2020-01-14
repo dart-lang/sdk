@@ -198,6 +198,23 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
   MigrationResolutionHooksImpl(this._fixBuilder);
 
   @override
+  bool getConditionalKnownValue(AstNode node) {
+    // TODO(paulberry): handle things other than IfStatement.
+    var conditionalDiscard =
+        _fixBuilder._variables.getConditionalDiscard(_fixBuilder.source, node);
+    if (conditionalDiscard == null) {
+      return null;
+    } else {
+      if (conditionalDiscard.keepTrue && conditionalDiscard.keepFalse) {
+        return null;
+      }
+      var conditionValue = conditionalDiscard.keepTrue;
+      _fixBuilder._addChange(node, EliminateDeadIf(conditionValue));
+      return conditionValue;
+    }
+  }
+
+  @override
   List<ParameterElement> getExecutableParameters(ExecutableElement element) =>
       getExecutableType(element).parameters;
 

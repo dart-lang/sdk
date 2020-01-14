@@ -2097,6 +2097,20 @@ class ResolverVisitorForMigration extends ResolverVisitor {
             FlowAnalysisHelperForMigration(
                 typeSystem, migrationResolutionHooks),
             migrationResolutionHooks);
+
+  @override
+  void visitIfStatement(IfStatement node) {
+    var conditionalKnownValue =
+        (_elementTypeProvider as MigrationResolutionHooks)
+            .getConditionalKnownValue(node);
+    if (conditionalKnownValue == null) {
+      super.visitIfStatement(node);
+      return;
+    } else {
+      (conditionalKnownValue ? node.thenStatement : node.elseStatement)
+          ?.accept(this);
+    }
+  }
 }
 
 /// The abstract class `ScopedVisitor` maintains name and label scopes as an AST

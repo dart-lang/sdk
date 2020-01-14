@@ -2075,6 +2075,7 @@ int get g => 0;
     await _checkSingleFileChanges(content, expected);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
   Future<void> test_ifStatement_nullCheck_noElse() async {
     var content = '''
 int f(int x) {
@@ -2084,7 +2085,6 @@ int f(int x) {
 ''';
     var expected = '''
 int f(int x) {
-  if (x == null) return 0;
   return x;
 }
 ''';
@@ -3854,11 +3854,6 @@ class _ProvisionalApiTestWithFixBuilder extends _ProvisionalApiTestBase
 
   @override
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
-  Future<void> test_discard_simple_condition() =>
-      super.test_discard_simple_condition();
-
-  @override
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
   Future<void> test_downcast_dynamic_function_to_functionType() =>
       super.test_downcast_dynamic_function_to_functionType();
 
@@ -3924,6 +3919,11 @@ class _ProvisionalApiTestWithFixBuilder extends _ProvisionalApiTestBase
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
   Future<void> test_generic_exact_propagation_premigratedListClass() =>
       super.test_generic_exact_propagation_premigratedListClass();
+
+  /// Test fails under the pre-FixBuilder implementation; passes now.
+  @override
+  Future<void> test_ifStatement_nullCheck_noElse() =>
+      super.test_ifStatement_nullCheck_noElse();
 
   @override
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')

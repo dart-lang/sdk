@@ -11,6 +11,9 @@ import 'package:nnbd_migration/src/nullability_node.dart';
 /// This information will be associated with an Expression in the input program
 /// whose boolean value influences control flow (e.g. the condition of an `if`
 /// statement).
+///
+/// TODO(paulberry): simplify this once PotentialModification is no longer
+/// needed.
 class ConditionalDiscard {
   /// Nullability node that will be `nullable` if the code path that results
   /// from the condition evaluating to `true` will be reachable after
