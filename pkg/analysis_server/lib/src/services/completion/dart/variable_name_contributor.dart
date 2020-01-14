@@ -67,7 +67,7 @@ class VariableNameContributor extends DartCompletionContributor {
         node = CompletionTarget.findFormalParameter(node, offset);
       }
 
-      String strName = null;
+      String strName;
       if (node is ExpressionStatement) {
         var expression = node.expression;
         if (expression is Identifier) {

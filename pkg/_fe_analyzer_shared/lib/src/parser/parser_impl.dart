@@ -2350,6 +2350,11 @@ class Parser {
     }
     // At this point, `token` is beforeName.
 
+    // Recovery: Inserted ! after method name.
+    if (optional('!', next.next)) {
+      next = next.next;
+    }
+
     next = next.next;
     value = next.stringValue;
     if (getOrSet != null ||
@@ -2411,7 +2416,7 @@ class Parser {
       }
     }
     if (typeInfo == noType) {
-      if (varFinalOrConst == null && lateToken == null) {
+      if (varFinalOrConst == null) {
         reportRecoverableError(name, codes.messageMissingConstFinalVarOrType);
       }
     } else {
@@ -2520,6 +2525,11 @@ class Parser {
   }
 
   Token parseMethodTypeVar(Token name) {
+    if (optional('!', name.next)) {
+      // Recovery
+      name = name.next;
+      reportRecoverableErrorWithToken(name, codes.templateUnexpectedToken);
+    }
     if (!optional('<', name.next)) {
       return noTypeParamOrArg.parseVariables(name, this);
     }
@@ -5180,8 +5190,20 @@ class Parser {
     return token;
   }
 
+  /// Calls handleNonNullAssertExpression when the token points to `!<`.
+  /// Returns the input token if it doesn't point to `!<`, or the next token
+  /// (ready for parsing by e.g. computeMethodTypeArguments) if it does.
+  Token parseBangBeforeTypeArguments(Token token) {
+    if (optional('!', token.next) && optional('<', token.next.next)) {
+      token = token.next;
+      listener.handleNonNullAssertExpression(token);
+    }
+    return token;
+  }
+
   Token parseSend(Token token, IdentifierContext context) {
     Token beginToken = token = ensureIdentifier(token, context);
+    token = parseBangBeforeTypeArguments(token);
     TypeParamOrArgInfo typeArg = computeMethodTypeArguments(token);
     if (typeArg != noTypeParamOrArg) {
       token = typeArg.parseArguments(token, this);

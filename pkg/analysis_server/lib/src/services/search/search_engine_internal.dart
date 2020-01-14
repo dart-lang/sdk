@@ -27,8 +27,8 @@ class SearchEngineImpl implements SearchEngine {
 
     String libraryUriStr = type.librarySource.uri.toString();
     bool hasSubtypes = false;
-    Set<String> visitedIds = Set<String>();
-    Set<String> members = Set<String>();
+    Set<String> visitedIds = <String>{};
+    Set<String> members = <String>{};
 
     Future<void> addMembers(ClassElement type, SubtypeResult subtype) async {
       // TODO(brianwilkerson) Determine whether this await is necessary.
@@ -61,7 +61,7 @@ class SearchEngineImpl implements SearchEngine {
   Future<Set<ClassElement>> searchAllSubtypes(ClassElement type) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    Set<ClassElement> allSubtypes = Set<ClassElement>();
+    Set<ClassElement> allSubtypes = <ClassElement>{};
 
     Future<void> addSubtypes(ClassElement type) async {
       // TODO(brianwilkerson) Determine whether this await is necessary.
@@ -134,7 +134,7 @@ class SearchEngineImpl implements SearchEngine {
   Future<List<SearchMatch>> searchTopLevelDeclarations(String pattern) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    Set<Element> allElements = Set<Element>();
+    Set<Element> allElements = <Element>{};
     RegExp regExp = RegExp(pattern);
     List<AnalysisDriver> drivers = _drivers.toList();
     for (AnalysisDriver driver in drivers) {

@@ -108,7 +108,7 @@ class DirectiveOrganizer {
     String directivesCode;
     {
       StringBuffer sb = StringBuffer();
-      _DirectivePriority currentPriority = null;
+      _DirectivePriority currentPriority;
       for (_DirectiveInfo directiveInfo in directives) {
         if (!hasUnresolvedIdentifierError) {
           UriBasedDirective directive = directiveInfo.directive;

@@ -110,16 +110,14 @@ abstract class ZoneSpecification {
       ForkHandler? fork}) {
     return new ZoneSpecification(
         handleUncaughtError: handleUncaughtError ?? other.handleUncaughtError,
-        // TODO(#39534) Cleanup casts to dynamic when CFE can find the LUB.
-        run: (run ?? other.run) as dynamic,
-        runUnary: (runUnary ?? other.runUnary) as dynamic,
-        runBinary: (runBinary ?? other.runBinary) as dynamic,
-        registerCallback:
-            (registerCallback ?? other.registerCallback) as dynamic,
+        run: run ?? other.run,
+        runUnary: runUnary ?? other.runUnary,
+        runBinary: runBinary ?? other.runBinary,
+        registerCallback: registerCallback ?? other.registerCallback,
         registerUnaryCallback:
-            (registerUnaryCallback ?? other.registerUnaryCallback) as dynamic,
+            registerUnaryCallback ?? other.registerUnaryCallback,
         registerBinaryCallback:
-            (registerBinaryCallback ?? other.registerBinaryCallback) as dynamic,
+            registerBinaryCallback ?? other.registerBinaryCallback,
         errorCallback: errorCallback ?? other.errorCallback,
         scheduleMicrotask: scheduleMicrotask ?? other.scheduleMicrotask,
         createTimer: createTimer ?? other.createTimer,

@@ -421,7 +421,7 @@ class Server {
   /**
    * Server process object, or null if server hasn't been started yet.
    */
-  Process _process = null;
+  Process _process;
 
   /**
    * Commands that have been sent to the server but not yet acknowledged, and
@@ -457,7 +457,7 @@ class Server {
   /**
    * Stopwatch that we use to generate timing information for debug output.
    */
-  Stopwatch _time = Stopwatch();
+  final Stopwatch _time = Stopwatch();
 
   /**
    * The [currentElapseTime] at which the last communication was received from the server

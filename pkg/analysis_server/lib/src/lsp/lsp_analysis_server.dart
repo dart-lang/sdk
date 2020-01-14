@@ -713,8 +713,8 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
 
   @override
   ContextBuilder createContextBuilder(Folder folder, AnalysisOptions options) {
-    String defaultPackageFilePath = null;
-    String defaultPackagesDirectoryPath = null;
+    String defaultPackageFilePath;
+    String defaultPackagesDirectoryPath;
     String path = (analysisServer.contextManager as ContextManagerImpl)
         .normalizedPackageRoots[folder.path];
     if (path != null) {

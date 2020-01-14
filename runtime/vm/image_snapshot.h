@@ -346,7 +346,8 @@ class AssemblyImageWriter : public ImageWriter {
   }
 
   StreamingWriteStream assembly_stream_;
-  Dwarf* dwarf_;
+  Dwarf* assembly_dwarf_;
+  Dwarf* debug_dwarf_;
 
   DISALLOW_COPY_AND_ASSIGN(AssemblyImageWriter);
 };
@@ -357,9 +358,10 @@ class BlobImageWriter : public ImageWriter {
                   uint8_t** instructions_blob_buffer,
                   ReAlloc alloc,
                   intptr_t initial_size,
+                  Dwarf* debug_dwarf = nullptr,
                   intptr_t bss_base = 0,
                   Elf* elf = nullptr,
-                  Dwarf* dwarf = nullptr);
+                  Dwarf* elf_dwarf = nullptr);
 
   virtual void WriteText(WriteStream* clustered_stream, bool vm);
 
@@ -372,8 +374,9 @@ class BlobImageWriter : public ImageWriter {
 
   WriteStream instructions_blob_stream_;
   Elf* const elf_;
-  Dwarf* const dwarf_;
+  Dwarf* const elf_dwarf_;
   const intptr_t bss_base_;
+  Dwarf* const debug_dwarf_;
 
   DISALLOW_COPY_AND_ASSIGN(BlobImageWriter);
 };

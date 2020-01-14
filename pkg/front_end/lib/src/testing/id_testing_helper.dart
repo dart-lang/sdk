@@ -419,7 +419,7 @@ Future<TestResult<T>> runTestForConfig<T>(
   }
 
   CfeCompiledData<T> compiledData = new CfeCompiledData<T>(
-      compilerResult, testData.testFileUri, actualMaps, globalData);
+      compilerResult, testData.entryPoint, actualMaps, globalData);
   return checkCode(config.name, testData.testFileUri, testData.code,
       memberAnnotations, compiledData, dataComputer.dataValidator,
       fatalErrors: fatalErrors, succinct: succinct, onFailure: onFailure);

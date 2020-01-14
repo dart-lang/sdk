@@ -54,10 +54,15 @@ class NullabilityMigrationImpl implements NullabilityMigration {
   /// [FixBuilder] infrastructure.  Once FixBuilder is at feature parity with
   /// the old implementation, this option will be removed and FixBuilder will
   /// be used unconditionally.
+  ///
+  /// Optional parameter [removeViaComments] indicates whether dead code should
+  /// be removed in its entirety (the default) or removed by commenting it out.
+  /// TODO(paulberry): wire this up.
   NullabilityMigrationImpl(NullabilityMigrationListener listener,
       {bool permissive: false,
       NullabilityMigrationInstrumentation instrumentation,
-      bool useFixBuilder: false})
+      bool useFixBuilder: false,
+      bool removeViaComments = false})
       : this._(listener, NullabilityGraph(instrumentation: instrumentation),
             permissive, instrumentation, useFixBuilder);
 

@@ -484,7 +484,7 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
     // options
     var params = AnalysisUpdateOptionsParams.fromRequest(request);
     AnalysisOptions newOptions = params.options;
-    List<OptionUpdater> updaters = List<OptionUpdater>();
+    List<OptionUpdater> updaters = <OptionUpdater>[];
     if (newOptions.generateDart2jsHints != null) {
       updaters.add((engine.AnalysisOptionsImpl options) {
         options.dart2jsHint = newOptions.generateDart2jsHints;

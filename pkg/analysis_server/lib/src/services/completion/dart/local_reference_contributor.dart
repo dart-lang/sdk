@@ -533,7 +533,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
         .map((FormalParameter param) => param.identifier.name)
         .toList();
     suggestion.parameterTypes = paramList.map((FormalParameter param) {
-      TypeAnnotation type = null;
+      TypeAnnotation type;
       if (param is DefaultFormalParameter) {
         NormalFormalParameter child = param.parameter;
         if (child is SimpleFormalParameter) {

@@ -72,6 +72,7 @@ a message is displayed and the class is not converted to a mixin.''',
   LintFixInfo.nullClosures,
   LintFixInfo.omitLocalVariableTypes,
   LintFixInfo.preferAdjacentStringConcatenation,
+  LintFixInfo.preferCollectionLiterals,
   LintFixInfo.preferConditionalAssignment,
   LintFixInfo.preferEqualForDefaultValues,
   LintFixInfo.preferFinalFields,
@@ -80,6 +81,7 @@ a message is displayed and the class is not converted to a mixin.''',
   LintFixInfo.preferIfNullOperators,
   LintFixInfo.preferIsEmpty,
   LintFixInfo.preferIsNotEmpty,
+  LintFixInfo.preferIterableWhereType,
   LintFixInfo.preferSingleQuotes,
   LintFixInfo.preferSpreadCollections,
   LintFixInfo.slashForDocComments,
@@ -88,6 +90,7 @@ a message is displayed and the class is not converted to a mixin.''',
   LintFixInfo.unnecessaryConst,
   LintFixInfo.unnecessaryNew,
   LintFixInfo.unnecessaryThis,
+  LintFixInfo.useFunctionTypeSyntaxForParameters,
   LintFixInfo.useRethrowWhenPossible,
   //
   // Other fixes
@@ -215,13 +218,9 @@ class LintFixInfo extends DartFixInfo {
   // avoid_types_as_parameter_names
   // camel_case_extensions
   // library_names
-  // prefer_collection_literals
   // prefer_contains
-  // prefer_iterable_whereType
   // recursive_getters
-  // unnecessary_null_in_if_null_operators
   // unrelated_type_equality_checks
-  // use_function_type_syntax_for_parameters
   // valid_regexps
 
   static final alwaysDeclareReturnTypes = LintFixInfo(
@@ -380,6 +379,12 @@ will be converted to
     isPedantic: true,
   );
 
+  static final preferIterableWhereType = LintFixInfo(
+      'prefer_iterable_whereType',
+      DartFixKind.CONVERT_TO_WHERE_TYPE,
+      'Add a return type where possible.',
+      isPedantic: true);
+
   static final preferSingleQuotes = LintFixInfo(
     'prefer_single_quotes',
     DartFixKind.CONVERT_TO_SINGLE_QUOTED_STRING,
@@ -439,8 +444,20 @@ will be converted to
     isPedantic: true,
   );
 
+  static final unnecessaryNullInIfNullOperators = LintFixInfo(
+      'unnecessary_null_in_if_null_operators',
+      DartFixKind.REMOVE_IF_NULL_OPERATOR,
+      "Remove the '??' operator.",
+      isPedantic: true);
+
   static final unnecessaryThis = LintFixInfo(
       'unnecessary_this', DartFixKind.REMOVE_THIS_EXPRESSION, 'Remove this.',
+      isPedantic: true);
+
+  static final useFunctionTypeSyntaxForParameters = LintFixInfo(
+      'use_function_type_syntax_for_parameters',
+      DartFixKind.CONVERT_TO_GENERIC_FUNCTION_SYNTAX,
+      "Convert into 'Function' syntax",
       isPedantic: true);
 
   static final useRethrowWhenPossible = LintFixInfo('use_rethrow_when_possible',

@@ -94,7 +94,7 @@ class DartChangeBuilderImpl extends ChangeBuilderImpl
  * An [EditBuilder] used to build edits in Dart files.
  */
 class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
-  List<String> _KNOWN_METHOD_NAME_PREFIXES = ['get', 'is', 'to'];
+  final List<String> _KNOWN_METHOD_NAME_PREFIXES = ['get', 'is', 'to'];
 
   /**
    * Whether [_enclosingClass] and [_enclosingExecutable] have been initialized.
@@ -521,16 +521,8 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
           writeln();
           write(prefix2);
           selectAll(() {
-            write('super.');
-            write(memberName);
-            write('(');
-            for (int i = 0; i < parameters.length; i++) {
-              if (i > 0) {
-                write(', ');
-              }
-              write(parameters[i].name);
-            }
-            write(');');
+            write('super');
+            _writeSuperMemberInvocation(element, memberName, parameters);
           });
           writeln();
         } else {
@@ -542,16 +534,8 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
         write(prefix2);
         if (invokeSuper) {
           selectAll(() {
-            write('return super.');
-            write(memberName);
-            write('(');
-            for (int i = 0; i < parameters.length; i++) {
-              if (i > 0) {
-                write(', ');
-              }
-              write(parameters[i].name);
-            }
-            write(');');
+            write('return super');
+            _writeSuperMemberInvocation(element, memberName, parameters);
           });
         } else {
           selectAll(() {
@@ -654,7 +638,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   void writeParametersMatchingArguments(ArgumentList argumentList) {
     // TODO(brianwilkerson) Handle the case when there are required parameters
     // after named parameters.
-    Set<String> usedNames = Set<String>();
+    Set<String> usedNames = <String>{};
     List<Expression> arguments = argumentList.arguments;
     bool hasNamedParameters = false;
     for (int i = 0; i < arguments.length; i++) {
@@ -728,7 +712,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
         addLinkedEdit(groupName, (LinkedEditBuilder builder) {
           wroteType = _writeType(type, methodBeingCopied: methodBeingCopied);
           if (wroteType && addSupertypeProposals) {
-            _addSuperTypeProposals(builder, type, Set<DartType>());
+            _addSuperTypeProposals(builder, type, <DartType>{});
           }
         });
       } else {
@@ -869,7 +853,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   }
 
   String _getBaseNameFromUnwrappedExpression(Expression expression) {
-    String name = null;
+    String name;
     // analyze expressions
     if (expression is SimpleIdentifier) {
       return expression.name;
@@ -963,7 +947,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
    */
   List<String> _getVariableNameSuggestionsForExpression(DartType expectedType,
       Expression assignedExpression, Set<String> excluded) {
-    Set<String> res = Set();
+    Set<String> res = {};
     // use expression
     if (assignedExpression != null) {
       String nameFromExpression =
@@ -1074,6 +1058,21 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
         write('.');
       }
     }
+  }
+
+  void _writeSuperMemberInvocation(ExecutableElement element, String memberName,
+      List<ParameterElement> parameters) {
+    final isOperator = element.isOperator;
+    write(isOperator ? ' ' : '.');
+    write(memberName);
+    write(isOperator ? ' ' : '(');
+    for (int i = 0; i < parameters.length; i++) {
+      if (i > 0) {
+        write(', ');
+      }
+      write(parameters[i].name);
+    }
+    write(isOperator ? ';' : ');');
   }
 
   /**
@@ -1306,7 +1305,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     return ImportLibraryElementResultImpl(null);
   }
 
-  String importLibraryWithRelativeUri(String uriText, [String prefix = null]) {
+  String importLibraryWithRelativeUri(String uriText, [String prefix]) {
     return _importLibraryWithRelativeUri(uriText, prefix).uriText;
   }
 
@@ -1566,7 +1565,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
    * [uriText].
    */
   _LibraryToImport _importLibraryWithRelativeUri(String uriText,
-      [String prefix = null]) {
+      [String prefix]) {
     var import = librariesToRelativelyImport[uriText];
     if (import == null) {
       import = _LibraryToImport(uriText, prefix);
@@ -1624,7 +1623,7 @@ class DartLinkedEditBuilderImpl extends LinkedEditBuilderImpl
 
   @override
   void addSuperTypesAsSuggestions(DartType type) {
-    _addSuperTypesAsSuggestions(type, Set<DartType>());
+    _addSuperTypesAsSuggestions(type, <DartType>{});
   }
 
   /**

@@ -238,6 +238,16 @@ class IsCheckMainTypeOrigin extends EdgeOrigin {
   EdgeOriginKind get kind => EdgeOriginKind.isCheckMainType;
 }
 
+/// An edge origin used for the type argument of a list constructor that
+/// specified an initial length, because that type argument must be nullable.
+class ListLengthConstructorOrigin extends EdgeOrigin {
+  ListLengthConstructorOrigin(Source source, AstNode node)
+      : super(source, node);
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.listLengthConstructor;
+}
+
 /// An edge origin used for edges that originated because a literal expression
 /// has a known nullability.
 class LiteralOrigin extends EdgeOrigin {

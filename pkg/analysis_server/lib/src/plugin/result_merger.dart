@@ -211,7 +211,7 @@ class ResultMerger {
   KytheGetKytheEntriesResult mergeKytheEntries(
       List<KytheGetKytheEntriesResult> partialResultList) {
     List<KytheEntry> mergedEntries = <KytheEntry>[];
-    Set<String> mergedFiles = Set<String>();
+    Set<String> mergedFiles = <String>{};
     for (KytheGetKytheEntriesResult partialResult in partialResultList) {
       mergedEntries.addAll(partialResult.entries);
       mergedFiles.addAll(partialResult.files);

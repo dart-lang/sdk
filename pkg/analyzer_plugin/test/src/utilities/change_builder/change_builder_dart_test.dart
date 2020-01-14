@@ -916,7 +916,7 @@ class A {}
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(2, (EditBuilder builder) {
         (builder as DartEditBuilder)
-            .writeParameterMatchingArgument(argument, 0, Set<String>());
+            .writeParameterMatchingArgument(argument, 0, <String>{});
       });
     });
     SourceEdit edit = getEdit(builder);

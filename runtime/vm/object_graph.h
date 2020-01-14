@@ -190,6 +190,7 @@ class HeapSnapshotWriter : public ThreadStackResource {
   static const intptr_t kPreferredChunkSize = MB;
 
   void SetupCountingPages();
+  bool OnImagePage(RawObject* obj) const;
   CountingPage* FindCountingPage(RawObject* obj) const;
 
   void EnsureAvailable(intptr_t needed);

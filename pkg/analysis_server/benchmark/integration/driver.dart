@@ -153,7 +153,7 @@ class Driver extends IntegrationTestMixin {
 class Measurement {
   final String tag;
   final bool notification;
-  final List<Duration> elapsedTimes = List<Duration>();
+  final List<Duration> elapsedTimes = <Duration>[];
   int errorCount = 0;
   int unexpectedResultCount = 0;
 
@@ -223,7 +223,7 @@ class Measurement {
  * while running the analysis server
  */
 class Results {
-  Map<String, Measurement> measurements = Map<String, Measurement>();
+  Map<String, Measurement> measurements = <String, Measurement>{};
 
   /**
    * Display results on stdout.

@@ -102,9 +102,9 @@ class MemberSorter {
   void _sortClassMembers(ClassOrMixinDeclaration classDeclaration) {
     List<_MemberInfo> members = <_MemberInfo>[];
     for (ClassMember member in classDeclaration.members) {
-      _MemberKind kind = null;
+      _MemberKind kind;
       bool isStatic = false;
-      String name = null;
+      String name;
       if (member is ConstructorDeclaration) {
         kind = _MemberKind.CLASS_CONSTRUCTOR;
         SimpleIdentifier nameNode = member.name;
@@ -164,7 +164,7 @@ class MemberSorter {
       }
       UriBasedDirective uriDirective = directive as UriBasedDirective;
       String uriContent = uriDirective.uri.stringValue;
-      _DirectivePriority kind = null;
+      _DirectivePriority kind;
       if (directive is ImportDirective) {
         if (uriContent.startsWith("dart:")) {
           kind = _DirectivePriority.IMPORT_SDK;
@@ -228,7 +228,7 @@ class MemberSorter {
     {
       StringBuffer sb = StringBuffer();
       String endOfLine = this.endOfLine;
-      _DirectivePriority currentPriority = null;
+      _DirectivePriority currentPriority;
       bool firstOutputDirective = true;
       for (_DirectiveInfo directive in directives) {
         if (currentPriority != directive.priority) {
@@ -272,8 +272,8 @@ class MemberSorter {
   void _sortUnitMembers() {
     List<_MemberInfo> members = [];
     for (CompilationUnitMember member in unit.declarations) {
-      _MemberKind kind = null;
-      String name = null;
+      _MemberKind kind;
+      String name;
       if (member is ClassOrMixinDeclaration) {
         kind = _MemberKind.UNIT_CLASS;
         name = member.name.name;

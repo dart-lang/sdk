@@ -975,7 +975,7 @@ class _HttpParser extends Stream<_HttpIncoming> {
     return true;
   }
 
-  int _expect(int val1, int val2) {
+  void _expect(int val1, int val2) {
     if (val1 != val2) {
       throw new HttpException("Failed to parse HTTP");
     }

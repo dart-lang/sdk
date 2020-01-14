@@ -1,2 +1,1 @@
-ERROR|STATIC_TYPE_WARNING|INVALID_ASSIGNMENT|lib/async/async.dart|5554|39|14|A value of type '_PendingEvents<T>?' can't be assigned to a variable of type '_PendingEvents<T>'.
-ERROR|STATIC_TYPE_WARNING|RETURN_OF_INVALID_TYPE|lib/async/async.dart|5390|14|8|A value of type 'Object?' can't be returned from function '_pendingEvents' because it has a return type of '_PendingEvents<T>?'.
+

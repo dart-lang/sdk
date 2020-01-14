@@ -1162,12 +1162,15 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
 // Called for allocation of Mint.
 void StubCodeCompiler::GenerateAllocateMintWithFPURegsStub(
     Assembler* assembler) {
-  Label slow_case;
-  __ TryAllocate(compiler::MintClass(), &slow_case, /*instance_reg=*/R0,
-                 /*temp_reg=*/R1);
-  __ Ret();
+  // For test purpose call allocation stub without inline allocation attempt.
+  if (!FLAG_use_slow_path) {
+    Label slow_case;
+    __ TryAllocate(compiler::MintClass(), &slow_case, /*instance_reg=*/R0,
+                   /*temp_reg=*/R1);
+    __ Ret();
 
-  __ Bind(&slow_case);
+    __ Bind(&slow_case);
+  }
   GenerateSharedStub(assembler, /*save_fpu_registers=*/true,
                      &kAllocateMintRuntimeEntry,
                      target::Thread::allocate_mint_with_fpu_regs_stub_offset(),
@@ -1178,12 +1181,15 @@ void StubCodeCompiler::GenerateAllocateMintWithFPURegsStub(
 // Called for allocation of Mint.
 void StubCodeCompiler::GenerateAllocateMintWithoutFPURegsStub(
     Assembler* assembler) {
-  Label slow_case;
-  __ TryAllocate(compiler::MintClass(), &slow_case, /*instance_reg=*/R0,
-                 /*temp_reg=*/R1);
-  __ Ret();
+  // For test purpose call allocation stub without inline allocation attempt.
+  if (!FLAG_use_slow_path) {
+    Label slow_case;
+    __ TryAllocate(compiler::MintClass(), &slow_case, /*instance_reg=*/R0,
+                   /*temp_reg=*/R1);
+    __ Ret();
 
-  __ Bind(&slow_case);
+    __ Bind(&slow_case);
+  }
   GenerateSharedStub(
       assembler, /*save_fpu_registers=*/false, &kAllocateMintRuntimeEntry,
       target::Thread::allocate_mint_without_fpu_regs_stub_offset(),

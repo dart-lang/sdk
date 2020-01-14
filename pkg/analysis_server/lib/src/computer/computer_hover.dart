@@ -24,6 +24,10 @@ class DartUnitHoverComputer {
 
   DartUnitHoverComputer(this._dartdocInfo, this._unit, this._offset);
 
+  bool get _isNonNullableByDefault {
+    return _unit.declaredElement.library.isNonNullableByDefault;
+  }
+
   /**
    * Returns the computed hover, maybe `null`.
    */
@@ -63,7 +67,7 @@ class DartUnitHoverComputer {
           }
         }
         // description
-        hover.elementDescription = element.toString();
+        hover.elementDescription = _elementDisplayString(element);
         if (node is InstanceCreationExpression && node.keyword == null) {
           String prefix = node.isConst ? '(const) ' : '(new) ';
           hover.elementDescription = prefix + hover.elementDescription;
@@ -106,7 +110,9 @@ class DartUnitHoverComputer {
         hover.dartdoc = computeDocumentation(_dartdocInfo, element);
       }
       // parameter
-      hover.parameter = _safeToString(expression.staticParameterElement);
+      hover.parameter = _elementDisplayString(
+        expression.staticParameterElement,
+      );
       // types
       {
         AstNode parent = expression.parent;
@@ -120,13 +126,23 @@ class DartUnitHoverComputer {
             staticType = null;
           }
         }
-        hover.staticType = _safeToString(staticType);
+        hover.staticType = _typeDisplayString(staticType);
       }
       // done
       return hover;
     }
     // not an expression
     return null;
+  }
+
+  String _elementDisplayString(Element element) {
+    return element?.getDisplayString(
+      withNullability: _isNonNullableByDefault,
+    );
+  }
+
+  String _typeDisplayString(DartType type) {
+    return type?.getDisplayString(withNullability: _isNonNullableByDefault);
   }
 
   static String computeDocumentation(
@@ -178,6 +194,4 @@ class DartUnitHoverComputer {
     }
     return node.staticType;
   }
-
-  static String _safeToString(obj) => obj?.toString();
 }

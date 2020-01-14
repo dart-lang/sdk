@@ -132,7 +132,7 @@ class StatementCompletionProcessor {
   List<engine.AnalysisError> errors = [];
   final Map<String, LinkedEditGroup> linkedPositionGroups =
       <String, LinkedEditGroup>{};
-  Position exitPosition = null;
+  Position exitPosition;
 
   StatementCompletionProcessor(this.statementContext)
       : utils = CorrectionUtils(statementContext.resolveResult);
@@ -268,7 +268,7 @@ class StatementCompletionProcessor {
   void _checkExpressions() {
     // Note: This may queue edits that have to be accounted for later.
     // See _lengthOfInsertions().
-    AstNode errorMatching(errorCode, {partialMatch = null}) {
+    AstNode errorMatching(errorCode, {partialMatch}) {
       var error = _findError(errorCode, partialMatch: partialMatch);
       if (error == null) {
         return null;
@@ -1091,7 +1091,7 @@ class StatementCompletionProcessor {
     return false;
   }
 
-  engine.AnalysisError _findError(ErrorCode code, {partialMatch = null}) {
+  engine.AnalysisError _findError(ErrorCode code, {partialMatch}) {
     return errors.firstWhere(
         (err) =>
             err.errorCode == code &&
@@ -1194,14 +1194,14 @@ class StatementCompletionProcessor {
     return Position(file, offset);
   }
 
-  void _removeError(errorCode, {partialMatch = null}) {
+  void _removeError(errorCode, {partialMatch}) {
     var error = _findError(errorCode, partialMatch: partialMatch);
     if (error != null) {
       errors.remove(error);
     }
   }
 
-  AstNode _selectedNode({int at = null}) =>
+  AstNode _selectedNode({int at}) =>
       NodeLocator(at == null ? selectionOffset : at).searchWithin(unit);
 
   void _setCompletion(StatementCompletionKind kind, [List args]) {

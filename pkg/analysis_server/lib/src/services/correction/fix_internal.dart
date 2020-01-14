@@ -11,7 +11,12 @@ import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analysis_server/src/services/correction/base_processor.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_list_literal.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_map_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_null_aware.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_set_literal.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_where_type.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_if_null_operator.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix/dart/top_level_declarations.dart';
 import 'package:analysis_server/src/services/correction/levenshtein.dart';
@@ -54,9 +59,6 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart' hide FixContributor;
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:path/path.dart';
-import 'package:analysis_server/src/services/correction/dart/convert_to_list_literal.dart';
-import 'package:analysis_server/src/services/correction/dart/convert_to_map_literal.dart';
-import 'package:analysis_server/src/services/correction/dart/convert_to_set_literal.dart';
 
 /**
  * A predicate is a one-argument function that returns a boolean value.
@@ -116,7 +118,7 @@ class DartFixContributor implements FixContributor {
       final List<Fix> fixesListI = await processorI.compute();
       for (Fix f in fixesListI) {
         if (!map.containsKey(f.kind)) {
-          map[f.kind] = List<Fix>()..add(f);
+          map[f.kind] = <Fix>[]..add(f);
         } else {
           map[f.kind].add(f);
         }
@@ -125,7 +127,7 @@ class DartFixContributor implements FixContributor {
 
     // For each FixKind in the HashMap, union each list together, then return
     // the set of unioned Fixes.
-    final List<Fix> result = List<Fix>();
+    final List<Fix> result = <Fix>[];
     map.forEach((FixKind kind, List<Fix> fixesListJ) {
       if (fixesListJ.first.kind.canBeAppliedTogether()) {
         Fix unionFix = _unionFixList(fixesListJ);
@@ -146,7 +148,7 @@ class DartFixContributor implements FixContributor {
     final SourceChange sourceChange =
         SourceChange(fixList[0].kind.appliedTogetherMessage);
     sourceChange.edits = List.from(fixList[0].change.edits);
-    final List<SourceEdit> edits = List<SourceEdit>();
+    final List<SourceEdit> edits = <SourceEdit>[];
     edits.addAll(fixList[0].change.edits[0].edits);
     sourceChange.linkedEditGroups =
         List.from(fixList[0].change.linkedEditGroups);
@@ -646,6 +648,9 @@ class FixProcessor extends BaseProcessor {
       if (name == LintNames.empty_statements) {
         await _addFix_removeEmptyStatement();
       }
+      if (name == LintNames.hash_and_equals) {
+        await _addFix_addMissingHashOrEquals();
+      }
       if (name == LintNames.no_duplicate_case_values) {
         await _addFix_removeCaseStatement();
       }
@@ -746,6 +751,9 @@ class FixProcessor extends BaseProcessor {
       }
       if (name == LintNames.unnecessary_this) {
         await _addFix_removeThisExpression();
+      }
+      if (name == LintNames.use_function_type_syntax_for_parameters) {
+        await _addFix_convertToGenericFunctionSyntax();
       }
       if (name == LintNames.use_rethrow_when_possible) {
         await _addFix_replaceWithRethrow();
@@ -973,6 +981,42 @@ class FixProcessor extends BaseProcessor {
         changeBuilder, DartFixKind.ADD_MISSING_ENUM_CASE_CLAUSES);
   }
 
+  Future<void> _addFix_addMissingHashOrEquals() async {
+    final methodDecl = node.thisOrAncestorOfType<MethodDeclaration>();
+    final classDecl = node.thisOrAncestorOfType<ClassDeclaration>();
+    if (methodDecl != null && classDecl != null) {
+      final classElement = classDecl.declaredElement;
+
+      var element;
+      var memberName;
+      if (methodDecl.name.name == 'hashCode') {
+        memberName = '==';
+        element = classElement.lookUpInheritedMethod(
+            memberName, classElement.library);
+      } else {
+        memberName = 'hashCode';
+        element = classElement.lookUpInheritedConcreteGetter(
+            memberName, classElement.library);
+      }
+
+      final location =
+          utils.prepareNewClassMemberLocation(classDecl, (_) => true);
+
+      final changeBuilder = _newDartChangeBuilder();
+      await changeBuilder.addFileEdit(file, (fileBuilder) {
+        fileBuilder.addInsertion(location.offset, (builder) {
+          builder.write(location.prefix);
+          builder.writeOverride(element, invokeSuper: true);
+          builder.write(location.suffix);
+        });
+      });
+
+      changeBuilder.setSelection(Position(file, location.offset));
+      _addFixFromBuilder(changeBuilder, DartFixKind.CREATE_METHOD,
+          args: [memberName]);
+    }
+  }
+
   Future<void> _addFix_addMissingParameter() async {
     // The error is reported on ArgumentList.
     if (node is! ArgumentList) {
@@ -1002,7 +1046,7 @@ class FixProcessor extends BaseProcessor {
           builder.addInsertion(offset, (builder) {
             builder.write(prefix);
             builder.writeParameterMatchingArgument(
-                argument, numRequired, Set<String>());
+                argument, numRequired, <String>{});
             builder.write(suffix);
           });
         });
@@ -1076,8 +1120,8 @@ class FixProcessor extends BaseProcessor {
         await changeBuilder.addFileEdit(context.file, (builder) {
           builder.addInsertion(offset, (builder) {
             builder.write(prefix);
-            builder.writeParameterMatchingArgument(
-                namedExpression, 0, Set<String>());
+            builder
+                .writeParameterMatchingArgument(namedExpression, 0, <String>{});
             builder.write(suffix);
           });
         });
@@ -1582,7 +1626,7 @@ class FixProcessor extends BaseProcessor {
           argumentList.arguments.skip(numberOfPositionalParameters);
       for (var argument in extraArguments) {
         if (argument is! NamedExpression) {
-          ParameterElement uniqueNamedParameter = null;
+          ParameterElement uniqueNamedParameter;
           for (var namedParameter in namedParameters) {
             if (typeSystem.isSubtypeOf(
                 argument.staticType, namedParameter.type)) {
@@ -1626,8 +1670,8 @@ class FixProcessor extends BaseProcessor {
   }
 
   Future<void> _addFix_createClass() async {
-    Element prefixElement = null;
-    String name = null;
+    Element prefixElement;
+    String name;
     SimpleIdentifier nameNode;
     if (node is SimpleIdentifier) {
       AstNode parent = node.parent;
@@ -1841,9 +1885,9 @@ class FixProcessor extends BaseProcessor {
   }
 
   Future<void> _addFix_createConstructor_named() async {
-    SimpleIdentifier name = null;
-    ConstructorName constructorName = null;
-    InstanceCreationExpression instanceCreation = null;
+    SimpleIdentifier name;
+    ConstructorName constructorName;
+    InstanceCreationExpression instanceCreation;
     if (node is SimpleIdentifier) {
       // name
       name = node as SimpleIdentifier;
@@ -2530,8 +2574,8 @@ class FixProcessor extends BaseProcessor {
   }
 
   Future<void> _addFix_createMixin() async {
-    Element prefixElement = null;
-    String name = null;
+    Element prefixElement;
+    String name;
     SimpleIdentifier nameNode;
     if (node is SimpleIdentifier) {
       AstNode parent = node.parent;
@@ -2784,7 +2828,7 @@ class FixProcessor extends BaseProcessor {
   }
 
   Future<void> _addFix_importLibrary(FixKind kind, Uri library,
-      [String relativeURI = null]) async {
+      [String relativeURI]) async {
     String uriText;
     var changeBuilder = _newDartChangeBuilder();
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
@@ -2813,7 +2857,7 @@ class FixProcessor extends BaseProcessor {
     }
     // may be there is an existing import,
     // but it is with prefix and we don't use this prefix
-    var alreadyImportedWithPrefix = Set<String>();
+    var alreadyImportedWithPrefix = <String>{};
     for (ImportElement imp in unitLibraryElement.imports) {
       // prepare element
       LibraryElement libraryElement = imp.importedLibrary;
@@ -3184,7 +3228,7 @@ class FixProcessor extends BaseProcessor {
     }
     SimpleIdentifier memberName = node;
     AstNode parent = node.parent;
-    AstNode target = null;
+    AstNode target;
     if (parent is MethodInvocation && node == parent.methodName) {
       target = parent.target;
     } else if (parent is PropertyAccess && node == parent.propertyName) {
@@ -4051,7 +4095,7 @@ class FixProcessor extends BaseProcessor {
       return;
     }
     AstNode parent = node.parent;
-    AstNode target = null;
+    AstNode target;
     if (parent is MethodInvocation && node == parent.methodName) {
       target = parent.target;
     } else if (parent is PropertyAccess && node == parent.propertyName) {
@@ -4238,7 +4282,7 @@ class FixProcessor extends BaseProcessor {
   Future<void> _addFix_undefinedClass_useSimilar() async {
     AstNode node = this.node;
     // Prepare the optional import prefix name.
-    String prefixName = null;
+    String prefixName;
     if (node is SimpleIdentifier && node.staticElement is PrefixElement) {
       AstNode parent = node.parent;
       if (parent is PrefixedIdentifier &&
@@ -4288,7 +4332,7 @@ class FixProcessor extends BaseProcessor {
     AstNode node = this.node;
     if (node is SimpleIdentifier) {
       // prepare target
-      Expression target = null;
+      Expression target;
       if (node.parent is PrefixedIdentifier) {
         target = (node.parent as PrefixedIdentifier).prefix;
       } else if (node.parent is PropertyAccess) {
@@ -4401,7 +4445,7 @@ class FixProcessor extends BaseProcessor {
     AstNode node = this.node;
     if (node is SimpleIdentifier) {
       // Prepare the optional import prefix name.
-      String prefixName = null;
+      String prefixName;
       {
         AstNode invocation = node.parent;
         if (invocation is MethodInvocation && invocation.methodName == node) {
@@ -4517,7 +4561,7 @@ class FixProcessor extends BaseProcessor {
 
   Future<void> _addFix_updateSdkConstraints(String minimumVersion) async {
     Context context = resourceProvider.pathContext;
-    File pubspecFile = null;
+    File pubspecFile;
     Folder folder = resourceProvider.getFolder(context.dirname(file));
     while (folder != null) {
       pubspecFile = folder.getChildAssumingFile('pubspec.yaml');
@@ -4626,7 +4670,7 @@ class FixProcessor extends BaseProcessor {
   }
 
   void _addFixFromBuilder(ChangeBuilder builder, FixKind kind,
-      {List args = null, bool importsOnly = false}) {
+      {List args, bool importsOnly = false}) {
     if (builder == null) return;
     SourceChange change = builder.sourceChange;
     if (change.edits.isEmpty && !importsOnly) {
@@ -4674,10 +4718,20 @@ class FixProcessor extends BaseProcessor {
           ConvertToSetLiteral(),
           DartFixKind.CONVERT_TO_SET_LITERAL,
         );
+      } else if (name == LintNames.prefer_iterable_whereType) {
+        await compute(
+          ConvertToWhereType(),
+          DartFixKind.CONVERT_TO_WHERE_TYPE,
+        );
       } else if (name == LintNames.prefer_null_aware_operators) {
         await compute(
           ConvertToNullAware(),
           DartFixKind.CONVERT_TO_NULL_AWARE,
+        );
+      } else if (name == LintNames.unnecessary_null_in_if_null_operators) {
+        await compute(
+          RemoveIfNullOperator(),
+          DartFixKind.REMOVE_IF_NULL_OPERATOR,
         );
       }
     }
@@ -5201,7 +5255,7 @@ class _ClosestElementFinder {
   final String _targetName;
   final ElementPredicate _predicate;
 
-  Element _element = null;
+  Element _element;
   int _distance;
 
   _ClosestElementFinder(this._targetName, this._predicate, this._distance);

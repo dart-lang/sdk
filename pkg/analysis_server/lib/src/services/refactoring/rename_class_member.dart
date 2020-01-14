@@ -147,7 +147,7 @@ class _ClassMemberValidator {
   final bool isRename;
 
   final RefactoringStatus result = RefactoringStatus();
-  Set<Element> elements = Set<Element>();
+  Set<Element> elements = <Element>{};
   List<SearchMatch> references = <SearchMatch>[];
 
   _ClassMemberValidator.forCreate(
@@ -307,7 +307,7 @@ class _ClassMemberValidator {
     if (element is ClassMemberElement) {
       elements = await getHierarchyMembers(searchEngine, element);
     } else {
-      elements = Set.from([element]);
+      elements = {element};
     }
   }
 

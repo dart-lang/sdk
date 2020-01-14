@@ -24,6 +24,91 @@ final genSnapshot = File(path.join(buildDir, _genSnapshotBase)).existsSync()
 final aotRuntime = path.join(
     buildDir, 'dart_precompiled_runtime' + (Platform.isWindows ? '.exe' : ''));
 
+String get clangBuildToolsDir {
+  String archDir;
+  if (Platform.isLinux) {
+    archDir = 'linux-x64';
+  } else if (Platform.isMacOS) {
+    archDir = 'mac-x64';
+  } else {
+    return null;
+  }
+  var clangDir = path.join(sdkDir, 'buildtools', archDir, 'clang', 'bin');
+  return Directory(clangDir).existsSync() ? clangDir : null;
+}
+
+Future<void> assembleSnapshot(String assemblyPath, String snapshotPath) async {
+  if (!Platform.isLinux && !Platform.isMacOS) {
+    throw "Unsupported platform ${Platform.operatingSystem} for assembling";
+  }
+
+  final ccFlags = <String>[];
+  final ldFlags = <String>[];
+  String cc = 'gcc';
+  String shared = '-shared';
+
+  if (Platform.isMacOS) {
+    cc = 'clang';
+  } else if (buildDir.endsWith('SIMARM') || buildDir.endsWith('SIMARM64')) {
+    if (clangBuildToolsDir != null) {
+      cc = path.join(clangBuildToolsDir, 'clang');
+    } else {
+      throw 'Cannot assemble for ${path.basename(buildDir)} '
+          'without //buildtools on ${Platform.operatingSystem}';
+    }
+  }
+
+  if (Platform.isMacOS) {
+    shared = '-dynamiclib';
+    // Tell Mac linker to give up generating eh_frame from dwarf.
+    ldFlags.add('-Wl,-no_compact_unwind');
+  } else if (buildDir.endsWith('SIMARM')) {
+    ccFlags.add('--target=armv7-linux-gnueabihf');
+  } else if (buildDir.endsWith('SIMARM64')) {
+    ccFlags.add('--target=aarch64-linux-gnu');
+  }
+
+  if (buildDir.endsWith('X64') || buildDir.endsWith('SIMARM64')) {
+    ccFlags.add('-m64');
+  }
+
+  await run(cc, <String>[
+    ...ccFlags,
+    ...ldFlags,
+    shared,
+    '-nostdlib',
+    '-o',
+    snapshotPath,
+    assemblyPath,
+  ]);
+}
+
+Future<void> stripSnapshot(String snapshotPath, String strippedPath,
+    {bool forceElf = false}) async {
+  if (!Platform.isLinux && !Platform.isMacOS) {
+    throw "Unsupported platform ${Platform.operatingSystem} for stripping";
+  }
+
+  var strip = 'strip';
+
+  if ((Platform.isLinux &&
+          (buildDir.endsWith('SIMARM') || buildDir.endsWith('SIMARM64'))) ||
+      (Platform.isMacOS && forceElf)) {
+    if (clangBuildToolsDir != null) {
+      strip = path.join(clangBuildToolsDir, 'llvm-strip');
+    } else {
+      throw 'Cannot strip ELF files for ${path.basename(buildDir)} '
+          'without //buildtools on ${Platform.operatingSystem}';
+    }
+  }
+
+  await run(strip, <String>[
+    '-o',
+    strippedPath,
+    snapshotPath,
+  ]);
+}
+
 Future<ProcessResult> runHelper(String executable, List<String> args) async {
   print('Running $executable ${args.join(' ')}');
 
@@ -82,11 +167,16 @@ Future<Iterable<String>> runError(String executable, List<String> args) async {
   return result.stderr.split(RegExp(r'[\r\n]'));
 }
 
+const keepTempKey = 'KEEP_TEMPORARY_DIRECTORIES';
+
 Future<void> withTempDir(String name, Future<void> fun(String dir)) async {
   final tempDir = Directory.systemTemp.createTempSync(name);
   try {
     await fun(tempDir.path);
   } finally {
-    tempDir.deleteSync(recursive: true);
+    if (!Platform.environment.containsKey(keepTempKey) ||
+        Platform.environment[keepTempKey].isEmpty) {
+      tempDir.deleteSync(recursive: true);
+    }
   }
 }

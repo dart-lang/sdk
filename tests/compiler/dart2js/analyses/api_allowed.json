@@ -169,7 +169,7 @@
   "org-dartlang-sdk:///sdk/lib/io/common.dart": {
     "Dynamic invocation of '[]'.": 3
   },
-  "org-dartlang-sdk:///sdk/lib/js/dart2js/js_dart2js.dart": {
+  "org-dartlang-sdk:///sdk/lib/_internal/js_runtime/lib/js_patch.dart": {
     "Dynamic invocation of '[]'.": 1
   },
   "org-dartlang-sdk:///sdk/lib/svg/dart2js/svg_dart2js.dart": {

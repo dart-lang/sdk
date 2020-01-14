@@ -448,110 +448,6 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
     _listener.assertNoErrors();
   }
 
-  void test_visitBinaryExpression_equals() {
-    // 2 == 3
-    Expression node = AstTestFactory.binaryExpression(
-        _resolvedInteger(2), TokenType.EQ_EQ, _resolvedInteger(3));
-    expect(_analyze(node), same(_typeProvider.boolType));
-    _listener.assertNoErrors();
-  }
-
-  void test_visitBinaryExpression_ifNull() {
-    // 1 ?? 1.5
-    Expression node = AstTestFactory.binaryExpression(
-        _resolvedInteger(1), TokenType.QUESTION_QUESTION, _resolvedDouble(1.5));
-    expect(_analyze(node), _typeProvider.numType);
-    _listener.assertNoErrors();
-  }
-
-  void test_visitBinaryExpression_logicalAnd() {
-    // false && true
-    Expression node = AstTestFactory.binaryExpression(
-        AstTestFactory.booleanLiteral(false),
-        TokenType.AMPERSAND_AMPERSAND,
-        AstTestFactory.booleanLiteral(true));
-    expect(_analyze(node), same(_typeProvider.boolType));
-    _listener.assertNoErrors();
-  }
-
-  void test_visitBinaryExpression_logicalOr() {
-    // false || true
-    Expression node = AstTestFactory.binaryExpression(
-        AstTestFactory.booleanLiteral(false),
-        TokenType.BAR_BAR,
-        AstTestFactory.booleanLiteral(true));
-    expect(_analyze(node), same(_typeProvider.boolType));
-    _listener.assertNoErrors();
-  }
-
-  void test_visitBinaryExpression_notEquals() {
-    // 2 != 3
-    Expression node = AstTestFactory.binaryExpression(
-        _resolvedInteger(2), TokenType.BANG_EQ, _resolvedInteger(3));
-    expect(_analyze(node), same(_typeProvider.boolType));
-    _listener.assertNoErrors();
-  }
-
-  void test_visitBinaryExpression_plusID() {
-    // 1 + 2.0
-    BinaryExpression node = AstTestFactory.binaryExpression(
-        _resolvedInteger(1), TokenType.PLUS, _resolvedDouble(2.0));
-    node.staticElement = _typeProvider.numType.getMethod('+');
-    expect(_analyze(node), same(_typeProvider.doubleType));
-    _listener.assertNoErrors();
-  }
-
-  void test_visitBinaryExpression_plusII() {
-    // 1 + 2
-    BinaryExpression node = AstTestFactory.binaryExpression(
-        _resolvedInteger(1), TokenType.PLUS, _resolvedInteger(2));
-    node.staticElement = _typeProvider.numType.getMethod('+');
-    expect(_analyze(node), same(_typeProvider.intType));
-    _listener.assertNoErrors();
-  }
-
-  void test_visitBinaryExpression_slash() {
-    // 2 / 2
-    BinaryExpressionImpl node = AstTestFactory.binaryExpression(
-        _resolvedInteger(2), TokenType.SLASH, _resolvedInteger(2));
-    node.staticElement = _typeProvider.numType.getMethod('/');
-    node.staticInvokeType = node.staticElement.type;
-    expect(_analyze(node), _typeProvider.doubleType);
-    _listener.assertNoErrors();
-  }
-
-  void test_visitBinaryExpression_star_notSpecial() {
-    // class A {
-    //   A operator *(double value);
-    // }
-    // (a as A) * 2.0
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    InterfaceType typeA = interfaceTypeStar(classA);
-    MethodElement operator =
-        ElementFactory.methodElement("*", typeA, [_typeProvider.doubleType]);
-    classA.methods = <MethodElement>[operator];
-
-    var asExpression = AstTestFactory.asExpression(
-        AstTestFactory.identifier3("a"), AstTestFactory.typeName(classA));
-    asExpression.staticType = typeA;
-
-    BinaryExpressionImpl node = AstTestFactory.binaryExpression(
-        asExpression, TokenType.PLUS, _resolvedDouble(2.0));
-    node.staticElement = operator;
-    node.staticInvokeType = node.staticElement.type;
-    expect(_analyze(node), same(typeA));
-    _listener.assertNoErrors();
-  }
-
-  void test_visitBinaryExpression_starID() {
-    // 1 * 2.0
-    BinaryExpression node = AstTestFactory.binaryExpression(
-        _resolvedInteger(1), TokenType.PLUS, _resolvedDouble(2.0));
-    node.staticElement = _typeProvider.numType.getMethod('*');
-    expect(_analyze(node), same(_typeProvider.doubleType));
-    _listener.assertNoErrors();
-  }
-
   void test_visitBooleanLiteral_false() {
     // false
     Expression node = AstTestFactory.booleanLiteral(false);
@@ -978,22 +874,6 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
     // (0)
     Expression node =
         AstTestFactory.parenthesizedExpression(_resolvedInteger(0));
-    expect(_analyze(node), same(_typeProvider.intType));
-    _listener.assertNoErrors();
-  }
-
-  void test_visitPostfixExpression_minusMinus() {
-    // 0--
-    PostfixExpression node = AstTestFactory.postfixExpression(
-        _resolvedInteger(0), TokenType.MINUS_MINUS);
-    expect(_analyze(node), same(_typeProvider.intType));
-    _listener.assertNoErrors();
-  }
-
-  void test_visitPostfixExpression_plusPlus() {
-    // 0++
-    PostfixExpression node = AstTestFactory.postfixExpression(
-        _resolvedInteger(0), TokenType.PLUS_PLUS);
     expect(_analyze(node), same(_typeProvider.intType));
     _listener.assertNoErrors();
   }

@@ -14,7 +14,6 @@ import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/element_type_provider.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/type_system.dart';
 import 'package:meta/meta.dart';
 
 /// Helper for resolving [FunctionExpressionInvocation]s.
@@ -36,8 +35,6 @@ class FunctionExpressionInvocationResolver {
 
   ExtensionMemberResolver get _extensionResolver => _resolver.extensionResolver;
 
-  TypeSystemImpl get _typeSystem => _resolver.typeSystem;
-
   void resolve(FunctionExpressionInvocationImpl node) {
     var rawType = _resolveCallElement(node);
 
@@ -49,57 +46,16 @@ class FunctionExpressionInvocationResolver {
       return;
     }
 
-    var invokeType = _instantiateInvokeType(node, rawType);
-
-    node.staticInvokeType = invokeType;
-
-    var argumentList = node.argumentList;
-    var parameters = ResolverVisitor.resolveArgumentsToParameters(
-      argumentList,
-      invokeType.parameters,
-      _errorReporter.reportErrorForNode,
+    _inferenceHelper.resolveFunctionExpressionInvocation(
+      node: node,
+      rawType: rawType,
     );
-    argumentList.correspondingStaticParameters = parameters;
-
-    _inferenceHelper.inferArgumentTypesForInvocation(node, rawType);
-    _resolveArguments(node);
-
-    _inferenceHelper.inferGenericInvocationExpression(node, rawType);
 
     var returnType = _inferenceHelper.computeInvokeReturnType(
       node.staticInvokeType,
       isNullAware: false,
     );
     _inferenceHelper.recordStaticType(node, returnType);
-  }
-
-  FunctionType _instantiateInvokeType(
-    FunctionExpressionInvocation node,
-    FunctionType rawType,
-  ) {
-    var typeParameters = rawType.typeFormals;
-
-    var arguments = node.typeArguments?.arguments;
-    if (arguments != null && arguments.length != typeParameters.length) {
-      // TODO(scheglov) The error is suboptimal for this node type.
-      _errorReporter.reportErrorForNode(
-        StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD,
-        node,
-        [rawType, typeParameters.length, arguments.length],
-      );
-      // Wrong number of type arguments. Ignore them.
-      arguments = null;
-    }
-
-    if (typeParameters.isEmpty) {
-      return rawType;
-    }
-
-    if (arguments == null) {
-      return _typeSystem.instantiateToBounds(rawType);
-    } else {
-      return rawType.instantiate(arguments.map((n) => n.type).toList());
-    }
   }
 
   void _resolveArguments(FunctionExpressionInvocationImpl node) {

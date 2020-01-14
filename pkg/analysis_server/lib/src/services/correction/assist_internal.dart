@@ -223,7 +223,7 @@ class AssistProcessor extends BaseProcessor {
   }
 
   void _addAssistFromBuilder(DartChangeBuilder builder, AssistKind kind,
-      {List args = null}) {
+      {List args}) {
     if (builder == null) {
       return;
     }
@@ -395,7 +395,7 @@ class AssistProcessor extends BaseProcessor {
       return;
     }
     // prepare excluded names
-    Set<String> excluded = Set<String>();
+    Set<String> excluded = <String>{};
     ScopedNameFinder scopedNameFinder = ScopedNameFinder(offset);
     expression.accept(scopedNameFinder);
     excluded.addAll(scopedNameFinder.locals.keys.toSet());
@@ -1051,8 +1051,8 @@ class AssistProcessor extends BaseProcessor {
    */
   Future<void> _addProposal_convertToIsNotEmpty() async {
     // prepare "expr.isEmpty"
-    AstNode isEmptyAccess = null;
-    SimpleIdentifier isEmptyIdentifier = null;
+    AstNode isEmptyAccess;
+    SimpleIdentifier isEmptyIdentifier;
     if (node is SimpleIdentifier) {
       SimpleIdentifier identifier = node as SimpleIdentifier;
       AstNode parent = identifier.parent;
@@ -1357,7 +1357,7 @@ class AssistProcessor extends BaseProcessor {
     String stateName = '_${widgetName}State';
 
     // Find fields assigned in constructors.
-    var fieldsAssignedInConstructors = Set<FieldElement>();
+    var fieldsAssignedInConstructors = <FieldElement>{};
     for (var member in widgetClass.members) {
       if (member is ConstructorDeclaration) {
         member.accept(_SimpleIdentifierRecursiveAstVisitor((node) {
@@ -1387,8 +1387,8 @@ class AssistProcessor extends BaseProcessor {
     }
 
     // Prepare nodes to move.
-    var nodesToMove = Set<ClassMember>();
-    var elementsToMove = Set<Element>();
+    var nodesToMove = <ClassMember>{};
+    var elementsToMove = <Element>{};
     for (var member in widgetClass.members) {
       if (member is FieldDeclaration && !member.isStatic) {
         for (VariableDeclaration fieldNode in member.fields.variables) {
@@ -2065,7 +2065,7 @@ class AssistProcessor extends BaseProcessor {
       statementPrefix = '';
     }
     // prepare excluded names
-    Set<String> excluded = Set<String>();
+    Set<String> excluded = <String>{};
     ScopedNameFinder scopedNameFinder = ScopedNameFinder(offset);
     isExpression.accept(scopedNameFinder);
     excluded.addAll(scopedNameFinder.locals.keys.toSet());
@@ -2442,7 +2442,7 @@ class AssistProcessor extends BaseProcessor {
   }
 
   Future<void> _addProposal_replaceConditionalWithIfElse() async {
-    ConditionalExpression conditional = null;
+    ConditionalExpression conditional;
     // may be on Statement with Conditional
     Statement statement = node.thisOrAncestorOfType<Statement>();
     if (statement == null) {
@@ -2559,8 +2559,8 @@ class AssistProcessor extends BaseProcessor {
       _coverageMarker();
       return;
     }
-    Expression thenExpression = null;
-    Expression elseExpression = null;
+    Expression thenExpression;
+    Expression elseExpression;
     bool hasReturnStatements = false;
     if (thenStatement is ReturnStatement && elseStatement is ReturnStatement) {
       hasReturnStatements = true;

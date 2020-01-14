@@ -836,7 +836,6 @@ _f(int/*?*/ x, int/*?*/ y) =>
         changes: {findNode.simple('y +'): isNullCheck});
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/39642')
   Future<void> test_binaryExpression_question_question_nullChecked() async {
     await analyze('''
 Object/*!*/ _f(int/*?*/ x, double/*?*/ y) {
@@ -1385,7 +1384,6 @@ abstract class _E {
     visitSubexpression(findNode.postfix('++'), '_C');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38833')
   Future<void>
       test_postfixExpression_combined_nullable_noProblem_dynamic() async {
     await analyze('''

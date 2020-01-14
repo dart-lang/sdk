@@ -110,6 +110,48 @@ String colorizeAnnotation(String start, String text, String end) {
   return '${colorizeDelimiter(start)}$text${colorizeDelimiter(end)}';
 }
 
+/// Creates an annotation that shows the difference between [expected] and
+/// [actual].
+Annotation createAnnotationsDiff(Annotation expected, Annotation actual) {
+  if (identical(expected, actual)) return null;
+  if (expected != null && actual != null) {
+    return new Annotation(
+        expected.index,
+        expected.lineNo,
+        expected.columnNo,
+        expected.offset,
+        expected.prefix,
+        '${colorizeExpected(expected.text)}'
+        '${colorizeDelimiter(' | ')}'
+        '${colorizeActual(actual.text)}',
+        expected.suffix);
+  } else if (expected != null) {
+    return new Annotation(
+        expected.index,
+        expected.lineNo,
+        expected.columnNo,
+        expected.offset,
+        expected.prefix,
+        '${colorizeExpected(expected.text)}'
+        '${colorizeDelimiter(' | ')}'
+        '${colorizeActual('---')}',
+        expected.suffix);
+  } else if (actual != null) {
+    return new Annotation(
+        actual.index,
+        actual.lineNo,
+        actual.columnNo,
+        actual.offset,
+        actual.prefix,
+        '${colorizeExpected('---')}'
+        '${colorizeDelimiter(' | ')}'
+        '${colorizeActual(actual.text)}',
+        actual.suffix);
+  } else {
+    return null;
+  }
+}
+
 /// Encapsulates the member data computed for each source file of interest.
 /// It's a glorified wrapper around a map of maps, but written this way to
 /// provide a little more information about what it's doing. [DataType] refers
@@ -442,72 +484,6 @@ String withAnnotations(String sourceCode, Map<int, List<String>> annotations) {
   return sb.toString();
 }
 
-/// Computed and expected data for an annotated test. This is used for checking
-/// and displaying results of an annotated test.
-class IdData<T> {
-  final Map<Uri, AnnotatedCode> code;
-  final MemberAnnotations<IdValue> expectedMaps;
-  final CompiledData<T> _compiledData;
-  final MemberAnnotations<ActualData<T>> _actualMaps = new MemberAnnotations();
-
-  IdData(this.code, this.expectedMaps, this._compiledData) {
-    for (Uri uri in code.keys) {
-      _actualMaps[uri] = _compiledData.actualMaps[uri] ?? <Id, ActualData<T>>{};
-    }
-    _actualMaps.globalData.addAll(_compiledData.globalData);
-  }
-
-  Uri get mainUri => _compiledData.mainUri;
-  MemberAnnotations<ActualData<T>> get actualMaps => _actualMaps;
-
-  String actualCode(Uri uri) {
-    Map<int, List<String>> annotations = <int, List<String>>{};
-    actualMaps[uri].forEach((Id id, ActualData<T> data) {
-      annotations.putIfAbsent(data.offset, () => []).add('${data.value}');
-    });
-    return withAnnotations(code[uri].sourceCode, annotations);
-  }
-
-  String diffCode(Uri uri, DataInterpreter<T> dataValidator) {
-    Map<int, List<String>> annotations = <int, List<String>>{};
-    actualMaps[uri].forEach((Id id, ActualData<T> data) {
-      IdValue expectedValue = expectedMaps[uri][id];
-      T actualValue = data.value;
-      String unexpectedMessage =
-          dataValidator.isAsExpected(actualValue, expectedValue?.value);
-      if (unexpectedMessage != null) {
-        String expected = expectedValue?.toString() ?? '';
-        String actual = dataValidator.getText(actualValue);
-        int offset = getOffsetFromId(id, uri);
-        if (offset != null) {
-          String value1 = '${expected}';
-          String value2 = IdValue.idToString(id, '${actual}');
-          annotations
-              .putIfAbsent(offset, () => [])
-              .add(colorizeDiff(value1, ' | ', value2));
-        }
-      }
-    });
-    expectedMaps[uri].forEach((Id id, IdValue expected) {
-      if (!actualMaps[uri].containsKey(id)) {
-        int offset = getOffsetFromId(id, uri);
-        if (offset != null) {
-          String value1 = '${expected}';
-          String value2 = '---';
-          annotations
-              .putIfAbsent(offset, () => [])
-              .add(colorizeDiff(value1, ' | ', value2));
-        }
-      }
-    });
-    return withAnnotations(code[uri].sourceCode, annotations);
-  }
-
-  int getOffsetFromId(Id id, Uri uri) {
-    return _compiledData.getOffsetFromId(id, uri);
-  }
-}
-
 /// Checks [compiledData] against the expected data in [expectedMaps] derived
 /// from [code].
 Future<TestResult<T>> checkCode<T>(
@@ -521,15 +497,15 @@ Future<TestResult<T>> checkCode<T>(
     bool fatalErrors: true,
     bool succinct: false,
     void onFailure(String message)}) async {
-  IdData<T> data = new IdData<T>(code, expectedMaps, compiledData);
   bool hasFailure = false;
   Set<Uri> neededDiffs = new Set<Uri>();
 
   void checkActualMap(
       Map<Id, ActualData<T>> actualMap, Map<Id, IdValue> expectedMap,
       [Uri uri]) {
+    expectedMap ??= {};
     bool hasLocalFailure = false;
-    actualMap.forEach((Id id, ActualData<T> actualData) {
+    actualMap?.forEach((Id id, ActualData<T> actualData) {
       T actual = actualData.value;
       String actualText = dataInterpreter.getText(actual);
 
@@ -582,16 +558,17 @@ Future<TestResult<T>> checkCode<T>(
     }
   }
 
-  data.actualMaps.forEach((Uri uri, Map<Id, ActualData<T>> actualMap) {
-    checkActualMap(actualMap, data.expectedMaps[uri], uri);
+  compiledData.actualMaps.forEach((Uri uri, Map<Id, ActualData<T>> actualMap) {
+    checkActualMap(actualMap, expectedMaps[uri], uri);
   });
-  checkActualMap(data.actualMaps.globalData, data.expectedMaps.globalData);
+  checkActualMap(compiledData.globalData, expectedMaps.globalData);
 
   Set<Id> missingIds = new Set<Id>();
   void checkMissing(
       Map<Id, IdValue> expectedMap, Map<Id, ActualData<T>> actualMap,
       [Uri uri]) {
-    expectedMap.forEach((Id id, IdValue expected) {
+    actualMap ??= {};
+    expectedMap?.forEach((Id id, IdValue expected) {
       if (!actualMap.containsKey(id)) {
         missingIds.add(id);
         String message = 'MISSING $modeName DATA for ${id.descriptor}: '
@@ -610,15 +587,27 @@ Future<TestResult<T>> checkCode<T>(
     }
   }
 
-  data.expectedMaps.forEach((Uri uri, Map<Id, IdValue> expectedMap) {
-    checkMissing(expectedMap, data.actualMaps[uri], uri);
+  expectedMaps.forEach((Uri uri, Map<Id, IdValue> expectedMap) {
+    checkMissing(expectedMap, compiledData.actualMaps[uri], uri);
   });
-  checkMissing(data.expectedMaps.globalData, data.actualMaps.globalData);
+  checkMissing(expectedMaps.globalData, compiledData.globalData);
   if (!succinct) {
-    for (Uri uri in neededDiffs) {
-      print('--annotations diff [${uri.pathSegments.last}]-------------');
-      print(data.diffCode(uri, dataInterpreter));
-      print('----------------------------------------------------------');
+    if (neededDiffs.isNotEmpty) {
+      Map<Uri, List<Annotation>> annotations = computeAnnotationsPerUri(
+          code,
+          {'dummyMarker': expectedMaps},
+          compiledData.mainUri,
+          {'dummyMarker': compiledData.actualMaps},
+          dataInterpreter,
+          createDiff: createAnnotationsDiff);
+      for (Uri uri in neededDiffs) {
+        print('--annotations diff [${uri.pathSegments.last}]-------------');
+        AnnotatedCode annotatedCode = code[uri];
+        print(new AnnotatedCode(annotatedCode.annotatedCode,
+                annotatedCode.sourceCode, annotations[uri])
+            .toText());
+        print('----------------------------------------------------------');
+      }
     }
   }
   if (missingIds.isNotEmpty) {

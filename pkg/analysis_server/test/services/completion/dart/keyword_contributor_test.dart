@@ -28,7 +28,6 @@ class KeywordContributorTest extends DartCompletionContributorTest {
     Keyword.FALSE,
     Keyword.FOR,
     Keyword.IF,
-    Keyword.NEW,
     Keyword.NULL,
     Keyword.TRUE,
   ];
@@ -38,7 +37,6 @@ class KeywordContributorTest extends DartCompletionContributorTest {
   static const List<Keyword> EXPRESSION_START_INSTANCE = [
     Keyword.CONST,
     Keyword.FALSE,
-    Keyword.NEW,
     Keyword.NULL,
     Keyword.SUPER,
     Keyword.THIS,
@@ -48,7 +46,6 @@ class KeywordContributorTest extends DartCompletionContributorTest {
   static const List<Keyword> EXPRESSION_START_NO_INSTANCE = [
     Keyword.CONST,
     Keyword.FALSE,
-    Keyword.NEW,
     Keyword.NULL,
     Keyword.TRUE,
   ];
@@ -174,7 +171,6 @@ class KeywordContributorTest extends DartCompletionContributorTest {
       Keyword.FINAL,
       Keyword.FOR,
       Keyword.IF,
-      Keyword.NEW,
       Keyword.RETURN,
       Keyword.SUPER,
       Keyword.SWITCH,
@@ -201,7 +197,6 @@ class KeywordContributorTest extends DartCompletionContributorTest {
       Keyword.FINAL,
       Keyword.FOR,
       Keyword.IF,
-      Keyword.NEW,
       Keyword.RETURN,
       Keyword.SUPER,
       Keyword.SWITCH,
@@ -228,7 +223,6 @@ class KeywordContributorTest extends DartCompletionContributorTest {
       Keyword.FINAL,
       Keyword.FOR,
       Keyword.IF,
-      Keyword.NEW,
       Keyword.RETURN,
       Keyword.SWITCH,
       Keyword.THROW,
@@ -252,7 +246,6 @@ class KeywordContributorTest extends DartCompletionContributorTest {
       Keyword.FINAL,
       Keyword.FOR,
       Keyword.IF,
-      Keyword.NEW,
       Keyword.RETURN,
       Keyword.SUPER,
       Keyword.THIS,
@@ -278,7 +271,6 @@ class KeywordContributorTest extends DartCompletionContributorTest {
       Keyword.FINAL,
       Keyword.FOR,
       Keyword.IF,
-      Keyword.NEW,
       Keyword.RETURN,
       Keyword.SWITCH,
       Keyword.THROW,
@@ -304,7 +296,6 @@ class KeywordContributorTest extends DartCompletionContributorTest {
       Keyword.FINAL,
       Keyword.FOR,
       Keyword.IF,
-      Keyword.NEW,
       Keyword.RETURN,
       Keyword.SUPER,
       Keyword.SWITCH,
@@ -332,7 +323,6 @@ class KeywordContributorTest extends DartCompletionContributorTest {
       Keyword.FINAL,
       Keyword.FOR,
       Keyword.IF,
-      Keyword.NEW,
       Keyword.RETURN,
       Keyword.SWITCH,
       Keyword.THROW,
@@ -355,7 +345,6 @@ class KeywordContributorTest extends DartCompletionContributorTest {
       Keyword.FINAL,
       Keyword.FOR,
       Keyword.IF,
-      Keyword.NEW,
       Keyword.RETURN,
       Keyword.SWITCH,
       Keyword.THROW,
@@ -381,9 +370,9 @@ class KeywordContributorTest extends DartCompletionContributorTest {
   void assertSuggestKeywords(Iterable<Keyword> expectedKeywords,
       {List<String> pseudoKeywords = NO_PSEUDO_KEYWORDS,
       int relevance = DART_RELEVANCE_KEYWORD}) {
-    Set<String> expectedCompletions = Set<String>();
+    Set<String> expectedCompletions = <String>{};
     Map<String, int> expectedOffsets = <String, int>{};
-    Set<String> actualCompletions = Set<String>();
+    Set<String> actualCompletions = <String>{};
     expectedCompletions.addAll(expectedKeywords.map((keyword) {
       String text = keyword.lexeme;
       if (['import', 'export', 'part'].contains(text)) {

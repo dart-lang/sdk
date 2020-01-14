@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -14,7 +15,58 @@ main() {
     defineReflectiveTests(CreateMethodTest);
     defineReflectiveTests(CreateMethodMixinTest);
     defineReflectiveTests(CreateMethodWithExtensionMethodsTest);
+    defineReflectiveTests(AddMissingHashOrEqualsTest);
   });
+}
+
+@reflectiveTest
+class AddMissingHashOrEqualsTest extends FixProcessorLintTest {
+  @override
+  FixKind get kind => DartFixKind.CREATE_METHOD;
+
+  @override
+  String get lintCode => LintNames.hash_and_equals;
+
+  test_equals() async {
+    await resolveTestUnit('''
+class C {
+  @override
+  int get /*LINT*/hashCode => 13;
+}
+''');
+    await assertHasFix('''
+class C {
+  @override
+  int get /*LINT*/hashCode => 13;
+
+  @override
+  bool operator ==(Object other) {
+    // TODO: implement ==
+    return super == other;
+  }
+}
+''');
+  }
+
+  test_hashCode() async {
+    await resolveTestUnit('''
+class C {
+  @override
+  bool operator /*LINT*/==(Object other) => false;
+}
+''');
+    await assertHasFix('''
+class C {
+  @override
+  bool operator /*LINT*/==(Object other) => false;
+
+  @override
+  // TODO: implement hashCode
+  int get hashCode => super.hashCode;
+
+}
+''');
+  }
 }
 
 @reflectiveTest

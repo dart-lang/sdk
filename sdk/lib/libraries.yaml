@@ -200,7 +200,8 @@ dart2js:
       supported: false
 
     js:
-      uri: "js/dart2js/js_dart2js.dart"
+      uri: "js/js.dart"
+      patches: "_internal/js_runtime/lib/js_patch.dart"
 
     _js:
       uri: "js/_js.dart"
@@ -307,7 +308,8 @@ dart2js_server:
       supported: false
 
     js:
-      uri: "js/dart2js/js_dart2js.dart"
+      uri: "js/js.dart"
+      patches: "_internal/js_runtime/lib/js_patch.dart"
 
     _js:
       uri: "js/_js.dart"
@@ -455,7 +457,8 @@ dartdevc:
         uri: "indexed_db/dart2js/indexed_db_dart2js.dart"
 
       js:
-        uri: "_internal/js_dev_runtime/lib/js/dart2js/js_dart2js.dart"
+        uri: "js/js.dart"
+        patches: "_internal/js_dev_runtime/patch/js_patch.dart"
 
       js_util:
         uri: "_internal/js_dev_runtime/lib/js_util/dart2js/js_util_dart2js.dart"

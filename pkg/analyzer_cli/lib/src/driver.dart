@@ -214,9 +214,9 @@ class Driver with HasContextMixin implements CommandLineStarter {
     }
 
     // These are used to do part file analysis across sources.
-    Set<String> dartFiles = Set<String>();
-    Set<FileState> libraryFiles = Set<FileState>();
-    Set<FileState> danglingParts = Set<FileState>();
+    Set<String> dartFiles = <String>{};
+    Set<FileState> libraryFiles = <FileState>{};
+    Set<FileState> danglingParts = <FileState>{};
 
     // Note: This references analysisDriver via closure, so it will change over
     // time during the following analysis.
@@ -263,7 +263,7 @@ class Driver with HasContextMixin implements CommandLineStarter {
       // Add all the files to be analyzed en masse to the context. Skip any
       // files that were added earlier (whether explicitly or implicitly) to
       // avoid causing those files to be unnecessarily re-read.
-      Set<String> filesToAnalyze = Set<String>();
+      Set<String> filesToAnalyze = <String>{};
 
       // Collect files for analysis.
       // Note that these files will all be analyzed in the same context.
@@ -640,7 +640,7 @@ class Driver with HasContextMixin implements CommandLineStarter {
       return null;
     }
 
-    Map<String, List<Folder>> folderMap = Map<String, List<Folder>>();
+    Map<String, List<Folder>> folderMap = <String, List<Folder>>{};
     var pathContext = resourceProvider.pathContext;
     packages.asMap().forEach((String packagePath, Uri uri) {
       String path = fileUriToNormalizedPath(pathContext, uri);
@@ -775,7 +775,7 @@ class _PackageRootPackageMapBuilder {
           'Package root directory ($packageRootPath) does not exist.');
     }
     var packages = packageRoot.listSync(followLinks: false);
-    var result = Map<String, List<Folder>>();
+    var result = <String, List<Folder>>{};
     for (var package in packages) {
       var packageName = path.basename(package.path);
       var realPath = package.resolveSymbolicLinksSync();

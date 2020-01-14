@@ -12,7 +12,7 @@ linter:
     - always_require_non_null_named_parameters
     - annotate_overrides
     - avoid_empty_else
-    #- avoid_init_to_null # 19
+    - avoid_init_to_null
     - avoid_null_checks_in_equality_operators
     - avoid_relative_lib_imports
     - avoid_return_types_on_setters
@@ -28,11 +28,11 @@ linter:
     - null_closures
     #- omit_local_variable_types # 1759
     - prefer_adjacent_string_concatenation
-    #- prefer_collection_literals # 9
+    - prefer_collection_literals
     - prefer_conditional_assignment
     - prefer_contains
     - prefer_equal_for_default_values
-    #- prefer_final_fields # 5
+    - prefer_final_fields
     - prefer_for_elements_to_map_fromIterable
     - prefer_generic_function_type_aliases
     #- prefer_if_null_operators # 12

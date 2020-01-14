@@ -8,23 +8,19 @@ import 'package:_fe_analyzer_shared/src/testing/annotated_code_helper.dart';
 import 'package:_fe_analyzer_shared/src/testing/id_generation.dart';
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 
-main() async {
-  await testDir('pkg/_fe_analyzer_shared/test/constants/data', sharedMarkers);
-  await testDir(
-      'pkg/_fe_analyzer_shared/test/flow_analysis/assigned_variables/data',
+main() {
+  testDir('pkg/_fe_analyzer_shared/test/constants/data', sharedMarkers);
+  testDir('pkg/_fe_analyzer_shared/test/flow_analysis/assigned_variables/data',
       cfeAnalyzerMarkers);
-  await testDir(
-      'pkg/_fe_analyzer_shared/test/flow_analysis/definite_assignment/data',
+  testDir('pkg/_fe_analyzer_shared/test/flow_analysis/definite_assignment/data',
       cfeAnalyzerMarkers);
-  await testDir('pkg/_fe_analyzer_shared/test/flow_analysis/nullability/data',
+  testDir('pkg/_fe_analyzer_shared/test/flow_analysis/nullability/data',
       cfeAnalyzerMarkers);
-  await testDir('pkg/_fe_analyzer_shared/test/flow_analysis/reachability/data',
+  testDir('pkg/_fe_analyzer_shared/test/flow_analysis/reachability/data',
       cfeAnalyzerMarkers);
-  await testDir(
-      'pkg/_fe_analyzer_shared/test/flow_analysis/type_promotion/data',
+  testDir('pkg/_fe_analyzer_shared/test/flow_analysis/type_promotion/data',
       cfeAnalyzerMarkers);
-  await testDir(
-      'pkg/_fe_analyzer_shared/test/inheritance/data', cfeAnalyzerMarkers);
+  testDir('pkg/_fe_analyzer_shared/test/inheritance/data', cfeAnalyzerMarkers);
 }
 
 void expectStringEquals(String value1, String value2) {
@@ -33,7 +29,7 @@ void expectStringEquals(String value1, String value2) {
   }
 }
 
-Future<void> testDir(String dataDirPath, List<String> supportedMarkers) {
+void testDir(String dataDirPath, List<String> supportedMarkers) {
   Directory dataDir = Directory(dataDirPath);
   String relativeDir = dataDir.uri.path.replaceAll(Uri.base.path, '');
   print('Data dir: ${relativeDir}');

@@ -10,8 +10,8 @@ import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'nnbd_migration_test_base.dart';
 import '../../../analysis_abstract.dart';
+import 'nnbd_migration_test_base.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -596,6 +596,45 @@ void f() {
         offset: 81,
         details: ["This set is initialized with a nullable value on line 4"]);
     assertDetail(detail: regions[2].details[0], offset: 90, length: 1);
+  }
+
+  test_listConstructor_length() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+void f() {
+  List<int> list = List<int>(10);
+}
+''', migratedContent: '''
+void f() {
+  List<int?> list = List<int?>(10);
+}
+''');
+    List<RegionInfo> regions = unit.regions;
+    expect(regions, hasLength(2));
+    // regions[0] is `num? a`.
+    assertRegion(region: regions[1], offset: 39, details: [
+      "List value type must be nullable because a length is specified,"
+          " and the list items are initialized as null."
+    ]);
+  }
+
+  @FailingTest(issue: "https://github.com/dart-lang/sdk/issues/40064")
+  test_listConstructor_length_implicitType() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+void f() {
+  List<int> list = List(10);
+}
+''', migratedContent: '''
+void f() {
+  List<int?> list = List(10);
+}
+''');
+    List<RegionInfo> regions = unit.regions;
+    expect(regions, hasLength(2));
+    // regions[0] is `num? a`.
+    assertRegion(region: regions[1], offset: 40, details: [
+      "List value type must be nullable because a length is specified,"
+          " and the list items are initialized as null."
+    ]);
   }
 
   test_listLiteralTypeArgument_collectionIf() async {

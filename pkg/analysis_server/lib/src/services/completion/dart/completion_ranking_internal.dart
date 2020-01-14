@@ -169,7 +169,7 @@ List<String> constructQuery(DartCompletionRequest request, int n) {
     return null;
   }
 
-  final result = List<String>();
+  final result = <String>[];
   for (var size = 0;
       size < n && token != null && !token.isEof;
       token = token.previous) {

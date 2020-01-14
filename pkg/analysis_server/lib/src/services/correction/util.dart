@@ -644,7 +644,7 @@ class CorrectionUtils {
    * declared at [offset].
    */
   Set<String> findPossibleLocalVariableConflicts(int offset) {
-    Set<String> conflicts = Set<String>();
+    Set<String> conflicts = <String>{};
     AstNode enclosingNode = findNode(offset);
     Block enclosingBlock = enclosingNode.thisOrAncestorOfType<Block>();
     if (enclosingBlock != null) {
@@ -1070,7 +1070,7 @@ class CorrectionUtils {
       bool shouldSkip(ClassMember existingMember)) {
     String indent = getIndent(1);
     // Find the last target member.
-    ClassMember targetMember = null;
+    ClassMember targetMember;
     List<ClassMember> members = _getMembers(declaration);
     if (members == null) {
       return null;
@@ -1417,7 +1417,7 @@ class TokenUtils {
 }
 
 class _CollectReferencedUnprefixedNames extends RecursiveAstVisitor {
-  final Set<String> names = Set<String>();
+  final Set<String> names = <String>{};
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {

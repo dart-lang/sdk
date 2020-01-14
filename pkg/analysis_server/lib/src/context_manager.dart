@@ -4,7 +4,6 @@
 
 import 'dart:async';
 import 'dart:collection';
-import 'dart:convert';
 import 'dart:core';
 
 import 'package:analysis_server/src/plugin/notification_manager.dart';
@@ -14,6 +13,7 @@ import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/context/context_root.dart';
+import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -28,13 +28,9 @@ import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/source/path_filter.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/glob.dart';
-import 'package:analyzer/src/util/uri.dart';
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:analyzer_plugin/utilities/analyzer_converter.dart';
-import 'package:package_config/packages.dart';
-import 'package:package_config/packages_file.dart' as pkgfile show parse;
-import 'package:package_config/src/packages_impl.dart' show MapPackages;
 import 'package:path/path.dart' as pathos;
 import 'package:watcher/watcher.dart';
 import 'package:yaml/yaml.dart';
@@ -120,7 +116,7 @@ class ContextInfo {
    * be watched for changes.  I believe the use case for watching these files
    * is no longer relevant.
    */
-  Set<String> _dependencies = Set<String>();
+  Set<String> _dependencies = <String>{};
 
   /**
    * The analysis driver that was created for the [folder].
@@ -864,7 +860,7 @@ class ContextManagerImpl implements ContextManager {
         _isInTopLevelDocDir(info.folder.path, folder.path)) {
       return;
     }
-    List<Resource> children = null;
+    List<Resource> children;
     try {
       children = folder.getChildren();
     } on FileSystemException {
@@ -1062,7 +1058,7 @@ class ContextManagerImpl implements ContextManager {
       // TODO(paulberry): We shouldn't be using JavaFile here because it
       // makes the code untestable (see dartbug.com/23909).
       JavaFile packagesDirOrFile = JavaFile(packageRoot);
-      Map<String, List<Folder>> packageMap = Map<String, List<Folder>>();
+      Map<String, List<Folder>> packageMap = <String, List<Folder>>{};
       if (packagesDirOrFile.isDirectory()) {
         for (JavaFile file in packagesDirOrFile.listFiles()) {
           // Ensure symlinks in packages directory are canonicalized
@@ -1083,7 +1079,10 @@ class ContextManagerImpl implements ContextManager {
         return PackageMapDisposition(packageMap, packageRoot: packageRoot);
       } else if (packagesDirOrFile.isFile()) {
         File packageSpecFile = resourceProvider.getFile(packageRoot);
-        Packages packages = _readPackagespec(packageSpecFile);
+        Packages packages = parseDotPackagesFile(
+          resourceProvider,
+          packageSpecFile,
+        );
         if (packages != null) {
           return PackagesFileDisposition(packages);
         }
@@ -1097,7 +1096,10 @@ class ContextManagerImpl implements ContextManager {
     } else {
       // Try .packages first.
       if (pathContext.basename(packagespecFile.path) == PACKAGE_SPEC_NAME) {
-        Packages packages = _readPackagespec(packagespecFile);
+        Packages packages = parseDotPackagesFile(
+          resourceProvider,
+          packagespecFile,
+        );
         return PackagesFileDisposition(packages);
       }
 
@@ -1118,9 +1120,13 @@ class ContextManagerImpl implements ContextManager {
    * file for code being analyzed using the given [packages].
    */
   AnalysisOptionsProvider _createAnalysisOptionsProvider(Packages packages) {
-    Map<String, List<Folder>> packageMap =
-        ContextBuilder(resourceProvider, null, null)
-            .convertPackagesToMap(packages);
+    var packageMap = <String, List<Folder>>{};
+    if (packages != null) {
+      for (var package in packages.packages) {
+        packageMap[package.name] = [package.libFolder];
+      }
+    }
+
     List<UriResolver> resolvers = <UriResolver>[
       ResourceUriResolver(resourceProvider),
       PackageMapUriResolver(resourceProvider, packageMap),
@@ -1340,7 +1346,7 @@ class ContextManagerImpl implements ContextManager {
   ///
   /// Returns null if there are no embedded/configured options.
   YamlMap _getEmbeddedOptions(ContextInfo info) {
-    Map embeddedOptions = null;
+    Map embeddedOptions;
     EmbedderYamlLocator locator =
         info.disposition.getEmbedderLocator(resourceProvider);
     Iterable<YamlMap> maps = locator.embedderYamls.values;
@@ -1609,18 +1615,6 @@ class ContextManagerImpl implements ContextManager {
     return resourceProvider.getFile(path).readAsStringSync();
   }
 
-  Packages _readPackagespec(File specFile) {
-    try {
-      String contents = specFile.readAsStringSync();
-      Map<String, Uri> map =
-          pkgfile.parse(utf8.encode(contents), Uri.file(specFile.path));
-      return MapPackages(map);
-    } catch (_) {
-      //TODO(pquitslund): consider creating an error for the spec file.
-      return null;
-    }
-  }
-
   /**
    * Recompute the [FolderDisposition] for the context described by [info],
    * and update the client appropriately.
@@ -1812,13 +1806,9 @@ class PackagesFileDisposition extends FolderDisposition {
     if (packageMap == null) {
       packageMap = <String, List<Folder>>{};
       if (packages != null) {
-        var pathContext = resourceProvider.pathContext;
-        packages.asMap().forEach((String name, Uri uri) {
-          if (uri.scheme == 'file' || uri.scheme == '' /* unspecified */) {
-            String path = fileUriToNormalizedPath(pathContext, uri);
-            packageMap[name] = <Folder>[resourceProvider.getFolder(path)];
-          }
-        });
+        for (var package in packages.packages) {
+          packageMap[package.name] = [package.libFolder];
+        }
       }
     }
     return packageMap;

@@ -109,7 +109,7 @@ class CompletionHandler
 
           final key =
               _createImportedSymbolKey(elementName, declaringLibraryUri);
-          alreadyImportedSymbols.putIfAbsent(key, () => Set<String>());
+          alreadyImportedSymbols.putIfAbsent(key, () => <String>{});
           alreadyImportedSymbols[key]
               .add('${importedLibrary.librarySource.uri}');
         }
@@ -140,8 +140,8 @@ class CompletionHandler
     Set<String> includedElementNames;
     List<IncludedSuggestionRelevanceTag> includedSuggestionRelevanceTags;
     if (includeSuggestionSets) {
-      includedElementKinds = Set<ElementKind>();
-      includedElementNames = Set<String>();
+      includedElementKinds = <ElementKind>{};
+      includedElementNames = <String>{};
       includedSuggestionRelevanceTags = <IncludedSuggestionRelevanceTag>[];
     }
 

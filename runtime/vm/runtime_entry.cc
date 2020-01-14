@@ -1244,7 +1244,7 @@ static RawFunction* ComputeTypeCheckTarget(const Instance& receiver,
   // call originated in a legacy library. Note that the type test against a
   // non-legacy type (even in a legacy library) such as dynamic, void, or Null
   // yield the same result independently of the mode used.
-  NNBDMode mode =
+  const NNBDMode mode =
       type.IsLegacy() ? NNBDMode::kLegacyLib : NNBDMode::kOptedInLib;
   const bool result = receiver.IsInstanceOf(
       mode, type, Object::null_type_arguments(), Object::null_type_arguments());
@@ -2409,8 +2409,9 @@ DEFINE_RUNTIME_ENTRY(AllocateMint, 0) {
   if (FLAG_shared_slow_path_triggers_gc) {
     isolate->heap()->CollectAllGarbage();
   }
-  const auto& integer_box =
-      Integer::Handle(zone, Integer::NewFromUint64(0x00ff00ff00ff0000));
+  constexpr uint64_t val = 0x7fffffff7fffffff;
+  ASSERT(!Smi::IsValid(static_cast<int64_t>(val)));
+  const auto& integer_box = Integer::Handle(zone, Integer::NewFromUint64(val));
   arguments.SetReturn(integer_box);
 };
 

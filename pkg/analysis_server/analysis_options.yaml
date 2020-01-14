@@ -12,7 +12,6 @@ analyzer:
     # Ignoring "style" lint rules from pedantic for now. There are pre-existing
     # violations that need to be cleaned up. Each one can be cleaned up and
     # enabled according to the value provided.
-    avoid_init_to_null: ignore
     avoid_return_types_on_setters: ignore
     empty_catches: ignore
     prefer_contains: ignore
@@ -38,9 +37,9 @@ linter:
     - camel_case_extensions
     #- omit_local_variable_types # 8650
     - prefer_adjacent_string_concatenation
-    #- prefer_collection_literals # 130
+    - prefer_collection_literals
     - prefer_conditional_assignment
-    #- prefer_final_fields # 35
+    - prefer_final_fields
     - prefer_for_elements_to_map_fromIterable
     - prefer_generic_function_type_aliases
     #- prefer_if_null_operators # 22

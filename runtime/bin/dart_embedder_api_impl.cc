@@ -69,9 +69,43 @@ Dart_Isolate CreateKernelServiceIsolate(const IsolateCreationData& data,
 
 Dart_Isolate CreateVmServiceIsolate(const IsolateCreationData& data,
                                     const VmServiceConfiguration& config,
-                                    const uint8_t* kernel_buffer,
-                                    intptr_t kernel_buffer_size,
+                                    const uint8_t* isolate_data,
+                                    const uint8_t* isolate_instr,
                                     char** error) {
+  if (data.flags == nullptr) {
+    *error = strdup("Expected non-null flags");
+    return nullptr;
+  }
+  data.flags->load_vmservice_library = true;
+
+  Dart_Isolate service_isolate = Dart_CreateIsolateGroup(
+      data.script_uri, data.main, isolate_data, isolate_instr, data.flags,
+      data.isolate_group_data, data.isolate_data, error);
+  if (service_isolate == nullptr) {
+    return nullptr;
+  }
+
+  Dart_EnterScope();
+  // Load embedder specific bits and return.
+  if (!bin::VmService::Setup(config.ip, config.port, config.dev_mode,
+                             config.disable_auth_codes,
+                             config.write_service_info_filename,
+                             /*trace_loading=*/false, config.deterministic)) {
+    *error = strdup(bin::VmService::GetErrorMessage());
+    return nullptr;
+  }
+
+  Dart_ExitScope();
+  Dart_ExitIsolate();
+  return service_isolate;
+}
+
+Dart_Isolate CreateVmServiceIsolateFromKernel(
+    const IsolateCreationData& data,
+    const VmServiceConfiguration& config,
+    const uint8_t* kernel_buffer,
+    intptr_t kernel_buffer_size,
+    char** error) {
   if (data.flags == nullptr) {
     *error = strdup("Expected non-null flags");
     return nullptr;

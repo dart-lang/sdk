@@ -57,6 +57,7 @@ import 'convert_to_set_literal_test.dart' as convert_to_set_literal;
 import 'convert_to_single_quoted_string_test.dart'
     as convert_to_single_quoted_string;
 import 'convert_to_spread_test.dart' as convert_to_spread;
+import 'convert_to_where_type_test.dart' as convert_to_where_type;
 import 'create_class_test.dart' as create_class;
 import 'create_constructor_for_final_fields_test.dart'
     as create_constructor_for_final_field;
@@ -97,6 +98,7 @@ import 'remove_empty_constructor_body_test.dart'
     as remove_empty_constructor_body;
 import 'remove_empty_else_test.dart' as remove_empty_else;
 import 'remove_empty_statement_test.dart' as remove_empty_statement;
+import 'remove_if_null_operator_test.dart' as remove_if_null_operator;
 import 'remove_initializer_test.dart' as remove_initializer;
 import 'remove_interpolation_braces_test.dart' as remove_interpolation_braces;
 import 'remove_method_declaration_test.dart' as remove_method_declaration;
@@ -192,6 +194,7 @@ main() {
     convert_to_set_literal.main();
     convert_to_single_quoted_string.main();
     convert_to_spread.main();
+    convert_to_where_type.main();
     create_class.main();
     create_constructor_for_final_field.main();
     create_constructor_super.main();
@@ -230,6 +233,7 @@ main() {
     remove_empty_constructor_body.main();
     remove_empty_else.main();
     remove_empty_statement.main();
+    remove_if_null_operator.main();
     remove_initializer.main();
     remove_interpolation_braces.main();
     remove_method_declaration.main();

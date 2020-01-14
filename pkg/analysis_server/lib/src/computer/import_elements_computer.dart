@@ -215,7 +215,7 @@ class ImportElementsComputer {
       return false;
     }
 
-    ImportDirective preferredDirective = null;
+    ImportDirective preferredDirective;
     int bestEditCount = -1;
     bool deleteHide = false;
     bool addShow = false;

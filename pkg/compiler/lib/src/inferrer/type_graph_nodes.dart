@@ -926,7 +926,6 @@ abstract class CallSiteTypeInformation extends TypeInformation
   final Object _call;
   final MemberEntity caller;
   final Selector selector;
-  final AbstractValue mask;
   final ArgumentsTypes arguments;
   final bool inLoop;
 
@@ -936,7 +935,6 @@ abstract class CallSiteTypeInformation extends TypeInformation
       this._call,
       this.caller,
       this.selector,
-      this.mask,
       this.arguments,
       this.inLoop)
       : super.noInputs(abstractValueDomain.emptyType, context) {
@@ -965,10 +963,9 @@ class StaticCallSiteTypeInformation extends CallSiteTypeInformation {
       MemberEntity enclosing,
       this.calledElement,
       Selector selector,
-      AbstractValue mask,
       ArgumentsTypes arguments,
       bool inLoop)
-      : super(abstractValueDomain, context, call, enclosing, selector, mask,
+      : super(abstractValueDomain, context, call, enclosing, selector,
             arguments, inLoop);
 
   MemberTypeInformation _getCalledTypeInfo(InferrerEngine inferrer) {
@@ -983,8 +980,7 @@ class StaticCallSiteTypeInformation extends CallSiteTypeInformation {
     if (arguments != null) {
       arguments.forEach((info) => info.addUser(this));
     }
-    inferrer.updateParameterInputs(
-        this, calledElement, arguments, selector, mask,
+    inferrer.updateParameterInputs(this, calledElement, arguments, selector,
         remove: false, addToQueue: false);
   }
 
@@ -1052,6 +1048,7 @@ class IndirectDynamicCallSiteTypeInformation extends CallSiteTypeInformation {
   final DynamicCallSiteTypeInformation dynamicCall;
   final bool isConditional;
   final TypeInformation receiver;
+  final AbstractValue mask;
 
   IndirectDynamicCallSiteTypeInformation(
       AbstractValueDomain abstractValueDomain,
@@ -1060,12 +1057,12 @@ class IndirectDynamicCallSiteTypeInformation extends CallSiteTypeInformation {
       this.dynamicCall,
       MemberEntity enclosing,
       Selector selector,
-      AbstractValue mask,
+      this.mask,
       this.receiver,
       ArgumentsTypes arguments,
       bool inLoop,
       this.isConditional)
-      : super(abstractValueDomain, context, call, enclosing, selector, mask,
+      : super(abstractValueDomain, context, call, enclosing, selector,
             arguments, inLoop);
 
   @override
@@ -1143,6 +1140,7 @@ class IndirectDynamicCallSiteTypeInformation extends CallSiteTypeInformation {
 class DynamicCallSiteTypeInformation<T> extends CallSiteTypeInformation {
   final CallType _callType;
   final TypeInformation receiver;
+  final AbstractValue mask;
   final bool isConditional;
   bool _hasClosureCallTargets;
 
@@ -1156,12 +1154,12 @@ class DynamicCallSiteTypeInformation<T> extends CallSiteTypeInformation {
       T call,
       MemberEntity enclosing,
       Selector selector,
-      AbstractValue mask,
+      this.mask,
       this.receiver,
       ArgumentsTypes arguments,
       bool inLoop,
       this.isConditional)
-      : super(abstractValueDomain, context, call, enclosing, selector, mask,
+      : super(abstractValueDomain, context, call, enclosing, selector,
             arguments, inLoop) {
     assert(validCallType(_callType, _call, selector));
   }
@@ -1196,8 +1194,7 @@ class DynamicCallSiteTypeInformation<T> extends CallSiteTypeInformation {
           inferrer.types.getInferredTypeOfMember(element);
       _addCall(callee);
       callee.addUser(this);
-      inferrer.updateParameterInputs(
-          this, element, arguments, selector, typeMask,
+      inferrer.updateParameterInputs(this, element, arguments, selector,
           remove: false, addToQueue: false);
     }
   }
@@ -1360,8 +1357,7 @@ class DynamicCallSiteTypeInformation<T> extends CallSiteTypeInformation {
             inferrer.types.getInferredTypeOfMember(element);
         _addCall(callee);
         callee.addUser(this);
-        inferrer.updateParameterInputs(
-            this, element, arguments, selector, typeMask,
+        inferrer.updateParameterInputs(this, element, arguments, selector,
             remove: false, addToQueue: true);
       });
 
@@ -1373,8 +1369,7 @@ class DynamicCallSiteTypeInformation<T> extends CallSiteTypeInformation {
             inferrer.types.getInferredTypeOfMember(element);
         _removeCall(callee);
         callee.removeUser(this);
-        inferrer.updateParameterInputs(
-            this, element, arguments, selector, typeMask,
+        inferrer.updateParameterInputs(this, element, arguments, selector,
             remove: true, addToQueue: true);
       });
     }
@@ -1448,8 +1443,7 @@ class DynamicCallSiteTypeInformation<T> extends CallSiteTypeInformation {
           MemberTypeInformation callee =
               inferrer.types.getInferredTypeOfMember(element);
           callee.addCall(caller, _call);
-          inferrer.updateParameterInputs(
-              this, element, arguments, selector, mask,
+          inferrer.updateParameterInputs(this, element, arguments, selector,
               remove: false, addToQueue: true);
         }
       }
@@ -1497,11 +1491,10 @@ class ClosureCallSiteTypeInformation extends CallSiteTypeInformation {
       Object call,
       MemberEntity enclosing,
       Selector selector,
-      AbstractValue mask,
       this.closure,
       ArgumentsTypes arguments,
       bool inLoop)
-      : super(abstractValueDomain, context, call, enclosing, selector, mask,
+      : super(abstractValueDomain, context, call, enclosing, selector,
             arguments, inLoop);
 
   @override

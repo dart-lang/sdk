@@ -41,14 +41,20 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
 
   /// Verifies that migration of the files in [input] produces the output in
   /// [expectedOutput].
+  ///
+  /// Optional parameter [removeViaComments] indicates whether dead code should
+  /// be removed in its entirety (the default) or removed by commenting it out.
   Future<void> _checkMultipleFileChanges(
-      Map<String, String> input, Map<String, String> expectedOutput) async {
+      Map<String, String> input, Map<String, String> expectedOutput,
+      {bool removeViaComments = false}) async {
     for (var path in input.keys) {
       driver.getFileSync(newFile(path, content: input[path]).path);
     }
     var listener = new TestMigrationListener();
     var migration = NullabilityMigration(listener,
-        permissive: _usePermissiveMode, useFixBuilder: _useFixBuilder);
+        permissive: _usePermissiveMode,
+        useFixBuilder: _useFixBuilder,
+        removeViaComments: removeViaComments);
     for (var path in input.keys) {
       migration.prepareInput(await session.getResolvedUnit(path));
     }
@@ -77,10 +83,15 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
 
   /// Verifies that migraiton of the single file with the given [content]
   /// produces the [expected] output.
-  Future<void> _checkSingleFileChanges(String content, String expected) async {
+  ///
+  /// Optional parameter [removeViaComments] indicates whether dead code should
+  /// be removed in its entirety (the default) or removed by commenting it out.
+  Future<void> _checkSingleFileChanges(String content, String expected,
+      {bool removeViaComments = false}) async {
     var sourcePath = convertPath('/home/test/lib/test.dart');
     await _checkMultipleFileChanges(
-        {sourcePath: content}, {sourcePath: expected});
+        {sourcePath: content}, {sourcePath: expected},
+        removeViaComments: removeViaComments);
   }
 }
 
@@ -993,7 +1004,7 @@ int f(int i) {
   } */
 }
 ''';
-    await _checkSingleFileChanges(content, expected);
+    await _checkSingleFileChanges(content, expected, removeViaComments: true);
   }
 
   Future<void> test_downcast_dynamic_function_to_functionType() async {
@@ -3129,7 +3140,7 @@ void main() {
   f(1, null, null);
 }
 ''';
-    await _checkSingleFileChanges(content, expected);
+    await _checkSingleFileChanges(content, expected, removeViaComments: true);
   }
 
   Future<void> test_prefix_minus() async {

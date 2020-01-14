@@ -270,7 +270,7 @@ class EditDomainHandler extends AbstractRequestHandler {
     //
     // Compute fixes associated with server-generated errors.
     //
-    List<AnalysisErrorFixes> errorFixesList = null;
+    List<AnalysisErrorFixes> errorFixesList;
     while (errorFixesList == null) {
       try {
         errorFixesList = await _computeServerErrorFixes(request, file, offset);

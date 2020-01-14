@@ -458,7 +458,7 @@ abstract class BaseProcessor {
     String elementText;
     ConvertToSpreadCollectionsChange change =
         ConvertToSpreadCollectionsChange();
-    List<String> args = null;
+    List<String> args;
     if (argument is BinaryExpression &&
         argument.operator.type == TokenType.QUESTION_QUESTION) {
       Expression right = argument.rightOperand;
@@ -1584,7 +1584,7 @@ class _ParameterReferenceFinder extends RecursiveAstVisitor<void> {
   /// A collection of the names of other simple identifiers that were found. We
   /// need to know these in order to ensure that the selected loop variable does
   /// not hide a name from an enclosing scope that is already being referenced.
-  final Set<String> otherNames = Set<String>();
+  final Set<String> otherNames = <String>{};
 
   /// Initialize a newly created finder to find references to the [parameter].
   _ParameterReferenceFinder(this.parameter) : assert(parameter != null);

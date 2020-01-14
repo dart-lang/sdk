@@ -43,7 +43,7 @@ void recordTypes(List<AstNode> types) {
     // Keep track of our base classes so they can look up their super classes
     // later in their fromJson() to deserialise into the most specific type.
     interface.baseTypes.forEach((base) {
-      final subTypes = _subtypes[base.dartType] ??= List<String>();
+      final subTypes = _subtypes[base.dartType] ??= <String>[];
       subTypes.add(interface.name);
     });
   });

@@ -895,10 +895,10 @@ class KytheDartVisitor extends GeneralizingAstVisitor with OutputUtils {
 
   _handleRefCallEdge(
     Element element, {
-    SyntacticEntity syntacticEntity = null,
+    SyntacticEntity syntacticEntity,
     int start = _notFound,
     int end = _notFound,
-    KytheVName enclosingTarget = null,
+    KytheVName enclosingTarget,
   }) {
     if (element is ExecutableElement &&
         _enclosingVName != _enclosingFileVName) {
@@ -932,11 +932,11 @@ class KytheDartVisitor extends GeneralizingAstVisitor with OutputUtils {
   KytheVName _handleRefEdge(
     Element element,
     List<String> refEdgeTypes, {
-    SyntacticEntity syntacticEntity = null,
+    SyntacticEntity syntacticEntity,
     int start = _notFound,
     int end = _notFound,
-    KytheVName enclosingTarget = null,
-    KytheVName enclosingAnchor = null,
+    KytheVName enclosingTarget,
+    KytheVName enclosingAnchor,
   }) {
     assert(refEdgeTypes.isNotEmpty);
     element = _findNonSyntheticElement(element);
@@ -1120,7 +1120,7 @@ class KytheDartVisitor extends GeneralizingAstVisitor with OutputUtils {
 /// [KytheEntry] protos.
 mixin OutputUtils {
   /// A set of [String]s which have already had a name [KytheVName] created.
-  final Set<String> nameNodes = Set<String>();
+  final Set<String> nameNodes = <String>{};
 
   String get corpus;
 
@@ -1152,13 +1152,13 @@ mixin OutputUtils {
   /// Finally, for all anchors, a childof edge with a target of the enclosing
   /// file is written out.
   KytheVName addAnchorEdgesContainingEdge({
-    SyntacticEntity syntacticEntity = null,
+    SyntacticEntity syntacticEntity,
     int start = _notFound,
     int end = _notFound,
     List<String> edges = const [],
-    KytheVName target = null,
-    KytheVName enclosingTarget = null,
-    KytheVName enclosingAnchor = null,
+    KytheVName target,
+    KytheVName enclosingTarget,
+    KytheVName enclosingAnchor,
   }) {
     if (start == _notFound && end == _notFound) {
       if (syntacticEntity != null) {
@@ -1206,7 +1206,7 @@ mixin OutputUtils {
   KytheEntry addEdge(KytheVName source, String edgeKind, KytheVName target,
       {int ordinalIntValue = _notFound}) {
     if (ordinalIntValue == _notFound) {
-      return addEntry(source, edgeKind, target, "/", List<int>());
+      return addEntry(source, edgeKind, target, "/", <int>[]);
     } else {
       return addEntry(source, edgeKind, target, schema.ORDINAL,
           _encodeInt(ordinalIntValue));
@@ -1240,7 +1240,7 @@ mixin OutputUtils {
     Element functionElement,
     FormalParameterList paramNodes,
     KytheVName functionVName, {
-    AstNode returnNode = null,
+    AstNode returnNode,
   }) {
     var i = 0;
     var funcTypeVName =
@@ -1296,10 +1296,10 @@ mixin OutputUtils {
   /// currently guarantee that the inputs to these fact kinds are valid for the
   /// associated nodeKind- if a non-null, then it will set.
   KytheVName addNodeAndFacts(String nodeKind,
-      {Element element = null,
-      KytheVName nodeVName = null,
-      String subKind = null,
-      String completeFact = null}) {
+      {Element element,
+      KytheVName nodeVName,
+      String subKind,
+      String completeFact}) {
     nodeVName ??= _vNameFromElement(element, nodeKind);
     addFact(nodeVName, schema.NODE_KIND_FACT, _encode(nodeKind));
     if (subKind != null) {

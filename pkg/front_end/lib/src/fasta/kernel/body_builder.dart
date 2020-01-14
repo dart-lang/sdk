@@ -3826,15 +3826,36 @@ class BodyBuilder extends ScopeListener<JumpTarget>
               forest.argumentsPositional(arguments).length)
           .withLocation(uri, arguments.fileOffset, noLength);
     }
-    List<Object> named = forest.argumentsNamed(arguments);
+    List<NamedExpression> named = forest.argumentsNamed(arguments);
     if (named.isNotEmpty) {
-      Set<String> names =
+      Set<String> parameterNames =
           new Set.from(function.namedParameters.map((a) => a.name));
       for (NamedExpression argument in named) {
-        if (!names.contains(argument.name)) {
+        if (!parameterNames.contains(argument.name)) {
           return fasta.templateNoSuchNamedParameter
               .withArguments(argument.name)
               .withLocation(uri, argument.fileOffset, argument.name.length);
+        }
+      }
+    }
+    if (function.namedParameters.isNotEmpty) {
+      if (libraryBuilder.isNonNullableByDefault &&
+          libraryBuilder.loader.performNnbdChecks) {
+        Set<String> argumentNames = new Set.from(named.map((a) => a.name));
+        for (VariableDeclaration parameter in function.namedParameters) {
+          if (parameter.isRequired && !argumentNames.contains(parameter.name)) {
+            if (libraryBuilder.loader.nnbdStrongMode) {
+              return fasta.templateValueForRequiredParameterNotProvidedError
+                  .withArguments(parameter.name)
+                  .withLocation(uri, arguments.fileOffset, fasta.noLength);
+            } else {
+              addProblem(
+                  fasta.templateValueForRequiredParameterNotProvidedWarning
+                      .withArguments(parameter.name),
+                  arguments.fileOffset,
+                  fasta.noLength);
+            }
+          }
         }
       }
     }
@@ -3873,7 +3894,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
               forest.argumentsPositional(arguments).length)
           .withLocation(uri, arguments.fileOffset, noLength);
     }
-    List<Object> named = forest.argumentsNamed(arguments);
+    List<NamedExpression> named = forest.argumentsNamed(arguments);
     if (named.isNotEmpty) {
       Set<String> names =
           new Set.from(function.namedParameters.map((a) => a.name));
@@ -3882,6 +3903,27 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           return fasta.templateNoSuchNamedParameter
               .withArguments(argument.name)
               .withLocation(uri, argument.fileOffset, argument.name.length);
+        }
+      }
+    }
+    if (function.namedParameters.isNotEmpty) {
+      if (libraryBuilder.isNonNullableByDefault &&
+          libraryBuilder.loader.performNnbdChecks) {
+        Set<String> argumentNames = new Set.from(named.map((a) => a.name));
+        for (NamedType parameter in function.namedParameters) {
+          if (parameter.isRequired && !argumentNames.contains(parameter.name)) {
+            if (libraryBuilder.loader.nnbdStrongMode) {
+              return fasta.templateValueForRequiredParameterNotProvidedError
+                  .withArguments(parameter.name)
+                  .withLocation(uri, arguments.fileOffset, fasta.noLength);
+            } else {
+              addProblem(
+                  fasta.templateValueForRequiredParameterNotProvidedWarning
+                      .withArguments(parameter.name),
+                  arguments.fileOffset,
+                  fasta.noLength);
+            }
+          }
         }
       }
     }

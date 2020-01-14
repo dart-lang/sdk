@@ -220,6 +220,8 @@ class DartFixKind {
       'CONVERT_TO_SINGLE_QUOTED_STRING', 50, "Convert to single quoted string");
   static const CONVERT_TO_SPREAD =
       FixKind('CONVERT_TO_SPREAD', 50, "Convert to a spread");
+  static const CONVERT_TO_WHERE_TYPE =
+      FixKind('CONVERT_TO_WHERE_TYPE', 50, "Convert to a use 'whereType'");
   static const CREATE_CLASS = FixKind('CREATE_CLASS', 50, "Create class '{0}'");
   static const CREATE_CONSTRUCTOR =
       FixKind('CREATE_CONSTRUCTOR', 50, "Create constructor '{0}'");
@@ -295,6 +297,8 @@ class DartFixKind {
       FixKind('REMOVE_EMPTY_ELSE', 50, "Remove empty else clause");
   static const REMOVE_EMPTY_STATEMENT =
       FixKind('REMOVE_EMPTY_STATEMENT', 50, "Remove empty statement");
+  static const REMOVE_IF_NULL_OPERATOR =
+      FixKind('REMOVE_IF_NULL_OPERATOR', 50, "Remove the '??' operator");
   static const REMOVE_INITIALIZER =
       FixKind('REMOVE_INITIALIZER', 50, "Remove initializer");
   static const REMOVE_INTERPOLATION_BRACES = FixKind(

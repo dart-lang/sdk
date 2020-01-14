@@ -18,14 +18,14 @@ final int COLON = ':'.codeUnitAt(0);
  * into a series of operations to be sent to the analysis server.
  */
 class InstrumentationInputConverter extends CommonInputConverter {
-  final Set<String> codesSeen = Set<String>();
+  final Set<String> codesSeen = <String>{};
 
   /**
    * [readBuffer] holds the contents of the file being read from disk
    * as recorded in the instrumentation log
    * or `null` if not converting a "Read" entry.
    */
-  StringBuffer readBuffer = null;
+  StringBuffer readBuffer;
 
   InstrumentationInputConverter(String tmpSrcDirPath, PathMap srcPathMap)
       : super(tmpSrcDirPath, srcPathMap);
@@ -106,7 +106,7 @@ class InstrumentationInputConverter extends CommonInputConverter {
    * Extract fields from the given [line].
    */
   static List<String> _parseFields(String line) {
-    List<String> fields = List<String>();
+    List<String> fields = <String>[];
     int index = 0;
     StringBuffer sb = StringBuffer();
     while (index < line.length) {

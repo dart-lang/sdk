@@ -184,7 +184,7 @@ List<Element> getMembers(ClassElement clazz) {
 Set<ClassElement> getSuperClasses(ClassElement seed) {
   Set<ClassElement> result = HashSet<ClassElement>();
   // prepare queue
-  List<ClassElement> queue = List<ClassElement>();
+  List<ClassElement> queue = <ClassElement>[];
   queue.add(seed);
   // process queue
   while (queue.isNotEmpty) {

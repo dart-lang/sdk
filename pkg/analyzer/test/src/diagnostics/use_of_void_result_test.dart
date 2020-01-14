@@ -705,22 +705,14 @@ class UseOfVoidResultTest_NonNullable extends DriverResolutionTest {
   AnalysisOptionsImpl get analysisOptions =>
       AnalysisOptionsImpl()..enabledExperiments = [EnableString.non_nullable];
 
-  test_bang_nonVoid() async {
-    await assertNoErrorsInCode(r'''
-int? f() => 1;
-g() {
-  f()!;
-}
-''');
-  }
-
-  test_bang_void() async {
+  test_nullCheck() async {
     await assertErrorsInCode(r'''
-void f() => 1;
-g() {
-  f()!;
+f(void x) {
+  x!;
 }
-''', [ExpectedError(StaticWarningCode.USE_OF_VOID_RESULT, 23, 4)]);
+''', [ExpectedError(StaticWarningCode.USE_OF_VOID_RESULT, 14, 2)]);
+
+    assertType(findNode.postfix('x!'), 'void');
   }
 }
 

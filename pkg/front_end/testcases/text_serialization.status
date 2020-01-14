@@ -940,6 +940,7 @@ nnbd/issue_39286_2: TextSerializationFailure
 nnbd/late: TextSerializationFailure
 nnbd/messages_with_types_opt_in: TypeCheckError
 nnbd/messages_with_types_opt_out: TypeCheckError
+nnbd/missing_required_named_parameter: TextSerializationFailure
 nnbd/no_null_shorting: TextSerializationFailure
 nnbd/no_null_shorting_explicit_extension: TextSerializationFailure
 nnbd/no_null_shorting_extension: TextSerializationFailure

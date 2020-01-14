@@ -16,7 +16,6 @@ import 'dart:_foreign_helper'
         JS_EMBEDDED_GLOBAL,
         JS_GET_FLAG,
         JS_GET_NAME,
-        JS_STRING_CONCAT,
         RAW_DART_FUNCTION_REF,
         TYPE_REF;
 
@@ -789,7 +788,8 @@ bool _installSpecializedIsTest(object) {
 
   var isFn = RAW_DART_FUNCTION_REF(_generalIsTestImplementation);
 
-  if (isTopType(testRti)) {
+  // TODO(fishythefish): Update for NNBD.
+  if (isLegacyTopType(testRti)) {
     isFn = RAW_DART_FUNCTION_REF(_isTop);
     var asFn = RAW_DART_FUNCTION_REF(_asTop);
     Rti._setAsCheckFunction(testRti, asFn);
@@ -811,7 +811,11 @@ bool _installSpecializedIsTest(object) {
       String name = Rti._getInterfaceName(testRti);
       var arguments = Rti._getInterfaceTypeArguments(testRti);
       if (JS(
-          'bool', '#.every(#)', arguments, RAW_DART_FUNCTION_REF(isTopType))) {
+          'bool',
+          '#.every(#)',
+          arguments,
+          // TODO(fishythefish): Update for NNBD.
+          RAW_DART_FUNCTION_REF(isLegacyTopType))) {
         String propertyName =
             '${JS_GET_NAME(JsGetName.OPERATOR_IS_PREFIX)}${name}';
         Rti._setSpecializedTestResource(testRti, propertyName);
@@ -830,7 +834,8 @@ bool _generalIsTestImplementation(object) {
   // method. The Rti object is 'this'.
   Rti testRti = _castToRti(JS('', 'this'));
   Rti objectRti = instanceOrFunctionType(object, testRti);
-  return isSubtype(_theUniverse(), objectRti, testRti);
+  // TODO(fishythefish): Update for NNBD.
+  return isLegacySubtype(_theUniverse(), objectRti, testRti);
 }
 
 /// Called from generated code.
@@ -881,7 +886,8 @@ _generalTypeCheckImplementation(object) {
 
 /// Called from generated code.
 checkTypeBound(Rti type, Rti bound, variable, methodName) {
-  if (isSubtype(_theUniverse(), type, bound)) return type;
+  // TODO(fishythefish): Update for NNBD.
+  if (isLegacySubtype(_theUniverse(), type, bound)) return type;
   String message = "The type argument '${_rtiToString(type, null)}' is not"
       " a subtype of the type variable bound '${_rtiToString(bound, null)}'"
       " of type variable '${_Utils.asString(variable)}' in '$methodName'.";
@@ -1080,7 +1086,8 @@ String _functionRtiToString(Rti functionType, List<String> genericContext,
       typeParametersText += typeSep;
       typeParametersText += genericContext[genericContext.length - 1 - i];
       Rti boundRti = _castToRti(_Utils.arrayAt(bounds, i));
-      if (!isTopType(boundRti)) {
+      // TODO(fishythefish): Update for NNBD.
+      if (!isLegacyTopType(boundRti)) {
         typeParametersText +=
             ' extends ' + _rtiToString(boundRti, genericContext);
       }
@@ -1470,7 +1477,6 @@ class _Universe {
       environment = Rti._getBindingBase(environment);
     }
 
-    assert(kind == Rti.kindInterface);
     String interfaceName = Rti._getInterfaceName(environment);
     Object rule = _Universe.findRule(universe, interfaceName);
     assert(rule != null);
@@ -2310,49 +2316,63 @@ class Variance {
 // -------- Subtype tests ------------------------------------------------------
 
 // Future entry point from compiled code.
-bool isSubtype(universe, Rti s, Rti t) {
-  return _isSubtype(universe, s, null, t, null);
+bool isLegacySubtype(universe, Rti s, Rti t) {
+  return _isSubtype(universe, s, null, t, null, true);
 }
 
-bool _isSubtype(universe, Rti s, sEnv, Rti t, tEnv) {
-  // Based on
-  // https://github.com/dart-lang/language/blob/master/resources/type-system/subtyping.md#rules
-  // and https://github.com/dart-lang/language/pull/388.
-  // In particular, the bulk of the structure is derived from the former
-  // resource, with a few adaptations taken from the latter.
-  // - We freely skip subcases which would have already been handled by a
-  // previous case.
-  // - Some rules are reordered in conjunction with the previous point to reduce
-  // the amount of casework.
-  // - Left Type Variable Bound in particular is split into two pieces: an
-  // optimistic check performed early in the algorithm to reduce the number of
-  // backtracking cases when a union appears on the right, and a pessimistic
-  // check performed at the usual place in order to completely eliminate the
-  // case.
-  // - Function type rules are applied before interface type rules.
+bool isNnbdSubtype(universe, Rti s, Rti t) {
+  return _isSubtype(universe, s, null, t, null, false);
+}
 
+/// Based on
+/// https://github.com/dart-lang/language/blob/master/resources/type-system/subtyping.md#rules
+/// and https://github.com/dart-lang/language/pull/388.
+/// In particular, the bulk of the structure is derived from the former
+/// resource, with a few adaptations taken from the latter.
+/// - We freely skip subcases which would have already been handled by a
+/// previous case.
+/// - Some rules are reordered in conjunction with the previous point to reduce
+/// the amount of casework.
+/// - Left Type Variable Bound in particular is split into two pieces: an
+/// optimistic check performed early in the algorithm to reduce the number of
+/// backtracking cases when a union appears on the right, and a pessimistic
+/// check performed at the usual place in order to completely eliminate the
+/// case.
+/// - Function type rules are applied before interface type rules.
+///
+/// [s] is considered a legacy subtype of [t] if [s] would be a subtype of [t]
+/// in a modification of the NNBD rules in which `?` on types were ignored, `*`
+/// were added to each time, and `required` parameters were treated as
+/// optional. In effect, `Never` is equivalent to `Null`, `Null` is restored to
+/// the bottom of the type hierarchy, `Object` is treated as nullable, and
+/// `required` is ignored on named parameters. This should provide the same
+/// subtyping results as pre-NNBD Dart.
+bool _isSubtype(universe, Rti s, sEnv, Rti t, tEnv, bool isLegacy) {
   // Reflexivity:
   if (_Utils.isIdentical(s, t)) return true;
 
   // Right Top:
-  if (isTopType(t)) return true;
+  if (isTopType(t, isLegacy)) return true;
 
   int sKind = Rti._getKind(s);
   if (sKind == Rti.kindAny) return true;
 
   // Left Top:
-  if (isTopType(s)) return false;
+  if (isTopType(s, isLegacy)) return false;
 
   // Left Bottom:
-  // TODO(fishythefish): Update for NNBD - check for `Never` instead of `Null`.
-  if (isNullType(s)) return true;
+  if (isLegacy) {
+    if (isNullType(s)) return true;
+  } else {
+    if (sKind == Rti.kindNever) return true;
+  }
 
   // Left Type Variable Bound 1:
   bool leftTypeVariable = sKind == Rti.kindGenericFunctionParameter;
   if (leftTypeVariable) {
     int index = Rti._getGenericFunctionParameterIndex(s);
     Rti bound = _castToRti(_Utils.arrayAt(sEnv, index));
-    if (_isSubtype(universe, bound, sEnv, t, tEnv)) return true;
+    if (_isSubtype(universe, bound, sEnv, t, tEnv, isLegacy)) return true;
   }
 
   int tKind = Rti._getKind(t);
@@ -2360,48 +2380,62 @@ bool _isSubtype(universe, Rti s, sEnv, Rti t, tEnv) {
   // Left Null:
   // Note: Interchanging the Left Null and Right Object rules allows us to
   // reduce casework.
-  if (isNullType(s)) {
+  if (!isLegacy && isNullType(s)) {
     if (tKind == Rti.kindFutureOr) {
-      return _isSubtype(universe, s, sEnv, Rti._getFutureOrArgument(t), tEnv);
+      return _isSubtype(
+          universe, s, sEnv, Rti._getFutureOrArgument(t), tEnv, isLegacy);
     }
     return isNullType(t) || tKind == Rti.kindQuestion || tKind == Rti.kindStar;
   }
 
   // Right Object:
-  if (isObjectType(t)) {
+  if (!isLegacy && isObjectType(t)) {
     if (sKind == Rti.kindFutureOr) {
-      return _isSubtype(universe, Rti._getFutureOrArgument(s), sEnv, t, tEnv);
+      return _isSubtype(
+          universe, Rti._getFutureOrArgument(s), sEnv, t, tEnv, isLegacy);
     }
     if (sKind == Rti.kindStar) {
-      return _isSubtype(universe, Rti._getStarArgument(s), sEnv, t, tEnv);
+      return _isSubtype(
+          universe, Rti._getStarArgument(s), sEnv, t, tEnv, isLegacy);
     }
     return sKind != Rti.kindQuestion;
   }
 
   // Left Legacy:
   if (sKind == Rti.kindStar) {
-    return _isSubtype(universe, Rti._getStarArgument(s), sEnv, t, tEnv);
+    return _isSubtype(
+        universe, Rti._getStarArgument(s), sEnv, t, tEnv, isLegacy);
   }
 
   // Right Legacy:
   if (tKind == Rti.kindStar) {
     return _isSubtype(
-        universe, s, sEnv, Rti._getQuestionFromStar(universe, t), tEnv);
+        universe,
+        s,
+        sEnv,
+        isLegacy
+            ? Rti._getStarArgument(t)
+            : Rti._getQuestionFromStar(universe, t),
+        tEnv,
+        isLegacy);
   }
 
   // Left FutureOr:
   if (sKind == Rti.kindFutureOr) {
-    if (!_isSubtype(universe, Rti._getFutureOrArgument(s), sEnv, t, tEnv)) {
+    if (!_isSubtype(
+        universe, Rti._getFutureOrArgument(s), sEnv, t, tEnv, isLegacy)) {
       return false;
     }
-    return _isSubtype(
-        universe, Rti._getFutureFromFutureOr(universe, s), sEnv, t, tEnv);
+    return _isSubtype(universe, Rti._getFutureFromFutureOr(universe, s), sEnv,
+        t, tEnv, isLegacy);
   }
 
   // Left Nullable:
   if (sKind == Rti.kindQuestion) {
-    return _isSubtype(universe, TYPE_REF<Null>(), sEnv, t, tEnv) &&
-        _isSubtype(universe, Rti._getQuestionArgument(s), sEnv, t, tEnv);
+    return (isLegacy ||
+            _isSubtype(universe, TYPE_REF<Null>(), sEnv, t, tEnv, isLegacy)) &&
+        _isSubtype(
+            universe, Rti._getQuestionArgument(s), sEnv, t, tEnv, isLegacy);
   }
 
   // Type Variable Reflexivity 1 is subsumed by Reflexivity and therefore
@@ -2411,17 +2445,20 @@ bool _isSubtype(universe, Rti s, sEnv, Rti t, tEnv) {
 
   // Right FutureOr:
   if (tKind == Rti.kindFutureOr) {
-    if (_isSubtype(universe, s, sEnv, Rti._getFutureOrArgument(t), tEnv)) {
+    if (_isSubtype(
+        universe, s, sEnv, Rti._getFutureOrArgument(t), tEnv, isLegacy)) {
       return true;
     }
-    return _isSubtype(
-        universe, s, sEnv, Rti._getFutureFromFutureOr(universe, t), tEnv);
+    return _isSubtype(universe, s, sEnv,
+        Rti._getFutureFromFutureOr(universe, t), tEnv, isLegacy);
   }
 
   // Right Nullable:
   if (tKind == Rti.kindQuestion) {
-    return _isSubtype(universe, s, sEnv, TYPE_REF<Null>(), tEnv) ||
-        _isSubtype(universe, s, sEnv, Rti._getQuestionArgument(t), tEnv);
+    return (!isLegacy &&
+            _isSubtype(universe, s, sEnv, TYPE_REF<Null>(), tEnv, isLegacy)) ||
+        _isSubtype(
+            universe, s, sEnv, Rti._getQuestionArgument(t), tEnv, isLegacy);
   }
 
   // Left Promoted Variable does not apply at runtime.
@@ -2444,37 +2481,39 @@ bool _isSubtype(universe, Rti s, sEnv, Rti t, tEnv) {
 
     var sBounds = Rti._getGenericFunctionBounds(s);
     var tBounds = Rti._getGenericFunctionBounds(t);
-    if (!typesEqual(sBounds, tBounds)) return false;
+    if (!typesEqual(sBounds, tBounds, isLegacy)) return false;
 
     sEnv = sEnv == null ? sBounds : _Utils.arrayConcat(sBounds, sEnv);
     tEnv = tEnv == null ? tBounds : _Utils.arrayConcat(tBounds, tEnv);
 
     return _isFunctionSubtype(universe, Rti._getGenericFunctionBase(s), sEnv,
-        Rti._getGenericFunctionBase(t), tEnv);
+        Rti._getGenericFunctionBase(t), tEnv, isLegacy);
   }
   if (tKind == Rti.kindFunction) {
     if (isJsFunctionType(s)) return true;
     if (sKind != Rti.kindFunction) return false;
-    return _isFunctionSubtype(universe, s, sEnv, t, tEnv);
+    return _isFunctionSubtype(universe, s, sEnv, t, tEnv, isLegacy);
   }
 
   // Interface Compositionality + Super-Interface:
   if (sKind == Rti.kindInterface) {
     if (tKind != Rti.kindInterface) return false;
-    return _isInterfaceSubtype(universe, s, sEnv, t, tEnv);
+    return _isInterfaceSubtype(universe, s, sEnv, t, tEnv, isLegacy);
   }
 
   return false;
 }
 
 // TODO(fishythefish): Support required named parameters.
-bool _isFunctionSubtype(universe, Rti s, sEnv, Rti t, tEnv) {
+bool _isFunctionSubtype(universe, Rti s, sEnv, Rti t, tEnv, bool isLegacy) {
   assert(Rti._getKind(s) == Rti.kindFunction);
   assert(Rti._getKind(t) == Rti.kindFunction);
 
   Rti sReturnType = Rti._getReturnType(s);
   Rti tReturnType = Rti._getReturnType(t);
-  if (!_isSubtype(universe, sReturnType, sEnv, tReturnType, tEnv)) return false;
+  if (!_isSubtype(universe, sReturnType, sEnv, tReturnType, tEnv, isLegacy)) {
+    return false;
+  }
 
   _FunctionParameters sParameters = Rti._getFunctionParameters(s);
   _FunctionParameters tParameters = Rti._getFunctionParameters(t);
@@ -2501,21 +2540,27 @@ bool _isFunctionSubtype(universe, Rti s, sEnv, Rti t, tEnv) {
   for (int i = 0; i < sRequiredPositionalLength; i++) {
     Rti sParameter = _castToRti(_Utils.arrayAt(sRequiredPositional, i));
     Rti tParameter = _castToRti(_Utils.arrayAt(tRequiredPositional, i));
-    if (!_isSubtype(universe, tParameter, tEnv, sParameter, sEnv)) return false;
+    if (!_isSubtype(universe, tParameter, tEnv, sParameter, sEnv, isLegacy)) {
+      return false;
+    }
   }
 
   for (int i = 0; i < requiredPositionalDelta; i++) {
     Rti sParameter = _castToRti(_Utils.arrayAt(sOptionalPositional, i));
     Rti tParameter = _castToRti(
         _Utils.arrayAt(tRequiredPositional, sRequiredPositionalLength + i));
-    if (!_isSubtype(universe, tParameter, tEnv, sParameter, sEnv)) return false;
+    if (!_isSubtype(universe, tParameter, tEnv, sParameter, sEnv, isLegacy)) {
+      return false;
+    }
   }
 
   for (int i = 0; i < tOptionalPositionalLength; i++) {
     Rti sParameter = _castToRti(
         _Utils.arrayAt(sOptionalPositional, requiredPositionalDelta + i));
     Rti tParameter = _castToRti(_Utils.arrayAt(tOptionalPositional, i));
-    if (!_isSubtype(universe, tParameter, tEnv, sParameter, sEnv)) return false;
+    if (!_isSubtype(universe, tParameter, tEnv, sParameter, sEnv, isLegacy)) {
+      return false;
+    }
   }
 
   var sOptionalNamed = _FunctionParameters._getOptionalNamed(sParameters);
@@ -2534,13 +2579,13 @@ bool _isFunctionSubtype(universe, Rti s, sEnv, Rti t, tEnv) {
     if (_Utils.stringLessThan(tName, sName)) return false;
     Rti sType = _castToRti(_Utils.arrayAt(sOptionalNamed, i - 1));
     Rti tType = _castToRti(_Utils.arrayAt(tOptionalNamed, j + 1));
-    if (!_isSubtype(universe, tType, tEnv, sType, sEnv)) return false;
+    if (!_isSubtype(universe, tType, tEnv, sType, sEnv, isLegacy)) return false;
   }
 
   return true;
 }
 
-bool _isInterfaceSubtype(universe, Rti s, sEnv, Rti t, tEnv) {
+bool _isInterfaceSubtype(universe, Rti s, sEnv, Rti t, tEnv, bool isLegacy) {
   String sName = Rti._getInterfaceName(s);
   String tName = Rti._getInterfaceName(t);
 
@@ -2569,21 +2614,29 @@ bool _isInterfaceSubtype(universe, Rti s, sEnv, Rti t, tEnv) {
         switch (sVariance) {
           case Variance.legacyCovariant:
           case Variance.covariant:
-            if (!_isSubtype(universe, sArg, sEnv, tArg, tEnv)) return false;
+            if (!_isSubtype(universe, sArg, sEnv, tArg, tEnv, isLegacy)) {
+              return false;
+            }
             break;
           case Variance.contravariant:
-            if (!_isSubtype(universe, tArg, tEnv, sArg, sEnv)) return false;
+            if (!_isSubtype(universe, tArg, tEnv, sArg, sEnv, isLegacy)) {
+              return false;
+            }
             break;
           case Variance.invariant:
-            if (!_isSubtype(universe, sArg, sEnv, tArg, tEnv) ||
-                !_isSubtype(universe, tArg, tEnv, sArg, sEnv)) return false;
+            if (!_isSubtype(universe, sArg, sEnv, tArg, tEnv, isLegacy) ||
+                !_isSubtype(universe, tArg, tEnv, sArg, sEnv, isLegacy)) {
+              return false;
+            }
             break;
           default:
             throw StateError(
                 "Unknown variance given for subtype check: $sVariance");
         }
       } else {
-        if (!_isSubtype(universe, sArg, sEnv, tArg, tEnv)) return false;
+        if (!_isSubtype(universe, sArg, sEnv, tArg, tEnv, isLegacy)) {
+          return false;
+        }
       }
     }
     return true;
@@ -2610,7 +2663,9 @@ bool _isInterfaceSubtype(universe, Rti s, sEnv, Rti t, tEnv) {
     String recipe = _Utils.asString(_Utils.arrayAt(supertypeArgs, i));
     Rti supertypeArg = _Universe.evalInEnvironment(universe, s, recipe);
     Rti tArg = _castToRti(_Utils.arrayAt(tArgs, i));
-    if (!_isSubtype(universe, supertypeArg, sEnv, tArg, tEnv)) return false;
+    if (!_isSubtype(universe, supertypeArg, sEnv, tArg, tEnv, isLegacy)) {
+      return false;
+    }
   }
   return true;
 }
@@ -2620,10 +2675,10 @@ bool _isInterfaceSubtype(universe, Rti s, sEnv, Rti t, tEnv) {
 ///
 /// We ignore renaming of bound type variables because we operate on de Bruijn
 /// indices, not names.
-bool typeEqual(Rti s, Rti t) {
+bool typeEqual(Rti s, Rti t, bool isLegacy) {
   if (_Utils.isIdentical(s, t)) return true;
 
-  if (isTopType(s)) return isTopType(t);
+  if (isTopType(s, isLegacy)) return isTopType(t, isLegacy);
 
   int sKind = Rti._getKind(s);
   int tKind = Rti._getKind(t);
@@ -2633,46 +2688,49 @@ bool typeEqual(Rti s, Rti t) {
     case Rti.kindStar:
     case Rti.kindQuestion:
     case Rti.kindFutureOr:
-      return typeEqual(
-          _castToRti(Rti._getPrimary(s)), _castToRti(Rti._getPrimary(t)));
+      return typeEqual(_castToRti(Rti._getPrimary(s)),
+          _castToRti(Rti._getPrimary(t)), isLegacy);
 
     case Rti.kindInterface:
       if (Rti._getInterfaceName(s) != Rti._getInterfaceName(t)) return false;
-      return typesEqual(
-          Rti._getInterfaceTypeArguments(s), Rti._getInterfaceTypeArguments(t));
+      return typesEqual(Rti._getInterfaceTypeArguments(s),
+          Rti._getInterfaceTypeArguments(t), isLegacy);
 
     case Rti.kindBinding:
-      return typeEqual(Rti._getBindingBase(s), Rti._getBindingBase(t)) &&
-          typesEqual(Rti._getBindingArguments(s), Rti._getBindingArguments(t));
+      return typeEqual(
+              Rti._getBindingBase(s), Rti._getBindingBase(t), isLegacy) &&
+          typesEqual(Rti._getBindingArguments(s), Rti._getBindingArguments(t),
+              isLegacy);
 
     case Rti.kindFunction:
-      return typeEqual(Rti._getReturnType(s), Rti._getReturnType(t)) &&
-          functionParametersEqual(
-              Rti._getFunctionParameters(s), Rti._getFunctionParameters(t));
+      return typeEqual(
+              Rti._getReturnType(s), Rti._getReturnType(t), isLegacy) &&
+          functionParametersEqual(Rti._getFunctionParameters(s),
+              Rti._getFunctionParameters(t), isLegacy);
 
     case Rti.kindGenericFunction:
-      return typeEqual(
-              Rti._getGenericFunctionBase(s), Rti._getGenericFunctionBase(t)) &&
+      return typeEqual(Rti._getGenericFunctionBase(s),
+              Rti._getGenericFunctionBase(t), isLegacy) &&
           typesEqual(Rti._getGenericFunctionBounds(s),
-              Rti._getGenericFunctionBounds(t));
+              Rti._getGenericFunctionBounds(t), isLegacy);
 
     default:
       return false;
   }
 }
 
-bool typesEqual(Object sArray, Object tArray) {
+bool typesEqual(Object sArray, Object tArray, isLegacy) {
   int sLength = _Utils.arrayLength(sArray);
   int tLength = _Utils.arrayLength(tArray);
   if (sLength != tLength) return false;
   for (int i = 0; i < sLength; i++) {
     if (!typeEqual(_castToRti(_Utils.arrayAt(sArray, i)),
-        _castToRti(_Utils.arrayAt(tArray, i)))) return false;
+        _castToRti(_Utils.arrayAt(tArray, i)), isLegacy)) return false;
   }
   return true;
 }
 
-bool namedTypesEqual(Object sArray, Object tArray) {
+bool namedTypesEqual(Object sArray, Object tArray, isLegacy) {
   int sLength = _Utils.arrayLength(sArray);
   int tLength = _Utils.arrayLength(tArray);
   assert(sLength.isEven);
@@ -2682,34 +2740,43 @@ bool namedTypesEqual(Object sArray, Object tArray) {
     if (_Utils.asString(_Utils.arrayAt(sArray, i)) !=
         _Utils.asString(_Utils.arrayAt(tArray, i))) return false;
     if (!typeEqual(_castToRti(_Utils.arrayAt(sArray, i + 1)),
-        _castToRti(_Utils.arrayAt(tArray, i + 1)))) return false;
+        _castToRti(_Utils.arrayAt(tArray, i + 1)), isLegacy)) return false;
   }
   return true;
 }
 
 // TODO(fishythefish): Support required named parameters.
-bool functionParametersEqual(
-        _FunctionParameters sParameters, _FunctionParameters tParameters) =>
+bool functionParametersEqual(_FunctionParameters sParameters,
+        _FunctionParameters tParameters, isLegacy) =>
     typesEqual(_FunctionParameters._getRequiredPositional(sParameters),
-        _FunctionParameters._getRequiredPositional(tParameters)) &&
+        _FunctionParameters._getRequiredPositional(tParameters), isLegacy) &&
     typesEqual(_FunctionParameters._getOptionalPositional(sParameters),
-        _FunctionParameters._getOptionalPositional(tParameters)) &&
+        _FunctionParameters._getOptionalPositional(tParameters), isLegacy) &&
     namedTypesEqual(_FunctionParameters._getOptionalNamed(sParameters),
-        _FunctionParameters._getOptionalNamed(tParameters));
+        _FunctionParameters._getOptionalNamed(tParameters), isLegacy);
 
-// TODO(fishythefish): Update for NNBD - check for `Object?` instead of
-// `Object`.
-bool isTopType(Rti t) {
-  if (isObjectType(t)) return true;
+bool isLegacyTopType(Rti t) => isTopType(t, true);
+bool isNnbdTopType(Rti t) => isTopType(t, false);
+bool isTopType(Rti t, bool isLegacy) {
+  if (isLegacy) {
+    if (isObjectType(t)) return true;
+  } else {
+    if (isNullableObjectType(t)) return true;
+  }
   int kind = Rti._getKind(t);
   return kind == Rti.kindDynamic ||
       kind == Rti.kindVoid ||
       kind == Rti.kindAny ||
       kind == Rti.kindErased ||
-      kind == Rti.kindFutureOr && isTopType(Rti._getFutureOrArgument(t));
+      kind == Rti.kindFutureOr &&
+          isTopType(Rti._getFutureOrArgument(t), isLegacy);
 }
 
 bool isObjectType(Rti t) => _Utils.isIdentical(t, TYPE_REF<Object>());
+// TODO(fishythefish): Use `TYPE_REF<Object?>()`.
+bool isNullableObjectType(Rti t) =>
+    Rti._getKind(t) == Rti.kindQuestion &&
+    isObjectType(Rti._getQuestionArgument(t));
 bool isNullType(Rti t) => _Utils.isIdentical(t, TYPE_REF<Null>());
 bool isFunctionType(Rti t) => _Utils.isIdentical(t, TYPE_REF<Function>());
 bool isJsFunctionType(Rti t) =>
@@ -2808,8 +2875,8 @@ void testingAddTypeParameterVariances(universe, variances) {
   _Universe.addTypeParameterVariances(universe, variances);
 }
 
-bool testingIsSubtype(universe, rti1, rti2) {
-  return isSubtype(universe, _castToRti(rti1), _castToRti(rti2));
+bool testingIsLegacySubtype(universe, rti1, rti2) {
+  return isLegacySubtype(universe, _castToRti(rti1), _castToRti(rti2));
 }
 
 Object testingUniverseEval(universe, String recipe) {

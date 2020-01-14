@@ -302,7 +302,7 @@ class MockAnalysisError implements engine.AnalysisError {
   String message;
 
   @override
-  String correction = null;
+  String correction;
 
   @override
   int length;

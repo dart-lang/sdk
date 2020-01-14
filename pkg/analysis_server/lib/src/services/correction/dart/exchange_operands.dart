@@ -39,7 +39,7 @@ class ExchangeOperands extends CorrectionProducer {
     // maybe replace the operator
     Token operator = binaryExpression.operator;
     // prepare a new operator
-    String newOperator = null;
+    String newOperator;
     TokenType operatorType = operator.type;
     if (operatorType == TokenType.LT) {
       newOperator = '>';

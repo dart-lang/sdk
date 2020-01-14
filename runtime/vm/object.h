@@ -6639,15 +6639,17 @@ class Instance : public Object {
       const TypeArguments& other_instantiator_type_arguments,
       const TypeArguments& other_function_type_arguments) const;
 
-  // Return true if the null instance is an instance of other type.
-  static bool NullIsInstanceOf(
-      NNBDMode mode,
+  // Return true if the null instance is an instance of other type according to
+  // legacy semantics (independently of the current value of the strong flag).
+  // It only makes sense in a legacy library.
+  static bool Legacy_NullIsInstanceOf(
       const AbstractType& other,
       const TypeArguments& other_instantiator_type_arguments,
       const TypeArguments& other_function_type_arguments);
 
   // Return true if the null instance is an instance of other type according to
   // NNBD semantics (independently of the current value of the strong flag).
+  // It only makes sense in an opted-in library.
   static bool NNBD_NullIsInstanceOf(
       const AbstractType& other,
       const TypeArguments& other_instantiator_type_arguments,
@@ -7123,10 +7125,16 @@ class AbstractType : public Instance {
   bool IsObjectType() const { return type_class_id() == kInstanceCid; }
 
   // Check if this type represents a top type.
-  bool IsTopType() const;
+  bool IsTopType(NNBDMode mode) const;
+
+  // Check if this type represents a top type according to legacy
+  // semantics (independently of the current value of the strong flag or of the
+  // nnbd mode).
+  bool Legacy_IsTopType() const;
 
   // Check if this type represents a top type according to NNBD
-  // semantics (independently of the current value of the strong flag).
+  // semantics (independently of the current value of the strong flag or of the
+  // nnbd mode).
   bool NNBD_IsTopType() const;
 
   // Check if this type represents the 'bool' type.

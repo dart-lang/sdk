@@ -335,7 +335,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
     }
 
     // Collect used public names.
-    var usedNames = Set<String>();
+    var usedNames = <String>{};
     for (var parameter in _parameters) {
       if (!parameter.name.startsWith('_')) {
         usedNames.add(parameter.name);
@@ -598,7 +598,7 @@ class _ParametersCollector extends RecursiveAstVisitor<void> {
   final SourceRange expressionRange;
 
   final RefactoringStatus status = RefactoringStatus();
-  final Set<Element> uniqueElements = Set<Element>();
+  final Set<Element> uniqueElements = <Element>{};
   final List<_Parameter> parameters = [];
 
   List<ClassElement> enclosingClasses;

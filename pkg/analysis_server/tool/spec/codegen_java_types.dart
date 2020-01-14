@@ -56,7 +56,7 @@ final GeneratedDirectory targetDir =
     GeneratedDirectory(pathToGenTypes, (String pkgPath) {
   Api api = readApi(pkgPath);
   Map<String, ImpliedType> impliedTypes = computeImpliedTypes(api);
-  Map<String, FileContentsComputer> map = Map<String, FileContentsComputer>();
+  Map<String, FileContentsComputer> map = <String, FileContentsComputer>{};
   for (ImpliedType impliedType in impliedTypes.values) {
     String typeNameInSpec = capitalize(impliedType.camelName);
     bool isRefactoringFeedback = impliedType.kind == 'refactoringFeedback';
@@ -73,7 +73,7 @@ final GeneratedDirectory targetDir =
           typeNameInJava = _typeRenames[typeNameInSpec];
         }
         map['$typeNameInJava.java'] = (String pkgPath) async {
-          String superclassName = null;
+          String superclassName;
           if (isRefactoringFeedback) {
             superclassName = 'RefactoringFeedback';
           }
@@ -366,7 +366,7 @@ class CodegenJavaType extends CodegenJavaVisitor {
         }));
         write('public $className(');
         // write out parameters to constructor
-        List<String> parameters = List();
+        List<String> parameters = [];
         if (className == 'Outline') {
           parameters.add('Outline parent');
         }
@@ -515,7 +515,7 @@ class CodegenJavaType extends CodegenJavaVisitor {
               writeln(';');
             }
             write('return new $className(');
-            List<String> parameters = List();
+            List<String> parameters = [];
             for (TypeObjectField field in fields) {
               if (!_isTypeFieldInUpdateContentUnionType(
                   className, field.name)) {
@@ -631,7 +631,7 @@ class CodegenJavaType extends CodegenJavaVisitor {
             writeln('$className other = ($className) obj;');
             writeln('return');
             indent(() {
-              List<String> equalsForField = List<String>();
+              List<String> equalsForField = <String>[];
               for (TypeObjectField field in fields) {
                 equalsForField.add(_getEqualsLogicForField(field, 'other'));
               }

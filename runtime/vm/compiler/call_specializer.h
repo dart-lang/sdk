@@ -168,7 +168,6 @@ class CallSpecializer : public FlowGraphVisitor {
   // necessary for common number-related type tests.  Unconditionally adds an
   // entry for the Smi type to the start of the array.
   static bool SpecializeTestCidsForNumericTypes(
-      NNBDMode mode,
       ZoneGrowableArray<intptr_t>* results,
       const AbstractType& type);
 

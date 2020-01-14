@@ -883,6 +883,14 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         decoratedTypeArguments = const [];
       }
     }
+
+    if (node.staticType.isDartCoreList &&
+        callee.name == '' &&
+        node.argumentList.arguments.length == 1) {
+      _graph.connect(_graph.always, decoratedTypeArguments[0].node,
+          ListLengthConstructorOrigin(source, node));
+    }
+
     var nullabilityNode = NullabilityNode.forInferredType();
     _graph.makeNonNullable(
         nullabilityNode, InstanceCreationOrigin(source, node));

@@ -177,7 +177,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
 
   @override
   visitCompilationUnit(CompilationUnit node) {
-    var previousMember = null;
+    var previousMember;
     for (var member in node.childEntities) {
       if (entity == member) {
         break;
@@ -341,13 +341,8 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
         previous = node.findPrevious(previous);
       }
       if (previous != null && previous.type == TokenType.EQ) {
-        _addSuggestions([
-          Keyword.CONST,
-          Keyword.FALSE,
-          Keyword.NEW,
-          Keyword.NULL,
-          Keyword.TRUE
-        ]);
+        _addSuggestions(
+            [Keyword.CONST, Keyword.FALSE, Keyword.NULL, Keyword.TRUE]);
       } else {
         _addSuggestion(Keyword.IN, DART_RELEVANCE_HIGH);
       }
@@ -735,7 +730,6 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
     _addSuggestions([
       Keyword.CONST,
       Keyword.FALSE,
-      Keyword.NEW,
       Keyword.NULL,
       Keyword.TRUE,
     ]);
@@ -829,7 +823,6 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
       Keyword.FINAL,
       Keyword.FOR,
       Keyword.IF,
-      Keyword.NEW,
       Keyword.RETURN,
       Keyword.SWITCH,
       Keyword.THROW,

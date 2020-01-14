@@ -108,8 +108,8 @@ class LanguageModel {
     // Get scores (as floats)
     final probabilities = Float32List.view(bytes.buffer);
 
-    final scores = Map<String, double>();
-    final scoresAboveThreshold = Map<String, double>();
+    final scores = <String, double>{};
+    final scoresAboveThreshold = <String, double>{};
     probabilities.asMap().forEach((k, v) {
       // x in 0, 1, ..., |V| - 1 correspond to specific members of the vocabulary.
       // x in |V|, |V| + 1, ..., |V| + 49 are pointers to reference positions along the

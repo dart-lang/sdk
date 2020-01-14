@@ -108,7 +108,7 @@ class TimingResult {
    */
   List<int> toMilliseconds(List<int> times) {
     int count = times.length;
-    List<int> convertedValues = List<int>();
+    List<int> convertedValues = <int>[];
     for (int i = 0; i < count; i++) {
       convertedValues.add(times[i] ~/ NANOSECONDS_PER_MILLISECOND);
     }
@@ -224,7 +224,7 @@ abstract class TimingTest extends IntegrationTestMixin {
    * number of times.
    */
   Future<TimingResult> run() async {
-    List<int> times = List<int>();
+    List<int> times = <int>[];
     await oneTimeSetUp();
     await _repeat(warmupCount, null);
     await _repeat(timingCount, times);

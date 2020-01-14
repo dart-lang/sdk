@@ -407,7 +407,6 @@ Future<CompilerResult> _compile(List<String> args,
         inlineSourceMap: options.inlineSourceMap,
         jsUrl: p.toUri(output).toString(),
         mapUrl: p.toUri(output + '.map').toString(),
-        bazelMapping: options.bazelMapping,
         customScheme: multiRootScheme,
         multiRootOutputPath: multiRootOutputPath);
 
@@ -507,7 +506,6 @@ Future<CompilerResult> compileSdkFromDill(List<String> args) async {
         inlineSourceMap: options.inlineSourceMap,
         jsUrl: p.toUri(output).toString(),
         mapUrl: p.toUri(output + '.map').toString(),
-        bazelMapping: options.bazelMapping,
         customScheme: multiRootScheme,
         multiRootOutputPath: multiRootOutputPath);
 
@@ -543,7 +541,6 @@ JSCode jsProgramToCode(js_ast.Program moduleTree, ModuleFormat format,
     bool inlineSourceMap = false,
     String jsUrl,
     String mapUrl,
-    Map<String, String> bazelMapping,
     String customScheme,
     String multiRootOutputPath}) {
   var opts = js_ast.JavaScriptPrintingOptions(
@@ -564,8 +561,7 @@ JSCode jsProgramToCode(js_ast.Program moduleTree, ModuleFormat format,
 
   Map builtMap;
   if (buildSourceMap && sourceMap != null) {
-    builtMap = placeSourceMap(
-        sourceMap.build(jsUrl), mapUrl, bazelMapping, customScheme,
+    builtMap = placeSourceMap(sourceMap.build(jsUrl), mapUrl, customScheme,
         multiRootOutputPath: multiRootOutputPath);
     var jsDir = p.dirname(p.fromUri(jsUrl));
     var relative = p.relative(p.fromUri(mapUrl), from: jsDir);

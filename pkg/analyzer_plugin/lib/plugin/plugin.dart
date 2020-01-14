@@ -635,7 +635,7 @@ abstract class ServerPlugin {
   Future<Response> _getResponse(Request request, int requestTime) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    ResponseResult result = null;
+    ResponseResult result;
     switch (request.method) {
       case ANALYSIS_REQUEST_GET_NAVIGATION:
         var params = AnalysisGetNavigationParams.fromRequest(request);

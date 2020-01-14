@@ -41,7 +41,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
   /**
    * The completion services that the client is currently subscribed.
    */
-  final Set<CompletionService> subscriptions = Set<CompletionService>();
+  final Set<CompletionService> subscriptions = <CompletionService>{};
 
   /**
    * The next completion response id.
@@ -354,8 +354,8 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     Set<String> includedElementNames;
     List<IncludedSuggestionRelevanceTag> includedSuggestionRelevanceTags;
     if (subscriptions.contains(CompletionService.AVAILABLE_SUGGESTION_SETS)) {
-      includedElementKinds = Set<ElementKind>();
-      includedElementNames = Set<String>();
+      includedElementKinds = <ElementKind>{};
+      includedElementNames = <String>{};
       includedSuggestionRelevanceTags = <IncludedSuggestionRelevanceTag>[];
     }
 

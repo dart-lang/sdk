@@ -21,7 +21,7 @@ import 'package:pub_semver/pub_semver.dart';
 ///
 /// Clients may mix-in this class, but may not extend or implement it.
 mixin ConnectionHandler implements NotificationHandler {
-  Completer<bool> _connected = Completer();
+  final Completer<bool> _connected = Completer();
 
   /// Clients should implement this method to return the server being managed.
   /// This mixin will stop the server process if a connection cannot be

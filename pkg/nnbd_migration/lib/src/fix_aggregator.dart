@@ -13,14 +13,15 @@ import 'package:nnbd_migration/src/edit_plan.dart';
 /// TODO(paulberry): store additional information necessary to include in the
 /// preview.
 class AddRequiredKeyword extends _NestableChange {
-  const AddRequiredKeyword([NodeChange inner = const NoChange()])
+  const AddRequiredKeyword(
+      [NodeChange<NodeProducingEditPlan> inner = const NoChange()])
       : super(inner);
 
   @override
   EditPlan apply(AstNode node, FixAggregator aggregator) {
     var innerPlan = _inner.apply(node, aggregator);
     return aggregator.planner
-        .surround(innerPlan, prefix: [const InsertText('required ')]);
+        .surround(innerPlan, prefix: [const AtomicEdit.insert('required ')]);
   }
 }
 
@@ -40,7 +41,7 @@ class FixAggregator extends UnifyingAstVisitor<void> {
 
   /// Gathers all the changes to nodes descended from [node] into a single
   /// [EditPlan].
-  EditPlan innerPlanForNode(AstNode node) {
+  NodeProducingEditPlan innerPlanForNode(AstNode node) {
     var previousPlans = _plans;
     try {
       _plans = [];
@@ -77,7 +78,7 @@ class FixAggregator extends UnifyingAstVisitor<void> {
     } else {
       plan = planner.passThrough(unit, innerPlans: aggregator._plans);
     }
-    return plan.finalize();
+    return planner.finalize(plan);
   }
 }
 
@@ -90,14 +91,15 @@ class IntroduceAs extends _NestableChange {
   /// TODO(paulberry): shouldn't be a String
   final String type;
 
-  const IntroduceAs(this.type, [NodeChange inner = const NoChange()])
+  const IntroduceAs(this.type,
+      [NodeChange<NodeProducingEditPlan> inner = const NoChange()])
       : super(inner);
 
   @override
   EditPlan apply(AstNode node, FixAggregator aggregator) {
     var innerPlan = _inner.apply(node, aggregator);
     return aggregator.planner.surround(innerPlan,
-        suffix: [InsertText(' as $type')],
+        suffix: [AtomicEdit.insert(' as $type')],
         outerPrecedence: Precedence.relational,
         innerPrecedence: Precedence.relational);
   }
@@ -109,31 +111,33 @@ class IntroduceAs extends _NestableChange {
 /// TODO(paulberry): store additional information necessary to include in the
 /// preview.
 class MakeNullable extends _NestableChange {
-  const MakeNullable([NodeChange inner = const NoChange()]) : super(inner);
+  const MakeNullable(
+      [NodeChange<NodeProducingEditPlan> inner = const NoChange()])
+      : super(inner);
 
   @override
   EditPlan apply(AstNode node, FixAggregator aggregator) {
     var innerPlan = _inner.apply(node, aggregator);
     return aggregator.planner
-        .surround(innerPlan, suffix: [const InsertText('?')]);
+        .surround(innerPlan, suffix: [const AtomicEdit.insert('?')]);
   }
 }
 
 /// Implementation of [NodeChange] representing no change at all.  This class
 /// is intended to be used as a base class for changes that wrap around other
 /// changes.
-class NoChange extends NodeChange {
+class NoChange extends NodeChange<NodeProducingEditPlan> {
   const NoChange();
 
   @override
-  EditPlan apply(AstNode node, FixAggregator aggregator) {
+  NodeProducingEditPlan apply(AstNode node, FixAggregator aggregator) {
     return aggregator.innerPlanForNode(node);
   }
 }
 
 /// Base class representing a kind of change that [FixAggregator] might make to a
 /// particular AST node.
-abstract class NodeChange {
+abstract class NodeChange<P extends EditPlan> {
   const NodeChange();
 
   /// Applies this change to the given [node], producing an [EditPlan].  The
@@ -145,7 +149,7 @@ abstract class NodeChange {
   /// below them (e.g. dropping an unnecessary cast), so those changes need to
   /// be able to call the appropriate [aggregator] methods just on the nodes
   /// they need.
-  EditPlan apply(AstNode node, FixAggregator aggregator);
+  P apply(AstNode node, FixAggregator aggregator);
 }
 
 /// Implementation of [NodeChange] representing the addition of a null check to
@@ -154,13 +158,14 @@ abstract class NodeChange {
 /// TODO(paulberry): store additional information necessary to include in the
 /// preview.
 class NullCheck extends _NestableChange {
-  const NullCheck([NodeChange inner = const NoChange()]) : super(inner);
+  const NullCheck([NodeChange<NodeProducingEditPlan> inner = const NoChange()])
+      : super(inner);
 
   @override
   EditPlan apply(AstNode node, FixAggregator aggregator) {
     var innerPlan = _inner.apply(node, aggregator);
     return aggregator.planner.surround(innerPlan,
-        suffix: [const InsertText('!')],
+        suffix: [const AtomicEdit.insert('!')],
         outerPrecedence: Precedence.postfix,
         innerPrecedence: Precedence.postfix,
         associative: true);
@@ -173,7 +178,8 @@ class NullCheck extends _NestableChange {
 /// TODO(paulberry): store additional information necessary to include in the
 /// preview.
 class RemoveAs extends _NestableChange {
-  const RemoveAs([NodeChange inner = const NoChange()]) : super(inner);
+  const RemoveAs([NodeChange<NodeProducingEditPlan> inner = const NoChange()])
+      : super(inner);
 
   @override
   EditPlan apply(AstNode node, FixAggregator aggregator) {
@@ -184,7 +190,7 @@ class RemoveAs extends _NestableChange {
 
 /// Shared base class for [NodeChange]s that are based on an [_inner] change.
 abstract class _NestableChange extends NodeChange {
-  final NodeChange _inner;
+  final NodeChange<NodeProducingEditPlan> _inner;
 
   const _NestableChange(this._inner);
 }

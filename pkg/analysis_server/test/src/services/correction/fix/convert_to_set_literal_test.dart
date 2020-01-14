@@ -59,12 +59,41 @@ var s = /*LINT*/<int>{};
 ''');
   }
 
+  @failingTest
+  test_default_typeArg_linkedHashSet() async {
+    // LinkedHashSet isn't converted even though the lint reports that case.
+    await resolveTestUnit('''
+import 'dart:collection';
+
+var s = /*LINT*/LinkedHashSet<int>();
+''');
+    await assertHasFix('''
+import 'dart:collection';
+
+var s = /*LINT*/<int>{};
+''');
+  }
+
   test_from_empty() async {
     await resolveTestUnit('''
 var s = /*LINT*/Set.from([]);
 ''');
     await assertHasFix('''
 var s = /*LINT*/<dynamic>{};
+''');
+  }
+
+  @failingTest
+  test_from_inferred() async {
+    // _setWouldBeInferred does not check for inference based on the parameter
+    // type.
+    await resolveTestUnit('''
+void f(Set<int> s) {}
+var s = f(/*LINT*/Set.from([]));
+''');
+    await assertHasFix('''
+void f(Set<int> s) {}
+var s = f(/*LINT*/{});
 ''');
   }
 

@@ -80,7 +80,7 @@ class RequestData {
    * The time at which the response was received, or `null` if no response has
    * been received.
    */
-  int responseTime = null;
+  int responseTime;
 
   /**
    * The response that was received.
@@ -162,7 +162,7 @@ class Server {
    * The process in which the server is running, or `null` if the server hasn't
    * been started yet.
    */
-  Process _process = null;
+  Process _process;
 
   /**
    * Number that should be used to compute the 'id' to send in the next command
@@ -220,7 +220,7 @@ class Server {
    * If a [logger] is provided, the communications between the client (this
    * test) and the server will be written to it.
    */
-  Server({this.logger = null});
+  Server({this.logger});
 
   /**
    * Return a future that will complete when a 'server.status' notification is

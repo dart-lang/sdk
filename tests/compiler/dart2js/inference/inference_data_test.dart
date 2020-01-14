@@ -24,6 +24,7 @@ main(List<String> args) {
     await checkTests(dataDir, const InferenceDataComputer(),
         args: args,
         testedConfigs: [strongConfig],
+        supportedMarkers: [strongMarker],
         options: [stopAfterTypeInference]);
   });
 }

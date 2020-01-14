@@ -146,11 +146,11 @@ class TypeMaskIrComputer extends IrDataExtractor<String> {
       ClosureRepresentationInfo info = _closureDataLookup.getClosureInfo(node);
       return getMemberValue(info.callMethod);
     } else if (node is ir.MethodInvocation) {
-      return getTypeMaskValue(result.typeOfSend(node));
+      return getTypeMaskValue(result.typeOfReceiver(node));
     } else if (node is ir.PropertyGet) {
-      return getTypeMaskValue(result.typeOfGetter(node));
+      return getTypeMaskValue(result.typeOfReceiver(node));
     } else if (node is ir.PropertySet) {
-      return getTypeMaskValue(result.typeOfSend(node));
+      return getTypeMaskValue(result.typeOfReceiver(node));
     } else if (node is ir.ForInStatement) {
       if (id.kind == IdKind.iterator) {
         return getTypeMaskValue(result.typeOfIterator(node));

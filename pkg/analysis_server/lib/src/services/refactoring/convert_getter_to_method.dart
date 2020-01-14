@@ -91,7 +91,7 @@ class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     // prepare "get" keyword
-    Token getKeyword = null;
+    Token getKeyword;
     {
       var sessionHelper = AnalysisSessionHelper(session);
       var result = await sessionHelper.getElementDeclaration(element);

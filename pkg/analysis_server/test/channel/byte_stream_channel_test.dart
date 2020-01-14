@@ -265,7 +265,7 @@ class _IOSinkMock implements IOSink {
   Encoding encoding;
 
   @override
-  Future done = null;
+  Future done;
 
   @override
   void add(List<int> data) {}

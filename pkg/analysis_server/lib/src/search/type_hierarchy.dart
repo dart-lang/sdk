@@ -117,7 +117,7 @@ class TypeHierarchyComputer {
     // create an empty item now
     int itemId;
     {
-      String displayName = null;
+      String displayName;
       if (typeArguments != null && typeArguments.isNotEmpty) {
         displayName =
             classElement.displayName + '<' + typeArguments.join(', ') + '>';

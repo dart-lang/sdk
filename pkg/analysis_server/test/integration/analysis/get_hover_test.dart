@@ -69,9 +69,9 @@ main() {
     List<String> staticTypeRegexps, {
     bool isLocal = false,
     bool isCore = false,
-    String docRegexp = null,
+    String docRegexp,
     bool isLiteral = false,
-    List<String> parameterRegexps = null,
+    List<String> parameterRegexps,
   }) {
     int offset = text.indexOf(target);
     return sendAnalysisGetHover(pathname, offset).then((result) async {

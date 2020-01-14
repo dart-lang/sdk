@@ -4286,7 +4286,11 @@ mixin A {
   }
 
   void test_parseTopLevelVariable_late() {
-    var unit = parseCompilationUnit('late a;', featureSet: nonNullable);
+    var unit = parseCompilationUnit('late a;',
+        featureSet: nonNullable,
+        errors: [
+          expectedError(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 5, 1)
+        ]);
     var declaration = unit.declarations[0] as TopLevelVariableDeclaration;
     var declarationList = declaration.variables;
     expect(declarationList.keyword, isNull);
@@ -4304,7 +4308,11 @@ mixin A {
   }
 
   void test_parseTopLevelVariable_late_init() {
-    var unit = parseCompilationUnit('late a = 0;', featureSet: nonNullable);
+    var unit = parseCompilationUnit('late a = 0;',
+        featureSet: nonNullable,
+        errors: [
+          expectedError(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 5, 1)
+        ]);
     var declaration = unit.declarations[0] as TopLevelVariableDeclaration;
     var declarationList = declaration.variables;
     expect(declarationList.keyword, isNull);

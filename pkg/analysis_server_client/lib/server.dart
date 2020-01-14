@@ -20,7 +20,7 @@ typedef NotificationProcessor = void Function(Notification notification);
 class Server {
   /// If not `null`, [_listener] will be sent information
   /// about interactions with the server.
-  ServerListener _listener;
+  final ServerListener _listener;
 
   /// Server process object, or `null` if server hasn't been started yet
   /// or if the server has already been stopped.

@@ -56,7 +56,7 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
     // update declaration
     {
       PrefixElement prefix = element.prefix;
-      SourceEdit edit = null;
+      SourceEdit edit;
       if (newName.isEmpty) {
         ImportDirective node = _findNode();
         int uriEnd = node.uri.end;

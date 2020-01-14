@@ -33,7 +33,7 @@ class DartUnitHighlightsComputer2 {
     while (token != null && token.type != TokenType.EOF) {
       Token commentToken = token.precedingComments;
       while (commentToken != null) {
-        HighlightRegionType highlightType = null;
+        HighlightRegionType highlightType;
         if (commentToken.type == TokenType.MULTI_LINE_COMMENT) {
           if (commentToken.lexeme.startsWith('/**')) {
             highlightType = HighlightRegionType.COMMENT_DOCUMENTATION;

@@ -8,6 +8,9 @@
 #include "vm/os.h"
 
 #include <errno.h>
+#include <fcntl.h>
+#include <stdint.h>
+
 #include <fuchsia/deprecatedtimezone/cpp/fidl.h>
 #include <lib/sys/cpp/service_directory.h>
 #include <zircon/process.h>
@@ -19,6 +22,27 @@
 #include "vm/zone.h"
 
 namespace dart {
+
+// The data directory containing ICU timezone data files.
+static constexpr char kICUTZDataDir[] = "/config/data/tzdata/icu/44/le";
+
+// Initializes the source of timezone data if available.  Timezone data file in
+// Fuchsia is at a fixed directory path.  Returns true on success.
+bool InitializeTZData() {
+  // Try opening the path to check if present.  No need to verify that it is a
+  // directory since ICU loading will return an error if the TZ data path is
+  // wrong.
+  int fd = openat(AT_FDCWD, kICUTZDataDir, O_RDONLY);
+  if (fd < 0) {
+    return false;
+  }
+  // 0 == Not overwriting the env var if already set.
+  setenv("ICU_TIMEZONE_FILES_DIR", kICUTZDataDir, 0);
+  if (!close(fd)) {
+    return false;
+  }
+  return true;
+}
 
 #ifndef PRODUCT
 
@@ -239,6 +263,7 @@ void OS::PrintErr(const char* format, ...) {
 }
 
 void OS::Init() {
+  InitializeTZData();
   auto services = sys::ServiceDirectory::CreateFromNamespace();
   services->Connect(tz.NewRequest());
 }

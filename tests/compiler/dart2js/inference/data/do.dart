@@ -47,7 +47,7 @@ doNotNull() {
   var o = '';
   do {
     o = o. /*invoke: [exact=JSString]*/ toString();
-  } while (o != null);
+  } while (o /*invoke: [null|exact=JSString]*/ != null);
   return o;
 }
 
@@ -60,7 +60,7 @@ doNullFalse() {
   var o = '';
   do {
     o = o. /*invoke: [exact=JSString]*/ toString();
-  } while (o == null);
+  } while (o /*invoke: [null|exact=JSString]*/ == null);
   return o;
 }
 

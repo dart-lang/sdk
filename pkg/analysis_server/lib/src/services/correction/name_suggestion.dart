@@ -46,7 +46,7 @@ List<String> getVariableNameSuggestionsForExpression(
     }
   }
 
-  Set<String> res = Set();
+  Set<String> res = {};
   // use expression
   if (assignedExpression != null) {
     String nameFromExpression = _getBaseNameFromExpression(assignedExpression);
@@ -108,7 +108,7 @@ List<String> getVariableNameSuggestionsForText(
     text = sb.toString();
   }
   // split camel-case into separate suggested names
-  Set<String> res = Set();
+  Set<String> res = {};
   _addAll(excluded, res, getCamelWordCombinations(text));
   return List.from(res);
 }
@@ -178,7 +178,7 @@ String _getBaseNameFromLocationInParent(Expression expression) {
 }
 
 String _getBaseNameFromUnwrappedExpression(Expression expression) {
-  String name = null;
+  String name;
   // analyze expressions
   if (expression is SimpleIdentifier) {
     return expression.name;

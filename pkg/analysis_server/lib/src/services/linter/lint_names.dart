@@ -29,6 +29,7 @@ class LintNames {
   static const String empty_catches = 'empty_catches';
   static const String empty_constructor_bodies = 'empty_constructor_bodies';
   static const String empty_statements = 'empty_statements';
+  static const String hash_and_equals = 'hash_and_equals';
   static const String no_duplicate_case_values = 'no_duplicate_case_values';
   static const String non_constant_identifier_names =
       'non_constant_identifier_names';
@@ -51,13 +52,14 @@ class LintNames {
       'prefer_for_elements_to_map_fromIterable';
   static const String prefer_generic_function_type_aliases =
       'prefer_generic_function_type_aliases';
-  static const String prefer_inlined_adds = 'prefer_inlined_adds';
-  static const String prefer_int_literals = 'prefer_int_literals';
   static const String prefer_if_elements_to_conditional_expressions =
       'prefer_if_elements_to_conditional_expressions';
+  static const String prefer_if_null_operators = 'prefer_if_null_operators';
+  static const String prefer_inlined_adds = 'prefer_inlined_adds';
+  static const String prefer_int_literals = 'prefer_int_literals';
   static const String prefer_is_empty = 'prefer_is_empty';
   static const String prefer_is_not_empty = 'prefer_is_not_empty';
-  static const String prefer_if_null_operators = 'prefer_if_null_operators';
+  static const String prefer_iterable_whereType = 'prefer_iterable_whereType';
   static const String prefer_null_aware_operators =
       'prefer_null_aware_operators';
   static const String prefer_relative_imports = 'prefer_relative_imports';
@@ -73,7 +75,11 @@ class LintNames {
   static const String unnecessary_const = 'unnecessary_const';
   static const String unnecessary_lambdas = 'unnecessary_lambdas';
   static const String unnecessary_new = 'unnecessary_new';
+  static const String unnecessary_null_in_if_null_operators =
+      'unnecessary_null_in_if_null_operators';
   static const String unnecessary_overrides = 'unnecessary_overrides';
   static const String unnecessary_this = 'unnecessary_this';
+  static const String use_function_type_syntax_for_parameters =
+      'use_function_type_syntax_for_parameters';
   static const String use_rethrow_when_possible = 'use_rethrow_when_possible';
 }

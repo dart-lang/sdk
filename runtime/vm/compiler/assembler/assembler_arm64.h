@@ -1002,6 +1002,11 @@ class Assembler : public AssemblerBase {
     EmitCompareAndBranch(CBNZ, rt, label, sz);
   }
 
+  // Generate 64-bit compare with zero and branch when condition allows to use
+  // a single instruction: cbz/cbnz/tbz/tbnz.
+  bool CanGenerateXCbzTbz(Register rn, Condition cond);
+  void GenerateXCbzTbz(Register rn, Condition cond, Label* label);
+
   // Test bit and branch if zero.
   void tbz(Label* label, Register rt, intptr_t bit_number) {
     EmitTestAndBranch(TBZ, rt, bit_number, label);

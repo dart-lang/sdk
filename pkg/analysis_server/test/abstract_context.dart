@@ -20,6 +20,7 @@ import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:linter/src/rules.dart';
+import 'package:meta/meta.dart';
 
 import 'src/utilities/mock_packages.dart';
 
@@ -27,7 +28,7 @@ import 'src/utilities/mock_packages.dart';
  * Finds an [Element] with the given [name].
  */
 Element findChildElement(Element root, String name, [ElementKind kind]) {
-  Element result = null;
+  Element result;
   root.accept(_ElementVisitorFunctionWrapper((Element element) {
     if (element.name != name) {
       return;
@@ -182,6 +183,7 @@ class AbstractContextTest with ResourceProviderMixin {
     return resolveResult.unit;
   }
 
+  @mustCallSuper
   void setUp() {
     registerLintRules();
 

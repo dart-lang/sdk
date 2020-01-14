@@ -169,7 +169,7 @@ class AnalysisServer extends AbstractAnalysisServer {
     this.instrumentationService, {
     this.requestStatistics,
     DiagnosticServer diagnosticServer,
-    this.detachableFileSystemManager = null,
+    this.detachableFileSystemManager,
   }) : super(options, diagnosticServer, baseResourceProvider) {
     notificationManager = NotificationManager(channel, resourceProvider);
 
@@ -905,8 +905,8 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
 
   @override
   ContextBuilder createContextBuilder(Folder folder, AnalysisOptions options) {
-    String defaultPackageFilePath = null;
-    String defaultPackagesDirectoryPath = null;
+    String defaultPackageFilePath;
+    String defaultPackagesDirectoryPath;
     String path = (analysisServer.contextManager as ContextManagerImpl)
         .normalizedPackageRoots[folder.path];
     if (path != null) {

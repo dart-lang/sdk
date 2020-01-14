@@ -16,6 +16,7 @@ import 'package:analyzer/src/command_line/arguments.dart'
         bazelAnalysisOptionsPath,
         flutterAnalysisOptionsPath;
 import 'package:analyzer/src/context/context_root.dart';
+import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart' as api;
 import 'package:analyzer/src/dart/analysis/driver.dart'
@@ -40,9 +41,7 @@ import 'package:analyzer/src/workspace/package_build.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:args/args.dart';
-import 'package:package_config/packages.dart';
-import 'package:package_config/packages_file.dart';
-import 'package:package_config/src/packages_impl.dart';
+import 'package:package_config/packages.dart' as package_config;
 import 'package:path/src/context.dart';
 import 'package:yaml/yaml.dart';
 
@@ -182,16 +181,15 @@ class ContextBuilder {
     return driver;
   }
 
-  Map<String, List<Folder>> convertPackagesToMap(Packages packages) {
-    Map<String, List<Folder>> folderMap = HashMap<String, List<Folder>>();
-    if (packages != null && packages != Packages.noPackages) {
-      var pathContext = resourceProvider.pathContext;
-      packages.asMap().forEach((String packageName, Uri uri) {
-        String path = fileUriToNormalizedPath(pathContext, uri);
-        folderMap[packageName] = [resourceProvider.getFolder(path)];
-      });
+  /**
+   * Return an analysis options object containing the default option values.
+   */
+  AnalysisOptions createDefaultOptions() {
+    AnalysisOptions defaultOptions = builderOptions.defaultOptions;
+    if (defaultOptions == null) {
+      return AnalysisOptionsImpl();
     }
-    return folderMap;
+    return AnalysisOptionsImpl.from(defaultOptions);
   }
 
 //  void _processAnalysisOptions(
@@ -217,25 +215,11 @@ class ContextBuilder {
 //    }
 //  }
 
-  /**
-   * Return an analysis options object containing the default option values.
-   */
-  AnalysisOptions createDefaultOptions() {
-    AnalysisOptions defaultOptions = builderOptions.defaultOptions;
-    if (defaultOptions == null) {
-      return AnalysisOptionsImpl();
-    }
-    return AnalysisOptionsImpl.from(defaultOptions);
-  }
-
   Packages createPackageMap(String rootDirectoryPath) {
     String filePath = builderOptions.defaultPackageFilePath;
     if (filePath != null) {
       File configFile = resourceProvider.getFile(filePath);
-      List<int> bytes = configFile.readAsBytesSync();
-      Map<String, Uri> map = parse(bytes, configFile.toUri());
-      resolveSymbolicLinks(map);
-      return MapPackages(map);
+      return parseDotPackagesFile(resourceProvider, configFile);
     }
     String directoryPath = builderOptions.defaultPackagesDirectoryPath;
     if (directoryPath != null) {
@@ -276,27 +260,20 @@ class ContextBuilder {
    * that is not found, it instead checks for the presence of a `packages/`
    * directory in the same place. If that also fails, it starts checking parent
    * directories for a `.packages` file, and stops if it finds it. Otherwise it
-   * gives up and returns [Packages.noPackages].
+   * gives up and returns [Packages.empty].
    */
   Packages findPackagesFromFile(String path) {
     Resource location = _findPackagesLocation(path);
     if (location is File) {
-      List<int> fileBytes = location.readAsBytesSync();
-      Map<String, Uri> map;
       try {
-        map =
-            parse(fileBytes, resourceProvider.pathContext.toUri(location.path));
-      } catch (exception) {
-        // If we cannot read the file, then we respond as if the file did not
-        // exist.
-        return Packages.noPackages;
+        return parseDotPackagesFile(resourceProvider, location);
+      } catch (_) {
+        return Packages.empty;
       }
-      resolveSymbolicLinks(map);
-      return MapPackages(map);
     } else if (location is Folder) {
       return getPackagesFromFolder(location);
     }
-    return Packages.noPackages;
+    return Packages.empty;
   }
 
   /**
@@ -380,11 +357,7 @@ class ContextBuilder {
       }
     } else {
       // Search for the default analysis options.
-      // TODO(danrubel) determine if bazel or gn project depends upon flutter
-      Source source;
-      if (workspace.hasFlutterDependency) {
-        source = sourceFactory.forUri(flutterAnalysisOptionsPath);
-      }
+      Source source = sourceFactory.forUri(flutterAnalysisOptionsPath);
       if (source == null || !source.exists()) {
         source = sourceFactory.forUri(bazelAnalysisOptionsPath);
       }
@@ -461,20 +434,29 @@ class ContextBuilder {
    *
    * Package names are resolved as relative to sub-directories of the package
    * directory.
+   *
+   * TODO(scheglov) Remove this feature
    */
   Packages getPackagesFromFolder(Folder folder) {
     Context pathContext = resourceProvider.pathContext;
-    Map<String, Uri> map = HashMap<String, Uri>();
+    var map = <String, Package>{};
     for (Resource child in folder.getChildren()) {
       if (child is Folder) {
         // Inline resolveSymbolicLinks for performance reasons.
         String packageName = pathContext.basename(child.path);
-        String folderPath = resolveSymbolicLink(child);
-        String uriPath = pathContext.join(folderPath, '.');
-        map[packageName] = pathContext.toUri(uriPath);
+        String packagePath = resolveSymbolicLink(child);
+        var rootFolder = resourceProvider.getFolder(packagePath);
+        var libFolder = rootFolder.getChildAssumingFolder('lib');
+        var package = Package(
+          name: packageName,
+          rootFolder: rootFolder,
+          libFolder: libFolder,
+          languageVersion: null,
+        );
+        map[packageName] = package;
       }
     }
-    return MapPackages(map);
+    return Packages(map);
   }
 
   /**
@@ -520,37 +502,20 @@ class ContextBuilder {
    * if neither is found.
    */
   Resource _findPackagesLocation(String path) {
-    Folder folder = resourceProvider.getFolder(path);
-    if (!folder.exists) {
-      return null;
-    }
+    var resource = resourceProvider.getResource(path);
+    while (resource != null) {
+      if (resource is Folder) {
+        var dotPackagesFile = resource.getChildAssumingFile('.packages');
+        if (dotPackagesFile.exists) {
+          return dotPackagesFile;
+        }
 
-    File checkForConfigFile(Folder folder) {
-      File file = folder.getChildAssumingFile('.packages');
-      if (file.exists) {
-        return file;
+        var packagesDirectory = resource.getChildAssumingFolder('packages');
+        if (packagesDirectory.exists) {
+          return packagesDirectory;
+        }
       }
-      return null;
-    }
-
-    // Check for $cwd/.packages
-    File packagesCfgFile = checkForConfigFile(folder);
-    if (packagesCfgFile != null) {
-      return packagesCfgFile;
-    }
-    // Check for $cwd/packages/
-    Folder packagesDir = folder.getChildAssumingFolder("packages");
-    if (packagesDir.exists) {
-      return packagesDir;
-    }
-    // Check for cwd(/..)+/.packages
-    Folder parentDir = folder.parent;
-    while (parentDir != null) {
-      packagesCfgFile = checkForConfigFile(parentDir);
-      if (packagesCfgFile != null) {
-        return packagesCfgFile;
-      }
-      parentDir = parentDir.parent;
+      resource = resource.parent;
     }
     return null;
   }
@@ -573,24 +538,45 @@ class ContextBuilder {
     return null;
   }
 
+  static Map<String, List<Folder>> convertPackagesToMap(
+    ResourceProvider resourceProvider,
+    package_config.Packages packages,
+  ) {
+    Map<String, List<Folder>> folderMap = HashMap<String, List<Folder>>();
+    if (packages != null && packages != package_config.Packages.noPackages) {
+      var pathContext = resourceProvider.pathContext;
+      packages.asMap().forEach((String packageName, Uri uri) {
+        String path = fileUriToNormalizedPath(pathContext, uri);
+        folderMap[packageName] = [resourceProvider.getFolder(path)];
+      });
+    }
+    return folderMap;
+  }
+
   static Workspace createWorkspace(ResourceProvider resourceProvider,
       String rootPath, ContextBuilder contextBuilder) {
+    var packages = contextBuilder.createPackageMap(rootPath);
+    var packageMap = <String, List<Folder>>{};
+    for (var package in packages.packages) {
+      packageMap[package.name] = [package.libFolder];
+    }
+
     if (_hasPackageFileInPath(resourceProvider, rootPath)) {
       // A Bazel or Gn workspace that includes a '.packages' file is treated
       // like a normal (non-Bazel/Gn) directory. But may still use
       // package:build or Pub.
       return PackageBuildWorkspace.find(
-              resourceProvider, rootPath, contextBuilder) ??
-          PubWorkspace.find(resourceProvider, rootPath, contextBuilder) ??
-          BasicWorkspace.find(resourceProvider, rootPath, contextBuilder);
+              resourceProvider, packageMap, rootPath) ??
+          PubWorkspace.find(resourceProvider, packageMap, rootPath) ??
+          BasicWorkspace.find(resourceProvider, packageMap, rootPath);
     }
     Workspace workspace = BazelWorkspace.find(resourceProvider, rootPath);
     workspace ??= GnWorkspace.find(resourceProvider, rootPath);
     workspace ??=
-        PackageBuildWorkspace.find(resourceProvider, rootPath, contextBuilder);
-    workspace ??= PubWorkspace.find(resourceProvider, rootPath, contextBuilder);
-    return workspace ??
-        BasicWorkspace.find(resourceProvider, rootPath, contextBuilder);
+        PackageBuildWorkspace.find(resourceProvider, packageMap, rootPath);
+    workspace ??= PubWorkspace.find(resourceProvider, packageMap, rootPath);
+    workspace ??= BasicWorkspace.find(resourceProvider, packageMap, rootPath);
+    return workspace;
   }
 
   /**

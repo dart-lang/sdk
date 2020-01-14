@@ -34,7 +34,7 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
   /**
    * The set of libraries that have been, or are currently being, visited.
    */
-  final Set<LibraryElement> visitedLibraries = Set<LibraryElement>();
+  final Set<LibraryElement> visitedLibraries = <LibraryElement>{};
 
   LibraryElementSuggestionBuilder(this.request, this.optype, [this.prefix]) {
     kind = request.target.isFunctionalArgument()

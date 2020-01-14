@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io';
+
+import 'package:path/path.dart' as p;
+
 import 'package:migration/src/io.dart';
 import 'package:migration/src/test_directories.dart';
 
@@ -37,34 +41,46 @@ void main(List<String> arguments) {
   var totalMigratedFiles = 0;
   var totalMigratedLines = 0;
 
-  for (var dir in legacyRootDirs) {
-    var files = 0;
-    var lines = 0;
-    var migratedFiles = 0;
-    var migratedLines = 0;
+  for (var rootDir in legacyRootDirs) {
+    var subdirs = Directory(p.join(testRoot, rootDir))
+        .listSync()
+        .where((subdir) => subdir is Directory)
+        .map((subdir) => p.relative(subdir.path, from: testRoot))
+        .toList();
+    subdirs.add(rootDir);
+    subdirs.sort();
 
-    for (var legacyPath in listFiles(dir)) {
-      if (!_includeNonCoreLibs && _nonCoreLibs.any(legacyPath.startsWith)) {
-        continue;
+    for (var dir in subdirs) {
+      var files = 0;
+      var lines = 0;
+      var migratedFiles = 0;
+      var migratedLines = 0;
+
+      for (var legacyPath in listFiles(dir)) {
+        if (!_includeNonCoreLibs && _nonCoreLibs.any(legacyPath.startsWith)) {
+          continue;
+        }
+
+        files++;
+        var sourceLines = readFileLines(legacyPath);
+        lines += sourceLines.length;
+
+        var nnbdPath = toNnbdPath(legacyPath);
+        if (fileExists(nnbdPath) ||
+            sourceLines.any((line) => line.contains(_nonMigratedMarker))) {
+          migratedFiles++;
+          migratedLines += sourceLines.length;
+        }
       }
 
-      files++;
-      var sourceLines = readFileLines(legacyPath);
-      lines += sourceLines.length;
+      if (files == 0) continue;
 
-      var nnbdPath = toNnbdPath(legacyPath);
-      if (fileExists(nnbdPath) ||
-          sourceLines.any((line) => line.contains(_nonMigratedMarker))) {
-        migratedFiles++;
-        migratedLines += sourceLines.length;
-      }
+      _show(dir, migratedFiles, files, migratedLines, lines);
+      totalFiles += files;
+      totalLines += lines;
+      totalMigratedFiles += migratedFiles;
+      totalMigratedLines += migratedLines;
     }
-
-    _show(dir, migratedFiles, files, migratedLines, lines);
-    totalFiles += files;
-    totalLines += lines;
-    totalMigratedFiles += migratedFiles;
-    totalMigratedLines += migratedLines;
   }
 
   print("");
@@ -82,12 +98,17 @@ void _show(
   var migratedDays = migratedLines / _linesPerDay;
   var daysLeft = days - migratedDays;
 
-  print("${label.padRight(12)} ${pad(migratedFiles, 4)}/${pad(files, 4)} "
+  var daysLeftString = ", ${pad(daysLeft.toStringAsFixed(2), 6)}/"
+      "${pad(days.toStringAsFixed(2), 5)} days left";
+  if (migratedLines == 0) {
+    daysLeftString = ", ${pad(daysLeft.toStringAsFixed(2), 6)} days left";
+  } else if (migratedLines == lines) {
+    daysLeftString = "";
+  }
+
+  print("${label.padRight(40)} ${pad(migratedFiles, 4)}/${pad(files, 4)} "
       "files (${percent(migratedFiles, files)}%), "
       "${pad(migratedLines, 6)}/${pad(lines, 6)} "
-      "lines (${percent(migratedLines, lines)}%), "
-      "${pad(migratedDays.toStringAsFixed(2), 6)}/"
-      "${pad(days.toStringAsFixed(2), 5)} "
-      "days (${percent(migratedDays, days)}%), "
-      "${pad(daysLeft.toStringAsFixed(2), 5)} days left");
+      "lines (${percent(migratedLines, lines)}%)"
+      "$daysLeftString");
 }

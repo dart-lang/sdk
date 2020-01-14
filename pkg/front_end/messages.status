@@ -595,6 +595,10 @@ UnterminatedString/script8: Fail
 UnterminatedToken/analyzerCode: Fail
 UnterminatedToken/example: Fail
 UntranslatableUri/part_wrapped_script: Fail # Importing file in the (now) part.
+ValueForRequiredParameterNotProvidedError/analyzerCode: Fail
+ValueForRequiredParameterNotProvidedError/example: Fail
+ValueForRequiredParameterNotProvidedWarning/analyzerCode: Fail
+ValueForRequiredParameterNotProvidedWarning/example: Fail
 VarAsTypeName/part_wrapped_script1: Fail
 VarAsTypeName/script1: Fail # Too many problems
 WebLiteralCannotBeRepresentedExactly/analyzerCode: Fail

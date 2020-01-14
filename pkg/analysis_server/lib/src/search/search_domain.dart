@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:collection';
 
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/src/analysis_server.dart';
@@ -188,7 +187,7 @@ class SearchDomainHandler implements protocol.RequestHandler {
     }
 
     var tracker = server.declarationsTracker;
-    var files = LinkedHashSet<String>();
+    var files = <String>{};
     int remainingMaxResults = params.maxResults;
     var declarations = search.WorkspaceSymbols(tracker).declarations(
       regExp,

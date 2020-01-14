@@ -117,7 +117,7 @@ class _WidgetDescriptionComputer {
 
   /// The set of classes for which we are currently adding properties,
   /// used to prevent infinite recursion.
-  final Set<ClassElement> classesBeingProcessed = Set<ClassElement>();
+  final Set<ClassElement> classesBeingProcessed = <ClassElement>{};
 
   /// The resolved unit with the widget [InstanceCreationExpression].
   final ResolvedUnitResult resolvedUnit;
@@ -268,7 +268,7 @@ class _WidgetDescriptionComputer {
     var classElement = constructorElement.enclosingElement;
     if (!classesBeingProcessed.add(classElement)) return;
 
-    var existingNamed = Set<ParameterElement>();
+    var existingNamed = <ParameterElement>{};
     if (instanceCreation != null) {
       for (var argumentExpression in instanceCreation.argumentList.arguments) {
         var parameter = argumentExpression.staticParameterElement;

@@ -95,7 +95,7 @@ class Target extends Base implements Interface1, Interface2 {
         List<OverriddenMember> interfaceMembers = override.interfaceMembers;
         if (expectedOverridesInterfaces.isNotEmpty) {
           expect(interfaceMembers, isNotNull);
-          Set<String> actualOverridesInterfaces = Set<String>();
+          Set<String> actualOverridesInterfaces = <String>{};
           for (OverriddenMember overriddenMember in interfaceMembers) {
             expect(overriddenMember.element.name, equals(methodName));
             String className = overriddenMember.className;

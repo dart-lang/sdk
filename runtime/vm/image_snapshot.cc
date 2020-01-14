@@ -447,20 +447,28 @@ AssemblyImageWriter::AssemblyImageWriter(Thread* thread,
                                          Elf* debug_elf)
     : ImageWriter(thread->heap()),
       assembly_stream_(512 * KB, callback, callback_data),
-      dwarf_(nullptr) {
+      assembly_dwarf_(nullptr),
+      debug_dwarf_(nullptr) {
 #if defined(DART_PRECOMPILER)
   Zone* zone = Thread::Current()->zone();
-  if (!strip || debug_elf != nullptr) {
-    dwarf_ =
-        new (zone) Dwarf(zone, strip ? nullptr : &assembly_stream_, debug_elf);
+  if (!strip) {
+    assembly_dwarf_ =
+        new (zone) Dwarf(zone, &assembly_stream_, /*elf=*/nullptr);
+  }
+  if (debug_elf != nullptr) {
+    debug_dwarf_ =
+        new (zone) Dwarf(zone, /*assembly_stream=*/nullptr, debug_elf);
   }
 #endif
 }
 
 void AssemblyImageWriter::Finalize() {
 #ifdef DART_PRECOMPILER
-  if (dwarf_ != nullptr) {
-    dwarf_->Write();
+  if (assembly_dwarf_ != nullptr) {
+    assembly_dwarf_->Write();
+  }
+  if (debug_dwarf_ != nullptr) {
+    debug_dwarf_->Write();
   }
 #endif
 }
@@ -551,9 +559,9 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
 #if defined(DART_PRECOMPILER)
   const char* bss_symbol =
       vm ? "_kDartVmSnapshotBss" : "_kDartIsolateSnapshotBss";
-  intptr_t segment_base = 0;
-  if ((dwarf_ != nullptr) && (dwarf_->elf() != nullptr)) {
-    segment_base = dwarf_->elf()->NextMemoryOffset();
+  intptr_t debug_segment_base = 0;
+  if (debug_dwarf_ != nullptr) {
+    debug_segment_base = debug_dwarf_->elf()->NextMemoryOffset();
   }
 #endif
 
@@ -670,12 +678,13 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
     intptr_t dwarf_index = i;
 #ifdef DART_PRECOMPILER
     // Create a label for use by DWARF.
-    if (dwarf_ != nullptr) {
-      intptr_t virtual_address = -1;
-      if (auto const elf = dwarf_->elf()) {
-        virtual_address = segment_base + Image::kHeaderSize + text_offset;
-      }
-      dwarf_index = dwarf_->AddCode(code, virtual_address);
+    if (assembly_dwarf_ != nullptr) {
+      dwarf_index = assembly_dwarf_->AddCode(code);
+    }
+    if (debug_dwarf_ != nullptr) {
+      auto const virtual_address =
+          debug_segment_base + Image::kHeaderSize + text_offset;
+      debug_dwarf_->AddCode(code, virtual_address);
     }
 #endif
     // 2. Write a label at the entry point.
@@ -737,7 +746,7 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   FrameUnwindEpilogue();
 
 #if defined(DART_PRECOMPILER)
-  if ((dwarf_ != nullptr) && (dwarf_->elf() != nullptr)) {
+  if (debug_dwarf_ != nullptr) {
     // We need to generate a text segment of the appropriate size in the ELF
     // for two reasons:
     //
@@ -752,8 +761,10 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
     //
     // Since we won't actually be adding the instructions to the ELF output,
     // we can pass nullptr for the bytes of the section/segment.
-    dwarf_->elf()->AddText(instructions_symbol, /*bytes=*/nullptr,
-                           Image::kHeaderSize + text_offset);
+    auto const debug_segment_base2 =
+        debug_dwarf_->elf()->AddText(instructions_symbol, /*bytes=*/nullptr,
+                                     Image::kHeaderSize + text_offset);
+    ASSERT(debug_segment_base2 == debug_segment_base);
   }
 
   assembly_stream_.Print(".bss\n");
@@ -874,19 +885,22 @@ BlobImageWriter::BlobImageWriter(Thread* thread,
                                  uint8_t** instructions_blob_buffer,
                                  ReAlloc alloc,
                                  intptr_t initial_size,
+                                 Dwarf* debug_dwarf,
                                  intptr_t bss_base,
                                  Elf* elf,
-                                 Dwarf* dwarf)
+                                 Dwarf* elf_dwarf)
     : ImageWriter(thread->heap()),
       instructions_blob_stream_(instructions_blob_buffer, alloc, initial_size),
       elf_(elf),
-      dwarf_(dwarf),
-      bss_base_(bss_base) {
+      elf_dwarf_(elf_dwarf),
+      bss_base_(bss_base),
+      debug_dwarf_(debug_dwarf) {
 #if defined(DART_PRECOMPILER)
-  RELEASE_ASSERT(bss_base_ == 0 || elf_ != nullptr);
+  RELEASE_ASSERT(elf_ == nullptr || elf_dwarf_ == nullptr ||
+                 elf_dwarf_->elf() == elf_);
 #else
   RELEASE_ASSERT(elf_ == nullptr);
-  RELEASE_ASSERT(dwarf_ == nullptr);
+  RELEASE_ASSERT(elf_dwarf_ == nullptr);
 #endif
 }
 
@@ -904,6 +918,10 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   if (elf_ != nullptr) {
     segment_base = elf_->NextMemoryOffset();
   }
+  intptr_t debug_segment_base = 0;
+  if (debug_dwarf_ != nullptr) {
+    debug_segment_base = debug_dwarf_->elf()->NextMemoryOffset();
+  }
 #endif
 
   // This header provides the gap to make the instructions snapshot look like a
@@ -911,7 +929,7 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   instructions_blob_stream_.WriteTargetWord(instructions_length);
 #if defined(DART_PRECOMPILER)
   instructions_blob_stream_.WriteTargetWord(
-      bss_base_ != 0 ? bss_base_ - segment_base : 0);
+      elf_ != nullptr ? bss_base_ - segment_base : 0);
 #else
   instructions_blob_stream_.WriteTargetWord(0);  // No relocations.
 #endif
@@ -1000,19 +1018,24 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
 #endif
 
 #if defined(DART_PRECOMPILER)
-    if (elf_ != nullptr && dwarf_ != nullptr) {
+    if (elf_ != nullptr && elf_dwarf_ != nullptr) {
+      const auto& code = *instructions_[i].code_;
       auto const virtual_address = segment_base + payload_stream_start;
-      const Code& code = *instructions_[i].code_;
-      dwarf_->AddCode(code, virtual_address);
+      elf_dwarf_->AddCode(code, virtual_address);
       elf_->AddStaticSymbol(elf_->NextSectionIndex(),
                             namer.AssemblyNameFor(i, code), virtual_address);
+    }
+    if (debug_dwarf_ != nullptr) {
+      const auto& code = *instructions_[i].code_;
+      auto const virtual_address = debug_segment_base + payload_stream_start;
+      debug_dwarf_->AddCode(code, virtual_address);
     }
 
     // Don't patch the relocation if we're not generating ELF. The regular blobs
     // format does not yet support these relocations. Use
     // Code::VerifyBSSRelocations to check whether the relocations are patched
     // or not after loading.
-    if (bss_base_ != 0) {
+    if (elf_ != nullptr) {
       const intptr_t current_stream_position =
           instructions_blob_stream_.Position();
 
@@ -1056,13 +1079,19 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   ASSERT(instructions_blob_stream_.bytes_written() == instructions_length);
 
 #ifdef DART_PRECOMPILER
+  const char* instructions_symbol =
+      vm ? "_kDartVmSnapshotInstructions" : "_kDartIsolateSnapshotInstructions";
   if (elf_ != nullptr) {
-    const char* instructions_symbol = vm ? "_kDartVmSnapshotInstructions"
-                                         : "_kDartIsolateSnapshotInstructions";
-    intptr_t segment_base2 =
+    auto const segment_base2 =
         elf_->AddText(instructions_symbol, instructions_blob_stream_.buffer(),
                       instructions_blob_stream_.bytes_written());
     ASSERT(segment_base == segment_base2);
+  }
+  if (debug_dwarf_ != nullptr) {
+    auto const debug_segment_base2 = debug_dwarf_->elf()->AddText(
+        instructions_symbol, instructions_blob_stream_.buffer(),
+        instructions_blob_stream_.bytes_written());
+    ASSERT(debug_segment_base == debug_segment_base2);
   }
 #endif
 }

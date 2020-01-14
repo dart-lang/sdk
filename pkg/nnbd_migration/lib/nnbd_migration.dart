@@ -95,10 +95,14 @@ abstract class NullabilityMigration {
   /// [FixBuilder] infrastructure.  Once FixBuilder is at feature parity with
   /// the old implementation, this option will be removed and FixBuilder will
   /// be used unconditionally.
+  ///
+  /// Optional parameter [removeViaComments] indicates whether dead code should
+  /// be removed in its entirety (the default) or removed by commenting it out.
   factory NullabilityMigration(NullabilityMigrationListener listener,
       {bool permissive,
       NullabilityMigrationInstrumentation instrumentation,
-      bool useFixBuilder}) = NullabilityMigrationImpl;
+      bool useFixBuilder,
+      bool removeViaComments}) = NullabilityMigrationImpl;
 
   void finalizeInput(ResolvedUnitResult result);
 

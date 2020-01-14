@@ -37,7 +37,7 @@ class LogPage extends PageWriter {
    * The number of entries to be written, or `null` if all of the entries should
    * be written.
    */
-  int pageLength = null;
+  int pageLength;
 
   /**
    * The number of digits in the event stamps that are the same for every entry.
@@ -133,7 +133,7 @@ function selectEntryGroup(pageStart) {
    * Write the given log [entry] to the given [sink].
    */
   void _writeEntry(StringSink sink, LogEntry entry) {
-    String id = null;
+    String id;
     String clickHandler = 'clearHighlight()';
     String icon = '';
     String description = entry.kindName;

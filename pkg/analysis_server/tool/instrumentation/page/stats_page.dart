@@ -104,7 +104,7 @@ class StatsPage extends PageWriter {
       } else if (entry is RequestEntry) {
         String method = entry.method;
         int latency = entry.timeStamp - entry.clientRequestTime;
-        latencyData.putIfAbsent(method, () => List<int>()).add(latency);
+        latencyData.putIfAbsent(method, () => <int>[]).add(latency);
         if (method == 'completion.getSuggestions') {
           ResponseEntry response = log.responseFor(entry);
           if (response != null) {
@@ -128,9 +128,7 @@ class StatsPage extends PageWriter {
         int responseTime = response.timeStamp - entry.timeStamp;
         var pluginData = pluginResponseData.putIfAbsent(
             entry.pluginId, () => <String, List<int>>{});
-        pluginData
-            .putIfAbsent(entry.method, () => List<int>())
-            .add(responseTime);
+        pluginData.putIfAbsent(entry.method, () => <int>[]).add(responseTime);
       }
     }
   }
