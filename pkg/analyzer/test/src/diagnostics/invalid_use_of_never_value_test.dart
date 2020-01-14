@@ -378,7 +378,7 @@ void main(Never? x) {
     );
   }
 
-  test_propertyAccess_never() async {
+  test_propertyAccess_never_read() async {
     await assertNoErrorsInCode(r'''
 void main(Never x) {
   x.foo;
@@ -392,7 +392,7 @@ void main(Never x) {
     );
   }
 
-  test_propertyAccess_never_hashCode() async {
+  test_propertyAccess_never_read_hashCode() async {
     await assertNoErrorsInCode(r'''
 void main(Never x) {
   x.hashCode;
@@ -403,6 +403,26 @@ void main(Never x) {
       findNode.simple('hashCode'),
       element: objectElement.getGetter('hashCode'),
       type: 'Never',
+    );
+  }
+
+  test_propertyAccess_never_readWrite() async {
+    await assertNoErrorsInCode(r'''
+void main(Never x) {
+  x.foo += 0;
+}
+''');
+
+    assertSimpleIdentifier(
+      findNode.simple('foo'),
+      element: null,
+      type: 'Never',
+    );
+
+    assertAssignment(
+      findNode.assignment('foo += 0'),
+      operatorElement: null,
+      type: 'int',
     );
   }
 
@@ -420,7 +440,27 @@ void main(Never x) {
     );
   }
 
-  test_propertyAccess_neverQ() async {
+  test_propertyAccess_never_write() async {
+    await assertNoErrorsInCode(r'''
+void main(Never x) {
+  x.foo = 0;
+}
+''');
+
+    assertSimpleIdentifier(
+      findNode.simple('foo'),
+      element: null,
+      type: 'Never',
+    );
+
+    assertAssignment(
+      findNode.assignment('foo = 0'),
+      operatorElement: null,
+      type: 'int',
+    );
+  }
+
+  test_propertyAccess_neverQ_read() async {
     await assertErrorsInCode(r'''
 void main(Never? x) {
   x.foo;
@@ -436,7 +476,7 @@ void main(Never? x) {
     );
   }
 
-  test_propertyAccess_neverQ_hashCode() async {
+  test_propertyAccess_neverQ_read_hashCode() async {
     await assertNoErrorsInCode(r'''
 void main(Never? x) {
   x.hashCode;

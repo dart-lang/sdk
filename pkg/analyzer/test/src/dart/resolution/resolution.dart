@@ -75,6 +75,15 @@ mixin ResolutionTest implements ResourceProviderMixin {
     newFile('/test/lib/test.dart', content: content);
   }
 
+  void assertAssignment(
+    AssignmentExpression node, {
+    @required ExecutableElement operatorElement,
+    @required String type,
+  }) {
+    expect(node.staticElement, same(operatorElement));
+    assertType(node, type);
+  }
+
   void assertAuxElement(AstNode node, Element expected) {
     var auxElements = getNodeAuxElements(node);
     expect(auxElements?.staticElement, same(expected));

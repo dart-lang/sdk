@@ -3177,8 +3177,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return;
     }
 
-    if (lhs is IndexExpression &&
-        identical(lhs.staticType, NeverTypeImpl.instance)) {
+    if (identical(lhs.staticType, NeverTypeImpl.instance)) {
       return;
     }
 

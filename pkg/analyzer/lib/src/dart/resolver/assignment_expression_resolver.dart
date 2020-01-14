@@ -83,6 +83,10 @@ class AssignmentExpressionResolver {
     Expression leftHandSide = node.leftHandSide;
     DartType staticType = _getStaticType1(leftHandSide, read: true);
 
+    if (identical(staticType, NeverTypeImpl.instance)) {
+      return;
+    }
+
     // For any compound assignments to a void or nullable variable, report it.
     // Example: `y += voidFn()`, not allowed.
     if (operatorType != TokenType.EQ) {
@@ -193,14 +197,22 @@ class AssignmentExpressionResolver {
       _inferenceHelper.recordStaticType(
           node, _nonNullable(_typeProvider.boolType));
     } else {
+      var rightType = node.rightHandSide.staticType;
+
+      var leftReadType = _getStaticType2(node.leftHandSide, read: true);
+      if (identical(leftReadType, NeverTypeImpl.instance)) {
+        _inferenceHelper.recordStaticType(node, rightType);
+        return;
+      }
+
       var operatorElement = node.staticElement;
       var type =
           _elementTypeProvider.safeExecutableReturnType(operatorElement) ??
               DynamicTypeImpl.instance;
       type = _typeSystem.refineBinaryExpressionType(
-        _getStaticType2(node.leftHandSide, read: true),
+        leftReadType,
         operator,
-        node.rightHandSide.staticType,
+        rightType,
         type,
       );
       _inferenceHelper.recordStaticType(node, type);

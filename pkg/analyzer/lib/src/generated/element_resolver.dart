@@ -1544,11 +1544,15 @@ class ElementResolver extends SimpleAstVisitor<void> {
           // A more specific error will be reported in ErrorVerifier.
         }
       } else if (result.isNone) {
-        _errorReporter.reportErrorForNode(
-          StaticTypeWarningCode.UNDEFINED_SETTER,
-          propertyName,
-          [propertyName.name, staticType],
-        );
+        if (staticType is NeverTypeImpl) {
+          // OK
+        } else {
+          _errorReporter.reportErrorForNode(
+            StaticTypeWarningCode.UNDEFINED_SETTER,
+            propertyName,
+            [propertyName.name, staticType],
+          );
+        }
       }
     }
   }
