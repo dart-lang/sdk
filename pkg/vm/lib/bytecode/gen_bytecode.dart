@@ -8,6 +8,7 @@ import 'package:front_end/src/api_unstable/vm.dart'
     show
         CompilerContext,
         Severity,
+        isRedirectingFactoryField,
         messageBytecodeLimitExceededTooManyArguments,
         noLength,
         templateIllegalRecursiveType;
@@ -957,7 +958,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       // contain incorrect kernel AST, e.g. StaticGet which takes tear-off
       // of a constructor. Do not generate bytecode for them, as they should
       // never be used.
-      if (member.isStatic && member.name.name == "_redirecting#") {
+      if (isRedirectingFactoryField(member)) {
         return false;
       }
       return hasInitializerCode(member);

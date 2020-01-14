@@ -109,6 +109,9 @@ export '../api_prototype/standard_file_system.dart' show DataFileSystemEntity;
 export '../compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 
+export '../fasta/kernel/redirecting_factory_body.dart'
+    show isRedirectingFactoryField;
+
 export '../fasta/operator.dart' show operatorFromString;
 
 export 'compiler_state.dart' show InitializedCompilerState;

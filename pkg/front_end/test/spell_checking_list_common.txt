@@ -383,6 +383,7 @@ cascade
 cascaded
 cascading
 case
+cased
 cases
 casting
 catch

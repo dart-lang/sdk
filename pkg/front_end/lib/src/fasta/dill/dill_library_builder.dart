@@ -43,7 +43,8 @@ import '../fasta_codes.dart'
         templateTypeNotFound,
         templateUnspecified;
 
-import '../kernel/redirecting_factory_body.dart' show RedirectingFactoryBody;
+import '../kernel/redirecting_factory_body.dart'
+    show RedirectingFactoryBody, isRedirectingFactoryField;
 
 import '../problems.dart' show internalProblem, unhandled, unimplemented;
 
@@ -160,7 +161,7 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
     cls.procedures.forEach(classBulder.addMember);
     cls.constructors.forEach(classBulder.addMember);
     for (Field field in cls.fields) {
-      if (field.name.name == "_redirecting#") {
+      if (isRedirectingFactoryField(field)) {
         ListLiteral initializer = field.initializer;
         for (StaticGet get in initializer.expressions) {
           RedirectingFactoryBody.restoreFromDill(get.target);

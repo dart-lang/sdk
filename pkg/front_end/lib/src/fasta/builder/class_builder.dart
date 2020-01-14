@@ -101,7 +101,8 @@ import '../fasta_codes.dart'
         templateRedirectingFactoryIncompatibleTypeArgument,
         templateTypeArgumentMismatch;
 
-import '../kernel/redirecting_factory_body.dart' show getRedirectingFactoryBody;
+import '../kernel/redirecting_factory_body.dart'
+    show getRedirectingFactoryBody, redirectingName;
 
 import '../kernel/kernel_target.dart' show KernelTarget;
 
@@ -970,7 +971,6 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     // [constructor.target].
     //
     // TODO(ahe): Add a kernel node to represent redirecting factory bodies.
-    const String redirectingName = "_redirecting#";
     DillMemberBuilder constructorsField =
         origin.scope.lookupLocalMember(redirectingName, setter: false);
     if (constructorsField == null) {
