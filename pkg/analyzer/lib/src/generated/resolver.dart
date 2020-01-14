@@ -6,7 +6,6 @@ import 'dart:collection';
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -23,6 +22,7 @@ import 'package:analyzer/src/dart/element/member.dart'
 import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
+import 'package:analyzer/src/dart/resolver/assignment_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/binary_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
@@ -209,6 +209,7 @@ class ResolverVisitor extends ScopedVisitor {
   /// Helper for resolving [ListLiteral] and [SetOrMapLiteral].
   TypedLiteralResolver _typedLiteralResolver;
 
+  AssignmentExpressionResolver _assignmentExpressionResolver;
   BinaryExpressionResolver _binaryExpressionResolver;
   FunctionExpressionInvocationResolver _functionExpressionInvocationResolver;
   PostfixExpressionResolver _postfixExpressionResolver;
@@ -266,7 +267,7 @@ class ResolverVisitor extends ScopedVisitor {
   ///
   /// The stack contains a `null` sentinel as its first entry so that it is
   /// always safe to use `.last` to examine the top of the stack.
-  final List<Expression> unfinishedNullShorts = [null];
+  final List<Expression> _unfinishedNullShorts = [null];
 
   /// Initialize a newly created visitor to resolve the nodes in an AST node.
   ///
@@ -339,6 +340,11 @@ class ResolverVisitor extends ScopedVisitor {
       flowAnalysis: _flowAnalysis,
       errorReporter: errorReporter,
       typeSystem: typeSystem,
+    );
+    this._assignmentExpressionResolver = AssignmentExpressionResolver(
+      resolver: this,
+      flowAnalysis: _flowAnalysis,
+      elementTypeProvider: _elementTypeProvider,
     );
     this._binaryExpressionResolver = BinaryExpressionResolver(
       resolver: this,
@@ -462,6 +468,20 @@ class ResolverVisitor extends ScopedVisitor {
         nullabilitySuffix: noneOrStarSuffix,
       );
     }).toList());
+  }
+
+  /// If we reached a null-shorting termination, and the [node] has null
+  /// shorting, make the type of the [node] nullable.
+  void nullShortingTermination(Expression node) {
+    if (!_isNonNullableByDefault) return;
+
+    if (identical(_unfinishedNullShorts.last, node)) {
+      do {
+        _unfinishedNullShorts.removeLast();
+        _flowAnalysis.flow.nullAwareAccess_end();
+      } while (identical(_unfinishedNullShorts.last, node));
+      node.staticType = typeSystem.makeNullable(node.staticType);
+    }
   }
 
   /// If it is appropriate to do so, override the current type of the static
@@ -621,28 +641,7 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
-    var left = node.leftHandSide;
-    var right = node.rightHandSide;
-
-    left?.accept(this);
-
-    var leftLocalVariable = _flowAnalysis?.assignmentExpression(node);
-
-    TokenType operator = node.operator.type;
-    if (operator == TokenType.EQ ||
-        operator == TokenType.QUESTION_QUESTION_EQ) {
-      InferenceContext.setType(right, left.staticType);
-    }
-
-    right?.accept(this);
-    node.accept(elementResolver);
-    node.accept(typeAnalyzer);
-    _flowAnalysis?.assignmentExpression_afterRight(
-        node,
-        leftLocalVariable,
-        operator == TokenType.QUESTION_QUESTION_EQ
-            ? node.rightHandSide.staticType
-            : node.staticType);
+    _assignmentExpressionResolver.resolve(node);
   }
 
   @override
@@ -1374,7 +1373,7 @@ class ResolverVisitor extends ScopedVisitor {
     node.target?.accept(this);
     if (node.isNullAware && _isNonNullableByDefault) {
       _flowAnalysis.flow.nullAwareAccess_rightBegin(node.target);
-      unfinishedNullShorts.add(node.nullShortingTermination);
+      _unfinishedNullShorts.add(node.nullShortingTermination);
     }
     node.accept(elementResolver);
     var method = node.staticElement;
@@ -1542,7 +1541,7 @@ class ResolverVisitor extends ScopedVisitor {
     node.target?.accept(this);
     if (node.isNullAware && _isNonNullableByDefault) {
       _flowAnalysis.flow.nullAwareAccess_rightBegin(node.target);
-      unfinishedNullShorts.add(node.nullShortingTermination);
+      _unfinishedNullShorts.add(node.nullShortingTermination);
     }
     node.accept(elementResolver);
     node.accept(typeAnalyzer);

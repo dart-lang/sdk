@@ -419,28 +419,6 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     _listener.assertNoErrors();
   }
 
-  test_visitAssignmentExpression_compound() async {
-    InterfaceType intType = _typeProvider.intType;
-    SimpleIdentifier leftHandSide = AstTestFactory.identifier3("a");
-    leftHandSide.staticType = intType;
-    AssignmentExpression assignment = AstTestFactory.assignmentExpression(
-        leftHandSide, TokenType.PLUS_EQ, AstTestFactory.integer(1));
-    _resolveNode(assignment);
-    expect(
-        assignment.staticElement, same(_typeProvider.numType.getMethod('+')));
-    _listener.assertNoErrors();
-  }
-
-  test_visitAssignmentExpression_simple() async {
-    AssignmentExpression expression = AstTestFactory.assignmentExpression(
-        AstTestFactory.identifier3("x"),
-        TokenType.EQ,
-        AstTestFactory.integer(0));
-    _resolveNode(expression);
-    expect(expression.staticElement, isNull);
-    _listener.assertNoErrors();
-  }
-
   test_visitBreakStatement_withLabel() async {
     // loop: while (true) {
     //   break loop;
