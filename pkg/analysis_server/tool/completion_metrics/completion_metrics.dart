@@ -45,13 +45,13 @@ Future _computeCompletionMetrics(
             final visitor = CompletionMetricVisitor();
 
             result.unit.accept(visitor);
-            var entities = visitor.entities;
+            var expectedCompletions = visitor.expectedCompletions;
 
-            for (var entity in entities) {
+            for (var expectedCompletion in expectedCompletions) {
               var completionContributor = DartCompletionManager();
               var completionRequestImpl = CompletionRequestImpl(
                 result,
-                entity.offset,
+                expectedCompletion.offset,
                 CompletionPerformance(),
               );
               var suggestions = await completionContributor
@@ -59,7 +59,7 @@ Future _computeCompletionMetrics(
               suggestions.sort(completionComparator);
 
               var fraction =
-                  _placementInSuggestionList(suggestions, entity.toString());
+                  _placementInSuggestionList(suggestions, expectedCompletion);
               if (fraction.y != 0) {
                 includedCount++;
 //                print(
@@ -85,16 +85,32 @@ Future _computeCompletionMetrics(
       'done ${_formatPercentToString(percentIncluded)} ${_formatPercentToString(percentNotIncluded)}');
 }
 
-Point<int> _placementInSuggestionList(
-    List<CompletionSuggestion> suggestions, String completion) {
+Point<int> _placementInSuggestionList(List<CompletionSuggestion> suggestions,
+    ExpectedCompletion expectedCompletion) {
   var i = 1;
   for (var completionSuggestion in suggestions) {
-    if (completionSuggestion.completion == completion) {
+    if (_areCompletionsEquivalent(completionSuggestion, expectedCompletion)) {
       return Point(i, suggestions.length);
     }
     i++;
   }
   return Point(0, 0);
+}
+
+bool _areCompletionsEquivalent(CompletionSuggestion completionSuggestion,
+    ExpectedCompletion expectedCompletion) {
+  if (completionSuggestion.completion == expectedCompletion.completion) {
+    if (expectedCompletion.kind != null &&
+        completionSuggestion.kind != expectedCompletion.kind) {
+      return false;
+    }
+    if (expectedCompletion.elementKind != null &&
+        completionSuggestion.element?.kind != expectedCompletion.elementKind) {
+      return false;
+    }
+    return true;
+  }
+  return false;
 }
 
 String _formatPercentToString(double percent, [fractionDigits = 1]) {
