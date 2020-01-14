@@ -91,9 +91,9 @@
         ]
       },
       "wasm": {
-        "uri": "../../sdk/lib/wasm/wasm.dart",
+        "uri": "wasm/wasm.dart",
         "patches": [
-          "../../sdk/lib/_internal/vm/lib/wasm_patch.dart"
+          "_internal/vm/lib/wasm_patch.dart"
         ]
       },
       "_http": {

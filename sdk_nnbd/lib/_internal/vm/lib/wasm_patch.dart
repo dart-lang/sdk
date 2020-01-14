@@ -37,7 +37,7 @@ class WasmModule {
 @patch
 class WasmMemory {
   @patch
-  factory WasmMemory(int initialPages, [int maxPages]) {
+  factory WasmMemory(int initialPages, [int? maxPages]) {
     return _NativeWasmMemory(initialPages, maxPages);
   }
 }
@@ -108,7 +108,7 @@ class _NativeWasmMemory extends NativeFieldWrapperClass1 implements WasmMemory {
   int _pages;
   Uint8List _buffer;
 
-  _NativeWasmMemory(int initialPages, int maxPages) : _pages = initialPages {
+  _NativeWasmMemory(int initialPages, int? maxPages) : _pages = initialPages {
     _buffer = _init(initialPages, maxPages);
   }
 
@@ -131,7 +131,7 @@ class _NativeWasmMemory extends NativeFieldWrapperClass1 implements WasmMemory {
     return oldPages;
   }
 
-  Uint8List _init(int initialPages, int maxPages) native 'Wasm_initMemory';
+  Uint8List _init(int initialPages, int? maxPages) native 'Wasm_initMemory';
   Uint8List _grow(int deltaPages) native 'Wasm_growMemory';
   Uint8List _initFromInstance(_NativeWasmInstance inst)
       native 'Wasm_initMemoryFromInstance';
