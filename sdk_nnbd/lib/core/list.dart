@@ -157,8 +157,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
    * This constructor creates a growable list when [growable] is true;
    * otherwise, it returns a fixed-length list.
    */
-  factory List.of(Iterable<E> elements, {bool growable = true}) =>
-      List<E>.from(elements, growable: growable);
+  external factory List.of(Iterable<E> elements, {bool growable = true});
 
   /**
    * Generates a list of values.
