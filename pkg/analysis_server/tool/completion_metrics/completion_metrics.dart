@@ -11,12 +11,11 @@ import 'package:analysis_server/src/services/completion/completion_performance.d
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
-import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/syntactic_entity.dart';
-import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
+
+import 'visitors.dart';
 
 int includedCount = 0;
 int notIncludedCount = 0;
@@ -87,56 +86,12 @@ Future _computeCompletionMetrics(
 
 Point<int> _placementInSuggestionList(
     List<CompletionSuggestion> suggestions, String completion) {
-  int i = 1;
-  for (CompletionSuggestion completionSuggestion in suggestions) {
+  var i = 1;
+  for (var completionSuggestion in suggestions) {
     if (completionSuggestion.completion == completion) {
       return Point(i, suggestions.length);
     }
     i++;
   }
   return Point(0, 0);
-}
-
-class CompletionMetricVisitor extends RecursiveAstVisitor {
-  // TODO(jwren) move this class into a different file
-  // TODO(jwren) implement missing visit* methods
-
-  List<SyntacticEntity> entities;
-
-  CompletionMetricVisitor() {
-    entities = <SyntacticEntity>[];
-  }
-
-  safelyRecordEntity(SyntacticEntity entity) {
-    if (entity != null && entity.offset > 0 && entity.length > 0) {
-      entities.add(entity);
-    }
-  }
-
-  @override
-  visitDoStatement(DoStatement node) {
-    safelyRecordEntity(node.doKeyword);
-    return super.visitDoStatement(node);
-  }
-
-  @override
-  visitIfStatement(IfStatement node) {
-    safelyRecordEntity(node.ifKeyword);
-    return super.visitIfStatement(node);
-  }
-
-  @override
-  visitImportDirective(ImportDirective node) {
-    safelyRecordEntity(node.keyword);
-    safelyRecordEntity(node.asKeyword);
-    return super.visitImportDirective(node);
-  }
-
-  @override
-  visitSimpleIdentifier(SimpleIdentifier node) {
-    if (!node.inDeclarationContext()) {
-      safelyRecordEntity(node);
-    }
-    return super.visitSimpleIdentifier(node);
-  }
 }
