@@ -30,13 +30,13 @@ import 'dart:_js_helper' show convertDartClosureToJS;
 /// JavaScript type, and all other objects are proxied.
 jsify(object) {
   if ((object is! Map) && (object is! Iterable)) {
-    throw ArgumentError("object must be a Map or Iterable");
+    throw new ArgumentError("object must be a Map or Iterable");
   }
   return _convertDataTree(object);
 }
 
 _convertDataTree(data) {
-  var _convertedObjects = HashMap.identity();
+  var _convertedObjects = new HashMap.identity();
 
   _convert(o) {
     if (_convertedObjects.containsKey(o)) {
@@ -65,16 +65,13 @@ _convertDataTree(data) {
 newObject() => JS('=Object', '{}');
 
 bool hasProperty(o, name) => JS('bool', '# in #', name, o);
-
 getProperty(o, name) => JS('Object|Null', '#[#]', o, name);
-
 setProperty(o, name, value) => JS('', '#[#]=#', o, name, value);
 
 callMethod(o, String method, List args) =>
     JS('Object|Null', '#[#].apply(#, #)', o, method, o, args);
 
 bool instanceof(o, Function type) => JS('bool', '# instanceof #', o, type);
-
 callConstructor(Function constr, List arguments) {
   if (arguments == null) {
     return JS('Object', 'new #()', constr);

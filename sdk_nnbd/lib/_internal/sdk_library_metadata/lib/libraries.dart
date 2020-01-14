@@ -101,7 +101,7 @@ const Map<String, LibraryInfo> libraries = const {
       dart2jsPatchPath: "js/_js_client.dart",
       documented: false,
       platforms: DART2JS_PLATFORM),
-  "js_util": const LibraryInfo("js_util/js_util.dart",
+  "js_util": const LibraryInfo("js_util/dart2js/js_util_dart2js.dart",
       categories: "Client",
       maturity: Maturity.STABLE,
       platforms: DART2JS_PLATFORM),

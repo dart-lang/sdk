@@ -208,7 +208,7 @@ dart2js:
       patches: "js/_js_client.dart"
 
     js_util:
-      uri: "js_util/js_util.dart"
+      uri: "js_util/dart2js/js_util_dart2js.dart"
 
     math:
       uri: "math/math.dart"
@@ -316,7 +316,7 @@ dart2js_server:
       patches: "js/_js_server.dart"
 
     js_util:
-      uri: "js_util/js_util.dart"
+      uri: "js_util/dart2js/js_util_dart2js.dart"
 
     math:
       uri: "math/math.dart"
@@ -461,7 +461,7 @@ dartdevc:
         patches: "_internal/js_dev_runtime/patch/js_patch.dart"
 
       js_util:
-        uri: "js_util/js_util.dart"
+        uri: "_internal/js_dev_runtime/lib/js_util/dart2js/js_util_dart2js.dart"
 
       svg:
         uri: "svg/dart2js/svg_dart2js.dart"
