@@ -40,7 +40,7 @@ class IgnoreInfo {
 
   /// Ignore these [errorCodes] at [line].
   void _addAll(int line, Iterable<String> errorCodes) {
-    _ignoreMap.putIfAbsent(line, () => List<String>()).addAll(errorCodes);
+    _ignoreMap.putIfAbsent(line, () => <String>[]).addAll(errorCodes);
   }
 
   /// Ignore these [errorCodes] in the whole file.

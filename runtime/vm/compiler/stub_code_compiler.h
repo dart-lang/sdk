@@ -32,12 +32,6 @@ class StubCodeCompiler : public AllStatic {
   VM_STUB_CODE_LIST(STUB_CODE_GENERATE)
 #undef STUB_CODE_GENERATE
 
-  static void GenerateSharedStub(Assembler* assembler,
-                                 bool save_fpu_registers,
-                                 const RuntimeEntry* target,
-                                 intptr_t self_code_stub_offset_from_thread,
-                                 bool allow_return);
-
   static void GenerateMegamorphicMissStub(Assembler* assembler);
   static void GenerateAllocationStubForClass(Assembler* assembler,
                                              const Class& cls);
@@ -62,6 +56,15 @@ class StubCodeCompiler : public AllStatic {
       Optimized optimized,
       CallType type,
       Exactness exactness);
+  static void GenerateNArgsCheckInlineCacheStubForEntryKind(
+      Assembler* assembler,
+      intptr_t num_args,
+      const RuntimeEntry& handle_ic_miss,
+      Token::Kind kind,
+      Optimized optimized,
+      CallType type,
+      Exactness exactness,
+      CodeEntryKind entry_kind);
   static void GenerateUsageCounterIncrement(Assembler* assembler,
                                             Register temp_reg);
   static void GenerateOptimizedUsageCounterIncrement(Assembler* assembler);

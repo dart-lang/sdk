@@ -18,21 +18,21 @@ void main() {
 
 @reflectiveTest
 class NavigationGeneratorTest with ResourceProviderMixin {
-  ResolvedUnitResult resolvedUnit = new MockResolvedUnitResult(path: 'a.dart');
+  ResolvedUnitResult resolvedUnit = MockResolvedUnitResult(path: 'a.dart');
 
   test_none() {
-    NavigationGenerator generator = new NavigationGenerator([]);
+    NavigationGenerator generator = NavigationGenerator([]);
     NavigationRequest request =
-        new DartNavigationRequestImpl(resourceProvider, 0, 100, resolvedUnit);
+        DartNavigationRequestImpl(resourceProvider, 0, 100, resolvedUnit);
     GeneratorResult result = generator.generateNavigationNotification(request);
     expect(result.notifications, hasLength(1));
   }
 
   test_normal() {
-    TestContributor contributor = new TestContributor();
-    NavigationGenerator generator = new NavigationGenerator([contributor]);
+    TestContributor contributor = TestContributor();
+    NavigationGenerator generator = NavigationGenerator([contributor]);
     NavigationRequest request =
-        new DartNavigationRequestImpl(resourceProvider, 0, 100, resolvedUnit);
+        DartNavigationRequestImpl(resourceProvider, 0, 100, resolvedUnit);
     GeneratorResult result = generator.generateNavigationNotification(request);
     expect(result.notifications, hasLength(1));
     expect(contributor.count, 1);
@@ -44,14 +44,14 @@ class NavigationGeneratorTest with ResourceProviderMixin {
    * contributors from being called.
    */
   test_withException() {
-    TestContributor contributor1 = new TestContributor();
-    TestContributor contributor2 = new TestContributor(throwException: true);
-    TestContributor contributor3 = new TestContributor();
-    TestContributor contributor4 = new TestContributor(throwException: true);
-    NavigationGenerator generator = new NavigationGenerator(
+    TestContributor contributor1 = TestContributor();
+    TestContributor contributor2 = TestContributor(throwException: true);
+    TestContributor contributor3 = TestContributor();
+    TestContributor contributor4 = TestContributor(throwException: true);
+    NavigationGenerator generator = NavigationGenerator(
         [contributor1, contributor2, contributor3, contributor4]);
     NavigationRequest request =
-        new DartNavigationRequestImpl(resourceProvider, 0, 100, resolvedUnit);
+        DartNavigationRequestImpl(resourceProvider, 0, 100, resolvedUnit);
     GeneratorResult result = generator.generateNavigationNotification(request);
     expect(result.notifications, hasLength(3));
     expect(
@@ -81,14 +81,14 @@ class TestContributor implements NavigationContributor {
    */
   int count = 0;
 
-  TestContributor({this.throwException: false});
+  TestContributor({this.throwException = false});
 
   @override
   void computeNavigation(
       NavigationRequest request, NavigationCollector collector) {
     count++;
     if (throwException) {
-      throw new Exception();
+      throw Exception();
     }
   }
 }

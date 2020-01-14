@@ -22,7 +22,7 @@ import 'logger.dart';
 /**
  * Return the current time expressed as milliseconds since the epoch.
  */
-int get currentTime => new DateTime.now().millisecondsSinceEpoch;
+int get currentTime => DateTime.now().millisecondsSinceEpoch;
 
 /**
  * ???
@@ -32,7 +32,7 @@ class ErrorMap {
    * A table mapping file paths to the errors associated with that file.
    */
   final Map<String, List<AnalysisError>> pathMap =
-      new HashMap<String, List<AnalysisError>>();
+      HashMap<String, List<AnalysisError>>();
 
   /**
    * Initialize a newly created error map.
@@ -108,11 +108,9 @@ class RequestData {
    */
   Future<Response> get respondedTo {
     if (_response != null) {
-      return new Future.value(_response);
+      return Future.value(_response);
     }
-    if (_responseCompleter == null) {
-      _responseCompleter = new Completer<Response>();
-    }
+    _responseCompleter ??= Completer<Response>();
     return _responseCompleter.future;
   }
 
@@ -187,11 +185,9 @@ class Server {
    */
   List<String> _analyzedFiles = <String>[];
 
-  /**
-   * A mapping from the absolute paths of files to the most recent set of errors
-   * received for that file.
-   */
-  ErrorMap _errorMap = new ErrorMap();
+  /// A mapping from the absolute paths of files to the most recent set of
+  /// errors received for that file.
+  final ErrorMap _errorMap = ErrorMap();
 
   /**
    * The completer that will be completed the next time a 'server.status'
@@ -236,9 +232,7 @@ class Server {
    * analysis to finish.
    */
   Future get analysisFinished {
-    if (_analysisFinishedCompleter == null) {
-      _analysisFinishedCompleter = new Completer<void>();
-    }
+    _analysisFinishedCompleter ??= Completer<void>();
     return _analysisFinishedCompleter.future;
   }
 
@@ -271,21 +265,21 @@ class Server {
    * of errors received for that file. The content of the map will not change
    * when new sets of errors are received.
    */
-  ErrorMap get errorMap => new ErrorMap.from(_errorMap);
+  ErrorMap get errorMap => ErrorMap.from(_errorMap);
 
   /**
    * Compute a mapping from each of the file paths in the given list of
    * [filePaths] to the list of errors in the file at that path.
    */
   Future<ErrorMap> computeErrorMap(List<String> filePaths) async {
-    ErrorMap errorMap = new ErrorMap();
+    ErrorMap errorMap = ErrorMap();
     List<Future> futures = <Future>[];
     for (String filePath in filePaths) {
       RequestData requestData = sendAnalysisGetErrors(filePath);
       futures.add(requestData.respondedTo.then((Response response) {
         if (response.result != null) {
           AnalysisGetErrorsResult result =
-              new AnalysisGetErrorsResult.fromResponse(response);
+              AnalysisGetErrorsResult.fromResponse(response);
           errorMap[filePath] = result.errors;
         }
       }));
@@ -391,20 +385,20 @@ class Server {
    * Remove any existing overlays.
    */
   void removeAllOverlays() {
-    Map<String, dynamic> files = new HashMap<String, dynamic>();
+    Map<String, dynamic> files = HashMap<String, dynamic>();
     for (String path in filesWithOverlays) {
-      files[path] = new RemoveContentOverlay();
+      files[path] = RemoveContentOverlay();
     }
     sendAnalysisUpdateContent(files);
   }
 
   RequestData sendAnalysisGetErrors(String file) {
-    var params = new AnalysisGetErrorsParams(file).toJson();
+    var params = AnalysisGetErrorsParams(file).toJson();
     return _send("analysis.getErrors", params);
   }
 
   RequestData sendAnalysisGetHover(String file, int offset) {
-    var params = new AnalysisGetHoverParams(file, offset).toJson();
+    var params = AnalysisGetHoverParams(file, offset).toJson();
     return _send("analysis.getHover", params);
   }
 
@@ -413,17 +407,17 @@ class Server {
   }
 
   RequestData sendAnalysisGetNavigation(String file, int offset, int length) {
-    var params = new AnalysisGetNavigationParams(file, offset, length).toJson();
+    var params = AnalysisGetNavigationParams(file, offset, length).toJson();
     return _send("analysis.getNavigation", params);
   }
 
   RequestData sendAnalysisGetReachableSources(String file) {
-    var params = new AnalysisGetReachableSourcesParams(file).toJson();
+    var params = AnalysisGetReachableSourcesParams(file).toJson();
     return _send("analysis.getReachableSources", params);
   }
 
   void sendAnalysisReanalyze() {
-    var params = new AnalysisReanalyzeParams().toJson();
+    var params = AnalysisReanalyzeParams().toJson();
     _send("analysis.reanalyze", params);
   }
 
@@ -431,7 +425,7 @@ class Server {
       List<String> included, List<String> excluded,
       {Map<String, String> packageRoots}) {
     _analysisRootIncludes = included;
-    var params = new AnalysisSetAnalysisRootsParams(included, excluded,
+    var params = AnalysisSetAnalysisRootsParams(included, excluded,
             packageRoots: packageRoots)
         .toJson();
     _send("analysis.setAnalysisRoots", params);
@@ -439,19 +433,18 @@ class Server {
 
   void sendAnalysisSetGeneralSubscriptions(
       List<GeneralAnalysisService> subscriptions) {
-    var params =
-        new AnalysisSetGeneralSubscriptionsParams(subscriptions).toJson();
+    var params = AnalysisSetGeneralSubscriptionsParams(subscriptions).toJson();
     _send("analysis.setGeneralSubscriptions", params);
   }
 
   void sendAnalysisSetPriorityFiles(List<String> files) {
-    var params = new AnalysisSetPriorityFilesParams(files).toJson();
+    var params = AnalysisSetPriorityFilesParams(files).toJson();
     _send("analysis.setPriorityFiles", params);
   }
 
   void sendAnalysisSetSubscriptions(
       Map<AnalysisService, List<String>> subscriptions) {
-    var params = new AnalysisSetSubscriptionsParams(subscriptions).toJson();
+    var params = AnalysisSetSubscriptionsParams(subscriptions).toJson();
     _send("analysis.setSubscriptions", params);
   }
 
@@ -463,17 +456,17 @@ class Server {
         filesWithOverlays.remove(path);
       }
     });
-    var params = new AnalysisUpdateContentParams(files).toJson();
+    var params = AnalysisUpdateContentParams(files).toJson();
     _send('analysis.updateContent', params);
   }
 
   void sendAnalysisUpdateOptions(AnalysisOptions options) {
-    var params = new AnalysisUpdateOptionsParams(options).toJson();
+    var params = AnalysisUpdateOptionsParams(options).toJson();
     _send("analysis.updateOptions", params);
   }
 
   void sendCompletionGetSuggestions(String file, int offset) {
-    var params = new CompletionGetSuggestionsParams(file, offset).toJson();
+    var params = CompletionGetSuggestionsParams(file, offset).toJson();
     _send("completion.getSuggestions", params);
   }
 
@@ -484,33 +477,33 @@ class Server {
   RequestData sendEditFormat(
       String file, int selectionOffset, int selectionLength,
       {int lineLength}) {
-    var params = new EditFormatParams(file, selectionOffset, selectionLength,
+    var params = EditFormatParams(file, selectionOffset, selectionLength,
             lineLength: lineLength)
         .toJson();
     return _send("edit.format", params);
   }
 
   RequestData sendEditGetAssists(String file, int offset, int length) {
-    var params = new EditGetAssistsParams(file, offset, length).toJson();
+    var params = EditGetAssistsParams(file, offset, length).toJson();
     return _send("edit.getAssists", params);
   }
 
   RequestData sendEditGetAvailableRefactorings(
       String file, int offset, int length) {
     var params =
-        new EditGetAvailableRefactoringsParams(file, offset, length).toJson();
+        EditGetAvailableRefactoringsParams(file, offset, length).toJson();
     return _send("edit.getAvailableRefactorings", params);
   }
 
   RequestData sendEditGetFixes(String file, int offset) {
-    var params = new EditGetFixesParams(file, offset).toJson();
+    var params = EditGetFixesParams(file, offset).toJson();
     return _send("edit.getFixes", params);
   }
 
   RequestData sendEditGetRefactoring(RefactoringKind kind, String file,
       int offset, int length, bool validateOnly,
       {RefactoringOptions options}) {
-    var params = new EditGetRefactoringParams(
+    var params = EditGetRefactoringParams(
             kind, file, offset, length, validateOnly,
             options: options)
         .toJson();
@@ -518,62 +511,62 @@ class Server {
   }
 
   RequestData sendEditOrganizeDirectives(String file) {
-    var params = new EditOrganizeDirectivesParams(file).toJson();
+    var params = EditOrganizeDirectivesParams(file).toJson();
     return _send("edit.organizeDirectives", params);
   }
 
   RequestData sendEditSortMembers(String file) {
-    var params = new EditSortMembersParams(file).toJson();
+    var params = EditSortMembersParams(file).toJson();
     return _send("edit.sortMembers", params);
   }
 
   RequestData sendExecutionCreateContext(String contextRoot) {
-    var params = new ExecutionCreateContextParams(contextRoot).toJson();
+    var params = ExecutionCreateContextParams(contextRoot).toJson();
     return _send("execution.createContext", params);
   }
 
   RequestData sendExecutionDeleteContext(String id) {
-    var params = new ExecutionDeleteContextParams(id).toJson();
+    var params = ExecutionDeleteContextParams(id).toJson();
     return _send("execution.deleteContext", params);
   }
 
   RequestData sendExecutionMapUri(String id, {String file, String uri}) {
-    var params = new ExecutionMapUriParams(id, file: file, uri: uri).toJson();
+    var params = ExecutionMapUriParams(id, file: file, uri: uri).toJson();
     return _send("execution.mapUri", params);
   }
 
   RequestData sendExecutionSetSubscriptions(
       List<ExecutionService> subscriptions) {
-    var params = new ExecutionSetSubscriptionsParams(subscriptions).toJson();
+    var params = ExecutionSetSubscriptionsParams(subscriptions).toJson();
     return _send("execution.setSubscriptions", params);
   }
 
   void sendSearchFindElementReferences(
       String file, int offset, bool includePotential) {
     var params =
-        new SearchFindElementReferencesParams(file, offset, includePotential)
+        SearchFindElementReferencesParams(file, offset, includePotential)
             .toJson();
     _send("search.findElementReferences", params);
   }
 
   void sendSearchFindMemberDeclarations(String name) {
-    var params = new SearchFindMemberDeclarationsParams(name).toJson();
+    var params = SearchFindMemberDeclarationsParams(name).toJson();
     _send("search.findMemberDeclarations", params);
   }
 
   void sendSearchFindMemberReferences(String name) {
-    var params = new SearchFindMemberReferencesParams(name).toJson();
+    var params = SearchFindMemberReferencesParams(name).toJson();
     _send("search.findMemberReferences", params);
   }
 
   void sendSearchFindTopLevelDeclarations(String pattern) {
-    var params = new SearchFindTopLevelDeclarationsParams(pattern).toJson();
+    var params = SearchFindTopLevelDeclarationsParams(pattern).toJson();
     _send("search.findTopLevelDeclarations", params);
   }
 
   void sendSearchGetTypeHierarchy(String file, int offset, {bool superOnly}) {
     var params =
-        new SearchGetTypeHierarchyParams(file, offset, superOnly: superOnly)
+        SearchGetTypeHierarchyParams(file, offset, superOnly: superOnly)
             .toJson();
     _send("search.getTypeHierarchy", params);
   }
@@ -583,7 +576,7 @@ class Server {
   }
 
   void sendServerSetSubscriptions(List<ServerService> subscriptions) {
-    var params = new ServerSetSubscriptionsParams(subscriptions).toJson();
+    var params = ServerSetSubscriptionsParams(subscriptions).toJson();
     _send("server.setSubscriptions", params);
   }
 
@@ -613,7 +606,7 @@ class Server {
       int servicesPort,
       bool useAnalysisHighlight2 = false}) async {
     if (_process != null) {
-      throw new Exception('Process already started');
+      throw Exception('Process already started');
     }
     String dartBinary = Platform.executable;
     String rootDir =
@@ -662,11 +655,11 @@ class Server {
     _process = await Process.start(dartBinary, arguments);
     _process.exitCode.then((int code) {
       if (code != 0) {
-        throw new StateError('Server terminated with exit code $code');
+        throw StateError('Server terminated with exit code $code');
       }
     });
     _listenToOutput();
-    _serverConnectedCompleter = new Completer<void>();
+    _serverConnectedCompleter = Completer<void>();
     return _serverConnectedCompleter.future;
   }
 
@@ -678,7 +671,7 @@ class Server {
     while (!['benchmark', 'test'].contains(path.basename(pathname))) {
       String parent = path.dirname(pathname);
       if (parent.length >= pathname.length) {
-        throw new Exception("Can't find root directory");
+        throw Exception("Can't find root directory");
       }
       pathname = parent;
     }
@@ -696,12 +689,12 @@ class Server {
         break;
       case "server.error":
 //        new ServerErrorParams.fromNotification(notification);
-        throw new StateError('Server error: ${notification.toJson()}');
+        throw StateError('Server error: ${notification.toJson()}');
         break;
       case "server.status":
         if (_analysisFinishedCompleter != null) {
           ServerStatusParams params =
-              new ServerStatusParams.fromNotification(notification);
+              ServerStatusParams.fromNotification(notification);
           var analysis = params.analysis;
           if (analysis != null && !analysis.isAnalyzing) {
             _analysisFinishedCompleter.complete(null);
@@ -710,12 +703,12 @@ class Server {
         break;
       case "analysis.analyzedFiles":
         AnalysisAnalyzedFilesParams params =
-            new AnalysisAnalyzedFilesParams.fromNotification(notification);
+            AnalysisAnalyzedFilesParams.fromNotification(notification);
         _analyzedFiles = params.directories;
         break;
       case "analysis.errors":
         AnalysisErrorsParams params =
-            new AnalysisErrorsParams.fromNotification(notification);
+            AnalysisErrorsParams.fromNotification(notification);
         _errorMap.pathMap[params.file] = params.errors;
         break;
       case "analysis.flushResults":
@@ -756,8 +749,7 @@ class Server {
 //        new ExecutionLaunchDataParams.fromNotification(notification);
         break;
       default:
-        throw new StateError(
-            'Unhandled notification: ${notification.toJson()}');
+        throw StateError('Unhandled notification: ${notification.toJson()}');
     }
   }
 
@@ -846,7 +838,7 @@ class Server {
   void _handleStdErr(String line) {
     String trimmedLine = line.trim();
     logger?.log(fromStderr, '$trimmedLine');
-    throw new StateError('Message received on stderr: "$trimmedLine"');
+    throw StateError('Message received on stderr: "$trimmedLine"');
   }
 
   /**
@@ -861,7 +853,7 @@ class Server {
       if (value is Map) {
         return value;
       }
-      throw new ArgumentError('Expected a Map, found a ${value.runtimeType}');
+      throw ArgumentError('Expected a Map, found a ${value.runtimeType}');
     }
 
     String trimmedLine = line.trim();
@@ -873,11 +865,11 @@ class Server {
     Map message = asMap(json.decoder.convert(trimmedLine));
     if (message.containsKey('id')) {
       // The message is a response.
-      Response response = new Response.fromJson(message);
+      Response response = Response.fromJson(message);
       _handleResponse(response);
     } else {
       // The message is a notification.
-      Notification notification = new Notification.fromJson(message);
+      Notification notification = Notification.fromJson(message);
       String event = notification.event;
       _notificationCountMap[event] = (_notificationCountMap[event] ?? 0) + 1;
       _handleNotification(notification);
@@ -894,8 +886,8 @@ class Server {
      */
     void installHandler(Stream<List<int>> stream, handler(String line)) {
       stream
-          .transform((new Utf8Codec()).decoder)
-          .transform(new LineSplitter())
+          .transform((Utf8Codec()).decoder)
+          .transform(LineSplitter())
           .listen(handler);
     }
 
@@ -909,7 +901,7 @@ class Server {
   RequestData _send(String method, Map<String, dynamic> params,
       {void onResponse(Response response)}) {
     String id = '${_nextId++}';
-    RequestData requestData = new RequestData(id, method, params, currentTime);
+    RequestData requestData = RequestData(id, method, params, currentTime);
     _requestDataMap[id] = requestData;
     Map<String, dynamic> command = <String, dynamic>{
       'id': id,

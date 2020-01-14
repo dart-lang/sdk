@@ -326,10 +326,10 @@ class MetaLetVariable extends InterpolatedExpression {
         super(displayName + '@${++_uniqueId}');
 }
 
-class _VariableUseCounter extends BaseVisitor {
+class _VariableUseCounter extends BaseVisitor<void> {
   final counts = <MetaLetVariable, int>{};
   @override
-  visitInterpolatedExpression(InterpolatedExpression node) {
+  void visitInterpolatedExpression(InterpolatedExpression node) {
     if (node is MetaLetVariable) {
       int n = counts[node];
       counts[node] = n == null ? 1 : n + 1;
@@ -337,7 +337,7 @@ class _VariableUseCounter extends BaseVisitor {
   }
 }
 
-class _IdentFinder extends BaseVisitor {
+class _IdentFinder extends BaseVisitor<void> {
   final String name;
   bool found = false;
   _IdentFinder(this.name);
@@ -352,12 +352,12 @@ class _IdentFinder extends BaseVisitor {
   }
 
   @override
-  visitIdentifier(Identifier node) {
+  void visitIdentifier(Identifier node) {
     if (node.name == name) found = true;
   }
 
   @override
-  visitNode(Node node) {
+  void visitNode(Node node) {
     if (!found) super.visitNode(node);
   }
 }

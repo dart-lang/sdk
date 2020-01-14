@@ -10,6 +10,8 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/generated/element_type_provider.dart';
+import 'package:analyzer/src/generated/migration.dart';
 import 'package:analyzer/src/generated/type_system.dart' show TypeSystemImpl;
 import 'package:analyzer/src/generated/variable_type_provider.dart';
 
@@ -53,10 +55,9 @@ class FlowAnalysisHelper {
   FlowAnalysis<AstNode, Statement, Expression, PromotableElement, DartType>
       flow;
 
-  factory FlowAnalysisHelper(TypeSystem typeSystem, bool retainDataForTesting) {
-    return FlowAnalysisHelper._(TypeSystemTypeOperations(typeSystem),
-        retainDataForTesting ? FlowAnalysisDataForTesting() : null);
-  }
+  FlowAnalysisHelper(TypeSystem typeSystem, bool retainDataForTesting)
+      : this._(TypeSystemTypeOperations(typeSystem),
+            retainDataForTesting ? FlowAnalysisDataForTesting() : null);
 
   FlowAnalysisHelper._(this._typeOperations, this.dataForTesting);
 
@@ -281,6 +282,35 @@ class FlowAnalysisHelper {
   }
 }
 
+/// Override of [FlowAnalysisHelper] that invokes methods of
+/// [MigrationResolutionHooks] when appropriate.
+class FlowAnalysisHelperForMigration extends FlowAnalysisHelper {
+  final MigrationResolutionHooks migrationResolutionHooks;
+
+  FlowAnalysisHelperForMigration(
+      TypeSystem typeSystem, this.migrationResolutionHooks)
+      : super(typeSystem, false);
+
+  @override
+  LocalVariableTypeProvider get localVariableTypeProvider {
+    return _LocalVariableTypeProvider(this,
+        elementTypeProvider: migrationResolutionHooks);
+  }
+
+  @override
+  void topLevelDeclaration_enter(
+      Declaration node, FormalParameterList parameters, FunctionBody body) {
+    super.topLevelDeclaration_enter(node, parameters, body);
+    migrationResolutionHooks.setFlowAnalysis(flow);
+  }
+
+  @override
+  void topLevelDeclaration_exit() {
+    super.topLevelDeclaration_exit();
+    migrationResolutionHooks.setFlowAnalysis(null);
+  }
+}
+
 class TypeSystemTypeOperations
     implements TypeOperations<PromotableElement, DartType> {
   final TypeSystemImpl typeSystem;
@@ -443,14 +473,13 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitTryStatement(TryStatement node) {
     var finallyBlock = node.finallyBlock;
-    bool isDesugared = node.catchClauses.isNotEmpty && finallyBlock != null;
-    assignedVariables.beginNode();
-    if (isDesugared) assignedVariables.beginNode();
+    assignedVariables.beginNode(); // Begin info for [node].
+    assignedVariables.beginNode(); // Begin info for [node.body].
     node.body.accept(this);
     assignedVariables.endNode(node.body);
 
     node.catchClauses.accept(this);
-    if (isDesugared) assignedVariables.endNode(node);
+    assignedVariables.endNode(node);
 
     if (finallyBlock != null) {
       assignedVariables.beginNode();
@@ -529,7 +558,11 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
 class _LocalVariableTypeProvider implements LocalVariableTypeProvider {
   final FlowAnalysisHelper _manager;
 
-  _LocalVariableTypeProvider(this._manager);
+  final ElementTypeProvider _elementTypeProvider;
+
+  _LocalVariableTypeProvider(this._manager,
+      {ElementTypeProvider elementTypeProvider = const ElementTypeProvider()})
+      : _elementTypeProvider = elementTypeProvider;
 
   @override
   DartType getType(SimpleIdentifier node) {
@@ -538,6 +571,6 @@ class _LocalVariableTypeProvider implements LocalVariableTypeProvider {
       var promotedType = _manager.flow?.variableRead(node, variable);
       if (promotedType != null) return promotedType;
     }
-    return variable.type;
+    return _elementTypeProvider.getVariableType(variable);
   }
 }

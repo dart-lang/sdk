@@ -52,9 +52,10 @@ class ImportElementsComputerTest extends AbstractContextTest {
     originalContent = content;
     newFile(path, content: content);
     ResolvedUnitResult result = await session.getResolvedUnit(path);
-    computer = new ImportElementsComputer(resourceProvider, result);
+    computer = ImportElementsComputer(resourceProvider, result);
   }
 
+  @override
   void setUp() {
     super.setUp();
     path = convertPath('/home/test/lib/test.dart');
@@ -67,7 +68,7 @@ main() {
 }
 ''');
     await computeChanges(<ImportedElements>[
-      new ImportedElements(
+      ImportedElements(
           convertPath('/sdk/lib/math/math.dart'), '', <String>['Random'])
     ]);
     assertChanges('''
@@ -85,7 +86,7 @@ main() {
 import 'package:pkg/foo.dart' as foo;
 ''');
     await computeChanges(<ImportedElements>[
-      new ImportedElements(fooFile.path, '', <String>['A'])
+      ImportedElements(fooFile.path, '', <String>['A'])
     ]);
     assertChanges('''
 import 'package:pkg/foo.dart' as foo;
@@ -99,7 +100,7 @@ import 'package:pkg/foo.dart';
 import 'package:pkg/foo.dart';
 ''');
     await computeChanges(<ImportedElements>[
-      new ImportedElements(fooFile.path, 'foo', <String>['A'])
+      ImportedElements(fooFile.path, 'foo', <String>['A'])
     ]);
     assertChanges('''
 import 'package:pkg/foo.dart';
@@ -114,7 +115,7 @@ import 'package:pkg/foo.dart' show B;
 import 'package:pkg/foo.dart' as foo;
 ''');
     await computeChanges(<ImportedElements>[
-      new ImportedElements(fooFile.path, '', <String>['A', 'C'])
+      ImportedElements(fooFile.path, '', <String>['A', 'C'])
     ]);
     assertChanges('''
 import 'package:pkg/foo.dart' show B, A, C;
@@ -128,7 +129,7 @@ import 'package:pkg/foo.dart' as foo;
 import 'package:pkg/foo.dart' show A, B hide C, D;
 ''');
     await computeChanges(<ImportedElements>[
-      new ImportedElements(fooFile.path, '', <String>['C'])
+      ImportedElements(fooFile.path, '', <String>['C'])
     ]);
     assertChanges('''
 import 'package:pkg/foo.dart' show A, B, C hide D;
@@ -141,7 +142,7 @@ import 'package:pkg/foo.dart' show A, B, C hide D;
 import 'package:pkg/foo.dart' show B;
 ''');
     await computeChanges(<ImportedElements>[
-      new ImportedElements(fooFile.path, '', <String>['A'])
+      ImportedElements(fooFile.path, '', <String>['A'])
     ]);
     assertChanges('''
 import 'package:pkg/foo.dart' show B, A;
@@ -155,7 +156,7 @@ import 'package:pkg/foo.dart' show C;
 import 'package:pkg/foo.dart' as foo show B;
 ''');
     await computeChanges(<ImportedElements>[
-      new ImportedElements(fooFile.path, 'foo', <String>['A'])
+      ImportedElements(fooFile.path, 'foo', <String>['A'])
     ]);
     assertChanges('''
 import 'package:pkg/foo.dart' show C;
@@ -169,7 +170,7 @@ import 'package:pkg/foo.dart' as foo show B, A;
 import 'package:pkg/foo.dart';
 ''');
     await computeChanges(<ImportedElements>[
-      new ImportedElements(fooFile.path, '', <String>['A', 'B'])
+      ImportedElements(fooFile.path, '', <String>['A', 'B'])
     ]);
     assertNoChanges();
   }
@@ -180,7 +181,7 @@ import 'package:pkg/foo.dart';
 import 'package:pkg/foo.dart' as foo;
 ''');
     await computeChanges(<ImportedElements>[
-      new ImportedElements(fooFile.path, 'foo', <String>['A', 'B'])
+      ImportedElements(fooFile.path, 'foo', <String>['A', 'B'])
     ]);
     assertNoChanges();
   }
@@ -191,7 +192,7 @@ import 'package:pkg/foo.dart' as foo;
 import 'package:pkg/foo.dart' show A;
 ''');
     await computeChanges(<ImportedElements>[
-      new ImportedElements(fooFile.path, '', <String>['A'])
+      ImportedElements(fooFile.path, '', <String>['A'])
     ]);
     assertNoChanges();
   }
@@ -203,7 +204,7 @@ class A {
 }
 ''');
     await computeChanges(<ImportedElements>[
-      new ImportedElements(path, '', <String>['A'])
+      ImportedElements(path, '', <String>['A'])
     ]);
     assertNoChanges();
   }
@@ -214,7 +215,7 @@ class A {
 import 'pakage:pkg/foo.dart';
 ''');
     await computeChanges(<ImportedElements>[
-      new ImportedElements(fooFile.path, '', <String>['A'])
+      ImportedElements(fooFile.path, '', <String>['A'])
     ]);
     assertChanges('''
 import 'pakage:pkg/foo.dart';
@@ -234,7 +235,7 @@ import 'package:pkg/foo.dart';
 import 'package:pkg/foo.dart' hide A, B, C;
 ''');
     await computeChanges(<ImportedElements>[
-      new ImportedElements(fooFile.path, '', <String>['A'])
+      ImportedElements(fooFile.path, '', <String>['A'])
     ]);
     assertChanges('''
 import 'package:pkg/foo.dart' hide B, C;
@@ -247,7 +248,7 @@ import 'package:pkg/foo.dart' hide B, C;
 import 'package:pkg/foo.dart' hide A, B, C;
 ''');
     await computeChanges(<ImportedElements>[
-      new ImportedElements(fooFile.path, '', <String>['C'])
+      ImportedElements(fooFile.path, '', <String>['C'])
     ]);
     assertChanges('''
 import 'package:pkg/foo.dart' hide A, B;
@@ -260,7 +261,7 @@ import 'package:pkg/foo.dart' hide A, B;
 import 'package:pkg/foo.dart' hide A, B, C;
 ''');
     await computeChanges(<ImportedElements>[
-      new ImportedElements(fooFile.path, '', <String>['B'])
+      ImportedElements(fooFile.path, '', <String>['B'])
     ]);
     assertChanges('''
 import 'package:pkg/foo.dart' hide A, C;
@@ -273,7 +274,7 @@ import 'package:pkg/foo.dart' hide A, C;
 import 'package:pkg/foo.dart' hide A, B, C hide A, B, C;
 ''');
     await computeChanges(<ImportedElements>[
-      new ImportedElements(fooFile.path, '', <String>['B'])
+      ImportedElements(fooFile.path, '', <String>['B'])
     ]);
     assertChanges('''
 import 'package:pkg/foo.dart' hide A, C hide A, C;
@@ -286,7 +287,7 @@ import 'package:pkg/foo.dart' hide A, C hide A, C;
 import 'package:pkg/foo.dart' hide A, B, C hide D, E, F hide G, H, I;
 ''');
     await computeChanges(<ImportedElements>[
-      new ImportedElements(fooFile.path, '', <String>['A', 'E', 'I'])
+      ImportedElements(fooFile.path, '', <String>['A', 'E', 'I'])
     ]);
     assertChanges('''
 import 'package:pkg/foo.dart' hide B, C hide D, F hide G, H;
@@ -299,7 +300,7 @@ import 'package:pkg/foo.dart' hide B, C hide D, F hide G, H;
 import 'package:pkg/foo.dart' hide A hide B hide C;
 ''');
     await computeChanges(<ImportedElements>[
-      new ImportedElements(fooFile.path, '', <String>['A'])
+      ImportedElements(fooFile.path, '', <String>['A'])
     ]);
     assertChanges('''
 import 'package:pkg/foo.dart' hide B hide C;
@@ -312,7 +313,7 @@ import 'package:pkg/foo.dart' hide B hide C;
 import 'package:pkg/foo.dart' hide A hide B hide C;
 ''');
     await computeChanges(<ImportedElements>[
-      new ImportedElements(fooFile.path, '', <String>['C'])
+      ImportedElements(fooFile.path, '', <String>['C'])
     ]);
     assertChanges('''
 import 'package:pkg/foo.dart' hide A hide B;
@@ -325,7 +326,7 @@ import 'package:pkg/foo.dart' hide A hide B;
 import 'package:pkg/foo.dart' hide A hide B hide C;
 ''');
     await computeChanges(<ImportedElements>[
-      new ImportedElements(fooFile.path, '', <String>['B'])
+      ImportedElements(fooFile.path, '', <String>['B'])
     ]);
     assertChanges('''
 import 'package:pkg/foo.dart' hide A hide C;
@@ -338,7 +339,7 @@ import 'package:pkg/foo.dart' hide A hide C;
 import 'package:pkg/foo.dart' hide A;
 ''');
     await computeChanges(<ImportedElements>[
-      new ImportedElements(fooFile.path, '', <String>['A'])
+      ImportedElements(fooFile.path, '', <String>['A'])
     ]);
     assertChanges('''
 import 'package:pkg/foo.dart';
@@ -351,7 +352,7 @@ import 'package:pkg/foo.dart';
 import 'package:pkg/foo.dart' hide A, B;
 ''');
     await computeChanges(<ImportedElements>[
-      new ImportedElements(fooFile.path, '', <String>['A', 'B'])
+      ImportedElements(fooFile.path, '', <String>['A', 'B'])
     ]);
     assertChanges('''
 import 'package:pkg/foo.dart';

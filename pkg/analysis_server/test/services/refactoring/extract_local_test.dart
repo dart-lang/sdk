@@ -23,6 +23,7 @@ main() {
 
 @reflectiveTest
 class ExtractLocalTest extends RefactoringTest {
+  @override
   ExtractLocalRefactoringImpl refactoring;
 
   test_checkFinalConditions_sameVariable_after() async {
@@ -1392,8 +1393,7 @@ main() {
   }
 
   void _createRefactoring(int offset, int length) {
-    refactoring =
-        new ExtractLocalRefactoring(testAnalysisResult, offset, length);
+    refactoring = ExtractLocalRefactoring(testAnalysisResult, offset, length);
     refactoring.name = 'res';
   }
 

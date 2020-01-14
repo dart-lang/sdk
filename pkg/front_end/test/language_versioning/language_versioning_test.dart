@@ -27,7 +27,7 @@ main(List<String> args) async {
       new TestConfigWithLanguageVersion(cfeMarker, "cfe");
 
   Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
-  await runTests(dataDir,
+  await runTests<String>(dataDir,
       args: args,
       supportedMarkers: [cfeMarker],
       createUriForFileName: createUriForFileName,

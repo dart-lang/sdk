@@ -79,7 +79,7 @@ List<String> experimentStatusToStringList(ExperimentStatus status) {
 /// (synchronously) executing.
 @visibleForTesting
 T overrideKnownFeatures<T>(
-    Map<String, ExperimentalFeature> knownFeatures, T callback()) {
+    Map<String, ExperimentalFeature> knownFeatures, T Function() callback) {
   var oldKnownFeatures = _knownFeatures;
   try {
     _knownFeatures = knownFeatures;

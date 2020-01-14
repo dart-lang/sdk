@@ -1022,6 +1022,19 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     return super.visitAsExpression(node);
   }
 
+  void handleNullCheck(ir.NullCheck node, ir.DartType operandType) {}
+
+  @override
+  ir.DartType visitNullCheck(ir.NullCheck node) {
+    ir.DartType operandType = visitNode(node.operand);
+    handleNullCheck(node, operandType);
+    ir.DartType resultType = operandType == typeEnvironment.nullType
+        ? const ir.NeverType(ir.Nullability.nonNullable)
+        : operandType.withNullability(ir.Nullability.nonNullable);
+    _expressionTypeCache[node] = resultType;
+    return resultType;
+  }
+
   void handleStringConcatenation(ir.StringConcatenation node) {}
 
   @override

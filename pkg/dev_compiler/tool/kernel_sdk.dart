@@ -57,19 +57,19 @@ Future main(List<String> args) async {
     }
   }
 
-  String customScheme = "org-dartlang-sdk";
+  String customScheme = 'org-dartlang-sdk';
   var fileSystem = MultiRootFileSystem(
       customScheme, [Uri.base], StandardFileSystem.instance);
-  Uri sdkRoot = Uri.parse("$customScheme:/");
+  Uri sdkRoot = Uri.parse('$customScheme:/');
   Uri packagesFileUri = sdkRoot
       .resolve(p.relative(Uri.file(packagesPath).path, from: Uri.base.path));
   if (packagesFileUri.scheme != customScheme) {
-    throw "packagesPath has to be under ${Uri.base}";
+    throw 'packagesPath has to be under ${Uri.base}';
   }
   Uri librariesSpecificationUri = sdkRoot
       .resolve(p.relative(Uri.file(librarySpecPath).path, from: Uri.base.path));
   if (librariesSpecificationUri.scheme != customScheme) {
-    throw "librarySpecPath has to be under ${Uri.base}";
+    throw 'librarySpecPath has to be under ${Uri.base}';
   }
 
   var options = CompilerOptions()

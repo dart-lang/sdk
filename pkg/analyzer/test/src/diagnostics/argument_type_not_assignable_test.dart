@@ -427,6 +427,7 @@ n(int i) {}
   }
 
   @failingTest
+  @override
   test_invocation_functionTypes_optional() async {
     // The test is currently generating an error where none is expected.
     await super.test_invocation_functionTypes_optional();

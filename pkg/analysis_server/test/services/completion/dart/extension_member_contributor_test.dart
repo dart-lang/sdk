@@ -18,9 +18,10 @@ main() {
 class ExtensionMemberContributorTest extends DartCompletionContributorTest {
   @override
   DartCompletionContributor createContributor() {
-    return new ExtensionMemberContributor();
+    return ExtensionMemberContributor();
   }
 
+  @override
   void setUp() {
     createAnalysisOptionsFile(experiments: ['extension-methods']);
     super.setUp();

@@ -106,11 +106,6 @@ class CompilerOptions implements DiagnosticOptions {
   /// Flags enabling language experiments.
   Map<fe.ExperimentalFlag, bool> languageExperiments = {};
 
-  /// `true` if CFE performs constant evaluation.
-  /// TODO(johnniwinther, sigmund): Remove this and associated dead code.
-  bool get useCFEConstants =>
-      languageExperiments[fe.ExperimentalFlag.constantUpdate2018];
-
   /// `true` if variance is enabled.
   bool get enableVariance => languageExperiments[fe.ExperimentalFlag.variance];
 
@@ -328,8 +323,8 @@ class CompilerOptions implements DiagnosticOptions {
   /// called.
   bool experimentCallInstrumentation = false;
 
-  /// Experimental use of the new (Q2 2019) RTI system.
-  bool experimentNewRti = false;
+  /// Whether to use the new RTI representation (default).
+  bool useNewRti = true;
 
   /// The path to the file that contains the profiled allocations.
   ///
@@ -410,7 +405,7 @@ class CompilerOptions implements DiagnosticOptions {
       ..experimentToBoolean = _hasOption(options, Flags.experimentToBoolean)
       ..experimentCallInstrumentation =
           _hasOption(options, Flags.experimentCallInstrumentation)
-      ..experimentNewRti = _hasOption(options, Flags.experimentNewRti)
+      ..useNewRti = !_hasOption(options, Flags.useOldRti)
       ..generateSourceMap = !_hasOption(options, Flags.noSourceMaps)
       ..outputUri = _extractUriOption(options, '--out=')
       ..platformBinaries =
@@ -475,9 +470,10 @@ class CompilerOptions implements DiagnosticOptions {
     }
 
     if (benchmarkingExperiment) {
-      // TODO(sra): Set flags implied by '--benchmarking-x'. Initially this will
-      // be --experiment-new-rti, and later NNBD.
-      experimentNewRti = true;
+      // TODO(sra): Set flags implied by '--benchmarking-x'. At this time we
+      // use it to run the old-rti to continue comparing data with new-rti, but
+      // we should remove it once we start benchmarking NNBD.
+      useNewRti = false;
     }
 
     if (optimizationLevel != null) {

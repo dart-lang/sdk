@@ -60,7 +60,11 @@ class PubspecValidator {
    */
   List<AnalysisError> validate(Map<dynamic, YamlNode> contents) {
     RecordingErrorListener recorder = RecordingErrorListener();
-    ErrorReporter reporter = ErrorReporter(recorder, source);
+    ErrorReporter reporter = ErrorReporter(
+      recorder,
+      source,
+      isNonNullableByDefault: false,
+    );
 
     _validateDependencies(reporter, contents);
     _validateFlutter(reporter, contents);

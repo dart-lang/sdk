@@ -22,6 +22,7 @@ main() {
 
 @reflectiveTest
 class InlineMethodTest extends RefactoringTest {
+  @override
   InlineMethodRefactoringImpl refactoring;
   bool deleteSource;
   bool inlineAll;
@@ -129,7 +130,7 @@ main() {
     _createRefactoring('test() {');
     // error
     RefactoringStatus status = await refactoring.checkAllConditions();
-    var location = new SourceRange(findOffset('..test()'), '..test()'.length);
+    var location = SourceRange(findOffset('..test()'), '..test()'.length);
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
         expectedMessage: 'Cannot inline cascade invocation.',
         expectedContextRange: location);
@@ -1435,7 +1436,7 @@ main() {
     _createRefactoring('test();');
     // error
     RefactoringStatus status = await refactoring.checkAllConditions();
-    var location = new SourceRange(findOffset('test();'), 'test()'.length);
+    var location = SourceRange(findOffset('test();'), 'test()'.length);
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
         expectedMessage: 'No argument for the parameter "a".',
         expectedContextRange: location);
@@ -1770,13 +1771,13 @@ main(bool p, bool p2, bool p3) {
     assertRefactoringStatusOK(status);
     // change
     SourceChange change = await refactoring.createChange();
-    this.refactoringChange = change;
+    refactoringChange = change;
     assertTestChangeResult(expectedCode);
   }
 
   void _createRefactoring(String search) {
     int offset = findOffset(search);
-    refactoring = new InlineMethodRefactoring(
+    refactoring = InlineMethodRefactoring(
       searchEngine,
       testAnalysisResult,
       offset,

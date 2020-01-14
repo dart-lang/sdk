@@ -195,6 +195,122 @@ class ClassInferenceInfo {
   ClassInferenceInfo(this.builder);
 }
 
+/// Common base class for internal statements.
+abstract class InternalStatement extends Statement {
+  @override
+  R accept<R>(StatementVisitor<R> visitor) {
+    if (visitor is Printer || visitor is Precedence) {
+      // Allow visitors needed for toString.
+      return visitor.defaultStatement(this);
+    }
+    return unsupported("${runtimeType}.accept", -1, null);
+  }
+
+  @override
+  R accept1<R, A>(StatementVisitor1<R, A> visitor, A arg) =>
+      unsupported("${runtimeType}.accept1", -1, null);
+
+  StatementInferenceResult acceptInference(InferenceVisitor visitor);
+}
+
+class ForInStatementWithSynthesizedVariable extends InternalStatement {
+  VariableDeclaration variable;
+  Expression iterable;
+  Expression syntheticAssignment;
+  Statement expressionEffects;
+  Statement body;
+  final bool isAsync;
+  final bool hasProblem;
+  int bodyOffset;
+
+  ForInStatementWithSynthesizedVariable(this.variable, this.iterable,
+      this.syntheticAssignment, this.expressionEffects, this.body,
+      {this.isAsync, this.hasProblem})
+      : assert(isAsync != null),
+        assert(hasProblem != null) {
+    variable?.parent = this;
+    iterable?.parent = this;
+    syntheticAssignment?.parent = this;
+    expressionEffects?.parent = this;
+    body?.parent = this;
+  }
+
+  @override
+  StatementInferenceResult acceptInference(InferenceVisitor visitor) {
+    return visitor.visitForInStatementWithSynthesizedVariable(this);
+  }
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    variable?.accept(v);
+    iterable?.accept(v);
+    syntheticAssignment?.accept(v);
+    expressionEffects?.accept(v);
+    body?.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    if (variable != null) {
+      variable = variable.accept<TreeNode>(v);
+      variable?.parent = this;
+    }
+    if (iterable != null) {
+      iterable = iterable.accept<TreeNode>(v);
+      iterable?.parent = this;
+    }
+    if (syntheticAssignment != null) {
+      syntheticAssignment = syntheticAssignment.accept<TreeNode>(v);
+      syntheticAssignment?.parent = this;
+    }
+    if (expressionEffects != null) {
+      expressionEffects = expressionEffects.accept<TreeNode>(v);
+      expressionEffects?.parent = this;
+    }
+    if (body != null) {
+      body = body.accept<TreeNode>(v);
+      body?.parent = this;
+    }
+  }
+}
+
+class TryStatement extends InternalStatement {
+  Statement tryBlock;
+  List<Catch> catchBlocks;
+  Statement finallyBlock;
+
+  TryStatement(this.tryBlock, this.catchBlocks, this.finallyBlock) {
+    tryBlock?.parent = this;
+    setParents(catchBlocks, this);
+    finallyBlock?.parent = this;
+  }
+
+  @override
+  StatementInferenceResult acceptInference(InferenceVisitor visitor) {
+    return visitor.visitTryStatement(this);
+  }
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    tryBlock?.accept(v);
+    visitList(catchBlocks, v);
+    finallyBlock?.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    if (tryBlock != null) {
+      tryBlock = tryBlock.accept<TreeNode>(v);
+      tryBlock?.parent = this;
+    }
+    transformList(catchBlocks, v, this);
+    if (finallyBlock != null) {
+      finallyBlock = finallyBlock.accept<TreeNode>(v);
+      finallyBlock?.parent = this;
+    }
+  }
+}
+
 class SwitchCaseImpl extends SwitchCase {
   final bool hasLabel;
 
@@ -224,6 +340,7 @@ enum InternalExpressionKind {
   CompoundSuperIndexSet,
   DeferredCheck,
   Equals,
+  ExpressionInvocation,
   ExtensionIndexSet,
   ExtensionTearOff,
   ExtensionSet,
@@ -647,15 +764,42 @@ class ShadowInvalidFieldInitializer extends LocalInitializer
   }
 }
 
-/// Front end specific implementation of [MethodInvocation].
-class MethodInvocationImpl extends MethodInvocation {
-  /// Indicates whether this method invocation is a call to a `call` method
-  /// resulting from the invocation of a function expression.
-  final bool isImplicitCall;
+class ExpressionInvocation extends InternalExpression {
+  Expression expression;
+  Arguments arguments;
 
-  MethodInvocationImpl(Expression receiver, Name name, ArgumentsImpl arguments,
-      {this.isImplicitCall: false, Member interfaceTarget})
-      : super(receiver, name, arguments, interfaceTarget);
+  ExpressionInvocation(this.expression, this.arguments) {
+    expression?.parent = this;
+    arguments?.parent = this;
+  }
+
+  @override
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
+    return visitor.visitExpressionInvocation(this, typeContext);
+  }
+
+  @override
+  InternalExpressionKind get kind =>
+      InternalExpressionKind.ExpressionInvocation;
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    expression?.accept(v);
+    arguments?.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    if (expression != null) {
+      expression = expression.accept<TreeNode>(v);
+      expression?.parent = this;
+    }
+    if (arguments != null) {
+      arguments = arguments.accept<TreeNode>(v);
+      arguments?.parent = this;
+    }
+  }
 }
 
 /// Concrete shadow object representing a named function expression.
@@ -2947,4 +3091,9 @@ MethodInvocation createEqualsNull(
         ..fileOffset = fileOffset)
     ..fileOffset = fileOffset
     ..interfaceTarget = equalsMember;
+}
+
+ExpressionStatement createExpressionStatement(Expression expression) {
+  return new ExpressionStatement(expression)
+    ..fileOffset = expression.fileOffset;
 }

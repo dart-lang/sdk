@@ -4319,7 +4319,9 @@ class Parser {
       TokenType nextType = token.next.type;
       if (identical(nextType, TokenType.PERIOD) ||
           identical(nextType, TokenType.OPEN_PAREN) ||
-          identical(nextType, TokenType.OPEN_SQUARE_BRACKET)) {
+          identical(nextType, TokenType.OPEN_SQUARE_BRACKET) ||
+          identical(nextType, TokenType.QUESTION_PERIOD) ||
+          identical(nextType, TokenType.QUESTION_PERIOD_OPEN_SQUARE_BRACKET)) {
         return SELECTOR_PRECEDENCE;
       }
       return POSTFIX_PRECEDENCE;
@@ -5306,7 +5308,7 @@ class Parser {
     TypeInfo typeInfo = computeType(token, true);
     if (typeInfo.isNullable) {
       Token next = typeInfo.skipType(token).next;
-      if (!isOneOfOrEof(next, const [')', '?', ';', 'is', 'as'])) {
+      if (!isOneOfOrEof(next, const [')', '?', '??', ';', 'is', 'as'])) {
         // TODO(danrubel): investigate other situations
         // where `?` should be considered part of the type info
         // rather than the start of a conditional expression.

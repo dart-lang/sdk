@@ -95,7 +95,7 @@ void defineDriverTests({
   });
 }
 
-main() {
+void main() {
   defineDriverTests(
     name: 'default',
     options: ['--fix', 'double-to-int', '--fix', 'use-mixin'],

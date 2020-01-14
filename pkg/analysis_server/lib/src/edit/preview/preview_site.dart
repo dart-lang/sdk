@@ -5,7 +5,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:analysis_server/src/edit/nnbd_migration/instrumentation_renderer.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/migration_info.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/path_mapper.dart';
 import 'package:analysis_server/src/edit/preview/dart_file_page.dart';
@@ -85,7 +84,7 @@ class PreviewSite extends Site implements AbstractGetHandler {
   @override
   Future<void> handleGetRequest(HttpRequest request) async {
     Uri uri = request.uri;
-    if (uri.query.isNotEmpty) {
+    if (uri.query.contains('replacement')) {
       performEdit(uri);
       performMigration();
     }
@@ -95,12 +94,16 @@ class PreviewSite extends Site implements AbstractGetHandler {
         return respond(request, HighlightCssPage(this));
       } else if (path == highlightJSPagePath) {
         return respond(request, HighlightJSPage(this));
-      } else if (path == migrationInfo.includedRoot) {
+      } else if (path == '/' || path == migrationInfo.includedRoot) {
         return respond(request, IndexFilePage(this));
       }
       UnitInfo unitInfo = unitInfoMap[path];
       if (unitInfo != null) {
-        return respond(request, DartFilePage(this, unitInfo));
+        if (uri.queryParameters.containsKey('inline')) {
+          return respond(request, DartFilePage(this, unitInfo));
+        } else {
+          return respond(request, IndexFilePage(this));
+        }
       }
       return respond(request, createUnknownPage(path), HttpStatus.notFound);
     } catch (exception, stackTrace) {

@@ -145,7 +145,7 @@ class OutputUnitIrComputer extends IrDataExtractor<String> {
   String computeMemberValue(Id id, ir.Member node) {
     if (node is ir.Field && node.isConst) {
       ir.Expression initializer = node.initializer;
-      ConstantValue constant = _elementMap.getConstantValue(initializer);
+      ConstantValue constant = _elementMap.getConstantValue(node, initializer);
       if (!constant.isPrimitive) {
         SourceSpan span = computeSourceSpanFromTreeNode(initializer);
         if (initializer is ir.ConstructorInvocation) {
@@ -173,7 +173,7 @@ class OutputUnitIrComputer extends IrDataExtractor<String> {
 
   @override
   visitConstantExpression(ir.ConstantExpression node) {
-    ConstantValue constant = _elementMap.getConstantValue(node);
+    ConstantValue constant = _elementMap.getConstantValue(null, node);
     if (!constant.isPrimitive) {
       _constants.add('${constant.toStructuredText()}='
           '${outputUnitString(_data.outputUnitForConstant(constant))}');

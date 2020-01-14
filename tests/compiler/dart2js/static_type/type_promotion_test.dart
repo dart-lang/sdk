@@ -33,8 +33,9 @@ class TypePromotionDataComputer extends DataComputer<String> {
   ir.TypeEnvironment getTypeEnvironment(KernelToElementMapImpl elementMap) {
     if (_typeEnvironment == null) {
       ir.Component component = elementMap.env.mainComponent;
+      ir.CoreTypes coreTypes = new ir.CoreTypes(component);
       _typeEnvironment = new ir.TypeEnvironment(
-          new ir.CoreTypes(component), new ir.ClassHierarchy(component));
+          coreTypes, new ir.ClassHierarchy(component, coreTypes));
     }
     return _typeEnvironment;
   }

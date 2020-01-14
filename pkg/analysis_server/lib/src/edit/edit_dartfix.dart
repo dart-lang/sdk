@@ -29,11 +29,11 @@ class EditDartFix
   DartFixListener listener;
 
   EditDartFix(this.server, this.request) {
-    listener = new DartFixListener(server);
+    listener = DartFixListener(server);
   }
 
   Future<Response> compute() async {
-    final params = new EditDartfixParams.fromRequest(request);
+    final params = EditDartfixParams.fromRequest(request);
 
     // Determine the fixes to be applied
     final fixInfo = <DartFixInfo>[];
@@ -53,7 +53,7 @@ class EditDartFix
         if (info != null) {
           fixInfo.add(info);
         } else {
-          return new Response.invalidParameter(
+          return Response.invalidParameter(
               request, 'includedFixes', 'Unknown fix: $key');
         }
       }
@@ -67,7 +67,7 @@ class EditDartFix
         if (info != null) {
           fixInfo.remove(info);
         } else {
-          return new Response.invalidParameter(
+          return Response.invalidParameter(
               request, 'excludedFixes', 'Unknown fix: $key');
         }
       }
@@ -88,13 +88,13 @@ class EditDartFix
 
     for (String filePath in params.included) {
       if (!server.isValidFilePath(filePath)) {
-        return new Response.invalidFilePathFormat(request, filePath);
+        return Response.invalidFilePathFormat(request, filePath);
       }
       Resource res = resourceProvider.getResource(filePath);
       if (!res.exists ||
           !(contextManager.includedPaths.contains(filePath) ||
               contextManager.isInAnalysisRoot(filePath))) {
-        return new Response.fileNotAnalyzed(request, filePath);
+        return Response.fileNotAnalyzed(request, filePath);
       }
 
       // Set the linters used during analysis. If this command is used from
@@ -154,8 +154,8 @@ class EditDartFix
       var changedMessage = changedPath != null
           ? 'resource changed during analysis: $changedPath'
           : 'multiple resources changed during analysis.';
-      return new EditDartfixResult(
-        [new DartFixSuggestion('Analysis canceled because $changedMessage')],
+      return EditDartfixResult(
+        [DartFixSuggestion('Analysis canceled because $changedMessage')],
         listener.otherSuggestions,
         hasErrors,
         listener.sourceChange.edits,
@@ -166,12 +166,13 @@ class EditDartFix
           .forEach((d) => d.onCurrentSessionAboutToBeDiscarded = null);
     }
 
-    return new EditDartfixResult(
+    return EditDartfixResult(
       listener.suggestions,
       listener.otherSuggestions,
       hasErrors,
       listener.sourceChange.edits,
       details: listener.details,
+      urls: nonNullableFixTask?.previewUrls,
     ).toResponse(request.id);
   }
 

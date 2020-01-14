@@ -860,7 +860,6 @@ List<int> checkIncrementalSerialization(
     }
     if (librariesAfter < librariesBefore) {
       // If we actually did incremenally serialize anything, check the output!
-      // If we actually did incremenally serialize anything, check the output!
       BinaryPrinter printer = new BinaryPrinter(sink);
       printer.writeComponentFile(c);
       List<int> bytes = sink.builder.takeBytes();

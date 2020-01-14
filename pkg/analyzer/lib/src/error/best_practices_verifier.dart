@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/builder.dart';
@@ -33,9 +34,9 @@ import 'package:path/path.dart' as path;
 class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 //  static String _HASHCODE_GETTER_NAME = "hashCode";
 
-  static String _NULL_TYPE_NAME = "Null";
+  static const String _NULL_TYPE_NAME = "Null";
 
-  static String _TO_INT_METHOD_NAME = "toInt";
+  static const String _TO_INT_METHOD_NAME = "toInt";
 
   /// The class containing the AST nodes being visited, or `null` if we are not
   /// in the scope of a class.
@@ -68,8 +69,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   /// The [LinterContext] used for possible const calculations.
   LinterContext _linterContext;
 
-  /// Is `true` if NNBD is enabled for the library being analyzed.
-  final bool _isNonNullable;
+  /// Is `true` if the library being analyzed is non-nullable by default.
+  final bool _isNonNullableByDefault;
 
   /// True if inference failures should be reported, otherwise false.
   final bool _strictInference;
@@ -96,7 +97,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
               strictInference: false,
               typeProvider: typeProvider,
             ),
-        _isNonNullable = unit.featureSet.isEnabled(Feature.non_nullable),
+        _isNonNullableByDefault =
+            unit.featureSet.isEnabled(Feature.non_nullable),
         _strictInference =
             (analysisOptions as AnalysisOptionsImpl).strictInference,
         _inheritanceManager = inheritanceManager,
@@ -725,11 +727,13 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         }
       } else if (element is LibraryElement) {
         displayName = element.definingCompilationUnit.source.uri.toString();
-      } else if (displayName == FunctionElement.CALL_METHOD_NAME &&
-          node is MethodInvocation &&
-          node.staticInvokeType is InterfaceType) {
-        DartType staticInvokeType = node.staticInvokeType;
-        displayName = "${staticInvokeType.displayName}.${element.displayName}";
+      } else if (node is MethodInvocation &&
+          displayName == FunctionElement.CALL_METHOD_NAME) {
+        var invokeType = node.staticInvokeType as InterfaceType;
+        if (invokeType is InterfaceType) {
+          var invokeClass = invokeType.element;
+          displayName = "${invokeClass.name}.${element.displayName}";
+        }
       }
       LibraryElement library =
           element is LibraryElement ? element : element.library;
@@ -1076,14 +1080,14 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
                 ? functionNode.name
                 : functionNode;
         _errorReporter.reportErrorForNode(
-            HintCode.MISSING_RETURN, errorNode, [returnType.displayName]);
+            HintCode.MISSING_RETURN, errorNode, [returnType]);
       }
     }
   }
 
   /// Produce several null-aware related hints.
   void _checkForNullAwareHints(Expression node, Token operator) {
-    if (_isNonNullable) {
+    if (_isNonNullableByDefault) {
       return;
     }
 
@@ -1102,7 +1106,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     // CAN_BE_NULL_AFTER_NULL_AWARE
     if (parent is MethodInvocation &&
         !parent.isNullAware &&
-        _nullType.lookUpMethod(parent.methodName.name, _currentLibrary) ==
+        _nullType.lookUpMethod2(parent.methodName.name, _currentLibrary) ==
             null) {
       _errorReporter.reportErrorForNode(
           HintCode.CAN_BE_NULL_AFTER_NULL_AWARE, childOfParent);
@@ -1110,7 +1114,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
     if (parent is PropertyAccess &&
         !parent.isNullAware &&
-        _nullType.lookUpGetter(parent.propertyName.name, _currentLibrary) ==
+        _nullType.lookUpGetter2(parent.propertyName.name, _currentLibrary) ==
             null) {
       _errorReporter.reportErrorForNode(
           HintCode.CAN_BE_NULL_AFTER_NULL_AWARE, childOfParent);
@@ -1283,7 +1287,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     void checkParameterTypeIsKnown(SimpleFormalParameter parameter) {
       if (parameter.type == null) {
         ParameterElement element = parameter.declaredElement;
-        _errorReporter.reportTypeErrorForNode(
+        _errorReporter.reportErrorForNode(
           HintCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER,
           parameter,
           [element.displayName],

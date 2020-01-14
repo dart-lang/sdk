@@ -17,6 +17,7 @@ main() {
 
 @reflectiveTest
 class RenameExtensionMemberTest extends RenameRefactoringTest {
+  @override
   void setUp() {
     createAnalysisOptionsFile(experiments: ['extension-methods']);
     super.setUp();

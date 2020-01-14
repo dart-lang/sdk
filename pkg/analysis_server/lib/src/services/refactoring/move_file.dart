@@ -34,11 +34,11 @@ class MoveFileRefactoringImpl extends RefactoringImpl
   String oldFile;
   String newFile;
 
-  final packagePrefixedStringPattern = new RegExp(r'''^r?['"]+package:''');
+  final packagePrefixedStringPattern = RegExp(r'''^r?['"]+package:''');
 
   MoveFileRefactoringImpl(this.resourceProvider, this.refactoringWorkspace,
       this.resolvedUnit, this.oldFile)
-      : this.pathContext = resourceProvider.pathContext;
+      : pathContext = resourceProvider.pathContext;
 
   @override
   String get refactoringName => 'Move File';
@@ -49,28 +49,28 @@ class MoveFileRefactoringImpl extends RefactoringImpl
     if (drivers.length != 1) {
       if (refactoringWorkspace.drivers
           .any((d) => pathContext.equals(d.contextRoot.root, oldFile))) {
-        return new RefactoringStatus.fatal(
+        return RefactoringStatus.fatal(
             'Renaming an analysis root is not supported ($oldFile)');
       } else {
-        return new RefactoringStatus.fatal(
+        return RefactoringStatus.fatal(
             '$oldFile does not belong to an analysis root.');
       }
     }
     driver = drivers.first;
     if (!driver.resourceProvider.getFile(oldFile).exists) {
-      return new RefactoringStatus.fatal('$oldFile does not exist.');
+      return RefactoringStatus.fatal('$oldFile does not exist.');
     }
-    return new RefactoringStatus();
+    return RefactoringStatus();
   }
 
   @override
   Future<RefactoringStatus> checkInitialConditions() async {
-    return new RefactoringStatus();
+    return RefactoringStatus();
   }
 
   @override
   Future<SourceChange> createChange() async {
-    final ChangeBuilder changeBuilder = new ChangeBuilder();
+    final ChangeBuilder changeBuilder = ChangeBuilder();
     final CompilationUnitElement element = resolvedUnit.unit.declaredElement;
     if (element == null) {
       return changeBuilder.sourceChange;
@@ -101,7 +101,7 @@ class MoveFileRefactoringImpl extends RefactoringImpl
                     pathContext.join(newDir, pathos.basename(newFile));
                 String newUri = _getRelativeUri(newLocation, oldDir);
                 builder.addSimpleReplacement(
-                    new SourceRange(po.uri.offset, po.uri.length), "'$newUri'");
+                    SourceRange(po.uri.offset, po.uri.length), "'$newUri'");
               });
             });
           }
@@ -134,7 +134,7 @@ class MoveFileRefactoringImpl extends RefactoringImpl
             String oldLocation = pathContext.join(oldDir, po.uri.stringValue);
             String newUri = _getRelativeUri(oldLocation, newDir);
             builder.addSimpleReplacement(
-                new SourceRange(po.uri.offset, po.uri.length), "'$newUri'");
+                SourceRange(po.uri.offset, po.uri.length), "'$newUri'");
           });
         });
       }
@@ -161,8 +161,8 @@ class MoveFileRefactoringImpl extends RefactoringImpl
     String refDir = pathContext.dirname(reference.file);
     // Try to keep package: URI
     if (_isPackageReference(reference)) {
-      Source newSource = new NonExistingSource(
-          newFile, pathos.toUri(newFile), UriKind.FILE_URI);
+      Source newSource =
+          NonExistingSource(newFile, pathos.toUri(newFile), UriKind.FILE_URI);
       Uri restoredUri = driver.sourceFactory.restoreUri(newSource);
       if (restoredUri != null) {
         return restoredUri.toString();

@@ -28,7 +28,7 @@ class TypeHierarchyComputer {
   final List<TypeHierarchyItem> _items = <TypeHierarchyItem>[];
   final List<ClassElement> _itemClassElements = <ClassElement>[];
   final Map<Element, TypeHierarchyItem> _elementItemMap =
-      new HashMap<Element, TypeHierarchyItem>();
+      HashMap<Element, TypeHierarchyItem>();
 
   TypeHierarchyComputer(this._searchEngine, this._pivotElement) {
     _pivotLibrary = _pivotElement.library;
@@ -85,7 +85,7 @@ class TypeHierarchyComputer {
       }
       // create a subclass item
       ExecutableElement subMemberElement = _findMemberElement(subElement);
-      subItem = new TypeHierarchyItem(convertElement(subElement),
+      subItem = TypeHierarchyItem(convertElement(subElement),
           memberElement: subMemberElement != null
               ? convertElement(subMemberElement)
               : null,
@@ -123,7 +123,7 @@ class TypeHierarchyComputer {
             classElement.displayName + '<' + typeArguments.join(', ') + '>';
       }
       ExecutableElement memberElement = _findMemberElement(classElement);
-      item = new TypeHierarchyItem(convertElement(classElement),
+      item = TypeHierarchyItem(convertElement(classElement),
           displayName: displayName,
           memberElement:
               memberElement != null ? convertElement(memberElement) : null);

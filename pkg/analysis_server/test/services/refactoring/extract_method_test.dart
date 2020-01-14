@@ -21,6 +21,7 @@ main() {
 
 @reflectiveTest
 class ExtractMethodTest extends RefactoringTest {
+  @override
   ExtractMethodRefactoringImpl refactoring;
 
   test_bad_assignmentLeftHandSide() async {
@@ -2918,7 +2919,7 @@ Completer<int> newCompleter() => null;
   }
 
   void _createRefactoring(int offset, int length) {
-    refactoring = new ExtractMethodRefactoring(
+    refactoring = ExtractMethodRefactoring(
         searchEngine, testAnalysisResult, offset, length);
     refactoring.name = 'res';
   }
@@ -2968,7 +2969,7 @@ Completer<int> newCompleter() => null;
    */
   List<RefactoringMethodParameter> _getParametersCopy() {
     return refactoring.parameters.map((p) {
-      return new RefactoringMethodParameter(p.kind, p.type, p.name, id: p.id);
+      return RefactoringMethodParameter(p.kind, p.type, p.name, id: p.id);
     }).toList();
   }
 }

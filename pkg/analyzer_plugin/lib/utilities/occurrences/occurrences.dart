@@ -73,20 +73,20 @@ class OccurrencesGenerator {
    */
   GeneratorResult generateOccurrencesNotification(OccurrencesRequest request) {
     List<Notification> notifications = <Notification>[];
-    OccurrencesCollectorImpl collector = new OccurrencesCollectorImpl();
+    OccurrencesCollectorImpl collector = OccurrencesCollectorImpl();
     for (OccurrencesContributor contributor in contributors) {
       try {
         contributor.computeOccurrences(request, collector);
       } catch (exception, stackTrace) {
-        notifications.add(new PluginErrorParams(
+        notifications.add(PluginErrorParams(
                 false, exception.toString(), stackTrace.toString())
             .toNotification());
       }
     }
     notifications.add(
-        new AnalysisOccurrencesParams(request.path, collector.occurrences)
+        AnalysisOccurrencesParams(request.path, collector.occurrences)
             .toNotification());
-    return new GeneratorResult(null, notifications);
+    return GeneratorResult(null, notifications);
   }
 }
 

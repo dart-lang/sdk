@@ -581,7 +581,7 @@ DART_EXPORT void Dart_IsolateFlagsInitialize(Dart_IsolateFlags* flags);
  * \param flags Default flags for this isolate being spawned. Either inherited
  *   from the spawning isolate or passed as parameters when spawning the
  *   isolate from Dart code.
- * \param callback_data The callback data which was passed to the
+ * \param isolate_data The isolate data which was passed to the
  *   parent isolate when it was created by calling Dart_CreateIsolateGroup().
  * \param error A structure into which the embedder can place a
  *   C string containing an error message in the case of failures.
@@ -595,7 +595,7 @@ typedef Dart_Isolate (*Dart_IsolateGroupCreateCallback)(
     const char* package_root,
     const char* package_config,
     Dart_IsolateFlags* flags,
-    void* callback_data,
+    void* isolate_data,
     char** error);
 
 /**
@@ -894,7 +894,11 @@ DART_EXPORT bool Dart_IsVMFlagSet(const char* flag_name);
  *   isolate or NULL if no snapshot is provided. If provided, the buffers must
  *   remain valid until the isolate shuts down.
  * \param flags Pointer to VM specific flags or NULL for default flags.
- * \param callback_data Embedder data.  This data will be passed to
+ * \param isolate_group_data Embedder group data. This data can be obtained
+ *   by calling Dart_IsolateGroupData and will be passed to the
+ *   Dart_IsolateShutdownCallback, Dart_IsolateCleanupCallback, and
+ *   Dart_IsolateGroupCleanupCallback.
+ * \param isolate_data Embedder data.  This data will be passed to
  *   the Dart_IsolateGroupCreateCallback when new isolates are spawned from
  *   this parent isolate.
  * \param error Returns NULL if creation is successful, an error message
@@ -931,7 +935,11 @@ Dart_CreateIsolateGroup(const char* script_uri,
  * \param kernel_buffer_size A buffer which contains a kernel/DIL program. Must
  *   remain valid until isolate shutdown.
  * \param flags Pointer to VM specific flags or NULL for default flags.
- * \param callback_data Embedder data.  This data will be passed to
+ * \param isolate_group_data Embedder group data. This data can be obtained
+ *   by calling Dart_IsolateGroupData and will be passed to the
+ *   Dart_IsolateShutdownCallback, Dart_IsolateCleanupCallback, and
+ *   Dart_IsolateGroupCleanupCallback.
+ * \param isolate_data Embedder data.  This data will be passed to
  *   the Dart_IsolateGroupCreateCallback when new isolates are spawned from
  *   this parent isolate.
  * \param error Returns NULL if creation is successful, an error message
@@ -3254,14 +3262,6 @@ DART_EXPORT void Dart_SetDartLibrarySourcesKernel(
 DART_EXPORT bool Dart_IsServiceIsolate(Dart_Isolate isolate);
 
 /**
- * Returns the port that script load requests should be sent on.
- *
- * \return Returns the port for load requests or ILLEGAL_PORT if the service
- * isolate failed to startup or does not support load requests.
- */
-DART_EXPORT Dart_Port Dart_ServiceWaitForLoadPort();
-
-/**
  * Writes the CPU profile to the timeline as a series of 'instant' events.
  *
  * Note that this is an expensive operation.
@@ -3386,11 +3386,19 @@ typedef void (*Dart_StreamingWriteCallback)(void* callback_data,
  *
  *  The callback will be invoked one or more times to provide the assembly code.
  *
+ *  If stripped is true, then the assembly code will not include DWARF
+ *  debugging sections.
+ *
+ *  If debug_callback_data is provided, debug_callback_data will be used with
+ *  the callback to provide separate debugging information.
+ *
  *  \return A valid handle if no error occurs during the operation.
  */
 DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
 Dart_CreateAppAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
-                                    void* callback_data);
+                                    void* callback_data,
+                                    bool stripped,
+                                    void* debug_callback_data);
 
 /**
  *  Creates a precompiled snapshot.
@@ -3411,16 +3419,25 @@ Dart_CreateAppAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
  *
  *  The callback will be invoked one or more times to provide the binary output.
  *
+ *  If stripped is true, then the binary output will not include DWARF
+ *  debugging sections.
+ *
+ *  If debug_callback_data is provided, debug_callback_data will be used with
+ *  the callback to provide separate debugging information.
+ *
  * \return A valid handle if no error occurs during the operation.
  */
 DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
 Dart_CreateAppAOTSnapshotAsElf(Dart_StreamingWriteCallback callback,
                                void* callback_data,
-                               bool stripped);
+                               bool stripped,
+                               void* debug_callback_data);
 
 /**
  *  Like Dart_CreateAppAOTSnapshotAsAssembly, but only includes
- *  kDartVmSnapshotData and kDartVmSnapshotInstructions.
+ *  kDartVmSnapshotData and kDartVmSnapshotInstructions. It also does
+ *  not strip DWARF information from the generated assembly or allow for
+ *  separate debug information.
  */
 DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
 Dart_CreateVMAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
@@ -3435,6 +3452,9 @@ Dart_CreateVMAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
  *  This function has been DEPRECATED. Please use Dart_CreateAppAOTSnapshotAsELF
  *  or Dart_CreateAppAOTSnapshotAsAssembly instead. A portable ELF loader is
  *  available in the target //runtime/bin:elf_loader.
+ *
+ *  If callback and debug_callback_data are provided, debug_callback_data will
+ *  be used with the callback to provide separate debugging information.
  */
 DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
 Dart_CreateAppAOTSnapshotAsBlobs(uint8_t** vm_snapshot_data_buffer,
@@ -3444,7 +3464,9 @@ Dart_CreateAppAOTSnapshotAsBlobs(uint8_t** vm_snapshot_data_buffer,
                                  uint8_t** isolate_snapshot_data_buffer,
                                  intptr_t* isolate_snapshot_data_size,
                                  uint8_t** isolate_snapshot_instructions_buffer,
-                                 intptr_t* isolate_snapshot_instructions_size);
+                                 intptr_t* isolate_snapshot_instructions_size,
+                                 Dart_StreamingWriteCallback callback,
+                                 void* debug_callback_data);
 
 /**
  * Sorts the class-ids in depth first traversal order of the inheritance

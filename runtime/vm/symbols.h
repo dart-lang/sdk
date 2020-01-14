@@ -140,6 +140,7 @@ class ObjectPointerVisitor;
   V(FfiVoid, "Void")                                                           \
   V(Field, "Field")                                                            \
   V(FinallyRetVal, ":finally_ret_val")                                         \
+  V(FirstArg, "x")                                                             \
   V(Float32List, "Float32List")                                                \
   V(Float32x4, "Float32x4")                                                    \
   V(Float32x4List, "Float32x4List")                                            \
@@ -239,6 +240,7 @@ class ObjectPointerVisitor;
   V(RightShiftOperator, ">>")                                                  \
   V(SavedTryContextVar, ":saved_try_context_var")                              \
   V(Script, "Script")                                                          \
+  V(SecondArg, "y")                                                            \
   V(Set, "set")                                                                \
   V(SetAsyncThreadStackTrace, "_setAsyncThreadStackTrace")                     \
   V(SetterPrefix, "set:")                                                      \
@@ -458,6 +460,7 @@ class ObjectPointerVisitor;
   V(identityHashCode, "identityHashCode")                                      \
   V(index_temp, ":index_temp")                                                 \
   V(isPaused, "isPaused")                                                      \
+  V(isSync, "isSync")                                                          \
   V(last, "last")                                                              \
   V(match_end_index, ":match_end_index")                                       \
   V(match_start_index, ":match_start_index")                                   \

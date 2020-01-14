@@ -70,7 +70,7 @@ mixin TreeWriter {
       if (value is Source) {
         return 'Source (uri="${value.uri}", path="${value.fullName}")';
       } else if (value is ElementAnnotationImpl) {
-        StringBuffer buffer = new StringBuffer();
+        StringBuffer buffer = StringBuffer();
         buffer.write(_toString(value.element));
         EvaluationResultImpl result = value.evaluationResult;
         if (result == null) {
@@ -86,7 +86,7 @@ mixin TreeWriter {
         return value.toString();
       }
     } catch (exception, stackTrace) {
-      exceptions.add(new CaughtException(exception, stackTrace));
+      exceptions.add(CaughtException(exception, stackTrace));
     }
     return null;
   }

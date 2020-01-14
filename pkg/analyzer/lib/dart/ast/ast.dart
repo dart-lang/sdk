@@ -389,7 +389,7 @@ abstract class AstNode implements SyntacticEntity {
 
   /// Return either this node or the most immediate ancestor of this node that
   /// has the given type, or `null` if there is no such node.
-  T thisOrAncestorOfType<T extends AstNode>();
+  E thisOrAncestorOfType<E extends AstNode>();
 
   /// Return a textual description of this node in a form approximating valid
   /// source.
@@ -2909,8 +2909,7 @@ abstract class Identifier implements Expression {
 
   /// Return `true` if the given [name] is visible only within the library in
   /// which it is declared.
-  static bool isPrivateName(String name) =>
-      StringUtilities.startsWithChar(name, 0x5F); // '_'
+  static bool isPrivateName(String name) => name.startsWith('_');
 }
 
 /// The basic structure of an if element.
@@ -3069,8 +3068,8 @@ abstract class ImportDirective implements NamespaceDirective {
     // hides and shows
     //
     NodeList<Combinator> combinators1 = import1.combinators;
-    List<String> allHides1 = List<String>();
-    List<String> allShows1 = List<String>();
+    List<String> allHides1 = <String>[];
+    List<String> allShows1 = <String>[];
     int length1 = combinators1.length;
     for (int i = 0; i < length1; i++) {
       Combinator combinator = combinators1[i];
@@ -3092,8 +3091,8 @@ abstract class ImportDirective implements NamespaceDirective {
       }
     }
     NodeList<Combinator> combinators2 = import2.combinators;
-    List<String> allHides2 = List<String>();
-    List<String> allShows2 = List<String>();
+    List<String> allHides2 = <String>[];
+    List<String> allShows2 = <String>[];
     int length2 = combinators2.length;
     for (int i = 0; i < length2; i++) {
       Combinator combinator = combinators2[i];

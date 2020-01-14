@@ -53,7 +53,7 @@ comparison tool:
 
 gen_snapshot also accepts an extra `--write-v8-snapshot-profile-to=hello.heapsnapshot`
 flag. If supplied the AOT compiler will emit snapshot size information for all objects in the snapshot
-to `sizes.json` in V8 snapshot format.
+to `hello.heapsnapshot` in V8 snapshot format.
 
 This flag can be passed to `gen_snapshot` directly, or to the various wrapper
 scripts (e.g. `pkg/vm/tool/precompiler2`):

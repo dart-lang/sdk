@@ -10,11 +10,13 @@ part of heap_snapshot;
 
 class HeapSnapshot implements M.HeapSnapshot {
   SnapshotGraph graph;
+  String get description => graph.description;
   DateTime timestamp;
-  int get size => graph.shallowSize + graph.externalSize;
+  int get size => graph.internalSize + graph.externalSize;
   HeapSnapshotMergedDominatorNode mergedDominatorTree;
   List<SnapshotClass> classes;
   SnapshotObject get root => graph.root;
+  Map<String, int> get processPartitions => graph.processPartitions;
   Uint8List encoded;
 
   Stream<String> loadProgress(S.Isolate isolate, Uint8List encoded) {

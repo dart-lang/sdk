@@ -11,7 +11,7 @@ class DartCodegenVisitor extends HierarchicalApiVisitor {
   /**
    * Type references in the spec that are named something else in Dart.
    */
-  static const Map<String, String> _typeRenames = const {
+  static const Map<String, String> _typeRenames = {
     'long': 'int',
     'object': 'Map',
   };
@@ -43,7 +43,7 @@ class DartCodegenVisitor extends HierarchicalApiVisitor {
     } else if (type is TypeUnion) {
       return 'dynamic';
     } else {
-      throw new Exception("Can't convert to a dart type");
+      throw Exception("Can't convert to a dart type");
     }
   }
 }

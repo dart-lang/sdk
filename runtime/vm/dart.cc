@@ -199,7 +199,7 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
   Zone::Init();
 #if defined(SUPPORT_TIMELINE)
   Timeline::Init();
-  TimelineDurationScope tds(Timeline::GetVMStream(), "Dart::Init");
+  TimelineBeginEndScope tbes(Timeline::GetVMStream(), "Dart::Init");
 #endif
   Isolate::InitVM();
   IsolateGroup::Init();
@@ -238,8 +238,9 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
     // We make a fake [IsolateGroupSource] here, since the "vm-isolate" is not
     // really an isolate itself - it acts more as a container for VM-global
     // objects.
-    std::unique_ptr<IsolateGroupSource> source(new IsolateGroupSource(
-        nullptr, "vm-isolate", nullptr, nullptr, nullptr, -1, api_flags));
+    std::unique_ptr<IsolateGroupSource> source(
+        new IsolateGroupSource(nullptr, "vm-isolate", vm_isolate_snapshot,
+                               instructions_snapshot, nullptr, -1, api_flags));
     auto group = new IsolateGroup(std::move(source), /*embedder_data=*/nullptr);
     IsolateGroup::RegisterIsolateGroup(group);
     vm_isolate_ =
@@ -263,7 +264,7 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
     SubtypeTestCache::Init();
     if (vm_isolate_snapshot != NULL) {
 #if defined(SUPPORT_TIMELINE)
-      TimelineDurationScope tds(Timeline::GetVMStream(), "ReadVMSnapshot");
+      TimelineBeginEndScope tbes(Timeline::GetVMStream(), "ReadVMSnapshot");
 #endif
       ASSERT(snapshot != nullptr);
       vm_snapshot_kind_ = snapshot->kind();
@@ -307,10 +308,10 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
 
       Object::FinishInit(vm_isolate_);
 #if defined(SUPPORT_TIMELINE)
-      if (tds.enabled()) {
-        tds.SetNumArguments(2);
-        tds.FormatArgument(0, "snapshotSize", "%" Pd, snapshot->length());
-        tds.FormatArgument(
+      if (tbes.enabled()) {
+        tbes.SetNumArguments(2);
+        tbes.FormatArgument(0, "snapshotSize", "%" Pd, snapshot->length());
+        tbes.FormatArgument(
             1, "heapSize", "%" Pd64,
             vm_isolate_->heap()->UsedInWords(Heap::kOld) * kWordSize);
       }
@@ -329,8 +330,6 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
     } else {
 #if defined(DART_PRECOMPILED_RUNTIME)
       return strdup("Precompiled runtime requires a precompiled snapshot");
-#elif !defined(DART_NO_SNAPSHOT)
-      return strdup("Missing vm isolate snapshot");
 #else
       vm_snapshot_kind_ = Snapshot::kNone;
       StubCode::Init();
@@ -356,7 +355,7 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
 #endif
     {
 #if defined(SUPPORT_TIMELINE)
-      TimelineDurationScope tds(Timeline::GetVMStream(), "FinalizeVMIsolate");
+      TimelineBeginEndScope tbes(Timeline::GetVMStream(), "FinalizeVMIsolate");
 #endif
       Object::FinalizeVMIsolate(vm_isolate_);
     }
@@ -644,10 +643,10 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
   Thread* T = Thread::Current();
   Isolate* I = T->isolate();
 #if defined(SUPPORT_TIMELINE)
-  TimelineDurationScope tds(T, Timeline::GetIsolateStream(),
-                            "InitializeIsolate");
-  tds.SetNumArguments(1);
-  tds.CopyArgument(0, "isolateName", I->name());
+  TimelineBeginEndScope tbes(T, Timeline::GetIsolateStream(),
+                             "InitializeIsolate");
+  tbes.SetNumArguments(1);
+  tbes.CopyArgument(0, "isolateName", I->name());
 #endif
   ASSERT(I != NULL);
   StackZone zone(T);
@@ -662,8 +661,8 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
   if ((snapshot_data != NULL) && kernel_buffer == NULL) {
     // Read the snapshot and setup the initial state.
 #if defined(SUPPORT_TIMELINE)
-    TimelineDurationScope tds(T, Timeline::GetIsolateStream(),
-                              "ReadIsolateSnapshot");
+    TimelineBeginEndScope tbes(T, Timeline::GetIsolateStream(),
+                               "ReadIsolateSnapshot");
 #endif
     // TODO(turnidge): Remove once length is not part of the snapshot.
     const Snapshot* snapshot = Snapshot::SetupFromBuffer(snapshot_data);
@@ -690,11 +689,11 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
     ReversePcLookupCache::BuildAndAttachToIsolate(I);
 
 #if defined(SUPPORT_TIMELINE)
-    if (tds.enabled()) {
-      tds.SetNumArguments(2);
-      tds.FormatArgument(0, "snapshotSize", "%" Pd, snapshot->length());
-      tds.FormatArgument(1, "heapSize", "%" Pd64,
-                         I->heap()->UsedInWords(Heap::kOld) * kWordSize);
+    if (tbes.enabled()) {
+      tbes.SetNumArguments(2);
+      tbes.FormatArgument(0, "snapshotSize", "%" Pd, snapshot->length());
+      tbes.FormatArgument(1, "heapSize", "%" Pd64,
+                          I->heap()->UsedInWords(Heap::kOld) * kWordSize);
     }
 #endif  // !defined(PRODUCT)
     if (FLAG_trace_isolates) {
@@ -790,9 +789,8 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
   if (FLAG_print_class_table) {
     I->class_table()->Print();
   }
-  ServiceIsolate::MaybeMakeServiceIsolate(I);
-
 #if !defined(PRODUCT)
+  ServiceIsolate::MaybeMakeServiceIsolate(I);
   if (!ServiceIsolate::IsServiceIsolate(I) &&
       !KernelIsolate::IsKernelIsolate(I)) {
     I->message_handler()->set_should_pause_on_start(
@@ -844,8 +842,9 @@ const char* Dart::FeaturesString(Isolate* isolate,
     ADD_FLAG(#name, value);                                                    \
   } while (0);
 
-  VM_GLOBAL_FLAG_LIST(ADD_FLAG);
   if (Snapshot::IncludesCode(kind)) {
+    VM_GLOBAL_FLAG_LIST(ADD_FLAG);
+
     // enabling assertions affects deopt ids.
     ADD_ISOLATE_FLAG(asserts, enable_asserts, FLAG_enable_asserts);
     if (kind == Snapshot::kFullJIT) {
@@ -853,9 +852,6 @@ const char* Dart::FeaturesString(Isolate* isolate,
                        FLAG_use_field_guards);
       ADD_ISOLATE_FLAG(use_osr, use_osr, FLAG_use_osr);
     }
-    buffer.AddString(FLAG_causal_async_stacks ? " causal_async_stacks"
-                                              : " no-causal_async_stacks");
-
 #if !defined(PRODUCT)
     buffer.AddString(FLAG_code_comments ? " code-comments"
                                         : " no-code-comments");
@@ -891,8 +887,8 @@ const char* Dart::FeaturesString(Isolate* isolate,
 #endif
   }
 
-  if (FLAG_precompiled_mode && FLAG_dwarf_stack_traces) {
-    buffer.AddString(" dwarf-stack-traces");
+  if (Dart::non_nullable_flag()) {
+    buffer.AddString(" nnbd-experiment");
   }
 #undef ADD_ISOLATE_FLAG
 #undef ADD_FLAG

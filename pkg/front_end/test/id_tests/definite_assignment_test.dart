@@ -8,8 +8,9 @@ import 'package:_fe_analyzer_shared/src/testing/id_testing.dart'
     show DataInterpreter, runTests;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
-import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart';
 import 'package:front_end/src/fasta/builder/member_builder.dart';
+import 'package:front_end/src/fasta/source/source_loader.dart';
+import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart';
 import 'package:front_end/src/testing/id_testing_utils.dart';
 import 'package:kernel/ast.dart' hide Variance;
 
@@ -17,17 +18,13 @@ main(List<String> args) async {
   Directory dataDir = new Directory.fromUri(Platform.script.resolve(
       '../../../_fe_analyzer_shared/test/flow_analysis/definite_assignment/'
       'data'));
-  await runTests(dataDir,
+  await runTests<String>(dataDir,
       args: args,
-      supportedMarkers: sharedMarkers,
+      supportedMarkers: cfeAnalyzerMarkers,
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
       runTest: runTestFor(
-          const DefiniteAssignmentDataComputer(), [cfeNonNullableOnlyConfig]),
-      skipList: [
-        // TODO(johnniwinther): Change for loop encoding to support this:
-        'for_each.dart',
-      ]);
+          const DefiniteAssignmentDataComputer(), [cfeNonNullableOnlyConfig]));
 }
 
 class DefiniteAssignmentDataComputer extends DataComputer<String> {
@@ -50,16 +47,20 @@ class DefiniteAssignmentDataComputer extends DataComputer<String> {
 }
 
 class DefiniteAssignmentDataExtractor extends CfeDataExtractor<String> {
+  final SourceLoaderDataForTesting _sourceLoaderDataForTesting;
   final FlowAnalysisResult _flowResult;
 
   DefiniteAssignmentDataExtractor(InternalCompilerResult compilerResult,
       Map<Id, ActualData<String>> actualMap, this._flowResult)
-      : super(compilerResult, actualMap);
+      : _sourceLoaderDataForTesting =
+      compilerResult.kernelTargetForTesting.loader.dataForTesting,
+        super(compilerResult, actualMap);
 
   @override
   String computeNodeValue(Id id, TreeNode node) {
     if (node is VariableGet) {
-      if (_flowResult.unassignedNodes.contains(node)) {
+      TreeNode alias = _sourceLoaderDataForTesting.toOriginal(node);
+      if (_flowResult.unassignedNodes.contains(alias)) {
         return 'unassigned';
       }
     }

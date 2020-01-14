@@ -32,24 +32,24 @@ Widget build(BuildContext context) {
 ''';
 
   static final expectedResults = [
-    new ClosingLabel(51, 96, "Row"),
-    new ClosingLabel(79, 57, "<Widget>[]")
+    ClosingLabel(51, 96, "Row"),
+    ClosingLabel(79, 57, "<Widget>[]")
   ];
 
   List<ClosingLabel> lastLabels;
 
   Completer _labelsReceived;
 
+  @override
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_CLOSING_LABELS) {
-      var params =
-          new AnalysisClosingLabelsParams.fromNotification(notification);
+      var params = AnalysisClosingLabelsParams.fromNotification(notification);
       if (params.file == testFile) {
         lastLabels = params.labels;
         _labelsReceived.complete(null);
       }
     } else if (notification.event == SERVER_NOTIFICATION_ERROR) {
-      var params = new ServerErrorParams.fromNotification(notification);
+      var params = ServerErrorParams.fromNotification(notification);
       throw "${params.message}\n${params.stackTrace}";
     }
   }
@@ -94,7 +94,7 @@ Widget build(BuildContext context) {
   }
 
   Future waitForLabels(action()) {
-    _labelsReceived = new Completer();
+    _labelsReceived = Completer();
     action();
     return _labelsReceived.future;
   }

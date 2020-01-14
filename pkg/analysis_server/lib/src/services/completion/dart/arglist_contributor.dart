@@ -120,7 +120,7 @@ bool _isInsertingToArgListWithSynthetic(DartCompletionRequest request) {
  */
 Iterable<String> _namedArgs(DartCompletionRequest request) {
   AstNode node = request.target.containingNode;
-  List<String> namedArgs = new List<String>();
+  List<String> namedArgs = List<String>();
   if (node is ArgumentList) {
     for (Expression arg in node.arguments) {
       if (arg is NamedExpression) {
@@ -142,10 +142,8 @@ class ArgListContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
       DartCompletionRequest request) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     this.request = request;
-    this.suggestions = <CompletionSuggestion>[];
+    suggestions = <CompletionSuggestion>[];
 
     var executable = request.target.executableElement;
     if (executable == null) {
@@ -171,7 +169,7 @@ class ArgListContributor extends DartCompletionContributor {
   void _addNamedParameterSuggestion(List<String> namedArgs,
       ParameterElement parameter, bool appendColon, bool appendComma) {
     String name = parameter.name;
-    String type = parameter.type?.displayName;
+    String type = parameter.type?.getDisplayString(withNullability: false);
     if (name != null && name.isNotEmpty && !namedArgs.contains(name)) {
       String completion = name;
       if (appendColon) {
@@ -184,10 +182,16 @@ class ArgListContributor extends DartCompletionContributor {
       if (element is ConstructorElement) {
         var flutter = Flutter.of(request.result);
         if (flutter.isWidget(element.enclosingElement)) {
-          String value = getDefaultStringParameterValue(parameter);
-          if (value == '<Widget>[]') {
-            completion += value;
-            selectionOffset = completion.length - 1; // before closing ']'
+          DefaultArgument defaultValue =
+              getDefaultStringParameterValue(parameter);
+          // TODO(devoncarew): Should we remove the check here? We would then
+          // suggest values for param types like closures.
+          if (defaultValue != null && defaultValue.text == '<Widget>[]') {
+            int completionLength = completion.length;
+            completion += defaultValue.text;
+            if (defaultValue.cursorPosition != null) {
+              selectionOffset = completionLength + defaultValue.cursorPosition;
+            }
           }
         }
       }
@@ -200,7 +204,7 @@ class ArgListContributor extends DartCompletionContributor {
           ? DART_RELEVANCE_NAMED_PARAMETER_REQUIRED
           : DART_RELEVANCE_NAMED_PARAMETER;
 
-      CompletionSuggestion suggestion = new CompletionSuggestion(
+      CompletionSuggestion suggestion = CompletionSuggestion(
           CompletionSuggestionKind.NAMED_ARGUMENT,
           relevance,
           completion,
@@ -226,7 +230,7 @@ class ArgListContributor extends DartCompletionContributor {
     Iterable<ParameterElement> requiredParam =
         parameters.where((ParameterElement p) => p.isRequiredPositional);
     int requiredCount = requiredParam.length;
-    // TODO (jwren) _isAppendingToArgList can be split into two cases (with and
+    // TODO(jwren): _isAppendingToArgList can be split into two cases (with and
     // without preceded), then _isAppendingToArgList,
     // _isInsertingToArgListWithNoSynthetic and
     // _isInsertingToArgListWithSynthetic could be formatted into a single

@@ -29,9 +29,9 @@ import 'package:kernel/ast.dart'
 
 main(List<String> args) async {
   Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
-  await runTests(dataDir,
+  await runTests<String>(dataDir,
       args: args,
-      supportedMarkers: [cfeMarker],
+      supportedMarkers: [cfeMarker, dart2jsMarker],
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
       runTest: runTestFor(const IdTestingDataComputer(), [defaultCfeConfig]));

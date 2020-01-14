@@ -21,12 +21,12 @@ main(List<String> args) async {
   Directory dataDir = new Directory.fromUri(Platform.script.resolve(
       '../../../_fe_analyzer_shared/test/flow_analysis/assigned_variables/'
       'data'));
-  await runTests(dataDir,
+  await runTests<_Data>(dataDir,
       args: args,
-      supportedMarkers: sharedMarkers,
+      supportedMarkers: cfeAnalyzerMarkers,
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
-      runTest: runTestFor(
+      runTest: runTestFor<_Data>(
           const AssignedVariablesDataComputer(), [cfeNonNullableOnlyConfig]));
 }
 

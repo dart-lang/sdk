@@ -40,7 +40,7 @@ main() {
 class AbstractBuildModeTest extends BaseTest {
   Future<void> _doDrive(String path,
       {String uri,
-      List<String> additionalArgs: const [],
+      List<String> additionalArgs = const [],
       String dartSdkSummaryPath}) async {
     path = _p(path);
 
@@ -69,10 +69,10 @@ class AbstractBuildModeTest extends BaseTest {
   /// Try to find a appropriate directory to pass to "--dart-sdk" that will
   /// allow summaries to be found.
   String _findSdkDirForSummaries() {
-    Set<String> triedDirectories = new Set<String>();
+    Set<String> triedDirectories = Set<String>();
     bool isSuitable(String sdkDir) {
       triedDirectories.add(sdkDir);
-      return new File(path.join(sdkDir, 'lib', '_internal', 'strong.sum'))
+      return File(path.join(sdkDir, 'lib', '_internal', 'strong.sum'))
           .existsSync();
     }
 
@@ -84,7 +84,7 @@ class AbstractBuildModeTest extends BaseTest {
 
     // Usually the sdk directory is the parent of the parent of the "dart"
     // executable.
-    Directory executableParent = new File(Platform.executable).parent;
+    Directory executableParent = File(Platform.executable).parent;
     Directory executableGrandparent = executableParent.parent;
     if (isSuitable(executableGrandparent.path)) {
       return makeAbsoluteAndNormalized(executableGrandparent.path);
@@ -98,9 +98,9 @@ class AbstractBuildModeTest extends BaseTest {
     // SDK project (e.g. within an IDE).  Find the build output directory and
     // search all built configurations.
     Directory sdkRootDir =
-        new File(Platform.script.toFilePath()).parent.parent.parent.parent;
+        File(Platform.script.toFilePath()).parent.parent.parent.parent;
     for (String outDirName in ['out', 'xcodebuild']) {
-      Directory outDir = new Directory(path.join(sdkRootDir.path, outDirName));
+      Directory outDir = Directory(path.join(sdkRootDir.path, outDirName));
       if (outDir.existsSync()) {
         for (FileSystemEntity subdir in outDir.listSync()) {
           if (subdir is Directory) {
@@ -112,7 +112,7 @@ class AbstractBuildModeTest extends BaseTest {
         }
       }
     }
-    throw new Exception('Could not find an SDK directory containing summaries.'
+    throw Exception('Could not find an SDK directory containing summaries.'
         '  Tried: ${triedDirectories.toList()}');
   }
 }
@@ -139,8 +139,8 @@ class BaseTest {
   /// discovered options file.
   Future<void> drive(
     String source, {
-    String options: emptyOptionsFile,
-    List<String> args: const <String>[],
+    String options = emptyOptionsFile,
+    List<String> args = const <String>[],
   }) {
     return driveMany([source], options: options, args: args);
   }
@@ -148,12 +148,12 @@ class BaseTest {
   /// Like [drive], but takes an array of sources.
   Future<void> driveMany(
     List<String> sources, {
-    String options: emptyOptionsFile,
-    List<String> args: const <String>[],
+    String options = emptyOptionsFile,
+    List<String> args = const <String>[],
   }) async {
     options = _p(options);
 
-    driver = new Driver(isTesting: true);
+    driver = Driver(isTesting: true);
     var cmd = <String>[];
     if (options != null) {
       cmd = <String>[
@@ -176,8 +176,8 @@ class BaseTest {
     _savedExitHandler = exitHandler;
     _savedExitCode = exitCode;
     exitHandler = (code) => exitCode = code;
-    outSink = new StringBuffer();
-    errorSink = new StringBuffer();
+    outSink = StringBuffer();
+    errorSink = StringBuffer();
   }
 
   void tearDown() {
@@ -483,10 +483,10 @@ class BuildModeTest extends AbstractBuildModeTest {
         '--build-summary-only',
         '--build-summary-output=$outputPath'
       ]);
-      var output = new File(outputPath);
+      var output = File(outputPath);
       expect(output.existsSync(), isTrue);
       PackageBundle bundle =
-          new PackageBundle.fromBuffer(await output.readAsBytes());
+          PackageBundle.fromBuffer(await output.readAsBytes());
       var testFileUri = 'file:///test_file.dart';
 
       var bundle2 = bundle.bundle2;
@@ -508,15 +508,15 @@ class BuildModeTest extends AbstractBuildModeTest {
 
       var aSum = path.join(tempDir, 'a.sum');
 
-      new File(aDart).writeAsStringSync('''
+      File(aDart).writeAsStringSync('''
 part '[invalid]';
 ''');
 
       await _doDrive(aDart,
           uri: aUri, additionalArgs: ['--build-summary-output=$aSum']);
       expect(exitCode, ErrorSeverity.ERROR.ordinal);
-      var bytes = new File(aSum).readAsBytesSync();
-      var bundle = new PackageBundle.fromBuffer(bytes);
+      var bytes = File(aSum).readAsBytesSync();
+      var bundle = PackageBundle.fromBuffer(bytes);
       var bundle2 = bundle.bundle2;
       expect(_linkedLibraryUriList(bundle2), [aUri]);
       expect(_linkedLibraryUnitUriList(bundle2, aUri), [aUri, '']);
@@ -549,12 +549,12 @@ part '[invalid]';
       var bSum = path.join(tempDir, 'b.sum');
       var cSum = path.join(tempDir, 'c.sum');
 
-      new File(aDart).writeAsStringSync('class A {}');
-      new File(bDart).writeAsStringSync('''
+      File(aDart).writeAsStringSync('class A {}');
+      File(bDart).writeAsStringSync('''
 export 'package:aaa/a.dart';
 class B {}
 ''');
-      new File(cDart).writeAsStringSync('''
+      File(cDart).writeAsStringSync('''
 import 'package:bbb/b.dart';
 var a = new A();
 var b = new B();
@@ -565,8 +565,8 @@ var b = new B();
         await _doDrive(aDart,
             uri: aUri, additionalArgs: ['--build-summary-output=$aSum']);
         expect(exitCode, 0);
-        var bytes = new File(aSum).readAsBytesSync();
-        var bundle = new PackageBundle.fromBuffer(bytes);
+        var bytes = File(aSum).readAsBytesSync();
+        var bundle = PackageBundle.fromBuffer(bytes);
         var bundle2 = bundle.bundle2;
         expect(_linkedLibraryUriList(bundle2), [aUri]);
         expect(_linkedLibraryUnitUriList(bundle2, aUri), [aUri]);
@@ -579,8 +579,8 @@ var b = new B();
           '--build-summary-output=$bSum'
         ]);
         expect(exitCode, 0);
-        var bytes = new File(bSum).readAsBytesSync();
-        var bundle = new PackageBundle.fromBuffer(bytes);
+        var bytes = File(bSum).readAsBytesSync();
+        var bundle = PackageBundle.fromBuffer(bytes);
         var bundle2 = bundle.bundle2;
         expect(_linkedLibraryUriList(bundle2), [bUri]);
         expect(_linkedLibraryUnitUriList(bundle2, bUri), [bUri]);
@@ -593,8 +593,8 @@ var b = new B();
           '--build-summary-output=$cSum'
         ]);
         expect(exitCode, 0);
-        var bytes = new File(cSum).readAsBytesSync();
-        var bundle = new PackageBundle.fromBuffer(bytes);
+        var bytes = File(cSum).readAsBytesSync();
+        var bundle = PackageBundle.fromBuffer(bytes);
         var bundle2 = bundle.bundle2;
         expect(_linkedLibraryUriList(bundle2), [cUri]);
         expect(_linkedLibraryUnitUriList(bundle2, cUri), [cUri]);
@@ -610,7 +610,7 @@ var b = new B();
 
       var testDart = path.join(tempDir, 'test.dart');
       var testSum = path.join(tempDir, 'test.sum');
-      new File(testDart).writeAsStringSync('var v = 42;');
+      File(testDart).writeAsStringSync('var v = 42;');
 
       await _doDrive(testDart,
           additionalArgs: [
@@ -618,7 +618,7 @@ var b = new B();
             '--build-summary-output=$testSum'
           ],
           dartSdkSummaryPath: strongSummaryPath);
-      var output = new File(testSum);
+      var output = File(testSum);
       expect(output.existsSync(), isTrue);
       expect(exitCode, 0);
     });
@@ -627,7 +627,7 @@ var b = new B();
   test_error_notUriPipePath() async {
     await withTempDirAsync((tempDir) async {
       var testDart = path.join(tempDir, 'test.dart');
-      new File(testDart).writeAsStringSync('var v = 42;');
+      File(testDart).writeAsStringSync('var v = 42;');
 
       // We pass just path, not "uri|path", this is a fatal error.
       await drive(testDart, args: ['--build-mode', '--format=machine']);
@@ -656,12 +656,12 @@ var b = new B();
       var aUri = 'package:aaa/a.dart';
       var bUri = 'package:aaa/b.dart';
 
-      new File(aDart).writeAsStringSync(r'''
+      File(aDart).writeAsStringSync(r'''
 library lib;
 part 'b.dart';
 class A {}
 ''');
-      new File(bDart).writeAsStringSync('''
+      File(bDart).writeAsStringSync('''
 part of lib;
 class B {}
 var a = new A();
@@ -698,12 +698,11 @@ class ExitCodesTest extends BaseTest {
     await withTempDirAsync((String tempDirPath) async {
       String dartSdkPath = path.absolute(getSdkPath());
       await recursiveCopy(
-          new Directory(path.join(testDirectory, 'data', 'bazel')),
-          tempDirPath);
+          Directory(path.join(testDirectory, 'data', 'bazel')), tempDirPath);
       Directory origWorkingDir = Directory.current;
       try {
         Directory.current = path.join(tempDirPath, 'proj');
-        Driver driver = new Driver(isTesting: true);
+        Driver driver = Driver(isTesting: true);
         try {
           await driver.start([
             path.join('lib', 'file.dart'),
@@ -779,7 +778,7 @@ class ExitCodesTest extends BaseTest {
   }
 
   test_partFile_reversed() async {
-    Driver driver = new Driver(isTesting: true);
+    Driver driver = Driver(isTesting: true);
     await driver.start([
       path.join(testDirectory, 'data/library_and_parts/part1.dart'),
       path.join(testDirectory, 'data/library_and_parts/lib.dart')
@@ -872,7 +871,7 @@ linter:
   }
 
   YamlMap _parseOptions(String src) =>
-      new AnalysisOptionsProvider().getOptionsFromString(src);
+      AnalysisOptionsProvider().getOptionsFromString(src);
 
   Future<void> _runLinter_defaultLints() async {
     await drive('data/linter_project/test_file.dart',
@@ -902,7 +901,7 @@ class NonDartFilesTest extends BaseTest {
     await withTempDirAsync((tempDir) async {
       String filePath =
           path.join(tempDir, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
-      new File(filePath).writeAsStringSync('''
+      File(filePath).writeAsStringSync('''
 analyzer:
   string-mode: true
 ''');
@@ -919,14 +918,14 @@ analyzer:
     await withTempDirAsync((tempDir) async {
       String filePath =
           path.join(tempDir, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
-      new File(filePath).writeAsStringSync('''
+      File(filePath).writeAsStringSync('''
 analyzer:
   optional-checks:
     chrome-os-manifest-checks: true
 ''');
       String manifestPath =
           path.join(tempDir, AnalysisEngine.ANDROID_MANIFEST_FILE);
-      new File(manifestPath).writeAsStringSync('''
+      File(manifestPath).writeAsStringSync('''
 <manifest
     xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
@@ -945,7 +944,7 @@ analyzer:
   test_pubspecYaml() async {
     await withTempDirAsync((tempDir) async {
       String filePath = path.join(tempDir, AnalysisEngine.PUBSPEC_YAML_FILE);
-      new File(filePath).writeAsStringSync('''
+      File(filePath).writeAsStringSync('''
 name: foo
 flutter:
   assets:
@@ -1012,15 +1011,15 @@ class OptionsTest extends BaseTest {
     expect(processors, hasLength(3));
 
     // unused_local_variable: ignore
-    var unused_local_variable = new AnalysisError(
-        new TestSource(), 0, 1, HintCode.UNUSED_LOCAL_VARIABLE, [
+    var unused_local_variable =
+        AnalysisError(TestSource(), 0, 1, HintCode.UNUSED_LOCAL_VARIABLE, [
       ['x']
     ]);
     expect(processorFor(unused_local_variable).severity, isNull);
 
     // missing_return: error
     var missing_return =
-        new AnalysisError(new TestSource(), 0, 1, HintCode.MISSING_RETURN, [
+        AnalysisError(TestSource(), 0, 1, HintCode.MISSING_RETURN, [
       ['x']
     ]);
     expect(processorFor(missing_return).severity, ErrorSeverity.ERROR);
@@ -1059,8 +1058,8 @@ class OptionsTest extends BaseTest {
         options: 'data/options_tests_project/$optionsFileName');
 
     // missing_return: error
-    var undefined_function = new AnalysisError(
-        new TestSource(), 0, 1, StaticTypeWarningCode.UNDEFINED_FUNCTION, [
+    var undefined_function = AnalysisError(
+        TestSource(), 0, 1, StaticTypeWarningCode.UNDEFINED_FUNCTION, [
       ['x']
     ]);
     expect(processorFor(undefined_function).severity, ErrorSeverity.WARNING);

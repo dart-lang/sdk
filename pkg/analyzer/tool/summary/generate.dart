@@ -51,7 +51,7 @@ List<GeneratedContent> getAllTargets(String idlPath) {
   return <GeneratedContent>[formatTarget, schemaTarget];
 }
 
-typedef String _StringToString(String s);
+typedef _StringToString = String Function(String s);
 
 class _BaseGenerator {
   static const String _throwDeprecated =
@@ -129,7 +129,7 @@ class _BaseGenerator {
   }
 
   /// Execute [callback] with two spaces added to [_indentation].
-  void indent(void callback()) {
+  void indent(void Function() callback) {
     String oldIndentation = _indentation;
     try {
       _indentation += '  ';
@@ -161,7 +161,7 @@ class _BaseGenerator {
   }
 
   List<String> _computeVariants(idl_model.ClassDeclaration cls) {
-    var allVariants = Set<String>();
+    var allVariants = <String>{};
     for (var field in cls.fields) {
       var logicalFields = field.logicalProperties?.values;
       if (logicalFields != null) {
@@ -624,7 +624,7 @@ class _BuilderGenerator extends _BaseGenerator {
       out();
       out('List<int> toBuffer() {');
       indent(() {
-        out('fb.Builder fbBuilder = new fb.Builder();');
+        out('fb.Builder fbBuilder = fb.Builder();');
         String fileId =
             cls.fileIdentifier == null ? '' : ', ${quoted(cls.fileIdentifier)}';
         out('return fbBuilder.finish(finish(fbBuilder)$fileId);');
@@ -1212,14 +1212,14 @@ class _ImplGenerator extends _BaseGenerator {
           } else if (typeName == 'double') {
             readCode = 'const fb.Float64ListReader()';
           } else if (typeName == 'String') {
-            String itemCode = 'const fb.StringReader()';
+            String itemCode = 'fb.StringReader()';
             readCode = 'const fb.ListReader<String>($itemCode)';
           } else if (_idl.classes.containsKey(typeName)) {
-            String itemCode = 'const _${typeName}Reader()';
+            String itemCode = '_${typeName}Reader()';
             readCode = 'const fb.ListReader<${idlPrefix(typeName)}>($itemCode)';
           } else {
             assert(_idl.enums.containsKey(typeName));
-            String itemCode = 'const _${typeName}Reader()';
+            String itemCode = '_${typeName}Reader()';
             readCode = 'const fb.ListReader<${idlPrefix(typeName)}>($itemCode)';
           }
         } else if (typeName == 'bool') {
@@ -1447,7 +1447,7 @@ class _ReaderGenerator extends _BaseGenerator {
       out('const $readerName();');
       out();
       out('@override');
-      out('$implName createObject(fb.BufferContext bc, int offset) => new $implName(bc, offset);');
+      out('$implName createObject(fb.BufferContext bc, int offset) => $implName(bc, offset);');
     });
     out('}');
   }
@@ -1456,7 +1456,7 @@ class _ReaderGenerator extends _BaseGenerator {
     String name = cls.name;
     out('${idlPrefix(name)} read$name(List<int> buffer) {');
     indent(() {
-      out('fb.BufferContext rootRef = new fb.BufferContext.fromBytes(buffer);');
+      out('fb.BufferContext rootRef = fb.BufferContext.fromBytes(buffer);');
       out('return const _${name}Reader().read(rootRef, 0);');
     });
     out('}');

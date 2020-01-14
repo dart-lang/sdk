@@ -3477,13 +3477,28 @@ class _ExternalFloat64x2Array extends _TypedList
 @patch
 class Float32x4 {
   @patch
+  @pragma("vm:prefer-inline")
+  factory Float32x4(double x, double y, double z, double w) {
+    _throwIfNull(x, 'x');
+    _throwIfNull(y, 'y');
+    _throwIfNull(z, 'z');
+    _throwIfNull(w, 'w');
+    return _Float32x4FromDoubles(x, y, z, w);
+  }
+
   @pragma("vm:exact-result-type", _Float32x4)
-  factory Float32x4(double x, double y, double z, double w)
-      native "Float32x4_fromDoubles";
+  static _Float32x4 _Float32x4FromDoubles(
+      double x, double y, double z, double w) native "Float32x4_fromDoubles";
 
   @patch
+  @pragma("vm:prefer-inline")
+  factory Float32x4.splat(double v) {
+    _throwIfNull(v, 'v');
+    return _Float32x4Splat(v);
+  }
+
   @pragma("vm:exact-result-type", _Float32x4)
-  factory Float32x4.splat(double v) native "Float32x4_splat";
+  static _Float32x4 _Float32x4Splat(double v) native "Float32x4_splat";
 
   @patch
   @pragma("vm:exact-result-type", _Float32x4)
@@ -3544,14 +3559,42 @@ class _Float32x4 implements Float32x4 {
   @pragma("vm:exact-result-type", _Float32x4)
   Float32x4 shuffleMix(Float32x4 zw, int mask) native "Float32x4_shuffleMix";
 
+  @pragma("vm:prefer-inline")
+  Float32x4 withX(double x) {
+    _throwIfNull(x, 'x');
+    return _withX(x);
+  }
+
   @pragma("vm:exact-result-type", _Float32x4)
-  Float32x4 withX(double x) native "Float32x4_setX";
+  Float32x4 _withX(double x) native "Float32x4_setX";
+
+  @pragma("vm:prefer-inline")
+  Float32x4 withY(double y) {
+    _throwIfNull(y, 'y');
+    return _withY(y);
+  }
+
   @pragma("vm:exact-result-type", _Float32x4)
-  Float32x4 withY(double y) native "Float32x4_setY";
+  Float32x4 _withY(double y) native "Float32x4_setY";
+
+  @pragma("vm:prefer-inline")
+  Float32x4 withZ(double z) {
+    _throwIfNull(z, 'z');
+    return _withZ(z);
+  }
+
   @pragma("vm:exact-result-type", _Float32x4)
-  Float32x4 withZ(double z) native "Float32x4_setZ";
+  Float32x4 _withZ(double z) native "Float32x4_setZ";
+
+  @pragma("vm:prefer-inline")
+  Float32x4 withW(double w) {
+    _throwIfNull(w, 'w');
+    return _withW(w);
+  }
+
   @pragma("vm:exact-result-type", _Float32x4)
-  Float32x4 withW(double w) native "Float32x4_setW";
+  Float32x4 _withW(double w) native "Float32x4_setW";
+
   @pragma("vm:exact-result-type", _Float32x4)
   Float32x4 min(Float32x4 other) native "Float32x4_min";
   @pragma("vm:exact-result-type", _Float32x4)
@@ -3567,12 +3610,31 @@ class _Float32x4 implements Float32x4 {
 @patch
 class Int32x4 {
   @patch
+  @pragma("vm:prefer-inline")
+  factory Int32x4(int x, int y, int z, int w) {
+    _throwIfNull(x, 'x');
+    _throwIfNull(y, 'y');
+    _throwIfNull(z, 'z');
+    _throwIfNull(w, 'w');
+    return _Int32x4FromInts(x, y, z, w);
+  }
+
   @pragma("vm:exact-result-type", _Int32x4)
-  factory Int32x4(int x, int y, int z, int w) native "Int32x4_fromInts";
+  static _Int32x4 _Int32x4FromInts(int x, int y, int z, int w)
+      native "Int32x4_fromInts";
 
   @patch
+  @pragma("vm:prefer-inline")
+  factory Int32x4.bool(bool x, bool y, bool z, bool w) {
+    _throwIfNull(x, 'x');
+    _throwIfNull(y, 'y');
+    _throwIfNull(z, 'z');
+    _throwIfNull(w, 'w');
+    return _Int32x4FromBools(x, y, z, w);
+  }
+
   @pragma("vm:exact-result-type", _Int32x4)
-  factory Int32x4.bool(bool x, bool y, bool z, bool w)
+  static _Int32x4 _Int32x4FromBools(bool x, bool y, bool z, bool w)
       native "Int32x4_fromBools";
 
   @patch
@@ -3597,10 +3659,43 @@ class _Int32x4 implements Int32x4 {
   Int32x4 shuffle(int mask) native "Int32x4_shuffle";
   @pragma("vm:exact-result-type", _Int32x4)
   Int32x4 shuffleMix(Int32x4 zw, int mask) native "Int32x4_shuffleMix";
-  Int32x4 withX(int x) native "Int32x4_setX";
-  Int32x4 withY(int y) native "Int32x4_setY";
-  Int32x4 withZ(int z) native "Int32x4_setZ";
-  Int32x4 withW(int w) native "Int32x4_setW";
+
+  @pragma("vm:prefer-inline")
+  Int32x4 withX(int x) {
+    _throwIfNull(x, 'x');
+    return _withX(x);
+  }
+
+  @pragma("vm:exact-result-type", _Int32x4)
+  Int32x4 _withX(int x) native "Int32x4_setX";
+
+  @pragma("vm:prefer-inline")
+  Int32x4 withY(int y) {
+    _throwIfNull(y, 'y');
+    return _withY(y);
+  }
+
+  @pragma("vm:exact-result-type", _Int32x4)
+  Int32x4 _withY(int y) native "Int32x4_setY";
+
+  @pragma("vm:prefer-inline")
+  Int32x4 withZ(int z) {
+    _throwIfNull(z, 'z');
+    return _withZ(z);
+  }
+
+  @pragma("vm:exact-result-type", _Int32x4)
+  Int32x4 _withZ(int z) native "Int32x4_setZ";
+
+  @pragma("vm:prefer-inline")
+  Int32x4 withW(int w) {
+    _throwIfNull(w, 'w');
+    return _withW(w);
+  }
+
+  @pragma("vm:exact-result-type", _Int32x4)
+  Int32x4 _withW(int w) native "Int32x4_setW";
+
   @pragma("vm:exact-result-type", bool)
   bool get flagX native "Int32x4_getFlagX";
   @pragma("vm:exact-result-type", bool)
@@ -3609,14 +3704,43 @@ class _Int32x4 implements Int32x4 {
   bool get flagZ native "Int32x4_getFlagZ";
   @pragma("vm:exact-result-type", bool)
   bool get flagW native "Int32x4_getFlagW";
+
+  @pragma("vm:prefer-inline", _Int32x4)
+  Int32x4 withFlagX(bool x) {
+    _throwIfNull(x, 'x');
+    return _withFlagX(x);
+  }
+
   @pragma("vm:exact-result-type", _Int32x4)
-  Int32x4 withFlagX(bool x) native "Int32x4_setFlagX";
+  Int32x4 _withFlagX(bool x) native "Int32x4_setFlagX";
+
+  @pragma("vm:prefer-inline", _Int32x4)
+  Int32x4 withFlagY(bool y) {
+    _throwIfNull(y, 'y');
+    return _withFlagY(y);
+  }
+
   @pragma("vm:exact-result-type", _Int32x4)
-  Int32x4 withFlagY(bool y) native "Int32x4_setFlagY";
+  Int32x4 _withFlagY(bool y) native "Int32x4_setFlagY";
+
+  @pragma("vm:prefer-inline", _Int32x4)
+  Int32x4 withFlagZ(bool z) {
+    _throwIfNull(z, 'z');
+    return _withFlagZ(z);
+  }
+
   @pragma("vm:exact-result-type", _Int32x4)
-  Int32x4 withFlagZ(bool z) native "Int32x4_setFlagZ";
+  Int32x4 _withFlagZ(bool z) native "Int32x4_setFlagZ";
+
+  @pragma("vm:prefer-inline", _Int32x4)
+  Int32x4 withFlagW(bool w) {
+    _throwIfNull(w, 'w');
+    return _withFlagW(w);
+  }
+
   @pragma("vm:exact-result-type", _Int32x4)
-  Int32x4 withFlagW(bool w) native "Int32x4_setFlagW";
+  Int32x4 _withFlagW(bool w) native "Int32x4_setFlagW";
+
   @pragma("vm:exact-result-type", _Float32x4)
   Float32x4 select(Float32x4 trueValue, Float32x4 falseValue)
       native "Int32x4_select";
@@ -3625,12 +3749,26 @@ class _Int32x4 implements Int32x4 {
 @patch
 class Float64x2 {
   @patch
+  @pragma("vm:prefer-inline")
+  factory Float64x2(double x, double y) {
+    _throwIfNull(x, 'x');
+    _throwIfNull(y, 'y');
+    return _Float64x2FromDoubles(x, y);
+  }
+
   @pragma("vm:exact-result-type", _Float64x2)
-  factory Float64x2(double x, double y) native "Float64x2_fromDoubles";
+  static _Float64x2 _Float64x2FromDoubles(double x, double y)
+      native "Float64x2_fromDoubles";
 
   @patch
+  @pragma("vm:prefer-inline")
+  factory Float64x2.splat(double v) {
+    _throwIfNull(v, 'v');
+    return _Float64x2Splat(v);
+  }
+
   @pragma("vm:exact-result-type", _Float64x2)
-  factory Float64x2.splat(double v) native "Float64x2_splat";
+  static _Float64x2 _Float64x2Splat(double v) native "Float64x2_splat";
 
   @patch
   @pragma("vm:exact-result-type", _Float64x2)
@@ -3660,10 +3798,25 @@ class _Float64x2 implements Float64x2 {
   @pragma("vm:exact-result-type", "dart:core#_Double")
   double get y native "Float64x2_getY";
   int get signMask native "Float64x2_getSignMask";
+
+  @pragma("vm:prefer-inline")
+  Float64x2 withX(double x) {
+    _throwIfNull(x, 'x');
+    return _withX(x);
+  }
+
   @pragma("vm:exact-result-type", _Float64x2)
-  Float64x2 withX(double x) native "Float64x2_setX";
+  Float64x2 _withX(double x) native "Float64x2_setX";
+
+  @pragma("vm:prefer-inline")
+  Float64x2 withY(double y) {
+    _throwIfNull(y, 'y');
+    return _withY(y);
+  }
+
   @pragma("vm:exact-result-type", _Float64x2)
-  Float64x2 withY(double y) native "Float64x2_setY";
+  Float64x2 _withY(double y) native "Float64x2_setY";
+
   @pragma("vm:exact-result-type", _Float64x2)
   Float64x2 min(Float64x2 other) native "Float64x2_min";
   @pragma("vm:exact-result-type", _Float64x2)
@@ -4615,6 +4768,13 @@ int _toInt32(int value) {
 @pragma("vm:prefer-inline")
 int _toUint32(int value) {
   return value & 0xFFFFFFFF;
+}
+
+@pragma("vm:prefer-inline")
+void _throwIfNull(val, String name) {
+  if (val == null) {
+    throw ArgumentError.notNull(name);
+  }
 }
 
 // In addition to explicitly checking the range, this method implicitly ensures

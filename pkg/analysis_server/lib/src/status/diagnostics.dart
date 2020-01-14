@@ -39,7 +39,6 @@ import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
-import 'package:analyzer/src/source/sdk_ext.dart';
 import 'package:path/path.dart' as path;
 
 final String kCustomCss = '''
@@ -190,7 +189,7 @@ abstract class AbstractCompletionPage extends DiagnosticPageWithNav {
     // draw a chart
     buf.writeln(
         '<div id="chart-div" style="width: 700px; height: 300px;"></div>');
-    StringBuffer rowData = new StringBuffer();
+    StringBuffer rowData = StringBuffer();
     for (int i = completions.length - 1; i >= 0; i--) {
       // [' ', 101.5]
       if (rowData.isNotEmpty) {
@@ -265,7 +264,7 @@ class AstPage extends DiagnosticPageWithNav {
       return;
     }
 
-    AstWriter writer = new AstWriter(buf);
+    AstWriter writer = AstWriter(buf);
     result.unit.accept(writer);
   }
 
@@ -380,110 +379,17 @@ class CompletionPage extends AbstractCompletionPage {
       completionDomain.performanceList.items.toList();
 }
 
-class MLCompletionPage extends DiagnosticPageWithNav {
-  final AbstractAnalysisServer server;
-
-  MLCompletionPage(DiagnosticsSite site, this.server)
-      : super(site, 'ml-completion', 'ML Completion',
-            description: 'Statistics for ML code completion.');
-
-  path.Context get pathContext => server.resourceProvider.pathContext;
-
-  @override
-  Future<void> generateContent(Map<String, String> params) async {
-    final bool hasMLComplete = CompletionRanking.instance != null;
-    if (!hasMLComplete) {
-      blankslate('''ML code completion is not enabled (see <a
-href="https://github.com/dart-lang/sdk/wiki/Previewing-Dart-code-completions-powered-by-machine-learning"
->previewing Dart ML completion</a> for how to enable it).''');
-      return;
-    }
-
-    buf.writeln('ML completion enabled.<br>');
-
-    final String isolateTimes = CompletionRanking
-        .instance.performanceMetrics.isolateInitTimes
-        .map((Duration time) {
-      return '${time.inMilliseconds}ms';
-    }).join(', ');
-    p('ML isolate init times: $isolateTimes');
-
-    final List<PredictionResult> predictions = CompletionRanking
-        .instance.performanceMetrics.predictionResults
-        .toList();
-
-    if (predictions.isEmpty) {
-      blankslate('No completions recorded.');
-      return;
-    }
-
-    p('${CompletionRanking.instance.performanceMetrics.predictionRequestCount} '
-        'requests');
-
-    // draw a chart
-    buf.writeln(
-        '<div id="chart-div" style="width: 700px; height: 300px;"></div>');
-    StringBuffer rowData = new StringBuffer();
-    for (PredictionResult prediction in predictions.reversed) {
-      // [' ', 101.5]
-      if (rowData.isNotEmpty) {
-        rowData.write(',');
-      }
-      rowData.write("[' ', ${prediction.elapsedTime.inMilliseconds}]");
-    }
-    buf.writeln('''
-      <script type="text/javascript">
-      google.charts.load('current', {'packages':['bar']});
-      google.charts.setOnLoadCallback(drawChart);
-      function drawChart() {
-        var data = google.visualization.arrayToDataTable([
-          ['Completions', 'Time'],
-          $rowData
-        ]);
-        var options = { bars: 'vertical', vAxis: {format: 'decimal'}, height: 300 };
-        var chart = new google.charts.Bar(document.getElementById('chart-div'));
-        chart.draw(data, google.charts.Bar.convertOptions(options));
-      }
-      </script>
-''');
-
-    String summarize(PredictionResult prediction) {
-      List<MapEntry<String, double>> entries =
-          prediction.results.entries.toList();
-      entries.sort((a, b) => b.value.compareTo(a.value));
-      String summary = entries
-          .take(3)
-          .map((entry) => '"${entry.key}":${entry.value.toStringAsFixed(3)}')
-          .join('<br>');
-      return summary;
-    }
-
-    // emit the data as a table
-    buf.writeln('<table>');
-    buf.writeln(
-        '<tr><th>Time</th><th>Results</th><th>Snippet</th><th>Top suggestions</th></tr>');
-    for (PredictionResult prediction in predictions) {
-      buf.writeln('<tr>'
-          '<td class="pre right">${printMilliseconds(prediction.elapsedTime.inMilliseconds)}</td>'
-          '<td class="right">${prediction.results.length}</td>'
-          '<td><code>${escape(prediction.snippet)}</code></td>'
-          '<td class="right">${summarize(prediction)}</td>'
-          '</tr>');
-    }
-    buf.writeln('</table>');
-  }
-}
-
 class ContextsPage extends DiagnosticPageWithNav {
   ContextsPage(DiagnosticsSite site)
       : super(site, 'contexts', 'Contexts',
             description:
                 'An analysis context defines the options and the set of sources being analyzed.');
 
+  @override
   String get navDetail => printInteger(server.driverMap.length);
 
   String describe(AnalysisOptionsImpl options) {
-    StringBuffer b = new StringBuffer();
+    StringBuffer b = StringBuffer();
 
     b.write(writeOption('Strong mode', options.strongMode));
     b.write(writeOption('Implicit dynamic', options.implicitDynamic));
@@ -500,7 +406,6 @@ class ContextsPage extends DiagnosticPageWithNav {
         writeOption('Generate errors in SDK files', options.generateSdkErrors));
     b.write(writeOption('Generate hints', options.hint));
     b.write(writeOption('Preserve comments', options.preserveComments));
-    b.write(writeOption('Strong mode hints', options.strongModeHints));
 
     return b.toString();
   }
@@ -643,10 +548,6 @@ class ContextsPage extends DiagnosticPageWithNav {
             buf.write(')');
           }
           buf.write(')');
-        } else if (resolver is SdkExtUriResolver) {
-          buf.write(' (map = ');
-          writeMap(resolver.urlMappings);
-          buf.write(')');
         } else if (resolver is PackageMapUriResolver) {
           writeMap(resolver.packageMap);
         }
@@ -658,7 +559,7 @@ class ContextsPage extends DiagnosticPageWithNav {
     DartdocDirectiveInfo info = server.declarationsTracker
             ?.getContext(driver.analysisContext)
             ?.dartdocDirectiveInfo ??
-        new DartdocDirectiveInfo();
+        DartdocDirectiveInfo();
     buf.write('<p class="scroll-table">');
     writeMap(info.templateMap);
     buf.write('</p>');
@@ -743,6 +644,7 @@ abstract class DiagnosticPage extends Page {
 ''');
   }
 
+  @override
   Future<void> generatePage(Map<String, String> params) async {
     buf.writeln('<!DOCTYPE html><html lang="en">');
     buf.write('<head>');
@@ -775,12 +677,14 @@ abstract class DiagnosticPageWithNav extends DiagnosticPage {
       {String description})
       : super(site, id, title, description: description);
 
+  @override
   bool get isNavPage => true;
 
   String get navDetail => null;
 
   bool get showInNav => true;
 
+  @override
   Future<void> generateContainer(Map<String, String> params) async {
     buf.writeln('<div class="columns docs-layout">');
 
@@ -824,51 +728,53 @@ class DiagnosticsSite extends Site implements AbstractGetHandler {
 
   DiagnosticsSite(this.socketServer, this.lastPrintedLines)
       : super('Analysis Server') {
-    pages.add(new CommunicationsPage(this));
-    pages.add(new ContextsPage(this));
-    pages.add(new EnvironmentVariablesPage(this));
-    pages.add(new ExceptionsPage(this));
+    pages.add(CommunicationsPage(this));
+    pages.add(ContextsPage(this));
+    pages.add(EnvironmentVariablesPage(this));
+    pages.add(ExceptionsPage(this));
     //pages.add(new InstrumentationPage(this));
-    pages.add(new ProfilePage(this));
+    pages.add(ProfilePage(this));
 
     // Add server-specific pages. Ordering doesn't matter as the items are
     // sorted later.
-    final AbstractAnalysisServer server = this.socketServer.analysisServer;
-    pages.add(new MLCompletionPage(this, server));
+    final AbstractAnalysisServer server = socketServer.analysisServer;
+    pages.add(MLCompletionPage(this, server));
 
     if (server is AnalysisServer) {
-      pages.add(new CompletionPage(this, server));
-      pages.add(new PluginsPage(this, server));
-      pages.add(new SubscriptionsPage(this, server));
+      pages.add(CompletionPage(this, server));
+      pages.add(PluginsPage(this, server));
+      pages.add(SubscriptionsPage(this, server));
     } else if (server is LspAnalysisServer) {
-      pages.add(new LspCompletionPage(this, server));
-      pages.add(new LspCapabilitiesPage(this, server));
+      pages.add(LspCompletionPage(this, server));
+      pages.add(LspCapabilitiesPage(this, server));
     }
 
     ProcessProfiler profiler = ProcessProfiler.getProfilerForPlatform();
     if (profiler != null) {
-      pages.add(new MemoryAndCpuPage(this, profiler));
+      pages.add(MemoryAndCpuPage(this, profiler));
     }
 
     pages.sort(((Page a, Page b) =>
         a.title.toLowerCase().compareTo(b.title.toLowerCase())));
 
     // Add the status page at the beginning.
-    pages.insert(0, new StatusPage(this));
+    pages.insert(0, StatusPage(this));
 
     // Add non-nav pages.
-    pages.add(new FeedbackPage(this));
-    pages.add(new AstPage(this));
-    pages.add(new ElementModelPage(this));
+    pages.add(FeedbackPage(this));
+    pages.add(AstPage(this));
+    pages.add(ElementModelPage(this));
   }
 
+  @override
   String get customCss => kCustomCss;
 
+  @override
   Page createExceptionPage(String message, StackTrace trace) =>
-      new ExceptionPage(this, message, trace);
+      ExceptionPage(this, message, trace);
 
-  Page createUnknownPage(String unknownPath) =>
-      new NotFoundPage(this, unknownPath);
+  @override
+  Page createUnknownPage(String unknownPath) => NotFoundPage(this, unknownPath);
 }
 
 class ElementModelPage extends DiagnosticPageWithNav {
@@ -906,7 +812,7 @@ class ElementModelPage extends DiagnosticPageWithNav {
       return;
     }
 
-    ElementWriter writer = new ElementWriter(buf);
+    ElementWriter writer = ElementWriter(buf);
     result.unit.declaredElement.accept(writer);
   }
 
@@ -945,6 +851,7 @@ class ExceptionPage extends DiagnosticPage {
   ExceptionPage(DiagnosticsSite site, String message, this.trace)
       : super(site, '', '500 Oops', description: message);
 
+  @override
   Future generateContent(Map<String, String> params) async {
     p(trace.toString(), style: 'white-space: pre');
   }
@@ -957,6 +864,7 @@ class ExceptionsPage extends DiagnosticPageWithNav {
 
   Iterable<ServerException> get exceptions => server.exceptions.items;
 
+  @override
   String get navDetail => printInteger(exceptions.length);
 
   @override
@@ -1015,6 +923,38 @@ class FeedbackPage extends DiagnosticPage {
   }
 }
 
+class LspCapabilitiesPage extends DiagnosticPageWithNav {
+  @override
+  LspAnalysisServer server;
+
+  LspCapabilitiesPage(DiagnosticsSite site, this.server)
+      : super(site, 'lsp_capabilities', 'LSP Capabilities',
+            description: 'Client and Server LSP Capabilities.');
+
+  @override
+  Future generateContent(Map<String, String> params) async {
+    buf.writeln('<div class="columns">');
+
+    buf.writeln('<div class="column one-half">');
+    h3('Client Capabilities');
+    if (server.clientCapabilities == null) {
+      p('Client capabilities have not yet been received.');
+    } else {
+      prettyJson(server.clientCapabilities.toJson());
+    }
+    buf.writeln('</div>');
+
+    buf.writeln('<div class="column one-half">');
+    h3('Server Capabilities');
+    if (server.capabilities == null) {
+      p('Server capabilities have not yet been computed.');
+    } else {
+      prettyJson(server.capabilities.toJson());
+    }
+    buf.writeln('</div>');
+  }
+}
+
 // class InstrumentationPage extends DiagnosticPageWithNav {
 //   InstrumentationPage(DiagnosticsSite site)
 //       : super(site, 'instrumentation', 'Instrumentation',
@@ -1050,38 +990,6 @@ class FeedbackPage extends DiagnosticPage {
 //     p(description.replaceAll('\n', '<br>'), raw: true);
 //   }
 // }
-
-class LspCapabilitiesPage extends DiagnosticPageWithNav {
-  @override
-  LspAnalysisServer server;
-
-  LspCapabilitiesPage(DiagnosticsSite site, this.server)
-      : super(site, 'lsp_capabilities', 'LSP Capabilities',
-            description: 'Client and Server LSP Capabilities.');
-
-  @override
-  Future generateContent(Map<String, String> params) async {
-    buf.writeln('<div class="columns">');
-
-    buf.writeln('<div class="column one-half">');
-    h3('Client Capabilities');
-    if (server.clientCapabilities == null) {
-      p('Client capabilities have not yet been received.');
-    } else {
-      prettyJson(server.clientCapabilities.toJson());
-    }
-    buf.writeln('</div>');
-
-    buf.writeln('<div class="column one-half">');
-    h3('Server Capabilities');
-    if (server.capabilities == null) {
-      p('Server capabilities have not yet been computed.');
-    } else {
-      prettyJson(server.capabilities.toJson());
-    }
-    buf.writeln('</div>');
-  }
-}
 
 class LspCompletionPage extends AbstractCompletionPage {
   @override
@@ -1139,12 +1047,109 @@ class MemoryAndCpuPage extends DiagnosticPageWithNav {
   }
 }
 
+class MLCompletionPage extends DiagnosticPageWithNav {
+  @override
+  final AbstractAnalysisServer server;
+
+  MLCompletionPage(DiagnosticsSite site, this.server)
+      : super(site, 'ml-completion', 'ML Completion',
+            description: 'Statistics for ML code completion.');
+
+  path.Context get pathContext => server.resourceProvider.pathContext;
+
+  @override
+  Future<void> generateContent(Map<String, String> params) async {
+    final bool hasMLComplete = CompletionRanking.instance != null;
+    if (!hasMLComplete) {
+      blankslate('''ML code completion is not enabled (see <a
+href="https://github.com/dart-lang/sdk/wiki/Previewing-Dart-code-completions-powered-by-machine-learning"
+>previewing Dart ML completion</a> for how to enable it).''');
+      return;
+    }
+
+    buf.writeln('ML completion enabled.<br>');
+
+    final String isolateTimes = CompletionRanking
+        .instance.performanceMetrics.isolateInitTimes
+        .map((Duration time) {
+      return '${time.inMilliseconds}ms';
+    }).join(', ');
+    p('ML isolate init times: $isolateTimes');
+
+    final List<PredictionResult> predictions = CompletionRanking
+        .instance.performanceMetrics.predictionResults
+        .toList();
+
+    if (predictions.isEmpty) {
+      blankslate('No completions recorded.');
+      return;
+    }
+
+    p('${CompletionRanking.instance.performanceMetrics.predictionRequestCount} '
+        'requests');
+
+    // draw a chart
+    buf.writeln(
+        '<div id="chart-div" style="width: 700px; height: 300px;"></div>');
+    StringBuffer rowData = StringBuffer();
+    for (PredictionResult prediction in predictions.reversed) {
+      // [' ', 101.5]
+      if (rowData.isNotEmpty) {
+        rowData.write(',');
+      }
+      rowData.write("[' ', ${prediction.elapsedTime.inMilliseconds}]");
+    }
+    buf.writeln('''
+      <script type="text/javascript">
+      google.charts.load('current', {'packages':['bar']});
+      google.charts.setOnLoadCallback(drawChart);
+      function drawChart() {
+        var data = google.visualization.arrayToDataTable([
+          ['Completions', 'Time'],
+          $rowData
+        ]);
+        var options = { bars: 'vertical', vAxis: {format: 'decimal'}, height: 300 };
+        var chart = new google.charts.Bar(document.getElementById('chart-div'));
+        chart.draw(data, google.charts.Bar.convertOptions(options));
+      }
+      </script>
+''');
+
+    String summarize(PredictionResult prediction) {
+      List<MapEntry<String, double>> entries =
+          prediction.results.entries.toList();
+      entries.sort((a, b) => b.value.compareTo(a.value));
+      String summary = entries
+          .take(3)
+          .map((entry) => '"${entry.key}":${entry.value.toStringAsFixed(3)}')
+          .join('<br>');
+      return summary;
+    }
+
+    // emit the data as a table
+    buf.writeln('<table>');
+    buf.writeln(
+        '<tr><th>Time</th><th>Results</th><th>Snippet</th><th>Top suggestions</th></tr>');
+    for (PredictionResult prediction in predictions) {
+      buf.writeln('<tr>'
+          '<td class="pre right">${printMilliseconds(prediction.elapsedTime.inMilliseconds)}</td>'
+          '<td class="right">${prediction.results.length}</td>'
+          '<td><code>${escape(prediction.snippet)}</code></td>'
+          '<td class="right">${summarize(prediction)}</td>'
+          '</tr>');
+    }
+    buf.writeln('</table>');
+  }
+}
+
 class NotFoundPage extends DiagnosticPage {
+  @override
   final String path;
 
   NotFoundPage(DiagnosticsSite site, this.path)
       : super(site, '', '404 Not found', description: "'$path' not found.");
 
+  @override
   Future generateContent(Map<String, String> params) async {}
 }
 
@@ -1215,7 +1220,7 @@ class PluginsPage extends DiagnosticPageWithNav {
             List<int> data = responseTimes[requestName];
             // TODO(brianwilkerson) Consider displaying these times as a graph,
             //  similar to the one in AbstractCompletionPage.generateContent.
-            StringBuffer buffer = new StringBuffer();
+            StringBuffer buffer = StringBuffer();
             buffer.write(requestName);
             buffer.write(' ');
             buffer.write(data);

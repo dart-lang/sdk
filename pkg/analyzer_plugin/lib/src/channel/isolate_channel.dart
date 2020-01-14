@@ -14,7 +14,7 @@ import 'package:analyzer_plugin/protocol/protocol_generated.dart';
 /**
  * The type of the function used to run a built-in plugin in an isolate.
  */
-typedef void EntryPoint(SendPort sendPort);
+typedef EntryPoint = void Function(SendPort sendPort);
 
 /**
  * A communication channel appropriate for built-in plugins.
@@ -105,7 +105,7 @@ class PluginIsolateChannel implements PluginCommunicationChannel {
    * Initialize a newly created channel to communicate with the server.
    */
   PluginIsolateChannel(this._sendPort) {
-    _receivePort = new ReceivePort();
+    _receivePort = ReceivePort();
     _sendPort.send(_receivePort.sendPort);
   }
 
@@ -122,14 +122,14 @@ class PluginIsolateChannel implements PluginCommunicationChannel {
       {Function onError, void onDone()}) {
     void onData(data) {
       Map<String, Object> requestMap = data as Map<String, Object>;
-      Request request = new Request.fromJson(requestMap);
+      Request request = Request.fromJson(requestMap);
       if (request != null) {
         onRequest(request);
       }
     }
 
     if (_subscription != null) {
-      throw new StateError('Only one listener is allowed per channel');
+      throw StateError('Only one listener is allowed per channel');
     }
     _subscription = _receivePort.listen(onData,
         onError: onError, onDone: onDone, cancelOnError: false);
@@ -232,17 +232,17 @@ abstract class ServerIsolateChannel implements ServerCommunicationChannel {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     if (_isolate != null) {
-      throw new StateError('Cannot listen to the same channel more than once.');
+      throw StateError('Cannot listen to the same channel more than once.');
     }
-    _receivePort = new ReceivePort();
+    _receivePort = ReceivePort();
     if (onError != null) {
-      _errorPort = new ReceivePort();
+      _errorPort = ReceivePort();
       _errorPort.listen((error) {
         onError(error);
       });
     }
     if (onDone != null) {
-      _exitPort = new ReceivePort();
+      _exitPort = ReceivePort();
       _exitPort.listen((_) {
         onDone();
       });
@@ -251,7 +251,7 @@ abstract class ServerIsolateChannel implements ServerCommunicationChannel {
       _isolate = await _spawnIsolate();
     } catch (exception, stackTrace) {
       instrumentationService.logPluginError(
-          new PluginData(pluginId, null, null),
+          PluginData(pluginId, null, null),
           RequestErrorCode.PLUGIN_ERROR.toString(),
           exception.toString(),
           stackTrace.toString());
@@ -264,7 +264,7 @@ abstract class ServerIsolateChannel implements ServerCommunicationChannel {
       close();
       return null;
     }
-    Completer<void> channelReady = new Completer<void>();
+    Completer<void> channelReady = Completer<void>();
     _receivePort.listen((dynamic input) {
       if (input is SendPort) {
         _sendPort = input;
@@ -273,11 +273,11 @@ abstract class ServerIsolateChannel implements ServerCommunicationChannel {
         if (input.containsKey('id')) {
           String encodedInput = json.encode(input);
           instrumentationService.logPluginResponse(pluginId, encodedInput);
-          onResponse(new Response.fromJson(input));
+          onResponse(Response.fromJson(input));
         } else if (input.containsKey('event')) {
           String encodedInput = json.encode(input);
           instrumentationService.logPluginNotification(pluginId, encodedInput);
-          onNotification(new Notification.fromJson(input));
+          onNotification(Notification.fromJson(input));
         }
       }
     });

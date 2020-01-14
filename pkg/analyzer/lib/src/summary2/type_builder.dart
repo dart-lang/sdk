@@ -13,6 +13,7 @@ abstract class TypeBuilder implements TypeImpl {
   /// Return the built type.
   DartType build();
 
+  @override
   noSuchMethod(Invocation invocation) {
     return super.noSuchMethod(invocation);
   }

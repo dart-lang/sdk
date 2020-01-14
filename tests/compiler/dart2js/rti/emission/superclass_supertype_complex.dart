@@ -11,7 +11,7 @@ class B<T> {}
 /*class: C:checks=[],indirectInstance*/
 class C<T> {}
 
-/*class: D:checks=[$asB,$isB],instance*/
+/*class: D:checks=[$isB],instance*/
 class D<T> extends C<T> implements B<A<T>> {}
 
 @pragma('dart2js:noInline')

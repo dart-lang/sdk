@@ -100,6 +100,7 @@ class JenkinsSmiHash {
   }
 
   /// Finalizes the hash and return the resulting hashcode.
+  @override
   int get hashCode => finish(_hash);
 }
 
@@ -176,17 +177,13 @@ abstract class PerformanceTag {
    */
   PerformanceTag makeCurrent();
 
-  /**
-   * Make this the current tag for the isolate, run [f], and restore the
-   * previous tag. Returns the result of invoking [f].
-   */
-  E makeCurrentWhile<E>(E f());
+  /// Make this the current tag for the isolate, run [f], and restore the
+  /// previous tag. Returns the result of invoking [f].
+  E makeCurrentWhile<E>(E Function() f);
 
-  /**
-   * Make this the current tag for the isolate, run [f], and restore the
-   * previous tag. Returns the result of invoking [f].
-   */
-  Future<E> makeCurrentWhileAsync<E>(Future<E> f());
+  /// Make this the current tag for the isolate, run [f], and restore the
+  /// previous tag. Returns the result of invoking [f].
+  Future<E> makeCurrentWhileAsync<E>(Future<E> Function() f);
 
   /**
    * Reset the total time tracked by all [PerformanceTag]s to zero.
@@ -252,7 +249,8 @@ class _PerformanceTagImpl implements PerformanceTag {
     return previous;
   }
 
-  E makeCurrentWhile<E>(E f()) {
+  @override
+  E makeCurrentWhile<E>(E Function() f) {
     PerformanceTag prevTag = makeCurrent();
     try {
       return f();
@@ -262,7 +260,7 @@ class _PerformanceTagImpl implements PerformanceTag {
   }
 
   @override
-  Future<E> makeCurrentWhileAsync<E>(Future<E> f()) async {
+  Future<E> makeCurrentWhileAsync<E>(Future<E> Function() f) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     PerformanceTag prevTag = makeCurrent();

@@ -37,7 +37,7 @@ main() {}
       '',
       'b: ',
       argIndex: 0,
-      expectedExecutable: 'Foo.<init>: Foo Function({a: int, b: String})',
+      expectedExecutable: 'Foo.<init>: Foo Function({int a, String b})',
       expectedParameter: 'b: String',
     );
   }
@@ -122,7 +122,7 @@ main() {
       'b: ',
       argIndex: 0,
       expectedExecutable:
-          'Foo.<init>: Foo Function({a: int, b: String, c: double})',
+          'Foo.<init>: Foo Function({int a, String b, double c})',
       expectedParameter: 'b: String',
     );
   }
@@ -141,7 +141,7 @@ main() {
       '',
       'b: ',
       argIndex: 0,
-      expectedExecutable: 'Foo.<init>: Foo Function({a: int})',
+      expectedExecutable: 'Foo.<init>: Foo Function({int a})',
     );
   }
 
@@ -247,7 +247,7 @@ main() {
       '',
       'b: ',
       argIndex: 0,
-      expectedExecutable: 'foo: int Function({a: int, b: String, c: double})',
+      expectedExecutable: 'foo: int Function({int a, String b, double c})',
       expectedParameter: 'b: String',
     );
   }
@@ -264,7 +264,7 @@ main() {
       '',
       'f: ',
       argIndex: 0,
-      expectedExecutable: 'foo: int Function({f: int Function(String)})',
+      expectedExecutable: 'foo: int Function({int Function(String) f})',
       expectedParameter: 'f: int Function(String)',
       isFunctionalArgument: true,
     );
@@ -282,7 +282,7 @@ main() {
       '',
       'b: ',
       argIndex: 0,
-      expectedExecutable: 'foo: int Function({a: int})',
+      expectedExecutable: 'foo: int Function({int a})',
     );
   }
 
@@ -675,7 +675,7 @@ class CompletionTargetTest extends _Base {
   test_MapLiteral_expression() async {
     super.setUp();
     final experimentStatus =
-        (this.driver.analysisOptions as analyzer.AnalysisOptionsImpl)
+        (driver.analysisOptions as analyzer.AnalysisOptionsImpl)
             .experimentStatus;
     if (experimentStatus.control_flow_collections ||
         experimentStatus.spread_collections) {
@@ -911,9 +911,9 @@ class _Base extends AbstractContextTest {
   void assertTarget(
     String entityText,
     String nodeText, {
-    int argIndex: null,
+    int argIndex = null,
     String droppedToken,
-    bool isFunctionalArgument: false,
+    bool isFunctionalArgument = false,
     String expectedExecutable,
     String expectedParameter,
   }) {
@@ -975,7 +975,7 @@ class _Base extends AbstractContextTest {
     var result = await driver.getResult(path);
     findElement = FindElement(result.unit);
 
-    target = new CompletionTarget.forOffset(result.unit, offset);
+    target = CompletionTarget.forOffset(result.unit, offset);
   }
 
   static String _executableNameStr(ExecutableElement executable) {

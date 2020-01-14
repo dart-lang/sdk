@@ -4,9 +4,7 @@
 
 import 'dart:async';
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../src/dart/resolution/driver_resolution.dart';
@@ -14,7 +12,6 @@ import '../src/dart/resolution/driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InvalidCodeTest);
-    defineReflectiveTests(InvalidCodeWithExtensionMethodsTest);
   });
 }
 
@@ -52,18 +49,40 @@ class C {
 ''');
   }
 
+  test_extensionOverrideInAnnotationContext() async {
+    await _assertCanBeAnalyzed('''
+class R {
+  const R(int x);
+}
+
+@R(E(null).f())
+extension E on Object {
+  int f() => 0;
+}
+''');
+  }
+
+  test_extensionOverrideInConstContext() async {
+    await _assertCanBeAnalyzed('''
+extension E on Object {
+  int f() => 0;
+}
+
+const e = E(null).f();
+''');
+  }
+
   test_fuzz_01() async {
     await _assertCanBeAnalyzed(r'''
 typedef F = void Function(bool, int a(double b));
 ''');
     var alias = findElement.functionTypeAlias('F');
-    assertElementTypeString(
-      alias.instantiate(
-        typeArguments: const [],
-        nullabilitySuffix: NullabilitySuffix.star,
-      ),
-      'void Function(bool, int Function(double))',
-    );
+    assertType(
+        alias.instantiate(
+          typeArguments: const [],
+          nullabilitySuffix: NullabilitySuffix.star,
+        ),
+        'void Function(bool, int Function(double))');
   }
 
   test_fuzz_02() async {
@@ -127,13 +146,12 @@ class C {
 typedef void F(int a, this.b);
 ''');
     var alias = findElement.functionTypeAlias('F');
-    assertElementTypeString(
-      alias.instantiate(
-        typeArguments: const [],
-        nullabilitySuffix: NullabilitySuffix.star,
-      ),
-      'void Function(int, dynamic)',
-    );
+    assertType(
+        alias.instantiate(
+          typeArguments: const [],
+          nullabilitySuffix: NullabilitySuffix.star,
+        ),
+        'void Function(int, dynamic)');
   }
 
   test_fuzz_10() async {
@@ -170,6 +188,17 @@ void f({a = [for (@b c = 0;;)]}) {}
     // not even try to serialize it.
     await _assertCanBeAnalyzed(r'''
 const v = [<S extends num>(S x) => x is int ? x : 0];
+''');
+  }
+
+  test_fuzz_14() async {
+    // This crashed because parser produces `ConstructorDeclaration`.
+    // So, we try to create `ConstructorElement` for it, and it wants
+    // `ClassElement` as the enclosing element. But we have `ExtensionElement`.
+    await _assertCanBeAnalyzed(r'''
+extension E {
+  factory S() {}
+}
 ''');
   }
 
@@ -213,6 +242,16 @@ library c;
 ''');
   }
 
+  test_fuzz_38878() async {
+    // We should not attempt to resolve `super` in annotations.
+    await _assertCanBeAnalyzed(r'''
+class C {
+  @A(super.f())
+  f(int x) {}
+}
+''');
+  }
+
   test_fuzz_38953() async {
     // When we enter a directive, we should stop using the element walker
     // of the unit, just like when we enter a method body. Even though using
@@ -221,16 +260,6 @@ library c;
 import '${[for(var v = 0;;) v]}';
 export '${[for(var v = 0;;) v]}';
 part '${[for(var v = 0;;) v]}';
-''');
-  }
-
-  test_fuzz_38878() async {
-    // We should not attempt to resolve `super` in annotations.
-    await _assertCanBeAnalyzed(r'''
-class C {
-  @A(super.f())
-  f(int x) {}
-}
 ''');
   }
 
@@ -268,53 +297,6 @@ class C {
     await _assertCanBeAnalyzed('''
 class C {
   C() : this = 0;
-}
-''');
-  }
-
-  Future<void> _assertCanBeAnalyzed(String text) async {
-    await resolveTestCode(text);
-    assertHasTestErrors();
-  }
-}
-
-@reflectiveTest
-class InvalidCodeWithExtensionMethodsTest extends DriverResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
-
-  test_extensionOverrideInAnnotationContext() async {
-    await _assertCanBeAnalyzed('''
-class R {
-  const R(int x);
-}
-
-@R(E(null).f())
-extension E on Object {
-  int f() => 0;
-}
-''');
-  }
-
-  test_extensionOverrideInConstContext() async {
-    await _assertCanBeAnalyzed('''
-extension E on Object {
-  int f() => 0;
-}
-
-const e = E(null).f();
-''');
-  }
-
-  test_fuzz_14() async {
-    // This crashes because parser produces `ConstructorDeclaration`.
-    // So, we try to create `ConstructorElement` for it, and it wants
-    // `ClassElement` as the enclosing element. But we have `ExtensionElement`.
-    await _assertCanBeAnalyzed(r'''
-extension E {
-  factory S() {}
 }
 ''');
   }

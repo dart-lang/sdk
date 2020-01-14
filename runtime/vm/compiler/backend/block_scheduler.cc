@@ -220,7 +220,7 @@ void BlockScheduler::ReorderBlocksJIT(FlowGraph* flow_graph) {
   }
 
   // Ensure the checked entry remains first to avoid needing another offset on
-  // Instructions, compare Code::EntryPoint.
+  // Instructions, compare Code::EntryPointOf.
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
   flow_graph->CodegenBlockOrder(true)->Add(graph_entry);
   FunctionEntryInstr* checked_entry = graph_entry->normal_entry();

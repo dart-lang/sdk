@@ -26,12 +26,12 @@ class DartUnitFoldingComputer {
    */
   List<FoldingRegion> compute() {
     _addFileHeaderRegion();
-    _unit.accept(new _DartUnitFoldingComputerVisitor(this));
+    _unit.accept(_DartUnitFoldingComputerVisitor(this));
 
     if (_firstDirective != null &&
         _lastDirective != null &&
         _firstDirective != _lastDirective) {
-      _foldingRegions.add(new FoldingRegion(
+      _foldingRegions.add(FoldingRegion(
           FoldingKind.DIRECTIVES,
           _firstDirective.keyword.end,
           _lastDirective.end - _firstDirective.keyword.end));
@@ -79,7 +79,7 @@ class DartUnitFoldingComputer {
 
     if (start.lineNumber != end.lineNumber) {
       _foldingRegions
-          .add(new FoldingRegion(kind, startOffset, endOffset - startOffset));
+          .add(FoldingRegion(kind, startOffset, endOffset - startOffset));
     }
   }
 

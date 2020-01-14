@@ -8,9 +8,9 @@ import 'api.dart';
 import 'codegen_dart.dart';
 import 'from_html.dart';
 
-final GeneratedFile target = new GeneratedFile(
+final GeneratedFile target = GeneratedFile(
     'lib/protocol/protocol_constants.dart', (String pkgPath) async {
-  CodegenVisitor visitor = new CodegenVisitor(readApi(pkgPath));
+  CodegenVisitor visitor = CodegenVisitor(readApi(pkgPath));
   return visitor.collectCode(visitor.visitApi);
 });
 
@@ -20,6 +20,9 @@ final GeneratedFile target = new GeneratedFile(
 class CodegenVisitor extends DartCodegenVisitor with CodeGenerator {
   CodegenVisitor(Api api) : super(api) {
     codeGeneratorSettings.commentLineLength = 79;
+    codeGeneratorSettings.docCommentStartMarker = null;
+    codeGeneratorSettings.docCommentLineLeader = '/// ';
+    codeGeneratorSettings.docCommentEndMarker = null;
     codeGeneratorSettings.languageName = 'dart';
   }
 
@@ -27,7 +30,7 @@ class CodegenVisitor extends DartCodegenVisitor with CodeGenerator {
    * Generate all of the constants associates with the [api].
    */
   void generateConstants() {
-    _ConstantVisitor visitor = new _ConstantVisitor(api);
+    _ConstantVisitor visitor = _ConstantVisitor(api);
     visitor.visitApi();
     List<_Constant> constants = visitor.constants;
     constants.sort((first, second) => first.name.compareTo(second.name));
@@ -95,7 +98,7 @@ class _ConstantVisitor extends HierarchicalApiVisitor {
     String event = notification.event;
 
     String constantName = _generateName(domainName, 'notification', event);
-    constants.add(new _Constant(constantName, "'$domainName.$event'"));
+    constants.add(_Constant(constantName, "'$domainName.$event'"));
     _addFieldConstants(constantName, notification.params);
   }
 
@@ -105,7 +108,7 @@ class _ConstantVisitor extends HierarchicalApiVisitor {
     String method = request.method;
 
     String requestConstantName = _generateName(domainName, 'request', method);
-    constants.add(new _Constant(requestConstantName, "'$domainName.$method'"));
+    constants.add(_Constant(requestConstantName, "'$domainName.$method'"));
     _addFieldConstants(requestConstantName, request.params);
 
     String responseConstantName = _generateName(domainName, 'response', method);
@@ -127,7 +130,7 @@ class _ConstantVisitor extends HierarchicalApiVisitor {
       components.add(parentName);
       components.addAll(_split(name));
       String fieldConstantName = _fromComponents(components);
-      constants.add(new _Constant(fieldConstantName, "'$name'"));
+      constants.add(_Constant(fieldConstantName, "'$name'"));
     });
   }
 
@@ -154,7 +157,7 @@ class _ConstantVisitor extends HierarchicalApiVisitor {
    * case letter.
    */
   Iterable<String> _split(String first) {
-    RegExp regExp = new RegExp('[A-Z]');
+    RegExp regExp = RegExp('[A-Z]');
     List<String> components = <String>[];
     int start = 1;
     int index = first.indexOf(regExp, start);

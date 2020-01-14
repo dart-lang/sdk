@@ -5,9 +5,10 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/resolver.dart' show TypeSystemImpl;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:meta/meta.dart';
@@ -95,6 +96,11 @@ mixin DecoratedTypeTester implements DecoratedTypeTesterBase {
 
   DecoratedType int_({NullabilityNode node}) =>
       DecoratedType(typeProvider.intType, node ?? newNode());
+
+  DecoratedType iterable(DecoratedType elementType, {NullabilityNode node}) =>
+      DecoratedType(
+          typeProvider.iterableType2(elementType.type), node ?? newNode(),
+          typeArguments: [elementType]);
 
   DecoratedType list(DecoratedType elementType, {NullabilityNode node}) =>
       DecoratedType(typeProvider.listType2(elementType.type), node ?? newNode(),
@@ -396,6 +402,12 @@ class MigrationVisitorTestBase extends AbstractSingleUnitTest with EdgeTester {
   /// whose text is [text].
   ConditionalDiscard statementDiscard(String text) {
     return variables.conditionalDiscard(findNode.statement(text));
+  }
+
+  /// Gets the [ConditionalDiscard] information associated with the collection
+  /// element whose text is [text].
+  ConditionalDiscard elementDiscard(String text) {
+    return variables.conditionalDiscard(findNode.collectionElement(text));
   }
 }
 

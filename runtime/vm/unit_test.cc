@@ -603,11 +603,9 @@ void AssemblerTest::Assemble() {
   code_.set_owner(function);
   code_.set_exception_handlers(Object::empty_exception_handlers());
 #ifndef PRODUCT
-  const Instructions& instructions = Instructions::Handle(code_.instructions());
-  uword start = instructions.PayloadStart();
+  uword start = code_.PayloadStart();
   if (FLAG_disassemble) {
     OS::PrintErr("Code for test '%s' {\n", name_);
-    uword start = instructions.PayloadStart();
     Disassembler::Disassemble(start, start + assembler_->CodeSize());
     OS::PrintErr("}\n");
   }

@@ -43,7 +43,7 @@ extension E on int {}
 E a;
 ''', [error(StaticWarningCode.NOT_A_TYPE, 22, 1)]);
     var typeName = findNode.typeName('E a;');
-    assertElementTypeDynamic(typeName.type);
+    assertTypeDynamic(typeName.type);
     assertTypeNull(typeName.name);
   }
 }

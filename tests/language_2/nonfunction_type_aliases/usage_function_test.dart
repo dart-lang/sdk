@@ -26,7 +26,7 @@ abstract class C {
   List<T> v11 = [];
   final T v12;
 
-  C(): v12 = T();
+  C(): v12 = (() {});
   C.name1(this.v10, this.v12);
   factory C.name2(T arg1, T arg2) = C.name1;
 
@@ -37,10 +37,13 @@ abstract class C {
   void m2({T arg1, T arg2(T arg21, T arg22)});
 }
 
-class D1 extends T {}
-abstract class D2 extends C with T {}
-abstract class D3 implements T {}
-abstract class D4 = C with T;
+// Awaiting updates in front end to handle crash caused by null from
+// `ClassHierarchyBuilder.getKernelTypeAsInstanceOf`. So for now the
+// following are multi-test cases, so that the rest can be tested.
+class D1 extends T {} //# 01: ok
+abstract class D2 extends C with T {} //# 02: ok
+abstract class D3 implements T {} //# 03: ok
+abstract class D4 = C with T; //# 04: ok
 
 extension E on T {
   T foo(T t) => t;
@@ -53,13 +56,11 @@ T Function(T) id = (x) => x;
 main() {
   var v13 = <T>[];
   var v14 = <Set<T>, Set<T>>{{}: {}};
-  v14[{}] = {T()};
+  v14[{}] = {};
   var v15 = {v13};
   Set<List<T>> v16 = v15;
   v15 = v16;
-  T();
-  T.named();
-  T v17 = foo<T>(T());
+  T v17 = foo<T>(() {});
   id(v17);
-  T.staticMethod<T>();
+  T.apply(() {}, []);
 }

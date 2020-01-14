@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:front_end/src/api_unstable/dart2js.dart' show Link, LinkBuilder;
+import 'package:front_end/src/api_unstable/dart2js.dart' as ir;
 
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart' as ir;
@@ -16,10 +17,6 @@ import '../closure.dart' show BoxLocal, ThisLocal;
 import '../common.dart';
 import '../common/names.dart';
 import '../common_elements.dart';
-import '../compile_time_constants.dart';
-import '../constants/constructors.dart';
-import '../constants/evaluation.dart';
-import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../deferred_load.dart';
 import '../elements/entities.dart';
@@ -30,6 +27,7 @@ import '../elements/types.dart';
 import '../environment.dart';
 import '../ir/cached_static_type.dart';
 import '../ir/closure.dart';
+import '../ir/constants.dart';
 import '../ir/debug.dart';
 import '../ir/element_map.dart';
 import '../ir/types.dart';
@@ -80,14 +78,15 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   final CompilerOptions options;
   @override
   final DiagnosticReporter reporter;
+  final Environment _environment;
   CommonElementsImpl _commonElements;
   JsElementEnvironment _elementEnvironment;
   DartTypeConverter _typeConverter;
-  JsConstantEnvironment _constantEnvironment;
   KernelDartTypes _types;
   ir.CoreTypes _coreTypes;
   ir.TypeEnvironment _typeEnvironment;
   ir.ClassHierarchy _classHierarchy;
+  Dart2jsConstantEvaluator _constantEvaluator;
   ConstantValuefier _constantValuefier;
 
   /// Library environment. Used for fast lookup.
@@ -136,7 +135,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
 
   JsKernelToElementMap(
       this.reporter,
-      Environment environment,
+      this._environment,
       KernelToElementMapImpl _elementMap,
       Map<MemberEntity, MemberUsage> liveMemberUsage,
       AnnotationsData annotations)
@@ -144,7 +143,6 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     _elementEnvironment = new JsElementEnvironment(this);
     _commonElements =
         new CommonElementsImpl(_elementEnvironment, _elementMap.options);
-    _constantEnvironment = new JsConstantEnvironment(this, environment);
     _typeConverter = new DartTypeConverter(this);
     _types = new KernelDartTypes(this);
     _constantValuefier = new ConstantValuefier(this);
@@ -321,10 +319,9 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   }
 
   JsKernelToElementMap.readFromDataSource(this.options, this.reporter,
-      Environment environment, ir.Component component, DataSource source) {
+      this._environment, ir.Component component, DataSource source) {
     _elementEnvironment = new JsElementEnvironment(this);
     _commonElements = new CommonElementsImpl(_elementEnvironment, options);
-    _constantEnvironment = new JsConstantEnvironment(this, environment);
     _typeConverter = new DartTypeConverter(this);
     _types = new KernelDartTypes(this);
     _constantValuefier = new ConstantValuefier(this);
@@ -987,13 +984,6 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
         namedParameters, namedParameterTypes, typeVariables);
   }
 
-  ConstantValue computeConstantValue(
-      Spannable spannable, ConstantExpression constant,
-      {bool requireConstant: true}) {
-    return _constantEnvironment._getConstantValue(spannable, constant,
-        constantRequired: requireConstant);
-  }
-
   @override
   DartType substByContext(DartType type, InterfaceType context) {
     return type.subst(
@@ -1144,18 +1134,6 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     }
   }
 
-  ConstantConstructor _getConstructorConstant(IndexedConstructor constructor) {
-    assert(checkFamily(constructor));
-    JConstructorData data = members.getData(constructor);
-    return data.getConstructorConstant(this, constructor);
-  }
-
-  ConstantExpression _getFieldConstantExpression(IndexedField field) {
-    assert(checkFamily(field));
-    JFieldData data = members.getData(field);
-    return data.getFieldConstantExpression(this);
-  }
-
   @override
   InterfaceType asInstanceOf(InterfaceType type, ClassEntity cls) {
     assert(checkFamily(cls));
@@ -1216,12 +1194,22 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   ir.TypeEnvironment get typeEnvironment =>
       _typeEnvironment ??= ir.TypeEnvironment(coreTypes, classHierarchy);
 
-  ir.ClassHierarchy get classHierarchy =>
-      _classHierarchy ??= ir.ClassHierarchy(programEnv.mainComponent);
+  ir.ClassHierarchy get classHierarchy => _classHierarchy ??=
+      ir.ClassHierarchy(programEnv.mainComponent, coreTypes);
 
   ir.StaticTypeContext getStaticTypeContext(ir.Member node) {
     // TODO(johnniwinther): Cache the static type context.
     return new ir.StaticTypeContext(node, typeEnvironment);
+  }
+
+  Dart2jsConstantEvaluator get constantEvaluator {
+    return _constantEvaluator ??= new Dart2jsConstantEvaluator(typeEnvironment,
+        (ir.LocatedMessage message, List<ir.LocatedMessage> context) {
+      reportLocatedMessage(reporter, message, context);
+    },
+        environment: _environment.toMap(),
+        enableTripleShift:
+            options.languageExperiments[ir.ExperimentalFlag.tripleShift]);
   }
 
   @override
@@ -1517,47 +1505,38 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   }
 
   @override
-  ConstantValue getConstantValue(ir.Expression node,
+  ConstantValue getConstantValue(ir.Member memberContext, ir.Expression node,
       {bool requireConstant: true, bool implicitNull: false}) {
-    if (node is ir.ConstantExpression) {
-      return _constantValuefier.visitConstant(node.constant);
-    }
-
-    ConstantExpression constant;
     if (node == null) {
       if (!implicitNull) {
         throw failedAt(
             CURRENT_ELEMENT_SPANNABLE, 'No expression for constant.');
       }
-      constant = new NullConstantExpression();
+      return new NullConstantValue();
+    } else if (node is ir.ConstantExpression) {
+      return _constantValuefier.visitConstant(node.constant);
     } else {
-      constant =
-          new Constantifier(this, requireConstant: requireConstant).visit(node);
-    }
-    if (constant == null) {
-      if (requireConstant) {
-        throw new UnsupportedError(
-            'No constant for ${DebugPrinter.prettyPrint(node)}');
+      // TODO(johnniwinther,sigmund): Effectively constant expressions should
+      // be replaced in the scope visitor as part of the initializer complexity
+      // computation.
+      ir.StaticTypeContext staticTypeContext =
+          getStaticTypeContext(memberContext);
+      ir.Constant constant = constantEvaluator.evaluate(staticTypeContext, node,
+          requireConstant: requireConstant);
+      if (constant == null) {
+        if (requireConstant) {
+          throw new UnsupportedError(
+              'No constant for ${DebugPrinter.prettyPrint(node)}');
+        }
+      } else {
+        ConstantValue value = _constantValuefier.visitConstant(constant);
+        if (!value.isConstant && !requireConstant) {
+          return null;
+        }
+        return value;
       }
-      return null;
     }
-    ConstantValue value = computeConstantValue(
-        computeSourceSpanFromTreeNode(node), constant,
-        requireConstant: requireConstant);
-    if (!value.isConstant && !requireConstant) {
-      return null;
-    }
-    return value;
-  }
-
-  /// Converts [annotations] into a list of [ConstantValue]s.
-  List<ConstantValue> getMetadata(List<ir.Expression> annotations) {
-    if (annotations.isEmpty) return const <ConstantValue>[];
-    List<ConstantValue> metadata = <ConstantValue>[];
-    annotations.forEach((ir.Expression node) {
-      metadata.add(getConstantValue(node));
-    });
-    return metadata;
+    return null;
   }
 
   @override
@@ -2562,77 +2541,6 @@ class JsBehaviorBuilder extends BehaviorBuilder {
   @override
   bool get trustJSInteropTypeAnnotations =>
       _options.trustJSInteropTypeAnnotations;
-}
-
-/// Constant environment mapping [ConstantExpression]s to [ConstantValue]s using
-/// [_EvaluationEnvironment] for the evaluation.
-class JsConstantEnvironment implements ConstantEnvironment {
-  final JsKernelToElementMap _elementMap;
-  final Environment _environment;
-
-  Map<ConstantExpression, ConstantValue> _valueMap =
-      <ConstantExpression, ConstantValue>{};
-
-  JsConstantEnvironment(this._elementMap, this._environment);
-
-  ConstantValue _getConstantValue(
-      Spannable spannable, ConstantExpression expression,
-      {bool constantRequired}) {
-    return _valueMap.putIfAbsent(expression, () {
-      return expression.evaluate(new JsEvaluationEnvironment(
-          _elementMap, _environment, spannable,
-          constantRequired: constantRequired));
-    });
-  }
-}
-
-/// Evaluation environment used for computing [ConstantValue]s for
-/// kernel based [ConstantExpression]s.
-class JsEvaluationEnvironment extends EvaluationEnvironmentBase {
-  final JsKernelToElementMap _elementMap;
-  final Environment _environment;
-
-  JsEvaluationEnvironment(
-      this._elementMap, this._environment, Spannable spannable,
-      {bool constantRequired})
-      : super(spannable, constantRequired: constantRequired);
-
-  @override
-  CommonElements get commonElements => _elementMap.commonElements;
-
-  @override
-  DartTypes get types => _elementMap.types;
-
-  @override
-  DartType substByContext(DartType base, InterfaceType target) {
-    return _elementMap.substByContext(base, target);
-  }
-
-  @override
-  ConstantConstructor getConstructorConstant(ConstructorEntity constructor) {
-    return _elementMap._getConstructorConstant(constructor);
-  }
-
-  @override
-  ConstantExpression getFieldConstant(FieldEntity field) {
-    return _elementMap._getFieldConstantExpression(field);
-  }
-
-  @override
-  ConstantExpression getLocalConstant(Local local) {
-    throw new UnimplementedError("_EvaluationEnvironment.getLocalConstant");
-  }
-
-  @override
-  String readFromEnvironment(String name) {
-    return _environment.valueOf(name);
-  }
-
-  @override
-  DiagnosticReporter get reporter => _elementMap.reporter;
-
-  @override
-  bool get enableAssertions => _elementMap.options.enableUserAssertions;
 }
 
 /// [EntityLookup] implementation used to deserialize [JsKernelToElementMap].

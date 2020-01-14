@@ -1,4 +1,0 @@
-analyzer:
-  strong-mode: true
-  errors:
-    undefined_class: ignore

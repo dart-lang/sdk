@@ -23,6 +23,21 @@ class RemoveThisExpressionTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.unnecessary_this;
 
+  test_constructorInitializer() async {
+    await resolveTestUnit('''
+class A {
+  int x;
+  A(int x) : /*LINT*/this.x = x;
+}
+''');
+    await assertHasFix('''
+class A {
+  int x;
+  A(int x) : /*LINT*/x = x;
+}
+''');
+  }
+
   test_methodInvocation_oneCharacterOperator() async {
     await resolveTestUnit('''
 class A {

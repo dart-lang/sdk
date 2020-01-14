@@ -106,7 +106,9 @@ library dart._foreign_helper;
  */
 // Add additional optional arguments if needed. The method is treated internally
 // as a variable argument method.
-T JS<T extends Object?>(String typeDescription, String codeTemplate,
+// TODO(vsm): Make this `T extends Object?` when
+// https://github.com/dart-lang/sdk/issues/40022 is fixed.
+T JS<T>(String typeDescription, String codeTemplate,
     [arg0,
     arg1,
     arg2,

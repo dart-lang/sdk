@@ -216,6 +216,9 @@ class Serializer : public ThreadStackResource {
   void WriteVersionAndFeatures(bool is_vm_snapshot);
 
   void Serialize();
+
+  FieldTable* field_table() { return field_table_; }
+
   WriteStream* stream() { return &stream_; }
   intptr_t bytes_written() { return stream_.bytes_written(); }
 
@@ -372,6 +375,7 @@ class Serializer : public ThreadStackResource {
   intptr_t num_written_objects_;
   intptr_t next_ref_index_;
   SmiObjectIdMap smi_ids_;
+  FieldTable* field_table_;
 
   // True if writing VM snapshot, false for Isolate snapshot.
   bool vm_;
@@ -556,6 +560,7 @@ class Deserializer : public ThreadStackResource {
   intptr_t next_index() const { return next_ref_index_; }
   Heap* heap() const { return heap_; }
   Snapshot::Kind kind() const { return kind_; }
+  FieldTable* field_table() const { return field_table_; }
 
   // The number of code objects which were relocated during AOT snapshot
   // writing.
@@ -585,6 +590,7 @@ class Deserializer : public ThreadStackResource {
   RawArray* refs_;
   intptr_t next_ref_index_;
   DeserializationCluster** clusters_;
+  FieldTable* field_table_;
 };
 
 #define ReadFromTo(obj, ...) d->ReadFromTo(obj, ##__VA_ARGS__);

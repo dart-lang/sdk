@@ -17,9 +17,9 @@ void main() {
 }
 
 class Foo {
-  var x, y, z;
+  int x, y, z;
 
-  Foo(a, b)
+  Foo(int a, int b)
       : this.x = a,
         this.y = b {
     z = a + b;

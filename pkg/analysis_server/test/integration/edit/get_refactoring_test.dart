@@ -45,7 +45,7 @@ void bar() {
     // expect a valid rename refactoring
     result = await sendEditGetRefactoring(
         RefactoringKind.RENAME, pathname, text.indexOf('foo('), 0, false,
-        options: new RenameOptions('baz'));
+        options: RenameOptions('baz'));
     expect(result.initialProblems, isEmpty);
     expect(result.optionsProblems, isEmpty);
     expect(result.finalProblems, isEmpty);
@@ -58,7 +58,7 @@ void bar() {
     for (SourceEdit edit in change.edits.first.edits) {
       text = text.replaceRange(edit.offset, edit.end, edit.replacement);
     }
-    await sendAnalysisUpdateContent({pathname: new AddContentOverlay(text)});
+    await sendAnalysisUpdateContent({pathname: AddContentOverlay(text)});
 
     await analysisFinished;
     expect(currentAnalysisErrors[pathname], isEmpty);

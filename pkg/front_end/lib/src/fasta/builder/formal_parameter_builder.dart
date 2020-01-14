@@ -70,6 +70,9 @@ class FormalParameterBuilder extends ModifierBuilderImpl
 
   bool initializerWasInferred = false;
 
+  /// True if the initializer was declared by the programmer.
+  bool hasDeclaredInitializer = false;
+
   FormalParameterBuilder(this.metadata, this.modifiers, this.type, this.name,
       LibraryBuilder compilationUnit, int charOffset,
       [Uri fileUri])
@@ -180,8 +183,8 @@ class FormalParameterBuilder extends ModifierBuilderImpl
       assert(!initializerWasInferred);
       Expression initializer =
           bodyBuilder.parseFieldInitializer(initializerToken);
-      initializer = bodyBuilder.typeInferrer
-          ?.inferParameterInitializer(bodyBuilder, initializer, variable.type);
+      initializer = bodyBuilder.typeInferrer?.inferParameterInitializer(
+          bodyBuilder, initializer, variable.type, hasDeclaredInitializer);
       variable.initializer = initializer..parent = variable;
       if (library.loader is SourceLoader) {
         SourceLoader loader = library.loader;

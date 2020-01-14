@@ -40,14 +40,14 @@ class ByteStreamClientChannelTest {
   Stream<String> outputLineStream;
 
   void setUp() {
-    var inputStream = new StreamController<List<int>>();
-    inputSink = new IOSink(inputStream);
-    var outputStream = new StreamController<List<int>>();
+    var inputStream = StreamController<List<int>>();
+    inputSink = IOSink(inputStream);
+    var outputStream = StreamController<List<int>>();
     outputLineStream = outputStream.stream
-        .transform((new Utf8Codec()).decoder)
-        .transform(new LineSplitter());
-    outputSink = new IOSink(outputStream);
-    channel = new ByteStreamClientChannel(inputStream.stream, outputSink);
+        .transform((Utf8Codec()).decoder)
+        .transform(LineSplitter());
+    outputSink = IOSink(outputStream);
+    channel = ByteStreamClientChannel(inputStream.stream, outputSink);
   }
 
   test_close() {
@@ -89,7 +89,7 @@ class ByteStreamClientChannelTest {
 
   test_sendRequest() {
     int assertCount = 0;
-    Request request = new Request('72', 'foo.bar');
+    Request request = Request('72', 'foo.bar');
     outputLineStream.first.then((line) => json.decode(line)).then((json) {
       expect(json[Request.ID], equals('72'));
       expect(json[Request.METHOD], equals('foo.bar'));
@@ -136,22 +136,21 @@ class ByteStreamServerChannelTest {
   Future doneFuture;
 
   void setUp() {
-    StreamController<List<int>> inputStream = new StreamController<List<int>>();
-    inputSink = new IOSink(inputStream);
-    StreamController<List<int>> outputStream =
-        new StreamController<List<int>>();
+    StreamController<List<int>> inputStream = StreamController<List<int>>();
+    inputSink = IOSink(inputStream);
+    StreamController<List<int>> outputStream = StreamController<List<int>>();
     outputLineStream = outputStream.stream
-        .transform((new Utf8Codec()).decoder)
-        .transform(new LineSplitter());
-    IOSink outputSink = new IOSink(outputStream);
-    channel = new ByteStreamServerChannel(
+        .transform((Utf8Codec()).decoder)
+        .transform(LineSplitter());
+    IOSink outputSink = IOSink(outputStream);
+    channel = ByteStreamServerChannel(
         inputStream.stream, outputSink, InstrumentationService.NULL_SERVICE);
     StreamController<Request> requestStreamController =
-        new StreamController<Request>();
+        StreamController<Request>();
     requestStream = requestStreamController.stream;
-    StreamController errorStreamController = new StreamController();
+    StreamController errorStreamController = StreamController();
     errorStream = errorStreamController.stream;
-    Completer doneCompleter = new Completer();
+    Completer doneCompleter = Completer();
     doneFuture = doneCompleter.future;
     channel.listen((Request request) {
       requestStreamController.add(request);
@@ -165,16 +164,16 @@ class ByteStreamServerChannelTest {
   test_closed() {
     return inputSink
         .close()
-        .then((_) => channel.closed.timeout(new Duration(seconds: 1)));
+        .then((_) => channel.closed.timeout(Duration(seconds: 1)));
   }
 
   test_listen_invalidJson() {
     inputSink.writeln('{"id":');
     return inputSink
         .flush()
-        .then((_) => outputLineStream.first.timeout(new Duration(seconds: 1)))
+        .then((_) => outputLineStream.first.timeout(Duration(seconds: 1)))
         .then((String response) {
-      var jsonResponse = new JsonCodec().decode(response);
+      var jsonResponse = JsonCodec().decode(response);
       expect(jsonResponse, isMap);
       expect(jsonResponse, contains('error'));
       expect(jsonResponse['error'], isNotNull);
@@ -185,9 +184,9 @@ class ByteStreamServerChannelTest {
     inputSink.writeln('{"id":"0"}');
     return inputSink
         .flush()
-        .then((_) => outputLineStream.first.timeout(new Duration(seconds: 1)))
+        .then((_) => outputLineStream.first.timeout(Duration(seconds: 1)))
         .then((String response) {
-      var jsonResponse = new JsonCodec().decode(response);
+      var jsonResponse = JsonCodec().decode(response);
       expect(jsonResponse, isMap);
       expect(jsonResponse, contains('error'));
       expect(jsonResponse['error'], isNotNull);
@@ -197,15 +196,15 @@ class ByteStreamServerChannelTest {
   test_listen_streamDone() {
     return inputSink
         .close()
-        .then((_) => doneFuture.timeout(new Duration(seconds: 1)));
+        .then((_) => doneFuture.timeout(Duration(seconds: 1)));
   }
 
   test_listen_streamError() {
-    var error = new Error();
+    var error = Error();
     inputSink.addError(error);
     return inputSink
         .flush()
-        .then((_) => errorStream.first.timeout(new Duration(seconds: 1)))
+        .then((_) => errorStream.first.timeout(Duration(seconds: 1)))
         .then((var receivedError) {
       expect(receivedError, same(error));
     });
@@ -215,7 +214,7 @@ class ByteStreamServerChannelTest {
     inputSink.writeln('{"id":"0","method":"server.version"}');
     return inputSink
         .flush()
-        .then((_) => requestStream.first.timeout(new Duration(seconds: 1)))
+        .then((_) => requestStream.first.timeout(Duration(seconds: 1)))
         .then((Request request) {
       expect(request.id, equals("0"));
       expect(request.method, equals("server.version"));
@@ -223,11 +222,11 @@ class ByteStreamServerChannelTest {
   }
 
   test_sendNotification() {
-    channel.sendNotification(new Notification('foo'));
+    channel.sendNotification(Notification('foo'));
     return outputLineStream.first
-        .timeout(new Duration(seconds: 1))
+        .timeout(Duration(seconds: 1))
         .then((String notification) {
-      var jsonNotification = new JsonCodec().decode(notification);
+      var jsonNotification = JsonCodec().decode(notification);
       expect(jsonNotification, isMap);
       expect(jsonNotification, contains('event'));
       expect(jsonNotification['event'], equals('foo'));
@@ -236,24 +235,24 @@ class ByteStreamServerChannelTest {
 
   test_sendNotification_exceptionInSink() async {
     // This IOSink asynchronously throws an exception on any writeln().
-    var outputSink = new _IOSinkMock();
+    var outputSink = _IOSinkMock();
 
-    var channel = new ByteStreamServerChannel(
+    var channel = ByteStreamServerChannel(
         null, outputSink, InstrumentationService.NULL_SERVICE);
 
     // Attempt to send a notification.
-    channel.sendNotification(new Notification('foo'));
+    channel.sendNotification(Notification('foo'));
 
     // An exception was thrown, it did not leak, but the channel was closed.
     await channel.closed;
   }
 
   test_sendResponse() {
-    channel.sendResponse(new Response('foo'));
+    channel.sendResponse(Response('foo'));
     return outputLineStream.first
-        .timeout(new Duration(seconds: 1))
+        .timeout(Duration(seconds: 1))
         .then((String response) {
-      var jsonResponse = new JsonCodec().decode(response);
+      var jsonResponse = JsonCodec().decode(response);
       expect(jsonResponse, isMap);
       expect(jsonResponse, contains('id'));
       expect(jsonResponse['id'], equals('foo'));
@@ -294,7 +293,7 @@ class _IOSinkMock implements IOSink {
 
   @override
   void writeln([Object obj = ""]) {
-    new Timer(new Duration(milliseconds: 10), () {
+    Timer(Duration(milliseconds: 10), () {
       throw '42';
     });
   }

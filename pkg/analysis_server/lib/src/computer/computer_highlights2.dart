@@ -23,7 +23,7 @@ class DartUnitHighlightsComputer2 {
    * Returns the computed highlight regions, not `null`.
    */
   List<HighlightRegion> compute() {
-    _unit.accept(new _DartUnitHighlightsComputerVisitor2(this));
+    _unit.accept(_DartUnitHighlightsComputerVisitor2(this));
     _addCommentRanges();
     return _regions;
   }
@@ -391,7 +391,7 @@ class DartUnitHighlightsComputer2 {
   }
 
   void _addRegion(int offset, int length, HighlightRegionType type) {
-    _regions.add(new HighlightRegion(type, offset, length));
+    _regions.add(HighlightRegion(type, offset, length));
   }
 
   bool _addRegion_node(AstNode node, HighlightRegionType type) {

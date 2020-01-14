@@ -31,11 +31,9 @@ CompletionSuggestion createSuggestion(Element element,
     // Do not include operators in suggestions
     return null;
   }
-  if (completion == null) {
-    completion = element.displayName;
-  }
+  completion ??= element.displayName;
   bool isDeprecated = element.hasDeprecated;
-  CompletionSuggestion suggestion = new CompletionSuggestion(
+  CompletionSuggestion suggestion = CompletionSuggestion(
       kind,
       isDeprecated ? DART_RELEVANCE_LOW : relevance,
       completion,
@@ -63,7 +61,9 @@ CompletionSuggestion createSuggestion(Element element,
         element.parameters.map((ParameterElement parameter) {
       DartType paramType = parameter.type;
       // Gracefully degrade if type not resolved yet
-      return paramType != null ? paramType.displayName : 'var';
+      return paramType != null
+          ? paramType.getDisplayString(withNullability: false)
+          : 'var';
     }).toList();
 
     Iterable<ParameterElement> requiredParameters = element.parameters
@@ -92,7 +92,7 @@ mixin ElementSuggestionBuilder {
   /**
    * A set of existing completions used to prevent duplicate suggestions.
    */
-  final Set<String> _completions = new Set<String>();
+  final Set<String> _completions = Set<String>();
 
   /**
    * A map of element names to suggestions for synthetic getters and setters.
@@ -156,7 +156,7 @@ mixin ElementSuggestionBuilder {
                 element.enclosingElement is ClassElement
                     ? protocol.ElementKind.FIELD
                     : protocol.ElementKind.TOP_LEVEL_VARIABLE;
-            existingSuggestion.element = new protocol.Element(
+            existingSuggestion.element = protocol.Element(
                 elemKind,
                 existingSuggestion.element.name,
                 existingSuggestion.element.flags,
@@ -184,7 +184,9 @@ mixin ElementSuggestionBuilder {
  */
 class LibraryElementSuggestionBuilder extends SimpleElementVisitor
     with ElementSuggestionBuilder {
+  @override
   final LibraryElement containingLibrary;
+  @override
   final CompletionSuggestionKind kind;
   final bool typesOnly;
   final bool instCreation;
@@ -293,7 +295,7 @@ class MemberSuggestionBuilder {
    * Note: the enumerated values stored in this map are intended to be bitwise
    * compared.
    */
-  final Map<String, int> _completionTypesGenerated = new HashMap<String, int>();
+  final Map<String, int> _completionTypesGenerated = HashMap<String, int>();
 
   /**
    * Map from completion identifier to completion suggestion

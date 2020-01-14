@@ -39,11 +39,11 @@ class HighlightsCollectorImpl implements HighlightsCollector {
 
   @override
   void addRange(SourceRange range, HighlightRegionType type) {
-    regions.add(new HighlightRegion(type, range.offset, range.length));
+    regions.add(HighlightRegion(type, range.offset, range.length));
   }
 
   @override
   void addRegion(int offset, int length, HighlightRegionType type) {
-    regions.add(new HighlightRegion(type, offset, length));
+    regions.add(HighlightRegion(type, offset, length));
   }
 }

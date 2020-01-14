@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/member.dart';
@@ -212,7 +213,7 @@ class ExtensionMemberResolver {
         if (boundType != null) {
           boundType = substitution.substituteType(boundType);
           if (!_typeSystem.isSubtypeOf(argType, boundType)) {
-            _errorReporter.reportTypeErrorForNode(
+            _errorReporter.reportErrorForNode(
               CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
               typeArgumentList.arguments[i],
               [argType, boundType],
@@ -254,11 +255,7 @@ class ExtensionMemberResolver {
     var instantiatedExtensions = <_InstantiatedExtension>[];
     for (var candidate in candidates) {
       var typeParameters = candidate.extension.typeParameters;
-      var inferrer = GenericInferrer(
-        _typeProvider,
-        _typeSystem,
-        typeParameters,
-      );
+      var inferrer = GenericInferrer(_typeSystem, typeParameters);
       inferrer.constrainArgument(
         type,
         candidate.extension.extendedType,
@@ -368,11 +365,7 @@ class ExtensionMemberResolver {
         return _listOfDynamic(typeParameters);
       }
     } else {
-      var inferrer = GenericInferrer(
-        _typeProvider,
-        _typeSystem,
-        typeParameters,
-      );
+      var inferrer = GenericInferrer(_typeSystem, typeParameters);
       inferrer.constrainArgument(
         receiverType,
         element.extendedType,

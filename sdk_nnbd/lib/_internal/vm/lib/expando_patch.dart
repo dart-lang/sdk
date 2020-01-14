@@ -2,14 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 // part of "core_patch.dart";
 
 @patch
 class Expando<T> {
   @patch
-  Expando([String name])
+  Expando([String? name])
       : name = name,
         _data = new List(_minSize),
         _used = 0;
@@ -18,7 +16,7 @@ class Expando<T> {
   static final _deletedEntry = new _WeakProperty(null, null);
 
   @patch
-  T operator [](Object object) {
+  T? operator [](Object object) {
     _checkType(object);
 
     var mask = _size - 1;
@@ -40,7 +38,7 @@ class Expando<T> {
   }
 
   @patch
-  void operator []=(Object object, T value) {
+  void operator []=(Object object, T? value) {
     _checkType(object);
 
     var mask = _size - 1;

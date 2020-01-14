@@ -23,7 +23,7 @@ main() {
 
 @reflectiveTest
 class ReanalyzeTest extends AbstractAnalysisServerIntegrationTest {
-  @TestTimeout(const Timeout.factor(2))
+  @TestTimeout(Timeout.factor(2))
   test_reanalyze_concurrent() {
     String pathname = sourcePath('test.dart');
     String text = '''
@@ -43,7 +43,7 @@ main() {}''';
         return analysisFinished.then((_) {
           // Now that reanalysis has finished, give the server an extra second
           // to make sure it doesn't crash.
-          return new Future.delayed(new Duration(seconds: 1));
+          return Future.delayed(Duration(seconds: 1));
         });
       });
     });

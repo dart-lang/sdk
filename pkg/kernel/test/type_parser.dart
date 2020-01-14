@@ -136,7 +136,8 @@ class DartTypeParser {
     }
   }
 
-  Nullability parseOptionalNullability() {
+  Nullability parseOptionalNullability(
+      [Nullability defaultNullability = Nullability.nonNullable]) {
     int token = peekToken();
     switch (token) {
       case Token.QuestionMark:
@@ -146,7 +147,7 @@ class DartTypeParser {
         scanToken();
         return Nullability.legacy;
       default:
-        return Nullability.nonNullable;
+        return defaultNullability;
     }
   }
 
@@ -171,7 +172,8 @@ class DartTypeParser {
           Nullability nullability = parseOptionalNullability();
           return new TypedefType(target, nullability, typeArguments);
         } else if (target is TypeParameter) {
-          Nullability nullability = parseOptionalNullability();
+          Nullability nullability =
+              parseOptionalNullability(Nullability.undetermined);
           DartType promotedBound;
           switch (peekToken()) {
             case Token.LeftAngle:
@@ -302,7 +304,7 @@ class DartTypeParser {
       typeParameter.bound = parseType();
     } else {
       typeParameter.bound =
-          new InterfaceType(lookupType('Object'), Nullability.legacy);
+          new InterfaceType(lookupType('Object'), Nullability.nullable);
     }
     return typeParameter;
   }
@@ -319,7 +321,8 @@ class LazyTypeEnvironment {
   final Component component = new Component();
 
   LazyTypeEnvironment() {
-    dummyLibrary = new Library(Uri.parse('file://dummy.dart'));
+    dummyLibrary = new Library(Uri.parse('file://dummy.dart'))
+      ..isNonNullableByDefault = true;
     component.libraries.add(dummyLibrary..parent = component);
     dummyLibrary.name = 'lib';
   }
@@ -329,7 +332,7 @@ class LazyTypeEnvironment {
         ? typeParameters.putIfAbsent(
             name,
             () => new TypeParameter(name,
-                new InterfaceType(lookupClass('Object'), Nullability.legacy)))
+                new InterfaceType(lookupClass('Object'), Nullability.nullable)))
         : lookupClass(name);
   }
 

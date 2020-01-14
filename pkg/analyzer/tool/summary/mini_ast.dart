@@ -246,6 +246,7 @@ class MiniAstBuilder extends StackListener {
     pop(); // superclass
   }
 
+  @override
   void endClassDeclaration(Token beginToken, Token endToken) {
     debugEvent("ClassDeclaration");
     List<ClassMember> members = popTypedList();
@@ -274,6 +275,7 @@ class MiniAstBuilder extends StackListener {
     }
   }
 
+  @override
   void endEnum(Token enumKeyword, Token leftBrace, int count) {
     debugEvent("Enum");
     List<EnumConstantDeclaration> constants =
@@ -406,6 +408,7 @@ class MiniAstBuilder extends StackListener {
         NullValue.Metadata);
   }
 
+  @override
   void endClassMethod(Token getOrSet, Token beginToken, Token beginParam,
       Token beginInitializers, Token endToken) {
     debugEvent("Method");
@@ -542,6 +545,7 @@ class MiniAstBuilder extends StackListener {
     push(NullValue.FunctionBody);
   }
 
+  @override
   void handleIdentifier(Token token, IdentifierContext context) {
     if (context == IdentifierContext.enumValueDeclaration) {
       List<Annotation> metadata = popTypedList();
@@ -558,11 +562,13 @@ class MiniAstBuilder extends StackListener {
     pop(); // metadata star
   }
 
+  @override
   void handleLiteralInt(Token token) {
     debugEvent("LiteralInt");
     push(IntegerLiteral(int.parse(token.lexeme)));
   }
 
+  @override
   void handleLiteralNull(Token token) {
     debugEvent("LiteralNull");
     push(UnknownExpression());
@@ -607,6 +613,7 @@ class MiniAstBuilder extends StackListener {
 class MiniAstParser extends Parser {
   MiniAstParser(MiniAstBuilder listener) : super(listener);
 
+  @override
   Token parseArgumentsOpt(Token token) {
     MiniAstBuilder listener = this.listener;
     if (listener.inMetadata) {
@@ -616,6 +623,7 @@ class MiniAstParser extends Parser {
     }
   }
 
+  @override
   Token parseFunctionBody(Token token, bool isExpression, bool allowAbstract) {
     return skipFunctionBody(token, isExpression, allowAbstract);
   }

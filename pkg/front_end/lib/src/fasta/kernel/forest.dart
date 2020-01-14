@@ -8,8 +8,6 @@ import 'dart:core' hide MapEntry;
 
 import 'package:kernel/ast.dart';
 
-import '../names.dart';
-
 import '../problems.dart' show unsupported;
 
 import 'collections.dart'
@@ -254,12 +252,14 @@ class Forest {
       int fileOffset,
       VariableDeclaration variable,
       Expression iterable,
-      Statement prologue,
+      Expression synthesizedAssignment,
+      Statement expressionEffects,
       Expression body,
       Expression problem,
       {bool isAsync: false}) {
     assert(fileOffset != null);
-    return new ForInElement(variable, iterable, prologue, body, problem,
+    return new ForInElement(variable, iterable, synthesizedAssignment,
+        expressionEffects, body, problem,
         isAsync: isAsync)
       ..fileOffset = fileOffset;
   }
@@ -268,12 +268,14 @@ class Forest {
       int fileOffset,
       VariableDeclaration variable,
       Expression iterable,
-      Statement prologue,
+      Expression synthesizedAssignment,
+      Statement expressionEffects,
       MapEntry body,
       Expression problem,
       {bool isAsync: false}) {
     assert(fileOffset != null);
-    return new ForInMapEntry(variable, iterable, prologue, body, problem,
+    return new ForInMapEntry(variable, iterable, synthesizedAssignment,
+        expressionEffects, body, problem,
         isAsync: isAsync)
       ..fileOffset = fileOffset;
   }
@@ -475,16 +477,11 @@ class Forest {
 
   bool isThrow(Object o) => o is Throw;
 
-  TryCatch createTryCatch(
-      int fileOffset, Statement tryBlock, List<Catch> catchBlocks) {
+  Statement createTryStatement(int fileOffset, Statement tryBlock,
+      List<Catch> catchBlocks, Statement finallyBlock) {
     assert(fileOffset != null);
-    return new TryCatch(tryBlock, catchBlocks)..fileOffset = fileOffset;
-  }
-
-  TryFinally createTryFinally(
-      int fileOffset, Statement tryBlock, Statement finallyBlock) {
-    assert(fileOffset != null);
-    return new TryFinally(tryBlock, finallyBlock)..fileOffset = fileOffset;
+    return new TryStatement(tryBlock, catchBlocks ?? <Catch>[], finallyBlock)
+      ..fileOffset = fileOffset;
   }
 
   _VariablesDeclaration variablesDeclaration(
@@ -624,21 +621,18 @@ class Forest {
     return new FunctionExpression(function)..fileOffset = fileOffset;
   }
 
-  MethodInvocation createFunctionInvocation(
+  Expression createExpressionInvocation(
       int fileOffset, Expression expression, Arguments arguments) {
     assert(fileOffset != null);
-    return new MethodInvocationImpl(expression, callName, arguments)
+    return new ExpressionInvocation(expression, arguments)
       ..fileOffset = fileOffset;
   }
 
   MethodInvocation createMethodInvocation(
-      int fileOffset, Expression expression, Name name, Arguments arguments,
-      {bool isImplicitCall: false, Member interfaceTarget}) {
+      int fileOffset, Expression expression, Name name, Arguments arguments) {
     assert(fileOffset != null);
-    return new MethodInvocationImpl(expression, name, arguments,
-        isImplicitCall: isImplicitCall)
-      ..fileOffset = fileOffset
-      ..interfaceTarget = interfaceTarget;
+    return new MethodInvocation(expression, name, arguments)
+      ..fileOffset = fileOffset;
   }
 
   NamedExpression createNamedExpression(

@@ -178,6 +178,7 @@ void HierarchyInfo::BuildRangesFor(ClassTable* table,
                                    bool use_subtype_test,
                                    bool include_abstract,
                                    bool exclude_null) {
+  // TODO(regis): Does this function depend on NNBDMode?
   Zone* zone = thread()->zone();
   ClassTable* class_table = thread()->isolate()->class_table();
 
@@ -219,7 +220,7 @@ void HierarchyInfo::BuildRangesFor(ClassTable* table,
     } else if (use_subtype_test) {
       cls_type = cls.RareType();
       test_succeeded =
-          cls_type.IsSubtypeOf(NNBDMode::kLegacy, dst_type, Heap::kNew);
+          cls_type.IsSubtypeOf(NNBDMode::kLegacyLib, dst_type, Heap::kNew);
     } else {
       while (!cls.IsObjectClass()) {
         if (cls.raw() == klass.raw()) {
@@ -387,7 +388,7 @@ bool HierarchyInfo::CanUseSubtypeRangeCheckFor(const AbstractType& type) {
     // arguments are not "dynamic" but instantiated-to-bounds.
     const Type& rare_type =
         Type::Handle(zone, Type::RawCast(type_class.RareType()));
-    if (!rare_type.Equals(type)) {
+    if (!rare_type.IsEquivalent(type, /* syntactically = */ true)) {
       return false;
     }
   }
@@ -533,7 +534,8 @@ Definition* Definition::OriginalDefinitionIgnoreBoxingAndConstraints() {
   Definition* def = this;
   while (true) {
     Definition* orig;
-    if (def->IsConstraint() || def->IsBox() || def->IsUnbox()) {
+    if (def->IsConstraint() || def->IsBox() || def->IsUnbox() ||
+        def->IsIntConverter()) {
       orig = def->InputAt(0)->definition();
     } else {
       orig = def->OriginalDefinition();
@@ -987,7 +989,8 @@ bool AssertAssignableInstr::AttributesEqual(Instruction* other) const {
   ASSERT(other_assert != NULL);
   // This predicate has to be commutative for DominatorBasedCSE to work.
   // TODO(fschneider): Eliminate more asserts with subtype relation.
-  return dst_type().raw() == other_assert->dst_type().raw();
+  return dst_type().raw() == other_assert->dst_type().raw() &&
+         nnbd_mode() == other_assert->nnbd_mode();
 }
 
 Instruction* AssertSubtypeInstr::Canonicalize(FlowGraph* flow_graph) {
@@ -1016,7 +1019,7 @@ Instruction* AssertSubtypeInstr::Canonicalize(FlowGraph* flow_graph) {
     AbstractType& sub_type = AbstractType::Handle(Z, sub_type_.raw());
     AbstractType& super_type = AbstractType::Handle(Z, super_type_.raw());
     if (AbstractType::InstantiateAndTestSubtype(
-            NNBDMode::kLegacy, &sub_type, &super_type, instantiator_type_args,
+            nnbd_mode(), &sub_type, &super_type, instantiator_type_args,
             function_type_args)) {
       return NULL;
     }
@@ -1028,7 +1031,8 @@ bool AssertSubtypeInstr::AttributesEqual(Instruction* other) const {
   AssertSubtypeInstr* other_assert = other->AsAssertSubtype();
   ASSERT(other_assert != NULL);
   return super_type().raw() == other_assert->super_type().raw() &&
-         sub_type().raw() == other_assert->sub_type().raw();
+         sub_type().raw() == other_assert->sub_type().raw() &&
+         nnbd_mode() == other_assert->nnbd_mode();
 }
 
 bool StrictCompareInstr::AttributesEqual(Instruction* other) const {
@@ -1081,10 +1085,6 @@ bool LoadStaticFieldInstr::AttributesEqual(Instruction* other) const {
   ASSERT(StaticField().StaticValue() != Object::sentinel().raw());
   ASSERT(StaticField().StaticValue() != Object::transition_sentinel().raw());
   return StaticField().raw() == other_load->StaticField().raw();
-}
-
-const Field& LoadStaticFieldInstr::StaticField() const {
-  return Field::Cast(field_value()->BoundConstant());
 }
 
 bool LoadStaticFieldInstr::IsFieldInitialized() const {
@@ -1485,11 +1485,13 @@ void Instruction::UnuseAllInputs() {
 }
 
 void Instruction::RepairPushArgsInEnvironment() const {
+  PushArgumentsArray* push_arguments = GetPushArguments();
+  ASSERT(push_arguments != nullptr);
   const intptr_t arg_count = ArgumentCount();
   ASSERT(arg_count <= env()->Length());
   const intptr_t env_base = env()->Length() - arg_count;
   for (intptr_t i = 0; i < arg_count; ++i) {
-    env()->ValueAt(env_base + i)->BindToEnvironment(PushArgumentAt(i));
+    env()->ValueAt(env_base + i)->BindToEnvironment(push_arguments->At(i));
   }
 }
 
@@ -2875,7 +2877,7 @@ Definition* AssertBooleanInstr::Canonicalize(FlowGraph* flow_graph) {
 
 Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
   if (FLAG_eliminate_type_checks &&
-      value()->Type()->IsAssignableTo(dst_type())) {
+      value()->Type()->IsAssignableTo(nnbd_mode(), dst_type())) {
     return value()->definition();
   }
   if (dst_type().IsInstantiated()) {
@@ -2941,9 +2943,9 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
 
   if ((instantiator_type_args != nullptr) && (function_type_args != nullptr)) {
     AbstractType& new_dst_type = AbstractType::Handle(
-        Z, dst_type().InstantiateFrom(
-               NNBDMode::kLegacy, *instantiator_type_args, *function_type_args,
-               kAllFree, nullptr, Heap::kOld));
+        Z, dst_type().InstantiateFrom(nnbd_mode(), *instantiator_type_args,
+                                      *function_type_args, kAllFree, nullptr,
+                                      Heap::kOld));
     if (new_dst_type.IsNull()) {
       // Failed instantiation in dead code.
       return this;
@@ -2962,7 +2964,7 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
 
     if (new_dst_type.IsDynamicType() || new_dst_type.IsObjectType() ||
         (FLAG_eliminate_type_checks &&
-         value()->Type()->IsAssignableTo(new_dst_type))) {
+         value()->Type()->IsAssignableTo(nnbd_mode(), new_dst_type))) {
       return value()->definition();
     }
   }
@@ -3175,12 +3177,13 @@ Definition* IntConverterInstr::Canonicalize(FlowGraph* flow_graph) {
 
   IntConverterInstr* box_defn = value()->definition()->AsIntConverter();
   if ((box_defn != NULL) && (box_defn->representation() == from())) {
+    // Do not erase truncating conversions from 64-bit value to 32-bit values
+    // because such conversions erase upper 32 bits.
+    if ((box_defn->from() == kUnboxedInt64) && box_defn->is_truncating()) {
+      return this;
+    }
+
     if (box_defn->from() == to()) {
-      // Do not erase truncating conversions from 64-bit value to 32-bit values
-      // because such conversions erase upper 32 bits.
-      if ((box_defn->from() == kUnboxedInt64) && box_defn->is_truncating()) {
-        return this;
-      }
       return box_defn->value()->definition();
     }
 
@@ -3239,6 +3242,7 @@ static bool MayBeBoxableNumber(intptr_t cid) {
 }
 
 static bool MayBeNumber(CompileType* type) {
+  // TODO(regis): Does this function depend on NNBDMode?
   if (type->IsNone()) {
     return false;
   }
@@ -3253,7 +3257,7 @@ static bool MayBeNumber(CompileType* type) {
   }
   // Note that type 'Number' is a subtype of itself.
   return compile_type.IsTopType() || compile_type.IsTypeParameter() ||
-         compile_type.IsSubtypeOf(NNBDMode::kLegacy,
+         compile_type.IsSubtypeOf(NNBDMode::kLegacyLib,
                                   Type::Handle(Type::Number()), Heap::kOld);
 }
 
@@ -3595,6 +3599,13 @@ Instruction* CheckEitherNonSmiInstr::Canonicalize(FlowGraph* flow_graph) {
 
 Definition* CheckNullInstr::Canonicalize(FlowGraph* flow_graph) {
   return (!value()->Type()->is_nullable()) ? value()->definition() : this;
+}
+
+bool CheckNullInstr::AttributesEqual(Instruction* other) const {
+  CheckNullInstr* other_check = other->AsCheckNull();
+  ASSERT(other_check != nullptr);
+  return function_name().Equals(other_check->function_name()) &&
+         exception_type() == other_check->exception_type();
 }
 
 BoxInstr* BoxInstr::Create(Representation from, Value* value) {
@@ -4451,13 +4462,17 @@ intptr_t PolymorphicInstanceCallInstr::CallCount() const {
   return targets().AggregateCallCount();
 }
 
+LocationSummary* PolymorphicInstanceCallInstr::MakeLocationSummary(
+    Zone* zone,
+    bool optimizing) const {
+  return MakeCallSummary(zone);
+}
+
 void PolymorphicInstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ArgumentsInfo args_info(instance_call()->type_args_len(),
-                          instance_call()->ArgumentCount(),
-                          instance_call()->argument_names());
-  compiler->EmitPolymorphicInstanceCall(
-      targets_, *instance_call(), args_info, deopt_id(),
-      instance_call()->token_pos(), locs(), complete(), total_call_count());
+  ArgumentsInfo args_info(type_args_len(), ArgumentCount(), argument_names());
+  compiler->EmitPolymorphicInstanceCall(targets_, *instance_call(), args_info,
+                                        deopt_id(), token_pos(), locs(),
+                                        complete(), total_call_count());
 }
 
 RawType* PolymorphicInstanceCallInstr::ComputeRuntimeType(
@@ -4633,7 +4648,7 @@ intptr_t AssertAssignableInstr::statistics_tag() const {
 
 void AssertAssignableInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->GenerateAssertAssignable(token_pos(), deopt_id(), dst_type(),
-                                     dst_name(), locs());
+                                     dst_name(), nnbd_mode(), locs());
   ASSERT(locs()->in(0).reg() == locs()->out(0).reg());
 }
 
@@ -4646,11 +4661,12 @@ void AssertSubtypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ PushObject(sub_type());
   __ PushObject(super_type());
   __ PushObject(dst_name());
+  __ PushObject(Smi::ZoneHandle(Smi::New(static_cast<intptr_t>(nnbd_mode()))));
 
   compiler->GenerateRuntimeCall(token_pos(), deopt_id(),
-                                kSubtypeCheckRuntimeEntry, 5, locs());
+                                kSubtypeCheckRuntimeEntry, 6, locs());
 
-  __ Drop(5);
+  __ Drop(6);
 }
 
 LocationSummary* DeoptimizeInstr::MakeLocationSummary(Zone* zone,
@@ -4803,6 +4819,9 @@ void UnboxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     switch (representation()) {
       case kUnboxedDouble:
       case kUnboxedFloat:
+      case kUnboxedFloat32x4:
+      case kUnboxedFloat64x2:
+      case kUnboxedInt32x4:
         EmitLoadFromBox(compiler);
         break;
 
@@ -5092,7 +5111,12 @@ Definition* StringInterpolateInstr::Canonicalize(FlowGraph* flow_graph) {
   }
 
   CreateArrayInstr* create_array = value()->definition()->AsCreateArray();
-  ASSERT(create_array != NULL);
+  if (create_array == nullptr) {
+    // Do not try to fold interpolate if array is an OSR argument.
+    ASSERT(flow_graph->IsCompiledForOsr());
+    ASSERT(value()->definition()->IsPhi());
+    return this;
+  }
   // Check if the string interpolation has only constant inputs.
   Value* num_elements = create_array->num_elements();
   if (!num_elements->BindsToConstant() ||
@@ -5320,6 +5344,11 @@ intptr_t TruncDivModInstr::OutputIndexOf(Token::Kind token) {
   }
 }
 
+LocationSummary* NativeCallInstr::MakeLocationSummary(Zone* zone,
+                                                      bool optimizing) const {
+  return MakeCallSummary(zone);
+}
+
 void NativeCallInstr::SetupNative() {
   if (link_lazily()) {
     // Resolution will happen during NativeEntry::LinkNativeCall.
@@ -5458,17 +5487,58 @@ Representation FfiCallInstr::representation() const {
 
 // SIMD
 
+SimdOpInstr::Kind SimdOpInstr::KindForOperator(MethodRecognizer::Kind kind) {
+  switch (kind) {
+    case MethodRecognizer::kFloat32x4Mul:
+      return SimdOpInstr::kFloat32x4Mul;
+    case MethodRecognizer::kFloat32x4Div:
+      return SimdOpInstr::kFloat32x4Div;
+    case MethodRecognizer::kFloat32x4Add:
+      return SimdOpInstr::kFloat32x4Add;
+    case MethodRecognizer::kFloat32x4Sub:
+      return SimdOpInstr::kFloat32x4Sub;
+    case MethodRecognizer::kFloat64x2Mul:
+      return SimdOpInstr::kFloat64x2Mul;
+    case MethodRecognizer::kFloat64x2Div:
+      return SimdOpInstr::kFloat64x2Div;
+    case MethodRecognizer::kFloat64x2Add:
+      return SimdOpInstr::kFloat64x2Add;
+    case MethodRecognizer::kFloat64x2Sub:
+      return SimdOpInstr::kFloat64x2Sub;
+    default:
+      break;
+  }
+  UNREACHABLE();
+  return SimdOpInstr::kIllegalSimdOp;
+}
+
 SimdOpInstr* SimdOpInstr::CreateFromCall(Zone* zone,
                                          MethodRecognizer::Kind kind,
                                          Definition* receiver,
                                          Instruction* call,
                                          intptr_t mask /* = 0 */) {
-  SimdOpInstr* op =
-      new (zone) SimdOpInstr(KindForMethod(kind), call->deopt_id());
-  op->SetInputAt(0, new (zone) Value(receiver));
-  // Note: we are skipping receiver.
-  for (intptr_t i = 1; i < op->InputCount(); i++) {
-    op->SetInputAt(i, call->PushArgumentAt(i)->value()->CopyWithType(zone));
+  SimdOpInstr* op;
+  switch (kind) {
+    case MethodRecognizer::kFloat32x4Mul:
+    case MethodRecognizer::kFloat32x4Div:
+    case MethodRecognizer::kFloat32x4Add:
+    case MethodRecognizer::kFloat32x4Sub:
+    case MethodRecognizer::kFloat64x2Mul:
+    case MethodRecognizer::kFloat64x2Div:
+    case MethodRecognizer::kFloat64x2Add:
+    case MethodRecognizer::kFloat64x2Sub:
+      op = new (zone) SimdOpInstr(KindForOperator(kind), call->deopt_id());
+      break;
+    default:
+      op = new (zone) SimdOpInstr(KindForMethod(kind), call->deopt_id());
+      break;
+  }
+
+  if (receiver != nullptr) {
+    op->SetInputAt(0, new (zone) Value(receiver));
+  }
+  for (intptr_t i = (receiver != nullptr ? 1 : 0); i < op->InputCount(); i++) {
+    op->SetInputAt(i, call->ArgumentValueAt(i)->CopyWithType(zone));
   }
   if (op->HasMask()) {
     op->set_mask(mask);
@@ -5484,7 +5554,7 @@ SimdOpInstr* SimdOpInstr::CreateFromFactoryCall(Zone* zone,
       new (zone) SimdOpInstr(KindForMethod(kind), call->deopt_id());
   for (intptr_t i = 0; i < op->InputCount(); i++) {
     // Note: ArgumentAt(0) is type arguments which we don't need.
-    op->SetInputAt(i, call->PushArgumentAt(i + 1)->value()->CopyWithType(zone));
+    op->SetInputAt(i, call->ArgumentValueAt(i + 1)->CopyWithType(zone));
   }
   ASSERT(call->ArgumentCount() == (op->InputCount() + 1));
   return op;

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 // part of "core_patch.dart";
 
 @pragma("vm:entry-point")
@@ -79,9 +77,9 @@ class _GrowableList<T> extends ListBase<T> {
     this.length = this.length - (end - start);
   }
 
-  List<T> sublist(int start, [int end]) {
-    end = RangeError.checkValidRange(start, end, this.length);
-    int length = end - start;
+  List<T> sublist(int start, [int? end]) {
+    final int actualEnd = RangeError.checkValidRange(start, end, this.length);
+    int length = actualEnd - start;
     if (length == 0) return <T>[];
     List list = new _List(length);
     for (int i = 0; i < length; i++) {
@@ -106,7 +104,8 @@ class _GrowableList<T> extends ListBase<T> {
     return new _GrowableList<T>._withData(data);
   }
 
-  @pragma("vm:exact-result-type", _GrowableList)
+  @pragma("vm:exact-result-type",
+      [_GrowableList, "result-type-uses-passed-type-arguments"])
   factory _GrowableList._withData(_List data) native "GrowableList_allocate";
 
   @pragma("vm:exact-result-type", "dart:core#_Smi")
@@ -121,6 +120,10 @@ class _GrowableList<T> extends ListBase<T> {
     int old_capacity = _capacity;
     int new_capacity = new_length;
     if (new_capacity > old_capacity) {
+      if (null is! T) {
+        throw UnsupportedError(
+            "Cannot grow array with non-nullable element type");
+      }
       _grow(new_capacity);
       _setLength(new_length);
       return;
@@ -136,7 +139,7 @@ class _GrowableList<T> extends ListBase<T> {
       _shrink(new_capacity, new_length);
     } else {
       for (int i = new_length; i < length; i++) {
-        this[i] = null;
+        _setIndexed(i, null);
       }
     }
     _setLength(new_length);
@@ -152,7 +155,7 @@ class _GrowableList<T> extends ListBase<T> {
     _setIndexed(index, value);
   }
 
-  void _setIndexed(int index, T value) native "GrowableList_setIndexed";
+  void _setIndexed(int index, T? value) native "GrowableList_setIndexed";
 
   @pragma("vm:entry-point", "call")
   @pragma("vm:prefer-inline")
@@ -378,19 +381,19 @@ class _GrowableList<T> extends ListBase<T> {
   List<T> toList({bool growable: true}) {
     var length = this.length;
     if (length > 0) {
-      List list = growable ? new _List(length) : new _List<T>(length);
+      final list = new _List<T>(length);
       for (int i = 0; i < length; i++) {
         list[i] = this[i];
       }
       if (!growable) return list;
-      var result = new _GrowableList<T>._withData(list);
+      final result = new _GrowableList<T>._withData(list);
       result._setLength(length);
       return result;
     }
-    return growable ? <T>[] : new List<T>(0);
+    return growable ? <T>[] : List<T>.empty(growable: growable);
   }
 
   Set<T> toSet() {
-    return new Set<T>.from(this);
+    return new Set<T>.of(this);
   }
 }

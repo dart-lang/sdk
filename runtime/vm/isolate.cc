@@ -280,6 +280,7 @@ Thread* IsolateGroup::ScheduleThreadLocked(MonitorLocker* ml,
     // Set up other values and set the TLS value.
     thread->isolate_ = nullptr;
     thread->isolate_group_ = this;
+    thread->field_table_values_ = nullptr;
     thread->set_os_thread(os_thread);
     ASSERT(thread->execution_state() == Thread::kThreadInNative);
     thread->set_execution_state(Thread::kThreadInVM);
@@ -526,6 +527,10 @@ void Isolate::ValidateClassTable() {
   class_table()->Validate();
 }
 #endif  // DEBUG
+
+void Isolate::RegisterStaticField(const Field& field) {
+  field_table()->Register(field);
+}
 
 void Isolate::RehashConstants() {
   Thread* thread = Thread::Current();
@@ -861,11 +866,11 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
   Zone* zone = stack_zone.GetZone();
   HandleScope handle_scope(thread);
 #if defined(SUPPORT_TIMELINE)
-  TimelineDurationScope tds(
+  TimelineBeginEndScope tbes(
       thread, Timeline::GetIsolateStream(),
       message->IsOOB() ? "HandleOOBMessage" : "HandleMessage");
-  tds.SetNumArguments(1);
-  tds.CopyArgument(0, "isolateName", I->name());
+  tbes.SetNumArguments(1);
+  tbes.CopyArgument(0, "isolateName", I->name());
 #endif
 
   // If the message is in band we lookup the handler to dispatch to.  If the
@@ -979,8 +984,8 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
       // the Timeline due to absence of this argument. We still send them in
       // order to maintain the original behavior of the full timeline and allow
       // the developer to download complete dump files.
-      tds.SetNumArguments(2);
-      tds.CopyArgument(1, "mode", "basic");
+      tbes.SetNumArguments(2);
+      tbes.CopyArgument(1, "mode", "basic");
     }
 #endif
     const Object& result =
@@ -1224,6 +1229,7 @@ Isolate::Isolate(IsolateGroup* isolate_group,
       ic_miss_code_(Code::null()),
       shared_class_table_(new SharedClassTable()),
       class_table_(shared_class_table_.get()),
+      field_table_(new FieldTable()),
       store_buffer_(new StoreBuffer()),
 #if !defined(DART_PRECOMPILED_RUNTIME)
       native_callback_trampolines_(),
@@ -1325,6 +1331,7 @@ Isolate::~Isolate() {
   delete heap_;
   ASSERT(marking_stack_ == nullptr);
   delete object_store_;
+  delete field_table_;
   delete api_state_;
 #if defined(USING_SIMULATOR)
   delete simulator_;
@@ -2307,6 +2314,9 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   // Visit objects in the class table.
   class_table()->VisitObjectPointers(visitor);
 
+  // Visit objects in the field table.
+  field_table()->VisitObjectPointers(visitor);
+
   // Visit the dart api state for all local and persistent handles.
   if (api_state() != nullptr) {
     api_state()->VisitObjectPointers(visitor);
@@ -2361,7 +2371,6 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
     deopt_context()->VisitObjectPointers(visitor);
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
-
 
   VisitStackPointers(visitor, validate_frames);
 }
@@ -3278,6 +3287,7 @@ Thread* Isolate::ScheduleThread(bool is_mutator, bool bypass_safepoint) {
     scheduled_mutator_thread_ = thread;
   }
   thread->isolate_ = this;
+  thread->field_table_values_ = field_table_->table();
 
   ASSERT(heap() != nullptr);
   thread->heap_ = heap();
@@ -3297,6 +3307,13 @@ void Isolate::UnscheduleThread(Thread* thread,
   // no_safepoint_scope_depth increments/decrements.
   MonitorLocker ml(group()->threads_lock(), false);
 
+  // Clear since GC will not visit the thread once it is unscheduled. Do this
+  // under the thread lock to prevent races with the GC visiting thread roots.
+  thread->ClearReusableHandles();
+  if (!is_mutator) {
+    thread->heap()->AbandonRemainingTLAB(thread);
+  }
+
   if (is_mutator) {
     if (thread->sticky_error() != Error::null()) {
       ASSERT(sticky_error_ == Error::null());
@@ -3306,6 +3323,7 @@ void Isolate::UnscheduleThread(Thread* thread,
     ASSERT(mutator_thread_ == scheduled_mutator_thread_);
     scheduled_mutator_thread_ = nullptr;
   }
+  thread->field_table_values_ = nullptr;
   group()->UnscheduleThreadLocked(&ml, thread, is_mutator, bypass_safepoint);
 }
 

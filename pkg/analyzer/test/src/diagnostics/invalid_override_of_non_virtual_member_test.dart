@@ -17,6 +17,7 @@ main() {
 @reflectiveTest
 class InvalidOverrideOfNonVirtualMemberTest extends DriverResolutionTest
     with PackageMixin {
+  @override
   setUp() {
     super.setUp();
     addMetaPackage();

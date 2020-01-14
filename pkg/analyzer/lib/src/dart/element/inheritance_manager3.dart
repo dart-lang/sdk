@@ -5,8 +5,10 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/generated/type_system.dart' show TypeSystemImpl;
 import 'package:analyzer/src/generated/utilities_general.dart';
+import 'package:meta/meta.dart';
 
 /// Description of a failure to find a valid override from superinterfaces.
 class Conflict {
@@ -38,7 +40,7 @@ class InheritanceManager3 {
 
   /// The set of classes that are currently being processed, used to detect
   /// self-referencing cycles.
-  final Set<ClassElement> _processingClasses = Set<ClassElement>();
+  final Set<ClassElement> _processingClasses = <ClassElement>{};
 
   InheritanceManager3([@deprecated TypeSystem typeSystem]);
 
@@ -94,7 +96,9 @@ class InheritanceManager3 {
       return Interface._empty;
     }
 
-    var typeSystem = classElement.library.typeSystem;
+    var classLibrary = classElement.library;
+    var isNonNullableByDefault = classLibrary.isNonNullableByDefault;
+    var typeSystem = classLibrary.typeSystem;
 
     Map<Name, List<ExecutableElement>> namedCandidates = {};
     List<Map<Name, ExecutableElement>> superImplemented = [];
@@ -109,15 +113,27 @@ class InheritanceManager3 {
 
       for (var interface in type.interfaces) {
         var interfaceObj = getInterface(interface);
-        _addCandidates(namedCandidates, interfaceObj);
+        _addCandidates(
+          namedCandidates,
+          interfaceObj,
+          isNonNullableByDefault: isNonNullableByDefault,
+        );
       }
 
       if (classElement.isMixin) {
         var superClassCandidates = <Name, List<ExecutableElement>>{};
         for (var constraint in type.superclassConstraints) {
           var interfaceObj = getInterface(constraint);
-          _addCandidates(superClassCandidates, interfaceObj);
-          _addCandidates(namedCandidates, interfaceObj);
+          _addCandidates(
+            superClassCandidates,
+            interfaceObj,
+            isNonNullableByDefault: isNonNullableByDefault,
+          );
+          _addCandidates(
+            namedCandidates,
+            interfaceObj,
+            isNonNullableByDefault: isNonNullableByDefault,
+          );
         }
 
         implemented = {};
@@ -134,7 +150,11 @@ class InheritanceManager3 {
       } else {
         if (type.superclass != null) {
           superInterface = getInterface(type.superclass);
-          _addCandidates(namedCandidates, superInterface);
+          _addCandidates(
+            namedCandidates,
+            superInterface,
+            isNonNullableByDefault: isNonNullableByDefault,
+          );
 
           implemented = superInterface.implemented;
           superImplemented.add(implemented);
@@ -145,7 +165,11 @@ class InheritanceManager3 {
         implementedForMixing = {};
         for (var mixin in type.mixins) {
           var interfaceObj = getInterface(mixin);
-          _addCandidates(namedCandidates, interfaceObj);
+          _addCandidates(
+            namedCandidates,
+            interfaceObj,
+            isNonNullableByDefault: isNonNullableByDefault,
+          );
 
           implemented = <Name, ExecutableElement>{}
             ..addAll(implemented)
@@ -183,7 +207,7 @@ class InheritanceManager3 {
       namedCandidates,
     );
 
-    var noSuchMethodForwarders = Set<Name>();
+    var noSuchMethodForwarders = <Name>{};
     if (classElement.isAbstract) {
       if (superInterface != null) {
         noSuchMethodForwarders = superInterface._noSuchMethodForwarders;
@@ -261,23 +285,35 @@ class InheritanceManager3 {
     return interface._overridden[name];
   }
 
-  void _addCandidate(Map<Name, List<ExecutableElement>> namedCandidates,
-      Name name, ExecutableElement candidate) {
+  void _addCandidate(
+    Map<Name, List<ExecutableElement>> namedCandidates,
+    Name name,
+    ExecutableElement candidate, {
+    @required bool isNonNullableByDefault,
+  }) {
     var candidates = namedCandidates[name];
     if (candidates == null) {
       candidates = <ExecutableElement>[];
       namedCandidates[name] = candidates;
     }
 
+    if (!isNonNullableByDefault) {
+      candidate = Member.legacy(candidate);
+    }
+
     candidates.add(candidate);
   }
 
   void _addCandidates(
-      Map<Name, List<ExecutableElement>> namedCandidates, Interface interface) {
+    Map<Name, List<ExecutableElement>> namedCandidates,
+    Interface interface, {
+    @required bool isNonNullableByDefault,
+  }) {
     var map = interface.map;
     for (var name in map.keys) {
       var candidate = map[name];
-      _addCandidate(namedCandidates, name, candidate);
+      _addCandidate(namedCandidates, name, candidate,
+          isNonNullableByDefault: isNonNullableByDefault);
     }
   }
 
@@ -443,7 +479,7 @@ class Interface {
     const {},
     const {},
     const {},
-    Set<Name>(),
+    <Name>{},
     const {},
     const {},
     const [{}],
@@ -517,6 +553,7 @@ class Name {
   final bool isPublic;
 
   /// The cached, pre-computed hash code.
+  @override
   final int hashCode;
 
   factory Name(Uri libraryUri, String name) {

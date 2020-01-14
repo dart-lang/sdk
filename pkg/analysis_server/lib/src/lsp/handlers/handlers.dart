@@ -169,7 +169,7 @@ abstract class ServerStateMessageHandler {
   }
 
   reject(Method method, ErrorCodes code, String message) {
-    registerHandler(new RejectMessageHandler(server, method, code, message));
+    registerHandler(RejectMessageHandler(server, method, code, message));
   }
 
   bool _isOptionalNotification(IncomingMessage message) {

@@ -4,10 +4,11 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/resolver.dart' show TypeSystemImpl;
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk_elements.dart';
 
@@ -91,6 +92,7 @@ class TestAnalysisContext implements AnalysisContext {
     return _typeSystemNonNullableByDefault;
   }
 
+  @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
   void _setLibraryTypeSystem(LibraryElementImpl libraryElement) {
@@ -108,6 +110,7 @@ class _MockSource implements Source {
   @override
   String get encoding => '$uri';
 
+  @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
@@ -118,5 +121,6 @@ class _MockSourceFactory implements SourceFactory {
     return _MockSource(uri);
   }
 
+  @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

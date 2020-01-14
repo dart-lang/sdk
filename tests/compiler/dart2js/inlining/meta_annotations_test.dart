@@ -36,8 +36,7 @@ main() {
     CompilationResult result =
         await runCompiler(memorySourceFiles: MEMORY_SOURCE_FILES);
     Compiler compiler = result.compiler;
-    KClosedWorld closedWorld =
-        compiler.resolutionWorldBuilder.closedWorldForTesting;
+    KClosedWorld closedWorld = compiler.frontendClosedWorldForTesting;
     KElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
     Expect.isFalse(compiler.compilationFailed, 'Unsuccessful compilation');
 

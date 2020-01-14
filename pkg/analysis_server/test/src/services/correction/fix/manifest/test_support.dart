@@ -43,12 +43,12 @@ class ManifestFixTest with ResourceProviderMixin {
         parseFragment(content, container: MANIFEST_TAG, generateSpans: true);
     expect(document, isNotNull);
     ManifestValidator validator =
-        new ManifestValidator(manifestFile.createSource());
+        ManifestValidator(manifestFile.createSource());
     List<engine.AnalysisError> errors = validator.validate(content, true);
     expect(errors, hasLength(1));
     engine.AnalysisError error = errors[0];
     ManifestFixGenerator generator =
-        new ManifestFixGenerator(error, content, document);
+        ManifestFixGenerator(error, content, document);
     return generator.computeFixes();
   }
 }

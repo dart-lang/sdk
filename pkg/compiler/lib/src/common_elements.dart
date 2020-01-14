@@ -8,7 +8,6 @@ library dart2js.type_system;
 import 'common.dart';
 import 'common/names.dart' show Identifiers, Uris;
 import 'constants/constant_system.dart' as constant_system;
-import 'constants/expressions.dart' show ConstantExpression;
 import 'constants/values.dart';
 import 'elements/entities.dart';
 import 'elements/types.dart';
@@ -303,6 +302,8 @@ abstract class CommonElements {
   ClassEntity get jsUnknownJavaScriptObjectClass;
 
   ClassEntity get jsJavaScriptFunctionClass;
+
+  InterfaceType get jsJavaScriptFunctionType;
 
   ClassEntity get jsJavaScriptObjectClass;
 
@@ -1329,6 +1330,10 @@ class CommonElementsImpl
   ClassEntity get jsJavaScriptFunctionClass => _jsJavaScriptFunctionClass ??=
       _findInterceptorsClass('JavaScriptFunction');
 
+  @override
+  InterfaceType get jsJavaScriptFunctionType =>
+      _getRawType(jsJavaScriptFunctionClass);
+
   ClassEntity _jsJavaScriptObjectClass;
   @override
   ClassEntity get jsJavaScriptObjectClass =>
@@ -1497,10 +1502,9 @@ class CommonElementsImpl
 
   ClassEntity _typeLiteralClass;
   @override
-  ClassEntity get typeLiteralClass =>
-      _typeLiteralClass ??= _options.experimentNewRti
-          ? _findRtiClass('_Type')
-          : _findHelperClass('TypeImpl');
+  ClassEntity get typeLiteralClass => _typeLiteralClass ??= _options.useNewRti
+      ? _findRtiClass('_Type')
+      : _findHelperClass('TypeImpl');
 
   ClassEntity _constMapLiteralClass;
   @override
@@ -1787,7 +1791,7 @@ class CommonElementsImpl
       _findHelperFunction('throwNoSuchMethod');
 
   @override
-  FunctionEntity get createRuntimeType => _options.experimentNewRti
+  FunctionEntity get createRuntimeType => _options.useNewRti
       ? _findRtiFunction('createRuntimeType')
       : _findHelperFunction('createRuntimeType');
 
@@ -2342,9 +2346,6 @@ abstract class KElementEnvironment extends ElementEnvironment {
   /// Calls [f] for each class that is mixed into [cls] or one of its
   /// superclasses.
   void forEachMixin(ClassEntity cls, void f(ClassEntity mixin));
-
-  /// Gets the constant value of [field], or `null` if [field] is non-const.
-  ConstantExpression getFieldConstantForTesting(FieldEntity field);
 
   /// Returns `true` if [member] a the synthetic getter `loadLibrary` injected
   /// on deferred libraries.

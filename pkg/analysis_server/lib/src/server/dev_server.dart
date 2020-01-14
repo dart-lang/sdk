@@ -36,7 +36,7 @@ class DevAnalysisServer {
   DevAnalysisServer(this.socketServer);
 
   void initServer() {
-    _channel = new DevChannel();
+    _channel = DevChannel();
     socketServer.createAnalysisServer(_channel);
   }
 
@@ -52,9 +52,9 @@ class DevAnalysisServer {
 
     print('Analyzing ${directories.join(', ')}...');
 
-    Stopwatch timer = new Stopwatch()..start();
+    Stopwatch timer = Stopwatch()..start();
 
-    Completer<int> whenComplete = new Completer();
+    Completer<int> whenComplete = Completer();
 
     int exitCode = 0;
 
@@ -134,15 +134,14 @@ class DevAnalysisServer {
       }
     });
 
-    _channel
-        .sendRequest(new Request('${_nextId++}', 'server.setSubscriptions', {
+    _channel.sendRequest(Request('${_nextId++}', 'server.setSubscriptions', {
       'subscriptions': ['STATUS'],
     }));
 
     directories =
         directories.map((dir) => path.normalize(path.absolute(dir))).toList();
 
-    _channel.sendRequest(new Request(
+    _channel.sendRequest(Request(
       '${_nextId++}',
       'analysis.setAnalysisRoots',
       {'included': directories, 'excluded': []},
@@ -151,7 +150,7 @@ class DevAnalysisServer {
     return whenComplete.future.whenComplete(() {
       notificationSubscriptions.cancel();
 
-      _channel.sendRequest(new Request(
+      _channel.sendRequest(Request(
         '${_nextId++}',
         'analysis.setAnalysisRoots',
         {'included': [], 'excluded': []},
@@ -162,10 +161,10 @@ class DevAnalysisServer {
 
 class DevChannel implements ServerCommunicationChannel {
   final StreamController<Request> _requestController =
-      new StreamController.broadcast();
+      StreamController.broadcast();
 
   final StreamController<Notification> _notificationController =
-      new StreamController.broadcast();
+      StreamController.broadcast();
 
   final Map<String, Completer<Response>> _responseCompleters = {};
 
@@ -195,7 +194,7 @@ class DevChannel implements ServerCommunicationChannel {
   }
 
   Future<Response> sendRequest(Request request) {
-    Completer<Response> completer = new Completer();
+    Completer<Response> completer = Completer();
     _responseCompleters[request.id] = completer;
     _requestController.add(request);
     return completer.future;

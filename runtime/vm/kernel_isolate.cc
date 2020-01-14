@@ -23,6 +23,8 @@
 #include "vm/thread_pool.h"
 #include "vm/timeline.h"
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+
 namespace dart {
 
 #define Z (T->zone())
@@ -70,7 +72,7 @@ class RunKernelTask : public ThreadPool::Task {
   virtual void Run() {
     ASSERT(Isolate::Current() == NULL);
 #ifdef SUPPORT_TIMELINE
-    TimelineDurationScope tds(Timeline::GetVMStream(), "KernelIsolateStartup");
+    TimelineBeginEndScope tbes(Timeline::GetVMStream(), "KernelIsolateStartup");
 #endif  // SUPPORT_TIMELINE
     char* error = NULL;
     Isolate* isolate = NULL;
@@ -392,7 +394,14 @@ MallocGrowableArray<char*>* KernelIsolate::experimental_flags_ =
     new MallocGrowableArray<char*>();
 
 void KernelIsolate::AddExperimentalFlag(const char* value) {
-  experimental_flags_->Add(strdup(value));
+  char* save_ptr;  // Needed for strtok_r.
+  char* temp = strdup(value);
+  char* token = strtok_r(temp, ",", &save_ptr);
+  while (token != NULL) {
+    experimental_flags_->Add(strdup(token));
+    token = strtok_r(NULL, ",", &save_ptr);
+  }
+  free(temp);
 }
 
 bool KernelIsolate::GetExperimentalFlag(const char* value) {
@@ -970,3 +979,5 @@ void KernelIsolate::NotifyAboutIsolateShutdown(const Isolate* isolate) {
 }
 
 }  // namespace dart
+
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)

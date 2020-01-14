@@ -92,6 +92,9 @@ class OptionsParser {
   static final List<_Option> _options = [
     _Option('mode', 'Mode in which to run the tests.',
         abbr: 'm', values: ['all']..addAll(Mode.names)),
+    _Option('sanitizer', 'Sanitizer in which to run the tests.',
+        defaultsTo: Sanitizer.none.name,
+        values: ['all']..addAll(Sanitizer.names)),
     _Option(
         'compiler',
         '''How the Dart code should be compiled or statically processed.
@@ -446,6 +449,15 @@ compiler.''',
         // The argument does not start with "-" or "--" and is therefore not an
         // option. Use it as a test selector pattern.
         var patterns = configuration.putIfAbsent("selectors", () => <String>[]);
+
+        // Allow the selector to include "tests" at the beginning so that users
+        // can tab complete on the command line. Likewise, if they tab complete
+        // to a single test, ignore the ".dart".
+        if (arg.startsWith("tests/") || arg.startsWith("tests\\")) {
+          arg = arg.substring(6);
+        }
+        if (arg.endsWith(".dart")) arg = arg.substring(0, arg.length - 5);
+
         patterns.add(arg);
         continue;
       }
@@ -606,9 +618,11 @@ compiler.''',
             .resolve('runtime/observatory/.packages')
             .toFilePath();
 
-        return _expandConfigurations(configuration, selectors)
-          ..addAll(_expandConfigurations(
-              observatoryConfiguration, observatorySelectors));
+        return [
+          ..._expandConfigurations(configuration, selectors),
+          ..._expandConfigurations(
+              observatoryConfiguration, observatorySelectors)
+        ];
       }
     }
 
@@ -735,12 +749,12 @@ compiler.''',
       }
     }
 
-    String namedConfigurationOption = data["named_configuration"] as String;
+    var namedConfigurationOption = data["named_configuration"] as String;
     if (namedConfigurationOption != null) {
-      List<String> namedConfigurations = namedConfigurationOption.split(',');
+      var namedConfigurations = namedConfigurationOption.split(',');
       var testMatrixFile = "tools/bots/test_matrix.json";
       var testMatrix = TestMatrix.fromPath(testMatrixFile);
-      for (String namedConfiguration in namedConfigurations) {
+      for (var namedConfiguration in namedConfigurations) {
         var configuration = testMatrix.configurations.singleWhere(
             (c) => c.name == namedConfiguration,
             orElse: () => null);
@@ -772,33 +786,42 @@ compiler.''',
         // Expand compilers.
         for (var compiler in compilers) {
           // Expand modes.
-          String modes = (data["mode"] as String) ?? compiler.defaultMode.name;
+          var modes = (data["mode"] as String) ?? compiler.defaultMode.name;
           if (modes == "all") modes = "debug,release,product";
           for (var modeName in modes.split(",")) {
             var mode = Mode.find(modeName);
-            var system = System.find(data["system"] as String);
-            var configuration = Configuration("custom configuration",
-                architecture, compiler, mode, runtime, system,
-                nnbdMode: nnbdMode,
-                timeout: data["timeout"] as int,
-                enableAsserts: data["enable_asserts"] as bool,
-                useAnalyzerCfe: data["use_cfe"] as bool,
-                useAnalyzerFastaParser:
-                    data["analyzer_use_fasta_parser"] as bool,
-                useBlobs: data["use_blobs"] as bool,
-                useElf: data["use_elf"] as bool,
-                useSdk: data["use_sdk"] as bool,
-                useHotReload: data["hot_reload"] as bool,
-                useHotReloadRollback: data["hot_reload_rollback"] as bool,
-                isHostChecked: data["host_checked"] as bool,
-                isCsp: data["csp"] as bool,
-                isMinified: data["minified"] as bool,
-                vmOptions: vmOptions,
-                dart2jsOptions: dart2jsOptions,
-                experiments: experiments,
-                babel: data['babel'] as String,
-                builderTag: data["builder_tag"] as String);
-            addConfiguration(configuration);
+            // Expand sanitizers.
+            var sanitizers = (data["sanitizer"] as String) ?? "none";
+            if (sanitizers == "all") {
+              sanitizers = "none,asan,lsan,msan,tsan,ubsan";
+            }
+            for (var sanitizerName in sanitizers.split(",")) {
+              var sanitizer = Sanitizer.find(sanitizerName);
+              var system = System.find(data["system"] as String);
+              var configuration = Configuration("custom configuration",
+                  architecture, compiler, mode, runtime, system,
+                  nnbdMode: nnbdMode,
+                  sanitizer: sanitizer,
+                  timeout: data["timeout"] as int,
+                  enableAsserts: data["enable_asserts"] as bool,
+                  useAnalyzerCfe: data["use_cfe"] as bool,
+                  useAnalyzerFastaParser:
+                      data["analyzer_use_fasta_parser"] as bool,
+                  useBlobs: data["use_blobs"] as bool,
+                  useElf: data["use_elf"] as bool,
+                  useSdk: data["use_sdk"] as bool,
+                  useHotReload: data["hot_reload"] as bool,
+                  useHotReloadRollback: data["hot_reload_rollback"] as bool,
+                  isHostChecked: data["host_checked"] as bool,
+                  isCsp: data["csp"] as bool,
+                  isMinified: data["minified"] as bool,
+                  vmOptions: vmOptions,
+                  dart2jsOptions: dart2jsOptions,
+                  experiments: experiments,
+                  babel: data['babel'] as String,
+                  builderTag: data["builder_tag"] as String);
+              addConfiguration(configuration);
+            }
           }
         }
       }

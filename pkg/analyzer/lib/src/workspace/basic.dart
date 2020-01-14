@@ -62,8 +62,10 @@ class BasicWorkspace extends SimpleWorkspace {
  * a given package in a [BasicWorkspace].
  */
 class BasicWorkspacePackage extends WorkspacePackage {
+  @override
   final String root;
 
+  @override
   final BasicWorkspace workspace;
 
   BasicWorkspacePackage(this.root, this.workspace);

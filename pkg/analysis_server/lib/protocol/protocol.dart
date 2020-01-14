@@ -52,7 +52,7 @@ class Notification {
    * Initialize a newly created instance based on the given JSON data.
    */
   factory Notification.fromJson(Map json) {
-    return new Notification(json[Notification.EVENT],
+    return Notification(json[Notification.EVENT],
         json[Notification.PARAMS] as Map<String, Object>);
   }
 
@@ -159,7 +159,7 @@ class Request {
     }
     var params = result[Request.PARAMS];
     if (params is Map || params == null) {
-      return new Request(id, method, params as Map<String, Object>, time);
+      return Request(id, method, params as Map<String, Object>, time);
     } else {
       return null;
     }
@@ -189,7 +189,7 @@ class Request {
     try {
       var result = json.decode(data);
       if (result is Map) {
-        return new Request.fromJson(result as Map<String, dynamic>);
+        return Request.fromJson(result as Map<String, dynamic>);
       }
       return null;
     } catch (exception) {
@@ -334,7 +334,7 @@ class Response {
    * The [Response] instance that is returned when a real [Response] cannot
    * be provided at the moment.
    */
-  static final Response DELAYED_RESPONSE = new Response('DELAYED_RESPONSE');
+  static final Response DELAYED_RESPONSE = Response('DELAYED_RESPONSE');
 
   /**
    * The name of the JSON attribute containing the id of the request for which
@@ -383,7 +383,7 @@ class Response {
    */
   Response.debugPortCouldNotBeOpened(Request request, dynamic error)
       : this(request.id,
-            error: new RequestError(
+            error: RequestError(
                 RequestErrorCode.DEBUG_PORT_COULD_NOT_BE_OPENED, '$error'));
 
   /**
@@ -392,7 +392,7 @@ class Response {
    */
   Response.fileNotAnalyzed(Request request, String file)
       : this(request.id,
-            error: new RequestError(RequestErrorCode.FILE_NOT_ANALYZED,
+            error: RequestError(RequestErrorCode.FILE_NOT_ANALYZED,
                 'File is not analyzed: $file.'));
 
   /**
@@ -401,7 +401,7 @@ class Response {
    */
   Response.formatInvalidFile(Request request)
       : this(request.id,
-            error: new RequestError(RequestErrorCode.FORMAT_INVALID_FILE,
+            error: RequestError(RequestErrorCode.FORMAT_INVALID_FILE,
                 'Error during `${request.method}`: invalid file.'));
 
   /**
@@ -410,7 +410,7 @@ class Response {
    */
   Response.formatWithErrors(Request request)
       : this(request.id,
-            error: new RequestError(RequestErrorCode.FORMAT_WITH_ERRORS,
+            error: RequestError(RequestErrorCode.FORMAT_WITH_ERRORS,
                 'Error during `edit.format`: source contains syntax errors.'));
 
   /**
@@ -425,15 +425,15 @@ class Response {
       Object error = json[Response.ERROR];
       RequestError decodedError;
       if (error is Map) {
-        decodedError = new RequestError.fromJson(
-            new ResponseDecoder(null), '.error', error);
+        decodedError =
+            RequestError.fromJson(ResponseDecoder(null), '.error', error);
       }
       Object result = json[Response.RESULT];
       Map<String, Object> decodedResult;
       if (result is Map) {
         decodedResult = result as Map<String, Object>;
       }
-      return new Response(id, error: decodedError, result: decodedResult);
+      return Response(id, error: decodedError, result: decodedResult);
     } catch (exception) {
       return null;
     }
@@ -445,7 +445,7 @@ class Response {
    */
   Response.getErrorsInvalidFile(Request request)
       : this(request.id,
-            error: new RequestError(RequestErrorCode.GET_ERRORS_INVALID_FILE,
+            error: RequestError(RequestErrorCode.GET_ERRORS_INVALID_FILE,
                 'Error during `analysis.getErrors`: invalid file.'));
 
   /**
@@ -454,7 +454,7 @@ class Response {
    */
   Response.getImportedElementsInvalidFile(Request request)
       : this(request.id,
-            error: new RequestError(
+            error: RequestError(
                 RequestErrorCode.GET_IMPORTED_ELEMENTS_INVALID_FILE,
                 'Error during `analysis.getImportedElements`: invalid file.'));
 
@@ -464,8 +464,7 @@ class Response {
    */
   Response.getKytheEntriesInvalidFile(Request request)
       : this(request.id,
-            error: new RequestError(
-                RequestErrorCode.GET_KYTHE_ENTRIES_INVALID_FILE,
+            error: RequestError(RequestErrorCode.GET_KYTHE_ENTRIES_INVALID_FILE,
                 'Error during `analysis.getKytheEntries`: invalid file.'));
 
   /**
@@ -474,8 +473,7 @@ class Response {
    */
   Response.getNavigationInvalidFile(Request request)
       : this(request.id,
-            error: new RequestError(
-                RequestErrorCode.GET_NAVIGATION_INVALID_FILE,
+            error: RequestError(RequestErrorCode.GET_NAVIGATION_INVALID_FILE,
                 'Error during `analysis.getNavigation`: invalid file.'));
 
   /**
@@ -484,7 +482,7 @@ class Response {
    */
   Response.getReachableSourcesInvalidFile(Request request)
       : this(request.id,
-            error: new RequestError(
+            error: RequestError(
                 RequestErrorCode.GET_REACHABLE_SOURCES_INVALID_FILE,
                 'Error during `analysis.getReachableSources`: invalid file.'));
 
@@ -494,7 +492,7 @@ class Response {
    */
   Response.getSignatureInvalidFile(Request request)
       : this(request.id,
-            error: new RequestError(RequestErrorCode.GET_SIGNATURE_INVALID_FILE,
+            error: RequestError(RequestErrorCode.GET_SIGNATURE_INVALID_FILE,
                 'Error during `analysis.getSignature`: invalid file.'));
 
   /**
@@ -503,8 +501,7 @@ class Response {
    */
   Response.getSignatureInvalidOffset(Request request)
       : this(request.id,
-            error: new RequestError(
-                RequestErrorCode.GET_SIGNATURE_INVALID_OFFSET,
+            error: RequestError(RequestErrorCode.GET_SIGNATURE_INVALID_OFFSET,
                 'Error during `analysis.getSignature`: invalid offset.'));
 
   /**
@@ -513,8 +510,7 @@ class Response {
    */
   Response.getSignatureUnknownFunction(Request request)
       : this(request.id,
-            error: new RequestError(
-                RequestErrorCode.GET_SIGNATURE_UNKNOWN_FUNCTION,
+            error: RequestError(RequestErrorCode.GET_SIGNATURE_UNKNOWN_FUNCTION,
                 'Error during `analysis.getSignature`: unknown function.'));
 
   /**
@@ -523,8 +519,7 @@ class Response {
    */
   Response.importElementsInvalidFile(Request request)
       : this(request.id,
-            error: new RequestError(
-                RequestErrorCode.IMPORT_ELEMENTS_INVALID_FILE,
+            error: RequestError(RequestErrorCode.IMPORT_ELEMENTS_INVALID_FILE,
                 'Error during `edit.importElements`: invalid file.'));
 
   /**
@@ -534,7 +529,7 @@ class Response {
    */
   Response.invalidAnalysisRoot(Request request, String rootPath)
       : this(request.id,
-            error: new RequestError(RequestErrorCode.INVALID_ANALYSIS_ROOT,
+            error: RequestError(RequestErrorCode.INVALID_ANALYSIS_ROOT,
                 "Invalid analysis root: $rootPath"));
 
   /**
@@ -544,7 +539,7 @@ class Response {
    */
   Response.invalidExecutionContext(Request request, String contextId)
       : this(request.id,
-            error: new RequestError(RequestErrorCode.INVALID_EXECUTION_CONTEXT,
+            error: RequestError(RequestErrorCode.INVALID_EXECUTION_CONTEXT,
                 "Invalid execution context: $contextId"));
 
   /**
@@ -553,7 +548,7 @@ class Response {
    */
   Response.invalidFilePathFormat(Request request, path)
       : this(request.id,
-            error: new RequestError(RequestErrorCode.INVALID_FILE_PATH_FORMAT,
+            error: RequestError(RequestErrorCode.INVALID_FILE_PATH_FORMAT,
                 'Invalid file path format: $path'));
 
   /**
@@ -565,7 +560,7 @@ class Response {
    */
   Response.invalidParameter(Request request, String path, String expectation)
       : this(request.id,
-            error: new RequestError(RequestErrorCode.INVALID_PARAMETER,
+            error: RequestError(RequestErrorCode.INVALID_PARAMETER,
                 "Invalid parameter '$path'. $expectation."));
 
   /**
@@ -574,7 +569,7 @@ class Response {
    */
   Response.invalidRequestFormat()
       : this('',
-            error: new RequestError(
+            error: RequestError(
                 RequestErrorCode.INVALID_REQUEST, 'Invalid request'));
 
   /**
@@ -583,7 +578,7 @@ class Response {
    */
   Response.organizeDirectivesError(Request request, String message)
       : this(request.id,
-            error: new RequestError(
+            error: RequestError(
                 RequestErrorCode.ORGANIZE_DIRECTIVES_ERROR, message));
 
   /**
@@ -592,8 +587,7 @@ class Response {
    */
   Response.refactoringRequestCancelled(Request request)
       : this(request.id,
-            error: new RequestError(
-                RequestErrorCode.REFACTORING_REQUEST_CANCELLED,
+            error: RequestError(RequestErrorCode.REFACTORING_REQUEST_CANCELLED,
                 'The `edit.getRefactoring` request was cancelled.'));
 
   /**
@@ -602,11 +596,11 @@ class Response {
    */
   factory Response.serverError(Request request, exception, stackTrace) {
     RequestError error =
-        new RequestError(RequestErrorCode.SERVER_ERROR, exception.toString());
+        RequestError(RequestErrorCode.SERVER_ERROR, exception.toString());
     if (stackTrace != null) {
       error.stackTrace = stackTrace.toString();
     }
-    return new Response(request.id, error: error);
+    return Response(request.id, error: error);
   }
 
   /**
@@ -615,7 +609,7 @@ class Response {
    */
   Response.sortMembersInvalidFile(Request request)
       : this(request.id,
-            error: new RequestError(RequestErrorCode.SORT_MEMBERS_INVALID_FILE,
+            error: RequestError(RequestErrorCode.SORT_MEMBERS_INVALID_FILE,
                 'Error during `edit.sortMembers`: invalid file.'));
 
   /**
@@ -624,7 +618,7 @@ class Response {
    */
   Response.sortMembersParseErrors(Request request, int numErrors)
       : this(request.id,
-            error: new RequestError(RequestErrorCode.SORT_MEMBERS_PARSE_ERRORS,
+            error: RequestError(RequestErrorCode.SORT_MEMBERS_PARSE_ERRORS,
                 'Error during `edit.sortMembers`: file has $numErrors scan/parse errors.'));
 
   /**
@@ -633,7 +627,7 @@ class Response {
    */
   Response.unknownRequest(Request request)
       : this(request.id,
-            error: new RequestError(
+            error: RequestError(
                 RequestErrorCode.UNKNOWN_REQUEST, 'Unknown request'));
 
   /**
@@ -642,8 +636,7 @@ class Response {
    */
   Response.unsupportedFeature(String requestId, String message)
       : this(requestId,
-            error: new RequestError(
-                RequestErrorCode.UNSUPPORTED_FEATURE, message));
+            error: RequestError(RequestErrorCode.UNSUPPORTED_FEATURE, message));
 
   /**
    * Return a table representing the structure of the Json object that will be

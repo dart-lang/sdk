@@ -2,6 +2,20 @@
 
 This is an illustrative sample for how to use `dart:ffi`.
 
+## Prerequirement
+
+For Windows, Linux, and MacOS, you should make sure, sqlite dev lib installed on your system.
+
+Windows user can download dll from https://www.sqlite.org/download.html
+
+If you do not have any sqlite3.dll or so file, you may found error message:
+
+```
+Unhandled exception:
+Invalid argument(s): Failed to load dynamic library (126)
+#0      _open (dart:ffi-patch/ffi_dynamic_library_patch.dart:13:55)
+#1      new DynamicLibrary.open (dart:ffi-patch/ffi_dynamic_library_patch.dart:22:12)
+```
 
 ## Building and Running this Sample
 

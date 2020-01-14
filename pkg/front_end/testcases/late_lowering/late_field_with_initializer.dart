@@ -23,6 +23,17 @@ class Class {
   }
 }
 
+extension Extension on Class {
+  static late int lateExtensionField1 = 87;
+  static late int lateExtensionField2 = 42;
+
+  static staticMethod() {
+    expect(42, lateExtensionField2);
+    lateExtensionField2 = 43;
+    expect(43, lateExtensionField2);
+  }
+}
+
 main() {
   expect(123, lateTopLevelField1);
   lateTopLevelField1 = 124;
@@ -34,6 +45,12 @@ main() {
 
   Class.staticMethod();
   new Class().instanceMethod();
+
+  expect(87, Extension.lateExtensionField1);
+  Extension.lateExtensionField1 = 88;
+  expect(88, Extension.lateExtensionField1);
+
+  Extension.staticMethod();
 }
 
 expect(expected, actual) {

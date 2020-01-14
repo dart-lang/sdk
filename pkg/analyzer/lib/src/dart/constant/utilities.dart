@@ -14,7 +14,8 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 
 /// Callback used by [ReferenceFinder] to report that a dependency was found.
-typedef void ReferenceFinderCallback(ConstantEvaluationTarget dependency);
+typedef ReferenceFinderCallback = void Function(
+    ConstantEvaluationTarget dependency);
 
 /// An [AstCloner] that copies the necessary information from the AST to allow
 /// constants to be evaluated.

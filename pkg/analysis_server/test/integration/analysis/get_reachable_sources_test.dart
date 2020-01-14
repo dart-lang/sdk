@@ -39,7 +39,7 @@ class Bar {
         await sendAnalysisGetReachableSources(pathname);
     Map<String, List<String>> sources = result.sources;
     List<String> keys = sources.keys.toList();
-    String url = new File(pathname).uri.toString();
+    String url = File(pathname).uri.toString();
 
     expect(keys, contains('dart:core'));
     expect(keys, contains('dart:collection'));

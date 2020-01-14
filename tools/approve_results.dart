@@ -352,6 +352,18 @@ ${parser.usage}""");
   gsutilPy =
       Platform.script.resolve("../third_party/gsutil/gsutil.py").toFilePath();
 
+  // Check if we have become the old workflow.
+  if (options["verbose"]) {
+    print("Checking for epilogue...");
+  }
+  final epilogue =
+      await catGsutil("gs://dart-test-results-approved-results/epilogue.txt");
+  if (epilogue != null) {
+    print(epilogue.trim());
+    exitCode = 1;
+    return;
+  }
+
   // Load the list of bots according to the test matrix.
   final testMatrixPath =
       Platform.script.resolve("bots/test_matrix.json").toFilePath();

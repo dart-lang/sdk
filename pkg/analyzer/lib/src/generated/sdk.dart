@@ -137,12 +137,10 @@ class DartSdkManager {
    */
   List<SdkDescription> get sdkDescriptors => sdkMap.keys.toList();
 
-  /**
-   * Return the Dart SDK that is appropriate for the given SDK [description].
-   * If such an SDK has not yet been created, then the [ifAbsent] function will
-   * be invoked to create it.
-   */
-  DartSdk getSdk(SdkDescription description, DartSdk ifAbsent()) {
+  /// Return the Dart SDK that is appropriate for the given SDK [description].
+  /// If such an SDK has not yet been created, then the [ifAbsent] function will
+  /// be invoked to create it.
+  DartSdk getSdk(SdkDescription description, DartSdk Function() ifAbsent) {
     return sdkMap.putIfAbsent(description, ifAbsent);
   }
 }
@@ -152,10 +150,8 @@ class DartSdkManager {
  * library.
  */
 class LibraryMap {
-  /**
-   * A table mapping Dart library URI's to the library.
-   */
-  Map<String, SdkLibraryImpl> _libraryMap = <String, SdkLibraryImpl>{};
+  /// A table mapping Dart library URI's to the library.
+  final Map<String, SdkLibraryImpl> _libraryMap = <String, SdkLibraryImpl>{};
 
   /**
    * Return a list containing all of the sdk libraries in this mapping.
@@ -281,53 +277,37 @@ class SdkDescription {
 }
 
 class SdkLibrariesReader_LibraryBuilder extends RecursiveAstVisitor<void> {
-  /**
-   * The prefix added to the name of a library to form the URI used in code to
-   * reference the library.
-   */
-  static String _LIBRARY_PREFIX = "dart:";
+  /// The prefix added to the name of a library to form the URI used in code to
+  /// reference the library.
+  static const String _LIBRARY_PREFIX = "dart:";
 
-  /**
-   * The name of the optional parameter used to indicate whether the library is
-   * an implementation library.
-   */
-  static String _IMPLEMENTATION = "implementation";
+  /// The name of the optional parameter used to indicate whether the library is
+  /// an implementation library.
+  static const String _IMPLEMENTATION = "implementation";
 
-  /**
-   * The name of the optional parameter used to specify the path used when
-   * compiling for dart2js.
-   */
-  static String _DART2JS_PATH = "dart2jsPath";
+  /// The name of the optional parameter used to specify the path used when
+  /// compiling for dart2js.
+  static const String _DART2JS_PATH = "dart2jsPath";
 
-  /**
-   * The name of the optional parameter used to indicate whether the library is
-   * documented.
-   */
-  static String _DOCUMENTED = "documented";
+  /// The name of the optional parameter used to indicate whether the library is
+  /// documented.
+  static const String _DOCUMENTED = "documented";
 
-  /**
-   * The name of the optional parameter used to specify the category of the
-   * library.
-   */
-  static String _CATEGORIES = "categories";
+  /// The name of the optional parameter used to specify the category of the
+  /// library.
+  static const String _CATEGORIES = "categories";
 
-  /**
-   * The name of the optional parameter used to specify the platforms on which
-   * the library can be used.
-   */
-  static String _PLATFORMS = "platforms";
+  /// The name of the optional parameter used to specify the platforms on which
+  /// the library can be used.
+  static const String _PLATFORMS = "platforms";
 
-  /**
-   * The value of the [PLATFORMS] parameter used to specify that the library can
-   * be used on the VM.
-   */
-  static String _VM_PLATFORM = "VM_PLATFORM";
+  /// The value of the [PLATFORMS] parameter used to specify that the library can
+  /// be used on the VM.
+  static const String _VM_PLATFORM = "VM_PLATFORM";
 
-  /**
-   * The library map that is populated by visiting the AST structure parsed from
-   * the contents of the libraries file.
-   */
-  LibraryMap _librariesMap = LibraryMap();
+  /// The library map that is populated by visiting the AST structure parsed from
+  /// the contents of the libraries file.
+  final LibraryMap _librariesMap = LibraryMap();
 
   /**
    * Return the library map that was populated by visiting the AST structure

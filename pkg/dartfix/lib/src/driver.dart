@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io' show File, Platform;
+import 'dart:io' show File, Platform, stdin;
 
 import 'package:analysis_server_client/handler/connection_handler.dart';
 import 'package:analysis_server_client/handler/notification_handler.dart';
@@ -16,7 +16,6 @@ import 'package:dartfix/listener/bad_message_listener.dart';
 import 'package:dartfix/src/context.dart';
 import 'package:dartfix/src/options.dart';
 import 'package:dartfix/src/util.dart';
-import 'package:path/path.dart' as path;
 import 'package:pub_semver/pub_semver.dart';
 
 class Driver {
@@ -32,30 +31,13 @@ class Driver {
 
   Ansi get ansi => logger.ansi;
 
-  Future applyFixes() async {
-    showDescriptions('Recommended changes that cannot be automatically applied',
-        result.otherSuggestions);
-    showDetails(result.details);
-    if (result.edits.isEmpty) {
-      logger.stdout('');
-      logger.stdout(result.otherSuggestions.isNotEmpty
-          ? 'None of the recommended changes can be automatically applied.'
-          : 'No recommended changes.');
-      return;
-    }
-    logger.stdout('');
-    logger.stdout(ansi.emphasized('Files to be changed:'));
+  /// Apply the fixes that were computed.
+  void applyFixes() {
     for (SourceFileEdit fileEdit in result.edits) {
-      logger.stdout('  ${_relativePath(fileEdit.file)}');
-    }
-    if (checkIfChangesShouldBeApplied(result)) {
-      for (SourceFileEdit fileEdit in result.edits) {
-        final file = File(fileEdit.file);
-        String code = file.existsSync() ? file.readAsStringSync() : '';
-        code = SourceEdit.applySequence(code, fileEdit.edits);
-        await file.writeAsString(code);
-      }
-      logger.stdout(ansi.emphasized('Changes applied.'));
+      final file = File(fileEdit.file);
+      String code = file.existsSync() ? file.readAsStringSync() : '';
+      code = SourceEdit.applySequence(code, fileEdit.edits);
+      file.writeAsStringSync(code);
     }
   }
 
@@ -63,7 +45,7 @@ class Driver {
     logger.stdout('');
     if (result.hasErrors) {
       logger.stdout('WARNING: The analyzed source contains errors'
-          ' that may affect the accuracy of these changes.');
+          ' that might affect the accuracy of these changes.');
       logger.stdout('');
       if (!force) {
         logger.stdout('Rerun with --$forceOption to apply these changes.');
@@ -108,6 +90,28 @@ class Driver {
     return true;
   }
 
+  void printAndApplyFixes() {
+    showDescriptions('Recommended changes that cannot be automatically applied',
+        result.otherSuggestions);
+    showDetails(result.details);
+    if (result.edits.isEmpty) {
+      logger.stdout('');
+      logger.stdout(result.otherSuggestions.isNotEmpty
+          ? 'None of the recommended changes can be automatically applied.'
+          : 'No recommended changes.');
+      return;
+    }
+    logger.stdout('');
+    logger.stdout(ansi.emphasized('Files to be changed:'));
+    for (SourceFileEdit fileEdit in result.edits) {
+      logger.stdout('  ${_relativePath(fileEdit.file)}');
+    }
+    if (checkIfChangesShouldBeApplied(result)) {
+      applyFixes();
+      logger.stdout(ansi.emphasized('Changes have been applied.'));
+    }
+  }
+
   Future<EditDartfixResult> requestFixes(
     Options options, {
     Progress progress,
@@ -128,22 +132,6 @@ class Driver {
     if (options.pedanticFixes) {
       params.includePedanticFixes = true;
     }
-    String previewDir = options.previewDir;
-    if (previewDir != null) {
-      if (!path.isAbsolute(previewDir)) {
-        previewDir = path.absolute(previewDir);
-      }
-      previewDir = path.canonicalize(previewDir);
-      params.outputDir = previewDir;
-    }
-    String previewPort = options.previewPort;
-    if (previewPort != null) {
-      try {
-        params.port = int.parse(previewPort);
-      } on FormatException {
-        logger.stderr('Invalid port number: ignored');
-      }
-    }
     Map<String, dynamic> json =
         await server.send(EDIT_REQUEST_DARTFIX, params.toJson());
 
@@ -156,6 +144,24 @@ class Driver {
     progress.finish(showTiming: true);
     ResponseDecoder decoder = ResponseDecoder(null);
     return EditDartfixResult.fromJson(decoder, 'result', json);
+  }
+
+  /// Return `true` if the changes should be applied.
+  bool shouldApplyFixes(EditDartfixResult result) {
+    if (result.edits.isEmpty) {
+      logger.stdout('');
+      logger.stdout(result.otherSuggestions.isNotEmpty
+          ? 'None of the recommended changes can be automatically applied.'
+          : 'There are no recommended changes.');
+      return false;
+    }
+    if (overwrite || force) {
+      return true;
+    }
+    logger.stdout('');
+    logger.stdout('Would you like to apply these changes? (yes/no)');
+    var response = stdin.readLineSync();
+    return response.toLowerCase() == 'yes';
   }
 
   void showDescriptions(String title, List<DartFixSuggestion> suggestions) {
@@ -250,6 +256,8 @@ These fixes are NOT automatically applied, but may be enabled using --$includeFi
     Progress progress;
     if (options.showHelp) {
       progress = logger.progress('${ansi.emphasized('Listing fixes')}');
+    } else if (options.isUpgrade) {
+      progress = logger.progress('${ansi.emphasized('Calculating changes')}');
     } else {
       progress = logger.progress('${ansi.emphasized('Calculating fixes')}');
     }
@@ -276,9 +284,63 @@ These fixes are NOT automatically applied, but may be enabled using --$includeFi
     try {
       await startServerAnalysis(options);
       result = await requestFixes(options, progress: progress);
-      serverStopped = server.stop();
-      await applyFixes();
-      await serverStopped;
+      var fileEdits = result.edits;
+      var editCount = 0;
+      for (SourceFileEdit fileEdit in fileEdits) {
+        editCount += fileEdit.edits.length;
+      }
+      logger.stdout('Found $editCount changes in ${fileEdits.length} files.');
+      //
+      // Print instructions for opening the preview tool.
+      //
+      var urls = result.urls;
+      if (urls != null) {
+        // Server has already started the preview server.
+        if (result.hasErrors) {
+          // TODO(brianwilkerson) When we have previews for fixes, tailor the
+          //  message to be appropriate for fixes.
+          logger.stdout('');
+          String warning = ansi.emphasized('WARNING');
+          logger.stdout('$warning: The unmodified code contains errors that '
+              'might affect the accuracy of the upgrade.');
+          options.overwrite = false;
+        }
+        if (options.isUpgrade && options.upgradeOptions.preview) {
+          logger.stdout('');
+          String open;
+          if (urls.length == 1) {
+            open = ansi.emphasized('Please open this URL');
+          } else {
+            open = ansi.emphasized('Please open these URLs');
+          }
+          logger.stdout('$open in your browser to see the changes:');
+          for (var url in urls) {
+            logger.stdout('  $url');
+          }
+          logger.stdout('');
+          String enter = ansi.emphasized('ENTER');
+          logger.stdout('When done previewing, press $enter.');
+          stdin.readLineSync();
+        }
+        //
+        // Stop the server.
+        //
+        serverStopped = server.stop();
+        if (shouldApplyFixes(result)) {
+          applyFixes();
+          logger.stdout('Changes have been applied.');
+        } else {
+          logger.stdout('No changes applied.');
+        }
+        await serverStopped;
+      } else {
+        //
+        // Stop the server.
+        //
+        serverStopped = server.stop();
+        await printAndApplyFixes();
+        await serverStopped;
+      }
     } finally {
       // If we didn't already try to stop the server, then stop it now.
       if (serverStopped == null) {
@@ -352,6 +414,8 @@ class _Handler
     with NotificationHandler, ConnectionHandler, AnalysisCompleteHandler {
   final Driver driver;
   final Logger logger;
+
+  @override
   final Server server;
   Version serverProtocolVersion;
 

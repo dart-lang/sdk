@@ -463,7 +463,7 @@ void CodeSourceMapBuilder::NoteDescriptor(RawPcDescriptors::Kind kind,
   const uint8_t kCanThrow =
       RawPcDescriptors::kIcCall | RawPcDescriptors::kUnoptStaticCall |
       RawPcDescriptors::kRuntimeCall | RawPcDescriptors::kOther;
-  if (stack_traces_only_ && ((kind & kCanThrow) != 0)) {
+  if ((kind & kCanThrow) != 0) {
     BufferChangePosition(pos);
     BufferAdvancePC(pc_offset - buffered_pc_offset_);
     FlushBuffer();
@@ -653,7 +653,8 @@ void CodeSourceMapReader::DumpInlineIntervals(uword start) {
   int32_t current_pc_offset = 0;
   function_stack.Add(&root_);
 
-  THR_Print("Inline intervals {\n");
+  THR_Print("Inline intervals for function '%s' {\n",
+            root_.ToFullyQualifiedCString());
   while (stream.PendingBytes() > 0) {
     uint8_t opcode = stream.Read<uint8_t>();
     switch (opcode) {
@@ -706,7 +707,8 @@ void CodeSourceMapReader::DumpSourcePositions(uword start) {
   function_stack.Add(&root_);
   token_positions.Add(CodeSourceMapBuilder::kInitialPosition);
 
-  THR_Print("Source positions {\n");
+  THR_Print("Source positions for function '%s' {\n",
+            root_.ToFullyQualifiedCString());
   while (stream.PendingBytes() > 0) {
     uint8_t opcode = stream.Read<uint8_t>();
     switch (opcode) {

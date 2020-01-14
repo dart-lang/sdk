@@ -204,9 +204,11 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
   // we don't do any in-place unboxing like V8), any value we read from the slot
   // is safe.
   NO_SANITIZE_THREAD
+  RawObject* LoadPointerIgnoreRace(RawObject** ptr) { return *ptr; }
+
   void VisitPointers(RawObject** first, RawObject** last) {
     for (RawObject** current = first; current <= last; current++) {
-      MarkObject(*current);
+      MarkObject(LoadPointerIgnoreRace(current));
     }
   }
 
@@ -222,7 +224,7 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
 
   intptr_t ProcessWeakProperty(RawWeakProperty* raw_weak) {
     // The fate of the weak property is determined by its key.
-    RawObject* raw_key = raw_weak->ptr()->key_;
+    RawObject* raw_key = LoadPointerIgnoreRace(&raw_weak->ptr()->key_);
     if (raw_key->IsHeapObject() && raw_key->IsOldObject() &&
         !raw_key->IsMarked()) {
       // Key was white. Enqueue the weak property.
@@ -481,11 +483,10 @@ void GCMarker::IterateRoots(ObjectPointerVisitor* visitor) {
         UNREACHABLE();
     }
 
-    intptr_t remaining = root_slices_not_finished_.fetch_sub(1) - 1;
-    if (remaining == 0) {
-      MonitorLocker ml(&root_slices_monitor_);
+    MonitorLocker ml(&root_slices_monitor_);
+    root_slices_not_finished_--;
+    if (root_slices_not_finished_ == 0) {
       ml.Notify();
-      return;
     }
   }
 }

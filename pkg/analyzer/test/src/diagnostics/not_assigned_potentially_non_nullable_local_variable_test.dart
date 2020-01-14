@@ -90,7 +90,7 @@ void f() {
 }
 ''', [
       _notAssignedError(22, 1),
-      error(HintCode.DEAD_CODE, 28, 1),
+      error(StaticWarningCode.DEAD_NULL_COALESCE, 28, 1),
     ]);
   }
 
@@ -102,7 +102,7 @@ void f() {
 }
 ''', [
       _notAssignedError(22, 1),
-      error(HintCode.DEAD_CODE, 28, 1),
+      error(StaticWarningCode.DEAD_NULL_COALESCE, 28, 1),
       _notAssignedError(28, 1),
     ]);
   }
@@ -124,7 +124,7 @@ void f() {
   (v = 0) ?? 0;
   v;
 }
-''', [error(HintCode.DEAD_CODE, 33, 1)]);
+''', [error(StaticWarningCode.DEAD_NULL_COALESCE, 33, 1)]);
   }
 
   test_binaryExpression_ifNull_right() async {
@@ -135,7 +135,7 @@ void f(int a) {
   v;
 }
 ''', [
-      error(HintCode.DEAD_CODE, 32, 7),
+      error(StaticWarningCode.DEAD_NULL_COALESCE, 32, 7),
       _notAssignedError(43, 1),
     ]);
   }
@@ -712,13 +712,15 @@ void f() {
   }
 
   test_futureOr_questionArgument_none() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 import 'dart:async';
 
 f() {
   FutureOr<int?> v;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 45, 1),
+    ]);
   }
 
   test_hasInitializer() async {
@@ -926,11 +928,13 @@ f<T>() {
   }
 
   test_notUsed() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 void f() {
   int v;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 17, 1),
+    ]);
   }
 
   test_nullable() async {
@@ -1222,27 +1226,33 @@ void f() {
   }
 
   test_type_dynamic() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 f() {
   dynamic v;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 16, 1),
+    ]);
   }
 
   test_type_dynamicImplicit() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 f() {
   var v;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 12, 1),
+    ]);
   }
 
   test_type_void() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 f() {
   void v;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 13, 1),
+    ]);
   }
 
   test_while_condition() async {

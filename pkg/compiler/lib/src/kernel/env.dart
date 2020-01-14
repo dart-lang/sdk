@@ -14,14 +14,11 @@ import 'package:kernel/type_environment.dart' as ir;
 import 'package:collection/collection.dart' show mergeSort; // a stable sort.
 
 import '../common.dart';
-import '../constants/constructors.dart';
-import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../ir/element_map.dart';
 import '../ir/static_type_cache.dart';
-import '../ir/visitors.dart';
 import '../ir/util.dart';
 import '../js_model/element_map.dart';
 import '../js_model/env.dart';
@@ -789,13 +786,15 @@ class KFunctionDataImpl extends KMemberDataImpl
   @override
   void forEachParameter(JsToElementMap elementMap,
       void f(DartType type, String name, ConstantValue defaultValue)) {
-    void handleParameter(ir.VariableDeclaration node, {bool isOptional: true}) {
-      DartType type = elementMap.getDartType(node.type);
-      String name = node.name;
+    void handleParameter(ir.VariableDeclaration parameter,
+        {bool isOptional: true}) {
+      DartType type = elementMap.getDartType(parameter.type);
+      String name = parameter.name;
       ConstantValue defaultValue;
       if (isOptional) {
-        if (node.initializer != null) {
-          defaultValue = elementMap.getConstantValue(node.initializer);
+        if (parameter.initializer != null) {
+          defaultValue =
+              elementMap.getConstantValue(node, parameter.initializer);
         } else {
           defaultValue = new NullConstantValue();
         }
@@ -825,35 +824,14 @@ class KFunctionDataImpl extends KMemberDataImpl
   }
 }
 
-abstract class KConstructorData extends KFunctionData {
-  ConstantConstructor getConstructorConstant(
-      KernelToElementMapImpl elementMap, ConstructorEntity constructor);
-}
+abstract class KConstructorData extends KFunctionData {}
 
 class KConstructorDataImpl extends KFunctionDataImpl
     implements KConstructorData {
-  ConstantConstructor _constantConstructor;
   ConstructorBodyEntity constructorBody;
 
   KConstructorDataImpl(ir.Member node, ir.FunctionNode functionNode)
       : super(node, functionNode);
-
-  @override
-  ConstantConstructor getConstructorConstant(
-      KernelToElementMapImpl elementMap, ConstructorEntity constructor) {
-    if (_constantConstructor == null) {
-      if (node is ir.Constructor && constructor.isConst) {
-        _constantConstructor =
-            new Constantifier(elementMap).computeConstantConstructor(node);
-      } else {
-        failedAt(
-            constructor,
-            "Unexpected constructor $constructor in "
-            "ConstructorDataImpl._getConstructorConstant");
-      }
-    }
-    return _constantConstructor;
-  }
 
   @override
   JConstructorData convert() {
@@ -874,14 +852,10 @@ class KConstructorDataImpl extends KFunctionDataImpl
 
 abstract class KFieldData extends KMemberData {
   DartType getFieldType(IrToElementMap elementMap);
-
-  ConstantExpression getFieldConstantExpression(
-      KernelToElementMapImpl elementMap);
 }
 
 class KFieldDataImpl extends KMemberDataImpl implements KFieldData {
   DartType _type;
-  ConstantExpression _constantExpression;
 
   KFieldDataImpl(ir.Field node) : super(node);
 
@@ -891,23 +865,6 @@ class KFieldDataImpl extends KMemberDataImpl implements KFieldData {
   @override
   DartType getFieldType(covariant KernelToElementMapImpl elementMap) {
     return _type ??= elementMap.getDartType(node.type);
-  }
-
-  @override
-  ConstantExpression getFieldConstantExpression(
-      KernelToElementMapImpl elementMap) {
-    if (_constantExpression == null) {
-      if (node.isConst) {
-        _constantExpression =
-            new Constantifier(elementMap).visit(node.initializer);
-      } else {
-        failedAt(
-            computeSourceSpanFromTreeNode(node),
-            "Unexpected field ${node} in "
-            "FieldDataImpl.getFieldConstant");
-      }
-    }
-    return _constantExpression;
   }
 
   @override

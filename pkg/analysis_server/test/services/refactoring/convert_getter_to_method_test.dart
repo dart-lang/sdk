@@ -20,6 +20,7 @@ main() {
 
 @reflectiveTest
 class ConvertGetterToMethodTest extends RefactoringTest {
+  @override
   ConvertGetterToMethodRefactoring refactoring;
 
   test_change_function() async {
@@ -152,7 +153,7 @@ main() {
   }
 
   void _createRefactoringForElement(ExecutableElement element) {
-    refactoring = new ConvertGetterToMethodRefactoring(
+    refactoring = ConvertGetterToMethodRefactoring(
         searchEngine, testAnalysisResult.session, element);
   }
 

@@ -15,7 +15,6 @@ import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
-import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
@@ -24,11 +23,9 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/manifest/manifest_validator.dart';
-import 'package:analyzer/src/plugin/resolver_provider.dart';
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/source/path_filter.dart';
-import 'package:analyzer/src/source/sdk_ext.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/glob.dart';
 import 'package:analyzer/src/util/uri.dart';
@@ -123,7 +120,7 @@ class ContextInfo {
    * be watched for changes.  I believe the use case for watching these files
    * is no longer relevant.
    */
-  Set<String> _dependencies = new Set<String>();
+  Set<String> _dependencies = Set<String>();
 
   /**
    * The analysis driver that was created for the [folder].
@@ -134,12 +131,12 @@ class ContextInfo {
    * Map from full path to the [Source] object, for each source that has been
    * added to the context.
    */
-  Map<String, Source> sources = new HashMap<String, Source>();
+  Map<String, Source> sources = HashMap<String, Source>();
 
   ContextInfo(ContextManagerImpl contextManager, this.parent, Folder folder,
       File packagespecFile, this.packageRoot, this.disposition)
       : folder = folder,
-        pathFilter = new PathFilter(
+        pathFilter = PathFilter(
             folder.path, null, contextManager.resourceProvider.pathContext) {
     packageDescriptionPath = packagespecFile.path;
     parent.children.add(this);
@@ -482,12 +479,14 @@ class ContextManagerImpl implements ContextManager {
    * The list of excluded paths (folders and files) most recently passed to
    * [setRoots].
    */
+  @override
   List<String> excludedPaths = <String>[];
 
   /**
    * The list of included paths (folders and files) most recently passed to
    * [setRoots].
    */
+  @override
   List<String> includedPaths = <String>[];
 
   /**
@@ -500,13 +499,6 @@ class ContextManagerImpl implements ContextManager {
    * and non-folders have been removed.
    */
   Map<String, String> normalizedPackageRoots = <String, String>{};
-
-  /**
-   * A function that will return a [UriResolver] that can be used to resolve
-   * `package:` URI's within a given folder, or `null` if we should fall back
-   * to the standard URI resolver.
-   */
-  final ResolverProvider packageResolverProvider;
 
   /**
    * A list of the globs used to determine which files should be analyzed.
@@ -530,11 +522,11 @@ class ContextManagerImpl implements ContextManager {
    * Virtual [ContextInfo] which acts as the ancestor of all other
    * [ContextInfo]s.
    */
-  final ContextInfo rootInfo = new ContextInfo._root();
+  final ContextInfo rootInfo = ContextInfo._root();
 
   @override
   final Map<Folder, AnalysisDriver> driverMap =
-      new HashMap<Folder, AnalysisDriver>();
+      HashMap<Folder, AnalysisDriver>();
 
   /**
    * Stream subscription we are using to watch each analysis root directory for
@@ -546,7 +538,6 @@ class ContextManagerImpl implements ContextManager {
   ContextManagerImpl(
       this.resourceProvider,
       this.sdkManager,
-      this.packageResolverProvider,
       this.analyzedFilesGlobs,
       this._instrumentationService,
       this.defaultContextOptions) {
@@ -558,6 +549,7 @@ class ContextManagerImpl implements ContextManager {
    */
   bool definesEmbeddedLibs(Map map) => map[_EMBEDDED_LIB_MAP_KEY] != null;
 
+  @override
   Folder getContextFolderFor(String path) {
     return _getInnermostContextInfoFor(path)?.folder;
   }
@@ -606,6 +598,7 @@ class ContextManagerImpl implements ContextManager {
    * Determine whether the given [path], when interpreted relative to innermost
    * context root, contains a folder whose name starts with '.'.
    */
+  @override
   bool isContainedInDotFolder(String path) {
     ContextInfo info = _getInnermostContextInfoFor(path);
     return info != null && _isContainedInDotFolder(info.folder.path, path);
@@ -677,7 +670,7 @@ class ContextManagerImpl implements ContextManager {
     // Check for embedded options.
     YamlMap embeddedOptions = _getEmbeddedOptions(info);
     if (embeddedOptions != null) {
-      options = new Merger().merge(embeddedOptions, options);
+      options = Merger().merge(embeddedOptions, options);
     }
 
     applyToAnalysisOptions(analysisOptions, options);
@@ -740,7 +733,7 @@ class ContextManagerImpl implements ContextManager {
       // so we can correctly ignore inner roots, which are already managed
       // by outer roots.
       LinkedHashSet<String> uniqueIncludedPaths =
-          new LinkedHashSet<String>.from(includedPaths);
+          LinkedHashSet<String>.from(includedPaths);
       List<String> sortedIncludedPaths = uniqueIncludedPaths.toList();
       sortedIncludedPaths.sort((a, b) => a.length - b.length);
       // Convert paths to folders.
@@ -754,7 +747,7 @@ class ContextManagerImpl implements ContextManager {
           // begin analyzing it.
         } else {
           // TODO(scheglov) implemented separate files analysis
-          throw new UnimplementedError('$path is not a folder. '
+          throw UnimplementedError('$path is not a folder. '
               'Only support for folder analysis is implemented currently.');
         }
       }
@@ -794,7 +787,7 @@ class ContextManagerImpl implements ContextManager {
     // remove newly excluded sources
     for (ContextInfo info in rootInfo.descendants) {
       // prepare excluded sources
-      Map<String, Source> excludedSources = new HashMap<String, Source>();
+      Map<String, Source> excludedSources = HashMap<String, Source>();
       info.sources.forEach((String path, Source source) {
         if (_isExcludedBy(excludedPaths, path) &&
             !_isExcludedBy(oldExcludedPaths, path)) {
@@ -802,7 +795,7 @@ class ContextManagerImpl implements ContextManager {
         }
       });
       // apply exclusion
-      ChangeSet changeSet = new ChangeSet();
+      ChangeSet changeSet = ChangeSet();
       excludedSources.forEach((String path, Source source) {
         info.sources.remove(path);
         changeSet.removedSource(path);
@@ -811,7 +804,7 @@ class ContextManagerImpl implements ContextManager {
     }
     // add previously excluded sources
     for (ContextInfo info in rootInfo.descendants) {
-      ChangeSet changeSet = new ChangeSet();
+      ChangeSet changeSet = ChangeSet();
       _addPreviouslyExcludedSources(
           info, changeSet, info.folder, oldExcludedPaths);
       callbacks.applyChangesToContext(info.folder, changeSet);
@@ -911,7 +904,7 @@ class ContextManagerImpl implements ContextManager {
           resourceProvider.getFile(path).createSource(),
           content,
           driver.sourceFactory);
-      AnalyzerConverter converter = new AnalyzerConverter();
+      AnalyzerConverter converter = AnalyzerConverter();
       convertedErrors = converter.convertAnalysisErrors(errors,
           lineInfo: lineInfo, options: driver.analysisOptions);
     } catch (exception) {
@@ -933,11 +926,11 @@ class ContextManagerImpl implements ContextManager {
     try {
       String content = _readFile(path);
       ManifestValidator validator =
-          new ManifestValidator(resourceProvider.getFile(path).createSource());
+          ManifestValidator(resourceProvider.getFile(path).createSource());
       LineInfo lineInfo = _computeLineInfo(content);
       List<AnalysisError> errors = validator.validate(
           content, driver.analysisOptions.chromeOsManifestChecks);
-      AnalyzerConverter converter = new AnalyzerConverter();
+      AnalyzerConverter converter = AnalyzerConverter();
       convertedErrors = converter.convertAnalysisErrors(errors,
           lineInfo: lineInfo, options: driver.analysisOptions);
     } catch (exception) {
@@ -960,11 +953,11 @@ class ContextManagerImpl implements ContextManager {
       String content = _readFile(path);
       YamlNode node = loadYamlNode(content);
       if (node is YamlMap) {
-        PubspecValidator validator = new PubspecValidator(
+        PubspecValidator validator = PubspecValidator(
             resourceProvider, resourceProvider.getFile(path).createSource());
         LineInfo lineInfo = _computeLineInfo(content);
         List<AnalysisError> errors = validator.validate(node.nodes);
-        AnalyzerConverter converter = new AnalyzerConverter();
+        AnalyzerConverter converter = AnalyzerConverter();
         convertedErrors = converter.convertAnalysisErrors(errors,
             lineInfo: lineInfo, options: driver.analysisOptions);
       }
@@ -1068,8 +1061,8 @@ class ContextManagerImpl implements ContextManager {
     if (packageRoot != null) {
       // TODO(paulberry): We shouldn't be using JavaFile here because it
       // makes the code untestable (see dartbug.com/23909).
-      JavaFile packagesDirOrFile = new JavaFile(packageRoot);
-      Map<String, List<Folder>> packageMap = new Map<String, List<Folder>>();
+      JavaFile packagesDirOrFile = JavaFile(packageRoot);
+      Map<String, List<Folder>> packageMap = Map<String, List<Folder>>();
       if (packagesDirOrFile.isDirectory()) {
         for (JavaFile file in packagesDirOrFile.listFiles()) {
           // Ensure symlinks in packages directory are canonicalized
@@ -1087,12 +1080,12 @@ class ContextManagerImpl implements ContextManager {
             packageMap[file.getName()] = <Folder>[res];
           }
         }
-        return new PackageMapDisposition(packageMap, packageRoot: packageRoot);
+        return PackageMapDisposition(packageMap, packageRoot: packageRoot);
       } else if (packagesDirOrFile.isFile()) {
         File packageSpecFile = resourceProvider.getFile(packageRoot);
         Packages packages = _readPackagespec(packageSpecFile);
         if (packages != null) {
-          return new PackagesFileDisposition(packages);
+          return PackagesFileDisposition(packages);
         }
       }
       // The package root does not exist (or is not a folder).  Since
@@ -1100,22 +1093,15 @@ class ContextManagerImpl implements ContextManager {
       // folders), the only way we should be able to get here is due to a race
       // condition.  In any case, the package root folder is gone, so we can't
       // resolve packages.
-      return new NoPackageFolderDisposition(packageRoot: packageRoot);
+      return NoPackageFolderDisposition(packageRoot: packageRoot);
     } else {
       // Try .packages first.
       if (pathContext.basename(packagespecFile.path) == PACKAGE_SPEC_NAME) {
         Packages packages = _readPackagespec(packagespecFile);
-        return new PackagesFileDisposition(packages);
+        return PackagesFileDisposition(packages);
       }
 
-      if (packageResolverProvider != null) {
-        UriResolver resolver = packageResolverProvider(folder);
-        if (resolver != null) {
-          return new CustomPackageResolverDisposition(resolver);
-        }
-      }
-
-      return new NoPackageFolderDisposition();
+      return NoPackageFolderDisposition();
     }
   }
 
@@ -1124,7 +1110,7 @@ class ContextManagerImpl implements ContextManager {
    */
   LineInfo _computeLineInfo(String content) {
     List<int> lineStarts = StringUtilities.computeLineStarts(content);
-    return new LineInfo(lineStarts);
+    return LineInfo(lineStarts);
   }
 
   /**
@@ -1133,15 +1119,14 @@ class ContextManagerImpl implements ContextManager {
    */
   AnalysisOptionsProvider _createAnalysisOptionsProvider(Packages packages) {
     Map<String, List<Folder>> packageMap =
-        new ContextBuilder(resourceProvider, null, null)
+        ContextBuilder(resourceProvider, null, null)
             .convertPackagesToMap(packages);
     List<UriResolver> resolvers = <UriResolver>[
-      new ResourceUriResolver(resourceProvider),
-      new PackageMapUriResolver(resourceProvider, packageMap),
+      ResourceUriResolver(resourceProvider),
+      PackageMapUriResolver(resourceProvider, packageMap),
     ];
-    SourceFactory sourceFactory =
-        new SourceFactory(resolvers, packages, resourceProvider);
-    return new AnalysisOptionsProvider(sourceFactory);
+    SourceFactory sourceFactory = SourceFactory(resolvers);
+    return AnalysisOptionsProvider(sourceFactory);
   }
 
   /**
@@ -1153,7 +1138,7 @@ class ContextManagerImpl implements ContextManager {
     List<String> dependencies = <String>[];
     FolderDisposition disposition =
         _computeFolderDisposition(folder, dependencies.add, packagesFile);
-    ContextInfo info = new ContextInfo(this, parent, folder, packagesFile,
+    ContextInfo info = ContextInfo(this, parent, folder, packagesFile,
         normalizedPackageRoots[folder.path], disposition);
 
     File optionsFile;
@@ -1168,8 +1153,7 @@ class ContextManagerImpl implements ContextManager {
     } catch (_) {
       // Parse errors are reported elsewhere.
     }
-    AnalysisOptions options =
-        new AnalysisOptionsImpl.from(defaultContextOptions);
+    AnalysisOptions options = AnalysisOptionsImpl.from(defaultContextOptions);
     applyToAnalysisOptions(options, optionMap);
 
     info.setDependencies(dependencies);
@@ -1179,8 +1163,7 @@ class ContextManagerImpl implements ContextManager {
             pathContext.isWithin(includedPath, excludedPath))
         .toList();
     processOptionsForDriver(info, options, optionMap);
-    ContextRoot contextRoot = new ContextRoot(
-        folder.path, containedExcludedPaths,
+    ContextRoot contextRoot = ContextRoot(folder.path, containedExcludedPaths,
         pathContext: pathContext);
     if (optionsFile != null) {
       contextRoot.optionsFilePath = optionsFile.path;
@@ -1268,7 +1251,7 @@ class ContextManagerImpl implements ContextManager {
     if (createContext) {
       // Now that the child contexts have been created, add the sources that
       // don't belong to the children.
-      ChangeSet changeSet = new ChangeSet();
+      ChangeSet changeSet = ChangeSet();
       _addSourceFiles(changeSet, folder, parent);
       callbacks.applyChangesToContext(folder, changeSet);
     }
@@ -1301,7 +1284,7 @@ class ContextManagerImpl implements ContextManager {
     ContextInfo newInfo =
         _createContext(oldInfo, newFolder, excludedPaths, packagespecFile);
     // prepare sources to extract
-    Map<String, Source> extractedSources = new HashMap<String, Source>();
+    Map<String, Source> extractedSources = HashMap<String, Source>();
     oldInfo.sources.forEach((path, source) {
       if (newFolder.contains(path)) {
         extractedSources[path] = source;
@@ -1309,7 +1292,7 @@ class ContextManagerImpl implements ContextManager {
     });
     // update new context
     {
-      ChangeSet changeSet = new ChangeSet();
+      ChangeSet changeSet = ChangeSet();
       extractedSources.forEach((path, source) {
         newInfo.sources[path] = source;
         changeSet.addedSource(path);
@@ -1318,7 +1301,7 @@ class ContextManagerImpl implements ContextManager {
     }
     // update old context
     {
-      ChangeSet changeSet = new ChangeSet();
+      ChangeSet changeSet = ChangeSet();
       extractedSources.forEach((path, source) {
         oldInfo.sources.remove(path);
         changeSet.removedSource(path);
@@ -1405,15 +1388,6 @@ class ContextManagerImpl implements ContextManager {
     callbacks.broadcastWatchEvent(event);
     _handleWatchEventImpl(event);
     callbacks.afterWatchEvent(event);
-  }
-
-  /// On windows, the directory watcher may overflow, and we must recover.
-  void _handleWatchInterruption(dynamic error, StackTrace stackTrace) {
-    // We've handled the error, so we only have to log it.
-    AnalysisEngine.instance.instrumentationService
-        .logError('Watcher error; refreshing contexts.\n$error\n$stackTrace');
-    // TODO(mfairhurst): Optimize this, or perhaps be less complete.
-    refresh(null);
   }
 
   void _handleWatchEventImpl(WatchEvent event) {
@@ -1543,6 +1517,15 @@ class ContextManagerImpl implements ContextManager {
     _checkForManifestUpdate(path, info);
   }
 
+  /// On windows, the directory watcher may overflow, and we must recover.
+  void _handleWatchInterruption(dynamic error, StackTrace stackTrace) {
+    // We've handled the error, so we only have to log it.
+    AnalysisEngine.instance.instrumentationService
+        .logError('Watcher error; refreshing contexts.\n$error\n$stackTrace');
+    // TODO(mfairhurst): Optimize this, or perhaps be less complete.
+    refresh(null);
+  }
+
   /**
    * Determine whether the given [path], when interpreted relative to the
    * context root [root], contains a folder whose name starts with '.'.
@@ -1609,7 +1592,7 @@ class ContextManagerImpl implements ContextManager {
     ContextInfo parentInfo = info.parent;
     if (parentInfo != null) {
       parentInfo.children.remove(info);
-      ChangeSet changeSet = new ChangeSet();
+      ChangeSet changeSet = ChangeSet();
       info.sources.forEach((path, source) {
         parentInfo.sources[path] = source;
         changeSet.addedSource(path);
@@ -1630,8 +1613,8 @@ class ContextManagerImpl implements ContextManager {
     try {
       String contents = specFile.readAsStringSync();
       Map<String, Uri> map =
-          pkgfile.parse(utf8.encode(contents), new Uri.file(specFile.path));
-      return new MapPackages(map);
+          pkgfile.parse(utf8.encode(contents), Uri.file(specFile.path));
+      return MapPackages(map);
     } catch (_) {
       //TODO(pquitslund): consider creating an error for the spec file.
       return null;
@@ -1707,38 +1690,6 @@ class ContextManagerImpl implements ContextManager {
 }
 
 /**
- * Concrete [FolderDisposition] object indicating that the context for a given
- * folder should resolve package URIs using a custom URI resolver.
- */
-class CustomPackageResolverDisposition extends FolderDisposition {
-  /**
-   * The [UriResolver] that should be used to resolve package URIs.
-   */
-  UriResolver resolver;
-
-  CustomPackageResolverDisposition(this.resolver);
-
-  @override
-  String get packageRoot => null;
-
-  @override
-  Packages get packages => null;
-
-  @override
-  Iterable<UriResolver> createPackageUriResolvers(
-          ResourceProvider resourceProvider) =>
-      <UriResolver>[resolver];
-
-  @override
-  EmbedderYamlLocator getEmbedderLocator(ResourceProvider resourceProvider) =>
-      new EmbedderYamlLocator(null);
-
-  @override
-  SdkExtensionFinder getSdkExtensionFinder(ResourceProvider resourceProvider) =>
-      new SdkExtensionFinder(null);
-}
-
-/**
  * An instance of the class [FolderDisposition] represents the information
  * gathered by the [ContextManagerImpl] to determine how to create an analysis
  * driver for a given folder.
@@ -1783,13 +1734,6 @@ abstract class FolderDisposition {
    * where that is necessary.
    */
   EmbedderYamlLocator getEmbedderLocator(ResourceProvider resourceProvider);
-
-  /**
-   * Return the extension finder used to locate the `_sdkext` file used to add
-   * extensions to the SDK. The [resourceProvider] is used to access the file
-   * system in cases where that is necessary.
-   */
-  SdkExtensionFinder getSdkExtensionFinder(ResourceProvider resourceProvider);
 }
 
 /**
@@ -1812,11 +1756,7 @@ class NoPackageFolderDisposition extends FolderDisposition {
 
   @override
   EmbedderYamlLocator getEmbedderLocator(ResourceProvider resourceProvider) =>
-      new EmbedderYamlLocator(null);
-
-  @override
-  SdkExtensionFinder getSdkExtensionFinder(ResourceProvider resourceProvider) =>
-      new SdkExtensionFinder(null);
+      EmbedderYamlLocator(null);
 }
 
 /**
@@ -1827,7 +1767,6 @@ class PackageMapDisposition extends FolderDisposition {
   final Map<String, List<Folder>> packageMap;
 
   EmbedderYamlLocator _embedderLocator;
-  SdkExtensionFinder _sdkExtensionFinder;
 
   @override
   final String packageRoot;
@@ -1839,23 +1778,16 @@ class PackageMapDisposition extends FolderDisposition {
 
   @override
   Iterable<UriResolver> createPackageUriResolvers(
-          ResourceProvider resourceProvider) =>
-      <UriResolver>[
-        new SdkExtUriResolver(packageMap),
-        new PackageMapUriResolver(resourceProvider, packageMap)
-      ];
-
-  @override
-  EmbedderYamlLocator getEmbedderLocator(ResourceProvider resourceProvider) {
-    if (_embedderLocator == null) {
-      _embedderLocator = new EmbedderYamlLocator(packageMap);
-    }
-    return _embedderLocator;
+      ResourceProvider resourceProvider) {
+    return <UriResolver>[
+      PackageMapUriResolver(resourceProvider, packageMap),
+    ];
   }
 
   @override
-  SdkExtensionFinder getSdkExtensionFinder(ResourceProvider resourceProvider) {
-    return _sdkExtensionFinder ??= new SdkExtensionFinder(packageMap);
+  EmbedderYamlLocator getEmbedderLocator(ResourceProvider resourceProvider) {
+    _embedderLocator ??= EmbedderYamlLocator(packageMap);
+    return _embedderLocator;
   }
 }
 
@@ -1870,7 +1802,6 @@ class PackagesFileDisposition extends FolderDisposition {
   Map<String, List<Folder>> packageMap;
 
   EmbedderYamlLocator _embedderLocator;
-  SdkExtensionFinder _sdkExtensionFinder;
 
   PackagesFileDisposition(this.packages);
 
@@ -1897,9 +1828,10 @@ class PackagesFileDisposition extends FolderDisposition {
   Iterable<UriResolver> createPackageUriResolvers(
       ResourceProvider resourceProvider) {
     if (packages != null) {
-      // Construct package map for the SdkExtUriResolver.
       Map<String, List<Folder>> packageMap = buildPackageMap(resourceProvider);
-      return <UriResolver>[new SdkExtUriResolver(packageMap)];
+      return <UriResolver>[
+        PackageMapUriResolver(resourceProvider, packageMap),
+      ];
     } else {
       return const <UriResolver>[];
     }
@@ -1907,16 +1839,7 @@ class PackagesFileDisposition extends FolderDisposition {
 
   @override
   EmbedderYamlLocator getEmbedderLocator(ResourceProvider resourceProvider) {
-    if (_embedderLocator == null) {
-      _embedderLocator =
-          new EmbedderYamlLocator(buildPackageMap(resourceProvider));
-    }
+    _embedderLocator ??= EmbedderYamlLocator(buildPackageMap(resourceProvider));
     return _embedderLocator;
-  }
-
-  @override
-  SdkExtensionFinder getSdkExtensionFinder(ResourceProvider resourceProvider) {
-    return _sdkExtensionFinder ??=
-        new SdkExtensionFinder(buildPackageMap(resourceProvider));
   }
 }

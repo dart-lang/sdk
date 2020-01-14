@@ -43,7 +43,7 @@ class ImportedElementsComputer {
       return const <ImportedElements>[];
     }
     _Visitor visitor =
-        new _Visitor(unit.declaredElement.library, offset, offset + length);
+        _Visitor(unit.declaredElement.library, offset, offset + length);
     unit.accept(visitor);
     return visitor.importedElements.values.toList();
   }
@@ -125,7 +125,7 @@ class _Visitor extends UnifyingAstVisitor<void> {
         }
         String key = '$prefix;$path';
         ImportedElements elements = importedElements.putIfAbsent(
-            key, () => new ImportedElements(path, prefix, <String>[]));
+            key, () => ImportedElements(path, prefix, <String>[]));
         List<String> elementNames = elements.elements;
         String elementName = nodeElement.name;
         if (!elementNames.contains(elementName)) {

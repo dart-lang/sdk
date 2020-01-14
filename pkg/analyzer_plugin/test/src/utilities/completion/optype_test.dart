@@ -2383,26 +2383,26 @@ class OpTypeTestCommon extends AbstractContextTest {
   }
 
   Future<void> assertOpType(
-      {bool caseLabel: false,
-      bool constructors: false,
-      bool namedArgs: false,
-      bool prefixed: false,
-      bool returnValue: false,
-      bool statementLabel: false,
-      bool staticMethodBody: false,
-      bool methodBody: false,
-      bool functionBody: false,
-      bool constructorBody: false,
-      bool typeNames: false,
-      bool varNames: false,
-      bool voidReturn: false,
-      CompletionSuggestionKind kind:
+      {bool caseLabel = false,
+      bool constructors = false,
+      bool namedArgs = false,
+      bool prefixed = false,
+      bool returnValue = false,
+      bool statementLabel = false,
+      bool staticMethodBody = false,
+      bool methodBody = false,
+      bool functionBody = false,
+      bool constructorBody = false,
+      bool typeNames = false,
+      bool varNames = false,
+      bool voidReturn = false,
+      CompletionSuggestionKind kind =
           CompletionSuggestionKind.INVOCATION}) async {
     ResolvedUnitResult resolvedUnit = await driver.getResult(testPath);
 
     CompletionTarget completionTarget =
-        new CompletionTarget.forOffset(resolvedUnit.unit, completionOffset);
-    visitor = new OpType.forCompletion(completionTarget, completionOffset);
+        CompletionTarget.forOffset(resolvedUnit.unit, completionOffset);
+    visitor = OpType.forCompletion(completionTarget, completionOffset);
 
     expect(visitor.includeCaseLabelSuggestions, caseLabel, reason: 'caseLabel');
     expect(visitor.includeConstructorSuggestions, constructors,

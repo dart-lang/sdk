@@ -173,6 +173,7 @@ class BazelWorkspace extends Workspace {
    * It contains the `WORKSPACE` file or its parent contains the `READONLY`
    * folder.
    */
+  @override
   final String root;
 
   /**
@@ -215,7 +216,7 @@ class BazelWorkspace extends Workspace {
     if (summaryData != null) {
       resolvers.add(InSummaryUriResolver(provider, summaryData));
     }
-    return SourceFactory(resolvers, null, provider);
+    return SourceFactory(resolvers);
   }
 
   /**
@@ -474,8 +475,10 @@ class BazelWorkspacePackage extends WorkspacePackage {
   /// A prefix for any URI of a path in this package.
   final String _uriPrefix;
 
+  @override
   final String root;
 
+  @override
   final BazelWorkspace workspace;
 
   BazelWorkspacePackage(String packageName, this.root, this.workspace)

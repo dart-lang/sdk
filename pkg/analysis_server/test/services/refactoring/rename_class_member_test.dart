@@ -369,7 +369,7 @@ class B extends A {
     RefactoringStatus status = await refactoring.checkFinalConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
         expectedMessage: "Renamed method will shadow method 'A.newName'.",
-        expectedContextRange: new SourceRange(
+        expectedContextRange: SourceRange(
             libCode.indexOf('newName() {} // marker'), 'newName'.length));
   }
 

@@ -28,9 +28,10 @@ class DecoratedClassHierarchy {
 
   /// Retrieves a [DecoratedType] describing how [type] implements [superclass].
   ///
-  /// If [type] is not an interface type, or it does not implement [superclass],
-  /// raises an exception.
+  /// If the [type] is a [TypeParameterType], it will be resolved against its
+  /// bound.
   DecoratedType asInstanceOf(DecoratedType type, ClassElement superclass) {
+    type = _getInterfaceType(type);
     var typeType = type.type as InterfaceType;
     var class_ = typeType.element;
     if (class_ == superclass) return type;
@@ -103,5 +104,20 @@ class DecoratedClassHierarchy {
       _genericSupertypeDecorations[class_] = decorations;
     }
     return decorations;
+  }
+
+  DecoratedType _getInterfaceType(DecoratedType type) {
+    var typeType = type.type;
+    if (typeType is InterfaceType) {
+      return type;
+    }
+
+    if (typeType is TypeParameterType) {
+      final innerType = _getInterfaceType(
+          _variables.decoratedTypeParameterBound(typeType.element));
+      return type.substitute({typeType.element: innerType});
+    }
+
+    throw ArgumentError('$type is an unexpected type');
   }
 }

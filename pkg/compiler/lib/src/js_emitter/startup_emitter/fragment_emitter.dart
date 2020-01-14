@@ -594,6 +594,7 @@ class FragmentEmitter {
   final Emitter _emitter;
   final ConstantEmitter _constantEmitter;
   final ModelEmitter _modelEmitter;
+  final NativeEmitter _nativeEmitter;
   final JClosedWorld _closedWorld;
   final CodegenWorld _codegenWorld;
   RecipeEncoder _recipeEncoder;
@@ -622,9 +623,10 @@ class FragmentEmitter {
       this._emitter,
       this._constantEmitter,
       this._modelEmitter,
+      this._nativeEmitter,
       this._closedWorld,
       this._codegenWorld) {
-    if (_options.experimentNewRti) {
+    if (_options.useNewRti) {
       _recipeEncoder = RecipeEncoderImpl(
           _closedWorld,
           _options.disableRtiOptimization
@@ -709,11 +711,8 @@ class FragmentEmitter {
           emitEmbeddedGlobalsPart2(program, deferredLoadingState),
       'typeRules': emitTypeRules(fragment),
       'variances': emitVariances(fragment),
-      'sharedTypeRtis':
-          _options.experimentNewRti ? TypeReferenceResource() : [],
-      'nativeSupport': program.needsNativeSupport
-          ? emitNativeSupport(fragment)
-          : new js.EmptyStatement(),
+      'sharedTypeRtis': _options.useNewRti ? TypeReferenceResource() : [],
+      'nativeSupport': emitNativeSupport(fragment),
       'jsInteropSupport': jsInteropAnalysis.buildJsInteropBootstrap(
               _codegenWorld, _closedWorld.nativeData, _namer) ??
           new js.EmptyStatement(),
@@ -843,8 +842,7 @@ class FragmentEmitter {
       'types': deferredTypes,
       'nativeSupport': nativeSupport,
       'typesOffset': _namer.typesOffsetName,
-      'sharedTypeRtis':
-          _options.experimentNewRti ? TypeReferenceResource() : [],
+      'sharedTypeRtis': _options.useNewRti ? TypeReferenceResource() : [],
     });
 
     if (_options.experimentStartupFunctions) {
@@ -855,7 +853,7 @@ class FragmentEmitter {
   }
 
   void finalizeTypeReferences(js.Node code) {
-    if (!_options.experimentNewRti) return;
+    if (!_options.useNewRti) return;
 
     TypeReferenceFinalizer finalizer = TypeReferenceFinalizerImpl(
         _emitter, _commonElements, _recipeEncoder, _options.enableMinification);
@@ -1931,7 +1929,7 @@ class FragmentEmitter {
           js.string(TYPE_TO_INTERCEPTOR_MAP), js.LiteralNull()));
     }
 
-    if (_options.experimentNewRti) {
+    if (_options.useNewRti) {
       globals.add(js.Property(js.string(RTI_UNIVERSE), createRtiUniverse()));
     }
 
@@ -1972,12 +1970,15 @@ class FragmentEmitter {
   }
 
   js.Block emitTypeRules(Fragment fragment) {
-    if (!_options.experimentNewRti) return js.Block.empty();
+    if (!_options.useNewRti) return js.Block.empty();
 
     List<js.Statement> statements = [];
     bool addJsObjectRedirections = false;
     ClassEntity jsObjectClass = _commonElements.jsJavaScriptObjectClass;
     InterfaceType jsObjectType = _elementEnvironment.getThisType(jsObjectClass);
+
+    Map<Class, List<Class>> nativeRedirections =
+        _nativeEmitter.typeRedirections;
 
     Ruleset ruleset = Ruleset.empty();
     Map<ClassEntity, int> erasedTypes = {};
@@ -1992,10 +1993,9 @@ class FragmentEmitter {
         erasedTypes[element] = targetType.typeArguments.length;
       }
 
-      if (cls.classChecksNewRti == null) return;
       bool isInterop = _nativeData.isJsInteropClass(element);
 
-      Iterable<TypeCheck> checks = cls.classChecksNewRti.checks;
+      Iterable<TypeCheck> checks = cls.classChecksNewRti?.checks ?? [];
       Iterable<InterfaceType> supertypes = isInterop
           ? checks
               .map((check) => _elementEnvironment.getJsInteropType(check.cls))
@@ -2003,6 +2003,10 @@ class FragmentEmitter {
               .map((check) => _dartTypes.asInstanceOf(targetType, check.cls));
 
       Map<TypeVariableType, DartType> typeVariables = {};
+      Set<TypeVariableType> namedTypeVariables = cls.namedTypeVariablesNewRti;
+      nativeRedirections[cls]?.forEach((Class redirectee) {
+        namedTypeVariables.addAll(redirectee.namedTypeVariablesNewRti);
+      });
       for (TypeVariableType typeVariable in cls.namedTypeVariablesNewRti) {
         TypeVariableEntity element = typeVariable.element;
         InterfaceType supertype = isInterop
@@ -2028,6 +2032,12 @@ class FragmentEmitter {
       });
     }
 
+    nativeRedirections.forEach((Class target, List<Class> redirectees) {
+      for (Class redirectee in redirectees) {
+        ruleset.addRedirection(redirectee.element, target.element);
+      }
+    });
+
     if (ruleset.isNotEmpty) {
       FunctionEntity addRules = _closedWorld.commonElements.rtiAddRulesMethod;
       statements.add(js.js.statement('#(init.#,JSON.parse(#));', [
@@ -2051,7 +2061,7 @@ class FragmentEmitter {
   }
 
   js.Statement emitVariances(Fragment fragment) {
-    if (!_options.enableVariance || !_options.experimentNewRti) {
+    if (!_options.enableVariance || !_options.useNewRti) {
       return js.EmptyStatement();
     }
 
@@ -2163,12 +2173,16 @@ class FragmentEmitter {
       }
     }
 
-    if (interceptorsByTag.isNotEmpty) {
+    // Emit the empty objects for main fragment in case we emit
+    // getNativeInterceptor.
+    // TODO(sra): Refine the impacts to accuratley predict whether we need this
+    // at all, and delete 'setOrUpdateInterceptorsByTag' if it is not called.
+    if (fragment.isMainFragment || interceptorsByTag.isNotEmpty) {
       statements.add(js.js.statement(
           "hunkHelpers.setOrUpdateInterceptorsByTag(#);",
           js.objectLiteral(interceptorsByTag)));
     }
-    if (leafTags.isNotEmpty) {
+    if (fragment.isMainFragment || leafTags.isNotEmpty) {
       statements.add(js.js.statement(
           "hunkHelpers.setOrUpdateLeafTags(#);", js.objectLiteral(leafTags)));
     }

@@ -307,12 +307,11 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   final _FallthroughDetector _fallthroughDetector = new _FallthroughDetector();
 
   Summary _summary;
-  Map<VariableDeclaration, Join> _variableJoins;
-  Map<VariableDeclaration, TypeExpr> _variables;
+  Map<VariableDeclaration, Join> _variables;
   Join _returnValue;
   Parameter _receiver;
   ConstantAllocationCollector constantAllocationCollector;
-  RuntimeTypeTranslator _translator;
+  RuntimeTypeTranslatorImpl _translator;
   StaticTypeContext _staticTypeContext;
 
   // Currently only used for factory constructors.
@@ -336,8 +335,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     assertx(!member.isAbstract);
 
     _staticTypeContext = new StaticTypeContext(member, _environment);
-    _variableJoins = <VariableDeclaration, Join>{};
-    _variables = <VariableDeclaration, TypeExpr>{};
+    _variables = <VariableDeclaration, Join>{};
     _returnValue = null;
     _receiver = null;
 
@@ -357,19 +355,16 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
         _summary = new Summary();
       }
 
-      _translator = new RuntimeTypeTranslator(
+      _translator = new RuntimeTypeTranslatorImpl(
           _summary, _receiver, null, _genericInterfacesInfo);
 
       if (fieldSummaryType == FieldSummaryType.kInitializer) {
         assertx(member.initializer != null);
         _summary.result = _visit(member.initializer);
       } else {
-        Parameter valueParam = _declareParameter("value", member.type, null);
-        TypeExpr runtimeType = _translator.translate(member.type);
-        final check = new TypeCheck(valueParam, runtimeType, member,
-            _typesBuilder.fromStaticType(member.type, true));
-        _summary.add(check);
-        _summary.result = check;
+        final Parameter valueParam =
+            _declareParameter("value", member.type, null);
+        _summary.result = _typeCheck(valueParam, member.type, member);
       }
     } else {
       FunctionNode function = member.function;
@@ -401,7 +396,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
             isReceiver: true);
       }
 
-      _translator = new RuntimeTypeTranslator(
+      _translator = new RuntimeTypeTranslatorImpl(
           _summary, _receiver, _fnTypeVariables, _genericInterfacesInfo);
 
       // Handle forwarding stubs. We need to check types against the types of
@@ -442,17 +437,23 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
       int count = firstParamIndex;
       for (int i = 0; i < function.positionalParameters.length; ++i) {
         final decl = function.positionalParameters[i];
-        Join v = _declareVariable(decl,
-            useTypeCheck: _useTypeCheckForParameter(decl),
-            checkType: useTypesFrom.positionalParameters[i].type);
-        v.values.add(_summary.statements[count++]);
+        final type = useTypesFrom.positionalParameters[i].type;
+        TypeExpr param = _summary.statements[count++];
+        if (_useTypeCheckForParameter(decl)) {
+          param = _typeCheck(param, type, decl);
+        }
+        final Join v = _declareVariable(decl, type: type);
+        v.values.add(param);
       }
       for (int i = 0; i < function.namedParameters.length; ++i) {
         final decl = function.namedParameters[i];
-        Join v = _declareVariable(decl,
-            useTypeCheck: _useTypeCheckForParameter(decl),
-            checkType: useTypesFrom.namedParameters[i].type);
-        v.values.add(_summary.statements[count++]);
+        final type = useTypesFrom.namedParameters[i].type;
+        TypeExpr param = _summary.statements[count++];
+        if (_useTypeCheckForParameter(decl)) {
+          param = _typeCheck(param, type, decl);
+        }
+        final Join v = _declareVariable(decl, type: type);
+        v.values.add(param);
       }
       assertx(count == _summary.parameterCount);
 
@@ -471,14 +472,12 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
       }
 
       if (function.body == null) {
-        Type type = _nativeCodeOracle.handleNativeProcedure(
-            member, _entryPointsListener, _typesBuilder);
-        if (type is! ConcreteType) {
+        TypeExpr type = _nativeCodeOracle.handleNativeProcedure(
+            member, _entryPointsListener, _typesBuilder, _translator);
+        if (type is! ConcreteType && type is! Statement) {
           // Runtime type could be more precise than static type, so
           // calculate intersection.
-          final runtimeType = _translator.translate(function.returnType);
-          final typeCheck = new TypeCheck(type, runtimeType, function, type);
-          _summary.add(typeCheck);
+          final typeCheck = _typeCheck(type, function.returnType, function);
           _returnValue.values.add(typeCheck);
         } else {
           _returnValue.values.add(type);
@@ -637,23 +636,11 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   }
 
   Join _declareVariable(VariableDeclaration decl,
-      {bool addInitType: false,
-      bool useTypeCheck: false,
-      DartType checkType: null}) {
-    final type = checkType ?? decl.type;
+      {bool addInitType: false, DartType type}) {
+    type ??= decl.type;
     Join join = new Join(decl.name, type);
     _summary.add(join);
-    _variableJoins[decl] = join;
-
-    TypeExpr variable = join;
-    if (useTypeCheck) {
-      TypeExpr runtimeType = _translator.translate(type);
-      variable = new TypeCheck(variable, runtimeType, decl,
-          _typesBuilder.fromStaticType(decl.type, true));
-      _summary.add(variable);
-    }
-
-    _variables[decl] = variable;
+    _variables[decl] = join;
 
     if (decl.initializer != null) {
       TypeExpr initType = _visit(decl.initializer);
@@ -665,6 +652,14 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     return join;
   }
 
+  TypeCheck _typeCheck(TypeExpr value, DartType type, TreeNode node) {
+    final TypeExpr runtimeType = _translator.translate(type);
+    final typeCheck = new TypeCheck(
+        value, runtimeType, node, _typesBuilder.fromStaticType(type, true));
+    _summary.add(typeCheck);
+    return typeCheck;
+  }
+
   // TODO(alexmarkov): Avoid declaring variables with static types.
   void _declareVariableWithStaticType(VariableDeclaration decl) {
     Join v = _declareVariable(decl);
@@ -672,7 +667,19 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   }
 
   Call _makeCall(TreeNode node, Selector selector, Args<TypeExpr> args) {
-    Call call = new Call(selector, args);
+    Type staticResultType = null;
+    Member target;
+    if (selector is DirectSelector) {
+      target = selector.member;
+    } else if (selector is InterfaceSelector) {
+      target = selector.member;
+    }
+    if (target is Procedure &&
+        target.function.returnType is TypeParameterType &&
+        node is Expression) {
+      staticResultType = _staticType(node);
+    }
+    Call call = new Call(selector, args, staticResultType);
     _summary.add(call);
     if (node != null) {
       callSites[node] = call;
@@ -792,12 +799,9 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
 
   void _handleNestedFunctionNode(FunctionNode node) {
     final oldReturn = _returnValue;
-    final oldVariableJoins = _variableJoins;
     final oldVariables = _variables;
     _returnValue = null;
-    _variableJoins = <VariableDeclaration, Join>{};
-    _variableJoins.addAll(oldVariableJoins);
-    _variables = <VariableDeclaration, TypeExpr>{};
+    _variables = <VariableDeclaration, Join>{};
     _variables.addAll(oldVariables);
 
     // Approximate parameters of nested functions with static types.
@@ -808,7 +812,6 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     _visit(node.body);
 
     _returnValue = oldReturn;
-    _variableJoins = oldVariableJoins;
     _variables = oldVariables;
   }
 
@@ -818,12 +821,9 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
 
   @override
   TypeExpr visitAsExpression(AsExpression node) {
-    TypeExpr operand = _visit(node.operand);
-    Type type = _typesBuilder.fromStaticType(node.type, true);
-    TypeExpr runtimeType = _translator.translate(node.type);
-    TypeExpr result = new TypeCheck(operand, runtimeType, node, type);
+    final TypeExpr operand = _visit(node.operand);
+    final TypeExpr result = _typeCheck(operand, node.type, node);
     explicitCasts[node] = result;
-    _summary.add(result);
     return result;
   }
 
@@ -1254,10 +1254,10 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
 
   @override
   TypeExpr visitVariableSet(VariableSet node) {
-    Join v = _variableJoins[node.variable];
+    final Join v = _variables[node.variable];
     assertx(v != null, details: node);
 
-    TypeExpr value = _visit(node.value);
+    final TypeExpr value = _visit(node.value);
     v.values.add(value);
     return value;
   }
@@ -1491,19 +1491,20 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   }
 }
 
-class RuntimeTypeTranslator extends DartTypeVisitor<TypeExpr> {
+class RuntimeTypeTranslatorImpl extends DartTypeVisitor<TypeExpr>
+    implements RuntimeTypeTranslator {
   final Summary summary;
   final Map<TypeParameter, TypeExpr> functionTypeVariables;
   final Map<DartType, TypeExpr> typesCache = <DartType, TypeExpr>{};
   final TypeExpr receiver;
   final GenericInterfacesInfo genericInterfacesInfo;
 
-  RuntimeTypeTranslator(this.summary, this.receiver, this.functionTypeVariables,
-      this.genericInterfacesInfo) {}
+  RuntimeTypeTranslatorImpl(this.summary, this.receiver,
+      this.functionTypeVariables, this.genericInterfacesInfo) {}
 
   // Create a type translator which can be used only for types with no free type
   // variables.
-  RuntimeTypeTranslator.forClosedTypes(this.genericInterfacesInfo)
+  RuntimeTypeTranslatorImpl.forClosedTypes(this.genericInterfacesInfo)
       : summary = null,
         functionTypeVariables = null,
         receiver = null {}

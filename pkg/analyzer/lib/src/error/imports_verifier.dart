@@ -241,7 +241,7 @@ class ImportsVerifier {
             if (element is PrefixElement) {
               List<ImportDirective> list = _prefixElementMap[element];
               if (list == null) {
-                list = List<ImportDirective>();
+                list = <ImportDirective>[];
                 _prefixElementMap[element] = list;
               }
               list.add(directive);
@@ -444,14 +444,14 @@ class ImportsVerifier {
     }
     for (Combinator combinator in directive.combinators) {
       // Use a Set to find duplicates in faster than O(n^2) time.
-      Set<Element> identifiers = Set<Element>();
+      Set<Element> identifiers = <Element>{};
       if (combinator is HideCombinator) {
         for (SimpleIdentifier name in combinator.hiddenNames) {
           if (name.staticElement != null) {
             if (!identifiers.add(name.staticElement)) {
               // [name] is a duplicate.
               List<SimpleIdentifier> duplicateNames = _duplicateHiddenNamesMap
-                  .putIfAbsent(directive, () => List<SimpleIdentifier>());
+                  .putIfAbsent(directive, () => <SimpleIdentifier>[]);
               duplicateNames.add(name);
             }
           }
@@ -462,7 +462,7 @@ class ImportsVerifier {
             if (!identifiers.add(name.staticElement)) {
               // [name] is a duplicate.
               List<SimpleIdentifier> duplicateNames = _duplicateShownNamesMap
-                  .putIfAbsent(directive, () => List<SimpleIdentifier>());
+                  .putIfAbsent(directive, () => <SimpleIdentifier>[]);
               duplicateNames.add(name);
             }
           }
@@ -476,7 +476,7 @@ class ImportsVerifier {
     if (importDirective.combinators == null) {
       return;
     }
-    List<SimpleIdentifier> identifiers = List<SimpleIdentifier>();
+    List<SimpleIdentifier> identifiers = <SimpleIdentifier>[];
     _unusedShownNamesMap[importDirective] = identifiers;
     for (Combinator combinator in importDirective.combinators) {
       if (combinator is ShowCombinator) {

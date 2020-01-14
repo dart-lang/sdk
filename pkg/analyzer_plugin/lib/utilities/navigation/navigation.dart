@@ -85,21 +85,21 @@ class NavigationGenerator {
    */
   GeneratorResult generateNavigationNotification(NavigationRequest request) {
     List<Notification> notifications = <Notification>[];
-    NavigationCollectorImpl collector = new NavigationCollectorImpl();
+    NavigationCollectorImpl collector = NavigationCollectorImpl();
     for (NavigationContributor contributor in contributors) {
       try {
         contributor.computeNavigation(request, collector);
       } catch (exception, stackTrace) {
-        notifications.add(new PluginErrorParams(
+        notifications.add(PluginErrorParams(
                 false, exception.toString(), stackTrace.toString())
             .toNotification());
       }
     }
     collector.createRegions();
-    notifications.add(new AnalysisNavigationParams(
+    notifications.add(AnalysisNavigationParams(
             request.path, collector.regions, collector.targets, collector.files)
         .toNotification());
-    return new GeneratorResult(null, notifications);
+    return GeneratorResult(null, notifications);
   }
 
   /**
@@ -110,20 +110,20 @@ class NavigationGenerator {
   GeneratorResult<AnalysisGetNavigationResult> generateNavigationResponse(
       NavigationRequest request) {
     List<Notification> notifications = <Notification>[];
-    NavigationCollectorImpl collector = new NavigationCollectorImpl();
+    NavigationCollectorImpl collector = NavigationCollectorImpl();
     for (NavigationContributor contributor in contributors) {
       try {
         contributor.computeNavigation(request, collector);
       } catch (exception, stackTrace) {
-        notifications.add(new PluginErrorParams(
+        notifications.add(PluginErrorParams(
                 false, exception.toString(), stackTrace.toString())
             .toNotification());
       }
     }
     collector.createRegions();
-    AnalysisGetNavigationResult result = new AnalysisGetNavigationResult(
+    AnalysisGetNavigationResult result = AnalysisGetNavigationResult(
         collector.files, collector.targets, collector.regions);
-    return new GeneratorResult(result, notifications);
+    return GeneratorResult(result, notifications);
   }
 }
 

@@ -14,7 +14,7 @@ import 'package:path/path.dart' as path;
 /**
  * A boolean-valued function of one argument.
  */
-typedef bool Predicate<T>(T value);
+typedef Predicate<T> = bool Function(T value);
 
 /**
  * A description of a group of log entries.
@@ -24,18 +24,18 @@ class EntryGroup {
    * A list of all of the instances of this class.
    */
   static final List<EntryGroup> groups = <EntryGroup>[
-    new EntryGroup._(
+    EntryGroup._(
         'nonTask', 'Non-task', (LogEntry entry) => entry is! TaskEntry),
-    new EntryGroup._(
+    EntryGroup._(
         'errors',
         'Errors',
         (LogEntry entry) =>
             entry is ErrorEntry ||
             entry is ExceptionEntry ||
             (entry is NotificationEntry && entry.isServerError)),
-    new EntryGroup._('malformed', 'Malformed',
+    EntryGroup._('malformed', 'Malformed',
         (LogEntry entry) => entry is MalformedLogEntry),
-    new EntryGroup._('all', 'All', (LogEntry entry) => true),
+    EntryGroup._('all', 'All', (LogEntry entry) => true),
   ];
 
   /**
@@ -168,6 +168,7 @@ class GenericPluginEntry extends GenericEntry with PluginEntryMixin {
   /**
    * The components describing the plugin associated with this entry.
    */
+  @override
   final List<String> pluginData;
 
   /**
@@ -198,41 +199,30 @@ class InstrumentationLog {
    */
   Map<EntryGroup, List<LogEntry>> entryGroups = <EntryGroup, List<LogEntry>>{};
 
-  /**
-   * A table mapping entries that are paired with another entry to the entry
-   * with which they are paired.
-   */
-  Map<LogEntry, LogEntry> _pairedEntries = <LogEntry, LogEntry>{};
+  /// A table mapping entries that are paired with another entry to the entry
+  /// with which they are paired.
+  final Map<LogEntry, LogEntry> _pairedEntries = <LogEntry, LogEntry>{};
 
-  /**
-   * A table mapping the id's of requests to the entry representing the request.
-   */
-  Map<String, RequestEntry> _requestMap = <String, RequestEntry>{};
+  /// A table mapping the id's of requests to the entry representing the
+  /// request.
+  final Map<String, RequestEntry> _requestMap = <String, RequestEntry>{};
 
-  /**
-   * A table mapping the id's of plugin requests to the entry representing the
-   * request.
-   */
-  Map<String, PluginRequestEntry> _pluginRequestMap =
+  /// A table mapping the id's of plugin requests to the entry representing the
+  /// request.
+  final Map<String, PluginRequestEntry> _pluginRequestMap =
       <String, PluginRequestEntry>{};
 
-  /**
-   * A table mapping the id's of responses to the entry representing the
-   * response.
-   */
-  Map<String, ResponseEntry> _responseMap = <String, ResponseEntry>{};
+  /// A table mapping the id's of responses to the entry representing the
+  /// response.
+  final Map<String, ResponseEntry> _responseMap = <String, ResponseEntry>{};
 
-  /**
-   * A table mapping the id's of plugin responses to the entry representing the
-   * response.
-   */
-  Map<String, PluginResponseEntry> _pluginResponseMap =
+  /// A table mapping the id's of plugin responses to the entry representing the
+  /// response.
+  final Map<String, PluginResponseEntry> _pluginResponseMap =
       <String, PluginResponseEntry>{};
 
-  /**
-   * A table mapping the ids of completion events to the events with those ids.
-   */
-  Map<String, List<NotificationEntry>> _completionMap =
+  /// A table mapping the ids of completion events to the events with those ids.
+  final Map<String, List<NotificationEntry>> _completionMap =
       <String, List<NotificationEntry>>{};
 
   /**
@@ -332,7 +322,7 @@ class InstrumentationLog {
     }
 
     String merge(String line, List<String> extraLines) {
-      StringBuffer buffer = new StringBuffer();
+      StringBuffer buffer = StringBuffer();
       buffer.writeln(line);
       for (String extraLine in extraLines) {
         buffer.writeln(extraLine);
@@ -355,13 +345,13 @@ class InstrumentationLog {
     }
     if (extraLines.isNotEmpty) {
       int count = math.min(extraLines.length, 10);
-      StringBuffer buffer = new StringBuffer();
+      StringBuffer buffer = StringBuffer();
       buffer.writeln('${extraLines.length} non-entry lines before any entry');
       buffer.writeln('First $count lines:');
       for (int i = 0; i < count; i++) {
         buffer.writeln(extraLines[i]);
       }
-      throw new StateError(buffer.toString());
+      throw StateError(buffer.toString());
     }
   }
 
@@ -386,7 +376,7 @@ class InstrumentationLog {
     int analysisStartIndex = -1;
     NotificationEntry pubStartEntry = null;
     for (String line in logContent) {
-      LogEntry entry = new LogEntry.from(logEntries.length, line);
+      LogEntry entry = LogEntry.from(logEntries.length, line);
       if (entry != null) {
         logEntries.add(entry);
         if (entry is RequestEntry) {
@@ -414,7 +404,7 @@ class InstrumentationLog {
                 } else {
                   int analysisEnd = logEntries.length - 1;
                   analysisRanges
-                      .add(new EntryRange(analysisStartIndex, analysisEnd));
+                      .add(EntryRange(analysisStartIndex, analysisEnd));
                   _pairedEntries[entry] = analysisStartEntry;
                   _pairedEntries[analysisStartEntry] = entry;
                   analysisStartEntry = null;
@@ -444,7 +434,7 @@ class InstrumentationLog {
             String id = entry.param('id');
             if (id != null) {
               _completionMap
-                  .putIfAbsent(id, () => new List<NotificationEntry>())
+                  .putIfAbsent(id, () => List<NotificationEntry>())
                   .add(entry);
             }
           }
@@ -505,7 +495,7 @@ abstract class JsonBasedEntry extends LogEntry {
     // code produces an error of
     // "log?start=3175:261 Uncaught SyntaxError: missing ) after argument list"
     // in the sample log I was using.
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     int length = string.length;
     int index = 0;
     while (index < length) {
@@ -575,6 +565,7 @@ abstract class JsonBasedPluginEntry extends JsonBasedEntry
   /**
    * The components describing the plugin associated with this entry.
    */
+  @override
   final List<String> pluginData;
 
   /**
@@ -599,7 +590,7 @@ abstract class LogEntry {
   /**
    * A regular expression that will match the beginning of a valid log entry.
    */
-  static final RegExp entryRegExp = new RegExp('[0-9]+\\:');
+  static final RegExp entryRegExp = RegExp('[0-9]+\\:');
 
   /**
    * A table mapping kinds to the names of those kinds.
@@ -659,53 +650,51 @@ abstract class LogEntry {
       timeStamp = int.parse(component);
       String entryKind = components[1];
       if (entryKind == InstrumentationLogAdapter.TAG_ERROR) {
-        return new ErrorEntry(
-            index, timeStamp, entryKind, components.sublist(2));
+        return ErrorEntry(index, timeStamp, entryKind, components.sublist(2));
       } else if (entryKind == InstrumentationLogAdapter.TAG_EXCEPTION) {
-        return new ExceptionEntry(
+        return ExceptionEntry(
             index, timeStamp, entryKind, components.sublist(2));
       } else if (entryKind == InstrumentationLogAdapter.TAG_LOG_ENTRY) {
         // Fall through
       } else if (entryKind == InstrumentationLogAdapter.TAG_NOTIFICATION) {
         Map requestData = json.decode(components[2]);
-        return new NotificationEntry(index, timeStamp, requestData);
+        return NotificationEntry(index, timeStamp, requestData);
       } else if (entryKind == InstrumentationLogAdapter.TAG_PLUGIN_ERROR) {
-        return new PluginErrorEntry(index, timeStamp, entryKind,
+        return PluginErrorEntry(index, timeStamp, entryKind,
             components.sublist(2, 4), components.sublist(4));
       } else if (entryKind == InstrumentationLogAdapter.TAG_PLUGIN_EXCEPTION) {
-        return new PluginExceptionEntry(index, timeStamp, entryKind,
+        return PluginExceptionEntry(index, timeStamp, entryKind,
             components.sublist(2, 5), components.sublist(5));
       } else if (entryKind ==
           InstrumentationLogAdapter.TAG_PLUGIN_NOTIFICATION) {
         Map requestData = json.decode(components[2]);
-        return new PluginNotificationEntry(
+        return PluginNotificationEntry(
             index, timeStamp, requestData, components.sublist(3));
       } else if (entryKind == InstrumentationLogAdapter.TAG_PLUGIN_REQUEST) {
         Map requestData = json.decode(components[2]);
-        return new PluginRequestEntry(
+        return PluginRequestEntry(
             index, timeStamp, requestData, components.sublist(3));
       } else if (entryKind == InstrumentationLogAdapter.TAG_PLUGIN_RESPONSE) {
         Map responseData = json.decode(components[2]);
-        return new PluginResponseEntry(
+        return PluginResponseEntry(
             index, timeStamp, responseData, components.sublist(3));
       } else if (entryKind == InstrumentationLogAdapter.TAG_PLUGIN_TIMEOUT) {
-        return new PluginErrorEntry(index, timeStamp, entryKind,
+        return PluginErrorEntry(index, timeStamp, entryKind,
             components.sublist(2, 3), components.sublist(3));
       } else if (entryKind == InstrumentationLogAdapter.TAG_REQUEST) {
         Map requestData = json.decode(components[2]);
-        return new RequestEntry(index, timeStamp, requestData);
+        return RequestEntry(index, timeStamp, requestData);
       } else if (entryKind == InstrumentationLogAdapter.TAG_RESPONSE) {
         Map responseData = json.decode(components[2]);
-        return new ResponseEntry(index, timeStamp, responseData);
+        return ResponseEntry(index, timeStamp, responseData);
       } else if (entryKind == InstrumentationLogAdapter.TAG_VERSION) {
         // Fall through
       } else if (entryKind == InstrumentationLogAdapter.TAG_WATCH_EVENT) {
         // Fall through
       }
-      return new GenericEntry(
-          index, timeStamp, entryKind, components.sublist(2));
+      return GenericEntry(index, timeStamp, entryKind, components.sublist(2));
     } catch (exception) {
-      LogEntry logEntry = new MalformedLogEntry(index, entry);
+      LogEntry logEntry = MalformedLogEntry(index, entry);
       logEntry.recordProblem(exception.toString());
       return logEntry;
     }
@@ -736,13 +725,13 @@ abstract class LogEntry {
   /**
    * Return a date that is equivalent to the [timeStamp].
    */
-  DateTime get toTime => new DateTime.fromMillisecondsSinceEpoch(timeStamp);
+  DateTime get toTime => DateTime.fromMillisecondsSinceEpoch(timeStamp);
 
   /**
    * Return an HTML representation of the details of the entry.
    */
   String details() {
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     _appendDetails(buffer);
     return buffer.toString();
   }
@@ -775,7 +764,7 @@ abstract class LogEntry {
    */
   static List<String> _parseComponents(String entry) {
     List<String> components = <String>[];
-    StringBuffer component = new StringBuffer();
+    StringBuffer component = StringBuffer();
     int length = entry.length;
     for (int i = 0; i < length; i++) {
       int char = entry.codeUnitAt(i);

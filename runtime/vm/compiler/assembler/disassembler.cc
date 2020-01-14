@@ -334,20 +334,19 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
     THR_Print("Entry points for function '%s' {\n", function_fullname);
     THR_Print("  [code+0x%02" Px "] %" Px " kNormal\n",
               Code::entry_point_offset(CodeEntryKind::kNormal) - kHeapObjectTag,
-              Instructions::EntryPoint(instructions.raw()) - start + base);
+              code.EntryPoint() - start + base);
     THR_Print(
         "  [code+0x%02" Px "] %" Px " kMonomorphic\n",
         Code::entry_point_offset(CodeEntryKind::kMonomorphic) - kHeapObjectTag,
-        Instructions::MonomorphicEntryPoint(instructions.raw()) - start + base);
+        code.MonomorphicEntryPoint() - start + base);
     THR_Print(
         "  [code+0x%02" Px "] %" Px " kUnchecked\n",
         Code::entry_point_offset(CodeEntryKind::kUnchecked) - kHeapObjectTag,
-        Instructions::UncheckedEntryPoint(instructions.raw()) - start + base);
+        code.UncheckedEntryPoint() - start + base);
     THR_Print("  [code+0x%02" Px "] %" Px " kMonomorphicUnchecked\n",
               Code::entry_point_offset(CodeEntryKind::kMonomorphicUnchecked) -
                   kHeapObjectTag,
-              Instructions::MonomorphicUncheckedEntryPoint(instructions.raw()) -
-                  start + base);
+              code.MonomorphicUncheckedEntryPoint() - start + base);
     THR_Print("}\n");
   }
 
@@ -379,9 +378,6 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
         switch (kind) {
           case Code::kPcRelativeCall:
             skind = "pc-relative-call";
-            break;
-          case Code::kPcRelativeTailCall:
-            skind = "pc-relative-tail-call";
             break;
           case Code::kCallViaCode:
             skind = "call-via-code";

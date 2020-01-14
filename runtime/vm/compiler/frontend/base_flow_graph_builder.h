@@ -106,8 +106,6 @@ class TestFragment {
   SuccessorAddressArray* false_successor_addresses = nullptr;
 };
 
-typedef ZoneGrowableArray<PushArgumentInstr*>* ArgumentArray;
-
 // Indicates which form of the unchecked entrypoint we are compiling.
 //
 // kNone:
@@ -154,7 +152,6 @@ class BaseFlowGraphBuilder {
         current_try_index_(kInvalidTryIndex),
         next_used_try_index_(0),
         stack_(NULL),
-        pending_argument_count_(0),
         exit_collector_(exit_collector),
         inlining_unchecked_entry_(inlining_unchecked_entry) {}
 
@@ -197,7 +194,7 @@ class BaseFlowGraphBuilder {
   Fragment StoreInstanceFieldGuarded(const Field& field,
                                      StoreInstanceFieldInstr::Kind kind =
                                          StoreInstanceFieldInstr::Kind::kOther);
-  Fragment LoadStaticField();
+  Fragment LoadStaticField(const Field& field);
   Fragment RedefinitionWithType(const AbstractType& type);
   Fragment StoreStaticField(TokenPosition position, const Field& field);
   Fragment StoreIndexed(classid_t class_id);
@@ -233,8 +230,7 @@ class BaseFlowGraphBuilder {
   //
   LocalVariable* MakeTemporary();
 
-  Fragment PushArgument();
-  ArgumentArray GetArguments(int count);
+  InputsArray* GetArguments(int count);
 
   TargetEntryInstr* BuildTargetEntry();
   FunctionEntryInstr* BuildFunctionEntry(GraphEntryInstr* graph_entry);
@@ -273,7 +269,6 @@ class BaseFlowGraphBuilder {
                               intptr_t stack_depth,
                               intptr_t loop_depth);
   Fragment CheckStackOverflowInPrologue(TokenPosition position);
-  Fragment ThrowException(TokenPosition position);
   Fragment TailCall(const Code& code);
 
   intptr_t GetNextDeoptId() {
@@ -413,6 +408,9 @@ class BaseFlowGraphBuilder {
   // Sets raw parameter variables to inferred constant values.
   Fragment InitConstantParameters();
 
+  // The NNBD mode to use when compiling type tests.
+  NNBDMode nnbd_mode() const { return function_.nnbd_mode(); }
+
  protected:
   intptr_t AllocateBlockId() { return ++last_used_block_id_; }
 
@@ -430,7 +428,6 @@ class BaseFlowGraphBuilder {
   intptr_t next_used_try_index_;
 
   Value* stack_;
-  intptr_t pending_argument_count_;
   InlineExitCollector* exit_collector_;
 
   const bool inlining_unchecked_entry_;

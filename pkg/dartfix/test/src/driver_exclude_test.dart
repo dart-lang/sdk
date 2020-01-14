@@ -11,7 +11,7 @@ import 'test_context.dart';
 
 const _debug = true;
 
-main() {
+void main() {
   File exampleFile;
   Directory exampleDir;
 

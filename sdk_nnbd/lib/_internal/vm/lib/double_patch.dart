@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 // part of "core_patch.dart";
 
 // VM implementation of double.
@@ -13,7 +11,7 @@ class double {
   static double _nativeParse(String str, int start, int end)
       native "Double_parse";
 
-  static double _tryParseDouble(var str, var start, var end) {
+  static double? _tryParseDouble(String str, int start, int end) {
     assert(start < end);
     const int _DOT = 0x2e; // '.'
     const int _ZERO = 0x30; // '0'
@@ -73,7 +71,7 @@ class double {
         i++;
         if (i == end) return null;
         // int._tryParseSmi treats its end argument as inclusive.
-        int expPart = int._tryParseSmi(str, i, end - 1);
+        final int? expPart = int._tryParseSmi(str, i, end - 1);
         if (expPart == null) return null;
         exponent += expPart;
         break;
@@ -93,7 +91,7 @@ class double {
     return sign * (doubleValue * P10[exponent]);
   }
 
-  static double _parse(var str) {
+  static double? _parse(String str) {
     int len = str.length;
     int start = str._firstNonWhitespace();
     if (start == len) return null; // All whitespace.
@@ -116,5 +114,5 @@ class double {
   }
 
   @patch
-  static double tryParse(String source) => _parse(source);
+  static double? tryParse(String source) => _parse(source);
 }

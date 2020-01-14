@@ -4,7 +4,7 @@
 
 library fasta.dill_typedef_builder;
 
-import 'package:kernel/ast.dart' show DartType, Typedef;
+import 'package:kernel/ast.dart' show DartType, Typedef, InterfaceType;
 
 import '../builder/function_type_builder.dart';
 import '../builder/library_builder.dart';
@@ -61,5 +61,17 @@ class DillTypeAliasBuilder extends TypeAliasBuilder {
       result[i] = arguments[i].build(library);
     }
     return result;
+  }
+
+  @override
+  bool get isNullAlias {
+    DartType dartType = typedef.type;
+    if (dartType is InterfaceType) {
+      Uri importUri = dartType.classNode.enclosingLibrary.importUri;
+      return dartType.classNode.name == "Null" &&
+          importUri.scheme == "dart" &&
+          importUri.path == "core";
+    }
+    return false;
   }
 }

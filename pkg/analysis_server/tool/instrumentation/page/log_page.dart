@@ -112,6 +112,7 @@ function selectEntryGroup(pageStart) {
    * Write the content of the style sheet (without the 'script' tag) for the
    * page to the given [sink].
    */
+  @override
   void writeStyleSheet(StringSink sink) {
     super.writeStyleSheet(sink);
     writeTwoColumnStyles(sink, 'leftColumn', 'rightColumn');

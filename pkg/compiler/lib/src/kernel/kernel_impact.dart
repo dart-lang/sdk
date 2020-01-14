@@ -9,7 +9,6 @@ import '../common.dart';
 import '../common/names.dart';
 import '../common/resolution.dart';
 import '../common_elements.dart';
-import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
@@ -251,22 +250,22 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
   @override
   void registerIntLiteral(int value) {
     impactBuilder.registerConstantLiteral(
-        new IntConstantExpression(new BigInt.from(value).toUnsigned(64)));
+        new IntConstantValue(new BigInt.from(value).toUnsigned(64)));
   }
 
   @override
   void registerDoubleLiteral(double value) {
-    impactBuilder.registerConstantLiteral(new DoubleConstantExpression(value));
+    impactBuilder.registerConstantLiteral(new DoubleConstantValue(value));
   }
 
   @override
   void registerBoolLiteral(bool value) {
-    impactBuilder.registerConstantLiteral(new BoolConstantExpression(value));
+    impactBuilder.registerConstantLiteral(new BoolConstantValue(value));
   }
 
   @override
   void registerStringLiteral(String value) {
-    impactBuilder.registerConstantLiteral(new StringConstantExpression(value));
+    impactBuilder.registerConstantLiteral(new StringConstantValue(value));
   }
 
   @override
@@ -276,7 +275,7 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
 
   @override
   void registerNullLiteral() {
-    impactBuilder.registerConstantLiteral(new NullConstantExpression());
+    impactBuilder.registerConstantLiteral(new NullConstantValue());
   }
 
   @override

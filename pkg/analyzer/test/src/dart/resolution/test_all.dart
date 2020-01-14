@@ -30,6 +30,7 @@ import 'instance_member_inference_class_test.dart'
     as instance_member_inference_class;
 import 'instance_member_inference_mixin_test.dart'
     as instance_member_inference_mixin;
+import 'language_version_test.dart' as language_version;
 import 'local_function_test.dart' as local_function;
 import 'local_variable_test.dart' as local_variable;
 import 'metadata_test.dart' as metadata;
@@ -38,7 +39,10 @@ import 'mixin_test.dart' as mixin_resolution;
 import 'namespace_test.dart' as namespace;
 import 'non_nullable_test.dart' as non_nullable;
 import 'optional_const_test.dart' as optional_const;
+import 'prefix_expression_test.dart' as prefix_expression;
+import 'prefixed_identifier_test.dart' as prefixed_identifier;
 import 'property_access_test.dart' as property_access;
+import 'simple_identifier_test.dart' as simple_identifier;
 import 'top_type_inference_test.dart' as top_type_inference;
 import 'type_inference/test_all.dart' as type_inference;
 
@@ -67,6 +71,7 @@ main() {
     instance_creation.main();
     instance_member_inference_class.main();
     instance_member_inference_mixin.main();
+    language_version.main();
     local_function.main();
     local_variable.main();
     metadata.main();
@@ -75,7 +80,10 @@ main() {
     namespace.main();
     non_nullable.main();
     optional_const.main();
+    prefix_expression.main();
+    prefixed_identifier.main();
     property_access.main();
+    simple_identifier.main();
     top_type_inference.main();
     type_inference.main();
   }, name: 'resolution');

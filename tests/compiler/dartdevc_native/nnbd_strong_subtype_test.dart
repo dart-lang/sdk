@@ -22,9 +22,6 @@ class E<T, S> {}
 class F extends E<B, B> {}
 
 void main() {
-  // Run tests with strict subtype checks.
-  strictSubtypeChecks(true);
-
   // Top type symmetry.
   // Object? <: dynamic
   checkSubtype(nullable(Object), dynamic);

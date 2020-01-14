@@ -31,7 +31,7 @@ class UpdateContentTest extends AbstractAnalysisTest {
   @override
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_ERRORS) {
-      var decoded = new AnalysisErrorsParams.fromNotification(notification);
+      var decoded = AnalysisErrorsParams.fromNotification(notification);
       String _format(AnalysisError e) =>
           "${e.location.startLine}: ${e.message}";
       filesErrors[decoded.file] = decoded.errors.map(_format).toList();
@@ -52,7 +52,7 @@ class UpdateContentTest extends AbstractAnalysisTest {
     String id = 'myId';
     try {
       server.updateContent(id, {
-        testFile: new ChangeContentOverlay([new SourceEdit(8, 3, 'bar')])
+        testFile: ChangeContentOverlay([SourceEdit(8, 3, 'bar')])
       });
       fail('Expected an exception to be thrown');
     } on RequestFailure catch (e) {
@@ -62,7 +62,7 @@ class UpdateContentTest extends AbstractAnalysisTest {
   }
 
   test_invalidFilePathFormat_notAbsolute() async {
-    var request = new AnalysisUpdateContentParams(
+    var request = AnalysisUpdateContentParams(
       {'test.dart': AddContentOverlay('')},
     ).toRequest('0');
     var response = await waitResponse(request);
@@ -73,7 +73,7 @@ class UpdateContentTest extends AbstractAnalysisTest {
   }
 
   test_invalidFilePathFormat_notNormalized() async {
-    var request = new AnalysisUpdateContentParams(
+    var request = AnalysisUpdateContentParams(
       {convertPath('/foo/../bar/test.dart'): AddContentOverlay('')},
     ).toRequest('0');
     var response = await waitResponse(request);
@@ -99,7 +99,7 @@ library baz;
 f(int i) {}
 ''').path;
     Request request =
-        new AnalysisSetAnalysisRootsParams([project1path, project2path], [])
+        AnalysisSetAnalysisRootsParams([project1path, project2path], [])
             .toRequest('0');
     handleSuccessfulRequest(request);
     {
@@ -110,7 +110,7 @@ f(int i) {}
       expect(filesErrors[barPath], hasLength(1));
       // Overlay the content of baz.dart to eliminate the errors.
       server.updateContent('1', {
-        bazPath: new AddContentOverlay('''
+        bazPath: AddContentOverlay('''
 library baz;
 f() {}
 ''')
@@ -130,10 +130,10 @@ f() {}
     // The list of errors doesn't include errors for '/project/target.dart'.
     Folder project = newFolder('/project');
     handleSuccessfulRequest(
-        new AnalysisSetAnalysisRootsParams([project.path], []).toRequest('0'));
+        AnalysisSetAnalysisRootsParams([project.path], []).toRequest('0'));
 
     server.updateContent('1',
-        {'/project/main.dart': new AddContentOverlay('import "target.dart";')});
+        {'/project/main.dart': AddContentOverlay('import "target.dart";')});
     await server.onAnalysisComplete;
     expect(filesErrors, {
       '/project/main.dart': ["1: Target of URI doesn't exist: 'target.dart'."],
@@ -141,7 +141,7 @@ f() {}
     });
 
     server.updateContent('1',
-        {'/project/target.dart': new AddContentOverlay('import "none.dart";')});
+        {'/project/target.dart': AddContentOverlay('import "none.dart";')});
     await server.onAnalysisComplete;
     expect(filesErrors, {
       '/project/main.dart': ["1: Unused import."],
@@ -156,7 +156,7 @@ f() {}
     var folderPath1 = newFolder('/User/project1').path;
     var folderPath2 = newFolder('/User/project2').path;
 
-    handleSuccessfulRequest(new AnalysisSetAnalysisRootsParams(
+    handleSuccessfulRequest(AnalysisSetAnalysisRootsParams(
       [folderPath1, folderPath2],
       [],
     ).toRequest('0'));
@@ -171,12 +171,12 @@ f() {}
     expect(_getUserSources(driver2), isEmpty);
 
     // add an overlay - new Source in context1
-    server.updateContent('1', {filePath1: new AddContentOverlay('')});
+    server.updateContent('1', {filePath1: AddContentOverlay('')});
     expect(_getUserSources(driver1), [filePath1]);
     expect(_getUserSources(driver2), isEmpty);
 
     // remove the overlay - no sources
-    server.updateContent('2', {filePath1: new RemoveContentOverlay()});
+    server.updateContent('2', {filePath1: RemoveContentOverlay()});
 
     // The file isn't removed from the list of added sources.
 //    expect(_getUserSources(driver1), isEmpty);
@@ -191,12 +191,12 @@ f() {}
     await server.onAnalysisComplete;
     // add an overlay
     server.updateContent(
-        '1', {testFile: new AddContentOverlay('main() {} main() {}')});
+        '1', {testFile: AddContentOverlay('main() {} main() {}')});
     await server.onAnalysisComplete;
     // clear errors and make a no-op change
     filesErrors.clear();
     server.updateContent('2', {
-      testFile: new ChangeContentOverlay([new SourceEdit(0, 4, 'main')])
+      testFile: ChangeContentOverlay([SourceEdit(0, 4, 'main')])
     });
     await server.onAnalysisComplete;
     // errors should have been resent
@@ -211,12 +211,12 @@ f() {}
     await server.onAnalysisComplete;
     // add an overlay
     server.updateContent(
-        '1', {testFile: new AddContentOverlay('main() {} main() {}')});
+        '1', {testFile: AddContentOverlay('main() {} main() {}')});
     await server.onAnalysisComplete;
     // clear errors and make a no-op change
     filesErrors.clear();
     server.updateContent('2', {
-      testFile: new ChangeContentOverlay([new SourceEdit(0, 4, 'main')])
+      testFile: ChangeContentOverlay([SourceEdit(0, 4, 'main')])
     });
     await server.onAnalysisComplete;
     // errors should have been resent
@@ -229,8 +229,8 @@ f() {}
     //
     // Add
     //
-    handleSuccessfulRequest(new AnalysisUpdateContentParams(
-            <String, dynamic>{filePath: new AddContentOverlay(fileContent)})
+    handleSuccessfulRequest(AnalysisUpdateContentParams(
+            <String, dynamic>{filePath: AddContentOverlay(fileContent)})
         .toRequest('0'));
     plugin.AnalysisUpdateContentParams params =
         pluginManager.analysisUpdateContentParams;
@@ -245,9 +245,9 @@ f() {}
     // Change
     //
     pluginManager.analysisUpdateContentParams = null;
-    handleSuccessfulRequest(new AnalysisUpdateContentParams(<String, dynamic>{
-      filePath: new ChangeContentOverlay(
-          <SourceEdit>[new SourceEdit(8, 1, "'"), new SourceEdit(18, 1, "'")])
+    handleSuccessfulRequest(AnalysisUpdateContentParams(<String, dynamic>{
+      filePath: ChangeContentOverlay(
+          <SourceEdit>[SourceEdit(8, 1, "'"), SourceEdit(18, 1, "'")])
     }).toRequest('1'));
     params = pluginManager.analysisUpdateContentParams;
     expect(params, isNotNull);
@@ -261,9 +261,8 @@ f() {}
     // Remove
     //
     pluginManager.analysisUpdateContentParams = null;
-    handleSuccessfulRequest(new AnalysisUpdateContentParams(
-            <String, dynamic>{filePath: new RemoveContentOverlay()})
-        .toRequest('2'));
+    handleSuccessfulRequest(AnalysisUpdateContentParams(
+        <String, dynamic>{filePath: RemoveContentOverlay()}).toRequest('2'));
     params = pluginManager.analysisUpdateContentParams;
     expect(params, isNotNull);
     files = params.files;

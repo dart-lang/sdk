@@ -11,7 +11,7 @@ class SourceRange {
   /**
    * An empty source range (a range with offset `0` and length `0`).
    */
-  static const SourceRange EMPTY = const SourceRange(0, 0);
+  static const SourceRange EMPTY = SourceRange(0, 0);
 
   /**
    * The 0-based index of the first character of the source range.

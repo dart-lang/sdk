@@ -31,10 +31,8 @@ class C^ extends B {}
       positionFromMarker(content),
     );
 
-    expect(
-        res,
-        equals(
-            new Location(mainFileUri.toString(), rangeFromMarkers(content))));
+    expect(res,
+        equals(Location(mainFileUri.toString(), rangeFromMarkers(content))));
   }
 
   test_insideClass() async {
@@ -54,10 +52,8 @@ class C extends B {
       positionFromMarker(content),
     );
 
-    expect(
-        res,
-        equals(
-            new Location(mainFileUri.toString(), rangeFromMarkers(content))));
+    expect(res,
+        equals(Location(mainFileUri.toString(), rangeFromMarkers(content))));
   }
 
   test_insideMethod() async {
@@ -82,10 +78,8 @@ class C extends B {
       positionFromMarker(content),
     );
 
-    expect(
-        res,
-        equals(
-            new Location(mainFileUri.toString(), rangeFromMarkers(content))));
+    expect(res,
+        equals(Location(mainFileUri.toString(), rangeFromMarkers(content))));
   }
 
   test_methodName() async {
@@ -110,10 +104,8 @@ class C extends B {
       positionFromMarker(content),
     );
 
-    expect(
-        res,
-        equals(
-            new Location(mainFileUri.toString(), rangeFromMarkers(content))));
+    expect(res,
+        equals(Location(mainFileUri.toString(), rangeFromMarkers(content))));
   }
 
   test_methodReturnType() async {
@@ -138,9 +130,7 @@ class C extends B {
       positionFromMarker(content),
     );
 
-    expect(
-        res,
-        equals(
-            new Location(mainFileUri.toString(), rangeFromMarkers(content))));
+    expect(res,
+        equals(Location(mainFileUri.toString(), rangeFromMarkers(content))));
   }
 }

@@ -19,9 +19,9 @@ main(List<String> args) async {
   Directory dataDir = Directory.fromUri(Platform.script.resolve(
       '../../../_fe_analyzer_shared/test/flow_analysis/assigned_variables/'
       'data'));
-  await runTests(dataDir,
+  await runTests<_Data>(dataDir,
       args: args,
-      supportedMarkers: sharedMarkers,
+      supportedMarkers: cfeAnalyzerMarkers,
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
       runTest: runTestFor(
@@ -98,7 +98,8 @@ class _AssignedVariablesDataExtractor extends AstDataExtractor<_Data> {
   Set<String> _convertVars(Iterable<PromotableElement> x) =>
       x.map((e) => e.name).toSet();
 
-  void _handlePossibleTopLevelDeclaration(AstNode node, void callback()) {
+  void _handlePossibleTopLevelDeclaration(
+      AstNode node, void Function() callback) {
     if (_currentDeclaration == null) {
       _currentDeclaration = node;
       _currentAssignedVariables = _flowResult.assignedVariables[node];

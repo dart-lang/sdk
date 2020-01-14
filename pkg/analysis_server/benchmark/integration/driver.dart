@@ -39,9 +39,9 @@ class Driver extends IntegrationTestMixin {
    * The amount of time to give the server to respond to a shutdown request
    * before forcibly terminating it.
    */
-  static const Duration SHUTDOWN_TIMEOUT = const Duration(seconds: 5);
+  static const Duration SHUTDOWN_TIMEOUT = Duration(seconds: 5);
 
-  final Logger logger = new Logger('Driver');
+  final Logger logger = Logger('Driver');
 
   /**
    * The diagnostic port for Analysis Server or `null` if none.
@@ -59,12 +59,10 @@ class Driver extends IntegrationTestMixin {
   /**
    * The results collected while running analysis server.
    */
-  final Results results = new Results();
+  final Results results = Results();
 
-  /**
-   * The [Completer] for [runComplete].
-   */
-  Completer<Results> _runCompleter = new Completer<Results>();
+  /// The [Completer] for [runComplete].
+  final Completer<Results> _runCompleter = Completer<Results>();
 
   Driver({this.diagnosticPort});
 
@@ -103,8 +101,8 @@ class Driver extends IntegrationTestMixin {
   Future startServer() async {
     logger.log(Level.FINE, 'starting server');
     initializeInttestMixin();
-    server = new Server();
-    Completer serverConnected = new Completer();
+    server = Server();
+    Completer serverConnected = Completer();
     onServerConnected.listen((_) {
       logger.log(Level.FINE, 'connected to server');
       serverConnected.complete();
@@ -155,7 +153,7 @@ class Driver extends IntegrationTestMixin {
 class Measurement {
   final String tag;
   final bool notification;
-  final List<Duration> elapsedTimes = new List<Duration>();
+  final List<Duration> elapsedTimes = List<Duration>();
   int errorCount = 0;
   int unexpectedResultCount = 0;
 
@@ -188,18 +186,18 @@ class Measurement {
     double variance = differenceFromMeanSquared / count;
     int standardDeviation = sqrt(variance).round();
 
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     _printColumn(sb, tag, keyLen);
     _printColumn(sb, count.toString(), 6, rightJustified: true);
     _printColumn(sb, errorCount.toString(), 6, rightJustified: true);
     _printColumn(sb, unexpectedResultCount.toString(), 6, rightJustified: true);
-    _printDuration(sb, new Duration(microseconds: meanTime));
+    _printDuration(sb, Duration(microseconds: meanTime));
     _printDuration(sb, time90th);
     _printDuration(sb, time99th);
-    _printDuration(sb, new Duration(microseconds: standardDeviation));
+    _printDuration(sb, Duration(microseconds: standardDeviation));
     _printDuration(sb, minTime);
     _printDuration(sb, maxTime);
-    _printDuration(sb, new Duration(microseconds: totalTimeMicros));
+    _printDuration(sb, Duration(microseconds: totalTimeMicros));
     print(sb.toString());
   }
 
@@ -225,7 +223,7 @@ class Measurement {
  * while running the analysis server
  */
 class Results {
-  Map<String, Measurement> measurements = new Map<String, Measurement>();
+  Map<String, Measurement> measurements = Map<String, Measurement>();
 
   /**
    * Display results on stdout.
@@ -275,7 +273,7 @@ class Results {
       {bool notification = false, bool success = true}) {
     Measurement measurement = measurements[tag];
     if (measurement == null) {
-      measurement = new Measurement(tag, notification);
+      measurement = Measurement(tag, notification);
       measurements[tag] = measurement;
     }
     measurement.record(success, elapsed);
@@ -286,7 +284,7 @@ class Results {
   }
 
   void _printGroupHeader(String groupName, int keyLen) {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     _printColumn(sb, groupName, keyLen);
     _printColumn(sb, 'count', 6, rightJustified: true);
     _printColumn(sb, 'error', 6, rightJustified: true);
@@ -304,7 +302,7 @@ class Results {
 
   void _printTotals(int keyLen, int totalCount, int totalErrorCount,
       int totalUnexpectedResultCount) {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     _printColumn(sb, 'Totals', keyLen);
     _printColumn(sb, totalCount.toString(), 6, rightJustified: true);
     _printColumn(sb, totalErrorCount.toString(), 6, rightJustified: true);

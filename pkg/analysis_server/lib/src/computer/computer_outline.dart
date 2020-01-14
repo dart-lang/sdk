@@ -76,7 +76,7 @@ class DartUnitOutlineComputer {
 
   List<Outline> _addFunctionBodyOutlines(FunctionBody body) {
     List<Outline> contents = <Outline>[];
-    body.accept(new _FunctionBodyOutlinesVisitor(this, contents));
+    body.accept(_FunctionBodyOutlinesVisitor(this, contents));
     return contents;
   }
 
@@ -90,14 +90,13 @@ class DartUnitOutlineComputer {
     CharacterLocation lineLocation = resolvedUnit.lineInfo.getLocation(offset);
     int startLine = lineLocation.lineNumber;
     int startColumn = lineLocation.columnNumber;
-    return new Location(
-        resolvedUnit.path, offset, length, startLine, startColumn);
+    return Location(resolvedUnit.path, offset, length, startLine, startColumn);
   }
 
   Outline _newClassOutline(ClassDeclaration node, List<Outline> classContents) {
     SimpleIdentifier nameNode = node.name;
     String name = nameNode.name;
-    Element element = new Element(
+    Element element = Element(
         ElementKind.CLASS,
         name,
         Element.makeFlags(
@@ -112,7 +111,7 @@ class DartUnitOutlineComputer {
   Outline _newClassTypeAlias(ClassTypeAlias node) {
     SimpleIdentifier nameNode = node.name;
     String name = nameNode.name;
-    Element element = new Element(
+    Element element = Element(
         ElementKind.CLASS_TYPE_ALIAS,
         name,
         Element.makeFlags(
@@ -140,7 +139,7 @@ class DartUnitOutlineComputer {
     }
     FormalParameterList parameters = constructor.parameters;
     String parametersStr = _safeToSource(parameters);
-    Element element = new Element(
+    Element element = Element(
         ElementKind.CONSTRUCTOR,
         name,
         Element.makeFlags(
@@ -154,7 +153,7 @@ class DartUnitOutlineComputer {
   Outline _newEnumConstant(EnumConstantDeclaration node) {
     SimpleIdentifier nameNode = node.name;
     String name = nameNode.name;
-    Element element = new Element(
+    Element element = Element(
         ElementKind.ENUM_CONSTANT,
         name,
         Element.makeFlags(
@@ -167,7 +166,7 @@ class DartUnitOutlineComputer {
   Outline _newEnumOutline(EnumDeclaration node, List<Outline> children) {
     SimpleIdentifier nameNode = node.name;
     String name = nameNode.name;
-    Element element = new Element(
+    Element element = Element(
         ElementKind.ENUM,
         name,
         Element.makeFlags(
@@ -181,7 +180,7 @@ class DartUnitOutlineComputer {
       ExtensionDeclaration node, List<Outline> extensionContents) {
     SimpleIdentifier nameNode = node.name;
     String name = nameNode?.name ?? '';
-    Element element = new Element(
+    Element element = Element(
         ElementKind.EXTENSION,
         name,
         Element.makeFlags(
@@ -208,7 +207,7 @@ class DartUnitOutlineComputer {
     }
     String parametersStr = _safeToSource(parameters);
     String returnTypeStr = _safeToSource(returnType);
-    Element element = new Element(
+    Element element = Element(
         kind,
         name,
         Element.makeFlags(
@@ -231,7 +230,7 @@ class DartUnitOutlineComputer {
     FormalParameterList parameters = node.parameters;
     String parametersStr = _safeToSource(parameters);
     String returnTypeStr = _safeToSource(returnType);
-    Element element = new Element(
+    Element element = Element(
         ElementKind.FUNCTION_TYPE_ALIAS,
         name,
         Element.makeFlags(
@@ -252,7 +251,7 @@ class DartUnitOutlineComputer {
     FormalParameterList parameters = functionType?.parameters;
     String parametersStr = _safeToSource(parameters);
     String returnTypeStr = _safeToSource(returnType);
-    Element element = new Element(
+    Element element = Element(
         ElementKind.FUNCTION_TYPE_ALIAS,
         name,
         Element.makeFlags(
@@ -280,7 +279,7 @@ class DartUnitOutlineComputer {
     }
     String parametersStr = parameters?.toSource();
     String returnTypeStr = _safeToSource(returnType);
-    Element element = new Element(
+    Element element = Element(
         kind,
         name,
         Element.makeFlags(
@@ -300,7 +299,7 @@ class DartUnitOutlineComputer {
     node.firstTokenAfterCommentAndMetadata;
     SimpleIdentifier nameNode = node.name;
     String name = nameNode.name;
-    Element element = new Element(
+    Element element = Element(
         ElementKind.MIXIN,
         name,
         Element.makeFlags(
@@ -312,7 +311,7 @@ class DartUnitOutlineComputer {
   }
 
   Outline _newUnitOutline(List<Outline> unitContents) {
-    Element element = new Element(
+    Element element = Element(
         ElementKind.COMPILATION_UNIT, '<unit>', Element.makeFlags(),
         location: _getLocationNode(resolvedUnit.unit));
     return _nodeOutline(resolvedUnit.unit, element, unitContents);
@@ -322,7 +321,7 @@ class DartUnitOutlineComputer {
       VariableDeclaration variable, bool isStatic) {
     SimpleIdentifier nameNode = variable.name;
     String name = nameNode.name;
-    Element element = new Element(
+    Element element = Element(
         kind,
         name,
         Element.makeFlags(
@@ -359,7 +358,7 @@ class DartUnitOutlineComputer {
 
     int length = end - offset;
     int codeLength = node.end - codeOffset;
-    return new Outline(element, offset, length, codeOffset, codeLength,
+    return Outline(element, offset, length, codeOffset, codeLength,
         children: nullIfEmpty(children));
   }
 
@@ -455,13 +454,13 @@ class _FunctionBodyOutlinesVisitor extends RecursiveAstVisitor {
         outlineComputer.flutter.isWidgetCreation(node)) {
       List<Outline> children = <Outline>[];
       node.argumentList
-          .accept(new _FunctionBodyOutlinesVisitor(outlineComputer, children));
+          .accept(_FunctionBodyOutlinesVisitor(outlineComputer, children));
 
       String text = outlineComputer.flutter.getWidgetPresentationText(node);
-      Element element = new Element(ElementKind.CONSTRUCTOR_INVOCATION, text, 0,
+      Element element = Element(ElementKind.CONSTRUCTOR_INVOCATION, text, 0,
           location: outlineComputer._getLocationOffsetLength(node.offset, 0));
 
-      contents.add(new Outline(
+      contents.add(Outline(
           element, node.offset, node.length, node.offset, node.length,
           children: nullIfEmpty(children)));
     } else {
@@ -497,17 +496,17 @@ class _FunctionBodyOutlinesVisitor extends RecursiveAstVisitor {
       String executableName = nameNode.name;
       String description = extractString(node.argumentList?.arguments);
       String name = '$executableName("$description")';
-      Element element = new Element(kind, name, 0,
+      Element element = Element(kind, name, 0,
           location: outlineComputer._getLocationNode(nameNode));
-      contents.add(new Outline(
+      contents.add(Outline(
           element, node.offset, node.length, node.offset, node.length,
           children: nullIfEmpty(children)));
     }
 
     if (isGroup(executableElement)) {
       List<Outline> groupContents = <Outline>[];
-      node.argumentList.accept(
-          new _FunctionBodyOutlinesVisitor(outlineComputer, groupContents));
+      node.argumentList
+          .accept(_FunctionBodyOutlinesVisitor(outlineComputer, groupContents));
       addOutlineNode(ElementKind.UNIT_TEST_GROUP, groupContents);
     } else if (isTest(executableElement)) {
       addOutlineNode(ElementKind.UNIT_TEST_TEST);

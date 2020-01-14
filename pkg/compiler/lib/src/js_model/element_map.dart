@@ -102,9 +102,11 @@ abstract class JsToElementMap {
       ir.StaticInvocation node);
 
   /// Computes the [ConstantValue] for the constant [expression].
-  // TODO(johnniwinther): Move to [KernelToElementMapForBuilding]. This is only
-  // used in impact builder for symbol constants.
-  ConstantValue getConstantValue(ir.Expression expression,
+  // TODO(johnniwinther,sigmund): Remove the need for [memberContext]. This is
+  //  only needed because effectively constant expressions are not replaced by
+  //  constant expressions during resolution.
+  ConstantValue getConstantValue(
+      ir.Member memberContext, ir.Expression expression,
       {bool requireConstant: true, bool implicitNull: false});
 
   /// Return the [ImportEntity] corresponding to [node].

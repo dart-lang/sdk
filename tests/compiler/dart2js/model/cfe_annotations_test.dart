@@ -443,7 +443,7 @@ main(List<String> args) {
         }
       }
 
-      testAll(compiler.resolutionWorldBuilder.closedWorldForTesting.nativeData);
+      testAll(compiler.frontendClosedWorldForTesting.nativeData);
       if (useIr) {
         testAll(new NativeDataImpl.fromIr(elementMap, annotationData));
       }

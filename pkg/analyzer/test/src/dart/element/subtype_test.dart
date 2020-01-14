@@ -6,11 +6,12 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_visitor.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
-import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/resolver.dart' show TypeSystemImpl;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -271,7 +272,7 @@ class NonNullableSubtypingCompoundTest extends _SubtypingCompoundTestBase {
 
 @reflectiveTest
 class SubtypeTest extends _SubtypingTestBase {
-  Map<String, DartType> _types = {};
+  final Map<String, DartType> _types = {};
 
   void assertExpectedString(TypeImpl type, String expectedString) {
     if (expectedString != null) {
@@ -1405,7 +1406,7 @@ class SubtypeTest extends _SubtypingTestBase {
       functionTypeStar(
         returnType: voidNone,
       ),
-      strT0: 'void Function({a: int*})*',
+      strT0: 'void Function({int* a})*',
       strT1: 'void Function()*',
     );
   }
@@ -1424,7 +1425,7 @@ class SubtypeTest extends _SubtypingTestBase {
         ],
         returnType: voidNone,
       ),
-      strT0: 'void Function({a: int*})*',
+      strT0: 'void Function({int* a})*',
       strT1: 'void Function(int*)*',
     );
   }
@@ -1444,7 +1445,7 @@ class SubtypeTest extends _SubtypingTestBase {
         returnType: voidNone,
       ),
       strT0: 'void Function(int*)*',
-      strT1: 'void Function({a: int*})*',
+      strT1: 'void Function({int* a})*',
     );
   }
 
@@ -1462,8 +1463,8 @@ class SubtypeTest extends _SubtypingTestBase {
         ],
         returnType: voidNone,
       ),
-      strT0: 'void Function({a: int*})*',
-      strT1: 'void Function({a: int*})*',
+      strT0: 'void Function({int* a})*',
+      strT1: 'void Function({int* a})*',
     );
   }
 
@@ -1481,8 +1482,8 @@ class SubtypeTest extends _SubtypingTestBase {
         ],
         returnType: voidNone,
       ),
-      strT0: 'void Function({a: int*})*',
-      strT1: 'void Function({b: int*})*',
+      strT0: 'void Function({int* a})*',
+      strT1: 'void Function({int* b})*',
     );
   }
 
@@ -1500,8 +1501,8 @@ class SubtypeTest extends _SubtypingTestBase {
         ],
         returnType: voidNone,
       ),
-      strT0: 'void Function({a: Object*})*',
-      strT1: 'void Function({a: int*})*',
+      strT0: 'void Function({Object* a})*',
+      strT1: 'void Function({int* a})*',
     );
   }
 
@@ -1519,8 +1520,8 @@ class SubtypeTest extends _SubtypingTestBase {
         ],
         returnType: voidNone,
       ),
-      strT0: 'void Function({a: int*})*',
-      strT1: 'void Function({a: Object*})*',
+      strT0: 'void Function({int* a})*',
+      strT1: 'void Function({Object* a})*',
     );
   }
 
@@ -1540,8 +1541,8 @@ class SubtypeTest extends _SubtypingTestBase {
         ],
         returnType: voidNone,
       ),
-      strT0: 'void Function(int*, {a: int*})*',
-      strT1: 'void Function(int*, {a: int*})*',
+      strT0: 'void Function(int*, {int* a})*',
+      strT1: 'void Function(int*, {int* a})*',
     );
   }
 
@@ -1559,8 +1560,8 @@ class SubtypeTest extends _SubtypingTestBase {
         ],
         returnType: voidNone,
       ),
-      strT0: 'void Function({a: int*})*',
-      strT1: 'void Function({a: double*})*',
+      strT0: 'void Function({int* a})*',
+      strT1: 'void Function({double* a})*',
     );
   }
 
@@ -1579,8 +1580,8 @@ class SubtypeTest extends _SubtypingTestBase {
         ],
         returnType: voidNone,
       ),
-      strT0: 'void Function({a: int*})*',
-      strT1: 'void Function({a: int*, b: int*})*',
+      strT0: 'void Function({int* a})*',
+      strT1: 'void Function({int* a, int* b})*',
     );
   }
 
@@ -1599,8 +1600,8 @@ class SubtypeTest extends _SubtypingTestBase {
         ],
         returnType: voidNone,
       ),
-      strT0: 'void Function({a: int*, b: int*})*',
-      strT1: 'void Function({a: int*})*',
+      strT0: 'void Function({int* a, int* b})*',
+      strT1: 'void Function({int* a})*',
     );
   }
 
@@ -1621,8 +1622,8 @@ class SubtypeTest extends _SubtypingTestBase {
         ],
         returnType: voidNone,
       ),
-      strT0: 'void Function({a: int*, b: int*, c: int*})*',
-      strT1: 'void Function({a: int*, c: int*})*',
+      strT0: 'void Function({int* a, int* b, int* c})*',
+      strT1: 'void Function({int* a, int* c})*',
     );
   }
 
@@ -1643,8 +1644,8 @@ class SubtypeTest extends _SubtypingTestBase {
         ],
         returnType: voidNone,
       ),
-      strT0: 'void Function({a: int*, b: int*, c: int*})*',
-      strT1: 'void Function({b: int*, c: int*})*',
+      strT0: 'void Function({int* a, int* b, int* c})*',
+      strT1: 'void Function({int* b, int* c})*',
     );
   }
 
@@ -1664,8 +1665,8 @@ class SubtypeTest extends _SubtypingTestBase {
         ],
         returnType: voidNone,
       ),
-      strT0: 'void Function({a: int*, b: int*, c: int*})*',
-      strT1: 'void Function({c: int*})*',
+      strT0: 'void Function({int* a, int* b, int* c})*',
+      strT1: 'void Function({int* c})*',
     );
   }
 
@@ -1998,8 +1999,8 @@ class SubtypeTest extends _SubtypingTestBase {
         ],
         returnType: numStar,
       ),
-      strT0: 'num* Function({x: num*})*',
-      strT1: 'num* Function({x: int*})*',
+      strT0: 'num* Function({num* x})*',
+      strT1: 'num* Function({int* x})*',
     );
 
     isSubtype(
@@ -2017,8 +2018,8 @@ class SubtypeTest extends _SubtypingTestBase {
         ],
         returnType: numStar,
       ),
-      strT0: 'num* Function(num*, {x: num*})*',
-      strT1: 'num* Function(int*, {x: int*})*',
+      strT0: 'num* Function(num*, {num* x})*',
+      strT1: 'num* Function(int*, {int* x})*',
     );
 
     isSubtype(
@@ -2034,8 +2035,8 @@ class SubtypeTest extends _SubtypingTestBase {
         ],
         returnType: numStar,
       ),
-      strT0: 'int* Function({x: num*})*',
-      strT1: 'num* Function({x: num*})*',
+      strT0: 'int* Function({num* x})*',
+      strT1: 'num* Function({num* x})*',
     );
 
     isNotSubtype(
@@ -2051,8 +2052,8 @@ class SubtypeTest extends _SubtypingTestBase {
         ],
         returnType: numStar,
       ),
-      strT0: 'int* Function({x: int*})*',
-      strT1: 'num* Function({x: num*})*',
+      strT0: 'int* Function({int* x})*',
+      strT1: 'num* Function({num* x})*',
     );
   }
 
@@ -2156,15 +2157,15 @@ class SubtypeTest extends _SubtypingTestBase {
     isSubtype(
       F1,
       F0,
-      strT0: 'void Function({a: int})',
-      strT1: 'void Function({required a: int})',
+      strT0: 'void Function({int a})',
+      strT1: 'void Function({required int a})',
     );
 
     isNotSubtype(
       F0,
       F1,
-      strT0: 'void Function({required a: int})',
-      strT1: 'void Function({a: int})',
+      strT0: 'void Function({required int a})',
+      strT1: 'void Function({int a})',
     );
   }
 
@@ -2179,7 +2180,7 @@ class SubtypeTest extends _SubtypingTestBase {
       functionTypeNone(
         returnType: voidNone,
       ),
-      strT0: 'void Function({required a: int})',
+      strT0: 'void Function({required int a})',
       strT1: 'void Function()',
     );
 
@@ -2197,8 +2198,8 @@ class SubtypeTest extends _SubtypingTestBase {
           namedParameter(name: 'b', type: intNone),
         ],
       ),
-      strT0: 'void Function({required a: int, b: int})',
-      strT1: 'void Function({b: int})',
+      strT0: 'void Function({required int a, int b})',
+      strT1: 'void Function({int b})',
     );
   }
 
@@ -5917,19 +5918,19 @@ class SubtypeTest extends _SubtypingTestBase {
     for (var typeParameter in typeParameterCollector.typeParameters) {
       if (typeParameter is TypeParameterMember) {
         var base = typeParameter.declaration;
-        var baseBound = base.bound as TypeImpl;
+        var baseBound = base.bound;
         if (baseBound != null) {
-          var baseBoundStr = baseBound.toString(withNullability: true);
+          var baseBoundStr = _typeStr(baseBound);
           typeStr += ', ${typeParameter.name} extends ' + baseBoundStr;
         }
 
-        var bound = typeParameter.bound as TypeImpl;
-        var boundStr = bound.toString(withNullability: true);
+        var bound = typeParameter.bound;
+        var boundStr = _typeStr(bound);
         typeStr += ', ${typeParameter.name} & ' + boundStr;
       } else {
-        var bound = typeParameter.bound as TypeImpl;
+        var bound = typeParameter.bound;
         if (bound != null) {
-          var boundStr = bound.toString(withNullability: true);
+          var boundStr = _typeStr(bound);
           typeStr += ', ${typeParameter.name} extends ' + boundStr;
         }
       }
@@ -5938,7 +5939,7 @@ class SubtypeTest extends _SubtypingTestBase {
   }
 
   static String _typeStr(DartType type) {
-    return (type as TypeImpl).toString(withNullability: true);
+    return type.getDisplayString(withNullability: true);
   }
 }
 
@@ -6107,12 +6108,13 @@ class _SubtypingCompoundTestBase extends _SubtypingTestBase {
   }
 
   static String _typeStr(DartType type) {
-    return (type as TypeImpl).toString(withNullability: true);
+    return type.getDisplayString(withNullability: true);
   }
 }
 
 @reflectiveTest
 class _SubtypingTestBase with ElementsTypesMixin {
+  @override
   TypeProvider typeProvider;
 
   TypeSystemImpl typeSystem;
@@ -6131,12 +6133,12 @@ class _SubtypingTestBase with ElementsTypesMixin {
 }
 
 class _TypeParameterCollector extends DartTypeVisitor<void> {
-  final Set<TypeParameterElement> typeParameters = Set();
+  final Set<TypeParameterElement> typeParameters = {};
 
   /// We don't need to print bounds for these type parameters, because
   /// they are already included into the function type itself, and cannot
   /// be promoted.
-  final Set<TypeParameterElement> functionTypeParameters = Set();
+  final Set<TypeParameterElement> functionTypeParameters = {};
 
   @override
   void defaultDartType(DartType type) {

@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
@@ -64,12 +65,16 @@ class DriverResolutionTest with ResourceProviderMixin, ResolutionTest {
         resourceProvider,
         byteStore,
         FileContentOverlay(),
-        null,
+        ContextRoot(
+          convertPath('/test'),
+          [],
+          pathContext: resourceProvider.pathContext,
+        ),
         SourceFactory([
           DartUriResolver(sdk),
           PackageMapUriResolver(resourceProvider, packageMap),
           ResourceUriResolver(resourceProvider)
-        ], null, resourceProvider),
+        ]),
         analysisOptions);
 
     scheduler.start();

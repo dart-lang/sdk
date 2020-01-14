@@ -944,9 +944,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
                 disableLazyReading: true)
             .readComponent(data.component,
                 checkCanonicalNames: true, createView: true);
-        initializedIncrementalSerializer =
-            incrementalSerializer?.initialize(initializationBytes, views) ??
-                false;
 
         // Check the any package-urls still point to the same file
         // (e.g. the package still exists and hasn't been updated).
@@ -961,6 +958,12 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             throw const PackageChangedError();
           }
         }
+
+        // Only initialize the incremental serializer when we know we'll
+        // actually use the data loaded from dill.
+        initializedIncrementalSerializer =
+            incrementalSerializer?.initialize(initializationBytes, views) ??
+                false;
 
         initializedFromDill = true;
         bytesLength += initializationBytes.length;

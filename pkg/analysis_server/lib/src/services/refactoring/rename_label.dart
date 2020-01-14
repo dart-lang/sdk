@@ -26,8 +26,8 @@ class RenameLabelRefactoringImpl extends RenameRefactoringImpl {
 
   @override
   Future<RefactoringStatus> checkFinalConditions() {
-    RefactoringStatus result = new RefactoringStatus();
-    return new Future.value(result);
+    RefactoringStatus result = RefactoringStatus();
+    return Future.value(result);
   }
 
   @override
@@ -39,7 +39,7 @@ class RenameLabelRefactoringImpl extends RenameRefactoringImpl {
 
   @override
   Future<void> fillChange() {
-    var processor = new RenameProcessor(workspace, change, newName);
+    var processor = RenameProcessor(workspace, change, newName);
     return processor.renameElement(element);
   }
 }

@@ -44,6 +44,7 @@ class ImportedElementsComputerTest extends AbstractContextTest {
     }
   }
 
+  @override
   setUp() {
     super.setUp();
     sourcePath = convertPath('/home/test/lib/test.dart');
@@ -60,8 +61,8 @@ printer() {
 ''';
     await _computeElements(content, selection);
     assertElements([
-      new ImportedElements('/sdk/lib/core/core.dart', '', ['String']),
-      new ImportedElements('/sdk/lib/async/async.dart', '', ['Future']),
+      ImportedElements('/sdk/lib/core/core.dart', '', ['String']),
+      ImportedElements('/sdk/lib/async/async.dart', '', ['Future']),
     ]);
   }
 
@@ -76,8 +77,8 @@ printer() {
 ''';
     await _computeElements(content, selection);
     assertElements([
-      new ImportedElements('/sdk/lib/core/core.dart', '', ['String']),
-      new ImportedElements('/sdk/lib/async/async.dart', 'a', ['Future']),
+      ImportedElements('/sdk/lib/core/core.dart', '', ['String']),
+      ImportedElements('/sdk/lib/async/async.dart', 'a', ['Future']),
     ]);
   }
 
@@ -91,7 +92,7 @@ blankLine() {
 ''';
     await _computeElements(content, selection);
     assertElements([
-      new ImportedElements('/sdk/lib/core/core.dart', '', ['String']),
+      ImportedElements('/sdk/lib/core/core.dart', '', ['String']),
     ]);
   }
 
@@ -106,7 +107,7 @@ blankLine() {
 ''';
     await _computeElements(content, selection);
     assertElements([
-      new ImportedElements('/sdk/lib/core/core.dart', 'core', ['String']),
+      ImportedElements('/sdk/lib/core/core.dart', 'core', ['String']),
     ]);
   }
 
@@ -121,7 +122,7 @@ bool randomBool() {
 ''';
     await _computeElements(content, selection);
     assertElements([
-      new ImportedElements('/sdk/lib/math/math.dart', '', ['Random']),
+      ImportedElements('/sdk/lib/math/math.dart', '', ['Random']),
     ]);
   }
 
@@ -166,8 +167,8 @@ $selection
 ''';
     await _computeElements(content, selection);
     assertElements([
-      new ImportedElements('/sdk/lib/core/core.dart', '', ['String', 'print']),
-      new ImportedElements('/sdk/lib/math/math.dart', '', ['Random']),
+      ImportedElements('/sdk/lib/core/core.dart', '', ['String', 'print']),
+      ImportedElements('/sdk/lib/math/math.dart', '', ['Random']),
     ]);
   }
 
@@ -239,7 +240,7 @@ blankLine() {
 ''';
     await _computeElements(content, selection);
     assertElements([
-      new ImportedElements('/.pub-cache/foo/lib/foo.dart', '', ['A', 'B']),
+      ImportedElements('/.pub-cache/foo/lib/foo.dart', '', ['A', 'B']),
     ]);
   }
 
@@ -258,7 +259,7 @@ blankLine() {
 ''';
     await _computeElements(content, selection);
     assertElements([
-      new ImportedElements('/.pub-cache/foo/lib/foo.dart', '', ['Foo']),
+      ImportedElements('/.pub-cache/foo/lib/foo.dart', '', ['Foo']),
     ]);
   }
 
@@ -277,7 +278,7 @@ blankLine() {
 ''';
     await _computeElements(content, selection);
     assertElements([
-      new ImportedElements('/.pub-cache/foo/lib/foo.dart', 'f', ['Foo']),
+      ImportedElements('/.pub-cache/foo/lib/foo.dart', 'f', ['Foo']),
     ]);
   }
 
@@ -294,7 +295,7 @@ blankLine() {
 ''';
     await _computeElements(content, selection);
     assertElements([
-      new ImportedElements('/.pub-cache/foo/lib/foo.dart', 'f', ['foo']),
+      ImportedElements('/.pub-cache/foo/lib/foo.dart', 'f', ['foo']),
     ]);
   }
 
@@ -311,7 +312,7 @@ blankLine() {
 ''';
     await _computeElements(content, selection);
     assertElements([
-      new ImportedElements('/.pub-cache/foo/lib/foo.dart', 'f', ['foo']),
+      ImportedElements('/.pub-cache/foo/lib/foo.dart', 'f', ['foo']),
     ]);
   }
 
@@ -328,7 +329,7 @@ main() {
 ''';
     await _computeElements(content, selection);
     assertElements([
-      new ImportedElements('/.pub-cache/foo/lib/foo.dart', 'f', ['foo=']),
+      ImportedElements('/.pub-cache/foo/lib/foo.dart', 'f', ['foo=']),
     ]);
   }
 
@@ -347,7 +348,7 @@ blankLine() {
 ''';
     await _computeElements(content, selection);
     assertElements([
-      new ImportedElements('/.pub-cache/foo/lib/foo.dart', '', ['Foo']),
+      ImportedElements('/.pub-cache/foo/lib/foo.dart', '', ['Foo']),
     ]);
   }
 
@@ -368,8 +369,8 @@ blankLine() {
 ''';
     await _computeElements(content, selection);
     assertElements([
-      new ImportedElements('/.pub-cache/foo/lib/foo.dart', '', ['Foo']),
-      new ImportedElements('/.pub-cache/foo/lib/foo.dart', 'f', ['Foo']),
+      ImportedElements('/.pub-cache/foo/lib/foo.dart', '', ['Foo']),
+      ImportedElements('/.pub-cache/foo/lib/foo.dart', 'f', ['Foo']),
     ]);
   }
 
@@ -382,7 +383,7 @@ class A {
 ''';
     await _computeElements(content, selection);
     assertElements([
-      new ImportedElements(sourcePath, '', ['A']),
+      ImportedElements(sourcePath, '', ['A']),
     ]);
   }
 
@@ -395,7 +396,7 @@ blankLine() {
 ''';
     await _computeElements(content, content);
     assertElements([
-      new ImportedElements('/sdk/lib/core/core.dart', '', ['String', 'print']),
+      ImportedElements('/sdk/lib/core/core.dart', '', ['String', 'print']),
     ]);
   }
 
@@ -415,7 +416,7 @@ bool randomBool() {
     // TODO(brianwilkerson) Automatically extract the selection from the content.
     newFile(sourcePath, content: content);
     ResolvedUnitResult result = await session.getResolvedUnit(sourcePath);
-    ImportedElementsComputer computer = new ImportedElementsComputer(
+    ImportedElementsComputer computer = ImportedElementsComputer(
         result.unit, content.indexOf(selection), selection.length);
     importedElements = computer.compute();
   }

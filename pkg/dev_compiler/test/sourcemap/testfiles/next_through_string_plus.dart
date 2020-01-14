@@ -5,10 +5,10 @@
 /*Debugger:stepOver*/
 
 void main() {
-  var qux;
+  String qux;
   qux = /*bc:1*/ foo() + /*bc:2*/ bar();
   print(qux);
 }
 
-String foo() => "a";
-String bar() => "b";
+String foo() => 'a';
+String bar() => 'b';

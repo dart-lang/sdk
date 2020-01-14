@@ -35,9 +35,9 @@ class AssistsTest extends AbstractAnalysisTest {
 
   prepareAssistsAt(int offset, int length) async {
     Request request =
-        new EditGetAssistsParams(testFile, offset, length).toRequest('0');
+        EditGetAssistsParams(testFile, offset, length).toRequest('0');
     Response response = await waitResponse(request);
-    var result = new EditGetAssistsResult.fromResponse(response);
+    var result = EditGetAssistsResult.fromResponse(response);
     changes = result.assists;
   }
 
@@ -45,22 +45,21 @@ class AssistsTest extends AbstractAnalysisTest {
   void setUp() {
     super.setUp();
     createProject();
-    handler = new EditDomainHandler(server);
+    handler = EditDomainHandler(server);
   }
 
   test_fromPlugins() async {
-    PluginInfo info = new DiscoveredPluginInfo('a', 'b', 'c', null, null);
+    PluginInfo info = DiscoveredPluginInfo('a', 'b', 'c', null, null);
     String message = 'From a plugin';
-    plugin.PrioritizedSourceChange change = new plugin.PrioritizedSourceChange(
+    plugin.PrioritizedSourceChange change = plugin.PrioritizedSourceChange(
         5,
-        new SourceChange(message, edits: <SourceFileEdit>[
-          new SourceFileEdit('', 0,
-              edits: <SourceEdit>[new SourceEdit(0, 0, 'x')])
+        SourceChange(message, edits: <SourceFileEdit>[
+          SourceFileEdit('', 0, edits: <SourceEdit>[SourceEdit(0, 0, 'x')])
         ]));
-    plugin.EditGetAssistsResult result = new plugin.EditGetAssistsResult(
-        <plugin.PrioritizedSourceChange>[change]);
+    plugin.EditGetAssistsResult result =
+        plugin.EditGetAssistsResult(<plugin.PrioritizedSourceChange>[change]);
     pluginManager.broadcastResults = <PluginInfo, Future<plugin.Response>>{
-      info: new Future.value(result.toResponse('-', 1))
+      info: Future.value(result.toResponse('-', 1))
     };
 
     addTestFile('main() {}');
@@ -70,7 +69,7 @@ class AssistsTest extends AbstractAnalysisTest {
   }
 
   test_invalidFilePathFormat_notAbsolute() async {
-    var request = new EditGetAssistsParams('test.dart', 0, 0).toRequest('0');
+    var request = EditGetAssistsParams('test.dart', 0, 0).toRequest('0');
     var response = await waitResponse(request);
     expect(
       response,
@@ -80,7 +79,7 @@ class AssistsTest extends AbstractAnalysisTest {
 
   test_invalidFilePathFormat_notNormalized() async {
     var request =
-        new EditGetAssistsParams(convertPath('/foo/../bar/test.dart'), 0, 0)
+        EditGetAssistsParams(convertPath('/foo/../bar/test.dart'), 0, 0)
             .toRequest('0');
     var response = await waitResponse(request);
     expect(

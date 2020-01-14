@@ -48,14 +48,27 @@ final Map<String, List<String>> additionalRequiredClasses = {
   ],
 };
 
+/// Additional indexed top level methods required by the dev_compiler.
+final Map<String, List<String>> requiredMethods = {
+  'dart:_runtime': ['assertInterop'],
+};
+
 void main() {
   final allRequiredTypes =
       _combineMaps(CoreTypes.requiredClasses, additionalRequiredClasses);
+  final allRequiredLibraries = {
+    ...allRequiredTypes.keys,
+    ...requiredMethods.keys
+  };
   final testCoreLibraries = [
-    for (String requiredLibrary in allRequiredTypes.keys)
+    for (String requiredLibrary in allRequiredLibraries)
       Library(Uri.parse(requiredLibrary), classes: [
-        for (String requiredClass in allRequiredTypes[requiredLibrary])
+        for (String requiredClass in allRequiredTypes[requiredLibrary] ?? [])
           Class(name: requiredClass),
+      ], procedures: [
+        for (var requiredMethod in requiredMethods[requiredLibrary] ?? [])
+          Procedure(Name(requiredMethod), ProcedureKind.Method,
+              FunctionNode(EmptyStatement())),
       ]),
   ];
 
@@ -77,9 +90,10 @@ void main() {
     final manifestSink = _MemorySink();
     final codeSink = _MemorySink();
     final sourcemapSink = _MemorySink();
+    final coreTypes = CoreTypes(testComponent);
 
-    javaScriptBundler.compile(ClassHierarchy(testComponent),
-        CoreTypes(testComponent), {}, codeSink, manifestSink, sourcemapSink);
+    javaScriptBundler.compile(ClassHierarchy(testComponent, coreTypes),
+        coreTypes, {}, codeSink, manifestSink, sourcemapSink);
 
     final Map manifest = json.decode(utf8.decode(manifestSink.buffer));
     final String code = utf8.decode(codeSink.buffer);
@@ -125,9 +139,10 @@ void main() {
     final manifestSink = _MemorySink();
     final codeSink = _MemorySink();
     final sourcemapSink = _MemorySink();
+    final coreTypes = CoreTypes(testComponent);
 
-    javaScriptBundler.compile(ClassHierarchy(testComponent),
-        CoreTypes(testComponent), {}, codeSink, manifestSink, sourcemapSink);
+    javaScriptBundler.compile(ClassHierarchy(testComponent, coreTypes),
+        coreTypes, {}, codeSink, manifestSink, sourcemapSink);
 
     final code = utf8.decode(codeSink.buffer);
     final manifest = json.decode(utf8.decode(manifestSink.buffer));

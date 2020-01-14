@@ -11,7 +11,7 @@ import 'package:analysis_server_client/protocol.dart';
 import 'package:path/path.dart';
 
 /// Type of callbacks used to process notifications.
-typedef void NotificationProcessor(Notification notification);
+typedef NotificationProcessor = void Function(Notification notification);
 
 /// Instances of the class [Server] manage a server process,
 /// and facilitate communication to and from the server.
@@ -44,8 +44,8 @@ class Server {
   StreamSubscription<String> _stdoutSubscription;
 
   Server({ServerListener listener, Process process})
-      : this._listener = listener,
-        this._process = process;
+      : _listener = listener,
+        _process = process;
 
   /// Force kill the server. Returns exit code future.
   Future<int> kill({String reason = 'none'}) {
@@ -61,7 +61,7 @@ class Server {
   void listenToOutput({NotificationProcessor notificationProcessor}) {
     _stdoutSubscription = _process.stdout
         .transform(utf8.decoder)
-        .transform(new LineSplitter())
+        .transform(LineSplitter())
         .listen((String line) {
       String trimmedLine = line.trim();
 
@@ -94,8 +94,8 @@ class Server {
           _listener?.unexpectedResponse(message, id);
         }
         if (message.containsKey(Response.ERROR)) {
-          completer.completeError(new RequestError.fromJson(
-              new ResponseDecoder(null), '.error', message[Response.ERROR]));
+          completer.completeError(RequestError.fromJson(
+              ResponseDecoder(null), '.error', message[Response.ERROR]));
         } else {
           completer.complete(message[Response.RESULT]);
         }
@@ -105,7 +105,7 @@ class Server {
         if (event != null) {
           if (notificationProcessor != null) {
             notificationProcessor(
-                new Notification(event, message[Notification.PARAMS]));
+                Notification(event, message[Notification.PARAMS]));
           }
         } else {
           _listener?.unexpectedMessage(message);
@@ -114,7 +114,7 @@ class Server {
     });
     _stderrSubscription = _process.stderr
         .transform(utf8.decoder)
-        .transform(new LineSplitter())
+        .transform(LineSplitter())
         .listen((String line) {
       String trimmedLine = line.trim();
       _listener?.errorMessage(trimmedLine);
@@ -138,7 +138,7 @@ class Server {
     if (params != null) {
       command[Request.PARAMS] = params;
     }
-    final completer = new Completer<Map<String, dynamic>>();
+    final completer = Completer<Map<String, dynamic>>();
     _pendingCommands[id] = completer;
     String line = json.encode(command);
     _listener?.requestSent(line);
@@ -159,15 +159,15 @@ class Server {
     String clientVersion,
     int diagnosticPort,
     String instrumentationLogFile,
-    bool profileServer: false,
+    bool profileServer = false,
     String sdkPath,
     String serverPath,
     int servicesPort,
-    bool suppressAnalytics: true,
-    bool useAnalysisHighlight2: false,
+    bool suppressAnalytics = true,
+    bool useAnalysisHighlight2 = false,
   }) async {
     if (_process != null) {
-      throw new Exception('Process already started');
+      throw Exception('Process already started');
     }
     String dartBinary = Platform.executable;
 

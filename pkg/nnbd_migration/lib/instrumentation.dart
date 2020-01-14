@@ -129,6 +129,7 @@ enum EdgeOriginKind {
   compoundAssignment,
   defaultValue,
   dynamicAssignment,
+  enumValue,
   expressionChecks,
   fieldFormalParameter,
   fieldNotInitialized,

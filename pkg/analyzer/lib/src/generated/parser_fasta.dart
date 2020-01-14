@@ -372,6 +372,7 @@ class _Parser2 extends ParserAdapter {
   /**
    * The source being parsed.
    */
+  @override
   final Source _source;
 
   @override
@@ -380,7 +381,11 @@ class _Parser2 extends ParserAdapter {
   factory _Parser2(
       Source source, AnalysisErrorListener errorListener, FeatureSet featureSet,
       {bool allowNativeClause = false}) {
-    var errorReporter = ErrorReporter(errorListener, source);
+    var errorReporter = ErrorReporter(
+      errorListener,
+      source,
+      isNonNullableByDefault: featureSet.isEnabled(Feature.non_nullable),
+    );
     return _Parser2._(source, errorReporter, source.uri, featureSet,
         allowNativeClause: allowNativeClause);
   }
@@ -390,5 +395,6 @@ class _Parser2 extends ParserAdapter {
       : super(null, errorReporter, fileUri, featureSet,
             allowNativeClause: allowNativeClause);
 
+  @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

@@ -455,7 +455,7 @@ class Search {
   }
 
   Future<List<SearchResult>> _searchReferences_Local(Element element,
-      bool isRootNode(AstNode n), SearchedFiles searchedFiles) async {
+      bool Function(AstNode n) isRootNode, SearchedFiles searchedFiles) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     String path = element.source.fullName;
@@ -659,6 +659,7 @@ class _ContainingElementFinder extends GeneralizingElementVisitor {
 
   _ContainingElementFinder(this.offset);
 
+  @override
   visitElement(Element element) {
     if (element is ElementImpl) {
       if (element.codeOffset != null &&
@@ -860,7 +861,7 @@ class _IndexRequest {
   Future<List<SearchResult>> getRelations(
       int elementId,
       Map<IndexRelationKind, SearchResultKind> relationToResultKind,
-      Future<CompilationUnitElement> getEnclosingUnitElement()) async {
+      Future<CompilationUnitElement> Function() getEnclosingUnitElement) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     // Find the first usage of the element.
@@ -933,7 +934,7 @@ class _IndexRequest {
   Future<List<SearchResult>> getUnresolvedMemberReferences(
       String name,
       Map<IndexRelationKind, SearchResultKind> relationToResultKind,
-      Future<CompilationUnitElement> getEnclosingUnitElement()) async {
+      Future<CompilationUnitElement> Function() getEnclosingUnitElement) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     // Find the name identifier.

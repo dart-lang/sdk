@@ -231,7 +231,7 @@ main() {
 
   test_newInstance_nullElement() async {
     await indexTestUnit('');
-    var workspace = new RefactoringWorkspace([driver], searchEngine);
+    var workspace = RefactoringWorkspace([driver], searchEngine);
     var refactoring = RenameRefactoring(workspace, testAnalysisResult, null);
     expect(refactoring, isNull);
   }

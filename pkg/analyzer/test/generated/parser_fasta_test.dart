@@ -52,10 +52,8 @@ main() {
   });
 }
 
-/**
- * Type of the "parse..." methods defined in the Fasta parser.
- */
-typedef analyzer.Token ParseFunction(analyzer.Token token);
+/// Type of the "parse..." methods defined in the Fasta parser.
+typedef ParseFunction = analyzer.Token Function(analyzer.Token token);
 
 @reflectiveTest
 class ClassMemberParserTest_Fasta extends FastaParserTestCase
@@ -1904,6 +1902,7 @@ class FastaParserTestCase
   @override
   bool allowNativeClause = false;
 
+  @override
   set enableOptionalNewAndConst(bool enable) {
     // ignored
   }
@@ -2028,6 +2027,7 @@ class FastaParserTestCase
     return cascadeExpression.cascadeSections.first;
   }
 
+  @override
   CommentReference parseCommentReference(
       String referenceSource, int sourceOffset) {
     String padding = ' '.padLeft(sourceOffset - 4, 'a');
@@ -2088,7 +2088,11 @@ class FastaParserTestCase
     _fastaTokens = result.tokens;
 
     // Run parser
-    ErrorReporter errorReporter = ErrorReporter(listener, source);
+    ErrorReporter errorReporter = ErrorReporter(
+      listener,
+      source,
+      isNonNullableByDefault: false,
+    );
     fasta.Parser parser = fasta.Parser(null);
     AstBuilder astBuilder =
         AstBuilder(errorReporter, source.uri, true, featureSet);
@@ -3244,7 +3248,11 @@ class ParserProxy extends analyzer.ParserAdapter {
       {bool allowNativeClause = false, int expectedEndOffset}) {
     TestSource source = TestSource();
     var errorListener = GatheringErrorListener(checkRanges: true);
-    var errorReporter = ErrorReporter(errorListener, source);
+    var errorReporter = ErrorReporter(
+      errorListener,
+      source,
+      isNonNullableByDefault: false,
+    );
     return ParserProxy._(
         firstToken, errorReporter, null, errorListener, featureSet,
         allowNativeClause: allowNativeClause,
@@ -3260,6 +3268,7 @@ class ParserProxy extends analyzer.ParserAdapter {
     fastaParser.listener = _eventListener;
   }
 
+  @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
   @override
@@ -3277,6 +3286,7 @@ class ParserProxy extends analyzer.ParserAdapter {
     return _run('ClassOrMixinBody', () => super.parseClassMember(className));
   }
 
+  @override
   List<Combinator> parseCombinators() {
     return _run('Import', () => super.parseCombinators());
   }
@@ -3397,13 +3407,10 @@ class ParserProxy extends analyzer.ParserAdapter {
     return _run('unspecified', () => super.parseTypeParameterList());
   }
 
-  /**
-   * Runs the specified function and returns the result.
-   * It checks the enclosing listener events,
-   * that the parse consumed all of the tokens,
-   * and that the result stack is empty.
-   */
-  _run(String enclosingEvent, f()) {
+  /// Runs the specified function and returns the result. It checks the
+  /// enclosing listener events, that the parse consumed all of the tokens, and
+  /// that the result stack is empty.
+  _run(String enclosingEvent, Function() f) {
     _eventListener.begin(enclosingEvent);
 
     // Simulate error handling of parseUnit by skipping error tokens

@@ -80,27 +80,27 @@ class AbstractAnalysisTest with ResourceProviderMixin {
     }
     files.add(file);
     // set subscriptions
-    Request request = new AnalysisSetSubscriptionsParams(analysisSubscriptions)
-        .toRequest('0');
+    Request request =
+        AnalysisSetSubscriptionsParams(analysisSubscriptions).toRequest('0');
     handleSuccessfulRequest(request);
   }
 
   void addGeneralAnalysisSubscription(GeneralAnalysisService service) {
     generalServices.add(service);
-    Request request = new AnalysisSetGeneralSubscriptionsParams(generalServices)
-        .toRequest('0');
+    Request request =
+        AnalysisSetGeneralSubscriptionsParams(generalServices).toRequest('0');
     handleSuccessfulRequest(request);
   }
 
   String addTestFile(String content) {
     newFile(testFile, content: content);
-    this.testCode = content;
+    testCode = content;
     return testFile;
   }
 
   /// Create an analysis options file based on the given arguments.
   void createAnalysisOptionsFile({List<String> experiments}) {
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     if (experiments != null) {
       buffer.writeln('analyzer:');
       buffer.writeln('  enable-experiment:');
@@ -115,18 +115,18 @@ class AbstractAnalysisTest with ResourceProviderMixin {
     //
     // Create an SDK in the mock file system.
     //
-    new MockSdk(
+    MockSdk(
         generateSummaryFiles: generateSummaryFiles,
         resourceProvider: resourceProvider);
     //
     // Create server
     //
-    AnalysisServerOptions options = new AnalysisServerOptions();
-    return new AnalysisServer(
+    AnalysisServerOptions options = AnalysisServerOptions();
+    return AnalysisServer(
         serverChannel,
         resourceProvider,
         options,
-        new DartSdkManager(resourceProvider.convertPath('/sdk'), true),
+        DartSdkManager(resourceProvider.convertPath('/sdk'), true),
         InstrumentationService.NULL_SERVICE);
   }
 
@@ -135,7 +135,7 @@ class AbstractAnalysisTest with ResourceProviderMixin {
    */
   void createProject({Map<String, String> packageRoots}) {
     newFolder(projectPath);
-    Request request = new AnalysisSetAnalysisRootsParams([projectPath], [],
+    Request request = AnalysisSetAnalysisRootsParams([projectPath], [],
             packageRoots: packageRoots)
         .toRequest('0');
     handleSuccessfulRequest(request, handler: analysisHandler);
@@ -181,7 +181,7 @@ class AbstractAnalysisTest with ResourceProviderMixin {
 
   String modifyTestFile(String content) {
     modifyFile(testFile, content);
-    this.testCode = content;
+    testCode = content;
     return testFile;
   }
 
@@ -193,22 +193,22 @@ class AbstractAnalysisTest with ResourceProviderMixin {
 
   void removeGeneralAnalysisSubscription(GeneralAnalysisService service) {
     generalServices.remove(service);
-    Request request = new AnalysisSetGeneralSubscriptionsParams(generalServices)
-        .toRequest('0');
+    Request request =
+        AnalysisSetGeneralSubscriptionsParams(generalServices).toRequest('0');
     handleSuccessfulRequest(request);
   }
 
   void setPriorityFiles(List<String> files) {
-    var request = new AnalysisSetPriorityFilesParams(files).toRequest('0');
+    var request = AnalysisSetPriorityFilesParams(files).toRequest('0');
     handleSuccessfulRequest(request);
   }
 
   void setUp() {
-    serverChannel = new MockServerChannel();
+    serverChannel = MockServerChannel();
     projectPath = convertPath('/project');
     testFolder = convertPath('/project/bin');
     testFile = convertPath('/project/bin/test.dart');
-    pluginManager = new TestPluginManager();
+    pluginManager = TestPluginManager();
     server = createAnalysisServer();
     server.pluginManager = pluginManager;
     handler = analysisHandler;

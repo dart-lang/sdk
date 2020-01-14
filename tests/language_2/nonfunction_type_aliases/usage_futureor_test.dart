@@ -28,7 +28,6 @@ abstract class C {
   List<T> v11 = [];
   final T v12;
 
-  C(): v12 = T();
   C.name1(this.v10, this.v12);
   factory C.name2(T arg1, T arg2) = C.name1;
 
@@ -38,11 +37,6 @@ abstract class C {
   Map<T, T> m1(covariant T arg1, [Set<Set<T>> arg2]);
   void m2({T arg1, T arg2(T arg21, T arg22)});
 }
-
-class D1 extends T {}
-abstract class D2 extends C with T {}
-abstract class D3 implements T {}
-abstract class D4 = C with T;
 
 extension E on T {
   T foo(T t) => t;
@@ -55,13 +49,8 @@ T Function(T) id = (x) => x;
 main() {
   var v13 = <T>[];
   var v14 = <Set<T>, Set<T>>{{}: {}};
-  v14[{}] = {T()};
+  v14[{}] = {};
   var v15 = {v13};
   Set<List<T>> v16 = v15;
   v15 = v16;
-  T();
-  T.named();
-  T v17 = foo<T>(T());
-  id(v17);
-  T.staticMethod<T>();
 }

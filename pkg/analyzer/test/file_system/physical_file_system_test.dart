@@ -33,19 +33,24 @@ abstract class BaseTest extends FileSystemTestSupport {
 
   /// The absolute path to the [tempDirectory]. This path will contain a
   /// symbolic link on some operating systems.
+  @override
   String tempPath;
 
   /// A path to a folder within the [tempDirectory] that can be used by tests.
+  @override
   String defaultFolderPath;
 
   /// A path to a file within the [defaultFolderPath] that can be used by tests.
+  @override
   String defaultFilePath;
 
   /// The content used for the file at the [defaultFilePath] if it is created
   /// and no other content is provided.
+  @override
   String get defaultFileContent => 'a';
 
   /// Return the resource provider to be used by the tests.
+  @override
   PhysicalResourceProvider get provider => _provider ??= createProvider();
 
   /// Create the resource provider to be used by the tests. Subclasses can
@@ -53,6 +58,7 @@ abstract class BaseTest extends FileSystemTestSupport {
   /// used.
   PhysicalResourceProvider createProvider() => PhysicalResourceProvider(null);
 
+  @override
   File getFile({@required bool exists, String content, String filePath}) {
     File file = provider.getFile(filePath ?? defaultFilePath);
     if (exists) {
@@ -62,6 +68,7 @@ abstract class BaseTest extends FileSystemTestSupport {
     return file;
   }
 
+  @override
   Folder getFolder({@required bool exists, String folderPath}) {
     Folder folder = provider.getFolder(folderPath ?? defaultFolderPath);
     if (exists) {

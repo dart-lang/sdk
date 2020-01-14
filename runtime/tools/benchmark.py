@@ -100,12 +100,12 @@ def ProcessOptions(options):
     return True
 
 
-def GetBuildRoot(mode, arch):
-    return utils.GetBuildRoot(HOST_OS, mode, arch)
+def GetBuildRoot(mode, arch, sanitizer):
+    return utils.GetBuildRoot(HOST_OS, mode, arch, sanitizer)
 
 
-def GetDart(mode, arch):
-    executable = [abspath(join(GetBuildRoot(mode, arch), 'dart'))]
+def GetDart(mode, arch, sanitizer):
+    executable = [abspath(join(GetBuildRoot(mode, arch, sanitizer), 'dart'))]
     return executable
 
 

@@ -25,26 +25,27 @@ class AnalysisNotificationOutlineTest extends AbstractAnalysisTest {
   String libraryName;
   Outline outline;
 
-  Completer _outlineReceived = new Completer();
-  Completer _highlightsReceived = new Completer();
+  final Completer<void> _outlineReceived = Completer();
+  Completer _highlightsReceived = Completer();
 
   Future prepareOutline() {
     addAnalysisSubscription(AnalysisService.OUTLINE, testFile);
     return _outlineReceived.future;
   }
 
+  @override
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_OUTLINE) {
-      var params = new AnalysisOutlineParams.fromNotification(notification);
+      var params = AnalysisOutlineParams.fromNotification(notification);
       if (params.file == testFile) {
         fileKind = params.kind;
         libraryName = params.libraryName;
         outline = params.outline;
-        _outlineReceived.complete(null);
+        _outlineReceived.complete();
       }
     }
     if (notification.event == ANALYSIS_NOTIFICATION_HIGHLIGHTS) {
-      var params = new AnalysisHighlightsParams.fromNotification(notification);
+      var params = AnalysisHighlightsParams.fromNotification(notification);
       if (params.file == testFile) {
         _highlightsReceived?.complete(null);
         _highlightsReceived = null;

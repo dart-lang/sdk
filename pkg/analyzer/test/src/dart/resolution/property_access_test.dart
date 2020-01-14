@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'driver_resolution.dart';
@@ -10,13 +12,14 @@ import 'driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PropertyAccessResolutionTest);
+    defineReflectiveTests(PropertyAccessResolutionWithNnbdTest);
   });
 }
 
 @reflectiveTest
 class PropertyAccessResolutionTest extends DriverResolutionTest {
   test_get_error_abstractSuperMemberReference_mixinHasNoSuchMethod() async {
-    await resolveTestCode('''
+    await assertErrorsInCode('''
 class A {
   int get foo;
   noSuchMethod(im) => 1;
@@ -26,9 +29,9 @@ class B extends Object with A {
   get foo => super.foo; // ref
   noSuchMethod(im) => 2;
 }
-''');
-    assertTestErrorsWithCodes(
-        [CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
+''', [
+      error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 104, 3),
+    ]);
 
     var access = findNode.propertyAccess('foo; // ref');
     assertPropertyAccess(access, findElement.getter('foo', of: 'A'), 'int');
@@ -36,7 +39,7 @@ class B extends Object with A {
   }
 
   test_get_error_abstractSuperMemberReference_OK_superHasNoSuchMethod() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 class A {
   int get foo;
   noSuchMethod(im) => 1;
@@ -47,7 +50,6 @@ class B extends A {
   noSuchMethod(im) => 2;
 }
 ''');
-    assertNoTestErrors();
 
     var access = findNode.propertyAccess('super.foo; // ref');
     assertPropertyAccess(access, findElement.getter('foo', of: 'A'), 'int');
@@ -55,7 +57,7 @@ class B extends A {
   }
 
   test_set_error_abstractSuperMemberReference_mixinHasNoSuchMethod() async {
-    await resolveTestCode('''
+    await assertErrorsInCode('''
 class A {
   set foo(int a);
   noSuchMethod(im) {}
@@ -65,9 +67,9 @@ class B extends Object with A {
   set foo(v) => super.foo = v; // ref
   noSuchMethod(im) {}
 }
-''');
-    assertTestErrorsWithCodes(
-        [CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
+''', [
+      error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 107, 3),
+    ]);
 
     var access = findNode.propertyAccess('foo = v; // ref');
     assertPropertyAccess(
@@ -79,7 +81,7 @@ class B extends Object with A {
   }
 
   test_set_error_abstractSuperMemberReference_OK_superHasNoSuchMethod() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 class A {
   set foo(int a);
   noSuchMethod(im) => 1;
@@ -90,7 +92,6 @@ class B extends A {
   noSuchMethod(im) => 2;
 }
 ''');
-    assertNoTestErrors();
 
     var access = findNode.propertyAccess('foo = v; // ref');
     assertPropertyAccess(
@@ -99,5 +100,55 @@ class B extends A {
       'int',
     );
     assertSuperExpression(access.target);
+  }
+
+  test_tearOff_method() async {
+    await assertNoErrorsInCode('''
+class A {
+  void foo(int a) {}
+}
+
+bar() {
+  A().foo;
+}
+''');
+
+    var identifier = findNode.simple('foo;');
+    assertElement(identifier, findElement.method('foo'));
+    assertType(identifier, 'void Function(int)');
+  }
+}
+
+@reflectiveTest
+class PropertyAccessResolutionWithNnbdTest
+    extends PropertyAccessResolutionTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..contextFeatures = FeatureSet.forTesting(
+        sdkVersion: '2.6.0', additionalFeatures: [Feature.non_nullable]);
+
+  @override
+  bool get typeToStringWithNullability => true;
+
+  test_implicitCall_tearOff_nullable() async {
+    await assertErrorsInCode('''
+class A {
+  int call() => 0;
+}
+
+class B {
+  A? a;
+}
+
+int Function() foo() {
+  return B().a; // ref
+}
+''', [
+      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 85, 5),
+    ]);
+
+    var identifier = findNode.simple('a; // ref');
+    assertElement(identifier, findElement.getter('a'));
+    assertType(identifier, 'A?');
   }
 }

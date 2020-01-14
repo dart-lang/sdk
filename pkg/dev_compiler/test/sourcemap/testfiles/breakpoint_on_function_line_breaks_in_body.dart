@@ -7,5 +7,5 @@ void main() {
 }
 
 /*bl*/ /*nb*/ foo() {
-  /*s:1*/ print("hello");
+  /*s:1*/ print('hello');
 }

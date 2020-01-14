@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -17,14 +18,16 @@ main() {
 @reflectiveTest
 class TearOffTest extends DriverResolutionTest {
   test_empty_contextNotInstantiated() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 T f<T>(T x) => x;
 
 void test() {
   U Function<U>(U) context;
   context = f; // 1
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 52, 7),
+    ]);
     _assertTearOff(
       'f; // 1',
       findElement.topFunction('f'),
@@ -34,14 +37,16 @@ void test() {
   }
 
   test_empty_notGeneric() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 int f(int x) => x;
 
 void test() {
   int Function(int) context;
   context = f; // 1
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 54, 7),
+    ]);
     _assertTearOff(
       'f; // 1',
       findElement.topFunction('f'),
@@ -51,7 +56,7 @@ void test() {
   }
 
   test_notEmpty() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 T f<T>(T x) => x;
 
 class C {
@@ -74,7 +79,10 @@ void test() {
   func = C.g; // 4
   func = h; // 5
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 137, 4),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 229, 4),
+    ]);
     _assertTearOff(
       'f; // 1',
       findElement.method('f', of: 'C'),

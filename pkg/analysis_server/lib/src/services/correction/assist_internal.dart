@@ -10,6 +10,13 @@ import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
 import 'package:analysis_server/plugin/edit/assist/assist_dart.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/base_processor.dart';
+import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_list_literal.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_map_literal.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_null_aware.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_set_literal.dart';
+import 'package:analysis_server/src/services/correction/dart/exchange_operands.dart';
+import 'package:analysis_server/src/services/correction/dart/split_and_condition.dart';
 import 'package:analysis_server/src/services/correction/name_suggestion.dart';
 import 'package:analysis_server/src/services/correction/selection_analyzer.dart';
 import 'package:analysis_server/src/services/correction/statement_analyzer.dart';
@@ -24,6 +31,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
@@ -35,7 +43,7 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' hide context;
 
-typedef _SimpleIdentifierVisitor(SimpleIdentifier node);
+typedef _SimpleIdentifierVisitor = void Function(SimpleIdentifier node);
 
 /**
  * The computer for Dart assists.
@@ -72,11 +80,7 @@ class AssistProcessor extends BaseProcessor {
     }
     await _addProposal_convertIntoFinalField();
     await _addProposal_convertIntoGetter();
-    await _addProposal_convertListConstructorToListLiteral();
-    await _addProposal_convertListToSetToSetLiteral();
-    await _addProposal_convertMapConstructorToMapLiteral();
     await _addProposal_convertPartOfToUri();
-    await _addProposal_convertSetConstructorToSetLiteral();
     await _addProposal_convertToAsyncFunctionBody();
     await _addProposal_convertToBlockFunctionBody();
     await _addProposal_convertToDoubleQuotedString();
@@ -87,7 +91,9 @@ class AssistProcessor extends BaseProcessor {
     }
     await _addProposal_convertToFieldParameter();
     await _addProposal_convertToForIndexLoop();
-    await _addProposal_convertToGenericFunctionSyntax();
+    if (!_containsErrorCode({LintNames.prefer_generic_function_type_aliases})) {
+      await _addProposal_convertToGenericFunctionSyntax();
+    }
     if (!_containsErrorCode(
       {LintNames.prefer_int_literals},
     )) {
@@ -99,11 +105,6 @@ class AssistProcessor extends BaseProcessor {
     await _addProposal_convertToMultilineString();
     await _addProposal_convertToNormalParameter();
     if (!_containsErrorCode(
-      {LintNames.prefer_null_aware_operators},
-    )) {
-      await _addProposal_convertToNullAware();
-    }
-    if (!_containsErrorCode(
       {LintNames.avoid_relative_lib_imports},
     )) {
       await _addProposal_convertToPackageImport();
@@ -114,7 +115,6 @@ class AssistProcessor extends BaseProcessor {
       await _addProposal_convertToSingleQuotedString();
     }
     await _addProposal_encapsulateField();
-    await _addProposal_exchangeOperands();
     await _addProposal_flutterConvertToChildren();
     await _addProposal_flutterConvertToStatefulWidget();
     await _addProposal_flutterMoveWidgetDown();
@@ -142,12 +142,14 @@ class AssistProcessor extends BaseProcessor {
     await _addProposal_reparentFlutterList();
     await _addProposal_replaceConditionalWithIfElse();
     await _addProposal_replaceIfElseWithConditional();
+    if (!_containsErrorCode({LintNames.omit_local_variable_types})) {
+      await _addProposal_replaceWithVar();
+    }
     if (!_containsErrorCode(
       {LintNames.sort_child_properties_last},
     )) {
       await _addProposal_sortChildPropertyLast();
     }
-    await _addProposal_splitAndCondition();
     await _addProposal_splitVariableDeclaration();
     await _addProposal_surroundWith();
     if (!_containsErrorCode(
@@ -159,6 +161,9 @@ class AssistProcessor extends BaseProcessor {
       {LintNames.diagnostic_describe_all_properties},
     )) {
       await _addProposal_addDiagnosticPropertyReference();
+    }
+    if (!_containsErrorCode({LintNames.always_declare_return_types})) {
+      await _addProposal_addReturnType();
     }
     if (experimentStatus.control_flow_collections) {
       if (!_containsErrorCode(
@@ -185,6 +190,8 @@ class AssistProcessor extends BaseProcessor {
             convertToSpreads: !preferSpreadsLintFound);
       }
     }
+
+    await _addFromProducers();
 
     return assists;
   }
@@ -227,7 +234,69 @@ class AssistProcessor extends BaseProcessor {
     }
     change.id = kind.id;
     change.message = formatList(kind.message, args);
-    assists.add(new Assist(kind, change));
+    assists.add(Assist(kind, change));
+  }
+
+  Future<void> _addFromProducers() async {
+    var context = CorrectionProducerContext(
+      selectionOffset: selectionOffset,
+      selectionLength: selectionLength,
+      resolvedResult: resolvedResult,
+      workspace: workspace,
+    );
+
+    var setupSuccess = context.setupCompute();
+    if (!setupSuccess) {
+      return;
+    }
+
+    Future<void> compute(CorrectionProducer producer, AssistKind kind) async {
+      producer.configure(context);
+
+      var builder = _newDartChangeBuilder();
+      await producer.compute(builder);
+
+      _addAssistFromBuilder(builder, kind);
+    }
+
+    Future<void> computeIfNotErrorCode(
+      CorrectionProducer producer,
+      AssistKind kind,
+      Set<String> errorCodes,
+    ) async {
+      if (!_containsErrorCode(errorCodes)) {
+        await compute(producer, kind);
+      }
+    }
+
+    await computeIfNotErrorCode(
+      ConvertToListLiteral(),
+      DartAssistKind.CONVERT_TO_LIST_LITERAL,
+      {LintNames.prefer_collection_literals},
+    );
+    await computeIfNotErrorCode(
+      ConvertToMapLiteral(),
+      DartAssistKind.CONVERT_TO_MAP_LITERAL,
+      {LintNames.prefer_collection_literals},
+    );
+    await computeIfNotErrorCode(
+      ConvertToNullAware(),
+      DartAssistKind.CONVERT_TO_NULL_AWARE,
+      {LintNames.prefer_null_aware_operators},
+    );
+    await computeIfNotErrorCode(
+      ConvertToSetLiteral(),
+      DartAssistKind.CONVERT_TO_SET_LITERAL,
+      {LintNames.prefer_collection_literals},
+    );
+    await compute(
+      ExchangeOperands(),
+      DartAssistKind.EXCHANGE_OPERANDS,
+    );
+    await compute(
+      SplitAndCondition(),
+      DartAssistKind.SPLIT_AND_CONDITION,
+    );
   }
 
   Future<void> _addProposal_addDiagnosticPropertyReference() async {
@@ -237,7 +306,7 @@ class AssistProcessor extends BaseProcessor {
   }
 
   Future<void> _addProposal_addNotNullAssert() async {
-    final identifier = this.node;
+    final identifier = node;
     if (identifier is SimpleIdentifier) {
       if (identifier.parent is FormalParameter) {
         final exp = identifier.parent.thisOrAncestorMatching(
@@ -290,9 +359,15 @@ class AssistProcessor extends BaseProcessor {
     }
   }
 
+  Future<void> _addProposal_addReturnType() async {
+    final changeBuilder = await createBuilder_addReturnType();
+    _addAssistFromBuilder(changeBuilder, DartAssistKind.ADD_RETURN_TYPE);
+  }
+
   Future<void> _addProposal_assignToLocalVariable() async {
     // prepare enclosing ExpressionStatement
     ExpressionStatement expressionStatement;
+    // ignore: unnecessary_this
     for (AstNode node = this.node; node != null; node = node.parent) {
       if (node is ExpressionStatement) {
         expressionStatement = node;
@@ -320,8 +395,8 @@ class AssistProcessor extends BaseProcessor {
       return;
     }
     // prepare excluded names
-    Set<String> excluded = new Set<String>();
-    ScopedNameFinder scopedNameFinder = new ScopedNameFinder(offset);
+    Set<String> excluded = Set<String>();
+    ScopedNameFinder scopedNameFinder = ScopedNameFinder(offset);
     expression.accept(scopedNameFinder);
     excluded.addAll(scopedNameFinder.locals.keys.toSet());
     List<String> suggestions =
@@ -371,7 +446,7 @@ class AssistProcessor extends BaseProcessor {
         .any((member) => member is ConstructorDeclaration)) {
       return;
     }
-    _SuperclassReferenceFinder finder = new _SuperclassReferenceFinder();
+    _SuperclassReferenceFinder finder = _SuperclassReferenceFinder();
     classDeclaration.accept(finder);
     List<ClassElement> referencedClasses = finder.referencedClasses;
     List<InterfaceType> superclassConstraints = <InterfaceType>[];
@@ -574,128 +649,6 @@ class AssistProcessor extends BaseProcessor {
     _addAssistFromBuilder(changeBuilder, DartAssistKind.CONVERT_INTO_GETTER);
   }
 
-  Future<void> _addProposal_convertListConstructorToListLiteral() async {
-    //
-    // Ensure that this is the default constructor defined on `List`.
-    //
-    InstanceCreationExpression creation = node.thisOrAncestorOfType();
-    if (creation == null ||
-        node.offset > creation.argumentList.offset ||
-        creation.staticType.element != typeProvider.listElement ||
-        creation.constructorName.name != null ||
-        creation.argumentList.arguments.isNotEmpty) {
-      _coverageMarker();
-      return;
-    }
-    //
-    // Extract the information needed to build the edit.
-    //
-    TypeArgumentList constructorTypeArguments =
-        creation.constructorName.type.typeArguments;
-    //
-    // Build the change and return the assist.
-    //
-    DartChangeBuilder changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addReplacement(range.node(creation), (DartEditBuilder builder) {
-        if (constructorTypeArguments != null) {
-          builder.write(_getNodeText(constructorTypeArguments));
-        }
-        builder.write('[]');
-      });
-    });
-    _addAssistFromBuilder(
-        changeBuilder, DartAssistKind.CONVERT_TO_LIST_LITERAL);
-  }
-
-  Future<void> _addProposal_convertListToSetToSetLiteral() async {
-    //
-    // Ensure that this is an invocation of `toSet` on a list literal.
-    //
-    if (node is! SimpleIdentifier) {
-      _coverageMarker();
-      return;
-    }
-    AstNode parent = node.parent;
-    if (parent is! MethodInvocation) {
-      _coverageMarker();
-      return;
-    }
-    MethodInvocation invocation = parent as MethodInvocation;
-    if (invocation.methodName != node ||
-        invocation.methodName.name != 'toSet') {
-      _coverageMarker();
-      return;
-    }
-    //
-    // Extract the information needed to build the edit.
-    //
-    Expression target = invocation.target;
-    bool hasTypeArgs;
-    SourceRange openRange;
-    SourceRange closeRange;
-    if (target is ListLiteral) {
-      hasTypeArgs = target.typeArguments != null;
-      openRange = range.token(target.leftBracket);
-      closeRange = range.startEnd(target.rightBracket, invocation);
-    } else {
-      _coverageMarker();
-      return;
-    }
-    //
-    // Build the change and return the assist.
-    //
-    DartChangeBuilder changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      if (hasTypeArgs || _listHasUnambiguousElement(target)) {
-        builder.addSimpleReplacement(openRange, '{');
-      } else {
-        builder.addSimpleReplacement(openRange, '<dynamic>{');
-      }
-      builder.addSimpleReplacement(closeRange, '}');
-    });
-    _addAssistFromBuilder(changeBuilder, DartAssistKind.CONVERT_TO_SET_LITERAL);
-  }
-
-  Future<void> _addProposal_convertMapConstructorToMapLiteral() async {
-    bool isMapClass(Element element) =>
-        element is ClassElement &&
-        (element == typeProvider.mapElement ||
-            (element.name == 'LinkedHashMap' &&
-                element.library.name == 'dart.collection'));
-    //
-    // Ensure that this is the default constructor defined on either `Map` or
-    // `LinkedHashMap`.
-    //
-    InstanceCreationExpression creation = node.thisOrAncestorOfType();
-    if (creation == null ||
-        node.offset > creation.argumentList.offset ||
-        creation.constructorName.name != null ||
-        creation.argumentList.arguments.isNotEmpty ||
-        !isMapClass(creation.staticType.element)) {
-      _coverageMarker();
-      return;
-    }
-    //
-    // Extract the information needed to build the edit.
-    //
-    TypeArgumentList constructorTypeArguments =
-        creation.constructorName.type.typeArguments;
-    //
-    // Build the change and return the assist.
-    //
-    DartChangeBuilder changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addReplacement(range.node(creation), (DartEditBuilder builder) {
-        if (constructorTypeArguments != null) {
-          builder.write(_getNodeText(constructorTypeArguments));
-        }
-        builder.write('{}');
-      });
-    });
-    _addAssistFromBuilder(changeBuilder, DartAssistKind.CONVERT_TO_MAP_LITERAL);
-  }
-
   Future<void> _addProposal_convertMapFromIterableToForLiteral() async {
     final changeBuilder =
         await createBuilder_convertMapFromIterableToForLiteral();
@@ -710,107 +663,13 @@ class AssistProcessor extends BaseProcessor {
     String libraryPath = context.resolveResult.libraryElement.source.fullName;
     String partPath = context.resolveResult.path;
     String relativePath = relative(libraryPath, from: dirname(partPath));
-    String uri = new Uri.file(relativePath).toString();
+    String uri = Uri.file(relativePath).toString();
     SourceRange replacementRange = range.node(directive.libraryName);
     var changeBuilder = _newDartChangeBuilder();
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
       builder.addSimpleReplacement(replacementRange, "'$uri'");
     });
     _addAssistFromBuilder(changeBuilder, DartAssistKind.CONVERT_PART_OF_TO_URI);
-  }
-
-  Future<void> _addProposal_convertSetConstructorToSetLiteral() async {
-    //
-    // Ensure that this is one of the constructors defined on `Set`.
-    //
-    InstanceCreationExpression creation = node.thisOrAncestorOfType();
-    if (creation == null ||
-        node.offset > creation.argumentList.offset ||
-        creation.staticType.element != typeProvider.setElement) {
-      // TODO(brianwilkerson) Consider also accepting uses of LinkedHashSet.
-      _coverageMarker();
-      return;
-    }
-    //
-    // Extract the information needed to build the edit.
-    //
-    SimpleIdentifier name = creation.constructorName.name;
-    TypeArgumentList constructorTypeArguments =
-        creation.constructorName.type.typeArguments;
-    TypeArgumentList elementTypeArguments;
-    SourceRange elementsRange;
-    if (name == null) {
-      // Handle an invocation of the default constructor `Set()`.
-    } else if (name.name == 'from' || name.name == 'of') {
-      // Handle an invocation of the constructor `Set.from()` or `Set.of()`.
-      NodeList<Expression> arguments = creation.argumentList.arguments;
-      if (arguments.length != 1) {
-        _coverageMarker();
-        return;
-      }
-      if (arguments[0] is ListLiteral) {
-        ListLiteral elements = arguments[0] as ListLiteral;
-        elementTypeArguments = elements.typeArguments;
-        elementsRange =
-            range.endStart(elements.leftBracket, elements.rightBracket);
-      } else {
-        // TODO(brianwilkerson) Consider handling other iterables. Literal sets
-        //  could be treated like lists, and arbitrary iterables by using a
-        //  spread.
-        _coverageMarker();
-        return;
-      }
-    } else {
-      // Invocation of an unhandled constructor.
-      _coverageMarker();
-      return;
-    }
-    new Map();
-    //
-    // Determine whether type arguments are strictly required in cases where no
-    // type arguments were explicitly provided.
-    //
-    bool hasUnambiguousElement() {
-      NodeList<Expression> arguments = creation.argumentList.arguments;
-      if (arguments == null || arguments.isEmpty) {
-        return false;
-      }
-      return _listHasUnambiguousElement(arguments[0]);
-    }
-
-    bool setWouldBeInferred() {
-      AstNode parent = creation.parent;
-      if (parent is VariableDeclaration) {
-        AstNode parent2 = parent.parent;
-        if (parent2 is VariableDeclarationList &&
-            parent2.type?.type?.element == typeProvider.setElement) {
-          return true;
-        }
-      }
-      return hasUnambiguousElement();
-    }
-
-    //
-    // Build the change and return the assist.
-    //
-    DartChangeBuilder changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addReplacement(range.node(creation), (DartEditBuilder builder) {
-        if (constructorTypeArguments != null) {
-          builder.write(_getNodeText(constructorTypeArguments));
-        } else if (elementTypeArguments != null) {
-          builder.write(_getNodeText(elementTypeArguments));
-        } else if (!setWouldBeInferred()) {
-          builder.write('<dynamic>');
-        }
-        builder.write('{');
-        if (elementsRange != null) {
-          builder.write(_getRangeText(elementsRange));
-        }
-        builder.write('}');
-      });
-    });
-    _addAssistFromBuilder(changeBuilder, DartAssistKind.CONVERT_TO_SET_LITERAL);
   }
 
   Future<void> _addProposal_convertToAsyncFunctionBody() async {
@@ -940,7 +799,7 @@ class AssistProcessor extends BaseProcessor {
       {
         int numOfReferences = 0;
         AstVisitor visitor =
-            new _SimpleIdentifierRecursiveAstVisitor((SimpleIdentifier node) {
+            _SimpleIdentifierRecursiveAstVisitor((SimpleIdentifier node) {
           if (node.staticElement == parameterElement) {
             numOfReferences++;
           }
@@ -1074,21 +933,9 @@ class AssistProcessor extends BaseProcessor {
   }
 
   Future<void> _addProposal_convertToGenericFunctionSyntax() async {
-    AstNode node = this.node;
-    while (node != null) {
-      if (node is FunctionTypeAlias) {
-        await _convertFunctionTypeAliasToGenericTypeAlias(node);
-        return;
-      } else if (node is FunctionTypedFormalParameter) {
-        await _convertFunctionTypedFormalParameterToSimpleFormalParameter(node);
-        return;
-      } else if (node is FormalParameterList) {
-        // It would be confusing for this assist to alter a surrounding context
-        // when the selection is inside a parameter list.
-        return;
-      }
-      node = node.parent;
-    }
+    var changeBuilder = await createBuilder_convertToGenericFunctionSyntax();
+    _addAssistFromBuilder(
+        changeBuilder, DartAssistKind.CONVERT_INTO_GENERIC_FUNCTION_SYNTAX);
   }
 
   Future<void> _addProposal_convertToIntLiteral() async {
@@ -1329,11 +1176,6 @@ class AssistProcessor extends BaseProcessor {
     }
   }
 
-  Future<void> _addProposal_convertToNullAware() async {
-    final changeBuilder = await createBuilder_convertToNullAware();
-    _addAssistFromBuilder(changeBuilder, DartAssistKind.CONVERT_TO_NULL_AWARE);
-  }
-
   Future<void> _addProposal_convertToPackageImport() async {
     final changeBuilder = await createBuilder_convertToPackageImport();
     _addAssistFromBuilder(
@@ -1443,61 +1285,6 @@ class AssistProcessor extends BaseProcessor {
     _addAssistFromBuilder(changeBuilder, DartAssistKind.ENCAPSULATE_FIELD);
   }
 
-  Future<void> _addProposal_exchangeOperands() async {
-    // check that user invokes quick assist on binary expression
-    if (node is! BinaryExpression) {
-      _coverageMarker();
-      return;
-    }
-    BinaryExpression binaryExpression = node as BinaryExpression;
-    // prepare operator position
-    if (!_isOperatorSelected(
-        binaryExpression, selectionOffset, selectionLength)) {
-      _coverageMarker();
-      return;
-    }
-    // add edits
-    Expression leftOperand = binaryExpression.leftOperand;
-    Expression rightOperand = binaryExpression.rightOperand;
-    // find "wide" enclosing binary expression with same operator
-    while (binaryExpression.parent is BinaryExpression) {
-      BinaryExpression newBinaryExpression =
-          binaryExpression.parent as BinaryExpression;
-      if (newBinaryExpression.operator.type != binaryExpression.operator.type) {
-        _coverageMarker();
-        break;
-      }
-      binaryExpression = newBinaryExpression;
-    }
-    // exchange parts of "wide" expression parts
-    SourceRange leftRange = range.startEnd(binaryExpression, leftOperand);
-    SourceRange rightRange = range.startEnd(rightOperand, binaryExpression);
-    // maybe replace the operator
-    Token operator = binaryExpression.operator;
-    // prepare a new operator
-    String newOperator = null;
-    TokenType operatorType = operator.type;
-    if (operatorType == TokenType.LT) {
-      newOperator = '>';
-    } else if (operatorType == TokenType.LT_EQ) {
-      newOperator = '>=';
-    } else if (operatorType == TokenType.GT) {
-      newOperator = '<';
-    } else if (operatorType == TokenType.GT_EQ) {
-      newOperator = '<=';
-    }
-    var changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addSimpleReplacement(leftRange, _getRangeText(rightRange));
-      builder.addSimpleReplacement(rightRange, _getRangeText(leftRange));
-      // Optionally replace the operator.
-      if (newOperator != null) {
-        builder.addSimpleReplacement(range.token(operator), newOperator);
-      }
-    });
-    _addAssistFromBuilder(changeBuilder, DartAssistKind.EXCHANGE_OPERANDS);
-  }
-
   Future<void> _addProposal_flutterConvertToChildren() async {
     // Find "child: widget" under selection.
     NamedExpression namedExp;
@@ -1570,10 +1357,10 @@ class AssistProcessor extends BaseProcessor {
     String stateName = '_${widgetName}State';
 
     // Find fields assigned in constructors.
-    var fieldsAssignedInConstructors = new Set<FieldElement>();
+    var fieldsAssignedInConstructors = Set<FieldElement>();
     for (var member in widgetClass.members) {
       if (member is ConstructorDeclaration) {
-        member.accept(new _SimpleIdentifierRecursiveAstVisitor((node) {
+        member.accept(_SimpleIdentifierRecursiveAstVisitor((node) {
           if (node.parent is FieldFormalParameter) {
             Element element = node.staticElement;
             if (element is FieldFormalParameterElement) {
@@ -1600,8 +1387,8 @@ class AssistProcessor extends BaseProcessor {
     }
 
     // Prepare nodes to move.
-    var nodesToMove = new Set<ClassMember>();
-    var elementsToMove = new Set<Element>();
+    var nodesToMove = Set<ClassMember>();
+    var elementsToMove = Set<Element>();
     for (var member in widgetClass.members) {
       if (member is FieldDeclaration && !member.isStatic) {
         for (VariableDeclaration fieldNode in member.fields.variables) {
@@ -1632,7 +1419,7 @@ class AssistProcessor extends BaseProcessor {
 
       // Insert `widget.` before references to the widget instance members.
       final List<SourceEdit> edits = [];
-      movedNode.accept(new _SimpleIdentifierRecursiveAstVisitor((node) {
+      movedNode.accept(_SimpleIdentifierRecursiveAstVisitor((node) {
         if (node.inDeclarationContext()) {
           return;
         }
@@ -1647,10 +1434,10 @@ class AssistProcessor extends BaseProcessor {
           if (parent is InterpolationExpression &&
               parent.leftBracket.type ==
                   TokenType.STRING_INTERPOLATION_IDENTIFIER) {
-            edits.add(new SourceEdit(offset, 0, '{$qualifier.'));
-            edits.add(new SourceEdit(offset + node.length, 0, '}'));
+            edits.add(SourceEdit(offset, 0, '{$qualifier.'));
+            edits.add(SourceEdit(offset + node.length, 0, '}'));
           } else {
-            edits.add(new SourceEdit(offset, 0, '$qualifier.'));
+            edits.add(SourceEdit(offset, 0, '$qualifier.'));
           }
         }
       }));
@@ -1686,7 +1473,7 @@ class AssistProcessor extends BaseProcessor {
           bool hasEmptyLineAfterCreateState = true}) {
         int replaceLength = replaceEnd - replaceOffset;
         builder.addReplacement(
-          new SourceRange(replaceOffset, replaceLength),
+          SourceRange(replaceOffset, replaceLength),
           (builder) {
             if (hasBuildMethod) {
               if (hasEmptyLineBeforeCreateState) {
@@ -1814,7 +1601,7 @@ class AssistProcessor extends BaseProcessor {
 
           int lengthDelta = nextRange.length - widgetRange.length;
           int newWidgetOffset = nextRange.offset + lengthDelta;
-          changeBuilder.setSelection(new Position(file, newWidgetOffset));
+          changeBuilder.setSelection(Position(file, newWidgetOffset));
         });
         _addAssistFromBuilder(changeBuilder, DartAssistKind.FLUTTER_MOVE_DOWN);
       }
@@ -1845,7 +1632,7 @@ class AssistProcessor extends BaseProcessor {
           builder.addSimpleReplacement(widgetRange, previousText);
 
           int newWidgetOffset = previousRange.offset;
-          changeBuilder.setSelection(new Position(file, newWidgetOffset));
+          changeBuilder.setSelection(Position(file, newWidgetOffset));
         });
         _addAssistFromBuilder(changeBuilder, DartAssistKind.FLUTTER_MOVE_UP);
       }
@@ -1991,7 +1778,7 @@ class AssistProcessor extends BaseProcessor {
         builder.writeln('builder: (context, snapshot) {');
 
         widgetSrc = widgetSrc.replaceAll(
-          new RegExp("^$indentOld", multiLine: true),
+          RegExp("^$indentOld", multiLine: true),
           indentNew2,
         );
         builder.write(indentNew2);
@@ -2086,7 +1873,7 @@ class AssistProcessor extends BaseProcessor {
           builder.write(eol);
           builder.write(indentNew);
           widgetSrc = widgetSrc.replaceAll(
-              new RegExp("^$indentOld", multiLine: true), indentNew);
+              RegExp("^$indentOld", multiLine: true), indentNew);
           widgetSrc += ",$eol$indentOld";
         }
         if (parentClassElement == null) {
@@ -2103,8 +1890,8 @@ class AssistProcessor extends BaseProcessor {
   }
 
   Future<void> _addProposal_flutterWrapWidgets() async {
-    var selectionRange = new SourceRange(selectionOffset, selectionLength);
-    var analyzer = new SelectionAnalyzer(selectionRange);
+    var selectionRange = SourceRange(selectionOffset, selectionLength);
+    var analyzer = SelectionAnalyzer(selectionRange);
     context.resolveResult.unit.accept(analyzer);
 
     List<Expression> widgetExpressions = [];
@@ -2208,9 +1995,9 @@ class AssistProcessor extends BaseProcessor {
     }
     Map<String, Element> namespace = getImportNamespace(importElement);
     // prepare names of referenced elements (from this import)
-    SplayTreeSet<String> referencedNames = new SplayTreeSet<String>();
+    SplayTreeSet<String> referencedNames = SplayTreeSet<String>();
     _SimpleIdentifierRecursiveAstVisitor visitor =
-        new _SimpleIdentifierRecursiveAstVisitor((SimpleIdentifier node) {
+        _SimpleIdentifierRecursiveAstVisitor((SimpleIdentifier node) {
       Element element = node.staticElement;
       if (element != null && namespace[node.name] == element) {
         referencedNames.add(element.displayName);
@@ -2278,8 +2065,8 @@ class AssistProcessor extends BaseProcessor {
       statementPrefix = '';
     }
     // prepare excluded names
-    Set<String> excluded = new Set<String>();
-    ScopedNameFinder scopedNameFinder = new ScopedNameFinder(offset);
+    Set<String> excluded = Set<String>();
+    ScopedNameFinder scopedNameFinder = ScopedNameFinder(offset);
     isExpression.accept(scopedNameFinder);
     excluded.addAll(scopedNameFinder.locals.keys.toSet());
     // name(s)
@@ -2481,7 +2268,7 @@ class AssistProcessor extends BaseProcessor {
     }
     int declOffset = element.nameOffset;
     var unit = context.resolveResult.unit;
-    AstNode declNode = new NodeLocator(declOffset).searchWithin(unit);
+    AstNode declNode = NodeLocator(declOffset).searchWithin(unit);
     if (declNode != null &&
         declNode.parent is VariableDeclaration &&
         (declNode.parent as VariableDeclaration).name == declNode &&
@@ -2641,7 +2428,7 @@ class AssistProcessor extends BaseProcessor {
         // Linked editing not needed since arg is always a list.
         builder.write('children: ');
         builder.write(literalSrc.replaceAll(
-            new RegExp("^$indentOld", multiLine: true), "$indentList"));
+            RegExp("^$indentOld", multiLine: true), "$indentList"));
         builder.write(',');
         builder.write(eol);
         builder.write(indentArg);
@@ -2824,101 +2611,61 @@ class AssistProcessor extends BaseProcessor {
     }
   }
 
+  Future<void> _addProposal_replaceWithVar() async {
+    /// Return `true` if the type in the [node] can be replaced with `var`.
+    bool canConvertVariableDeclarationList(VariableDeclarationList node) {
+      final staticType = node?.type?.type;
+      if (staticType == null || staticType.isDynamic) {
+        return false;
+      }
+      for (final child in node.variables) {
+        var initializer = child.initializer;
+        if (initializer == null || initializer.staticType != staticType) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    /// Return `true` if the given node can be replaced with `var`.
+    bool canReplaceWithVar() {
+      var parent = node.parent;
+      while (parent != null) {
+        if (parent is VariableDeclarationStatement) {
+          return canConvertVariableDeclarationList(parent.variables);
+        } else if (parent is ForPartsWithDeclarations) {
+          return canConvertVariableDeclarationList(parent.variables);
+        } else if (parent is ForEachPartsWithDeclaration) {
+          var loopVariableType = parent.loopVariable.type;
+          var staticType = loopVariableType?.type;
+          if (staticType == null || staticType.isDynamic) {
+            return false;
+          }
+          final iterableType = parent.iterable.staticType;
+          if (iterableType is InterfaceTypeImpl) {
+            var instantiatedType =
+                iterableType.asInstanceOf(typeProvider.iterableElement);
+            if (instantiatedType?.typeArguments?.first == staticType) {
+              return true;
+            }
+          }
+          return false;
+        }
+        parent = parent.parent;
+      }
+      return false;
+    }
+
+    if (canReplaceWithVar()) {
+      var changeBuilder = await createBuilder_replaceWithVar();
+      _addAssistFromBuilder(changeBuilder, DartAssistKind.REPLACE_WITH_VAR);
+    }
+  }
+
   Future<void> _addProposal_sortChildPropertyLast() async {
     final changeBuilder = await createBuilder_sortChildPropertyLast();
     _addAssistFromBuilder(
         changeBuilder, DartAssistKind.SORT_CHILD_PROPERTY_LAST);
-  }
-
-  Future<void> _addProposal_splitAndCondition() async {
-    // check that user invokes quick assist on binary expression
-    if (node is! BinaryExpression) {
-      _coverageMarker();
-      return;
-    }
-    BinaryExpression binaryExpression = node as BinaryExpression;
-    // prepare operator position
-    if (!_isOperatorSelected(
-        binaryExpression, selectionOffset, selectionLength)) {
-      _coverageMarker();
-      return;
-    }
-    // should be &&
-    if (binaryExpression.operator.type != TokenType.AMPERSAND_AMPERSAND) {
-      _coverageMarker();
-      return;
-    }
-    // prepare "if"
-    Statement statement = node.thisOrAncestorOfType<Statement>();
-    if (statement is! IfStatement) {
-      _coverageMarker();
-      return;
-    }
-    IfStatement ifStatement = statement as IfStatement;
-    // no support "else"
-    if (ifStatement.elseStatement != null) {
-      _coverageMarker();
-      return;
-    }
-    // check that binary expression is part of first level && condition of "if"
-    BinaryExpression condition = binaryExpression;
-    while (condition.parent is BinaryExpression &&
-        (condition.parent as BinaryExpression).operator.type ==
-            TokenType.AMPERSAND_AMPERSAND) {
-      condition = condition.parent as BinaryExpression;
-    }
-    if (ifStatement.condition != condition) {
-      _coverageMarker();
-      return;
-    }
-    // prepare environment
-    String prefix = utils.getNodePrefix(ifStatement);
-    String indent = utils.getIndent(1);
-    // prepare "rightCondition"
-    String rightConditionSource;
-    {
-      SourceRange rightConditionRange =
-          range.startEnd(binaryExpression.rightOperand, condition);
-      rightConditionSource = _getRangeText(rightConditionRange);
-    }
-
-    var changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      // remove "&& rightCondition"
-      builder
-          .addDeletion(range.endEnd(binaryExpression.leftOperand, condition));
-      // update "then" statement
-      Statement thenStatement = ifStatement.thenStatement;
-      if (thenStatement is Block) {
-        Block thenBlock = thenStatement;
-        SourceRange thenBlockRange = range.node(thenBlock);
-        // insert inner "if" with right part of "condition"
-        int thenBlockInsideOffset = thenBlockRange.offset + 1;
-        builder.addSimpleInsertion(thenBlockInsideOffset,
-            '$eol$prefix${indent}if ($rightConditionSource) {');
-        // insert closing "}" for inner "if"
-        int thenBlockEnd = thenBlockRange.end;
-        // insert before outer "then" block "}"
-        builder.addSimpleInsertion(thenBlockEnd - 1, '$indent}$eol$prefix');
-      } else {
-        // insert inner "if" with right part of "condition"
-        String source = '$eol$prefix${indent}if ($rightConditionSource)';
-        builder.addSimpleInsertion(
-            ifStatement.rightParenthesis.offset + 1, source);
-      }
-      // indent "then" statements to correspond inner "if"
-      {
-        List<Statement> thenStatements = getStatements(thenStatement);
-        SourceRange linesRange = utils.getLinesRangeStatements(thenStatements);
-        String thenIndentOld = '$prefix$indent';
-        String thenIndentNew = '$thenIndentOld$indent';
-        builder.addSimpleReplacement(
-            linesRange,
-            utils.replaceSourceRangeIndent(
-                linesRange, thenIndentOld, thenIndentNew));
-      }
-    });
-    _addAssistFromBuilder(changeBuilder, DartAssistKind.SPLIT_AND_CONDITION);
   }
 
   Future<void> _addProposal_splitVariableDeclaration() async {
@@ -2973,9 +2720,8 @@ class AssistProcessor extends BaseProcessor {
     // prepare selected statements
     List<Statement> selectedStatements;
     {
-      StatementAnalyzer selectionAnalyzer = new StatementAnalyzer(
-          context.resolveResult,
-          new SourceRange(selectionOffset, selectionLength));
+      StatementAnalyzer selectionAnalyzer = StatementAnalyzer(
+          context.resolveResult, SourceRange(selectionOffset, selectionLength));
       selectionAnalyzer.analyze();
       List<AstNode> selectedNodes = selectionAnalyzer.selectedNodes;
       // convert nodes to statements
@@ -3181,6 +2927,28 @@ class AssistProcessor extends BaseProcessor {
       _addAssistFromBuilder(
           changeBuilder, DartAssistKind.SURROUND_WITH_TRY_FINALLY);
     }
+
+    // flutter "setState((){ .. });"
+    {
+      ClassDeclaration classDeclaration =
+          node.parent.thisOrAncestorOfType<ClassDeclaration>();
+      if (classDeclaration != null &&
+          flutter.isState(classDeclaration.declaredElement)) {
+        final changeBuilder = _newDartChangeBuilder();
+        await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+          builder.addReplacement(statementsRange, (DartEditBuilder builder) {
+            builder.write(indentOld);
+            builder.writeln('setState(() {');
+            builder.write(indentedCode);
+            builder.write(indentOld);
+            builder.selectHere();
+            builder.writeln('});');
+          });
+        });
+        _addAssistFromBuilder(
+            changeBuilder, DartAssistKind.SURROUND_WITH_SET_STATE);
+      }
+    }
   }
 
   Future<void> _addProposal_useCurlyBraces() async {
@@ -3199,26 +2967,6 @@ class AssistProcessor extends BaseProcessor {
 
     changeBuilder = await createBuilder_addTypeAnnotation_VariableDeclaration();
     _addAssistFromBuilder(changeBuilder, DartAssistKind.ADD_TYPE_ANNOTATION);
-  }
-
-  /**
-   * Return `true` if all of the parameters in the given list of [parameters]
-   * have an explicit type annotation.
-   */
-  bool _allParametersHaveTypes(FormalParameterList parameters) {
-    for (FormalParameter parameter in parameters.parameters) {
-      if (parameter is DefaultFormalParameter) {
-        parameter = (parameter as DefaultFormalParameter).parameter;
-      }
-      if (parameter is SimpleFormalParameter) {
-        if (parameter.type == null) {
-          return false;
-        }
-      } else if (parameter is! FunctionTypedFormalParameter) {
-        return false;
-      }
-    }
-    return true;
   }
 
   bool _containsErrorCode(Set<String> errorCodes) {
@@ -3280,62 +3028,6 @@ class AssistProcessor extends BaseProcessor {
     }
   }
 
-  Future<void> _convertFunctionTypeAliasToGenericTypeAlias(
-      FunctionTypeAlias node) async {
-    if (!_allParametersHaveTypes(node.parameters)) {
-      return;
-    }
-    String returnType;
-    if (node.returnType != null) {
-      returnType = utils.getNodeText(node.returnType);
-    }
-    String functionName = utils.getRangeText(
-        range.startEnd(node.name, node.typeParameters ?? node.name));
-    String parameters = utils.getNodeText(node.parameters);
-    String replacement;
-    if (returnType == null) {
-      replacement = '$functionName = Function$parameters';
-    } else {
-      replacement = '$functionName = $returnType Function$parameters';
-    }
-    // add change
-    var changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addSimpleReplacement(
-          range.startStart(node.typedefKeyword.next, node.semicolon),
-          replacement);
-    });
-    _addAssistFromBuilder(
-        changeBuilder, DartAssistKind.CONVERT_INTO_GENERIC_FUNCTION_SYNTAX);
-  }
-
-  Future<void> _convertFunctionTypedFormalParameterToSimpleFormalParameter(
-      FunctionTypedFormalParameter node) async {
-    if (!_allParametersHaveTypes(node.parameters)) {
-      return;
-    }
-    String returnType;
-    if (node.returnType != null) {
-      returnType = utils.getNodeText(node.returnType);
-    }
-    String functionName = utils.getRangeText(range.startEnd(
-        node.identifier, node.typeParameters ?? node.identifier));
-    String parameters = utils.getNodeText(node.parameters);
-    String replacement;
-    if (returnType == null) {
-      replacement = 'Function$parameters $functionName';
-    } else {
-      replacement = '$returnType Function$parameters $functionName';
-    }
-    // add change
-    var changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addSimpleReplacement(range.node(node), replacement);
-    });
-    _addAssistFromBuilder(
-        changeBuilder, DartAssistKind.CONVERT_INTO_GENERIC_FUNCTION_SYNTAX);
-  }
-
   Future<void> _convertQuotes(bool fromDouble, AssistKind kind) async {
     final changeBuilder = await createBuilder_convertQuotes(fromDouble);
     _addAssistFromBuilder(changeBuilder, kind);
@@ -3355,36 +3047,8 @@ class AssistProcessor extends BaseProcessor {
     return utils.getRangeText(range);
   }
 
-  /// Return `true` if the [element] is sufficient to lexically make the
-  /// enclosing literal a set literal rather than a map.
-  bool _isUnambiguousElement(CollectionElement element) {
-    if (element is ForElement) {
-      return _isUnambiguousElement(element.body);
-    } else if (element is IfElement) {
-      return _isUnambiguousElement(element.thenElement) ||
-          _isUnambiguousElement(element.elseElement);
-    } else if (element is Expression) {
-      return true;
-    }
-    return false;
-  }
-
-  /// Return `true` if the given [node] is a list literal whose elements, if
-  /// placed inside curly braces, would lexically make the resulting literal a
-  /// set literal rather than a map literal.
-  bool _listHasUnambiguousElement(AstNode node) {
-    if (node is ListLiteral && node.elements.isNotEmpty) {
-      for (CollectionElement element in node.elements) {
-        if (_isUnambiguousElement(element)) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
   DartChangeBuilder _newDartChangeBuilder() {
-    return new DartChangeBuilderImpl.forWorkspace(context.workspace);
+    return DartChangeBuilderImpl.forWorkspace(context.workspace);
   }
 
   Future<void> _swapParentAndChild(InstanceCreationExpression parent,
@@ -3476,37 +3140,9 @@ class AssistProcessor extends BaseProcessor {
    */
   static void _coverageMarker() {}
 
-  /**
-   * Returns `true` if the selection covers an operator of the given
-   * [BinaryExpression].
-   */
-  static bool _isOperatorSelected(
-      BinaryExpression binaryExpression, int offset, int length) {
-    AstNode left = binaryExpression.leftOperand;
-    AstNode right = binaryExpression.rightOperand;
-    // between the nodes
-    if (offset >= left.endToken.end && offset + length <= right.offset) {
-      _coverageMarker();
-      return true;
-    }
-    // or exactly select the node (but not with infix expressions)
-    if (offset == left.offset && offset + length == right.endToken.end) {
-      if (left is BinaryExpression || right is BinaryExpression) {
-        _coverageMarker();
-        return false;
-      }
-      _coverageMarker();
-      return true;
-    }
-    // invalid selection (part of node, etc)
-    _coverageMarker();
-    return false;
-  }
-
   static String _replaceSourceIndent(
       String source, String indentOld, String indentNew) {
-    return source.replaceAll(
-        new RegExp('^$indentOld', multiLine: true), indentNew);
+    return source.replaceAll(RegExp('^$indentOld', multiLine: true), indentNew);
   }
 
   /**

@@ -182,11 +182,11 @@ class CompletionTarget {
             // Try to replace with a comment token.
             Token commentToken = _getContainingCommentToken(entity, offset);
             if (commentToken != null) {
-              return new CompletionTarget._(
+              return CompletionTarget._(
                   compilationUnit, offset, containingNode, commentToken, true);
             }
             // Target found.
-            return new CompletionTarget._(
+            return CompletionTarget._(
                 compilationUnit, offset, containingNode, entity, false);
           } else {
             // Since entity is a token, we don't need to look inside it; just
@@ -213,14 +213,14 @@ class CompletionTarget {
               Comment docComment =
                   _getContainingDocComment(containingNode, commentToken);
               if (docComment != null) {
-                return new CompletionTarget._(
+                return CompletionTarget._(
                     compilationUnit, offset, docComment, commentToken, false);
               } else {
-                return new CompletionTarget._(compilationUnit, offset,
+                return CompletionTarget._(compilationUnit, offset,
                     compilationUnit, commentToken, true);
               }
             }
-            return new CompletionTarget._(
+            return CompletionTarget._(
                 compilationUnit, offset, containingNode, entity, false);
           }
 
@@ -245,7 +245,7 @@ class CompletionTarget {
 
       // Since no completion target was found, we set the completion target
       // entity to null and use the entryPoint as the parent.
-      return new CompletionTarget._(
+      return CompletionTarget._(
           compilationUnit, offset, entryPoint, null, false);
     }
   }
@@ -256,11 +256,10 @@ class CompletionTarget {
    */
   CompletionTarget._(this.unit, this.offset, AstNode containingNode,
       Object entity, this.isCommentText)
-      : this.containingNode = containingNode,
-        this.entity = entity,
-        this.argIndex = _computeArgIndex(containingNode, entity),
-        this.droppedToken =
-            _computeDroppedToken(containingNode, entity, offset);
+      : containingNode = containingNode,
+        entity = entity,
+        argIndex = _computeArgIndex(containingNode, entity),
+        droppedToken = _computeDroppedToken(containingNode, entity, offset);
 
   /**
    * If the target is an argument in an argument list, and the invocation is
@@ -350,7 +349,7 @@ class CompletionTarget {
       if (token != null && isKeywordOrIdentifier(token)) {
         if (token.offset <= requestOffset && requestOffset <= token.end) {
           // Replacement range for typical identifier completion
-          return new SourceRange(token.offset, token.length);
+          return SourceRange(token.offset, token.length);
         }
       }
       if (token is StringToken) {
@@ -364,12 +363,12 @@ class CompletionTarget {
           int end = uri.contentsEnd;
           if (start <= requestOffset && requestOffset <= end) {
             // Replacement range for import URI
-            return new SourceRange(start, end - start);
+            return SourceRange(start, end - start);
           }
         }
       }
     }
-    return new SourceRange(requestOffset, 0);
+    return SourceRange(requestOffset, 0);
   }
 
   /**

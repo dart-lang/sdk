@@ -24,11 +24,10 @@ class A {
   const A({int p});
 }
 ''');
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 import 'a.dart';
 const a = const A();
 ''');
-    assertNoTestErrors();
 
     var aLib = findElement.import('package:test/a.dart').importedLibrary;
     var aConstructor = aLib.getType('A').constructors.single;
@@ -41,7 +40,7 @@ const a = const A();
   }
 
   test_constFactoryRedirection_super() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 class I {
   const factory I(int f) = B;
 }
@@ -59,7 +58,6 @@ class B extends A {
 @I(42)
 main() {}
 ''');
-    assertNoTestErrors();
 
     var node = findNode.annotation('@I');
     var value = node.elementAnnotation.constantValue;
@@ -67,7 +65,7 @@ main() {}
   }
 
   test_constNotInitialized() async {
-    await resolveTestCode(r'''
+    await assertErrorsInCode(r'''
 class B {
   const B(_);
 }
@@ -76,10 +74,8 @@ class C extends B {
   static const a;
   const C() : super(a);
 }
-''');
-    assertTestErrorsWithCodes([
-      CompileTimeErrorCode.CONST_NOT_INITIALIZED,
-      CompileTimeErrorCode.CONST_NOT_INITIALIZED,
+''', [
+      error(CompileTimeErrorCode.CONST_NOT_INITIALIZED, 62, 1),
     ]);
   }
 
@@ -92,22 +88,21 @@ class C<T> {
   const C();
 }
 ''');
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 import 'a.dart';
 
 const v = a;
 ''');
-    assertNoTestErrors();
 
     var v = findElement.topVar('v') as ConstVariableElement;
     var value = v.computeConstantValue();
 
     var type = value.type as InterfaceType;
-    assertElementTypeString(type, 'C<double Function(int)>');
+    assertType(type, 'C<double Function(int)>');
 
     expect(type.typeArguments, hasLength(1));
     var typeArgument = type.typeArguments[0] as FunctionType;
-    assertElementTypeString(typeArgument, 'double Function(int)');
+    assertType(typeArgument, 'double Function(int)');
 
     // The element and type arguments are available for the function type.
     var importFind = findElement.importFind('package:test/a.dart');

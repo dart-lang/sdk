@@ -476,7 +476,7 @@ void Heap::EvacuateNewSpace(Thread* thread, GCReason reason) {
     new_space_.Evacuate();
     RecordAfterGC(kScavenge);
     PrintStats();
-    NOT_IN_PRODUCT(PrintStatsToTimeline(&tds, reason));
+    NOT_IN_PRODUCT(PrintStatsToTimeline(&tbes, reason));
     EndNewSpaceGC();
   }
 }
@@ -499,7 +499,7 @@ void Heap::CollectNewSpaceGarbage(Thread* thread, GCReason reason) {
       new_space_.Scavenge();
       RecordAfterGC(kScavenge);
       PrintStats();
-      NOT_IN_PRODUCT(PrintStatsToTimeline(&tds, reason));
+      NOT_IN_PRODUCT(PrintStatsToTimeline(&tbes, reason));
       EndNewSpaceGC();
     }
     if (reason == kNewSpace) {
@@ -535,7 +535,7 @@ void Heap::CollectOldSpaceGarbage(Thread* thread,
     old_space_.CollectGarbage(type == kMarkCompact, true /* finish */);
     RecordAfterGC(type);
     PrintStats();
-    NOT_IN_PRODUCT(PrintStatsToTimeline(&tds, reason));
+    NOT_IN_PRODUCT(PrintStatsToTimeline(&tbes, reason));
     // Some Code objects may have been collected so invalidate handler cache.
     thread->isolate()->handler_info_cache()->Clear();
     thread->isolate()->catch_entry_moves_cache()->Clear();
@@ -683,26 +683,17 @@ void Heap::Init(Isolate* isolate,
   isolate->set_heap(heap);
 }
 
-void Heap::RegionName(Heap* heap, Space space, char* name, intptr_t name_size) {
-  const bool no_isolate_name = (heap == NULL) || (heap->isolate() == NULL) ||
-                               (heap->isolate()->name() == NULL);
-  const char* isolate_name =
-      no_isolate_name ? "<unknown>" : heap->isolate()->name();
-  const char* space_name = NULL;
+const char* Heap::RegionName(Space space) {
   switch (space) {
     case kNew:
-      space_name = "newspace";
-      break;
+      return "dart-newspace";
     case kOld:
-      space_name = "oldspace";
-      break;
+      return "dart-oldspace";
     case kCode:
-      space_name = "codespace";
-      break;
+      return "dart-codespace";
     default:
       UNREACHABLE();
   }
-  Utils::SNPrint(name, name_size, "dart-%s %s", space_name, isolate_name);
 }
 
 void Heap::AddRegionsToObjectSet(ObjectSet* set) const {

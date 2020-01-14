@@ -44,7 +44,6 @@ final String _headerCode = r'''
 /// A library to access the VM Service API.
 ///
 /// The main entry-point for this library is the [VmService] class.
-library vm_service;
 
 import 'dart:async';
 import 'dart:convert' show base64, jsonDecode, jsonEncode, utf8;
@@ -52,17 +51,17 @@ import 'dart:typed_data';
 
 import 'package:meta/meta.dart';
 
-import 'src/service_extension_registry.dart';
+import 'service_extension_registry.dart';
 
-export 'src/service_extension_registry.dart' show ServiceExtensionRegistry;
-export 'src/snapshot_graph.dart' show HeapSnapshotClass,
-                                      HeapSnapshotExternalProperty,
-                                      HeapSnapshotField,
-                                      HeapSnapshotGraph,
-                                      HeapSnapshotObject,
-                                      HeapSnapshotObjectLengthData,
-                                      HeapSnapshotObjectNoData,
-                                      HeapSnapshotObjectNullData;
+export 'service_extension_registry.dart' show ServiceExtensionRegistry;
+export 'snapshot_graph.dart' show HeapSnapshotClass,
+                                  HeapSnapshotExternalProperty,
+                                  HeapSnapshotField,
+                                  HeapSnapshotGraph,
+                                  HeapSnapshotObject,
+                                  HeapSnapshotObjectLengthData,
+                                  HeapSnapshotObjectNoData,
+                                  HeapSnapshotObjectNullData;
 ''';
 
 final String _implCode = r'''
@@ -262,6 +261,8 @@ final String _implCode = r'''
 ''';
 
 final String _rpcError = r'''
+
+
 typedef DisposeHandler = Future Function();
 
 class RPCError {
@@ -527,8 +528,19 @@ void _setIfNotNull(Map<String, Object> json, String key, Object value) {
   json[key] = value;
 }
 
+Future<T> extensionCallHelper<T>(VmService service, String method, Map args) {
+  return service._call(method, args);
+}
+
 typedef ServiceCallback = Future<Map<String, dynamic>> Function(
     Map<String, dynamic> params);
+
+void addTypeFactory(String name, Function factory) {
+  if (_typeFactories.containsKey(name)) {
+    throw StateError('Factory already registered for \$name');
+  }
+  _typeFactories[name] = factory;
+}
 
 ''');
     gen.writeln();
@@ -1334,7 +1346,7 @@ class Type extends Member {
         'json == null ? null : ${name}._fromJson(json);');
     gen.writeln();
 
-    if (name == 'Response') {
+    if (name == 'Response' || name == 'TimelineEvent') {
       gen.writeln('Map<String, dynamic> json;');
     }
     if (name == 'Script') {
@@ -1364,7 +1376,7 @@ class Type extends Member {
 
     // Build from JSON.
     String superCall = superName == null ? '' : ": super._fromJson(json) ";
-    if (name == 'Response') {
+    if (name == 'Response' || name == 'TimelineEvent') {
       gen.write('${name}._fromJson(this.json)');
     } else {
       gen.write('${name}._fromJson(Map<String, dynamic> json) ${superCall}');
@@ -1492,6 +1504,16 @@ Map<String, dynamic> toJson() {
   result['type'] = type ?? 'Response';
   return result;
 }''');
+    } else if (name == 'TimelineEvent') {
+      // TimelineEvent doesn't have any declared properties as the response is
+      // fairly dynamic. Return the json directly.
+      gen.writeln('''
+          Map<String, dynamic> toJson() {
+            var result = json == null ? <String, dynamic>{} : Map.of(json);
+            result['type'] = 'TimelineEvent';
+            return result;
+          }
+      ''');
     } else {
       if (isResponse) {
         gen.writeln('@override');

@@ -45,6 +45,7 @@ class _MockAnalysisContext implements AnalysisContext {
   @override
   final SourceFactory sourceFactory = _MockSourceFactory();
 
+  @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
@@ -57,6 +58,7 @@ class _MockSource implements Source {
   @override
   String get encoding => '$uri';
 
+  @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
@@ -67,5 +69,6 @@ class _MockSourceFactory implements SourceFactory {
     return _MockSource(uri);
   }
 
+  @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

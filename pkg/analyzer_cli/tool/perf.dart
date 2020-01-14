@@ -29,7 +29,7 @@ main(List<String> args) async {
     print('usage: perf.dart <bench-id> <entry.dart>');
     exit(1);
   }
-  var totalTimer = new Stopwatch()..start();
+  var totalTimer = Stopwatch()..start();
 
   var bench = args[0];
   var entryUri = Uri.base.resolve(args[1]);
@@ -55,7 +55,7 @@ main(List<String> args) async {
 }
 
 /// Cumulative time spent scanning.
-Stopwatch scanTimer = new Stopwatch();
+Stopwatch scanTimer = Stopwatch();
 
 /// Cumulative total number of chars scanned.
 int scanTotalChars = 0;
@@ -79,7 +79,7 @@ void collectSources(Source start, Set<Source> files) {
 CompilationUnit parseDirectives(Source source) {
   var token = tokenize(source);
   var featureSet = FeatureSet.fromEnableFlags([]);
-  var parser = new Parser(source, AnalysisErrorListener.NULL_LISTENER,
+  var parser = Parser(source, AnalysisErrorListener.NULL_LISTENER,
       featureSet: featureSet);
   return parser.parseDirectives(token);
 }
@@ -90,10 +90,10 @@ void parseFiles(Set<Source> files) {
   // takes to scan them, even though we already did so in [scanReachableFiles].
   // Recording and reporting this twice is unnecessary, but we do so for now to
   // validate that the results are consistent.
-  scanTimer = new Stopwatch();
+  scanTimer = Stopwatch();
   var old = scanTotalChars;
   scanTotalChars = 0;
-  var parseTimer = new Stopwatch()..start();
+  var parseTimer = Stopwatch()..start();
   for (var source in files) {
     parseFull(source);
   }
@@ -111,7 +111,7 @@ void parseFiles(Set<Source> files) {
 CompilationUnit parseFull(Source source) {
   var token = tokenize(source);
   var featureSet = FeatureSet.fromEnableFlags([]);
-  var parser = new Parser(source, AnalysisErrorListener.NULL_LISTENER,
+  var parser = Parser(source, AnalysisErrorListener.NULL_LISTENER,
       featureSet: featureSet);
   return parser.parseCompilationUnit(token);
 }
@@ -119,7 +119,7 @@ CompilationUnit parseFull(Source source) {
 /// Report that metric [name] took [time] micro-seconds to process
 /// [scanTotalChars] characters.
 void report(String name, int time) {
-  var sb = new StringBuffer();
+  var sb = StringBuffer();
   sb.write('$name: $time us, ${time ~/ 1000} ms');
   sb.write(', ${scanTotalChars * 1000 ~/ time} chars/ms');
   print('$sb');
@@ -131,7 +131,7 @@ void scanFiles(Set<Source> files) {
   // takes to scan them, even though we already did so in [scanReachableFiles].
   // Recording and reporting this twice is unnecessary, but we do so for now to
   // validate that the results are consistent.
-  scanTimer = new Stopwatch();
+  scanTimer = Stopwatch();
   var old = scanTotalChars;
   scanTotalChars = 0;
   for (var source in files) {
@@ -146,8 +146,8 @@ void scanFiles(Set<Source> files) {
 /// Load and scans all files we need to process: files reachable from the
 /// entrypoint and all core libraries automatically included by the VM.
 Set<Source> scanReachableFiles(Uri entryUri) {
-  var files = new Set<Source>();
-  var loadTimer = new Stopwatch()..start();
+  var files = Set<Source>();
+  var loadTimer = Stopwatch()..start();
   collectSources(sources.forUri2(entryUri), files);
 
   var libs = [
@@ -182,13 +182,12 @@ Set<Source> scanReachableFiles(Uri entryUri) {
 /// sources.
 Future setup(Uri entryUri) async {
   var provider = PhysicalResourceProvider.INSTANCE;
-  var packageMap = new ContextBuilder(provider, null, null)
+  var packageMap = ContextBuilder(provider, null, null)
       .convertPackagesToMap(await findPackages(entryUri));
-  sources = new SourceFactory([
-    new ResourceUriResolver(provider),
-    new PackageMapUriResolver(provider, packageMap),
-    new DartUriResolver(
-        new FolderBasedDartSdk(provider, provider.getFolder("sdk"))),
+  sources = SourceFactory([
+    ResourceUriResolver(provider),
+    PackageMapUriResolver(provider, packageMap),
+    DartUriResolver(FolderBasedDartSdk(provider, provider.getFolder("sdk"))),
   ]);
 }
 
@@ -201,8 +200,8 @@ Token tokenize(Source source) {
   var featureSet = FeatureSet.fromEnableFlags([]);
   // TODO(sigmund): is there a way to scan from a random-access-file without
   // first converting to String?
-  var scanner = new Scanner(source, new CharSequenceReader(contents),
-      AnalysisErrorListener.NULL_LISTENER)
+  var scanner = Scanner(
+      source, CharSequenceReader(contents), AnalysisErrorListener.NULL_LISTENER)
     ..configureFeatures(featureSet)
     ..preserveComments = false;
   var token = scanner.tokenize();

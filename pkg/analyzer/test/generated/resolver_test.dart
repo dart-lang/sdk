@@ -63,7 +63,7 @@ class A {
     }
   }
 }''', [
-      error(ResolverErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER, 105, 1),
+      error(CompileTimeErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER, 105, 1),
     ]);
   }
 
@@ -77,20 +77,21 @@ class A {
     }
   }
 }''', [
-      error(ResolverErrorCode.CONTINUE_LABEL_ON_SWITCH, 79, 1),
+      error(CompileTimeErrorCode.CONTINUE_LABEL_ON_SWITCH, 79, 1),
     ]);
   }
 
   test_enclosingElement_invalidLocalFunction() async {
-    await resolveTestCode(r'''
+    await assertErrorsInCode(r'''
 class C {
   C() {
     int get x => 0;
   }
-}''');
-    assertTestErrorsWithCodes([
-      ParserErrorCode.MISSING_FUNCTION_PARAMETERS,
-      ParserErrorCode.EXPECTED_TOKEN
+}''', [
+      error(ParserErrorCode.EXPECTED_TOKEN, 26, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 26, 3),
+      error(HintCode.UNUSED_ELEMENT, 30, 1),
+      error(ParserErrorCode.MISSING_FUNCTION_PARAMETERS, 32, 2),
     ]);
 
     var constructor = findElement.unnamedConstructor('C');
@@ -447,7 +448,7 @@ class ScopeTest extends DriverResolutionTest {
     VariableElement element2 = ElementFactory.localVariableElement(identifier);
     scope.define(element1);
     scope.define(element2);
-    expect(scope.localLookup('v', null), same(element1));
+    expect(scope.localLookup('v'), same(element1));
   }
 
   void test_isPrivateName_nonPrivate() {
@@ -459,20 +460,15 @@ class ScopeTest extends DriverResolutionTest {
   }
 }
 
-/**
- * Instances of the class `StaticTypeVerifier` verify that all of the nodes in an AST
- * structure that should have a static type associated with them do have a static type.
- */
+/// Instances of the class `StaticTypeVerifier` verify that all of the nodes in
+/// an AST structure that should have a static type associated with them do have
+/// a static type.
 class StaticTypeVerifier extends GeneralizingAstVisitor<void> {
-  /**
-   * A list containing all of the AST Expression nodes that were not resolved.
-   */
-  List<Expression> _unresolvedExpressions = List<Expression>();
+  /// A list containing all of the AST Expression nodes that were not resolved.
+  final List<Expression> _unresolvedExpressions = <Expression>[];
 
-  /**
-   * The TypeAnnotation nodes that were not resolved.
-   */
-  List<TypeAnnotation> _unresolvedTypes = List<TypeAnnotation>();
+  /// The TypeAnnotation nodes that were not resolved.
+  final List<TypeAnnotation> _unresolvedTypes = <TypeAnnotation>[];
 
   /**
    * Counter for the number of Expression nodes visited that are resolved.
@@ -484,9 +480,8 @@ class StaticTypeVerifier extends GeneralizingAstVisitor<void> {
    */
   int _resolvedTypeCount = 0;
 
-  /**
-   * Assert that all of the visited nodes have a static type associated with them.
-   */
+  /// Assert that all of the visited nodes have a static type associated with
+  /// them.
   void assertResolved() {
     if (_unresolvedExpressions.isNotEmpty || _unresolvedTypes.isNotEmpty) {
       StringBuffer buffer = StringBuffer();
@@ -793,7 +788,7 @@ main() {
   return v; // return
 }''';
     await resolveTestCode(code);
-    assertElementTypeString(findElement.localVar('v').type, 'int');
+    assertType(findElement.localVar('v').type, 'int');
     assertTypeNull(findNode.simple('v; // declare'));
     assertType(findNode.simple('v = null;'), 'int');
     assertType(findNode.simple('v; // return'), 'int');
@@ -819,7 +814,7 @@ f() {
   int v = 0;
   return v;
 }''');
-    assertElementTypeString(findElement.localVar('v').type, 'int');
+    assertType(findElement.localVar('v').type, 'int');
     assertTypeNull(findNode.simple('v = 0;'));
     assertType(findNode.simple('v;'), 'int');
   }
@@ -830,7 +825,7 @@ f() {
   List<int> v = <int>[];
   return v;
 }''');
-    assertElementTypeString(findElement.localVar('v').type, 'List<int>');
+    assertType(findElement.localVar('v').type, 'List<int>');
     assertTypeNull(findNode.simple('v ='));
     assertType(findNode.simple('v;'), 'List<int>');
   }
@@ -841,7 +836,7 @@ main() {
   int v = null;
   return v;
 }''');
-    assertElementTypeString(findElement.localVar('v').type, 'int');
+    assertType(findElement.localVar('v').type, 'int');
     assertTypeNull(findNode.simple('v ='));
     assertType(findNode.simple('v;'), 'int');
   }
@@ -949,7 +944,7 @@ main() {
   dynamic toString = () => null;
   toString(); // marker
 }''');
-    assertElementTypeDynamic(findElement.localVar('toString').type);
+    assertTypeDynamic(findElement.localVar('toString').type);
     assertTypeNull(findNode.simple('toString ='));
     assertTypeDynamic(findNode.simple('toString(); // marker'));
   }
@@ -967,7 +962,5 @@ main() {
 
 class _RootScope extends Scope {
   @override
-  Element internalLookup(Identifier identifier, String name,
-          LibraryElement referencingLibrary) =>
-      null;
+  Element internalLookup(String name) => null;
 }

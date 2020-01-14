@@ -22,7 +22,7 @@ class PluginLocatorTest with ResourceProviderMixin {
 
   void setUp() {
     packageRoot = newFolder('/package').path;
-    locator = new PluginLocator(resourceProvider);
+    locator = PluginLocator(resourceProvider);
   }
 
   @failingTest

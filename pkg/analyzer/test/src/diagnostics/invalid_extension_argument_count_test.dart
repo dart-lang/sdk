@@ -33,7 +33,7 @@ f() {
 ''', [
       error(CompileTimeErrorCode.INVALID_EXTENSION_ARGUMENT_COUNT, 49, 15),
     ]);
-    assertElementTypeDynamic(findNode.extensionOverride('E(').extendedType);
+    assertTypeDynamic(findNode.extensionOverride('E(').extendedType);
   }
 
   test_one() async {
@@ -58,6 +58,6 @@ f() {
 ''', [
       error(CompileTimeErrorCode.INVALID_EXTENSION_ARGUMENT_COUNT, 49, 2),
     ]);
-    assertElementTypeDynamic(findNode.extensionOverride('E(').extendedType);
+    assertTypeDynamic(findNode.extensionOverride('E(').extendedType);
   }
 }

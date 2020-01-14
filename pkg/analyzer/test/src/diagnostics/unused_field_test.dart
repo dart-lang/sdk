@@ -278,6 +278,17 @@ class A {
     ]);
   }
 
+  test_notUsed_referenceInComment() async {
+    await assertErrorsInCode(r'''
+/// [A._f] is great.
+class A {
+  int _f;
+}
+''', [
+      error(HintCode.UNUSED_FIELD, 37, 2),
+    ]);
+  }
+
   test_notUsed_simpleAssignment() async {
     await assertErrorsInCode(r'''
 class A {

@@ -22,7 +22,7 @@ class OccurrencesCollectorImpl implements OccurrencesCollector {
     protocol.Occurrences existing = elementOccurrences[element];
     if (existing != null) {
       List<int> offsets = _merge(existing.offsets, current.offsets);
-      current = new protocol.Occurrences(element, offsets, existing.length);
+      current = protocol.Occurrences(element, offsets, existing.length);
     }
     elementOccurrences[element] = current;
   }

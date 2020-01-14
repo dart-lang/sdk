@@ -76,7 +76,8 @@ twoClasses() async {
 
 subClass() async {
   checkOutput(String generated) {
-    Expect.isTrue(generated.contains(RegExp(r'_inherit\(.\.A, .\.Object\)')));
+    Expect.isTrue(
+        generated.contains(RegExp(r'_inheritMany\(.\.Object, .*, .\.A]')));
     Expect.isTrue(generated.contains(RegExp(r'_inherit\(.\.B, .\.A\)')));
   }
 

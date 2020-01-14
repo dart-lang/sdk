@@ -158,13 +158,12 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment LoadLocal(LocalVariable* variable);
   Fragment Return(TokenPosition position,
                   intptr_t yield_index = RawPcDescriptors::kInvalidYieldIndex);
-  Fragment PushArgument();
   Fragment EvaluateAssertion();
   Fragment RethrowException(TokenPosition position, int catch_try_index);
   Fragment ThrowNoSuchMethodError();
   Fragment Constant(const Object& value);
   Fragment IntConstant(int64_t value);
-  Fragment LoadStaticField();
+  Fragment LoadStaticField(const Field& field);
   Fragment RedefinitionWithType(const AbstractType& type);
   Fragment CheckNull(TokenPosition position,
                      LocalVariable* receiver,
@@ -218,6 +217,8 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment StringInterpolate(TokenPosition position);
   Fragment StringInterpolateSingle(TokenPosition position);
   Fragment ThrowTypeError();
+  Fragment ThrowLateInitializationError(TokenPosition position,
+                                        const String& name);
   Fragment LoadInstantiatorTypeArguments();
   Fragment LoadFunctionTypeArguments();
   Fragment InstantiateType(const AbstractType& type);
@@ -266,18 +267,18 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   const TypeArguments& BuildTypeArguments();
   Fragment BuildArguments(Array* argument_names,
                           intptr_t* argument_count,
-                          intptr_t* positional_argument_count,
-                          bool skip_push_arguments = false,
-                          bool do_drop = false);
-  Fragment BuildArgumentsFromActualArguments(Array* argument_names,
-                                             bool skip_push_arguments = false,
-                                             bool do_drop = false);
+                          intptr_t* positional_argument_count);
+  Fragment BuildArgumentsFromActualArguments(Array* argument_names);
 
   Fragment BuildInvalidExpression(TokenPosition* position);
   Fragment BuildVariableGet(TokenPosition* position);
   Fragment BuildVariableGet(uint8_t payload, TokenPosition* position);
+  Fragment BuildVariableGetImpl(intptr_t variable_kernel_position,
+                                TokenPosition position);
   Fragment BuildVariableSet(TokenPosition* position);
   Fragment BuildVariableSet(uint8_t payload, TokenPosition* position);
+  Fragment BuildVariableSetImpl(TokenPosition position,
+                                intptr_t variable_kernel_position);
   Fragment BuildPropertyGet(TokenPosition* position);
   Fragment BuildPropertySet(TokenPosition* position);
   Fragment BuildAllocateInvocationMirrorCall(TokenPosition position,

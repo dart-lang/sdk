@@ -16,6 +16,6 @@ abstract class SuggestionBuilder {
    */
   CompletionSuggestion forElement(Element element,
       {String completion,
-      CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
-      int relevance: DART_RELEVANCE_DEFAULT});
+      CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
+      int relevance = DART_RELEVANCE_DEFAULT});
 }

@@ -45,15 +45,12 @@ main(List<String> args) async {
   var packageName = args[1];
   var testInfo = TestInfo(testInfoJson);
   var packageRoot = testInfo.packageRoot(packageName);
-  var outputRoot = testInfo.outputRoot;
   var port = testInfo.port;
-  String outputDir =
-      outputRoot == null ? null : path.join(outputRoot, packageName);
   print('Preparing to migrate');
   var migrationTest = MigrationTest();
   migrationTest.setUp();
   print('Migrating');
-  await migrationTest.run(packageRoot, outputDir, port);
+  await migrationTest.run(packageRoot, port);
   if (port == null) {
     print('Done');
     io.exit(0);
@@ -71,12 +68,12 @@ class MigrationBase {
     //
     // Create server
     //
-    AnalysisServerOptions options = new AnalysisServerOptions();
+    AnalysisServerOptions options = AnalysisServerOptions();
     String sdkPath = FolderBasedDartSdk.defaultSdkDirectory(
       PhysicalResourceProvider.INSTANCE,
     ).path;
-    return new AnalysisServer(serverChannel, resourceProvider, options,
-        new DartSdkManager(sdkPath, true), InstrumentationService.NULL_SERVICE);
+    return AnalysisServer(serverChannel, resourceProvider, options,
+        DartSdkManager(sdkPath, true), InstrumentationService.NULL_SERVICE);
   }
 
   void processNotification(Notification notification) {
@@ -91,18 +88,17 @@ class MigrationBase {
     return waitResponse(request);
   }
 
-  Future<Response> sendEditDartfix(
-      List<String> directories, String outputDir, int port) {
+  Future<Response> sendEditDartfix(List<String> directories, int port) {
     var request = EditDartfixParams(directories,
-            includedFixes: ['non-nullable'], outputDir: outputDir, port: port)
+            includedFixes: ['non-nullable'], port: port)
         .toRequest('1');
     return waitResponse(request);
   }
 
   void setUp() {
-    serverChannel = new MockServerChannel();
+    serverChannel = MockServerChannel();
     server = createAnalysisServer();
-    server.pluginManager = new TestPluginManager();
+    server.pluginManager = TestPluginManager();
     // listen for notifications
     Stream<Notification> notificationStream =
         serverChannel.notificationController.stream;
@@ -130,10 +126,10 @@ class MigrationBase {
 }
 
 class MigrationTest extends MigrationBase {
-  Future<void> run(String packageRoot, String outputDir, int port) async {
+  Future<void> run(String packageRoot, int port) async {
     List<String> packageRoots = [packageRoot];
     await sendAnalysisSetAnalysisRoots(packageRoots);
-    await sendEditDartfix(packageRoots, outputDir, port);
+    await sendEditDartfix(packageRoots, port);
   }
 }
 

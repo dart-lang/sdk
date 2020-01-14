@@ -9,16 +9,16 @@ main() {
   typeLiteralSubstring();
 }
 
-/*member: typeLiteral:[exact=TypeImpl]*/
+/*member: typeLiteral:[exact=_Type]*/
 typeLiteral() => Object;
 
-/*member: typeLiteralToString:[exact=JSString]*/
-typeLiteralToString() => (Object). /*invoke: [exact=TypeImpl]*/ toString();
+/*member: typeLiteralToString:[null|exact=JSString]*/
+typeLiteralToString() => (Object). /*invoke: [exact=_Type]*/ toString();
 
 /*member: typeLiteralSubstring:[exact=JSString]*/
 typeLiteralSubstring() {
-  String name = (List). /*invoke: [exact=TypeImpl]*/ toString();
-  name = name. /*invoke: [exact=JSString]*/ substring(
-      0, name. /*invoke: [exact=JSString]*/ indexOf('<'));
+  String name = (List). /*invoke: [exact=_Type]*/ toString();
+  name = name. /*invoke: [null|exact=JSString]*/ substring(
+      0, name. /*invoke: [null|exact=JSString]*/ indexOf('<'));
   return name;
 }

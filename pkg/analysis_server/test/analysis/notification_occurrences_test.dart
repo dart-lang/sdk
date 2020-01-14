@@ -24,7 +24,7 @@ class AnalysisNotificationOccurrencesTest extends AbstractAnalysisTest {
   List<Occurrences> occurrencesList;
   Occurrences testOccurrences;
 
-  Completer _resultsAvailable = new Completer();
+  final Completer<void> _resultsAvailable = Completer();
 
   /**
    * Asserts that there is an offset of [search] in [testOccurrences].
@@ -82,12 +82,13 @@ class AnalysisNotificationOccurrencesTest extends AbstractAnalysisTest {
     return _resultsAvailable.future;
   }
 
+  @override
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_OCCURRENCES) {
-      var params = new AnalysisOccurrencesParams.fromNotification(notification);
+      var params = AnalysisOccurrencesParams.fromNotification(notification);
       if (params.file == testFile) {
         occurrencesList = params.occurrences;
-        _resultsAvailable.complete(null);
+        _resultsAvailable.complete();
       }
     }
   }

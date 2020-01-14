@@ -17,11 +17,9 @@ import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 
 export 'package:analyzer/src/dart/ast/constant_evaluator.dart';
 
-/**
- * A function used to handle exceptions that are thrown by delegates while using
- * an [ExceptionHandlingDelegatingAstVisitor].
- */
-typedef void ExceptionInDelegateHandler(
+/// A function used to handle exceptions that are thrown by delegates while
+/// using an [ExceptionHandlingDelegatingAstVisitor].
+typedef ExceptionInDelegateHandler = void Function(
     AstNode node, AstVisitor visitor, dynamic exception, StackTrace stackTrace);
 
 /**
@@ -80,7 +78,7 @@ class AstCloner implements AstVisitor<AstNode> {
    */
   List<E> cloneNodeList<E extends AstNode>(List<E> nodes) {
     int count = nodes.length;
-    List<E> clonedNodes = List<E>();
+    List<E> clonedNodes = <E>[];
     for (int i = 0; i < count; i++) {
       clonedNodes.add((nodes[i]).accept(this) as E);
     }
@@ -2500,12 +2498,12 @@ class NodeLocator extends UnifyingAstVisitor<void> {
   /**
    * The start offset of the range used to identify the node.
    */
-  int _startOffset = 0;
+  final int _startOffset;
 
   /**
    * The end offset of the range used to identify the node.
    */
-  int _endOffset = 0;
+  final int _endOffset;
 
   /**
    * The element that was found that corresponds to the given source range, or
@@ -2603,15 +2601,11 @@ class NodeLocator extends UnifyingAstVisitor<void> {
  * encompasses the specified range.
  */
 class NodeLocator2 extends UnifyingAstVisitor<void> {
-  /**
-   * The inclusive start offset of the range used to identify the node.
-   */
-  int _startOffset = 0;
+  /// The inclusive start offset of the range used to identify the node.
+  final int _startOffset;
 
-  /**
-   * The inclusive end offset of the range used to identify the node.
-   */
-  int _endOffset = 0;
+  /// The inclusive end offset of the range used to identify the node.
+  final int _endOffset;
 
   /**
    * The found node or `null` if there is no such node.
@@ -3151,6 +3145,7 @@ class NodeReplacer implements AstVisitor<bool> {
     return visitNode(node);
   }
 
+  @override
   bool visitExtensionDeclaration(ExtensionDeclaration node) {
     if (identical(node.documentationComment, _oldNode)) {
       node.documentationComment = _newNode as Comment;
@@ -5635,7 +5630,8 @@ class ScopedNameFinder extends GeneralizingAstVisitor<void> {
 
   AstNode _immediateChild;
 
-  Map<String, SimpleIdentifier> _locals = HashMap<String, SimpleIdentifier>();
+  final Map<String, SimpleIdentifier> _locals =
+      HashMap<String, SimpleIdentifier>();
 
   final int _position;
 

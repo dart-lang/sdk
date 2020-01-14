@@ -29,7 +29,7 @@ class LspByteStreamServerChannel implements LspServerCommunicationChannel {
   /**
    * Completer that will be signalled when the input stream is closed.
    */
-  final Completer _closed = new Completer();
+  final Completer _closed = Completer();
 
   /**
    * True if [close] has been called.
@@ -42,6 +42,7 @@ class LspByteStreamServerChannel implements LspServerCommunicationChannel {
   /**
    * Future that will be completed when the input stream is closed.
    */
+  @override
   Future get closed {
     return _closed.future;
   }
@@ -58,7 +59,7 @@ class LspByteStreamServerChannel implements LspServerCommunicationChannel {
   @override
   void listen(void onMessage(Message message),
       {Function onError, void onDone()}) {
-    _input.transform(new LspPacketTransformer()).listen(
+    _input.transform(LspPacketTransformer()).listen(
       (String data) => _readMessage(data, onMessage),
       onError: onError,
       onDone: () {
@@ -127,11 +128,10 @@ class LspByteStreamServerChannel implements LspServerCommunicationChannel {
   }
 
   void _sendParseError() {
-    final error = new ResponseMessage(
+    final error = ResponseMessage(
         null,
         null,
-        new ResponseError(
-            ErrorCodes.ParseError, 'Unable to parse message', null),
+        ResponseError(ErrorCodes.ParseError, 'Unable to parse message', null),
         jsonRpcVersion);
     sendResponse(error);
   }

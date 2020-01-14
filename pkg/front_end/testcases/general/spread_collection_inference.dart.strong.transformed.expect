@@ -459,9 +459,9 @@ Try providing type arguments for the literal explicitly to disambiguate it.
                                             ^": null};
   core::List<core::int*>* lhs80 = block {
     final core::List<core::int*>* #t71 = <core::int*>[];
-    final dynamic #t72 = null;
+    final core::Iterable<core::int*>* #t72 = null;
     if(!#t72.{core::Object::==}(null)) {
-      core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(#t72).{core::Iterable::iterator};
+      core::Iterator<core::int*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::int*>*>(#t72).{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final core::int* #t73 = :sync-for-iterator.{core::Iterator::current};
         #t71.{core::List::add}(#t73);
@@ -470,9 +470,9 @@ Try providing type arguments for the literal explicitly to disambiguate it.
   } =>#t71;
   core::Set<core::int*>* set80 = block {
     final core::Set<core::int*>* #t74 = col::LinkedHashSet::•<core::int*>();
-    final dynamic #t75 = null;
+    final core::Iterable<core::int*>* #t75 = null;
     if(!#t75.{core::Object::==}(null)) {
-      core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(#t75).{core::Iterable::iterator};
+      core::Iterator<core::int*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::int*>*>(#t75).{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final core::int* #t76 = :sync-for-iterator.{core::Iterator::current};
         #t74.{core::Set::add}(#t76);
@@ -481,7 +481,7 @@ Try providing type arguments for the literal explicitly to disambiguate it.
   } =>#t74;
   core::Set<dynamic>* set81ambiguous = block {
     final core::Set<dynamic>* #t77 = col::LinkedHashSet::•<dynamic>();
-    final dynamic #t78 = null;
+    final core::Iterable<dynamic>* #t78 = null;
     if(!#t78.{core::Object::==}(null)) {
       core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(#t78).{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
@@ -505,9 +505,9 @@ Try providing type arguments for the literal explicitly to disambiguate it.
   } =>#t77;
   core::Map<core::String*, core::int*>* map80 = block {
     final core::Map<core::String*, core::int*>* #t83 = <core::String*, core::int*>{};
-    final core::Map<dynamic, dynamic>* #t84 = null;
+    final core::Map<core::String*, core::int*>* #t84 = null;
     if(!#t84.{core::Object::==}(null)) {
-      core::Iterator<core::MapEntry<dynamic, dynamic>*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::MapEntry<dynamic, dynamic>*>*>(#t84.{core::Map::entries}).{core::Iterable::iterator};
+      core::Iterator<core::MapEntry<core::String*, core::int*>*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::MapEntry<core::String*, core::int*>*>*>(#t84.{core::Map::entries}).{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final core::MapEntry<core::String*, core::int*>* #t85 = :sync-for-iterator.{core::Iterator::current};
         #t83.{core::Map::[]=}(#t85.{core::MapEntry::key}, #t85.{core::MapEntry::value});

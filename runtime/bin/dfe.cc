@@ -85,7 +85,7 @@ DFE::DFE()
   //
   // Only on X64 do we have kernel-service.dart.snapshot available otherwise we
   // need to fall back to the built-in one (if we have it).
-#if defined(EXCLUDE_CFE_AND_KERNEL_PLATFORM) || defined(DART_NO_SNAPSHOT) ||   \
+#if defined(EXCLUDE_CFE_AND_KERNEL_PLATFORM) ||                                \
     (defined(DART_PRECOMPILER) && defined(TARGET_ARCH_X64))
   kernel_service_dill_ = nullptr;
   kernel_service_dill_size_ = 0;

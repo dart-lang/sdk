@@ -7,12 +7,6 @@ import 'dart:_runtime' as dart;
 /// The runtime representation of the never type.
 final neverType = dart.wrapType(dart.never_);
 
-/// Sets the mode of the runtime subtype checks.
-///
-/// In tests the mode should be set only once at the very beginning of the test.
-/// Changing the mode after any calls to dart.isSubtype() is not supported.
-void strictSubtypeChecks(bool flag) => dart.strictSubtypeChecks(flag);
-
 /// Returns tWrapped? as a wrapped type.
 Type nullable(Type tWrapped) {
   var t = dart.unwrapType(tWrapped);

@@ -57,7 +57,11 @@ import '../builder/nullability_builder.dart';
 
 import '../builder/procedure_builder.dart';
 
+import '../builder/type_alias_builder.dart';
+
 import '../builder/type_builder.dart';
+
+import '../builder/type_declaration_builder.dart';
 
 import '../builder/type_variable_builder.dart';
 
@@ -344,7 +348,12 @@ class SourceClassBuilder extends ClassBuilderImpl
     final List<Builder> result = <Builder>[];
     final TypeBuilder supertype = this.supertype;
     if (supertype != null) {
-      result.add(supertype.declaration);
+      TypeDeclarationBuilder declarationBuilder = supertype.declaration;
+      if (declarationBuilder is TypeAliasBuilder) {
+        TypeAliasBuilder aliasBuilder = declarationBuilder;
+        declarationBuilder = aliasBuilder.unaliasDeclaration;
+      }
+      result.add(declarationBuilder);
     } else if (objectClass != this) {
       result.add(objectClass);
     }
@@ -352,12 +361,22 @@ class SourceClassBuilder extends ClassBuilderImpl
     if (interfaces != null) {
       for (int i = 0; i < interfaces.length; i++) {
         TypeBuilder interface = interfaces[i];
-        result.add(interface.declaration);
+        TypeDeclarationBuilder declarationBuilder = interface.declaration;
+        if (declarationBuilder is TypeAliasBuilder) {
+          TypeAliasBuilder aliasBuilder = declarationBuilder;
+          declarationBuilder = aliasBuilder.unaliasDeclaration;
+        }
+        result.add(declarationBuilder);
       }
     }
     final TypeBuilder mixedInType = this.mixedInType;
     if (mixedInType != null) {
-      result.add(mixedInType.declaration);
+      TypeDeclarationBuilder declarationBuilder = mixedInType.declaration;
+      if (declarationBuilder is TypeAliasBuilder) {
+        TypeAliasBuilder aliasBuilder = declarationBuilder;
+        declarationBuilder = aliasBuilder.unaliasDeclaration;
+      }
+      result.add(declarationBuilder);
     }
     return result;
   }

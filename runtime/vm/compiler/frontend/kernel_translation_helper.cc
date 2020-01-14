@@ -734,7 +734,6 @@ void TranslationHelper::SetupFieldAccessorFunction(
 
   intptr_t pos = 0;
   if (is_method) {
-    // TODO(regis): Set nullability to kNonNullable instead of kLegacy.
     function.SetParameterTypeAt(pos, GetDeclarationType(klass));
     function.SetParameterNameAt(pos, Symbols::This());
     pos++;
@@ -2779,14 +2778,15 @@ void TypeTranslator::BuildTypeInternal() {
     case kVoidType:
       result_ = Object::void_type().raw();
       break;
+    case kNeverType: {
+      const Nullability nullability = helper_->ReadNullability();
+      result_ = Object::never_type().ToNullability(nullability, Heap::kOld);
+      break;
+    }
     case kBottomType:
+      // Map Bottom type to Null type until not emitted by CFE anymore.
       result_ = I->object_store()->null_type();
       ASSERT(result_.IsNullable());
-      break;
-    case kNeverType:
-      helper_->ReadNullability();
-      // Ignore nullability, as Never type is non-nullable.
-      result_ = Object::never_type().raw();
       break;
     case kInterfaceType:
       BuildInterfaceType(false);
@@ -2829,7 +2829,8 @@ void TypeTranslator::BuildInterfaceType(bool simple) {
       // Fast path for non-generic types: retrieve or populate the class's only
       // canonical type (as long as only one nullability variant is used), which
       // is its declaration type.
-      result_ = klass.DeclarationType(nullability);
+      result_ = klass.DeclarationType();
+      result_ = Type::Cast(result_).ToNullability(nullability, Heap::kOld);
     } else {
       // Note that the type argument vector is not yet extended.
       result_ = Type::New(klass, Object::null_type_arguments(),
@@ -3176,9 +3177,10 @@ const Type& TypeTranslator::ReceiverType(const Class& klass) {
     type = klass.DeclarationType();
   } else {
     type = Type::New(klass, TypeArguments::Handle(Z, klass.type_parameters()),
-                     klass.token_pos());
+                     klass.token_pos(),
+                     Dart::non_nullable_flag() ? Nullability::kNonNullable
+                                               : Nullability::kLegacy);
   }
-  // TODO(regis): Set nullability to kNonNullable instead of kLegacy.
   return type;
 }
 
@@ -3229,7 +3231,6 @@ void TypeTranslator::SetupFunctionParameters(
   intptr_t pos = 0;
   if (is_method) {
     ASSERT(!klass.IsNull());
-    // TODO(regis): Set nullability to kNonNullable instead of kLegacy.
     function.SetParameterTypeAt(pos, H.GetDeclarationType(klass));
     function.SetParameterNameAt(pos, Symbols::This());
     pos++;

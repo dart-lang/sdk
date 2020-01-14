@@ -17,6 +17,7 @@ main() {
 @reflectiveTest
 class InvalidLiteralAnnotationTest extends DriverResolutionTest
     with PackageMixin {
+  @override
   setUp() {
     super.setUp();
     addMetaPackage();

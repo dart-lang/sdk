@@ -30,15 +30,11 @@ extern const uint8_t kDartCoreIsolateSnapshotInstructions[];
 namespace dart {
 
 // Snapshot pieces when we link in a snapshot.
-#if defined(DART_NO_SNAPSHOT)
-#error "run_vm_tests must be built with a snapshot"
-#else
 const uint8_t* bin::vm_snapshot_data = kDartVmSnapshotData;
 const uint8_t* bin::vm_snapshot_instructions = kDartVmSnapshotInstructions;
 const uint8_t* bin::core_isolate_snapshot_data = kDartCoreIsolateSnapshotData;
 const uint8_t* bin::core_isolate_snapshot_instructions =
     kDartCoreIsolateSnapshotInstructions;
-#endif
 
 // Only run tests that match the filter string. The default does not match any
 // tests.

@@ -109,11 +109,6 @@ static void PrecompilationModeHandler(bool value) {
     FLAG_use_field_guards = false;
     FLAG_use_cha_deopt = false;
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-    // Not present with DART_PRECOMPILED_RUNTIME
-    FLAG_unbox_numeric_fields = false;
-#endif
-
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
     // Set flags affecting runtime accordingly for gen_snapshot.
     // These flags are constants with PRODUCT and DART_PRECOMPILED_RUNTIME.
@@ -846,11 +841,10 @@ static RawObject* CompileFunctionHelper(CompilationPipeline* pipeline,
     per_compile_timer.Stop();
 
     if (trace_compiler) {
+      const auto& code = Code::Handle(function.CurrentCode());
       THR_Print("--> '%s' entry: %#" Px " size: %" Pd " time: %" Pd64 " us\n",
-                function.ToFullyQualifiedCString(),
-                Code::Handle(function.CurrentCode()).PayloadStart(),
-                Code::Handle(function.CurrentCode()).Size(),
-                per_compile_timer.TotalElapsedTime());
+                function.ToFullyQualifiedCString(), code.PayloadStart(),
+                code.Size(), per_compile_timer.TotalElapsedTime());
     }
 
     return result.raw();

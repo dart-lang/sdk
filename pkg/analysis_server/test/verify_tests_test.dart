@@ -22,7 +22,7 @@ main() {
   String testDirPath = provider.pathContext.join(analysisServerPath, 'test');
   String mocksDirPath = provider.pathContext.join(testDirPath, 'mock_packages');
 
-  AnalysisContextCollection collection = new AnalysisContextCollection(
+  AnalysisContextCollection collection = AnalysisContextCollection(
     resourceProvider: provider,
     includedPaths: <String>[testDirPath],
     excludedPaths: <String>[mocksDirPath],

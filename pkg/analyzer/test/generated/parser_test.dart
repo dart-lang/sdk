@@ -251,15 +251,11 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
  * AST structure.
  */
 class AstValidator extends UnifyingAstVisitor<void> {
-  /**
-   * A list containing the errors found while traversing the AST structure.
-   */
-  List<String> _errors = List<String>();
+  /// A list containing the errors found while traversing the AST structure.
+  final List<String> _errors = <String>[];
 
-  /**
-   * Assert that no errors were found while traversing any of the AST structures that have been
-   * visited.
-   */
+  /// Assert that no errors were found while traversing any of the AST
+  /// structures that have been visited.
   void assertValid() {
     if (_errors.isNotEmpty) {
       StringBuffer buffer = StringBuffer();
@@ -9450,6 +9446,7 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
    *
    * This field is typically initialized by invoking [createParser].
    */
+  @override
   Parser parser;
 
   @override
@@ -9469,6 +9466,7 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
    * Create the [parser] and [listener] used by a test. The [parser] will be
    * prepared to parse the tokens scanned from the given [content].
    */
+  @override
   void createParser(String content, {int expectedEndOffset}) {
     Source source = TestSource();
     listener = GatheringErrorListener();
@@ -9571,6 +9569,7 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
     }
   }
 
+  @override
   CommentReference parseCommentReference(
       String referenceSource, int sourceOffset) {
     String padding = ' '.padLeft(sourceOffset - 4, 'a');
@@ -9596,6 +9595,7 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
    * @throws Exception if the source could not be parsed, if the compilation errors in the source do
    *           not match those that are expected, or if the result would have been `null`
    */
+  @override
   CompilationUnit parseCompilationUnit(String content,
       {List<ErrorCode> codes, List<ExpectedError> errors}) {
     Source source = TestSource();
@@ -9681,6 +9681,7 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
    * if a list of [errors] is provided, the assert that the produced errors
    * matches the list. Otherwise, assert that there are no errors.
    */
+  @override
   Expression parseExpression(String source,
       {List<ErrorCode> codes,
       List<ExpectedError> errors,
@@ -9762,6 +9763,7 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
    * Parses a single top level member of a compilation unit (other than a
    * directive), including any comment and/or metadata that precedes it.
    */
+  @override
   CompilationUnitMember parseFullCompilationUnitMember() => usingFastaParser
       ? parser.parseCompilationUnit2().declarations.first
       : parser.parseCompilationUnitMember(parser.parseCommentAndMetadata());
@@ -9956,6 +9958,7 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
    * Parse the given [content] as a statement. If [enableLazyAssignmentOperators]
    * is `true`, then lazy assignment operators should be enabled.
    */
+  @override
   Statement parseStatement(String content, {int expectedEndOffset}) {
     Source source = TestSource();
     listener = GatheringErrorListener();

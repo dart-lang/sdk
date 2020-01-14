@@ -125,7 +125,7 @@ class _BufferingStreamSubscription<T>
    * This can only be done once. The pending events object is used for the
    * rest of the subscription's life cycle.
    */
-  void _setPendingEvents(_PendingEvents<T> pendingEvents) {
+  void _setPendingEvents(_PendingEvents<T>? pendingEvents) {
     assert(_pending == null);
     if (pendingEvents == null) return;
     _pending = pendingEvents;
@@ -584,7 +584,7 @@ typedef void _DataHandler<T>(T value);
 typedef void _DoneHandler();
 
 /** Default data handler, does nothing. */
-void _nullDataHandler(Object value) {}
+void _nullDataHandler(dynamic value) {}
 
 /** Default error handler, reports the error to the current zone's handler. */
 void _nullErrorHandler(Object error, [StackTrace? stackTrace]) {

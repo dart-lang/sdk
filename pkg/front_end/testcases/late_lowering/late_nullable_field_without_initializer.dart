@@ -25,6 +25,18 @@ class Class {
   }
 }
 
+extension Extension on Class {
+  static late int? lateExtensionField1;
+  static late int? lateExtensionField2;
+
+  static staticMethod() {
+    throws(() => lateExtensionField2,
+        'Read value from uninitialized Class.lateExtensionField2');
+    lateExtensionField2 = 42;
+    expect(42, lateExtensionField2);
+  }
+}
+
 main() {
   throws(() => lateTopLevelField,
       'Read value from uninitialized lateTopLevelField');
@@ -37,6 +49,13 @@ main() {
   expect(87, Class.lateStaticField1);
 
   Class.staticMethod();
+
+  throws(() => Extension.lateExtensionField1,
+      'Read value from uninitialized Extension.lateExtensionField1');
+  Extension.lateExtensionField1 = 87;
+  expect(87, Extension.lateExtensionField1);
+
+  Extension.staticMethod();
 }
 
 expect(expected, actual) {

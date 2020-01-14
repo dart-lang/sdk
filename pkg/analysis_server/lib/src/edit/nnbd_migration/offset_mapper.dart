@@ -22,12 +22,12 @@ abstract class OffsetMapper {
 class _EditMapper implements OffsetMapper {
   /// A list whose elements are the highest pre-edit offset for which the
   /// corresponding element of [_deltas] should be applied.
-  List<int> _offsets = [];
+  final List<int> _offsets = [];
 
   /// A list whose elements are the deltas to be applied for all pre-edit
   /// offsets that are less than or equal to the corresponding element of
   /// [_offsets].
-  List<int> _deltas = [];
+  final List<int> _deltas = [];
 
   /// Initialize a newly created mapper based on the given set of [edits].
   _EditMapper(List<SourceEdit> edits) {

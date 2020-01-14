@@ -10,10 +10,10 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide Element, ElementKind;
@@ -68,7 +68,7 @@ class DartChangeBuilderImpl extends ChangeBuilderImpl
     ResolvedUnitResult result = await session.getResolvedUnit(path);
     ResultState state = result?.state ?? ResultState.INVALID_FILE_TYPE;
     if (state == ResultState.INVALID_FILE_TYPE) {
-      throw new AnalysisException('Cannot analyze "$path"');
+      throw AnalysisException('Cannot analyze "$path"');
     }
     int timeStamp = state == ResultState.VALID ? 0 : -1;
 
@@ -136,7 +136,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   @override
   LinkedEditBuilderImpl createLinkedEditBuilder() {
-    return new DartLinkedEditBuilderImpl(this);
+    return DartLinkedEditBuilderImpl(this);
   }
 
   /**
@@ -153,7 +153,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   @override
   void writeClassDeclaration(String name,
       {Iterable<DartType> interfaces,
-      bool isAbstract: false,
+      bool isAbstract = false,
       void membersWriter(),
       Iterable<DartType> mixins,
       String nameGroupName,
@@ -196,7 +196,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       String constructorNameGroupName,
       List<String> fieldNames,
       void initializerWriter(),
-      bool isConst: false,
+      bool isConst = false,
       void parameterWriter()}) {
     if (isConst) {
       write(Keyword.CONST.lexeme);
@@ -242,9 +242,9 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   @override
   void writeFieldDeclaration(String name,
       {void initializerWriter(),
-      bool isConst: false,
-      bool isFinal: false,
-      bool isStatic: false,
+      bool isConst = false,
+      bool isFinal = false,
+      bool isStatic = false,
       String nameGroupName,
       DartType type,
       String typeGroupName}) {
@@ -284,7 +284,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   @override
   void writeFunctionDeclaration(String name,
       {void bodyWriter(),
-      bool isStatic: false,
+      bool isStatic = false,
       String nameGroupName,
       void parameterWriter(),
       DartType returnType,
@@ -323,7 +323,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   @override
   void writeGetterDeclaration(String name,
       {void bodyWriter(),
-      bool isStatic: false,
+      bool isStatic = false,
       String nameGroupName,
       DartType returnType,
       String returnTypeGroupName}) {
@@ -354,8 +354,8 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   @override
   void writeLocalVariableDeclaration(String name,
       {void initializerWriter(),
-      bool isConst: false,
-      bool isFinal: false,
+      bool isConst = false,
+      bool isFinal = false,
       String nameGroupName,
       DartType type,
       String typeGroupName}) {
@@ -417,14 +417,14 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     ExecutableElement element, {
     StringBuffer displayTextBuffer,
     String returnTypeGroupName,
-    bool invokeSuper: false,
+    bool invokeSuper = false,
   }) {
     void withCarbonCopyBuffer(f()) {
-      this._carbonCopyBuffer = displayTextBuffer;
+      _carbonCopyBuffer = displayTextBuffer;
       try {
         f();
       } finally {
-        this._carbonCopyBuffer = null;
+        _carbonCopyBuffer = null;
       }
     }
 
@@ -654,7 +654,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   void writeParametersMatchingArguments(ArgumentList argumentList) {
     // TODO(brianwilkerson) Handle the case when there are required parameters
     // after named parameters.
-    Set<String> usedNames = new Set<String>();
+    Set<String> usedNames = Set<String>();
     List<Expression> arguments = argumentList.arguments;
     bool hasNamedParameters = false;
     for (int i = 0; i < arguments.length; i++) {
@@ -684,7 +684,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   @override
   void writeSetterDeclaration(String name,
       {void bodyWriter(),
-      bool isStatic: false,
+      bool isStatic = false,
       String nameGroupName,
       DartType parameterType,
       String parameterTypeGroupName}) {
@@ -718,17 +718,17 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   @override
   bool writeType(DartType type,
-      {bool addSupertypeProposals: false,
+      {bool addSupertypeProposals = false,
       String groupName,
       ExecutableElement methodBeingCopied,
-      bool required: false}) {
+      bool required = false}) {
     bool wroteType = false;
     if (type != null && !type.isDynamic) {
       if (groupName != null) {
         addLinkedEdit(groupName, (LinkedEditBuilder builder) {
           wroteType = _writeType(type, methodBeingCopied: methodBeingCopied);
           if (wroteType && addSupertypeProposals) {
-            _addSuperTypeProposals(builder, type, new Set<DartType>());
+            _addSuperTypeProposals(builder, type, Set<DartType>());
           }
         });
       } else {
@@ -816,7 +816,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   void _addSingleCharacterName(
       Set<String> excluded, Set<String> result, int c) {
     while (c < $z) {
-      String name = new String.fromCharCode(c);
+      String name = String.fromCharCode(c);
       // may be done
       if (!excluded.contains(name)) {
         result.add(name);
@@ -830,7 +830,10 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   void _addSuperTypeProposals(
       LinkedEditBuilder builder, DartType type, Set<DartType> alreadyAdded) {
     if (type is InterfaceType && alreadyAdded.add(type)) {
-      builder.addSuggestion(LinkedEditSuggestionKind.TYPE, type.displayName);
+      builder.addSuggestion(
+        LinkedEditSuggestionKind.TYPE,
+        type.getDisplayString(withNullability: false),
+      );
       _addSuperTypeProposals(builder, type.superclass, alreadyAdded);
       for (InterfaceType interfaceType in type.interfaces) {
         _addSuperTypeProposals(builder, interfaceType, alreadyAdded);
@@ -947,7 +950,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       Set<String> usedNames, DartType type, Expression expression, int index) {
     List<String> suggestions =
         _getVariableNameSuggestionsForExpression(type, expression, usedNames);
-    if (suggestions.length != 0) {
+    if (suggestions.isNotEmpty) {
       return suggestions;
     }
     // TODO(brianwilkerson) Verify that the name below is not in the set of used names.
@@ -960,7 +963,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
    */
   List<String> _getVariableNameSuggestionsForExpression(DartType expectedType,
       Expression assignedExpression, Set<String> excluded) {
-    Set<String> res = new Set();
+    Set<String> res = Set();
     // use expression
     if (assignedExpression != null) {
       String nameFromExpression =
@@ -977,20 +980,19 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     }
     // use type
     if (expectedType != null && !expectedType.isDynamic) {
-      String typeName = expectedType.name;
-      if ('int' == typeName) {
+      if (expectedType.isDartCoreInt) {
         _addSingleCharacterName(excluded, res, $i);
-      } else if ('double' == typeName) {
+      } else if (expectedType.isDartCoreDouble) {
         _addSingleCharacterName(excluded, res, $d);
-      } else if ('String' == typeName) {
+      } else if (expectedType.isDartCoreString) {
         _addSingleCharacterName(excluded, res, $s);
-      } else {
-        _addAll(excluded, res, _getCamelWordCombinations(typeName));
+      } else if (expectedType is InterfaceType) {
+        var className = expectedType.element.name;
+        _addAll(excluded, res, _getCamelWordCombinations(className));
       }
-      res.remove(typeName);
     }
     // done
-    return new List.from(res);
+    return List.from(res);
   }
 
   /**
@@ -1030,7 +1032,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
    */
   void _initializeEnclosingElements() {
     if (!_hasEnclosingElementsInitialized) {
-      _EnclosingElementFinder finder = new _EnclosingElementFinder();
+      _EnclosingElementFinder finder = _EnclosingElementFinder();
       finder.find(dartFileEditBuilder.resolvedUnit.unit, offset);
       _enclosingClass = finder.enclosingClass;
       _enclosingExecutable = finder.enclosingExecutable;
@@ -1095,7 +1097,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
     // The type `void` does not have an element.
     if (type is VoidType) {
-      write(type.displayName);
+      write('void');
       return true;
     }
 
@@ -1219,7 +1221,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   void convertFunctionFromSyncToAsync(
       FunctionBody body, TypeProvider typeProvider) {
     if (body == null && body.keyword != null) {
-      throw new ArgumentError(
+      throw ArgumentError(
           'The function must have a synchronous, non-generator body.');
     }
     if (body is! EmptyFunctionBody) {
@@ -1235,7 +1237,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
 
   @override
   DartEditBuilderImpl createEditBuilder(int offset, int length) {
-    return new DartEditBuilderImpl(this, offset, length);
+    return DartEditBuilderImpl(this, offset, length);
   }
 
   @override
@@ -1370,7 +1372,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
         void insert(
             {ImportDirective prev,
             ImportDirective next,
-            bool trailingNewLine: false}) {
+            bool trailingNewLine = false}) {
           LineInfo lineInfo = resolvedUnit.lineInfo;
           if (prev != null) {
             int offset = prev.end;
@@ -1553,7 +1555,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       String uriText = _getLibraryUriText(uri);
       String prefix =
           importPrefixGenerator != null ? importPrefixGenerator(uri) : null;
-      import = new _LibraryToImport(uriText, prefix);
+      import = _LibraryToImport(uriText, prefix);
       (libraryChangeBuilder ?? this).librariesToImport[uri] = import;
     }
     return import;
@@ -1567,7 +1569,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       [String prefix = null]) {
     var import = librariesToRelativelyImport[uriText];
     if (import == null) {
-      import = new _LibraryToImport(uriText, prefix);
+      import = _LibraryToImport(uriText, prefix);
       librariesToRelativelyImport[uriText] = import;
     }
     return import;
@@ -1622,7 +1624,7 @@ class DartLinkedEditBuilderImpl extends LinkedEditBuilderImpl
 
   @override
   void addSuperTypesAsSuggestions(DartType type) {
-    _addSuperTypesAsSuggestions(type, new Set<DartType>());
+    _addSuperTypesAsSuggestions(type, Set<DartType>());
   }
 
   /**
@@ -1631,7 +1633,10 @@ class DartLinkedEditBuilderImpl extends LinkedEditBuilderImpl
    */
   void _addSuperTypesAsSuggestions(DartType type, Set<DartType> alreadyAdded) {
     if (type is InterfaceType && alreadyAdded.add(type)) {
-      addSuggestion(LinkedEditSuggestionKind.TYPE, type.displayName);
+      addSuggestion(
+        LinkedEditSuggestionKind.TYPE,
+        type.getDisplayString(withNullability: false),
+      );
       _addSuperTypesAsSuggestions(type.superclass, alreadyAdded);
       for (InterfaceType interfaceType in type.interfaces) {
         _addSuperTypesAsSuggestions(interfaceType, alreadyAdded);
@@ -1655,7 +1660,7 @@ class _EnclosingElementFinder {
   _EnclosingElementFinder();
 
   void find(AstNode target, int offset) {
-    AstNode node = new NodeLocator2(offset).searchWithin(target);
+    AstNode node = NodeLocator2(offset).searchWithin(target);
     while (node != null) {
       if (node is ClassDeclaration) {
         enclosingClass = node.declaredElement;

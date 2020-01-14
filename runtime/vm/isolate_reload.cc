@@ -62,8 +62,8 @@ DECLARE_FLAG(bool, trace_deoptimization);
 #define Z zone_
 
 #define TIMELINE_SCOPE(name)                                                   \
-  TimelineDurationScope tds##name(Thread::Current(),                           \
-                                  Timeline::GetIsolateStream(), #name)
+  TimelineBeginEndScope tbes##name(Thread::Current(),                          \
+                                   Timeline::GetIsolateStream(), #name)
 
 // The ObjectLocator is used for collecting instances that
 // needs to be morphed.
@@ -1245,6 +1245,12 @@ void IsolateGroupReloadContext::FindModifiedSources(
     for (intptr_t script_idx = 0; script_idx < scripts.Length(); script_idx++) {
       script ^= scripts.At(script_idx);
       uri = script.url();
+      const bool dart_scheme = uri.StartsWith(Symbols::DartScheme());
+      if (dart_scheme) {
+        // If a user-defined class mixes in a mixin from dart:*, it's list of scripts will have
+        // a dart:* script as well. We don't consider those during reload.
+        continue;
+      }
       if (ContainsScriptUri(modified_sources_uris, uri.ToCString())) {
         // We've already accounted for this script in a prior library.
         continue;
@@ -1989,7 +1995,9 @@ class FieldInvalidator {
         continue;  // Already guarding.
       }
       value_ = field.StaticValue();
-      CheckValueType(value_, field);
+      if (value_.raw() != Object::sentinel().raw()) {
+        CheckValueType(value_, field);
+      }
     }
   }
 
@@ -2040,8 +2048,8 @@ class FieldInvalidator {
 
   DART_FORCE_INLINE
   void CheckValueType(const Instance& value, const Field& field) {
-    if (value.IsNull()) {
-      return;  // TODO(nnbd): Implement.
+    if (!FLAG_strong_non_nullable_type_checks && value.IsNull()) {
+      return;
     }
     type_ = field.type();
     if (type_.IsDynamicType()) {
@@ -2104,10 +2112,9 @@ class FieldInvalidator {
     }
 
     if (!cache_hit) {
-      // TODO(regis): Make type check nullability aware.
-      if (!value.IsInstanceOf(NNBDMode::kLegacy, type_,
-                              instantiator_type_arguments_,
-                              function_type_arguments_)) {
+      const NNBDMode nnbd_mode = Class::Handle(field.Origin()).nnbd_mode();
+      if (!value.IsAssignableTo(nnbd_mode, type_, instantiator_type_arguments_,
+                                function_type_arguments_)) {
         ASSERT(!FLAG_identity_reload);
         field.set_needs_load_guard(true);
       } else {

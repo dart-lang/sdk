@@ -24,6 +24,7 @@ import 'add_missing_required_argument_test.dart'
 import 'add_ne_null_test.dart' as add_ne_null;
 import 'add_override_test.dart' as add_override;
 import 'add_required_test.dart' as add_required;
+import 'add_return_type_test.dart' as add_return_type;
 import 'add_static_test.dart' as add_static;
 import 'add_super_constructor_invocation_test.dart'
     as add_super_constructor_invocation;
@@ -41,12 +42,18 @@ import 'convert_flutter_child_test.dart' as convert_flutter_child;
 import 'convert_flutter_children_test.dart' as convert_flutter_children;
 import 'convert_into_expression_body_test.dart' as convert_into_expression_body;
 import 'convert_to_for_element_test.dart' as convert_to_for_element;
+import 'convert_to_generic_function_syntax_test.dart'
+    as convert_to_generic_function_syntax;
 import 'convert_to_if_element_test.dart' as convert_to_if_element;
+import 'convert_to_if_null_test.dart' as convert_to_if_null;
 import 'convert_to_int_literal_test.dart' as convert_to_int_literal;
+import 'convert_to_list_literal_test.dart' as convert_to_list_literal;
+import 'convert_to_map_literal_test.dart' as convert_to_map_literal;
 import 'convert_to_named_arguments_test.dart' as convert_to_named_arguments;
 import 'convert_to_null_aware_test.dart' as convert_to_null_aware;
 import 'convert_to_package_import_test.dart' as convert_to_package_import;
 import 'convert_to_relative_import_test.dart' as convert_to_relative_import;
+import 'convert_to_set_literal_test.dart' as convert_to_set_literal;
 import 'convert_to_single_quoted_string_test.dart'
     as convert_to_single_quoted_string;
 import 'convert_to_spread_test.dart' as convert_to_spread;
@@ -81,6 +88,7 @@ import 'make_variable_not_final_test.dart' as make_variable_not_final;
 import 'move_type_arguments_to_class_test.dart' as move_type_arguments_to_class;
 import 'qualify_reference_test.dart' as qualify_reference;
 import 'remove_annotation_test.dart' as remove_annotation;
+import 'remove_argument_test.dart' as remove_argument;
 import 'remove_await_test.dart' as remove_await;
 import 'remove_dead_code_test.dart' as remove_dead_code;
 import 'remove_duplicate_case_test.dart' as remove_duplicate_case;
@@ -93,6 +101,7 @@ import 'remove_initializer_test.dart' as remove_initializer;
 import 'remove_interpolation_braces_test.dart' as remove_interpolation_braces;
 import 'remove_method_declaration_test.dart' as remove_method_declaration;
 import 'remove_name_from_combinator_test.dart' as remove_name_from_combinator;
+import 'remove_operator_test.dart' as remove_operator;
 import 'remove_parameters_in_getter_declaration_test.dart'
     as remove_parameters_in_getter_declaration;
 import 'remove_parentheses_in_getter_invocation_test.dart'
@@ -127,6 +136,7 @@ import 'replace_with_is_empty_test.dart' as replace_with_is_empty;
 import 'replace_with_is_not_empty_test.dart' as replace_with_is_not_empty;
 import 'replace_with_null_aware_test.dart' as replace_with_null_aware;
 import 'replace_with_tear_off_test.dart' as replace_with_tear_off;
+import 'replace_with_var_test.dart' as replace_with_var;
 import 'sort_child_property_last_test.dart' as sort_properties_last;
 import 'update_sdk_constraints_test.dart' as update_sdk_constraints;
 import 'use_const_test.dart' as use_const;
@@ -154,6 +164,7 @@ main() {
     add_ne_null.main();
     add_override.main();
     add_required.main();
+    add_return_type.main();
     add_static.main();
     add_super_constructor_invocation.main();
     add_type_annotation.main();
@@ -168,12 +179,17 @@ main() {
     convert_flutter_children.main();
     convert_into_expression_body.main();
     convert_to_for_element.main();
+    convert_to_generic_function_syntax.main();
     convert_to_if_element.main();
+    convert_to_if_null.main();
     convert_to_int_literal.main();
+    convert_to_list_literal.main();
+    convert_to_map_literal.main();
     convert_to_named_arguments.main();
     convert_to_null_aware.main();
     convert_to_package_import.main();
     convert_to_relative_import.main();
+    convert_to_set_literal.main();
     convert_to_single_quoted_string.main();
     convert_to_spread.main();
     create_class.main();
@@ -206,6 +222,7 @@ main() {
     move_type_arguments_to_class.main();
     qualify_reference.main();
     remove_annotation.main();
+    remove_argument.main();
     remove_await.main();
     remove_dead_code.main();
     remove_duplicate_case.main();
@@ -217,6 +234,7 @@ main() {
     remove_interpolation_braces.main();
     remove_method_declaration.main();
     remove_name_from_combinator.main();
+    remove_operator.main();
     remove_parameters_in_getter_declaration.main();
     remove_parentheses_in_getter_invocation.main();
     remove_this_expression.main();
@@ -248,6 +266,7 @@ main() {
     replace_with_is_not_empty.main();
     replace_with_null_aware.main();
     replace_with_tear_off.main();
+    replace_with_var.main();
     sort_properties_last.main();
     update_sdk_constraints.main();
     use_const.main();

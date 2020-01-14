@@ -27,16 +27,17 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
     with ElementSuggestionBuilder {
   final DartCompletionRequest request;
   final OpType optype;
+  @override
   CompletionSuggestionKind kind;
   final String prefix;
 
   /**
    * The set of libraries that have been, or are currently being, visited.
    */
-  final Set<LibraryElement> visitedLibraries = new Set<LibraryElement>();
+  final Set<LibraryElement> visitedLibraries = Set<LibraryElement>();
 
   LibraryElementSuggestionBuilder(this.request, this.optype, [this.prefix]) {
-    this.kind = request.target.isFunctionalArgument()
+    kind = request.target.isFunctionalArgument()
         ? CompletionSuggestionKind.IDENTIFIER
         : optype.suggestKind;
   }
@@ -232,7 +233,7 @@ class LocalLibraryContributor extends DartCompletionContributor {
 
     OpType optype = (request as DartCompletionRequestImpl).opType;
     LibraryElementSuggestionBuilder visitor =
-        new LibraryElementSuggestionBuilder(request, optype);
+        LibraryElementSuggestionBuilder(request, optype);
     for (CompilationUnitElement unit in libraryUnits) {
       if (unit != null && unit.source != request.source) {
         unit.accept(visitor);

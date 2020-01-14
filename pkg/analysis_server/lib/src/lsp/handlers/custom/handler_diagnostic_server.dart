@@ -14,6 +14,7 @@ import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 class DiagnosticServerHandler
     extends MessageHandler<void, DartDiagnosticServer> {
   DiagnosticServerHandler(LspAnalysisServer server) : super(server);
+  @override
   Method get handlesMessage => CustomMethods.DiagnosticServer;
 
   @override
@@ -23,6 +24,6 @@ class DiagnosticServerHandler
   Future<ErrorOr<DartDiagnosticServer>> handle(
       void _, CancellationToken token) async {
     final port = await server.diagnosticServer.getServerPort();
-    return success(new DartDiagnosticServer(port));
+    return success(DartDiagnosticServer(port));
   }
 }

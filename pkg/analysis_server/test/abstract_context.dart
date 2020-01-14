@@ -28,7 +28,7 @@ import 'src/utilities/mock_packages.dart';
  */
 Element findChildElement(Element root, String name, [ElementKind kind]) {
   Element result = null;
-  root.accept(new _ElementVisitorFunctionWrapper((Element element) {
+  root.accept(_ElementVisitorFunctionWrapper((Element element) {
     if (element.name != name) {
       return;
     }
@@ -43,7 +43,7 @@ Element findChildElement(Element root, String name, [ElementKind kind]) {
 /**
  * A function to be called for every [Element].
  */
-typedef void _ElementVisitorFunction(Element element);
+typedef _ElementVisitorFunction = void Function(Element element);
 
 class AbstractContextTest with ResourceProviderMixin {
   OverlayResourceProvider overlayResourceProvider;
@@ -137,7 +137,7 @@ class AbstractContextTest with ResourceProviderMixin {
   /// Create an analysis options file based on the given arguments.
   void createAnalysisOptionsFile(
       {List<String> experiments, List<String> lints}) {
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
 
     if (experiments != null) {
       buffer.writeln('analyzer:');
@@ -188,7 +188,7 @@ class AbstractContextTest with ResourceProviderMixin {
     setupResourceProvider();
     overlayResourceProvider = OverlayResourceProvider(resourceProvider);
 
-    new MockSdk(resourceProvider: resourceProvider);
+    MockSdk(resourceProvider: resourceProvider);
 
     newFolder('/home/test');
     newFile('/home/test/.packages', content: r'''
@@ -218,6 +218,7 @@ test:file:///home/test/lib
 class _ElementVisitorFunctionWrapper extends GeneralizingElementVisitor {
   final _ElementVisitorFunction function;
   _ElementVisitorFunctionWrapper(this.function);
+  @override
   visitElement(Element element) {
     function(element);
     super.visitElement(element);

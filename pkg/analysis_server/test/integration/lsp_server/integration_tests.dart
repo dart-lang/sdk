@@ -24,6 +24,7 @@ class AbstractLspAnalysisServerIntegrationTest
 
   /// Sends a request to the server and unwraps the result. Throws if the
   /// response was not successful or returned an error.
+  @override
   Future<T> expectSuccessfulResponseTo<T>(RequestMessage request) async {
     final resp = await sendRequestToServer(request);
     if (resp.error != null) {
@@ -56,7 +57,7 @@ class AbstractLspAnalysisServerIntegrationTest
 
   @override
   Future<ResponseMessage> sendRequestToServer(RequestMessage request) {
-    final completer = new Completer<ResponseMessage>();
+    final completer = Completer<ResponseMessage>();
     final id = request.id.map((number) => number,
         (string) => throw 'String IDs not supported in tests');
     _completers[id] = completer;
@@ -83,7 +84,7 @@ class AbstractLspAnalysisServerIntegrationTest
     analysisOptionsPath = join(projectFolderPath, 'analysis_options.yaml');
     analysisOptionsUri = Uri.file(analysisOptionsPath);
 
-    client = new LspServerClient();
+    client = LspServerClient();
     await client.start();
     client.serverToClient.listen((message) {
       if (message is ResponseMessage) {
@@ -111,7 +112,7 @@ class LspServerClient {
   Process _process;
   LspByteStreamServerChannel channel;
   final StreamController<Message> _serverToClient =
-      new StreamController<Message>.broadcast();
+      StreamController<Message>.broadcast();
 
   Future<int> get exitCode => _process.exitCode;
 
@@ -130,7 +131,7 @@ class LspServerClient {
     while (!['benchmark', 'test'].contains(basename(pathname))) {
       String parent = dirname(pathname);
       if (parent.length >= pathname.length) {
-        throw new Exception("Can't find root directory");
+        throw Exception("Can't find root directory");
       }
       pathname = parent;
     }
@@ -139,7 +140,7 @@ class LspServerClient {
 
   Future start() async {
     if (_process != null) {
-      throw new Exception('Process already started');
+      throw Exception('Process already started');
     }
 
     String dartBinary = Platform.executable;
@@ -178,7 +179,7 @@ class LspServerClient {
       throw 'Analysis Server wrote to stderr:\n\n$message';
     });
 
-    channel = new LspByteStreamServerChannel(
+    channel = LspByteStreamServerChannel(
         _process.stdout, _process.stdin, InstrumentationService.NULL_SERVICE);
     channel.listen(_serverToClient.add);
   }

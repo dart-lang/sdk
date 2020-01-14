@@ -535,9 +535,10 @@ class _TestRecursiveVisitor extends RecursiveVisitor<void> {
 
   @override
   visitComponent(Component node) {
-    var hierarchy = ClassHierarchy(node);
+    var coreTypes = CoreTypes(node);
+    var hierarchy = ClassHierarchy(node, coreTypes);
     var jsTypeRep = JSTypeRep(
-      fe.TypeSchemaEnvironment(CoreTypes(node), hierarchy),
+      fe.TypeSchemaEnvironment(coreTypes, hierarchy),
       hierarchy,
     );
     _typeEnvironment = jsTypeRep.types;

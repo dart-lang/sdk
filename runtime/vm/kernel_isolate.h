@@ -19,6 +19,8 @@ namespace dart {
 // TODO(33433): The kernel service does not belong in the VM.
 
 class KernelIsolate : public AllStatic {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+
  public:
   static const char* kName;
   static const int kCompileTag;
@@ -96,6 +98,19 @@ class KernelIsolate : public AllStatic {
   static Dart_Port kernel_port_;
 
   static MallocGrowableArray<char*>* experimental_flags_;
+#else
+
+ public:
+  static bool IsRunning() { return false; }
+  static void Shutdown() {}
+  static bool IsKernelIsolate(const Isolate* isolate) { return false; }
+  static void NotifyAboutIsolateShutdown(const Isolate* isolate) {}
+  static bool GetExperimentalFlag(const char* value) { return false; }
+
+ protected:
+  static void SetKernelIsolate(Isolate* isolate) { UNREACHABLE(); }
+
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   friend class Dart;
   friend class Isolate;

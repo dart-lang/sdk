@@ -26,8 +26,8 @@ class FlutterCorrections {
         assert(selectionOffset != null),
         assert(selectionLength != null),
         selectionEnd = selectionOffset + selectionLength,
-        utils = new CorrectionUtils(resolveResult) {
-    node = new NodeLocator(selectionOffset, selectionEnd)
+        utils = CorrectionUtils(resolveResult) {
+    node = NodeLocator(selectionOffset, selectionEnd)
         .searchWithin(resolveResult.unit);
   }
 

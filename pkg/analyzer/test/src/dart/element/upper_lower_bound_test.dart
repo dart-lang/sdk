@@ -6,10 +6,11 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_visitor.dart';
-import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/resolver.dart' show TypeSystemImpl;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -2075,6 +2076,7 @@ actual: $resultStr
 
 @reflectiveTest
 class _BoundsTestBase with ElementsTypesMixin {
+  @override
   TypeProvider typeProvider;
 
   TypeSystemImpl typeSystem;
@@ -2123,7 +2125,7 @@ class _BoundsTestBase with ElementsTypesMixin {
   }
 
   void _assertNullability(DartType type, NullabilitySuffix expected) {
-    if ((type as TypeImpl).nullabilitySuffix != expected) {
+    if (type.nullabilitySuffix != expected) {
       fail('Expected $expected in ' + _typeString(type));
     }
   }
@@ -2148,19 +2150,19 @@ class _BoundsTestBase with ElementsTypesMixin {
     for (var typeParameter in typeParameterCollector.typeParameters) {
       if (typeParameter is TypeParameterMember) {
         var base = typeParameter.declaration;
-        var baseBound = base.bound as TypeImpl;
+        var baseBound = base.bound;
         if (baseBound != null) {
-          var baseBoundStr = baseBound.toString(withNullability: true);
+          var baseBoundStr = baseBound.getDisplayString(withNullability: true);
           typeStr += ', ${typeParameter.name} extends ' + baseBoundStr;
         }
 
-        var bound = typeParameter.bound as TypeImpl;
-        var boundStr = bound.toString(withNullability: true);
+        var bound = typeParameter.bound;
+        var boundStr = bound.getDisplayString(withNullability: true);
         typeStr += ', ${typeParameter.name} & ' + boundStr;
       } else {
-        var bound = typeParameter.bound as TypeImpl;
+        var bound = typeParameter.bound;
         if (bound != null) {
-          var boundStr = bound.toString(withNullability: true);
+          var boundStr = bound.getDisplayString(withNullability: true);
           typeStr += ', ${typeParameter.name} extends ' + boundStr;
         }
       }
@@ -2170,17 +2172,18 @@ class _BoundsTestBase with ElementsTypesMixin {
 
   String _typeString(TypeImpl type) {
     if (type == null) return null;
-    return type.toString(withNullability: true) + _typeParametersStr(type);
+    return type.getDisplayString(withNullability: true) +
+        _typeParametersStr(type);
   }
 }
 
 class _TypeParameterCollector extends DartTypeVisitor<void> {
-  final Set<TypeParameterElement> typeParameters = Set();
+  final Set<TypeParameterElement> typeParameters = {};
 
   /// We don't need to print bounds for these type parameters, because
   /// they are already included into the function type itself, and cannot
   /// be promoted.
-  final Set<TypeParameterElement> functionTypeParameters = Set();
+  final Set<TypeParameterElement> functionTypeParameters = {};
 
   @override
   void defaultDartType(DartType type) {

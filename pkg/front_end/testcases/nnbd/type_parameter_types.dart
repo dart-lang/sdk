@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+Never never() => throw "Never";
+
 class A<X extends Object, Y extends Object?> {
-  X foo() => null;
+  X foo() => never();
   X? bar() => null;
-  Y baz() => null;
+  Y baz() => never();
 }
 
 class B<X extends List<Y>, Y extends Object?> {
@@ -21,13 +23,13 @@ class D<X extends Y, Y extends Z, Z> {
 }
 
 main() {
-  X fun1<X extends Object, Y extends Object?>() => null;
-  Y fun2<X extends Object, Y extends Object?>() => null;
-  X fun3<X extends List<Y>, Y extends Object?>() => null;
-  Y fun4<X extends List<Y>, Y extends Object?>() => null;
-  X fun5<X extends List<Y>?, Y extends List<X>?>() => null;
-  Y fun6<X extends List<Y>?, Y extends List<X>?>() => null;
-  X fun7<X extends Y, Y extends Z, Z>() => null;
-  Y fun8<X extends Y, Y extends Z, Z>() => null;
-  Z fun9<X extends Y, Y extends Z, Z>() => null;
+  X fun1<X extends Object, Y extends Object?>() => never();
+  Y fun2<X extends Object, Y extends Object?>() => never();
+  X fun3<X extends List<Y>, Y extends Object?>() => never();
+  Y fun4<X extends List<Y>, Y extends Object?>() => never();
+  X fun5<X extends List<Y>?, Y extends List<X>?>() => never();
+  Y fun6<X extends List<Y>?, Y extends List<X>?>() => never();
+  X fun7<X extends Y, Y extends Z, Z>() => never();
+  Y fun8<X extends Y, Y extends Z, Z>() => never();
+  Z fun9<X extends Y, Y extends Z, Z>() => never();
 }

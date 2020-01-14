@@ -8,5 +8,5 @@ void main() {
 }
 
 foo() {
-  print("hello");
+  print('hello');
 }

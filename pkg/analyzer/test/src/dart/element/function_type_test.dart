@@ -5,9 +5,9 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -26,6 +26,7 @@ VoidTypeImpl get voidType => VoidTypeImpl.instance;
 
 @reflectiveTest
 class FunctionTypeTest with ElementsTypesMixin {
+  @override
   final TypeProvider typeProvider = TestTypeProvider();
 
   InterfaceType get intType => typeProvider.intType;
@@ -48,12 +49,14 @@ class FunctionTypeTest with ElementsTypesMixin {
       parameters = isEmpty,
       typeFormals = isEmpty,
       typeArguments = isEmpty,
-      typeParameters = isEmpty,
-      name = isNull}) {
+      typeParameters = isEmpty}) {
     // DartType properties
-    expect(f.displayName, displayName, reason: 'displayName');
+    expect(
+      f.getDisplayString(withNullability: false),
+      displayName,
+      reason: 'displayName',
+    );
     expect(f.element, element, reason: 'element');
-    expect(f.name, name, reason: 'name');
     // ParameterizedType properties
     expect(f.typeArguments, typeArguments, reason: 'typeArguments');
     // FunctionType properties
@@ -366,7 +369,7 @@ class FunctionTypeTest with ElementsTypesMixin {
     );
     basicChecks(f,
         element: isNull,
-        displayName: 'dynamic Function({x: Object})',
+        displayName: 'dynamic Function({Object x})',
         namedParameterTypes: {'x': same(objectType)},
         parameters: hasLength(1));
     expect(f.parameters[0].isNamed, isTrue);
@@ -496,6 +499,7 @@ class MockCompilationUnitElement implements CompilationUnitElement {
   @override
   get enclosingElement => const MockLibraryElement();
 
+  @override
   noSuchMethod(Invocation invocation) {
     return super.noSuchMethod(invocation);
   }
@@ -527,6 +531,7 @@ class MockFunctionTypedElement implements FunctionTypedElement {
       this.enclosingElement = const MockCompilationUnitElement()})
       : returnType = null;
 
+  @override
   noSuchMethod(Invocation invocation) {
     return super.noSuchMethod(invocation);
   }
@@ -538,6 +543,7 @@ class MockLibraryElement implements LibraryElement {
   @override
   get enclosingElement => null;
 
+  @override
   noSuchMethod(Invocation invocation) {
     return super.noSuchMethod(invocation);
   }

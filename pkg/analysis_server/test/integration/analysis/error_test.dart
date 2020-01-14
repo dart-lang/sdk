@@ -108,7 +108,7 @@ abstract class C extends B {
 ''');
     // ignore: deprecated_member_use_from_same_package
     await sendAnalysisUpdateOptions(
-        new AnalysisOptions()..enableSuperMixins = true);
+        AnalysisOptions()..enableSuperMixins = true);
     standardAnalysisSetup();
     await analysisFinished;
     expect(currentAnalysisErrors[pathname], isList);

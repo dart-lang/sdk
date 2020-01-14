@@ -420,12 +420,23 @@ MultipleOnClauses:
   analyzerCode: ParserErrorCode.MULTIPLE_ON_CLAUSES
   script: "mixin A on B on C, D {}"
 
+ExtendsFutureOr:
+  template: "The type 'FutureOr' can't be used in an 'extends' clause."
+
 ImplementsFutureOr:
-  template: "'FutureOr' can't be used in an 'implements' clause."
-  script:
-    - >-
-      import 'dart:async';
-      class A implements FutureOr<int> {}
+  template: "The type 'FutureOr' can't be used in an 'implements' clause."
+
+ExtendsNever:
+  template: "The type 'Never' can't be used in an 'extends' clause."
+
+ImplementsNever:
+  template: "The type 'Never' can't be used in an 'implements' clause."
+
+ExtendsVoid:
+  template: "The type 'void' can't be used in an 'extends' clause."
+
+ImplementsVoid:
+  template: "The type 'void' can't be used in an 'implements' clause."
 
 ExpectedClassOrMixinBody:
   index: 8
@@ -2831,7 +2842,7 @@ ArgumentTypeNotAssignable:
   template: "The argument type '#type' can't be assigned to the parameter type '#type2'."
   analyzerCode: ARGUMENT_TYPE_NOT_ASSIGNABLE
 
-InvalidAssignment:
+InvalidAssignmentError:
   template: "A value of type '#type' can't be assigned to a variable of type '#type2'."
   analyzerCode: INVALID_ASSIGNMENT
   script: >
@@ -2839,6 +2850,10 @@ InvalidAssignment:
       int i;
       i = 1.5;
     }
+
+InvalidAssignmentWarning:
+  template: "Assigning value of type '#type' to a variable of type '#type2'."
+  severity: WARNING
 
 PatchClassTypeVariablesMismatch:
   template: "A patch class must have the same number of type variables as its origin class."
@@ -3723,3 +3738,26 @@ MultipleVarianceModifiers:
   template: "Each type parameter can have at most one variance modifier."
   tip: "Use at most one of the 'in', 'out', or 'inout' modifiers."
   analyzerCode: ParserErrorCode.MULTIPLE_VARIANCE_MODIFIERS
+
+NullablePropertyGetError:
+  template: "Property '#name' cannot be accessed on '#type' because it is potentially null."
+  tip: "Try accessing using ?. instead."
+
+NullablePropertyGetWarning:
+  template: "Property '#name' is accessed on '#type' which is potentially null."
+  tip: "Try accessing using ?. instead."
+  severity: WARNING
+
+ThrowingNotAssignableToObjectError:
+  template: "Can't throw a value of '#type' since it is neither dynamic nor non-nullable."
+
+ThrowingNotAssignableToObjectWarning:
+  template: "Throwing a value of '#type' that is neither dynamic nor non-nullable."
+  severity: WARNING
+
+RequiredNamedParameterHasDefaultValueError:
+  template: "Required named parameter '#name' can't have a default value."
+
+RequiredNamedParameterHasDefaultValueWarning:
+  template: "Required named parameter '#name' has a default value."
+  severity: WARNING

@@ -2551,8 +2551,9 @@ ISOLATE_UNIT_TEST_CASE_WITH_EXPECTATION(CodeImmutability, "Crash") {
 class CodeTestHelper {
  public:
   static void SetInstructions(const Code& code,
-                              const Instructions& instructions) {
-    code.SetActiveInstructions(instructions);
+                              const Instructions& instructions,
+                              uword unchecked_offset) {
+    code.SetActiveInstructions(instructions, unchecked_offset);
     code.set_instructions(instructions);
   }
 };
@@ -2572,7 +2573,8 @@ ISOLATE_UNIT_TEST_CASE_WITH_EXPECTATION(CodeExecutability, "Crash") {
       function, nullptr, &_assembler_, Code::PoolAttachment::kAttachPool));
   function.AttachCode(code);
   Instructions& instructions = Instructions::Handle(code.instructions());
-  uword payload_start = instructions.PayloadStart();
+  uword payload_start = code.PayloadStart();
+  const uword unchecked_offset = code.UncheckedEntryPoint() - code.EntryPoint();
   EXPECT_EQ(instructions.raw(), Instructions::FromPayloadStart(payload_start));
   // Execute the executable view of the instructions (default).
   Object& result =
@@ -2583,7 +2585,7 @@ ISOLATE_UNIT_TEST_CASE_WITH_EXPECTATION(CodeExecutability, "Crash") {
   payload_start = instructions.PayloadStart();
   EXPECT_EQ(instructions.raw(), Instructions::FromPayloadStart(payload_start));
   // Hook up Code and Instructions objects.
-  CodeTestHelper::SetInstructions(code, instructions);
+  CodeTestHelper::SetInstructions(code, instructions, unchecked_offset);
   function.AttachCode(code);
   // Try executing the generated code, expected to crash.
   result = DartEntry::InvokeFunction(function, Array::empty_array());

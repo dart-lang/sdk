@@ -14,7 +14,7 @@ import 'package:analyzer/src/error/codes.dart';
 /// [HintCode.IS_DOUBLE].
 class Dart2JSVerifier extends RecursiveAstVisitor<void> {
   /// The name of the `double` type.
-  static String _DOUBLE_TYPE_NAME = "double";
+  static const String _DOUBLE_TYPE_NAME = "double";
 
   /// The error reporter by which errors will be reported.
   final ErrorReporter _errorReporter;

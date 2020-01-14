@@ -14,7 +14,6 @@ import 'package:test_runner/src/path.dart';
 import 'package:test_runner/src/static_error.dart';
 import 'package:test_runner/src/test_file.dart';
 import 'package:test_runner/src/update_errors.dart';
-import 'package:test_runner/src/utils.dart';
 
 const _usage =
     "Usage: dart update_static_error_tests.dart [flags...] <path glob>";

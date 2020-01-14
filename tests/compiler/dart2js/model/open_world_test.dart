@@ -92,7 +92,7 @@ ${liveClasses.map((c) => '  new $c();').join('\n')}
     ElementEnvironment elementEnvironment =
         compiler.frontendStrategy.elementEnvironment;
     nativeBasicData = compiler.frontendStrategy.nativeBasicData;
-    world = compiler.resolutionWorldBuilder;
+    world = compiler.resolutionWorldBuilderForTesting;
 
     ClassEntity findClass(String name) {
       ClassEntity cls =

@@ -173,13 +173,15 @@ void Function(int) f = (int n) {
   }
 
   test_localFunction() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class C {
   void f() {
     g() => 7;
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_ELEMENT, 27, 1),
+    ]);
   }
 
   test_mixinInstanceMethod() async {

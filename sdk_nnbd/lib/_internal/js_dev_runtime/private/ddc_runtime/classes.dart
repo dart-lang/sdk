@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 /// This library defines the operations that define and manipulate Dart
 /// classes.  Included in this are:
 ///   - Generics
@@ -60,27 +58,29 @@ void _copyMember(to, from, name) {
   var setter = JS('', '#.set', desc);
   if (getter != null) {
     if (setter == null) {
-      var obj = JS(
-          '',
+      var obj = JS<Object>(
+          '!',
           '#.set = { __proto__: #.__proto__, '
               'set [#](x) { return super[#] = x; } }',
           desc,
           to,
           name,
           name);
-      JS('', '#.set = #.set', desc, getOwnPropertyDescriptor(obj, name));
+      JS<Object>(
+          '!', '#.set = #.set', desc, getOwnPropertyDescriptor(obj, name));
     }
   } else if (setter != null) {
     if (getter == null) {
-      var obj = JS(
-          '',
+      var obj = JS<Object>(
+          '!',
           '#.get = { __proto__: #.__proto__, '
               'get [#]() { return super[#]; } }',
           desc,
           to,
           name,
           name);
-      JS('', '#.get = #.get', desc, getOwnPropertyDescriptor(obj, name));
+      JS<Object>(
+          '!', '#.get = #.get', desc, getOwnPropertyDescriptor(obj, name));
     }
   }
   defineProperty(to, name, desc);
@@ -107,7 +107,7 @@ final mixinOn = JS('', 'Symbol("mixinOn")');
 @JSExportName('implements')
 final implements_ = JS('', 'Symbol("implements")');
 
-List Function() getImplements(clazz) => JS(
+List? Function() getImplements(clazz) => JS(
     '',
     'Object.hasOwnProperty.call(#, #) ? #[#] : null',
     clazz,
@@ -178,11 +178,13 @@ generic(typeConstructor, setBaseClass) => JS('', '''(() => {
 
 getGenericClass(type) => safeGetOwnProperty(type, _originalDeclaration);
 
-List getGenericArgs(type) =>
-    JS('List', '#', safeGetOwnProperty(type, _typeArguments));
+// TODO(markzipan): Make this non-nullable if we can ensure this returns
+// an empty list or if null and the empty list are semantically the same.
+List? getGenericArgs(type) =>
+    JS<List>('', '#', safeGetOwnProperty(type, _typeArguments));
 
-List getGenericArgVariances(type) =>
-    JS('List', '#', safeGetOwnProperty(type, _variances));
+List? getGenericArgVariances(type) =>
+    JS<List?>('', '#', safeGetOwnProperty(type, _variances));
 
 void setGenericArgVariances(f, variances) =>
     JS('', '#[#] = #', f, _variances, variances);
@@ -340,19 +342,19 @@ void _installProperties(jsProto, dartType, installedParent) {
   }
   // If the extension methods of the parent have been installed on the parent
   // of [jsProto], the methods will be available via prototype inheritance.
-  var dartSupertype = JS('', '#.__proto__', dartType);
+  var dartSupertype = JS<Object>('!', '#.__proto__', dartType);
   if (JS('!', '# !== #', dartSupertype, installedParent)) {
     _installProperties(jsProto, dartSupertype, installedParent);
   }
 
-  var dartProto = JS('', '#.prototype', dartType);
+  var dartProto = JS<Object>('!', '#.prototype', dartType);
   copyTheseProperties(jsProto, dartProto, getOwnPropertySymbols(dartProto));
 }
 
 void _installPropertiesForObject(jsProto) {
   // core.Object members need to be copied from the non-symbol name to the
   // symbol name.
-  var coreObjProto = JS('', '#.prototype', Object);
+  var coreObjProto = JS<Object>('!', '#.prototype', Object);
   var names = getOwnPropertyNames(coreObjProto);
   for (int i = 0, n = JS('!', '#.length', names); i < n; ++i) {
     var name = JS<String>('!', '#[#]', names, i);
@@ -371,7 +373,7 @@ void _installPropertiesForGlobalObject(jsProto) {
 
 final _extensionMap = JS('', 'new Map()');
 
-_applyExtension(jsType, dartExtType) {
+void _applyExtension(jsType, dartExtType) {
   // TODO(vsm): Not all registered js types are real.
   if (jsType == null) return;
   var jsProto = JS('', '#.prototype', jsType);
@@ -446,13 +448,13 @@ defineExtensionMethods(type, Iterable memberNames) {
 }
 
 /// Like [defineExtensionMethods], but for getter/setter pairs.
-defineExtensionAccessors(type, Iterable memberNames) {
-  var proto = JS('', '#.prototype', type);
+void defineExtensionAccessors(type, Iterable memberNames) {
+  var proto = JS<Object>('!', '#.prototype', type);
   for (var name in memberNames) {
     // Find the member. It should always exist (or we have a compiler bug).
     var member;
     var p = proto;
-    for (;; p = JS('', '#.__proto__', p)) {
+    for (;; p = JS<Object>('!', '#.__proto__', p)) {
       member = getOwnPropertyDescriptor(p, name);
       if (member != null) break;
     }
@@ -506,7 +508,7 @@ addTypeTests(ctor, isClass) {
   JS(
       '',
       '''#.as = function as_C(obj) {
-    if (obj == null || obj[#]) return obj;
+    if (obj != null && obj[#]) return obj;
     return #(obj, this, false);
   }''',
       ctor,
@@ -515,7 +517,7 @@ addTypeTests(ctor, isClass) {
   JS(
       '',
       '''#._check = function check_C(obj) {
-    if (obj == null || obj[#]) return obj;
+    if (obj != null && obj[#]) return obj;
     return #(obj, this, true);
   }''',
       ctor,

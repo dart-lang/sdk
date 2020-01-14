@@ -11,7 +11,8 @@ import 'package:analyzer/dart/analysis/uri_converter.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
+import 'package:analyzer/src/generated/resolver.dart' show TypeSystem;
 import 'package:analyzer/src/generated/source.dart';
 
 /// A consistent view of the results of analyzing one or more files.

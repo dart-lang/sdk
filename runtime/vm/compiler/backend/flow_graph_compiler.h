@@ -311,7 +311,28 @@ class NullErrorSlowPath : public ThrowErrorSlowPathCode {
                                kNumberOfArguments,
                                try_index) {}
 
-  const char* name() override { return "check null"; }
+  const char* name() override { return "check null (nsm)"; }
+
+  void EmitSharedStubCall(FlowGraphCompiler* compiler,
+                          bool save_fpu_registers) override;
+
+  void AddMetadataForRuntimeCall(FlowGraphCompiler* compiler) override {
+    CheckNullInstr::AddMetadataForRuntimeCall(instruction()->AsCheckNull(),
+                                              compiler);
+  }
+};
+
+class NullArgErrorSlowPath : public ThrowErrorSlowPathCode {
+ public:
+  static const intptr_t kNumberOfArguments = 0;
+
+  NullArgErrorSlowPath(CheckNullInstr* instruction, intptr_t try_index)
+      : ThrowErrorSlowPathCode(instruction,
+                               kArgumentNullErrorRuntimeEntry,
+                               kNumberOfArguments,
+                               try_index) {}
+
+  const char* name() override { return "check null (arg)"; }
 
   void EmitSharedStubCall(FlowGraphCompiler* compiler,
                           bool save_fpu_registers) override;
@@ -457,6 +478,10 @@ class FlowGraphCompiler : public ValueObject {
     if (stats_ != NULL) stats_->SpecialEnd(tag);
   }
 
+  GrowableArray<const Field*>& used_static_fields() {
+    return used_static_fields_;
+  }
+
   // Constructor is lighweight, major initialization work should occur here.
   // This makes it easier to measure time spent in the compiler.
   void InitCompiler();
@@ -480,6 +505,7 @@ class FlowGraphCompiler : public ValueObject {
                                 intptr_t deopt_id,
                                 const AbstractType& dst_type,
                                 const String& dst_name,
+                                NNBDMode mode,
                                 LocationSummary* locs);
 
   // Returns true if we can use a type testing stub based assert
@@ -501,6 +527,7 @@ class FlowGraphCompiler : public ValueObject {
       const Register function_type_args_reg,
       const Register subtype_cache_reg,
       const Register dst_type_reg,
+      const Register dst_type_reg_to_call,
       const Register scratch_reg,
       compiler::Label* done);
 
@@ -544,6 +571,7 @@ class FlowGraphCompiler : public ValueObject {
   void GenerateInstanceOf(TokenPosition token_pos,
                           intptr_t deopt_id,
                           const AbstractType& type,
+                          NNBDMode mode,
                           LocationSummary* locs);
 
   void GenerateInstanceCall(
@@ -769,6 +797,13 @@ class FlowGraphCompiler : public ValueObject {
   // locations of values in the slow path call.
   Environment* SlowPathEnvironmentFor(Instruction* inst,
                                       intptr_t num_slow_path_args) {
+    if (inst->env() == nullptr && is_optimizing()) {
+      if (pending_deoptimization_env_ == nullptr) {
+        return nullptr;
+      }
+      return SlowPathEnvironmentFor(pending_deoptimization_env_, inst->locs(),
+                                    num_slow_path_args);
+    }
     return SlowPathEnvironmentFor(inst->env(), inst->locs(),
                                   num_slow_path_args);
   }
@@ -840,8 +875,10 @@ class FlowGraphCompiler : public ValueObject {
   bool IsEmptyBlock(BlockEntryInstr* block) const;
 
  private:
+  friend class BoxInt64Instr;            // For AddPcRelativeCallStubTarget().
   friend class CheckNullInstr;           // For AddPcRelativeCallStubTarget().
   friend class NullErrorSlowPath;        // For AddPcRelativeCallStubTarget().
+  friend class NullArgErrorSlowPath;     // For AddPcRelativeCallStubTarget().
   friend class CheckStackOverflowInstr;  // For AddPcRelativeCallStubTarget().
   friend class StoreIndexedInstr;        // For AddPcRelativeCallStubTarget().
   friend class StoreInstanceFieldInstr;  // For AddPcRelativeCallStubTarget().
@@ -1057,6 +1094,9 @@ class FlowGraphCompiler : public ValueObject {
   GrowableArray<BlockInfo*> block_info_;
   GrowableArray<CompilerDeoptInfo*> deopt_infos_;
   GrowableArray<SlowPathCode*> slow_path_code_;
+  // Fields that were referenced by generated code.
+  // This list is needed by precompiler to ensure they are retained.
+  GrowableArray<const Field*> used_static_fields_;
   // Stores static call targets as well as stub targets.
   // TODO(srdjan): Evaluate if we should store allocation stub targets into a
   // separate table?

@@ -916,7 +916,7 @@ class A {}
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(2, (EditBuilder builder) {
         (builder as DartEditBuilder)
-            .writeParameterMatchingArgument(argument, 0, new Set<String>());
+            .writeParameterMatchingArgument(argument, 0, Set<String>());
       });
     });
     SourceEdit edit = getEdit(builder);
@@ -1792,7 +1792,7 @@ class C extends B {}
 ''');
     CompilationUnit unit = (await driver.getResult(path))?.unit;
     ClassDeclaration classC = unit.declarations[2] as ClassDeclaration;
-    DartLinkedEditBuilderImpl builder = new DartLinkedEditBuilderImpl(null);
+    DartLinkedEditBuilderImpl builder = DartLinkedEditBuilderImpl(null);
     builder.addSuperTypesAsSuggestions(
       classC.declaredElement.instantiate(
         typeArguments: [],
@@ -2289,7 +2289,7 @@ class B extends A {
   int get zero => throw UnimplementedError();
 ''',
       displayText: 'zero => …',
-      selection: new SourceRange(111, 26),
+      selection: SourceRange(111, 26),
     );
   }
 
@@ -2310,7 +2310,7 @@ class B extends A {
   int get zero => super.zero;
 ''',
       displayText: 'zero => …',
-      selection: new SourceRange(107, 10),
+      selection: SourceRange(107, 10),
     );
   }
 
@@ -2332,7 +2332,7 @@ class B extends A {
   }
 ''',
       displayText: 'add(A a) { … }',
-      selection: new SourceRange(111, 27),
+      selection: SourceRange(111, 27),
     );
   }
 
@@ -2355,7 +2355,7 @@ class B extends A {
   }
 ''',
       displayText: 'add(A a) { … }',
-      selection: new SourceRange(110, 20),
+      selection: SourceRange(110, 20),
     );
   }
 
@@ -2400,7 +2400,7 @@ class B extends A {
   }
 ''',
       displayText: 'perform(F f) { … }',
-      selection: new SourceRange(158, 17),
+      selection: SourceRange(158, 17),
     );
   }
 
@@ -2422,7 +2422,7 @@ class B extends A {
   }
 ''',
       displayText: 'forEach(int Function(double p1, String p2) f) { … }',
-      selection: new SourceRange(176, 27),
+      selection: SourceRange(176, 27),
     );
   }
 
@@ -2445,7 +2445,7 @@ class B extends A {
   }
 ''',
       displayText: 'forEach(int Function(double p1, String p2) f) { … }',
-      selection: new SourceRange(169, 24),
+      selection: SourceRange(169, 24),
     );
   }
 
@@ -2467,7 +2467,7 @@ class B implements A {
   }
 ''',
       displayText: 'get<T>(T key) { … }',
-      selection: new SourceRange(136, 27),
+      selection: SourceRange(136, 27),
     );
   }
 
@@ -2490,7 +2490,7 @@ class B implements A {
   }
 ''',
       displayText: 'get<T>(T key) { … }',
-      selection: new SourceRange(129, 22),
+      selection: SourceRange(129, 22),
     );
   }
 
@@ -2512,7 +2512,7 @@ class B<K2, V2> implements A<K2, V2> {
   }
 ''',
       displayText: 'get<T extends V2>(K2 key) { … }',
-      selection: new SourceRange(184, 27),
+      selection: SourceRange(184, 27),
     );
   }
 
@@ -2537,7 +2537,7 @@ class B<K2, V2> implements A<K2, V2> {
   }
 ''',
       displayText: 'get<T extends V2>(K2 key) { … }',
-      selection: new SourceRange(197, 22),
+      selection: SourceRange(197, 22),
     );
   }
 
@@ -2559,7 +2559,7 @@ class B extends A {
  }
 ''',
       displayText: 'foo(T Function<T>() fn) { … }',
-      selection: new SourceRange(145, 27),
+      selection: SourceRange(145, 27),
     );
   }
 
@@ -2582,7 +2582,7 @@ class B extends A {
  }
 ''',
       displayText: 'foo(T Function<T>() fn) { … }',
-      selection: new SourceRange(141, 21),
+      selection: SourceRange(141, 21),
     );
   }
 
@@ -2604,7 +2604,7 @@ class B extends A {
  }
 ''',
       displayText: 'foo() { … }',
-      selection: new SourceRange(123, 27),
+      selection: SourceRange(123, 27),
     );
   }
 
@@ -2627,7 +2627,7 @@ class B extends A {
  }
 ''',
       displayText: 'foo() { … }',
-      selection: new SourceRange(121, 19),
+      selection: SourceRange(121, 19),
     );
   }
 
@@ -2648,7 +2648,7 @@ class B extends A {
   }
 ''',
       displayText: 'test() { … }',
-      selection: new SourceRange(109, 0),
+      selection: SourceRange(109, 0),
     );
   }
 
@@ -2670,7 +2670,7 @@ class B extends A {
   }
 ''',
       displayText: 'foo() { … }',
-      selection: new SourceRange(123, 27),
+      selection: SourceRange(123, 27),
     );
   }
 
@@ -2693,7 +2693,7 @@ class B extends A {
   }
 ''',
       displayText: 'foo() { … }',
-      selection: new SourceRange(122, 19),
+      selection: SourceRange(122, 19),
     );
   }
 
@@ -2716,7 +2716,7 @@ mixin M implements A {
   }
 ''',
       displayText: 'foo(int a) { … }',
-      selection: new SourceRange(113, 0),
+      selection: SourceRange(113, 0),
     );
   }
 
@@ -2741,7 +2741,7 @@ mixin M on A {
   }
 ''',
       displayText: 'foo(int a) { … }',
-      selection: new SourceRange(110, 13),
+      selection: SourceRange(110, 13),
     );
   }
 
@@ -2762,7 +2762,7 @@ class B extends A {
   }
 ''',
       displayText: 'value(int value) { … }',
-      selection: new SourceRange(133, 0),
+      selection: SourceRange(133, 0),
     );
   }
 
@@ -2785,7 +2785,7 @@ class B extends A {
   }
 ''',
       displayText: 'value(int value) { … }',
-      selection: new SourceRange(131, 20),
+      selection: SourceRange(131, 20),
     );
   }
 
@@ -2830,13 +2830,12 @@ class B extends A {
       nullabilitySuffix: NullabilitySuffix.star,
     );
 
-    var inherited = new InheritanceManager3().getInherited(
+    var inherited = InheritanceManager3().getInherited(
       targetType,
-      new Name(null, nameToOverride),
+      Name(null, nameToOverride),
     );
 
-    StringBuffer displayBuffer =
-        displayText != null ? new StringBuffer() : null;
+    StringBuffer displayBuffer = displayText != null ? StringBuffer() : null;
 
     DartChangeBuilderImpl builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {

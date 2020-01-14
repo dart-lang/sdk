@@ -91,7 +91,6 @@ export 'internal_ast.dart'
         FunctionDeclarationImpl,
         InvalidSuperInitializerJudgment,
         LoadLibraryTearOff,
-        MethodInvocationImpl,
         NamedFunctionExpressionJudgment,
         NullAwareMethodInvocation,
         NullAwarePropertyGet,

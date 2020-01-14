@@ -625,10 +625,6 @@ static RawInstance* CreateTypeMirror(const AbstractType& type) {
       Array& args = Array::Handle(Array::New(1));
       args.SetAt(0, Symbols::Dynamic());
       return CreateMirror(Symbols::_SpecialTypeMirror(), args);
-    } else if (cls.IsNeverClass()) {
-      Array& args = Array::Handle(Array::New(1));
-      args.SetAt(0, Symbols::Never());
-      return CreateMirror(Symbols::_SpecialTypeMirror(), args);
     }
     // TODO(regis): Until mirrors reflect nullability, force kLegacy, except for
     // Null type, which should remain nullable.
@@ -711,8 +707,8 @@ static RawAbstractType* InstantiateType(const AbstractType& type,
     instantiator_type_args = instantiator.arguments();
   }
   AbstractType& result = AbstractType::Handle(type.InstantiateFrom(
-      NNBDMode::kLegacy, instantiator_type_args, Object::null_type_arguments(),
-      kAllFree, NULL, Heap::kOld));
+      NNBDMode::kLegacyLib, instantiator_type_args,
+      Object::null_type_arguments(), kAllFree, NULL, Heap::kOld));
   ASSERT(result.IsFinalized());
   return result.Canonicalize();
 }
@@ -1481,7 +1477,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 0, 5) {
       // type arguments of the type reflected by the class mirror.
       ASSERT(redirect_type.IsInstantiated(kFunctions));
       redirect_type ^= redirect_type.InstantiateFrom(
-          NNBDMode::kLegacy, type_arguments, Object::null_type_arguments(),
+          NNBDMode::kLegacyLib, type_arguments, Object::null_type_arguments(),
           kNoneFree, NULL, Heap::kOld);
       redirect_type ^= redirect_type.Canonicalize();
     }
@@ -1511,7 +1507,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 0, 5) {
       ArgumentsDescriptor::New(kTypeArgsLen, args.Length(), arg_names));
 
   ArgumentsDescriptor args_descriptor(args_descriptor_array);
-  if (!redirected_constructor.AreValidArguments(NNBDMode::kLegacy,
+  if (!redirected_constructor.AreValidArguments(NNBDMode::kLegacyLib,
                                                 args_descriptor, NULL)) {
     external_constructor_name = redirected_constructor.name();
     ThrowNoSuchMethod(AbstractType::Handle(klass.RareType()),
@@ -1522,7 +1518,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 0, 5) {
   }
   const Object& type_error =
       Object::Handle(redirected_constructor.DoArgumentTypesMatch(
-          NNBDMode::kLegacy, args, args_descriptor, type_arguments));
+          NNBDMode::kLegacyLib, args, args_descriptor, type_arguments));
   if (!type_error.IsNull()) {
     Exceptions::PropagateError(Error::Cast(type_error));
     UNREACHABLE();
@@ -1760,7 +1756,7 @@ DEFINE_NATIVE_ENTRY(VariableMirror_type, 0, 2) {
 DEFINE_NATIVE_ENTRY(TypeMirror_subtypeTest, 0, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, a, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, b, arguments->NativeArgAt(1));
-  return Bool::Get(a.IsSubtypeOf(NNBDMode::kLegacy, b, Heap::kNew)).raw();
+  return Bool::Get(a.IsSubtypeOf(NNBDMode::kLegacyLib, b, Heap::kNew)).raw();
 }
 
 #endif  // !DART_PRECOMPILED_RUNTIME

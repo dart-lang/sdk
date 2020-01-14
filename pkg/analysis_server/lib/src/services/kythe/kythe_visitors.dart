@@ -92,8 +92,11 @@ class CodedBufferWriter {
 /// Schema here https://kythe.io/docs/schema/.  This visitor handles all nodes,
 /// facts and edges.
 class KytheDartVisitor extends GeneralizingAstVisitor with OutputUtils {
+  @override
   final ResourceProvider resourceProvider;
+  @override
   final List<KytheEntry> entries;
+  @override
   final String corpus;
   final InheritanceManager3 _inheritanceManager;
   final String _contents;
@@ -570,9 +573,9 @@ class KytheDartVisitor extends GeneralizingAstVisitor with OutputUtils {
       );
     } else if (returnType is GenericFunctionType) {
       // TODO(jwren): add support for generic function types.
-      throw new UnimplementedError();
+      throw UnimplementedError();
     } else if (returnType != null) {
-      throw new StateError(
+      throw StateError(
           'Unexpected TypeAnnotation subtype: ${returnType.runtimeType}');
     }
 
@@ -698,7 +701,7 @@ class KytheDartVisitor extends GeneralizingAstVisitor with OutputUtils {
       // override edges
       var overriddenList = _inheritanceManager.getOverridden(
         _enclosingClassThisType,
-        new Name(
+        Name(
           _enclosingClassElement.library.source.uri,
           node.declaredElement.name,
         ),
@@ -1117,7 +1120,7 @@ class KytheDartVisitor extends GeneralizingAstVisitor with OutputUtils {
 /// [KytheEntry] protos.
 mixin OutputUtils {
   /// A set of [String]s which have already had a name [KytheVName] created.
-  final Set<String> nameNodes = new Set<String>();
+  final Set<String> nameNodes = Set<String>();
 
   String get corpus;
 
@@ -1162,7 +1165,7 @@ mixin OutputUtils {
         start = syntacticEntity.offset;
         end = syntacticEntity.end;
       } else {
-        throw new Exception('Offset positions were not provided when calling '
+        throw Exception('Offset positions were not provided when calling '
             'addAnchorEdgesContainingEdge');
       }
     }
@@ -1203,7 +1206,7 @@ mixin OutputUtils {
   KytheEntry addEdge(KytheVName source, String edgeKind, KytheVName target,
       {int ordinalIntValue = _notFound}) {
     if (ordinalIntValue == _notFound) {
-      return addEntry(source, edgeKind, target, "/", new List<int>());
+      return addEntry(source, edgeKind, target, "/", List<int>());
     } else {
       return addEntry(source, edgeKind, target, schema.ORDINAL,
           _encodeInt(ordinalIntValue));
@@ -1221,7 +1224,7 @@ mixin OutputUtils {
       edgeKind = null;
       target = null;
     }
-    var entry = new KytheEntry(source, factName,
+    var entry = KytheEntry(source, factName,
         kind: edgeKind, target: target, value: factValue);
     entries.add(entry);
     return entry;
@@ -1297,9 +1300,7 @@ mixin OutputUtils {
       KytheVName nodeVName = null,
       String subKind = null,
       String completeFact = null}) {
-    if (nodeVName == null) {
-      nodeVName = _vNameFromElement(element, nodeKind);
-    }
+    nodeVName ??= _vNameFromElement(element, nodeKind);
     addFact(nodeVName, schema.NODE_KIND_FACT, _encode(nodeKind));
     if (subKind != null) {
       addFact(nodeVName, schema.SUBKIND_FACT, _encode(subKind));
@@ -1322,7 +1323,7 @@ mixin OutputUtils {
   /// [KytheVName].
   KytheVName _vName(String signature, String corpus, String root, String path,
       [String language = schema.DART_LANG]) {
-    return new KytheVName(signature, corpus, root, path, language);
+    return KytheVName(signature, corpus, root, path, language);
   }
 
   /// Returns an anchor [KytheVName] corresponding to the given start and end
@@ -1367,11 +1368,11 @@ mixin OutputUtils {
 /// signature for a given [Element], uniqueness is guaranteed within the
 /// enclosing file.
 class SignatureElementVisitor extends GeneralizingElementVisitor<StringBuffer> {
-  static SignatureElementVisitor instance = new SignatureElementVisitor();
+  static SignatureElementVisitor instance = SignatureElementVisitor();
 
   @override
   StringBuffer visitCompilationUnitElement(CompilationUnitElement e) {
-    return new StringBuffer();
+    return StringBuffer();
   }
 
   @override
@@ -1397,7 +1398,7 @@ class SignatureElementVisitor extends GeneralizingElementVisitor<StringBuffer> {
 
   @override
   StringBuffer visitLibraryElement(LibraryElement e) {
-    return new StringBuffer('library:${e.displayName}');
+    return StringBuffer('library:${e.displayName}');
   }
 
   @override

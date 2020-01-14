@@ -208,5 +208,6 @@ class TestInstrumentationLogger implements InstrumentationLogger {
     logged.writeln(message);
   }
 
+  @override
   Future<void> shutdown() async {}
 }

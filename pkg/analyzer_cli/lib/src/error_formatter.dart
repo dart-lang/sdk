@@ -33,7 +33,7 @@ ErrorSeverity _severityIdentity(AnalysisError error) =>
 
 /// Returns desired severity for the given [error] (or `null` if it's to be
 /// suppressed).
-typedef ErrorSeverity SeverityProcessor(AnalysisError error);
+typedef SeverityProcessor = ErrorSeverity Function(AnalysisError error);
 
 /// Analysis statistics counter.
 class AnalysisStats {
@@ -150,17 +150,16 @@ class CLIError implements Comparable<CLIError> {
   @override
   int compareTo(CLIError other) {
     // severity
-    int compare =
-        _severityCompare[other.severity] - _severityCompare[this.severity];
+    int compare = _severityCompare[other.severity] - _severityCompare[severity];
     if (compare != 0) return compare;
 
     // path
     compare = Comparable.compare(
-        this.sourcePath.toLowerCase(), other.sourcePath.toLowerCase());
+        sourcePath.toLowerCase(), other.sourcePath.toLowerCase());
     if (compare != 0) return compare;
 
     // offset
-    return this.offset - other.offset;
+    return offset - other.offset;
   }
 }
 
@@ -197,7 +196,7 @@ abstract class ErrorFormatter {
   void formatErrors(List<ErrorsResult> results) {
     stats.unfilteredCount += results.length;
 
-    List<AnalysisError> errors = new List<AnalysisError>();
+    List<AnalysisError> errors = List<AnalysisError>();
     Map<AnalysisError, ErrorsResult> errorToLine = {};
     for (ErrorsResult result in results) {
       for (AnalysisError error in result.errors) {
@@ -223,15 +222,16 @@ class HumanErrorFormatter extends ErrorFormatter {
   AnsiLogger ansi;
 
   // This is a Set in order to de-dup CLI errors.
-  final Set<CLIError> batchedErrors = new Set();
+  final Set<CLIError> batchedErrors = Set();
 
   HumanErrorFormatter(
       StringSink out, CommandLineOptions options, AnalysisStats stats,
       {SeverityProcessor severityProcessor})
       : super(out, options, stats, severityProcessor: severityProcessor) {
-    ansi = new AnsiLogger(this.options.color);
+    ansi = AnsiLogger(this.options.color);
   }
 
+  @override
   void flush() {
     // sort
     List<CLIError> sortedErrors = batchedErrors.toList()..sort();
@@ -281,6 +281,7 @@ class HumanErrorFormatter extends ErrorFormatter {
     batchedErrors.clear();
   }
 
+  @override
   void formatError(
       Map<AnalysisError, ErrorsResult> errorToLine, AnalysisError error) {
     Source source = error.source;
@@ -323,7 +324,7 @@ class HumanErrorFormatter extends ErrorFormatter {
       }
     }
 
-    batchedErrors.add(new CLIError(
+    batchedErrors.add(CLIError(
       severity: errorType,
       sourcePath: sourcePath,
       offset: error.offset,
@@ -350,8 +351,10 @@ class MachineErrorFormatter extends ErrorFormatter {
       {SeverityProcessor severityProcessor})
       : super(out, options, stats, severityProcessor: severityProcessor);
 
+  @override
   void flush() {}
 
+  @override
   void formatError(
       Map<AnalysisError, ErrorsResult> errorToLine, AnalysisError error) {
     // Ensure we don't over-report (#36062).
@@ -393,7 +396,7 @@ class MachineErrorFormatter extends ErrorFormatter {
   }
 
   static String _escapeForMachineMode(String input) {
-    StringBuffer result = new StringBuffer();
+    StringBuffer result = StringBuffer();
     for (int c in input.codeUnits) {
       if (c == _newline) {
         result.write(r'\n');

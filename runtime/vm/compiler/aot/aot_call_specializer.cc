@@ -195,16 +195,9 @@ bool AotCallSpecializer::TryReplaceWithHaveSameRuntimeType(
         cls.LookupStaticFunctionAllowPrivate(Symbols::HaveSameRuntimeType()));
     ASSERT(!have_same_runtime_type.IsNull());
 
-    ZoneGrowableArray<PushArgumentInstr*>* args =
-        new (Z) ZoneGrowableArray<PushArgumentInstr*>(2);
-    PushArgumentInstr* arg1 =
-        new (Z) PushArgumentInstr(new (Z) Value(left->ArgumentAt(0)));
-    InsertBefore(call, arg1, nullptr, FlowGraph::kEffect);
-    args->Add(arg1);
-    PushArgumentInstr* arg2 =
-        new (Z) PushArgumentInstr(new (Z) Value(right->ArgumentAt(0)));
-    InsertBefore(call, arg2, nullptr, FlowGraph::kEffect);
-    args->Add(arg2);
+    InputsArray* args = new (Z) InputsArray(Z, 2);
+    args->Add(left->ArgumentValueAt(0)->CopyWithType(Z));
+    args->Add(right->ArgumentValueAt(0)->CopyWithType(Z));
     const intptr_t kTypeArgsLen = 0;
     StaticCallInstr* static_call = new (Z) StaticCallInstr(
         call->token_pos(), have_same_runtime_type, kTypeArgsLen,
@@ -212,7 +205,13 @@ bool AotCallSpecializer::TryReplaceWithHaveSameRuntimeType(
         args, call->deopt_id(), call->CallCount(), ICData::kOptimized);
     static_call->SetResultType(Z, CompileType::FromCid(kBoolCid));
     ReplaceCall(call, static_call);
-    static_call->RepairPushArgsInEnvironment();
+    // ReplaceCall moved environment from 'call' to 'static_call'.
+    // Update arguments of 'static_call' in the environment.
+    Environment* env = static_call->env();
+    env->ValueAt(env->Length() - 2)
+        ->BindToEnvironment(static_call->ArgumentAt(0));
+    env->ValueAt(env->Length() - 1)
+        ->BindToEnvironment(static_call->ArgumentAt(1));
     return true;
   }
 
@@ -389,18 +388,17 @@ bool AotCallSpecializer::TryOptimizeStaticCallUsingStaticTypes(
       cid == kDoubleCid) {
     // Sometimes TFA de-virtualizes instance calls to static calls.  In such
     // cases the VM might have a looser type on the receiver, so we explicitly
-    // tighten it (this is safe since it was proven that te receiver is either
+    // tighten it (this is safe since it was proven that the receiver is either
     // null or will end up with that target).
     const intptr_t receiver_index = instr->FirstArgIndex();
     const intptr_t argument_count = instr->ArgumentCountWithoutTypeArgs();
     if (argument_count >= 1) {
-      auto push_receiver = instr->PushArgumentAt(receiver_index);
-      auto receiver_value = push_receiver->value();
+      auto receiver_value = instr->ArgumentValueAt(receiver_index);
       auto receiver = receiver_value->definition();
       auto type = BuildStrengthenedReceiverType(receiver_value, cid);
       if (!type.IsNone()) {
-        auto redefinition = flow_graph()->EnsureRedefinition(
-            push_receiver->previous(), receiver, type);
+        auto redefinition =
+            flow_graph()->EnsureRedefinition(instr->previous(), receiver, type);
         if (redefinition != nullptr) {
           RefineUseTypes(redefinition);
         }
@@ -464,8 +462,8 @@ bool AotCallSpecializer::TryOptimizeIntegerOperation(TemplateDartCall<0>* instr,
 
   Definition* replacement = NULL;
   if (instr->ArgumentCount() == 2) {
-    Value* left_value = instr->PushArgumentAt(0)->value();
-    Value* right_value = instr->PushArgumentAt(1)->value();
+    Value* left_value = instr->ArgumentValueAt(0);
+    Value* right_value = instr->ArgumentValueAt(1);
     CompileType* left_type = left_value->Type();
     CompileType* right_type = right_value->Type();
 
@@ -593,7 +591,7 @@ bool AotCallSpecializer::TryOptimizeIntegerOperation(TemplateDartCall<0>* instr,
         break;
     }
   } else if (instr->ArgumentCount() == 1) {
-    Value* left_value = instr->PushArgumentAt(0)->value();
+    Value* left_value = instr->ArgumentValueAt(0);
     CompileType* left_type = left_value->Type();
 
     // We only support unary operations on nullable integers.
@@ -637,8 +635,8 @@ bool AotCallSpecializer::TryOptimizeDoubleOperation(TemplateDartCall<0>* instr,
   Definition* replacement = NULL;
 
   if (instr->ArgumentCount() == 2) {
-    Value* left_value = instr->PushArgumentAt(0)->value();
-    Value* right_value = instr->PushArgumentAt(1)->value();
+    Value* left_value = instr->ArgumentValueAt(0);
+    Value* right_value = instr->ArgumentValueAt(1);
     CompileType* left_type = left_value->Type();
     CompileType* right_type = right_value->Type();
 
@@ -714,7 +712,7 @@ bool AotCallSpecializer::TryOptimizeDoubleOperation(TemplateDartCall<0>* instr,
         break;
     }
   } else if (instr->ArgumentCount() == 1) {
-    Value* left_value = instr->PushArgumentAt(0)->value();
+    Value* left_value = instr->ArgumentValueAt(0);
     CompileType* left_type = left_value->Type();
 
     // We only support unary operations on nullable doubles.
@@ -891,7 +889,7 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
 
   // No IC data checks. Try resolve target using the propagated cid.
   const intptr_t receiver_cid =
-      instr->PushArgumentAt(receiver_idx)->value()->Type()->ToCid();
+      instr->ArgumentValueAt(receiver_idx)->Type()->ToCid();
   if (receiver_cid != kDynamicCid) {
     const Class& receiver_class =
         Class::Handle(Z, isolate()->class_table()->At(receiver_cid));
@@ -903,6 +901,37 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
           StaticCallInstr::FromCall(Z, instr, target, instr->CallCount());
       instr->ReplaceWith(call, current_iterator());
       return;
+    }
+  }
+
+  // Check for x == y, where x has type T?, there are no subtypes of T, and
+  // T does not override ==. Replace with StrictCompare.
+  if (instr->token_kind() == Token::kEQ || instr->token_kind() == Token::kNE) {
+    GrowableArray<intptr_t> class_ids(6);
+    if (instr->ArgumentValueAt(receiver_idx)->Type()->Specialize(&class_ids)) {
+      bool is_object_eq = true;
+      for (intptr_t i = 0; i < class_ids.length(); i++) {
+        const intptr_t cid = class_ids[i];
+        const Class& cls = Class::Handle(Z, isolate()->class_table()->At(cid));
+        const Function& target =
+            Function::Handle(Z, instr->ResolveForReceiverClass(cls));
+        if (target.recognized_kind() != MethodRecognizer::kObjectEquals) {
+          is_object_eq = false;
+          break;
+        }
+      }
+      if (is_object_eq) {
+        auto* replacement = new (Z) StrictCompareInstr(
+            instr->token_pos(),
+            (instr->token_kind() == Token::kEQ) ? Token::kEQ_STRICT
+                                                : Token::kNE_STRICT,
+            instr->ArgumentValueAt(0)->CopyWithType(Z),
+            instr->ArgumentValueAt(1)->CopyWithType(Z),
+            /*needs_number_check=*/false, DeoptId::kNone);
+        ReplaceCall(instr, replacement);
+        RefineUseTypes(replacement);
+        return;
+      }
     }
   }
 
@@ -1013,8 +1042,8 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
         const CallTargets* targets = CallTargets::Create(Z, ic_data);
         ASSERT(!targets->is_empty());
         PolymorphicInstanceCallInstr* call =
-            new (Z) PolymorphicInstanceCallInstr(instr, *targets,
-                                                 /* complete = */ true);
+            PolymorphicInstanceCallInstr::FromCall(Z, instr, *targets,
+                                                   /* complete = */ true);
         instr->ReplaceWith(call, current_iterator());
         return;
       }
@@ -1034,8 +1063,8 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
     // OK to use checks with PolymorphicInstanceCallInstr since no
     // deoptimization is allowed.
     PolymorphicInstanceCallInstr* call =
-        new (Z) PolymorphicInstanceCallInstr(instr, targets,
-                                             /* complete = */ false);
+        PolymorphicInstanceCallInstr::FromCall(Z, instr, targets,
+                                               /* complete = */ false);
     instr->ReplaceWith(call, current_iterator());
     return;
   }
@@ -1085,9 +1114,8 @@ bool AotCallSpecializer::TryExpandCallThroughGetter(const Class& receiver_class,
 
   const intptr_t receiver_idx = call->type_args_len() > 0 ? 1 : 0;
 
-  PushArgumentsArray* get_arguments = new (Z) PushArgumentsArray(1);
-  get_arguments->Add(new (Z) PushArgumentInstr(
-      call->PushArgumentAt(receiver_idx)->value()->CopyWithType()));
+  InputsArray* get_arguments = new (Z) InputsArray(Z, 1);
+  get_arguments->Add(call->ArgumentValueAt(receiver_idx)->CopyWithType(Z));
   InstanceCallInstr* invoke_get = new (Z) InstanceCallInstr(
       call->token_pos(), getter_name, Token::kGET, get_arguments,
       /*type_args_len=*/0,
@@ -1098,16 +1126,13 @@ bool AotCallSpecializer::TryExpandCallThroughGetter(const Class& receiver_class,
   // Arguments to the .call() are the same as arguments to the
   // original call (including type arguments), but receiver
   // is replaced with the result of the get.
-  PushArgumentsArray* call_arguments =
-      new (Z) PushArgumentsArray(call->ArgumentCount());
+  InputsArray* call_arguments = new (Z) InputsArray(Z, call->ArgumentCount());
   if (call->type_args_len() > 0) {
-    call_arguments->Add(new (Z) PushArgumentInstr(
-        call->PushArgumentAt(0)->value()->CopyWithType()));
+    call_arguments->Add(call->ArgumentValueAt(0)->CopyWithType(Z));
   }
-  call_arguments->Add(new (Z) PushArgumentInstr(new (Z) Value(invoke_get)));
+  call_arguments->Add(new (Z) Value(invoke_get));
   for (intptr_t i = receiver_idx + 1; i < call->ArgumentCount(); i++) {
-    call_arguments->Add(new (Z) PushArgumentInstr(
-        call->PushArgumentAt(i)->value()->CopyWithType()));
+    call_arguments->Add(call->ArgumentValueAt(i)->CopyWithType(Z));
   }
 
   InstanceCallInstr* invoke_call = new (Z) InstanceCallInstr(
@@ -1116,29 +1141,24 @@ bool AotCallSpecializer::TryExpandCallThroughGetter(const Class& receiver_class,
       /*checked_argument_count=*/1,
       thread()->compiler_state().GetNextDeoptId());
 
-  // Insert all new instructions, except .call() invocation into the
-  // graph.
+  // Create environment and insert 'invoke_get'.
   Environment* get_env =
       call->env()->DeepCopy(Z, call->env()->Length() - call->ArgumentCount());
   for (intptr_t i = 0, n = invoke_get->ArgumentCount(); i < n; i++) {
-    PushArgumentInstr* push = invoke_get->PushArgumentAt(i);
-    InsertBefore(call, push, nullptr, FlowGraph::kEffect);
-    get_env->PushValue(new (Z) Value(push));  // add PushArg to getter's env
+    get_env->PushValue(new (Z) Value(invoke_get->ArgumentAt(i)));
   }
   InsertBefore(call, invoke_get, get_env, FlowGraph::kValue);
-  for (intptr_t i = 0, n = invoke_call->ArgumentCount(); i < n; i++) {
-    InsertBefore(call, invoke_call->PushArgumentAt(i), nullptr,
-                 FlowGraph::kEffect);
-  }
-  // Replace original PushArguments in the graph (mainly env uses).
-  ASSERT(call->ArgumentCount() == invoke_call->ArgumentCount());
-  for (intptr_t i = 0, n = call->ArgumentCount(); i < n; i++) {
-    call->PushArgumentAt(i)->ReplaceUsesWith(invoke_call->PushArgumentAt(i));
-    call->PushArgumentAt(i)->RemoveFromGraph();
-  }
 
   // Replace original call with .call(...) invocation.
   call->ReplaceWith(invoke_call, current_iterator());
+
+  // ReplaceWith moved environment from 'call' to 'invoke_call'.
+  // Update receiver argument in the environment.
+  Environment* invoke_env = invoke_call->env();
+  invoke_env
+      ->ValueAt(invoke_env->Length() - invoke_call->ArgumentCount() +
+                receiver_idx)
+      ->BindToEnvironment(invoke_get);
 
   // AOT compiler expects all calls to have an ICData.
   EnsureICData(Z, flow_graph()->function(), invoke_get);
@@ -1158,12 +1178,12 @@ void AotCallSpecializer::VisitPolymorphicInstanceCall(
     PolymorphicInstanceCallInstr* call) {
   const intptr_t receiver_idx = call->type_args_len() > 0 ? 1 : 0;
   const intptr_t receiver_cid =
-      call->PushArgumentAt(receiver_idx)->value()->Type()->ToCid();
+      call->ArgumentValueAt(receiver_idx)->Type()->ToCid();
   if (receiver_cid != kDynamicCid) {
     const Class& receiver_class =
         Class::Handle(Z, isolate()->class_table()->At(receiver_cid));
-    const Function& function = Function::ZoneHandle(
-        Z, call->instance_call()->ResolveForReceiverClass(receiver_class));
+    const Function& function =
+        Function::ZoneHandle(Z, call->ResolveForReceiverClass(receiver_class));
     if (!function.IsNull()) {
       // Only one target. Replace by static call.
       StaticCallInstr* new_call =
@@ -1212,17 +1232,10 @@ bool AotCallSpecializer::TryReplaceInstanceOfWithRangeCheck(
   ConstantInstr* upper_cid =
       flow_graph()->GetConstant(Smi::Handle(Z, Smi::New(upper_limit)));
 
-  ZoneGrowableArray<PushArgumentInstr*>* args =
-      new (Z) ZoneGrowableArray<PushArgumentInstr*>(3);
-  PushArgumentInstr* arg = new (Z) PushArgumentInstr(new (Z) Value(left_cid));
-  InsertBefore(call, arg, NULL, FlowGraph::kEffect);
-  args->Add(arg);
-  arg = new (Z) PushArgumentInstr(new (Z) Value(lower_cid));
-  InsertBefore(call, arg, NULL, FlowGraph::kEffect);
-  args->Add(arg);
-  arg = new (Z) PushArgumentInstr(new (Z) Value(upper_cid));
-  InsertBefore(call, arg, NULL, FlowGraph::kEffect);
-  args->Add(arg);
+  InputsArray* args = new (Z) InputsArray(Z, 3);
+  args->Add(new (Z) Value(left_cid));
+  args->Add(new (Z) Value(lower_cid));
+  args->Add(new (Z) Value(upper_cid));
 
   const Library& dart_internal = Library::Handle(Z, Library::InternalLibrary());
   const String& target_name = Symbols::_classRangeCheck();
@@ -1240,7 +1253,7 @@ bool AotCallSpecializer::TryReplaceInstanceOfWithRangeCheck(
   Environment* copy =
       call->env()->DeepCopy(Z, call->env()->Length() - call->ArgumentCount());
   for (intptr_t i = 0; i < args->length(); ++i) {
-    copy->PushValue(new (Z) Value((*args)[i]));  // add PushArg to env
+    copy->PushValue(new (Z) Value(new_call->ArgumentAt(i)));
   }
   call->RemoveEnvironment();
   ReplaceCall(call, new_call);

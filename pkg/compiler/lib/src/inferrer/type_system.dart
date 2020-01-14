@@ -319,7 +319,7 @@ class TypeSystem {
       {bool isNullable: true}) {
     AbstractValue otherType;
     if (annotation is VoidType) return type;
-    if (annotation.treatAsDynamic) {
+    if (annotation.isTop) {
       if (isNullable) return type;
       // If the input is already narrowed to be not-null, there is no value
       // in adding another narrowing node.

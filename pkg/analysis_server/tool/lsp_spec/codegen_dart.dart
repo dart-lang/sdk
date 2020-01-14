@@ -7,7 +7,7 @@ import 'package:dart_style/dart_style.dart';
 import 'typescript.dart';
 import 'typescript_parser.dart';
 
-final formatter = new DartFormatter();
+final formatter = DartFormatter();
 Map<String, Interface> _interfaces = {};
 Map<String, List<String>> _subtypes = {};
 // TODO(dantup): Rename namespaces -> enums since they're always that now.
@@ -43,7 +43,7 @@ void recordTypes(List<AstNode> types) {
     // Keep track of our base classes so they can look up their super classes
     // later in their fromJson() to deserialise into the most specific type.
     interface.baseTypes.forEach((base) {
-      final subTypes = _subtypes[base.dartType] ??= new List<String>();
+      final subTypes = _subtypes[base.dartType] ??= List<String>();
       subTypes.add(interface.name);
     });
   });
@@ -53,7 +53,7 @@ void recordTypes(List<AstNode> types) {
 }
 
 String generateDartForTypes(List<AstNode> types) {
-  final buffer = new IndentableStringBuffer();
+  final buffer = IndentableStringBuffer();
   _getSorted(types).forEach((t) => _writeType(buffer, t));
   final formattedCode = _formatCode(buffer.toString());
   return formattedCode.trim() + '\n'; // Ensure a single trailing newline.
@@ -125,7 +125,7 @@ String _makeValidIdentifier(String identifier) {
 }
 
 String _rewriteCommentReference(String comment) {
-  final commentReferencePattern = new RegExp(r'\[([\w ]+)\]\(#(\w+)\)');
+  final commentReferencePattern = RegExp(r'\[([\w ]+)\]\(#(\w+)\)');
   return comment.replaceAllMapped(commentReferencePattern, (m) {
     final description = m.group(1);
     final reference = m.group(2);
@@ -269,7 +269,7 @@ void _writeConstructor(IndentableStringBuffer buffer, Interface interface) {
 void _writeJsonHandler(IndentableStringBuffer buffer, Interface interface) {
   buffer
     ..writeIndented('static const jsonHandler = ')
-    ..write('const LspJsonHandler(')
+    ..write('LspJsonHandler(')
     ..write('${interface.name}.canParse, ${interface.name}.fromJson')
     ..writeln(');')
     ..writeln();
@@ -335,7 +335,7 @@ void _writeEnumClass(IndentableStringBuffer buffer, Namespace namespace) {
     _writeDocCommentsAndAnnotations(buffer, cons);
     buffer
       ..writeIndentedln(
-          'static const ${_makeValidIdentifier(cons.name)} = const ${namespace.name}$constructorName(${cons.valueAsLiteral});');
+          'static const ${_makeValidIdentifier(cons.name)} = ${namespace.name}$constructorName(${cons.valueAsLiteral});');
   });
   buffer
     ..writeln()
@@ -346,7 +346,7 @@ void _writeEnumClass(IndentableStringBuffer buffer, Namespace namespace) {
     ..writeIndentedln('@override get hashCode => _value.hashCode;')
     ..writeln()
     ..writeIndentedln(
-        'bool operator ==(o) => o is ${namespace.name} && o._value == _value;')
+        'bool operator ==(Object o) => o is ${namespace.name} && o._value == _value;')
     ..outdent()
     ..writeln('}')
     ..writeln();
@@ -355,7 +355,7 @@ void _writeEnumClass(IndentableStringBuffer buffer, Namespace namespace) {
 void _writeEquals(IndentableStringBuffer buffer, Interface interface) {
   buffer
     ..writeIndentedln('@override')
-    ..writeIndentedln('bool operator ==(other) {')
+    ..writeIndentedln('bool operator ==(Object other) {')
     ..indent()
     ..writeIndentedln('if (other is ${interface.name}) {')
     ..indent()
@@ -415,7 +415,7 @@ void _writeFromJsonCode(
   } else if (type is MapType) {
     // Maps need to be map()'d so we can recursively call writeFromJsonCode as
     // they may need fromJson on each key or value.
-    buffer.write('$valueCode?.map((key, value) => new MapEntry(');
+    buffer.write('$valueCode?.map((key, value) => MapEntry(');
     _writeFromJsonCode(buffer, type.indexType, 'key', allowsNull: allowsNull);
     buffer.write(', ');
     _writeFromJsonCode(buffer, type.valueType, 'value', allowsNull: allowsNull);
@@ -446,7 +446,7 @@ void _writeFromJsonCodeForUnion(
     }
 
     // The code to construct a value with this "side" of the union.
-    buffer.write('new ${union.dartTypeWithTypeArgs}.t${i + 1}(');
+    buffer.write('${union.dartTypeWithTypeArgs}.t${i + 1}(');
     _writeFromJsonCode(buffer, type, valueCode,
         allowsNull: allowsNull); // Call recursively!
     buffer.write(')');
@@ -498,7 +498,7 @@ void _writeFromJsonConstructor(
     buffer.writeln(';');
   }
   buffer
-    ..writeIndented('return new ${interface.nameWithTypeArgs}(')
+    ..writeIndented('return ${interface.nameWithTypeArgs}(')
     ..write(allFields.map((field) => '${field.name}').join(', '))
     ..writeln(');')
     ..outdent()
@@ -715,7 +715,7 @@ void _writeTypeCheckCondition(IndentableStringBuffer buffer, String valueCode,
 
 class IndentableStringBuffer extends StringBuffer {
   int _indentLevel = 0;
-  int _indentSpaces = 2;
+  final int _indentSpaces = 2;
 
   int get totalIndent => _indentLevel * _indentSpaces;
   String get _indentString => ' ' * totalIndent;

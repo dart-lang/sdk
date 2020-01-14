@@ -37,19 +37,19 @@ class FixesMixinTest with ResourceProviderMixin {
     packagePath1 = convertPath('/package1');
     filePath1 = join(packagePath1, 'lib', 'test.dart');
     newFile(filePath1);
-    contextRoot1 = new ContextRoot(packagePath1, <String>[]);
+    contextRoot1 = ContextRoot(packagePath1, <String>[]);
 
-    channel = new MockChannel();
-    plugin = new _TestServerPlugin(resourceProvider);
+    channel = MockChannel();
+    plugin = _TestServerPlugin(resourceProvider);
     plugin.start(channel);
   }
 
   test_handleEditGetFixes() async {
     await plugin.handleAnalysisSetContextRoots(
-        new AnalysisSetContextRootsParams([contextRoot1]));
+        AnalysisSetContextRootsParams([contextRoot1]));
 
     EditGetFixesResult result =
-        await plugin.handleEditGetFixes(new EditGetFixesParams(filePath1, 13));
+        await plugin.handleEditGetFixes(EditGetFixesParams(filePath1, 13));
     expect(result, isNotNull);
     List<AnalysisErrorFixes> fixes = result.fixes;
     expect(fixes, hasLength(1));
@@ -75,14 +75,14 @@ class _TestServerPlugin extends MockServerPlugin with FixesMixin {
       : super(resourceProvider);
 
   PrioritizedSourceChange createChange() {
-    return new PrioritizedSourceChange(0, new SourceChange(''));
+    return PrioritizedSourceChange(0, SourceChange(''));
   }
 
   @override
   List<FixContributor> getFixContributors(String path) {
     return <FixContributor>[
-      new _TestFixContributor(<PrioritizedSourceChange>[createChange()]),
-      new _TestFixContributor(
+      _TestFixContributor(<PrioritizedSourceChange>[createChange()]),
+      _TestFixContributor(
           <PrioritizedSourceChange>[createChange(), createChange()])
     ];
   }
@@ -90,10 +90,10 @@ class _TestServerPlugin extends MockServerPlugin with FixesMixin {
   @override
   Future<FixesRequest> getFixesRequest(EditGetFixesParams parameters) async {
     int offset = parameters.offset;
-    AnalysisError error = new AnalysisError(
-        new MockSource(), 0, 0, CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT);
-    var result = new MockResolvedUnitResult(
-        lineInfo: new LineInfo([0, 20]), errors: [error]);
-    return new DartFixesRequestImpl(resourceProvider, offset, [error], result);
+    AnalysisError error = AnalysisError(
+        MockSource(), 0, 0, CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT);
+    var result =
+        MockResolvedUnitResult(lineInfo: LineInfo([0, 20]), errors: [error]);
+    return DartFixesRequestImpl(resourceProvider, offset, [error], result);
   }
 }

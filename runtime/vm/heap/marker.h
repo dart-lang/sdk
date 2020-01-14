@@ -67,7 +67,7 @@ class GCMarker {
 
   Monitor root_slices_monitor_;
   RelaxedAtomic<intptr_t> root_slices_not_started_;
-  RelaxedAtomic<intptr_t> root_slices_not_finished_;
+  intptr_t root_slices_not_finished_;
 
   Mutex stats_mutex_;
   uintptr_t marked_bytes_;

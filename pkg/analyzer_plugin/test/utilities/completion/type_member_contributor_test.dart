@@ -54,7 +54,7 @@ void f(Derived d) {
 
   @override
   CompletionContributor createContributor() {
-    return new TypeMemberContributor();
+    return TypeMemberContributor();
   }
 
   test_ArgDefaults_method() async {

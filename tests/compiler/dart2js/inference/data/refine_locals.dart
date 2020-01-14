@@ -38,8 +38,8 @@ class Class2 {
 }
 
 /*member: _refineUnion:Union([exact=Class1], [exact=Class2])*/
-_refineUnion(/*Union([null|exact=Class1], [null|exact=Class2])*/ o) {
-  o. /*invoke: Union([null|exact=Class1], [null|exact=Class2])*/ method0();
+_refineUnion(/*Union(null, [exact=Class1], [exact=Class2])*/ o) {
+  o. /*invoke: Union(null, [exact=Class1], [exact=Class2])*/ method0();
   o. /*invoke: Union([exact=Class1], [exact=Class2])*/ method1();
   o. /*invoke: Union([exact=Class1], [exact=Class2])*/ method2();
   return o;

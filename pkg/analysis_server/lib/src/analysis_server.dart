@@ -66,7 +66,6 @@ import 'package:analyzer/src/dart/analysis/status.dart' as nd;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
-import 'package:analyzer/src/plugin/resolver_provider.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
@@ -74,7 +73,7 @@ import 'package:telemetry/crash_reporting.dart';
 import 'package:telemetry/telemetry.dart' as telemetry;
 import 'package:watcher/watcher.dart';
 
-typedef void OptionUpdater(AnalysisOptionsImpl options);
+typedef OptionUpdater = void Function(AnalysisOptionsImpl options);
 
 /// Instances of the class [AnalysisServer] implement a server that listens on a
 /// [CommunicationChannel] for analysis requests and process them.
@@ -112,16 +111,16 @@ class AnalysisServer extends AbstractAnalysisServer {
   final RequestStatisticsHelper requestStatistics;
 
   /// A set of the [ServerService]s to send notifications for.
-  Set<ServerService> serverServices = new HashSet<ServerService>();
+  Set<ServerService> serverServices = HashSet<ServerService>();
 
   /// A set of the [GeneralAnalysisService]s to send notifications for.
   Set<GeneralAnalysisService> generalAnalysisServices =
-      new HashSet<GeneralAnalysisService>();
+      HashSet<GeneralAnalysisService>();
 
   /// A table mapping [AnalysisService]s to the file paths for which these
   /// notifications should be sent.
   Map<AnalysisService, Set<String>> analysisServices =
-      new HashMap<AnalysisService, Set<String>>();
+      HashMap<AnalysisService, Set<String>>();
 
   /// A table mapping [FlutterService]s to the file paths for which these
   /// notifications should be sent.
@@ -145,21 +144,13 @@ class AnalysisServer extends AbstractAnalysisServer {
 
   /// The default options used to create new analysis contexts. This object is
   /// also referenced by the ContextManager.
-  final AnalysisOptionsImpl defaultContextOptions = new AnalysisOptionsImpl();
-
-  /// The file resolver provider used to override the way file URI's are
-  /// resolved in some contexts.
-  ResolverProvider fileResolverProvider;
-
-  /// The package resolver provider used to override the way package URI's are
-  /// resolved in some contexts.
-  ResolverProvider packageResolverProvider;
+  final AnalysisOptionsImpl defaultContextOptions = AnalysisOptionsImpl();
 
   PerformanceLog _analysisPerformanceLogger;
 
   /// The controller for [onAnalysisSetChanged].
   final StreamController _onAnalysisSetChangedController =
-      new StreamController.broadcast(sync: true);
+      StreamController.broadcast(sync: true);
 
   final DetachableFileSystemManager detachableFileSystemManager;
 
@@ -178,20 +169,18 @@ class AnalysisServer extends AbstractAnalysisServer {
     this.instrumentationService, {
     this.requestStatistics,
     DiagnosticServer diagnosticServer,
-    ResolverProvider fileResolverProvider = null,
-    ResolverProvider packageResolverProvider = null,
     this.detachableFileSystemManager = null,
   }) : super(options, diagnosticServer, baseResourceProvider) {
-    notificationManager = new NotificationManager(channel, resourceProvider);
+    notificationManager = NotificationManager(channel, resourceProvider);
 
-    pluginManager = new PluginManager(
+    pluginManager = PluginManager(
         resourceProvider,
         _getByteStorePath(),
         sdkManager.defaultSdkDirectory,
         notificationManager,
         instrumentationService);
     PluginWatcher pluginWatcher =
-        new PluginWatcher(resourceProvider, pluginManager);
+        PluginWatcher(resourceProvider, pluginManager);
 
     defaultContextOptions.enabledExperiments = options.enabledExperiments;
     defaultContextOptions.generateImplicitErrors = false;
@@ -199,7 +188,7 @@ class AnalysisServer extends AbstractAnalysisServer {
 
     {
       String name = options.newAnalysisDriverLog;
-      StringSink sink = new NullStringSink();
+      StringSink sink = NullStringSink();
       if (name != null) {
         if (name == 'stdout') {
           sink = io.stdout;
@@ -211,12 +200,12 @@ class AnalysisServer extends AbstractAnalysisServer {
       if (requestStatistics != null) {
         sink = TeeStringSink(sink, requestStatistics.perfLoggerStringSink);
       }
-      _analysisPerformanceLogger = new PerformanceLog(sink);
+      _analysisPerformanceLogger = PerformanceLog(sink);
     }
 
     byteStore = createByteStore(resourceProvider);
 
-    analysisDriverScheduler = new nd.AnalysisDriverScheduler(
+    analysisDriverScheduler = nd.AnalysisDriverScheduler(
         _analysisPerformanceLogger,
         driverWatcher: pluginWatcher);
     analysisDriverScheduler.status.listen(sendStatusNotificationNew);
@@ -229,41 +218,34 @@ class AnalysisServer extends AbstractAnalysisServer {
           CompletionLibrariesWorker(declarationsTracker);
     }
 
-    contextManager = new ContextManagerImpl(
-        resourceProvider,
-        sdkManager,
-        packageResolverProvider,
-        analyzedFilesGlobs,
-        instrumentationService,
-        defaultContextOptions);
-    this.fileResolverProvider = fileResolverProvider;
-    this.packageResolverProvider = packageResolverProvider;
+    contextManager = ContextManagerImpl(resourceProvider, sdkManager,
+        analyzedFilesGlobs, instrumentationService, defaultContextOptions);
     ServerContextManagerCallbacks contextManagerCallbacks =
-        new ServerContextManagerCallbacks(this, resourceProvider);
+        ServerContextManagerCallbacks(this, resourceProvider);
     contextManager.callbacks = contextManagerCallbacks;
-    _onAnalysisStartedController = new StreamController.broadcast();
+    _onAnalysisStartedController = StreamController.broadcast();
     onAnalysisStarted.first.then((_) {
       onAnalysisComplete.then((_) {
-        performanceAfterStartup = new ServerPerformance();
+        performanceAfterStartup = ServerPerformance();
         performance = performanceAfterStartup;
       });
     });
-    searchEngine = new SearchEngineImpl(driverMap.values);
+    searchEngine = SearchEngineImpl(driverMap.values);
     Notification notification =
-        new ServerConnectedParams(PROTOCOL_VERSION, io.pid).toNotification();
+        ServerConnectedParams(PROTOCOL_VERSION, io.pid).toNotification();
     channel.sendNotification(notification);
     channel.listen(handleRequest, onDone: done, onError: error);
     handlers = <server.RequestHandler>[
-      new ServerDomainHandler(this),
-      new AnalysisDomainHandler(this),
-      new EditDomainHandler(this),
-      new SearchDomainHandler(this),
-      new CompletionDomainHandler(this),
-      new ExecutionDomainHandler(this),
-      new DiagnosticDomainHandler(this),
-      new AnalyticsDomainHandler(this),
-      new KytheDomainHandler(this),
-      new FlutterDomainHandler(this)
+      ServerDomainHandler(this),
+      AnalysisDomainHandler(this),
+      EditDomainHandler(this),
+      SearchDomainHandler(this),
+      CompletionDomainHandler(this),
+      ExecutionDomainHandler(this),
+      DiagnosticDomainHandler(this),
+      AnalyticsDomainHandler(this),
+      KytheDomainHandler(this),
+      FlutterDomainHandler(this)
     ];
   }
 
@@ -273,11 +255,9 @@ class AnalysisServer extends AbstractAnalysisServer {
   /// The [Future] that completes when analysis is complete.
   Future get onAnalysisComplete {
     if (isAnalysisComplete()) {
-      return new Future.value();
+      return Future.value();
     }
-    if (_onAnalysisCompleteCompleter == null) {
-      _onAnalysisCompleteCompleter = new Completer();
-    }
+    _onAnalysisCompleteCompleter ??= Completer();
     return _onAnalysisCompleteCompleter.future;
   }
 
@@ -342,17 +322,17 @@ class AnalysisServer extends AbstractAnalysisServer {
             channel.sendResponse(exception.response);
             return;
           } catch (exception, stackTrace) {
-            RequestError error = new RequestError(
+            RequestError error = RequestError(
                 RequestErrorCode.SERVER_ERROR, exception.toString());
             if (stackTrace != null) {
               error.stackTrace = stackTrace.toString();
             }
-            Response response = new Response(request.id, error: error);
+            Response response = Response(request.id, error: error);
             channel.sendResponse(response);
             return;
           }
         }
-        channel.sendResponse(new Response.unknownRequest(request));
+        channel.sendResponse(Response.unknownRequest(request));
       });
     }, onError: (exception, stackTrace) {
       AnalysisEngine.instance.instrumentationService.logException(
@@ -423,14 +403,14 @@ class AnalysisServer extends AbstractAnalysisServer {
 
     // send the notification
     channel.sendNotification(
-        new ServerErrorParams(fatal, msg, '$stackTrace').toNotification());
+        ServerErrorParams(fatal, msg, '$stackTrace').toNotification());
 
     // remember the last few exceptions
     if (exception is CaughtException) {
       stackTrace ??= exception.stackTrace;
     }
 
-    exceptions.add(new ServerException(
+    exceptions.add(ServerException(
       message,
       exception,
       stackTrace is StackTrace ? stackTrace : null,
@@ -465,9 +445,9 @@ class AnalysisServer extends AbstractAnalysisServer {
       return;
     }
     statusAnalyzing = status.isAnalyzing;
-    AnalysisStatus analysis = new AnalysisStatus(status.isAnalyzing);
+    AnalysisStatus analysis = AnalysisStatus(status.isAnalyzing);
     channel.sendNotification(
-        new ServerStatusParams(analysis: analysis).toNotification());
+        ServerStatusParams(analysis: analysis).toNotification());
   }
 
   /// Implementation for `analysis.setAnalysisRoots`.
@@ -489,8 +469,7 @@ class AnalysisServer extends AbstractAnalysisServer {
     try {
       contextManager.setRoots(includedPaths, excludedPaths, packageRoots);
     } on UnimplementedError catch (e) {
-      throw new RequestFailure(
-          new Response.unsupportedFeature(requestId, e.message));
+      throw RequestFailure(Response.unsupportedFeature(requestId, e.message));
     }
     addContextsToDeclarationsTracker();
   }
@@ -501,7 +480,7 @@ class AnalysisServer extends AbstractAnalysisServer {
     if (notificationManager != null) {
       notificationManager.setSubscriptions(subscriptions);
     }
-    this.analysisServices = subscriptions;
+    analysisServices = subscriptions;
     Set<String> allNewFiles =
         subscriptions.values.expand((files) => files).toSet();
     for (String file in allNewFiles) {
@@ -516,7 +495,7 @@ class AnalysisServer extends AbstractAnalysisServer {
 
   /// Implementation for `flutter.setSubscriptions`.
   void setFlutterSubscriptions(Map<FlutterService, Set<String>> subscriptions) {
-    this.flutterServices = subscriptions;
+    flutterServices = subscriptions;
     Set<String> allNewFiles =
         subscriptions.values.expand((files) => files).toSet();
     for (String file in allNewFiles) {
@@ -569,7 +548,7 @@ class AnalysisServer extends AbstractAnalysisServer {
   Future<void> shutdown() {
     if (options.analytics != null) {
       options.analytics
-          .waitForLastPing(timeout: new Duration(milliseconds: 200))
+          .waitForLastPing(timeout: Duration(milliseconds: 200))
           .then((_) {
         options.analytics.close();
       });
@@ -579,12 +558,12 @@ class AnalysisServer extends AbstractAnalysisServer {
 
     // Defer closing the channel and shutting down the instrumentation server so
     // that the shutdown response can be sent and logged.
-    new Future(() {
+    Future(() {
       instrumentationService.shutdown();
       channel.close();
     });
 
-    return new Future.value();
+    return Future.value();
   }
 
   /// Implementation for `analysis.updateContent`.
@@ -607,22 +586,22 @@ class AnalysisServer extends AbstractAnalysisServer {
         if (oldContents == null) {
           // The client may only send a ChangeContentOverlay if there is
           // already an existing overlay for the source.
-          throw new RequestFailure(new Response(id,
-              error: new RequestError(RequestErrorCode.INVALID_OVERLAY_CHANGE,
+          throw RequestFailure(Response(id,
+              error: RequestError(RequestErrorCode.INVALID_OVERLAY_CHANGE,
                   'Invalid overlay change')));
         }
         try {
           newContents = SourceEdit.applySequence(oldContents, change.edits);
         } on RangeError {
-          throw new RequestFailure(new Response(id,
-              error: new RequestError(RequestErrorCode.INVALID_OVERLAY_CHANGE,
+          throw RequestFailure(Response(id,
+              error: RequestError(RequestErrorCode.INVALID_OVERLAY_CHANGE,
                   'Invalid overlay change')));
         }
       } else if (change is RemoveContentOverlay) {
         newContents = null;
       } else {
         // Protocol parsing should have ensured that we never get here.
-        throw new AnalysisException('Illegal change type');
+        throw AnalysisException('Illegal change type');
       }
 
       if (newContents != null) {
@@ -880,7 +859,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
       }
       // TODO(39284): should this exception be silent?
       AnalysisEngine.instance.instrumentationService.logException(
-          new SilentException.wrapInMessage(message, result.exception));
+          SilentException.wrapInMessage(message, result.exception));
     });
     analysisServer.driverMap[folder] = analysisDriver;
     return analysisDriver;
@@ -941,15 +920,13 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
       }
     }
 
-    ContextBuilderOptions builderOptions = new ContextBuilderOptions();
+    ContextBuilderOptions builderOptions = ContextBuilderOptions();
     builderOptions.defaultOptions = options;
     builderOptions.defaultPackageFilePath = defaultPackageFilePath;
     builderOptions.defaultPackagesDirectoryPath = defaultPackagesDirectoryPath;
-    ContextBuilder builder = new ContextBuilder(
+    ContextBuilder builder = ContextBuilder(
         resourceProvider, analysisServer.sdkManager, null,
         options: builderOptions);
-    builder.fileResolverProvider = analysisServer.fileResolverProvider;
-    builder.packageResolverProvider = analysisServer.packageResolverProvider;
     builder.analysisDriverScheduler = analysisServer.analysisDriverScheduler;
     builder.performanceLog = analysisServer._analysisPerformanceLogger;
     builder.byteStore = analysisServer.byteStore;
@@ -966,23 +943,23 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
 
   List<HighlightRegion> _computeHighlightRegions(CompilationUnit unit) {
     if (analysisServer.options.useAnalysisHighlight2) {
-      return new DartUnitHighlightsComputer2(unit).compute();
+      return DartUnitHighlightsComputer2(unit).compute();
     } else {
-      return new DartUnitHighlightsComputer(unit).compute();
+      return DartUnitHighlightsComputer(unit).compute();
     }
   }
 
   server.AnalysisNavigationParams _computeNavigationParams(
       String path, CompilationUnit unit) {
-    NavigationCollectorImpl collector = new NavigationCollectorImpl();
+    NavigationCollectorImpl collector = NavigationCollectorImpl();
     computeDartNavigation(resourceProvider, collector, unit, null, null);
     collector.createRegions();
-    return new server.AnalysisNavigationParams(
+    return server.AnalysisNavigationParams(
         path, collector.regions, collector.targets, collector.files);
   }
 
   List<Occurrences> _computeOccurrences(CompilationUnit unit) {
-    OccurrencesCollectorImpl collector = new OccurrencesCollectorImpl();
+    OccurrencesCollectorImpl collector = OccurrencesCollectorImpl();
     addDartOccurrences(collector, unit);
     return collector.allOccurrences;
   }
@@ -1001,7 +978,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   /// completion computer would be the only consumer of the partial analysis
   /// result.
   void _runDelayed(f()) {
-    new Future(f);
+    Future(f);
   }
 }
 
@@ -1023,7 +1000,7 @@ class ServerException {
 class ServerPerformance {
   /// The creation time and the time when performance information
   /// started to be recorded here.
-  final int startTime = new DateTime.now().millisecondsSinceEpoch;
+  final int startTime = DateTime.now().millisecondsSinceEpoch;
 
   /// The number of requests.
   int requestCount = 0;
@@ -1044,8 +1021,7 @@ class ServerPerformance {
   void logRequestTiming(int clientRequestTime) {
     ++requestCount;
     if (clientRequestTime != null) {
-      int latency =
-          new DateTime.now().millisecondsSinceEpoch - clientRequestTime;
+      int latency = DateTime.now().millisecondsSinceEpoch - clientRequestTime;
       ++latencyCount;
       requestLatency += latency;
       maxLatency = max(maxLatency, latency);
@@ -1059,11 +1035,11 @@ class ServerPerformance {
 /// Container with global [AnalysisServer] performance statistics.
 class ServerPerformanceStatistics {
   /// The [PerformanceTag] for `package:analysis_server`.
-  static final PerformanceTag server = new PerformanceTag('server');
+  static final PerformanceTag server = PerformanceTag('server');
 
   /// The [PerformanceTag] for time spent between calls to
   /// AnalysisServer.performOperation when the server is idle.
-  static final PerformanceTag idle = new PerformanceTag('idle');
+  static final PerformanceTag idle = PerformanceTag('idle');
 
   /// The [PerformanceTag] for time spent in
   /// PerformAnalysisOperation._sendNotices.

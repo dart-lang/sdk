@@ -36,12 +36,45 @@ class Test {
 ''');
   }
 
+  test_forLoop() async {
+    await resolveTestUnit('''
+void f() {
+  for (var /*LINT*/i = null; i != null; i++) {
+  }
+}
+''');
+    await assertHasFix('''
+void f() {
+  for (var /*LINT*/i; i != null; i++) {
+  }
+}
+''');
+  }
+
   test_listOfVariableDeclarations() async {
     await resolveTestUnit('''
 String a = 'a', /*LINT*/b = null, c = 'c';
 ''');
     await assertHasFix('''
 String a = 'a', /*LINT*/b, c = 'c';
+''');
+  }
+
+  test_parameter_optionalNamed() async {
+    await resolveTestUnit('''
+void f({String /*LINT*/s = null}) {}
+''');
+    await assertHasFix('''
+void f({String /*LINT*/s}) {}
+''');
+  }
+
+  test_parameter_optionalPositional() async {
+    await resolveTestUnit('''
+void f([String /*LINT*/s = null]) {}
+''');
+    await assertHasFix('''
+void f([String /*LINT*/s]) {}
 ''');
   }
 

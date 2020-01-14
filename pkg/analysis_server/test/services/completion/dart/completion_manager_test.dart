@@ -25,7 +25,7 @@ main() {
 class CompletionManagerTest extends DartCompletionContributorTest {
   @override
   DartCompletionContributor createContributor() {
-    return new ImportedReferenceContributor();
+    return ImportedReferenceContributor();
   }
 
   test_resolveDirectives() async {
@@ -45,12 +45,12 @@ part 'test.dart';
     addTestSource('part of libB; main() {^}');
 
     // Build the request
-    CompletionRequestImpl baseRequest = new CompletionRequestImpl(
+    CompletionRequestImpl baseRequest = CompletionRequestImpl(
         await session.getResolvedUnit(testFile),
         completionOffset,
-        new CompletionPerformance());
+        CompletionPerformance());
     Completer<DartCompletionRequest> requestCompleter =
-        new Completer<DartCompletionRequest>();
+        Completer<DartCompletionRequest>();
     DartCompletionRequestImpl.from(baseRequest)
         .then((DartCompletionRequest request) {
       requestCompleter.complete(request);

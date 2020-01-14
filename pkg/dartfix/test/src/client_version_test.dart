@@ -6,7 +6,7 @@ import 'package:test/test.dart';
 
 import 'test_context.dart';
 
-main() {
+void main() {
   test('client version', () {
     // The edit.dartfix protocol is experimental and will continue to evolve
     // an so dartfix will only work with this specific version of the

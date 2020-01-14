@@ -31,11 +31,11 @@ class ElementReferencesTest extends AbstractSearchDomainTest {
       String search, bool includePotential) async {
     int offset = findOffset(search);
     await waitForTasksFinished();
-    Request request = new SearchFindElementReferencesParams(
-            testFile, offset, includePotential)
-        .toRequest('0');
+    Request request =
+        SearchFindElementReferencesParams(testFile, offset, includePotential)
+            .toRequest('0');
     Response response = await waitResponse(request);
-    var result = new SearchFindElementReferencesResult.fromResponse(response);
+    var result = SearchFindElementReferencesResult.fromResponse(response);
     searchId = result.id;
     searchElement = result.element;
     if (searchId != null) {

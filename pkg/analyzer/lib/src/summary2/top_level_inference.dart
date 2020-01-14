@@ -215,6 +215,7 @@ class _FunctionElementForLink_Initializer implements FunctionElementImpl {
     return LazyAst.getType(_node._node);
   }
 
+  @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
@@ -435,7 +436,7 @@ class _VariableInferenceNode extends _InferenceNode {
   void markCircular(List<_InferenceNode> cycle) {
     LazyAst.setType(_node, DynamicTypeImpl.instance);
 
-    var cycleNames = Set<String>();
+    var cycleNames = <String>{};
     for (var inferenceNode in cycle) {
       cycleNames.add(inferenceNode.displayName);
     }

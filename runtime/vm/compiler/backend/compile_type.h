@@ -17,6 +17,10 @@ class Definition;
 class FlowGraphSerializer;
 class SExpression;
 class SExpList;
+enum class NNBDMode;
+
+template <typename T>
+class GrowableArray;
 
 // CompileType describes type of a value produced by a definition.
 //
@@ -35,6 +39,7 @@ class CompileType : public ZoneAllocated {
   static const bool kNullable = true;
   static const bool kNonNullable = false;
 
+  // TODO(regis): Should CompileType take an NNBDMode?
   CompileType(bool is_nullable, intptr_t cid, const AbstractType* type)
       : is_nullable_(is_nullable), cid_(cid), type_(type) {}
 
@@ -74,13 +79,14 @@ class CompileType : public ZoneAllocated {
   bool IsNull();
 
   // Return true if this type is a subtype of the given type.
-  bool IsSubtypeOf(const AbstractType& other);
+  bool IsSubtypeOf(NNBDMode mode, const AbstractType& other);
 
   // Return true if value of this type is assignable to a location of the
   // given type.
-  bool IsAssignableTo(const AbstractType& type) {
+  bool IsAssignableTo(NNBDMode mode, const AbstractType& type) {
     bool is_instance;
-    return CanComputeIsInstanceOf(type, kNullable, &is_instance) && is_instance;
+    return CanComputeIsInstanceOf(mode, type, kNullable, &is_instance) &&
+           is_instance;
   }
 
   // Create a new CompileType representing given combination of class id and
@@ -215,6 +221,8 @@ class CompileType : public ZoneAllocated {
     return false;
   }
 
+  bool Specialize(GrowableArray<intptr_t>* class_ids);
+
   void PrintTo(BufferFormatter* f) const;
   SExpression* ToSExpression(FlowGraphSerializer* s) const;
   void AddExtraInfoToSExpression(SExpList* sexp, FlowGraphSerializer* s) const;
@@ -232,7 +240,8 @@ class CompileType : public ZoneAllocated {
   Definition* owner() const { return owner_; }
 
  private:
-  bool CanComputeIsInstanceOf(const AbstractType& type,
+  bool CanComputeIsInstanceOf(NNBDMode mode,
+                              const AbstractType& type,
                               bool is_nullable,
                               bool* is_instance);
 

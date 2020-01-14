@@ -29,7 +29,11 @@ class ManifestValidator {
    */
   List<AnalysisError> validate(String contents, bool checkManifest) {
     RecordingErrorListener recorder = RecordingErrorListener();
-    ErrorReporter reporter = ErrorReporter(recorder, source);
+    ErrorReporter reporter = ErrorReporter(
+      recorder,
+      source,
+      isNonNullableByDefault: false,
+    );
 
     if (checkManifest) {
       var document =

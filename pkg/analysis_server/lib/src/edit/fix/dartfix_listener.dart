@@ -15,7 +15,7 @@ class DartFixListener {
 
   final List<DartFixSuggestion> suggestions = <DartFixSuggestion>[];
   final List<DartFixSuggestion> otherSuggestions = <DartFixSuggestion>[];
-  final SourceChange sourceChange = new SourceChange('dartfix');
+  final SourceChange sourceChange = SourceChange('dartfix');
 
   /// The details to be returned to the client.
   List<String> details = [];
@@ -40,14 +40,13 @@ class DartFixListener {
 
   /// Record a recommendation to be sent to the client.
   void addRecommendation(String description, [Location location]) {
-    otherSuggestions
-        .add(new DartFixSuggestion(description, location: location));
+    otherSuggestions.add(DartFixSuggestion(description, location: location));
   }
 
   /// Record a source change to be sent to the client.
   void addSourceChange(
       String description, Location location, SourceChange change) {
-    suggestions.add(new DartFixSuggestion(description, location: location));
+    suggestions.add(DartFixSuggestion(description, location: location));
     for (SourceFileEdit fileEdit in change.edits) {
       for (SourceEdit sourceEdit in fileEdit.edits) {
         sourceChange.addEdit(fileEdit.file, fileEdit.fileStamp, sourceEdit);
@@ -58,7 +57,7 @@ class DartFixListener {
   /// Record edits for a single source to be sent to the client.
   void addSourceEdits(String description, Location location, Source source,
       Iterable<SourceEdit> edits) {
-    suggestions.add(new DartFixSuggestion(description, location: location));
+    suggestions.add(DartFixSuggestion(description, location: location));
     for (SourceEdit edit in edits) {
       sourceChange.addEdit(source.fullName, -1, edit);
     }
@@ -67,7 +66,7 @@ class DartFixListener {
   /// Record a source change to be sent to the client.
   void addSourceFileEdit(
       String description, Location location, SourceFileEdit fileEdit) {
-    suggestions.add(new DartFixSuggestion(description, location: location));
+    suggestions.add(DartFixSuggestion(description, location: location));
     for (SourceEdit sourceEdit in fileEdit.edits) {
       sourceChange.addEdit(fileEdit.file, fileEdit.fileStamp, sourceEdit);
     }
@@ -78,14 +77,14 @@ class DartFixListener {
   /// The associated edits should be separately added by calling
   /// [addEditWithoutRecommendation].
   void addSuggestion(String description, Location location) {
-    suggestions.add(new DartFixSuggestion(description, location: location));
+    suggestions.add(DartFixSuggestion(description, location: location));
   }
 
   /// Return the [Location] representing the specified offset and length
   /// in the given compilation unit.
   Location locationFor(ResolvedUnitResult result, int offset, int length) {
     final locInfo = result.unit.lineInfo.getLocation(offset);
-    final location = new Location(
+    final location = Location(
         result.path, offset, length, locInfo.lineNumber, locInfo.columnNumber);
     return location;
   }

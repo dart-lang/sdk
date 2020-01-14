@@ -94,16 +94,16 @@ Future<Set<ClassMemberElement>> getHierarchyMembers(
     SearchEngine searchEngine, ClassMemberElement member) async {
   // TODO(brianwilkerson) Determine whether this await is necessary.
   await null;
-  Set<ClassMemberElement> result = new HashSet<ClassMemberElement>();
+  Set<ClassMemberElement> result = HashSet<ClassMemberElement>();
   // extension member
   if (member.enclosingElement is ExtensionElement) {
     result.add(member);
-    return new Future.value(result);
+    return Future.value(result);
   }
   // static elements
   if (member.isStatic || member is ConstructorElement) {
     result.add(member);
-    return new Future.value(result);
+    return Future.value(result);
   }
   // method, field, etc
   String name = member.displayName;
@@ -182,9 +182,9 @@ List<Element> getMembers(ClassElement clazz) {
  * Returns a [Set] with all direct and indirect superclasses of [seed].
  */
 Set<ClassElement> getSuperClasses(ClassElement seed) {
-  Set<ClassElement> result = new HashSet<ClassElement>();
+  Set<ClassElement> result = HashSet<ClassElement>();
   // prepare queue
-  List<ClassElement> queue = new List<ClassElement>();
+  List<ClassElement> queue = List<ClassElement>();
   queue.add(seed);
   // process queue
   while (queue.isNotEmpty) {

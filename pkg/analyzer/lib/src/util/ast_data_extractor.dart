@@ -141,6 +141,7 @@ class _Failure implements Exception {
 
   _Failure([this.message]);
 
+  @override
   String toString() {
     if (message == null) return "Exception";
     return "Exception: $message";

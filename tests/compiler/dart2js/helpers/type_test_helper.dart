@@ -147,8 +147,8 @@ class TypeEnvironment {
     MemberEntity member = _getMember(name, cls);
     DartType type;
 
-    for (KLocalFunction local in compiler
-        .resolutionWorldBuilder.closedWorldForTesting.localFunctions) {
+    for (KLocalFunction local
+        in compiler.frontendClosedWorldForTesting.localFunctions) {
       if (local.memberContext == member) {
         type ??= elementEnvironment.getLocalFunctionType(local);
       }
@@ -179,7 +179,7 @@ class TypeEnvironment {
 
   KClosedWorld get kClosedWorld {
     assert(!testBackendWorld);
-    return compiler.resolutionWorldBuilder.closedWorldForTesting;
+    return compiler.frontendClosedWorldForTesting;
   }
 }
 

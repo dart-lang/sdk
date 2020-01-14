@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 // part of "core_patch.dart";
 
 /// Immutable map class for compiler generated map literals.
@@ -18,7 +16,7 @@ class _ImmutableMap<K, V> implements Map<K, V> {
       : _kvPairs = keyValuePairs;
 
   Map<K2, V2> cast<K2, V2>() => Map.castFrom<K, V, K2, V2>(this);
-  V operator [](Object key) {
+  V? operator [](Object? key) {
     // To preserve the key-value order of the map literal, the keys are
     // not sorted. Need to do linear search or implement an additional
     // lookup table.
@@ -54,7 +52,7 @@ class _ImmutableMap<K, V> implements Map<K, V> {
     return new _ImmutableMapValueIterable<V>(this);
   }
 
-  bool containsKey(Object key) {
+  bool containsKey(Object? key) {
     for (int i = 0; i < _kvPairs.length; i += 2) {
       if (key == _kvPairs[i]) {
         return true;
@@ -63,7 +61,7 @@ class _ImmutableMap<K, V> implements Map<K, V> {
     return false;
   }
 
-  bool containsValue(Object value) {
+  bool containsValue(Object? value) {
     for (int i = 1; i < _kvPairs.length; i += 2) {
       if (value == _kvPairs[i]) {
         return true;
@@ -88,7 +86,7 @@ class _ImmutableMap<K, V> implements Map<K, V> {
     throw new UnsupportedError("Cannot clear unmodifiable Map");
   }
 
-  V remove(Object key) {
+  V? remove(Object? key) {
     throw new UnsupportedError("Cannot remove from unmodifiable Map");
   }
 
@@ -108,7 +106,7 @@ class _ImmutableMap<K, V> implements Map<K, V> {
     throw new UnsupportedError("Cannot modify an unmodifiable Map");
   }
 
-  V update(K key, V update(V value), {V ifAbsent()}) {
+  V update(K key, V update(V value), {V ifAbsent()?}) {
     throw new UnsupportedError("Cannot modify an unmodifiable Map");
   }
 

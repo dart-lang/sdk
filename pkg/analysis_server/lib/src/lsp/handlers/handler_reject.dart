@@ -10,6 +10,7 @@ import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 /// A [MessageHandler] that rejects specific tpyes of messages with a given
 /// error code/message.
 class RejectMessageHandler extends MessageHandler<Object, void> {
+  @override
   final Method handlesMessage;
   final ErrorCodes errorCode;
   final String errorMessage;

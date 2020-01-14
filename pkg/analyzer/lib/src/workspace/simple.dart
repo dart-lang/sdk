@@ -21,6 +21,7 @@ abstract class SimpleWorkspace extends Workspace {
   final ResourceProvider provider;
 
   /// The absolute workspace root path.
+  @override
   final String root;
 
   final ContextBuilder _builder;
@@ -58,6 +59,6 @@ abstract class SimpleWorkspace extends Workspace {
     }
     resolvers.add(packageUriResolver);
     resolvers.add(ResourceUriResolver(provider));
-    return SourceFactory(resolvers, packages, provider);
+    return SourceFactory(resolvers);
   }
 }

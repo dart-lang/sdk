@@ -708,7 +708,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           instruction is HPrimitiveCheck ||
           instruction is HAsCheck ||
           instruction is HAsCheckSimple ||
-          instruction is HBoolConversion) {
+          instruction is HBoolConversion ||
+          instruction is HNullCheck) {
         String inputName = variableNames.getName(instruction.checkedInput);
         if (variableNames.getName(instruction) == inputName) {
           needsAssignment = false;
@@ -2225,15 +2226,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   @override
   visitFieldGet(HFieldGet node) {
     use(node.receiver);
-    if (node.isNullCheck) {
-      // We access a JavaScript member we know all objects besides
-      // null and undefined have: V8 does not like accessing a member
-      // that does not exist.
-      push(new js.PropertyAccess.field(pop(), 'toString')
-          .withSourceInformation(node.sourceInformation));
-    } else {
-      push(_loadField(pop(), node.element, node.sourceInformation));
-    }
+    push(_loadField(pop(), node.element, node.sourceInformation));
   }
 
   @override
@@ -3065,8 +3058,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         } else {
           checkNull(input);
         }
-      } else if (element ==
-          _commonElements.objectClass /* || type.treatAsDynamic*/) {
+      } else if (element == _commonElements.objectClass /* || type.isTop*/) {
         // The constant folder also does this optimization, but we make
         // it safe by assuming it may have not run.
         push(newLiteralBool(!negative, sourceInformation));
@@ -3217,6 +3209,21 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     push(
         new js.Call(_emitter.staticFunctionAccess(staticUse.element), arguments)
             .withSourceInformation(node.sourceInformation));
+  }
+
+  @override
+  void visitNullCheck(HNullCheck node) {
+    use(node.checkedInput);
+    // We access a JavaScript member 'toString' as all objects besides `null`
+    // and `undefined` have it.
+
+    // TODO(35996): Pick a shorter field. The instruction has a selector and
+    // field that could be used here to pick the 'right' field. The 'field'
+    // might need to be propagated to an earlier HNullCheck. JSArray and
+    // JSString have 'length'.
+    pushStatement(js.ExpressionStatement(
+        js.PropertyAccess.field(pop(), 'toString')
+            .withSourceInformation(node.sourceInformation)));
   }
 
   @override

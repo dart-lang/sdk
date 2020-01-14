@@ -15,13 +15,14 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/constant/compute.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
+import 'package:analyzer/src/dart/element/display_string_builder.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/generated/constant.dart' show EvaluationResultImpl;
 import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisContext, AnalysisEngine, AnalysisOptionsImpl;
+    show AnalysisContext, AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
@@ -199,9 +200,22 @@ abstract class AbstractClassElementImpl extends ElementImpl
       var tp = 'typeParameters.length (${typeParameters.length})';
       throw ArgumentError('$ta != $tp');
     }
-    return InterfaceTypeImpl.explicit(
-      this,
-      typeArguments,
+    return InterfaceTypeImpl(
+      element: this,
+      typeArguments: typeArguments,
+      nullabilitySuffix: nullabilitySuffix,
+    );
+  }
+
+  @override
+  InterfaceType instantiateToBounds({
+    @required NullabilitySuffix nullabilitySuffix,
+  }) {
+    var typeArguments = typeParameters.map((typeParameter) {
+      return (typeParameter as TypeParameterElementImpl).defaultType;
+    }).toList();
+    return instantiate(
+      typeArguments: typeArguments,
       nullabilitySuffix: nullabilitySuffix,
     );
   }
@@ -209,7 +223,7 @@ abstract class AbstractClassElementImpl extends ElementImpl
   @override
   MethodElement lookUpConcreteMethod(
           String methodName, LibraryElement library) =>
-      _first(getImplementationsOfMethod(this, methodName).where(
+      _first(_implementationsOfMethod(methodName).where(
           (MethodElement method) =>
               !method.isAbstract && method.isAccessibleIn(library)));
 
@@ -241,7 +255,7 @@ abstract class AbstractClassElementImpl extends ElementImpl
   @override
   MethodElement lookUpInheritedConcreteMethod(
           String methodName, LibraryElement library) =>
-      _first(getImplementationsOfMethod(this, methodName).where(
+      _first(_implementationsOfMethod(methodName).where(
           (MethodElement method) =>
               !method.isAbstract &&
               method.isAccessibleIn(library) &&
@@ -259,20 +273,54 @@ abstract class AbstractClassElementImpl extends ElementImpl
   @override
   MethodElement lookUpInheritedMethod(
           String methodName, LibraryElement library) =>
-      _first(getImplementationsOfMethod(this, methodName).where(
+      _first(_implementationsOfMethod(methodName).where(
           (MethodElement method) =>
               method.isAccessibleIn(library) &&
               method.enclosingElement != this));
 
   @override
   MethodElement lookUpMethod(String methodName, LibraryElement library) =>
-      lookUpMethodInClass(this, methodName, library);
+      _first(_implementationsOfMethod(methodName)
+          .where((MethodElement method) => method.isAccessibleIn(library)));
 
   @override
   PropertyAccessorElement lookUpSetter(
           String setterName, LibraryElement library) =>
       _first(_implementationsOfSetter(setterName).where(
           (PropertyAccessorElement setter) => setter.isAccessibleIn(library)));
+
+  /// Return the static getter with the [name], accessible to the [library].
+  ///
+  /// This method should be used only for error recovery during analysis,
+  /// when instance access to a static class member, defined in this class,
+  /// or a superclass.
+  ExecutableElement lookupStaticGetter(String name, LibraryElement library) {
+    return _first(_implementationsOfGetter(name).where((element) {
+      return element.isStatic && element.isAccessibleIn(library);
+    }));
+  }
+
+  /// Return the static method with the [name], accessible to the [library].
+  ///
+  /// This method should be used only for error recovery during analysis,
+  /// when instance access to a static class member, defined in this class,
+  /// or a superclass.
+  ExecutableElement lookupStaticMethod(String name, LibraryElement library) {
+    return _first(_implementationsOfMethod(name).where((element) {
+      return element.isStatic && element.isAccessibleIn(library);
+    }));
+  }
+
+  /// Return the static setter with the [name], accessible to the [library].
+  ///
+  /// This method should be used only for error recovery during analysis,
+  /// when instance access to a static class member, defined in this class,
+  /// or a superclass.
+  ExecutableElement lookupStaticSetter(String name, LibraryElement library) {
+    return _first(_implementationsOfSetter(name).where((element) {
+      return element.isStatic && element.isAccessibleIn(library);
+    }));
+  }
 
   @override
   void visitChildren(ElementVisitor visitor) {
@@ -311,6 +359,35 @@ abstract class AbstractClassElementImpl extends ElementImpl
     }
   }
 
+  /// Return an iterable containing all of the implementations of a method with
+  /// the given [methodName] that are defined in this class any any superclass
+  /// of this class (but not in interfaces).
+  ///
+  /// The methods that are returned are not filtered in any way. In particular,
+  /// they can include methods that are not visible in some context. Clients
+  /// must perform any necessary filtering.
+  ///
+  /// The methods are returned based on the depth of their defining class; if
+  /// this class contains a definition of the method it will occur first, if
+  /// Object contains a definition of the method it will occur last.
+  Iterable<MethodElement> _implementationsOfMethod(String methodName) sync* {
+    ClassElement classElement = this;
+    HashSet<ClassElement> visitedClasses = HashSet<ClassElement>();
+    while (classElement != null && visitedClasses.add(classElement)) {
+      MethodElement method = classElement.getMethod(methodName);
+      if (method != null) {
+        yield method;
+      }
+      for (InterfaceType mixin in classElement.mixins.reversed) {
+        method = mixin.element?.getMethod(methodName);
+        if (method != null) {
+          yield method;
+        }
+      }
+      classElement = classElement.supertype?.element;
+    }
+  }
+
   /// Return an iterable containing all of the implementations of a setter with
   /// the given [setterName] that are defined in this class any any superclass
   /// of this class (but not in interfaces).
@@ -341,35 +418,6 @@ abstract class AbstractClassElementImpl extends ElementImpl
     }
   }
 
-  /// Return an iterable containing all of the implementations of a method with
-  /// the given [methodName] that are defined in this class any any superclass
-  /// of this class (but not in interfaces).
-  ///
-  /// The methods that are returned are not filtered in any way. In particular,
-  /// they can include methods that are not visible in some context. Clients
-  /// must perform any necessary filtering.
-  ///
-  /// The methods are returned based on the depth of their defining class; if
-  /// this class contains a definition of the method it will occur first, if
-  /// Object contains a definition of the method it will occur last.
-  static Iterable<MethodElement> getImplementationsOfMethod(
-      ClassElement classElement, String methodName) sync* {
-    HashSet<ClassElement> visitedClasses = HashSet<ClassElement>();
-    while (classElement != null && visitedClasses.add(classElement)) {
-      MethodElement method = classElement.getMethod(methodName);
-      if (method != null) {
-        yield method;
-      }
-      for (InterfaceType mixin in classElement.mixins.reversed) {
-        method = mixin.element?.getMethod(methodName);
-        if (method != null) {
-          yield method;
-        }
-      }
-      classElement = classElement.supertype?.element;
-    }
-  }
-
   static PropertyAccessorElement getSetterFromAccessors(
       String setterName, List<PropertyAccessorElement> accessors) {
     // TODO (jwren) revisit- should we append '=' here or require clients to
@@ -384,12 +432,6 @@ abstract class AbstractClassElementImpl extends ElementImpl
       }
     }
     return null;
-  }
-
-  static MethodElement lookUpMethodInClass(
-      ClassElement classElement, String methodName, LibraryElement library) {
-    return _first(getImplementationsOfMethod(classElement, methodName)
-        .where((MethodElement method) => method.isAccessibleIn(library)));
   }
 
   /// Return the first element from the given [iterable], or `null` if the
@@ -473,7 +515,7 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   @override
   List<InterfaceType> get allSupertypes {
-    List<InterfaceType> list = List<InterfaceType>();
+    List<InterfaceType> list = <InterfaceType>[];
     collectAllSupertypes(list, thisType, thisType);
     return list;
   }
@@ -594,7 +636,7 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   @override
   bool get hasNonFinalField {
-    List<ClassElement> classesToVisit = List<ClassElement>();
+    List<ClassElement> classesToVisit = <ClassElement>[];
     HashSet<ClassElement> visitedClasses = HashSet<ClassElement>();
     classesToVisit.add(this);
     while (classesToVisit.isNotEmpty) {
@@ -870,7 +912,11 @@ class ClassElementImpl extends AbstractClassElementImpl
       var typeArguments = typeParameters
           .map((e) => e.instantiate(nullabilitySuffix: _noneOrStarSuffix))
           .toList();
-      _type = InterfaceTypeImpl.explicit(this, typeArguments);
+      _type = InterfaceTypeImpl(
+        element: this,
+        typeArguments: typeArguments,
+        nullabilitySuffix: NullabilitySuffix.star,
+      );
     }
     return _type;
   }
@@ -896,40 +942,8 @@ class ClassElementImpl extends AbstractClassElementImpl
   }
 
   @override
-  void appendTo(StringBuffer buffer) {
-    if (isAbstract) {
-      buffer.write('abstract ');
-    }
-    buffer.write('class ');
-    String name = displayName;
-    if (name == null) {
-      buffer.write("{unnamed class}");
-    } else {
-      buffer.write(name);
-    }
-    int variableCount = typeParameters.length;
-    if (variableCount > 0) {
-      buffer.write("<");
-      for (int i = 0; i < variableCount; i++) {
-        if (i > 0) {
-          buffer.write(", ");
-        }
-        (typeParameters[i] as TypeParameterElementImpl).appendTo(buffer);
-      }
-      buffer.write(">");
-    }
-    if (supertype != null && !supertype.isObject) {
-      buffer.write(' extends ');
-      buffer.write(supertype.displayName);
-    }
-    if (mixins.isNotEmpty) {
-      buffer.write(' with ');
-      buffer.write(mixins.map((t) => t.displayName).join(', '));
-    }
-    if (interfaces.isNotEmpty) {
-      buffer.write(' implements ');
-      buffer.write(interfaces.map((t) => t.displayName).join(', '));
-    }
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeClassElement(this);
   }
 
   @override
@@ -1186,8 +1200,8 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   static void collectAllSupertypes(List<InterfaceType> supertypes,
       InterfaceType startingType, InterfaceType excludeType) {
-    List<InterfaceType> typesToVisit = List<InterfaceType>();
-    List<ClassElement> visitedClasses = List<ClassElement>();
+    List<InterfaceType> typesToVisit = <InterfaceType>[];
+    List<ClassElement> visitedClasses = <ClassElement>[];
     typesToVisit.add(startingType);
     while (typesToVisit.isNotEmpty) {
       InterfaceType currentType = typesToVisit.removeAt(0);
@@ -1229,6 +1243,7 @@ class ClassElementImpl extends AbstractClassElementImpl
 /// A concrete implementation of a [CompilationUnitElement].
 class CompilationUnitElementImpl extends UriReferencedElementImpl
     implements CompilationUnitElement {
+  @override
   final LinkedUnitContext linkedContext;
 
   /// The source that corresponds to this compilation unit.
@@ -1243,6 +1258,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   /// This is the same as the source of the containing [LibraryElement],
   /// except that it does not require the containing [LibraryElement] to be
   /// computed.
+  @override
   Source librarySource;
 
   /// A list containing all of the top-level accessors (getters and setters)
@@ -1592,12 +1608,8 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
       visitor.visitCompilationUnitElement(this);
 
   @override
-  void appendTo(StringBuffer buffer) {
-    if (source == null) {
-      buffer.write("{compilation unit}");
-    } else {
-      buffer.write(source.fullName);
-    }
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeCompilationUnitElement(this);
   }
 
   @override
@@ -1914,6 +1926,7 @@ abstract class ConstFieldElementImpl_ofEnum extends ConstFieldElementImpl {
     assert(false);
   }
 
+  @override
   set type(DartType type) {
     assert(false);
   }
@@ -2127,13 +2140,14 @@ class ConstructorElementImpl extends ExecutableElementImpl
     if (_returnType != null) return _returnType;
 
     InterfaceTypeImpl classThisType = enclosingElement.thisType;
-    return _returnType = InterfaceTypeImpl.explicit(
-      classThisType.element,
-      classThisType.typeArguments,
+    return _returnType = InterfaceTypeImpl(
+      element: classThisType.element,
+      typeArguments: classThisType.typeArguments,
       nullabilitySuffix: classThisType.nullabilitySuffix,
     );
   }
 
+  @override
   set returnType(DartType returnType) {
     assert(false);
   }
@@ -2150,6 +2164,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
     );
   }
 
+  @override
   set type(FunctionType type) {
     assert(false);
   }
@@ -2159,26 +2174,8 @@ class ConstructorElementImpl extends ExecutableElementImpl
       visitor.visitConstructorElement(this);
 
   @override
-  void appendTo(StringBuffer buffer) {
-    String name;
-    String constructorName = displayName;
-    if (enclosingElement == null) {
-      String message;
-      if (constructorName != null && constructorName.isNotEmpty) {
-        message =
-            'Found constructor element named $constructorName with no enclosing element';
-      } else {
-        message = 'Found unnamed constructor element with no enclosing element';
-      }
-      AnalysisEngine.instance.instrumentationService.logError(message);
-      name = '<unknown class>';
-    } else {
-      name = enclosingElement.displayName;
-    }
-    if (constructorName != null && constructorName.isNotEmpty) {
-      name = '$name.$constructorName';
-    }
-    appendToWithName(buffer, name);
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeConstructorElement(this);
   }
 
   /// Ensures that dependencies of this constructor, such as default values
@@ -2319,91 +2316,93 @@ class DynamicElementImpl extends ElementImpl implements TypeDefiningElement {
 class ElementAnnotationImpl implements ElementAnnotation {
   /// The name of the top-level variable used to mark that a function always
   /// throws, for dead code purposes.
-  static String _ALWAYS_THROWS_VARIABLE_NAME = "alwaysThrows";
+  static const String _ALWAYS_THROWS_VARIABLE_NAME = "alwaysThrows";
 
   /// The name of the class used to mark an element as being deprecated.
-  static String _DEPRECATED_CLASS_NAME = "Deprecated";
+  static const String _DEPRECATED_CLASS_NAME = "Deprecated";
 
   /// The name of the top-level variable used to mark an element as being
   /// deprecated.
-  static String _DEPRECATED_VARIABLE_NAME = "deprecated";
+  static const String _DEPRECATED_VARIABLE_NAME = "deprecated";
 
   /// The name of the top-level variable used to mark a method as being a
   /// factory.
-  static String _FACTORY_VARIABLE_NAME = "factory";
+  static const String _FACTORY_VARIABLE_NAME = "factory";
 
   /// The name of the top-level variable used to mark a class and its subclasses
   /// as being immutable.
-  static String _IMMUTABLE_VARIABLE_NAME = "immutable";
+  static const String _IMMUTABLE_VARIABLE_NAME = "immutable";
 
   /// The name of the top-level variable used to mark a constructor as being
   /// literal.
-  static String _LITERAL_VARIABLE_NAME = "literal";
+  static const String _LITERAL_VARIABLE_NAME = "literal";
 
   /// The name of the top-level variable used to mark a type as having
   /// "optional" type arguments.
-  static String _OPTIONAL_TYPE_ARGS_VARIABLE_NAME = "optionalTypeArgs";
+  static const String _OPTIONAL_TYPE_ARGS_VARIABLE_NAME = "optionalTypeArgs";
 
   /// The name of the top-level variable used to mark a function as running
   /// a single test.
-  static String _IS_TEST_VARIABLE_NAME = "isTest";
+  static const String _IS_TEST_VARIABLE_NAME = "isTest";
 
   /// The name of the top-level variable used to mark a function as running
   /// a test group.
-  static String _IS_TEST_GROUP_VARIABLE_NAME = "isTestGroup";
+  static const String _IS_TEST_GROUP_VARIABLE_NAME = "isTestGroup";
 
   /// The name of the class used to JS annotate an element.
-  static String _JS_CLASS_NAME = "JS";
+  static const String _JS_CLASS_NAME = "JS";
 
   /// The name of `js` library, used to define JS annotations.
-  static String _JS_LIB_NAME = "js";
+  static const String _JS_LIB_NAME = "js";
 
   /// The name of `meta` library, used to define analysis annotations.
-  static String _META_LIB_NAME = "meta";
+  static const String _META_LIB_NAME = "meta";
 
   /// The name of the top-level variable used to mark a method as requiring
   /// overriders to call super.
-  static String _MUST_CALL_SUPER_VARIABLE_NAME = "mustCallSuper";
+  static const String _MUST_CALL_SUPER_VARIABLE_NAME = "mustCallSuper";
 
   /// The name of `angular.meta` library, used to define angular analysis
   /// annotations.
-  static String _NG_META_LIB_NAME = "angular.meta";
+  static const String _NG_META_LIB_NAME = "angular.meta";
 
   /// The name of the top-level variable used to mark a member as being nonVirtual.
-  static String _NON_VIRTUAL_VARIABLE_NAME = "nonVirtual";
+  static const String _NON_VIRTUAL_VARIABLE_NAME = "nonVirtual";
 
   /// The name of the top-level variable used to mark a method as being expected
   /// to override an inherited method.
-  static String _OVERRIDE_VARIABLE_NAME = "override";
+  static const String _OVERRIDE_VARIABLE_NAME = "override";
 
   /// The name of the top-level variable used to mark a method as being
   /// protected.
-  static String _PROTECTED_VARIABLE_NAME = "protected";
+  static const String _PROTECTED_VARIABLE_NAME = "protected";
 
   /// The name of the top-level variable used to mark a class as implementing a
   /// proxy object.
-  static String PROXY_VARIABLE_NAME = "proxy";
+  static const String PROXY_VARIABLE_NAME = "proxy";
 
   /// The name of the class used to mark a parameter as being required.
-  static String _REQUIRED_CLASS_NAME = "Required";
+  static const String _REQUIRED_CLASS_NAME = "Required";
 
   /// The name of the top-level variable used to mark a parameter as being
   /// required.
-  static String _REQUIRED_VARIABLE_NAME = "required";
+  static const String _REQUIRED_VARIABLE_NAME = "required";
 
   /// The name of the top-level variable used to mark a class as being sealed.
-  static String _SEALED_VARIABLE_NAME = "sealed";
+  static const String _SEALED_VARIABLE_NAME = "sealed";
 
   /// The name of the top-level variable used to mark a method as being
   /// visible for templates.
-  static String _VISIBLE_FOR_TEMPLATE_VARIABLE_NAME = "visibleForTemplate";
+  static const String _VISIBLE_FOR_TEMPLATE_VARIABLE_NAME =
+      "visibleForTemplate";
 
   /// The name of the top-level variable used to mark a method as being
   /// visible for testing.
-  static String _VISIBLE_FOR_TESTING_VARIABLE_NAME = "visibleForTesting";
+  static const String _VISIBLE_FOR_TESTING_VARIABLE_NAME = "visibleForTesting";
 
   /// The element representing the field, variable, or constructor being used as
   /// an annotation.
+  @override
   Element element;
 
   /// The compilation unit in which this annotation appears.
@@ -2553,6 +2552,7 @@ class ElementAnnotationImpl implements ElementAnnotation {
       element.library?.name == _META_LIB_NAME;
 
   /// Get the library containing this annotation.
+  @override
   Source get librarySource => compilationUnit.librarySource;
 
   @override
@@ -2584,6 +2584,7 @@ abstract class ElementImpl implements Element {
 
   static int _NEXT_ID = 0;
 
+  @override
   final int id = _NEXT_ID++;
 
   /// The enclosing element of this element, or `null` if this element is at the
@@ -2916,8 +2917,7 @@ abstract class ElementImpl implements Element {
   }
 
   @override
-  LibraryElement get library =>
-      getAncestor((element) => element is LibraryElement);
+  LibraryElement get library => thisOrAncestorOfType();
 
   @override
   Source get librarySource => library?.source;
@@ -2937,6 +2937,7 @@ abstract class ElementImpl implements Element {
     return _cachedLocation;
   }
 
+  @override
   List<ElementAnnotation> get metadata {
     if (linkedNode != null) {
       if (_metadata != null) return _metadata;
@@ -3006,15 +3007,9 @@ abstract class ElementImpl implements Element {
         object.location == location;
   }
 
-  /// Append a textual representation of this element to the given [buffer].
-  void appendTo(StringBuffer buffer) {
-    if (_name == null) {
-      buffer.write("<unnamed ");
-      buffer.write(runtimeType.toString());
-      buffer.write(">");
-    } else {
-      buffer.write(_name);
-    }
+  /// Append a textual representation of this element to the given [builder].
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeAbstractElement(this);
   }
 
   /// Set this element as the enclosing element for given [element].
@@ -3029,6 +3024,7 @@ abstract class ElementImpl implements Element {
     }
   }
 
+  @Deprecated('Use either thisOrAncestorMatching or thisOrAncestorOfType')
   @override
   E getAncestor<E extends Element>(Predicate<Element> predicate) {
     var ancestor = _enclosingElement;
@@ -3041,6 +3037,16 @@ abstract class ElementImpl implements Element {
   /// Return the child of this element that is uniquely identified by the given
   /// [identifier], or `null` if there is no such child.
   ElementImpl getChild(String identifier) => null;
+
+  @override
+  String getDisplayString({@required bool withNullability}) {
+    var builder = ElementDisplayStringBuilder(
+      skipAllDynamicArguments: false,
+      withNullability: withNullability,
+    );
+    appendTo(builder);
+    return builder.toString();
+  }
 
   @override
   String getExtendedDisplayName(String shortName) {
@@ -3088,10 +3094,26 @@ abstract class ElementImpl implements Element {
   }
 
   @override
+  E thisOrAncestorMatching<E extends Element>(Predicate<Element> predicate) {
+    Element element = this;
+    while (element != null && !predicate(element)) {
+      element = element.enclosingElement;
+    }
+    return element as E;
+  }
+
+  @override
+  E thisOrAncestorOfType<E extends Element>() {
+    Element element = this;
+    while (element != null && element is! E) {
+      element = element.enclosingElement;
+    }
+    return element as E;
+  }
+
+  @override
   String toString() {
-    StringBuffer buffer = StringBuffer();
-    appendTo(buffer);
-    return buffer.toString();
+    return getDisplayString(withNullability: false);
   }
 
   @override
@@ -3117,18 +3139,6 @@ abstract class ElementImpl implements Element {
     return annotations;
   }
 
-  /// If the element associated with the given [type] is a generic function type
-  /// element, then make it a child of this element. Return the [type] as a
-  /// convenience.
-  DartType _checkElementOfType(DartType type) {
-    Element element = type?.element;
-    if (element is GenericFunctionTypeElementImpl &&
-        element.enclosingElement == null) {
-      element.enclosingElement = this;
-    }
-    return type;
-  }
-
   /// If the given [type] is a generic function type, then the element
   /// associated with the type is implicitly a child of this element and should
   /// be visited by the given [visitor].
@@ -3144,7 +3154,7 @@ abstract class ElementImpl implements Element {
 /// A concrete implementation of an [ElementLocation].
 class ElementLocationImpl implements ElementLocation {
   /// The character used to separate components in the encoded form.
-  static int _SEPARATOR_CHAR = 0x3B;
+  static const int _SEPARATOR_CHAR = 0x3B;
 
   /// The path to the element whose location is represented by this object.
   List<String> _components;
@@ -3160,7 +3170,7 @@ class ElementLocationImpl implements ElementLocation {
 
   /// Initialize a newly created location to represent the given [element].
   ElementLocationImpl.con1(Element element) {
-    List<String> components = List<String>();
+    List<String> components = <String>[];
     Element ancestor = element;
     while (ancestor != null) {
       components.insert(0, (ancestor as ElementImpl).identifier);
@@ -3232,7 +3242,7 @@ class ElementLocationImpl implements ElementLocation {
   /// Decode the [encoding] of a location into a list of components and return
   /// the components.
   List<String> _decode(String encoding) {
-    List<String> components = List<String>();
+    List<String> components = <String>[];
     StringBuffer buffer = StringBuffer();
     int index = 0;
     int length = encoding.length;
@@ -3422,8 +3432,11 @@ class EnumElementImpl extends AbstractClassElementImpl {
   InterfaceType get type {
     if (_type == null) {
       var typeArguments = const <DartType>[];
-      InterfaceTypeImpl type = InterfaceTypeImpl.explicit(this, typeArguments);
-      _type = type;
+      _type = InterfaceTypeImpl(
+        element: this,
+        typeArguments: typeArguments,
+        nullabilitySuffix: NullabilitySuffix.star,
+      );
     }
     return _type;
   }
@@ -3436,14 +3449,8 @@ class EnumElementImpl extends AbstractClassElementImpl {
   ConstructorElement get unnamedConstructor => null;
 
   @override
-  void appendTo(StringBuffer buffer) {
-    buffer.write('enum ');
-    String name = displayName;
-    if (name == null) {
-      buffer.write("{unnamed enum}");
-    } else {
-      buffer.write(name);
-    }
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeEnumElement(this);
   }
 
   /// Create the only method enums have - `toString()`.
@@ -3690,7 +3697,7 @@ abstract class ExecutableElementImpl extends ElementImpl
     if (linkedNode != null) {
       linkedContext.setReturnType(linkedNode, returnType);
     }
-    _returnType = _checkElementOfType(returnType);
+    _returnType = returnType;
     // We do this because of return type inference. At the moment when we
     // create a local function element we don't know yet its return type,
     // because we have not done static type analysis yet.
@@ -3729,72 +3736,8 @@ abstract class ExecutableElementImpl extends ElementImpl
   }
 
   @override
-  void appendTo(StringBuffer buffer) {
-    appendToWithName(buffer, displayName);
-  }
-
-  /// Append a textual representation of this element to the given [buffer]. The
-  /// [name] is the name of the executable element or `null` if the element has
-  /// no name. If [includeType] is `true` then the return type will be included.
-  void appendToWithName(StringBuffer buffer, String name) {
-    FunctionType functionType = type;
-    if (functionType != null) {
-      buffer.write(functionType.returnType);
-      if (name != null) {
-        buffer.write(' ');
-        buffer.write(name);
-      }
-    } else if (name != null) {
-      buffer.write(name);
-    }
-    if (this.kind != ElementKind.GETTER) {
-      int typeParameterCount = typeParameters.length;
-      if (typeParameterCount > 0) {
-        buffer.write('<');
-        for (int i = 0; i < typeParameterCount; i++) {
-          if (i > 0) {
-            buffer.write(', ');
-          }
-          (typeParameters[i] as TypeParameterElementImpl).appendTo(buffer);
-        }
-        buffer.write('>');
-      }
-      buffer.write('(');
-      String closing;
-      ParameterKind kind = ParameterKind.REQUIRED;
-      int parameterCount = parameters.length;
-      for (int i = 0; i < parameterCount; i++) {
-        if (i > 0) {
-          buffer.write(', ');
-        }
-        ParameterElement parameter = parameters[i];
-        // ignore: deprecated_member_use_from_same_package
-        ParameterKind parameterKind = parameter.parameterKind;
-        if (parameterKind != kind) {
-          if (closing != null) {
-            buffer.write(closing);
-          }
-          if (parameter.isOptionalPositional) {
-            buffer.write('[');
-            closing = ']';
-          } else if (parameter.isNamed) {
-            buffer.write('{');
-            if (parameter.isRequiredNamed) {
-              buffer.write('required ');
-            }
-            closing = '}';
-          } else {
-            closing = null;
-          }
-        }
-        kind = parameterKind;
-        parameter.appendToWithoutDelimiters(buffer);
-      }
-      if (closing != null) {
-        buffer.write(closing);
-      }
-      buffer.write(')');
-    }
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeExecutableElement(this, displayName);
   }
 
   @override
@@ -3880,6 +3823,7 @@ class ExportElementImpl extends UriReferencedElementImpl
   @override
   ElementKind get kind => ElementKind.EXPORT;
 
+  @override
   set metadata(List<ElementAnnotation> metadata) {
     super.metadata = metadata;
   }
@@ -3907,9 +3851,8 @@ class ExportElementImpl extends UriReferencedElementImpl
   T accept<T>(ElementVisitor<T> visitor) => visitor.visitExportElement(this);
 
   @override
-  void appendTo(StringBuffer buffer) {
-    buffer.write("export ");
-    (exportedLibrary as LibraryElementImpl).appendTo(buffer);
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeExportElement(this);
   }
 }
 
@@ -4114,29 +4057,8 @@ class ExtensionElementImpl extends ElementImpl
   }
 
   @override
-  void appendTo(StringBuffer buffer) {
-    buffer.write('extension ');
-    String name = displayName;
-    if (name == null) {
-      buffer.write("(unnamed)");
-    } else {
-      buffer.write(name);
-    }
-    int variableCount = typeParameters.length;
-    if (variableCount > 0) {
-      buffer.write("<");
-      for (int i = 0; i < variableCount; i++) {
-        if (i > 0) {
-          buffer.write(", ");
-        }
-        (typeParameters[i] as TypeParameterElementImpl).appendTo(buffer);
-      }
-      buffer.write(">");
-    }
-    if (extendedType != null && !extendedType.isObject) {
-      buffer.write(' on ');
-      buffer.write(extendedType.displayName);
-    }
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeExtensionElement(this);
   }
 
   @override
@@ -4553,8 +4475,9 @@ class GenericFunctionTypeElementImpl extends ElementImpl
 
   /// Set the return type defined by this function type element to the given
   /// [returnType].
+  @override
   set returnType(DartType returnType) {
-    _returnType = _checkElementOfType(returnType);
+    _returnType = returnType;
   }
 
   @override
@@ -4603,35 +4526,8 @@ class GenericFunctionTypeElementImpl extends ElementImpl
   }
 
   @override
-  void appendTo(StringBuffer buffer) {
-    DartType type = returnType;
-    if (type is TypeImpl) {
-      type.appendTo(buffer, withNullability: false);
-      buffer.write(' Function');
-    } else {
-      buffer.write('Function');
-    }
-    List<TypeParameterElement> typeParams = typeParameters;
-    int typeParameterCount = typeParams.length;
-    if (typeParameterCount > 0) {
-      buffer.write('<');
-      for (int i = 0; i < typeParameterCount; i++) {
-        if (i > 0) {
-          buffer.write(', ');
-        }
-        (typeParams[i] as TypeParameterElementImpl).appendTo(buffer);
-      }
-      buffer.write('>');
-    }
-    List<ParameterElement> params = parameters;
-    buffer.write('(');
-    for (int i = 0; i < params.length; i++) {
-      if (i > 0) {
-        buffer.write(', ');
-      }
-      (params[i] as ParameterElementImpl).appendTo(buffer);
-    }
-    buffer.write(')');
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeGenericFunctionTypeElement(this);
   }
 
   @override
@@ -4827,25 +4723,8 @@ class GenericTypeAliasElementImpl extends ElementImpl
       visitor.visitFunctionTypeAliasElement(this);
 
   @override
-  void appendTo(StringBuffer buffer) {
-    buffer.write("typedef ");
-    buffer.write(displayName);
-    var typeParameters = this.typeParameters;
-    int typeParameterCount = typeParameters.length;
-    if (typeParameterCount > 0) {
-      buffer.write("<");
-      for (int i = 0; i < typeParameterCount; i++) {
-        if (i > 0) {
-          buffer.write(", ");
-        }
-        (typeParameters[i] as TypeParameterElementImpl).appendTo(buffer);
-      }
-      buffer.write(">");
-    }
-    buffer.write(" = ");
-    if (function != null) {
-      function.appendTo(buffer);
-    }
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeGenericTypeAliasElement(this);
   }
 
   @override
@@ -4896,6 +4775,19 @@ class GenericTypeAliasElementImpl extends ElementImpl
     @required List<DartType> typeArguments,
     @required NullabilitySuffix nullabilitySuffix,
   }) {
+    return instantiate(
+      typeArguments: typeArguments,
+      nullabilitySuffix: nullabilitySuffix,
+    );
+  }
+
+  @override
+  FunctionType instantiateToBounds({
+    @required NullabilitySuffix nullabilitySuffix,
+  }) {
+    var typeArguments = typeParameters.map((typeParameter) {
+      return (typeParameter as TypeParameterElementImpl).defaultType;
+    }).toList();
     return instantiate(
       typeArguments: typeArguments,
       nullabilitySuffix: nullabilitySuffix,
@@ -5044,6 +4936,7 @@ class ImportElementImpl extends UriReferencedElementImpl
   @override
   ElementKind get kind => ElementKind.IMPORT;
 
+  @override
   set metadata(List<ElementAnnotation> metadata) {
     super.metadata = metadata;
   }
@@ -5063,6 +4956,7 @@ class ImportElementImpl extends UriReferencedElementImpl
         NamespaceBuilder().createImportNamespaceForDirective(this);
   }
 
+  @override
   PrefixElement get prefix {
     if (_prefix != null) return _prefix;
 
@@ -5119,9 +5013,8 @@ class ImportElementImpl extends UriReferencedElementImpl
   T accept<T>(ElementVisitor<T> visitor) => visitor.visitImportElement(this);
 
   @override
-  void appendTo(StringBuffer buffer) {
-    buffer.write("import ");
-    (importedLibrary as LibraryElementImpl).appendTo(buffer);
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeImportElement(this);
   }
 
   @override
@@ -5188,6 +5081,7 @@ class LabelElementImpl extends ElementImpl implements LabelElement {
 /// A concrete implementation of a [LibraryElement].
 class LibraryElementImpl extends ElementImpl implements LibraryElement {
   /// The analysis context in which this library is defined.
+  @override
   final AnalysisContext context;
 
   @override
@@ -5200,6 +5094,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   TypeSystemImpl typeSystem;
 
   /// The context of the defining unit.
+  @override
   final LinkedUnitContext linkedContext;
 
   @override
@@ -5311,6 +5206,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     return super.documentationComment;
   }
 
+  @override
   FunctionElement get entryPoint {
     if (_entryPoint != null) return _entryPoint;
 
@@ -5494,7 +5390,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   /// Return `true` if the receiver directly or indirectly imports the
   /// 'dart:html' libraries.
   bool get isOrImportsBrowserLibrary {
-    List<LibraryElement> visited = List<LibraryElement>();
+    List<LibraryElement> visited = <LibraryElement>[];
     Source htmlLibSource = context.sourceFactory.forUri(DartSdk.DART_HTML);
     visited.add(this);
     for (int index = 0; index < visited.length; index++) {
@@ -5607,7 +5503,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   @override
   List<CompilationUnitElement> get units {
-    List<CompilationUnitElement> units = List<CompilationUnitElement>();
+    List<CompilationUnitElement> units = <CompilationUnitElement>[];
     units.add(_definingCompilationUnit);
     units.addAll(_parts);
     return units;
@@ -5709,7 +5605,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   static List<ImportElement> getImportsWithPrefixFromImports(
       PrefixElement prefixElement, List<ImportElement> imports) {
     int count = imports.length;
-    List<ImportElement> importList = List<ImportElement>();
+    List<ImportElement> importList = <ImportElement>[];
     for (int i = 0; i < count; i++) {
       if (identical(imports[i].prefix, prefixElement)) {
         importList.add(imports[i]);
@@ -5781,13 +5677,6 @@ class LocalVariableElementImpl extends NonParameterVariableElementImpl
   @override
   T accept<T>(ElementVisitor<T> visitor) =>
       visitor.visitLocalVariableElement(this);
-
-  @override
-  void appendTo(StringBuffer buffer) {
-    buffer.write(type);
-    buffer.write(" ");
-    buffer.write(displayName);
-  }
 }
 
 /// A concrete implementation of a [MethodElement].
@@ -5960,34 +5849,8 @@ class MixinElementImpl extends ClassElementImpl {
   }
 
   @override
-  void appendTo(StringBuffer buffer) {
-    buffer.write('mixin ');
-    String name = displayName;
-    if (name == null) {
-      // TODO(brianwilkerson) Can this happen (for either classes or mixins)?
-      buffer.write("{unnamed mixin}");
-    } else {
-      buffer.write(name);
-    }
-    int variableCount = typeParameters.length;
-    if (variableCount > 0) {
-      buffer.write("<");
-      for (int i = 0; i < variableCount; i++) {
-        if (i > 0) {
-          buffer.write(", ");
-        }
-        (typeParameters[i] as TypeParameterElementImpl).appendTo(buffer);
-      }
-      buffer.write(">");
-    }
-    if (superclassConstraints.isNotEmpty) {
-      buffer.write(' on ');
-      buffer.write(superclassConstraints.map((t) => t.displayName).join(', '));
-    }
-    if (interfaces.isNotEmpty) {
-      buffer.write(' implements ');
-      buffer.write(interfaces.map((t) => t.displayName).join(', '));
-    }
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeMixinElement(this);
   }
 }
 
@@ -5997,74 +5860,72 @@ class MixinElementImpl extends ClassElementImpl {
 /// Clients may not extend, implement or mix-in this class.
 class Modifier implements Comparable<Modifier> {
   /// Indicates that the modifier 'abstract' was applied to the element.
-  static const Modifier ABSTRACT = const Modifier('ABSTRACT', 0);
+  static const Modifier ABSTRACT = Modifier('ABSTRACT', 0);
 
   /// Indicates that an executable element has a body marked as being
   /// asynchronous.
-  static const Modifier ASYNCHRONOUS = const Modifier('ASYNCHRONOUS', 1);
+  static const Modifier ASYNCHRONOUS = Modifier('ASYNCHRONOUS', 1);
 
   /// Indicates that the modifier 'const' was applied to the element.
-  static const Modifier CONST = const Modifier('CONST', 2);
+  static const Modifier CONST = Modifier('CONST', 2);
 
   /// Indicates that the modifier 'covariant' was applied to the element.
-  static const Modifier COVARIANT = const Modifier('COVARIANT', 3);
+  static const Modifier COVARIANT = Modifier('COVARIANT', 3);
 
   /// Indicates that the import element represents a deferred library.
-  static const Modifier DEFERRED = const Modifier('DEFERRED', 4);
+  static const Modifier DEFERRED = Modifier('DEFERRED', 4);
 
   /// Indicates that a class element was defined by an enum declaration.
-  static const Modifier ENUM = const Modifier('ENUM', 5);
+  static const Modifier ENUM = Modifier('ENUM', 5);
 
   /// Indicates that a class element was defined by an enum declaration.
-  static const Modifier EXTERNAL = const Modifier('EXTERNAL', 6);
+  static const Modifier EXTERNAL = Modifier('EXTERNAL', 6);
 
   /// Indicates that the modifier 'factory' was applied to the element.
-  static const Modifier FACTORY = const Modifier('FACTORY', 7);
+  static const Modifier FACTORY = Modifier('FACTORY', 7);
 
   /// Indicates that the modifier 'final' was applied to the element.
-  static const Modifier FINAL = const Modifier('FINAL', 8);
+  static const Modifier FINAL = Modifier('FINAL', 8);
 
   /// Indicates that an executable element has a body marked as being a
   /// generator.
-  static const Modifier GENERATOR = const Modifier('GENERATOR', 9);
+  static const Modifier GENERATOR = Modifier('GENERATOR', 9);
 
   /// Indicates that the pseudo-modifier 'get' was applied to the element.
-  static const Modifier GETTER = const Modifier('GETTER', 10);
+  static const Modifier GETTER = Modifier('GETTER', 10);
 
   /// A flag used for libraries indicating that the defining compilation unit
   /// contains at least one import directive whose URI uses the "dart-ext"
   /// scheme.
-  static const Modifier HAS_EXT_URI = const Modifier('HAS_EXT_URI', 11);
+  static const Modifier HAS_EXT_URI = Modifier('HAS_EXT_URI', 11);
 
   /// Indicates that the associated element did not have an explicit type
   /// associated with it. If the element is an [ExecutableElement], then the
   /// type being referred to is the return type.
-  static const Modifier IMPLICIT_TYPE = const Modifier('IMPLICIT_TYPE', 12);
+  static const Modifier IMPLICIT_TYPE = Modifier('IMPLICIT_TYPE', 12);
 
   /// Indicates that modifier 'lazy' was applied to the element.
-  static const Modifier LATE = const Modifier('LATE', 13);
+  static const Modifier LATE = Modifier('LATE', 13);
 
   /// Indicates that a class is a mixin application.
-  static const Modifier MIXIN_APPLICATION =
-      const Modifier('MIXIN_APPLICATION', 14);
+  static const Modifier MIXIN_APPLICATION = Modifier('MIXIN_APPLICATION', 14);
 
   /// Indicates that a class contains an explicit reference to 'super'.
-  static const Modifier REFERENCES_SUPER =
-      const Modifier('REFERENCES_SUPER', 15);
+  static const Modifier REFERENCES_SUPER = Modifier('REFERENCES_SUPER', 15);
 
   /// Indicates that the pseudo-modifier 'set' was applied to the element.
-  static const Modifier SETTER = const Modifier('SETTER', 16);
+  static const Modifier SETTER = Modifier('SETTER', 16);
 
   /// Indicates that the modifier 'static' was applied to the element.
-  static const Modifier STATIC = const Modifier('STATIC', 17);
+  static const Modifier STATIC = Modifier('STATIC', 17);
 
   /// Indicates that the element does not appear in the source code but was
   /// implicitly created. For example, if a class does not define any
   /// constructors, an implicit zero-argument constructor will be created and it
   /// will be marked as being synthetic.
-  static const Modifier SYNTHETIC = const Modifier('SYNTHETIC', 18);
+  static const Modifier SYNTHETIC = Modifier('SYNTHETIC', 18);
 
-  static const List<Modifier> values = const [
+  static const List<Modifier> values = [
     ABSTRACT,
     ASYNCHRONOUS,
     CONST,
@@ -6107,6 +5968,7 @@ class Modifier implements Comparable<Modifier> {
 /// A concrete implementation of a [MultiplyDefinedElement].
 class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   /// The unique integer identifier of this element.
+  @override
   final int id = ElementImpl._NEXT_ID++;
 
   /// The analysis context in which the multiply defined elements are defined.
@@ -6236,8 +6098,19 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   T accept<T>(ElementVisitor<T> visitor) =>
       visitor.visitMultiplyDefinedElement(this);
 
+  @Deprecated('Use either thisOrAncestorMatching or thisOrAncestorOfType')
   @override
   E getAncestor<E extends Element>(Predicate<Element> predicate) => null;
+
+  @override
+  String getDisplayString({@required bool withNullability}) {
+    var elementsStr = conflictingElements.map((e) {
+      return e.getDisplayString(
+        withNullability: withNullability,
+      );
+    }).join(', ');
+    return '[' + elementsStr + ']';
+  }
 
   @override
   String getExtendedDisplayName(String shortName) {
@@ -6258,6 +6131,13 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   }
 
   @override
+  E thisOrAncestorMatching<E extends Element>(Predicate<Element> predicate) =>
+      null;
+
+  @override
+  E thisOrAncestorOfType<E extends Element>() => null;
+
+  @override
   String toString() {
     StringBuffer buffer = StringBuffer();
     bool needsSeparator = false;
@@ -6268,11 +6148,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
         } else {
           needsSeparator = true;
         }
-        if (element is ElementImpl) {
-          element.appendTo(buffer);
-        } else {
-          buffer.write(element);
-        }
+        buffer.write(
+          element.getDisplayString(withNullability: true),
+        );
       }
     }
 
@@ -6420,7 +6298,7 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
     if (linkedNode != null) {
       return linkedContext.setVariableType(linkedNode, type);
     }
-    _type = _checkElementOfType(type);
+    _type = type;
   }
 
   @override
@@ -6572,6 +6450,7 @@ class ParameterElementImpl extends VariableElementImpl
 
   /// Set the function representing this variable's initializer to the given
   /// [function].
+  @override
   set initializer(FunctionElement function) {
     super.initializer = function;
   }
@@ -6737,21 +6616,8 @@ class ParameterElementImpl extends VariableElementImpl
   T accept<T>(ElementVisitor<T> visitor) => visitor.visitParameterElement(this);
 
   @override
-  void appendTo(StringBuffer buffer) {
-    if (isNamed) {
-      buffer.write('{');
-      if (isRequiredNamed) {
-        buffer.write('required ');
-      }
-      appendToWithoutDelimiters(buffer);
-      buffer.write('}');
-    } else if (isOptionalPositional) {
-      buffer.write('[');
-      appendToWithoutDelimiters(buffer);
-      buffer.write(']');
-    } else {
-      appendToWithoutDelimiters(buffer);
-    }
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeFormalParameter(this);
   }
 
   @override
@@ -6914,8 +6780,15 @@ mixin ParameterElementMixin implements ParameterElement {
   ParameterKind get parameterKind;
 
   @override
-  void appendToWithoutDelimiters(StringBuffer buffer) {
-    buffer.write(type);
+  void appendToWithoutDelimiters(
+    StringBuffer buffer, {
+    bool withNullability = false,
+  }) {
+    buffer.write(
+      type.getDisplayString(
+        withNullability: withNullability,
+      ),
+    );
     buffer.write(' ');
     buffer.write(displayName);
     if (defaultValueCode != null) {
@@ -6965,9 +6838,8 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
   T accept<T>(ElementVisitor<T> visitor) => visitor.visitPrefixElement(this);
 
   @override
-  void appendTo(StringBuffer buffer) {
-    buffer.write("as ");
-    super.appendTo(buffer);
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writePrefixElement(this);
   }
 }
 
@@ -6975,6 +6847,7 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
 class PropertyAccessorElementImpl extends ExecutableElementImpl
     implements PropertyAccessorElement {
   /// The variable associated with this accessor.
+  @override
   PropertyInducingElement variable;
 
   /// Initialize a newly created property accessor element to have the given
@@ -7093,9 +6966,11 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
       visitor.visitPropertyAccessorElement(this);
 
   @override
-  void appendTo(StringBuffer buffer) {
-    super.appendToWithName(
-        buffer, (isGetter ? 'get ' : 'set ') + variable.displayName);
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeExecutableElement(
+      this,
+      (isGetter ? 'get ' : 'set ') + variable.displayName,
+    );
   }
 }
 
@@ -7217,11 +7092,13 @@ class PropertyAccessorElementImpl_ImplicitSetter
 abstract class PropertyInducingElementImpl
     extends NonParameterVariableElementImpl implements PropertyInducingElement {
   /// The getter associated with this element.
+  @override
   PropertyAccessorElement getter;
 
   /// The setter associated with this element, or `null` if the element is
   /// effectively `final` and therefore does not have a setter associated with
   /// it.
+  @override
   PropertyAccessorElement setter;
 
   /// Initialize a newly created synthetic element to have the given [name] and
@@ -7431,6 +7308,7 @@ class TypeParameterElementImpl extends ElementImpl
     isSynthetic = true;
   }
 
+  @override
   DartType get bound {
     if (_bound != null) return _bound;
 
@@ -7443,7 +7321,7 @@ class TypeParameterElementImpl extends ElementImpl
   }
 
   set bound(DartType bound) {
-    _bound = _checkElementOfType(bound);
+    _bound = bound;
   }
 
   @override
@@ -7560,15 +7438,8 @@ class TypeParameterElementImpl extends ElementImpl
       visitor.visitTypeParameterElement(this);
 
   @override
-  void appendTo(StringBuffer buffer) {
-    if (!isLegacyCovariant) {
-      buffer.write(variance.toKeywordString() + " ");
-    }
-    buffer.write(displayName);
-    if (bound != null) {
-      buffer.write(" extends ");
-      buffer.write(bound);
-    }
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeTypeParameter(this);
   }
 
   @override
@@ -7640,6 +7511,7 @@ abstract class UriReferencedElementImpl extends ElementImpl
       : super.forSerialized(enclosingElement);
 
   /// Return the URI that is specified by this directive.
+  @override
   String get uri => _uri;
 
   /// Set the URI that is specified by this directive to be the given [uri].
@@ -7649,6 +7521,7 @@ abstract class UriReferencedElementImpl extends ElementImpl
 
   /// Return the offset of the character immediately following the last
   /// character of this node's URI, or `-1` if this node is synthetic.
+  @override
   int get uriEnd => _uriEnd;
 
   /// Set the offset of the character immediately following the last character
@@ -7659,6 +7532,7 @@ abstract class UriReferencedElementImpl extends ElementImpl
 
   /// Return the offset of the URI in the file, or `-1` if this node is
   /// synthetic.
+  @override
   int get uriOffset => _uriOffset;
 
   /// Set the offset of the URI in the file to the given [offset].
@@ -7780,7 +7654,7 @@ abstract class VariableElementImpl extends ElementImpl
     if (linkedNode != null) {
       return linkedContext.setVariableType(linkedNode, type);
     }
-    _type = _checkElementOfType(type);
+    _type = type;
   }
 
   /// Return the error reported during type inference for this variable, or
@@ -7791,10 +7665,8 @@ abstract class VariableElementImpl extends ElementImpl
   }
 
   @override
-  void appendTo(StringBuffer buffer) {
-    buffer.write(type);
-    buffer.write(" ");
-    buffer.write(displayName);
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeVariableElement(this);
   }
 
   @override

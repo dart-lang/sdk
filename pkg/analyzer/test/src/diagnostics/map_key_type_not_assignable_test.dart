@@ -171,6 +171,12 @@ var v = const <int, String>{...{a: 'a'}};
               ]);
   }
 
+  test_key_type_is_assignable() async {
+    await assertNoErrorsInCode('''
+var v = <String, int > {'a' : 1};
+''');
+  }
+
   test_nonConst_ifElement_thenElseFalse_intInt_dynamic() async {
     await assertNoErrorsInCode('''
 const dynamic a = 0;

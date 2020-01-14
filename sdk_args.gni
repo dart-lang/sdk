@@ -1,5 +1,26 @@
+# Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+_dart_root = get_path_info(".", "abspath")
+
 declare_args() {
   # Whether to use the NNBD fork of the SDK core libraries.
   # TODO(#38701): Remove this when the fork has been merged back in.
   use_nnbd = false
+
+  # Absolute path to the .git folder.
+  #
+  # This is used in rules that need to refer to `.git/logs/HEAD` to include
+  # a hash in the version string. By default the folder is `.git`, but we define
+  # it as an argument so it can be overriden by users of `git-worktree` (See
+  # Issue #33619).
+  #
+  # When using git-worktree, you can add
+  #
+  #    default_git_folder = "/path/to/main/git/repo/.git/worktrees/name/"
+  #
+  # to out/ReleaseX64/args.gn. The path above can be extracted from the `.git`
+  # file under the git worktree folder.
+  default_git_folder = "$_dart_root/.git"
 }

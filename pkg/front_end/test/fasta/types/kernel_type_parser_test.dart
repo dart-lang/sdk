@@ -97,8 +97,8 @@ main() {
   Uri uri = Uri.parse("dart:core");
   KernelEnvironment environment = new KernelEnvironment(uri, uri);
   Component component = parseSdk(uri, environment);
-  ClassHierarchy hierarchy = new ClassHierarchy(component);
   CoreTypes coreTypes = new CoreTypes(component);
+  ClassHierarchy hierarchy = new ClassHierarchy(component, coreTypes);
   new KernelSubtypeTest(coreTypes, hierarchy, environment).run();
 }
 

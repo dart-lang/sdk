@@ -1478,8 +1478,9 @@ class Namer extends ModularNamer {
     String enclosing =
         element.enclosingClass == null ? "" : element.enclosingClass.name;
     String library = _proposeNameForLibrary(element.library);
+    String name = element.name.replaceAll(_nonIdentifierRE, '_');
     return _disambiguateInternalGlobal(
-        "${library}_${enclosing}_${element.name}\$closure");
+        "${library}_${enclosing}_${name}\$closure");
   }
 
   // This name is used as part of the name of a TypeConstant
@@ -1621,6 +1622,9 @@ class Namer extends ModularNamer {
     if (type is TypedefType) {
       return uniqueNameForTypeConstantElement(
           type.element.library, type.element);
+    }
+    if (type is FutureOrType) {
+      return "FutureOr<dynamic>";
     }
     if (type is FunctionType) {
       // TODO(johnniwinther): Add naming scheme for function type literals.

@@ -5,11 +5,11 @@
 /*Debugger:stepOver*/
 
 void main() {
-  var qux;
-  qux = "${/*bc:1*/ foo()} x ${/*bc:2*/ bar()} x ${/*bc:3*/ baz()}";
+  String qux;
+  qux = '${/*bc:1*/ foo()} x ${/*bc:2*/ bar()} x ${/*bc:3*/ baz()}';
   print(qux);
 }
 
-String foo() => "a";
-String bar() => "b";
-String baz() => "c";
+String foo() => 'a';
+String bar() => 'b';
+String baz() => 'c';

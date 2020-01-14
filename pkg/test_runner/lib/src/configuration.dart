@@ -104,6 +104,7 @@ class TestConfiguration {
   Runtime get runtime => configuration.runtime;
   System get system => configuration.system;
   NnbdMode get nnbdMode => configuration.nnbdMode;
+  Sanitizer get sanitizer => configuration.sanitizer;
 
   // Boolean getters
   bool get hotReload => configuration.useHotReload;
@@ -461,6 +462,10 @@ class TestConfiguration {
         mode.name.substring(0, 1).toUpperCase() + mode.name.substring(1);
 
     if (system == System.android) result += "Android";
+
+    if (sanitizer != Sanitizer.none) {
+      result += sanitizer.name.toUpperCase();
+    }
 
     var arch = architecture.name.toUpperCase();
     var normal = '$result$arch';

@@ -66,12 +66,12 @@ namespace dart {
 
 DECLARE_FLAG(bool, print_class_table);
 DECLARE_FLAG(bool, verify_handles);
-#if defined(DART_NO_SNAPSHOT)
+#if defined(DEBUG) && !defined(DART_PRECOMPILED_RUNTIME)
 DEFINE_FLAG(bool,
             check_function_fingerprints,
             true,
             "Check function fingerprints");
-#endif  // defined(DART_NO_SNAPSHOT).
+#endif  // defined(DEBUG) && !defined(DART_PRECOMPILED_RUNTIME).
 DEFINE_FLAG(bool,
             verify_acquired_data,
             false,
@@ -152,7 +152,7 @@ static RawInstance* GetListInstance(Zone* zone, const Object& obj) {
     ASSERT(!list_class.IsNull());
     const Instance& instance = Instance::Cast(obj);
     const Class& obj_class = Class::Handle(zone, obj.clazz());
-    if (Class::IsSubtypeOf(NNBDMode::kLegacy, obj_class,
+    if (Class::IsSubtypeOf(NNBDMode::kLegacyLib, obj_class,
                            Object::null_type_arguments(), list_class,
                            Object::null_type_arguments(), Heap::kNew)) {
       return instance.raw();
@@ -169,7 +169,7 @@ static RawInstance* GetMapInstance(Zone* zone, const Object& obj) {
     ASSERT(!map_class.IsNull());
     const Instance& instance = Instance::Cast(obj);
     const Class& obj_class = Class::Handle(zone, obj.clazz());
-    if (Class::IsSubtypeOf(NNBDMode::kLegacy, obj_class,
+    if (Class::IsSubtypeOf(NNBDMode::kLegacyLib, obj_class,
                            Object::null_type_arguments(), map_class,
                            Object::null_type_arguments(), Heap::kNew)) {
       return instance.raw();
@@ -1122,11 +1122,11 @@ static Dart_Isolate CreateIsolate(IsolateGroup* group,
                                    source->kernel_buffer,
                                    source->kernel_buffer_size, isolate_data));
     if (error_obj.IsNull()) {
-#if defined(DART_NO_SNAPSHOT) && !defined(PRODUCT)
+#if defined(DEBUG) && !defined(DART_PRECOMPILED_RUNTIME)
       if (FLAG_check_function_fingerprints && source->kernel_buffer == NULL) {
         Library::CheckFunctionFingerprints();
       }
-#endif  // defined(DART_NO_SNAPSHOT) && !defined(PRODUCT).
+#endif  // defined(DEBUG) && !defined(DART_PRECOMPILED_RUNTIME).
       success = true;
     } else if (error != NULL) {
       *error = strdup(error_obj.ToErrorCString());
@@ -1450,8 +1450,7 @@ DART_EXPORT bool Dart_WriteProfileToTimeline(Dart_Port main_port,
   intptr_t response_length;
   bool success = Dart_InvokeVMServiceMethod(
       reinterpret_cast<uint8_t*>(method), method_length,
-      reinterpret_cast<uint8_t**>(&response), &response_length,
-      error);
+      reinterpret_cast<uint8_t**>(&response), &response_length, error);
   free(response);
   return success;
 #endif
@@ -2045,7 +2044,7 @@ DART_EXPORT Dart_Handle Dart_ObjectIsType(Dart_Handle object,
     RETURN_TYPE_ERROR(Z, object, Instance);
   }
   CHECK_CALLBACK_STATE(T);
-  *value = instance.IsInstanceOf(NNBDMode::kLegacy, type_obj,
+  *value = instance.IsInstanceOf(NNBDMode::kLegacyLib, type_obj,
                                  Object::null_type_arguments(),
                                  Object::null_type_arguments());
   return Api::Success();
@@ -2208,7 +2207,7 @@ DART_EXPORT bool Dart_IsFuture(Dart_Handle handle) {
     ASSERT(!future_class.IsNull());
     const Class& obj_class = Class::Handle(Z, obj.clazz());
     bool is_future = Class::IsSubtypeOf(
-        NNBDMode::kLegacy, obj_class, Object::null_type_arguments(),
+        NNBDMode::kLegacyLib, obj_class, Object::null_type_arguments(),
         future_class, Object::null_type_arguments(), Heap::kNew);
     return is_future;
   }
@@ -4046,7 +4045,7 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle type,
       // We do not support generic constructors.
       ASSERT(redirect_type.IsInstantiated(kFunctions));
       redirect_type ^= redirect_type.InstantiateFrom(
-          NNBDMode::kLegacy, type_arguments, Object::null_type_arguments(),
+          NNBDMode::kLegacyLib, type_arguments, Object::null_type_arguments(),
           kNoneFree, NULL, Heap::kNew);
       redirect_type ^= redirect_type.Canonicalize();
     }
@@ -5733,10 +5732,6 @@ DART_EXPORT bool Dart_IsServiceIsolate(Dart_Isolate isolate) {
   return ServiceIsolate::IsServiceIsolate(iso);
 }
 
-DART_EXPORT Dart_Port Dart_ServiceWaitForLoadPort() {
-  return ServiceIsolate::WaitForLoadPort();
-}
-
 DART_EXPORT int64_t Dart_TimelineGetMicros() {
   return OS::GetCurrentMonotonicMicros();
 }
@@ -6112,9 +6107,17 @@ DART_EXPORT Dart_Handle Dart_Precompile() {
 #endif
 }
 
+// Used for StreamingWriteStream/BlobImageWriter sizes for ELF and blobs.
+#if !defined(TARGET_ARCH_IA32) && defined(DART_PRECOMPILER)
+static const intptr_t kInitialSize = 2 * MB;
+static const intptr_t kInitialDebugSize = 1 * MB;
+#endif
+
 DART_EXPORT Dart_Handle
 Dart_CreateAppAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
-                                    void* callback_data) {
+                                    void* callback_data,
+                                    bool strip,
+                                    void* debug_callback_data) {
 #if defined(TARGET_ARCH_IA32)
   return Api::NewError("AOT compilation is not supported on IA32.");
 #elif defined(TARGET_OS_WINDOWS)
@@ -6134,7 +6137,15 @@ Dart_CreateAppAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
   CHECK_NULL(callback);
 
   TIMELINE_DURATION(T, Isolate, "WriteAppAOTSnapshot");
-  AssemblyImageWriter image_writer(T, callback, callback_data);
+  const bool generate_debug = debug_callback_data != nullptr;
+
+  StreamingWriteStream debug_stream(generate_debug ? kInitialDebugSize : 0,
+                                    callback, debug_callback_data);
+
+  Elf* elf =
+      generate_debug ? new (Z) Elf(Z, nullptr, strip, &debug_stream) : nullptr;
+
+  AssemblyImageWriter image_writer(T, callback, callback_data, strip, elf);
   uint8_t* vm_snapshot_data_buffer = NULL;
   uint8_t* isolate_snapshot_data_buffer = NULL;
   FullSnapshotWriter writer(Snapshot::kFullAOT, &vm_snapshot_data_buffer,
@@ -6143,6 +6154,9 @@ Dart_CreateAppAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
 
   writer.WriteFullSnapshot();
   image_writer.Finalize();
+  if (elf != nullptr) {
+    elf->Finalize();
+  }
 
   return Api::Success();
 #endif
@@ -6178,7 +6192,8 @@ Dart_CreateVMAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
 DART_EXPORT Dart_Handle
 Dart_CreateAppAOTSnapshotAsElf(Dart_StreamingWriteCallback callback,
                                void* callback_data,
-                               bool strip) {
+                               bool strip,
+                               void* debug_callback_data) {
 #if defined(TARGET_ARCH_IA32)
   return Api::NewError("AOT compilation is not supported on IA32.");
 #elif !defined(DART_PRECOMPILER)
@@ -6188,18 +6203,24 @@ Dart_CreateAppAOTSnapshotAsElf(Dart_StreamingWriteCallback callback,
   DARTSCOPE(Thread::Current());
   API_TIMELINE_DURATION(T);
 
+  NOT_IN_PRODUCT(TimelineBeginEndScope tbes2(T, Timeline::GetIsolateStream(),
+                                             "WriteAppAOTSnapshot"));
+
   uint8_t* vm_snapshot_data_buffer = nullptr;
   uint8_t* vm_snapshot_instructions_buffer = nullptr;
   uint8_t* isolate_snapshot_data_buffer = nullptr;
   uint8_t* isolate_snapshot_instructions_buffer = nullptr;
 
-  NOT_IN_PRODUCT(TimelineDurationScope tds2(T, Timeline::GetIsolateStream(),
-                                            "WriteAppAOTSnapshot"));
-  StreamingWriteStream elf_stream(2 * MB, callback, callback_data);
+  const bool generate_debug = debug_callback_data != nullptr;
 
-  Elf* elf = new (Z) Elf(Z, &elf_stream);
+  StreamingWriteStream elf_stream(kInitialSize, callback, callback_data);
+  StreamingWriteStream debug_stream(generate_debug ? kInitialDebugSize : 0,
+                                    callback, debug_callback_data);
+
+  Elf* elf = new (Z)
+      Elf(Z, &elf_stream, strip, generate_debug ? &debug_stream : nullptr);
   Dwarf* dwarf = nullptr;
-  if (!strip) {
+  if (!strip || generate_debug) {
     dwarf = new (Z) Dwarf(Z, nullptr, elf);
   }
 
@@ -6210,11 +6231,11 @@ Dart_CreateAppAOTSnapshotAsElf(Dart_StreamingWriteCallback callback,
       elf->AddBSSData("_kDartBSSData", sizeof(compiler::target::uword));
 
   BlobImageWriter vm_image_writer(T, &vm_snapshot_instructions_buffer,
-                                  ApiReallocate, /* initial_size= */ 2 * MB,
-                                  bss_base, elf, dwarf);
-  BlobImageWriter isolate_image_writer(
-      T, &isolate_snapshot_instructions_buffer, ApiReallocate,
-      /* initial_size= */ 2 * MB, bss_base, elf, dwarf);
+                                  ApiReallocate, kInitialSize, bss_base, elf,
+                                  dwarf);
+  BlobImageWriter isolate_image_writer(T, &isolate_snapshot_instructions_buffer,
+                                       ApiReallocate, kInitialSize, bss_base,
+                                       elf, dwarf);
   FullSnapshotWriter writer(Snapshot::kFullAOT, &vm_snapshot_data_buffer,
                             &isolate_snapshot_data_buffer, ApiReallocate,
                             &vm_image_writer, &isolate_image_writer);
@@ -6224,7 +6245,7 @@ Dart_CreateAppAOTSnapshotAsElf(Dart_StreamingWriteCallback callback,
                  writer.VmIsolateSnapshotSize());
   elf->AddROData("_kDartIsolateSnapshotData", isolate_snapshot_data_buffer,
                  writer.IsolateSnapshotSize());
-  if (!strip) {
+  if (dwarf != nullptr) {
     // TODO(rmacnak): Generate .debug_frame / .eh_frame / .arm.exidx to
     // provide unwinding information.
     dwarf->Write();
@@ -6243,7 +6264,9 @@ Dart_CreateAppAOTSnapshotAsBlobs(uint8_t** vm_snapshot_data_buffer,
                                  uint8_t** isolate_snapshot_data_buffer,
                                  intptr_t* isolate_snapshot_data_size,
                                  uint8_t** isolate_snapshot_instructions_buffer,
-                                 intptr_t* isolate_snapshot_instructions_size) {
+                                 intptr_t* isolate_snapshot_instructions_size,
+                                 Dart_StreamingWriteCallback callback,
+                                 void* debug_callback_data) {
 #if defined(TARGET_ARCH_IA32)
   return Api::NewError("AOT compilation is not supported on IA32.");
 #elif !defined(DART_PRECOMPILER)
@@ -6268,11 +6291,25 @@ Dart_CreateAppAOTSnapshotAsBlobs(uint8_t** vm_snapshot_data_buffer,
   CHECK_NULL(isolate_snapshot_instructions_size);
 
   TIMELINE_DURATION(T, Isolate, "WriteAppAOTSnapshot");
+
+  const bool generate_debug = debug_callback_data != nullptr;
+
+  StreamingWriteStream debug_stream(generate_debug ? kInitialDebugSize : 0,
+                                    callback, debug_callback_data);
+
+  Elf* elf = nullptr;
+  Dwarf* dwarf = nullptr;
+  if (generate_debug) {
+    elf = new (Z) Elf(Z, nullptr, /*strip=*/false, &debug_stream);
+    dwarf = new (Z) Dwarf(Z, nullptr, elf);
+  }
+
   BlobImageWriter vm_image_writer(T, vm_snapshot_instructions_buffer,
-                                  ApiReallocate, 2 * MB /* initial_size */);
+                                  ApiReallocate, kInitialSize, /*bss_base=*/0,
+                                  elf, dwarf);
   BlobImageWriter isolate_image_writer(T, isolate_snapshot_instructions_buffer,
-                                       ApiReallocate,
-                                       2 * MB /* initial_size */);
+                                       ApiReallocate, kInitialSize,
+                                       /*bss_base=*/0, elf, dwarf);
   FullSnapshotWriter writer(Snapshot::kFullAOT, vm_snapshot_data_buffer,
                             isolate_snapshot_data_buffer, ApiReallocate,
                             &vm_image_writer, &isolate_image_writer);
@@ -6283,6 +6320,11 @@ Dart_CreateAppAOTSnapshotAsBlobs(uint8_t** vm_snapshot_data_buffer,
   *isolate_snapshot_data_size = writer.IsolateSnapshotSize();
   *isolate_snapshot_instructions_size =
       isolate_image_writer.InstructionsBlobSize();
+
+  if (generate_debug) {
+    dwarf->Write();
+    elf->Finalize();
+  }
 
   return Api::Success();
 #endif

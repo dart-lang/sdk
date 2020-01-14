@@ -204,37 +204,43 @@ class _ConstantOrdering
 }
 
 /// Visitor for distinguishing types by kind.
-class _DartTypeKindVisitor extends DartTypeVisitor<int, Null> {
+class _DartTypeKindVisitor implements DartTypeVisitor<int, Null> {
   const _DartTypeKindVisitor();
 
   static int kind(DartType type) {
-    return type.accept(const _DartTypeKindVisitor(), null);
+    return const _DartTypeKindVisitor().visit(type);
   }
 
   @override
-  int visitFunctionType(covariant FunctionType type, _) => 0;
+  int visit(DartType type, [_]) => type.accept(this, null);
   @override
-  int visitInterfaceType(covariant InterfaceType type, _) => 1;
+  int visitFunctionType(FunctionType type, _) => 0;
   @override
-  int visitTypedefType(covariant TypedefType type, _) => 2;
+  int visitInterfaceType(InterfaceType type, _) => 1;
   @override
-  int visitTypeVariableType(covariant TypeVariableType type, _) => 3;
+  int visitTypedefType(TypedefType type, _) => 2;
   @override
-  int visitNeverType(covariant NeverType type, _) => 4;
+  int visitTypeVariableType(TypeVariableType type, _) => 3;
   @override
-  int visitDynamicType(covariant DynamicType type, _) => 5;
+  int visitNeverType(NeverType type, _) => 4;
   @override
-  int visitVoidType(covariant VoidType type, _) => 6;
+  int visitDynamicType(DynamicType type, _) => 5;
   @override
-  int visitAnyType(covariant AnyType type, _) => 7;
+  int visitVoidType(VoidType type, _) => 6;
   @override
-  int visitErasedType(covariant ErasedType type, _) => 8;
+  int visitAnyType(AnyType type, _) => 7;
   @override
-  int visitLegacyType(covariant LegacyType type, _) => 9;
+  int visitErasedType(ErasedType type, _) => 8;
   @override
-  int visitNullableType(covariant NullableType type, _) => 10;
+  int visitLegacyType(LegacyType type, _) => 9;
   @override
-  int visitFutureOrType(covariant FutureOrType type, _) => 11;
+  int visitNullableType(NullableType type, _) => 10;
+  @override
+  int visitFutureOrType(FutureOrType type, _) => 11;
+  @override
+  int visitFunctionTypeVariable(FunctionTypeVariable type, _) =>
+      throw new UnsupportedError(
+          'FunctionTypeVariable unsupported in constant.');
 }
 
 class _DartTypeOrdering extends DartTypeVisitor<int, DartType> {

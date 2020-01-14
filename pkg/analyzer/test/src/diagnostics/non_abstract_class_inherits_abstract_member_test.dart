@@ -15,6 +15,76 @@ main() {
 
 @reflectiveTest
 class NonAbstractClassInheritsAbstractMemberTest extends DriverResolutionTest {
+  test_abstractsDontOverrideConcretes_getter() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int get g => 0;
+}
+abstract class B extends A {
+  int get g;
+}
+class C extends B {}
+''');
+  }
+
+  test_abstractsDontOverrideConcretes_method() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  m(p) {}
+}
+abstract class B extends A {
+  m(p);
+}
+class C extends B {}
+''');
+  }
+
+  test_abstractsDontOverrideConcretes_setter() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  set s(v) {}
+}
+abstract class B extends A {
+  set s(v);
+}
+class C extends B {}
+''');
+  }
+
+  test_classTypeAlias_interface() async {
+    // issue 15979
+    await assertNoErrorsInCode(r'''
+abstract class M {}
+abstract class A {}
+abstract class I {
+  m();
+}
+abstract class B = A with M implements I;
+''');
+  }
+
+  test_classTypeAlias_mixin() async {
+    // issue 15979
+    await assertNoErrorsInCode(r'''
+abstract class M {
+  m();
+}
+abstract class A {}
+abstract class B = A with M;
+''');
+  }
+
+  test_classTypeAlias_superclass() async {
+    // issue 15979
+    await assertNoErrorsInCode(r'''
+class M {}
+abstract class A {
+  m();
+}
+abstract class B = A with M;
+''');
+  }
+
   test_fivePlus() async {
     await assertErrorsInCode('''
 abstract class A {
@@ -51,8 +121,92 @@ class C extends A {
     ]);
   }
 
+  test_mixin_concreteGetter() async {
+    // issue 17034
+    await assertNoErrorsInCode(r'''
+class A {
+  var a;
+}
+abstract class M {
+  get a;
+}
+class B extends A with M {}
+class C extends B {}
+''');
+  }
+
+  test_mixin_concreteMethod() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  m() {}
+}
+abstract class M {
+  m();
+}
+class B extends A with M {}
+class C extends B {}
+''');
+  }
+
+  test_mixin_concreteSetter() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  var a;
+}
+abstract class M {
+  set a(dynamic v);
+}
+class B extends A with M {}
+class C extends B {}
+''');
+  }
+
+  test_noSuchMethod_concreteAccessor() async {
+    await assertNoErrorsInCode(r'''
+abstract class A {
+  int get g;
+}
+class B extends A {
+  noSuchMethod(v) => '';
+}
+''');
+  }
+
+  test_noSuchMethod_concreteMethod() async {
+    await assertNoErrorsInCode(r'''
+abstract class A {
+  m(p);
+}
+class B extends A {
+  noSuchMethod(v) => '';
+}
+''');
+  }
+
+  test_noSuchMethod_mixin() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  noSuchMethod(v) => '';
+}
+class B extends Object with A {
+  m(p);
+}
+''');
+  }
+
+  test_noSuchMethod_superclass() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  noSuchMethod(v) => '';
+}
+class B extends A {
+  m(p);
+}
+''');
+  }
+
   test_one_classTypeAlias_interface() async {
-    // 15979
+    // issue 15979
     await assertErrorsInCode('''
 abstract class M {}
 abstract class A {}
@@ -67,7 +221,7 @@ class B = A with M implements I;
   }
 
   test_one_classTypeAlias_mixin() async {
-    // 15979
+    // issue 15979
     await assertErrorsInCode('''
 abstract class M {
   m();
@@ -81,7 +235,7 @@ class B = A with M;
   }
 
   test_one_classTypeAlias_superclass() async {
-    // 15979
+    // issue 15979
     await assertErrorsInCode('''
 class M {}
 abstract class A {
@@ -189,7 +343,7 @@ class C extends A {
   }
 
   test_one_method_optionalParamCount() async {
-    // 7640
+    // issue 7640
     await assertErrorsInCode('''
 abstract class A {
   int x(int a);
@@ -206,7 +360,7 @@ class C implements A, B {
   }
 
   test_one_mixinInherits_getter() async {
-    // 15001
+    // issue 15001
     await assertErrorsInCode('''
 abstract class A { get g1; get g2; }
 abstract class B implements A { get g1 => 1; }
@@ -218,7 +372,7 @@ class C extends Object with B {}
   }
 
   test_one_mixinInherits_method() async {
-    // 15001
+    // issue 15001
     await assertErrorsInCode('''
 abstract class A { m1(); m2(); }
 abstract class B implements A { m1() => 1; }
@@ -230,7 +384,7 @@ class C extends Object with B {}
   }
 
   test_one_mixinInherits_setter() async {
-    // 15001
+    // issue 15001
     await assertErrorsInCode('''
 abstract class A { set s1(v); set s2(v); }
 abstract class B implements A { set s1(v) {} }
@@ -242,7 +396,7 @@ class C extends Object with B {}
   }
 
   test_one_noSuchMethod_interface() async {
-    // 15979
+    // issue 15979
     await assertErrorsInCode('''
 class I {
   noSuchMethod(v) => '';
@@ -303,7 +457,7 @@ class C extends A {
   }
 
   test_one_superclasses_interface() async {
-    // bug 11154
+    // issue 11154
     await assertErrorsInCode('''
 class A {
   get a => 'a';
@@ -320,7 +474,7 @@ class C extends B {
   }
 
   test_one_variable_fromInterface_missingGetter() async {
-    // 16133
+    // issue 16133
     await assertErrorsInCode('''
 class I {
   var v;
@@ -335,7 +489,7 @@ class C implements I {
   }
 
   test_one_variable_fromInterface_missingSetter() async {
-    // 16133
+    // issue 16133
     await assertErrorsInCode('''
 class I {
   var v;
@@ -347,6 +501,16 @@ class C implements I {
       error(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
           27, 1),
     ]);
+  }
+
+  test_overridesConcreteMethodInObject() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  String toString([String prefix = '']) => '${prefix}Hello';
+}
+class C {}
+class B extends A with C {}
+''');
   }
 
   test_three() async {
@@ -379,7 +543,7 @@ class C extends A {
   }
 
   test_two_fromInterface_missingBoth() async {
-    // 16133
+    // issue 16133
     await assertErrorsInCode('''
 class I {
   var v;

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 // part of "core_patch.dart";
 
 abstract class _IntegerImplementation implements int {
@@ -41,7 +39,9 @@ abstract class _IntegerImplementation implements int {
   @pragma("vm:non-nullable-result-type")
   @pragma("vm:never-inline")
   int operator -() {
-    return 0 - this;
+    // Issue(https://dartbug.com/39639): The analyzer incorrectly reports the
+    // result type as `num`.
+    return unsafeCast<int>(0 - this);
   }
 
   @pragma("vm:non-nullable-result-type")
@@ -81,7 +81,9 @@ abstract class _IntegerImplementation implements int {
   @pragma("vm:non-nullable-result-type")
   int _moduloFromInteger(int other) native "Integer_moduloFromInteger";
   int _remainderFromInteger(int other) {
-    return other - (other ~/ this) * this;
+    // Issue(https://dartbug.com/39639): The analyzer incorrectly reports the
+    // result type as `num`.
+    return unsafeCast<int>(other - (other ~/ this) * this);
   }
 
   @pragma("vm:non-nullable-result-type")
@@ -353,7 +355,7 @@ abstract class _IntegerImplementation implements int {
     int value = this;
     assert(value < 0);
     do {
-      int digit = -value.remainder(radix);
+      int digit = -unsafeCast<int>(value.remainder(radix));
       value ~/= radix;
       temp.add(_digits.codeUnitAt(digit));
     } while (value != 0);
@@ -607,7 +609,11 @@ class _Smi extends _IntegerImplementation {
   }
 
   String toString() {
-    if (this < 100 && this > -100) return _smallLookupTable[this + 99];
+    if (this < 100 && this > -100) {
+      // Issue(https://dartbug.com/39639): The analyzer incorrectly reports the
+      // result type as `num`.
+      return _smallLookupTable[unsafeCast<int>(this + 99)];
+    }
     if (this < 0) return _negativeToString(this);
     // Inspired by Andrei Alexandrescu: "Three Optimization Tips for C++"
     // Avoid expensive remainder operation by doing it on more than
@@ -616,11 +622,11 @@ class _Smi extends _IntegerImplementation {
     int length = _positiveBase10Length(this);
     _OneByteString result = _OneByteString._allocate(length);
     int index = length - 1;
-    var smi = this;
+    _Smi smi = this;
     do {
       // Two digits at a time.
-      var twoDigits = smi.remainder(100);
-      smi = smi ~/ 100;
+      final int twoDigits = unsafeCast<int>(smi.remainder(100));
+      smi = unsafeCast<_Smi>(smi ~/ 100);
       int digitIndex = twoDigits * 2;
       result._setAt(index, _digitTable[digitIndex + 1]);
       result._setAt(index - 1, _digitTable[digitIndex]);

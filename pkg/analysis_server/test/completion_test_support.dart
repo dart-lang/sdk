@@ -79,10 +79,10 @@ class CompletionTestCase extends CompletionDomainHandlerListTokenDetailsTest {
 
   runTest(LocationSpec spec, [Map<String, String> extraFiles]) {
     super.setUp();
-    return new Future(() {
+    return Future(() {
       String content = spec.source;
       newFile(testFile, content: content);
-      this.testCode = content;
+      testCode = content;
       completionOffset = spec.testLocation;
       if (extraFiles != null) {
         extraFiles.forEach((String fileName, String content) {
@@ -133,7 +133,7 @@ class LocationSpec {
    */
   static List<LocationSpec> from(
       String originalSource, List<String> validationStrings) {
-    Map<String, LocationSpec> tests = new HashMap<String, LocationSpec>();
+    Map<String, LocationSpec> tests = HashMap<String, LocationSpec>();
     String modifiedSource = originalSource;
     int modifiedPosition = 0;
     while (true) {
@@ -145,7 +145,7 @@ class LocationSpec {
       String id = modifiedSource.substring(index + 1, index + 2);
       if (id != '!') {
         n = 2;
-        LocationSpec test = new LocationSpec(id);
+        LocationSpec test = LocationSpec(id);
         tests[id] = test;
         test.testLocation = index;
       } else {
@@ -155,18 +155,18 @@ class LocationSpec {
           modifiedSource.substring(index + n);
     }
     if (modifiedSource == originalSource) {
-      throw new StateError("No tests in source: " + originalSource);
+      throw StateError("No tests in source: " + originalSource);
     }
     for (String result in validationStrings) {
       if (result.length < 3) {
-        throw new StateError("Invalid location result: " + result);
+        throw StateError("Invalid location result: " + result);
       }
       String id = result.substring(0, 1);
       String sign = result.substring(1, 2);
       String value = result.substring(2);
       LocationSpec test = tests[id];
       if (test == null) {
-        throw new StateError("Invalid location result id: $id for: $result");
+        throw StateError("Invalid location result id: $id for: $result");
       }
       test.source = modifiedSource;
       if (sign == '+') {
@@ -175,7 +175,7 @@ class LocationSpec {
         test.negativeResults.add(value);
       } else {
         String err = "Invalid location result sign: $sign for: $result";
-        throw new StateError(err);
+        throw StateError(err);
       }
     }
     List<String> badPoints = <String>[];
@@ -189,7 +189,7 @@ class LocationSpec {
       }
     }
     if (!(badPoints.isEmpty && badResults.isEmpty)) {
-      StringBuffer err = new StringBuffer();
+      StringBuffer err = StringBuffer();
       if (badPoints.isNotEmpty) {
         err.write("No test location for tests:");
         for (String ch in badPoints) {
@@ -203,7 +203,7 @@ class LocationSpec {
           err..write(' ')..write(ch);
         }
       }
-      throw new StateError(err.toString());
+      throw StateError(err.toString());
     }
     return tests.values.toList();
   }

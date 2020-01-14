@@ -8,7 +8,7 @@
 class SourceBuilder {
   final String file;
   final int offset;
-  final StringBuffer _buffer = new StringBuffer();
+  final StringBuffer _buffer = StringBuffer();
 
   int _exitOffset;
 

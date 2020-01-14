@@ -4,7 +4,7 @@
 
 /*member: AppView.:[subclass=AppView]*/
 abstract class AppView<T> {
-  /*member: AppView.ctx:Union([exact=CardComponent2], [null|exact=CardComponent])*/
+  /*member: AppView.ctx:Union(null, [exact=CardComponent2], [exact=CardComponent])*/
   T ctx;
 }
 

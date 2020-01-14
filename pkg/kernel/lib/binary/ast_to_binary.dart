@@ -26,7 +26,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   final UriIndexer _sourceUriIndexer = new UriIndexer();
   bool _currentlyInNonimplementation = false;
   final List<bool> _sourcesFromRealImplementation = new List<bool>();
-  final List<bool> _sourcesFromRealImplementationInLibrary = new List<bool>();
+  final List<bool> _sourcesUsedInLibrary = new List<bool>();
   Map<LibraryDependency, int> _libraryDependencyIndex =
       <LibraryDependency, int>{};
 
@@ -276,15 +276,15 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     final int index = _sourceUriIndexer.put(uri);
     writeUInt30(index);
     if (!_currentlyInNonimplementation) {
-      if (_sourcesFromRealImplementationInLibrary.length <= index) {
-        _sourcesFromRealImplementationInLibrary.length = index + 1;
-      }
-      _sourcesFromRealImplementationInLibrary[index] = true;
       if (_sourcesFromRealImplementation.length <= index) {
         _sourcesFromRealImplementation.length = index + 1;
       }
       _sourcesFromRealImplementation[index] = true;
     }
+    if (_sourcesUsedInLibrary.length <= index) {
+      _sourcesUsedInLibrary.length = index + 1;
+    }
+    _sourcesUsedInLibrary[index] = true;
   }
 
   void writeList<T>(List<T> items, void writeItem(T x)) {
@@ -966,16 +966,16 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     int sourceReferencesCount = 0;
     // Note: We start at 1 because 0 is the null-entry and we don't want to
     // include that.
-    for (int i = 1; i < _sourcesFromRealImplementationInLibrary.length; i++) {
-      if (_sourcesFromRealImplementationInLibrary[i] == true) {
+    for (int i = 1; i < _sourcesUsedInLibrary.length; i++) {
+      if (_sourcesUsedInLibrary[i] == true) {
         sourceReferencesCount++;
       }
     }
     writeUInt30(sourceReferencesCount);
-    for (int i = 1; i < _sourcesFromRealImplementationInLibrary.length; i++) {
-      if (_sourcesFromRealImplementationInLibrary[i] == true) {
+    for (int i = 1; i < _sourcesUsedInLibrary.length; i++) {
+      if (_sourcesUsedInLibrary[i] == true) {
         writeUInt30(i);
-        _sourcesFromRealImplementationInLibrary[i] = false;
+        _sourcesUsedInLibrary[i] = false;
       }
     }
 

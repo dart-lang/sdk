@@ -102,27 +102,27 @@ class CompletionGenerator {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     List<Notification> notifications = <Notification>[];
-    CompletionCollectorImpl collector = new CompletionCollectorImpl();
+    CompletionCollectorImpl collector = CompletionCollectorImpl();
     try {
       for (CompletionContributor contributor in contributors) {
         request.checkAborted();
         try {
           await contributor.computeSuggestions(request, collector);
         } catch (exception, stackTrace) {
-          notifications.add(new PluginErrorParams(
+          notifications.add(PluginErrorParams(
                   false, exception.toString(), stackTrace.toString())
               .toNotification());
         }
       }
     } on AbortCompletion {
-      return new GeneratorResult(null, notifications);
+      return GeneratorResult(null, notifications);
     }
     collector.offset ??= request.offset;
     collector.length ??= 0;
 
-    CompletionGetSuggestionsResult result = new CompletionGetSuggestionsResult(
+    CompletionGetSuggestionsResult result = CompletionGetSuggestionsResult(
         collector.offset, collector.length, collector.suggestions);
-    return new GeneratorResult(result, notifications);
+    return GeneratorResult(result, notifications);
   }
 }
 

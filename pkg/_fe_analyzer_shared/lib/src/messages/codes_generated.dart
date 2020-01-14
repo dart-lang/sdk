@@ -2935,6 +2935,27 @@ Message _withArgumentsExtendingRestricted(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExtendsFutureOr = messageExtendsFutureOr;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExtendsFutureOr = const MessageCode("ExtendsFutureOr",
+    message: r"""The type 'FutureOr' can't be used in an 'extends' clause.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExtendsNever = messageExtendsNever;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExtendsNever = const MessageCode("ExtendsNever",
+    message: r"""The type 'Never' can't be used in an 'extends' clause.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExtendsVoid = messageExtendsVoid;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExtendsVoid = const MessageCode("ExtendsVoid",
+    message: r"""The type 'void' can't be used in an 'extends' clause.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExtensionDeclaresAbstractMember =
     messageExtensionDeclaresAbstractMember;
 
@@ -3904,7 +3925,15 @@ const Code<Null> codeImplementsFutureOr = messageImplementsFutureOr;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageImplementsFutureOr = const MessageCode(
     "ImplementsFutureOr",
-    message: r"""'FutureOr' can't be used in an 'implements' clause.""");
+    message:
+        r"""The type 'FutureOr' can't be used in an 'implements' clause.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeImplementsNever = messageImplementsNever;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageImplementsNever = const MessageCode("ImplementsNever",
+    message: r"""The type 'Never' can't be used in an 'implements' clause.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name, int count)>
@@ -3958,6 +3987,13 @@ Message _withArgumentsImplementsSuperClass(String name) {
       tip: """Try removing one of the occurrences.""",
       arguments: {'name': name});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeImplementsVoid = messageImplementsVoid;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageImplementsVoid = const MessageCode("ImplementsVoid",
+    message: r"""The type 'void' can't be used in an 'implements' clause.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -6926,6 +6962,60 @@ Message _withArgumentsRedirectionTargetNotFound(String name) {
   name = demangleMixinApplicationName(name);
   return new Message(codeRedirectionTargetNotFound,
       message: """Redirection constructor target not found: '${name}'""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateRequiredNamedParameterHasDefaultValueError =
+    const Template<Message Function(String name)>(
+        messageTemplate:
+            r"""Required named parameter '#name' can't have a default value.""",
+        withArguments:
+            _withArgumentsRequiredNamedParameterHasDefaultValueError);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeRequiredNamedParameterHasDefaultValueError =
+    const Code<Message Function(String name)>(
+  "RequiredNamedParameterHasDefaultValueError",
+  templateRequiredNamedParameterHasDefaultValueError,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsRequiredNamedParameterHasDefaultValueError(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeRequiredNamedParameterHasDefaultValueError,
+      message:
+          """Required named parameter '${name}' can't have a default value.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateRequiredNamedParameterHasDefaultValueWarning =
+    const Template<Message Function(String name)>(
+        messageTemplate:
+            r"""Required named parameter '#name' has a default value.""",
+        withArguments:
+            _withArgumentsRequiredNamedParameterHasDefaultValueWarning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeRequiredNamedParameterHasDefaultValueWarning =
+    const Code<Message Function(String name)>(
+        "RequiredNamedParameterHasDefaultValueWarning",
+        templateRequiredNamedParameterHasDefaultValueWarning,
+        severity: Severity.warning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsRequiredNamedParameterHasDefaultValueWarning(
+    String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeRequiredNamedParameterHasDefaultValueWarning,
+      message: """Required named parameter '${name}' has a default value.""",
       arguments: {'name': name});
 }
 

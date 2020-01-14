@@ -19,6 +19,7 @@ main() {
 
 @reflectiveTest
 class InlineLocalTest extends RefactoringTest {
+  @override
   InlineLocalRefactoringImpl refactoring;
 
   test_access() async {
@@ -633,7 +634,7 @@ main() {
 
   void _createRefactoring(String search) {
     int offset = findOffset(search);
-    refactoring = new InlineLocalRefactoring(
+    refactoring = InlineLocalRefactoring(
       searchEngine,
       testAnalysisResult,
       offset,

@@ -30,6 +30,12 @@ static const intptr_t kPageSize = 512 * KB;
 static const intptr_t kPageSizeInWords = kPageSize / kWordSize;
 static const intptr_t kPageMask = ~(kPageSize - 1);
 
+static const intptr_t kBitVectorWordsPerBlock = 1;
+static const intptr_t kBlockSize =
+    kObjectAlignment * kBitsPerWord * kBitVectorWordsPerBlock;
+static const intptr_t kBlockMask = ~(kBlockSize - 1);
+static const intptr_t kBlocksPerPage = kPageSize / kBlockSize;
+
 // A page containing old generation objects.
 class HeapPage {
  public:
@@ -317,6 +323,14 @@ class PageSpace {
     MutexLocker ml(&pages_lock_);
     return usage_;
   }
+  int64_t ImageInWords() const {
+    int64_t size = 0;
+    MutexLocker ml(&pages_lock_);
+    for (HeapPage* page = image_pages_; page != nullptr; page = page->next()) {
+      size += page->memory_->size();
+    }
+    return size >> kWordSizeLog2;
+  }
 
   bool Contains(uword addr) const;
   bool Contains(uword addr, HeapPage::PageType type) const;
@@ -457,6 +471,12 @@ class PageSpace {
                                HeapPage::PageType type,
                                GrowthPolicy growth_policy,
                                bool is_locked);
+  uword TryAllocateInFreshLargePage(intptr_t size,
+                                    HeapPage::PageType type,
+                                    GrowthPolicy growth_policy);
+
+  void EvaluateConcurrentMarking(GrowthPolicy growth_policy);
+
   // Makes bump block walkable; do not call concurrently with mutator.
   void MakeIterable() const;
   HeapPage* AllocatePage(HeapPage::PageType type, bool link = true);
@@ -535,6 +555,7 @@ class PageSpace {
   friend class ExclusiveCodePageIterator;
   friend class ExclusiveLargePageIterator;
   friend class HeapIterationScope;
+  friend class HeapSnapshotWriter;
   friend class PageSpaceController;
   friend class ConcurrentSweeperTask;
   friend class GCCompactor;

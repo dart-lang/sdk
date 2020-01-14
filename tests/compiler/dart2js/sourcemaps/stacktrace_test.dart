@@ -40,7 +40,7 @@ void main(List<String> args) {
           verbose: argResults['verbose'],
           printJs: argResults['print-js'],
           writeJs: argResults['write-js'],
-          inlineData: name.endsWith('_inlining.dart'));
+          inlineData: name.contains('_inlining'));
       if (argResults['continued']) {
         continuing = true;
       }

@@ -2606,7 +2606,7 @@ class NodeReplacerTest {
   /**
    * An empty list of tokens.
    */
-  static const List<Token> EMPTY_TOKEN_LIST = const <Token>[];
+  static const List<Token> EMPTY_TOKEN_LIST = <Token>[];
 
   void test_adjacentStrings() {
     AdjacentStrings node = AstTestFactory.adjacentStrings(
@@ -3921,12 +3921,6 @@ class StringUtilitiesTest {
     // missing
   }
 
-  void test_startsWithChar() {
-    expect(StringUtilities.startsWithChar("a", 0x61), isTrue);
-    expect(StringUtilities.startsWithChar("b", 0x61), isFalse);
-    expect(StringUtilities.startsWithChar("", 0x61), isFalse);
-  }
-
   void test_substringBefore() {
     expect(StringUtilities.substringBefore(null, ""), null);
     expect(StringUtilities.substringBefore(null, "a"), null);
@@ -3950,6 +3944,7 @@ class StringUtilitiesTest {
 }
 
 class _ExceptionThrowingVisitor extends SimpleAstVisitor {
+  @override
   visitNullLiteral(NullLiteral node) {
     throw ArgumentError('');
   }

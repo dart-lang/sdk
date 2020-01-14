@@ -15,7 +15,7 @@ export 'package:analyzer_plugin/src/protocol/protocol_internal.dart'
     show JsonDecoder;
 
 final Map<String, RefactoringKind> REQUEST_ID_REFACTORING_KINDS =
-    new HashMap<String, RefactoringKind>();
+    HashMap<String, RefactoringKind>();
 
 /**
  * Adds the given [sourceEdits] to the list in [sourceFileEdit].
@@ -44,7 +44,7 @@ void addEditToSourceChange(
     SourceChange change, String file, int fileStamp, SourceEdit edit) {
   SourceFileEdit fileEdit = change.getFileEdit(file);
   if (fileEdit == null) {
-    fileEdit = new SourceFileEdit(file, fileStamp);
+    fileEdit = SourceFileEdit(file, fileStamp);
     change.addFileEdit(fileEdit);
   }
   fileEdit.add(edit);
@@ -56,7 +56,7 @@ void addEditToSourceChange(
  */
 String applyEdit(String code, SourceEdit edit) {
   if (edit.length < 0) {
-    throw new RangeError('length is negative');
+    throw RangeError('length is negative');
   }
   return code.replaceRange(edit.offset, edit.end, edit.replacement);
 }
@@ -139,7 +139,7 @@ bool mapEqual<K, V>(Map<K, V> mapA, Map<K, V> mapB, bool valueEqual(V a, V b)) {
  */
 Map<KR, VR> mapMap<KP, VP, KR, VR>(Map<KP, VP> map,
     {KR keyCallback(KP key), VR valueCallback(VP value)}) {
-  Map<KR, VR> result = new HashMap<KR, VR>();
+  Map<KR, VR> result = HashMap<KR, VR>();
   map.forEach((key, value) {
     KR resultKey;
     VR resultValue;
@@ -187,24 +187,22 @@ RefactoringFeedback refactoringFeedbackFromJson(
     JsonDecoder jsonDecoder, String jsonPath, Object json, Map feedbackJson) {
   RefactoringKind kind = jsonDecoder.refactoringKind;
   if (kind == RefactoringKind.EXTRACT_LOCAL_VARIABLE) {
-    return new ExtractLocalVariableFeedback.fromJson(
-        jsonDecoder, jsonPath, json);
+    return ExtractLocalVariableFeedback.fromJson(jsonDecoder, jsonPath, json);
   }
   if (kind == RefactoringKind.EXTRACT_METHOD) {
-    return new ExtractMethodFeedback.fromJson(jsonDecoder, jsonPath, json);
+    return ExtractMethodFeedback.fromJson(jsonDecoder, jsonPath, json);
   }
   if (kind == RefactoringKind.EXTRACT_WIDGET) {
-    return new ExtractWidgetFeedback.fromJson(jsonDecoder, jsonPath, json);
+    return ExtractWidgetFeedback.fromJson(jsonDecoder, jsonPath, json);
   }
   if (kind == RefactoringKind.INLINE_LOCAL_VARIABLE) {
-    return new InlineLocalVariableFeedback.fromJson(
-        jsonDecoder, jsonPath, json);
+    return InlineLocalVariableFeedback.fromJson(jsonDecoder, jsonPath, json);
   }
   if (kind == RefactoringKind.INLINE_METHOD) {
-    return new InlineMethodFeedback.fromJson(jsonDecoder, jsonPath, json);
+    return InlineMethodFeedback.fromJson(jsonDecoder, jsonPath, json);
   }
   if (kind == RefactoringKind.RENAME) {
-    return new RenameFeedback.fromJson(jsonDecoder, jsonPath, json);
+    return RenameFeedback.fromJson(jsonDecoder, jsonPath, json);
   }
   return null;
 }
@@ -215,23 +213,22 @@ RefactoringFeedback refactoringFeedbackFromJson(
 RefactoringOptions refactoringOptionsFromJson(JsonDecoder jsonDecoder,
     String jsonPath, Object json, RefactoringKind kind) {
   if (kind == RefactoringKind.EXTRACT_LOCAL_VARIABLE) {
-    return new ExtractLocalVariableOptions.fromJson(
-        jsonDecoder, jsonPath, json);
+    return ExtractLocalVariableOptions.fromJson(jsonDecoder, jsonPath, json);
   }
   if (kind == RefactoringKind.EXTRACT_METHOD) {
-    return new ExtractMethodOptions.fromJson(jsonDecoder, jsonPath, json);
+    return ExtractMethodOptions.fromJson(jsonDecoder, jsonPath, json);
   }
   if (kind == RefactoringKind.EXTRACT_WIDGET) {
-    return new ExtractWidgetOptions.fromJson(jsonDecoder, jsonPath, json);
+    return ExtractWidgetOptions.fromJson(jsonDecoder, jsonPath, json);
   }
   if (kind == RefactoringKind.INLINE_METHOD) {
-    return new InlineMethodOptions.fromJson(jsonDecoder, jsonPath, json);
+    return InlineMethodOptions.fromJson(jsonDecoder, jsonPath, json);
   }
   if (kind == RefactoringKind.MOVE_FILE) {
-    return new MoveFileOptions.fromJson(jsonDecoder, jsonPath, json);
+    return MoveFileOptions.fromJson(jsonDecoder, jsonPath, json);
   }
   if (kind == RefactoringKind.RENAME) {
-    return new RenameOptions.fromJson(jsonDecoder, jsonPath, json);
+    return RenameOptions.fromJson(jsonDecoder, jsonPath, json);
   }
   return null;
 }
@@ -241,7 +238,7 @@ RefactoringOptions refactoringOptionsFromJson(JsonDecoder jsonDecoder,
  * string describing the part of the JSON object being decoded, and [value] is
  * the part to decode.
  */
-typedef E JsonDecoderCallback<E>(String jsonPath, Object value);
+typedef JsonDecoderCallback<E> = E Function(String jsonPath, Object value);
 
 /**
  * Instances of the class [HasToJson] implement [toJson] method that returns
@@ -266,6 +263,7 @@ class RequestDecoder extends JsonDecoder {
 
   RequestDecoder(this._request);
 
+  @override
   RefactoringKind get refactoringKind {
     // Refactoring feedback objects should never appear in requests.
     return null;
@@ -273,7 +271,7 @@ class RequestDecoder extends JsonDecoder {
 
   @override
   dynamic mismatch(String jsonPath, String expected, [Object actual]) {
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     buffer.write('Expected to be ');
     buffer.write(expected);
     if (actual != null) {
@@ -281,13 +279,13 @@ class RequestDecoder extends JsonDecoder {
       buffer.write(json.encode(actual));
       buffer.write('"');
     }
-    return new RequestFailure(
-        new Response.invalidParameter(_request, jsonPath, buffer.toString()));
+    return RequestFailure(
+        Response.invalidParameter(_request, jsonPath, buffer.toString()));
   }
 
   @override
   dynamic missingKey(String jsonPath, String key) {
-    return new RequestFailure(new Response.invalidParameter(
+    return RequestFailure(Response.invalidParameter(
         _request, jsonPath, 'Expected to contain key ${json.encode(key)}'));
   }
 }
@@ -305,13 +303,14 @@ abstract class RequestParams implements HasToJson {
  * used only for testing.  Errors are reported using bare [Exception] objects.
  */
 class ResponseDecoder extends JsonDecoder {
+  @override
   final RefactoringKind refactoringKind;
 
   ResponseDecoder(this.refactoringKind);
 
   @override
   dynamic mismatch(String jsonPath, String expected, [Object actual]) {
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     buffer.write('Expected ');
     buffer.write(expected);
     if (actual != null) {
@@ -321,12 +320,12 @@ class ResponseDecoder extends JsonDecoder {
     }
     buffer.write(' at ');
     buffer.write(jsonPath);
-    return new Exception(buffer.toString());
+    return Exception(buffer.toString());
   }
 
   @override
   dynamic missingKey(String jsonPath, String key) {
-    return new Exception('Missing key $key at $jsonPath');
+    return Exception('Missing key $key at $jsonPath');
   }
 }
 

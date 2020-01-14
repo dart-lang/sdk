@@ -118,7 +118,7 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
     return JS('var', r'#.pop()', this);
   }
 
-  bool remove(Object element) {
+  bool remove(Object? element) {
     checkGrowable('remove');
     var length = this.length;
     for (int i = 0; i < length; i++) {
@@ -133,17 +133,17 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
   /**
    * Removes elements matching [test] from [this] List.
    */
-  void removeWhere(bool test(E element)) {
+  void removeWhere(bool Function(E) test) {
     checkGrowable('removeWhere');
     _removeWhere(test, true);
   }
 
-  void retainWhere(bool test(E element)) {
+  void retainWhere(bool Function(E) test) {
     checkGrowable('retainWhere');
     _removeWhere(test, false);
   }
 
-  void _removeWhere(bool test(E element), bool removeMatching) {
+  void _removeWhere(bool Function(E) test, bool removeMatching) {
     // Performed in two steps, to avoid exposing an inconsistent state
     // to the [test] function. First the elements to retain are found, and then
     // the original list is updated to contain those elements.
@@ -154,9 +154,7 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
     List retained = [];
     int end = this.length;
     for (int i = 0; i < end; i++) {
-      // TODO(22407): Improve bounds check elimination to allow this JS code to
-      // be replaced by indexing.
-      E element = JS('-dynamic', '#[#]', this, i);
+      var element = JS<E>('-dynamic', '#[#]', this, i);
       // !test() ensures bool conversion in checked mode.
       if (!test(element) == removeMatching) {
         retained.add(element);
@@ -172,11 +170,11 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
     }
   }
 
-  Iterable<E> where(bool f(E element)) {
+  Iterable<E> where(bool Function(E) f) {
     return WhereIterable<E>(this, f);
   }
 
-  Iterable<T> expand<T>(Iterable<T> f(E element)) {
+  Iterable<T> expand<T>(Iterable<T> Function(E) f) {
     return ExpandIterable<E, T>(this, f);
   }
 
@@ -194,18 +192,16 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
     length = 0;
   }
 
-  void forEach(void f(E element)) {
+  void forEach(void Function(E) f) {
     int end = this.length;
     for (int i = 0; i < end; i++) {
-      // TODO(22407): Improve bounds check elimination to allow this JS code to
-      // be replaced by indexing.
-      var/*=E*/ element = JS('', '#[#]', this, i);
+      var element = JS<E>('', '#[#]', this, i);
       f(element);
       if (this.length != end) throw ConcurrentModificationError(this);
     }
   }
 
-  Iterable<T> map<T>(T f(E element)) {
+  Iterable<T> map<T>(T Function(E) f) {
     return MappedListIterable<E, T>(this, f);
   }
 
@@ -230,7 +226,7 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
     return SubListIterable<E>(this, n, null);
   }
 
-  Iterable<E> skipWhile(bool test(E value)) {
+  Iterable<E> skipWhile(bool Function(E) test) {
     return SkipWhileIterable<E>(this, test);
   }
 
@@ -239,34 +235,28 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
     if (length == 0) throw IterableElementError.noElement();
     E value = this[0];
     for (int i = 1; i < length; i++) {
-      // TODO(22407): Improve bounds check elimination to allow this JS code to
-      // be replaced by indexing.
-      var/*=E*/ element = JS('', '#[#]', this, i);
+      var element = JS<E>('', '#[#]', this, i);
       value = combine(value, element);
       if (length != this.length) throw ConcurrentModificationError(this);
     }
     return value;
   }
 
-  T fold<T>(T initialValue, T combine(T previousValue, E element)) {
+  T fold<T>(T initialValue, T Function(T previousValue, E element) combine) {
     var value = initialValue;
     int length = this.length;
     for (int i = 0; i < length; i++) {
-      // TODO(22407): Improve bounds check elimination to allow this JS code to
-      // be replaced by indexing.
-      var/*=E*/ element = JS('', '#[#]', this, i);
+      var element = JS<E>('', '#[#]', this, i);
       value = combine(value, element);
       if (this.length != length) throw ConcurrentModificationError(this);
     }
     return value;
   }
 
-  E firstWhere(bool test(E value), {E orElse()}) {
+  E firstWhere(bool Function(E) test, {E Function()? orElse}) {
     int end = this.length;
     for (int i = 0; i < end; ++i) {
-      // TODO(22407): Improve bounds check elimination to allow this JS code to
-      // be replaced by indexing.
-      var/*=E*/ element = JS('', '#[#]', this, i);
+      var element = JS<E>('', '#[#]', this, i);
       if (test(element)) return element;
       if (this.length != end) throw ConcurrentModificationError(this);
     }
@@ -274,12 +264,10 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
     throw IterableElementError.noElement();
   }
 
-  E lastWhere(bool test(E element), {E orElse()}) {
+  E lastWhere(bool Function(E) test, {E Function()? orElse}) {
     int length = this.length;
     for (int i = length - 1; i >= 0; i--) {
-      // TODO(22407): Improve bounds check elimination to allow this JS code to
-      // be replaced by indexing.
-      var/*=E*/ element = JS('', '#[#]', this, i);
+      var element = JS<E>('', '#[#]', this, i);
       if (test(element)) return element;
       if (length != this.length) {
         throw ConcurrentModificationError(this);
@@ -289,14 +277,12 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
     throw IterableElementError.noElement();
   }
 
-  E singleWhere(bool test(E element), {E orElse()}) {
+  E singleWhere(bool Function(E) test, {E Function()? orElse}) {
     int length = this.length;
-    E match = null;
+    E? match = null;
     bool matchFound = false;
     for (int i = 0; i < length; i++) {
-      // TODO(22407): Improve bounds check elimination to allow this JS code to
-      // be replaced by indexing.
-      E element = JS('-dynamic', '#[#]', this, i);
+      var element = JS<E>('-dynamic', '#[#]', this, i);
       if (test(element)) {
         if (matchFound) {
           throw IterableElementError.tooMany();
@@ -308,7 +294,7 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
         throw ConcurrentModificationError(this);
       }
     }
-    if (matchFound) return match;
+    if (matchFound) return match!;
     if (orElse != null) return orElse();
     throw IterableElementError.noElement();
   }
@@ -317,7 +303,7 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
     return this[index];
   }
 
-  List<E> sublist(@nullCheck int start, [int end]) {
+  List<E> sublist(@nullCheck int start, [int? end]) {
     if (start < 0 || start > length) {
       throw RangeError.range(start, 0, length, "start");
     }
@@ -371,7 +357,7 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
     if (length == 0) return;
     RangeError.checkNotNegative(skipCount, "skipCount");
 
-    List<E> otherList;
+    var otherList = <E>[];
     int otherStart = 0;
     // TODO(floitsch): Make this accept more.
     if (iterable is List<E>) {
@@ -403,12 +389,12 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
     }
   }
 
-  void fillRange(@nullCheck int start, @nullCheck int end, [E fillValue]) {
+  void fillRange(@nullCheck int start, @nullCheck int end, [E? fillValue]) {
     checkMutable('fill range');
     RangeError.checkValidRange(start, end, this.length);
+    E checkedFillValue = fillValue as E;
     for (int i = start; i < end; i++) {
-      // Store is safe since [fillValue] type has been checked as parameter.
-      JS('', '#[#] = #', this, i, fillValue);
+      JS('', '#[#] = #', this, i, checkedFillValue);
     }
   }
 
@@ -441,24 +427,20 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
     }
   }
 
-  bool any(bool test(E element)) {
+  bool any(bool Function(E) test) {
     int end = this.length;
     for (int i = 0; i < end; i++) {
-      // TODO(22407): Improve bounds check elimination to allow this JS code to
-      // be replaced by indexing.
-      var/*=E*/ element = JS('', '#[#]', this, i);
+      var element = JS<E>('', '#[#]', this, i);
       if (test(element)) return true;
       if (this.length != end) throw ConcurrentModificationError(this);
     }
     return false;
   }
 
-  bool every(bool test(E element)) {
+  bool every(bool Function(E) test) {
     int end = this.length;
     for (int i = 0; i < end; i++) {
-      // TODO(22407): Improve bounds check elimination to allow this JS code to
-      // be replaced by indexing.
-      E element = JS('-dynamic', '#[#]', this, i);
+      var element = JS<E>('-dynamic', '#[#]', this, i);
       if (!test(element)) return false;
       if (this.length != end) throw ConcurrentModificationError(this);
     }
@@ -467,7 +449,7 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
 
   Iterable<E> get reversed => ReversedListIterable<E>(this);
 
-  void sort([int compare(E a, E b)]) {
+  void sort([int Function(E, E)? compare]) {
     checkMutable('sort');
     if (compare == null) {
       Sort.sort(this, (a, b) => Comparable.compare(a, b));
@@ -476,7 +458,7 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
     }
   }
 
-  void shuffle([Random random]) {
+  void shuffle([Random? random]) {
     checkMutable('shuffle');
     if (random == null) random = Random();
     int length = this.length;
@@ -489,7 +471,7 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
     }
   }
 
-  int indexOf(Object element, [@nullCheck int start = 0]) {
+  int indexOf(E element, [@nullCheck int start = 0]) {
     int length = this.length;
     if (start >= length) {
       return -1;
@@ -505,7 +487,7 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
     return -1;
   }
 
-  int lastIndexOf(Object element, [int _startIndex]) {
+  int lastIndexOf(E element, [int? _startIndex]) {
     @notNull
     int startIndex = _startIndex ?? this.length - 1;
     if (startIndex >= this.length) {
@@ -521,7 +503,7 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
     return -1;
   }
 
-  bool contains(Object other) {
+  bool contains(Object? other) {
     var length = this.length;
     for (int i = 0; i < length; i++) {
       E element = JS('Null', '#[#]', this, i);
@@ -569,18 +551,16 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
 
   E operator [](int index) {
     // Suppress redundant null checks via JS.
-    if (index == null ||
-        JS<int>('!', '#', index) >= JS<int>('!', '#.length', this) ||
+    if (JS<int>('!', '#', index) >= JS<int>('!', '#.length', this) ||
         JS<int>('!', '#', index) < 0) {
       throw diagnoseIndexError(this, index);
     }
-    return JS('var', '#[#]', this, index);
+    return JS<E>('', '#[#]', this, index);
   }
 
   void operator []=(int index, E value) {
     checkMutable('indexed set');
-    if (index == null ||
-        JS<int>('!', '#', index) >= JS<int>('!', '#.length', this) ||
+    if (JS<int>('!', '#', index) >= JS<int>('!', '#.length', this) ||
         JS<int>('!', '#', index) < 0) {
       throw diagnoseIndexError(this, index);
     }
@@ -607,7 +587,7 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
       ..setRange(this.length, totalLength, other);
   }
 
-  int indexWhere(bool test(E element), [int start = 0]) {
+  int indexWhere(bool Function(E) test, [int start = 0]) {
     if (start >= this.length) return -1;
     if (start < 0) start = 0;
     for (int i = start; i < this.length; i++) {
@@ -616,7 +596,7 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
     return -1;
   }
 
-  int lastIndexWhere(bool test(E element), [int start]) {
+  int lastIndexWhere(bool Function(E) test, [int? start]) {
     if (start == null) start = this.length - 1;
     if (start < 0) return -1;
     for (int i = start; i >= 0; i--) {
@@ -663,14 +643,14 @@ class ArrayIterator<E> implements Iterator<E> {
   final int _length;
   @notNull
   int _index;
-  E _current;
+  E? _current;
 
   ArrayIterator(JSArray<E> iterable)
       : _iterable = iterable,
         _length = iterable.length,
         _index = 0;
 
-  E get current => _current;
+  E get current => _current as E;
 
   bool moveNext() {
     @notNull

@@ -1,4 +1,22 @@
 # Changelog
+
+## 2.3.1
+- Fixed issue where `dart:io` extensions were not being exported.
+
+## 2.3.0
+- Added `getHttpEnableTimelineLogging` and `setHttpEnableTimelineLogging` methods.
+- Added `HttpTimelineLoggingState` class.`
+
+## 2.2.1
+- Fixed issue where `TimelineEvent.toJson` always returned an empty map.
+
+## 2.2.0
+- Added support for interacting with dart:io service extensions.
+- Bumped minimum SDK requirement to 2.6.0.
+
+## 2.1.4
+- Fixed issue where `TimelineEvent` always had no content.
+
 ## 2.1.3
 - Fixed issue where exception would be thrown when attempting to parse a
   List entry in a response which is not present. This occurs when connected to

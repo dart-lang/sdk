@@ -49,6 +49,6 @@ class FoldingCollectorImpl implements FoldingCollector {
 
   @override
   void addRegion(int offset, int length, FoldingKind kind) {
-    regions.add(new FoldingRegion(kind, offset, length));
+    regions.add(FoldingRegion(kind, offset, length));
   }
 }

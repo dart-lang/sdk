@@ -24,6 +24,7 @@ class Highlights2ComputerTest extends AbstractContextTest {
   String content;
   List<HighlightRegion> highlights;
 
+  @override
   setUp() {
     super.setUp();
     sourcePath = convertPath('/home/test/lib/test.dart');
@@ -79,7 +80,7 @@ main() {
     }
 
     DartUnitHighlightsComputer2 computer =
-        new DartUnitHighlightsComputer2(result.unit);
+        DartUnitHighlightsComputer2(result.unit);
     highlights = computer.compute();
   }
 }

@@ -14,6 +14,7 @@ import 'package:analysis_server/src/utilities/strings.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -21,6 +22,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show Location, SourceEdit, SourceFileEdit;
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
+import 'package:meta/meta.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 
@@ -92,10 +94,12 @@ class InfoBuilder {
   }
 
   Iterable<EdgeInfo> upstreamTriggeredEdges(NullabilityNodeInfo node,
-      [List<RegionDetail> details]) {
+      {bool skipExactNullable = true}) {
     var edges = <EdgeInfo>[];
     for (EdgeInfo edge in node.upstreamEdges) {
-      if (node.isExactNullable && edge.sourceNode.isExactNullable) {
+      if (skipExactNullable &&
+          node.isExactNullable &&
+          edge.sourceNode.isExactNullable) {
         // When an exact nullable points here, the nullability propagated
         // in the other direction.
         continue;
@@ -105,7 +109,14 @@ class InfoBuilder {
       }
     }
     for (final containerNode in node.outerCompoundNodes) {
-      edges.addAll(upstreamTriggeredEdges(containerNode, details));
+      // We must include the exact nullable edges in the upstream triggered
+      // edges of the container node. If this node is in a substitution node,
+      // then it's possible it was marked exact nullable because it's container
+      // was marked nullable. It's container could have been marked nullable by
+      // another exact nullable node. We cannot tell. Err on the side of
+      // surfacing too many reasons.
+      edges.addAll(
+          upstreamTriggeredEdges(containerNode, skipExactNullable: false));
     }
 
     return edges;
@@ -136,13 +147,14 @@ class InfoBuilder {
         return "This parameter has ${aNullableDefault(node)}";
       }
     } else if (node is FieldFormalParameter) {
-      AstNode parent = node.parent;
       if (parent is DefaultFormalParameter) {
         return "This field is initialized by an optional field formal "
             "parameter that has ${aNullableDefault(parent)}";
       }
       return "This field is initialized by a field formal parameter and a "
           "nullable value is passed as an argument";
+    } else if (parent is DefaultFormalParameter) {
+      return "This parameter has ${aNullableDefault(parent)}";
     } else if (parent is AsExpression) {
       return "The value of the expression is nullable";
     }
@@ -235,7 +247,14 @@ class InfoBuilder {
       return "The constructor '$constructorName' does not initialize this "
           "field in its initializer list";
     }
-    return capitalize("$nullableValue is assigned");
+
+    String enclosingMemberDescription = buildEnclosingMemberDescription(node);
+    if (enclosingMemberDescription != null) {
+      return capitalize(
+          "$nullableValue is assigned in $enclosingMemberDescription");
+    } else {
+      return capitalize("$nullableValue is assigned");
+    }
   }
 
   /// Return a description of the given [origin].
@@ -270,13 +289,14 @@ class InfoBuilder {
         TypeAnnotation type = info.typeAnnotationForNode(edge.sourceNode);
         if (type != null) {
           CompilationUnit unit = type.thisOrAncestorOfType<CompilationUnit>();
-          target = _targetForNode(unit.declaredElement.source.fullName, type);
+          target = _proximateTargetForNode(
+              unit.declaredElement.source.fullName, type);
         }
         String description =
             _buildInheritanceDescriptionForOrigin(origin, type);
         return RegionDetail(description, target);
       } else {
-        target = _targetForNode(origin.source.fullName, node);
+        target = _proximateTargetForNode(origin.source.fullName, node);
       }
     }
     return RegionDetail(_buildDescriptionForOrigin(origin, fixKind), target);
@@ -324,8 +344,10 @@ class InfoBuilder {
             var nodeInfo = info.nodeInfoFor(exactNullableDownstream);
             if (nodeInfo != null) {
               // TODO(mfairhurst): Give a better text description.
-              details.add(RegionDetail('This is later required to accept null.',
-                  _targetForNode(nodeInfo.filePath, nodeInfo.astNode)));
+              details.add(RegionDetail(
+                  'This is later required to accept null.',
+                  _proximateTargetForNode(
+                      nodeInfo.filePath, nodeInfo.astNode)));
             } else {
               details.add(RegionDetail(
                   'exact nullable node with no info ($exactNullableDownstream)',
@@ -350,7 +372,8 @@ class InfoBuilder {
         if (nodeInfo != null && nodeInfo.astNode != null) {
           NavigationTarget target;
           if (destination != info.never && destination != info.always) {
-            target = _targetForNode(nodeInfo.filePath, nodeInfo.astNode);
+            target =
+                _proximateTargetForNode(nodeInfo.filePath, nodeInfo.astNode);
           }
           EdgeOriginInfo edge = info.edgeOrigin[reason];
           details.add(RegionDetail(_describeNonNullEdge(edge), target));
@@ -381,7 +404,7 @@ class InfoBuilder {
 
   /// Return the navigation sources for the unit associated with the [result].
   List<NavigationSource> _computeNavigationSources(ResolvedUnitResult result) {
-    NavigationCollectorImpl collector = new NavigationCollectorImpl();
+    NavigationCollectorImpl collector = NavigationCollectorImpl();
     computeDartNavigation(
         result.session.resourceProvider, collector, result.unit, null, null);
     collector.createRegions();
@@ -398,11 +421,11 @@ class InfoBuilder {
       NavigationTarget target = convertedTargets[targets[0]];
       if (target == null) {
         protocol.NavigationTarget rawTarget = rawTargets[targets[0]];
-        target = _targetFor(
-            files[rawTarget.fileIndex], rawTarget.offset, rawTarget.length);
+        target = _targetForRawTarget(files[rawTarget.fileIndex], rawTarget);
         convertedTargets[targets[0]] = target;
       }
-      return NavigationSource(region.offset, region.length, target);
+      return NavigationSource(
+          region.offset, null /* line */, region.length, target);
     }).toList();
   }
 
@@ -418,7 +441,7 @@ class InfoBuilder {
         continue;
       }
       NavigationTarget target =
-          _targetForNode(origin.source.fullName, origin.node);
+          _proximateTargetForNode(origin.source.fullName, origin.node);
       if (origin.kind == EdgeOriginKind.expressionChecks) {
         details.add(RegionDetail(
             'This value is unconditionally used in a non-nullable context',
@@ -485,9 +508,7 @@ class InfoBuilder {
   UnitInfo _explainUnit(SourceInformation sourceInfo, ResolvedUnitResult result,
       SourceFileEdit fileEdit) {
     UnitInfo unitInfo = _unitForPath(result.path);
-    if (unitInfo.sources == null) {
-      unitInfo.sources = _computeNavigationSources(result);
-    }
+    unitInfo.sources ??= _computeNavigationSources(result);
     String content = result.content;
     List<RegionInfo> regions = unitInfo.regions;
 
@@ -557,48 +578,155 @@ class InfoBuilder {
     return resourceProvider.pathContext.split(filePath).contains('test');
   }
 
-  /// Return the navigation target in the file with the given [filePath] at the
-  /// given [offset] ans with the given [length].
-  NavigationTarget _targetFor(String filePath, int offset, int length) {
-    UnitInfo unitInfo = _unitForPath(filePath);
-    NavigationTarget target = NavigationTarget(filePath, offset, length);
-    unitInfo.targets.add(target);
-    return target;
-  }
-
   /// Return the navigation target corresponding to the given [node] in the file
   /// with the given [filePath].
-  NavigationTarget _targetForNode(String filePath, AstNode node) {
+  ///
+  /// Rather than a NavigationTarget targeting exactly [node], heuristics are
+  /// made to point to a narrower target, for example the name of a
+  /// method declaration, rather the the entire declaration.
+  NavigationTarget _proximateTargetForNode(String filePath, AstNode node) {
+    if (node == null) {
+      return null;
+    }
     AstNode parent = node.parent;
+    CompilationUnit unit = node.thisOrAncestorOfType<CompilationUnit>();
     if (node is ConstructorDeclaration) {
       if (node.name != null) {
-        return _targetFor(filePath, node.name.offset, node.name.length);
+        return _targetForNode(filePath, node.name, unit);
       } else {
-        return _targetFor(
-            filePath, node.returnType.offset, node.returnType.length);
+        return _targetForNode(filePath, node.returnType, unit);
       }
     } else if (node is MethodDeclaration) {
       // Rather than create a NavigationTarget for an entire method declaration
       // (starting at its doc comment, ending at `}`, return a target pointing
       // to the method's name.
-      return _targetFor(filePath, node.name.offset, node.name.length);
+      return _targetForNode(filePath, node.name, unit);
     } else if (parent is ReturnStatement) {
       // Rather than create a NavigationTarget for an entire expression, return
       // a target pointing to the `return` token.
-      return _targetFor(
-          filePath, parent.returnKeyword.offset, parent.returnKeyword.length);
+      return _targetForNode(filePath, parent.returnKeyword, unit);
     } else if (parent is ExpressionFunctionBody) {
       // Rather than create a NavigationTarget for an entire expression function
       // body, return a target pointing to the `=>` token.
-      return _targetFor(filePath, parent.functionDefinition.offset,
-          parent.functionDefinition.length);
+      return _targetForNode(filePath, parent.functionDefinition, unit);
     } else {
-      return _targetFor(filePath, node.offset, node.length);
+      return _targetForNode(filePath, node, unit);
     }
+  }
+
+  /// Return the navigation target in the file with the given [filePath] at the
+  /// given [offset] ans with the given [length].
+  NavigationTarget _targetForNode(
+      String filePath, SyntacticEntity node, CompilationUnit unit) {
+    UnitInfo unitInfo = _unitForPath(filePath);
+    int offset = node.offset;
+    int length = node.length;
+
+    int line = unit.lineInfo.getLocation(node.offset).lineNumber;
+    NavigationTarget target = NavigationTarget(filePath, offset, line, length);
+    unitInfo.targets.add(target);
+    return target;
+  }
+
+  /// Return the navigation target in the file with the given [filePath] at the
+  /// given [offset] ans with the given [length].
+  NavigationTarget _targetForRawTarget(
+      String filePath, protocol.NavigationTarget rawTarget) {
+    UnitInfo unitInfo = _unitForPath(filePath);
+    int offset = rawTarget.offset;
+    int length = rawTarget.length;
+    NavigationTarget target =
+        NavigationTarget(filePath, offset, null /* line */, length);
+    unitInfo.targets.add(target);
+    return target;
   }
 
   /// Return the unit info for the file at the given [path].
   UnitInfo _unitForPath(String path) {
     return unitMap.putIfAbsent(path, () => UnitInfo(path));
+  }
+
+  /// Builds a description for [node]'s enclosing member(s).
+  ///
+  /// This may include a class and method name, for example, or the name of the
+  /// enclosing top-level member.
+  @visibleForTesting
+  static String buildEnclosingMemberDescription(AstNode node) {
+    String functionName;
+    String baseDescription;
+
+    void describeFunction(AstNode node) {
+      if (node is ConstructorDeclaration) {
+        if (node.name == null) {
+          baseDescription = "the default constructor of";
+          functionName = "";
+        } else {
+          baseDescription = "the constructor";
+          functionName = node.name.name;
+        }
+      } else if (node is MethodDeclaration) {
+        functionName = node.name.name;
+        if (node.isGetter) {
+          baseDescription = "the getter";
+        } else if (node.isOperator) {
+          baseDescription = "the operator";
+        } else if (node.isSetter) {
+          baseDescription = "the setter";
+          functionName += "=";
+        } else {
+          baseDescription = "the method";
+        }
+      } else if (node is FunctionDeclaration) {
+        functionName = node.name.name;
+        if (node.isGetter) {
+          baseDescription = "the getter";
+        } else if (node.isSetter) {
+          baseDescription = "the setter";
+          functionName += "=";
+        } else {
+          baseDescription = "the function";
+        }
+      } else if (node is FieldDeclaration) {
+        var field = node.thisOrAncestorOfType<VariableDeclaration>();
+        field ??= node.fields.variables[0];
+        functionName = field.name.name;
+        baseDescription = "the field";
+      } else {
+        // Throwing here allows us to gather more information. Not throwing here
+        // causes an NPE on line 709.
+        throw ArgumentError("Can't describe function in ${node.runtimeType}");
+      }
+    }
+
+    var enclosingClassMember = node.thisOrAncestorOfType<ClassMember>();
+
+    if (enclosingClassMember != null) {
+      describeFunction(enclosingClassMember);
+      CompilationUnitMember member = enclosingClassMember.parent;
+      if (member is NamedCompilationUnitMember) {
+        String memberName = member.name.name;
+        if (functionName.isEmpty) {
+          return "$baseDescription '$memberName'";
+        } else {
+          return "$baseDescription '$memberName.$functionName'";
+        }
+      } else if (member is ExtensionDeclaration) {
+        if (member.name == null) {
+          var extendedTypeString = member.extendedType.type.getDisplayString(
+            withNullability: false,
+          );
+          return "$baseDescription '$functionName' in unnamed extension on $extendedTypeString";
+        } else {
+          return "$baseDescription '${member.name.name}.$functionName'";
+        }
+      }
+    }
+    FunctionDeclaration enclosingFunction =
+        node.thisOrAncestorOfType<FunctionDeclaration>();
+    if (enclosingFunction is FunctionDeclaration) {
+      describeFunction(enclosingFunction);
+      return "$baseDescription '$functionName'";
+    }
+    return null;
   }
 }

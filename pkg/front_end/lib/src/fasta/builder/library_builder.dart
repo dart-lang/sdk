@@ -35,6 +35,7 @@ import 'modifier_builder.dart';
 import 'name_iterator.dart';
 import 'nullability_builder.dart';
 import 'prefix_builder.dart';
+import 'type_alias_builder.dart';
 import 'type_builder.dart';
 
 abstract class LibraryBuilder implements ModifierBuilder {
@@ -332,6 +333,10 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
     }
     Builder cls = (bypassLibraryPrivacy ? scope : exportScope)
         .lookup(className, -1, null);
+    if (cls is TypeAliasBuilder) {
+      TypeAliasBuilder aliasBuilder = cls;
+      cls = aliasBuilder.unaliasDeclaration;
+    }
     if (cls is ClassBuilder) {
       // TODO(ahe): This code is similar to code in `endNewExpression` in
       // `body_builder.dart`, try to share it.

@@ -1162,6 +1162,7 @@ class Listener implements UnescapeErrorListener {
   void reportNonNullableModifierError(Token modifierToken) {
     if (modifierToken != null) {
       handleRecoverableError(
+          // TODO(johnniwinther): Update this to handle opt-out libraries
           templateExperimentNotEnabled.withArguments('non-nullable'),
           modifierToken,
           modifierToken);

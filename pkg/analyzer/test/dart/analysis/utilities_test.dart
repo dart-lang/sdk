@@ -226,8 +226,10 @@ void main() => print('Hello, world!');
         equals("void main() => print('Hello, world!');"));
   }
 
-  T _withMemoryFile<T>(String content,
-      T callback(MemoryResourceProvider resourceProvider, String path)) {
+  T _withMemoryFile<T>(
+      String content,
+      T Function(MemoryResourceProvider resourceProvider, String path)
+          callback) {
     var resourceProvider = MemoryResourceProvider();
     var path =
         resourceProvider.pathContext.fromUri(Uri.parse('file:///test.dart'));
@@ -235,7 +237,7 @@ void main() => print('Hello, world!');
     return callback(resourceProvider, path);
   }
 
-  T _withTemporaryFile<T>(String content, T callback(String path)) {
+  T _withTemporaryFile<T>(String content, T Function(String path) callback) {
     var tempDir = Directory.systemTemp.createTempSync();
     try {
       var file = File(p.join(tempDir.path, 'test.dart'));

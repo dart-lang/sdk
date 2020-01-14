@@ -15,6 +15,7 @@ import 'package:analysis_server/src/lsp/source_edits.dart';
 class FormattingHandler
     extends MessageHandler<DocumentFormattingParams, List<TextEdit>> {
   FormattingHandler(LspAnalysisServer server) : super(server);
+  @override
   Method get handlesMessage => Method.textDocument_formatting;
 
   @override
@@ -31,6 +32,7 @@ class FormattingHandler
     return success(generateEditsForFormatting(unformattedSource));
   }
 
+  @override
   Future<ErrorOr<List<TextEdit>>> handle(
       DocumentFormattingParams params, CancellationToken token) async {
     final path = pathOfDoc(params.textDocument);

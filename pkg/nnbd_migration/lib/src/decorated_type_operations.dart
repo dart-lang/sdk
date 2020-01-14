@@ -50,6 +50,12 @@ class DecoratedTypeOperations
     // TODO(paulberry): implement appropriate logic for type variable promotion.
     if (isSubtypeOf(to, from)) {
       return to;
+    }
+
+    // Allow promotion from non-null types to other types, preserving non-null.
+    var keepNonNull = promoteToNonNull(to);
+    if (isSubtypeOf(keepNonNull, from)) {
+      return keepNonNull;
     } else {
       return null;
     }

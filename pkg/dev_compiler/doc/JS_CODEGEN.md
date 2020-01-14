@@ -1,5 +1,8 @@
 # Strong Mode and Idiomatic JavaScript
 
+**Note: This document is out of date.  Please see [Sound Dart](https://dart.dev/guides/language/sound-dart) for up-to-date
+documentation on Dart's type system.  The work below was a precursor towards Dart's current type system.**
+
 The Dart Dev Compiler (DDC) uses [Strong Mode](STRONG_MODE.md) to safely generate
 idiomatic JavaScript.  This enables better interoperability between Dart and JavaScript code.
 

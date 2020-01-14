@@ -689,7 +689,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     node.block.addBefore(node, splitInstruction);
 
     HInstruction typeInfo;
-    if (_options.experimentNewRti) {
+    if (_options.useNewRti) {
       typeInfo = HLoadType.type(
           _closedWorld.elementEnvironment.createInterfaceType(
               commonElements.jsArrayClass, [commonElements.stringType]),
@@ -781,18 +781,15 @@ class SsaInstructionSimplifier extends HBaseVisitor
           // The field is elided and replace it with its constant value.
           if (_abstractValueDomain.isNull(receiverType).isPotentiallyTrue) {
             // The receiver is potentially `null` so we insert a null receiver
-            // guard to trigger a null pointer exception.
-            //
-            // This could be inserted unconditionally and removed by later
-            // optimizations if unnecessary, but performance we do it
-            // conditionally here.
-            // TODO(35996): Replace with null receiver guard instruction.
-            HInstruction dummyGet = new HFieldGet(null, receiver,
-                _abstractValueDomain.dynamicType, node.sourceInformation,
-                isAssignable: false);
-            _log?.registerFieldCall(node, dummyGet);
-            node.block.addBefore(node, dummyGet);
-            insertionPoint = dummyGet;
+            // check to trigger a null pointer exception.  Insert check
+            // conditionally to avoid the work of removing it later.
+            HNullCheck check = HNullCheck(
+                receiver, _abstractValueDomain.excludeNull(receiverType))
+              ..selector = node.selector
+              ..sourceInformation = node.sourceInformation;
+            _log?.registerNullCheck(node, check);
+            node.block.addBefore(node, check);
+            insertionPoint = check;
           }
           ConstantValue value = fieldData.constantValue;
           load = _graph.addConstant(value, _closedWorld,
@@ -801,7 +798,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         } else {
           AbstractValue type = AbstractValueFactory.inferredTypeForMember(
               field, _globalInferenceResults);
-          load = new HFieldGet(field, receiver, type, node.sourceInformation);
+          load = HFieldGet(field, receiver, type, node.sourceInformation);
           _log?.registerFieldCall(node, load);
           node.block.addBefore(node, load);
           insertionPoint = load;
@@ -1101,7 +1098,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
       return node;
     }
 
-    if (type == commonElements.objectType || type.treatAsDynamic) {
+    if (type.isTop) {
       return _graph.addConstantBool(true, _closedWorld);
     }
     InterfaceType interfaceType = type;
@@ -1197,6 +1194,12 @@ class SsaInstructionSimplifier extends HBaseVisitor
   }
 
   @override
+  HInstruction visitNullCheck(HNullCheck node) {
+    if (node.isRedundant(_closedWorld)) return node.checkedInput;
+    return node;
+  }
+
+  @override
   HInstruction visitTypeKnown(HTypeKnown node) {
     return node.isRedundant(_closedWorld) ? node.checkedInput : node;
   }
@@ -1212,7 +1215,6 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
   @override
   HInstruction visitFieldGet(HFieldGet node) {
-    if (node.isNullCheck) return node;
     var receiver = node.receiver;
 
     // HFieldGet of a constructed constant can be replaced with the constant's
@@ -1314,17 +1316,14 @@ class SsaInstructionSimplifier extends HBaseVisitor
         // The field is elided and replace it with its constant value.
         if (_abstractValueDomain.isNull(receiverType).isPotentiallyTrue) {
           // The receiver is potentially `null` so we insert a null receiver
-          // guard to trigger a null pointer exception.
-          //
-          // This could be inserted unconditionally and removed by later
-          // optimizations if unnecessary, but performance we do it
-          // conditionally here.
-          // TODO(35996): Replace with null receiver guard instruction.
-          HInstruction dummyGet = new HFieldGet(null, receiver,
-              _abstractValueDomain.dynamicType, node.sourceInformation,
-              isAssignable: false);
-          _log?.registerFieldGet(node, dummyGet);
-          node.block.addBefore(node, dummyGet);
+          // check to trigger a null pointer exception.  Insert check
+          // conditionally to avoid the work of removing it later.
+          HNullCheck check = HNullCheck(
+              receiver, _abstractValueDomain.excludeNull(receiverType))
+            ..selector = node.selector
+            ..sourceInformation = node.sourceInformation;
+          _log?.registerNullCheck(node, check);
+          node.block.addBefore(node, check);
         }
         ConstantValue constant = fieldData.constantValue;
         HConstant result = _graph.addConstant(constant, _closedWorld,
@@ -1332,6 +1331,16 @@ class SsaInstructionSimplifier extends HBaseVisitor
         _log?.registerConstantFieldGet(node, field, result);
         return result;
       } else {
+        if (_abstractValueDomain.isNull(receiverType).isPotentiallyTrue) {
+          HNullCheck check = HNullCheck(
+              receiver, _abstractValueDomain.excludeNull(receiverType))
+            ..selector = node.selector
+            ..field = field
+            ..sourceInformation = node.sourceInformation;
+          _log?.registerNullCheck(node, check);
+          node.block.addBefore(node, check);
+          receiver = check;
+        }
         HFieldGet result = _directFieldGet(receiver, field, node);
         _log?.registerFieldGet(node, result);
         return result;
@@ -1370,7 +1379,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
           field, _globalInferenceResults);
     }
 
-    return new HFieldGet(field, receiver, type, node.sourceInformation,
+    return HFieldGet(field, receiver, type, node.sourceInformation,
         isAssignable: isAssignable);
   }
 
@@ -1394,7 +1403,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         return value;
       } else {
         HFieldSet result =
-            new HFieldSet(_abstractValueDomain, field, receiver, value)
+            HFieldSet(_abstractValueDomain, field, receiver, value)
               ..sourceInformation = node.sourceInformation;
         _log?.registerFieldSet(node, result);
         return result;
@@ -1409,7 +1418,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
     DartType fieldType = _closedWorld.elementEnvironment.getFieldType(field);
 
-    if (_options.experimentNewRti) {
+    if (_options.useNewRti) {
       AbstractValueWithPrecision checkedType =
           _abstractValueDomain.createFromStaticType(fieldType, nullable: true);
       if (checkedType.isPrecise &&
@@ -1419,7 +1428,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         return assignField();
       }
       // TODO(sra): Implement inlining of setters with checks for new rti. The
-      // check and field assignmeny for the setter should inlined if this is the
+      // check and field assignment for the setter should inlined if this is the
       // only call to the setter, or the current function already computes the
       // type of the field.
       node.needsCheck = true;
@@ -2275,19 +2284,15 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
     return zapInstructionCache;
   }
 
-  /// Returns true of [foreign] will throw an noSuchMethod error if
-  /// receiver is `null` before having any other side-effects.
-  bool templateThrowsNSMonNull(HForeignCode foreign, HInstruction receiver) {
-    if (foreign.inputs.length < 1) return false;
-    if (foreign.inputs.first != receiver) return false;
-    if (foreign.throwBehavior.isNullNSMGuard) return true;
-    return false;
-  }
+  /// Determines whether we can delete [instruction] because the only thing it
+  /// does is throw the same exception as the next instruction that throws or
+  /// has an effect.
+  bool canFoldIntoFollowingInstruction(HInstruction instruction) {
+    assert(instruction.usedBy.isEmpty);
+    assert(instruction.canThrow(_abstractValueDomain));
 
-  /// Returns whether the next throwing instruction that may have side
-  /// effects after [instruction], throws [NoSuchMethodError] on the
-  /// same receiver of [instruction].
-  bool hasFollowingThrowingNSM(HInstruction instruction) {
+    if (!instruction.onlyThrowsNSM()) return false;
+
     HInstruction receiver = instruction.getDartReceiver(closedWorld);
     HInstruction current = instruction.next;
     do {
@@ -2295,14 +2300,14 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
           current.canThrow(_abstractValueDomain)) {
         return true;
       }
-      if (current is HForeignCode &&
-          templateThrowsNSMonNull(current, receiver)) {
+      if (current is HForeignCode && current.isNullGuardFor(receiver)) {
         return true;
       }
       if (current.canThrow(_abstractValueDomain) ||
           current.sideEffects.hasSideEffects()) {
         return false;
       }
+
       HInstruction next = current.next;
       if (next == null) {
         // We do not merge blocks in our SSA graph, so if this block just jumps
@@ -2360,10 +2365,9 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
     if (isTrivialDeadStore(instruction)) return true;
     if (instruction.sideEffects.hasSideEffects()) return false;
     if (instruction.canThrow(_abstractValueDomain)) {
-      if (instruction.onlyThrowsNSM() && hasFollowingThrowingNSM(instruction)) {
-        // [instruction] is a null reciever guard that is followed by an
-        // instruction that fails the same way (by accessing a property of
-        // `null` or `undefined`).
+      if (canFoldIntoFollowingInstruction(instruction)) {
+        // TODO(35996): If we remove [instruction], the source location of the
+        // 'equivalent' instruction should be updated.
         return true;
       }
       return false;
@@ -3375,7 +3379,6 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
 
   @override
   void visitFieldGet(HFieldGet instruction) {
-    if (instruction.isNullCheck) return;
     FieldEntity element = instruction.element;
     HInstruction receiver =
         instruction.getDartReceiver(_closedWorld).nonCheck();
@@ -3566,6 +3569,8 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
   void visitIsViaInterceptor(HIsViaInterceptor instruction) {}
   @override
   void visitNot(HNot instruction) {}
+  @override
+  void visitNullCheck(HNullCheck instruction) {}
   @override
   void visitParameterValue(HParameterValue instruction) {}
   @override

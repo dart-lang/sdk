@@ -17,6 +17,8 @@ class _ReadStream {
 
   _ReadStream(this._buffer);
 
+  bool atEnd() => _position >= _buffer.length;
+
   int readByte() => _buffer[_position++];
 
   /// Read one ULEB128 number.
@@ -99,6 +101,7 @@ abstract class SnapshotObject {
   String get description;
   SnapshotClass get klass;
   int get shallowSize;
+  int get internalSize;
   int get externalSize;
   int get retainedSize;
   Iterable<SnapshotObject> get successors;
@@ -124,7 +127,8 @@ class _SnapshotObject implements SnapshotObject {
 
   int get hashCode => _id;
 
-  int get shallowSize => _graph._shallowSizes[_id];
+  int get shallowSize => internalSize + externalSize;
+  int get internalSize => _graph._internalSizes[_id];
   int get externalSize => _graph._externalSizes[_id];
   int get retainedSize => _graph._retainedSizes[_id];
 
@@ -199,12 +203,14 @@ class MergedObjectVertex {
 
   SnapshotClass get klass => _graph._classes[_graph._cids[_id]];
 
-  int get shallowSize {
+  int get shallowSize => internalSize + externalSize;
+
+  int get internalSize {
     var cids = _graph._cids;
     var size = 0;
     var sibling = _id;
     while (sibling != SENTINEL && cids[sibling] == cids[_id]) {
-      size += _graph._shallowSizes[sibling];
+      size += _graph._internalSizes[sibling];
       sibling = _graph._mergedDomNext[sibling];
     }
     return size;
@@ -367,8 +373,10 @@ class _InstancesIterator implements Iterator<SnapshotObject> {
 
 abstract class SnapshotClass {
   String get name;
-  int get externalSize;
+  String get qualifiedName;
   int get shallowSize;
+  int get externalSize;
+  int get internalSize;
   int get ownedSize;
   int get instanceCount;
   Iterable<SnapshotObject> get instances;
@@ -378,21 +386,23 @@ class _SnapshotClass implements SnapshotClass {
   final _SnapshotGraph _graph;
   final int _cid;
   final String name;
+  String get qualifiedName => "$libUri $name";
   final String libName;
   final String libUri;
   final Map<int, String> fields = new Map<int, String>();
 
   int totalExternalSize = 0;
-  int totalShallowSize = 0;
+  int totalInternalSize = 0;
   int totalInstanceCount = 0;
 
   int ownedSize = 0;
 
   int liveExternalSize = 0;
-  int liveShallowSize = 0;
+  int liveInternalSize = 0;
   int liveInstanceCount = 0;
 
-  int get shallowSize => liveShallowSize;
+  int get shallowSize => internalSize + externalSize;
+  int get internalSize => liveInternalSize;
   int get externalSize => liveExternalSize;
   int get instanceCount => liveInstanceCount;
 
@@ -403,7 +413,9 @@ class _SnapshotClass implements SnapshotClass {
 }
 
 abstract class SnapshotGraph {
-  int get shallowSize;
+  String get description;
+
+  int get internalSize;
   int get externalSize;
   int get size;
   int get capacity;
@@ -412,6 +424,8 @@ abstract class SnapshotGraph {
   MergedObjectVertex get mergedRoot;
   Iterable<SnapshotClass> get classes;
   Iterable<SnapshotObject> get objects;
+
+  Map<String, int> get processPartitions;
 
   factory SnapshotGraph(Uint8List encoded) => new _SnapshotGraph(encoded);
   Stream<String> process();
@@ -434,8 +448,10 @@ const kUnknownFieldName = "<unknown>";
 class _SnapshotGraph implements SnapshotGraph {
   _SnapshotGraph(Uint8List encoded) : this._encoded = encoded;
 
-  int get size => _liveShallowSize + _liveExternalSize;
-  int get shallowSize => _liveShallowSize;
+  String get description => _description;
+
+  int get size => _liveInternalSize + _liveExternalSize;
+  int get internalSize => _liveInternalSize;
   int get externalSize => _liveExternalSize;
   int get capacity => _capacity;
 
@@ -490,6 +506,8 @@ class _SnapshotGraph implements SnapshotGraph {
     return result;
   }
 
+  final processPartitions = new Map<String, int>();
+
   Stream<String> process() {
     final controller = new StreamController<String>.broadcast();
     (() async {
@@ -506,6 +524,9 @@ class _SnapshotGraph implements SnapshotGraph {
 
       controller.add("Loading external properties...");
       await new Future(() => _readExternalProperties(stream));
+
+      controller.add("Loading process partitions...");
+      await new Future(() => _readProcessPartitions(stream));
       stream = null;
 
       controller.add("Compute class table...");
@@ -551,6 +572,8 @@ class _SnapshotGraph implements SnapshotGraph {
 
   Uint8List _encoded;
 
+  String _description;
+
   int _kStackCid;
   int _kFieldCid;
   int _numCids;
@@ -559,9 +582,9 @@ class _SnapshotGraph implements SnapshotGraph {
   int _E; // References in the snapshot.
 
   int _capacity;
-  int _liveShallowSize;
+  int _liveInternalSize;
   int _liveExternalSize;
-  int _totalShallowSize;
+  int _totalInternalSize;
   int _totalExternalSize;
 
   List<_SnapshotClass> _classes;
@@ -570,7 +593,7 @@ class _SnapshotGraph implements SnapshotGraph {
   // From snapshot.
   List _nonReferenceData;
   Uint16List _cids;
-  Uint32List _shallowSizes;
+  Uint32List _internalSizes;
   Uint32List _externalSizes;
   Uint32List _firstSuccs;
   Uint32List _succs;
@@ -593,9 +616,9 @@ class _SnapshotGraph implements SnapshotGraph {
       stream.readByte(); // Magic value.
     }
     stream.readUnsigned(); // Flags
-    stream.readUtf8(); // Name
+    _description = stream.readUtf8();
 
-    _totalShallowSize = stream.readUnsigned();
+    _totalInternalSize = stream.readUnsigned();
     _capacity = stream.readUnsigned();
     _totalExternalSize = stream.readUnsigned();
 
@@ -632,7 +655,7 @@ class _SnapshotGraph implements SnapshotGraph {
     _N = N;
     _E = E;
 
-    var shallowSizes = new Uint32List(N + 1);
+    var internalSizes = new Uint32List(N + 1);
     var cids = new Uint16List(N + 1);
     var nonReferenceData = new List(N + 1);
     var firstSuccs = new Uint32List(N + 2);
@@ -642,8 +665,8 @@ class _SnapshotGraph implements SnapshotGraph {
       var cid = stream.readUnsigned();
       cids[oid] = cid;
 
-      var shallowSize = stream.readUnsigned();
-      shallowSizes[oid] = shallowSize;
+      var internalSize = stream.readUnsigned();
+      internalSizes[oid] = internalSize;
 
       var nonReferenceDataTag = stream.readUnsigned();
       switch (nonReferenceDataTag) {
@@ -702,7 +725,7 @@ class _SnapshotGraph implements SnapshotGraph {
 
     assert(eid <= E);
     _E = eid;
-    _shallowSizes = shallowSizes;
+    _internalSizes = internalSizes;
     _cids = cids;
     _nonReferenceData = nonReferenceData;
     _firstSuccs = firstSuccs;
@@ -724,29 +747,40 @@ class _SnapshotGraph implements SnapshotGraph {
     _externalSizes = externalSizes;
   }
 
+  void _readProcessPartitions(_ReadStream stream) {
+    // So it isn't null when loading older saved snapshots.
+    processPartitions["RSS"] = 0;
+
+    while (!stream.atEnd()) {
+      var name = stream.readUtf8();
+      var size = stream.readUnsigned();
+      processPartitions[name] = size;
+    }
+  }
+
   void _computeClassTable() {
     var N = _N;
     var classes = _classes;
     var cids = _cids;
-    var shallowSizes = _shallowSizes;
+    var internalSizes = _internalSizes;
     var externalSizes = _externalSizes;
-    var totalShallowSize = 0;
+    var totalInternalSize = 0;
     var totalExternalSize = 0;
 
     for (var oid = 1; oid <= N; oid++) {
-      var shallowSize = shallowSizes[oid];
-      totalShallowSize += shallowSize;
+      var internalSize = internalSizes[oid];
+      totalInternalSize += internalSize;
 
       var externalSize = externalSizes[oid];
       totalExternalSize += externalSize;
 
       var cls = classes[cids[oid]];
-      cls.totalShallowSize += shallowSize;
+      cls.totalInternalSize += internalSize;
       cls.totalExternalSize += externalSize;
       cls.totalInstanceCount++;
     }
 
-    _totalShallowSize = totalShallowSize;
+    _totalInternalSize = totalInternalSize;
     _totalExternalSize = totalExternalSize;
   }
 
@@ -907,7 +941,7 @@ class _SnapshotGraph implements SnapshotGraph {
     var kFieldCid = _kFieldCid;
 
     var cids = _cids;
-    var shallowSizes = _shallowSizes;
+    var internalSizes = _internalSizes;
     var externalSizes = _externalSizes;
     var vertex = _vertex;
     var firstPreds = _firstPreds;
@@ -916,7 +950,7 @@ class _SnapshotGraph implements SnapshotGraph {
     var ownedSizes = new Uint32List(N + 1);
     for (var i = 1; i <= Nconnected; i++) {
       var v = vertex[i];
-      ownedSizes[v] = shallowSizes[v] + externalSizes[v];
+      ownedSizes[v] = internalSizes[v] + externalSizes[v];
     }
 
     for (var i = Nconnected; i > 1; i--) {
@@ -1120,11 +1154,11 @@ class _SnapshotGraph implements SnapshotGraph {
     var N = _N;
     var Nconnected = _Nconnected;
 
-    var liveShallowSize = 0;
+    var liveInternalSize = 0;
     var liveExternalSize = 0;
     var classes = _classes;
     var cids = _cids;
-    var shallowSizes = _shallowSizes;
+    var internalSizes = _internalSizes;
     var externalSizes = _externalSizes;
     var vertex = _vertex;
     var doms = _doms;
@@ -1132,13 +1166,13 @@ class _SnapshotGraph implements SnapshotGraph {
     // Sum internal and external sizes.
     for (var i = 1; i <= Nconnected; i++) {
       var v = vertex[i];
-      var shallowSize = shallowSizes[v];
+      var internalSize = internalSizes[v];
       var externalSize = externalSizes[v];
-      liveShallowSize += shallowSize;
+      liveInternalSize += internalSize;
       liveExternalSize += externalSize;
 
       var cls = classes[cids[v]];
-      cls.liveShallowSize += shallowSize;
+      cls.liveInternalSize += internalSize;
       cls.liveExternalSize += externalSize;
       cls.liveInstanceCount++;
     }
@@ -1146,7 +1180,7 @@ class _SnapshotGraph implements SnapshotGraph {
     // Start with retained size as shallow size + external size.
     var retainedSizes = new Uint32List(N + 1);
     for (var i = 0; i < N + 1; i++) {
-      retainedSizes[i] = shallowSizes[i] + externalSizes[i];
+      retainedSizes[i] = internalSizes[i] + externalSizes[i];
     }
 
     // In post order (bottom up), add retained size to dominator's retained
@@ -1158,19 +1192,20 @@ class _SnapshotGraph implements SnapshotGraph {
     }
 
     // Root retains everything.
-    assert(retainedSizes[ROOT] == (liveShallowSize + liveExternalSize));
+    assert(retainedSizes[ROOT] == (liveInternalSize + liveExternalSize));
 
     _retainedSizes = retainedSizes;
-    _liveShallowSize = liveShallowSize;
+    _liveInternalSize = liveInternalSize;
     _liveExternalSize = liveExternalSize;
 
     Logger.root
-        .info("internal-garbage: ${_totalShallowSize - _liveShallowSize}");
+        .info("internal-garbage: ${_totalInternalSize - _liveInternalSize}");
     Logger.root
         .info("external-garbage: ${_totalExternalSize - _liveExternalSize}");
-    Logger.root.info("fragmentation: ${_capacity - _totalShallowSize}");
-    assert(_liveShallowSize <= _totalShallowSize);
-    assert(_totalShallowSize <= _capacity);
+    Logger.root.info("fragmentation: ${_capacity - _totalInternalSize}");
+    assert(_liveInternalSize <= _totalInternalSize);
+    assert(_liveExternalSize <= _totalExternalSize);
+    assert(_totalInternalSize <= _capacity);
   }
 
   // Build linked lists of the children for each node in the dominator tree.

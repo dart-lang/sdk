@@ -36,6 +36,7 @@ class Bytecode;
 class Error;
 class ExceptionHandlers;
 class Field;
+class FieldTable;
 class Function;
 class GrowableObjectArray;
 class HandleScope;
@@ -111,6 +112,14 @@ class Thread;
     StubCode::NullErrorSharedWithoutFPURegs().raw(), NULL)                     \
   V(RawCode*, null_error_shared_with_fpu_regs_stub_,                           \
     StubCode::NullErrorSharedWithFPURegs().raw(), NULL)                        \
+  V(RawCode*, null_arg_error_shared_without_fpu_regs_stub_,                    \
+    StubCode::NullArgErrorSharedWithoutFPURegs().raw(), nullptr)               \
+  V(RawCode*, null_arg_error_shared_with_fpu_regs_stub_,                       \
+    StubCode::NullArgErrorSharedWithFPURegs().raw(), nullptr)                  \
+  V(RawCode*, allocate_mint_with_fpu_regs_stub_,                               \
+    StubCode::AllocateMintWithFPURegs().raw(), NULL)                           \
+  V(RawCode*, allocate_mint_without_fpu_regs_stub_,                            \
+    StubCode::AllocateMintWithoutFPURegs().raw(), NULL)                        \
   V(RawCode*, stack_overflow_shared_without_fpu_regs_stub_,                    \
     StubCode::StackOverflowSharedWithoutFPURegs().raw(), NULL)                 \
   V(RawCode*, stack_overflow_shared_with_fpu_regs_stub_,                       \
@@ -158,6 +167,14 @@ class Thread;
     StubCode::NullErrorSharedWithoutFPURegs().EntryPoint(), 0)                 \
   V(uword, null_error_shared_with_fpu_regs_entry_point_,                       \
     StubCode::NullErrorSharedWithFPURegs().EntryPoint(), 0)                    \
+  V(uword, null_arg_error_shared_without_fpu_regs_entry_point_,                \
+    StubCode::NullArgErrorSharedWithoutFPURegs().EntryPoint(), 0)              \
+  V(uword, null_arg_error_shared_with_fpu_regs_entry_point_,                   \
+    StubCode::NullArgErrorSharedWithFPURegs().EntryPoint(), 0)                 \
+  V(uword, allocate_mint_with_fpu_regs_entry_point_,                           \
+    StubCode::AllocateMintWithFPURegs().EntryPoint(), 0)                       \
+  V(uword, allocate_mint_without_fpu_regs_entry_point_,                        \
+    StubCode::AllocateMintWithoutFPURegs().EntryPoint(), 0)                    \
   V(uword, stack_overflow_shared_without_fpu_regs_entry_point_,                \
     StubCode::StackOverflowSharedWithoutFPURegs().EntryPoint(), 0)             \
   V(uword, stack_overflow_shared_with_fpu_regs_entry_point_,                   \
@@ -367,6 +384,10 @@ class Thread : public ThreadState {
 
   // The isolate group that this thread is operating on, or nullptr if none.
   IsolateGroup* isolate_group() const { return isolate_group_; }
+
+  static intptr_t field_table_values_offset() {
+    return OFFSET_OF(Thread, field_table_values_);
+  }
 
   bool IsMutatorThread() const;
   bool CanCollectGarbage() const;
@@ -842,6 +863,7 @@ class Thread : public ThreadState {
   uword stack_overflow_flags_;
   uword write_barrier_mask_;
   Isolate* isolate_;
+  RawInstance** field_table_values_;
   Heap* heap_;
   uword top_;
   uword end_;
@@ -923,6 +945,8 @@ class Thread : public ThreadState {
   intptr_t ffi_marshalled_arguments_size_ = 0;
   uint64_t* ffi_marshalled_arguments_;
 
+  RawInstance** field_table_values() const { return field_table_values_; }
+
 // Reusable handles support.
 #define REUSABLE_HANDLE_FIELDS(object) object* object##_handle_;
   REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_FIELDS)
@@ -989,6 +1013,7 @@ class Thread : public ThreadState {
   friend class ThreadRegistry;
   friend class CompilerState;
   friend class compiler::target::Thread;
+  friend class FieldTable;
   DISALLOW_COPY_AND_ASSIGN(Thread);
 };
 

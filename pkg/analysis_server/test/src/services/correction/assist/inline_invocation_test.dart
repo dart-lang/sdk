@@ -21,6 +21,7 @@ class InlineInvocationTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.INLINE_INVOCATION;
 
+  @override
   void setUp() {
     createAnalysisOptionsFile(experiments: [EnableString.spread_collections]);
     super.setUp();

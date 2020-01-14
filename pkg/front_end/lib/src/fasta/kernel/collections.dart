@@ -9,6 +9,7 @@ import 'package:kernel/ast.dart'
     show
         DartType,
         Expression,
+        ExpressionStatement,
         MapEntry,
         NullLiteral,
         Statement,
@@ -29,7 +30,7 @@ import 'package:kernel/visitor.dart'
         Visitor;
 
 import '../messages.dart'
-    show templateExpectedAfterButGot, templateExpectedButGot;
+    show noLength, templateExpectedAfterButGot, templateExpectedButGot;
 
 import '../problems.dart' show getFileUri, unsupported;
 
@@ -212,25 +213,33 @@ class ForElement extends Expression with ControlFlowElement {
 class ForInElement extends Expression with ControlFlowElement {
   VariableDeclaration variable; // Has no initializer.
   Expression iterable;
-  Statement prologue; // May be null.
+  Expression syntheticAssignment; // May be null.
+  Statement expressionEffects; // May be null.
   Expression body;
   Expression problem; // May be null.
   bool isAsync; // True if this is an 'await for' loop.
 
-  ForInElement(
-      this.variable, this.iterable, this.prologue, this.body, this.problem,
+  ForInElement(this.variable, this.iterable, this.syntheticAssignment,
+      this.expressionEffects, this.body, this.problem,
       {this.isAsync: false}) {
     variable?.parent = this;
     iterable?.parent = this;
-    prologue?.parent = this;
+    syntheticAssignment?.parent = this;
+    expressionEffects?.parent = this;
     body?.parent = this;
     problem?.parent = this;
   }
 
+  Statement get prologue => syntheticAssignment != null
+      ? (new ExpressionStatement(syntheticAssignment)
+        ..fileOffset = syntheticAssignment.fileOffset)
+      : expressionEffects;
+
   visitChildren(Visitor<Object> v) {
     variable?.accept(v);
     iterable?.accept(v);
-    prologue?.accept(v);
+    syntheticAssignment?.accept(v);
+    expressionEffects?.accept(v);
     body?.accept(v);
     problem?.accept(v);
   }
@@ -244,9 +253,13 @@ class ForInElement extends Expression with ControlFlowElement {
       iterable = iterable.accept<TreeNode>(v);
       iterable?.parent = this;
     }
-    if (prologue != null) {
-      prologue = prologue.accept<TreeNode>(v);
-      prologue?.parent = this;
+    if (syntheticAssignment != null) {
+      syntheticAssignment = syntheticAssignment.accept<TreeNode>(v);
+      syntheticAssignment?.parent = this;
+    }
+    if (expressionEffects != null) {
+      expressionEffects = expressionEffects.accept<TreeNode>(v);
+      expressionEffects?.parent = this;
     }
     if (body != null) {
       body = body.accept<TreeNode>(v);
@@ -266,9 +279,10 @@ class ForInElement extends Expression with ControlFlowElement {
       bodyEntry = bodyElement.toMapEntry(onConvertForElement);
     }
     if (bodyEntry == null) return null;
-    ForInMapEntry result =
-        new ForInMapEntry(variable, iterable, prologue, bodyEntry, problem)
-          ..fileOffset = fileOffset;
+    ForInMapEntry result = new ForInMapEntry(variable, iterable,
+        syntheticAssignment, expressionEffects, bodyEntry, problem,
+        isAsync: isAsync)
+      ..fileOffset = fileOffset;
     onConvertForElement(this, result);
     return result;
   }
@@ -405,25 +419,34 @@ class ForMapEntry extends TreeNode with ControlFlowMapEntry {
 class ForInMapEntry extends TreeNode with ControlFlowMapEntry {
   VariableDeclaration variable; // Has no initializer.
   Expression iterable;
-  Statement prologue; // May be null.
+  Expression syntheticAssignment; // May be null.
+  Statement expressionEffects; // May be null.
   MapEntry body;
   Expression problem; // May be null.
   bool isAsync; // True if this is an 'await for' loop.
 
-  ForInMapEntry(
-      this.variable, this.iterable, this.prologue, this.body, this.problem,
-      {this.isAsync: false}) {
+  ForInMapEntry(this.variable, this.iterable, this.syntheticAssignment,
+      this.expressionEffects, this.body, this.problem,
+      {this.isAsync})
+      : assert(isAsync != null) {
     variable?.parent = this;
     iterable?.parent = this;
-    prologue?.parent = this;
+    syntheticAssignment?.parent = this;
+    expressionEffects?.parent = this;
     body?.parent = this;
     problem?.parent = this;
   }
 
+  Statement get prologue => syntheticAssignment != null
+      ? (new ExpressionStatement(syntheticAssignment)
+        ..fileOffset = syntheticAssignment.fileOffset)
+      : expressionEffects;
+
   visitChildren(Visitor<Object> v) {
     variable?.accept(v);
     iterable?.accept(v);
-    prologue?.accept(v);
+    syntheticAssignment?.accept(v);
+    expressionEffects?.accept(v);
     body?.accept(v);
     problem?.accept(v);
   }
@@ -437,9 +460,13 @@ class ForInMapEntry extends TreeNode with ControlFlowMapEntry {
       iterable = iterable.accept<TreeNode>(v);
       iterable?.parent = this;
     }
-    if (prologue != null) {
-      prologue = prologue.accept<TreeNode>(v);
-      prologue?.parent = this;
+    if (syntheticAssignment != null) {
+      syntheticAssignment = syntheticAssignment.accept<TreeNode>(v);
+      syntheticAssignment?.parent = this;
+    }
+    if (expressionEffects != null) {
+      expressionEffects = expressionEffects.accept<TreeNode>(v);
+      expressionEffects?.parent = this;
     }
     if (body != null) {
       body = body.accept<TreeNode>(v);
@@ -487,7 +514,8 @@ Expression convertToElement(MapEntry entry, InferenceHelper helper,
     ForInElement result = new ForInElement(
         entry.variable,
         entry.iterable,
-        entry.prologue,
+        entry.syntheticAssignment,
+        entry.expressionEffects,
         convertToElement(entry.body, helper, onConvertForMapEntry),
         entry.problem,
         isAsync: entry.isAsync)
@@ -553,7 +581,8 @@ MapEntry convertToMapEntry(Expression element, InferenceHelper helper,
     ForInMapEntry result = new ForInMapEntry(
         element.variable,
         element.iterable,
-        element.prologue,
+        element.syntheticAssignment,
+        element.expressionEffects,
         convertToMapEntry(element.body, helper, onConvertForElement),
         element.problem,
         isAsync: element.isAsync)
@@ -566,7 +595,8 @@ MapEntry convertToMapEntry(Expression element, InferenceHelper helper,
         templateExpectedAfterButGot.withArguments(':'),
         element.fileOffset,
         // TODO(danrubel): what is the length of the expression?
-        1,
+        noLength,
       ),
-      new NullLiteral());
+      new NullLiteral()..fileOffset = element.fileOffset)
+    ..fileOffset = element.fileOffset;
 }

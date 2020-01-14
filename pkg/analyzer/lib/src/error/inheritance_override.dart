@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
@@ -14,7 +15,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/resolver.dart' show TypeSystemImpl;
 import 'package:analyzer/src/generated/type_system.dart';
 
 class InheritanceOverrideVerifier {
@@ -103,7 +104,7 @@ class _ClassVerifier {
 
   /// The set of unique supertypes of the current class.
   /// It is used to decide when to add a new element to [allSuperinterfaces].
-  final Set<InterfaceType> allSupertypes = Set<InterfaceType>();
+  final Set<InterfaceType> allSupertypes = <InterfaceType>{};
 
   /// The list of all superinterfaces, collected so far.
   final List<Interface> allSuperinterfaces = [];
@@ -234,9 +235,9 @@ class _ClassVerifier {
             [
               name.name,
               interfaceElement.enclosingElement.name,
-              interfaceElement.type.displayName,
+              interfaceElement.type,
               concreteElement.enclosingElement.name,
-              concreteElement.type.displayName,
+              concreteElement.type,
             ],
           );
         }
@@ -287,9 +288,9 @@ class _ClassVerifier {
             [
               name.name,
               member.enclosingElement.name,
-              member.type.displayName,
+              member.type,
               superMember.enclosingElement.name,
-              superMember.type.displayName
+              superMember.type,
             ],
           );
         }
@@ -332,7 +333,7 @@ class _ClassVerifier {
     DartType type = typeName.type;
     if (type is InterfaceType &&
         typeProvider.nonSubtypableClasses.contains(type.element)) {
-      reporter.reportErrorForNode(errorCode, typeName, [type.displayName]);
+      reporter.reportErrorForNode(errorCode, typeName, [type]);
       return true;
     }
 

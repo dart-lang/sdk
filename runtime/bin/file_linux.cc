@@ -202,6 +202,10 @@ File* File::FileOpenW(const wchar_t* system_name, FileOpenMode mode) {
   return NULL;
 }
 
+File* File::OpenFD(int fd) {
+  return new File(new FileHandle(fd));
+}
+
 File* File::Open(Namespace* namespc, const char* name, FileOpenMode mode) {
   NamespaceScope ns(namespc, name);
   // Report errors for non-regular files.
@@ -237,7 +241,7 @@ File* File::Open(Namespace* namespc, const char* name, FileOpenMode mode) {
       return NULL;
     }
   }
-  return new File(new FileHandle(fd));
+  return OpenFD(fd);
 }
 
 File* File::OpenUri(Namespace* namespc, const char* uri, FileOpenMode mode) {
@@ -415,7 +419,7 @@ bool File::Copy(Namespace* namespc,
   //   where sendfile() fails with EINVAL or ENOSYS.
   if ((result < 0) && ((errno == EINVAL) || (errno == ENOSYS))) {
     const intptr_t kBufferSize = 8 * KB;
-    uint8_t buffer[kBufferSize];
+    uint8_t* buffer = reinterpret_cast<uint8_t*>(malloc(kBufferSize));
     while ((result = TEMP_FAILURE_RETRY(read(old_fd, buffer, kBufferSize))) >
            0) {
       int wrote = TEMP_FAILURE_RETRY(write(new_fd, buffer, result));
@@ -424,6 +428,7 @@ bool File::Copy(Namespace* namespc,
         break;
       }
     }
+    free(buffer);
   }
   int e = errno;
   close(old_fd);

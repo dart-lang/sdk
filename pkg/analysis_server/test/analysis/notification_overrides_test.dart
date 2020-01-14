@@ -21,9 +21,9 @@ main() {
 @reflectiveTest
 class AnalysisNotificationOverridesTest extends AbstractAnalysisTest {
   List<Override> overridesList;
-  Override override;
+  Override overrideObject;
 
-  Completer _resultsAvailable = new Completer();
+  final Completer<void> _resultsAvailable = Completer();
 
   /**
    * Asserts that there is an overridden interface [OverriddenMember] at the
@@ -31,13 +31,13 @@ class AnalysisNotificationOverridesTest extends AbstractAnalysisTest {
    */
   void assertHasInterfaceMember(String search) {
     int offset = findOffset(search);
-    for (OverriddenMember member in override.interfaceMembers) {
+    for (OverriddenMember member in overrideObject.interfaceMembers) {
       if (member.element.location.offset == offset) {
         return;
       }
     }
     fail('Expect to find an overridden interface members at $offset in '
-        '${override.interfaceMembers.join('\n')}');
+        '${overrideObject.interfaceMembers.join('\n')}');
   }
 
   /**
@@ -60,7 +60,7 @@ class AnalysisNotificationOverridesTest extends AbstractAnalysisTest {
    */
   void assertHasSuperElement(String search) {
     int offset = findOffset(search);
-    OverriddenMember member = override.superclassMember;
+    OverriddenMember member = overrideObject.superclassMember;
     expect(member.element.location.offset, offset);
   }
 
@@ -68,7 +68,7 @@ class AnalysisNotificationOverridesTest extends AbstractAnalysisTest {
    * Asserts that there are no overridden members from interfaces.
    */
   void assertNoInterfaceMembers() {
-    expect(override.interfaceMembers, isNull);
+    expect(overrideObject.interfaceMembers, isNull);
   }
 
   /**
@@ -89,7 +89,7 @@ class AnalysisNotificationOverridesTest extends AbstractAnalysisTest {
    * Asserts that there are no overridden member from the superclass.
    */
   void assertNoSuperMember() {
-    expect(override.superclassMember, isNull);
+    expect(overrideObject.superclassMember, isNull);
   }
 
   /**
@@ -107,7 +107,7 @@ class AnalysisNotificationOverridesTest extends AbstractAnalysisTest {
           fail('Not expected to find (offset=$offset; length=$length) in\n'
               '${overridesList.join('\n')}');
         }
-        this.override = override;
+        overrideObject = override;
         return;
       }
     }
@@ -122,16 +122,18 @@ class AnalysisNotificationOverridesTest extends AbstractAnalysisTest {
     return _resultsAvailable.future;
   }
 
+  @override
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_OVERRIDES) {
-      var params = new AnalysisOverridesParams.fromNotification(notification);
+      var params = AnalysisOverridesParams.fromNotification(notification);
       if (params.file == testFile) {
         overridesList = params.overrides;
-        _resultsAvailable.complete(null);
+        _resultsAvailable.complete();
       }
     }
   }
 
+  @override
   void setUp() {
     super.setUp();
     createProject();
@@ -402,7 +404,7 @@ class C implements B {
 ''');
     await prepareOverrides();
     assertHasOverride('m() {} // in C');
-    expect(override.interfaceMembers, hasLength(2));
+    expect(overrideObject.interfaceMembers, hasLength(2));
     assertHasInterfaceMember('m() {} // in B');
   }
 
@@ -433,8 +435,8 @@ class C extends A implements A {
 ''');
     await prepareOverrides();
     assertHasOverride('hashCode => 42;');
-    expect(override.superclassMember, isNotNull);
-    expect(override.interfaceMembers, isNull);
+    expect(overrideObject.superclassMember, isNotNull);
+    expect(overrideObject.interfaceMembers, isNull);
   }
 
   test_mixin_method_direct() async {

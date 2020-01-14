@@ -1091,9 +1091,9 @@ Requests a dump of the Dart heap of the given isolate.
 
 This method immediately returns success. The VM will then begin delivering
 binary events on the `HeapSnapshot` event stream. The binary data in these
-events, when concatenated together, conforms to the SnapshotGraph type. The
-splitting of the SnapshotGraph into events can happen at any byte offset,
-including the middle of scalar fields.
+events, when concatenated together, conforms to the [SnapshotGraph](heap_snapshot.md)
+type. The splitting of the SnapshotGraph into events can happen at any byte
+offset.
 
 ### resume
 

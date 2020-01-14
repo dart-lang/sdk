@@ -703,6 +703,7 @@ enum TypeUseKind {
   RTI_VALUE,
   TYPE_ARGUMENT,
   NAMED_TYPE_VARIABLE_NEW_RTI,
+  TYPE_VARIABLE_BOUND_CHECK,
 }
 
 /// Use of a [DartType].
@@ -776,6 +777,9 @@ class TypeUse {
         break;
       case TypeUseKind.NAMED_TYPE_VARIABLE_NEW_RTI:
         sb.write('named:');
+        break;
+      case TypeUseKind.TYPE_VARIABLE_BOUND_CHECK:
+        sb.write('bound:');
         break;
     }
     sb.write(type);
@@ -865,6 +869,10 @@ class TypeUse {
   /// [type] used as a named type variable in a recipe.
   factory TypeUse.namedTypeVariableNewRti(TypeVariableType type) =>
       TypeUse.internal(type, TypeUseKind.NAMED_TYPE_VARIABLE_NEW_RTI);
+
+  /// [type] used as a bound on a type variable.
+  factory TypeUse.typeVariableBoundCheck(DartType type) =>
+      TypeUse.internal(type, TypeUseKind.TYPE_VARIABLE_BOUND_CHECK);
 
   @override
   bool operator ==(other) {

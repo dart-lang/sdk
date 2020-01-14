@@ -18,15 +18,15 @@ import 'perf/flutter_analyze_benchmark.dart';
 
 Future main(List<String> args) async {
   final List<Benchmark> benchmarks = [
-    new ColdAnalysisBenchmark(),
-    new AnalysisBenchmark(),
-    new FlutterAnalyzeBenchmark(),
+    ColdAnalysisBenchmark(),
+    AnalysisBenchmark(),
+    FlutterAnalyzeBenchmark(),
   ];
 
-  CommandRunner runner = new CommandRunner(
-      'benchmark', 'A benchmark runner for the analysis server.');
-  runner.addCommand(new ListCommand(benchmarks));
-  runner.addCommand(new RunCommand(benchmarks));
+  CommandRunner runner =
+      CommandRunner('benchmark', 'A benchmark runner for the analysis server.');
+  runner.addCommand(ListCommand(benchmarks));
+  runner.addCommand(RunCommand(benchmarks));
   runner.run(args);
 }
 
@@ -47,12 +47,13 @@ class ListCommand extends Command {
   @override
   String get invocation => '${runner.executableName} $name';
 
+  @override
   void run() {
     if (argResults['machine'] as bool) {
       final Map map = {
         'benchmarks': benchmarks.map((b) => b.toJson()).toList()
       };
-      print(new JsonEncoder.withIndent('  ').convert(map));
+      print(JsonEncoder.withIndent('  ').convert(map));
     } else {
       for (Benchmark benchmark in benchmarks) {
         print('${benchmark.id}: ${benchmark.description}');
@@ -86,6 +87,7 @@ class RunCommand extends Command {
   @override
   String get invocation => '${runner.executableName} $name <benchmark-id>';
 
+  @override
   Future run() async {
     if (argResults.rest.isEmpty) {
       printUsage();
@@ -117,7 +119,7 @@ class RunCommand extends Command {
 
     try {
       BenchMarkResult result;
-      Stopwatch time = new Stopwatch()..start();
+      Stopwatch time = Stopwatch()..start();
       print('Running $benchmarkId $actualIterations times...');
 
       for (int iteration = 0; iteration < actualIterations; iteration++) {
@@ -156,9 +158,9 @@ abstract class Benchmark {
 
   bool get needsSetup => false;
 
-  Future oneTimeSetup() => new Future.value();
+  Future oneTimeSetup() => Future.value();
 
-  Future oneTimeCleanup() => new Future.value();
+  Future oneTimeCleanup() => Future.value();
 
   Future<BenchMarkResult> run({
     bool quick = false,
@@ -170,11 +172,12 @@ abstract class Benchmark {
   Map toJson() =>
       {'id': id, 'description': description, 'enabled': enabled, 'kind': kind};
 
+  @override
   String toString() => '$id: $description';
 }
 
 class BenchMarkResult {
-  static final NumberFormat nf = new NumberFormat.decimalPattern();
+  static final NumberFormat nf = NumberFormat.decimalPattern();
 
   /// One of 'bytes', 'micros', or 'compound'.
   final String kindName;
@@ -184,11 +187,12 @@ class BenchMarkResult {
   BenchMarkResult(this.kindName, this.value);
 
   BenchMarkResult combine(BenchMarkResult other) {
-    return new BenchMarkResult(kindName, math.min(value, other.value));
+    return BenchMarkResult(kindName, math.min(value, other.value));
   }
 
   Map toJson() => {kindName: value};
 
+  @override
   String toString() => '$kindName: ${nf.format(value)}';
 }
 
@@ -203,6 +207,7 @@ class CompoundBenchMarkResult extends BenchMarkResult {
     results[name] = result;
   }
 
+  @override
   BenchMarkResult combine(BenchMarkResult other) {
     BenchMarkResult _combine(BenchMarkResult a, BenchMarkResult b) {
       if (a == null) return b;
@@ -212,11 +217,9 @@ class CompoundBenchMarkResult extends BenchMarkResult {
 
     CompoundBenchMarkResult o = other as CompoundBenchMarkResult;
 
-    CompoundBenchMarkResult combined = new CompoundBenchMarkResult(name);
-    List<String> keys = (new Set<String>()
-          ..addAll(results.keys)
-          ..addAll(o.results.keys))
-        .toList();
+    CompoundBenchMarkResult combined = CompoundBenchMarkResult(name);
+    List<String> keys =
+        (Set<String>()..addAll(results.keys)..addAll(o.results.keys)).toList();
 
     for (String key in keys) {
       combined.add(key, _combine(results[key], o.results[key]));
@@ -225,6 +228,7 @@ class CompoundBenchMarkResult extends BenchMarkResult {
     return combined;
   }
 
+  @override
   Map toJson() {
     Map m = {};
     for (String key in results.keys) {
@@ -233,6 +237,7 @@ class CompoundBenchMarkResult extends BenchMarkResult {
     return m;
   }
 
+  @override
   String toString() => '${toJson()}';
 }
 

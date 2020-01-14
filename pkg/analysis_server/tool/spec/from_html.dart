@@ -20,16 +20,16 @@ import 'api.dart';
  */
 Api readApi(String pkgPath) {
   ApiReader reader =
-      new ApiReader(join(pkgPath, 'tool', 'spec', 'spec_input.html'));
+      ApiReader(join(pkgPath, 'tool', 'spec', 'spec_input.html'));
   return reader.readApi();
 }
 
-typedef void ElementProcessor(dom.Element element);
+typedef ElementProcessor = void Function(dom.Element element);
 
-typedef void TextProcessor(dom.Text text);
+typedef TextProcessor = void Function(dom.Text text);
 
 class ApiReader {
-  static const List<String> specialElements = const [
+  static const List<String> specialElements = [
     'domain',
     'feedback',
     'object',
@@ -106,9 +106,9 @@ class ApiReader {
       }
     });
     if (versions.length != 1) {
-      throw new Exception('The API must contain exactly one <version> element');
+      throw Exception('The API must contain exactly one <version> element');
     }
-    api = new Api(versions[0], domains, types, refactorings, html);
+    api = Api(versions[0], domains, types, refactorings, html);
     return api;
   }
 
@@ -120,18 +120,18 @@ class ApiReader {
   void checkAttributes(
       dom.Element element, List<String> requiredAttributes, String context,
       {List<String> optionalAttributes = const []}) {
-    Set<String> attributesFound = new Set<String>();
+    Set<String> attributesFound = Set<String>();
     element.attributes.forEach((name, value) {
       if (!requiredAttributes.contains(name) &&
           !optionalAttributes.contains(name)) {
-        throw new Exception(
+        throw Exception(
             '$context: Unexpected attribute in ${element.localName}: $name');
       }
       attributesFound.add(name);
     });
     for (String expectedAttribute in requiredAttributes) {
       if (!attributesFound.contains(expectedAttribute)) {
-        throw new Exception(
+        throw Exception(
             '$context: ${element.localName} must contain attribute $expectedAttribute');
       }
     }
@@ -142,10 +142,8 @@ class ApiReader {
    */
   void checkName(dom.Element element, String expectedName, [String context]) {
     if (element.localName != expectedName) {
-      if (context == null) {
-        context = element.localName;
-      }
-      throw new Exception(
+      context ??= element.localName;
+      throw Exception(
           '$context: Expected $expectedName, found ${element.localName}');
     }
   }
@@ -177,7 +175,7 @@ class ApiReader {
         notifications.add(notificationFromHtml(child, context));
       }
     });
-    return new Domain(name, requests, notifications, html,
+    return Domain(name, requests, notifications, html,
         experimental: experimental);
   }
 
@@ -189,7 +187,7 @@ class ApiReader {
       }
       ancestor = ancestor.parent;
     }
-    throw new Exception(
+    throw Exception(
         '$context: <${html.localName}> must be nested within <$name>');
   }
 
@@ -220,7 +218,7 @@ class ApiReader {
         params = typeObjectFromHtml(child, '$context.params');
       }
     });
-    return new Notification(domainName, event, params, html,
+    return Notification(domainName, event, params, html,
         experimental: experimental);
   }
 
@@ -231,7 +229,7 @@ class ApiReader {
   TypeDecl processContentsAsType(dom.Element html, String context) {
     List<TypeDecl> types = processContentsAsTypes(html, context);
     if (types.length != 1) {
-      throw new Exception('$context: Exactly one type must be specified');
+      throw Exception('$context: Exactly one type must be specified');
     }
     return types[0];
   }
@@ -273,7 +271,7 @@ class ApiReader {
       },
       'list': (dom.Element child) {
         checkAttributes(child, [], context);
-        types.add(new TypeList(processContentsAsType(child, context), child));
+        types.add(TypeList(processContentsAsType(child, context), child));
       },
       'map': (dom.Element child) {
         checkAttributes(child, [], context);
@@ -282,37 +280,37 @@ class ApiReader {
         recurse(child, context, {
           'key': (dom.Element child) {
             if (keyType != null) {
-              throw new Exception('$context: Key type already specified');
+              throw Exception('$context: Key type already specified');
             }
             keyType = processContentsAsType(child, '$context.key');
           },
           'value': (dom.Element child) {
             if (valueType != null) {
-              throw new Exception('$context: Value type already specified');
+              throw Exception('$context: Value type already specified');
             }
             valueType = processContentsAsType(child, '$context.value');
           }
         });
         if (keyType == null) {
-          throw new Exception('$context: Key type not specified');
+          throw Exception('$context: Key type not specified');
         }
         if (valueType == null) {
-          throw new Exception('$context: Value type not specified');
+          throw Exception('$context: Value type not specified');
         }
-        types.add(new TypeMap(keyType, valueType, child));
+        types.add(TypeMap(keyType, valueType, child));
       },
       'enum': (dom.Element child) {
         types.add(typeEnumFromHtml(child, context));
       },
       'ref': (dom.Element child) {
         checkAttributes(child, [], context);
-        types.add(new TypeReference(innerText(child), child));
+        types.add(TypeReference(innerText(child), child));
       },
       'union': (dom.Element child) {
         checkAttributes(child, ['field'], context);
         String field = child.attributes['field'];
-        types.add(new TypeUnion(
-            processContentsAsTypes(child, context), field, child));
+        types.add(
+            TypeUnion(processContentsAsTypes(child, context), field, child));
       }
     });
     return types;
@@ -322,7 +320,7 @@ class ApiReader {
    * Read the API description from file with the given [filePath].
    */
   Api readApi() {
-    String htmlContents = new File(filePath).readAsStringSync();
+    String htmlContents = File(filePath).readAsStringSync();
     dom.Document document = parser.parse(htmlContents);
     dom.Element htmlElement = document.children
         .singleWhere((element) => element.localName.toLowerCase() == 'html');
@@ -333,7 +331,7 @@ class ApiReader {
       Map<String, ElementProcessor> elementProcessors) {
     for (String key in elementProcessors.keys) {
       if (!specialElements.contains(key)) {
-        throw new Exception('$context: $key is not a special element');
+        throw Exception('$context: $key is not a special element');
       }
     }
     for (dom.Node node in parent.nodes) {
@@ -341,8 +339,7 @@ class ApiReader {
         if (elementProcessors.containsKey(node.localName)) {
           elementProcessors[node.localName](node);
         } else if (specialElements.contains(node.localName)) {
-          throw new Exception(
-              '$context: Unexpected use of <${node.localName}>');
+          throw Exception('$context: Unexpected use of <${node.localName}>');
         } else {
           recurse(node, context, elementProcessors);
         }
@@ -378,7 +375,7 @@ class ApiReader {
         options = typeObjectFromHtml(child, '$context.options');
       }
     });
-    return new Refactoring(kind, feedback, options, html);
+    return Refactoring(kind, feedback, options, html);
   }
 
   /**
@@ -398,7 +395,7 @@ class ApiReader {
         refactorings.add(refactoringFromHtml(child));
       }
     });
-    return new Refactorings(refactorings, html);
+    return Refactorings(refactorings, html);
   }
 
   /**
@@ -435,7 +432,7 @@ class ApiReader {
         result = typeObjectFromHtml(child, '$context.result');
       }
     });
-    return new Request(domainName, method, params, result, html,
+    return Request(domainName, method, params, result, html,
         experimental: experimental, deprecated: deprecated);
   }
 
@@ -459,7 +456,7 @@ class ApiReader {
     TypeDecl type = processContentsAsType(html, context);
     bool experimental = html.attributes['experimental'] == 'true';
     bool deprecated = html.attributes['deprecated'] == 'true';
-    return new TypeDefinition(name, type, html,
+    return TypeDefinition(name, type, html,
         experimental: experimental, deprecated: deprecated);
   }
 
@@ -475,7 +472,7 @@ class ApiReader {
         values.add(typeEnumValueFromHtml(child, context));
       }
     });
-    return new TypeEnum(values, html);
+    return TypeEnum(values, html);
   }
 
   /**
@@ -501,9 +498,9 @@ class ApiReader {
       }
     });
     if (values.length != 1) {
-      throw new Exception('$context: Exactly one value must be specified');
+      throw Exception('$context: Exactly one value must be specified');
     }
-    return new TypeEnumValue(values[0], html, deprecated: deprecated);
+    return TypeEnumValue(values[0], html, deprecated: deprecated);
   }
 
   /**
@@ -545,13 +542,13 @@ class ApiReader {
           optional = false;
           break;
         default:
-          throw new Exception(
+          throw Exception(
               '$context: field contains invalid "optional" attribute: "$optionalString"');
       }
     }
     String value = html.attributes['value'];
     TypeDecl type = processContentsAsType(html, context);
-    return new TypeObjectField(name, type, html,
+    return TypeObjectField(name, type, html,
         optional: optional,
         value: value,
         deprecated: deprecated,
@@ -570,7 +567,7 @@ class ApiReader {
       }
     });
     bool experimental = html.attributes['experimental'] == 'true';
-    return new TypeObject(fields, html, experimental: experimental);
+    return TypeObject(fields, html, experimental: experimental);
   }
 
   /**
@@ -595,7 +592,7 @@ class ApiReader {
         }
         String relativePath = child.attributes['path'];
         String path = normalize(join(dirname(filePath), relativePath));
-        ApiReader reader = new ApiReader(path);
+        ApiReader reader = ApiReader(path);
         Api api = reader.readApi();
         for (TypeDefinition typeDefinition in api.types) {
           typeDefinition.isExternal = true;
@@ -611,7 +608,7 @@ class ApiReader {
     for (dom.Element element in childElements) {
       html.append(element);
     }
-    Types types = new Types(typeMap, html);
+    Types types = Types(typeMap, html);
     types.importUris.addAll(importUris);
     return types;
   }

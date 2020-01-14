@@ -138,19 +138,19 @@ class AnalyzerOptions {
   static const String strictRawTypes = 'strict-raw-types';
 
   /// Ways to say `ignore`.
-  static const List<String> ignoreSynonyms = const ['ignore', 'false'];
+  static const List<String> ignoreSynonyms = ['ignore', 'false'];
 
   /// Valid error `severity`s.
   static final List<String> severities = List.unmodifiable(severityMap.keys);
 
   /// Ways to say `include`.
-  static const List<String> includeSynonyms = const ['include', 'true'];
+  static const List<String> includeSynonyms = ['include', 'true'];
 
   /// Ways to say `true` or `false`.
-  static const List<String> trueOrFalse = const ['true', 'false'];
+  static const List<String> trueOrFalse = ['true', 'false'];
 
   /// Supported top-level `analyzer` options.
-  static const List<String> topLevel = const [
+  static const List<String> topLevel = [
     enableExperiment,
     errors,
     exclude,
@@ -161,20 +161,17 @@ class AnalyzerOptions {
   ];
 
   /// Supported `analyzer` strong-mode options.
-  static const List<String> strongModeOptions = const [
+  static const List<String> strongModeOptions = [
     declarationCasts, // deprecated
     implicitCasts,
     implicitDynamic,
   ];
 
   /// Supported `analyzer` language options.
-  static const List<String> languageOptions = const [
-    strictInference,
-    strictRawTypes
-  ];
+  static const List<String> languageOptions = [strictInference, strictRawTypes];
 
   // Supported 'analyzer' optional checks options.
-  static const List<String> optionalChecksOptions = const [
+  static const List<String> optionalChecksOptions = [
     chromeOsManifestChecks,
   ];
 }
@@ -428,7 +425,11 @@ class OptionsFileValidator {
 
   List<AnalysisError> validate(YamlMap options) {
     RecordingErrorListener recorder = RecordingErrorListener();
-    ErrorReporter reporter = ErrorReporter(recorder, source);
+    ErrorReporter reporter = ErrorReporter(
+      recorder,
+      source,
+      isNonNullableByDefault: false,
+    );
     if (AnalysisEngine.ANALYSIS_OPTIONS_FILE == source.shortName) {
       reporter.reportError(AnalysisError(
           source,

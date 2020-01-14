@@ -15,51 +15,49 @@ import 'package:test/test.dart';
 import 'integration_test_methods.dart';
 import 'protocol_matchers.dart';
 
-const Matcher isBool = const TypeMatcher<bool>();
+const Matcher isBool = TypeMatcher<bool>();
 
-const Matcher isInt = const TypeMatcher<int>();
+const Matcher isInt = TypeMatcher<int>();
 
-const Matcher isNotification = const MatchesJsonObject(
-    'notification', const {'event': isString},
-    optionalFields: const {'params': isMap});
+const Matcher isNotification = MatchesJsonObject(
+    'notification', {'event': isString},
+    optionalFields: {'params': isMap});
 
 const Matcher isObject = isMap;
 
-const Matcher isString = const TypeMatcher<String>();
+const Matcher isString = TypeMatcher<String>();
 
-final Matcher isResponse = new MatchesJsonObject('response', {'id': isString},
+final Matcher isResponse = MatchesJsonObject('response', {'id': isString},
     optionalFields: {'result': anything, 'error': isRequestError});
 
-Matcher isListOf(Matcher elementMatcher) => new _ListOf(elementMatcher);
+Matcher isListOf(Matcher elementMatcher) => _ListOf(elementMatcher);
 
 Matcher isMapOf(Matcher keyMatcher, Matcher valueMatcher) =>
-    new _MapOf(keyMatcher, valueMatcher);
+    _MapOf(keyMatcher, valueMatcher);
 
-Matcher isOneOf(List<Matcher> choiceMatchers) => new _OneOf(choiceMatchers);
+Matcher isOneOf(List<Matcher> choiceMatchers) => _OneOf(choiceMatchers);
 
 /**
  * Assert that [actual] matches [matcher].
  */
 void outOfTestExpect(actual, Matcher matcher,
-    {String reason, skip, bool verbose: false}) {
+    {String reason, skip, bool verbose = false}) {
   var matchState = {};
   try {
     if (matcher.matches(actual, matchState)) return;
   } catch (e, trace) {
-    if (reason == null) {
-      reason = '${(e is String) ? e : e.toString()} at $trace';
-    }
+    reason ??= '${(e is String) ? e : e.toString()} at $trace';
   }
   fail(_defaultFailFormatter(actual, matcher, reason, matchState, verbose));
 }
 
 String _defaultFailFormatter(
     actual, Matcher matcher, String reason, Map matchState, bool verbose) {
-  var description = new StringDescription();
+  var description = StringDescription();
   description.add('Expected: ').addDescriptionOf(matcher).add('\n');
   description.add('  Actual: ').addDescriptionOf(actual).add('\n');
 
-  var mismatchDescription = new StringDescription();
+  var mismatchDescription = StringDescription();
   matcher.describeMismatch(actual, mismatchDescription, matchState, verbose);
 
   if (mismatchDescription.length > 0) {
@@ -72,17 +70,18 @@ String _defaultFailFormatter(
 /**
  * Type of closures used by LazyMatcher.
  */
-typedef Matcher MatcherCreator();
+typedef MatcherCreator = Matcher Function();
 
 /**
  * Type of closures used by MatchesJsonObject to record field mismatches.
  */
-typedef Description MismatchDescriber(Description mismatchDescription);
+typedef MismatchDescriber = Description Function(
+    Description mismatchDescription);
 
 /**
  * Type of callbacks used to process notifications.
  */
-typedef void NotificationProcessor(String event, params);
+typedef NotificationProcessor = void Function(String event, Map params);
 
 /**
  * Base class for analysis server integration tests.
@@ -93,13 +92,13 @@ abstract class AbstractAnalysisServerIntegrationTest
    * Amount of time to give the server to respond to a shutdown request before
    * forcibly terminating it.
    */
-  static const Duration SHUTDOWN_TIMEOUT = const Duration(seconds: 5);
+  static const Duration SHUTDOWN_TIMEOUT = Duration(seconds: 5);
 
   /**
    * Connection to the analysis server.
    */
   @override
-  final Server server = new Server();
+  final Server server = Server();
 
   /**
    * Temporary directory in which source files can be stored.
@@ -111,7 +110,7 @@ abstract class AbstractAnalysisServerIntegrationTest
    * been received for the file.
    */
   Map<String, List<AnalysisError>> currentAnalysisErrors =
-      new HashMap<String, List<AnalysisError>>();
+      HashMap<String, List<AnalysisError>>();
 
   /**
    * True if the teardown process should skip sending a "server.shutdown"
@@ -165,7 +164,7 @@ abstract class AbstractAnalysisServerIntegrationTest
     onAnalysisErrors.listen((AnalysisErrorsParams params) {
       currentAnalysisErrors[params.file] = params.errors;
     });
-    Completer serverConnected = new Completer();
+    Completer serverConnected = Completer();
     // TODO(brianwilkerson) Implement this.
 //    onServerConnected.listen((_) {
 //      outOfTestExpect(serverConnected.isCompleted, isFalse);
@@ -189,7 +188,7 @@ abstract class AbstractAnalysisServerIntegrationTest
    */
   Future shutdownIfNeeded() {
     if (skipShutdown) {
-      return new Future.value();
+      return Future.value();
     }
     // Give the server a short time to comply with the shutdown request; if it
     // doesn't exit, then forcibly terminate it.
@@ -214,7 +213,7 @@ abstract class AbstractAnalysisServerIntegrationTest
    * then also enable [SERVER_STATUS] notifications so that [analysisFinished]
    * can be used.
    */
-  Future standardAnalysisSetup({bool subscribeStatus: true}) {
+  Future standardAnalysisSetup({bool subscribeStatus = true}) {
     List<Future> futures = <Future>[];
     // TODO(brianwilkerson) Implement this.
 //    if (subscribeStatus) {
@@ -228,7 +227,7 @@ abstract class AbstractAnalysisServerIntegrationTest
    * Start [server].
    */
   Future startServer(
-          {bool checked: true, int diagnosticPort, int servicesPort}) =>
+          {bool checked = true, int diagnosticPort, int servicesPort}) =>
       server.start(
           checked: checked,
           diagnosticPort: diagnosticPort,
@@ -254,8 +253,8 @@ abstract class AbstractAnalysisServerIntegrationTest
    * Return a normalized path to the file (with symbolic links resolved).
    */
   String writeFile(String pathname, String contents) {
-    new Directory(dirname(pathname)).createSync(recursive: true);
-    File file = new File(pathname);
+    Directory(dirname(pathname)).createSync(recursive: true);
+    File file = File(pathname);
     file.writeAsStringSync(contents);
     return file.resolveSymbolicLinksSync();
   }
@@ -305,9 +304,7 @@ class LazyMatcher implements Matcher {
    * Create the wrapped matcher object, if it hasn't been created already.
    */
   void _createMatcher() {
-    if (_wrappedMatcher == null) {
-      _wrappedMatcher = _creator();
-    }
+    _wrappedMatcher ??= _creator();
   }
 }
 
@@ -460,7 +457,7 @@ class Server {
   /**
    * Stopwatch that we use to generate timing information for debug output.
    */
-  Stopwatch _time = new Stopwatch();
+  Stopwatch _time = Stopwatch();
 
   /**
    * The [currentElapseTime] at which the last communication was received from the server
@@ -500,7 +497,7 @@ class Server {
     while (!['benchmark', 'test'].contains(basename(pathname))) {
       String parent = dirname(pathname);
       if (parent.length >= pathname.length) {
-        throw new Exception("Can't find root directory");
+        throw Exception("Can't find root directory");
       }
       pathname = parent;
     }
@@ -531,8 +528,8 @@ class Server {
    */
   void listenToOutput(NotificationProcessor notificationProcessor) {
     _process.stdout
-        .transform((new Utf8Codec()).decoder)
-        .transform(new LineSplitter())
+        .transform((Utf8Codec()).decoder)
+        .transform(LineSplitter())
         .listen((String line) {
       lastCommunicationTime = currentElapseTime;
       String trimmedLine = line.trim();
@@ -559,7 +556,7 @@ class Server {
           _pendingCommands.remove(id);
         }
         if (messageAsMap.containsKey('error')) {
-          completer.completeError(new ServerErrorMessage(messageAsMap));
+          completer.completeError(ServerErrorMessage(messageAsMap));
         } else {
           completer.complete(messageAsMap['result']);
         }
@@ -573,7 +570,7 @@ class Server {
         outOfTestExpect(messageAsMap, contains('event'));
         outOfTestExpect(messageAsMap['event'], isString);
         notificationProcessor(
-            messageAsMap['event'] as String, messageAsMap['params']);
+            messageAsMap['event'] as String, messageAsMap['params'] as Map);
         // Check that the message is well-formed.  We do this after calling
         // notificationController.add() so that we don't stall the test in the
         // event of an error.
@@ -581,8 +578,8 @@ class Server {
       }
     });
     _process.stderr
-        .transform((new Utf8Codec()).decoder)
-        .transform(new LineSplitter())
+        .transform((Utf8Codec()).decoder)
+        .transform(LineSplitter())
         .listen((String line) {
       String trimmedLine = line.trim();
       _recordStdio('ERR:  $trimmedLine');
@@ -607,7 +604,7 @@ class Server {
     if (params != null) {
       command['params'] = params;
     }
-    Completer completer = new Completer();
+    Completer completer = Completer();
     _pendingCommands[id] = completer;
     String line = json.encode(command);
     _recordStdio('SEND: $line');
@@ -622,15 +619,15 @@ class Server {
    * "--pause-isolates-on-exit", allowing the observatory to be used.
    */
   Future start(
-      {bool checked: true,
-      bool debugServer: false,
+      {bool checked = true,
+      bool debugServer = false,
       int diagnosticPort,
-      bool profileServer: false,
+      bool profileServer = false,
       String sdkPath,
       int servicesPort,
-      bool useAnalysisHighlight2: false}) {
+      bool useAnalysisHighlight2 = false}) {
     if (_process != null) {
-      throw new Exception('Process already started');
+      throw Exception('Process already started');
     }
     _time.start();
     String dartBinary = Platform.executable;
@@ -692,7 +689,7 @@ class Server {
   /**
    * Deal with bad data received from the server.
    */
-  void _badDataFromServer(String details, {bool silent: false}) {
+  void _badDataFromServer(String details, {bool silent = false}) {
     if (!silent) {
       _recordStdio('BAD DATA FROM SERVER: $details');
     }
@@ -707,7 +704,7 @@ class Server {
     // and is outputting a stacktrace, because it ensures that we see the
     // entire stacktrace.  Use expectAsync() to prevent the test from
     // ending during this 1 second.
-    new Future.delayed(new Duration(seconds: 1), expectAsync0(() {
+    Future.delayed(Duration(seconds: 1), expectAsync0(() {
       fail('Bad data received from server: $details');
     }));
   }
@@ -893,7 +890,7 @@ abstract class _RecursiveMatcher extends Matcher {
         mismatchDescription =
             mismatchDescription.add(' (should be ').addDescriptionOf(matcher);
         String subDescription = matcher
-            .describeMismatch(item, new StringDescription(), subState, false)
+            .describeMismatch(item, StringDescription(), subState, false)
             .toString();
         if (subDescription.isNotEmpty) {
           mismatchDescription =

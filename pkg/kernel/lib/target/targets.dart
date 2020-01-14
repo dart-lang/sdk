@@ -12,10 +12,12 @@ final List<String> targetNames = targets.keys.toList();
 class TargetFlags {
   final bool trackWidgetCreation;
   final bool forceLateLoweringForTesting;
+  final bool enableNullSafety;
 
   TargetFlags(
       {this.trackWidgetCreation = false,
-      this.forceLateLoweringForTesting = false});
+      this.forceLateLoweringForTesting = false,
+      this.enableNullSafety = false});
 }
 
 typedef Target _TargetBuilder(TargetFlags flags);

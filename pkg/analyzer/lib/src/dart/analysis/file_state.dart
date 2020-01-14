@@ -15,6 +15,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/defined_names.dart';
+import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
 import 'package:analyzer/src/dart/analysis/library_graph.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/referenced_names.dart';
@@ -29,7 +30,6 @@ import 'package:analyzer/src/source/source_resource.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
-import 'package:analyzer/src/summary/name_filter.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:convert/convert.dart';
@@ -125,7 +125,6 @@ class FileState {
   List<FileState> _exportedFiles;
   List<FileState> _partedFiles;
   List<FileState> _libraryFiles;
-  List<NameFilter> _exportFilters;
 
   Set<FileState> _directReferencedFiles;
   Set<FileState> _directReferencedLibraries;
@@ -303,7 +302,7 @@ class FileState {
    * directly or indirectly referenced files.
    */
   Set<FileState> get transitiveFiles {
-    var transitiveFiles = Set<FileState>();
+    var transitiveFiles = <FileState>{};
 
     void appendReferenced(FileState file) {
       if (transitiveFiles.add(file)) {
@@ -472,7 +471,6 @@ class FileState {
     _importedFiles = <FileState>[];
     _exportedFiles = <FileState>[];
     _partedFiles = <FileState>[];
-    _exportFilters = <NameFilter>[];
     for (var directive in _unlinked2.imports) {
       var uri = _selectRelativeUri(directive);
       var file = _fileForRelativeUri(uri);
@@ -482,8 +480,6 @@ class FileState {
       var uri = _selectRelativeUri(directive);
       var file = _fileForRelativeUri(uri);
       _exportedFiles.add(file);
-      // TODO(scheglov) implement
-      _exportFilters.add(NameFilter.identity);
     }
     for (var uri in _unlinked2.parts) {
       var file = _fileForRelativeUri(uri);
@@ -492,22 +488,24 @@ class FileState {
           .putIfAbsent(file, () => <FileState>[])
           .add(this);
     }
-    _libraryFiles = [this]..addAll(_partedFiles);
+    _libraryFiles = [this, ..._partedFiles];
 
     // Compute referenced files.
-    _directReferencedFiles = Set<FileState>()
-      ..addAll(_importedFiles)
-      ..addAll(_exportedFiles)
-      ..addAll(_partedFiles);
-    _directReferencedLibraries = Set<FileState>()
-      ..addAll(_importedFiles)
-      ..addAll(_exportedFiles);
+    _directReferencedFiles = <FileState>{
+      ..._importedFiles,
+      ..._exportedFiles,
+      ..._partedFiles,
+    };
+    _directReferencedLibraries = <FileState>{
+      ..._importedFiles,
+      ..._exportedFiles,
+    };
 
     // Update mapping from subtyped names to files.
     for (var name in _driverUnlinkedUnit.subtypedNames) {
       var files = _fsState._subtypedNameToFiles[name];
       if (files == null) {
-        files = Set<FileState>();
+        files = <FileState>{};
         _fsState._subtypedNameToFiles[name] = files;
       }
       files.add(this);
@@ -570,7 +568,7 @@ class FileState {
 
   CompilationUnit _parse(AnalysisErrorListener errorListener) {
     AnalysisOptionsImpl analysisOptions = _fsState._analysisOptions;
-    FeatureSet featureSet = analysisOptions.contextFeatures;
+    var featureSet = _fsState.featureSetProvider.getFeatureSet(path, uri);
     if (source == null) {
       return _createEmptyCompilationUnit(featureSet);
     }
@@ -721,6 +719,8 @@ class FileSystemState {
   final Uint32List _unlinkedSalt;
   final Uint32List _linkedSalt;
 
+  final FeatureSetProvider featureSetProvider;
+
   /**
    * The optional store with externally provided unlinked and corresponding
    * linked summaries. These summaries are always added to the store for any
@@ -740,7 +740,7 @@ class FileSystemState {
   /**
    * All known file paths.
    */
-  final Set<String> knownFilePaths = Set<String>();
+  final Set<String> knownFilePaths = <String>{};
 
   /**
    * All known files.
@@ -800,7 +800,8 @@ class FileSystemState {
     this._analysisOptions,
     this._declaredVariables,
     this._unlinkedSalt,
-    this._linkedSalt, {
+    this._linkedSalt,
+    this.featureSetProvider, {
     this.externalSummaries,
   }) {
     _fileContentCache = _FileContentCache.getInstance(

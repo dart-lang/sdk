@@ -18,7 +18,7 @@ import 'to_html.dart';
  */
 GeneratedFile javaGeneratedFile(
     String path, CodegenJavaVisitor createVisitor(Api api)) {
-  return new GeneratedFile(path, (String pkgPath) async {
+  return GeneratedFile(path, (String pkgPath) async {
     CodegenJavaVisitor visitor = createVisitor(readApi(pkgPath));
     return visitor.collectCode(visitor.visitApi);
   });
@@ -41,14 +41,12 @@ class CodegenJavaVisitor extends HierarchicalApiVisitor with CodeGenerator {
    * Variable names which must be changed in order to avoid conflict with
    * reserved words in Java.
    */
-  static const Map<String, String> _variableRenames = const {
-    'default': 'defaultSdk'
-  };
+  static const Map<String, String> _variableRenames = {'default': 'defaultSdk'};
 
   /**
    * Type references in the spec that are named something else in Java.
    */
-  static const Map<String, String> _typeRenames = const {
+  static const Map<String, String> _typeRenames = {
     'bool': 'boolean',
     'double': 'double',
     'int': 'int',
@@ -68,7 +66,7 @@ class CodegenJavaVisitor extends HierarchicalApiVisitor with CodeGenerator {
   final ToHtmlVisitor toHtmlVisitor;
 
   CodegenJavaVisitor(Api api)
-      : toHtmlVisitor = new ToHtmlVisitor(api),
+      : toHtmlVisitor = ToHtmlVisitor(api),
         super(api);
 
   /**
@@ -197,7 +195,7 @@ class CodegenJavaVisitor extends HierarchicalApiVisitor with CodeGenerator {
     } else if (type is TypeUnion) {
       return 'Object';
     } else {
-      throw new Exception("Can't make type buildable");
+      throw Exception("Can't make type buildable");
     }
   }
 
@@ -210,7 +208,7 @@ class CodegenJavaVisitor extends HierarchicalApiVisitor with CodeGenerator {
   void makeClass(String header, void callback()) {
     _CodegenJavaState oldState = _state;
     try {
-      _state = new _CodegenJavaState();
+      _state = _CodegenJavaState();
       callback();
       writeln('$header {');
       indent(() {
@@ -277,7 +275,7 @@ class CodegenJavaVisitor extends HierarchicalApiVisitor with CodeGenerator {
   TypeDecl resolveTypeReferenceChain(TypeDecl type) {
     TypeDecl typeDecl = super.resolveTypeReferenceChain(type);
     if (typeDecl is TypeEnum) {
-      return new TypeReference('String', null);
+      return TypeReference('String', null);
     }
     return type;
   }

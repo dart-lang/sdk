@@ -21,7 +21,7 @@ main() {
       provider.pathContext.join(packageRoot, 'analyzer_plugin');
   String testDirPath = provider.pathContext.join(analysisServerPath, 'test');
 
-  AnalysisContextCollection collection = new AnalysisContextCollection(
+  AnalysisContextCollection collection = AnalysisContextCollection(
       includedPaths: <String>[testDirPath], resourceProvider: provider);
   List<AnalysisContext> contexts = collection.contexts;
   if (contexts.length != 1) {

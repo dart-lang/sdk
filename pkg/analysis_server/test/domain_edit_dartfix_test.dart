@@ -48,9 +48,9 @@ class EditDartfixDomainHandlerTest extends AbstractAnalysisTest {
   }
 
   Future<EditDartfixResult> performFix(
-      {List<String> includedFixes, String outputDir, bool pedantic}) async {
-    var response = await performFixRaw(
-        includedFixes: includedFixes, outputDir: outputDir, pedantic: pedantic);
+      {List<String> includedFixes, bool pedantic}) async {
+    var response =
+        await performFixRaw(includedFixes: includedFixes, pedantic: pedantic);
     expect(response.error, isNull);
     return EditDartfixResult.fromResponse(response);
   }
@@ -58,17 +58,17 @@ class EditDartfixDomainHandlerTest extends AbstractAnalysisTest {
   Future<Response> performFixRaw(
       {List<String> includedFixes,
       List<String> excludedFixes,
-      String outputDir,
       bool pedantic}) async {
     final id = nextRequestId;
-    final params = new EditDartfixParams([projectPath]);
+    final params = EditDartfixParams([projectPath]);
     params.includedFixes = includedFixes;
     params.excludedFixes = excludedFixes;
-    params.outputDir = outputDir;
     params.includePedanticFixes = pedantic;
-    final request = new Request(id, 'edit.dartfix', params.toJson());
+    final request = Request(id, 'edit.dartfix', params.toJson());
 
-    final response = await new EditDartFix(server, request).compute();
+    var fix = EditDartFix(server, request);
+    final response = await fix.compute();
+    fix.nonNullableFixTask?.server?.close();
     expect(response.id, id);
     return response;
   }
@@ -80,7 +80,7 @@ class EditDartfixDomainHandlerTest extends AbstractAnalysisTest {
     testFile = resourceProvider.convertPath('/project/lib/fileToBeFixed.dart');
   }
 
-  test_dartfix_collection_if_elements() async {
+  test_collection_if_elements() async {
     // Add analysis options to enable ui as code
     newFile('/project/analysis_options.yaml', content: '''
 analyzer:
@@ -105,7 +105,7 @@ f(bool b) {
 ''');
   }
 
-  test_dartfix_excludedFix_invalid() async {
+  test_excludedFix_invalid() async {
     addTestFile('''
 const double myDouble = 42.0;
     ''');
@@ -115,7 +115,7 @@ const double myDouble = 42.0;
     expect(result.error, isNotNull);
   }
 
-  test_dartfix_excludedSource() async {
+  test_excludedSource() async {
     // Add analysis options to exclude the lib directory then reanalyze
     newFile('/project/analysis_options.yaml', content: '''
 analyzer:
@@ -134,26 +134,30 @@ const double myDouble = 42.0;
     expect(result.edits, hasLength(0));
   }
 
-  test_dartfix_fixNamedConstructorTypeArgs() async {
+  test_fixNamedConstructorTypeArgs() async {
     addTestFile('''
-class A<T> { A.from(Object obj) { } }
+class A<T> {
+  A.from(Object obj);
+}
 main() {
-  print(new A.from<String>([]));
+  print(A.from<String>([]));
 }
     ''');
     createProject();
     EditDartfixResult result = await performFix();
     expect(result.suggestions, hasLength(1));
-    expectSuggestion(result.suggestions[0], 'type arguments', 65, 8);
+    expectSuggestion(result.suggestions[0], 'type arguments', 60, 8);
     expectEdits(result.edits, '''
-class A<T> { A.from(Object obj) { } }
+class A<T> {
+  A.from(Object obj);
+}
 main() {
-  print(new A<String>.from([]));
+  print(A<String>.from([]));
 }
     ''');
   }
 
-  test_dartfix_includedFix_invalid() async {
+  test_includedFix_invalid() async {
     addTestFile('''
 const double myDouble = 42.0;
     ''');
@@ -163,7 +167,7 @@ const double myDouble = 42.0;
     expect(result.error, isNotNull);
   }
 
-  test_dartfix_map_for_elements() async {
+  test_map_for_elements() async {
     // Add analysis options to enable ui as code
     newFile('/project/analysis_options.yaml', content: '''
 analyzer:
@@ -190,7 +194,7 @@ f(Iterable<int> i) {
 ''');
   }
 
-  test_dartfix_nonNullable() async {
+  test_nonNullable() async {
     createAnalysisOptionsFile(experiments: ['non-nullable']);
     addTestFile('''
 int f(int i) => 0;
@@ -213,7 +217,7 @@ void test() {
 ''');
   }
 
-  test_dartfix_nonNullable_analysisOptions_created() async {
+  test_nonNullable_analysisOptions_created() async {
     // Add pubspec for nnbd migration to detect
     newFile('/project/pubspec.yaml', content: '''
 name: testnnbd
@@ -232,7 +236,7 @@ analyzer:
 ''');
   }
 
-  test_dartfix_nonNullable_analysisOptions_experimentsAdded() async {
+  test_nonNullable_analysisOptions_experimentsAdded() async {
     String originalOptions = '''
 analyzer:
   something:
@@ -260,7 +264,7 @@ linter:
 ''');
   }
 
-  test_dartfix_nonNullable_analysisOptions_nnbdAdded() async {
+  test_nonNullable_analysisOptions_nnbdAdded() async {
     String originalOptions = '''
 analyzer:
   enable-experiment:
@@ -285,24 +289,7 @@ linter:
 ''');
   }
 
-  test_dartfix_nonNullable_outputDir() async {
-    createAnalysisOptionsFile(experiments: ['non-nullable']);
-    addTestFile('''
-int f(int i) => 0;
-int g(int i) => f(i);
-void test() {
-  g(null);
-}
-''');
-    createProject();
-    var outputDir = getFolder('/outputDir');
-    await performFix(
-        includedFixes: ['non-nullable'], outputDir: outputDir.path);
-    expect(outputDir.exists, true);
-    expect(outputDir.getChildren(), isNotEmpty);
-  }
-
-  test_dartfix_partFile() async {
+  test_partFile() async {
     newFile('/project/lib/lib.dart', content: '''
 library lib2;
 part 'fileToBeFixed.dart';
@@ -324,7 +311,7 @@ const double myDouble = 42;
     ''');
   }
 
-  test_dartfix_partFile_loose() async {
+  test_partFile_loose() async {
     addTestFile('''
 part of lib2;
 const double myDouble = 42.0;
@@ -342,7 +329,7 @@ const double myDouble = 42;
     ''');
   }
 
-  test_dartfix_pedantic() async {
+  test_pedantic() async {
     addTestFile('main(List args) { if (args.length == 0) { } }');
     createProject();
     EditDartfixResult result = await performFix(pedantic: true);
@@ -352,7 +339,7 @@ const double myDouble = 42;
     expectEdits(result.edits, 'main(List args) { if (args.isEmpty) { } }');
   }
 
-  test_dartfix_preferEqualForDefaultValues() async {
+  test_preferEqualForDefaultValues() async {
     // Add analysis options to enable ui as code
     addTestFile('f({a: 1}) { }');
     createProject();
@@ -363,7 +350,7 @@ const double myDouble = 42;
     expectEdits(result.edits, 'f({a = 1}) { }');
   }
 
-  test_dartfix_preferForElementsToMapFromIterable() async {
+  test_preferForElementsToMapFromIterable() async {
     addTestFile('''
 var m =
   Map<int, int>.fromIterable([1, 2, 3], key: (i) => i, value: (i) => i * 2);
@@ -380,7 +367,7 @@ var m =
     ''');
   }
 
-  test_dartfix_preferIfElementsToConditionalExpressions() async {
+  test_preferIfElementsToConditionalExpressions() async {
     addTestFile('''
 f(bool b) => ['a', b ? 'c' : 'd', 'e'];
     ''');
@@ -395,7 +382,7 @@ f(bool b) => ['a', if (b) 'c' else 'd', 'e'];
     ''');
   }
 
-  test_dartfix_preferIntLiterals() async {
+  test_preferIntLiterals() async {
     addTestFile('''
 const double myDouble = 42.0;
     ''');
@@ -409,7 +396,7 @@ const double myDouble = 42;
     ''');
   }
 
-  test_dartfix_preferIsEmpty() async {
+  test_preferIsEmpty() async {
     addTestFile('main(List<String> args) { if (args.length == 0) { } }');
     createProject();
     EditDartfixResult result =
@@ -421,7 +408,7 @@ const double myDouble = 42;
         result.edits, 'main(List<String> args) { if (args.isEmpty) { } }');
   }
 
-  test_dartfix_preferMixin() async {
+  test_preferMixin() async {
     addTestFile('''
 class A {}
 class B extends A {}
@@ -438,7 +425,37 @@ class C with B {}
     ''');
   }
 
-  test_dartfix_preferSpreadCollections() async {
+  test_preferSingleQuotes() async {
+    addTestFile('''
+var l = [
+  "abc",
+  'def',
+  "'g'",
+  """hij""",
+  \'''klm\''',
+];
+''');
+    createProject();
+    EditDartfixResult result =
+        await performFix(includedFixes: ['prefer-single-quotes']);
+    expect(result.suggestions, hasLength(2));
+    expectSuggestion(
+        result.suggestions[0], 'Convert to single quoted string', 12, 5);
+    expectSuggestion(
+        result.suggestions[1], 'Convert to single quoted string', 39, 9);
+    expect(result.hasErrors, isFalse);
+    expectEdits(result.edits, '''
+var l = [
+  'abc',
+  'def',
+  "'g'",
+  \'''hij\''',
+  \'''klm\''',
+];
+''');
+  }
+
+  test_preferSpreadCollections() async {
     // Add analysis options to enable ui as code
     newFile('/project/analysis_options.yaml', content: '''
 analyzer:

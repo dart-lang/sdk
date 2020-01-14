@@ -116,11 +116,13 @@ void Function(int, dynamic) fn() {
   }
 
   test_parameter_inFunctionLiteral_withType() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void fn() {
   var f = (int a) {};
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 18, 1),
+    ]);
   }
 
   test_parameter_inGenericFunction_withType() async {

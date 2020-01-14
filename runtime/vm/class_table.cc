@@ -147,16 +147,6 @@ void ClassTable::Register(const Class& cls) {
     ASSERT(index > 0 && index < kNumPredefinedCids && index < top_);
     ASSERT(table_[index] == nullptr);
     table_[index] = cls.raw();
-
-    // Add the vtable for this predefined class into the static vtable registry
-    // if it has not been setup yet.
-    cpp_vtable cls_vtable = cls.handle_vtable();
-    cpp_vtable old_cls_vtable = 0;
-    if (!Object::builtin_vtables_[index].compare_exchange_strong(old_cls_vtable,
-                                                                 cls_vtable)) {
-      // Lost the race, but the other thread installed the same value.
-      ASSERT(old_cls_vtable == cls_vtable);
-    }
   } else {
     if (top_ == capacity_) {
       const intptr_t new_capacity = capacity_ + kCapacityIncrement;

@@ -19,12 +19,6 @@ DEFINE_FLAG(bool,
             false,
             "Force compaction to move every movable object");
 
-static const intptr_t kBitVectorWordsPerBlock = 1;
-static const intptr_t kBlockSize =
-    kObjectAlignment * kBitsPerWord * kBitVectorWordsPerBlock;
-static const intptr_t kBlockMask = ~(kBlockSize - 1);
-static const intptr_t kBlocksPerPage = kPageSize / kBlockSize;
-
 // Each HeapPage is divided into blocks of size kBlockSize. Each object belongs
 // to the block containing its header word (so up to kBlockSize +
 // kAllocatablePageSize - 2 * kObjectAlignment bytes belong to the same block).
@@ -34,6 +28,7 @@ static const intptr_t kBlocksPerPage = kPageSize / kBlockSize;
 // allocation units are live, so the new address of any object in the block can
 // be found by adding the number of live allocation units before the object to
 // the block's new start address.
+// Compare CountingBlock used for heap snapshot generation.
 class ForwardingBlock {
  public:
   void Clear() {

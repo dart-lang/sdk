@@ -48,19 +48,12 @@ extern const uint8_t kDartCoreIsolateSnapshotInstructions[];
 namespace dart {
 namespace bin {
 
-// Snapshot pieces if we link in a snapshot, otherwise initialized to NULL.
-#if defined(DART_NO_SNAPSHOT)
-const uint8_t* vm_snapshot_data = NULL;
-const uint8_t* vm_snapshot_instructions = NULL;
-const uint8_t* core_isolate_snapshot_data = NULL;
-const uint8_t* core_isolate_snapshot_instructions = NULL;
-#else
+// Snapshot pieces we link in a snapshot.
 const uint8_t* vm_snapshot_data = kDartVmSnapshotData;
 const uint8_t* vm_snapshot_instructions = kDartVmSnapshotInstructions;
 const uint8_t* core_isolate_snapshot_data = kDartCoreIsolateSnapshotData;
 const uint8_t* core_isolate_snapshot_instructions =
     kDartCoreIsolateSnapshotInstructions;
-#endif
 
 /**
  * Global state used to control and store generation of application snapshots.
@@ -129,8 +122,7 @@ static void WriteDepsFile(Dart_Isolate isolate) {
   if (Options::depfile() == NULL) {
     return;
   }
-  File* file =
-      File::Open(NULL, Options::depfile(), File::kWriteTruncate);
+  File* file = File::Open(NULL, Options::depfile(), File::kWriteTruncate);
   if (file == NULL) {
     ErrorExit(kErrorExitCode, "Error: Unable to open snapshot depfile: %s\n\n",
               Options::depfile());
@@ -192,13 +184,6 @@ static Dart_Handle SetupCoreLibraries(Dart_Isolate isolate,
   result = DartUtils::PrepareForScriptLoading(false, Options::trace_loading());
   if (Dart_IsError(result)) return result;
 
-  if (Dart_IsVMFlagSet("support_service") || !Dart_IsPrecompiledRuntime()) {
-    // Set up the load port provided by the service isolate so that we can
-    // load scripts.
-    result = DartUtils::SetupServiceLoadPort();
-    if (Dart_IsError(result)) return result;
-  }
-
   // Setup packages config if specified.
   result = DartUtils::SetupPackageConfig(packages_file);
   if (Dart_IsError(result)) return result;
@@ -256,7 +241,8 @@ static bool OnIsolateInitialize(void** child_callback_data, char** error) {
 
   if (isolate_run_app_snapshot) {
     if (Dart_IsVMFlagSet("support_service") || !Dart_IsPrecompiledRuntime()) {
-      Loader::InitForSnapshot(script_uri, isolate_data);
+      result = Loader::InitForSnapshot(script_uri, isolate_data);
+      if (Dart_IsError(result)) goto failed;
     }
   } else {
     result = DartUtils::ResolveScript(Dart_NewStringFromCString(script_uri));
@@ -269,8 +255,9 @@ static bool OnIsolateInitialize(void** child_callback_data, char** error) {
       // bypasses normal source code loading paths that initialize it.
       const char* resolved_script_uri = NULL;
       result = Dart_StringToCString(result, &resolved_script_uri);
-      if (Dart_IsError(result)) return result != nullptr;
-      Loader::InitForSnapshot(resolved_script_uri, isolate_data);
+      if (Dart_IsError(result)) goto failed;
+      result = Loader::InitForSnapshot(resolved_script_uri, isolate_data);
+      if (Dart_IsError(result)) goto failed;
     }
   }
 
@@ -372,7 +359,8 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
 
   if (isolate_run_app_snapshot) {
     if (Dart_IsVMFlagSet("support_service") || !Dart_IsPrecompiledRuntime()) {
-      Loader::InitForSnapshot(script_uri, isolate_data);
+      Dart_Handle result = Loader::InitForSnapshot(script_uri, isolate_data);
+      CHECK_RESULT(result);
     }
 #if !defined(DART_PRECOMPILED_RUNTIME)
     if (is_main_isolate) {
@@ -400,7 +388,8 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
       const char* resolved_script_uri = NULL;
       result = Dart_StringToCString(uri, &resolved_script_uri);
       CHECK_RESULT(result);
-      Loader::InitForSnapshot(resolved_script_uri, isolate_data);
+      result = Loader::InitForSnapshot(resolved_script_uri, isolate_data);
+      CHECK_RESULT(result);
     }
     Dart_TimelineEvent("LoadScript", Dart_TimelineGetMicros(),
                        Dart_GetMainPortId(), Dart_Timeline_Event_Async_End, 0,
@@ -532,6 +521,7 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
                                                  Dart_IsolateFlags* flags,
                                                  char** error,
                                                  int* exit_code) {
+#if !defined(PRODUCT)
   ASSERT(script_uri != NULL);
   Dart_Isolate isolate = NULL;
   auto isolate_group_data = new IsolateGroupData(
@@ -588,6 +578,9 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
   Dart_ExitScope();
   Dart_ExitIsolate();
   return isolate;
+#else   // !defined(PRODUCT)
+  return NULL;
+#endif  // !defined(PRODUCT)
 }
 
 // Returns newly created Isolate on success, NULL on failure.
@@ -997,11 +990,10 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
 
 #undef CHECK_RESULT
 
-// Observatory assets are only needed in the regular dart binary.
-#if !defined(NO_OBSERVATORY)
+// Observatory assets are not included in a product build.
+#if !defined(PRODUCT)
 extern unsigned int observatory_assets_archive_len;
 extern const uint8_t* observatory_assets_archive;
-
 
 Dart_Handle GetVMServiceAssetsArchiveCallback() {
   uint8_t* decompressed = NULL;
@@ -1014,9 +1006,9 @@ Dart_Handle GetVMServiceAssetsArchiveCallback() {
   free(decompressed);
   return tar_file;
 }
-#else   // !defined(NO_OBSERVATORY)
+#else   // !defined(PRODUCT)
 static Dart_GetVMServiceAssetsArchive GetVMServiceAssetsArchiveCallback = NULL;
-#endif  // !defined(NO_OBSERVATORY)
+#endif  // !defined(PRODUCT)
 
 void main(int argc, char** argv) {
   char* script_name;
@@ -1116,7 +1108,12 @@ void main(int argc, char** argv) {
   Loader::InitOnce();
 
   if (app_snapshot == nullptr) {
-    app_snapshot = Snapshot::TryReadAppSnapshot(script_name);
+    // For testing purposes we add a flag to debug-mode to use the
+    // in-memory ELF loader.
+    const bool force_load_elf_from_memory =
+        false DEBUG_ONLY(|| Options::force_load_elf_from_memory());
+    app_snapshot =
+        Snapshot::TryReadAppSnapshot(script_name, force_load_elf_from_memory);
   }
   if (app_snapshot != nullptr) {
     vm_run_app_snapshot = true;

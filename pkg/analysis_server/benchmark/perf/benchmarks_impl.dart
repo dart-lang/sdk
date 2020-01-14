@@ -20,9 +20,10 @@ class ColdAnalysisBenchmark extends Benchmark {
       : super(
             'analysis-server-cold',
             'Analysis server benchmarks of a large project on start-up, no '
-            'existing driver cache.',
+                'existing driver cache.',
             kind: 'group');
 
+  @override
   int get maxIterations => 3;
 
   @override
@@ -34,9 +35,9 @@ class ColdAnalysisBenchmark extends Benchmark {
       deleteServerCache();
     }
 
-    Stopwatch stopwatch = new Stopwatch()..start();
+    Stopwatch stopwatch = Stopwatch()..start();
 
-    AnalysisServerMemoryUsageTest test = new AnalysisServerMemoryUsageTest();
+    AnalysisServerMemoryUsageTest test = AnalysisServerMemoryUsageTest();
     await test.setUp();
     await test.subscribeToStatusNotifications();
     await test.sendAnalysisSetAnalysisRoots(getProjectRoots(quick: quick), []);
@@ -45,10 +46,10 @@ class ColdAnalysisBenchmark extends Benchmark {
     stopwatch.stop();
     int usedBytes = await test.getMemoryUsage();
 
-    CompoundBenchMarkResult result = new CompoundBenchMarkResult(id);
-    result.add('analysis',
-        new BenchMarkResult('micros', stopwatch.elapsedMicroseconds));
-    result.add('memory', new BenchMarkResult('bytes', usedBytes));
+    CompoundBenchMarkResult result = CompoundBenchMarkResult(id);
+    result.add(
+        'analysis', BenchMarkResult('micros', stopwatch.elapsedMicroseconds));
+    result.add('memory', BenchMarkResult('bytes', usedBytes));
 
     await test.shutdown();
 
@@ -66,7 +67,7 @@ class AnalysisBenchmark extends Benchmark {
       : super(
             'analysis-server',
             'Analysis server benchmarks of a large project, with an existing '
-            'driver cache.',
+                'driver cache.',
             kind: 'group');
 
   @override
@@ -74,9 +75,9 @@ class AnalysisBenchmark extends Benchmark {
     bool quick = false,
     bool verbose = false,
   }) async {
-    Stopwatch stopwatch = new Stopwatch()..start();
+    Stopwatch stopwatch = Stopwatch()..start();
 
-    AnalysisServerMemoryUsageTest test = new AnalysisServerMemoryUsageTest();
+    AnalysisServerMemoryUsageTest test = AnalysisServerMemoryUsageTest();
     if (verbose) {
       test.debugStdio();
     }
@@ -88,19 +89,19 @@ class AnalysisBenchmark extends Benchmark {
     stopwatch.stop();
     int usedBytes = await test.getMemoryUsage();
 
-    CompoundBenchMarkResult result = new CompoundBenchMarkResult(id);
+    CompoundBenchMarkResult result = CompoundBenchMarkResult(id);
     result.add('warm-analysis',
-        new BenchMarkResult('micros', stopwatch.elapsedMicroseconds));
-    result.add('warm-memory', new BenchMarkResult('bytes', usedBytes));
+        BenchMarkResult('micros', stopwatch.elapsedMicroseconds));
+    result.add('warm-memory', BenchMarkResult('bytes', usedBytes));
 
     if (!quick) {
       // change timing
       final int editMicros = await _calcEditTiming(test);
-      result.add('edit', new BenchMarkResult('micros', editMicros));
+      result.add('edit', BenchMarkResult('micros', editMicros));
 
       // code completion
       final int completionMicros = await _calcCompletionTiming(test);
-      result.add('completion', new BenchMarkResult('micros', completionMicros));
+      result.add('completion', BenchMarkResult('micros', completionMicros));
     }
 
     await test.shutdown();
@@ -114,12 +115,12 @@ class AnalysisBenchmark extends Benchmark {
 
     final String filePath =
         path.join(analysisServerSrcPath, 'lib/src/analysis_server.dart');
-    String contents = new File(filePath).readAsStringSync();
+    String contents = File(filePath).readAsStringSync();
 
     await test
-        .sendAnalysisUpdateContent({filePath: new AddContentOverlay(contents)});
+        .sendAnalysisUpdateContent({filePath: AddContentOverlay(contents)});
 
-    final Stopwatch stopwatch = new Stopwatch()..start();
+    final Stopwatch stopwatch = Stopwatch()..start();
 
     for (int i = 0; i < kGroupCount; i++) {
       int startIndex = i * (contents.length ~/ (kGroupCount + 2));
@@ -127,8 +128,8 @@ class AnalysisBenchmark extends Benchmark {
       contents = contents.substring(0, index + 1) +
           ' ' +
           contents.substring(index + 1);
-      await test.sendAnalysisUpdateContent(
-          {filePath: new AddContentOverlay(contents)});
+      await test
+          .sendAnalysisUpdateContent({filePath: AddContentOverlay(contents)});
       await test.analysisFinished;
     }
 
@@ -143,13 +144,13 @@ class AnalysisBenchmark extends Benchmark {
 
     final String filePath =
         path.join(analysisServerSrcPath, 'lib/src/analysis_server.dart');
-    String contents = new File(filePath).readAsStringSync();
+    String contents = File(filePath).readAsStringSync();
 
     await test
-        .sendAnalysisUpdateContent({filePath: new AddContentOverlay(contents)});
+        .sendAnalysisUpdateContent({filePath: AddContentOverlay(contents)});
 
     int completionCount = 0;
-    final Stopwatch stopwatch = new Stopwatch()..start();
+    final Stopwatch stopwatch = Stopwatch()..start();
 
     Future _complete(int offset) async {
       // Create a new non-broadcast stream and subscribe to
@@ -157,7 +158,7 @@ class AnalysisBenchmark extends Benchmark {
       // Otherwise we could skip results which where posted to
       // test.onCompletionResults after request is sent but
       // before subscribing to test.onCompletionResults.
-      final completionResults = new StreamController<CompletionResultsParams>();
+      final completionResults = StreamController<CompletionResultsParams>();
       completionResults.sink.addStream(test.onCompletionResults);
 
       CompletionGetSuggestionsResult result =
@@ -176,7 +177,7 @@ class AnalysisBenchmark extends Benchmark {
       int startIndex = i * (contents.length ~/ (kGroupCount + 2));
       // Look for a line with a period in it that ends with a semi-colon.
       int index =
-          contents.indexOf(new RegExp(r'\..*;$', multiLine: true), startIndex);
+          contents.indexOf(RegExp(r'\..*;$', multiLine: true), startIndex);
 
       await _complete(index - 10);
       await _complete(index - 1);
@@ -190,8 +191,8 @@ class AnalysisBenchmark extends Benchmark {
         contents = contents.substring(0, index + 1) +
             ' ' +
             contents.substring(index + 1);
-        await test.sendAnalysisUpdateContent(
-            {filePath: new AddContentOverlay(contents)});
+        await test
+            .sendAnalysisUpdateContent({filePath: AddContentOverlay(contents)});
       }
     }
 

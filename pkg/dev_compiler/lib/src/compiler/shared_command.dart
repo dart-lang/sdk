@@ -4,17 +4,17 @@
 
 import 'dart:async';
 import 'dart:io';
-import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:args/args.dart';
 import 'package:front_end/src/api_unstable/ddc.dart'
     show InitializedCompilerState, parseExperimentalArguments;
 import 'package:path/path.dart' as p;
 import 'module_builder.dart';
-import '../analyzer/command.dart' as analyzer_compiler;
-import '../analyzer/driver.dart' show CompilerAnalysisDriver;
 import '../kernel/command.dart' as kernel_compiler;
 
-/// Shared code between Analyzer and Kernel CLI interfaces.
+// TODO(nshahan) Merge all of this file the locations where they are used in
+// the kernel (only) version of DDC.
+
+/// Previously was shared code between Analyzer and Kernel CLI interfaces.
 ///
 /// This file should only implement functionality that does not depend on
 /// Analyzer/Kernel imports.
@@ -47,7 +47,7 @@ Map<String, String> sdkLibraryVariables = {
   'dart.library.web_sql': 'true',
 };
 
-/// Shared compiler options between `dartdevc` kernel and analyzer backends.
+/// Compiler options for the `dartdevc` backend.
 class SharedCompilerOptions {
   /// Whether to emit the source mapping file.
   ///
@@ -198,7 +198,7 @@ class SharedCompilerOptions {
   }
 
   // TODO(nshahan) Cleanup when NNBD graduates experimental status.
-  bool get nonNullableEnabled => experiments['non-nullable'] ?? false;
+  bool get enableNullSafety => experiments['non-nullable'] ?? false;
 }
 
 /// Finds explicit module names of the form `path=name` in [summaryPaths],
@@ -212,7 +212,7 @@ Map<String, String> _parseCustomSummaryModules(List<String> summaryPaths,
   var pathToModule = <String, String>{};
   if (summaryPaths == null) return pathToModule;
   for (var summaryPath in summaryPaths) {
-    var equalSign = summaryPath.indexOf("=");
+    var equalSign = summaryPath.indexOf('=');
     String modulePath;
     var summaryPathWithoutExt = summaryExt != null
         ? summaryPath.substring(
@@ -306,7 +306,7 @@ Uri sourcePathToUri(String source, {bool windows}) {
     }
   }
   if (windows) {
-    source = source.replaceAll("\\", "/");
+    source = source.replaceAll('\\', '/');
   }
 
   Uri result = Uri.base.resolve(source);
@@ -353,8 +353,8 @@ Map placeSourceMap(Map sourceMap, String sourceMapPath,
         // custom logic is BUILD specific and could be shared with other tools
         // like dart2js.
         var shortPath = uri.path
-            .replaceAll("/sdk/", "/dart-sdk/")
-            .replaceAll("/sdk_nnbd/", "/dart-sdk/");
+            .replaceAll('/sdk/', '/dart-sdk/')
+            .replaceAll('/sdk_nnbd/', '/dart-sdk/');
         var multiRootPath = "${multiRootOutputPath ?? ''}$shortPath";
         multiRootPath = multiRootPath;
         multiRootPath = p.url.relative(multiRootPath, from: sourceMapDir);
@@ -400,61 +400,41 @@ Future<CompilerResult> compile(ParsedArguments args,
     throw ArgumentError(
         'previousResult requires --batch or --bazel_worker mode/');
   }
-  if (args.isKernel) {
-    return kernel_compiler.compile(args.rest,
-        compilerState: previousResult?.kernelState,
-        isWorker: args.isWorker,
-        useIncrementalCompiler: args.useIncrementalCompiler,
-        inputDigests: inputDigests);
-  } else {
-    var result = analyzer_compiler.compile(args.rest,
-        compilerState: previousResult?.analyzerState);
-    if (args.isBatchOrWorker) {
-      AnalysisEngine.instance.clearCaches();
-    }
-    return Future.value(result);
-  }
+
+  return kernel_compiler.compile(args.rest,
+      compilerState: previousResult?.kernelState,
+      isWorker: args.isWorker,
+      useIncrementalCompiler: args.useIncrementalCompiler,
+      inputDigests: inputDigests);
 }
 
 /// The result of a single `dartdevc` compilation.
 ///
-/// Typically used for exiting the proceess with [exitCode] or checking the
+/// Typically used for exiting the process with [exitCode] or checking the
 /// [success] of the compilation.
 ///
-/// For batch/worker compilations, the [compilerState] provides an opprotunity
+/// For batch/worker compilations, the [compilerState] provides an opportunity
 /// to reuse state from the previous run, if the options/input summaries are
-/// equiavlent. Otherwise it will be discarded.
+/// equivalent. Otherwise it will be discarded.
 class CompilerResult {
   /// Optionally provides the front_end state from the previous compilation,
-  /// which can be passed to [compile] to potentially speeed up the next
+  /// which can be passed to [compile] to potentially speed up the next
   /// compilation.
-  ///
-  /// This field is unused when using the Analyzer-backend for DDC.
   final InitializedCompilerState kernelState;
-
-  /// Optionally provides the analyzer state from the previous compilation,
-  /// which can be passed to [compile] to potentially speeed up the next
-  /// compilation.
-  ///
-  /// This field is unused when using the Kernel-backend for DDC.
-  final CompilerAnalysisDriver analyzerState;
 
   /// The process exit code of the compiler.
   final int exitCode;
 
-  CompilerResult(this.exitCode, {this.kernelState, this.analyzerState}) {
-    assert(kernelState == null || analyzerState == null,
-        'kernel and analyzer state should not both be supplied');
-  }
+  CompilerResult(this.exitCode, {this.kernelState});
 
-  /// Gets the kernel or analyzer compiler state, if any.
-  Object get compilerState => kernelState ?? analyzerState;
+  /// Gets the kernel compiler state, if any.
+  Object get compilerState => kernelState;
 
   /// Whether the program compiled without any fatal errors (equivalent to
   /// [exitCode] == 0).
   bool get success => exitCode == 0;
 
-  /// Whether the compiler crashed (i.e. threw an unhandled exeception,
+  /// Whether the compiler crashed (i.e. threw an unhandled exception,
   /// typically indicating an internal error in DDC itself or its front end).
   bool get crashed => exitCode == 70;
 }
@@ -467,9 +447,6 @@ class CompilerResult {
 ///
 /// [isBatch]/[isWorker] mode are preprocessed because they can combine
 /// argument lists from the initial invocation and from batch/worker jobs.
-///
-/// [isKernel] is also preprocessed because the Kernel backend supports
-/// different options compared to the Analyzer backend.
 class ParsedArguments {
   /// The user's arguments to the compiler for this compialtion.
   final List<String> rest;
@@ -486,12 +463,6 @@ class ParsedArguments {
   /// See also [isBatchOrWorker].
   final bool isWorker;
 
-  /// Whether to use the Kernel-based back end for dartdevc.
-  ///
-  /// This is similar to the Analyzer-based back end, but uses Kernel trees
-  /// instead of Analyzer trees for representing the Dart code.
-  final bool isKernel;
-
   /// Whether to re-use the last compiler result when in a worker.
   ///
   /// This is useful if we are repeatedly compiling things in the same context,
@@ -506,7 +477,6 @@ class ParsedArguments {
   ParsedArguments._(this.rest,
       {this.isBatch = false,
       this.isWorker = false,
-      this.isKernel = false,
       this.reuseResult = false,
       this.useIncrementalCompiler = false});
 
@@ -525,7 +495,6 @@ class ParsedArguments {
     var newArgs = <String>[];
     bool isWorker = false;
     bool isBatch = false;
-    bool isKernel = false;
     bool reuseResult = false;
     bool useIncrementalCompiler = false;
 
@@ -542,8 +511,6 @@ class ParsedArguments {
         isWorker = true;
       } else if (arg == '--batch') {
         isBatch = true;
-      } else if (arg == '--kernel' || arg == '-k') {
-        isKernel = true;
       } else if (arg == '--reuse-compiler-result') {
         reuseResult = true;
       } else if (arg == '--use-incremental-compiler') {
@@ -555,7 +522,6 @@ class ParsedArguments {
     return ParsedArguments._(newArgs,
         isWorker: isWorker,
         isBatch: isBatch,
-        isKernel: isKernel,
         reuseResult: reuseResult,
         useIncrementalCompiler: useIncrementalCompiler);
   }
@@ -582,7 +548,6 @@ class ParsedArguments {
     return ParsedArguments._(rest.toList()..addAll(newArgs.rest),
         isWorker: isWorker,
         isBatch: isBatch,
-        isKernel: isKernel || newArgs.isKernel,
         reuseResult: reuseResult || newArgs.reuseResult,
         useIncrementalCompiler:
             useIncrementalCompiler || newArgs.useIncrementalCompiler);

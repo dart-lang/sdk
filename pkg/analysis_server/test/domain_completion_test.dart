@@ -291,24 +291,24 @@ class A {
 
     // Make a request for suggestions
     Request request1 =
-        new CompletionGetSuggestionsParams(testFile, completionOffset)
+        CompletionGetSuggestionsParams(testFile, completionOffset)
             .toRequest('7');
     Future<Response> responseFuture1 = waitResponse(request1);
 
     // Make another request before the first request completes
     Request request2 =
-        new CompletionGetSuggestionsParams(testFile, completionOffset)
+        CompletionGetSuggestionsParams(testFile, completionOffset)
             .toRequest('8');
     Future<Response> responseFuture2 = waitResponse(request2);
 
     // Await first response
     Response response1 = await responseFuture1;
-    var result1 = new CompletionGetSuggestionsResult.fromResponse(response1);
+    var result1 = CompletionGetSuggestionsResult.fromResponse(response1);
     assertValidId(result1.id);
 
     // Await second response
     Response response2 = await responseFuture2;
-    var result2 = new CompletionGetSuggestionsResult.fromResponse(response2);
+    var result2 = CompletionGetSuggestionsResult.fromResponse(response2);
     assertValidId(result2.id);
 
     // Wait for all processing to be complete
@@ -335,16 +335,14 @@ class A {
         c^''');
 
     // Make a request for suggestions
-    Request request =
-        new CompletionGetSuggestionsParams(testFile, completionOffset)
-            .toRequest('0');
+    Request request = CompletionGetSuggestionsParams(testFile, completionOffset)
+        .toRequest('0');
     Future<Response> responseFuture = waitResponse(request);
 
     // Simulate user deleting text after request but before suggestions returned
-    server.updateContent('uc1', {testFile: new AddContentOverlay(testCode)});
+    server.updateContent('uc1', {testFile: AddContentOverlay(testCode)});
     server.updateContent('uc2', {
-      testFile: new ChangeContentOverlay(
-          [new SourceEdit(completionOffset - 1, 1, '')])
+      testFile: ChangeContentOverlay([SourceEdit(completionOffset - 1, 1, '')])
     });
 
     // Await a response
@@ -368,10 +366,9 @@ class A {
       import "package:foo/foo.dart";
       class foo { }''');
     await waitForTasksFinished();
-    server.updateContent('uc1', {testFile: new AddContentOverlay(testCode)});
+    server.updateContent('uc1', {testFile: AddContentOverlay(testCode)});
     server.updateContent('uc2', {
-      testFile:
-          new ChangeContentOverlay([new SourceEdit(completionOffset, 0, 'xp')])
+      testFile: ChangeContentOverlay([SourceEdit(completionOffset, 0, 'xp')])
     });
     completionOffset += 2;
     await getSuggestions();
@@ -397,12 +394,12 @@ class A {
         'i' +
         testCode.substring(completionOffset);
     ++completionOffset;
-    server.handleRequest(new AnalysisUpdateContentParams(
-        {testFile: new AddContentOverlay(revisedContent)}).toRequest('add1'));
+    server.handleRequest(AnalysisUpdateContentParams(
+        {testFile: AddContentOverlay(revisedContent)}).toRequest('add1'));
 
     // Request code completion immediately after edit
     Response response = await waitResponse(
-        new CompletionGetSuggestionsParams(testFile, completionOffset)
+        CompletionGetSuggestionsParams(testFile, completionOffset)
             .toRequest('0'));
     completionId = response.id;
     assertValidId(completionId);
@@ -411,7 +408,7 @@ class A {
     // because although the analysis is complete (waitForTasksFinished)
     // the response may not yet have been processed
     while (replacementOffset == null) {
-      await new Future.delayed(new Duration(milliseconds: 5));
+      await Future.delayed(Duration(milliseconds: 5));
     }
     expect(replacementOffset, completionOffset - 1);
     expect(replacementLength, 1);
@@ -551,8 +548,7 @@ class B extends A {
   }
 
   test_invalidFilePathFormat_notAbsolute() async {
-    var request =
-        new CompletionGetSuggestionsParams('test.dart', 0).toRequest('0');
+    var request = CompletionGetSuggestionsParams('test.dart', 0).toRequest('0');
     var response = await waitResponse(request);
     expect(
       response,
@@ -561,9 +557,9 @@ class B extends A {
   }
 
   test_invalidFilePathFormat_notNormalized() async {
-    var request = new CompletionGetSuggestionsParams(
-            convertPath('/foo/../bar/test.dart'), 0)
-        .toRequest('0');
+    var request =
+        CompletionGetSuggestionsParams(convertPath('/foo/../bar/test.dart'), 0)
+            .toRequest('0');
     var response = await waitResponse(request);
     expect(
       response,
@@ -582,7 +578,7 @@ class B extends A {
 
   test_invocation_sdk_relevancy_off() {
     var originalSorter = DartCompletionManager.contributionSorter;
-    var mockSorter = new MockRelevancySorter();
+    var mockSorter = MockRelevancySorter();
     DartCompletionManager.contributionSorter = mockSorter;
     addTestFile('main() {Map m; m.^}');
     return getSuggestions().then((_) {
@@ -732,9 +728,8 @@ main() {
 
   test_offset_past_eof() async {
     addTestFile('main() { }', offset: 300);
-    Request request =
-        new CompletionGetSuggestionsParams(testFile, completionOffset)
-            .toRequest('0');
+    Request request = CompletionGetSuggestionsParams(testFile, completionOffset)
+        .toRequest('0');
     Response response = await waitResponse(request);
     expect(response.id, '0');
     expect(response.error.code, RequestErrorCode.INVALID_PARAMETER);
@@ -806,15 +801,15 @@ class B extends A {m() {^}}
         ^
       }
     ''');
-    PluginInfo info = new DiscoveredPluginInfo('a', 'b', 'c', null, null);
+    PluginInfo info = DiscoveredPluginInfo('a', 'b', 'c', null, null);
     plugin.CompletionGetSuggestionsResult result =
-        new plugin.CompletionGetSuggestionsResult(
+        plugin.CompletionGetSuggestionsResult(
             testFile.indexOf('^'), 0, <CompletionSuggestion>[
-      new CompletionSuggestion(CompletionSuggestionKind.IDENTIFIER,
+      CompletionSuggestion(CompletionSuggestionKind.IDENTIFIER,
           DART_RELEVANCE_DEFAULT, 'plugin completion', 3, 0, false, false)
     ]);
     pluginManager.broadcastResults = <PluginInfo, Future<plugin.Response>>{
-      info: new Future.value(result.toResponse('-', 1))
+      info: Future.value(result.toResponse('-', 1))
     };
     await getSuggestions();
     assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'plugin completion',
@@ -872,8 +867,7 @@ class CompletionDomainHandlerListTokenDetailsTest
 
   void expectTokens(String content, List<TokenDetails> expectedTokens) async {
     newFile(testFile, content: content);
-    Request request =
-        new CompletionListTokenDetailsParams(testFile).toRequest('0');
+    Request request = CompletionListTokenDetailsParams(testFile).toRequest('0');
     Response response = await waitResponse(request);
     List<Map<String, dynamic>> tokens = response.result['tokens'];
     _compareTokens(tokens, expectedTokens);
@@ -1229,8 +1223,7 @@ int x;
 
   TokenDetails token(
       String lexeme, int offset, String type, List<String> kinds) {
-    return new TokenDetails(lexeme, offset,
-        type: type, validElementKinds: kinds);
+    return TokenDetails(lexeme, offset, type: type, validElementKinds: kinds);
   }
 
   void _compareTokens(List<Map<String, dynamic>> actualTokens,
@@ -1295,6 +1288,6 @@ class MockRelevancySorter implements DartContributionSorter {
     if (!enabled) {
       throw 'unexpected sort';
     }
-    return new Future.value();
+    return Future.value();
   }
 }

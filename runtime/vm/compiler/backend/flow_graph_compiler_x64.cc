@@ -35,8 +35,8 @@ void FlowGraphCompiler::ArchSpecificInitialization() {
       assembler_->generate_invoke_write_barrier_wrapper_ = [&](Register reg) {
         const intptr_t offset_into_target =
             Thread::WriteBarrierWrappersOffsetForRegister(reg);
-        AddPcRelativeCallStubTarget(stub);
         assembler_->GenerateUnRelocatedPcRelativeCall(offset_into_target);
+        AddPcRelativeCallStubTarget(stub);
       };
     }
 
@@ -44,8 +44,8 @@ void FlowGraphCompiler::ArchSpecificInitialization() {
         Code::ZoneHandle(object_store->array_write_barrier_stub());
     if (!array_stub.InVMIsolateHeap()) {
       assembler_->generate_invoke_array_write_barrier_ = [&]() {
-        AddPcRelativeCallStubTarget(array_stub);
         assembler_->GenerateUnRelocatedPcRelativeCall();
+        AddPcRelativeCallStubTarget(array_stub);
       };
     }
   }
@@ -275,7 +275,7 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
   const Register kInstanceReg = RAX;
   const Type& smi_type = Type::Handle(zone(), Type::SmiType());
   const bool smi_is_ok =
-      smi_type.IsSubtypeOf(NNBDMode::kLegacy, type, Heap::kOld);
+      smi_type.IsSubtypeOf(NNBDMode::kLegacyLib, type, Heap::kOld);
   __ testq(kInstanceReg, compiler::Immediate(kSmiTagMask));
   if (smi_is_ok) {
     // Fast case for type = FutureOr<int/num/top-type>.
@@ -312,7 +312,8 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
       ASSERT(tp_argument.HasTypeClass());
       // Check if type argument is dynamic, Object, or void.
       const Type& object_type = Type::Handle(zone(), Type::ObjectType());
-      if (object_type.IsSubtypeOf(NNBDMode::kLegacy, tp_argument, Heap::kOld)) {
+      if (object_type.IsSubtypeOf(NNBDMode::kLegacyLib, tp_argument,
+                                  Heap::kOld)) {
         // Instance class test only necessary.
         return GenerateSubtype1TestCacheLookup(
             token_pos, type_class, is_instance_lbl, is_not_instance_lbl);
@@ -365,7 +366,7 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
   __ testq(kInstanceReg, compiler::Immediate(kSmiTagMask));
   // If instance is Smi, check directly.
   const Class& smi_class = Class::Handle(zone(), Smi::Class());
-  if (Class::IsSubtypeOf(NNBDMode::kLegacy, smi_class,
+  if (Class::IsSubtypeOf(NNBDMode::kLegacyLib, smi_class,
                          Object::null_type_arguments(), type_class,
                          Object::null_type_arguments(), Heap::kOld)) {
     // Fast case for type = int/num/top-type.
@@ -623,6 +624,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateInlineInstanceof(
 void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
                                            intptr_t deopt_id,
                                            const AbstractType& type,
+                                           NNBDMode mode,
                                            LocationSummary* locs) {
   ASSERT(type.IsFinalized());
   ASSERT(!type.IsObjectType() && !type.IsDynamicType() && !type.IsVoidType());
@@ -659,10 +661,12 @@ void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
     __ pushq(RCX);                         // Function type arguments.
     __ LoadUniqueObject(RAX, test_cache);
     __ pushq(RAX);
-    GenerateRuntimeCall(token_pos, deopt_id, kInstanceofRuntimeEntry, 5, locs);
+    __ PushImmediate(
+        compiler::Immediate(Smi::RawValue(static_cast<intptr_t>(mode))));
+    GenerateRuntimeCall(token_pos, deopt_id, kInstanceofRuntimeEntry, 6, locs);
     // Pop the parameters supplied to the runtime entry. The result of the
     // instanceof runtime call will be left as the result of the operation.
-    __ Drop(5);
+    __ Drop(6);
     __ popq(RAX);
     __ jmp(&done, compiler::Assembler::kNearJump);
   }
@@ -691,6 +695,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
                                                  intptr_t deopt_id,
                                                  const AbstractType& dst_type,
                                                  const String& dst_name,
+                                                 NNBDMode mode,
                                                  LocationSummary* locs) {
   ASSERT(!token_pos.IsClassifying());
   ASSERT(!dst_type.IsNull());
@@ -727,11 +732,13 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
     __ PushObject(dst_name);  // Push the name of the destination.
     __ LoadUniqueObject(RAX, test_cache);
     __ pushq(RAX);
-    __ PushObject(Smi::ZoneHandle(zone(), Smi::New(kTypeCheckFromInline)));
-    GenerateRuntimeCall(token_pos, deopt_id, kTypeCheckRuntimeEntry, 7, locs);
+    __ PushImmediate(compiler::Immediate(Smi::RawValue(kTypeCheckFromInline)));
+    __ PushImmediate(
+        compiler::Immediate(Smi::RawValue(static_cast<intptr_t>(mode))));
+    GenerateRuntimeCall(token_pos, deopt_id, kTypeCheckRuntimeEntry, 8, locs);
     // Pop the parameters supplied to the runtime entry. The result of the
     // type check runtime call is the checked value.
-    __ Drop(7);
+    __ Drop(8);
     __ popq(RAX);
     __ Bind(&is_assignable);
   }
@@ -750,12 +757,14 @@ void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
   compiler::Label done;
 
   const Register subtype_cache_reg = R9;
-  const Register kScratchReg = RBX;
+  const Register kDstTypeReg = RBX;
+  const Register kRegToCall = dst_type.IsTypeParameter() ? RSI : kDstTypeReg;
+  const Register kScratchReg = kRegToCall;
 
   GenerateAssertAssignableViaTypeTestingStub(
       dst_type, dst_name, kInstanceReg, kInstantiatorTypeArgumentsReg,
-      kFunctionTypeArgumentsReg, subtype_cache_reg, kScratchReg, kScratchReg,
-      &done);
+      kFunctionTypeArgumentsReg, subtype_cache_reg, kDstTypeReg, kRegToCall,
+      kScratchReg, &done);
 
   // We use 2 consecutive entries in the pool for the subtype cache and the
   // destination name.  The second entry, namely [dst_name] seems to be unused,
@@ -774,7 +783,7 @@ void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
 
   __ movq(subtype_cache_reg, compiler::Address(PP, sub_type_cache_offset));
   __ call(compiler::FieldAddress(
-      RBX, AbstractType::type_test_stub_entry_point_offset()));
+      kRegToCall, AbstractType::type_test_stub_entry_point_offset()));
   EmitCallsiteMetadata(token_pos, deopt_id, RawPcDescriptors::kOther, locs);
   __ Bind(&done);
 }
@@ -953,8 +962,8 @@ void FlowGraphCompiler::GenerateCall(TokenPosition token_pos,
                                      LocationSummary* locs) {
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions &&
       !stub.InVMIsolateHeap()) {
-    AddPcRelativeCallStubTarget(stub);
     __ GenerateUnRelocatedPcRelativeCall();
+    AddPcRelativeCallStubTarget(stub);
     EmitCallsiteMetadata(token_pos, DeoptId::kNone, kind, locs);
   } else {
     ASSERT(!stub.IsNull());
@@ -990,8 +999,8 @@ void FlowGraphCompiler::GenerateStaticDartCall(intptr_t deopt_id,
                                                Code::EntryKind entry_kind) {
   ASSERT(is_optimizing());
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
-    AddPcRelativeCallTarget(target, entry_kind);
     __ GenerateUnRelocatedPcRelativeCall();
+    AddPcRelativeCallTarget(target, entry_kind);
     EmitCallsiteMetadata(token_pos, deopt_id, kind, locs);
   } else {
     // Call sites to the same target can share object pool entries. These

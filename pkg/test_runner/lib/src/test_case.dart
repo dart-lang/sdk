@@ -359,8 +359,8 @@ class RunningProcess {
   }
 
   CommandOutput _createCommandOutput(ProcessCommand command, int exitCode) {
-    List<int> stdoutData = stdout.toList();
-    List<int> stderrData = stderr.toList();
+    var stdoutData = stdout.toList();
+    var stderrData = stderr.toList();
     if (stdout.hasNonUtf8 || stderr.hasNonUtf8) {
       // If the output contained non-utf8 formatted data, then make the exit
       // code non-zero if it isn't already.

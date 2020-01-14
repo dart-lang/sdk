@@ -129,7 +129,7 @@ abstract class RefactoringTest extends AbstractSingleUnitTest {
   Future assertSuccessfulRefactoring(String expectedCode) async {
     await assertRefactoringConditionsOK();
     SourceChange change = await refactoring.createChange();
-    this.refactoringChange = change;
+    refactoringChange = change;
     assertTestChangeResult(expectedCode);
   }
 
@@ -154,8 +154,9 @@ abstract class RefactoringTest extends AbstractSingleUnitTest {
     addSource(file, code);
   }
 
+  @override
   void setUp() {
     super.setUp();
-    searchEngine = new SearchEngineImpl([driver]);
+    searchEngine = SearchEngineImpl([driver]);
   }
 }

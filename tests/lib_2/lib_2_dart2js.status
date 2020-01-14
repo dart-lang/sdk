@@ -39,7 +39,7 @@ html/crypto_test/functional: Slow # TODO(dart2js-team): Please triage this failu
 html/input_element_datetime_test: Slow # TODO(dart2js-team): Please triage this failure.
 
 [ $compiler == dart2js && $runtime == d8 ]
-html/event_callback_test: Skip # Browser test
+html/*: SkipByDesign # Browser test
 
 [ $compiler == dart2js && $runtime == ff ]
 async/slow_consumer2_test: SkipSlow # Times out. Issue 22050

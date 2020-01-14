@@ -18,7 +18,7 @@ main() {
 @reflectiveTest
 class MethodInvocationResolutionTest extends DriverResolutionTest {
   test_error_abstractSuperMemberReference() async {
-    await resolveTestCode(r'''
+    await assertErrorsInCode(r'''
 abstract class A {
   void foo(int _);
 }
@@ -29,9 +29,9 @@ abstract class B extends A {
 
   void foo(int _) {} // does not matter
 }
-''');
-    assertTestErrorsWithCodes(
-        [CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
+''', [
+      error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 94, 3),
+    ]);
 
     var invocation = findNode.methodInvocation('foo(0)');
     assertMethodInvocation(
@@ -43,7 +43,7 @@ abstract class B extends A {
   }
 
   test_error_abstractSuperMemberReference_mixin_implements() async {
-    await resolveTestCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   void foo(int _) {}
 }
@@ -53,9 +53,9 @@ mixin M implements A {
     super.foo(0);
   }
 }
-''');
-    assertTestErrorsWithCodes(
-        [CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
+''', [
+      error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 82, 3),
+    ]);
 
     var invocation = findNode.methodInvocation('foo(0)');
     assertMethodInvocation(
@@ -67,7 +67,7 @@ mixin M implements A {
   }
 
   test_error_abstractSuperMemberReference_mixinHasNoSuchMethod() async {
-    await resolveTestCode('''
+    await assertErrorsInCode('''
 class A {
   int foo();
   noSuchMethod(im) => 42;
@@ -77,9 +77,9 @@ class B extends Object with A {
   foo() => super.foo(); // ref
   noSuchMethod(im) => 87;
 }
-''');
-    assertTestErrorsWithCodes(
-        [CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
+''', [
+      error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 101, 3),
+    ]);
 
     var invocation = findNode.methodInvocation('foo(); // ref');
     assertMethodInvocation(
@@ -91,7 +91,7 @@ class B extends Object with A {
   }
 
   test_error_abstractSuperMemberReference_OK_mixinHasConcrete() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 class A {}
 
 class M {
@@ -106,7 +106,6 @@ class C extends B {
   }
 }
 ''');
-    assertNoTestErrors();
 
     var invocation = findNode.methodInvocation('foo(0)');
     assertMethodInvocation(
@@ -118,7 +117,7 @@ class C extends B {
   }
 
   test_error_abstractSuperMemberReference_OK_superHasNoSuchMethod() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 class A {
   int foo();
   noSuchMethod(im) => 42;
@@ -129,7 +128,6 @@ class B extends A {
   noSuchMethod(im) => 87;
 }
 ''');
-    assertNoTestErrors();
 
     var invocation = findNode.methodInvocation('super.foo(); // ref');
     assertMethodInvocation(
@@ -141,7 +139,7 @@ class B extends A {
   }
 
   test_error_abstractSuperMemberReference_OK_superSuperHasConcrete() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 abstract class A {
   void foo(int _) {}
 }
@@ -156,7 +154,6 @@ class C extends B {
   }
 }
 ''');
-    assertNoTestErrors();
 
     var invocation = findNode.methodInvocation('foo(0)');
     assertMethodInvocation(
@@ -175,16 +172,15 @@ void foo(int _) {}
 void foo(int _) {}
 ''');
 
-    await resolveTestCode(r'''
+    await assertErrorsInCode(r'''
 import 'a.dart';
 import 'b.dart';
 
 main() {
   foo(0);
 }
-''');
-    assertTestErrorsWithCodes([
-      StaticWarningCode.AMBIGUOUS_IMPORT,
+''', [
+      error(StaticWarningCode.AMBIGUOUS_IMPORT, 46, 3),
     ]);
 
     var invocation = findNode.methodInvocation('foo(0)');
@@ -200,16 +196,15 @@ void foo(int _) {}
 void foo(int _) {}
 ''');
 
-    await resolveTestCode(r'''
+    await assertErrorsInCode(r'''
 import 'a.dart' as p;
 import 'b.dart' as p;
 
 main() {
   p.foo(0);
 }
-''');
-    assertTestErrorsWithCodes([
-      StaticWarningCode.AMBIGUOUS_IMPORT,
+''', [
+      error(StaticWarningCode.AMBIGUOUS_IMPORT, 58, 3),
     ]);
 
     var invocation = findNode.methodInvocation('foo(0)');
@@ -218,7 +213,7 @@ main() {
   }
 
   test_error_instanceAccessToStaticMember_method() async {
-    await resolveTestCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   static void foo(int _) {}
 }
@@ -226,9 +221,8 @@ class A {
 main(A a) {
   a.foo(0);
 }
-''');
-    assertTestErrorsWithCodes([
-      StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER,
+''', [
+      error(StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 57, 3),
     ]);
     _assertInvalidInvocation(
       'a.foo(0)',
@@ -483,15 +477,14 @@ class B extends A {
 void foo() {}
 ''');
 
-    await resolveTestCode(r'''
+    await assertErrorsInCode(r'''
 import 'a.dart' as prefix;
 
 main() {
   prefix?.foo();
 }
-''');
-    assertTestErrorsWithCodes([
-      CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
+''', [
+      error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 39, 6),
     ]);
 
     var import = findElement.importFind('package:test/a.dart');
@@ -506,15 +499,14 @@ main() {
   }
 
   test_error_prefixIdentifierNotFollowedByDot_deferred() async {
-    await resolveTestCode(r'''
+    await assertErrorsInCode(r'''
 import 'dart:math' deferred as math;
 
 main() {
   math?.loadLibrary();
 }
-''');
-    assertTestErrorsWithCodes([
-      CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
+''', [
+      error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 49, 4),
     ]);
 
     var import = findElement.importFind('dart:math');
@@ -529,15 +521,14 @@ main() {
   }
 
   test_error_prefixIdentifierNotFollowedByDot_invoke() async {
-    await resolveTestCode(r'''
+    await assertErrorsInCode(r'''
 import 'dart:math' as foo;
 
 main() {
   foo();
 }
-''');
-    assertTestErrorsWithCodes([
-      CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
+''', [
+      error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 39, 3),
     ]);
     _assertInvalidInvocation(
       'foo()',
@@ -547,67 +538,62 @@ main() {
   }
 
   test_error_undefinedFunction() async {
-    await resolveTestCode(r'''
+    await assertErrorsInCode(r'''
 main() {
   foo(0);
 }
-''');
-    assertTestErrorsWithCodes([
-      StaticTypeWarningCode.UNDEFINED_FUNCTION,
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_FUNCTION, 11, 3),
     ]);
     _assertUnresolvedMethodInvocation('foo(0)');
   }
 
   test_error_undefinedFunction_hasTarget_importPrefix() async {
-    await resolveTestCode(r'''
+    await assertErrorsInCode(r'''
 import 'dart:math' as math;
 
 main() {
   math.foo(0);
 }
-''');
-    assertTestErrorsWithCodes([
-      StaticTypeWarningCode.UNDEFINED_FUNCTION,
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_FUNCTION, 45, 3),
     ]);
     _assertUnresolvedMethodInvocation('foo(0);');
   }
 
   test_error_undefinedIdentifier_target() async {
-    await resolveTestCode(r'''
+    await assertErrorsInCode(r'''
 main() {
   bar.foo(0);
 }
-''');
-    assertTestErrorsWithCodes([
-      StaticWarningCode.UNDEFINED_IDENTIFIER,
+''', [
+      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 11, 3),
     ]);
     _assertUnresolvedMethodInvocation('foo(0);');
   }
 
   test_error_undefinedMethod_hasTarget_class() async {
-    await resolveTestCode(r'''
+    await assertErrorsInCode(r'''
 class C {}
 main() {
   C.foo(0);
 }
-''');
-    assertTestErrorsWithCodes([
-      StaticTypeWarningCode.UNDEFINED_METHOD,
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_METHOD, 24, 3),
     ]);
     _assertUnresolvedMethodInvocation('foo(0);');
   }
 
   test_error_undefinedMethod_hasTarget_class_arguments() async {
-    await resolveTestCode(r'''
+    await assertErrorsInCode(r'''
 class C {}
 
 int x;
 main() {
   C.foo(x);
 }
-''');
-    assertTestErrorsWithCodes([
-      StaticTypeWarningCode.UNDEFINED_METHOD,
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_METHOD, 32, 3),
     ]);
 
     _assertUnresolvedMethodInvocation('foo(x);');
@@ -615,7 +601,7 @@ main() {
   }
 
   test_error_undefinedMethod_hasTarget_class_inSuperclass() async {
-    await resolveTestCode(r'''
+    await assertErrorsInCode(r'''
 class S {
   static void foo(int _) {}
 }
@@ -625,23 +611,21 @@ class C extends S {}
 main() {
   C.foo(0);
 }
-''');
-    assertTestErrorsWithCodes([
-      StaticTypeWarningCode.UNDEFINED_METHOD,
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_METHOD, 76, 3),
     ]);
     _assertUnresolvedMethodInvocation('foo(0);');
   }
 
   test_error_undefinedMethod_hasTarget_class_typeArguments() async {
-    await resolveTestCode(r'''
+    await assertErrorsInCode(r'''
 class C {}
 
 main() {
   C.foo<int>();
 }
-''');
-    assertTestErrorsWithCodes([
-      StaticTypeWarningCode.UNDEFINED_METHOD,
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_METHOD, 25, 3),
     ]);
 
     _assertUnresolvedMethodInvocation(
@@ -652,75 +636,71 @@ main() {
   }
 
   test_error_undefinedMethod_hasTarget_class_typeParameter() async {
-    await resolveTestCode(r'''
+    await assertErrorsInCode(r'''
 class C<T> {
   static main() => C.T();
 }
-''');
-    assertTestErrorsWithCodes([
-      StaticTypeWarningCode.UNDEFINED_METHOD,
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_METHOD, 34, 1),
     ]);
     _assertUnresolvedMethodInvocation('C.T();');
   }
 
   test_error_undefinedMethod_hasTarget_instance() async {
-    await resolveTestCode(r'''
+    await assertErrorsInCode(r'''
 main() {
   42.foo(0);
 }
-''');
-    assertTestErrorsWithCodes([
-      StaticTypeWarningCode.UNDEFINED_METHOD,
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_METHOD, 14, 3),
     ]);
     _assertUnresolvedMethodInvocation('foo(0);');
   }
 
   test_error_undefinedMethod_hasTarget_localVariable_function() async {
-    await resolveTestCode(r'''
+    await assertErrorsInCode(r'''
 main() {
   var v = () {};
   v.foo(0);
 }
-''');
-    assertTestErrorsWithCodes([
-      StaticTypeWarningCode.UNDEFINED_METHOD,
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_METHOD, 30, 3),
     ]);
     _assertUnresolvedMethodInvocation('foo(0);');
   }
 
   test_error_undefinedMethod_noTarget() async {
-    await resolveTestCode(r'''
+    await assertErrorsInCode(r'''
 class C {
   main() {
     foo(0);
   }
 }
-''');
-    assertTestErrorsWithCodes([
-      StaticTypeWarningCode.UNDEFINED_METHOD,
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_METHOD, 25, 3),
     ]);
     _assertUnresolvedMethodInvocation('foo(0);');
   }
 
-  test_error_undefinedMethod_object_call() async {
-    await resolveTestCode(r'''
-main(Object o) {
-  o.call();
-}
-''');
-    assertTestErrorsWithCodes([
-      StaticTypeWarningCode.UNDEFINED_METHOD,
-    ]);
-  }
-
-  test_error_undefinedMethod_OK_null() async {
-    await resolveTestCode(r'''
+  test_error_undefinedMethod_null() async {
+    await assertErrorsInCode(r'''
 main() {
   null.foo();
 }
-''');
-    assertNoTestErrors();
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_METHOD, 16, 3),
+    ]);
     _assertUnresolvedMethodInvocation('foo();');
+  }
+
+  test_error_undefinedMethod_object_call() async {
+    await assertErrorsInCode(r'''
+main(Object o) {
+  o.call();
+}
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_METHOD, 21, 4),
+    ]);
   }
 
   test_error_undefinedMethod_private() async {
@@ -729,7 +709,7 @@ class A {
   void _foo(int _) {}
 }
 ''');
-    await resolveTestCode(r'''
+    await assertErrorsInCode(r'''
 import 'a.dart';
 
 class B extends A {
@@ -737,15 +717,14 @@ class B extends A {
     _foo(0);
   }
 }
-''');
-    assertTestErrorsWithCodes([
-      StaticTypeWarningCode.UNDEFINED_METHOD,
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_METHOD, 53, 4),
     ]);
     _assertUnresolvedMethodInvocation('_foo(0);');
   }
 
   test_error_undefinedMethod_typeLiteral_cascadeTarget() async {
-    await resolveTestCode(r'''
+    await assertErrorsInCode(r'''
 class C {
   static void foo() {}
 }
@@ -753,28 +732,26 @@ class C {
 main() {
   C..foo();
 }
-''');
-    assertTestErrorsWithCodes([
-      StaticTypeWarningCode.UNDEFINED_METHOD,
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_METHOD, 50, 3),
     ]);
   }
 
   test_error_undefinedMethod_typeLiteral_conditional() async {
     // When applied to a type literal, the conditional access operator '?.'
     // cannot be used to access instance methods of Type.
-    await resolveTestCode(r'''
+    await assertErrorsInCode(r'''
 class A {}
 main() {
   A?.toString();
 }
-''');
-    assertTestErrorsWithCodes([
-      StaticTypeWarningCode.UNDEFINED_METHOD,
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_METHOD, 25, 8),
     ]);
   }
 
   test_error_undefinedSuperMethod() async {
-    await resolveTestCode(r'''
+    await assertErrorsInCode(r'''
 class A {}
 
 class B extends A {
@@ -782,16 +759,15 @@ class B extends A {
     super.foo(0);
   }
 }
-''');
-    assertTestErrorsWithCodes([
-      StaticTypeWarningCode.UNDEFINED_SUPER_METHOD,
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_SUPER_METHOD, 62, 3),
     ]);
     _assertUnresolvedMethodInvocation('foo(0);');
     assertSuperExpression(findNode.super_('super.foo'));
   }
 
   test_error_unqualifiedReferenceToNonLocalStaticMember_method() async {
-    await resolveTestCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   static void foo() {}
 }
@@ -801,9 +777,12 @@ class B extends A {
     foo(0);
   }
 }
-''');
-    assertTestErrorsWithCodes([
-      StaticTypeWarningCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
+''', [
+      error(
+          StaticTypeWarningCode
+              .UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
+          71,
+          3),
     ]);
 
     _assertInvalidInvocation(
@@ -817,16 +796,15 @@ class B extends A {
   /// single error generated when the only problem is that an imported file
   /// does not exist.
   test_error_uriDoesNotExist_prefixed() async {
-    await resolveTestCode(r'''
+    await assertErrorsInCode(r'''
 import 'missing.dart' as p;
 
 main() {
   p.foo(1);
   p.bar(2);
 }
-''');
-    assertTestErrorsWithCodes([
-      CompileTimeErrorCode.URI_DOES_NOT_EXIST,
+''', [
+      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 14),
     ]);
     _assertUnresolvedMethodInvocation('foo(1);');
     _assertUnresolvedMethodInvocation('bar(2);');
@@ -836,16 +814,15 @@ main() {
   /// single error generated when the only problem is that an imported file
   /// does not exist.
   test_error_uriDoesNotExist_show() async {
-    await resolveTestCode(r'''
+    await assertErrorsInCode(r'''
 import 'missing.dart' show foo, bar;
 
 main() {
   foo(1);
   bar(2);
 }
-''');
-    assertTestErrorsWithCodes([
-      CompileTimeErrorCode.URI_DOES_NOT_EXIST,
+''', [
+      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 14),
     ]);
     _assertUnresolvedMethodInvocation('foo(1);');
     _assertUnresolvedMethodInvocation('bar(2);');
@@ -896,15 +873,14 @@ main() {
   }
 
   test_error_useOfVoidResult_name_topFunction() async {
-    await resolveTestCode(r'''
+    await assertErrorsInCode(r'''
 void foo() {}
 
 main() {
   foo()();
 }
-''');
-    assertTestErrorsWithCodes([
-      StaticWarningCode.USE_OF_VOID_RESULT,
+''', [
+      error(StaticWarningCode.USE_OF_VOID_RESULT, 26, 3),
     ]);
     assertMethodInvocation(
       findNode.methodInvocation('foo()()'),
@@ -935,14 +911,13 @@ main() {
   }
 
   test_error_useOfVoidResult_receiver() async {
-    await resolveTestCode(r'''
+    await assertErrorsInCode(r'''
 main() {
   void foo;
   foo.toString();
 }
-''');
-    assertTestErrorsWithCodes([
-      StaticWarningCode.USE_OF_VOID_RESULT,
+''', [
+      error(StaticWarningCode.USE_OF_VOID_RESULT, 23, 3),
     ]);
     // TODO(scheglov) Resolve fully, or don't resolve at all.
     assertMethodInvocation(
@@ -953,14 +928,13 @@ main() {
   }
 
   test_error_useOfVoidResult_receiver_cascade() async {
-    await resolveTestCode(r'''
+    await assertErrorsInCode(r'''
 main() {
   void foo;
   foo..toString();
 }
-''');
-    assertTestErrorsWithCodes([
-      StaticWarningCode.USE_OF_VOID_RESULT,
+''', [
+      error(StaticWarningCode.USE_OF_VOID_RESULT, 23, 3),
     ]);
     // TODO(scheglov) Resolve fully, or don't resolve at all.
     assertMethodInvocation(
@@ -971,14 +945,13 @@ main() {
   }
 
   test_error_useOfVoidResult_receiver_withNull() async {
-    await resolveTestCode(r'''
+    await assertErrorsInCode(r'''
 main() {
   void foo;
   foo?.toString();
 }
-''');
-    assertTestErrorsWithCodes([
-      StaticWarningCode.USE_OF_VOID_RESULT,
+''', [
+      error(StaticWarningCode.USE_OF_VOID_RESULT, 23, 3),
     ]);
     // TODO(scheglov) Resolve fully, or don't resolve at all.
     assertMethodInvocation(
@@ -989,15 +962,14 @@ main() {
   }
 
   test_error_wrongNumberOfTypeArgumentsMethod_01() async {
-    await resolveTestCode(r'''
+    await assertErrorsInCode(r'''
 void foo() {}
 
 main() {
   foo<int>();
 }
-''');
-    assertTestErrorsWithCodes([
-      StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD,
+''', [
+      error(StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD, 26, 3),
     ]);
     assertMethodInvocation(
       findNode.methodInvocation('foo<int>()'),
@@ -1008,15 +980,14 @@ main() {
   }
 
   test_error_wrongNumberOfTypeArgumentsMethod_21() async {
-    await resolveTestCode(r'''
+    await assertErrorsInCode(r'''
 Map<T, U> foo<T extends num, U>() => null;
 
 main() {
   foo<int>();
 }
-''');
-    assertTestErrorsWithCodes([
-      StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD,
+''', [
+      error(StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD, 55, 3),
     ]);
     assertMethodInvocation(
       findNode.methodInvocation('foo<int>()'),
@@ -1051,7 +1022,7 @@ main() {
   }
 
   test_hasReceiver_class_staticMethod() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 class C {
   static void foo(int _) {}
 }
@@ -1060,7 +1031,6 @@ main() {
   C.foo(0);
 }
 ''');
-    assertNoTestErrors();
 
     var invocation = findNode.methodInvocation('foo(0);');
     assertMethodInvocation(
@@ -1072,35 +1042,59 @@ main() {
   }
 
   test_hasReceiver_deferredImportPrefix_loadLibrary() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 import 'dart:math' deferred as math;
 
 main() {
   math.loadLibrary();
 }
 ''');
-    assertNoTestErrors();
 
     var import = findElement.importFind('dart:math');
 
     var invocation = findNode.methodInvocation('loadLibrary()');
+    assertImportPrefix(invocation.target, import.prefix);
+
     assertMethodInvocation(
       invocation,
       import.importedLibrary.loadLibraryFunction,
       'Future<dynamic> Function()',
     );
-    assertImportPrefix(invocation.target, import.prefix);
   }
 
-  test_hasReceiver_functionTyped_call() async {
-    await resolveTestCode(r'''
+  test_hasReceiver_deferredImportPrefix_loadLibrary_extraArgument() async {
+    await assertErrorsInCode(r'''
+import 'dart:math' deferred as math;
+
+main() {
+  math.loadLibrary(1 + 2);
+}
+''', [
+      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 65, 7),
+    ]);
+
+    var import = findElement.importFind('dart:math');
+
+    var invocation = findNode.methodInvocation('loadLibrary(1 + 2)');
+    assertImportPrefix(invocation.target, import.prefix);
+
+    assertMethodInvocation(
+      invocation,
+      import.importedLibrary.loadLibraryFunction,
+      'Future<dynamic> Function()',
+    );
+
+    assertType(findNode.binary('1 + 2'), 'int');
+  }
+
+  test_hasReceiver_functionTyped() async {
+    await assertNoErrorsInCode(r'''
 void foo(int _) {}
 
 main() {
   foo.call(0);
 }
 ''');
-    assertNoTestErrors();
 
     var invocation = findNode.methodInvocation('call(0)');
     assertMethodInvocation(
@@ -1112,19 +1106,38 @@ main() {
     assertType(invocation.target, 'void Function(int)');
   }
 
+  test_hasReceiver_functionTyped_generic() async {
+    await assertNoErrorsInCode(r'''
+void foo<T>(T _) {}
+
+main() {
+  foo.call(0);
+}
+''');
+
+    var invocation = findNode.methodInvocation('call(0)');
+    assertMethodInvocation(
+      invocation,
+      null,
+      'void Function(int)',
+      expectedTypeArguments: ['int'],
+    );
+    assertElement(invocation.target, findElement.topFunction('foo'));
+    assertType(invocation.target, 'void Function<T>(T)');
+  }
+
   test_hasReceiver_importPrefix_topFunction() async {
     newFile('/test/lib/a.dart', content: r'''
 T foo<T extends num>(T a, T b) => a;
 ''');
 
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 import 'a.dart' as prefix;
 
 main() {
   prefix.foo(1, 2);
 }
 ''');
-    assertNoTestErrors();
 
     var import = findElement.importFind('package:test/a.dart');
 
@@ -1167,26 +1180,24 @@ main() {
   }
 
   test_hasReceiver_instance_Function_call_localVariable() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 void main() {
   Function foo;
 
   foo.call(0);
 }
 ''');
-    assertNoTestErrors();
     _assertInvalidInvocation('call(0)', null);
   }
 
   test_hasReceiver_instance_Function_call_topVariable() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 Function foo;
 
 void main() {
   foo.call(0);
 }
 ''');
-    assertNoTestErrors();
     _assertInvalidInvocation('call(0)', null);
   }
 
@@ -1213,7 +1224,7 @@ main(C c) {
   }
 
   test_hasReceiver_instance_method() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 class C {
   void foo(int _) {}
 }
@@ -1222,7 +1233,6 @@ main(C c) {
   c.foo(0);
 }
 ''');
-    assertNoTestErrors();
 
     var invocation = findNode.methodInvocation('foo(0);');
     assertMethodInvocation(
@@ -1235,7 +1245,7 @@ main(C c) {
   }
 
   test_hasReceiver_instance_method_generic() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 class C {
   T foo<T>(T a) {
     return a;
@@ -1246,7 +1256,6 @@ main(C c) {
   c.foo(0);
 }
 ''');
-    assertNoTestErrors();
 
     var invocation = findNode.methodInvocation('foo(0);');
     assertMethodInvocation(
@@ -1260,7 +1269,7 @@ main(C c) {
   }
 
   test_hasReceiver_instance_method_issue30552() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 abstract class I1 {
   void foo(int i);
 }
@@ -1279,7 +1288,6 @@ void main(C c) {
   c.foo('hi');
 }
 ''');
-    assertNoTestErrors();
 
     var invocation = findNode.methodInvocation("foo('hi')");
     assertMethodInvocation(
@@ -1290,7 +1298,7 @@ void main(C c) {
   }
 
   test_hasReceiver_instance_typeParameter() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 class A {
   void foo(int _) {}
 }
@@ -1303,7 +1311,6 @@ class C<T extends A> {
   }
 }
 ''');
-    assertNoTestErrors();
 
     var invocation = findNode.methodInvocation('foo(0);');
     assertMethodInvocation(
@@ -1352,14 +1359,13 @@ class C {
 }
 ''');
 
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 import 'a.dart' as prefix;
 
 main() {
   prefix.C.foo(0);
 }
 ''');
-    assertNoTestErrors();
 
     var import = findElement.importFind('package:test/a.dart');
 
@@ -1402,7 +1408,7 @@ class B extends A {
   }
 
   test_hasReceiver_super_method() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 class A {
   void foo(int _) {}
 }
@@ -1413,7 +1419,6 @@ class B extends A {
   }
 }
 ''');
-    assertNoTestErrors();
 
     var invocation = findNode.methodInvocation('foo(0);');
     assertMethodInvocation(
@@ -1425,20 +1430,19 @@ class B extends A {
   }
 
   test_namedArgument() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 void foo({int a, bool b}) {}
 
 main() {
   foo(b: false, a: 0);
 }
 ''');
-    assertNoTestErrors();
 
     var invocation = findNode.methodInvocation('foo(b:');
     assertMethodInvocation(
       invocation,
       findElement.topFunction('foo'),
-      'void Function({a: int, b: bool})',
+      'void Function({int a, bool b})',
     );
     assertNamedParameterRef('b: false', 'b');
     assertNamedParameterRef('a: 0', 'a');
@@ -1489,28 +1493,26 @@ class C {
   }
 
   test_noReceiver_importPrefix() async {
-    await resolveTestCode(r'''
+    await assertErrorsInCode(r'''
 import 'dart:math' as math;
 
 main() {
   math();
 }
-''');
-    assertTestErrorsWithCodes([
-      CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
+''', [
+      error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 40, 4),
     ]);
     assertElement(findNode.simple('math()'), findElement.prefix('math'));
   }
 
   test_noReceiver_localFunction() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 main() {
   void foo(int _) {}
 
   foo(0);
 }
 ''');
-    assertNoTestErrors();
 
     var invocation = findNode.methodInvocation('foo(0)');
     assertMethodInvocation(
@@ -1540,7 +1542,7 @@ main() {
   }
 
   test_noReceiver_localVariable_call() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 class C {
   void call(int _) {}
 }
@@ -1549,7 +1551,6 @@ main(C c) {
   c(0);
 }
 ''');
-    assertNoTestErrors();
 
     var invocation = findNode.functionExpressionInvocation('c(0);');
     assertElement(invocation, findElement.method('call', of: 'C'));
@@ -1581,8 +1582,21 @@ main() {
     assertType(foo, 'void Function(int)');
   }
 
+  test_noReceiver_parameter_call_nullAware() async {
+    await assertNoErrorsInCode(r'''
+double Function(int) foo;
+
+main() {
+  foo?.call(1);
+}
+    ''');
+
+    var invocation = findNode.methodInvocation('call(1)');
+    assertTypeLegacy(invocation.target);
+  }
+
   test_noReceiver_method_superClass() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 class A {
   void foo(int _) {}
 }
@@ -1593,7 +1607,6 @@ class B extends A {
   }
 }
 ''');
-    assertNoTestErrors();
 
     var invocation = findNode.methodInvocation('foo(0)');
     assertMethodInvocation(
@@ -1604,7 +1617,7 @@ class B extends A {
   }
 
   test_noReceiver_method_thisClass() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 class C {
   void foo(int _) {}
 
@@ -1613,7 +1626,6 @@ class C {
   }
 }
 ''');
-    assertNoTestErrors();
 
     var invocation = findNode.methodInvocation('foo(0)');
     assertMethodInvocation(
@@ -1624,14 +1636,13 @@ class C {
   }
 
   test_noReceiver_topFunction() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 void foo(int _) {}
 
 main() {
   foo(0);
 }
 ''');
-    assertNoTestErrors();
 
     var invocation = findNode.methodInvocation('foo(0)');
     assertMethodInvocation(
@@ -1681,25 +1692,23 @@ main() {
   }
 
   test_objectMethodOnDynamic() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 main() {
   var v;
   v.toString(42);
 }
 ''');
-    assertNoTestErrors();
     _assertUnresolvedMethodInvocation('toString(42);');
   }
 
   test_objectMethodOnFunction() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 void f() {}
 
 main() {
   f.toString();
 }
 ''');
-    assertNoTestErrors();
 
     var invocation = findNode.methodInvocation('toString();');
     assertMethodInvocation(
@@ -1710,13 +1719,15 @@ main() {
   }
 
   test_typeArgumentTypes_generic_inferred() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 U foo<T, U>(T a) => null;
 
 main() {
   bool v = foo(0);
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 43, 1),
+    ]);
 
     var invocation = findNode.methodInvocation('foo(0)');
     assertTypeArgumentTypes(invocation, ['int', 'bool']);
@@ -1736,25 +1747,29 @@ main() {
   }
 
   test_typeArgumentTypes_generic_typeArguments_notBounds() async {
-    await resolveTestCode(r'''
+    await assertErrorsInCode(r'''
 void foo<T extends num>() {}
 
 main() {
   foo<bool>();
 }
-''');
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 45, 4),
+    ]);
     var invocation = findNode.methodInvocation('foo<bool>();');
     assertTypeArgumentTypes(invocation, ['bool']);
   }
 
   test_typeArgumentTypes_generic_typeArguments_wrongNumber() async {
-    await resolveTestCode(r'''
+    await assertErrorsInCode(r'''
 void foo<T>() {}
 
 main() {
   foo<int, double>();
 }
-''');
+''', [
+      error(StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD, 29, 3),
+    ]);
     var invocation = findNode.methodInvocation('foo<int, double>();');
     assertTypeArgumentTypes(invocation, ['dynamic']);
   }

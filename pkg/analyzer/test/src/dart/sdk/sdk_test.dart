@@ -21,7 +21,6 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(EmbedderSdkTest);
     defineReflectiveTests(FolderBasedDartSdkTest);
-    defineReflectiveTests(SdkExtensionFinderTest);
     defineReflectiveTests(SdkLibrariesReaderTest);
   });
 }
@@ -312,47 +311,6 @@ final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
       implementation: true),
 };
 ''';
-}
-
-@reflectiveTest
-class SdkExtensionFinderTest with ResourceProviderMixin {
-  void setUp() {
-    newFile('/tmp/_sdkext', content: r'''
-{
-  "dart:fox": "slippy.dart",
-  "dart:bear": "grizzly.dart",
-  "dart:relative": "../relative.dart",
-  "dart:deep": "deep/directory/file.dart",
-  "fart:loudly": "nomatter.dart"
-}''');
-  }
-
-  test_create_noSdkExtPackageMap() {
-    var resolver = SdkExtensionFinder({
-      'fox': <Folder>[getFolder('/empty')]
-    });
-    expect(resolver.urlMappings.length, equals(0));
-  }
-
-  test_create_nullPackageMap() {
-    var resolver = SdkExtensionFinder(null);
-    expect(resolver.urlMappings.length, equals(0));
-  }
-
-  test_create_sdkExtPackageMap() {
-    var resolver = SdkExtensionFinder({
-      'fox': <Folder>[getFolder('/tmp')]
-    });
-    // We have four mappings.
-    Map<String, String> urlMappings = resolver.urlMappings;
-    expect(urlMappings.length, equals(4));
-    // Check that they map to the correct paths.
-    expect(urlMappings['dart:fox'], equals(convertPath("/tmp/slippy.dart")));
-    expect(urlMappings['dart:bear'], equals(convertPath("/tmp/grizzly.dart")));
-    expect(urlMappings['dart:relative'], equals(convertPath("/relative.dart")));
-    expect(urlMappings['dart:deep'],
-        equals(convertPath("/tmp/deep/directory/file.dart")));
-  }
 }
 
 @reflectiveTest

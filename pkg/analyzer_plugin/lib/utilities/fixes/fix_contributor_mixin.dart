@@ -41,8 +41,8 @@ abstract class FixContributorMixin implements FixContributor {
       return;
     }
     change.message = formatList(kind.message, args);
-    collector.addFix(error,
-        new PrioritizedSourceChange(kind.priority, builder.sourceChange));
+    collector.addFix(
+        error, PrioritizedSourceChange(kind.priority, builder.sourceChange));
   }
 
   @override

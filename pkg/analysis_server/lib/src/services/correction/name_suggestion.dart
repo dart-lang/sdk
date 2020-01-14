@@ -46,7 +46,7 @@ List<String> getVariableNameSuggestionsForExpression(
     }
   }
 
-  Set<String> res = new Set();
+  Set<String> res = Set();
   // use expression
   if (assignedExpression != null) {
     String nameFromExpression = _getBaseNameFromExpression(assignedExpression);
@@ -63,20 +63,19 @@ List<String> getVariableNameSuggestionsForExpression(
   }
   // use type
   if (expectedType != null && !expectedType.isDynamic) {
-    String typeName = expectedType.name;
-    if ('int' == typeName) {
+    if (expectedType.isDartCoreInt) {
       _addSingleCharacterName(excluded, res, 0x69);
-    } else if ('double' == typeName) {
+    } else if (expectedType.isDartCoreDouble) {
       _addSingleCharacterName(excluded, res, 0x64);
-    } else if ('String' == typeName) {
+    } else if (expectedType.isDartCoreString) {
       _addSingleCharacterName(excluded, res, 0x73);
-    } else {
-      _addAll(excluded, res, getCamelWordCombinations(typeName));
+    } else if (expectedType is InterfaceType) {
+      var className = expectedType.element.name;
+      _addAll(excluded, res, getCamelWordCombinations(className));
     }
-    res.remove(typeName);
   }
   // done
-  return new List.from(res);
+  return List.from(res);
 }
 
 /**
@@ -86,7 +85,7 @@ List<String> getVariableNameSuggestionsForText(
     String text, Set<String> excluded) {
   // filter out everything except of letters and white spaces
   {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     for (int i = 0; i < text.length; i++) {
       int c = text.codeUnitAt(i);
       if (isLetter(c) || isWhitespace(c)) {
@@ -98,7 +97,7 @@ List<String> getVariableNameSuggestionsForText(
   // make single camel-case text
   {
     List<String> words = text.split(' ');
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     for (int i = 0; i < words.length; i++) {
       String word = words[i];
       if (i > 0) {
@@ -109,9 +108,9 @@ List<String> getVariableNameSuggestionsForText(
     text = sb.toString();
   }
   // split camel-case into separate suggested names
-  Set<String> res = new Set();
+  Set<String> res = Set();
   _addAll(excluded, res, getCamelWordCombinations(text));
-  return new List.from(res);
+  return List.from(res);
 }
 
 /**
@@ -141,7 +140,7 @@ void _addAll(Set<String> excluded, Set<String> result, Iterable<String> toAdd,
  */
 void _addSingleCharacterName(Set<String> excluded, Set<String> result, int c) {
   while (c < 0x7A) {
-    String name = new String.fromCharCode(c);
+    String name = String.fromCharCode(c);
     // may be done
     if (!excluded.contains(name)) {
       result.add(name);

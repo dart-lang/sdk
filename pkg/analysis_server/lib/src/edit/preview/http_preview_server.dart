@@ -5,7 +5,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:analysis_server/src/edit/nnbd_migration/instrumentation_renderer.dart';
+import 'package:analysis_server/src/edit/nnbd_migration/migration_info.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/path_mapper.dart';
 import 'package:analysis_server/src/edit/preview/preview_site.dart';
 
@@ -69,7 +69,7 @@ class HttpPreviewServer {
 
   /// Handle a GET request received by the HTTP server.
   Future<void> _handleGetRequest(HttpRequest request) async {
-    getHandler ??= new PreviewSite(migrationInfo, pathMapper);
+    getHandler ??= PreviewSite(migrationInfo, pathMapper);
     await getHandler.handleGetRequest(request);
   }
 

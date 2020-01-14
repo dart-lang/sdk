@@ -500,9 +500,7 @@ class ProcessStarter {
       ReportChildError();
     }
     // TODO(dart:io) Test for the existence of execveat, and use it instead.
-    VOID_TEMP_FAILURE_RETRY(
-        execvp(realpath, const_cast<char* const*>(program_arguments_)));
-
+    execvp(realpath, const_cast<char* const*>(program_arguments_));
     ReportChildError();
   }
 
@@ -559,8 +557,7 @@ class ProcessStarter {
           }
           // TODO(dart:io) Test for the existence of execveat, and use it
           // instead.
-          VOID_TEMP_FAILURE_RETRY(
-              execvp(realpath, const_cast<char* const*>(program_arguments_)));
+          execvp(realpath, const_cast<char* const*>(program_arguments_));
           ReportChildError();
         } else {
           // Exit the intermediate process.

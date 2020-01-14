@@ -15,7 +15,7 @@ class C {
 
 class D {
   void set setter(value) {}
-  D? operator [](index) => this;
+  C? operator [](index) => C();
   void operator []=(index, value) {}
   D get getterSetter => this;
   void set getterSetter(value) {}

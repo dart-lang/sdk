@@ -425,67 +425,27 @@ bar:$barUri
         contains(predicate((r) => r is PackageMapUriResolver)));
   }
 
-  void test_createSourceFactory_noProvider_packages_embedder_extensions() {
-    String rootPath = convertPath('/root');
-    Folder rootFolder = getFolder(rootPath);
-    createDefaultSdk(rootFolder);
-    String projectPath = join(rootPath, 'project');
-    String packageFilePath = join(projectPath, '.packages');
-    String packageA = join(rootPath, 'pkgs', 'a');
-    String embedderPath = join(packageA, '_embedder.yaml');
-    String packageB = join(rootPath, 'pkgs', 'b');
-    String extensionPath = join(packageB, '_sdkext');
-    newFile(packageFilePath, content: '''
-a:${resourceProvider.pathContext.toUri(packageA)}
-b:${resourceProvider.pathContext.toUri(packageB)}
-''');
-    String asyncPath = join(packageA, 'sdk', 'async.dart');
-    String corePath = join(packageA, 'sdk', 'core.dart');
-    newFile(embedderPath, content: '''
-embedded_libs:
-  "dart:async": ${_relativeUri(asyncPath, from: packageA)}
-  "dart:core": ${_relativeUri(corePath, from: packageA)}
-''');
-    String fooPath = join(packageB, 'ext', 'foo.dart');
-    newFile(extensionPath, content: '''{
-"dart:foo": "${_relativeUri(fooPath, from: packageB)}"
-}''');
-    AnalysisOptionsImpl options = AnalysisOptionsImpl();
-
-    SourceFactory factory = builder.createSourceFactory(projectPath, options);
-
-    Source asyncSource = factory.forUri('dart:async');
-    expect(asyncSource, isNotNull);
-    expect(asyncSource.fullName, asyncPath);
-
-    Source fooSource = factory.forUri('dart:foo');
-    expect(fooSource, isNotNull);
-    expect(fooSource.fullName, fooPath);
-
-    Source packageSource = factory.forUri('package:b/b.dart');
-    expect(packageSource, isNotNull);
-    expect(packageSource.fullName, join(packageB, 'b.dart'));
-  }
-
   void test_createSourceFactory_noProvider_packages_embedder_noExtensions() {
     String rootPath = convertPath('/root');
     Folder rootFolder = getFolder(rootPath);
     createDefaultSdk(rootFolder);
     String projectPath = join(rootPath, 'project');
     String packageFilePath = join(projectPath, '.packages');
-    String packageA = join(rootPath, 'pkgs', 'a');
-    String embedderPath = join(packageA, '_embedder.yaml');
-    String packageB = join(rootPath, 'pkgs', 'b');
-    newFile(packageFilePath, content: '''
-a:${resourceProvider.pathContext.toUri(packageA)}
-b:${resourceProvider.pathContext.toUri(packageB)}
-''');
-    String asyncPath = join(packageA, 'sdk', 'async.dart');
-    String corePath = join(packageA, 'sdk', 'core.dart');
+
+    String skyEnginePath = join(rootPath, 'pkgs', 'sky_engine');
+    String embedderPath = join(skyEnginePath, '_embedder.yaml');
+    String asyncPath = join(skyEnginePath, 'sdk', 'async.dart');
+    String corePath = join(skyEnginePath, 'sdk', 'core.dart');
     newFile(embedderPath, content: '''
 embedded_libs:
-  "dart:async": ${_relativeUri(asyncPath, from: packageA)}
-  "dart:core": ${_relativeUri(corePath, from: packageA)}
+  "dart:async": ${_relativeUri(asyncPath, from: skyEnginePath)}
+  "dart:core": ${_relativeUri(corePath, from: skyEnginePath)}
+''');
+
+    String packageB = join(rootPath, 'pkgs', 'b');
+    newFile(packageFilePath, content: '''
+sky_engine:${resourceProvider.pathContext.toUri(skyEnginePath)}
+b:${resourceProvider.pathContext.toUri(packageB)}
 ''');
     AnalysisOptionsImpl options = AnalysisOptionsImpl();
 
@@ -918,7 +878,6 @@ environment:
     );
     expect(actual.preserveComments, expected.preserveComments);
     expect(actual.strongMode, expected.strongMode);
-    expect(actual.strongModeHints, expected.strongModeHints);
     expect(actual.implicitCasts, expected.implicitCasts);
     expect(actual.implicitDynamic, expected.implicitDynamic);
     expect(actual.strictInference, expected.strictInference);
@@ -965,5 +924,6 @@ class _MockLintRule implements LintRule {
   @override
   String get name => _name;
 
+  @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

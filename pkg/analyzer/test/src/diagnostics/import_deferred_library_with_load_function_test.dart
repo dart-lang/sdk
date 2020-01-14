@@ -5,6 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../generated/test_support.dart';
 import '../dart/resolution/driver_resolution.dart';
 
 main() {
@@ -26,10 +27,10 @@ library root;
 import 'lib1.dart' deferred as lib1;
 main() { lib1.f(); }''');
 
-    await _resolveTestFile('/pkg1/lib/lib1.dart');
-    await _resolveTestFile('/pkg1/lib/lib2.dart');
-    assertTestErrorsWithCodes(
-        [HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION]);
+    await _resolveFile('/pkg1/lib/lib1.dart');
+    await _resolveFile('/pkg1/lib/lib2.dart', [
+      error(HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION, 14, 36),
+    ]);
   }
 
   test_deferredImport_withoutLoadLibraryFunction() async {
@@ -42,9 +43,8 @@ library root;
 import 'lib1.dart' deferred as lib1;
 main() { lib1.f(); }''');
 
-    await _resolveTestFile('/pkg1/lib/lib1.dart');
-    await _resolveTestFile('/pkg1/lib/lib2.dart');
-    assertNoTestErrors();
+    await _resolveFile('/pkg1/lib/lib1.dart');
+    await _resolveFile('/pkg1/lib/lib2.dart');
   }
 
   test_nonDeferredImport_withLoadLibraryFunction() async {
@@ -58,15 +58,18 @@ library root;
 import 'lib1.dart' as lib1;
 main() { lib1.f(); }''');
 
-    await _resolveTestFile('/pkg1/lib/lib1.dart');
-    await _resolveTestFile('/pkg1/lib/lib2.dart');
-    assertNoTestErrors();
+    await _resolveFile('/pkg1/lib/lib1.dart');
+    await _resolveFile('/pkg1/lib/lib2.dart');
   }
 
-  /// Resolve the test file at [path].
+  /// Resolve the file with the given [path].
   ///
   /// Similar to ResolutionTest.resolveTestFile, but a custom path is supported.
-  Future<void> _resolveTestFile(String path) async {
+  Future<void> _resolveFile(
+    String path, [
+    List<ExpectedError> expectedErrors = const [],
+  ]) async {
     result = await resolveFile(convertPath(path));
+    assertErrorsInResolvedUnit(result, expectedErrors);
   }
 }

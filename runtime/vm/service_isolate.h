@@ -17,6 +17,8 @@ class ObjectPointerVisitor;
 class SendPort;
 
 class ServiceIsolate : public AllStatic {
+#if !defined(PRODUCT)
+
  public:
   static const char* kName;
   static bool NameEquals(const char* name);
@@ -26,9 +28,7 @@ class ServiceIsolate : public AllStatic {
   static bool IsServiceIsolate(const Isolate* isolate);
   static bool IsServiceIsolateDescendant(const Isolate* isolate);
   static Dart_Port Port();
-
-  static Dart_Port WaitForLoadPort();
-  static Dart_Port LoadPort();
+  static void WaitForServiceIsolateStartup();
 
   // Returns `true` if the request was sucessfully sent.  If it was, the
   // [reply_port] will receive a Dart_TypedData_kUint8 response json.
@@ -62,13 +62,9 @@ class ServiceIsolate : public AllStatic {
  private:
   static void KillServiceIsolate();
 
-  // Does not need a current thread.
-  static Dart_Port WaitForLoadPortInternal();
-
  protected:
   static void SetServicePort(Dart_Port port);
   static void SetServiceIsolate(Isolate* isolate);
-  static void SetLoadPort(Dart_Port port);
   static void FinishedExiting();
   static void FinishedInitializing();
   static void InitializingFailed(char* error);
@@ -88,13 +84,32 @@ class ServiceIsolate : public AllStatic {
   static State state_;
   static Isolate* isolate_;
   static Dart_Port port_;
-  static Dart_Port load_port_;
   static Dart_Port origin_;
   static char* server_address_;
 
   // If starting the service-isolate failed, this error might provide the reason
   // for the failure.
   static char* startup_failure_reason_;
+#else
+
+ public:
+  static bool NameEquals(const char* name) { return false; }
+  static bool Exists() { return false; }
+  static bool IsRunning() { return false; }
+  static bool IsServiceIsolate(const Isolate* isolate) { return false; }
+  static bool IsServiceIsolateDescendant(const Isolate* isolate) {
+    return false;
+  }
+  static void Run() {}
+  static bool SendIsolateStartupMessage() { return false; }
+  static bool SendIsolateShutdownMessage() { return false; }
+  static void SendServiceExitMessage() {}
+  static void Shutdown() {}
+  static void VisitObjectPointers(ObjectPointerVisitor* visitor) {}
+
+ protected:
+  static void SetServiceIsolate(Isolate* isolate) { UNREACHABLE(); }
+#endif  // !defined(PRODUCT)
 
   friend class Dart;
   friend class Isolate;

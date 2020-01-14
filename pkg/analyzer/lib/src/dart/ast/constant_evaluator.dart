@@ -260,7 +260,7 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
 
   @override
   Object visitListLiteral(ListLiteral node) {
-    List<Object> list = List<Object>();
+    List<Object> list = <Object>[];
     for (CollectionElement element in node.elements) {
       if (element is Expression) {
         Object value = element.accept(this);

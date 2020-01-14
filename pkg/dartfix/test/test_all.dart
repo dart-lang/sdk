@@ -15,7 +15,7 @@ import 'src/driver_required_test.dart' as driver_required;
 import 'src/driver_test.dart' as driver;
 import 'src/options_test.dart' as options_test;
 
-main() {
+void main() {
   group('version', client_version.main);
   group('driver', driver_example.main);
   group('driver', driver_exclude.main);

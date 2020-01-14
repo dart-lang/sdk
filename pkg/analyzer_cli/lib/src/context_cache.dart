@@ -28,9 +28,9 @@ class ContextCache {
   ContextCacheEntry forSource(String path) {
     path = _normalizeSourcePath(path);
     return _byDirectory.putIfAbsent(path, () {
-      final builder = new ContextBuilder(resourceProvider, null, null,
+      final builder = ContextBuilder(resourceProvider, null, null,
           options: clOptions.contextBuilderOptions);
-      return new ContextCacheEntry(builder, path, clOptions, verbosePrint);
+      return ContextCacheEntry(builder, path, clOptions, verbosePrint);
     });
   }
 

@@ -769,10 +769,7 @@ TimelineEventScope::TimelineEventScope(TimelineStream* stream,
 TimelineEventScope::TimelineEventScope(Thread* thread,
                                        TimelineStream* stream,
                                        const char* label)
-    : StackResource(thread),
-      stream_(stream),
-      label_(label),
-      enabled_(false) {
+    : StackResource(thread), stream_(stream), label_(label), enabled_(false) {
   Init();
 }
 
@@ -833,44 +830,6 @@ void TimelineEventScope::StealArguments(TimelineEvent* event) {
     return;
   }
   event->StealArguments(&arguments_);
-}
-
-TimelineDurationScope::TimelineDurationScope(TimelineStream* stream,
-                                             const char* label)
-    : TimelineEventScope(stream, label) {
-  if (!enabled()) {
-    return;
-  }
-  timestamp_ = OS::GetCurrentMonotonicMicros();
-  thread_timestamp_ = OS::GetCurrentThreadCPUMicros();
-}
-
-TimelineDurationScope::TimelineDurationScope(Thread* thread,
-                                             TimelineStream* stream,
-                                             const char* label)
-    : TimelineEventScope(thread, stream, label) {
-  if (!enabled()) {
-    return;
-  }
-  timestamp_ = OS::GetCurrentMonotonicMicros();
-  thread_timestamp_ = OS::GetCurrentThreadCPUMicros();
-}
-
-TimelineDurationScope::~TimelineDurationScope() {
-  if (!ShouldEmitEvent()) {
-    return;
-  }
-  TimelineEvent* event = stream()->StartEvent();
-  if (event == NULL) {
-    // Stream is now disabled.
-    return;
-  }
-  ASSERT(event != NULL);
-  // Emit a duration event.
-  event->Duration(label(), timestamp_, OS::GetCurrentMonotonicMicros(),
-                  thread_timestamp_, OS::GetCurrentThreadCPUMicros());
-  StealArguments(event);
-  event->Complete();
 }
 
 TimelineBeginEndScope::TimelineBeginEndScope(TimelineStream* stream,
@@ -1159,6 +1118,10 @@ TimelineEventFixedBufferRecorder::~TimelineEventFixedBufferRecorder() {
     blocks_[i].Reset();
   }
   delete memory_;
+}
+
+intptr_t TimelineEventFixedBufferRecorder::Size() {
+  return memory_->size();
 }
 
 #ifndef PRODUCT
@@ -1629,15 +1592,17 @@ TimelineEventBlock* TimelineEventBlockIterator::Next() {
 
 void DartTimelineEventHelpers::ReportTaskEvent(Thread* thread,
                                                TimelineEvent* event,
-                                               int64_t start,
                                                int64_t id,
                                                const char* phase,
                                                const char* category,
                                                char* name,
                                                char* args) {
   ASSERT(phase != NULL);
-  ASSERT((phase[0] == 'n') || (phase[0] == 'b') || (phase[0] == 'e'));
+  ASSERT((phase[0] == 'n') || (phase[0] == 'b') || (phase[0] == 'e') ||
+         (phase[0] == 'B') || (phase[0] == 'E'));
   ASSERT(phase[1] == '\0');
+  const int64_t start = OS::GetCurrentMonotonicMicros();
+  const int64_t start_cpu = OS::GetCurrentThreadCPUMicros();
   switch (phase[0]) {
     case 'n':
       event->AsyncInstant(name, id, start);
@@ -1648,6 +1613,12 @@ void DartTimelineEventHelpers::ReportTaskEvent(Thread* thread,
     case 'e':
       event->AsyncEnd(name, id, start);
       break;
+    case 'B':
+      event->Begin(name, start, start_cpu);
+      break;
+    case 'E':
+      event->End(name, start, start_cpu);
+      break;
     default:
       UNREACHABLE();
   }
@@ -1655,29 +1626,14 @@ void DartTimelineEventHelpers::ReportTaskEvent(Thread* thread,
   event->CompleteWithPreSerializedArgs(args);
 }
 
-void DartTimelineEventHelpers::ReportCompleteEvent(Thread* thread,
-                                                   TimelineEvent* event,
-                                                   int64_t start,
-                                                   int64_t start_cpu,
-                                                   const char* category,
-                                                   char* name,
-                                                   char* args) {
-  const int64_t end = OS::GetCurrentMonotonicMicros();
-  const int64_t end_cpu = OS::GetCurrentThreadCPUMicros();
-  event->Duration(name, start, end, start_cpu, end_cpu);
-  event->set_owns_label(true);
-  event->CompleteWithPreSerializedArgs(args);
-}
-
 void DartTimelineEventHelpers::ReportFlowEvent(Thread* thread,
                                                TimelineEvent* event,
-                                               int64_t start,
-                                               int64_t start_cpu,
                                                const char* category,
                                                char* name,
                                                int64_t type,
                                                int64_t flow_id,
                                                char* args) {
+  const int64_t start = OS::GetCurrentMonotonicMicros();
   TimelineEvent::EventType event_type =
       static_cast<TimelineEvent::EventType>(type);
   switch (event_type) {
@@ -1700,10 +1656,10 @@ void DartTimelineEventHelpers::ReportFlowEvent(Thread* thread,
 
 void DartTimelineEventHelpers::ReportInstantEvent(Thread* thread,
                                                   TimelineEvent* event,
-                                                  int64_t start,
                                                   const char* category,
                                                   char* name,
                                                   char* args) {
+  const int64_t start = OS::GetCurrentMonotonicMicros();
   event->Instant(name, start);
   event->set_owns_label(true);
   event->CompleteWithPreSerializedArgs(args);

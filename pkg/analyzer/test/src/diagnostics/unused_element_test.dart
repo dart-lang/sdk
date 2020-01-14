@@ -145,6 +145,64 @@ print(x) {}
     ]);
   }
 
+  test_constructor_isUsed_asRedirectee() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A._constructor();
+  factory A.b() = A._constructor;
+}
+''');
+  }
+
+  test_constructor_isUsed_asRedirectee_viaInitializer() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A._constructor();
+  A() : this._constructor();
+}
+''');
+  }
+
+  test_constructor_isUsed_asRedirectee_viaSuper() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A._constructor();
+}
+
+class B extends A {
+  B() : super._constructor();
+}
+''');
+  }
+
+  test_constructor_isUsed_explicit() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A._constructor();
+}
+A f() => A._constructor();
+''');
+  }
+
+  test_constructor_notUsed_multiple() async {
+    await assertErrorsInCode(r'''
+class A {
+  A._constructor();
+  A();
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 14, 12),
+    ]);
+  }
+
+  test_constructor_notUsed_single() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A._constructor();
+}
+''');
+  }
+
   test_enum_isUsed_fieldReference() async {
     await assertNoErrorsInCode(r'''
 enum _MyEnum {A, B, C}
@@ -162,6 +220,25 @@ main() {
 ''', [
       error(HintCode.UNUSED_ELEMENT, 5, 7),
     ]);
+  }
+
+  test_factoryConstructor_notUsed_multiple() async {
+    await assertErrorsInCode(r'''
+class A {
+  factory A._factory() => null;
+  A();
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 22, 8),
+    ]);
+  }
+
+  test_factoryConstructor_notUsed_single() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  factory A._factory() => null;
+}
+''');
   }
 
   test_fieldImplicitGetter_isUsed() async {
@@ -264,6 +341,15 @@ main() {
     ]);
   }
 
+  test_functionTop_notUsed_referenceInComment() async {
+    await assertErrorsInCode(r'''
+/// [_f] is a great function.
+_f(int p) => 7;
+''', [
+      error(HintCode.UNUSED_ELEMENT, 30, 2),
+    ]);
+  }
+
   test_functionTypeAlias_isUsed_isExpression() async {
     await assertNoErrorsInCode(r'''
 typedef _F(a, b);
@@ -334,14 +420,16 @@ class C extends B {
   }
 
   test_getter_isUsed_invocation_implicitThis() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   get _g => null;
   useGetter() {
     var v = _g;
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 52, 1),
+    ]);
   }
 
   test_getter_isUsed_invocation_parameterized() async {
@@ -381,25 +469,29 @@ class B extends A<int> {
   }
 
   test_getter_isUsed_invocation_PrefixedIdentifier() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   get _g => null;
 }
 main(A a) {
   var v = a._g;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 48, 1),
+    ]);
   }
 
   test_getter_isUsed_invocation_PropertyAccess() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   get _g => null;
 }
 main() {
   var v = new A()._g;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 45, 1),
+    ]);
   }
 
   test_getter_isUsed_invocation_subclass_plusPlus() async {
@@ -458,20 +550,6 @@ class A {
 }
 ''', [
       error(HintCode.UNUSED_ELEMENT, 16, 2),
-    ]);
-  }
-
-  test_method_isNotUsed_hasSameNameAsUsed() async {
-    await assertErrorsInCode(r'''
-class A {
-  void _m1() {}
-}
-class B {
-  void public() => _m1();
-  void _m1() {}
-}
-''', [
-      error(HintCode.UNUSED_ELEMENT, 17, 3),
     ]);
   }
 
@@ -645,6 +723,20 @@ main() {
 ''');
   }
 
+  test_method_notUsed_hasSameNameAsUsed() async {
+    await assertErrorsInCode(r'''
+class A {
+  void _m1() {}
+}
+class B {
+  void public() => _m1();
+  void _m1() {}
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 17, 3),
+    ]);
+  }
+
   test_method_notUsed_noReference() async {
     await assertErrorsInCode(r'''
 class A {
@@ -664,6 +756,29 @@ class A {
 }
 ''', [
       error(HintCode.UNUSED_ELEMENT, 19, 2),
+    ]);
+  }
+
+  test_method_notUsed_referenceInComment() async {
+    await assertErrorsInCode(r'''
+/// [A] has a method, [_f].
+class A {
+  int _f(int p) => 7;
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 44, 2),
+    ]);
+  }
+
+  test_method_notUsed_referenceInComment_outsideEnclosingClass() async {
+    await assertErrorsInCode(r'''
+class A {
+  int _f(int p) => 7;
+}
+/// This is similar to [A._f].
+int g() => 7;
+''', [
+      error(HintCode.UNUSED_ELEMENT, 16, 2),
     ]);
   }
 
@@ -751,6 +866,15 @@ main() {
 }
 ''', [
       error(HintCode.UNUSED_ELEMENT, 4, 2),
+    ]);
+  }
+
+  test_topLevelVariable_notUsed_referenceInComment() async {
+    await assertErrorsInCode(r'''
+/// [_a] is a great variable.
+int _a = 7;
+''', [
+      error(HintCode.UNUSED_ELEMENT, 34, 2),
     ]);
   }
 }

@@ -106,6 +106,23 @@ abstract class TypeSystem {
   @experimental
   bool isPotentiallyNullable(DartType type);
 
+  /// Return `true` if the [type] is a strictly non-nullable type.
+  ///
+  /// We say that a type `T` is strictly non-nullable if `T <: Object` and not
+  /// `Null <: T`. This is equivalent to the syntactic criterion that `T` is
+  /// any of:
+  /// - `Never`
+  /// - Any function type (including `Function`)
+  /// - Any interface type except `Null`
+  /// - `FutureOr<S>` where `S` is strictly non-nullable
+  /// - `X extends S` where `S` is strictly non-nullable
+  /// - `X & S` where `S` is strictly non-nullable
+  ///
+  /// The result of this method is undefined when the experiment 'non-nullable'
+  /// is not enabled.
+  @experimental
+  bool isStrictlyNonNullable(DartType type);
+
   /// Return `true` if the [leftType] is a subtype of the [rightType].
   ///
   /// For the Dart 2.0 type system, the rules governing the subtype relationship

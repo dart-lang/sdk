@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 /// This library defines the representation of runtime types.
 part of dart._runtime;
 
@@ -93,17 +91,42 @@ class DynamicType extends DartType {
 bool _isJsObject(obj) => JS('!', '# === #', getReifiedType(obj), jsobject);
 
 /// Asserts that [f] is a native JS functions and returns it if so.
-/// This function should be used to ensure that a function is a native
-/// JS functions in contexts that expect that.
+///
+/// This function should be used to ensure that a function is a native JS
+/// function before it is passed to native JS code.
+@NoReifyGeneric()
 F assertInterop<F extends Function>(F f) {
-  // TODO(vsm): Throw a more specific error if this fails.
-  assert(_isJsObject(f));
+  assert(_isJsObject(f) || !JS('bool', '# instanceof #.Function', f, global_),
+      'Dart function requires `allowInterop` to be passed to JavaScript.');
   return f;
 }
 
 bool isDartFunction(obj) =>
     JS<bool>('!', '# instanceof Function', obj) &&
     JS<bool>('!', '#[#] != null', obj, _runtimeType);
+
+Expando<Function> _assertInteropExpando = Expando<Function>();
+
+@NoReifyGeneric()
+F tearoffInterop<F extends Function>(F f) {
+  // Wrap a JS function with a closure that ensures all function arguments are
+  // native JS functions.
+  if (!_isJsObject(f)) return f;
+  var ret = _assertInteropExpando[f];
+  if (ret == null) {
+    ret = JS(
+        '',
+        'function (...arguments) {'
+            ' var args = arguments.map(#);'
+            ' return #.apply(this, args);'
+            '}',
+        assertInterop,
+        f);
+    _assertInteropExpando[f] = ret;
+  }
+  // Suppress a cast back to F.
+  return JS('', '#', ret);
+}
 
 /// The Dart type that represents a JavaScript class(/constructor) type.
 ///
@@ -112,10 +135,10 @@ bool isDartFunction(obj) =>
 /// we disable type checks for in these cases, and allow any JS object to work
 /// as if it were an instance of this JS type.
 class LazyJSType extends DartType {
-  Function() _getRawJSTypeFn;
+  Function()? _getRawJSTypeFn;
   @notNull
   final String _dartName;
-  Object _rawJSType;
+  Object? _rawJSType;
 
   LazyJSType(this._getRawJSTypeFn, this._dartName);
 
@@ -124,7 +147,7 @@ class LazyJSType extends DartType {
     return raw != null ? typeName(raw) : "JSObject<$_dartName>";
   }
 
-  Object _getRawJSType() {
+  Object? _getRawJSType() {
     var raw = _rawJSType;
     if (raw != null) return raw;
 
@@ -134,7 +157,7 @@ class LazyJSType extends DartType {
     // overhead, especially if exceptions are being thrown. Also it means the
     // behavior of a given type check can change later on.
     try {
-      raw = _getRawJSTypeFn();
+      raw = _getRawJSTypeFn!();
     } catch (e) {}
 
     if (raw == null) {
@@ -242,7 +265,7 @@ Object nullable(type) {
 /// normalization doc: https://github.com/dart-lang/language/pull/456
 // TODO(nshahan): Update after the normalization doc PR lands.
 @notNull
-DartType legacy(type) {
+Object legacy(type) {
   // TODO(nshahan) Maybe normailize never*,  Null*.
   if (_isLegacy(type) || _isNullable(type) || _isTop(type)) return type;
 
@@ -269,6 +292,19 @@ class NullableType extends DartType {
 
   @override
   String toString() => name;
+
+  @JSExportName('is')
+  bool is_T(obj) => obj == null || JS<bool>('!', '#.is(#)', type, obj);
+
+  @JSExportName('as')
+  as_T(obj) => obj == null || JS<bool>('!', '#.is(#)', type, obj)
+      ? obj
+      : cast(obj, this, false);
+
+  @JSExportName('_check')
+  check_T(obj) => obj == null || JS<bool>('!', '#.is(#)', type, obj)
+      ? obj
+      : cast(obj, this, true);
 }
 
 /// A wrapper to identify a legacy (star, *) type of the form [type]*.
@@ -284,6 +320,22 @@ class LegacyType extends DartType {
 
   @override
   String toString() => name;
+
+  @JSExportName('is')
+  // Object is the only legacy type that should return true if obj is `null`.
+  bool is_T(obj) => obj == null
+      ? type == unwrapType(Object)
+      : JS<bool>('!', '#.is(#)', type, obj);
+
+  @JSExportName('as')
+  as_T(obj) => obj == null || JS<bool>('!', '#.is(#)', type, obj)
+      ? obj
+      : cast(obj, this, false);
+
+  @JSExportName('_check')
+  check_T(obj) => obj == null || JS<bool>('!', '#.is(#)', type, obj)
+      ? obj
+      : cast(obj, this, true);
 }
 
 // TODO(nshahan) Add override optimizations for is, as and _check?
@@ -444,7 +496,7 @@ class FunctionType extends AbstractFunctionType {
   // that contains the annotations for that argument or an empty array if there
   // are no annotations.
   List metadata = [];
-  String _stringValue;
+  String? _stringValue;
 
   /// Construct a function type.
   ///
@@ -466,7 +518,7 @@ class FunctionType extends AbstractFunctionType {
       return _createSmall(returnType, args);
     }
     args = _canonicalizeArray(args, _fnTypeArrayArgMap);
-    var keys;
+    var keys = [];
     FunctionType Function() create;
     if (noOptionalArgs) {
       keys = [returnType, args];
@@ -527,7 +579,7 @@ class FunctionType extends AbstractFunctionType {
   }
 
   /// Maps argument names to their canonicalized type.
-  Map<String, Object> _createNameMap(List<String> names) {
+  Map<String, Object> _createNameMap(List<Object?> names) {
     var result = <String, Object>{};
     // TODO: Remove this sort if ordering can be conserved.
     JS('', '#.sort()', names);
@@ -540,14 +592,14 @@ class FunctionType extends AbstractFunctionType {
 
   /// Maps optional named parameter names to their canonicalized type.
   Map<String, Object> getNamedParameters() =>
-      _createNameMap(getOwnPropertyNames(named));
+      _createNameMap(getOwnPropertyNames(named).toList());
 
   /// Maps required named parameter names to their canonicalized type.
   Map<String, Object> getRequiredNamedParameters() =>
-      _createNameMap(getOwnPropertyNames(requiredNamed));
+      _createNameMap(getOwnPropertyNames(requiredNamed).toList());
 
   get name {
-    if (_stringValue != null) return _stringValue;
+    if (_stringValue != null) return _stringValue!;
     var buffer = '(';
     for (var i = 0; JS<bool>('!', '# < #.length', i, args); ++i) {
       if (i > 0) {
@@ -646,16 +698,14 @@ class GenericFunctionType extends AbstractFunctionType {
   final _instantiateTypeParts;
   final int formalCount;
   final _instantiateTypeBounds;
-  List<TypeVariable> _typeFormals;
+  final List<TypeVariable> _typeFormals;
 
   GenericFunctionType(instantiateTypeParts, this._instantiateTypeBounds)
       : _instantiateTypeParts = instantiateTypeParts,
-        formalCount = JS('!', '#.length', instantiateTypeParts);
+        formalCount = JS('!', '#.length', instantiateTypeParts),
+        _typeFormals = _typeFormalsFromFunction(instantiateTypeParts);
 
-  List<TypeVariable> get typeFormals {
-    if (_typeFormals != null) return _typeFormals;
-    return _typeFormals = _typeFormalsFromFunction(_instantiateTypeParts);
-  }
+  List<TypeVariable> get typeFormals => _typeFormals;
 
   /// `true` if there are bounds on any of the generic type parameters.
   get hasTypeBounds => _instantiateTypeBounds != null;
@@ -725,7 +775,7 @@ class GenericFunctionType extends AbstractFunctionType {
     // formal if known, or it will be the original TypeVariable if we are still
     // solving for it. This array is passed to `instantiateToBounds` as we are
     // progressively solving for type variables.
-    var defaults = List<Object>(typeFormals.length);
+    var defaults = List<Object?>(typeFormals.length);
     // not ground
     var partials = Map<TypeVariable, Object>.identity();
 
@@ -742,21 +792,17 @@ class GenericFunctionType extends AbstractFunctionType {
       }
     }
 
-    bool hasFreeFormal(Object t) {
+    bool hasFreeFormal(t) {
       if (partials.containsKey(t)) return true;
-
       // Generic classes and typedefs.
       var typeArgs = getGenericArgs(t);
       if (typeArgs != null) return typeArgs.any(hasFreeFormal);
-
       if (t is GenericFunctionType) {
         return hasFreeFormal(t.instantiate(t.typeFormals));
       }
-
       if (t is FunctionType) {
         return hasFreeFormal(t.returnType) || t.args.any(hasFreeFormal);
       }
-
       return false;
     }
 
@@ -764,9 +810,9 @@ class GenericFunctionType extends AbstractFunctionType {
     while (hasProgress) {
       hasProgress = false;
       for (var typeFormal in partials.keys) {
-        var partialBound = partials[typeFormal];
+        var partialBound = partials[typeFormal]!;
         if (!hasFreeFormal(partialBound)) {
-          int index = all[typeFormal];
+          int index = all[typeFormal]!;
           defaults[index] = instantiateTypeBounds(defaults)[index];
           partials.remove(typeFormal);
           hasProgress = true;
@@ -810,7 +856,7 @@ class GenericFunctionType extends AbstractFunctionType {
   }
 }
 
-List<TypeVariable> _typeFormalsFromFunction(Object typeConstructor) {
+List<TypeVariable> _typeFormalsFromFunction(Object? typeConstructor) {
   // Extract parameter names from the function parameters.
   //
   // This is not robust in general for user-defined JS functions, but it
@@ -1000,10 +1046,10 @@ bool isSubtypeOf(Object t1, Object t2) {
   // dispatched on the type. Can we optimize the subtype relation too?
   Object map;
   if (JS('!', '!#.hasOwnProperty(#)', t1, _subtypeCache)) {
-    JS('', '#[#] = # = new Map()', t1, _subtypeCache, map);
+    JS('', '#[#] = #', t1, _subtypeCache, map = JS<Object>('!', 'new Map()'));
     _cacheMaps.add(map);
   } else {
-    map = JS('', '#[#]', t1, _subtypeCache);
+    map = JS<Object>('!', '#[#]', t1, _subtypeCache);
     bool result = JS('', '#.get(#)', map, t2);
     if (JS('!', '# !== void 0', result)) return result;
   }
@@ -1050,11 +1096,12 @@ bool _isLegacy(Type type) => JS<bool>('!', '$type instanceof $LegacyType');
 
 /// Returns `true` if [type] is the [Null] type.
 @notNull
-bool _isNullType(Object type) => identical(type, unwrapType(Null));
+bool _isNullType(Object type) =>
+    JS<bool>('!', '# === #', type, unwrapType(Null));
 
 @notNull
 bool _isFutureOr(type) =>
-    identical(getGenericClass(type), getGenericClass(FutureOr));
+    JS<bool>('!', '# === #', getGenericClass(type), getGenericClass(FutureOr));
 
 bool _isSubtype(t1, t2, bool strictMode) => JS('bool', '''(() => {
   if (!$strictMode) {
@@ -1321,16 +1368,19 @@ bool _isInterfaceSubtype(t1, t2, strictMode) => JS('', '''(() => {
   return false;
 })()''');
 
-Object extractTypeArguments<T>(T instance, Function f) {
+Object? extractTypeArguments<T>(T instance, Function f) {
   if (instance == null) {
     throw ArgumentError('Cannot extract type of null instance.');
   }
   var type = unwrapType(T);
+  // Get underlying type from nullability wrappers if needed.
+  type = JS<Object>('!', '#.type || #', type, type);
+
   if (type is AbstractFunctionType || _isFutureOr(type)) {
     throw ArgumentError('Cannot extract from non-class type ($type).');
   }
   var typeArguments = getGenericArgs(type);
-  if (typeArguments.isEmpty) {
+  if (typeArguments!.isEmpty) {
     throw ArgumentError('Cannot extract from non-generic type ($type).');
   }
   var supertype = _getMatchingSupertype(getReifiedType(instance), type);
@@ -1354,14 +1404,14 @@ class _TypeInferrer {
             typeVariables, typeVariables.map((_) => TypeConstraint()));
 
   /// Returns the inferred types based on the current constraints.
-  List<Object> getInferredTypes() {
+  List<Object>? getInferredTypes() {
     var result = List<Object>();
     for (var constraint in _typeVariables.values) {
       // Prefer the known bound, if any.
       if (constraint.lower != null) {
-        result.add(constraint.lower);
+        result.add(constraint.lower!);
       } else if (constraint.upper != null) {
-        result.add(constraint.upper);
+        result.add(constraint.upper!);
       } else {
         return null;
       }
@@ -1378,11 +1428,11 @@ class _TypeInferrer {
       _isSubtypeMatch(subtype, supertype);
 
   void _constrainLower(TypeVariable parameter, Object lower) {
-    _typeVariables[parameter]._constrainLower(lower);
+    _typeVariables[parameter]!._constrainLower(lower);
   }
 
   void _constrainUpper(TypeVariable parameter, Object upper) {
-    _typeVariables[parameter]._constrainUpper(upper);
+    _typeVariables[parameter]!._constrainUpper(upper);
   }
 
   bool _isFunctionSubtypeMatch(FunctionType subtype, FunctionType supertype) {
@@ -1439,13 +1489,13 @@ class _TypeInferrer {
     for (var name in supertypeNamed.keys) {
       var subtypeParamType = subtypeNamed[name];
       if (subtypeParamType == null) return false;
-      if (!_isSubtypeMatch(supertypeNamed[name], subtypeParamType)) {
+      if (!_isSubtypeMatch(supertypeNamed[name]!, subtypeParamType)) {
         return false;
       }
     }
     for (var name in supertypeRequiredNamed.keys) {
       var subtypeParamType = subtypeRequiredNamed[name] ?? subtypeNamed[name];
-      if (!_isSubtypeMatch(supertypeRequiredNamed[name], subtypeParamType)) {
+      if (!_isSubtypeMatch(supertypeRequiredNamed[name]!, subtypeParamType)) {
         return false;
       }
     }
@@ -1476,8 +1526,8 @@ class _TypeInferrer {
     var matchingSupertype = _getMatchingSupertype(subtype, supertype);
     if (matchingSupertype == null) return false;
 
-    var matchingTypeArgs = getGenericArgs(matchingSupertype);
-    var supertypeTypeArgs = getGenericArgs(supertype);
+    var matchingTypeArgs = getGenericArgs(matchingSupertype)!;
+    var supertypeTypeArgs = getGenericArgs(supertype)!;
     for (int i = 0; i < supertypeTypeArgs.length; i++) {
       if (!_isSubtypeMatch(matchingTypeArgs[i], supertypeTypeArgs[i])) {
         return false;
@@ -1522,13 +1572,13 @@ class _TypeInferrer {
 
     // Handle FutureOr<T> union type.
     if (_isFutureOr(subtype)) {
-      var subtypeArg = getGenericArgs(subtype)[0];
+      var subtypeArg = getGenericArgs(subtype)![0];
       if (_isFutureOr(supertype)) {
         // `FutureOr<P>` is a subtype match for `FutureOr<Q>` with respect to `L`
         // under constraints `C`:
         // - If `P` is a subtype match for `Q` with respect to `L` under constraints
         //   `C`.
-        var supertypeArg = getGenericArgs(supertype)[0];
+        var supertypeArg = getGenericArgs(supertype)![0];
         return _isSubtypeMatch(subtypeArg, supertypeArg);
       }
 
@@ -1538,9 +1588,10 @@ class _TypeInferrer {
       //   constraints `C0`.
       // - And `P` is a subtype match for `Q` with respect to `L` under
       //   constraints `C1`.
-      var subtypeFuture = JS('!', '#(#)', getGenericClass(Future), subtypeArg);
+      var subtypeFuture =
+          JS<Object>('!', '#(#)', getGenericClass(Future), subtypeArg);
       return _isSubtypeMatch(subtypeFuture, supertype) &&
-          _isSubtypeMatch(subtypeArg, supertype);
+          _isSubtypeMatch(subtypeArg!, supertype);
     }
 
     if (_isFutureOr(supertype)) {
@@ -1552,9 +1603,9 @@ class _TypeInferrer {
       //   constraints `C`
       //   - And `P` is a subtype match for `Q` with respect to `L` under
       //     constraints `C`
-      var supertypeArg = getGenericArgs(supertype)[0];
+      var supertypeArg = getGenericArgs(supertype)![0];
       var supertypeFuture =
-          JS('!', '#(#)', getGenericClass(Future), supertypeArg);
+          JS<Object>('!', '#(#)', getGenericClass(Future), supertypeArg);
       return _isSubtypeMatch(subtype, supertypeFuture) ||
           _isSubtypeMatch(subtype, supertypeArg);
     }
@@ -1648,19 +1699,20 @@ class _TypeInferrer {
 class TypeConstraint {
   /// The lower bound of the type being constrained.  This bound must be a
   /// subtype of the type being constrained.
-  Object lower;
+  Object? lower;
 
   /// The upper bound of the type being constrained.  The type being constrained
   /// must be a subtype of this bound.
-  Object upper;
+  Object? upper;
 
   void _constrainLower(Object type) {
-    if (lower != null) {
-      if (isSubtypeOf(lower, type)) {
+    var _lower = lower;
+    if (_lower != null) {
+      if (isSubtypeOf(_lower, type)) {
         // nothing to do, existing lower bound is lower than the new one.
         return;
       }
-      if (!isSubtypeOf(type, lower)) {
+      if (!isSubtypeOf(type, _lower)) {
         // Neither bound is lower and we don't have GLB, so use bottom type.
         type = unwrapType(Null);
       }
@@ -1669,12 +1721,13 @@ class TypeConstraint {
   }
 
   void _constrainUpper(Object type) {
-    if (upper != null) {
-      if (isSubtypeOf(type, upper)) {
+    var _upper = upper;
+    if (_upper != null) {
+      if (isSubtypeOf(type, _upper)) {
         // nothing to do, existing upper bound is higher than the new one.
         return;
       }
-      if (!isSubtypeOf(upper, type)) {
+      if (!isSubtypeOf(_upper, type)) {
         // Neither bound is higher and we don't have LUB, so use top type.
         type = unwrapType(Object);
       }
@@ -1687,7 +1740,7 @@ class TypeConstraint {
 
 /// Finds a supertype of [subtype] that matches the class [supertype], but may
 /// contain different generic type arguments.
-Object _getMatchingSupertype(Object subtype, Object supertype) {
+Object? _getMatchingSupertype(Object? subtype, Object supertype) {
   if (identical(subtype, supertype)) return supertype;
   if (subtype == null || subtype == unwrapType(Object)) return null;
 
@@ -1710,7 +1763,7 @@ Object _getMatchingSupertype(Object subtype, Object supertype) {
   // Check interfaces.
   var getInterfaces = getImplements(subtype);
   if (getInterfaces != null) {
-    for (var iface in getInterfaces()) {
+    for (var iface in getInterfaces()!) {
       result = _getMatchingSupertype(iface, supertype);
       if (result != null) return result;
     }

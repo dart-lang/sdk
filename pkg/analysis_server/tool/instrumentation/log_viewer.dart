@@ -13,7 +13,7 @@ import 'server.dart';
  * Start a web server that will allow an instrumentation log to be viewed.
  */
 void main(List<String> args) {
-  Driver driver = new Driver();
+  Driver driver = Driver();
   driver.start(args);
 }
 
@@ -48,7 +48,7 @@ class Driver {
    * Create and return the parser used to parse the command-line arguments.
    */
   ArgParser createParser() {
-    ArgParser parser = new ArgParser();
+    ArgParser parser = ArgParser();
     parser.addFlag(helpFlag, help: 'Print this help text', negatable: false);
     parser.addOption(portOption,
         help: 'The port number on which the server should listen for requests',
@@ -107,7 +107,7 @@ class Driver {
       return;
     }
     String fileName = arguments[0];
-    io.File logFile = new io.File(fileName);
+    io.File logFile = io.File(fileName);
     List<String> lines;
     try {
       lines = logFile.readAsLinesSync();
@@ -120,9 +120,8 @@ class Driver {
     }
     print('Log file contains ${lines.length} lines');
 
-    InstrumentationLog log =
-        new InstrumentationLog(<String>[logFile.path], lines);
-    WebServer server = new WebServer(log);
+    InstrumentationLog log = InstrumentationLog(<String>[logFile.path], lines);
+    WebServer server = WebServer(log);
     server.serveHttp(port);
     print('logViewer is listening on http://localhost:$port/log');
   }

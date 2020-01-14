@@ -16,15 +16,19 @@ final _noColor = _getSpecial('\u001b[39m');
 final _bold = _getSpecial('\u001b[1m');
 
 void done(Object message) {
-  print("  ${green('(DONE)')} $message");
+  print("${green('(DONE)')} $message");
 }
 
 void note(Object message) {
-  print("  ${cyan('(NOTE)')} $message");
+  print("${cyan('(NOTE)')} $message");
 }
 
 void todo(Object message) {
-  print("  ${red('(TODO)')} $message");
+  print("${red('(TODO)')} $message");
+}
+
+void warn(Object message) {
+  print("${yellow('(WARN)')} $message");
 }
 
 String bold(text) => "$_bold$text$_none";
@@ -35,13 +39,15 @@ String green(text) => "$_green$text$_noColor";
 
 String red(text) => "$_red$text$_noColor";
 
+String yellow(text) => "$_yellow$text$_noColor";
+
 /// Gets a "special" string (ANSI escape or Unicode).
 ///
 /// On Windows or when not printing to a terminal, returns something else since
 /// those aren't supported.
 String _getSpecial(String special, [String onWindows = '']) {
   if (Platform.operatingSystem == 'windows' ||
-      stdioType(stdout) != StdioType.TERMINAL) {
+      stdioType(stdout) != StdioType.terminal) {
     return onWindows;
   }
 

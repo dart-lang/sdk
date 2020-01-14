@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
@@ -22,7 +23,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
-import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/resolver.dart' show TypeSystemImpl;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
@@ -48,16 +49,12 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
    */
   final Set<AstNode> _knownExceptions;
 
-  /**
-   * A list containing all of the AST nodes that were not resolved.
-   */
-  List<AstNode> _unresolvedNodes = List<AstNode>();
+  /// A list containing all of the AST nodes that were not resolved.
+  final List<AstNode> _unresolvedNodes = <AstNode>[];
 
-  /**
-   * A list containing all of the AST nodes that were resolved to an element of
-   * the wrong type.
-   */
-  List<AstNode> _wrongTypedNodes = List<AstNode>();
+  /// A list containing all of the AST nodes that were resolved to an element of
+  /// the wrong type.
+  final List<AstNode> _wrongTypedNodes = <AstNode>[];
 
   /**
    * Initialize a newly created verifier to verify that all of the identifiers
@@ -315,14 +312,13 @@ class ResolverTestCase with ResourceProviderMixin {
    */
   bool enableUnusedElement = false;
 
-  /**
-   * Specifies if [assertErrors] should check for [HintCode.UNUSED_LOCAL_VARIABLE].
-   */
+  /// Specifies if [assertErrors] should check for
+  /// [HintCode.UNUSED_LOCAL_VARIABLE].
   bool enableUnusedLocalVariable = false;
 
   final Map<Source, TestAnalysisResult> analysisResults = {};
 
-  StringBuffer _logBuffer = StringBuffer();
+  final StringBuffer _logBuffer = StringBuffer();
   FileContentOverlay fileContentOverlay = FileContentOverlay();
   AnalysisDriver driver;
 
@@ -707,30 +703,25 @@ class StaticTypeAnalyzer2TestShared extends DriverResolutionTest {
    * output.
    */
   FunctionTypeImpl expectFunctionType(String name, String type,
-      {String elementTypeParams = '[]',
-      String typeParams = '[]',
+      {String typeParams = '[]',
       String typeArgs = '[]',
       String typeFormals = '[]',
       String identifierType}) {
     identifierType ??= type;
 
-    typeParameters(Element element) {
-      if (element is ExecutableElement) {
-        return element.typeParameters;
-      } else if (element is ParameterElement) {
-        return element.typeParameters;
-      }
-      fail('Wrong element type: ${element.runtimeType}');
+    String typeParametersStr(List<TypeParameterElement> elements) {
+      var elementsStr = elements.map((e) {
+        return e.getDisplayString(withNullability: false);
+      }).join(', ');
+      return '[$elementsStr]';
     }
 
     SimpleIdentifier identifier = findNode.simple(name);
-    var element = identifier.staticElement;
     var functionType = _getFunctionTypedElementType(identifier);
-    expect(functionType.toString(), type);
+    assertType(functionType, type);
     expect(identifier.staticType, isNull);
-    expect(typeParameters(element).toString(), elementTypeParams);
     expect(functionType.typeArguments.toString(), typeArgs);
-    expect(functionType.typeFormals.toString(), typeFormals);
+    expect(typeParametersStr(functionType.typeFormals), typeFormals);
     return functionType;
   }
 
@@ -742,7 +733,7 @@ class StaticTypeAnalyzer2TestShared extends DriverResolutionTest {
   FunctionTypeImpl expectFunctionType2(String name, String type) {
     var identifier = findNode.simple(name);
     var functionType = _getFunctionTypedElementType(identifier);
-    expect('$functionType', type);
+    assertType(functionType, type);
     return functionType;
   }
 
@@ -782,7 +773,7 @@ class StaticTypeAnalyzer2TestShared extends DriverResolutionTest {
    */
   _expectType(DartType type, expected) {
     if (expected is String) {
-      expect(type.toString(), expected);
+      assertType(type, expected);
     } else {
       expect(type, expected);
     }
@@ -811,5 +802,5 @@ class TestAnalysisResult {
 
   TypeProvider get typeProvider => libraryElement.typeProvider;
 
-  TypeSystem get typeSystem => libraryElement.typeSystem;
+  TypeSystemImpl get typeSystem => libraryElement.typeSystem;
 }

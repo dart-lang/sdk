@@ -88,7 +88,6 @@
   PRECOMP_NO_CHECK(FIELD(Field, guarded_list_length_in_object_offset_offset))  \
   PRECOMP_NO_CHECK(FIELD(Field, guarded_list_length_offset))                   \
   PRECOMP_NO_CHECK(FIELD(Field, is_nullable_offset))                           \
-  FIELD(Field, static_value_offset)                                            \
   PRECOMP_NO_CHECK(FIELD(Field, kind_bits_offset))                             \
   FIELD(Function, code_offset)                                                 \
   FIELD(Function, entry_point_offset)                                          \
@@ -146,6 +145,10 @@
   FIELD(Thread, active_stacktrace_offset)                                      \
   FIELD(Thread, array_write_barrier_code_offset)                               \
   FIELD(Thread, array_write_barrier_entry_point_offset)                        \
+  FIELD(Thread, allocate_mint_with_fpu_regs_entry_point_offset)                \
+  FIELD(Thread, allocate_mint_with_fpu_regs_stub_offset)                       \
+  FIELD(Thread, allocate_mint_without_fpu_regs_entry_point_offset)             \
+  FIELD(Thread, allocate_mint_without_fpu_regs_stub_offset)                    \
   FIELD(Thread, async_stack_trace_offset)                                      \
   FIELD(Thread, auto_scope_native_wrapper_entry_point_offset)                  \
   FIELD(Thread, bool_false_offset)                                             \
@@ -177,6 +180,7 @@
   FIELD(Thread, invoke_dart_code_from_bytecode_stub_offset)                    \
   FIELD(Thread, invoke_dart_code_stub_offset)                                  \
   FIELD(Thread, isolate_offset)                                                \
+  FIELD(Thread, field_table_values_offset)                                     \
   FIELD(Thread, lazy_deopt_from_return_stub_offset)                            \
   FIELD(Thread, lazy_deopt_from_throw_stub_offset)                             \
   FIELD(Thread, lazy_specialize_type_test_stub_offset)                         \
@@ -187,9 +191,13 @@
   FIELD(Thread, no_scope_native_wrapper_entry_point_offset)                    \
   FIELD(Thread, null_error_shared_with_fpu_regs_entry_point_offset)            \
   FIELD(Thread, null_error_shared_with_fpu_regs_stub_offset)                   \
+  FIELD(Thread, null_arg_error_shared_with_fpu_regs_entry_point_offset)        \
+  FIELD(Thread, null_arg_error_shared_with_fpu_regs_stub_offset)               \
                                                                                \
   FIELD(Thread, null_error_shared_without_fpu_regs_entry_point_offset)         \
   FIELD(Thread, null_error_shared_without_fpu_regs_stub_offset)                \
+  FIELD(Thread, null_arg_error_shared_without_fpu_regs_entry_point_offset)     \
+  FIELD(Thread, null_arg_error_shared_without_fpu_regs_stub_offset)            \
   FIELD(Thread, object_null_offset)                                            \
   FIELD(Thread, predefined_symbols_address_offset)                             \
   FIELD(Thread, resume_pc_offset)                                              \
@@ -221,6 +229,7 @@
   FIELD(Type, signature_offset)                                                \
   FIELD(Type, type_class_id_offset)                                            \
   FIELD(Type, type_state_offset)                                               \
+  FIELD(Type, nullability_offset)                                              \
   FIELD(TypeArguments, instantiations_offset)                                  \
   FIELD(TypeRef, type_offset)                                                  \
   FIELD(TypedDataBase, data_field_offset)                                      \

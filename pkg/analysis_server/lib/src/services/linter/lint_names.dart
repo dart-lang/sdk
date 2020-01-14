@@ -4,6 +4,8 @@
 
 /// An enumeration of lint names.
 class LintNames {
+  static const String always_declare_return_types =
+      'always_declare_return_types';
   static const String always_require_non_null_named_parameters =
       'always_require_non_null_named_parameters';
   static const String always_specify_types = 'always_specify_types';
@@ -12,6 +14,8 @@ class LintNames {
       'avoid_annotating_with_dynamic';
   static const String avoid_empty_else = 'avoid_empty_else';
   static const String avoid_init_to_null = 'avoid_init_to_null';
+  static const String avoid_redundant_argument_values =
+      'avoid_redundant_argument_values';
   static const String avoid_relative_lib_imports = 'avoid_relative_lib_imports';
   static const String avoid_return_types_on_setters =
       'avoid_return_types_on_setters';
@@ -29,6 +33,9 @@ class LintNames {
   static const String non_constant_identifier_names =
       'non_constant_identifier_names';
   static const String null_closures = 'null_closures';
+  static const String omit_local_variable_types = 'omit_local_variable_types';
+  static const String prefer_adjacent_string_concatenation =
+      'prefer_adjacent_string_concatenation';
   static const String prefer_collection_literals = 'prefer_collection_literals';
   static const String prefer_conditional_assignment =
       'prefer_conditional_assignment';
@@ -42,12 +49,15 @@ class LintNames {
   static const String prefer_final_locals = 'prefer_final_locals';
   static const String prefer_for_elements_to_map_fromIterable =
       'prefer_for_elements_to_map_fromIterable';
+  static const String prefer_generic_function_type_aliases =
+      'prefer_generic_function_type_aliases';
   static const String prefer_inlined_adds = 'prefer_inlined_adds';
   static const String prefer_int_literals = 'prefer_int_literals';
   static const String prefer_if_elements_to_conditional_expressions =
       'prefer_if_elements_to_conditional_expressions';
   static const String prefer_is_empty = 'prefer_is_empty';
   static const String prefer_is_not_empty = 'prefer_is_not_empty';
+  static const String prefer_if_null_operators = 'prefer_if_null_operators';
   static const String prefer_null_aware_operators =
       'prefer_null_aware_operators';
   static const String prefer_relative_imports = 'prefer_relative_imports';

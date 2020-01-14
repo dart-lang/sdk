@@ -41,25 +41,25 @@ class PubspecFixTest with ResourceProviderMixin {
     YamlMap pubspec = _parseYaml(content);
     expect(pubspec, isNotNull);
     PubspecValidator validator =
-        new PubspecValidator(resourceProvider, pubspecFile.createSource());
+        PubspecValidator(resourceProvider, pubspecFile.createSource());
     List<engine.AnalysisError> errors = validator.validate(pubspec.nodes);
     expect(errors, hasLength(1));
     engine.AnalysisError error = errors[0];
     PubspecFixGenerator generator =
-        new PubspecFixGenerator(error, content, pubspec);
+        PubspecFixGenerator(error, content, pubspec);
     return generator.computeFixes();
   }
 
   YamlMap _parseYaml(String content) {
     if (content == null) {
-      return new YamlMap();
+      return YamlMap();
     }
     try {
       YamlNode doc = loadYamlNode(content);
       if (doc is YamlMap) {
         return doc;
       }
-      return new YamlMap();
+      return YamlMap();
     } catch (exception) {
       return null;
     }

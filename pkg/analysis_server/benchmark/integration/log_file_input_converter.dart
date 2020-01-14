@@ -46,8 +46,8 @@ class LogFileInputConverter extends CommonInputConverter {
       logger.log(Level.INFO, 'unknown input line: $line');
       return null;
     } catch (e, s) {
-      throw new AnalysisException(
-          'Failed to parse line\n  $line', new CaughtException(e, s));
+      throw AnalysisException(
+          'Failed to parse line\n  $line', CaughtException(e, s));
     }
   }
 

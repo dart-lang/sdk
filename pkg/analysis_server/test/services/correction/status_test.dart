@@ -40,7 +40,7 @@ class RefactoringLocationTest extends AbstractSingleUnitTest {
     await resolveTestUnit('class MyClass {}');
     Element element = findElement('MyClass');
     SourceRange sourceRange = range.elementName(element);
-    SearchMatch match = new SearchMatchImpl(
+    SearchMatch match = SearchMatchImpl(
         element.source.fullName,
         element.library.source,
         element.source,
@@ -72,7 +72,7 @@ main() {
 
   test_createLocation_forUnit() async {
     await resolveTestUnit('');
-    SourceRange sourceRange = new SourceRange(10, 20);
+    SourceRange sourceRange = SourceRange(10, 20);
     // check
     Location location = newLocation_fromUnit(testUnit, sourceRange);
     expect(location.file, testFile);
@@ -84,7 +84,7 @@ main() {
 @reflectiveTest
 class RefactoringStatusTest {
   void test_addError() {
-    RefactoringStatus refactoringStatus = new RefactoringStatus();
+    RefactoringStatus refactoringStatus = RefactoringStatus();
     // initial state
     expect(refactoringStatus.severity, null);
     // add ERROR
@@ -100,8 +100,8 @@ class RefactoringStatusTest {
   }
 
   void test_addFatalError_withLocation() {
-    Location location = new Location('/test.dart', 1, 2, 3, 4);
-    RefactoringStatus refactoringStatus = new RefactoringStatus();
+    Location location = Location('/test.dart', 1, 2, 3, 4);
+    RefactoringStatus refactoringStatus = RefactoringStatus();
     // initial state
     expect(refactoringStatus.severity, null);
     // add FATAL
@@ -123,7 +123,7 @@ class RefactoringStatusTest {
   }
 
   void test_addFatalError_withoutContext() {
-    RefactoringStatus refactoringStatus = new RefactoringStatus();
+    RefactoringStatus refactoringStatus = RefactoringStatus();
     // initial state
     expect(refactoringStatus.severity, null);
     // add FATAL
@@ -140,12 +140,12 @@ class RefactoringStatusTest {
   }
 
   void test_addStatus_Error_withWarning() {
-    RefactoringStatus refactoringStatus = new RefactoringStatus();
+    RefactoringStatus refactoringStatus = RefactoringStatus();
     refactoringStatus.addError("err");
     expect(refactoringStatus.severity, RefactoringProblemSeverity.ERROR);
     // merge with OK
     {
-      RefactoringStatus other = new RefactoringStatus();
+      RefactoringStatus other = RefactoringStatus();
       other.addWarning("warn");
       refactoringStatus.addStatus(other);
     }
@@ -154,7 +154,7 @@ class RefactoringStatusTest {
   }
 
   void test_addStatus_Warning_null() {
-    RefactoringStatus refactoringStatus = new RefactoringStatus();
+    RefactoringStatus refactoringStatus = RefactoringStatus();
     refactoringStatus.addWarning("warn");
     expect(refactoringStatus.severity, RefactoringProblemSeverity.WARNING);
     // merge with "null"
@@ -163,12 +163,12 @@ class RefactoringStatusTest {
   }
 
   void test_addStatus_Warning_withError() {
-    RefactoringStatus refactoringStatus = new RefactoringStatus();
+    RefactoringStatus refactoringStatus = RefactoringStatus();
     refactoringStatus.addWarning("warn");
     expect(refactoringStatus.severity, RefactoringProblemSeverity.WARNING);
     // merge with OK
     {
-      RefactoringStatus other = new RefactoringStatus();
+      RefactoringStatus other = RefactoringStatus();
       other.addError("err");
       refactoringStatus.addStatus(other);
     }
@@ -177,7 +177,7 @@ class RefactoringStatusTest {
   }
 
   void test_addWarning() {
-    RefactoringStatus refactoringStatus = new RefactoringStatus();
+    RefactoringStatus refactoringStatus = RefactoringStatus();
     // initial state
     expect(refactoringStatus.severity, null);
     // add WARNING
@@ -194,7 +194,7 @@ class RefactoringStatusTest {
   }
 
   void test_get_problem() {
-    RefactoringStatus refactoringStatus = new RefactoringStatus();
+    RefactoringStatus refactoringStatus = RefactoringStatus();
     // no entries
     expect(refactoringStatus.problem, isNull);
     expect(refactoringStatus.message, isNull);
@@ -213,22 +213,22 @@ class RefactoringStatusTest {
   }
 
   void test_newError() {
-    Location location = new Location('/test.dart', 1, 2, 3, 4);
+    Location location = Location('/test.dart', 1, 2, 3, 4);
     RefactoringStatus refactoringStatus =
-        new RefactoringStatus.error('msg', location);
+        RefactoringStatus.error('msg', location);
     expect(refactoringStatus.severity, RefactoringProblemSeverity.ERROR);
     expect(refactoringStatus.problem.message, 'msg');
     expect(refactoringStatus.problem.location.file, '/test.dart');
   }
 
   void test_newFatalError() {
-    RefactoringStatus refactoringStatus = new RefactoringStatus.fatal('msg');
+    RefactoringStatus refactoringStatus = RefactoringStatus.fatal('msg');
     expect(refactoringStatus.severity, RefactoringProblemSeverity.FATAL);
     expect(refactoringStatus.message, 'msg');
   }
 
   void test_newWarning() {
-    RefactoringStatus refactoringStatus = new RefactoringStatus.warning('msg');
+    RefactoringStatus refactoringStatus = RefactoringStatus.warning('msg');
     expect(refactoringStatus.severity, RefactoringProblemSeverity.WARNING);
     expect(refactoringStatus.message, 'msg');
   }

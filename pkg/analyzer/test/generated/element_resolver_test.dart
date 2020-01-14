@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -272,8 +273,9 @@ const V = 0;
   Future<void> _validateAnnotation(
       String annotationPrefix,
       String annotationText,
-      validator(SimpleIdentifier name1, SimpleIdentifier name2,
-          SimpleIdentifier name3, Element annotationElement)) async {
+      Function(SimpleIdentifier name1, SimpleIdentifier name2,
+              SimpleIdentifier name3, Element annotationElement)
+          validator) async {
     await resolveTestCode('''
 import 'a.dart' $annotationPrefix;
 $annotationText
@@ -321,6 +323,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
    */
   ElementResolver _resolver;
 
+  @override
   TypeProvider get typeProvider => _typeProvider;
 
   void fail_visitExportDirective_combinators() {
@@ -404,7 +407,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     //
     ClassElementImpl classD =
         ElementFactory.classElement("D", interfaceTypeStar(classC));
-    _encloseElement(classA);
+    _encloseElement(classD);
     //
     // D a;
     // a[i];
@@ -940,17 +943,6 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     _listener.assertNoErrors();
   }
 
-  test_visitPrefixExpression() async {
-    InterfaceType numType = _typeProvider.numType;
-    SimpleIdentifier operand = AstTestFactory.identifier3("i");
-    operand.staticType = numType;
-    PrefixExpression expression =
-        AstTestFactory.prefixExpression(TokenType.PLUS_PLUS, operand);
-    _resolveNode(expression);
-    expect(expression.staticElement, numType.getMethod('+'));
-    _listener.assertNoErrors();
-  }
-
   test_visitPropertyAccess_getter_identifier() async {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     _encloseElement(classA);
@@ -982,8 +974,9 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
         ElementFactory.getterElement(getterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement>[getter];
     SuperExpression target = AstTestFactory.superExpression();
-    target.staticType = interfaceTypeStar(
-        ElementFactory.classElement("B", interfaceTypeStar(classA)));
+    var classB = ElementFactory.classElement("B", interfaceTypeStar(classA));
+    _encloseElement(classB);
+    target.staticType = interfaceTypeStar(classB);
     PropertyAccess access = AstTestFactory.propertyAccess2(target, getterName);
     AstTestFactory.methodDeclaration2(
         null,

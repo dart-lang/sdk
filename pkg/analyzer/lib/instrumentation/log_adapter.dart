@@ -25,7 +25,7 @@ class InstrumentationLogAdapter implements InstrumentationService {
   static const String TAG_WATCH_EVENT = 'Watch';
 
   /// A logger used to log instrumentation in string format.
-  InstrumentationLogger _instrumentationLogger;
+  final InstrumentationLogger _instrumentationLogger;
 
   /// Initialize a newly created instrumentation service to communicate with the
   /// given [_instrumentationLogger].

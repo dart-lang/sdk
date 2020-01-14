@@ -1,15 +1,12 @@
 analyzer:
   strong-mode:
     implicit-casts: false
-  errors:
-    override_on_non_overriding_method: error
 linter:
   rules:
     # TODO: Enable these once the existing violations have been fixed.
 #    - annotate_overrides
 #    - avoid_renaming_method_parameters
 #    - non_constant_identifier_names
-#    - omit_local_variable_types
 #    - only_throw_errors
 #    - prefer_initializing_formals
 #    - prefer_interpolation_to_compose_strings
@@ -50,6 +47,7 @@ linter:
     - list_remove_unrelated_type
     - no_duplicate_case_values
     - null_closures
+    - omit_local_variable_types
     - overridden_fields
     - package_api_docs
     - package_names

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 // part of "core_patch.dart";
 
 @patch
@@ -33,7 +31,7 @@ class Stopwatch {
     }
     // Multiplication would have overflowed.
     int ticksPerSecond = ticks ~/ _frequency;
-    int remainingTicks = ticks.remainder(_frequency);
+    int remainingTicks = unsafeCast<int>(ticks.remainder(_frequency));
     return ticksPerSecond * 1000000 + (remainingTicks * 1000000) ~/ _frequency;
   }
 
@@ -48,7 +46,7 @@ class Stopwatch {
     }
     // Multiplication would have overflowed.
     int ticksPerSecond = ticks ~/ _frequency;
-    int remainingTicks = ticks.remainder(_frequency);
+    int remainingTicks = unsafeCast<int>(ticks.remainder(_frequency));
     return ticksPerSecond * 1000 + (remainingTicks * 1000) ~/ _frequency;
   }
 }

@@ -30,5 +30,7 @@ class D<X extends self::D::Y% = dynamic, Y extends self::D::Z% = dynamic, Z exte
   method foo(generic-covariant-impl self::D::X% x, generic-covariant-impl self::D::Y% y, generic-covariant-impl self::D::Z% z) → dynamic
     ;
 }
+static method never() → Never
+  ;
 static method main() → dynamic
   ;

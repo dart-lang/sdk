@@ -18,8 +18,8 @@ main() {
   String pathPrefix;
 
   // parse the API file
-  if (FileSystemEntity
-      .isFileSync(path.join('tool', 'spec', 'spec_input.html'))) {
+  if (FileSystemEntity.isFileSync(
+      path.join('tool', 'spec', 'spec_input.html'))) {
     api = readApi('.');
     pathPrefix = '.';
   } else {
@@ -28,7 +28,7 @@ main() {
   }
 
   coverageFile =
-      new File(path.join(pathPrefix, 'test', 'integration', 'coverage.md'));
+      File(path.join(pathPrefix, 'test', 'integration', 'coverage.md'));
   List<String> lines = coverageFile.readAsLinesSync();
 
   // ## server domain

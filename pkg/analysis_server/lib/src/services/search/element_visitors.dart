@@ -14,7 +14,7 @@ Element findElementByNameOffset(Element root, int nameOffset) {
     return null;
   }
   try {
-    var visitor = new _ElementByNameOffsetVisitor(nameOffset);
+    var visitor = _ElementByNameOffsetVisitor(nameOffset);
     root.accept(visitor);
   } on Element catch (result) {
     return result;
@@ -27,7 +27,7 @@ Element findElementByNameOffset(Element root, int nameOffset) {
  * If [processor] returns `true`, then children of a child are visited too.
  */
 void visitChildren(Element element, BoolElementProcessor processor) {
-  element.visitChildren(new _ElementVisitorAdapter(processor));
+  element.visitChildren(_ElementVisitorAdapter(processor));
 }
 
 /**
@@ -35,19 +35,19 @@ void visitChildren(Element element, BoolElementProcessor processor) {
  */
 void visitLibraryTopLevelElements(
     LibraryElement library, VoidElementProcessor processor) {
-  library.visitChildren(new _TopLevelElementsVisitor(processor));
+  library.visitChildren(_TopLevelElementsVisitor(processor));
 }
 
 /**
  * An [Element] processor function type.
  * If `true` is returned, children of [element] will be visited.
  */
-typedef bool BoolElementProcessor(Element element);
+typedef BoolElementProcessor = bool Function(Element element);
 
 /**
  * An [Element] processor function type.
  */
-typedef void VoidElementProcessor(Element element);
+typedef VoidElementProcessor = void Function(Element element);
 
 /**
  * A visitor that finds the deep-most [Element] that contains the [nameOffset].
@@ -57,6 +57,7 @@ class _ElementByNameOffsetVisitor extends GeneralizingElementVisitor {
 
   _ElementByNameOffsetVisitor(this.nameOffset);
 
+  @override
   visitElement(Element element) {
     if (element.nameOffset != -1 &&
         !element.isSynthetic &&

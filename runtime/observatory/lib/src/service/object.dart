@@ -4761,8 +4761,9 @@ String _stripRef(String type) => (_hasRef(type) ? type.substring(1) : type);
 /// associated with [vm] and [isolate].
 void _upgradeCollection(collection, ServiceObjectOwner owner) {
   if (collection is ServiceMap) {
-    return;
+    return; // Already upgraded.
   }
+
   if (collection is Map) {
     _upgradeMap(collection, owner);
   } else if (collection is List) {
@@ -4783,6 +4784,12 @@ void _upgradeMap(Map map, ServiceObjectOwner owner) {
 }
 
 void _upgradeList(List list, ServiceObjectOwner owner) {
+  if (list is Uint8List) {
+    // Nothing to upgrade; avoid slowly visiting every byte
+    // of large binary responses.
+    return;
+  }
+
   for (var i = 0; i < list.length; i++) {
     var v = list[i];
     if ((v is Map) && _isServiceMap(v)) {

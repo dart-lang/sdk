@@ -40,6 +40,7 @@ accordance
 according
 accordingly
 account
+accounted
 accumulate
 accurate
 achieve
@@ -204,6 +205,7 @@ assumed
 assumes
 assuming
 assumption
+assumptions
 asymmetric
 async
 asynchronous
@@ -235,6 +237,7 @@ backends
 backslash
 backslashes
 backspace
+backup
 backward
 backwards
 bad
@@ -265,6 +268,7 @@ belongs
 below
 beneficial
 benefit
+benign
 best
 bets
 better
@@ -456,6 +460,7 @@ closure
 closures
 clue
 code
+coinductively
 collapses
 collect
 collected
@@ -520,6 +525,7 @@ composition
 compound
 comprising
 computation
+computations
 compute
 computed
 computer
@@ -534,8 +540,8 @@ concretely
 concurrent
 condition
 conditional
-conditionals
 conditionally
+conditionals
 conditions
 configurable
 configuration
@@ -961,6 +967,8 @@ entries
 entry
 enum
 enumerated
+enumeration
+enumerations
 enums
 environment
 equal
@@ -1246,6 +1254,7 @@ green
 grounded
 grounds
 group
+grouped
 grouping
 groups
 grow
@@ -1361,6 +1370,7 @@ impossible
 improve
 improved
 in
+inappropriate
 inbound
 include
 included
@@ -1606,6 +1616,7 @@ lexeme
 lexical
 lexically
 lexicographical
+lexicographically
 libraries
 library
 library's
@@ -1793,6 +1804,7 @@ modulo
 moment
 mongolian
 more
+moreover
 most
 mostly
 motivation
@@ -1880,6 +1892,7 @@ noticed
 notifies
 now
 null
+nullable
 num
 number
 numbers
@@ -2096,6 +2109,7 @@ postpone
 postponed
 potential
 potentially
+practical
 practice
 practices
 preamble
@@ -2113,6 +2127,7 @@ precondition
 preconditions
 predefined
 predicate
+predicates
 preemptively
 prefer
 preferable
@@ -2410,6 +2425,7 @@ resynthesize
 retain
 retained
 rethrow
+rethrowing
 retired
 retrieve
 retrieved
@@ -2468,6 +2484,7 @@ sanity
 satisfied
 satisfies
 satisfy
+satisfying
 save
 saved
 says
@@ -2957,8 +2974,11 @@ types
 typically
 typing
 unable
+unalias
+unaliased
 unambiguous
 unary
+unassignable
 unbalanced
 unbind
 uncertain
@@ -3119,6 +3139,7 @@ we'd
 we'll
 we're
 we've
+weak
 web
 weight
 weirdness

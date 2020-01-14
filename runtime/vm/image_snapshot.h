@@ -318,7 +318,9 @@ class AssemblyImageWriter : public ImageWriter {
  public:
   AssemblyImageWriter(Thread* thread,
                       Dart_StreamingWriteCallback callback,
-                      void* callback_data);
+                      void* callback_data,
+                      bool strip = false,
+                      Elf* debug_elf = nullptr);
   void Finalize();
 
   virtual void WriteText(WriteStream* clustered_stream, bool vm);

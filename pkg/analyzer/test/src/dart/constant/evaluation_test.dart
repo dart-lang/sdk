@@ -142,7 +142,7 @@ class C {}
 ''');
     DartObjectImpl result = _evaluateConstant('a');
     expect(result.type, typeProvider.typeType);
-    expect(result.toTypeValue().name, 'C');
+    assertType(result.toTypeValue(), 'C');
   }
 
   test_visitSimpleIdentifier_dynamic() async {
@@ -199,7 +199,11 @@ class ConstantVisitorTestSupport extends DriverResolutionTest {
 
     var source = this.result.unit.declaredElement.source;
     var errorListener = GatheringErrorListener();
-    var errorReporter = ErrorReporter(errorListener, source);
+    var errorReporter = ErrorReporter(
+      errorListener,
+      source,
+      isNonNullableByDefault: false,
+    );
 
     DartObjectImpl result = expression.accept(
       ConstantVisitor(

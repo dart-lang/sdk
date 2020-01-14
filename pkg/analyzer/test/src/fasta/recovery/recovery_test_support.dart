@@ -19,7 +19,8 @@ import '../../../generated/test_support.dart';
 abstract class AbstractRecoveryTest extends FastaParserTestCase {
   void testRecovery(
       String invalidCode, List<ErrorCode> errorCodes, String validCode,
-      {CompilationUnit adjustValidUnitBeforeComparison(CompilationUnit unit),
+      {CompilationUnit Function(CompilationUnit unit)
+          adjustValidUnitBeforeComparison,
       List<ErrorCode> expectedErrorsInValidCode,
       FeatureSet featureSet}) {
     CompilationUnit validUnit;
@@ -75,6 +76,7 @@ abstract class AbstractRecoveryTest extends FastaParserTestCase {
  * they differ in any important ways.
  */
 class ResultComparator extends AstComparator {
+  @override
   bool failDifferentLength(List first, List second) {
     StringBuffer buffer = StringBuffer();
     buffer.writeln('Expected a list of length ${second.length}');

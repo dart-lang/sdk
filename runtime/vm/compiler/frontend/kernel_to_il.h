@@ -123,12 +123,11 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
       bool use_unchecked_entry = false,
       const CallSiteAttributesMetadata* call_site_attrs = nullptr);
 
-  Fragment FfiCall(
-      const Function& signature,
-      const ZoneGrowableArray<Representation>& arg_reps,
-      const ZoneGrowableArray<Location>& arg_locs,
-      const ZoneGrowableArray<HostLocation>* arg_host_locs = nullptr);
+  Fragment FfiCall(const Function& signature,
+                   const ZoneGrowableArray<Representation>& arg_reps,
+                   const ZoneGrowableArray<Location>& arg_locs);
 
+  Fragment ThrowException(TokenPosition position);
   Fragment RethrowException(TokenPosition position, int catch_try_index);
   Fragment LoadLocal(LocalVariable* variable);
   Fragment LoadLateField(const Field& field, LocalVariable* instance);

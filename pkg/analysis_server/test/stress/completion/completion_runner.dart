@@ -65,11 +65,11 @@ class CompletionRunner {
       bool printQuality,
       bool timing,
       bool verbose})
-      : this.output = output ?? new NullStringSink(),
-        this.printMissing = printMissing ?? false,
-        this.printQuality = printQuality ?? false,
-        this.timing = timing ?? false,
-        this.verbose = verbose ?? false;
+      : output = output ?? NullStringSink(),
+        printMissing = printMissing ?? false,
+        printQuality = printQuality ?? false,
+        timing = timing ?? false,
+        verbose = verbose ?? false;
 
   /**
    * Test the completion engine at the locations of each of the identifiers in
@@ -77,24 +77,24 @@ class CompletionRunner {
    */
   Future<void> runAll(String analysisRoot) async {
     OverlayResourceProvider resourceProvider =
-        new OverlayResourceProvider(PhysicalResourceProvider.INSTANCE);
-    AnalysisContextCollection collection = new AnalysisContextCollection(
+        OverlayResourceProvider(PhysicalResourceProvider.INSTANCE);
+    AnalysisContextCollection collection = AnalysisContextCollection(
         includedPaths: <String>[analysisRoot],
         resourceProvider: resourceProvider);
-    DartCompletionManager contributor = new DartCompletionManager();
-    CompletionPerformance performance = new CompletionPerformance();
+    DartCompletionManager contributor = DartCompletionManager();
+    CompletionPerformance performance = CompletionPerformance();
     int stamp = 1;
 
     int fileCount = 0;
     int identifierCount = 0;
     int expectedCount = 0;
     int missingCount = 0;
-    List<int> indexCount = new List.filled(20, 0);
-    List<int> filteredIndexCount = new List.filled(20, 0);
+    List<int> indexCount = List.filled(20, 0);
+    List<int> filteredIndexCount = List.filled(20, 0);
 
     // Consider getting individual timings so that we can also report the
     // longest and shortest times, or even a distribution.
-    Stopwatch timer = new Stopwatch();
+    Stopwatch timer = Stopwatch();
 
     for (AnalysisContext context in collection.contexts) {
       for (String path in context.contextRoot.analyzedFiles()) {
@@ -122,7 +122,7 @@ class CompletionRunner {
 
           timer.start();
           CompletionRequestImpl request =
-              new CompletionRequestImpl(result, offset, performance);
+              CompletionRequestImpl(result, offset, performance);
           List<CompletionSuggestion> suggestions =
               await contributor.computeSuggestions(request);
           timer.stop();
@@ -233,7 +233,7 @@ class CompletionRunner {
    * compilation [unit].
    */
   List<SimpleIdentifier> _identifiersIn(CompilationUnit unit) {
-    IdentifierCollector visitor = new IdentifierCollector();
+    IdentifierCollector visitor = IdentifierCollector();
     unit.accept(visitor);
     return visitor.identifiers;
   }

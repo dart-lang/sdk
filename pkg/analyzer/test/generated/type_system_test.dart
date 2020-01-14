@@ -2,16 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Tests related to the [TypeSystem] class.
-
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart' show astFactory;
 import 'package:analyzer/dart/ast/token.dart' show Keyword;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/ast/token.dart' show KeywordToken;
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
@@ -19,8 +20,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart'
-    show NonExistingSource, UriKind;
-import 'package:meta/meta.dart';
+    show NonExistingSource, Source, UriKind;
 import 'package:path/path.dart' show toUri;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -36,11 +36,13 @@ main() {
     defineReflectiveTests(GreatestLowerBoundTest);
     defineReflectiveTests(LeastUpperBoundFunctionsTest);
     defineReflectiveTests(LeastUpperBoundTest);
-    defineReflectiveTests(TypeSystemTest);
+    defineReflectiveTests(TryPromoteToTest);
   });
 }
 
 abstract class AbstractTypeSystemTest with ElementsTypesMixin {
+  TestAnalysisContext analysisContext;
+
   @override
   TypeProvider typeProvider;
 
@@ -51,7 +53,7 @@ abstract class AbstractTypeSystemTest with ElementsTypesMixin {
   }
 
   void setUp() {
-    var analysisContext = TestAnalysisContext(
+    analysisContext = TestAnalysisContext(
       featureSet: testFeatureSet,
     );
     typeProvider = analysisContext.typeProviderLegacy;
@@ -59,7 +61,7 @@ abstract class AbstractTypeSystemTest with ElementsTypesMixin {
   }
 
   String _typeString(TypeImpl type) {
-    return type.toString(withNullability: true);
+    return type.getDisplayString(withNullability: true);
   }
 }
 
@@ -90,6 +92,9 @@ class AssignabilityTest extends AbstractTypeSystemTest {
         ]),
       ],
     );
+
+    var testLibrary = _testLibrary();
+    B.enclosingElement = testLibrary.definingCompilationUnit;
 
     _checkIsStrictAssignableTo(
       interfaceTypeStar(B),
@@ -407,6 +412,19 @@ class AssignabilityTest extends AbstractTypeSystemTest {
     _checkIsNotAssignableTo(type1, type2);
     _checkIsNotAssignableTo(type2, type1);
   }
+
+  /// Return a test library, in `/test.dart` file.
+  LibraryElementImpl _testLibrary() {
+    var source = _MockSource(toUri('/test.dart'));
+
+    var definingUnit = CompilationUnitElementImpl();
+    definingUnit.source = definingUnit.librarySource = source;
+
+    var testLibrary = LibraryElementImpl(
+        analysisContext, AnalysisSessionImpl(null), '', -1, 0, false);
+    testLibrary.definingCompilationUnit = definingUnit;
+    return testLibrary;
+  }
 }
 
 /**
@@ -455,6 +473,7 @@ actual: $resultStr
 class ConstraintMatchingTest extends AbstractTypeSystemTest {
   TypeParameterType T;
 
+  @override
   void setUp() {
     super.setUp();
     T = typeParameterTypeStar(
@@ -854,7 +873,9 @@ class ConstraintMatchingTest extends AbstractTypeSystemTest {
       DartType t1, DartType t2, Iterable<TypeParameterType> typeFormals,
       {bool covariant}) {
     var inferrer = GenericInferrer(
-        typeProvider, typeSystem, typeFormals.map((t) => t.element));
+      typeSystem,
+      typeFormals.map((t) => t.element),
+    );
     var success =
         inferrer.tryMatchSubtypeOf(t1, t2, null, covariant: covariant);
     expect(success, isFalse);
@@ -870,14 +891,23 @@ class ConstraintMatchingTest extends AbstractTypeSystemTest {
       Iterable<String> expectedConstraints,
       {bool covariant}) {
     var inferrer = GenericInferrer(
-        typeProvider, typeSystem, typeFormals.map((t) => t.element));
+      typeSystem,
+      typeFormals.map((t) => t.element),
+    );
     var success =
         inferrer.tryMatchSubtypeOf(t1, t2, null, covariant: covariant);
     expect(success, isTrue);
     var formattedConstraints = <String>[];
     inferrer.constraints.forEach((typeParameter, constraintsForTypeParameter) {
       for (var constraint in constraintsForTypeParameter) {
-        formattedConstraints.add(constraint.format(typeParameter.toString()));
+        formattedConstraints.add(
+          constraint.format(
+            typeParameter.getDisplayString(
+              withNullability: typeSystem.isNonNullableByDefault,
+            ),
+            withNullability: false,
+          ),
+        );
       }
     });
     expect(formattedConstraints, unorderedEquals(expectedConstraints));
@@ -957,14 +987,14 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
     var cOfB = interfaceTypeStar(C, typeArguments: [typeB]);
     // B b;
     // cOfB.m(b); // infer <B>
-    expect(_inferCall2(cOfB.getMethod('m').type, [typeB]).toString(),
-        'B Function(B)');
+    _assertType(
+        _inferCall2(cOfB.getMethod('m').type, [typeB]), 'B Function(B)');
     // cOfA.m(b); // infer <B>
-    expect(_inferCall2(cOfA.getMethod('m').type, [typeB]).toString(),
-        'B Function(B)');
+    _assertType(
+        _inferCall2(cOfA.getMethod('m').type, [typeB]), 'B Function(B)');
     // cOfObject.m(b); // infer <B>
-    expect(_inferCall2(cOfObject.getMethod('m').type, [typeB]).toString(),
-        'B Function(B)');
+    _assertType(
+        _inferCall2(cOfObject.getMethod('m').type, [typeB]), 'B Function(B)');
   }
 
   void test_boundedByOuterClassSubstituted() {
@@ -1011,13 +1041,13 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
     // List<B> b;
     var listOfB = listStar(typeB);
     // cOfB.m(b); // infer <B>
-    expect(_inferCall2(cOfB.getMethod('m').type, [listOfB]).toString(),
+    _assertType(_inferCall2(cOfB.getMethod('m').type, [listOfB]),
         'List<B> Function(List<B>)');
     // cOfA.m(b); // infer <B>
-    expect(_inferCall2(cOfA.getMethod('m').type, [listOfB]).toString(),
+    _assertType(_inferCall2(cOfA.getMethod('m').type, [listOfB]),
         'List<B> Function(List<B>)');
     // cOfObject.m(b); // infer <B>
-    expect(_inferCall2(cOfObject.getMethod('m').type, [listOfB]).toString(),
+    _assertType(_inferCall2(cOfObject.getMethod('m').type, [listOfB]),
         'List<B> Function(List<B>)');
   }
 
@@ -1437,12 +1467,20 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
     expect(_inferCall(f, []), [numStar]);
   }
 
+  void _assertType(DartType type, String expected) {
+    var typeStr = type.getDisplayString(withNullability: false);
+    expect(typeStr, expected);
+  }
+
   List<DartType> _inferCall(FunctionTypeImpl ft, List<DartType> arguments,
       {DartType returnType, bool expectError = false}) {
     var listener = RecordingErrorListener();
 
-    var reporter = ErrorReporter(listener,
-        NonExistingSource('/test.dart', toUri('/test.dart'), UriKind.FILE_URI));
+    var reporter = ErrorReporter(
+      listener,
+      NonExistingSource('/test.dart', toUri('/test.dart'), UriKind.FILE_URI),
+      isNonNullableByDefault: false,
+    );
 
     var typeArguments = typeSystem.inferGenericFunctionOrType(
       typeParameters: ft.typeFormals,
@@ -1452,7 +1490,6 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
       contextReturnType: returnType,
       errorReporter: reporter,
       errorNode: astFactory.nullLiteral(KeywordToken(Keyword.NULL, 0)),
-      isNonNullableByDefault: false,
     );
 
     if (expectError) {
@@ -2669,7 +2706,7 @@ class LeastUpperBoundTest extends BoundTestBase {
       returnType: voidNone,
     );
     expect(
-      type1.toString(withNullability: true),
+      _typeString(type1),
       'void Function(void Function(void Function(String*, int*, int*)*)*)*',
     );
 
@@ -2696,7 +2733,7 @@ class LeastUpperBoundTest extends BoundTestBase {
       returnType: voidNone,
     );
     expect(
-      type2.toString(withNullability: true),
+      _typeString(type2),
       'void Function(void Function(void Function(int*, double*, num*)*)*)*',
     );
     var expected = functionTypeStar(
@@ -2722,7 +2759,7 @@ class LeastUpperBoundTest extends BoundTestBase {
       returnType: voidNone,
     );
     expect(
-      expected.toString(withNullability: true),
+      _typeString(expected),
       'void Function(void Function(void Function(Never*, Never*, int*)*)*)*',
     );
 
@@ -3256,772 +3293,68 @@ class LeastUpperBoundTest extends BoundTestBase {
 }
 
 @reflectiveTest
-class TypeSystemTest extends AbstractTypeSystemTest {
-  InterfaceTypeImpl get functionClassTypeNone {
-    return interfaceTypeNone(
-      typeProvider.functionType.element,
+class TryPromoteToTest extends AbstractTypeSystemTest {
+  @override
+  FeatureSet get testFeatureSet {
+    return FeatureSet.forTesting(
+      additionalFeatures: [Feature.non_nullable],
     );
   }
 
-  InterfaceTypeImpl get functionClassTypeQuestion {
-    return interfaceTypeQuestion(
-      typeProvider.functionType.element,
-    );
-  }
-
-  InterfaceTypeImpl get functionClassTypeStar {
-    return interfaceTypeStar(
-      typeProvider.functionType.element,
-    );
-  }
-
-  DartType get noneType => (typeProvider.stringType as TypeImpl)
-      .withNullability(NullabilitySuffix.none);
-
-  FunctionTypeImpl get nothingToVoidFunctionTypeNone {
-    return functionTypeNone(
-      returnType: voidNone,
-    );
-  }
-
-  FunctionTypeImpl get nothingToVoidFunctionTypeQuestion {
-    return functionTypeQuestion(
-      returnType: voidNone,
-    );
-  }
-
-  FunctionTypeImpl get nothingToVoidFunctionTypeStar {
-    return functionTypeStar(
-      returnType: voidNone,
-    );
-  }
-
-  DartType get objectClassTypeNone => (typeProvider.objectType as TypeImpl)
-      .withNullability(NullabilitySuffix.none);
-
-  DartType get objectClassTypeQuestion => (typeProvider.objectType as TypeImpl)
-      .withNullability(NullabilitySuffix.question);
-
-  DartType get objectClassTypeStar => (typeProvider.objectType as TypeImpl)
-      .withNullability(NullabilitySuffix.star);
-
-  DartType get questionType => (typeProvider.stringType as TypeImpl)
-      .withNullability(NullabilitySuffix.question);
-
-  DartType get starType => (typeProvider.stringType as TypeImpl)
-      .withNullability(NullabilitySuffix.star);
-
-  InterfaceTypeImpl get stringClassTypeNone {
-    return interfaceTypeNone(
-      typeProvider.stringType.element,
-    );
-  }
-
-  InterfaceTypeImpl get stringClassTypeQuestion {
-    return interfaceTypeQuestion(
-      typeProvider.stringType.element,
-    );
-  }
-
-  InterfaceTypeImpl get stringClassTypeStar {
-    return interfaceTypeStar(
-      typeProvider.stringType.element,
-    );
-  }
-
-  InterfaceTypeImpl futureOrTypeNone({@required DartType argument}) {
-    return typeProvider.futureOrElement.instantiate(
-      typeArguments: <DartType>[argument],
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
-  }
-
-  InterfaceTypeImpl futureOrTypeQuestion({@required DartType argument}) {
-    return typeProvider.futureOrElement.instantiate(
-      typeArguments: <DartType>[argument],
-      nullabilitySuffix: NullabilitySuffix.question,
-    );
-  }
-
-  InterfaceTypeImpl futureOrTypeStar({@required DartType argument}) {
-    return typeProvider.futureOrElement.instantiate(
-      typeArguments: <DartType>[argument],
-      nullabilitySuffix: NullabilitySuffix.star,
-    );
-  }
-
-  InterfaceTypeImpl listClassTypeNone(DartType argument) {
-    return typeProvider.listElement.instantiate(
-      typeArguments: <DartType>[argument],
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
-  }
-
-  InterfaceTypeImpl listClassTypeQuestion(DartType argument) {
-    return typeProvider.listElement.instantiate(
-      typeArguments: <DartType>[argument],
-      nullabilitySuffix: NullabilitySuffix.question,
-    );
-  }
-
-  InterfaceTypeImpl listClassTypeStar(DartType argument) {
-    return typeProvider.listElement.instantiate(
-      typeArguments: <DartType>[argument],
-      nullabilitySuffix: NullabilitySuffix.star,
-    );
-  }
-
-  test_isNonNullable_dynamic() {
-    expect(typeSystem.isNonNullable(dynamicType), false);
-  }
-
-  test_isNonNullable_function_none() {
-    expect(typeSystem.isNonNullable(nothingToVoidFunctionTypeNone), true);
-  }
-
-  test_isNonNullable_function_question() {
-    expect(typeSystem.isNonNullable(nothingToVoidFunctionTypeQuestion), false);
-  }
-
-  test_isNonNullable_function_star() {
-    expect(typeSystem.isNonNullable(nothingToVoidFunctionTypeStar), true);
-  }
-
-  test_isNonNullable_functionClass_none() {
-    expect(typeSystem.isNonNullable(functionClassTypeNone), true);
-  }
-
-  test_isNonNullable_functionClass_question() {
-    expect(typeSystem.isNonNullable(functionClassTypeQuestion), false);
-  }
-
-  test_isNonNullable_functionClass_star() {
-    expect(typeSystem.isNonNullable(functionClassTypeStar), true);
-  }
-
-  test_isNonNullable_futureOr_noneArgument_none() {
-    expect(
-      typeSystem.isNonNullable(
-        futureOrTypeNone(argument: noneType),
-      ),
-      true,
-    );
-  }
-
-  test_isNonNullable_futureOr_noneArgument_question() {
-    expect(
-      typeSystem.isNonNullable(
-        futureOrTypeQuestion(argument: noneType),
-      ),
-      false,
-    );
-  }
-
-  test_isNonNullable_futureOr_noneArgument_star() {
-    expect(
-      typeSystem.isNonNullable(
-        futureOrTypeStar(argument: noneType),
-      ),
-      true,
-    );
-  }
-
-  test_isNonNullable_futureOr_questionArgument_none() {
-    expect(
-      typeSystem.isNonNullable(
-        futureOrTypeNone(argument: questionType),
-      ),
-      false,
-    );
-  }
-
-  test_isNonNullable_futureOr_questionArgument_question() {
-    expect(
-      typeSystem.isNonNullable(
-        futureOrTypeQuestion(argument: questionType),
-      ),
-      false,
-    );
-  }
-
-  test_isNonNullable_futureOr_questionArgument_star() {
-    expect(
-      typeSystem.isNonNullable(
-        futureOrTypeStar(argument: questionType),
-      ),
-      false,
-    );
-  }
-
-  test_isNonNullable_futureOr_starArgument_none() {
-    expect(
-      typeSystem.isNonNullable(
-        futureOrTypeNone(argument: starType),
-      ),
-      true,
-    );
-  }
-
-  test_isNonNullable_futureOr_starArgument_question() {
-    expect(
-      typeSystem.isNonNullable(
-        futureOrTypeStar(argument: questionType),
-      ),
-      false,
-    );
-  }
-
-  test_isNonNullable_futureOr_starArgument_star() {
-    expect(
-      typeSystem.isNonNullable(
-        futureOrTypeStar(argument: starType),
-      ),
-      true,
-    );
-  }
-
-  test_isNonNullable_interface_none() {
-    expect(typeSystem.isNonNullable(noneType), true);
-  }
-
-  test_isNonNullable_interface_question() {
-    expect(typeSystem.isNonNullable(questionType), false);
-  }
-
-  test_isNonNullable_interface_star() {
-    expect(typeSystem.isNonNullable(starType), true);
-  }
-
-  test_isNonNullable_never() {
-    expect(typeSystem.isNonNullable(neverNone), true);
-  }
-
-  test_isNonNullable_null() {
-    expect(typeSystem.isNonNullable(nullStar), false);
-  }
-
-  test_isNonNullable_typeParameter_noneBound_none() {
-    expect(
-      typeSystem.isNonNullable(
-        _typeParameterTypeNone(bound: noneType),
-      ),
-      true,
-    );
-  }
-
-  test_isNonNullable_typeParameter_noneBound_question() {
-    expect(
-      typeSystem.isNonNullable(
-        _typeParameterTypeQuestion(bound: noneType),
-      ),
-      false,
-    );
-  }
-
-  test_isNonNullable_typeParameter_questionBound_none() {
-    expect(
-      typeSystem.isNonNullable(
-        _typeParameterTypeNone(bound: questionType),
-      ),
-      false,
-    );
-  }
-
-  test_isNonNullable_typeParameter_questionBound_question() {
-    expect(
-      typeSystem.isNonNullable(
-        _typeParameterTypeQuestion(bound: questionType),
-      ),
-      false,
-    );
-  }
-
-  test_isNonNullable_typeParameter_starBound_star() {
-    expect(
-      typeSystem.isNonNullable(
-        _typeParameterTypeStar(bound: starType),
-      ),
-      true,
-    );
-  }
-
-  test_isNonNullable_void() {
-    expect(typeSystem.isNonNullable(voidNone), false);
-  }
-
-  test_isNullable_dynamic() {
-    expect(typeSystem.isNullable(dynamicType), true);
-  }
-
-  test_isNullable_function_none() {
-    expect(typeSystem.isNullable(nothingToVoidFunctionTypeNone), false);
-  }
-
-  test_isNullable_function_question() {
-    expect(typeSystem.isNullable(nothingToVoidFunctionTypeQuestion), true);
-  }
-
-  test_isNullable_function_star() {
-    expect(typeSystem.isNullable(nothingToVoidFunctionTypeStar), false);
-  }
-
-  test_isNullable_functionClass_none() {
-    expect(typeSystem.isNullable(functionClassTypeNone), false);
-  }
-
-  test_isNullable_functionClass_question() {
-    expect(typeSystem.isNullable(functionClassTypeQuestion), true);
-  }
-
-  test_isNullable_functionClass_star() {
-    expect(typeSystem.isNullable(functionClassTypeStar), false);
-  }
-
-  test_isNullable_futureOr_noneArgument_none() {
-    expect(
-      typeSystem.isNullable(
-        futureOrTypeNone(argument: noneType),
-      ),
-      false,
-    );
-  }
-
-  test_isNullable_futureOr_noneArgument_question() {
-    expect(
-      typeSystem.isNullable(
-        futureOrTypeQuestion(argument: noneType),
-      ),
-      true,
-    );
-  }
-
-  test_isNullable_futureOr_noneArgument_star() {
-    expect(
-      typeSystem.isNullable(
-        futureOrTypeStar(argument: noneType),
-      ),
-      false,
-    );
+  void notPromotes(DartType from, DartType to) {
+    var result = typeSystem.tryPromoteToType(to, from);
+    expect(result, isNull);
   }
 
-  test_isNullable_futureOr_questionArgument_none() {
-    expect(
-      typeSystem.isNullable(
-        futureOrTypeNone(argument: questionType),
-      ),
-      true,
-    );
-  }
-
-  test_isNullable_futureOr_questionArgument_question() {
-    expect(
-      typeSystem.isNullable(
-        futureOrTypeQuestion(argument: questionType),
-      ),
-      true,
-    );
-  }
-
-  test_isNullable_futureOr_questionArgument_star() {
-    expect(
-      typeSystem.isNullable(
-        futureOrTypeStar(argument: questionType),
-      ),
-      true,
-    );
-  }
-
-  test_isNullable_futureOr_starArgument_none() {
-    expect(
-      typeSystem.isNullable(
-        futureOrTypeNone(argument: starType),
-      ),
-      false,
-    );
-  }
-
-  test_isNullable_futureOr_starArgument_question() {
-    expect(
-      typeSystem.isNullable(
-        futureOrTypeQuestion(argument: starType),
-      ),
-      true,
-    );
-  }
-
-  test_isNullable_futureOr_starArgument_star() {
-    expect(
-      typeSystem.isNullable(
-        futureOrTypeStar(argument: starType),
-      ),
-      false,
-    );
-  }
-
-  test_isNullable_interface_none() {
-    expect(typeSystem.isNullable(noneType), false);
-  }
-
-  test_isNullable_interface_question() {
-    expect(typeSystem.isNullable(questionType), true);
-  }
-
-  test_isNullable_interface_star() {
-    expect(typeSystem.isNullable(starType), false);
-  }
-
-  test_isNullable_Never() {
-    expect(typeSystem.isNullable(neverNone), false);
-  }
-
-  test_isNullable_never() {
-    expect(typeSystem.isNullable(neverNone), false);
-  }
-
-  test_isNullable_null() {
-    expect(typeSystem.isNullable(nullStar), true);
-  }
-
-  test_isNullable_typeParameter_noneBound_none() {
-    expect(
-      typeSystem.isNullable(
-        _typeParameterTypeNone(bound: noneType),
-      ),
-      false,
-    );
-  }
-
-  test_isNullable_typeParameter_noneBound_question() {
-    expect(
-      typeSystem.isNullable(
-        _typeParameterTypeQuestion(bound: noneType),
-      ),
-      true,
-    );
-  }
-
-  test_isNullable_typeParameter_questionBound_none() {
-    expect(
-      typeSystem.isNullable(
-        _typeParameterTypeNone(bound: questionType),
-      ),
-      false,
-    );
-  }
-
-  test_isNullable_typeParameter_questionBound_question() {
-    expect(
-      typeSystem.isNullable(
-        _typeParameterTypeQuestion(bound: questionType),
-      ),
-      true,
-    );
-  }
-
-  test_isNullable_typeParameter_starBound_star() {
-    expect(
-      typeSystem.isNullable(
-        _typeParameterTypeStar(bound: starType),
-      ),
-      false,
-    );
-  }
-
-  test_isNullable_void() {
-    expect(typeSystem.isNullable(voidNone), true);
-  }
-
-  test_isPotentiallyNonNullable_dynamic() {
-    expect(typeSystem.isPotentiallyNonNullable(dynamicType), false);
-  }
-
-  test_isPotentiallyNonNullable_futureOr_noneArgument_none() {
-    expect(
-      typeSystem.isPotentiallyNonNullable(
-        futureOrTypeNone(argument: noneType),
-      ),
-      true,
-    );
-  }
-
-  test_isPotentiallyNonNullable_futureOr_questionArgument_none() {
-    expect(
-      typeSystem.isPotentiallyNonNullable(
-        futureOrTypeNone(argument: questionType),
-      ),
-      false,
-    );
-  }
-
-  test_isPotentiallyNonNullable_futureOr_starArgument_none() {
-    expect(
-      typeSystem.isPotentiallyNonNullable(
-        futureOrTypeNone(argument: starType),
-      ),
-      true,
-    );
-  }
-
-  test_isPotentiallyNonNullable_never() {
-    expect(typeSystem.isPotentiallyNonNullable(neverNone), true);
-  }
-
-  test_isPotentiallyNonNullable_none() {
-    expect(typeSystem.isPotentiallyNonNullable(noneType), true);
-  }
-
-  test_isPotentiallyNonNullable_null() {
-    expect(typeSystem.isPotentiallyNonNullable(nullStar), false);
-  }
-
-  test_isPotentiallyNonNullable_question() {
-    expect(typeSystem.isPotentiallyNonNullable(questionType), false);
-  }
-
-  test_isPotentiallyNonNullable_star() {
-    expect(typeSystem.isPotentiallyNonNullable(starType), true);
-  }
-
-  test_isPotentiallyNonNullable_void() {
-    expect(typeSystem.isPotentiallyNonNullable(voidNone), false);
-  }
-
-  test_isPotentiallyNullable_dynamic() {
-    expect(typeSystem.isPotentiallyNullable(dynamicType), true);
-  }
-
-  test_isPotentiallyNullable_futureOr_noneArgument_none() {
-    expect(
-      typeSystem.isPotentiallyNullable(
-        futureOrTypeNone(argument: noneType),
-      ),
-      false,
-    );
-  }
-
-  test_isPotentiallyNullable_futureOr_questionArgument_none() {
-    expect(
-      typeSystem.isPotentiallyNullable(
-        futureOrTypeNone(argument: questionType),
-      ),
-      true,
-    );
-  }
-
-  test_isPotentiallyNullable_futureOr_starArgument_none() {
-    expect(
-      typeSystem.isPotentiallyNullable(
-        futureOrTypeNone(argument: starType),
-      ),
-      false,
-    );
-  }
-
-  test_isPotentiallyNullable_never() {
-    expect(typeSystem.isPotentiallyNullable(neverNone), false);
-  }
-
-  test_isPotentiallyNullable_none() {
-    expect(typeSystem.isPotentiallyNullable(noneType), false);
-  }
-
-  test_isPotentiallyNullable_null() {
-    expect(typeSystem.isPotentiallyNullable(nullStar), true);
-  }
-
-  test_isPotentiallyNullable_question() {
-    expect(typeSystem.isPotentiallyNullable(questionType), true);
-  }
-
-  test_isPotentiallyNullable_star() {
-    expect(typeSystem.isPotentiallyNullable(starType), false);
-  }
-
-  test_isPotentiallyNullable_void() {
-    expect(typeSystem.isPotentiallyNullable(voidNone), true);
-  }
-
-  test_promoteToNonNull_dynamic() {
-    expect(
-      typeSystem.promoteToNonNull(dynamicType),
-      dynamicType,
-    );
-  }
-
-  test_promoteToNonNull_functionType() {
-    // NonNull(T0 Function(...)) = T0 Function(...)
-    expect(
-      typeSystem.promoteToNonNull(nothingToVoidFunctionTypeQuestion),
-      nothingToVoidFunctionTypeNone,
-    );
-  }
-
-  test_promoteToNonNull_futureOr_question() {
-    // NonNull(FutureOr<T>) = FutureOr<T>
-    expect(
-      typeSystem.promoteToNonNull(
-        futureOrTypeQuestion(argument: stringClassTypeQuestion),
-      ),
-      futureOrTypeNone(argument: stringClassTypeQuestion),
-    );
-  }
-
-  test_promoteToNonNull_interfaceType_function_none() {
-    expect(
-      typeSystem.promoteToNonNull(functionClassTypeQuestion),
-      functionClassTypeNone,
-    );
+  void promotes(DartType from, DartType to) {
+    var result = typeSystem.tryPromoteToType(to, from);
+    expect(result, to);
   }
 
-  test_promoteToNonNull_interfaceType_none() {
-    expect(
-      typeSystem.promoteToNonNull(stringClassTypeNone),
-      stringClassTypeNone,
-    );
-  }
-
-  test_promoteToNonNull_interfaceType_question() {
-    expect(
-      typeSystem.promoteToNonNull(stringClassTypeQuestion),
-      stringClassTypeNone,
-    );
-  }
-
-  test_promoteToNonNull_interfaceType_question_withTypeArguments() {
-    // NonNull(C<T1, ... , Tn>) = C<T1, ... , Tn>
-    // NonNull(List<String?>?) = List<String?>
-    expect(
-      typeSystem.promoteToNonNull(
-        listClassTypeQuestion(stringClassTypeQuestion),
-      ),
-      listClassTypeNone(stringClassTypeQuestion),
-    );
-  }
-
-  test_promoteToNonNull_interfaceType_star() {
-    expect(
-      typeSystem.promoteToNonNull(stringClassTypeStar),
-      stringClassTypeNone,
-    );
-  }
-
-  test_promoteToNonNull_never() {
-    expect(typeSystem.promoteToNonNull(neverNone), neverNone);
-  }
-
-  test_promoteToNonNull_null() {
-    expect(typeSystem.promoteToNonNull(nullStar), neverNone);
-  }
-
-  test_promoteToNonNull_typeParameter_noneBound_none() {
-    var element = typeParameter('T', bound: noneType);
-    var type = typeParameterTypeNone(element);
-    expect(typeSystem.promoteToNonNull(type), same(type));
-  }
+  test_interface() {
+    promotes(intNone, intNone);
+    promotes(intQuestion, intNone);
+    promotes(intStar, intNone);
 
-  test_promoteToNonNull_typeParameter_noneBound_question() {
-    var element = typeParameter('T', bound: stringClassTypeNone);
-    var type = typeParameterTypeQuestion(element);
-    _assertPromotedTypeParameterType(
-      typeSystem.promoteToNonNull(type),
-      baseElement: element,
-      expectedNullabilitySuffix: NullabilitySuffix.none,
-    );
-  }
-
-  test_promoteToNonNull_typeParameter_nullBound_none() {
-    var element = typeParameter('T', bound: null);
-    var type = typeParameterTypeNone(element);
-    _assertPromotedTypeParameterType(
-      typeSystem.promoteToNonNull(type),
-      baseElement: element,
-      expectedBound: objectClassTypeNone,
-      expectedNullabilitySuffix: NullabilitySuffix.none,
-    );
-  }
-
-  test_promoteToNonNull_typeParameter_questionBound_none() {
-    var element = typeParameter('T', bound: stringClassTypeQuestion);
-    var type = typeParameterTypeNone(element);
-    _assertPromotedTypeParameterType(
-      typeSystem.promoteToNonNull(type),
-      baseElement: element,
-      expectedBound: stringClassTypeNone,
-      expectedNullabilitySuffix: NullabilitySuffix.none,
-    );
-  }
-
-  test_promoteToNonNull_typeParameter_questionBound_question() {
-    var element = typeParameter('T', bound: stringClassTypeQuestion);
-    var type = typeParameterTypeQuestion(element);
-    _assertPromotedTypeParameterType(
-      typeSystem.promoteToNonNull(type),
-      baseElement: element,
-      expectedBound: stringClassTypeNone,
-      expectedNullabilitySuffix: NullabilitySuffix.none,
-    );
-  }
-
-  test_promoteToNonNull_typeParameter_questionBound_star() {
-    var element = typeParameter('T', bound: stringClassTypeQuestion);
-    var type = typeParameterTypeStar(element);
-    _assertPromotedTypeParameterType(
-      typeSystem.promoteToNonNull(type),
-      baseElement: element,
-      expectedBound: stringClassTypeNone,
-      expectedNullabilitySuffix: NullabilitySuffix.none,
-    );
-  }
-
-  test_promoteToNonNull_typeParameter_starBound_none() {
-    var element = typeParameter('T', bound: stringClassTypeStar);
-    var type = typeParameterTypeNone(element);
-    _assertPromotedTypeParameterType(
-      typeSystem.promoteToNonNull(type),
-      baseElement: element,
-      expectedBound: stringClassTypeNone,
-      expectedNullabilitySuffix: NullabilitySuffix.none,
-    );
-  }
+    promotes(numNone, intNone);
+    promotes(numQuestion, intNone);
+    promotes(numStar, intNone);
 
-  test_promoteToNonNull_void() {
-    expect(
-      typeSystem.promoteToNonNull(voidNone),
-      voidNone,
-    );
+    notPromotes(intNone, doubleNone);
+    notPromotes(intNone, intQuestion);
   }
 
-  /// If [expectedBound] is `null`, the element of [actual] must be the same
-  /// as the [baseElement].  Otherwise the element of [actual] must be a
-  /// [TypeParameterMember] with the [baseElement] and the [expectedBound].
-  void _assertPromotedTypeParameterType(
-    TypeParameterTypeImpl actual, {
-    @required TypeParameterElement baseElement,
-    TypeImpl expectedBound,
-    @required NullabilitySuffix expectedNullabilitySuffix,
-  }) {
-    if (expectedBound != null) {
-      var actualMember = actual.element as TypeParameterMember;
-      expect(actualMember.declaration, same(baseElement));
-      expect(actualMember.bound, expectedBound);
-    } else {
-      expect(actual.element, same(baseElement));
+  test_typeParameter() {
+    void check(
+      TypeParameterType type,
+      TypeParameterElement expectedDeclaration,
+      DartType expectedBound,
+    ) {
+      var actualElement = type.element as TypeParameterMember;
+      expect(actualElement.declaration, expectedDeclaration);
+      expect(actualElement.bound, expectedBound);
     }
-    expect(actual.nullabilitySuffix, expectedNullabilitySuffix);
-  }
 
-  DartType _typeParameterTypeNone({@required DartType bound}) {
-    var element = typeParameter('T', bound: bound);
-    return typeParameterTypeNone(element);
-  }
+    var T = typeParameter('T');
+    var T0 = typeParameterTypeNone(T);
 
-  DartType _typeParameterTypeQuestion({@required DartType bound}) {
-    var element = typeParameter('T', bound: bound);
-    return typeParameterTypeQuestion(element);
-  }
+    var T1 = typeSystem.tryPromoteToType(numNone, T0);
+    check(T1, T, numNone);
 
-  DartType _typeParameterTypeStar({@required DartType bound}) {
-    var element = typeParameter('T', bound: bound);
-    return typeParameterTypeStar(element);
+    var T2 = typeSystem.tryPromoteToType(intNone, T1);
+    check(T2, T, intNone);
   }
+}
+
+class _MockSource implements Source {
+  @override
+  final Uri uri;
+
+  _MockSource(this.uri);
+
+  @override
+  String get encoding => '$uri';
+
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

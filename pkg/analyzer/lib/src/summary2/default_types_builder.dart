@@ -12,7 +12,7 @@ import 'package:analyzer/src/summary2/function_type_builder.dart';
 import 'package:analyzer/src/summary2/lazy_ast.dart';
 import 'package:analyzer/src/summary2/named_type_builder.dart';
 import 'package:analyzer/src/summary2/type_builder.dart';
-import 'package:kernel/util/graph.dart' show Graph, computeStrongComponents;
+import 'package:analyzer/src/util/graph.dart';
 
 class DefaultTypesBuilder {
   void build(List<AstNode> nodes) {
@@ -194,7 +194,8 @@ class DefaultTypesBuilder {
                 for (var tail in tails) {
                   paths.add(<_CycleElement>[
                     _CycleElement(startParameter, startType),
-                  ]..addAll(tail));
+                    ...tail,
+                  ]);
                 }
               }
             }
@@ -261,7 +262,7 @@ class _TypeParametersGraph implements Graph<int> {
   // the type parameter with the index `i` in their bounds.
   List<List<int>> _edges;
 
-  Map<TypeParameterElement, int> _parameterToIndex = Map.identity();
+  final Map<TypeParameterElement, int> _parameterToIndex = Map.identity();
 
   _TypeParametersGraph(
     List<TypeParameterElement> parameters,

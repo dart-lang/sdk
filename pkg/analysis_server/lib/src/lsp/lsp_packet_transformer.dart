@@ -40,7 +40,7 @@ class LspPacketTransformer extends StreamTransformerBase<List<int>, String> {
                   .contains(headers.encoding?.toLowerCase())) {
                 _output.add(utf8.decode(buffer));
               } else {
-                _output.addError(new InvalidEncodingError(headers.rawHeaders));
+                _output.addError(InvalidEncodingError(headers.rawHeaders));
               }
               buffer.clear();
               isParsingHeaders = true;
@@ -78,7 +78,7 @@ class LspPacketTransformer extends StreamTransformerBase<List<int>, String> {
     final contentTypeHeader = headers
         .firstWhere((h) => h.startsWith('Content-Type'), orElse: () => null);
     final encoding = _extractEncoding(contentTypeHeader);
-    return new LspHeaders(asString, int.parse(length), encoding);
+    return LspHeaders(asString, int.parse(length), encoding);
   }
 
   static String _extractEncoding(String header) {

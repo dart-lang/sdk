@@ -24,7 +24,7 @@ class CommonUsageSorterTest extends AbstractCompletionDomainTest {
   Future getSuggestionsWith(Map<String, List<String>> selectorRelevance) async {
     var originalSorter = DartCompletionManager.contributionSorter;
     DartCompletionManager.contributionSorter =
-        new CommonUsageSorter(selectorRelevance);
+        CommonUsageSorter(selectorRelevance);
     try {
       return await getSuggestions();
     } finally {

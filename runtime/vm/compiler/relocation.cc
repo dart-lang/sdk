@@ -121,9 +121,11 @@ void CodeRelocator::FindInstructionAndCallLimits() {
       StaticCallsTable calls(call_targets);
       for (auto call : calls) {
         kind_type_and_offset_ = call.Get<Code::kSCallTableKindAndOffset>();
-        auto kind = Code::KindField::decode(kind_type_and_offset_.Value());
-        auto offset = Code::OffsetField::decode(kind_type_and_offset_.Value());
-        auto call_entry_point =
+        const auto kind =
+            Code::KindField::decode(kind_type_and_offset_.Value());
+        const auto return_pc_offset =
+            Code::OffsetField::decode(kind_type_and_offset_.Value());
+        const auto call_entry_point =
             Code::EntryPointField::decode(kind_type_and_offset_.Value());
 
         if (kind == Code::kCallViaCode) {
@@ -146,20 +148,20 @@ void CodeRelocator::FindInstructionAndCallLimits() {
         // A call site can decide to jump not to the beginning of a function but
         // rather jump into it at a certain (positive) offset.
         int32_t offset_into_target = 0;
+        const intptr_t call_instruction_offset =
+            return_pc_offset - PcRelativeCallPattern::kLengthInBytes;
         {
-          PcRelativeCallPattern call(
-              Instructions::PayloadStart(current_caller.instructions()) +
-              offset);
+          PcRelativeCallPattern call(current_caller.PayloadStart() +
+                                     call_instruction_offset);
           ASSERT(call.IsValid());
           offset_into_target = call.distance();
         }
 
         const uword destination_payload =
             Instructions::PayloadStart(destination_.instructions());
-        const uword entry_point =
-            call_entry_point == Code::kUncheckedEntry
-                ? Instructions::UncheckedEntryPoint(destination_.instructions())
-                : Instructions::EntryPoint(destination_.instructions());
+        const uword entry_point = call_entry_point == Code::kUncheckedEntry
+                                      ? destination_.UncheckedEntryPoint()
+                                      : destination_.EntryPoint();
 
         offset_into_target += (entry_point - destination_payload);
 
@@ -237,9 +239,10 @@ void CodeRelocator::ScanCallTargets(const Code& code,
   StaticCallsTable calls(call_targets);
   for (auto call : calls) {
     kind_type_and_offset_ = call.Get<Code::kSCallTableKindAndOffset>();
-    auto kind = Code::KindField::decode(kind_type_and_offset_.Value());
-    auto offset = Code::OffsetField::decode(kind_type_and_offset_.Value());
-    auto call_entry_point =
+    const auto kind = Code::KindField::decode(kind_type_and_offset_.Value());
+    const auto return_pc_offset =
+        Code::OffsetField::decode(kind_type_and_offset_.Value());
+    const auto call_entry_point =
         Code::EntryPointField::decode(kind_type_and_offset_.Value());
 
     if (kind == Code::kCallViaCode) {
@@ -261,27 +264,28 @@ void CodeRelocator::ScanCallTargets(const Code& code,
     // A call site can decide to jump not to the beginning of a function but
     // rather jump into it at a certain offset.
     int32_t offset_into_target = 0;
+    const intptr_t call_instruction_offset =
+        return_pc_offset - PcRelativeCallPattern::kLengthInBytes;
     {
-      PcRelativeCallPattern call(
-          Instructions::PayloadStart(code.instructions()) + offset);
+      PcRelativeCallPattern call(code.PayloadStart() + call_instruction_offset);
       ASSERT(call.IsValid());
       offset_into_target = call.distance();
     }
 
     const uword destination_payload =
         Instructions::PayloadStart(destination_.instructions());
-    const uword entry_point =
-        call_entry_point == Code::kUncheckedEntry
-            ? Instructions::UncheckedEntryPoint(destination_.instructions())
-            : Instructions::EntryPoint(destination_.instructions());
+    const uword entry_point = call_entry_point == Code::kUncheckedEntry
+                                  ? destination_.UncheckedEntryPoint()
+                                  : destination_.EntryPoint();
 
     offset_into_target += (entry_point - destination_payload);
 
     const intptr_t text_offset = code_text_offset +
                                  compiler::target::Instructions::HeaderSize() +
-                                 offset;
-    UnresolvedCall unresolved_call(code.raw(), offset, text_offset,
-                                   destination_.raw(), offset_into_target);
+                                 call_instruction_offset;
+    UnresolvedCall unresolved_call(code.raw(), call_instruction_offset,
+                                   text_offset, destination_.raw(),
+                                   offset_into_target);
     if (!TryResolveBackwardsCall(&unresolved_call)) {
       EnqueueUnresolvedCall(new UnresolvedCall(unresolved_call));
     }

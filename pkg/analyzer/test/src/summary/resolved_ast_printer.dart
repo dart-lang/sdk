@@ -1668,6 +1668,17 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     return _referenceToString(reference.parent) + '::$name';
   }
 
+  String _substitutionMapStr(Map<TypeParameterElement, DartType> map) {
+    var entriesStr = map.entries.map((entry) {
+      return '${entry.key.name}: ${_typeStr(entry.value)}';
+    }).join(', ');
+    return '{$entriesStr}';
+  }
+
+  String _typeStr(DartType type) {
+    return type?.getDisplayString(withNullability: false);
+  }
+
   void _withIndent(void Function() f) {
     var indent = _indent;
     _indent = '$_indent  ';
@@ -1697,7 +1708,9 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       _sink.writeln(_nameOfMemberClass(element));
       _withIndent(() {
         _writeElement('base', element.declaration);
-        _writelnWithIndent('substitution: ${element.substitution.map}');
+        var map = element.substitution.map;
+        var mapStr = _substitutionMapStr(map);
+        _writelnWithIndent('substitution: $mapStr');
       });
     } else {
       var reference = (element as ElementImpl).reference;
@@ -1772,7 +1785,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   void _writeType(String name, DartType type) {
-    _writelnWithIndent('$name: $type');
+    var typeStr = _typeStr(type);
+    _writelnWithIndent('$name: $typeStr');
   }
 
   void _writeTypeList(String name, List<DartType> types) {

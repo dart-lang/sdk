@@ -25,14 +25,29 @@ const _colorOption = 'color';
 const _helpOption = 'help';
 
 // options only supported by server 1.22.2 and greater
+const _previewOption = 'preview';
 const _serverSnapshot = 'server';
 const _verboseOption = 'verbose';
+
+// options not supported yet by any server
+const _dependencies = 'migrate-dependencies';
+
+/// Command line options for `dartfix upgrade`.
+class UpgradeOptions {
+  final bool dependencies;
+  final bool preview;
+
+  UpgradeOptions._fromCommand(ArgResults results)
+      : dependencies = results[_dependencies] as bool,
+        preview = results[_previewOption] as bool;
+}
 
 /// Command line options for `dartfix`.
 class Options {
   final Context context;
   Logger logger;
 
+  UpgradeOptions upgradeOptions;
   List<String> targets;
   final String sdkPath;
   final String serverSnapshot;
@@ -44,9 +59,7 @@ class Options {
 
   final bool force;
   final bool showHelp;
-  final bool overwrite;
-  final String previewDir;
-  final String previewPort;
+  bool overwrite;
   final bool useColor;
   final bool verbose;
 
@@ -56,8 +69,6 @@ class Options {
         excludeFixes = (results[excludeFixOption] as List ?? []).cast<String>(),
         overwrite = results[overwriteOption] as bool,
         pedanticFixes = results[pedanticOption] as bool,
-        previewDir = results[previewDirOption] as String,
-        previewPort = results[previewPortOption] as String,
         requiredFixes = results[requiredOption] as bool,
         sdkPath = results[sdkOption] as String ?? _getSdkPath(),
         serverSnapshot = results[_serverSnapshot] as String,
@@ -67,6 +78,8 @@ class Options {
             ? results[_colorOption] as bool
             : null,
         verbose = results[_verboseOption] as bool;
+
+  bool get isUpgrade => upgradeOptions != null;
 
   String makeAbsoluteAndNormalize(String target) {
     if (!path.isAbsolute(target)) {
@@ -118,14 +131,22 @@ class Options {
           negatable: false)
       ..addFlag(_colorOption,
           help: 'Use ansi colors when printing messages.',
-          defaultsTo: Ansi.terminalSupportsAnsi)
-      //
-      // Hidden options.
-      //
-      ..addOption(previewDirOption,
-          help: 'Path to the preview directory', hide: true)
-      ..addOption(previewPortOption,
-          help: 'The port used by the preview tool', hide: true);
+          defaultsTo: Ansi.terminalSupportsAnsi);
+
+    //
+    // Commands.
+    //
+    parser.addCommand('upgrade')
+      ..addFlag(_dependencies,
+          help: 'Upgrade dependencies automatically (not yet implemented)',
+          defaultsTo: false,
+          negatable: true,
+          hide: true)
+      ..addFlag(_previewOption,
+          help: 'Open the preview tool to view changes.',
+          defaultsTo: true,
+          negatable: true,
+          hide: true);
 
     context ??= Context();
 
@@ -147,9 +168,7 @@ class Options {
       } else {
         logger = Logger.standard(
             ansi: Ansi(
-          options.useColor != null
-              ? options.useColor
-              : Ansi.terminalSupportsAnsi,
+          options.useColor ?? Ansi.terminalSupportsAnsi,
         ));
       }
     }
@@ -171,6 +190,47 @@ class Options {
     if (!context.exists(sdkPath)) {
       logger.stderr('Invalid Dart SDK path: $sdkPath');
       context.exit(19);
+    }
+
+    var command = results.command;
+    if (command != null) {
+      if (command.name == 'upgrade') {
+        options.upgradeOptions = UpgradeOptions._fromCommand(results.command);
+        var rest = command.rest;
+        if (rest.isNotEmpty) {
+          if (rest[0] == 'sdk') {
+            if (results.wasParsed(includeFixOption)) {
+              logger.stderr('Cannot define includeFixes when using upgrade.');
+              context.exit(22);
+            }
+            if (results.wasParsed(excludeFixOption)) {
+              logger.stderr('Cannot define excludeFixes when using upgrade.');
+              context.exit(22);
+            }
+            if (results.wasParsed(pedanticOption) && options.pedanticFixes) {
+              logger.stderr('Cannot use pedanticFixes when using upgrade.');
+              context.exit(22);
+            }
+            if (results.wasParsed(requiredOption) && options.requiredFixes) {
+              logger.stderr('Cannot use requiredFixes when using upgrade.');
+              context.exit(22);
+            }
+            // TODO(jcollins-g): prevent non-nullable outside of upgrade
+            // command.
+            options.includeFixes.add('non-nullable');
+            if (rest.length > 1) {
+              options.targets = command.rest.sublist(1);
+            } else {
+              options.targets = [Directory.current.path];
+            }
+          } else {
+            logger
+                .stderr('Missing or invalid specification of what to upgrade.');
+            logger.stderr("(Currently 'sdk' is the only supported option.)");
+            context.exit(22);
+          }
+        }
+      }
     }
 
     // Check for files and/or directories to analyze.
@@ -204,12 +264,11 @@ class Options {
   }
 
   static String _getSdkPath() {
-    return Platform.environment['DART_SDK'] != null
-        ? Platform.environment['DART_SDK']
-        : path.dirname(path.dirname(Platform.resolvedExecutable));
+    return Platform.environment['DART_SDK'] ??
+        path.dirname(path.dirname(Platform.resolvedExecutable));
   }
 
-  static _showUsage(ArgParser parser, Logger logger,
+  static void _showUsage(ArgParser parser, Logger logger,
       {bool showHelpHint = true}) {
     Function(String message) out = showHelpHint ? logger.stderr : logger.stdout;
     // show help on stdout when showHelp is true and showHelpHint is false

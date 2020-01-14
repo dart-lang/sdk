@@ -379,12 +379,149 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     return type;
   }
 
-  // TODO(38287): Compute the predicate using the library version instead.
   @override
   bool get isNonNullableByDefault =>
       loader.target.enableNonNullable &&
       library.languageVersionMajor >= enableNonNullableDefaultMajorVersion &&
-      library.languageVersionMinor >= enableNonNullableDefaultMinorVersion;
+      library.languageVersionMinor >= enableNonNullableDefaultMinorVersion &&
+      !isOptOutPackage(library.importUri) &&
+      !isOptOutTest(library.importUri);
+
+  bool isOptOutPackage(Uri uri) {
+    if (!uri.isScheme('package')) return false;
+    String packageName = uri.pathSegments.first;
+    return optOutPackages.contains(packageName);
+  }
+
+  bool isOptOutTest(Uri uri) {
+    String path = uri.path;
+    int start = path.indexOf('/tests/');
+    if (start == -1) return false;
+    int end = path.indexOf('/', start + '/tests/'.length + 1);
+    if (end == -1) return false;
+    return optOutTestPaths.contains(path.substring(start, end));
+  }
+
+  // TODO(johnniwinther): remove this logic. Opted out packages should be
+  // computed using language versioning and .packages.json.
+  static final Set<String> optOutPackages = {
+    '_fe_analyzer_shared',
+    'analysis_server',
+    'analysis_server_client',
+    'analysis_tool',
+    'analyzer',
+    'analyzer_cli',
+    'analyzer_fe_comparison',
+    'analyzer_plugin',
+    'args',
+    'async',
+    'async_helper',
+    'bazel_worker',
+    'benchmark_harness',
+    'boolean_selector',
+    'build_integration',
+    'charcode',
+    'cli_util',
+    'collection',
+    'compiler',
+    'convert',
+    'crypto',
+    'csslib',
+    'dart2js_info',
+    'dart2js_tools',
+    'dart2native',
+    'dart_internal',
+    'dart_style',
+    'dartdoc',
+    'dartfix',
+    'dev_compiler',
+    'diagnostic',
+    'expect',
+    'ffi',
+    'fixnum',
+    'frontend_server',
+    'front_end',
+    'gardening',
+    'glob',
+    'html',
+    'http',
+    'http_io',
+    'http_multi_server',
+    'http_parser',
+    'http_retry',
+    'http_throttle',
+    'intl',
+    'js',
+    'js_ast',
+    'js_runtime',
+    'json_rpc_2',
+    'kernel',
+    'linter',
+    'logging',
+    'markdown',
+    'matcher',
+    'meta',
+    'mime',
+    'mockito',
+    'modular_test',
+    'mustache',
+    'nnbd_migration',
+    'oauth2',
+    'observatory',
+    'observatory_test_package',
+    'package_config',
+    'package_resolver',
+    'path',
+    'pedantic',
+    'pool',
+    'protobuf',
+    'pub',
+    'pub_semver',
+    'quiver',
+    'resource',
+    'sdk_library_metadata',
+    'shelf',
+    'shelf_packages_handler',
+    'shelf_static',
+    'shelf_web_socket',
+    'smith',
+    'source_map_stack_trace',
+    'sourcemap_testing',
+    'source_maps',
+    'source_span',
+    'stack_trace',
+    'status_file',
+    'stream_channel',
+    'string_scanner',
+    'telemetry',
+    'term_glyph',
+    'test',
+    'test_api',
+    'test_core',
+    'test_descriptor',
+    'test_process',
+    'test_reflective_loader',
+    'test_runner',
+    'testing',
+    'tflite_native',
+    'typed_data',
+    'unittest',
+    'usage',
+    'vm',
+    'vm_service',
+    'watcher',
+    'web_components',
+    'web_socket_channel',
+    'yaml',
+  };
+
+  static final Set<String> optOutTestPaths = {
+    '/tests/co19_2',
+    '/tests/corelib_2',
+    '/tests/language_2',
+    '/tests/lib_2',
+    '/tests/standalone_2',
+  };
 
   @override
   void setLanguageVersion(int major, int minor,
@@ -544,7 +681,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       imported = coreLibrary
           .loader.builders[new Uri(scheme: 'dart', path: dottedName)];
     }
-    return imported != null ? "true" : "";
+    return imported != null && !imported.isSynthetic ? "true" : "";
   }
 
   void addImport(
@@ -756,6 +893,13 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       if (existing.isSetter && other.isGetter) return false;
     } else {
       if (next is ClassBuilder && !next.isMixinApplication) return true;
+      if (next is TypeAliasBuilder) {
+        TypeDeclarationBuilder aliasedBuilder = next.unaliasDeclaration;
+        if (aliasedBuilder is ClassBuilder &&
+            !aliasedBuilder.isMixinApplication) {
+          return true;
+        }
+      }
     }
     if (existing is ClassBuilder && other is ClassBuilder) {
       // We allow multiple mixin applications with the same name. An
@@ -2056,8 +2200,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       modifiers |= initializingFormalMask;
     }
     FormalParameterBuilder formal = new FormalParameterBuilder(
-        metadata, modifiers, type, name, this, charOffset, uri);
-    formal.initializerToken = initializerToken;
+        metadata, modifiers, type, name, this, charOffset, uri)
+      ..initializerToken = initializerToken
+      ..hasDeclaredInitializer = (initializerToken != null);
     return formal;
   }
 

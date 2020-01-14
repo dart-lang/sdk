@@ -20,8 +20,8 @@ main() {
 
 @reflectiveTest
 class LinterRuleOptionsValidatorTest {
-  final LinterRuleOptionsValidator validator = new LinterRuleOptionsValidator();
-  final AnalysisOptionsProvider optionsProvider = new AnalysisOptionsProvider();
+  final LinterRuleOptionsValidator validator = LinterRuleOptionsValidator();
+  final AnalysisOptionsProvider optionsProvider = AnalysisOptionsProvider();
 
   RecordingErrorListener recorder;
   ErrorReporter reporter;
@@ -30,8 +30,12 @@ class LinterRuleOptionsValidatorTest {
 
   setUp() {
     registerLintRules();
-    recorder = new RecordingErrorListener();
-    reporter = new ErrorReporter(recorder, new _TestSource());
+    recorder = RecordingErrorListener();
+    reporter = ErrorReporter(
+      recorder,
+      _TestSource(),
+      isNonNullableByDefault: false,
+    );
   }
 
   test_linter_defined_rules() {

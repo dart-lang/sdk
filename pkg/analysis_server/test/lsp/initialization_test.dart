@@ -5,6 +5,7 @@
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
+import 'package:analysis_server/src/lsp/handlers/handler_initialize.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -41,7 +42,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
 
   test_initialize_invalidParams() async {
     final params = {'processId': 'invalid'};
-    final request = new RequestMessage(
+    final request = RequestMessage(
       Either2<num, String>.t1(1),
       Method.initialize,
       params,
@@ -168,7 +169,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
 
   test_uninitialized_dropsNotifications() async {
     final notification =
-        makeNotification(new Method.fromJson('randomNotification'), null);
+        makeNotification(Method.fromJson('randomNotification'), null);
     final nextNotification = errorNotificationsFromServer.first;
     channel.sendNotificationToServer(notification);
 
@@ -187,7 +188,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   }
 
   test_uninitialized_rejectsRequests() async {
-    final request = makeRequest(new Method.fromJson('randomRequest'), null);
+    final request = makeRequest(Method.fromJson('randomRequest'), null);
     final response = await channel.sendRequestToServer(request);
     expect(response.id, equals(request.id));
     expect(response.result, isNull);
@@ -211,10 +212,10 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     final initResponse = await initialize();
     await pumpEventQueue();
 
-    // When dynamic registration is not supported, we will always statically
-    // request text document open/close and incremental updates.
     InitializeResult initResult = initResponse.result;
     expect(initResult.capabilities, isNotNull);
+    // When dynamic registration is not supported, we will always statically
+    // request text document open/close and incremental updates.
     expect(initResult.capabilities.textDocumentSync, isNotNull);
     initResult.capabilities.textDocumentSync.map(
       (options) {
@@ -224,8 +225,62 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
       (_) =>
           throw 'Expected textDocumentSync capabilities to be a $TextDocumentSyncOptions',
     );
+    expect(initResult.capabilities.completionProvider, isNotNull);
+    expect(initResult.capabilities.hoverProvider, isNotNull);
+    expect(initResult.capabilities.signatureHelpProvider, isNotNull);
+    expect(initResult.capabilities.referencesProvider, isNotNull);
+    expect(initResult.capabilities.documentHighlightProvider, isNotNull);
+    expect(initResult.capabilities.documentFormattingProvider, isNotNull);
+    expect(initResult.capabilities.documentOnTypeFormattingProvider, isNotNull);
+    expect(initResult.capabilities.definitionProvider, isNotNull);
+    expect(initResult.capabilities.codeActionProvider, isNotNull);
+    expect(initResult.capabilities.renameProvider, isNotNull);
+    expect(initResult.capabilities.foldingRangeProvider, isNotNull);
 
     expect(didGetRegisterCapabilityRequest, isFalse);
+  }
+
+  test_dynamicRegistration_suppressesStaticRegistration() async {
+    // If the client sends dynamicRegistration settings then there
+    // should not be static registrations for the same capabilities.
+
+    List<Registration> registrations;
+    final initResponse =
+        await handleExpectedRequest<ResponseMessage, RegistrationParams, void>(
+      Method.client_registerCapability,
+      () => initialize(
+          // Support dynamic registration for everything we support.
+          textDocumentCapabilities: withAllSupportedDynamicRegistrations(
+              emptyTextDocumentClientCapabilities)),
+      handler: (registrationParams) =>
+          registrations = registrationParams.registrations,
+    );
+
+    InitializeResult initResult = initResponse.result;
+    expect(initResult.capabilities, isNotNull);
+
+    // Ensure no static registrations. This list should include all server equivilents
+    // of the dynamic registrations listed in `ClientDynamicRegistrations.supported`.
+    expect(initResult.capabilities.textDocumentSync, isNull);
+    expect(initResult.capabilities.completionProvider, isNull);
+    expect(initResult.capabilities.hoverProvider, isNull);
+    expect(initResult.capabilities.signatureHelpProvider, isNull);
+    expect(initResult.capabilities.referencesProvider, isNull);
+    expect(initResult.capabilities.documentHighlightProvider, isNull);
+    expect(initResult.capabilities.documentFormattingProvider, isNull);
+    expect(initResult.capabilities.documentOnTypeFormattingProvider, isNull);
+    expect(initResult.capabilities.definitionProvider, isNull);
+    expect(initResult.capabilities.codeActionProvider, isNull);
+    expect(initResult.capabilities.renameProvider, isNull);
+    expect(initResult.capabilities.foldingRangeProvider, isNull);
+
+    // Ensure all expected dynamic registrations.
+    for (final expectedRegistration in ClientDynamicRegistrations.supported) {
+      final registration =
+          registrationOptionsFor(registrations, expectedRegistration);
+      expect(registration, isNotNull,
+          reason: 'Missing dynamic registration for $expectedRegistration');
+    }
   }
 
   test_dynamicRegistration_onlyForClientSupportedMethods() async {
@@ -268,15 +323,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     // https://github.com/dart-lang/sdk/issues/38490
     InitializeResult initResult = initResponse.result;
     expect(initResult.capabilities, isNotNull);
-    expect(initResult.capabilities.textDocumentSync, isNotNull);
-    initResult.capabilities.textDocumentSync.map(
-      (options) {
-        expect(options.openClose, isFalse);
-        expect(options.change, equals(TextDocumentSyncKind.None));
-      },
-      (_) =>
-          throw 'Expected textDocumentSync capabilities to be a $TextDocumentSyncOptions',
-    );
+    expect(initResult.capabilities.textDocumentSync, isNull);
 
     // Should container Hover, DidOpen, DidClose, DidChange.
     expect(registrations, hasLength(4));

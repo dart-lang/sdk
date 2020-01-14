@@ -24,7 +24,7 @@ CompletionSuggestion _createNameSuggestion(String name) {
   if (name == null || name.isEmpty) {
     return null;
   }
-  return new CompletionSuggestion(CompletionSuggestionKind.IDENTIFIER,
+  return CompletionSuggestion(CompletionSuggestionKind.IDENTIFIER,
       DART_RELEVANCE_DEFAULT, name, name.length, 0, false, false);
 }
 

@@ -99,5 +99,6 @@ class Reference {
     _children.remove(name);
   }
 
+  @override
   String toString() => parent == null ? 'root' : '$parent::$name';
 }

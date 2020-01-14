@@ -17,6 +17,8 @@ static const uword kUwordOne = 1U;
 template <typename S, typename T, int position, int size>
 class BitField {
  public:
+  typedef T Type;
+
   static_assert((sizeof(S) * kBitsPerByte) >= (position + size),
                 "BitField does not fit into the type.");
 

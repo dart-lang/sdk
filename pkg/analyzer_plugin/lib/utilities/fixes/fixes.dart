@@ -95,18 +95,18 @@ class FixGenerator {
   GeneratorResult<EditGetFixesResult> generateFixesResponse(
       FixesRequest request) {
     List<Notification> notifications = <Notification>[];
-    FixCollectorImpl collector = new FixCollectorImpl();
+    FixCollectorImpl collector = FixCollectorImpl();
     for (FixContributor contributor in contributors) {
       try {
         contributor.computeFixes(request, collector);
       } catch (exception, stackTrace) {
-        notifications.add(new PluginErrorParams(
+        notifications.add(PluginErrorParams(
                 false, exception.toString(), stackTrace.toString())
             .toNotification());
       }
     }
-    EditGetFixesResult result = new EditGetFixesResult(collector.fixes);
-    return new GeneratorResult(result, notifications);
+    EditGetFixesResult result = EditGetFixesResult(collector.fixes);
+    return GeneratorResult(result, notifications);
   }
 }
 
@@ -152,7 +152,7 @@ class FixKind {
    * [appliedTogetherMessage].
    */
   const FixKind(this.name, this.priority, this.message,
-      {this.appliedTogetherMessage: null});
+      {this.appliedTogetherMessage = null});
 
   @override
   int get hashCode => name.hashCode;

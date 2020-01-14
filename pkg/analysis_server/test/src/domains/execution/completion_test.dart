@@ -59,20 +59,13 @@ class RuntimeCompletionComputerTest extends AbstractContextTest {
     expect(codeOffset, isNonNegative);
     code = code.replaceAll('^', '');
 
-    var computer = new RuntimeCompletionComputer(
-        overlayResourceProvider,
-        driver,
-        code,
-        codeOffset,
-        contextFile,
-        contextOffset,
-        variables,
-        expressions);
+    var computer = RuntimeCompletionComputer(overlayResourceProvider, driver,
+        code, codeOffset, contextFile, contextOffset, variables, expressions);
     result = await computer.compute();
   }
 
   void failedCompletion(String message) {
-    var sb = new StringBuffer(message);
+    var sb = StringBuffer(message);
     if (result.suggestions != null) {
       sb.write('\n  found');
       result.suggestions.toList()

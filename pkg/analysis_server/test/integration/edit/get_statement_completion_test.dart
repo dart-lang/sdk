@@ -17,7 +17,7 @@ main() {
 
 @reflectiveTest
 class GetStatementCompletionTest extends AbstractAnalysisServerIntegrationTest {
-  @TestTimeout(const Timeout.factor(2))
+  @TestTimeout(Timeout.factor(2))
   test_statement_completion() async {
     String pathname = sourcePath('test.dart');
     String text = r'''
@@ -45,7 +45,7 @@ void bar() { foo(); } // missing semi-colon
 
 void foo() { }''');
 
-    await sendAnalysisUpdateContent({pathname: new AddContentOverlay(text)});
+    await sendAnalysisUpdateContent({pathname: AddContentOverlay(text)});
 
     await analysisFinished;
     expect(currentAnalysisErrors[pathname], isEmpty);

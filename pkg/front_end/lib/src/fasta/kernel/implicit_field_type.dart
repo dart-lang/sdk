@@ -8,6 +8,7 @@ import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 
 import 'package:kernel/ast.dart'
     show DartType, DartTypeVisitor, DartTypeVisitor1, Nullability, Visitor;
+import 'package:kernel/src/assumptions.dart';
 
 import '../builder/field_builder.dart';
 
@@ -55,7 +56,10 @@ abstract class ImplicitFieldType extends DartType {
       new _ImplicitFieldTypeAlias(this, target);
 
   @override
-  bool operator ==(Object other) {
+  bool operator ==(Object other) => equals(other, null);
+
+  @override
+  bool equals(Object other, Assumptions assumptions) {
     if (identical(this, other)) return true;
     return other is ImplicitFieldType && fieldBuilder == other.fieldBuilder;
   }

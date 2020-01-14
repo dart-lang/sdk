@@ -52,6 +52,7 @@ abstract class AbstractLinterContextTest extends DriverResolutionTest {
 
 @reflectiveTest
 class CanBeConstConstructorTest extends AbstractLinterContextTest {
+  @override
   LinterContextImpl context;
 
   void assertCanBeConstConstructor(String search, bool expectedResult) {
@@ -247,12 +248,21 @@ A f() => A();
 
 @reflectiveTest
 class EvaluateExpressionTest extends AbstractLinterContextTest {
+  test_hasError_listLiteral_forElement() async {
+    await resolve('''
+var x = const [for (var i = 0; i < 4; i++) i];
+''');
+    var result = _evaluateX();
+    expect(result.errors, isNotEmpty);
+    expect(result.value, isNull);
+  }
+
   test_hasError_methodInvocation() async {
     await resolve('''
 var x = 42.abs();
 ''');
     var result = _evaluateX();
-    expect(result.errors, isNotNull);
+    expect(result.errors, isNotEmpty);
     expect(result.value, isNull);
   }
 

@@ -131,12 +131,12 @@ class Flutter {
       String prefix = separator.contains(eol) ? "" : "$eol$indentNew";
       if (prefix.isEmpty) {
         _addInsertEdit(namedExp.offset + 'child:'.length, ' <Widget>[');
-        _addRemoveEdit(new SourceRange(childArg.offset - 2, 2));
+        _addRemoveEdit(SourceRange(childArg.offset - 2, 2));
       } else {
         _addInsertEdit(listLoc, '<Widget>[');
       }
       String newChildArgSrc = childArgSrc.replaceAll(
-          new RegExp("^$indentOld", multiLine: true), "$indentNew");
+          RegExp("^$indentOld", multiLine: true), "$indentNew");
       newChildArgSrc = "$prefix$newChildArgSrc,$eol$indentOld]";
       _addReplaceEdit(rangeNode(childArg), newChildArgSrc);
     }
@@ -173,12 +173,12 @@ class Flutter {
       if (prefix.isEmpty) {
         builder.addSimpleInsertion(
             namedExp.offset + 'child:'.length, ' <Widget>[');
-        builder.addDeletion(new SourceRange(childArg.offset - 2, 2));
+        builder.addDeletion(SourceRange(childArg.offset - 2, 2));
       } else {
         builder.addSimpleInsertion(listLoc, '<Widget>[');
       }
       String newChildArgSrc = childArgSrc.replaceAll(
-          new RegExp("^$indentOld", multiLine: true), "$indentNew");
+          RegExp("^$indentOld", multiLine: true), "$indentNew");
       newChildArgSrc = "$prefix$newChildArgSrc,$eol$indentOld]";
       builder.addSimpleReplacement(rangeNode(childArg), newChildArgSrc);
     }
@@ -506,9 +506,7 @@ class Flutter {
    */
   bool isListOfWidgetsType(DartType type) {
     return type is InterfaceType &&
-        type.element.library.isDartCore &&
-        type.element.name == 'List' &&
-        type.typeArguments.length == 1 &&
+        type.isDartCoreList &&
         isWidgetType(type.typeArguments[0]);
   }
 
@@ -627,7 +625,7 @@ class Flutter {
       return false;
     }
     for (InterfaceType type in element.allSupertypes) {
-      if (type.name == requiredName) {
+      if (type.element.name == requiredName) {
         Uri uri = type.element.source.uri;
         if (uri == requiredUri) {
           return true;

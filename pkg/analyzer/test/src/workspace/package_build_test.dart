@@ -28,25 +28,42 @@ class MockContextBuilder implements ContextBuilder {
   Map<Packages, Map<String, List<Folder>>> packagesToMapMap =
       <Packages, Map<String, List<Folder>>>{};
 
+  @override
   Map<String, List<Folder>> convertPackagesToMap(Packages packages) =>
       packagesToMapMap[packages];
 
+  @override
   Packages createPackageMap(String rootDirectoryPath) =>
       packagesMapMap[rootDirectoryPath];
 
+  @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class MockPackages implements Packages {
+  @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class MockUriResolver implements UriResolver {
-  Map<Uri, Source> resolveAbsoluteMap = {};
+  Map<Uri, File> uriToFile = {};
+  Map<String, Uri> pathToUri = {};
 
+  void add(Uri uri, File file) {
+    uriToFile[uri] = file;
+    pathToUri[file.path] = uri;
+  }
+
+  @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
-  Source resolveAbsolute(Uri uri, [Uri actualUri]) => resolveAbsoluteMap[uri];
+  @override
+  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
+    return uriToFile[uri]?.createSource(uri);
+  }
+
+  @override
+  Uri restoreAbsolute(Source source) => pathToUri[source.fullName];
 }
 
 @reflectiveTest
@@ -137,8 +154,7 @@ class PackageBuildPackageUriResolverTest with ResourceProviderMixin {
     final File file = create
         ? newFile(path)
         : resourceProvider.getResource(convertPath(path));
-    final Source source = file.createSource(uri);
-    packageUriResolver.resolveAbsoluteMap[uri] = source;
+    packageUriResolver.add(uri, file);
     return uri;
   }
 

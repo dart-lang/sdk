@@ -64,9 +64,9 @@ class StatementCompletionTest extends AbstractSingleUnitTest {
   _computeCompletion(int offset) async {
     driver.changeFile(testFile);
     ResolvedUnitResult result = await session.getResolvedUnit(testFile);
-    var context = new StatementCompletionContext(result, offset);
+    var context = StatementCompletionContext(result, offset);
     StatementCompletionProcessor processor =
-        new StatementCompletionProcessor(context);
+        StatementCompletionProcessor(context);
     StatementCompletion completion = await processor.compute();
     change = completion.change;
   }

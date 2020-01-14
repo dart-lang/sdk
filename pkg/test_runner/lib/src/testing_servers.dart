@@ -28,7 +28,7 @@ class DispatchingServer {
   void _dispatchRequest(HttpRequest request) {
     // If the request path matches a prefix in _handlers, send it to that
     // handler.  Otherwise, run the notFound handler.
-    for (String prefix in _handlers.keys) {
+    for (var prefix in _handlers.keys) {
       if (request.uri.path.startsWith(prefix)) {
         _handlers[prefix](request);
         return;
@@ -253,9 +253,9 @@ class TestingServers {
 
   Uri _getFileUriFromRequestUri(Uri request) {
     // Go to the top of the file to see an explanation of the URL path scheme.
-    List<String> pathSegments = request.normalizePath().pathSegments;
+    var pathSegments = request.normalizePath().pathSegments;
     if (pathSegments.length == 0) return null;
-    int packagesIndex = pathSegments.indexOf('packages');
+    var packagesIndex = pathSegments.indexOf('packages');
     if (packagesIndex != -1) {
       var packageUri = Uri(
           scheme: 'package',
@@ -398,7 +398,7 @@ class TestingServers {
     // Firefox bug 1016313
     // (https://bugzilla.mozilla.org/show_bug.cgi?id=1016313).
     response.headers.set(HttpHeaders.contentTypeHeader, 'text/html');
-    String escapedPath = const HtmlEscape().convert(request.uri.path);
+    var escapedPath = const HtmlEscape().convert(request.uri.path);
     response.write("""
 <!DOCTYPE html>
 <html lang='en'>

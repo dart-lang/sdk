@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/generated/constant.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -22,7 +22,7 @@ final Matcher throwsEvaluationException =
 
 @reflectiveTest
 class DartObjectImplTest {
-  TypeProvider _typeProvider = TestTypeProvider();
+  final TypeProvider _typeProvider = TestTypeProvider();
 
   void test_add_knownDouble_knownDouble() {
     _assertAdd(_doubleValue(3.0), _doubleValue(1.0), _doubleValue(2.0));
@@ -1975,7 +1975,7 @@ class DartObjectImplTest {
   DartObjectImpl _mapValue(DartType keyType, DartType valueType,
       List<DartObjectImpl> keyElementPairs) {
     Map<DartObjectImpl, DartObjectImpl> map =
-        Map<DartObjectImpl, DartObjectImpl>();
+        <DartObjectImpl, DartObjectImpl>{};
     int count = keyElementPairs.length;
     for (int i = 0; i < count;) {
       map[keyElementPairs[i++]] = keyElementPairs[i++];
@@ -1991,7 +1991,7 @@ class DartObjectImplTest {
   }
 
   DartObjectImpl _setValue(DartType type, Set<DartObjectImpl> elements) {
-    return DartObjectImpl(type, SetState(elements ?? Set<DartObjectImpl>()));
+    return DartObjectImpl(type, SetState(elements ?? <DartObjectImpl>{}));
   }
 
   DartObjectImpl _stringValue(String value) {

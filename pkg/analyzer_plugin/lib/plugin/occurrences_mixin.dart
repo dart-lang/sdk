@@ -28,7 +28,7 @@ mixin DartOccurrencesMixin implements OccurrencesMixin {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     ResolvedUnitResult result = await getResolvedUnitResult(path);
-    return new DartOccurrencesRequestImpl(resourceProvider, result);
+    return DartOccurrencesRequestImpl(resourceProvider, result);
   }
 }
 
@@ -61,7 +61,7 @@ mixin OccurrencesMixin implements ServerPlugin {
     try {
       OccurrencesRequest request = await getOccurrencesRequest(path);
       OccurrencesGenerator generator =
-          new OccurrencesGenerator(getOccurrencesContributors(path));
+          OccurrencesGenerator(getOccurrencesContributors(path));
       GeneratorResult generatorResult =
           generator.generateOccurrencesNotification(request);
       generatorResult.sendNotifications(channel);

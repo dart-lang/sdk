@@ -13,6 +13,7 @@ import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 class PrepareRenameHandler
     extends MessageHandler<TextDocumentPositionParams, RangeAndPlaceholder> {
   PrepareRenameHandler(LspAnalysisServer server) : super(server);
+  @override
   Method get handlesMessage => Method.textDocument_prepareRename;
 
   @override
@@ -36,7 +37,7 @@ class PrepareRenameHandler
 
       final refactorDetails =
           RenameRefactoring.getElementToRename(node, element);
-      final refactoring = new RenameRefactoring(
+      final refactoring = RenameRefactoring(
           server.refactoringWorkspace, unit.result, refactorDetails.element);
 
       // Check the rename is valid here.
@@ -46,7 +47,7 @@ class PrepareRenameHandler
             ServerErrorCodes.RenameNotValid, initStatus.problem.message, null);
       }
 
-      return success(new RangeAndPlaceholder(
+      return success(RangeAndPlaceholder(
         toRange(
           unit.result.lineInfo,
           // If the offset is set to -1 it means there is no location for the
@@ -65,6 +66,7 @@ class PrepareRenameHandler
 class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit> {
   RenameHandler(LspAnalysisServer server) : super(server);
 
+  @override
   Method get handlesMessage => Method.textDocument_rename;
 
   @override
@@ -96,7 +98,7 @@ class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit> {
 
       final refactorDetails =
           RenameRefactoring.getElementToRename(node, element);
-      final refactoring = new RenameRefactoring(
+      final refactoring = RenameRefactoring(
           server.refactoringWorkspace, unit.result, refactorDetails.element);
 
       // TODO(dantup): Consider using window/showMessageRequest to prompt

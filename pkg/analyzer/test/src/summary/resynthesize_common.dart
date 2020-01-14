@@ -12,7 +12,6 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
@@ -33,7 +32,7 @@ abstract class AbstractResynthesizeTest with ResourceProviderMixin {
 
   String testFile;
   Source testSource;
-  Set<Source> otherLibrarySources = Set<Source>();
+  Set<Source> otherLibrarySources = <Source>{};
 
   /**
    * Tests may set this to `true` to indicate that a missing file at the time of
@@ -49,8 +48,6 @@ abstract class AbstractResynthesizeTest with ResourceProviderMixin {
         DartUriResolver(sdk),
         ResourceUriResolver(resourceProvider),
       ],
-      null,
-      resourceProvider,
     );
 
     testFile = convertPath('/test.dart');
@@ -1643,18 +1640,18 @@ notSimplyBounded class C<T extends U, U> {
 ''');
   }
 
-  test_class_type_parameters_variance_covariant() async {
-    var library = await checkLibrary('class C<out T> {}');
-    checkElementText(library, r'''
-class C<out T> {
-}
-''');
-  }
-
   test_class_type_parameters_variance_contravariant() async {
     var library = await checkLibrary('class C<in T> {}');
     checkElementText(library, r'''
 class C<in T> {
+}
+''');
+  }
+
+  test_class_type_parameters_variance_covariant() async {
+    var library = await checkLibrary('class C<out T> {}');
+    checkElementText(library, r'''
+class C<out T> {
 }
 ''');
   }
@@ -2546,12 +2543,15 @@ const Object y = const
         library.definingCompilationUnit.topLevelVariables[0];
     InstanceCreationExpression xExpr = x.constantInitializer;
     var xType = xExpr.constructorName.staticElement.returnType;
-    expect(xType.toString(), 'C<int>');
+    _assertTypeStr(
+      xType,
+      'C<int>',
+    );
     TopLevelVariableElementImpl y =
         library.definingCompilationUnit.topLevelVariables[0];
     InstanceCreationExpression yExpr = y.constantInitializer;
     var yType = yExpr.constructorName.staticElement.returnType;
-    expect(yType.toString(), 'C<int>');
+    _assertTypeStr(yType, 'C<int>');
   }
 
   test_const_finalField_hasConstConstructor() async {
@@ -6379,7 +6379,7 @@ FutureOr<int> x;
 ''');
     var variables = library.definingCompilationUnit.topLevelVariables;
     expect(variables, hasLength(1));
-    expect(variables[0].type.toString(), 'FutureOr<int>');
+    _assertTypeStr(variables[0].type, 'FutureOr<int>');
   }
 
   test_futureOr_const() async {
@@ -6393,7 +6393,7 @@ const Type x =
     var variables = library.definingCompilationUnit.topLevelVariables;
     expect(variables, hasLength(1));
     var x = variables[0] as ConstTopLevelVariableElementImpl;
-    expect(x.type.toString(), 'Type');
+    _assertTypeStr(x.type, 'Type');
     expect(x.constantInitializer.toString(), 'FutureOr');
   }
 
@@ -6416,8 +6416,8 @@ FutureOr<int> f() {}
     expect(x.name, 'x');
     var y = variables[1];
     expect(y.name, 'y');
-    expect(x.type.toString(), 'FutureOr<int>');
-    expect(y.type.toString(), 'dynamic');
+    _assertTypeStr(x.type, 'FutureOr<int>');
+    _assertTypeStr(y.type, 'dynamic');
   }
 
   test_generic_function_type_nullability_none() async {
@@ -6801,7 +6801,7 @@ Future<dynamic> f;
     allowMissingFiles = true;
     var library = await checkLibrary('''
 @foo
-import '';
+import 'ht:';
 ''');
     checkElementText(library, r'''
 @
@@ -7258,7 +7258,7 @@ abstract class D<U, V> {
     var library = await checkLibrary('''
 typedef void F(int g(String s));
 h(F f) => null;
-var v = h(/*info:INFERRED_TYPE_CLOSURE*/(y) {});
+var v = h((y) {});
 ''');
     checkElementText(library, r'''
 typedef F = void Function(int Function(String) g/*(String s)*/);
@@ -7875,22 +7875,6 @@ class C {
 class C {
   void set x(dynamic this.x) {}
 }
-''');
-  }
-
-  test_invalidUri_part_emptyUri() async {
-    allowMissingFiles = true;
-    var library = await checkLibrary(r'''
-part '';
-class B extends A {}
-''');
-    checkElementText(library, r'''
-part '<unresolved>';
-class B {
-}
---------------------
-unit: null
-
 ''');
   }
 
@@ -9169,18 +9153,18 @@ mixin B on A {
 ''');
   }
 
-  test_mixin_type_parameters_variance_covariant() async {
-    var library = await checkLibrary('mixin M<out T> {}');
-    checkElementText(library, r'''
-mixin M<out T> on Object {
-}
-''');
-  }
-
   test_mixin_type_parameters_variance_contravariant() async {
     var library = await checkLibrary('mixin M<in T> {}');
     checkElementText(library, r'''
 mixin M<in T> on Object {
+}
+''');
+  }
+
+  test_mixin_type_parameters_variance_covariant() async {
+    var library = await checkLibrary('mixin M<out T> {}');
+    checkElementText(library, r'''
+mixin M<out T> on Object {
 }
 ''');
   }
@@ -9667,6 +9651,21 @@ void named({x: 1}) {}
     checkElementText(library, r'''
 void positional([dynamic x = 1]) {}
 void named({dynamic x: 1}) {}
+''');
+  }
+
+  test_part_emptyUri() async {
+    allowMissingFiles = true;
+    var library = await checkLibrary(r'''
+part '';
+class B extends A {}
+''');
+    checkElementText(library, r'''
+part 'test.dart';
+class B {
+}
+class B {
+}
 ''');
   }
 
@@ -10211,7 +10210,7 @@ T f<T>(T t) {}
     var t = (g.type as FunctionType).typeFormals[0];
     // TypeParameterElement.type has a nullability suffix of `star` regardless
     // of whether it appears in a migrated library.
-    expect((t.type as TypeImpl).nullabilitySuffix, NullabilitySuffix.star);
+    expect(t.type.nullabilitySuffix, NullabilitySuffix.star);
   }
 
   @deprecated
@@ -10229,7 +10228,7 @@ T f<T>(T t) {}
     var t = (g.type as FunctionType).typeFormals[0];
     // TypeParameterElement.type has a nullability suffix of `star` regardless
     // of whether it appears in a migrated library.
-    expect((t.type as TypeImpl).nullabilitySuffix, NullabilitySuffix.star);
+    expect(t.type.nullabilitySuffix, NullabilitySuffix.star);
   }
 
   test_type_param_ref_nullability_none() async {
@@ -11421,6 +11420,11 @@ const A<int> a;
 int i;
 int j;
 ''');
+  }
+
+  void _assertTypeStr(DartType type, String expected) {
+    var typeStr = type.getDisplayString(withNullability: false);
+    expect(typeStr, expected);
   }
 }
 

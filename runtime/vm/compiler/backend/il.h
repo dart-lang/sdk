@@ -751,6 +751,9 @@ class BinaryFeedback : public ZoneAllocated {
   friend class Cids;
 };
 
+typedef ZoneGrowableArray<Value*> InputsArray;
+typedef ZoneGrowableArray<PushArgumentInstr*> PushArgumentsArray;
+
 class Instruction : public ZoneAllocated {
  public:
 #define DECLARE_TAG(type, attrs) k##type,
@@ -783,7 +786,8 @@ class Instruction : public ZoneAllocated {
   virtual intptr_t statistics_tag() const { return tag(); }
 
   intptr_t deopt_id() const {
-    ASSERT(ComputeCanDeoptimize() || CanBecomeDeoptimizationTarget());
+    ASSERT(ComputeCanDeoptimize() || CanBecomeDeoptimizationTarget() ||
+           FLAG_precompiled_mode);
     return GetDeoptId();
   }
 
@@ -808,11 +812,24 @@ class Instruction : public ZoneAllocated {
   // Call instructions override this function and return the number of
   // pushed arguments.
   virtual intptr_t ArgumentCount() const { return 0; }
-  virtual PushArgumentInstr* PushArgumentAt(intptr_t index) const {
-    UNREACHABLE();
-    return NULL;
-  }
+  inline Value* ArgumentValueAt(intptr_t index) const;
   inline Definition* ArgumentAt(intptr_t index) const;
+
+  // Sets array of PushArgument instructions.
+  virtual void SetPushArguments(PushArgumentsArray* push_arguments) {
+    UNREACHABLE();
+  }
+  // Returns array of PushArgument instructions
+  virtual PushArgumentsArray* GetPushArguments() const {
+    UNREACHABLE();
+    return nullptr;
+  }
+  // Replace inputs with separate PushArgument instructions detached from call.
+  virtual void ReplaceInputsWithPushArguments(
+      PushArgumentsArray* push_arguments) {
+    UNREACHABLE();
+  }
+  bool HasPushArguments() const { return GetPushArguments() != nullptr; }
 
   // Repairs trailing PushArgs in environment.
   void RepairPushArgsInEnvironment() const;
@@ -1032,7 +1049,8 @@ class Instruction : public ZoneAllocated {
   virtual void InheritDeoptTarget(Zone* zone, Instruction* other);
 
   bool NeedsEnvironment() const {
-    return ComputeCanDeoptimize() || CanBecomeDeoptimizationTarget();
+    return ComputeCanDeoptimize() || CanBecomeDeoptimizationTarget() ||
+           MayThrow();
   }
 
   virtual bool CanBecomeDeoptimizationTarget() const { return false; }
@@ -1237,8 +1255,6 @@ class ParallelMoveInstr : public TemplateInstruction<0, NoThrow> {
 
   DECLARE_INSTRUCTION(ParallelMove)
 
-  virtual intptr_t ArgumentCount() const { return 0; }
-
   virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual bool HasUnknownSideEffects() const {
@@ -1350,8 +1366,6 @@ class BlockEntryInstr : public Instruction {
     UNREACHABLE();
     return NULL;
   }
-
-  virtual intptr_t ArgumentCount() const { return 0; }
 
   virtual bool CanBecomeDeoptimizationTarget() const {
     // BlockEntry environment is copied to Goto and Branch instructions
@@ -1718,6 +1732,13 @@ class PhiIterator : public ValueObject {
   bool Done() const { return (phis_ == NULL) || (index_ >= phis_->length()); }
 
   PhiInstr* Current() const { return (*phis_)[index_]; }
+
+  // Removes current phi from graph and sets current to previous phi.
+  void RemoveCurrentFromGraph() {
+    (*phis_)[index_] = phis_->Last();
+    phis_->RemoveLast();
+    --index_;
+  }
 
  private:
   ZoneGrowableArray<PhiInstr*>* phis_;
@@ -2347,6 +2368,11 @@ class PhiInstr : public Definition {
 
   virtual void set_representation(Representation r) { representation_ = r; }
 
+  // In AOT mode Phi instructions do not check types of inputs when unboxing.
+  virtual SpeculativeMode speculative_mode() const {
+    return FLAG_precompiled_mode ? kNotSpeculative : kGuardInputs;
+  }
+
   virtual intptr_t Hashcode() const {
     UNREACHABLE();
     return 0;
@@ -2674,8 +2700,14 @@ class PushArgumentInstr : public TemplateDefinition<1, NoThrow> {
   DISALLOW_COPY_AND_ASSIGN(PushArgumentInstr);
 };
 
+inline Value* Instruction::ArgumentValueAt(intptr_t index) const {
+  PushArgumentsArray* push_arguments = GetPushArguments();
+  return push_arguments != nullptr ? (*push_arguments)[index]->value()
+                                   : InputAt(index);
+}
+
 inline Definition* Instruction::ArgumentAt(intptr_t index) const {
-  return PushArgumentAt(index)->value()->definition();
+  return ArgumentValueAt(index)->definition();
 }
 
 class ReturnInstr : public TemplateInstruction<1, NoThrow> {
@@ -2757,18 +2789,21 @@ class NativeReturnInstr : public ReturnInstr {
   DISALLOW_COPY_AND_ASSIGN(NativeReturnInstr);
 };
 
-class ThrowInstr : public TemplateInstruction<0, Throws> {
+class ThrowInstr : public TemplateInstruction<1, Throws> {
  public:
-  explicit ThrowInstr(TokenPosition token_pos, intptr_t deopt_id)
-      : TemplateInstruction(deopt_id), token_pos_(token_pos) {}
+  explicit ThrowInstr(TokenPosition token_pos,
+                      intptr_t deopt_id,
+                      Value* exception)
+      : TemplateInstruction(deopt_id), token_pos_(token_pos) {
+    SetInputAt(0, exception);
+  }
 
   DECLARE_INSTRUCTION(Throw)
 
-  virtual intptr_t ArgumentCount() const { return 1; }
-
   virtual TokenPosition token_pos() const { return token_pos_; }
+  Value* exception() const { return inputs_[0]; }
 
-  virtual bool ComputeCanDeoptimize() const { return true; }
+  virtual bool ComputeCanDeoptimize() const { return !FLAG_precompiled_mode; }
 
   virtual bool HasUnknownSideEffects() const { return false; }
 
@@ -2778,25 +2813,30 @@ class ThrowInstr : public TemplateInstruction<0, Throws> {
   DISALLOW_COPY_AND_ASSIGN(ThrowInstr);
 };
 
-class ReThrowInstr : public TemplateInstruction<0, Throws> {
+class ReThrowInstr : public TemplateInstruction<2, Throws> {
  public:
   // 'catch_try_index' can be kInvalidTryIndex if the
   // rethrow has been artificially generated by the parser.
   ReThrowInstr(TokenPosition token_pos,
                intptr_t catch_try_index,
-               intptr_t deopt_id)
+               intptr_t deopt_id,
+               Value* exception,
+               Value* stacktrace)
       : TemplateInstruction(deopt_id),
         token_pos_(token_pos),
-        catch_try_index_(catch_try_index) {}
+        catch_try_index_(catch_try_index) {
+    SetInputAt(0, exception);
+    SetInputAt(1, stacktrace);
+  }
 
   DECLARE_INSTRUCTION(ReThrow)
 
-  virtual intptr_t ArgumentCount() const { return 2; }
-
   virtual TokenPosition token_pos() const { return token_pos_; }
   intptr_t catch_try_index() const { return catch_try_index_; }
+  Value* exception() const { return inputs_[0]; }
+  Value* stacktrace() const { return inputs_[1]; }
 
-  virtual bool ComputeCanDeoptimize() const { return true; }
+  virtual bool ComputeCanDeoptimize() const { return !FLAG_precompiled_mode; }
 
   virtual bool HasUnknownSideEffects() const { return false; }
 
@@ -2816,8 +2856,6 @@ class StopInstr : public TemplateInstruction<0, NoThrow> {
   const char* message() const { return message_; }
 
   DECLARE_INSTRUCTION(Stop);
-
-  virtual intptr_t ArgumentCount() const { return 0; }
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
@@ -2919,8 +2957,6 @@ class IndirectGotoInstr : public TemplateInstruction<1, NoThrow> {
     ASSERT(idx == 0);
     return kNoRepresentation;
   }
-
-  virtual intptr_t ArgumentCount() const { return 0; }
 
   void AddSuccessor(TargetEntryInstr* successor) {
     ASSERT(successor->next()->IsGoto());
@@ -3066,6 +3102,12 @@ class BranchInstr : public Instruction {
 
   virtual intptr_t ArgumentCount() const {
     return comparison()->ArgumentCount();
+  }
+  virtual void SetPushArguments(PushArgumentsArray* push_arguments) {
+    comparison()->SetPushArguments(push_arguments);
+  }
+  virtual PushArgumentsArray* GetPushArguments() const {
+    return comparison()->GetPushArguments();
   }
 
   intptr_t InputCount() const { return comparison()->InputCount(); }
@@ -3301,12 +3343,14 @@ class AssertSubtypeInstr : public TemplateInstruction<2, Throws, Pure> {
                      const AbstractType& sub_type,
                      const AbstractType& super_type,
                      const String& dst_name,
-                     intptr_t deopt_id)
+                     intptr_t deopt_id,
+                     NNBDMode mode)
       : TemplateInstruction(deopt_id),
         token_pos_(token_pos),
         sub_type_(AbstractType::ZoneHandle(sub_type.raw())),
         super_type_(AbstractType::ZoneHandle(super_type.raw())),
-        dst_name_(String::ZoneHandle(dst_name.raw())) {
+        dst_name_(String::ZoneHandle(dst_name.raw())),
+        nnbd_mode_(mode) {
     ASSERT(!super_type.IsNull());
     ASSERT(!super_type.IsTypeRef());
     ASSERT(!sub_type.IsNull());
@@ -3324,10 +3368,10 @@ class AssertSubtypeInstr : public TemplateInstruction<2, Throws, Pure> {
   virtual TokenPosition token_pos() const { return token_pos_; }
   const AbstractType& super_type() const { return super_type_; }
   const AbstractType& sub_type() const { return sub_type_; }
-
   const String& dst_name() const { return dst_name_; }
+  NNBDMode nnbd_mode() const { return nnbd_mode_; }
 
-  virtual bool ComputeCanDeoptimize() const { return true; }
+  virtual bool ComputeCanDeoptimize() const { return !FLAG_precompiled_mode; }
 
   virtual bool CanBecomeDeoptimizationTarget() const { return true; }
 
@@ -3342,6 +3386,7 @@ class AssertSubtypeInstr : public TemplateInstruction<2, Throws, Pure> {
   AbstractType& sub_type_;
   AbstractType& super_type_;
   const String& dst_name_;
+  const NNBDMode nnbd_mode_;
 
   DISALLOW_COPY_AND_ASSIGN(AssertSubtypeInstr);
 };
@@ -3368,11 +3413,13 @@ class AssertAssignableInstr : public TemplateDefinition<3, Throws, Pure> {
                         const AbstractType& dst_type,
                         const String& dst_name,
                         intptr_t deopt_id,
+                        NNBDMode mode,
                         Kind kind = kUnknown)
       : TemplateDefinition(deopt_id),
         token_pos_(token_pos),
         dst_type_(AbstractType::ZoneHandle(dst_type.raw())),
         dst_name_(dst_name),
+        nnbd_mode_(mode),
         kind_(kind) {
     ASSERT(!dst_type.IsNull());
     ASSERT(!dst_type.IsTypeRef());
@@ -3400,8 +3447,9 @@ class AssertAssignableInstr : public TemplateDefinition<3, Throws, Pure> {
     dst_type_ = dst_type.raw();
   }
   const String& dst_name() const { return dst_name_; }
+  NNBDMode nnbd_mode() const { return nnbd_mode_; }
 
-  virtual bool ComputeCanDeoptimize() const { return true; }
+  virtual bool ComputeCanDeoptimize() const { return !FLAG_precompiled_mode; }
 
   virtual bool CanBecomeDeoptimizationTarget() const {
     // AssertAssignable instructions that are specialized by the optimizer
@@ -3422,6 +3470,7 @@ class AssertAssignableInstr : public TemplateDefinition<3, Throws, Pure> {
   const TokenPosition token_pos_;
   AbstractType& dst_type_;
   const String& dst_name_;
+  const NNBDMode nnbd_mode_;
   const Kind kind_;
 
   DISALLOW_COPY_AND_ASSIGN(AssertAssignableInstr);
@@ -3440,7 +3489,7 @@ class AssertBooleanInstr : public TemplateDefinition<1, Throws, Pure> {
   virtual TokenPosition token_pos() const { return token_pos_; }
   Value* value() const { return inputs_[0]; }
 
-  virtual bool ComputeCanDeoptimize() const { return true; }
+  virtual bool ComputeCanDeoptimize() const { return !FLAG_precompiled_mode; }
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
@@ -3530,22 +3579,24 @@ struct ArgumentsInfo {
   const Array& argument_names;
 };
 
-typedef ZoneGrowableArray<PushArgumentInstr*> PushArgumentsArray;
-
-template <intptr_t kInputCount>
-class TemplateDartCall : public TemplateDefinition<kInputCount, Throws> {
+template <intptr_t kExtraInputs>
+class TemplateDartCall : public Definition {
  public:
   TemplateDartCall(intptr_t deopt_id,
                    intptr_t type_args_len,
                    const Array& argument_names,
-                   PushArgumentsArray* arguments,
+                   InputsArray* inputs,
                    TokenPosition token_pos)
-      : TemplateDefinition<kInputCount, Throws>(deopt_id),
+      : Definition(deopt_id),
         type_args_len_(type_args_len),
         argument_names_(argument_names),
-        arguments_(arguments),
+        inputs_(inputs),
         token_pos_(token_pos) {
     ASSERT(argument_names.IsZoneHandle() || argument_names.InVMIsolateHeap());
+    ASSERT(inputs_->length() >= kExtraInputs);
+    for (intptr_t i = 0, n = inputs_->length(); i < n; ++i) {
+      SetInputAt(i, (*inputs_)[i]);
+    }
   }
 
   RawString* Selector() {
@@ -3558,18 +3609,43 @@ class TemplateDartCall : public TemplateDefinition<kInputCount, Throws> {
     }
   }
 
+  virtual bool MayThrow() const { return true; }
+
+  virtual intptr_t InputCount() const { return inputs_->length(); }
+  virtual Value* InputAt(intptr_t i) const { return inputs_->At(i); }
+
   intptr_t FirstArgIndex() const { return type_args_len_ > 0 ? 1 : 0; }
-  Value* Receiver() const {
-    return this->PushArgumentAt(FirstArgIndex())->value();
-  }
+  Value* Receiver() const { return this->ArgumentValueAt(FirstArgIndex()); }
   intptr_t ArgumentCountWithoutTypeArgs() const {
-    return arguments_->length() - FirstArgIndex();
+    return ArgumentCount() - FirstArgIndex();
   }
   // ArgumentCount() includes the type argument vector if any.
   // Caution: Must override Instruction::ArgumentCount().
-  virtual intptr_t ArgumentCount() const { return arguments_->length(); }
-  virtual PushArgumentInstr* PushArgumentAt(intptr_t index) const {
-    return (*arguments_)[index];
+  virtual intptr_t ArgumentCount() const {
+    return push_arguments_ != nullptr ? push_arguments_->length()
+                                      : inputs_->length() - kExtraInputs;
+  }
+  virtual void SetPushArguments(PushArgumentsArray* push_arguments) {
+    ASSERT(push_arguments_ == nullptr);
+    push_arguments_ = push_arguments;
+  }
+  virtual PushArgumentsArray* GetPushArguments() const {
+    return push_arguments_;
+  }
+  virtual void ReplaceInputsWithPushArguments(
+      PushArgumentsArray* push_arguments) {
+    ASSERT(push_arguments_ == nullptr);
+    ASSERT(push_arguments->length() == ArgumentCount());
+    SetPushArguments(push_arguments);
+    ASSERT(inputs_->length() == ArgumentCount() + kExtraInputs);
+    const intptr_t extra_inputs_base = inputs_->length() - kExtraInputs;
+    for (intptr_t i = 0, n = ArgumentCount(); i < n; ++i) {
+      InputAt(i)->RemoveFromUseList();
+    }
+    for (intptr_t i = 0; i < kExtraInputs; ++i) {
+      SetInputAt(i, InputAt(extra_inputs_base + i));
+    }
+    inputs_->TruncateTo(kExtraInputs);
   }
   intptr_t type_args_len() const { return type_args_len_; }
   const Array& argument_names() const { return argument_names_; }
@@ -3582,9 +3658,14 @@ class TemplateDartCall : public TemplateDefinition<kInputCount, Throws> {
   ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT
 
  private:
+  virtual void RawSetInputAt(intptr_t i, Value* value) {
+    (*inputs_)[i] = value;
+  }
+
   intptr_t type_args_len_;
   const Array& argument_names_;
-  PushArgumentsArray* arguments_;
+  InputsArray* inputs_;
+  PushArgumentsArray* push_arguments_ = nullptr;
   TokenPosition token_pos_;
 
   DISALLOW_COPY_AND_ASSIGN(TemplateDartCall);
@@ -3592,8 +3673,7 @@ class TemplateDartCall : public TemplateDefinition<kInputCount, Throws> {
 
 class ClosureCallInstr : public TemplateDartCall<1> {
  public:
-  ClosureCallInstr(Value* function,
-                   PushArgumentsArray* arguments,
+  ClosureCallInstr(InputsArray* inputs,
                    intptr_t type_args_len,
                    const Array& argument_names,
                    TokenPosition token_pos,
@@ -3602,19 +3682,16 @@ class ClosureCallInstr : public TemplateDartCall<1> {
       : TemplateDartCall(deopt_id,
                          type_args_len,
                          argument_names,
-                         arguments,
+                         inputs,
                          token_pos),
-        entry_kind_(entry_kind) {
-    ASSERT(!arguments->is_empty());
-    SetInputAt(0, function);
-  }
+        entry_kind_(entry_kind) {}
 
   DECLARE_INSTRUCTION(ClosureCall)
 
   // TODO(kmillikin): implement exact call counts for closure calls.
   virtual intptr_t CallCount() const { return 1; }
 
-  virtual bool ComputeCanDeoptimize() const { return true; }
+  virtual bool ComputeCanDeoptimize() const { return !FLAG_precompiled_mode; }
 
   virtual bool HasUnknownSideEffects() const { return true; }
 
@@ -3635,7 +3712,7 @@ class InstanceCallInstr : public TemplateDartCall<0> {
       TokenPosition token_pos,
       const String& function_name,
       Token::Kind token_kind,
-      PushArgumentsArray* arguments,
+      InputsArray* arguments,
       intptr_t type_args_len,
       const Array& argument_names,
       intptr_t checked_argument_count,
@@ -3672,7 +3749,7 @@ class InstanceCallInstr : public TemplateDartCall<0> {
       TokenPosition token_pos,
       const String& function_name,
       Token::Kind token_kind,
-      PushArgumentsArray* arguments,
+      InputsArray* arguments,
       intptr_t type_args_len,
       const Array& argument_names,
       intptr_t checked_argument_count,
@@ -3730,7 +3807,7 @@ class InstanceCallInstr : public TemplateDartCall<0> {
 
   virtual CompileType ComputeType() const;
 
-  virtual bool ComputeCanDeoptimize() const { return true; }
+  virtual bool ComputeCanDeoptimize() const { return !FLAG_precompiled_mode; }
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
@@ -3796,40 +3873,27 @@ class InstanceCallInstr : public TemplateDartCall<0> {
   DISALLOW_COPY_AND_ASSIGN(InstanceCallInstr);
 };
 
-class PolymorphicInstanceCallInstr : public TemplateDefinition<0, Throws> {
+class PolymorphicInstanceCallInstr : public TemplateDartCall<0> {
  public:
-  PolymorphicInstanceCallInstr(InstanceCallInstr* instance_call,
-                               const CallTargets& targets,
-                               bool complete)
-      : TemplateDefinition(instance_call->deopt_id()),
-        instance_call_(instance_call),
-        targets_(targets),
-        complete_(complete) {
-    ASSERT(instance_call_ != NULL);
-    ASSERT(targets.length() != 0);
-    total_call_count_ = CallCount();
+  // Generate a replacement polymorphic call instruction.
+  static PolymorphicInstanceCallInstr* FromCall(Zone* zone,
+                                                InstanceCallInstr* call,
+                                                const CallTargets& targets,
+                                                bool complete) {
+    return FromCall(zone, call, call, targets, complete);
   }
 
-  InstanceCallInstr* instance_call() const { return instance_call_; }
-  bool complete() const { return complete_; }
-  virtual TokenPosition token_pos() const {
-    return instance_call_->token_pos();
+  static PolymorphicInstanceCallInstr* FromCall(
+      Zone* zone,
+      PolymorphicInstanceCallInstr* call,
+      const CallTargets& targets,
+      bool complete) {
+    return FromCall(zone, call, call->instance_call(), targets, complete);
   }
+
+  bool complete() const { return complete_; }
 
   virtual CompileType ComputeType() const;
-
-  virtual intptr_t ArgumentCount() const {
-    return instance_call()->ArgumentCount();
-  }
-  virtual PushArgumentInstr* PushArgumentAt(intptr_t index) const {
-    return instance_call()->PushArgumentAt(index);
-  }
-  const Array& argument_names() const {
-    return instance_call()->argument_names();
-  }
-  intptr_t type_args_len() const { return instance_call()->type_args_len(); }
-
-  Value* Receiver() const { return instance_call()->Receiver(); }
 
   bool HasOnlyDispatcherOrImplicitAccessorTargets() const;
 
@@ -3853,7 +3917,7 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0, Throws> {
 
   DECLARE_INSTRUCTION(PolymorphicInstanceCall)
 
-  virtual bool ComputeCanDeoptimize() const { return true; }
+  virtual bool ComputeCanDeoptimize() const { return !FLAG_precompiled_mode; }
 
   virtual bool HasUnknownSideEffects() const { return true; }
 
@@ -3863,14 +3927,59 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0, Throws> {
 
   CompileType* result_type() const { return instance_call()->result_type(); }
   intptr_t result_cid() const { return instance_call()->result_cid(); }
-
+  const String& function_name() const {
+    return instance_call()->function_name();
+  }
+  Token::Kind token_kind() const { return instance_call()->token_kind(); }
   Code::EntryKind entry_kind() const { return instance_call()->entry_kind(); }
+  const ICData* ic_data() const { return instance_call()->ic_data(); }
+  bool has_unique_selector() const {
+    return instance_call()->has_unique_selector();
+  }
+  RawFunction* ResolveForReceiverClass(const Class& cls) {
+    return instance_call()->ResolveForReceiverClass(cls);
+  }
 
   PRINT_OPERANDS_TO_SUPPORT
   ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT
   ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT
 
  private:
+  PolymorphicInstanceCallInstr(InstanceCallInstr* instance_call,
+                               InputsArray* arguments,
+                               const CallTargets& targets,
+                               bool complete)
+      : TemplateDartCall<0>(instance_call->deopt_id(),
+                            instance_call->type_args_len(),
+                            instance_call->argument_names(),
+                            arguments,
+                            instance_call->token_pos()),
+        instance_call_(instance_call),
+        targets_(targets),
+        complete_(complete) {
+    ASSERT(instance_call_ != nullptr);
+    ASSERT(targets.length() != 0);
+    total_call_count_ = CallCount();
+  }
+
+  static PolymorphicInstanceCallInstr* FromCall(
+      Zone* zone,
+      Instruction* call_for_arguments,
+      InstanceCallInstr* call_for_attributes,
+      const CallTargets& targets,
+      bool complete) {
+    ASSERT(!call_for_arguments->HasPushArguments());
+    InputsArray* args =
+        new (zone) InputsArray(zone, call_for_arguments->ArgumentCount());
+    for (intptr_t i = 0, n = call_for_arguments->ArgumentCount(); i < n; ++i) {
+      args->Add(call_for_arguments->ArgumentValueAt(i)->CopyWithType(zone));
+    }
+    return new (zone) PolymorphicInstanceCallInstr(call_for_attributes, args,
+                                                   targets, complete);
+  }
+
+  InstanceCallInstr* instance_call() const { return instance_call_; }
+
   InstanceCallInstr* instance_call_;
   const CallTargets& targets_;
   const bool complete_;
@@ -4174,7 +4283,7 @@ class StaticCallInstr : public TemplateDartCall<0> {
                   const Function& function,
                   intptr_t type_args_len,
                   const Array& argument_names,
-                  PushArgumentsArray* arguments,
+                  InputsArray* arguments,
                   const ZoneGrowableArray<const ICData*>& ic_data_array,
                   intptr_t deopt_id,
                   ICData::RebindRule rebind_rule)
@@ -4199,7 +4308,7 @@ class StaticCallInstr : public TemplateDartCall<0> {
                   const Function& function,
                   intptr_t type_args_len,
                   const Array& argument_names,
-                  PushArgumentsArray* arguments,
+                  InputsArray* arguments,
                   intptr_t deopt_id,
                   intptr_t call_count,
                   ICData::RebindRule rebind_rule)
@@ -4226,10 +4335,10 @@ class StaticCallInstr : public TemplateDartCall<0> {
                                    const C* call,
                                    const Function& target,
                                    intptr_t call_count) {
-    PushArgumentsArray* args =
-        new (zone) PushArgumentsArray(call->ArgumentCount());
+    ASSERT(!call->HasPushArguments());
+    InputsArray* args = new (zone) InputsArray(zone, call->ArgumentCount());
     for (intptr_t i = 0; i < call->ArgumentCount(); i++) {
-      args->Add(call->PushArgumentAt(i));
+      args->Add(call->ArgumentValueAt(i)->CopyWithType());
     }
     StaticCallInstr* new_call = new (zone)
         StaticCallInstr(call->token_pos(), target, call->type_args_len(),
@@ -4237,6 +4346,9 @@ class StaticCallInstr : public TemplateDartCall<0> {
                         call_count, ICData::kNoRebind);
     if (call->result_type() != NULL) {
       new_call->result_type_ = call->result_type();
+    }
+    if (call->has_inlining_id()) {
+      new_call->set_inlining_id(call->inlining_id());
     }
     new_call->set_entry_kind(call->entry_kind());
     return new_call;
@@ -4259,7 +4371,7 @@ class StaticCallInstr : public TemplateDartCall<0> {
     return ic_data() == NULL ? call_count_ : ic_data()->AggregateCount();
   }
 
-  virtual bool ComputeCanDeoptimize() const { return true; }
+  virtual bool ComputeCanDeoptimize() const { return !FLAG_precompiled_mode; }
 
   virtual bool CanBecomeDeoptimizationTarget() const {
     // Static calls that are specialized by the optimizer (e.g. sqrt) need a
@@ -4495,7 +4607,7 @@ class NativeCallInstr : public TemplateDartCall<0> {
                   const Function* function,
                   bool link_lazily,
                   TokenPosition position,
-                  PushArgumentsArray* args)
+                  InputsArray* args)
       : TemplateDartCall(DeoptId::kNone,
                          0,
                          Array::null_array(),
@@ -4562,15 +4674,13 @@ class FfiCallInstr : public Definition {
                intptr_t deopt_id,
                const Function& signature,
                const ZoneGrowableArray<Representation>& arg_reps,
-               const ZoneGrowableArray<Location>& arg_locs,
-               const ZoneGrowableArray<HostLocation>* arg_host_locs = nullptr)
+               const ZoneGrowableArray<Location>& arg_locs)
       : Definition(deopt_id),
         zone_(zone),
         signature_(signature),
         inputs_(arg_reps.length() + 1),
         arg_representations_(arg_reps),
-        arg_locations_(arg_locs),
-        arg_host_locations_(arg_host_locs) {
+        arg_locations_(arg_locs) {
     inputs_.FillWith(nullptr, 0, arg_reps.length() + 1);
     ASSERT(signature.IsZoneHandle());
   }
@@ -4588,7 +4698,7 @@ class FfiCallInstr : public Definition {
   virtual bool MayThrow() const { return false; }
 
   // FfiCallInstr calls C code, which can call back into Dart.
-  virtual bool ComputeCanDeoptimize() const { return true; }
+  virtual bool ComputeCanDeoptimize() const { return !FLAG_precompiled_mode; }
 
   virtual bool HasUnknownSideEffects() const { return true; }
 
@@ -4619,7 +4729,6 @@ class FfiCallInstr : public Definition {
   GrowableArray<Value*> inputs_;
   const ZoneGrowableArray<Representation>& arg_representations_;
   const ZoneGrowableArray<Location>& arg_locations_;
-  const ZoneGrowableArray<HostLocation>* arg_host_locations_;
 
   DISALLOW_COPY_AND_ASSIGN(FfiCallInstr);
 };
@@ -4710,6 +4819,13 @@ class StoreInstanceFieldInstr : public TemplateInstruction<2, NoThrow> {
                                 emit_store_barrier,
                                 token_pos,
                                 kind) {}
+
+  virtual SpeculativeMode speculative_mode() const {
+    // In AOT unbox is done based on TFA, therefore it was proven to be correct
+    // and it can never deoptmize.
+    return (IsUnboxedStore() && FLAG_precompiled_mode) ? kNotSpeculative
+                                                       : kGuardInputs;
+  }
 
   DECLARE_INSTRUCTION(StoreInstanceField)
 
@@ -4867,21 +4983,16 @@ class GuardFieldTypeInstr : public GuardFieldInstr {
   DISALLOW_COPY_AND_ASSIGN(GuardFieldTypeInstr);
 };
 
-class LoadStaticFieldInstr : public TemplateDefinition<1, NoThrow> {
+class LoadStaticFieldInstr : public TemplateDefinition<0, NoThrow> {
  public:
-  LoadStaticFieldInstr(Value* field_value, TokenPosition token_pos)
-      : token_pos_(token_pos) {
-    ASSERT(field_value->BindsToConstant());
-    SetInputAt(0, field_value);
-  }
+  LoadStaticFieldInstr(const Field& field, TokenPosition token_pos)
+      : field_(field), token_pos_(token_pos) {}
 
   DECLARE_INSTRUCTION(LoadStaticField)
   virtual CompileType ComputeType() const;
 
-  const Field& StaticField() const;
+  const Field& StaticField() const { return field_; }
   bool IsFieldInitialized() const;
-
-  Value* field_value() const { return inputs_[0]; }
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
@@ -4897,6 +5008,7 @@ class LoadStaticFieldInstr : public TemplateDefinition<1, NoThrow> {
   PRINT_OPERANDS_TO_SUPPORT
 
  private:
+  const Field& field_;
   const TokenPosition token_pos_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadStaticFieldInstr);
@@ -5139,7 +5251,7 @@ class StringInterpolateInstr : public TemplateDefinition<1, Throws> {
   virtual CompileType ComputeType() const;
   // Issues a static call to Dart code which calls toString on objects.
   virtual bool HasUnknownSideEffects() const { return true; }
-  virtual bool ComputeCanDeoptimize() const { return true; }
+  virtual bool ComputeCanDeoptimize() const { return !FLAG_precompiled_mode; }
 
   const Function& CallFunction() const;
 
@@ -5251,8 +5363,12 @@ class InstanceOfInstr : public TemplateDefinition<3, Throws> {
                   Value* instantiator_type_arguments,
                   Value* function_type_arguments,
                   const AbstractType& type,
-                  intptr_t deopt_id)
-      : TemplateDefinition(deopt_id), token_pos_(token_pos), type_(type) {
+                  intptr_t deopt_id,
+                  NNBDMode mode)
+      : TemplateDefinition(deopt_id),
+        token_pos_(token_pos),
+        type_(type),
+        nnbd_mode_(mode) {
     ASSERT(!type.IsNull());
     SetInputAt(0, value);
     SetInputAt(1, instantiator_type_arguments);
@@ -5268,8 +5384,9 @@ class InstanceOfInstr : public TemplateDefinition<3, Throws> {
 
   const AbstractType& type() const { return type_; }
   virtual TokenPosition token_pos() const { return token_pos_; }
+  NNBDMode nnbd_mode() const { return nnbd_mode_; }
 
-  virtual bool ComputeCanDeoptimize() const { return true; }
+  virtual bool ComputeCanDeoptimize() const { return !FLAG_precompiled_mode; }
 
   virtual bool HasUnknownSideEffects() const { return false; }
 
@@ -5280,6 +5397,7 @@ class InstanceOfInstr : public TemplateDefinition<3, Throws> {
   Value* value_;
   Value* type_arguments_;
   const AbstractType& type_;
+  const NNBDMode nnbd_mode_;
 
   DISALLOW_COPY_AND_ASSIGN(InstanceOfInstr);
 };
@@ -5323,35 +5441,43 @@ class TemplateAllocation : public AllocationInstr {
   virtual void RawSetInputAt(intptr_t i, Value* value) { inputs_[i] = value; }
 };
 
-class AllocateObjectInstr : public TemplateAllocation<0, NoThrow> {
+class AllocateObjectInstr : public AllocationInstr {
  public:
   AllocateObjectInstr(TokenPosition token_pos,
                       const Class& cls,
-                      PushArgumentsArray* arguments)
+                      Value* type_arguments = nullptr)
       : token_pos_(token_pos),
         cls_(cls),
-        arguments_(arguments),
+        type_arguments_(type_arguments),
         identity_(AliasIdentity::Unknown()),
         closure_function_(Function::ZoneHandle()) {
-    // Either no arguments or one type-argument and one instantiator.
-    ASSERT(arguments->is_empty() || (arguments->length() == 1));
+    ASSERT((cls.NumTypeArguments() > 0) == (type_arguments != nullptr));
+    if (type_arguments != nullptr) {
+      SetInputAt(0, type_arguments);
+    }
   }
 
   DECLARE_INSTRUCTION(AllocateObject)
   virtual CompileType ComputeType() const;
 
-  virtual intptr_t ArgumentCount() const { return arguments_->length(); }
-  virtual PushArgumentInstr* PushArgumentAt(intptr_t index) const {
-    return (*arguments_)[index];
-  }
-
   const Class& cls() const { return cls_; }
   virtual TokenPosition token_pos() const { return token_pos_; }
+  Value* type_arguments() const { return type_arguments_; }
 
   const Function& closure_function() const { return closure_function_; }
   void set_closure_function(const Function& function) {
     closure_function_ = function.raw();
   }
+
+  virtual intptr_t InputCount() const {
+    return (type_arguments_ != nullptr) ? 1 : 0;
+  }
+  virtual Value* InputAt(intptr_t i) const {
+    ASSERT(type_arguments_ != nullptr && i == 0);
+    return type_arguments_;
+  }
+
+  virtual bool MayThrow() const { return false; }
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
@@ -5373,9 +5499,15 @@ class AllocateObjectInstr : public TemplateAllocation<0, NoThrow> {
   ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT
 
  private:
+  virtual void RawSetInputAt(intptr_t i, Value* value) {
+    ASSERT((type_arguments_ != nullptr) && (i == 0));
+    ASSERT(value != nullptr);
+    type_arguments_ = value;
+  }
+
   const TokenPosition token_pos_;
   const Class& cls_;
-  PushArgumentsArray* const arguments_;
+  Value* type_arguments_;
   AliasIdentity identity_;
   Function& closure_function_;
 
@@ -5546,7 +5678,7 @@ class CreateArrayInstr : public TemplateAllocation<2, Throws> {
 
   // Throw needs environment, which is created only if instruction can
   // deoptimize.
-  virtual bool ComputeCanDeoptimize() const { return MayThrow(); }
+  virtual bool ComputeCanDeoptimize() const { return !FLAG_precompiled_mode; }
 
   virtual bool HasUnknownSideEffects() const { return false; }
 
@@ -5756,8 +5888,12 @@ class InstantiateTypeInstr : public TemplateDefinition<2, Throws> {
                        const AbstractType& type,
                        Value* instantiator_type_arguments,
                        Value* function_type_arguments,
-                       intptr_t deopt_id)
-      : TemplateDefinition(deopt_id), token_pos_(token_pos), type_(type) {
+                       intptr_t deopt_id,
+                       NNBDMode mode)
+      : TemplateDefinition(deopt_id),
+        token_pos_(token_pos),
+        type_(type),
+        nnbd_mode_(mode) {
     ASSERT(type.IsZoneHandle() || type.IsReadOnlyHandle());
     SetInputAt(0, instantiator_type_arguments);
     SetInputAt(1, function_type_arguments);
@@ -5768,9 +5904,10 @@ class InstantiateTypeInstr : public TemplateDefinition<2, Throws> {
   Value* instantiator_type_arguments() const { return inputs_[0]; }
   Value* function_type_arguments() const { return inputs_[1]; }
   const AbstractType& type() const { return type_; }
+  NNBDMode nnbd_mode() const { return nnbd_mode_; }
   virtual TokenPosition token_pos() const { return token_pos_; }
 
-  virtual bool ComputeCanDeoptimize() const { return true; }
+  virtual bool ComputeCanDeoptimize() const { return !FLAG_precompiled_mode; }
 
   virtual bool HasUnknownSideEffects() const { return false; }
 
@@ -5779,6 +5916,7 @@ class InstantiateTypeInstr : public TemplateDefinition<2, Throws> {
  private:
   const TokenPosition token_pos_;
   const AbstractType& type_;
+  const NNBDMode nnbd_mode_;
 
   DISALLOW_COPY_AND_ASSIGN(InstantiateTypeInstr);
 };
@@ -5791,12 +5929,14 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<2, Throws> {
                                 const Function& function,
                                 Value* instantiator_type_arguments,
                                 Value* function_type_arguments,
-                                intptr_t deopt_id)
+                                intptr_t deopt_id,
+                                NNBDMode mode)
       : TemplateDefinition(deopt_id),
         token_pos_(token_pos),
         type_arguments_(type_arguments),
         instantiator_class_(instantiator_class),
-        function_(function) {
+        function_(function),
+        nnbd_mode_(mode) {
     ASSERT(type_arguments.IsZoneHandle());
     ASSERT(instantiator_class.IsZoneHandle());
     ASSERT(function.IsZoneHandle());
@@ -5811,9 +5951,10 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<2, Throws> {
   const TypeArguments& type_arguments() const { return type_arguments_; }
   const Class& instantiator_class() const { return instantiator_class_; }
   const Function& function() const { return function_; }
+  NNBDMode nnbd_mode() const { return nnbd_mode_; }
   virtual TokenPosition token_pos() const { return token_pos_; }
 
-  virtual bool ComputeCanDeoptimize() const { return true; }
+  virtual bool ComputeCanDeoptimize() const { return !FLAG_precompiled_mode; }
 
   virtual bool HasUnknownSideEffects() const { return false; }
 
@@ -5826,6 +5967,7 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<2, Throws> {
   const TypeArguments& type_arguments_;
   const Class& instantiator_class_;
   const Function& function_;
+  const NNBDMode nnbd_mode_;
 
   DISALLOW_COPY_AND_ASSIGN(InstantiateTypeArgumentsInstr);
 };
@@ -5884,7 +6026,7 @@ class InitInstanceFieldInstr : public TemplateInstruction<1, Throws> {
 
   DECLARE_INSTRUCTION(InitInstanceField)
 
-  virtual bool ComputeCanDeoptimize() const { return true; }
+  virtual bool ComputeCanDeoptimize() const { return !FLAG_precompiled_mode; }
   virtual bool HasUnknownSideEffects() const { return true; }
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
@@ -5894,11 +6036,10 @@ class InitInstanceFieldInstr : public TemplateInstruction<1, Throws> {
   DISALLOW_COPY_AND_ASSIGN(InitInstanceFieldInstr);
 };
 
-class InitStaticFieldInstr : public TemplateInstruction<1, Throws> {
+class InitStaticFieldInstr : public TemplateInstruction<0, Throws> {
  public:
-  InitStaticFieldInstr(Value* input, const Field& field, intptr_t deopt_id)
+  InitStaticFieldInstr(const Field& field, intptr_t deopt_id)
       : TemplateInstruction(deopt_id), field_(field) {
-    SetInputAt(0, input);
     CheckField(field);
   }
 
@@ -5907,7 +6048,7 @@ class InitStaticFieldInstr : public TemplateInstruction<1, Throws> {
 
   DECLARE_INSTRUCTION(InitStaticField)
 
-  virtual bool ComputeCanDeoptimize() const { return true; }
+  virtual bool ComputeCanDeoptimize() const { return !FLAG_precompiled_mode; }
   virtual bool HasUnknownSideEffects() const { return true; }
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
@@ -5941,7 +6082,7 @@ class CloneContextInstr : public TemplateDefinition<1, NoThrow> {
   DECLARE_INSTRUCTION(CloneContext)
   virtual CompileType ComputeType() const;
 
-  virtual bool ComputeCanDeoptimize() const { return true; }
+  virtual bool ComputeCanDeoptimize() const { return !FLAG_precompiled_mode; }
 
   virtual bool HasUnknownSideEffects() const { return false; }
 
@@ -7296,7 +7437,7 @@ class CheckStackOverflowInstr : public TemplateInstruction<0, NoThrow> {
 
   DECLARE_INSTRUCTION(CheckStackOverflow)
 
-  virtual bool ComputeCanDeoptimize() const { return true; }
+  virtual bool ComputeCanDeoptimize() const { return !FLAG_precompiled_mode; }
 
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
@@ -7423,9 +7564,7 @@ class DoubleToIntegerInstr : public TemplateDefinition<1, Throws> {
   DECLARE_INSTRUCTION(DoubleToInteger)
   virtual CompileType ComputeType() const;
 
-  virtual intptr_t ArgumentCount() const { return 1; }
-
-  virtual bool ComputeCanDeoptimize() const { return true; }
+  virtual bool ComputeCanDeoptimize() const { return !FLAG_precompiled_mode; }
 
   virtual bool HasUnknownSideEffects() const { return false; }
 
@@ -7818,17 +7957,24 @@ class CheckSmiInstr : public TemplateInstruction<1, NoThrow, Pure> {
 };
 
 // CheckNull instruction takes one input (`value`) and tests it for `null`.
-// If `value` is `null`, then `NoSuchMethodError` is thrown. Otherwise,
-// execution proceeds to the next instruction.
+// If `value` is `null`, then an exception is thrown according to
+// `exception_type`. Otherwise, execution proceeds to the next instruction.
 class CheckNullInstr : public TemplateDefinition<1, Throws, Pure> {
  public:
+  enum ExceptionType {
+    kNoSuchMethod,
+    kArgumentError,
+  };
+
   CheckNullInstr(Value* value,
                  const String& function_name,
                  intptr_t deopt_id,
-                 TokenPosition token_pos)
+                 TokenPosition token_pos,
+                 ExceptionType exception_type = kNoSuchMethod)
       : TemplateDefinition(deopt_id),
         token_pos_(token_pos),
-        function_name_(function_name) {
+        function_name_(function_name),
+        exception_type_(exception_type) {
     ASSERT(function_name.IsNotTemporaryScopedHandle());
     SetInputAt(0, value);
   }
@@ -7836,6 +7982,8 @@ class CheckNullInstr : public TemplateDefinition<1, Throws, Pure> {
   Value* value() const { return inputs_[0]; }
   virtual TokenPosition token_pos() const { return token_pos_; }
   const String& function_name() const { return function_name_; }
+  bool IsArgumentCheck() const { return exception_type_ == kArgumentError; }
+  ExceptionType exception_type() const { return exception_type_; }
 
   bool UseSharedSlowPathStub(bool is_optimizing) const {
     return SlowPathSharingSupported(is_optimizing);
@@ -7848,12 +7996,12 @@ class CheckNullInstr : public TemplateDefinition<1, Throws, Pure> {
 
   // CheckNull can implicitly call Dart code (NoSuchMethodError constructor),
   // so it needs a deopt ID in optimized and unoptimized code.
-  virtual bool ComputeCanDeoptimize() const { return true; }
+  virtual bool ComputeCanDeoptimize() const { return !FLAG_precompiled_mode; }
   virtual bool CanBecomeDeoptimizationTarget() const { return true; }
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
-  virtual bool AttributesEqual(Instruction* other) const { return true; }
+  virtual bool AttributesEqual(Instruction* other) const;
 
   static void AddMetadataForRuntimeCall(CheckNullInstr* check_null,
                                         FlowGraphCompiler* compiler);
@@ -7862,9 +8010,12 @@ class CheckNullInstr : public TemplateDefinition<1, Throws, Pure> {
 
   ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT
 
+  PRINT_OPERANDS_TO_SUPPORT
+
  private:
   const TokenPosition token_pos_;
   const String& function_name_;
+  const ExceptionType exception_type_;
 
   DISALLOW_COPY_AND_ASSIGN(CheckNullInstr);
 };
@@ -7986,7 +8137,7 @@ class GenericCheckBoundInstr : public CheckBoundBase {
 
   // GenericCheckBound can implicitly call Dart code (RangeError or
   // ArgumentError constructor), so it can lazily deopt.
-  virtual bool ComputeCanDeoptimize() const { return true; }
+  virtual bool ComputeCanDeoptimize() const { return !FLAG_precompiled_mode; }
 
   virtual bool MayThrow() const { return true; }
 
@@ -8308,10 +8459,10 @@ class UnboxedWidthExtenderInstr : public TemplateDefinition<1, NoThrow, Pure> {
   M(2, _, Float32x4LessThan, (Float32x4, Float32x4), Int32x4)                  \
   M(2, _, Float32x4LessThanOrEqual, (Float32x4, Float32x4), Int32x4)           \
   M(2, _, Float32x4NotEqual, (Float32x4, Float32x4), Int32x4)                  \
-  M(4, _, Int32x4Constructor, (Int32, Int32, Int32, Int32), Int32x4)           \
-  M(4, _, Int32x4BoolConstructor, (Bool, Bool, Bool, Bool), Int32x4)           \
-  M(4, _, Float32x4Constructor, (Double, Double, Double, Double), Float32x4)   \
-  M(2, _, Float64x2Constructor, (Double, Double), Float64x2)                   \
+  M(4, _, Int32x4FromInts, (Int32, Int32, Int32, Int32), Int32x4)              \
+  M(4, _, Int32x4FromBools, (Bool, Bool, Bool, Bool), Int32x4)                 \
+  M(4, _, Float32x4FromDoubles, (Double, Double, Double, Double), Float32x4)   \
+  M(2, _, Float64x2FromDoubles, (Double, Double), Float64x2)                   \
   M(0, _, Float32x4Zero, (), Float32x4)                                        \
   M(0, _, Float64x2Zero, (), Float64x2)                                        \
   M(1, _, Float32x4Splat, (Double), Float32x4)                                 \
@@ -8383,6 +8534,8 @@ class SimdOpInstr : public Definition {
                              intptr_t deopt_id) {
     return new SimdOpInstr(KindForMethod(kind), left, deopt_id);
   }
+
+  static Kind KindForOperator(MethodRecognizer::Kind kind);
 
   static Kind KindForMethod(MethodRecognizer::Kind method_kind);
 

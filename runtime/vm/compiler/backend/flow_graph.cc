@@ -90,16 +90,7 @@ void FlowGraph::ReplaceCurrentInstruction(ForwardInstructionIterator* iterator,
     }
   }
   if (current->ArgumentCount() != 0) {
-    // Replacing a call instruction with something else.  Must remove
-    // superfluous push arguments.
-    for (intptr_t i = 0; i < current->ArgumentCount(); ++i) {
-      PushArgumentInstr* push = current->PushArgumentAt(i);
-      if (replacement == NULL || i >= replacement->ArgumentCount() ||
-          replacement->PushArgumentAt(i) != push) {
-        push->ReplaceUsesWith(push->value()->definition());
-        push->RemoveFromGraph();
-      }
-    }
+    ASSERT(!current->HasPushArguments());
   }
   iterator->RemoveCurrentFromGraph();
 }
@@ -1156,8 +1147,10 @@ void FlowGraph::AttachEnvironment(Instruction* instr,
   Environment* deopt_env =
       Environment::From(zone(), *env, num_direct_parameters_, parsed_function_);
   if (instr->IsClosureCall()) {
+    // Trim extra input of ClosureCall instruction.
     deopt_env =
-        deopt_env->DeepCopy(zone(), deopt_env->Length() - instr->InputCount());
+        deopt_env->DeepCopy(zone(), deopt_env->Length() - instr->InputCount() +
+                                        instr->ArgumentCount());
   }
   instr->SetEnvironment(deopt_env);
   for (Environment::DeepIterator it(deopt_env); !it.Done(); it.Advance()) {
@@ -1249,7 +1242,9 @@ void FlowGraph::RenameRecursive(
           // generate the constant rather than going through a synthetic phi.
           if (input_defn->IsConstant() && reaching_defn->IsPhi()) {
             ASSERT(env->length() < osr_variable_count());
-            reaching_defn = GetConstant(input_defn->AsConstant()->value());
+            auto constant = GetConstant(input_defn->AsConstant()->value());
+            current->ReplaceInEnvironment(reaching_defn, constant);
+            reaching_defn = constant;
           }
         } else {
           // Note: constants can only be replaced with other constants.
@@ -1266,52 +1261,8 @@ void FlowGraph::RenameRecursive(
       input_defn->AddInputUse(v);
     }
 
-    // 2b. Handle arguments. Usually this just consists of popping
-    // all consumed parameters from the expression stack. However,
-    // during OSR with a non-empty stack, PushArguments may have
-    // been lost (since the defining value resides in the now
-    // removed original entry).
-    Instruction* insert_at = current;  // keeps push arguments in order
-    for (intptr_t i = current->ArgumentCount() - 1; i >= 0; --i) {
-      // Update expression stack.
-      ASSERT(env->length() > variable_count());
-      Definition* reaching_defn = env->RemoveLast();
-      if (reaching_defn->IsPushArgument()) {
-        insert_at = reaching_defn;
-      } else {
-        // We lost the PushArgument! This situation can only happen
-        // during OSR with a non-empty stack: replace the argument
-        // with the incoming parameter that mimics the stack slot.
-        ASSERT(IsCompiledForOsr());
-        PushArgumentInstr* push_arg = current->PushArgumentAt(i);
-        ASSERT(reaching_defn->ssa_temp_index() != -1);
-        ASSERT(reaching_defn->IsPhi() || reaching_defn == constant_dead());
-        push_arg->ReplaceUsesWith(push_arg->InputAt(0)->definition());
-        push_arg->UnuseAllInputs();
-        push_arg->previous()->LinkTo(push_arg->next());
-        push_arg->set_previous(nullptr);
-        push_arg->set_next(nullptr);
-        push_arg->value()->set_definition(reaching_defn);
-        InsertBefore(insert_at, push_arg, nullptr, FlowGraph::kEffect);
-        insert_at = push_arg;
-        // Since reaching_defn was not the expected PushArgument, we must
-        // change all its environment uses from the insertion point onward
-        // to the newly created PushArgument. This ensures that the stack
-        // depth computations (based on environment presence of PushArguments)
-        // is done correctly.
-        for (Value::Iterator it(reaching_defn->env_use_list()); !it.Done();
-             it.Advance()) {
-          Instruction* instruction = it.Current()->instruction();
-          if (instruction->IsDominatedBy(push_arg)) {
-            instruction->ReplaceInEnvironment(reaching_defn, push_arg);
-          }
-        }
-      }
-    }
-
-    // 2c. Handle LoadLocal/StoreLocal/MakeTemp/DropTemps/Constant and
-    // PushArgument specially. Other definitions are just pushed
-    // to the environment directly.
+    // 2b. Handle LoadLocal/StoreLocal/MakeTemp/DropTemps/Constant specially.
+    // Other definitions are just pushed to the environment directly.
     Definition* result = NULL;
     switch (current->tag()) {
       case Instruction::kLoadLocal: {
@@ -1400,8 +1351,8 @@ void FlowGraph::RenameRecursive(
       }
 
       case Instruction::kPushArgument:
-        env->Add(current->Cast<PushArgumentInstr>());
-        continue;
+        UNREACHABLE();
+        break;
 
       case Instruction::kCheckStackOverflow:
         // Assert environment integrity at checkpoints.
@@ -1469,12 +1420,7 @@ void FlowGraph::RenameRecursive(
           // Rename input operand.
           Definition* input = (*env)[i];
           ASSERT(input != nullptr);
-          if (input->IsPushArgument()) {
-            // A push argument left on expression stack
-            // requires the variable name in SSA phis.
-            ASSERT(IsCompiledForOsr());
-            input = input->InputAt(0)->definition();
-          }
+          ASSERT(!input->IsPushArgument());
           Value* use = new (zone()) Value(input);
           phi->SetInputAt(pred_index, use);
         }
@@ -2078,7 +2024,9 @@ void FlowGraph::WidenSmiToInt32() {
         if (use_defn == NULL) {
           // We assume that tagging before returning or pushing argument costs
           // very little compared to the cost of the return/call itself.
-          if (!instr->IsReturn() && !instr->IsPushArgument()) {
+          ASSERT(!instr->IsPushArgument());
+          if (!instr->IsReturn() &&
+              (use->use_index() >= instr->ArgumentCount())) {
             gain--;
             if (FLAG_support_il_printer && FLAG_trace_smi_widening) {
               THR_Print("v [%" Pd "] (u) %s\n", gain,
@@ -2616,6 +2564,37 @@ PhiInstr* FlowGraph::AddPhi(JoinEntryInstr* join,
   join->InsertPhi(phi);
 
   return phi;
+}
+
+void FlowGraph::InsertPushArguments() {
+  for (BlockIterator block_it = reverse_postorder_iterator(); !block_it.Done();
+       block_it.Advance()) {
+    thread()->CheckForSafepoint();
+    for (ForwardInstructionIterator instr_it(block_it.Current());
+         !instr_it.Done(); instr_it.Advance()) {
+      Instruction* instruction = instr_it.Current();
+      const intptr_t arg_count = instruction->ArgumentCount();
+      if (arg_count == 0) {
+        continue;
+      }
+      PushArgumentsArray* arguments =
+          new (Z) PushArgumentsArray(zone(), arg_count);
+      for (intptr_t i = 0; i < arg_count; ++i) {
+        Value* arg = instruction->ArgumentValueAt(i);
+        PushArgumentInstr* push_arg =
+            new (Z) PushArgumentInstr(arg->CopyWithType(Z));
+        arguments->Add(push_arg);
+        // Insert all PushArgument instructions immediately before call.
+        // PushArgumentInstr::EmitNativeCode may generate more efficient
+        // code for subsequent PushArgument instructions (ARM, ARM64).
+        InsertBefore(instruction, push_arg, /*env=*/nullptr, kEffect);
+      }
+      instruction->ReplaceInputsWithPushArguments(arguments);
+      if (instruction->env() != nullptr) {
+        instruction->RepairPushArgsInEnvironment();
+      }
+    }
+  }
 }
 
 }  // namespace dart

@@ -145,6 +145,17 @@ void f<X extends num, Y extends X>(Y y) {
     ]);
   }
 
+  test_static_conditionalAcces_defined() async {
+    // The conditional access operator '?.' can be used to access static
+    // fields.
+    await assertNoErrorsInCode('''
+class A {
+  static var x;
+}
+var a = A?.x;
+''');
+  }
+
   test_static_definedInSuperclass() async {
     await assertErrorsInCode('''
 class S {
@@ -166,6 +177,19 @@ f(var p) {
 }''', [
       error(StaticTypeWarningCode.UNDEFINED_GETTER, 28, 1),
     ]);
+  }
+
+  test_typeSubstitution_defined() async {
+    await assertNoErrorsInCode(r'''
+class A<E> {
+  E element;
+}
+class B extends A<List> {
+  m() {
+    element.last;
+  }
+}
+''');
   }
 }
 

@@ -29,7 +29,7 @@ List<String> _experimentsArgument(
     return const [];
   }
 
-  var experiments = [...configuration.experiments, ...testFile.experiments];
+  var experiments = {...configuration.experiments, ...testFile.experiments};
   return ["--enable-experiment=${experiments.join(',')}"];
 }
 
@@ -312,7 +312,7 @@ class ComposedCompilerConfiguration extends CompilerConfiguration {
 
     // The first compilation command is as usual.
     var arguments = pipelineCommands[0].extractArguments(globalArguments, null);
-    CommandArtifact artifact = pipelineCommands[0]
+    var artifact = pipelineCommands[0]
         .compilerConfiguration
         .computeCompilationArtifact(tempDir, arguments, environmentOverrides);
     allCommands.addAll(artifact.commands);
@@ -320,7 +320,7 @@ class ComposedCompilerConfiguration extends CompilerConfiguration {
     // The following compilation commands are based on the output of the
     // previous one.
     for (var i = 1; i < pipelineCommands.length; i++) {
-      PipelineCommand command = pipelineCommands[i];
+      var command = pipelineCommands[i];
 
       arguments = command.extractArguments(globalArguments, artifact.filename);
       artifact = command.compilerConfiguration
@@ -351,8 +351,7 @@ class ComposedCompilerConfiguration extends CompilerConfiguration {
       List<String> vmOptions,
       List<String> originalArguments,
       CommandArtifact artifact) {
-    CompilerConfiguration lastCompilerConfiguration =
-        pipelineCommands.last.compilerConfiguration;
+    var lastCompilerConfiguration = pipelineCommands.last.compilerConfiguration;
     return lastCompilerConfiguration.computeRuntimeArguments(
         runtimeConfiguration, testFile, vmOptions, originalArguments, artifact);
   }
@@ -368,7 +367,9 @@ class Dart2xCompilerConfiguration extends CompilerConfiguration {
       : super._subclass(configuration);
 
   String computeCompilerPath() {
-    var prefix = 'sdk/bin';
+    var prefix =
+        // TODO(38701): Cleanup after merging the forked SDK into mainline.
+        _configuration.nnbdMode == NnbdMode.legacy ? 'sdk/bin' : 'sdk_nnbd/bin';
     var suffix = shellScriptExtension;
 
     if (_isHostChecked) {
@@ -458,10 +459,12 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
       List<String> vmOptions,
       List<String> originalArguments,
       CommandArtifact artifact) {
-    Uri sdk = _useSdk
+    var sdk = _useSdk
         ? Uri.directory(_configuration.buildDirectory).resolve('dart-sdk/')
-        : Uri.directory(Repository.dir.toNativePath()).resolve('sdk/');
-    Uri preambleDir = sdk.resolve('lib/_internal/js_runtime/lib/preambles/');
+        : Uri.directory(Repository.dir.toNativePath()).resolve(
+            // TODO(38701): Cleanup after merging the forked SDK into mainline.
+            _configuration.nnbdMode == NnbdMode.legacy ? 'sdk/' : 'sdk_nnbd/');
+    var preambleDir = sdk.resolve('lib/_internal/js_runtime/lib/preambles/');
     return runtimeConfiguration.dart2jsPreambles(preambleDir)
       ..add(artifact.filename);
   }
@@ -491,7 +494,10 @@ class DevCompilerConfiguration extends CompilerConfiguration {
   bool get useKernel => _configuration.compiler == Compiler.dartdevk;
 
   String computeCompilerPath() {
-    var dir = _useSdk ? "${_configuration.buildDirectory}/dart-sdk" : "sdk";
+    var dir = _useSdk
+        ? "${_configuration.buildDirectory}/dart-sdk"
+        // TODO(38701): Cleanup after merging the forked SDK into mainline.
+        : _configuration.nnbdMode == NnbdMode.legacy ? "sdk" : "sdk_nnbd";
     return "$dir/bin/dartdevc$shellScriptExtension";
   }
 
@@ -509,37 +515,15 @@ class DevCompilerConfiguration extends CompilerConfiguration {
 
   Command _createCommand(String inputFile, String outputFile,
       List<String> sharedOptions, Map<String, String> environment) {
-    /// This can be disabled to test DDC's hybrid mode (automatically converting
-    /// Analyzer summaries to Kernel files).
-    ///
-    /// The current DDC configurations are:
-    ///
-    /// - using Analyzer ASTs and Analyzer summaries: the current default
-    ///   configuration; used in internal builds.
-    /// - using Kernel trees and Kernel IL files: the new default for external
-    ///   users (e.g. Flutter Web), and in the future, the only DDC mode.
-    /// - using Kernel trees, but Analyzer summaries (converted automatically):
-    ///   this was intended to help migrate internal users, but is currently
-    ///   unused.
-    ///
-    /// The first two are tested on the bots and are called "dartdevc" and
-    /// "dartdevk" respectively. This flag switches "dartdevk" to use either
-    /// Kernel IL files, or the Analyzer summaries.
-    final useDillFormat = useKernel;
-
     var args = <String>[];
-    if (useKernel) {
-      args.add('--kernel');
-    }
     if (!_useSdk) {
       // If we're testing a built SDK, DDC will find its own summary.
       //
       // For local development we don't have a built SDK yet, so point directly
       // at the built summary file location.
-      var sdkSummaryFile =
-          useDillFormat ? 'kernel/ddc_sdk.dill' : 'ddc_sdk.sum';
+      var sdkSummaryFile = 'ddc_sdk.dill';
       var sdkSummary = Path(_configuration.buildDirectory)
-          .append("/gen/utils/dartdevc/$sdkSummaryFile")
+          .append(sdkSummaryFile)
           .absolute
           .toNativePath();
       args.addAll(["--dart-sdk-summary", sdkSummary]);
@@ -558,16 +542,17 @@ class DevCompilerConfiguration extends CompilerConfiguration {
 
     // Link to the summaries for the available packages, so that they don't
     // get recompiled into the test's own module.
-    var pkgDir = useDillFormat ? 'pkg_kernel' : 'pkg';
-    var pkgExtension = useDillFormat ? 'dill' : 'sum';
-    for (var package in testPackages) {
+    var packages = _configuration.nnbdMode == NnbdMode.legacy
+        ? testPackages
+        : testPackagesNnbd;
+    for (var package in packages) {
       args.add("-s");
 
       // Since the summaries for the packages are not near the tests, we give
       // dartdevc explicit module paths for each one. When the test is run, we
       // will tell require.js where to find each package's compiled JS.
       var summary = Path(_configuration.buildDirectory)
-          .append("/gen/utils/dartdevc/$pkgDir/$package.$pkgExtension")
+          .append("/gen/utils/dartdevc/pkg_kernel/$package.dill")
           .absolute
           .toNativePath();
       args.add("$summary=$package");
@@ -794,12 +779,9 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
 
   Command computeStripCommand(
       String tempDir, Map<String, String> environmentOverrides) {
-    final String stripTool = "$ndkPath/toolchains/$abiTriple-4.9/prebuilt/"
+    var stripTool = "$ndkPath/toolchains/$abiTriple-4.9/prebuilt/"
         "$host-x86_64/bin/$abiTriple-strip";
-    final List<String> args = [
-      '--strip-unneeded',
-      "$tempDir/out.aotsnapshot",
-    ];
+    var args = ['--strip-unneeded', "$tempDir/out.aotsnapshot"];
     return CompilationCommand('strip', tempDir, bootstrapDependencies(),
         stripTool, args, environmentOverrides,
         alwaysCompile: !_useSdk);
@@ -939,7 +921,9 @@ class AnalyzerCompilerConfiguration extends CompilerConfiguration {
   int get timeoutMultiplier => 4;
 
   String computeCompilerPath() {
-    var prefix = 'sdk/bin';
+    var prefix =
+        // TODO(38701): Cleanup after merging the forked SDK into mainline.
+        _configuration.nnbdMode == NnbdMode.legacy ? 'sdk/bin' : 'sdk_nnbd/bin';
     if (_isHostChecked) {
       if (_useSdk) {
         throw "--host-checked and --use-sdk cannot be used together";
@@ -1060,10 +1044,10 @@ abstract class VMKernelCompilerMixin {
 
   Command computeCompileToKernelCommand(String tempDir, List<String> arguments,
       Map<String, String> environmentOverrides) {
-    final pkgVmDir = Platform.script.resolve('../../../pkg/vm').toFilePath();
-    final genKernel = '$pkgVmDir/tool/gen_kernel$shellScriptExtension';
+    var pkgVmDir = Platform.script.resolve('../../../pkg/vm').toFilePath();
+    var genKernel = '$pkgVmDir/tool/gen_kernel$shellScriptExtension';
 
-    final String useAbiVersion = arguments.firstWhere(
+    var useAbiVersion = arguments.firstWhere(
         (arg) => arg.startsWith('--use-abi-version='),
         orElse: () => null);
 

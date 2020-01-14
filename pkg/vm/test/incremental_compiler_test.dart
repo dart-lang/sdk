@@ -129,6 +129,132 @@ main() {
     });
   });
 
+  /// Collects coverage for "main.dart", "lib.dart", "lib1.dart" and "lib2.dart"
+  /// checks that all tokens can be translated to line and column,
+  /// return the hit positions for "lib1.dart".
+  /// If [getAllSources] is false it will ask specifically for report
+  /// (and thus hits) for "lib1.dart" only.
+  Future<Set<int>> collectAndCheckCoverageData(int port, bool getAllSources,
+      {bool resume: true}) async {
+    RemoteVm remoteVm = new RemoteVm(port);
+
+    // Wait for the script to have finished.
+    while (true) {
+      Map isolate = await remoteVm.getIsolate();
+      Map pauseEvent = isolate["pauseEvent"];
+      if (pauseEvent["kind"] == "PauseExit") break;
+    }
+
+    // Collect coverage for the two user scripts.
+    List<Map> sourceReports = new List<Map>();
+    if (getAllSources) {
+      Map sourceReport = await remoteVm.getSourceReport();
+      sourceReports.add(sourceReport);
+    } else {
+      Map scriptsMap = await remoteVm.getScripts();
+      List scripts = scriptsMap["scripts"];
+      Set<String> scriptIds = new Set<String>();
+      for (int i = 0; i < scripts.length; i++) {
+        Map script = scripts[i];
+        String scriptUri = script["uri"];
+        if (scriptUri.contains("lib1.dart")) {
+          scriptIds.add(script["id"]);
+        }
+      }
+
+      for (String scriptId in scriptIds) {
+        Map sourceReport = await remoteVm.getSourceReport(scriptId);
+        sourceReports.add(sourceReport);
+      }
+    }
+
+    List<String> errorMessages = new List<String>();
+    Set<int> hits = new Set<int>();
+
+    // Ensure that we can get a line and column number for all reported
+    // positions in the scripts we care about.
+    for (Map sourceReport in sourceReports) {
+      List scripts = sourceReport["scripts"];
+      Map<String, int> scriptIdToIndex = new Map<String, int>();
+      Set<int> lib1scriptIndices = new Set<int>();
+      int i = 0;
+      for (Map script in scripts) {
+        if (script["uri"].toString().endsWith("main.dart") ||
+            script["uri"].toString().endsWith("lib.dart") ||
+            script["uri"].toString().endsWith("lib1.dart") ||
+            script["uri"].toString().endsWith("lib2.dart")) {
+          scriptIdToIndex[script["id"]] = i;
+          if (script["uri"].toString().endsWith("lib1.dart")) {
+            lib1scriptIndices.add(i);
+          }
+        }
+        i++;
+      }
+      if (getAllSources) {
+        expect(scriptIdToIndex.length >= 2, isTrue);
+      }
+
+      // Ensure the scripts all have a non-null 'tokenPosTable' entry.
+      Map<int, Map> scriptIndexToScript = new Map<int, Map>();
+      for (String scriptId in scriptIdToIndex.keys) {
+        Map script = await remoteVm.getObject(scriptId);
+        int scriptIdx = scriptIdToIndex[scriptId];
+        scriptIndexToScript[scriptIdx] = script;
+        List tokenPosTable = script["tokenPosTable"];
+        if (tokenPosTable == null) {
+          errorMessages.add("Script with uri ${script['uri']} "
+              "and id ${script['id']} "
+              "has null tokenPosTable.");
+        } else if (tokenPosTable.isEmpty) {
+          errorMessages.add("Script with uri ${script['uri']} "
+              "and id ${script['id']} "
+              "has empty tokenPosTable.");
+        }
+      }
+
+      List ranges = sourceReport["ranges"];
+      Set<int> scriptIndexesSet = new Set<int>.from(scriptIndexToScript.keys);
+      for (Map range in ranges) {
+        if (scriptIndexesSet.contains(range["scriptIndex"])) {
+          Set<int> positions = new Set<int>();
+          positions.add(range["startPos"]);
+          positions.add(range["endPos"]);
+          Map coverage = range["coverage"];
+          for (int pos in coverage["hits"]) {
+            positions.add(pos);
+            if (lib1scriptIndices.contains(range["scriptIndex"])) {
+              hits.add(pos);
+            }
+          }
+          for (int pos in coverage["misses"]) positions.add(pos);
+          for (int pos in range["possibleBreakpoints"]) positions.add(pos);
+          Map script = scriptIndexToScript[range["scriptIndex"]];
+          Set<int> knownPositions = new Set<int>();
+          if (script["tokenPosTable"] != null) {
+            for (List tokenPosTableLine in script["tokenPosTable"]) {
+              for (int i = 1; i < tokenPosTableLine.length; i += 2) {
+                knownPositions.add(tokenPosTableLine[i]);
+              }
+            }
+          }
+          for (int pos in positions) {
+            if (!knownPositions.contains(pos)) {
+              errorMessages.add("Script with uri ${script['uri']} "
+                  "and id ${script['id']} "
+                  "references position $pos which cannot be translated to "
+                  "line and column.");
+            }
+          }
+        }
+      }
+    }
+    expect(errorMessages, isEmpty);
+    if (resume) {
+      remoteVm.resume();
+    }
+    return hits;
+  }
+
   group('multiple kernels', () {
     Directory mytest;
     File main;
@@ -320,86 +446,6 @@ main() {
     });
 
     test('collect coverage', () async {
-      collectStuff(int port) async {
-        RemoteVm remoteVm = new RemoteVm(port);
-
-        // Wait for the script to have finished.
-        while (true) {
-          Map isolate = await remoteVm.getIsolate();
-          Map pauseEvent = isolate["pauseEvent"];
-          if (pauseEvent["kind"] == "PauseExit") break;
-        }
-
-        // Collect coverage for the two user scripts.
-        Map sourceReport = await remoteVm.getSourceReport();
-        List scripts = sourceReport["scripts"];
-        Map<String, int> scriptIdToIndex = new Map<String, int>();
-        int i = 0;
-        for (Map script in scripts) {
-          if (script["uri"].toString().endsWith("main.dart") ||
-              script["uri"].toString().endsWith("lib.dart")) {
-            scriptIdToIndex[script["id"]] = i;
-          }
-          i++;
-        }
-        expect(scriptIdToIndex.length >= 2, isTrue);
-
-        List<String> errorMessages = new List<String>();
-
-        // Ensure the scripts all have a non-null 'tokenPosTable' entry.
-        Map<int, Map> scriptIndexToScript = new Map<int, Map>();
-        for (String scriptId in scriptIdToIndex.keys) {
-          Map script = await remoteVm.getObject(scriptId);
-          int scriptIdx = scriptIdToIndex[scriptId];
-          scriptIndexToScript[scriptIdx] = script;
-          List tokenPosTable = script["tokenPosTable"];
-          if (tokenPosTable == null) {
-            errorMessages.add("Script with uri ${script['uri']} "
-                "and id ${script['id']} "
-                "has null tokenPosTable.");
-          } else if (tokenPosTable.isEmpty) {
-            errorMessages.add("Script with uri ${script['uri']} "
-                "and id ${script['id']} "
-                "has empty tokenPosTable.");
-          }
-        }
-
-        // Ensure that we can get a line and column number for all reported
-        // positions in the scripts we care about.
-        List ranges = sourceReport["ranges"];
-        Set<int> scriptIndexesSet = new Set<int>.from(scriptIndexToScript.keys);
-        for (Map range in ranges) {
-          if (scriptIndexesSet.contains(range["scriptIndex"])) {
-            Set<int> positions = new Set<int>();
-            positions.add(range["startPos"]);
-            positions.add(range["endPos"]);
-            Map coverage = range["coverage"];
-            for (int pos in coverage["hits"]) positions.add(pos);
-            for (int pos in coverage["misses"]) positions.add(pos);
-            for (int pos in range["possibleBreakpoints"]) positions.add(pos);
-            Map script = scriptIndexToScript[range["scriptIndex"]];
-            Set<int> knownPositions = new Set<int>();
-            if (script["tokenPosTable"] != null) {
-              for (List tokenPosTableLine in script["tokenPosTable"]) {
-                for (int i = 1; i < tokenPosTableLine.length; i += 2) {
-                  knownPositions.add(tokenPosTableLine[i]);
-                }
-              }
-            }
-            for (int pos in positions) {
-              if (!knownPositions.contains(pos)) {
-                errorMessages.add("Script with uri ${script['uri']} "
-                    "and id ${script['id']} "
-                    "references position $pos which cannot be translated to "
-                    "line and column.");
-              }
-            }
-          }
-        }
-        expect(errorMessages, isEmpty);
-        remoteVm.resume();
-      }
-
       Directory dir = mytest.createTempSync();
       File mainDill = File(p.join(dir.path, p.basename(main.path + ".dill")));
       File libDill = File(p.join(dir.path, p.basename(lib.path + ".dill")));
@@ -429,7 +475,143 @@ main() {
           expect(observatoryPortRegExp.hasMatch(s), isTrue);
           final match = observatoryPortRegExp.firstMatch(s);
           port = int.parse(match.group(1));
-          await collectStuff(port);
+          await collectAndCheckCoverageData(port, true);
+          if (!portLineCompleter.isCompleted) {
+            portLineCompleter.complete("done");
+          }
+        }
+        print("vm stdout: $s");
+      });
+      vm.stderr.transform(utf8.decoder).transform(splitter).listen((String s) {
+        print("vm stderr: $s");
+      });
+      await portLineCompleter.future;
+      print("Compiler terminated with ${await vm.exitCode} exit code");
+    });
+  });
+
+  group('multiple kernels 2', () {
+    Directory mytest;
+    File main;
+    File lib1;
+    File lib2;
+    Process vm;
+    setUpAll(() {
+      mytest = Directory.systemTemp.createTempSync('incremental');
+      main = new File('${mytest.path}/main.dart')..createSync();
+      main.writeAsStringSync("""
+        import 'lib1.dart';
+        import 'lib2.dart';
+
+        void main() {
+          TestA().foo();
+          bar();
+        }
+
+        class TestA with A {}
+      """);
+      lib1 = new File('${mytest.path}/lib1.dart')..createSync();
+      lib1.writeAsStringSync("""
+        mixin A {
+          void foo() {
+            print('foo');
+          }
+          void bar() {
+            print('bar');
+          }
+        }
+      """);
+      lib2 = new File('${mytest.path}/lib2.dart')..createSync();
+      lib2.writeAsStringSync("""
+        import 'lib1.dart';
+        void bar() {
+          TestB().bar();
+        }
+        class TestB with A {}
+      """);
+    });
+
+    tearDownAll(() {
+      try {
+        mytest.deleteSync(recursive: true);
+      } catch (_) {
+        // Ignore errors;
+      }
+      try {
+        vm.kill();
+      } catch (_) {
+        // Ignore errors;
+      }
+    });
+
+    compileAndSerialize(File mainDill, File lib1Dill, File lib2Dill,
+        IncrementalCompiler compiler) async {
+      Component component = await compiler.compile();
+      new BinaryPrinter(new DevNullSink<List<int>>())
+          .writeComponentFile(component);
+      IOSink sink = mainDill.openWrite();
+      BinaryPrinter printer = new LimitedBinaryPrinter(
+          sink,
+          (lib) => lib.fileUri.path.endsWith("main.dart"),
+          false /* excludeUriToSource */);
+      printer.writeComponentFile(component);
+      await sink.flush();
+      await sink.close();
+      sink = lib1Dill.openWrite();
+      printer = new LimitedBinaryPrinter(
+          sink,
+          (lib) => lib.fileUri.path.endsWith("lib1.dart"),
+          false /* excludeUriToSource */);
+      printer.writeComponentFile(component);
+      await sink.flush();
+      await sink.close();
+      sink = lib2Dill.openWrite();
+      printer = new LimitedBinaryPrinter(
+          sink,
+          (lib) => lib.fileUri.path.endsWith("lib2.dart"),
+          false /* excludeUriToSource */);
+      printer.writeComponentFile(component);
+      await sink.flush();
+      await sink.close();
+    }
+
+    test('collect coverage hits', () async {
+      Directory dir = mytest.createTempSync();
+      File mainDill = File(p.join(dir.path, p.basename(main.path + ".dill")));
+      File lib1Dill = File(p.join(dir.path, p.basename(lib1.path + ".dill")));
+      File lib2Dill = File(p.join(dir.path, p.basename(lib2.path + ".dill")));
+      IncrementalCompiler compiler = new IncrementalCompiler(options, main.uri);
+      await compileAndSerialize(mainDill, lib1Dill, lib2Dill, compiler);
+
+      var list = new File(p.join(dir.path, 'myMain.dilllist'))..createSync();
+      list.writeAsStringSync(
+          "#@dill\n${mainDill.path}\n${lib1Dill.path}\n${lib2Dill.path}\n");
+      vm = await Process.start(Platform.resolvedExecutable, <String>[
+        "--pause-isolates-on-exit",
+        "--enable-vm-service:0",
+        "--disable-service-auth-codes",
+        list.path
+      ]);
+
+      const kObservatoryListening = 'Observatory listening on ';
+      final RegExp observatoryPortRegExp =
+          new RegExp("Observatory listening on http://127.0.0.1:\([0-9]*\)/");
+      int port;
+      final splitter = new LineSplitter();
+      Completer<String> portLineCompleter = new Completer<String>();
+      vm.stdout
+          .transform(utf8.decoder)
+          .transform(splitter)
+          .listen((String s) async {
+        if (s.startsWith(kObservatoryListening)) {
+          expect(observatoryPortRegExp.hasMatch(s), isTrue);
+          final match = observatoryPortRegExp.firstMatch(s);
+          port = int.parse(match.group(1));
+          Set<int> hits1 =
+              await collectAndCheckCoverageData(port, true, resume: false);
+          Set<int> hits2 =
+              await collectAndCheckCoverageData(port, false, resume: true);
+          expect(hits1.toList()..sort(), equals(hits2.toList()..sort()));
           if (!portLineCompleter.isCompleted) {
             portLineCompleter.complete("done");
           }
@@ -689,8 +871,23 @@ class RemoteVm {
     return await rpc.sendRequest('getIsolate', {'isolateId': id});
   }
 
-  Future getSourceReport() async {
+  Future getScripts() async {
     var id = await mainId;
+    return await rpc.sendRequest('getScripts', {
+      'isolateId': id,
+    });
+  }
+
+  Future getSourceReport([String scriptId]) async {
+    var id = await mainId;
+    if (scriptId != null) {
+      return await rpc.sendRequest('getSourceReport', {
+        'isolateId': id,
+        'scriptId': scriptId,
+        'reports': ['Coverage', 'PossibleBreakpoints'],
+        'forceCompile': true
+      });
+    }
     return await rpc.sendRequest('getSourceReport', {
       'isolateId': id,
       'reports': ['Coverage', 'PossibleBreakpoints'],

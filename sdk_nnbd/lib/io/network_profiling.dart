@@ -6,13 +6,19 @@
 
 part of dart.io;
 
+const int _versionMajor = 1;
+const int _versionMinor = 1;
+
 const String _tcpSocket = 'tcp';
 const String _udpSocket = 'udp';
 
 @pragma('vm:entry-point', !const bool.fromEnvironment("dart.vm.product"))
 abstract class _NetworkProfiling {
   // Http relative RPCs
-  static const _kGetHttpProfileRPC = 'ext.dart.io.getHttpProfile';
+  static const _kGetHttpEnableTimelineLogging =
+      'ext.dart.io.getHttpEnableTimelineLogging';
+  static const _kSetHttpEnableTimelineLogging =
+      'ext.dart.io.setHttpEnableTimelineLogging';
   // Socket relative RPCs
   static const _kClearSocketProfileRPC = 'ext.dart.io.clearSocketProfile';
   static const _kGetSocketProfileRPC = 'ext.dart.io.getSocketProfile';
@@ -26,7 +32,8 @@ abstract class _NetworkProfiling {
 
   @pragma('vm:entry-point')
   static void _registerServiceExtension() {
-    registerExtension(_kGetHttpProfileRPC, _serviceExtensionHandler);
+    registerExtension(_kGetHttpEnableTimelineLogging, _serviceExtensionHandler);
+    registerExtension(_kSetHttpEnableTimelineLogging, _serviceExtensionHandler);
     registerExtension(_kGetSocketProfileRPC, _serviceExtensionHandler);
     registerExtension(_kStartSocketProfilingRPC, _serviceExtensionHandler);
     registerExtension(_kPauseSocketProfilingRPC, _serviceExtensionHandler);
@@ -36,50 +43,74 @@ abstract class _NetworkProfiling {
 
   static Future<ServiceExtensionResponse> _serviceExtensionHandler(
       String method, Map<String, String> parameters) {
-    String responseJson;
-    switch (method) {
-      case _kGetHttpProfileRPC:
-        responseJson = _HttpProfile.toJson();
-        break;
-      case _kGetSocketProfileRPC:
-        responseJson = _SocketProfile.toJson();
-        break;
-      case _kStartSocketProfilingRPC:
-        responseJson = _SocketProfile.start();
-        break;
-      case _kPauseSocketProfilingRPC:
-        responseJson = _SocketProfile.pause();
-        break;
-      case _kClearSocketProfileRPC:
-        responseJson = _SocketProfile.clear();
-        break;
-      case _kGetVersionRPC:
-        responseJson = getVersion();
-        break;
-      default:
-        return Future.value(ServiceExtensionResponse.error(
-            ServiceExtensionResponse.extensionError,
-            'Method $method does not exist'));
+    try {
+      String responseJson;
+      switch (method) {
+        case _kGetHttpEnableTimelineLogging:
+          responseJson = _getHttpEnableTimelineLogging();
+          break;
+        case _kSetHttpEnableTimelineLogging:
+          responseJson = _setHttpEnableTimelineLogging(parameters);
+          break;
+        case _kGetSocketProfileRPC:
+          responseJson = _SocketProfile.toJson();
+          break;
+        case _kStartSocketProfilingRPC:
+          responseJson = _SocketProfile.start();
+          break;
+        case _kPauseSocketProfilingRPC:
+          responseJson = _SocketProfile.pause();
+          break;
+        case _kClearSocketProfileRPC:
+          responseJson = _SocketProfile.clear();
+          break;
+        case _kGetVersionRPC:
+          responseJson = getVersion();
+          break;
+        default:
+          return Future.value(ServiceExtensionResponse.error(
+              ServiceExtensionResponse.extensionError,
+              'Method $method does not exist'));
+      }
+      return Future.value(ServiceExtensionResponse.result(responseJson));
+    } catch (errorMessage) {
+      return Future.value(ServiceExtensionResponse.error(
+          ServiceExtensionResponse.invalidParams, errorMessage));
     }
-    return Future.value(ServiceExtensionResponse.result(responseJson));
   }
 
   static String getVersion() => json.encode({
         'type': 'Version',
-        'major': 1,
-        'minor': 0,
+        'major': _versionMajor,
+        'minor': _versionMinor,
       });
 }
 
-abstract class _HttpProfile {
-  static const _kType = 'HttpProfile';
-  // TODO(bkonyi): implement.
-  static String toJson() {
-    final response = <String, dynamic>{
-      'type': _kType,
-    };
-    return json.encode(response);
+String _success() => json.encode({
+      'type': 'Success',
+    });
+
+String _invalidArgument(String argument, dynamic value) =>
+    "Value for parameter '$argument' is not valid: $value";
+
+String _missingArgument(String argument) => "Parameter '$argument' is required";
+
+String _getHttpEnableTimelineLogging() => json.encode({
+      'type': 'HttpTimelineLoggingState',
+      'enabled': HttpClient.enableTimelineLogging,
+    });
+
+String _setHttpEnableTimelineLogging(Map<String, String> parameters) {
+  const String kEnable = 'enable';
+  if (!parameters.containsKey(kEnable)) {
+    throw _missingArgument(kEnable);
   }
+  final enable = parameters[kEnable].toLowerCase();
+  if (enable != 'true' && enable != 'false') {
+    throw _invalidArgument(kEnable, enable);
+  }
+  HttpClient.enableTimelineLogging = (enable == 'true');
+  return _success();
 }
 
 abstract class _SocketProfile {
@@ -134,12 +165,14 @@ abstract class _SocketProfile {
         assert(object is int);
         stats.readBytes ??= 0;
         stats.readBytes += object;
+        stats.lastReadTime = Timeline.now;
         break;
       case _SocketProfileType.writeBytes:
         if (object == null) return;
         assert(object is int);
         stats.writeBytes ??= 0;
         stats.writeBytes += object;
+        stats.lastWriteTime = Timeline.now;
         break;
       default:
         throw ArgumentError('type ${type} does not exist');
@@ -149,23 +182,19 @@ abstract class _SocketProfile {
 
   static String start() {
     _enableSocketProfiling = true;
-    return success();
+    return _success();
   }
 
   static String pause() {
     _enableSocketProfiling = false;
-    return success();
+    return _success();
   }
 
   // clear the storage if _idToSocketStatistic has been initialized.
   static String clear() {
     _idToSocketStatistic?.clear();
-    return success();
+    return _success();
   }
-
-  static String success() => json.encode({
-        'type': 'Success',
-      });
 }
 
 /// The [_SocketProfileType] is used as a parameter for
@@ -190,6 +219,8 @@ class _SocketStatistic {
   String socketType;
   int readBytes = 0;
   int writeBytes = 0;
+  int lastWriteTime;
+  int lastReadTime;
 
   _SocketStatistic(this.id);
 
@@ -204,6 +235,8 @@ class _SocketStatistic {
     _setIfNotNull(map, 'socketType', socketType);
     _setIfNotNull(map, 'readBytes', readBytes);
     _setIfNotNull(map, 'writeBytes', writeBytes);
+    _setIfNotNull(map, 'lastWriteTime', lastWriteTime);
+    _setIfNotNull(map, 'lastReadTime', lastReadTime);
     return map;
   }
 

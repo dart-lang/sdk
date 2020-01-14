@@ -28,7 +28,7 @@ mixin DartOutlineMixin implements OutlineMixin {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     ResolvedUnitResult result = await getResolvedUnitResult(path);
-    return new DartOutlineRequestImpl(resourceProvider, result);
+    return DartOutlineRequestImpl(resourceProvider, result);
   }
 }
 
@@ -61,7 +61,7 @@ mixin OutlineMixin implements ServerPlugin {
     try {
       OutlineRequest request = await getOutlineRequest(path);
       OutlineGenerator generator =
-          new OutlineGenerator(getOutlineContributors(path));
+          OutlineGenerator(getOutlineContributors(path));
       GeneratorResult generatorResult =
           generator.generateOutlineNotification(request);
       generatorResult.sendNotifications(channel);

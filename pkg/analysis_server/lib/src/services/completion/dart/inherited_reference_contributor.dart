@@ -145,7 +145,7 @@ class InheritedReferenceContributor extends DartCompletionContributor
       suggestion.displayText = 'setState(() {});';
 
       // Build the completion and the selection offset.
-      var buffer = new StringBuffer();
+      var buffer = StringBuffer();
       buffer.writeln('setState(() {');
       buffer.write('$indent  ');
       suggestion.selectionOffset = buffer.length;

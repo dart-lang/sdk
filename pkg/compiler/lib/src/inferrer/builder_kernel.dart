@@ -391,7 +391,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
 
     if (_closedWorld.nativeData.isNativeMember(_analyzedMember)) {
       // Native methods do not have a body, and we currently just say
-      // they return dynamic.
+      // they return dynamic and may contain all side-effects.
+      _sideEffectsBuilder.setAllSideEffectsAndDependsOnSomething();
       return _types.dynamicType;
     }
 
@@ -1824,6 +1825,12 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   TypeInformation visitAsExpression(ir.AsExpression node) {
     TypeInformation operandType = visit(node.operand);
     return _types.narrowType(operandType, _elementMap.getDartType(node.type));
+  }
+
+  @override
+  TypeInformation visitNullCheck(ir.NullCheck node) {
+    TypeInformation operandType = visit(node.operand);
+    return _types.narrowType(operandType, _getStaticType(node));
   }
 
   @override

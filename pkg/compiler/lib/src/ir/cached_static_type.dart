@@ -81,4 +81,7 @@ class CachedStaticType extends StaticTypeBase implements StaticTypeProvider {
 
   @override
   ir.DartType visitInstantiation(ir.Instantiation node) => _getStaticType(node);
+
+  @override
+  ir.DartType visitNullCheck(ir.NullCheck node) => _getStaticType(node);
 }

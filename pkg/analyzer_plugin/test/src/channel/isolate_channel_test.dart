@@ -21,8 +21,8 @@ class PluginIsolateChannelTest {
   PluginIsolateChannel channel;
 
   void setUp() {
-    sendPort = new TestSendPort();
-    channel = new PluginIsolateChannel(sendPort);
+    sendPort = TestSendPort();
+    channel = PluginIsolateChannel(sendPort);
   }
 
   void tearDown() {
@@ -50,7 +50,7 @@ class PluginIsolateChannelTest {
   }
 
   Future<void> test_listen() async {
-    Request sentRequest = new PluginShutdownParams().toRequest('5');
+    Request sentRequest = PluginShutdownParams().toRequest('5');
     Request receivedRequest;
     channel.listen((Request request) {
       receivedRequest = request;
@@ -62,14 +62,14 @@ class PluginIsolateChannelTest {
 
   void test_sendNotification() {
     Notification notification =
-        new PluginErrorParams(false, '', '').toNotification();
+        PluginErrorParams(false, '', '').toNotification();
     channel.sendNotification(notification);
     expect(sendPort.sentMessages, hasLength(1));
     expect(sendPort.sentMessages[0], notification.toJson());
   }
 
   void test_sendResponse() {
-    Response response = new PluginShutdownResult().toResponse('3', 1);
+    Response response = PluginShutdownResult().toResponse('3', 1);
     channel.sendResponse(response);
     expect(sendPort.sentMessages, hasLength(1));
     expect(sendPort.sentMessages[0], response.toJson());
@@ -81,12 +81,12 @@ class PluginIsolateChannelTest {
    * any code to run, as long as it's not waiting on some external event.
    */
   Future<void> _pumpEventQueue([int times = 5000]) {
-    if (times == 0) return new Future.value();
+    if (times == 0) return Future.value();
     // We use a delayed future to allow microtask events to finish. The
     // Future.value or Future() constructors use scheduleMicrotask themselves and
     // would therefore not wait for microtask callbacks that are scheduled after
     // invoking this method.
-    return new Future.delayed(Duration.zero, () => _pumpEventQueue(times - 1));
+    return Future.delayed(Duration.zero, () => _pumpEventQueue(times - 1));
   }
 }
 

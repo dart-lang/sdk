@@ -6,10 +6,12 @@ part of models;
 
 abstract class HeapSnapshot {
   DateTime get timestamp;
+  String get description;
   int get size;
   SnapshotObject get root;
   HeapSnapshotMergedDominatorNode get mergedDominatorTree;
   Iterable<SnapshotClass> get classes;
+  Map<String, int> get processPartitions;
   Uint8List get encoded;
 }
 

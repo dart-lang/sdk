@@ -37,7 +37,7 @@ class AstWriter extends UnifyingAstVisitor with TreeWriter {
    * Write a representation of the properties of the given [node] to the buffer.
    */
   Map<String, Object> _computeProperties(AstNode node) {
-    Map<String, Object> properties = new HashMap<String, Object>();
+    Map<String, Object> properties = HashMap<String, Object>();
 
     properties['name'] = _getName(node);
     if (node is ArgumentListImpl) {
@@ -199,7 +199,7 @@ class AstWriter extends UnifyingAstVisitor with TreeWriter {
    * the variables in the given list of [variables].
    */
   String _getNames(VariableDeclarationList variables) {
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     bool first = true;
     for (VariableDeclaration variable in variables.variables) {
       if (first) {

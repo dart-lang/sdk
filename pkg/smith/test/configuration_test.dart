@@ -397,6 +397,7 @@ architecture: ia32 x64
    runtime: chrome d8
    system: android fuchsia
    nnbd: legacy strong
+   sanitizer: none none
    builder-tag: a tag b tag
    vm-options: [vm a1, vm a2] [vm b1, vm b2]
    dart2js-options: [dart2js a1, dart2js a2] [dart2js b1, dart2js b2]
@@ -427,6 +428,7 @@ architecture: ia32 ia32
    runtime: chrome chrome
    system: android android
    nnbd: legacy legacy
+   sanitizer: none none
    builder-tag: a tag a tag
    vm-options: [vm a1, vm a2] [vm a1, vm a2]
    dart2js-options: [dart2js a1, dart2js a2] [dart2js a1, dart2js a2]

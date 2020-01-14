@@ -852,14 +852,15 @@ mixin M {
   }
 
   test_error_mixinInstantiate_default() async {
-    await resolveTestCode(r'''
+    await assertErrorsInCode(r'''
 mixin M {}
 
 main() {
   new M();
 }
-''');
-    assertTestErrorsWithCodes([CompileTimeErrorCode.MIXIN_INSTANTIATE]);
+''', [
+      error(CompileTimeErrorCode.MIXIN_INSTANTIATE, 27, 1),
+    ]);
 
     var creation = findNode.instanceCreation('M();');
     var m = findElement.mixin('M');
@@ -1290,7 +1291,7 @@ mixin M {}
   }
 
   test_methodCallTypeInference_mixinType() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 main() {
   C<int> c = f();
 }
@@ -1300,9 +1301,11 @@ class C<T> {}
 mixin M<T> on C<T> {}
 
 M<T> f<T>() => null;
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 18, 1),
+    ]);
     var fInvocation = findNode.methodInvocation('f()');
-    expect(fInvocation.staticInvokeType.toString(), 'M<int> Function()');
+    assertInvokeType(fInvocation, 'M<int> Function()');
   }
 
   test_onClause() async {

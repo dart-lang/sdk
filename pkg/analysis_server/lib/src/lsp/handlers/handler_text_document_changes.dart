@@ -17,12 +17,14 @@ import 'package:path/path.dart' show dirname, join;
 class TextDocumentChangeHandler
     extends MessageHandler<DidChangeTextDocumentParams, void> {
   TextDocumentChangeHandler(LspAnalysisServer server) : super(server);
+  @override
   Method get handlesMessage => Method.textDocument_didChange;
 
   @override
   LspJsonHandler<DidChangeTextDocumentParams> get jsonHandler =>
       DidChangeTextDocumentParams.jsonHandler;
 
+  @override
   ErrorOr<void> handle(
       DidChangeTextDocumentParams params, CancellationToken token) {
     final path = pathOfDoc(params.textDocument);
@@ -61,12 +63,14 @@ class TextDocumentCloseHandler
   TextDocumentCloseHandler(LspAnalysisServer server, this.updateAnalysisRoots)
       : super(server);
 
+  @override
   Method get handlesMessage => Method.textDocument_didClose;
 
   @override
   LspJsonHandler<DidCloseTextDocumentParams> get jsonHandler =>
       DidCloseTextDocumentParams.jsonHandler;
 
+  @override
   ErrorOr<void> handle(
       DidCloseTextDocumentParams params, CancellationToken token) {
     final path = pathOfDoc(params.textDocument);
@@ -107,12 +111,14 @@ class TextDocumentOpenHandler
   TextDocumentOpenHandler(LspAnalysisServer server, this.updateAnalysisRoots)
       : super(server);
 
+  @override
   Method get handlesMessage => Method.textDocument_didOpen;
 
   @override
   LspJsonHandler<DidOpenTextDocumentParams> get jsonHandler =>
       DidOpenTextDocumentParams.jsonHandler;
 
+  @override
   ErrorOr<void> handle(
       DidOpenTextDocumentParams params, CancellationToken token) {
     final doc = params.textDocument;
@@ -120,7 +126,7 @@ class TextDocumentOpenHandler
     return path.mapResult((path) {
       // We don't get a VersionedTextDocumentIdentifier with a didOpen but we
       // do get the necessary info to create one.
-      server.documentVersions[path] = new VersionedTextDocumentIdentifier(
+      server.documentVersions[path] = VersionedTextDocumentIdentifier(
         params.textDocument.version,
         params.textDocument.uri,
       );

@@ -27,7 +27,7 @@ class GetNavigationTest extends AbstractNavigationTest {
     generateSummaryFiles = true;
     super.setUp();
     server.handlers = [
-      new AnalysisDomainHandler(server),
+      AnalysisDomainHandler(server),
     ];
     createProject();
   }
@@ -252,7 +252,7 @@ main() {
   }
 
   Request _createGetNavigationRequest(String file, int offset, int length) {
-    return new AnalysisGetNavigationParams(file, offset, length)
+    return AnalysisGetNavigationParams(file, offset, length)
         .toRequest(requestId);
   }
 
@@ -260,7 +260,7 @@ main() {
     Request request = _createGetNavigationRequest(file, offset, length);
     Response response = await serverChannel.sendRequest(request);
     AnalysisGetNavigationResult result =
-        new AnalysisGetNavigationResult.fromResponse(response);
+        AnalysisGetNavigationResult.fromResponse(response);
     targetFiles = result.files;
     targets = result.targets;
     regions = result.regions;

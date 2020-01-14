@@ -15,8 +15,8 @@ import 'package:analyzer/src/dart/ast/token.dart';
  */
 abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
   static final TypeName STACKTRACE_TYPE = astFactory.typeName(
-      astFactory.simpleIdentifier(
-          new StringToken(TokenType.IDENTIFIER, 'StackTrace', 0)),
+      astFactory
+          .simpleIdentifier(StringToken(TokenType.IDENTIFIER, 'StackTrace', 0)),
       null);
 
   final int offset;
@@ -59,7 +59,7 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
    * stop visiting. This is caught in [visit] which then exits normally.
    */
   void finished() {
-    throw new _LocalDeclarationVisitorFinished();
+    throw _LocalDeclarationVisitorFinished();
   }
 
   /**
@@ -281,7 +281,7 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
             SimpleIdentifier id = declaration.name;
             if (id != null) {
               String name = id.name;
-              if (name != null && name.length > 0) {
+              if (name != null && name.isNotEmpty) {
                 declaredFunction(declaration);
                 _visitTypeParameters(
                   declaration,

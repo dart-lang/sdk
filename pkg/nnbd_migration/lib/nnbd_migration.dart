@@ -80,8 +80,9 @@ enum NullabilityFixKind {
 /// Provisional API for DartFix to perform nullability migration.
 ///
 /// Usage: pass each input source file to [prepareInput].  Then pass each input
-/// source file to [processInput].  Then call [finish] to obtain the
-/// modifications that need to be made to each source file.
+/// source file to [processInput].  Then pass each input source file to
+/// [finalizeInput].  Then call [finish] to obtain the modifications that need
+/// to be made to each source file.
 abstract class NullabilityMigration {
   /// Prepares to perform nullability migration.
   ///
@@ -89,10 +90,17 @@ abstract class NullabilityMigration {
   /// as far as possible even though the migration algorithm is not yet
   /// complete.  TODO(paulberry): remove this mode once the migration algorithm
   /// is fully implemented.
+  ///
+  /// [useFixBuilder] indicates whether migration should use the new
+  /// [FixBuilder] infrastructure.  Once FixBuilder is at feature parity with
+  /// the old implementation, this option will be removed and FixBuilder will
+  /// be used unconditionally.
   factory NullabilityMigration(NullabilityMigrationListener listener,
-          {bool permissive,
-          NullabilityMigrationInstrumentation instrumentation}) =
-      NullabilityMigrationImpl;
+      {bool permissive,
+      NullabilityMigrationInstrumentation instrumentation,
+      bool useFixBuilder}) = NullabilityMigrationImpl;
+
+  void finalizeInput(ResolvedUnitResult result);
 
   void finish();
 

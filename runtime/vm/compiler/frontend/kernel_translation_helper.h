@@ -390,6 +390,8 @@ class VariableDeclarationHelper {
     kConst = 1 << 1,
     kCovariant = 1 << 3,
     kIsGenericCovariantImpl = 1 << 5,
+    kLate = 1 << 6,
+    kRequired = 1 << 7,
   };
 
   explicit VariableDeclarationHelper(KernelReaderHelper* helper)
@@ -404,11 +406,13 @@ class VariableDeclarationHelper {
   void SetNext(Field field) { next_read_ = field; }
   void SetJustRead(Field field) { next_read_ = field + 1; }
 
-  bool IsConst() { return (flags_ & kConst) != 0; }
-  bool IsFinal() { return (flags_ & kFinal) != 0; }
-  bool IsCovariant() { return (flags_ & kCovariant) != 0; }
+  bool IsConst() const { return (flags_ & kConst) != 0; }
+  bool IsFinal() const { return (flags_ & kFinal) != 0; }
+  bool IsCovariant() const { return (flags_ & kCovariant) != 0; }
+  bool IsLate() const { return (flags_ & kLate) != 0; }
+  bool IsRequired() const { return (flags_ & kRequired) != 0; }
 
-  bool IsGenericCovariantImpl() {
+  bool IsGenericCovariantImpl() const {
     return (flags_ & kIsGenericCovariantImpl) != 0;
   }
 

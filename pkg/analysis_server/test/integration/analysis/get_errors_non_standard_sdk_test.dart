@@ -28,15 +28,11 @@ class AnalysisDomainGetErrorsTest
   String createNonStandardSdk() {
     var sdkPath = path.join(sourceDirectory.path, 'sdk');
 
-    new Directory(path.join(sdkPath, 'lib', 'core'))
-        .createSync(recursive: true);
-    new Directory(path.join(sdkPath, 'lib', 'async'))
-        .createSync(recursive: true);
-    new Directory(path.join(sdkPath, 'lib', 'fake'))
-        .createSync(recursive: true);
+    Directory(path.join(sdkPath, 'lib', 'core')).createSync(recursive: true);
+    Directory(path.join(sdkPath, 'lib', 'async')).createSync(recursive: true);
+    Directory(path.join(sdkPath, 'lib', 'fake')).createSync(recursive: true);
 
-    new File(path.join(sdkPath, 'lib', 'core', 'core.dart'))
-        .writeAsStringSync(r'''
+    File(path.join(sdkPath, 'lib', 'core', 'core.dart')).writeAsStringSync(r'''
 library dart.core;
 import 'dart:async';
 class bool {}
@@ -51,14 +47,13 @@ class String {}
 class Type {}
 ''');
 
-    new File(path.join(sdkPath, 'lib', 'async', 'async.dart'))
+    File(path.join(sdkPath, 'lib', 'async', 'async.dart'))
         .writeAsStringSync(r'''
 library dart.async;
 class Future<T> {}
 ''');
 
-    new File(path.join(sdkPath, 'lib', 'fake', 'fake.dart'))
-        .writeAsStringSync(r'''
+    File(path.join(sdkPath, 'lib', 'fake', 'fake.dart')).writeAsStringSync(r'''
 class Fake {} 
 ''');
 
@@ -69,8 +64,8 @@ class Fake {}
       'sdk_library_metadata',
       'lib',
     );
-    new Directory(libsDir).createSync(recursive: true);
-    new File(path.join(libsDir, 'libraries.dart')).writeAsStringSync(r'''
+    Directory(libsDir).createSync(recursive: true);
+    File(path.join(libsDir, 'libraries.dart')).writeAsStringSync(r'''
 final LIBRARIES = const <String, LibraryInfo> {
   "core":  const LibraryInfo("core/core.dart"),
   "async": const LibraryInfo("async/async.dart"),

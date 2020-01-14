@@ -28,7 +28,7 @@ class SendWorkspaceEditCommandHandler extends SimpleEditCommandHandler {
     if (arguments == null ||
         arguments.length != 1 ||
         arguments[0] is! Map<String, dynamic>) {
-      return ErrorOr.error(new ResponseError(
+      return ErrorOr.error(ResponseError(
         ServerErrorCodes.InvalidCommandArguments,
         '$commandName requires a single List argument of WorkspaceEdit',
         null,

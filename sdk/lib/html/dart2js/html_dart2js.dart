@@ -1192,8 +1192,8 @@ class BackgroundFetchManager extends Interceptor {
       promiseToFuture<BackgroundFetchRegistration>(
           JS("", "#.get(#)", this, id));
 
-  Future<List<String>> getIds() =>
-      promiseToFuture<List<String>>(JS("", "#.getIds()", this));
+  Future<List<dynamic>> getIds() =>
+      promiseToFuture<List<dynamic>>(JS("", "#.getIds()", this));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1299,9 +1299,8 @@ class BarcodeDetector extends Interceptor {
   static BarcodeDetector _create_1() =>
       JS('BarcodeDetector', 'new BarcodeDetector()');
 
-  Future<List<DetectedBarcode>> detect(/*ImageBitmapSource*/ image) =>
-      promiseToFuture<List<DetectedBarcode>>(
-          JS("", "#.detect(#)", this, image));
+  Future<List<dynamic>> detect(/*ImageBitmapSource*/ image) =>
+      promiseToFuture<List<dynamic>>(JS("", "#.detect(#)", this, image));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2811,12 +2810,12 @@ class Clients extends Interceptor {
 
   Future get(String id) => promiseToFuture(JS("", "#.get(#)", this, id));
 
-  Future<List<Client>> matchAll([Map options]) {
+  Future<List<dynamic>> matchAll([Map options]) {
     var options_dict = null;
     if (options != null) {
       options_dict = convertDartToNative_Dictionary(options);
     }
-    return promiseToFuture<List<Client>>(
+    return promiseToFuture<List<dynamic>>(
         JS("", "#.matchAll(#)", this, options_dict));
   }
 
@@ -15197,8 +15196,8 @@ class FaceDetector extends Interceptor {
       JS('FaceDetector', 'new FaceDetector(#)', faceDetectorOptions);
   static FaceDetector _create_2() => JS('FaceDetector', 'new FaceDetector()');
 
-  Future<List<DetectedFace>> detect(/*ImageBitmapSource*/ image) =>
-      promiseToFuture<List<DetectedFace>>(JS("", "#.detect(#)", this, image));
+  Future<List<dynamic>> detect(/*ImageBitmapSource*/ image) =>
+      promiseToFuture<List<dynamic>>(JS("", "#.detect(#)", this, image));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17295,7 +17294,7 @@ class HttpRequest extends HttpRequestEventTarget {
    *
    * By default `request` will perform an HTTP GET request, but a different
    * method (`POST`, `PUT`, `DELETE`, etc) can be used by specifying the
-   * [method] parameter. (See also [HttpRequest.postFormData] for `POST` 
+   * [method] parameter. (See also [HttpRequest.postFormData] for `POST`
    * requests only.
    *
    * The Future is completed when the response is available.
@@ -17304,8 +17303,8 @@ class HttpRequest extends HttpRequestEventTarget {
    * [Blob], [Document], [String], or [FormData] along with the HttpRequest.
    *
    * If specified, [responseType] sets the desired response format for the
-   * request. By default it is [String], but can also be 'arraybuffer', 'blob', 
-   * 'document', 'json', or 'text'. See also [HttpRequest.responseType] 
+   * request. By default it is [String], but can also be 'arraybuffer', 'blob',
+   * 'document', 'json', or 'text'. See also [HttpRequest.responseType]
    * for more information.
    *
    * The [withCredentials] parameter specified that credentials such as a cookie
@@ -19494,9 +19493,8 @@ class MediaDevices extends EventTarget {
     throw new UnsupportedError("Not supported");
   }
 
-  Future<List<MediaDeviceInfo>> enumerateDevices() =>
-      promiseToFuture<List<MediaDeviceInfo>>(
-          JS("", "#.enumerateDevices()", this));
+  Future<List<dynamic>> enumerateDevices() =>
+      promiseToFuture<List<dynamic>>(JS("", "#.enumerateDevices()", this));
 
   Map getSupportedConstraints() {
     return convertNativeToDart_Dictionary(_getSupportedConstraints_1());
@@ -23667,8 +23665,8 @@ class PaymentInstruments extends Interceptor {
   Future has(String instrumentKey) =>
       promiseToFuture(JS("", "#.has(#)", this, instrumentKey));
 
-  Future<List<String>> keys() =>
-      promiseToFuture<List<String>>(JS("", "#.keys()", this));
+  Future<List<dynamic>> keys() =>
+      promiseToFuture<List<dynamic>>(JS("", "#.keys()", this));
 
   Future set(String instrumentKey, Map details) {
     var details_dict = convertDartToNative_Dictionary(details);
@@ -25216,8 +25214,7 @@ class ResizeObserver extends Interceptor {
 
 // WARNING: Do not edit - generated code.
 
-typedef void ResizeObserverCallback(
-    List<ResizeObserverEntry> entries, ResizeObserver observer);
+typedef void ResizeObserverCallback(List entries, ResizeObserver observer);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -26439,9 +26436,8 @@ class ServiceWorkerContainer extends EventTarget {
       promiseToFuture<ServiceWorkerRegistration>(
           JS("", "#.getRegistration(#)", this, documentURL));
 
-  Future<List<ServiceWorkerRegistration>> getRegistrations() =>
-      promiseToFuture<List<ServiceWorkerRegistration>>(
-          JS("", "#.getRegistrations()", this));
+  Future<List<dynamic>> getRegistrations() =>
+      promiseToFuture<List<dynamic>>(JS("", "#.getRegistrations()", this));
 
   Future<ServiceWorkerRegistration> register(String url, [Map options]) {
     var options_dict = null;
@@ -26531,12 +26527,12 @@ class ServiceWorkerRegistration extends EventTarget {
 
   final ServiceWorker waiting;
 
-  Future<List<Notification>> getNotifications([Map filter]) {
+  Future<List<dynamic>> getNotifications([Map filter]) {
     var filter_dict = null;
     if (filter != null) {
       filter_dict = convertDartToNative_Dictionary(filter);
     }
-    return promiseToFuture<List<Notification>>(
+    return promiseToFuture<List<dynamic>>(
         JS("", "#.getNotifications(#)", this, filter_dict));
   }
 
@@ -27889,8 +27885,8 @@ class SyncManager extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  Future<List<String>> getTags() =>
-      promiseToFuture<List<String>>(JS("", "#.getTags()", this));
+  Future<List<dynamic>> getTags() =>
+      promiseToFuture<List<dynamic>>(JS("", "#.getTags()", this));
 
   Future register(String tag) =>
       promiseToFuture(JS("", "#.register(#)", this, tag));
@@ -28392,8 +28388,8 @@ class TextDetector extends Interceptor {
   }
   static TextDetector _create_1() => JS('TextDetector', 'new TextDetector()');
 
-  Future<List<DetectedText>> detect(/*ImageBitmapSource*/ image) =>
-      promiseToFuture<List<DetectedText>>(JS("", "#.detect(#)", this, image));
+  Future<List<dynamic>> detect(/*ImageBitmapSource*/ image) =>
+      promiseToFuture<List<dynamic>>(JS("", "#.detect(#)", this, image));
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

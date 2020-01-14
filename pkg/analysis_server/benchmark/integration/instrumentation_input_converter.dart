@@ -18,7 +18,7 @@ final int COLON = ':'.codeUnitAt(0);
  * into a series of operations to be sent to the analysis server.
  */
 class InstrumentationInputConverter extends CommonInputConverter {
-  final Set<String> codesSeen = new Set<String>();
+  final Set<String> codesSeen = Set<String>();
 
   /**
    * [readBuffer] holds the contents of the file being read from disk
@@ -46,8 +46,8 @@ class InstrumentationInputConverter extends CommonInputConverter {
         readBuffer = null;
       }
     } catch (e, s) {
-      throw new AnalysisException(
-          'Failed to parse line\n$line', new CaughtException(e, s));
+      throw AnalysisException(
+          'Failed to parse line\n$line', CaughtException(e, s));
     }
     // int timeStamp = int.parse(fields[0], onError: (_) => -1);
     String opCode = fields[1];
@@ -56,7 +56,7 @@ class InstrumentationInputConverter extends CommonInputConverter {
     } else if (opCode == 'Read') {
       // 1434096943209:Read:/some/file/path:1434095535000:<file content>
       //String filePath = fields[2];
-      readBuffer = new StringBuffer(fields.length > 4 ? fields[4] : '');
+      readBuffer = StringBuffer(fields.length > 4 ? fields[4] : '');
       return null;
     } else if (opCode == InstrumentationLogAdapter.TAG_REQUEST) {
       return convertRequest(decodeJson(line, fields[2]));
@@ -84,8 +84,8 @@ class InstrumentationInputConverter extends CommonInputConverter {
     try {
       return asMap(json.decode(text));
     } catch (e, s) {
-      throw new AnalysisException(
-          'Failed to decode JSON: $text\n$line', new CaughtException(e, s));
+      throw AnalysisException(
+          'Failed to decode JSON: $text\n$line', CaughtException(e, s));
     }
   }
 
@@ -106,9 +106,9 @@ class InstrumentationInputConverter extends CommonInputConverter {
    * Extract fields from the given [line].
    */
   static List<String> _parseFields(String line) {
-    List<String> fields = new List<String>();
+    List<String> fields = List<String>();
     int index = 0;
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     while (index < line.length) {
       int code = line.codeUnitAt(index);
       if (code == COLON) {

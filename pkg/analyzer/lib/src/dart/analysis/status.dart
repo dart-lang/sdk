@@ -8,8 +8,8 @@ import 'dart:async';
  * The status of analysis.
  */
 class AnalysisStatus {
-  static const IDLE = const AnalysisStatus._(false);
-  static const ANALYZING = const AnalysisStatus._(true);
+  static const IDLE = AnalysisStatus._(false);
+  static const ANALYZING = AnalysisStatus._(true);
 
   final bool _analyzing;
 

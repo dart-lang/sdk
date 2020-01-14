@@ -297,6 +297,16 @@ void StubCodeCompiler::GenerateNullErrorSharedWithFPURegsStub(
   __ Breakpoint();
 }
 
+void StubCodeCompiler::GenerateNullArgErrorSharedWithoutFPURegsStub(
+    Assembler* assembler) {
+  __ Breakpoint();
+}
+
+void StubCodeCompiler::GenerateNullArgErrorSharedWithFPURegsStub(
+    Assembler* assembler) {
+  __ Breakpoint();
+}
+
 void StubCodeCompiler::GenerateStackOverflowSharedWithoutFPURegsStub(
     Assembler* assembler) {
   // TODO(sjindel): implement.
@@ -1430,14 +1440,14 @@ void StubCodeCompiler::GenerateArrayWriteBarrierStub(Assembler* assembler) {
 
 // Called for inline allocation of objects.
 // Input parameters:
-//   ESP + 4 : type arguments object (only if class is parameterized).
 //   ESP : points to return address.
+//   kAllocationStubTypeArgumentsReg (EDX) : type arguments object
+//                                           (only if class is parameterized).
 // Uses EAX, EBX, ECX, EDX, EDI as temporary registers.
 // Returns patch_code_pc offset where patching code for disabling the stub
 // has been generated (similar to regularly generated Dart code).
 void StubCodeCompiler::GenerateAllocationStubForClass(Assembler* assembler,
                                                       const Class& cls) {
-  const intptr_t kObjectTypeArgumentsOffset = 1 * target::kWordSize;
   const Immediate& raw_null = Immediate(target::ToRawPointer(NullObject()));
   // The generated code is different if the class is parameterized.
   const bool is_cls_parameterized = target::Class::NumTypeArguments(cls) > 0;
@@ -1449,10 +1459,11 @@ void StubCodeCompiler::GenerateAllocationStubForClass(Assembler* assembler,
   const int kInlineInstanceSize = 12;  // In words.
   const intptr_t instance_size = target::Class::GetInstanceSize(cls);
   ASSERT(instance_size > 0);
-  if (is_cls_parameterized) {
-    __ movl(EDX, Address(ESP, kObjectTypeArgumentsOffset));
-    // EDX: instantiated type arguments.
-  }
+
+  // EDX: instantiated type arguments (if is_cls_parameterized).
+  static_assert(kAllocationStubTypeArgumentsReg == EDX,
+                "Adjust register allocation in the AllocationStub");
+
   if (FLAG_inline_alloc &&
       target::Heap::IsAllocatableInNewSpace(instance_size) &&
       !target::Class::TraceAllocation(cls)) {
@@ -1520,7 +1531,8 @@ void StubCodeCompiler::GenerateAllocationStubForClass(Assembler* assembler,
       // EDX: new object type arguments.
       // Set the type arguments in the new object.
       const intptr_t offset = target::Class::TypeArgumentsFieldOffset(cls);
-      __ StoreIntoObjectNoBarrier(EAX, FieldAddress(EAX, offset), EDX);
+      __ StoreIntoObjectNoBarrier(EAX, FieldAddress(EAX, offset),
+                                  kAllocationStubTypeArgumentsReg);
     }
     // Done allocating and initializing the instance.
     // EAX: new object (tagged).
@@ -1537,7 +1549,8 @@ void StubCodeCompiler::GenerateAllocationStubForClass(Assembler* assembler,
   __ PushObject(
       CastHandle<Object>(cls));  // Push class of object to be allocated.
   if (is_cls_parameterized) {
-    __ pushl(EDX);  // Push type arguments of object to be allocated.
+    // Push type arguments of object to be allocated.
+    __ pushl(kAllocationStubTypeArgumentsReg);
   } else {
     __ pushl(raw_null);  // Push null type arguments.
   }
@@ -1730,6 +1743,30 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
     Optimized optimized,
     CallType type,
     Exactness exactness) {
+  GenerateNArgsCheckInlineCacheStubForEntryKind(
+      assembler, num_args, handle_ic_miss, kind, optimized, type, exactness,
+      CodeEntryKind::kNormal);
+  __ BindUncheckedEntryPoint();
+  GenerateNArgsCheckInlineCacheStubForEntryKind(
+      assembler, num_args, handle_ic_miss, kind, optimized, type, exactness,
+      CodeEntryKind::kUnchecked);
+}
+
+void StubCodeCompiler::GenerateNArgsCheckInlineCacheStubForEntryKind(
+    Assembler* assembler,
+    intptr_t num_args,
+    const RuntimeEntry& handle_ic_miss,
+    Token::Kind kind,
+    Optimized optimized,
+    CallType type,
+    Exactness exactness,
+    CodeEntryKind entry_kind) {
+  if (optimized == kOptimized) {
+    GenerateOptimizedUsageCounterIncrement(assembler);
+  } else {
+    GenerateUsageCounterIncrement(assembler, /* scratch */ EAX);
+  }
+
   ASSERT(exactness == kIgnoreExactness);  // Unimplemented.
   ASSERT(num_args == 1 || num_args == 2);
 #if defined(DEBUG)
@@ -1884,7 +1921,8 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
   __ Bind(&call_target_function);
   __ Comment("Call target");
   // EAX: Target function.
-  __ jmp(FieldAddress(EAX, target::Function::entry_point_offset()));
+  __ jmp(
+      FieldAddress(EAX, target::Code::function_entry_point_offset(entry_kind)));
 
 #if !defined(PRODUCT)
   if (optimized == kUnoptimized) {
@@ -1906,7 +1944,6 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
 // ESP[0]: return address
 void StubCodeCompiler::GenerateOneArgCheckInlineCacheStub(
     Assembler* assembler) {
-  GenerateUsageCounterIncrement(assembler, /* scratch */ EAX);
   GenerateNArgsCheckInlineCacheStub(
       assembler, 1, kInlineCacheMissHandlerOneArgRuntimeEntry, Token::kILLEGAL,
       kUnoptimized, kInstanceCall, kIgnoreExactness);
@@ -1920,12 +1957,21 @@ void StubCodeCompiler::GenerateOneArgCheckInlineCacheWithExactnessCheckStub(
   __ Stop("Unimplemented");
 }
 
+void StubCodeCompiler::GenerateAllocateMintWithFPURegsStub(
+    Assembler* assembler) {
+  __ Stop("Unimplemented");
+}
+
+void StubCodeCompiler::GenerateAllocateMintWithoutFPURegsStub(
+    Assembler* assembler) {
+  __ Stop("Unimplemented");
+}
+
 // EBX: receiver
 // ECX: ICData
 // ESP[0]: return address
 void StubCodeCompiler::GenerateTwoArgsCheckInlineCacheStub(
     Assembler* assembler) {
-  GenerateUsageCounterIncrement(assembler, /* scratch */ EAX);
   GenerateNArgsCheckInlineCacheStub(
       assembler, 2, kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kILLEGAL,
       kUnoptimized, kInstanceCall, kIgnoreExactness);
@@ -1935,7 +1981,6 @@ void StubCodeCompiler::GenerateTwoArgsCheckInlineCacheStub(
 // ECX: ICData
 // ESP[0]: return address
 void StubCodeCompiler::GenerateSmiAddInlineCacheStub(Assembler* assembler) {
-  GenerateUsageCounterIncrement(assembler, /* scratch */ EAX);
   GenerateNArgsCheckInlineCacheStub(
       assembler, 2, kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kADD,
       kUnoptimized, kInstanceCall, kIgnoreExactness);
@@ -1945,7 +1990,6 @@ void StubCodeCompiler::GenerateSmiAddInlineCacheStub(Assembler* assembler) {
 // ECX: ICData
 // ESP[0]: return address
 void StubCodeCompiler::GenerateSmiLessInlineCacheStub(Assembler* assembler) {
-  GenerateUsageCounterIncrement(assembler, /* scratch */ EAX);
   GenerateNArgsCheckInlineCacheStub(
       assembler, 2, kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kLT,
       kUnoptimized, kInstanceCall, kIgnoreExactness);
@@ -1955,7 +1999,6 @@ void StubCodeCompiler::GenerateSmiLessInlineCacheStub(Assembler* assembler) {
 // ECX: ICData
 // ESP[0]: return address
 void StubCodeCompiler::GenerateSmiEqualInlineCacheStub(Assembler* assembler) {
-  GenerateUsageCounterIncrement(assembler, /* scratch */ EAX);
   GenerateNArgsCheckInlineCacheStub(
       assembler, 2, kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kEQ,
       kUnoptimized, kInstanceCall, kIgnoreExactness);
@@ -1967,7 +2010,6 @@ void StubCodeCompiler::GenerateSmiEqualInlineCacheStub(Assembler* assembler) {
 // ESP[0]: return address
 void StubCodeCompiler::GenerateOneArgOptimizedCheckInlineCacheStub(
     Assembler* assembler) {
-  GenerateOptimizedUsageCounterIncrement(assembler);
   GenerateNArgsCheckInlineCacheStub(
       assembler, 1, kInlineCacheMissHandlerOneArgRuntimeEntry, Token::kILLEGAL,
       kOptimized, kInstanceCall, kIgnoreExactness);
@@ -1989,7 +2031,6 @@ void StubCodeCompiler::
 // ESP[0]: return address
 void StubCodeCompiler::GenerateTwoArgsOptimizedCheckInlineCacheStub(
     Assembler* assembler) {
-  GenerateOptimizedUsageCounterIncrement(assembler);
   GenerateNArgsCheckInlineCacheStub(
       assembler, 2, kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kILLEGAL,
       kOptimized, kInstanceCall, kIgnoreExactness);
@@ -1997,9 +2038,10 @@ void StubCodeCompiler::GenerateTwoArgsOptimizedCheckInlineCacheStub(
 
 // ECX: ICData
 // ESP[0]: return address
-void StubCodeCompiler::GenerateZeroArgsUnoptimizedStaticCallStub(
-    Assembler* assembler) {
-  GenerateUsageCounterIncrement(assembler, /* scratch */ EAX);
+static void GenerateZeroArgsUnoptimizedStaticCallForEntryKind(
+    Assembler* assembler,
+    CodeEntryKind entry_kind) {
+  StubCodeCompiler::GenerateUsageCounterIncrement(assembler, /* scratch */ EAX);
 
 #if defined(DEBUG)
   {
@@ -2046,7 +2088,8 @@ void StubCodeCompiler::GenerateZeroArgsUnoptimizedStaticCallStub(
 
   // Get function and call it, if possible.
   __ movl(EAX, Address(EBX, target_offset));
-  __ jmp(FieldAddress(EAX, target::Function::entry_point_offset()));
+  __ jmp(
+      FieldAddress(EAX, target::Code::function_entry_point_offset(entry_kind)));
 
 #if !defined(PRODUCT)
   __ Bind(&stepping);
@@ -2059,11 +2102,19 @@ void StubCodeCompiler::GenerateZeroArgsUnoptimizedStaticCallStub(
 #endif
 }
 
+void StubCodeCompiler::GenerateZeroArgsUnoptimizedStaticCallStub(
+    Assembler* assembler) {
+  GenerateZeroArgsUnoptimizedStaticCallForEntryKind(assembler,
+                                                    CodeEntryKind::kNormal);
+  __ BindUncheckedEntryPoint();
+  GenerateZeroArgsUnoptimizedStaticCallForEntryKind(assembler,
+                                                    CodeEntryKind::kUnchecked);
+}
+
 // ECX: ICData
 // ESP[0]: return address
 void StubCodeCompiler::GenerateOneArgUnoptimizedStaticCallStub(
     Assembler* assembler) {
-  GenerateUsageCounterIncrement(assembler, /* scratch */ EAX);
   GenerateNArgsCheckInlineCacheStub(
       assembler, 2, kStaticCallMissHandlerTwoArgsRuntimeEntry, Token::kILLEGAL,
       kUnoptimized, kStaticCall, kIgnoreExactness);
@@ -2073,7 +2124,6 @@ void StubCodeCompiler::GenerateOneArgUnoptimizedStaticCallStub(
 // ESP[0]: return address
 void StubCodeCompiler::GenerateTwoArgsUnoptimizedStaticCallStub(
     Assembler* assembler) {
-  GenerateUsageCounterIncrement(assembler, /* scratch */ EAX);
   GenerateNArgsCheckInlineCacheStub(
       assembler, 2, kStaticCallMissHandlerTwoArgsRuntimeEntry, Token::kILLEGAL,
       kUnoptimized, kStaticCall, kIgnoreExactness);
@@ -2428,11 +2478,6 @@ void StubCodeCompiler::GenerateDefaultTypeTestStub(Assembler* assembler) {
 }
 
 void StubCodeCompiler::GenerateTopTypeTypeTestStub(Assembler* assembler) {
-  // Not implemented on ia32.
-  __ Breakpoint();
-}
-
-void StubCodeCompiler::GenerateTypeRefTypeTestStub(Assembler* assembler) {
   // Not implemented on ia32.
   __ Breakpoint();
 }

@@ -58,7 +58,7 @@ class DartCompletionManager implements CompletionContributor {
    * The [contributionSorter] is a long-lived object that isn't allowed
    * to maintain state between calls to [DartContributionSorter#sort(...)].
    */
-  static DartContributionSorter contributionSorter = new CommonUsageSorter();
+  static DartContributionSorter contributionSorter = CommonUsageSorter();
 
   /// If not `null`, then instead of using [ImportedReferenceContributor],
   /// fill this set with kinds of elements that are applicable at the
@@ -123,31 +123,31 @@ class DartCompletionManager implements CompletionContributor {
     var suggestionMap = <String, CompletionSuggestion>{};
     var constructorMap = <String, List<String>>{};
     List<DartCompletionContributor> contributors = <DartCompletionContributor>[
-      new ArgListContributor(),
-      new CombinatorContributor(),
-      new ExtensionMemberContributor(),
-      new FieldFormalContributor(),
-      new InheritedReferenceContributor(),
-      new KeywordContributor(),
-      new LabelContributor(),
-      new LibraryMemberContributor(),
-      new LibraryPrefixContributor(),
-      new LocalConstructorContributor(),
-      new LocalLibraryContributor(),
-      new LocalReferenceContributor(),
-      new NamedConstructorContributor(),
-      new OverrideContributor(),
-      new StaticMemberContributor(),
-      new TypeMemberContributor(),
-      new UriContributor(),
-      new VariableNameContributor()
+      ArgListContributor(),
+      CombinatorContributor(),
+      ExtensionMemberContributor(),
+      FieldFormalContributor(),
+      InheritedReferenceContributor(),
+      KeywordContributor(),
+      LabelContributor(),
+      LibraryMemberContributor(),
+      LibraryPrefixContributor(),
+      LocalConstructorContributor(),
+      LocalLibraryContributor(),
+      LocalReferenceContributor(),
+      NamedConstructorContributor(),
+      OverrideContributor(),
+      StaticMemberContributor(),
+      TypeMemberContributor(),
+      UriContributor(),
+      VariableNameContributor()
     ];
 
     if (includedElementKinds != null) {
       _addIncludedElementKinds(dartRequest);
       _addIncludedSuggestionRelevanceTags(dartRequest);
     } else {
-      contributors.add(new ImportedReferenceContributor());
+      contributors.add(ImportedReferenceContributor());
     }
 
     try {
@@ -186,7 +186,7 @@ class DartCompletionManager implements CompletionContributor {
     } on InconsistentAnalysisException {
       // The state of the code being analyzed has changed, so results are likely
       // to be inconsistent. Just abort the operation.
-      throw new AbortCompletion();
+      throw AbortCompletion();
     }
 
     // Adjust suggestion relevance before returning
@@ -414,10 +414,9 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
     return null;
   }
 
+  @override
   OpType get opType {
-    if (_opType == null) {
-      _opType = new OpType.forCompletion(target, offset);
-    }
+    _opType ??= OpType.forCompletion(target, offset);
     return _opType;
   }
 
@@ -433,6 +432,7 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
   /**
    * Throw [AbortCompletion] if the completion request has been aborted.
    */
+  @override
   void checkAborted() {
     _originalRequest.checkAborted();
   }
@@ -443,7 +443,7 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
   void _updateTargets(CompilationUnit unit) {
     _opType = null;
     dotTarget = null;
-    target = new CompletionTarget.forOffset(unit, offset);
+    target = CompletionTarget.forOffset(unit, offset);
     AstNode node = target.containingNode;
     if (node is MethodInvocation) {
       if (identical(node.methodName, target.entity)) {
@@ -482,7 +482,7 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
     Source libSource = unit.declaredElement.library.source;
     InterfaceType objectType = request.result.typeProvider.objectType;
 
-    DartCompletionRequestImpl dartRequest = new DartCompletionRequestImpl._(
+    DartCompletionRequestImpl dartRequest = DartCompletionRequestImpl._(
         request.result,
         request.resourceProvider,
         objectType,

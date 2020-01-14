@@ -127,6 +127,9 @@ const Register kWriteBarrierObjectReg = RDX;
 const Register kWriteBarrierValueReg = RAX;
 const Register kWriteBarrierSlotReg = R13;
 
+// ABI for allocation stubs.
+const Register kAllocationStubTypeArgumentsReg = RDX;
+
 typedef uint32_t RegList;
 const RegList kAllCpuRegistersList = 0xFFFF;
 const RegList kAllFpuRegistersList = 0xFFFF;

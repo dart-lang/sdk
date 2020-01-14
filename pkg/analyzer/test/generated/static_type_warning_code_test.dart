@@ -64,13 +64,15 @@ f() async {
   }
 
   test_awaitForIn_declaredVariableRightType() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 import 'dart:async';
 f() async {
   Stream<int> stream;
   await for (int i in stream) {}
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 72, 1),
+    ]);
   }
 
   test_awaitForIn_declaredVariableWrongType() async {
@@ -87,43 +89,51 @@ f() async {
   }
 
   test_awaitForIn_downcast() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 import 'dart:async';
 f() async {
   Stream<num> stream;
   await for (int i in stream) {}
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 72, 1),
+    ]);
   }
 
   test_awaitForIn_dynamicStream() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 f() async {
   dynamic stream;
   await for (int i in stream) {}
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 47, 1),
+    ]);
   }
 
   test_awaitForIn_dynamicVariable() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 import 'dart:async';
 f() async {
   Stream<int> stream;
   await for (var i in stream) {}
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 72, 1),
+    ]);
   }
 
   test_awaitForIn_existingVariableRightType() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 import 'dart:async';
 f() async {
   Stream<int> stream;
   int i;
   await for (i in stream) {}
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 61, 1),
+    ]);
   }
 
   test_awaitForIn_existingVariableWrongType() async {
@@ -152,23 +162,27 @@ f() async {
   }
 
   test_awaitForIn_streamOfDynamic() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 import 'dart:async';
 f() async {
   Stream stream;
   await for (int i in stream) {}
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 67, 1),
+    ]);
   }
 
   test_awaitForIn_upcast() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 import 'dart:async';
 f() async {
   Stream<int> stream;
   await for (num i in stream) {}
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 72, 1),
+    ]);
   }
 
   test_bug21912() async {
@@ -229,11 +243,13 @@ main() {
   }
 
   test_forIn_declaredVariableRightType() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 f() {
   for (int i in <int>[]) {}
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 17, 1),
+    ]);
   }
 
   test_forIn_declaredVariableWrongType() async {
@@ -248,46 +264,56 @@ f() {
   }
 
   test_forIn_downcast() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 f() {
   for (int i in <num>[]) {}
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 17, 1),
+    ]);
   }
 
   test_forIn_dynamic() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 f() {
   dynamic d; // Could be [].
   for (var i in d) {}
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 46, 1),
+    ]);
   }
 
   test_forIn_dynamicIterable() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 f() {
   dynamic iterable;
   for (int i in iterable) {}
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 37, 1),
+    ]);
   }
 
   test_forIn_dynamicVariable() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 f() {
   for (var i in <int>[]) {}
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 17, 1),
+    ]);
   }
 
   test_forIn_existingVariableRightType() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 f() {
   int i;
   for (i in <int>[]) {}
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 12, 1),
+    ]);
   }
 
   test_forIn_existingVariableWrongType() async {
@@ -303,11 +329,13 @@ f() {
   }
 
   test_forIn_iterableOfDynamic() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 f() {
   for (int i in []) {}
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 17, 1),
+    ]);
   }
 
   test_forIn_notIterable() async {
@@ -322,12 +350,14 @@ f() {
   }
 
   test_forIn_object() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 f() {
   Object o; // Could be [].
   for (var i in o) {}
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 45, 1),
+    ]);
   }
 
   test_forIn_typeBoundBad() async {
@@ -344,21 +374,25 @@ class Foo<T extends Iterable<int>> {
   }
 
   test_forIn_typeBoundGood() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 class Foo<T extends Iterable<int>> {
   void method(T iterable) {
     for (var i in iterable) {}
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 78, 1),
+    ]);
   }
 
   test_forIn_upcast() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 f() {
   for (num i in <int>[]) {}
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 17, 1),
+    ]);
   }
 
   test_illegalAsyncGeneratorReturnType_function_nonStream() async {
@@ -398,52 +432,6 @@ class C {
 }
 ''', [
       error(StaticTypeWarningCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE, 85, 14),
-    ]);
-  }
-
-  test_illegalAsyncReturnType_function_nonFuture() async {
-    await assertErrorsInCode('''
-int f() async {}
-''', [
-      error(StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE, 0, 3),
-      error(HintCode.MISSING_RETURN, 4, 1),
-    ]);
-  }
-
-  test_illegalAsyncReturnType_function_subtypeOfFuture() async {
-    await assertErrorsInCode('''
-import 'dart:async';
-abstract class SubFuture<T> implements Future<T> {}
-SubFuture<int> f() async {
-  return 0;
-}
-''', [
-      error(StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE, 73, 14),
-    ]);
-  }
-
-  test_illegalAsyncReturnType_method_nonFuture() async {
-    await assertErrorsInCode('''
-class C {
-  int m() async {}
-}
-''', [
-      error(HintCode.MISSING_RETURN, 16, 1),
-      error(StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE, 12, 3),
-    ]);
-  }
-
-  test_illegalAsyncReturnType_method_subtypeOfFuture() async {
-    await assertErrorsInCode('''
-import 'dart:async';
-abstract class SubFuture<T> implements Future<T> {}
-class C {
-  SubFuture<int> m() async {
-    return 0;
-  }
-}
-''', [
-      error(StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE, 85, 14),
     ]);
   }
 
@@ -919,150 +907,6 @@ f(B<A> b) {}
     ]);
   }
 
-  test_returnOfInvalidType_async_future_future_int_mismatches_future_int() async {
-    await assertErrorsInCode('''
-import 'dart:async';
-Future<int> f() async {
-  return g();
-}
-Future<Future<int>> g() => null;
-''', [
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 54, 3),
-    ]);
-  }
-
-  test_returnOfInvalidType_async_future_int_mismatches_future_string() async {
-    await assertErrorsInCode('''
-import 'dart:async';
-Future<String> f() async {
-  return 5;
-}
-''', [
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 57, 1),
-    ]);
-  }
-
-  test_returnOfInvalidType_async_future_int_mismatches_int() async {
-    await assertErrorsInCode('''
-int f() async {
-  return 5;
-}
-''', [
-      error(StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE, 0, 3),
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 25, 1),
-    ]);
-  }
-
-  test_returnOfInvalidType_expressionFunctionBody_function() async {
-    await assertErrorsInCode('''
-int f() => '0';
-''', [
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 11, 3),
-    ]);
-  }
-
-  test_returnOfInvalidType_expressionFunctionBody_getter() async {
-    await assertErrorsInCode('''
-int get g => '0';
-''', [
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 13, 3),
-    ]);
-  }
-
-  test_returnOfInvalidType_expressionFunctionBody_localFunction() async {
-    await assertErrorsInCode(r'''
-class A {
-  String m() {
-    int f() => '0';
-    return '0';
-  }
-}
-''', [
-      error(HintCode.UNUSED_ELEMENT, 33, 1),
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 40, 3),
-    ]);
-  }
-
-  test_returnOfInvalidType_expressionFunctionBody_method() async {
-    await assertErrorsInCode(r'''
-class A {
-  int f() => '0';
-}
-''', [
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 23, 3),
-    ]);
-  }
-
-  test_returnOfInvalidType_function() async {
-    await assertErrorsInCode('''
-int f() { return '0'; }
-''', [
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 17, 3),
-    ]);
-  }
-
-  test_returnOfInvalidType_getter() async {
-    await assertErrorsInCode('''
-int get g { return '0'; }
-''', [
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 19, 3),
-    ]);
-  }
-
-  test_returnOfInvalidType_localFunction() async {
-    await assertErrorsInCode(r'''
-class A {
-  String m() {
-    int f() { return '0'; }
-    return '0';
-  }
-}
-''', [
-      error(HintCode.UNUSED_ELEMENT, 33, 1),
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 46, 3),
-    ]);
-  }
-
-  test_returnOfInvalidType_method() async {
-    await assertErrorsInCode(r'''
-class A {
-  int f() { return '0'; }
-}
-''', [
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 29, 3),
-    ]);
-  }
-
-  test_returnOfInvalidType_not_issued_for_expressionFunctionBody_void() async {
-    await assertNoErrorsInCode('''
-void f() => 42;
-''');
-  }
-
-  test_returnOfInvalidType_not_issued_for_valid_generic_return() async {
-    await assertNoErrorsInCode(r'''
-abstract class F<T, U>  {
-  U get value;
-}
-
-abstract class G<T> {
-  T test(F<int, T> arg) => arg.value;
-}
-
-abstract class H<S> {
-  S test(F<int, S> arg) => arg.value;
-}
-
-void main() { }
-''');
-  }
-
-  test_returnOfInvalidType_void() async {
-    await assertErrorsInCode("void f() { return 42; }", [
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 18, 2),
-    ]);
-  }
-
   test_typeParameterSupertypeOfItsBound_1of1() async {
     await assertErrorsInCode(r'''
 class A<T extends T> {
@@ -1511,14 +1355,16 @@ main() {
   }
 
   test_undefinedMethodWithConstructor() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class C {
   C.m();
 }
 f() {
   C c = C.m();
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 31, 1),
+    ]);
   }
 
   test_undefinedOperator_indexBoth() async {

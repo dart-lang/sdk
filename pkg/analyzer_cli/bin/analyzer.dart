@@ -12,7 +12,7 @@ import 'package:analyzer_cli/starter.dart';
 /// [sendPort] may be passed in when started in an isolate. If provided, it is
 /// used for bazel worker communication instead of stdin/stdout.
 main(List<String> args, [SendPort sendPort]) async {
-  CommandLineStarter starter = new CommandLineStarter();
+  CommandLineStarter starter = CommandLineStarter();
 
   // Wait for the starter to complete.
   await starter.start(args, sendPort: sendPort);

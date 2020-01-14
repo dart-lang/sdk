@@ -37,7 +37,8 @@ import 'util/util.dart' show Setlet;
 import 'world.dart' show JClosedWorld;
 
 class EnqueueTask extends CompilerTask {
-  ResolutionEnqueuer _resolution;
+  ResolutionEnqueuer resolutionEnqueuerForTesting;
+  bool _resolutionEnqueuerCreated = false;
   CodegenEnqueuer codegenEnqueuerForTesting;
   final Compiler compiler;
 
@@ -48,22 +49,16 @@ class EnqueueTask extends CompilerTask {
       : this.compiler = compiler,
         super(compiler.measurer);
 
-  // TODO(johnniwinther): Remove the need for this.
-  bool get hasResolution => _resolution != null;
-
-  // TODO(johnniwinther): Remove the need for this.
-  ResolutionEnqueuer get resolution {
-    assert(
-        _resolution != null,
-        failedAt(NO_LOCATION_SPANNABLE,
-            "ResolutionEnqueuer has not been created yet."));
-    return _resolution;
-  }
-
   ResolutionEnqueuer createResolutionEnqueuer() {
-    return _resolution ??= compiler.frontendStrategy
+    assert(!_resolutionEnqueuerCreated);
+    _resolutionEnqueuerCreated = true;
+    ResolutionEnqueuer enqueuer = compiler.frontendStrategy
         .createResolutionEnqueuer(this, compiler)
           ..onEmptyForTesting = compiler.onResolutionQueueEmptyForTesting;
+    if (retainDataForTesting) {
+      resolutionEnqueuerForTesting = enqueuer;
+    }
+    return enqueuer;
   }
 
   Enqueuer createCodegenEnqueuer(
@@ -241,7 +236,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   final Set<ClassEntity> _recentClasses = new Setlet<ClassEntity>();
   bool _recentConstants = false;
   final ResolutionEnqueuerWorldBuilder _worldBuilder;
-  final WorkItemBuilder _workItemBuilder;
+  WorkItemBuilder _workItemBuilder;
   final DiagnosticReporter _reporter;
   final AnnotationsData _annotationsData;
 
@@ -409,6 +404,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
         }
         break;
       case TypeUseKind.PARAMETER_CHECK:
+      case TypeUseKind.TYPE_VARIABLE_BOUND_CHECK:
         if (_annotationsData.getParameterCheckPolicy(member).isEmitted) {
           _registerIsCheck(type);
         }
@@ -491,6 +487,14 @@ class ResolutionEnqueuer extends EnqueuerImpl {
 
   @override
   bool get isResolutionQueue => true;
+
+  @override
+  void close() {
+    super.close();
+    // Null out _workItemBuilder to release memory (it internally holds large
+    // data-structures unnecessary after resolution.)
+    _workItemBuilder = null;
+  }
 
   /// Registers [entity] as processed by the resolution enqueuer. Used only for
   /// testing.

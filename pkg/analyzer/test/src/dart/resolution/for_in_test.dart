@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -18,14 +19,16 @@ class ForInDriverResolutionTest extends DriverResolutionTest {
   test_importPrefix_asIterable() async {
     // TODO(scheglov) Remove this test (already tested as import prefix).
     // TODO(scheglov) Move other for-in tests here.
-    await resolveTestCode(r'''
+    await assertErrorsInCode(r'''
 import 'dart:async' as p;
 
 main() {
   for (var x in p) {}
 }
-''');
-    assertHasTestErrors();
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 47, 1),
+      error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 52, 1),
+    ]);
 
     var xRef = findNode.simple('x in');
     expect(xRef.staticElement, isNotNull);

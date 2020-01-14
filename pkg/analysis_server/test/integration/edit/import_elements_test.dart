@@ -81,6 +81,7 @@ class AnalysisGetImportElementsIntegrationTest
     expect(result.edit, isNull);
   }
 
+  @override
   Future setUp() async {
     await super.setUp();
     pathname = sourcePath('test.dart');
@@ -96,9 +97,9 @@ class AnalysisGetImportElementsIntegrationTest
         provider.pathContext.join(sdkPath, 'lib', 'math', 'math.dart');
 
     await checkEdits(<ImportedElements>[
-      new ImportedElements(mathPath, '', <String>['Random'])
+      ImportedElements(mathPath, '', <String>['Random'])
     ], [
-      new SourceEdit(0, 0, "import 'dart:math';\n\n")
+      SourceEdit(0, 0, "import 'dart:math';\n\n")
     ]);
   }
 
@@ -129,9 +130,9 @@ class C {}
         provider.pathContext.join(sdkPath, 'lib', 'math', 'math.dart');
 
     await checkEdits(<ImportedElements>[
-      new ImportedElements(mathPath, '', <String>['Random'])
+      ImportedElements(mathPath, '', <String>['Random'])
     ], [
-      new SourceEdit(0, 0, "import 'dart:math';\n\n")
+      SourceEdit(0, 0, "import 'dart:math';\n\n")
     ], expectedFile: libName);
   }
 }

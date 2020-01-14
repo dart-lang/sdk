@@ -17,7 +17,7 @@ abstract class ServerPluginStarter {
   /**
    * Create a starter that can be used to start the given [plugin].
    */
-  factory ServerPluginStarter(ServerPlugin plugin) => new Driver(plugin);
+  factory ServerPluginStarter(ServerPlugin plugin) => Driver(plugin);
 
   /**
    * Establish the channel used to communicate with the server and start the

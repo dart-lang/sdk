@@ -2,16 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// VMOptions=--dwarf-stack-traces
+/// VMOptions=--dwarf-stack-traces --save-debugging-info=dwarf.so
 
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:unittest/unittest.dart';
-import 'package:vm/elf/convert.dart';
-import 'package:vm/elf/dwarf.dart';
-import 'package:vm/elf/elf.dart';
 import 'package:path/path.dart' as path;
+import 'package:unittest/unittest.dart';
+import 'package:vm/dwarf/convert.dart';
+import 'package:vm/dwarf/dwarf.dart';
 
 @pragma("vm:prefer-inline")
 bar() {
@@ -33,31 +32,34 @@ Future<void> main() async {
     rawStack = st.toString();
   }
 
-  // Check that our expected information is consistent.
-  checkConsistency(expectedExternalCallInfo, expectedAllCallsInfo);
+  if (path.basenameWithoutExtension(Platform.executable) !=
+      "dart_precompiled_runtime") {
+    return; // Not running from an AOT compiled snapshot.
+  }
+
+  if (Platform.isAndroid) {
+    return; // Generated dwarf.so not available on the test device.
+  }
+
+  final dwarf = Dwarf.fromFile("dwarf.so");
+
+  await checkStackTrace(rawStack, dwarf, expectedCallsInfo);
+}
+
+Future<void> checkStackTrace(String rawStack, Dwarf dwarf,
+    List<List<CallInfo>> expectedCallsInfo) async {
+  final expectedAllCallsInfo = expectedCallsInfo;
+  final expectedExternalCallInfo = removeInternalCalls(expectedCallsInfo);
 
   print("");
   print("Raw stack trace:");
   print(rawStack);
 
-  if (Platform.isWindows) {
-    // TODO(dartbug.com/39490): Remove this when we can retrieve or calculate
-    // virtual addresses from DWARF stack traces on Windows.
-    print("Skipping test because we are running on Windows.");
-    return;
-  }
-
-  if (!Elf.startsWithMagicNumber(Platform.script.toFilePath())) {
-    print("Skipping test because we are not running from ELF.");
-    return;
-  }
-
-  final dwarf = Dwarf.fromFile(Platform.script.toFilePath());
-
-  var rawLines =
+  final rawLines =
       await Stream.value(rawStack).transform(const LineSplitter()).toList();
 
-  final pcAddresses = collectPCAddresses(rawLines).toList();
+  final pcAddresses =
+      collectPCOffsets(rawLines).map((pc) => pc.virtualAddress(dwarf)).toList();
 
   // We should have at least enough PC addresses to cover the frames we'll be
   // checking.
@@ -135,45 +137,37 @@ Future<void> main() async {
   expect(allCallsTrace, stringContainsInOrder(expectedStrings));
 }
 
-final expectedExternalCallInfo = <List<CallInfo>>[
+final expectedCallsInfo = <List<CallInfo>>[
   // The first frame should correspond to the throw in bar, which was inlined
   // into foo (so we'll get information for two calls for that PC address).
   [
     CallInfo(
         function: "bar",
         filename: "dwarf_stack_trace_test.dart",
-        line: 19,
+        line: 18,
         inlined: true),
-    // The second frame corresponds to call to foo in main.
     CallInfo(
         function: "foo",
         filename: "dwarf_stack_trace_test.dart",
-        line: 25,
+        line: 24,
         inlined: false)
   ],
+  // The second frame corresponds to call to foo in main.
   [
     CallInfo(
         function: "main",
         filename: "dwarf_stack_trace_test.dart",
-        line: 31,
+        line: 30,
         inlined: false)
   ],
-  // No call information for the main tearoff.
-  [],
+  // Don't assume anything about any of the frames below the call to foo
+  // in main, as this makes the test too brittle.
 ];
 
-// Replace the call information for the main tearoff frame.
-final expectedAllCallsInfo = expectedExternalCallInfo.sublist(0, 2) +
-    <List<CallInfo>>[
-      // Internal frames have non-positive line numbers in the call information.
-      [
-        CallInfo(
-            function: "main",
-            filename: "dwarf_stack_trace_test.dart",
-            line: 0,
-            inlined: false),
-      ]
-    ];
+List<List<CallInfo>> removeInternalCalls(List<List<CallInfo>> original) =>
+    original
+        .map((frame) => frame.where((call) => call.line > 0).toList())
+        .toList();
 
 void checkConsistency(
     List<List<CallInfo>> externalFrames, List<List<CallInfo>> allFrames) {

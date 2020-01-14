@@ -94,9 +94,9 @@ class LibraryAnalyzer {
    *
    * TODO(scheglov) Remove after https://github.com/dart-lang/sdk/issues/31925
    */
-  final Set<ConstantEvaluationTarget> _libraryConstants = Set();
+  final Set<ConstantEvaluationTarget> _libraryConstants = {};
 
-  final Set<ConstantEvaluationTarget> _constants = Set();
+  final Set<ConstantEvaluationTarget> _constants = {};
 
   LibraryAnalyzer(
       this._analysisOptions,
@@ -138,15 +138,15 @@ class LibraryAnalyzer {
     }
     timerLibraryAnalyzerFreshUnit.stop();
 
+    _libraryElement = _elementFactory.libraryOfUri(_library.uriStr);
+    _libraryScope = LibraryScope(_libraryElement);
+
     // Resolve URIs in directives to corresponding sources.
     FeatureSet featureSet = units[_library].featureSet;
     units.forEach((file, unit) {
       _validateFeatureSet(unit, featureSet);
       _resolveUriBasedDirectives(file, unit);
     });
-
-    _libraryElement = _elementFactory.libraryOfUri(_library.uriStr);
-    _libraryScope = LibraryScope(_libraryElement);
 
     timerLibraryAnalyzerResolve.start();
     _resolveDirectives(units);
@@ -377,7 +377,6 @@ class LibraryAnalyzer {
       _typeSystem,
       _inheritance,
       errorListener,
-      _analysisOptions,
     );
     checker.visitCompilationUnit(unit);
 
@@ -465,7 +464,11 @@ class LibraryAnalyzer {
   ErrorReporter _getErrorReporter(FileState file) {
     return _errorReporters.putIfAbsent(file, () {
       RecordingErrorListener listener = _getErrorListener(file);
-      return ErrorReporter(listener, file.source);
+      return ErrorReporter(
+        listener,
+        file.source,
+        isNonNullableByDefault: _libraryElement.isNonNullableByDefault,
+      );
     });
   }
 
@@ -517,7 +520,8 @@ class LibraryAnalyzer {
         return file.exists;
       }
     }
-    return false;
+    // A library can refer to itself with an empty URI.
+    return source == _library.source;
   }
 
   /**
@@ -553,7 +557,7 @@ class LibraryAnalyzer {
     ErrorReporter libraryErrorReporter = _getErrorReporter(_library);
 
     LibraryIdentifier libraryNameNode;
-    var seenPartSources = Set<Source>();
+    var seenPartSources = <Source>{};
     var directivesToResolve = <Directive>[];
     int partIndex = 0;
     for (Directive directive in definingCompilationUnit.directives) {
@@ -627,7 +631,9 @@ class LibraryAnalyzer {
             if (name != null) {
               if (libraryNameNode == null) {
                 libraryErrorReporter.reportErrorForNode(
-                    ResolverErrorCode.PART_OF_UNNAMED_LIBRARY, partUri, [name]);
+                    CompileTimeErrorCode.PART_OF_UNNAMED_LIBRARY,
+                    partUri,
+                    [name]);
               } else if (libraryNameNode.name != name) {
                 libraryErrorReporter.reportErrorForNode(
                     StaticWarningCode.PART_OF_DIFFERENT_LIBRARY,
@@ -695,9 +701,6 @@ class LibraryAnalyzer {
     unit.accept(VariableResolverVisitor(
         _libraryElement, source, _typeProvider, errorListener,
         nameScope: _libraryScope));
-
-    unit.accept(PartialResolverVisitor(_inheritance, _libraryElement, source,
-        _typeProvider, AnalysisErrorListener.NULL_LISTENER, unit.featureSet));
 
     // Nothing for RESOLVED_UNIT8?
     // Nothing for RESOLVED_UNIT9?
@@ -842,7 +845,7 @@ class LibraryAnalyzer {
       return false;
     }
     // TODO(brianwilkerson) Generalize this mechanism.
-    const List<String> suffixes = const <String>[
+    const List<String> suffixes = <String>[
       '.g.dart',
       '.pb.dart',
       '.pbenum.dart',

@@ -1,0 +1,19 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/required_named_parameter.dart:6:19: Warning: Required named parameter 'parameter' has a default value.
+// foo({required int parameter = 42}) {}
+//                   ^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+static method foo({required core::int parameter = #C1}) → dynamic {}
+static method bar({required core::int parameter = #C2}) → dynamic {}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = 42
+  #C2 = null
+}

@@ -23,7 +23,7 @@ main() {
 
 @reflectiveTest
 class KeywordContributorTest extends DartCompletionContributorTest {
-  static const List<Keyword> COLLECTION_ELEMENT_START = const [
+  static const List<Keyword> COLLECTION_ELEMENT_START = [
     Keyword.CONST,
     Keyword.FALSE,
     Keyword.FOR,
@@ -33,9 +33,9 @@ class KeywordContributorTest extends DartCompletionContributorTest {
     Keyword.TRUE,
   ];
 
-  static const List<String> NO_PSEUDO_KEYWORDS = const [];
+  static const List<String> NO_PSEUDO_KEYWORDS = [];
 
-  static const List<Keyword> EXPRESSION_START_INSTANCE = const [
+  static const List<Keyword> EXPRESSION_START_INSTANCE = [
     Keyword.CONST,
     Keyword.FALSE,
     Keyword.NEW,
@@ -45,7 +45,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
     Keyword.TRUE,
   ];
 
-  static const List<Keyword> EXPRESSION_START_NO_INSTANCE = const [
+  static const List<Keyword> EXPRESSION_START_NO_INSTANCE = [
     Keyword.CONST,
     Keyword.FALSE,
     Keyword.NEW,
@@ -381,9 +381,9 @@ class KeywordContributorTest extends DartCompletionContributorTest {
   void assertSuggestKeywords(Iterable<Keyword> expectedKeywords,
       {List<String> pseudoKeywords = NO_PSEUDO_KEYWORDS,
       int relevance = DART_RELEVANCE_KEYWORD}) {
-    Set<String> expectedCompletions = new Set<String>();
+    Set<String> expectedCompletions = Set<String>();
     Map<String, int> expectedOffsets = <String, int>{};
-    Set<String> actualCompletions = new Set<String>();
+    Set<String> actualCompletions = Set<String>();
     expectedCompletions.addAll(expectedKeywords.map((keyword) {
       String text = keyword.lexeme;
       if (['import', 'export', 'part'].contains(text)) {
@@ -408,7 +408,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
       }
     }
     if (!_equalSets(expectedCompletions, actualCompletions)) {
-      StringBuffer msg = new StringBuffer();
+      StringBuffer msg = StringBuffer();
       msg.writeln('Expected:');
       _appendCompletions(msg, expectedCompletions, actualCompletions);
       msg.writeln('but found:');
@@ -428,9 +428,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
           }
         }
         int expectedOffset = expectedOffsets[s.completion];
-        if (expectedOffset == null) {
-          expectedOffset = s.completion.length;
-        }
+        expectedOffset ??= s.completion.length;
         expect(
             s.selectionOffset,
             equals(s.completion.endsWith('\'\';')
@@ -445,7 +443,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
 
   @override
   DartCompletionContributor createContributor() {
-    return new KeywordContributor();
+    return KeywordContributor();
   }
 
   /// Return `true` if the given [feature] is enabled.

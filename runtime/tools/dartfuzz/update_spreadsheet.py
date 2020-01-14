@@ -29,12 +29,14 @@ VERIFY_CURRENT_ROW_FORMULA = '=B:B-C:C-D:D-E:E-F:F'
 
 
 def authenticate():
+    dir_path = os.path.dirname(os.path.realpath(__file__))
     creds = None
     # The file token.pickle stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first
     # time.
-    if os.path.exists('token.pickle'):
-        with open('token.pickle', 'rb') as token:
+    pickle_path = os.path.join(dir_path, 'token.pickle')
+    if os.path.exists(pickle_path):
+        with open(pickle_path, 'rb') as token:
             creds = pickle.load(token)
     # If there are no (valid) credentials available, let the user log in.
     if not creds or not creds.valid:
@@ -42,10 +44,10 @@ def authenticate():
             creds.refresh(Request())
         else:
             flow = InstalledAppFlow.from_client_secrets_file(
-                'credentials.json', SCOPES)
+                os.path.join(dir_path, 'credentials.json'), SCOPES)
             creds = flow.run_local_server(port=0)
         # Save the credentials for the next run
-        with open('token.pickle', 'wb') as token:
+        with open(pickle_path, 'wb') as token:
             pickle.dump(creds, token)
     return build('sheets', 'v4', credentials=creds)
 
@@ -88,8 +90,10 @@ def add_new_fuzzing_entry(sheet, run, tests, success, rerun, skipped, timeout,
 # - # of divergences
 #
 def get_run_statistic_summary(run):
+    dir_path = os.path.dirname(os.path.realpath(__file__))
     output = subprocess.check_output([
-        'python3', 'collect_data.py', '--output-csv', '--type=sum',
+        'python3',
+        os.path.join(dir_path, 'collect_data.py'), '--output-csv', '--type=sum',
         'https://ci.chromium.org/p/dart/builders/ci.sandbox/fuzz-linux/%d' % run
     ])
     return list(map(int, output.decode('UTF-8').rstrip().split(',')))

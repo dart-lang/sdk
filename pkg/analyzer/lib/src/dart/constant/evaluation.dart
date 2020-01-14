@@ -13,6 +13,7 @@ import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
@@ -26,7 +27,6 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisEngine, RecordingErrorListener;
-import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/type_system.dart' show TypeSystemImpl;
 import 'package:analyzer/src/task/api/model.dart';
 
@@ -34,16 +34,16 @@ import 'package:analyzer/src/task/api/model.dart';
 /// constant instance creation expressions.
 class ConstantEvaluationEngine {
   /// Parameter to "fromEnvironment" methods that denotes the default value.
-  static String _DEFAULT_VALUE_PARAM = "defaultValue";
+  static const String _DEFAULT_VALUE_PARAM = "defaultValue";
 
   /// Source of RegExp matching declarable operator names.
   /// From sdk/lib/internal/symbol.dart.
-  static String _OPERATOR_RE =
+  static const String _OPERATOR_RE =
       "(?:[\\-+*/%&|^]|\\[\\]=?|==|~/?|<[<=]?|>[>=]?|unary-)";
 
   /// Source of RegExp matching Dart reserved words.
   /// From sdk/lib/internal/symbol.dart.
-  static String _RESERVED_WORD_RE =
+  static const String _RESERVED_WORD_RE =
       "(?:assert|break|c(?:a(?:se|tch)|lass|on(?:st|tinue))|"
       "d(?:efault|o)|e(?:lse|num|xtends)|f(?:alse|inal(?:ly)?|or)|"
       "i[fns]|n(?:ew|ull)|ret(?:hrow|urn)|s(?:uper|witch)|t(?:h(?:is|row)|"
@@ -51,12 +51,12 @@ class ConstantEvaluationEngine {
 
   /// Source of RegExp matching any public identifier.
   /// From sdk/lib/internal/symbol.dart.
-  static String _PUBLIC_IDENTIFIER_RE =
+  static const String _PUBLIC_IDENTIFIER_RE =
       "(?!$_RESERVED_WORD_RE\\b(?!\\\$))[a-zA-Z\$][\\w\$]*";
 
   /// RegExp that validates a non-empty non-private symbol.
   /// From sdk/lib/internal/symbol.dart.
-  static RegExp _PUBLIC_SYMBOL_PATTERN = RegExp(
+  static final RegExp _PUBLIC_SYMBOL_PATTERN = RegExp(
       "^(?:$_OPERATOR_RE\$|$_PUBLIC_IDENTIFIER_RE(?:=?\$|[.](?!\$)))+?\$");
 
   /// The type provider used to access the known types.
@@ -97,6 +97,10 @@ class ConstantEvaluationEngine {
               typeProvider: typeProvider,
             ),
         experimentStatus = experimentStatus ?? ExperimentStatus();
+
+  bool get _isNonNullableByDefault {
+    return (typeSystem as TypeSystemImpl).isNonNullableByDefault;
+  }
 
   /// Check that the arguments to a call to fromEnvironment() are correct. The
   /// [arguments] are the AST nodes of the arguments. The [argumentValues] are
@@ -169,8 +173,11 @@ class ConstantEvaluationEngine {
         Expression defaultValue = constant.constantInitializer;
         if (defaultValue != null) {
           RecordingErrorListener errorListener = RecordingErrorListener();
-          ErrorReporter errorReporter =
-              ErrorReporter(errorListener, constant.source);
+          ErrorReporter errorReporter = ErrorReporter(
+            errorListener,
+            constant.source,
+            isNonNullableByDefault: _isNonNullableByDefault,
+          );
           DartObjectImpl dartObject =
               defaultValue.accept(ConstantVisitor(this, errorReporter));
           constant.evaluationResult =
@@ -184,8 +191,11 @@ class ConstantEvaluationEngine {
       Expression constantInitializer = constant.constantInitializer;
       if (constantInitializer != null) {
         RecordingErrorListener errorListener = RecordingErrorListener();
-        ErrorReporter errorReporter =
-            ErrorReporter(errorListener, constant.source);
+        ErrorReporter errorReporter = ErrorReporter(
+          errorListener,
+          constant.source,
+          isNonNullableByDefault: _isNonNullableByDefault,
+        );
         DartObjectImpl dartObject =
             constantInitializer.accept(ConstantVisitor(this, errorReporter));
         // Only check the type for truly const declarations (don't check final
@@ -235,8 +245,11 @@ class ConstantEvaluationEngine {
           element.isConst &&
           constNode.arguments != null) {
         RecordingErrorListener errorListener = RecordingErrorListener();
-        ErrorReporter errorReporter =
-            ErrorReporter(errorListener, constant.source);
+        ErrorReporter errorReporter = ErrorReporter(
+          errorListener,
+          constant.source,
+          isNonNullableByDefault: _isNonNullableByDefault,
+        );
         ConstantVisitor constantVisitor = ConstantVisitor(this, errorReporter);
         DartObjectImpl result = evaluateConstructorCall(
             constNode,
@@ -551,8 +564,11 @@ class ConstantEvaluationEngine {
     // different source. But they still should cause a constant evaluation
     // error for the current node.
     var externalErrorListener = BooleanErrorListener();
-    var externalErrorReporter =
-        ErrorReporter(externalErrorListener, constructor.source);
+    var externalErrorReporter = ErrorReporter(
+      externalErrorListener,
+      constructor.source,
+      isNonNullableByDefault: _isNonNullableByDefault,
+    );
 
     // Start with final fields that are initialized at their declaration site.
     List<FieldElement> fields = constructor.enclosingElement.fields;
@@ -811,8 +827,11 @@ class ConstantEvaluationEngine {
       ConstantEvaluationTarget constant) {
     if (constant is VariableElement) {
       RecordingErrorListener errorListener = RecordingErrorListener();
-      ErrorReporter errorReporter =
-          ErrorReporter(errorListener, constant.source);
+      ErrorReporter errorReporter = ErrorReporter(
+        errorListener,
+        constant.source,
+        isNonNullableByDefault: _isNonNullableByDefault,
+      );
       // TODO(paulberry): It would be really nice if we could extract enough
       // information from the 'cycle' argument to provide the user with a
       // description of the cycle.
@@ -1364,7 +1383,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
         return null;
       }
       bool errorOccurred = false;
-      Set<DartObjectImpl> set = Set<DartObjectImpl>();
+      Set<DartObjectImpl> set = <DartObjectImpl>{};
       for (CollectionElement element in node.elements) {
         errorOccurred = errorOccurred | _addElementsToSet(set, element);
       }
@@ -1437,7 +1456,9 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   /// the given [list]. Return `true` if the evaluation of one or more of the
   /// elements failed.
   bool _addElementsToList(List<DartObject> list, CollectionElement element) {
-    if (element is IfElement) {
+    if (element is ForElement) {
+      _error(element, null);
+    } else if (element is IfElement) {
       bool conditionValue = _evaluateCondition(element.condition);
       if (conditionValue == null) {
         return true;
@@ -1881,7 +1902,7 @@ class DartObjectComputer {
   }
 
   DartObjectImpl lazyAnd(BinaryExpression node, DartObjectImpl leftOperand,
-      DartObjectImpl rightOperandComputer()) {
+      DartObjectImpl Function() rightOperandComputer) {
     if (leftOperand != null) {
       try {
         return leftOperand.lazyAnd(_typeProvider, rightOperandComputer);
@@ -1905,7 +1926,7 @@ class DartObjectComputer {
   }
 
   DartObjectImpl lazyOr(BinaryExpression node, DartObjectImpl leftOperand,
-      DartObjectImpl rightOperandComputer()) {
+      DartObjectImpl Function() rightOperandComputer) {
     if (leftOperand != null) {
       try {
         return leftOperand.lazyOr(_typeProvider, rightOperandComputer);
@@ -1916,8 +1937,10 @@ class DartObjectComputer {
     return null;
   }
 
-  DartObjectImpl lazyQuestionQuestion(Expression node,
-      DartObjectImpl leftOperand, DartObjectImpl rightOperandComputer()) {
+  DartObjectImpl lazyQuestionQuestion(
+      Expression node,
+      DartObjectImpl leftOperand,
+      DartObjectImpl Function() rightOperandComputer) {
     if (leftOperand != null) {
       if (leftOperand.isNull) {
         return rightOperandComputer();

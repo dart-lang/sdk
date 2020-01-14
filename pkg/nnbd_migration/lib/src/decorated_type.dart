@@ -5,11 +5,11 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart' as type_algebra;
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
@@ -70,7 +70,8 @@ class DecoratedType implements DecoratedTypeInfo {
         assert(typeFormalBounds.isEmpty);
         assert(typeArguments.length == type.typeArguments.length);
         for (int i = 0; i < typeArguments.length; i++) {
-          assert(typeArguments[i].type == type.typeArguments[i]);
+          assert(typeArguments[i].type == type.typeArguments[i],
+              '${typeArguments[i].type} != ${type.typeArguments[i]}');
         }
       } else if (type is FunctionType) {
         assert(typeFormalBounds.length == type.typeFormals.length);
@@ -190,7 +191,8 @@ class DecoratedType implements DecoratedTypeInfo {
     // We'll be storing the type parameter bounds in
     // [_decoratedTypeParameterBounds] so the type parameter needs to have an
     // enclosing element of `null`.
-    assert(parameter.enclosingElement == null);
+    assert(parameter.enclosingElement == null,
+        "$parameter should not have parent ${parameter.enclosingElement}");
   }
 
   /// If `this` represents an interface type, returns the substitution necessary
@@ -368,9 +370,13 @@ class DecoratedType implements DecoratedTypeInfo {
         nullabilitySuffix: nullabilitySuffix,
       );
     } else if (type is InterfaceType) {
-      return InterfaceTypeImpl.explicit(type.element,
-          [for (var arg in typeArguments) arg.toFinalType(typeProvider)],
-          nullabilitySuffix: nullabilitySuffix);
+      return InterfaceTypeImpl(
+        element: type.element,
+        typeArguments: [
+          for (var arg in typeArguments) arg.toFinalType(typeProvider)
+        ],
+        nullabilitySuffix: nullabilitySuffix,
+      );
     } else if (type is TypeParameterType) {
       return TypeParameterTypeImpl(type.element,
           nullabilitySuffix: nullabilitySuffix);
@@ -438,7 +444,8 @@ class DecoratedType implements DecoratedTypeInfo {
       returnType: returnType,
       positionalParameters: positionalParameters,
       namedParameters: namedParameters,
-      typeArguments: typeArguments);
+      typeArguments: typeArguments,
+      typeFormalBounds: typeFormalBounds);
 
   /// Internal implementation of [_substitute], used as a recursion target.
   DecoratedType _substitute(
@@ -456,9 +463,12 @@ class DecoratedType implements DecoratedTypeInfo {
         substitution =
             Map<TypeParameterElement, DecoratedType>.from(substitution);
         for (int i = 0; i < typeFormals.length; i++) {
-          substitution[typeFormals[i]] =
-              DecoratedType._forTypeParameterSubstitution(
-                  undecoratedResult.typeFormals[i]);
+          // Check if it's a fresh type variable.
+          if (undecoratedResult.typeFormals[i].enclosingElement == null) {
+            substitution[typeFormals[i]] =
+                DecoratedType._forTypeParameterSubstitution(
+                    undecoratedResult.typeFormals[i]);
+          }
         }
         for (int i = 0; i < typeFormalBounds.length; i++) {
           newTypeFormalBounds.add(typeFormalBounds[i]._substitute(

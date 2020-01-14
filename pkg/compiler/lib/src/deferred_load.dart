@@ -184,7 +184,7 @@ abstract class DeferredLoadTask extends CompilerTask {
       MemberEntity element, Dependencies dependencies) {
     // TODO(sigurdm): We want to be more specific about this - need a better
     // way to query "liveness".
-    if (!compiler.resolutionWorldBuilder.isMemberUsed(element)) {
+    if (!closedWorld.isMemberUsed(element)) {
       return;
     }
     _collectDependenciesFromImpact(closedWorld, element, dependencies);
@@ -203,7 +203,7 @@ abstract class DeferredLoadTask extends CompilerTask {
     // to.  Static members are not relevant, unless we are processing
     // extra dependencies due to mirrors.
     void addLiveInstanceMember(MemberEntity member) {
-      if (!compiler.resolutionWorldBuilder.isMemberUsed(member)) return;
+      if (!closedWorld.isMemberUsed(member)) return;
       if (!member.isInstanceMember) return;
       dependencies.addMember(member);
       _collectDirectMemberDependencies(closedWorld, member, dependencies);
@@ -348,6 +348,7 @@ abstract class DeferredLoadTask extends CompilerTask {
               }
               break;
             case TypeUseKind.PARAMETER_CHECK:
+            case TypeUseKind.TYPE_VARIABLE_BOUND_CHECK:
               if (closedWorld.annotationsData
                   .getParameterCheckPolicy(element)
                   .isEmitted) {

@@ -463,8 +463,8 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
 
   Future computeSuggestions({int times = 200}) async {
     var resolveResult = await session.getResolvedUnit(testFile);
-    CompletionRequestImpl baseRequest = new CompletionRequestImpl(
-        resolveResult, completionOffset, new CompletionPerformance());
+    CompletionRequestImpl baseRequest = CompletionRequestImpl(
+        resolveResult, completionOffset, CompletionPerformance());
 
     // Build the request
     var request = await DartCompletionRequestImpl.from(baseRequest);
@@ -482,7 +482,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
 
   void failedCompletion(String message,
       [Iterable<CompletionSuggestion> completions]) {
-    StringBuffer sb = new StringBuffer(message);
+    StringBuffer sb = StringBuffer(message);
     if (completions != null) {
       sb.write('\n  found');
       completions.toList()
@@ -535,7 +535,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     // Future.value or Future.microtask() constructors use scheduleMicrotask
     // themselves and would therefore not wait for microtask callbacks that
     // are scheduled after invoking this method.
-    return new Future(() => performAnalysis(times - 1, completer));
+    return Future(() => performAnalysis(times - 1, completer));
   }
 
   void resolveSource(String path, String content) {

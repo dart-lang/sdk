@@ -19,6 +19,18 @@ main() {
 
 @reflectiveTest
 class UndefinedSetterTest extends DriverResolutionTest {
+  test_importWithPrefix_defined() async {
+    newFile("/test/lib/lib.dart", content: r'''
+library lib;
+set y(int value) {}''');
+    await assertNoErrorsInCode(r'''
+import 'lib.dart' as x;
+main() {
+  x.y = 0;
+}
+''');
+  }
+
   test_inSubtype() async {
     await assertErrorsInCode(r'''
 class A {}
@@ -46,6 +58,17 @@ f(var a) {
 ''', [
       error(StaticTypeWarningCode.UNDEFINED_SETTER, 43, 1),
     ]);
+  }
+
+  test_static_conditionalAccess_defined() async {
+    // The conditional access operator '?.' can be used to access static
+    // fields.
+    await assertNoErrorsInCode('''
+class A {
+  static var x;
+}
+f() { A?.x = 1; }
+''');
   }
 
   test_static_definedInSuperclass() async {

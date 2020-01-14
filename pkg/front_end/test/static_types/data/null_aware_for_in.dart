@@ -10,12 +10,12 @@ class Class {}
 main() {
   var o;
   /*current: dynamic*/
-  /*cfe|dart2js.as: Class*/
+  /*cfe.as: Class*/
   /*cfe:nnbd.as: Class!*/
   for (
       // ignore: UNUSED_LOCAL_VARIABLE
       Class c in
-      /*cfe|dart2js.as: Iterable<dynamic>*/
+      /*cfe.as: Iterable<dynamic>*/
       /*cfe:nnbd.as: Iterable<dynamic>!*/
       /*dynamic*/ o?. /*dynamic*/ iterable) {}
 }

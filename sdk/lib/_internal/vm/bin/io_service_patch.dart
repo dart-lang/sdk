@@ -64,7 +64,7 @@ class _IOService {
     final Completer completer = new Completer();
     _messageMap[id] = completer;
     try {
-      servicePort.send([id, _replyToPort, request, data]);
+      servicePort.send(<dynamic>[id, _replyToPort, request, data]);
     } catch (error) {
       _messageMap.remove(id).complete(error);
       if (_messageMap.length == 0) {

@@ -281,7 +281,7 @@ class BuilderTest {
     }
     // read and verify
     BufferContext buf = BufferContext.fromBytes(byteList);
-    List<int> items = const ListReader<int>(const Int32Reader()).read(buf, 0);
+    List<int> items = const ListReader<int>(Int32Reader()).read(buf, 0);
     expect(items, hasLength(5));
     expect(items, orderedEquals(<int>[1, 2, 3, 4, 5]));
   }
@@ -313,7 +313,7 @@ class BuilderTest {
     // read and verify
     BufferContext buf = BufferContext.fromBytes(byteList);
     List<TestPointImpl> items =
-        const ListReader<TestPointImpl>(const TestPointReader()).read(buf, 0);
+        const ListReader<TestPointImpl>(TestPointReader()).read(buf, 0);
     expect(items, hasLength(2));
     expect(items[0].x, 10);
     expect(items[0].y, 20);
@@ -332,8 +332,7 @@ class BuilderTest {
     }
     // read and verify
     BufferContext buf = BufferContext.fromBytes(byteList);
-    List<String> items =
-        const ListReader<String>(const StringReader()).read(buf, 0);
+    List<String> items = const ListReader<String>(StringReader()).read(buf, 0);
     expect(items, hasLength(2));
     expect(items, contains('12345'));
     expect(items, contains('ABC'));
@@ -395,7 +394,7 @@ class StringListWrapperImpl {
   StringListWrapperImpl(this.bp, this.offset);
 
   List<String> get items =>
-      const ListReader<String>(const StringReader()).vTableGet(bp, offset, 0);
+      const ListReader<String>(StringReader()).vTableGet(bp, offset, 0);
 }
 
 class StringListWrapperReader extends TableReader<StringListWrapperImpl> {

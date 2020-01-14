@@ -124,20 +124,32 @@ static_library("crashpad") {
   }
 }
 
-static_library("elf_loader") {
-  configs += [
-    "..:dart_arch_config",
-    "..:dart_config",
-    "..:dart_product_config",
-    "..:dart_os_fuchsia_config",
-  ]
-  include_dirs = [ ".." ]
-  sources = [
-    "elf_loader.cc",
-    "elf_loader.h",
-  ]
+template("build_elf_loader") {
+  source_set(target_name) {
+    configs += [
+      "..:dart_arch_config",
+      "..:dart_config",
+      "..:dart_product_config",
+      "..:dart_os_fuchsia_config",
+    ]
+    include_dirs = [ ".." ]
+    sources = [
+      "elf_loader.cc",
+      "elf_loader.h",
+    ]
+    deps = invoker.deps
+  }
+}
+
+build_elf_loader("elf_loader") {
   deps = [
     ":libdart_builtin",
+  ]
+}
+
+build_elf_loader("elf_loader_product") {
+  deps = [
+    ":libdart_builtin_product",
   ]
 }
 
@@ -229,8 +241,8 @@ build_gen_snapshot("gen_snapshot") {
   extra_deps = [
     ":gen_snapshot_dart_io",
     ":libdart_builtin",
-    "../platform:libdart_platform_nosnapshot_with_precompiler",
-    "..:libdart_nosnapshot_with_precompiler",
+    "../platform:libdart_platform_precompiler",
+    "..:libdart_precompiler",
   ]
 }
 
@@ -243,8 +255,8 @@ build_gen_snapshot("gen_snapshot_product") {
   extra_deps = [
     ":gen_snapshot_dart_io_product",
     ":libdart_builtin_product",
-    "../platform:libdart_platform_nosnapshot_with_precompiler_product",
-    "..:libdart_nosnapshot_with_precompiler_product",
+    "../platform:libdart_platform_precompiler_product",
+    "..:libdart_precompiler_product",
   ]
 }
 
@@ -257,8 +269,8 @@ build_gen_snapshot("gen_snapshot_fuchsia") {
   extra_deps = [
     ":gen_snapshot_dart_io_fuchsia",
     ":libdart_builtin_fuchsia",
-    "../platform:libdart_platform_nosnapshot_with_precompiler_fuchsia",
-    "..:libdart_nosnapshot_with_precompiler_fuchsia",
+    "../platform:libdart_platform_precompiler_fuchsia",
+    "..:libdart_precompiler_fuchsia",
   ]
 }
 
@@ -271,8 +283,8 @@ build_gen_snapshot("gen_snapshot_product_fuchsia") {
   extra_deps = [
     ":gen_snapshot_dart_io_product_fuchsia",
     ":libdart_builtin_product_fuchsia",
-    "../platform:libdart_platform_nosnapshot_with_precompiler_product_fuchsia",
-    "..:libdart_nosnapshot_with_precompiler_product_fuchsia",
+    "../platform:libdart_platform_precompiler_product_fuchsia",
+    "..:libdart_precompiler_product_fuchsia",
   ]
 }
 
@@ -281,8 +293,8 @@ build_gen_snapshot("gen_snapshot_host_targeting_host") {
   extra_deps = [
     ":gen_snapshot_dart_io_host_targeting_host",
     ":libdart_builtin_host_targeting_host",
-    "../platform:libdart_platform_nosnapshot_with_precompiler_host_targeting_host",
-    "..:libdart_nosnapshot_with_precompiler_host_targeting_host",
+    "../platform:libdart_platform_precompiler_host_targeting_host",
+    "..:libdart_precompiler_host_targeting_host",
   ]
 }
 
@@ -291,8 +303,8 @@ build_gen_snapshot("gen_snapshot_product_host_targeting_host") {
   extra_deps = [
     ":gen_snapshot_dart_io_host_targeting_host",
     ":libdart_builtin_host_targeting_host",
-    "../platform:libdart_platform_nosnapshot_with_precompiler_host_targeting_host",
-    "..:libdart_nosnapshot_with_precompiler_host_targeting_host",
+    "../platform:libdart_platform_precompiler_host_targeting_host",
+    "..:libdart_precompiler_host_targeting_host",
   ]
 }
 
@@ -540,9 +552,7 @@ gen_snapshot_action("generate_snapshot_bin") {
   ]
   args = []
   if (use_nnbd) {
-    # TODO(sigmund): reenable this flag once the CFE can build targets without
-    # issues.
-    # args += [ "--enable-experiment=non-nullable" ]
+    args += [ "--enable-experiment=non-nullable" ]
   }
   args += [
     "--deterministic",
@@ -981,7 +991,7 @@ executable("run_vm_tests") {
     ":gen_kernel_bytecode_dill",
     ":generate_abi_version_cc_file",
     ":standalone_dart_io",
-    "..:libdart_nosnapshot_with_precompiler",
+    "..:libdart_precompiler",
     "//third_party/zlib",
   ]
   if (defined(checkout_llvm) && checkout_llvm) {

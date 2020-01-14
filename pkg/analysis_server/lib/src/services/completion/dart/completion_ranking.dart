@@ -89,9 +89,17 @@ class CompletionRanking {
     return await receivePort.first;
   }
 
-  /// Makes a next-token prediction starting at the completion request cursor
-  /// and walking back to find previous input tokens.
+  /// Return a next-token prediction starting at the completion request cursor
+  /// and walking back to find previous input tokens, or `null` if the
+  /// prediction isolates are not running.
   Future<Map<String, double>> predict(DartCompletionRequest request) async {
+    if (_writes == null || _writes.isEmpty) {
+      // The field `_writes` is initialized in `start`, but the code that
+      // invokes `start` doesn't wait for it complete. That means that it's
+      // possible for this method to be invoked before `_writes` is initialized.
+      // In those cases we return `null`
+      return null;
+    }
     final query = constructQuery(request, _LOOKBACK);
     if (query == null) {
       return Future.value();

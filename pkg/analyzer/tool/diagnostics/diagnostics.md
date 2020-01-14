@@ -399,6 +399,45 @@ String f(String x) => x;
 String g(num y) => f(y as String);
 {% endprettify %}
 
+### assignment_to_final
+
+_'{0}' can't be used as a setter because it's final._
+
+#### Description
+
+The analyzer produces this diagnostic when it finds an invocation of a
+setter, but there's no setter because the field with the same name was
+declared to be `final` or `const`.
+
+#### Example
+
+The following code produces this diagnostic because `v` is final:
+
+{% prettify dart %}
+class C {
+  final v = 0;
+}
+
+f(C c) {
+  c.[!v!] = 1;
+}
+{% endprettify %}
+
+#### Common fixes
+
+If you need to be able to set the value of the field, then remove the
+modifier `final` from the field:
+
+{% prettify dart %}
+class C {
+  int v = 0;
+}
+
+f(C c) {
+  c.v = 1;
+}
+{% endprettify %}
+
 ### assignment_to_final_no_setter
 
 _There isn’t a setter named '{0}' in class '{1}'._
@@ -584,6 +623,45 @@ var x = 0;
 final y = x;
 {% endprettify %}
 
+### const_instance_field
+
+_Only static fields can be declared as const._
+
+#### Description
+
+The analyzer produces this diagnostic when an instance field is marked as
+being const.
+
+#### Example
+
+The following code produces this diagnostic because `f` is an instance
+field:
+
+{% prettify dart %}
+class C {
+  [!const!] int f = 3;
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the field needs to be an instance field, then remove the keyword
+`const`, or replace it with `final`:
+
+{% prettify dart %}
+class C {
+  final int f = 3;
+}
+{% endprettify %}
+
+If the field really should be a const field, then make it a static field:
+
+{% prettify dart %}
+class C {
+  static const int f = 3;
+}
+{% endprettify %}
+
 ### const_not_initialized
 
 _The constant '{0}' must be initialized._
@@ -665,6 +743,52 @@ Change the expression to something that evaluates to a constant map:
 {% prettify dart %}
 const Map<String, int> map1 = {};
 const Map<String, int> map2 = {...map1};
+{% endprettify %}
+
+### const_with_non_const
+
+_The constructor being called isn't a const constructor._
+
+#### Description
+
+The analyzer produces this diagnostic when the keyword `const` is used to
+invoke a constructor that isn't marked with `const`.
+
+#### Example
+
+The following code produces this diagnostic because the constructor in `A`
+isn't a const constructor:
+
+{% prettify dart %}
+class A {
+  A();
+}
+
+A f() => [!const!] A();
+{% endprettify %}
+
+#### Common fixes
+
+If it's desirable and possible to make the class a constant class (by
+making all of the fields of the class, including inherited fields, final),
+then add the keyword `const` to the constructor:
+
+{% prettify dart %}
+class A {
+  const A();
+}
+
+A f() => const A();
+{% endprettify %}
+
+Otherwise, remove the keyword `const`:
+
+{% prettify dart %}
+class A {
+  A();
+}
+
+A f() => A();
 {% endprettify %}
 
 ### const_with_non_constant_argument
@@ -1683,6 +1807,40 @@ class C {
 }
 {% endprettify %}
 
+### for_in_of_invalid_type
+
+_The type '{0}' used in the 'for' loop must implement {1}._
+
+#### Description
+
+The analyzer produces this diagnostic when the expression following `in` in
+a for-in loop has a type that isn't a subclass of `Iterable`.
+
+#### Example
+
+The following code produces this diagnostic because `m` is a `Map`, and
+`Map` isn't a subclass of `Iterable`:
+
+{% prettify dart %}
+void f(Map<String, String> m) {
+  for (String s in [!m!]) {
+    print(s);
+  }
+}
+{% endprettify %}
+
+#### Common fixes
+
+Replace the expression with one that produces an iterable value:
+
+{% prettify dart %}
+void f(Map<String, String> m) {
+  for (String s in m.values) {
+    print(s);
+  }
+}
+{% endprettify %}
+
 ### implements_non_class
 
 _Classes and mixins can only implement other classes and mixins._
@@ -1716,6 +1874,34 @@ declared.
 Otherwise, either replace the name in the implements clause with the name
 of an existing class or mixin, or remove the name from the implements
 clause.
+
+### implements_repeated
+
+_'{0}' can only be implemented once._
+
+#### Description
+
+The analyzer produces this diagnostic when a single class is specified more
+than once in an implements clause.
+
+#### Example
+
+The following code produces this diagnostic because `A` is in the list
+twice:
+
+{% prettify dart %}
+class A {}
+class B implements A, [!A!] {}
+{% endprettify %}
+
+#### Common fixes
+
+Remove all except one occurrence of the class name:
+
+{% prettify dart %}
+class A {}
+class B implements A {}
+{% endprettify %}
 
 ### implicit_this_reference_in_initializer
 
@@ -1768,6 +1954,54 @@ class C {
 }
 {% endprettify %}
 
+### initializer_for_non_existent_field
+
+_'{0}' isn't a field in the enclosing class._
+
+#### Description
+
+The analyzer produces this diagnostic when a constructor initializes a
+field that isn't declared in the class containing the constructor.
+Constructors can't initialize fields that aren't declared and fields that
+are inherited from superclasses.
+
+#### Example
+
+The following code produces this diagnostic because the initializer is
+initializing `x`, but `x` isn't a field in the class:
+
+{% prettify dart %}
+class C {
+  int y;
+
+  C() : [!x = 0!];
+}
+{% endprettify %}
+
+#### Common fixes
+
+If a different field should be initialized, then change the name to the
+name of the field:
+
+{% prettify dart %}
+class C {
+  int y;
+
+  C() : y = 0;
+}
+{% endprettify %}
+
+If the field must be declared, then add a declaration:
+
+{% prettify dart %}
+class C {
+  int x;
+  int y;
+
+  C() : x = 0;
+}
+{% endprettify %}
+
 ### initializing_formal_for_non_existent_field
 
 _'{0}' isn't a field in the enclosing class._
@@ -1776,7 +2010,8 @@ _'{0}' isn't a field in the enclosing class._
 
 The analyzer produces this diagnostic when a field formal parameter is
 found in a constructor in a class that doesn't declare the field being
-initialized.
+initialized. Constructors can't initialize fields that aren't declared and
+fields that are inherited from superclasses.
 
 #### Example
 
@@ -1836,6 +2071,128 @@ class C {
   C();
 }
 {% endprettify %}
+
+### instance_member_access_from_factory
+
+_Instance members can't be accessed from a factory constructor._
+
+#### Description
+
+The analyzer produces this diagnostic when a factory constructor contains
+an unqualified reference to an instance member. In a generative
+constructor, the instance of the class is created and initialized before
+the body of the constructor is executed, so the instance can be bound to
+`this` and accessed just like it would be in an instance method. But, in a
+factory constructor, the instance isn't created before executing the body,
+so `this` can't be used to reference it.
+
+#### Example
+
+The following code produces this diagnostic because `x` isn't in scope in
+the factory constructor:
+
+{% prettify dart %}
+class C {
+  int x;
+  factory C() {
+    return C._([!x!]);
+  }
+  C._(this.x);
+}
+{% endprettify %}
+
+#### Common fixes
+
+Rewrite the code so that it doesn't reference the instance member:
+
+{% prettify dart %}
+class C {
+  int x;
+  factory C() {
+    return C._(0);
+  }
+  C._(this.x);
+}
+{% endprettify %}
+
+### instance_member_access_from_static
+
+_Instance members can't be accessed from a static method._
+
+#### Description
+
+The analyzer produces this diagnostic when a static method contains an
+unqualified reference to an instance member.
+
+#### Example
+
+The following code produces this diagnostic because the instance field `x`
+is being referenced in a static method:
+
+{% prettify dart %}
+class C {
+  int x;
+
+  static int m() {
+    return [!x!];
+  }
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the method must reference the instance member, then it can't be static,
+so remove the keyword:
+
+{% prettify dart %}
+class C {
+  int x;
+
+  int m() {
+    return x;
+  }
+}
+{% endprettify %}
+
+If the method can't be made an instance method, then add a parameter so
+that an instance of the class can be passed in:
+
+{% prettify dart %}
+class C {
+  int x;
+
+  static int m(C c) {
+    return c.x;
+  }
+}
+{% endprettify %}
+
+### instantiate_abstract_class
+
+_Abstract classes can't be instantiated._
+
+#### Description
+
+The analyzer produces this diagnostic when it finds a constructor
+invocation and the constructor is declared in an abstract class. Even
+though you can't create an instance of an abstract class, abstract classes
+can declare constructors that can be invoked by subclasses.
+
+#### Example
+
+The following code produces this diagnostic because `C` is an abstract
+class:
+
+{% prettify dart %}
+abstract class C {}
+
+var c = new [!C!]();
+{% endprettify %}
+
+#### Common fixes
+
+If there's a concrete subclass of the abstract class that can be used, then
+create an instance of the concrete subclass.
 
 ### invalid_assignment
 
@@ -1929,6 +2286,65 @@ extension E on String {
 
 void f() {
   E('a').join('b');
+}
+{% endprettify %}
+
+### invalid_factory_name_not_a_class
+
+_The name of a factory constructor must be the same as the name of the
+immediately enclosing class._
+
+#### Description
+
+The analyzer produces this diagnostic when the name of a factory
+constructor isn't the same as the name of the surrounding class.
+
+#### Example
+
+The following code produces this diagnostic because the name of the factory
+constructor (`A`) isn't the same as the surrounding class (`C`):
+
+{% prettify dart %}
+class A {}
+
+class C {
+  factory [!A!]() => null;
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the factory returns an instance of the surrounding class, then rename
+the factory:
+
+{% prettify dart %}
+class A {}
+
+class C {
+  factory C() => null;
+}
+{% endprettify %}
+
+If the factory returns an instance of a different class, then move the
+factory to that class:
+
+{% prettify dart %}
+class A {
+  factory A() => null;
+}
+
+class C {}
+{% endprettify %}
+
+If the factory returns an instance of a different class, but you can't
+modify that class or don't want to move the factory, then convert it to be
+a static method:
+
+{% prettify dart %}
+class A {}
+
+class C {
+  static A a() => null;
 }
 {% endprettify %}
 
@@ -2048,6 +2464,39 @@ class A {
 class B extends A {
   void m2(String s) {}
 }
+{% endprettify %}
+
+### invalid_reference_to_this
+
+_Invalid reference to 'this' expression._
+
+#### Description
+
+The analyzer produces this diagnostic when `this` is used outside of an
+instance method or a generative constructor. The reserved word `this` is
+only defined in the context of an instance method or a generative
+constructor.
+
+#### Example
+
+The following code produces this diagnostic because `v` is a top-level
+variable:
+
+{% prettify dart %}
+C f() => [!this!];
+
+class C {}
+{% endprettify %}
+
+#### Common fixes
+
+Use a variable of the appropriate type in place of `this`, declaring it if
+necessary:
+
+{% prettify dart %}
+C f(C c) => c;
+
+class C {}
 {% endprettify %}
 
 ### invalid_use_of_covariant_in_extension
@@ -2197,6 +2646,53 @@ int f() {
 
 Replace the name with the name of a function.
 
+### invocation_of_non_function_expression
+
+_The expression doesn't evaluate to a function, so it can't be invoked._
+
+#### Description
+
+The analyzer produces this diagnostic when a function invocation is found,
+but the name being referenced isn't the name of a function, or when the
+expression computing the function doesn't compute a function.
+
+#### Example
+
+The following code produces this diagnostic because `x` isn't a function:
+
+{% prettify dart %}
+int x = 0;
+
+int f() => x;
+
+var y = [!x!]();
+{% endprettify %}
+
+The following code produces this diagnostic because `f()` doesn't return a
+function:
+
+{% prettify dart %}
+int x = 0;
+
+int f() => x;
+
+var y = [!f()!]();
+{% endprettify %}
+
+#### Common fixes
+
+If you need to invoke a function, then replace the code before the argument
+list with the name of a function or with an expression that computes a
+function:
+
+{% prettify dart %}
+int x = 0;
+
+int f() => x;
+
+var y = f();
+{% endprettify %}
+
 ### list_element_type_not_assignable
 
 _The element type '{0}' can't be assigned to the list type '{1}'._
@@ -2276,6 +2772,135 @@ included in the set:
 const collection = <String>{'a', 'b'};
 {% endprettify %}
 
+### map_key_type_not_assignable
+
+_The element type '{0}' can't be assigned to the map key type '{1}'._
+
+#### Description
+
+The analyzer produces this diagnostic when a key of a key-value pair in a
+map literal has a type that isn't assignable to the key type of the map.
+
+#### Example
+
+The following code produces this diagnostic because `2` is an `int`, but
+the keys of the map are required to be `String`s:
+
+{% prettify dart %}
+var m = <String, String>{[!2!] : 'a'};
+{% endprettify %}
+
+#### Common fixes
+
+If the type of the map is correct, then change the key to have the correct
+type:
+
+{% prettify dart %}
+var m = <String, String>{'2' : 'a'};
+{% endprettify %}
+
+If the type of the key is correct, then change the key type of the map:
+
+{% prettify dart %}
+var m = <int, String>{2 : 'a'};
+{% endprettify %}
+
+### map_value_type_not_assignable
+
+_The element type '{0}' can't be assigned to the map value type '{1}'._
+
+#### Description
+
+The analyzer produces this diagnostic when a value of a key-value pair in a
+map literal has a type that isn't assignable to the the value type of the
+map.
+
+#### Example
+
+The following code produces this diagnostic because `2` is an `int`, but/
+the values of the map are required to be `String`s:
+
+{% prettify dart %}
+var m = <String, String>{'a' : [!2!]};
+{% endprettify %}
+
+#### Common fixes
+
+If the type of the map is correct, then change the value to have the
+correct type:
+
+{% prettify dart %}
+var m = <String, String>{'a' : '2'};
+{% endprettify %}
+
+If the type of the value is correct, then change the value type of the map:
+
+{% prettify dart %}
+var m = <String, int>{'a' : 2};
+{% endprettify %}
+
+### missing_enum_constant_in_switch
+
+_Missing case clause for '{0}'._
+
+#### Description
+
+The analyzer produces this diagnostic when a switch statement for an enum
+doesn't include an option for one of the values in the enumeration.
+
+Note that `null` is always a possible value for an enum and therefore also
+must be handled.
+
+#### Example
+
+The following code produces this diagnostic because the enum constant `e2`
+isn't handled:
+
+{% prettify dart %}
+enum E { e1, e2 }
+
+void f(E e) {
+  [!switch (e)!] {
+    case E.e1:
+      break;
+  }
+}
+{% endprettify %}
+
+#### Common fixes
+
+If there's special handling for the missing values, then add a case clause
+for each of the missing values:
+
+{% prettify dart %}
+enum E { e1, e2 }
+
+void f(E e) {
+  switch (e) {
+    case E.e1:
+      break;
+    case E.e2:
+      break;
+  }
+}
+{% endprettify %}
+
+If the missing values should be handled the same way, then add a default
+clause:
+
+{% prettify dart %}
+enum E { e1, e2 }
+
+void f(E e) {
+  switch (e) {
+    case E.e1:
+      break;
+    default:
+      break;
+  }
+}
+{% endprettify %}
+
 ### missing_required_param
 
 _The parameter '{0}' is required._
@@ -2346,6 +2971,36 @@ int [!f!](int x) {
 Add a return statement that makes the return value explicit, even if `null`
 is the appropriate value.
 
+### mixin_of_non_class
+
+_Classes can only mix in mixins and classes._
+
+#### Description
+
+The analyzer produces this diagnostic when a name in a mixin clause is
+defined to be something other than a mixin or a class.
+
+#### Example
+
+The following code produces this diagnostic because `F` is defined to be a
+function type:
+
+{% prettify dart %}
+typedef F = int Function(String);
+
+class C with [!F!] {}
+{% endprettify %}
+
+#### Common fixes
+
+Remove the invalid name from the list, possibly replacing it with the name of the intended mixin or class:
+
+{% prettify dart %}
+typedef F = int Function(String);
+
+class C {}
+{% endprettify %}
+
 ### mixin_on_sealed_class
 
 _The class '{0}' shouldn't be used as a mixin constraint because it is sealed,
@@ -2410,6 +3065,107 @@ If the type was intended to be a class but was mistyped, then replace the
 name.
 
 Otherwise, remove the type from the on clause.
+
+### must_be_immutable
+
+_This class (or a class that this class inherits from) is marked as
+'@immutable', but one or more of its instance fields aren't final: {0}_
+
+#### Description
+
+The analyzer produces this diagnostic when an immutable class defines one
+or more instance fields that aren't final. A class is immutable if it's
+marked as being immutable using the annotation `@immutable` or if it's a
+subclass of an immutable class.
+
+#### Example
+
+The following code produces this diagnostic because the field `x` isn't
+final:
+
+{% prettify dart %}
+import 'package:meta/meta.dart';
+
+@immutable
+class [!C!] {
+  int x;
+
+  C(this.x);
+}
+{% endprettify %}
+
+#### Common fixes
+
+If instances of the class should be immutable, then add the keyword `final`
+to all non-final field declarations:
+
+{% prettify dart %}
+import 'package:meta/meta.dart';
+
+@immutable
+class C {
+  final int x;
+
+  C(this.x);
+}
+{% endprettify %}
+
+If the instances of the class should be mutable, then remove the
+
+{% prettify dart %}
+class C {
+  int x;
+
+  C(this.x);
+}
+{% endprettify %}
+
+### new_with_undefined_constructor_default
+
+_The class '{0}' doesn't have a default constructor._
+
+#### Description
+
+The analyzer produces this diagnostic when an unnamed constructor is
+invoked on a class that defines named constructors but the class doesn’t
+have an unnamed constructor.
+
+#### Example
+
+The following code produces this diagnostic because `A` doesn't define an
+unnamed constructor:
+
+{% prettify dart %}
+class A {
+  A.a();
+}
+
+A f() => [!A!]();
+{% endprettify %}
+
+#### Common fixes
+
+If one of the named constructors does what you need, then use it:
+
+{% prettify dart %}
+class A {
+  A.a();
+}
+
+A f() => A.a();
+{% endprettify %}
+
+If none of the named constructors does what you need, and you're able to
+add an unnamed constructor, then add the constructor:
+
+{% prettify dart %}
+class A {
+  A();
+  A.a();
+}
+
+A f() => A();
+{% endprettify %}
 
 ### non_abstract_class_inherits_abstract_member
 
@@ -2515,6 +3271,92 @@ void f(int x) {
     // ...
   }
 }
+{% endprettify %}
+
+### non_bool_expression
+
+_The expression in an assert must be of type 'bool'._
+
+#### Description
+
+The analyzer produces this diagnostic when the first expression in an
+assert has a type other than `bool`.
+
+#### Example
+
+The following code produces this diagnostic because the type of `p` is
+`int`, but a `bool` is required:
+
+{% prettify dart %}
+void f(int p) {
+  assert([!p!]);
+}
+{% endprettify %}
+
+#### Common fixes
+
+Change the expression so that it has the type `bool`:
+
+{% prettify dart %}
+void f(int p) {
+  assert(p > 0);
+}
+{% endprettify %}
+
+### non_bool_negation_expression
+
+_A negation operand must have a static type of 'bool'._
+
+#### Description
+
+The analyzer produces this diagnostic when the operand of the unary
+negation operator (`!`) doesn't have the type `bool`.
+
+#### Example
+
+The following code produces this diagnostic because `x` is an `int` when it
+must be a `bool`:
+
+{% prettify dart %}
+int x = 0;
+bool y = ![!x!];
+{% endprettify %}
+
+#### Common fixes
+
+Replace the operand with an expression that has the type `bool`:
+
+{% prettify dart %}
+int x = 0;
+bool y = !(x > 0);
+{% endprettify %}
+
+### non_bool_operand
+
+_The operands of the operator '{0}' must be assignable to 'bool'._
+
+#### Description
+
+The analyzer produces this diagnostic when one of the operands of either
+the `&&` or `||` operator doesn't have the type `bool`.
+
+#### Example
+
+The following code produces this diagnostic because `a` isn't a Boolean
+value:
+
+{% prettify dart %}
+int a = 3;
+bool b = [!a!] || a > 1;
+{% endprettify %}
+
+#### Common fixes
+
+Change the operand to a Boolean value:
+
+{% prettify dart %}
+int a = 3;
+bool b = a == 0 || a > 1;
 {% endprettify %}
 
 ### non_constant_case_expression
@@ -2752,6 +3594,43 @@ var a = 'a';
 var m = {0: a};
 {% endprettify %}
 
+### non_constant_set_element
+
+_The values in a const set literal must be constants._
+
+#### Description
+
+The analyzer produces this diagnostic when a constant set literal contains
+an element that isn't a compile-time constant.
+
+#### Example
+
+The following code produces this diagnostic because `i` isn't a constant:
+
+{% prettify dart %}
+var i = 0;
+
+var s = const {[!i!]};
+{% endprettify %}
+
+#### Common fixes
+
+If the element can be changed to be a constant, then change it:
+
+{% prettify dart %}
+const i = 0;
+
+var s = const {i};
+{% endprettify %}
+
+If the element can't be a constant, then remove the keyword `const`:
+
+{% prettify dart %}
+var i = 0;
+
+var s = {i};
+{% endprettify %}
+
 ### non_const_call_to_literal_constructor
 
 _This instance creation must be 'const', because the {0} constructor is marked
@@ -2984,6 +3863,48 @@ superclass, then consider removing the member from the subclass.
 
 If the member can't be removed, then remove the annotation.
 
+### part_of_non_part
+
+_The included part '{0}' must have a part-of directive._
+
+#### Description
+
+The analyzer produces this diagnostic when a part directive is found and
+the referenced file doesn't have a part-of directive.
+
+#### Example
+
+Given a file (`a.dart`) containing:
+
+{% prettify dart %}
+class A {}
+{% endprettify %}
+
+The following code produces this diagnostic because `a.dart` doesn't
+contain a part-of directive:
+
+{% prettify dart %}
+part [!'a.dart'!];
+{% endprettify %}
+
+#### Common fixes
+
+If the referenced file is intended to be a part of another library, then
+add a part-of directive to the file:
+
+{% prettify dart %}
+part of 'test.dart';
+
+class A {}
+{% endprettify %}
+
+If the referenced file is intended to be a library, then replace the part
+directive with an import directive:
+
+{% prettify dart %}
+import 'a.dart';
+{% endprettify %}
+
 ### redirect_to_non_class
 
 _The name '{0}' isn't a type and can't be used in a redirected constructor._
@@ -3111,6 +4032,35 @@ If the value is correct, then change the return type to match:
 
 {% prettify dart %}
 int f() => 3;
+{% endprettify %}
+
+### return_of_invalid_type_from_closure
+
+_The return type '{0}' isn't a '{1}', as required by the closure's context._
+
+#### Description
+
+The analyzer produces this diagnostic when the static type of a returned
+expression isn't assignable to the return type that the closure is required
+to have.
+
+#### Example
+
+The following code produces this diagnostic because `f` is defined to be a
+function that returns a `String`, but the closure assigned to it returns an
+`int`:
+
+{% prettify dart %}
+String Function(String) f = (s) => [!3!];
+{% endprettify %}
+
+#### Common fixes
+
+If the return type is correct, then replace the returned value with a value
+of the correct type, possibly by converting the existing value:
+
+{% prettify dart %}
+String Function(String) f = (s) => 3.toString();
 {% endprettify %}
 
 ### sdk_version_async_exported_from_core
@@ -3585,6 +4535,59 @@ If that's not possible, change the code so that the element is not in a
 {% prettify dart %}
 const a = [1, 2];
 var b = [...a];
+{% endprettify %}
+
+### static_access_to_instance_member
+
+_Instance member '{0}' can't be accessed using static access._
+
+#### Description
+
+The analyzer produces this diagnostic when a class name is used to access
+an instance field. Instance fields don't exist on a class; they exist only
+on an instance of the class.
+
+#### Example
+
+The following code produces this diagnostic because `x` is an instance
+field:
+
+{% prettify dart %}
+class C {
+  static int a;
+
+  int b;
+}
+
+int f() => C.[!b!];
+{% endprettify %}
+
+#### Common fixes
+
+If you intend to access a static field, then change the name of the field
+to an existing static field:
+
+{% prettify dart %}
+class C {
+  static int a;
+
+  int b;
+}
+
+int f() => C.a;
+{% endprettify %}
+
+If you intend to access the instance field, then use an instance of the
+class to access the field:
+
+{% prettify dart %}
+class C {
+  static int a;
+
+  int b;
+}
+
+int f(C c) => c.b;
 {% endprettify %}
 
 ### super_in_extension
@@ -4599,6 +5602,72 @@ file.
 
 If the file isn't a generated file, then check the spelling of the URI or
 create the file.
+
+### use_of_void_result
+
+_This expression has a type of 'void' so its value can't be used._
+
+#### Description
+
+The analyzer produces this diagnostic when it finds an expression whose
+type is `void`, and the expression is used in a place where a value is
+expected, such as before a member access or on the right-hand side of an
+assignment.
+
+#### Example
+
+The following code produces this diagnostic because `f` doesn't produce an
+object on which `toString` can be invoked:
+
+{% prettify dart %}
+void f() {}
+
+void g() {
+  [!f()!].toString();
+}
+{% endprettify %}
+
+#### Common fixes
+
+Either rewrite the code so that the expression has a value or rewrite the
+code so that it doesn't depend on the value.
+
+### variable_type_mismatch
+
+_A value of type '{0}' can't be assigned to a variable of type '{1}'._
+
+#### Description
+
+The analyzer produces this diagnostic when the evaluation of a constant
+expression would result in a `CastException`.
+
+#### Example
+
+The following code produces this diagnostic because the value of `x` is an
+`int`, which can't be assigned to `y` because an `int` isn't a `String`:
+
+{% prettify dart %}
+const Object x = 0;
+const String y = [!x!];
+{% endprettify %}
+
+#### Common fixes
+
+If the declaration of the constant is correct, then change the value being
+assigned to be of the correct type:
+
+{% prettify dart %}
+const Object x = 0;
+const String y = '$x';
+{% endprettify %}
+
+If the assigned value is correct, then change the declaration to have the
+correct type:
+
+{% prettify dart %}
+const Object x = 0;
+const int y = x;
+{% endprettify %}
 
 ### wrong_number_of_parameters_for_operator
 

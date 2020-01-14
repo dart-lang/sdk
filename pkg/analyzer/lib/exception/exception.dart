@@ -23,6 +23,7 @@ class AnalysisException implements Exception {
    */
   AnalysisException([this.message = 'Exception', this.cause]);
 
+  @override
   String toString() {
     StringBuffer buffer = StringBuffer();
     buffer.write('$runtimeType: ');

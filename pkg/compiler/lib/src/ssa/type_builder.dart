@@ -251,12 +251,12 @@ abstract class TypeBuilder {
   HInstruction analyzeTypeArgument(
       DartType argument, MemberEntity sourceElement,
       {SourceInformation sourceInformation}) {
-    if (builder.options.experimentNewRti) {
+    if (builder.options.useNewRti) {
       return analyzeTypeArgumentNewRti(argument, sourceElement,
           sourceInformation: sourceInformation);
     }
     argument = argument.unaliased;
-    if (argument.treatAsDynamic) {
+    if (argument is DynamicType) {
       // Represent [dynamic] as [null].
       return builder.graph.addConstantNull(_closedWorld);
     }
@@ -425,7 +425,7 @@ abstract class TypeBuilder {
   HInstruction buildTypeConversion(
       HInstruction original, DartType type, int kind,
       {SourceInformation sourceInformation}) {
-    if (builder.options.experimentNewRti) {
+    if (builder.options.useNewRti) {
       return buildAsCheck(original, type,
           isTypeError: kind == HTypeConversion.TYPE_CHECK,
           sourceInformation: sourceInformation);

@@ -34,7 +34,7 @@ void ProgramVisitor::VisitClasses(ClassVisitor* visitor) {
       }
       visitor->Visit(cls);
     }
-    patches = lib.owned_scripts();
+    patches = lib.used_scripts();
     for (intptr_t j = 0; j < patches.Length(); j++) {
       entry = patches.At(j);
       if (entry.IsClass()) {
@@ -964,6 +964,9 @@ class CodeKeyValueTrait {
   static inline intptr_t Hashcode(Key key) { return key->Size(); }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
+    // In AOT, disabled code objects should not be considered for deduplication.
+    ASSERT(!pair->IsDisabled() && !key->IsDisabled());
+
     if (pair->raw() == key->raw()) return true;
 
     // Notice we assume that these entries have already been de-duped, so we
@@ -981,6 +984,9 @@ class CodeKeyValueTrait {
       return false;
     }
     if (pair->exception_handlers() != key->exception_handlers()) {
+      return false;
+    }
+    if (pair->UncheckedEntryPointOffset() != key->UncheckedEntryPointOffset()) {
       return false;
     }
     return Instructions::Equals(pair->instructions(), key->instructions());
@@ -1014,7 +1020,8 @@ void ProgramVisitor::DedupInstructions() {
       code_ = function.CurrentCode();
       instructions_ = code_.instructions();
       instructions_ = DedupOneInstructions(instructions_);
-      code_.SetActiveInstructions(instructions_);
+      code_.SetActiveInstructions(instructions_,
+                                  code_.UncheckedEntryPointOffset());
       code_.set_instructions(instructions_);
       function.SetInstructions(code_);  // Update cached entry point.
     }
@@ -1059,17 +1066,20 @@ void ProgramVisitor::DedupInstructionsWithSameMetadata() {
 
     void VisitObject(RawObject* obj) {
       if (obj->IsCode()) {
-        canonical_set_.Insert(&Code::ZoneHandle(zone_, Code::RawCast(obj)));
+        const auto code = Code::RawCast(obj);
+        if (Code::IsDisabled(code)) return;
+        canonical_set_.Insert(&Code::ZoneHandle(zone_, code));
       }
     }
 
     void Visit(const Function& function) {
-      if (!function.HasCode()) {
+      if (!function.HasCode() || Code::IsDisabled(function.CurrentCode())) {
         return;
       }
       code_ = function.CurrentCode();
       instructions_ = DedupOneInstructions(function, code_);
-      code_.SetActiveInstructions(instructions_);
+      code_.SetActiveInstructions(instructions_,
+                                  code_.UncheckedEntryPointOffset());
       code_.set_instructions(instructions_);
       function.SetInstructions(code_);  // Update cached entry point.
     }

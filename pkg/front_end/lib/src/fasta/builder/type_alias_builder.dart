@@ -28,6 +28,7 @@ import '../problems.dart' show unhandled;
 
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
+import 'class_builder.dart';
 import 'formal_parameter_builder.dart';
 import 'function_type_builder.dart';
 import 'library_builder.dart';
@@ -218,19 +219,49 @@ class TypeAliasBuilder extends TypeDeclarationBuilderImpl {
   @override
   int get typeVariablesCount => typeVariables?.length ?? 0;
 
+  /// Returns `true` if this typedef is an alias of the `Null` type.
+  bool get isNullAlias {
+    TypeDeclarationBuilder typeDeclarationBuilder = type.declaration;
+    return typeDeclarationBuilder is ClassBuilder &&
+        typeDeclarationBuilder.isNullClass;
+  }
+
   @override
   DartType buildType(LibraryBuilder library,
       NullabilityBuilder nullabilityBuilder, List<TypeBuilder> arguments) {
     DartType thisType = buildThisType(library);
     if (thisType is InvalidType) return thisType;
     if (typedef.typeParameters.isEmpty && arguments == null) {
-      return thisType.withNullability(nullabilityBuilder.build(library));
+      Nullability nullability = isNullAlias
+          ? Nullability.nullable
+          : nullabilityBuilder.build(library);
+      return thisType.withNullability(nullability);
     }
     // Otherwise, substitute.
     return buildTypesWithBuiltArguments(
         library,
         nullabilityBuilder.build(library),
         buildTypeArguments(library, arguments));
+  }
+
+  /// Returns the [TypeDeclarationBuilder] for the aliased type.
+  ///
+  /// That is, it recursively looks up `type.declaration` and returns the first
+  /// one which is not a `TypeAliasBuilder`, or the last one if none exist.
+  TypeDeclarationBuilder get unaliasDeclaration {
+    Set<TypeDeclarationBuilder> builders = {this};
+    TypeDeclarationBuilder current = this;
+    while (current is TypeAliasBuilder) {
+      TypeAliasBuilder currentAliasBuilder = current;
+      TypeDeclarationBuilder next = currentAliasBuilder.type?.declaration;
+      if (next != null) {
+        current = next;
+      } else {
+        return this;
+      }
+      if (builders.contains(current)) return this;
+    }
+    return current;
   }
 }
 

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 /// Note: the VM concatenates all patch files into a single patch file. This
 /// file is the first patch in "dart:math" which contains all the imports used
 /// by patches of that library. We plan to change this when we have a shared
@@ -18,12 +16,6 @@ import "dart:typed_data" show Uint32List;
 @patch
 @pragma("vm:prefer-inline")
 T min<T extends num>(T a, T b) {
-  // These partially redundant type checks improve code quality for dart2js.
-  // Most of the improvement is at call sites from the inferred non-null num
-  // return type.
-  if (a is! num) throw new ArgumentError(a);
-  if (b is! num) throw new ArgumentError(b);
-
   if (a > b) return b;
   if (a < b) return a;
   if (b is double) {
@@ -48,12 +40,6 @@ T min<T extends num>(T a, T b) {
 @patch
 @pragma("vm:prefer-inline")
 T max<T extends num>(T a, T b) {
-  // These partially redundant type checks improve code quality for dart2js.
-  // Most of the improvement is at call sites from the inferred non-null num
-  // return type.
-  if (a is! num) throw new ArgumentError(a);
-  if (b is! num) throw new ArgumentError(b);
-
   if (a > b) return a;
   if (a < b) return b;
   if (b is double) {

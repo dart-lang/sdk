@@ -8,10 +8,11 @@ import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 
 class CancelRequestHandler extends MessageHandler<CancelParams, void> {
-  Map<String, CancelableToken> _tokens = {};
+  final Map<String, CancelableToken> _tokens = {};
 
   CancelRequestHandler(LspAnalysisServer server) : super(server);
 
+  @override
   Method get handlesMessage => Method.cancelRequest;
 
   @override
@@ -22,11 +23,12 @@ class CancelRequestHandler extends MessageHandler<CancelParams, void> {
   }
 
   CancelableToken createToken(RequestMessage message) {
-    final token = new CancelableToken();
+    final token = CancelableToken();
     _tokens[message.id.toString()] = token;
     return token;
   }
 
+  @override
   ErrorOr<void> handle(CancelParams params, CancellationToken token) {
     // Don't assume this is in the map as it's possible the client sent a
     // cancellation that we processed after already starting to send the response

@@ -30,7 +30,7 @@ class AstResolver {
 
   void resolve(
     AstNode node,
-    AstNode getNode(), {
+    AstNode Function() getNode, {
     ClassElement enclosingClassElement,
     ExecutableElement enclosingExecutableElement,
     FunctionBody enclosingFunctionBody,

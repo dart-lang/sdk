@@ -3,11 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io' show Directory, Platform;
-import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
-import 'package:front_end/src/api_prototype/experimental_flags.dart'
-    show ExperimentalFlag;
-import 'package:_fe_analyzer_shared/src/testing/id_testing.dart'
-    show DataInterpreter, runTests;
+import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 
 import 'package:front_end/src/fasta/builder/class_builder.dart';
@@ -19,21 +15,20 @@ import 'package:front_end/src/fasta/builder/member_builder.dart';
 import 'package:front_end/src/fasta/builder/type_builder.dart';
 import 'package:front_end/src/fasta/builder/type_variable_builder.dart';
 import 'package:front_end/src/fasta/source/source_library_builder.dart';
-import 'package:front_end/src/testing/features.dart';
+import 'package:_fe_analyzer_shared/src/testing/features.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
 import 'package:front_end/src/testing/id_testing_utils.dart';
 import 'package:kernel/ast.dart';
 
 main(List<String> args) async {
   Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
-  await runTests(dataDir,
+  await runTests<Features>(dataDir,
       args: args,
-      supportedMarkers: sharedMarkers,
+      supportedMarkers: [cfeMarker],
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
       runTest: runTestFor(const ExtensionsDataComputer(), [
-        new TestConfig(cfeMarker, 'cfe with extension methods',
-            experimentalFlags: const {ExperimentalFlag.extensionMethods: true},
+        new TestConfig(cfeMarker, 'cfe',
             librariesSpecificationUri: createUriForFileName('libraries.json'))
       ]));
 }

@@ -10,7 +10,7 @@ library vm.bytecode.dbc;
 /// Before bumping current bytecode version format, make sure that
 /// all users have switched to a VM which is able to consume new
 /// version of bytecode.
-const int currentBytecodeFormatVersion = 27;
+const int currentBytecodeFormatVersion = 28;
 
 enum Opcode {
   kUnusedOpcode000,
@@ -674,3 +674,8 @@ const int argumentsLimit = 1 << 8;
 // Base class for exceptions thrown when certain limit of bytecode
 // format is exceeded.
 abstract class BytecodeLimitExceededException {}
+
+// Constants specifying the NNBD mode of libraries.
+// Must be kept in sync with enum class NNBDMode in the VM.
+const int kLegacy = 0;
+const int kOptedIn = 1;

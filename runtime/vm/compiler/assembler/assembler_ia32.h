@@ -692,10 +692,14 @@ class Assembler : public AssemblerBase {
 
   void CallRuntime(const RuntimeEntry& entry, intptr_t argument_count);
 
-  void Call(const Code& code, bool movable_target = false);
+  void Call(const Code& code,
+            bool movable_target = false,
+            CodeEntryKind entry_kind = CodeEntryKind::kNormal);
   void CallToRuntime();
 
   void CallNullErrorShared(bool save_fpu_registers) { UNREACHABLE(); }
+
+  void CallNullArgErrorShared(bool save_fpu_registers) { UNREACHABLE(); }
 
   void Jmp(const Code& code);
   void J(Condition condition, const Code& code);

@@ -15,8 +15,6 @@ typedef void ControllerCallback();
 
 /**
  * Type of stream controller `onCancel` callbacks.
- *
- * The callback may return either `void` or a future.
  */
 typedef FutureOr<void> ControllerCancelCallback();
 
@@ -514,10 +512,10 @@ abstract class _StreamController<T> implements _StreamControllerBase<T> {
   // stream is listened to.
   // While adding a stream, pending events are moved into the
   // state object to allow the state object to use the _varData field.
-  _PendingEvents<T> get _pendingEvents {
+  _PendingEvents<T>? get _pendingEvents {
     assert(_isInitialState);
     if (!_isAddingStream) {
-      return _varData as _PendingEvents<T>;
+      return _varData;
     }
     var state = _varData as _StreamControllerAddStreamState<T>;
     return state.varData;
@@ -550,7 +548,7 @@ abstract class _StreamController<T> implements _StreamControllerBase<T> {
     if (_isAddingStream) {
       varData = (varData as _StreamControllerAddStreamState<Object?>).varData;
     }
-    return _varData as _ControllerSubscription<T>;
+    return varData as _ControllerSubscription<T>;
   }
 
   /**

@@ -93,7 +93,7 @@ class _SyntacticErrorGenerator {
   final String syntacticErrorsSource;
   final String parserSource;
   final translatedEntries = <Map>[];
-  final translatedFastaErrorCodes = Set<String>();
+  final translatedFastaErrorCodes = <String>{};
   final out = StringBuffer('''
 //
 // THIS FILE IS GENERATED. DO NOT EDIT.
@@ -174,7 +174,7 @@ part of 'syntactic_errors.dart';
       final className = nameForEntry(entry)[0];
       out.writeln();
       out.writeln('const $className _$errorCode =');
-      out.writeln('const $className(');
+      out.writeln('$className(');
       out.writeln("'$errorCode',");
       out.writeln('r"${entry['template']}"');
       final tip = entry['tip'];
@@ -249,7 +249,7 @@ part of 'syntactic_errors.dart';
 
     // List the ParserErrorCodes that could easily be auto generated
     // but have not been already.
-    final analyzerToFasta = Map<String, List<String>>();
+    final analyzerToFasta = <String, List<String>>{};
     messagesYaml.forEach((fastaName, entry) {
       if (entry is Map) {
         final analyzerName = messageToName[messageFromEntryTemplate(entry)];
@@ -277,7 +277,7 @@ part of 'syntactic_errors.dart';
     }
 
     // List error codes in the parser that have not been translated.
-    final untranslatedFastaErrorCodes = Set<String>();
+    final untranslatedFastaErrorCodes = <String>{};
     Token token = scanString(parserSource).tokens;
     while (!token.isEof) {
       if (token.isIdentifier) {

@@ -1,4 +1,4 @@
-# Dart VM Service Protocol Extension
+# Dart VM Service Protocol Extension 1.1
 
 This protocol describes service extensions that are made available through
 the Dart core libraries, but are not part of the core
@@ -10,12 +10,12 @@ invoked by prepending the service extension name (e.g.,
 
 ## dart:io Extensions
 
-This section describes _version 1.0_ of the dart:io service protocol extensions.
+This section describes _version 1.1_ of the dart:io service protocol extensions.
 
 ### getVersion
 
 ```
-Version getVersion()
+Version getVersion(string isolateId)
 ```
 
 The _getVersion_ RPC returns the available version of the dart:io service protocol extensions.
@@ -25,7 +25,7 @@ See [Version](#version).
 ### startSocketProfiling
 
 ```
-Success startSocketProfiling()
+Success startSocketProfiling(string isolateId)
 ```
 
 Start profiling new socket connections. Statistics for sockets created before profiling was enabled will not be recorded.
@@ -35,7 +35,7 @@ See [Success](#success).
 ### pauseSocketProfiling
 
 ```
-Success pauseSocketProfiling()
+Success pauseSocketProfiling(string isolateId)
 ```
 
 Pause recording socket statistics. [clearSocketProfile](#clearsocketprofile) must be called in order for collected statistics to be cleared.
@@ -45,7 +45,7 @@ See [Success](#success).
 ### clearSocketProfile
 
 ```
-Success clearSocketProfile()
+Success clearSocketProfile(string isolateId)
 ```
 
 Removes all statistics associated with prior and current sockets.
@@ -55,11 +55,36 @@ See [Success](#success).
 ### getSocketProfile
 
 ```
-SocketProfile getSocketProfile()
+SocketProfile getSocketProfile(string isolateId)
 ```
 
 The _getSocketProfile_ RPC is used to retrieve socket statistics collected by
 the socket profiler. Only samples collected after the initial [startSocketProfiling](#startsocketprofiling) or the last call to [clearSocketProfile](#clearsocketprofile) will be reported.
+
+### getHttpEnableTimelineLogging
+
+```
+HttpTimelineLoggingState getHttpEnableTimelineLogging(string isolateId)
+```
+
+The _getHttpEnableTimelineLogging_ RPC is used to remotely inspect the value of
+`HttpClient.enableTimelineLogging`, which determines if HTTP client requests
+should be logged to the timeline.
+
+See [HttpTimelineLoggingState](#httptimelineloggingstate).
+
+### setHttpEnableTimelineLogging
+
+```
+Success setHttpEnableTimelineLogging(string isolateId, bool enable)
+```
+
+The _setHttpEnableTimelineLogging_ RPC is used to remotely set the value of
+`HttpClient.enableTimelineLogging`, which determines if HTTP client requests
+should be logged to the timeline. Note: this will only change the state of HTTP
+timeline logging for the isolate specified by `isolateId`.
+
+See [Success](#success).
 
 ## Public Types
 
@@ -100,14 +125,20 @@ class SocketStatistic {
   // The time, in microseconds, that this socket was closed.
   int endTime [optional];
 
+  // The time, in microseconds, that this socket was last read from.
+  int lastReadTime [optional];
+
+  // The time, in microseconds, that this socket was last written to.
+  int lastWriteTime [optional];
+
   // The address of socket.
-  String address;
+  string address;
 
   // The port of socket.
   int port;
 
   // The type of socket. The value is `tcp` or `udp`.
-  String socketType;
+  string socketType;
 
   // The number of bytes read from this socket.
   int readBytes;
@@ -141,3 +172,9 @@ class Version extends Response {
   int minor;
 }
 ```
+
+## Revision History
+version | comments
+------- | --------
+1.0 | Initial revision.
+1.1 | Added `lastReadTime` and `lastWriteTime` properties to `SocketStatistic`.

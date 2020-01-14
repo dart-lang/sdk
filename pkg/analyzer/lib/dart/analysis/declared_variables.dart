@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/constant/value.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
-import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 
 /// An object used to provide access to the values of variables that have been
 /// defined on the command line using the `-D` option.
@@ -12,7 +12,7 @@ import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 /// Clients may not extend, implement or mix-in this class.
 class DeclaredVariables {
   /// A table mapping the names of declared variables to their values.
-  Map<String, String> _declaredVariables = <String, String>{};
+  final Map<String, String> _declaredVariables = <String, String>{};
 
   /// Initialize a newly created set of declared variables in which there are no
   /// variables.

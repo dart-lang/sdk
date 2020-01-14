@@ -404,7 +404,8 @@ class _BufferCachingBase64Encoder extends _Base64Encoder {
       bufferCache = Uint8List(bufferLength);
     }
     // Return a view of the buffer, so it has the requested length.
-    return Uint8List.view(bufferCache.buffer, 0, bufferLength);
+    return Uint8List.view(
+        bufferCache.buffer, bufferCache.offsetInBytes, bufferLength);
   }
 }
 

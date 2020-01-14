@@ -58,7 +58,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
    * completion operation up to [performanceListMaxLength] measurements.
    */
   final RecentBuffer<CompletionPerformance> performanceList =
-      new RecentBuffer<CompletionPerformance>(performanceListMaxLength);
+      RecentBuffer<CompletionPerformance>(performanceListMaxLength);
 
   /**
    * The current request being processed or `null` if none.
@@ -101,7 +101,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     int offset = params.offset;
     AnalysisDriver driver = server.getAnalysisDriver(file);
     if (driver != null) {
-      requestParams = new plugin.CompletionGetSuggestionsParams(file, offset);
+      requestParams = plugin.CompletionGetSuggestionsParams(file, offset);
       pluginFutures = server.pluginManager
           .broadcastRequest(requestParams, contextRoot: driver.contextRoot);
     }
@@ -113,7 +113,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
       const COMPUTE_SUGGESTIONS_TAG = 'computeSuggestions';
       performance.logStartTime(COMPUTE_SUGGESTIONS_TAG);
 
-      var manager = new DartCompletionManager(
+      var manager = DartCompletionManager(
         includedElementKinds: includedElementKinds,
         includedElementNames: includedElementNames,
         includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,
@@ -140,7 +140,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
           requestParameters: requestParams);
       for (plugin.Response response in responses) {
         plugin.CompletionGetSuggestionsResult result =
-            new plugin.CompletionGetSuggestionsResult.fromResponse(response);
+            plugin.CompletionGetSuggestionsResult.fromResponse(response);
         if (result.results != null && result.results.isNotEmpty) {
           if (suggestions.isEmpty) {
             request.replacementOffset = result.replacementOffset;
@@ -159,7 +159,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     //
     // Return the result.
     //
-    return new CompletionResult(
+    return CompletionResult(
         request.replacementOffset, request.replacementLength, suggestions);
   }
 
@@ -300,7 +300,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
       ));
     }
 
-    TokenDetailBuilder builder = new TokenDetailBuilder();
+    TokenDetailBuilder builder = TokenDetailBuilder();
     builder.visitNode(result.unit);
     server.sendResponse(
       CompletionListTokenDetailsResult(builder.details).toResponse(request.id),
@@ -311,11 +311,11 @@ class CompletionDomainHandler extends AbstractRequestHandler {
    * Process a `completion.getSuggestions` request.
    */
   Future<void> processRequest(Request request) async {
-    performance = new CompletionPerformance();
+    performance = CompletionPerformance();
 
     // extract and validate params
     CompletionGetSuggestionsParams params =
-        new CompletionGetSuggestionsParams.fromRequest(request);
+        CompletionGetSuggestionsParams.fromRequest(request);
     String file = params.file;
     int offset = params.offset;
 
@@ -327,7 +327,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     server.requestStatistics?.addItemTimeNow(request, 'resolvedUnit');
     if (resolvedUnit?.state == ResultState.VALID) {
       if (offset < 0 || offset > resolvedUnit.content.length) {
-        server.sendResponse(new Response.invalidParameter(
+        server.sendResponse(Response.invalidParameter(
             request,
             'params.offset',
             'Expected offset between 0 and source length inclusive,'
@@ -338,15 +338,15 @@ class CompletionDomainHandler extends AbstractRequestHandler {
       recordRequest(performance, file, resolvedUnit.content, offset);
     }
     CompletionRequestImpl completionRequest =
-        new CompletionRequestImpl(resolvedUnit, offset, performance);
+        CompletionRequestImpl(resolvedUnit, offset, performance);
 
     String completionId = (_nextCompletionId++).toString();
 
     setNewRequest(completionRequest);
 
     // initial response without results
-    server.sendResponse(new CompletionGetSuggestionsResult(completionId)
-        .toResponse(request.id));
+    server.sendResponse(
+        CompletionGetSuggestionsResult(completionId).toResponse(request.id));
 
     // If the client opted into using available suggestion sets,
     // create the kinds set, so signal the completion manager about opt-in.
@@ -434,7 +434,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     List<IncludedSuggestionRelevanceTag> includedSuggestionRelevanceTags,
   ) {
     server.sendNotification(
-      new CompletionResultsParams(
+      CompletionResultsParams(
         completionId,
         replacementOffset,
         replacementLength,

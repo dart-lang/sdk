@@ -43,7 +43,7 @@ final TestConfig analyzerNnbdConfig = TestConfig(
 /// tests.
 Uri _defaultDir = Uri.parse('file:///a/b/c/');
 
-Future<bool> checkTests<T>(
+Future<TestResult<T>> checkTests<T>(
     String rawCode, DataComputer<T> dataComputer, FeatureSet featureSet) async {
   AnnotatedCode code =
       AnnotatedCode.fromText(rawCode, commentStart, commentEnd);
@@ -74,38 +74,49 @@ void onFailure(String message) {
 /// Runs [dataComputer] on [testData] for all [testedConfigs].
 ///
 /// Returns `true` if an error was encountered.
-Future<bool> runTest<T>(TestData testData, DataComputer<T> dataComputer,
-    List<TestConfig> testedConfigs,
+Future<Map<String, TestResult<T>>> runTest<T>(TestData testData,
+    DataComputer<T> dataComputer, List<TestConfig> testedConfigs,
     {bool testAfterFailures,
     bool forUserLibrariesOnly = true,
     Iterable<Id> globalIds = const <Id>[],
-    void onFailure(String message)}) async {
-  bool hasFailures = false;
+    void Function(String message) onFailure,
+    Map<String, List<String>> skipMap}) async {
+  Map<String, TestResult<T>> results = {};
   for (TestConfig config in testedConfigs) {
-    if (await runTestForConfig(testData, dataComputer, config,
-        fatalErrors: !testAfterFailures, onFailure: onFailure)) {
-      hasFailures = true;
+    if (skipForConfig(testData.name, config.name, skipMap)) {
+      continue;
     }
+    results[config.marker] = await runTestForConfig(
+        testData, dataComputer, config,
+        fatalErrors: !testAfterFailures, onFailure: onFailure);
   }
-  return hasFailures;
+  return results;
 }
 
 /// Creates a test runner for [dataComputer] on [testedConfigs].
-RunTestFunction runTestFor<T>(
+RunTestFunction<T> runTestFor<T>(
     DataComputer<T> dataComputer, List<TestConfig> testedConfigs) {
   return (TestData testData,
-      {bool testAfterFailures, bool verbose, bool succinct, bool printCode}) {
+      {bool testAfterFailures,
+      bool verbose,
+      bool succinct,
+      bool printCode,
+      Map<String, List<String>> skipMap}) {
     return runTest(testData, dataComputer, testedConfigs,
-        testAfterFailures: testAfterFailures, onFailure: onFailure);
+        testAfterFailures: testAfterFailures,
+        onFailure: onFailure,
+        skipMap: skipMap);
   };
 }
 
 /// Runs [dataComputer] on [testData] for [config].
 ///
 /// Returns `true` if an error was encountered.
-Future<bool> runTestForConfig<T>(
+Future<TestResult<T>> runTestForConfig<T>(
     TestData testData, DataComputer<T> dataComputer, TestConfig config,
-    {bool fatalErrors, void onFailure(String message)}) async {
+    {bool fatalErrors,
+    void Function(String message) onFailure,
+    Map<String, List<String>> skipMap}) async {
   MemberAnnotations<IdValue> memberAnnotations =
       testData.expectedMaps[config.marker];
   var resourceProvider = MemoryResourceProvider();
@@ -133,7 +144,7 @@ Future<bool> runTestForConfig<T>(
         DartUriResolver(sdk),
         PackageMapUriResolver(resourceProvider, packageMap),
         ResourceUriResolver(resourceProvider)
-      ], null, resourceProvider),
+      ]),
       analysisOptions,
       retainDataForTesting: true);
   scheduler.start();
@@ -148,7 +159,7 @@ Future<bool> runTestForConfig<T>(
     }
 
     onFailure('Errors found:\n  ${errors.map(_formatError).join('\n  ')}');
-    return true;
+    return TestResult<T>.erroneous();
   }
   Map<Uri, Map<Id, ActualData<T>>> actualMaps = <Uri, Map<Id, ActualData<T>>>{};
   Map<Id, ActualData<T>> globalData = <Id, ActualData<T>>{};

@@ -34,7 +34,7 @@ class DriverBasedUriConverterTest with ResourceProviderMixin {
         'bar': [barFolder],
       }),
       ResourceUriResolver(resourceProvider),
-    ], null, resourceProvider);
+    ]);
 
     ContextRoot contextRoot = ContextRoot(barFolder.path, [],
         pathContext: resourceProvider.pathContext);
@@ -83,8 +83,13 @@ class DriverBasedUriConverterTest with ResourceProviderMixin {
 }
 
 class MockAnalysisDriver implements AnalysisDriver {
+  @override
   ResourceProvider resourceProvider;
+
+  @override
   SourceFactory sourceFactory;
+
+  @override
   ContextRoot contextRoot;
 
   @override

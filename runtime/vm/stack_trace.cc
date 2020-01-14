@@ -99,6 +99,7 @@ class CallerClosureFinder {
       : receiver_context_(Context::Handle(zone)),
         receiver_function_(Function::Handle(zone)),
         context_entry_(Object::Handle(zone)),
+        is_sync(Object::Handle(zone)),
         future_(Object::Handle(zone)),
         listener_(Object::Handle(zone)),
         callback_(Object::Handle(zone)),
@@ -113,6 +114,7 @@ class CallerClosureFinder {
         controller_subscription_class(Class::Handle(zone)),
         buffering_stream_subscription_class(Class::Handle(zone)),
         async_stream_controller_class(Class::Handle(zone)),
+        completer_is_sync_field(Field::Handle(zone)),
         completer_future_field(Field::Handle(zone)),
         future_result_or_listeners_field(Field::Handle(zone)),
         callback_field(Field::Handle(zone)),
@@ -151,6 +153,9 @@ class CallerClosureFinder {
 
     // Look up fields:
     // - async:
+    completer_is_sync_field =
+        async_await_completer_class.LookupFieldAllowPrivate(Symbols::isSync());
+    ASSERT(!completer_is_sync_field.IsNull());
     completer_future_field =
         async_await_completer_class.LookupFieldAllowPrivate(Symbols::_future());
     ASSERT(!completer_future_field.IsNull());
@@ -242,11 +247,37 @@ class CallerClosureFinder {
     return Closure::null();
   }
 
+  bool IsRunningAsync(const Closure& receiver_closure) {
+    receiver_function_ = receiver_closure.function();
+    receiver_context_ = receiver_closure.context();
+
+    // The async* functions are never started synchronously, they start running
+    // after the first `listen()` call to its returned `Stream`.
+    if (receiver_function_.IsAsyncGenClosure()) {
+      return true;
+    }
+    ASSERT(receiver_function_.IsAsyncClosure());
+
+    context_entry_ = receiver_context_.At(Context::kAsyncCompleterIndex);
+    ASSERT(context_entry_.IsInstance());
+    ASSERT(context_entry_.GetClassId() == async_await_completer_class.id());
+
+    const Instance& completer = Instance::Cast(context_entry_);
+    is_sync = completer.GetField(completer_is_sync_field);
+    ASSERT(!is_sync.IsNull());
+    ASSERT(is_sync.IsBool());
+    // _AsyncAwaitCompleter.isSync indicates whether the future should be
+    // completed async. or sync., based on whether it has yielded yet.
+    // isSync is true when the :async_op is running async.
+    return Bool::Cast(is_sync).value();
+  }
+
  private:
   Context& receiver_context_;
   Function& receiver_function_;
 
   Object& context_entry_;
+  Object& is_sync;
   Object& future_;
   Object& listener_;
   Object& callback_;
@@ -263,6 +294,7 @@ class CallerClosureFinder {
   Class& buffering_stream_subscription_class;
   Class& async_stream_controller_class;
 
+  Field& completer_is_sync_field;
   Field& completer_future_field;
   Field& future_result_or_listeners_field;
   Field& callback_field;
@@ -326,7 +358,7 @@ void StackTraceUtils::CollectFramesLazy(
 
       // If this async function hasn't yielded yet, we're still dealing with a
       // normal stack. Continue to next frame as usual.
-      if (GetYieldIndex(closure) <= 0) {
+      if (!caller_closure_finder.IsRunningAsync(closure)) {
         // Don't advance frame since we already did so just above.
         continue;
       }

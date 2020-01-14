@@ -338,13 +338,13 @@ void FlowGraphTypePropagator::VisitInstanceCall(InstanceCallInstr* instr) {
 
 void FlowGraphTypePropagator::VisitPolymorphicInstanceCall(
     PolymorphicInstanceCallInstr* instr) {
-  if (instr->instance_call()->has_unique_selector()) {
+  if (instr->has_unique_selector()) {
     SetCid(instr->Receiver()->definition(),
            instr->targets().MonomorphicReceiverCid());
     return;
   }
   CheckNonNullSelector(instr, instr->Receiver()->definition(),
-                       instr->instance_call()->function_name());
+                       instr->function_name());
 }
 
 void FlowGraphTypePropagator::VisitGuardFieldClass(
@@ -554,12 +554,12 @@ void CompileType::Union(CompileType* other) {
   }
 
   const AbstractType* other_abstract_type = other->ToAbstractType();
-  if (abstract_type->IsSubtypeOf(NNBDMode::kLegacy, *other_abstract_type,
+  if (abstract_type->IsSubtypeOf(NNBDMode::kLegacyLib, *other_abstract_type,
                                  Heap::kOld)) {
     type_ = other_abstract_type;
     return;
-  } else if (other_abstract_type->IsSubtypeOf(NNBDMode::kLegacy, *abstract_type,
-                                              Heap::kOld)) {
+  } else if (other_abstract_type->IsSubtypeOf(NNBDMode::kLegacyLib,
+                                              *abstract_type, Heap::kOld)) {
     return;  // Nothing to do.
   }
 
@@ -569,7 +569,7 @@ void CompileType::Union(CompileType* other) {
     Class& cls = Class::Handle(abstract_type->type_class());
     for (; !cls.IsNull() && !cls.IsGeneric(); cls = cls.SuperClass()) {
       type_ = &AbstractType::ZoneHandle(cls.RareType());
-      if (other_abstract_type->IsSubtypeOf(NNBDMode::kLegacy, *type_,
+      if (other_abstract_type->IsSubtypeOf(NNBDMode::kLegacyLib, *type_,
                                            Heap::kOld)) {
         // Found suitable supertype: keep type_ only.
         cid_ = kDynamicCid;
@@ -610,7 +610,7 @@ CompileType* CompileType::ComputeRefinedType(CompileType* old_type,
   const AbstractType* new_abstract_type = new_type->ToAbstractType();
 
   CompileType* preferred_type;
-  if (old_abstract_type->IsSubtypeOf(NNBDMode::kLegacy, *new_abstract_type,
+  if (old_abstract_type->IsSubtypeOf(NNBDMode::kLegacyLib, *new_abstract_type,
                                      Heap::kOld)) {
     // Prefer old type, as it is clearly more specific.
     preferred_type = old_type;
@@ -786,10 +786,12 @@ const AbstractType* CompileType::ToAbstractType() {
   return type_;
 }
 
-bool CompileType::CanComputeIsInstanceOf(const AbstractType& type,
+bool CompileType::CanComputeIsInstanceOf(NNBDMode mode,
+                                         const AbstractType& type,
                                          bool is_nullable,
                                          bool* is_instance) {
   ASSERT(is_instance != NULL);
+  // TODO(regis): Take mode into consideration.
   if (type.IsDynamicType() || type.IsObjectType() || type.IsVoidType()) {
     *is_instance = true;
     return true;
@@ -818,16 +820,32 @@ bool CompileType::CanComputeIsInstanceOf(const AbstractType& type,
     return false;
   }
 
-  *is_instance = compile_type.IsSubtypeOf(NNBDMode::kLegacy, type, Heap::kOld);
+  *is_instance = compile_type.IsSubtypeOf(mode, type, Heap::kOld);
   return *is_instance;
 }
 
-bool CompileType::IsSubtypeOf(const AbstractType& other) {
+bool CompileType::IsSubtypeOf(NNBDMode mode, const AbstractType& other) {
   if (IsNone()) {
     return false;
   }
 
-  return ToAbstractType()->IsSubtypeOf(NNBDMode::kLegacy, other, Heap::kOld);
+  return ToAbstractType()->IsSubtypeOf(mode, other, Heap::kOld);
+}
+
+bool CompileType::Specialize(GrowableArray<intptr_t>* class_ids) {
+  ToNullableCid();
+  if (cid_ != kDynamicCid) {
+    class_ids->Add(cid_);
+    return true;
+  }
+  if (type_ != nullptr && type_->type_class_id() != kIllegalCid) {
+    const Class& type_class = Class::Handle(type_->type_class());
+    if (!CHA::ConcreteSubclasses(type_class, class_ids)) return false;
+    if (is_nullable_) {
+      class_ids->Add(kNullCid);
+    }
+  }
+  return false;
 }
 
 void CompileType::PrintTo(BufferFormatter* f) const {
@@ -908,6 +926,7 @@ bool PhiInstr::RecomputeType() {
 }
 
 CompileType RedefinitionInstr::ComputeType() const {
+  // TODO(regis): Revisit for NNBD support.
   if (constrained_type_ != NULL) {
     // Check if the type associated with this redefinition is more specific
     // than the type of its input. If yes, return it. Otherwise, fall back
@@ -926,7 +945,8 @@ CompileType RedefinitionInstr::ComputeType() const {
       return CompileType::CreateNullable(is_nullable,
                                          constrained_type_->ToNullableCid());
     }
-    if (value()->Type()->IsSubtypeOf(*constrained_type_->ToAbstractType())) {
+    if (value()->Type()->IsSubtypeOf(NNBDMode::kLegacyLib,
+                                     *constrained_type_->ToAbstractType())) {
       return is_nullable ? *value()->Type()
                          : value()->Type()->CopyNonNullable();
     } else {
@@ -1143,7 +1163,7 @@ CompileType ConstantInstr::ComputeType() const {
 CompileType AssertAssignableInstr::ComputeType() const {
   CompileType* value_type = value()->Type();
 
-  if (value_type->IsSubtypeOf(dst_type())) {
+  if (value_type->IsSubtypeOf(nnbd_mode(), dst_type())) {
     return *value_type;
   }
 

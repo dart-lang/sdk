@@ -121,9 +121,9 @@ class JSNoSuchMethodError extends NativeError implements NoSuchMethodError {
   static final _privateName = RegExp(r"^Symbol\((_.+)\)$");
 
   String? _fieldName(String message) {
-    var match = _nullError.firstMatch(message);
+    RegExpMatch? match = _nullError.firstMatch(message);
     if (match == null) return null;
-    var name = match[1];
+    String name = match[1]!;
     match = _extensionName.firstMatch(name) ?? _privateName.firstMatch(name);
     return match != null ? match[1] : name;
   }

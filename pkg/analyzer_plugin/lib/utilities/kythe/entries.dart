@@ -72,19 +72,19 @@ class EntryGenerator {
   GeneratorResult<KytheGetKytheEntriesResult> generateGetEntriesResponse(
       EntryRequest request) {
     List<Notification> notifications = <Notification>[];
-    EntryCollectorImpl collector = new EntryCollectorImpl();
+    EntryCollectorImpl collector = EntryCollectorImpl();
     for (EntryContributor contributor in contributors) {
       try {
         contributor.computeEntries(request, collector);
       } catch (exception, stackTrace) {
-        notifications.add(new PluginErrorParams(
+        notifications.add(PluginErrorParams(
                 false, exception.toString(), stackTrace.toString())
             .toNotification());
       }
     }
     KytheGetKytheEntriesResult result =
-        new KytheGetKytheEntriesResult(collector.entries, collector.files);
-    return new GeneratorResult(result, notifications);
+        KytheGetKytheEntriesResult(collector.entries, collector.files);
+    return GeneratorResult(result, notifications);
   }
 }
 

@@ -2,14 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 // part of "core_patch.dart";
 
 @patch
 class List<E> {
   @patch
-  factory List([int length]) native "List_new";
+  factory List.empty({bool growable = true}) {
+    return growable ? <E>[] : _List<E>(0);
+  }
+
+  @patch
+  factory List([int? length]) native "List_new";
 
   @patch
   factory List.filled(int length, E fill, {bool growable: false}) {

@@ -9,7 +9,7 @@ import 'package:analyzer/src/task/options.dart';
 import 'package:yaml/yaml.dart';
 
 /// String identifiers mapped to associated severities.
-const Map<String, ErrorSeverity> severityMap = const {
+const Map<String, ErrorSeverity> severityMap = {
   'error': ErrorSeverity.ERROR,
   'info': ErrorSeverity.INFO,
   'warning': ErrorSeverity.WARNING

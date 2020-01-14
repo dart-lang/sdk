@@ -44,7 +44,7 @@ mixin CompletionMixin implements ServerPlugin {
     String path = parameters.file;
     CompletionRequest request = await getCompletionRequest(parameters);
     CompletionGenerator generator =
-        new CompletionGenerator(getCompletionContributors(path));
+        CompletionGenerator(getCompletionContributors(path));
     GeneratorResult<CompletionGetSuggestionsResult> result =
         await generator.generateCompletionResponse(request);
     result.sendNotifications(channel);
@@ -69,7 +69,7 @@ abstract class DartCompletionMixin implements CompletionMixin {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     ResolvedUnitResult result = await getResolvedUnitResult(parameters.file);
-    return new DartCompletionRequestImpl(
+    return DartCompletionRequestImpl(
         resourceProvider, parameters.offset, result);
   }
 }

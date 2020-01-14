@@ -3,7 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/edit/nnbd_migration/offset_mapper.dart';
+import 'package:analysis_server/src/edit/preview/preview_site.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
+import 'package:meta/meta.dart';
+import 'package:path/path.dart' as path;
 
 /// A description of an edit that can be applied before rerunning the migration
 /// in order to improve the migration results.
@@ -24,14 +27,61 @@ class EditDetail {
   EditDetail(this.description, this.offset, this.length, this.replacement);
 }
 
-/// The migration information associated with a single library.
-class LibraryInfo {
-  /// The information about the units in the library. The information about the
-  /// defining compilation unit is always first.
+/// A class storing rendering information for an entire migration report.
+///
+/// This generally provides one [InstrumentationRenderer] (for one library)
+/// with information about the rest of the libraries represented in the
+/// instrumentation output.
+class MigrationInfo {
+  /// The information about the compilation units that are are migrated.
   final Set<UnitInfo> units;
 
-  /// Initialize a newly created library.
-  LibraryInfo(this.units);
+  /// A map from file paths to the unit infos created for those files. The units
+  /// in this map is a strict superset of the [units] that were migrated.
+  final Map<String, UnitInfo> unitMap;
+
+  /// The resource provider's path context.
+  final path.Context pathContext;
+
+  /// The filesystem root used to create relative paths for each unit.
+  final String includedRoot;
+
+  final String migrationDate;
+
+  MigrationInfo(this.units, this.unitMap, this.pathContext, this.includedRoot)
+      : migrationDate = DateTime.now().toString();
+
+  /// The path to the highlight.js script, relative to [unitInfo].
+  String get highlightJsPath => PreviewSite.highlightJSPagePath;
+
+  /// The path to the highlight.js stylesheet, relative to [unitInfo].
+  String get highlightStylePath => PreviewSite.highlightCssPagePath;
+
+  /// Return the path to [unit] from [includedRoot], to be used as a display
+  /// name for a library.
+  String computeName(UnitInfo unit) =>
+      pathContext.relative(unit.path, from: includedRoot);
+
+  /// Generate mustache context for unit links.
+  List<Map<String, Object>> unitLinks() {
+    List<Map<String, Object>> links = [];
+    for (UnitInfo unit in units) {
+      int count = unit.fixRegions.length;
+      String modificationCount =
+          count == 1 ? '(1 modification)' : '($count modifications)';
+      links.add({
+        'name': computeName(unit),
+        'modificationCount': modificationCount,
+        'path': _pathTo(target: unit),
+      });
+    }
+    return links;
+  }
+
+  /// The path to [target], relative to [from].
+  String _pathTo({@required UnitInfo target}) {
+    return target.path;
+  }
 }
 
 /// A location from or to which a user might want to navigate.
@@ -39,11 +89,14 @@ abstract class NavigationRegion {
   /// The offset of the region.
   final int offset;
 
+  /// The line number of the region.
+  final int line;
+
   /// The length of the region.
   final int length;
 
   /// Initialize a newly created link.
-  NavigationRegion(this.offset, this.length);
+  NavigationRegion(this.offset, this.line, this.length);
 }
 
 /// A location from which a user might want to navigate.
@@ -52,7 +105,8 @@ class NavigationSource extends NavigationRegion {
   final NavigationTarget target;
 
   /// Initialize a newly created link.
-  NavigationSource(int offset, int length, this.target) : super(offset, length);
+  NavigationSource(int offset, int line, int length, this.target)
+      : super(offset, line, length);
 }
 
 /// A location to which a user might want to navigate.
@@ -61,8 +115,8 @@ class NavigationTarget extends NavigationRegion {
   final String filePath;
 
   /// Initialize a newly created anchor.
-  NavigationTarget(this.filePath, int offset, int length)
-      : super(offset, length);
+  NavigationTarget(this.filePath, int offset, int line, int length)
+      : super(offset, line, length);
 
   @override
   int get hashCode => JenkinsSmiHash.hash3(filePath.hashCode, offset, length);

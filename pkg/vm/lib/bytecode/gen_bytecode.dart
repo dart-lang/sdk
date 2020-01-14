@@ -85,7 +85,7 @@ void generateBytecode(
     verifyBytecodeInstructionDeclarations();
     coreTypes ??= new CoreTypes(component);
     void ignoreAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {}
-    hierarchy ??= new ClassHierarchy(component,
+    hierarchy ??= new ClassHierarchy(component, coreTypes,
         onAmbiguousSupertypes: ignoreAmbiguousSupertypes);
     final typeEnvironment = new TypeEnvironment(coreTypes, hierarchy);
     libraries ??= component.libraries;
@@ -1269,6 +1269,11 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     }
   }
 
+  void _genPushNnbdMode() {
+    asm.emitPushInt(
+        staticTypeContext.isNonNullableByDefault ? kOptedIn : kLegacy);
+  }
+
   Constant _getConstant(Expression expr) {
     if (expr is ConstantExpression) {
       return expr.constant;
@@ -1680,10 +1685,11 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       asm.emitPushNull(); // Function type arguments.
     }
     asm.emitPushConstant(cp.addType(type));
-    final argDesc = objectTable.getArgDescHandle(4);
+    _genPushNnbdMode();
+    final argDesc = objectTable.getArgDescHandle(5);
     final cpIndex =
         cp.addInterfaceCall(InvocationKind.method, objectInstanceOf, argDesc);
-    asm.emitInterfaceCall(cpIndex, 4);
+    asm.emitInterfaceCall(cpIndex, 5);
   }
 
   void start(Member node, bool hasCode) {
@@ -1805,8 +1811,11 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     // VM uses more specific function type and doesn't expect to
     // see inferred _Closure class.
     if (concreteClass != null && concreteClass != closureClass) {
-      inferredTypesAttribute
-          .add(TypeLiteralConstant(coreTypes.legacyRawType(concreteClass)));
+      inferredTypesAttribute.add(TypeLiteralConstant(coreTypes.rawType(
+          concreteClass,
+          (concreteClass == coreTypes.nullClass)
+              ? Nullability.nullable
+              : staticTypeContext.nonNullable)));
     } else {
       inferredTypesAttribute.add(NullConstant());
     }
@@ -2437,6 +2446,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     final DartType bound = (forwardingTypeParameterBounds != null)
         ? forwardingTypeParameterBounds[typeParam]
         : typeParam.bound;
+    // TODO(regis): Revisit and take nnbdMode into consideration.
     final DartType type = new TypeParameterType(typeParam, Nullability.legacy);
     _genPushInstantiatorAndFunctionTypeArguments([type, bound]);
     asm.emitPushConstant(cp.addType(type));
@@ -2465,6 +2475,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     _genPushInstantiatorAndFunctionTypeArguments([type]);
     asm.emitPushConstant(
         name != null ? cp.addName(name) : cp.addString(message));
+    // TODO(regis): Revisit and take nnbd mode into consideration.
     bool isIntOk = typeEnvironment.isSubtypeOf(
         typeEnvironment.coreTypes.intLegacyRawType,
         type,

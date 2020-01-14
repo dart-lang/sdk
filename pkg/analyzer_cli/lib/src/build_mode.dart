@@ -49,34 +49,33 @@ import 'package:convert/convert.dart';
  */
 class AnalyzerWorkerLoop extends AsyncWorkerLoop {
   final ResourceProvider resourceProvider;
-  final PerformanceLog logger = new PerformanceLog(null);
+  final PerformanceLog logger = PerformanceLog(null);
   final String dartSdkPath;
   WorkerPackageBundleCache packageBundleCache;
 
-  final StringBuffer errorBuffer = new StringBuffer();
-  final StringBuffer outBuffer = new StringBuffer();
+  final StringBuffer errorBuffer = StringBuffer();
+  final StringBuffer outBuffer = StringBuffer();
 
   AnalyzerWorkerLoop(this.resourceProvider, AsyncWorkerConnection connection,
       {this.dartSdkPath})
       : super(connection: connection) {
-    packageBundleCache = new WorkerPackageBundleCache(
-        resourceProvider, logger, 256 * 1024 * 1024);
+    packageBundleCache =
+        WorkerPackageBundleCache(resourceProvider, logger, 256 * 1024 * 1024);
   }
 
   factory AnalyzerWorkerLoop.sendPort(
       ResourceProvider resourceProvider, SendPort sendPort,
       {String dartSdkPath}) {
-    AsyncWorkerConnection connection =
-        new SendPortAsyncWorkerConnection(sendPort);
-    return new AnalyzerWorkerLoop(resourceProvider, connection,
+    AsyncWorkerConnection connection = SendPortAsyncWorkerConnection(sendPort);
+    return AnalyzerWorkerLoop(resourceProvider, connection,
         dartSdkPath: dartSdkPath);
   }
 
   factory AnalyzerWorkerLoop.std(ResourceProvider resourceProvider,
       {io.Stdin stdinStream, io.Stdout stdoutStream, String dartSdkPath}) {
-    AsyncWorkerConnection connection = new StdAsyncWorkerConnection(
+    AsyncWorkerConnection connection = StdAsyncWorkerConnection(
         inputStream: stdinStream, outputStream: stdoutStream);
-    return new AnalyzerWorkerLoop(resourceProvider, connection,
+    return AnalyzerWorkerLoop(resourceProvider, connection,
         dartSdkPath: dartSdkPath);
   }
 
@@ -86,14 +85,10 @@ class AnalyzerWorkerLoop extends AsyncWorkerLoop {
   Future<void> analyze(
       CommandLineOptions options, Map<String, WorkerInput> inputs) async {
     var packageBundleProvider =
-        new WorkerPackageBundleProvider(packageBundleCache, inputs);
-    var buildMode = new BuildMode(
-        resourceProvider,
-        options,
-        new AnalysisStats(),
-        new ContextCache(resourceProvider, options, Driver.verbosePrint),
-        logger: logger,
-        packageBundleProvider: packageBundleProvider);
+        WorkerPackageBundleProvider(packageBundleCache, inputs);
+    var buildMode = BuildMode(resourceProvider, options, AnalysisStats(),
+        ContextCache(resourceProvider, options, Driver.verbosePrint),
+        logger: logger, packageBundleProvider: packageBundleProvider);
     await buildMode.analyze();
     AnalysisEngine.instance.clearCaches();
   }
@@ -110,7 +105,7 @@ class AnalyzerWorkerLoop extends AsyncWorkerLoop {
         // Prepare inputs with their digests.
         Map<String, WorkerInput> inputs = {};
         for (var input in request.inputs) {
-          inputs[input.path] = new WorkerInput(input.path, input.digest);
+          inputs[input.path] = WorkerInput(input.path, input.digest);
         }
 
         // Add in the dart-sdk argument if `dartSdkPath` is not null,
@@ -124,19 +119,19 @@ class AnalyzerWorkerLoop extends AsyncWorkerLoop {
         // Prepare options.
         CommandLineOptions options =
             CommandLineOptions.parse(arguments, printAndFail: (String msg) {
-          throw new ArgumentError(msg);
+          throw ArgumentError(msg);
         });
 
         // Analyze and respond.
         await analyze(options, inputs);
         String msg = _getErrorOutputBuffersText();
-        return new WorkResponse()
+        return WorkResponse()
           ..exitCode = EXIT_CODE_OK
           ..output = msg;
       } catch (e, st) {
         String msg = _getErrorOutputBuffersText();
         msg += '$e\n$st';
-        return new WorkResponse()
+        return WorkResponse()
           ..exitCode = EXIT_CODE_ERROR
           ..output = msg;
       }
@@ -151,7 +146,7 @@ class AnalyzerWorkerLoop extends AsyncWorkerLoop {
     errorSink = errorBuffer;
     outSink = outBuffer;
     exitHandler = (int exitCode) {
-      throw new StateError('Exit called: $exitCode');
+      throw StateError('Exit called: $exitCode');
     };
     await super.run();
   }
@@ -172,12 +167,14 @@ class AnalyzerWorkerLoop extends AsyncWorkerLoop {
  * Analyzer used when the "--build-mode" option is supplied.
  */
 class BuildMode with HasContextMixin {
+  @override
   final ResourceProvider resourceProvider;
   final CommandLineOptions options;
   final AnalysisStats stats;
   final PerformanceLog logger;
   final PackageBundleProvider packageBundleProvider;
 
+  @override
   final ContextCache contextCache;
 
   SummaryDataStore summaryDataStore;
@@ -200,9 +197,9 @@ class BuildMode with HasContextMixin {
 
   BuildMode(this.resourceProvider, this.options, this.stats, this.contextCache,
       {PerformanceLog logger, PackageBundleProvider packageBundleProvider})
-      : logger = logger ?? new PerformanceLog(null),
+      : logger = logger ?? PerformanceLog(null),
         packageBundleProvider = packageBundleProvider ??
-            new DirectPackageBundleProvider(resourceProvider),
+            DirectPackageBundleProvider(resourceProvider),
         dependencyTracker = options.summaryDepsOutput != null
             ? DependencyTracker(options.summaryDepsOutput)
             : null;
@@ -256,12 +253,12 @@ class BuildMode with HasContextMixin {
           io.exitCode = ErrorSeverity.ERROR.ordinal;
           return ErrorSeverity.ERROR;
         }
-        Source source = new FileSource(file, uri);
+        Source source = FileSource(file, uri);
         explicitSources.add(source);
       }
 
       // Write summary.
-      assembler = new PackageBundleAssembler();
+      assembler = PackageBundleAssembler();
       if (_shouldOutputSummary) {
         await logger.runAsync('Build and write output summary', () async {
           // Prepare all unlinked units.
@@ -277,13 +274,13 @@ class BuildMode with HasContextMixin {
           // Write the whole package bundle.
           PackageBundleBuilder bundle = assembler.assemble();
           if (options.buildSummaryOutput != null) {
-            io.File file = new io.File(options.buildSummaryOutput);
+            io.File file = io.File(options.buildSummaryOutput);
             file.writeAsBytesSync(bundle.toBuffer(),
                 mode: io.FileMode.writeOnly);
           }
           if (options.buildSummaryOutputSemantic != null) {
             bundle.flushInformative();
-            io.File file = new io.File(options.buildSummaryOutputSemantic);
+            io.File file = io.File(options.buildSummaryOutputSemantic);
             file.writeAsBytesSync(bundle.toBuffer(),
                 mode: io.FileMode.writeOnly);
           }
@@ -305,7 +302,7 @@ class BuildMode with HasContextMixin {
       }
 
       if (dependencyTracker != null) {
-        io.File file = new io.File(dependencyTracker.outputPath);
+        io.File file = io.File(dependencyTracker.outputPath);
         file.writeAsStringSync(dependencyTracker.dependencies.join('\n'));
       }
 
@@ -399,7 +396,7 @@ class BuildMode with HasContextMixin {
 
   void _createAnalysisDriver() {
     // Read the summaries.
-    summaryDataStore = new SummaryDataStore(<String>[]);
+    summaryDataStore = SummaryDataStore(<String>[]);
 
     // Adds a bundle at `path` to `summaryDataStore`.
     PackageBundle addBundle(String path) {
@@ -422,11 +419,11 @@ class BuildMode with HasContextMixin {
       PackageBundle sdkBundle;
       if (options.dartSdkSummaryPath != null) {
         SummaryBasedDartSdk summarySdk =
-            new SummaryBasedDartSdk(options.dartSdkSummaryPath, true);
+            SummaryBasedDartSdk(options.dartSdkSummaryPath, true);
         sdk = summarySdk;
         sdkBundle = summarySdk.bundle;
       } else {
-        FolderBasedDartSdk dartSdk = new FolderBasedDartSdk(
+        FolderBasedDartSdk dartSdk = FolderBasedDartSdk(
             resourceProvider, resourceProvider.getFolder(options.dartSdkPath));
         dartSdk.analysisOptions =
             createAnalysisOptionsForCommandLineOptions(options, rootPath);
@@ -439,30 +436,30 @@ class BuildMode with HasContextMixin {
       summaryDataStore.addBundle(null, sdkBundle);
     });
 
-    sourceFactory = new SourceFactory(<UriResolver>[
-      new DartUriResolver(sdk),
-      new TrackingInSummaryUriResolver(
-          new InSummaryUriResolver(resourceProvider, summaryDataStore),
+    sourceFactory = SourceFactory(<UriResolver>[
+      DartUriResolver(sdk),
+      TrackingInSummaryUriResolver(
+          InSummaryUriResolver(resourceProvider, summaryDataStore),
           dependencyTracker),
-      new ExplicitSourceResolver(uriToFileMap)
+      ExplicitSourceResolver(uriToFileMap)
     ]);
 
     analysisOptions =
         createAnalysisOptionsForCommandLineOptions(options, rootPath);
 
-    AnalysisDriverScheduler scheduler = new AnalysisDriverScheduler(logger);
-    analysisDriver = new AnalysisDriver(
+    AnalysisDriverScheduler scheduler = AnalysisDriverScheduler(logger);
+    analysisDriver = AnalysisDriver(
         scheduler,
         logger,
         resourceProvider,
-        new MemoryByteStore(),
-        new FileContentOverlay(),
+        MemoryByteStore(),
+        FileContentOverlay(),
         null,
         sourceFactory,
         analysisOptions,
         externalSummaries: summaryDataStore);
 
-    declaredVariables = new DeclaredVariables.fromMap(options.definedVariables);
+    declaredVariables = DeclaredVariables.fromMap(options.definedVariables);
     analysisDriver.declaredVariables = declaredVariables;
 
     _createLinkedElementFactory();
@@ -478,7 +475,7 @@ class BuildMode with HasContextMixin {
 
     elementFactory = summary2.LinkedElementFactory(
       analysisContext,
-      null,
+      AnalysisSessionImpl(null),
       summary2.Reference.root(),
     );
 
@@ -537,13 +534,13 @@ class BuildMode with HasContextMixin {
    */
   Future<void> _printErrors({String outputPath}) async {
     await logger.runAsync('Compute and print analysis errors', () async {
-      StringBuffer buffer = new StringBuffer();
+      StringBuffer buffer = StringBuffer();
       var severityProcessor = (AnalysisError error) =>
           determineProcessedSeverity(error, options, analysisOptions);
       ErrorFormatter formatter = options.machineFormat
-          ? new MachineErrorFormatter(buffer, options, stats,
+          ? MachineErrorFormatter(buffer, options, stats,
               severityProcessor: severityProcessor)
-          : new HumanErrorFormatter(buffer, options, stats,
+          : HumanErrorFormatter(buffer, options, stats,
               severityProcessor: severityProcessor);
       for (Source source in explicitSources) {
         var result = await analysisDriver.getErrors(source.fullName);
@@ -557,7 +554,7 @@ class BuildMode with HasContextMixin {
         StringSink sink = options.machineFormat ? errorSink : outSink;
         sink.write(buffer);
       } else {
-        new io.File(outputPath).writeAsStringSync(buffer.toString());
+        io.File(outputPath).writeAsStringSync(buffer.toString());
       }
     });
   }
@@ -589,8 +586,8 @@ class DirectPackageBundleProvider implements PackageBundleProvider {
 
   @override
   PackageBundle get(String path) {
-    var bytes = new io.File(path).readAsBytesSync();
-    return new PackageBundle.fromBuffer(bytes);
+    var bytes = io.File(path).readAsBytesSync();
+    return PackageBundle.fromBuffer(bytes);
   }
 }
 
@@ -616,7 +613,7 @@ class ExplicitSourceResolver extends UriResolver {
     if (file == null) {
       return null;
     } else {
-      return new FileSource(file, actualUri);
+      return FileSource(file, actualUri);
     }
   }
 
@@ -678,7 +675,7 @@ class TrackingInSummaryUriResolver extends UriResolver {
  * of path + digest.
  */
 class WorkerInput {
-  static const _digestEquality = const ListEquality<int>();
+  static const _digestEquality = ListEquality<int>();
 
   final String path;
   final List<int> digest;
@@ -723,7 +720,7 @@ class WorkerPackageBundleCache {
   final Cache<WorkerInput, WorkerPackageBundle> _cache;
 
   WorkerPackageBundleCache(this.resourceProvider, this.logger, int maxSizeBytes)
-      : _cache = new Cache<WorkerInput, WorkerPackageBundle>(
+      : _cache = Cache<WorkerInput, WorkerPackageBundle>(
             maxSizeBytes, (value) => value.size);
 
   /**
@@ -738,14 +735,14 @@ class WorkerPackageBundleCache {
     if (input == null) {
       logger.writeln('Read $path outside of the inputs.');
       var bytes = resourceProvider.getFile(path).readAsBytesSync();
-      return new PackageBundle.fromBuffer(bytes);
+      return PackageBundle.fromBuffer(bytes);
     }
 
     return _cache.get(input, () {
       logger.writeln('Read $input.');
       var bytes = resourceProvider.getFile(path).readAsBytesSync();
-      var bundle = new PackageBundle.fromBuffer(bytes);
-      return new WorkerPackageBundle(bytes, bundle);
+      var bundle = PackageBundle.fromBuffer(bytes);
+      return WorkerPackageBundle(bytes, bundle);
     }).bundle;
   }
 }

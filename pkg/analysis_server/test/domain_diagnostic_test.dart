@@ -21,7 +21,7 @@ class DiagnosticDomainTest extends AbstractAnalysisTest {
   void setUp() {
     generateSummaryFiles = true;
     super.setUp();
-    handler = new DiagnosticDomainHandler(server);
+    handler = DiagnosticDomainHandler(server);
     server.handlers = [handler];
   }
 
@@ -33,9 +33,9 @@ class DiagnosticDomainTest extends AbstractAnalysisTest {
 
     await server.onAnalysisComplete;
 
-    var request = new DiagnosticGetDiagnosticsParams().toRequest('0');
+    var request = DiagnosticGetDiagnosticsParams().toRequest('0');
     var response = handler.handleRequest(request);
-    var result = new DiagnosticGetDiagnosticsResult.fromResponse(response);
+    var result = DiagnosticGetDiagnosticsResult.fromResponse(response);
 
     expect(result.contexts, hasLength(1));
 
@@ -49,9 +49,9 @@ class DiagnosticDomainTest extends AbstractAnalysisTest {
   }
 
   test_getDiagnostics_noRoot() async {
-    var request = new DiagnosticGetDiagnosticsParams().toRequest('0');
+    var request = DiagnosticGetDiagnosticsParams().toRequest('0');
     var response = handler.handleRequest(request);
-    var result = new DiagnosticGetDiagnosticsResult.fromResponse(response);
+    var result = DiagnosticGetDiagnosticsResult.fromResponse(response);
     expect(result.contexts, isEmpty);
   }
 }

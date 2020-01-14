@@ -156,6 +156,13 @@ var v = const <void>[42];
 ''');
   }
 
+  test_element_type_is_assignable() async {
+    await assertNoErrorsInCode(r'''
+var v1 = <int> [42];
+var v2 = const <int> [42];
+''');
+  }
+
   test_nonConst_ifElement_thenElseFalse_intDynamic() async {
     await assertNoErrorsInCode('''
 const dynamic a = 'a';

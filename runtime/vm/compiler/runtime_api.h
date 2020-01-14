@@ -545,11 +545,20 @@ class Type : public AllStatic {
   static word arguments_offset();
   static word signature_offset();
   static word type_class_id_offset();
+  static word nullability_offset();
 };
 
 class TypeRef : public AllStatic {
  public:
   static word type_offset();
+};
+
+class Nullability : public AllStatic {
+ public:
+  static const int8_t kUndetermined;
+  static const int8_t kNullable;
+  static const int8_t kNonNullable;
+  static const int8_t kLegacy;
 };
 
 class Double : public AllStatic {
@@ -642,14 +651,19 @@ class Thread : public AllStatic {
   static word top_offset();
   static word end_offset();
   static word isolate_offset();
+  static word field_table_values_offset();
   static word store_buffer_block_offset();
   static word call_to_runtime_entry_point_offset();
   static word null_error_shared_with_fpu_regs_entry_point_offset();
   static word null_error_shared_without_fpu_regs_entry_point_offset();
+  static word null_arg_error_shared_with_fpu_regs_entry_point_offset();
+  static word null_arg_error_shared_without_fpu_regs_entry_point_offset();
   static word write_barrier_mask_offset();
   static word monomorphic_miss_entry_offset();
   static word write_barrier_wrappers_thread_offset(Register regno);
   static word array_write_barrier_entry_point_offset();
+  static word allocate_mint_with_fpu_regs_entry_point_offset();
+  static word allocate_mint_without_fpu_regs_entry_point_offset();
   static word write_barrier_entry_point_offset();
   static word vm_tag_offset();
   static uword vm_tag_compiled_id();
@@ -686,12 +700,16 @@ class Thread : public AllStatic {
   static word invoke_dart_code_from_bytecode_stub_offset();
   static word null_error_shared_without_fpu_regs_stub_offset();
   static word null_error_shared_with_fpu_regs_stub_offset();
+  static word null_arg_error_shared_without_fpu_regs_stub_offset();
+  static word null_arg_error_shared_with_fpu_regs_stub_offset();
   static word stack_overflow_shared_without_fpu_regs_entry_point_offset();
   static word stack_overflow_shared_without_fpu_regs_stub_offset();
   static word stack_overflow_shared_with_fpu_regs_entry_point_offset();
   static word stack_overflow_shared_with_fpu_regs_stub_offset();
   static word lazy_deopt_from_return_stub_offset();
   static word lazy_deopt_from_throw_stub_offset();
+  static word allocate_mint_with_fpu_regs_stub_offset();
+  static word allocate_mint_without_fpu_regs_stub_offset();
   static word optimize_stub_offset();
   static word deoptimize_stub_offset();
   static word enter_safepoint_stub_offset();
@@ -889,6 +907,11 @@ class TypeArguments : public AllStatic {
  public:
   static word instantiations_offset();
   static word type_at_offset(intptr_t i);
+};
+
+class FieldTable : public AllStatic {
+ public:
+  static word OffsetOf(const dart::Field& field);
 };
 
 }  // namespace target

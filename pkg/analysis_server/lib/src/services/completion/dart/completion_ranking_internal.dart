@@ -46,7 +46,7 @@ bool areCompletionsEquivalent(String dasCompletion, String modelCompletion) {
     return true;
   }
 
-  final index = dasCompletion.indexOf(new RegExp(r'[^0-9A-Za-z_]'));
+  final index = dasCompletion.indexOf(RegExp(r'[^0-9A-Za-z_]'));
   // Disallow '.' since this gives all methods under a model-predicted token
   // the same probability.
   if (index == -1 || dasCompletion[index] == '.') {
@@ -73,7 +73,7 @@ bool isStopToken(Token token, int cursorOffset) {
     // we want to keep moving if we have a situation like
     // FooBar foo^ since foo is not a previous token to pass to the model.
     return !token.lexeme[token.lexeme.length - 1]
-        .contains(new RegExp(r'[0-9A-Za-z_]'));
+        .contains(RegExp(r'[0-9A-Za-z_]'));
   }
   // Stop if the token's location is strictly before the cursor, continue
   // if the token's location is strictly after.
@@ -92,7 +92,7 @@ bool isLiteral(String lexeme) {
   if (lexeme == null || lexeme.isEmpty) {
     return false;
   }
-  if (new RegExp(r'^[0-9]+$').hasMatch(lexeme)) {
+  if (RegExp(r'^[0-9]+$').hasMatch(lexeme)) {
     // Check for number lexeme.
     return true;
   }
@@ -103,7 +103,7 @@ bool isNotWhitespace(String lexeme) {
   return lexeme
       .replaceAll("'", '')
       .split('')
-      .any((String chr) => !new RegExp(r'\s').hasMatch(chr));
+      .any((String chr) => !RegExp(r'\s').hasMatch(chr));
 }
 
 Token getCurrentToken(DartCompletionRequest request) {

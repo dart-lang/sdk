@@ -17,7 +17,7 @@ library dart2js.messages;
 import 'package:front_end/src/api_unstable/dart2js.dart' show tokenToString;
 
 import 'generated/shared_messages.dart' as shared_messages;
-import '../constants/expressions.dart' show ConstantExpression;
+import '../constants/values.dart' show ConstantValue;
 import '../commandline_options.dart';
 import 'invariant.dart' show failedAt;
 import 'spannable.dart' show CURRENT_ELEMENT_SPANNABLE;
@@ -759,7 +759,7 @@ class Message {
   int get hashCode => throw new UnsupportedError('Message.hashCode');
 
   static String convertToString(value) {
-    if (value is ConstantExpression) {
+    if (value is ConstantValue) {
       value = value.toDartText();
     } else {
       value = tokenToString(value);

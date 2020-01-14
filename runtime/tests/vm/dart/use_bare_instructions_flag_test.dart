@@ -12,8 +12,10 @@ import "dart:io";
 import 'package:expect/expect.dart';
 import 'package:path/path.dart' as path;
 
+import 'use_flag_test_helper.dart';
+
 main(List<String> args) async {
-  if (!Platform.executable.endsWith("dart_precompiled_runtime")) {
+  if (!isAOTRuntime) {
     return; // Running in JIT: AOT binaries not available.
   }
 
@@ -21,18 +23,12 @@ main(List<String> args) async {
     return; // SDK tree and dart_bootstrap not available on the test device.
   }
 
-  final buildDir = path.dirname(Platform.executable);
-  final sdkDir = path.dirname(path.dirname(buildDir));
-  final platformDill = path.join(buildDir, 'vm_platform_strong.dill');
-  final genSnapshot = path.join(buildDir, 'gen_snapshot');
-  final aotRuntime = path.join(buildDir, 'dart_precompiled_runtime');
-
-  await withTempDir((String tempDir) async {
+  await withTempDir('bare-flag-test', (String tempDir) async {
     final script = path.join(sdkDir, 'pkg/kernel/bin/dump.dart');
     final scriptDill = path.join(tempDir, 'kernel_dump.dill');
 
     // Compile script to Kernel IR.
-    await run('pkg/vm/tool/gen_kernel', <String>[
+    await run(genKernel, <String>[
       '--aot',
       '--platform=$platformDill',
       '-o',
@@ -104,33 +100,4 @@ main(List<String> args) async {
 
 Future<String> readFile(String file) {
   return new File(file).readAsString();
-}
-
-Future run(String executable, List<String> args) async {
-  print('Running $executable ${args.join(' ')}');
-
-  final result = await Process.run(executable, args);
-  final String stdout = result.stdout;
-  final String stderr = result.stderr;
-  if (stdout.isNotEmpty) {
-    print('stdout:');
-    print(stdout);
-  }
-  if (stderr.isNotEmpty) {
-    print('stderr:');
-    print(stderr);
-  }
-
-  if (result.exitCode != 0) {
-    throw 'Command failed with non-zero exit code (was ${result.exitCode})';
-  }
-}
-
-withTempDir(Future fun(String dir)) async {
-  final tempDir = Directory.systemTemp.createTempSync('bare-flag-test');
-  try {
-    await fun(tempDir.path);
-  } finally {
-    tempDir.deleteSync(recursive: true);
-  }
 }

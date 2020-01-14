@@ -32,7 +32,7 @@ class ResultMerger {
      * Return a key encoding the unique attributes of the given [error].
      */
     String computeKey(AnalysisError error) {
-      StringBuffer buffer = new StringBuffer();
+      StringBuffer buffer = StringBuffer();
       buffer.write(error.location.offset);
       buffer.write(';');
       buffer.write(error.code);
@@ -66,9 +66,8 @@ class ResultMerger {
           List<plugin.PrioritizedSourceChange> mergedChanges =
               mergedFix.fixes.toList();
           mergedChanges.addAll(fix.fixes);
-          plugin.AnalysisErrorFixes copiedFix = new plugin.AnalysisErrorFixes(
-              mergedFix.error,
-              fixes: mergedChanges);
+          plugin.AnalysisErrorFixes copiedFix =
+              plugin.AnalysisErrorFixes(mergedFix.error, fixes: mergedChanges);
           fixesMap[key] = copiedFix;
         }
       }
@@ -212,12 +211,12 @@ class ResultMerger {
   KytheGetKytheEntriesResult mergeKytheEntries(
       List<KytheGetKytheEntriesResult> partialResultList) {
     List<KytheEntry> mergedEntries = <KytheEntry>[];
-    Set<String> mergedFiles = new Set<String>();
+    Set<String> mergedFiles = Set<String>();
     for (KytheGetKytheEntriesResult partialResult in partialResultList) {
       mergedEntries.addAll(partialResult.entries);
       mergedFiles.addAll(partialResult.files);
     }
-    return new KytheGetKytheEntriesResult(mergedEntries, mergedFiles.toList());
+    return KytheGetKytheEntriesResult(mergedEntries, mergedFiles.toList());
   }
 
   /**
@@ -309,7 +308,7 @@ class ResultMerger {
         NavigationTarget target = targets[j];
         int newIndex = fileMap[target.fileIndex];
         if (target.fileIndex != newIndex) {
-          target = new NavigationTarget(target.kind, newIndex, target.offset,
+          target = NavigationTarget(target.kind, newIndex, target.offset,
               target.length, target.startLine, target.startColumn);
         }
         int index = mergedTargets.indexOf(target);
@@ -328,8 +327,7 @@ class ResultMerger {
             .map((int oldTarget) => targetMap[oldTarget])
             .toList();
         if (region.targets != newTargets) {
-          region =
-              new NavigationRegion(region.offset, region.length, newTargets);
+          region = NavigationRegion(region.offset, region.length, newTargets);
         }
         int index = matchingRegion(region);
         if (index >= 0) {
@@ -349,7 +347,7 @@ class ResultMerger {
                 //
                 mergedTargets = mergedTargets.toList();
                 mergedTargets.add(target);
-                mergedRegion = new NavigationRegion(
+                mergedRegion = NavigationRegion(
                     mergedRegion.offset, mergedRegion.length, mergedTargets);
                 mergedRegions[index] = mergedRegion;
                 added = true;
@@ -364,7 +362,7 @@ class ResultMerger {
         }
       }
     }
-    return new AnalysisNavigationParams(
+    return AnalysisNavigationParams(
         file, mergedRegions, mergedTargets, mergedFiles);
   }
 
@@ -391,7 +389,7 @@ class ResultMerger {
       for (Occurrences occurances in partialResults) {
         Element element = occurances.element;
         Set<int> offsets =
-            elementMap.putIfAbsent(element, () => new HashSet<int>());
+            elementMap.putIfAbsent(element, () => HashSet<int>());
         offsets.addAll(occurances.offsets);
       }
     }
@@ -400,7 +398,7 @@ class ResultMerger {
       List<int> sortedOffsets = offsets.toList();
       sortedOffsets.sort();
       mergedOccurrences
-          .add(new Occurrences(element, sortedOffsets, element.name.length));
+          .add(Occurrences(element, sortedOffsets, element.name.length));
     });
     return mergedOccurrences;
   }
@@ -425,10 +423,10 @@ class ResultMerger {
     String computeKey(Element element) {
       Location location = element.location;
       if (location == null) {
-        throw new StateError(
+        throw StateError(
             'Elements in an outline are expected to have a location');
       }
-      StringBuffer buffer = new StringBuffer();
+      StringBuffer buffer = StringBuffer();
       buffer.write(location.offset);
       buffer.write(';');
       buffer.write(element.kind.name);
@@ -452,7 +450,7 @@ class ResultMerger {
       String key = computeKey(outline.element);
       if (outlineMap.containsKey(key)) {
         // TODO(brianwilkerson) Decide how to handle this more gracefully.
-        throw new StateError('Inconsistent outlines');
+        throw StateError('Inconsistent outlines');
       }
       outlineMap[key] = outline;
       outline.children?.forEach(addToMap);
@@ -469,7 +467,7 @@ class ResultMerger {
           // The [newChild] isn't in the existing list.
           Outline copiedOutline = copyMap.putIfAbsent(
               mergedOutline,
-              () => new Outline(
+              () => Outline(
                   mergedOutline.element,
                   mergedOutline.offset,
                   mergedOutline.length,
@@ -517,7 +515,7 @@ class ResultMerger {
           currentChildren.map((Outline child) => traverse(child)).toList();
       if (currentChildren != updatedChildren) {
         if (!isCopied) {
-          return new Outline(
+          return Outline(
               copiedOutline.element,
               copiedOutline.offset,
               copiedOutline.length,
@@ -620,7 +618,7 @@ class ResultMerger {
         offsets.addAll(feedback.offsets);
         lengths.addAll(feedback.lengths);
       }
-      return new ExtractLocalVariableFeedback(names.toList(), offsets, lengths,
+      return ExtractLocalVariableFeedback(names.toList(), offsets, lengths,
           coveringExpressionOffsets: (coveringExpressionOffsets.isEmpty
               ? null
               : coveringExpressionOffsets),
@@ -652,15 +650,15 @@ class ResultMerger {
         offsets.addAll(feedback.offsets);
         lengths.addAll(feedback.lengths);
       }
-      return new ExtractMethodFeedback(offset, length, returnType,
-          names.toList(), canCreateGetter, parameters, offsets, lengths);
+      return ExtractMethodFeedback(offset, length, returnType, names.toList(),
+          canCreateGetter, parameters, offsets, lengths);
     } else if (first is InlineLocalVariableFeedback) {
       int occurrences = first.occurrences;
       for (int i = 1; i < count; i++) {
         occurrences +=
             (feedbacks[i] as InlineLocalVariableFeedback).occurrences;
       }
-      return new InlineLocalVariableFeedback(first.name, occurrences);
+      return InlineLocalVariableFeedback(first.name, occurrences);
     } else if (first is InlineMethodFeedback) {
       // There is nothing in the feedback that can reasonably be extended or
       // modified by other plugins.
@@ -673,7 +671,7 @@ class ResultMerger {
       // modified by other plugins.
       return first;
     }
-    throw new StateError(
+    throw StateError(
         'Unsupported class of refactoring feedback: ${first.runtimeType}');
   }
 
@@ -692,7 +690,7 @@ class ResultMerger {
     } else if (count == 1) {
       return partialResultList[0];
     }
-    Set<RefactoringKind> mergedKinds = new HashSet<RefactoringKind>();
+    Set<RefactoringKind> mergedKinds = HashSet<RefactoringKind>();
     for (List<RefactoringKind> partialResults in partialResultList) {
       mergedKinds.addAll(partialResults);
     }
@@ -755,7 +753,7 @@ class ResultMerger {
             // conflicting) edits.
             List<SourceEdit> edits = mergedEdit.edits.toList();
             edits.addAll(edit.edits);
-            editMap[edit.file] = new SourceFileEdit(
+            editMap[edit.file] = SourceFileEdit(
                 mergedEdit.file, mergedEdit.fileStamp,
                 edits: edits);
           }
@@ -764,7 +762,7 @@ class ResultMerger {
         message ??= change.message;
         selection ??= change.selection;
       }
-      return new SourceChange(message,
+      return SourceChange(message,
           edits: editMap.values.toList(),
           linkedEditGroups: linkedEditGroups,
           selection: selection);
@@ -802,7 +800,7 @@ class ResultMerger {
       }
       potentialEdits.addAll(result.potentialEdits);
     }
-    return new EditGetRefactoringResult(
+    return EditGetRefactoringResult(
         initialProblems, optionsProblems, finalProblems,
         feedback: mergeRefactoringFeedbacks(feedbacks),
         change: mergeChanges(changes),

@@ -1,5 +1,8 @@
 # Strong Mode Static Checking
 
+**Note: This document is out of date.  Please see [Sound Dart](https://dart.dev/guides/language/sound-dart) for up-to-date
+documentation on Dart's type system.  The work below was a precursor towards Dart's current type system.**
+
 ## Overview
 
 The Dart programming language has an optional, unsound type system.  Although it is similar in appearance to languages such as Java, C#, or C++, its type system and static checking are fundamentally different.  It permits erroneous behavior in ways that may be surprising to programmers coming from those and other conventional typed languages.

@@ -9,20 +9,165 @@
 #include <vm/cpu.h>
 #include <vm/virtual_memory.h>
 
+#if defined(HOST_OS_FUCHSIA)
+#include <sys/mman.h>
+#endif
+
 #include <memory>
+#include <utility>
 
 namespace dart {
 namespace bin {
 
 namespace elf {
 
+class Mappable {
+ public:
+  static Mappable* FromPath(const char* path);
+#if defined(HOST_OS_FUCHSIA) || defined(HOST_OS_LINUX)
+  static Mappable* FromFD(int fd);
+#endif
+  static Mappable* FromMemory(const uint8_t* memory, size_t size);
+
+  virtual MappedMemory* Map(File::MapType type,
+                            uint64_t position,
+                            uint64_t length,
+                            void* start = nullptr) = 0;
+
+  virtual bool SetPosition(uint64_t position) = 0;
+  virtual bool ReadFully(void* dest, int64_t length) = 0;
+
+  virtual ~Mappable() {}
+
+ protected:
+  Mappable() {}
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(Mappable);
+};
+
+class FileMappable : public Mappable {
+ public:
+  explicit FileMappable(File* file) : Mappable(), file_(file) {}
+
+  ~FileMappable() override { file_->Release(); }
+
+  MappedMemory* Map(File::MapType type,
+                    uint64_t position,
+                    uint64_t length,
+                    void* start = nullptr) override {
+    return file_->Map(type, position, length, start);
+  }
+
+  bool SetPosition(uint64_t position) override {
+    return file_->SetPosition(position);
+  }
+
+  bool ReadFully(void* dest, int64_t length) override {
+    return file_->ReadFully(dest, length);
+  }
+
+ private:
+  File* const file_;
+  DISALLOW_COPY_AND_ASSIGN(FileMappable);
+};
+
+class MemoryMappable : public Mappable {
+ public:
+  MemoryMappable(const uint8_t* memory, size_t size)
+      : Mappable(), memory_(memory), size_(size), position_(memory) {}
+
+  ~MemoryMappable() override {}
+
+  MappedMemory* Map(File::MapType type,
+                    uint64_t position,
+                    uint64_t length,
+                    void* start = nullptr) override {
+    if (position > size_) return nullptr;
+    MappedMemory* result = nullptr;
+    const uword map_size = Utils::RoundUp(length, VirtualMemory::PageSize());
+    if (start == nullptr) {
+      auto* memory = VirtualMemory::Allocate(
+          map_size, type == File::kReadExecute, "dart-compiled-image");
+      if (memory == nullptr) return nullptr;
+      result = new MappedMemory(memory->address(), memory->size());
+      memory->release();
+      delete memory;
+    } else {
+      result = new MappedMemory(start, map_size,
+                                /*should_unmap=*/false);
+    }
+
+    size_t remainder = 0;
+    if ((position + length) > size_) {
+      remainder = position + length - size_;
+      length = size_ - position;
+    }
+    memcpy(result->address(), memory_ + position, length);  // NOLINT
+    memset(reinterpret_cast<uint8_t*>(result->address()) + length, 0,
+           remainder);
+
+    auto mode = VirtualMemory::kReadOnly;
+    switch (type) {
+      case File::kReadExecute:
+        mode = VirtualMemory::kReadExecute;
+        break;
+      case File::kReadWrite:
+        mode = VirtualMemory::kReadWrite;
+        break;
+      case File::kReadOnly:
+        mode = VirtualMemory::kReadOnly;
+        break;
+      default:
+        UNREACHABLE();
+    }
+
+    VirtualMemory::Protect(result->address(), result->size(), mode);
+
+    return result;
+  }
+
+  bool SetPosition(uint64_t position) override {
+    if (position > size_) return false;
+    position_ = memory_ + position;
+    return true;
+  }
+
+  bool ReadFully(void* dest, int64_t length) override {
+    if ((position_ + length) > (memory_ + size_)) return false;
+    memcpy(dest, position_, length);
+    return true;
+  }
+
+ private:
+  const uint8_t* const memory_;
+  const size_t size_;
+  const uint8_t* position_;
+  DISALLOW_COPY_AND_ASSIGN(MemoryMappable);
+};
+
+Mappable* Mappable::FromPath(const char* path) {
+  return new FileMappable(File::Open(/*namespc=*/nullptr, path, File::kRead));
+}
+
+#if defined(HOST_OS_FUCHSIA) || defined(HOST_OS_LINUX)
+Mappable* Mappable::FromFD(int fd) {
+  return new FileMappable(File::OpenFD(fd));
+}
+#endif
+
+Mappable* Mappable::FromMemory(const uint8_t* memory, size_t size) {
+  return new MemoryMappable(memory, size);
+}
+
 /// A loader for a subset of ELF which may be used to load objects produced by
 /// Dart_CreateAppAOTSnapshotAsElf.
 class LoadedElf {
  public:
-  explicit LoadedElf(const char* filename, uint64_t elf_data_offset)
-      : filename_(strdup(filename), std::free),
-        elf_data_offset_(elf_data_offset) {}
+  explicit LoadedElf(std::unique_ptr<Mappable> mappable,
+                     uint64_t elf_data_offset)
+      : mappable_(std::move(mappable)), elf_data_offset_(elf_data_offset) {}
+
   ~LoadedElf();
 
   /// Loads the ELF object into memory. Returns whether the load was successful.
@@ -61,11 +206,9 @@ class LoadedElf {
                              uword length,
                              const void** mapping_start);
 
-  std::unique_ptr<char, decltype(std::free)*> filename_;
-  const uint64_t elf_data_offset_;
-
   // Initialized on a successful Load().
-  File* file_;
+  std::unique_ptr<Mappable> mappable_;
+  const uint64_t elf_data_offset_;
 
   // Initialized on error.
   const char* error_ = nullptr;
@@ -124,10 +267,8 @@ bool LoadedElf::Load() {
   CHECK_ERROR(Utils::IsAligned(elf_data_offset_, PageSize()),
               "File offset must be page-aligned.");
 
-  file_ = File::Open(/*namespc=*/nullptr, filename_.get(),
-                     bin::File::FileOpenMode::kRead);
-  CHECK_ERROR(file_ != nullptr, "Cannot open ELF object file.");
-  CHECK_ERROR(file_->SetPosition(elf_data_offset_), "Invalid file offset.");
+  ASSERT(mappable_ != nullptr);
+  CHECK_ERROR(mappable_->SetPosition(elf_data_offset_), "Invalid file offset.");
 
   CHECK(ReadHeader());
   CHECK(ReadProgramTable());
@@ -147,15 +288,10 @@ LoadedElf::~LoadedElf() {
   program_table_mapping_.reset();
   section_table_mapping_.reset();
   section_string_table_mapping_.reset();
-
-  if (file_ != nullptr) {
-    file_->Close();
-    file_->Release();
-  }
 }
 
 bool LoadedElf::ReadHeader() {
-  CHECK_ERROR(file_->ReadFully(&header_, sizeof(dart::elf::ElfHeader)),
+  CHECK_ERROR(mappable_->ReadFully(&header_, sizeof(dart::elf::ElfHeader)),
               "Could not read ELF file.");
 
   CHECK_ERROR(header_.ident[dart::elf::EI_DATA] == dart::elf::ELFDATA2LSB,
@@ -249,7 +385,7 @@ bool LoadedElf::LoadSegments() {
 
   base_.reset(VirtualMemory::AllocateAligned(
       total_memory, /*alignment=*/maximum_alignment,
-      /*is_executable=*/false, /*mapping name=*/filename_.get()));
+      /*is_executable=*/false, "dart-compiled-image"));
   CHECK_ERROR(base_ != nullptr, "Could not reserve virtual memory.");
 
   for (uword i = 0; i < header_.num_program_headers; ++i) {
@@ -282,8 +418,29 @@ bool LoadedElf::LoadSegments() {
       ERROR("Unsupported segment flag set.");
     }
 
+#if defined(HOST_OS_FUCHSIA)
+    // mmap is less flexible on Fuchsia than on Linux and Darwin, in (at least)
+    // two important ways:
+    //
+    // 1. We cannot map a file opened as RX into an RW mapping, even if the
+    //    mode is MAP_PRIVATE (which implies copy-on-write).
+    // 2. We cannot atomically replace an existing anonymous mapping with a
+    //    file mapping: we must first unmap the existing mapping.
+
+    if (map_type == File::kReadWrite) {
+      CHECK_ERROR(mappable_->SetPosition(file_start),
+                  "Could not advance file position.");
+      CHECK_ERROR(mappable_->ReadFully(memory_start, length),
+                  "Could not read file.");
+      continue;
+    }
+
+    CHECK_ERROR(munmap(memory_start, length) == 0,
+                "Could not unmap reservation.");
+#endif
+
     std::unique_ptr<MappedMemory> memory(
-        file_->Map(map_type, file_start, length, memory_start));
+        mappable_->Map(map_type, file_start, length, memory_start));
     CHECK_ERROR(memory != nullptr, "Could not map segment.");
     CHECK_ERROR(memory->address() == memory_start,
                 "Mapping not at requested address.");
@@ -362,7 +519,7 @@ MappedMemory* LoadedElf::MapFilePiece(uword file_start,
       Utils::RoundUp(elf_data_offset_ + file_start + file_length, PageSize()) -
       mapping_offset;
   MappedMemory* const mapping =
-      file_->Map(bin::File::kReadOnly, mapping_offset, mapping_length);
+      mappable_->Map(bin::File::kReadOnly, mapping_offset, mapping_length);
 
   if (mapping != nullptr) {
     *mem_start = reinterpret_cast<uint8_t*>(mapping->start() +
@@ -376,6 +533,32 @@ MappedMemory* LoadedElf::MapFilePiece(uword file_start,
 }  // namespace bin
 }  // namespace dart
 
+using namespace dart::bin::elf;  // NOLINT
+
+#if defined(HOST_OS_FUCHSIA) || defined(HOST_OS_LINUX)
+DART_EXPORT Dart_LoadedElf* Dart_LoadELF_Fd(int fd,
+                                            uint64_t file_offset,
+                                            const char** error,
+                                            const uint8_t** vm_snapshot_data,
+                                            const uint8_t** vm_snapshot_instrs,
+                                            const uint8_t** vm_isolate_data,
+                                            const uint8_t** vm_isolate_instrs) {
+  std::unique_ptr<Mappable> mappable(Mappable::FromFD(fd));
+  std::unique_ptr<LoadedElf> elf(
+      new LoadedElf(std::move(mappable), file_offset));
+
+  if (!elf->Load() ||
+      !elf->ResolveSymbols(vm_snapshot_data, vm_snapshot_instrs,
+                           vm_isolate_data, vm_isolate_instrs)) {
+    *error = elf->error();
+    return nullptr;
+  }
+
+  return reinterpret_cast<Dart_LoadedElf*>(elf.release());
+}
+#endif
+
+#if !defined(HOST_OS_FUCHSIA)
 DART_EXPORT Dart_LoadedElf* Dart_LoadELF(const char* filename,
                                          uint64_t file_offset,
                                          const char** error,
@@ -383,8 +566,41 @@ DART_EXPORT Dart_LoadedElf* Dart_LoadELF(const char* filename,
                                          const uint8_t** vm_snapshot_instrs,
                                          const uint8_t** vm_isolate_data,
                                          const uint8_t** vm_isolate_instrs) {
-  std::unique_ptr<dart::bin::elf::LoadedElf> elf(
-      new dart::bin::elf::LoadedElf(filename, file_offset));
+  std::unique_ptr<Mappable> mappable(Mappable::FromPath(filename));
+  if (mappable == nullptr) {
+    *error = "Couldn't open file.";
+    return nullptr;
+  }
+  std::unique_ptr<LoadedElf> elf(
+      new LoadedElf(std::move(mappable), file_offset));
+
+  if (!elf->Load() ||
+      !elf->ResolveSymbols(vm_snapshot_data, vm_snapshot_instrs,
+                           vm_isolate_data, vm_isolate_instrs)) {
+    *error = elf->error();
+    return nullptr;
+  }
+
+  return reinterpret_cast<Dart_LoadedElf*>(elf.release());
+}
+#endif
+
+DART_EXPORT Dart_LoadedElf* Dart_LoadELF_Memory(
+    const uint8_t* snapshot,
+    uint64_t snapshot_size,
+    const char** error,
+    const uint8_t** vm_snapshot_data,
+    const uint8_t** vm_snapshot_instrs,
+    const uint8_t** vm_isolate_data,
+    const uint8_t** vm_isolate_instrs) {
+  std::unique_ptr<Mappable> mappable(
+      Mappable::FromMemory(snapshot, snapshot_size));
+  if (mappable == nullptr) {
+    *error = "Couldn't open file.";
+    return nullptr;
+  }
+  std::unique_ptr<LoadedElf> elf(
+      new LoadedElf(std::move(mappable), /*file_offset=*/0));
 
   if (!elf->Load() ||
       !elf->ResolveSymbols(vm_snapshot_data, vm_snapshot_instrs,
@@ -397,5 +613,5 @@ DART_EXPORT Dart_LoadedElf* Dart_LoadELF(const char* filename,
 }
 
 DART_EXPORT void Dart_UnloadELF(Dart_LoadedElf* loaded) {
-  delete reinterpret_cast<dart::bin::elf::LoadedElf*>(loaded);
+  delete reinterpret_cast<LoadedElf*>(loaded);
 }

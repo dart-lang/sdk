@@ -15,9 +15,9 @@ import 'package:kernel/ast.dart';
 main(List<String> args) async {
   Directory dataDir = new Directory.fromUri(Platform.script
       .resolve('../../../_fe_analyzer_shared/test/inheritance/data'));
-  await runTests(dataDir,
+  await runTests<String>(dataDir,
       args: args,
-      supportedMarkers: sharedMarkersWithNnbd,
+      supportedMarkers: cfeAnalyzerMarkers,
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
       runTest: runTestFor(
@@ -75,9 +75,10 @@ class InheritanceDataExtractor extends CfeDataExtractor<String> {
   String computeClassValue(Id id, Class node) {
     List<String> supertypes = <String>[];
     for (Class superclass in computeAllSuperclasses(node)) {
-      supertypes.add(supertypeToText(
-          _hierarchy.getClassAsInstanceOf(node, superclass),
-          TypeRepresentation.implicitUndetermined));
+      Supertype supertype = _hierarchy.getClassAsInstanceOf(node, superclass);
+      assert(supertype != null, "No instance of $superclass found for $node.");
+      supertypes.add(
+          supertypeToText(supertype, TypeRepresentation.implicitUndetermined));
     }
     supertypes.sort();
     return supertypes.join(',');

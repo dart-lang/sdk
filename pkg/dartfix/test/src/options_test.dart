@@ -8,7 +8,7 @@ import 'package:test/test.dart';
 
 import 'test_context.dart';
 
-main() {
+void main() {
   TestContext context;
   TestLogger logger;
 
@@ -28,9 +28,8 @@ main() {
     List<String> excludeFixes = const <String>[],
     bool showHelp = false,
     String normalOut,
+    bool dependencies = false,
     bool pedanticFixes = false,
-    String previewDir,
-    String previewPort,
     bool requiredFixes = false,
     bool overwrite = false,
     String serverSnapshot,
@@ -56,8 +55,6 @@ main() {
     }
     expect(options.force, force);
     expect(options.pedanticFixes, pedanticFixes);
-    expect(options.previewDir, previewDir);
-    expect(options.previewPort, previewPort);
     expect(options.requiredFixes, requiredFixes);
     expect(options.overwrite, overwrite);
     expect(options.serverSnapshot, serverSnapshot);
@@ -127,14 +124,6 @@ main() {
     parse(['--pedantic', 'foo'], pedanticFixes: true);
   });
 
-  test('previewDir', () {
-    parse(['--preview-dir=bar', 'foo'], previewDir: 'bar');
-  });
-
-  test('previewPort', () {
-    parse(['--preview-port=8080', 'foo'], previewPort: '8080');
-  });
-
   test('required fixes', () {
     parse(['--required', 'foo'], requiredFixes: true);
   });
@@ -154,6 +143,29 @@ main() {
 
   test('verbose', () {
     parse(['--verbose', 'foo'], verbose: true);
+  });
+
+  group('upgrade', () {
+    group('sdk', () {
+      test('no target', () {
+        var options = parse(['upgrade', 'sdk'], includeFixes: ['non-nullable']);
+        expect(options.targets, hasLength(1));
+      });
+
+      test('target', () {
+        var target = p('/pkg/foo');
+        var options =
+            parse(['upgrade', 'sdk', target], includeFixes: ['non-nullable']);
+        expect(options.targets, [target]);
+      });
+
+      test('dependencies', () {
+        var options = parse(
+            ['upgrade', 'sdk', '--migrate-dependencies', p('/pkg/foo')],
+            includeFixes: ['non-nullable']);
+        expect(options.upgradeOptions.dependencies, isTrue);
+      });
+    });
   });
 }
 

@@ -6,9 +6,9 @@
  * Overall performance of a code completion operation.
  */
 class CompletionPerformance {
-  final DateTime start = new DateTime.now();
-  final Map<String, Duration> _startTimes = new Map<String, Duration>();
-  final Stopwatch _stopwatch = new Stopwatch();
+  final DateTime start = DateTime.now();
+  final Map<String, Duration> _startTimes = Map<String, Duration>();
+  final Stopwatch _stopwatch = Stopwatch();
   final List<OperationPerformance> operations = <OperationPerformance>[];
 
   String path;
@@ -60,7 +60,7 @@ class CompletionPerformance {
   }
 
   void _logDuration(String tag, Duration elapsed) {
-    operations.add(new OperationPerformance(tag, elapsed));
+    operations.add(OperationPerformance(tag, elapsed));
   }
 }
 

@@ -154,12 +154,11 @@ void StubCodeCompiler::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ ret();
 }
 
-void StubCodeCompiler::GenerateSharedStub(
-    Assembler* assembler,
-    bool save_fpu_registers,
-    const RuntimeEntry* target,
-    intptr_t self_code_stub_offset_from_thread,
-    bool allow_return) {
+void GenerateSharedStub(Assembler* assembler,
+                        bool save_fpu_registers,
+                        const RuntimeEntry* target,
+                        intptr_t self_code_stub_offset_from_thread,
+                        bool allow_return) {
   // We want the saved registers to appear like part of the caller's frame, so
   // we push them before calling EnterStubFrame.
   __ PushRegisters(kDartAvailableCpuRegs,
@@ -467,6 +466,22 @@ void StubCodeCompiler::GenerateNullErrorSharedWithFPURegsStub(
   GenerateSharedStub(
       assembler, /*save_fpu_registers=*/true, &kNullErrorRuntimeEntry,
       target::Thread::null_error_shared_with_fpu_regs_stub_offset(),
+      /*allow_return=*/false);
+}
+
+void StubCodeCompiler::GenerateNullArgErrorSharedWithoutFPURegsStub(
+    Assembler* assembler) {
+  GenerateSharedStub(
+      assembler, /*save_fpu_registers=*/false, &kArgumentNullErrorRuntimeEntry,
+      target::Thread::null_arg_error_shared_without_fpu_regs_stub_offset(),
+      /*allow_return=*/false);
+}
+
+void StubCodeCompiler::GenerateNullArgErrorSharedWithFPURegsStub(
+    Assembler* assembler) {
+  GenerateSharedStub(
+      assembler, /*save_fpu_registers=*/true, &kArgumentNullErrorRuntimeEntry,
+      target::Thread::null_arg_error_shared_with_fpu_regs_stub_offset(),
       /*allow_return=*/false);
 }
 
@@ -1138,6 +1153,16 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
   __ ret();
 }
 
+void StubCodeCompiler::GenerateAllocateMintWithFPURegsStub(
+    Assembler* assembler) {
+  __ Stop("Unimplemented");
+}
+
+void StubCodeCompiler::GenerateAllocateMintWithoutFPURegsStub(
+    Assembler* assembler) {
+  __ Stop("Unimplemented");
+}
+
 // Called when invoking Dart code from C++ (VM code).
 // Input parameters:
 //   RSP : points to return address.
@@ -1766,11 +1791,11 @@ void StubCodeCompiler::GenerateArrayWriteBarrierStub(Assembler* assembler) {
 
 // Called for inline allocation of objects.
 // Input parameters:
-//   RSP + 8 : type arguments object (only if class is parameterized).
 //   RSP : points to return address.
+//   kAllocationStubTypeArgumentsReg (RDX) : type arguments object
+//                                           (only if class is parameterized).
 void StubCodeCompiler::GenerateAllocationStubForClass(Assembler* assembler,
                                                       const Class& cls) {
-  const intptr_t kObjectTypeArgumentsOffset = 1 * target::kWordSize;
   // The generated code is different if the class is parameterized.
   const bool is_cls_parameterized = target::Class::NumTypeArguments(cls) > 0;
   ASSERT(!is_cls_parameterized || target::Class::TypeArgumentsFieldOffset(
@@ -1782,10 +1807,11 @@ void StubCodeCompiler::GenerateAllocationStubForClass(Assembler* assembler,
   const intptr_t instance_size = target::Class::GetInstanceSize(cls);
   ASSERT(instance_size > 0);
   __ LoadObject(R9, NullObject());
-  if (is_cls_parameterized) {
-    __ movq(RDX, Address(RSP, kObjectTypeArgumentsOffset));
-    // RDX: instantiated type arguments.
-  }
+
+  // RDX: instantiated type arguments (if is_cls_parameterized).
+  static_assert(kAllocationStubTypeArgumentsReg == RDX,
+                "Adjust register allocation in the AllocationStub");
+
   if (FLAG_inline_alloc &&
       target::Heap::IsAllocatableInNewSpace(instance_size) &&
       !target::Class::TraceAllocation(cls)) {
@@ -1858,7 +1884,8 @@ void StubCodeCompiler::GenerateAllocationStubForClass(Assembler* assembler,
       // RDX: new object type arguments.
       // Set the type arguments in the new object.
       const intptr_t offset = target::Class::TypeArgumentsFieldOffset(cls);
-      __ StoreIntoObjectNoBarrier(RAX, FieldAddress(RAX, offset), RDX);
+      __ StoreIntoObjectNoBarrier(RAX, FieldAddress(RAX, offset),
+                                  kAllocationStubTypeArgumentsReg);
     }
     // Done allocating and initializing the instance.
     // RAX: new object (tagged).
@@ -1875,7 +1902,8 @@ void StubCodeCompiler::GenerateAllocationStubForClass(Assembler* assembler,
   __ PushObject(
       CastHandle<Object>(cls));  // Push class of object to be allocated.
   if (is_cls_parameterized) {
-    __ pushq(RDX);  // Push type arguments of object to be allocated.
+    // Push type arguments of object to be allocated.
+    __ pushq(kAllocationStubTypeArgumentsReg);
   } else {
     __ pushq(R9);  // Push null type arguments.
   }
@@ -2083,7 +2111,10 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
     Optimized optimized,
     CallType type,
     Exactness exactness) {
-  GenerateRecordEntryPoint(assembler);
+  const bool save_entry_point = kind == Token::kILLEGAL;
+  if (save_entry_point) {
+    GenerateRecordEntryPoint(assembler);
+  }
 
   if (optimized == kOptimized) {
     GenerateOptimizedUsageCounterIncrement(assembler);
@@ -2205,8 +2236,10 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
   __ movq(RAX, FieldAddress(R10, target::ArgumentsDescriptor::count_offset()));
   __ leaq(RAX, Address(RSP, RAX, TIMES_4, 0));  // RAX is Smi.
   __ EnterStubFrame();
-  __ SmiTag(R8);           // Entry-point offset is not Smi.
-  __ pushq(R8);            // Preserve entry point.
+  if (save_entry_point) {
+    __ SmiTag(R8);  // Entry-point offset is not Smi.
+    __ pushq(R8);   // Preserve entry point.
+  }
   __ pushq(R10);           // Preserve arguments descriptor array.
   __ pushq(RBX);           // Preserve IC data object.
   __ pushq(Immediate(0));  // Result slot.
@@ -2221,11 +2254,13 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
   for (intptr_t i = 0; i < num_args + 1; i++) {
     __ popq(RAX);
   }
-  __ popq(RAX);     // Pop returned function object into RAX.
-  __ popq(RBX);     // Restore IC data array.
-  __ popq(R10);     // Restore arguments descriptor array.
-  __ popq(R8);      // Restore entry point.
-  __ SmiUntag(R8);  // Entry-point offset is not Smi.
+  __ popq(RAX);  // Pop returned function object into RAX.
+  __ popq(RBX);  // Restore IC data array.
+  __ popq(R10);  // Restore arguments descriptor array.
+  if (save_entry_point) {
+    __ popq(R8);      // Restore entry point.
+    __ SmiUntag(R8);  // Entry-point offset is not Smi.
+  }
   __ RestoreCodePointer();
   __ LeaveStubFrame();
   Label call_target_function;
@@ -2277,8 +2312,12 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
   __ Bind(&call_target_function);
   // RAX: Target function.
   __ movq(CODE_REG, FieldAddress(RAX, target::Function::code_offset()));
-  __ addq(R8, RAX);
-  __ jmp(Address(R8, 0));
+  if (save_entry_point) {
+    __ addq(R8, RAX);
+    __ jmp(Address(R8, 0));
+  } else {
+    __ jmp(FieldAddress(RAX, target::Function::entry_point_offset()));
+  }
 
   if (exactness == kCheckExactness) {
     __ Bind(&call_target_function_through_unchecked_entry);
@@ -2301,11 +2340,15 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
       __ pushq(RDX);  // Preserve receiver.
     }
     __ pushq(RBX);  // Preserve ICData.
-    __ SmiTag(R8);  // Entry-point offset is not Smi.
-    __ pushq(R8);   // Preserve entry point.
+    if (save_entry_point) {
+      __ SmiTag(R8);  // Entry-point offset is not Smi.
+      __ pushq(R8);   // Preserve entry point.
+    }
     __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
-    __ popq(R8);  // Restore entry point.
-    __ SmiUntag(R8);
+    if (save_entry_point) {
+      __ popq(R8);  // Restore entry point.
+      __ SmiUntag(R8);
+    }
     __ popq(RBX);  // Restore ICData.
     if (type == kInstanceCall) {
       __ popq(RDX);  // Restore receiver.
@@ -2912,16 +2955,6 @@ void StubCodeCompiler::GenerateTopTypeTypeTestStub(Assembler* assembler) {
   __ Ret();
 }
 
-void StubCodeCompiler::GenerateTypeRefTypeTestStub(Assembler* assembler) {
-  const Register kTypeRefReg = RBX;
-
-  // We dereference the TypeRef and tail-call to it's type testing stub.
-  __ movq(kTypeRefReg,
-          FieldAddress(kTypeRefReg, target::TypeRef::type_offset()));
-  __ jmp(FieldAddress(
-      kTypeRefReg, target::AbstractType::type_test_stub_entry_point_offset()));
-}
-
 void StubCodeCompiler::GenerateUnreachableTypeTestStub(Assembler* assembler) {
   __ Breakpoint();
 }
@@ -2942,8 +2975,11 @@ static void InvokeTypeCheckFromTypeTestStub(Assembler* assembler,
   __ PushObject(NullObject());
   __ pushq(kSubtypeTestCacheReg);
   __ PushImmediate(Immediate(target::ToRawSmi(mode)));
-  __ CallRuntime(kTypeCheckRuntimeEntry, 7);
-  __ Drop(1);
+  // TODO(regis): Pass nnbd mode in a register from call site.
+  __ PushImmediate(
+      Immediate(target::ToRawSmi(static_cast<intptr_t>(NNBDMode::kLegacyLib))));
+  __ CallRuntime(kTypeCheckRuntimeEntry, 8);
+  __ Drop(2);  // mode and nnbd_mode
   __ popq(kSubtypeTestCacheReg);
   __ Drop(1);
   __ popq(kFunctionTypeArgumentsReg);
@@ -2985,6 +3021,10 @@ void StubCodeCompiler::GenerateSlowTypeTestStub(Assembler* assembler) {
 
 #ifdef DEBUG
   // Guaranteed by caller.
+  // TODO(regis): This will change when supporting NNBD, because the caller may
+  // not always determine the test result for a null instance, as for example
+  // in the case of a still uninstantiated test type, which may become nullable
+  // or non-nullable after instantiation in the runtime.
   Label no_error;
   __ CompareObject(kInstanceReg, NullObject());
   __ BranchIf(NOT_EQUAL, &no_error);

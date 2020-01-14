@@ -18,7 +18,7 @@ void main(List<String> args) async {
   if (validArguments(parser, result)) {
     String analysisRoot = result.rest[0];
 
-    CompletionRunner runner = new CompletionRunner(
+    CompletionRunner runner = CompletionRunner(
         output: stdout,
         printMissing: result['missing'],
         printQuality: result['quality'],
@@ -33,7 +33,7 @@ void main(List<String> args) async {
  * Create a parser that can be used to parse the command-line arguments.
  */
 ArgParser createArgParser() {
-  ArgParser parser = new ArgParser();
+  ArgParser parser = ArgParser();
   parser.addFlag(
     'help',
     abbr: 'h',

@@ -120,7 +120,6 @@ library_for_all_configs("libdart_lib") {
                ffi_runtime_cc_files + wasm_runtime_cc_files
   sources = [ "bootstrap.cc" ] + rebase_path(allsources, ".", "../lib")
   snapshot_sources = []
-  nosnapshot_sources = []
 }
 
 template("gen_vm_platform") {
@@ -153,9 +152,7 @@ template("gen_vm_platform") {
       "-Ddart.isVM=true",
     ]
     if (use_nnbd) {
-      # TODO(sigmund): reenable this flag once the CFE can build targets without
-      # issues.
-      # args += [ "--enable-experiment=non-nullable" ]
+      args += [ "--enable-experiment=non-nullable" ]
     }
     if (defined(invoker.exclude_source) && invoker.exclude_source) {
       args += [ "--exclude-source" ]

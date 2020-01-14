@@ -108,11 +108,11 @@ abstract class _ModuleBuilder {
     }
   }
 
-  visitImportDeclaration(ImportDeclaration node) {
+  void visitImportDeclaration(ImportDeclaration node) {
     imports.add(node);
   }
 
-  visitExportDeclaration(ExportDeclaration node) {
+  void visitExportDeclaration(ExportDeclaration node) {
     exports.add(node);
     var exported = node.exported;
     if (exported is! ExportClause) {
@@ -120,7 +120,7 @@ abstract class _ModuleBuilder {
     }
   }
 
-  visitStatement(Statement node) {
+  void visitStatement(Statement node) {
     statements.add(node);
   }
 }
@@ -185,11 +185,11 @@ class DdcModuleBuilder extends _ModuleBuilder {
         js.fun("function(#) { 'use strict'; #; }", [parameters, statements]),
         true);
 
-    var moduleDef = js.statement("dart_library.library(#, #, #, #)", [
+    var moduleDef = js.statement('dart_library.library(#, #, #, #)', [
       js.string(module.name, "'"),
       LiteralNull(),
       js.commentExpression(
-          "Imports", ArrayInitializer(importNames, multiline: true)),
+          'Imports', ArrayInitializer(importNames, multiline: true)),
       resultModule
     ]);
     return Program(<ModuleItem>[moduleDef]);
@@ -316,4 +316,4 @@ String pathToJSIdentifier(String path) {
 }
 
 // Replacement string for path separators (i.e., '/', '\', '..').
-final encodedSeparator = "__";
+final encodedSeparator = '__';

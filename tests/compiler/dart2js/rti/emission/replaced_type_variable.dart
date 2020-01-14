@@ -5,7 +5,7 @@
 import 'package:expect/expect.dart';
 
 // This class is inlined away.
-/*class: Class:*/
+/*class: Class:checks=[],instance*/
 class Class<T> {
   const Class();
 

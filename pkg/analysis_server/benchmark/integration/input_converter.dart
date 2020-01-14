@@ -22,8 +22,8 @@ import 'operation.dart';
  */
 abstract class CommonInputConverter extends Converter<String, Operation> {
   static final ERROR_PREFIX = 'Server responded with an error: ';
-  final Logger logger = new Logger('InstrumentationInputConverter');
-  final Set<String> eventsSeen = new Set<String>();
+  final Logger logger = Logger('InstrumentationInputConverter');
+  final Set<String> eventsSeen = Set<String>();
 
   /**
    * A mapping from request/response id to request json
@@ -85,13 +85,13 @@ abstract class CommonInputConverter extends Converter<String, Operation> {
       if (params != null) {
         Map<String, dynamic> analysis = asMap(params['analysis']);
         if (analysis != null && analysis['isAnalyzing'] == false) {
-          return new WaitForAnalysisCompleteOperation();
+          return WaitForAnalysisCompleteOperation();
         }
       }
     }
     if (event == SERVER_NOTIFICATION_CONNECTED) {
       // {"event":"server.connected","params":{"version":"1.7.0"}}
-      return new StartServerOperation();
+      return StartServerOperation();
     }
     if (eventsSeen.add(event)) {
       logger.log(Level.INFO, 'Ignored notification: $event\n  $json');
@@ -111,8 +111,8 @@ abstract class CommonInputConverter extends Converter<String, Operation> {
     if (method == ANALYSIS_REQUEST_UPDATE_CONTENT) {
       // Track overlays in parallel with the analysis server
       // so that when an overlay is removed, the file can be updated on disk
-      Request request = new Request.fromJson(json);
-      var params = new AnalysisUpdateContentParams.fromRequest(request);
+      Request request = Request.fromJson(json);
+      var params = AnalysisUpdateContentParams.fromRequest(request);
       params.files.forEach((String filePath, change) {
         if (change is AddContentOverlay) {
           String content = change.content;
@@ -134,16 +134,16 @@ abstract class CommonInputConverter extends Converter<String, Operation> {
           if (!path.isWithin(tmpSrcDirPath, filePath)) {
             throw 'found path referencing source outside temp space\n$filePath\n$json';
           }
-          new File(filePath).writeAsStringSync(content);
+          File(filePath).writeAsStringSync(content);
         } else {
           throw 'unknown overlay change $change\n$json';
         }
       });
-      return new RequestOperation(this, json);
+      return RequestOperation(this, json);
     }
     // Track performance for completion notifications
     if (method == COMPLETION_REQUEST_GET_SUGGESTIONS) {
-      return new CompletionRequestOperation(this, json);
+      return CompletionRequestOperation(this, json);
     }
     // TODO(danrubel) replace this with code
     // that just forwards the translated request
@@ -165,7 +165,7 @@ abstract class CommonInputConverter extends Converter<String, Operation> {
         method == SEARCH_REQUEST_FIND_MEMBER_DECLARATIONS ||
         method == SERVER_REQUEST_GET_VERSION ||
         method == SERVER_REQUEST_SET_SUBSCRIPTIONS) {
-      return new RequestOperation(this, json);
+      return RequestOperation(this, json);
     }
     throw 'unknown request: $method\n  $json';
   }
@@ -174,7 +174,7 @@ abstract class CommonInputConverter extends Converter<String, Operation> {
    * Return an operation for the recorded/expected response.
    */
   Operation convertResponse(Map<String, dynamic> json) {
-    return new ResponseOperation(this, asMap(requestMap.remove(json['id'])),
+    return ResponseOperation(this, asMap(requestMap.remove(json['id'])),
         asMap(translateSrcPaths(json)));
   }
 
@@ -256,7 +256,7 @@ abstract class CommonInputConverter extends Converter<String, Operation> {
       return result;
     }
     if (json is Map) {
-      Map<String, dynamic> result = new Map<String, dynamic>();
+      Map<String, dynamic> result = Map<String, dynamic>();
       json.forEach((origKey, value) {
         result[translateSrcPaths(origKey)] = translateSrcPaths(value);
       });
@@ -272,7 +272,7 @@ abstract class CommonInputConverter extends Converter<String, Operation> {
  * The input stream can be either an instrumentation or log file.
  */
 class InputConverter extends Converter<String, Operation> {
-  final Logger logger = new Logger('InputConverter');
+  final Logger logger = Logger('InputConverter');
 
   /**
    * A mapping of source path prefixes
@@ -324,9 +324,9 @@ class InputConverter extends Converter<String, Operation> {
       throw 'Failed to determine input file format';
     }
     if (InstrumentationInputConverter.isFormat(line)) {
-      converter = new InstrumentationInputConverter(tmpSrcDirPath, srcPathMap);
+      converter = InstrumentationInputConverter(tmpSrcDirPath, srcPathMap);
     } else if (LogFileInputConverter.isFormat(line)) {
-      converter = new LogFileInputConverter(tmpSrcDirPath, srcPathMap);
+      converter = LogFileInputConverter(tmpSrcDirPath, srcPathMap);
     }
     if (converter != null) {
       return converter.convert(line);
@@ -337,7 +337,7 @@ class InputConverter extends Converter<String, Operation> {
 
   @override
   _InputSink startChunkedConversion(outSink) {
-    return new _InputSink(this, outSink);
+    return _InputSink(this, outSink);
   }
 }
 
@@ -349,7 +349,7 @@ class PathMap {
   final List<PathMapEntry> entries = [];
 
   void add(String oldSrcPrefix, String newSrcPrefix) {
-    entries.add(new PathMapEntry(oldSrcPrefix, newSrcPrefix));
+    entries.add(PathMapEntry(oldSrcPrefix, newSrcPrefix));
   }
 
   String translate(String original) {

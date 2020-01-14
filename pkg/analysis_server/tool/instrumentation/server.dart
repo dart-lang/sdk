@@ -34,7 +34,7 @@ class WebServer {
    * The content type for HTML responses.
    */
   static final ContentType _htmlContent =
-      new ContentType("text", "html", charset: "utf-8");
+      ContentType("text", "html", charset: "utf-8");
 
   /**
    * The instrumentation log being served up.
@@ -52,7 +52,7 @@ class WebServer {
   WebServer(this.log);
 
   Map<String, String> getParameterMap(HttpRequest request) {
-    Map<String, String> parameterMap = new HashMap<String, String>();
+    Map<String, String> parameterMap = HashMap<String, String>();
     String query = request.uri.query;
     if (query != null && query.isNotEmpty) {
       List<String> pairs = query.split('&');
@@ -71,13 +71,13 @@ class WebServer {
    * properties that is extracted from the given HTTP [request].
    */
   Future<Map<String, String>> getValueMap(HttpRequest request) async {
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     await request.forEach((List<int> element) {
       for (int code in element) {
         buffer.writeCharCode(code);
       }
     });
-    Map<String, String> valueMap = new HashMap<String, String>();
+    Map<String, String> valueMap = HashMap<String, String>();
     String parameters = buffer.toString();
     if (parameters.isNotEmpty) {
       List<String> pairs = parameters.split('&');
@@ -105,7 +105,7 @@ class WebServer {
    * Handle a GET [request] received by the HTTP server.
    */
   void _handleGetRequest(HttpRequest request) {
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     try {
       String path = request.uri.path;
       if (path == logPath) {
@@ -123,7 +123,7 @@ class WebServer {
       HttpResponse response = request.response;
       response.statusCode = HttpStatus.ok;
       response.headers.contentType = _htmlContent;
-      StringBuffer buffer = new StringBuffer();
+      StringBuffer buffer = StringBuffer();
       buffer.write('<p><b>Exception while composing page:</b></p>');
       buffer.write('<p>$exception</p>');
       buffer.write('<p>');
@@ -172,7 +172,7 @@ class WebServer {
     HttpResponse response = request.response;
     response.statusCode = HttpStatus.notFound;
     response.headers.contentType =
-        new ContentType("text", "html", charset: "utf-8");
+        ContentType("text", "html", charset: "utf-8");
     response.write(
         '<html><head></head><body><h3>Page not found: "${request.uri.path}".</h3></body></html>');
     response.close();
@@ -182,7 +182,7 @@ class WebServer {
     Map<String, String> parameterMap = getParameterMap(request);
     String groupId = parameterMap['group'];
     String startIndex = parameterMap['start'];
-    LogPage page = new LogPage(log);
+    LogPage page = LogPage(log);
     page.selectedGroup = EntryGroup.withId(groupId ?? 'nonTask');
     if (startIndex != null) {
       page.pageStart = int.parse(startIndex);
@@ -209,6 +209,6 @@ class WebServer {
   }
 
   void _writeStatsPage(HttpRequest request, StringBuffer buffer) {
-    new StatsPage(log).writePage(buffer);
+    StatsPage(log).writePage(buffer);
   }
 }

@@ -21,30 +21,42 @@ class UnnecessaryNullAwareSpreadTest extends DriverResolutionTest {
   AnalysisOptionsImpl get analysisOptions =>
       AnalysisOptionsImpl()..enabledExperiments = [EnableString.non_nullable];
 
-  test_local_nonNullableSpread_nullableType() async {
+  test_nonNullableSpread_nullableType() async {
     await assertNoErrorsInCode('''
-f() {
-  List x = [];
+f(List<int> x) {
   [...x];
 }
 ''');
   }
 
-  test_local_nullableSpread_nonNullableType() async {
-    await assertErrorsInCode('''
+  test_nullableSpread_legacyType() async {
+    newFile('/test/lib/a.dart', content: r'''
+// @dart = 2.5
+var x = <int>[];
+''');
+
+    await assertNoErrorsInCode('''
+import 'a.dart';
+
 f() {
-  List x = [];
+  [...?x];
+}
+''');
+  }
+
+  test_nullableSpread_nonNullableType() async {
+    await assertErrorsInCode('''
+f(List<int> x) {
   [...?x];
 }
 ''', [
-      error(StaticWarningCode.UNNECESSARY_NULL_AWARE_SPREAD, 24, 4),
+      error(StaticWarningCode.UNNECESSARY_NULL_AWARE_SPREAD, 20, 4),
     ]);
   }
 
-  test_local_nullableSpread_nullableType() async {
+  test_nullableSpread_nullableType() async {
     await assertNoErrorsInCode('''
-f() {
-  List? x;
+f(List<int>? x) {
   [...?x];
 }
 ''');

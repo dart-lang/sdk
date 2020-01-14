@@ -29,9 +29,9 @@ main() {
 }
 
 ast.Type _simple(String name) =>
-    new ast.Type(new ast.Token(ast.TokenType.IDENTIFIER, name), []);
+    ast.Type(ast.Token(ast.TokenType.IDENTIFIER, name), []);
 
-ast.ArrayType _array(String name) => new ast.ArrayType(_simple(name));
+ast.ArrayType _array(String name) => ast.ArrayType(_simple(name));
 
 ast.UnionType _union(List<String> names) =>
-    new ast.UnionType(names.map(_simple).toList());
+    ast.UnionType(names.map(_simple).toList());

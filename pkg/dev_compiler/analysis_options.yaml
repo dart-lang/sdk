@@ -16,3 +16,7 @@ analyzer:
 linter:
   rules:
     - annotate_overrides
+    - prefer_conditional_assignment
+    - prefer_null_aware_operators
+    - prefer_single_quotes
+    - prefer_typing_uninitialized_variables

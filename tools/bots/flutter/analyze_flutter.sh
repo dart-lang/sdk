@@ -16,7 +16,8 @@ cleanup() {
 trap cleanup EXIT HUP INT QUIT TERM PIPE
 cd "$tmpdir"
 
-git clone -vv https://chromium.googlesource.com/external/github.com/flutter/flutter
+git clone --single-branch -vv \
+  https://dart.googlesource.com/external/github.com/flutter/flutter
 
 cd flutter
 

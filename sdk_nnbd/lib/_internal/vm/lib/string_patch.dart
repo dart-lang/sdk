@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 // part of "core_patch.dart";
 
 const int _maxAscii = 0x7f;
@@ -15,11 +13,8 @@ const int _maxUnicode = 0x10ffff;
 class String {
   @patch
   factory String.fromCharCodes(Iterable<int> charCodes,
-      [int start = 0, int end]) {
-    if (charCodes is! Iterable)
-      throw new ArgumentError.value(charCodes, "charCodes");
-    if (start is! int) throw new ArgumentError.value(start, "start");
-    if (end != null && end is! int) throw new ArgumentError.value(end, "end");
+      [int start = 0, int? end]) {
+    if (end != null) throw new ArgumentError.value(end, "end");
     return _StringBase.createFromCharCodes(charCodes, start, end, null);
   }
 
@@ -121,39 +116,41 @@ abstract class _StringBase implements String {
    * It's `null` if unknown.
    */
   static String createFromCharCodes(
-      Iterable<int> charCodes, int start, int end, int limit) {
-    if (start == null) throw new ArgumentError.notNull("start");
-    if (charCodes == null) throw new ArgumentError(charCodes);
+      Iterable<int> charCodes, int start, int? end, int? limit) {
     // TODO(srdjan): Also skip copying of wide typed arrays.
     final ccid = ClassID.getID(charCodes);
     if ((ccid != ClassID.cidArray) &&
         (ccid != ClassID.cidGrowableObjectArray) &&
         (ccid != ClassID.cidImmutableArray)) {
       if (charCodes is Uint8List) {
-        end = RangeError.checkValidRange(start, end, charCodes.length);
-        return _createOneByteString(charCodes, start, end - start);
+        final actualEnd = RangeError.checkValidRange(start, end, charCodes.length);
+        return _createOneByteString(charCodes, start, actualEnd - start);
       } else if (charCodes is! Uint16List) {
         return _createStringFromIterable(charCodes, start, end);
       }
     }
-    int codeCount = charCodes.length;
-    end = RangeError.checkValidRange(start, end, codeCount);
-    final len = end - start;
+    final int codeCount = charCodes.length;
+    final int actualEnd = RangeError.checkValidRange(start, end, codeCount);
+    final len = actualEnd - start;
     if (len == 0) return "";
-    limit ??= _scanCodeUnits(charCodes, start, end);
-    if (limit < 0) {
-      throw new ArgumentError(charCodes);
+
+    final typedCharCodes = unsafeCast<List<int>>(charCodes);
+
+    final int actualLimit = limit ?? _scanCodeUnits(typedCharCodes, start, actualEnd);
+    if (actualLimit < 0) {
+      throw new ArgumentError(typedCharCodes);
     }
-    if (limit <= _maxLatin1) {
-      return _createOneByteString(charCodes, start, len);
+    if (actualLimit <= _maxLatin1) {
+      return _createOneByteString(typedCharCodes, start, len);
     }
-    if (limit <= _maxUtf16) {
-      return _TwoByteString._allocateFromTwoByteList(charCodes, start, end);
+    if (actualLimit <= _maxUtf16) {
+      return _TwoByteString._allocateFromTwoByteList(typedCharCodes, start,
+          actualEnd);
     }
     // TODO(lrn): Consider passing limit to _createFromCodePoints, because
     // the function is currently fully generic and doesn't know that its
     // charCodes are not all Latin-1 or Utf-16.
-    return _createFromCodePoints(charCodes, start, end);
+    return _createFromCodePoints(typedCharCodes, start, actualEnd);
   }
 
   static int _scanCodeUnits(List<int> charCodes, int start, int end) {
@@ -356,7 +353,7 @@ abstract class _StringBase implements String {
     return -1;
   }
 
-  int lastIndexOf(Pattern pattern, [int start = null]) {
+  int lastIndexOf(Pattern pattern, [int? start]) {
     if (start == null) {
       start = this.length;
     } else if (start < 0 || start > this.length) {
@@ -381,7 +378,7 @@ abstract class _StringBase implements String {
     return -1;
   }
 
-  String substring(int startIndex, [int endIndex]) {
+  String substring(int startIndex, [int? endIndex]) {
     endIndex ??= this.length;
 
     if ((startIndex < 0) || (startIndex > this.length)) {
@@ -575,9 +572,6 @@ abstract class _StringBase implements String {
 
   String replaceFirst(Pattern pattern, String replacement,
       [int startIndex = 0]) {
-    if (pattern is! Pattern) {
-      throw new ArgumentError("${pattern} is not a Pattern");
-    }
     if (replacement is! String) {
       throw new ArgumentError("${replacement} is not a String");
     }
@@ -763,7 +757,7 @@ abstract class _StringBase implements String {
     return replaceRange(match.start, match.end, replacement);
   }
 
-  static String _matchString(Match match) => match[0];
+  static String _matchString(Match match) => match[0]!;
   static String _stringIdentity(String string) => string;
 
   String _splitMapJoinEmptyString(
@@ -796,7 +790,7 @@ abstract class _StringBase implements String {
   }
 
   String splitMapJoin(Pattern pattern,
-      {String onMatch(Match match), String onNonMatch(String nonMatch)}) {
+      {String onMatch(Match match)?, String onNonMatch(String nonMatch)?}) {
     if (pattern is! Pattern) {
       throw new ArgumentError("${pattern} is not a Pattern");
     }
@@ -873,7 +867,7 @@ abstract class _StringBase implements String {
     return new _StringAllMatchesIterable(string, this, start);
   }
 
-  Match matchAsPrefix(String string, [int start = 0]) {
+  Match? matchAsPrefix(String string, [int start = 0]) {
     if (start < 0 || start > string.length) {
       throw new RangeError.range(start, 0, string.length);
     }
@@ -981,7 +975,7 @@ class _OneByteString extends _StringBase {
     // check without performance penalty. Front-end would then promote
     // pattern variable to _OneByteString.
     if (ClassID.getID(pattern) == ClassID.cidOneByteString) {
-      final String patternAsString = pattern;
+      final String patternAsString = unsafeCast<String>(pattern);
       if (patternAsString.length == 1) {
         return _splitWithCharCode(patternAsString.codeUnitAt(0));
       }
@@ -1014,7 +1008,7 @@ class _OneByteString extends _StringBase {
     if ((pCid == ClassID.cidOneByteString) ||
         (pCid == ClassID.cidTwoByteString) ||
         (pCid == ClassID.cidExternalOneByteString)) {
-      final String patternAsString = pattern;
+      final String patternAsString = unsafeCast<String>(pattern);
       final len = this.length;
       if ((patternAsString.length == 1) && (start >= 0) && (start < len)) {
         final patternCu0 = patternAsString.codeUnitAt(0);
@@ -1037,7 +1031,7 @@ class _OneByteString extends _StringBase {
     if ((pCid == ClassID.cidOneByteString) ||
         (pCid == ClassID.cidTwoByteString) ||
         (pCid == ClassID.cidExternalOneByteString)) {
-      final String patternAsString = pattern;
+      final String patternAsString = unsafeCast<String>(pattern);
       final len = this.length;
       if ((patternAsString.length == 1) && (start >= 0) && (start < len)) {
         final patternCu0 = patternAsString.codeUnitAt(0);

@@ -289,6 +289,10 @@ class FlowGraph : public ZoneAllocated {
   // Remove the redefinition instructions inserted to inhibit code motion.
   void RemoveRedefinitions(bool keep_checks = false);
 
+  // Insert PushArgument instructions and remove explicit def-use
+  // relations between calls and their arguments.
+  void InsertPushArguments();
+
   // Copy deoptimization target from one instruction to another if we still
   // have to keep deoptimization environment at gotos for LICM purposes.
   void CopyDeoptTarget(Instruction* to, Instruction* from) {

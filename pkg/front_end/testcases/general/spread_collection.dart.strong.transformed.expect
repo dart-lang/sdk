@@ -23,9 +23,9 @@ static method main() → dynamic {
         #t1.{core::List::add}(#t2);
       }
     }
-    final dynamic #t3 = <core::int*>[3];
+    final core::Iterable<core::int*>* #t3 = <core::int*>[3];
     if(!#t3.{core::Object::==}(null)) {
-      core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(#t3).{core::Iterable::iterator};
+      core::Iterator<core::int*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::int*>*>(#t3).{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final core::int* #t4 = :sync-for-iterator.{core::Iterator::current};
         #t1.{core::List::add}(#t4);
@@ -42,9 +42,9 @@ static method main() → dynamic {
         #t5.{core::Map::[]=}(#t6.{core::MapEntry::key}, #t6.{core::MapEntry::value});
       }
     }
-    final core::Map<dynamic, dynamic>* #t7 = <core::int*, core::int*>{3: 3};
+    final core::Map<core::int*, core::int*>* #t7 = <core::int*, core::int*>{3: 3};
     if(!#t7.{core::Object::==}(null)) {
-      core::Iterator<core::MapEntry<dynamic, dynamic>*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::MapEntry<dynamic, dynamic>*>*>(#t7.{core::Map::entries}).{core::Iterable::iterator};
+      core::Iterator<core::MapEntry<core::int*, core::int*>*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::MapEntry<core::int*, core::int*>*>*>(#t7.{core::Map::entries}).{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final core::MapEntry<core::int*, core::int*>* #t8 = :sync-for-iterator.{core::Iterator::current};
         #t5.{core::Map::[]=}(#t8.{core::MapEntry::key}, #t8.{core::MapEntry::value});
@@ -61,9 +61,9 @@ static method main() → dynamic {
         #t9.{core::Set::add}(#t10);
       }
     }
-    final dynamic #t11 = <core::int*>[3];
+    final core::Iterable<core::int*>* #t11 = <core::int*>[3];
     if(!#t11.{core::Object::==}(null)) {
-      core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(#t11).{core::Iterable::iterator};
+      core::Iterator<core::int*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::int*>*>(#t11).{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final core::int* #t12 = :sync-for-iterator.{core::Iterator::current};
         #t9.{core::Set::add}(#t12);

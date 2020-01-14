@@ -29,6 +29,8 @@ class LinkedElementFactory {
     this.analysisSession,
     this.rootReference,
   ) {
+    ArgumentError.checkNotNull(analysisContext, 'analysisContext');
+    ArgumentError.checkNotNull(analysisSession, 'analysisSession');
     var dartCoreRef = rootReference.getChild('dart:core');
     dartCoreRef.getChild('dynamic').element = DynamicElementImpl.instance;
     dartCoreRef.getChild('Never').element = NeverElementImpl.instance;

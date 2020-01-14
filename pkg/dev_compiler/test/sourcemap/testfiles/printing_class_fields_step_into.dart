@@ -12,9 +12,9 @@ void main() {
 }
 
 class Foo {
-  var x, y, z;
+  int x, y, z;
 
-  Foo(a, b)
+  Foo(int a, int b)
       : this. /*sl:2*/ x = a, // `s:2` fails, DDK is missing hover info
         this. /*sl:3*/ y = b {
     // `s:3` fails, DDK is missing hover info

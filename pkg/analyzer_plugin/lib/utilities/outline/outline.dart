@@ -81,20 +81,19 @@ class OutlineGenerator {
    */
   GeneratorResult generateOutlineNotification(OutlineRequest request) {
     List<Notification> notifications = <Notification>[];
-    OutlineCollectorImpl collector = new OutlineCollectorImpl();
+    OutlineCollectorImpl collector = OutlineCollectorImpl();
     for (OutlineContributor contributor in contributors) {
       try {
         contributor.computeOutline(request, collector);
       } catch (exception, stackTrace) {
-        notifications.add(new PluginErrorParams(
+        notifications.add(PluginErrorParams(
                 false, exception.toString(), stackTrace.toString())
             .toNotification());
       }
     }
-    notifications.add(
-        new AnalysisOutlineParams(request.path, collector.outlines)
-            .toNotification());
-    return new GeneratorResult(null, notifications);
+    notifications.add(AnalysisOutlineParams(request.path, collector.outlines)
+        .toNotification());
+    return GeneratorResult(null, notifications);
   }
 }
 

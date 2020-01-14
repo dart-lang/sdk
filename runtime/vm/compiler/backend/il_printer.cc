@@ -352,6 +352,11 @@ void Definition::PrintTo(BufferFormatter* f) const {
   }
 }
 
+void CheckNullInstr::PrintOperandsTo(BufferFormatter* f) const {
+  Definition::PrintOperandsTo(f);
+  f->Print(IsArgumentCheck() ? ", ArgumentError" : ", NoSuchMethodError");
+}
+
 void Definition::PrintOperandsTo(BufferFormatter* f) const {
   for (int i = 0; i < InputCount(); ++i) {
     if (i > 0) f->Print(", ");
@@ -484,11 +489,11 @@ void AssertBooleanInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 void ClosureCallInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print(" function=");
-  InputAt(0)->PrintTo(f);
+  InputAt(InputCount() - 1)->PrintTo(f);
   f->Print("<%" Pd ">", type_args_len());
   for (intptr_t i = 0; i < ArgumentCount(); ++i) {
     f->Print(", ");
-    PushArgumentAt(i)->value()->PrintTo(f);
+    ArgumentValueAt(i)->PrintTo(f);
   }
   if (entry_kind() == Code::EntryKind::kUnchecked) {
     f->Print(" using unchecked entrypoint");
@@ -509,7 +514,7 @@ void InstanceCallInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print(" %s<%" Pd ">", function_name().ToCString(), type_args_len());
   for (intptr_t i = 0; i < ArgumentCount(); ++i) {
     f->Print(", ");
-    PushArgumentAt(i)->value()->PrintTo(f);
+    ArgumentValueAt(i)->PrintTo(f);
   }
   if (HasICData()) {
     if (FLAG_display_sorted_ic_data) {
@@ -531,7 +536,7 @@ void PolymorphicInstanceCallInstr::PrintOperandsTo(BufferFormatter* f) const {
            instance_call()->type_args_len());
   for (intptr_t i = 0; i < ArgumentCount(); ++i) {
     f->Print(", ");
-    PushArgumentAt(i)->value()->PrintTo(f);
+    ArgumentValueAt(i)->PrintTo(f);
   }
   PrintTargetsHelper(f, targets_, FlowGraphPrinter::kPrintAll);
   if (complete()) {
@@ -581,7 +586,7 @@ void StaticCallInstr::PrintOperandsTo(BufferFormatter* f) const {
            type_args_len());
   for (intptr_t i = 0; i < ArgumentCount(); ++i) {
     if (i > 0) f->Print(", ");
-    PushArgumentAt(i)->value()->PrintTo(f);
+    ArgumentValueAt(i)->PrintTo(f);
   }
   if (entry_kind() == Code::EntryKind::kUnchecked) {
     f->Print(", using unchecked entrypoint");
@@ -633,7 +638,7 @@ void IfThenElseInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 void LoadStaticFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
-  field_value()->PrintTo(f);
+  f->Print("%s", String::Handle(StaticField().name()).ToCString());
 }
 
 void StoreStaticFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
@@ -660,11 +665,10 @@ void RelationalOpInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 void AllocateObjectInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s", String::Handle(cls().ScrubbedName()).ToCString());
-  for (intptr_t i = 0; i < ArgumentCount(); i++) {
+  for (intptr_t i = 0; i < InputCount(); ++i) {
     f->Print(", ");
-    PushArgumentAt(i)->value()->PrintTo(f);
+    InputAt(i)->PrintTo(f);
   }
-
   if (Identity().IsNotAliased()) {
     f->Print(" <not-aliased>");
   }

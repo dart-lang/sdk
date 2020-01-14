@@ -31,7 +31,7 @@ class FieldFormalContributor extends DartCompletionContributor {
     }
 
     // Compute the list of fields already referenced in the constructor
-    List<String> referencedFields = new List<String>();
+    List<String> referencedFields = List<String>();
     for (FormalParameter param in constructor.parameters.parameters) {
       if (param is DefaultFormalParameter &&
           param.parameter is FieldFormalParameter) {

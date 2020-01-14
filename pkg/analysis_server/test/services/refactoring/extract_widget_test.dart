@@ -21,6 +21,7 @@ main() {
 
 @reflectiveTest
 class ExtractWidgetTest extends RefactoringTest {
+  @override
   ExtractWidgetRefactoringImpl refactoring;
 
   test_checkAllConditions_selection() async {
@@ -1234,7 +1235,7 @@ void main() {
   }
 
   void _createRefactoring(int offset, int length) {
-    refactoring = new ExtractWidgetRefactoring(
+    refactoring = ExtractWidgetRefactoring(
         searchEngine, testAnalysisResult, offset, length);
     refactoring.name = 'Test';
   }

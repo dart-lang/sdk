@@ -237,20 +237,6 @@ Fragment BaseFlowGraphBuilder::IntConstant(int64_t value) {
       Constant(Integer::ZoneHandle(Z, Integer::New(value, Heap::kOld))));
 }
 
-Fragment BaseFlowGraphBuilder::ThrowException(TokenPosition position) {
-  Fragment instructions;
-  instructions += Drop();
-  instructions +=
-      Fragment(new (Z) ThrowInstr(position, GetNextDeoptId())).closed();
-  // Use it's side effect of leaving a constant on the stack (does not change
-  // the graph).
-  NullConstant();
-
-  pending_argument_count_ -= 1;
-
-  return instructions;
-}
-
 Fragment BaseFlowGraphBuilder::TailCall(const Code& code) {
   Value* arg_desc = Pop();
   return Fragment(new (Z) TailCallInstr(code, arg_desc));
@@ -448,13 +434,6 @@ Fragment BaseFlowGraphBuilder::NullConstant() {
   return Constant(Instance::ZoneHandle(Z, Instance::null()));
 }
 
-Fragment BaseFlowGraphBuilder::PushArgument() {
-  PushArgumentInstr* argument = new (Z) PushArgumentInstr(Pop());
-  Push(argument);
-  ++pending_argument_count_;
-  return Fragment(argument);
-}
-
 Fragment BaseFlowGraphBuilder::GuardFieldLength(const Field& field,
                                                 intptr_t deopt_id) {
   return Fragment(new (Z) GuardFieldLengthInstr(Pop(), field, deopt_id));
@@ -544,9 +523,9 @@ Fragment BaseFlowGraphBuilder::StoreInstanceFieldGuarded(
   return instructions;
 }
 
-Fragment BaseFlowGraphBuilder::LoadStaticField() {
+Fragment BaseFlowGraphBuilder::LoadStaticField(const Field& field) {
   LoadStaticFieldInstr* load =
-      new (Z) LoadStaticFieldInstr(Pop(), TokenPosition::kNoSource);
+      new (Z) LoadStaticFieldInstr(field, TokenPosition::kNoSource);
   Push(load);
   return Fragment(load);
 }
@@ -636,9 +615,7 @@ LocalVariable* BaseFlowGraphBuilder::MakeTemporary() {
   // will not be cleared (causing them to never be materialized in the
   // expression stack and skew stack depth).
   for (Value* item = stack_; item != nullptr; item = item->next_use()) {
-    if (!item->definition()->IsPushArgument()) {
-      item->definition()->set_ssa_temp_index(0);
-    }
+    item->definition()->set_ssa_temp_index(0);
   }
 
   return variable;
@@ -733,18 +710,12 @@ JoinEntryInstr* BaseFlowGraphBuilder::BuildJoinEntry() {
                                 GetNextDeoptId(), GetStackDepth());
 }
 
-ArgumentArray BaseFlowGraphBuilder::GetArguments(int count) {
-  ArgumentArray arguments =
-      new (Z) ZoneGrowableArray<PushArgumentInstr*>(Z, count);
+InputsArray* BaseFlowGraphBuilder::GetArguments(int count) {
+  InputsArray* arguments = new (Z) ZoneGrowableArray<Value*>(Z, count);
   arguments->SetLength(count);
   for (intptr_t i = count - 1; i >= 0; --i) {
-    ASSERT(stack_->definition()->IsPushArgument());
-    ASSERT(!stack_->definition()->HasSSATemp());
-    arguments->data()[i] = stack_->definition()->AsPushArgument();
-    Drop();
+    arguments->data()[i] = Pop();
   }
-  pending_argument_count_ -= count;
-  ASSERT(pending_argument_count_ >= 0);
   return arguments;
 }
 
@@ -854,9 +825,7 @@ Fragment BaseFlowGraphBuilder::AllocateClosure(
     TokenPosition position,
     const Function& closure_function) {
   const Class& cls = Class::ZoneHandle(Z, I->object_store()->closure_class());
-  ArgumentArray arguments = new (Z) ZoneGrowableArray<PushArgumentInstr*>(Z, 0);
-  AllocateObjectInstr* allocate =
-      new (Z) AllocateObjectInstr(position, cls, arguments);
+  AllocateObjectInstr* allocate = new (Z) AllocateObjectInstr(position, cls);
   allocate->set_closure_function(closure_function);
   Push(allocate);
   return Fragment(allocate);
@@ -877,7 +846,7 @@ Fragment BaseFlowGraphBuilder::InstantiateType(const AbstractType& type) {
   Value* instantiator_type_args = Pop();
   InstantiateTypeInstr* instr = new (Z) InstantiateTypeInstr(
       TokenPosition::kNoSource, type, instantiator_type_args,
-      function_type_args, GetNextDeoptId());
+      function_type_args, GetNextDeoptId(), nnbd_mode());
   Push(instr);
   return Fragment(instr);
 }
@@ -889,7 +858,8 @@ Fragment BaseFlowGraphBuilder::InstantiateTypeArguments(
   const Class& instantiator_class = Class::ZoneHandle(Z, function_.Owner());
   InstantiateTypeArgumentsInstr* instr = new (Z) InstantiateTypeArgumentsInstr(
       TokenPosition::kNoSource, type_arguments, instantiator_class, function_,
-      instantiator_type_args, function_type_args, GetNextDeoptId());
+      instantiator_type_args, function_type_args, GetNextDeoptId(),
+      nnbd_mode());
   Push(instr);
   return Fragment(instr);
 }
@@ -903,9 +873,10 @@ Fragment BaseFlowGraphBuilder::LoadClassId() {
 Fragment BaseFlowGraphBuilder::AllocateObject(TokenPosition position,
                                               const Class& klass,
                                               intptr_t argument_count) {
-  ArgumentArray arguments = GetArguments(argument_count);
+  ASSERT((argument_count == 0) || (argument_count == 1));
+  Value* type_arguments = (argument_count > 0) ? Pop() : nullptr;
   AllocateObjectInstr* allocate =
-      new (Z) AllocateObjectInstr(position, klass, arguments);
+      new (Z) AllocateObjectInstr(position, klass, type_arguments);
   Push(allocate);
   return Fragment(allocate);
 }
@@ -1049,11 +1020,8 @@ Fragment BaseFlowGraphBuilder::BuildEntryPointsIntrospection() {
 
   Fragment call_hook;
   call_hook += Constant(closure);
-  call_hook += PushArgument();
   call_hook += Constant(function_name);
-  call_hook += PushArgument();
   call_hook += LoadLocal(entry_point_num);
-  call_hook += PushArgument();
   call_hook += Constant(Function::ZoneHandle(Z, closure.function()));
   call_hook += ClosureCall(TokenPosition::kNoSource,
                            /*type_args_len=*/0, /*argument_count=*/3,
@@ -1068,14 +1036,12 @@ Fragment BaseFlowGraphBuilder::ClosureCall(TokenPosition position,
                                            intptr_t argument_count,
                                            const Array& argument_names,
                                            bool is_statically_checked) {
-  Value* function = Pop();
-  const intptr_t total_count = argument_count + (type_args_len > 0 ? 1 : 0);
-  ArgumentArray arguments = GetArguments(total_count);
-  ClosureCallInstr* call = new (Z)
-      ClosureCallInstr(function, arguments, type_args_len, argument_names,
-                       position, GetNextDeoptId(),
-                       is_statically_checked ? Code::EntryKind::kUnchecked
-                                             : Code::EntryKind::kNormal);
+  const intptr_t total_count = argument_count + (type_args_len > 0 ? 1 : 0) + 1;
+  InputsArray* arguments = GetArguments(total_count);
+  ClosureCallInstr* call = new (Z) ClosureCallInstr(
+      arguments, type_args_len, argument_names, position, GetNextDeoptId(),
+      is_statically_checked ? Code::EntryKind::kUnchecked
+                            : Code::EntryKind::kNormal);
   Push(call);
   return Fragment(call);
 }
@@ -1115,7 +1081,7 @@ Fragment BaseFlowGraphBuilder::AssertAssignable(
 
   AssertAssignableInstr* instr = new (Z) AssertAssignableInstr(
       position, value, instantiator_type_args, function_type_args, dst_type,
-      dst_name, GetNextDeoptId(), kind);
+      dst_name, GetNextDeoptId(), nnbd_mode(), kind);
   Push(instr);
 
   return Fragment(instr);

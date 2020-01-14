@@ -43,7 +43,7 @@ RawFunction* Resolver::ResolveDynamicForReceiverClass(
       ResolveDynamicAnyArgs(zone, receiver_class, function_name, allow_add));
 
   if (function.IsNull() ||
-      !function.AreValidArguments(NNBDMode::kLegacy, args_desc, NULL)) {
+      !function.AreValidArguments(NNBDMode::kLegacyLib, args_desc, NULL)) {
     // Return a null function to signal to the upper levels to dispatch to
     // "noSuchMethod" function.
     if (FLAG_trace_resolving) {
@@ -51,7 +51,7 @@ RawFunction* Resolver::ResolveDynamicForReceiverClass(
           String::Handle(zone, Symbols::New(thread, "function not found"));
       if (!function.IsNull()) {
         // Obtain more detailed error message.
-        function.AreValidArguments(NNBDMode::kLegacy, args_desc,
+        function.AreValidArguments(NNBDMode::kLegacyLib, args_desc,
                                    &error_message);
       }
       THR_Print("ResolveDynamic error '%s': %s.\n", function_name.ToCString(),
@@ -151,12 +151,12 @@ RawFunction* Resolver::ResolveStatic(const Library& library,
     const Object& object = Object::Handle(library.ResolveName(function_name));
     if (!object.IsNull() && object.IsFunction()) {
       function ^= object.raw();
-      if (!function.AreValidArguments(NNBDMode::kLegacy, type_args_len,
+      if (!function.AreValidArguments(NNBDMode::kLegacyLib, type_args_len,
                                       num_arguments, argument_names, NULL)) {
         if (FLAG_trace_resolving) {
           String& error_message = String::Handle();
           // Obtain more detailed error message.
-          function.AreValidArguments(NNBDMode::kLegacy, type_args_len,
+          function.AreValidArguments(NNBDMode::kLegacyLib, type_args_len,
                                      num_arguments, argument_names,
                                      &error_message);
           THR_Print("ResolveStatic error '%s': %s.\n",
@@ -199,7 +199,7 @@ RawFunction* Resolver::ResolveStatic(const Class& cls,
   const Function& function =
       Function::Handle(cls.LookupStaticFunction(function_name));
   if (function.IsNull() ||
-      !function.AreValidArguments(NNBDMode::kLegacy, type_args_len,
+      !function.AreValidArguments(NNBDMode::kLegacyLib, type_args_len,
                                   num_arguments, argument_names, NULL)) {
     // Return a null function to signal to the upper levels to throw a
     // resolution error or maybe throw the error right here.
@@ -207,7 +207,7 @@ RawFunction* Resolver::ResolveStatic(const Class& cls,
       String& error_message = String::Handle(String::New("function not found"));
       if (!function.IsNull()) {
         // Obtain more detailed error message.
-        function.AreValidArguments(NNBDMode::kLegacy, type_args_len,
+        function.AreValidArguments(NNBDMode::kLegacyLib, type_args_len,
                                    num_arguments, argument_names,
                                    &error_message);
       }
@@ -231,7 +231,7 @@ RawFunction* Resolver::ResolveStaticAllowPrivate(const Class& cls,
   const Function& function =
       Function::Handle(cls.LookupStaticFunctionAllowPrivate(function_name));
   if (function.IsNull() ||
-      !function.AreValidArguments(NNBDMode::kLegacy, type_args_len,
+      !function.AreValidArguments(NNBDMode::kLegacyLib, type_args_len,
                                   num_arguments, argument_names, NULL)) {
     // Return a null function to signal to the upper levels to throw a
     // resolution error or maybe throw the error right here.
@@ -239,7 +239,7 @@ RawFunction* Resolver::ResolveStaticAllowPrivate(const Class& cls,
       String& error_message = String::Handle(String::New("function not found"));
       if (!function.IsNull()) {
         // Obtain more detailed error message.
-        function.AreValidArguments(NNBDMode::kLegacy, type_args_len,
+        function.AreValidArguments(NNBDMode::kLegacyLib, type_args_len,
                                    num_arguments, argument_names,
                                    &error_message);
       }

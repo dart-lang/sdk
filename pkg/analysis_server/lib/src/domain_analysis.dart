@@ -45,7 +45,7 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
    * Implement the `analysis.getErrors` request.
    */
   Future<void> getErrors(Request request) async {
-    String file = new AnalysisGetErrorsParams.fromRequest(request).file;
+    String file = AnalysisGetErrorsParams.fromRequest(request).file;
 
     if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
       return;
@@ -54,13 +54,13 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
     ResolvedUnitResult result = await server.getResolvedUnit(file);
 
     if (result?.state != ResultState.VALID) {
-      server.sendResponse(new Response.getErrorsInvalidFile(request));
+      server.sendResponse(Response.getErrorsInvalidFile(request));
       return;
     }
 
     List<AnalysisError> protocolErrors = doAnalysisError_listFromEngine(result);
     server.sendResponse(
-        new AnalysisGetErrorsResult(protocolErrors).toResponse(request.id));
+        AnalysisGetErrorsResult(protocolErrors).toResponse(request.id));
   }
 
   /**
@@ -69,7 +69,7 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
   Future<void> getHover(Request request) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    var params = new AnalysisGetHoverParams.fromRequest(request);
+    var params = AnalysisGetHoverParams.fromRequest(request);
     var file = params.file;
 
     if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
@@ -83,7 +83,7 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
     // Prepare the hovers.
     List<HoverInformation> hovers = <HoverInformation>[];
     if (unit != null) {
-      HoverInformation hoverInformation = new DartUnitHoverComputer(
+      HoverInformation hoverInformation = DartUnitHoverComputer(
               server.getDartdocDirectiveInfoFor(result), unit, params.offset)
           .compute();
       if (hoverInformation != null) {
@@ -92,8 +92,7 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
     }
 
     // Send the response.
-    server.sendResponse(
-        new AnalysisGetHoverResult(hovers).toResponse(request.id));
+    server.sendResponse(AnalysisGetHoverResult(hovers).toResponse(request.id));
   }
 
   /**
@@ -102,7 +101,7 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
   Future<void> getImportedElements(Request request) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    var params = new AnalysisGetImportedElementsParams.fromRequest(request);
+    var params = AnalysisGetImportedElementsParams.fromRequest(request);
     var file = params.file;
 
     if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
@@ -114,7 +113,7 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
     //
     ResolvedUnitResult result = await server.getResolvedUnit(file);
     if (result?.state != ResultState.VALID) {
-      server.sendResponse(new Response.getImportedElementsInvalidFile(request));
+      server.sendResponse(Response.getImportedElementsInvalidFile(request));
       return;
     }
 
@@ -126,23 +125,23 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
     if (disableManageImportsOnPaste) {
       elements = <ImportedElements>[];
     } else {
-      elements = new ImportedElementsComputer(
-              result.unit, params.offset, params.length)
-          .compute();
+      elements =
+          ImportedElementsComputer(result.unit, params.offset, params.length)
+              .compute();
     }
 
     //
     // Send the response.
     //
     server.sendResponse(
-        new AnalysisGetImportedElementsResult(elements).toResponse(request.id));
+        AnalysisGetImportedElementsResult(elements).toResponse(request.id));
   }
 
   /**
    * Implement the `analysis.getLibraryDependencies` request.
    */
   Response getLibraryDependencies(Request request) {
-    return new Response.unsupportedFeature(request.id,
+    return Response.unsupportedFeature(request.id,
         'Please contact the Dart analyzer team if you need this request.');
 //    server.onAnalysisComplete.then((_) {
 //      LibraryDependencyCollector collector =
@@ -166,7 +165,7 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
   Future<void> getNavigation(Request request) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    var params = new AnalysisGetNavigationParams.fromRequest(request);
+    var params = AnalysisGetNavigationParams.fromRequest(request);
     String file = params.file;
     int offset = params.offset;
     int length = params.length;
@@ -177,13 +176,13 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
 
     AnalysisDriver driver = server.getAnalysisDriver(file);
     if (driver == null) {
-      server.sendResponse(new Response.getNavigationInvalidFile(request));
+      server.sendResponse(Response.getNavigationInvalidFile(request));
     } else {
       //
       // Allow plugins to start computing navigation data.
       //
       plugin.AnalysisGetNavigationParams requestParams =
-          new plugin.AnalysisGetNavigationParams(file, offset, length);
+          plugin.AnalysisGetNavigationParams(file, offset, length);
       Map<PluginInfo, Future<plugin.Response>> pluginFutures = server
           .pluginManager
           .broadcastRequest(requestParams, contextRoot: driver.contextRoot);
@@ -194,11 +193,11 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
       ResolvedUnitResult result = await server.getResolvedUnit(file);
       if (result?.state == ResultState.VALID) {
         CompilationUnit unit = result?.unit;
-        NavigationCollectorImpl collector = new NavigationCollectorImpl();
+        NavigationCollectorImpl collector = NavigationCollectorImpl();
         computeDartNavigation(
             server.resourceProvider, collector, unit, offset, length);
         collector.createRegions();
-        allResults.add(new AnalysisNavigationParams(
+        allResults.add(AnalysisNavigationParams(
             file, collector.regions, collector.targets, collector.files));
       }
       //
@@ -210,23 +209,23 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
             requestParameters: requestParams);
         for (plugin.Response response in responses) {
           plugin.AnalysisGetNavigationResult result =
-              new plugin.AnalysisGetNavigationResult.fromResponse(response);
-          allResults.add(new AnalysisNavigationParams(
+              plugin.AnalysisGetNavigationResult.fromResponse(response);
+          allResults.add(AnalysisNavigationParams(
               file, result.regions, result.targets, result.files));
         }
       }
       //
       // Return the result.
       //
-      ResultMerger merger = new ResultMerger();
+      ResultMerger merger = ResultMerger();
       AnalysisNavigationParams mergedResults =
           merger.mergeNavigation(allResults);
       if (mergedResults == null) {
-        server.sendResponse(new AnalysisGetNavigationResult(
+        server.sendResponse(AnalysisGetNavigationResult(
                 <String>[], <NavigationTarget>[], <NavigationRegion>[])
             .toResponse(request.id));
       } else {
-        server.sendResponse(new AnalysisGetNavigationResult(mergedResults.files,
+        server.sendResponse(AnalysisGetNavigationResult(mergedResults.files,
                 mergedResults.targets, mergedResults.regions)
             .toResponse(request.id));
       }
@@ -237,7 +236,7 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
    * Implement the `analysis.getReachableSources` request.
    */
   Response getReachableSources(Request request) {
-    return new Response.unsupportedFeature(request.id,
+    return Response.unsupportedFeature(request.id,
         'Please contact the Dart analyzer team if you need this request.');
 //    AnalysisGetReachableSourcesParams params =
 //        new AnalysisGetReachableSourcesParams.fromRequest(request);
@@ -256,7 +255,7 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
    * Implement the `analysis.getSignature` request.
    */
   Future<void> getSignature(Request request) async {
-    var params = new AnalysisGetSignatureParams.fromRequest(request);
+    var params = AnalysisGetSignatureParams.fromRequest(request);
     var file = params.file;
 
     if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
@@ -267,23 +266,23 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
     ResolvedUnitResult result = await server.getResolvedUnit(file);
 
     if (result?.state != ResultState.VALID) {
-      server.sendResponse(new Response.getSignatureInvalidFile(request));
+      server.sendResponse(Response.getSignatureInvalidFile(request));
       return;
     }
 
     // Ensure the offset provided is a valid location in the file.
     final unit = result.unit;
-    final computer = new DartUnitSignatureComputer(
+    final computer = DartUnitSignatureComputer(
         server.getDartdocDirectiveInfoFor(result), unit, params.offset);
     if (!computer.offsetIsValid) {
-      server.sendResponse(new Response.getSignatureInvalidOffset(request));
+      server.sendResponse(Response.getSignatureInvalidOffset(request));
       return;
     }
 
     // Try to get a signature.
     final signature = computer.compute();
     if (signature == null) {
-      server.sendResponse(new Response.getSignatureUnknownFunction(request));
+      server.sendResponse(Response.getSignatureUnknownFunction(request));
       return;
     }
 
@@ -350,14 +349,14 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
     //
     // Send the response.
     //
-    return new AnalysisReanalyzeResult().toResponse(request.id);
+    return AnalysisReanalyzeResult().toResponse(request.id);
   }
 
   /**
    * Implement the 'analysis.setAnalysisRoots' request.
    */
   Response setAnalysisRoots(Request request) {
-    var params = new AnalysisSetAnalysisRootsParams.fromRequest(request);
+    var params = AnalysisSetAnalysisRootsParams.fromRequest(request);
     List<String> includedPathList = params.included;
     List<String> excludedPathList = params.excluded;
 
@@ -367,12 +366,12 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
     // validate
     for (String path in includedPathList) {
       if (!server.isValidFilePath(path)) {
-        return new Response.invalidFilePathFormat(request, path);
+        return Response.invalidFilePathFormat(request, path);
       }
     }
     for (String path in excludedPathList) {
       if (!server.isValidFilePath(path)) {
-        return new Response.invalidFilePathFormat(request, path);
+        return Response.invalidFilePathFormat(request, path);
       }
     }
     Map<String, String> packageRoots =
@@ -385,7 +384,7 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
       server.setAnalysisRoots(
           request.id, includedPathList, excludedPathList, packageRoots);
     }
-    return new AnalysisSetAnalysisRootsResult().toResponse(request.id);
+    return AnalysisSetAnalysisRootsResult().toResponse(request.id);
   }
 
   /**
@@ -393,16 +392,16 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
    */
   Response setGeneralSubscriptions(Request request) {
     AnalysisSetGeneralSubscriptionsParams params =
-        new AnalysisSetGeneralSubscriptionsParams.fromRequest(request);
+        AnalysisSetGeneralSubscriptionsParams.fromRequest(request);
     server.setGeneralAnalysisSubscriptions(params.subscriptions);
-    return new AnalysisSetGeneralSubscriptionsResult().toResponse(request.id);
+    return AnalysisSetGeneralSubscriptionsResult().toResponse(request.id);
   }
 
   /**
    * Implement the 'analysis.setPriorityFiles' request.
    */
   Response setPriorityFiles(Request request) {
-    var params = new AnalysisSetPriorityFilesParams.fromRequest(request);
+    var params = AnalysisSetPriorityFilesParams.fromRequest(request);
 
     for (var file in params.files) {
       if (!server.isAbsoluteAndNormalized(file)) {
@@ -414,20 +413,20 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
     //
     // Forward the request to the plugins.
     //
-    RequestConverter converter = new RequestConverter();
+    RequestConverter converter = RequestConverter();
     server.pluginManager.setAnalysisSetPriorityFilesParams(
         converter.convertAnalysisSetPriorityFilesParams(params));
     //
     // Send the response.
     //
-    return new AnalysisSetPriorityFilesResult().toResponse(request.id);
+    return AnalysisSetPriorityFilesResult().toResponse(request.id);
   }
 
   /**
    * Implement the 'analysis.setSubscriptions' request.
    */
   Response setSubscriptions(Request request) {
-    var params = new AnalysisSetSubscriptionsParams.fromRequest(request);
+    var params = AnalysisSetSubscriptionsParams.fromRequest(request);
 
     for (var fileList in params.subscriptions.values) {
       for (var file in fileList) {
@@ -444,20 +443,20 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
     //
     // Forward the request to the plugins.
     //
-    RequestConverter converter = new RequestConverter();
+    RequestConverter converter = RequestConverter();
     server.pluginManager.setAnalysisSetSubscriptionsParams(
         converter.convertAnalysisSetSubscriptionsParams(params));
     //
     // Send the response.
     //
-    return new AnalysisSetSubscriptionsResult().toResponse(request.id);
+    return AnalysisSetSubscriptionsResult().toResponse(request.id);
   }
 
   /**
    * Implement the 'analysis.updateContent' request.
    */
   Response updateContent(Request request) {
-    var params = new AnalysisUpdateContentParams.fromRequest(request);
+    var params = AnalysisUpdateContentParams.fromRequest(request);
 
     for (var file in params.files.keys) {
       if (!server.isAbsoluteAndNormalized(file)) {
@@ -469,13 +468,13 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
     //
     // Forward the request to the plugins.
     //
-    RequestConverter converter = new RequestConverter();
+    RequestConverter converter = RequestConverter();
     server.pluginManager.setAnalysisUpdateContentParams(
         converter.convertAnalysisUpdateContentParams(params));
     //
     // Send the response.
     //
-    return new AnalysisUpdateContentResult().toResponse(request.id);
+    return AnalysisUpdateContentResult().toResponse(request.id);
   }
 
   /**
@@ -483,9 +482,9 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
    */
   Response updateOptions(Request request) {
     // options
-    var params = new AnalysisUpdateOptionsParams.fromRequest(request);
+    var params = AnalysisUpdateOptionsParams.fromRequest(request);
     AnalysisOptions newOptions = params.options;
-    List<OptionUpdater> updaters = new List<OptionUpdater>();
+    List<OptionUpdater> updaters = List<OptionUpdater>();
     if (newOptions.generateDart2jsHints != null) {
       updaters.add((engine.AnalysisOptionsImpl options) {
         options.dart2jsHint = newOptions.generateDart2jsHints;
@@ -502,6 +501,6 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
       });
     }
     server.updateOptions(updaters);
-    return new AnalysisUpdateOptionsResult().toResponse(request.id);
+    return AnalysisUpdateOptionsResult().toResponse(request.id);
   }
 }

@@ -31,7 +31,7 @@ mixin DartEntryMixin implements EntryMixin {
     await null;
     String path = parameters.file;
     ResolvedUnitResult result = await getResolvedUnitResult(path);
-    return new DartEntryRequestImpl(resourceProvider, result);
+    return DartEntryRequestImpl(resourceProvider, result);
   }
 }
 
@@ -64,7 +64,7 @@ mixin EntryMixin implements ServerPlugin {
     await null;
     String path = parameters.file;
     EntryRequest request = await getEntryRequest(parameters);
-    EntryGenerator generator = new EntryGenerator(getEntryContributors(path));
+    EntryGenerator generator = EntryGenerator(getEntryContributors(path));
     GeneratorResult<KytheGetKytheEntriesResult> result =
         generator.generateGetEntriesResponse(request);
     result.sendNotifications(channel);

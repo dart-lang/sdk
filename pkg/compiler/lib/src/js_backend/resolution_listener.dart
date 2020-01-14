@@ -443,7 +443,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
       _registerBackendImpact(impactBuilder, _impacts.traceHelper);
     }
 
-    if (_options.experimentNewRti) {
+    if (_options.useNewRti) {
       _registerBackendImpact(impactBuilder, _impacts.rtiAddRules);
     }
 

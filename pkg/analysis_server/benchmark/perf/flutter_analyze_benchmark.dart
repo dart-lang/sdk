@@ -22,10 +22,12 @@ class FlutterAnalyzeBenchmark extends Benchmark {
           kind: 'cpu',
         );
 
+  @override
   bool get needsSetup => true;
 
   Directory flutterDir;
 
+  @override
   Future oneTimeSetup() async {
     flutterDir = Directory.systemTemp.createTempSync('flutter');
 
@@ -48,6 +50,7 @@ class FlutterAnalyzeBenchmark extends Benchmark {
     await _runProcess(flutterTool, ['update-packages'], cwd: flutterDir.path);
   }
 
+  @override
   Future oneTimeCleanup() {
     try {
       flutterDir.deleteSync(recursive: true);
@@ -55,9 +58,10 @@ class FlutterAnalyzeBenchmark extends Benchmark {
       print(e);
     }
 
-    return new Future.value();
+    return Future.value();
   }
 
+  @override
   int get maxIterations => 3;
 
   @override
@@ -72,7 +76,7 @@ class FlutterAnalyzeBenchmark extends Benchmark {
     final String dartSdkPath =
         path.dirname(path.dirname(Platform.resolvedExecutable));
 
-    final Stopwatch stopwatch = new Stopwatch()..start();
+    final Stopwatch stopwatch = Stopwatch()..start();
 
     await _runProcess(
       Platform.resolvedExecutable,
@@ -89,7 +93,7 @@ class FlutterAnalyzeBenchmark extends Benchmark {
 
     stopwatch.stop();
 
-    return new BenchMarkResult('micros', stopwatch.elapsedMicroseconds);
+    return BenchMarkResult('micros', stopwatch.elapsedMicroseconds);
   }
 }
 
@@ -105,13 +109,13 @@ Future<int> _runProcess(
 
   process.stdout
       .transform(utf8.decoder)
-      .transform(new LineSplitter())
+      .transform(LineSplitter())
       .listen((line) {
     print('  $line');
   });
   process.stderr
       .transform(utf8.decoder)
-      .transform(new LineSplitter())
+      .transform(LineSplitter())
       .listen((line) => print('  $line'));
 
   int exitCode = await process.exitCode;

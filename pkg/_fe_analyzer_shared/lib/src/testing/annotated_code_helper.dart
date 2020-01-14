@@ -21,13 +21,22 @@ class Annotation {
   /// 0-based character offset  of the annotation within the source text.
   final int offset;
 
+  /// The annotation start text.
+  final String prefix;
+
   /// The text in the annotation.
   final String text;
 
-  Annotation(this.lineNo, this.columnNo, this.offset, this.text);
+  /// The annotation end text.
+  final String suffix;
+
+  Annotation(this.lineNo, this.columnNo, this.offset, this.prefix, this.text,
+      this.suffix)
+      : assert(offset != null);
 
   String toString() =>
-      'Annotation(lineNo=$lineNo,columnNo=$columnNo,offset=$offset,text=$text)';
+      'Annotation(lineNo=$lineNo,columnNo=$columnNo,offset=$offset,'
+      'prefix=$prefix,text=$text,suffix=$suffix)';
 }
 
 /// A source code text with annotated positions.
@@ -47,6 +56,9 @@ class Annotation {
 ///
 ///  Annotation text cannot span multiple lines and cannot contain '}'.
 class AnnotatedCode {
+  /// The original code with annotations.
+  final String annotatedCode;
+
   /// The source code without annotations.
   final String sourceCode;
 
@@ -55,9 +67,10 @@ class AnnotatedCode {
 
   List<int> _lineStarts;
 
-  AnnotatedCode(this.sourceCode, this.annotations);
+  AnnotatedCode(this.annotatedCode, this.sourceCode, this.annotations);
 
-  AnnotatedCode.internal(this.sourceCode, this.annotations, this._lineStarts);
+  AnnotatedCode.internal(
+      this.annotatedCode, this.sourceCode, this.annotations, this._lineStarts);
 
   /// Creates an [AnnotatedCode] by processing [annotatedCode]. Annotation
   /// delimited by [start] and [end] are converted into [Annotation]s and
@@ -81,8 +94,12 @@ class AnnotatedCode {
         if (!endMatches.isEmpty) {
           Match endMatch = endMatches.first;
           annotatedCode.indexOf(end, startIndex);
+          String prefix =
+              annotatedCode.substring(startMatch.start, startMatch.end);
           String text = annotatedCode.substring(startMatch.end, endMatch.start);
-          annotations.add(new Annotation(lineNo, columnNo, offset, text));
+          String suffix = annotatedCode.substring(endMatch.start, endMatch.end);
+          annotations.add(
+              new Annotation(lineNo, columnNo, offset, prefix, text, suffix));
           index = endMatch.end;
           continue;
         }
@@ -117,7 +134,7 @@ class AnnotatedCode {
     }
     lineStarts.add(offset);
     return new AnnotatedCode.internal(
-        codeBuffer.toString(), annotations, lineStarts);
+        annotatedCode, codeBuffer.toString(), annotations, lineStarts);
   }
 
   void _ensureLineStarts() {
@@ -150,10 +167,47 @@ class AnnotatedCode {
     }
   }
 
-  void addAnnotation(int lineNo, int columnNo, String text) {
+  void addAnnotation(
+      int lineNo, int columnNo, String prefix, String text, String suffix) {
     _ensureLineStarts();
     int offset = _lineStarts[lineNo - 1] + (columnNo - 1);
-    annotations.add(new Annotation(lineNo, columnNo, offset, text));
+    annotations
+        .add(new Annotation(lineNo, columnNo, offset, prefix, text, suffix));
+  }
+
+  int get lineCount {
+    _ensureLineStarts();
+    return _lineStarts.length;
+  }
+
+  int getLineIndex(int offset) {
+    _ensureLineStarts();
+    int index = 0;
+    while (index + 1 < _lineStarts.length) {
+      if (_lineStarts[index + 1] <= offset) {
+        index++;
+      } else {
+        break;
+      }
+    }
+    return index;
+  }
+
+  int getLineStart(int lineIndex) {
+    _ensureLineStarts();
+    if (lineIndex < 0) {
+      return 0;
+    } else if (lineIndex < _lineStarts.length) {
+      return _lineStarts[lineIndex];
+    } else {
+      return sourceCode.length;
+    }
+  }
+
+  String getLine(int lineIndex) {
+    int startIndex = getLineStart(lineIndex);
+    int endIndex = getLineStart(lineIndex + 1);
+    return sourceCode.substring(startIndex, endIndex);
   }
 
   String toText() {
@@ -163,11 +217,18 @@ class AnnotatedCode {
     int offset = 0;
     for (Annotation annotation in list) {
       sb.write(sourceCode.substring(offset, annotation.offset));
-      sb.write('@{${annotation.text}}');
+      sb.write(annotation.prefix);
+      sb.write(annotation.text);
+      sb.write(annotation.suffix);
       offset = annotation.offset;
     }
     sb.write(sourceCode.substring(offset));
     return sb.toString();
+  }
+
+  @override
+  String toString() {
+    return 'AnnotatedCode(sourceCode=$sourceCode,annotations=$annotations)';
   }
 }
 
@@ -196,8 +257,14 @@ Map<String, AnnotatedCode> splitByPrefixes(
       List<String> markers = annotationPrefix.split('|').toList();
       if (prefixSet.containsAll(markers)) {
         for (String part in markers) {
-          map[part].add(new Annotation(annotation.lineNo, annotation.columnNo,
-              annotation.offset, annotationText));
+          Annotation subAnnotation = new Annotation(
+              annotation.lineNo,
+              annotation.columnNo,
+              annotation.offset,
+              annotation.prefix,
+              annotationText,
+              annotation.suffix);
+          map[part].add(subAnnotation);
         }
         continue outer;
       }
@@ -208,7 +275,8 @@ Map<String, AnnotatedCode> splitByPrefixes(
   }
   Map<String, AnnotatedCode> split = <String, AnnotatedCode>{};
   map.forEach((String prefix, List<Annotation> annotations) {
-    split[prefix] = new AnnotatedCode(annotatedCode.sourceCode, annotations);
+    split[prefix] = new AnnotatedCode(
+        annotatedCode.annotatedCode, annotatedCode.sourceCode, annotations);
   });
   return split;
 }

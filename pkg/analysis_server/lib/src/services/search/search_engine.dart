@@ -15,32 +15,32 @@ class MatchKind {
   /**
    * A declaration of an element.
    */
-  static const MatchKind DECLARATION = const MatchKind('DECLARATION');
+  static const MatchKind DECLARATION = MatchKind('DECLARATION');
 
   /**
    * A reference to an element in which it is being read.
    */
-  static const MatchKind READ = const MatchKind('READ');
+  static const MatchKind READ = MatchKind('READ');
 
   /**
    * A reference to an element in which it is being both read and written.
    */
-  static const MatchKind READ_WRITE = const MatchKind('READ_WRITE');
+  static const MatchKind READ_WRITE = MatchKind('READ_WRITE');
 
   /**
    * A reference to an element in which it is being written.
    */
-  static const MatchKind WRITE = const MatchKind('WRITE');
+  static const MatchKind WRITE = MatchKind('WRITE');
 
   /**
    * A reference to an element in which it is being invoked.
    */
-  static const MatchKind INVOCATION = const MatchKind('INVOCATION');
+  static const MatchKind INVOCATION = MatchKind('INVOCATION');
 
   /**
    * A reference to an element in which it is referenced.
    */
-  static const MatchKind REFERENCE = const MatchKind('REFERENCE');
+  static const MatchKind REFERENCE = MatchKind('REFERENCE');
 
   final String name;
 

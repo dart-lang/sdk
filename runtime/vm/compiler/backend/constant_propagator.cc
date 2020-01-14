@@ -379,22 +379,7 @@ void ConstantPropagator::VisitNativeParameter(NativeParameterInstr* instr) {
 }
 
 void ConstantPropagator::VisitPushArgument(PushArgumentInstr* instr) {
-  if (SetValue(instr, instr->value()->definition()->constant_value())) {
-    // The worklist implementation breaks down around push arguments,
-    // since these instructions do not have a direct use-link to the
-    // corresponding call. This is remedied by visiting all calls in
-    // the enviroment use list each time a push argument changes its
-    // value. Currently, this only needs to be done for static calls
-    // (the only calls involved in constant propagation).
-    // TODO(ajcbik): calls with multiple arguments may be revisited
-    //               several times; a direct use-link would be better
-    for (Value* use = instr->env_use_list(); use != nullptr;
-         use = use->next_use()) {
-      if (use->instruction()->IsStaticCall()) {
-        use->instruction()->Accept(this);
-      }
-    }
-  }
+  UNREACHABLE();
 }
 
 void ConstantPropagator::VisitAssertAssignable(AssertAssignableInstr* instr) {
@@ -404,7 +389,8 @@ void ConstantPropagator::VisitAssertAssignable(AssertAssignableInstr* instr) {
   } else if (IsConstant(value)) {
     // We are ignoring the instantiator and instantiator_type_arguments, but
     // still monotonic and safe.
-    if (instr->value()->Type()->IsAssignableTo(instr->dst_type())) {
+    if (instr->value()->Type()->IsAssignableTo(instr->nnbd_mode(),
+                                               instr->dst_type())) {
       SetValue(instr, value);
     } else {
       SetValue(instr, non_constant_);
@@ -812,6 +798,7 @@ void ConstantPropagator::VisitInstanceOf(InstanceOfInstr* instr) {
   Definition* def = instr->value()->definition();
   const Object& value = def->constant_value();
   const AbstractType& checked_type = instr->type();
+  // TODO(regis): Revisit the evaluation of the type test.
   if (checked_type.IsTopType()) {
     SetValue(instr, Bool::True());
   } else if (IsNonConstant(value)) {
@@ -838,7 +825,7 @@ void ConstantPropagator::VisitInstanceOf(InstanceOfInstr* instr) {
       if (instr->instantiator_type_arguments()->BindsToConstantNull() &&
           instr->function_type_arguments()->BindsToConstantNull()) {
         bool is_instance = instance.IsInstanceOf(
-            NNBDMode::kLegacy, checked_type, Object::null_type_arguments(),
+            instr->nnbd_mode(), checked_type, Object::null_type_arguments(),
             Object::null_type_arguments());
         SetValue(instr, Bool::Get(is_instance));
         return;
@@ -1436,15 +1423,6 @@ void ConstantPropagator::EliminateRedundantBranches() {
   }
 }
 
-static void RemovePushArguments(StaticCallInstr* call) {
-  for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
-    PushArgumentInstr* push = call->PushArgumentAt(i);
-    ASSERT(push->input_use_list() == nullptr);           // no direct uses
-    push->ReplaceUsesWith(push->value()->definition());  // cleanup env uses
-    push->RemoveFromGraph();
-  }
-}
-
 void ConstantPropagator::Transform() {
   // We will recompute dominators, block ordering, block ids, block last
   // instructions, previous pointers, predecessors, etc. after eliminating
@@ -1519,11 +1497,11 @@ void ConstantPropagator::Transform() {
       // Replace constant-valued instructions without observable side
       // effects.  Do this for smis only to avoid having to copy other
       // objects into the heap's old generation.
-      if ((defn != NULL) && IsConstant(defn->constant_value()) &&
+      ASSERT((defn == nullptr) || !defn->IsPushArgument());
+      if ((defn != nullptr) && IsConstant(defn->constant_value()) &&
           (defn->constant_value().IsSmi() || defn->constant_value().IsOld()) &&
-          !defn->IsConstant() && !defn->IsPushArgument() &&
-          !defn->IsStoreIndexed() && !defn->IsStoreInstanceField() &&
-          !defn->IsStoreStaticField()) {
+          !defn->IsConstant() && !defn->IsStoreIndexed() &&
+          !defn->IsStoreInstanceField() && !defn->IsStoreStaticField()) {
         if (FLAG_trace_constant_propagation && graph_->should_print()) {
           THR_Print("Constant v%" Pd " = %s\n", defn->ssa_temp_index(),
                     defn->constant_value().ToCString());
@@ -1536,7 +1514,7 @@ void ConstantPropagator::Transform() {
           ASSERT(!value.IsNull() && (error_str == nullptr));
         }
         if (auto call = defn->AsStaticCall()) {
-          RemovePushArguments(call);
+          ASSERT(!call->HasPushArguments());
         }
         ConstantInstr* constant = graph_->GetConstant(value);
         defn->ReplaceUsesWith(constant);

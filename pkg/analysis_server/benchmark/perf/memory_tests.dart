@@ -61,7 +61,7 @@ class AnalysisServerMemoryUsageTest
       // A server error should never happen during an integration test.
       fail('${params.message}\n${params.stackTrace}');
     });
-    Completer serverConnected = new Completer();
+    Completer serverConnected = Completer();
     onServerConnected.listen((_) {
       outOfTestExpect(serverConnected.isCompleted, isFalse);
       serverConnected.complete();
@@ -110,7 +110,7 @@ class ServiceProtocol {
 
   Future<Map> call(String method, [Map args]) {
     String id = '${++_id}';
-    Completer<Map> completer = new Completer();
+    Completer<Map> completer = Completer();
     _completers[id] = completer;
     Map m = {'id': id, 'method': method};
     if (args != null) m['params'] = args;
@@ -140,6 +140,6 @@ class ServiceProtocol {
 
   static Future<ServiceProtocol> connect(Uri uri) async {
     WebSocket socket = await WebSocket.connect(uri.toString());
-    return new ServiceProtocol._(socket);
+    return ServiceProtocol._(socket);
   }
 }

@@ -222,7 +222,7 @@ class LibraryBuilder {
     for (var unitContext in context.units) {
       for (var declaration in unitContext.unit.declarations) {
         if (declaration is ast.MixinDeclaration) {
-          var names = Set<String>();
+          var names = <String>{};
           var collector = MixinSuperInvokedNamesCollector(names);
           for (var executable in declaration.members) {
             if (executable is ast.MethodDeclaration) {
@@ -276,7 +276,9 @@ class LibraryBuilder {
           if (uri != null) {
             LazyDirective.setSelectedUri(directive, '$uri');
           }
-        } on FormatException {}
+        } on FormatException {
+          // ignored
+        }
       }
     }
   }
@@ -294,7 +296,7 @@ class LibraryBuilder {
       directive.configurations,
       directive.uri.stringValue,
     );
-    if (relativeUriStr == null || relativeUriStr.isEmpty) {
+    if (relativeUriStr == null) {
       return null;
     }
     var relativeUri = Uri.parse(relativeUriStr);

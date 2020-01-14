@@ -256,13 +256,12 @@ class DuplicateDefinitionVerifier {
         var name = member.name?.name ?? '';
         if (!constructorNames.add(name)) {
           if (name.isEmpty) {
-            _errorReporter.reportErrorForNode(
+            _errorReporter.reportErrorForName(
                 CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, member);
           } else {
-            _errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME,
-                member,
-                [name]);
+            _errorReporter.reportErrorForName(
+                CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME, member,
+                arguments: [name]);
           }
         }
       } else if (member is FieldDeclaration) {
@@ -366,24 +365,18 @@ class DuplicateDefinitionVerifier {
       return CompileTimeErrorCode.DUPLICATE_DEFINITION;
     }
 
-    bool isGetterSetterPair(Element a, Element b) {
-      if (a is PropertyAccessorElement && b is PropertyAccessorElement) {
-        return a.isGetter && b.isSetter || a.isSetter && b.isGetter;
-      }
-      return false;
-    }
-
-    String name = identifier.name;
-    if (element is MethodElement && element.isOperator && name == '-') {
-      if (element.parameters.isEmpty) {
-        name = 'unary-';
-      }
+    var name = identifier.name;
+    if (element is MethodElement) {
+      name = element.name;
     }
 
     Element previous = getterScope[name];
     if (previous != null) {
-      if (isGetterSetterPair(element, previous)) {
+      if (_isGetterSetterPair(element, previous)) {
         // OK
+      } else if (element is FieldFormalParameterElement &&
+          previous is FieldFormalParameterElement) {
+        // Reported as CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES.
       } else {
         _errorReporter.reportErrorForNode(
           getError(previous, element),
@@ -407,5 +400,12 @@ class DuplicateDefinitionVerifier {
         setterScope[name] = element;
       }
     }
+  }
+
+  static bool _isGetterSetterPair(Element a, Element b) {
+    if (a is PropertyAccessorElement && b is PropertyAccessorElement) {
+      return a.isGetter && b.isSetter || a.isSetter && b.isGetter;
+    }
+    return false;
   }
 }

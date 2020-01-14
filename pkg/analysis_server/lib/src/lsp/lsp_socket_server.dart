@@ -21,17 +21,20 @@ import 'package:analyzer/src/generated/sdk.dart';
  * encode and decode the JSON messages exchanged with the client.
  */
 class LspSocketServer implements AbstractSocketServer {
+  @override
   final AnalysisServerOptions analysisServerOptions;
   /**
    * The analysis server that was created when a client established a
    * connection, or `null` if no such connection has yet been established.
    */
+  @override
   LspAnalysisServer analysisServer;
 
   /**
    * The function used to create a new SDK using the default SDK.
    */
   final DartSdkManager sdkManager;
+  @override
   final DiagnosticServer diagnosticServer;
   final InstrumentationService instrumentationService;
 
@@ -48,19 +51,19 @@ class LspSocketServer implements AbstractSocketServer {
    */
   void createAnalysisServer(LspServerCommunicationChannel serverChannel) {
     if (analysisServer != null) {
-      ResponseError error = new ResponseError<void>(
+      ResponseError error = ResponseError<void>(
           ServerErrorCodes.ServerAlreadyStarted,
           'Server already started',
           null);
-      serverChannel.sendNotification(new NotificationMessage(
+      serverChannel.sendNotification(NotificationMessage(
         Method.window_showMessage,
-        new ShowMessageParams(MessageType.Error, error.message),
+        ShowMessageParams(MessageType.Error, error.message),
         jsonRpcVersion,
       ));
       serverChannel.listen((Message message) {
         if (message is RequestMessage) {
           serverChannel.sendResponse(
-              new ResponseMessage(message.id, null, error, jsonRpcVersion));
+              ResponseMessage(message.id, null, error, jsonRpcVersion));
         }
       });
       return;
@@ -68,18 +71,18 @@ class LspSocketServer implements AbstractSocketServer {
 
     PhysicalResourceProvider resourceProvider;
     if (analysisServerOptions.fileReadMode == 'as-is') {
-      resourceProvider = new PhysicalResourceProvider(null,
+      resourceProvider = PhysicalResourceProvider(null,
           stateLocation: analysisServerOptions.cacheFolder);
     } else if (analysisServerOptions.fileReadMode == 'normalize-eol-always') {
-      resourceProvider = new PhysicalResourceProvider(
+      resourceProvider = PhysicalResourceProvider(
           PhysicalResourceProvider.NORMALIZE_EOL_ALWAYS,
           stateLocation: analysisServerOptions.cacheFolder);
     } else {
-      throw new Exception(
+      throw Exception(
           'File read mode was set to the unknown mode: $analysisServerOptions.fileReadMode');
     }
 
-    analysisServer = new LspAnalysisServer(serverChannel, resourceProvider,
+    analysisServer = LspAnalysisServer(serverChannel, resourceProvider,
         analysisServerOptions, sdkManager, instrumentationService,
         diagnosticServer: diagnosticServer);
   }

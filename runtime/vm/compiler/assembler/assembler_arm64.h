@@ -1371,22 +1371,28 @@ class Assembler : public AssemblerBase {
               Register pp,
               ObjectPoolBuilderEntry::Patchability patchable =
                   ObjectPoolBuilderEntry::kNotPatchable);
-  void BranchPatchable(const Code& code);
 
   void BranchLink(const Code& code,
                   ObjectPoolBuilderEntry::Patchability patchable =
-                      ObjectPoolBuilderEntry::kNotPatchable);
+                      ObjectPoolBuilderEntry::kNotPatchable,
+                  CodeEntryKind entry_kind = CodeEntryKind::kNormal);
 
-  void BranchLinkPatchable(const Code& code) {
-    BranchLink(code, ObjectPoolBuilderEntry::kPatchable);
+  void BranchLinkPatchable(const Code& code,
+                           CodeEntryKind entry_kind = CodeEntryKind::kNormal) {
+    BranchLink(code, ObjectPoolBuilderEntry::kPatchable, entry_kind);
   }
   void BranchLinkToRuntime();
 
   void CallNullErrorShared(bool save_fpu_registers);
 
+  void CallNullArgErrorShared(bool save_fpu_registers);
+
   // Emit a call that shares its object pool entries with other calls
   // that have the same equivalence marker.
-  void BranchLinkWithEquivalence(const Code& code, const Object& equivalence);
+  void BranchLinkWithEquivalence(
+      const Code& code,
+      const Object& equivalence,
+      CodeEntryKind entry_kind = CodeEntryKind::kNormal);
 
   void AddImmediate(Register dest, int64_t imm) {
     AddImmediate(dest, dest, imm);
@@ -1673,9 +1679,9 @@ class Assembler : public AssemblerBase {
   // Returns object data offset for address calculation; for heap objects also
   // accounts for the tag.
   static int32_t HeapDataOffset(bool is_external, intptr_t cid) {
-    return is_external ?
-          0 :
-          (target::Instance::DataOffsetFor(cid) - kHeapObjectTag);
+    return is_external
+               ? 0
+               : (target::Instance::DataOffsetFor(cid) - kHeapObjectTag);
   }
 
   static int32_t EncodeImm26BranchOffset(int64_t imm, int32_t instr) {

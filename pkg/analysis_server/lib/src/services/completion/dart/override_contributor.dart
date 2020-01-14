@@ -39,7 +39,7 @@ class OverrideContributor implements DartCompletionContributor {
       return const <CompletionSuggestion>[];
     }
 
-    var inheritance = new InheritanceManager3();
+    var inheritance = InheritanceManager3();
 
     // Generate a collection of inherited members
     var classElem = classDecl.declaredElement;
@@ -75,8 +75,8 @@ class OverrideContributor implements DartCompletionContributor {
       SimpleIdentifier targetId,
       ExecutableElement element,
       bool invokeSuper) async {
-    var displayTextBuffer = new StringBuffer();
-    var builder = new DartChangeBuilder(request.result.session);
+    var displayTextBuffer = StringBuffer();
+    var builder = DartChangeBuilder(request.result.session);
     await builder.addFileEdit(request.result.path, (builder) {
       builder.addReplacement(range.node(targetId), (builder) {
         builder.writeOverride(
@@ -111,7 +111,7 @@ class OverrideContributor implements DartCompletionContributor {
     int offsetDelta = targetId.offset + replacement.indexOf(completion);
     String displayText =
         displayTextBuffer.isNotEmpty ? displayTextBuffer.toString() : null;
-    CompletionSuggestion suggestion = new CompletionSuggestion(
+    CompletionSuggestion suggestion = CompletionSuggestion(
         CompletionSuggestionKind.OVERRIDE,
         DART_RELEVANCE_HIGH,
         completion,

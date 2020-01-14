@@ -71,6 +71,7 @@ class StatsPage extends PageWriter {
    * Write the content of the style sheet (without the 'script' tag) for the
    * page to the given [sink].
    */
+  @override
   void writeStyleSheet(StringSink sink) {
     super.writeStyleSheet(sink);
     writeTwoColumnStyles(sink, 'leftColumn', 'rightColumn');
@@ -103,7 +104,7 @@ class StatsPage extends PageWriter {
       } else if (entry is RequestEntry) {
         String method = entry.method;
         int latency = entry.timeStamp - entry.clientRequestTime;
-        latencyData.putIfAbsent(method, () => new List<int>()).add(latency);
+        latencyData.putIfAbsent(method, () => List<int>()).add(latency);
         if (method == 'completion.getSuggestions') {
           ResponseEntry response = log.responseFor(entry);
           if (response != null) {
@@ -128,7 +129,7 @@ class StatsPage extends PageWriter {
         var pluginData = pluginResponseData.putIfAbsent(
             entry.pluginId, () => <String, List<int>>{});
         pluginData
-            .putIfAbsent(entry.method, () => new List<int>())
+            .putIfAbsent(entry.method, () => List<int>())
             .add(responseTime);
       }
     }

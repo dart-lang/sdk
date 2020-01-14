@@ -910,12 +910,6 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
   }
 
   @override
-  Iterable<ClassEntity> allMixinUsesOf(ClassEntity cls) {
-    Iterable<ClassEntity> uses = _classHierarchyBuilder.mixinUses[cls];
-    return uses != null ? uses : const <ClassEntity>[];
-  }
-
-  @override
   void registerUsedElement(MemberEntity element) {
     if (element.isInstanceMember && !element.isAbstract) {
       _liveInstanceMembers.add(element);

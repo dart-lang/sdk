@@ -18,7 +18,7 @@ class MyMixin {
 
 class MyClass with MyMixin {}
 
-main(List<String> args) {
+void main(List<String> args) {
   if (args.length == 0) {
     print('myDouble = ${MyClass().someValue}');
   }

@@ -3,7 +3,7 @@ class MyClass {
 
   MyClass(this.fieldName);
 
-  int get getterName => /*1:getterName(inlined)*/ fieldName;
+  int get getterName => fieldName;
 }
 
 @pragma('dart2js:noInline')

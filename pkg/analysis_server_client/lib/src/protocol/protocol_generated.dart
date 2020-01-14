@@ -13,29 +13,23 @@ import 'package:analysis_server_client/src/protocol/protocol_common.dart';
 import 'package:analysis_server_client/src/protocol/protocol_internal.dart';
 import 'package:analysis_server_client/src/protocol/protocol_util.dart';
 
-/**
- * analysis.analyzedFiles params
- *
- * {
- *   "directories": List<FilePath>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.analyzedFiles params
+///
+/// {
+///   "directories": List<FilePath>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisAnalyzedFilesParams implements HasToJson {
   List<String> _directories;
 
-  /**
-   * A list of the paths of the files that are being analyzed.
-   */
+  /// A list of the paths of the files that are being analyzed.
   List<String> get directories => _directories;
 
-  /**
-   * A list of the paths of the files that are being analyzed.
-   */
-  void set directories(List<String> value) {
+  /// A list of the paths of the files that are being analyzed.
+  set directories(List<String> value) {
     assert(value != null);
-    this._directories = value;
+    _directories = value;
   }
 
   AnalysisAnalyzedFilesParams(List<String> directories) {
@@ -44,9 +38,7 @@ class AnalysisAnalyzedFilesParams implements HasToJson {
 
   factory AnalysisAnalyzedFilesParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       List<String> directories;
       if (json.containsKey("directories")) {
@@ -55,7 +47,7 @@ class AnalysisAnalyzedFilesParams implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "directories");
       }
-      return new AnalysisAnalyzedFilesParams(directories);
+      return AnalysisAnalyzedFilesParams(directories);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "analysis.analyzedFiles params", json);
@@ -64,8 +56,8 @@ class AnalysisAnalyzedFilesParams implements HasToJson {
 
   factory AnalysisAnalyzedFilesParams.fromNotification(
       Notification notification) {
-    return new AnalysisAnalyzedFilesParams.fromJson(
-        new ResponseDecoder(null), "params", notification.params);
+    return AnalysisAnalyzedFilesParams.fromJson(
+        ResponseDecoder(null), "params", notification.params);
   }
 
   @override
@@ -76,7 +68,7 @@ class AnalysisAnalyzedFilesParams implements HasToJson {
   }
 
   Notification toNotification() {
-    return new Notification("analysis.analyzedFiles", toJson());
+    return Notification("analysis.analyzedFiles", toJson());
   }
 
   @override
@@ -99,57 +91,47 @@ class AnalysisAnalyzedFilesParams implements HasToJson {
   }
 }
 
-/**
- * analysis.closingLabels params
- *
- * {
- *   "file": FilePath
- *   "labels": List<ClosingLabel>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.closingLabels params
+///
+/// {
+///   "file": FilePath
+///   "labels": List<ClosingLabel>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisClosingLabelsParams implements HasToJson {
   String _file;
 
   List<ClosingLabel> _labels;
 
-  /**
-   * The file the closing labels relate to.
-   */
+  /// The file the closing labels relate to.
   String get file => _file;
 
-  /**
-   * The file the closing labels relate to.
-   */
-  void set file(String value) {
+  /// The file the closing labels relate to.
+  set file(String value) {
     assert(value != null);
-    this._file = value;
+    _file = value;
   }
 
-  /**
-   * Closing labels relevant to the file. Each item represents a useful label
-   * associated with some range with may be useful to display to the user
-   * within the editor at the end of the range to indicate what construct is
-   * closed at that location. Closing labels include constructor/method calls
-   * and List arguments that span multiple lines. Note that the ranges that are
-   * returned can overlap each other because they may be associated with
-   * constructs that can be nested.
-   */
+  /// Closing labels relevant to the file. Each item represents a useful label
+  /// associated with some range with may be useful to display to the user
+  /// within the editor at the end of the range to indicate what construct is
+  /// closed at that location. Closing labels include constructor/method calls
+  /// and List arguments that span multiple lines. Note that the ranges that
+  /// are returned can overlap each other because they may be associated with
+  /// constructs that can be nested.
   List<ClosingLabel> get labels => _labels;
 
-  /**
-   * Closing labels relevant to the file. Each item represents a useful label
-   * associated with some range with may be useful to display to the user
-   * within the editor at the end of the range to indicate what construct is
-   * closed at that location. Closing labels include constructor/method calls
-   * and List arguments that span multiple lines. Note that the ranges that are
-   * returned can overlap each other because they may be associated with
-   * constructs that can be nested.
-   */
-  void set labels(List<ClosingLabel> value) {
+  /// Closing labels relevant to the file. Each item represents a useful label
+  /// associated with some range with may be useful to display to the user
+  /// within the editor at the end of the range to indicate what construct is
+  /// closed at that location. Closing labels include constructor/method calls
+  /// and List arguments that span multiple lines. Note that the ranges that
+  /// are returned can overlap each other because they may be associated with
+  /// constructs that can be nested.
+  set labels(List<ClosingLabel> value) {
     assert(value != null);
-    this._labels = value;
+    _labels = value;
   }
 
   AnalysisClosingLabelsParams(String file, List<ClosingLabel> labels) {
@@ -159,9 +141,7 @@ class AnalysisClosingLabelsParams implements HasToJson {
 
   factory AnalysisClosingLabelsParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -175,11 +155,11 @@ class AnalysisClosingLabelsParams implements HasToJson {
             jsonPath + ".labels",
             json["labels"],
             (String jsonPath, Object json) =>
-                new ClosingLabel.fromJson(jsonDecoder, jsonPath, json));
+                ClosingLabel.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "labels");
       }
-      return new AnalysisClosingLabelsParams(file, labels);
+      return AnalysisClosingLabelsParams(file, labels);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "analysis.closingLabels params", json);
@@ -188,8 +168,8 @@ class AnalysisClosingLabelsParams implements HasToJson {
 
   factory AnalysisClosingLabelsParams.fromNotification(
       Notification notification) {
-    return new AnalysisClosingLabelsParams.fromJson(
-        new ResponseDecoder(null), "params", notification.params);
+    return AnalysisClosingLabelsParams.fromJson(
+        ResponseDecoder(null), "params", notification.params);
   }
 
   @override
@@ -202,7 +182,7 @@ class AnalysisClosingLabelsParams implements HasToJson {
   }
 
   Notification toNotification() {
-    return new Notification("analysis.closingLabels", toJson());
+    return Notification("analysis.closingLabels", toJson());
   }
 
   @override
@@ -227,45 +207,35 @@ class AnalysisClosingLabelsParams implements HasToJson {
   }
 }
 
-/**
- * AnalysisErrorFixes
- *
- * {
- *   "error": AnalysisError
- *   "fixes": List<SourceChange>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// AnalysisErrorFixes
+///
+/// {
+///   "error": AnalysisError
+///   "fixes": List<SourceChange>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisErrorFixes implements HasToJson {
   AnalysisError _error;
 
   List<SourceChange> _fixes;
 
-  /**
-   * The error with which the fixes are associated.
-   */
+  /// The error with which the fixes are associated.
   AnalysisError get error => _error;
 
-  /**
-   * The error with which the fixes are associated.
-   */
-  void set error(AnalysisError value) {
+  /// The error with which the fixes are associated.
+  set error(AnalysisError value) {
     assert(value != null);
-    this._error = value;
+    _error = value;
   }
 
-  /**
-   * The fixes associated with the error.
-   */
+  /// The fixes associated with the error.
   List<SourceChange> get fixes => _fixes;
 
-  /**
-   * The fixes associated with the error.
-   */
-  void set fixes(List<SourceChange> value) {
+  /// The fixes associated with the error.
+  set fixes(List<SourceChange> value) {
     assert(value != null);
-    this._fixes = value;
+    _fixes = value;
   }
 
   AnalysisErrorFixes(AnalysisError error, {List<SourceChange> fixes}) {
@@ -279,13 +249,11 @@ class AnalysisErrorFixes implements HasToJson {
 
   factory AnalysisErrorFixes.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       AnalysisError error;
       if (json.containsKey("error")) {
-        error = new AnalysisError.fromJson(
+        error = AnalysisError.fromJson(
             jsonDecoder, jsonPath + ".error", json["error"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "error");
@@ -296,11 +264,11 @@ class AnalysisErrorFixes implements HasToJson {
             jsonPath + ".fixes",
             json["fixes"],
             (String jsonPath, Object json) =>
-                new SourceChange.fromJson(jsonDecoder, jsonPath, json));
+                SourceChange.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "fixes");
       }
-      return new AnalysisErrorFixes(error, fixes: fixes);
+      return AnalysisErrorFixes(error, fixes: fixes);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "AnalysisErrorFixes", json);
     }
@@ -337,45 +305,35 @@ class AnalysisErrorFixes implements HasToJson {
   }
 }
 
-/**
- * analysis.errors params
- *
- * {
- *   "file": FilePath
- *   "errors": List<AnalysisError>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.errors params
+///
+/// {
+///   "file": FilePath
+///   "errors": List<AnalysisError>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisErrorsParams implements HasToJson {
   String _file;
 
   List<AnalysisError> _errors;
 
-  /**
-   * The file containing the errors.
-   */
+  /// The file containing the errors.
   String get file => _file;
 
-  /**
-   * The file containing the errors.
-   */
-  void set file(String value) {
+  /// The file containing the errors.
+  set file(String value) {
     assert(value != null);
-    this._file = value;
+    _file = value;
   }
 
-  /**
-   * The errors contained in the file.
-   */
+  /// The errors contained in the file.
   List<AnalysisError> get errors => _errors;
 
-  /**
-   * The errors contained in the file.
-   */
-  void set errors(List<AnalysisError> value) {
+  /// The errors contained in the file.
+  set errors(List<AnalysisError> value) {
     assert(value != null);
-    this._errors = value;
+    _errors = value;
   }
 
   AnalysisErrorsParams(String file, List<AnalysisError> errors) {
@@ -385,9 +343,7 @@ class AnalysisErrorsParams implements HasToJson {
 
   factory AnalysisErrorsParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -401,19 +357,19 @@ class AnalysisErrorsParams implements HasToJson {
             jsonPath + ".errors",
             json["errors"],
             (String jsonPath, Object json) =>
-                new AnalysisError.fromJson(jsonDecoder, jsonPath, json));
+                AnalysisError.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "errors");
       }
-      return new AnalysisErrorsParams(file, errors);
+      return AnalysisErrorsParams(file, errors);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "analysis.errors params", json);
     }
   }
 
   factory AnalysisErrorsParams.fromNotification(Notification notification) {
-    return new AnalysisErrorsParams.fromJson(
-        new ResponseDecoder(null), "params", notification.params);
+    return AnalysisErrorsParams.fromJson(
+        ResponseDecoder(null), "params", notification.params);
   }
 
   @override
@@ -426,7 +382,7 @@ class AnalysisErrorsParams implements HasToJson {
   }
 
   Notification toNotification() {
-    return new Notification("analysis.errors", toJson());
+    return Notification("analysis.errors", toJson());
   }
 
   @override
@@ -451,29 +407,23 @@ class AnalysisErrorsParams implements HasToJson {
   }
 }
 
-/**
- * analysis.flushResults params
- *
- * {
- *   "files": List<FilePath>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.flushResults params
+///
+/// {
+///   "files": List<FilePath>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisFlushResultsParams implements HasToJson {
   List<String> _files;
 
-  /**
-   * The files that are no longer being analyzed.
-   */
+  /// The files that are no longer being analyzed.
   List<String> get files => _files;
 
-  /**
-   * The files that are no longer being analyzed.
-   */
-  void set files(List<String> value) {
+  /// The files that are no longer being analyzed.
+  set files(List<String> value) {
     assert(value != null);
-    this._files = value;
+    _files = value;
   }
 
   AnalysisFlushResultsParams(List<String> files) {
@@ -482,9 +432,7 @@ class AnalysisFlushResultsParams implements HasToJson {
 
   factory AnalysisFlushResultsParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       List<String> files;
       if (json.containsKey("files")) {
@@ -493,7 +441,7 @@ class AnalysisFlushResultsParams implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "files");
       }
-      return new AnalysisFlushResultsParams(files);
+      return AnalysisFlushResultsParams(files);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "analysis.flushResults params", json);
@@ -502,8 +450,8 @@ class AnalysisFlushResultsParams implements HasToJson {
 
   factory AnalysisFlushResultsParams.fromNotification(
       Notification notification) {
-    return new AnalysisFlushResultsParams.fromJson(
-        new ResponseDecoder(null), "params", notification.params);
+    return AnalysisFlushResultsParams.fromJson(
+        ResponseDecoder(null), "params", notification.params);
   }
 
   @override
@@ -514,7 +462,7 @@ class AnalysisFlushResultsParams implements HasToJson {
   }
 
   Notification toNotification() {
-    return new Notification("analysis.flushResults", toJson());
+    return Notification("analysis.flushResults", toJson());
   }
 
   @override
@@ -536,45 +484,35 @@ class AnalysisFlushResultsParams implements HasToJson {
   }
 }
 
-/**
- * analysis.folding params
- *
- * {
- *   "file": FilePath
- *   "regions": List<FoldingRegion>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.folding params
+///
+/// {
+///   "file": FilePath
+///   "regions": List<FoldingRegion>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisFoldingParams implements HasToJson {
   String _file;
 
   List<FoldingRegion> _regions;
 
-  /**
-   * The file containing the folding regions.
-   */
+  /// The file containing the folding regions.
   String get file => _file;
 
-  /**
-   * The file containing the folding regions.
-   */
-  void set file(String value) {
+  /// The file containing the folding regions.
+  set file(String value) {
     assert(value != null);
-    this._file = value;
+    _file = value;
   }
 
-  /**
-   * The folding regions contained in the file.
-   */
+  /// The folding regions contained in the file.
   List<FoldingRegion> get regions => _regions;
 
-  /**
-   * The folding regions contained in the file.
-   */
-  void set regions(List<FoldingRegion> value) {
+  /// The folding regions contained in the file.
+  set regions(List<FoldingRegion> value) {
     assert(value != null);
-    this._regions = value;
+    _regions = value;
   }
 
   AnalysisFoldingParams(String file, List<FoldingRegion> regions) {
@@ -584,9 +522,7 @@ class AnalysisFoldingParams implements HasToJson {
 
   factory AnalysisFoldingParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -600,19 +536,19 @@ class AnalysisFoldingParams implements HasToJson {
             jsonPath + ".regions",
             json["regions"],
             (String jsonPath, Object json) =>
-                new FoldingRegion.fromJson(jsonDecoder, jsonPath, json));
+                FoldingRegion.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "regions");
       }
-      return new AnalysisFoldingParams(file, regions);
+      return AnalysisFoldingParams(file, regions);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "analysis.folding params", json);
     }
   }
 
   factory AnalysisFoldingParams.fromNotification(Notification notification) {
-    return new AnalysisFoldingParams.fromJson(
-        new ResponseDecoder(null), "params", notification.params);
+    return AnalysisFoldingParams.fromJson(
+        ResponseDecoder(null), "params", notification.params);
   }
 
   @override
@@ -625,7 +561,7 @@ class AnalysisFoldingParams implements HasToJson {
   }
 
   Notification toNotification() {
-    return new Notification("analysis.folding", toJson());
+    return Notification("analysis.folding", toJson());
   }
 
   @override
@@ -650,29 +586,23 @@ class AnalysisFoldingParams implements HasToJson {
   }
 }
 
-/**
- * analysis.getErrors params
- *
- * {
- *   "file": FilePath
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.getErrors params
+///
+/// {
+///   "file": FilePath
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisGetErrorsParams implements RequestParams {
   String _file;
 
-  /**
-   * The file for which errors are being requested.
-   */
+  /// The file for which errors are being requested.
   String get file => _file;
 
-  /**
-   * The file for which errors are being requested.
-   */
-  void set file(String value) {
+  /// The file for which errors are being requested.
+  set file(String value) {
     assert(value != null);
-    this._file = value;
+    _file = value;
   }
 
   AnalysisGetErrorsParams(String file) {
@@ -681,9 +611,7 @@ class AnalysisGetErrorsParams implements RequestParams {
 
   factory AnalysisGetErrorsParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -691,15 +619,15 @@ class AnalysisGetErrorsParams implements RequestParams {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "file");
       }
-      return new AnalysisGetErrorsParams(file);
+      return AnalysisGetErrorsParams(file);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "analysis.getErrors params", json);
     }
   }
 
   factory AnalysisGetErrorsParams.fromRequest(Request request) {
-    return new AnalysisGetErrorsParams.fromJson(
-        new RequestDecoder(request), "params", request.params);
+    return AnalysisGetErrorsParams.fromJson(
+        RequestDecoder(request), "params", request.params);
   }
 
   @override
@@ -711,7 +639,7 @@ class AnalysisGetErrorsParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "analysis.getErrors", toJson());
+    return Request(id, "analysis.getErrors", toJson());
   }
 
   @override
@@ -733,29 +661,23 @@ class AnalysisGetErrorsParams implements RequestParams {
   }
 }
 
-/**
- * analysis.getErrors result
- *
- * {
- *   "errors": List<AnalysisError>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.getErrors result
+///
+/// {
+///   "errors": List<AnalysisError>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisGetErrorsResult implements ResponseResult {
   List<AnalysisError> _errors;
 
-  /**
-   * The errors associated with the file.
-   */
+  /// The errors associated with the file.
   List<AnalysisError> get errors => _errors;
 
-  /**
-   * The errors associated with the file.
-   */
-  void set errors(List<AnalysisError> value) {
+  /// The errors associated with the file.
+  set errors(List<AnalysisError> value) {
     assert(value != null);
-    this._errors = value;
+    _errors = value;
   }
 
   AnalysisGetErrorsResult(List<AnalysisError> errors) {
@@ -764,9 +686,7 @@ class AnalysisGetErrorsResult implements ResponseResult {
 
   factory AnalysisGetErrorsResult.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       List<AnalysisError> errors;
       if (json.containsKey("errors")) {
@@ -774,19 +694,19 @@ class AnalysisGetErrorsResult implements ResponseResult {
             jsonPath + ".errors",
             json["errors"],
             (String jsonPath, Object json) =>
-                new AnalysisError.fromJson(jsonDecoder, jsonPath, json));
+                AnalysisError.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "errors");
       }
-      return new AnalysisGetErrorsResult(errors);
+      return AnalysisGetErrorsResult(errors);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "analysis.getErrors result", json);
     }
   }
 
   factory AnalysisGetErrorsResult.fromResponse(Response response) {
-    return new AnalysisGetErrorsResult.fromJson(
-        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+    return AnalysisGetErrorsResult.fromJson(
+        ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         "result",
         response.result);
   }
@@ -801,7 +721,7 @@ class AnalysisGetErrorsResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return new Response(id, result: toJson());
+    return Response(id, result: toJson());
   }
 
   @override
@@ -824,45 +744,35 @@ class AnalysisGetErrorsResult implements ResponseResult {
   }
 }
 
-/**
- * analysis.getHover params
- *
- * {
- *   "file": FilePath
- *   "offset": int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.getHover params
+///
+/// {
+///   "file": FilePath
+///   "offset": int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisGetHoverParams implements RequestParams {
   String _file;
 
   int _offset;
 
-  /**
-   * The file in which hover information is being requested.
-   */
+  /// The file in which hover information is being requested.
   String get file => _file;
 
-  /**
-   * The file in which hover information is being requested.
-   */
-  void set file(String value) {
+  /// The file in which hover information is being requested.
+  set file(String value) {
     assert(value != null);
-    this._file = value;
+    _file = value;
   }
 
-  /**
-   * The offset for which hover information is being requested.
-   */
+  /// The offset for which hover information is being requested.
   int get offset => _offset;
 
-  /**
-   * The offset for which hover information is being requested.
-   */
-  void set offset(int value) {
+  /// The offset for which hover information is being requested.
+  set offset(int value) {
     assert(value != null);
-    this._offset = value;
+    _offset = value;
   }
 
   AnalysisGetHoverParams(String file, int offset) {
@@ -872,9 +782,7 @@ class AnalysisGetHoverParams implements RequestParams {
 
   factory AnalysisGetHoverParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -888,15 +796,15 @@ class AnalysisGetHoverParams implements RequestParams {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "offset");
       }
-      return new AnalysisGetHoverParams(file, offset);
+      return AnalysisGetHoverParams(file, offset);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "analysis.getHover params", json);
     }
   }
 
   factory AnalysisGetHoverParams.fromRequest(Request request) {
-    return new AnalysisGetHoverParams.fromJson(
-        new RequestDecoder(request), "params", request.params);
+    return AnalysisGetHoverParams.fromJson(
+        RequestDecoder(request), "params", request.params);
   }
 
   @override
@@ -909,7 +817,7 @@ class AnalysisGetHoverParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "analysis.getHover", toJson());
+    return Request(id, "analysis.getHover", toJson());
   }
 
   @override
@@ -932,37 +840,31 @@ class AnalysisGetHoverParams implements RequestParams {
   }
 }
 
-/**
- * analysis.getHover result
- *
- * {
- *   "hovers": List<HoverInformation>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.getHover result
+///
+/// {
+///   "hovers": List<HoverInformation>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisGetHoverResult implements ResponseResult {
   List<HoverInformation> _hovers;
 
-  /**
-   * The hover information associated with the location. The list will be empty
-   * if no information could be determined for the location. The list can
-   * contain multiple items if the file is being analyzed in multiple contexts
-   * in conflicting ways (such as a part that is included in multiple
-   * libraries).
-   */
+  /// The hover information associated with the location. The list will be
+  /// empty if no information could be determined for the location. The list
+  /// can contain multiple items if the file is being analyzed in multiple
+  /// contexts in conflicting ways (such as a part that is included in multiple
+  /// libraries).
   List<HoverInformation> get hovers => _hovers;
 
-  /**
-   * The hover information associated with the location. The list will be empty
-   * if no information could be determined for the location. The list can
-   * contain multiple items if the file is being analyzed in multiple contexts
-   * in conflicting ways (such as a part that is included in multiple
-   * libraries).
-   */
-  void set hovers(List<HoverInformation> value) {
+  /// The hover information associated with the location. The list will be
+  /// empty if no information could be determined for the location. The list
+  /// can contain multiple items if the file is being analyzed in multiple
+  /// contexts in conflicting ways (such as a part that is included in multiple
+  /// libraries).
+  set hovers(List<HoverInformation> value) {
     assert(value != null);
-    this._hovers = value;
+    _hovers = value;
   }
 
   AnalysisGetHoverResult(List<HoverInformation> hovers) {
@@ -971,9 +873,7 @@ class AnalysisGetHoverResult implements ResponseResult {
 
   factory AnalysisGetHoverResult.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       List<HoverInformation> hovers;
       if (json.containsKey("hovers")) {
@@ -981,19 +881,19 @@ class AnalysisGetHoverResult implements ResponseResult {
             jsonPath + ".hovers",
             json["hovers"],
             (String jsonPath, Object json) =>
-                new HoverInformation.fromJson(jsonDecoder, jsonPath, json));
+                HoverInformation.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "hovers");
       }
-      return new AnalysisGetHoverResult(hovers);
+      return AnalysisGetHoverResult(hovers);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "analysis.getHover result", json);
     }
   }
 
   factory AnalysisGetHoverResult.fromResponse(Response response) {
-    return new AnalysisGetHoverResult.fromJson(
-        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+    return AnalysisGetHoverResult.fromJson(
+        ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         "result",
         response.result);
   }
@@ -1008,7 +908,7 @@ class AnalysisGetHoverResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return new Response(id, result: toJson());
+    return Response(id, result: toJson());
   }
 
   @override
@@ -1031,17 +931,15 @@ class AnalysisGetHoverResult implements ResponseResult {
   }
 }
 
-/**
- * analysis.getImportedElements params
- *
- * {
- *   "file": FilePath
- *   "offset": int
- *   "length": int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.getImportedElements params
+///
+/// {
+///   "file": FilePath
+///   "offset": int
+///   "length": int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisGetImportedElementsParams implements RequestParams {
   String _file;
 
@@ -1049,43 +947,31 @@ class AnalysisGetImportedElementsParams implements RequestParams {
 
   int _length;
 
-  /**
-   * The file in which import information is being requested.
-   */
+  /// The file in which import information is being requested.
   String get file => _file;
 
-  /**
-   * The file in which import information is being requested.
-   */
-  void set file(String value) {
+  /// The file in which import information is being requested.
+  set file(String value) {
     assert(value != null);
-    this._file = value;
+    _file = value;
   }
 
-  /**
-   * The offset of the region for which import information is being requested.
-   */
+  /// The offset of the region for which import information is being requested.
   int get offset => _offset;
 
-  /**
-   * The offset of the region for which import information is being requested.
-   */
-  void set offset(int value) {
+  /// The offset of the region for which import information is being requested.
+  set offset(int value) {
     assert(value != null);
-    this._offset = value;
+    _offset = value;
   }
 
-  /**
-   * The length of the region for which import information is being requested.
-   */
+  /// The length of the region for which import information is being requested.
   int get length => _length;
 
-  /**
-   * The length of the region for which import information is being requested.
-   */
-  void set length(int value) {
+  /// The length of the region for which import information is being requested.
+  set length(int value) {
     assert(value != null);
-    this._length = value;
+    _length = value;
   }
 
   AnalysisGetImportedElementsParams(String file, int offset, int length) {
@@ -1096,9 +982,7 @@ class AnalysisGetImportedElementsParams implements RequestParams {
 
   factory AnalysisGetImportedElementsParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -1118,7 +1002,7 @@ class AnalysisGetImportedElementsParams implements RequestParams {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "length");
       }
-      return new AnalysisGetImportedElementsParams(file, offset, length);
+      return AnalysisGetImportedElementsParams(file, offset, length);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "analysis.getImportedElements params", json);
@@ -1126,8 +1010,8 @@ class AnalysisGetImportedElementsParams implements RequestParams {
   }
 
   factory AnalysisGetImportedElementsParams.fromRequest(Request request) {
-    return new AnalysisGetImportedElementsParams.fromJson(
-        new RequestDecoder(request), "params", request.params);
+    return AnalysisGetImportedElementsParams.fromJson(
+        RequestDecoder(request), "params", request.params);
   }
 
   @override
@@ -1141,7 +1025,7 @@ class AnalysisGetImportedElementsParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "analysis.getImportedElements", toJson());
+    return Request(id, "analysis.getImportedElements", toJson());
   }
 
   @override
@@ -1167,31 +1051,25 @@ class AnalysisGetImportedElementsParams implements RequestParams {
   }
 }
 
-/**
- * analysis.getImportedElements result
- *
- * {
- *   "elements": List<ImportedElements>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.getImportedElements result
+///
+/// {
+///   "elements": List<ImportedElements>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisGetImportedElementsResult implements ResponseResult {
   List<ImportedElements> _elements;
 
-  /**
-   * The information about the elements that are referenced in the specified
-   * region of the specified file that come from imported libraries.
-   */
+  /// The information about the elements that are referenced in the specified
+  /// region of the specified file that come from imported libraries.
   List<ImportedElements> get elements => _elements;
 
-  /**
-   * The information about the elements that are referenced in the specified
-   * region of the specified file that come from imported libraries.
-   */
-  void set elements(List<ImportedElements> value) {
+  /// The information about the elements that are referenced in the specified
+  /// region of the specified file that come from imported libraries.
+  set elements(List<ImportedElements> value) {
     assert(value != null);
-    this._elements = value;
+    _elements = value;
   }
 
   AnalysisGetImportedElementsResult(List<ImportedElements> elements) {
@@ -1200,9 +1078,7 @@ class AnalysisGetImportedElementsResult implements ResponseResult {
 
   factory AnalysisGetImportedElementsResult.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       List<ImportedElements> elements;
       if (json.containsKey("elements")) {
@@ -1210,11 +1086,11 @@ class AnalysisGetImportedElementsResult implements ResponseResult {
             jsonPath + ".elements",
             json["elements"],
             (String jsonPath, Object json) =>
-                new ImportedElements.fromJson(jsonDecoder, jsonPath, json));
+                ImportedElements.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "elements");
       }
-      return new AnalysisGetImportedElementsResult(elements);
+      return AnalysisGetImportedElementsResult(elements);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "analysis.getImportedElements result", json);
@@ -1222,8 +1098,8 @@ class AnalysisGetImportedElementsResult implements ResponseResult {
   }
 
   factory AnalysisGetImportedElementsResult.fromResponse(Response response) {
-    return new AnalysisGetImportedElementsResult.fromJson(
-        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+    return AnalysisGetImportedElementsResult.fromJson(
+        ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         "result",
         response.result);
   }
@@ -1238,7 +1114,7 @@ class AnalysisGetImportedElementsResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return new Response(id, result: toJson());
+    return Response(id, result: toJson());
   }
 
   @override
@@ -1261,18 +1137,16 @@ class AnalysisGetImportedElementsResult implements ResponseResult {
   }
 }
 
-/**
- * analysis.getLibraryDependencies params
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.getLibraryDependencies params
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisGetLibraryDependenciesParams implements RequestParams {
   @override
   Map<String, dynamic> toJson() => <String, dynamic>{};
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "analysis.getLibraryDependencies", null);
+    return Request(id, "analysis.getLibraryDependencies", null);
   }
 
   @override
@@ -1289,49 +1163,41 @@ class AnalysisGetLibraryDependenciesParams implements RequestParams {
   }
 }
 
-/**
- * analysis.getLibraryDependencies result
- *
- * {
- *   "libraries": List<FilePath>
- *   "packageMap": Map<String, Map<String, List<FilePath>>>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.getLibraryDependencies result
+///
+/// {
+///   "libraries": List<FilePath>
+///   "packageMap": Map<String, Map<String, List<FilePath>>>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisGetLibraryDependenciesResult implements ResponseResult {
   List<String> _libraries;
 
   Map<String, Map<String, List<String>>> _packageMap;
 
-  /**
-   * A list of the paths of library elements referenced by files in existing
-   * analysis roots.
-   */
+  /// A list of the paths of library elements referenced by files in existing
+  /// analysis roots.
   List<String> get libraries => _libraries;
 
-  /**
-   * A list of the paths of library elements referenced by files in existing
-   * analysis roots.
-   */
-  void set libraries(List<String> value) {
+  /// A list of the paths of library elements referenced by files in existing
+  /// analysis roots.
+  set libraries(List<String> value) {
     assert(value != null);
-    this._libraries = value;
+    _libraries = value;
   }
 
-  /**
-   * A mapping from context source roots to package maps which map package
-   * names to source directories for use in client-side package URI resolution.
-   */
+  /// A mapping from context source roots to package maps which map package
+  /// names to source directories for use in client-side package URI
+  /// resolution.
   Map<String, Map<String, List<String>>> get packageMap => _packageMap;
 
-  /**
-   * A mapping from context source roots to package maps which map package
-   * names to source directories for use in client-side package URI resolution.
-   */
-  void set packageMap(Map<String, Map<String, List<String>>> value) {
+  /// A mapping from context source roots to package maps which map package
+  /// names to source directories for use in client-side package URI
+  /// resolution.
+  set packageMap(Map<String, Map<String, List<String>>> value) {
     assert(value != null);
-    this._packageMap = value;
+    _packageMap = value;
   }
 
   AnalysisGetLibraryDependenciesResult(List<String> libraries,
@@ -1342,9 +1208,7 @@ class AnalysisGetLibraryDependenciesResult implements ResponseResult {
 
   factory AnalysisGetLibraryDependenciesResult.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       List<String> libraries;
       if (json.containsKey("libraries")) {
@@ -1364,7 +1228,7 @@ class AnalysisGetLibraryDependenciesResult implements ResponseResult {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "packageMap");
       }
-      return new AnalysisGetLibraryDependenciesResult(libraries, packageMap);
+      return AnalysisGetLibraryDependenciesResult(libraries, packageMap);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "analysis.getLibraryDependencies result", json);
@@ -1372,8 +1236,8 @@ class AnalysisGetLibraryDependenciesResult implements ResponseResult {
   }
 
   factory AnalysisGetLibraryDependenciesResult.fromResponse(Response response) {
-    return new AnalysisGetLibraryDependenciesResult.fromJson(
-        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+    return AnalysisGetLibraryDependenciesResult.fromJson(
+        ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         "result",
         response.result);
   }
@@ -1388,7 +1252,7 @@ class AnalysisGetLibraryDependenciesResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return new Response(id, result: toJson());
+    return Response(id, result: toJson());
   }
 
   @override
@@ -1421,17 +1285,15 @@ class AnalysisGetLibraryDependenciesResult implements ResponseResult {
   }
 }
 
-/**
- * analysis.getNavigation params
- *
- * {
- *   "file": FilePath
- *   "offset": int
- *   "length": int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.getNavigation params
+///
+/// {
+///   "file": FilePath
+///   "offset": int
+///   "length": int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisGetNavigationParams implements RequestParams {
   String _file;
 
@@ -1439,47 +1301,35 @@ class AnalysisGetNavigationParams implements RequestParams {
 
   int _length;
 
-  /**
-   * The file in which navigation information is being requested.
-   */
+  /// The file in which navigation information is being requested.
   String get file => _file;
 
-  /**
-   * The file in which navigation information is being requested.
-   */
-  void set file(String value) {
+  /// The file in which navigation information is being requested.
+  set file(String value) {
     assert(value != null);
-    this._file = value;
+    _file = value;
   }
 
-  /**
-   * The offset of the region for which navigation information is being
-   * requested.
-   */
+  /// The offset of the region for which navigation information is being
+  /// requested.
   int get offset => _offset;
 
-  /**
-   * The offset of the region for which navigation information is being
-   * requested.
-   */
-  void set offset(int value) {
+  /// The offset of the region for which navigation information is being
+  /// requested.
+  set offset(int value) {
     assert(value != null);
-    this._offset = value;
+    _offset = value;
   }
 
-  /**
-   * The length of the region for which navigation information is being
-   * requested.
-   */
+  /// The length of the region for which navigation information is being
+  /// requested.
   int get length => _length;
 
-  /**
-   * The length of the region for which navigation information is being
-   * requested.
-   */
-  void set length(int value) {
+  /// The length of the region for which navigation information is being
+  /// requested.
+  set length(int value) {
     assert(value != null);
-    this._length = value;
+    _length = value;
   }
 
   AnalysisGetNavigationParams(String file, int offset, int length) {
@@ -1490,9 +1340,7 @@ class AnalysisGetNavigationParams implements RequestParams {
 
   factory AnalysisGetNavigationParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -1512,7 +1360,7 @@ class AnalysisGetNavigationParams implements RequestParams {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "length");
       }
-      return new AnalysisGetNavigationParams(file, offset, length);
+      return AnalysisGetNavigationParams(file, offset, length);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "analysis.getNavigation params", json);
@@ -1520,8 +1368,8 @@ class AnalysisGetNavigationParams implements RequestParams {
   }
 
   factory AnalysisGetNavigationParams.fromRequest(Request request) {
-    return new AnalysisGetNavigationParams.fromJson(
-        new RequestDecoder(request), "params", request.params);
+    return AnalysisGetNavigationParams.fromJson(
+        RequestDecoder(request), "params", request.params);
   }
 
   @override
@@ -1535,7 +1383,7 @@ class AnalysisGetNavigationParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "analysis.getNavigation", toJson());
+    return Request(id, "analysis.getNavigation", toJson());
   }
 
   @override
@@ -1561,17 +1409,15 @@ class AnalysisGetNavigationParams implements RequestParams {
   }
 }
 
-/**
- * analysis.getNavigation result
- *
- * {
- *   "files": List<FilePath>
- *   "targets": List<NavigationTarget>
- *   "regions": List<NavigationRegion>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.getNavigation result
+///
+/// {
+///   "files": List<FilePath>
+///   "targets": List<NavigationTarget>
+///   "regions": List<NavigationRegion>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisGetNavigationResult implements ResponseResult {
   List<String> _files;
 
@@ -1579,47 +1425,35 @@ class AnalysisGetNavigationResult implements ResponseResult {
 
   List<NavigationRegion> _regions;
 
-  /**
-   * A list of the paths of files that are referenced by the navigation
-   * targets.
-   */
+  /// A list of the paths of files that are referenced by the navigation
+  /// targets.
   List<String> get files => _files;
 
-  /**
-   * A list of the paths of files that are referenced by the navigation
-   * targets.
-   */
-  void set files(List<String> value) {
+  /// A list of the paths of files that are referenced by the navigation
+  /// targets.
+  set files(List<String> value) {
     assert(value != null);
-    this._files = value;
+    _files = value;
   }
 
-  /**
-   * A list of the navigation targets that are referenced by the navigation
-   * regions.
-   */
+  /// A list of the navigation targets that are referenced by the navigation
+  /// regions.
   List<NavigationTarget> get targets => _targets;
 
-  /**
-   * A list of the navigation targets that are referenced by the navigation
-   * regions.
-   */
-  void set targets(List<NavigationTarget> value) {
+  /// A list of the navigation targets that are referenced by the navigation
+  /// regions.
+  set targets(List<NavigationTarget> value) {
     assert(value != null);
-    this._targets = value;
+    _targets = value;
   }
 
-  /**
-   * A list of the navigation regions within the requested region of the file.
-   */
+  /// A list of the navigation regions within the requested region of the file.
   List<NavigationRegion> get regions => _regions;
 
-  /**
-   * A list of the navigation regions within the requested region of the file.
-   */
-  void set regions(List<NavigationRegion> value) {
+  /// A list of the navigation regions within the requested region of the file.
+  set regions(List<NavigationRegion> value) {
     assert(value != null);
-    this._regions = value;
+    _regions = value;
   }
 
   AnalysisGetNavigationResult(List<String> files,
@@ -1631,9 +1465,7 @@ class AnalysisGetNavigationResult implements ResponseResult {
 
   factory AnalysisGetNavigationResult.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       List<String> files;
       if (json.containsKey("files")) {
@@ -1648,7 +1480,7 @@ class AnalysisGetNavigationResult implements ResponseResult {
             jsonPath + ".targets",
             json["targets"],
             (String jsonPath, Object json) =>
-                new NavigationTarget.fromJson(jsonDecoder, jsonPath, json));
+                NavigationTarget.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "targets");
       }
@@ -1658,11 +1490,11 @@ class AnalysisGetNavigationResult implements ResponseResult {
             jsonPath + ".regions",
             json["regions"],
             (String jsonPath, Object json) =>
-                new NavigationRegion.fromJson(jsonDecoder, jsonPath, json));
+                NavigationRegion.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "regions");
       }
-      return new AnalysisGetNavigationResult(files, targets, regions);
+      return AnalysisGetNavigationResult(files, targets, regions);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "analysis.getNavigation result", json);
@@ -1670,8 +1502,8 @@ class AnalysisGetNavigationResult implements ResponseResult {
   }
 
   factory AnalysisGetNavigationResult.fromResponse(Response response) {
-    return new AnalysisGetNavigationResult.fromJson(
-        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+    return AnalysisGetNavigationResult.fromJson(
+        ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         "result",
         response.result);
   }
@@ -1689,7 +1521,7 @@ class AnalysisGetNavigationResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return new Response(id, result: toJson());
+    return Response(id, result: toJson());
   }
 
   @override
@@ -1717,29 +1549,23 @@ class AnalysisGetNavigationResult implements ResponseResult {
   }
 }
 
-/**
- * analysis.getReachableSources params
- *
- * {
- *   "file": FilePath
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.getReachableSources params
+///
+/// {
+///   "file": FilePath
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisGetReachableSourcesParams implements RequestParams {
   String _file;
 
-  /**
-   * The file for which reachable source information is being requested.
-   */
+  /// The file for which reachable source information is being requested.
   String get file => _file;
 
-  /**
-   * The file for which reachable source information is being requested.
-   */
-  void set file(String value) {
+  /// The file for which reachable source information is being requested.
+  set file(String value) {
     assert(value != null);
-    this._file = value;
+    _file = value;
   }
 
   AnalysisGetReachableSourcesParams(String file) {
@@ -1748,9 +1574,7 @@ class AnalysisGetReachableSourcesParams implements RequestParams {
 
   factory AnalysisGetReachableSourcesParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -1758,7 +1582,7 @@ class AnalysisGetReachableSourcesParams implements RequestParams {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "file");
       }
-      return new AnalysisGetReachableSourcesParams(file);
+      return AnalysisGetReachableSourcesParams(file);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "analysis.getReachableSources params", json);
@@ -1766,8 +1590,8 @@ class AnalysisGetReachableSourcesParams implements RequestParams {
   }
 
   factory AnalysisGetReachableSourcesParams.fromRequest(Request request) {
-    return new AnalysisGetReachableSourcesParams.fromJson(
-        new RequestDecoder(request), "params", request.params);
+    return AnalysisGetReachableSourcesParams.fromJson(
+        RequestDecoder(request), "params", request.params);
   }
 
   @override
@@ -1779,7 +1603,7 @@ class AnalysisGetReachableSourcesParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "analysis.getReachableSources", toJson());
+    return Request(id, "analysis.getReachableSources", toJson());
   }
 
   @override
@@ -1801,39 +1625,35 @@ class AnalysisGetReachableSourcesParams implements RequestParams {
   }
 }
 
-/**
- * analysis.getReachableSources result
- *
- * {
- *   "sources": Map<String, List<String>>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.getReachableSources result
+///
+/// {
+///   "sources": Map<String, List<String>>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisGetReachableSourcesResult implements ResponseResult {
   Map<String, List<String>> _sources;
 
-  /**
-   * A mapping from source URIs to directly reachable source URIs. For example,
-   * a file "foo.dart" that imports "bar.dart" would have the corresponding
-   * mapping { "file:///foo.dart" : ["file:///bar.dart"] }. If "bar.dart" has
-   * further imports (or exports) there will be a mapping from the URI
-   * "file:///bar.dart" to them. To check if a specific URI is reachable from a
-   * given file, clients can check for its presence in the resulting key set.
-   */
+  /// A mapping from source URIs to directly reachable source URIs. For
+  /// example, a file "foo.dart" that imports "bar.dart" would have the
+  /// corresponding mapping { "file:///foo.dart" : ["file:///bar.dart"] }. If
+  /// "bar.dart" has further imports (or exports) there will be a mapping from
+  /// the URI "file:///bar.dart" to them. To check if a specific URI is
+  /// reachable from a given file, clients can check for its presence in the
+  /// resulting key set.
   Map<String, List<String>> get sources => _sources;
 
-  /**
-   * A mapping from source URIs to directly reachable source URIs. For example,
-   * a file "foo.dart" that imports "bar.dart" would have the corresponding
-   * mapping { "file:///foo.dart" : ["file:///bar.dart"] }. If "bar.dart" has
-   * further imports (or exports) there will be a mapping from the URI
-   * "file:///bar.dart" to them. To check if a specific URI is reachable from a
-   * given file, clients can check for its presence in the resulting key set.
-   */
-  void set sources(Map<String, List<String>> value) {
+  /// A mapping from source URIs to directly reachable source URIs. For
+  /// example, a file "foo.dart" that imports "bar.dart" would have the
+  /// corresponding mapping { "file:///foo.dart" : ["file:///bar.dart"] }. If
+  /// "bar.dart" has further imports (or exports) there will be a mapping from
+  /// the URI "file:///bar.dart" to them. To check if a specific URI is
+  /// reachable from a given file, clients can check for its presence in the
+  /// resulting key set.
+  set sources(Map<String, List<String>> value) {
     assert(value != null);
-    this._sources = value;
+    _sources = value;
   }
 
   AnalysisGetReachableSourcesResult(Map<String, List<String>> sources) {
@@ -1842,9 +1662,7 @@ class AnalysisGetReachableSourcesResult implements ResponseResult {
 
   factory AnalysisGetReachableSourcesResult.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       Map<String, List<String>> sources;
       if (json.containsKey("sources")) {
@@ -1854,7 +1672,7 @@ class AnalysisGetReachableSourcesResult implements ResponseResult {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "sources");
       }
-      return new AnalysisGetReachableSourcesResult(sources);
+      return AnalysisGetReachableSourcesResult(sources);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "analysis.getReachableSources result", json);
@@ -1862,8 +1680,8 @@ class AnalysisGetReachableSourcesResult implements ResponseResult {
   }
 
   factory AnalysisGetReachableSourcesResult.fromResponse(Response response) {
-    return new AnalysisGetReachableSourcesResult.fromJson(
-        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+    return AnalysisGetReachableSourcesResult.fromJson(
+        ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         "result",
         response.result);
   }
@@ -1877,7 +1695,7 @@ class AnalysisGetReachableSourcesResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return new Response(id, result: toJson());
+    return Response(id, result: toJson());
   }
 
   @override
@@ -1903,45 +1721,35 @@ class AnalysisGetReachableSourcesResult implements ResponseResult {
   }
 }
 
-/**
- * analysis.getSignature params
- *
- * {
- *   "file": FilePath
- *   "offset": int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.getSignature params
+///
+/// {
+///   "file": FilePath
+///   "offset": int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisGetSignatureParams implements RequestParams {
   String _file;
 
   int _offset;
 
-  /**
-   * The file in which signature information is being requested.
-   */
+  /// The file in which signature information is being requested.
   String get file => _file;
 
-  /**
-   * The file in which signature information is being requested.
-   */
-  void set file(String value) {
+  /// The file in which signature information is being requested.
+  set file(String value) {
     assert(value != null);
-    this._file = value;
+    _file = value;
   }
 
-  /**
-   * The location for which signature information is being requested.
-   */
+  /// The location for which signature information is being requested.
   int get offset => _offset;
 
-  /**
-   * The location for which signature information is being requested.
-   */
-  void set offset(int value) {
+  /// The location for which signature information is being requested.
+  set offset(int value) {
     assert(value != null);
-    this._offset = value;
+    _offset = value;
   }
 
   AnalysisGetSignatureParams(String file, int offset) {
@@ -1951,9 +1759,7 @@ class AnalysisGetSignatureParams implements RequestParams {
 
   factory AnalysisGetSignatureParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -1967,7 +1773,7 @@ class AnalysisGetSignatureParams implements RequestParams {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "offset");
       }
-      return new AnalysisGetSignatureParams(file, offset);
+      return AnalysisGetSignatureParams(file, offset);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "analysis.getSignature params", json);
@@ -1975,8 +1781,8 @@ class AnalysisGetSignatureParams implements RequestParams {
   }
 
   factory AnalysisGetSignatureParams.fromRequest(Request request) {
-    return new AnalysisGetSignatureParams.fromJson(
-        new RequestDecoder(request), "params", request.params);
+    return AnalysisGetSignatureParams.fromJson(
+        RequestDecoder(request), "params", request.params);
   }
 
   @override
@@ -1989,7 +1795,7 @@ class AnalysisGetSignatureParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "analysis.getSignature", toJson());
+    return Request(id, "analysis.getSignature", toJson());
   }
 
   @override
@@ -2012,17 +1818,15 @@ class AnalysisGetSignatureParams implements RequestParams {
   }
 }
 
-/**
- * analysis.getSignature result
- *
- * {
- *   "name": String
- *   "parameters": List<ParameterInfo>
- *   "dartdoc": optional String
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.getSignature result
+///
+/// {
+///   "name": String
+///   "parameters": List<ParameterInfo>
+///   "dartdoc": optional String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisGetSignatureResult implements ResponseResult {
   String _name;
 
@@ -2030,52 +1834,40 @@ class AnalysisGetSignatureResult implements ResponseResult {
 
   String _dartdoc;
 
-  /**
-   * The name of the function being invoked at the given offset.
-   */
+  /// The name of the function being invoked at the given offset.
   String get name => _name;
 
-  /**
-   * The name of the function being invoked at the given offset.
-   */
-  void set name(String value) {
+  /// The name of the function being invoked at the given offset.
+  set name(String value) {
     assert(value != null);
-    this._name = value;
+    _name = value;
   }
 
-  /**
-   * A list of information about each of the parameters of the function being
-   * invoked.
-   */
+  /// A list of information about each of the parameters of the function being
+  /// invoked.
   List<ParameterInfo> get parameters => _parameters;
 
-  /**
-   * A list of information about each of the parameters of the function being
-   * invoked.
-   */
-  void set parameters(List<ParameterInfo> value) {
+  /// A list of information about each of the parameters of the function being
+  /// invoked.
+  set parameters(List<ParameterInfo> value) {
     assert(value != null);
-    this._parameters = value;
+    _parameters = value;
   }
 
-  /**
-   * The dartdoc associated with the function being invoked. Other than the
-   * removal of the comment delimiters, including leading asterisks in the case
-   * of a block comment, the dartdoc is unprocessed markdown. This data is
-   * omitted if there is no referenced element, or if the element has no
-   * dartdoc.
-   */
+  /// The dartdoc associated with the function being invoked. Other than the
+  /// removal of the comment delimiters, including leading asterisks in the
+  /// case of a block comment, the dartdoc is unprocessed markdown. This data
+  /// is omitted if there is no referenced element, or if the element has no
+  /// dartdoc.
   String get dartdoc => _dartdoc;
 
-  /**
-   * The dartdoc associated with the function being invoked. Other than the
-   * removal of the comment delimiters, including leading asterisks in the case
-   * of a block comment, the dartdoc is unprocessed markdown. This data is
-   * omitted if there is no referenced element, or if the element has no
-   * dartdoc.
-   */
-  void set dartdoc(String value) {
-    this._dartdoc = value;
+  /// The dartdoc associated with the function being invoked. Other than the
+  /// removal of the comment delimiters, including leading asterisks in the
+  /// case of a block comment, the dartdoc is unprocessed markdown. This data
+  /// is omitted if there is no referenced element, or if the element has no
+  /// dartdoc.
+  set dartdoc(String value) {
+    _dartdoc = value;
   }
 
   AnalysisGetSignatureResult(String name, List<ParameterInfo> parameters,
@@ -2087,9 +1879,7 @@ class AnalysisGetSignatureResult implements ResponseResult {
 
   factory AnalysisGetSignatureResult.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String name;
       if (json.containsKey("name")) {
@@ -2103,7 +1893,7 @@ class AnalysisGetSignatureResult implements ResponseResult {
             jsonPath + ".parameters",
             json["parameters"],
             (String jsonPath, Object json) =>
-                new ParameterInfo.fromJson(jsonDecoder, jsonPath, json));
+                ParameterInfo.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "parameters");
       }
@@ -2112,7 +1902,7 @@ class AnalysisGetSignatureResult implements ResponseResult {
         dartdoc =
             jsonDecoder.decodeString(jsonPath + ".dartdoc", json["dartdoc"]);
       }
-      return new AnalysisGetSignatureResult(name, parameters, dartdoc: dartdoc);
+      return AnalysisGetSignatureResult(name, parameters, dartdoc: dartdoc);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "analysis.getSignature result", json);
@@ -2120,8 +1910,8 @@ class AnalysisGetSignatureResult implements ResponseResult {
   }
 
   factory AnalysisGetSignatureResult.fromResponse(Response response) {
-    return new AnalysisGetSignatureResult.fromJson(
-        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+    return AnalysisGetSignatureResult.fromJson(
+        ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         "result",
         response.result);
   }
@@ -2140,7 +1930,7 @@ class AnalysisGetSignatureResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return new Response(id, result: toJson());
+    return Response(id, result: toJson());
   }
 
   @override
@@ -2167,53 +1957,43 @@ class AnalysisGetSignatureResult implements ResponseResult {
   }
 }
 
-/**
- * analysis.highlights params
- *
- * {
- *   "file": FilePath
- *   "regions": List<HighlightRegion>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.highlights params
+///
+/// {
+///   "file": FilePath
+///   "regions": List<HighlightRegion>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisHighlightsParams implements HasToJson {
   String _file;
 
   List<HighlightRegion> _regions;
 
-  /**
-   * The file containing the highlight regions.
-   */
+  /// The file containing the highlight regions.
   String get file => _file;
 
-  /**
-   * The file containing the highlight regions.
-   */
-  void set file(String value) {
+  /// The file containing the highlight regions.
+  set file(String value) {
     assert(value != null);
-    this._file = value;
+    _file = value;
   }
 
-  /**
-   * The highlight regions contained in the file. Each highlight region
-   * represents a particular syntactic or semantic meaning associated with some
-   * range. Note that the highlight regions that are returned can overlap other
-   * highlight regions if there is more than one meaning associated with a
-   * particular region.
-   */
+  /// The highlight regions contained in the file. Each highlight region
+  /// represents a particular syntactic or semantic meaning associated with
+  /// some range. Note that the highlight regions that are returned can overlap
+  /// other highlight regions if there is more than one meaning associated with
+  /// a particular region.
   List<HighlightRegion> get regions => _regions;
 
-  /**
-   * The highlight regions contained in the file. Each highlight region
-   * represents a particular syntactic or semantic meaning associated with some
-   * range. Note that the highlight regions that are returned can overlap other
-   * highlight regions if there is more than one meaning associated with a
-   * particular region.
-   */
-  void set regions(List<HighlightRegion> value) {
+  /// The highlight regions contained in the file. Each highlight region
+  /// represents a particular syntactic or semantic meaning associated with
+  /// some range. Note that the highlight regions that are returned can overlap
+  /// other highlight regions if there is more than one meaning associated with
+  /// a particular region.
+  set regions(List<HighlightRegion> value) {
     assert(value != null);
-    this._regions = value;
+    _regions = value;
   }
 
   AnalysisHighlightsParams(String file, List<HighlightRegion> regions) {
@@ -2223,9 +2003,7 @@ class AnalysisHighlightsParams implements HasToJson {
 
   factory AnalysisHighlightsParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -2239,19 +2017,19 @@ class AnalysisHighlightsParams implements HasToJson {
             jsonPath + ".regions",
             json["regions"],
             (String jsonPath, Object json) =>
-                new HighlightRegion.fromJson(jsonDecoder, jsonPath, json));
+                HighlightRegion.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "regions");
       }
-      return new AnalysisHighlightsParams(file, regions);
+      return AnalysisHighlightsParams(file, regions);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "analysis.highlights params", json);
     }
   }
 
   factory AnalysisHighlightsParams.fromNotification(Notification notification) {
-    return new AnalysisHighlightsParams.fromJson(
-        new ResponseDecoder(null), "params", notification.params);
+    return AnalysisHighlightsParams.fromJson(
+        ResponseDecoder(null), "params", notification.params);
   }
 
   @override
@@ -2264,7 +2042,7 @@ class AnalysisHighlightsParams implements HasToJson {
   }
 
   Notification toNotification() {
-    return new Notification("analysis.highlights", toJson());
+    return Notification("analysis.highlights", toJson());
   }
 
   @override
@@ -2289,17 +2067,15 @@ class AnalysisHighlightsParams implements HasToJson {
   }
 }
 
-/**
- * analysis.implemented params
- *
- * {
- *   "file": FilePath
- *   "classes": List<ImplementedClass>
- *   "members": List<ImplementedMember>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.implemented params
+///
+/// {
+///   "file": FilePath
+///   "classes": List<ImplementedClass>
+///   "members": List<ImplementedMember>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisImplementedParams implements HasToJson {
   String _file;
 
@@ -2307,43 +2083,31 @@ class AnalysisImplementedParams implements HasToJson {
 
   List<ImplementedMember> _members;
 
-  /**
-   * The file with which the implementations are associated.
-   */
+  /// The file with which the implementations are associated.
   String get file => _file;
 
-  /**
-   * The file with which the implementations are associated.
-   */
-  void set file(String value) {
+  /// The file with which the implementations are associated.
+  set file(String value) {
     assert(value != null);
-    this._file = value;
+    _file = value;
   }
 
-  /**
-   * The classes defined in the file that are implemented or extended.
-   */
+  /// The classes defined in the file that are implemented or extended.
   List<ImplementedClass> get classes => _classes;
 
-  /**
-   * The classes defined in the file that are implemented or extended.
-   */
-  void set classes(List<ImplementedClass> value) {
+  /// The classes defined in the file that are implemented or extended.
+  set classes(List<ImplementedClass> value) {
     assert(value != null);
-    this._classes = value;
+    _classes = value;
   }
 
-  /**
-   * The member defined in the file that are implemented or overridden.
-   */
+  /// The member defined in the file that are implemented or overridden.
   List<ImplementedMember> get members => _members;
 
-  /**
-   * The member defined in the file that are implemented or overridden.
-   */
-  void set members(List<ImplementedMember> value) {
+  /// The member defined in the file that are implemented or overridden.
+  set members(List<ImplementedMember> value) {
     assert(value != null);
-    this._members = value;
+    _members = value;
   }
 
   AnalysisImplementedParams(String file, List<ImplementedClass> classes,
@@ -2355,9 +2119,7 @@ class AnalysisImplementedParams implements HasToJson {
 
   factory AnalysisImplementedParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -2371,7 +2133,7 @@ class AnalysisImplementedParams implements HasToJson {
             jsonPath + ".classes",
             json["classes"],
             (String jsonPath, Object json) =>
-                new ImplementedClass.fromJson(jsonDecoder, jsonPath, json));
+                ImplementedClass.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "classes");
       }
@@ -2381,11 +2143,11 @@ class AnalysisImplementedParams implements HasToJson {
             jsonPath + ".members",
             json["members"],
             (String jsonPath, Object json) =>
-                new ImplementedMember.fromJson(jsonDecoder, jsonPath, json));
+                ImplementedMember.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "members");
       }
-      return new AnalysisImplementedParams(file, classes, members);
+      return AnalysisImplementedParams(file, classes, members);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "analysis.implemented params", json);
     }
@@ -2393,8 +2155,8 @@ class AnalysisImplementedParams implements HasToJson {
 
   factory AnalysisImplementedParams.fromNotification(
       Notification notification) {
-    return new AnalysisImplementedParams.fromJson(
-        new ResponseDecoder(null), "params", notification.params);
+    return AnalysisImplementedParams.fromJson(
+        ResponseDecoder(null), "params", notification.params);
   }
 
   @override
@@ -2409,7 +2171,7 @@ class AnalysisImplementedParams implements HasToJson {
   }
 
   Notification toNotification() {
-    return new Notification("analysis.implemented", toJson());
+    return Notification("analysis.implemented", toJson());
   }
 
   @override
@@ -2437,18 +2199,16 @@ class AnalysisImplementedParams implements HasToJson {
   }
 }
 
-/**
- * analysis.invalidate params
- *
- * {
- *   "file": FilePath
- *   "offset": int
- *   "length": int
- *   "delta": int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.invalidate params
+///
+/// {
+///   "file": FilePath
+///   "offset": int
+///   "length": int
+///   "delta": int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisInvalidateParams implements HasToJson {
   String _file;
 
@@ -2458,60 +2218,44 @@ class AnalysisInvalidateParams implements HasToJson {
 
   int _delta;
 
-  /**
-   * The file whose information has been invalidated.
-   */
+  /// The file whose information has been invalidated.
   String get file => _file;
 
-  /**
-   * The file whose information has been invalidated.
-   */
-  void set file(String value) {
+  /// The file whose information has been invalidated.
+  set file(String value) {
     assert(value != null);
-    this._file = value;
+    _file = value;
   }
 
-  /**
-   * The offset of the invalidated region.
-   */
+  /// The offset of the invalidated region.
   int get offset => _offset;
 
-  /**
-   * The offset of the invalidated region.
-   */
-  void set offset(int value) {
+  /// The offset of the invalidated region.
+  set offset(int value) {
     assert(value != null);
-    this._offset = value;
+    _offset = value;
   }
 
-  /**
-   * The length of the invalidated region.
-   */
+  /// The length of the invalidated region.
   int get length => _length;
 
-  /**
-   * The length of the invalidated region.
-   */
-  void set length(int value) {
+  /// The length of the invalidated region.
+  set length(int value) {
     assert(value != null);
-    this._length = value;
+    _length = value;
   }
 
-  /**
-   * The delta to be applied to the offsets in information that follows the
-   * invalidated region in order to update it so that it doesn't need to be
-   * re-requested.
-   */
+  /// The delta to be applied to the offsets in information that follows the
+  /// invalidated region in order to update it so that it doesn't need to be
+  /// re-requested.
   int get delta => _delta;
 
-  /**
-   * The delta to be applied to the offsets in information that follows the
-   * invalidated region in order to update it so that it doesn't need to be
-   * re-requested.
-   */
-  void set delta(int value) {
+  /// The delta to be applied to the offsets in information that follows the
+  /// invalidated region in order to update it so that it doesn't need to be
+  /// re-requested.
+  set delta(int value) {
     assert(value != null);
-    this._delta = value;
+    _delta = value;
   }
 
   AnalysisInvalidateParams(String file, int offset, int length, int delta) {
@@ -2523,9 +2267,7 @@ class AnalysisInvalidateParams implements HasToJson {
 
   factory AnalysisInvalidateParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -2551,15 +2293,15 @@ class AnalysisInvalidateParams implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "delta");
       }
-      return new AnalysisInvalidateParams(file, offset, length, delta);
+      return AnalysisInvalidateParams(file, offset, length, delta);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "analysis.invalidate params", json);
     }
   }
 
   factory AnalysisInvalidateParams.fromNotification(Notification notification) {
-    return new AnalysisInvalidateParams.fromJson(
-        new ResponseDecoder(null), "params", notification.params);
+    return AnalysisInvalidateParams.fromJson(
+        ResponseDecoder(null), "params", notification.params);
   }
 
   @override
@@ -2573,7 +2315,7 @@ class AnalysisInvalidateParams implements HasToJson {
   }
 
   Notification toNotification() {
-    return new Notification("analysis.invalidate", toJson());
+    return Notification("analysis.invalidate", toJson());
   }
 
   @override
@@ -2601,18 +2343,16 @@ class AnalysisInvalidateParams implements HasToJson {
   }
 }
 
-/**
- * analysis.navigation params
- *
- * {
- *   "file": FilePath
- *   "regions": List<NavigationRegion>
- *   "targets": List<NavigationTarget>
- *   "files": List<FilePath>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.navigation params
+///
+/// {
+///   "file": FilePath
+///   "regions": List<NavigationRegion>
+///   "targets": List<NavigationTarget>
+///   "files": List<FilePath>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisNavigationParams implements HasToJson {
   String _file;
 
@@ -2622,72 +2362,56 @@ class AnalysisNavigationParams implements HasToJson {
 
   List<String> _files;
 
-  /**
-   * The file containing the navigation regions.
-   */
+  /// The file containing the navigation regions.
   String get file => _file;
 
-  /**
-   * The file containing the navigation regions.
-   */
-  void set file(String value) {
+  /// The file containing the navigation regions.
+  set file(String value) {
     assert(value != null);
-    this._file = value;
+    _file = value;
   }
 
-  /**
-   * The navigation regions contained in the file. The regions are sorted by
-   * their offsets. Each navigation region represents a list of targets
-   * associated with some range. The lists will usually contain a single
-   * target, but can contain more in the case of a part that is included in
-   * multiple libraries or in Dart code that is compiled against multiple
-   * versions of a package. Note that the navigation regions that are returned
-   * do not overlap other navigation regions.
-   */
+  /// The navigation regions contained in the file. The regions are sorted by
+  /// their offsets. Each navigation region represents a list of targets
+  /// associated with some range. The lists will usually contain a single
+  /// target, but can contain more in the case of a part that is included in
+  /// multiple libraries or in Dart code that is compiled against multiple
+  /// versions of a package. Note that the navigation regions that are returned
+  /// do not overlap other navigation regions.
   List<NavigationRegion> get regions => _regions;
 
-  /**
-   * The navigation regions contained in the file. The regions are sorted by
-   * their offsets. Each navigation region represents a list of targets
-   * associated with some range. The lists will usually contain a single
-   * target, but can contain more in the case of a part that is included in
-   * multiple libraries or in Dart code that is compiled against multiple
-   * versions of a package. Note that the navigation regions that are returned
-   * do not overlap other navigation regions.
-   */
-  void set regions(List<NavigationRegion> value) {
+  /// The navigation regions contained in the file. The regions are sorted by
+  /// their offsets. Each navigation region represents a list of targets
+  /// associated with some range. The lists will usually contain a single
+  /// target, but can contain more in the case of a part that is included in
+  /// multiple libraries or in Dart code that is compiled against multiple
+  /// versions of a package. Note that the navigation regions that are returned
+  /// do not overlap other navigation regions.
+  set regions(List<NavigationRegion> value) {
     assert(value != null);
-    this._regions = value;
+    _regions = value;
   }
 
-  /**
-   * The navigation targets referenced in the file. They are referenced by
-   * NavigationRegions by their index in this array.
-   */
+  /// The navigation targets referenced in the file. They are referenced by
+  /// NavigationRegions by their index in this array.
   List<NavigationTarget> get targets => _targets;
 
-  /**
-   * The navigation targets referenced in the file. They are referenced by
-   * NavigationRegions by their index in this array.
-   */
-  void set targets(List<NavigationTarget> value) {
+  /// The navigation targets referenced in the file. They are referenced by
+  /// NavigationRegions by their index in this array.
+  set targets(List<NavigationTarget> value) {
     assert(value != null);
-    this._targets = value;
+    _targets = value;
   }
 
-  /**
-   * The files containing navigation targets referenced in the file. They are
-   * referenced by NavigationTargets by their index in this array.
-   */
+  /// The files containing navigation targets referenced in the file. They are
+  /// referenced by NavigationTargets by their index in this array.
   List<String> get files => _files;
 
-  /**
-   * The files containing navigation targets referenced in the file. They are
-   * referenced by NavigationTargets by their index in this array.
-   */
-  void set files(List<String> value) {
+  /// The files containing navigation targets referenced in the file. They are
+  /// referenced by NavigationTargets by their index in this array.
+  set files(List<String> value) {
     assert(value != null);
-    this._files = value;
+    _files = value;
   }
 
   AnalysisNavigationParams(String file, List<NavigationRegion> regions,
@@ -2700,9 +2424,7 @@ class AnalysisNavigationParams implements HasToJson {
 
   factory AnalysisNavigationParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -2716,7 +2438,7 @@ class AnalysisNavigationParams implements HasToJson {
             jsonPath + ".regions",
             json["regions"],
             (String jsonPath, Object json) =>
-                new NavigationRegion.fromJson(jsonDecoder, jsonPath, json));
+                NavigationRegion.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "regions");
       }
@@ -2726,7 +2448,7 @@ class AnalysisNavigationParams implements HasToJson {
             jsonPath + ".targets",
             json["targets"],
             (String jsonPath, Object json) =>
-                new NavigationTarget.fromJson(jsonDecoder, jsonPath, json));
+                NavigationTarget.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "targets");
       }
@@ -2737,15 +2459,15 @@ class AnalysisNavigationParams implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "files");
       }
-      return new AnalysisNavigationParams(file, regions, targets, files);
+      return AnalysisNavigationParams(file, regions, targets, files);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "analysis.navigation params", json);
     }
   }
 
   factory AnalysisNavigationParams.fromNotification(Notification notification) {
-    return new AnalysisNavigationParams.fromJson(
-        new ResponseDecoder(null), "params", notification.params);
+    return AnalysisNavigationParams.fromJson(
+        ResponseDecoder(null), "params", notification.params);
   }
 
   @override
@@ -2761,7 +2483,7 @@ class AnalysisNavigationParams implements HasToJson {
   }
 
   Notification toNotification() {
-    return new Notification("analysis.navigation", toJson());
+    return Notification("analysis.navigation", toJson());
   }
 
   @override
@@ -2791,45 +2513,35 @@ class AnalysisNavigationParams implements HasToJson {
   }
 }
 
-/**
- * analysis.occurrences params
- *
- * {
- *   "file": FilePath
- *   "occurrences": List<Occurrences>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.occurrences params
+///
+/// {
+///   "file": FilePath
+///   "occurrences": List<Occurrences>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisOccurrencesParams implements HasToJson {
   String _file;
 
   List<Occurrences> _occurrences;
 
-  /**
-   * The file in which the references occur.
-   */
+  /// The file in which the references occur.
   String get file => _file;
 
-  /**
-   * The file in which the references occur.
-   */
-  void set file(String value) {
+  /// The file in which the references occur.
+  set file(String value) {
     assert(value != null);
-    this._file = value;
+    _file = value;
   }
 
-  /**
-   * The occurrences of references to elements within the file.
-   */
+  /// The occurrences of references to elements within the file.
   List<Occurrences> get occurrences => _occurrences;
 
-  /**
-   * The occurrences of references to elements within the file.
-   */
-  void set occurrences(List<Occurrences> value) {
+  /// The occurrences of references to elements within the file.
+  set occurrences(List<Occurrences> value) {
     assert(value != null);
-    this._occurrences = value;
+    _occurrences = value;
   }
 
   AnalysisOccurrencesParams(String file, List<Occurrences> occurrences) {
@@ -2839,9 +2551,7 @@ class AnalysisOccurrencesParams implements HasToJson {
 
   factory AnalysisOccurrencesParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -2855,11 +2565,11 @@ class AnalysisOccurrencesParams implements HasToJson {
             jsonPath + ".occurrences",
             json["occurrences"],
             (String jsonPath, Object json) =>
-                new Occurrences.fromJson(jsonDecoder, jsonPath, json));
+                Occurrences.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "occurrences");
       }
-      return new AnalysisOccurrencesParams(file, occurrences);
+      return AnalysisOccurrencesParams(file, occurrences);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "analysis.occurrences params", json);
     }
@@ -2867,8 +2577,8 @@ class AnalysisOccurrencesParams implements HasToJson {
 
   factory AnalysisOccurrencesParams.fromNotification(
       Notification notification) {
-    return new AnalysisOccurrencesParams.fromJson(
-        new ResponseDecoder(null), "params", notification.params);
+    return AnalysisOccurrencesParams.fromJson(
+        ResponseDecoder(null), "params", notification.params);
   }
 
   @override
@@ -2881,7 +2591,7 @@ class AnalysisOccurrencesParams implements HasToJson {
   }
 
   Notification toNotification() {
-    return new Notification("analysis.occurrences", toJson());
+    return Notification("analysis.occurrences", toJson());
   }
 
   @override
@@ -2906,22 +2616,20 @@ class AnalysisOccurrencesParams implements HasToJson {
   }
 }
 
-/**
- * AnalysisOptions
- *
- * {
- *   "enableAsync": optional bool
- *   "enableDeferredLoading": optional bool
- *   "enableEnums": optional bool
- *   "enableNullAwareOperators": optional bool
- *   "enableSuperMixins": optional bool
- *   "generateDart2jsHints": optional bool
- *   "generateHints": optional bool
- *   "generateLints": optional bool
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// AnalysisOptions
+///
+/// {
+///   "enableAsync": optional bool
+///   "enableDeferredLoading": optional bool
+///   "enableEnums": optional bool
+///   "enableNullAwareOperators": optional bool
+///   "enableSuperMixins": optional bool
+///   "generateDart2jsHints": optional bool
+///   "generateHints": optional bool
+///   "generateLints": optional bool
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisOptions implements HasToJson {
   bool _enableAsync;
 
@@ -2939,128 +2647,98 @@ class AnalysisOptions implements HasToJson {
 
   bool _generateLints;
 
-  /**
-   * Deprecated: this feature is always enabled.
-   *
-   * True if the client wants to enable support for the proposed async feature.
-   */
+  /// Deprecated: this feature is always enabled.
+  ///
+  /// True if the client wants to enable support for the proposed async
+  /// feature.
   bool get enableAsync => _enableAsync;
 
-  /**
-   * Deprecated: this feature is always enabled.
-   *
-   * True if the client wants to enable support for the proposed async feature.
-   */
-  void set enableAsync(bool value) {
-    this._enableAsync = value;
+  /// Deprecated: this feature is always enabled.
+  ///
+  /// True if the client wants to enable support for the proposed async
+  /// feature.
+  set enableAsync(bool value) {
+    _enableAsync = value;
   }
 
-  /**
-   * Deprecated: this feature is always enabled.
-   *
-   * True if the client wants to enable support for the proposed deferred
-   * loading feature.
-   */
+  /// Deprecated: this feature is always enabled.
+  ///
+  /// True if the client wants to enable support for the proposed deferred
+  /// loading feature.
   bool get enableDeferredLoading => _enableDeferredLoading;
 
-  /**
-   * Deprecated: this feature is always enabled.
-   *
-   * True if the client wants to enable support for the proposed deferred
-   * loading feature.
-   */
-  void set enableDeferredLoading(bool value) {
-    this._enableDeferredLoading = value;
+  /// Deprecated: this feature is always enabled.
+  ///
+  /// True if the client wants to enable support for the proposed deferred
+  /// loading feature.
+  set enableDeferredLoading(bool value) {
+    _enableDeferredLoading = value;
   }
 
-  /**
-   * Deprecated: this feature is always enabled.
-   *
-   * True if the client wants to enable support for the proposed enum feature.
-   */
+  /// Deprecated: this feature is always enabled.
+  ///
+  /// True if the client wants to enable support for the proposed enum feature.
   bool get enableEnums => _enableEnums;
 
-  /**
-   * Deprecated: this feature is always enabled.
-   *
-   * True if the client wants to enable support for the proposed enum feature.
-   */
-  void set enableEnums(bool value) {
-    this._enableEnums = value;
+  /// Deprecated: this feature is always enabled.
+  ///
+  /// True if the client wants to enable support for the proposed enum feature.
+  set enableEnums(bool value) {
+    _enableEnums = value;
   }
 
-  /**
-   * Deprecated: this feature is always enabled.
-   *
-   * True if the client wants to enable support for the proposed "null aware
-   * operators" feature.
-   */
+  /// Deprecated: this feature is always enabled.
+  ///
+  /// True if the client wants to enable support for the proposed "null aware
+  /// operators" feature.
   bool get enableNullAwareOperators => _enableNullAwareOperators;
 
-  /**
-   * Deprecated: this feature is always enabled.
-   *
-   * True if the client wants to enable support for the proposed "null aware
-   * operators" feature.
-   */
-  void set enableNullAwareOperators(bool value) {
-    this._enableNullAwareOperators = value;
+  /// Deprecated: this feature is always enabled.
+  ///
+  /// True if the client wants to enable support for the proposed "null aware
+  /// operators" feature.
+  set enableNullAwareOperators(bool value) {
+    _enableNullAwareOperators = value;
   }
 
-  /**
-   * True if the client wants to enable support for the proposed "less
-   * restricted mixins" proposal (DEP 34).
-   */
+  /// True if the client wants to enable support for the proposed "less
+  /// restricted mixins" proposal (DEP 34).
   bool get enableSuperMixins => _enableSuperMixins;
 
-  /**
-   * True if the client wants to enable support for the proposed "less
-   * restricted mixins" proposal (DEP 34).
-   */
-  void set enableSuperMixins(bool value) {
-    this._enableSuperMixins = value;
+  /// True if the client wants to enable support for the proposed "less
+  /// restricted mixins" proposal (DEP 34).
+  set enableSuperMixins(bool value) {
+    _enableSuperMixins = value;
   }
 
-  /**
-   * True if hints that are specific to dart2js should be generated. This
-   * option is ignored if generateHints is false.
-   */
+  /// True if hints that are specific to dart2js should be generated. This
+  /// option is ignored if generateHints is false.
   bool get generateDart2jsHints => _generateDart2jsHints;
 
-  /**
-   * True if hints that are specific to dart2js should be generated. This
-   * option is ignored if generateHints is false.
-   */
-  void set generateDart2jsHints(bool value) {
-    this._generateDart2jsHints = value;
+  /// True if hints that are specific to dart2js should be generated. This
+  /// option is ignored if generateHints is false.
+  set generateDart2jsHints(bool value) {
+    _generateDart2jsHints = value;
   }
 
-  /**
-   * True if hints should be generated as part of generating errors and
-   * warnings.
-   */
+  /// True if hints should be generated as part of generating errors and
+  /// warnings.
   bool get generateHints => _generateHints;
 
-  /**
-   * True if hints should be generated as part of generating errors and
-   * warnings.
-   */
-  void set generateHints(bool value) {
-    this._generateHints = value;
+  /// True if hints should be generated as part of generating errors and
+  /// warnings.
+  set generateHints(bool value) {
+    _generateHints = value;
   }
 
-  /**
-   * True if lints should be generated as part of generating errors and
-   * warnings.
-   */
+  /// True if lints should be generated as part of generating errors and
+  /// warnings.
   bool get generateLints => _generateLints;
 
-  /**
-   * True if lints should be generated as part of generating errors and
-   * warnings.
-   */
-  void set generateLints(bool value) {
-    this._generateLints = value;
+  /// True if lints should be generated as part of generating errors and
+  /// warnings.
+  set generateLints(bool value) {
+    _generateLints = value;
   }
 
   AnalysisOptions(
@@ -3084,9 +2762,7 @@ class AnalysisOptions implements HasToJson {
 
   factory AnalysisOptions.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       bool enableAsync;
       if (json.containsKey("enableAsync")) {
@@ -3129,7 +2805,7 @@ class AnalysisOptions implements HasToJson {
         generateLints = jsonDecoder.decodeBool(
             jsonPath + ".generateLints", json["generateLints"]);
       }
-      return new AnalysisOptions(
+      return AnalysisOptions(
           enableAsync: enableAsync,
           enableDeferredLoading: enableDeferredLoading,
           enableEnums: enableEnums,
@@ -3206,18 +2882,16 @@ class AnalysisOptions implements HasToJson {
   }
 }
 
-/**
- * analysis.outline params
- *
- * {
- *   "file": FilePath
- *   "kind": FileKind
- *   "libraryName": optional String
- *   "outline": Outline
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.outline params
+///
+/// {
+///   "file": FilePath
+///   "kind": FileKind
+///   "libraryName": optional String
+///   "outline": Outline
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisOutlineParams implements HasToJson {
   String _file;
 
@@ -3227,63 +2901,47 @@ class AnalysisOutlineParams implements HasToJson {
 
   Outline _outline;
 
-  /**
-   * The file with which the outline is associated.
-   */
+  /// The file with which the outline is associated.
   String get file => _file;
 
-  /**
-   * The file with which the outline is associated.
-   */
-  void set file(String value) {
+  /// The file with which the outline is associated.
+  set file(String value) {
     assert(value != null);
-    this._file = value;
+    _file = value;
   }
 
-  /**
-   * The kind of the file.
-   */
+  /// The kind of the file.
   FileKind get kind => _kind;
 
-  /**
-   * The kind of the file.
-   */
-  void set kind(FileKind value) {
+  /// The kind of the file.
+  set kind(FileKind value) {
     assert(value != null);
-    this._kind = value;
+    _kind = value;
   }
 
-  /**
-   * The name of the library defined by the file using a "library" directive,
-   * or referenced by a "part of" directive. If both "library" and "part of"
-   * directives are present, then the "library" directive takes precedence.
-   * This field will be omitted if the file has neither "library" nor "part of"
-   * directives.
-   */
+  /// The name of the library defined by the file using a "library" directive,
+  /// or referenced by a "part of" directive. If both "library" and "part of"
+  /// directives are present, then the "library" directive takes precedence.
+  /// This field will be omitted if the file has neither "library" nor "part
+  /// of" directives.
   String get libraryName => _libraryName;
 
-  /**
-   * The name of the library defined by the file using a "library" directive,
-   * or referenced by a "part of" directive. If both "library" and "part of"
-   * directives are present, then the "library" directive takes precedence.
-   * This field will be omitted if the file has neither "library" nor "part of"
-   * directives.
-   */
-  void set libraryName(String value) {
-    this._libraryName = value;
+  /// The name of the library defined by the file using a "library" directive,
+  /// or referenced by a "part of" directive. If both "library" and "part of"
+  /// directives are present, then the "library" directive takes precedence.
+  /// This field will be omitted if the file has neither "library" nor "part
+  /// of" directives.
+  set libraryName(String value) {
+    _libraryName = value;
   }
 
-  /**
-   * The outline associated with the file.
-   */
+  /// The outline associated with the file.
   Outline get outline => _outline;
 
-  /**
-   * The outline associated with the file.
-   */
-  void set outline(Outline value) {
+  /// The outline associated with the file.
+  set outline(Outline value) {
     assert(value != null);
-    this._outline = value;
+    _outline = value;
   }
 
   AnalysisOutlineParams(String file, FileKind kind, Outline outline,
@@ -3296,9 +2954,7 @@ class AnalysisOutlineParams implements HasToJson {
 
   factory AnalysisOutlineParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -3308,8 +2964,7 @@ class AnalysisOutlineParams implements HasToJson {
       }
       FileKind kind;
       if (json.containsKey("kind")) {
-        kind = new FileKind.fromJson(
-            jsonDecoder, jsonPath + ".kind", json["kind"]);
+        kind = FileKind.fromJson(jsonDecoder, jsonPath + ".kind", json["kind"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "kind");
       }
@@ -3320,12 +2975,12 @@ class AnalysisOutlineParams implements HasToJson {
       }
       Outline outline;
       if (json.containsKey("outline")) {
-        outline = new Outline.fromJson(
+        outline = Outline.fromJson(
             jsonDecoder, jsonPath + ".outline", json["outline"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "outline");
       }
-      return new AnalysisOutlineParams(file, kind, outline,
+      return AnalysisOutlineParams(file, kind, outline,
           libraryName: libraryName);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "analysis.outline params", json);
@@ -3333,8 +2988,8 @@ class AnalysisOutlineParams implements HasToJson {
   }
 
   factory AnalysisOutlineParams.fromNotification(Notification notification) {
-    return new AnalysisOutlineParams.fromJson(
-        new ResponseDecoder(null), "params", notification.params);
+    return AnalysisOutlineParams.fromJson(
+        ResponseDecoder(null), "params", notification.params);
   }
 
   @override
@@ -3350,7 +3005,7 @@ class AnalysisOutlineParams implements HasToJson {
   }
 
   Notification toNotification() {
-    return new Notification("analysis.outline", toJson());
+    return Notification("analysis.outline", toJson());
   }
 
   @override
@@ -3378,45 +3033,35 @@ class AnalysisOutlineParams implements HasToJson {
   }
 }
 
-/**
- * analysis.overrides params
- *
- * {
- *   "file": FilePath
- *   "overrides": List<Override>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.overrides params
+///
+/// {
+///   "file": FilePath
+///   "overrides": List<Override>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisOverridesParams implements HasToJson {
   String _file;
 
   List<Override> _overrides;
 
-  /**
-   * The file with which the overrides are associated.
-   */
+  /// The file with which the overrides are associated.
   String get file => _file;
 
-  /**
-   * The file with which the overrides are associated.
-   */
-  void set file(String value) {
+  /// The file with which the overrides are associated.
+  set file(String value) {
     assert(value != null);
-    this._file = value;
+    _file = value;
   }
 
-  /**
-   * The overrides associated with the file.
-   */
+  /// The overrides associated with the file.
   List<Override> get overrides => _overrides;
 
-  /**
-   * The overrides associated with the file.
-   */
-  void set overrides(List<Override> value) {
+  /// The overrides associated with the file.
+  set overrides(List<Override> value) {
     assert(value != null);
-    this._overrides = value;
+    _overrides = value;
   }
 
   AnalysisOverridesParams(String file, List<Override> overrides) {
@@ -3426,9 +3071,7 @@ class AnalysisOverridesParams implements HasToJson {
 
   factory AnalysisOverridesParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -3442,19 +3085,19 @@ class AnalysisOverridesParams implements HasToJson {
             jsonPath + ".overrides",
             json["overrides"],
             (String jsonPath, Object json) =>
-                new Override.fromJson(jsonDecoder, jsonPath, json));
+                Override.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "overrides");
       }
-      return new AnalysisOverridesParams(file, overrides);
+      return AnalysisOverridesParams(file, overrides);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "analysis.overrides params", json);
     }
   }
 
   factory AnalysisOverridesParams.fromNotification(Notification notification) {
-    return new AnalysisOverridesParams.fromJson(
-        new ResponseDecoder(null), "params", notification.params);
+    return AnalysisOverridesParams.fromJson(
+        ResponseDecoder(null), "params", notification.params);
   }
 
   @override
@@ -3467,7 +3110,7 @@ class AnalysisOverridesParams implements HasToJson {
   }
 
   Notification toNotification() {
-    return new Notification("analysis.overrides", toJson());
+    return Notification("analysis.overrides", toJson());
   }
 
   @override
@@ -3492,18 +3135,16 @@ class AnalysisOverridesParams implements HasToJson {
   }
 }
 
-/**
- * analysis.reanalyze params
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.reanalyze params
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisReanalyzeParams implements RequestParams {
   @override
   Map<String, dynamic> toJson() => <String, dynamic>{};
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "analysis.reanalyze", null);
+    return Request(id, "analysis.reanalyze", null);
   }
 
   @override
@@ -3520,18 +3161,16 @@ class AnalysisReanalyzeParams implements RequestParams {
   }
 }
 
-/**
- * analysis.reanalyze result
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.reanalyze result
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisReanalyzeResult implements ResponseResult {
   @override
   Map<String, dynamic> toJson() => <String, dynamic>{};
 
   @override
   Response toResponse(String id) {
-    return new Response(id, result: null);
+    return Response(id, result: null);
   }
 
   @override
@@ -3548,56 +3187,45 @@ class AnalysisReanalyzeResult implements ResponseResult {
   }
 }
 
-/**
- * AnalysisService
- *
- * enum {
- *   CLOSING_LABELS
- *   FOLDING
- *   HIGHLIGHTS
- *   IMPLEMENTED
- *   INVALIDATE
- *   NAVIGATION
- *   OCCURRENCES
- *   OUTLINE
- *   OVERRIDES
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// AnalysisService
+///
+/// enum {
+///   CLOSING_LABELS
+///   FOLDING
+///   HIGHLIGHTS
+///   IMPLEMENTED
+///   INVALIDATE
+///   NAVIGATION
+///   OCCURRENCES
+///   OUTLINE
+///   OVERRIDES
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisService implements Enum {
   static const AnalysisService CLOSING_LABELS =
-      const AnalysisService._("CLOSING_LABELS");
+      AnalysisService._("CLOSING_LABELS");
 
-  static const AnalysisService FOLDING = const AnalysisService._("FOLDING");
+  static const AnalysisService FOLDING = AnalysisService._("FOLDING");
 
-  static const AnalysisService HIGHLIGHTS =
-      const AnalysisService._("HIGHLIGHTS");
+  static const AnalysisService HIGHLIGHTS = AnalysisService._("HIGHLIGHTS");
 
-  static const AnalysisService IMPLEMENTED =
-      const AnalysisService._("IMPLEMENTED");
+  static const AnalysisService IMPLEMENTED = AnalysisService._("IMPLEMENTED");
 
-  /**
-   * This service is not currently implemented and will become a
-   * GeneralAnalysisService in a future release.
-   */
-  static const AnalysisService INVALIDATE =
-      const AnalysisService._("INVALIDATE");
+  /// This service is not currently implemented and will become a
+  /// GeneralAnalysisService in a future release.
+  static const AnalysisService INVALIDATE = AnalysisService._("INVALIDATE");
 
-  static const AnalysisService NAVIGATION =
-      const AnalysisService._("NAVIGATION");
+  static const AnalysisService NAVIGATION = AnalysisService._("NAVIGATION");
 
-  static const AnalysisService OCCURRENCES =
-      const AnalysisService._("OCCURRENCES");
+  static const AnalysisService OCCURRENCES = AnalysisService._("OCCURRENCES");
 
-  static const AnalysisService OUTLINE = const AnalysisService._("OUTLINE");
+  static const AnalysisService OUTLINE = AnalysisService._("OUTLINE");
 
-  static const AnalysisService OVERRIDES = const AnalysisService._("OVERRIDES");
+  static const AnalysisService OVERRIDES = AnalysisService._("OVERRIDES");
 
-  /**
-   * A list containing all of the enum values that are defined.
-   */
-  static const List<AnalysisService> VALUES = const <AnalysisService>[
+  /// A list containing all of the enum values that are defined.
+  static const List<AnalysisService> VALUES = <AnalysisService>[
     CLOSING_LABELS,
     FOLDING,
     HIGHLIGHTS,
@@ -3635,14 +3263,14 @@ class AnalysisService implements Enum {
       case "OVERRIDES":
         return OVERRIDES;
     }
-    throw new Exception('Illegal enum value: $name');
+    throw Exception('Illegal enum value: $name');
   }
 
   factory AnalysisService.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json is String) {
       try {
-        return new AnalysisService(json);
+        return AnalysisService(json);
       } catch (_) {
         // Fall through
       }
@@ -3656,17 +3284,15 @@ class AnalysisService implements Enum {
   String toJson() => name;
 }
 
-/**
- * analysis.setAnalysisRoots params
- *
- * {
- *   "included": List<FilePath>
- *   "excluded": List<FilePath>
- *   "packageRoots": optional Map<FilePath, FilePath>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.setAnalysisRoots params
+///
+/// {
+///   "included": List<FilePath>
+///   "excluded": List<FilePath>
+///   "packageRoots": optional Map<FilePath, FilePath>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisSetAnalysisRootsParams implements RequestParams {
   List<String> _included;
 
@@ -3674,80 +3300,68 @@ class AnalysisSetAnalysisRootsParams implements RequestParams {
 
   Map<String, String> _packageRoots;
 
-  /**
-   * A list of the files and directories that should be analyzed.
-   */
+  /// A list of the files and directories that should be analyzed.
   List<String> get included => _included;
 
-  /**
-   * A list of the files and directories that should be analyzed.
-   */
-  void set included(List<String> value) {
+  /// A list of the files and directories that should be analyzed.
+  set included(List<String> value) {
     assert(value != null);
-    this._included = value;
+    _included = value;
   }
 
-  /**
-   * A list of the files and directories within the included directories that
-   * should not be analyzed.
-   */
+  /// A list of the files and directories within the included directories that
+  /// should not be analyzed.
   List<String> get excluded => _excluded;
 
-  /**
-   * A list of the files and directories within the included directories that
-   * should not be analyzed.
-   */
-  void set excluded(List<String> value) {
+  /// A list of the files and directories within the included directories that
+  /// should not be analyzed.
+  set excluded(List<String> value) {
     assert(value != null);
-    this._excluded = value;
+    _excluded = value;
   }
 
-  /**
-   * A mapping from source directories to package roots that should override
-   * the normal package: URI resolution mechanism.
-   *
-   * If a package root is a directory, then the analyzer will behave as though
-   * the associated source directory in the map contains a special pubspec.yaml
-   * file which resolves any package: URI to the corresponding path within that
-   * package root directory. The effect is the same as specifying the package
-   * root directory as a "--package_root" parameter to the Dart VM when
-   * executing any Dart file inside the source directory.
-   *
-   * If a package root is a file, then the analyzer will behave as though that
-   * file is a ".packages" file in the source directory. The effect is the same
-   * as specifying the file as a "--packages" parameter to the Dart VM when
-   * executing any Dart file inside the source directory.
-   *
-   * Files in any directories that are not overridden by this mapping have
-   * their package: URI's resolved using the normal pubspec.yaml mechanism. If
-   * this field is absent, or the empty map is specified, that indicates that
-   * the normal pubspec.yaml mechanism should always be used.
-   */
+  /// A mapping from source directories to package roots that should override
+  /// the normal package: URI resolution mechanism.
+  ///
+  /// If a package root is a directory, then the analyzer will behave as though
+  /// the associated source directory in the map contains a special
+  /// pubspec.yaml file which resolves any package: URI to the corresponding
+  /// path within that package root directory. The effect is the same as
+  /// specifying the package root directory as a "--package_root" parameter to
+  /// the Dart VM when executing any Dart file inside the source directory.
+  ///
+  /// If a package root is a file, then the analyzer will behave as though that
+  /// file is a ".packages" file in the source directory. The effect is the
+  /// same as specifying the file as a "--packages" parameter to the Dart VM
+  /// when executing any Dart file inside the source directory.
+  ///
+  /// Files in any directories that are not overridden by this mapping have
+  /// their package: URI's resolved using the normal pubspec.yaml mechanism. If
+  /// this field is absent, or the empty map is specified, that indicates that
+  /// the normal pubspec.yaml mechanism should always be used.
   Map<String, String> get packageRoots => _packageRoots;
 
-  /**
-   * A mapping from source directories to package roots that should override
-   * the normal package: URI resolution mechanism.
-   *
-   * If a package root is a directory, then the analyzer will behave as though
-   * the associated source directory in the map contains a special pubspec.yaml
-   * file which resolves any package: URI to the corresponding path within that
-   * package root directory. The effect is the same as specifying the package
-   * root directory as a "--package_root" parameter to the Dart VM when
-   * executing any Dart file inside the source directory.
-   *
-   * If a package root is a file, then the analyzer will behave as though that
-   * file is a ".packages" file in the source directory. The effect is the same
-   * as specifying the file as a "--packages" parameter to the Dart VM when
-   * executing any Dart file inside the source directory.
-   *
-   * Files in any directories that are not overridden by this mapping have
-   * their package: URI's resolved using the normal pubspec.yaml mechanism. If
-   * this field is absent, or the empty map is specified, that indicates that
-   * the normal pubspec.yaml mechanism should always be used.
-   */
-  void set packageRoots(Map<String, String> value) {
-    this._packageRoots = value;
+  /// A mapping from source directories to package roots that should override
+  /// the normal package: URI resolution mechanism.
+  ///
+  /// If a package root is a directory, then the analyzer will behave as though
+  /// the associated source directory in the map contains a special
+  /// pubspec.yaml file which resolves any package: URI to the corresponding
+  /// path within that package root directory. The effect is the same as
+  /// specifying the package root directory as a "--package_root" parameter to
+  /// the Dart VM when executing any Dart file inside the source directory.
+  ///
+  /// If a package root is a file, then the analyzer will behave as though that
+  /// file is a ".packages" file in the source directory. The effect is the
+  /// same as specifying the file as a "--packages" parameter to the Dart VM
+  /// when executing any Dart file inside the source directory.
+  ///
+  /// Files in any directories that are not overridden by this mapping have
+  /// their package: URI's resolved using the normal pubspec.yaml mechanism. If
+  /// this field is absent, or the empty map is specified, that indicates that
+  /// the normal pubspec.yaml mechanism should always be used.
+  set packageRoots(Map<String, String> value) {
+    _packageRoots = value;
   }
 
   AnalysisSetAnalysisRootsParams(List<String> included, List<String> excluded,
@@ -3759,9 +3373,7 @@ class AnalysisSetAnalysisRootsParams implements RequestParams {
 
   factory AnalysisSetAnalysisRootsParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       List<String> included;
       if (json.containsKey("included")) {
@@ -3783,7 +3395,7 @@ class AnalysisSetAnalysisRootsParams implements RequestParams {
             jsonPath + ".packageRoots", json["packageRoots"],
             valueDecoder: jsonDecoder.decodeString);
       }
-      return new AnalysisSetAnalysisRootsParams(included, excluded,
+      return AnalysisSetAnalysisRootsParams(included, excluded,
           packageRoots: packageRoots);
     } else {
       throw jsonDecoder.mismatch(
@@ -3792,8 +3404,8 @@ class AnalysisSetAnalysisRootsParams implements RequestParams {
   }
 
   factory AnalysisSetAnalysisRootsParams.fromRequest(Request request) {
-    return new AnalysisSetAnalysisRootsParams.fromJson(
-        new RequestDecoder(request), "params", request.params);
+    return AnalysisSetAnalysisRootsParams.fromJson(
+        RequestDecoder(request), "params", request.params);
   }
 
   @override
@@ -3809,7 +3421,7 @@ class AnalysisSetAnalysisRootsParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "analysis.setAnalysisRoots", toJson());
+    return Request(id, "analysis.setAnalysisRoots", toJson());
   }
 
   @override
@@ -3837,18 +3449,16 @@ class AnalysisSetAnalysisRootsParams implements RequestParams {
   }
 }
 
-/**
- * analysis.setAnalysisRoots result
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.setAnalysisRoots result
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisSetAnalysisRootsResult implements ResponseResult {
   @override
   Map<String, dynamic> toJson() => <String, dynamic>{};
 
   @override
   Response toResponse(String id) {
-    return new Response(id, result: null);
+    return Response(id, result: null);
   }
 
   @override
@@ -3865,29 +3475,23 @@ class AnalysisSetAnalysisRootsResult implements ResponseResult {
   }
 }
 
-/**
- * analysis.setGeneralSubscriptions params
- *
- * {
- *   "subscriptions": List<GeneralAnalysisService>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.setGeneralSubscriptions params
+///
+/// {
+///   "subscriptions": List<GeneralAnalysisService>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisSetGeneralSubscriptionsParams implements RequestParams {
   List<GeneralAnalysisService> _subscriptions;
 
-  /**
-   * A list of the services being subscribed to.
-   */
+  /// A list of the services being subscribed to.
   List<GeneralAnalysisService> get subscriptions => _subscriptions;
 
-  /**
-   * A list of the services being subscribed to.
-   */
-  void set subscriptions(List<GeneralAnalysisService> value) {
+  /// A list of the services being subscribed to.
+  set subscriptions(List<GeneralAnalysisService> value) {
     assert(value != null);
-    this._subscriptions = value;
+    _subscriptions = value;
   }
 
   AnalysisSetGeneralSubscriptionsParams(
@@ -3897,9 +3501,7 @@ class AnalysisSetGeneralSubscriptionsParams implements RequestParams {
 
   factory AnalysisSetGeneralSubscriptionsParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       List<GeneralAnalysisService> subscriptions;
       if (json.containsKey("subscriptions")) {
@@ -3907,12 +3509,11 @@ class AnalysisSetGeneralSubscriptionsParams implements RequestParams {
             jsonPath + ".subscriptions",
             json["subscriptions"],
             (String jsonPath, Object json) =>
-                new GeneralAnalysisService.fromJson(
-                    jsonDecoder, jsonPath, json));
+                GeneralAnalysisService.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "subscriptions");
       }
-      return new AnalysisSetGeneralSubscriptionsParams(subscriptions);
+      return AnalysisSetGeneralSubscriptionsParams(subscriptions);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "analysis.setGeneralSubscriptions params", json);
@@ -3920,8 +3521,8 @@ class AnalysisSetGeneralSubscriptionsParams implements RequestParams {
   }
 
   factory AnalysisSetGeneralSubscriptionsParams.fromRequest(Request request) {
-    return new AnalysisSetGeneralSubscriptionsParams.fromJson(
-        new RequestDecoder(request), "params", request.params);
+    return AnalysisSetGeneralSubscriptionsParams.fromJson(
+        RequestDecoder(request), "params", request.params);
   }
 
   @override
@@ -3935,7 +3536,7 @@ class AnalysisSetGeneralSubscriptionsParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "analysis.setGeneralSubscriptions", toJson());
+    return Request(id, "analysis.setGeneralSubscriptions", toJson());
   }
 
   @override
@@ -3958,18 +3559,16 @@ class AnalysisSetGeneralSubscriptionsParams implements RequestParams {
   }
 }
 
-/**
- * analysis.setGeneralSubscriptions result
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.setGeneralSubscriptions result
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisSetGeneralSubscriptionsResult implements ResponseResult {
   @override
   Map<String, dynamic> toJson() => <String, dynamic>{};
 
   @override
   Response toResponse(String id) {
-    return new Response(id, result: null);
+    return Response(id, result: null);
   }
 
   @override
@@ -3986,29 +3585,23 @@ class AnalysisSetGeneralSubscriptionsResult implements ResponseResult {
   }
 }
 
-/**
- * analysis.setPriorityFiles params
- *
- * {
- *   "files": List<FilePath>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.setPriorityFiles params
+///
+/// {
+///   "files": List<FilePath>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisSetPriorityFilesParams implements RequestParams {
   List<String> _files;
 
-  /**
-   * The files that are to be a priority for analysis.
-   */
+  /// The files that are to be a priority for analysis.
   List<String> get files => _files;
 
-  /**
-   * The files that are to be a priority for analysis.
-   */
-  void set files(List<String> value) {
+  /// The files that are to be a priority for analysis.
+  set files(List<String> value) {
     assert(value != null);
-    this._files = value;
+    _files = value;
   }
 
   AnalysisSetPriorityFilesParams(List<String> files) {
@@ -4017,9 +3610,7 @@ class AnalysisSetPriorityFilesParams implements RequestParams {
 
   factory AnalysisSetPriorityFilesParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       List<String> files;
       if (json.containsKey("files")) {
@@ -4028,7 +3619,7 @@ class AnalysisSetPriorityFilesParams implements RequestParams {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "files");
       }
-      return new AnalysisSetPriorityFilesParams(files);
+      return AnalysisSetPriorityFilesParams(files);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "analysis.setPriorityFiles params", json);
@@ -4036,8 +3627,8 @@ class AnalysisSetPriorityFilesParams implements RequestParams {
   }
 
   factory AnalysisSetPriorityFilesParams.fromRequest(Request request) {
-    return new AnalysisSetPriorityFilesParams.fromJson(
-        new RequestDecoder(request), "params", request.params);
+    return AnalysisSetPriorityFilesParams.fromJson(
+        RequestDecoder(request), "params", request.params);
   }
 
   @override
@@ -4049,7 +3640,7 @@ class AnalysisSetPriorityFilesParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "analysis.setPriorityFiles", toJson());
+    return Request(id, "analysis.setPriorityFiles", toJson());
   }
 
   @override
@@ -4071,18 +3662,16 @@ class AnalysisSetPriorityFilesParams implements RequestParams {
   }
 }
 
-/**
- * analysis.setPriorityFiles result
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.setPriorityFiles result
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisSetPriorityFilesResult implements ResponseResult {
   @override
   Map<String, dynamic> toJson() => <String, dynamic>{};
 
   @override
   Response toResponse(String id) {
-    return new Response(id, result: null);
+    return Response(id, result: null);
   }
 
   @override
@@ -4099,31 +3688,25 @@ class AnalysisSetPriorityFilesResult implements ResponseResult {
   }
 }
 
-/**
- * analysis.setSubscriptions params
- *
- * {
- *   "subscriptions": Map<AnalysisService, List<FilePath>>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.setSubscriptions params
+///
+/// {
+///   "subscriptions": Map<AnalysisService, List<FilePath>>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisSetSubscriptionsParams implements RequestParams {
   Map<AnalysisService, List<String>> _subscriptions;
 
-  /**
-   * A table mapping services to a list of the files being subscribed to the
-   * service.
-   */
+  /// A table mapping services to a list of the files being subscribed to the
+  /// service.
   Map<AnalysisService, List<String>> get subscriptions => _subscriptions;
 
-  /**
-   * A table mapping services to a list of the files being subscribed to the
-   * service.
-   */
-  void set subscriptions(Map<AnalysisService, List<String>> value) {
+  /// A table mapping services to a list of the files being subscribed to the
+  /// service.
+  set subscriptions(Map<AnalysisService, List<String>> value) {
     assert(value != null);
-    this._subscriptions = value;
+    _subscriptions = value;
   }
 
   AnalysisSetSubscriptionsParams(
@@ -4133,22 +3716,20 @@ class AnalysisSetSubscriptionsParams implements RequestParams {
 
   factory AnalysisSetSubscriptionsParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       Map<AnalysisService, List<String>> subscriptions;
       if (json.containsKey("subscriptions")) {
         subscriptions = jsonDecoder.decodeMap(
             jsonPath + ".subscriptions", json["subscriptions"],
             keyDecoder: (String jsonPath, Object json) =>
-                new AnalysisService.fromJson(jsonDecoder, jsonPath, json),
+                AnalysisService.fromJson(jsonDecoder, jsonPath, json),
             valueDecoder: (String jsonPath, Object json) => jsonDecoder
                 .decodeList(jsonPath, json, jsonDecoder.decodeString));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "subscriptions");
       }
-      return new AnalysisSetSubscriptionsParams(subscriptions);
+      return AnalysisSetSubscriptionsParams(subscriptions);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "analysis.setSubscriptions params", json);
@@ -4156,8 +3737,8 @@ class AnalysisSetSubscriptionsParams implements RequestParams {
   }
 
   factory AnalysisSetSubscriptionsParams.fromRequest(Request request) {
-    return new AnalysisSetSubscriptionsParams.fromJson(
-        new RequestDecoder(request), "params", request.params);
+    return AnalysisSetSubscriptionsParams.fromJson(
+        RequestDecoder(request), "params", request.params);
   }
 
   @override
@@ -4170,7 +3751,7 @@ class AnalysisSetSubscriptionsParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "analysis.setSubscriptions", toJson());
+    return Request(id, "analysis.setSubscriptions", toJson());
   }
 
   @override
@@ -4196,18 +3777,16 @@ class AnalysisSetSubscriptionsParams implements RequestParams {
   }
 }
 
-/**
- * analysis.setSubscriptions result
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.setSubscriptions result
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisSetSubscriptionsResult implements ResponseResult {
   @override
   Map<String, dynamic> toJson() => <String, dynamic>{};
 
   @override
   Response toResponse(String id) {
-    return new Response(id, result: null);
+    return Response(id, result: null);
   }
 
   @override
@@ -4224,46 +3803,36 @@ class AnalysisSetSubscriptionsResult implements ResponseResult {
   }
 }
 
-/**
- * AnalysisStatus
- *
- * {
- *   "isAnalyzing": bool
- *   "analysisTarget": optional String
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// AnalysisStatus
+///
+/// {
+///   "isAnalyzing": bool
+///   "analysisTarget": optional String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisStatus implements HasToJson {
   bool _isAnalyzing;
 
   String _analysisTarget;
 
-  /**
-   * True if analysis is currently being performed.
-   */
+  /// True if analysis is currently being performed.
   bool get isAnalyzing => _isAnalyzing;
 
-  /**
-   * True if analysis is currently being performed.
-   */
-  void set isAnalyzing(bool value) {
+  /// True if analysis is currently being performed.
+  set isAnalyzing(bool value) {
     assert(value != null);
-    this._isAnalyzing = value;
+    _isAnalyzing = value;
   }
 
-  /**
-   * The name of the current target of analysis. This field is omitted if
-   * analyzing is false.
-   */
+  /// The name of the current target of analysis. This field is omitted if
+  /// analyzing is false.
   String get analysisTarget => _analysisTarget;
 
-  /**
-   * The name of the current target of analysis. This field is omitted if
-   * analyzing is false.
-   */
-  void set analysisTarget(String value) {
-    this._analysisTarget = value;
+  /// The name of the current target of analysis. This field is omitted if
+  /// analyzing is false.
+  set analysisTarget(String value) {
+    _analysisTarget = value;
   }
 
   AnalysisStatus(bool isAnalyzing, {String analysisTarget}) {
@@ -4273,9 +3842,7 @@ class AnalysisStatus implements HasToJson {
 
   factory AnalysisStatus.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       bool isAnalyzing;
       if (json.containsKey("isAnalyzing")) {
@@ -4289,7 +3856,7 @@ class AnalysisStatus implements HasToJson {
         analysisTarget = jsonDecoder.decodeString(
             jsonPath + ".analysisTarget", json["analysisTarget"]);
       }
-      return new AnalysisStatus(isAnalyzing, analysisTarget: analysisTarget);
+      return AnalysisStatus(isAnalyzing, analysisTarget: analysisTarget);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "AnalysisStatus", json);
     }
@@ -4326,31 +3893,25 @@ class AnalysisStatus implements HasToJson {
   }
 }
 
-/**
- * analysis.updateContent params
- *
- * {
- *   "files": Map<FilePath, AddContentOverlay | ChangeContentOverlay | RemoveContentOverlay>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.updateContent params
+///
+/// {
+///   "files": Map<FilePath, AddContentOverlay | ChangeContentOverlay | RemoveContentOverlay>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisUpdateContentParams implements RequestParams {
   Map<String, dynamic> _files;
 
-  /**
-   * A table mapping the files whose content has changed to a description of
-   * the content change.
-   */
+  /// A table mapping the files whose content has changed to a description of
+  /// the content change.
   Map<String, dynamic> get files => _files;
 
-  /**
-   * A table mapping the files whose content has changed to a description of
-   * the content change.
-   */
-  void set files(Map<String, dynamic> value) {
+  /// A table mapping the files whose content has changed to a description of
+  /// the content change.
+  set files(Map<String, dynamic> value) {
     assert(value != null);
-    this._files = value;
+    _files = value;
   }
 
   AnalysisUpdateContentParams(Map<String, dynamic> files) {
@@ -4359,9 +3920,7 @@ class AnalysisUpdateContentParams implements RequestParams {
 
   factory AnalysisUpdateContentParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       Map<String, dynamic> files;
       if (json.containsKey("files")) {
@@ -4369,19 +3928,17 @@ class AnalysisUpdateContentParams implements RequestParams {
             valueDecoder: (String jsonPath, Object json) =>
                 jsonDecoder.decodeUnion(jsonPath, json, "type", {
                   "add": (String jsonPath, Object json) =>
-                      new AddContentOverlay.fromJson(
-                          jsonDecoder, jsonPath, json),
+                      AddContentOverlay.fromJson(jsonDecoder, jsonPath, json),
                   "change": (String jsonPath, Object json) =>
-                      new ChangeContentOverlay.fromJson(
+                      ChangeContentOverlay.fromJson(
                           jsonDecoder, jsonPath, json),
                   "remove": (String jsonPath, Object json) =>
-                      new RemoveContentOverlay.fromJson(
-                          jsonDecoder, jsonPath, json)
+                      RemoveContentOverlay.fromJson(jsonDecoder, jsonPath, json)
                 }));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "files");
       }
-      return new AnalysisUpdateContentParams(files);
+      return AnalysisUpdateContentParams(files);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "analysis.updateContent params", json);
@@ -4389,8 +3946,8 @@ class AnalysisUpdateContentParams implements RequestParams {
   }
 
   factory AnalysisUpdateContentParams.fromRequest(Request request) {
-    return new AnalysisUpdateContentParams.fromJson(
-        new RequestDecoder(request), "params", request.params);
+    return AnalysisUpdateContentParams.fromJson(
+        RequestDecoder(request), "params", request.params);
   }
 
   @override
@@ -4403,7 +3960,7 @@ class AnalysisUpdateContentParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "analysis.updateContent", toJson());
+    return Request(id, "analysis.updateContent", toJson());
   }
 
   @override
@@ -4425,24 +3982,20 @@ class AnalysisUpdateContentParams implements RequestParams {
   }
 }
 
-/**
- * analysis.updateContent result
- *
- * {
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.updateContent result
+///
+/// {
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisUpdateContentResult implements ResponseResult {
   AnalysisUpdateContentResult();
 
   factory AnalysisUpdateContentResult.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
-      return new AnalysisUpdateContentResult();
+      return AnalysisUpdateContentResult();
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "analysis.updateContent result", json);
@@ -4450,8 +4003,8 @@ class AnalysisUpdateContentResult implements ResponseResult {
   }
 
   factory AnalysisUpdateContentResult.fromResponse(Response response) {
-    return new AnalysisUpdateContentResult.fromJson(
-        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+    return AnalysisUpdateContentResult.fromJson(
+        ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         "result",
         response.result);
   }
@@ -4464,7 +4017,7 @@ class AnalysisUpdateContentResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return new Response(id, result: toJson());
+    return Response(id, result: toJson());
   }
 
   @override
@@ -4485,29 +4038,23 @@ class AnalysisUpdateContentResult implements ResponseResult {
   }
 }
 
-/**
- * analysis.updateOptions params
- *
- * {
- *   "options": AnalysisOptions
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.updateOptions params
+///
+/// {
+///   "options": AnalysisOptions
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisUpdateOptionsParams implements RequestParams {
   AnalysisOptions _options;
 
-  /**
-   * The options that are to be used to control analysis.
-   */
+  /// The options that are to be used to control analysis.
   AnalysisOptions get options => _options;
 
-  /**
-   * The options that are to be used to control analysis.
-   */
-  void set options(AnalysisOptions value) {
+  /// The options that are to be used to control analysis.
+  set options(AnalysisOptions value) {
     assert(value != null);
-    this._options = value;
+    _options = value;
   }
 
   AnalysisUpdateOptionsParams(AnalysisOptions options) {
@@ -4516,18 +4063,16 @@ class AnalysisUpdateOptionsParams implements RequestParams {
 
   factory AnalysisUpdateOptionsParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       AnalysisOptions options;
       if (json.containsKey("options")) {
-        options = new AnalysisOptions.fromJson(
+        options = AnalysisOptions.fromJson(
             jsonDecoder, jsonPath + ".options", json["options"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "options");
       }
-      return new AnalysisUpdateOptionsParams(options);
+      return AnalysisUpdateOptionsParams(options);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "analysis.updateOptions params", json);
@@ -4535,8 +4080,8 @@ class AnalysisUpdateOptionsParams implements RequestParams {
   }
 
   factory AnalysisUpdateOptionsParams.fromRequest(Request request) {
-    return new AnalysisUpdateOptionsParams.fromJson(
-        new RequestDecoder(request), "params", request.params);
+    return AnalysisUpdateOptionsParams.fromJson(
+        RequestDecoder(request), "params", request.params);
   }
 
   @override
@@ -4548,7 +4093,7 @@ class AnalysisUpdateOptionsParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "analysis.updateOptions", toJson());
+    return Request(id, "analysis.updateOptions", toJson());
   }
 
   @override
@@ -4570,18 +4115,16 @@ class AnalysisUpdateOptionsParams implements RequestParams {
   }
 }
 
-/**
- * analysis.updateOptions result
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analysis.updateOptions result
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisUpdateOptionsResult implements ResponseResult {
   @override
   Map<String, dynamic> toJson() => <String, dynamic>{};
 
   @override
   Response toResponse(String id) {
-    return new Response(id, result: null);
+    return Response(id, result: null);
   }
 
   @override
@@ -4598,29 +4141,23 @@ class AnalysisUpdateOptionsResult implements ResponseResult {
   }
 }
 
-/**
- * analytics.enable params
- *
- * {
- *   "value": bool
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analytics.enable params
+///
+/// {
+///   "value": bool
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalyticsEnableParams implements RequestParams {
   bool _value;
 
-  /**
-   * Enable or disable analytics.
-   */
+  /// Enable or disable analytics.
   bool get value => _value;
 
-  /**
-   * Enable or disable analytics.
-   */
-  void set value(bool value) {
+  /// Enable or disable analytics.
+  set value(bool value) {
     assert(value != null);
-    this._value = value;
+    _value = value;
   }
 
   AnalyticsEnableParams(bool value) {
@@ -4629,9 +4166,7 @@ class AnalyticsEnableParams implements RequestParams {
 
   factory AnalyticsEnableParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       bool value;
       if (json.containsKey("value")) {
@@ -4639,15 +4174,15 @@ class AnalyticsEnableParams implements RequestParams {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "value");
       }
-      return new AnalyticsEnableParams(value);
+      return AnalyticsEnableParams(value);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "analytics.enable params", json);
     }
   }
 
   factory AnalyticsEnableParams.fromRequest(Request request) {
-    return new AnalyticsEnableParams.fromJson(
-        new RequestDecoder(request), "params", request.params);
+    return AnalyticsEnableParams.fromJson(
+        RequestDecoder(request), "params", request.params);
   }
 
   @override
@@ -4659,7 +4194,7 @@ class AnalyticsEnableParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "analytics.enable", toJson());
+    return Request(id, "analytics.enable", toJson());
   }
 
   @override
@@ -4681,18 +4216,16 @@ class AnalyticsEnableParams implements RequestParams {
   }
 }
 
-/**
- * analytics.enable result
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analytics.enable result
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalyticsEnableResult implements ResponseResult {
   @override
   Map<String, dynamic> toJson() => <String, dynamic>{};
 
   @override
   Response toResponse(String id) {
-    return new Response(id, result: null);
+    return Response(id, result: null);
   }
 
   @override
@@ -4709,18 +4242,16 @@ class AnalyticsEnableResult implements ResponseResult {
   }
 }
 
-/**
- * analytics.isEnabled params
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analytics.isEnabled params
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalyticsIsEnabledParams implements RequestParams {
   @override
   Map<String, dynamic> toJson() => <String, dynamic>{};
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "analytics.isEnabled", null);
+    return Request(id, "analytics.isEnabled", null);
   }
 
   @override
@@ -4737,29 +4268,23 @@ class AnalyticsIsEnabledParams implements RequestParams {
   }
 }
 
-/**
- * analytics.isEnabled result
- *
- * {
- *   "enabled": bool
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analytics.isEnabled result
+///
+/// {
+///   "enabled": bool
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalyticsIsEnabledResult implements ResponseResult {
   bool _enabled;
 
-  /**
-   * Whether sending analytics is enabled or not.
-   */
+  /// Whether sending analytics is enabled or not.
   bool get enabled => _enabled;
 
-  /**
-   * Whether sending analytics is enabled or not.
-   */
-  void set enabled(bool value) {
+  /// Whether sending analytics is enabled or not.
+  set enabled(bool value) {
     assert(value != null);
-    this._enabled = value;
+    _enabled = value;
   }
 
   AnalyticsIsEnabledResult(bool enabled) {
@@ -4768,9 +4293,7 @@ class AnalyticsIsEnabledResult implements ResponseResult {
 
   factory AnalyticsIsEnabledResult.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       bool enabled;
       if (json.containsKey("enabled")) {
@@ -4779,15 +4302,15 @@ class AnalyticsIsEnabledResult implements ResponseResult {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "enabled");
       }
-      return new AnalyticsIsEnabledResult(enabled);
+      return AnalyticsIsEnabledResult(enabled);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "analytics.isEnabled result", json);
     }
   }
 
   factory AnalyticsIsEnabledResult.fromResponse(Response response) {
-    return new AnalyticsIsEnabledResult.fromJson(
-        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+    return AnalyticsIsEnabledResult.fromJson(
+        ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         "result",
         response.result);
   }
@@ -4801,7 +4324,7 @@ class AnalyticsIsEnabledResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return new Response(id, result: toJson());
+    return Response(id, result: toJson());
   }
 
   @override
@@ -4823,29 +4346,23 @@ class AnalyticsIsEnabledResult implements ResponseResult {
   }
 }
 
-/**
- * analytics.sendEvent params
- *
- * {
- *   "action": String
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analytics.sendEvent params
+///
+/// {
+///   "action": String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalyticsSendEventParams implements RequestParams {
   String _action;
 
-  /**
-   * The value used to indicate which action was performed.
-   */
+  /// The value used to indicate which action was performed.
   String get action => _action;
 
-  /**
-   * The value used to indicate which action was performed.
-   */
-  void set action(String value) {
+  /// The value used to indicate which action was performed.
+  set action(String value) {
     assert(value != null);
-    this._action = value;
+    _action = value;
   }
 
   AnalyticsSendEventParams(String action) {
@@ -4854,9 +4371,7 @@ class AnalyticsSendEventParams implements RequestParams {
 
   factory AnalyticsSendEventParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String action;
       if (json.containsKey("action")) {
@@ -4864,15 +4379,15 @@ class AnalyticsSendEventParams implements RequestParams {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "action");
       }
-      return new AnalyticsSendEventParams(action);
+      return AnalyticsSendEventParams(action);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "analytics.sendEvent params", json);
     }
   }
 
   factory AnalyticsSendEventParams.fromRequest(Request request) {
-    return new AnalyticsSendEventParams.fromJson(
-        new RequestDecoder(request), "params", request.params);
+    return AnalyticsSendEventParams.fromJson(
+        RequestDecoder(request), "params", request.params);
   }
 
   @override
@@ -4884,7 +4399,7 @@ class AnalyticsSendEventParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "analytics.sendEvent", toJson());
+    return Request(id, "analytics.sendEvent", toJson());
   }
 
   @override
@@ -4906,18 +4421,16 @@ class AnalyticsSendEventParams implements RequestParams {
   }
 }
 
-/**
- * analytics.sendEvent result
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analytics.sendEvent result
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalyticsSendEventResult implements ResponseResult {
   @override
   Map<String, dynamic> toJson() => <String, dynamic>{};
 
   @override
   Response toResponse(String id) {
-    return new Response(id, result: null);
+    return Response(id, result: null);
   }
 
   @override
@@ -4934,45 +4447,35 @@ class AnalyticsSendEventResult implements ResponseResult {
   }
 }
 
-/**
- * analytics.sendTiming params
- *
- * {
- *   "event": String
- *   "millis": int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analytics.sendTiming params
+///
+/// {
+///   "event": String
+///   "millis": int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalyticsSendTimingParams implements RequestParams {
   String _event;
 
   int _millis;
 
-  /**
-   * The name of the event.
-   */
+  /// The name of the event.
   String get event => _event;
 
-  /**
-   * The name of the event.
-   */
-  void set event(String value) {
+  /// The name of the event.
+  set event(String value) {
     assert(value != null);
-    this._event = value;
+    _event = value;
   }
 
-  /**
-   * The duration of the event in milliseconds.
-   */
+  /// The duration of the event in milliseconds.
   int get millis => _millis;
 
-  /**
-   * The duration of the event in milliseconds.
-   */
-  void set millis(int value) {
+  /// The duration of the event in milliseconds.
+  set millis(int value) {
     assert(value != null);
-    this._millis = value;
+    _millis = value;
   }
 
   AnalyticsSendTimingParams(String event, int millis) {
@@ -4982,9 +4485,7 @@ class AnalyticsSendTimingParams implements RequestParams {
 
   factory AnalyticsSendTimingParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String event;
       if (json.containsKey("event")) {
@@ -4998,15 +4499,15 @@ class AnalyticsSendTimingParams implements RequestParams {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "millis");
       }
-      return new AnalyticsSendTimingParams(event, millis);
+      return AnalyticsSendTimingParams(event, millis);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "analytics.sendTiming params", json);
     }
   }
 
   factory AnalyticsSendTimingParams.fromRequest(Request request) {
-    return new AnalyticsSendTimingParams.fromJson(
-        new RequestDecoder(request), "params", request.params);
+    return AnalyticsSendTimingParams.fromJson(
+        RequestDecoder(request), "params", request.params);
   }
 
   @override
@@ -5019,7 +4520,7 @@ class AnalyticsSendTimingParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "analytics.sendTiming", toJson());
+    return Request(id, "analytics.sendTiming", toJson());
   }
 
   @override
@@ -5042,18 +4543,16 @@ class AnalyticsSendTimingParams implements RequestParams {
   }
 }
 
-/**
- * analytics.sendTiming result
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// analytics.sendTiming result
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalyticsSendTimingResult implements ResponseResult {
   @override
   Map<String, dynamic> toJson() => <String, dynamic>{};
 
   @override
   Response toResponse(String id) {
-    return new Response(id, result: null);
+    return Response(id, result: null);
   }
 
   @override
@@ -5070,23 +4569,21 @@ class AnalyticsSendTimingResult implements ResponseResult {
   }
 }
 
-/**
- * AvailableSuggestion
- *
- * {
- *   "label": String
- *   "declaringLibraryUri": String
- *   "element": Element
- *   "defaultArgumentListString": optional String
- *   "defaultArgumentListTextRanges": optional List<int>
- *   "parameterNames": optional List<String>
- *   "parameterTypes": optional List<String>
- *   "relevanceTags": optional List<AvailableSuggestionRelevanceTag>
- *   "requiredParameterCount": optional int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// AvailableSuggestion
+///
+/// {
+///   "label": String
+///   "declaringLibraryUri": String
+///   "element": Element
+///   "defaultArgumentListString": optional String
+///   "defaultArgumentListTextRanges": optional List<int>
+///   "parameterNames": optional List<String>
+///   "parameterTypes": optional List<String>
+///   "relevanceTags": optional List<AvailableSuggestionRelevanceTag>
+///   "requiredParameterCount": optional int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AvailableSuggestion implements HasToJson {
   String _label;
 
@@ -5106,135 +4603,103 @@ class AvailableSuggestion implements HasToJson {
 
   int _requiredParameterCount;
 
-  /**
-   * The identifier to present to the user for code completion.
-   */
+  /// The identifier to present to the user for code completion.
   String get label => _label;
 
-  /**
-   * The identifier to present to the user for code completion.
-   */
-  void set label(String value) {
+  /// The identifier to present to the user for code completion.
+  set label(String value) {
     assert(value != null);
-    this._label = value;
+    _label = value;
   }
 
-  /**
-   * The URI of the library that declares the element being suggested, not the
-   * URI of the library associated with the enclosing AvailableSuggestionSet.
-   */
+  /// The URI of the library that declares the element being suggested, not the
+  /// URI of the library associated with the enclosing AvailableSuggestionSet.
   String get declaringLibraryUri => _declaringLibraryUri;
 
-  /**
-   * The URI of the library that declares the element being suggested, not the
-   * URI of the library associated with the enclosing AvailableSuggestionSet.
-   */
-  void set declaringLibraryUri(String value) {
+  /// The URI of the library that declares the element being suggested, not the
+  /// URI of the library associated with the enclosing AvailableSuggestionSet.
+  set declaringLibraryUri(String value) {
     assert(value != null);
-    this._declaringLibraryUri = value;
+    _declaringLibraryUri = value;
   }
 
-  /**
-   * Information about the element reference being suggested.
-   */
+  /// Information about the element reference being suggested.
   Element get element => _element;
 
-  /**
-   * Information about the element reference being suggested.
-   */
-  void set element(Element value) {
+  /// Information about the element reference being suggested.
+  set element(Element value) {
     assert(value != null);
-    this._element = value;
+    _element = value;
   }
 
-  /**
-   * A default String for use in generating argument list source contents on
-   * the client side.
-   */
+  /// A default String for use in generating argument list source contents on
+  /// the client side.
   String get defaultArgumentListString => _defaultArgumentListString;
 
-  /**
-   * A default String for use in generating argument list source contents on
-   * the client side.
-   */
-  void set defaultArgumentListString(String value) {
-    this._defaultArgumentListString = value;
+  /// A default String for use in generating argument list source contents on
+  /// the client side.
+  set defaultArgumentListString(String value) {
+    _defaultArgumentListString = value;
   }
 
-  /**
-   * Pairs of offsets and lengths describing 'defaultArgumentListString' text
-   * ranges suitable for use by clients to set up linked edits of default
-   * argument source contents. For example, given an argument list string 'x,
-   * y', the corresponding text range [0, 1, 3, 1], indicates two text ranges
-   * of length 1, starting at offsets 0 and 3. Clients can use these ranges to
-   * treat the 'x' and 'y' values specially for linked edits.
-   */
+  /// Pairs of offsets and lengths describing 'defaultArgumentListString' text
+  /// ranges suitable for use by clients to set up linked edits of default
+  /// argument source contents. For example, given an argument list string 'x,
+  /// y', the corresponding text range [0, 1, 3, 1], indicates two text ranges
+  /// of length 1, starting at offsets 0 and 3. Clients can use these ranges to
+  /// treat the 'x' and 'y' values specially for linked edits.
   List<int> get defaultArgumentListTextRanges => _defaultArgumentListTextRanges;
 
-  /**
-   * Pairs of offsets and lengths describing 'defaultArgumentListString' text
-   * ranges suitable for use by clients to set up linked edits of default
-   * argument source contents. For example, given an argument list string 'x,
-   * y', the corresponding text range [0, 1, 3, 1], indicates two text ranges
-   * of length 1, starting at offsets 0 and 3. Clients can use these ranges to
-   * treat the 'x' and 'y' values specially for linked edits.
-   */
-  void set defaultArgumentListTextRanges(List<int> value) {
-    this._defaultArgumentListTextRanges = value;
+  /// Pairs of offsets and lengths describing 'defaultArgumentListString' text
+  /// ranges suitable for use by clients to set up linked edits of default
+  /// argument source contents. For example, given an argument list string 'x,
+  /// y', the corresponding text range [0, 1, 3, 1], indicates two text ranges
+  /// of length 1, starting at offsets 0 and 3. Clients can use these ranges to
+  /// treat the 'x' and 'y' values specially for linked edits.
+  set defaultArgumentListTextRanges(List<int> value) {
+    _defaultArgumentListTextRanges = value;
   }
 
-  /**
-   * If the element is an executable, the names of the formal parameters of all
-   * kinds - required, optional positional, and optional named. The names of
-   * positional parameters are empty strings. Omitted if the element is not an
-   * executable.
-   */
+  /// If the element is an executable, the names of the formal parameters of
+  /// all kinds - required, optional positional, and optional named. The names
+  /// of positional parameters are empty strings. Omitted if the element is not
+  /// an executable.
   List<String> get parameterNames => _parameterNames;
 
-  /**
-   * If the element is an executable, the names of the formal parameters of all
-   * kinds - required, optional positional, and optional named. The names of
-   * positional parameters are empty strings. Omitted if the element is not an
-   * executable.
-   */
-  void set parameterNames(List<String> value) {
-    this._parameterNames = value;
+  /// If the element is an executable, the names of the formal parameters of
+  /// all kinds - required, optional positional, and optional named. The names
+  /// of positional parameters are empty strings. Omitted if the element is not
+  /// an executable.
+  set parameterNames(List<String> value) {
+    _parameterNames = value;
   }
 
-  /**
-   * If the element is an executable, the declared types of the formal
-   * parameters of all kinds - required, optional positional, and optional
-   * named. Omitted if the element is not an executable.
-   */
+  /// If the element is an executable, the declared types of the formal
+  /// parameters of all kinds - required, optional positional, and optional
+  /// named. Omitted if the element is not an executable.
   List<String> get parameterTypes => _parameterTypes;
 
-  /**
-   * If the element is an executable, the declared types of the formal
-   * parameters of all kinds - required, optional positional, and optional
-   * named. Omitted if the element is not an executable.
-   */
-  void set parameterTypes(List<String> value) {
-    this._parameterTypes = value;
+  /// If the element is an executable, the declared types of the formal
+  /// parameters of all kinds - required, optional positional, and optional
+  /// named. Omitted if the element is not an executable.
+  set parameterTypes(List<String> value) {
+    _parameterTypes = value;
   }
 
-  /**
-   * This field is set if the relevance of this suggestion might be changed
-   * depending on where completion is requested.
-   */
+  /// This field is set if the relevance of this suggestion might be changed
+  /// depending on where completion is requested.
   List<String> get relevanceTags => _relevanceTags;
 
-  /**
-   * This field is set if the relevance of this suggestion might be changed
-   * depending on where completion is requested.
-   */
-  void set relevanceTags(List<String> value) {
-    this._relevanceTags = value;
+  /// This field is set if the relevance of this suggestion might be changed
+  /// depending on where completion is requested.
+  set relevanceTags(List<String> value) {
+    _relevanceTags = value;
   }
 
   int get requiredParameterCount => _requiredParameterCount;
 
-  void set requiredParameterCount(int value) {
-    this._requiredParameterCount = value;
+  set requiredParameterCount(int value) {
+    _requiredParameterCount = value;
   }
 
   AvailableSuggestion(String label, String declaringLibraryUri, Element element,
@@ -5257,9 +4722,7 @@ class AvailableSuggestion implements HasToJson {
 
   factory AvailableSuggestion.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String label;
       if (json.containsKey("label")) {
@@ -5276,7 +4739,7 @@ class AvailableSuggestion implements HasToJson {
       }
       Element element;
       if (json.containsKey("element")) {
-        element = new Element.fromJson(
+        element = Element.fromJson(
             jsonDecoder, jsonPath + ".element", json["element"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "element");
@@ -5315,7 +4778,7 @@ class AvailableSuggestion implements HasToJson {
             jsonPath + ".requiredParameterCount",
             json["requiredParameterCount"]);
       }
-      return new AvailableSuggestion(label, declaringLibraryUri, element,
+      return AvailableSuggestion(label, declaringLibraryUri, element,
           defaultArgumentListString: defaultArgumentListString,
           defaultArgumentListTextRanges: defaultArgumentListTextRanges,
           parameterNames: parameterNames,
@@ -5393,17 +4856,15 @@ class AvailableSuggestion implements HasToJson {
   }
 }
 
-/**
- * AvailableSuggestionSet
- *
- * {
- *   "id": int
- *   "uri": String
- *   "items": List<AvailableSuggestion>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// AvailableSuggestionSet
+///
+/// {
+///   "id": int
+///   "uri": String
+///   "items": List<AvailableSuggestion>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AvailableSuggestionSet implements HasToJson {
   int _id;
 
@@ -5411,37 +4872,29 @@ class AvailableSuggestionSet implements HasToJson {
 
   List<AvailableSuggestion> _items;
 
-  /**
-   * The id associated with the library.
-   */
+  /// The id associated with the library.
   int get id => _id;
 
-  /**
-   * The id associated with the library.
-   */
-  void set id(int value) {
+  /// The id associated with the library.
+  set id(int value) {
     assert(value != null);
-    this._id = value;
+    _id = value;
   }
 
-  /**
-   * The URI of the library.
-   */
+  /// The URI of the library.
   String get uri => _uri;
 
-  /**
-   * The URI of the library.
-   */
-  void set uri(String value) {
+  /// The URI of the library.
+  set uri(String value) {
     assert(value != null);
-    this._uri = value;
+    _uri = value;
   }
 
   List<AvailableSuggestion> get items => _items;
 
-  void set items(List<AvailableSuggestion> value) {
+  set items(List<AvailableSuggestion> value) {
     assert(value != null);
-    this._items = value;
+    _items = value;
   }
 
   AvailableSuggestionSet(int id, String uri, List<AvailableSuggestion> items) {
@@ -5452,9 +4905,7 @@ class AvailableSuggestionSet implements HasToJson {
 
   factory AvailableSuggestionSet.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       int id;
       if (json.containsKey("id")) {
@@ -5474,11 +4925,11 @@ class AvailableSuggestionSet implements HasToJson {
             jsonPath + ".items",
             json["items"],
             (String jsonPath, Object json) =>
-                new AvailableSuggestion.fromJson(jsonDecoder, jsonPath, json));
+                AvailableSuggestion.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "items");
       }
-      return new AvailableSuggestionSet(id, uri, items);
+      return AvailableSuggestionSet(id, uri, items);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "AvailableSuggestionSet", json);
     }
@@ -5518,17 +4969,15 @@ class AvailableSuggestionSet implements HasToJson {
   }
 }
 
-/**
- * ClosingLabel
- *
- * {
- *   "offset": int
- *   "length": int
- *   "label": String
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// ClosingLabel
+///
+/// {
+///   "offset": int
+///   "length": int
+///   "label": String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ClosingLabel implements HasToJson {
   int _offset;
 
@@ -5536,43 +4985,33 @@ class ClosingLabel implements HasToJson {
 
   String _label;
 
-  /**
-   * The offset of the construct being labelled.
-   */
+  /// The offset of the construct being labelled.
   int get offset => _offset;
 
-  /**
-   * The offset of the construct being labelled.
-   */
-  void set offset(int value) {
+  /// The offset of the construct being labelled.
+  set offset(int value) {
     assert(value != null);
-    this._offset = value;
+    _offset = value;
   }
 
-  /**
-   * The length of the whole construct to be labelled.
-   */
+  /// The length of the whole construct to be labelled.
   int get length => _length;
 
-  /**
-   * The length of the whole construct to be labelled.
-   */
-  void set length(int value) {
+  /// The length of the whole construct to be labelled.
+  set length(int value) {
     assert(value != null);
-    this._length = value;
+    _length = value;
   }
 
-  /**
-   * The label associated with this range that should be displayed to the user.
-   */
+  /// The label associated with this range that should be displayed to the
+  /// user.
   String get label => _label;
 
-  /**
-   * The label associated with this range that should be displayed to the user.
-   */
-  void set label(String value) {
+  /// The label associated with this range that should be displayed to the
+  /// user.
+  set label(String value) {
     assert(value != null);
-    this._label = value;
+    _label = value;
   }
 
   ClosingLabel(int offset, int length, String label) {
@@ -5583,9 +5022,7 @@ class ClosingLabel implements HasToJson {
 
   factory ClosingLabel.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       int offset;
       if (json.containsKey("offset")) {
@@ -5605,7 +5042,7 @@ class ClosingLabel implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "label");
       }
-      return new ClosingLabel(offset, length, label);
+      return ClosingLabel(offset, length, label);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "ClosingLabel", json);
     }
@@ -5643,45 +5080,35 @@ class ClosingLabel implements HasToJson {
   }
 }
 
-/**
- * completion.availableSuggestions params
- *
- * {
- *   "changedLibraries": optional List<AvailableSuggestionSet>
- *   "removedLibraries": optional List<int>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// completion.availableSuggestions params
+///
+/// {
+///   "changedLibraries": optional List<AvailableSuggestionSet>
+///   "removedLibraries": optional List<int>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class CompletionAvailableSuggestionsParams implements HasToJson {
   List<AvailableSuggestionSet> _changedLibraries;
 
   List<int> _removedLibraries;
 
-  /**
-   * A list of pre-computed, potential completions coming from this set of
-   * completion suggestions.
-   */
+  /// A list of pre-computed, potential completions coming from this set of
+  /// completion suggestions.
   List<AvailableSuggestionSet> get changedLibraries => _changedLibraries;
 
-  /**
-   * A list of pre-computed, potential completions coming from this set of
-   * completion suggestions.
-   */
-  void set changedLibraries(List<AvailableSuggestionSet> value) {
-    this._changedLibraries = value;
+  /// A list of pre-computed, potential completions coming from this set of
+  /// completion suggestions.
+  set changedLibraries(List<AvailableSuggestionSet> value) {
+    _changedLibraries = value;
   }
 
-  /**
-   * A list of library ids that no longer apply.
-   */
+  /// A list of library ids that no longer apply.
   List<int> get removedLibraries => _removedLibraries;
 
-  /**
-   * A list of library ids that no longer apply.
-   */
-  void set removedLibraries(List<int> value) {
-    this._removedLibraries = value;
+  /// A list of library ids that no longer apply.
+  set removedLibraries(List<int> value) {
+    _removedLibraries = value;
   }
 
   CompletionAvailableSuggestionsParams(
@@ -5693,9 +5120,7 @@ class CompletionAvailableSuggestionsParams implements HasToJson {
 
   factory CompletionAvailableSuggestionsParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       List<AvailableSuggestionSet> changedLibraries;
       if (json.containsKey("changedLibraries")) {
@@ -5703,8 +5128,7 @@ class CompletionAvailableSuggestionsParams implements HasToJson {
             jsonPath + ".changedLibraries",
             json["changedLibraries"],
             (String jsonPath, Object json) =>
-                new AvailableSuggestionSet.fromJson(
-                    jsonDecoder, jsonPath, json));
+                AvailableSuggestionSet.fromJson(jsonDecoder, jsonPath, json));
       }
       List<int> removedLibraries;
       if (json.containsKey("removedLibraries")) {
@@ -5713,7 +5137,7 @@ class CompletionAvailableSuggestionsParams implements HasToJson {
             json["removedLibraries"],
             jsonDecoder.decodeInt);
       }
-      return new CompletionAvailableSuggestionsParams(
+      return CompletionAvailableSuggestionsParams(
           changedLibraries: changedLibraries,
           removedLibraries: removedLibraries);
     } else {
@@ -5724,8 +5148,8 @@ class CompletionAvailableSuggestionsParams implements HasToJson {
 
   factory CompletionAvailableSuggestionsParams.fromNotification(
       Notification notification) {
-    return new CompletionAvailableSuggestionsParams.fromJson(
-        new ResponseDecoder(null), "params", notification.params);
+    return CompletionAvailableSuggestionsParams.fromJson(
+        ResponseDecoder(null), "params", notification.params);
   }
 
   @override
@@ -5743,7 +5167,7 @@ class CompletionAvailableSuggestionsParams implements HasToJson {
   }
 
   Notification toNotification() {
-    return new Notification("completion.availableSuggestions", toJson());
+    return Notification("completion.availableSuggestions", toJson());
   }
 
   @override
@@ -5769,45 +5193,35 @@ class CompletionAvailableSuggestionsParams implements HasToJson {
   }
 }
 
-/**
- * completion.existingImports params
- *
- * {
- *   "file": FilePath
- *   "imports": ExistingImports
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// completion.existingImports params
+///
+/// {
+///   "file": FilePath
+///   "imports": ExistingImports
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class CompletionExistingImportsParams implements HasToJson {
   String _file;
 
   ExistingImports _imports;
 
-  /**
-   * The defining file of the library.
-   */
+  /// The defining file of the library.
   String get file => _file;
 
-  /**
-   * The defining file of the library.
-   */
-  void set file(String value) {
+  /// The defining file of the library.
+  set file(String value) {
     assert(value != null);
-    this._file = value;
+    _file = value;
   }
 
-  /**
-   * The existing imports in the library.
-   */
+  /// The existing imports in the library.
   ExistingImports get imports => _imports;
 
-  /**
-   * The existing imports in the library.
-   */
-  void set imports(ExistingImports value) {
+  /// The existing imports in the library.
+  set imports(ExistingImports value) {
     assert(value != null);
-    this._imports = value;
+    _imports = value;
   }
 
   CompletionExistingImportsParams(String file, ExistingImports imports) {
@@ -5817,9 +5231,7 @@ class CompletionExistingImportsParams implements HasToJson {
 
   factory CompletionExistingImportsParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -5829,12 +5241,12 @@ class CompletionExistingImportsParams implements HasToJson {
       }
       ExistingImports imports;
       if (json.containsKey("imports")) {
-        imports = new ExistingImports.fromJson(
+        imports = ExistingImports.fromJson(
             jsonDecoder, jsonPath + ".imports", json["imports"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "imports");
       }
-      return new CompletionExistingImportsParams(file, imports);
+      return CompletionExistingImportsParams(file, imports);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "completion.existingImports params", json);
@@ -5843,8 +5255,8 @@ class CompletionExistingImportsParams implements HasToJson {
 
   factory CompletionExistingImportsParams.fromNotification(
       Notification notification) {
-    return new CompletionExistingImportsParams.fromJson(
-        new ResponseDecoder(null), "params", notification.params);
+    return CompletionExistingImportsParams.fromJson(
+        ResponseDecoder(null), "params", notification.params);
   }
 
   @override
@@ -5856,7 +5268,7 @@ class CompletionExistingImportsParams implements HasToJson {
   }
 
   Notification toNotification() {
-    return new Notification("completion.existingImports", toJson());
+    return Notification("completion.existingImports", toJson());
   }
 
   @override
@@ -5879,18 +5291,16 @@ class CompletionExistingImportsParams implements HasToJson {
   }
 }
 
-/**
- * completion.getSuggestionDetails params
- *
- * {
- *   "file": FilePath
- *   "id": int
- *   "label": String
- *   "offset": int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// completion.getSuggestionDetails params
+///
+/// {
+///   "file": FilePath
+///   "id": int
+///   "label": String
+///   "offset": int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class CompletionGetSuggestionDetailsParams implements RequestParams {
   String _file;
 
@@ -5900,60 +5310,44 @@ class CompletionGetSuggestionDetailsParams implements RequestParams {
 
   int _offset;
 
-  /**
-   * The path of the file into which this completion is being inserted.
-   */
+  /// The path of the file into which this completion is being inserted.
   String get file => _file;
 
-  /**
-   * The path of the file into which this completion is being inserted.
-   */
-  void set file(String value) {
+  /// The path of the file into which this completion is being inserted.
+  set file(String value) {
     assert(value != null);
-    this._file = value;
+    _file = value;
   }
 
-  /**
-   * The identifier of the AvailableSuggestionSet containing the selected
-   * label.
-   */
+  /// The identifier of the AvailableSuggestionSet containing the selected
+  /// label.
   int get id => _id;
 
-  /**
-   * The identifier of the AvailableSuggestionSet containing the selected
-   * label.
-   */
-  void set id(int value) {
+  /// The identifier of the AvailableSuggestionSet containing the selected
+  /// label.
+  set id(int value) {
     assert(value != null);
-    this._id = value;
+    _id = value;
   }
 
-  /**
-   * The label from the AvailableSuggestionSet with the `id` for which
-   * insertion information is requested.
-   */
+  /// The label from the AvailableSuggestionSet with the `id` for which
+  /// insertion information is requested.
   String get label => _label;
 
-  /**
-   * The label from the AvailableSuggestionSet with the `id` for which
-   * insertion information is requested.
-   */
-  void set label(String value) {
+  /// The label from the AvailableSuggestionSet with the `id` for which
+  /// insertion information is requested.
+  set label(String value) {
     assert(value != null);
-    this._label = value;
+    _label = value;
   }
 
-  /**
-   * The offset in the file where the completion will be inserted.
-   */
+  /// The offset in the file where the completion will be inserted.
   int get offset => _offset;
 
-  /**
-   * The offset in the file where the completion will be inserted.
-   */
-  void set offset(int value) {
+  /// The offset in the file where the completion will be inserted.
+  set offset(int value) {
     assert(value != null);
-    this._offset = value;
+    _offset = value;
   }
 
   CompletionGetSuggestionDetailsParams(
@@ -5966,9 +5360,7 @@ class CompletionGetSuggestionDetailsParams implements RequestParams {
 
   factory CompletionGetSuggestionDetailsParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -5994,7 +5386,7 @@ class CompletionGetSuggestionDetailsParams implements RequestParams {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "offset");
       }
-      return new CompletionGetSuggestionDetailsParams(file, id, label, offset);
+      return CompletionGetSuggestionDetailsParams(file, id, label, offset);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "completion.getSuggestionDetails params", json);
@@ -6002,8 +5394,8 @@ class CompletionGetSuggestionDetailsParams implements RequestParams {
   }
 
   factory CompletionGetSuggestionDetailsParams.fromRequest(Request request) {
-    return new CompletionGetSuggestionDetailsParams.fromJson(
-        new RequestDecoder(request), "params", request.params);
+    return CompletionGetSuggestionDetailsParams.fromJson(
+        RequestDecoder(request), "params", request.params);
   }
 
   @override
@@ -6018,7 +5410,7 @@ class CompletionGetSuggestionDetailsParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "completion.getSuggestionDetails", toJson());
+    return Request(id, "completion.getSuggestionDetails", toJson());
   }
 
   @override
@@ -6046,48 +5438,38 @@ class CompletionGetSuggestionDetailsParams implements RequestParams {
   }
 }
 
-/**
- * completion.getSuggestionDetails result
- *
- * {
- *   "completion": String
- *   "change": optional SourceChange
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// completion.getSuggestionDetails result
+///
+/// {
+///   "completion": String
+///   "change": optional SourceChange
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class CompletionGetSuggestionDetailsResult implements ResponseResult {
   String _completion;
 
   SourceChange _change;
 
-  /**
-   * The full text to insert, including any optional import prefix.
-   */
+  /// The full text to insert, including any optional import prefix.
   String get completion => _completion;
 
-  /**
-   * The full text to insert, including any optional import prefix.
-   */
-  void set completion(String value) {
+  /// The full text to insert, including any optional import prefix.
+  set completion(String value) {
     assert(value != null);
-    this._completion = value;
+    _completion = value;
   }
 
-  /**
-   * A change for the client to apply in case the library containing the
-   * accepted completion suggestion needs to be imported. The field will be
-   * omitted if there are no additional changes that need to be made.
-   */
+  /// A change for the client to apply in case the library containing the
+  /// accepted completion suggestion needs to be imported. The field will be
+  /// omitted if there are no additional changes that need to be made.
   SourceChange get change => _change;
 
-  /**
-   * A change for the client to apply in case the library containing the
-   * accepted completion suggestion needs to be imported. The field will be
-   * omitted if there are no additional changes that need to be made.
-   */
-  void set change(SourceChange value) {
-    this._change = value;
+  /// A change for the client to apply in case the library containing the
+  /// accepted completion suggestion needs to be imported. The field will be
+  /// omitted if there are no additional changes that need to be made.
+  set change(SourceChange value) {
+    _change = value;
   }
 
   CompletionGetSuggestionDetailsResult(String completion,
@@ -6098,9 +5480,7 @@ class CompletionGetSuggestionDetailsResult implements ResponseResult {
 
   factory CompletionGetSuggestionDetailsResult.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String completion;
       if (json.containsKey("completion")) {
@@ -6111,11 +5491,10 @@ class CompletionGetSuggestionDetailsResult implements ResponseResult {
       }
       SourceChange change;
       if (json.containsKey("change")) {
-        change = new SourceChange.fromJson(
+        change = SourceChange.fromJson(
             jsonDecoder, jsonPath + ".change", json["change"]);
       }
-      return new CompletionGetSuggestionDetailsResult(completion,
-          change: change);
+      return CompletionGetSuggestionDetailsResult(completion, change: change);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "completion.getSuggestionDetails result", json);
@@ -6123,8 +5502,8 @@ class CompletionGetSuggestionDetailsResult implements ResponseResult {
   }
 
   factory CompletionGetSuggestionDetailsResult.fromResponse(Response response) {
-    return new CompletionGetSuggestionDetailsResult.fromJson(
-        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+    return CompletionGetSuggestionDetailsResult.fromJson(
+        ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         "result",
         response.result);
   }
@@ -6141,7 +5520,7 @@ class CompletionGetSuggestionDetailsResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return new Response(id, result: toJson());
+    return Response(id, result: toJson());
   }
 
   @override
@@ -6164,45 +5543,35 @@ class CompletionGetSuggestionDetailsResult implements ResponseResult {
   }
 }
 
-/**
- * completion.getSuggestions params
- *
- * {
- *   "file": FilePath
- *   "offset": int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// completion.getSuggestions params
+///
+/// {
+///   "file": FilePath
+///   "offset": int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class CompletionGetSuggestionsParams implements RequestParams {
   String _file;
 
   int _offset;
 
-  /**
-   * The file containing the point at which suggestions are to be made.
-   */
+  /// The file containing the point at which suggestions are to be made.
   String get file => _file;
 
-  /**
-   * The file containing the point at which suggestions are to be made.
-   */
-  void set file(String value) {
+  /// The file containing the point at which suggestions are to be made.
+  set file(String value) {
     assert(value != null);
-    this._file = value;
+    _file = value;
   }
 
-  /**
-   * The offset within the file at which suggestions are to be made.
-   */
+  /// The offset within the file at which suggestions are to be made.
   int get offset => _offset;
 
-  /**
-   * The offset within the file at which suggestions are to be made.
-   */
-  void set offset(int value) {
+  /// The offset within the file at which suggestions are to be made.
+  set offset(int value) {
     assert(value != null);
-    this._offset = value;
+    _offset = value;
   }
 
   CompletionGetSuggestionsParams(String file, int offset) {
@@ -6212,9 +5581,7 @@ class CompletionGetSuggestionsParams implements RequestParams {
 
   factory CompletionGetSuggestionsParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -6228,7 +5595,7 @@ class CompletionGetSuggestionsParams implements RequestParams {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "offset");
       }
-      return new CompletionGetSuggestionsParams(file, offset);
+      return CompletionGetSuggestionsParams(file, offset);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "completion.getSuggestions params", json);
@@ -6236,8 +5603,8 @@ class CompletionGetSuggestionsParams implements RequestParams {
   }
 
   factory CompletionGetSuggestionsParams.fromRequest(Request request) {
-    return new CompletionGetSuggestionsParams.fromJson(
-        new RequestDecoder(request), "params", request.params);
+    return CompletionGetSuggestionsParams.fromJson(
+        RequestDecoder(request), "params", request.params);
   }
 
   @override
@@ -6250,7 +5617,7 @@ class CompletionGetSuggestionsParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "completion.getSuggestions", toJson());
+    return Request(id, "completion.getSuggestions", toJson());
   }
 
   @override
@@ -6273,29 +5640,23 @@ class CompletionGetSuggestionsParams implements RequestParams {
   }
 }
 
-/**
- * completion.getSuggestions result
- *
- * {
- *   "id": CompletionId
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// completion.getSuggestions result
+///
+/// {
+///   "id": CompletionId
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class CompletionGetSuggestionsResult implements ResponseResult {
   String _id;
 
-  /**
-   * The identifier used to associate results with this completion request.
-   */
+  /// The identifier used to associate results with this completion request.
   String get id => _id;
 
-  /**
-   * The identifier used to associate results with this completion request.
-   */
-  void set id(String value) {
+  /// The identifier used to associate results with this completion request.
+  set id(String value) {
     assert(value != null);
-    this._id = value;
+    _id = value;
   }
 
   CompletionGetSuggestionsResult(String id) {
@@ -6304,9 +5665,7 @@ class CompletionGetSuggestionsResult implements ResponseResult {
 
   factory CompletionGetSuggestionsResult.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String id;
       if (json.containsKey("id")) {
@@ -6314,7 +5673,7 @@ class CompletionGetSuggestionsResult implements ResponseResult {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "id");
       }
-      return new CompletionGetSuggestionsResult(id);
+      return CompletionGetSuggestionsResult(id);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "completion.getSuggestions result", json);
@@ -6322,8 +5681,8 @@ class CompletionGetSuggestionsResult implements ResponseResult {
   }
 
   factory CompletionGetSuggestionsResult.fromResponse(Response response) {
-    return new CompletionGetSuggestionsResult.fromJson(
-        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+    return CompletionGetSuggestionsResult.fromJson(
+        ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         "result",
         response.result);
   }
@@ -6337,7 +5696,7 @@ class CompletionGetSuggestionsResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return new Response(id, result: toJson());
+    return Response(id, result: toJson());
   }
 
   @override
@@ -6359,29 +5718,23 @@ class CompletionGetSuggestionsResult implements ResponseResult {
   }
 }
 
-/**
- * completion.listTokenDetails params
- *
- * {
- *   "file": FilePath
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// completion.listTokenDetails params
+///
+/// {
+///   "file": FilePath
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class CompletionListTokenDetailsParams implements RequestParams {
   String _file;
 
-  /**
-   * The path to the file from which tokens should be returned.
-   */
+  /// The path to the file from which tokens should be returned.
   String get file => _file;
 
-  /**
-   * The path to the file from which tokens should be returned.
-   */
-  void set file(String value) {
+  /// The path to the file from which tokens should be returned.
+  set file(String value) {
     assert(value != null);
-    this._file = value;
+    _file = value;
   }
 
   CompletionListTokenDetailsParams(String file) {
@@ -6390,9 +5743,7 @@ class CompletionListTokenDetailsParams implements RequestParams {
 
   factory CompletionListTokenDetailsParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -6400,7 +5751,7 @@ class CompletionListTokenDetailsParams implements RequestParams {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "file");
       }
-      return new CompletionListTokenDetailsParams(file);
+      return CompletionListTokenDetailsParams(file);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "completion.listTokenDetails params", json);
@@ -6408,8 +5759,8 @@ class CompletionListTokenDetailsParams implements RequestParams {
   }
 
   factory CompletionListTokenDetailsParams.fromRequest(Request request) {
-    return new CompletionListTokenDetailsParams.fromJson(
-        new RequestDecoder(request), "params", request.params);
+    return CompletionListTokenDetailsParams.fromJson(
+        RequestDecoder(request), "params", request.params);
   }
 
   @override
@@ -6421,7 +5772,7 @@ class CompletionListTokenDetailsParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "completion.listTokenDetails", toJson());
+    return Request(id, "completion.listTokenDetails", toJson());
   }
 
   @override
@@ -6443,31 +5794,25 @@ class CompletionListTokenDetailsParams implements RequestParams {
   }
 }
 
-/**
- * completion.listTokenDetails result
- *
- * {
- *   "tokens": List<TokenDetails>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// completion.listTokenDetails result
+///
+/// {
+///   "tokens": List<TokenDetails>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class CompletionListTokenDetailsResult implements ResponseResult {
   List<TokenDetails> _tokens;
 
-  /**
-   * A list of the file's scanned tokens including analysis information about
-   * them.
-   */
+  /// A list of the file's scanned tokens including analysis information about
+  /// them.
   List<TokenDetails> get tokens => _tokens;
 
-  /**
-   * A list of the file's scanned tokens including analysis information about
-   * them.
-   */
-  void set tokens(List<TokenDetails> value) {
+  /// A list of the file's scanned tokens including analysis information about
+  /// them.
+  set tokens(List<TokenDetails> value) {
     assert(value != null);
-    this._tokens = value;
+    _tokens = value;
   }
 
   CompletionListTokenDetailsResult(List<TokenDetails> tokens) {
@@ -6476,9 +5821,7 @@ class CompletionListTokenDetailsResult implements ResponseResult {
 
   factory CompletionListTokenDetailsResult.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       List<TokenDetails> tokens;
       if (json.containsKey("tokens")) {
@@ -6486,11 +5829,11 @@ class CompletionListTokenDetailsResult implements ResponseResult {
             jsonPath + ".tokens",
             json["tokens"],
             (String jsonPath, Object json) =>
-                new TokenDetails.fromJson(jsonDecoder, jsonPath, json));
+                TokenDetails.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "tokens");
       }
-      return new CompletionListTokenDetailsResult(tokens);
+      return CompletionListTokenDetailsResult(tokens);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "completion.listTokenDetails result", json);
@@ -6498,8 +5841,8 @@ class CompletionListTokenDetailsResult implements ResponseResult {
   }
 
   factory CompletionListTokenDetailsResult.fromResponse(Response response) {
-    return new CompletionListTokenDetailsResult.fromJson(
-        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+    return CompletionListTokenDetailsResult.fromJson(
+        ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         "result",
         response.result);
   }
@@ -6514,7 +5857,7 @@ class CompletionListTokenDetailsResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return new Response(id, result: toJson());
+    return Response(id, result: toJson());
   }
 
   @override
@@ -6537,35 +5880,29 @@ class CompletionListTokenDetailsResult implements ResponseResult {
   }
 }
 
-/**
- * completion.registerLibraryPaths params
- *
- * {
- *   "paths": List<LibraryPathSet>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// completion.registerLibraryPaths params
+///
+/// {
+///   "paths": List<LibraryPathSet>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class CompletionRegisterLibraryPathsParams implements RequestParams {
   List<LibraryPathSet> _paths;
 
-  /**
-   * A list of objects each containing a path and the additional libraries from
-   * which the client is interested in receiving completion suggestions. If one
-   * configured path is beneath another, the descendent will override the
-   * ancestors' configured libraries of interest.
-   */
+  /// A list of objects each containing a path and the additional libraries
+  /// from which the client is interested in receiving completion suggestions.
+  /// If one configured path is beneath another, the descendent will override
+  /// the ancestors' configured libraries of interest.
   List<LibraryPathSet> get paths => _paths;
 
-  /**
-   * A list of objects each containing a path and the additional libraries from
-   * which the client is interested in receiving completion suggestions. If one
-   * configured path is beneath another, the descendent will override the
-   * ancestors' configured libraries of interest.
-   */
-  void set paths(List<LibraryPathSet> value) {
+  /// A list of objects each containing a path and the additional libraries
+  /// from which the client is interested in receiving completion suggestions.
+  /// If one configured path is beneath another, the descendent will override
+  /// the ancestors' configured libraries of interest.
+  set paths(List<LibraryPathSet> value) {
     assert(value != null);
-    this._paths = value;
+    _paths = value;
   }
 
   CompletionRegisterLibraryPathsParams(List<LibraryPathSet> paths) {
@@ -6574,9 +5911,7 @@ class CompletionRegisterLibraryPathsParams implements RequestParams {
 
   factory CompletionRegisterLibraryPathsParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       List<LibraryPathSet> paths;
       if (json.containsKey("paths")) {
@@ -6584,11 +5919,11 @@ class CompletionRegisterLibraryPathsParams implements RequestParams {
             jsonPath + ".paths",
             json["paths"],
             (String jsonPath, Object json) =>
-                new LibraryPathSet.fromJson(jsonDecoder, jsonPath, json));
+                LibraryPathSet.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "paths");
       }
-      return new CompletionRegisterLibraryPathsParams(paths);
+      return CompletionRegisterLibraryPathsParams(paths);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "completion.registerLibraryPaths params", json);
@@ -6596,8 +5931,8 @@ class CompletionRegisterLibraryPathsParams implements RequestParams {
   }
 
   factory CompletionRegisterLibraryPathsParams.fromRequest(Request request) {
-    return new CompletionRegisterLibraryPathsParams.fromJson(
-        new RequestDecoder(request), "params", request.params);
+    return CompletionRegisterLibraryPathsParams.fromJson(
+        RequestDecoder(request), "params", request.params);
   }
 
   @override
@@ -6610,7 +5945,7 @@ class CompletionRegisterLibraryPathsParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "completion.registerLibraryPaths", toJson());
+    return Request(id, "completion.registerLibraryPaths", toJson());
   }
 
   @override
@@ -6633,18 +5968,16 @@ class CompletionRegisterLibraryPathsParams implements RequestParams {
   }
 }
 
-/**
- * completion.registerLibraryPaths result
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// completion.registerLibraryPaths result
+///
+/// Clients may not extend, implement or mix-in this class.
 class CompletionRegisterLibraryPathsResult implements ResponseResult {
   @override
   Map<String, dynamic> toJson() => <String, dynamic>{};
 
   @override
   Response toResponse(String id) {
-    return new Response(id, result: null);
+    return Response(id, result: null);
   }
 
   @override
@@ -6661,23 +5994,21 @@ class CompletionRegisterLibraryPathsResult implements ResponseResult {
   }
 }
 
-/**
- * completion.results params
- *
- * {
- *   "id": CompletionId
- *   "replacementOffset": int
- *   "replacementLength": int
- *   "results": List<CompletionSuggestion>
- *   "isLast": bool
- *   "libraryFile": optional FilePath
- *   "includedSuggestionSets": optional List<IncludedSuggestionSet>
- *   "includedElementKinds": optional List<ElementKind>
- *   "includedSuggestionRelevanceTags": optional List<IncludedSuggestionRelevanceTag>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// completion.results params
+///
+/// {
+///   "id": CompletionId
+///   "replacementOffset": int
+///   "replacementLength": int
+///   "results": List<CompletionSuggestion>
+///   "isLast": bool
+///   "libraryFile": optional FilePath
+///   "includedSuggestionSets": optional List<IncludedSuggestionSet>
+///   "includedElementKinds": optional List<ElementKind>
+///   "includedSuggestionRelevanceTags": optional List<IncludedSuggestionRelevanceTag>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class CompletionResultsParams implements HasToJson {
   String _id;
 
@@ -6697,170 +6028,136 @@ class CompletionResultsParams implements HasToJson {
 
   List<IncludedSuggestionRelevanceTag> _includedSuggestionRelevanceTags;
 
-  /**
-   * The id associated with the completion.
-   */
+  /// The id associated with the completion.
   String get id => _id;
 
-  /**
-   * The id associated with the completion.
-   */
-  void set id(String value) {
+  /// The id associated with the completion.
+  set id(String value) {
     assert(value != null);
-    this._id = value;
+    _id = value;
   }
 
-  /**
-   * The offset of the start of the text to be replaced. This will be different
-   * than the offset used to request the completion suggestions if there was a
-   * portion of an identifier before the original offset. In particular, the
-   * replacementOffset will be the offset of the beginning of said identifier.
-   */
+  /// The offset of the start of the text to be replaced. This will be
+  /// different than the offset used to request the completion suggestions if
+  /// there was a portion of an identifier before the original offset. In
+  /// particular, the replacementOffset will be the offset of the beginning of
+  /// said identifier.
   int get replacementOffset => _replacementOffset;
 
-  /**
-   * The offset of the start of the text to be replaced. This will be different
-   * than the offset used to request the completion suggestions if there was a
-   * portion of an identifier before the original offset. In particular, the
-   * replacementOffset will be the offset of the beginning of said identifier.
-   */
-  void set replacementOffset(int value) {
+  /// The offset of the start of the text to be replaced. This will be
+  /// different than the offset used to request the completion suggestions if
+  /// there was a portion of an identifier before the original offset. In
+  /// particular, the replacementOffset will be the offset of the beginning of
+  /// said identifier.
+  set replacementOffset(int value) {
     assert(value != null);
-    this._replacementOffset = value;
+    _replacementOffset = value;
   }
 
-  /**
-   * The length of the text to be replaced if the remainder of the identifier
-   * containing the cursor is to be replaced when the suggestion is applied
-   * (that is, the number of characters in the existing identifier).
-   */
+  /// The length of the text to be replaced if the remainder of the identifier
+  /// containing the cursor is to be replaced when the suggestion is applied
+  /// (that is, the number of characters in the existing identifier).
   int get replacementLength => _replacementLength;
 
-  /**
-   * The length of the text to be replaced if the remainder of the identifier
-   * containing the cursor is to be replaced when the suggestion is applied
-   * (that is, the number of characters in the existing identifier).
-   */
-  void set replacementLength(int value) {
+  /// The length of the text to be replaced if the remainder of the identifier
+  /// containing the cursor is to be replaced when the suggestion is applied
+  /// (that is, the number of characters in the existing identifier).
+  set replacementLength(int value) {
     assert(value != null);
-    this._replacementLength = value;
+    _replacementLength = value;
   }
 
-  /**
-   * The completion suggestions being reported. The notification contains all
-   * possible completions at the requested cursor position, even those that do
-   * not match the characters the user has already typed. This allows the
-   * client to respond to further keystrokes from the user without having to
-   * make additional requests.
-   */
+  /// The completion suggestions being reported. The notification contains all
+  /// possible completions at the requested cursor position, even those that do
+  /// not match the characters the user has already typed. This allows the
+  /// client to respond to further keystrokes from the user without having to
+  /// make additional requests.
   List<CompletionSuggestion> get results => _results;
 
-  /**
-   * The completion suggestions being reported. The notification contains all
-   * possible completions at the requested cursor position, even those that do
-   * not match the characters the user has already typed. This allows the
-   * client to respond to further keystrokes from the user without having to
-   * make additional requests.
-   */
-  void set results(List<CompletionSuggestion> value) {
+  /// The completion suggestions being reported. The notification contains all
+  /// possible completions at the requested cursor position, even those that do
+  /// not match the characters the user has already typed. This allows the
+  /// client to respond to further keystrokes from the user without having to
+  /// make additional requests.
+  set results(List<CompletionSuggestion> value) {
     assert(value != null);
-    this._results = value;
+    _results = value;
   }
 
-  /**
-   * True if this is that last set of results that will be returned for the
-   * indicated completion.
-   */
+  /// True if this is that last set of results that will be returned for the
+  /// indicated completion.
   bool get isLast => _isLast;
 
-  /**
-   * True if this is that last set of results that will be returned for the
-   * indicated completion.
-   */
-  void set isLast(bool value) {
+  /// True if this is that last set of results that will be returned for the
+  /// indicated completion.
+  set isLast(bool value) {
     assert(value != null);
-    this._isLast = value;
+    _isLast = value;
   }
 
-  /**
-   * The library file that contains the file where completion was requested.
-   * The client might use it for example together with the existingImports
-   * notification to filter out available suggestions. If there were changes to
-   * existing imports in the library, the corresponding existingImports
-   * notification will be sent before the completion notification.
-   */
+  /// The library file that contains the file where completion was requested.
+  /// The client might use it for example together with the existingImports
+  /// notification to filter out available suggestions. If there were changes
+  /// to existing imports in the library, the corresponding existingImports
+  /// notification will be sent before the completion notification.
   String get libraryFile => _libraryFile;
 
-  /**
-   * The library file that contains the file where completion was requested.
-   * The client might use it for example together with the existingImports
-   * notification to filter out available suggestions. If there were changes to
-   * existing imports in the library, the corresponding existingImports
-   * notification will be sent before the completion notification.
-   */
-  void set libraryFile(String value) {
-    this._libraryFile = value;
+  /// The library file that contains the file where completion was requested.
+  /// The client might use it for example together with the existingImports
+  /// notification to filter out available suggestions. If there were changes
+  /// to existing imports in the library, the corresponding existingImports
+  /// notification will be sent before the completion notification.
+  set libraryFile(String value) {
+    _libraryFile = value;
   }
 
-  /**
-   * References to AvailableSuggestionSet objects previously sent to the
-   * client. The client can include applicable names from the referenced
-   * library in code completion suggestions.
-   */
+  /// References to AvailableSuggestionSet objects previously sent to the
+  /// client. The client can include applicable names from the referenced
+  /// library in code completion suggestions.
   List<IncludedSuggestionSet> get includedSuggestionSets =>
       _includedSuggestionSets;
 
-  /**
-   * References to AvailableSuggestionSet objects previously sent to the
-   * client. The client can include applicable names from the referenced
-   * library in code completion suggestions.
-   */
-  void set includedSuggestionSets(List<IncludedSuggestionSet> value) {
-    this._includedSuggestionSets = value;
+  /// References to AvailableSuggestionSet objects previously sent to the
+  /// client. The client can include applicable names from the referenced
+  /// library in code completion suggestions.
+  set includedSuggestionSets(List<IncludedSuggestionSet> value) {
+    _includedSuggestionSets = value;
   }
 
-  /**
-   * The client is expected to check this list against the ElementKind sent in
-   * IncludedSuggestionSet to decide whether or not these symbols should should
-   * be presented to the user.
-   */
+  /// The client is expected to check this list against the ElementKind sent in
+  /// IncludedSuggestionSet to decide whether or not these symbols should
+  /// should be presented to the user.
   List<ElementKind> get includedElementKinds => _includedElementKinds;
 
-  /**
-   * The client is expected to check this list against the ElementKind sent in
-   * IncludedSuggestionSet to decide whether or not these symbols should should
-   * be presented to the user.
-   */
-  void set includedElementKinds(List<ElementKind> value) {
-    this._includedElementKinds = value;
+  /// The client is expected to check this list against the ElementKind sent in
+  /// IncludedSuggestionSet to decide whether or not these symbols should
+  /// should be presented to the user.
+  set includedElementKinds(List<ElementKind> value) {
+    _includedElementKinds = value;
   }
 
-  /**
-   * The client is expected to check this list against the values of the field
-   * relevanceTags of AvailableSuggestion to decide if the suggestion should be
-   * given a different relevance than the IncludedSuggestionSet that contains
-   * it. This might be used for example to give higher relevance to suggestions
-   * of matching types.
-   *
-   * If an AvailableSuggestion has relevance tags that match more than one
-   * IncludedSuggestionRelevanceTag, the maximum relevance boost is used.
-   */
+  /// The client is expected to check this list against the values of the field
+  /// relevanceTags of AvailableSuggestion to decide if the suggestion should
+  /// be given a different relevance than the IncludedSuggestionSet that
+  /// contains it. This might be used for example to give higher relevance to
+  /// suggestions of matching types.
+  ///
+  /// If an AvailableSuggestion has relevance tags that match more than one
+  /// IncludedSuggestionRelevanceTag, the maximum relevance boost is used.
   List<IncludedSuggestionRelevanceTag> get includedSuggestionRelevanceTags =>
       _includedSuggestionRelevanceTags;
 
-  /**
-   * The client is expected to check this list against the values of the field
-   * relevanceTags of AvailableSuggestion to decide if the suggestion should be
-   * given a different relevance than the IncludedSuggestionSet that contains
-   * it. This might be used for example to give higher relevance to suggestions
-   * of matching types.
-   *
-   * If an AvailableSuggestion has relevance tags that match more than one
-   * IncludedSuggestionRelevanceTag, the maximum relevance boost is used.
-   */
-  void set includedSuggestionRelevanceTags(
+  /// The client is expected to check this list against the values of the field
+  /// relevanceTags of AvailableSuggestion to decide if the suggestion should
+  /// be given a different relevance than the IncludedSuggestionSet that
+  /// contains it. This might be used for example to give higher relevance to
+  /// suggestions of matching types.
+  ///
+  /// If an AvailableSuggestion has relevance tags that match more than one
+  /// IncludedSuggestionRelevanceTag, the maximum relevance boost is used.
+  set includedSuggestionRelevanceTags(
       List<IncludedSuggestionRelevanceTag> value) {
-    this._includedSuggestionRelevanceTags = value;
+    _includedSuggestionRelevanceTags = value;
   }
 
   CompletionResultsParams(String id, int replacementOffset,
@@ -6882,9 +6179,7 @@ class CompletionResultsParams implements HasToJson {
 
   factory CompletionResultsParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String id;
       if (json.containsKey("id")) {
@@ -6912,7 +6207,7 @@ class CompletionResultsParams implements HasToJson {
             jsonPath + ".results",
             json["results"],
             (String jsonPath, Object json) =>
-                new CompletionSuggestion.fromJson(jsonDecoder, jsonPath, json));
+                CompletionSuggestion.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "results");
       }
@@ -6933,8 +6228,7 @@ class CompletionResultsParams implements HasToJson {
             jsonPath + ".includedSuggestionSets",
             json["includedSuggestionSets"],
             (String jsonPath, Object json) =>
-                new IncludedSuggestionSet.fromJson(
-                    jsonDecoder, jsonPath, json));
+                IncludedSuggestionSet.fromJson(jsonDecoder, jsonPath, json));
       }
       List<ElementKind> includedElementKinds;
       if (json.containsKey("includedElementKinds")) {
@@ -6942,7 +6236,7 @@ class CompletionResultsParams implements HasToJson {
             jsonPath + ".includedElementKinds",
             json["includedElementKinds"],
             (String jsonPath, Object json) =>
-                new ElementKind.fromJson(jsonDecoder, jsonPath, json));
+                ElementKind.fromJson(jsonDecoder, jsonPath, json));
       }
       List<IncludedSuggestionRelevanceTag> includedSuggestionRelevanceTags;
       if (json.containsKey("includedSuggestionRelevanceTags")) {
@@ -6950,10 +6244,10 @@ class CompletionResultsParams implements HasToJson {
             jsonPath + ".includedSuggestionRelevanceTags",
             json["includedSuggestionRelevanceTags"],
             (String jsonPath, Object json) =>
-                new IncludedSuggestionRelevanceTag.fromJson(
+                IncludedSuggestionRelevanceTag.fromJson(
                     jsonDecoder, jsonPath, json));
       }
-      return new CompletionResultsParams(
+      return CompletionResultsParams(
           id, replacementOffset, replacementLength, results, isLast,
           libraryFile: libraryFile,
           includedSuggestionSets: includedSuggestionSets,
@@ -6965,8 +6259,8 @@ class CompletionResultsParams implements HasToJson {
   }
 
   factory CompletionResultsParams.fromNotification(Notification notification) {
-    return new CompletionResultsParams.fromJson(
-        new ResponseDecoder(null), "params", notification.params);
+    return CompletionResultsParams.fromJson(
+        ResponseDecoder(null), "params", notification.params);
   }
 
   @override
@@ -7001,7 +6295,7 @@ class CompletionResultsParams implements HasToJson {
   }
 
   Notification toNotification() {
-    return new Notification("completion.results", toJson());
+    return Notification("completion.results", toJson());
   }
 
   @override
@@ -7048,32 +6342,26 @@ class CompletionResultsParams implements HasToJson {
   }
 }
 
-/**
- * CompletionService
- *
- * enum {
- *   AVAILABLE_SUGGESTION_SETS
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// CompletionService
+///
+/// enum {
+///   AVAILABLE_SUGGESTION_SETS
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class CompletionService implements Enum {
-  /**
-   * The client will receive availableSuggestions notifications once subscribed
-   * with completion suggestion sets from the libraries of interest. The client
-   * should keep an up-to-date record of these in memory so that it will be
-   * able to union these candidates with other completion suggestions when
-   * applicable at completion time.
-   *
-   * The client will also receive existingImports notifications.
-   */
+  /// The client will receive availableSuggestions notifications once
+  /// subscribed with completion suggestion sets from the libraries of
+  /// interest. The client should keep an up-to-date record of these in memory
+  /// so that it will be able to union these candidates with other completion
+  /// suggestions when applicable at completion time.
+  ///
+  /// The client will also receive existingImports notifications.
   static const CompletionService AVAILABLE_SUGGESTION_SETS =
-      const CompletionService._("AVAILABLE_SUGGESTION_SETS");
+      CompletionService._("AVAILABLE_SUGGESTION_SETS");
 
-  /**
-   * A list containing all of the enum values that are defined.
-   */
-  static const List<CompletionService> VALUES = const <CompletionService>[
+  /// A list containing all of the enum values that are defined.
+  static const List<CompletionService> VALUES = <CompletionService>[
     AVAILABLE_SUGGESTION_SETS
   ];
 
@@ -7087,14 +6375,14 @@ class CompletionService implements Enum {
       case "AVAILABLE_SUGGESTION_SETS":
         return AVAILABLE_SUGGESTION_SETS;
     }
-    throw new Exception('Illegal enum value: $name');
+    throw Exception('Illegal enum value: $name');
   }
 
   factory CompletionService.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json is String) {
       try {
-        return new CompletionService(json);
+        return CompletionService(json);
       } catch (_) {
         // Fall through
       }
@@ -7108,29 +6396,23 @@ class CompletionService implements Enum {
   String toJson() => name;
 }
 
-/**
- * completion.setSubscriptions params
- *
- * {
- *   "subscriptions": List<CompletionService>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// completion.setSubscriptions params
+///
+/// {
+///   "subscriptions": List<CompletionService>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class CompletionSetSubscriptionsParams implements RequestParams {
   List<CompletionService> _subscriptions;
 
-  /**
-   * A list of the services being subscribed to.
-   */
+  /// A list of the services being subscribed to.
   List<CompletionService> get subscriptions => _subscriptions;
 
-  /**
-   * A list of the services being subscribed to.
-   */
-  void set subscriptions(List<CompletionService> value) {
+  /// A list of the services being subscribed to.
+  set subscriptions(List<CompletionService> value) {
     assert(value != null);
-    this._subscriptions = value;
+    _subscriptions = value;
   }
 
   CompletionSetSubscriptionsParams(List<CompletionService> subscriptions) {
@@ -7139,9 +6421,7 @@ class CompletionSetSubscriptionsParams implements RequestParams {
 
   factory CompletionSetSubscriptionsParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       List<CompletionService> subscriptions;
       if (json.containsKey("subscriptions")) {
@@ -7149,11 +6429,11 @@ class CompletionSetSubscriptionsParams implements RequestParams {
             jsonPath + ".subscriptions",
             json["subscriptions"],
             (String jsonPath, Object json) =>
-                new CompletionService.fromJson(jsonDecoder, jsonPath, json));
+                CompletionService.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "subscriptions");
       }
-      return new CompletionSetSubscriptionsParams(subscriptions);
+      return CompletionSetSubscriptionsParams(subscriptions);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "completion.setSubscriptions params", json);
@@ -7161,8 +6441,8 @@ class CompletionSetSubscriptionsParams implements RequestParams {
   }
 
   factory CompletionSetSubscriptionsParams.fromRequest(Request request) {
-    return new CompletionSetSubscriptionsParams.fromJson(
-        new RequestDecoder(request), "params", request.params);
+    return CompletionSetSubscriptionsParams.fromJson(
+        RequestDecoder(request), "params", request.params);
   }
 
   @override
@@ -7175,7 +6455,7 @@ class CompletionSetSubscriptionsParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "completion.setSubscriptions", toJson());
+    return Request(id, "completion.setSubscriptions", toJson());
   }
 
   @override
@@ -7198,18 +6478,16 @@ class CompletionSetSubscriptionsParams implements RequestParams {
   }
 }
 
-/**
- * completion.setSubscriptions result
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// completion.setSubscriptions result
+///
+/// Clients may not extend, implement or mix-in this class.
 class CompletionSetSubscriptionsResult implements ResponseResult {
   @override
   Map<String, dynamic> toJson() => <String, dynamic>{};
 
   @override
   Response toResponse(String id) {
-    return new Response(id, result: null);
+    return Response(id, result: null);
   }
 
   @override
@@ -7226,19 +6504,17 @@ class CompletionSetSubscriptionsResult implements ResponseResult {
   }
 }
 
-/**
- * ContextData
- *
- * {
- *   "name": String
- *   "explicitFileCount": int
- *   "implicitFileCount": int
- *   "workItemQueueLength": int
- *   "cacheEntryExceptions": List<String>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// ContextData
+///
+/// {
+///   "name": String
+///   "explicitFileCount": int
+///   "implicitFileCount": int
+///   "workItemQueueLength": int
+///   "cacheEntryExceptions": List<String>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ContextData implements HasToJson {
   String _name;
 
@@ -7250,69 +6526,49 @@ class ContextData implements HasToJson {
 
   List<String> _cacheEntryExceptions;
 
-  /**
-   * The name of the context.
-   */
+  /// The name of the context.
   String get name => _name;
 
-  /**
-   * The name of the context.
-   */
-  void set name(String value) {
+  /// The name of the context.
+  set name(String value) {
     assert(value != null);
-    this._name = value;
+    _name = value;
   }
 
-  /**
-   * Explicitly analyzed files.
-   */
+  /// Explicitly analyzed files.
   int get explicitFileCount => _explicitFileCount;
 
-  /**
-   * Explicitly analyzed files.
-   */
-  void set explicitFileCount(int value) {
+  /// Explicitly analyzed files.
+  set explicitFileCount(int value) {
     assert(value != null);
-    this._explicitFileCount = value;
+    _explicitFileCount = value;
   }
 
-  /**
-   * Implicitly analyzed files.
-   */
+  /// Implicitly analyzed files.
   int get implicitFileCount => _implicitFileCount;
 
-  /**
-   * Implicitly analyzed files.
-   */
-  void set implicitFileCount(int value) {
+  /// Implicitly analyzed files.
+  set implicitFileCount(int value) {
     assert(value != null);
-    this._implicitFileCount = value;
+    _implicitFileCount = value;
   }
 
-  /**
-   * The number of work items in the queue.
-   */
+  /// The number of work items in the queue.
   int get workItemQueueLength => _workItemQueueLength;
 
-  /**
-   * The number of work items in the queue.
-   */
-  void set workItemQueueLength(int value) {
+  /// The number of work items in the queue.
+  set workItemQueueLength(int value) {
     assert(value != null);
-    this._workItemQueueLength = value;
+    _workItemQueueLength = value;
   }
 
-  /**
-   * Exceptions associated with cache entries.
-   */
+  /// Exceptions associated with cache entries.
   List<String> get cacheEntryExceptions => _cacheEntryExceptions;
 
-  /**
-   * Exceptions associated with cache entries.
-   */
-  void set cacheEntryExceptions(List<String> value) {
+  /// Exceptions associated with cache entries.
+  set cacheEntryExceptions(List<String> value) {
     assert(value != null);
-    this._cacheEntryExceptions = value;
+    _cacheEntryExceptions = value;
   }
 
   ContextData(String name, int explicitFileCount, int implicitFileCount,
@@ -7326,9 +6582,7 @@ class ContextData implements HasToJson {
 
   factory ContextData.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String name;
       if (json.containsKey("name")) {
@@ -7366,7 +6620,7 @@ class ContextData implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "cacheEntryExceptions");
       }
-      return new ContextData(name, explicitFileCount, implicitFileCount,
+      return ContextData(name, explicitFileCount, implicitFileCount,
           workItemQueueLength, cacheEntryExceptions);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "ContextData", json);
@@ -7412,11 +6666,9 @@ class ContextData implements HasToJson {
   }
 }
 
-/**
- * convertGetterToMethod feedback
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// convertGetterToMethod feedback
+///
+/// Clients may not extend, implement or mix-in this class.
 class ConvertGetterToMethodFeedback extends RefactoringFeedback
     implements HasToJson {
   @override
@@ -7433,11 +6685,9 @@ class ConvertGetterToMethodFeedback extends RefactoringFeedback
   }
 }
 
-/**
- * convertGetterToMethod options
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// convertGetterToMethod options
+///
+/// Clients may not extend, implement or mix-in this class.
 class ConvertGetterToMethodOptions extends RefactoringOptions
     implements HasToJson {
   @override
@@ -7454,11 +6704,9 @@ class ConvertGetterToMethodOptions extends RefactoringOptions
   }
 }
 
-/**
- * convertMethodToGetter feedback
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// convertMethodToGetter feedback
+///
+/// Clients may not extend, implement or mix-in this class.
 class ConvertMethodToGetterFeedback extends RefactoringFeedback
     implements HasToJson {
   @override
@@ -7475,11 +6723,9 @@ class ConvertMethodToGetterFeedback extends RefactoringFeedback
   }
 }
 
-/**
- * convertMethodToGetter options
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// convertMethodToGetter options
+///
+/// Clients may not extend, implement or mix-in this class.
 class ConvertMethodToGetterOptions extends RefactoringOptions
     implements HasToJson {
   @override
@@ -7496,17 +6742,15 @@ class ConvertMethodToGetterOptions extends RefactoringOptions
   }
 }
 
-/**
- * DartFix
- *
- * {
- *   "name": String
- *   "description": optional String
- *   "isRequired": optional bool
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// DartFix
+///
+/// {
+///   "name": String
+///   "description": optional String
+///   "isRequired": optional bool
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class DartFix implements HasToJson {
   String _name;
 
@@ -7514,41 +6758,29 @@ class DartFix implements HasToJson {
 
   bool _isRequired;
 
-  /**
-   * The name of the fix.
-   */
+  /// The name of the fix.
   String get name => _name;
 
-  /**
-   * The name of the fix.
-   */
-  void set name(String value) {
+  /// The name of the fix.
+  set name(String value) {
     assert(value != null);
-    this._name = value;
+    _name = value;
   }
 
-  /**
-   * A human readable description of the fix.
-   */
+  /// A human readable description of the fix.
   String get description => _description;
 
-  /**
-   * A human readable description of the fix.
-   */
-  void set description(String value) {
-    this._description = value;
+  /// A human readable description of the fix.
+  set description(String value) {
+    _description = value;
   }
 
-  /**
-   * `true` if the fix is in the "required" fixes group.
-   */
+  /// `true` if the fix is in the "required" fixes group.
   bool get isRequired => _isRequired;
 
-  /**
-   * `true` if the fix is in the "required" fixes group.
-   */
-  void set isRequired(bool value) {
-    this._isRequired = value;
+  /// `true` if the fix is in the "required" fixes group.
+  set isRequired(bool value) {
+    _isRequired = value;
   }
 
   DartFix(String name, {String description, bool isRequired}) {
@@ -7559,9 +6791,7 @@ class DartFix implements HasToJson {
 
   factory DartFix.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String name;
       if (json.containsKey("name")) {
@@ -7579,8 +6809,7 @@ class DartFix implements HasToJson {
         isRequired = jsonDecoder.decodeBool(
             jsonPath + ".isRequired", json["isRequired"]);
       }
-      return new DartFix(name,
-          description: description, isRequired: isRequired);
+      return DartFix(name, description: description, isRequired: isRequired);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "DartFix", json);
     }
@@ -7622,44 +6851,34 @@ class DartFix implements HasToJson {
   }
 }
 
-/**
- * DartFixSuggestion
- *
- * {
- *   "description": String
- *   "location": optional Location
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// DartFixSuggestion
+///
+/// {
+///   "description": String
+///   "location": optional Location
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class DartFixSuggestion implements HasToJson {
   String _description;
 
   Location _location;
 
-  /**
-   * A human readable description of the suggested change.
-   */
+  /// A human readable description of the suggested change.
   String get description => _description;
 
-  /**
-   * A human readable description of the suggested change.
-   */
-  void set description(String value) {
+  /// A human readable description of the suggested change.
+  set description(String value) {
     assert(value != null);
-    this._description = value;
+    _description = value;
   }
 
-  /**
-   * The location of the suggested change.
-   */
+  /// The location of the suggested change.
   Location get location => _location;
 
-  /**
-   * The location of the suggested change.
-   */
-  void set location(Location value) {
-    this._location = value;
+  /// The location of the suggested change.
+  set location(Location value) {
+    _location = value;
   }
 
   DartFixSuggestion(String description, {Location location}) {
@@ -7669,9 +6888,7 @@ class DartFixSuggestion implements HasToJson {
 
   factory DartFixSuggestion.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String description;
       if (json.containsKey("description")) {
@@ -7682,10 +6899,10 @@ class DartFixSuggestion implements HasToJson {
       }
       Location location;
       if (json.containsKey("location")) {
-        location = new Location.fromJson(
+        location = Location.fromJson(
             jsonDecoder, jsonPath + ".location", json["location"]);
       }
-      return new DartFixSuggestion(description, location: location);
+      return DartFixSuggestion(description, location: location);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "DartFixSuggestion", json);
     }
@@ -7721,18 +6938,16 @@ class DartFixSuggestion implements HasToJson {
   }
 }
 
-/**
- * diagnostic.getDiagnostics params
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// diagnostic.getDiagnostics params
+///
+/// Clients may not extend, implement or mix-in this class.
 class DiagnosticGetDiagnosticsParams implements RequestParams {
   @override
   Map<String, dynamic> toJson() => <String, dynamic>{};
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "diagnostic.getDiagnostics", null);
+    return Request(id, "diagnostic.getDiagnostics", null);
   }
 
   @override
@@ -7749,29 +6964,23 @@ class DiagnosticGetDiagnosticsParams implements RequestParams {
   }
 }
 
-/**
- * diagnostic.getDiagnostics result
- *
- * {
- *   "contexts": List<ContextData>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// diagnostic.getDiagnostics result
+///
+/// {
+///   "contexts": List<ContextData>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class DiagnosticGetDiagnosticsResult implements ResponseResult {
   List<ContextData> _contexts;
 
-  /**
-   * The list of analysis contexts.
-   */
+  /// The list of analysis contexts.
   List<ContextData> get contexts => _contexts;
 
-  /**
-   * The list of analysis contexts.
-   */
-  void set contexts(List<ContextData> value) {
+  /// The list of analysis contexts.
+  set contexts(List<ContextData> value) {
     assert(value != null);
-    this._contexts = value;
+    _contexts = value;
   }
 
   DiagnosticGetDiagnosticsResult(List<ContextData> contexts) {
@@ -7780,9 +6989,7 @@ class DiagnosticGetDiagnosticsResult implements ResponseResult {
 
   factory DiagnosticGetDiagnosticsResult.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       List<ContextData> contexts;
       if (json.containsKey("contexts")) {
@@ -7790,11 +6997,11 @@ class DiagnosticGetDiagnosticsResult implements ResponseResult {
             jsonPath + ".contexts",
             json["contexts"],
             (String jsonPath, Object json) =>
-                new ContextData.fromJson(jsonDecoder, jsonPath, json));
+                ContextData.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "contexts");
       }
-      return new DiagnosticGetDiagnosticsResult(contexts);
+      return DiagnosticGetDiagnosticsResult(contexts);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "diagnostic.getDiagnostics result", json);
@@ -7802,8 +7009,8 @@ class DiagnosticGetDiagnosticsResult implements ResponseResult {
   }
 
   factory DiagnosticGetDiagnosticsResult.fromResponse(Response response) {
-    return new DiagnosticGetDiagnosticsResult.fromJson(
-        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+    return DiagnosticGetDiagnosticsResult.fromJson(
+        ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         "result",
         response.result);
   }
@@ -7818,7 +7025,7 @@ class DiagnosticGetDiagnosticsResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return new Response(id, result: toJson());
+    return Response(id, result: toJson());
   }
 
   @override
@@ -7841,18 +7048,16 @@ class DiagnosticGetDiagnosticsResult implements ResponseResult {
   }
 }
 
-/**
- * diagnostic.getServerPort params
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// diagnostic.getServerPort params
+///
+/// Clients may not extend, implement or mix-in this class.
 class DiagnosticGetServerPortParams implements RequestParams {
   @override
   Map<String, dynamic> toJson() => <String, dynamic>{};
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "diagnostic.getServerPort", null);
+    return Request(id, "diagnostic.getServerPort", null);
   }
 
   @override
@@ -7869,29 +7074,23 @@ class DiagnosticGetServerPortParams implements RequestParams {
   }
 }
 
-/**
- * diagnostic.getServerPort result
- *
- * {
- *   "port": int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// diagnostic.getServerPort result
+///
+/// {
+///   "port": int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class DiagnosticGetServerPortResult implements ResponseResult {
   int _port;
 
-  /**
-   * The diagnostic server port.
-   */
+  /// The diagnostic server port.
   int get port => _port;
 
-  /**
-   * The diagnostic server port.
-   */
-  void set port(int value) {
+  /// The diagnostic server port.
+  set port(int value) {
     assert(value != null);
-    this._port = value;
+    _port = value;
   }
 
   DiagnosticGetServerPortResult(int port) {
@@ -7900,9 +7099,7 @@ class DiagnosticGetServerPortResult implements ResponseResult {
 
   factory DiagnosticGetServerPortResult.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       int port;
       if (json.containsKey("port")) {
@@ -7910,7 +7107,7 @@ class DiagnosticGetServerPortResult implements ResponseResult {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "port");
       }
-      return new DiagnosticGetServerPortResult(port);
+      return DiagnosticGetServerPortResult(port);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "diagnostic.getServerPort result", json);
@@ -7918,8 +7115,8 @@ class DiagnosticGetServerPortResult implements ResponseResult {
   }
 
   factory DiagnosticGetServerPortResult.fromResponse(Response response) {
-    return new DiagnosticGetServerPortResult.fromJson(
-        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+    return DiagnosticGetServerPortResult.fromJson(
+        ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         "result",
         response.result);
   }
@@ -7933,7 +7130,7 @@ class DiagnosticGetServerPortResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return new Response(id, result: toJson());
+    return Response(id, result: toJson());
   }
 
   @override
@@ -7955,21 +7152,19 @@ class DiagnosticGetServerPortResult implements ResponseResult {
   }
 }
 
-/**
- * edit.dartfix params
- *
- * {
- *   "included": List<FilePath>
- *   "includedFixes": optional List<String>
- *   "includePedanticFixes": optional bool
- *   "includeRequiredFixes": optional bool
- *   "excludedFixes": optional List<String>
- *   "port": optional int
- *   "outputDir": optional FilePath
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// edit.dartfix params
+///
+/// {
+///   "included": List<FilePath>
+///   "includedFixes": optional List<String>
+///   "includePedanticFixes": optional bool
+///   "includeRequiredFixes": optional bool
+///   "excludedFixes": optional List<String>
+///   "port": optional int
+///   "outputDir": optional FilePath
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class EditDartfixParams implements RequestParams {
   List<String> _included;
 
@@ -7985,123 +7180,87 @@ class EditDartfixParams implements RequestParams {
 
   String _outputDir;
 
-  /**
-   * A list of the files and directories for which edits should be suggested.
-   *
-   * If a request is made with a path that is invalid, e.g. is not absolute and
-   * normalized, an error of type INVALID_FILE_PATH_FORMAT will be generated.
-   * If a request is made for a file which does not exist, or which is not
-   * currently subject to analysis (e.g. because it is not associated with any
-   * analysis root specified to analysis.setAnalysisRoots), an error of type
-   * FILE_NOT_ANALYZED will be generated.
-   */
+  /// A list of the files and directories for which edits should be suggested.
+  ///
+  /// If a request is made with a path that is invalid, e.g. is not absolute
+  /// and normalized, an error of type INVALID_FILE_PATH_FORMAT will be
+  /// generated. If a request is made for a file which does not exist, or which
+  /// is not currently subject to analysis (e.g. because it is not associated
+  /// with any analysis root specified to analysis.setAnalysisRoots), an error
+  /// of type FILE_NOT_ANALYZED will be generated.
   List<String> get included => _included;
 
-  /**
-   * A list of the files and directories for which edits should be suggested.
-   *
-   * If a request is made with a path that is invalid, e.g. is not absolute and
-   * normalized, an error of type INVALID_FILE_PATH_FORMAT will be generated.
-   * If a request is made for a file which does not exist, or which is not
-   * currently subject to analysis (e.g. because it is not associated with any
-   * analysis root specified to analysis.setAnalysisRoots), an error of type
-   * FILE_NOT_ANALYZED will be generated.
-   */
-  void set included(List<String> value) {
+  /// A list of the files and directories for which edits should be suggested.
+  ///
+  /// If a request is made with a path that is invalid, e.g. is not absolute
+  /// and normalized, an error of type INVALID_FILE_PATH_FORMAT will be
+  /// generated. If a request is made for a file which does not exist, or which
+  /// is not currently subject to analysis (e.g. because it is not associated
+  /// with any analysis root specified to analysis.setAnalysisRoots), an error
+  /// of type FILE_NOT_ANALYZED will be generated.
+  set included(List<String> value) {
     assert(value != null);
-    this._included = value;
+    _included = value;
   }
 
-  /**
-   * A list of names indicating which fixes should be applied.
-   *
-   * If a name is specified that does not match the name of a known fix, an
-   * error of type UNKNOWN_FIX will be generated.
-   */
+  /// A list of names indicating which fixes should be applied.
+  ///
+  /// If a name is specified that does not match the name of a known fix, an
+  /// error of type UNKNOWN_FIX will be generated.
   List<String> get includedFixes => _includedFixes;
 
-  /**
-   * A list of names indicating which fixes should be applied.
-   *
-   * If a name is specified that does not match the name of a known fix, an
-   * error of type UNKNOWN_FIX will be generated.
-   */
-  void set includedFixes(List<String> value) {
-    this._includedFixes = value;
+  /// A list of names indicating which fixes should be applied.
+  ///
+  /// If a name is specified that does not match the name of a known fix, an
+  /// error of type UNKNOWN_FIX will be generated.
+  set includedFixes(List<String> value) {
+    _includedFixes = value;
   }
 
-  /**
-   * A flag indicating that "pedantic" fixes should be applied.
-   */
+  /// A flag indicating whether "pedantic" fixes should be applied.
   bool get includePedanticFixes => _includePedanticFixes;
 
-  /**
-   * A flag indicating that "pedantic" fixes should be applied.
-   */
-  void set includePedanticFixes(bool value) {
-    this._includePedanticFixes = value;
+  /// A flag indicating whether "pedantic" fixes should be applied.
+  set includePedanticFixes(bool value) {
+    _includePedanticFixes = value;
   }
 
-  /**
-   * A flag indicating that "required" fixes should be applied.
-   */
+  /// A flag indicating whether "required" fixes should be applied.
   bool get includeRequiredFixes => _includeRequiredFixes;
 
-  /**
-   * A flag indicating that "required" fixes should be applied.
-   */
-  void set includeRequiredFixes(bool value) {
-    this._includeRequiredFixes = value;
+  /// A flag indicating whether "required" fixes should be applied.
+  set includeRequiredFixes(bool value) {
+    _includeRequiredFixes = value;
   }
 
-  /**
-   * A list of names indicating which fixes should not be applied.
-   *
-   * If a name is specified that does not match the name of a known fix, an
-   * error of type UNKNOWN_FIX will be generated.
-   */
+  /// A list of names indicating which fixes should not be applied.
+  ///
+  /// If a name is specified that does not match the name of a known fix, an
+  /// error of type UNKNOWN_FIX will be generated.
   List<String> get excludedFixes => _excludedFixes;
 
-  /**
-   * A list of names indicating which fixes should not be applied.
-   *
-   * If a name is specified that does not match the name of a known fix, an
-   * error of type UNKNOWN_FIX will be generated.
-   */
-  void set excludedFixes(List<String> value) {
-    this._excludedFixes = value;
+  /// A list of names indicating which fixes should not be applied.
+  ///
+  /// If a name is specified that does not match the name of a known fix, an
+  /// error of type UNKNOWN_FIX will be generated.
+  set excludedFixes(List<String> value) {
+    _excludedFixes = value;
   }
 
-  /**
-   * The port to be used to listen for and respond to http requests for preview
-   * pages.
-   */
+  /// Deprecated: This field is now ignored by server.
   int get port => _port;
 
-  /**
-   * The port to be used to listen for and respond to http requests for preview
-   * pages.
-   */
-  void set port(int value) {
-    this._port = value;
+  /// Deprecated: This field is now ignored by server.
+  set port(int value) {
+    _port = value;
   }
 
-  /**
-   * The absolute and normalized path to a directory to which non-nullability
-   * migration output will be written. The output is only produced if the
-   * non-nullable fix is included. Files in the directory might be overwritten,
-   * but no previously existing files will be deleted.
-   */
+  /// Deprecated: This field is now ignored by server.
   String get outputDir => _outputDir;
 
-  /**
-   * The absolute and normalized path to a directory to which non-nullability
-   * migration output will be written. The output is only produced if the
-   * non-nullable fix is included. Files in the directory might be overwritten,
-   * but no previously existing files will be deleted.
-   */
-  void set outputDir(String value) {
-    this._outputDir = value;
+  /// Deprecated: This field is now ignored by server.
+  set outputDir(String value) {
+    _outputDir = value;
   }
 
   EditDartfixParams(List<String> included,
@@ -8122,9 +7281,7 @@ class EditDartfixParams implements RequestParams {
 
   factory EditDartfixParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       List<String> included;
       if (json.containsKey("included")) {
@@ -8162,7 +7319,7 @@ class EditDartfixParams implements RequestParams {
         outputDir = jsonDecoder.decodeString(
             jsonPath + ".outputDir", json["outputDir"]);
       }
-      return new EditDartfixParams(included,
+      return EditDartfixParams(included,
           includedFixes: includedFixes,
           includePedanticFixes: includePedanticFixes,
           includeRequiredFixes: includeRequiredFixes,
@@ -8175,8 +7332,8 @@ class EditDartfixParams implements RequestParams {
   }
 
   factory EditDartfixParams.fromRequest(Request request) {
-    return new EditDartfixParams.fromJson(
-        new RequestDecoder(request), "params", request.params);
+    return EditDartfixParams.fromJson(
+        RequestDecoder(request), "params", request.params);
   }
 
   @override
@@ -8206,7 +7363,7 @@ class EditDartfixParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "edit.dartfix", toJson());
+    return Request(id, "edit.dartfix", toJson());
   }
 
   @override
@@ -8243,19 +7400,19 @@ class EditDartfixParams implements RequestParams {
   }
 }
 
-/**
- * edit.dartfix result
- *
- * {
- *   "suggestions": List<DartFixSuggestion>
- *   "otherSuggestions": List<DartFixSuggestion>
- *   "hasErrors": bool
- *   "edits": List<SourceFileEdit>
- *   "details": optional List<String>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// edit.dartfix result
+///
+/// {
+///   "suggestions": List<DartFixSuggestion>
+///   "otherSuggestions": List<DartFixSuggestion>
+///   "hasErrors": bool
+///   "edits": List<SourceFileEdit>
+///   "details": optional List<String>
+///   "port": optional int
+///   "urls": optional List<String>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class EditDartfixResult implements ResponseResult {
   List<DartFixSuggestion> _suggestions;
 
@@ -8267,80 +7424,86 @@ class EditDartfixResult implements ResponseResult {
 
   List<String> _details;
 
-  /**
-   * A list of recommended changes that can be automatically made by applying
-   * the 'edits' included in this response.
-   */
+  int _port;
+
+  List<String> _urls;
+
+  /// A list of recommended changes that can be automatically made by applying
+  /// the 'edits' included in this response.
   List<DartFixSuggestion> get suggestions => _suggestions;
 
-  /**
-   * A list of recommended changes that can be automatically made by applying
-   * the 'edits' included in this response.
-   */
-  void set suggestions(List<DartFixSuggestion> value) {
+  /// A list of recommended changes that can be automatically made by applying
+  /// the 'edits' included in this response.
+  set suggestions(List<DartFixSuggestion> value) {
     assert(value != null);
-    this._suggestions = value;
+    _suggestions = value;
   }
 
-  /**
-   * A list of recommended changes that could not be automatically made.
-   */
+  /// A list of recommended changes that could not be automatically made.
   List<DartFixSuggestion> get otherSuggestions => _otherSuggestions;
 
-  /**
-   * A list of recommended changes that could not be automatically made.
-   */
-  void set otherSuggestions(List<DartFixSuggestion> value) {
+  /// A list of recommended changes that could not be automatically made.
+  set otherSuggestions(List<DartFixSuggestion> value) {
     assert(value != null);
-    this._otherSuggestions = value;
+    _otherSuggestions = value;
   }
 
-  /**
-   * True if the analyzed source contains errors that might impact the
-   * correctness of the recommended changes that can be automatically applied.
-   */
+  /// True if the analyzed source contains errors that might impact the
+  /// correctness of the recommended changes that can be automatically applied.
   bool get hasErrors => _hasErrors;
 
-  /**
-   * True if the analyzed source contains errors that might impact the
-   * correctness of the recommended changes that can be automatically applied.
-   */
-  void set hasErrors(bool value) {
+  /// True if the analyzed source contains errors that might impact the
+  /// correctness of the recommended changes that can be automatically applied.
+  set hasErrors(bool value) {
     assert(value != null);
-    this._hasErrors = value;
+    _hasErrors = value;
   }
 
-  /**
-   * A list of source edits to apply the recommended changes.
-   */
+  /// A list of source edits to apply the recommended changes.
   List<SourceFileEdit> get edits => _edits;
 
-  /**
-   * A list of source edits to apply the recommended changes.
-   */
-  void set edits(List<SourceFileEdit> value) {
+  /// A list of source edits to apply the recommended changes.
+  set edits(List<SourceFileEdit> value) {
     assert(value != null);
-    this._edits = value;
+    _edits = value;
   }
 
-  /**
-   * Messages that should be displayed to the user that describe details of the
-   * fix generation. For example, the messages might (a) point out details that
-   * users might want to explore before committing the changes or (b) describe
-   * exceptions that were thrown but that did not stop the fixes from being
-   * produced. The list will be omitted if it is empty.
-   */
+  /// Messages that should be displayed to the user that describe details of
+  /// the fix generation. For example, the messages might (a) point out details
+  /// that users might want to explore before committing the changes or (b)
+  /// describe exceptions that were thrown but that did not stop the fixes from
+  /// being produced. The list will be omitted if it is empty.
   List<String> get details => _details;
 
-  /**
-   * Messages that should be displayed to the user that describe details of the
-   * fix generation. For example, the messages might (a) point out details that
-   * users might want to explore before committing the changes or (b) describe
-   * exceptions that were thrown but that did not stop the fixes from being
-   * produced. The list will be omitted if it is empty.
-   */
-  void set details(List<String> value) {
-    this._details = value;
+  /// Messages that should be displayed to the user that describe details of
+  /// the fix generation. For example, the messages might (a) point out details
+  /// that users might want to explore before committing the changes or (b)
+  /// describe exceptions that were thrown but that did not stop the fixes from
+  /// being produced. The list will be omitted if it is empty.
+  set details(List<String> value) {
+    _details = value;
+  }
+
+  /// The port on which the preview tool will respond to GET requests. The
+  /// field is omitted if a preview was not requested.
+  int get port => _port;
+
+  /// The port on which the preview tool will respond to GET requests. The
+  /// field is omitted if a preview was not requested.
+  set port(int value) {
+    _port = value;
+  }
+
+  /// The URLs that users can visit in a browser to see a preview of the
+  /// proposed changes. There is one URL for each of the included file paths.
+  /// The field is omitted if a preview was not requested.
+  List<String> get urls => _urls;
+
+  /// The URLs that users can visit in a browser to see a preview of the
+  /// proposed changes. There is one URL for each of the included file paths.
+  /// The field is omitted if a preview was not requested.
+  set urls(List<String> value) {
+    _urls = value;
   }
 
   EditDartfixResult(
@@ -8348,19 +7511,21 @@ class EditDartfixResult implements ResponseResult {
       List<DartFixSuggestion> otherSuggestions,
       bool hasErrors,
       List<SourceFileEdit> edits,
-      {List<String> details}) {
+      {List<String> details,
+      int port,
+      List<String> urls}) {
     this.suggestions = suggestions;
     this.otherSuggestions = otherSuggestions;
     this.hasErrors = hasErrors;
     this.edits = edits;
     this.details = details;
+    this.port = port;
+    this.urls = urls;
   }
 
   factory EditDartfixResult.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       List<DartFixSuggestion> suggestions;
       if (json.containsKey("suggestions")) {
@@ -8368,7 +7533,7 @@ class EditDartfixResult implements ResponseResult {
             jsonPath + ".suggestions",
             json["suggestions"],
             (String jsonPath, Object json) =>
-                new DartFixSuggestion.fromJson(jsonDecoder, jsonPath, json));
+                DartFixSuggestion.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "suggestions");
       }
@@ -8378,7 +7543,7 @@ class EditDartfixResult implements ResponseResult {
             jsonPath + ".otherSuggestions",
             json["otherSuggestions"],
             (String jsonPath, Object json) =>
-                new DartFixSuggestion.fromJson(jsonDecoder, jsonPath, json));
+                DartFixSuggestion.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "otherSuggestions");
       }
@@ -8395,7 +7560,7 @@ class EditDartfixResult implements ResponseResult {
             jsonPath + ".edits",
             json["edits"],
             (String jsonPath, Object json) =>
-                new SourceFileEdit.fromJson(jsonDecoder, jsonPath, json));
+                SourceFileEdit.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "edits");
       }
@@ -8404,17 +7569,25 @@ class EditDartfixResult implements ResponseResult {
         details = jsonDecoder.decodeList(
             jsonPath + ".details", json["details"], jsonDecoder.decodeString);
       }
-      return new EditDartfixResult(
-          suggestions, otherSuggestions, hasErrors, edits,
-          details: details);
+      int port;
+      if (json.containsKey("port")) {
+        port = jsonDecoder.decodeInt(jsonPath + ".port", json["port"]);
+      }
+      List<String> urls;
+      if (json.containsKey("urls")) {
+        urls = jsonDecoder.decodeList(
+            jsonPath + ".urls", json["urls"], jsonDecoder.decodeString);
+      }
+      return EditDartfixResult(suggestions, otherSuggestions, hasErrors, edits,
+          details: details, port: port, urls: urls);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "edit.dartfix result", json);
     }
   }
 
   factory EditDartfixResult.fromResponse(Response response) {
-    return new EditDartfixResult.fromJson(
-        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+    return EditDartfixResult.fromJson(
+        ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         "result",
         response.result);
   }
@@ -8433,12 +7606,18 @@ class EditDartfixResult implements ResponseResult {
     if (details != null) {
       result["details"] = details;
     }
+    if (port != null) {
+      result["port"] = port;
+    }
+    if (urls != null) {
+      result["urls"] = urls;
+    }
     return result;
   }
 
   @override
   Response toResponse(String id) {
-    return new Response(id, result: toJson());
+    return Response(id, result: toJson());
   }
 
   @override
@@ -8454,7 +7633,9 @@ class EditDartfixResult implements ResponseResult {
           hasErrors == other.hasErrors &&
           listEqual(edits, other.edits,
               (SourceFileEdit a, SourceFileEdit b) => a == b) &&
-          listEqual(details, other.details, (String a, String b) => a == b);
+          listEqual(details, other.details, (String a, String b) => a == b) &&
+          port == other.port &&
+          listEqual(urls, other.urls, (String a, String b) => a == b);
     }
     return false;
   }
@@ -8467,22 +7648,22 @@ class EditDartfixResult implements ResponseResult {
     hash = JenkinsSmiHash.combine(hash, hasErrors.hashCode);
     hash = JenkinsSmiHash.combine(hash, edits.hashCode);
     hash = JenkinsSmiHash.combine(hash, details.hashCode);
+    hash = JenkinsSmiHash.combine(hash, port.hashCode);
+    hash = JenkinsSmiHash.combine(hash, urls.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 }
 
-/**
- * edit.format params
- *
- * {
- *   "file": FilePath
- *   "selectionOffset": int
- *   "selectionLength": int
- *   "lineLength": optional int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// edit.format params
+///
+/// {
+///   "file": FilePath
+///   "selectionOffset": int
+///   "selectionLength": int
+///   "lineLength": optional int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class EditFormatParams implements RequestParams {
   String _file;
 
@@ -8492,55 +7673,39 @@ class EditFormatParams implements RequestParams {
 
   int _lineLength;
 
-  /**
-   * The file containing the code to be formatted.
-   */
+  /// The file containing the code to be formatted.
   String get file => _file;
 
-  /**
-   * The file containing the code to be formatted.
-   */
-  void set file(String value) {
+  /// The file containing the code to be formatted.
+  set file(String value) {
     assert(value != null);
-    this._file = value;
+    _file = value;
   }
 
-  /**
-   * The offset of the current selection in the file.
-   */
+  /// The offset of the current selection in the file.
   int get selectionOffset => _selectionOffset;
 
-  /**
-   * The offset of the current selection in the file.
-   */
-  void set selectionOffset(int value) {
+  /// The offset of the current selection in the file.
+  set selectionOffset(int value) {
     assert(value != null);
-    this._selectionOffset = value;
+    _selectionOffset = value;
   }
 
-  /**
-   * The length of the current selection in the file.
-   */
+  /// The length of the current selection in the file.
   int get selectionLength => _selectionLength;
 
-  /**
-   * The length of the current selection in the file.
-   */
-  void set selectionLength(int value) {
+  /// The length of the current selection in the file.
+  set selectionLength(int value) {
     assert(value != null);
-    this._selectionLength = value;
+    _selectionLength = value;
   }
 
-  /**
-   * The line length to be used by the formatter.
-   */
+  /// The line length to be used by the formatter.
   int get lineLength => _lineLength;
 
-  /**
-   * The line length to be used by the formatter.
-   */
-  void set lineLength(int value) {
-    this._lineLength = value;
+  /// The line length to be used by the formatter.
+  set lineLength(int value) {
+    _lineLength = value;
   }
 
   EditFormatParams(String file, int selectionOffset, int selectionLength,
@@ -8553,9 +7718,7 @@ class EditFormatParams implements RequestParams {
 
   factory EditFormatParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -8582,7 +7745,7 @@ class EditFormatParams implements RequestParams {
         lineLength =
             jsonDecoder.decodeInt(jsonPath + ".lineLength", json["lineLength"]);
       }
-      return new EditFormatParams(file, selectionOffset, selectionLength,
+      return EditFormatParams(file, selectionOffset, selectionLength,
           lineLength: lineLength);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "edit.format params", json);
@@ -8590,8 +7753,8 @@ class EditFormatParams implements RequestParams {
   }
 
   factory EditFormatParams.fromRequest(Request request) {
-    return new EditFormatParams.fromJson(
-        new RequestDecoder(request), "params", request.params);
+    return EditFormatParams.fromJson(
+        RequestDecoder(request), "params", request.params);
   }
 
   @override
@@ -8608,7 +7771,7 @@ class EditFormatParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "edit.format", toJson());
+    return Request(id, "edit.format", toJson());
   }
 
   @override
@@ -8636,17 +7799,15 @@ class EditFormatParams implements RequestParams {
   }
 }
 
-/**
- * edit.format result
- *
- * {
- *   "edits": List<SourceEdit>
- *   "selectionOffset": int
- *   "selectionLength": int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// edit.format result
+///
+/// {
+///   "edits": List<SourceEdit>
+///   "selectionOffset": int
+///   "selectionLength": int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class EditFormatResult implements ResponseResult {
   List<SourceEdit> _edits;
 
@@ -8654,45 +7815,33 @@ class EditFormatResult implements ResponseResult {
 
   int _selectionLength;
 
-  /**
-   * The edit(s) to be applied in order to format the code. The list will be
-   * empty if the code was already formatted (there are no changes).
-   */
+  /// The edit(s) to be applied in order to format the code. The list will be
+  /// empty if the code was already formatted (there are no changes).
   List<SourceEdit> get edits => _edits;
 
-  /**
-   * The edit(s) to be applied in order to format the code. The list will be
-   * empty if the code was already formatted (there are no changes).
-   */
-  void set edits(List<SourceEdit> value) {
+  /// The edit(s) to be applied in order to format the code. The list will be
+  /// empty if the code was already formatted (there are no changes).
+  set edits(List<SourceEdit> value) {
     assert(value != null);
-    this._edits = value;
+    _edits = value;
   }
 
-  /**
-   * The offset of the selection after formatting the code.
-   */
+  /// The offset of the selection after formatting the code.
   int get selectionOffset => _selectionOffset;
 
-  /**
-   * The offset of the selection after formatting the code.
-   */
-  void set selectionOffset(int value) {
+  /// The offset of the selection after formatting the code.
+  set selectionOffset(int value) {
     assert(value != null);
-    this._selectionOffset = value;
+    _selectionOffset = value;
   }
 
-  /**
-   * The length of the selection after formatting the code.
-   */
+  /// The length of the selection after formatting the code.
   int get selectionLength => _selectionLength;
 
-  /**
-   * The length of the selection after formatting the code.
-   */
-  void set selectionLength(int value) {
+  /// The length of the selection after formatting the code.
+  set selectionLength(int value) {
     assert(value != null);
-    this._selectionLength = value;
+    _selectionLength = value;
   }
 
   EditFormatResult(
@@ -8704,9 +7853,7 @@ class EditFormatResult implements ResponseResult {
 
   factory EditFormatResult.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       List<SourceEdit> edits;
       if (json.containsKey("edits")) {
@@ -8714,7 +7861,7 @@ class EditFormatResult implements ResponseResult {
             jsonPath + ".edits",
             json["edits"],
             (String jsonPath, Object json) =>
-                new SourceEdit.fromJson(jsonDecoder, jsonPath, json));
+                SourceEdit.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "edits");
       }
@@ -8732,15 +7879,15 @@ class EditFormatResult implements ResponseResult {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "selectionLength");
       }
-      return new EditFormatResult(edits, selectionOffset, selectionLength);
+      return EditFormatResult(edits, selectionOffset, selectionLength);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "edit.format result", json);
     }
   }
 
   factory EditFormatResult.fromResponse(Response response) {
-    return new EditFormatResult.fromJson(
-        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+    return EditFormatResult.fromJson(
+        ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         "result",
         response.result);
   }
@@ -8756,7 +7903,7 @@ class EditFormatResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return new Response(id, result: toJson());
+    return Response(id, result: toJson());
   }
 
   @override
@@ -8783,17 +7930,15 @@ class EditFormatResult implements ResponseResult {
   }
 }
 
-/**
- * edit.getAssists params
- *
- * {
- *   "file": FilePath
- *   "offset": int
- *   "length": int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// edit.getAssists params
+///
+/// {
+///   "file": FilePath
+///   "offset": int
+///   "length": int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class EditGetAssistsParams implements RequestParams {
   String _file;
 
@@ -8801,43 +7946,31 @@ class EditGetAssistsParams implements RequestParams {
 
   int _length;
 
-  /**
-   * The file containing the code for which assists are being requested.
-   */
+  /// The file containing the code for which assists are being requested.
   String get file => _file;
 
-  /**
-   * The file containing the code for which assists are being requested.
-   */
-  void set file(String value) {
+  /// The file containing the code for which assists are being requested.
+  set file(String value) {
     assert(value != null);
-    this._file = value;
+    _file = value;
   }
 
-  /**
-   * The offset of the code for which assists are being requested.
-   */
+  /// The offset of the code for which assists are being requested.
   int get offset => _offset;
 
-  /**
-   * The offset of the code for which assists are being requested.
-   */
-  void set offset(int value) {
+  /// The offset of the code for which assists are being requested.
+  set offset(int value) {
     assert(value != null);
-    this._offset = value;
+    _offset = value;
   }
 
-  /**
-   * The length of the code for which assists are being requested.
-   */
+  /// The length of the code for which assists are being requested.
   int get length => _length;
 
-  /**
-   * The length of the code for which assists are being requested.
-   */
-  void set length(int value) {
+  /// The length of the code for which assists are being requested.
+  set length(int value) {
     assert(value != null);
-    this._length = value;
+    _length = value;
   }
 
   EditGetAssistsParams(String file, int offset, int length) {
@@ -8848,9 +7981,7 @@ class EditGetAssistsParams implements RequestParams {
 
   factory EditGetAssistsParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -8870,15 +8001,15 @@ class EditGetAssistsParams implements RequestParams {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "length");
       }
-      return new EditGetAssistsParams(file, offset, length);
+      return EditGetAssistsParams(file, offset, length);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "edit.getAssists params", json);
     }
   }
 
   factory EditGetAssistsParams.fromRequest(Request request) {
-    return new EditGetAssistsParams.fromJson(
-        new RequestDecoder(request), "params", request.params);
+    return EditGetAssistsParams.fromJson(
+        RequestDecoder(request), "params", request.params);
   }
 
   @override
@@ -8892,7 +8023,7 @@ class EditGetAssistsParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "edit.getAssists", toJson());
+    return Request(id, "edit.getAssists", toJson());
   }
 
   @override
@@ -8918,29 +8049,23 @@ class EditGetAssistsParams implements RequestParams {
   }
 }
 
-/**
- * edit.getAssists result
- *
- * {
- *   "assists": List<SourceChange>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// edit.getAssists result
+///
+/// {
+///   "assists": List<SourceChange>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class EditGetAssistsResult implements ResponseResult {
   List<SourceChange> _assists;
 
-  /**
-   * The assists that are available at the given location.
-   */
+  /// The assists that are available at the given location.
   List<SourceChange> get assists => _assists;
 
-  /**
-   * The assists that are available at the given location.
-   */
-  void set assists(List<SourceChange> value) {
+  /// The assists that are available at the given location.
+  set assists(List<SourceChange> value) {
     assert(value != null);
-    this._assists = value;
+    _assists = value;
   }
 
   EditGetAssistsResult(List<SourceChange> assists) {
@@ -8949,9 +8074,7 @@ class EditGetAssistsResult implements ResponseResult {
 
   factory EditGetAssistsResult.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       List<SourceChange> assists;
       if (json.containsKey("assists")) {
@@ -8959,19 +8082,19 @@ class EditGetAssistsResult implements ResponseResult {
             jsonPath + ".assists",
             json["assists"],
             (String jsonPath, Object json) =>
-                new SourceChange.fromJson(jsonDecoder, jsonPath, json));
+                SourceChange.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "assists");
       }
-      return new EditGetAssistsResult(assists);
+      return EditGetAssistsResult(assists);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "edit.getAssists result", json);
     }
   }
 
   factory EditGetAssistsResult.fromResponse(Response response) {
-    return new EditGetAssistsResult.fromJson(
-        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+    return EditGetAssistsResult.fromJson(
+        ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         "result",
         response.result);
   }
@@ -8986,7 +8109,7 @@ class EditGetAssistsResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return new Response(id, result: toJson());
+    return Response(id, result: toJson());
   }
 
   @override
@@ -9009,17 +8132,15 @@ class EditGetAssistsResult implements ResponseResult {
   }
 }
 
-/**
- * edit.getAvailableRefactorings params
- *
- * {
- *   "file": FilePath
- *   "offset": int
- *   "length": int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// edit.getAvailableRefactorings params
+///
+/// {
+///   "file": FilePath
+///   "offset": int
+///   "length": int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class EditGetAvailableRefactoringsParams implements RequestParams {
   String _file;
 
@@ -9027,43 +8148,31 @@ class EditGetAvailableRefactoringsParams implements RequestParams {
 
   int _length;
 
-  /**
-   * The file containing the code on which the refactoring would be based.
-   */
+  /// The file containing the code on which the refactoring would be based.
   String get file => _file;
 
-  /**
-   * The file containing the code on which the refactoring would be based.
-   */
-  void set file(String value) {
+  /// The file containing the code on which the refactoring would be based.
+  set file(String value) {
     assert(value != null);
-    this._file = value;
+    _file = value;
   }
 
-  /**
-   * The offset of the code on which the refactoring would be based.
-   */
+  /// The offset of the code on which the refactoring would be based.
   int get offset => _offset;
 
-  /**
-   * The offset of the code on which the refactoring would be based.
-   */
-  void set offset(int value) {
+  /// The offset of the code on which the refactoring would be based.
+  set offset(int value) {
     assert(value != null);
-    this._offset = value;
+    _offset = value;
   }
 
-  /**
-   * The length of the code on which the refactoring would be based.
-   */
+  /// The length of the code on which the refactoring would be based.
   int get length => _length;
 
-  /**
-   * The length of the code on which the refactoring would be based.
-   */
-  void set length(int value) {
+  /// The length of the code on which the refactoring would be based.
+  set length(int value) {
     assert(value != null);
-    this._length = value;
+    _length = value;
   }
 
   EditGetAvailableRefactoringsParams(String file, int offset, int length) {
@@ -9074,9 +8183,7 @@ class EditGetAvailableRefactoringsParams implements RequestParams {
 
   factory EditGetAvailableRefactoringsParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -9096,7 +8203,7 @@ class EditGetAvailableRefactoringsParams implements RequestParams {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "length");
       }
-      return new EditGetAvailableRefactoringsParams(file, offset, length);
+      return EditGetAvailableRefactoringsParams(file, offset, length);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "edit.getAvailableRefactorings params", json);
@@ -9104,8 +8211,8 @@ class EditGetAvailableRefactoringsParams implements RequestParams {
   }
 
   factory EditGetAvailableRefactoringsParams.fromRequest(Request request) {
-    return new EditGetAvailableRefactoringsParams.fromJson(
-        new RequestDecoder(request), "params", request.params);
+    return EditGetAvailableRefactoringsParams.fromJson(
+        RequestDecoder(request), "params", request.params);
   }
 
   @override
@@ -9119,7 +8226,7 @@ class EditGetAvailableRefactoringsParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "edit.getAvailableRefactorings", toJson());
+    return Request(id, "edit.getAvailableRefactorings", toJson());
   }
 
   @override
@@ -9145,29 +8252,23 @@ class EditGetAvailableRefactoringsParams implements RequestParams {
   }
 }
 
-/**
- * edit.getAvailableRefactorings result
- *
- * {
- *   "kinds": List<RefactoringKind>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// edit.getAvailableRefactorings result
+///
+/// {
+///   "kinds": List<RefactoringKind>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class EditGetAvailableRefactoringsResult implements ResponseResult {
   List<RefactoringKind> _kinds;
 
-  /**
-   * The kinds of refactorings that are valid for the given selection.
-   */
+  /// The kinds of refactorings that are valid for the given selection.
   List<RefactoringKind> get kinds => _kinds;
 
-  /**
-   * The kinds of refactorings that are valid for the given selection.
-   */
-  void set kinds(List<RefactoringKind> value) {
+  /// The kinds of refactorings that are valid for the given selection.
+  set kinds(List<RefactoringKind> value) {
     assert(value != null);
-    this._kinds = value;
+    _kinds = value;
   }
 
   EditGetAvailableRefactoringsResult(List<RefactoringKind> kinds) {
@@ -9176,9 +8277,7 @@ class EditGetAvailableRefactoringsResult implements ResponseResult {
 
   factory EditGetAvailableRefactoringsResult.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       List<RefactoringKind> kinds;
       if (json.containsKey("kinds")) {
@@ -9186,11 +8285,11 @@ class EditGetAvailableRefactoringsResult implements ResponseResult {
             jsonPath + ".kinds",
             json["kinds"],
             (String jsonPath, Object json) =>
-                new RefactoringKind.fromJson(jsonDecoder, jsonPath, json));
+                RefactoringKind.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "kinds");
       }
-      return new EditGetAvailableRefactoringsResult(kinds);
+      return EditGetAvailableRefactoringsResult(kinds);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "edit.getAvailableRefactorings result", json);
@@ -9198,8 +8297,8 @@ class EditGetAvailableRefactoringsResult implements ResponseResult {
   }
 
   factory EditGetAvailableRefactoringsResult.fromResponse(Response response) {
-    return new EditGetAvailableRefactoringsResult.fromJson(
-        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+    return EditGetAvailableRefactoringsResult.fromJson(
+        ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         "result",
         response.result);
   }
@@ -9214,7 +8313,7 @@ class EditGetAvailableRefactoringsResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return new Response(id, result: toJson());
+    return Response(id, result: toJson());
   }
 
   @override
@@ -9237,32 +8336,28 @@ class EditGetAvailableRefactoringsResult implements ResponseResult {
   }
 }
 
-/**
- * edit.getDartfixInfo params
- *
- * {
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// edit.getDartfixInfo params
+///
+/// {
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class EditGetDartfixInfoParams implements RequestParams {
   EditGetDartfixInfoParams();
 
   factory EditGetDartfixInfoParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
-      return new EditGetDartfixInfoParams();
+      return EditGetDartfixInfoParams();
     } else {
       throw jsonDecoder.mismatch(jsonPath, "edit.getDartfixInfo params", json);
     }
   }
 
   factory EditGetDartfixInfoParams.fromRequest(Request request) {
-    return new EditGetDartfixInfoParams.fromJson(
-        new RequestDecoder(request), "params", request.params);
+    return EditGetDartfixInfoParams.fromJson(
+        RequestDecoder(request), "params", request.params);
   }
 
   @override
@@ -9273,7 +8368,7 @@ class EditGetDartfixInfoParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "edit.getDartfixInfo", toJson());
+    return Request(id, "edit.getDartfixInfo", toJson());
   }
 
   @override
@@ -9294,29 +8389,23 @@ class EditGetDartfixInfoParams implements RequestParams {
   }
 }
 
-/**
- * edit.getDartfixInfo result
- *
- * {
- *   "fixes": List<DartFix>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// edit.getDartfixInfo result
+///
+/// {
+///   "fixes": List<DartFix>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class EditGetDartfixInfoResult implements ResponseResult {
   List<DartFix> _fixes;
 
-  /**
-   * A list of fixes that can be specified in an edit.dartfix request.
-   */
+  /// A list of fixes that can be specified in an edit.dartfix request.
   List<DartFix> get fixes => _fixes;
 
-  /**
-   * A list of fixes that can be specified in an edit.dartfix request.
-   */
-  void set fixes(List<DartFix> value) {
+  /// A list of fixes that can be specified in an edit.dartfix request.
+  set fixes(List<DartFix> value) {
     assert(value != null);
-    this._fixes = value;
+    _fixes = value;
   }
 
   EditGetDartfixInfoResult(List<DartFix> fixes) {
@@ -9325,9 +8414,7 @@ class EditGetDartfixInfoResult implements ResponseResult {
 
   factory EditGetDartfixInfoResult.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       List<DartFix> fixes;
       if (json.containsKey("fixes")) {
@@ -9335,19 +8422,19 @@ class EditGetDartfixInfoResult implements ResponseResult {
             jsonPath + ".fixes",
             json["fixes"],
             (String jsonPath, Object json) =>
-                new DartFix.fromJson(jsonDecoder, jsonPath, json));
+                DartFix.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "fixes");
       }
-      return new EditGetDartfixInfoResult(fixes);
+      return EditGetDartfixInfoResult(fixes);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "edit.getDartfixInfo result", json);
     }
   }
 
   factory EditGetDartfixInfoResult.fromResponse(Response response) {
-    return new EditGetDartfixInfoResult.fromJson(
-        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+    return EditGetDartfixInfoResult.fromJson(
+        ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         "result",
         response.result);
   }
@@ -9361,7 +8448,7 @@ class EditGetDartfixInfoResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return new Response(id, result: toJson());
+    return Response(id, result: toJson());
   }
 
   @override
@@ -9383,45 +8470,35 @@ class EditGetDartfixInfoResult implements ResponseResult {
   }
 }
 
-/**
- * edit.getFixes params
- *
- * {
- *   "file": FilePath
- *   "offset": int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// edit.getFixes params
+///
+/// {
+///   "file": FilePath
+///   "offset": int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class EditGetFixesParams implements RequestParams {
   String _file;
 
   int _offset;
 
-  /**
-   * The file containing the errors for which fixes are being requested.
-   */
+  /// The file containing the errors for which fixes are being requested.
   String get file => _file;
 
-  /**
-   * The file containing the errors for which fixes are being requested.
-   */
-  void set file(String value) {
+  /// The file containing the errors for which fixes are being requested.
+  set file(String value) {
     assert(value != null);
-    this._file = value;
+    _file = value;
   }
 
-  /**
-   * The offset used to select the errors for which fixes will be returned.
-   */
+  /// The offset used to select the errors for which fixes will be returned.
   int get offset => _offset;
 
-  /**
-   * The offset used to select the errors for which fixes will be returned.
-   */
-  void set offset(int value) {
+  /// The offset used to select the errors for which fixes will be returned.
+  set offset(int value) {
     assert(value != null);
-    this._offset = value;
+    _offset = value;
   }
 
   EditGetFixesParams(String file, int offset) {
@@ -9431,9 +8508,7 @@ class EditGetFixesParams implements RequestParams {
 
   factory EditGetFixesParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -9447,15 +8522,15 @@ class EditGetFixesParams implements RequestParams {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "offset");
       }
-      return new EditGetFixesParams(file, offset);
+      return EditGetFixesParams(file, offset);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "edit.getFixes params", json);
     }
   }
 
   factory EditGetFixesParams.fromRequest(Request request) {
-    return new EditGetFixesParams.fromJson(
-        new RequestDecoder(request), "params", request.params);
+    return EditGetFixesParams.fromJson(
+        RequestDecoder(request), "params", request.params);
   }
 
   @override
@@ -9468,7 +8543,7 @@ class EditGetFixesParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "edit.getFixes", toJson());
+    return Request(id, "edit.getFixes", toJson());
   }
 
   @override
@@ -9491,29 +8566,23 @@ class EditGetFixesParams implements RequestParams {
   }
 }
 
-/**
- * edit.getFixes result
- *
- * {
- *   "fixes": List<AnalysisErrorFixes>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// edit.getFixes result
+///
+/// {
+///   "fixes": List<AnalysisErrorFixes>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class EditGetFixesResult implements ResponseResult {
   List<AnalysisErrorFixes> _fixes;
 
-  /**
-   * The fixes that are available for the errors at the given offset.
-   */
+  /// The fixes that are available for the errors at the given offset.
   List<AnalysisErrorFixes> get fixes => _fixes;
 
-  /**
-   * The fixes that are available for the errors at the given offset.
-   */
-  void set fixes(List<AnalysisErrorFixes> value) {
+  /// The fixes that are available for the errors at the given offset.
+  set fixes(List<AnalysisErrorFixes> value) {
     assert(value != null);
-    this._fixes = value;
+    _fixes = value;
   }
 
   EditGetFixesResult(List<AnalysisErrorFixes> fixes) {
@@ -9522,9 +8591,7 @@ class EditGetFixesResult implements ResponseResult {
 
   factory EditGetFixesResult.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       List<AnalysisErrorFixes> fixes;
       if (json.containsKey("fixes")) {
@@ -9532,19 +8599,19 @@ class EditGetFixesResult implements ResponseResult {
             jsonPath + ".fixes",
             json["fixes"],
             (String jsonPath, Object json) =>
-                new AnalysisErrorFixes.fromJson(jsonDecoder, jsonPath, json));
+                AnalysisErrorFixes.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "fixes");
       }
-      return new EditGetFixesResult(fixes);
+      return EditGetFixesResult(fixes);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "edit.getFixes result", json);
     }
   }
 
   factory EditGetFixesResult.fromResponse(Response response) {
-    return new EditGetFixesResult.fromJson(
-        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+    return EditGetFixesResult.fromJson(
+        ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         "result",
         response.result);
   }
@@ -9559,7 +8626,7 @@ class EditGetFixesResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return new Response(id, result: toJson());
+    return Response(id, result: toJson());
   }
 
   @override
@@ -9582,17 +8649,15 @@ class EditGetFixesResult implements ResponseResult {
   }
 }
 
-/**
- * edit.getPostfixCompletion params
- *
- * {
- *   "file": FilePath
- *   "key": String
- *   "offset": int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// edit.getPostfixCompletion params
+///
+/// {
+///   "file": FilePath
+///   "key": String
+///   "offset": int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class EditGetPostfixCompletionParams implements RequestParams {
   String _file;
 
@@ -9600,45 +8665,33 @@ class EditGetPostfixCompletionParams implements RequestParams {
 
   int _offset;
 
-  /**
-   * The file containing the postfix template to be expanded.
-   */
+  /// The file containing the postfix template to be expanded.
   String get file => _file;
 
-  /**
-   * The file containing the postfix template to be expanded.
-   */
-  void set file(String value) {
+  /// The file containing the postfix template to be expanded.
+  set file(String value) {
     assert(value != null);
-    this._file = value;
+    _file = value;
   }
 
-  /**
-   * The unique name that identifies the template in use.
-   */
+  /// The unique name that identifies the template in use.
   String get key => _key;
 
-  /**
-   * The unique name that identifies the template in use.
-   */
-  void set key(String value) {
+  /// The unique name that identifies the template in use.
+  set key(String value) {
     assert(value != null);
-    this._key = value;
+    _key = value;
   }
 
-  /**
-   * The offset used to identify the code to which the template will be
-   * applied.
-   */
+  /// The offset used to identify the code to which the template will be
+  /// applied.
   int get offset => _offset;
 
-  /**
-   * The offset used to identify the code to which the template will be
-   * applied.
-   */
-  void set offset(int value) {
+  /// The offset used to identify the code to which the template will be
+  /// applied.
+  set offset(int value) {
     assert(value != null);
-    this._offset = value;
+    _offset = value;
   }
 
   EditGetPostfixCompletionParams(String file, String key, int offset) {
@@ -9649,9 +8702,7 @@ class EditGetPostfixCompletionParams implements RequestParams {
 
   factory EditGetPostfixCompletionParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -9671,7 +8722,7 @@ class EditGetPostfixCompletionParams implements RequestParams {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "offset");
       }
-      return new EditGetPostfixCompletionParams(file, key, offset);
+      return EditGetPostfixCompletionParams(file, key, offset);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "edit.getPostfixCompletion params", json);
@@ -9679,8 +8730,8 @@ class EditGetPostfixCompletionParams implements RequestParams {
   }
 
   factory EditGetPostfixCompletionParams.fromRequest(Request request) {
-    return new EditGetPostfixCompletionParams.fromJson(
-        new RequestDecoder(request), "params", request.params);
+    return EditGetPostfixCompletionParams.fromJson(
+        RequestDecoder(request), "params", request.params);
   }
 
   @override
@@ -9694,7 +8745,7 @@ class EditGetPostfixCompletionParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "edit.getPostfixCompletion", toJson());
+    return Request(id, "edit.getPostfixCompletion", toJson());
   }
 
   @override
@@ -9718,29 +8769,23 @@ class EditGetPostfixCompletionParams implements RequestParams {
   }
 }
 
-/**
- * edit.getPostfixCompletion result
- *
- * {
- *   "change": SourceChange
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// edit.getPostfixCompletion result
+///
+/// {
+///   "change": SourceChange
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class EditGetPostfixCompletionResult implements ResponseResult {
   SourceChange _change;
 
-  /**
-   * The change to be applied in order to complete the statement.
-   */
+  /// The change to be applied in order to complete the statement.
   SourceChange get change => _change;
 
-  /**
-   * The change to be applied in order to complete the statement.
-   */
-  void set change(SourceChange value) {
+  /// The change to be applied in order to complete the statement.
+  set change(SourceChange value) {
     assert(value != null);
-    this._change = value;
+    _change = value;
   }
 
   EditGetPostfixCompletionResult(SourceChange change) {
@@ -9749,18 +8794,16 @@ class EditGetPostfixCompletionResult implements ResponseResult {
 
   factory EditGetPostfixCompletionResult.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       SourceChange change;
       if (json.containsKey("change")) {
-        change = new SourceChange.fromJson(
+        change = SourceChange.fromJson(
             jsonDecoder, jsonPath + ".change", json["change"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "change");
       }
-      return new EditGetPostfixCompletionResult(change);
+      return EditGetPostfixCompletionResult(change);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "edit.getPostfixCompletion result", json);
@@ -9768,8 +8811,8 @@ class EditGetPostfixCompletionResult implements ResponseResult {
   }
 
   factory EditGetPostfixCompletionResult.fromResponse(Response response) {
-    return new EditGetPostfixCompletionResult.fromJson(
-        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+    return EditGetPostfixCompletionResult.fromJson(
+        ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         "result",
         response.result);
   }
@@ -9783,7 +8826,7 @@ class EditGetPostfixCompletionResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return new Response(id, result: toJson());
+    return Response(id, result: toJson());
   }
 
   @override
@@ -9805,20 +8848,18 @@ class EditGetPostfixCompletionResult implements ResponseResult {
   }
 }
 
-/**
- * edit.getRefactoring params
- *
- * {
- *   "kind": RefactoringKind
- *   "file": FilePath
- *   "offset": int
- *   "length": int
- *   "validateOnly": bool
- *   "options": optional RefactoringOptions
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// edit.getRefactoring params
+///
+/// {
+///   "kind": RefactoringKind
+///   "file": FilePath
+///   "offset": int
+///   "length": int
+///   "validateOnly": bool
+///   "options": optional RefactoringOptions
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class EditGetRefactoringParams implements RequestParams {
   RefactoringKind _kind;
 
@@ -9832,91 +8873,67 @@ class EditGetRefactoringParams implements RequestParams {
 
   RefactoringOptions _options;
 
-  /**
-   * The kind of refactoring to be performed.
-   */
+  /// The kind of refactoring to be performed.
   RefactoringKind get kind => _kind;
 
-  /**
-   * The kind of refactoring to be performed.
-   */
-  void set kind(RefactoringKind value) {
+  /// The kind of refactoring to be performed.
+  set kind(RefactoringKind value) {
     assert(value != null);
-    this._kind = value;
+    _kind = value;
   }
 
-  /**
-   * The file containing the code involved in the refactoring.
-   */
+  /// The file containing the code involved in the refactoring.
   String get file => _file;
 
-  /**
-   * The file containing the code involved in the refactoring.
-   */
-  void set file(String value) {
+  /// The file containing the code involved in the refactoring.
+  set file(String value) {
     assert(value != null);
-    this._file = value;
+    _file = value;
   }
 
-  /**
-   * The offset of the region involved in the refactoring.
-   */
+  /// The offset of the region involved in the refactoring.
   int get offset => _offset;
 
-  /**
-   * The offset of the region involved in the refactoring.
-   */
-  void set offset(int value) {
+  /// The offset of the region involved in the refactoring.
+  set offset(int value) {
     assert(value != null);
-    this._offset = value;
+    _offset = value;
   }
 
-  /**
-   * The length of the region involved in the refactoring.
-   */
+  /// The length of the region involved in the refactoring.
   int get length => _length;
 
-  /**
-   * The length of the region involved in the refactoring.
-   */
-  void set length(int value) {
+  /// The length of the region involved in the refactoring.
+  set length(int value) {
     assert(value != null);
-    this._length = value;
+    _length = value;
   }
 
-  /**
-   * True if the client is only requesting that the values of the options be
-   * validated and no change be generated.
-   */
+  /// True if the client is only requesting that the values of the options be
+  /// validated and no change be generated.
   bool get validateOnly => _validateOnly;
 
-  /**
-   * True if the client is only requesting that the values of the options be
-   * validated and no change be generated.
-   */
-  void set validateOnly(bool value) {
+  /// True if the client is only requesting that the values of the options be
+  /// validated and no change be generated.
+  set validateOnly(bool value) {
     assert(value != null);
-    this._validateOnly = value;
+    _validateOnly = value;
   }
 
-  /**
-   * Data used to provide values provided by the user. The structure of the
-   * data is dependent on the kind of refactoring being performed. The data
-   * that is expected is documented in the section titled Refactorings, labeled
-   * as "Options". This field can be omitted if the refactoring does not
-   * require any options or if the values of those options are not known.
-   */
+  /// Data used to provide values provided by the user. The structure of the
+  /// data is dependent on the kind of refactoring being performed. The data
+  /// that is expected is documented in the section titled Refactorings,
+  /// labeled as "Options". This field can be omitted if the refactoring does
+  /// not require any options or if the values of those options are not known.
   RefactoringOptions get options => _options;
 
-  /**
-   * Data used to provide values provided by the user. The structure of the
-   * data is dependent on the kind of refactoring being performed. The data
-   * that is expected is documented in the section titled Refactorings, labeled
-   * as "Options". This field can be omitted if the refactoring does not
-   * require any options or if the values of those options are not known.
-   */
-  void set options(RefactoringOptions value) {
-    this._options = value;
+  /// Data used to provide values provided by the user. The structure of the
+  /// data is dependent on the kind of refactoring being performed. The data
+  /// that is expected is documented in the section titled Refactorings,
+  /// labeled as "Options". This field can be omitted if the refactoring does
+  /// not require any options or if the values of those options are not known.
+  set options(RefactoringOptions value) {
+    _options = value;
   }
 
   EditGetRefactoringParams(RefactoringKind kind, String file, int offset,
@@ -9932,13 +8949,11 @@ class EditGetRefactoringParams implements RequestParams {
 
   factory EditGetRefactoringParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       RefactoringKind kind;
       if (json.containsKey("kind")) {
-        kind = new RefactoringKind.fromJson(
+        kind = RefactoringKind.fromJson(
             jsonDecoder, jsonPath + ".kind", json["kind"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "kind");
@@ -9970,11 +8985,10 @@ class EditGetRefactoringParams implements RequestParams {
       }
       RefactoringOptions options;
       if (json.containsKey("options")) {
-        options = new RefactoringOptions.fromJson(
+        options = RefactoringOptions.fromJson(
             jsonDecoder, jsonPath + ".options", json["options"], kind);
       }
-      return new EditGetRefactoringParams(
-          kind, file, offset, length, validateOnly,
+      return EditGetRefactoringParams(kind, file, offset, length, validateOnly,
           options: options);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "edit.getRefactoring params", json);
@@ -9982,8 +8996,8 @@ class EditGetRefactoringParams implements RequestParams {
   }
 
   factory EditGetRefactoringParams.fromRequest(Request request) {
-    var params = new EditGetRefactoringParams.fromJson(
-        new RequestDecoder(request), "params", request.params);
+    var params = EditGetRefactoringParams.fromJson(
+        RequestDecoder(request), "params", request.params);
     REQUEST_ID_REFACTORING_KINDS[request.id] = params.kind;
     return params;
   }
@@ -10004,7 +9018,7 @@ class EditGetRefactoringParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "edit.getRefactoring", toJson());
+    return Request(id, "edit.getRefactoring", toJson());
   }
 
   @override
@@ -10036,20 +9050,18 @@ class EditGetRefactoringParams implements RequestParams {
   }
 }
 
-/**
- * edit.getRefactoring result
- *
- * {
- *   "initialProblems": List<RefactoringProblem>
- *   "optionsProblems": List<RefactoringProblem>
- *   "finalProblems": List<RefactoringProblem>
- *   "feedback": optional RefactoringFeedback
- *   "change": optional SourceChange
- *   "potentialEdits": optional List<String>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// edit.getRefactoring result
+///
+/// {
+///   "initialProblems": List<RefactoringProblem>
+///   "optionsProblems": List<RefactoringProblem>
+///   "finalProblems": List<RefactoringProblem>
+///   "feedback": optional RefactoringFeedback
+///   "change": optional SourceChange
+///   "potentialEdits": optional List<String>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class EditGetRefactoringResult implements ResponseResult {
   List<RefactoringProblem> _initialProblems;
 
@@ -10063,113 +9075,91 @@ class EditGetRefactoringResult implements ResponseResult {
 
   List<String> _potentialEdits;
 
-  /**
-   * The initial status of the refactoring, i.e. problems related to the
-   * context in which the refactoring is requested. The array will be empty if
-   * there are no known problems.
-   */
+  /// The initial status of the refactoring, i.e. problems related to the
+  /// context in which the refactoring is requested. The array will be empty if
+  /// there are no known problems.
   List<RefactoringProblem> get initialProblems => _initialProblems;
 
-  /**
-   * The initial status of the refactoring, i.e. problems related to the
-   * context in which the refactoring is requested. The array will be empty if
-   * there are no known problems.
-   */
-  void set initialProblems(List<RefactoringProblem> value) {
+  /// The initial status of the refactoring, i.e. problems related to the
+  /// context in which the refactoring is requested. The array will be empty if
+  /// there are no known problems.
+  set initialProblems(List<RefactoringProblem> value) {
     assert(value != null);
-    this._initialProblems = value;
+    _initialProblems = value;
   }
 
-  /**
-   * The options validation status, i.e. problems in the given options, such as
-   * light-weight validation of a new name, flags compatibility, etc. The array
-   * will be empty if there are no known problems.
-   */
+  /// The options validation status, i.e. problems in the given options, such
+  /// as light-weight validation of a new name, flags compatibility, etc. The
+  /// array will be empty if there are no known problems.
   List<RefactoringProblem> get optionsProblems => _optionsProblems;
 
-  /**
-   * The options validation status, i.e. problems in the given options, such as
-   * light-weight validation of a new name, flags compatibility, etc. The array
-   * will be empty if there are no known problems.
-   */
-  void set optionsProblems(List<RefactoringProblem> value) {
+  /// The options validation status, i.e. problems in the given options, such
+  /// as light-weight validation of a new name, flags compatibility, etc. The
+  /// array will be empty if there are no known problems.
+  set optionsProblems(List<RefactoringProblem> value) {
     assert(value != null);
-    this._optionsProblems = value;
+    _optionsProblems = value;
   }
 
-  /**
-   * The final status of the refactoring, i.e. problems identified in the
-   * result of a full, potentially expensive validation and / or change
-   * creation. The array will be empty if there are no known problems.
-   */
+  /// The final status of the refactoring, i.e. problems identified in the
+  /// result of a full, potentially expensive validation and / or change
+  /// creation. The array will be empty if there are no known problems.
   List<RefactoringProblem> get finalProblems => _finalProblems;
 
-  /**
-   * The final status of the refactoring, i.e. problems identified in the
-   * result of a full, potentially expensive validation and / or change
-   * creation. The array will be empty if there are no known problems.
-   */
-  void set finalProblems(List<RefactoringProblem> value) {
+  /// The final status of the refactoring, i.e. problems identified in the
+  /// result of a full, potentially expensive validation and / or change
+  /// creation. The array will be empty if there are no known problems.
+  set finalProblems(List<RefactoringProblem> value) {
     assert(value != null);
-    this._finalProblems = value;
+    _finalProblems = value;
   }
 
-  /**
-   * Data used to provide feedback to the user. The structure of the data is
-   * dependent on the kind of refactoring being created. The data that is
-   * returned is documented in the section titled Refactorings, labeled as
-   * "Feedback".
-   */
+  /// Data used to provide feedback to the user. The structure of the data is
+  /// dependent on the kind of refactoring being created. The data that is
+  /// returned is documented in the section titled Refactorings, labeled as
+  /// "Feedback".
   RefactoringFeedback get feedback => _feedback;
 
-  /**
-   * Data used to provide feedback to the user. The structure of the data is
-   * dependent on the kind of refactoring being created. The data that is
-   * returned is documented in the section titled Refactorings, labeled as
-   * "Feedback".
-   */
-  void set feedback(RefactoringFeedback value) {
-    this._feedback = value;
+  /// Data used to provide feedback to the user. The structure of the data is
+  /// dependent on the kind of refactoring being created. The data that is
+  /// returned is documented in the section titled Refactorings, labeled as
+  /// "Feedback".
+  set feedback(RefactoringFeedback value) {
+    _feedback = value;
   }
 
-  /**
-   * The changes that are to be applied to affect the refactoring. This field
-   * will be omitted if there are problems that prevent a set of changes from
-   * being computed, such as having no options specified for a refactoring that
-   * requires them, or if only validation was requested.
-   */
+  /// The changes that are to be applied to affect the refactoring. This field
+  /// will be omitted if there are problems that prevent a set of changes from
+  /// being computed, such as having no options specified for a refactoring
+  /// that requires them, or if only validation was requested.
   SourceChange get change => _change;
 
-  /**
-   * The changes that are to be applied to affect the refactoring. This field
-   * will be omitted if there are problems that prevent a set of changes from
-   * being computed, such as having no options specified for a refactoring that
-   * requires them, or if only validation was requested.
-   */
-  void set change(SourceChange value) {
-    this._change = value;
+  /// The changes that are to be applied to affect the refactoring. This field
+  /// will be omitted if there are problems that prevent a set of changes from
+  /// being computed, such as having no options specified for a refactoring
+  /// that requires them, or if only validation was requested.
+  set change(SourceChange value) {
+    _change = value;
   }
 
-  /**
-   * The ids of source edits that are not known to be valid. An edit is not
-   * known to be valid if there was insufficient type information for the
-   * server to be able to determine whether or not the code needs to be
-   * modified, such as when a member is being renamed and there is a reference
-   * to a member from an unknown type. This field will be omitted if the change
-   * field is omitted or if there are no potential edits for the refactoring.
-   */
+  /// The ids of source edits that are not known to be valid. An edit is not
+  /// known to be valid if there was insufficient type information for the
+  /// server to be able to determine whether or not the code needs to be
+  /// modified, such as when a member is being renamed and there is a reference
+  /// to a member from an unknown type. This field will be omitted if the
+  /// change field is omitted or if there are no potential edits for the
+  /// refactoring.
   List<String> get potentialEdits => _potentialEdits;
 
-  /**
-   * The ids of source edits that are not known to be valid. An edit is not
-   * known to be valid if there was insufficient type information for the
-   * server to be able to determine whether or not the code needs to be
-   * modified, such as when a member is being renamed and there is a reference
-   * to a member from an unknown type. This field will be omitted if the change
-   * field is omitted or if there are no potential edits for the refactoring.
-   */
-  void set potentialEdits(List<String> value) {
-    this._potentialEdits = value;
+  /// The ids of source edits that are not known to be valid. An edit is not
+  /// known to be valid if there was insufficient type information for the
+  /// server to be able to determine whether or not the code needs to be
+  /// modified, such as when a member is being renamed and there is a reference
+  /// to a member from an unknown type. This field will be omitted if the
+  /// change field is omitted or if there are no potential edits for the
+  /// refactoring.
+  set potentialEdits(List<String> value) {
+    _potentialEdits = value;
   }
 
   EditGetRefactoringResult(
@@ -10189,9 +9179,7 @@ class EditGetRefactoringResult implements ResponseResult {
 
   factory EditGetRefactoringResult.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       List<RefactoringProblem> initialProblems;
       if (json.containsKey("initialProblems")) {
@@ -10199,7 +9187,7 @@ class EditGetRefactoringResult implements ResponseResult {
             jsonPath + ".initialProblems",
             json["initialProblems"],
             (String jsonPath, Object json) =>
-                new RefactoringProblem.fromJson(jsonDecoder, jsonPath, json));
+                RefactoringProblem.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "initialProblems");
       }
@@ -10209,7 +9197,7 @@ class EditGetRefactoringResult implements ResponseResult {
             jsonPath + ".optionsProblems",
             json["optionsProblems"],
             (String jsonPath, Object json) =>
-                new RefactoringProblem.fromJson(jsonDecoder, jsonPath, json));
+                RefactoringProblem.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "optionsProblems");
       }
@@ -10219,18 +9207,18 @@ class EditGetRefactoringResult implements ResponseResult {
             jsonPath + ".finalProblems",
             json["finalProblems"],
             (String jsonPath, Object json) =>
-                new RefactoringProblem.fromJson(jsonDecoder, jsonPath, json));
+                RefactoringProblem.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "finalProblems");
       }
       RefactoringFeedback feedback;
       if (json.containsKey("feedback")) {
-        feedback = new RefactoringFeedback.fromJson(
+        feedback = RefactoringFeedback.fromJson(
             jsonDecoder, jsonPath + ".feedback", json["feedback"], json);
       }
       SourceChange change;
       if (json.containsKey("change")) {
-        change = new SourceChange.fromJson(
+        change = SourceChange.fromJson(
             jsonDecoder, jsonPath + ".change", json["change"]);
       }
       List<String> potentialEdits;
@@ -10238,7 +9226,7 @@ class EditGetRefactoringResult implements ResponseResult {
         potentialEdits = jsonDecoder.decodeList(jsonPath + ".potentialEdits",
             json["potentialEdits"], jsonDecoder.decodeString);
       }
-      return new EditGetRefactoringResult(
+      return EditGetRefactoringResult(
           initialProblems, optionsProblems, finalProblems,
           feedback: feedback, change: change, potentialEdits: potentialEdits);
     } else {
@@ -10247,8 +9235,8 @@ class EditGetRefactoringResult implements ResponseResult {
   }
 
   factory EditGetRefactoringResult.fromResponse(Response response) {
-    return new EditGetRefactoringResult.fromJson(
-        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+    return EditGetRefactoringResult.fromJson(
+        ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         "result",
         response.result);
   }
@@ -10279,7 +9267,7 @@ class EditGetRefactoringResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return new Response(id, result: toJson());
+    return Response(id, result: toJson());
   }
 
   @override
@@ -10315,45 +9303,35 @@ class EditGetRefactoringResult implements ResponseResult {
   }
 }
 
-/**
- * edit.getStatementCompletion params
- *
- * {
- *   "file": FilePath
- *   "offset": int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// edit.getStatementCompletion params
+///
+/// {
+///   "file": FilePath
+///   "offset": int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class EditGetStatementCompletionParams implements RequestParams {
   String _file;
 
   int _offset;
 
-  /**
-   * The file containing the statement to be completed.
-   */
+  /// The file containing the statement to be completed.
   String get file => _file;
 
-  /**
-   * The file containing the statement to be completed.
-   */
-  void set file(String value) {
+  /// The file containing the statement to be completed.
+  set file(String value) {
     assert(value != null);
-    this._file = value;
+    _file = value;
   }
 
-  /**
-   * The offset used to identify the statement to be completed.
-   */
+  /// The offset used to identify the statement to be completed.
   int get offset => _offset;
 
-  /**
-   * The offset used to identify the statement to be completed.
-   */
-  void set offset(int value) {
+  /// The offset used to identify the statement to be completed.
+  set offset(int value) {
     assert(value != null);
-    this._offset = value;
+    _offset = value;
   }
 
   EditGetStatementCompletionParams(String file, int offset) {
@@ -10363,9 +9341,7 @@ class EditGetStatementCompletionParams implements RequestParams {
 
   factory EditGetStatementCompletionParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -10379,7 +9355,7 @@ class EditGetStatementCompletionParams implements RequestParams {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "offset");
       }
-      return new EditGetStatementCompletionParams(file, offset);
+      return EditGetStatementCompletionParams(file, offset);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "edit.getStatementCompletion params", json);
@@ -10387,8 +9363,8 @@ class EditGetStatementCompletionParams implements RequestParams {
   }
 
   factory EditGetStatementCompletionParams.fromRequest(Request request) {
-    return new EditGetStatementCompletionParams.fromJson(
-        new RequestDecoder(request), "params", request.params);
+    return EditGetStatementCompletionParams.fromJson(
+        RequestDecoder(request), "params", request.params);
   }
 
   @override
@@ -10401,7 +9377,7 @@ class EditGetStatementCompletionParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "edit.getStatementCompletion", toJson());
+    return Request(id, "edit.getStatementCompletion", toJson());
   }
 
   @override
@@ -10424,47 +9400,37 @@ class EditGetStatementCompletionParams implements RequestParams {
   }
 }
 
-/**
- * edit.getStatementCompletion result
- *
- * {
- *   "change": SourceChange
- *   "whitespaceOnly": bool
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// edit.getStatementCompletion result
+///
+/// {
+///   "change": SourceChange
+///   "whitespaceOnly": bool
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class EditGetStatementCompletionResult implements ResponseResult {
   SourceChange _change;
 
   bool _whitespaceOnly;
 
-  /**
-   * The change to be applied in order to complete the statement.
-   */
+  /// The change to be applied in order to complete the statement.
   SourceChange get change => _change;
 
-  /**
-   * The change to be applied in order to complete the statement.
-   */
-  void set change(SourceChange value) {
+  /// The change to be applied in order to complete the statement.
+  set change(SourceChange value) {
     assert(value != null);
-    this._change = value;
+    _change = value;
   }
 
-  /**
-   * Will be true if the change contains nothing but whitespace characters, or
-   * is empty.
-   */
+  /// Will be true if the change contains nothing but whitespace characters, or
+  /// is empty.
   bool get whitespaceOnly => _whitespaceOnly;
 
-  /**
-   * Will be true if the change contains nothing but whitespace characters, or
-   * is empty.
-   */
-  void set whitespaceOnly(bool value) {
+  /// Will be true if the change contains nothing but whitespace characters, or
+  /// is empty.
+  set whitespaceOnly(bool value) {
     assert(value != null);
-    this._whitespaceOnly = value;
+    _whitespaceOnly = value;
   }
 
   EditGetStatementCompletionResult(SourceChange change, bool whitespaceOnly) {
@@ -10474,13 +9440,11 @@ class EditGetStatementCompletionResult implements ResponseResult {
 
   factory EditGetStatementCompletionResult.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       SourceChange change;
       if (json.containsKey("change")) {
-        change = new SourceChange.fromJson(
+        change = SourceChange.fromJson(
             jsonDecoder, jsonPath + ".change", json["change"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "change");
@@ -10492,7 +9456,7 @@ class EditGetStatementCompletionResult implements ResponseResult {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "whitespaceOnly");
       }
-      return new EditGetStatementCompletionResult(change, whitespaceOnly);
+      return EditGetStatementCompletionResult(change, whitespaceOnly);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "edit.getStatementCompletion result", json);
@@ -10500,8 +9464,8 @@ class EditGetStatementCompletionResult implements ResponseResult {
   }
 
   factory EditGetStatementCompletionResult.fromResponse(Response response) {
-    return new EditGetStatementCompletionResult.fromJson(
-        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+    return EditGetStatementCompletionResult.fromJson(
+        ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         "result",
         response.result);
   }
@@ -10516,7 +9480,7 @@ class EditGetStatementCompletionResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return new Response(id, result: toJson());
+    return Response(id, result: toJson());
   }
 
   @override
@@ -10539,17 +9503,15 @@ class EditGetStatementCompletionResult implements ResponseResult {
   }
 }
 
-/**
- * edit.importElements params
- *
- * {
- *   "file": FilePath
- *   "elements": List<ImportedElements>
- *   "offset": optional int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// edit.importElements params
+///
+/// {
+///   "file": FilePath
+///   "elements": List<ImportedElements>
+///   "offset": optional int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class EditImportElementsParams implements RequestParams {
   String _file;
 
@@ -10557,48 +9519,36 @@ class EditImportElementsParams implements RequestParams {
 
   int _offset;
 
-  /**
-   * The file in which the specified elements are to be made accessible.
-   */
+  /// The file in which the specified elements are to be made accessible.
   String get file => _file;
 
-  /**
-   * The file in which the specified elements are to be made accessible.
-   */
-  void set file(String value) {
+  /// The file in which the specified elements are to be made accessible.
+  set file(String value) {
     assert(value != null);
-    this._file = value;
+    _file = value;
   }
 
-  /**
-   * The elements to be made accessible in the specified file.
-   */
+  /// The elements to be made accessible in the specified file.
   List<ImportedElements> get elements => _elements;
 
-  /**
-   * The elements to be made accessible in the specified file.
-   */
-  void set elements(List<ImportedElements> value) {
+  /// The elements to be made accessible in the specified file.
+  set elements(List<ImportedElements> value) {
     assert(value != null);
-    this._elements = value;
+    _elements = value;
   }
 
-  /**
-   * The offset at which the specified elements need to be made accessible. If
-   * provided, this is used to guard against adding imports for text that would
-   * be inserted into a comment, string literal, or other location where the
-   * imports would not be necessary.
-   */
+  /// The offset at which the specified elements need to be made accessible. If
+  /// provided, this is used to guard against adding imports for text that
+  /// would be inserted into a comment, string literal, or other location where
+  /// the imports would not be necessary.
   int get offset => _offset;
 
-  /**
-   * The offset at which the specified elements need to be made accessible. If
-   * provided, this is used to guard against adding imports for text that would
-   * be inserted into a comment, string literal, or other location where the
-   * imports would not be necessary.
-   */
-  void set offset(int value) {
-    this._offset = value;
+  /// The offset at which the specified elements need to be made accessible. If
+  /// provided, this is used to guard against adding imports for text that
+  /// would be inserted into a comment, string literal, or other location where
+  /// the imports would not be necessary.
+  set offset(int value) {
+    _offset = value;
   }
 
   EditImportElementsParams(String file, List<ImportedElements> elements,
@@ -10610,9 +9560,7 @@ class EditImportElementsParams implements RequestParams {
 
   factory EditImportElementsParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -10626,7 +9574,7 @@ class EditImportElementsParams implements RequestParams {
             jsonPath + ".elements",
             json["elements"],
             (String jsonPath, Object json) =>
-                new ImportedElements.fromJson(jsonDecoder, jsonPath, json));
+                ImportedElements.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "elements");
       }
@@ -10634,15 +9582,15 @@ class EditImportElementsParams implements RequestParams {
       if (json.containsKey("offset")) {
         offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
       }
-      return new EditImportElementsParams(file, elements, offset: offset);
+      return EditImportElementsParams(file, elements, offset: offset);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "edit.importElements params", json);
     }
   }
 
   factory EditImportElementsParams.fromRequest(Request request) {
-    return new EditImportElementsParams.fromJson(
-        new RequestDecoder(request), "params", request.params);
+    return EditImportElementsParams.fromJson(
+        RequestDecoder(request), "params", request.params);
   }
 
   @override
@@ -10659,7 +9607,7 @@ class EditImportElementsParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "edit.importElements", toJson());
+    return Request(id, "edit.importElements", toJson());
   }
 
   @override
@@ -10686,38 +9634,32 @@ class EditImportElementsParams implements RequestParams {
   }
 }
 
-/**
- * edit.importElements result
- *
- * {
- *   "edit": optional SourceFileEdit
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// edit.importElements result
+///
+/// {
+///   "edit": optional SourceFileEdit
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class EditImportElementsResult implements ResponseResult {
   SourceFileEdit _edit;
 
-  /**
-   * The edits to be applied in order to make the specified elements
-   * accessible. The file to be edited will be the defining compilation unit of
-   * the library containing the file specified in the request, which can be
-   * different than the file specified in the request if the specified file is
-   * a part file. This field will be omitted if there are no edits that need to
-   * be applied.
-   */
+  /// The edits to be applied in order to make the specified elements
+  /// accessible. The file to be edited will be the defining compilation unit
+  /// of the library containing the file specified in the request, which can be
+  /// different than the file specified in the request if the specified file is
+  /// a part file. This field will be omitted if there are no edits that need
+  /// to be applied.
   SourceFileEdit get edit => _edit;
 
-  /**
-   * The edits to be applied in order to make the specified elements
-   * accessible. The file to be edited will be the defining compilation unit of
-   * the library containing the file specified in the request, which can be
-   * different than the file specified in the request if the specified file is
-   * a part file. This field will be omitted if there are no edits that need to
-   * be applied.
-   */
-  void set edit(SourceFileEdit value) {
-    this._edit = value;
+  /// The edits to be applied in order to make the specified elements
+  /// accessible. The file to be edited will be the defining compilation unit
+  /// of the library containing the file specified in the request, which can be
+  /// different than the file specified in the request if the specified file is
+  /// a part file. This field will be omitted if there are no edits that need
+  /// to be applied.
+  set edit(SourceFileEdit value) {
+    _edit = value;
   }
 
   EditImportElementsResult({SourceFileEdit edit}) {
@@ -10726,24 +9668,22 @@ class EditImportElementsResult implements ResponseResult {
 
   factory EditImportElementsResult.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       SourceFileEdit edit;
       if (json.containsKey("edit")) {
-        edit = new SourceFileEdit.fromJson(
+        edit = SourceFileEdit.fromJson(
             jsonDecoder, jsonPath + ".edit", json["edit"]);
       }
-      return new EditImportElementsResult(edit: edit);
+      return EditImportElementsResult(edit: edit);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "edit.importElements result", json);
     }
   }
 
   factory EditImportElementsResult.fromResponse(Response response) {
-    return new EditImportElementsResult.fromJson(
-        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+    return EditImportElementsResult.fromJson(
+        ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         "result",
         response.result);
   }
@@ -10759,7 +9699,7 @@ class EditImportElementsResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return new Response(id, result: toJson());
+    return Response(id, result: toJson());
   }
 
   @override
@@ -10781,17 +9721,15 @@ class EditImportElementsResult implements ResponseResult {
   }
 }
 
-/**
- * edit.isPostfixCompletionApplicable params
- *
- * {
- *   "file": FilePath
- *   "key": String
- *   "offset": int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// edit.isPostfixCompletionApplicable params
+///
+/// {
+///   "file": FilePath
+///   "key": String
+///   "offset": int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class EditIsPostfixCompletionApplicableParams implements RequestParams {
   String _file;
 
@@ -10799,45 +9737,33 @@ class EditIsPostfixCompletionApplicableParams implements RequestParams {
 
   int _offset;
 
-  /**
-   * The file containing the postfix template to be expanded.
-   */
+  /// The file containing the postfix template to be expanded.
   String get file => _file;
 
-  /**
-   * The file containing the postfix template to be expanded.
-   */
-  void set file(String value) {
+  /// The file containing the postfix template to be expanded.
+  set file(String value) {
     assert(value != null);
-    this._file = value;
+    _file = value;
   }
 
-  /**
-   * The unique name that identifies the template in use.
-   */
+  /// The unique name that identifies the template in use.
   String get key => _key;
 
-  /**
-   * The unique name that identifies the template in use.
-   */
-  void set key(String value) {
+  /// The unique name that identifies the template in use.
+  set key(String value) {
     assert(value != null);
-    this._key = value;
+    _key = value;
   }
 
-  /**
-   * The offset used to identify the code to which the template will be
-   * applied.
-   */
+  /// The offset used to identify the code to which the template will be
+  /// applied.
   int get offset => _offset;
 
-  /**
-   * The offset used to identify the code to which the template will be
-   * applied.
-   */
-  void set offset(int value) {
+  /// The offset used to identify the code to which the template will be
+  /// applied.
+  set offset(int value) {
     assert(value != null);
-    this._offset = value;
+    _offset = value;
   }
 
   EditIsPostfixCompletionApplicableParams(String file, String key, int offset) {
@@ -10848,9 +9774,7 @@ class EditIsPostfixCompletionApplicableParams implements RequestParams {
 
   factory EditIsPostfixCompletionApplicableParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -10870,7 +9794,7 @@ class EditIsPostfixCompletionApplicableParams implements RequestParams {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "offset");
       }
-      return new EditIsPostfixCompletionApplicableParams(file, key, offset);
+      return EditIsPostfixCompletionApplicableParams(file, key, offset);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "edit.isPostfixCompletionApplicable params", json);
@@ -10878,8 +9802,8 @@ class EditIsPostfixCompletionApplicableParams implements RequestParams {
   }
 
   factory EditIsPostfixCompletionApplicableParams.fromRequest(Request request) {
-    return new EditIsPostfixCompletionApplicableParams.fromJson(
-        new RequestDecoder(request), "params", request.params);
+    return EditIsPostfixCompletionApplicableParams.fromJson(
+        RequestDecoder(request), "params", request.params);
   }
 
   @override
@@ -10893,7 +9817,7 @@ class EditIsPostfixCompletionApplicableParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "edit.isPostfixCompletionApplicable", toJson());
+    return Request(id, "edit.isPostfixCompletionApplicable", toJson());
   }
 
   @override
@@ -10917,29 +9841,23 @@ class EditIsPostfixCompletionApplicableParams implements RequestParams {
   }
 }
 
-/**
- * edit.isPostfixCompletionApplicable result
- *
- * {
- *   "value": bool
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// edit.isPostfixCompletionApplicable result
+///
+/// {
+///   "value": bool
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class EditIsPostfixCompletionApplicableResult implements ResponseResult {
   bool _value;
 
-  /**
-   * True if the template can be expanded at the given location.
-   */
+  /// True if the template can be expanded at the given location.
   bool get value => _value;
 
-  /**
-   * True if the template can be expanded at the given location.
-   */
-  void set value(bool value) {
+  /// True if the template can be expanded at the given location.
+  set value(bool value) {
     assert(value != null);
-    this._value = value;
+    _value = value;
   }
 
   EditIsPostfixCompletionApplicableResult(bool value) {
@@ -10948,9 +9866,7 @@ class EditIsPostfixCompletionApplicableResult implements ResponseResult {
 
   factory EditIsPostfixCompletionApplicableResult.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       bool value;
       if (json.containsKey("value")) {
@@ -10958,7 +9874,7 @@ class EditIsPostfixCompletionApplicableResult implements ResponseResult {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "value");
       }
-      return new EditIsPostfixCompletionApplicableResult(value);
+      return EditIsPostfixCompletionApplicableResult(value);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "edit.isPostfixCompletionApplicable result", json);
@@ -10967,8 +9883,8 @@ class EditIsPostfixCompletionApplicableResult implements ResponseResult {
 
   factory EditIsPostfixCompletionApplicableResult.fromResponse(
       Response response) {
-    return new EditIsPostfixCompletionApplicableResult.fromJson(
-        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+    return EditIsPostfixCompletionApplicableResult.fromJson(
+        ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         "result",
         response.result);
   }
@@ -10982,7 +9898,7 @@ class EditIsPostfixCompletionApplicableResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return new Response(id, result: toJson());
+    return Response(id, result: toJson());
   }
 
   @override
@@ -11004,18 +9920,16 @@ class EditIsPostfixCompletionApplicableResult implements ResponseResult {
   }
 }
 
-/**
- * edit.listPostfixCompletionTemplates params
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// edit.listPostfixCompletionTemplates params
+///
+/// Clients may not extend, implement or mix-in this class.
 class EditListPostfixCompletionTemplatesParams implements RequestParams {
   @override
   Map<String, dynamic> toJson() => <String, dynamic>{};
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "edit.listPostfixCompletionTemplates", null);
+    return Request(id, "edit.listPostfixCompletionTemplates", null);
   }
 
   @override
@@ -11032,29 +9946,23 @@ class EditListPostfixCompletionTemplatesParams implements RequestParams {
   }
 }
 
-/**
- * edit.listPostfixCompletionTemplates result
- *
- * {
- *   "templates": List<PostfixTemplateDescriptor>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// edit.listPostfixCompletionTemplates result
+///
+/// {
+///   "templates": List<PostfixTemplateDescriptor>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class EditListPostfixCompletionTemplatesResult implements ResponseResult {
   List<PostfixTemplateDescriptor> _templates;
 
-  /**
-   * The list of available templates.
-   */
+  /// The list of available templates.
   List<PostfixTemplateDescriptor> get templates => _templates;
 
-  /**
-   * The list of available templates.
-   */
-  void set templates(List<PostfixTemplateDescriptor> value) {
+  /// The list of available templates.
+  set templates(List<PostfixTemplateDescriptor> value) {
     assert(value != null);
-    this._templates = value;
+    _templates = value;
   }
 
   EditListPostfixCompletionTemplatesResult(
@@ -11064,9 +9972,7 @@ class EditListPostfixCompletionTemplatesResult implements ResponseResult {
 
   factory EditListPostfixCompletionTemplatesResult.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       List<PostfixTemplateDescriptor> templates;
       if (json.containsKey("templates")) {
@@ -11074,12 +9980,12 @@ class EditListPostfixCompletionTemplatesResult implements ResponseResult {
             jsonPath + ".templates",
             json["templates"],
             (String jsonPath, Object json) =>
-                new PostfixTemplateDescriptor.fromJson(
+                PostfixTemplateDescriptor.fromJson(
                     jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "templates");
       }
-      return new EditListPostfixCompletionTemplatesResult(templates);
+      return EditListPostfixCompletionTemplatesResult(templates);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "edit.listPostfixCompletionTemplates result", json);
@@ -11088,8 +9994,8 @@ class EditListPostfixCompletionTemplatesResult implements ResponseResult {
 
   factory EditListPostfixCompletionTemplatesResult.fromResponse(
       Response response) {
-    return new EditListPostfixCompletionTemplatesResult.fromJson(
-        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+    return EditListPostfixCompletionTemplatesResult.fromJson(
+        ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         "result",
         response.result);
   }
@@ -11105,7 +10011,7 @@ class EditListPostfixCompletionTemplatesResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return new Response(id, result: toJson());
+    return Response(id, result: toJson());
   }
 
   @override
@@ -11128,29 +10034,23 @@ class EditListPostfixCompletionTemplatesResult implements ResponseResult {
   }
 }
 
-/**
- * edit.organizeDirectives params
- *
- * {
- *   "file": FilePath
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// edit.organizeDirectives params
+///
+/// {
+///   "file": FilePath
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class EditOrganizeDirectivesParams implements RequestParams {
   String _file;
 
-  /**
-   * The Dart file to organize directives in.
-   */
+  /// The Dart file to organize directives in.
   String get file => _file;
 
-  /**
-   * The Dart file to organize directives in.
-   */
-  void set file(String value) {
+  /// The Dart file to organize directives in.
+  set file(String value) {
     assert(value != null);
-    this._file = value;
+    _file = value;
   }
 
   EditOrganizeDirectivesParams(String file) {
@@ -11159,9 +10059,7 @@ class EditOrganizeDirectivesParams implements RequestParams {
 
   factory EditOrganizeDirectivesParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -11169,7 +10067,7 @@ class EditOrganizeDirectivesParams implements RequestParams {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "file");
       }
-      return new EditOrganizeDirectivesParams(file);
+      return EditOrganizeDirectivesParams(file);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "edit.organizeDirectives params", json);
@@ -11177,8 +10075,8 @@ class EditOrganizeDirectivesParams implements RequestParams {
   }
 
   factory EditOrganizeDirectivesParams.fromRequest(Request request) {
-    return new EditOrganizeDirectivesParams.fromJson(
-        new RequestDecoder(request), "params", request.params);
+    return EditOrganizeDirectivesParams.fromJson(
+        RequestDecoder(request), "params", request.params);
   }
 
   @override
@@ -11190,7 +10088,7 @@ class EditOrganizeDirectivesParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "edit.organizeDirectives", toJson());
+    return Request(id, "edit.organizeDirectives", toJson());
   }
 
   @override
@@ -11212,31 +10110,25 @@ class EditOrganizeDirectivesParams implements RequestParams {
   }
 }
 
-/**
- * edit.organizeDirectives result
- *
- * {
- *   "edit": SourceFileEdit
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// edit.organizeDirectives result
+///
+/// {
+///   "edit": SourceFileEdit
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class EditOrganizeDirectivesResult implements ResponseResult {
   SourceFileEdit _edit;
 
-  /**
-   * The file edit that is to be applied to the given file to effect the
-   * organizing.
-   */
+  /// The file edit that is to be applied to the given file to effect the
+  /// organizing.
   SourceFileEdit get edit => _edit;
 
-  /**
-   * The file edit that is to be applied to the given file to effect the
-   * organizing.
-   */
-  void set edit(SourceFileEdit value) {
+  /// The file edit that is to be applied to the given file to effect the
+  /// organizing.
+  set edit(SourceFileEdit value) {
     assert(value != null);
-    this._edit = value;
+    _edit = value;
   }
 
   EditOrganizeDirectivesResult(SourceFileEdit edit) {
@@ -11245,18 +10137,16 @@ class EditOrganizeDirectivesResult implements ResponseResult {
 
   factory EditOrganizeDirectivesResult.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       SourceFileEdit edit;
       if (json.containsKey("edit")) {
-        edit = new SourceFileEdit.fromJson(
+        edit = SourceFileEdit.fromJson(
             jsonDecoder, jsonPath + ".edit", json["edit"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "edit");
       }
-      return new EditOrganizeDirectivesResult(edit);
+      return EditOrganizeDirectivesResult(edit);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "edit.organizeDirectives result", json);
@@ -11264,8 +10154,8 @@ class EditOrganizeDirectivesResult implements ResponseResult {
   }
 
   factory EditOrganizeDirectivesResult.fromResponse(Response response) {
-    return new EditOrganizeDirectivesResult.fromJson(
-        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+    return EditOrganizeDirectivesResult.fromJson(
+        ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         "result",
         response.result);
   }
@@ -11279,7 +10169,7 @@ class EditOrganizeDirectivesResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return new Response(id, result: toJson());
+    return Response(id, result: toJson());
   }
 
   @override
@@ -11301,29 +10191,23 @@ class EditOrganizeDirectivesResult implements ResponseResult {
   }
 }
 
-/**
- * edit.sortMembers params
- *
- * {
- *   "file": FilePath
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// edit.sortMembers params
+///
+/// {
+///   "file": FilePath
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class EditSortMembersParams implements RequestParams {
   String _file;
 
-  /**
-   * The Dart file to sort.
-   */
+  /// The Dart file to sort.
   String get file => _file;
 
-  /**
-   * The Dart file to sort.
-   */
-  void set file(String value) {
+  /// The Dart file to sort.
+  set file(String value) {
     assert(value != null);
-    this._file = value;
+    _file = value;
   }
 
   EditSortMembersParams(String file) {
@@ -11332,9 +10216,7 @@ class EditSortMembersParams implements RequestParams {
 
   factory EditSortMembersParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -11342,15 +10224,15 @@ class EditSortMembersParams implements RequestParams {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "file");
       }
-      return new EditSortMembersParams(file);
+      return EditSortMembersParams(file);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "edit.sortMembers params", json);
     }
   }
 
   factory EditSortMembersParams.fromRequest(Request request) {
-    return new EditSortMembersParams.fromJson(
-        new RequestDecoder(request), "params", request.params);
+    return EditSortMembersParams.fromJson(
+        RequestDecoder(request), "params", request.params);
   }
 
   @override
@@ -11362,7 +10244,7 @@ class EditSortMembersParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "edit.sortMembers", toJson());
+    return Request(id, "edit.sortMembers", toJson());
   }
 
   @override
@@ -11384,31 +10266,25 @@ class EditSortMembersParams implements RequestParams {
   }
 }
 
-/**
- * edit.sortMembers result
- *
- * {
- *   "edit": SourceFileEdit
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// edit.sortMembers result
+///
+/// {
+///   "edit": SourceFileEdit
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class EditSortMembersResult implements ResponseResult {
   SourceFileEdit _edit;
 
-  /**
-   * The file edit that is to be applied to the given file to effect the
-   * sorting.
-   */
+  /// The file edit that is to be applied to the given file to effect the
+  /// sorting.
   SourceFileEdit get edit => _edit;
 
-  /**
-   * The file edit that is to be applied to the given file to effect the
-   * sorting.
-   */
-  void set edit(SourceFileEdit value) {
+  /// The file edit that is to be applied to the given file to effect the
+  /// sorting.
+  set edit(SourceFileEdit value) {
     assert(value != null);
-    this._edit = value;
+    _edit = value;
   }
 
   EditSortMembersResult(SourceFileEdit edit) {
@@ -11417,26 +10293,24 @@ class EditSortMembersResult implements ResponseResult {
 
   factory EditSortMembersResult.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       SourceFileEdit edit;
       if (json.containsKey("edit")) {
-        edit = new SourceFileEdit.fromJson(
+        edit = SourceFileEdit.fromJson(
             jsonDecoder, jsonPath + ".edit", json["edit"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "edit");
       }
-      return new EditSortMembersResult(edit);
+      return EditSortMembersResult(edit);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "edit.sortMembers result", json);
     }
   }
 
   factory EditSortMembersResult.fromResponse(Response response) {
-    return new EditSortMembersResult.fromJson(
-        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+    return EditSortMembersResult.fromJson(
+        ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         "result",
         response.result);
   }
@@ -11450,7 +10324,7 @@ class EditSortMembersResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return new Response(id, result: toJson());
+    return Response(id, result: toJson());
   }
 
   @override
@@ -11472,25 +10346,23 @@ class EditSortMembersResult implements ResponseResult {
   }
 }
 
-/**
- * ElementDeclaration
- *
- * {
- *   "name": String
- *   "kind": ElementKind
- *   "fileIndex": int
- *   "offset": int
- *   "line": int
- *   "column": int
- *   "codeOffset": int
- *   "codeLength": int
- *   "className": optional String
- *   "mixinName": optional String
- *   "parameters": optional String
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// ElementDeclaration
+///
+/// {
+///   "name": String
+///   "kind": ElementKind
+///   "fileIndex": int
+///   "offset": int
+///   "line": int
+///   "column": int
+///   "codeOffset": int
+///   "codeLength": int
+///   "className": optional String
+///   "mixinName": optional String
+///   "parameters": optional String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ElementDeclaration implements HasToJson {
   String _name;
 
@@ -11514,158 +10386,114 @@ class ElementDeclaration implements HasToJson {
 
   String _parameters;
 
-  /**
-   * The name of the declaration.
-   */
+  /// The name of the declaration.
   String get name => _name;
 
-  /**
-   * The name of the declaration.
-   */
-  void set name(String value) {
+  /// The name of the declaration.
+  set name(String value) {
     assert(value != null);
-    this._name = value;
+    _name = value;
   }
 
-  /**
-   * The kind of the element that corresponds to the declaration.
-   */
+  /// The kind of the element that corresponds to the declaration.
   ElementKind get kind => _kind;
 
-  /**
-   * The kind of the element that corresponds to the declaration.
-   */
-  void set kind(ElementKind value) {
+  /// The kind of the element that corresponds to the declaration.
+  set kind(ElementKind value) {
     assert(value != null);
-    this._kind = value;
+    _kind = value;
   }
 
-  /**
-   * The index of the file (in the enclosing response).
-   */
+  /// The index of the file (in the enclosing response).
   int get fileIndex => _fileIndex;
 
-  /**
-   * The index of the file (in the enclosing response).
-   */
-  void set fileIndex(int value) {
+  /// The index of the file (in the enclosing response).
+  set fileIndex(int value) {
     assert(value != null);
-    this._fileIndex = value;
+    _fileIndex = value;
   }
 
-  /**
-   * The offset of the declaration name in the file.
-   */
+  /// The offset of the declaration name in the file.
   int get offset => _offset;
 
-  /**
-   * The offset of the declaration name in the file.
-   */
-  void set offset(int value) {
+  /// The offset of the declaration name in the file.
+  set offset(int value) {
     assert(value != null);
-    this._offset = value;
+    _offset = value;
   }
 
-  /**
-   * The one-based index of the line containing the declaration name.
-   */
+  /// The one-based index of the line containing the declaration name.
   int get line => _line;
 
-  /**
-   * The one-based index of the line containing the declaration name.
-   */
-  void set line(int value) {
+  /// The one-based index of the line containing the declaration name.
+  set line(int value) {
     assert(value != null);
-    this._line = value;
+    _line = value;
   }
 
-  /**
-   * The one-based index of the column containing the declaration name.
-   */
+  /// The one-based index of the column containing the declaration name.
   int get column => _column;
 
-  /**
-   * The one-based index of the column containing the declaration name.
-   */
-  void set column(int value) {
+  /// The one-based index of the column containing the declaration name.
+  set column(int value) {
     assert(value != null);
-    this._column = value;
+    _column = value;
   }
 
-  /**
-   * The offset of the first character of the declaration code in the file.
-   */
+  /// The offset of the first character of the declaration code in the file.
   int get codeOffset => _codeOffset;
 
-  /**
-   * The offset of the first character of the declaration code in the file.
-   */
-  void set codeOffset(int value) {
+  /// The offset of the first character of the declaration code in the file.
+  set codeOffset(int value) {
     assert(value != null);
-    this._codeOffset = value;
+    _codeOffset = value;
   }
 
-  /**
-   * The length of the declaration code in the file.
-   */
+  /// The length of the declaration code in the file.
   int get codeLength => _codeLength;
 
-  /**
-   * The length of the declaration code in the file.
-   */
-  void set codeLength(int value) {
+  /// The length of the declaration code in the file.
+  set codeLength(int value) {
     assert(value != null);
-    this._codeLength = value;
+    _codeLength = value;
   }
 
-  /**
-   * The name of the class enclosing this declaration. If the declaration is
-   * not a class member, this field will be absent.
-   */
+  /// The name of the class enclosing this declaration. If the declaration is
+  /// not a class member, this field will be absent.
   String get className => _className;
 
-  /**
-   * The name of the class enclosing this declaration. If the declaration is
-   * not a class member, this field will be absent.
-   */
-  void set className(String value) {
-    this._className = value;
+  /// The name of the class enclosing this declaration. If the declaration is
+  /// not a class member, this field will be absent.
+  set className(String value) {
+    _className = value;
   }
 
-  /**
-   * The name of the mixin enclosing this declaration. If the declaration is
-   * not a mixin member, this field will be absent.
-   */
+  /// The name of the mixin enclosing this declaration. If the declaration is
+  /// not a mixin member, this field will be absent.
   String get mixinName => _mixinName;
 
-  /**
-   * The name of the mixin enclosing this declaration. If the declaration is
-   * not a mixin member, this field will be absent.
-   */
-  void set mixinName(String value) {
-    this._mixinName = value;
+  /// The name of the mixin enclosing this declaration. If the declaration is
+  /// not a mixin member, this field will be absent.
+  set mixinName(String value) {
+    _mixinName = value;
   }
 
-  /**
-   * The parameter list for the element. If the element is not a method or
-   * function this field will not be defined. If the element doesn't have
-   * parameters (e.g. getter), this field will not be defined. If the element
-   * has zero parameters, this field will have a value of "()". The value
-   * should not be treated as exact presentation of parameters, it is just
-   * approximation of parameters to give the user general idea.
-   */
+  /// The parameter list for the element. If the element is not a method or
+  /// function this field will not be defined. If the element doesn't have
+  /// parameters (e.g. getter), this field will not be defined. If the element
+  /// has zero parameters, this field will have a value of "()". The value
+  /// should not be treated as exact presentation of parameters, it is just
+  /// approximation of parameters to give the user general idea.
   String get parameters => _parameters;
 
-  /**
-   * The parameter list for the element. If the element is not a method or
-   * function this field will not be defined. If the element doesn't have
-   * parameters (e.g. getter), this field will not be defined. If the element
-   * has zero parameters, this field will have a value of "()". The value
-   * should not be treated as exact presentation of parameters, it is just
-   * approximation of parameters to give the user general idea.
-   */
-  void set parameters(String value) {
-    this._parameters = value;
+  /// The parameter list for the element. If the element is not a method or
+  /// function this field will not be defined. If the element doesn't have
+  /// parameters (e.g. getter), this field will not be defined. If the element
+  /// has zero parameters, this field will have a value of "()". The value
+  /// should not be treated as exact presentation of parameters, it is just
+  /// approximation of parameters to give the user general idea.
+  set parameters(String value) {
+    _parameters = value;
   }
 
   ElementDeclaration(String name, ElementKind kind, int fileIndex, int offset,
@@ -11686,9 +10514,7 @@ class ElementDeclaration implements HasToJson {
 
   factory ElementDeclaration.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String name;
       if (json.containsKey("name")) {
@@ -11698,8 +10524,8 @@ class ElementDeclaration implements HasToJson {
       }
       ElementKind kind;
       if (json.containsKey("kind")) {
-        kind = new ElementKind.fromJson(
-            jsonDecoder, jsonPath + ".kind", json["kind"]);
+        kind =
+            ElementKind.fromJson(jsonDecoder, jsonPath + ".kind", json["kind"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "kind");
       }
@@ -11757,7 +10583,7 @@ class ElementDeclaration implements HasToJson {
         parameters = jsonDecoder.decodeString(
             jsonPath + ".parameters", json["parameters"]);
       }
-      return new ElementDeclaration(
+      return ElementDeclaration(
           name, kind, fileIndex, offset, line, column, codeOffset, codeLength,
           className: className, mixinName: mixinName, parameters: parameters);
     } else {
@@ -11827,45 +10653,35 @@ class ElementDeclaration implements HasToJson {
   }
 }
 
-/**
- * ExecutableFile
- *
- * {
- *   "file": FilePath
- *   "kind": ExecutableKind
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// ExecutableFile
+///
+/// {
+///   "file": FilePath
+///   "kind": ExecutableKind
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ExecutableFile implements HasToJson {
   String _file;
 
   ExecutableKind _kind;
 
-  /**
-   * The path of the executable file.
-   */
+  /// The path of the executable file.
   String get file => _file;
 
-  /**
-   * The path of the executable file.
-   */
-  void set file(String value) {
+  /// The path of the executable file.
+  set file(String value) {
     assert(value != null);
-    this._file = value;
+    _file = value;
   }
 
-  /**
-   * The kind of the executable file.
-   */
+  /// The kind of the executable file.
   ExecutableKind get kind => _kind;
 
-  /**
-   * The kind of the executable file.
-   */
-  void set kind(ExecutableKind value) {
+  /// The kind of the executable file.
+  set kind(ExecutableKind value) {
     assert(value != null);
-    this._kind = value;
+    _kind = value;
   }
 
   ExecutableFile(String file, ExecutableKind kind) {
@@ -11875,9 +10691,7 @@ class ExecutableFile implements HasToJson {
 
   factory ExecutableFile.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -11887,12 +10701,12 @@ class ExecutableFile implements HasToJson {
       }
       ExecutableKind kind;
       if (json.containsKey("kind")) {
-        kind = new ExecutableKind.fromJson(
+        kind = ExecutableKind.fromJson(
             jsonDecoder, jsonPath + ".kind", json["kind"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "kind");
       }
-      return new ExecutableFile(file, kind);
+      return ExecutableFile(file, kind);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "ExecutableFile", json);
     }
@@ -11926,32 +10740,28 @@ class ExecutableFile implements HasToJson {
   }
 }
 
-/**
- * ExecutableKind
- *
- * enum {
- *   CLIENT
- *   EITHER
- *   NOT_EXECUTABLE
- *   SERVER
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// ExecutableKind
+///
+/// enum {
+///   CLIENT
+///   EITHER
+///   NOT_EXECUTABLE
+///   SERVER
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ExecutableKind implements Enum {
-  static const ExecutableKind CLIENT = const ExecutableKind._("CLIENT");
+  static const ExecutableKind CLIENT = ExecutableKind._("CLIENT");
 
-  static const ExecutableKind EITHER = const ExecutableKind._("EITHER");
+  static const ExecutableKind EITHER = ExecutableKind._("EITHER");
 
   static const ExecutableKind NOT_EXECUTABLE =
-      const ExecutableKind._("NOT_EXECUTABLE");
+      ExecutableKind._("NOT_EXECUTABLE");
 
-  static const ExecutableKind SERVER = const ExecutableKind._("SERVER");
+  static const ExecutableKind SERVER = ExecutableKind._("SERVER");
 
-  /**
-   * A list containing all of the enum values that are defined.
-   */
-  static const List<ExecutableKind> VALUES = const <ExecutableKind>[
+  /// A list containing all of the enum values that are defined.
+  static const List<ExecutableKind> VALUES = <ExecutableKind>[
     CLIENT,
     EITHER,
     NOT_EXECUTABLE,
@@ -11974,14 +10784,14 @@ class ExecutableKind implements Enum {
       case "SERVER":
         return SERVER;
     }
-    throw new Exception('Illegal enum value: $name');
+    throw Exception('Illegal enum value: $name');
   }
 
   factory ExecutableKind.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json is String) {
       try {
-        return new ExecutableKind(json);
+        return ExecutableKind(json);
       } catch (_) {
         // Fall through
       }
@@ -11995,31 +10805,25 @@ class ExecutableKind implements Enum {
   String toJson() => name;
 }
 
-/**
- * execution.createContext params
- *
- * {
- *   "contextRoot": FilePath
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// execution.createContext params
+///
+/// {
+///   "contextRoot": FilePath
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ExecutionCreateContextParams implements RequestParams {
   String _contextRoot;
 
-  /**
-   * The path of the Dart or HTML file that will be launched, or the path of
-   * the directory containing the file.
-   */
+  /// The path of the Dart or HTML file that will be launched, or the path of
+  /// the directory containing the file.
   String get contextRoot => _contextRoot;
 
-  /**
-   * The path of the Dart or HTML file that will be launched, or the path of
-   * the directory containing the file.
-   */
-  void set contextRoot(String value) {
+  /// The path of the Dart or HTML file that will be launched, or the path of
+  /// the directory containing the file.
+  set contextRoot(String value) {
     assert(value != null);
-    this._contextRoot = value;
+    _contextRoot = value;
   }
 
   ExecutionCreateContextParams(String contextRoot) {
@@ -12028,9 +10832,7 @@ class ExecutionCreateContextParams implements RequestParams {
 
   factory ExecutionCreateContextParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String contextRoot;
       if (json.containsKey("contextRoot")) {
@@ -12039,7 +10841,7 @@ class ExecutionCreateContextParams implements RequestParams {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "contextRoot");
       }
-      return new ExecutionCreateContextParams(contextRoot);
+      return ExecutionCreateContextParams(contextRoot);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "execution.createContext params", json);
@@ -12047,8 +10849,8 @@ class ExecutionCreateContextParams implements RequestParams {
   }
 
   factory ExecutionCreateContextParams.fromRequest(Request request) {
-    return new ExecutionCreateContextParams.fromJson(
-        new RequestDecoder(request), "params", request.params);
+    return ExecutionCreateContextParams.fromJson(
+        RequestDecoder(request), "params", request.params);
   }
 
   @override
@@ -12060,7 +10862,7 @@ class ExecutionCreateContextParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "execution.createContext", toJson());
+    return Request(id, "execution.createContext", toJson());
   }
 
   @override
@@ -12082,29 +10884,23 @@ class ExecutionCreateContextParams implements RequestParams {
   }
 }
 
-/**
- * execution.createContext result
- *
- * {
- *   "id": ExecutionContextId
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// execution.createContext result
+///
+/// {
+///   "id": ExecutionContextId
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ExecutionCreateContextResult implements ResponseResult {
   String _id;
 
-  /**
-   * The identifier used to refer to the execution context that was created.
-   */
+  /// The identifier used to refer to the execution context that was created.
   String get id => _id;
 
-  /**
-   * The identifier used to refer to the execution context that was created.
-   */
-  void set id(String value) {
+  /// The identifier used to refer to the execution context that was created.
+  set id(String value) {
     assert(value != null);
-    this._id = value;
+    _id = value;
   }
 
   ExecutionCreateContextResult(String id) {
@@ -12113,9 +10909,7 @@ class ExecutionCreateContextResult implements ResponseResult {
 
   factory ExecutionCreateContextResult.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String id;
       if (json.containsKey("id")) {
@@ -12123,7 +10917,7 @@ class ExecutionCreateContextResult implements ResponseResult {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "id");
       }
-      return new ExecutionCreateContextResult(id);
+      return ExecutionCreateContextResult(id);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "execution.createContext result", json);
@@ -12131,8 +10925,8 @@ class ExecutionCreateContextResult implements ResponseResult {
   }
 
   factory ExecutionCreateContextResult.fromResponse(Response response) {
-    return new ExecutionCreateContextResult.fromJson(
-        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+    return ExecutionCreateContextResult.fromJson(
+        ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         "result",
         response.result);
   }
@@ -12146,7 +10940,7 @@ class ExecutionCreateContextResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return new Response(id, result: toJson());
+    return Response(id, result: toJson());
   }
 
   @override
@@ -12168,29 +10962,23 @@ class ExecutionCreateContextResult implements ResponseResult {
   }
 }
 
-/**
- * execution.deleteContext params
- *
- * {
- *   "id": ExecutionContextId
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// execution.deleteContext params
+///
+/// {
+///   "id": ExecutionContextId
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ExecutionDeleteContextParams implements RequestParams {
   String _id;
 
-  /**
-   * The identifier of the execution context that is to be deleted.
-   */
+  /// The identifier of the execution context that is to be deleted.
   String get id => _id;
 
-  /**
-   * The identifier of the execution context that is to be deleted.
-   */
-  void set id(String value) {
+  /// The identifier of the execution context that is to be deleted.
+  set id(String value) {
     assert(value != null);
-    this._id = value;
+    _id = value;
   }
 
   ExecutionDeleteContextParams(String id) {
@@ -12199,9 +10987,7 @@ class ExecutionDeleteContextParams implements RequestParams {
 
   factory ExecutionDeleteContextParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String id;
       if (json.containsKey("id")) {
@@ -12209,7 +10995,7 @@ class ExecutionDeleteContextParams implements RequestParams {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "id");
       }
-      return new ExecutionDeleteContextParams(id);
+      return ExecutionDeleteContextParams(id);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "execution.deleteContext params", json);
@@ -12217,8 +11003,8 @@ class ExecutionDeleteContextParams implements RequestParams {
   }
 
   factory ExecutionDeleteContextParams.fromRequest(Request request) {
-    return new ExecutionDeleteContextParams.fromJson(
-        new RequestDecoder(request), "params", request.params);
+    return ExecutionDeleteContextParams.fromJson(
+        RequestDecoder(request), "params", request.params);
   }
 
   @override
@@ -12230,7 +11016,7 @@ class ExecutionDeleteContextParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "execution.deleteContext", toJson());
+    return Request(id, "execution.deleteContext", toJson());
   }
 
   @override
@@ -12252,18 +11038,16 @@ class ExecutionDeleteContextParams implements RequestParams {
   }
 }
 
-/**
- * execution.deleteContext result
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// execution.deleteContext result
+///
+/// Clients may not extend, implement or mix-in this class.
 class ExecutionDeleteContextResult implements ResponseResult {
   @override
   Map<String, dynamic> toJson() => <String, dynamic>{};
 
   @override
   Response toResponse(String id) {
-    return new Response(id, result: null);
+    return Response(id, result: null);
   }
 
   @override
@@ -12280,20 +11064,18 @@ class ExecutionDeleteContextResult implements ResponseResult {
   }
 }
 
-/**
- * execution.getSuggestions params
- *
- * {
- *   "code": String
- *   "offset": int
- *   "contextFile": FilePath
- *   "contextOffset": int
- *   "variables": List<RuntimeCompletionVariable>
- *   "expressions": optional List<RuntimeCompletionExpression>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// execution.getSuggestions params
+///
+/// {
+///   "code": String
+///   "offset": int
+///   "contextFile": FilePath
+///   "contextOffset": int
+///   "variables": List<RuntimeCompletionVariable>
+///   "expressions": optional List<RuntimeCompletionExpression>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ExecutionGetSuggestionsParams implements RequestParams {
   String _code;
 
@@ -12307,105 +11089,83 @@ class ExecutionGetSuggestionsParams implements RequestParams {
 
   List<RuntimeCompletionExpression> _expressions;
 
-  /**
-   * The code to get suggestions in.
-   */
+  /// The code to get suggestions in.
   String get code => _code;
 
-  /**
-   * The code to get suggestions in.
-   */
-  void set code(String value) {
+  /// The code to get suggestions in.
+  set code(String value) {
     assert(value != null);
-    this._code = value;
+    _code = value;
   }
 
-  /**
-   * The offset within the code to get suggestions at.
-   */
+  /// The offset within the code to get suggestions at.
   int get offset => _offset;
 
-  /**
-   * The offset within the code to get suggestions at.
-   */
-  void set offset(int value) {
+  /// The offset within the code to get suggestions at.
+  set offset(int value) {
     assert(value != null);
-    this._offset = value;
+    _offset = value;
   }
 
-  /**
-   * The path of the context file, e.g. the file of the current debugger frame.
-   * The combination of the context file and context offset can be used to
-   * ensure that all variables of the context are available for completion
-   * (with their static types).
-   */
+  /// The path of the context file, e.g. the file of the current debugger
+  /// frame. The combination of the context file and context offset can be used
+  /// to ensure that all variables of the context are available for completion
+  /// (with their static types).
   String get contextFile => _contextFile;
 
-  /**
-   * The path of the context file, e.g. the file of the current debugger frame.
-   * The combination of the context file and context offset can be used to
-   * ensure that all variables of the context are available for completion
-   * (with their static types).
-   */
-  void set contextFile(String value) {
+  /// The path of the context file, e.g. the file of the current debugger
+  /// frame. The combination of the context file and context offset can be used
+  /// to ensure that all variables of the context are available for completion
+  /// (with their static types).
+  set contextFile(String value) {
     assert(value != null);
-    this._contextFile = value;
+    _contextFile = value;
   }
 
-  /**
-   * The offset in the context file, e.g. the line offset in the current
-   * debugger frame.
-   */
+  /// The offset in the context file, e.g. the line offset in the current
+  /// debugger frame.
   int get contextOffset => _contextOffset;
 
-  /**
-   * The offset in the context file, e.g. the line offset in the current
-   * debugger frame.
-   */
-  void set contextOffset(int value) {
+  /// The offset in the context file, e.g. the line offset in the current
+  /// debugger frame.
+  set contextOffset(int value) {
     assert(value != null);
-    this._contextOffset = value;
+    _contextOffset = value;
   }
 
-  /**
-   * The runtime context variables that are potentially referenced in the code.
-   */
+  /// The runtime context variables that are potentially referenced in the
+  /// code.
   List<RuntimeCompletionVariable> get variables => _variables;
 
-  /**
-   * The runtime context variables that are potentially referenced in the code.
-   */
-  void set variables(List<RuntimeCompletionVariable> value) {
+  /// The runtime context variables that are potentially referenced in the
+  /// code.
+  set variables(List<RuntimeCompletionVariable> value) {
     assert(value != null);
-    this._variables = value;
+    _variables = value;
   }
 
-  /**
-   * The list of sub-expressions in the code for which the client wants to
-   * provide runtime types. It does not have to be the full list of expressions
-   * requested by the server, for missing expressions their static types will
-   * be used.
-   *
-   * When this field is omitted, the server will return completion suggestions
-   * only when there are no interesting sub-expressions in the given code. The
-   * client may provide an empty list, in this case the server will return
-   * completion suggestions.
-   */
+  /// The list of sub-expressions in the code for which the client wants to
+  /// provide runtime types. It does not have to be the full list of
+  /// expressions requested by the server, for missing expressions their static
+  /// types will be used.
+  ///
+  /// When this field is omitted, the server will return completion suggestions
+  /// only when there are no interesting sub-expressions in the given code. The
+  /// client may provide an empty list, in this case the server will return
+  /// completion suggestions.
   List<RuntimeCompletionExpression> get expressions => _expressions;
 
-  /**
-   * The list of sub-expressions in the code for which the client wants to
-   * provide runtime types. It does not have to be the full list of expressions
-   * requested by the server, for missing expressions their static types will
-   * be used.
-   *
-   * When this field is omitted, the server will return completion suggestions
-   * only when there are no interesting sub-expressions in the given code. The
-   * client may provide an empty list, in this case the server will return
-   * completion suggestions.
-   */
-  void set expressions(List<RuntimeCompletionExpression> value) {
-    this._expressions = value;
+  /// The list of sub-expressions in the code for which the client wants to
+  /// provide runtime types. It does not have to be the full list of
+  /// expressions requested by the server, for missing expressions their static
+  /// types will be used.
+  ///
+  /// When this field is omitted, the server will return completion suggestions
+  /// only when there are no interesting sub-expressions in the given code. The
+  /// client may provide an empty list, in this case the server will return
+  /// completion suggestions.
+  set expressions(List<RuntimeCompletionExpression> value) {
+    _expressions = value;
   }
 
   ExecutionGetSuggestionsParams(String code, int offset, String contextFile,
@@ -12421,9 +11181,7 @@ class ExecutionGetSuggestionsParams implements RequestParams {
 
   factory ExecutionGetSuggestionsParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String code;
       if (json.containsKey("code")) {
@@ -12457,7 +11215,7 @@ class ExecutionGetSuggestionsParams implements RequestParams {
             jsonPath + ".variables",
             json["variables"],
             (String jsonPath, Object json) =>
-                new RuntimeCompletionVariable.fromJson(
+                RuntimeCompletionVariable.fromJson(
                     jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "variables");
@@ -12468,10 +11226,10 @@ class ExecutionGetSuggestionsParams implements RequestParams {
             jsonPath + ".expressions",
             json["expressions"],
             (String jsonPath, Object json) =>
-                new RuntimeCompletionExpression.fromJson(
+                RuntimeCompletionExpression.fromJson(
                     jsonDecoder, jsonPath, json));
       }
-      return new ExecutionGetSuggestionsParams(
+      return ExecutionGetSuggestionsParams(
           code, offset, contextFile, contextOffset, variables,
           expressions: expressions);
     } else {
@@ -12481,8 +11239,8 @@ class ExecutionGetSuggestionsParams implements RequestParams {
   }
 
   factory ExecutionGetSuggestionsParams.fromRequest(Request request) {
-    return new ExecutionGetSuggestionsParams.fromJson(
-        new RequestDecoder(request), "params", request.params);
+    return ExecutionGetSuggestionsParams.fromJson(
+        RequestDecoder(request), "params", request.params);
   }
 
   @override
@@ -12505,7 +11263,7 @@ class ExecutionGetSuggestionsParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "execution.getSuggestions", toJson());
+    return Request(id, "execution.getSuggestions", toJson());
   }
 
   @override
@@ -12545,63 +11303,53 @@ class ExecutionGetSuggestionsParams implements RequestParams {
   }
 }
 
-/**
- * execution.getSuggestions result
- *
- * {
- *   "suggestions": optional List<CompletionSuggestion>
- *   "expressions": optional List<RuntimeCompletionExpression>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// execution.getSuggestions result
+///
+/// {
+///   "suggestions": optional List<CompletionSuggestion>
+///   "expressions": optional List<RuntimeCompletionExpression>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ExecutionGetSuggestionsResult implements ResponseResult {
   List<CompletionSuggestion> _suggestions;
 
   List<RuntimeCompletionExpression> _expressions;
 
-  /**
-   * The completion suggestions. In contrast to usual completion request,
-   * suggestions for private elements also will be provided.
-   *
-   * If there are sub-expressions that can have different runtime types, and
-   * are considered to be safe to evaluate at runtime (e.g. getters), so using
-   * their actual runtime types can improve completion results, the server
-   * omits this field in the response, and instead will return the
-   * "expressions" field.
-   */
+  /// The completion suggestions. In contrast to usual completion request,
+  /// suggestions for private elements also will be provided.
+  ///
+  /// If there are sub-expressions that can have different runtime types, and
+  /// are considered to be safe to evaluate at runtime (e.g. getters), so using
+  /// their actual runtime types can improve completion results, the server
+  /// omits this field in the response, and instead will return the
+  /// "expressions" field.
   List<CompletionSuggestion> get suggestions => _suggestions;
 
-  /**
-   * The completion suggestions. In contrast to usual completion request,
-   * suggestions for private elements also will be provided.
-   *
-   * If there are sub-expressions that can have different runtime types, and
-   * are considered to be safe to evaluate at runtime (e.g. getters), so using
-   * their actual runtime types can improve completion results, the server
-   * omits this field in the response, and instead will return the
-   * "expressions" field.
-   */
-  void set suggestions(List<CompletionSuggestion> value) {
-    this._suggestions = value;
+  /// The completion suggestions. In contrast to usual completion request,
+  /// suggestions for private elements also will be provided.
+  ///
+  /// If there are sub-expressions that can have different runtime types, and
+  /// are considered to be safe to evaluate at runtime (e.g. getters), so using
+  /// their actual runtime types can improve completion results, the server
+  /// omits this field in the response, and instead will return the
+  /// "expressions" field.
+  set suggestions(List<CompletionSuggestion> value) {
+    _suggestions = value;
   }
 
-  /**
-   * The list of sub-expressions in the code for which the server would like to
-   * know runtime types to provide better completion suggestions.
-   *
-   * This field is omitted the field "suggestions" is returned.
-   */
+  /// The list of sub-expressions in the code for which the server would like
+  /// to know runtime types to provide better completion suggestions.
+  ///
+  /// This field is omitted the field "suggestions" is returned.
   List<RuntimeCompletionExpression> get expressions => _expressions;
 
-  /**
-   * The list of sub-expressions in the code for which the server would like to
-   * know runtime types to provide better completion suggestions.
-   *
-   * This field is omitted the field "suggestions" is returned.
-   */
-  void set expressions(List<RuntimeCompletionExpression> value) {
-    this._expressions = value;
+  /// The list of sub-expressions in the code for which the server would like
+  /// to know runtime types to provide better completion suggestions.
+  ///
+  /// This field is omitted the field "suggestions" is returned.
+  set expressions(List<RuntimeCompletionExpression> value) {
+    _expressions = value;
   }
 
   ExecutionGetSuggestionsResult(
@@ -12613,9 +11361,7 @@ class ExecutionGetSuggestionsResult implements ResponseResult {
 
   factory ExecutionGetSuggestionsResult.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       List<CompletionSuggestion> suggestions;
       if (json.containsKey("suggestions")) {
@@ -12623,7 +11369,7 @@ class ExecutionGetSuggestionsResult implements ResponseResult {
             jsonPath + ".suggestions",
             json["suggestions"],
             (String jsonPath, Object json) =>
-                new CompletionSuggestion.fromJson(jsonDecoder, jsonPath, json));
+                CompletionSuggestion.fromJson(jsonDecoder, jsonPath, json));
       }
       List<RuntimeCompletionExpression> expressions;
       if (json.containsKey("expressions")) {
@@ -12631,10 +11377,10 @@ class ExecutionGetSuggestionsResult implements ResponseResult {
             jsonPath + ".expressions",
             json["expressions"],
             (String jsonPath, Object json) =>
-                new RuntimeCompletionExpression.fromJson(
+                RuntimeCompletionExpression.fromJson(
                     jsonDecoder, jsonPath, json));
       }
-      return new ExecutionGetSuggestionsResult(
+      return ExecutionGetSuggestionsResult(
           suggestions: suggestions, expressions: expressions);
     } else {
       throw jsonDecoder.mismatch(
@@ -12643,8 +11389,8 @@ class ExecutionGetSuggestionsResult implements ResponseResult {
   }
 
   factory ExecutionGetSuggestionsResult.fromResponse(Response response) {
-    return new ExecutionGetSuggestionsResult.fromJson(
-        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+    return ExecutionGetSuggestionsResult.fromJson(
+        ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         "result",
         response.result);
   }
@@ -12667,7 +11413,7 @@ class ExecutionGetSuggestionsResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return new Response(id, result: toJson());
+    return Response(id, result: toJson());
   }
 
   @override
@@ -12696,17 +11442,15 @@ class ExecutionGetSuggestionsResult implements ResponseResult {
   }
 }
 
-/**
- * execution.launchData params
- *
- * {
- *   "file": FilePath
- *   "kind": optional ExecutableKind
- *   "referencedFiles": optional List<FilePath>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// execution.launchData params
+///
+/// {
+///   "file": FilePath
+///   "kind": optional ExecutableKind
+///   "referencedFiles": optional List<FilePath>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ExecutionLaunchDataParams implements HasToJson {
   String _file;
 
@@ -12714,47 +11458,35 @@ class ExecutionLaunchDataParams implements HasToJson {
 
   List<String> _referencedFiles;
 
-  /**
-   * The file for which launch data is being provided. This will either be a
-   * Dart library or an HTML file.
-   */
+  /// The file for which launch data is being provided. This will either be a
+  /// Dart library or an HTML file.
   String get file => _file;
 
-  /**
-   * The file for which launch data is being provided. This will either be a
-   * Dart library or an HTML file.
-   */
-  void set file(String value) {
+  /// The file for which launch data is being provided. This will either be a
+  /// Dart library or an HTML file.
+  set file(String value) {
     assert(value != null);
-    this._file = value;
+    _file = value;
   }
 
-  /**
-   * The kind of the executable file. This field is omitted if the file is not
-   * a Dart file.
-   */
+  /// The kind of the executable file. This field is omitted if the file is not
+  /// a Dart file.
   ExecutableKind get kind => _kind;
 
-  /**
-   * The kind of the executable file. This field is omitted if the file is not
-   * a Dart file.
-   */
-  void set kind(ExecutableKind value) {
-    this._kind = value;
+  /// The kind of the executable file. This field is omitted if the file is not
+  /// a Dart file.
+  set kind(ExecutableKind value) {
+    _kind = value;
   }
 
-  /**
-   * A list of the Dart files that are referenced by the file. This field is
-   * omitted if the file is not an HTML file.
-   */
+  /// A list of the Dart files that are referenced by the file. This field is
+  /// omitted if the file is not an HTML file.
   List<String> get referencedFiles => _referencedFiles;
 
-  /**
-   * A list of the Dart files that are referenced by the file. This field is
-   * omitted if the file is not an HTML file.
-   */
-  void set referencedFiles(List<String> value) {
-    this._referencedFiles = value;
+  /// A list of the Dart files that are referenced by the file. This field is
+  /// omitted if the file is not an HTML file.
+  set referencedFiles(List<String> value) {
+    _referencedFiles = value;
   }
 
   ExecutionLaunchDataParams(String file,
@@ -12766,9 +11498,7 @@ class ExecutionLaunchDataParams implements HasToJson {
 
   factory ExecutionLaunchDataParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -12778,7 +11508,7 @@ class ExecutionLaunchDataParams implements HasToJson {
       }
       ExecutableKind kind;
       if (json.containsKey("kind")) {
-        kind = new ExecutableKind.fromJson(
+        kind = ExecutableKind.fromJson(
             jsonDecoder, jsonPath + ".kind", json["kind"]);
       }
       List<String> referencedFiles;
@@ -12786,7 +11516,7 @@ class ExecutionLaunchDataParams implements HasToJson {
         referencedFiles = jsonDecoder.decodeList(jsonPath + ".referencedFiles",
             json["referencedFiles"], jsonDecoder.decodeString);
       }
-      return new ExecutionLaunchDataParams(file,
+      return ExecutionLaunchDataParams(file,
           kind: kind, referencedFiles: referencedFiles);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "execution.launchData params", json);
@@ -12795,8 +11525,8 @@ class ExecutionLaunchDataParams implements HasToJson {
 
   factory ExecutionLaunchDataParams.fromNotification(
       Notification notification) {
-    return new ExecutionLaunchDataParams.fromJson(
-        new ResponseDecoder(null), "params", notification.params);
+    return ExecutionLaunchDataParams.fromJson(
+        ResponseDecoder(null), "params", notification.params);
   }
 
   @override
@@ -12813,7 +11543,7 @@ class ExecutionLaunchDataParams implements HasToJson {
   }
 
   Notification toNotification() {
-    return new Notification("execution.launchData", toJson());
+    return Notification("execution.launchData", toJson());
   }
 
   @override
@@ -12840,17 +11570,15 @@ class ExecutionLaunchDataParams implements HasToJson {
   }
 }
 
-/**
- * execution.mapUri params
- *
- * {
- *   "id": ExecutionContextId
- *   "file": optional FilePath
- *   "uri": optional String
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// execution.mapUri params
+///
+/// {
+///   "id": ExecutionContextId
+///   "file": optional FilePath
+///   "uri": optional String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ExecutionMapUriParams implements RequestParams {
   String _id;
 
@@ -12858,41 +11586,29 @@ class ExecutionMapUriParams implements RequestParams {
 
   String _uri;
 
-  /**
-   * The identifier of the execution context in which the URI is to be mapped.
-   */
+  /// The identifier of the execution context in which the URI is to be mapped.
   String get id => _id;
 
-  /**
-   * The identifier of the execution context in which the URI is to be mapped.
-   */
-  void set id(String value) {
+  /// The identifier of the execution context in which the URI is to be mapped.
+  set id(String value) {
     assert(value != null);
-    this._id = value;
+    _id = value;
   }
 
-  /**
-   * The path of the file to be mapped into a URI.
-   */
+  /// The path of the file to be mapped into a URI.
   String get file => _file;
 
-  /**
-   * The path of the file to be mapped into a URI.
-   */
-  void set file(String value) {
-    this._file = value;
+  /// The path of the file to be mapped into a URI.
+  set file(String value) {
+    _file = value;
   }
 
-  /**
-   * The URI to be mapped into a file path.
-   */
+  /// The URI to be mapped into a file path.
   String get uri => _uri;
 
-  /**
-   * The URI to be mapped into a file path.
-   */
-  void set uri(String value) {
-    this._uri = value;
+  /// The URI to be mapped into a file path.
+  set uri(String value) {
+    _uri = value;
   }
 
   ExecutionMapUriParams(String id, {String file, String uri}) {
@@ -12903,9 +11619,7 @@ class ExecutionMapUriParams implements RequestParams {
 
   factory ExecutionMapUriParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String id;
       if (json.containsKey("id")) {
@@ -12921,15 +11635,15 @@ class ExecutionMapUriParams implements RequestParams {
       if (json.containsKey("uri")) {
         uri = jsonDecoder.decodeString(jsonPath + ".uri", json["uri"]);
       }
-      return new ExecutionMapUriParams(id, file: file, uri: uri);
+      return ExecutionMapUriParams(id, file: file, uri: uri);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "execution.mapUri params", json);
     }
   }
 
   factory ExecutionMapUriParams.fromRequest(Request request) {
-    return new ExecutionMapUriParams.fromJson(
-        new RequestDecoder(request), "params", request.params);
+    return ExecutionMapUriParams.fromJson(
+        RequestDecoder(request), "params", request.params);
   }
 
   @override
@@ -12947,7 +11661,7 @@ class ExecutionMapUriParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "execution.mapUri", toJson());
+    return Request(id, "execution.mapUri", toJson());
   }
 
   @override
@@ -12971,47 +11685,37 @@ class ExecutionMapUriParams implements RequestParams {
   }
 }
 
-/**
- * execution.mapUri result
- *
- * {
- *   "file": optional FilePath
- *   "uri": optional String
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// execution.mapUri result
+///
+/// {
+///   "file": optional FilePath
+///   "uri": optional String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ExecutionMapUriResult implements ResponseResult {
   String _file;
 
   String _uri;
 
-  /**
-   * The file to which the URI was mapped. This field is omitted if the uri
-   * field was not given in the request.
-   */
+  /// The file to which the URI was mapped. This field is omitted if the uri
+  /// field was not given in the request.
   String get file => _file;
 
-  /**
-   * The file to which the URI was mapped. This field is omitted if the uri
-   * field was not given in the request.
-   */
-  void set file(String value) {
-    this._file = value;
+  /// The file to which the URI was mapped. This field is omitted if the uri
+  /// field was not given in the request.
+  set file(String value) {
+    _file = value;
   }
 
-  /**
-   * The URI to which the file path was mapped. This field is omitted if the
-   * file field was not given in the request.
-   */
+  /// The URI to which the file path was mapped. This field is omitted if the
+  /// file field was not given in the request.
   String get uri => _uri;
 
-  /**
-   * The URI to which the file path was mapped. This field is omitted if the
-   * file field was not given in the request.
-   */
-  void set uri(String value) {
-    this._uri = value;
+  /// The URI to which the file path was mapped. This field is omitted if the
+  /// file field was not given in the request.
+  set uri(String value) {
+    _uri = value;
   }
 
   ExecutionMapUriResult({String file, String uri}) {
@@ -13021,9 +11725,7 @@ class ExecutionMapUriResult implements ResponseResult {
 
   factory ExecutionMapUriResult.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -13033,15 +11735,15 @@ class ExecutionMapUriResult implements ResponseResult {
       if (json.containsKey("uri")) {
         uri = jsonDecoder.decodeString(jsonPath + ".uri", json["uri"]);
       }
-      return new ExecutionMapUriResult(file: file, uri: uri);
+      return ExecutionMapUriResult(file: file, uri: uri);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "execution.mapUri result", json);
     }
   }
 
   factory ExecutionMapUriResult.fromResponse(Response response) {
-    return new ExecutionMapUriResult.fromJson(
-        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+    return ExecutionMapUriResult.fromJson(
+        ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         "result",
         response.result);
   }
@@ -13060,7 +11762,7 @@ class ExecutionMapUriResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return new Response(id, result: toJson());
+    return Response(id, result: toJson());
   }
 
   @override
@@ -13083,25 +11785,18 @@ class ExecutionMapUriResult implements ResponseResult {
   }
 }
 
-/**
- * ExecutionService
- *
- * enum {
- *   LAUNCH_DATA
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// ExecutionService
+///
+/// enum {
+///   LAUNCH_DATA
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ExecutionService implements Enum {
-  static const ExecutionService LAUNCH_DATA =
-      const ExecutionService._("LAUNCH_DATA");
+  static const ExecutionService LAUNCH_DATA = ExecutionService._("LAUNCH_DATA");
 
-  /**
-   * A list containing all of the enum values that are defined.
-   */
-  static const List<ExecutionService> VALUES = const <ExecutionService>[
-    LAUNCH_DATA
-  ];
+  /// A list containing all of the enum values that are defined.
+  static const List<ExecutionService> VALUES = <ExecutionService>[LAUNCH_DATA];
 
   @override
   final String name;
@@ -13113,14 +11808,14 @@ class ExecutionService implements Enum {
       case "LAUNCH_DATA":
         return LAUNCH_DATA;
     }
-    throw new Exception('Illegal enum value: $name');
+    throw Exception('Illegal enum value: $name');
   }
 
   factory ExecutionService.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json is String) {
       try {
-        return new ExecutionService(json);
+        return ExecutionService(json);
       } catch (_) {
         // Fall through
       }
@@ -13134,29 +11829,23 @@ class ExecutionService implements Enum {
   String toJson() => name;
 }
 
-/**
- * execution.setSubscriptions params
- *
- * {
- *   "subscriptions": List<ExecutionService>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// execution.setSubscriptions params
+///
+/// {
+///   "subscriptions": List<ExecutionService>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ExecutionSetSubscriptionsParams implements RequestParams {
   List<ExecutionService> _subscriptions;
 
-  /**
-   * A list of the services being subscribed to.
-   */
+  /// A list of the services being subscribed to.
   List<ExecutionService> get subscriptions => _subscriptions;
 
-  /**
-   * A list of the services being subscribed to.
-   */
-  void set subscriptions(List<ExecutionService> value) {
+  /// A list of the services being subscribed to.
+  set subscriptions(List<ExecutionService> value) {
     assert(value != null);
-    this._subscriptions = value;
+    _subscriptions = value;
   }
 
   ExecutionSetSubscriptionsParams(List<ExecutionService> subscriptions) {
@@ -13165,9 +11854,7 @@ class ExecutionSetSubscriptionsParams implements RequestParams {
 
   factory ExecutionSetSubscriptionsParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       List<ExecutionService> subscriptions;
       if (json.containsKey("subscriptions")) {
@@ -13175,11 +11862,11 @@ class ExecutionSetSubscriptionsParams implements RequestParams {
             jsonPath + ".subscriptions",
             json["subscriptions"],
             (String jsonPath, Object json) =>
-                new ExecutionService.fromJson(jsonDecoder, jsonPath, json));
+                ExecutionService.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "subscriptions");
       }
-      return new ExecutionSetSubscriptionsParams(subscriptions);
+      return ExecutionSetSubscriptionsParams(subscriptions);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "execution.setSubscriptions params", json);
@@ -13187,8 +11874,8 @@ class ExecutionSetSubscriptionsParams implements RequestParams {
   }
 
   factory ExecutionSetSubscriptionsParams.fromRequest(Request request) {
-    return new ExecutionSetSubscriptionsParams.fromJson(
-        new RequestDecoder(request), "params", request.params);
+    return ExecutionSetSubscriptionsParams.fromJson(
+        RequestDecoder(request), "params", request.params);
   }
 
   @override
@@ -13201,7 +11888,7 @@ class ExecutionSetSubscriptionsParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "execution.setSubscriptions", toJson());
+    return Request(id, "execution.setSubscriptions", toJson());
   }
 
   @override
@@ -13224,18 +11911,16 @@ class ExecutionSetSubscriptionsParams implements RequestParams {
   }
 }
 
-/**
- * execution.setSubscriptions result
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// execution.setSubscriptions result
+///
+/// Clients may not extend, implement or mix-in this class.
 class ExecutionSetSubscriptionsResult implements ResponseResult {
   @override
   Map<String, dynamic> toJson() => <String, dynamic>{};
 
   @override
   Response toResponse(String id) {
-    return new Response(id, result: null);
+    return Response(id, result: null);
   }
 
   @override
@@ -13252,47 +11937,37 @@ class ExecutionSetSubscriptionsResult implements ResponseResult {
   }
 }
 
-/**
- * ExistingImport
- *
- * {
- *   "uri": int
- *   "elements": List<int>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// ExistingImport
+///
+/// {
+///   "uri": int
+///   "elements": List<int>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ExistingImport implements HasToJson {
   int _uri;
 
   List<int> _elements;
 
-  /**
-   * The URI of the imported library. It is an index in the strings field, in
-   * the enclosing ExistingImports and its ImportedElementSet object.
-   */
+  /// The URI of the imported library. It is an index in the strings field, in
+  /// the enclosing ExistingImports and its ImportedElementSet object.
   int get uri => _uri;
 
-  /**
-   * The URI of the imported library. It is an index in the strings field, in
-   * the enclosing ExistingImports and its ImportedElementSet object.
-   */
-  void set uri(int value) {
+  /// The URI of the imported library. It is an index in the strings field, in
+  /// the enclosing ExistingImports and its ImportedElementSet object.
+  set uri(int value) {
     assert(value != null);
-    this._uri = value;
+    _uri = value;
   }
 
-  /**
-   * The list of indexes of elements, in the enclosing ExistingImports object.
-   */
+  /// The list of indexes of elements, in the enclosing ExistingImports object.
   List<int> get elements => _elements;
 
-  /**
-   * The list of indexes of elements, in the enclosing ExistingImports object.
-   */
-  void set elements(List<int> value) {
+  /// The list of indexes of elements, in the enclosing ExistingImports object.
+  set elements(List<int> value) {
     assert(value != null);
-    this._elements = value;
+    _elements = value;
   }
 
   ExistingImport(int uri, List<int> elements) {
@@ -13302,9 +11977,7 @@ class ExistingImport implements HasToJson {
 
   factory ExistingImport.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       int uri;
       if (json.containsKey("uri")) {
@@ -13319,7 +11992,7 @@ class ExistingImport implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "elements");
       }
-      return new ExistingImport(uri, elements);
+      return ExistingImport(uri, elements);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "ExistingImport", json);
     }
@@ -13354,45 +12027,35 @@ class ExistingImport implements HasToJson {
   }
 }
 
-/**
- * ExistingImports
- *
- * {
- *   "elements": ImportedElementSet
- *   "imports": List<ExistingImport>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// ExistingImports
+///
+/// {
+///   "elements": ImportedElementSet
+///   "imports": List<ExistingImport>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ExistingImports implements HasToJson {
   ImportedElementSet _elements;
 
   List<ExistingImport> _imports;
 
-  /**
-   * The set of all unique imported elements for all imports.
-   */
+  /// The set of all unique imported elements for all imports.
   ImportedElementSet get elements => _elements;
 
-  /**
-   * The set of all unique imported elements for all imports.
-   */
-  void set elements(ImportedElementSet value) {
+  /// The set of all unique imported elements for all imports.
+  set elements(ImportedElementSet value) {
     assert(value != null);
-    this._elements = value;
+    _elements = value;
   }
 
-  /**
-   * The list of imports in the library.
-   */
+  /// The list of imports in the library.
   List<ExistingImport> get imports => _imports;
 
-  /**
-   * The list of imports in the library.
-   */
-  void set imports(List<ExistingImport> value) {
+  /// The list of imports in the library.
+  set imports(List<ExistingImport> value) {
     assert(value != null);
-    this._imports = value;
+    _imports = value;
   }
 
   ExistingImports(ImportedElementSet elements, List<ExistingImport> imports) {
@@ -13402,13 +12065,11 @@ class ExistingImports implements HasToJson {
 
   factory ExistingImports.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       ImportedElementSet elements;
       if (json.containsKey("elements")) {
-        elements = new ImportedElementSet.fromJson(
+        elements = ImportedElementSet.fromJson(
             jsonDecoder, jsonPath + ".elements", json["elements"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "elements");
@@ -13419,11 +12080,11 @@ class ExistingImports implements HasToJson {
             jsonPath + ".imports",
             json["imports"],
             (String jsonPath, Object json) =>
-                new ExistingImport.fromJson(jsonDecoder, jsonPath, json));
+                ExistingImport.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "imports");
       }
-      return new ExistingImports(elements, imports);
+      return ExistingImports(elements, imports);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "ExistingImports", json);
     }
@@ -13460,19 +12121,17 @@ class ExistingImports implements HasToJson {
   }
 }
 
-/**
- * extractLocalVariable feedback
- *
- * {
- *   "coveringExpressionOffsets": optional List<int>
- *   "coveringExpressionLengths": optional List<int>
- *   "names": List<String>
- *   "offsets": List<int>
- *   "lengths": List<int>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// extractLocalVariable feedback
+///
+/// {
+///   "coveringExpressionOffsets": optional List<int>
+///   "coveringExpressionLengths": optional List<int>
+///   "names": List<String>
+///   "offsets": List<int>
+///   "lengths": List<int>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ExtractLocalVariableFeedback extends RefactoringFeedback {
   List<int> _coveringExpressionOffsets;
 
@@ -13484,79 +12143,59 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback {
 
   List<int> _lengths;
 
-  /**
-   * The offsets of the expressions that cover the specified selection, from
-   * the down most to the up most.
-   */
+  /// The offsets of the expressions that cover the specified selection, from
+  /// the down most to the up most.
   List<int> get coveringExpressionOffsets => _coveringExpressionOffsets;
 
-  /**
-   * The offsets of the expressions that cover the specified selection, from
-   * the down most to the up most.
-   */
-  void set coveringExpressionOffsets(List<int> value) {
-    this._coveringExpressionOffsets = value;
+  /// The offsets of the expressions that cover the specified selection, from
+  /// the down most to the up most.
+  set coveringExpressionOffsets(List<int> value) {
+    _coveringExpressionOffsets = value;
   }
 
-  /**
-   * The lengths of the expressions that cover the specified selection, from
-   * the down most to the up most.
-   */
+  /// The lengths of the expressions that cover the specified selection, from
+  /// the down most to the up most.
   List<int> get coveringExpressionLengths => _coveringExpressionLengths;
 
-  /**
-   * The lengths of the expressions that cover the specified selection, from
-   * the down most to the up most.
-   */
-  void set coveringExpressionLengths(List<int> value) {
-    this._coveringExpressionLengths = value;
+  /// The lengths of the expressions that cover the specified selection, from
+  /// the down most to the up most.
+  set coveringExpressionLengths(List<int> value) {
+    _coveringExpressionLengths = value;
   }
 
-  /**
-   * The proposed names for the local variable.
-   */
+  /// The proposed names for the local variable.
   List<String> get names => _names;
 
-  /**
-   * The proposed names for the local variable.
-   */
-  void set names(List<String> value) {
+  /// The proposed names for the local variable.
+  set names(List<String> value) {
     assert(value != null);
-    this._names = value;
+    _names = value;
   }
 
-  /**
-   * The offsets of the expressions that would be replaced by a reference to
-   * the variable.
-   */
+  /// The offsets of the expressions that would be replaced by a reference to
+  /// the variable.
   List<int> get offsets => _offsets;
 
-  /**
-   * The offsets of the expressions that would be replaced by a reference to
-   * the variable.
-   */
-  void set offsets(List<int> value) {
+  /// The offsets of the expressions that would be replaced by a reference to
+  /// the variable.
+  set offsets(List<int> value) {
     assert(value != null);
-    this._offsets = value;
+    _offsets = value;
   }
 
-  /**
-   * The lengths of the expressions that would be replaced by a reference to
-   * the variable. The lengths correspond to the offsets. In other words, for a
-   * given expression, if the offset of that expression is offsets[i], then the
-   * length of that expression is lengths[i].
-   */
+  /// The lengths of the expressions that would be replaced by a reference to
+  /// the variable. The lengths correspond to the offsets. In other words, for
+  /// a given expression, if the offset of that expression is offsets[i], then
+  /// the length of that expression is lengths[i].
   List<int> get lengths => _lengths;
 
-  /**
-   * The lengths of the expressions that would be replaced by a reference to
-   * the variable. The lengths correspond to the offsets. In other words, for a
-   * given expression, if the offset of that expression is offsets[i], then the
-   * length of that expression is lengths[i].
-   */
-  void set lengths(List<int> value) {
+  /// The lengths of the expressions that would be replaced by a reference to
+  /// the variable. The lengths correspond to the offsets. In other words, for
+  /// a given expression, if the offset of that expression is offsets[i], then
+  /// the length of that expression is lengths[i].
+  set lengths(List<int> value) {
     assert(value != null);
-    this._lengths = value;
+    _lengths = value;
   }
 
   ExtractLocalVariableFeedback(
@@ -13572,9 +12211,7 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback {
 
   factory ExtractLocalVariableFeedback.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       List<int> coveringExpressionOffsets;
       if (json.containsKey("coveringExpressionOffsets")) {
@@ -13611,7 +12248,7 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "lengths");
       }
-      return new ExtractLocalVariableFeedback(names, offsets, lengths,
+      return ExtractLocalVariableFeedback(names, offsets, lengths,
           coveringExpressionOffsets: coveringExpressionOffsets,
           coveringExpressionLengths: coveringExpressionLengths);
     } else {
@@ -13664,51 +12301,41 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback {
   }
 }
 
-/**
- * extractLocalVariable options
- *
- * {
- *   "name": String
- *   "extractAll": bool
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// extractLocalVariable options
+///
+/// {
+///   "name": String
+///   "extractAll": bool
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ExtractLocalVariableOptions extends RefactoringOptions {
   String _name;
 
   bool _extractAll;
 
-  /**
-   * The name that the local variable should be given.
-   */
+  /// The name that the local variable should be given.
   String get name => _name;
 
-  /**
-   * The name that the local variable should be given.
-   */
-  void set name(String value) {
+  /// The name that the local variable should be given.
+  set name(String value) {
     assert(value != null);
-    this._name = value;
+    _name = value;
   }
 
-  /**
-   * True if all occurrences of the expression within the scope in which the
-   * variable will be defined should be replaced by a reference to the local
-   * variable. The expression used to initiate the refactoring will always be
-   * replaced.
-   */
+  /// True if all occurrences of the expression within the scope in which the
+  /// variable will be defined should be replaced by a reference to the local
+  /// variable. The expression used to initiate the refactoring will always be
+  /// replaced.
   bool get extractAll => _extractAll;
 
-  /**
-   * True if all occurrences of the expression within the scope in which the
-   * variable will be defined should be replaced by a reference to the local
-   * variable. The expression used to initiate the refactoring will always be
-   * replaced.
-   */
-  void set extractAll(bool value) {
+  /// True if all occurrences of the expression within the scope in which the
+  /// variable will be defined should be replaced by a reference to the local
+  /// variable. The expression used to initiate the refactoring will always be
+  /// replaced.
+  set extractAll(bool value) {
     assert(value != null);
-    this._extractAll = value;
+    _extractAll = value;
   }
 
   ExtractLocalVariableOptions(String name, bool extractAll) {
@@ -13718,9 +12345,7 @@ class ExtractLocalVariableOptions extends RefactoringOptions {
 
   factory ExtractLocalVariableOptions.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String name;
       if (json.containsKey("name")) {
@@ -13735,7 +12360,7 @@ class ExtractLocalVariableOptions extends RefactoringOptions {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "extractAll");
       }
-      return new ExtractLocalVariableOptions(name, extractAll);
+      return ExtractLocalVariableOptions(name, extractAll);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "extractLocalVariable options", json);
@@ -13744,8 +12369,8 @@ class ExtractLocalVariableOptions extends RefactoringOptions {
 
   factory ExtractLocalVariableOptions.fromRefactoringParams(
       EditGetRefactoringParams refactoringParams, Request request) {
-    return new ExtractLocalVariableOptions.fromJson(
-        new RequestDecoder(request), "options", refactoringParams.options);
+    return ExtractLocalVariableOptions.fromJson(
+        RequestDecoder(request), "options", refactoringParams.options);
   }
 
   @override
@@ -13776,22 +12401,20 @@ class ExtractLocalVariableOptions extends RefactoringOptions {
   }
 }
 
-/**
- * extractMethod feedback
- *
- * {
- *   "offset": int
- *   "length": int
- *   "returnType": String
- *   "names": List<String>
- *   "canCreateGetter": bool
- *   "parameters": List<RefactoringMethodParameter>
- *   "offsets": List<int>
- *   "lengths": List<int>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// extractMethod feedback
+///
+/// {
+///   "offset": int
+///   "length": int
+///   "returnType": String
+///   "names": List<String>
+///   "canCreateGetter": bool
+///   "parameters": List<RefactoringMethodParameter>
+///   "offsets": List<int>
+///   "lengths": List<int>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ExtractMethodFeedback extends RefactoringFeedback {
   int _offset;
 
@@ -13809,122 +12432,90 @@ class ExtractMethodFeedback extends RefactoringFeedback {
 
   List<int> _lengths;
 
-  /**
-   * The offset to the beginning of the expression or statements that will be
-   * extracted.
-   */
+  /// The offset to the beginning of the expression or statements that will be
+  /// extracted.
   int get offset => _offset;
 
-  /**
-   * The offset to the beginning of the expression or statements that will be
-   * extracted.
-   */
-  void set offset(int value) {
+  /// The offset to the beginning of the expression or statements that will be
+  /// extracted.
+  set offset(int value) {
     assert(value != null);
-    this._offset = value;
+    _offset = value;
   }
 
-  /**
-   * The length of the expression or statements that will be extracted.
-   */
+  /// The length of the expression or statements that will be extracted.
   int get length => _length;
 
-  /**
-   * The length of the expression or statements that will be extracted.
-   */
-  void set length(int value) {
+  /// The length of the expression or statements that will be extracted.
+  set length(int value) {
     assert(value != null);
-    this._length = value;
+    _length = value;
   }
 
-  /**
-   * The proposed return type for the method. If the returned element does not
-   * have a declared return type, this field will contain an empty string.
-   */
+  /// The proposed return type for the method. If the returned element does not
+  /// have a declared return type, this field will contain an empty string.
   String get returnType => _returnType;
 
-  /**
-   * The proposed return type for the method. If the returned element does not
-   * have a declared return type, this field will contain an empty string.
-   */
-  void set returnType(String value) {
+  /// The proposed return type for the method. If the returned element does not
+  /// have a declared return type, this field will contain an empty string.
+  set returnType(String value) {
     assert(value != null);
-    this._returnType = value;
+    _returnType = value;
   }
 
-  /**
-   * The proposed names for the method.
-   */
+  /// The proposed names for the method.
   List<String> get names => _names;
 
-  /**
-   * The proposed names for the method.
-   */
-  void set names(List<String> value) {
+  /// The proposed names for the method.
+  set names(List<String> value) {
     assert(value != null);
-    this._names = value;
+    _names = value;
   }
 
-  /**
-   * True if a getter could be created rather than a method.
-   */
+  /// True if a getter could be created rather than a method.
   bool get canCreateGetter => _canCreateGetter;
 
-  /**
-   * True if a getter could be created rather than a method.
-   */
-  void set canCreateGetter(bool value) {
+  /// True if a getter could be created rather than a method.
+  set canCreateGetter(bool value) {
     assert(value != null);
-    this._canCreateGetter = value;
+    _canCreateGetter = value;
   }
 
-  /**
-   * The proposed parameters for the method.
-   */
+  /// The proposed parameters for the method.
   List<RefactoringMethodParameter> get parameters => _parameters;
 
-  /**
-   * The proposed parameters for the method.
-   */
-  void set parameters(List<RefactoringMethodParameter> value) {
+  /// The proposed parameters for the method.
+  set parameters(List<RefactoringMethodParameter> value) {
     assert(value != null);
-    this._parameters = value;
+    _parameters = value;
   }
 
-  /**
-   * The offsets of the expressions or statements that would be replaced by an
-   * invocation of the method.
-   */
+  /// The offsets of the expressions or statements that would be replaced by an
+  /// invocation of the method.
   List<int> get offsets => _offsets;
 
-  /**
-   * The offsets of the expressions or statements that would be replaced by an
-   * invocation of the method.
-   */
-  void set offsets(List<int> value) {
+  /// The offsets of the expressions or statements that would be replaced by an
+  /// invocation of the method.
+  set offsets(List<int> value) {
     assert(value != null);
-    this._offsets = value;
+    _offsets = value;
   }
 
-  /**
-   * The lengths of the expressions or statements that would be replaced by an
-   * invocation of the method. The lengths correspond to the offsets. In other
-   * words, for a given expression (or block of statements), if the offset of
-   * that expression is offsets[i], then the length of that expression is
-   * lengths[i].
-   */
+  /// The lengths of the expressions or statements that would be replaced by an
+  /// invocation of the method. The lengths correspond to the offsets. In other
+  /// words, for a given expression (or block of statements), if the offset of
+  /// that expression is offsets[i], then the length of that expression is
+  /// lengths[i].
   List<int> get lengths => _lengths;
 
-  /**
-   * The lengths of the expressions or statements that would be replaced by an
-   * invocation of the method. The lengths correspond to the offsets. In other
-   * words, for a given expression (or block of statements), if the offset of
-   * that expression is offsets[i], then the length of that expression is
-   * lengths[i].
-   */
-  void set lengths(List<int> value) {
+  /// The lengths of the expressions or statements that would be replaced by an
+  /// invocation of the method. The lengths correspond to the offsets. In other
+  /// words, for a given expression (or block of statements), if the offset of
+  /// that expression is offsets[i], then the length of that expression is
+  /// lengths[i].
+  set lengths(List<int> value) {
     assert(value != null);
-    this._lengths = value;
+    _lengths = value;
   }
 
   ExtractMethodFeedback(
@@ -13948,9 +12539,7 @@ class ExtractMethodFeedback extends RefactoringFeedback {
 
   factory ExtractMethodFeedback.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       int offset;
       if (json.containsKey("offset")) {
@@ -13991,7 +12580,7 @@ class ExtractMethodFeedback extends RefactoringFeedback {
             jsonPath + ".parameters",
             json["parameters"],
             (String jsonPath, Object json) =>
-                new RefactoringMethodParameter.fromJson(
+                RefactoringMethodParameter.fromJson(
                     jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "parameters");
@@ -14010,7 +12599,7 @@ class ExtractMethodFeedback extends RefactoringFeedback {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "lengths");
       }
-      return new ExtractMethodFeedback(offset, length, returnType, names,
+      return ExtractMethodFeedback(offset, length, returnType, names,
           canCreateGetter, parameters, offsets, lengths);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "extractMethod feedback", json);
@@ -14070,19 +12659,17 @@ class ExtractMethodFeedback extends RefactoringFeedback {
   }
 }
 
-/**
- * extractMethod options
- *
- * {
- *   "returnType": String
- *   "createGetter": bool
- *   "name": String
- *   "parameters": List<RefactoringMethodParameter>
- *   "extractAll": bool
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// extractMethod options
+///
+/// {
+///   "returnType": String
+///   "createGetter": bool
+///   "name": String
+///   "parameters": List<RefactoringMethodParameter>
+///   "extractAll": bool
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ExtractMethodOptions extends RefactoringOptions {
   String _returnType;
 
@@ -14094,93 +12681,73 @@ class ExtractMethodOptions extends RefactoringOptions {
 
   bool _extractAll;
 
-  /**
-   * The return type that should be defined for the method.
-   */
+  /// The return type that should be defined for the method.
   String get returnType => _returnType;
 
-  /**
-   * The return type that should be defined for the method.
-   */
-  void set returnType(String value) {
+  /// The return type that should be defined for the method.
+  set returnType(String value) {
     assert(value != null);
-    this._returnType = value;
+    _returnType = value;
   }
 
-  /**
-   * True if a getter should be created rather than a method. It is an error if
-   * this field is true and the list of parameters is non-empty.
-   */
+  /// True if a getter should be created rather than a method. It is an error
+  /// if this field is true and the list of parameters is non-empty.
   bool get createGetter => _createGetter;
 
-  /**
-   * True if a getter should be created rather than a method. It is an error if
-   * this field is true and the list of parameters is non-empty.
-   */
-  void set createGetter(bool value) {
+  /// True if a getter should be created rather than a method. It is an error
+  /// if this field is true and the list of parameters is non-empty.
+  set createGetter(bool value) {
     assert(value != null);
-    this._createGetter = value;
+    _createGetter = value;
   }
 
-  /**
-   * The name that the method should be given.
-   */
+  /// The name that the method should be given.
   String get name => _name;
 
-  /**
-   * The name that the method should be given.
-   */
-  void set name(String value) {
+  /// The name that the method should be given.
+  set name(String value) {
     assert(value != null);
-    this._name = value;
+    _name = value;
   }
 
-  /**
-   * The parameters that should be defined for the method.
-   *
-   * It is an error if a REQUIRED or NAMED parameter follows a POSITIONAL
-   * parameter. It is an error if a REQUIRED or POSITIONAL parameter follows a
-   * NAMED parameter.
-   *
-   * - To change the order and/or update proposed parameters, add parameters
-   *   with the same identifiers as proposed.
-   * - To add new parameters, omit their identifier.
-   * - To remove some parameters, omit them in this list.
-   */
+  /// The parameters that should be defined for the method.
+  ///
+  /// It is an error if a REQUIRED or NAMED parameter follows a POSITIONAL
+  /// parameter. It is an error if a REQUIRED or POSITIONAL parameter follows a
+  /// NAMED parameter.
+  ///
+  /// - To change the order and/or update proposed parameters, add parameters
+  ///   with the same identifiers as proposed.
+  /// - To add new parameters, omit their identifier.
+  /// - To remove some parameters, omit them in this list.
   List<RefactoringMethodParameter> get parameters => _parameters;
 
-  /**
-   * The parameters that should be defined for the method.
-   *
-   * It is an error if a REQUIRED or NAMED parameter follows a POSITIONAL
-   * parameter. It is an error if a REQUIRED or POSITIONAL parameter follows a
-   * NAMED parameter.
-   *
-   * - To change the order and/or update proposed parameters, add parameters
-   *   with the same identifiers as proposed.
-   * - To add new parameters, omit their identifier.
-   * - To remove some parameters, omit them in this list.
-   */
-  void set parameters(List<RefactoringMethodParameter> value) {
+  /// The parameters that should be defined for the method.
+  ///
+  /// It is an error if a REQUIRED or NAMED parameter follows a POSITIONAL
+  /// parameter. It is an error if a REQUIRED or POSITIONAL parameter follows a
+  /// NAMED parameter.
+  ///
+  /// - To change the order and/or update proposed parameters, add parameters
+  ///   with the same identifiers as proposed.
+  /// - To add new parameters, omit their identifier.
+  /// - To remove some parameters, omit them in this list.
+  set parameters(List<RefactoringMethodParameter> value) {
     assert(value != null);
-    this._parameters = value;
+    _parameters = value;
   }
 
-  /**
-   * True if all occurrences of the expression or statements should be replaced
-   * by an invocation of the method. The expression or statements used to
-   * initiate the refactoring will always be replaced.
-   */
+  /// True if all occurrences of the expression or statements should be
+  /// replaced by an invocation of the method. The expression or statements
+  /// used to initiate the refactoring will always be replaced.
   bool get extractAll => _extractAll;
 
-  /**
-   * True if all occurrences of the expression or statements should be replaced
-   * by an invocation of the method. The expression or statements used to
-   * initiate the refactoring will always be replaced.
-   */
-  void set extractAll(bool value) {
+  /// True if all occurrences of the expression or statements should be
+  /// replaced by an invocation of the method. The expression or statements
+  /// used to initiate the refactoring will always be replaced.
+  set extractAll(bool value) {
     assert(value != null);
-    this._extractAll = value;
+    _extractAll = value;
   }
 
   ExtractMethodOptions(String returnType, bool createGetter, String name,
@@ -14194,9 +12761,7 @@ class ExtractMethodOptions extends RefactoringOptions {
 
   factory ExtractMethodOptions.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String returnType;
       if (json.containsKey("returnType")) {
@@ -14224,7 +12789,7 @@ class ExtractMethodOptions extends RefactoringOptions {
             jsonPath + ".parameters",
             json["parameters"],
             (String jsonPath, Object json) =>
-                new RefactoringMethodParameter.fromJson(
+                RefactoringMethodParameter.fromJson(
                     jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "parameters");
@@ -14236,7 +12801,7 @@ class ExtractMethodOptions extends RefactoringOptions {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "extractAll");
       }
-      return new ExtractMethodOptions(
+      return ExtractMethodOptions(
           returnType, createGetter, name, parameters, extractAll);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "extractMethod options", json);
@@ -14245,8 +12810,8 @@ class ExtractMethodOptions extends RefactoringOptions {
 
   factory ExtractMethodOptions.fromRefactoringParams(
       EditGetRefactoringParams refactoringParams, Request request) {
-    return new ExtractMethodOptions.fromJson(
-        new RequestDecoder(request), "options", refactoringParams.options);
+    return ExtractMethodOptions.fromJson(
+        RequestDecoder(request), "options", refactoringParams.options);
   }
 
   @override
@@ -14293,24 +12858,20 @@ class ExtractMethodOptions extends RefactoringOptions {
   }
 }
 
-/**
- * extractWidget feedback
- *
- * {
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// extractWidget feedback
+///
+/// {
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ExtractWidgetFeedback extends RefactoringFeedback {
   ExtractWidgetFeedback();
 
   factory ExtractWidgetFeedback.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
-      return new ExtractWidgetFeedback();
+      return ExtractWidgetFeedback();
     } else {
       throw jsonDecoder.mismatch(jsonPath, "extractWidget feedback", json);
     }
@@ -14340,29 +12901,23 @@ class ExtractWidgetFeedback extends RefactoringFeedback {
   }
 }
 
-/**
- * extractWidget options
- *
- * {
- *   "name": String
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// extractWidget options
+///
+/// {
+///   "name": String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ExtractWidgetOptions extends RefactoringOptions {
   String _name;
 
-  /**
-   * The name that the widget class should be given.
-   */
+  /// The name that the widget class should be given.
   String get name => _name;
 
-  /**
-   * The name that the widget class should be given.
-   */
-  void set name(String value) {
+  /// The name that the widget class should be given.
+  set name(String value) {
     assert(value != null);
-    this._name = value;
+    _name = value;
   }
 
   ExtractWidgetOptions(String name) {
@@ -14371,9 +12926,7 @@ class ExtractWidgetOptions extends RefactoringOptions {
 
   factory ExtractWidgetOptions.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String name;
       if (json.containsKey("name")) {
@@ -14381,7 +12934,7 @@ class ExtractWidgetOptions extends RefactoringOptions {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "name");
       }
-      return new ExtractWidgetOptions(name);
+      return ExtractWidgetOptions(name);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "extractWidget options", json);
     }
@@ -14389,8 +12942,8 @@ class ExtractWidgetOptions extends RefactoringOptions {
 
   factory ExtractWidgetOptions.fromRefactoringParams(
       EditGetRefactoringParams refactoringParams, Request request) {
-    return new ExtractWidgetOptions.fromJson(
-        new RequestDecoder(request), "options", refactoringParams.options);
+    return ExtractWidgetOptions.fromJson(
+        RequestDecoder(request), "options", refactoringParams.options);
   }
 
   @override
@@ -14419,25 +12972,21 @@ class ExtractWidgetOptions extends RefactoringOptions {
   }
 }
 
-/**
- * FileKind
- *
- * enum {
- *   LIBRARY
- *   PART
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// FileKind
+///
+/// enum {
+///   LIBRARY
+///   PART
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class FileKind implements Enum {
-  static const FileKind LIBRARY = const FileKind._("LIBRARY");
+  static const FileKind LIBRARY = FileKind._("LIBRARY");
 
-  static const FileKind PART = const FileKind._("PART");
+  static const FileKind PART = FileKind._("PART");
 
-  /**
-   * A list containing all of the enum values that are defined.
-   */
-  static const List<FileKind> VALUES = const <FileKind>[LIBRARY, PART];
+  /// A list containing all of the enum values that are defined.
+  static const List<FileKind> VALUES = <FileKind>[LIBRARY, PART];
 
   @override
   final String name;
@@ -14451,14 +13000,14 @@ class FileKind implements Enum {
       case "PART":
         return PART;
     }
-    throw new Exception('Illegal enum value: $name');
+    throw Exception('Illegal enum value: $name');
   }
 
   factory FileKind.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json is String) {
       try {
-        return new FileKind(json);
+        return FileKind(json);
       } catch (_) {
         // Fall through
       }
@@ -14472,45 +13021,35 @@ class FileKind implements Enum {
   String toJson() => name;
 }
 
-/**
- * flutter.getWidgetDescription params
- *
- * {
- *   "file": FilePath
- *   "offset": int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// flutter.getWidgetDescription params
+///
+/// {
+///   "file": FilePath
+///   "offset": int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class FlutterGetWidgetDescriptionParams implements RequestParams {
   String _file;
 
   int _offset;
 
-  /**
-   * The file where the widget instance is created.
-   */
+  /// The file where the widget instance is created.
   String get file => _file;
 
-  /**
-   * The file where the widget instance is created.
-   */
-  void set file(String value) {
+  /// The file where the widget instance is created.
+  set file(String value) {
     assert(value != null);
-    this._file = value;
+    _file = value;
   }
 
-  /**
-   * The offset in the file where the widget instance is created.
-   */
+  /// The offset in the file where the widget instance is created.
   int get offset => _offset;
 
-  /**
-   * The offset in the file where the widget instance is created.
-   */
-  void set offset(int value) {
+  /// The offset in the file where the widget instance is created.
+  set offset(int value) {
     assert(value != null);
-    this._offset = value;
+    _offset = value;
   }
 
   FlutterGetWidgetDescriptionParams(String file, int offset) {
@@ -14520,9 +13059,7 @@ class FlutterGetWidgetDescriptionParams implements RequestParams {
 
   factory FlutterGetWidgetDescriptionParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -14536,7 +13073,7 @@ class FlutterGetWidgetDescriptionParams implements RequestParams {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "offset");
       }
-      return new FlutterGetWidgetDescriptionParams(file, offset);
+      return FlutterGetWidgetDescriptionParams(file, offset);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "flutter.getWidgetDescription params", json);
@@ -14544,8 +13081,8 @@ class FlutterGetWidgetDescriptionParams implements RequestParams {
   }
 
   factory FlutterGetWidgetDescriptionParams.fromRequest(Request request) {
-    return new FlutterGetWidgetDescriptionParams.fromJson(
-        new RequestDecoder(request), "params", request.params);
+    return FlutterGetWidgetDescriptionParams.fromJson(
+        RequestDecoder(request), "params", request.params);
   }
 
   @override
@@ -14558,7 +13095,7 @@ class FlutterGetWidgetDescriptionParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "flutter.getWidgetDescription", toJson());
+    return Request(id, "flutter.getWidgetDescription", toJson());
   }
 
   @override
@@ -14581,35 +13118,29 @@ class FlutterGetWidgetDescriptionParams implements RequestParams {
   }
 }
 
-/**
- * flutter.getWidgetDescription result
- *
- * {
- *   "properties": List<FlutterWidgetProperty>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// flutter.getWidgetDescription result
+///
+/// {
+///   "properties": List<FlutterWidgetProperty>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class FlutterGetWidgetDescriptionResult implements ResponseResult {
   List<FlutterWidgetProperty> _properties;
 
-  /**
-   * The list of properties of the widget. Some of the properties might be read
-   * only, when their editor is not set. This might be because they have type
-   * that we don't know how to edit, or for compound properties that work as
-   * containers for sub-properties.
-   */
+  /// The list of properties of the widget. Some of the properties might be
+  /// read only, when their editor is not set. This might be because they have
+  /// type that we don't know how to edit, or for compound properties that work
+  /// as containers for sub-properties.
   List<FlutterWidgetProperty> get properties => _properties;
 
-  /**
-   * The list of properties of the widget. Some of the properties might be read
-   * only, when their editor is not set. This might be because they have type
-   * that we don't know how to edit, or for compound properties that work as
-   * containers for sub-properties.
-   */
-  void set properties(List<FlutterWidgetProperty> value) {
+  /// The list of properties of the widget. Some of the properties might be
+  /// read only, when their editor is not set. This might be because they have
+  /// type that we don't know how to edit, or for compound properties that work
+  /// as containers for sub-properties.
+  set properties(List<FlutterWidgetProperty> value) {
     assert(value != null);
-    this._properties = value;
+    _properties = value;
   }
 
   FlutterGetWidgetDescriptionResult(List<FlutterWidgetProperty> properties) {
@@ -14618,9 +13149,7 @@ class FlutterGetWidgetDescriptionResult implements ResponseResult {
 
   factory FlutterGetWidgetDescriptionResult.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       List<FlutterWidgetProperty> properties;
       if (json.containsKey("properties")) {
@@ -14628,12 +13157,11 @@ class FlutterGetWidgetDescriptionResult implements ResponseResult {
             jsonPath + ".properties",
             json["properties"],
             (String jsonPath, Object json) =>
-                new FlutterWidgetProperty.fromJson(
-                    jsonDecoder, jsonPath, json));
+                FlutterWidgetProperty.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "properties");
       }
-      return new FlutterGetWidgetDescriptionResult(properties);
+      return FlutterGetWidgetDescriptionResult(properties);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "flutter.getWidgetDescription result", json);
@@ -14641,8 +13169,8 @@ class FlutterGetWidgetDescriptionResult implements ResponseResult {
   }
 
   factory FlutterGetWidgetDescriptionResult.fromResponse(Response response) {
-    return new FlutterGetWidgetDescriptionResult.fromJson(
-        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+    return FlutterGetWidgetDescriptionResult.fromJson(
+        ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         "result",
         response.result);
   }
@@ -14658,7 +13186,7 @@ class FlutterGetWidgetDescriptionResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return new Response(id, result: toJson());
+    return Response(id, result: toJson());
   }
 
   @override
@@ -14681,26 +13209,24 @@ class FlutterGetWidgetDescriptionResult implements ResponseResult {
   }
 }
 
-/**
- * FlutterOutline
- *
- * {
- *   "kind": FlutterOutlineKind
- *   "offset": int
- *   "length": int
- *   "codeOffset": int
- *   "codeLength": int
- *   "label": optional String
- *   "dartElement": optional Element
- *   "attributes": optional List<FlutterOutlineAttribute>
- *   "className": optional String
- *   "parentAssociationLabel": optional String
- *   "variableName": optional String
- *   "children": optional List<FlutterOutline>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// FlutterOutline
+///
+/// {
+///   "kind": FlutterOutlineKind
+///   "offset": int
+///   "length": int
+///   "codeOffset": int
+///   "codeLength": int
+///   "label": optional String
+///   "dartElement": optional Element
+///   "attributes": optional List<FlutterOutlineAttribute>
+///   "className": optional String
+///   "parentAssociationLabel": optional String
+///   "variableName": optional String
+///   "children": optional List<FlutterOutline>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class FlutterOutline implements HasToJson {
   FlutterOutlineKind _kind;
 
@@ -14726,175 +13252,127 @@ class FlutterOutline implements HasToJson {
 
   List<FlutterOutline> _children;
 
-  /**
-   * The kind of the node.
-   */
+  /// The kind of the node.
   FlutterOutlineKind get kind => _kind;
 
-  /**
-   * The kind of the node.
-   */
-  void set kind(FlutterOutlineKind value) {
+  /// The kind of the node.
+  set kind(FlutterOutlineKind value) {
     assert(value != null);
-    this._kind = value;
+    _kind = value;
   }
 
-  /**
-   * The offset of the first character of the element. This is different than
-   * the offset in the Element, which is the offset of the name of the element.
-   * It can be used, for example, to map locations in the file back to an
-   * outline.
-   */
+  /// The offset of the first character of the element. This is different than
+  /// the offset in the Element, which is the offset of the name of the
+  /// element. It can be used, for example, to map locations in the file back
+  /// to an outline.
   int get offset => _offset;
 
-  /**
-   * The offset of the first character of the element. This is different than
-   * the offset in the Element, which is the offset of the name of the element.
-   * It can be used, for example, to map locations in the file back to an
-   * outline.
-   */
-  void set offset(int value) {
+  /// The offset of the first character of the element. This is different than
+  /// the offset in the Element, which is the offset of the name of the
+  /// element. It can be used, for example, to map locations in the file back
+  /// to an outline.
+  set offset(int value) {
     assert(value != null);
-    this._offset = value;
+    _offset = value;
   }
 
-  /**
-   * The length of the element.
-   */
+  /// The length of the element.
   int get length => _length;
 
-  /**
-   * The length of the element.
-   */
-  void set length(int value) {
+  /// The length of the element.
+  set length(int value) {
     assert(value != null);
-    this._length = value;
+    _length = value;
   }
 
-  /**
-   * The offset of the first character of the element code, which is neither
-   * documentation, nor annotation.
-   */
+  /// The offset of the first character of the element code, which is neither
+  /// documentation, nor annotation.
   int get codeOffset => _codeOffset;
 
-  /**
-   * The offset of the first character of the element code, which is neither
-   * documentation, nor annotation.
-   */
-  void set codeOffset(int value) {
+  /// The offset of the first character of the element code, which is neither
+  /// documentation, nor annotation.
+  set codeOffset(int value) {
     assert(value != null);
-    this._codeOffset = value;
+    _codeOffset = value;
   }
 
-  /**
-   * The length of the element code.
-   */
+  /// The length of the element code.
   int get codeLength => _codeLength;
 
-  /**
-   * The length of the element code.
-   */
-  void set codeLength(int value) {
+  /// The length of the element code.
+  set codeLength(int value) {
     assert(value != null);
-    this._codeLength = value;
+    _codeLength = value;
   }
 
-  /**
-   * The text label of the node children of the node. It is provided for any
-   * FlutterOutlineKind.GENERIC node, where better information is not
-   * available.
-   */
+  /// The text label of the node children of the node. It is provided for any
+  /// FlutterOutlineKind.GENERIC node, where better information is not
+  /// available.
   String get label => _label;
 
-  /**
-   * The text label of the node children of the node. It is provided for any
-   * FlutterOutlineKind.GENERIC node, where better information is not
-   * available.
-   */
-  void set label(String value) {
-    this._label = value;
+  /// The text label of the node children of the node. It is provided for any
+  /// FlutterOutlineKind.GENERIC node, where better information is not
+  /// available.
+  set label(String value) {
+    _label = value;
   }
 
-  /**
-   * If this node is a Dart element, the description of it; omitted otherwise.
-   */
+  /// If this node is a Dart element, the description of it; omitted otherwise.
   Element get dartElement => _dartElement;
 
-  /**
-   * If this node is a Dart element, the description of it; omitted otherwise.
-   */
-  void set dartElement(Element value) {
-    this._dartElement = value;
+  /// If this node is a Dart element, the description of it; omitted otherwise.
+  set dartElement(Element value) {
+    _dartElement = value;
   }
 
-  /**
-   * Additional attributes for this node, which might be interesting to display
-   * on the client. These attributes are usually arguments for the instance
-   * creation or the invocation that created the widget.
-   */
+  /// Additional attributes for this node, which might be interesting to
+  /// display on the client. These attributes are usually arguments for the
+  /// instance creation or the invocation that created the widget.
   List<FlutterOutlineAttribute> get attributes => _attributes;
 
-  /**
-   * Additional attributes for this node, which might be interesting to display
-   * on the client. These attributes are usually arguments for the instance
-   * creation or the invocation that created the widget.
-   */
-  void set attributes(List<FlutterOutlineAttribute> value) {
-    this._attributes = value;
+  /// Additional attributes for this node, which might be interesting to
+  /// display on the client. These attributes are usually arguments for the
+  /// instance creation or the invocation that created the widget.
+  set attributes(List<FlutterOutlineAttribute> value) {
+    _attributes = value;
   }
 
-  /**
-   * If the node creates a new class instance, or a reference to an instance,
-   * this field has the name of the class.
-   */
+  /// If the node creates a new class instance, or a reference to an instance,
+  /// this field has the name of the class.
   String get className => _className;
 
-  /**
-   * If the node creates a new class instance, or a reference to an instance,
-   * this field has the name of the class.
-   */
-  void set className(String value) {
-    this._className = value;
+  /// If the node creates a new class instance, or a reference to an instance,
+  /// this field has the name of the class.
+  set className(String value) {
+    _className = value;
   }
 
-  /**
-   * A short text description how this node is associated with the parent node.
-   * For example "appBar" or "body" in Scaffold.
-   */
+  /// A short text description how this node is associated with the parent
+  /// node. For example "appBar" or "body" in Scaffold.
   String get parentAssociationLabel => _parentAssociationLabel;
 
-  /**
-   * A short text description how this node is associated with the parent node.
-   * For example "appBar" or "body" in Scaffold.
-   */
-  void set parentAssociationLabel(String value) {
-    this._parentAssociationLabel = value;
+  /// A short text description how this node is associated with the parent
+  /// node. For example "appBar" or "body" in Scaffold.
+  set parentAssociationLabel(String value) {
+    _parentAssociationLabel = value;
   }
 
-  /**
-   * If FlutterOutlineKind.VARIABLE, the name of the variable.
-   */
+  /// If FlutterOutlineKind.VARIABLE, the name of the variable.
   String get variableName => _variableName;
 
-  /**
-   * If FlutterOutlineKind.VARIABLE, the name of the variable.
-   */
-  void set variableName(String value) {
-    this._variableName = value;
+  /// If FlutterOutlineKind.VARIABLE, the name of the variable.
+  set variableName(String value) {
+    _variableName = value;
   }
 
-  /**
-   * The children of the node. The field will be omitted if the node has no
-   * children.
-   */
+  /// The children of the node. The field will be omitted if the node has no
+  /// children.
   List<FlutterOutline> get children => _children;
 
-  /**
-   * The children of the node. The field will be omitted if the node has no
-   * children.
-   */
-  void set children(List<FlutterOutline> value) {
-    this._children = value;
+  /// The children of the node. The field will be omitted if the node has no
+  /// children.
+  set children(List<FlutterOutline> value) {
+    _children = value;
   }
 
   FlutterOutline(FlutterOutlineKind kind, int offset, int length,
@@ -14922,13 +13400,11 @@ class FlutterOutline implements HasToJson {
 
   factory FlutterOutline.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       FlutterOutlineKind kind;
       if (json.containsKey("kind")) {
-        kind = new FlutterOutlineKind.fromJson(
+        kind = FlutterOutlineKind.fromJson(
             jsonDecoder, jsonPath + ".kind", json["kind"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "kind");
@@ -14965,7 +13441,7 @@ class FlutterOutline implements HasToJson {
       }
       Element dartElement;
       if (json.containsKey("dartElement")) {
-        dartElement = new Element.fromJson(
+        dartElement = Element.fromJson(
             jsonDecoder, jsonPath + ".dartElement", json["dartElement"]);
       }
       List<FlutterOutlineAttribute> attributes;
@@ -14974,8 +13450,7 @@ class FlutterOutline implements HasToJson {
             jsonPath + ".attributes",
             json["attributes"],
             (String jsonPath, Object json) =>
-                new FlutterOutlineAttribute.fromJson(
-                    jsonDecoder, jsonPath, json));
+                FlutterOutlineAttribute.fromJson(jsonDecoder, jsonPath, json));
       }
       String className;
       if (json.containsKey("className")) {
@@ -14999,9 +13474,9 @@ class FlutterOutline implements HasToJson {
             jsonPath + ".children",
             json["children"],
             (String jsonPath, Object json) =>
-                new FlutterOutline.fromJson(jsonDecoder, jsonPath, json));
+                FlutterOutline.fromJson(jsonDecoder, jsonPath, json));
       }
-      return new FlutterOutline(kind, offset, length, codeOffset, codeLength,
+      return FlutterOutline(kind, offset, length, codeOffset, codeLength,
           label: label,
           dartElement: dartElement,
           attributes: attributes,
@@ -15095,21 +13570,19 @@ class FlutterOutline implements HasToJson {
   }
 }
 
-/**
- * FlutterOutlineAttribute
- *
- * {
- *   "name": String
- *   "label": String
- *   "literalValueBoolean": optional bool
- *   "literalValueInteger": optional int
- *   "literalValueString": optional String
- *   "nameLocation": optional Location
- *   "valueLocation": optional Location
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// FlutterOutlineAttribute
+///
+/// {
+///   "name": String
+///   "label": String
+///   "literalValueBoolean": optional bool
+///   "literalValueInteger": optional int
+///   "literalValueString": optional String
+///   "nameLocation": optional Location
+///   "valueLocation": optional Location
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class FlutterOutlineAttribute implements HasToJson {
   String _name;
 
@@ -15125,106 +13598,78 @@ class FlutterOutlineAttribute implements HasToJson {
 
   Location _valueLocation;
 
-  /**
-   * The name of the attribute.
-   */
+  /// The name of the attribute.
   String get name => _name;
 
-  /**
-   * The name of the attribute.
-   */
-  void set name(String value) {
+  /// The name of the attribute.
+  set name(String value) {
     assert(value != null);
-    this._name = value;
+    _name = value;
   }
 
-  /**
-   * The label of the attribute value, usually the Dart code. It might be quite
-   * long, the client should abbreviate as needed.
-   */
+  /// The label of the attribute value, usually the Dart code. It might be
+  /// quite long, the client should abbreviate as needed.
   String get label => _label;
 
-  /**
-   * The label of the attribute value, usually the Dart code. It might be quite
-   * long, the client should abbreviate as needed.
-   */
-  void set label(String value) {
+  /// The label of the attribute value, usually the Dart code. It might be
+  /// quite long, the client should abbreviate as needed.
+  set label(String value) {
     assert(value != null);
-    this._label = value;
+    _label = value;
   }
 
-  /**
-   * The boolean literal value of the attribute. This field is absent if the
-   * value is not a boolean literal.
-   */
+  /// The boolean literal value of the attribute. This field is absent if the
+  /// value is not a boolean literal.
   bool get literalValueBoolean => _literalValueBoolean;
 
-  /**
-   * The boolean literal value of the attribute. This field is absent if the
-   * value is not a boolean literal.
-   */
-  void set literalValueBoolean(bool value) {
-    this._literalValueBoolean = value;
+  /// The boolean literal value of the attribute. This field is absent if the
+  /// value is not a boolean literal.
+  set literalValueBoolean(bool value) {
+    _literalValueBoolean = value;
   }
 
-  /**
-   * The integer literal value of the attribute. This field is absent if the
-   * value is not an integer literal.
-   */
+  /// The integer literal value of the attribute. This field is absent if the
+  /// value is not an integer literal.
   int get literalValueInteger => _literalValueInteger;
 
-  /**
-   * The integer literal value of the attribute. This field is absent if the
-   * value is not an integer literal.
-   */
-  void set literalValueInteger(int value) {
-    this._literalValueInteger = value;
+  /// The integer literal value of the attribute. This field is absent if the
+  /// value is not an integer literal.
+  set literalValueInteger(int value) {
+    _literalValueInteger = value;
   }
 
-  /**
-   * The string literal value of the attribute. This field is absent if the
-   * value is not a string literal.
-   */
+  /// The string literal value of the attribute. This field is absent if the
+  /// value is not a string literal.
   String get literalValueString => _literalValueString;
 
-  /**
-   * The string literal value of the attribute. This field is absent if the
-   * value is not a string literal.
-   */
-  void set literalValueString(String value) {
-    this._literalValueString = value;
+  /// The string literal value of the attribute. This field is absent if the
+  /// value is not a string literal.
+  set literalValueString(String value) {
+    _literalValueString = value;
   }
 
-  /**
-   * If the attribute is a named argument, the location of the name, without
-   * the colon.
-   */
+  /// If the attribute is a named argument, the location of the name, without
+  /// the colon.
   Location get nameLocation => _nameLocation;
 
-  /**
-   * If the attribute is a named argument, the location of the name, without
-   * the colon.
-   */
-  void set nameLocation(Location value) {
-    this._nameLocation = value;
+  /// If the attribute is a named argument, the location of the name, without
+  /// the colon.
+  set nameLocation(Location value) {
+    _nameLocation = value;
   }
 
-  /**
-   * The location of the value.
-   *
-   * This field is always available, but marked optional for backward
-   * compatibility between new clients with older servers.
-   */
+  /// The location of the value.
+  ///
+  /// This field is always available, but marked optional for backward
+  /// compatibility between new clients with older servers.
   Location get valueLocation => _valueLocation;
 
-  /**
-   * The location of the value.
-   *
-   * This field is always available, but marked optional for backward
-   * compatibility between new clients with older servers.
-   */
-  void set valueLocation(Location value) {
-    this._valueLocation = value;
+  /// The location of the value.
+  ///
+  /// This field is always available, but marked optional for backward
+  /// compatibility between new clients with older servers.
+  set valueLocation(Location value) {
+    _valueLocation = value;
   }
 
   FlutterOutlineAttribute(String name, String label,
@@ -15244,9 +13689,7 @@ class FlutterOutlineAttribute implements HasToJson {
 
   factory FlutterOutlineAttribute.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String name;
       if (json.containsKey("name")) {
@@ -15277,15 +13720,15 @@ class FlutterOutlineAttribute implements HasToJson {
       }
       Location nameLocation;
       if (json.containsKey("nameLocation")) {
-        nameLocation = new Location.fromJson(
+        nameLocation = Location.fromJson(
             jsonDecoder, jsonPath + ".nameLocation", json["nameLocation"]);
       }
       Location valueLocation;
       if (json.containsKey("valueLocation")) {
-        valueLocation = new Location.fromJson(
+        valueLocation = Location.fromJson(
             jsonDecoder, jsonPath + ".valueLocation", json["valueLocation"]);
       }
-      return new FlutterOutlineAttribute(name, label,
+      return FlutterOutlineAttribute(name, label,
           literalValueBoolean: literalValueBoolean,
           literalValueInteger: literalValueInteger,
           literalValueString: literalValueString,
@@ -15350,63 +13793,45 @@ class FlutterOutlineAttribute implements HasToJson {
   }
 }
 
-/**
- * FlutterOutlineKind
- *
- * enum {
- *   DART_ELEMENT
- *   GENERIC
- *   NEW_INSTANCE
- *   INVOCATION
- *   VARIABLE
- *   PLACEHOLDER
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// FlutterOutlineKind
+///
+/// enum {
+///   DART_ELEMENT
+///   GENERIC
+///   NEW_INSTANCE
+///   INVOCATION
+///   VARIABLE
+///   PLACEHOLDER
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class FlutterOutlineKind implements Enum {
-  /**
-   * A dart element declaration.
-   */
+  /// A dart element declaration.
   static const FlutterOutlineKind DART_ELEMENT =
-      const FlutterOutlineKind._("DART_ELEMENT");
+      FlutterOutlineKind._("DART_ELEMENT");
 
-  /**
-   * A generic Flutter element, without additional information.
-   */
-  static const FlutterOutlineKind GENERIC =
-      const FlutterOutlineKind._("GENERIC");
+  /// A generic Flutter element, without additional information.
+  static const FlutterOutlineKind GENERIC = FlutterOutlineKind._("GENERIC");
 
-  /**
-   * A new instance creation.
-   */
+  /// A new instance creation.
   static const FlutterOutlineKind NEW_INSTANCE =
-      const FlutterOutlineKind._("NEW_INSTANCE");
+      FlutterOutlineKind._("NEW_INSTANCE");
 
-  /**
-   * An invocation of a method, a top-level function, a function expression,
-   * etc.
-   */
+  /// An invocation of a method, a top-level function, a function expression,
+  /// etc.
   static const FlutterOutlineKind INVOCATION =
-      const FlutterOutlineKind._("INVOCATION");
+      FlutterOutlineKind._("INVOCATION");
 
-  /**
-   * A reference to a local variable, or a field.
-   */
-  static const FlutterOutlineKind VARIABLE =
-      const FlutterOutlineKind._("VARIABLE");
+  /// A reference to a local variable, or a field.
+  static const FlutterOutlineKind VARIABLE = FlutterOutlineKind._("VARIABLE");
 
-  /**
-   * The parent node has a required Widget. The node works as a placeholder
-   * child to drop a new Widget to.
-   */
+  /// The parent node has a required Widget. The node works as a placeholder
+  /// child to drop a new Widget to.
   static const FlutterOutlineKind PLACEHOLDER =
-      const FlutterOutlineKind._("PLACEHOLDER");
+      FlutterOutlineKind._("PLACEHOLDER");
 
-  /**
-   * A list containing all of the enum values that are defined.
-   */
-  static const List<FlutterOutlineKind> VALUES = const <FlutterOutlineKind>[
+  /// A list containing all of the enum values that are defined.
+  static const List<FlutterOutlineKind> VALUES = <FlutterOutlineKind>[
     DART_ELEMENT,
     GENERIC,
     NEW_INSTANCE,
@@ -15435,14 +13860,14 @@ class FlutterOutlineKind implements Enum {
       case "PLACEHOLDER":
         return PLACEHOLDER;
     }
-    throw new Exception('Illegal enum value: $name');
+    throw Exception('Illegal enum value: $name');
   }
 
   factory FlutterOutlineKind.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json is String) {
       try {
-        return new FlutterOutlineKind(json);
+        return FlutterOutlineKind(json);
       } catch (_) {
         // Fall through
       }
@@ -15456,45 +13881,35 @@ class FlutterOutlineKind implements Enum {
   String toJson() => name;
 }
 
-/**
- * flutter.outline params
- *
- * {
- *   "file": FilePath
- *   "outline": FlutterOutline
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// flutter.outline params
+///
+/// {
+///   "file": FilePath
+///   "outline": FlutterOutline
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class FlutterOutlineParams implements HasToJson {
   String _file;
 
   FlutterOutline _outline;
 
-  /**
-   * The file with which the outline is associated.
-   */
+  /// The file with which the outline is associated.
   String get file => _file;
 
-  /**
-   * The file with which the outline is associated.
-   */
-  void set file(String value) {
+  /// The file with which the outline is associated.
+  set file(String value) {
     assert(value != null);
-    this._file = value;
+    _file = value;
   }
 
-  /**
-   * The outline associated with the file.
-   */
+  /// The outline associated with the file.
   FlutterOutline get outline => _outline;
 
-  /**
-   * The outline associated with the file.
-   */
-  void set outline(FlutterOutline value) {
+  /// The outline associated with the file.
+  set outline(FlutterOutline value) {
     assert(value != null);
-    this._outline = value;
+    _outline = value;
   }
 
   FlutterOutlineParams(String file, FlutterOutline outline) {
@@ -15504,9 +13919,7 @@ class FlutterOutlineParams implements HasToJson {
 
   factory FlutterOutlineParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -15516,20 +13929,20 @@ class FlutterOutlineParams implements HasToJson {
       }
       FlutterOutline outline;
       if (json.containsKey("outline")) {
-        outline = new FlutterOutline.fromJson(
+        outline = FlutterOutline.fromJson(
             jsonDecoder, jsonPath + ".outline", json["outline"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "outline");
       }
-      return new FlutterOutlineParams(file, outline);
+      return FlutterOutlineParams(file, outline);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "flutter.outline params", json);
     }
   }
 
   factory FlutterOutlineParams.fromNotification(Notification notification) {
-    return new FlutterOutlineParams.fromJson(
-        new ResponseDecoder(null), "params", notification.params);
+    return FlutterOutlineParams.fromJson(
+        ResponseDecoder(null), "params", notification.params);
   }
 
   @override
@@ -15541,7 +13954,7 @@ class FlutterOutlineParams implements HasToJson {
   }
 
   Notification toNotification() {
-    return new Notification("flutter.outline", toJson());
+    return Notification("flutter.outline", toJson());
   }
 
   @override
@@ -15564,22 +13977,18 @@ class FlutterOutlineParams implements HasToJson {
   }
 }
 
-/**
- * FlutterService
- *
- * enum {
- *   OUTLINE
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// FlutterService
+///
+/// enum {
+///   OUTLINE
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class FlutterService implements Enum {
-  static const FlutterService OUTLINE = const FlutterService._("OUTLINE");
+  static const FlutterService OUTLINE = FlutterService._("OUTLINE");
 
-  /**
-   * A list containing all of the enum values that are defined.
-   */
-  static const List<FlutterService> VALUES = const <FlutterService>[OUTLINE];
+  /// A list containing all of the enum values that are defined.
+  static const List<FlutterService> VALUES = <FlutterService>[OUTLINE];
 
   @override
   final String name;
@@ -15591,14 +14000,14 @@ class FlutterService implements Enum {
       case "OUTLINE":
         return OUTLINE;
     }
-    throw new Exception('Illegal enum value: $name');
+    throw Exception('Illegal enum value: $name');
   }
 
   factory FlutterService.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json is String) {
       try {
-        return new FlutterService(json);
+        return FlutterService(json);
       } catch (_) {
         // Fall through
       }
@@ -15612,31 +14021,25 @@ class FlutterService implements Enum {
   String toJson() => name;
 }
 
-/**
- * flutter.setSubscriptions params
- *
- * {
- *   "subscriptions": Map<FlutterService, List<FilePath>>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// flutter.setSubscriptions params
+///
+/// {
+///   "subscriptions": Map<FlutterService, List<FilePath>>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class FlutterSetSubscriptionsParams implements RequestParams {
   Map<FlutterService, List<String>> _subscriptions;
 
-  /**
-   * A table mapping services to a list of the files being subscribed to the
-   * service.
-   */
+  /// A table mapping services to a list of the files being subscribed to the
+  /// service.
   Map<FlutterService, List<String>> get subscriptions => _subscriptions;
 
-  /**
-   * A table mapping services to a list of the files being subscribed to the
-   * service.
-   */
-  void set subscriptions(Map<FlutterService, List<String>> value) {
+  /// A table mapping services to a list of the files being subscribed to the
+  /// service.
+  set subscriptions(Map<FlutterService, List<String>> value) {
     assert(value != null);
-    this._subscriptions = value;
+    _subscriptions = value;
   }
 
   FlutterSetSubscriptionsParams(
@@ -15646,22 +14049,20 @@ class FlutterSetSubscriptionsParams implements RequestParams {
 
   factory FlutterSetSubscriptionsParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       Map<FlutterService, List<String>> subscriptions;
       if (json.containsKey("subscriptions")) {
         subscriptions = jsonDecoder.decodeMap(
             jsonPath + ".subscriptions", json["subscriptions"],
             keyDecoder: (String jsonPath, Object json) =>
-                new FlutterService.fromJson(jsonDecoder, jsonPath, json),
+                FlutterService.fromJson(jsonDecoder, jsonPath, json),
             valueDecoder: (String jsonPath, Object json) => jsonDecoder
                 .decodeList(jsonPath, json, jsonDecoder.decodeString));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "subscriptions");
       }
-      return new FlutterSetSubscriptionsParams(subscriptions);
+      return FlutterSetSubscriptionsParams(subscriptions);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "flutter.setSubscriptions params", json);
@@ -15669,8 +14070,8 @@ class FlutterSetSubscriptionsParams implements RequestParams {
   }
 
   factory FlutterSetSubscriptionsParams.fromRequest(Request request) {
-    return new FlutterSetSubscriptionsParams.fromJson(
-        new RequestDecoder(request), "params", request.params);
+    return FlutterSetSubscriptionsParams.fromJson(
+        RequestDecoder(request), "params", request.params);
   }
 
   @override
@@ -15683,7 +14084,7 @@ class FlutterSetSubscriptionsParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "flutter.setSubscriptions", toJson());
+    return Request(id, "flutter.setSubscriptions", toJson());
   }
 
   @override
@@ -15709,18 +14110,16 @@ class FlutterSetSubscriptionsParams implements RequestParams {
   }
 }
 
-/**
- * flutter.setSubscriptions result
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// flutter.setSubscriptions result
+///
+/// Clients may not extend, implement or mix-in this class.
 class FlutterSetSubscriptionsResult implements ResponseResult {
   @override
   Map<String, dynamic> toJson() => <String, dynamic>{};
 
   @override
   Response toResponse(String id) {
-    return new Response(id, result: null);
+    return Response(id, result: null);
   }
 
   @override
@@ -15737,68 +14136,58 @@ class FlutterSetSubscriptionsResult implements ResponseResult {
   }
 }
 
-/**
- * flutter.setWidgetPropertyValue params
- *
- * {
- *   "id": int
- *   "value": optional FlutterWidgetPropertyValue
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// flutter.setWidgetPropertyValue params
+///
+/// {
+///   "id": int
+///   "value": optional FlutterWidgetPropertyValue
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class FlutterSetWidgetPropertyValueParams implements RequestParams {
   int _id;
 
   FlutterWidgetPropertyValue _value;
 
-  /**
-   * The identifier of the property, previously returned as a part of a
-   * FlutterWidgetProperty.
-   *
-   * An error of type FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_ID is generated
-   * if the identifier is not valid.
-   */
+  /// The identifier of the property, previously returned as a part of a
+  /// FlutterWidgetProperty.
+  ///
+  /// An error of type FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_ID is
+  /// generated if the identifier is not valid.
   int get id => _id;
 
-  /**
-   * The identifier of the property, previously returned as a part of a
-   * FlutterWidgetProperty.
-   *
-   * An error of type FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_ID is generated
-   * if the identifier is not valid.
-   */
-  void set id(int value) {
+  /// The identifier of the property, previously returned as a part of a
+  /// FlutterWidgetProperty.
+  ///
+  /// An error of type FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_ID is
+  /// generated if the identifier is not valid.
+  set id(int value) {
     assert(value != null);
-    this._id = value;
+    _id = value;
   }
 
-  /**
-   * The new value to set for the property.
-   *
-   * If absent, indicates that the property should be removed. If the property
-   * corresponds to an optional parameter, the corresponding named argument is
-   * removed. If the property isRequired is true,
-   * FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED error is generated.
-   *
-   * If the expression is not a syntactically valid Dart code, then
-   * FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION is reported.
-   */
+  /// The new value to set for the property.
+  ///
+  /// If absent, indicates that the property should be removed. If the property
+  /// corresponds to an optional parameter, the corresponding named argument is
+  /// removed. If the property isRequired is true,
+  /// FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED error is generated.
+  ///
+  /// If the expression is not a syntactically valid Dart code, then
+  /// FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION is reported.
   FlutterWidgetPropertyValue get value => _value;
 
-  /**
-   * The new value to set for the property.
-   *
-   * If absent, indicates that the property should be removed. If the property
-   * corresponds to an optional parameter, the corresponding named argument is
-   * removed. If the property isRequired is true,
-   * FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED error is generated.
-   *
-   * If the expression is not a syntactically valid Dart code, then
-   * FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION is reported.
-   */
-  void set value(FlutterWidgetPropertyValue value) {
-    this._value = value;
+  /// The new value to set for the property.
+  ///
+  /// If absent, indicates that the property should be removed. If the property
+  /// corresponds to an optional parameter, the corresponding named argument is
+  /// removed. If the property isRequired is true,
+  /// FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED error is generated.
+  ///
+  /// If the expression is not a syntactically valid Dart code, then
+  /// FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION is reported.
+  set value(FlutterWidgetPropertyValue value) {
+    _value = value;
   }
 
   FlutterSetWidgetPropertyValueParams(int id,
@@ -15809,9 +14198,7 @@ class FlutterSetWidgetPropertyValueParams implements RequestParams {
 
   factory FlutterSetWidgetPropertyValueParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       int id;
       if (json.containsKey("id")) {
@@ -15821,10 +14208,10 @@ class FlutterSetWidgetPropertyValueParams implements RequestParams {
       }
       FlutterWidgetPropertyValue value;
       if (json.containsKey("value")) {
-        value = new FlutterWidgetPropertyValue.fromJson(
+        value = FlutterWidgetPropertyValue.fromJson(
             jsonDecoder, jsonPath + ".value", json["value"]);
       }
-      return new FlutterSetWidgetPropertyValueParams(id, value: value);
+      return FlutterSetWidgetPropertyValueParams(id, value: value);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "flutter.setWidgetPropertyValue params", json);
@@ -15832,8 +14219,8 @@ class FlutterSetWidgetPropertyValueParams implements RequestParams {
   }
 
   factory FlutterSetWidgetPropertyValueParams.fromRequest(Request request) {
-    return new FlutterSetWidgetPropertyValueParams.fromJson(
-        new RequestDecoder(request), "params", request.params);
+    return FlutterSetWidgetPropertyValueParams.fromJson(
+        RequestDecoder(request), "params", request.params);
   }
 
   @override
@@ -15848,7 +14235,7 @@ class FlutterSetWidgetPropertyValueParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "flutter.setWidgetPropertyValue", toJson());
+    return Request(id, "flutter.setWidgetPropertyValue", toJson());
   }
 
   @override
@@ -15871,29 +14258,23 @@ class FlutterSetWidgetPropertyValueParams implements RequestParams {
   }
 }
 
-/**
- * flutter.setWidgetPropertyValue result
- *
- * {
- *   "change": SourceChange
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// flutter.setWidgetPropertyValue result
+///
+/// {
+///   "change": SourceChange
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class FlutterSetWidgetPropertyValueResult implements ResponseResult {
   SourceChange _change;
 
-  /**
-   * The change that should be applied.
-   */
+  /// The change that should be applied.
   SourceChange get change => _change;
 
-  /**
-   * The change that should be applied.
-   */
-  void set change(SourceChange value) {
+  /// The change that should be applied.
+  set change(SourceChange value) {
     assert(value != null);
-    this._change = value;
+    _change = value;
   }
 
   FlutterSetWidgetPropertyValueResult(SourceChange change) {
@@ -15902,18 +14283,16 @@ class FlutterSetWidgetPropertyValueResult implements ResponseResult {
 
   factory FlutterSetWidgetPropertyValueResult.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       SourceChange change;
       if (json.containsKey("change")) {
-        change = new SourceChange.fromJson(
+        change = SourceChange.fromJson(
             jsonDecoder, jsonPath + ".change", json["change"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "change");
       }
-      return new FlutterSetWidgetPropertyValueResult(change);
+      return FlutterSetWidgetPropertyValueResult(change);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "flutter.setWidgetPropertyValue result", json);
@@ -15921,8 +14300,8 @@ class FlutterSetWidgetPropertyValueResult implements ResponseResult {
   }
 
   factory FlutterSetWidgetPropertyValueResult.fromResponse(Response response) {
-    return new FlutterSetWidgetPropertyValueResult.fromJson(
-        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+    return FlutterSetWidgetPropertyValueResult.fromJson(
+        ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         "result",
         response.result);
   }
@@ -15936,7 +14315,7 @@ class FlutterSetWidgetPropertyValueResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return new Response(id, result: toJson());
+    return Response(id, result: toJson());
   }
 
   @override
@@ -15958,23 +14337,21 @@ class FlutterSetWidgetPropertyValueResult implements ResponseResult {
   }
 }
 
-/**
- * FlutterWidgetProperty
- *
- * {
- *   "documentation": optional String
- *   "expression": optional String
- *   "id": int
- *   "isRequired": bool
- *   "isSafeToUpdate": bool
- *   "name": String
- *   "children": optional List<FlutterWidgetProperty>
- *   "editor": optional FlutterWidgetPropertyEditor
- *   "value": optional FlutterWidgetPropertyValue
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// FlutterWidgetProperty
+///
+/// {
+///   "documentation": optional String
+///   "expression": optional String
+///   "id": int
+///   "isRequired": bool
+///   "isSafeToUpdate": bool
+///   "name": String
+///   "children": optional List<FlutterWidgetProperty>
+///   "editor": optional FlutterWidgetPropertyEditor
+///   "value": optional FlutterWidgetPropertyValue
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class FlutterWidgetProperty implements HasToJson {
   String _documentation;
 
@@ -15994,146 +14371,110 @@ class FlutterWidgetProperty implements HasToJson {
 
   FlutterWidgetPropertyValue _value;
 
-  /**
-   * The documentation of the property to show to the user. Omitted if the
-   * server does not know the documentation, e.g. because the corresponding
-   * field is not documented.
-   */
+  /// The documentation of the property to show to the user. Omitted if the
+  /// server does not know the documentation, e.g. because the corresponding
+  /// field is not documented.
   String get documentation => _documentation;
 
-  /**
-   * The documentation of the property to show to the user. Omitted if the
-   * server does not know the documentation, e.g. because the corresponding
-   * field is not documented.
-   */
-  void set documentation(String value) {
-    this._documentation = value;
+  /// The documentation of the property to show to the user. Omitted if the
+  /// server does not know the documentation, e.g. because the corresponding
+  /// field is not documented.
+  set documentation(String value) {
+    _documentation = value;
   }
 
-  /**
-   * If the value of this property is set, the Dart code of the expression of
-   * this property.
-   */
+  /// If the value of this property is set, the Dart code of the expression of
+  /// this property.
   String get expression => _expression;
 
-  /**
-   * If the value of this property is set, the Dart code of the expression of
-   * this property.
-   */
-  void set expression(String value) {
-    this._expression = value;
+  /// If the value of this property is set, the Dart code of the expression of
+  /// this property.
+  set expression(String value) {
+    _expression = value;
   }
 
-  /**
-   * The unique identifier of the property, must be passed back to the server
-   * when updating the property value. Identifiers become invalid on any source
-   * code change.
-   */
+  /// The unique identifier of the property, must be passed back to the server
+  /// when updating the property value. Identifiers become invalid on any
+  /// source code change.
   int get id => _id;
 
-  /**
-   * The unique identifier of the property, must be passed back to the server
-   * when updating the property value. Identifiers become invalid on any source
-   * code change.
-   */
-  void set id(int value) {
+  /// The unique identifier of the property, must be passed back to the server
+  /// when updating the property value. Identifiers become invalid on any
+  /// source code change.
+  set id(int value) {
     assert(value != null);
-    this._id = value;
+    _id = value;
   }
 
-  /**
-   * True if the property is required, e.g. because it corresponds to a
-   * required parameter of a constructor.
-   */
+  /// True if the property is required, e.g. because it corresponds to a
+  /// required parameter of a constructor.
   bool get isRequired => _isRequired;
 
-  /**
-   * True if the property is required, e.g. because it corresponds to a
-   * required parameter of a constructor.
-   */
-  void set isRequired(bool value) {
+  /// True if the property is required, e.g. because it corresponds to a
+  /// required parameter of a constructor.
+  set isRequired(bool value) {
     assert(value != null);
-    this._isRequired = value;
+    _isRequired = value;
   }
 
-  /**
-   * If the property expression is a concrete value (e.g. a literal, or an enum
-   * constant), then it is safe to replace the expression with another concrete
-   * value. In this case this field is true. Otherwise, for example when the
-   * expression is a reference to a field, so that its value is provided from
-   * outside, this field is false.
-   */
+  /// If the property expression is a concrete value (e.g. a literal, or an
+  /// enum constant), then it is safe to replace the expression with another
+  /// concrete value. In this case this field is true. Otherwise, for example
+  /// when the expression is a reference to a field, so that its value is
+  /// provided from outside, this field is false.
   bool get isSafeToUpdate => _isSafeToUpdate;
 
-  /**
-   * If the property expression is a concrete value (e.g. a literal, or an enum
-   * constant), then it is safe to replace the expression with another concrete
-   * value. In this case this field is true. Otherwise, for example when the
-   * expression is a reference to a field, so that its value is provided from
-   * outside, this field is false.
-   */
-  void set isSafeToUpdate(bool value) {
+  /// If the property expression is a concrete value (e.g. a literal, or an
+  /// enum constant), then it is safe to replace the expression with another
+  /// concrete value. In this case this field is true. Otherwise, for example
+  /// when the expression is a reference to a field, so that its value is
+  /// provided from outside, this field is false.
+  set isSafeToUpdate(bool value) {
     assert(value != null);
-    this._isSafeToUpdate = value;
+    _isSafeToUpdate = value;
   }
 
-  /**
-   * The name of the property to display to the user.
-   */
+  /// The name of the property to display to the user.
   String get name => _name;
 
-  /**
-   * The name of the property to display to the user.
-   */
-  void set name(String value) {
+  /// The name of the property to display to the user.
+  set name(String value) {
     assert(value != null);
-    this._name = value;
+    _name = value;
   }
 
-  /**
-   * The list of children properties, if any. For example any property of type
-   * EdgeInsets will have four children properties of type double - left / top
-   * / right / bottom.
-   */
+  /// The list of children properties, if any. For example any property of type
+  /// EdgeInsets will have four children properties of type double - left / top
+  /// / right / bottom.
   List<FlutterWidgetProperty> get children => _children;
 
-  /**
-   * The list of children properties, if any. For example any property of type
-   * EdgeInsets will have four children properties of type double - left / top
-   * / right / bottom.
-   */
-  void set children(List<FlutterWidgetProperty> value) {
-    this._children = value;
+  /// The list of children properties, if any. For example any property of type
+  /// EdgeInsets will have four children properties of type double - left / top
+  /// / right / bottom.
+  set children(List<FlutterWidgetProperty> value) {
+    _children = value;
   }
 
-  /**
-   * The editor that should be used by the client. This field is omitted if the
-   * server does not know the editor for this property, for example because it
-   * does not have one of the supported types.
-   */
+  /// The editor that should be used by the client. This field is omitted if
+  /// the server does not know the editor for this property, for example
+  /// because it does not have one of the supported types.
   FlutterWidgetPropertyEditor get editor => _editor;
 
-  /**
-   * The editor that should be used by the client. This field is omitted if the
-   * server does not know the editor for this property, for example because it
-   * does not have one of the supported types.
-   */
-  void set editor(FlutterWidgetPropertyEditor value) {
-    this._editor = value;
+  /// The editor that should be used by the client. This field is omitted if
+  /// the server does not know the editor for this property, for example
+  /// because it does not have one of the supported types.
+  set editor(FlutterWidgetPropertyEditor value) {
+    _editor = value;
   }
 
-  /**
-   * If the expression is set, and the server knows the value of the
-   * expression, this field is set.
-   */
+  /// If the expression is set, and the server knows the value of the
+  /// expression, this field is set.
   FlutterWidgetPropertyValue get value => _value;
 
-  /**
-   * If the expression is set, and the server knows the value of the
-   * expression, this field is set.
-   */
-  void set value(FlutterWidgetPropertyValue value) {
-    this._value = value;
+  /// If the expression is set, and the server knows the value of the
+  /// expression, this field is set.
+  set value(FlutterWidgetPropertyValue value) {
+    _value = value;
   }
 
   FlutterWidgetProperty(
@@ -16156,9 +14497,7 @@ class FlutterWidgetProperty implements HasToJson {
 
   factory FlutterWidgetProperty.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String documentation;
       if (json.containsKey("documentation")) {
@@ -16202,20 +14541,19 @@ class FlutterWidgetProperty implements HasToJson {
             jsonPath + ".children",
             json["children"],
             (String jsonPath, Object json) =>
-                new FlutterWidgetProperty.fromJson(
-                    jsonDecoder, jsonPath, json));
+                FlutterWidgetProperty.fromJson(jsonDecoder, jsonPath, json));
       }
       FlutterWidgetPropertyEditor editor;
       if (json.containsKey("editor")) {
-        editor = new FlutterWidgetPropertyEditor.fromJson(
+        editor = FlutterWidgetPropertyEditor.fromJson(
             jsonDecoder, jsonPath + ".editor", json["editor"]);
       }
       FlutterWidgetPropertyValue value;
       if (json.containsKey("value")) {
-        value = new FlutterWidgetPropertyValue.fromJson(
+        value = FlutterWidgetPropertyValue.fromJson(
             jsonDecoder, jsonPath + ".value", json["value"]);
       }
-      return new FlutterWidgetProperty(id, isRequired, isSafeToUpdate, name,
+      return FlutterWidgetProperty(id, isRequired, isSafeToUpdate, name,
           documentation: documentation,
           expression: expression,
           children: children,
@@ -16289,16 +14627,14 @@ class FlutterWidgetProperty implements HasToJson {
   }
 }
 
-/**
- * FlutterWidgetPropertyEditor
- *
- * {
- *   "kind": FlutterWidgetPropertyEditorKind
- *   "enumItems": optional List<FlutterWidgetPropertyValueEnumItem>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// FlutterWidgetPropertyEditor
+///
+/// {
+///   "kind": FlutterWidgetPropertyEditorKind
+///   "enumItems": optional List<FlutterWidgetPropertyValueEnumItem>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class FlutterWidgetPropertyEditor implements HasToJson {
   FlutterWidgetPropertyEditorKind _kind;
 
@@ -16306,15 +14642,15 @@ class FlutterWidgetPropertyEditor implements HasToJson {
 
   FlutterWidgetPropertyEditorKind get kind => _kind;
 
-  void set kind(FlutterWidgetPropertyEditorKind value) {
+  set kind(FlutterWidgetPropertyEditorKind value) {
     assert(value != null);
-    this._kind = value;
+    _kind = value;
   }
 
   List<FlutterWidgetPropertyValueEnumItem> get enumItems => _enumItems;
 
-  void set enumItems(List<FlutterWidgetPropertyValueEnumItem> value) {
-    this._enumItems = value;
+  set enumItems(List<FlutterWidgetPropertyValueEnumItem> value) {
+    _enumItems = value;
   }
 
   FlutterWidgetPropertyEditor(FlutterWidgetPropertyEditorKind kind,
@@ -16325,13 +14661,11 @@ class FlutterWidgetPropertyEditor implements HasToJson {
 
   factory FlutterWidgetPropertyEditor.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       FlutterWidgetPropertyEditorKind kind;
       if (json.containsKey("kind")) {
-        kind = new FlutterWidgetPropertyEditorKind.fromJson(
+        kind = FlutterWidgetPropertyEditorKind.fromJson(
             jsonDecoder, jsonPath + ".kind", json["kind"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "kind");
@@ -16342,10 +14676,10 @@ class FlutterWidgetPropertyEditor implements HasToJson {
             jsonPath + ".enumItems",
             json["enumItems"],
             (String jsonPath, Object json) =>
-                new FlutterWidgetPropertyValueEnumItem.fromJson(
+                FlutterWidgetPropertyValueEnumItem.fromJson(
                     jsonDecoder, jsonPath, json));
       }
-      return new FlutterWidgetPropertyEditor(kind, enumItems: enumItems);
+      return FlutterWidgetPropertyEditor(kind, enumItems: enumItems);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "FlutterWidgetPropertyEditor", json);
     }
@@ -16389,64 +14723,49 @@ class FlutterWidgetPropertyEditor implements HasToJson {
   }
 }
 
-/**
- * FlutterWidgetPropertyEditorKind
- *
- * enum {
- *   BOOL
- *   DOUBLE
- *   ENUM
- *   ENUM_LIKE
- *   INT
- *   STRING
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// FlutterWidgetPropertyEditorKind
+///
+/// enum {
+///   BOOL
+///   DOUBLE
+///   ENUM
+///   ENUM_LIKE
+///   INT
+///   STRING
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class FlutterWidgetPropertyEditorKind implements Enum {
-  /**
-   * The editor for a property of type bool.
-   */
+  /// The editor for a property of type bool.
   static const FlutterWidgetPropertyEditorKind BOOL =
-      const FlutterWidgetPropertyEditorKind._("BOOL");
+      FlutterWidgetPropertyEditorKind._("BOOL");
 
-  /**
-   * The editor for a property of the type double.
-   */
+  /// The editor for a property of the type double.
   static const FlutterWidgetPropertyEditorKind DOUBLE =
-      const FlutterWidgetPropertyEditorKind._("DOUBLE");
+      FlutterWidgetPropertyEditorKind._("DOUBLE");
 
-  /**
-   * The editor for choosing an item of an enumeration, see the enumItems field
-   * of FlutterWidgetPropertyEditor.
-   */
+  /// The editor for choosing an item of an enumeration, see the enumItems
+  /// field of FlutterWidgetPropertyEditor.
   static const FlutterWidgetPropertyEditorKind ENUM =
-      const FlutterWidgetPropertyEditorKind._("ENUM");
+      FlutterWidgetPropertyEditorKind._("ENUM");
 
-  /**
-   * The editor for either choosing a pre-defined item from a list of provided
-   * static field references (like ENUM), or specifying a free-form expression.
-   */
+  /// The editor for either choosing a pre-defined item from a list of provided
+  /// static field references (like ENUM), or specifying a free-form
+  /// expression.
   static const FlutterWidgetPropertyEditorKind ENUM_LIKE =
-      const FlutterWidgetPropertyEditorKind._("ENUM_LIKE");
+      FlutterWidgetPropertyEditorKind._("ENUM_LIKE");
 
-  /**
-   * The editor for a property of type int.
-   */
+  /// The editor for a property of type int.
   static const FlutterWidgetPropertyEditorKind INT =
-      const FlutterWidgetPropertyEditorKind._("INT");
+      FlutterWidgetPropertyEditorKind._("INT");
 
-  /**
-   * The editor for a property of the type String.
-   */
+  /// The editor for a property of the type String.
   static const FlutterWidgetPropertyEditorKind STRING =
-      const FlutterWidgetPropertyEditorKind._("STRING");
+      FlutterWidgetPropertyEditorKind._("STRING");
 
-  /**
-   * A list containing all of the enum values that are defined.
-   */
+  /// A list containing all of the enum values that are defined.
   static const List<FlutterWidgetPropertyEditorKind> VALUES =
-      const <FlutterWidgetPropertyEditorKind>[
+      <FlutterWidgetPropertyEditorKind>[
     BOOL,
     DOUBLE,
     ENUM,
@@ -16475,14 +14794,14 @@ class FlutterWidgetPropertyEditorKind implements Enum {
       case "STRING":
         return STRING;
     }
-    throw new Exception('Illegal enum value: $name');
+    throw Exception('Illegal enum value: $name');
   }
 
   factory FlutterWidgetPropertyEditorKind.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json is String) {
       try {
-        return new FlutterWidgetPropertyEditorKind(json);
+        return FlutterWidgetPropertyEditorKind(json);
       } catch (_) {
         // Fall through
       }
@@ -16497,20 +14816,18 @@ class FlutterWidgetPropertyEditorKind implements Enum {
   String toJson() => name;
 }
 
-/**
- * FlutterWidgetPropertyValue
- *
- * {
- *   "boolValue": optional bool
- *   "doubleValue": optional double
- *   "intValue": optional int
- *   "stringValue": optional String
- *   "enumValue": optional FlutterWidgetPropertyValueEnumItem
- *   "expression": optional String
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// FlutterWidgetPropertyValue
+///
+/// {
+///   "boolValue": optional bool
+///   "doubleValue": optional double
+///   "intValue": optional int
+///   "stringValue": optional String
+///   "enumValue": optional FlutterWidgetPropertyValueEnumItem
+///   "expression": optional String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class FlutterWidgetPropertyValue implements HasToJson {
   bool _boolValue;
 
@@ -16526,44 +14843,40 @@ class FlutterWidgetPropertyValue implements HasToJson {
 
   bool get boolValue => _boolValue;
 
-  void set boolValue(bool value) {
-    this._boolValue = value;
+  set boolValue(bool value) {
+    _boolValue = value;
   }
 
   double get doubleValue => _doubleValue;
 
-  void set doubleValue(double value) {
-    this._doubleValue = value;
+  set doubleValue(double value) {
+    _doubleValue = value;
   }
 
   int get intValue => _intValue;
 
-  void set intValue(int value) {
-    this._intValue = value;
+  set intValue(int value) {
+    _intValue = value;
   }
 
   String get stringValue => _stringValue;
 
-  void set stringValue(String value) {
-    this._stringValue = value;
+  set stringValue(String value) {
+    _stringValue = value;
   }
 
   FlutterWidgetPropertyValueEnumItem get enumValue => _enumValue;
 
-  void set enumValue(FlutterWidgetPropertyValueEnumItem value) {
-    this._enumValue = value;
+  set enumValue(FlutterWidgetPropertyValueEnumItem value) {
+    _enumValue = value;
   }
 
-  /**
-   * A free-form expression, which will be used as the value as is.
-   */
+  /// A free-form expression, which will be used as the value as is.
   String get expression => _expression;
 
-  /**
-   * A free-form expression, which will be used as the value as is.
-   */
-  void set expression(String value) {
-    this._expression = value;
+  /// A free-form expression, which will be used as the value as is.
+  set expression(String value) {
+    _expression = value;
   }
 
   FlutterWidgetPropertyValue(
@@ -16583,9 +14896,7 @@ class FlutterWidgetPropertyValue implements HasToJson {
 
   factory FlutterWidgetPropertyValue.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       bool boolValue;
       if (json.containsKey("boolValue")) {
@@ -16609,7 +14920,7 @@ class FlutterWidgetPropertyValue implements HasToJson {
       }
       FlutterWidgetPropertyValueEnumItem enumValue;
       if (json.containsKey("enumValue")) {
-        enumValue = new FlutterWidgetPropertyValueEnumItem.fromJson(
+        enumValue = FlutterWidgetPropertyValueEnumItem.fromJson(
             jsonDecoder, jsonPath + ".enumValue", json["enumValue"]);
       }
       String expression;
@@ -16617,7 +14928,7 @@ class FlutterWidgetPropertyValue implements HasToJson {
         expression = jsonDecoder.decodeString(
             jsonPath + ".expression", json["expression"]);
       }
-      return new FlutterWidgetPropertyValue(
+      return FlutterWidgetPropertyValue(
           boolValue: boolValue,
           doubleValue: doubleValue,
           intValue: intValue,
@@ -16682,18 +14993,16 @@ class FlutterWidgetPropertyValue implements HasToJson {
   }
 }
 
-/**
- * FlutterWidgetPropertyValueEnumItem
- *
- * {
- *   "libraryUri": String
- *   "className": String
- *   "name": String
- *   "documentation": optional String
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// FlutterWidgetPropertyValueEnumItem
+///
+/// {
+///   "libraryUri": String
+///   "className": String
+///   "name": String
+///   "documentation": optional String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class FlutterWidgetPropertyValueEnumItem implements HasToJson {
   String _libraryUri;
 
@@ -16703,63 +15012,49 @@ class FlutterWidgetPropertyValueEnumItem implements HasToJson {
 
   String _documentation;
 
-  /**
-   * The URI of the library containing the className. When the enum item is
-   * passed back, this will allow the server to import the corresponding
-   * library if necessary.
-   */
+  /// The URI of the library containing the className. When the enum item is
+  /// passed back, this will allow the server to import the corresponding
+  /// library if necessary.
   String get libraryUri => _libraryUri;
 
-  /**
-   * The URI of the library containing the className. When the enum item is
-   * passed back, this will allow the server to import the corresponding
-   * library if necessary.
-   */
-  void set libraryUri(String value) {
+  /// The URI of the library containing the className. When the enum item is
+  /// passed back, this will allow the server to import the corresponding
+  /// library if necessary.
+  set libraryUri(String value) {
     assert(value != null);
-    this._libraryUri = value;
+    _libraryUri = value;
   }
 
-  /**
-   * The name of the class or enum.
-   */
+  /// The name of the class or enum.
   String get className => _className;
 
-  /**
-   * The name of the class or enum.
-   */
-  void set className(String value) {
+  /// The name of the class or enum.
+  set className(String value) {
     assert(value != null);
-    this._className = value;
+    _className = value;
   }
 
-  /**
-   * The name of the field in the enumeration, or the static field in the
-   * class.
-   */
+  /// The name of the field in the enumeration, or the static field in the
+  /// class.
   String get name => _name;
 
-  /**
-   * The name of the field in the enumeration, or the static field in the
-   * class.
-   */
-  void set name(String value) {
+  /// The name of the field in the enumeration, or the static field in the
+  /// class.
+  set name(String value) {
     assert(value != null);
-    this._name = value;
+    _name = value;
   }
 
-  /**
-   * The documentation to show to the user. Omitted if the server does not know
-   * the documentation, e.g. because the corresponding field is not documented.
-   */
+  /// The documentation to show to the user. Omitted if the server does not
+  /// know the documentation, e.g. because the corresponding field is not
+  /// documented.
   String get documentation => _documentation;
 
-  /**
-   * The documentation to show to the user. Omitted if the server does not know
-   * the documentation, e.g. because the corresponding field is not documented.
-   */
-  void set documentation(String value) {
-    this._documentation = value;
+  /// The documentation to show to the user. Omitted if the server does not
+  /// know the documentation, e.g. because the corresponding field is not
+  /// documented.
+  set documentation(String value) {
+    _documentation = value;
   }
 
   FlutterWidgetPropertyValueEnumItem(
@@ -16773,9 +15068,7 @@ class FlutterWidgetPropertyValueEnumItem implements HasToJson {
 
   factory FlutterWidgetPropertyValueEnumItem.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String libraryUri;
       if (json.containsKey("libraryUri")) {
@@ -16802,7 +15095,7 @@ class FlutterWidgetPropertyValueEnumItem implements HasToJson {
         documentation = jsonDecoder.decodeString(
             jsonPath + ".documentation", json["documentation"]);
       }
-      return new FlutterWidgetPropertyValueEnumItem(libraryUri, className, name,
+      return FlutterWidgetPropertyValueEnumItem(libraryUri, className, name,
           documentation: documentation);
     } else {
       throw jsonDecoder.mismatch(
@@ -16847,24 +15140,21 @@ class FlutterWidgetPropertyValueEnumItem implements HasToJson {
   }
 }
 
-/**
- * GeneralAnalysisService
- *
- * enum {
- *   ANALYZED_FILES
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// GeneralAnalysisService
+///
+/// enum {
+///   ANALYZED_FILES
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class GeneralAnalysisService implements Enum {
   static const GeneralAnalysisService ANALYZED_FILES =
-      const GeneralAnalysisService._("ANALYZED_FILES");
+      GeneralAnalysisService._("ANALYZED_FILES");
 
-  /**
-   * A list containing all of the enum values that are defined.
-   */
-  static const List<GeneralAnalysisService> VALUES =
-      const <GeneralAnalysisService>[ANALYZED_FILES];
+  /// A list containing all of the enum values that are defined.
+  static const List<GeneralAnalysisService> VALUES = <GeneralAnalysisService>[
+    ANALYZED_FILES
+  ];
 
   @override
   final String name;
@@ -16876,14 +15166,14 @@ class GeneralAnalysisService implements Enum {
       case "ANALYZED_FILES":
         return ANALYZED_FILES;
     }
-    throw new Exception('Illegal enum value: $name');
+    throw Exception('Illegal enum value: $name');
   }
 
   factory GeneralAnalysisService.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json is String) {
       try {
-        return new GeneralAnalysisService(json);
+        return GeneralAnalysisService(json);
       } catch (_) {
         // Fall through
       }
@@ -16897,26 +15187,24 @@ class GeneralAnalysisService implements Enum {
   String toJson() => name;
 }
 
-/**
- * HoverInformation
- *
- * {
- *   "offset": int
- *   "length": int
- *   "containingLibraryPath": optional String
- *   "containingLibraryName": optional String
- *   "containingClassDescription": optional String
- *   "dartdoc": optional String
- *   "elementDescription": optional String
- *   "elementKind": optional String
- *   "isDeprecated": optional bool
- *   "parameter": optional String
- *   "propagatedType": optional String
- *   "staticType": optional String
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// HoverInformation
+///
+/// {
+///   "offset": int
+///   "length": int
+///   "containingLibraryPath": optional String
+///   "containingLibraryName": optional String
+///   "containingClassDescription": optional String
+///   "dartdoc": optional String
+///   "elementDescription": optional String
+///   "elementKind": optional String
+///   "isDeprecated": optional bool
+///   "parameter": optional String
+///   "propagatedType": optional String
+///   "staticType": optional String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class HoverInformation implements HasToJson {
   int _offset;
 
@@ -16942,188 +15230,142 @@ class HoverInformation implements HasToJson {
 
   String _staticType;
 
-  /**
-   * The offset of the range of characters that encompasses the cursor position
-   * and has the same hover information as the cursor position.
-   */
+  /// The offset of the range of characters that encompasses the cursor
+  /// position and has the same hover information as the cursor position.
   int get offset => _offset;
 
-  /**
-   * The offset of the range of characters that encompasses the cursor position
-   * and has the same hover information as the cursor position.
-   */
-  void set offset(int value) {
+  /// The offset of the range of characters that encompasses the cursor
+  /// position and has the same hover information as the cursor position.
+  set offset(int value) {
     assert(value != null);
-    this._offset = value;
+    _offset = value;
   }
 
-  /**
-   * The length of the range of characters that encompasses the cursor position
-   * and has the same hover information as the cursor position.
-   */
+  /// The length of the range of characters that encompasses the cursor
+  /// position and has the same hover information as the cursor position.
   int get length => _length;
 
-  /**
-   * The length of the range of characters that encompasses the cursor position
-   * and has the same hover information as the cursor position.
-   */
-  void set length(int value) {
+  /// The length of the range of characters that encompasses the cursor
+  /// position and has the same hover information as the cursor position.
+  set length(int value) {
     assert(value != null);
-    this._length = value;
+    _length = value;
   }
 
-  /**
-   * The path to the defining compilation unit of the library in which the
-   * referenced element is declared. This data is omitted if there is no
-   * referenced element, or if the element is declared inside an HTML file.
-   */
+  /// The path to the defining compilation unit of the library in which the
+  /// referenced element is declared. This data is omitted if there is no
+  /// referenced element, or if the element is declared inside an HTML file.
   String get containingLibraryPath => _containingLibraryPath;
 
-  /**
-   * The path to the defining compilation unit of the library in which the
-   * referenced element is declared. This data is omitted if there is no
-   * referenced element, or if the element is declared inside an HTML file.
-   */
-  void set containingLibraryPath(String value) {
-    this._containingLibraryPath = value;
+  /// The path to the defining compilation unit of the library in which the
+  /// referenced element is declared. This data is omitted if there is no
+  /// referenced element, or if the element is declared inside an HTML file.
+  set containingLibraryPath(String value) {
+    _containingLibraryPath = value;
   }
 
-  /**
-   * The URI of the containing library, examples here include "dart:core",
-   * "package:.." and file uris represented by the path on disk, "/..". The
-   * data is omitted if the element is declared inside an HTML file.
-   */
+  /// The URI of the containing library, examples here include "dart:core",
+  /// "package:.." and file uris represented by the path on disk, "/..". The
+  /// data is omitted if the element is declared inside an HTML file.
   String get containingLibraryName => _containingLibraryName;
 
-  /**
-   * The URI of the containing library, examples here include "dart:core",
-   * "package:.." and file uris represented by the path on disk, "/..". The
-   * data is omitted if the element is declared inside an HTML file.
-   */
-  void set containingLibraryName(String value) {
-    this._containingLibraryName = value;
+  /// The URI of the containing library, examples here include "dart:core",
+  /// "package:.." and file uris represented by the path on disk, "/..". The
+  /// data is omitted if the element is declared inside an HTML file.
+  set containingLibraryName(String value) {
+    _containingLibraryName = value;
   }
 
-  /**
-   * A human-readable description of the class declaring the element being
-   * referenced. This data is omitted if there is no referenced element, or if
-   * the element is not a class member.
-   */
+  /// A human-readable description of the class declaring the element being
+  /// referenced. This data is omitted if there is no referenced element, or if
+  /// the element is not a class member.
   String get containingClassDescription => _containingClassDescription;
 
-  /**
-   * A human-readable description of the class declaring the element being
-   * referenced. This data is omitted if there is no referenced element, or if
-   * the element is not a class member.
-   */
-  void set containingClassDescription(String value) {
-    this._containingClassDescription = value;
+  /// A human-readable description of the class declaring the element being
+  /// referenced. This data is omitted if there is no referenced element, or if
+  /// the element is not a class member.
+  set containingClassDescription(String value) {
+    _containingClassDescription = value;
   }
 
-  /**
-   * The dartdoc associated with the referenced element. Other than the removal
-   * of the comment delimiters, including leading asterisks in the case of a
-   * block comment, the dartdoc is unprocessed markdown. This data is omitted
-   * if there is no referenced element, or if the element has no dartdoc.
-   */
+  /// The dartdoc associated with the referenced element. Other than the
+  /// removal of the comment delimiters, including leading asterisks in the
+  /// case of a block comment, the dartdoc is unprocessed markdown. This data
+  /// is omitted if there is no referenced element, or if the element has no
+  /// dartdoc.
   String get dartdoc => _dartdoc;
 
-  /**
-   * The dartdoc associated with the referenced element. Other than the removal
-   * of the comment delimiters, including leading asterisks in the case of a
-   * block comment, the dartdoc is unprocessed markdown. This data is omitted
-   * if there is no referenced element, or if the element has no dartdoc.
-   */
-  void set dartdoc(String value) {
-    this._dartdoc = value;
+  /// The dartdoc associated with the referenced element. Other than the
+  /// removal of the comment delimiters, including leading asterisks in the
+  /// case of a block comment, the dartdoc is unprocessed markdown. This data
+  /// is omitted if there is no referenced element, or if the element has no
+  /// dartdoc.
+  set dartdoc(String value) {
+    _dartdoc = value;
   }
 
-  /**
-   * A human-readable description of the element being referenced. This data is
-   * omitted if there is no referenced element.
-   */
+  /// A human-readable description of the element being referenced. This data
+  /// is omitted if there is no referenced element.
   String get elementDescription => _elementDescription;
 
-  /**
-   * A human-readable description of the element being referenced. This data is
-   * omitted if there is no referenced element.
-   */
-  void set elementDescription(String value) {
-    this._elementDescription = value;
+  /// A human-readable description of the element being referenced. This data
+  /// is omitted if there is no referenced element.
+  set elementDescription(String value) {
+    _elementDescription = value;
   }
 
-  /**
-   * A human-readable description of the kind of element being referenced (such
-   * as "class" or "function type alias"). This data is omitted if there is no
-   * referenced element.
-   */
+  /// A human-readable description of the kind of element being referenced
+  /// (such as "class" or "function type alias"). This data is omitted if there
+  /// is no referenced element.
   String get elementKind => _elementKind;
 
-  /**
-   * A human-readable description of the kind of element being referenced (such
-   * as "class" or "function type alias"). This data is omitted if there is no
-   * referenced element.
-   */
-  void set elementKind(String value) {
-    this._elementKind = value;
+  /// A human-readable description of the kind of element being referenced
+  /// (such as "class" or "function type alias"). This data is omitted if there
+  /// is no referenced element.
+  set elementKind(String value) {
+    _elementKind = value;
   }
 
-  /**
-   * True if the referenced element is deprecated.
-   */
+  /// True if the referenced element is deprecated.
   bool get isDeprecated => _isDeprecated;
 
-  /**
-   * True if the referenced element is deprecated.
-   */
-  void set isDeprecated(bool value) {
-    this._isDeprecated = value;
+  /// True if the referenced element is deprecated.
+  set isDeprecated(bool value) {
+    _isDeprecated = value;
   }
 
-  /**
-   * A human-readable description of the parameter corresponding to the
-   * expression being hovered over. This data is omitted if the location is not
-   * in an argument to a function.
-   */
+  /// A human-readable description of the parameter corresponding to the
+  /// expression being hovered over. This data is omitted if the location is
+  /// not in an argument to a function.
   String get parameter => _parameter;
 
-  /**
-   * A human-readable description of the parameter corresponding to the
-   * expression being hovered over. This data is omitted if the location is not
-   * in an argument to a function.
-   */
-  void set parameter(String value) {
-    this._parameter = value;
+  /// A human-readable description of the parameter corresponding to the
+  /// expression being hovered over. This data is omitted if the location is
+  /// not in an argument to a function.
+  set parameter(String value) {
+    _parameter = value;
   }
 
-  /**
-   * The name of the propagated type of the expression. This data is omitted if
-   * the location does not correspond to an expression or if there is no
-   * propagated type information.
-   */
+  /// The name of the propagated type of the expression. This data is omitted
+  /// if the location does not correspond to an expression or if there is no
+  /// propagated type information.
   String get propagatedType => _propagatedType;
 
-  /**
-   * The name of the propagated type of the expression. This data is omitted if
-   * the location does not correspond to an expression or if there is no
-   * propagated type information.
-   */
-  void set propagatedType(String value) {
-    this._propagatedType = value;
+  /// The name of the propagated type of the expression. This data is omitted
+  /// if the location does not correspond to an expression or if there is no
+  /// propagated type information.
+  set propagatedType(String value) {
+    _propagatedType = value;
   }
 
-  /**
-   * The name of the static type of the expression. This data is omitted if the
-   * location does not correspond to an expression.
-   */
+  /// The name of the static type of the expression. This data is omitted if
+  /// the location does not correspond to an expression.
   String get staticType => _staticType;
 
-  /**
-   * The name of the static type of the expression. This data is omitted if the
-   * location does not correspond to an expression.
-   */
-  void set staticType(String value) {
-    this._staticType = value;
+  /// The name of the static type of the expression. This data is omitted if
+  /// the location does not correspond to an expression.
+  set staticType(String value) {
+    _staticType = value;
   }
 
   HoverInformation(int offset, int length,
@@ -17153,9 +15395,7 @@ class HoverInformation implements HasToJson {
 
   factory HoverInformation.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       int offset;
       if (json.containsKey("offset")) {
@@ -17220,7 +15460,7 @@ class HoverInformation implements HasToJson {
         staticType = jsonDecoder.decodeString(
             jsonPath + ".staticType", json["staticType"]);
       }
-      return new HoverInformation(offset, length,
+      return HoverInformation(offset, length,
           containingLibraryPath: containingLibraryPath,
           containingLibraryName: containingLibraryName,
           containingClassDescription: containingClassDescription,
@@ -17315,45 +15555,35 @@ class HoverInformation implements HasToJson {
   }
 }
 
-/**
- * ImplementedClass
- *
- * {
- *   "offset": int
- *   "length": int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// ImplementedClass
+///
+/// {
+///   "offset": int
+///   "length": int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ImplementedClass implements HasToJson {
   int _offset;
 
   int _length;
 
-  /**
-   * The offset of the name of the implemented class.
-   */
+  /// The offset of the name of the implemented class.
   int get offset => _offset;
 
-  /**
-   * The offset of the name of the implemented class.
-   */
-  void set offset(int value) {
+  /// The offset of the name of the implemented class.
+  set offset(int value) {
     assert(value != null);
-    this._offset = value;
+    _offset = value;
   }
 
-  /**
-   * The length of the name of the implemented class.
-   */
+  /// The length of the name of the implemented class.
   int get length => _length;
 
-  /**
-   * The length of the name of the implemented class.
-   */
-  void set length(int value) {
+  /// The length of the name of the implemented class.
+  set length(int value) {
     assert(value != null);
-    this._length = value;
+    _length = value;
   }
 
   ImplementedClass(int offset, int length) {
@@ -17363,9 +15593,7 @@ class ImplementedClass implements HasToJson {
 
   factory ImplementedClass.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       int offset;
       if (json.containsKey("offset")) {
@@ -17379,7 +15607,7 @@ class ImplementedClass implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "length");
       }
-      return new ImplementedClass(offset, length);
+      return ImplementedClass(offset, length);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "ImplementedClass", json);
     }
@@ -17413,45 +15641,35 @@ class ImplementedClass implements HasToJson {
   }
 }
 
-/**
- * ImplementedMember
- *
- * {
- *   "offset": int
- *   "length": int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// ImplementedMember
+///
+/// {
+///   "offset": int
+///   "length": int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ImplementedMember implements HasToJson {
   int _offset;
 
   int _length;
 
-  /**
-   * The offset of the name of the implemented member.
-   */
+  /// The offset of the name of the implemented member.
   int get offset => _offset;
 
-  /**
-   * The offset of the name of the implemented member.
-   */
-  void set offset(int value) {
+  /// The offset of the name of the implemented member.
+  set offset(int value) {
     assert(value != null);
-    this._offset = value;
+    _offset = value;
   }
 
-  /**
-   * The length of the name of the implemented member.
-   */
+  /// The length of the name of the implemented member.
   int get length => _length;
 
-  /**
-   * The length of the name of the implemented member.
-   */
-  void set length(int value) {
+  /// The length of the name of the implemented member.
+  set length(int value) {
     assert(value != null);
-    this._length = value;
+    _length = value;
   }
 
   ImplementedMember(int offset, int length) {
@@ -17461,9 +15679,7 @@ class ImplementedMember implements HasToJson {
 
   factory ImplementedMember.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       int offset;
       if (json.containsKey("offset")) {
@@ -17477,7 +15693,7 @@ class ImplementedMember implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "length");
       }
-      return new ImplementedMember(offset, length);
+      return ImplementedMember(offset, length);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "ImplementedMember", json);
     }
@@ -17511,17 +15727,15 @@ class ImplementedMember implements HasToJson {
   }
 }
 
-/**
- * ImportedElementSet
- *
- * {
- *   "strings": List<String>
- *   "uris": List<int>
- *   "names": List<int>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// ImportedElementSet
+///
+/// {
+///   "strings": List<String>
+///   "uris": List<int>
+///   "names": List<int>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ImportedElementSet implements HasToJson {
   List<String> _strings;
 
@@ -17529,43 +15743,31 @@ class ImportedElementSet implements HasToJson {
 
   List<int> _names;
 
-  /**
-   * The list of unique strings in this object.
-   */
+  /// The list of unique strings in this object.
   List<String> get strings => _strings;
 
-  /**
-   * The list of unique strings in this object.
-   */
-  void set strings(List<String> value) {
+  /// The list of unique strings in this object.
+  set strings(List<String> value) {
     assert(value != null);
-    this._strings = value;
+    _strings = value;
   }
 
-  /**
-   * The library URI part of the element. It is an index in the strings field.
-   */
+  /// The library URI part of the element. It is an index in the strings field.
   List<int> get uris => _uris;
 
-  /**
-   * The library URI part of the element. It is an index in the strings field.
-   */
-  void set uris(List<int> value) {
+  /// The library URI part of the element. It is an index in the strings field.
+  set uris(List<int> value) {
     assert(value != null);
-    this._uris = value;
+    _uris = value;
   }
 
-  /**
-   * The name part of a the element. It is an index in the strings field.
-   */
+  /// The name part of a the element. It is an index in the strings field.
   List<int> get names => _names;
 
-  /**
-   * The name part of a the element. It is an index in the strings field.
-   */
-  void set names(List<int> value) {
+  /// The name part of a the element. It is an index in the strings field.
+  set names(List<int> value) {
     assert(value != null);
-    this._names = value;
+    _names = value;
   }
 
   ImportedElementSet(List<String> strings, List<int> uris, List<int> names) {
@@ -17576,9 +15778,7 @@ class ImportedElementSet implements HasToJson {
 
   factory ImportedElementSet.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       List<String> strings;
       if (json.containsKey("strings")) {
@@ -17601,7 +15801,7 @@ class ImportedElementSet implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "names");
       }
-      return new ImportedElementSet(strings, uris, names);
+      return ImportedElementSet(strings, uris, names);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "ImportedElementSet", json);
     }
@@ -17640,17 +15840,15 @@ class ImportedElementSet implements HasToJson {
   }
 }
 
-/**
- * ImportedElements
- *
- * {
- *   "path": FilePath
- *   "prefix": String
- *   "elements": List<String>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// ImportedElements
+///
+/// {
+///   "path": FilePath
+///   "prefix": String
+///   "elements": List<String>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ImportedElements implements HasToJson {
   String _path;
 
@@ -17658,45 +15856,33 @@ class ImportedElements implements HasToJson {
 
   List<String> _elements;
 
-  /**
-   * The absolute and normalized path of the file containing the library.
-   */
+  /// The absolute and normalized path of the file containing the library.
   String get path => _path;
 
-  /**
-   * The absolute and normalized path of the file containing the library.
-   */
-  void set path(String value) {
+  /// The absolute and normalized path of the file containing the library.
+  set path(String value) {
     assert(value != null);
-    this._path = value;
+    _path = value;
   }
 
-  /**
-   * The prefix that was used when importing the library into the original
-   * source.
-   */
+  /// The prefix that was used when importing the library into the original
+  /// source.
   String get prefix => _prefix;
 
-  /**
-   * The prefix that was used when importing the library into the original
-   * source.
-   */
-  void set prefix(String value) {
+  /// The prefix that was used when importing the library into the original
+  /// source.
+  set prefix(String value) {
     assert(value != null);
-    this._prefix = value;
+    _prefix = value;
   }
 
-  /**
-   * The names of the elements imported from the library.
-   */
+  /// The names of the elements imported from the library.
   List<String> get elements => _elements;
 
-  /**
-   * The names of the elements imported from the library.
-   */
-  void set elements(List<String> value) {
+  /// The names of the elements imported from the library.
+  set elements(List<String> value) {
     assert(value != null);
-    this._elements = value;
+    _elements = value;
   }
 
   ImportedElements(String path, String prefix, List<String> elements) {
@@ -17707,9 +15893,7 @@ class ImportedElements implements HasToJson {
 
   factory ImportedElements.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String path;
       if (json.containsKey("path")) {
@@ -17730,7 +15914,7 @@ class ImportedElements implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "elements");
       }
-      return new ImportedElements(path, prefix, elements);
+      return ImportedElements(path, prefix, elements);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "ImportedElements", json);
     }
@@ -17768,49 +15952,39 @@ class ImportedElements implements HasToJson {
   }
 }
 
-/**
- * IncludedSuggestionRelevanceTag
- *
- * {
- *   "tag": AvailableSuggestionRelevanceTag
- *   "relevanceBoost": int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// IncludedSuggestionRelevanceTag
+///
+/// {
+///   "tag": AvailableSuggestionRelevanceTag
+///   "relevanceBoost": int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class IncludedSuggestionRelevanceTag implements HasToJson {
   String _tag;
 
   int _relevanceBoost;
 
-  /**
-   * The opaque value of the tag.
-   */
+  /// The opaque value of the tag.
   String get tag => _tag;
 
-  /**
-   * The opaque value of the tag.
-   */
-  void set tag(String value) {
+  /// The opaque value of the tag.
+  set tag(String value) {
     assert(value != null);
-    this._tag = value;
+    _tag = value;
   }
 
-  /**
-   * The boost to the relevance of the completion suggestions that match this
-   * tag, which is added to the relevance of the containing
-   * IncludedSuggestionSet.
-   */
+  /// The boost to the relevance of the completion suggestions that match this
+  /// tag, which is added to the relevance of the containing
+  /// IncludedSuggestionSet.
   int get relevanceBoost => _relevanceBoost;
 
-  /**
-   * The boost to the relevance of the completion suggestions that match this
-   * tag, which is added to the relevance of the containing
-   * IncludedSuggestionSet.
-   */
-  void set relevanceBoost(int value) {
+  /// The boost to the relevance of the completion suggestions that match this
+  /// tag, which is added to the relevance of the containing
+  /// IncludedSuggestionSet.
+  set relevanceBoost(int value) {
     assert(value != null);
-    this._relevanceBoost = value;
+    _relevanceBoost = value;
   }
 
   IncludedSuggestionRelevanceTag(String tag, int relevanceBoost) {
@@ -17820,9 +15994,7 @@ class IncludedSuggestionRelevanceTag implements HasToJson {
 
   factory IncludedSuggestionRelevanceTag.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String tag;
       if (json.containsKey("tag")) {
@@ -17837,7 +16009,7 @@ class IncludedSuggestionRelevanceTag implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "relevanceBoost");
       }
-      return new IncludedSuggestionRelevanceTag(tag, relevanceBoost);
+      return IncludedSuggestionRelevanceTag(tag, relevanceBoost);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "IncludedSuggestionRelevanceTag", json);
@@ -17872,17 +16044,15 @@ class IncludedSuggestionRelevanceTag implements HasToJson {
   }
 }
 
-/**
- * IncludedSuggestionSet
- *
- * {
- *   "id": int
- *   "relevance": int
- *   "displayUri": optional String
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// IncludedSuggestionSet
+///
+/// {
+///   "id": int
+///   "relevance": int
+///   "displayUri": optional String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class IncludedSuggestionSet implements HasToJson {
   int _id;
 
@@ -17890,58 +16060,46 @@ class IncludedSuggestionSet implements HasToJson {
 
   String _displayUri;
 
-  /**
-   * Clients should use it to access the set of precomputed completions to be
-   * displayed to the user.
-   */
+  /// Clients should use it to access the set of precomputed completions to be
+  /// displayed to the user.
   int get id => _id;
 
-  /**
-   * Clients should use it to access the set of precomputed completions to be
-   * displayed to the user.
-   */
-  void set id(int value) {
+  /// Clients should use it to access the set of precomputed completions to be
+  /// displayed to the user.
+  set id(int value) {
     assert(value != null);
-    this._id = value;
+    _id = value;
   }
 
-  /**
-   * The relevance of completion suggestions from this library where a higher
-   * number indicates a higher relevance.
-   */
+  /// The relevance of completion suggestions from this library where a higher
+  /// number indicates a higher relevance.
   int get relevance => _relevance;
 
-  /**
-   * The relevance of completion suggestions from this library where a higher
-   * number indicates a higher relevance.
-   */
-  void set relevance(int value) {
+  /// The relevance of completion suggestions from this library where a higher
+  /// number indicates a higher relevance.
+  set relevance(int value) {
     assert(value != null);
-    this._relevance = value;
+    _relevance = value;
   }
 
-  /**
-   * The optional string that should be displayed instead of the uri of the
-   * referenced AvailableSuggestionSet.
-   *
-   * For example libraries in the "test" directory of a package have only
-   * "file://" URIs, so are usually long, and don't look nice, but actual
-   * import directives will use relative URIs, which are short, so we probably
-   * want to display such relative URIs to the user.
-   */
+  /// The optional string that should be displayed instead of the uri of the
+  /// referenced AvailableSuggestionSet.
+  ///
+  /// For example libraries in the "test" directory of a package have only
+  /// "file://" URIs, so are usually long, and don't look nice, but actual
+  /// import directives will use relative URIs, which are short, so we probably
+  /// want to display such relative URIs to the user.
   String get displayUri => _displayUri;
 
-  /**
-   * The optional string that should be displayed instead of the uri of the
-   * referenced AvailableSuggestionSet.
-   *
-   * For example libraries in the "test" directory of a package have only
-   * "file://" URIs, so are usually long, and don't look nice, but actual
-   * import directives will use relative URIs, which are short, so we probably
-   * want to display such relative URIs to the user.
-   */
-  void set displayUri(String value) {
-    this._displayUri = value;
+  /// The optional string that should be displayed instead of the uri of the
+  /// referenced AvailableSuggestionSet.
+  ///
+  /// For example libraries in the "test" directory of a package have only
+  /// "file://" URIs, so are usually long, and don't look nice, but actual
+  /// import directives will use relative URIs, which are short, so we probably
+  /// want to display such relative URIs to the user.
+  set displayUri(String value) {
+    _displayUri = value;
   }
 
   IncludedSuggestionSet(int id, int relevance, {String displayUri}) {
@@ -17952,9 +16110,7 @@ class IncludedSuggestionSet implements HasToJson {
 
   factory IncludedSuggestionSet.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       int id;
       if (json.containsKey("id")) {
@@ -17974,7 +16130,7 @@ class IncludedSuggestionSet implements HasToJson {
         displayUri = jsonDecoder.decodeString(
             jsonPath + ".displayUri", json["displayUri"]);
       }
-      return new IncludedSuggestionSet(id, relevance, displayUri: displayUri);
+      return IncludedSuggestionSet(id, relevance, displayUri: displayUri);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "IncludedSuggestionSet", json);
     }
@@ -18014,45 +16170,35 @@ class IncludedSuggestionSet implements HasToJson {
   }
 }
 
-/**
- * inlineLocalVariable feedback
- *
- * {
- *   "name": String
- *   "occurrences": int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// inlineLocalVariable feedback
+///
+/// {
+///   "name": String
+///   "occurrences": int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class InlineLocalVariableFeedback extends RefactoringFeedback {
   String _name;
 
   int _occurrences;
 
-  /**
-   * The name of the variable being inlined.
-   */
+  /// The name of the variable being inlined.
   String get name => _name;
 
-  /**
-   * The name of the variable being inlined.
-   */
-  void set name(String value) {
+  /// The name of the variable being inlined.
+  set name(String value) {
     assert(value != null);
-    this._name = value;
+    _name = value;
   }
 
-  /**
-   * The number of times the variable occurs.
-   */
+  /// The number of times the variable occurs.
   int get occurrences => _occurrences;
 
-  /**
-   * The number of times the variable occurs.
-   */
-  void set occurrences(int value) {
+  /// The number of times the variable occurs.
+  set occurrences(int value) {
     assert(value != null);
-    this._occurrences = value;
+    _occurrences = value;
   }
 
   InlineLocalVariableFeedback(String name, int occurrences) {
@@ -18062,9 +16208,7 @@ class InlineLocalVariableFeedback extends RefactoringFeedback {
 
   factory InlineLocalVariableFeedback.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String name;
       if (json.containsKey("name")) {
@@ -18079,7 +16223,7 @@ class InlineLocalVariableFeedback extends RefactoringFeedback {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "occurrences");
       }
-      return new InlineLocalVariableFeedback(name, occurrences);
+      return InlineLocalVariableFeedback(name, occurrences);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "inlineLocalVariable feedback", json);
@@ -18114,11 +16258,9 @@ class InlineLocalVariableFeedback extends RefactoringFeedback {
   }
 }
 
-/**
- * inlineLocalVariable options
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// inlineLocalVariable options
+///
+/// Clients may not extend, implement or mix-in this class.
 class InlineLocalVariableOptions extends RefactoringOptions
     implements HasToJson {
   @override
@@ -18135,17 +16277,15 @@ class InlineLocalVariableOptions extends RefactoringOptions
   }
 }
 
-/**
- * inlineMethod feedback
- *
- * {
- *   "className": optional String
- *   "methodName": String
- *   "isDeclaration": bool
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// inlineMethod feedback
+///
+/// {
+///   "className": optional String
+///   "methodName": String
+///   "isDeclaration": bool
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class InlineMethodFeedback extends RefactoringFeedback {
   String _className;
 
@@ -18153,46 +16293,34 @@ class InlineMethodFeedback extends RefactoringFeedback {
 
   bool _isDeclaration;
 
-  /**
-   * The name of the class enclosing the method being inlined. If not a class
-   * member is being inlined, this field will be absent.
-   */
+  /// The name of the class enclosing the method being inlined. If not a class
+  /// member is being inlined, this field will be absent.
   String get className => _className;
 
-  /**
-   * The name of the class enclosing the method being inlined. If not a class
-   * member is being inlined, this field will be absent.
-   */
-  void set className(String value) {
-    this._className = value;
+  /// The name of the class enclosing the method being inlined. If not a class
+  /// member is being inlined, this field will be absent.
+  set className(String value) {
+    _className = value;
   }
 
-  /**
-   * The name of the method (or function) being inlined.
-   */
+  /// The name of the method (or function) being inlined.
   String get methodName => _methodName;
 
-  /**
-   * The name of the method (or function) being inlined.
-   */
-  void set methodName(String value) {
+  /// The name of the method (or function) being inlined.
+  set methodName(String value) {
     assert(value != null);
-    this._methodName = value;
+    _methodName = value;
   }
 
-  /**
-   * True if the declaration of the method is selected. So all references
-   * should be inlined.
-   */
+  /// True if the declaration of the method is selected. So all references
+  /// should be inlined.
   bool get isDeclaration => _isDeclaration;
 
-  /**
-   * True if the declaration of the method is selected. So all references
-   * should be inlined.
-   */
-  void set isDeclaration(bool value) {
+  /// True if the declaration of the method is selected. So all references
+  /// should be inlined.
+  set isDeclaration(bool value) {
     assert(value != null);
-    this._isDeclaration = value;
+    _isDeclaration = value;
   }
 
   InlineMethodFeedback(String methodName, bool isDeclaration,
@@ -18204,9 +16332,7 @@ class InlineMethodFeedback extends RefactoringFeedback {
 
   factory InlineMethodFeedback.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String className;
       if (json.containsKey("className")) {
@@ -18227,7 +16353,7 @@ class InlineMethodFeedback extends RefactoringFeedback {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "isDeclaration");
       }
-      return new InlineMethodFeedback(methodName, isDeclaration,
+      return InlineMethodFeedback(methodName, isDeclaration,
           className: className);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "inlineMethod feedback", json);
@@ -18268,49 +16394,39 @@ class InlineMethodFeedback extends RefactoringFeedback {
   }
 }
 
-/**
- * inlineMethod options
- *
- * {
- *   "deleteSource": bool
- *   "inlineAll": bool
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// inlineMethod options
+///
+/// {
+///   "deleteSource": bool
+///   "inlineAll": bool
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class InlineMethodOptions extends RefactoringOptions {
   bool _deleteSource;
 
   bool _inlineAll;
 
-  /**
-   * True if the method being inlined should be removed. It is an error if this
-   * field is true and inlineAll is false.
-   */
+  /// True if the method being inlined should be removed. It is an error if
+  /// this field is true and inlineAll is false.
   bool get deleteSource => _deleteSource;
 
-  /**
-   * True if the method being inlined should be removed. It is an error if this
-   * field is true and inlineAll is false.
-   */
-  void set deleteSource(bool value) {
+  /// True if the method being inlined should be removed. It is an error if
+  /// this field is true and inlineAll is false.
+  set deleteSource(bool value) {
     assert(value != null);
-    this._deleteSource = value;
+    _deleteSource = value;
   }
 
-  /**
-   * True if all invocations of the method should be inlined, or false if only
-   * the invocation site used to create this refactoring should be inlined.
-   */
+  /// True if all invocations of the method should be inlined, or false if only
+  /// the invocation site used to create this refactoring should be inlined.
   bool get inlineAll => _inlineAll;
 
-  /**
-   * True if all invocations of the method should be inlined, or false if only
-   * the invocation site used to create this refactoring should be inlined.
-   */
-  void set inlineAll(bool value) {
+  /// True if all invocations of the method should be inlined, or false if only
+  /// the invocation site used to create this refactoring should be inlined.
+  set inlineAll(bool value) {
     assert(value != null);
-    this._inlineAll = value;
+    _inlineAll = value;
   }
 
   InlineMethodOptions(bool deleteSource, bool inlineAll) {
@@ -18320,9 +16436,7 @@ class InlineMethodOptions extends RefactoringOptions {
 
   factory InlineMethodOptions.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       bool deleteSource;
       if (json.containsKey("deleteSource")) {
@@ -18338,7 +16452,7 @@ class InlineMethodOptions extends RefactoringOptions {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "inlineAll");
       }
-      return new InlineMethodOptions(deleteSource, inlineAll);
+      return InlineMethodOptions(deleteSource, inlineAll);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "inlineMethod options", json);
     }
@@ -18346,8 +16460,8 @@ class InlineMethodOptions extends RefactoringOptions {
 
   factory InlineMethodOptions.fromRefactoringParams(
       EditGetRefactoringParams refactoringParams, Request request) {
-    return new InlineMethodOptions.fromJson(
-        new RequestDecoder(request), "options", refactoringParams.options);
+    return InlineMethodOptions.fromJson(
+        RequestDecoder(request), "options", refactoringParams.options);
   }
 
   @override
@@ -18378,31 +16492,25 @@ class InlineMethodOptions extends RefactoringOptions {
   }
 }
 
-/**
- * kythe.getKytheEntries params
- *
- * {
- *   "file": FilePath
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// kythe.getKytheEntries params
+///
+/// {
+///   "file": FilePath
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class KytheGetKytheEntriesParams implements RequestParams {
   String _file;
 
-  /**
-   * The file containing the code for which the Kythe Entry objects are being
-   * requested.
-   */
+  /// The file containing the code for which the Kythe Entry objects are being
+  /// requested.
   String get file => _file;
 
-  /**
-   * The file containing the code for which the Kythe Entry objects are being
-   * requested.
-   */
-  void set file(String value) {
+  /// The file containing the code for which the Kythe Entry objects are being
+  /// requested.
+  set file(String value) {
     assert(value != null);
-    this._file = value;
+    _file = value;
   }
 
   KytheGetKytheEntriesParams(String file) {
@@ -18411,9 +16519,7 @@ class KytheGetKytheEntriesParams implements RequestParams {
 
   factory KytheGetKytheEntriesParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -18421,7 +16527,7 @@ class KytheGetKytheEntriesParams implements RequestParams {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "file");
       }
-      return new KytheGetKytheEntriesParams(file);
+      return KytheGetKytheEntriesParams(file);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "kythe.getKytheEntries params", json);
@@ -18429,8 +16535,8 @@ class KytheGetKytheEntriesParams implements RequestParams {
   }
 
   factory KytheGetKytheEntriesParams.fromRequest(Request request) {
-    return new KytheGetKytheEntriesParams.fromJson(
-        new RequestDecoder(request), "params", request.params);
+    return KytheGetKytheEntriesParams.fromJson(
+        RequestDecoder(request), "params", request.params);
   }
 
   @override
@@ -18442,7 +16548,7 @@ class KytheGetKytheEntriesParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "kythe.getKytheEntries", toJson());
+    return Request(id, "kythe.getKytheEntries", toJson());
   }
 
   @override
@@ -18464,51 +16570,41 @@ class KytheGetKytheEntriesParams implements RequestParams {
   }
 }
 
-/**
- * kythe.getKytheEntries result
- *
- * {
- *   "entries": List<KytheEntry>
- *   "files": List<FilePath>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// kythe.getKytheEntries result
+///
+/// {
+///   "entries": List<KytheEntry>
+///   "files": List<FilePath>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class KytheGetKytheEntriesResult implements ResponseResult {
   List<KytheEntry> _entries;
 
   List<String> _files;
 
-  /**
-   * The list of KytheEntry objects for the queried file.
-   */
+  /// The list of KytheEntry objects for the queried file.
   List<KytheEntry> get entries => _entries;
 
-  /**
-   * The list of KytheEntry objects for the queried file.
-   */
-  void set entries(List<KytheEntry> value) {
+  /// The list of KytheEntry objects for the queried file.
+  set entries(List<KytheEntry> value) {
     assert(value != null);
-    this._entries = value;
+    _entries = value;
   }
 
-  /**
-   * The set of files paths that were required, but not in the file system, to
-   * give a complete and accurate Kythe graph for the file. This could be due
-   * to a referenced file that does not exist or generated files not being
-   * generated or passed before the call to "getKytheEntries".
-   */
+  /// The set of files paths that were required, but not in the file system, to
+  /// give a complete and accurate Kythe graph for the file. This could be due
+  /// to a referenced file that does not exist or generated files not being
+  /// generated or passed before the call to "getKytheEntries".
   List<String> get files => _files;
 
-  /**
-   * The set of files paths that were required, but not in the file system, to
-   * give a complete and accurate Kythe graph for the file. This could be due
-   * to a referenced file that does not exist or generated files not being
-   * generated or passed before the call to "getKytheEntries".
-   */
-  void set files(List<String> value) {
+  /// The set of files paths that were required, but not in the file system, to
+  /// give a complete and accurate Kythe graph for the file. This could be due
+  /// to a referenced file that does not exist or generated files not being
+  /// generated or passed before the call to "getKytheEntries".
+  set files(List<String> value) {
     assert(value != null);
-    this._files = value;
+    _files = value;
   }
 
   KytheGetKytheEntriesResult(List<KytheEntry> entries, List<String> files) {
@@ -18518,9 +16614,7 @@ class KytheGetKytheEntriesResult implements ResponseResult {
 
   factory KytheGetKytheEntriesResult.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       List<KytheEntry> entries;
       if (json.containsKey("entries")) {
@@ -18528,7 +16622,7 @@ class KytheGetKytheEntriesResult implements ResponseResult {
             jsonPath + ".entries",
             json["entries"],
             (String jsonPath, Object json) =>
-                new KytheEntry.fromJson(jsonDecoder, jsonPath, json));
+                KytheEntry.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "entries");
       }
@@ -18539,7 +16633,7 @@ class KytheGetKytheEntriesResult implements ResponseResult {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "files");
       }
-      return new KytheGetKytheEntriesResult(entries, files);
+      return KytheGetKytheEntriesResult(entries, files);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "kythe.getKytheEntries result", json);
@@ -18547,8 +16641,8 @@ class KytheGetKytheEntriesResult implements ResponseResult {
   }
 
   factory KytheGetKytheEntriesResult.fromResponse(Response response) {
-    return new KytheGetKytheEntriesResult.fromJson(
-        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+    return KytheGetKytheEntriesResult.fromJson(
+        ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         "result",
         response.result);
   }
@@ -18564,7 +16658,7 @@ class KytheGetKytheEntriesResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return new Response(id, result: toJson());
+    return Response(id, result: toJson());
   }
 
   @override
@@ -18589,51 +16683,41 @@ class KytheGetKytheEntriesResult implements ResponseResult {
   }
 }
 
-/**
- * LibraryPathSet
- *
- * {
- *   "scope": FilePath
- *   "libraryPaths": List<FilePath>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// LibraryPathSet
+///
+/// {
+///   "scope": FilePath
+///   "libraryPaths": List<FilePath>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class LibraryPathSet implements HasToJson {
   String _scope;
 
   List<String> _libraryPaths;
 
-  /**
-   * The filepath for which this request's libraries should be active in
-   * completion suggestions. This object associates filesystem regions to
-   * libraries and library directories of interest to the client.
-   */
+  /// The filepath for which this request's libraries should be active in
+  /// completion suggestions. This object associates filesystem regions to
+  /// libraries and library directories of interest to the client.
   String get scope => _scope;
 
-  /**
-   * The filepath for which this request's libraries should be active in
-   * completion suggestions. This object associates filesystem regions to
-   * libraries and library directories of interest to the client.
-   */
-  void set scope(String value) {
+  /// The filepath for which this request's libraries should be active in
+  /// completion suggestions. This object associates filesystem regions to
+  /// libraries and library directories of interest to the client.
+  set scope(String value) {
     assert(value != null);
-    this._scope = value;
+    _scope = value;
   }
 
-  /**
-   * The paths of the libraries of interest to the client for completion
-   * suggestions.
-   */
+  /// The paths of the libraries of interest to the client for completion
+  /// suggestions.
   List<String> get libraryPaths => _libraryPaths;
 
-  /**
-   * The paths of the libraries of interest to the client for completion
-   * suggestions.
-   */
-  void set libraryPaths(List<String> value) {
+  /// The paths of the libraries of interest to the client for completion
+  /// suggestions.
+  set libraryPaths(List<String> value) {
     assert(value != null);
-    this._libraryPaths = value;
+    _libraryPaths = value;
   }
 
   LibraryPathSet(String scope, List<String> libraryPaths) {
@@ -18643,9 +16727,7 @@ class LibraryPathSet implements HasToJson {
 
   factory LibraryPathSet.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String scope;
       if (json.containsKey("scope")) {
@@ -18660,7 +16742,7 @@ class LibraryPathSet implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "libraryPaths");
       }
-      return new LibraryPathSet(scope, libraryPaths);
+      return LibraryPathSet(scope, libraryPaths);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "LibraryPathSet", json);
     }
@@ -18696,11 +16778,9 @@ class LibraryPathSet implements HasToJson {
   }
 }
 
-/**
- * moveFile feedback
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// moveFile feedback
+///
+/// Clients may not extend, implement or mix-in this class.
 class MoveFileFeedback extends RefactoringFeedback implements HasToJson {
   @override
   bool operator ==(other) {
@@ -18716,29 +16796,23 @@ class MoveFileFeedback extends RefactoringFeedback implements HasToJson {
   }
 }
 
-/**
- * moveFile options
- *
- * {
- *   "newFile": FilePath
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// moveFile options
+///
+/// {
+///   "newFile": FilePath
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class MoveFileOptions extends RefactoringOptions {
   String _newFile;
 
-  /**
-   * The new file path to which the given file is being moved.
-   */
+  /// The new file path to which the given file is being moved.
   String get newFile => _newFile;
 
-  /**
-   * The new file path to which the given file is being moved.
-   */
-  void set newFile(String value) {
+  /// The new file path to which the given file is being moved.
+  set newFile(String value) {
     assert(value != null);
-    this._newFile = value;
+    _newFile = value;
   }
 
   MoveFileOptions(String newFile) {
@@ -18747,9 +16821,7 @@ class MoveFileOptions extends RefactoringOptions {
 
   factory MoveFileOptions.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String newFile;
       if (json.containsKey("newFile")) {
@@ -18758,7 +16830,7 @@ class MoveFileOptions extends RefactoringOptions {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "newFile");
       }
-      return new MoveFileOptions(newFile);
+      return MoveFileOptions(newFile);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "moveFile options", json);
     }
@@ -18766,8 +16838,8 @@ class MoveFileOptions extends RefactoringOptions {
 
   factory MoveFileOptions.fromRefactoringParams(
       EditGetRefactoringParams refactoringParams, Request request) {
-    return new MoveFileOptions.fromJson(
-        new RequestDecoder(request), "options", refactoringParams.options);
+    return MoveFileOptions.fromJson(
+        RequestDecoder(request), "options", refactoringParams.options);
   }
 
   @override
@@ -18796,45 +16868,35 @@ class MoveFileOptions extends RefactoringOptions {
   }
 }
 
-/**
- * OverriddenMember
- *
- * {
- *   "element": Element
- *   "className": String
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// OverriddenMember
+///
+/// {
+///   "element": Element
+///   "className": String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class OverriddenMember implements HasToJson {
   Element _element;
 
   String _className;
 
-  /**
-   * The element that is being overridden.
-   */
+  /// The element that is being overridden.
   Element get element => _element;
 
-  /**
-   * The element that is being overridden.
-   */
-  void set element(Element value) {
+  /// The element that is being overridden.
+  set element(Element value) {
     assert(value != null);
-    this._element = value;
+    _element = value;
   }
 
-  /**
-   * The name of the class in which the member is defined.
-   */
+  /// The name of the class in which the member is defined.
   String get className => _className;
 
-  /**
-   * The name of the class in which the member is defined.
-   */
-  void set className(String value) {
+  /// The name of the class in which the member is defined.
+  set className(String value) {
     assert(value != null);
-    this._className = value;
+    _className = value;
   }
 
   OverriddenMember(Element element, String className) {
@@ -18844,13 +16906,11 @@ class OverriddenMember implements HasToJson {
 
   factory OverriddenMember.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       Element element;
       if (json.containsKey("element")) {
-        element = new Element.fromJson(
+        element = Element.fromJson(
             jsonDecoder, jsonPath + ".element", json["element"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "element");
@@ -18862,7 +16922,7 @@ class OverriddenMember implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "className");
       }
-      return new OverriddenMember(element, className);
+      return OverriddenMember(element, className);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "OverriddenMember", json);
     }
@@ -18896,18 +16956,16 @@ class OverriddenMember implements HasToJson {
   }
 }
 
-/**
- * Override
- *
- * {
- *   "offset": int
- *   "length": int
- *   "superclassMember": optional OverriddenMember
- *   "interfaceMembers": optional List<OverriddenMember>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// Override
+///
+/// {
+///   "offset": int
+///   "length": int
+///   "superclassMember": optional OverriddenMember
+///   "interfaceMembers": optional List<OverriddenMember>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class Override implements HasToJson {
   int _offset;
 
@@ -18917,62 +16975,46 @@ class Override implements HasToJson {
 
   List<OverriddenMember> _interfaceMembers;
 
-  /**
-   * The offset of the name of the overriding member.
-   */
+  /// The offset of the name of the overriding member.
   int get offset => _offset;
 
-  /**
-   * The offset of the name of the overriding member.
-   */
-  void set offset(int value) {
+  /// The offset of the name of the overriding member.
+  set offset(int value) {
     assert(value != null);
-    this._offset = value;
+    _offset = value;
   }
 
-  /**
-   * The length of the name of the overriding member.
-   */
+  /// The length of the name of the overriding member.
   int get length => _length;
 
-  /**
-   * The length of the name of the overriding member.
-   */
-  void set length(int value) {
+  /// The length of the name of the overriding member.
+  set length(int value) {
     assert(value != null);
-    this._length = value;
+    _length = value;
   }
 
-  /**
-   * The member inherited from a superclass that is overridden by the
-   * overriding member. The field is omitted if there is no superclass member,
-   * in which case there must be at least one interface member.
-   */
+  /// The member inherited from a superclass that is overridden by the
+  /// overriding member. The field is omitted if there is no superclass member,
+  /// in which case there must be at least one interface member.
   OverriddenMember get superclassMember => _superclassMember;
 
-  /**
-   * The member inherited from a superclass that is overridden by the
-   * overriding member. The field is omitted if there is no superclass member,
-   * in which case there must be at least one interface member.
-   */
-  void set superclassMember(OverriddenMember value) {
-    this._superclassMember = value;
+  /// The member inherited from a superclass that is overridden by the
+  /// overriding member. The field is omitted if there is no superclass member,
+  /// in which case there must be at least one interface member.
+  set superclassMember(OverriddenMember value) {
+    _superclassMember = value;
   }
 
-  /**
-   * The members inherited from interfaces that are overridden by the
-   * overriding member. The field is omitted if there are no interface members,
-   * in which case there must be a superclass member.
-   */
+  /// The members inherited from interfaces that are overridden by the
+  /// overriding member. The field is omitted if there are no interface
+  /// members, in which case there must be a superclass member.
   List<OverriddenMember> get interfaceMembers => _interfaceMembers;
 
-  /**
-   * The members inherited from interfaces that are overridden by the
-   * overriding member. The field is omitted if there are no interface members,
-   * in which case there must be a superclass member.
-   */
-  void set interfaceMembers(List<OverriddenMember> value) {
-    this._interfaceMembers = value;
+  /// The members inherited from interfaces that are overridden by the
+  /// overriding member. The field is omitted if there are no interface
+  /// members, in which case there must be a superclass member.
+  set interfaceMembers(List<OverriddenMember> value) {
+    _interfaceMembers = value;
   }
 
   Override(int offset, int length,
@@ -18986,9 +17028,7 @@ class Override implements HasToJson {
 
   factory Override.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       int offset;
       if (json.containsKey("offset")) {
@@ -19004,7 +17044,7 @@ class Override implements HasToJson {
       }
       OverriddenMember superclassMember;
       if (json.containsKey("superclassMember")) {
-        superclassMember = new OverriddenMember.fromJson(jsonDecoder,
+        superclassMember = OverriddenMember.fromJson(jsonDecoder,
             jsonPath + ".superclassMember", json["superclassMember"]);
       }
       List<OverriddenMember> interfaceMembers;
@@ -19013,9 +17053,9 @@ class Override implements HasToJson {
             jsonPath + ".interfaceMembers",
             json["interfaceMembers"],
             (String jsonPath, Object json) =>
-                new OverriddenMember.fromJson(jsonDecoder, jsonPath, json));
+                OverriddenMember.fromJson(jsonDecoder, jsonPath, json));
       }
-      return new Override(offset, length,
+      return Override(offset, length,
           superclassMember: superclassMember,
           interfaceMembers: interfaceMembers);
     } else {
@@ -19065,17 +17105,15 @@ class Override implements HasToJson {
   }
 }
 
-/**
- * PostfixTemplateDescriptor
- *
- * {
- *   "name": String
- *   "key": String
- *   "example": String
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// PostfixTemplateDescriptor
+///
+/// {
+///   "name": String
+///   "key": String
+///   "example": String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class PostfixTemplateDescriptor implements HasToJson {
   String _name;
 
@@ -19083,45 +17121,33 @@ class PostfixTemplateDescriptor implements HasToJson {
 
   String _example;
 
-  /**
-   * The template name, shown in the UI.
-   */
+  /// The template name, shown in the UI.
   String get name => _name;
 
-  /**
-   * The template name, shown in the UI.
-   */
-  void set name(String value) {
+  /// The template name, shown in the UI.
+  set name(String value) {
     assert(value != null);
-    this._name = value;
+    _name = value;
   }
 
-  /**
-   * The unique template key, not shown in the UI.
-   */
+  /// The unique template key, not shown in the UI.
   String get key => _key;
 
-  /**
-   * The unique template key, not shown in the UI.
-   */
-  void set key(String value) {
+  /// The unique template key, not shown in the UI.
+  set key(String value) {
     assert(value != null);
-    this._key = value;
+    _key = value;
   }
 
-  /**
-   * A short example of the transformation performed when the template is
-   * applied.
-   */
+  /// A short example of the transformation performed when the template is
+  /// applied.
   String get example => _example;
 
-  /**
-   * A short example of the transformation performed when the template is
-   * applied.
-   */
-  void set example(String value) {
+  /// A short example of the transformation performed when the template is
+  /// applied.
+  set example(String value) {
     assert(value != null);
-    this._example = value;
+    _example = value;
   }
 
   PostfixTemplateDescriptor(String name, String key, String example) {
@@ -19132,9 +17158,7 @@ class PostfixTemplateDescriptor implements HasToJson {
 
   factory PostfixTemplateDescriptor.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String name;
       if (json.containsKey("name")) {
@@ -19155,7 +17179,7 @@ class PostfixTemplateDescriptor implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "example");
       }
-      return new PostfixTemplateDescriptor(name, key, example);
+      return PostfixTemplateDescriptor(name, key, example);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "PostfixTemplateDescriptor", json);
     }
@@ -19191,31 +17215,25 @@ class PostfixTemplateDescriptor implements HasToJson {
   }
 }
 
-/**
- * PubStatus
- *
- * {
- *   "isListingPackageDirs": bool
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// PubStatus
+///
+/// {
+///   "isListingPackageDirs": bool
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class PubStatus implements HasToJson {
   bool _isListingPackageDirs;
 
-  /**
-   * True if the server is currently running pub to produce a list of package
-   * directories.
-   */
+  /// True if the server is currently running pub to produce a list of package
+  /// directories.
   bool get isListingPackageDirs => _isListingPackageDirs;
 
-  /**
-   * True if the server is currently running pub to produce a list of package
-   * directories.
-   */
-  void set isListingPackageDirs(bool value) {
+  /// True if the server is currently running pub to produce a list of package
+  /// directories.
+  set isListingPackageDirs(bool value) {
     assert(value != null);
-    this._isListingPackageDirs = value;
+    _isListingPackageDirs = value;
   }
 
   PubStatus(bool isListingPackageDirs) {
@@ -19224,9 +17242,7 @@ class PubStatus implements HasToJson {
 
   factory PubStatus.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       bool isListingPackageDirs;
       if (json.containsKey("isListingPackageDirs")) {
@@ -19235,7 +17251,7 @@ class PubStatus implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "isListingPackageDirs");
       }
-      return new PubStatus(isListingPackageDirs);
+      return PubStatus(isListingPackageDirs);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "PubStatus", json);
     }
@@ -19267,14 +17283,12 @@ class PubStatus implements HasToJson {
   }
 }
 
-/**
- * RefactoringFeedback
- *
- * {
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// RefactoringFeedback
+///
+/// {
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class RefactoringFeedback implements HasToJson {
   RefactoringFeedback();
 
@@ -19308,14 +17322,12 @@ class RefactoringFeedback implements HasToJson {
   }
 }
 
-/**
- * RefactoringOptions
- *
- * {
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// RefactoringOptions
+///
+/// {
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class RefactoringOptions implements HasToJson {
   RefactoringOptions();
 
@@ -19348,18 +17360,16 @@ class RefactoringOptions implements HasToJson {
   }
 }
 
-/**
- * rename feedback
- *
- * {
- *   "offset": int
- *   "length": int
- *   "elementKindName": String
- *   "oldName": String
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// rename feedback
+///
+/// {
+///   "offset": int
+///   "length": int
+///   "elementKindName": String
+///   "oldName": String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class RenameFeedback extends RefactoringFeedback {
   int _offset;
 
@@ -19369,60 +17379,44 @@ class RenameFeedback extends RefactoringFeedback {
 
   String _oldName;
 
-  /**
-   * The offset to the beginning of the name selected to be renamed, or -1 if
-   * the name does not exist yet.
-   */
+  /// The offset to the beginning of the name selected to be renamed, or -1 if
+  /// the name does not exist yet.
   int get offset => _offset;
 
-  /**
-   * The offset to the beginning of the name selected to be renamed, or -1 if
-   * the name does not exist yet.
-   */
-  void set offset(int value) {
+  /// The offset to the beginning of the name selected to be renamed, or -1 if
+  /// the name does not exist yet.
+  set offset(int value) {
     assert(value != null);
-    this._offset = value;
+    _offset = value;
   }
 
-  /**
-   * The length of the name selected to be renamed.
-   */
+  /// The length of the name selected to be renamed.
   int get length => _length;
 
-  /**
-   * The length of the name selected to be renamed.
-   */
-  void set length(int value) {
+  /// The length of the name selected to be renamed.
+  set length(int value) {
     assert(value != null);
-    this._length = value;
+    _length = value;
   }
 
-  /**
-   * The human-readable description of the kind of element being renamed (such
-   * as "class" or "function type alias").
-   */
+  /// The human-readable description of the kind of element being renamed (such
+  /// as "class" or "function type alias").
   String get elementKindName => _elementKindName;
 
-  /**
-   * The human-readable description of the kind of element being renamed (such
-   * as "class" or "function type alias").
-   */
-  void set elementKindName(String value) {
+  /// The human-readable description of the kind of element being renamed (such
+  /// as "class" or "function type alias").
+  set elementKindName(String value) {
     assert(value != null);
-    this._elementKindName = value;
+    _elementKindName = value;
   }
 
-  /**
-   * The old name of the element before the refactoring.
-   */
+  /// The old name of the element before the refactoring.
   String get oldName => _oldName;
 
-  /**
-   * The old name of the element before the refactoring.
-   */
-  void set oldName(String value) {
+  /// The old name of the element before the refactoring.
+  set oldName(String value) {
     assert(value != null);
-    this._oldName = value;
+    _oldName = value;
   }
 
   RenameFeedback(
@@ -19435,9 +17429,7 @@ class RenameFeedback extends RefactoringFeedback {
 
   factory RenameFeedback.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       int offset;
       if (json.containsKey("offset")) {
@@ -19465,7 +17457,7 @@ class RenameFeedback extends RefactoringFeedback {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "oldName");
       }
-      return new RenameFeedback(offset, length, elementKindName, oldName);
+      return RenameFeedback(offset, length, elementKindName, oldName);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "rename feedback", json);
     }
@@ -19506,29 +17498,23 @@ class RenameFeedback extends RefactoringFeedback {
   }
 }
 
-/**
- * rename options
- *
- * {
- *   "newName": String
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// rename options
+///
+/// {
+///   "newName": String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class RenameOptions extends RefactoringOptions {
   String _newName;
 
-  /**
-   * The name that the element should have after the refactoring.
-   */
+  /// The name that the element should have after the refactoring.
   String get newName => _newName;
 
-  /**
-   * The name that the element should have after the refactoring.
-   */
-  void set newName(String value) {
+  /// The name that the element should have after the refactoring.
+  set newName(String value) {
     assert(value != null);
-    this._newName = value;
+    _newName = value;
   }
 
   RenameOptions(String newName) {
@@ -19537,9 +17523,7 @@ class RenameOptions extends RefactoringOptions {
 
   factory RenameOptions.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String newName;
       if (json.containsKey("newName")) {
@@ -19548,7 +17532,7 @@ class RenameOptions extends RefactoringOptions {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "newName");
       }
-      return new RenameOptions(newName);
+      return RenameOptions(newName);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "rename options", json);
     }
@@ -19556,8 +17540,8 @@ class RenameOptions extends RefactoringOptions {
 
   factory RenameOptions.fromRefactoringParams(
       EditGetRefactoringParams refactoringParams, Request request) {
-    return new RenameOptions.fromJson(
-        new RequestDecoder(request), "options", refactoringParams.options);
+    return RenameOptions.fromJson(
+        RequestDecoder(request), "options", refactoringParams.options);
   }
 
   @override
@@ -19586,17 +17570,15 @@ class RenameOptions extends RefactoringOptions {
   }
 }
 
-/**
- * RequestError
- *
- * {
- *   "code": RequestErrorCode
- *   "message": String
- *   "stackTrace": optional String
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// RequestError
+///
+/// {
+///   "code": RequestErrorCode
+///   "message": String
+///   "stackTrace": optional String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class RequestError implements HasToJson {
   RequestErrorCode _code;
 
@@ -19604,44 +17586,32 @@ class RequestError implements HasToJson {
 
   String _stackTrace;
 
-  /**
-   * A code that uniquely identifies the error that occurred.
-   */
+  /// A code that uniquely identifies the error that occurred.
   RequestErrorCode get code => _code;
 
-  /**
-   * A code that uniquely identifies the error that occurred.
-   */
-  void set code(RequestErrorCode value) {
+  /// A code that uniquely identifies the error that occurred.
+  set code(RequestErrorCode value) {
     assert(value != null);
-    this._code = value;
+    _code = value;
   }
 
-  /**
-   * A short description of the error.
-   */
+  /// A short description of the error.
   String get message => _message;
 
-  /**
-   * A short description of the error.
-   */
-  void set message(String value) {
+  /// A short description of the error.
+  set message(String value) {
     assert(value != null);
-    this._message = value;
+    _message = value;
   }
 
-  /**
-   * The stack trace associated with processing the request, used for debugging
-   * the server.
-   */
+  /// The stack trace associated with processing the request, used for
+  /// debugging the server.
   String get stackTrace => _stackTrace;
 
-  /**
-   * The stack trace associated with processing the request, used for debugging
-   * the server.
-   */
-  void set stackTrace(String value) {
-    this._stackTrace = value;
+  /// The stack trace associated with processing the request, used for
+  /// debugging the server.
+  set stackTrace(String value) {
+    _stackTrace = value;
   }
 
   RequestError(RequestErrorCode code, String message, {String stackTrace}) {
@@ -19652,13 +17622,11 @@ class RequestError implements HasToJson {
 
   factory RequestError.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       RequestErrorCode code;
       if (json.containsKey("code")) {
-        code = new RequestErrorCode.fromJson(
+        code = RequestErrorCode.fromJson(
             jsonDecoder, jsonPath + ".code", json["code"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "code");
@@ -19675,7 +17643,7 @@ class RequestError implements HasToJson {
         stackTrace = jsonDecoder.decodeString(
             jsonPath + ".stackTrace", json["stackTrace"]);
       }
-      return new RequestError(code, message, stackTrace: stackTrace);
+      return RequestError(code, message, stackTrace: stackTrace);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "RequestError", json);
     }
@@ -19715,287 +17683,215 @@ class RequestError implements HasToJson {
   }
 }
 
-/**
- * RequestErrorCode
- *
- * enum {
- *   CONTENT_MODIFIED
- *   DEBUG_PORT_COULD_NOT_BE_OPENED
- *   FILE_NOT_ANALYZED
- *   FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET
- *   FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION
- *   FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_ID
- *   FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED
- *   FORMAT_INVALID_FILE
- *   FORMAT_WITH_ERRORS
- *   GET_ERRORS_INVALID_FILE
- *   GET_IMPORTED_ELEMENTS_INVALID_FILE
- *   GET_KYTHE_ENTRIES_INVALID_FILE
- *   GET_NAVIGATION_INVALID_FILE
- *   GET_REACHABLE_SOURCES_INVALID_FILE
- *   GET_SIGNATURE_INVALID_FILE
- *   GET_SIGNATURE_INVALID_OFFSET
- *   GET_SIGNATURE_UNKNOWN_FUNCTION
- *   IMPORT_ELEMENTS_INVALID_FILE
- *   INVALID_ANALYSIS_ROOT
- *   INVALID_EXECUTION_CONTEXT
- *   INVALID_FILE_PATH_FORMAT
- *   INVALID_OVERLAY_CHANGE
- *   INVALID_PARAMETER
- *   INVALID_REQUEST
- *   ORGANIZE_DIRECTIVES_ERROR
- *   REFACTORING_REQUEST_CANCELLED
- *   SERVER_ALREADY_STARTED
- *   SERVER_ERROR
- *   SORT_MEMBERS_INVALID_FILE
- *   SORT_MEMBERS_PARSE_ERRORS
- *   UNKNOWN_FIX
- *   UNKNOWN_REQUEST
- *   UNSUPPORTED_FEATURE
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// RequestErrorCode
+///
+/// enum {
+///   CONTENT_MODIFIED
+///   DEBUG_PORT_COULD_NOT_BE_OPENED
+///   FILE_NOT_ANALYZED
+///   FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET
+///   FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION
+///   FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_ID
+///   FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED
+///   FORMAT_INVALID_FILE
+///   FORMAT_WITH_ERRORS
+///   GET_ERRORS_INVALID_FILE
+///   GET_IMPORTED_ELEMENTS_INVALID_FILE
+///   GET_KYTHE_ENTRIES_INVALID_FILE
+///   GET_NAVIGATION_INVALID_FILE
+///   GET_REACHABLE_SOURCES_INVALID_FILE
+///   GET_SIGNATURE_INVALID_FILE
+///   GET_SIGNATURE_INVALID_OFFSET
+///   GET_SIGNATURE_UNKNOWN_FUNCTION
+///   IMPORT_ELEMENTS_INVALID_FILE
+///   INVALID_ANALYSIS_ROOT
+///   INVALID_EXECUTION_CONTEXT
+///   INVALID_FILE_PATH_FORMAT
+///   INVALID_OVERLAY_CHANGE
+///   INVALID_PARAMETER
+///   INVALID_REQUEST
+///   ORGANIZE_DIRECTIVES_ERROR
+///   REFACTORING_REQUEST_CANCELLED
+///   SERVER_ALREADY_STARTED
+///   SERVER_ERROR
+///   SORT_MEMBERS_INVALID_FILE
+///   SORT_MEMBERS_PARSE_ERRORS
+///   UNKNOWN_FIX
+///   UNKNOWN_REQUEST
+///   UNSUPPORTED_FEATURE
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class RequestErrorCode implements Enum {
-  /**
-   * An "analysis.getErrors" or "analysis.getNavigation" request could not be
-   * satisfied because the content of the file changed before the requested
-   * results could be computed.
-   */
+  /// An "analysis.getErrors" or "analysis.getNavigation" request could not be
+  /// satisfied because the content of the file changed before the requested
+  /// results could be computed.
   static const RequestErrorCode CONTENT_MODIFIED =
-      const RequestErrorCode._("CONTENT_MODIFIED");
+      RequestErrorCode._("CONTENT_MODIFIED");
 
-  /**
-   * The server was unable to open a port for the diagnostic server.
-   */
+  /// The server was unable to open a port for the diagnostic server.
   static const RequestErrorCode DEBUG_PORT_COULD_NOT_BE_OPENED =
-      const RequestErrorCode._("DEBUG_PORT_COULD_NOT_BE_OPENED");
+      RequestErrorCode._("DEBUG_PORT_COULD_NOT_BE_OPENED");
 
-  /**
-   * A request specified a FilePath which does not match a file in an analysis
-   * root, or the requested operation is not available for the file.
-   */
+  /// A request specified a FilePath which does not match a file in an analysis
+  /// root, or the requested operation is not available for the file.
   static const RequestErrorCode FILE_NOT_ANALYZED =
-      const RequestErrorCode._("FILE_NOT_ANALYZED");
+      RequestErrorCode._("FILE_NOT_ANALYZED");
 
-  /**
-   * The given location does not have a supported widget.
-   */
+  /// The given location does not have a supported widget.
   static const RequestErrorCode FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET =
-      const RequestErrorCode._("FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET");
+      RequestErrorCode._("FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET");
 
-  /**
-   * The given property expression is invalid, e.g. has a syntax error.
-   */
+  /// The given property expression is invalid, e.g. has a syntax error.
   static const RequestErrorCode
-      FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION =
-      const RequestErrorCode._(
+      FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION = RequestErrorCode._(
           "FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION");
 
-  /**
-   * The given property identifier is not valid. It might have never been
-   * valid, or a change to code invalidated it, or its TTL was exceeded.
-   */
+  /// The given property identifier is not valid. It might have never been
+  /// valid, or a change to code invalidated it, or its TTL was exceeded.
   static const RequestErrorCode FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_ID =
-      const RequestErrorCode._("FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_ID");
+      RequestErrorCode._("FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_ID");
 
-  /**
-   * The value of the property cannot be removed, for example because the
-   * corresponding constructor argument is required, and the server does not
-   * know what default value to use.
-   */
+  /// The value of the property cannot be removed, for example because the
+  /// corresponding constructor argument is required, and the server does not
+  /// know what default value to use.
   static const RequestErrorCode FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED =
-      const RequestErrorCode._("FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED");
+      RequestErrorCode._("FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED");
 
-  /**
-   * An "edit.format" request specified a FilePath which does not match a Dart
-   * file in an analysis root.
-   */
+  /// An "edit.format" request specified a FilePath which does not match a Dart
+  /// file in an analysis root.
   static const RequestErrorCode FORMAT_INVALID_FILE =
-      const RequestErrorCode._("FORMAT_INVALID_FILE");
+      RequestErrorCode._("FORMAT_INVALID_FILE");
 
-  /**
-   * An "edit.format" request specified a file that contains syntax errors.
-   */
+  /// An "edit.format" request specified a file that contains syntax errors.
   static const RequestErrorCode FORMAT_WITH_ERRORS =
-      const RequestErrorCode._("FORMAT_WITH_ERRORS");
+      RequestErrorCode._("FORMAT_WITH_ERRORS");
 
-  /**
-   * An "analysis.getErrors" request specified a FilePath which does not match
-   * a file currently subject to analysis.
-   */
+  /// An "analysis.getErrors" request specified a FilePath which does not match
+  /// a file currently subject to analysis.
   static const RequestErrorCode GET_ERRORS_INVALID_FILE =
-      const RequestErrorCode._("GET_ERRORS_INVALID_FILE");
+      RequestErrorCode._("GET_ERRORS_INVALID_FILE");
 
-  /**
-   * An "analysis.getImportedElements" request specified a FilePath that does
-   * not match a file currently subject to analysis.
-   */
+  /// An "analysis.getImportedElements" request specified a FilePath that does
+  /// not match a file currently subject to analysis.
   static const RequestErrorCode GET_IMPORTED_ELEMENTS_INVALID_FILE =
-      const RequestErrorCode._("GET_IMPORTED_ELEMENTS_INVALID_FILE");
+      RequestErrorCode._("GET_IMPORTED_ELEMENTS_INVALID_FILE");
 
-  /**
-   * An "analysis.getKytheEntries" request specified a FilePath that does not
-   * match a file that is currently subject to analysis.
-   */
+  /// An "analysis.getKytheEntries" request specified a FilePath that does not
+  /// match a file that is currently subject to analysis.
   static const RequestErrorCode GET_KYTHE_ENTRIES_INVALID_FILE =
-      const RequestErrorCode._("GET_KYTHE_ENTRIES_INVALID_FILE");
+      RequestErrorCode._("GET_KYTHE_ENTRIES_INVALID_FILE");
 
-  /**
-   * An "analysis.getNavigation" request specified a FilePath which does not
-   * match a file currently subject to analysis.
-   */
+  /// An "analysis.getNavigation" request specified a FilePath which does not
+  /// match a file currently subject to analysis.
   static const RequestErrorCode GET_NAVIGATION_INVALID_FILE =
-      const RequestErrorCode._("GET_NAVIGATION_INVALID_FILE");
+      RequestErrorCode._("GET_NAVIGATION_INVALID_FILE");
 
-  /**
-   * An "analysis.getReachableSources" request specified a FilePath which does
-   * not match a file currently subject to analysis.
-   */
+  /// An "analysis.getReachableSources" request specified a FilePath which does
+  /// not match a file currently subject to analysis.
   static const RequestErrorCode GET_REACHABLE_SOURCES_INVALID_FILE =
-      const RequestErrorCode._("GET_REACHABLE_SOURCES_INVALID_FILE");
+      RequestErrorCode._("GET_REACHABLE_SOURCES_INVALID_FILE");
 
-  /**
-   * An "analysis.getSignature" request specified a FilePath which does not
-   * match a file currently subject to analysis.
-   */
+  /// An "analysis.getSignature" request specified a FilePath which does not
+  /// match a file currently subject to analysis.
   static const RequestErrorCode GET_SIGNATURE_INVALID_FILE =
-      const RequestErrorCode._("GET_SIGNATURE_INVALID_FILE");
+      RequestErrorCode._("GET_SIGNATURE_INVALID_FILE");
 
-  /**
-   * An "analysis.getSignature" request specified an offset which is not a
-   * valid location within for the contents of the file specified FilePath.
-   */
+  /// An "analysis.getSignature" request specified an offset which is not a
+  /// valid location within for the contents of the file specified FilePath.
   static const RequestErrorCode GET_SIGNATURE_INVALID_OFFSET =
-      const RequestErrorCode._("GET_SIGNATURE_INVALID_OFFSET");
+      RequestErrorCode._("GET_SIGNATURE_INVALID_OFFSET");
 
-  /**
-   * An "analysis.getSignature" request specified an offset that could not be
-   * matched to a function call.
-   */
+  /// An "analysis.getSignature" request specified an offset that could not be
+  /// matched to a function call.
   static const RequestErrorCode GET_SIGNATURE_UNKNOWN_FUNCTION =
-      const RequestErrorCode._("GET_SIGNATURE_UNKNOWN_FUNCTION");
+      RequestErrorCode._("GET_SIGNATURE_UNKNOWN_FUNCTION");
 
-  /**
-   * An "edit.importElements" request specified a FilePath that does not match
-   * a file currently subject to analysis.
-   */
+  /// An "edit.importElements" request specified a FilePath that does not match
+  /// a file currently subject to analysis.
   static const RequestErrorCode IMPORT_ELEMENTS_INVALID_FILE =
-      const RequestErrorCode._("IMPORT_ELEMENTS_INVALID_FILE");
+      RequestErrorCode._("IMPORT_ELEMENTS_INVALID_FILE");
 
-  /**
-   * A path passed as an argument to a request (such as analysis.reanalyze) is
-   * required to be an analysis root, but isn't.
-   */
+  /// A path passed as an argument to a request (such as analysis.reanalyze) is
+  /// required to be an analysis root, but isn't.
   static const RequestErrorCode INVALID_ANALYSIS_ROOT =
-      const RequestErrorCode._("INVALID_ANALYSIS_ROOT");
+      RequestErrorCode._("INVALID_ANALYSIS_ROOT");
 
-  /**
-   * The context root used to create an execution context does not exist.
-   */
+  /// The context root used to create an execution context does not exist.
   static const RequestErrorCode INVALID_EXECUTION_CONTEXT =
-      const RequestErrorCode._("INVALID_EXECUTION_CONTEXT");
+      RequestErrorCode._("INVALID_EXECUTION_CONTEXT");
 
-  /**
-   * The format of the given file path is invalid, e.g. is not absolute and
-   * normalized.
-   */
+  /// The format of the given file path is invalid, e.g. is not absolute and
+  /// normalized.
   static const RequestErrorCode INVALID_FILE_PATH_FORMAT =
-      const RequestErrorCode._("INVALID_FILE_PATH_FORMAT");
+      RequestErrorCode._("INVALID_FILE_PATH_FORMAT");
 
-  /**
-   * An "analysis.updateContent" request contained a ChangeContentOverlay
-   * object which can't be applied, due to an edit having an offset or length
-   * that is out of range.
-   */
+  /// An "analysis.updateContent" request contained a ChangeContentOverlay
+  /// object which can't be applied, due to an edit having an offset or length
+  /// that is out of range.
   static const RequestErrorCode INVALID_OVERLAY_CHANGE =
-      const RequestErrorCode._("INVALID_OVERLAY_CHANGE");
+      RequestErrorCode._("INVALID_OVERLAY_CHANGE");
 
-  /**
-   * One of the method parameters was invalid.
-   */
+  /// One of the method parameters was invalid.
   static const RequestErrorCode INVALID_PARAMETER =
-      const RequestErrorCode._("INVALID_PARAMETER");
+      RequestErrorCode._("INVALID_PARAMETER");
 
-  /**
-   * A malformed request was received.
-   */
+  /// A malformed request was received.
   static const RequestErrorCode INVALID_REQUEST =
-      const RequestErrorCode._("INVALID_REQUEST");
+      RequestErrorCode._("INVALID_REQUEST");
 
-  /**
-   * An "edit.organizeDirectives" request specified a Dart file that cannot be
-   * analyzed. The reason is described in the message.
-   */
+  /// An "edit.organizeDirectives" request specified a Dart file that cannot be
+  /// analyzed. The reason is described in the message.
   static const RequestErrorCode ORGANIZE_DIRECTIVES_ERROR =
-      const RequestErrorCode._("ORGANIZE_DIRECTIVES_ERROR");
+      RequestErrorCode._("ORGANIZE_DIRECTIVES_ERROR");
 
-  /**
-   * Another refactoring request was received during processing of this one.
-   */
+  /// Another refactoring request was received during processing of this one.
   static const RequestErrorCode REFACTORING_REQUEST_CANCELLED =
-      const RequestErrorCode._("REFACTORING_REQUEST_CANCELLED");
+      RequestErrorCode._("REFACTORING_REQUEST_CANCELLED");
 
-  /**
-   * The analysis server has already been started (and hence won't accept new
-   * connections).
-   *
-   * This error is included for future expansion; at present the analysis
-   * server can only speak to one client at a time so this error will never
-   * occur.
-   */
+  /// The analysis server has already been started (and hence won't accept new
+  /// connections).
+  ///
+  /// This error is included for future expansion; at present the analysis
+  /// server can only speak to one client at a time so this error will never
+  /// occur.
   static const RequestErrorCode SERVER_ALREADY_STARTED =
-      const RequestErrorCode._("SERVER_ALREADY_STARTED");
+      RequestErrorCode._("SERVER_ALREADY_STARTED");
 
-  /**
-   * An internal error occurred in the analysis server. Also see the
-   * server.error notification.
-   */
+  /// An internal error occurred in the analysis server. Also see the
+  /// server.error notification.
   static const RequestErrorCode SERVER_ERROR =
-      const RequestErrorCode._("SERVER_ERROR");
+      RequestErrorCode._("SERVER_ERROR");
 
-  /**
-   * An "edit.sortMembers" request specified a FilePath which does not match a
-   * Dart file in an analysis root.
-   */
+  /// An "edit.sortMembers" request specified a FilePath which does not match a
+  /// Dart file in an analysis root.
   static const RequestErrorCode SORT_MEMBERS_INVALID_FILE =
-      const RequestErrorCode._("SORT_MEMBERS_INVALID_FILE");
+      RequestErrorCode._("SORT_MEMBERS_INVALID_FILE");
 
-  /**
-   * An "edit.sortMembers" request specified a Dart file that has scan or parse
-   * errors.
-   */
+  /// An "edit.sortMembers" request specified a Dart file that has scan or
+  /// parse errors.
   static const RequestErrorCode SORT_MEMBERS_PARSE_ERRORS =
-      const RequestErrorCode._("SORT_MEMBERS_PARSE_ERRORS");
+      RequestErrorCode._("SORT_MEMBERS_PARSE_ERRORS");
 
-  /**
-   * A dartfix request was received containing the name of a fix which does not
-   * match the name of any known fixes.
-   */
-  static const RequestErrorCode UNKNOWN_FIX =
-      const RequestErrorCode._("UNKNOWN_FIX");
+  /// A dartfix request was received containing the name of a fix which does
+  /// not match the name of any known fixes.
+  static const RequestErrorCode UNKNOWN_FIX = RequestErrorCode._("UNKNOWN_FIX");
 
-  /**
-   * A request was received which the analysis server does not recognize, or
-   * cannot handle in its current configuration.
-   */
+  /// A request was received which the analysis server does not recognize, or
+  /// cannot handle in its current configuration.
   static const RequestErrorCode UNKNOWN_REQUEST =
-      const RequestErrorCode._("UNKNOWN_REQUEST");
+      RequestErrorCode._("UNKNOWN_REQUEST");
 
-  /**
-   * The analysis server was requested to perform an action which is not
-   * supported.
-   *
-   * This is a legacy error; it will be removed before the API reaches version
-   * 1.0.
-   */
+  /// The analysis server was requested to perform an action which is not
+  /// supported.
+  ///
+  /// This is a legacy error; it will be removed before the API reaches version
+  /// 1.0.
   static const RequestErrorCode UNSUPPORTED_FEATURE =
-      const RequestErrorCode._("UNSUPPORTED_FEATURE");
+      RequestErrorCode._("UNSUPPORTED_FEATURE");
 
-  /**
-   * A list containing all of the enum values that are defined.
-   */
-  static const List<RequestErrorCode> VALUES = const <RequestErrorCode>[
+  /// A list containing all of the enum values that are defined.
+  static const List<RequestErrorCode> VALUES = <RequestErrorCode>[
     CONTENT_MODIFIED,
     DEBUG_PORT_COULD_NOT_BE_OPENED,
     FILE_NOT_ANALYZED,
@@ -20105,14 +18001,14 @@ class RequestErrorCode implements Enum {
       case "UNSUPPORTED_FEATURE":
         return UNSUPPORTED_FEATURE;
     }
-    throw new Exception('Illegal enum value: $name');
+    throw Exception('Illegal enum value: $name');
   }
 
   factory RequestErrorCode.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json is String) {
       try {
-        return new RequestErrorCode(json);
+        return RequestErrorCode(json);
       } catch (_) {
         // Fall through
       }
@@ -20126,17 +18022,15 @@ class RequestErrorCode implements Enum {
   String toJson() => name;
 }
 
-/**
- * RuntimeCompletionExpression
- *
- * {
- *   "offset": int
- *   "length": int
- *   "type": optional RuntimeCompletionExpressionType
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// RuntimeCompletionExpression
+///
+/// {
+///   "offset": int
+///   "length": int
+///   "type": optional RuntimeCompletionExpressionType
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class RuntimeCompletionExpression implements HasToJson {
   int _offset;
 
@@ -20144,46 +18038,34 @@ class RuntimeCompletionExpression implements HasToJson {
 
   RuntimeCompletionExpressionType _type;
 
-  /**
-   * The offset of the expression in the code for completion.
-   */
+  /// The offset of the expression in the code for completion.
   int get offset => _offset;
 
-  /**
-   * The offset of the expression in the code for completion.
-   */
-  void set offset(int value) {
+  /// The offset of the expression in the code for completion.
+  set offset(int value) {
     assert(value != null);
-    this._offset = value;
+    _offset = value;
   }
 
-  /**
-   * The length of the expression in the code for completion.
-   */
+  /// The length of the expression in the code for completion.
   int get length => _length;
 
-  /**
-   * The length of the expression in the code for completion.
-   */
-  void set length(int value) {
+  /// The length of the expression in the code for completion.
+  set length(int value) {
     assert(value != null);
-    this._length = value;
+    _length = value;
   }
 
-  /**
-   * When the expression is sent from the server to the client, the type is
-   * omitted. The client should fill the type when it sends the request to the
-   * server again.
-   */
+  /// When the expression is sent from the server to the client, the type is
+  /// omitted. The client should fill the type when it sends the request to the
+  /// server again.
   RuntimeCompletionExpressionType get type => _type;
 
-  /**
-   * When the expression is sent from the server to the client, the type is
-   * omitted. The client should fill the type when it sends the request to the
-   * server again.
-   */
-  void set type(RuntimeCompletionExpressionType value) {
-    this._type = value;
+  /// When the expression is sent from the server to the client, the type is
+  /// omitted. The client should fill the type when it sends the request to the
+  /// server again.
+  set type(RuntimeCompletionExpressionType value) {
+    _type = value;
   }
 
   RuntimeCompletionExpression(int offset, int length,
@@ -20195,9 +18077,7 @@ class RuntimeCompletionExpression implements HasToJson {
 
   factory RuntimeCompletionExpression.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       int offset;
       if (json.containsKey("offset")) {
@@ -20213,10 +18093,10 @@ class RuntimeCompletionExpression implements HasToJson {
       }
       RuntimeCompletionExpressionType type;
       if (json.containsKey("type")) {
-        type = new RuntimeCompletionExpressionType.fromJson(
+        type = RuntimeCompletionExpressionType.fromJson(
             jsonDecoder, jsonPath + ".type", json["type"]);
       }
-      return new RuntimeCompletionExpression(offset, length, type: type);
+      return RuntimeCompletionExpression(offset, length, type: type);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "RuntimeCompletionExpression", json);
     }
@@ -20256,21 +18136,19 @@ class RuntimeCompletionExpression implements HasToJson {
   }
 }
 
-/**
- * RuntimeCompletionExpressionType
- *
- * {
- *   "libraryPath": optional FilePath
- *   "kind": RuntimeCompletionExpressionTypeKind
- *   "name": optional String
- *   "typeArguments": optional List<RuntimeCompletionExpressionType>
- *   "returnType": optional RuntimeCompletionExpressionType
- *   "parameterTypes": optional List<RuntimeCompletionExpressionType>
- *   "parameterNames": optional List<String>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// RuntimeCompletionExpressionType
+///
+/// {
+///   "libraryPath": optional FilePath
+///   "kind": RuntimeCompletionExpressionTypeKind
+///   "name": optional String
+///   "typeArguments": optional List<RuntimeCompletionExpressionType>
+///   "returnType": optional RuntimeCompletionExpressionType
+///   "parameterTypes": optional List<RuntimeCompletionExpressionType>
+///   "parameterNames": optional List<String>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class RuntimeCompletionExpressionType implements HasToJson {
   String _libraryPath;
 
@@ -20286,107 +18164,79 @@ class RuntimeCompletionExpressionType implements HasToJson {
 
   List<String> _parameterNames;
 
-  /**
-   * The path of the library that has this type. Omitted if the type is not
-   * declared in any library, e.g. "dynamic", or "void".
-   */
+  /// The path of the library that has this type. Omitted if the type is not
+  /// declared in any library, e.g. "dynamic", or "void".
   String get libraryPath => _libraryPath;
 
-  /**
-   * The path of the library that has this type. Omitted if the type is not
-   * declared in any library, e.g. "dynamic", or "void".
-   */
-  void set libraryPath(String value) {
-    this._libraryPath = value;
+  /// The path of the library that has this type. Omitted if the type is not
+  /// declared in any library, e.g. "dynamic", or "void".
+  set libraryPath(String value) {
+    _libraryPath = value;
   }
 
-  /**
-   * The kind of the type.
-   */
+  /// The kind of the type.
   RuntimeCompletionExpressionTypeKind get kind => _kind;
 
-  /**
-   * The kind of the type.
-   */
-  void set kind(RuntimeCompletionExpressionTypeKind value) {
+  /// The kind of the type.
+  set kind(RuntimeCompletionExpressionTypeKind value) {
     assert(value != null);
-    this._kind = value;
+    _kind = value;
   }
 
-  /**
-   * The name of the type. Omitted if the type does not have a name, e.g. an
-   * inline function type.
-   */
+  /// The name of the type. Omitted if the type does not have a name, e.g. an
+  /// inline function type.
   String get name => _name;
 
-  /**
-   * The name of the type. Omitted if the type does not have a name, e.g. an
-   * inline function type.
-   */
-  void set name(String value) {
-    this._name = value;
+  /// The name of the type. Omitted if the type does not have a name, e.g. an
+  /// inline function type.
+  set name(String value) {
+    _name = value;
   }
 
-  /**
-   * The type arguments of the type. Omitted if the type does not have type
-   * parameters.
-   */
+  /// The type arguments of the type. Omitted if the type does not have type
+  /// parameters.
   List<RuntimeCompletionExpressionType> get typeArguments => _typeArguments;
 
-  /**
-   * The type arguments of the type. Omitted if the type does not have type
-   * parameters.
-   */
-  void set typeArguments(List<RuntimeCompletionExpressionType> value) {
-    this._typeArguments = value;
+  /// The type arguments of the type. Omitted if the type does not have type
+  /// parameters.
+  set typeArguments(List<RuntimeCompletionExpressionType> value) {
+    _typeArguments = value;
   }
 
-  /**
-   * If the type is a function type, the return type of the function. Omitted
-   * if the type is not a function type.
-   */
+  /// If the type is a function type, the return type of the function. Omitted
+  /// if the type is not a function type.
   RuntimeCompletionExpressionType get returnType => _returnType;
 
-  /**
-   * If the type is a function type, the return type of the function. Omitted
-   * if the type is not a function type.
-   */
-  void set returnType(RuntimeCompletionExpressionType value) {
-    this._returnType = value;
+  /// If the type is a function type, the return type of the function. Omitted
+  /// if the type is not a function type.
+  set returnType(RuntimeCompletionExpressionType value) {
+    _returnType = value;
   }
 
-  /**
-   * If the type is a function type, the types of the function parameters of
-   * all kinds - required, optional positional, and optional named. Omitted if
-   * the type is not a function type.
-   */
+  /// If the type is a function type, the types of the function parameters of
+  /// all kinds - required, optional positional, and optional named. Omitted if
+  /// the type is not a function type.
   List<RuntimeCompletionExpressionType> get parameterTypes => _parameterTypes;
 
-  /**
-   * If the type is a function type, the types of the function parameters of
-   * all kinds - required, optional positional, and optional named. Omitted if
-   * the type is not a function type.
-   */
-  void set parameterTypes(List<RuntimeCompletionExpressionType> value) {
-    this._parameterTypes = value;
+  /// If the type is a function type, the types of the function parameters of
+  /// all kinds - required, optional positional, and optional named. Omitted if
+  /// the type is not a function type.
+  set parameterTypes(List<RuntimeCompletionExpressionType> value) {
+    _parameterTypes = value;
   }
 
-  /**
-   * If the type is a function type, the names of the function parameters of
-   * all kinds - required, optional positional, and optional named. The names
-   * of positional parameters are empty strings. Omitted if the type is not a
-   * function type.
-   */
+  /// If the type is a function type, the names of the function parameters of
+  /// all kinds - required, optional positional, and optional named. The names
+  /// of positional parameters are empty strings. Omitted if the type is not a
+  /// function type.
   List<String> get parameterNames => _parameterNames;
 
-  /**
-   * If the type is a function type, the names of the function parameters of
-   * all kinds - required, optional positional, and optional named. The names
-   * of positional parameters are empty strings. Omitted if the type is not a
-   * function type.
-   */
-  void set parameterNames(List<String> value) {
-    this._parameterNames = value;
+  /// If the type is a function type, the names of the function parameters of
+  /// all kinds - required, optional positional, and optional named. The names
+  /// of positional parameters are empty strings. Omitted if the type is not a
+  /// function type.
+  set parameterNames(List<String> value) {
+    _parameterNames = value;
   }
 
   RuntimeCompletionExpressionType(RuntimeCompletionExpressionTypeKind kind,
@@ -20407,9 +18257,7 @@ class RuntimeCompletionExpressionType implements HasToJson {
 
   factory RuntimeCompletionExpressionType.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String libraryPath;
       if (json.containsKey("libraryPath")) {
@@ -20418,7 +18266,7 @@ class RuntimeCompletionExpressionType implements HasToJson {
       }
       RuntimeCompletionExpressionTypeKind kind;
       if (json.containsKey("kind")) {
-        kind = new RuntimeCompletionExpressionTypeKind.fromJson(
+        kind = RuntimeCompletionExpressionTypeKind.fromJson(
             jsonDecoder, jsonPath + ".kind", json["kind"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "kind");
@@ -20433,12 +18281,12 @@ class RuntimeCompletionExpressionType implements HasToJson {
             jsonPath + ".typeArguments",
             json["typeArguments"],
             (String jsonPath, Object json) =>
-                new RuntimeCompletionExpressionType.fromJson(
+                RuntimeCompletionExpressionType.fromJson(
                     jsonDecoder, jsonPath, json));
       }
       RuntimeCompletionExpressionType returnType;
       if (json.containsKey("returnType")) {
-        returnType = new RuntimeCompletionExpressionType.fromJson(
+        returnType = RuntimeCompletionExpressionType.fromJson(
             jsonDecoder, jsonPath + ".returnType", json["returnType"]);
       }
       List<RuntimeCompletionExpressionType> parameterTypes;
@@ -20447,7 +18295,7 @@ class RuntimeCompletionExpressionType implements HasToJson {
             jsonPath + ".parameterTypes",
             json["parameterTypes"],
             (String jsonPath, Object json) =>
-                new RuntimeCompletionExpressionType.fromJson(
+                RuntimeCompletionExpressionType.fromJson(
                     jsonDecoder, jsonPath, json));
       }
       List<String> parameterNames;
@@ -20455,7 +18303,7 @@ class RuntimeCompletionExpressionType implements HasToJson {
         parameterNames = jsonDecoder.decodeList(jsonPath + ".parameterNames",
             json["parameterNames"], jsonDecoder.decodeString);
       }
-      return new RuntimeCompletionExpressionType(kind,
+      return RuntimeCompletionExpressionType(kind,
           libraryPath: libraryPath,
           name: name,
           typeArguments: typeArguments,
@@ -20539,32 +18387,28 @@ class RuntimeCompletionExpressionType implements HasToJson {
   }
 }
 
-/**
- * RuntimeCompletionExpressionTypeKind
- *
- * enum {
- *   DYNAMIC
- *   FUNCTION
- *   INTERFACE
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// RuntimeCompletionExpressionTypeKind
+///
+/// enum {
+///   DYNAMIC
+///   FUNCTION
+///   INTERFACE
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class RuntimeCompletionExpressionTypeKind implements Enum {
   static const RuntimeCompletionExpressionTypeKind DYNAMIC =
-      const RuntimeCompletionExpressionTypeKind._("DYNAMIC");
+      RuntimeCompletionExpressionTypeKind._("DYNAMIC");
 
   static const RuntimeCompletionExpressionTypeKind FUNCTION =
-      const RuntimeCompletionExpressionTypeKind._("FUNCTION");
+      RuntimeCompletionExpressionTypeKind._("FUNCTION");
 
   static const RuntimeCompletionExpressionTypeKind INTERFACE =
-      const RuntimeCompletionExpressionTypeKind._("INTERFACE");
+      RuntimeCompletionExpressionTypeKind._("INTERFACE");
 
-  /**
-   * A list containing all of the enum values that are defined.
-   */
+  /// A list containing all of the enum values that are defined.
   static const List<RuntimeCompletionExpressionTypeKind> VALUES =
-      const <RuntimeCompletionExpressionTypeKind>[DYNAMIC, FUNCTION, INTERFACE];
+      <RuntimeCompletionExpressionTypeKind>[DYNAMIC, FUNCTION, INTERFACE];
 
   @override
   final String name;
@@ -20580,14 +18424,14 @@ class RuntimeCompletionExpressionTypeKind implements Enum {
       case "INTERFACE":
         return INTERFACE;
     }
-    throw new Exception('Illegal enum value: $name');
+    throw Exception('Illegal enum value: $name');
   }
 
   factory RuntimeCompletionExpressionTypeKind.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json is String) {
       try {
-        return new RuntimeCompletionExpressionTypeKind(json);
+        return RuntimeCompletionExpressionTypeKind(json);
       } catch (_) {
         // Fall through
       }
@@ -20602,49 +18446,39 @@ class RuntimeCompletionExpressionTypeKind implements Enum {
   String toJson() => name;
 }
 
-/**
- * RuntimeCompletionVariable
- *
- * {
- *   "name": String
- *   "type": RuntimeCompletionExpressionType
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// RuntimeCompletionVariable
+///
+/// {
+///   "name": String
+///   "type": RuntimeCompletionExpressionType
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class RuntimeCompletionVariable implements HasToJson {
   String _name;
 
   RuntimeCompletionExpressionType _type;
 
-  /**
-   * The name of the variable. The name "this" has a special meaning and is
-   * used as an implicit target for runtime completion, and in explicit "this"
-   * references.
-   */
+  /// The name of the variable. The name "this" has a special meaning and is
+  /// used as an implicit target for runtime completion, and in explicit "this"
+  /// references.
   String get name => _name;
 
-  /**
-   * The name of the variable. The name "this" has a special meaning and is
-   * used as an implicit target for runtime completion, and in explicit "this"
-   * references.
-   */
-  void set name(String value) {
+  /// The name of the variable. The name "this" has a special meaning and is
+  /// used as an implicit target for runtime completion, and in explicit "this"
+  /// references.
+  set name(String value) {
     assert(value != null);
-    this._name = value;
+    _name = value;
   }
 
-  /**
-   * The type of the variable.
-   */
+  /// The type of the variable.
   RuntimeCompletionExpressionType get type => _type;
 
-  /**
-   * The type of the variable.
-   */
-  void set type(RuntimeCompletionExpressionType value) {
+  /// The type of the variable.
+  set type(RuntimeCompletionExpressionType value) {
     assert(value != null);
-    this._type = value;
+    _type = value;
   }
 
   RuntimeCompletionVariable(String name, RuntimeCompletionExpressionType type) {
@@ -20654,9 +18488,7 @@ class RuntimeCompletionVariable implements HasToJson {
 
   factory RuntimeCompletionVariable.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String name;
       if (json.containsKey("name")) {
@@ -20666,12 +18498,12 @@ class RuntimeCompletionVariable implements HasToJson {
       }
       RuntimeCompletionExpressionType type;
       if (json.containsKey("type")) {
-        type = new RuntimeCompletionExpressionType.fromJson(
+        type = RuntimeCompletionExpressionType.fromJson(
             jsonDecoder, jsonPath + ".type", json["type"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "type");
       }
-      return new RuntimeCompletionVariable(name, type);
+      return RuntimeCompletionVariable(name, type);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "RuntimeCompletionVariable", json);
     }
@@ -20705,17 +18537,15 @@ class RuntimeCompletionVariable implements HasToJson {
   }
 }
 
-/**
- * search.findElementReferences params
- *
- * {
- *   "file": FilePath
- *   "offset": int
- *   "includePotential": bool
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// search.findElementReferences params
+///
+/// {
+///   "file": FilePath
+///   "offset": int
+///   "includePotential": bool
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class SearchFindElementReferencesParams implements RequestParams {
   String _file;
 
@@ -20723,47 +18553,35 @@ class SearchFindElementReferencesParams implements RequestParams {
 
   bool _includePotential;
 
-  /**
-   * The file containing the declaration of or reference to the element used to
-   * define the search.
-   */
+  /// The file containing the declaration of or reference to the element used
+  /// to define the search.
   String get file => _file;
 
-  /**
-   * The file containing the declaration of or reference to the element used to
-   * define the search.
-   */
-  void set file(String value) {
+  /// The file containing the declaration of or reference to the element used
+  /// to define the search.
+  set file(String value) {
     assert(value != null);
-    this._file = value;
+    _file = value;
   }
 
-  /**
-   * The offset within the file of the declaration of or reference to the
-   * element.
-   */
+  /// The offset within the file of the declaration of or reference to the
+  /// element.
   int get offset => _offset;
 
-  /**
-   * The offset within the file of the declaration of or reference to the
-   * element.
-   */
-  void set offset(int value) {
+  /// The offset within the file of the declaration of or reference to the
+  /// element.
+  set offset(int value) {
     assert(value != null);
-    this._offset = value;
+    _offset = value;
   }
 
-  /**
-   * True if potential matches are to be included in the results.
-   */
+  /// True if potential matches are to be included in the results.
   bool get includePotential => _includePotential;
 
-  /**
-   * True if potential matches are to be included in the results.
-   */
-  void set includePotential(bool value) {
+  /// True if potential matches are to be included in the results.
+  set includePotential(bool value) {
     assert(value != null);
-    this._includePotential = value;
+    _includePotential = value;
   }
 
   SearchFindElementReferencesParams(
@@ -20775,9 +18593,7 @@ class SearchFindElementReferencesParams implements RequestParams {
 
   factory SearchFindElementReferencesParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -20798,8 +18614,7 @@ class SearchFindElementReferencesParams implements RequestParams {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "includePotential");
       }
-      return new SearchFindElementReferencesParams(
-          file, offset, includePotential);
+      return SearchFindElementReferencesParams(file, offset, includePotential);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "search.findElementReferences params", json);
@@ -20807,8 +18622,8 @@ class SearchFindElementReferencesParams implements RequestParams {
   }
 
   factory SearchFindElementReferencesParams.fromRequest(Request request) {
-    return new SearchFindElementReferencesParams.fromJson(
-        new RequestDecoder(request), "params", request.params);
+    return SearchFindElementReferencesParams.fromJson(
+        RequestDecoder(request), "params", request.params);
   }
 
   @override
@@ -20822,7 +18637,7 @@ class SearchFindElementReferencesParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "search.findElementReferences", toJson());
+    return Request(id, "search.findElementReferences", toJson());
   }
 
   @override
@@ -20848,55 +18663,45 @@ class SearchFindElementReferencesParams implements RequestParams {
   }
 }
 
-/**
- * search.findElementReferences result
- *
- * {
- *   "id": optional SearchId
- *   "element": optional Element
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// search.findElementReferences result
+///
+/// {
+///   "id": optional SearchId
+///   "element": optional Element
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class SearchFindElementReferencesResult implements ResponseResult {
   String _id;
 
   Element _element;
 
-  /**
-   * The identifier used to associate results with this search request.
-   *
-   * If no element was found at the given location, this field will be absent,
-   * and no results will be reported via the search.results notification.
-   */
+  /// The identifier used to associate results with this search request.
+  ///
+  /// If no element was found at the given location, this field will be absent,
+  /// and no results will be reported via the search.results notification.
   String get id => _id;
 
-  /**
-   * The identifier used to associate results with this search request.
-   *
-   * If no element was found at the given location, this field will be absent,
-   * and no results will be reported via the search.results notification.
-   */
-  void set id(String value) {
-    this._id = value;
+  /// The identifier used to associate results with this search request.
+  ///
+  /// If no element was found at the given location, this field will be absent,
+  /// and no results will be reported via the search.results notification.
+  set id(String value) {
+    _id = value;
   }
 
-  /**
-   * The element referenced or defined at the given offset and whose references
-   * will be returned in the search results.
-   *
-   * If no element was found at the given location, this field will be absent.
-   */
+  /// The element referenced or defined at the given offset and whose
+  /// references will be returned in the search results.
+  ///
+  /// If no element was found at the given location, this field will be absent.
   Element get element => _element;
 
-  /**
-   * The element referenced or defined at the given offset and whose references
-   * will be returned in the search results.
-   *
-   * If no element was found at the given location, this field will be absent.
-   */
-  void set element(Element value) {
-    this._element = value;
+  /// The element referenced or defined at the given offset and whose
+  /// references will be returned in the search results.
+  ///
+  /// If no element was found at the given location, this field will be absent.
+  set element(Element value) {
+    _element = value;
   }
 
   SearchFindElementReferencesResult({String id, Element element}) {
@@ -20906,9 +18711,7 @@ class SearchFindElementReferencesResult implements ResponseResult {
 
   factory SearchFindElementReferencesResult.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String id;
       if (json.containsKey("id")) {
@@ -20916,10 +18719,10 @@ class SearchFindElementReferencesResult implements ResponseResult {
       }
       Element element;
       if (json.containsKey("element")) {
-        element = new Element.fromJson(
+        element = Element.fromJson(
             jsonDecoder, jsonPath + ".element", json["element"]);
       }
-      return new SearchFindElementReferencesResult(id: id, element: element);
+      return SearchFindElementReferencesResult(id: id, element: element);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "search.findElementReferences result", json);
@@ -20927,8 +18730,8 @@ class SearchFindElementReferencesResult implements ResponseResult {
   }
 
   factory SearchFindElementReferencesResult.fromResponse(Response response) {
-    return new SearchFindElementReferencesResult.fromJson(
-        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+    return SearchFindElementReferencesResult.fromJson(
+        ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         "result",
         response.result);
   }
@@ -20947,7 +18750,7 @@ class SearchFindElementReferencesResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return new Response(id, result: toJson());
+    return Response(id, result: toJson());
   }
 
   @override
@@ -20970,29 +18773,23 @@ class SearchFindElementReferencesResult implements ResponseResult {
   }
 }
 
-/**
- * search.findMemberDeclarations params
- *
- * {
- *   "name": String
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// search.findMemberDeclarations params
+///
+/// {
+///   "name": String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class SearchFindMemberDeclarationsParams implements RequestParams {
   String _name;
 
-  /**
-   * The name of the declarations to be found.
-   */
+  /// The name of the declarations to be found.
   String get name => _name;
 
-  /**
-   * The name of the declarations to be found.
-   */
-  void set name(String value) {
+  /// The name of the declarations to be found.
+  set name(String value) {
     assert(value != null);
-    this._name = value;
+    _name = value;
   }
 
   SearchFindMemberDeclarationsParams(String name) {
@@ -21001,9 +18798,7 @@ class SearchFindMemberDeclarationsParams implements RequestParams {
 
   factory SearchFindMemberDeclarationsParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String name;
       if (json.containsKey("name")) {
@@ -21011,7 +18806,7 @@ class SearchFindMemberDeclarationsParams implements RequestParams {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "name");
       }
-      return new SearchFindMemberDeclarationsParams(name);
+      return SearchFindMemberDeclarationsParams(name);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "search.findMemberDeclarations params", json);
@@ -21019,8 +18814,8 @@ class SearchFindMemberDeclarationsParams implements RequestParams {
   }
 
   factory SearchFindMemberDeclarationsParams.fromRequest(Request request) {
-    return new SearchFindMemberDeclarationsParams.fromJson(
-        new RequestDecoder(request), "params", request.params);
+    return SearchFindMemberDeclarationsParams.fromJson(
+        RequestDecoder(request), "params", request.params);
   }
 
   @override
@@ -21032,7 +18827,7 @@ class SearchFindMemberDeclarationsParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "search.findMemberDeclarations", toJson());
+    return Request(id, "search.findMemberDeclarations", toJson());
   }
 
   @override
@@ -21054,29 +18849,23 @@ class SearchFindMemberDeclarationsParams implements RequestParams {
   }
 }
 
-/**
- * search.findMemberDeclarations result
- *
- * {
- *   "id": SearchId
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// search.findMemberDeclarations result
+///
+/// {
+///   "id": SearchId
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class SearchFindMemberDeclarationsResult implements ResponseResult {
   String _id;
 
-  /**
-   * The identifier used to associate results with this search request.
-   */
+  /// The identifier used to associate results with this search request.
   String get id => _id;
 
-  /**
-   * The identifier used to associate results with this search request.
-   */
-  void set id(String value) {
+  /// The identifier used to associate results with this search request.
+  set id(String value) {
     assert(value != null);
-    this._id = value;
+    _id = value;
   }
 
   SearchFindMemberDeclarationsResult(String id) {
@@ -21085,9 +18874,7 @@ class SearchFindMemberDeclarationsResult implements ResponseResult {
 
   factory SearchFindMemberDeclarationsResult.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String id;
       if (json.containsKey("id")) {
@@ -21095,7 +18882,7 @@ class SearchFindMemberDeclarationsResult implements ResponseResult {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "id");
       }
-      return new SearchFindMemberDeclarationsResult(id);
+      return SearchFindMemberDeclarationsResult(id);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "search.findMemberDeclarations result", json);
@@ -21103,8 +18890,8 @@ class SearchFindMemberDeclarationsResult implements ResponseResult {
   }
 
   factory SearchFindMemberDeclarationsResult.fromResponse(Response response) {
-    return new SearchFindMemberDeclarationsResult.fromJson(
-        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+    return SearchFindMemberDeclarationsResult.fromJson(
+        ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         "result",
         response.result);
   }
@@ -21118,7 +18905,7 @@ class SearchFindMemberDeclarationsResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return new Response(id, result: toJson());
+    return Response(id, result: toJson());
   }
 
   @override
@@ -21140,29 +18927,23 @@ class SearchFindMemberDeclarationsResult implements ResponseResult {
   }
 }
 
-/**
- * search.findMemberReferences params
- *
- * {
- *   "name": String
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// search.findMemberReferences params
+///
+/// {
+///   "name": String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class SearchFindMemberReferencesParams implements RequestParams {
   String _name;
 
-  /**
-   * The name of the references to be found.
-   */
+  /// The name of the references to be found.
   String get name => _name;
 
-  /**
-   * The name of the references to be found.
-   */
-  void set name(String value) {
+  /// The name of the references to be found.
+  set name(String value) {
     assert(value != null);
-    this._name = value;
+    _name = value;
   }
 
   SearchFindMemberReferencesParams(String name) {
@@ -21171,9 +18952,7 @@ class SearchFindMemberReferencesParams implements RequestParams {
 
   factory SearchFindMemberReferencesParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String name;
       if (json.containsKey("name")) {
@@ -21181,7 +18960,7 @@ class SearchFindMemberReferencesParams implements RequestParams {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "name");
       }
-      return new SearchFindMemberReferencesParams(name);
+      return SearchFindMemberReferencesParams(name);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "search.findMemberReferences params", json);
@@ -21189,8 +18968,8 @@ class SearchFindMemberReferencesParams implements RequestParams {
   }
 
   factory SearchFindMemberReferencesParams.fromRequest(Request request) {
-    return new SearchFindMemberReferencesParams.fromJson(
-        new RequestDecoder(request), "params", request.params);
+    return SearchFindMemberReferencesParams.fromJson(
+        RequestDecoder(request), "params", request.params);
   }
 
   @override
@@ -21202,7 +18981,7 @@ class SearchFindMemberReferencesParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "search.findMemberReferences", toJson());
+    return Request(id, "search.findMemberReferences", toJson());
   }
 
   @override
@@ -21224,29 +19003,23 @@ class SearchFindMemberReferencesParams implements RequestParams {
   }
 }
 
-/**
- * search.findMemberReferences result
- *
- * {
- *   "id": SearchId
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// search.findMemberReferences result
+///
+/// {
+///   "id": SearchId
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class SearchFindMemberReferencesResult implements ResponseResult {
   String _id;
 
-  /**
-   * The identifier used to associate results with this search request.
-   */
+  /// The identifier used to associate results with this search request.
   String get id => _id;
 
-  /**
-   * The identifier used to associate results with this search request.
-   */
-  void set id(String value) {
+  /// The identifier used to associate results with this search request.
+  set id(String value) {
     assert(value != null);
-    this._id = value;
+    _id = value;
   }
 
   SearchFindMemberReferencesResult(String id) {
@@ -21255,9 +19028,7 @@ class SearchFindMemberReferencesResult implements ResponseResult {
 
   factory SearchFindMemberReferencesResult.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String id;
       if (json.containsKey("id")) {
@@ -21265,7 +19036,7 @@ class SearchFindMemberReferencesResult implements ResponseResult {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "id");
       }
-      return new SearchFindMemberReferencesResult(id);
+      return SearchFindMemberReferencesResult(id);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "search.findMemberReferences result", json);
@@ -21273,8 +19044,8 @@ class SearchFindMemberReferencesResult implements ResponseResult {
   }
 
   factory SearchFindMemberReferencesResult.fromResponse(Response response) {
-    return new SearchFindMemberReferencesResult.fromJson(
-        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+    return SearchFindMemberReferencesResult.fromJson(
+        ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         "result",
         response.result);
   }
@@ -21288,7 +19059,7 @@ class SearchFindMemberReferencesResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return new Response(id, result: toJson());
+    return Response(id, result: toJson());
   }
 
   @override
@@ -21310,31 +19081,25 @@ class SearchFindMemberReferencesResult implements ResponseResult {
   }
 }
 
-/**
- * search.findTopLevelDeclarations params
- *
- * {
- *   "pattern": String
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// search.findTopLevelDeclarations params
+///
+/// {
+///   "pattern": String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class SearchFindTopLevelDeclarationsParams implements RequestParams {
   String _pattern;
 
-  /**
-   * The regular expression used to match the names of the declarations to be
-   * found.
-   */
+  /// The regular expression used to match the names of the declarations to be
+  /// found.
   String get pattern => _pattern;
 
-  /**
-   * The regular expression used to match the names of the declarations to be
-   * found.
-   */
-  void set pattern(String value) {
+  /// The regular expression used to match the names of the declarations to be
+  /// found.
+  set pattern(String value) {
     assert(value != null);
-    this._pattern = value;
+    _pattern = value;
   }
 
   SearchFindTopLevelDeclarationsParams(String pattern) {
@@ -21343,9 +19108,7 @@ class SearchFindTopLevelDeclarationsParams implements RequestParams {
 
   factory SearchFindTopLevelDeclarationsParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String pattern;
       if (json.containsKey("pattern")) {
@@ -21354,7 +19117,7 @@ class SearchFindTopLevelDeclarationsParams implements RequestParams {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "pattern");
       }
-      return new SearchFindTopLevelDeclarationsParams(pattern);
+      return SearchFindTopLevelDeclarationsParams(pattern);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "search.findTopLevelDeclarations params", json);
@@ -21362,8 +19125,8 @@ class SearchFindTopLevelDeclarationsParams implements RequestParams {
   }
 
   factory SearchFindTopLevelDeclarationsParams.fromRequest(Request request) {
-    return new SearchFindTopLevelDeclarationsParams.fromJson(
-        new RequestDecoder(request), "params", request.params);
+    return SearchFindTopLevelDeclarationsParams.fromJson(
+        RequestDecoder(request), "params", request.params);
   }
 
   @override
@@ -21375,7 +19138,7 @@ class SearchFindTopLevelDeclarationsParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "search.findTopLevelDeclarations", toJson());
+    return Request(id, "search.findTopLevelDeclarations", toJson());
   }
 
   @override
@@ -21397,29 +19160,23 @@ class SearchFindTopLevelDeclarationsParams implements RequestParams {
   }
 }
 
-/**
- * search.findTopLevelDeclarations result
- *
- * {
- *   "id": SearchId
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// search.findTopLevelDeclarations result
+///
+/// {
+///   "id": SearchId
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class SearchFindTopLevelDeclarationsResult implements ResponseResult {
   String _id;
 
-  /**
-   * The identifier used to associate results with this search request.
-   */
+  /// The identifier used to associate results with this search request.
   String get id => _id;
 
-  /**
-   * The identifier used to associate results with this search request.
-   */
-  void set id(String value) {
+  /// The identifier used to associate results with this search request.
+  set id(String value) {
     assert(value != null);
-    this._id = value;
+    _id = value;
   }
 
   SearchFindTopLevelDeclarationsResult(String id) {
@@ -21428,9 +19185,7 @@ class SearchFindTopLevelDeclarationsResult implements ResponseResult {
 
   factory SearchFindTopLevelDeclarationsResult.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String id;
       if (json.containsKey("id")) {
@@ -21438,7 +19193,7 @@ class SearchFindTopLevelDeclarationsResult implements ResponseResult {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "id");
       }
-      return new SearchFindTopLevelDeclarationsResult(id);
+      return SearchFindTopLevelDeclarationsResult(id);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "search.findTopLevelDeclarations result", json);
@@ -21446,8 +19201,8 @@ class SearchFindTopLevelDeclarationsResult implements ResponseResult {
   }
 
   factory SearchFindTopLevelDeclarationsResult.fromResponse(Response response) {
-    return new SearchFindTopLevelDeclarationsResult.fromJson(
-        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+    return SearchFindTopLevelDeclarationsResult.fromJson(
+        ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         "result",
         response.result);
   }
@@ -21461,7 +19216,7 @@ class SearchFindTopLevelDeclarationsResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return new Response(id, result: toJson());
+    return Response(id, result: toJson());
   }
 
   @override
@@ -21483,17 +19238,15 @@ class SearchFindTopLevelDeclarationsResult implements ResponseResult {
   }
 }
 
-/**
- * search.getElementDeclarations params
- *
- * {
- *   "file": optional FilePath
- *   "pattern": optional String
- *   "maxResults": optional int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// search.getElementDeclarations params
+///
+/// {
+///   "file": optional FilePath
+///   "pattern": optional String
+///   "maxResults": optional int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class SearchGetElementDeclarationsParams implements RequestParams {
   String _file;
 
@@ -21501,46 +19254,34 @@ class SearchGetElementDeclarationsParams implements RequestParams {
 
   int _maxResults;
 
-  /**
-   * If this field is provided, return only declarations in this file. If this
-   * field is missing, return declarations in all files.
-   */
+  /// If this field is provided, return only declarations in this file. If this
+  /// field is missing, return declarations in all files.
   String get file => _file;
 
-  /**
-   * If this field is provided, return only declarations in this file. If this
-   * field is missing, return declarations in all files.
-   */
-  void set file(String value) {
-    this._file = value;
+  /// If this field is provided, return only declarations in this file. If this
+  /// field is missing, return declarations in all files.
+  set file(String value) {
+    _file = value;
   }
 
-  /**
-   * The regular expression used to match the names of declarations. If this
-   * field is missing, return all declarations.
-   */
+  /// The regular expression used to match the names of declarations. If this
+  /// field is missing, return all declarations.
   String get pattern => _pattern;
 
-  /**
-   * The regular expression used to match the names of declarations. If this
-   * field is missing, return all declarations.
-   */
-  void set pattern(String value) {
-    this._pattern = value;
+  /// The regular expression used to match the names of declarations. If this
+  /// field is missing, return all declarations.
+  set pattern(String value) {
+    _pattern = value;
   }
 
-  /**
-   * The maximum number of declarations to return. If this field is missing,
-   * return all matching declarations.
-   */
+  /// The maximum number of declarations to return. If this field is missing,
+  /// return all matching declarations.
   int get maxResults => _maxResults;
 
-  /**
-   * The maximum number of declarations to return. If this field is missing,
-   * return all matching declarations.
-   */
-  void set maxResults(int value) {
-    this._maxResults = value;
+  /// The maximum number of declarations to return. If this field is missing,
+  /// return all matching declarations.
+  set maxResults(int value) {
+    _maxResults = value;
   }
 
   SearchGetElementDeclarationsParams(
@@ -21552,9 +19293,7 @@ class SearchGetElementDeclarationsParams implements RequestParams {
 
   factory SearchGetElementDeclarationsParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -21570,7 +19309,7 @@ class SearchGetElementDeclarationsParams implements RequestParams {
         maxResults =
             jsonDecoder.decodeInt(jsonPath + ".maxResults", json["maxResults"]);
       }
-      return new SearchGetElementDeclarationsParams(
+      return SearchGetElementDeclarationsParams(
           file: file, pattern: pattern, maxResults: maxResults);
     } else {
       throw jsonDecoder.mismatch(
@@ -21579,8 +19318,8 @@ class SearchGetElementDeclarationsParams implements RequestParams {
   }
 
   factory SearchGetElementDeclarationsParams.fromRequest(Request request) {
-    return new SearchGetElementDeclarationsParams.fromJson(
-        new RequestDecoder(request), "params", request.params);
+    return SearchGetElementDeclarationsParams.fromJson(
+        RequestDecoder(request), "params", request.params);
   }
 
   @override
@@ -21600,7 +19339,7 @@ class SearchGetElementDeclarationsParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "search.getElementDeclarations", toJson());
+    return Request(id, "search.getElementDeclarations", toJson());
   }
 
   @override
@@ -21626,45 +19365,35 @@ class SearchGetElementDeclarationsParams implements RequestParams {
   }
 }
 
-/**
- * search.getElementDeclarations result
- *
- * {
- *   "declarations": List<ElementDeclaration>
- *   "files": List<FilePath>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// search.getElementDeclarations result
+///
+/// {
+///   "declarations": List<ElementDeclaration>
+///   "files": List<FilePath>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class SearchGetElementDeclarationsResult implements ResponseResult {
   List<ElementDeclaration> _declarations;
 
   List<String> _files;
 
-  /**
-   * The list of declarations.
-   */
+  /// The list of declarations.
   List<ElementDeclaration> get declarations => _declarations;
 
-  /**
-   * The list of declarations.
-   */
-  void set declarations(List<ElementDeclaration> value) {
+  /// The list of declarations.
+  set declarations(List<ElementDeclaration> value) {
     assert(value != null);
-    this._declarations = value;
+    _declarations = value;
   }
 
-  /**
-   * The list of the paths of files with declarations.
-   */
+  /// The list of the paths of files with declarations.
   List<String> get files => _files;
 
-  /**
-   * The list of the paths of files with declarations.
-   */
-  void set files(List<String> value) {
+  /// The list of the paths of files with declarations.
+  set files(List<String> value) {
     assert(value != null);
-    this._files = value;
+    _files = value;
   }
 
   SearchGetElementDeclarationsResult(
@@ -21675,9 +19404,7 @@ class SearchGetElementDeclarationsResult implements ResponseResult {
 
   factory SearchGetElementDeclarationsResult.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       List<ElementDeclaration> declarations;
       if (json.containsKey("declarations")) {
@@ -21685,7 +19412,7 @@ class SearchGetElementDeclarationsResult implements ResponseResult {
             jsonPath + ".declarations",
             json["declarations"],
             (String jsonPath, Object json) =>
-                new ElementDeclaration.fromJson(jsonDecoder, jsonPath, json));
+                ElementDeclaration.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "declarations");
       }
@@ -21696,7 +19423,7 @@ class SearchGetElementDeclarationsResult implements ResponseResult {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "files");
       }
-      return new SearchGetElementDeclarationsResult(declarations, files);
+      return SearchGetElementDeclarationsResult(declarations, files);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "search.getElementDeclarations result", json);
@@ -21704,8 +19431,8 @@ class SearchGetElementDeclarationsResult implements ResponseResult {
   }
 
   factory SearchGetElementDeclarationsResult.fromResponse(Response response) {
-    return new SearchGetElementDeclarationsResult.fromJson(
-        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+    return SearchGetElementDeclarationsResult.fromJson(
+        ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         "result",
         response.result);
   }
@@ -21721,7 +19448,7 @@ class SearchGetElementDeclarationsResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return new Response(id, result: toJson());
+    return Response(id, result: toJson());
   }
 
   @override
@@ -21746,17 +19473,15 @@ class SearchGetElementDeclarationsResult implements ResponseResult {
   }
 }
 
-/**
- * search.getTypeHierarchy params
- *
- * {
- *   "file": FilePath
- *   "offset": int
- *   "superOnly": optional bool
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// search.getTypeHierarchy params
+///
+/// {
+///   "file": FilePath
+///   "offset": int
+///   "superOnly": optional bool
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class SearchGetTypeHierarchyParams implements RequestParams {
   String _file;
 
@@ -21764,46 +19489,34 @@ class SearchGetTypeHierarchyParams implements RequestParams {
 
   bool _superOnly;
 
-  /**
-   * The file containing the declaration or reference to the type for which a
-   * hierarchy is being requested.
-   */
+  /// The file containing the declaration or reference to the type for which a
+  /// hierarchy is being requested.
   String get file => _file;
 
-  /**
-   * The file containing the declaration or reference to the type for which a
-   * hierarchy is being requested.
-   */
-  void set file(String value) {
+  /// The file containing the declaration or reference to the type for which a
+  /// hierarchy is being requested.
+  set file(String value) {
     assert(value != null);
-    this._file = value;
+    _file = value;
   }
 
-  /**
-   * The offset of the name of the type within the file.
-   */
+  /// The offset of the name of the type within the file.
   int get offset => _offset;
 
-  /**
-   * The offset of the name of the type within the file.
-   */
-  void set offset(int value) {
+  /// The offset of the name of the type within the file.
+  set offset(int value) {
     assert(value != null);
-    this._offset = value;
+    _offset = value;
   }
 
-  /**
-   * True if the client is only requesting superclasses and interfaces
-   * hierarchy.
-   */
+  /// True if the client is only requesting superclasses and interfaces
+  /// hierarchy.
   bool get superOnly => _superOnly;
 
-  /**
-   * True if the client is only requesting superclasses and interfaces
-   * hierarchy.
-   */
-  void set superOnly(bool value) {
-    this._superOnly = value;
+  /// True if the client is only requesting superclasses and interfaces
+  /// hierarchy.
+  set superOnly(bool value) {
+    _superOnly = value;
   }
 
   SearchGetTypeHierarchyParams(String file, int offset, {bool superOnly}) {
@@ -21814,9 +19527,7 @@ class SearchGetTypeHierarchyParams implements RequestParams {
 
   factory SearchGetTypeHierarchyParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -21835,8 +19546,7 @@ class SearchGetTypeHierarchyParams implements RequestParams {
         superOnly =
             jsonDecoder.decodeBool(jsonPath + ".superOnly", json["superOnly"]);
       }
-      return new SearchGetTypeHierarchyParams(file, offset,
-          superOnly: superOnly);
+      return SearchGetTypeHierarchyParams(file, offset, superOnly: superOnly);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "search.getTypeHierarchy params", json);
@@ -21844,8 +19554,8 @@ class SearchGetTypeHierarchyParams implements RequestParams {
   }
 
   factory SearchGetTypeHierarchyParams.fromRequest(Request request) {
-    return new SearchGetTypeHierarchyParams.fromJson(
-        new RequestDecoder(request), "params", request.params);
+    return SearchGetTypeHierarchyParams.fromJson(
+        RequestDecoder(request), "params", request.params);
   }
 
   @override
@@ -21861,7 +19571,7 @@ class SearchGetTypeHierarchyParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "search.getTypeHierarchy", toJson());
+    return Request(id, "search.getTypeHierarchy", toJson());
   }
 
   @override
@@ -21887,44 +19597,38 @@ class SearchGetTypeHierarchyParams implements RequestParams {
   }
 }
 
-/**
- * search.getTypeHierarchy result
- *
- * {
- *   "hierarchyItems": optional List<TypeHierarchyItem>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// search.getTypeHierarchy result
+///
+/// {
+///   "hierarchyItems": optional List<TypeHierarchyItem>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class SearchGetTypeHierarchyResult implements ResponseResult {
   List<TypeHierarchyItem> _hierarchyItems;
 
-  /**
-   * A list of the types in the requested hierarchy. The first element of the
-   * list is the item representing the type for which the hierarchy was
-   * requested. The index of other elements of the list is unspecified, but
-   * correspond to the integers used to reference supertype and subtype items
-   * within the items.
-   *
-   * This field will be absent if the code at the given file and offset does
-   * not represent a type, or if the file has not been sufficiently analyzed to
-   * allow a type hierarchy to be produced.
-   */
+  /// A list of the types in the requested hierarchy. The first element of the
+  /// list is the item representing the type for which the hierarchy was
+  /// requested. The index of other elements of the list is unspecified, but
+  /// correspond to the integers used to reference supertype and subtype items
+  /// within the items.
+  ///
+  /// This field will be absent if the code at the given file and offset does
+  /// not represent a type, or if the file has not been sufficiently analyzed
+  /// to allow a type hierarchy to be produced.
   List<TypeHierarchyItem> get hierarchyItems => _hierarchyItems;
 
-  /**
-   * A list of the types in the requested hierarchy. The first element of the
-   * list is the item representing the type for which the hierarchy was
-   * requested. The index of other elements of the list is unspecified, but
-   * correspond to the integers used to reference supertype and subtype items
-   * within the items.
-   *
-   * This field will be absent if the code at the given file and offset does
-   * not represent a type, or if the file has not been sufficiently analyzed to
-   * allow a type hierarchy to be produced.
-   */
-  void set hierarchyItems(List<TypeHierarchyItem> value) {
-    this._hierarchyItems = value;
+  /// A list of the types in the requested hierarchy. The first element of the
+  /// list is the item representing the type for which the hierarchy was
+  /// requested. The index of other elements of the list is unspecified, but
+  /// correspond to the integers used to reference supertype and subtype items
+  /// within the items.
+  ///
+  /// This field will be absent if the code at the given file and offset does
+  /// not represent a type, or if the file has not been sufficiently analyzed
+  /// to allow a type hierarchy to be produced.
+  set hierarchyItems(List<TypeHierarchyItem> value) {
+    _hierarchyItems = value;
   }
 
   SearchGetTypeHierarchyResult({List<TypeHierarchyItem> hierarchyItems}) {
@@ -21933,9 +19637,7 @@ class SearchGetTypeHierarchyResult implements ResponseResult {
 
   factory SearchGetTypeHierarchyResult.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       List<TypeHierarchyItem> hierarchyItems;
       if (json.containsKey("hierarchyItems")) {
@@ -21943,9 +19645,9 @@ class SearchGetTypeHierarchyResult implements ResponseResult {
             jsonPath + ".hierarchyItems",
             json["hierarchyItems"],
             (String jsonPath, Object json) =>
-                new TypeHierarchyItem.fromJson(jsonDecoder, jsonPath, json));
+                TypeHierarchyItem.fromJson(jsonDecoder, jsonPath, json));
       }
-      return new SearchGetTypeHierarchyResult(hierarchyItems: hierarchyItems);
+      return SearchGetTypeHierarchyResult(hierarchyItems: hierarchyItems);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "search.getTypeHierarchy result", json);
@@ -21953,8 +19655,8 @@ class SearchGetTypeHierarchyResult implements ResponseResult {
   }
 
   factory SearchGetTypeHierarchyResult.fromResponse(Response response) {
-    return new SearchGetTypeHierarchyResult.fromJson(
-        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+    return SearchGetTypeHierarchyResult.fromJson(
+        ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         "result",
         response.result);
   }
@@ -21972,7 +19674,7 @@ class SearchGetTypeHierarchyResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return new Response(id, result: toJson());
+    return Response(id, result: toJson());
   }
 
   @override
@@ -21995,18 +19697,16 @@ class SearchGetTypeHierarchyResult implements ResponseResult {
   }
 }
 
-/**
- * SearchResult
- *
- * {
- *   "location": Location
- *   "kind": SearchResultKind
- *   "isPotential": bool
- *   "path": List<Element>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// SearchResult
+///
+/// {
+///   "location": Location
+///   "kind": SearchResultKind
+///   "isPotential": bool
+///   "path": List<Element>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class SearchResult implements HasToJson {
   Location _location;
 
@@ -22016,66 +19716,50 @@ class SearchResult implements HasToJson {
 
   List<Element> _path;
 
-  /**
-   * The location of the code that matched the search criteria.
-   */
+  /// The location of the code that matched the search criteria.
   Location get location => _location;
 
-  /**
-   * The location of the code that matched the search criteria.
-   */
-  void set location(Location value) {
+  /// The location of the code that matched the search criteria.
+  set location(Location value) {
     assert(value != null);
-    this._location = value;
+    _location = value;
   }
 
-  /**
-   * The kind of element that was found or the kind of reference that was
-   * found.
-   */
+  /// The kind of element that was found or the kind of reference that was
+  /// found.
   SearchResultKind get kind => _kind;
 
-  /**
-   * The kind of element that was found or the kind of reference that was
-   * found.
-   */
-  void set kind(SearchResultKind value) {
+  /// The kind of element that was found or the kind of reference that was
+  /// found.
+  set kind(SearchResultKind value) {
     assert(value != null);
-    this._kind = value;
+    _kind = value;
   }
 
-  /**
-   * True if the result is a potential match but cannot be confirmed to be a
-   * match. For example, if all references to a method m defined in some class
-   * were requested, and a reference to a method m from an unknown class were
-   * found, it would be marked as being a potential match.
-   */
+  /// True if the result is a potential match but cannot be confirmed to be a
+  /// match. For example, if all references to a method m defined in some class
+  /// were requested, and a reference to a method m from an unknown class were
+  /// found, it would be marked as being a potential match.
   bool get isPotential => _isPotential;
 
-  /**
-   * True if the result is a potential match but cannot be confirmed to be a
-   * match. For example, if all references to a method m defined in some class
-   * were requested, and a reference to a method m from an unknown class were
-   * found, it would be marked as being a potential match.
-   */
-  void set isPotential(bool value) {
+  /// True if the result is a potential match but cannot be confirmed to be a
+  /// match. For example, if all references to a method m defined in some class
+  /// were requested, and a reference to a method m from an unknown class were
+  /// found, it would be marked as being a potential match.
+  set isPotential(bool value) {
     assert(value != null);
-    this._isPotential = value;
+    _isPotential = value;
   }
 
-  /**
-   * The elements that contain the result, starting with the most immediately
-   * enclosing ancestor and ending with the library.
-   */
+  /// The elements that contain the result, starting with the most immediately
+  /// enclosing ancestor and ending with the library.
   List<Element> get path => _path;
 
-  /**
-   * The elements that contain the result, starting with the most immediately
-   * enclosing ancestor and ending with the library.
-   */
-  void set path(List<Element> value) {
+  /// The elements that contain the result, starting with the most immediately
+  /// enclosing ancestor and ending with the library.
+  set path(List<Element> value) {
     assert(value != null);
-    this._path = value;
+    _path = value;
   }
 
   SearchResult(Location location, SearchResultKind kind, bool isPotential,
@@ -22088,20 +19772,18 @@ class SearchResult implements HasToJson {
 
   factory SearchResult.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       Location location;
       if (json.containsKey("location")) {
-        location = new Location.fromJson(
+        location = Location.fromJson(
             jsonDecoder, jsonPath + ".location", json["location"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "location");
       }
       SearchResultKind kind;
       if (json.containsKey("kind")) {
-        kind = new SearchResultKind.fromJson(
+        kind = SearchResultKind.fromJson(
             jsonDecoder, jsonPath + ".kind", json["kind"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "kind");
@@ -22119,11 +19801,11 @@ class SearchResult implements HasToJson {
             jsonPath + ".path",
             json["path"],
             (String jsonPath, Object json) =>
-                new Element.fromJson(jsonDecoder, jsonPath, json));
+                Element.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "path");
       }
-      return new SearchResult(location, kind, isPotential, path);
+      return SearchResult(location, kind, isPotential, path);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "SearchResult", json);
     }
@@ -22164,66 +19846,44 @@ class SearchResult implements HasToJson {
   }
 }
 
-/**
- * SearchResultKind
- *
- * enum {
- *   DECLARATION
- *   INVOCATION
- *   READ
- *   READ_WRITE
- *   REFERENCE
- *   UNKNOWN
- *   WRITE
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// SearchResultKind
+///
+/// enum {
+///   DECLARATION
+///   INVOCATION
+///   READ
+///   READ_WRITE
+///   REFERENCE
+///   UNKNOWN
+///   WRITE
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class SearchResultKind implements Enum {
-  /**
-   * The declaration of an element.
-   */
-  static const SearchResultKind DECLARATION =
-      const SearchResultKind._("DECLARATION");
+  /// The declaration of an element.
+  static const SearchResultKind DECLARATION = SearchResultKind._("DECLARATION");
 
-  /**
-   * The invocation of a function or method.
-   */
-  static const SearchResultKind INVOCATION =
-      const SearchResultKind._("INVOCATION");
+  /// The invocation of a function or method.
+  static const SearchResultKind INVOCATION = SearchResultKind._("INVOCATION");
 
-  /**
-   * A reference to a field, parameter or variable where it is being read.
-   */
-  static const SearchResultKind READ = const SearchResultKind._("READ");
+  /// A reference to a field, parameter or variable where it is being read.
+  static const SearchResultKind READ = SearchResultKind._("READ");
 
-  /**
-   * A reference to a field, parameter or variable where it is being read and
-   * written.
-   */
-  static const SearchResultKind READ_WRITE =
-      const SearchResultKind._("READ_WRITE");
+  /// A reference to a field, parameter or variable where it is being read and
+  /// written.
+  static const SearchResultKind READ_WRITE = SearchResultKind._("READ_WRITE");
 
-  /**
-   * A reference to an element.
-   */
-  static const SearchResultKind REFERENCE =
-      const SearchResultKind._("REFERENCE");
+  /// A reference to an element.
+  static const SearchResultKind REFERENCE = SearchResultKind._("REFERENCE");
 
-  /**
-   * Some other kind of search result.
-   */
-  static const SearchResultKind UNKNOWN = const SearchResultKind._("UNKNOWN");
+  /// Some other kind of search result.
+  static const SearchResultKind UNKNOWN = SearchResultKind._("UNKNOWN");
 
-  /**
-   * A reference to a field, parameter or variable where it is being written.
-   */
-  static const SearchResultKind WRITE = const SearchResultKind._("WRITE");
+  /// A reference to a field, parameter or variable where it is being written.
+  static const SearchResultKind WRITE = SearchResultKind._("WRITE");
 
-  /**
-   * A list containing all of the enum values that are defined.
-   */
-  static const List<SearchResultKind> VALUES = const <SearchResultKind>[
+  /// A list containing all of the enum values that are defined.
+  static const List<SearchResultKind> VALUES = <SearchResultKind>[
     DECLARATION,
     INVOCATION,
     READ,
@@ -22255,14 +19915,14 @@ class SearchResultKind implements Enum {
       case "WRITE":
         return WRITE;
     }
-    throw new Exception('Illegal enum value: $name');
+    throw Exception('Illegal enum value: $name');
   }
 
   factory SearchResultKind.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json is String) {
       try {
-        return new SearchResultKind(json);
+        return SearchResultKind(json);
       } catch (_) {
         // Fall through
       }
@@ -22276,17 +19936,15 @@ class SearchResultKind implements Enum {
   String toJson() => name;
 }
 
-/**
- * search.results params
- *
- * {
- *   "id": SearchId
- *   "results": List<SearchResult>
- *   "isLast": bool
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// search.results params
+///
+/// {
+///   "id": SearchId
+///   "results": List<SearchResult>
+///   "isLast": bool
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class SearchResultsParams implements HasToJson {
   String _id;
 
@@ -22294,45 +19952,33 @@ class SearchResultsParams implements HasToJson {
 
   bool _isLast;
 
-  /**
-   * The id associated with the search.
-   */
+  /// The id associated with the search.
   String get id => _id;
 
-  /**
-   * The id associated with the search.
-   */
-  void set id(String value) {
+  /// The id associated with the search.
+  set id(String value) {
     assert(value != null);
-    this._id = value;
+    _id = value;
   }
 
-  /**
-   * The search results being reported.
-   */
+  /// The search results being reported.
   List<SearchResult> get results => _results;
 
-  /**
-   * The search results being reported.
-   */
-  void set results(List<SearchResult> value) {
+  /// The search results being reported.
+  set results(List<SearchResult> value) {
     assert(value != null);
-    this._results = value;
+    _results = value;
   }
 
-  /**
-   * True if this is that last set of results that will be returned for the
-   * indicated search.
-   */
+  /// True if this is that last set of results that will be returned for the
+  /// indicated search.
   bool get isLast => _isLast;
 
-  /**
-   * True if this is that last set of results that will be returned for the
-   * indicated search.
-   */
-  void set isLast(bool value) {
+  /// True if this is that last set of results that will be returned for the
+  /// indicated search.
+  set isLast(bool value) {
     assert(value != null);
-    this._isLast = value;
+    _isLast = value;
   }
 
   SearchResultsParams(String id, List<SearchResult> results, bool isLast) {
@@ -22343,9 +19989,7 @@ class SearchResultsParams implements HasToJson {
 
   factory SearchResultsParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String id;
       if (json.containsKey("id")) {
@@ -22359,7 +20003,7 @@ class SearchResultsParams implements HasToJson {
             jsonPath + ".results",
             json["results"],
             (String jsonPath, Object json) =>
-                new SearchResult.fromJson(jsonDecoder, jsonPath, json));
+                SearchResult.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "results");
       }
@@ -22369,15 +20013,15 @@ class SearchResultsParams implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "isLast");
       }
-      return new SearchResultsParams(id, results, isLast);
+      return SearchResultsParams(id, results, isLast);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "search.results params", json);
     }
   }
 
   factory SearchResultsParams.fromNotification(Notification notification) {
-    return new SearchResultsParams.fromJson(
-        new ResponseDecoder(null), "params", notification.params);
+    return SearchResultsParams.fromJson(
+        ResponseDecoder(null), "params", notification.params);
   }
 
   @override
@@ -22391,7 +20035,7 @@ class SearchResultsParams implements HasToJson {
   }
 
   Notification toNotification() {
-    return new Notification("search.results", toJson());
+    return Notification("search.results", toJson());
   }
 
   @override
@@ -22418,45 +20062,35 @@ class SearchResultsParams implements HasToJson {
   }
 }
 
-/**
- * server.connected params
- *
- * {
- *   "version": String
- *   "pid": int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// server.connected params
+///
+/// {
+///   "version": String
+///   "pid": int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ServerConnectedParams implements HasToJson {
   String _version;
 
   int _pid;
 
-  /**
-   * The version number of the analysis server.
-   */
+  /// The version number of the analysis server.
   String get version => _version;
 
-  /**
-   * The version number of the analysis server.
-   */
-  void set version(String value) {
+  /// The version number of the analysis server.
+  set version(String value) {
     assert(value != null);
-    this._version = value;
+    _version = value;
   }
 
-  /**
-   * The process id of the analysis server process.
-   */
+  /// The process id of the analysis server process.
   int get pid => _pid;
 
-  /**
-   * The process id of the analysis server process.
-   */
-  void set pid(int value) {
+  /// The process id of the analysis server process.
+  set pid(int value) {
     assert(value != null);
-    this._pid = value;
+    _pid = value;
   }
 
   ServerConnectedParams(String version, int pid) {
@@ -22466,9 +20100,7 @@ class ServerConnectedParams implements HasToJson {
 
   factory ServerConnectedParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String version;
       if (json.containsKey("version")) {
@@ -22483,15 +20115,15 @@ class ServerConnectedParams implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "pid");
       }
-      return new ServerConnectedParams(version, pid);
+      return ServerConnectedParams(version, pid);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "server.connected params", json);
     }
   }
 
   factory ServerConnectedParams.fromNotification(Notification notification) {
-    return new ServerConnectedParams.fromJson(
-        new ResponseDecoder(null), "params", notification.params);
+    return ServerConnectedParams.fromJson(
+        ResponseDecoder(null), "params", notification.params);
   }
 
   @override
@@ -22503,7 +20135,7 @@ class ServerConnectedParams implements HasToJson {
   }
 
   Notification toNotification() {
-    return new Notification("server.connected", toJson());
+    return Notification("server.connected", toJson());
   }
 
   @override
@@ -22526,17 +20158,15 @@ class ServerConnectedParams implements HasToJson {
   }
 }
 
-/**
- * server.error params
- *
- * {
- *   "isFatal": bool
- *   "message": String
- *   "stackTrace": String
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// server.error params
+///
+/// {
+///   "isFatal": bool
+///   "message": String
+///   "stackTrace": String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ServerErrorParams implements HasToJson {
   bool _isFatal;
 
@@ -22544,47 +20174,35 @@ class ServerErrorParams implements HasToJson {
 
   String _stackTrace;
 
-  /**
-   * True if the error is a fatal error, meaning that the server will shutdown
-   * automatically after sending this notification.
-   */
+  /// True if the error is a fatal error, meaning that the server will shutdown
+  /// automatically after sending this notification.
   bool get isFatal => _isFatal;
 
-  /**
-   * True if the error is a fatal error, meaning that the server will shutdown
-   * automatically after sending this notification.
-   */
-  void set isFatal(bool value) {
+  /// True if the error is a fatal error, meaning that the server will shutdown
+  /// automatically after sending this notification.
+  set isFatal(bool value) {
     assert(value != null);
-    this._isFatal = value;
+    _isFatal = value;
   }
 
-  /**
-   * The error message indicating what kind of error was encountered.
-   */
+  /// The error message indicating what kind of error was encountered.
   String get message => _message;
 
-  /**
-   * The error message indicating what kind of error was encountered.
-   */
-  void set message(String value) {
+  /// The error message indicating what kind of error was encountered.
+  set message(String value) {
     assert(value != null);
-    this._message = value;
+    _message = value;
   }
 
-  /**
-   * The stack trace associated with the generation of the error, used for
-   * debugging the server.
-   */
+  /// The stack trace associated with the generation of the error, used for
+  /// debugging the server.
   String get stackTrace => _stackTrace;
 
-  /**
-   * The stack trace associated with the generation of the error, used for
-   * debugging the server.
-   */
-  void set stackTrace(String value) {
+  /// The stack trace associated with the generation of the error, used for
+  /// debugging the server.
+  set stackTrace(String value) {
     assert(value != null);
-    this._stackTrace = value;
+    _stackTrace = value;
   }
 
   ServerErrorParams(bool isFatal, String message, String stackTrace) {
@@ -22595,9 +20213,7 @@ class ServerErrorParams implements HasToJson {
 
   factory ServerErrorParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       bool isFatal;
       if (json.containsKey("isFatal")) {
@@ -22620,15 +20236,15 @@ class ServerErrorParams implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "stackTrace");
       }
-      return new ServerErrorParams(isFatal, message, stackTrace);
+      return ServerErrorParams(isFatal, message, stackTrace);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "server.error params", json);
     }
   }
 
   factory ServerErrorParams.fromNotification(Notification notification) {
-    return new ServerErrorParams.fromJson(
-        new ResponseDecoder(null), "params", notification.params);
+    return ServerErrorParams.fromJson(
+        ResponseDecoder(null), "params", notification.params);
   }
 
   @override
@@ -22641,7 +20257,7 @@ class ServerErrorParams implements HasToJson {
   }
 
   Notification toNotification() {
-    return new Notification("server.error", toJson());
+    return Notification("server.error", toJson());
   }
 
   @override
@@ -22667,18 +20283,16 @@ class ServerErrorParams implements HasToJson {
   }
 }
 
-/**
- * server.getVersion params
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// server.getVersion params
+///
+/// Clients may not extend, implement or mix-in this class.
 class ServerGetVersionParams implements RequestParams {
   @override
   Map<String, dynamic> toJson() => <String, dynamic>{};
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "server.getVersion", null);
+    return Request(id, "server.getVersion", null);
   }
 
   @override
@@ -22695,29 +20309,23 @@ class ServerGetVersionParams implements RequestParams {
   }
 }
 
-/**
- * server.getVersion result
- *
- * {
- *   "version": String
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// server.getVersion result
+///
+/// {
+///   "version": String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ServerGetVersionResult implements ResponseResult {
   String _version;
 
-  /**
-   * The version number of the analysis server.
-   */
+  /// The version number of the analysis server.
   String get version => _version;
 
-  /**
-   * The version number of the analysis server.
-   */
-  void set version(String value) {
+  /// The version number of the analysis server.
+  set version(String value) {
     assert(value != null);
-    this._version = value;
+    _version = value;
   }
 
   ServerGetVersionResult(String version) {
@@ -22726,9 +20334,7 @@ class ServerGetVersionResult implements ResponseResult {
 
   factory ServerGetVersionResult.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String version;
       if (json.containsKey("version")) {
@@ -22737,15 +20343,15 @@ class ServerGetVersionResult implements ResponseResult {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "version");
       }
-      return new ServerGetVersionResult(version);
+      return ServerGetVersionResult(version);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "server.getVersion result", json);
     }
   }
 
   factory ServerGetVersionResult.fromResponse(Response response) {
-    return new ServerGetVersionResult.fromJson(
-        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+    return ServerGetVersionResult.fromJson(
+        ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
         "result",
         response.result);
   }
@@ -22759,7 +20365,7 @@ class ServerGetVersionResult implements ResponseResult {
 
   @override
   Response toResponse(String id) {
-    return new Response(id, result: toJson());
+    return Response(id, result: toJson());
   }
 
   @override
@@ -22781,17 +20387,15 @@ class ServerGetVersionResult implements ResponseResult {
   }
 }
 
-/**
- * ServerLogEntry
- *
- * {
- *   "time": int
- *   "kind": ServerLogEntryKind
- *   "data": String
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// ServerLogEntry
+///
+/// {
+///   "time": int
+///   "kind": ServerLogEntryKind
+///   "data": String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ServerLogEntry implements HasToJson {
   int _time;
 
@@ -22799,49 +20403,37 @@ class ServerLogEntry implements HasToJson {
 
   String _data;
 
-  /**
-   * The time (milliseconds since epoch) at which the server created this log
-   * entry.
-   */
+  /// The time (milliseconds since epoch) at which the server created this log
+  /// entry.
   int get time => _time;
 
-  /**
-   * The time (milliseconds since epoch) at which the server created this log
-   * entry.
-   */
-  void set time(int value) {
+  /// The time (milliseconds since epoch) at which the server created this log
+  /// entry.
+  set time(int value) {
     assert(value != null);
-    this._time = value;
+    _time = value;
   }
 
-  /**
-   * The kind of the entry, used to determine how to interpret the "data"
-   * field.
-   */
+  /// The kind of the entry, used to determine how to interpret the "data"
+  /// field.
   ServerLogEntryKind get kind => _kind;
 
-  /**
-   * The kind of the entry, used to determine how to interpret the "data"
-   * field.
-   */
-  void set kind(ServerLogEntryKind value) {
+  /// The kind of the entry, used to determine how to interpret the "data"
+  /// field.
+  set kind(ServerLogEntryKind value) {
     assert(value != null);
-    this._kind = value;
+    _kind = value;
   }
 
-  /**
-   * The payload of the entry, the actual format is determined by the "kind"
-   * field.
-   */
+  /// The payload of the entry, the actual format is determined by the "kind"
+  /// field.
   String get data => _data;
 
-  /**
-   * The payload of the entry, the actual format is determined by the "kind"
-   * field.
-   */
-  void set data(String value) {
+  /// The payload of the entry, the actual format is determined by the "kind"
+  /// field.
+  set data(String value) {
     assert(value != null);
-    this._data = value;
+    _data = value;
   }
 
   ServerLogEntry(int time, ServerLogEntryKind kind, String data) {
@@ -22852,9 +20444,7 @@ class ServerLogEntry implements HasToJson {
 
   factory ServerLogEntry.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       int time;
       if (json.containsKey("time")) {
@@ -22864,7 +20454,7 @@ class ServerLogEntry implements HasToJson {
       }
       ServerLogEntryKind kind;
       if (json.containsKey("kind")) {
-        kind = new ServerLogEntryKind.fromJson(
+        kind = ServerLogEntryKind.fromJson(
             jsonDecoder, jsonPath + ".kind", json["kind"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "kind");
@@ -22875,7 +20465,7 @@ class ServerLogEntry implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "data");
       }
-      return new ServerLogEntry(time, kind, data);
+      return ServerLogEntry(time, kind, data);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "ServerLogEntry", json);
     }
@@ -22911,62 +20501,50 @@ class ServerLogEntry implements HasToJson {
   }
 }
 
-/**
- * ServerLogEntryKind
- *
- * enum {
- *   NOTIFICATION
- *   RAW
- *   REQUEST
- *   RESPONSE
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// ServerLogEntryKind
+///
+/// enum {
+///   NOTIFICATION
+///   RAW
+///   REQUEST
+///   RESPONSE
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ServerLogEntryKind implements Enum {
-  /**
-   * A notification from the server, such as "analysis.highlights". The "data"
-   * field contains a JSON object with abbreviated notification.
-   */
+  /// A notification from the server, such as "analysis.highlights". The "data"
+  /// field contains a JSON object with abbreviated notification.
   static const ServerLogEntryKind NOTIFICATION =
-      const ServerLogEntryKind._("NOTIFICATION");
+      ServerLogEntryKind._("NOTIFICATION");
 
-  /**
-   * Arbitrary string, describing some event that happened in the server, e.g.
-   * starting a file analysis, and details which files were accessed. These
-   * entries are not structured, but provide context information about requests
-   * and notification, and can be related by "time" for further manual
-   * analysis.
-   */
-  static const ServerLogEntryKind RAW = const ServerLogEntryKind._("RAW");
+  /// Arbitrary string, describing some event that happened in the server, e.g.
+  /// starting a file analysis, and details which files were accessed. These
+  /// entries are not structured, but provide context information about
+  /// requests and notification, and can be related by "time" for further
+  /// manual analysis.
+  static const ServerLogEntryKind RAW = ServerLogEntryKind._("RAW");
 
-  /**
-   * A request from the client, as the server views it, e.g. "edit.getAssists".
-   * The "data" field contains a JSON object with abbreviated request.
-   */
-  static const ServerLogEntryKind REQUEST =
-      const ServerLogEntryKind._("REQUEST");
+  /// A request from the client, as the server views it, e.g.
+  /// "edit.getAssists". The "data" field contains a JSON object with
+  /// abbreviated request.
+  static const ServerLogEntryKind REQUEST = ServerLogEntryKind._("REQUEST");
 
-  /**
-   * Various counters and measurements related to execution of a request. The
-   * "data" field contains a JSON object with following fields:
-   *
-   * - "id" - the id of the request - copied from the request.
-   * - "method" - the method of the request, e.g. "edit.getAssists".
-   * - "clientRequestTime" - the time (milliseconds since epoch) at which the
-   *   client made the request - copied from the request.
-   * - "serverRequestTime" - the time (milliseconds since epoch) at which the
-   *   server received and decoded the JSON request.
-   * - "responseTime" - the time (milliseconds since epoch) at which the server
-   *   created the response to be encoded into JSON and sent to the client.
-   */
-  static const ServerLogEntryKind RESPONSE =
-      const ServerLogEntryKind._("RESPONSE");
+  /// Various counters and measurements related to execution of a request. The
+  /// "data" field contains a JSON object with following fields:
+  ///
+  /// - "id" - the id of the request - copied from the request.
+  /// - "method" - the method of the request, e.g. "edit.getAssists".
+  /// - "clientRequestTime" - the time (milliseconds since epoch) at which the
+  ///   client made the request - copied from the request.
+  /// - "serverRequestTime" - the time (milliseconds since epoch) at which the
+  ///   server received and decoded the JSON request.
+  /// - "responseTime" - the time (milliseconds since epoch) at which the
+  ///   server created the response to be encoded into JSON and sent to the
+  ///   client.
+  static const ServerLogEntryKind RESPONSE = ServerLogEntryKind._("RESPONSE");
 
-  /**
-   * A list containing all of the enum values that are defined.
-   */
-  static const List<ServerLogEntryKind> VALUES = const <ServerLogEntryKind>[
+  /// A list containing all of the enum values that are defined.
+  static const List<ServerLogEntryKind> VALUES = <ServerLogEntryKind>[
     NOTIFICATION,
     RAW,
     REQUEST,
@@ -22989,14 +20567,14 @@ class ServerLogEntryKind implements Enum {
       case "RESPONSE":
         return RESPONSE;
     }
-    throw new Exception('Illegal enum value: $name');
+    throw Exception('Illegal enum value: $name');
   }
 
   factory ServerLogEntryKind.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json is String) {
       try {
-        return new ServerLogEntryKind(json);
+        return ServerLogEntryKind(json);
       } catch (_) {
         // Fall through
       }
@@ -23010,23 +20588,21 @@ class ServerLogEntryKind implements Enum {
   String toJson() => name;
 }
 
-/**
- * server.log params
- *
- * {
- *   "entry": ServerLogEntry
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// server.log params
+///
+/// {
+///   "entry": ServerLogEntry
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ServerLogParams implements HasToJson {
   ServerLogEntry _entry;
 
   ServerLogEntry get entry => _entry;
 
-  void set entry(ServerLogEntry value) {
+  set entry(ServerLogEntry value) {
     assert(value != null);
-    this._entry = value;
+    _entry = value;
   }
 
   ServerLogParams(ServerLogEntry entry) {
@@ -23035,26 +20611,24 @@ class ServerLogParams implements HasToJson {
 
   factory ServerLogParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       ServerLogEntry entry;
       if (json.containsKey("entry")) {
-        entry = new ServerLogEntry.fromJson(
+        entry = ServerLogEntry.fromJson(
             jsonDecoder, jsonPath + ".entry", json["entry"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "entry");
       }
-      return new ServerLogParams(entry);
+      return ServerLogParams(entry);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "server.log params", json);
     }
   }
 
   factory ServerLogParams.fromNotification(Notification notification) {
-    return new ServerLogParams.fromJson(
-        new ResponseDecoder(null), "params", notification.params);
+    return ServerLogParams.fromJson(
+        ResponseDecoder(null), "params", notification.params);
   }
 
   @override
@@ -23065,7 +20639,7 @@ class ServerLogParams implements HasToJson {
   }
 
   Notification toNotification() {
-    return new Notification("server.log", toJson());
+    return Notification("server.log", toJson());
   }
 
   @override
@@ -23087,25 +20661,21 @@ class ServerLogParams implements HasToJson {
   }
 }
 
-/**
- * ServerService
- *
- * enum {
- *   LOG
- *   STATUS
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// ServerService
+///
+/// enum {
+///   LOG
+///   STATUS
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ServerService implements Enum {
-  static const ServerService LOG = const ServerService._("LOG");
+  static const ServerService LOG = ServerService._("LOG");
 
-  static const ServerService STATUS = const ServerService._("STATUS");
+  static const ServerService STATUS = ServerService._("STATUS");
 
-  /**
-   * A list containing all of the enum values that are defined.
-   */
-  static const List<ServerService> VALUES = const <ServerService>[LOG, STATUS];
+  /// A list containing all of the enum values that are defined.
+  static const List<ServerService> VALUES = <ServerService>[LOG, STATUS];
 
   @override
   final String name;
@@ -23119,14 +20689,14 @@ class ServerService implements Enum {
       case "STATUS":
         return STATUS;
     }
-    throw new Exception('Illegal enum value: $name');
+    throw Exception('Illegal enum value: $name');
   }
 
   factory ServerService.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json is String) {
       try {
-        return new ServerService(json);
+        return ServerService(json);
       } catch (_) {
         // Fall through
       }
@@ -23140,29 +20710,23 @@ class ServerService implements Enum {
   String toJson() => name;
 }
 
-/**
- * server.setSubscriptions params
- *
- * {
- *   "subscriptions": List<ServerService>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// server.setSubscriptions params
+///
+/// {
+///   "subscriptions": List<ServerService>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ServerSetSubscriptionsParams implements RequestParams {
   List<ServerService> _subscriptions;
 
-  /**
-   * A list of the services being subscribed to.
-   */
+  /// A list of the services being subscribed to.
   List<ServerService> get subscriptions => _subscriptions;
 
-  /**
-   * A list of the services being subscribed to.
-   */
-  void set subscriptions(List<ServerService> value) {
+  /// A list of the services being subscribed to.
+  set subscriptions(List<ServerService> value) {
     assert(value != null);
-    this._subscriptions = value;
+    _subscriptions = value;
   }
 
   ServerSetSubscriptionsParams(List<ServerService> subscriptions) {
@@ -23171,9 +20735,7 @@ class ServerSetSubscriptionsParams implements RequestParams {
 
   factory ServerSetSubscriptionsParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       List<ServerService> subscriptions;
       if (json.containsKey("subscriptions")) {
@@ -23181,11 +20743,11 @@ class ServerSetSubscriptionsParams implements RequestParams {
             jsonPath + ".subscriptions",
             json["subscriptions"],
             (String jsonPath, Object json) =>
-                new ServerService.fromJson(jsonDecoder, jsonPath, json));
+                ServerService.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "subscriptions");
       }
-      return new ServerSetSubscriptionsParams(subscriptions);
+      return ServerSetSubscriptionsParams(subscriptions);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, "server.setSubscriptions params", json);
@@ -23193,8 +20755,8 @@ class ServerSetSubscriptionsParams implements RequestParams {
   }
 
   factory ServerSetSubscriptionsParams.fromRequest(Request request) {
-    return new ServerSetSubscriptionsParams.fromJson(
-        new RequestDecoder(request), "params", request.params);
+    return ServerSetSubscriptionsParams.fromJson(
+        RequestDecoder(request), "params", request.params);
   }
 
   @override
@@ -23207,7 +20769,7 @@ class ServerSetSubscriptionsParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "server.setSubscriptions", toJson());
+    return Request(id, "server.setSubscriptions", toJson());
   }
 
   @override
@@ -23230,18 +20792,16 @@ class ServerSetSubscriptionsParams implements RequestParams {
   }
 }
 
-/**
- * server.setSubscriptions result
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// server.setSubscriptions result
+///
+/// Clients may not extend, implement or mix-in this class.
 class ServerSetSubscriptionsResult implements ResponseResult {
   @override
   Map<String, dynamic> toJson() => <String, dynamic>{};
 
   @override
   Response toResponse(String id) {
-    return new Response(id, result: null);
+    return Response(id, result: null);
   }
 
   @override
@@ -23258,18 +20818,16 @@ class ServerSetSubscriptionsResult implements ResponseResult {
   }
 }
 
-/**
- * server.shutdown params
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// server.shutdown params
+///
+/// Clients may not extend, implement or mix-in this class.
 class ServerShutdownParams implements RequestParams {
   @override
   Map<String, dynamic> toJson() => <String, dynamic>{};
 
   @override
   Request toRequest(String id) {
-    return new Request(id, "server.shutdown", null);
+    return Request(id, "server.shutdown", null);
   }
 
   @override
@@ -23286,18 +20844,16 @@ class ServerShutdownParams implements RequestParams {
   }
 }
 
-/**
- * server.shutdown result
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// server.shutdown result
+///
+/// Clients may not extend, implement or mix-in this class.
 class ServerShutdownResult implements ResponseResult {
   @override
   Map<String, dynamic> toJson() => <String, dynamic>{};
 
   @override
   Response toResponse(String id) {
-    return new Response(id, result: null);
+    return Response(id, result: null);
   }
 
   @override
@@ -23314,51 +20870,43 @@ class ServerShutdownResult implements ResponseResult {
   }
 }
 
-/**
- * server.status params
- *
- * {
- *   "analysis": optional AnalysisStatus
- *   "pub": optional PubStatus
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// server.status params
+///
+/// {
+///   "analysis": optional AnalysisStatus
+///   "pub": optional PubStatus
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ServerStatusParams implements HasToJson {
   AnalysisStatus _analysis;
 
   PubStatus _pub;
 
-  /**
-   * The current status of analysis, including whether analysis is being
-   * performed and if so what is being analyzed.
-   */
+  /// The current status of analysis, including whether analysis is being
+  /// performed and if so what is being analyzed.
   AnalysisStatus get analysis => _analysis;
 
-  /**
-   * The current status of analysis, including whether analysis is being
-   * performed and if so what is being analyzed.
-   */
-  void set analysis(AnalysisStatus value) {
-    this._analysis = value;
+  /// The current status of analysis, including whether analysis is being
+  /// performed and if so what is being analyzed.
+  set analysis(AnalysisStatus value) {
+    _analysis = value;
   }
 
-  /**
-   * The current status of pub execution, indicating whether we are currently
-   * running pub.
-   *
-   * Note: this status type is deprecated, and is no longer sent by the server.
-   */
+  /// The current status of pub execution, indicating whether we are currently
+  /// running pub.
+  ///
+  /// Note: this status type is deprecated, and is no longer sent by the
+  /// server.
   PubStatus get pub => _pub;
 
-  /**
-   * The current status of pub execution, indicating whether we are currently
-   * running pub.
-   *
-   * Note: this status type is deprecated, and is no longer sent by the server.
-   */
-  void set pub(PubStatus value) {
-    this._pub = value;
+  /// The current status of pub execution, indicating whether we are currently
+  /// running pub.
+  ///
+  /// Note: this status type is deprecated, and is no longer sent by the
+  /// server.
+  set pub(PubStatus value) {
+    _pub = value;
   }
 
   ServerStatusParams({AnalysisStatus analysis, PubStatus pub}) {
@@ -23368,29 +20916,26 @@ class ServerStatusParams implements HasToJson {
 
   factory ServerStatusParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       AnalysisStatus analysis;
       if (json.containsKey("analysis")) {
-        analysis = new AnalysisStatus.fromJson(
+        analysis = AnalysisStatus.fromJson(
             jsonDecoder, jsonPath + ".analysis", json["analysis"]);
       }
       PubStatus pub;
       if (json.containsKey("pub")) {
-        pub =
-            new PubStatus.fromJson(jsonDecoder, jsonPath + ".pub", json["pub"]);
+        pub = PubStatus.fromJson(jsonDecoder, jsonPath + ".pub", json["pub"]);
       }
-      return new ServerStatusParams(analysis: analysis, pub: pub);
+      return ServerStatusParams(analysis: analysis, pub: pub);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "server.status params", json);
     }
   }
 
   factory ServerStatusParams.fromNotification(Notification notification) {
-    return new ServerStatusParams.fromJson(
-        new ResponseDecoder(null), "params", notification.params);
+    return ServerStatusParams.fromJson(
+        ResponseDecoder(null), "params", notification.params);
   }
 
   @override
@@ -23406,7 +20951,7 @@ class ServerStatusParams implements HasToJson {
   }
 
   Notification toNotification() {
-    return new Notification("server.status", toJson());
+    return Notification("server.status", toJson());
   }
 
   @override
@@ -23429,18 +20974,16 @@ class ServerStatusParams implements HasToJson {
   }
 }
 
-/**
- * TokenDetails
- *
- * {
- *   "lexeme": String
- *   "type": optional String
- *   "validElementKinds": optional List<String>
- *   "offset": int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// TokenDetails
+///
+/// {
+///   "lexeme": String
+///   "type": optional String
+///   "validElementKinds": optional List<String>
+///   "offset": int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class TokenDetails implements HasToJson {
   String _lexeme;
 
@@ -23450,64 +20993,48 @@ class TokenDetails implements HasToJson {
 
   int _offset;
 
-  /**
-   * The token's lexeme.
-   */
+  /// The token's lexeme.
   String get lexeme => _lexeme;
 
-  /**
-   * The token's lexeme.
-   */
-  void set lexeme(String value) {
+  /// The token's lexeme.
+  set lexeme(String value) {
     assert(value != null);
-    this._lexeme = value;
+    _lexeme = value;
   }
 
-  /**
-   * A unique id for the type of the identifier. Omitted if the token is not an
-   * identifier in a reference position.
-   */
+  /// A unique id for the type of the identifier. Omitted if the token is not
+  /// an identifier in a reference position.
   String get type => _type;
 
-  /**
-   * A unique id for the type of the identifier. Omitted if the token is not an
-   * identifier in a reference position.
-   */
-  void set type(String value) {
-    this._type = value;
+  /// A unique id for the type of the identifier. Omitted if the token is not
+  /// an identifier in a reference position.
+  set type(String value) {
+    _type = value;
   }
 
-  /**
-   * An indication of whether this token is in a declaration or reference
-   * position. (If no other purpose is found for this field then it should be
-   * renamed and converted to a boolean value.) Omitted if the token is not an
-   * identifier.
-   */
+  /// An indication of whether this token is in a declaration or reference
+  /// position. (If no other purpose is found for this field then it should be
+  /// renamed and converted to a boolean value.) Omitted if the token is not an
+  /// identifier.
   List<String> get validElementKinds => _validElementKinds;
 
-  /**
-   * An indication of whether this token is in a declaration or reference
-   * position. (If no other purpose is found for this field then it should be
-   * renamed and converted to a boolean value.) Omitted if the token is not an
-   * identifier.
-   */
-  void set validElementKinds(List<String> value) {
-    this._validElementKinds = value;
+  /// An indication of whether this token is in a declaration or reference
+  /// position. (If no other purpose is found for this field then it should be
+  /// renamed and converted to a boolean value.) Omitted if the token is not an
+  /// identifier.
+  set validElementKinds(List<String> value) {
+    _validElementKinds = value;
   }
 
-  /**
-   * The offset of the first character of the token in the file which it
-   * originated from.
-   */
+  /// The offset of the first character of the token in the file which it
+  /// originated from.
   int get offset => _offset;
 
-  /**
-   * The offset of the first character of the token in the file which it
-   * originated from.
-   */
-  void set offset(int value) {
+  /// The offset of the first character of the token in the file which it
+  /// originated from.
+  set offset(int value) {
     assert(value != null);
-    this._offset = value;
+    _offset = value;
   }
 
   TokenDetails(String lexeme, int offset,
@@ -23520,9 +21047,7 @@ class TokenDetails implements HasToJson {
 
   factory TokenDetails.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String lexeme;
       if (json.containsKey("lexeme")) {
@@ -23547,7 +21072,7 @@ class TokenDetails implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "offset");
       }
-      return new TokenDetails(lexeme, offset,
+      return TokenDetails(lexeme, offset,
           type: type, validElementKinds: validElementKinds);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "TokenDetails", json);
@@ -23594,21 +21119,19 @@ class TokenDetails implements HasToJson {
   }
 }
 
-/**
- * TypeHierarchyItem
- *
- * {
- *   "classElement": Element
- *   "displayName": optional String
- *   "memberElement": optional Element
- *   "superclass": optional int
- *   "interfaces": List<int>
- *   "mixins": List<int>
- *   "subclasses": List<int>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// TypeHierarchyItem
+///
+/// {
+///   "classElement": Element
+///   "displayName": optional String
+///   "memberElement": optional Element
+///   "superclass": optional int
+///   "interfaces": List<int>
+///   "mixins": List<int>
+///   "subclasses": List<int>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class TypeHierarchyItem implements HasToJson {
   Element _classElement;
 
@@ -23624,114 +21147,88 @@ class TypeHierarchyItem implements HasToJson {
 
   List<int> _subclasses;
 
-  /**
-   * The class element represented by this item.
-   */
+  /// The class element represented by this item.
   Element get classElement => _classElement;
 
-  /**
-   * The class element represented by this item.
-   */
-  void set classElement(Element value) {
+  /// The class element represented by this item.
+  set classElement(Element value) {
     assert(value != null);
-    this._classElement = value;
+    _classElement = value;
   }
 
-  /**
-   * The name to be displayed for the class. This field will be omitted if the
-   * display name is the same as the name of the element. The display name is
-   * different if there is additional type information to be displayed, such as
-   * type arguments.
-   */
+  /// The name to be displayed for the class. This field will be omitted if the
+  /// display name is the same as the name of the element. The display name is
+  /// different if there is additional type information to be displayed, such
+  /// as type arguments.
   String get displayName => _displayName;
 
-  /**
-   * The name to be displayed for the class. This field will be omitted if the
-   * display name is the same as the name of the element. The display name is
-   * different if there is additional type information to be displayed, such as
-   * type arguments.
-   */
-  void set displayName(String value) {
-    this._displayName = value;
+  /// The name to be displayed for the class. This field will be omitted if the
+  /// display name is the same as the name of the element. The display name is
+  /// different if there is additional type information to be displayed, such
+  /// as type arguments.
+  set displayName(String value) {
+    _displayName = value;
   }
 
-  /**
-   * The member in the class corresponding to the member on which the hierarchy
-   * was requested. This field will be omitted if the hierarchy was not
-   * requested for a member or if the class does not have a corresponding
-   * member.
-   */
+  /// The member in the class corresponding to the member on which the
+  /// hierarchy was requested. This field will be omitted if the hierarchy was
+  /// not requested for a member or if the class does not have a corresponding
+  /// member.
   Element get memberElement => _memberElement;
 
-  /**
-   * The member in the class corresponding to the member on which the hierarchy
-   * was requested. This field will be omitted if the hierarchy was not
-   * requested for a member or if the class does not have a corresponding
-   * member.
-   */
-  void set memberElement(Element value) {
-    this._memberElement = value;
+  /// The member in the class corresponding to the member on which the
+  /// hierarchy was requested. This field will be omitted if the hierarchy was
+  /// not requested for a member or if the class does not have a corresponding
+  /// member.
+  set memberElement(Element value) {
+    _memberElement = value;
   }
 
-  /**
-   * The index of the item representing the superclass of this class. This
-   * field will be omitted if this item represents the class Object.
-   */
+  /// The index of the item representing the superclass of this class. This
+  /// field will be omitted if this item represents the class Object.
   int get superclass => _superclass;
 
-  /**
-   * The index of the item representing the superclass of this class. This
-   * field will be omitted if this item represents the class Object.
-   */
-  void set superclass(int value) {
-    this._superclass = value;
+  /// The index of the item representing the superclass of this class. This
+  /// field will be omitted if this item represents the class Object.
+  set superclass(int value) {
+    _superclass = value;
   }
 
-  /**
-   * The indexes of the items representing the interfaces implemented by this
-   * class. The list will be empty if there are no implemented interfaces.
-   */
+  /// The indexes of the items representing the interfaces implemented by this
+  /// class. The list will be empty if there are no implemented interfaces.
   List<int> get interfaces => _interfaces;
 
-  /**
-   * The indexes of the items representing the interfaces implemented by this
-   * class. The list will be empty if there are no implemented interfaces.
-   */
-  void set interfaces(List<int> value) {
+  /// The indexes of the items representing the interfaces implemented by this
+  /// class. The list will be empty if there are no implemented interfaces.
+  set interfaces(List<int> value) {
     assert(value != null);
-    this._interfaces = value;
+    _interfaces = value;
   }
 
-  /**
-   * The indexes of the items representing the mixins referenced by this class.
-   * The list will be empty if there are no classes mixed in to this class.
-   */
+  /// The indexes of the items representing the mixins referenced by this
+  /// class. The list will be empty if there are no classes mixed in to this
+  /// class.
   List<int> get mixins => _mixins;
 
-  /**
-   * The indexes of the items representing the mixins referenced by this class.
-   * The list will be empty if there are no classes mixed in to this class.
-   */
-  void set mixins(List<int> value) {
+  /// The indexes of the items representing the mixins referenced by this
+  /// class. The list will be empty if there are no classes mixed in to this
+  /// class.
+  set mixins(List<int> value) {
     assert(value != null);
-    this._mixins = value;
+    _mixins = value;
   }
 
-  /**
-   * The indexes of the items representing the subtypes of this class. The list
-   * will be empty if there are no subtypes or if this item represents a
-   * supertype of the pivot type.
-   */
+  /// The indexes of the items representing the subtypes of this class. The
+  /// list will be empty if there are no subtypes or if this item represents a
+  /// supertype of the pivot type.
   List<int> get subclasses => _subclasses;
 
-  /**
-   * The indexes of the items representing the subtypes of this class. The list
-   * will be empty if there are no subtypes or if this item represents a
-   * supertype of the pivot type.
-   */
-  void set subclasses(List<int> value) {
+  /// The indexes of the items representing the subtypes of this class. The
+  /// list will be empty if there are no subtypes or if this item represents a
+  /// supertype of the pivot type.
+  set subclasses(List<int> value) {
     assert(value != null);
-    this._subclasses = value;
+    _subclasses = value;
   }
 
   TypeHierarchyItem(Element classElement,
@@ -23764,13 +21261,11 @@ class TypeHierarchyItem implements HasToJson {
 
   factory TypeHierarchyItem.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       Element classElement;
       if (json.containsKey("classElement")) {
-        classElement = new Element.fromJson(
+        classElement = Element.fromJson(
             jsonDecoder, jsonPath + ".classElement", json["classElement"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "classElement");
@@ -23782,7 +21277,7 @@ class TypeHierarchyItem implements HasToJson {
       }
       Element memberElement;
       if (json.containsKey("memberElement")) {
-        memberElement = new Element.fromJson(
+        memberElement = Element.fromJson(
             jsonDecoder, jsonPath + ".memberElement", json["memberElement"]);
       }
       int superclass;
@@ -23811,7 +21306,7 @@ class TypeHierarchyItem implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "subclasses");
       }
-      return new TypeHierarchyItem(classElement,
+      return TypeHierarchyItem(classElement,
           displayName: displayName,
           memberElement: memberElement,
           superclass: superclass,

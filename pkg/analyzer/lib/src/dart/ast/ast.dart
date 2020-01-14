@@ -784,6 +784,7 @@ abstract class AstNodeImpl implements AstNode {
     return root;
   }
 
+  @override
   Token findPrevious(Token target) =>
       util.findPrevious(beginToken, target) ?? parent?.findPrevious(target);
 
@@ -814,7 +815,6 @@ abstract class AstNodeImpl implements AstNode {
 
   @override
   E thisOrAncestorMatching<E extends AstNode>(Predicate<AstNode> predicate) {
-    // TODO(brianwilkerson) It is a bug that this method can return `this`.
     AstNode node = this;
     while (node != null && !predicate(node)) {
       node = node.parent;
@@ -823,12 +823,12 @@ abstract class AstNodeImpl implements AstNode {
   }
 
   @override
-  T thisOrAncestorOfType<T extends AstNode>() {
+  E thisOrAncestorOfType<E extends AstNode>() {
     AstNode node = this;
-    while (node != null && node is! T) {
+    while (node != null && node is! E) {
       node = node.parent;
     }
-    return node as T;
+    return node as E;
   }
 
   @override
@@ -1387,7 +1387,7 @@ class ChildEntities
     with IterableMixin<SyntacticEntity>
     implements Iterable<SyntacticEntity> {
   /// The list of child entities to be iterated over.
-  List<SyntacticEntity> _entities = [];
+  final List<SyntacticEntity> _entities = [];
 
   @override
   Iterator<SyntacticEntity> get iterator => _entities.iterator;
@@ -1570,12 +1570,14 @@ abstract class ClassOrMixinDeclarationImpl
   ImplementsClauseImpl _implementsClause;
 
   /// The left curly bracket.
+  @override
   Token leftBracket;
 
   /// The members defined by the class or mixin.
   NodeList<ClassMember> _members;
 
   /// The right curly bracket.
+  @override
   Token rightBracket;
 
   ClassOrMixinDeclarationImpl(
@@ -1593,8 +1595,10 @@ abstract class ClassOrMixinDeclarationImpl
     _members = NodeListImpl<ClassMember>(this, members);
   }
 
+  @override
   Token get endToken => rightBracket;
 
+  @override
   ImplementsClause get implementsClause => _implementsClause;
 
   set implementsClause(ImplementsClause implementsClause) {
@@ -1602,14 +1606,17 @@ abstract class ClassOrMixinDeclarationImpl
         _becomeParentOf(implementsClause as ImplementsClauseImpl);
   }
 
+  @override
   NodeList<ClassMember> get members => _members;
 
+  @override
   TypeParameterList get typeParameters => _typeParameters;
 
   set typeParameters(TypeParameterList typeParameters) {
     _typeParameters = _becomeParentOf(typeParameters as TypeParameterListImpl);
   }
 
+  @override
   VariableDeclaration getField(String name) {
     int memberLength = _members.length;
     for (int i = 0; i < memberLength; i++) {
@@ -1631,6 +1638,7 @@ abstract class ClassOrMixinDeclarationImpl
     return null;
   }
 
+  @override
   MethodDeclaration getMethod(String name) {
     int length = _members.length;
     for (int i = 0; i < length; i++) {
@@ -1871,7 +1879,7 @@ class CommentImpl extends AstNodeImpl implements Comment {
 
   /// Create a documentation comment consisting of the given [tokens].
   static Comment createDocumentationComment(List<Token> tokens) =>
-      CommentImpl(tokens, CommentType.DOCUMENTATION, List<CommentReference>());
+      CommentImpl(tokens, CommentType.DOCUMENTATION, <CommentReference>[]);
 
   /// Create a documentation comment consisting of the given [tokens] and having
   /// the given [references] embedded within it.
@@ -1933,13 +1941,13 @@ class CommentReferenceImpl extends AstNodeImpl implements CommentReference {
 /// The possible types of comments that are recognized by the parser.
 class CommentType {
   /// A block comment.
-  static const CommentType BLOCK = const CommentType('BLOCK');
+  static const CommentType BLOCK = CommentType('BLOCK');
 
   /// A documentation comment.
-  static const CommentType DOCUMENTATION = const CommentType('DOCUMENTATION');
+  static const CommentType DOCUMENTATION = CommentType('DOCUMENTATION');
 
   /// An end-of-line comment.
-  static const CommentType END_OF_LINE = const CommentType('END_OF_LINE');
+  static const CommentType END_OF_LINE = CommentType('END_OF_LINE');
 
   /// The name of the comment type.
   final String name;
@@ -2066,10 +2074,10 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
 
   @override
   List<AstNode> get sortedDirectivesAndDeclarations {
-    return <AstNode>[]
-      ..addAll(_directives)
-      ..addAll(_declarations)
-      ..sort(AstNode.LEXICAL_ORDER);
+    return <AstNode>[
+      ..._directives,
+      ..._declarations,
+    ]..sort(AstNode.LEXICAL_ORDER);
   }
 
   /// Return `true` if all of the directives are lexically before any
@@ -2748,6 +2756,7 @@ class ContinueStatementImpl extends StatementImpl implements ContinueStatement {
   /// AST has not yet been resolved or if the target could not be resolved.
   /// Note that if the source code has errors, the target may be invalid (e.g.
   /// the target may be in an enclosing function).
+  @override
   AstNode target;
 
   /// Initialize a newly created continue statement. The [label] can be `null`
@@ -3019,6 +3028,7 @@ abstract class DirectiveImpl extends AnnotatedNodeImpl implements Directive {
   Element get element => _element;
 
   /// Set the element associated with this directive to be the given [element].
+  @override
   set element(Element element) {
     _element = element;
   }
@@ -3041,6 +3051,7 @@ class DoStatementImpl extends StatementImpl implements DoStatement {
   Token whileKeyword;
 
   /// The left parenthesis.
+  @override
   Token leftParenthesis;
 
   /// The condition that determines when the loop will terminate.
@@ -3223,6 +3234,7 @@ class EmptyFunctionBodyImpl extends FunctionBodyImpl
 ///        ';'
 class EmptyStatementImpl extends StatementImpl implements EmptyStatement {
   /// The semicolon terminating the statement.
+  @override
   Token semicolon;
 
   /// Initialize a newly created empty statement.
@@ -4636,6 +4648,7 @@ class ForStatementImpl extends StatementImpl
 
   ForStatementImpl._();
 
+  @override
   Statement get body => _body;
 
   set body(Statement statement) {
@@ -5305,10 +5318,12 @@ class GenericFunctionTypeImpl extends TypeAnnotationImpl
 
   /// Return the type parameters for the function type, or `null` if the
   /// function type does not have any type parameters.
+  @override
   TypeParameterList get typeParameters => _typeParameters;
 
   /// Set the type parameters for the function type to the given list of
   /// [typeParameters].
+  @override
   set typeParameters(TypeParameterList typeParameters) {
     _typeParameters = _becomeParentOf(typeParameters as TypeParameterListImpl);
   }
@@ -5675,6 +5690,7 @@ class ImportDirectiveImpl extends NamespaceDirectiveImpl
     implements ImportDirective {
   /// The token representing the 'deferred' keyword, or `null` if the imported
   /// is not deferred.
+  @override
   Token deferredKeyword;
 
   /// The token representing the 'as' keyword, or `null` if the imported names
@@ -5785,6 +5801,7 @@ class IndexExpressionImpl extends ExpressionImpl
   /// If this expression is both in a getter and setter context, the
   /// [AuxiliaryElements] will be set to hold onto the static element from the
   /// getter context.
+  @override
   AuxiliaryElements auxiliaryElements;
 
   /// Initialize a newly created index expression.
@@ -6678,12 +6695,11 @@ class LocalVariableInfo {
   /// The set of local variables and parameters that are potentially mutated
   /// within a local function other than the function in which they are
   /// declared.
-  final Set<VariableElement> potentiallyMutatedInClosure =
-      Set<VariableElement>();
+  final Set<VariableElement> potentiallyMutatedInClosure = <VariableElement>{};
 
   /// The set of local variables and parameters that are potentially mutated
   /// within the scope of their declarations.
-  final Set<VariableElement> potentiallyMutatedInScope = Set<VariableElement>();
+  final Set<VariableElement> potentiallyMutatedInScope = <VariableElement>{};
 }
 
 /// A single key/value pair in a map literal.
@@ -7134,6 +7150,7 @@ class MixinDeclarationImpl extends ClassOrMixinDeclarationImpl
   @override
   ImplementsClause get implementsClause => _implementsClause;
 
+  @override
   set implementsClause(ImplementsClause implementsClause) {
     _implementsClause =
         _becomeParentOf(implementsClause as ImplementsClauseImpl);
@@ -7150,8 +7167,10 @@ class MixinDeclarationImpl extends ClassOrMixinDeclarationImpl
   }
 
   @override
+  @override
   TypeParameterList get typeParameters => _typeParameters;
 
+  @override
   set typeParameters(TypeParameterList typeParameters) {
     _typeParameters = _becomeParentOf(typeParameters as TypeParameterListImpl);
   }
@@ -7460,6 +7479,7 @@ class NodeListImpl<E extends AstNode> with ListMixin<E> implements NodeList<E> {
     return _elements[length - 1].endToken;
   }
 
+  @override
   int get length => _elements.length;
 
   @deprecated // Never intended for public use.
@@ -7476,6 +7496,7 @@ class NodeListImpl<E extends AstNode> with ListMixin<E> implements NodeList<E> {
     _owner = value as AstNodeImpl;
   }
 
+  @override
   E operator [](int index) {
     if (index < 0 || index >= _elements.length) {
       throw RangeError("Index: $index, Size: ${_elements.length}");
@@ -7483,6 +7504,7 @@ class NodeListImpl<E extends AstNode> with ListMixin<E> implements NodeList<E> {
     return _elements[index];
   }
 
+  @override
   void operator []=(int index, E node) {
     if (index < 0 || index >= _elements.length) {
       throw RangeError("Index: $index, Size: ${_elements.length}");
@@ -7584,9 +7606,11 @@ abstract class NormalFormalParameterImpl extends FormalParameterImpl
   NodeList<Annotation> _metadata;
 
   /// The 'covariant' keyword, or `null` if the keyword was not used.
+  @override
   Token covariantKeyword;
 
   /// The 'required' keyword, or `null` if the keyword was not used.
+  @override
   Token requiredKeyword;
 
   /// The name of the parameter being declared.
@@ -7698,6 +7722,7 @@ abstract class NormalFormalParameterImpl extends FormalParameterImpl
 ///        'null'
 class NullLiteralImpl extends LiteralImpl implements NullLiteral {
   /// The token representing the literal.
+  @override
   Token literal;
 
   /// Initialize a newly created null literal.
@@ -7796,12 +7821,14 @@ class OnClauseImpl extends AstNodeImpl implements OnClause {
 class ParenthesizedExpressionImpl extends ExpressionImpl
     implements ParenthesizedExpression {
   /// The left parenthesis.
+  @override
   Token leftParenthesis;
 
   /// The expression within the parentheses.
   ExpressionImpl _expression;
 
   /// The right parenthesis.
+  @override
   Token rightParenthesis;
 
   /// Initialize a newly created parenthesized expression.
@@ -8059,6 +8086,7 @@ class PrefixedIdentifierImpl extends IdentifierImpl
   SimpleIdentifierImpl _prefix;
 
   /// The period used to separate the prefix from the identifier.
+  @override
   Token period;
 
   /// The identifier being prefixed.
@@ -8146,6 +8174,7 @@ class PrefixedIdentifierImpl extends IdentifierImpl
 ///        [Token] [Expression]
 class PrefixExpressionImpl extends ExpressionImpl implements PrefixExpression {
   /// The prefix operator being applied to the operand.
+  @override
   Token operator;
 
   /// The expression computing the operand for the operator.
@@ -8154,6 +8183,7 @@ class PrefixExpressionImpl extends ExpressionImpl implements PrefixExpression {
   /// The element associated with the operator based on the static type of the
   /// operand, or `null` if the AST structure has not been resolved, if the
   /// operator is not user definable, or if the operator could not be resolved.
+  @override
   MethodElement staticElement;
 
   /// Initialize a newly created prefix expression.
@@ -8221,6 +8251,7 @@ class PropertyAccessImpl extends ExpressionImpl
   ExpressionImpl _target;
 
   /// The property access operator.
+  @override
   Token operator;
 
   /// The name of the property being accessed.
@@ -8321,10 +8352,12 @@ class PropertyAccessImpl extends ExpressionImpl
 class RedirectingConstructorInvocationImpl extends ConstructorInitializerImpl
     implements RedirectingConstructorInvocation {
   /// The token for the 'this' keyword.
+  @override
   Token thisKeyword;
 
   /// The token for the period before the name of the constructor that is being
   /// invoked, or `null` if the unnamed constructor is being invoked.
+  @override
   Token period;
 
   /// The name of the constructor that is being invoked, or `null` if the
@@ -8337,6 +8370,7 @@ class RedirectingConstructorInvocationImpl extends ConstructorInitializerImpl
   /// The element associated with the constructor based on static type
   /// information, or `null` if the AST structure has not been resolved or if
   /// the constructor could not be resolved.
+  @override
   ConstructorElement staticElement;
 
   /// Initialize a newly created redirecting invocation to invoke the
@@ -8396,6 +8430,7 @@ class RedirectingConstructorInvocationImpl extends ConstructorInitializerImpl
 class RethrowExpressionImpl extends ExpressionImpl
     implements RethrowExpression {
   /// The token representing the 'rethrow' keyword.
+  @override
   Token rethrowKeyword;
 
   /// Initialize a newly created rethrow expression.
@@ -8429,6 +8464,7 @@ class RethrowExpressionImpl extends ExpressionImpl
 ///        'return' [Expression]? ';'
 class ReturnStatementImpl extends StatementImpl implements ReturnStatement {
   /// The token representing the 'return' keyword.
+  @override
   Token returnKeyword;
 
   /// The expression computing the value to be returned, or `null` if no
@@ -8436,6 +8472,7 @@ class ReturnStatementImpl extends StatementImpl implements ReturnStatement {
   ExpressionImpl _expression;
 
   /// The semicolon terminating the statement.
+  @override
   Token semicolon;
 
   /// Initialize a newly created return statement. The [expression] can be
@@ -8479,6 +8516,7 @@ class ReturnStatementImpl extends StatementImpl implements ReturnStatement {
 ///        '#!' (~NEWLINE)* NEWLINE
 class ScriptTagImpl extends AstNodeImpl implements ScriptTag {
   /// The token representing this script tag.
+  @override
   Token scriptTag;
 
   /// Initialize a newly created script tag.
@@ -8639,6 +8677,7 @@ class SimpleFormalParameterImpl extends NormalFormalParameterImpl
     implements SimpleFormalParameter {
   /// The token representing either the 'final', 'const' or 'var' keyword, or
   /// `null` if no keyword was used.
+  @override
   Token keyword;
 
   /// The name of the declared type of the parameter, or `null` if the parameter
@@ -8726,6 +8765,7 @@ class SimpleFormalParameterImpl extends NormalFormalParameterImpl
 ///    internalCharacter ::= '_' | '$' | letter | digit
 class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
   /// The token representing the identifier.
+  @override
   Token token;
 
   /// The element associated with this identifier based on static type
@@ -8736,6 +8776,7 @@ class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
   /// If this expression is both in a getter and setter context, the
   /// [AuxiliaryElements] will be set to hold onto the static element from the
   /// getter context.
+  @override
   AuxiliaryElements auxiliaryElements;
 
   @override
@@ -8907,6 +8948,7 @@ class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
 class SimpleStringLiteralImpl extends SingleStringLiteralImpl
     implements SimpleStringLiteral {
   /// The token representing the literal.
+  @override
   Token literal;
 
   /// The value of the literal.
@@ -8980,6 +9022,7 @@ abstract class SingleStringLiteralImpl extends StringLiteralImpl
 
 class SpreadElementImpl extends AstNodeImpl
     implements CollectionElementImpl, SpreadElement {
+  @override
   Token spreadOperator;
 
   ExpressionImpl _expression;
@@ -9077,6 +9120,7 @@ class StringInterpolationImpl extends SingleStringLiteralImpl
   }
 
   /// Return the elements that will be composed to produce the resulting string.
+  @override
   NodeList<InterpolationElement> get elements => _elements;
 
   @override
@@ -9125,7 +9169,7 @@ class StringLexemeHelper {
 
   StringLexemeHelper(this.lexeme, this.isFirst, this.isLast) {
     if (isFirst) {
-      isRaw = StringUtilities.startsWithChar(lexeme, 0x72);
+      isRaw = lexeme.startsWith('r');
       if (isRaw) {
         start++;
       }
@@ -9234,10 +9278,12 @@ abstract class StringLiteralImpl extends LiteralImpl implements StringLiteral {
 class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
     implements SuperConstructorInvocation {
   /// The token for the 'super' keyword.
+  @override
   Token superKeyword;
 
   /// The token for the period before the name of the constructor that is being
   /// invoked, or `null` if the unnamed constructor is being invoked.
+  @override
   Token period;
 
   /// The name of the constructor that is being invoked, or `null` if the
@@ -9250,6 +9296,7 @@ class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
   /// The element associated with the constructor based on static type
   /// information, or `null` if the AST structure has not been resolved or if
   /// the constructor could not be resolved.
+  @override
   ConstructorElement staticElement;
 
   /// Initialize a newly created super invocation to invoke the inherited
@@ -9308,6 +9355,7 @@ class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
 ///        'super'
 class SuperExpressionImpl extends ExpressionImpl implements SuperExpression {
   /// The token representing the 'super' keyword.
+  @override
   Token superKeyword;
 
   /// Initialize a newly created super expression.
@@ -9416,9 +9464,11 @@ abstract class SwitchMemberImpl extends AstNodeImpl implements SwitchMember {
   NodeList<Label> _labels;
 
   /// The token representing the 'case' or 'default' keyword.
+  @override
   Token keyword;
 
   /// The colon separating the keyword or the expression from the statements.
+  @override
   Token colon;
 
   /// The statements that will be executed if this switch member is selected.
@@ -9461,9 +9511,11 @@ abstract class SwitchMemberImpl extends AstNodeImpl implements SwitchMember {
 ///        'switch' '(' [Expression] ')' '{' [SwitchCase]* [SwitchDefault]? '}'
 class SwitchStatementImpl extends StatementImpl implements SwitchStatement {
   /// The token representing the 'switch' keyword.
+  @override
   Token switchKeyword;
 
   /// The left parenthesis.
+  @override
   Token leftParenthesis;
 
   /// The expression used to determine which of the switch members will be
@@ -9471,15 +9523,18 @@ class SwitchStatementImpl extends StatementImpl implements SwitchStatement {
   ExpressionImpl _expression;
 
   /// The right parenthesis.
+  @override
   Token rightParenthesis;
 
   /// The left curly bracket.
+  @override
   Token leftBracket;
 
   /// The switch members that can be selected by the expression.
   NodeList<SwitchMember> _members;
 
   /// The right curly bracket.
+  @override
   Token rightBracket;
 
   /// Initialize a newly created switch statement. The list of [members] can be
@@ -9539,9 +9594,11 @@ class SwitchStatementImpl extends StatementImpl implements SwitchStatement {
 ///        '#' (operator | (identifier ('.' identifier)*))
 class SymbolLiteralImpl extends LiteralImpl implements SymbolLiteral {
   /// The token introducing the literal.
+  @override
   Token poundSign;
 
   /// The components of the literal.
+  @override
   final List<Token> components;
 
   /// Initialize a newly created symbol literal.
@@ -9574,6 +9631,7 @@ class SymbolLiteralImpl extends LiteralImpl implements SymbolLiteral {
 ///        'this'
 class ThisExpressionImpl extends ExpressionImpl implements ThisExpression {
   /// The token representing the 'this' keyword.
+  @override
   Token thisKeyword;
 
   /// Initialize a newly created this expression.
@@ -9607,6 +9665,7 @@ class ThisExpressionImpl extends ExpressionImpl implements ThisExpression {
 ///        'throw' [Expression]
 class ThrowExpressionImpl extends ExpressionImpl implements ThrowExpression {
   /// The token representing the 'throw' keyword.
+  @override
   Token throwKeyword;
 
   /// The expression computing the exception to be thrown.
@@ -9663,6 +9722,7 @@ class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
   VariableDeclarationListImpl _variableList;
 
   /// The semicolon terminating the declaration.
+  @override
   Token semicolon;
 
   /// Initialize a newly created top-level variable declaration. Either or both
@@ -9718,6 +9778,7 @@ class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
 ///        'finally' [Block]
 class TryStatementImpl extends StatementImpl implements TryStatement {
   /// The token representing the 'try' keyword.
+  @override
   Token tryKeyword;
 
   /// The body of the statement.
@@ -9728,6 +9789,7 @@ class TryStatementImpl extends StatementImpl implements TryStatement {
 
   /// The token representing the 'finally' keyword, or `null` if the statement
   /// does not contain a finally clause.
+  @override
   Token finallyKeyword;
 
   /// The finally block contained in the try statement, or `null` if the
@@ -9812,9 +9874,11 @@ class TryStatementImpl extends StatementImpl implements TryStatement {
 abstract class TypeAliasImpl extends NamedCompilationUnitMemberImpl
     implements TypeAlias {
   /// The token representing the 'typedef' keyword.
+  @override
   Token typedefKeyword;
 
   /// The semicolon terminating the declaration.
+  @override
   Token semicolon;
 
   /// Initialize a newly created type alias. Either or both of the [comment] and
@@ -9845,12 +9909,14 @@ abstract class TypeAnnotationImpl extends AstNodeImpl
 ///        '<' typeName (',' typeName)* '>'
 class TypeArgumentListImpl extends AstNodeImpl implements TypeArgumentList {
   /// The left bracket.
+  @override
   Token leftBracket;
 
   /// The type arguments associated with the type.
   NodeList<TypeAnnotation> _arguments;
 
   /// The right bracket.
+  @override
   Token rightBracket;
 
   /// Initialize a newly created list of type arguments.
@@ -9892,6 +9958,7 @@ class TypeArgumentListImpl extends AstNodeImpl implements TypeArgumentList {
 abstract class TypedLiteralImpl extends LiteralImpl implements TypedLiteral {
   /// The token representing the 'const' keyword, or `null` if the literal is
   /// not a constant.
+  @override
   Token constKeyword;
 
   /// The type argument associated with this literal, or `null` if no type
@@ -9944,6 +10011,7 @@ class TypeNameImpl extends TypeAnnotationImpl implements TypeName {
 
   /// The type being named, or `null` if the AST structure has not been
   /// resolved.
+  @override
   DartType type;
 
   /// Initialize a newly created type name. The [typeArguments] can be `null` if
@@ -10018,6 +10086,7 @@ class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
 
   /// The token representing the 'extends' keyword, or `null` if there is no
   /// explicit upper bound.
+  @override
   Token extendsKeyword;
 
   /// The name of the upper bound for legal arguments, or `null` if there is no
@@ -10087,12 +10156,14 @@ class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
 ///        '<' [TypeParameter] (',' [TypeParameter])* '>'
 class TypeParameterListImpl extends AstNodeImpl implements TypeParameterList {
   /// The left angle bracket.
+  @override
   final Token leftBracket;
 
   /// The type parameters in the list.
   NodeList<TypeParameter> _typeParameters;
 
   /// The right angle bracket.
+  @override
   final Token rightBracket;
 
   /// Initialize a newly created list of type parameters.
@@ -10135,7 +10206,7 @@ abstract class UriBasedDirectiveImpl extends DirectiveImpl
     implements UriBasedDirective {
   /// The prefix of a URI using the `dart-ext` scheme to reference a native code
   /// library.
-  static String _DART_EXT_SCHEME = "dart-ext:";
+  static const String _DART_EXT_SCHEME = "dart-ext:";
 
   /// The URI referenced by this directive.
   StringLiteralImpl _uri;
@@ -10193,6 +10264,9 @@ abstract class UriBasedDirectiveImpl extends DirectiveImpl
     if (uriContent == null) {
       return UriValidationCode.INVALID_URI;
     }
+    if (uriContent.isEmpty) {
+      return null;
+    }
     if (isImport && uriContent.startsWith(_DART_EXT_SCHEME)) {
       return UriValidationCode.URI_WITH_DART_EXT_SCHEME;
     }
@@ -10211,14 +10285,13 @@ abstract class UriBasedDirectiveImpl extends DirectiveImpl
 
 /// Validation codes returned by [UriBasedDirective.validate].
 class UriValidationCode {
-  static const UriValidationCode INVALID_URI =
-      const UriValidationCode('INVALID_URI');
+  static const UriValidationCode INVALID_URI = UriValidationCode('INVALID_URI');
 
   static const UriValidationCode URI_WITH_INTERPOLATION =
-      const UriValidationCode('URI_WITH_INTERPOLATION');
+      UriValidationCode('URI_WITH_INTERPOLATION');
 
   static const UriValidationCode URI_WITH_DART_EXT_SCHEME =
-      const UriValidationCode('URI_WITH_DART_EXT_SCHEME');
+      UriValidationCode('URI_WITH_DART_EXT_SCHEME');
 
   /// The name of the validation code.
   final String name;
@@ -10247,6 +10320,7 @@ class VariableDeclarationImpl extends DeclarationImpl
 
   /// The equal sign separating the variable name from the initial value, or
   /// `null` if the initial value was not specified.
+  @override
   Token equals;
 
   /// The expression used to compute the initial value for the variable, or
@@ -10356,10 +10430,12 @@ class VariableDeclarationListImpl extends AnnotatedNodeImpl
     implements VariableDeclarationList {
   /// The token representing the 'final', 'const' or 'var' keyword, or `null` if
   /// no keyword was included.
+  @override
   Token keyword;
 
   /// The token representing the 'late' keyword, or `null` if the late modifier
   /// was not included.
+  @override
   Token lateKeyword;
 
   /// The type of the variables being declared, or `null` if no type was
@@ -10448,6 +10524,7 @@ class VariableDeclarationStatementImpl extends StatementImpl
   VariableDeclarationListImpl _variableList;
 
   /// The semicolon terminating the statement.
+  @override
   Token semicolon;
 
   /// Initialize a newly created variable declaration statement.
@@ -10490,15 +10567,18 @@ class VariableDeclarationStatementImpl extends StatementImpl
 ///        'while' '(' [Expression] ')' [Statement]
 class WhileStatementImpl extends StatementImpl implements WhileStatement {
   /// The token representing the 'while' keyword.
+  @override
   Token whileKeyword;
 
   /// The left parenthesis.
+  @override
   Token leftParenthesis;
 
   /// The expression used to determine whether to execute the body of the loop.
   ExpressionImpl _condition;
 
   /// The right parenthesis.
+  @override
   Token rightParenthesis;
 
   /// The body of the loop.
@@ -10557,6 +10637,7 @@ class WhileStatementImpl extends StatementImpl implements WhileStatement {
 ///        'with' [TypeName] (',' [TypeName])*
 class WithClauseImpl extends AstNodeImpl implements WithClause {
   /// The token representing the 'with' keyword.
+  @override
   Token withKeyword;
 
   /// The names of the mixins that were specified.
@@ -10597,15 +10678,18 @@ class WithClauseImpl extends AstNodeImpl implements WithClause {
 ///        'yield' '*'? [Expression] ‘;’
 class YieldStatementImpl extends StatementImpl implements YieldStatement {
   /// The 'yield' keyword.
+  @override
   Token yieldKeyword;
 
   /// The star optionally following the 'yield' keyword.
+  @override
   Token star;
 
   /// The expression whose value will be yielded.
   ExpressionImpl _expression;
 
   /// The semicolon following the expression.
+  @override
   Token semicolon;
 
   /// Initialize a newly created yield expression. The [star] can be `null` if

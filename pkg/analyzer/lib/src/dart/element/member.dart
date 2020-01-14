@@ -7,6 +7,7 @@ import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/display_string_builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -91,32 +92,8 @@ class ConstructorMember extends ExecutableMember implements ConstructorElement {
       visitor.visitConstructorElement(this);
 
   @override
-  String toString() {
-    ConstructorElement declaration = this.declaration;
-    List<ParameterElement> parameters = this.parameters;
-    FunctionType type = this.type;
-
-    StringBuffer buffer = StringBuffer();
-    if (type != null) {
-      buffer.write(type.returnType);
-      buffer.write(' ');
-    }
-    buffer.write(declaration.enclosingElement.displayName);
-    String name = displayName;
-    if (name != null && name.isNotEmpty) {
-      buffer.write('.');
-      buffer.write(name);
-    }
-    buffer.write('(');
-    int parameterCount = parameters.length;
-    for (int i = 0; i < parameterCount; i++) {
-      if (i > 0) {
-        buffer.write(', ');
-      }
-      buffer.write(parameters[i]);
-    }
-    buffer.write(')');
-    return buffer.toString();
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeConstructorElement(this);
   }
 
   /**
@@ -224,6 +201,11 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
       declaration.typeParameters,
       _substitution,
     );
+  }
+
+  @override
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeExecutableElement(this, displayName);
   }
 
   @override
@@ -353,9 +335,6 @@ class FieldMember extends VariableMember implements FieldElement {
 
   @override
   T accept<T>(ElementVisitor<T> visitor) => visitor.visitFieldElement(this);
-
-  @override
-  String toString() => '$type $displayName';
 
   /**
    * If the given [field]'s type is different when any type parameters from the
@@ -551,9 +530,23 @@ abstract class Member implements Element {
    */
   MapSubstitution get substitution => _substitution;
 
+  /// Append a textual representation of this element to the given [builder].
+  void appendTo(ElementDisplayStringBuilder builder);
+
+  @Deprecated('Use either thisOrAncestorMatching or thisOrAncestorOfType')
   @override
   E getAncestor<E extends Element>(Predicate<Element> predicate) =>
       declaration.getAncestor(predicate);
+
+  @override
+  String getDisplayString({@required bool withNullability}) {
+    var builder = ElementDisplayStringBuilder(
+      skipAllDynamicArguments: false,
+      withNullability: withNullability,
+    );
+    appendTo(builder);
+    return builder.toString();
+  }
 
   @override
   String getExtendedDisplayName(String shortName) =>
@@ -576,6 +569,19 @@ abstract class Member implements Element {
   }
 
   @override
+  E thisOrAncestorMatching<E extends Element>(Predicate<Element> predicate) =>
+      declaration.thisOrAncestorMatching(predicate);
+
+  @override
+  E thisOrAncestorOfType<E extends Element>() =>
+      declaration.thisOrAncestorOfType<E>();
+
+  @override
+  String toString() {
+    return getDisplayString(withNullability: false);
+  }
+
+  @override
   void visitChildren(ElementVisitor visitor) {
     // There are no children to visit
   }
@@ -584,7 +590,8 @@ abstract class Member implements Element {
   /// Otherwise, return the type unchanged.
   DartType _toLegacyType(DartType type) {
     if (isLegacy) {
-      return NullabilityEliminator.perform(type);
+      var typeProvider = declaration.library.typeProvider;
+      return NullabilityEliminator.perform(typeProvider, type);
     } else {
       return type;
     }
@@ -681,72 +688,6 @@ class MethodMember extends ExecutableMember implements MethodElement {
   @override
   T accept<T>(ElementVisitor<T> visitor) => visitor.visitMethodElement(this);
 
-  @override
-  String toString() {
-    MethodElement declaration = this.declaration;
-    List<ParameterElement> parameters = this.parameters;
-    FunctionType type = this.type;
-
-    StringBuffer buffer = StringBuffer();
-    if (type != null) {
-      buffer.write(type.returnType);
-      buffer.write(' ');
-    }
-    buffer.write(declaration.enclosingElement.displayName);
-    buffer.write('.');
-    buffer.write(declaration.displayName);
-    int typeParameterCount = typeParameters.length;
-    if (typeParameterCount > 0) {
-      buffer.write('<');
-      for (int i = 0; i < typeParameterCount; i++) {
-        if (i > 0) {
-          buffer.write(', ');
-        }
-        // TODO(scheglov) consider always using TypeParameterMember
-        var typeParameter = typeParameters[i];
-        if (typeParameter is TypeParameterElementImpl) {
-          typeParameter.appendTo(buffer);
-        } else {
-          (typeParameter as TypeParameterMember).appendTo(buffer);
-        }
-      }
-      buffer.write('>');
-    }
-    buffer.write('(');
-    String closing;
-    ParameterKind kind = ParameterKind.REQUIRED;
-    int parameterCount = parameters.length;
-    for (int i = 0; i < parameterCount; i++) {
-      if (i > 0) {
-        buffer.write(', ');
-      }
-      ParameterElement parameter = parameters[i];
-      // ignore: deprecated_member_use_from_same_package
-      ParameterKind parameterKind = parameter.parameterKind;
-      if (parameterKind != kind) {
-        if (closing != null) {
-          buffer.write(closing);
-        }
-        if (parameter.isOptionalPositional) {
-          buffer.write('[');
-          closing = ']';
-        } else if (parameter.isNamed) {
-          buffer.write('{');
-          closing = '}';
-        } else {
-          closing = null;
-        }
-      }
-      kind = parameterKind;
-      parameter.appendToWithoutDelimiters(buffer);
-    }
-    if (closing != null) {
-      buffer.write(closing);
-    }
-    buffer.write(')');
-    return buffer.toString();
-  }
-
   /**
    * If the given [method]'s type is different when any type parameters from the
    * defining type's declaration are replaced with the actual type arguments
@@ -841,30 +782,18 @@ class ParameterMember extends VariableMember
   T accept<T>(ElementVisitor<T> visitor) => visitor.visitParameterElement(this);
 
   @override
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeFormalParameter(this);
+  }
+
+  @Deprecated('Use either thisOrAncestorMatching or thisOrAncestorOfType')
+  @override
   E getAncestor<E extends Element>(Predicate<Element> predicate) {
     Element element = declaration.getAncestor(predicate);
     if (element is ExecutableElement) {
       return ExecutableMember.from2(element, _substitution) as E;
     }
     return element as E;
-  }
-
-  @override
-  String toString() {
-    ParameterElement declaration = this.declaration;
-    String left = "";
-    String right = "";
-    while (true) {
-      if (declaration.isNamed) {
-        left = "{";
-        right = "}";
-      } else if (declaration.isOptionalPositional) {
-        left = "[";
-        right = "]";
-      }
-      break;
-    }
-    return '$left$type ${declaration.displayName}$right';
   }
 
   @override
@@ -942,34 +871,11 @@ class PropertyAccessorMember extends ExecutableMember
       visitor.visitPropertyAccessorElement(this);
 
   @override
-  String toString() {
-    PropertyAccessorElement declaration = this.declaration;
-    List<ParameterElement> parameters = this.parameters;
-    FunctionType type = this.type;
-
-    StringBuffer builder = StringBuffer();
-    if (type != null) {
-      builder.write(type.returnType);
-      builder.write(' ');
-    }
-    if (isGetter) {
-      builder.write('get ');
-    } else {
-      builder.write('set ');
-    }
-    builder.write(declaration.enclosingElement.displayName);
-    builder.write('.');
-    builder.write(declaration.displayName);
-    builder.write('(');
-    int parameterCount = parameters.length;
-    for (int i = 0; i < parameterCount; i++) {
-      if (i > 0) {
-        builder.write(', ');
-      }
-      builder.write(parameters[i]);
-    }
-    builder.write(')');
-    return builder.toString();
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeExecutableElement(
+      this,
+      (isGetter ? 'get ' : 'set ') + variable.displayName,
+    );
   }
 
   /**
@@ -1085,12 +991,9 @@ class TypeParameterMember extends Member implements TypeParameterElement {
   T accept<T>(ElementVisitor<T> visitor) =>
       visitor.visitTypeParameterElement(this);
 
-  void appendTo(StringBuffer buffer) {
-    buffer.write(displayName);
-    if (bound != null) {
-      buffer.write(" extends ");
-      buffer.write(bound);
-    }
+  @override
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeTypeParameter(this);
   }
 
   @override
@@ -1098,13 +1001,6 @@ class TypeParameterMember extends Member implements TypeParameterElement {
     @required NullabilitySuffix nullabilitySuffix,
   }) {
     return TypeParameterTypeImpl(this, nullabilitySuffix: nullabilitySuffix);
-  }
-
-  @override
-  String toString() {
-    var buffer = StringBuffer();
-    appendTo(buffer);
-    return buffer.toString();
   }
 
   static List<TypeParameterElement> from(
@@ -1205,6 +1101,11 @@ abstract class VariableMember extends Member implements VariableElement {
     _type = _substitution.substituteType(declaration.type);
     _type = _toLegacyType(_type);
     return _type;
+  }
+
+  @override
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeVariableElement(this);
   }
 
   @override

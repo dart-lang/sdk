@@ -1,5 +1,5 @@
 This is an unmodified copy of the Language Server Protocol Specification,
-downloaded from https://raw.githubusercontent.com/Microsoft/language-server-protocol/gh-pages/specification.md. It is the version of the specification that was
+downloaded from https://raw.githubusercontent.com/microsoft/language-server-protocol/gh-pages/_specifications/specification-3-14.md. It is the version of the specification that was
 used to generate a portion of the Dart code used to support the protocol.
 
 To regenerate the generated code, run the script in
@@ -22,18 +22,22 @@ Distributed under the following terms:
 
 ---
 title: Specification
-layout: specification
-sectionid: specification
-toc: true
+shortTitle: 3.14 - Current
+layout: specifications
+sectionid: specification-3-14
+toc: specification-3-14-toc
+index: 1
+redirect_from:
+  - /specification
 ---
-# Language Server Protocol Specification
+# Language Server Protocol Specification - 3.14
 
-This document describes version 3.x of the language server protocol. An implementation for node of the 3.0 version of the protocol can be found [here](https://github.com/Microsoft/vscode-languageserver-node).
+This document describes version 3.14.x of the language server protocol. An implementation for node of the 3.14.x version of the protocol can be found [here](https://github.com/Microsoft/vscode-languageserver-node).
 
 The 2.x version of this document can be found [here](https://github.com/Microsoft/language-server-protocol/blob/master/versions/protocol-2-x.md).
 The 1.x version of this document can be found [here](https://github.com/Microsoft/language-server-protocol/blob/master/versions/protocol-1-x.md).
 
-**Note:** edits to this specification can be made via a pull request against this markdown [document](https://github.com/Microsoft/language-server-protocol/blob/gh-pages/specification.md).
+**Note:** edits to this specification can be made via a pull request against this markdown [document](https://github.com/Microsoft/language-server-protocol/blob/gh-pages/_specifications/specification-3-14.md).
 
 ## Base Protocol
 
@@ -61,7 +65,7 @@ The header part is encoded using the 'ascii' encoding. This includes the '\r\n' 
 
 ### Content Part
 
-Contains the actual content of the message. The content part of a message uses [JSON-RPC](http://www.jsonrpc.org/) to describe requests, responses and notifications. The content part is encoded using the charset provided in the Content-Type field. It defaults to `utf-8`, which is the only encoding supported right now. If a server or client receives a header with a different encoding then `utf-8` it should respond with an error.
+Contains the actual content of the message. The content part of a message uses [JSON-RPC](http://www.jsonrpc.org/) to describe requests, responses and notifications. The content part is encoded using the charset provided in the Content-Type field. It defaults to `utf-8`, which is the only encoding supported right now. If a server or client receives a header with a different encoding than `utf-8`, then it should respond with an error.
 
 (Prior versions of the protocol used the string constant `utf8` which is not a correct encoding constant according to [specification](http://www.iana.org/assignments/character-sets/character-sets.xhtml).) For backwards compatibility it is highly recommended that a client and a server treats the string `utf8` as `utf-8`.
 
@@ -2976,7 +2980,8 @@ interface CompletionItem {
 
 	/**
 	 * The format of the insert text. The format applies to both the `insertText` property
-	 * and the `newText` property of a provided `textEdit`.
+	 * and the `newText` property of a provided `textEdit`. If ommitted defaults to
+	 * `InsertTextFormat.PlainText`.
 	 */
 	insertTextFormat?: InsertTextFormat;
 
@@ -3073,9 +3078,12 @@ export interface CompletionRegistrationOptions extends TextDocumentRegistrationO
 	/**
 	 * The list of all possible characters that commit a completion. This field can be used
 	 * if clients don't support individual commmit characters per completion item. See
-	 * `ClientCapabilities.textDocument.completion.completionItem.commitCharactersSupport`
+	 * `ClientCapabilities.textDocument.completion.completionItem.commitCharactersSupport`.
 	 *
-   * Since 3.2.0
+	 * If a server provides both `allCommitCharacters` and commit characters on an individual
+	 * completion item the ones on the completion item win.
+	 *
+     * Since 3.2.0
 	 */
 	allCommitCharacters?: string[];
 
@@ -3501,7 +3509,10 @@ _Registration Options_: `TextDocumentRegistrationOptions`
 
 #### <a href="#textDocument_documentSymbol" name="textDocument_documentSymbol" class="anchor">Document Symbols Request (:leftwards_arrow_with_hook:)</a>
 
-The document symbol request is sent from the client to the server to return a flat list of all symbols found in a given text document. Neither the symbol's location range nor the symbol's container name should be used to infer a hierarchy.
+The document symbol request is sent from the client to the server. The returned result is either
+
+- `SymbolInformation[]` which is a flat list of all symbols found in a given text document. Then neither the symbol's location range nor the symbol's container name should be used to infer a hierarchy.
+- `DocumentSymbol[]` which is a hierarchy of symbols found in a given text document.
 
 _Request_:
 * method: 'textDocument/documentSymbol'
@@ -3699,6 +3710,12 @@ export type CodeActionKind = string;
  * A set of predefined code action kinds
  */
 export namespace CodeActionKind {
+
+	/**
+	 * Empty kind.
+	 */
+	export const Empty: CodeActionKind = '';
+
 	/**
 	 * Base kind for quickfix actions: 'quickfix'
 	 */
@@ -4366,6 +4383,9 @@ export interface FoldingRange {
 ```
 
 * error: code and message set in case an exception happens during the 'textDocument/foldingRange' request
+
+_Registration Options_: `TextDocumentRegistrationOptions`
+
 
 ### Implementation considerations
 

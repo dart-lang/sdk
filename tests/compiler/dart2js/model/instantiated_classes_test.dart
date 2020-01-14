@@ -30,7 +30,7 @@ void main() {
         return env.getElement(name);
       });
       Iterable<ClassEntity> actualClasses = env
-          .compiler.resolutionWorldBuilder.directlyInstantiatedClasses
+          .compiler.resolutionWorldBuilderForTesting.directlyInstantiatedClasses
           .where((c) => c.library == mainLibrary);
       Expect.setEquals(
           expectedClasses,

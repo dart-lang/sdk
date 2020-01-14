@@ -23,7 +23,7 @@ main(List<String> args) {
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script
         .resolve('../../../../pkg/_fe_analyzer_shared/test/constants/data'));
-    await checkTests(dataDir, new ConstantDataComputer(),
+    await checkTests<String>(dataDir, new ConstantDataComputer(),
         args: args,
         testedConfigs: [sharedConfig],
         supportedMarkers: sharedMarkers);
@@ -36,8 +36,9 @@ class ConstantDataComputer extends DataComputer<String> {
   ir.TypeEnvironment getTypeEnvironment(KernelToElementMapImpl elementMap) {
     if (_typeEnvironment == null) {
       ir.Component component = elementMap.env.mainComponent;
+      ir.CoreTypes coreTypes = new ir.CoreTypes(component);
       _typeEnvironment = new ir.TypeEnvironment(
-          new ir.CoreTypes(component), new ir.ClassHierarchy(component));
+          coreTypes, new ir.ClassHierarchy(component, coreTypes));
     }
     return _typeEnvironment;
   }

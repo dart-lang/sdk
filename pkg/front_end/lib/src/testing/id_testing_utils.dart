@@ -468,6 +468,24 @@ class DartTypeToTextVisitor implements DartTypeVisitor<void> {
   }
 
   void visitFunctionType(FunctionType node) {
+    visit(node.returnType);
+    sb.write(' Function');
+    if (node.typeParameters.isNotEmpty) {
+      sb.write('<');
+      for (int i = 0; i < node.typeParameters.length; i++) {
+        if (i > 0) {
+          sb.write(',');
+        }
+        TypeParameter typeParameter = node.typeParameters[i];
+        sb.write(typeParameter.name);
+        DartType bound = typeParameter.bound;
+        if (!(bound is InterfaceType && bound.classNode.name == 'Object')) {
+          sb.write(' extends ');
+          visit(bound);
+        }
+      }
+      sb.write('>');
+    }
     sb.write('(');
     String comma = '';
     visitList(node.positionalParameters.take(node.requiredParameterCount));
@@ -496,8 +514,6 @@ class DartTypeToTextVisitor implements DartTypeVisitor<void> {
     }
     sb.write(')');
     sb.write(nullabilityToText(node.nullability, typeRepresentation));
-    sb.write('->');
-    visit(node.returnType);
   }
 
   void visitTypeParameterType(TypeParameterType node) {

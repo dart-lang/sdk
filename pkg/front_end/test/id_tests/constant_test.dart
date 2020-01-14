@@ -24,7 +24,7 @@ import 'package:kernel/ast.dart';
 main(List<String> args) async {
   Directory dataDir = new Directory.fromUri(Platform.script
       .resolve('../../../_fe_analyzer_shared/test/constants/data'));
-  await runTests(dataDir,
+  await runTests<String>(dataDir,
       args: args,
       supportedMarkers: sharedMarkers,
       createUriForFileName: createUriForFileName,

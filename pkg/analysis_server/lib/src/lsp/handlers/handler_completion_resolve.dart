@@ -25,11 +25,13 @@ class CompletionResolveHandler
 
   CompletionResolveHandler(LspAnalysisServer server) : super(server);
 
+  @override
   Method get handlesMessage => Method.completionItem_resolve;
 
   @override
   LspJsonHandler<CompletionItem> get jsonHandler => CompletionItem.jsonHandler;
 
+  @override
   Future<ErrorOr<CompletionItem>> handle(
       CompletionItem item, CancellationToken token) async {
     // If this isn't an item with resolution data, return the same item back.
@@ -157,7 +159,7 @@ class CompletionResolveHandler
           item.filterText,
           newInsertText,
           item.insertTextFormat,
-          new TextEdit(
+          TextEdit(
             // TODO(dantup): If `clientSupportsSnippets == true` then we should map
             // `selection` in to a snippet (see how Dart Code does this).
             toRange(lineInfo, item.data.rOffset, item.data.rLength),

@@ -9,6 +9,6 @@ void main() {
 
 class Foo {
   /*nm*/ void foo() {
-    print("foo");
+    print('foo');
   }
 }

@@ -39,12 +39,10 @@ Element findChildElement(Element root, String name, [ElementKind kind]) {
   return result;
 }
 
-typedef bool Predicate<E>(E argument);
+typedef Predicate<E> = bool Function(E argument);
 
-/**
- * A function to be called for every [Element].
- */
-typedef void _ElementVisitorFunction(Element element);
+/// A function to be called for every [Element].
+typedef _ElementVisitorFunction = void Function(Element element);
 
 class BaseAnalysisDriverTest with ResourceProviderMixin {
   DartSdk sdk;
@@ -99,7 +97,7 @@ class BaseAnalysisDriverTest with ResourceProviderMixin {
           generatedUriResolver,
           PackageMapUriResolver(resourceProvider, packageMap),
           ResourceUriResolver(resourceProvider)
-        ], null, resourceProvider),
+        ]),
         createAnalysisOptions(),
         disableChangesAndCacheAllResults: disableChangesAndCacheAllResults,
         enableIndex: true,
@@ -163,6 +161,7 @@ class _ElementVisitorFunctionWrapper extends GeneralizingElementVisitor {
 
   _ElementVisitorFunctionWrapper(this.function);
 
+  @override
   visitElement(Element element) {
     function(element);
     super.visitElement(element);

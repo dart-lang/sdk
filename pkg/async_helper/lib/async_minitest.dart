@@ -56,7 +56,7 @@ void test(String name, body()) {
   _popName(oldName);
 }
 
-void expect(Object value, Object matcher, {String reason}) {
+void expect(dynamic value, dynamic matcher, {String reason}) {
   Matcher m;
   if (matcher is _Matcher) {
     m = matcher.call;
@@ -95,7 +95,7 @@ R Function(A, B) expectAsync2<R, A, B>(R Function(A, B) f, {int count = 1}) {
   };
 }
 
-Function expectAsync(Function f, {int count = 1}) {
+dynamic expectAsync(Function f, {int count = 1}) {
   var f2 = f; // Avoid type-promoting f, we want dynamic invocations.
   var test = _currentTest;
   if (f2 is Function(Null, Null, Null, Null, Null)) {

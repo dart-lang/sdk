@@ -69,7 +69,7 @@ class TypeMemberContributor extends DartCompletionContributor {
           // If the element does not provide a good type
           // then attempt to get a better type from a local declaration
           _LocalBestTypeVisitor visitor =
-              new _LocalBestTypeVisitor(expression.name, request.offset);
+              _LocalBestTypeVisitor(expression.name, request.offset);
           if (visitor.visit(expression) && visitor.typeFound != null) {
             type = visitor.typeFound;
           }
@@ -102,7 +102,7 @@ class TypeMemberContributor extends DartCompletionContributor {
 
     // Build the suggestions
     if (type is InterfaceType) {
-      _SuggestionBuilder builder = new _SuggestionBuilder(containingLibrary);
+      _SuggestionBuilder builder = _SuggestionBuilder(containingLibrary);
       builder.buildSuggestions(type, containingMethodName,
           mixins: mixins, superclassConstraints: superclassConstraints);
       return builder.suggestions.toList();
@@ -307,7 +307,7 @@ class _SuggestionBuilder extends MemberSuggestionBuilder {
     // classes seen (not the interfaces) so that we won't be fooled by nonsense
     // like "class C<T> extends C<List<T>> {}"
     List<InterfaceType> result = <InterfaceType>[];
-    Set<ClassElement> classesSeen = new HashSet<ClassElement>();
+    Set<ClassElement> classesSeen = HashSet<ClassElement>();
     List<InterfaceType> typesToVisit = <InterfaceType>[type];
     while (typesToVisit.isNotEmpty) {
       InterfaceType nextType = typesToVisit.removeLast();

@@ -21,9 +21,9 @@ import '../util/id_testing_helper.dart';
 main(List<String> args) async {
   Directory dataDir = Directory.fromUri(Platform.script.resolve(
       '../../../_fe_analyzer_shared/test/flow_analysis/nullability/data'));
-  await runTests(dataDir,
+  await runTests<String>(dataDir,
       args: args,
-      supportedMarkers: sharedMarkers,
+      supportedMarkers: cfeAnalyzerMarkers,
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
       runTest:
@@ -35,11 +35,12 @@ class FlowTestBase {
 
   /// Resolve the given [code] and track nullability in the unit.
   Future<void> trackCode(String code) async {
-    if (await checkTests(
+    TestResult<String> testResult = await checkTests(
         code,
         const _NullabilityDataComputer(),
         FeatureSet.forTesting(
-            sdkVersion: '2.2.2', additionalFeatures: [Feature.non_nullable]))) {
+            sdkVersion: '2.2.2', additionalFeatures: [Feature.non_nullable]));
+    if (testResult.hasFailures) {
       fail('Failure(s)');
     }
   }

@@ -31,7 +31,7 @@ import 'operation.dart';
  * Run the simulation based on the given command-line [arguments].
  */
 Future<void> main(List<String> arguments) async {
-  Driver driver = new Driver();
+  Driver driver = Driver();
   await driver.run(arguments);
 }
 
@@ -130,14 +130,14 @@ class Driver {
    * Initialize a newly created driver.
    */
   Driver() {
-    statistics = new Statistics(this);
+    statistics = Statistics(this);
   }
 
   /**
    * Allow the output from the server to be read and processed.
    */
   Future<void> readServerOutput() async {
-    await new Future.delayed(new Duration(milliseconds: 2));
+    await Future.delayed(Duration(milliseconds: 2));
   }
 
   /**
@@ -181,7 +181,7 @@ class Driver {
    * arguments.
    */
   ArgParser _createArgParser() {
-    ArgParser parser = new ArgParser();
+    ArgParser parser = ArgParser();
     parser.addFlag(HELP_FLAG_NAME,
         abbr: 'h',
         help: 'Print usage information',
@@ -221,26 +221,24 @@ class Driver {
       int breakCount = breakOffsets.length;
       List<SourceEdit> sourceEdits = <SourceEdit>[];
       if (breakCount == 0) {
-        sourceEdits
-            .add(new SourceEdit(srcStart, srcEnd - srcStart + 1, addedText));
+        sourceEdits.add(SourceEdit(srcStart, srcEnd - srcStart + 1, addedText));
       } else {
         int previousOffset = breakOffsets[0];
         String string = addedText.substring(0, previousOffset);
-        sourceEdits
-            .add(new SourceEdit(srcStart, srcEnd - srcStart + 1, string));
+        sourceEdits.add(SourceEdit(srcStart, srcEnd - srcStart + 1, string));
         String reconstruction = string;
         for (int i = 1; i < breakCount; i++) {
           int offset = breakOffsets[i];
           string = addedText.substring(previousOffset, offset);
           reconstruction += string;
-          sourceEdits.add(new SourceEdit(srcStart + previousOffset, 0, string));
+          sourceEdits.add(SourceEdit(srcStart + previousOffset, 0, string));
           previousOffset = offset;
         }
         string = addedText.substring(previousOffset);
         reconstruction += string;
-        sourceEdits.add(new SourceEdit(srcStart + previousOffset, 0, string));
+        sourceEdits.add(SourceEdit(srcStart + previousOffset, 0, string));
         if (reconstruction != addedText) {
-          throw new AssertionError();
+          throw AssertionError();
         }
       }
       fileEdit.addSourceEdits(sourceEdits);
@@ -254,7 +252,7 @@ class Driver {
   Iterable<String> _findPubspecsInAnalysisRoots() {
     List<String> pubspecFiles = <String>[];
     for (String directoryPath in analysisRoots) {
-      Directory directory = new Directory(directoryPath);
+      Directory directory = Directory(directoryPath);
       List<FileSystemEntity> children =
           directory.listSync(recursive: true, followLinks: false);
       for (FileSystemEntity child in children) {
@@ -273,7 +271,7 @@ class Driver {
    */
   List<int> _getBreakOffsets(String text) {
     List<int> breakOffsets = <int>[];
-    Scanner scanner = new Scanner(null, new CharSequenceReader(text),
+    Scanner scanner = Scanner(null, CharSequenceReader(text),
         error.AnalysisErrorListener.NULL_LISTENER)
       ..configureFeatures(FeatureSet.forTesting(sdkVersion: '2.2.2'));
     Token token = scanner.tokenize();
@@ -296,7 +294,7 @@ class Driver {
    * Join the given [lines] into a single string.
    */
   String _join(List<String> lines) {
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     for (int i = 0; i < lines.length; i++) {
       buffer.writeln(lines[i]);
     }
@@ -331,7 +329,7 @@ class Driver {
 
     if (results[VERBOSE_FLAG_NAME]) {
       verbose = true;
-      logger = new Logger(stdout);
+      logger = Logger(stdout);
     }
 
     List<String> arguments = results.rest;
@@ -340,7 +338,7 @@ class Driver {
       return false;
     }
     repositoryPath = path.normalize(arguments[0]);
-    repository = new GitRepository(repositoryPath, logger: logger);
+    repository = GitRepository(repositoryPath, logger: logger);
 
     analysisRoots = arguments
         .sublist(1)
@@ -433,7 +431,7 @@ class Driver {
   Future<void> _replayDiff(CommitDelta commitDelta) async {
     List<FileEdit> editList = <FileEdit>[];
     for (DiffRecord record in commitDelta.diffRecords) {
-      FileEdit edit = new FileEdit(overlayStyle, record);
+      FileEdit edit = FileEdit(overlayStyle, record);
       _createSourceEdits(edit, record.getBlobDiff());
       editList.add(edit);
     }
@@ -467,7 +465,7 @@ class Driver {
    */
   void _runPub(String filePath) {
     String directoryPath = path.dirname(filePath);
-    if (new Directory(directoryPath).existsSync()) {
+    if (Directory(directoryPath).existsSync()) {
       Process.runSync(
           '/Users/brianwilkerson/Dev/dart/dart-sdk/bin/pub', ['get'],
           workingDirectory: directoryPath);
@@ -478,8 +476,8 @@ class Driver {
    * Run the simulation by starting up a server and sending it requests.
    */
   Future<void> _runSimulation() async {
-    server = new Server(logger: logger);
-    Stopwatch stopwatch = new Stopwatch();
+    server = Server(logger: logger);
+    Stopwatch stopwatch = Stopwatch();
     statistics.stopwatch = stopwatch;
     stopwatch.start();
     await server.start();
@@ -489,10 +487,10 @@ class Driver {
     // TODO(brianwilkerson) Get the list of glob patterns from the server after
     // an API for getting them has been implemented.
     fileGlobs = <Glob>[
-      new Glob(path.context.separator, '**.dart'),
-      new Glob(path.context.separator, '**.html'),
-      new Glob(path.context.separator, '**.htm'),
-      new Glob(path.context.separator, '**/.analysisOptions')
+      Glob(path.context.separator, '**.dart'),
+      Glob(path.context.separator, '**.html'),
+      Glob(path.context.separator, '**.htm'),
+      Glob(path.context.separator, '**/.analysisOptions')
     ];
     try {
       await _replayChanges();
@@ -576,12 +574,12 @@ class FileEdit {
     filePath = record.srcPath;
     if (record.isAddition) {
       content = '';
-      lineInfo = new LineInfo(<int>[0]);
+      lineInfo = LineInfo(<int>[0]);
     } else if (record.isCopy || record.isRename || record.isTypeChange) {
-      throw new ArgumentError('Unhandled change of type ${record.status}');
+      throw ArgumentError('Unhandled change of type ${record.status}');
     } else {
-      content = new File(filePath).readAsStringSync();
-      lineInfo = new LineInfo(StringUtilities.computeLineStarts(content));
+      content = File(filePath).readAsStringSync();
+      lineInfo = LineInfo(StringUtilities.computeLineStarts(content));
     }
     currentContent = content;
   }
@@ -600,31 +598,30 @@ class FileEdit {
   List<ServerOperation> getOperations() {
     List<ServerOperation> operations = <ServerOperation>[];
     void addUpdateContent(var overlay) {
-      operations.add(new Analysis_UpdateContent(filePath, overlay));
+      operations.add(Analysis_UpdateContent(filePath, overlay));
     }
 
     // TODO(brianwilkerson) Randomize.
     // Make the order of edits random. Doing so will require updating the
     // offsets of edits after the selected edit point.
-    addUpdateContent(new AddContentOverlay(content));
+    addUpdateContent(AddContentOverlay(content));
     for (List<SourceEdit> editList in editLists.reversed) {
       for (SourceEdit edit in editList.reversed) {
         var overlay = null;
         if (overlayStyle == OverlayStyle.change) {
-          overlay = new ChangeContentOverlay([edit]);
+          overlay = ChangeContentOverlay([edit]);
         } else if (overlayStyle == OverlayStyle.multipleAdd) {
           currentContent = edit.apply(currentContent);
-          overlay = new AddContentOverlay(currentContent);
+          overlay = AddContentOverlay(currentContent);
         } else {
-          throw new StateError(
-              'Failed to handle overlay style = $overlayStyle');
+          throw StateError('Failed to handle overlay style = $overlayStyle');
         }
         if (overlay != null) {
           addUpdateContent(overlay);
         }
       }
     }
-    addUpdateContent(new RemoveContentOverlay());
+    addUpdateContent(RemoveContentOverlay());
     return operations;
   }
 }

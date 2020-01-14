@@ -5,6 +5,8 @@
 #ifndef RUNTIME_VM_FLAG_LIST_H_
 #define RUNTIME_VM_FLAG_LIST_H_
 
+#include "platform/thread_sanitizer.h"
+
 // Don't use USING_PRODUCT outside of this file.
 #if defined(PRODUCT)
 #define USING_PRODUCT true
@@ -22,6 +24,13 @@ constexpr bool kDartPrecompiledRuntime = false;
 constexpr bool kDartUseBytecode = true;
 #else
 constexpr bool kDartUseBytecode = false;
+#endif
+
+#if defined(USING_THREAD_SANITIZER)
+// TODO(39611): Address races in the background compiler.
+constexpr bool kDartUseBackgroundCompilation = false;
+#else
+constexpr bool kDartUseBackgroundCompilation = true;
 #endif
 
 // The disassembler might be force included even in product builds so we need
@@ -65,7 +74,7 @@ constexpr bool kDartUseBytecode = false;
     "Abort if memory allocation fails - use only with --old-gen-heap-size")    \
   C(async_debugger, false, false, bool, true,                                  \
     "Debugger support async functions.")                                       \
-  P(background_compilation, bool, true,                                        \
+  P(background_compilation, bool, kDartUseBackgroundCompilation,               \
     "Run optimizing compilation in background")                                \
   P(causal_async_stacks, bool, !USING_PRODUCT, "Improved async stacks")        \
   P(collect_code, bool, false, "Attempt to GC infrequently used code.")        \
@@ -235,11 +244,14 @@ constexpr bool kDartUseBytecode = false;
 // List of VM-global (i.e. non-isolate specific) flags.
 //
 // The value used for those flags at snapshot generation time needs to be the
-// same as during runtime.
+// same as during runtime. Currently only boolean flags are supported.
 //
 // Usage:
 //   V(name, command-line-flag-name)
 #define VM_GLOBAL_FLAG_LIST(V)                                                 \
+  V(dwarf_stack_traces, FLAG_dwarf_stack_traces)                               \
+  V(causal_async_stacks, FLAG_causal_async_stacks)                             \
+  V(lazy_async_stacks, FLAG_lazy_async_stacks)                                 \
   V(use_bare_instructions, FLAG_use_bare_instructions)
 
 #endif  // RUNTIME_VM_FLAG_LIST_H_

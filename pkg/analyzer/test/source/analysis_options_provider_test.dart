@@ -102,11 +102,13 @@ analyzer:
 
 @reflectiveTest
 class AnalysisOptionsProviderNewTest extends AnalysisOptionsProviderTest {
+  @override
   String get optionsFileName => AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE;
 }
 
 @reflectiveTest
 class AnalysisOptionsProviderOldTest extends AnalysisOptionsProviderTest {
+  @override
   String get optionsFileName => AnalysisEngine.ANALYSIS_OPTIONS_FILE;
 }
 

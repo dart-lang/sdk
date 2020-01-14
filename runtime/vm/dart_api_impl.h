@@ -106,11 +106,11 @@ const char* CanonicalFunction(const char* func);
 
 #ifdef SUPPORT_TIMELINE
 #define API_TIMELINE_DURATION(thread)                                          \
-  TimelineDurationScope api_tds(thread, Timeline::GetAPIStream(), CURRENT_FUNC)
+  TimelineBeginEndScope api_tbes(thread, Timeline::GetAPIStream(), CURRENT_FUNC)
 #define API_TIMELINE_DURATION_BASIC(thread)                                    \
   API_TIMELINE_DURATION(thread);                                               \
-  api_tds.SetNumArguments(1);                                                  \
-  api_tds.CopyArgument(0, "mode", "basic");
+  api_tbes.SetNumArguments(1);                                                 \
+  api_tbes.CopyArgument(0, "mode", "basic");
 
 #define API_TIMELINE_BEGIN_END(thread)                                         \
   TimelineBeginEndScope api_tbes(thread, Timeline::GetAPIStream(), CURRENT_FUNC)

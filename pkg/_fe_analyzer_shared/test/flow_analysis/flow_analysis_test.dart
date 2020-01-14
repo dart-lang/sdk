@@ -2199,9 +2199,9 @@ main() {
           var result = s1.restrict(h, s2, unsafe ? [x].toSet() : Set());
           if (expectedChain == null) {
             expect(result.variableInfo, contains(x));
-            expect(result.infoFor(x).promotionChain, isNull);
+            expect(result.infoFor(x).promotedTypes, isNull);
           } else {
-            expect(result.infoFor(x).promotionChain.map((t) => t.type).toList(),
+            expect(result.infoFor(x).promotedTypes.map((t) => t.type).toList(),
                 expectedChain);
           }
         }
@@ -2246,27 +2246,27 @@ main() {
           for (var t in before) {
             initialModel = initialModel.tryPromote(h, x, _Type(t)).ifTrue;
           }
-          _checkChain(initialModel.infoFor(x).promotionChain, before);
+          _checkChain(initialModel.infoFor(x).promotedTypes, before);
           var tryModel = initialModel;
           for (var t in inTry) {
             tryModel = tryModel.tryPromote(h, x, _Type(t)).ifTrue;
           }
           var expectedTryChain = before.toList()..addAll(inTry);
-          _checkChain(tryModel.infoFor(x).promotionChain, expectedTryChain);
+          _checkChain(tryModel.infoFor(x).promotedTypes, expectedTryChain);
           var finallyModel = initialModel;
           for (var t in inFinally) {
             finallyModel = finallyModel.tryPromote(h, x, _Type(t)).ifTrue;
           }
           var expectedFinallyChain = before.toList()..addAll(inFinally);
           _checkChain(
-              finallyModel.infoFor(x).promotionChain, expectedFinallyChain);
+              finallyModel.infoFor(x).promotedTypes, expectedFinallyChain);
           var result = finallyModel.restrict(h, tryModel, {});
-          _checkChain(result.infoFor(x).promotionChain, expectedResult);
+          _checkChain(result.infoFor(x).promotedTypes, expectedResult);
           // And verify that the inputs are unchanged.
-          _checkChain(initialModel.infoFor(x).promotionChain, before);
-          _checkChain(tryModel.infoFor(x).promotionChain, expectedTryChain);
+          _checkChain(initialModel.infoFor(x).promotedTypes, before);
+          _checkChain(tryModel.infoFor(x).promotedTypes, expectedTryChain);
           _checkChain(
-              finallyModel.infoFor(x).promotionChain, expectedFinallyChain);
+              finallyModel.infoFor(x).promotedTypes, expectedFinallyChain);
         }
 
         _check(['Object'], ['Iterable', 'List'], ['num', 'int'],
@@ -2312,25 +2312,24 @@ main() {
 
     test('should handle nulls', () {
       var h = _Harness();
-      expect(VariableModel.joinPromotionChains(null, null, h), null);
-      expect(VariableModel.joinPromotionChains(null, [intType], h), null);
-      expect(VariableModel.joinPromotionChains([intType], null, h), null);
+      expect(VariableModel.joinPromotedTypes(null, null, h), null);
+      expect(VariableModel.joinPromotedTypes(null, [intType], h), null);
+      expect(VariableModel.joinPromotedTypes([intType], null, h), null);
     });
 
     test('should return null if there are no common types', () {
       var h = _Harness();
-      expect(
-          VariableModel.joinPromotionChains([intType], [doubleType], h), null);
+      expect(VariableModel.joinPromotedTypes([intType], [doubleType], h), null);
     });
 
     test('should return common prefix if there are common types', () {
       var h = _Harness();
       expect(
-          VariableModel.joinPromotionChains(
+          VariableModel.joinPromotedTypes(
               [objectType, intType], [objectType, doubleType], h),
           _matchPromotionChain(['Object']));
       expect(
-          VariableModel.joinPromotionChains([objectType, numType, intType],
+          VariableModel.joinPromotedTypes([objectType, numType, intType],
               [objectType, numType, doubleType], h),
           _matchPromotionChain(['Object', 'num']));
     });
@@ -2339,18 +2338,17 @@ main() {
       var h = _Harness();
       var prefix = [objectType, numType];
       var largerChain = [objectType, numType, intType];
-      expect(VariableModel.joinPromotionChains(prefix, largerChain, h),
+      expect(VariableModel.joinPromotedTypes(prefix, largerChain, h),
           same(prefix));
-      expect(VariableModel.joinPromotionChains(largerChain, prefix, h),
+      expect(VariableModel.joinPromotedTypes(largerChain, prefix, h),
           same(prefix));
-      expect(
-          VariableModel.joinPromotionChains(prefix, prefix, h), same(prefix));
+      expect(VariableModel.joinPromotedTypes(prefix, prefix, h), same(prefix));
     });
 
     test('should not keep common types after the first difference', () {
       var h = _Harness();
       expect(
-          VariableModel.joinPromotionChains([objectType, intType, neverType],
+          VariableModel.joinPromotedTypes([objectType, intType, neverType],
               [objectType, doubleType, neverType], h),
           _matchPromotionChain(['Object']));
     });
@@ -2365,8 +2363,8 @@ main() {
       var s1 = _makeTypes(['double', 'int']);
       var s2 = _makeTypes(['double', 'int', 'bool']);
       var expected = _matchOfInterestSet(['double', 'int', 'bool']);
-      expect(VariableModel.joinTypesOfInterest(s1, s2, h), expected);
-      expect(VariableModel.joinTypesOfInterest(s2, s1, h), expected);
+      expect(VariableModel.joinTested(s1, s2, h), expected);
+      expect(VariableModel.joinTested(s2, s1, h), expected);
     });
 
     test('common prefix', () {
@@ -2374,8 +2372,8 @@ main() {
       var s1 = _makeTypes(['double', 'int', 'String']);
       var s2 = _makeTypes(['double', 'int', 'bool']);
       var expected = _matchOfInterestSet(['double', 'int', 'String', 'bool']);
-      expect(VariableModel.joinTypesOfInterest(s1, s2, h), expected);
-      expect(VariableModel.joinTypesOfInterest(s2, s1, h), expected);
+      expect(VariableModel.joinTested(s1, s2, h), expected);
+      expect(VariableModel.joinTested(s2, s1, h), expected);
     });
 
     test('order mismatch', () {
@@ -2383,8 +2381,8 @@ main() {
       var s1 = _makeTypes(['double', 'int']);
       var s2 = _makeTypes(['int', 'double']);
       var expected = _matchOfInterestSet(['double', 'int']);
-      expect(VariableModel.joinTypesOfInterest(s1, s2, h), expected);
-      expect(VariableModel.joinTypesOfInterest(s2, s1, h), expected);
+      expect(VariableModel.joinTested(s1, s2, h), expected);
+      expect(VariableModel.joinTested(s2, s1, h), expected);
     });
 
     test('small common prefix', () {
@@ -2393,8 +2391,8 @@ main() {
       var s2 = _makeTypes(['int', 'List', 'bool', 'Future']);
       var expected = _matchOfInterestSet(
           ['int', 'double', 'String', 'bool', 'List', 'Future']);
-      expect(VariableModel.joinTypesOfInterest(s1, s2, h), expected);
-      expect(VariableModel.joinTypesOfInterest(s2, s1, h), expected);
+      expect(VariableModel.joinTested(s1, s2, h), expected);
+      expect(VariableModel.joinTested(s2, s1, h), expected);
     });
   });
 
@@ -2627,8 +2625,8 @@ Matcher _matchVariableModel(
   Matcher assignedMatcher = wrapMatcher(assigned);
   Matcher writeCapturedMatcher = wrapMatcher(writeCaptured);
   return predicate((VariableModel<_Type> model) {
-    if (!chainMatcher.matches(model.promotionChain, {})) return false;
-    if (!ofInterestMatcher.matches(model.typesOfInterest, {})) return false;
+    if (!chainMatcher.matches(model.promotedTypes, {})) return false;
+    if (!ofInterestMatcher.matches(model.tested, {})) return false;
     if (!assignedMatcher.matches(model.assigned, {})) return false;
     if (!writeCapturedMatcher.matches(model.writeCaptured, {})) return false;
     return true;

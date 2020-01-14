@@ -25,13 +25,13 @@ main() {
 class NotificationErrorsTest extends AbstractAnalysisTest {
   Map<String, List<AnalysisError>> filesErrors = {};
 
+  @override
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_ERRORS) {
-      var decoded = new AnalysisErrorsParams.fromNotification(notification);
+      var decoded = AnalysisErrorsParams.fromNotification(notification);
       filesErrors[decoded.file] = decoded.errors;
     } else if (notification.event == ANALYSIS_NOTIFICATION_FLUSH_RESULTS) {
-      var decoded =
-          new AnalysisFlushResultsParams.fromNotification(notification);
+      var decoded = AnalysisFlushResultsParams.fromNotification(notification);
       for (var file in decoded.files) {
         filesErrors[file] = null;
       }
@@ -44,7 +44,7 @@ class NotificationErrorsTest extends AbstractAnalysisTest {
     registerLintRules();
     super.setUp();
     server.handlers = [
-      new AnalysisDomainHandler(server),
+      AnalysisDomainHandler(server),
     ];
   }
 
@@ -57,7 +57,7 @@ linter:
 ''').path;
 
     Request request =
-        new AnalysisSetAnalysisRootsParams([projectPath], []).toRequest('0');
+        AnalysisSetAnalysisRootsParams([projectPath], []).toRequest('0');
     handleSuccessfulRequest(request);
     await waitForTasksFinished();
     await pumpEventQueue();
@@ -88,7 +88,7 @@ analyzer:
 ''');
 
     Request request =
-        new AnalysisSetAnalysisRootsParams([projectPath], []).toRequest('0');
+        AnalysisSetAnalysisRootsParams([projectPath], []).toRequest('0');
     handleSuccessfulRequest(request);
     await waitForTasksFinished();
     await pumpEventQueue();
@@ -120,7 +120,7 @@ analyzer:
 ''');
 
     Request request =
-        new AnalysisSetAnalysisRootsParams([projectPath], []).toRequest('0');
+        AnalysisSetAnalysisRootsParams([projectPath], []).toRequest('0');
     handleSuccessfulRequest(request);
     await waitForTasksFinished();
     await pumpEventQueue();
@@ -171,8 +171,7 @@ analyzer:
     expect(filesErrors[brokenFile], isNull);
 
     // Send a getHover request for the file that will cause it to be read from disk.
-    await waitResponse(
-        new AnalysisGetHoverParams(brokenFile, 0).toRequest('0'));
+    await waitResponse(AnalysisGetHoverParams(brokenFile, 0).toRequest('0'));
     await waitForTasksFinished();
     await pumpEventQueue(times: 5000);
 
@@ -210,7 +209,7 @@ linter:
     addTestFile('class a { }');
 
     Request request =
-        new AnalysisSetAnalysisRootsParams([projectPath], []).toRequest('0');
+        AnalysisSetAnalysisRootsParams([projectPath], []).toRequest('0');
     handleSuccessfulRequest(request);
 
     await waitForTasksFinished();
@@ -262,8 +261,8 @@ main() {
     // Add and overlay and give chance for the file to be analyzed (if
     // it would).
     await waitResponse(
-      new AnalysisUpdateContentParams({
-        brokenFile: new AddContentOverlay('err'),
+      AnalysisUpdateContentParams({
+        brokenFile: AddContentOverlay('err'),
       }).toRequest('1'),
     );
     await waitForTasksFinished();
@@ -283,8 +282,8 @@ main() {
 
     // Add and overlay and give chance for the file to be analyzed.
     await waitResponse(
-      new AnalysisUpdateContentParams({
-        brokenFile: new AddContentOverlay('err'),
+      AnalysisUpdateContentParams({
+        brokenFile: AddContentOverlay('err'),
       }).toRequest('0'),
     );
     await waitForTasksFinished();
@@ -295,8 +294,8 @@ main() {
 
     // Remove the overlay (this file no longer exists anywhere).
     await waitResponse(
-      new AnalysisUpdateContentParams({
-        brokenFile: new RemoveContentOverlay(),
+      AnalysisUpdateContentParams({
+        brokenFile: RemoveContentOverlay(),
       }).toRequest('1'),
     );
     await waitForTasksFinished();
@@ -319,8 +318,8 @@ main() {
 
     // Add and overlay and give chance for the file to be analyzed.
     await waitResponse(
-      new AnalysisUpdateContentParams({
-        brokenFile: new AddContentOverlay('err'),
+      AnalysisUpdateContentParams({
+        brokenFile: AddContentOverlay('err'),
       }).toRequest('0'),
     );
     await waitForTasksFinished();
@@ -336,8 +335,8 @@ main() {
 
     // Remove the overlay.
     await waitResponse(
-      new AnalysisUpdateContentParams({
-        brokenFile: new RemoveContentOverlay(),
+      AnalysisUpdateContentParams({
+        brokenFile: RemoveContentOverlay(),
       }).toRequest('1'),
     );
     await waitForTasksFinished();
@@ -371,7 +370,7 @@ version: 1.3.2
 ''').path;
 
     Request setRootsRequest =
-        new AnalysisSetAnalysisRootsParams([projectPath], []).toRequest('0');
+        AnalysisSetAnalysisRootsParams([projectPath], []).toRequest('0');
     handleSuccessfulRequest(setRootsRequest);
     await waitForTasksFinished();
     await pumpEventQueue();

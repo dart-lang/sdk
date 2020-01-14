@@ -378,23 +378,25 @@ void ClassFinalizer::CheckRecursiveType(const Class& cls,
     if ((pending_type.raw() != type.raw()) && pending_type.IsType() &&
         (pending_type.type_class() == type_cls.raw())) {
       pending_arguments = pending_type.arguments();
-      if (!pending_arguments.IsSubvectorEquivalent(arguments, first_type_param,
-                                                   num_type_params) &&
+      if (!pending_arguments.IsSubvectorEquivalent(
+              arguments, first_type_param, num_type_params,
+              /* syntactically = */ true) &&
           !pending_arguments.IsSubvectorInstantiated(first_type_param,
                                                      num_type_params)) {
         const TypeArguments& instantiated_arguments = TypeArguments::Handle(
-            zone, arguments.InstantiateFrom(NNBDMode::kLegacy,
+            zone, arguments.InstantiateFrom(NNBDMode::kLegacyLib,
                                             Object::null_type_arguments(),
                                             Object::null_type_arguments(),
                                             kNoneFree, NULL, Heap::kNew));
         const TypeArguments& instantiated_pending_arguments =
             TypeArguments::Handle(
                 zone, pending_arguments.InstantiateFrom(
-                          NNBDMode::kLegacy, Object::null_type_arguments(),
+                          NNBDMode::kLegacyLib, Object::null_type_arguments(),
                           Object::null_type_arguments(), kNoneFree, NULL,
                           Heap::kNew));
         if (!instantiated_pending_arguments.IsSubvectorEquivalent(
-                instantiated_arguments, first_type_param, num_type_params)) {
+                instantiated_arguments, first_type_param, num_type_params,
+                /* syntactically = */ true)) {
           const String& type_name = String::Handle(zone, type.Name());
           ReportError(cls, type.token_pos(), "illegal recursive type '%s'",
                       type_name.ToCString());
@@ -425,17 +427,9 @@ intptr_t ClassFinalizer::ExpandAndFinalizeTypeArguments(
   const intptr_t num_type_parameters = type_class.NumTypeParameters();
 
   // Initialize the type argument vector.
-  // Check the number of parsed type arguments, if any.
-  // Specifying no type arguments indicates a raw type, which is not an error.
-  // However, type parameter bounds are checked below, even for a raw type.
+  // A null type argument vector indicates a raw type.
   TypeArguments& arguments = TypeArguments::Handle(zone, type.arguments());
-  if (!arguments.IsNull() && (arguments.Length() != num_type_parameters)) {
-    // Make the type raw and continue without reporting any error.
-    // A static warning should have been reported.
-    // TODO(regis): Check if this is dead code.
-    arguments = TypeArguments::null();
-    type.set_arguments(arguments);
-  }
+  ASSERT(arguments.IsNull() || (arguments.Length() == num_type_parameters));
 
   // Mark the type as being finalized in order to detect self reference and
   // postpone bound checking (if required) until after all types in the graph of
@@ -621,12 +615,8 @@ void ClassFinalizer::FinalizeTypeArguments(const Class& cls,
             arguments.SetTypeAt(i, super_type_arg);
             continue;
           }
-          // The nullability of the supertype should never be relevant.
-          // TODO(regis): Should we introduce a kIgnore mode in addition to
-          // the kLegacy mode of instantiation so that unnecessary cloning
-          // never occurs?
           super_type_arg = super_type_arg.InstantiateFrom(
-              NNBDMode::kLegacy, arguments, Object::null_type_arguments(),
+              cls.nnbd_mode(), arguments, Object::null_type_arguments(),
               kNoneFree, instantiation_trail, Heap::kOld);
           if (super_type_arg.IsBeingFinalized()) {
             // The super_type_arg was instantiated from a type being finalized.
@@ -784,7 +774,7 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
           const TypeArguments& instantiator_type_arguments =
               TypeArguments::Handle(zone, fun_type.arguments());
           signature = signature.InstantiateSignatureFrom(
-              NNBDMode::kLegacy, instantiator_type_arguments,
+              scope_class.nnbd_mode(), instantiator_type_arguments,
               Object::null_type_arguments(), kNoneFree, Heap::kOld);
           // Note that if instantiator_type_arguments contains type parameters,
           // as in F<K>, the signature is still uninstantiated (the typedef type
@@ -859,7 +849,6 @@ void ClassFinalizer::FinalizeSignature(const Class& cls,
   // Finalize result type.
   type = function.result_type();
   finalized_type = FinalizeType(cls, type, finalization);
-  // The result type may be malformed or malbounded.
   if (finalized_type.raw() != type.raw()) {
     function.set_result_type(finalized_type);
   }
@@ -868,7 +857,6 @@ void ClassFinalizer::FinalizeSignature(const Class& cls,
   for (intptr_t i = 0; i < num_parameters; i++) {
     type = function.ParameterTypeAt(i);
     finalized_type = FinalizeType(cls, type, finalization);
-    // The parameter type may be malformed or malbounded.
     if (type.raw() != finalized_type.raw()) {
       function.SetParameterTypeAt(i, finalized_type);
     }
@@ -1119,11 +1107,11 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
   }
 
 #if defined(SUPPORT_TIMELINE)
-  TimelineDurationScope tds(thread, Timeline::GetCompilerStream(),
-                            "FinalizeClass");
-  if (tds.enabled()) {
-    tds.SetNumArguments(1);
-    tds.CopyArgument(0, "class", cls.ToCString());
+  TimelineBeginEndScope tbes(thread, Timeline::GetCompilerStream(),
+                             "FinalizeClass");
+  if (tbes.enabled()) {
+    tbes.SetNumArguments(1);
+    tbes.CopyArgument(0, "class", cls.ToCString());
   }
 #endif  // defined(SUPPORT_TIMELINE)
 
@@ -1462,7 +1450,7 @@ void ClassFinalizer::SortClasses() {
 
   RemapClassIds(old_to_new_cid);
   delete[] old_to_new_cid;
-  RehashTypes();  // Types use cid's as part of their hashes.
+  RehashTypes();         // Types use cid's as part of their hashes.
   I->RehashConstants();  // Const objects use cid's as part of their hashes.
 }
 

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 part of dart._runtime;
 
 /// This library defines a set of general javascript utilities for us
@@ -19,19 +17,19 @@ defineValue(obj, name, value) {
 }
 
 final Function(Object, Object,
-    {Object get,
-    Object set,
-    Object value,
-    bool configurable,
-    bool writable}) defineAccessor = JS('', 'Object.defineProperty');
+    {Object? get,
+    Object? set,
+    Object? value,
+    bool? configurable,
+    bool? writable}) defineAccessor = JS('', 'Object.defineProperty');
 
-final Function(Object, Object) getOwnPropertyDescriptor =
+final dynamic Function(Object, Object) getOwnPropertyDescriptor =
     JS('', 'Object.getOwnPropertyDescriptor');
 
-final Iterable Function(Object) getOwnPropertyNames =
+final List Function(Object) getOwnPropertyNames =
     JS('', 'Object.getOwnPropertyNames');
 
-final Function(Object) getOwnPropertySymbols =
+final List Function(Object) getOwnPropertySymbols =
     JS('', 'Object.getOwnPropertySymbols');
 
 final Function(Object) getPrototypeOf = JS('', 'Object.getPrototypeOf');

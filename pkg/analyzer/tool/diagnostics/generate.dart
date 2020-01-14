@@ -199,8 +199,16 @@ class DocumentationGenerator {
   /// should have the unit in which the information can be found.
   DiagnosticInformation _extractDiagnosticInformation(
       Expression expression, ParsedUnitResult generatedResult) {
+    List<Expression> arguments;
     if (expression is InstanceCreationExpression) {
-      NodeList<Expression> arguments = expression.argumentList.arguments;
+      arguments = expression.argumentList.arguments;
+    } else if (expression is MethodInvocation) {
+      var name = expression.methodName.name;
+      if (name.endsWith('Code') || name.endsWith('CodeWithUniqueName')) {
+        arguments = expression.argumentList.arguments;
+      }
+    }
+    if (arguments != null) {
       String name = _extractName(arguments);
       String message = _extractMessage(arguments);
       DiagnosticInformation info = infoByName[name];
@@ -211,13 +219,16 @@ class DocumentationGenerator {
         info.messages.add(message);
       }
       return info;
-    } else if (expression is SimpleIdentifier && generatedResult != null) {
+    }
+
+    if (expression is SimpleIdentifier && generatedResult != null) {
       VariableDeclaration variable =
           _findVariable(expression.name, generatedResult.unit);
       if (variable != null) {
         return _extractDiagnosticInformation(variable.initializer, null);
       }
     }
+
     return null;
   }
 

@@ -19,7 +19,7 @@ class TestIterableBase extends Iterable<int> {
   final int count;
   // call [callback] if generating callbackIndex.
   final int callbackIndex;
-  final Function callback;
+  final Function? callback;
   TestIterableBase(this.length, this.count, this.callbackIndex, this.callback);
   Iterator<int> get iterator => new CallbackIterator(this);
 }
@@ -63,7 +63,7 @@ class CallbackIterator implements Iterator<int> {
 void testConstructor() {
   // Constructor can make both growable and fixed-length lists.
   testGrowable(list) {
-    Expect.isTrue(list is List<int>);
+    Expect.isTrue(list is List<int?>);
     Expect.isFalse(list is List<String>);
     int length = list.length;
     list.add(42);
@@ -71,7 +71,7 @@ void testConstructor() {
   }
 
   testFixedLength(list) {
-    Expect.isTrue(list is List<int>);
+    Expect.isTrue(list is List<int?>);
     int length = list.length;
     Expect.throws(() {
       list.add(42);

@@ -38,13 +38,13 @@ import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/java_engine.dart';
-import 'package:analyzer/src/generated/resolver.dart'
-    show Namespace, TypeProvider;
+import 'package:analyzer/src/generated/resolver.dart' show Namespace;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/task/api/model.dart' show AnalysisTarget;
@@ -226,6 +226,13 @@ abstract class ClassElement
   /// and [nullabilitySuffix].
   InterfaceType instantiate({
     @required List<DartType> typeArguments,
+    @required NullabilitySuffix nullabilitySuffix,
+  });
+
+  /// Create the [InterfaceType] for this class with type arguments that
+  /// correspond to the bounds of the type parameters, and the given
+  /// [nullabilitySuffix].
+  InterfaceType instantiateToBounds({
     @required NullabilitySuffix nullabilitySuffix,
   });
 
@@ -646,7 +653,22 @@ abstract class Element implements AnalysisTarget {
   /// Return the most immediate ancestor of this element for which the
   /// [predicate] returns `true`, or `null` if there is no such ancestor. Note
   /// that this element will never be returned.
+  @Deprecated('Use either thisOrAncestorMatching or thisOrAncestorOfType')
   E getAncestor<E extends Element>(Predicate<Element> predicate);
+
+  /// Return the presentation of this element as it should appear when
+  /// presented to users.
+  ///
+  /// If [withNullability] is `true`, then [NullabilitySuffix.question] and
+  /// [NullabilitySuffix.star] in types will be be represented as `?` and `*`.
+  /// [NullabilitySuffix.none] does not have any explicit presentation.
+  ///
+  /// If [withNullability] is `false`, nullability suffixes will not be
+  /// included into the presentation.
+  ///
+  /// Clients should not depend on the content of the returned value as it will
+  /// be changed if doing so would improve the UX.
+  String getDisplayString({@required bool withNullability});
 
   /// Return a display name for the given element that includes the path to the
   /// compilation unit in which the type is defined. If [shortName] is `null`
@@ -663,6 +685,15 @@ abstract class Element implements AnalysisTarget {
   /// declared in <i>L</i> or if <i>m</i> is public.
   /// </blockquote>
   bool isAccessibleIn(LibraryElement library);
+
+  /// Return either this element or the most immediate ancestor of this element
+  /// for which the [predicate] returns `true`, or `null` if there is no such
+  /// element.
+  E thisOrAncestorMatching<E extends Element>(Predicate<Element> predicate);
+
+  /// Return either this element or the most immediate ancestor of this element
+  /// that has the given type, or `null` if there is no such element.
+  E thisOrAncestorOfType<E extends Element>();
 
   /// Use the given [visitor] to visit all of the children of this element.
   /// There is no guarantee of the order in which the children will be visited.
@@ -773,73 +804,68 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ElementKind implements Comparable<ElementKind> {
-  static const ElementKind CLASS = const ElementKind('CLASS', 0, "class");
+  static const ElementKind CLASS = ElementKind('CLASS', 0, "class");
 
   static const ElementKind COMPILATION_UNIT =
-      const ElementKind('COMPILATION_UNIT', 1, "compilation unit");
+      ElementKind('COMPILATION_UNIT', 1, "compilation unit");
 
   static const ElementKind CONSTRUCTOR =
-      const ElementKind('CONSTRUCTOR', 2, "constructor");
+      ElementKind('CONSTRUCTOR', 2, "constructor");
 
-  static const ElementKind DYNAMIC =
-      const ElementKind('DYNAMIC', 3, "<dynamic>");
+  static const ElementKind DYNAMIC = ElementKind('DYNAMIC', 3, "<dynamic>");
 
-  static const ElementKind ERROR = const ElementKind('ERROR', 4, "<error>");
+  static const ElementKind ERROR = ElementKind('ERROR', 4, "<error>");
 
   static const ElementKind EXPORT =
-      const ElementKind('EXPORT', 5, "export directive");
+      ElementKind('EXPORT', 5, "export directive");
 
   static const ElementKind EXTENSION =
-      const ElementKind('EXTENSION', 24, "extension");
+      ElementKind('EXTENSION', 24, "extension");
 
-  static const ElementKind FIELD = const ElementKind('FIELD', 6, "field");
+  static const ElementKind FIELD = ElementKind('FIELD', 6, "field");
 
-  static const ElementKind FUNCTION =
-      const ElementKind('FUNCTION', 7, "function");
+  static const ElementKind FUNCTION = ElementKind('FUNCTION', 7, "function");
 
   static const ElementKind GENERIC_FUNCTION_TYPE =
-      const ElementKind('GENERIC_FUNCTION_TYPE', 8, 'generic function type');
+      ElementKind('GENERIC_FUNCTION_TYPE', 8, 'generic function type');
 
-  static const ElementKind GETTER = const ElementKind('GETTER', 9, "getter");
+  static const ElementKind GETTER = ElementKind('GETTER', 9, "getter");
 
   static const ElementKind IMPORT =
-      const ElementKind('IMPORT', 10, "import directive");
+      ElementKind('IMPORT', 10, "import directive");
 
-  static const ElementKind LABEL = const ElementKind('LABEL', 11, "label");
+  static const ElementKind LABEL = ElementKind('LABEL', 11, "label");
 
-  static const ElementKind LIBRARY =
-      const ElementKind('LIBRARY', 12, "library");
+  static const ElementKind LIBRARY = ElementKind('LIBRARY', 12, "library");
 
   static const ElementKind LOCAL_VARIABLE =
-      const ElementKind('LOCAL_VARIABLE', 13, "local variable");
+      ElementKind('LOCAL_VARIABLE', 13, "local variable");
 
-  static const ElementKind METHOD = const ElementKind('METHOD', 14, "method");
+  static const ElementKind METHOD = ElementKind('METHOD', 14, "method");
 
-  static const ElementKind NAME = const ElementKind('NAME', 15, "<name>");
+  static const ElementKind NAME = ElementKind('NAME', 15, "<name>");
 
-  static const ElementKind NEVER = const ElementKind('NEVER', 16, "<never>");
+  static const ElementKind NEVER = ElementKind('NEVER', 16, "<never>");
 
   static const ElementKind PARAMETER =
-      const ElementKind('PARAMETER', 17, "parameter");
+      ElementKind('PARAMETER', 17, "parameter");
 
-  static const ElementKind PREFIX =
-      const ElementKind('PREFIX', 18, "import prefix");
+  static const ElementKind PREFIX = ElementKind('PREFIX', 18, "import prefix");
 
-  static const ElementKind SETTER = const ElementKind('SETTER', 19, "setter");
+  static const ElementKind SETTER = ElementKind('SETTER', 19, "setter");
 
   static const ElementKind TOP_LEVEL_VARIABLE =
-      const ElementKind('TOP_LEVEL_VARIABLE', 20, "top level variable");
+      ElementKind('TOP_LEVEL_VARIABLE', 20, "top level variable");
 
   static const ElementKind FUNCTION_TYPE_ALIAS =
-      const ElementKind('FUNCTION_TYPE_ALIAS', 21, "function type alias");
+      ElementKind('FUNCTION_TYPE_ALIAS', 21, "function type alias");
 
   static const ElementKind TYPE_PARAMETER =
-      const ElementKind('TYPE_PARAMETER', 22, "type parameter");
+      ElementKind('TYPE_PARAMETER', 22, "type parameter");
 
-  static const ElementKind UNIVERSE =
-      const ElementKind('UNIVERSE', 23, "<universe>");
+  static const ElementKind UNIVERSE = ElementKind('UNIVERSE', 23, "<universe>");
 
-  static const List<ElementKind> values = const [
+  static const List<ElementKind> values = [
     CLASS,
     COMPILATION_UNIT,
     CONSTRUCTOR,
@@ -1078,6 +1104,7 @@ abstract class FieldElement
   /// Return `true` if this element is a static element. A static element is an
   /// element that is not associated with a particular instance, but rather with
   /// an entire library or class.
+  @override
   bool get isStatic;
 }
 
@@ -1152,6 +1179,19 @@ abstract class FunctionTypeAliasElement
   @Deprecated('Use instantiate() instead')
   FunctionType instantiate2({
     @required List<DartType> typeArguments,
+    @required NullabilitySuffix nullabilitySuffix,
+  });
+
+  /// Produces the function type resulting from instantiating this typedef with
+  /// type arguments that correspond to the bounds of the type parameters, and
+  /// the given [nullabilitySuffix].
+  ///
+  /// Note that this always instantiates the typedef itself, so for a
+  /// [GenericTypeAliasElement] the returned [FunctionType] might still be a
+  /// generic function, with type formals. For example, if the typedef is:
+  ///     typedef F<T> = void Function<U>(T, U);
+  /// then `F<int>` will produce `void Function<U>(int, U)`.
+  FunctionType instantiateToBounds({
     @required NullabilitySuffix nullabilitySuffix,
   });
 }
@@ -1470,7 +1510,10 @@ abstract class ParameterElement
 
   /// Append the type, name and possibly the default value of this parameter to
   /// the given [buffer].
-  void appendToWithoutDelimiters(StringBuffer buffer);
+  void appendToWithoutDelimiters(
+    StringBuffer buffer, {
+    bool withNullability = false,
+  });
 }
 
 /// A prefix used to import one or more libraries into another library.

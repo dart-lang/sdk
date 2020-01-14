@@ -11,12 +11,13 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
+import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -231,6 +232,45 @@ abstract class BaseProcessor {
       return changeBuilder;
     }
 
+    return null;
+  }
+
+  Future<ChangeBuilder> createBuilder_addReturnType() async {
+    var node = this.node;
+    if (node is SimpleIdentifier) {
+      FunctionBody body;
+      var parent = node.parent;
+      if (parent is MethodDeclaration) {
+        if (parent.returnType != null) {
+          _coverageMarker();
+          return null;
+        }
+        body = parent.body;
+      } else if (parent is FunctionDeclaration) {
+        if (parent.returnType != null) {
+          _coverageMarker();
+          return null;
+        }
+        body = parent.functionExpression.body;
+      } else {
+        _coverageMarker();
+        return null;
+      }
+      var returnType = inferReturnType(body);
+      if (returnType == null) {
+        _coverageMarker();
+        return null;
+      }
+      var changeBuilder = _newDartChangeBuilder();
+      bool validChange = true;
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+        builder.addInsertion(node.offset, (DartEditBuilder builder) {
+          validChange = builder.writeType(returnType);
+          builder.write(' ');
+        });
+      });
+      return validChange ? changeBuilder : null;
+    }
     return null;
   }
 
@@ -657,11 +697,11 @@ abstract class BaseProcessor {
       loopVariableName = keyParameterName;
     } else {
       _ParameterReferenceFinder keyFinder =
-          new _ParameterReferenceFinder(keyParameter.declaredElement);
+          _ParameterReferenceFinder(keyParameter.declaredElement);
       keyBody.accept(keyFinder);
 
       _ParameterReferenceFinder valueFinder =
-          new _ParameterReferenceFinder(valueParameter.declaredElement);
+          _ParameterReferenceFinder(valueParameter.declaredElement);
       valueBody.accept(valueFinder);
 
       String computeUnusedVariableName() {
@@ -740,12 +780,11 @@ abstract class BaseProcessor {
           var changeBuilder = _newDartChangeBuilder();
           await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
             builder.addSimpleReplacement(
-                new SourceRange(
+                SourceRange(
                     literal.offset + (literal.isRaw ? 1 : 0), quoteLength),
                 newQuote);
             builder.addSimpleReplacement(
-                new SourceRange(literal.end - quoteLength, quoteLength),
-                newQuote);
+                SourceRange(literal.end - quoteLength, quoteLength), newQuote);
           });
           return changeBuilder;
         }
@@ -770,11 +809,10 @@ abstract class BaseProcessor {
         var changeBuilder = _newDartChangeBuilder();
         await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
           builder.addSimpleReplacement(
-              new SourceRange(
-                  parent.offset + (parent.isRaw ? 1 : 0), quoteLength),
+              SourceRange(parent.offset + (parent.isRaw ? 1 : 0), quoteLength),
               newQuote);
           builder.addSimpleReplacement(
-              new SourceRange(parent.end - quoteLength, quoteLength), newQuote);
+              SourceRange(parent.end - quoteLength, quoteLength), newQuote);
         });
         return changeBuilder;
       }
@@ -832,6 +870,24 @@ abstract class BaseProcessor {
     return changeBuilder;
   }
 
+  Future<ChangeBuilder> createBuilder_convertToGenericFunctionSyntax() async {
+    AstNode node = this.node;
+    while (node != null) {
+      if (node is FunctionTypeAlias) {
+        return _createBuilder_convertFunctionTypeAliasToGenericTypeAlias(node);
+      } else if (node is FunctionTypedFormalParameter) {
+        return _createBuilder_convertFunctionTypedFormalParameterToGenericTypeAlias(
+            node);
+      } else if (node is FormalParameterList) {
+        // It would be confusing for this assist to alter a surrounding context
+        // when the selection is inside a parameter list.
+        return null;
+      }
+      node = node.parent;
+    }
+    return null;
+  }
+
   Future<ChangeBuilder> createBuilder_convertToIntLiteral() async {
     if (node is! DoubleLiteral) {
       _coverageMarker();
@@ -851,101 +907,12 @@ abstract class BaseProcessor {
 
     var changeBuilder = _newDartChangeBuilder();
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addReplacement(new SourceRange(literal.offset, literal.length),
+      builder.addReplacement(SourceRange(literal.offset, literal.length),
           (DartEditBuilder builder) {
         builder.write('$intValue');
       });
     });
     return changeBuilder;
-  }
-
-  Future<ChangeBuilder> createBuilder_convertToNullAware() async {
-    AstNode node = this.node;
-    if (node is! ConditionalExpression) {
-      _coverageMarker();
-      return null;
-    }
-    ConditionalExpression conditional = node;
-    Expression condition = conditional.condition.unParenthesized;
-    SimpleIdentifier identifier;
-    Expression nullExpression;
-    Expression nonNullExpression;
-    int periodOffset;
-
-    if (condition is BinaryExpression) {
-      //
-      // Identify the variable being compared to `null`, or return if the
-      // condition isn't a simple comparison of `null` to a variable's value.
-      //
-      Expression leftOperand = condition.leftOperand;
-      Expression rightOperand = condition.rightOperand;
-      if (leftOperand is NullLiteral && rightOperand is SimpleIdentifier) {
-        identifier = rightOperand;
-      } else if (rightOperand is NullLiteral &&
-          leftOperand is SimpleIdentifier) {
-        identifier = leftOperand;
-      } else {
-        _coverageMarker();
-        return null;
-      }
-      if (identifier.staticElement is! LocalElement) {
-        _coverageMarker();
-        return null;
-      }
-      //
-      // Identify the expression executed when the variable is `null` and when
-      // it is non-`null`. Return if the `null` expression isn't a null literal
-      // or if the non-`null` expression isn't a method invocation whose target
-      // is the save variable being compared to `null`.
-      //
-      if (condition.operator.type == TokenType.EQ_EQ) {
-        nullExpression = conditional.thenExpression;
-        nonNullExpression = conditional.elseExpression;
-      } else if (condition.operator.type == TokenType.BANG_EQ) {
-        nonNullExpression = conditional.thenExpression;
-        nullExpression = conditional.elseExpression;
-      }
-      if (nullExpression == null || nonNullExpression == null) {
-        _coverageMarker();
-        return null;
-      }
-      if (nullExpression.unParenthesized is! NullLiteral) {
-        _coverageMarker();
-        return null;
-      }
-      Expression unwrappedExpression = nonNullExpression.unParenthesized;
-      Expression target;
-      Token operator;
-      if (unwrappedExpression is MethodInvocation) {
-        target = unwrappedExpression.target;
-        operator = unwrappedExpression.operator;
-      } else if (unwrappedExpression is PrefixedIdentifier) {
-        target = unwrappedExpression.prefix;
-        operator = unwrappedExpression.period;
-      } else {
-        _coverageMarker();
-        return null;
-      }
-      if (operator.type != TokenType.PERIOD) {
-        _coverageMarker();
-        return null;
-      }
-      if (!(target is SimpleIdentifier &&
-          target.staticElement == identifier.staticElement)) {
-        _coverageMarker();
-        return null;
-      }
-      periodOffset = operator.offset;
-
-      DartChangeBuilder changeBuilder = _newDartChangeBuilder();
-      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-        builder.addDeletion(range.startStart(node, nonNullExpression));
-        builder.addSimpleInsertion(periodOffset, '?');
-        builder.addDeletion(range.endEnd(nonNullExpression, node));
-      });
-      return changeBuilder;
-    }
-    return null;
   }
 
   Future<ChangeBuilder> createBuilder_convertToPackageImport() async {
@@ -1154,11 +1121,78 @@ abstract class BaseProcessor {
     return changeBuilder;
   }
 
+  Future<ChangeBuilder> createBuilder_replaceWithVar() async {
+    final TypeAnnotation type = node.thisOrAncestorOfType<TypeAnnotation>();
+    if (type == null) {
+      return null;
+    }
+    var parent = type.parent;
+    var grandparent = parent?.parent;
+    if (parent is VariableDeclarationList &&
+        (grandparent is VariableDeclarationStatement ||
+            grandparent is ForPartsWithDeclarations)) {
+      var variables = parent.variables;
+      if (variables.length != 1) {
+        return null;
+      }
+      var initializer = variables[0].initializer;
+      String typeArgumentsText;
+      int typeArgumentsOffset;
+      if (type is NamedType && type.typeArguments != null) {
+        if (initializer is TypedLiteral) {
+          if (initializer.typeArguments == null) {
+            typeArgumentsText = utils.getNodeText(type.typeArguments);
+            typeArgumentsOffset = initializer.offset;
+          }
+        } else if (initializer is InstanceCreationExpression) {
+          if (initializer.constructorName.type.typeArguments == null) {
+            typeArgumentsText = utils.getNodeText(type.typeArguments);
+            typeArgumentsOffset = initializer.constructorName.type.end;
+          }
+        }
+      }
+      if (initializer is SetOrMapLiteral &&
+          initializer.typeArguments == null &&
+          typeArgumentsText == null) {
+        // TODO(brianwilkerson) This is to prevent the fix from converting a
+        //  valid map or set literal into an ambiguous literal. We could apply
+        //  this in more places by examining the elements of the collection.
+        return null;
+      }
+      var changeBuilder = _newDartChangeBuilder();
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+        builder.addSimpleReplacement(range.node(type), 'var');
+        if (typeArgumentsText != null) {
+          builder.addSimpleInsertion(typeArgumentsOffset, typeArgumentsText);
+        }
+      });
+      return changeBuilder;
+    } else if (parent is DeclaredIdentifier &&
+        grandparent is ForEachPartsWithDeclaration) {
+      String typeArgumentsText;
+      int typeArgumentsOffset;
+      if (type is NamedType && type.typeArguments != null) {
+        var iterable = grandparent.iterable;
+        if (iterable is TypedLiteral && iterable.typeArguments == null) {
+          typeArgumentsText = utils.getNodeText(type.typeArguments);
+          typeArgumentsOffset = iterable.offset;
+        }
+      }
+      var changeBuilder = _newDartChangeBuilder();
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+        builder.addSimpleReplacement(range.node(type), 'var');
+        if (typeArgumentsText != null) {
+          builder.addSimpleInsertion(typeArgumentsOffset, typeArgumentsText);
+        }
+      });
+      return changeBuilder;
+    }
+    return null;
+  }
+
   Future<ChangeBuilder> createBuilder_sortChildPropertyLast() async {
     NamedExpression childProp = flutter.findNamedExpression(node, 'child');
-    if (childProp == null) {
-      childProp = flutter.findNamedExpression(node, 'children');
-    }
+    childProp ??= flutter.findNamedExpression(node, 'children');
     if (childProp == null) {
       return null;
     }
@@ -1188,7 +1222,7 @@ abstract class BaseProcessor {
       builder.addSimpleReplacement(childRange, '');
       builder.addSimpleInsertion(last.end + 1, childText);
 
-      changeBuilder.setSelection(new Position(file, last.end + 1));
+      changeBuilder.setSelection(Position(file, last.end + 1));
     });
 
     return changeBuilder;
@@ -1293,7 +1327,7 @@ abstract class BaseProcessor {
       return changeBuilder;
     }
 
-    var statement = this.node.thisOrAncestorOfType<Statement>();
+    var statement = node.thisOrAncestorOfType<Statement>();
     var parent = statement?.parent;
 
     if (statement is DoStatement) {
@@ -1354,6 +1388,47 @@ abstract class BaseProcessor {
     return null;
   }
 
+  /// Return the type of value returned by the function [body], or `null` if a
+  /// type can't be inferred.
+  DartType inferReturnType(FunctionBody body) {
+    bool isAsynchronous;
+    bool isGenerator;
+    DartType baseType;
+    if (body is ExpressionFunctionBody) {
+      isAsynchronous = body.isAsynchronous;
+      isGenerator = body.isGenerator;
+      baseType = body.expression.staticType;
+    } else if (body is BlockFunctionBody) {
+      isAsynchronous = body.isAsynchronous;
+      isGenerator = body.isGenerator;
+      var computer = _ReturnTypeComputer(resolvedResult.typeSystem);
+      body.block.accept(computer);
+      baseType = computer.returnType;
+      if (baseType == null && computer.hasReturn) {
+        baseType = typeProvider.voidType;
+      }
+    }
+    if (baseType == null) {
+      return null;
+    }
+    if (isAsynchronous) {
+      if (isGenerator) {
+        return typeProvider.streamElement.instantiate(
+            typeArguments: [baseType],
+            nullabilitySuffix: baseType.nullabilitySuffix);
+      } else {
+        return typeProvider.futureElement.instantiate(
+            typeArguments: [baseType],
+            nullabilitySuffix: baseType.nullabilitySuffix);
+      }
+    } else if (isGenerator) {
+      return typeProvider.iterableElement.instantiate(
+          typeArguments: [baseType],
+          nullabilitySuffix: baseType.nullabilitySuffix);
+    }
+    return baseType;
+  }
+
   bool isEnum(DartType type) {
     final element = type.element;
     return element is ClassElement && element.isEnum;
@@ -1388,6 +1463,26 @@ abstract class BaseProcessor {
     return node != null;
   }
 
+  /**
+   * Return `true` if all of the parameters in the given list of [parameters]
+   * have an explicit type annotation.
+   */
+  bool _allParametersHaveTypes(FormalParameterList parameters) {
+    for (FormalParameter parameter in parameters.parameters) {
+      if (parameter is DefaultFormalParameter) {
+        parameter = (parameter as DefaultFormalParameter).parameter;
+      }
+      if (parameter is SimpleFormalParameter) {
+        if (parameter.type == null) {
+          return false;
+        }
+      } else if (parameter is! FunctionTypedFormalParameter) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   /// Configures [utils] using given [target].
   void _configureTargetLocation(Object target) {
     utils.targetClassElement = null;
@@ -1398,6 +1493,62 @@ abstract class BaseProcessor {
         utils.targetClassElement = targetClassDeclaration.declaredElement;
       }
     }
+  }
+
+  Future<ChangeBuilder>
+      _createBuilder_convertFunctionTypeAliasToGenericTypeAlias(
+          FunctionTypeAlias node) async {
+    if (!_allParametersHaveTypes(node.parameters)) {
+      return null;
+    }
+    String returnType;
+    if (node.returnType != null) {
+      returnType = utils.getNodeText(node.returnType);
+    }
+    String functionName = utils.getRangeText(
+        range.startEnd(node.name, node.typeParameters ?? node.name));
+    String parameters = utils.getNodeText(node.parameters);
+    String replacement;
+    if (returnType == null) {
+      replacement = '$functionName = Function$parameters';
+    } else {
+      replacement = '$functionName = $returnType Function$parameters';
+    }
+    // add change
+    var changeBuilder = _newDartChangeBuilder();
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+      builder.addSimpleReplacement(
+          range.startStart(node.typedefKeyword.next, node.semicolon),
+          replacement);
+    });
+    return changeBuilder;
+  }
+
+  Future<ChangeBuilder>
+      _createBuilder_convertFunctionTypedFormalParameterToGenericTypeAlias(
+          FunctionTypedFormalParameter node) async {
+    if (!_allParametersHaveTypes(node.parameters)) {
+      return null;
+    }
+    String returnType;
+    if (node.returnType != null) {
+      returnType = utils.getNodeText(node.returnType);
+    }
+    String functionName = utils.getRangeText(range.startEnd(
+        node.identifier, node.typeParameters ?? node.identifier));
+    String parameters = utils.getNodeText(node.parameters);
+    String replacement;
+    if (returnType == null) {
+      replacement = 'Function$parameters $functionName';
+    } else {
+      replacement = '$returnType Function$parameters $functionName';
+    }
+    // add change
+    var changeBuilder = _newDartChangeBuilder();
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+      builder.addSimpleReplacement(range.node(node), replacement);
+    });
+    return changeBuilder;
   }
 
   /// Returns the text of the given node in the unit.
@@ -1433,7 +1584,7 @@ class _ParameterReferenceFinder extends RecursiveAstVisitor<void> {
   /// A collection of the names of other simple identifiers that were found. We
   /// need to know these in order to ensure that the selected loop variable does
   /// not hide a name from an enclosing scope that is already being referenced.
-  final Set<String> otherNames = new Set<String>();
+  final Set<String> otherNames = Set<String>();
 
   /// Initialize a newly created finder to find references to the [parameter].
   _ParameterReferenceFinder(this.parameter) : assert(parameter != null);
@@ -1465,6 +1616,48 @@ class _ParameterReferenceFinder extends RecursiveAstVisitor<void> {
     } else if (!node.isQualified) {
       // Only non-prefixed identifiers can be hidden.
       otherNames.add(node.name);
+    }
+  }
+}
+
+/// Copied from lib/src/services/correction/base_processor.dart, but [hasReturn]
+/// was added.
+// TODO(brianwilkerson) Decide whether to unify the two classes.
+class _ReturnTypeComputer extends RecursiveAstVisitor {
+  final TypeSystem typeSystem;
+
+  DartType returnType;
+
+  /// A flag indicating whether at least one return statement was found.
+  bool hasReturn = false;
+
+  _ReturnTypeComputer(this.typeSystem);
+
+  @override
+  visitBlockFunctionBody(BlockFunctionBody node) {}
+
+  @override
+  visitReturnStatement(ReturnStatement node) {
+    hasReturn = true;
+    // prepare expression
+    Expression expression = node.expression;
+    if (expression == null) {
+      return;
+    }
+    // prepare type
+    DartType type = expression.staticType;
+    if (type.isBottom) {
+      return;
+    }
+    // combine types
+    if (returnType == null) {
+      returnType = type;
+    } else {
+      if (returnType is InterfaceType && type is InterfaceType) {
+        returnType = InterfaceType.getSmartLeastUpperBound(returnType, type);
+      } else {
+        returnType = typeSystem.leastUpperBound(returnType, type);
+      }
     }
   }
 }

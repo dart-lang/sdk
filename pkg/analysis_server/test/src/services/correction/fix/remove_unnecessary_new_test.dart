@@ -11,12 +11,12 @@ import 'fix_processor.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(UnnecessaryNewTest);
+    defineReflectiveTests(RemoveUnnecessaryNewTest);
   });
 }
 
 @reflectiveTest
-class UnnecessaryNewTest extends FixProcessorLintTest {
+class RemoveUnnecessaryNewTest extends FixProcessorLintTest {
   @override
   FixKind get kind => DartFixKind.REMOVE_UNNECESSARY_NEW;
 

@@ -18,6 +18,18 @@ main() {
 
 @reflectiveTest
 class InvalidReferenceToThisTest extends DriverResolutionTest {
+  test_constructor_valid() async {
+    await assertErrorsInCode(r'''
+class A {
+  A() {
+    var v = this;
+  }
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 26, 1),
+    ]);
+  }
+
   test_factoryConstructor() async {
     await assertErrorsInCode(r'''
 class A {
@@ -25,6 +37,18 @@ class A {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, 33, 4),
+    ]);
+  }
+
+  test_instanceMethod_valid() async {
+    await assertErrorsInCode(r'''
+class A {
+  m() {
+    var v = this;
+  }
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 26, 1),
     ]);
   }
 
@@ -99,13 +123,15 @@ int x = this;
   }
 
   test_variableInitializer_inMethod_notLate() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   f() {
     var r = this;
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 26, 1),
+    ]);
   }
 }
 

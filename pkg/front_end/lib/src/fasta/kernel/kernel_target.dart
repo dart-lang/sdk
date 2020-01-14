@@ -37,15 +37,11 @@ import 'package:kernel/ast.dart'
         VariableGet;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
-
 import 'package:kernel/clone.dart' show CloneVisitor;
-
+import 'package:kernel/core_types.dart';
 import 'package:kernel/type_algebra.dart' show substitute;
-
 import 'package:kernel/target/targets.dart' show DiagnosticReporter;
-
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
-
 import 'package:kernel/verifier.dart' show verifyGetStaticType;
 
 import '../../api_prototype/file_system.dart' show FileSystem;
@@ -58,8 +54,10 @@ import '../builder/library_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/procedure_builder.dart';
+import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_declaration_builder.dart';
+import '../builder/type_variable_builder.dart';
 
 import '../compiler_context.dart' show CompilerContext;
 
@@ -466,6 +464,10 @@ class KernelTarget extends TargetImplementation {
       unhandled("${type.runtimeType}", "installForwardingConstructors",
           builder.charOffset, builder.fileUri);
     }
+    if (supertype is TypeAliasBuilder) {
+      TypeAliasBuilder aliasBuilder = supertype;
+      supertype = aliasBuilder.unaliasDeclaration;
+    }
     if (supertype is SourceClassBuilder && supertype.isMixinApplication) {
       installForwardingConstructors(supertype);
     }
@@ -480,7 +482,8 @@ class KernelTarget extends TargetImplementation {
               builder.cls, builder.cls.mixin, constructor, substitutionMap));
         }
       }
-    } else if (supertype is InvalidTypeDeclarationBuilder) {
+    } else if (supertype is InvalidTypeDeclarationBuilder ||
+        supertype is TypeVariableBuilder) {
       builder.addSyntheticConstructor(makeDefaultConstructor(builder.cls));
     } else {
       unhandled("${supertype.runtimeType}", "installForwardingConstructors",
@@ -840,8 +843,9 @@ class KernelTarget extends TargetImplementation {
   void verify() {
     // TODO(ahe): How to handle errors.
     verifyComponent(component);
-    ClassHierarchy hierarchy = new ClassHierarchy(component,
-        onAmbiguousSupertypes: (Class cls, Supertype a, Supertype b) {
+    ClassHierarchy hierarchy =
+        new ClassHierarchy(component, new CoreTypes(component),
+            onAmbiguousSupertypes: (Class cls, Supertype a, Supertype b) {
       // An error has already been reported.
     });
     verifyGetStaticType(

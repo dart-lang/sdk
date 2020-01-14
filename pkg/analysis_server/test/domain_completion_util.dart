@@ -25,6 +25,7 @@ class AbstractCompletionDomainTest extends AbstractAnalysisTest {
   bool suggestionsDone = false;
   Map<String, List<CompletionSuggestion>> allSuggestions = {};
 
+  @override
   String addTestFile(String content, {int offset}) {
     completionOffset = content.indexOf('^');
     if (offset != null) {
@@ -92,20 +93,20 @@ class AbstractCompletionDomainTest extends AbstractAnalysisTest {
   Future getSuggestions() async {
     await waitForTasksFinished();
 
-    Request request =
-        new CompletionGetSuggestionsParams(testFile, completionOffset)
-            .toRequest('0');
+    Request request = CompletionGetSuggestionsParams(testFile, completionOffset)
+        .toRequest('0');
     Response response = await waitResponse(request);
-    var result = new CompletionGetSuggestionsResult.fromResponse(response);
+    var result = CompletionGetSuggestionsResult.fromResponse(response);
     completionId = result.id;
     assertValidId(completionId);
     await _getResultsCompleter(completionId).future;
     expect(suggestionsDone, isTrue);
   }
 
+  @override
   processNotification(Notification notification) async {
     if (notification.event == COMPLETION_RESULTS) {
-      var params = new CompletionResultsParams.fromNotification(notification);
+      var params = CompletionResultsParams.fromNotification(notification);
       String id = params.id;
       assertValidId(id);
       replacementOffset = params.replacementOffset;
@@ -125,11 +126,11 @@ class AbstractCompletionDomainTest extends AbstractAnalysisTest {
   void setUp() {
     super.setUp();
     createProject();
-    handler = new CompletionDomainHandler(server);
+    handler = CompletionDomainHandler(server);
   }
 
   Completer<void> _getResultsCompleter(String id) {
     return receivedSuggestionsCompleters.putIfAbsent(
-        id, () => new Completer<void>());
+        id, () => Completer<void>());
   }
 }

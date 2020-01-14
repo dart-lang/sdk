@@ -8,8 +8,8 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:meta/meta.dart';
 import 'package:nnbd_migration/instrumentation.dart';
@@ -126,7 +126,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
   }
 
   @override
-  visitClassTypeAlias(ClassTypeAlias node) {
+  DecoratedType visitClassTypeAlias(ClassTypeAlias node) {
     node.metadata.accept(this);
     node.name.accept(this);
     node.typeParameters?.accept(this);
@@ -201,6 +201,57 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
   }
 
   @override
+  DecoratedType visitEnumDeclaration(EnumDeclaration node) {
+    node.metadata.accept(this);
+    node.name.accept(this);
+    var classElement = node.declaredElement;
+    _variables.recordDecoratedElementType(
+        classElement, DecoratedType(classElement.thisType, _graph.never));
+
+    makeNonNullNode([AstNode forNode]) {
+      forNode ??= node;
+      final graphNode = NullabilityNode.forInferredType();
+      _graph.makeNonNullable(graphNode, EnumValueOrigin(source, forNode));
+      return graphNode;
+    }
+
+    for (var item in node.constants) {
+      _variables.recordDecoratedElementType(item.declaredElement,
+          DecoratedType(classElement.thisType, makeNonNullNode(item)));
+    }
+    final valuesGetter = classElement.getGetter('values');
+    _variables.recordDecoratedElementType(
+        valuesGetter,
+        DecoratedType(valuesGetter.type, makeNonNullNode(),
+            returnType: DecoratedType(
+                valuesGetter.returnType, makeNonNullNode(), typeArguments: [
+              DecoratedType(classElement.thisType, makeNonNullNode())
+            ])));
+    final indexGetter = classElement.getGetter('index');
+    _variables.recordDecoratedElementType(
+        indexGetter,
+        DecoratedType(indexGetter.type, makeNonNullNode(),
+            returnType:
+                DecoratedType(indexGetter.returnType, makeNonNullNode())));
+    final toString = classElement.getMethod('toString');
+    _variables.recordDecoratedElementType(
+        toString,
+        DecoratedType(toString.type, makeNonNullNode(),
+            returnType: DecoratedType(toString.returnType, makeNonNullNode())));
+    return null;
+  }
+
+  @override
+  DecoratedType visitExtensionDeclaration(ExtensionDeclaration node) {
+    node.metadata.accept(this);
+    node.typeParameters?.accept(this);
+    var type = node.extendedType.accept(this);
+    _variables.recordDecoratedElementType(node.declaredElement, type);
+    node.members.accept(this);
+    return null;
+  }
+
+  @override
   DecoratedType visitFieldFormalParameter(FieldFormalParameter node) {
     return _handleFormalParameter(
         node, node.type, node.typeParameters, node.parameters);
@@ -253,7 +304,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     try {
       node.typeParameters?.accept(this);
       node.parameters?.accept(this);
-      // Node: we don't pass _typeFormalBounds into DecoratedType because we're
+      // Note: we don't pass _typeFormalBounds into DecoratedType because we're
       // not defining a generic function type, we're defining a generic typedef
       // of an ordinary (non-generic) function type.
       decoratedFunctionType = DecoratedType(functionType, _graph.never,
@@ -398,6 +449,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     }
     DecoratedType decoratedType;
     if (type is FunctionType && node is! GenericFunctionType) {
+      (node as TypeName).typeArguments?.accept(this);
       // node is a reference to a typedef.  Treat it like an inferred type (we
       // synthesize new nodes for it).  These nodes will be unioned with the
       // typedef nodes by the edge builder.

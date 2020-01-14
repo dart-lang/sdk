@@ -28,6 +28,12 @@ const bool kPrintStats =
 const bool kRemoveAsserts =
     const bool.fromEnvironment('global.type.flow.remove.asserts');
 
+const bool kScopeTrace =
+    const bool.fromEnvironment('global.type.flow.scope.trace');
+
+const int kScopeIndent =
+    const int.fromEnvironment('global.type.flow.scope.indent');
+
 /// Extended 'assert': always checks condition.
 assertx(bool cond, {details}) {
   if (!cond) {
@@ -35,21 +41,68 @@ assertx(bool cond, {details}) {
   }
 }
 
-tracePrint(Object message) {
+abstract class _Logger {
+  log(Object message, [int scopeChange = 0]);
+}
+
+class _ScopedLogger implements _Logger {
+  static const String _scopeDelimiter = "┃";
+  static const String _reset = "\u001b[0m";
+  static const List<String> _colors = [
+    "\u001b[37m", // black
+    "\u001b[31m", // red
+    "\u001b[32m", // green
+    "\u001b[33m", // yellow
+    "\u001b[34m", // blue
+    "\u001b[35m", // magenta
+    "\u001b[36m", // cyan
+  ];
+  static const int _scopeIndent = kScopeIndent ?? 1;
+
+  int _scope = 0;
+  List<String> _scopePrefixes = <String>[""];
+
+  _print(Object message) {
+    print(_scopePrefixes[_scope] +
+        message.toString().replaceAll("\n", "\n" + _scopePrefixes[_scope]));
+  }
+
+  log(Object message, [int scopeChange = 0]) {
+    if (scopeChange > 0) _print(message);
+    _scope += scopeChange;
+    while (_scopePrefixes.length < _scope + 1) {
+      final start = _scopePrefixes[_scopePrefixes.length - 1];
+      final column = _colors[(_scope + 1) % _colors.length] +
+          _scopeDelimiter +
+          _reset +
+          " " * _scopeIndent;
+      _scopePrefixes.add(start + column);
+    }
+    if (scopeChange <= 0) _print(message);
+  }
+}
+
+class _SimpleLogger implements _Logger {
+  log(Object message, [int scopeChange = 0]) => print(message);
+}
+
+_Logger _logger = kScopeTrace ? _ScopedLogger() : _SimpleLogger();
+
+tracePrint(Object message, [int scopeChange = 0]) {
   if (kPrintTrace) {
-    print(message);
+    _logger.log(message, scopeChange);
   }
 }
 
 debugPrint(Object message) {
   if (kPrintDebug) {
-    print(message);
+    _logger.log(message);
   }
 }
 
 statPrint(Object message) {
   if (kPrintStats) {
-    print(message);
+    _logger.log(message);
   }
 }
 

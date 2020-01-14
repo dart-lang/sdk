@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 // part of "core_patch.dart";
 
 // VM implementation of DateTime.
@@ -32,7 +30,7 @@ class DateTime {
   static const _MONTH_INDEX = 7;
   static const _YEAR_INDEX = 8;
 
-  List __parts;
+  List? __parts;
 
   @patch
   DateTime.fromMillisecondsSinceEpoch(int millisecondsSinceEpoch,
@@ -182,8 +180,7 @@ class DateTime {
   }
 
   get _parts {
-    __parts ??= _computeUpperPart(_localDateInUtcMicros);
-    return __parts;
+    return __parts ??= _computeUpperPart(_localDateInUtcMicros);
   }
 
   @patch
@@ -280,7 +277,7 @@ class DateTime {
 
   /// Converts the given broken down date to microseconds.
   @patch
-  static int _brokenDownDateToValue(int year, int month, int day, int hour,
+  static int? _brokenDownDateToValue(int year, int month, int day, int hour,
       int minute, int second, int millisecond, int microsecond, bool isUtc) {
     // Simplify calculations by working with zero-based month.
     --month;

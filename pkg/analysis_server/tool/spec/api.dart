@@ -45,8 +45,8 @@ class ApiNode {
   final dom.Element html;
 
   ApiNode(this.html, bool experimental, bool deprecated)
-      : this.experimental = experimental ?? false,
-        this.deprecated = deprecated ?? false;
+      : experimental = experimental ?? false,
+        deprecated = deprecated ?? false;
 }
 
 /**
@@ -222,13 +222,13 @@ class Notification extends ApiNode {
    */
   TypeDecl get notificationType {
     List<TypeObjectField> fields = [
-      new TypeObjectField('event', new TypeReference('String', null), null,
+      TypeObjectField('event', TypeReference('String', null), null,
           value: '$domainName.$event')
     ];
     if (params != null) {
-      fields.add(new TypeObjectField('params', params, null));
+      fields.add(TypeObjectField('params', params, null));
     }
-    return new TypeObject(fields, null);
+    return TypeObject(fields, null);
   }
 }
 
@@ -313,14 +313,14 @@ class Request extends ApiNode {
    */
   TypeDecl get requestType {
     List<TypeObjectField> fields = [
-      new TypeObjectField('id', new TypeReference('String', null), null),
-      new TypeObjectField('method', new TypeReference('String', null), null,
+      TypeObjectField('id', TypeReference('String', null), null),
+      TypeObjectField('method', TypeReference('String', null), null,
           value: '$domainName.$method')
     ];
     if (params != null) {
-      fields.add(new TypeObjectField('params', params, null));
+      fields.add(TypeObjectField('params', params, null));
     }
-    return new TypeObject(fields, null);
+    return TypeObject(fields, null);
   }
 
   /**
@@ -329,15 +329,14 @@ class Request extends ApiNode {
    */
   TypeDecl get responseType {
     List<TypeObjectField> fields = [
-      new TypeObjectField('id', new TypeReference('String', null), null),
-      new TypeObjectField(
-          'error', new TypeReference('RequestError', null), null,
+      TypeObjectField('id', TypeReference('String', null), null),
+      TypeObjectField('error', TypeReference('RequestError', null), null,
           optional: true)
     ];
     if (result != null) {
-      fields.add(new TypeObjectField('result', result, null));
+      fields.add(TypeObjectField('result', result, null));
     }
-    return new TypeObject(fields, null);
+    return TypeObject(fields, null);
   }
 }
 
@@ -480,7 +479,7 @@ class TypeReference extends TypeDecl {
   TypeReference(this.typeName, dom.Element html, {bool experimental})
       : super(html, experimental, false) {
     if (typeName.isEmpty) {
-      throw new Exception('Empty type name');
+      throw Exception('Empty type name');
     }
   }
 

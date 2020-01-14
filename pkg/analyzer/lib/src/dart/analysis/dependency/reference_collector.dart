@@ -29,7 +29,7 @@ class ReferenceCollector {
   /// The list of names that are referenced using an import prefix.
   ///
   /// It is filled by [addImportPrefix] and shared across all nodes.
-  List<_ReferencedImportPrefixedNames> _importPrefixedReferences = [];
+  final List<_ReferencedImportPrefixedNames> _importPrefixedReferences = [];
 
   /// The list of names that are referenced with `super`.
   _NameSet _superReferences = _NameSet();

@@ -17,7 +17,7 @@ main() {
 
 @reflectiveTest
 class GetPostfixCompletionTest extends AbstractAnalysisServerIntegrationTest {
-  @TestTimeout(const Timeout.factor(2))
+  @TestTimeout(Timeout.factor(2))
   test_postfix_completion() async {
     String pathname = sourcePath('test.dart');
     String text = r'''
@@ -45,7 +45,7 @@ void foo() { }
     for (SourceEdit edit in change.edits.first.edits) {
       text = text.replaceRange(edit.offset, edit.end, edit.replacement);
     }
-    await sendAnalysisUpdateContent({pathname: new AddContentOverlay(text)});
+    await sendAnalysisUpdateContent({pathname: AddContentOverlay(text)});
 
     await analysisFinished;
     expect(currentAnalysisErrors[pathname], isEmpty);

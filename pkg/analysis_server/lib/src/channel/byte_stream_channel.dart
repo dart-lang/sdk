@@ -30,17 +30,17 @@ class ByteStreamClientChannel implements ClientCommunicationChannel {
   ByteStreamClientChannel(this.input, this.output) {
     Stream jsonStream = input
         .transform(const Utf8Decoder())
-        .transform(new LineSplitter())
-        .transform(new JsonStreamDecoder())
+        .transform(LineSplitter())
+        .transform(JsonStreamDecoder())
         .where((json) => json is Map)
         .asBroadcastStream();
     responseStream = jsonStream
         .where((json) => json[Notification.EVENT] == null)
-        .transform(new ResponseConverter())
+        .transform(ResponseConverter())
         .asBroadcastStream();
     notificationStream = jsonStream
         .where((json) => json[Notification.EVENT] != null)
-        .transform(new NotificationConverter())
+        .transform(NotificationConverter())
         .asBroadcastStream();
   }
 
@@ -83,7 +83,7 @@ class ByteStreamServerChannel implements ServerCommunicationChannel {
   /**
    * Completer that will be signalled when the input stream is closed.
    */
-  final Completer _closed = new Completer();
+  final Completer _closed = Completer();
 
   /**
    * True if [close] has been called.
@@ -116,7 +116,7 @@ class ByteStreamServerChannel implements ServerCommunicationChannel {
   @override
   void listen(void onRequest(Request request),
       {Function onError, void onDone()}) {
-    _input.transform(const Utf8Decoder()).transform(new LineSplitter()).listen(
+    _input.transform(const Utf8Decoder()).transform(LineSplitter()).listen(
         (String data) => _readRequest(data, onRequest),
         onError: onError, onDone: () {
       close();
@@ -180,9 +180,9 @@ class ByteStreamServerChannel implements ServerCommunicationChannel {
       _instrumentationService.logRequest(data);
       // Parse the string as a JSON descriptor and process the resulting
       // structure as a request.
-      Request request = new Request.fromString(data);
+      Request request = Request.fromString(data);
       if (request == null) {
-        sendResponse(new Response.invalidRequestFormat());
+        sendResponse(Response.invalidRequestFormat());
         return;
       }
       _requestStatistics?.addRequest(request);

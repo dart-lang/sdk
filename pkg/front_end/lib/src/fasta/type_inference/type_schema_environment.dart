@@ -11,6 +11,7 @@ import 'package:kernel/ast.dart'
         InterfaceType,
         Library,
         NamedType,
+        Nullability,
         Procedure,
         TypeParameter,
         Variance;
@@ -21,7 +22,7 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 
 import 'package:kernel/type_algebra.dart' show Substitution;
 
-import 'package:kernel/type_environment.dart' show SubtypeCheckMode;
+import 'package:kernel/type_environment.dart';
 
 import 'package:kernel/src/hierarchy_based_type_environment.dart'
     show HierarchyBasedTypeEnvironment;
@@ -35,6 +36,8 @@ import 'type_demotion.dart';
 import 'type_schema.dart' show UnknownType, typeSchemaToString, isKnown;
 
 import 'type_schema_elimination.dart' show greatestClosure, leastClosure;
+
+import '../problems.dart';
 
 // TODO(paulberry): try to push this functionality into kernel.
 FunctionType substituteTypeParams(
@@ -108,6 +111,30 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   Class get futureOrClass => coreTypes.futureOrClass;
 
   Class get objectClass => coreTypes.objectClass;
+
+  InterfaceType get objectNonNullableRawType {
+    return coreTypes.objectNonNullableRawType;
+  }
+
+  InterfaceType functionRawType(Nullability nullability) {
+    return coreTypes.functionRawType(nullability);
+  }
+
+  InterfaceType objectRawType(Nullability nullability) {
+    return coreTypes.objectRawType(nullability);
+  }
+
+  bool areMutualSubtypes(DartType s, DartType t, SubtypeCheckMode mode) {
+    IsSubtypeOf result = performNullabilityAwareMutualSubtypesCheck(s, t);
+    switch (mode) {
+      case SubtypeCheckMode.ignoringNullabilities:
+        return result.isSubtypeWhenIgnoringNullabilities();
+      case SubtypeCheckMode.withNullabilities:
+        return result.isSubtypeWhenUsingNullabilities();
+    }
+    return unhandled(
+        "$mode", "TypeSchemaEnvironment.areMutualSubtypes", -1, null);
+  }
 
   InterfaceType getLegacyLeastUpperBound(
       InterfaceType type1, InterfaceType type2, Library clientLibrary) {
@@ -264,16 +291,17 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       }
 
       TypeConstraint constraint = constraints[typeParam];
-      if (downwardsInferPhase || !typeParam.isLegacyCovariant) {
+      if (downwardsInferPhase) {
         inferredTypes[i] = _inferTypeParameterFromContext(
-            constraint, extendsConstraint, clientLibrary,
-            isContravariant: typeParam.variance == Variance.contravariant);
+            constraint, extendsConstraint, clientLibrary);
       } else {
         inferredTypes[i] = _inferTypeParameterFromAll(
             typesFromDownwardsInference[i],
             constraint,
             extendsConstraint,
-            clientLibrary);
+            clientLibrary,
+            isContravariant: typeParam.variance == Variance.contravariant,
+            preferUpwardsInference: !typeParam.isLegacyCovariant);
       }
     }
 
@@ -424,10 +452,13 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       DartType typeFromContextInference,
       TypeConstraint constraint,
       DartType extendsConstraint,
-      Library clientLibrary) {
+      Library clientLibrary,
+      {bool isContravariant: false,
+      bool preferUpwardsInference: false}) {
     // See if we already fixed this type from downwards inference.
-    // If so, then we aren't allowed to change it based on argument types.
-    if (isKnown(typeFromContextInference)) {
+    // If so, then we aren't allowed to change it based on argument types unless
+    // [preferUpwardsInference] is true.
+    if (!preferUpwardsInference && isKnown(typeFromContextInference)) {
       return typeFromContextInference;
     }
 
@@ -436,14 +467,13 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       addUpperBound(constraint, extendsConstraint, clientLibrary);
     }
 
-    return solveTypeConstraint(constraint, grounded: true);
+    return solveTypeConstraint(constraint,
+        grounded: true, isContravariant: isContravariant);
   }
 
   DartType _inferTypeParameterFromContext(TypeConstraint constraint,
-      DartType extendsConstraint, Library clientLibrary,
-      {bool isContravariant: false}) {
-    DartType t =
-        solveTypeConstraint(constraint, isContravariant: isContravariant);
+      DartType extendsConstraint, Library clientLibrary) {
+    DartType t = solveTypeConstraint(constraint);
     if (!isKnown(t)) {
       return t;
     }

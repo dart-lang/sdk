@@ -69,13 +69,13 @@ namespace dart {
   V(_Double, _sub, DoubleSub, 0x6d3cec71)                                      \
   V(_Double, _mul, DoubleMul, 0x648e67af)                                      \
   V(_Double, _div, DoubleDiv, 0x6d72d7d4)                                      \
-  V(::, min, MathMin, 0xddeb5e75)                                              \
-  V(::, max, MathMax, 0xe152dd1c)                                              \
+  V(::, min, MathMin, 0x07b1ad15)                                              \
+  V(::, max, MathMax, 0xa40283bc)                                              \
   V(::, _doublePow, MathDoublePow, 0x5ae04e61)                                 \
   V(::, _intPow, MathIntPow, 0x569ffd3f)                                       \
-  V(Float32x4, Float32x4., Float32x4Constructor, 0xdf9f0693)                   \
+  V(Float32x4, _Float32x4FromDoubles, Float32x4FromDoubles, 0xbe902b89)        \
   V(Float32x4, Float32x4.zero, Float32x4Zero, 0x9b875c7f)                      \
-  V(Float32x4, Float32x4.splat, Float32x4Splat, 0xf584a639)                    \
+  V(Float32x4, _Float32x4Splat, Float32x4Splat, 0xd0cf3e6c)                    \
   V(Float32x4, Float32x4.fromInt32x4Bits, Int32x4ToFloat32x4, 0x7339b2bd)      \
   V(Float32x4, Float32x4.fromFloat64x2, Float64x2ToFloat32x4, 0x5de0e788)      \
   V(_Float32x4, shuffle, Float32x4Shuffle, 0x5bc2446e)                         \
@@ -96,13 +96,13 @@ namespace dart {
   V(_Float32x4, unary-, Float32x4Negate, 0xae8af7f1)                           \
   V(_Float32x4, abs, Float32x4Abs, 0xb34e9b8d)                                 \
   V(_Float32x4, clamp, Float32x4Clamp, 0xbed4ce62)                             \
-  V(_Float32x4, withX, Float32x4WithX, 0xe204ec19)                             \
-  V(_Float32x4, withY, Float32x4WithY, 0xff17a63f)                             \
-  V(_Float32x4, withZ, Float32x4WithZ, 0x0e7144f2)                             \
-  V(_Float32x4, withW, Float32x4WithW, 0x0802b80f)                             \
-  V(Float64x2, Float64x2., Float64x2Constructor, 0xb0bb0109)                   \
+  V(_Float32x4, _withX, Float32x4WithX, 0xf0211c74)                            \
+  V(_Float32x4, _withY, Float32x4WithY, 0x074539fc)                            \
+  V(_Float32x4, _withZ, Float32x4WithZ, 0xf026c2e5)                            \
+  V(_Float32x4, _withW, Float32x4WithW, 0xe364aa0f)                            \
+  V(Float64x2, _Float64x2FromDoubles, Float64x2FromDoubles, 0x1ca49394)        \
   V(Float64x2, Float64x2.zero, Float64x2Zero, 0x5e70f315)                      \
-  V(Float64x2, Float64x2.splat, Float64x2Splat, 0xb86e3ccf)                    \
+  V(Float64x2, _Float64x2Splat, Float64x2Splat, 0x05711520)                    \
   V(Float64x2, Float64x2.fromFloat32x4, Float32x4ToFloat64x2, 0x956c2161)      \
   V(_Float64x2, get:x, Float64x2GetX, 0x00b83193)                              \
   V(_Float64x2, get:y, Float64x2GetY, 0xee498cb6)                              \
@@ -111,12 +111,12 @@ namespace dart {
   V(_Float64x2, sqrt, Float64x2Sqrt, 0x6fe8ae8d)                               \
   V(_Float64x2, get:signMask, Float64x2GetSignMask, 0x2931936f)                \
   V(_Float64x2, scale, Float64x2Scale, 0xad124c9b)                             \
-  V(_Float64x2, withX, Float64x2WithX, 0xa4ee82af)                             \
-  V(_Float64x2, withY, Float64x2WithY, 0xc2013cd5)                             \
+  V(_Float64x2, _withX, Float64x2WithX, 0xb30ab30a)                            \
+  V(_Float64x2, _withY, Float64x2WithY, 0xca2ed092)                            \
   V(_Float64x2, min, Float64x2Min,  0x57938495)                                \
   V(_Float64x2, max, Float64x2Max,  0x39c30666)                                \
-  V(Int32x4, Int32x4., Int32x4Constructor, 0xa77aeafb)                         \
-  V(Int32x4, Int32x4.bool, Int32x4BoolConstructor, 0x51ae2c0c)                 \
+  V(Int32x4, _Int32x4FromInts, Int32x4FromInts, 0xbce3fab8)                    \
+  V(Int32x4, _Int32x4FromBools, Int32x4FromBools, 0x45ef1b0f)                  \
   V(Int32x4, Int32x4.fromFloat32x4Bits, Float32x4ToInt32x4, 0x64c906dc)        \
   V(_Int32x4, get:flagX, Int32x4GetFlagX, 0x9f8da5bb)                          \
   V(_Int32x4, get:flagY, Int32x4GetFlagY, 0xbafddc9b)                          \
@@ -126,10 +126,10 @@ namespace dart {
   V(_Int32x4, shuffle, Int32x4Shuffle, 0x00cff856)                             \
   V(_Int32x4, shuffleMix, Int32x4ShuffleMix, 0x57a21961)                       \
   V(_Int32x4, select, Int32x4Select, 0xafd1fc25)                               \
-  V(_Int32x4, withFlagX, Int32x4WithFlagX, 0x7a1fe4b5)                         \
-  V(_Int32x4, withFlagY, Int32x4WithFlagY, 0x8c658940)                         \
-  V(_Int32x4, withFlagZ, Int32x4WithFlagZ, 0x97d3a01c)                         \
-  V(_Int32x4, withFlagW, Int32x4WithFlagW, 0x80e3723b)                         \
+  V(_Int32x4, _withFlagX, Int32x4WithFlagX, 0x7d654214)                        \
+  V(_Int32x4, _withFlagY, Int32x4WithFlagY, 0x7e67ec85)                        \
+  V(_Int32x4, _withFlagZ, Int32x4WithFlagZ, 0x9363a67c)                        \
+  V(_Int32x4, _withFlagW, Int32x4WithFlagW, 0x7035cb54)                        \
   V(_HashVMBase, get:_index, LinkedHashMap_getIndex, 0x09db1d9d)               \
   V(_HashVMBase, set:_index, LinkedHashMap_setIndex, 0xb643fb19)               \
   V(_HashVMBase, get:_data, LinkedHashMap_getData, 0x9a54182a)                 \
@@ -222,6 +222,7 @@ namespace dart {
   V(_OneByteString, ==, OneByteString_equality, 0xe1ea0c11)                    \
   V(_TwoByteString, ==, TwoByteString_equality, 0xe1ea0c11)                    \
   V(_Type, get:hashCode, Type_getHashCode, 0x22a75237)                         \
+  V(_Type, ==, Type_equality, 0x91ead098)                                      \
   V(::, _getHash, Object_getHash, 0xb05aa13f)                                  \
   V(::, _setHash, Object_setHash, 0xcb404dd2)                                  \
 
@@ -334,8 +335,13 @@ namespace dart {
   V(_Float32x4, get:z, Float32x4ShuffleZ, 0x2414f84c)                          \
   V(_Float32x4, get:w, Float32x4ShuffleW, 0x06553cce)                          \
   V(_Float32x4, *, Float32x4Mul, 0xf817cb64)                                   \
+  V(_Float32x4, /, Float32x4Div, 0xd36681e1)                                   \
   V(_Float32x4, -, Float32x4Sub, 0xeff9bb27)                                   \
   V(_Float32x4, +, Float32x4Add, 0xcac0f0b6)                                   \
+  V(_Float64x2, *, Float64x2Mul, 0x589c7905)                                   \
+  V(_Float64x2, /, Float64x2Div, 0x33eb2fa1)                                   \
+  V(_Float64x2, -, Float64x2Sub, 0x507e68c8)                                   \
+  V(_Float64x2, +, Float64x2Add, 0x2b459e57)                                   \
 
 #define GRAPH_CORE_INTRINSICS_LIST(V)                                          \
   V(_List, get:length, ObjectArrayLength, 0x05176aac)                          \

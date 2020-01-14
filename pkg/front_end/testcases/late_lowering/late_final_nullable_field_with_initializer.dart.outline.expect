@@ -28,12 +28,39 @@ class Class extends core::Object {
   method instanceMethod() → dynamic
     ;
 }
+extension Extension on self::Class {
+  static field lateExtensionField1Init = self::Extension|lateExtensionField1Init;
+  static method initLateExtensionField1 = self::Extension|initLateExtensionField1;
+  static field lateExtensionField1 = self::_#Extension|lateExtensionField1;
+  static field lateExtensionField1 = self::_#Extension|lateExtensionField1#isSet;
+  static get lateExtensionField1 = get self::Extension|lateExtensionField1;
+  static field lateExtensionField2Init = self::Extension|lateExtensionField2Init;
+  static method initLateExtensionField2 = self::Extension|initLateExtensionField2;
+  static field lateExtensionField2 = self::_#Extension|lateExtensionField2;
+  static field lateExtensionField2 = self::_#Extension|lateExtensionField2#isSet;
+  static get lateExtensionField2 = get self::Extension|lateExtensionField2;
+  static method staticMethod = self::Extension|staticMethod;
+}
 static field core::int? lateTopLevelField1Init;
 static field core::int? _#lateTopLevelField1;
 static field core::bool _#lateTopLevelField1#isSet;
+static field core::int? Extension|lateExtensionField1Init;
+static field core::int? _#Extension|lateExtensionField1;
+static field core::bool _#Extension|lateExtensionField1#isSet;
+static field core::int? Extension|lateExtensionField2Init;
+static field core::int? _#Extension|lateExtensionField2;
+static field core::bool _#Extension|lateExtensionField2#isSet;
 static method initLateTopLevelField1(core::int value) → core::int?
   ;
 static get lateTopLevelField1() → core::int?;
+static method Extension|initLateExtensionField1(core::int value) → core::int?
+  ;
+static get Extension|lateExtensionField1() → core::int?;
+static method Extension|initLateExtensionField2(core::int value) → core::int?
+  ;
+static get Extension|lateExtensionField2() → core::int?;
+static method Extension|staticMethod() → dynamic
+  ;
 static method main() → dynamic
   ;
 static method expect(dynamic expected, dynamic actual) → dynamic

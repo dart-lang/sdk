@@ -67,7 +67,7 @@ class NavigationCollectorImpl implements NavigationCollector {
   @override
   void addRegion(
       int offset, int length, ElementKind targetKind, Location targetLocation) {
-    SourceRange range = new SourceRange(offset, length);
+    SourceRange range = SourceRange(offset, length);
     // add new target
     List<int> targets = regionMap.putIfAbsent(range, () => <int>[]);
     int targetIndex = _addTarget(targetKind, targetLocation);
@@ -77,7 +77,7 @@ class NavigationCollectorImpl implements NavigationCollector {
   void createRegions() {
     regionMap.forEach((range, targets) {
       NavigationRegion region =
-          new NavigationRegion(range.offset, range.length, targets);
+          NavigationRegion(range.offset, range.length, targets);
       regions.add(region);
     });
     regions.sort((NavigationRegion first, NavigationRegion second) {
@@ -96,13 +96,13 @@ class NavigationCollectorImpl implements NavigationCollector {
   }
 
   int _addTarget(ElementKind kind, Location location) {
-    var pair = new Pair<ElementKind, Location>(kind, location);
+    var pair = Pair<ElementKind, Location>(kind, location);
     int index = targetMap[pair];
     if (index == null) {
       String file = location.file;
       int fileIndex = _addFile(file);
       index = targets.length;
-      NavigationTarget target = new NavigationTarget(
+      NavigationTarget target = NavigationTarget(
           kind,
           fileIndex,
           location.offset,

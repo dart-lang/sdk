@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/fasta/type_inference/type_schema.dart';
 import "package:kernel/ast.dart"
     show
         BottomType,
@@ -158,7 +159,13 @@ class KernelFromParsedType implements Visitor<Node, KernelEnvironment> {
       // identical.
       return new BottomType();
     } else if (name == "Never") {
+      // Don't return a const object to ensure we test implementations that use
+      // identical.
       return new NeverType(interpretParsedNullability(node.parsedNullability));
+    } else if (name == "unknown") {
+      // Don't return a const object to ensure we test implementations that use
+      // identical.
+      return new UnknownType();
     }
     TreeNode declaration = environment[name];
     List<ParsedType> arguments = node.arguments;
@@ -169,6 +176,12 @@ class KernelFromParsedType implements Visitor<Node, KernelEnvironment> {
           arguments[i].accept<Node, KernelEnvironment>(this, environment);
     }
     if (declaration is Class) {
+      if (declaration.name == 'Null' &&
+          declaration.enclosingLibrary.importUri.scheme == 'dart' &&
+          declaration.enclosingLibrary.importUri.path == 'core' &&
+          node.parsedNullability != ParsedNullability.nullable) {
+        throw "Null type must be written as 'Null?'";
+      }
       List<TypeParameter> typeVariables = declaration.typeParameters;
       if (kernelArguments.isEmpty && typeVariables.isNotEmpty) {
         kernelArguments = new List<DartType>.filled(typeVariables.length, null);
@@ -287,16 +300,14 @@ class KernelFromParsedType implements Visitor<Node, KernelEnvironment> {
         positionalParameters
             .add(argument.accept<Node, KernelEnvironment>(this, environment));
       }
-      List<Object> optional = node.arguments.optional;
-      for (int i = 0; i < optional.length; i++) {
-        ParsedType parsedType = optional[i];
-        DartType type =
-            parsedType.accept<Node, KernelEnvironment>(this, environment);
-        if (node.arguments.optionalAreNamed) {
-          namedParameters.add(new NamedType(optional[++i], type));
-        } else {
-          positionalParameters.add(type);
-        }
+      for (ParsedType argument in node.arguments.positional) {
+        positionalParameters
+            .add(argument.accept<Node, KernelEnvironment>(this, environment));
+      }
+      for (ParsedNamedArgument argument in node.arguments.named) {
+        namedParameters.add(new NamedType(argument.name,
+            argument.type.accept<Node, KernelEnvironment>(this, environment),
+            isRequired: argument.isRequired));
       }
     }
     namedParameters.sort();

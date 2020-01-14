@@ -29,8 +29,7 @@ test(List expects, Iterable iterable, [String? name]) {
           expect, iterable.elementAt(index), "$name: elementAt($index)");
       Expect.isTrue(iterable.contains(expect), "$name:contains $index");
     }
-    Expect.isFalse(it.moveNext(),
-        "$name: extra element at ${expects.length}: ${it.current}");
+    Expect.isFalse(it.moveNext(), "$name: extra element at ${expects.length}");
   } on Error {
     print("Failed during: $name");
     rethrow;
@@ -70,10 +69,15 @@ main() {
   var c = new C();
   var d = new D();
   var n = null;
-  test([o, a, b, c, d, n], [o, a, b, c, d, n].whereType<Object>(), "Object");
+  test([o, a, b, c, d, n], [o, a, b, c, d, n].whereType<Object?>(), "Object?");
+  test([o, a, b, c, d], [o, a, b, c, d, n].whereType<Object>(), "Object");
+  test([a, b, c, d, n], [o, a, b, c, d, n].whereType<A?>(), "A?");
   test([a, b, c, d], [o, a, b, c, d, n].whereType<A>(), "A");
+  test([b, d, n], [o, a, b, c, d, n].whereType<B?>(), "B?");
   test([b, d], [o, a, b, c, d, n].whereType<B>(), "B");
+  test([c, d, n], [o, a, b, c, d, n].whereType<C?>(), "C?");
   test([c, d], [o, a, b, c, d, n].whereType<C>(), "C");
+  test([d, n], [o, a, b, c, d, n].whereType<D?>(), "D?");
   test([d], [o, a, b, c, d, n].whereType<D>(), "D");
   test([n], [o, a, b, c, d, n].whereType<Null>(), "Null");
 

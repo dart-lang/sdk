@@ -127,9 +127,10 @@ f(A a) {
     newFile('/workspace/project/pubspec.yaml');
     newFile('/workspace/project/BUILD.gn');
     String buildDir = convertPath('out/debug-x87_128');
-    newFile('/workspace/.config',
-        content: 'FOO=foo\n'
-            'FUCHSIA_BUILD_DIR=$buildDir\n');
+    newFile('/workspace/.config', content: '''
+FOO=foo
+FUCHSIA_BUILD_DIR=$buildDir
+''');
     newFile('/workspace/out/debug-x87_128/dartlang/gen/project/foo.packages');
 
     newFile('/workspace/project/lib/deprecated_library.dart', content: r'''
@@ -602,10 +603,11 @@ class A {}
     newFolder('/workspace/.jiri_root');
     newFile('/workspace/project/pubspec.yaml');
     String buildDir = convertPath('out/debug-x87_128');
-    newFile('/workspace/.config',
-        content: 'FOO=foo\n'
-            'FUCHSIA_BUILD_DIR=$buildDir\n'
-            'BAR=bar\n');
+    newFile('/workspace/.config', content: '''
+FOO=foo
+FUCHSIA_BUILD_DIR=$buildDir
+BAR=bar
+''');
     newFile('/workspace/out/debug-x87_128/dartlang/gen/project/foo.packages');
 
     await assertErrorsInFile('/workspace/project/lib/lib1.dart', r'''
@@ -623,9 +625,10 @@ f(A a) {}
     newFile('/workspace/project_a/BUILD.gn');
     newFile('/workspace/project_b/BUILD.gn');
     String buildDir = convertPath('out/debug-x87_128');
-    newFile('/workspace/.config',
-        content: 'FOO=foo\n'
-            'FUCHSIA_BUILD_DIR=$buildDir\n');
+    newFile('/workspace/.config', content: '''
+FOO=foo
+FUCHSIA_BUILD_DIR=$buildDir
+''');
     newFile('/workspace/out/debug-x87_128/dartlang/gen/project_a/foo.packages');
 
     newFile('/workspace/project_a/lib/deprecated_library.dart', content: r'''

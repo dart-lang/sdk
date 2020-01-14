@@ -95,7 +95,7 @@ runTestCase(Uri source) async {
   final Library library = component.mainMethod.enclosingLibrary;
   final CoreTypes coreTypes = new CoreTypes(component);
 
-  final ClassHierarchy hierarchy = new ClassHierarchy(component);
+  final ClassHierarchy hierarchy = new ClassHierarchy(component, coreTypes);
   final typeEnvironment = new TypeEnvironment(coreTypes, hierarchy);
 
   final actual =

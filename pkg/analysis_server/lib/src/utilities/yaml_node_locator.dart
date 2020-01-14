@@ -11,10 +11,10 @@ import 'package:yaml/yaml.dart';
 /// encompasses the specified range.
 class YamlNodeLocator {
   /// The inclusive start offset of the range used to identify the node.
-  int _startOffset = 0;
+  final int _startOffset;
 
   /// The inclusive end offset of the range used to identify the node.
-  int _endOffset = 0;
+  final int _endOffset;
 
   /// Initialize a newly created locator to locate the deepest [YamlNode] for
   /// which `node.offset <= [start]` and `[end] < node.end`.
@@ -22,8 +22,8 @@ class YamlNodeLocator {
   /// If the [end] offset is not provided, then it is considered the same as the
   /// [start] offset.
   YamlNodeLocator({@required int start, int end})
-      : this._startOffset = start,
-        this._endOffset = end ?? start;
+      : _startOffset = start,
+        _endOffset = end ?? start;
 
   /// Search within the given Yaml [node] and return the path to the most deeply
   /// nested node that includes the whole target range, or an empty list if no

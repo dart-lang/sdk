@@ -128,10 +128,10 @@ a:focus, a:hover {
     .trim();
 
 final GeneratedFile target =
-    new GeneratedFile('doc/api.html', (String pkgPath) async {
-  ToHtmlVisitor visitor = new ToHtmlVisitor(readApi(pkgPath));
-  dom.Document document = new dom.Document();
-  document.append(new dom.DocumentType('html', null, null));
+    GeneratedFile('doc/api.html', (String pkgPath) async {
+  ToHtmlVisitor visitor = ToHtmlVisitor(readApi(pkgPath));
+  dom.Document document = dom.Document();
+  document.append(dom.DocumentType('html', null, null));
   for (dom.Node node in visitor.collectHtml(visitor.visitApi)) {
     document.append(node);
   }
@@ -220,7 +220,7 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
   /**
    * Set of types defined in the API.
    */
-  Set<String> definedTypes = new Set<String>();
+  Set<String> definedTypes = Set<String>();
 
   /**
    * Mappings from HTML elements to API nodes.
@@ -228,7 +228,7 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
   ApiMappings apiMappings;
 
   ToHtmlVisitor(Api api)
-      : apiMappings = new ApiMappings(api),
+      : apiMappings = ApiMappings(api),
         super(api) {
     apiMappings.visitApi();
   }
@@ -240,7 +240,7 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
    * If [force] is true, then a section is inserted even if the payload is
    * null.
    */
-  void describePayload(TypeObject subType, String name, {bool force: false}) {
+  void describePayload(TypeObject subType, String name, {bool force = false}) {
     if (force || subType != null) {
       h4(() {
         write(name);
@@ -262,14 +262,14 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
       link('domain_${domain.name}', () => write('\u2191'));
       write(')');
     });
-    if (domain.requests.length > 0) {
+    if (domain.requests.isNotEmpty) {
       element('div', {'class': 'subindex'}, () {
         generateRequestsIndex(domain.requests);
-        if (domain.notifications.length > 0) {
+        if (domain.notifications.isNotEmpty) {
           generateNotificationsIndex(domain.notifications);
         }
       });
-    } else if (domain.notifications.length > 0) {
+    } else if (domain.notifications.isNotEmpty) {
       element('div', {'class': 'subindex'}, () {
         generateNotificationsIndex(domain.notifications);
       });
@@ -286,7 +286,7 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
     h3(() => write('Domains'));
     for (var domain in api.domains) {
       if (domain.experimental ||
-          (domain.requests.length == 0 && domain.notifications == 0)) {
+          (domain.requests.isEmpty && domain.notifications == 0)) {
         continue;
       }
       generateDomainIndex(domain);
@@ -418,7 +418,7 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
    * boldface.
    */
   void showType(String shortDesc, TypeDecl type, [TypeObject typeForBolding]) {
-    Set<String> fieldsToBold = new Set<String>();
+    Set<String> fieldsToBold = Set<String>();
     if (typeForBolding != null) {
       for (TypeObjectField field in typeForBolding.fields) {
         fieldsToBold.add(field.name);
@@ -428,8 +428,7 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
       if (shortDesc != null) {
         write('$shortDesc: ');
       }
-      TypeVisitor typeVisitor =
-          new TypeVisitor(api, fieldsToBold: fieldsToBold);
+      TypeVisitor typeVisitor = TypeVisitor(api, fieldsToBold: fieldsToBold);
       addAll(typeVisitor.collectHtml(() {
         typeVisitor.visitTypeDecl(type);
       }));
@@ -440,7 +439,7 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
    * Copy the contents of the given HTML element, translating the special
    * elements that define the API appropriately.
    */
-  void translateHtml(dom.Element html, {bool squashParagraphs: false}) {
+  void translateHtml(dom.Element html, {bool squashParagraphs = false}) {
     for (dom.Node node in html.nodes) {
       if (node is dom.Element) {
         if (squashParagraphs && node.localName == 'p') {
@@ -607,7 +606,7 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
             : 'typeDefinition', () {
       anchor('type_${typeDefinition.name}', () {
         write('${typeDefinition.name}: ');
-        TypeVisitor typeVisitor = new TypeVisitor(api, short: true);
+        TypeVisitor typeVisitor = TypeVisitor(api, short: true);
         addAll(typeVisitor.collectHtml(() {
           typeVisitor.visitTypeDecl(typeDefinition.type);
         }));
@@ -678,7 +677,7 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
           write(' = ${json.encode(typeObjectField.value)}');
         } else {
           write(': ');
-          TypeVisitor typeVisitor = new TypeVisitor(api, short: true);
+          TypeVisitor typeVisitor = TypeVisitor(api, short: true);
           addAll(typeVisitor.collectHtml(() {
             typeVisitor.visitTypeDecl(typeObjectField.type);
           }));
@@ -733,7 +732,7 @@ class TypeVisitor extends HierarchicalApiVisitor
    */
   final bool short;
 
-  TypeVisitor(Api api, {this.fieldsToBold, this.short: false}) : super(api);
+  TypeVisitor(Api api, {this.fieldsToBold, this.short = false}) : super(api);
 
   @override
   void visitTypeEnum(TypeEnum typeEnum) {

@@ -21,7 +21,7 @@ Element convertElement(engine.Element element) {
   String elementParameters = _getParametersString(element);
   String elementReturnType = getReturnTypeString(element);
   ElementKind kind = convertElementToElementKind(element);
-  return new Element(
+  return Element(
       kind,
       name,
       Element.makeFlags(
@@ -158,7 +158,7 @@ String _getParametersString(engine.Element element) {
 
   parameters.sort(_preferRequiredParams);
 
-  StringBuffer sb = new StringBuffer();
+  StringBuffer sb = StringBuffer();
   String closeOptionalString = '';
   for (engine.ParameterElement parameter in parameters) {
     if (sb.isNotEmpty) {
@@ -176,7 +176,7 @@ String _getParametersString(engine.Element element) {
     if (parameter.hasRequired) {
       sb.write('@required ');
     }
-    parameter.appendToWithoutDelimiters(sb);
+    parameter.appendToWithoutDelimiters(sb, withNullability: false);
   }
   sb.write(closeOptionalString);
   return '(' + sb.toString() + ')';

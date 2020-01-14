@@ -5,6 +5,7 @@
 import 'dart:io';
 import 'annotated_code_helper.dart';
 import 'id.dart';
+import 'id_generation.dart';
 import '../util/colors.dart' as colors;
 
 const String cfeMarker = 'cfe';
@@ -12,19 +13,31 @@ const String cfeWithNnbdMarker = '$cfeMarker:nnbd';
 const String dart2jsMarker = 'dart2js';
 const String analyzerMarker = 'analyzer';
 
-/// Markers used in annotated tests shard by CFE, analyzer and dart2js.
+/// Markers used in annotated tests shared by CFE, analyzer and dart2js.
 const List<String> sharedMarkers = [
   cfeMarker,
   dart2jsMarker,
   analyzerMarker,
 ];
 
-/// Markers used in annotated tests shard by CFE, analyzer and dart2js.
+/// Markers used in annotated tests shared by CFE and analyzer.
+const List<String> cfeAnalyzerMarkers = [
+  cfeMarker,
+  analyzerMarker,
+];
+
+/// Markers used in annotated tests shared by CFE, analyzer and dart2js.
 const List<String> sharedMarkersWithNnbd = [
   cfeMarker,
   cfeWithNnbdMarker,
   dart2jsMarker,
   analyzerMarker,
+];
+
+/// Markers used in annotated tests used by CFE in both with and without nnbd.
+const List<String> cfeMarkersWithNnbd = [
+  cfeMarker,
+  cfeWithNnbdMarker,
 ];
 
 /// `true` if ANSI colors are supported by stdout.
@@ -171,7 +184,7 @@ void computeExpectedMap(Uri sourceUri, String filename, AnnotatedCode code,
     Map<Id, IdValue> expectedValues = fileAnnotations[sourceUri];
     for (Annotation annotation in code.annotations) {
       String text = annotation.text;
-      IdValue idValue = IdValue.decode(sourceUri, annotation.offset, text);
+      IdValue idValue = IdValue.decode(sourceUri, annotation, text);
       if (idValue.id.isGlobal) {
         if (fileAnnotations.globalData.containsKey(idValue.id)) {
           onFailure("Error in test '$filename': "
@@ -200,9 +213,9 @@ void computeExpectedMap(Uri sourceUri, String filename, AnnotatedCode code,
 /// [testFile] name as a prefix are included.
 TestData computeTestData(FileSystemEntity testFile,
     {Iterable<String> supportedMarkers,
-    Uri createUriForFileName(String fileName),
+    Uri createTestUri(Uri uri, String fileName),
     void onFailure(String message)}) {
-  Uri entryPoint = createUriForFileName('main.dart');
+  Uri entryPoint;
 
   String testName;
   File mainTestFile;
@@ -211,6 +224,7 @@ TestData computeTestData(FileSystemEntity testFile,
   if (testFile is File) {
     testName = testFileUri.pathSegments.last;
     mainTestFile = testFile;
+    entryPoint = createTestUri(mainTestFile.uri, 'main.dart');
   } else if (testFile is Directory) {
     testName = testFileUri.pathSegments[testFileUri.pathSegments.length - 2];
     additionalFiles = new Map<String, File>();
@@ -220,6 +234,7 @@ TestData computeTestData(FileSystemEntity testFile,
       if (entry is! File) continue;
       if (entry.uri.pathSegments.last == "main.dart") {
         mainTestFile = entry;
+        entryPoint = createTestUri(mainTestFile.uri, 'main.dart');
       } else {
         additionalFiles[entry.uri.path.substring(testFile.uri.path.length)] =
             entry;
@@ -249,7 +264,7 @@ TestData computeTestData(FileSystemEntity testFile,
     for (MapEntry<String, File> additionalFileData in additionalFiles.entries) {
       String libFileName = additionalFileData.key;
       File libEntity = additionalFileData.value;
-      Uri libFileUri = createUriForFileName(libFileName);
+      Uri libFileUri = createTestUri(libEntity.uri, libFileName);
       String libCode = libEntity.readAsStringSync();
       AnnotatedCode annotatedLibCode =
           new AnnotatedCode.fromText(libCode, commentStart, commentEnd);
@@ -276,6 +291,32 @@ class TestData {
 
   TestData(this.name, this.testFileUri, this.entryPoint, this.memorySourceFiles,
       this.code, this.expectedMaps);
+}
+
+/// The results for running a test on a single configuration.
+class TestResult<T> {
+  /// `true` if the [compiledData]  didn't match the expected annotations.
+  final bool hasMismatches;
+
+  /// `true` if the test couldn't be run due to errors in the test setup.
+  final bool isErroneous;
+
+  /// The data interpreter used to verify the [compiledData].
+  final DataInterpreter<T> interpreter;
+
+  /// The actual data computed for the test.
+  final CompiledData<T> compiledData;
+
+  TestResult(this.interpreter, this.compiledData, this.hasMismatches)
+      : isErroneous = false;
+
+  TestResult.erroneous()
+      : isErroneous = true,
+        hasMismatches = false,
+        interpreter = null,
+        compiledData = null;
+
+  bool get hasFailures => hasMismatches || isErroneous;
 }
 
 /// The actual result computed for an annotated test.
@@ -469,13 +510,13 @@ class IdData<T> {
 
 /// Checks [compiledData] against the expected data in [expectedMaps] derived
 /// from [code].
-Future<bool> checkCode<T>(
+Future<TestResult<T>> checkCode<T>(
     String modeName,
     Uri mainFileUri,
     Map<Uri, AnnotatedCode> code,
     MemberAnnotations<IdValue> expectedMaps,
     CompiledData<T> compiledData,
-    DataInterpreter<T> dataValidator,
+    DataInterpreter<T> dataInterpreter,
     {bool filterActualData(IdValue expected, ActualData<T> actualData),
     bool fatalErrors: true,
     bool succinct: false,
@@ -490,10 +531,10 @@ Future<bool> checkCode<T>(
     bool hasLocalFailure = false;
     actualMap.forEach((Id id, ActualData<T> actualData) {
       T actual = actualData.value;
-      String actualText = dataValidator.getText(actual);
+      String actualText = dataInterpreter.getText(actual);
 
       if (!expectedMap.containsKey(id)) {
-        if (!dataValidator.isEmpty(actual)) {
+        if (!dataInterpreter.isEmpty(actual)) {
           String actualValueText = IdValue.idToString(id, actualText);
           compiledData.reportError(
               actualData.uri,
@@ -512,7 +553,7 @@ Future<bool> checkCode<T>(
       } else {
         IdValue expected = expectedMap[id];
         String unexpectedMessage =
-            dataValidator.isAsExpected(actual, expected.value);
+            dataInterpreter.isAsExpected(actual, expected.value);
         if (unexpectedMessage != null) {
           String actualValueText = IdValue.idToString(id, actualText);
           compiledData.reportError(
@@ -576,7 +617,7 @@ Future<bool> checkCode<T>(
   if (!succinct) {
     for (Uri uri in neededDiffs) {
       print('--annotations diff [${uri.pathSegments.last}]-------------');
-      print(data.diffCode(uri, dataValidator));
+      print(data.diffCode(uri, dataInterpreter));
       print('----------------------------------------------------------');
     }
   }
@@ -587,14 +628,18 @@ Future<bool> checkCode<T>(
   if (hasFailure && fatalErrors) {
     onFailure('Errors found.');
   }
-  return hasFailure;
+  return new TestResult<T>(dataInterpreter, compiledData, hasFailure);
 }
 
-typedef Future<bool> RunTestFunction(TestData testData,
-    {bool testAfterFailures, bool verbose, bool succinct, bool printCode});
+typedef Future<Map<String, TestResult<T>>> RunTestFunction<T>(TestData testData,
+    {bool testAfterFailures,
+    bool verbose,
+    bool succinct,
+    bool printCode,
+    Map<String, List<String>> skipMap});
 
 /// Check code for all tests in [dataDir] using [runTest].
-Future runTests(Directory dataDir,
+Future<void> runTests<T>(Directory dataDir,
     {List<String> args: const <String>[],
     int shards: 1,
     int shardIndex: 0,
@@ -602,8 +647,9 @@ Future runTests(Directory dataDir,
     Iterable<String> supportedMarkers,
     Uri createUriForFileName(String fileName),
     void onFailure(String message),
-    RunTestFunction runTest,
-    List<String> skipList}) async {
+    RunTestFunction<T> runTest,
+    List<String> skipList,
+    Map<String, List<String>> skipMap}) async {
   // TODO(johnniwinther): Support --show to show actual data for an input.
   args = args.toList();
   bool verbose = args.remove('-v');
@@ -613,6 +659,7 @@ Future runTests(Directory dataDir,
   bool printCode = args.remove('-p');
   bool continued = false;
   bool hasFailures = false;
+  bool generateAnnotations = args.remove('-g');
 
   String relativeDir = dataDir.uri.path.replaceAll(Uri.base.path, '');
   print('Data dir: ${relativeDir}');
@@ -642,18 +689,82 @@ Future runTests(Directory dataDir,
     }
     print('----------------------------------------------------------------');
 
-    TestData testData = computeTestData(entity,
-        supportedMarkers: supportedMarkers,
-        createUriForFileName: createUriForFileName,
-        onFailure: onFailure);
+    Map<Uri, Uri> testToFileUri = {};
+    TestData testData =
+        computeTestData(entity, supportedMarkers: supportedMarkers,
+            createTestUri: (Uri fileUri, String fileName) {
+      Uri testUri = createUriForFileName(fileName);
+      testToFileUri[testUri] = fileUri;
+      return testUri;
+    }, onFailure: onFailure);
     print('Test: ${testData.testFileUri}');
 
-    if (await runTest(testData,
-        testAfterFailures: testAfterFailures,
+    Map<String, TestResult<T>> results = await runTest(testData,
+        testAfterFailures: testAfterFailures || generateAnnotations,
         verbose: verbose,
         succinct: succinct,
-        printCode: printCode)) {
+        printCode: printCode,
+        skipMap: skipMap);
+
+    bool hasMismatches = false;
+    bool hasErrors = false;
+    results.forEach((String marker, TestResult<T> result) {
+      if (result.hasMismatches) {
+        hasMismatches = true;
+      } else if (result.isErroneous) {
+        hasErrors = true;
+      }
+    });
+    if (hasErrors) {
+      // Cannot generate annotations for erroneous tests.
       hasFailures = true;
+    } else if (hasMismatches) {
+      if (generateAnnotations) {
+        DataInterpreter dataInterpreter;
+        Map<String, Map<Uri, Map<Id, ActualData<T>>>> actualData = {};
+        results.forEach((String marker, TestResult<T> result) {
+          dataInterpreter ??= result.interpreter;
+          Map<Uri, Map<Id, ActualData<T>>> actualDataPerUri =
+              actualData[marker] = {};
+
+          void addActualData(Uri uri, Map<Id, ActualData<T>> actualData) {
+            assert(uri != null && testData.code.containsKey(uri) ||
+                actualData.isEmpty);
+            if (uri == null || actualData.isEmpty) {
+              // TODO(johnniwinther): Avoid collecting data without
+              //  invalid uris.
+              return;
+            }
+            Map<Id, ActualData<T>> actualDataPerId =
+                actualDataPerUri[uri] ??= {};
+            actualDataPerId.addAll(actualData);
+          }
+
+          result.compiledData.actualMaps.forEach(addActualData);
+          addActualData(
+              result.compiledData.mainUri, result.compiledData.globalData);
+        });
+
+        Map<Uri, List<Annotation>> annotations = computeAnnotationsPerUri(
+            testData.code,
+            testData.expectedMaps,
+            testData.entryPoint,
+            actualData,
+            dataInterpreter);
+        annotations.forEach((Uri uri, List<Annotation> annotations) {
+          assert(uri != null, "Annotations without uri: $annotations");
+          AnnotatedCode code = testData.code[uri];
+          assert(code != null,
+              "No annotated code for $uri with annotations: $annotations");
+          AnnotatedCode generated = new AnnotatedCode(
+              code.annotatedCode, code.sourceCode, annotations);
+          Uri fileUri = testToFileUri[uri];
+          new File.fromUri(fileUri).writeAsStringSync(generated.toText());
+          print('Generated annotations for ${fileUri}');
+        });
+      } else {
+        hasFailures = true;
+      }
     }
   }
   if (hasFailures) {
@@ -662,4 +773,23 @@ Future runTests(Directory dataDir,
   if (testCount == 0) {
     onFailure("No files were tested.");
   }
+}
+
+/// Returns `true` if [testName] is marked as skipped in [skipMap] for
+/// the given [configMarker].
+bool skipForConfig(
+    String testName, String configMarker, Map<String, List<String>> skipMap) {
+  if (skipMap != null) {
+    List<String> skipList = skipMap[configMarker];
+    if (skipList != null && skipList.contains(testName)) {
+      print("Skip: ${testName} for config '${configMarker}'");
+      return true;
+    }
+    skipList = skipMap[null];
+    if (skipList != null && skipList.contains(testName)) {
+      print("Skip: ${testName} for config '${configMarker}'");
+      return true;
+    }
+  }
+  return false;
 }

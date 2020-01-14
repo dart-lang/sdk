@@ -619,16 +619,14 @@ void Assembler::Branch(const Code& target,
   br(TMP);
 }
 
-void Assembler::BranchPatchable(const Code& code) {
-  Branch(code, PP, ObjectPoolBuilderEntry::kPatchable);
-}
-
 void Assembler::BranchLink(const Code& target,
-                           ObjectPoolBuilderEntry::Patchability patchable) {
+                           ObjectPoolBuilderEntry::Patchability patchable,
+                           CodeEntryKind entry_kind) {
   const int32_t offset = target::ObjectPool::element_offset(
       object_pool_builder().FindObject(ToObject(target), patchable));
   LoadWordFromPoolOffset(CODE_REG, offset);
-  ldr(TMP, FieldAddress(CODE_REG, target::Code::entry_point_offset()));
+  ldr(TMP,
+      FieldAddress(CODE_REG, target::Code::entry_point_offset(entry_kind)));
   blr(TMP);
 }
 
@@ -638,11 +636,13 @@ void Assembler::BranchLinkToRuntime() {
 }
 
 void Assembler::BranchLinkWithEquivalence(const Code& target,
-                                          const Object& equivalence) {
+                                          const Object& equivalence,
+                                          CodeEntryKind entry_kind) {
   const int32_t offset = target::ObjectPool::element_offset(
       object_pool_builder().FindObject(ToObject(target), equivalence));
   LoadWordFromPoolOffset(CODE_REG, offset);
-  ldr(TMP, FieldAddress(CODE_REG, target::Code::entry_point_offset()));
+  ldr(TMP,
+      FieldAddress(CODE_REG, target::Code::entry_point_offset(entry_kind)));
   blr(TMP);
 }
 
@@ -652,6 +652,17 @@ void Assembler::CallNullErrorShared(bool save_fpu_registers) {
           ? target::Thread::null_error_shared_with_fpu_regs_entry_point_offset()
           : target::Thread::
                 null_error_shared_without_fpu_regs_entry_point_offset();
+  ldr(LR, Address(THR, entry_point_offset));
+  blr(LR);
+}
+
+void Assembler::CallNullArgErrorShared(bool save_fpu_registers) {
+  const uword entry_point_offset =
+      save_fpu_registers
+          ? target::Thread::
+                null_arg_error_shared_with_fpu_regs_entry_point_offset()
+          : target::Thread::
+                null_arg_error_shared_without_fpu_regs_entry_point_offset();
   ldr(LR, Address(THR, entry_point_offset));
   blr(LR);
 }
@@ -1503,10 +1514,10 @@ void Assembler::LeaveStubFrame() {
 // R0 receiver, R5 ICData entries array
 // Preserve R4 (ARGS_DESC_REG), not required today, but maybe later.
 void Assembler::MonomorphicCheckedEntryJIT() {
-  ASSERT(has_single_entry_point_);
   has_single_entry_point_ = false;
   const bool saved_use_far_branches = use_far_branches();
   set_use_far_branches(false);
+  const intptr_t start = CodeSize();
 
   Label immediate, miss;
   Bind(&miss);
@@ -1514,7 +1525,8 @@ void Assembler::MonomorphicCheckedEntryJIT() {
   br(IP0);
 
   Comment("MonomorphicCheckedEntry");
-  ASSERT(CodeSize() == target::Instructions::kMonomorphicEntryOffsetJIT);
+  ASSERT(CodeSize() - start ==
+         target::Instructions::kMonomorphicEntryOffsetJIT);
 
   const intptr_t cid_offset = target::Array::element_offset(0);
   const intptr_t count_offset = target::Array::element_offset(1);
@@ -1530,7 +1542,8 @@ void Assembler::MonomorphicCheckedEntryJIT() {
   LoadImmediate(R4, 0);  // GC-safe for OptimizeInvokedFunction.
 
   // Fall through to unchecked entry.
-  ASSERT(CodeSize() == target::Instructions::kPolymorphicEntryOffsetJIT);
+  ASSERT(CodeSize() - start ==
+         target::Instructions::kPolymorphicEntryOffsetJIT);
 
   set_use_far_branches(saved_use_far_branches);
 }
@@ -1538,7 +1551,6 @@ void Assembler::MonomorphicCheckedEntryJIT() {
 // R0 receiver, R5 guarded cid as Smi.
 // Preserve R4 (ARGS_DESC_REG), not required today, but maybe later.
 void Assembler::MonomorphicCheckedEntryAOT() {
-  ASSERT(has_single_entry_point_);
   has_single_entry_point_ = false;
   bool saved_use_far_branches = use_far_branches();
   set_use_far_branches(false);

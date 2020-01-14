@@ -28,7 +28,7 @@ mixin DartHighlightsMixin implements HighlightsMixin {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     ResolvedUnitResult result = await getResolvedUnitResult(path);
-    return new DartHighlightsRequestImpl(resourceProvider, result);
+    return DartHighlightsRequestImpl(resourceProvider, result);
   }
 }
 
@@ -61,7 +61,7 @@ mixin HighlightsMixin implements ServerPlugin {
     try {
       HighlightsRequest request = await getHighlightsRequest(path);
       HighlightsGenerator generator =
-          new HighlightsGenerator(getHighlightsContributors(path));
+          HighlightsGenerator(getHighlightsContributors(path));
       GeneratorResult generatorResult =
           generator.generateHighlightsNotification(request);
       generatorResult.sendNotifications(channel);

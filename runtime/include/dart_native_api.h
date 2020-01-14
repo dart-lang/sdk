@@ -85,14 +85,22 @@ typedef struct _Dart_CObject {
 } Dart_CObject;
 
 /**
- * Posts a message on some port. The message will contain the
- * Dart_CObject object graph rooted in 'message'.
+ * Posts a message on some port. The message will contain the Dart_CObject
+ * object graph rooted in 'message'.
  *
- * While the message is being sent the state of the graph of
- * Dart_CObject structures rooted in 'message' should not be accessed,
- * as the message generation will make temporary modifications to the
- * data. When the message has been sent the graph will be fully
- * restored.
+ * While the message is being sent the state of the graph of Dart_CObject
+ * structures rooted in 'message' should not be accessed, as the message
+ * generation will make temporary modifications to the data. When the message
+ * has been sent the graph will be fully restored.
+ *
+ * If true is returned, the message was enqueued, and finalizers for external
+ * typed data will eventually run, even if the receiving isolate shuts down
+ * before processing the message. If false is returned, the message was not
+ * enqueued and ownership of external typed data in the message remains with the
+ * caller.
+ *
+ * This function may be called on any thread when the VM is running (that is,
+ * after Dart_Initialize has returned and before Dart_Cleanup has been called).
  *
  * \param port_id The destination port.
  * \param message The message to send.

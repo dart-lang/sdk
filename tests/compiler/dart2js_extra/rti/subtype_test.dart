@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:_foreign_helper' show JS, JS_GET_NAME;
+import 'dart:_foreign_helper' show JS, JS_GET_NAME, TYPE_REF;
 import 'dart:_js_embedded_names' show JsGetName;
 import 'dart:_rti' as rti;
 
@@ -27,6 +27,8 @@ final typeRules = JS('=Object', 'JSON.parse(#)', typeRulesJson);
 
 main() {
   rti.testingAddRules(universe, typeRules);
+  rti.testingUniverseEvalOverride(universe, objectName, TYPE_REF<Object>());
+  rti.testingUniverseEvalOverride(universe, nullName, TYPE_REF<Null>());
   runTests();
   runTests(); // Ensure caching didn't change anything.
 }

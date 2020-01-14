@@ -8,10 +8,10 @@ import 'dart:collection';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/utilities_general.dart';
 
 /// The state of an object representing a boolean value.
@@ -83,7 +83,7 @@ class BoolState extends InstanceState {
   }
 
   @override
-  BoolState lazyAnd(InstanceState rightOperandComputer()) {
+  BoolState lazyAnd(InstanceState Function() rightOperandComputer) {
     if (value == false) {
       return FALSE_STATE;
     }
@@ -98,7 +98,7 @@ class BoolState extends InstanceState {
   }
 
   @override
-  BoolState lazyOr(InstanceState rightOperandComputer()) {
+  BoolState lazyOr(InstanceState Function() rightOperandComputer) {
     if (value == true) {
       return TRUE_STATE;
     }
@@ -164,14 +164,13 @@ class DartObjectImpl implements DartObject {
   /// Create an object to represent an unknown value.
   factory DartObjectImpl.validWithUnknownValue(ParameterizedType type) {
     if (type.element.library.isDartCore) {
-      String typeName = type.name;
-      if (typeName == "bool") {
+      if (type.isDartCoreBool) {
         return DartObjectImpl(type, BoolState.UNKNOWN_VALUE);
-      } else if (typeName == "double") {
+      } else if (type.isDartCoreDouble) {
         return DartObjectImpl(type, DoubleState.UNKNOWN_VALUE);
-      } else if (typeName == "int") {
+      } else if (type.isDartCoreInt) {
         return DartObjectImpl(type, IntState.UNKNOWN_VALUE);
-      } else if (typeName == "String") {
+      } else if (type.isDartCoreString) {
         return DartObjectImpl(type, StringState.UNKNOWN_VALUE);
       }
     }
@@ -478,8 +477,8 @@ class DartObjectImpl implements DartObject {
   ///
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
-  DartObjectImpl lazyAnd(
-          TypeProvider typeProvider, DartObjectImpl rightOperandComputer()) =>
+  DartObjectImpl lazyAnd(TypeProvider typeProvider,
+          DartObjectImpl Function() rightOperandComputer) =>
       DartObjectImpl(typeProvider.boolType,
           _state.lazyAnd(() => rightOperandComputer()?._state));
 
@@ -512,8 +511,8 @@ class DartObjectImpl implements DartObject {
   ///
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
-  DartObjectImpl lazyOr(
-          TypeProvider typeProvider, DartObjectImpl rightOperandComputer()) =>
+  DartObjectImpl lazyOr(TypeProvider typeProvider,
+          DartObjectImpl Function() rightOperandComputer) =>
       DartObjectImpl(typeProvider.boolType,
           _state.lazyOr(() => rightOperandComputer()?._state));
 
@@ -741,7 +740,9 @@ class DartObjectImpl implements DartObject {
   }
 
   @override
-  String toString() => "${type.displayName} ($_state)";
+  String toString() {
+    return "${type.getDisplayString(withNullability: false)} ($_state)";
+  }
 
   @override
   String toStringValue() {
@@ -1440,7 +1441,7 @@ abstract class InstanceState {
   ///
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
-  BoolState lazyAnd(InstanceState rightOperandComputer()) {
+  BoolState lazyAnd(InstanceState Function() rightOperandComputer) {
     assertBool(this);
     if (convertToBool() == BoolState.FALSE_STATE) {
       return this;
@@ -1462,7 +1463,7 @@ abstract class InstanceState {
   ///
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
-  BoolState lazyOr(InstanceState rightOperandComputer()) {
+  BoolState lazyOr(InstanceState Function() rightOperandComputer) {
     assertBool(this);
     if (convertToBool() == BoolState.TRUE_STATE) {
       return this;
@@ -2541,7 +2542,7 @@ class TypeState extends InstanceState {
     if (_type == null) {
       return StringState.UNKNOWN_VALUE;
     }
-    return StringState(_type.displayName);
+    return StringState(_type.getDisplayString(withNullability: false));
   }
 
   @override

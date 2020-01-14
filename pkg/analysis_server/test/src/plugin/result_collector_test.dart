@@ -16,7 +16,7 @@ main() {
 class ResultCollectorTest {
   static const String serverId = 'server';
 
-  ResultCollector<String> collector = new ResultCollector<String>(serverId);
+  ResultCollector<String> collector = ResultCollector<String>(serverId);
 
   void test_clearResultsForFile() {
     String filePath1 = 'test1.dart';

@@ -7,11 +7,14 @@ import 'dart:collection';
 import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:kernel/src/nnbd_top_merge.dart';
+
 import 'ast.dart';
 import 'core_types.dart';
 import 'type_algebra.dart';
-import 'src/heap.dart';
 import 'src/future_or.dart';
+import 'src/heap.dart';
+import 'src/legacy_erasure.dart';
 
 typedef HandleAmbiguousSupertypes = void Function(Class, Supertype, Supertype);
 
@@ -21,7 +24,7 @@ abstract class MixinInferrer {
 
 /// Interface for answering various subclassing queries.
 abstract class ClassHierarchy {
-  factory ClassHierarchy(Component component,
+  factory ClassHierarchy(Component component, CoreTypes coreTypes,
       {HandleAmbiguousSupertypes onAmbiguousSupertypes,
       MixinInferrer mixinInferrer}) {
     onAmbiguousSupertypes ??= (Class cls, Supertype a, Supertype b) {
@@ -29,7 +32,7 @@ abstract class ClassHierarchy {
       throw "$cls can't implement both $a and $b";
     };
     return new ClosedWorldClassHierarchy._internal(
-        onAmbiguousSupertypes, mixinInferrer)
+        coreTypes, onAmbiguousSupertypes, mixinInferrer)
       .._initialize(component.libraries);
   }
 
@@ -423,6 +426,7 @@ class _ClosedWorldClassHierarchySubtypes implements ClassHierarchySubtypes {
 
 /// Implementation of [ClassHierarchy] for closed world.
 class ClosedWorldClassHierarchy implements ClassHierarchy {
+  final CoreTypes coreTypes;
   HandleAmbiguousSupertypes _onAmbiguousSupertypes;
   HandleAmbiguousSupertypes _onAmbiguousSupertypesNotWrapped;
   MixinInferrer mixinInferrer;
@@ -489,7 +493,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
 
   _ClosedWorldClassHierarchySubtypes _cachedClassHierarchySubtypes;
 
-  ClosedWorldClassHierarchy._internal(
+  ClosedWorldClassHierarchy._internal(this.coreTypes,
       HandleAmbiguousSupertypes onAmbiguousSupertypes, this.mixinInferrer) {
     this.onAmbiguousSupertypes = onAmbiguousSupertypes;
   }
@@ -641,11 +645,11 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
         var superType1 = identical(info1, next)
             ? type1
             : Substitution.fromInterfaceType(type1).substituteType(
-                info1.genericSuperTypes[next.classNode].first.asInterfaceType);
+                info1.genericSuperType[next.classNode].asInterfaceType);
         var superType2 = identical(info2, next)
             ? type2
             : Substitution.fromInterfaceType(type2).substituteType(
-                info2.genericSuperTypes[next.classNode].first.asInterfaceType);
+                info2.genericSuperType[next.classNode].asInterfaceType);
         if (superType1 == superType2) {
           candidate = superType1.withNullability(
               uniteNullabilities(type1.nullability, type2.nullability));
@@ -668,7 +672,9 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
     }
     if (!info.isSubtypeOf(superInfo)) return null;
     if (superclass.typeParameters.isEmpty) return superclass.asRawSupertype;
-    return info.genericSuperTypes[superclass]?.first;
+    assert(info.genericSuperType.containsKey(superclass),
+        "No canonical instance of $superclass found for $class_.");
+    return info.genericSuperType[superclass];
   }
 
   @override
@@ -770,11 +776,9 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
 
   @override
   List<Supertype> genericSupertypesOf(Class class_) {
-    final supertypes = infoFor(class_).genericSuperTypes;
+    final supertypes = infoFor(class_).genericSuperType;
     if (supertypes == null) return const <Supertype>[];
-    // Multiple supertypes can arise from ambiguous supertypes. The first
-    // supertype is the real one; the others are purely informational.
-    return supertypes.values.map((v) => v.first).toList();
+    return supertypes.values.toList();
   }
 
   @override
@@ -909,8 +913,8 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
     if (type.classNode == superclass) {
       return superclass.asThisSupertype;
     }
-    var map = infoFor(type.classNode)?.genericSuperTypes;
-    return map == null ? null : map[superclass]?.first;
+    var map = infoFor(type.classNode)?.genericSuperType;
+    return map == null ? null : map[superclass];
   }
 
   void _initialize(List<Library> libraries) {
@@ -1230,10 +1234,12 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
     if (supertype.typeArguments.isEmpty) {
       if (superInfo.genericSuperTypes == null) return;
       // Copy over the super type entries.
+      subInfo.genericSuperType ??= <Class, Supertype>{};
       subInfo.genericSuperTypes ??= <Class, List<Supertype>>{};
       superInfo.genericSuperTypes?.forEach((Class key, List<Supertype> types) {
         for (Supertype type in types) {
-          subInfo.recordGenericSuperType(key, type, _onAmbiguousSupertypes);
+          subInfo.recordGenericSuperType(
+              coreTypes, key, type, _onAmbiguousSupertypes);
         }
       });
     } else {
@@ -1242,16 +1248,17 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
       Class superclass = supertype.classNode;
       var substitution = Substitution.fromPairs(
           superclass.typeParameters, supertype.typeArguments);
+      subInfo.genericSuperType ??= <Class, Supertype>{};
       subInfo.genericSuperTypes ??= <Class, List<Supertype>>{};
       superInfo.genericSuperTypes?.forEach((Class key, List<Supertype> types) {
         for (Supertype type in types) {
-          subInfo.recordGenericSuperType(key,
+          subInfo.recordGenericSuperType(coreTypes, key,
               substitution.substituteSupertype(type), _onAmbiguousSupertypes);
         }
       });
 
       subInfo.recordGenericSuperType(
-          superclass, supertype, _onAmbiguousSupertypes);
+          coreTypes, superclass, supertype, _onAmbiguousSupertypes);
     }
   }
 
@@ -1446,12 +1453,20 @@ class _ClassInfo {
 
   List<_ClassInfo> leastUpperBoundInfos;
 
-  /// Maps generic supertype classes to the instantiation implemented by this
+  /// Maps generic supertype classes to the instantiations implemented by this
   /// class.
   ///
   /// E.g. `List` maps to `List<String>` for a class that directly or indirectly
   /// implements `List<String>`.
   Map<Class, List<Supertype>> genericSuperTypes;
+
+  /// Maps generic supertype classes to the canonical instantiation implemented
+  /// by this class.
+  ///
+  /// E.g. `List` maps to `List<String>` for a class that directly or indirectly
+  /// implements `List<String>`.
+
+  Map<Class, Supertype> genericSuperType;
 
   /// Instance fields, getters, methods, and operators declared in this class
   /// or its mixed-in class, sorted according to [_compareMembers].
@@ -1483,15 +1498,40 @@ class _ClassInfo {
     return _intervalListContains(supertypeIntervalList, other.topologicalIndex);
   }
 
-  void recordGenericSuperType(Class cls, Supertype type,
+  void recordGenericSuperType(CoreTypes coreTypes, Class cls, Supertype type,
       HandleAmbiguousSupertypes onAmbiguousSupertypes) {
-    List<Supertype> existing = genericSuperTypes[cls];
-    if (existing == null) {
+    Supertype canonical = genericSuperType[cls];
+    if (canonical == null) {
+      if (!classNode.enclosingLibrary.isNonNullableByDefault) {
+        canonical = legacyErasureSupertype(coreTypes, type);
+      } else {
+        canonical = type;
+      }
+      assert(canonical != null,
+          "No canonical instantiation computed for $cls in $classNode.");
+      genericSuperType[cls] = canonical;
       genericSuperTypes[cls] = <Supertype>[type];
-    } else if (type != existing.first) {
-      existing.add(type);
-      onAmbiguousSupertypes(classNode, existing.first, type);
+    } else {
+      genericSuperTypes[cls].add(type);
+
+      if (classNode.enclosingLibrary.isNonNullableByDefault) {
+        Supertype result = nnbdTopMergeSupertype(coreTypes, type, canonical);
+        if (result == null) {
+          onAmbiguousSupertypes(classNode, canonical, type);
+        } else {
+          genericSuperType[cls] = result;
+        }
+      } else {
+        type = legacyErasureSupertype(coreTypes, type);
+        if (type != canonical) {
+          onAmbiguousSupertypes(classNode, canonical, type);
+        }
+      }
     }
+    assert(genericSuperType.containsKey(cls),
+        "No canonical instantiation computed for $cls in $classNode.");
+    assert(genericSuperTypes.containsKey(cls),
+        "No instantiations computed for $cls in $classNode.");
   }
 }
 

@@ -9,12 +9,14 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/resolver.dart'
+    show LibraryScope, ResolverVisitor, TypeSystemImpl;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/static_type_analyzer.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
@@ -69,31 +71,37 @@ void useSet(Set<int> s) {
 @reflectiveTest
 class StaticTypeAnalyzer2Test extends StaticTypeAnalyzer2TestShared {
   test_FunctionExpressionInvocation_block() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 main() {
   var foo = (() { return 1; })();
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 3),
+    ]);
     expectInitializerType('foo', 'int');
   }
 
   test_FunctionExpressionInvocation_curried() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 typedef int F();
 F f() => null;
 main() {
   var foo = f()();
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 47, 3),
+    ]);
     expectInitializerType('foo', 'int');
   }
 
   test_FunctionExpressionInvocation_expression() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 main() {
   var foo = (() => 1)();
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 3),
+    ]);
     expectInitializerType('foo', 'int');
   }
 
@@ -173,11 +181,13 @@ main() {
 @reflectiveTest
 class StaticTypeAnalyzer3Test extends StaticTypeAnalyzer2TestShared {
   test_emptyMapLiteral_initializer_var() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 main() {
   var v = {};
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 1),
+    ]);
     expectExpressionType('{}', 'Map<dynamic, dynamic>');
   }
 
@@ -220,6 +230,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
    */
   TypeProvider _typeProvider;
 
+  @override
   TypeProvider get typeProvider => _definingLibrary.typeProvider;
 
   /**
@@ -940,66 +951,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
     _listener.assertNoErrors();
   }
 
-  void test_visitListLiteral_empty() {
-    // []
-    Expression node = AstTestFactory.listLiteral();
-    DartType resultType = _analyze(node);
-    _assertType2(
-        _typeProvider.listType2(_typeProvider.dynamicType), resultType);
-    _listener.assertNoErrors();
-  }
-
-  void test_visitListLiteral_nonEmpty() {
-    // [0]
-    Expression node = AstTestFactory.listLiteral([_resolvedInteger(0)]);
-    DartType resultType = _analyze(node);
-    _assertType2(_typeProvider.listType2(_typeProvider.intType), resultType);
-    _listener.assertNoErrors();
-  }
-
-  void test_visitListLiteral_unresolved() {
-    // [a] // where 'a' is not resolved
-    Identifier identifier = AstTestFactory.identifier3('a');
-    Expression node = AstTestFactory.listLiteral([identifier]);
-    DartType resultType = _analyze(node);
-    _assertType2(
-        _typeProvider.listType2(_typeProvider.dynamicType), resultType);
-    _listener.assertNoErrors();
-  }
-
-  void test_visitListLiteral_unresolved_multiple() {
-    // [0, a, 1] // where 'a' is not resolved
-    Identifier identifier = AstTestFactory.identifier3('a');
-    Expression node = AstTestFactory.listLiteral(
-        [_resolvedInteger(0), identifier, _resolvedInteger(1)]);
-    DartType resultType = _analyze(node);
-    _assertType2(_typeProvider.listType2(_typeProvider.intType), resultType);
-    _listener.assertNoErrors();
-  }
-
-  void test_visitMapLiteral_empty() {
-    // {}
-    Expression node = AstTestFactory.setOrMapLiteral(null, null);
-    DartType resultType = _analyze(node);
-    _assertType2(
-        _typeProvider.mapType2(
-            _typeProvider.dynamicType, _typeProvider.dynamicType),
-        resultType);
-    _listener.assertNoErrors();
-  }
-
-  void test_visitMapLiteral_nonEmpty() {
-    // {"k" : 0}
-    Expression node = AstTestFactory.setOrMapLiteral(
-        null, null, [AstTestFactory.mapLiteralEntry("k", _resolvedInteger(0))]);
-    DartType resultType = _analyze(node);
-    _assertType2(
-        _typeProvider.mapType2(
-            _typeProvider.dynamicType, _typeProvider.intType),
-        resultType);
-    _listener.assertNoErrors();
-  }
-
+  @FailingTest(reason: 'This is an old unit test, port and remove')
   void test_visitMethodInvocation_then() {
     // then()
     Expression node = AstTestFactory.methodInvocation(null, "then");
@@ -1073,62 +1025,6 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
     PrefixedIdentifier node = AstTestFactory.identifier5("a", "b");
     node.identifier.staticElement = variable;
     expect(_analyze(node), same(_typeProvider.boolType));
-    _listener.assertNoErrors();
-  }
-
-  void test_visitPrefixExpression_bang() {
-    // !0
-    PrefixExpression node =
-        AstTestFactory.prefixExpression(TokenType.BANG, _resolvedInteger(0));
-    expect(_analyze(node), same(_typeProvider.boolType));
-    _listener.assertNoErrors();
-  }
-
-  void test_visitPrefixExpression_minus() {
-    // -0
-    PrefixExpression node =
-        AstTestFactory.prefixExpression(TokenType.MINUS, _resolvedInteger(0));
-    MethodElement minusMethod = _typeProvider.numType.getMethod('-');
-    node.staticElement = minusMethod;
-    expect(_analyze(node), _typeProvider.numType);
-    _listener.assertNoErrors();
-  }
-
-  void test_visitPrefixExpression_minusMinus() {
-    // --0
-    PrefixExpression node = AstTestFactory.prefixExpression(
-        TokenType.MINUS_MINUS, _resolvedInteger(0));
-    MethodElement minusMethod = _typeProvider.numType.getMethod('-');
-    node.staticElement = minusMethod;
-    expect(_analyze(node), same(_typeProvider.intType));
-    _listener.assertNoErrors();
-  }
-
-  void test_visitPrefixExpression_not() {
-    // !true
-    Expression node = AstTestFactory.prefixExpression(
-        TokenType.BANG, AstTestFactory.booleanLiteral(true));
-    expect(_analyze(node), same(_typeProvider.boolType));
-    _listener.assertNoErrors();
-  }
-
-  void test_visitPrefixExpression_plusPlus() {
-    // ++0
-    PrefixExpression node = AstTestFactory.prefixExpression(
-        TokenType.PLUS_PLUS, _resolvedInteger(0));
-    MethodElement plusMethod = _typeProvider.numType.getMethod('+');
-    node.staticElement = plusMethod;
-    expect(_analyze(node), same(_typeProvider.intType));
-    _listener.assertNoErrors();
-  }
-
-  void test_visitPrefixExpression_tilde() {
-    // ~0
-    PrefixExpression node =
-        AstTestFactory.prefixExpression(TokenType.TILDE, _resolvedInteger(0));
-    MethodElement tildeMethod = _typeProvider.intType.getMethod('~');
-    node.staticElement = tildeMethod;
-    expect(_analyze(node), _typeProvider.intType);
     _listener.assertNoErrors();
   }
 
@@ -1295,7 +1191,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
 
   void _assertType(
       InterfaceTypeImpl expectedType, InterfaceTypeImpl actualType) {
-    expect(actualType.displayName, expectedType.displayName);
+    expect(actualType.getDisplayString(), expectedType.getDisplayString());
     expect(actualType.element, expectedType.element);
     List<DartType> expectedArguments = expectedType.typeArguments;
     int length = expectedArguments.length;
@@ -1377,7 +1273,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
    */
   FunctionExpression _resolvedFunctionExpression(
       FormalParameterList parameters, FunctionBody body) {
-    List<ParameterElement> parameterElements = List<ParameterElement>();
+    List<ParameterElement> parameterElements = <ParameterElement>[];
     for (FormalParameter parameter in parameters.parameters) {
       var nameNode = parameter.identifier;
       ParameterElementImpl element =

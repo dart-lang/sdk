@@ -17,7 +17,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/util/comment.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol
     show Element, ElementKind;
@@ -63,8 +63,7 @@ class LocalReferenceContributor extends DartCompletionContributor {
           node = node.parent.parent;
         }
 
-        _LocalVisitor visitor = new _LocalVisitor(
-            request, request.offset, optype,
+        _LocalVisitor visitor = _LocalVisitor(request, request.offset, optype,
             suggestLocalFields: suggestLocalFields);
         visitor.visit(node);
         return visitor.suggestions;
@@ -441,7 +440,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
       int relevance = DART_RELEVANCE_DEFAULT}) {
     String completion =
         '${enumDeclaration.name.name}.${constantDeclaration.name.name}';
-    CompletionSuggestion suggestion = new CompletionSuggestion(
+    CompletionSuggestion suggestion = CompletionSuggestion(
         CompletionSuggestionKind.INVOCATION,
         isDeprecated ? DART_RELEVANCE_LOW : relevance,
         completion,
@@ -456,11 +455,9 @@ class _LocalVisitor extends LocalDeclarationVisitor {
         isAbstract: isAbstract,
         isDeprecated: isDeprecated,
         isPrivate: Identifier.isPrivateName(constantDeclaration.name.name));
-    suggestion.element = new protocol.Element(
-        protocol.ElementKind.ENUM_CONSTANT,
-        constantDeclaration.name.name,
-        flags,
-        location: new Location(
+    suggestion.element = protocol.Element(protocol.ElementKind.ENUM_CONSTANT,
+        constantDeclaration.name.name, flags,
+        location: Location(
             request.source.fullName,
             constantDeclaration.name.offset,
             constantDeclaration.name.length,

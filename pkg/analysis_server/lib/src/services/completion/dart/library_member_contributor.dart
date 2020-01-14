@@ -57,7 +57,7 @@ class LibraryMemberContributor extends DartCompletionContributor {
           bool typesOnly = parent is TypeName;
           bool instCreation = typesOnly && isConstructor;
           LibraryElementSuggestionBuilder builder =
-              new LibraryElementSuggestionBuilder(containingLibrary,
+              LibraryElementSuggestionBuilder(containingLibrary,
                   CompletionSuggestionKind.INVOCATION, typesOnly, instCreation);
           for (var element in importElem.namespace.definedNames.values) {
             element.accept(builder);

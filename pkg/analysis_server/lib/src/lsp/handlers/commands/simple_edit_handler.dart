@@ -35,7 +35,7 @@ abstract class SimpleEditCommandHandler
 
     final workspaceEdit = toWorkspaceEdit(
       server.clientCapabilities?.workspace,
-      [new FileEditInformation(docIdentifier, unit.lineInfo, edits)],
+      [FileEditInformation(docIdentifier, unit.lineInfo, edits)],
     );
 
     return sendWorkspaceEditToClient(workspaceEdit);
@@ -46,7 +46,7 @@ abstract class SimpleEditCommandHandler
     // Send the edit to the client via a applyEdit request (this is a request
     // from server -> client and the client will provide a response).
     final editResponse = await server.sendRequest(Method.workspace_applyEdit,
-        new ApplyWorkspaceEditParams(commandName, workspaceEdit));
+        ApplyWorkspaceEditParams(commandName, workspaceEdit));
 
     if (editResponse.error != null) {
       return error(

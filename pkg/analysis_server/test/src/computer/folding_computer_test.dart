@@ -22,6 +22,7 @@ main() {
 class FoldingComputerTest extends AbstractContextTest {
   String sourcePath;
 
+  @override
   setUp() {
     super.setUp();
     sourcePath = convertPath('/home/test/lib/test.dart');
@@ -438,7 +439,7 @@ main() {}
   /// regions extracted from the comments in the provided content.
   void _compareRegions(List<FoldingRegion> regions, String content) {
     // Find all numeric markers for region starts.
-    final regex = new RegExp(r'/\*(\d+):(INC|EXC)\*/');
+    final regex = RegExp(r'/\*(\d+):(INC|EXC)\*/');
     final expectedRegions = regex.allMatches(content);
 
     // Check we didn't get more than expected, since the loop below only
@@ -451,14 +452,13 @@ main() {}
       final i = m.group(1);
       final inclusiveStart = m.group(2) == "INC";
       // Find the end marker.
-      final endMatch =
-          new RegExp('/\\*$i:(INC|EXC):(.+?)\\*/').firstMatch(content);
+      final endMatch = RegExp('/\\*$i:(INC|EXC):(.+?)\\*/').firstMatch(content);
 
       final inclusiveEnd = endMatch.group(1) == "INC";
       final expectedKindString = endMatch.group(2);
       final expectedKind = FoldingKind.VALUES.firstWhere(
           (f) => f.toString() == 'FoldingKind.$expectedKindString',
-          orElse: () => throw new Exception(
+          orElse: () => throw Exception(
               "Annotated test code references $expectedKindString but "
               "this does not exist in FoldingKind"));
 
@@ -466,10 +466,8 @@ main() {}
       final expectedLength =
           (inclusiveEnd ? endMatch.end : endMatch.start) - expectedStart;
 
-      expect(
-          regions,
-          contains(
-              new FoldingRegion(expectedKind, expectedStart, expectedLength)));
+      expect(regions,
+          contains(FoldingRegion(expectedKind, expectedStart, expectedLength)));
     });
   }
 
@@ -477,7 +475,7 @@ main() {}
     newFile(sourcePath, content: sourceContent);
     ResolvedUnitResult result = await session.getResolvedUnit(sourcePath);
     DartUnitFoldingComputer computer =
-        new DartUnitFoldingComputer(result.lineInfo, result.unit);
+        DartUnitFoldingComputer(result.lineInfo, result.unit);
     return computer.compute();
   }
 }

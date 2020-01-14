@@ -1098,13 +1098,13 @@ RawLibrary* KernelLoader::LoadLibrary(intptr_t index) {
   if (register_class) {
     helper_.SetOffset(library_index.SourceReferencesOffset());
     intptr_t count = helper_.ReadUInt();
-    const GrowableObjectArray& owned_scripts =
-        GrowableObjectArray::Handle(library.owned_scripts());
+    const GrowableObjectArray& used_scripts =
+        GrowableObjectArray::Handle(library.used_scripts());
     Script& script = Script::Handle(Z);
     for (intptr_t i = 0; i < count; i++) {
       intptr_t uri_index = helper_.ReadUInt();
       script = ScriptAt(uri_index);
-      owned_scripts.Add(script);
+      used_scripts.Add(script);
     }
   }
   if (!library.Loaded()) library.SetLoaded();

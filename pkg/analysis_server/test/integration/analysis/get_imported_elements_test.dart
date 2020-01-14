@@ -92,6 +92,7 @@ class AnalysisGetImportedElementsIntegrationTest
     expect(result.elements, hasLength(0));
   }
 
+  @override
   setUp() {
     return super.setUp().then((_) {
       pathname = sourcePath('test.dart');
@@ -130,10 +131,9 @@ $selection
       await checkElements(selection, []);
     } else {
       await checkElements(selection, [
-        new ImportedElements(
+        ImportedElements(
             path.join('lib', 'core', 'core.dart'), '', ['String', 'print']),
-        new ImportedElements(
-            path.join('lib', 'math', 'math.dart'), '', ['Random'])
+        ImportedElements(path.join('lib', 'math', 'math.dart'), '', ['Random'])
       ]);
     }
   }

@@ -86,7 +86,7 @@ class ElementReferencesComputer {
     if (element is ClassMemberElement) {
       return getHierarchyMembers(searchEngine, element);
     }
-    return new Future.value([element]);
+    return Future.value([element]);
   }
 
   static SearchResult toResult(SearchMatch match) {

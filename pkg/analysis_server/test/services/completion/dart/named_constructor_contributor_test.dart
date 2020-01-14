@@ -39,7 +39,7 @@ class NamedConstructorContributorTest extends DartCompletionContributorTest {
 
   @override
   DartCompletionContributor createContributor() {
-    return new NamedConstructorContributor();
+    return NamedConstructorContributor();
   }
 
   test_ConstructorName_importedClass() async {

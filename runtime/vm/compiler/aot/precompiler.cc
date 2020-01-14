@@ -166,6 +166,7 @@ Precompiler::Precompiler(Thread* thread)
       libraries_(GrowableObjectArray::Handle(I->object_store()->libraries())),
       pending_functions_(
           GrowableObjectArray::Handle(GrowableObjectArray::New())),
+      pending_static_fields_to_retain_(),
       sent_selectors_(),
       enqueued_functions_(
           HashTables::New<FunctionSet>(/*initial_capacity=*/1024)),
@@ -296,6 +297,27 @@ void Precompiler::DoCompileAll() {
         I->object_store()->set_null_error_stub_without_fpu_regs_stub(stub_code);
 
         stub_code =
+            StubCode::BuildIsolateSpecificNullArgErrorSharedWithFPURegsStub(
+                global_object_pool_builder());
+        I->object_store()->set_null_arg_error_stub_with_fpu_regs_stub(
+            stub_code);
+
+        stub_code =
+            StubCode::BuildIsolateSpecificNullArgErrorSharedWithoutFPURegsStub(
+                global_object_pool_builder());
+        I->object_store()->set_null_arg_error_stub_without_fpu_regs_stub(
+            stub_code);
+
+        stub_code = StubCode::BuildIsolateSpecificAllocateMintWithFPURegsStub(
+            global_object_pool_builder());
+        I->object_store()->set_allocate_mint_with_fpu_regs_stub(stub_code);
+
+        stub_code =
+            StubCode::BuildIsolateSpecificAllocateMintWithoutFPURegsStub(
+                global_object_pool_builder());
+        I->object_store()->set_allocate_mint_without_fpu_regs_stub(stub_code);
+
+        stub_code =
             StubCode::BuildIsolateSpecificStackOverflowSharedWithFPURegsStub(
                 global_object_pool_builder());
         I->object_store()->set_stack_overflow_stub_with_fpu_regs_stub(
@@ -321,6 +343,20 @@ void Precompiler::DoCompileAll() {
       // Start with the allocations and invocations that happen from C++.
       AddRoots();
       AddAnnotatedRoots();
+
+      // With the nnbd experiment enabled, these non-nullable type arguments may
+      // not be retained, although they will be used and expected to be
+      // canonical.
+      AddTypeArguments(
+          TypeArguments::Handle(Z, I->object_store()->type_argument_int()));
+      AddTypeArguments(
+          TypeArguments::Handle(Z, I->object_store()->type_argument_double()));
+      AddTypeArguments(
+          TypeArguments::Handle(Z, I->object_store()->type_argument_string()));
+      AddTypeArguments(TypeArguments::Handle(
+          Z, I->object_store()->type_argument_string_dynamic()));
+      AddTypeArguments(TypeArguments::Handle(
+          Z, I->object_store()->type_argument_string_string()));
 
       // Compile newly found targets and add their callees until we reach a
       // fixed point.
@@ -495,6 +531,13 @@ void Precompiler::AddRoots() {
   }
 }
 
+void Precompiler::AddRetainedStaticField(const Field& field) {
+  if (pending_static_fields_to_retain_.HasKey(&field)) {
+    return;
+  }
+  pending_static_fields_to_retain_.Insert(&Field::ZoneHandle(Z, field.raw()));
+}
+
 void Precompiler::Iterate() {
   Function& function = Function::Handle(Z);
 
@@ -505,6 +548,12 @@ void Precompiler::Iterate() {
       function ^= pending_functions_.RemoveLast();
       ProcessFunction(function);
     }
+
+    FieldSet::Iterator it = pending_static_fields_to_retain_.GetIterator();
+    for (const Field** field = it.Next(); field != nullptr; field = it.Next()) {
+      AddField(**field);
+    }
+    pending_static_fields_to_retain_.Clear();
 
     CheckForNewDynamicFunctions();
     CollectCallbackFields();
@@ -1516,6 +1565,12 @@ void Precompiler::DropFields() {
           if (FLAG_trace_precompiler) {
             THR_Print("Dropping field %s\n", field.ToCString());
           }
+
+          // This cleans up references to field current and initial values.
+          if (field.is_static()) {
+            field.SetStaticValue(Object::null_instance(),
+                                 /*save_initial_value=*/true);
+          }
         }
       }
 
@@ -1759,9 +1814,25 @@ void Precompiler::DropMetadata() {
   Array& dependencies = Array::Handle(Z);
   Namespace& ns = Namespace::Handle(Z);
   const Field& null_field = Field::Handle(Z);
+  GrowableObjectArray& metadata = GrowableObjectArray::Handle(Z);
+  Field& metadata_field = Field::Handle(Z);
 
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
     lib ^= libraries_.At(i);
+    metadata ^= lib.metadata();
+    for (intptr_t j = 0; j < metadata.Length(); j++) {
+      metadata_field ^= metadata.At(j);
+      if (metadata_field.is_static()) {
+        // Although this field will become garbage after clearing the list
+        // below, we also need to clear its value from the field table.
+        // The value may be an instance of an otherwise dead class, and if
+        // it remains in the field table we can get an instance on the heap
+        // with a deleted class.
+        metadata_field.SetStaticValue(Object::null_instance(),
+                                      /*save_initial_value=*/true);
+      }
+    }
+
     lib.set_metadata(null_growable_list);
 
     dependencies = lib.imports();
@@ -2006,8 +2077,7 @@ void Precompiler::BindStaticCalls() {
             CodePatcher::PatchStaticCallAt(pc, code_, target_code_);
           }
         } else {
-          ASSERT(kind == Code::kPcRelativeCall ||
-                 kind == Code::kPcRelativeTailCall);
+          ASSERT(kind == Code::kPcRelativeCall);
           only_call_via_code = false;
         }
       }
@@ -2419,6 +2489,16 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         ASSERT(thread()->IsMutatorThread());
         FinalizeCompilation(&assembler, &graph_compiler, flow_graph,
                             function_stats);
+      }
+
+      for (intptr_t i = 0; i < graph_compiler.used_static_fields().length();
+           i++) {
+        // We can't use precompiler_->AddField() directly here because they
+        // need to be added later as part of Iterate(). If they are added
+        // before that, initializer functions will get their code cleared by
+        // Precompiler::ClearAllCode().
+        precompiler_->AddRetainedStaticField(
+            *graph_compiler.used_static_fields().At(i));
       }
 
       // In bare instructions mode try adding all entries from the object

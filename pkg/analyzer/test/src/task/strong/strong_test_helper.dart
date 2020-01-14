@@ -150,7 +150,7 @@ SourceLocation _locationForOffset(LineInfo lineInfo, Uri uri, int offset) {
 
 /// Returns all libraries transitively imported or exported from [start].
 Set<LibraryElement> _reachableLibraries(LibraryElement start) {
-  Set<LibraryElement> results = Set<LibraryElement>();
+  Set<LibraryElement> results = <LibraryElement>{};
 
   void find(LibraryElement library) {
     if (results.add(library)) {
@@ -273,7 +273,6 @@ class AbstractStrongTest with ResourceProviderMixin {
     expect(mainFile.exists, true, reason: '`/main.dart` is missing');
 
     AnalysisOptionsImpl analysisOptions = AnalysisOptionsImpl();
-    analysisOptions.strongModeHints = true;
     analysisOptions.implicitCasts = implicitCasts;
     analysisOptions.implicitDynamic = implicitDynamic;
     analysisOptions.strictInference = strictInference;
@@ -397,6 +396,7 @@ class _ErrorExpectation {
         e.errorCode.name == typeName;
   }
 
+  @override
   String toString() => '@$offset ${severity.displayName}: [$typeName]';
 
   static _ErrorExpectation parse(int offset, String descriptor) {

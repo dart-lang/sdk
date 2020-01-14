@@ -23,7 +23,7 @@ import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
  */
 Element findChildElement(Element root, String name, [ElementKind kind]) {
   Element result = null;
-  root.accept(new _ElementVisitorFunctionWrapper((Element element) {
+  root.accept(_ElementVisitorFunctionWrapper((Element element) {
     if (element.name != name) {
       return;
     }
@@ -38,7 +38,7 @@ Element findChildElement(Element root, String name, [ElementKind kind]) {
 /**
  * A function to be called for every [Element].
  */
-typedef void _ElementVisitorFunction(Element element);
+typedef _ElementVisitorFunction = void Function(Element element);
 
 class AbstractContextTest with ResourceProviderMixin {
   AnalysisDriver _driver;
@@ -86,7 +86,7 @@ class Required {
 
   /// Create an analysis options file based on the given arguments.
   void createAnalysisOptionsFile({List<String> experiments}) {
-    var buffer = new StringBuffer();
+    var buffer = StringBuffer();
     buffer.writeln('analyzer:');
 
     if (experiments != null) {
@@ -115,7 +115,7 @@ class Required {
   }
 
   void setUp() {
-    new MockSdk(resourceProvider: resourceProvider);
+    MockSdk(resourceProvider: resourceProvider);
 
     newFolder('/home/test');
     newFile('/home/test/.packages', content: r'''

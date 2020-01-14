@@ -284,10 +284,8 @@ class AstTestFactory {
           beginToken: TokenFactory.tokenFromType(TokenType.EOF),
           scriptTag:
               scriptTag == null ? null : AstTestFactory.scriptTag(scriptTag),
-          directives: directives == null ? List<Directive>() : directives,
-          declarations: declarations == null
-              ? List<CompilationUnitMember>()
-              : declarations,
+          directives: directives ?? <Directive>[],
+          declarations: declarations ?? <CompilationUnitMember>[],
           endToken: TokenFactory.tokenFromType(TokenType.EOF),
           featureSet: null);
 
@@ -300,10 +298,8 @@ class AstTestFactory {
           beginToken: TokenFactory.tokenFromType(TokenType.EOF),
           scriptTag:
               scriptTag == null ? null : AstTestFactory.scriptTag(scriptTag),
-          directives: directives == null ? List<Directive>() : directives,
-          declarations: declarations == null
-              ? List<CompilationUnitMember>()
-              : declarations,
+          directives: directives ?? <Directive>[],
+          declarations: declarations ?? <CompilationUnitMember>[],
           endToken: TokenFactory.tokenFromType(TokenType.EOF),
           featureSet: featureSet);
 
@@ -334,7 +330,7 @@ class AstTestFactory {
           initializers == null || initializers.isEmpty
               ? null
               : TokenFactory.tokenFromType(TokenType.PERIOD),
-          initializers == null ? List<ConstructorInitializer>() : initializers,
+          initializers ?? <ConstructorInitializer>[],
           null,
           emptyFunctionBody());
 
@@ -363,7 +359,7 @@ class AstTestFactory {
           initializers == null || initializers.isEmpty
               ? null
               : TokenFactory.tokenFromType(TokenType.PERIOD),
-          initializers == null ? List<ConstructorInitializer>() : initializers,
+          initializers ?? <ConstructorInitializer>[],
           null,
           body);
 
@@ -867,7 +863,7 @@ class AstTestFactory {
           TokenFactory.tokenFromType(TokenType.SEMICOLON));
 
   static LibraryDirective libraryDirective2(String libraryName) =>
-      libraryDirective(List<Annotation>(), libraryIdentifier2([libraryName]));
+      libraryDirective(<Annotation>[], libraryIdentifier2([libraryName]));
 
   static LibraryIdentifier libraryIdentifier(
           List<SimpleIdentifier> components) =>
@@ -1062,10 +1058,10 @@ class AstTestFactory {
           TokenFactory.tokenFromType(TokenType.SEMICOLON));
 
   static PartDirective partDirective2(String url) =>
-      partDirective(List<Annotation>(), url);
+      partDirective(<Annotation>[], url);
 
   static PartOfDirective partOfDirective(LibraryIdentifier libraryName) =>
-      partOfDirective2(List<Annotation>(), libraryName);
+      partOfDirective2(<Annotation>[], libraryName);
 
   static PartOfDirective partOfDirective2(
           List<Annotation> metadata, LibraryIdentifier libraryName) =>
@@ -1199,7 +1195,7 @@ class AstTestFactory {
 
   static SwitchCase switchCase(
           Expression expression, List<Statement> statements) =>
-      switchCase2(List<Label>(), expression, statements);
+      switchCase2(<Label>[], expression, statements);
 
   static SwitchCase switchCase2(List<Label> labels, Expression expression,
           List<Statement> statements) =>
@@ -1215,7 +1211,7 @@ class AstTestFactory {
           statements);
 
   static SwitchDefault switchDefault2(List<Statement> statements) =>
-      switchDefault(List<Label>(), statements);
+      switchDefault(<Label>[], statements);
 
   static SwitchStatement switchStatement(
           Expression expression, List<SwitchMember> members) =>
@@ -1229,7 +1225,7 @@ class AstTestFactory {
           TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET));
 
   static SymbolLiteral symbolLiteral(List<String> components) {
-    List<Token> identifierList = List<Token>();
+    List<Token> identifierList = <Token>[];
     for (String component in components) {
       identifierList.add(
           TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, component));
@@ -1280,7 +1276,7 @@ class AstTestFactory {
           TokenFactory.tokenFromType(TokenType.SEMICOLON));
 
   static TryStatement tryStatement(Block body, Block finallyClause) =>
-      tryStatement3(body, List<CatchClause>(), finallyClause);
+      tryStatement3(body, <CatchClause>[], finallyClause);
 
   static TryStatement tryStatement2(
           Block body, List<CatchClause> catchClauses) =>
@@ -1370,7 +1366,7 @@ class AstTestFactory {
   static TypeParameterList typeParameterList([List<String> typeNames]) {
     List<TypeParameter> typeParameters;
     if (typeNames != null && typeNames.isNotEmpty) {
-      typeParameters = List<TypeParameter>();
+      typeParameters = <TypeParameter>[];
       for (String typeName in typeNames) {
         typeParameters.add(typeParameter(typeName));
       }

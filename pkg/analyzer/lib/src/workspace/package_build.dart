@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
 import 'dart:core';
 
 import 'package:analyzer/file_system/file_system.dart';
@@ -57,11 +56,6 @@ class PackageBuildPackageUriResolver extends UriResolver {
   final UriResolver _normalUriResolver;
   final path.Context _context;
 
-  /**
-   * The cache of absolute [Uri]s to [Source]s mappings.
-   */
-  final Map<Uri, Source> _sourceCache = HashMap<Uri, Source>();
-
   PackageBuildPackageUriResolver(
       PackageBuildWorkspace workspace, this._normalUriResolver)
       : _workspace = workspace,
@@ -70,35 +64,33 @@ class PackageBuildPackageUriResolver extends UriResolver {
   @override
   Source resolveAbsolute(Uri _ignore, [Uri uri]) {
     uri ??= _ignore;
-    return _sourceCache.putIfAbsent(uri, () {
-      if (uri.scheme != 'package') {
-        return null;
-      }
+    if (uri.scheme != 'package') {
+      return null;
+    }
 
-      Source basicResolverSource = _normalUriResolver.resolveAbsolute(uri);
-      if (basicResolverSource != null && basicResolverSource.exists()) {
-        return basicResolverSource;
-      }
-
-      String uriPath = uri.path;
-      int slash = uriPath.indexOf('/');
-
-      // If the path either starts with a slash or has no slash, it is invalid.
-      if (slash < 1) {
-        return null;
-      }
-
-      String packageName = uriPath.substring(0, slash);
-      String fileUriPart = uriPath.substring(slash + 1);
-      String filePath = fileUriPart.replaceAll('/', _context.separator);
-
-      File file = _workspace.builtFile(
-          _workspace.builtPackageSourcePath(filePath), packageName);
-      if (file != null && file.exists) {
-        return file.createSource(uri);
-      }
+    Source basicResolverSource = _normalUriResolver.resolveAbsolute(uri);
+    if (basicResolverSource != null && basicResolverSource.exists()) {
       return basicResolverSource;
-    });
+    }
+
+    String uriPath = uri.path;
+    int slash = uriPath.indexOf('/');
+
+    // If the path either starts with a slash or has no slash, it is invalid.
+    if (slash < 1) {
+      return null;
+    }
+
+    String packageName = uriPath.substring(0, slash);
+    String fileUriPart = uriPath.substring(slash + 1);
+    String filePath = fileUriPart.replaceAll('/', _context.separator);
+
+    File file = _workspace.builtFile(
+        _workspace.builtPackageSourcePath(filePath), packageName);
+    if (file != null && file.exists) {
+      return file.createSource(uri);
+    }
+    return basicResolverSource;
   }
 
   @override
@@ -111,18 +103,20 @@ class PackageBuildPackageUriResolver extends UriResolver {
         return Uri.parse('package:${uriParts[0]}/${uriParts[1]}');
       }
     }
-    return source.uri;
+
+    return _normalUriResolver.restoreAbsolute(source);
   }
 
   List<String> _restoreUriParts(String filePath) {
     String relative = _context.relative(filePath, from: _workspace.root);
     List<String> components = _context.split(relative);
-    if (components.length > 4 &&
-        components[0] == 'build' &&
-        components[1] == 'generated' &&
-        components[3] == 'lib') {
-      String packageName = components[2];
-      String pathInLib = components.skip(4).join('/');
+    if (components.length > 5 &&
+        components[0] == '.dart_tool' &&
+        components[1] == 'build' &&
+        components[2] == 'generated' &&
+        components[4] == 'lib') {
+      String packageName = components[3];
+      String pathInLib = components.skip(5).join('/');
       return [packageName, pathInLib];
     }
     return null;
@@ -162,6 +156,7 @@ class PackageBuildWorkspace extends Workspace {
    * The absolute workspace root path (the directory containing the `.dart_tool`
    * directory).
    */
+  @override
   final String root;
 
   /**
@@ -255,7 +250,7 @@ class PackageBuildWorkspace extends Workspace {
     }
     resolvers.add(packageUriResolver);
     resolvers.add(PackageBuildFileUriResolver(this));
-    return SourceFactory(resolvers, packages, provider);
+    return SourceFactory(resolvers);
   }
 
   /**
@@ -322,7 +317,7 @@ class PackageBuildWorkspace extends Workspace {
           final yaml = loadYaml(pubspec.readAsStringSync());
           return PackageBuildWorkspace._(
               provider, folder.path, yaml['name'], builder);
-        } on Exception {}
+        } catch (_) {}
       }
 
       // Go up the folder.
@@ -339,8 +334,10 @@ class PackageBuildWorkspace extends Workspace {
  * a given package in a PackageBuildWorkspace.
  */
 class PackageBuildWorkspacePackage extends WorkspacePackage {
+  @override
   final String root;
 
+  @override
   final PackageBuildWorkspace workspace;
 
   PackageBuildWorkspacePackage(this.root, this.workspace);

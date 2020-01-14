@@ -15,6 +15,7 @@ import 'abstract_refactoring.dart';
  * The base class for all [RenameRefactoring] tests.
  */
 class RenameRefactoringTest extends RefactoringTest {
+  @override
   RenameRefactoring refactoring;
 
   /**
@@ -22,7 +23,7 @@ class RenameRefactoringTest extends RefactoringTest {
    * of the given [searches].
    */
   void assertPotentialEdits(List<String> searches) {
-    Set<int> expectedOffsets = new Set<int>();
+    Set<int> expectedOffsets = Set<int>();
     for (String search in searches) {
       int offset = findOffset(search);
       expectedOffsets.add(offset);
@@ -55,8 +56,8 @@ class RenameRefactoringTest extends RefactoringTest {
    * Fails if no [RenameRefactoring] can be created.
    */
   void createRenameRefactoringForElement(Element element) {
-    var workspace = new RefactoringWorkspace([driver], searchEngine);
-    refactoring = new RenameRefactoring(workspace, testAnalysisResult, element);
+    var workspace = RefactoringWorkspace([driver], searchEngine);
+    refactoring = RenameRefactoring(workspace, testAnalysisResult, element);
     expect(refactoring, isNotNull, reason: "No refactoring for '$element'.");
   }
 

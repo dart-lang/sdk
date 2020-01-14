@@ -237,7 +237,7 @@ class _Random implements Random {
     do {
       _nextState();
       rnd32 = _lo;
-      result = rnd32.remainder(max); // % max;
+      result = rnd32.remainder(max).toInt(); // % max;
     } while ((rnd32 - result + max) >= _POW2_32);
     return result;
   }
@@ -324,7 +324,7 @@ class _JSSecureRandom implements Random {
     }
     _buffer.setUint32(0, 0);
     int start = 4 - byteCount;
-    int randomLimit = pow(256, byteCount);
+    int randomLimit = pow(256, byteCount).toInt();
     while (true) {
       _getRandomBytes(start, byteCount);
       // The getUint32 method is big-endian as default.
@@ -333,7 +333,7 @@ class _JSSecureRandom implements Random {
         // Max is power of 2.
         return random & (max - 1);
       }
-      int result = random.remainder(max);
+      int result = random.remainder(max).toInt();
       // Ensure results have equal probability by rejecting values in the
       // last range of k*max .. 256**byteCount.
       // TODO: Consider picking a higher byte count if the last range is a

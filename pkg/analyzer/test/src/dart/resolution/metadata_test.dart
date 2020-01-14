@@ -70,17 +70,16 @@ import 'a.dart';
 class B {}
 ''');
 
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 import 'b.dart';
 
 B b;
 ''');
-    assertNoTestErrors();
 
     var classB = findNode.typeName('B b;').name.staticElement;
     var annotation = classB.metadata.single;
     var value = annotation.computeConstantValue();
-    assertElementTypeString(value.type, 'A');
+    assertType(value.type, 'A');
     expect(value.getField('f').toIntValue(), 42);
   }
 
@@ -99,17 +98,16 @@ import 'a.dart';
 class B {}
 ''');
 
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 import 'b.dart';
 
 B b;
 ''');
-    assertNoTestErrors();
 
     var classB = findNode.typeName('B b;').name.staticElement;
     var annotation = classB.metadata.single;
     var value = annotation.computeConstantValue();
-    assertElementTypeString(value.type, 'A');
+    assertType(value.type, 'A');
     expect(value.getField('f').toIntValue(), 42);
   }
 
@@ -129,17 +127,16 @@ class B {
 class C {}
 ''');
 
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 import 'a.dart';
 
 C c;
 ''');
-    assertNoTestErrors();
 
     var classC = findNode.typeName('C c;').name.staticElement;
     var annotation = classC.metadata.single;
     var value = annotation.computeConstantValue();
-    assertElementTypeString(value.type, 'B');
+    assertType(value.type, 'B');
     expect(value.getField('a').getField('f').toIntValue(), 42);
   }
 
@@ -156,7 +153,7 @@ class B {}
 ''');
     var annotation = findElement.class_('B').metadata.single;
     var value = annotation.computeConstantValue();
-    assertElementTypeString(value.type, 'A<int>');
+    assertType(value.type, 'A<int>');
     expect(value.getField('f').toIntValue(), 42);
   }
 

@@ -22,7 +22,7 @@ namespace dart {
   V(Object_toString, 1)                                                        \
   V(Object_runtimeType, 1)                                                     \
   V(Object_haveSameRuntimeType, 2)                                             \
-  V(Object_instanceOf, 4)                                                      \
+  V(Object_instanceOf, 5)                                                      \
   V(Object_simpleInstanceOf, 2)                                                \
   V(Function_apply, 2)                                                         \
   V(Closure_equals, 2)                                                         \
@@ -30,6 +30,7 @@ namespace dart {
   V(Closure_clone, 1)                                                          \
   V(AbstractType_toString, 1)                                                  \
   V(Type_getHashCode, 1)                                                       \
+  V(Type_equality, 2)                                                          \
   V(Identical_comparison, 2)                                                   \
   V(Integer_bitAndFromInteger, 2)                                              \
   V(Integer_bitOrFromInteger, 2)                                               \
@@ -167,12 +168,10 @@ namespace dart {
   V(Stopwatch_frequency, 0)                                                    \
   V(Timeline_getNextAsyncId, 0)                                                \
   V(Timeline_getTraceClock, 0)                                                 \
-  V(Timeline_getThreadCpuClock, 0)                                             \
   V(Timeline_isDartStreamEnabled, 0)                                           \
-  V(Timeline_reportCompleteEvent, 5)                                           \
-  V(Timeline_reportFlowEvent, 7)                                               \
-  V(Timeline_reportInstantEvent, 4)                                            \
-  V(Timeline_reportTaskEvent, 6)                                               \
+  V(Timeline_reportFlowEvent, 5)                                               \
+  V(Timeline_reportInstantEvent, 3)                                            \
+  V(Timeline_reportTaskEvent, 5)                                               \
   V(TypedData_Int8Array_new, 2)                                                \
   V(TypedData_Uint8Array_new, 2)                                               \
   V(TypedData_Uint8ClampedArray_new, 2)                                        \
@@ -233,8 +232,8 @@ namespace dart {
   V(TypedDataView_length, 1)                                                   \
   V(TypedDataView_offsetInBytes, 1)                                            \
   V(TypedDataView_typedData, 1)                                                \
-  V(Float32x4_fromDoubles, 5)                                                  \
-  V(Float32x4_splat, 2)                                                        \
+  V(Float32x4_fromDoubles, 4)                                                  \
+  V(Float32x4_splat, 1)                                                        \
   V(Float32x4_fromInt32x4Bits, 2)                                              \
   V(Float32x4_fromFloat64x2, 2)                                                \
   V(Float32x4_zero, 1)                                                         \
@@ -268,8 +267,8 @@ namespace dart {
   V(Float32x4_sqrt, 1)                                                         \
   V(Float32x4_reciprocal, 1)                                                   \
   V(Float32x4_reciprocalSqrt, 1)                                               \
-  V(Float64x2_fromDoubles, 3)                                                  \
-  V(Float64x2_splat, 2)                                                        \
+  V(Float64x2_fromDoubles, 2)                                                  \
+  V(Float64x2_splat, 1)                                                        \
   V(Float64x2_zero, 1)                                                         \
   V(Float64x2_fromFloat32x4, 2)                                                \
   V(Float64x2_add, 2)                                                          \
@@ -288,8 +287,8 @@ namespace dart {
   V(Float64x2_min, 2)                                                          \
   V(Float64x2_max, 2)                                                          \
   V(Float64x2_sqrt, 1)                                                         \
-  V(Int32x4_fromInts, 5)                                                       \
-  V(Int32x4_fromBools, 5)                                                      \
+  V(Int32x4_fromInts, 4)                                                       \
+  V(Int32x4_fromBools, 4)                                                      \
   V(Int32x4_fromFloat32x4Bits, 2)                                              \
   V(Int32x4_or, 2)                                                             \
   V(Int32x4_and, 2)                                                            \

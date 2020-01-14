@@ -191,9 +191,12 @@ class NativeCodeOracle {
 
   /// Simulate the execution of a native method by adding its entry points
   /// using [entryPointsListener]. Returns result type of the native method.
-  Type handleNativeProcedure(Member member,
-      EntryPointsListener entryPointsListener, TypesBuilder typesBuilder) {
-    Type returnType = null;
+  TypeExpr handleNativeProcedure(
+      Member member,
+      EntryPointsListener entryPointsListener,
+      TypesBuilder typesBuilder,
+      RuntimeTypeTranslator translator) {
+    TypeExpr returnType = null;
     bool nullable = null;
 
     for (var annotation in member.annotations) {
@@ -214,6 +217,13 @@ class NativeCodeOracle {
         var type = pragma.type;
         if (type is InterfaceType) {
           returnType = entryPointsListener.addAllocatedClass(type.classNode);
+          if (pragma.resultTypeUsesPassedTypeArguments) {
+            returnType = translator.instantiateConcreteType(
+                returnType,
+                member.function.typeParameters
+                    .map((t) => TypeParameterType(t, Nullability.legacy))
+                    .toList());
+          }
           continue;
         }
         throw "ERROR: Invalid return type for native method: ${pragma.type}";

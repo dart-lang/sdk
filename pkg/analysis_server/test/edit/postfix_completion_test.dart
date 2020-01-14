@@ -26,7 +26,7 @@ class PostfixCompletionTest extends AbstractAnalysisTest {
   void setUp() {
     super.setUp();
     createProject();
-    handler = new EditDomainHandler(server);
+    handler = EditDomainHandler(server);
   }
 
   test_for() async {
@@ -47,8 +47,8 @@ main() {
   }
 
   test_invalidFilePathFormat_notAbsolute() async {
-    var request = new EditGetPostfixCompletionParams('test.dart', '.for', 0)
-        .toRequest('0');
+    var request =
+        EditGetPostfixCompletionParams('test.dart', '.for', 0).toRequest('0');
     var response = await waitResponse(request);
     expect(
       response,
@@ -57,7 +57,7 @@ main() {
   }
 
   test_invalidFilePathFormat_notNormalized() async {
-    var request = new EditGetPostfixCompletionParams(
+    var request = EditGetPostfixCompletionParams(
             convertPath('/foo/../bar/test.dart'), '.for', 0)
         .toRequest('0');
     var response = await waitResponse(request);
@@ -97,19 +97,19 @@ main() {
   }
 
   _prepareCompletionAt(int offset, String key) async {
-    var params = new EditGetPostfixCompletionParams(testFile, key, offset);
+    var params = EditGetPostfixCompletionParams(testFile, key, offset);
     var request =
-        new Request('0', "edit.isPostfixCompletionApplicable", params.toJson());
+        Request('0', "edit.isPostfixCompletionApplicable", params.toJson());
     Response response = await waitResponse(request, throwOnError: false);
     var isApplicable =
-        new EditIsPostfixCompletionApplicableResult.fromResponse(response);
+        EditIsPostfixCompletionApplicableResult.fromResponse(response);
     if (!isApplicable.value) {
       fail("Postfix completion not applicable at given location");
     }
-    request = new EditGetPostfixCompletionParams(testFile, key, offset)
-        .toRequest('1');
+    request =
+        EditGetPostfixCompletionParams(testFile, key, offset).toRequest('1');
     response = await waitResponse(request, throwOnError: false);
-    var result = new EditGetPostfixCompletionResult.fromResponse(response);
+    var result = EditGetPostfixCompletionResult.fromResponse(response);
     change = result.change;
   }
 }

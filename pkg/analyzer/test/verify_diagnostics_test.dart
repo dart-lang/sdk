@@ -37,6 +37,9 @@ class DocumentationValidator {
   /// ony include docs that cannot be verified because of missing support in the
   /// verifier.
   static const List<String> unverifiedDocs = [
+    // Need a way to make auxiliary files that (a) are not included in the
+    // generated docs or (b) can be made persistent for fixes.
+    'CompileTimeErrorCode.PART_OF_NON_PART',
     // The code has been replaced but is not yet removed.
     'HintCode.DEPRECATED_MEMBER_USE',
     // Needs two expected errors.

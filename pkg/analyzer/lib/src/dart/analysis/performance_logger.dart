@@ -26,7 +26,7 @@ class PerformanceLog {
   /// Each invocation of [run] creates a new enclosed section in the log,
   /// which begins with printing [msg], then any log output produced during
   /// [f] invocation, and ends with printing [msg] with the elapsed time.
-  T run<T>(String msg, T f()) {
+  T run<T>(String msg, T Function() f) {
     Stopwatch timer = Stopwatch()..start();
     try {
       writeln('+++ $msg.');
@@ -44,7 +44,7 @@ class PerformanceLog {
   /// Each invocation of [run] creates a new enclosed section in the log,
   /// which begins with printing [msg], then any log output produced during
   /// [f] invocation, and ends with printing [msg] with the elapsed time.
-  Future<T> runAsync<T>(String msg, Future<T> f()) async {
+  Future<T> runAsync<T>(String msg, Future<T> Function() f) async {
     Stopwatch timer = Stopwatch()..start();
     try {
       writeln('+++ $msg.');

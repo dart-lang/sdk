@@ -49,7 +49,7 @@ BUILDERS=$(jq '.builder_configurations|
                 map(select(.steps|
                            any(.arguments|
                                select(.!=null)|
-                               any(.=="co19"))))|
+                               any(test("co19($|(/.*))")))))|
                 map(.builders)|
                 flatten|
                 sort' \

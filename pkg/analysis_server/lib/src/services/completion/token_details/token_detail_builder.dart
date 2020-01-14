@@ -69,7 +69,7 @@ class TokenDetailBuilder {
 
   /// Create the details for a single [token], using the given list of [kinds].
   void _createDetails(Token token, String type, List<String> kinds) {
-    details.add(new TokenDetails(token.lexeme, token.offset,
+    details.add(TokenDetails(token.lexeme, token.offset,
         type: type, validElementKinds: kinds));
   }
 
@@ -90,7 +90,7 @@ class TokenDetailBuilder {
 
   /// Return a unique identifier for the [type].
   String _typeStr(DartType type) {
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     _writeType(buffer, type);
     return buffer.toString();
   }
@@ -116,7 +116,7 @@ class TokenDetailBuilder {
     } else if (type is InterfaceType) {
       Element element = type.element;
       if (element == null || element.isSynthetic) {
-        buffer.write(type.displayName);
+        buffer.write(type.getDisplayString(withNullability: false));
       } else {
 //        String uri = element.library.source.uri.toString();
         String name = element.name;
@@ -134,7 +134,7 @@ class TokenDetailBuilder {
       }
     } else {
       // Handle `void` and `dynamic`.
-      buffer.write(type.displayName);
+      buffer.write(type.getDisplayString(withNullability: false));
     }
   }
 }

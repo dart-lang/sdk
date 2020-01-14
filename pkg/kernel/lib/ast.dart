@@ -78,6 +78,7 @@ import 'text/ast_to_text.dart';
 import 'core_types.dart';
 import 'type_algebra.dart';
 import 'type_environment.dart';
+import 'src/assumptions.dart';
 
 /// Any type of node in the IR.
 abstract class Node {
@@ -2198,7 +2199,9 @@ class Procedure extends Member {
   }
 
   DartType get getterType {
-    return isGetter ? function.returnType : function.functionType;
+    return isGetter
+        ? function.returnType
+        : function.computeFunctionType(enclosingLibrary.nonNullable);
   }
 
   DartType get setterType {
@@ -2504,7 +2507,7 @@ class FunctionNode extends TreeNode {
   /// is useful in some contexts, especially when reasoning about the function
   /// type of the enclosing generic function and in combination with
   /// [FunctionType.withoutTypeParameters].
-  FunctionType get thisFunctionType {
+  FunctionType computeThisFunctionType(Nullability nullability) {
     TreeNode parent = this.parent;
     List<NamedType> named =
         namedParameters.map(_getNamedTypeOfVariable).toList(growable: false);
@@ -2517,7 +2520,7 @@ class FunctionNode extends TreeNode {
     return new FunctionType(
         positionalParameters.map(_getTypeOfVariable).toList(growable: false),
         returnType,
-        Nullability.legacy,
+        nullability,
         namedParameters: named,
         typeParameters: typeParametersCopy,
         requiredParameterCount: requiredParameterCount);
@@ -2531,11 +2534,11 @@ class FunctionNode extends TreeNode {
   /// parameters constructed after those of the class.  In both cases, if the
   /// resulting function type is generic, a fresh set of type parameters is used
   /// in it.
-  FunctionType get functionType {
+  FunctionType computeFunctionType(Nullability nullability) {
     return typeParameters.isEmpty
-        ? thisFunctionType
+        ? computeThisFunctionType(nullability)
         : getFreshTypeParameters(typeParameters)
-            .applyToFunctionType(thisFunctionType);
+            .applyToFunctionType(computeThisFunctionType(nullability));
   }
 
   R accept<R>(TreeVisitor<R> v) => v.visitFunctionNode(this);
@@ -3734,8 +3737,7 @@ class ListConcatenation extends Expression {
   }
 
   DartType getStaticType(StaticTypeContext context) {
-    return context.typeEnvironment
-        .literalListType(typeArgument, context.nonNullable);
+    return context.typeEnvironment.listType(typeArgument, context.nonNullable);
   }
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitListConcatenation(this);
@@ -3772,8 +3774,7 @@ class SetConcatenation extends Expression {
   }
 
   DartType getStaticType(StaticTypeContext context) {
-    return context.typeEnvironment
-        .literalSetType(typeArgument, context.nonNullable);
+    return context.typeEnvironment.setType(typeArgument, context.nonNullable);
   }
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitSetConcatenation(this);
@@ -3814,7 +3815,7 @@ class MapConcatenation extends Expression {
 
   DartType getStaticType(StaticTypeContext context) {
     return context.typeEnvironment
-        .literalMapType(keyType, valueType, context.nonNullable);
+        .mapType(keyType, valueType, context.nonNullable);
   }
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitMapConcatenation(this);
@@ -4014,9 +4015,12 @@ class NullCheck extends Expression {
     operand?.parent = this;
   }
 
-  DartType getStaticType(StaticTypeContext context) =>
-      // TODO(johnniwinther): Return `NonNull(operand.getStaticType(context))`.
-      operand.getStaticType(context);
+  DartType getStaticType(StaticTypeContext context) {
+    DartType operandType = operand.getStaticType(context);
+    return operandType == context.typeEnvironment.nullType
+        ? const NeverType(Nullability.nonNullable)
+        : operandType.withNullability(Nullability.nonNullable);
+  }
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitNullCheck(this);
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
@@ -4158,7 +4162,10 @@ class ThisExpression extends Expression {
 }
 
 class Rethrow extends Expression {
-  DartType getStaticType(StaticTypeContext context) => const BottomType();
+  DartType getStaticType(StaticTypeContext context) =>
+      context.isNonNullableByDefault
+          ? const NeverType(Nullability.nonNullable)
+          : const BottomType();
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitRethrow(this);
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
@@ -4175,7 +4182,10 @@ class Throw extends Expression {
     expression?.parent = this;
   }
 
-  DartType getStaticType(StaticTypeContext context) => const BottomType();
+  DartType getStaticType(StaticTypeContext context) =>
+      context.isNonNullableByDefault
+          ? const NeverType(Nullability.nonNullable)
+          : const BottomType();
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitThrow(this);
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) => v.visitThrow(this, arg);
@@ -4204,8 +4214,7 @@ class ListLiteral extends Expression {
   }
 
   DartType getStaticType(StaticTypeContext context) {
-    return context.typeEnvironment
-        .literalListType(typeArgument, context.nonNullable);
+    return context.typeEnvironment.listType(typeArgument, context.nonNullable);
   }
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitListLiteral(this);
@@ -4235,8 +4244,7 @@ class SetLiteral extends Expression {
   }
 
   DartType getStaticType(StaticTypeContext context) {
-    return context.typeEnvironment
-        .literalSetType(typeArgument, context.nonNullable);
+    return context.typeEnvironment.setType(typeArgument, context.nonNullable);
   }
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitSetLiteral(this);
@@ -4271,7 +4279,7 @@ class MapLiteral extends Expression {
 
   DartType getStaticType(StaticTypeContext context) {
     return context.typeEnvironment
-        .literalMapType(keyType, valueType, context.nonNullable);
+        .mapType(keyType, valueType, context.nonNullable);
   }
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitMapLiteral(this);
@@ -4362,7 +4370,9 @@ class FunctionExpression extends Expression implements LocalFunction {
     function?.parent = this;
   }
 
-  DartType getStaticType(StaticTypeContext context) => function.functionType;
+  DartType getStaticType(StaticTypeContext context) {
+    return function.computeFunctionType(context.nonNullable);
+  }
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitFunctionExpression(this);
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
@@ -5531,9 +5541,12 @@ enum Nullability {
 abstract class DartType extends Node {
   const DartType();
 
+  @override
   R accept<R>(DartTypeVisitor<R> v);
+
   R accept1<R, A>(DartTypeVisitor1<R, A> v, A arg);
 
+  @override
   bool operator ==(Object other);
 
   Nullability get nullability;
@@ -5571,6 +5584,8 @@ abstract class DartType extends Node {
     return nullability == Nullability.nonNullable ||
         nullability == Nullability.undetermined;
   }
+
+  bool equals(Object other, Assumptions assumptions);
 }
 
 /// The type arising from invalid type annotations.
@@ -5578,99 +5593,159 @@ abstract class DartType extends Node {
 /// Can usually be treated as 'dynamic', but should occasionally be handled
 /// differently, e.g. `x is ERROR` should evaluate to false.
 class InvalidType extends DartType {
+  @override
   final int hashCode = 12345;
 
   const InvalidType();
 
+  @override
   R accept<R>(DartTypeVisitor<R> v) => v.visitInvalidType(this);
+
+  @override
   R accept1<R, A>(DartTypeVisitor1<R, A> v, A arg) =>
       v.visitInvalidType(this, arg);
-  visitChildren(Visitor v) {}
 
-  bool operator ==(Object other) => other is InvalidType;
+  @override
+  void visitChildren(Visitor v) {}
 
+  @override
+  bool operator ==(Object other) => equals(other, null);
+
+  @override
+  bool equals(Object other, Assumptions assumptions) => other is InvalidType;
+
+  @override
   Nullability get nullability => throw "InvalidType doesn't have nullability";
 
+  @override
   InvalidType withNullability(Nullability nullability) => this;
 }
 
 class DynamicType extends DartType {
+  @override
   final int hashCode = 54321;
 
   const DynamicType();
 
+  @override
   R accept<R>(DartTypeVisitor<R> v) => v.visitDynamicType(this);
+
+  @override
   R accept1<R, A>(DartTypeVisitor1<R, A> v, A arg) =>
       v.visitDynamicType(this, arg);
-  visitChildren(Visitor v) {}
 
-  bool operator ==(Object other) => other is DynamicType;
+  @override
+  void visitChildren(Visitor v) {}
 
+  @override
+  bool operator ==(Object other) => equals(other, null);
+
+  @override
+  bool equals(Object other, Assumptions assumptions) => other is DynamicType;
+
+  @override
   Nullability get nullability => Nullability.nullable;
 
+  @override
   DynamicType withNullability(Nullability nullability) => this;
 }
 
 class VoidType extends DartType {
+  @override
   final int hashCode = 123121;
 
   const VoidType();
 
+  @override
   R accept<R>(DartTypeVisitor<R> v) => v.visitVoidType(this);
+
+  @override
   R accept1<R, A>(DartTypeVisitor1<R, A> v, A arg) =>
       v.visitVoidType(this, arg);
-  visitChildren(Visitor v) {}
 
-  bool operator ==(Object other) => other is VoidType;
+  @override
+  void visitChildren(Visitor v) {}
 
+  @override
+  bool operator ==(Object other) => equals(other, null);
+
+  @override
+  bool equals(Object other, Assumptions assumptions) => other is VoidType;
+
+  @override
   Nullability get nullability => Nullability.nullable;
 
+  @override
   VoidType withNullability(Nullability nullability) => this;
 }
 
 class NeverType extends DartType {
+  @override
   final Nullability nullability;
 
   const NeverType(this.nullability);
 
+  @override
   int get hashCode {
     return 485786 ^ ((0x33333333 >> nullability.index) ^ 0x33333333);
   }
 
+  @override
   R accept<R>(DartTypeVisitor<R> v) => v.visitNeverType(this);
+
+  @override
   R accept1<R, A>(DartTypeVisitor1<R, A> v, A arg) =>
       v.visitNeverType(this, arg);
-  visitChildren(Visitor v) {}
 
-  bool operator ==(Object other) {
-    return other is NeverType && nullability == other.nullability;
-  }
+  @override
+  void visitChildren(Visitor v) {}
 
+  @override
+  bool operator ==(Object other) => equals(other, null);
+
+  @override
+  bool equals(Object other, Assumptions assumptions) =>
+      other is NeverType && nullability == other.nullability;
+
+  @override
   NeverType withNullability(Nullability nullability) {
     return this.nullability == nullability ? this : new NeverType(nullability);
   }
 }
 
 class BottomType extends DartType {
+  @override
   final int hashCode = 514213;
 
   const BottomType();
 
+  @override
   R accept<R>(DartTypeVisitor<R> v) => v.visitBottomType(this);
+
+  @override
   R accept1<R, A>(DartTypeVisitor1<R, A> v, A arg) =>
       v.visitBottomType(this, arg);
-  visitChildren(Visitor v) {}
 
-  bool operator ==(Object other) => other is BottomType;
+  @override
+  void visitChildren(Visitor v) {}
 
+  @override
+  bool operator ==(Object other) => equals(other, null);
+
+  @override
+  bool equals(Object other, Assumptions assumptions) => other is BottomType;
+
+  @override
   Nullability get nullability => Nullability.nonNullable;
 
+  @override
   BottomType withNullability(Nullability nullability) => this;
 }
 
 class InterfaceType extends DartType {
   Reference className;
 
+  @override
   final Nullability nullability;
 
   final List<DartType> typeArguments;
@@ -5683,7 +5758,8 @@ class InterfaceType extends DartType {
             typeArguments ?? _defaultTypeArguments(classNode));
 
   InterfaceType.byReference(
-      this.className, this.nullability, this.typeArguments);
+      this.className, this.nullability, this.typeArguments)
+      : assert(nullability != null);
 
   Class get classNode => className.asClass;
 
@@ -5697,23 +5773,33 @@ class InterfaceType extends DartType {
     }
   }
 
+  @override
   R accept<R>(DartTypeVisitor<R> v) => v.visitInterfaceType(this);
+
+  @override
   R accept1<R, A>(DartTypeVisitor1<R, A> v, A arg) =>
       v.visitInterfaceType(this, arg);
 
-  visitChildren(Visitor v) {
+  @override
+  void visitChildren(Visitor v) {
     classNode.acceptReference(v);
     visitList(typeArguments, v);
   }
 
-  bool operator ==(Object other) {
+  @override
+  bool operator ==(Object other) => equals(other, null);
+
+  @override
+  bool equals(Object other, Assumptions assumptions) {
     if (identical(this, other)) return true;
     if (other is InterfaceType) {
       if (nullability != other.nullability) return false;
       if (className != other.className) return false;
       if (typeArguments.length != other.typeArguments.length) return false;
       for (int i = 0; i < typeArguments.length; ++i) {
-        if (typeArguments[i] != other.typeArguments[i]) return false;
+        if (!typeArguments[i].equals(other.typeArguments[i], assumptions)) {
+          return false;
+        }
       }
       return true;
     } else {
@@ -5721,6 +5807,7 @@ class InterfaceType extends DartType {
     }
   }
 
+  @override
   int get hashCode {
     int hash = 0x3fffffff & className.hashCode;
     for (int i = 0; i < typeArguments.length; ++i) {
@@ -5731,6 +5818,7 @@ class InterfaceType extends DartType {
     return hash;
   }
 
+  @override
   InterfaceType withNullability(Nullability nullability) {
     return nullability == this.nullability
         ? this
@@ -5766,11 +5854,15 @@ class FunctionType extends DartType {
 
   Typedef get typedef => typedefReference?.asTypedef;
 
+  @override
   R accept<R>(DartTypeVisitor<R> v) => v.visitFunctionType(this);
+
+  @override
   R accept1<R, A>(DartTypeVisitor1<R, A> v, A arg) =>
       v.visitFunctionType(this, arg);
 
-  visitChildren(Visitor v) {
+  @override
+  void visitChildren(Visitor v) {
     visitList(typeParameters, v);
     visitList(positionalParameters, v);
     visitList(namedParameters, v);
@@ -5778,9 +5870,14 @@ class FunctionType extends DartType {
     returnType.accept(v);
   }
 
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    if (other is FunctionType) {
+  @override
+  bool operator ==(Object other) => equals(other, null);
+
+  @override
+  bool equals(Object other, Assumptions assumptions) {
+    if (identical(this, other)) {
+      return true;
+    } else if (other is FunctionType) {
       if (nullability != other.nullability) return false;
       if (typeParameters.length != other.typeParameters.length ||
           requiredParameterCount != other.requiredParameterCount ||
@@ -5788,24 +5885,43 @@ class FunctionType extends DartType {
           namedParameters.length != other.namedParameters.length) {
         return false;
       }
-      if (typeParameters.isEmpty) {
-        for (int i = 0; i < positionalParameters.length; ++i) {
-          if (positionalParameters[i] != other.positionalParameters[i]) {
+      if (typeParameters.isNotEmpty) {
+        assumptions ??= new Assumptions();
+        for (int index = 0; index < typeParameters.length; index++) {
+          assumptions.assume(
+              typeParameters[index], other.typeParameters[index]);
+        }
+        for (int index = 0; index < typeParameters.length; index++) {
+          if (!typeParameters[index]
+              .bound
+              .equals(other.typeParameters[index].bound, assumptions)) {
             return false;
           }
         }
-        for (int i = 0; i < namedParameters.length; ++i) {
-          if (namedParameters[i] != other.namedParameters[i]) {
-            return false;
-          }
-        }
-        return returnType == other.returnType;
-      } else {
-        // Structural equality does not tell us if two generic function types
-        // are the same type.  If they are unifiable without substituting any
-        // type variables, they are equal.
-        return unifyTypes(this, other, new Set<TypeParameter>()) != null;
       }
+      if (!returnType.equals(other.returnType, assumptions)) {
+        return false;
+      }
+
+      for (int index = 0; index < positionalParameters.length; index++) {
+        if (!positionalParameters[index]
+            .equals(other.positionalParameters[index], assumptions)) {
+          return false;
+        }
+      }
+      for (int index = 0; index < namedParameters.length; index++) {
+        if (!namedParameters[index]
+            .equals(other.namedParameters[index], assumptions)) {
+          return false;
+        }
+      }
+      if (typeParameters.isNotEmpty) {
+        for (int index = 0; index < typeParameters.length; index++) {
+          assumptions.forget(
+              typeParameters[index], other.typeParameters[index]);
+        }
+      }
+      return true;
     } else {
       return false;
     }
@@ -5845,6 +5961,7 @@ class FunctionType extends DartType {
     return null;
   }
 
+  @override
   int get hashCode => _hashCode ??= _computeHashCode();
 
   int _computeHashCode() {
@@ -5865,6 +5982,7 @@ class FunctionType extends DartType {
     return hash;
   }
 
+  @override
   FunctionType withNullability(Nullability nullability) {
     if (nullability == this.nullability) return this;
     FunctionType result = FunctionType(
@@ -5896,15 +6014,20 @@ class TypedefType extends DartType {
 
   Typedef get typedefNode => typedefReference.asTypedef;
 
+  @override
   R accept<R>(DartTypeVisitor<R> v) => v.visitTypedefType(this);
+
+  @override
   R accept1<R, A>(DartTypeVisitor1<R, A> v, A arg) =>
       v.visitTypedefType(this, arg);
 
-  visitChildren(Visitor v) {
+  @override
+  void visitChildren(Visitor v) {
     visitList(typeArguments, v);
     v.visitTypedefReference(typedefNode);
   }
 
+  @override
   DartType get unaliasOnce {
     DartType result =
         Substitution.fromTypedefType(this).substituteType(typedefNode.type);
@@ -5912,26 +6035,36 @@ class TypedefType extends DartType {
         combineNullabilitiesForSubstitution(result.nullability, nullability));
   }
 
+  @override
   DartType get unalias {
     return unaliasOnce.unalias;
   }
 
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    if (other is TypedefType) {
+  @override
+  bool operator ==(Object other) => equals(other, null);
+
+  @override
+  bool equals(Object other, Assumptions assumptions) {
+    if (identical(this, other)) {
+      return true;
+    } else if (other is TypedefType) {
       if (nullability != other.nullability) return false;
       if (typedefReference != other.typedefReference ||
           typeArguments.length != other.typeArguments.length) {
         return false;
       }
       for (int i = 0; i < typeArguments.length; ++i) {
-        if (typeArguments[i] != other.typeArguments[i]) return false;
+        if (!typeArguments[i].equals(other.typeArguments[i], assumptions)) {
+          return false;
+        }
       }
       return true;
+    } else {
+      return false;
     }
-    return false;
   }
 
+  @override
   int get hashCode {
     int hash = 0x3fffffff & typedefNode.hashCode;
     for (int i = 0; i < typeArguments.length; ++i) {
@@ -5942,6 +6075,7 @@ class TypedefType extends DartType {
     return hash;
   }
 
+  @override
   TypedefType withNullability(Nullability nullability) {
     return nullability == this.nullability
         ? this
@@ -5961,21 +6095,28 @@ class NamedType extends Node implements Comparable<NamedType> {
 
   NamedType(this.name, this.type, {this.isRequired: false});
 
-  bool operator ==(Object other) {
+  @override
+  bool operator ==(Object other) => equals(other, null);
+
+  bool equals(Object other, Assumptions assumptions) {
     return other is NamedType &&
         name == other.name &&
-        type == other.type &&
-        isRequired == other.isRequired;
+        isRequired == other.isRequired &&
+        type.equals(other.type, assumptions);
   }
 
+  @override
   int get hashCode {
     return name.hashCode * 31 + type.hashCode * 37 + isRequired.hashCode * 41;
   }
 
+  @override
   int compareTo(NamedType other) => name.compareTo(other.name);
 
+  @override
   R accept<R>(Visitor<R> v) => v.visitNamedType(this);
 
+  @override
   void visitChildren(Visitor v) {
     type.accept(v);
   }
@@ -6042,19 +6183,53 @@ class TypeParameterType extends DartType {
         : Nullability.legacy;
   }
 
+  @override
   R accept<R>(DartTypeVisitor<R> v) => v.visitTypeParameterType(this);
+
+  @override
   R accept1<R, A>(DartTypeVisitor1<R, A> v, A arg) =>
       v.visitTypeParameterType(this, arg);
 
-  visitChildren(Visitor v) {}
+  @override
+  void visitChildren(Visitor v) {}
 
-  bool operator ==(Object other) {
-    return other is TypeParameterType &&
-        parameter == other.parameter &&
-        nullability == other.nullability &&
-        promotedBound == other.promotedBound;
+  @override
+  bool operator ==(Object other) => equals(other, null);
+
+  @override
+  bool equals(Object other, Assumptions assumptions) {
+    if (identical(this, other)) {
+      return true;
+    } else if (other is TypeParameterType) {
+      if (nullability != other.nullability) return false;
+      if (parameter != other.parameter) {
+        if (parameter.parent == null) {
+          // Function type parameters are also equal by assumption.
+          if (assumptions == null) {
+            return false;
+          }
+          if (!assumptions.isAssumed(parameter, other.parameter)) {
+            return false;
+          }
+        } else {
+          return false;
+        }
+      }
+      if (promotedBound != null) {
+        if (other.promotedBound == null) return false;
+        if (!promotedBound.equals(other.promotedBound, assumptions)) {
+          return false;
+        }
+      } else if (other.promotedBound != null) {
+        return false;
+      }
+      return true;
+    } else {
+      return false;
+    }
   }
 
+  @override
   int get hashCode {
     // TODO(johnniwinther): Since we use a unification strategy for function
     //  type type parameter equality, we have to assume they can end up being
@@ -6088,6 +6263,7 @@ class TypeParameterType extends DartType {
   ///         }
   ///       }
   ///     }
+  @override
   Nullability get nullability {
     return getNullability(
         typeParameterTypeNullability ?? computeNullabilityFromBound(parameter),
@@ -6100,7 +6276,10 @@ class TypeParameterType extends DartType {
   /// set the overall nullability of the returned type but sets that of the
   /// left-hand side of the intersection type.  In case [promotedBound] is null,
   /// it is an equivalent of setting the overall nullability.
+  @override
   TypeParameterType withNullability(Nullability typeParameterTypeNullability) {
+    assert(promotedBound == null,
+        "Can't change the nullability attribute of an intersection type.");
     return typeParameterTypeNullability == this.typeParameterTypeNullability
         ? this
         : new TypeParameterType(
@@ -6633,8 +6812,8 @@ class MapConstant extends Constant {
           other.valueType == valueType &&
           listEquals(other.entries, entries));
 
-  DartType getType(StaticTypeContext context) => context.typeEnvironment
-      .literalMapType(keyType, valueType, context.nonNullable);
+  DartType getType(StaticTypeContext context) =>
+      context.typeEnvironment.mapType(keyType, valueType, context.nonNullable);
 }
 
 class ConstantMapEntry {
@@ -6680,8 +6859,8 @@ class ListConstant extends Constant {
           other.typeArgument == typeArgument &&
           listEquals(other.entries, entries));
 
-  DartType getType(StaticTypeContext context) => context.typeEnvironment
-      .literalListType(typeArgument, context.nonNullable);
+  DartType getType(StaticTypeContext context) =>
+      context.typeEnvironment.listType(typeArgument, context.nonNullable);
 }
 
 class SetConstant extends Constant {
@@ -6715,7 +6894,7 @@ class SetConstant extends Constant {
           listEquals(other.entries, entries));
 
   DartType getType(StaticTypeContext context) =>
-      context.typeEnvironment.literalSetType(typeArgument, context.nonNullable);
+      context.typeEnvironment.setType(typeArgument, context.nonNullable);
 }
 
 class InstanceConstant extends Constant {
@@ -6846,8 +7025,9 @@ class TearOffConstant extends Constant {
         other.procedureReference == procedureReference;
   }
 
-  FunctionType getType(StaticTypeContext context) =>
-      procedure.function.functionType;
+  FunctionType getType(StaticTypeContext context) {
+    return procedure.function.computeFunctionType(context.nonNullable);
+  }
 }
 
 class TypeLiteralConstant extends Constant {

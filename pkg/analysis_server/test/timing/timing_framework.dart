@@ -108,7 +108,7 @@ class TimingResult {
    */
   List<int> toMilliseconds(List<int> times) {
     int count = times.length;
-    List<int> convertedValues = new List<int>();
+    List<int> convertedValues = List<int>();
     for (int i = 0; i < count; i++) {
       convertedValues.add(times[i] ~/ NANOSECONDS_PER_MILLISECOND);
     }
@@ -145,11 +145,12 @@ abstract class TimingTest extends IntegrationTestMixin {
    * The amount of time to give the server to respond to a shutdown request
    * before forcibly terminating it.
    */
-  static const Duration SHUTDOWN_TIMEOUT = const Duration(seconds: 5);
+  static const Duration SHUTDOWN_TIMEOUT = Duration(seconds: 5);
 
   /**
    * The connection to the analysis server.
    */
+  @override
   Server server;
 
   /**
@@ -186,9 +187,9 @@ abstract class TimingTest extends IntegrationTestMixin {
    */
   Future oneTimeSetUp() {
     initializeInttestMixin();
-    server = new Server();
+    server = Server();
     sourceDirectory = Directory.systemTemp.createTempSync('analysisServer');
-    Completer serverConnected = new Completer();
+    Completer serverConnected = Completer();
     onServerConnected.listen((_) {
       serverConnected.complete();
     });
@@ -223,12 +224,12 @@ abstract class TimingTest extends IntegrationTestMixin {
    * number of times.
    */
   Future<TimingResult> run() async {
-    List<int> times = new List<int>();
+    List<int> times = List<int>();
     await oneTimeSetUp();
     await _repeat(warmupCount, null);
     await _repeat(timingCount, times);
     await oneTimeTearDown();
-    return new Future<TimingResult>.value(new TimingResult(times));
+    return Future<TimingResult>.value(TimingResult(times));
   }
 
   /**
@@ -259,8 +260,8 @@ abstract class TimingTest extends IntegrationTestMixin {
    * Parent directories are created as necessary.
    */
   void writeFile(String pathname, String contents) {
-    new Directory(dirname(pathname)).createSync(recursive: true);
-    new File(pathname).writeAsStringSync(contents);
+    Directory(dirname(pathname)).createSync(recursive: true);
+    File(pathname).writeAsStringSync(contents);
   }
 
   /**
@@ -276,7 +277,7 @@ abstract class TimingTest extends IntegrationTestMixin {
    * the given list of [times] if it is non-`null`.
    */
   Future _repeat(int count, List<int> times) {
-    Stopwatch stopwatch = new Stopwatch();
+    Stopwatch stopwatch = Stopwatch();
     return setUp().then((_) {
       stopwatch.start();
       return perform().then((_) {
@@ -288,7 +289,7 @@ abstract class TimingTest extends IntegrationTestMixin {
           if (count > 0) {
             return _repeat(count - 1, times);
           } else {
-            return new Future.value();
+            return Future.value();
           }
         });
       });
@@ -300,7 +301,7 @@ abstract class TimingTest extends IntegrationTestMixin {
    */
   Future _shutdownIfNeeded() {
     if (skipShutdown) {
-      return new Future.value();
+      return Future.value();
     }
     // Give the server a short time to comply with the shutdown request; if it
     // doesn't exit, then forcibly terminate it.

@@ -6,7 +6,7 @@ void main() async {
   await for (var i in foobar()) {
     print(i);
   }
-  print("Done!");
+  print('Done!');
 }
 
 foobar() async* {

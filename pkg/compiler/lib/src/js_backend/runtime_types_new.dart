@@ -472,7 +472,6 @@ int indexTypeVariable(
     return null;
   }
 
-  assert(world.rtiNeed.classNeedsTypeArguments(environment.classType.element));
   // Indexed class type variables come after the bound function type
   // variables.
   return 1 + environment.bindings.length + element.index;
@@ -502,8 +501,8 @@ class Ruleset {
   bool get isEmpty => _redirections.isEmpty && _entries.isEmpty;
   bool get isNotEmpty => _redirections.isNotEmpty || _entries.isNotEmpty;
 
-  void addRedirection(ClassEntity targetClass, ClassEntity redirection) {
-    _redirections[targetClass] = redirection;
+  void addRedirection(ClassEntity redirectee, ClassEntity target) {
+    _redirections[redirectee] = target;
   }
 
   void addEntry(InterfaceType targetType, Iterable<InterfaceType> supertypes,

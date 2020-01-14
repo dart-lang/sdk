@@ -992,6 +992,7 @@ class ProfileBuilder : public ValueObject {
         null_code_(Code::null()),
         null_function_(Function::ZoneHandle()),
         inclusive_tree_(false),
+        inlined_functions_cache_(new ProfileCodeInlinedFunctionsCache()),
         samples_(NULL),
         info_kind_(kNone) {
     ASSERT((sample_buffer_ == Profiler::sample_buffer()) ||
@@ -1205,9 +1206,9 @@ class ProfileBuilder : public ValueObject {
     Code& code = Code::ZoneHandle();
     if (profile_code->code().IsCode()) {
       code ^= profile_code->code().raw();
-      inlined_functions_cache_.Get(pc, code, sample, frame_index,
-                                   &inlined_functions, &inlined_token_positions,
-                                   &token_position);
+      inlined_functions_cache_->Get(pc, code, sample, frame_index,
+                                    &inlined_functions,
+                                    &inlined_token_positions, &token_position);
       if (FLAG_trace_profiler_verbose && (inlined_functions != NULL)) {
         for (intptr_t i = 0; i < inlined_functions->length(); i++) {
           const String& name =
@@ -1512,7 +1513,7 @@ class ProfileBuilder : public ValueObject {
   const AbstractCode null_code_;
   const Function& null_function_;
   bool inclusive_tree_;
-  ProfileCodeInlinedFunctionsCache inlined_functions_cache_;
+  ProfileCodeInlinedFunctionsCache* inlined_functions_cache_;
   ProcessedSampleBuffer* samples_;
   ProfileInfoKind info_kind_;
 };  // ProfileBuilder.
@@ -1735,7 +1736,7 @@ void Profile::PrintCodeFrameIndexJSON(JSONArray* stack,
 
 void Profile::PrintSamplesJSON(JSONObject* obj, bool code_samples) {
   JSONArray samples(obj, "samples");
-  ProfileCodeInlinedFunctionsCache cache;
+  auto* cache = new ProfileCodeInlinedFunctionsCache();
   for (intptr_t sample_index = 0; sample_index < samples_->length();
        sample_index++) {
     JSONObject sample_obj(&samples);
@@ -1765,7 +1766,7 @@ void Profile::PrintSamplesJSON(JSONObject* obj, bool code_samples) {
       for (intptr_t frame_index = 0; frame_index < sample->length();
            frame_index++) {
         ASSERT(sample->At(frame_index) != 0);
-        ProcessSampleFrameJSON(&stack, &cache, sample, frame_index);
+        ProcessSampleFrameJSON(&stack, cache, sample, frame_index);
       }
     }
     if (code_samples) {

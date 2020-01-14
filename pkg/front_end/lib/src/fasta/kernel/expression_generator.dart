@@ -23,6 +23,7 @@ import '../builder/member_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/prefix_builder.dart';
+import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_declaration_builder.dart';
 import '../builder/unresolved_type.dart';
@@ -406,9 +407,10 @@ class VariableUseGenerator extends Generator {
 
   @override
   Expression doInvocation(int offset, Arguments arguments) {
-    return _helper.buildMethodInvocation(buildSimpleRead(), callName, arguments,
+    return _helper.forest.createExpressionInvocation(
         adjustForImplicitCall(_plainNameForRead, offset),
-        isImplicitCall: true);
+        buildSimpleRead(),
+        arguments);
   }
 
   @override
@@ -887,12 +889,8 @@ class SuperPropertyAccessGenerator extends Generator {
       _helper.addProblem(messageNotAConstantExpression, offset, 1);
     }
     if (getter == null || isFieldOrGetter(getter)) {
-      return _helper.buildMethodInvocation(
-          buildSimpleRead(), callName, arguments, offset,
-          // This isn't a constant expression, but we have checked if a
-          // constant expression error should be emitted already.
-          isConstantExpression: true,
-          isImplicitCall: true);
+      return _helper.forest
+          .createExpressionInvocation(offset, buildSimpleRead(), arguments);
     } else {
       // TODO(ahe): This could be something like "super.property(...)" where
       // property is a setter.
@@ -1052,9 +1050,8 @@ class IndexedAccessGenerator extends Generator {
 
   @override
   Expression doInvocation(int offset, Arguments arguments) {
-    return _helper.buildMethodInvocation(
-        buildSimpleRead(), callName, arguments, arguments.fileOffset,
-        isImplicitCall: true);
+    return _helper.forest.createExpressionInvocation(
+        arguments.fileOffset, buildSimpleRead(), arguments);
   }
 
   @override
@@ -1154,9 +1151,8 @@ class ThisIndexedAccessGenerator extends Generator {
 
   @override
   Expression doInvocation(int offset, Arguments arguments) {
-    return _helper.buildMethodInvocation(
-        buildSimpleRead(), callName, arguments, offset,
-        isImplicitCall: true);
+    return _helper.forest
+        .createExpressionInvocation(offset, buildSimpleRead(), arguments);
   }
 
   @override
@@ -1254,9 +1250,8 @@ class SuperIndexedAccessGenerator extends Generator {
 
   @override
   Expression doInvocation(int offset, Arguments arguments) {
-    return _helper.buildMethodInvocation(
-        buildSimpleRead(), callName, arguments, offset,
-        isImplicitCall: true);
+    return _helper.forest
+        .createExpressionInvocation(offset, buildSimpleRead(), arguments);
   }
 
   @override
@@ -1428,12 +1423,10 @@ class StaticAccessGenerator extends Generator {
           readTarget?.name?.name?.length ?? 0);
     }
     if (readTarget == null || isFieldOrGetter(readTarget)) {
-      return _helper.buildMethodInvocation(buildSimpleRead(), callName,
-          arguments, offset + (readTarget?.name?.name?.length ?? 0),
-          // This isn't a constant expression, but we have checked if a
-          // constant expression error should be emitted already.
-          isConstantExpression: true,
-          isImplicitCall: true);
+      return _helper.forest.createExpressionInvocation(
+          offset + (readTarget?.name?.name?.length ?? 0),
+          buildSimpleRead(),
+          arguments);
     } else {
       return _helper.buildStaticInvocation(readTarget, arguments,
           charOffset: offset);
@@ -1707,9 +1700,10 @@ class ExtensionInstanceAccessGenerator extends Generator {
               namedArguments: arguments.named),
           isTearOff: false);
     } else {
-      return _helper.buildMethodInvocation(buildSimpleRead(), callName,
-          arguments, adjustForImplicitCall(_plainNameForRead, offset),
-          isImplicitCall: true);
+      return _helper.forest.createExpressionInvocation(
+          adjustForImplicitCall(_plainNameForRead, offset),
+          buildSimpleRead(),
+          arguments);
     }
   }
 
@@ -2103,12 +2097,10 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
               namedArguments: arguments.named),
           isTearOff: false);
     } else {
-      invocation = _helper.buildMethodInvocation(
-          _createRead(receiverExpression),
-          callName,
-          arguments,
+      invocation = _helper.forest.createExpressionInvocation(
           adjustForImplicitCall(_plainNameForRead, offset),
-          isImplicitCall: true);
+          _createRead(receiverExpression),
+          arguments);
     }
     if (isNullAware) {
       assert(receiverVariable != null);
@@ -2396,9 +2388,8 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
 
   @override
   Expression doInvocation(int offset, Arguments arguments) {
-    return _helper.buildMethodInvocation(
-        buildSimpleRead(), callName, arguments, offset,
-        isImplicitCall: true);
+    return _helper.forest
+        .createExpressionInvocation(offset, buildSimpleRead(), arguments);
   }
 
   @override
@@ -2977,8 +2968,13 @@ class TypeUseGenerator extends ReadOnlyAccessGenerator {
     Name name = send.name;
     Arguments arguments = send.arguments;
 
-    if (declaration is DeclarationBuilder) {
-      DeclarationBuilder declaration = this.declaration;
+    TypeDeclarationBuilder declarationBuilder = declaration;
+    if (declarationBuilder is TypeAliasBuilder) {
+      TypeAliasBuilder aliasBuilder = declarationBuilder;
+      declarationBuilder = aliasBuilder.unaliasDeclaration;
+    }
+    if (declarationBuilder is DeclarationBuilder) {
+      DeclarationBuilder declaration = declarationBuilder;
       Builder member = declaration.findStaticBuilder(
           name.name, offsetForToken(send.token), _uri, _helper.libraryBuilder);
 
@@ -3150,9 +3146,8 @@ class ReadOnlyAccessGenerator extends Generator {
 
   @override
   doInvocation(int offset, Arguments arguments) {
-    return _helper.buildMethodInvocation(_createRead(), callName, arguments,
-        adjustForImplicitCall(targetName, offset),
-        isImplicitCall: true);
+    return _helper.forest.createExpressionInvocation(
+        adjustForImplicitCall(targetName, offset), _createRead(), arguments);
   }
 
   @override
@@ -4031,9 +4026,8 @@ class ThisAccessGenerator extends Generator {
     } else if (isSuper) {
       return _helper.buildProblem(messageSuperAsExpression, offset, noLength);
     } else {
-      return _helper.buildMethodInvocation(
-          _forest.createThisExpression(fileOffset), callName, arguments, offset,
-          isImplicitCall: true);
+      return _helper.forest.createExpressionInvocation(
+          offset, _forest.createThisExpression(fileOffset), arguments);
     }
   }
 
@@ -4047,8 +4041,7 @@ class ThisAccessGenerator extends Generator {
           equalsName,
           _forest.createArguments(offset, <Expression>[right]),
           offset,
-          isSuper: true,
-          isImplicitCall: false);
+          isSuper: true);
       if (isNot) {
         result = _forest.createNot(offset, result);
       }
@@ -4066,8 +4059,7 @@ class ThisAccessGenerator extends Generator {
           binaryName,
           _forest.createArguments(offset, <Expression>[right]),
           offset,
-          isSuper: true,
-          isImplicitCall: false);
+          isSuper: true);
     }
     return super.buildBinaryOperation(token, binaryName, right);
   }
@@ -4081,8 +4073,7 @@ class ThisAccessGenerator extends Generator {
           unaryName,
           _forest.createArgumentsEmpty(offset),
           offset,
-          isSuper: true,
-          isImplicitCall: false);
+          isSuper: true);
     }
     return super.buildUnaryOperation(token, unaryName);
   }

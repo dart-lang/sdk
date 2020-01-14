@@ -11,13 +11,13 @@ import 'package:analyzer/src/dart/element/element.dart';
 
 void addDartOccurrences(OccurrencesCollector collector, CompilationUnit unit) {
   _DartUnitOccurrencesComputerVisitor visitor =
-      new _DartUnitOccurrencesComputerVisitor();
+      _DartUnitOccurrencesComputerVisitor();
   unit.accept(visitor);
   visitor.elementsOffsets.forEach((engineElement, offsets) {
     int length = engineElement.nameLength;
     protocol.Element serverElement = protocol.convertElement(engineElement);
     protocol.Occurrences occurrences =
-        new protocol.Occurrences(serverElement, offsets, length);
+        protocol.Occurrences(serverElement, offsets, length);
     collector.addOccurrences(occurrences);
   });
 }

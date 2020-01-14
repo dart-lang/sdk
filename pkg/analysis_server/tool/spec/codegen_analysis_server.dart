@@ -12,7 +12,7 @@ import 'codegen_java.dart';
 
 final GeneratedFile target = javaGeneratedFile(
     'tool/spec/generated/java/AnalysisServer.java',
-    (Api api) => new CodegenAnalysisServer(api));
+    (Api api) => CodegenAnalysisServer(api));
 
 class CodegenAnalysisServer extends CodegenJavaVisitor {
   CodegenAnalysisServer(Api api) : super(api);

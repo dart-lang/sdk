@@ -282,11 +282,8 @@ HeapPage* PageSpace::AllocatePage(HeapPage::PageType type, bool link) {
     IncreaseCapacityInWordsLocked(kPageSizeInWords);
   }
   const bool is_exec = (type == HeapPage::kExecutable);
-  const intptr_t kVmNameSize = 128;
-  char vm_name[kVmNameSize];
-  Heap::RegionName(heap_, is_exec ? Heap::kCode : Heap::kOld, vm_name,
-                   kVmNameSize);
-  HeapPage* page = HeapPage::Allocate(kPageSizeInWords, type, vm_name);
+  const char* name = Heap::RegionName(is_exec ? Heap::kCode : Heap::kOld);
+  HeapPage* page = HeapPage::Allocate(kPageSizeInWords, type, name);
   if (page == NULL) {
     RELEASE_ASSERT(!FLAG_abort_on_oom);
     IncreaseCapacityInWords(-kPageSizeInWords);
@@ -340,11 +337,8 @@ HeapPage* PageSpace::AllocateLargePage(intptr_t size, HeapPage::PageType type) {
     IncreaseCapacityInWordsLocked(page_size_in_words);
   }
   const bool is_exec = (type == HeapPage::kExecutable);
-  const intptr_t kVmNameSize = 128;
-  char vm_name[kVmNameSize];
-  Heap::RegionName(heap_, is_exec ? Heap::kCode : Heap::kOld, vm_name,
-                   kVmNameSize);
-  HeapPage* page = HeapPage::Allocate(page_size_in_words, type, vm_name);
+  const char* name = Heap::RegionName(is_exec ? Heap::kCode : Heap::kOld);
+  HeapPage* page = HeapPage::Allocate(page_size_in_words, type, name);
   {
     MutexLocker ml(&pages_lock_);
     if (page == nullptr) {
@@ -431,10 +425,7 @@ void PageSpace::FreePages(HeapPage* pages) {
   }
 }
 
-uword PageSpace::TryAllocateInFreshPage(intptr_t size,
-                                        HeapPage::PageType type,
-                                        GrowthPolicy growth_policy,
-                                        bool is_locked) {
+void PageSpace::EvaluateConcurrentMarking(GrowthPolicy growth_policy) {
   if (growth_policy != kForceGrowth) {
     if (heap_ != NULL) {  // Some unit tests.
       Thread* thread = Thread::Current();
@@ -444,8 +435,16 @@ uword PageSpace::TryAllocateInFreshPage(intptr_t size,
       }
     }
   }
+}
 
+uword PageSpace::TryAllocateInFreshPage(intptr_t size,
+                                        HeapPage::PageType type,
+                                        GrowthPolicy growth_policy,
+                                        bool is_locked) {
   ASSERT(size < kAllocatablePageSize);
+
+  EvaluateConcurrentMarking(growth_policy);
+
   uword result = 0;
   SpaceUsage after_allocation = GetCurrentUsage();
   after_allocation.used_in_words += size >> kWordSizeLog2;
@@ -475,6 +474,35 @@ uword PageSpace::TryAllocateInFreshPage(intptr_t size,
   return result;
 }
 
+uword PageSpace::TryAllocateInFreshLargePage(intptr_t size,
+                                             HeapPage::PageType type,
+                                             GrowthPolicy growth_policy) {
+  ASSERT(size >= kAllocatablePageSize);
+
+  EvaluateConcurrentMarking(growth_policy);
+
+  intptr_t page_size_in_words = LargePageSizeInWordsFor(size);
+  if ((page_size_in_words << kWordSizeLog2) < size) {
+    // On overflow we fail to allocate.
+    return 0;
+  }
+
+  uword result = 0;
+  SpaceUsage after_allocation = GetCurrentUsage();
+  after_allocation.used_in_words += size >> kWordSizeLog2;
+  after_allocation.capacity_in_words += page_size_in_words;
+  if (growth_policy == kForceGrowth ||
+      !page_space_controller_.NeedsGarbageCollection(after_allocation)) {
+    HeapPage* page = AllocateLargePage(size, type);
+    if (page != NULL) {
+      result = page->object_start();
+      // Note: usage_.capacity_in_words is increased by AllocateLargePage.
+      usage_.used_in_words += (size >> kWordSizeLog2);
+    }
+  }
+  return result;
+}
+
 uword PageSpace::TryAllocateInternal(intptr_t size,
                                      HeapPage::PageType type,
                                      GrowthPolicy growth_policy,
@@ -496,24 +524,8 @@ uword PageSpace::TryAllocateInternal(intptr_t size,
       usage_.used_in_words += (size >> kWordSizeLog2);
     }
   } else {
-    // Large page allocation.
-    intptr_t page_size_in_words = LargePageSizeInWordsFor(size);
-    if ((page_size_in_words << kWordSizeLog2) < size) {
-      // On overflow we fail to allocate.
-      return 0;
-    }
-    SpaceUsage after_allocation = GetCurrentUsage();
-    after_allocation.used_in_words += size >> kWordSizeLog2;
-    after_allocation.capacity_in_words += page_size_in_words;
-    if (growth_policy == kForceGrowth ||
-        !page_space_controller_.NeedsGarbageCollection(after_allocation)) {
-      HeapPage* page = AllocateLargePage(size, type);
-      if (page != NULL) {
-        result = page->object_start();
-        // Note: usage_.capacity_in_words is increased by AllocateLargePage.
-        usage_.used_in_words += (size >> kWordSizeLog2);
-      }
-    }
+    result = TryAllocateInFreshLargePage(size, type, growth_policy);
+    // usage_ is updated by the call above.
   }
   ASSERT((result & kObjectAlignmentMask) == kOldObjectAlignmentOffset);
   return result;
@@ -1001,7 +1013,7 @@ void PageSpace::CollectGarbage(bool compact, bool finalize) {
     return;  // Barrier not implemented.
 #else
     if (!enable_concurrent_mark()) return;  // Disabled.
-    if (FLAG_marker_tasks == 0) return;   // Disabled.
+    if (FLAG_marker_tasks == 0) return;     // Disabled.
 #endif
   }
 
@@ -1058,6 +1070,7 @@ void PageSpace::CollectGarbageAtSafepoint(bool compact,
 
   // Perform various cleanup that relies on no tasks interfering.
   isolate->class_table()->FreeOldTables();
+  isolate->field_table()->FreeOldTables();
 
   NoSafepointScope no_safepoints;
 
@@ -1280,8 +1293,8 @@ uword PageSpace::TryAllocateDataBumpLocked(intptr_t size) {
   bump_top_ += size;
 
   // No need for atomic operation: This is either running during a scavenge or
-  // isolate snapshot loading.
-  usage_.used_in_words += (size >> kWordSizeLog2);
+  // isolate snapshot loading. Note that operator+= is atomic.
+  usage_.used_in_words = usage_.used_in_words + (size >> kWordSizeLog2);
 
 // Note: Remaining block is unwalkable until MakeIterable is called.
 #ifdef DEBUG
@@ -1294,12 +1307,14 @@ uword PageSpace::TryAllocateDataBumpLocked(intptr_t size) {
   return result;
 }
 
+DART_FLATTEN
 uword PageSpace::TryAllocatePromoLocked(intptr_t size) {
   FreeList* freelist = &freelist_[HeapPage::kData];
   uword result = freelist->TryAllocateSmallLocked(size);
   if (result != 0) {
-    // No need for atomic operation: we're at a safepoint.
-    usage_.used_in_words += (size >> kWordSizeLog2);
+    // No need for atomic operation: we're at a safepoint. Note that
+    // operator+= is atomic.
+    usage_.used_in_words = usage_.used_in_words + (size >> kWordSizeLog2);
     return result;
   }
   result = TryAllocateDataBumpLocked(size);
@@ -1530,16 +1545,16 @@ void PageSpaceController::RecordUpdate(SpaceUsage before,
                                        const char* reason) {
 #if defined(SUPPORT_TIMELINE)
   TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "UpdateGrowthLimit");
-  tds.SetNumArguments(5);
-  tds.CopyArgument(0, "Reason", reason);
-  tds.FormatArgument(1, "Before.CombinedCapacity (kB)", "%" Pd "",
-                     RoundWordsToKB(before.CombinedCapacityInWords()));
-  tds.FormatArgument(2, "After.CombinedCapacity (kB)", "%" Pd "",
-                     RoundWordsToKB(after.CombinedCapacityInWords()));
-  tds.FormatArgument(3, "Threshold (kB)", "%" Pd "",
-                     RoundWordsToKB(gc_threshold_in_words_));
-  tds.FormatArgument(4, "Idle Threshold (kB)", "%" Pd "",
-                     RoundWordsToKB(idle_gc_threshold_in_words_));
+  tbes.SetNumArguments(5);
+  tbes.CopyArgument(0, "Reason", reason);
+  tbes.FormatArgument(1, "Before.CombinedCapacity (kB)", "%" Pd "",
+                      RoundWordsToKB(before.CombinedCapacityInWords()));
+  tbes.FormatArgument(2, "After.CombinedCapacity (kB)", "%" Pd "",
+                      RoundWordsToKB(after.CombinedCapacityInWords()));
+  tbes.FormatArgument(3, "Threshold (kB)", "%" Pd "",
+                      RoundWordsToKB(gc_threshold_in_words_));
+  tbes.FormatArgument(4, "Idle Threshold (kB)", "%" Pd "",
+                      RoundWordsToKB(idle_gc_threshold_in_words_));
 #endif
 
   if (FLAG_log_growth) {

@@ -9,12 +9,13 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
+import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -165,7 +166,7 @@ class ElementFactory {
     //
     // Populate the fields.
     //
-    List<FieldElement> fields = List<FieldElement>();
+    List<FieldElement> fields = <FieldElement>[];
     InterfaceType intType = typeProvider.intType;
     InterfaceType stringType = typeProvider.stringType;
     String indexFieldName = "index";
@@ -359,7 +360,7 @@ class ElementFactory {
   static FunctionElementImpl functionElement8(
       List<DartType> parameters, DartType returnType,
       {List<DartType> optional, Map<String, DartType> named}) {
-    List<ParameterElement> parameterElements = List<ParameterElement>();
+    List<ParameterElement> parameterElements = <ParameterElement>[];
     for (int i = 0; i < parameters.length; i++) {
       ParameterElementImpl parameterElement = ParameterElementImpl("a$i", i);
       parameterElement.type = parameters[i];
@@ -437,8 +438,13 @@ class ElementFactory {
       {bool isNonNullableByDefault = true}) {
     String fileName = "/$libraryName.dart";
     CompilationUnitElementImpl unit = compilationUnit(fileName);
-    LibraryElementImpl library = LibraryElementImpl(context, null, libraryName,
-        0, libraryName.length, isNonNullableByDefault);
+    LibraryElementImpl library = LibraryElementImpl(
+        context,
+        AnalysisSessionImpl(null),
+        libraryName,
+        0,
+        libraryName.length,
+        isNonNullableByDefault);
     library.definingCompilationUnit = unit;
     return library;
   }

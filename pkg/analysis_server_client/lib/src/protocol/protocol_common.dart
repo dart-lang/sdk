@@ -5,6 +5,9 @@
 // This file has been automatically generated. Please do not edit it manually.
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/spec/generate_files".
+//
+// TODO(brianwilkerson) This file is not being generated as advertised, but it
+//  should be generated. Fix the generator to generate this file.
 
 import 'dart:convert' hide JsonDecoder;
 
@@ -33,9 +36,9 @@ class AddContentOverlay implements HasToJson {
   /**
    * The new content of the file.
    */
-  void set content(String value) {
+  set content(String value) {
     assert(value != null);
-    this._content = value;
+    _content = value;
   }
 
   AddContentOverlay(String content) {
@@ -44,12 +47,10 @@ class AddContentOverlay implements HasToJson {
 
   factory AddContentOverlay.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       if (json["type"] != "add") {
-        throw jsonDecoder.mismatch(jsonPath, "equal " + "add", json);
+        throw jsonDecoder.mismatch(jsonPath, "equal add", json);
       }
       String content;
       if (json.containsKey("content")) {
@@ -58,7 +59,7 @@ class AddContentOverlay implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "content");
       }
-      return new AddContentOverlay(content);
+      return AddContentOverlay(content);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "AddContentOverlay", json);
     }
@@ -130,9 +131,9 @@ class AnalysisError implements HasToJson {
   /**
    * The severity of the error.
    */
-  void set severity(AnalysisErrorSeverity value) {
+  set severity(AnalysisErrorSeverity value) {
     assert(value != null);
-    this._severity = value;
+    _severity = value;
   }
 
   /**
@@ -143,9 +144,9 @@ class AnalysisError implements HasToJson {
   /**
    * The type of the error.
    */
-  void set type(AnalysisErrorType value) {
+  set type(AnalysisErrorType value) {
     assert(value != null);
-    this._type = value;
+    _type = value;
   }
 
   /**
@@ -156,9 +157,9 @@ class AnalysisError implements HasToJson {
   /**
    * The location associated with the error.
    */
-  void set location(Location value) {
+  set location(Location value) {
     assert(value != null);
-    this._location = value;
+    _location = value;
   }
 
   /**
@@ -171,9 +172,9 @@ class AnalysisError implements HasToJson {
    * The message to be displayed for this error. The message should indicate
    * what is wrong with the code and why it is wrong.
    */
-  void set message(String value) {
+  set message(String value) {
     assert(value != null);
-    this._message = value;
+    _message = value;
   }
 
   /**
@@ -188,8 +189,8 @@ class AnalysisError implements HasToJson {
    * message should indicate how the user can fix the error. The field is
    * omitted if there is no correction message associated with the error code.
    */
-  void set correction(String value) {
-    this._correction = value;
+  set correction(String value) {
+    _correction = value;
   }
 
   /**
@@ -200,9 +201,9 @@ class AnalysisError implements HasToJson {
   /**
    * The name, as a string, of the error code associated with this error.
    */
-  void set code(String value) {
+  set code(String value) {
     assert(value != null);
-    this._code = value;
+    _code = value;
   }
 
   /**
@@ -227,8 +228,8 @@ class AnalysisError implements HasToJson {
    * no false positives should be returned. If a client sees this flag set they
    * can proceed with the confidence that there are in fact associated fixes.
    */
-  void set hasFix(bool value) {
-    this._hasFix = value;
+  set hasFix(bool value) {
+    _hasFix = value;
   }
 
   AnalysisError(AnalysisErrorSeverity severity, AnalysisErrorType type,
@@ -245,27 +246,25 @@ class AnalysisError implements HasToJson {
 
   factory AnalysisError.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       AnalysisErrorSeverity severity;
       if (json.containsKey("severity")) {
-        severity = new AnalysisErrorSeverity.fromJson(
+        severity = AnalysisErrorSeverity.fromJson(
             jsonDecoder, jsonPath + ".severity", json["severity"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "severity");
       }
       AnalysisErrorType type;
       if (json.containsKey("type")) {
-        type = new AnalysisErrorType.fromJson(
+        type = AnalysisErrorType.fromJson(
             jsonDecoder, jsonPath + ".type", json["type"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "type");
       }
       Location location;
       if (json.containsKey("location")) {
-        location = new Location.fromJson(
+        location = Location.fromJson(
             jsonDecoder, jsonPath + ".location", json["location"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "location");
@@ -292,7 +291,7 @@ class AnalysisError implements HasToJson {
       if (json.containsKey("hasFix")) {
         hasFix = jsonDecoder.decodeBool(jsonPath + ".hasFix", json["hasFix"]);
       }
-      return new AnalysisError(severity, type, location, message, code,
+      return AnalysisError(severity, type, location, message, code,
           correction: correction, hasFix: hasFix);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "AnalysisError", json);
@@ -359,20 +358,21 @@ class AnalysisError implements HasToJson {
  * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisErrorSeverity implements Enum {
-  static const AnalysisErrorSeverity INFO =
-      const AnalysisErrorSeverity._("INFO");
+  static const AnalysisErrorSeverity INFO = AnalysisErrorSeverity._("INFO");
 
   static const AnalysisErrorSeverity WARNING =
-      const AnalysisErrorSeverity._("WARNING");
+      AnalysisErrorSeverity._("WARNING");
 
-  static const AnalysisErrorSeverity ERROR =
-      const AnalysisErrorSeverity._("ERROR");
+  static const AnalysisErrorSeverity ERROR = AnalysisErrorSeverity._("ERROR");
 
   /**
    * A list containing all of the enum values that are defined.
    */
-  static const List<AnalysisErrorSeverity> VALUES =
-      const <AnalysisErrorSeverity>[INFO, WARNING, ERROR];
+  static const List<AnalysisErrorSeverity> VALUES = <AnalysisErrorSeverity>[
+    INFO,
+    WARNING,
+    ERROR
+  ];
 
   @override
   final String name;
@@ -388,14 +388,14 @@ class AnalysisErrorSeverity implements Enum {
       case "ERROR":
         return ERROR;
     }
-    throw new Exception('Illegal enum value: $name');
+    throw Exception('Illegal enum value: $name');
   }
 
   factory AnalysisErrorSeverity.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json is String) {
       try {
-        return new AnalysisErrorSeverity(json);
+        return AnalysisErrorSeverity(json);
       } catch (_) {
         // Fall through
       }
@@ -427,30 +427,30 @@ class AnalysisErrorSeverity implements Enum {
  */
 class AnalysisErrorType implements Enum {
   static const AnalysisErrorType CHECKED_MODE_COMPILE_TIME_ERROR =
-      const AnalysisErrorType._("CHECKED_MODE_COMPILE_TIME_ERROR");
+      AnalysisErrorType._("CHECKED_MODE_COMPILE_TIME_ERROR");
 
   static const AnalysisErrorType COMPILE_TIME_ERROR =
-      const AnalysisErrorType._("COMPILE_TIME_ERROR");
+      AnalysisErrorType._("COMPILE_TIME_ERROR");
 
-  static const AnalysisErrorType HINT = const AnalysisErrorType._("HINT");
+  static const AnalysisErrorType HINT = AnalysisErrorType._("HINT");
 
-  static const AnalysisErrorType LINT = const AnalysisErrorType._("LINT");
+  static const AnalysisErrorType LINT = AnalysisErrorType._("LINT");
 
   static const AnalysisErrorType STATIC_TYPE_WARNING =
-      const AnalysisErrorType._("STATIC_TYPE_WARNING");
+      AnalysisErrorType._("STATIC_TYPE_WARNING");
 
   static const AnalysisErrorType STATIC_WARNING =
-      const AnalysisErrorType._("STATIC_WARNING");
+      AnalysisErrorType._("STATIC_WARNING");
 
   static const AnalysisErrorType SYNTACTIC_ERROR =
-      const AnalysisErrorType._("SYNTACTIC_ERROR");
+      AnalysisErrorType._("SYNTACTIC_ERROR");
 
-  static const AnalysisErrorType TODO = const AnalysisErrorType._("TODO");
+  static const AnalysisErrorType TODO = AnalysisErrorType._("TODO");
 
   /**
    * A list containing all of the enum values that are defined.
    */
-  static const List<AnalysisErrorType> VALUES = const <AnalysisErrorType>[
+  static const List<AnalysisErrorType> VALUES = <AnalysisErrorType>[
     CHECKED_MODE_COMPILE_TIME_ERROR,
     COMPILE_TIME_ERROR,
     HINT,
@@ -485,14 +485,14 @@ class AnalysisErrorType implements Enum {
       case "TODO":
         return TODO;
     }
-    throw new Exception('Illegal enum value: $name');
+    throw Exception('Illegal enum value: $name');
   }
 
   factory AnalysisErrorType.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json is String) {
       try {
-        return new AnalysisErrorType(json);
+        return AnalysisErrorType(json);
       } catch (_) {
         // Fall through
       }
@@ -527,9 +527,9 @@ class ChangeContentOverlay implements HasToJson {
   /**
    * The edits to be applied to the file.
    */
-  void set edits(List<SourceEdit> value) {
+  set edits(List<SourceEdit> value) {
     assert(value != null);
-    this._edits = value;
+    _edits = value;
   }
 
   ChangeContentOverlay(List<SourceEdit> edits) {
@@ -538,12 +538,10 @@ class ChangeContentOverlay implements HasToJson {
 
   factory ChangeContentOverlay.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       if (json["type"] != "change") {
-        throw jsonDecoder.mismatch(jsonPath, "equal " + "change", json);
+        throw jsonDecoder.mismatch(jsonPath, "equal change", json);
       }
       List<SourceEdit> edits;
       if (json.containsKey("edits")) {
@@ -551,11 +549,11 @@ class ChangeContentOverlay implements HasToJson {
             jsonPath + ".edits",
             json["edits"],
             (String jsonPath, Object json) =>
-                new SourceEdit.fromJson(jsonDecoder, jsonPath, json));
+                SourceEdit.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "edits");
       }
-      return new ChangeContentOverlay(edits);
+      return ChangeContentOverlay(edits);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "ChangeContentOverlay", json);
     }
@@ -673,9 +671,9 @@ class CompletionSuggestion implements HasToJson {
   /**
    * The kind of element being suggested.
    */
-  void set kind(CompletionSuggestionKind value) {
+  set kind(CompletionSuggestionKind value) {
     assert(value != null);
-    this._kind = value;
+    _kind = value;
   }
 
   /**
@@ -688,9 +686,9 @@ class CompletionSuggestion implements HasToJson {
    * The relevance of this completion suggestion where a higher number
    * indicates a higher relevance.
    */
-  void set relevance(int value) {
+  set relevance(int value) {
     assert(value != null);
-    this._relevance = value;
+    _relevance = value;
   }
 
   /**
@@ -707,9 +705,9 @@ class CompletionSuggestion implements HasToJson {
    * additionally insert a template for the parameters. The information
    * required in order to do so is contained in other fields.
    */
-  void set completion(String value) {
+  set completion(String value) {
     assert(value != null);
-    this._completion = value;
+    _completion = value;
   }
 
   /**
@@ -724,8 +722,8 @@ class CompletionSuggestion implements HasToJson {
    * only defined if the displayed text should be different than the
    * completion. Otherwise it is omitted.
    */
-  void set displayText(String value) {
-    this._displayText = value;
+  set displayText(String value) {
+    _displayText = value;
   }
 
   /**
@@ -738,9 +736,9 @@ class CompletionSuggestion implements HasToJson {
    * The offset, relative to the beginning of the completion, of where the
    * selection should be placed after insertion.
    */
-  void set selectionOffset(int value) {
+  set selectionOffset(int value) {
     assert(value != null);
-    this._selectionOffset = value;
+    _selectionOffset = value;
   }
 
   /**
@@ -751,9 +749,9 @@ class CompletionSuggestion implements HasToJson {
   /**
    * The number of characters that should be selected after insertion.
    */
-  void set selectionLength(int value) {
+  set selectionLength(int value) {
     assert(value != null);
-    this._selectionLength = value;
+    _selectionLength = value;
   }
 
   /**
@@ -764,9 +762,9 @@ class CompletionSuggestion implements HasToJson {
   /**
    * True if the suggested element is deprecated.
    */
-  void set isDeprecated(bool value) {
+  set isDeprecated(bool value) {
     assert(value != null);
-    this._isDeprecated = value;
+    _isDeprecated = value;
   }
 
   /**
@@ -779,9 +777,9 @@ class CompletionSuggestion implements HasToJson {
    * True if the element is not known to be valid for the target. This happens
    * if the type of the target is dynamic.
    */
-  void set isPotential(bool value) {
+  set isPotential(bool value) {
     assert(value != null);
-    this._isPotential = value;
+    _isPotential = value;
   }
 
   /**
@@ -796,8 +794,8 @@ class CompletionSuggestion implements HasToJson {
    * suggested. This field is omitted if there is no Dartdoc associated with
    * the element.
    */
-  void set docSummary(String value) {
-    this._docSummary = value;
+  set docSummary(String value) {
+    _docSummary = value;
   }
 
   /**
@@ -810,8 +808,8 @@ class CompletionSuggestion implements HasToJson {
    * The Dartdoc associated with the element being suggested. This field is
    * omitted if there is no Dartdoc associated with the element.
    */
-  void set docComplete(String value) {
-    this._docComplete = value;
+  set docComplete(String value) {
+    _docComplete = value;
   }
 
   /**
@@ -824,8 +822,8 @@ class CompletionSuggestion implements HasToJson {
    * The class that declares the element being suggested. This field is omitted
    * if the suggested element is not a member of a class.
    */
-  void set declaringType(String value) {
-    this._declaringType = value;
+  set declaringType(String value) {
+    _declaringType = value;
   }
 
   /**
@@ -838,8 +836,8 @@ class CompletionSuggestion implements HasToJson {
    * A default String for use in generating argument list source contents on
    * the client side.
    */
-  void set defaultArgumentListString(String value) {
-    this._defaultArgumentListString = value;
+  set defaultArgumentListString(String value) {
+    _defaultArgumentListString = value;
   }
 
   /**
@@ -860,8 +858,8 @@ class CompletionSuggestion implements HasToJson {
    * of length 1, starting at offsets 0 and 3. Clients can use these ranges to
    * treat the 'x' and 'y' values specially for linked edits.
    */
-  void set defaultArgumentListTextRanges(List<int> value) {
-    this._defaultArgumentListTextRanges = value;
+  set defaultArgumentListTextRanges(List<int> value) {
+    _defaultArgumentListTextRanges = value;
   }
 
   /**
@@ -872,8 +870,8 @@ class CompletionSuggestion implements HasToJson {
   /**
    * Information about the element reference being suggested.
    */
-  void set element(Element value) {
-    this._element = value;
+  set element(Element value) {
+    _element = value;
   }
 
   /**
@@ -888,8 +886,8 @@ class CompletionSuggestion implements HasToJson {
    * being suggested. This field is omitted if the suggested element is not a
    * getter, function or method.
    */
-  void set returnType(String value) {
-    this._returnType = value;
+  set returnType(String value) {
+    _returnType = value;
   }
 
   /**
@@ -904,8 +902,8 @@ class CompletionSuggestion implements HasToJson {
    * This field is omitted if the suggested element is not a setter, function
    * or method.
    */
-  void set parameterNames(List<String> value) {
-    this._parameterNames = value;
+  set parameterNames(List<String> value) {
+    _parameterNames = value;
   }
 
   /**
@@ -918,8 +916,8 @@ class CompletionSuggestion implements HasToJson {
    * The types of the parameters of the function or method being suggested.
    * This field is omitted if the parameterNames field is omitted.
    */
-  void set parameterTypes(List<String> value) {
-    this._parameterTypes = value;
+  set parameterTypes(List<String> value) {
+    _parameterTypes = value;
   }
 
   /**
@@ -932,8 +930,8 @@ class CompletionSuggestion implements HasToJson {
    * The number of required parameters for the function or method being
    * suggested. This field is omitted if the parameterNames field is omitted.
    */
-  void set requiredParameterCount(int value) {
-    this._requiredParameterCount = value;
+  set requiredParameterCount(int value) {
+    _requiredParameterCount = value;
   }
 
   /**
@@ -946,8 +944,8 @@ class CompletionSuggestion implements HasToJson {
    * True if the function or method being suggested has at least one named
    * parameter. This field is omitted if the parameterNames field is omitted.
    */
-  void set hasNamedParameters(bool value) {
-    this._hasNamedParameters = value;
+  set hasNamedParameters(bool value) {
+    _hasNamedParameters = value;
   }
 
   /**
@@ -962,8 +960,8 @@ class CompletionSuggestion implements HasToJson {
    * if the suggestion is not the addition of an optional argument within an
    * argument list.
    */
-  void set parameterName(String value) {
-    this._parameterName = value;
+  set parameterName(String value) {
+    _parameterName = value;
   }
 
   /**
@@ -976,8 +974,8 @@ class CompletionSuggestion implements HasToJson {
    * The type of the options parameter being suggested. This field is omitted
    * if the parameterName field is omitted.
    */
-  void set parameterType(String value) {
-    this._parameterType = value;
+  set parameterType(String value) {
+    _parameterType = value;
   }
 
   /**
@@ -990,8 +988,8 @@ class CompletionSuggestion implements HasToJson {
    * The import to be added if the suggestion is out of scope and needs an
    * import to be added to be in scope.
    */
-  void set importUri(String value) {
-    this._importUri = value;
+  set importUri(String value) {
+    _importUri = value;
   }
 
   CompletionSuggestion(
@@ -1043,13 +1041,11 @@ class CompletionSuggestion implements HasToJson {
 
   factory CompletionSuggestion.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       CompletionSuggestionKind kind;
       if (json.containsKey("kind")) {
-        kind = new CompletionSuggestionKind.fromJson(
+        kind = CompletionSuggestionKind.fromJson(
             jsonDecoder, jsonPath + ".kind", json["kind"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "kind");
@@ -1131,7 +1127,7 @@ class CompletionSuggestion implements HasToJson {
       }
       Element element;
       if (json.containsKey("element")) {
-        element = new Element.fromJson(
+        element = Element.fromJson(
             jsonDecoder, jsonPath + ".element", json["element"]);
       }
       String returnType;
@@ -1175,8 +1171,8 @@ class CompletionSuggestion implements HasToJson {
         importUri = jsonDecoder.decodeString(
             jsonPath + ".importUri", json["importUri"]);
       }
-      return new CompletionSuggestion(kind, relevance, completion,
-          selectionOffset, selectionLength, isDeprecated, isPotential,
+      return CompletionSuggestion(kind, relevance, completion, selectionOffset,
+          selectionLength, isDeprecated, isPotential,
           displayText: displayText,
           docSummary: docSummary,
           docComplete: docComplete,
@@ -1344,10 +1340,10 @@ class CompletionSuggestionKind implements Enum {
    * requiredParameterCount attributes are defined.
    */
   static const CompletionSuggestionKind ARGUMENT_LIST =
-      const CompletionSuggestionKind._("ARGUMENT_LIST");
+      CompletionSuggestionKind._("ARGUMENT_LIST");
 
   static const CompletionSuggestionKind IMPORT =
-      const CompletionSuggestionKind._("IMPORT");
+      CompletionSuggestionKind._("IMPORT");
 
   /**
    * The element identifier should be inserted at the completion location. For
@@ -1356,7 +1352,7 @@ class CompletionSuggestionKind implements Enum {
    * completion field is the element's identifier.
    */
   static const CompletionSuggestionKind IDENTIFIER =
-      const CompletionSuggestionKind._("IDENTIFIER");
+      CompletionSuggestionKind._("IDENTIFIER");
 
   /**
    * The element is being invoked at the completion location. For example,
@@ -1364,14 +1360,14 @@ class CompletionSuggestionKind implements Enum {
    * attribute is defined and the completion field is the element's identifier.
    */
   static const CompletionSuggestionKind INVOCATION =
-      const CompletionSuggestionKind._("INVOCATION");
+      CompletionSuggestionKind._("INVOCATION");
 
   /**
    * A keyword is being suggested. For suggestions of this kind, the completion
    * is the keyword.
    */
   static const CompletionSuggestionKind KEYWORD =
-      const CompletionSuggestionKind._("KEYWORD");
+      CompletionSuggestionKind._("KEYWORD");
 
   /**
    * A named argument for the current call site is being suggested. For
@@ -1379,25 +1375,25 @@ class CompletionSuggestionKind implements Enum {
    * including a trailing ':' and a space.
    */
   static const CompletionSuggestionKind NAMED_ARGUMENT =
-      const CompletionSuggestionKind._("NAMED_ARGUMENT");
+      CompletionSuggestionKind._("NAMED_ARGUMENT");
 
   static const CompletionSuggestionKind OPTIONAL_ARGUMENT =
-      const CompletionSuggestionKind._("OPTIONAL_ARGUMENT");
+      CompletionSuggestionKind._("OPTIONAL_ARGUMENT");
 
   /**
    * An overriding implementation of a class member is being suggested.
    */
   static const CompletionSuggestionKind OVERRIDE =
-      const CompletionSuggestionKind._("OVERRIDE");
+      CompletionSuggestionKind._("OVERRIDE");
 
   static const CompletionSuggestionKind PARAMETER =
-      const CompletionSuggestionKind._("PARAMETER");
+      CompletionSuggestionKind._("PARAMETER");
 
   /**
    * A list containing all of the enum values that are defined.
    */
   static const List<CompletionSuggestionKind> VALUES =
-      const <CompletionSuggestionKind>[
+      <CompletionSuggestionKind>[
     ARGUMENT_LIST,
     IMPORT,
     IDENTIFIER,
@@ -1435,14 +1431,14 @@ class CompletionSuggestionKind implements Enum {
       case "PARAMETER":
         return PARAMETER;
     }
-    throw new Exception('Illegal enum value: $name');
+    throw Exception('Illegal enum value: $name');
   }
 
   factory CompletionSuggestionKind.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json is String) {
       try {
-        return new CompletionSuggestionKind(json);
+        return CompletionSuggestionKind(json);
       } catch (_) {
         // Fall through
       }
@@ -1480,12 +1476,12 @@ class Element implements HasToJson {
   static const int FLAG_DEPRECATED = 0x20;
 
   static int makeFlags(
-      {bool isAbstract: false,
-      bool isConst: false,
-      bool isFinal: false,
-      bool isStatic: false,
-      bool isPrivate: false,
-      bool isDeprecated: false}) {
+      {bool isAbstract = false,
+      bool isConst = false,
+      bool isFinal = false,
+      bool isStatic = false,
+      bool isPrivate = false,
+      bool isDeprecated = false}) {
     int flags = 0;
     if (isAbstract) flags |= FLAG_ABSTRACT;
     if (isConst) flags |= FLAG_CONST;
@@ -1518,9 +1514,9 @@ class Element implements HasToJson {
   /**
    * The kind of the element.
    */
-  void set kind(ElementKind value) {
+  set kind(ElementKind value) {
     assert(value != null);
-    this._kind = value;
+    _kind = value;
   }
 
   /**
@@ -1533,9 +1529,9 @@ class Element implements HasToJson {
    * The name of the element. This is typically used as the label in the
    * outline.
    */
-  void set name(String value) {
+  set name(String value) {
     assert(value != null);
-    this._name = value;
+    _name = value;
   }
 
   /**
@@ -1546,8 +1542,8 @@ class Element implements HasToJson {
   /**
    * The location of the name in the declaration of the element.
    */
-  void set location(Location value) {
-    this._location = value;
+  set location(Location value) {
+    _location = value;
   }
 
   /**
@@ -1574,9 +1570,9 @@ class Element implements HasToJson {
    * - 0x10 - set if the element is private
    * - 0x20 - set if the element is deprecated
    */
-  void set flags(int value) {
+  set flags(int value) {
     assert(value != null);
-    this._flags = value;
+    _flags = value;
   }
 
   /**
@@ -1593,8 +1589,8 @@ class Element implements HasToJson {
    * parameters (e.g. getter), this field will not be defined. If the element
    * has zero parameters, this field will have a value of "()".
    */
-  void set parameters(String value) {
-    this._parameters = value;
+  set parameters(String value) {
+    _parameters = value;
   }
 
   /**
@@ -1609,8 +1605,8 @@ class Element implements HasToJson {
    * this field will not be defined. If the element does not have a declared
    * return type, this field will contain an empty string.
    */
-  void set returnType(String value) {
-    this._returnType = value;
+  set returnType(String value) {
+    _returnType = value;
   }
 
   /**
@@ -1623,8 +1619,8 @@ class Element implements HasToJson {
    * The type parameter list for the element. If the element doesn't have type
    * parameters, this field will not be defined.
    */
-  void set typeParameters(String value) {
-    this._typeParameters = value;
+  set typeParameters(String value) {
+    _typeParameters = value;
   }
 
   Element(ElementKind kind, String name, int flags,
@@ -1643,14 +1639,12 @@ class Element implements HasToJson {
 
   factory Element.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       ElementKind kind;
       if (json.containsKey("kind")) {
-        kind = new ElementKind.fromJson(
-            jsonDecoder, jsonPath + ".kind", json["kind"]);
+        kind =
+            ElementKind.fromJson(jsonDecoder, jsonPath + ".kind", json["kind"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "kind");
       }
@@ -1662,7 +1656,7 @@ class Element implements HasToJson {
       }
       Location location;
       if (json.containsKey("location")) {
-        location = new Location.fromJson(
+        location = Location.fromJson(
             jsonDecoder, jsonPath + ".location", json["location"]);
       }
       int flags;
@@ -1686,7 +1680,7 @@ class Element implements HasToJson {
         typeParameters = jsonDecoder.decodeString(
             jsonPath + ".typeParameters", json["typeParameters"]);
       }
-      return new Element(kind, name, flags,
+      return Element(kind, name, flags,
           location: location,
           parameters: parameters,
           returnType: returnType,
@@ -1790,72 +1784,66 @@ class Element implements HasToJson {
  * Clients may not extend, implement or mix-in this class.
  */
 class ElementKind implements Enum {
-  static const ElementKind CLASS = const ElementKind._("CLASS");
+  static const ElementKind CLASS = ElementKind._("CLASS");
 
-  static const ElementKind CLASS_TYPE_ALIAS =
-      const ElementKind._("CLASS_TYPE_ALIAS");
+  static const ElementKind CLASS_TYPE_ALIAS = ElementKind._("CLASS_TYPE_ALIAS");
 
-  static const ElementKind COMPILATION_UNIT =
-      const ElementKind._("COMPILATION_UNIT");
+  static const ElementKind COMPILATION_UNIT = ElementKind._("COMPILATION_UNIT");
 
-  static const ElementKind CONSTRUCTOR = const ElementKind._("CONSTRUCTOR");
+  static const ElementKind CONSTRUCTOR = ElementKind._("CONSTRUCTOR");
 
   static const ElementKind CONSTRUCTOR_INVOCATION =
-      const ElementKind._("CONSTRUCTOR_INVOCATION");
+      ElementKind._("CONSTRUCTOR_INVOCATION");
 
-  static const ElementKind ENUM = const ElementKind._("ENUM");
+  static const ElementKind ENUM = ElementKind._("ENUM");
 
-  static const ElementKind ENUM_CONSTANT = const ElementKind._("ENUM_CONSTANT");
+  static const ElementKind ENUM_CONSTANT = ElementKind._("ENUM_CONSTANT");
 
-  static const ElementKind FIELD = const ElementKind._("FIELD");
+  static const ElementKind FIELD = ElementKind._("FIELD");
 
-  static const ElementKind FILE = const ElementKind._("FILE");
+  static const ElementKind FILE = ElementKind._("FILE");
 
-  static const ElementKind FUNCTION = const ElementKind._("FUNCTION");
+  static const ElementKind FUNCTION = ElementKind._("FUNCTION");
 
   static const ElementKind FUNCTION_INVOCATION =
-      const ElementKind._("FUNCTION_INVOCATION");
+      ElementKind._("FUNCTION_INVOCATION");
 
   static const ElementKind FUNCTION_TYPE_ALIAS =
-      const ElementKind._("FUNCTION_TYPE_ALIAS");
+      ElementKind._("FUNCTION_TYPE_ALIAS");
 
-  static const ElementKind GETTER = const ElementKind._("GETTER");
+  static const ElementKind GETTER = ElementKind._("GETTER");
 
-  static const ElementKind LABEL = const ElementKind._("LABEL");
+  static const ElementKind LABEL = ElementKind._("LABEL");
 
-  static const ElementKind LIBRARY = const ElementKind._("LIBRARY");
+  static const ElementKind LIBRARY = ElementKind._("LIBRARY");
 
-  static const ElementKind LOCAL_VARIABLE =
-      const ElementKind._("LOCAL_VARIABLE");
+  static const ElementKind LOCAL_VARIABLE = ElementKind._("LOCAL_VARIABLE");
 
-  static const ElementKind METHOD = const ElementKind._("METHOD");
+  static const ElementKind METHOD = ElementKind._("METHOD");
 
-  static const ElementKind MIXIN = const ElementKind._("MIXIN");
+  static const ElementKind MIXIN = ElementKind._("MIXIN");
 
-  static const ElementKind PARAMETER = const ElementKind._("PARAMETER");
+  static const ElementKind PARAMETER = ElementKind._("PARAMETER");
 
-  static const ElementKind PREFIX = const ElementKind._("PREFIX");
+  static const ElementKind PREFIX = ElementKind._("PREFIX");
 
-  static const ElementKind SETTER = const ElementKind._("SETTER");
+  static const ElementKind SETTER = ElementKind._("SETTER");
 
   static const ElementKind TOP_LEVEL_VARIABLE =
-      const ElementKind._("TOP_LEVEL_VARIABLE");
+      ElementKind._("TOP_LEVEL_VARIABLE");
 
-  static const ElementKind TYPE_PARAMETER =
-      const ElementKind._("TYPE_PARAMETER");
+  static const ElementKind TYPE_PARAMETER = ElementKind._("TYPE_PARAMETER");
 
-  static const ElementKind UNIT_TEST_GROUP =
-      const ElementKind._("UNIT_TEST_GROUP");
+  static const ElementKind UNIT_TEST_GROUP = ElementKind._("UNIT_TEST_GROUP");
 
-  static const ElementKind UNIT_TEST_TEST =
-      const ElementKind._("UNIT_TEST_TEST");
+  static const ElementKind UNIT_TEST_TEST = ElementKind._("UNIT_TEST_TEST");
 
-  static const ElementKind UNKNOWN = const ElementKind._("UNKNOWN");
+  static const ElementKind UNKNOWN = ElementKind._("UNKNOWN");
 
   /**
    * A list containing all of the enum values that are defined.
    */
-  static const List<ElementKind> VALUES = const <ElementKind>[
+  static const List<ElementKind> VALUES = <ElementKind>[
     CLASS,
     CLASS_TYPE_ALIAS,
     COMPILATION_UNIT,
@@ -1944,14 +1932,14 @@ class ElementKind implements Enum {
       case "UNKNOWN":
         return UNKNOWN;
     }
-    throw new Exception('Illegal enum value: $name');
+    throw Exception('Illegal enum value: $name');
   }
 
   factory ElementKind.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json is String) {
       try {
-        return new ElementKind(json);
+        return ElementKind(json);
       } catch (_) {
         // Fall through
       }
@@ -1982,27 +1970,27 @@ class ElementKind implements Enum {
  * Clients may not extend, implement or mix-in this class.
  */
 class FoldingKind implements Enum {
-  static const FoldingKind ANNOTATIONS = const FoldingKind._("ANNOTATIONS");
+  static const FoldingKind ANNOTATIONS = FoldingKind._("ANNOTATIONS");
 
-  static const FoldingKind CLASS_BODY = const FoldingKind._("CLASS_BODY");
+  static const FoldingKind CLASS_BODY = FoldingKind._("CLASS_BODY");
 
-  static const FoldingKind DIRECTIVES = const FoldingKind._("DIRECTIVES");
+  static const FoldingKind DIRECTIVES = FoldingKind._("DIRECTIVES");
 
   static const FoldingKind DOCUMENTATION_COMMENT =
-      const FoldingKind._("DOCUMENTATION_COMMENT");
+      FoldingKind._("DOCUMENTATION_COMMENT");
 
-  static const FoldingKind FILE_HEADER = const FoldingKind._("FILE_HEADER");
+  static const FoldingKind FILE_HEADER = FoldingKind._("FILE_HEADER");
 
-  static const FoldingKind FUNCTION_BODY = const FoldingKind._("FUNCTION_BODY");
+  static const FoldingKind FUNCTION_BODY = FoldingKind._("FUNCTION_BODY");
 
-  static const FoldingKind INVOCATION = const FoldingKind._("INVOCATION");
+  static const FoldingKind INVOCATION = FoldingKind._("INVOCATION");
 
-  static const FoldingKind LITERAL = const FoldingKind._("LITERAL");
+  static const FoldingKind LITERAL = FoldingKind._("LITERAL");
 
   /**
    * A list containing all of the enum values that are defined.
    */
-  static const List<FoldingKind> VALUES = const <FoldingKind>[
+  static const List<FoldingKind> VALUES = <FoldingKind>[
     ANNOTATIONS,
     CLASS_BODY,
     DIRECTIVES,
@@ -2037,14 +2025,14 @@ class FoldingKind implements Enum {
       case "LITERAL":
         return LITERAL;
     }
-    throw new Exception('Illegal enum value: $name');
+    throw Exception('Illegal enum value: $name');
   }
 
   factory FoldingKind.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json is String) {
       try {
-        return new FoldingKind(json);
+        return FoldingKind(json);
       } catch (_) {
         // Fall through
       }
@@ -2084,9 +2072,9 @@ class FoldingRegion implements HasToJson {
   /**
    * The kind of the region.
    */
-  void set kind(FoldingKind value) {
+  set kind(FoldingKind value) {
     assert(value != null);
-    this._kind = value;
+    _kind = value;
   }
 
   /**
@@ -2097,9 +2085,9 @@ class FoldingRegion implements HasToJson {
   /**
    * The offset of the region to be folded.
    */
-  void set offset(int value) {
+  set offset(int value) {
     assert(value != null);
-    this._offset = value;
+    _offset = value;
   }
 
   /**
@@ -2110,9 +2098,9 @@ class FoldingRegion implements HasToJson {
   /**
    * The length of the region to be folded.
    */
-  void set length(int value) {
+  set length(int value) {
     assert(value != null);
-    this._length = value;
+    _length = value;
   }
 
   FoldingRegion(FoldingKind kind, int offset, int length) {
@@ -2123,14 +2111,12 @@ class FoldingRegion implements HasToJson {
 
   factory FoldingRegion.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       FoldingKind kind;
       if (json.containsKey("kind")) {
-        kind = new FoldingKind.fromJson(
-            jsonDecoder, jsonPath + ".kind", json["kind"]);
+        kind =
+            FoldingKind.fromJson(jsonDecoder, jsonPath + ".kind", json["kind"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "kind");
       }
@@ -2146,7 +2132,7 @@ class FoldingRegion implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "length");
       }
-      return new FoldingRegion(kind, offset, length);
+      return FoldingRegion(kind, offset, length);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "FoldingRegion", json);
     }
@@ -2210,9 +2196,9 @@ class HighlightRegion implements HasToJson {
   /**
    * The type of highlight associated with the region.
    */
-  void set type(HighlightRegionType value) {
+  set type(HighlightRegionType value) {
     assert(value != null);
-    this._type = value;
+    _type = value;
   }
 
   /**
@@ -2223,9 +2209,9 @@ class HighlightRegion implements HasToJson {
   /**
    * The offset of the region to be highlighted.
    */
-  void set offset(int value) {
+  set offset(int value) {
     assert(value != null);
-    this._offset = value;
+    _offset = value;
   }
 
   /**
@@ -2236,9 +2222,9 @@ class HighlightRegion implements HasToJson {
   /**
    * The length of the region to be highlighted.
    */
-  void set length(int value) {
+  set length(int value) {
     assert(value != null);
-    this._length = value;
+    _length = value;
   }
 
   HighlightRegion(HighlightRegionType type, int offset, int length) {
@@ -2249,13 +2235,11 @@ class HighlightRegion implements HasToJson {
 
   factory HighlightRegion.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       HighlightRegionType type;
       if (json.containsKey("type")) {
-        type = new HighlightRegionType.fromJson(
+        type = HighlightRegionType.fromJson(
             jsonDecoder, jsonPath + ".type", json["type"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "type");
@@ -2272,7 +2256,7 @@ class HighlightRegion implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "length");
       }
-      return new HighlightRegion(type, offset, length);
+      return HighlightRegion(type, offset, length);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "HighlightRegion", json);
     }
@@ -2393,371 +2377,367 @@ class HighlightRegion implements HasToJson {
  */
 class HighlightRegionType implements Enum {
   static const HighlightRegionType ANNOTATION =
-      const HighlightRegionType._("ANNOTATION");
+      HighlightRegionType._("ANNOTATION");
 
-  static const HighlightRegionType BUILT_IN =
-      const HighlightRegionType._("BUILT_IN");
+  static const HighlightRegionType BUILT_IN = HighlightRegionType._("BUILT_IN");
 
-  static const HighlightRegionType CLASS = const HighlightRegionType._("CLASS");
+  static const HighlightRegionType CLASS = HighlightRegionType._("CLASS");
 
   static const HighlightRegionType COMMENT_BLOCK =
-      const HighlightRegionType._("COMMENT_BLOCK");
+      HighlightRegionType._("COMMENT_BLOCK");
 
   static const HighlightRegionType COMMENT_DOCUMENTATION =
-      const HighlightRegionType._("COMMENT_DOCUMENTATION");
+      HighlightRegionType._("COMMENT_DOCUMENTATION");
 
   static const HighlightRegionType COMMENT_END_OF_LINE =
-      const HighlightRegionType._("COMMENT_END_OF_LINE");
+      HighlightRegionType._("COMMENT_END_OF_LINE");
 
   static const HighlightRegionType CONSTRUCTOR =
-      const HighlightRegionType._("CONSTRUCTOR");
+      HighlightRegionType._("CONSTRUCTOR");
 
   static const HighlightRegionType DIRECTIVE =
-      const HighlightRegionType._("DIRECTIVE");
+      HighlightRegionType._("DIRECTIVE");
 
   /**
    * Only for version 1 of highlight.
    */
   static const HighlightRegionType DYNAMIC_TYPE =
-      const HighlightRegionType._("DYNAMIC_TYPE");
+      HighlightRegionType._("DYNAMIC_TYPE");
 
   /**
    * Only for version 2 of highlight.
    */
   static const HighlightRegionType DYNAMIC_LOCAL_VARIABLE_DECLARATION =
-      const HighlightRegionType._("DYNAMIC_LOCAL_VARIABLE_DECLARATION");
+      HighlightRegionType._("DYNAMIC_LOCAL_VARIABLE_DECLARATION");
 
   /**
    * Only for version 2 of highlight.
    */
   static const HighlightRegionType DYNAMIC_LOCAL_VARIABLE_REFERENCE =
-      const HighlightRegionType._("DYNAMIC_LOCAL_VARIABLE_REFERENCE");
+      HighlightRegionType._("DYNAMIC_LOCAL_VARIABLE_REFERENCE");
 
   /**
    * Only for version 2 of highlight.
    */
   static const HighlightRegionType DYNAMIC_PARAMETER_DECLARATION =
-      const HighlightRegionType._("DYNAMIC_PARAMETER_DECLARATION");
+      HighlightRegionType._("DYNAMIC_PARAMETER_DECLARATION");
 
   /**
    * Only for version 2 of highlight.
    */
   static const HighlightRegionType DYNAMIC_PARAMETER_REFERENCE =
-      const HighlightRegionType._("DYNAMIC_PARAMETER_REFERENCE");
+      HighlightRegionType._("DYNAMIC_PARAMETER_REFERENCE");
 
-  static const HighlightRegionType ENUM = const HighlightRegionType._("ENUM");
+  static const HighlightRegionType ENUM = HighlightRegionType._("ENUM");
 
   static const HighlightRegionType ENUM_CONSTANT =
-      const HighlightRegionType._("ENUM_CONSTANT");
+      HighlightRegionType._("ENUM_CONSTANT");
 
   /**
    * Only for version 1 of highlight.
    */
-  static const HighlightRegionType FIELD = const HighlightRegionType._("FIELD");
+  static const HighlightRegionType FIELD = HighlightRegionType._("FIELD");
 
   /**
    * Only for version 1 of highlight.
    */
   static const HighlightRegionType FIELD_STATIC =
-      const HighlightRegionType._("FIELD_STATIC");
+      HighlightRegionType._("FIELD_STATIC");
 
   /**
    * Only for version 1 of highlight.
    */
-  static const HighlightRegionType FUNCTION =
-      const HighlightRegionType._("FUNCTION");
+  static const HighlightRegionType FUNCTION = HighlightRegionType._("FUNCTION");
 
   /**
    * Only for version 1 of highlight.
    */
   static const HighlightRegionType FUNCTION_DECLARATION =
-      const HighlightRegionType._("FUNCTION_DECLARATION");
+      HighlightRegionType._("FUNCTION_DECLARATION");
 
   static const HighlightRegionType FUNCTION_TYPE_ALIAS =
-      const HighlightRegionType._("FUNCTION_TYPE_ALIAS");
+      HighlightRegionType._("FUNCTION_TYPE_ALIAS");
 
   /**
    * Only for version 1 of highlight.
    */
   static const HighlightRegionType GETTER_DECLARATION =
-      const HighlightRegionType._("GETTER_DECLARATION");
+      HighlightRegionType._("GETTER_DECLARATION");
 
   static const HighlightRegionType IDENTIFIER_DEFAULT =
-      const HighlightRegionType._("IDENTIFIER_DEFAULT");
+      HighlightRegionType._("IDENTIFIER_DEFAULT");
 
   static const HighlightRegionType IMPORT_PREFIX =
-      const HighlightRegionType._("IMPORT_PREFIX");
+      HighlightRegionType._("IMPORT_PREFIX");
 
   /**
    * Only for version 2 of highlight.
    */
   static const HighlightRegionType INSTANCE_FIELD_DECLARATION =
-      const HighlightRegionType._("INSTANCE_FIELD_DECLARATION");
+      HighlightRegionType._("INSTANCE_FIELD_DECLARATION");
 
   /**
    * Only for version 2 of highlight.
    */
   static const HighlightRegionType INSTANCE_FIELD_REFERENCE =
-      const HighlightRegionType._("INSTANCE_FIELD_REFERENCE");
+      HighlightRegionType._("INSTANCE_FIELD_REFERENCE");
 
   /**
    * Only for version 2 of highlight.
    */
   static const HighlightRegionType INSTANCE_GETTER_DECLARATION =
-      const HighlightRegionType._("INSTANCE_GETTER_DECLARATION");
+      HighlightRegionType._("INSTANCE_GETTER_DECLARATION");
 
   /**
    * Only for version 2 of highlight.
    */
   static const HighlightRegionType INSTANCE_GETTER_REFERENCE =
-      const HighlightRegionType._("INSTANCE_GETTER_REFERENCE");
+      HighlightRegionType._("INSTANCE_GETTER_REFERENCE");
 
   /**
    * Only for version 2 of highlight.
    */
   static const HighlightRegionType INSTANCE_METHOD_DECLARATION =
-      const HighlightRegionType._("INSTANCE_METHOD_DECLARATION");
+      HighlightRegionType._("INSTANCE_METHOD_DECLARATION");
 
   /**
    * Only for version 2 of highlight.
    */
   static const HighlightRegionType INSTANCE_METHOD_REFERENCE =
-      const HighlightRegionType._("INSTANCE_METHOD_REFERENCE");
+      HighlightRegionType._("INSTANCE_METHOD_REFERENCE");
 
   /**
    * Only for version 2 of highlight.
    */
   static const HighlightRegionType INSTANCE_SETTER_DECLARATION =
-      const HighlightRegionType._("INSTANCE_SETTER_DECLARATION");
+      HighlightRegionType._("INSTANCE_SETTER_DECLARATION");
 
   /**
    * Only for version 2 of highlight.
    */
   static const HighlightRegionType INSTANCE_SETTER_REFERENCE =
-      const HighlightRegionType._("INSTANCE_SETTER_REFERENCE");
+      HighlightRegionType._("INSTANCE_SETTER_REFERENCE");
 
   /**
    * Only for version 2 of highlight.
    */
   static const HighlightRegionType INVALID_STRING_ESCAPE =
-      const HighlightRegionType._("INVALID_STRING_ESCAPE");
+      HighlightRegionType._("INVALID_STRING_ESCAPE");
 
-  static const HighlightRegionType KEYWORD =
-      const HighlightRegionType._("KEYWORD");
+  static const HighlightRegionType KEYWORD = HighlightRegionType._("KEYWORD");
 
-  static const HighlightRegionType LABEL = const HighlightRegionType._("LABEL");
+  static const HighlightRegionType LABEL = HighlightRegionType._("LABEL");
 
   /**
    * Only for version 2 of highlight.
    */
   static const HighlightRegionType LIBRARY_NAME =
-      const HighlightRegionType._("LIBRARY_NAME");
+      HighlightRegionType._("LIBRARY_NAME");
 
   static const HighlightRegionType LITERAL_BOOLEAN =
-      const HighlightRegionType._("LITERAL_BOOLEAN");
+      HighlightRegionType._("LITERAL_BOOLEAN");
 
   static const HighlightRegionType LITERAL_DOUBLE =
-      const HighlightRegionType._("LITERAL_DOUBLE");
+      HighlightRegionType._("LITERAL_DOUBLE");
 
   static const HighlightRegionType LITERAL_INTEGER =
-      const HighlightRegionType._("LITERAL_INTEGER");
+      HighlightRegionType._("LITERAL_INTEGER");
 
   static const HighlightRegionType LITERAL_LIST =
-      const HighlightRegionType._("LITERAL_LIST");
+      HighlightRegionType._("LITERAL_LIST");
 
   static const HighlightRegionType LITERAL_MAP =
-      const HighlightRegionType._("LITERAL_MAP");
+      HighlightRegionType._("LITERAL_MAP");
 
   static const HighlightRegionType LITERAL_STRING =
-      const HighlightRegionType._("LITERAL_STRING");
+      HighlightRegionType._("LITERAL_STRING");
 
   /**
    * Only for version 2 of highlight.
    */
   static const HighlightRegionType LOCAL_FUNCTION_DECLARATION =
-      const HighlightRegionType._("LOCAL_FUNCTION_DECLARATION");
+      HighlightRegionType._("LOCAL_FUNCTION_DECLARATION");
 
   /**
    * Only for version 2 of highlight.
    */
   static const HighlightRegionType LOCAL_FUNCTION_REFERENCE =
-      const HighlightRegionType._("LOCAL_FUNCTION_REFERENCE");
+      HighlightRegionType._("LOCAL_FUNCTION_REFERENCE");
 
   /**
    * Only for version 1 of highlight.
    */
   static const HighlightRegionType LOCAL_VARIABLE =
-      const HighlightRegionType._("LOCAL_VARIABLE");
+      HighlightRegionType._("LOCAL_VARIABLE");
 
   static const HighlightRegionType LOCAL_VARIABLE_DECLARATION =
-      const HighlightRegionType._("LOCAL_VARIABLE_DECLARATION");
+      HighlightRegionType._("LOCAL_VARIABLE_DECLARATION");
 
   /**
    * Only for version 2 of highlight.
    */
   static const HighlightRegionType LOCAL_VARIABLE_REFERENCE =
-      const HighlightRegionType._("LOCAL_VARIABLE_REFERENCE");
+      HighlightRegionType._("LOCAL_VARIABLE_REFERENCE");
 
   /**
    * Only for version 1 of highlight.
    */
-  static const HighlightRegionType METHOD =
-      const HighlightRegionType._("METHOD");
+  static const HighlightRegionType METHOD = HighlightRegionType._("METHOD");
 
   /**
    * Only for version 1 of highlight.
    */
   static const HighlightRegionType METHOD_DECLARATION =
-      const HighlightRegionType._("METHOD_DECLARATION");
+      HighlightRegionType._("METHOD_DECLARATION");
 
   /**
    * Only for version 1 of highlight.
    */
   static const HighlightRegionType METHOD_DECLARATION_STATIC =
-      const HighlightRegionType._("METHOD_DECLARATION_STATIC");
+      HighlightRegionType._("METHOD_DECLARATION_STATIC");
 
   /**
    * Only for version 1 of highlight.
    */
   static const HighlightRegionType METHOD_STATIC =
-      const HighlightRegionType._("METHOD_STATIC");
+      HighlightRegionType._("METHOD_STATIC");
 
   /**
    * Only for version 1 of highlight.
    */
   static const HighlightRegionType PARAMETER =
-      const HighlightRegionType._("PARAMETER");
+      HighlightRegionType._("PARAMETER");
 
   /**
    * Only for version 1 of highlight.
    */
   static const HighlightRegionType SETTER_DECLARATION =
-      const HighlightRegionType._("SETTER_DECLARATION");
+      HighlightRegionType._("SETTER_DECLARATION");
 
   /**
    * Only for version 1 of highlight.
    */
   static const HighlightRegionType TOP_LEVEL_VARIABLE =
-      const HighlightRegionType._("TOP_LEVEL_VARIABLE");
+      HighlightRegionType._("TOP_LEVEL_VARIABLE");
 
   /**
    * Only for version 2 of highlight.
    */
   static const HighlightRegionType PARAMETER_DECLARATION =
-      const HighlightRegionType._("PARAMETER_DECLARATION");
+      HighlightRegionType._("PARAMETER_DECLARATION");
 
   /**
    * Only for version 2 of highlight.
    */
   static const HighlightRegionType PARAMETER_REFERENCE =
-      const HighlightRegionType._("PARAMETER_REFERENCE");
+      HighlightRegionType._("PARAMETER_REFERENCE");
 
   /**
    * Only for version 2 of highlight.
    */
   static const HighlightRegionType STATIC_FIELD_DECLARATION =
-      const HighlightRegionType._("STATIC_FIELD_DECLARATION");
+      HighlightRegionType._("STATIC_FIELD_DECLARATION");
 
   /**
    * Only for version 2 of highlight.
    */
   static const HighlightRegionType STATIC_GETTER_DECLARATION =
-      const HighlightRegionType._("STATIC_GETTER_DECLARATION");
+      HighlightRegionType._("STATIC_GETTER_DECLARATION");
 
   /**
    * Only for version 2 of highlight.
    */
   static const HighlightRegionType STATIC_GETTER_REFERENCE =
-      const HighlightRegionType._("STATIC_GETTER_REFERENCE");
+      HighlightRegionType._("STATIC_GETTER_REFERENCE");
 
   /**
    * Only for version 2 of highlight.
    */
   static const HighlightRegionType STATIC_METHOD_DECLARATION =
-      const HighlightRegionType._("STATIC_METHOD_DECLARATION");
+      HighlightRegionType._("STATIC_METHOD_DECLARATION");
 
   /**
    * Only for version 2 of highlight.
    */
   static const HighlightRegionType STATIC_METHOD_REFERENCE =
-      const HighlightRegionType._("STATIC_METHOD_REFERENCE");
+      HighlightRegionType._("STATIC_METHOD_REFERENCE");
 
   /**
    * Only for version 2 of highlight.
    */
   static const HighlightRegionType STATIC_SETTER_DECLARATION =
-      const HighlightRegionType._("STATIC_SETTER_DECLARATION");
+      HighlightRegionType._("STATIC_SETTER_DECLARATION");
 
   /**
    * Only for version 2 of highlight.
    */
   static const HighlightRegionType STATIC_SETTER_REFERENCE =
-      const HighlightRegionType._("STATIC_SETTER_REFERENCE");
+      HighlightRegionType._("STATIC_SETTER_REFERENCE");
 
   /**
    * Only for version 2 of highlight.
    */
   static const HighlightRegionType TOP_LEVEL_FUNCTION_DECLARATION =
-      const HighlightRegionType._("TOP_LEVEL_FUNCTION_DECLARATION");
+      HighlightRegionType._("TOP_LEVEL_FUNCTION_DECLARATION");
 
   /**
    * Only for version 2 of highlight.
    */
   static const HighlightRegionType TOP_LEVEL_FUNCTION_REFERENCE =
-      const HighlightRegionType._("TOP_LEVEL_FUNCTION_REFERENCE");
+      HighlightRegionType._("TOP_LEVEL_FUNCTION_REFERENCE");
 
   /**
    * Only for version 2 of highlight.
    */
   static const HighlightRegionType TOP_LEVEL_GETTER_DECLARATION =
-      const HighlightRegionType._("TOP_LEVEL_GETTER_DECLARATION");
+      HighlightRegionType._("TOP_LEVEL_GETTER_DECLARATION");
 
   /**
    * Only for version 2 of highlight.
    */
   static const HighlightRegionType TOP_LEVEL_GETTER_REFERENCE =
-      const HighlightRegionType._("TOP_LEVEL_GETTER_REFERENCE");
+      HighlightRegionType._("TOP_LEVEL_GETTER_REFERENCE");
 
   /**
    * Only for version 2 of highlight.
    */
   static const HighlightRegionType TOP_LEVEL_SETTER_DECLARATION =
-      const HighlightRegionType._("TOP_LEVEL_SETTER_DECLARATION");
+      HighlightRegionType._("TOP_LEVEL_SETTER_DECLARATION");
 
   /**
    * Only for version 2 of highlight.
    */
   static const HighlightRegionType TOP_LEVEL_SETTER_REFERENCE =
-      const HighlightRegionType._("TOP_LEVEL_SETTER_REFERENCE");
+      HighlightRegionType._("TOP_LEVEL_SETTER_REFERENCE");
 
   /**
    * Only for version 2 of highlight.
    */
   static const HighlightRegionType TOP_LEVEL_VARIABLE_DECLARATION =
-      const HighlightRegionType._("TOP_LEVEL_VARIABLE_DECLARATION");
+      HighlightRegionType._("TOP_LEVEL_VARIABLE_DECLARATION");
 
   static const HighlightRegionType TYPE_NAME_DYNAMIC =
-      const HighlightRegionType._("TYPE_NAME_DYNAMIC");
+      HighlightRegionType._("TYPE_NAME_DYNAMIC");
 
   static const HighlightRegionType TYPE_PARAMETER =
-      const HighlightRegionType._("TYPE_PARAMETER");
+      HighlightRegionType._("TYPE_PARAMETER");
 
   /**
    * Only for version 2 of highlight.
    */
   static const HighlightRegionType UNRESOLVED_INSTANCE_MEMBER_REFERENCE =
-      const HighlightRegionType._("UNRESOLVED_INSTANCE_MEMBER_REFERENCE");
+      HighlightRegionType._("UNRESOLVED_INSTANCE_MEMBER_REFERENCE");
 
   /**
    * Only for version 2 of highlight.
    */
   static const HighlightRegionType VALID_STRING_ESCAPE =
-      const HighlightRegionType._("VALID_STRING_ESCAPE");
+      HighlightRegionType._("VALID_STRING_ESCAPE");
 
   /**
    * A list containing all of the enum values that are defined.
    */
-  static const List<HighlightRegionType> VALUES = const <HighlightRegionType>[
+  static const List<HighlightRegionType> VALUES = <HighlightRegionType>[
     ANNOTATION,
     BUILT_IN,
     CLASS,
@@ -2987,14 +2967,14 @@ class HighlightRegionType implements Enum {
       case "VALID_STRING_ESCAPE":
         return VALID_STRING_ESCAPE;
     }
-    throw new Exception('Illegal enum value: $name');
+    throw Exception('Illegal enum value: $name');
   }
 
   factory HighlightRegionType.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json is String) {
       try {
-        return new HighlightRegionType(json);
+        return HighlightRegionType(json);
       } catch (_) {
         // Fall through
       }
@@ -3040,9 +3020,9 @@ class KytheEntry implements HasToJson {
   /**
    * The ticket of the source node.
    */
-  void set source(KytheVName value) {
+  set source(KytheVName value) {
     assert(value != null);
-    this._source = value;
+    _source = value;
   }
 
   /**
@@ -3053,8 +3033,8 @@ class KytheEntry implements HasToJson {
   /**
    * An edge label. The schema defines which labels are meaningful.
    */
-  void set kind(String value) {
-    this._kind = value;
+  set kind(String value) {
+    _kind = value;
   }
 
   /**
@@ -3065,8 +3045,8 @@ class KytheEntry implements HasToJson {
   /**
    * The ticket of the target node.
    */
-  void set target(KytheVName value) {
-    this._target = value;
+  set target(KytheVName value) {
+    _target = value;
   }
 
   /**
@@ -3077,9 +3057,9 @@ class KytheEntry implements HasToJson {
   /**
    * A fact label. The schema defines which fact labels are meaningful.
    */
-  void set fact(String value) {
+  set fact(String value) {
     assert(value != null);
-    this._fact = value;
+    _fact = value;
   }
 
   /**
@@ -3090,8 +3070,8 @@ class KytheEntry implements HasToJson {
   /**
    * The String value of the fact.
    */
-  void set value(List<int> value) {
-    this._value = value;
+  set value(List<int> value) {
+    _value = value;
   }
 
   KytheEntry(KytheVName source, String fact,
@@ -3105,13 +3085,11 @@ class KytheEntry implements HasToJson {
 
   factory KytheEntry.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       KytheVName source;
       if (json.containsKey("source")) {
-        source = new KytheVName.fromJson(
+        source = KytheVName.fromJson(
             jsonDecoder, jsonPath + ".source", json["source"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "source");
@@ -3122,7 +3100,7 @@ class KytheEntry implements HasToJson {
       }
       KytheVName target;
       if (json.containsKey("target")) {
-        target = new KytheVName.fromJson(
+        target = KytheVName.fromJson(
             jsonDecoder, jsonPath + ".target", json["target"]);
       }
       String fact;
@@ -3136,8 +3114,7 @@ class KytheEntry implements HasToJson {
         value = jsonDecoder.decodeList(
             jsonPath + ".value", json["value"], jsonDecoder.decodeInt);
       }
-      return new KytheEntry(source, fact,
-          kind: kind, target: target, value: value);
+      return KytheEntry(source, fact, kind: kind, target: target, value: value);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "KytheEntry", json);
     }
@@ -3219,9 +3196,9 @@ class KytheVName implements HasToJson {
   /**
    * An opaque signature generated by the analyzer.
    */
-  void set signature(String value) {
+  set signature(String value) {
     assert(value != null);
-    this._signature = value;
+    _signature = value;
   }
 
   /**
@@ -3236,9 +3213,9 @@ class KytheVName implements HasToJson {
    * a collection of related files, such as the contents of a given source
    * repository.
    */
-  void set corpus(String value) {
+  set corpus(String value) {
     assert(value != null);
-    this._corpus = value;
+    _corpus = value;
   }
 
   /**
@@ -3253,9 +3230,9 @@ class KytheVName implements HasToJson {
    * identifier, denoting a distinct subset of the corpus. This may also be
    * used to designate virtual collections like generated files.
    */
-  void set root(String value) {
+  set root(String value) {
     assert(value != null);
-    this._root = value;
+    _root = value;
   }
 
   /**
@@ -3268,9 +3245,9 @@ class KytheVName implements HasToJson {
    * A path-structured label describing the “location” of the named object
    * relative to the corpus and the root.
    */
-  void set path(String value) {
+  set path(String value) {
     assert(value != null);
-    this._path = value;
+    _path = value;
   }
 
   /**
@@ -3281,9 +3258,9 @@ class KytheVName implements HasToJson {
   /**
    * The language this name belongs to.
    */
-  void set language(String value) {
+  set language(String value) {
     assert(value != null);
-    this._language = value;
+    _language = value;
   }
 
   KytheVName(String signature, String corpus, String root, String path,
@@ -3297,9 +3274,7 @@ class KytheVName implements HasToJson {
 
   factory KytheVName.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String signature;
       if (json.containsKey("signature")) {
@@ -3333,7 +3308,7 @@ class KytheVName implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "language");
       }
-      return new KytheVName(signature, corpus, root, path, language);
+      return KytheVName(signature, corpus, root, path, language);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "KytheVName", json);
     }
@@ -3403,9 +3378,9 @@ class LinkedEditGroup implements HasToJson {
   /**
    * The positions of the regions that should be edited simultaneously.
    */
-  void set positions(List<Position> value) {
+  set positions(List<Position> value) {
     assert(value != null);
-    this._positions = value;
+    _positions = value;
   }
 
   /**
@@ -3416,9 +3391,9 @@ class LinkedEditGroup implements HasToJson {
   /**
    * The length of the regions that should be edited simultaneously.
    */
-  void set length(int value) {
+  set length(int value) {
     assert(value != null);
-    this._length = value;
+    _length = value;
   }
 
   /**
@@ -3431,9 +3406,9 @@ class LinkedEditGroup implements HasToJson {
    * Pre-computed suggestions for what every region might want to be changed
    * to.
    */
-  void set suggestions(List<LinkedEditSuggestion> value) {
+  set suggestions(List<LinkedEditSuggestion> value) {
     assert(value != null);
-    this._suggestions = value;
+    _suggestions = value;
   }
 
   LinkedEditGroup(List<Position> positions, int length,
@@ -3445,9 +3420,7 @@ class LinkedEditGroup implements HasToJson {
 
   factory LinkedEditGroup.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       List<Position> positions;
       if (json.containsKey("positions")) {
@@ -3455,7 +3428,7 @@ class LinkedEditGroup implements HasToJson {
             jsonPath + ".positions",
             json["positions"],
             (String jsonPath, Object json) =>
-                new Position.fromJson(jsonDecoder, jsonPath, json));
+                Position.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "positions");
       }
@@ -3471,11 +3444,11 @@ class LinkedEditGroup implements HasToJson {
             jsonPath + ".suggestions",
             json["suggestions"],
             (String jsonPath, Object json) =>
-                new LinkedEditSuggestion.fromJson(jsonDecoder, jsonPath, json));
+                LinkedEditSuggestion.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "suggestions");
       }
-      return new LinkedEditGroup(positions, length, suggestions);
+      return LinkedEditGroup(positions, length, suggestions);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "LinkedEditGroup", json);
     }
@@ -3561,9 +3534,9 @@ class LinkedEditSuggestion implements HasToJson {
   /**
    * The value that could be used to replace all of the linked edit regions.
    */
-  void set value(String value) {
+  set value(String value) {
     assert(value != null);
-    this._value = value;
+    _value = value;
   }
 
   /**
@@ -3574,9 +3547,9 @@ class LinkedEditSuggestion implements HasToJson {
   /**
    * The kind of value being proposed.
    */
-  void set kind(LinkedEditSuggestionKind value) {
+  set kind(LinkedEditSuggestionKind value) {
     assert(value != null);
-    this._kind = value;
+    _kind = value;
   }
 
   LinkedEditSuggestion(String value, LinkedEditSuggestionKind kind) {
@@ -3586,9 +3559,7 @@ class LinkedEditSuggestion implements HasToJson {
 
   factory LinkedEditSuggestion.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String value;
       if (json.containsKey("value")) {
@@ -3598,12 +3569,12 @@ class LinkedEditSuggestion implements HasToJson {
       }
       LinkedEditSuggestionKind kind;
       if (json.containsKey("kind")) {
-        kind = new LinkedEditSuggestionKind.fromJson(
+        kind = LinkedEditSuggestionKind.fromJson(
             jsonDecoder, jsonPath + ".kind", json["kind"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "kind");
       }
-      return new LinkedEditSuggestion(value, kind);
+      return LinkedEditSuggestion(value, kind);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "LinkedEditSuggestion", json);
     }
@@ -3651,22 +3622,22 @@ class LinkedEditSuggestion implements HasToJson {
  */
 class LinkedEditSuggestionKind implements Enum {
   static const LinkedEditSuggestionKind METHOD =
-      const LinkedEditSuggestionKind._("METHOD");
+      LinkedEditSuggestionKind._("METHOD");
 
   static const LinkedEditSuggestionKind PARAMETER =
-      const LinkedEditSuggestionKind._("PARAMETER");
+      LinkedEditSuggestionKind._("PARAMETER");
 
   static const LinkedEditSuggestionKind TYPE =
-      const LinkedEditSuggestionKind._("TYPE");
+      LinkedEditSuggestionKind._("TYPE");
 
   static const LinkedEditSuggestionKind VARIABLE =
-      const LinkedEditSuggestionKind._("VARIABLE");
+      LinkedEditSuggestionKind._("VARIABLE");
 
   /**
    * A list containing all of the enum values that are defined.
    */
   static const List<LinkedEditSuggestionKind> VALUES =
-      const <LinkedEditSuggestionKind>[METHOD, PARAMETER, TYPE, VARIABLE];
+      <LinkedEditSuggestionKind>[METHOD, PARAMETER, TYPE, VARIABLE];
 
   @override
   final String name;
@@ -3684,14 +3655,14 @@ class LinkedEditSuggestionKind implements Enum {
       case "VARIABLE":
         return VARIABLE;
     }
-    throw new Exception('Illegal enum value: $name');
+    throw Exception('Illegal enum value: $name');
   }
 
   factory LinkedEditSuggestionKind.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json is String) {
       try {
-        return new LinkedEditSuggestionKind(json);
+        return LinkedEditSuggestionKind(json);
       } catch (_) {
         // Fall through
       }
@@ -3737,9 +3708,9 @@ class Location implements HasToJson {
   /**
    * The file containing the range.
    */
-  void set file(String value) {
+  set file(String value) {
     assert(value != null);
-    this._file = value;
+    _file = value;
   }
 
   /**
@@ -3750,9 +3721,9 @@ class Location implements HasToJson {
   /**
    * The offset of the range.
    */
-  void set offset(int value) {
+  set offset(int value) {
     assert(value != null);
-    this._offset = value;
+    _offset = value;
   }
 
   /**
@@ -3763,9 +3734,9 @@ class Location implements HasToJson {
   /**
    * The length of the range.
    */
-  void set length(int value) {
+  set length(int value) {
     assert(value != null);
-    this._length = value;
+    _length = value;
   }
 
   /**
@@ -3778,9 +3749,9 @@ class Location implements HasToJson {
    * The one-based index of the line containing the first character of the
    * range.
    */
-  void set startLine(int value) {
+  set startLine(int value) {
     assert(value != null);
-    this._startLine = value;
+    _startLine = value;
   }
 
   /**
@@ -3793,9 +3764,9 @@ class Location implements HasToJson {
    * The one-based index of the column containing the first character of the
    * range.
    */
-  void set startColumn(int value) {
+  set startColumn(int value) {
     assert(value != null);
-    this._startColumn = value;
+    _startColumn = value;
   }
 
   Location(
@@ -3809,9 +3780,7 @@ class Location implements HasToJson {
 
   factory Location.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -3845,7 +3814,7 @@ class Location implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "startColumn");
       }
-      return new Location(file, offset, length, startLine, startColumn);
+      return Location(file, offset, length, startLine, startColumn);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "Location", json);
     }
@@ -3915,9 +3884,9 @@ class NavigationRegion implements HasToJson {
   /**
    * The offset of the region from which the user can navigate.
    */
-  void set offset(int value) {
+  set offset(int value) {
     assert(value != null);
-    this._offset = value;
+    _offset = value;
   }
 
   /**
@@ -3928,9 +3897,9 @@ class NavigationRegion implements HasToJson {
   /**
    * The length of the region from which the user can navigate.
    */
-  void set length(int value) {
+  set length(int value) {
     assert(value != null);
-    this._length = value;
+    _length = value;
   }
 
   /**
@@ -3945,9 +3914,9 @@ class NavigationRegion implements HasToJson {
    * the given region is bound. By opening the target, clients can implement
    * one form of navigation. This list cannot be empty.
    */
-  void set targets(List<int> value) {
+  set targets(List<int> value) {
     assert(value != null);
-    this._targets = value;
+    _targets = value;
   }
 
   NavigationRegion(int offset, int length, List<int> targets) {
@@ -3958,9 +3927,7 @@ class NavigationRegion implements HasToJson {
 
   factory NavigationRegion.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       int offset;
       if (json.containsKey("offset")) {
@@ -3981,7 +3948,7 @@ class NavigationRegion implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "targets");
       }
-      return new NavigationRegion(offset, length, targets);
+      return NavigationRegion(offset, length, targets);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "NavigationRegion", json);
     }
@@ -4054,9 +4021,9 @@ class NavigationTarget implements HasToJson {
   /**
    * The kind of the element.
    */
-  void set kind(ElementKind value) {
+  set kind(ElementKind value) {
     assert(value != null);
-    this._kind = value;
+    _kind = value;
   }
 
   /**
@@ -4069,9 +4036,9 @@ class NavigationTarget implements HasToJson {
    * The index of the file (in the enclosing navigation response) to navigate
    * to.
    */
-  void set fileIndex(int value) {
+  set fileIndex(int value) {
     assert(value != null);
-    this._fileIndex = value;
+    _fileIndex = value;
   }
 
   /**
@@ -4082,9 +4049,9 @@ class NavigationTarget implements HasToJson {
   /**
    * The offset of the region to which the user can navigate.
    */
-  void set offset(int value) {
+  set offset(int value) {
     assert(value != null);
-    this._offset = value;
+    _offset = value;
   }
 
   /**
@@ -4095,9 +4062,9 @@ class NavigationTarget implements HasToJson {
   /**
    * The length of the region to which the user can navigate.
    */
-  void set length(int value) {
+  set length(int value) {
     assert(value != null);
-    this._length = value;
+    _length = value;
   }
 
   /**
@@ -4110,9 +4077,9 @@ class NavigationTarget implements HasToJson {
    * The one-based index of the line containing the first character of the
    * region.
    */
-  void set startLine(int value) {
+  set startLine(int value) {
     assert(value != null);
-    this._startLine = value;
+    _startLine = value;
   }
 
   /**
@@ -4125,9 +4092,9 @@ class NavigationTarget implements HasToJson {
    * The one-based index of the column containing the first character of the
    * region.
    */
-  void set startColumn(int value) {
+  set startColumn(int value) {
     assert(value != null);
-    this._startColumn = value;
+    _startColumn = value;
   }
 
   NavigationTarget(ElementKind kind, int fileIndex, int offset, int length,
@@ -4142,14 +4109,12 @@ class NavigationTarget implements HasToJson {
 
   factory NavigationTarget.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       ElementKind kind;
       if (json.containsKey("kind")) {
-        kind = new ElementKind.fromJson(
-            jsonDecoder, jsonPath + ".kind", json["kind"]);
+        kind =
+            ElementKind.fromJson(jsonDecoder, jsonPath + ".kind", json["kind"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "kind");
       }
@@ -4186,7 +4151,7 @@ class NavigationTarget implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "startColumn");
       }
-      return new NavigationTarget(
+      return NavigationTarget(
           kind, fileIndex, offset, length, startLine, startColumn);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "NavigationTarget", json);
@@ -4260,9 +4225,9 @@ class Occurrences implements HasToJson {
   /**
    * The element that was referenced.
    */
-  void set element(Element value) {
+  set element(Element value) {
     assert(value != null);
-    this._element = value;
+    _element = value;
   }
 
   /**
@@ -4273,9 +4238,9 @@ class Occurrences implements HasToJson {
   /**
    * The offsets of the name of the referenced element within the file.
    */
-  void set offsets(List<int> value) {
+  set offsets(List<int> value) {
     assert(value != null);
-    this._offsets = value;
+    _offsets = value;
   }
 
   /**
@@ -4286,9 +4251,9 @@ class Occurrences implements HasToJson {
   /**
    * The length of the name of the referenced element.
    */
-  void set length(int value) {
+  set length(int value) {
     assert(value != null);
-    this._length = value;
+    _length = value;
   }
 
   Occurrences(Element element, List<int> offsets, int length) {
@@ -4299,13 +4264,11 @@ class Occurrences implements HasToJson {
 
   factory Occurrences.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       Element element;
       if (json.containsKey("element")) {
-        element = new Element.fromJson(
+        element = Element.fromJson(
             jsonDecoder, jsonPath + ".element", json["element"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "element");
@@ -4323,7 +4286,7 @@ class Occurrences implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "length");
       }
-      return new Occurrences(element, offsets, length);
+      return Occurrences(element, offsets, length);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "Occurrences", json);
     }
@@ -4396,9 +4359,9 @@ class Outline implements HasToJson {
   /**
    * A description of the element represented by this node.
    */
-  void set element(Element value) {
+  set element(Element value) {
     assert(value != null);
-    this._element = value;
+    _element = value;
   }
 
   /**
@@ -4415,9 +4378,9 @@ class Outline implements HasToJson {
    * It can be used, for example, to map locations in the file back to an
    * outline.
    */
-  void set offset(int value) {
+  set offset(int value) {
     assert(value != null);
-    this._offset = value;
+    _offset = value;
   }
 
   /**
@@ -4428,9 +4391,9 @@ class Outline implements HasToJson {
   /**
    * The length of the element.
    */
-  void set length(int value) {
+  set length(int value) {
     assert(value != null);
-    this._length = value;
+    _length = value;
   }
 
   /**
@@ -4443,9 +4406,9 @@ class Outline implements HasToJson {
    * The offset of the first character of the element code, which is neither
    * documentation, nor annotation.
    */
-  void set codeOffset(int value) {
+  set codeOffset(int value) {
     assert(value != null);
-    this._codeOffset = value;
+    _codeOffset = value;
   }
 
   /**
@@ -4456,9 +4419,9 @@ class Outline implements HasToJson {
   /**
    * The length of the element code.
    */
-  void set codeLength(int value) {
+  set codeLength(int value) {
     assert(value != null);
-    this._codeLength = value;
+    _codeLength = value;
   }
 
   /**
@@ -4471,8 +4434,8 @@ class Outline implements HasToJson {
    * The children of the node. The field will be omitted if the node has no
    * children. Children are sorted by offset.
    */
-  void set children(List<Outline> value) {
-    this._children = value;
+  set children(List<Outline> value) {
+    _children = value;
   }
 
   Outline(
@@ -4488,13 +4451,11 @@ class Outline implements HasToJson {
 
   factory Outline.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       Element element;
       if (json.containsKey("element")) {
-        element = new Element.fromJson(
+        element = Element.fromJson(
             jsonDecoder, jsonPath + ".element", json["element"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "element");
@@ -4531,9 +4492,9 @@ class Outline implements HasToJson {
             jsonPath + ".children",
             json["children"],
             (String jsonPath, Object json) =>
-                new Outline.fromJson(jsonDecoder, jsonPath, json));
+                Outline.fromJson(jsonDecoder, jsonPath, json));
       }
-      return new Outline(element, offset, length, codeOffset, codeLength,
+      return Outline(element, offset, length, codeOffset, codeLength,
           children: children);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "Outline", json);
@@ -4613,9 +4574,9 @@ class ParameterInfo implements HasToJson {
   /**
    * The kind of the parameter.
    */
-  void set kind(ParameterKind value) {
+  set kind(ParameterKind value) {
     assert(value != null);
-    this._kind = value;
+    _kind = value;
   }
 
   /**
@@ -4626,9 +4587,9 @@ class ParameterInfo implements HasToJson {
   /**
    * The name of the parameter.
    */
-  void set name(String value) {
+  set name(String value) {
     assert(value != null);
-    this._name = value;
+    _name = value;
   }
 
   /**
@@ -4639,9 +4600,9 @@ class ParameterInfo implements HasToJson {
   /**
    * The type of the parameter.
    */
-  void set type(String value) {
+  set type(String value) {
     assert(value != null);
-    this._type = value;
+    _type = value;
   }
 
   /**
@@ -4654,8 +4615,8 @@ class ParameterInfo implements HasToJson {
    * The default value for this parameter. This value will be omitted if the
    * parameter does not have a default value.
    */
-  void set defaultValue(String value) {
-    this._defaultValue = value;
+  set defaultValue(String value) {
+    _defaultValue = value;
   }
 
   ParameterInfo(ParameterKind kind, String name, String type,
@@ -4668,13 +4629,11 @@ class ParameterInfo implements HasToJson {
 
   factory ParameterInfo.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       ParameterKind kind;
       if (json.containsKey("kind")) {
-        kind = new ParameterKind.fromJson(
+        kind = ParameterKind.fromJson(
             jsonDecoder, jsonPath + ".kind", json["kind"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "kind");
@@ -4696,7 +4655,7 @@ class ParameterInfo implements HasToJson {
         defaultValue = jsonDecoder.decodeString(
             jsonPath + ".defaultValue", json["defaultValue"]);
       }
-      return new ParameterInfo(kind, name, type, defaultValue: defaultValue);
+      return ParameterInfo(kind, name, type, defaultValue: defaultValue);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "ParameterInfo", json);
     }
@@ -4754,22 +4713,22 @@ class ParameterKind implements Enum {
   /**
    * A named parameter.
    */
-  static const ParameterKind NAMED = const ParameterKind._("NAMED");
+  static const ParameterKind NAMED = ParameterKind._("NAMED");
 
   /**
    * An optional parameter.
    */
-  static const ParameterKind OPTIONAL = const ParameterKind._("OPTIONAL");
+  static const ParameterKind OPTIONAL = ParameterKind._("OPTIONAL");
 
   /**
    * A required parameter.
    */
-  static const ParameterKind REQUIRED = const ParameterKind._("REQUIRED");
+  static const ParameterKind REQUIRED = ParameterKind._("REQUIRED");
 
   /**
    * A list containing all of the enum values that are defined.
    */
-  static const List<ParameterKind> VALUES = const <ParameterKind>[
+  static const List<ParameterKind> VALUES = <ParameterKind>[
     NAMED,
     OPTIONAL,
     REQUIRED
@@ -4789,14 +4748,14 @@ class ParameterKind implements Enum {
       case "REQUIRED":
         return REQUIRED;
     }
-    throw new Exception('Illegal enum value: $name');
+    throw Exception('Illegal enum value: $name');
   }
 
   factory ParameterKind.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json is String) {
       try {
-        return new ParameterKind(json);
+        return ParameterKind(json);
       } catch (_) {
         // Fall through
       }
@@ -4833,9 +4792,9 @@ class Position implements HasToJson {
   /**
    * The file containing the position.
    */
-  void set file(String value) {
+  set file(String value) {
     assert(value != null);
-    this._file = value;
+    _file = value;
   }
 
   /**
@@ -4846,9 +4805,9 @@ class Position implements HasToJson {
   /**
    * The offset of the position.
    */
-  void set offset(int value) {
+  set offset(int value) {
     assert(value != null);
-    this._offset = value;
+    _offset = value;
   }
 
   Position(String file, int offset) {
@@ -4858,9 +4817,7 @@ class Position implements HasToJson {
 
   factory Position.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -4874,7 +4831,7 @@ class Position implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "offset");
       }
-      return new Position(file, offset);
+      return Position(file, offset);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "Position", json);
     }
@@ -4927,34 +4884,34 @@ class Position implements HasToJson {
  */
 class RefactoringKind implements Enum {
   static const RefactoringKind CONVERT_GETTER_TO_METHOD =
-      const RefactoringKind._("CONVERT_GETTER_TO_METHOD");
+      RefactoringKind._("CONVERT_GETTER_TO_METHOD");
 
   static const RefactoringKind CONVERT_METHOD_TO_GETTER =
-      const RefactoringKind._("CONVERT_METHOD_TO_GETTER");
+      RefactoringKind._("CONVERT_METHOD_TO_GETTER");
 
   static const RefactoringKind EXTRACT_LOCAL_VARIABLE =
-      const RefactoringKind._("EXTRACT_LOCAL_VARIABLE");
+      RefactoringKind._("EXTRACT_LOCAL_VARIABLE");
 
   static const RefactoringKind EXTRACT_METHOD =
-      const RefactoringKind._("EXTRACT_METHOD");
+      RefactoringKind._("EXTRACT_METHOD");
 
   static const RefactoringKind EXTRACT_WIDGET =
-      const RefactoringKind._("EXTRACT_WIDGET");
+      RefactoringKind._("EXTRACT_WIDGET");
 
   static const RefactoringKind INLINE_LOCAL_VARIABLE =
-      const RefactoringKind._("INLINE_LOCAL_VARIABLE");
+      RefactoringKind._("INLINE_LOCAL_VARIABLE");
 
   static const RefactoringKind INLINE_METHOD =
-      const RefactoringKind._("INLINE_METHOD");
+      RefactoringKind._("INLINE_METHOD");
 
-  static const RefactoringKind MOVE_FILE = const RefactoringKind._("MOVE_FILE");
+  static const RefactoringKind MOVE_FILE = RefactoringKind._("MOVE_FILE");
 
-  static const RefactoringKind RENAME = const RefactoringKind._("RENAME");
+  static const RefactoringKind RENAME = RefactoringKind._("RENAME");
 
   /**
    * A list containing all of the enum values that are defined.
    */
-  static const List<RefactoringKind> VALUES = const <RefactoringKind>[
+  static const List<RefactoringKind> VALUES = <RefactoringKind>[
     CONVERT_GETTER_TO_METHOD,
     CONVERT_METHOD_TO_GETTER,
     EXTRACT_LOCAL_VARIABLE,
@@ -4992,14 +4949,14 @@ class RefactoringKind implements Enum {
       case "RENAME":
         return RENAME;
     }
-    throw new Exception('Illegal enum value: $name');
+    throw Exception('Illegal enum value: $name');
   }
 
   factory RefactoringKind.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json is String) {
       try {
-        return new RefactoringKind(json);
+        return RefactoringKind(json);
       } catch (_) {
         // Fall through
       }
@@ -5047,8 +5004,8 @@ class RefactoringMethodParameter implements HasToJson {
    * The unique identifier of the parameter. Clients may omit this field for
    * the parameters they want to add.
    */
-  void set id(String value) {
-    this._id = value;
+  set id(String value) {
+    _id = value;
   }
 
   /**
@@ -5059,9 +5016,9 @@ class RefactoringMethodParameter implements HasToJson {
   /**
    * The kind of the parameter.
    */
-  void set kind(RefactoringMethodParameterKind value) {
+  set kind(RefactoringMethodParameterKind value) {
     assert(value != null);
-    this._kind = value;
+    _kind = value;
   }
 
   /**
@@ -5074,9 +5031,9 @@ class RefactoringMethodParameter implements HasToJson {
    * The type that should be given to the parameter, or the return type of the
    * parameter's function type.
    */
-  void set type(String value) {
+  set type(String value) {
     assert(value != null);
-    this._type = value;
+    _type = value;
   }
 
   /**
@@ -5087,9 +5044,9 @@ class RefactoringMethodParameter implements HasToJson {
   /**
    * The name that should be given to the parameter.
    */
-  void set name(String value) {
+  set name(String value) {
     assert(value != null);
-    this._name = value;
+    _name = value;
   }
 
   /**
@@ -5104,8 +5061,8 @@ class RefactoringMethodParameter implements HasToJson {
    * not of a function type, this field will not be defined. If the function
    * type has zero parameters, this field will have a value of '()'.
    */
-  void set parameters(String value) {
-    this._parameters = value;
+  set parameters(String value) {
+    _parameters = value;
   }
 
   RefactoringMethodParameter(
@@ -5120,9 +5077,7 @@ class RefactoringMethodParameter implements HasToJson {
 
   factory RefactoringMethodParameter.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String id;
       if (json.containsKey("id")) {
@@ -5130,7 +5085,7 @@ class RefactoringMethodParameter implements HasToJson {
       }
       RefactoringMethodParameterKind kind;
       if (json.containsKey("kind")) {
-        kind = new RefactoringMethodParameterKind.fromJson(
+        kind = RefactoringMethodParameterKind.fromJson(
             jsonDecoder, jsonPath + ".kind", json["kind"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "kind");
@@ -5152,7 +5107,7 @@ class RefactoringMethodParameter implements HasToJson {
         parameters = jsonDecoder.decodeString(
             jsonPath + ".parameters", json["parameters"]);
       }
-      return new RefactoringMethodParameter(kind, type, name,
+      return RefactoringMethodParameter(kind, type, name,
           id: id, parameters: parameters);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "RefactoringMethodParameter", json);
@@ -5214,19 +5169,19 @@ class RefactoringMethodParameter implements HasToJson {
  */
 class RefactoringMethodParameterKind implements Enum {
   static const RefactoringMethodParameterKind REQUIRED =
-      const RefactoringMethodParameterKind._("REQUIRED");
+      RefactoringMethodParameterKind._("REQUIRED");
 
   static const RefactoringMethodParameterKind POSITIONAL =
-      const RefactoringMethodParameterKind._("POSITIONAL");
+      RefactoringMethodParameterKind._("POSITIONAL");
 
   static const RefactoringMethodParameterKind NAMED =
-      const RefactoringMethodParameterKind._("NAMED");
+      RefactoringMethodParameterKind._("NAMED");
 
   /**
    * A list containing all of the enum values that are defined.
    */
   static const List<RefactoringMethodParameterKind> VALUES =
-      const <RefactoringMethodParameterKind>[REQUIRED, POSITIONAL, NAMED];
+      <RefactoringMethodParameterKind>[REQUIRED, POSITIONAL, NAMED];
 
   @override
   final String name;
@@ -5242,14 +5197,14 @@ class RefactoringMethodParameterKind implements Enum {
       case "NAMED":
         return NAMED;
     }
-    throw new Exception('Illegal enum value: $name');
+    throw Exception('Illegal enum value: $name');
   }
 
   factory RefactoringMethodParameterKind.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json is String) {
       try {
-        return new RefactoringMethodParameterKind(json);
+        return RefactoringMethodParameterKind(json);
       } catch (_) {
         // Fall through
       }
@@ -5290,9 +5245,9 @@ class RefactoringProblem implements HasToJson {
   /**
    * The severity of the problem being represented.
    */
-  void set severity(RefactoringProblemSeverity value) {
+  set severity(RefactoringProblemSeverity value) {
     assert(value != null);
-    this._severity = value;
+    _severity = value;
   }
 
   /**
@@ -5303,9 +5258,9 @@ class RefactoringProblem implements HasToJson {
   /**
    * A human-readable description of the problem being represented.
    */
-  void set message(String value) {
+  set message(String value) {
     assert(value != null);
-    this._message = value;
+    _message = value;
   }
 
   /**
@@ -5320,8 +5275,8 @@ class RefactoringProblem implements HasToJson {
    * unless there is a specific location associated with the problem (such as a
    * location where an element being renamed will be shadowed).
    */
-  void set location(Location value) {
-    this._location = value;
+  set location(Location value) {
+    _location = value;
   }
 
   RefactoringProblem(RefactoringProblemSeverity severity, String message,
@@ -5333,13 +5288,11 @@ class RefactoringProblem implements HasToJson {
 
   factory RefactoringProblem.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       RefactoringProblemSeverity severity;
       if (json.containsKey("severity")) {
-        severity = new RefactoringProblemSeverity.fromJson(
+        severity = RefactoringProblemSeverity.fromJson(
             jsonDecoder, jsonPath + ".severity", json["severity"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "severity");
@@ -5353,10 +5306,10 @@ class RefactoringProblem implements HasToJson {
       }
       Location location;
       if (json.containsKey("location")) {
-        location = new Location.fromJson(
+        location = Location.fromJson(
             jsonDecoder, jsonPath + ".location", json["location"]);
       }
-      return new RefactoringProblem(severity, message, location: location);
+      return RefactoringProblem(severity, message, location: location);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "RefactoringProblem", json);
     }
@@ -5413,7 +5366,7 @@ class RefactoringProblemSeverity implements Enum {
    * A minor code problem. No example, because it is not used yet.
    */
   static const RefactoringProblemSeverity INFO =
-      const RefactoringProblemSeverity._("INFO");
+      RefactoringProblemSeverity._("INFO");
 
   /**
    * A minor code problem. For example names of local variables should be camel
@@ -5422,7 +5375,7 @@ class RefactoringProblemSeverity implements Enum {
    * to warn the user.
    */
   static const RefactoringProblemSeverity WARNING =
-      const RefactoringProblemSeverity._("WARNING");
+      RefactoringProblemSeverity._("WARNING");
 
   /**
    * The refactoring technically can be performed, but there is a logical
@@ -5436,7 +5389,7 @@ class RefactoringProblemSeverity implements Enum {
    * afterwards.
    */
   static const RefactoringProblemSeverity ERROR =
-      const RefactoringProblemSeverity._("ERROR");
+      RefactoringProblemSeverity._("ERROR");
 
   /**
    * A fatal error, which prevents performing the refactoring. For example the
@@ -5444,13 +5397,13 @@ class RefactoringProblemSeverity implements Enum {
    * selection is not a valid expression.
    */
   static const RefactoringProblemSeverity FATAL =
-      const RefactoringProblemSeverity._("FATAL");
+      RefactoringProblemSeverity._("FATAL");
 
   /**
    * A list containing all of the enum values that are defined.
    */
   static const List<RefactoringProblemSeverity> VALUES =
-      const <RefactoringProblemSeverity>[INFO, WARNING, ERROR, FATAL];
+      <RefactoringProblemSeverity>[INFO, WARNING, ERROR, FATAL];
 
   @override
   final String name;
@@ -5468,14 +5421,14 @@ class RefactoringProblemSeverity implements Enum {
       case "FATAL":
         return FATAL;
     }
-    throw new Exception('Illegal enum value: $name');
+    throw Exception('Illegal enum value: $name');
   }
 
   factory RefactoringProblemSeverity.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json is String) {
       try {
-        return new RefactoringProblemSeverity(json);
+        return RefactoringProblemSeverity(json);
       } catch (_) {
         // Fall through
       }
@@ -5510,14 +5463,12 @@ class RemoveContentOverlay implements HasToJson {
 
   factory RemoveContentOverlay.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       if (json["type"] != "remove") {
-        throw jsonDecoder.mismatch(jsonPath, "equal " + "remove", json);
+        throw jsonDecoder.mismatch(jsonPath, "equal remove", json);
       }
-      return new RemoveContentOverlay();
+      return RemoveContentOverlay();
     } else {
       throw jsonDecoder.mismatch(jsonPath, "RemoveContentOverlay", json);
     }
@@ -5581,9 +5532,9 @@ class SourceChange implements HasToJson {
   /**
    * A human-readable description of the change to be applied.
    */
-  void set message(String value) {
+  set message(String value) {
     assert(value != null);
-    this._message = value;
+    _message = value;
   }
 
   /**
@@ -5594,9 +5545,9 @@ class SourceChange implements HasToJson {
   /**
    * A list of the edits used to effect the change, grouped by file.
    */
-  void set edits(List<SourceFileEdit> value) {
+  set edits(List<SourceFileEdit> value) {
     assert(value != null);
-    this._edits = value;
+    _edits = value;
   }
 
   /**
@@ -5609,9 +5560,9 @@ class SourceChange implements HasToJson {
    * A list of the linked editing groups used to customize the changes that
    * were made.
    */
-  void set linkedEditGroups(List<LinkedEditGroup> value) {
+  set linkedEditGroups(List<LinkedEditGroup> value) {
     assert(value != null);
-    this._linkedEditGroups = value;
+    _linkedEditGroups = value;
   }
 
   /**
@@ -5622,8 +5573,8 @@ class SourceChange implements HasToJson {
   /**
    * The position that should be selected after the edits have been applied.
    */
-  void set selection(Position value) {
-    this._selection = value;
+  set selection(Position value) {
+    _selection = value;
   }
 
   /**
@@ -5636,8 +5587,8 @@ class SourceChange implements HasToJson {
    * The optional identifier of the change kind. The identifier remains stable
    * even if the message changes, or is parameterized.
    */
-  void set id(String value) {
-    this._id = value;
+  set id(String value) {
+    _id = value;
   }
 
   SourceChange(String message,
@@ -5662,9 +5613,7 @@ class SourceChange implements HasToJson {
 
   factory SourceChange.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String message;
       if (json.containsKey("message")) {
@@ -5679,7 +5628,7 @@ class SourceChange implements HasToJson {
             jsonPath + ".edits",
             json["edits"],
             (String jsonPath, Object json) =>
-                new SourceFileEdit.fromJson(jsonDecoder, jsonPath, json));
+                SourceFileEdit.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "edits");
       }
@@ -5689,20 +5638,20 @@ class SourceChange implements HasToJson {
             jsonPath + ".linkedEditGroups",
             json["linkedEditGroups"],
             (String jsonPath, Object json) =>
-                new LinkedEditGroup.fromJson(jsonDecoder, jsonPath, json));
+                LinkedEditGroup.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "linkedEditGroups");
       }
       Position selection;
       if (json.containsKey("selection")) {
-        selection = new Position.fromJson(
+        selection = Position.fromJson(
             jsonDecoder, jsonPath + ".selection", json["selection"]);
       }
       String id;
       if (json.containsKey("id")) {
         id = jsonDecoder.decodeString(jsonPath + ".id", json["id"]);
       }
-      return new SourceChange(message,
+      return SourceChange(message,
           edits: edits,
           linkedEditGroups: linkedEditGroups,
           selection: selection,
@@ -5820,9 +5769,9 @@ class SourceEdit implements HasToJson {
   /**
    * The offset of the region to be modified.
    */
-  void set offset(int value) {
+  set offset(int value) {
     assert(value != null);
-    this._offset = value;
+    _offset = value;
   }
 
   /**
@@ -5833,9 +5782,9 @@ class SourceEdit implements HasToJson {
   /**
    * The length of the region to be modified.
    */
-  void set length(int value) {
+  set length(int value) {
     assert(value != null);
-    this._length = value;
+    _length = value;
   }
 
   /**
@@ -5846,9 +5795,9 @@ class SourceEdit implements HasToJson {
   /**
    * The code that is to replace the specified region in the original code.
    */
-  void set replacement(String value) {
+  set replacement(String value) {
     assert(value != null);
-    this._replacement = value;
+    _replacement = value;
   }
 
   /**
@@ -5873,8 +5822,8 @@ class SourceEdit implements HasToJson {
    * id so that they can be referenced. Edits in the same response that do not
    * need to be referenced will not have an id.
    */
-  void set id(String value) {
-    this._id = value;
+  set id(String value) {
+    _id = value;
   }
 
   SourceEdit(int offset, int length, String replacement, {String id}) {
@@ -5886,9 +5835,7 @@ class SourceEdit implements HasToJson {
 
   factory SourceEdit.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       int offset;
       if (json.containsKey("offset")) {
@@ -5913,7 +5860,7 @@ class SourceEdit implements HasToJson {
       if (json.containsKey("id")) {
         id = jsonDecoder.decodeString(jsonPath + ".id", json["id"]);
       }
-      return new SourceEdit(offset, length, replacement, id: id);
+      return SourceEdit(offset, length, replacement, id: id);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "SourceEdit", json);
     }
@@ -5992,9 +5939,9 @@ class SourceFileEdit implements HasToJson {
   /**
    * The file containing the code to be modified.
    */
-  void set file(String value) {
+  set file(String value) {
     assert(value != null);
-    this._file = value;
+    _file = value;
   }
 
   /**
@@ -6013,9 +5960,9 @@ class SourceFileEdit implements HasToJson {
    * sure that the file was not changed since then, so it is safe to apply the
    * change.
    */
-  void set fileStamp(int value) {
+  set fileStamp(int value) {
     assert(value != null);
-    this._fileStamp = value;
+    _fileStamp = value;
   }
 
   /**
@@ -6026,9 +5973,9 @@ class SourceFileEdit implements HasToJson {
   /**
    * A list of the edits used to effect the change.
    */
-  void set edits(List<SourceEdit> value) {
+  set edits(List<SourceEdit> value) {
     assert(value != null);
-    this._edits = value;
+    _edits = value;
   }
 
   SourceFileEdit(String file, int fileStamp, {List<SourceEdit> edits}) {
@@ -6043,9 +5990,7 @@ class SourceFileEdit implements HasToJson {
 
   factory SourceFileEdit.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
+    json ??= {};
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -6066,11 +6011,11 @@ class SourceFileEdit implements HasToJson {
             jsonPath + ".edits",
             json["edits"],
             (String jsonPath, Object json) =>
-                new SourceEdit.fromJson(jsonDecoder, jsonPath, json));
+                SourceEdit.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.mismatch(jsonPath, "edits");
       }
-      return new SourceFileEdit(file, fileStamp, edits: edits);
+      return SourceFileEdit(file, fileStamp, edits: edits);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "SourceFileEdit", json);
     }

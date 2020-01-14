@@ -8,7 +8,7 @@ static method main() → dynamic {
   #C1;
   LoadLibrary(lib);
 }
-static method __loadLibrary_lib() → asy::Future<dynamic>*
+static method _#loadLibrary_lib() → asy::Future<dynamic>*
   return LoadLibrary(lib);
 
 library deferred_lib;
@@ -18,5 +18,5 @@ static method foo() → dynamic
   return null;
 
 constants  {
-  #C1 = tearoff self::__loadLibrary_lib
+  #C1 = tearoff self::_#loadLibrary_lib
 }

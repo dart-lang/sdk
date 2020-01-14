@@ -216,9 +216,6 @@ abstract class OpenWorld implements World {
 
   KClosedWorld closeWorld(DiagnosticReporter reporter);
 
-  /// Returns an iterable over all mixin applications that mixin [cls].
-  Iterable<ClassEntity> allMixinUsesOf(ClassEntity cls);
-
   /// Returns `true` if [member] is inherited into a subtype of [type].
   ///
   /// For instance:

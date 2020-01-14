@@ -37,7 +37,7 @@ class LibraryPrefixContributorTest extends DartCompletionContributorTest {
 
   @override
   DartCompletionContributor createContributor() {
-    return new LibraryPrefixContributor();
+    return LibraryPrefixContributor();
   }
 
   test_Block() async {

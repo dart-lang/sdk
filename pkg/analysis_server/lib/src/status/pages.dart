@@ -8,7 +8,7 @@ import 'dart:io';
 
 import 'package:intl/intl.dart';
 
-final NumberFormat numberFormat = new NumberFormat.decimalPattern();
+final NumberFormat numberFormat = NumberFormat.decimalPattern();
 
 String escape(String text) => text == null ? '' : htmlEscape.convert(text);
 
@@ -20,7 +20,7 @@ String printPercentage(num value) => '${(value * 100).toStringAsFixed(1)}%';
 
 /// An entity that knows how to serve itself over http.
 abstract class Page {
-  final StringBuffer buf = new StringBuffer();
+  final StringBuffer buf = StringBuffer();
 
   final String id;
   final String title;
@@ -123,7 +123,7 @@ abstract class Page {
   }
 
   void prettyJson(Map<String, dynamic> data) {
-    const jsonEncoder = const JsonEncoder.withIndent('  ');
+    const jsonEncoder = JsonEncoder.withIndent('  ');
     pre(() {
       buf.write(jsonEncoder.convert(data));
     });

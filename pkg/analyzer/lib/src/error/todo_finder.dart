@@ -54,9 +54,16 @@ class TodoFinder {
         TodoCode.TODO_REGEX.allMatches(commentToken.lexeme);
     for (Match match in matches) {
       int offset = commentToken.offset + match.start + match.group(1).length;
-      int length = match.group(2).length;
+      String todoText = match.group(2);
+
+      if (commentToken.type == TokenType.MULTI_LINE_COMMENT &&
+          todoText.endsWith('*/')) {
+        // Remove the `*/` and trim any trailing whitespace.
+        todoText = todoText.substring(0, todoText.length - 2).trimRight();
+      }
+
       _errorReporter.reportErrorForOffset(
-          TodoCode.TODO, offset, length, [match.group(2)]);
+          TodoCode.TODO, offset, todoText.length, [todoText]);
     }
   }
 }

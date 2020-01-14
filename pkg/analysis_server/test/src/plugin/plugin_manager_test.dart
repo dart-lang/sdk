@@ -34,7 +34,7 @@ main() {
 }
 
 ContextRoot _newContextRoot(String root, {List<String> exclude = const []}) {
-  return new ContextRoot(root, exclude, pathContext: path.context);
+  return ContextRoot(root, exclude, pathContext: path.context);
 }
 
 @reflectiveTest
@@ -43,8 +43,8 @@ class BuiltInPluginInfoTest {
   BuiltInPluginInfo plugin;
 
   void setUp() {
-    notificationManager = new TestNotificationManager();
-    plugin = new BuiltInPluginInfo(null, 'test plugin', notificationManager,
+    notificationManager = TestNotificationManager();
+    plugin = BuiltInPluginInfo(null, 'test plugin', notificationManager,
         InstrumentationService.NULL_SERVICE);
   }
 
@@ -82,7 +82,7 @@ class BuiltInPluginInfoTest {
   }
 
   test_start_running() async {
-    plugin.currentSession = new PluginSession(plugin);
+    plugin.currentSession = PluginSession(plugin);
     try {
       await plugin.start('', '');
       fail('Expected a StateError');
@@ -96,9 +96,9 @@ class BuiltInPluginInfoTest {
   }
 
   test_stop_running() async {
-    PluginSession session = new PluginSession(plugin);
+    PluginSession session = PluginSession(plugin);
     TestServerCommunicationChannel channel =
-        new TestServerCommunicationChannel(session);
+        TestServerCommunicationChannel(session);
     plugin.currentSession = session;
     await plugin.stop();
     expect(plugin.currentSession, isNull);
@@ -116,8 +116,8 @@ class DiscoveredPluginInfoTest {
   DiscoveredPluginInfo plugin;
 
   void setUp() {
-    notificationManager = new TestNotificationManager();
-    plugin = new DiscoveredPluginInfo(pluginPath, executionPath, packagesPath,
+    notificationManager = TestNotificationManager();
+    plugin = DiscoveredPluginInfo(pluginPath, executionPath, packagesPath,
         notificationManager, InstrumentationService.NULL_SERVICE);
   }
 
@@ -125,9 +125,9 @@ class DiscoveredPluginInfoTest {
     String optionsFilePath = '/pkg1/analysis_options.yaml';
     ContextRoot contextRoot1 = _newContextRoot('/pkg1');
     contextRoot1.optionsFilePath = optionsFilePath;
-    PluginSession session = new PluginSession(plugin);
+    PluginSession session = PluginSession(plugin);
     TestServerCommunicationChannel channel =
-        new TestServerCommunicationChannel(session);
+        TestServerCommunicationChannel(session);
     plugin.currentSession = session;
     plugin.addContextRoot(contextRoot1);
     expect(plugin.contextRoots, [contextRoot1]);
@@ -166,7 +166,7 @@ class DiscoveredPluginInfoTest {
   }
 
   test_start_running() async {
-    plugin.currentSession = new PluginSession(plugin);
+    plugin.currentSession = PluginSession(plugin);
     try {
       await plugin.start('', '');
       fail('Expected a StateError');
@@ -180,9 +180,9 @@ class DiscoveredPluginInfoTest {
   }
 
   test_stop_running() async {
-    PluginSession session = new PluginSession(plugin);
+    PluginSession session = PluginSession(plugin);
     TestServerCommunicationChannel channel =
-        new TestServerCommunicationChannel(session);
+        TestServerCommunicationChannel(session);
     plugin.currentSession = session;
     await plugin.stop();
     expect(plugin.currentSession, isNull);
@@ -196,9 +196,10 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
   String byteStorePath = '/byteStore';
   PluginManager manager;
 
+  @override
   void setUp() {
     super.setUp();
-    manager = new PluginManager(resourceProvider, byteStorePath, '',
+    manager = PluginManager(resourceProvider, byteStorePath, '',
         notificationManager, InstrumentationService.NULL_SERVICE);
   }
 
@@ -254,7 +255,7 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
 
                 Map<PluginInfo, Future<Response>> responses =
                     manager.broadcastRequest(
-                        new CompletionGetSuggestionsParams(
+                        CompletionGetSuggestionsParams(
                             '/pkg1/lib/pkg1.dart', 100),
                         contextRoot: contextRoot);
                 expect(responses, hasLength(2));
@@ -282,7 +283,7 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
                 await manager.addPluginToContextRoot(contextRoot, plugin2Path);
 
                 Map<PluginInfo, Future<Response>> responses =
-                    manager.broadcastRequest(new CompletionGetSuggestionsParams(
+                    manager.broadcastRequest(CompletionGetSuggestionsParams(
                         '/pkg1/lib/pkg1.dart', 100));
                 expect(responses, hasLength(2));
 
@@ -307,8 +308,7 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
 
           Map<PluginInfo, Future<Response>> responses =
               manager.broadcastRequest(
-                  new CompletionGetSuggestionsParams(
-                      '/pkg1/lib/pkg1.dart', 100),
+                  CompletionGetSuggestionsParams('/pkg1/lib/pkg1.dart', 100),
                   contextRoot: contextRoot);
           expect(responses, hasLength(0));
 
@@ -330,7 +330,7 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
           await manager.addPluginToContextRoot(contextRoot, plugin1Path);
           List<PluginInfo> plugins = manager.pluginsForContextRoot(contextRoot);
           expect(plugins, hasLength(1));
-          watcher.WatchEvent watchEvent = new watcher.WatchEvent(
+          watcher.WatchEvent watchEvent = watcher.WatchEvent(
               watcher.ChangeType.MODIFY, path.join(pkgPath, 'lib', 'lib.dart'));
           List<Future<Response>> responses =
               await manager.broadcastWatchEvent(watchEvent);
@@ -409,7 +409,7 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
     pkg1Dir.deleteSync(recursive: true);
   }
 
-  @TestTimeout(const Timeout.factor(4))
+  @TestTimeout(Timeout.factor(4))
   @SkippedTest(
       reason: 'flaky timeouts',
       issue: 'https://github.com/dart-lang/sdk/issues/38629')
@@ -463,15 +463,15 @@ class PluginManagerTest with ResourceProviderMixin {
   void setUp() {
     byteStorePath = resourceProvider.convertPath('/byteStore');
     sdkPath = resourceProvider.convertPath('/sdk');
-    notificationManager = new TestNotificationManager();
-    manager = new PluginManager(resourceProvider, byteStorePath, sdkPath,
+    notificationManager = TestNotificationManager();
+    manager = PluginManager(resourceProvider, byteStorePath, sdkPath,
         notificationManager, InstrumentationService.NULL_SERVICE);
   }
 
   void test_broadcastRequest_none() {
     ContextRoot contextRoot = _newContextRoot('/pkg1');
     Map<PluginInfo, Future<Response>> responses = manager.broadcastRequest(
-        new CompletionGetSuggestionsParams('/pkg1/lib/pkg1.dart', 100),
+        CompletionGetSuggestionsParams('/pkg1/lib/pkg1.dart', 100),
         contextRoot: contextRoot);
     expect(responses, hasLength(0));
   }
@@ -512,7 +512,7 @@ class PluginManagerTest with ResourceProviderMixin {
       String packageRoot =
           newFolder('/workspaceRoot/third_party/dart/$packageName').path;
       newFile('$packageRoot/lib/$packageName.dart');
-      StringBuffer buffer = new StringBuffer();
+      StringBuffer buffer = StringBuffer();
       if (dependencies != null) {
         buffer.writeln('dependencies:');
         for (String dependency in dependencies) {
@@ -538,8 +538,7 @@ class PluginManagerTest with ResourceProviderMixin {
     expect(packagesFile.exists, isTrue);
     String content = packagesFile.readAsStringSync();
     List<String> lines = content.split('\n');
-    String asFileUri(String input) =>
-        new Uri.file(convertPath(input)).toString();
+    String asFileUri(String input) => Uri.file(convertPath(input)).toString();
     expect(
         lines,
         unorderedEquals([
@@ -571,14 +570,14 @@ class PluginSessionFromDiskTest extends PluginTestSupport {
       String packagesPath = path.join(pluginPath, '.packages');
       String mainPath = path.join(pluginPath, 'bin', 'plugin.dart');
       String byteStorePath = path.join(pluginPath, 'byteStore');
-      new io.Directory(byteStorePath).createSync();
-      PluginInfo plugin = new DiscoveredPluginInfo(
+      io.Directory(byteStorePath).createSync();
+      PluginInfo plugin = DiscoveredPluginInfo(
           pluginPath,
           mainPath,
           packagesPath,
           notificationManager,
           InstrumentationService.NULL_SERVICE);
-      PluginSession session = new PluginSession(plugin);
+      PluginSession session = PluginSession(plugin);
       plugin.currentSession = session;
       expect(await session.start(byteStorePath, ''), isTrue);
       await session.stop();
@@ -597,20 +596,19 @@ class PluginSessionTest with ResourceProviderMixin {
   PluginSession session;
 
   void setUp() {
-    notificationManager = new TestNotificationManager();
+    notificationManager = TestNotificationManager();
     pluginPath = resourceProvider.convertPath('/pluginDir');
     executionPath = resourceProvider.convertPath('/pluginDir/bin/plugin.dart');
     packagesPath = resourceProvider.convertPath('/pluginDir/.packages');
     sdkPath = resourceProvider.convertPath('/sdk');
-    plugin = new DiscoveredPluginInfo(pluginPath, executionPath, packagesPath,
+    plugin = DiscoveredPluginInfo(pluginPath, executionPath, packagesPath,
         notificationManager, InstrumentationService.NULL_SERVICE);
-    session = new PluginSession(plugin);
+    session = PluginSession(plugin);
   }
 
   void test_handleNotification() {
     Notification notification =
-        new AnalysisErrorsParams('/test.dart', <AnalysisError>[])
-            .toNotification();
+        AnalysisErrorsParams('/test.dart', <AnalysisError>[]).toNotification();
     expect(notificationManager.notifications, hasLength(0));
     session.handleNotification(notification);
     expect(notificationManager.notifications, hasLength(1));
@@ -619,7 +617,7 @@ class PluginSessionTest with ResourceProviderMixin {
 
   void test_handleOnDone() {
     TestServerCommunicationChannel channel =
-        new TestServerCommunicationChannel(session);
+        TestServerCommunicationChannel(session);
     session.handleOnDone();
     expect(channel.closeCount, 1);
     expect(session.pluginStoppedCompleter.isCompleted, isTrue);
@@ -632,13 +630,13 @@ class PluginSessionTest with ResourceProviderMixin {
   }
 
   test_handleResponse() async {
-    new TestServerCommunicationChannel(session);
-    Response response = new PluginVersionCheckResult(
+    TestServerCommunicationChannel(session);
+    Response response = PluginVersionCheckResult(
             true, 'name', 'version', <String>[],
             contactInfo: 'contactInfo')
         .toResponse('0', 1);
     Future<Response> future =
-        session.sendRequest(new PluginVersionCheckParams('', '', ''));
+        session.sendRequest(PluginVersionCheckParams('', '', ''));
     expect(session.pendingRequests, hasLength(1));
     session.handleResponse(response);
     expect(session.pendingRequests, hasLength(0));
@@ -654,8 +652,8 @@ class PluginSessionTest with ResourceProviderMixin {
 
   void test_sendRequest() {
     TestServerCommunicationChannel channel =
-        new TestServerCommunicationChannel(session);
-    session.sendRequest(new PluginVersionCheckParams('', '', ''));
+        TestServerCommunicationChannel(session);
+    session.sendRequest(PluginVersionCheckParams('', '', ''));
     expect(channel.sentRequests, hasLength(1));
     expect(channel.sentRequests[0].method, 'plugin.versionCheck');
   }
@@ -667,7 +665,7 @@ class PluginSessionTest with ResourceProviderMixin {
   }
 
   test_start_running() async {
-    new TestServerCommunicationChannel(session);
+    TestServerCommunicationChannel(session);
     try {
       await session.start(null, '');
       fail('Expected a StateError to be thrown');
@@ -682,7 +680,7 @@ class PluginSessionTest with ResourceProviderMixin {
 
   test_stop_running() async {
     TestServerCommunicationChannel channel =
-        new TestServerCommunicationChannel(session);
+        TestServerCommunicationChannel(session);
     await session.stop();
     expect(channel.sentRequests, hasLength(1));
     expect(channel.sentRequests[0].method, 'plugin.shutdown');
@@ -705,7 +703,7 @@ abstract class PluginTestSupport {
 
   void setUp() {
     resourceProvider = PhysicalResourceProvider.INSTANCE;
-    notificationManager = new TestNotificationManager();
+    notificationManager = TestNotificationManager();
   }
 
   /**
@@ -735,17 +733,17 @@ abstract class PluginTestSupport {
       //
       // Create a .packages file.
       //
-      io.File packagesFile = new io.File(path.join(pluginPath, '.packages'));
+      io.File packagesFile = io.File(path.join(pluginPath, '.packages'));
       packagesFile.writeAsStringSync(_getPackagesFileContent());
       //
       // Create the 'bin' directory.
       //
       String binPath = path.join(pluginPath, 'bin');
-      new io.Directory(binPath).createSync();
+      io.Directory(binPath).createSync();
       //
       // Create the 'plugin.dart' file.
       //
-      io.File pluginFile = new io.File(path.join(binPath, 'plugin.dart'));
+      io.File pluginFile = io.File(path.join(binPath, 'plugin.dart'));
       pluginFile.writeAsStringSync(content ?? _defaultPluginContent());
       //
       // Run the actual test code.
@@ -783,17 +781,17 @@ abstract class PluginTestSupport {
       //
       // Create a pubspec.yaml file.
       //
-      io.File pubspecFile = new io.File(path.join(pluginPath, 'pubspec.yaml'));
+      io.File pubspecFile = io.File(path.join(pluginPath, 'pubspec.yaml'));
       pubspecFile.writeAsStringSync(_getPubspecFileContent());
       //
       // Create the 'bin' directory.
       //
       String binPath = path.join(pluginPath, 'bin');
-      new io.Directory(binPath).createSync();
+      io.Directory(binPath).createSync();
       //
       // Create the 'plugin.dart' file.
       //
-      io.File pluginFile = new io.File(path.join(binPath, 'plugin.dart'));
+      io.File pluginFile = io.File(path.join(binPath, 'plugin.dart'));
       pluginFile.writeAsStringSync(content ?? _defaultPluginContent());
       //
       // Run the actual test code.
@@ -809,7 +807,7 @@ abstract class PluginTestSupport {
    * given relative path [delta] to each line.
    */
   String _convertPackageMap(String sdkDirPath, List<String> sdkPackageMap) {
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     for (String line in sdkPackageMap) {
       if (!line.startsWith('#')) {
         int index = line.indexOf(':');
@@ -818,7 +816,7 @@ abstract class PluginTestSupport {
         String absolutePath = path.join(sdkDirPath, relativePath);
         // Convert to file:/// URI since that's how absolute paths in
         // .packages must be for windows
-        absolutePath = new Uri.file(absolutePath).toString();
+        absolutePath = Uri.file(absolutePath).toString();
         buffer.write(packageName);
         buffer.writeln(absolutePath);
       }
@@ -878,7 +876,7 @@ class MinimalPlugin extends ServerPlugin {
    */
   String _getPackagesFileContent() {
     if (_packagesFileContent == null) {
-      io.File sdkPackagesFile = new io.File(_sdkPackagesPath());
+      io.File sdkPackagesFile = io.File(_sdkPackagesPath());
       List<String> sdkPackageMap = sdkPackagesFile.readAsLinesSync();
       _packagesFileContent =
           _convertPackageMap(path.dirname(sdkPackagesFile.path), sdkPackageMap);
@@ -951,6 +949,7 @@ class TestServerCommunicationChannel implements ServerCommunicationChannel {
     closeCount++;
   }
 
+  @override
   void kill() {
     fail('Unexpected invocation of kill');
   }

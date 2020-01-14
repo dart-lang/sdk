@@ -25,10 +25,10 @@ import 'package:source_span/source_span.dart';
 /// encompasses the specified range.
 class HtmlNodeLocator {
   /// The inclusive start offset of the range used to identify the node.
-  int _startOffset = 0;
+  final int _startOffset;
 
   /// The inclusive end offset of the range used to identify the node.
-  int _endOffset = 0;
+  final int _endOffset;
 
   /// Initialize a newly created locator to locate the deepest [Node] for
   /// which `node.offset <= [start]` and `[end] < node.end`.
@@ -36,8 +36,8 @@ class HtmlNodeLocator {
   /// If the [end] offset is not provided, then it is considered the same as the
   /// [start] offset.
   HtmlNodeLocator({@required int start, int end})
-      : this._startOffset = start,
-        this._endOffset = end ?? start;
+      : _startOffset = start,
+        _endOffset = end ?? start;
 
   /// Search within the given HTML [node] and return the path to the most deeply
   /// nested node that includes the whole target range, or an empty list if no
@@ -86,7 +86,7 @@ class ManifestFixGenerator {
   ManifestFixGenerator(this.error, this.content, this.document)
       : errorOffset = error.offset,
         errorLength = error.length,
-        lineInfo = new LineInfo.fromContent(content);
+        lineInfo = LineInfo.fromContent(content);
 
   /// Return the absolute, normalized path to the file in which the error was
   /// reported.
@@ -94,8 +94,8 @@ class ManifestFixGenerator {
 
   /// Return the list of fixes that apply to the error being fixed.
   Future<List<Fix>> computeFixes() async {
-    HtmlNodeLocator locator = new HtmlNodeLocator(
-        start: errorOffset, end: errorOffset + errorLength - 1);
+    HtmlNodeLocator locator =
+        HtmlNodeLocator(start: errorOffset, end: errorOffset + errorLength - 1);
     coveringNodePath = locator.searchWithin(document);
     if (coveringNodePath.isEmpty) {
       return fixes;
@@ -121,7 +121,7 @@ class ManifestFixGenerator {
       return;
     }
     change.message = formatList(kind.message, args);
-    fixes.add(new Fix(kind, change));
+    fixes.add(Fix(kind, change));
   }
 
   // ignore: unused_element
@@ -139,6 +139,6 @@ class ManifestFixGenerator {
     CharacterLocation endLocation = lineInfo.getLocation(end);
     int endOffset = lineInfo.getOffsetOfLine(
         math.min(endLocation.lineNumber, lineInfo.lineCount - 1));
-    return new SourceRange(startOffset, endOffset - startOffset);
+    return SourceRange(startOffset, endOffset - startOffset);
   }
 }

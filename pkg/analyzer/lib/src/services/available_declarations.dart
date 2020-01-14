@@ -152,7 +152,7 @@ class DeclarationsContext {
 
   /// The set of paths of already checked known files, some of which were
   /// added to [_knownPathList]. For example we skip non-API files.
-  final Set<String> _knownPathSet = Set<String>();
+  final Set<String> _knownPathSet = <String>{};
 
   /// The list of paths of files known to this context - from the context
   /// itself, from direct dependencies, from indirect dependencies.
@@ -339,9 +339,10 @@ class DeclarationsContext {
         var devPaths = _resolvePackageNamesToLibPaths(dependencies.dev);
 
         var packagePath = folder.path;
-        pubPathPrefixToPathList[packagePath] = <String>[]
-          ..addAll(libPaths)
-          ..addAll(devPaths);
+        pubPathPrefixToPathList[packagePath] = [
+          ...libPaths,
+          ...devPaths,
+        ];
 
         var libPath = pathContext.join(packagePath, 'lib');
         pubPathPrefixToPathList[libPath] = libPaths;
@@ -355,7 +356,9 @@ class DeclarationsContext {
             visitFolder(resource);
           }
         }
-      } on FileSystemException {}
+      } on FileSystemException {
+        // ignored
+      }
     }
 
     visitFolder(_analysisContext.contextRoot.root);
@@ -481,7 +484,7 @@ class DeclarationsContext {
               devDependenciesNode.keys.whereType<String>().toList();
         }
       }
-    } catch (e) {}
+    } catch (_) {}
     return _PubspecDependencies(dependencies, devDependencies);
   }
 }
@@ -738,7 +741,7 @@ class DeclarationsTracker {
     var isLibrary = file.isLibrary;
     var newLibrary = isLibrary ? file : file.library;
 
-    var invalidatedLibraries = Set<_File>();
+    var invalidatedLibraries = <_File>{};
     var notLibraries = <_File>[];
     if (wasLibrary) {
       if (isLibrary) {
@@ -914,7 +917,7 @@ class _DeclarationStorage {
           ? d.defaultArgumentListString
           : null,
       defaultArgumentListTextRanges: d.defaultArgumentListTextRanges.isNotEmpty
-          ? d.defaultArgumentListTextRanges
+          ? d.defaultArgumentListTextRanges.toList()
           : null,
       docComplete: hasDoc ? d.docComplete : null,
       docSummary: hasDoc ? d.docSummary : null,
@@ -930,7 +933,7 @@ class _DeclarationStorage {
       locationStartLine: d.locationStartLine,
       name: d.name,
       parameters: hasParameters ? d.parameters : null,
-      parameterNames: hasParameters ? d.parameterNames : null,
+      parameterNames: hasParameters ? d.parameterNames.toList() : null,
       parameterTypes: hasParameters ? d.parameterTypes.toList() : null,
       parent: parent,
       relevanceTags: relevanceTags,
@@ -1935,7 +1938,7 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
   @override
   void evaluateScc(List<_LibraryNode> scc) {
     for (var node in scc) {
-      var visitedFiles = Set<_File>();
+      var visitedFiles = <_File>{};
 
       List<Declaration> computeExported(_File file) {
         if (file.exportedDeclarations != null) {
@@ -2010,7 +2013,9 @@ class _Package {
           return folder;
         }
       }
-    } on FileSystemException {}
+    } on FileSystemException {
+      // ignored
+    }
     return null;
   }
 }

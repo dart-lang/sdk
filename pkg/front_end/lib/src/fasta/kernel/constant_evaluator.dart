@@ -78,7 +78,7 @@ Component transformComponent(Component component, ConstantsBackend backend,
     CoreTypes coreTypes,
     ClassHierarchy hierarchy}) {
   coreTypes ??= new CoreTypes(component);
-  hierarchy ??= new ClassHierarchy(component);
+  hierarchy ??= new ClassHierarchy(component, coreTypes);
 
   final TypeEnvironment typeEnvironment =
       new TypeEnvironment(coreTypes, hierarchy);
@@ -930,6 +930,11 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
 
   @override
   Constant visitConstructorInvocation(ConstructorInvocation node) {
+    if (!node.isConst) {
+      return reportInvalid(
+          node, 'Non-constant constructor invocation "$node".');
+    }
+
     final Constructor constructor = node.target;
     checkConstructorConst(node, constructor);
 

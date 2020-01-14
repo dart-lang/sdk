@@ -196,8 +196,7 @@ method2() {
     'Class2': ['c'],
   };
 
-  KClosedWorld closedWorld =
-      compiler.resolutionWorldBuilder.closedWorldForTesting;
+  KClosedWorld closedWorld = compiler.frontendClosedWorldForTesting;
   ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
 
   elementEnvironment.forEachClass(elementEnvironment.mainLibrary,

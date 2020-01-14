@@ -23,7 +23,7 @@ class InheritedReferenceContributorTest extends DartCompletionContributorTest {
 
   @override
   CompletionContributor createContributor() {
-    return new InheritedReferenceContributor();
+    return InheritedReferenceContributor();
   }
 
   /// Sanity check.  Permutations tested in local_ref_contributor.

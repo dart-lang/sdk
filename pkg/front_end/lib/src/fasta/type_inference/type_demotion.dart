@@ -3,8 +3,7 @@
 // BSD-style license that can be found in the LICENSE.md file.
 
 import 'package:kernel/ast.dart' hide MapEntry;
-
-import 'replacement_visitor.dart';
+import 'package:kernel/src/replacement_visitor.dart';
 
 /// Returns `true` if type contains a promoted type variable.
 bool hasPromotedTypeVariable(DartType type) {

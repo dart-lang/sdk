@@ -180,6 +180,12 @@ bool FlowGraphCompiler::IsUnboxedField(const Field& field) {
 }
 
 bool FlowGraphCompiler::IsPotentialUnboxedField(const Field& field) {
+  if (FLAG_precompiled_mode) {
+    // kernel_loader.cc:ReadInferredType sets the guarded cid for fields based
+    // on inferred types from TFA (if available). The guarded cid is therefore
+    // proven to be correct.
+    return IsUnboxedField(field);
+  }
   return field.is_unboxing_candidate() &&
          (FlowGraphCompiler::IsUnboxedField(field) ||
           (field.guarded_cid() == kIllegalCid));
@@ -453,7 +459,7 @@ void FlowGraphCompiler::EmitCallsiteMetadata(TokenPosition token_pos,
   AddCurrentDescriptor(kind, deopt_id, token_pos);
   RecordSafepoint(locs);
   RecordCatchEntryMoves(env);
-  if (deopt_id != DeoptId::kNone) {
+  if ((deopt_id != DeoptId::kNone) && !FLAG_precompiled_mode) {
     // Marks either the continuation point in unoptimized code or the
     // deoptimization point in optimized code, after call.
     const intptr_t deopt_id_after = DeoptId::ToDeoptAfter(deopt_id);
@@ -776,6 +782,7 @@ void FlowGraphCompiler::AddStubCallTarget(const Code& code) {
 CompilerDeoptInfo* FlowGraphCompiler::AddDeoptIndexAtCall(intptr_t deopt_id) {
   ASSERT(is_optimizing());
   ASSERT(!intrinsic_mode());
+  ASSERT(!FLAG_precompiled_mode);
   CompilerDeoptInfo* info =
       new (zone()) CompilerDeoptInfo(deopt_id, ICData::kDeoptAtCall,
                                      0,  // No flags.
@@ -923,7 +930,9 @@ Environment* FlowGraphCompiler::SlowPathEnvironmentFor(
   // stubs.
   ASSERT(!using_shared_stub || num_slow_path_args == 0);
   if (env == nullptr) {
-    ASSERT(!is_optimizing());
+    // In AOT, environments can be removed by EliminateEnvironments pass
+    // (if not in a try block).
+    ASSERT(!is_optimizing() || FLAG_precompiled_mode);
     return nullptr;
   }
 
@@ -1270,13 +1279,15 @@ void FlowGraphCompiler::GenerateCallWithDeopt(TokenPosition token_pos,
                                               RawPcDescriptors::Kind kind,
                                               LocationSummary* locs) {
   GenerateCall(token_pos, stub, kind, locs);
-  const intptr_t deopt_id_after = DeoptId::ToDeoptAfter(deopt_id);
-  if (is_optimizing()) {
-    AddDeoptIndexAtCall(deopt_id_after);
-  } else {
-    // Add deoptimization continuation point after the call and before the
-    // arguments are removed.
-    AddCurrentDescriptor(RawPcDescriptors::kDeopt, deopt_id_after, token_pos);
+  if (!FLAG_precompiled_mode) {
+    const intptr_t deopt_id_after = DeoptId::ToDeoptAfter(deopt_id);
+    if (is_optimizing()) {
+      AddDeoptIndexAtCall(deopt_id_after);
+    } else {
+      // Add deoptimization continuation point after the call and before the
+      // arguments are removed.
+      AddCurrentDescriptor(RawPcDescriptors::kDeopt, deopt_id_after, token_pos);
+    }
   }
 }
 
@@ -2237,18 +2248,26 @@ void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
     const Register function_type_args_reg,
     const Register subtype_cache_reg,
     const Register dst_type_reg,
+    const Register dst_type_reg_to_call,
     const Register scratch_reg,
     compiler::Label* done) {
   TypeUsageInfo* type_usage_info = thread()->type_usage_info();
+
+  // TODO(regis): Take nnbd_mode() into account and pass it in a register.
 
   // If the int type is assignable to [dst_type] we special case it on the
   // caller side!
   const Type& int_type = Type::Handle(zone(), Type::IntType());
   bool is_non_smi = false;
-  if (int_type.IsSubtypeOf(NNBDMode::kLegacy, dst_type, Heap::kOld)) {
+  if (int_type.IsSubtypeOf(NNBDMode::kLegacyLib, dst_type, Heap::kOld)) {
     __ BranchIfSmi(instance_reg, done);
     is_non_smi = true;
   }
+
+  // We use two type registers iff the dst type is a type parameter.
+  // We "dereference" the type parameter for the TTS call but leave the type
+  // parameter in the dst_type_reg for fallback into SubtypeTestCache.
+  ASSERT(dst_type.IsTypeParameter() == (dst_type_reg != dst_type_reg_to_call));
 
   // We can handle certain types very efficiently on the call site (with a
   // bailout to the normal stub, which will do a runtime call).
@@ -2262,10 +2281,11 @@ void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
     __ CompareObject(kTypeArgumentsReg, Object::null_object());
     __ BranchIf(EQUAL, done);
     __ LoadField(
-        dst_type_reg,
+        dst_type_reg_to_call,
         compiler::FieldAddress(kTypeArgumentsReg,
                                compiler::target::TypeArguments::type_at_offset(
                                    type_param.index())));
+    __ LoadObject(dst_type_reg, type_param);
     if (type_usage_info != NULL) {
       type_usage_info->UseTypeInAssertAssignable(dst_type);
     }
@@ -2417,12 +2437,7 @@ void ThrowErrorSlowPathCode::EmitNativeCode(FlowGraphCompiler* compiler) {
   } else {
     __ CallRuntime(runtime_entry_, num_args_);
   }
-  // Can't query deopt_id() without checking if instruction can deoptimize...
-  intptr_t deopt_id = DeoptId::kNone;
-  if (instruction()->CanDeoptimize() ||
-      instruction()->CanBecomeDeoptimizationTarget()) {
-    deopt_id = instruction()->deopt_id();
-  }
+  const intptr_t deopt_id = instruction()->deopt_id();
   compiler->AddDescriptor(RawPcDescriptors::kOther,
                           compiler->assembler()->CodeSize(), deopt_id,
                           instruction()->token_pos(), try_index_);

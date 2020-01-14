@@ -134,18 +134,22 @@ class C {
   }
 
   test_localVariable_initializer() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 f() {
   late final x = 1;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 19, 1),
+    ]);
   }
 
   test_localVariable_noInitializer() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 f() {
   late final x;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 19, 1),
+    ]);
   }
 }

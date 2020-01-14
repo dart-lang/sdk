@@ -202,16 +202,28 @@ void TypeArguments::PrintJSONImpl(JSONStream* stream, bool ref) const {
     Array& prior_instantiations = Array::Handle(instantiations());
     ASSERT(prior_instantiations.Length() > 0);  // Always at least a sentinel.
     TypeArguments& type_args = TypeArguments::Handle();
+    Smi& nnbd_mode_as_smi = Smi::Handle();
     intptr_t i = 0;
-    while (prior_instantiations.At(i) != Smi::New(StubCode::kNoInstantiator)) {
+    while (prior_instantiations.At(i) !=
+           Smi::New(TypeArguments::kNoInstantiator)) {
       JSONObject instantiation(&jsarr);
-      type_args ^= prior_instantiations.At(i);
+      type_args ^= prior_instantiations.At(
+          i + TypeArguments::Instantiation::kInstantiatorTypeArgsIndex);
       instantiation.AddProperty("instantiatorTypeArguments", type_args, true);
-      type_args ^= prior_instantiations.At(i + 1);
+      type_args ^= prior_instantiations.At(
+          i + TypeArguments::Instantiation::kFunctionTypeArgsIndex);
       instantiation.AddProperty("functionTypeArguments", type_args, true);
-      type_args ^= prior_instantiations.At(i + 2);
+      nnbd_mode_as_smi ^= prior_instantiations.At(
+          i + TypeArguments::Instantiation::kNnbdModeIndex);
+      instantiation.AddProperty(
+          "nnbd_mode", nnbd_mode_as_smi.Value() ==
+                               static_cast<intptr_t>(NNBDMode::kLegacyLib)
+                           ? "legacy"
+                           : "opted-in");
+      type_args ^= prior_instantiations.At(
+          i + TypeArguments::Instantiation::kInstantiatedTypeArgsIndex);
       instantiation.AddProperty("instantiated", type_args, true);
-      i += StubCode::kInstantiationSizeInWords;
+      i += TypeArguments::Instantiation::kSizeInWords;
     }
   }
 }

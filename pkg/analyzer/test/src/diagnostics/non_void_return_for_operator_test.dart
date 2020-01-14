@@ -23,4 +23,20 @@ class A {
       error(StaticWarningCode.NON_VOID_RETURN_FOR_OPERATOR, 12, 3),
     ]);
   }
+
+  test_no_return() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  operator []=(a, b) {}
+}
+''');
+  }
+
+  test_void() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  void operator []=(a, b) {}
+}
+''');
+  }
 }

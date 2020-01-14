@@ -255,7 +255,6 @@ void Class::CopyStaticFieldValues(IsolateReloadContext* reload_context,
   Field& field = Field::Handle();
   String& name = String::Handle();
 
-  Instance& value = Instance::Handle();
   for (intptr_t i = 0; i < field_list.Length(); i++) {
     field = Field::RawCast(field_list.At(i));
     name = field.name();
@@ -269,8 +268,10 @@ void Class::CopyStaticFieldValues(IsolateReloadContext* reload_context,
           // We only copy values if requested and if the field is not a const
           // field. We let const fields be updated with a reload.
           if (update_values && !field.is_const()) {
-            value = old_field.StaticValue();
-            field.SetStaticValue(value);
+            // Make new field point to the old field value so that both
+            // old and new code see and update same value.
+            reload_context->isolate()->field_table()->Free(field.field_id());
+            field.set_field_id(old_field.field_id());
           }
           reload_context->AddStaticFieldMapping(old_field, field);
         } else {
@@ -894,7 +895,7 @@ void CallSiteResetter::Reset(const ICData& ic) {
     args_desc_array_ = ic.arguments_descriptor();
     ArgumentsDescriptor args_desc(args_desc_array_);
     if (new_target_.IsNull() ||
-        !new_target_.AreValidArguments(NNBDMode::kLegacy, args_desc, NULL)) {
+        !new_target_.AreValidArguments(NNBDMode::kLegacyLib, args_desc, NULL)) {
       // TODO(rmacnak): Patch to a NSME stub.
       VTIR_Print("Cannot rebind static call to %s from %s\n",
                  old_target_.ToCString(),

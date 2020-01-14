@@ -196,36 +196,38 @@ ExpectedUri/example: Fail
 ExperimentNotEnabled/example: Fail
 ExplicitExtensionArgumentMismatch/analyzerCode: Fail
 ExplicitExtensionArgumentMismatch/example: Fail
-ExplicitExtensionTypeArgumentMismatch/analyzerCode: Fail
-ExplicitExtensionTypeArgumentMismatch/example: Fail
 ExplicitExtensionAsExpression/analyzerCode: Fail
 ExplicitExtensionAsExpression/example: Fail
 ExplicitExtensionAsLvalue/analyzerCode: Fail
 ExplicitExtensionAsLvalue/example: Fail
+ExplicitExtensionTypeArgumentMismatch/analyzerCode: Fail
+ExplicitExtensionTypeArgumentMismatch/example: Fail
 ExportAfterPart/part_wrapped_script1: Fail
 ExportAfterPart/script1: Fail
 ExpressionNotMetadata/analyzerCode: Fail
 ExpressionNotMetadata/example: Fail
 ExtendingEnum/example: Fail
 ExtendingRestricted/example: Fail
+ExtendsDynamic/analyzerCode: Fail # Feature not yet in analyzer.
+ExtendsDynamic/example: Fail # Feature not yet enabled by default.
+ExtendsFunctionType/analyzerCode: Fail # Feature not yet in analyzer.
+ExtendsFunctionType/example: Fail # Feature not yet enabled by default.
+ExtendsFutureOr/analyzerCode: Fail # Feature not yet in analyzer.
+ExtendsFutureOr/example: Fail # Feature not yet enabled by default.
+ExtendsNever/analyzerCode: Fail # Feature not yet in analyzer.
+ExtendsNever/example: Fail # Feature not yet enabled by default.
+ExtendsVoid/analyzerCode: Fail # Feature not yet in analyzer.
+ExtendsVoid/example: Fail # Feature not yet enabled by default.
+ExtensionDeclaresAbstractMember/example: Fail
+ExtensionDeclaresConstructor/example: Fail
+ExtensionDeclaresInstanceField/example: Fail
+ExtensionMemberConflictsWithObjectMember/analyzerCode: Fail
 ExternalConstructorWithBody/part_wrapped_script1: Fail
 ExternalConstructorWithBody/script1: Fail
 ExternalConstructorWithFieldInitializers/example: Fail
 ExternalFactoryRedirection/example: Fail
 ExternalFactoryWithBody/part_wrapped_script1: Fail
 ExternalFactoryWithBody/script1: Fail
-ExtensionDeclaresAbstractMember/example: Fail
-ExtensionDeclaresConstructor/example: Fail
-ExtensionDeclaresInstanceField/example: Fail
-ExtensionMemberConflictsWithObjectMember/analyzerCode: Fail
-ExtraneousModifier/part_wrapped_script1: Fail
-ExtraneousModifier/part_wrapped_script2: Fail
-ExtraneousModifier/part_wrapped_script3: Fail
-ExtraneousModifier/part_wrapped_script4: Fail
-ExtraneousModifier/part_wrapped_script5: Fail
-ExtraneousModifier/part_wrapped_script7: Fail
-ExtraneousModifier/part_wrapped_script8: Fail
-ExtraneousModifier/part_wrapped_script9: Fail
 ExtraneousModifier/part_wrapped_script10: Fail
 ExtraneousModifier/part_wrapped_script11: Fail
 ExtraneousModifier/part_wrapped_script12: Fail
@@ -234,8 +236,15 @@ ExtraneousModifier/part_wrapped_script16: Fail
 ExtraneousModifier/part_wrapped_script17: Fail
 ExtraneousModifier/part_wrapped_script18: Fail
 ExtraneousModifier/part_wrapped_script19: Fail
+ExtraneousModifier/part_wrapped_script1: Fail
 ExtraneousModifier/part_wrapped_script20: Fail
-ExtraneousModifier/script1: Fail
+ExtraneousModifier/part_wrapped_script2: Fail
+ExtraneousModifier/part_wrapped_script3: Fail
+ExtraneousModifier/part_wrapped_script4: Fail
+ExtraneousModifier/part_wrapped_script5: Fail
+ExtraneousModifier/part_wrapped_script7: Fail
+ExtraneousModifier/part_wrapped_script8: Fail
+ExtraneousModifier/part_wrapped_script9: Fail
 ExtraneousModifier/script10: Fail
 ExtraneousModifier/script11: Fail
 ExtraneousModifier/script12: Fail
@@ -244,8 +253,9 @@ ExtraneousModifier/script16: Fail
 ExtraneousModifier/script17: Fail
 ExtraneousModifier/script18: Fail
 ExtraneousModifier/script19: Fail
-ExtraneousModifier/script2: Fail
+ExtraneousModifier/script1: Fail
 ExtraneousModifier/script20: Fail
+ExtraneousModifier/script2: Fail
 ExtraneousModifier/script3: Fail
 ExtraneousModifier/script4: Fail
 ExtraneousModifier/script5: Fail
@@ -259,20 +269,20 @@ FastaUsageLong/analyzerCode: Fail
 FastaUsageLong/example: Fail
 FastaUsageShort/analyzerCode: Fail
 FastaUsageShort/example: Fail
-FfiFieldAnnotation/analyzerCode: Fail
-FfiFieldNoAnnotation/analyzerCode: Fail
-FfiFieldInitializer/analyzerCode: Fail
-FfiNotStatic/analyzerCode: Fail
-FfiStructAnnotation/analyzerCode: Fail
-FfiTypeInvalid/analyzerCode: Fail
-FfiTypeMismatch/analyzerCode: Fail
 FfiDartTypeMismatch/analyzerCode: Fail
-FfiExtendsOrImplementsSealedClass/analyzerCode: Fail
-FfiStructGeneric/analyzerCode: Fail
+FfiExceptionalReturnNull/analyzerCode: Fail
+FfiExpectedConstant/analyzerCode: Fail
 FfiExpectedExceptionalReturn/analyzerCode: Fail
 FfiExpectedNoExceptionalReturn/analyzerCode: Fail
-FfiExpectedConstant/analyzerCode: Fail
-FfiExceptionalReturnNull/analyzerCode: Fail
+FfiExtendsOrImplementsSealedClass/analyzerCode: Fail
+FfiFieldAnnotation/analyzerCode: Fail
+FfiFieldInitializer/analyzerCode: Fail
+FfiFieldNoAnnotation/analyzerCode: Fail
+FfiNotStatic/analyzerCode: Fail
+FfiStructAnnotation/analyzerCode: Fail
+FfiStructGeneric/analyzerCode: Fail
+FfiTypeInvalid/analyzerCode: Fail
+FfiTypeMismatch/analyzerCode: Fail
 FieldInitializedOutsideDeclaringClass/part_wrapped_script1: Fail
 FieldInitializedOutsideDeclaringClass/script1: Fail
 FieldInitializerOutsideConstructor/part_wrapped_script1: Fail
@@ -311,8 +321,17 @@ ImplementsBeforeOn/part_wrapped_script: Fail
 ImplementsBeforeOn/script: Fail
 ImplementsBeforeWith/part_wrapped_script: Fail
 ImplementsBeforeWith/script: Fail
+ImplementsDynamic/analyzerCode: Fail # Feature not yet in analyzer.
+ImplementsDynamic/example: Fail # Feature not yet enabled by default.
+ImplementsFunctionType/analyzerCode: Fail # Feature not yet in analyzer.
+ImplementsFunctionType/example: Fail # Feature not yet enabled by default.
 ImplementsFutureOr/analyzerCode: Fail # The analyzer doesn't report this error.
+ImplementsFutureOr/example: Fail # Feature not yet enabled by default.
 ImplementsFutureOr/part_wrapped_script1: Fail # Importing file in the (now) part.
+ImplementsNever/analyzerCode: Fail # Feature not yet in analyzer.
+ImplementsNever/example: Fail # Feature not yet enabled by default.
+ImplementsVoid/analyzerCode: Fail # Feature not yet in analyzer.
+ImplementsVoid/example: Fail # Feature not yet enabled by default.
 ImplicitCallOfNonMethod/example: Fail
 ImplicitMixinOverride/analyzerCode: Fail
 ImplicitMixinOverride/example: Fail
@@ -328,6 +347,9 @@ IntegerLiteralIsOutOfRange/example: Fail
 InterfaceCheck/analyzerCode: Fail
 InterfaceCheck/example: Fail
 InterpolationInUri/example: Fail
+InvalidAssignmentWarning/analyzerCode: Fail
+InvalidAssignmentWarning/example: Fail
+InvalidAssignmentWarning/spelling: Fail
 InvalidBreakTarget/analyzerCode: Fail
 InvalidBreakTarget/example: Fail
 InvalidCastFunctionExpr/example: Fail
@@ -402,9 +424,9 @@ MultipleImplements/script: Fail
 MultipleLibraryDirectives/example: Fail
 MultipleOnClauses/part_wrapped_script: Fail
 MultipleOnClauses/script: Fail
+MultipleVarianceModifiers/example: Fail # All trigger multiple errors for variance experiment
 MultipleWith/part_wrapped_script: Fail
 MultipleWith/script: Fail
-MultipleVarianceModifiers/example: Fail # All trigger multiple errors for variance experiment
 NamedFunctionExpression/example: Fail
 NamedMixinOverride/analyzerCode: Fail
 NamedMixinOverride/example: Fail
@@ -427,6 +449,10 @@ NotAnLvalue/example: Fail
 NotBinaryOperator/analyzerCode: Fail
 NotConstantExpression/example: Fail
 NullAwareCascadeOutOfOrder/example: Fail
+NullablePropertyGetError/analyzerCode: Fail
+NullablePropertyGetError/example: Fail
+NullablePropertyGetWarning/analyzerCode: Fail
+NullablePropertyGetWarning/example: Fail
 OperatorMinusParameterMismatch/example: Fail
 OperatorParameterMismatch0/analyzerCode: Fail
 OperatorParameterMismatch0/example: Fail
@@ -478,6 +504,10 @@ RedirectingConstructorWithBody/script1: Fail
 RedirectionInNonFactory/part_wrapped_script1: Fail
 RedirectionInNonFactory/script1: Fail
 RedirectionTargetNotFound/example: Fail
+RequiredNamedParameterHasDefaultValueError/analyzerCode: Fail
+RequiredNamedParameterHasDefaultValueError/example: Fail
+RequiredNamedParameterHasDefaultValueWarning/analyzerCode: Fail
+RequiredNamedParameterHasDefaultValueWarning/example: Fail
 RethrowNotCatch/example: Fail
 ReturnTypeFunctionExpression/analyzerCode: Fail
 ReturnTypeFunctionExpression/example: Fail
@@ -519,6 +549,10 @@ SyntheticToken/example: Fail # Can't be tested, used to recover from other error
 ThisAccessInFieldInitializer/example: Fail
 ThisAsIdentifier/example: Fail
 ThisOrSuperAccessInFieldInitializer/example: Fail
+ThrowingNotAssignableToObjectError/analyzerCode: Fail
+ThrowingNotAssignableToObjectError/example: Fail
+ThrowingNotAssignableToObjectWarning/analyzerCode: Fail
+ThrowingNotAssignableToObjectWarning/example: Fail
 TooFewArguments/example: Fail
 TooManyArguments/example: Fail
 TypeAfterVar/example: Fail

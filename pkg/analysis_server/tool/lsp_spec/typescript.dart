@@ -16,9 +16,9 @@ String cleanComment(String comment) {
     comment = comment.substring(2);
   }
 
-  final _commentLinePrefixes = new RegExp(r'\n\s*\* ?');
-  final _nonConcurrentNewlines = new RegExp(r'\n(?![\n\s\-*])');
-  final _newLinesThatRequireReinserting = new RegExp(r'\n (\w)');
+  final _commentLinePrefixes = RegExp(r'\n\s*\* ?');
+  final _nonConcurrentNewlines = RegExp(r'\n(?![\n\s\-*])');
+  final _newLinesThatRequireReinserting = RegExp(r'\n (\w)');
   // Remove any Windows newlines from the source.
   comment = comment.replaceAll('\r', '');
   // Remove the * prefixes.

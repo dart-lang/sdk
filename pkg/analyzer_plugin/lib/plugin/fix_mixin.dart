@@ -32,7 +32,7 @@ mixin DartFixesMixin implements FixesMixin {
     String path = parameters.file;
     int offset = parameters.offset;
     ResolvedUnitResult result = await getResolvedUnitResult(path);
-    return new DartFixesRequestImpl(
+    return DartFixesRequestImpl(
         resourceProvider, offset, _getErrors(offset, result), result);
   }
 
@@ -75,7 +75,7 @@ mixin FixesMixin implements ServerPlugin {
     await null;
     String path = parameters.file;
     FixesRequest request = await getFixesRequest(parameters);
-    FixGenerator generator = new FixGenerator(getFixContributors(path));
+    FixGenerator generator = FixGenerator(getFixContributors(path));
     GeneratorResult<EditGetFixesResult> result =
         generator.generateFixesResponse(request);
     result.sendNotifications(channel);

@@ -6,6 +6,7 @@
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/lsp_spec/generate_all.dart".
 
+// ignore_for_file: annotate_overrides
 // ignore_for_file: deprecated_member_use
 // ignore_for_file: deprecated_member_use_from_same_package
 // ignore_for_file: unnecessary_brace_in_string_interps
@@ -22,10 +23,10 @@ import 'package:analysis_server/src/protocol/protocol_internal.dart'
     show listEqual, mapEqual;
 import 'package:analyzer/src/generated/utilities_general.dart';
 
-const jsonEncoder = const JsonEncoder.withIndent('    ');
+const jsonEncoder = JsonEncoder.withIndent('    ');
 
 class ApplyWorkspaceEditParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       ApplyWorkspaceEditParams.canParse, ApplyWorkspaceEditParams.fromJson);
 
   ApplyWorkspaceEditParams(this.label, this.edit) {
@@ -37,7 +38,7 @@ class ApplyWorkspaceEditParams implements ToJsonable {
     final label = json['label'];
     final edit =
         json['edit'] != null ? WorkspaceEdit.fromJson(json['edit']) : null;
-    return new ApplyWorkspaceEditParams(label, edit);
+    return ApplyWorkspaceEditParams(label, edit);
   }
 
   /// The edits to apply.
@@ -92,7 +93,7 @@ class ApplyWorkspaceEditParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ApplyWorkspaceEditParams) {
       return label == other.label && edit == other.edit && true;
     }
@@ -112,7 +113,7 @@ class ApplyWorkspaceEditParams implements ToJsonable {
 }
 
 class ApplyWorkspaceEditResponse implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       ApplyWorkspaceEditResponse.canParse, ApplyWorkspaceEditResponse.fromJson);
 
   ApplyWorkspaceEditResponse(this.applied, this.failureReason) {
@@ -123,7 +124,7 @@ class ApplyWorkspaceEditResponse implements ToJsonable {
   static ApplyWorkspaceEditResponse fromJson(Map<String, dynamic> json) {
     final applied = json['applied'];
     final failureReason = json['failureReason'];
-    return new ApplyWorkspaceEditResponse(applied, failureReason);
+    return ApplyWorkspaceEditResponse(applied, failureReason);
   }
 
   /// Indicates whether the edit was applied or not.
@@ -180,7 +181,7 @@ class ApplyWorkspaceEditResponse implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ApplyWorkspaceEditResponse) {
       return applied == other.applied &&
           failureReason == other.failureReason &&
@@ -203,7 +204,7 @@ class ApplyWorkspaceEditResponse implements ToJsonable {
 
 class CancelParams implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(CancelParams.canParse, CancelParams.fromJson);
+      LspJsonHandler(CancelParams.canParse, CancelParams.fromJson);
 
   CancelParams(this.id) {
     if (id == null) {
@@ -212,11 +213,11 @@ class CancelParams implements ToJsonable {
   }
   static CancelParams fromJson(Map<String, dynamic> json) {
     final id = json['id'] is num
-        ? new Either2<num, String>.t1(json['id'])
+        ? Either2<num, String>.t1(json['id'])
         : (json['id'] is String
-            ? new Either2<num, String>.t2(json['id'])
+            ? Either2<num, String>.t2(json['id'])
             : (throw '''${json['id']} was not one of (num, String)'''));
-    return new CancelParams(id);
+    return CancelParams(id);
   }
 
   /// The request id to cancel.
@@ -255,7 +256,7 @@ class CancelParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is CancelParams) {
       return id == other.id && true;
     }
@@ -274,8 +275,8 @@ class CancelParams implements ToJsonable {
 }
 
 class ClientCapabilities implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      ClientCapabilities.canParse, ClientCapabilities.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(ClientCapabilities.canParse, ClientCapabilities.fromJson);
 
   ClientCapabilities(this.workspace, this.textDocument, this.experimental);
   static ClientCapabilities fromJson(Map<String, dynamic> json) {
@@ -286,7 +287,7 @@ class ClientCapabilities implements ToJsonable {
         ? TextDocumentClientCapabilities.fromJson(json['textDocument'])
         : null;
     final experimental = json['experimental'];
-    return new ClientCapabilities(workspace, textDocument, experimental);
+    return ClientCapabilities(workspace, textDocument, experimental);
   }
 
   /// Experimental client capabilities.
@@ -354,7 +355,7 @@ class ClientCapabilities implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ClientCapabilities) {
       return workspace == other.workspace &&
           textDocument == other.textDocument &&
@@ -384,7 +385,7 @@ class ClientCapabilities implements ToJsonable {
 /// supplied, the `edit` is applied first, then the `command` is executed.
 class CodeAction implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(CodeAction.canParse, CodeAction.fromJson);
+      LspJsonHandler(CodeAction.canParse, CodeAction.fromJson);
 
   CodeAction(this.title, this.kind, this.diagnostics, this.edit, this.command) {
     if (title == null) {
@@ -403,7 +404,7 @@ class CodeAction implements ToJsonable {
         json['edit'] != null ? WorkspaceEdit.fromJson(json['edit']) : null;
     final command =
         json['command'] != null ? Command.fromJson(json['command']) : null;
-    return new CodeAction(title, kind, diagnostics, edit, command);
+    return CodeAction(title, kind, diagnostics, edit, command);
   }
 
   /// A command this code action executes. If a code action provides an edit and
@@ -511,7 +512,7 @@ class CodeAction implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is CodeAction) {
       return title == other.title &&
           kind == other.kind &&
@@ -542,8 +543,8 @@ class CodeAction implements ToJsonable {
 /// Contains additional diagnostic information about the context in which a code
 /// action is run.
 class CodeActionContext implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      CodeActionContext.canParse, CodeActionContext.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(CodeActionContext.canParse, CodeActionContext.fromJson);
 
   CodeActionContext(this.diagnostics, this.only) {
     if (diagnostics == null) {
@@ -559,7 +560,7 @@ class CodeActionContext implements ToJsonable {
         ?.map((item) => item != null ? CodeActionKind.fromJson(item) : null)
         ?.cast<CodeActionKind>()
         ?.toList();
-    return new CodeActionContext(diagnostics, only);
+    return CodeActionContext(diagnostics, only);
   }
 
   /// An array of diagnostics.
@@ -622,7 +623,7 @@ class CodeActionContext implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is CodeActionContext) {
       return listEqual(diagnostics, other.diagnostics,
               (Diagnostic a, Diagnostic b) => a == b) &&
@@ -656,11 +657,14 @@ class CodeActionKind {
     return obj is String;
   }
 
+  /// Empty kind.
+  static const Empty = CodeActionKind('');
+
   /// Base kind for quickfix actions: 'quickfix'
-  static const QuickFix = const CodeActionKind('quickfix');
+  static const QuickFix = CodeActionKind('quickfix');
 
   /// Base kind for refactoring actions: 'refactor'
-  static const Refactor = const CodeActionKind('refactor');
+  static const Refactor = CodeActionKind('refactor');
 
   /// Base kind for refactoring extraction actions: 'refactor.extract'
   ///
@@ -671,7 +675,7 @@ class CodeActionKind {
   /// - Extract variable
   /// - Extract interface from class
   /// - ...
-  static const RefactorExtract = const CodeActionKind('refactor.extract');
+  static const RefactorExtract = CodeActionKind('refactor.extract');
 
   /// Base kind for refactoring inline actions: 'refactor.inline'
   ///
@@ -681,7 +685,7 @@ class CodeActionKind {
   /// - Inline variable
   /// - Inline constant
   /// - ...
-  static const RefactorInline = const CodeActionKind('refactor.inline');
+  static const RefactorInline = CodeActionKind('refactor.inline');
 
   /// Base kind for refactoring rewrite actions: 'refactor.rewrite'
   ///
@@ -693,16 +697,15 @@ class CodeActionKind {
   /// - Make method static
   /// - Move method to base class
   /// - ...
-  static const RefactorRewrite = const CodeActionKind('refactor.rewrite');
+  static const RefactorRewrite = CodeActionKind('refactor.rewrite');
 
   /// Base kind for source actions: `source`
   ///
   /// Source code actions apply to the entire file.
-  static const Source = const CodeActionKind('source');
+  static const Source = CodeActionKind('source');
 
   /// Base kind for an organize imports source action: `source.organizeImports`
-  static const SourceOrganizeImports =
-      const CodeActionKind('source.organizeImports');
+  static const SourceOrganizeImports = CodeActionKind('source.organizeImports');
 
   Object toJson() => _value;
 
@@ -712,13 +715,13 @@ class CodeActionKind {
   @override
   get hashCode => _value.hashCode;
 
-  bool operator ==(o) => o is CodeActionKind && o._value == _value;
+  bool operator ==(Object o) => o is CodeActionKind && o._value == _value;
 }
 
 /// Code Action options.
 class CodeActionOptions implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      CodeActionOptions.canParse, CodeActionOptions.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(CodeActionOptions.canParse, CodeActionOptions.fromJson);
 
   CodeActionOptions(this.codeActionKinds);
   static CodeActionOptions fromJson(Map<String, dynamic> json) {
@@ -729,7 +732,7 @@ class CodeActionOptions implements ToJsonable {
         ?.map((item) => item != null ? CodeActionKind.fromJson(item) : null)
         ?.cast<CodeActionKind>()
         ?.toList();
-    return new CodeActionOptions(codeActionKinds);
+    return CodeActionOptions(codeActionKinds);
   }
 
   /// CodeActionKinds that this server may return.
@@ -768,7 +771,7 @@ class CodeActionOptions implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is CodeActionOptions) {
       return listEqual(codeActionKinds, other.codeActionKinds,
               (CodeActionKind a, CodeActionKind b) => a == b) &&
@@ -790,8 +793,8 @@ class CodeActionOptions implements ToJsonable {
 
 /// Params for the CodeActionRequest
 class CodeActionParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      CodeActionParams.canParse, CodeActionParams.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(CodeActionParams.canParse, CodeActionParams.fromJson);
 
   CodeActionParams(this.textDocument, this.range, this.context) {
     if (textDocument == null) {
@@ -812,7 +815,7 @@ class CodeActionParams implements ToJsonable {
     final context = json['context'] != null
         ? CodeActionContext.fromJson(json['context'])
         : null;
-    return new CodeActionParams(textDocument, range, context);
+    return CodeActionParams(textDocument, range, context);
   }
 
   /// Context carrying additional information.
@@ -895,7 +898,7 @@ class CodeActionParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is CodeActionParams) {
       return textDocument == other.textDocument &&
           range == other.range &&
@@ -920,7 +923,7 @@ class CodeActionParams implements ToJsonable {
 
 class CodeActionRegistrationOptions
     implements TextDocumentRegistrationOptions, CodeActionOptions, ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       CodeActionRegistrationOptions.canParse,
       CodeActionRegistrationOptions.fromJson);
 
@@ -934,7 +937,7 @@ class CodeActionRegistrationOptions
         ?.map((item) => item != null ? CodeActionKind.fromJson(item) : null)
         ?.cast<CodeActionKind>()
         ?.toList();
-    return new CodeActionRegistrationOptions(documentSelector, codeActionKinds);
+    return CodeActionRegistrationOptions(documentSelector, codeActionKinds);
   }
 
   /// CodeActionKinds that this server may return.
@@ -994,7 +997,7 @@ class CodeActionRegistrationOptions
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is CodeActionRegistrationOptions) {
       return documentSelector == other.documentSelector &&
           listEqual(codeActionKinds, other.codeActionKinds,
@@ -1024,7 +1027,7 @@ class CodeActionRegistrationOptions
 /// in two stages.
 class CodeLens implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(CodeLens.canParse, CodeLens.fromJson);
+      LspJsonHandler(CodeLens.canParse, CodeLens.fromJson);
 
   CodeLens(this.range, this.command, this.data) {
     if (range == null) {
@@ -1036,7 +1039,7 @@ class CodeLens implements ToJsonable {
     final command =
         json['command'] != null ? Command.fromJson(json['command']) : null;
     final data = json['data'];
-    return new CodeLens(range, command, data);
+    return CodeLens(range, command, data);
   }
 
   /// The command this code lens represents.
@@ -1108,7 +1111,7 @@ class CodeLens implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is CodeLens) {
       return range == other.range &&
           command == other.command &&
@@ -1134,12 +1137,12 @@ class CodeLens implements ToJsonable {
 /// Code Lens options.
 class CodeLensOptions implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(CodeLensOptions.canParse, CodeLensOptions.fromJson);
+      LspJsonHandler(CodeLensOptions.canParse, CodeLensOptions.fromJson);
 
   CodeLensOptions(this.resolveProvider);
   static CodeLensOptions fromJson(Map<String, dynamic> json) {
     final resolveProvider = json['resolveProvider'];
-    return new CodeLensOptions(resolveProvider);
+    return CodeLensOptions(resolveProvider);
   }
 
   /// Code lens has a resolve provider as well.
@@ -1173,7 +1176,7 @@ class CodeLensOptions implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is CodeLensOptions) {
       return resolveProvider == other.resolveProvider && true;
     }
@@ -1193,7 +1196,7 @@ class CodeLensOptions implements ToJsonable {
 
 class CodeLensParams implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(CodeLensParams.canParse, CodeLensParams.fromJson);
+      LspJsonHandler(CodeLensParams.canParse, CodeLensParams.fromJson);
 
   CodeLensParams(this.textDocument) {
     if (textDocument == null) {
@@ -1204,7 +1207,7 @@ class CodeLensParams implements ToJsonable {
     final textDocument = json['textDocument'] != null
         ? TextDocumentIdentifier.fromJson(json['textDocument'])
         : null;
-    return new CodeLensParams(textDocument);
+    return CodeLensParams(textDocument);
   }
 
   /// The document to request code lens for.
@@ -1244,7 +1247,7 @@ class CodeLensParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is CodeLensParams) {
       return textDocument == other.textDocument && true;
     }
@@ -1264,7 +1267,7 @@ class CodeLensParams implements ToJsonable {
 
 class CodeLensRegistrationOptions
     implements TextDocumentRegistrationOptions, ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       CodeLensRegistrationOptions.canParse,
       CodeLensRegistrationOptions.fromJson);
 
@@ -1275,7 +1278,7 @@ class CodeLensRegistrationOptions
         ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
         ?.cast<DocumentFilter>()
         ?.toList();
-    return new CodeLensRegistrationOptions(resolveProvider, documentSelector);
+    return CodeLensRegistrationOptions(resolveProvider, documentSelector);
   }
 
   /// A document selector to identify the scope of the registration. If set to
@@ -1330,7 +1333,7 @@ class CodeLensRegistrationOptions
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is CodeLensRegistrationOptions) {
       return resolveProvider == other.resolveProvider &&
           documentSelector == other.documentSelector &&
@@ -1353,8 +1356,7 @@ class CodeLensRegistrationOptions
 
 /// Represents a color in RGBA space.
 class Color implements ToJsonable {
-  static const jsonHandler =
-      const LspJsonHandler(Color.canParse, Color.fromJson);
+  static const jsonHandler = LspJsonHandler(Color.canParse, Color.fromJson);
 
   Color(this.red, this.green, this.blue, this.alpha) {
     if (red == null) {
@@ -1375,7 +1377,7 @@ class Color implements ToJsonable {
     final green = json['green'];
     final blue = json['blue'];
     final alpha = json['alpha'];
-    return new Color(red, green, blue, alpha);
+    return Color(red, green, blue, alpha);
   }
 
   /// The alpha component of this color in the range [0-1].
@@ -1477,7 +1479,7 @@ class Color implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is Color) {
       return red == other.red &&
           green == other.green &&
@@ -1503,8 +1505,8 @@ class Color implements ToJsonable {
 }
 
 class ColorInformation implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      ColorInformation.canParse, ColorInformation.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(ColorInformation.canParse, ColorInformation.fromJson);
 
   ColorInformation(this.range, this.color) {
     if (range == null) {
@@ -1517,7 +1519,7 @@ class ColorInformation implements ToJsonable {
   static ColorInformation fromJson(Map<String, dynamic> json) {
     final range = json['range'] != null ? Range.fromJson(json['range']) : null;
     final color = json['color'] != null ? Color.fromJson(json['color']) : null;
-    return new ColorInformation(range, color);
+    return ColorInformation(range, color);
   }
 
   /// The actual color value for this color range.
@@ -1577,7 +1579,7 @@ class ColorInformation implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ColorInformation) {
       return range == other.range && color == other.color && true;
     }
@@ -1597,8 +1599,8 @@ class ColorInformation implements ToJsonable {
 }
 
 class ColorPresentation implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      ColorPresentation.canParse, ColorPresentation.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(ColorPresentation.canParse, ColorPresentation.fromJson);
 
   ColorPresentation(this.label, this.textEdit, this.additionalTextEdits) {
     if (label == null) {
@@ -1613,7 +1615,7 @@ class ColorPresentation implements ToJsonable {
         ?.map((item) => item != null ? TextEdit.fromJson(item) : null)
         ?.cast<TextEdit>()
         ?.toList();
-    return new ColorPresentation(label, textEdit, additionalTextEdits);
+    return ColorPresentation(label, textEdit, additionalTextEdits);
   }
 
   /// An optional array of additional text edits ([TextEdit]) that are applied
@@ -1692,7 +1694,7 @@ class ColorPresentation implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ColorPresentation) {
       return label == other.label &&
           textEdit == other.textEdit &&
@@ -1717,7 +1719,7 @@ class ColorPresentation implements ToJsonable {
 }
 
 class ColorPresentationParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       ColorPresentationParams.canParse, ColorPresentationParams.fromJson);
 
   ColorPresentationParams(this.textDocument, this.color, this.range) {
@@ -1737,7 +1739,7 @@ class ColorPresentationParams implements ToJsonable {
         : null;
     final color = json['color'] != null ? Color.fromJson(json['color']) : null;
     final range = json['range'] != null ? Range.fromJson(json['range']) : null;
-    return new ColorPresentationParams(textDocument, color, range);
+    return ColorPresentationParams(textDocument, color, range);
   }
 
   /// The color information to request presentations for.
@@ -1819,7 +1821,7 @@ class ColorPresentationParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ColorPresentationParams) {
       return textDocument == other.textDocument &&
           color == other.color &&
@@ -1844,11 +1846,11 @@ class ColorPresentationParams implements ToJsonable {
 
 /// Color provider options.
 class ColorProviderOptions implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       ColorProviderOptions.canParse, ColorProviderOptions.fromJson);
 
   static ColorProviderOptions fromJson(Map<String, dynamic> json) {
-    return new ColorProviderOptions();
+    return ColorProviderOptions();
   }
 
   Map<String, dynamic> toJson() {
@@ -1866,7 +1868,7 @@ class ColorProviderOptions implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ColorProviderOptions) {
       return true;
     }
@@ -1884,8 +1886,7 @@ class ColorProviderOptions implements ToJsonable {
 }
 
 class Command implements ToJsonable {
-  static const jsonHandler =
-      const LspJsonHandler(Command.canParse, Command.fromJson);
+  static const jsonHandler = LspJsonHandler(Command.canParse, Command.fromJson);
 
   Command(this.title, this.command, this.arguments) {
     if (title == null) {
@@ -1900,7 +1901,7 @@ class Command implements ToJsonable {
     final command = json['command'];
     final arguments =
         json['arguments']?.map((item) => item)?.cast<dynamic>()?.toList();
-    return new Command(title, command, arguments);
+    return Command(title, command, arguments);
   }
 
   /// Arguments that the command handler should be invoked with.
@@ -1978,7 +1979,7 @@ class Command implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is Command) {
       return title == other.title &&
           command == other.command &&
@@ -2005,8 +2006,8 @@ class Command implements ToJsonable {
 /// Contains additional information about the context in which a completion
 /// request is triggered.
 class CompletionContext implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      CompletionContext.canParse, CompletionContext.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(CompletionContext.canParse, CompletionContext.fromJson);
 
   CompletionContext(this.triggerKind, this.triggerCharacter) {
     if (triggerKind == null) {
@@ -2018,7 +2019,7 @@ class CompletionContext implements ToJsonable {
         ? CompletionTriggerKind.fromJson(json['triggerKind'])
         : null;
     final triggerCharacter = json['triggerCharacter'];
-    return new CompletionContext(triggerKind, triggerCharacter);
+    return CompletionContext(triggerKind, triggerCharacter);
   }
 
   /// The trigger character (a single character) that has trigger code complete.
@@ -2075,7 +2076,7 @@ class CompletionContext implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is CompletionContext) {
       return triggerKind == other.triggerKind &&
           triggerCharacter == other.triggerCharacter &&
@@ -2098,7 +2099,7 @@ class CompletionContext implements ToJsonable {
 
 class CompletionItem implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(CompletionItem.canParse, CompletionItem.fromJson);
+      LspJsonHandler(CompletionItem.canParse, CompletionItem.fromJson);
 
   CompletionItem(
       this.label,
@@ -2126,12 +2127,11 @@ class CompletionItem implements ToJsonable {
         json['kind'] != null ? CompletionItemKind.fromJson(json['kind']) : null;
     final detail = json['detail'];
     final documentation = json['documentation'] is String
-        ? new Either2<String, MarkupContent>.t1(json['documentation'])
+        ? Either2<String, MarkupContent>.t1(json['documentation'])
         : (MarkupContent.canParse(json['documentation'], nullLspJsonReporter)
-            ? new Either2<String, MarkupContent>.t2(
-                json['documentation'] != null
-                    ? MarkupContent.fromJson(json['documentation'])
-                    : null)
+            ? Either2<String, MarkupContent>.t2(json['documentation'] != null
+                ? MarkupContent.fromJson(json['documentation'])
+                : null)
             : (json['documentation'] == null
                 ? null
                 : (throw '''${json['documentation']} was not one of (String, MarkupContent)''')));
@@ -2156,7 +2156,7 @@ class CompletionItem implements ToJsonable {
     final data = json['data'] != null
         ? CompletionItemResolutionInfo.fromJson(json['data'])
         : null;
-    return new CompletionItem(
+    return CompletionItem(
         label,
         kind,
         detail,
@@ -2224,7 +2224,8 @@ class CompletionItem implements ToJsonable {
   final String insertText;
 
   /// The format of the insert text. The format applies to both the `insertText`
-  /// property and the `newText` property of a provided `textEdit`.
+  /// property and the `newText` property of a provided `textEdit`. If ommitted
+  /// defaults to `InsertTextFormat.PlainText`.
   final InsertTextFormat insertTextFormat;
 
   /// The kind of this completion item. Based of the kind an icon is chosen by
@@ -2468,7 +2469,7 @@ class CompletionItem implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is CompletionItem) {
       return label == other.label &&
           kind == other.kind &&
@@ -2528,31 +2529,31 @@ class CompletionItemKind {
     return obj is num;
   }
 
-  static const Text = const CompletionItemKind(1);
-  static const Method = const CompletionItemKind(2);
-  static const Function = const CompletionItemKind(3);
-  static const Constructor = const CompletionItemKind(4);
-  static const Field = const CompletionItemKind(5);
-  static const Variable = const CompletionItemKind(6);
-  static const Class = const CompletionItemKind(7);
-  static const Interface = const CompletionItemKind(8);
-  static const Module = const CompletionItemKind(9);
-  static const Property = const CompletionItemKind(10);
-  static const Unit = const CompletionItemKind(11);
-  static const Value = const CompletionItemKind(12);
-  static const Enum = const CompletionItemKind(13);
-  static const Keyword = const CompletionItemKind(14);
-  static const Snippet = const CompletionItemKind(15);
-  static const Color = const CompletionItemKind(16);
-  static const File = const CompletionItemKind(17);
-  static const Reference = const CompletionItemKind(18);
-  static const Folder = const CompletionItemKind(19);
-  static const EnumMember = const CompletionItemKind(20);
-  static const Constant = const CompletionItemKind(21);
-  static const Struct = const CompletionItemKind(22);
-  static const Event = const CompletionItemKind(23);
-  static const Operator = const CompletionItemKind(24);
-  static const TypeParameter = const CompletionItemKind(25);
+  static const Text = CompletionItemKind(1);
+  static const Method = CompletionItemKind(2);
+  static const Function = CompletionItemKind(3);
+  static const Constructor = CompletionItemKind(4);
+  static const Field = CompletionItemKind(5);
+  static const Variable = CompletionItemKind(6);
+  static const Class = CompletionItemKind(7);
+  static const Interface = CompletionItemKind(8);
+  static const Module = CompletionItemKind(9);
+  static const Property = CompletionItemKind(10);
+  static const Unit = CompletionItemKind(11);
+  static const Value = CompletionItemKind(12);
+  static const Enum = CompletionItemKind(13);
+  static const Keyword = CompletionItemKind(14);
+  static const Snippet = CompletionItemKind(15);
+  static const Color = CompletionItemKind(16);
+  static const File = CompletionItemKind(17);
+  static const Reference = CompletionItemKind(18);
+  static const Folder = CompletionItemKind(19);
+  static const EnumMember = CompletionItemKind(20);
+  static const Constant = CompletionItemKind(21);
+  static const Struct = CompletionItemKind(22);
+  static const Event = CompletionItemKind(23);
+  static const Operator = CompletionItemKind(24);
+  static const TypeParameter = CompletionItemKind(25);
 
   Object toJson() => _value;
 
@@ -2562,14 +2563,14 @@ class CompletionItemKind {
   @override
   get hashCode => _value.hashCode;
 
-  bool operator ==(o) => o is CompletionItemKind && o._value == _value;
+  bool operator ==(Object o) => o is CompletionItemKind && o._value == _value;
 }
 
 /// Represents a collection of completion items ([CompletionItem]) to be
 /// presented in the editor.
 class CompletionList implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(CompletionList.canParse, CompletionList.fromJson);
+      LspJsonHandler(CompletionList.canParse, CompletionList.fromJson);
 
   CompletionList(this.isIncomplete, this.items) {
     if (isIncomplete == null) {
@@ -2585,7 +2586,7 @@ class CompletionList implements ToJsonable {
         ?.map((item) => item != null ? CompletionItem.fromJson(item) : null)
         ?.cast<CompletionItem>()
         ?.toList();
-    return new CompletionList(isIncomplete, items);
+    return CompletionList(isIncomplete, items);
   }
 
   /// This list it not complete. Further typing should result in recomputing
@@ -2649,7 +2650,7 @@ class CompletionList implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is CompletionList) {
       return isIncomplete == other.isIncomplete &&
           listEqual(items, other.items,
@@ -2673,8 +2674,8 @@ class CompletionList implements ToJsonable {
 
 /// Completion options.
 class CompletionOptions implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      CompletionOptions.canParse, CompletionOptions.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(CompletionOptions.canParse, CompletionOptions.fromJson);
 
   CompletionOptions(this.resolveProvider, this.triggerCharacters);
   static CompletionOptions fromJson(Map<String, dynamic> json) {
@@ -2683,7 +2684,7 @@ class CompletionOptions implements ToJsonable {
         ?.map((item) => item)
         ?.cast<String>()
         ?.toList();
-    return new CompletionOptions(resolveProvider, triggerCharacters);
+    return CompletionOptions(resolveProvider, triggerCharacters);
   }
 
   /// The server provides support to resolve additional information for a
@@ -2735,7 +2736,7 @@ class CompletionOptions implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is CompletionOptions) {
       return resolveProvider == other.resolveProvider &&
           listEqual(triggerCharacters, other.triggerCharacters,
@@ -2758,8 +2759,8 @@ class CompletionOptions implements ToJsonable {
 }
 
 class CompletionParams implements TextDocumentPositionParams, ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      CompletionParams.canParse, CompletionParams.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(CompletionParams.canParse, CompletionParams.fromJson);
 
   CompletionParams(this.context, this.textDocument, this.position) {
     if (textDocument == null) {
@@ -2778,7 +2779,7 @@ class CompletionParams implements TextDocumentPositionParams, ToJsonable {
         : null;
     final position =
         json['position'] != null ? Position.fromJson(json['position']) : null;
-    return new CompletionParams(context, textDocument, position);
+    return CompletionParams(context, textDocument, position);
   }
 
   /// The completion context. This is only available if the client specifies to
@@ -2858,7 +2859,7 @@ class CompletionParams implements TextDocumentPositionParams, ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is CompletionParams) {
       return context == other.context &&
           textDocument == other.textDocument &&
@@ -2883,7 +2884,7 @@ class CompletionParams implements TextDocumentPositionParams, ToJsonable {
 
 class CompletionRegistrationOptions
     implements TextDocumentRegistrationOptions, ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       CompletionRegistrationOptions.canParse,
       CompletionRegistrationOptions.fromJson);
 
@@ -2903,14 +2904,17 @@ class CompletionRegistrationOptions
         ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
         ?.cast<DocumentFilter>()
         ?.toList();
-    return new CompletionRegistrationOptions(triggerCharacters,
-        allCommitCharacters, resolveProvider, documentSelector);
+    return CompletionRegistrationOptions(triggerCharacters, allCommitCharacters,
+        resolveProvider, documentSelector);
   }
 
   /// The list of all possible characters that commit a completion. This field
   /// can be used if clients don't support individual commmit characters per
   /// completion item. See
-  /// `ClientCapabilities.textDocument.completion.completionItem.commitCharactersSupport`
+  /// `ClientCapabilities.textDocument.completion.completionItem.commitCharactersSupport`.
+  ///
+  /// If a server provides both `allCommitCharacters` and commit characters on
+  /// an individual completion item the ones on the completion item win.
   ///
   /// Since 3.2.0
   final List<String> allCommitCharacters;
@@ -3009,7 +3013,7 @@ class CompletionRegistrationOptions
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is CompletionRegistrationOptions) {
       return listEqual(triggerCharacters, other.triggerCharacters,
               (String a, String b) => a == b) &&
@@ -3055,15 +3059,14 @@ class CompletionTriggerKind {
 
   /// Completion was triggered by typing an identifier (24x7 code complete),
   /// manual invocation (e.g Ctrl+Space) or via API.
-  static const Invoked = const CompletionTriggerKind._(1);
+  static const Invoked = CompletionTriggerKind._(1);
 
   /// Completion was triggered by a trigger character specified by the
   /// `triggerCharacters` properties of the `CompletionRegistrationOptions`.
-  static const TriggerCharacter = const CompletionTriggerKind._(2);
+  static const TriggerCharacter = CompletionTriggerKind._(2);
 
   /// Completion was re-triggered as the current completion list is incomplete.
-  static const TriggerForIncompleteCompletions =
-      const CompletionTriggerKind._(3);
+  static const TriggerForIncompleteCompletions = CompletionTriggerKind._(3);
 
   Object toJson() => _value;
 
@@ -3073,18 +3076,19 @@ class CompletionTriggerKind {
   @override
   get hashCode => _value.hashCode;
 
-  bool operator ==(o) => o is CompletionTriggerKind && o._value == _value;
+  bool operator ==(Object o) =>
+      o is CompletionTriggerKind && o._value == _value;
 }
 
 class ConfigurationItem implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      ConfigurationItem.canParse, ConfigurationItem.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(ConfigurationItem.canParse, ConfigurationItem.fromJson);
 
   ConfigurationItem(this.scopeUri, this.section);
   static ConfigurationItem fromJson(Map<String, dynamic> json) {
     final scopeUri = json['scopeUri'];
     final section = json['section'];
-    return new ConfigurationItem(scopeUri, section);
+    return ConfigurationItem(scopeUri, section);
   }
 
   /// The scope to get the configuration section for.
@@ -3132,7 +3136,7 @@ class ConfigurationItem implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ConfigurationItem) {
       return scopeUri == other.scopeUri && section == other.section && true;
     }
@@ -3152,7 +3156,7 @@ class ConfigurationItem implements ToJsonable {
 }
 
 class ConfigurationParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       ConfigurationParams.canParse, ConfigurationParams.fromJson);
 
   ConfigurationParams(this.items) {
@@ -3165,7 +3169,7 @@ class ConfigurationParams implements ToJsonable {
         ?.map((item) => item != null ? ConfigurationItem.fromJson(item) : null)
         ?.cast<ConfigurationItem>()
         ?.toList();
-    return new ConfigurationParams(items);
+    return ConfigurationParams(items);
   }
 
   final List<ConfigurationItem> items;
@@ -3205,7 +3209,7 @@ class ConfigurationParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ConfigurationParams) {
       return listEqual(items, other.items,
               (ConfigurationItem a, ConfigurationItem b) => a == b) &&
@@ -3228,7 +3232,7 @@ class ConfigurationParams implements ToJsonable {
 /// Create file operation
 class CreateFile implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(CreateFile.canParse, CreateFile.fromJson);
+      LspJsonHandler(CreateFile.canParse, CreateFile.fromJson);
 
   CreateFile(this.kind, this.uri, this.options) {
     if (kind == null) {
@@ -3244,7 +3248,7 @@ class CreateFile implements ToJsonable {
     final options = json['options'] != null
         ? CreateFileOptions.fromJson(json['options'])
         : null;
-    return new CreateFile(kind, uri, options);
+    return CreateFile(kind, uri, options);
   }
 
   /// A create
@@ -3320,7 +3324,7 @@ class CreateFile implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is CreateFile) {
       return kind == other.kind &&
           uri == other.uri &&
@@ -3345,14 +3349,14 @@ class CreateFile implements ToJsonable {
 
 /// Options to create a file.
 class CreateFileOptions implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      CreateFileOptions.canParse, CreateFileOptions.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(CreateFileOptions.canParse, CreateFileOptions.fromJson);
 
   CreateFileOptions(this.overwrite, this.ignoreIfExists);
   static CreateFileOptions fromJson(Map<String, dynamic> json) {
     final overwrite = json['overwrite'];
     final ignoreIfExists = json['ignoreIfExists'];
-    return new CreateFileOptions(overwrite, ignoreIfExists);
+    return CreateFileOptions(overwrite, ignoreIfExists);
   }
 
   /// Ignore if exists.
@@ -3400,7 +3404,7 @@ class CreateFileOptions implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is CreateFileOptions) {
       return overwrite == other.overwrite &&
           ignoreIfExists == other.ignoreIfExists &&
@@ -3424,7 +3428,7 @@ class CreateFileOptions implements ToJsonable {
 /// Delete file operation
 class DeleteFile implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(DeleteFile.canParse, DeleteFile.fromJson);
+      LspJsonHandler(DeleteFile.canParse, DeleteFile.fromJson);
 
   DeleteFile(this.kind, this.uri, this.options) {
     if (kind == null) {
@@ -3440,7 +3444,7 @@ class DeleteFile implements ToJsonable {
     final options = json['options'] != null
         ? DeleteFileOptions.fromJson(json['options'])
         : null;
-    return new DeleteFile(kind, uri, options);
+    return DeleteFile(kind, uri, options);
   }
 
   /// A delete
@@ -3516,7 +3520,7 @@ class DeleteFile implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DeleteFile) {
       return kind == other.kind &&
           uri == other.uri &&
@@ -3541,14 +3545,14 @@ class DeleteFile implements ToJsonable {
 
 /// Delete file options
 class DeleteFileOptions implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      DeleteFileOptions.canParse, DeleteFileOptions.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(DeleteFileOptions.canParse, DeleteFileOptions.fromJson);
 
   DeleteFileOptions(this.recursive, this.ignoreIfNotExists);
   static DeleteFileOptions fromJson(Map<String, dynamic> json) {
     final recursive = json['recursive'];
     final ignoreIfNotExists = json['ignoreIfNotExists'];
-    return new DeleteFileOptions(recursive, ignoreIfNotExists);
+    return DeleteFileOptions(recursive, ignoreIfNotExists);
   }
 
   /// Ignore the operation if the file doesn't exist.
@@ -3597,7 +3601,7 @@ class DeleteFileOptions implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DeleteFileOptions) {
       return recursive == other.recursive &&
           ignoreIfNotExists == other.ignoreIfNotExists &&
@@ -3620,7 +3624,7 @@ class DeleteFileOptions implements ToJsonable {
 
 class Diagnostic implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(Diagnostic.canParse, Diagnostic.fromJson);
+      LspJsonHandler(Diagnostic.canParse, Diagnostic.fromJson);
 
   Diagnostic(this.range, this.severity, this.code, this.source, this.message,
       this.relatedInformation) {
@@ -3644,7 +3648,7 @@ class Diagnostic implements ToJsonable {
             item != null ? DiagnosticRelatedInformation.fromJson(item) : null)
         ?.cast<DiagnosticRelatedInformation>()
         ?.toList();
-    return new Diagnostic(
+    return Diagnostic(
         range, severity, code, source, message, relatedInformation);
   }
 
@@ -3774,7 +3778,7 @@ class Diagnostic implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is Diagnostic) {
       return range == other.range &&
           severity == other.severity &&
@@ -3812,7 +3816,7 @@ class Diagnostic implements ToJsonable {
 /// should be used to point to code locations that cause or related to a
 /// diagnostics, e.g when duplicating a symbol in a scope.
 class DiagnosticRelatedInformation implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       DiagnosticRelatedInformation.canParse,
       DiagnosticRelatedInformation.fromJson);
 
@@ -3828,7 +3832,7 @@ class DiagnosticRelatedInformation implements ToJsonable {
     final location =
         json['location'] != null ? Location.fromJson(json['location']) : null;
     final message = json['message'];
-    return new DiagnosticRelatedInformation(location, message);
+    return DiagnosticRelatedInformation(location, message);
   }
 
   /// The location of this related diagnostic information.
@@ -3890,7 +3894,7 @@ class DiagnosticRelatedInformation implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DiagnosticRelatedInformation) {
       return location == other.location && message == other.message && true;
     }
@@ -3920,16 +3924,16 @@ class DiagnosticSeverity {
   }
 
   /// Reports an error.
-  static const Error = const DiagnosticSeverity(1);
+  static const Error = DiagnosticSeverity(1);
 
   /// Reports a warning.
-  static const Warning = const DiagnosticSeverity(2);
+  static const Warning = DiagnosticSeverity(2);
 
   /// Reports an information.
-  static const Information = const DiagnosticSeverity(3);
+  static const Information = DiagnosticSeverity(3);
 
   /// Reports a hint.
-  static const Hint = const DiagnosticSeverity(4);
+  static const Hint = DiagnosticSeverity(4);
 
   Object toJson() => _value;
 
@@ -3939,18 +3943,18 @@ class DiagnosticSeverity {
   @override
   get hashCode => _value.hashCode;
 
-  bool operator ==(o) => o is DiagnosticSeverity && o._value == _value;
+  bool operator ==(Object o) => o is DiagnosticSeverity && o._value == _value;
 }
 
 class DidChangeConfigurationParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       DidChangeConfigurationParams.canParse,
       DidChangeConfigurationParams.fromJson);
 
   DidChangeConfigurationParams(this.settings);
   static DidChangeConfigurationParams fromJson(Map<String, dynamic> json) {
     final settings = json['settings'];
-    return new DidChangeConfigurationParams(settings);
+    return DidChangeConfigurationParams(settings);
   }
 
   /// The actual changed settings
@@ -3985,7 +3989,7 @@ class DidChangeConfigurationParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DidChangeConfigurationParams) {
       return settings == other.settings && true;
     }
@@ -4004,7 +4008,7 @@ class DidChangeConfigurationParams implements ToJsonable {
 }
 
 class DidChangeTextDocumentParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       DidChangeTextDocumentParams.canParse,
       DidChangeTextDocumentParams.fromJson);
 
@@ -4025,7 +4029,7 @@ class DidChangeTextDocumentParams implements ToJsonable {
             item != null ? TextDocumentContentChangeEvent.fromJson(item) : null)
         ?.cast<TextDocumentContentChangeEvent>()
         ?.toList();
-    return new DidChangeTextDocumentParams(textDocument, contentChanges);
+    return DidChangeTextDocumentParams(textDocument, contentChanges);
   }
 
   /// The actual content changes. The content changes describe single state
@@ -4095,7 +4099,7 @@ class DidChangeTextDocumentParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DidChangeTextDocumentParams) {
       return textDocument == other.textDocument &&
           listEqual(
@@ -4122,7 +4126,7 @@ class DidChangeTextDocumentParams implements ToJsonable {
 }
 
 class DidChangeWatchedFilesParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       DidChangeWatchedFilesParams.canParse,
       DidChangeWatchedFilesParams.fromJson);
 
@@ -4136,7 +4140,7 @@ class DidChangeWatchedFilesParams implements ToJsonable {
         ?.map((item) => item != null ? FileEvent.fromJson(item) : null)
         ?.cast<FileEvent>()
         ?.toList();
-    return new DidChangeWatchedFilesParams(changes);
+    return DidChangeWatchedFilesParams(changes);
   }
 
   /// The actual file events.
@@ -4178,7 +4182,7 @@ class DidChangeWatchedFilesParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DidChangeWatchedFilesParams) {
       return listEqual(
               changes, other.changes, (FileEvent a, FileEvent b) => a == b) &&
@@ -4200,7 +4204,7 @@ class DidChangeWatchedFilesParams implements ToJsonable {
 
 /// Describe options to be used when registering for file system change events.
 class DidChangeWatchedFilesRegistrationOptions implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       DidChangeWatchedFilesRegistrationOptions.canParse,
       DidChangeWatchedFilesRegistrationOptions.fromJson);
 
@@ -4215,7 +4219,7 @@ class DidChangeWatchedFilesRegistrationOptions implements ToJsonable {
         ?.map((item) => item != null ? FileSystemWatcher.fromJson(item) : null)
         ?.cast<FileSystemWatcher>()
         ?.toList();
-    return new DidChangeWatchedFilesRegistrationOptions(watchers);
+    return DidChangeWatchedFilesRegistrationOptions(watchers);
   }
 
   /// The watchers to register.
@@ -4258,7 +4262,7 @@ class DidChangeWatchedFilesRegistrationOptions implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DidChangeWatchedFilesRegistrationOptions) {
       return listEqual(watchers, other.watchers,
               (FileSystemWatcher a, FileSystemWatcher b) => a == b) &&
@@ -4279,7 +4283,7 @@ class DidChangeWatchedFilesRegistrationOptions implements ToJsonable {
 }
 
 class DidChangeWorkspaceFoldersParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       DidChangeWorkspaceFoldersParams.canParse,
       DidChangeWorkspaceFoldersParams.fromJson);
 
@@ -4292,7 +4296,7 @@ class DidChangeWorkspaceFoldersParams implements ToJsonable {
     final event = json['event'] != null
         ? WorkspaceFoldersChangeEvent.fromJson(json['event'])
         : null;
-    return new DidChangeWorkspaceFoldersParams(event);
+    return DidChangeWorkspaceFoldersParams(event);
   }
 
   /// The actual workspace folder change event.
@@ -4331,7 +4335,7 @@ class DidChangeWorkspaceFoldersParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DidChangeWorkspaceFoldersParams) {
       return event == other.event && true;
     }
@@ -4350,7 +4354,7 @@ class DidChangeWorkspaceFoldersParams implements ToJsonable {
 }
 
 class DidCloseTextDocumentParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       DidCloseTextDocumentParams.canParse, DidCloseTextDocumentParams.fromJson);
 
   DidCloseTextDocumentParams(this.textDocument) {
@@ -4362,7 +4366,7 @@ class DidCloseTextDocumentParams implements ToJsonable {
     final textDocument = json['textDocument'] != null
         ? TextDocumentIdentifier.fromJson(json['textDocument'])
         : null;
-    return new DidCloseTextDocumentParams(textDocument);
+    return DidCloseTextDocumentParams(textDocument);
   }
 
   /// The document that was closed.
@@ -4402,7 +4406,7 @@ class DidCloseTextDocumentParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DidCloseTextDocumentParams) {
       return textDocument == other.textDocument && true;
     }
@@ -4421,7 +4425,7 @@ class DidCloseTextDocumentParams implements ToJsonable {
 }
 
 class DidOpenTextDocumentParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       DidOpenTextDocumentParams.canParse, DidOpenTextDocumentParams.fromJson);
 
   DidOpenTextDocumentParams(this.textDocument) {
@@ -4433,7 +4437,7 @@ class DidOpenTextDocumentParams implements ToJsonable {
     final textDocument = json['textDocument'] != null
         ? TextDocumentItem.fromJson(json['textDocument'])
         : null;
-    return new DidOpenTextDocumentParams(textDocument);
+    return DidOpenTextDocumentParams(textDocument);
   }
 
   /// The document that was opened.
@@ -4473,7 +4477,7 @@ class DidOpenTextDocumentParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DidOpenTextDocumentParams) {
       return textDocument == other.textDocument && true;
     }
@@ -4492,7 +4496,7 @@ class DidOpenTextDocumentParams implements ToJsonable {
 }
 
 class DidSaveTextDocumentParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       DidSaveTextDocumentParams.canParse, DidSaveTextDocumentParams.fromJson);
 
   DidSaveTextDocumentParams(this.textDocument, this.text) {
@@ -4505,7 +4509,7 @@ class DidSaveTextDocumentParams implements ToJsonable {
         ? TextDocumentIdentifier.fromJson(json['textDocument'])
         : null;
     final text = json['text'];
-    return new DidSaveTextDocumentParams(textDocument, text);
+    return DidSaveTextDocumentParams(textDocument, text);
   }
 
   /// Optional the content when saved. Depends on the includeText value when the
@@ -4561,7 +4565,7 @@ class DidSaveTextDocumentParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DidSaveTextDocumentParams) {
       return textDocument == other.textDocument && text == other.text && true;
     }
@@ -4582,14 +4586,14 @@ class DidSaveTextDocumentParams implements ToJsonable {
 
 class DocumentFilter implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(DocumentFilter.canParse, DocumentFilter.fromJson);
+      LspJsonHandler(DocumentFilter.canParse, DocumentFilter.fromJson);
 
   DocumentFilter(this.language, this.scheme, this.pattern);
   static DocumentFilter fromJson(Map<String, dynamic> json) {
     final language = json['language'];
     final scheme = json['scheme'];
     final pattern = json['pattern'];
-    return new DocumentFilter(language, scheme, pattern);
+    return DocumentFilter(language, scheme, pattern);
   }
 
   /// A language id, like `typescript`.
@@ -4664,7 +4668,7 @@ class DocumentFilter implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DocumentFilter) {
       return language == other.language &&
           scheme == other.scheme &&
@@ -4688,7 +4692,7 @@ class DocumentFilter implements ToJsonable {
 }
 
 class DocumentFormattingParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       DocumentFormattingParams.canParse, DocumentFormattingParams.fromJson);
 
   DocumentFormattingParams(this.textDocument, this.options) {
@@ -4706,7 +4710,7 @@ class DocumentFormattingParams implements ToJsonable {
     final options = json['options'] != null
         ? FormattingOptions.fromJson(json['options'])
         : null;
-    return new DocumentFormattingParams(textDocument, options);
+    return DocumentFormattingParams(textDocument, options);
   }
 
   /// The format options.
@@ -4768,7 +4772,7 @@ class DocumentFormattingParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DocumentFormattingParams) {
       return textDocument == other.textDocument &&
           options == other.options &&
@@ -4793,8 +4797,8 @@ class DocumentFormattingParams implements ToJsonable {
 /// special attention. Usually a document highlight is visualized by changing
 /// the background color of its range.
 class DocumentHighlight implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      DocumentHighlight.canParse, DocumentHighlight.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(DocumentHighlight.canParse, DocumentHighlight.fromJson);
 
   DocumentHighlight(this.range, this.kind) {
     if (range == null) {
@@ -4806,7 +4810,7 @@ class DocumentHighlight implements ToJsonable {
     final kind = json['kind'] != null
         ? DocumentHighlightKind.fromJson(json['kind'])
         : null;
-    return new DocumentHighlight(range, kind);
+    return DocumentHighlight(range, kind);
   }
 
   /// The highlight kind, default is DocumentHighlightKind.Text.
@@ -4861,7 +4865,7 @@ class DocumentHighlight implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DocumentHighlight) {
       return range == other.range && kind == other.kind && true;
     }
@@ -4892,13 +4896,13 @@ class DocumentHighlightKind {
   }
 
   /// A textual occurrence.
-  static const Text = const DocumentHighlightKind(1);
+  static const Text = DocumentHighlightKind(1);
 
   /// Read-access of a symbol, like reading a variable.
-  static const Read = const DocumentHighlightKind(2);
+  static const Read = DocumentHighlightKind(2);
 
   /// Write-access of a symbol, like writing to a variable.
-  static const Write = const DocumentHighlightKind(3);
+  static const Write = DocumentHighlightKind(3);
 
   Object toJson() => _value;
 
@@ -4908,14 +4912,15 @@ class DocumentHighlightKind {
   @override
   get hashCode => _value.hashCode;
 
-  bool operator ==(o) => o is DocumentHighlightKind && o._value == _value;
+  bool operator ==(Object o) =>
+      o is DocumentHighlightKind && o._value == _value;
 }
 
 /// A document link is a range in a text document that links to an internal or
 /// external resource, like another text document or a web site.
 class DocumentLink implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(DocumentLink.canParse, DocumentLink.fromJson);
+      LspJsonHandler(DocumentLink.canParse, DocumentLink.fromJson);
 
   DocumentLink(this.range, this.target, this.data) {
     if (range == null) {
@@ -4926,7 +4931,7 @@ class DocumentLink implements ToJsonable {
     final range = json['range'] != null ? Range.fromJson(json['range']) : null;
     final target = json['target'];
     final data = json['data'];
-    return new DocumentLink(range, target, data);
+    return DocumentLink(range, target, data);
   }
 
   /// A data entry field that is preserved on a document link between a
@@ -4996,7 +5001,7 @@ class DocumentLink implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DocumentLink) {
       return range == other.range &&
           target == other.target &&
@@ -5021,13 +5026,13 @@ class DocumentLink implements ToJsonable {
 
 /// Document link options.
 class DocumentLinkOptions implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       DocumentLinkOptions.canParse, DocumentLinkOptions.fromJson);
 
   DocumentLinkOptions(this.resolveProvider);
   static DocumentLinkOptions fromJson(Map<String, dynamic> json) {
     final resolveProvider = json['resolveProvider'];
-    return new DocumentLinkOptions(resolveProvider);
+    return DocumentLinkOptions(resolveProvider);
   }
 
   /// Document links have a resolve provider as well.
@@ -5061,7 +5066,7 @@ class DocumentLinkOptions implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DocumentLinkOptions) {
       return resolveProvider == other.resolveProvider && true;
     }
@@ -5080,8 +5085,8 @@ class DocumentLinkOptions implements ToJsonable {
 }
 
 class DocumentLinkParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      DocumentLinkParams.canParse, DocumentLinkParams.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(DocumentLinkParams.canParse, DocumentLinkParams.fromJson);
 
   DocumentLinkParams(this.textDocument) {
     if (textDocument == null) {
@@ -5092,7 +5097,7 @@ class DocumentLinkParams implements ToJsonable {
     final textDocument = json['textDocument'] != null
         ? TextDocumentIdentifier.fromJson(json['textDocument'])
         : null;
-    return new DocumentLinkParams(textDocument);
+    return DocumentLinkParams(textDocument);
   }
 
   /// The document to provide document links for.
@@ -5132,7 +5137,7 @@ class DocumentLinkParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DocumentLinkParams) {
       return textDocument == other.textDocument && true;
     }
@@ -5152,7 +5157,7 @@ class DocumentLinkParams implements ToJsonable {
 
 class DocumentLinkRegistrationOptions
     implements TextDocumentRegistrationOptions, ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       DocumentLinkRegistrationOptions.canParse,
       DocumentLinkRegistrationOptions.fromJson);
 
@@ -5163,8 +5168,7 @@ class DocumentLinkRegistrationOptions
         ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
         ?.cast<DocumentFilter>()
         ?.toList();
-    return new DocumentLinkRegistrationOptions(
-        resolveProvider, documentSelector);
+    return DocumentLinkRegistrationOptions(resolveProvider, documentSelector);
   }
 
   /// A document selector to identify the scope of the registration. If set to
@@ -5219,7 +5223,7 @@ class DocumentLinkRegistrationOptions
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DocumentLinkRegistrationOptions) {
       return resolveProvider == other.resolveProvider &&
           documentSelector == other.documentSelector &&
@@ -5242,7 +5246,7 @@ class DocumentLinkRegistrationOptions
 
 /// Format document on type options.
 class DocumentOnTypeFormattingOptions implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       DocumentOnTypeFormattingOptions.canParse,
       DocumentOnTypeFormattingOptions.fromJson);
 
@@ -5258,7 +5262,7 @@ class DocumentOnTypeFormattingOptions implements ToJsonable {
         ?.map((item) => item)
         ?.cast<String>()
         ?.toList();
-    return new DocumentOnTypeFormattingOptions(
+    return DocumentOnTypeFormattingOptions(
         firstTriggerCharacter, moreTriggerCharacter);
   }
 
@@ -5317,7 +5321,7 @@ class DocumentOnTypeFormattingOptions implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DocumentOnTypeFormattingOptions) {
       return firstTriggerCharacter == other.firstTriggerCharacter &&
           listEqual(moreTriggerCharacter, other.moreTriggerCharacter,
@@ -5340,7 +5344,7 @@ class DocumentOnTypeFormattingOptions implements ToJsonable {
 }
 
 class DocumentOnTypeFormattingParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       DocumentOnTypeFormattingParams.canParse,
       DocumentOnTypeFormattingParams.fromJson);
 
@@ -5369,8 +5373,7 @@ class DocumentOnTypeFormattingParams implements ToJsonable {
     final options = json['options'] != null
         ? FormattingOptions.fromJson(json['options'])
         : null;
-    return new DocumentOnTypeFormattingParams(
-        textDocument, position, ch, options);
+    return DocumentOnTypeFormattingParams(textDocument, position, ch, options);
   }
 
   /// The character that has been typed.
@@ -5475,7 +5478,7 @@ class DocumentOnTypeFormattingParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DocumentOnTypeFormattingParams) {
       return textDocument == other.textDocument &&
           position == other.position &&
@@ -5502,7 +5505,7 @@ class DocumentOnTypeFormattingParams implements ToJsonable {
 
 class DocumentOnTypeFormattingRegistrationOptions
     implements TextDocumentRegistrationOptions, ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       DocumentOnTypeFormattingRegistrationOptions.canParse,
       DocumentOnTypeFormattingRegistrationOptions.fromJson);
 
@@ -5523,7 +5526,7 @@ class DocumentOnTypeFormattingRegistrationOptions
         ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
         ?.cast<DocumentFilter>()
         ?.toList();
-    return new DocumentOnTypeFormattingRegistrationOptions(
+    return DocumentOnTypeFormattingRegistrationOptions(
         firstTriggerCharacter, moreTriggerCharacter, documentSelector);
   }
 
@@ -5604,7 +5607,7 @@ class DocumentOnTypeFormattingRegistrationOptions
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DocumentOnTypeFormattingRegistrationOptions) {
       return firstTriggerCharacter == other.firstTriggerCharacter &&
           listEqual(moreTriggerCharacter, other.moreTriggerCharacter,
@@ -5629,7 +5632,7 @@ class DocumentOnTypeFormattingRegistrationOptions
 }
 
 class DocumentRangeFormattingParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       DocumentRangeFormattingParams.canParse,
       DocumentRangeFormattingParams.fromJson);
 
@@ -5652,7 +5655,7 @@ class DocumentRangeFormattingParams implements ToJsonable {
     final options = json['options'] != null
         ? FormattingOptions.fromJson(json['options'])
         : null;
-    return new DocumentRangeFormattingParams(textDocument, range, options);
+    return DocumentRangeFormattingParams(textDocument, range, options);
   }
 
   /// The format options
@@ -5735,7 +5738,7 @@ class DocumentRangeFormattingParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DocumentRangeFormattingParams) {
       return textDocument == other.textDocument &&
           range == other.range &&
@@ -5764,7 +5767,7 @@ class DocumentRangeFormattingParams implements ToJsonable {
 /// most interesting range, e.g. the range of an identifier.
 class DocumentSymbol implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(DocumentSymbol.canParse, DocumentSymbol.fromJson);
+      LspJsonHandler(DocumentSymbol.canParse, DocumentSymbol.fromJson);
 
   DocumentSymbol(this.name, this.detail, this.kind, this.deprecated, this.range,
       this.selectionRange, this.children) {
@@ -5795,7 +5798,7 @@ class DocumentSymbol implements ToJsonable {
         ?.map((item) => item != null ? DocumentSymbol.fromJson(item) : null)
         ?.cast<DocumentSymbol>()
         ?.toList();
-    return new DocumentSymbol(
+    return DocumentSymbol(
         name, detail, kind, deprecated, range, selectionRange, children);
   }
 
@@ -5953,7 +5956,7 @@ class DocumentSymbol implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DocumentSymbol) {
       return name == other.name &&
           detail == other.detail &&
@@ -5986,7 +5989,7 @@ class DocumentSymbol implements ToJsonable {
 }
 
 class DocumentSymbolParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       DocumentSymbolParams.canParse, DocumentSymbolParams.fromJson);
 
   DocumentSymbolParams(this.textDocument) {
@@ -5998,7 +6001,7 @@ class DocumentSymbolParams implements ToJsonable {
     final textDocument = json['textDocument'] != null
         ? TextDocumentIdentifier.fromJson(json['textDocument'])
         : null;
-    return new DocumentSymbolParams(textDocument);
+    return DocumentSymbolParams(textDocument);
   }
 
   /// The text document.
@@ -6038,7 +6041,7 @@ class DocumentSymbolParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is DocumentSymbolParams) {
       return textDocument == other.textDocument && true;
     }
@@ -6067,19 +6070,19 @@ class ErrorCodes {
   }
 
   /// Defined by JSON RPC
-  static const ParseError = const ErrorCodes(-32700);
-  static const InvalidRequest = const ErrorCodes(-32600);
-  static const MethodNotFound = const ErrorCodes(-32601);
-  static const InvalidParams = const ErrorCodes(-32602);
-  static const InternalError = const ErrorCodes(-32603);
-  static const serverErrorStart = const ErrorCodes(-32099);
-  static const serverErrorEnd = const ErrorCodes(-32000);
-  static const ServerNotInitialized = const ErrorCodes(-32002);
-  static const UnknownErrorCode = const ErrorCodes(-32001);
+  static const ParseError = ErrorCodes(-32700);
+  static const InvalidRequest = ErrorCodes(-32600);
+  static const MethodNotFound = ErrorCodes(-32601);
+  static const InvalidParams = ErrorCodes(-32602);
+  static const InternalError = ErrorCodes(-32603);
+  static const serverErrorStart = ErrorCodes(-32099);
+  static const serverErrorEnd = ErrorCodes(-32000);
+  static const ServerNotInitialized = ErrorCodes(-32002);
+  static const UnknownErrorCode = ErrorCodes(-32001);
 
   /// Defined by the protocol.
-  static const RequestCancelled = const ErrorCodes(-32800);
-  static const ContentModified = const ErrorCodes(-32801);
+  static const RequestCancelled = ErrorCodes(-32800);
+  static const ContentModified = ErrorCodes(-32801);
 
   Object toJson() => _value;
 
@@ -6089,12 +6092,12 @@ class ErrorCodes {
   @override
   get hashCode => _value.hashCode;
 
-  bool operator ==(o) => o is ErrorCodes && o._value == _value;
+  bool operator ==(Object o) => o is ErrorCodes && o._value == _value;
 }
 
 /// Execute command options.
 class ExecuteCommandOptions implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       ExecuteCommandOptions.canParse, ExecuteCommandOptions.fromJson);
 
   ExecuteCommandOptions(this.commands) {
@@ -6105,7 +6108,7 @@ class ExecuteCommandOptions implements ToJsonable {
   static ExecuteCommandOptions fromJson(Map<String, dynamic> json) {
     final commands =
         json['commands']?.map((item) => item)?.cast<String>()?.toList();
-    return new ExecuteCommandOptions(commands);
+    return ExecuteCommandOptions(commands);
   }
 
   /// The commands to be executed on the server
@@ -6146,7 +6149,7 @@ class ExecuteCommandOptions implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ExecuteCommandOptions) {
       return listEqual(
               commands, other.commands, (String a, String b) => a == b) &&
@@ -6167,7 +6170,7 @@ class ExecuteCommandOptions implements ToJsonable {
 }
 
 class ExecuteCommandParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       ExecuteCommandParams.canParse, ExecuteCommandParams.fromJson);
 
   ExecuteCommandParams(this.command, this.arguments) {
@@ -6179,7 +6182,7 @@ class ExecuteCommandParams implements ToJsonable {
     final command = json['command'];
     final arguments =
         json['arguments']?.map((item) => item)?.cast<dynamic>()?.toList();
-    return new ExecuteCommandParams(command, arguments);
+    return ExecuteCommandParams(command, arguments);
   }
 
   /// Arguments that the command should be invoked with.
@@ -6236,7 +6239,7 @@ class ExecuteCommandParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ExecuteCommandParams) {
       return command == other.command &&
           listEqual(
@@ -6260,7 +6263,7 @@ class ExecuteCommandParams implements ToJsonable {
 
 /// Execute command registration options.
 class ExecuteCommandRegistrationOptions implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       ExecuteCommandRegistrationOptions.canParse,
       ExecuteCommandRegistrationOptions.fromJson);
 
@@ -6272,7 +6275,7 @@ class ExecuteCommandRegistrationOptions implements ToJsonable {
   static ExecuteCommandRegistrationOptions fromJson(Map<String, dynamic> json) {
     final commands =
         json['commands']?.map((item) => item)?.cast<String>()?.toList();
-    return new ExecuteCommandRegistrationOptions(commands);
+    return ExecuteCommandRegistrationOptions(commands);
   }
 
   /// The commands to be executed on the server
@@ -6313,7 +6316,7 @@ class ExecuteCommandRegistrationOptions implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ExecuteCommandRegistrationOptions) {
       return listEqual(
               commands, other.commands, (String a, String b) => a == b) &&
@@ -6353,21 +6356,21 @@ class FailureHandlingKind {
   /// Applying the workspace change is simply aborted if one of the changes
   /// provided fails. All operations executed before the failing operation stay
   /// executed.
-  static const Abort = const FailureHandlingKind._('abort');
+  static const Abort = FailureHandlingKind._('abort');
 
   /// All operations are executed transactionally. That means they either all
   /// succeed or no changes at all are applied to the workspace.
-  static const Transactional = const FailureHandlingKind._('transactional');
+  static const Transactional = FailureHandlingKind._('transactional');
 
   /// If the workspace edit contains only textual file changes they are executed
   /// transactionally. If resource changes (create, rename or delete file) are
   /// part of the change the failure handling strategy is abort.
   static const TextOnlyTransactional =
-      const FailureHandlingKind._('textOnlyTransactional');
+      FailureHandlingKind._('textOnlyTransactional');
 
   /// The client tries to undo the operations already executed. But there is no
   /// guarantee that this succeeds.
-  static const Undo = const FailureHandlingKind._('undo');
+  static const Undo = FailureHandlingKind._('undo');
 
   Object toJson() => _value;
 
@@ -6377,7 +6380,7 @@ class FailureHandlingKind {
   @override
   get hashCode => _value.hashCode;
 
-  bool operator ==(o) => o is FailureHandlingKind && o._value == _value;
+  bool operator ==(Object o) => o is FailureHandlingKind && o._value == _value;
 }
 
 /// The file event type.
@@ -6392,13 +6395,13 @@ class FileChangeType {
   }
 
   /// The file got created.
-  static const Created = const FileChangeType(1);
+  static const Created = FileChangeType(1);
 
   /// The file got changed.
-  static const Changed = const FileChangeType(2);
+  static const Changed = FileChangeType(2);
 
   /// The file got deleted.
-  static const Deleted = const FileChangeType(3);
+  static const Deleted = FileChangeType(3);
 
   Object toJson() => _value;
 
@@ -6408,13 +6411,13 @@ class FileChangeType {
   @override
   get hashCode => _value.hashCode;
 
-  bool operator ==(o) => o is FileChangeType && o._value == _value;
+  bool operator ==(Object o) => o is FileChangeType && o._value == _value;
 }
 
 /// An event describing a file change.
 class FileEvent implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(FileEvent.canParse, FileEvent.fromJson);
+      LspJsonHandler(FileEvent.canParse, FileEvent.fromJson);
 
   FileEvent(this.uri, this.type) {
     if (uri == null) {
@@ -6427,7 +6430,7 @@ class FileEvent implements ToJsonable {
   static FileEvent fromJson(Map<String, dynamic> json) {
     final uri = json['uri'];
     final type = json['type'];
-    return new FileEvent(uri, type);
+    return FileEvent(uri, type);
   }
 
   /// The change type.
@@ -6487,7 +6490,7 @@ class FileEvent implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is FileEvent) {
       return uri == other.uri && type == other.type && true;
     }
@@ -6507,8 +6510,8 @@ class FileEvent implements ToJsonable {
 }
 
 class FileSystemWatcher implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      FileSystemWatcher.canParse, FileSystemWatcher.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(FileSystemWatcher.canParse, FileSystemWatcher.fromJson);
 
   FileSystemWatcher(this.globPattern, this.kind) {
     if (globPattern == null) {
@@ -6518,7 +6521,7 @@ class FileSystemWatcher implements ToJsonable {
   static FileSystemWatcher fromJson(Map<String, dynamic> json) {
     final globPattern = json['globPattern'];
     final kind = json['kind'] != null ? WatchKind.fromJson(json['kind']) : null;
-    return new FileSystemWatcher(globPattern, kind);
+    return FileSystemWatcher(globPattern, kind);
   }
 
   /// The  glob pattern to watch.
@@ -6587,7 +6590,7 @@ class FileSystemWatcher implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is FileSystemWatcher) {
       return globPattern == other.globPattern && kind == other.kind && true;
     }
@@ -6609,7 +6612,7 @@ class FileSystemWatcher implements ToJsonable {
 /// Represents a folding range.
 class FoldingRange implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(FoldingRange.canParse, FoldingRange.fromJson);
+      LspJsonHandler(FoldingRange.canParse, FoldingRange.fromJson);
 
   FoldingRange(this.startLine, this.startCharacter, this.endLine,
       this.endCharacter, this.kind) {
@@ -6627,8 +6630,7 @@ class FoldingRange implements ToJsonable {
     final endCharacter = json['endCharacter'];
     final kind =
         json['kind'] != null ? FoldingRangeKind.fromJson(json['kind']) : null;
-    return new FoldingRange(
-        startLine, startCharacter, endLine, endCharacter, kind);
+    return FoldingRange(startLine, startCharacter, endLine, endCharacter, kind);
   }
 
   /// The zero-based character offset before the folded range ends. If not
@@ -6741,7 +6743,7 @@ class FoldingRange implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is FoldingRange) {
       return startLine == other.startLine &&
           startCharacter == other.startCharacter &&
@@ -6780,13 +6782,13 @@ class FoldingRangeKind {
   }
 
   /// Folding range for a comment
-  static const Comment = const FoldingRangeKind(r'comment');
+  static const Comment = FoldingRangeKind(r'comment');
 
   /// Folding range for a imports or includes
-  static const Imports = const FoldingRangeKind(r'imports');
+  static const Imports = FoldingRangeKind(r'imports');
 
   /// Folding range for a region (e.g. `#region`)
-  static const Region = const FoldingRangeKind(r'region');
+  static const Region = FoldingRangeKind(r'region');
 
   Object toJson() => _value;
 
@@ -6796,12 +6798,12 @@ class FoldingRangeKind {
   @override
   get hashCode => _value.hashCode;
 
-  bool operator ==(o) => o is FoldingRangeKind && o._value == _value;
+  bool operator ==(Object o) => o is FoldingRangeKind && o._value == _value;
 }
 
 class FoldingRangeParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      FoldingRangeParams.canParse, FoldingRangeParams.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(FoldingRangeParams.canParse, FoldingRangeParams.fromJson);
 
   FoldingRangeParams(this.textDocument) {
     if (textDocument == null) {
@@ -6812,7 +6814,7 @@ class FoldingRangeParams implements ToJsonable {
     final textDocument = json['textDocument'] != null
         ? TextDocumentIdentifier.fromJson(json['textDocument'])
         : null;
-    return new FoldingRangeParams(textDocument);
+    return FoldingRangeParams(textDocument);
   }
 
   /// The text document.
@@ -6852,7 +6854,7 @@ class FoldingRangeParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is FoldingRangeParams) {
       return textDocument == other.textDocument && true;
     }
@@ -6872,12 +6874,12 @@ class FoldingRangeParams implements ToJsonable {
 
 /// Folding range provider options.
 class FoldingRangeProviderOptions implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       FoldingRangeProviderOptions.canParse,
       FoldingRangeProviderOptions.fromJson);
 
   static FoldingRangeProviderOptions fromJson(Map<String, dynamic> json) {
-    return new FoldingRangeProviderOptions();
+    return FoldingRangeProviderOptions();
   }
 
   Map<String, dynamic> toJson() {
@@ -6895,7 +6897,7 @@ class FoldingRangeProviderOptions implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is FoldingRangeProviderOptions) {
       return true;
     }
@@ -6914,8 +6916,8 @@ class FoldingRangeProviderOptions implements ToJsonable {
 
 /// Value-object describing what options formatting should use.
 class FormattingOptions implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      FormattingOptions.canParse, FormattingOptions.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(FormattingOptions.canParse, FormattingOptions.fromJson);
 
   FormattingOptions(this.tabSize, this.insertSpaces) {
     if (tabSize == null) {
@@ -6928,7 +6930,7 @@ class FormattingOptions implements ToJsonable {
   static FormattingOptions fromJson(Map<String, dynamic> json) {
     final tabSize = json['tabSize'];
     final insertSpaces = json['insertSpaces'];
-    return new FormattingOptions(tabSize, insertSpaces);
+    return FormattingOptions(tabSize, insertSpaces);
   }
 
   /// Prefer spaces over tabs.
@@ -6990,7 +6992,7 @@ class FormattingOptions implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is FormattingOptions) {
       return tabSize == other.tabSize &&
           insertSpaces == other.insertSpaces &&
@@ -7013,8 +7015,7 @@ class FormattingOptions implements ToJsonable {
 
 /// The result of a hover request.
 class Hover implements ToJsonable {
-  static const jsonHandler =
-      const LspJsonHandler(Hover.canParse, Hover.fromJson);
+  static const jsonHandler = LspJsonHandler(Hover.canParse, Hover.fromJson);
 
   Hover(this.contents, this.range) {
     if (contents == null) {
@@ -7023,14 +7024,14 @@ class Hover implements ToJsonable {
   }
   static Hover fromJson(Map<String, dynamic> json) {
     final contents = json['contents'] is String
-        ? new Either2<String, MarkupContent>.t1(json['contents'])
+        ? Either2<String, MarkupContent>.t1(json['contents'])
         : (MarkupContent.canParse(json['contents'], nullLspJsonReporter)
-            ? new Either2<String, MarkupContent>.t2(json['contents'] != null
+            ? Either2<String, MarkupContent>.t2(json['contents'] != null
                 ? MarkupContent.fromJson(json['contents'])
                 : null)
             : (throw '''${json['contents']} was not one of (String, MarkupContent)'''));
     final range = json['range'] != null ? Range.fromJson(json['range']) : null;
-    return new Hover(contents, range);
+    return Hover(contents, range);
   }
 
   /// The hover's content
@@ -7088,7 +7089,7 @@ class Hover implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is Hover) {
       return contents == other.contents && range == other.range && true;
     }
@@ -7108,8 +7109,8 @@ class Hover implements ToJsonable {
 }
 
 class InitializeParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      InitializeParams.canParse, InitializeParams.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(InitializeParams.canParse, InitializeParams.fromJson);
 
   InitializeParams(
       this.processId,
@@ -7136,8 +7137,8 @@ class InitializeParams implements ToJsonable {
         ?.map((item) => item != null ? WorkspaceFolder.fromJson(item) : null)
         ?.cast<WorkspaceFolder>()
         ?.toList();
-    return new InitializeParams(processId, rootPath, rootUri,
-        initializationOptions, capabilities, trace, workspaceFolders);
+    return InitializeParams(processId, rootPath, rootUri, initializationOptions,
+        capabilities, trace, workspaceFolders);
   }
 
   /// The capabilities provided by the client (editor or tool)
@@ -7285,7 +7286,7 @@ class InitializeParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is InitializeParams) {
       return processId == other.processId &&
           rootPath == other.rootPath &&
@@ -7318,8 +7319,8 @@ class InitializeParams implements ToJsonable {
 }
 
 class InitializeResult implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      InitializeResult.canParse, InitializeResult.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(InitializeResult.canParse, InitializeResult.fromJson);
 
   InitializeResult(this.capabilities) {
     if (capabilities == null) {
@@ -7330,7 +7331,7 @@ class InitializeResult implements ToJsonable {
     final capabilities = json['capabilities'] != null
         ? ServerCapabilities.fromJson(json['capabilities'])
         : null;
-    return new InitializeResult(capabilities);
+    return InitializeResult(capabilities);
   }
 
   /// The capabilities the language server provides.
@@ -7370,7 +7371,7 @@ class InitializeResult implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is InitializeResult) {
       return capabilities == other.capabilities && true;
     }
@@ -7389,11 +7390,11 @@ class InitializeResult implements ToJsonable {
 }
 
 class InitializedParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      InitializedParams.canParse, InitializedParams.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(InitializedParams.canParse, InitializedParams.fromJson);
 
   static InitializedParams fromJson(Map<String, dynamic> json) {
-    return new InitializedParams();
+    return InitializedParams();
   }
 
   Map<String, dynamic> toJson() {
@@ -7411,7 +7412,7 @@ class InitializedParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is InitializedParams) {
       return true;
     }
@@ -7446,7 +7447,7 @@ class InsertTextFormat {
   }
 
   /// The primary text to be inserted is treated as a plain string.
-  static const PlainText = const InsertTextFormat._(1);
+  static const PlainText = InsertTextFormat._(1);
 
   /// The primary text to be inserted is treated as a snippet.
   ///
@@ -7454,7 +7455,7 @@ class InsertTextFormat {
   /// `${3:foo}`. `$0` defines the final tab stop, it defaults to the end of the
   /// snippet. Placeholders with equal identifiers are linked, that is typing in
   /// one will update others too.
-  static const Snippet = const InsertTextFormat._(2);
+  static const Snippet = InsertTextFormat._(2);
 
   Object toJson() => _value;
 
@@ -7464,12 +7465,12 @@ class InsertTextFormat {
   @override
   get hashCode => _value.hashCode;
 
-  bool operator ==(o) => o is InsertTextFormat && o._value == _value;
+  bool operator ==(Object o) => o is InsertTextFormat && o._value == _value;
 }
 
 class Location implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(Location.canParse, Location.fromJson);
+      LspJsonHandler(Location.canParse, Location.fromJson);
 
   Location(this.uri, this.range) {
     if (uri == null) {
@@ -7482,7 +7483,7 @@ class Location implements ToJsonable {
   static Location fromJson(Map<String, dynamic> json) {
     final uri = json['uri'];
     final range = json['range'] != null ? Range.fromJson(json['range']) : null;
-    return new Location(uri, range);
+    return Location(uri, range);
   }
 
   final Range range;
@@ -7539,7 +7540,7 @@ class Location implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is Location) {
       return uri == other.uri && range == other.range && true;
     }
@@ -7560,7 +7561,7 @@ class Location implements ToJsonable {
 
 class LocationLink implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(LocationLink.canParse, LocationLink.fromJson);
+      LspJsonHandler(LocationLink.canParse, LocationLink.fromJson);
 
   LocationLink(this.originSelectionRange, this.targetUri, this.targetRange,
       this.targetSelectionRange) {
@@ -7585,7 +7586,7 @@ class LocationLink implements ToJsonable {
     final targetSelectionRange = json['targetSelectionRange'] != null
         ? Range.fromJson(json['targetSelectionRange'])
         : null;
-    return new LocationLink(
+    return LocationLink(
         originSelectionRange, targetUri, targetRange, targetSelectionRange);
   }
 
@@ -7694,7 +7695,7 @@ class LocationLink implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is LocationLink) {
       return originSelectionRange == other.originSelectionRange &&
           targetUri == other.targetUri &&
@@ -7720,8 +7721,8 @@ class LocationLink implements ToJsonable {
 }
 
 class LogMessageParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      LogMessageParams.canParse, LogMessageParams.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(LogMessageParams.canParse, LogMessageParams.fromJson);
 
   LogMessageParams(this.type, this.message) {
     if (type == null) {
@@ -7735,7 +7736,7 @@ class LogMessageParams implements ToJsonable {
     final type =
         json['type'] != null ? MessageType.fromJson(json['type']) : null;
     final message = json['message'];
-    return new LogMessageParams(type, message);
+    return LogMessageParams(type, message);
   }
 
   /// The actual message
@@ -7796,7 +7797,7 @@ class LogMessageParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is LogMessageParams) {
       return type == other.type && message == other.message && true;
     }
@@ -7839,7 +7840,7 @@ class LogMessageParams implements ToJsonable {
 /// could decide to remove HTML from the markdown to avoid script execution.
 class MarkupContent implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(MarkupContent.canParse, MarkupContent.fromJson);
+      LspJsonHandler(MarkupContent.canParse, MarkupContent.fromJson);
 
   MarkupContent(this.kind, this.value) {
     if (kind == null) {
@@ -7853,7 +7854,7 @@ class MarkupContent implements ToJsonable {
     final kind =
         json['kind'] != null ? MarkupKind.fromJson(json['kind']) : null;
     final value = json['value'];
-    return new MarkupContent(kind, value);
+    return MarkupContent(kind, value);
   }
 
   /// The type of the Markup
@@ -7913,7 +7914,7 @@ class MarkupContent implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is MarkupContent) {
       return kind == other.kind && value == other.value && true;
     }
@@ -7953,10 +7954,10 @@ class MarkupKind {
   }
 
   /// Plain text is supported as a content format
-  static const PlainText = const MarkupKind._(r'plaintext');
+  static const PlainText = MarkupKind._(r'plaintext');
 
   /// Markdown is supported as a content format
-  static const Markdown = const MarkupKind._(r'markdown');
+  static const Markdown = MarkupKind._(r'markdown');
 
   Object toJson() => _value;
 
@@ -7966,12 +7967,11 @@ class MarkupKind {
   @override
   get hashCode => _value.hashCode;
 
-  bool operator ==(o) => o is MarkupKind && o._value == _value;
+  bool operator ==(Object o) => o is MarkupKind && o._value == _value;
 }
 
 class Message implements ToJsonable {
-  static const jsonHandler =
-      const LspJsonHandler(Message.canParse, Message.fromJson);
+  static const jsonHandler = LspJsonHandler(Message.canParse, Message.fromJson);
 
   Message(this.jsonrpc) {
     if (jsonrpc == null) {
@@ -7989,7 +7989,7 @@ class Message implements ToJsonable {
       return NotificationMessage.fromJson(json);
     }
     final jsonrpc = json['jsonrpc'];
-    return new Message(jsonrpc);
+    return Message(jsonrpc);
   }
 
   final String jsonrpc;
@@ -8028,7 +8028,7 @@ class Message implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is Message) {
       return jsonrpc == other.jsonrpc && true;
     }
@@ -8047,8 +8047,8 @@ class Message implements ToJsonable {
 }
 
 class MessageActionItem implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      MessageActionItem.canParse, MessageActionItem.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(MessageActionItem.canParse, MessageActionItem.fromJson);
 
   MessageActionItem(this.title) {
     if (title == null) {
@@ -8057,7 +8057,7 @@ class MessageActionItem implements ToJsonable {
   }
   static MessageActionItem fromJson(Map<String, dynamic> json) {
     final title = json['title'];
-    return new MessageActionItem(title);
+    return MessageActionItem(title);
   }
 
   /// A short title like 'Retry', 'Open Log' etc.
@@ -8096,7 +8096,7 @@ class MessageActionItem implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is MessageActionItem) {
       return title == other.title && true;
     }
@@ -8125,16 +8125,16 @@ class MessageType {
   }
 
   /// An error message.
-  static const Error = const MessageType(1);
+  static const Error = MessageType(1);
 
   /// A warning message.
-  static const Warning = const MessageType(2);
+  static const Warning = MessageType(2);
 
   /// An information message.
-  static const Info = const MessageType(3);
+  static const Info = MessageType(3);
 
   /// A log message.
-  static const Log = const MessageType(4);
+  static const Log = MessageType(4);
 
   Object toJson() => _value;
 
@@ -8144,7 +8144,7 @@ class MessageType {
   @override
   get hashCode => _value.hashCode;
 
-  bool operator ==(o) => o is MessageType && o._value == _value;
+  bool operator ==(Object o) => o is MessageType && o._value == _value;
 }
 
 /// Valid LSP methods known at the time of code generation from the spec.
@@ -8159,172 +8159,160 @@ class Method {
   }
 
   /// Constant for the '$/cancelRequest' method.
-  static const cancelRequest = const Method(r'$/cancelRequest');
+  static const cancelRequest = Method(r'$/cancelRequest');
 
   /// Constant for the 'initialize' method.
-  static const initialize = const Method(r'initialize');
+  static const initialize = Method(r'initialize');
 
   /// Constant for the 'initialized' method.
-  static const initialized = const Method(r'initialized');
+  static const initialized = Method(r'initialized');
 
   /// Constant for the 'shutdown' method.
-  static const shutdown = const Method(r'shutdown');
+  static const shutdown = Method(r'shutdown');
 
   /// Constant for the 'exit' method.
-  static const exit = const Method(r'exit');
+  static const exit = Method(r'exit');
 
   /// Constant for the 'window/showMessage' method.
-  static const window_showMessage = const Method(r'window/showMessage');
+  static const window_showMessage = Method(r'window/showMessage');
 
   /// Constant for the 'window/showMessageRequest' method.
-  static const window_showMessageRequest =
-      const Method(r'window/showMessageRequest');
+  static const window_showMessageRequest = Method(r'window/showMessageRequest');
 
   /// Constant for the 'window/logMessage' method.
-  static const window_logMessage = const Method(r'window/logMessage');
+  static const window_logMessage = Method(r'window/logMessage');
 
   /// Constant for the 'telemetry/event' method.
-  static const telemetry_event = const Method(r'telemetry/event');
+  static const telemetry_event = Method(r'telemetry/event');
 
   /// Constant for the 'client/registerCapability' method.
-  static const client_registerCapability =
-      const Method(r'client/registerCapability');
+  static const client_registerCapability = Method(r'client/registerCapability');
 
   /// Constant for the 'client/unregisterCapability' method.
   static const client_unregisterCapability =
-      const Method(r'client/unregisterCapability');
+      Method(r'client/unregisterCapability');
 
   /// Constant for the 'workspace/workspaceFolders' method.
   static const workspace_workspaceFolders =
-      const Method(r'workspace/workspaceFolders');
+      Method(r'workspace/workspaceFolders');
 
   /// Constant for the 'workspace/didChangeWorkspaceFolders' method.
   static const workspace_didChangeWorkspaceFolders =
-      const Method(r'workspace/didChangeWorkspaceFolders');
+      Method(r'workspace/didChangeWorkspaceFolders');
 
   /// Constant for the 'workspace/configuration' method.
-  static const workspace_configuration =
-      const Method(r'workspace/configuration');
+  static const workspace_configuration = Method(r'workspace/configuration');
 
   /// Constant for the 'workspace/didChangeWatchedFiles' method.
   static const workspace_didChangeWatchedFiles =
-      const Method(r'workspace/didChangeWatchedFiles');
+      Method(r'workspace/didChangeWatchedFiles');
 
   /// Constant for the 'workspace/symbol' method.
-  static const workspace_symbol = const Method(r'workspace/symbol');
+  static const workspace_symbol = Method(r'workspace/symbol');
 
   /// Constant for the 'workspace/executeCommand' method.
-  static const workspace_executeCommand =
-      const Method(r'workspace/executeCommand');
+  static const workspace_executeCommand = Method(r'workspace/executeCommand');
 
   /// Constant for the 'workspace/applyEdit' method.
-  static const workspace_applyEdit = const Method(r'workspace/applyEdit');
+  static const workspace_applyEdit = Method(r'workspace/applyEdit');
 
   /// Constant for the 'textDocument/didOpen' method.
-  static const textDocument_didOpen = const Method(r'textDocument/didOpen');
+  static const textDocument_didOpen = Method(r'textDocument/didOpen');
 
   /// Constant for the 'textDocument/didChange' method.
-  static const textDocument_didChange = const Method(r'textDocument/didChange');
+  static const textDocument_didChange = Method(r'textDocument/didChange');
 
   /// Constant for the 'textDocument/willSave' method.
-  static const textDocument_willSave = const Method(r'textDocument/willSave');
+  static const textDocument_willSave = Method(r'textDocument/willSave');
 
   /// Constant for the 'textDocument/willSaveWaitUntil' method.
   static const textDocument_willSaveWaitUntil =
-      const Method(r'textDocument/willSaveWaitUntil');
+      Method(r'textDocument/willSaveWaitUntil');
 
   /// Constant for the 'textDocument/didClose' method.
-  static const textDocument_didClose = const Method(r'textDocument/didClose');
+  static const textDocument_didClose = Method(r'textDocument/didClose');
 
   /// Constant for the 'textDocument/publishDiagnostics' method.
   static const textDocument_publishDiagnostics =
-      const Method(r'textDocument/publishDiagnostics');
+      Method(r'textDocument/publishDiagnostics');
 
   /// Constant for the 'textDocument/completion' method.
-  static const textDocument_completion =
-      const Method(r'textDocument/completion');
+  static const textDocument_completion = Method(r'textDocument/completion');
 
   /// Constant for the 'completionItem/resolve' method.
-  static const completionItem_resolve = const Method(r'completionItem/resolve');
+  static const completionItem_resolve = Method(r'completionItem/resolve');
 
   /// Constant for the 'textDocument/hover' method.
-  static const textDocument_hover = const Method(r'textDocument/hover');
+  static const textDocument_hover = Method(r'textDocument/hover');
 
   /// Constant for the 'textDocument/signatureHelp' method.
   static const textDocument_signatureHelp =
-      const Method(r'textDocument/signatureHelp');
+      Method(r'textDocument/signatureHelp');
 
   /// Constant for the 'textDocument/declaration' method.
-  static const textDocument_declaration =
-      const Method(r'textDocument/declaration');
+  static const textDocument_declaration = Method(r'textDocument/declaration');
 
   /// Constant for the 'textDocument/definition' method.
-  static const textDocument_definition =
-      const Method(r'textDocument/definition');
+  static const textDocument_definition = Method(r'textDocument/definition');
 
   /// Constant for the 'textDocument/typeDefinition' method.
   static const textDocument_typeDefinition =
-      const Method(r'textDocument/typeDefinition');
+      Method(r'textDocument/typeDefinition');
 
   /// Constant for the 'textDocument/implementation' method.
   static const textDocument_implementation =
-      const Method(r'textDocument/implementation');
+      Method(r'textDocument/implementation');
 
   /// Constant for the 'textDocument/references' method.
-  static const textDocument_references =
-      const Method(r'textDocument/references');
+  static const textDocument_references = Method(r'textDocument/references');
 
   /// Constant for the 'textDocument/documentHighlight' method.
   static const textDocument_documentHighlight =
-      const Method(r'textDocument/documentHighlight');
+      Method(r'textDocument/documentHighlight');
 
   /// Constant for the 'textDocument/documentSymbol' method.
   static const textDocument_documentSymbol =
-      const Method(r'textDocument/documentSymbol');
+      Method(r'textDocument/documentSymbol');
 
   /// Constant for the 'textDocument/codeAction' method.
-  static const textDocument_codeAction =
-      const Method(r'textDocument/codeAction');
+  static const textDocument_codeAction = Method(r'textDocument/codeAction');
 
   /// Constant for the 'textDocument/codeLens' method.
-  static const textDocument_codeLens = const Method(r'textDocument/codeLens');
+  static const textDocument_codeLens = Method(r'textDocument/codeLens');
 
   /// Constant for the 'codeLens/resolve' method.
-  static const codeLens_resolve = const Method(r'codeLens/resolve');
+  static const codeLens_resolve = Method(r'codeLens/resolve');
 
   /// Constant for the 'textDocument/documentLink' method.
-  static const textDocument_documentLink =
-      const Method(r'textDocument/documentLink');
+  static const textDocument_documentLink = Method(r'textDocument/documentLink');
 
   /// Constant for the 'documentLink/resolve' method.
-  static const documentLink_resolve = const Method(r'documentLink/resolve');
+  static const documentLink_resolve = Method(r'documentLink/resolve');
 
   /// Constant for the 'textDocument/documentColor' method.
   static const textDocument_documentColor =
-      const Method(r'textDocument/documentColor');
+      Method(r'textDocument/documentColor');
 
   /// Constant for the 'textDocument/colorPresentation' method.
   static const textDocument_colorPresentation =
-      const Method(r'textDocument/colorPresentation');
+      Method(r'textDocument/colorPresentation');
 
   /// Constant for the 'textDocument/formatting' method.
-  static const textDocument_formatting =
-      const Method(r'textDocument/formatting');
+  static const textDocument_formatting = Method(r'textDocument/formatting');
 
   /// Constant for the 'textDocument/onTypeFormatting' method.
   static const textDocument_onTypeFormatting =
-      const Method(r'textDocument/onTypeFormatting');
+      Method(r'textDocument/onTypeFormatting');
 
   /// Constant for the 'textDocument/rename' method.
-  static const textDocument_rename = const Method(r'textDocument/rename');
+  static const textDocument_rename = Method(r'textDocument/rename');
 
   /// Constant for the 'textDocument/prepareRename' method.
   static const textDocument_prepareRename =
-      const Method(r'textDocument/prepareRename');
+      Method(r'textDocument/prepareRename');
 
   /// Constant for the 'textDocument/foldingRange' method.
-  static const textDocument_foldingRange =
-      const Method(r'textDocument/foldingRange');
+  static const textDocument_foldingRange = Method(r'textDocument/foldingRange');
 
   Object toJson() => _value;
 
@@ -8334,11 +8322,11 @@ class Method {
   @override
   get hashCode => _value.hashCode;
 
-  bool operator ==(o) => o is Method && o._value == _value;
+  bool operator ==(Object o) => o is Method && o._value == _value;
 }
 
 class NotificationMessage implements Message, IncomingMessage, ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       NotificationMessage.canParse, NotificationMessage.fromJson);
 
   NotificationMessage(this.method, this.params, this.jsonrpc) {
@@ -8354,7 +8342,7 @@ class NotificationMessage implements Message, IncomingMessage, ToJsonable {
         json['method'] != null ? Method.fromJson(json['method']) : null;
     final params = json['params'];
     final jsonrpc = json['jsonrpc'];
-    return new NotificationMessage(method, params, jsonrpc);
+    return NotificationMessage(method, params, jsonrpc);
   }
 
   final String jsonrpc;
@@ -8429,7 +8417,7 @@ class NotificationMessage implements Message, IncomingMessage, ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is NotificationMessage) {
       return method == other.method &&
           params == other.params &&
@@ -8455,7 +8443,7 @@ class NotificationMessage implements Message, IncomingMessage, ToJsonable {
 /// Represents a parameter of a callable-signature. A parameter can have a label
 /// and a doc-comment.
 class ParameterInformation implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       ParameterInformation.canParse, ParameterInformation.fromJson);
 
   ParameterInformation(this.label, this.documentation) {
@@ -8466,16 +8454,15 @@ class ParameterInformation implements ToJsonable {
   static ParameterInformation fromJson(Map<String, dynamic> json) {
     final label = json['label'];
     final documentation = json['documentation'] is String
-        ? new Either2<String, MarkupContent>.t1(json['documentation'])
+        ? Either2<String, MarkupContent>.t1(json['documentation'])
         : (MarkupContent.canParse(json['documentation'], nullLspJsonReporter)
-            ? new Either2<String, MarkupContent>.t2(
-                json['documentation'] != null
-                    ? MarkupContent.fromJson(json['documentation'])
-                    : null)
+            ? Either2<String, MarkupContent>.t2(json['documentation'] != null
+                ? MarkupContent.fromJson(json['documentation'])
+                : null)
             : (json['documentation'] == null
                 ? null
                 : (throw '''${json['documentation']} was not one of (String, MarkupContent)''')));
-    return new ParameterInformation(label, documentation);
+    return ParameterInformation(label, documentation);
   }
 
   /// The human-readable doc-comment of this parameter. Will be shown in the UI
@@ -8542,7 +8529,7 @@ class ParameterInformation implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ParameterInformation) {
       return label == other.label &&
           documentation == other.documentation &&
@@ -8565,7 +8552,7 @@ class ParameterInformation implements ToJsonable {
 
 class Position implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(Position.canParse, Position.fromJson);
+      LspJsonHandler(Position.canParse, Position.fromJson);
 
   Position(this.line, this.character) {
     if (line == null) {
@@ -8578,7 +8565,7 @@ class Position implements ToJsonable {
   static Position fromJson(Map<String, dynamic> json) {
     final line = json['line'];
     final character = json['character'];
-    return new Position(line, character);
+    return Position(line, character);
   }
 
   /// Character offset on a line in a document (zero-based). Assuming that the
@@ -8644,7 +8631,7 @@ class Position implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is Position) {
       return line == other.line && character == other.character && true;
     }
@@ -8664,7 +8651,7 @@ class Position implements ToJsonable {
 }
 
 class PublishDiagnosticsParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       PublishDiagnosticsParams.canParse, PublishDiagnosticsParams.fromJson);
 
   PublishDiagnosticsParams(this.uri, this.diagnostics) {
@@ -8681,7 +8668,7 @@ class PublishDiagnosticsParams implements ToJsonable {
         ?.map((item) => item != null ? Diagnostic.fromJson(item) : null)
         ?.cast<Diagnostic>()
         ?.toList();
-    return new PublishDiagnosticsParams(uri, diagnostics);
+    return PublishDiagnosticsParams(uri, diagnostics);
   }
 
   /// An array of diagnostic information items.
@@ -8744,7 +8731,7 @@ class PublishDiagnosticsParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is PublishDiagnosticsParams) {
       return uri == other.uri &&
           listEqual(diagnostics, other.diagnostics,
@@ -8767,8 +8754,7 @@ class PublishDiagnosticsParams implements ToJsonable {
 }
 
 class Range implements ToJsonable {
-  static const jsonHandler =
-      const LspJsonHandler(Range.canParse, Range.fromJson);
+  static const jsonHandler = LspJsonHandler(Range.canParse, Range.fromJson);
 
   Range(this.start, this.end) {
     if (start == null) {
@@ -8782,7 +8768,7 @@ class Range implements ToJsonable {
     final start =
         json['start'] != null ? Position.fromJson(json['start']) : null;
     final end = json['end'] != null ? Position.fromJson(json['end']) : null;
-    return new Range(start, end);
+    return Range(start, end);
   }
 
   /// The range's end position.
@@ -8842,7 +8828,7 @@ class Range implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is Range) {
       return start == other.start && end == other.end && true;
     }
@@ -8862,7 +8848,7 @@ class Range implements ToJsonable {
 }
 
 class RangeAndPlaceholder implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       RangeAndPlaceholder.canParse, RangeAndPlaceholder.fromJson);
 
   RangeAndPlaceholder(this.range, this.placeholder) {
@@ -8876,7 +8862,7 @@ class RangeAndPlaceholder implements ToJsonable {
   static RangeAndPlaceholder fromJson(Map<String, dynamic> json) {
     final range = json['range'] != null ? Range.fromJson(json['range']) : null;
     final placeholder = json['placeholder'];
-    return new RangeAndPlaceholder(range, placeholder);
+    return RangeAndPlaceholder(range, placeholder);
   }
 
   final String placeholder;
@@ -8934,7 +8920,7 @@ class RangeAndPlaceholder implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is RangeAndPlaceholder) {
       return range == other.range && placeholder == other.placeholder && true;
     }
@@ -8954,8 +8940,8 @@ class RangeAndPlaceholder implements ToJsonable {
 }
 
 class ReferenceContext implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      ReferenceContext.canParse, ReferenceContext.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(ReferenceContext.canParse, ReferenceContext.fromJson);
 
   ReferenceContext(this.includeDeclaration) {
     if (includeDeclaration == null) {
@@ -8964,7 +8950,7 @@ class ReferenceContext implements ToJsonable {
   }
   static ReferenceContext fromJson(Map<String, dynamic> json) {
     final includeDeclaration = json['includeDeclaration'];
-    return new ReferenceContext(includeDeclaration);
+    return ReferenceContext(includeDeclaration);
   }
 
   /// Include the declaration of the current symbol.
@@ -9004,7 +8990,7 @@ class ReferenceContext implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ReferenceContext) {
       return includeDeclaration == other.includeDeclaration && true;
     }
@@ -9024,7 +9010,7 @@ class ReferenceContext implements ToJsonable {
 
 class ReferenceParams implements TextDocumentPositionParams, ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(ReferenceParams.canParse, ReferenceParams.fromJson);
+      LspJsonHandler(ReferenceParams.canParse, ReferenceParams.fromJson);
 
   ReferenceParams(this.context, this.textDocument, this.position) {
     if (context == null) {
@@ -9046,7 +9032,7 @@ class ReferenceParams implements TextDocumentPositionParams, ToJsonable {
         : null;
     final position =
         json['position'] != null ? Position.fromJson(json['position']) : null;
-    return new ReferenceParams(context, textDocument, position);
+    return ReferenceParams(context, textDocument, position);
   }
 
   final ReferenceContext context;
@@ -9129,7 +9115,7 @@ class ReferenceParams implements TextDocumentPositionParams, ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ReferenceParams) {
       return context == other.context &&
           textDocument == other.textDocument &&
@@ -9155,7 +9141,7 @@ class ReferenceParams implements TextDocumentPositionParams, ToJsonable {
 /// General parameters to register for a capability.
 class Registration implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(Registration.canParse, Registration.fromJson);
+      LspJsonHandler(Registration.canParse, Registration.fromJson);
 
   Registration(this.id, this.method, this.registerOptions) {
     if (id == null) {
@@ -9169,7 +9155,7 @@ class Registration implements ToJsonable {
     final id = json['id'];
     final method = json['method'];
     final registerOptions = json['registerOptions'];
-    return new Registration(id, method, registerOptions);
+    return Registration(id, method, registerOptions);
   }
 
   /// The id used to register the request. The id can be used to deregister the
@@ -9245,7 +9231,7 @@ class Registration implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is Registration) {
       return id == other.id &&
           method == other.method &&
@@ -9269,8 +9255,8 @@ class Registration implements ToJsonable {
 }
 
 class RegistrationParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      RegistrationParams.canParse, RegistrationParams.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(RegistrationParams.canParse, RegistrationParams.fromJson);
 
   RegistrationParams(this.registrations) {
     if (registrations == null) {
@@ -9282,7 +9268,7 @@ class RegistrationParams implements ToJsonable {
         ?.map((item) => item != null ? Registration.fromJson(item) : null)
         ?.cast<Registration>()
         ?.toList();
-    return new RegistrationParams(registrations);
+    return RegistrationParams(registrations);
   }
 
   final List<Registration> registrations;
@@ -9323,7 +9309,7 @@ class RegistrationParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is RegistrationParams) {
       return listEqual(registrations, other.registrations,
               (Registration a, Registration b) => a == b) &&
@@ -9346,7 +9332,7 @@ class RegistrationParams implements ToJsonable {
 /// Rename file operation
 class RenameFile implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(RenameFile.canParse, RenameFile.fromJson);
+      LspJsonHandler(RenameFile.canParse, RenameFile.fromJson);
 
   RenameFile(this.kind, this.oldUri, this.newUri, this.options) {
     if (kind == null) {
@@ -9366,7 +9352,7 @@ class RenameFile implements ToJsonable {
     final options = json['options'] != null
         ? RenameFileOptions.fromJson(json['options'])
         : null;
-    return new RenameFile(kind, oldUri, newUri, options);
+    return RenameFile(kind, oldUri, newUri, options);
   }
 
   /// A rename
@@ -9463,7 +9449,7 @@ class RenameFile implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is RenameFile) {
       return kind == other.kind &&
           oldUri == other.oldUri &&
@@ -9490,14 +9476,14 @@ class RenameFile implements ToJsonable {
 
 /// Rename file options
 class RenameFileOptions implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      RenameFileOptions.canParse, RenameFileOptions.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(RenameFileOptions.canParse, RenameFileOptions.fromJson);
 
   RenameFileOptions(this.overwrite, this.ignoreIfExists);
   static RenameFileOptions fromJson(Map<String, dynamic> json) {
     final overwrite = json['overwrite'];
     final ignoreIfExists = json['ignoreIfExists'];
-    return new RenameFileOptions(overwrite, ignoreIfExists);
+    return RenameFileOptions(overwrite, ignoreIfExists);
   }
 
   /// Ignores if target exists.
@@ -9545,7 +9531,7 @@ class RenameFileOptions implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is RenameFileOptions) {
       return overwrite == other.overwrite &&
           ignoreIfExists == other.ignoreIfExists &&
@@ -9569,12 +9555,12 @@ class RenameFileOptions implements ToJsonable {
 /// Rename options
 class RenameOptions implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(RenameOptions.canParse, RenameOptions.fromJson);
+      LspJsonHandler(RenameOptions.canParse, RenameOptions.fromJson);
 
   RenameOptions(this.prepareProvider);
   static RenameOptions fromJson(Map<String, dynamic> json) {
     final prepareProvider = json['prepareProvider'];
-    return new RenameOptions(prepareProvider);
+    return RenameOptions(prepareProvider);
   }
 
   /// Renames should be checked and tested before being executed.
@@ -9608,7 +9594,7 @@ class RenameOptions implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is RenameOptions) {
       return prepareProvider == other.prepareProvider && true;
     }
@@ -9628,7 +9614,7 @@ class RenameOptions implements ToJsonable {
 
 class RenameParams implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(RenameParams.canParse, RenameParams.fromJson);
+      LspJsonHandler(RenameParams.canParse, RenameParams.fromJson);
 
   RenameParams(this.textDocument, this.position, this.newName) {
     if (textDocument == null) {
@@ -9648,7 +9634,7 @@ class RenameParams implements ToJsonable {
     final position =
         json['position'] != null ? Position.fromJson(json['position']) : null;
     final newName = json['newName'];
-    return new RenameParams(textDocument, position, newName);
+    return RenameParams(textDocument, position, newName);
   }
 
   /// The new name of the symbol. If the given name is not valid the request
@@ -9733,7 +9719,7 @@ class RenameParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is RenameParams) {
       return textDocument == other.textDocument &&
           position == other.position &&
@@ -9758,7 +9744,7 @@ class RenameParams implements ToJsonable {
 
 class RenameRegistrationOptions
     implements TextDocumentRegistrationOptions, ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       RenameRegistrationOptions.canParse, RenameRegistrationOptions.fromJson);
 
   RenameRegistrationOptions(this.prepareProvider, this.documentSelector);
@@ -9768,7 +9754,7 @@ class RenameRegistrationOptions
         ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
         ?.cast<DocumentFilter>()
         ?.toList();
-    return new RenameRegistrationOptions(prepareProvider, documentSelector);
+    return RenameRegistrationOptions(prepareProvider, documentSelector);
   }
 
   /// A document selector to identify the scope of the registration. If set to
@@ -9823,7 +9809,7 @@ class RenameRegistrationOptions
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is RenameRegistrationOptions) {
       return prepareProvider == other.prepareProvider &&
           documentSelector == other.documentSelector &&
@@ -9846,7 +9832,7 @@ class RenameRegistrationOptions
 
 class RequestMessage implements Message, IncomingMessage, ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(RequestMessage.canParse, RequestMessage.fromJson);
+      LspJsonHandler(RequestMessage.canParse, RequestMessage.fromJson);
 
   RequestMessage(this.id, this.method, this.params, this.jsonrpc) {
     if (id == null) {
@@ -9861,15 +9847,15 @@ class RequestMessage implements Message, IncomingMessage, ToJsonable {
   }
   static RequestMessage fromJson(Map<String, dynamic> json) {
     final id = json['id'] is num
-        ? new Either2<num, String>.t1(json['id'])
+        ? Either2<num, String>.t1(json['id'])
         : (json['id'] is String
-            ? new Either2<num, String>.t2(json['id'])
+            ? Either2<num, String>.t2(json['id'])
             : (throw '''${json['id']} was not one of (num, String)'''));
     final method =
         json['method'] != null ? Method.fromJson(json['method']) : null;
     final params = json['params'];
     final jsonrpc = json['jsonrpc'];
-    return new RequestMessage(id, method, params, jsonrpc);
+    return RequestMessage(id, method, params, jsonrpc);
   }
 
   /// The request id.
@@ -9964,7 +9950,7 @@ class RequestMessage implements Message, IncomingMessage, ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is RequestMessage) {
       return id == other.id &&
           method == other.method &&
@@ -10006,13 +9992,13 @@ class ResourceOperationKind {
   }
 
   /// Supports creating new files and folders.
-  static const Create = const ResourceOperationKind._('create');
+  static const Create = ResourceOperationKind._('create');
 
   /// Supports renaming existing files and folders.
-  static const Rename = const ResourceOperationKind._('rename');
+  static const Rename = ResourceOperationKind._('rename');
 
   /// Supports deleting existing files and folders.
-  static const Delete = const ResourceOperationKind._('delete');
+  static const Delete = ResourceOperationKind._('delete');
 
   Object toJson() => _value;
 
@@ -10022,12 +10008,13 @@ class ResourceOperationKind {
   @override
   get hashCode => _value.hashCode;
 
-  bool operator ==(o) => o is ResourceOperationKind && o._value == _value;
+  bool operator ==(Object o) =>
+      o is ResourceOperationKind && o._value == _value;
 }
 
 class ResponseError<D> implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(ResponseError.canParse, ResponseError.fromJson);
+      LspJsonHandler(ResponseError.canParse, ResponseError.fromJson);
 
   ResponseError(this.code, this.message, this.data) {
     if (code == null) {
@@ -10042,7 +10029,7 @@ class ResponseError<D> implements ToJsonable {
         json['code'] != null ? ErrorCodes.fromJson(json['code']) : null;
     final message = json['message'];
     final data = json['data'];
-    return new ResponseError<D>(code, message, data);
+    return ResponseError<D>(code, message, data);
   }
 
   /// A number indicating the error type that occurred.
@@ -10119,7 +10106,7 @@ class ResponseError<D> implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ResponseError) {
       return code == other.code &&
           message == other.message &&
@@ -10144,7 +10131,7 @@ class ResponseError<D> implements ToJsonable {
 
 class ResponseMessage implements Message, ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(ResponseMessage.canParse, ResponseMessage.fromJson);
+      LspJsonHandler(ResponseMessage.canParse, ResponseMessage.fromJson);
 
   ResponseMessage(this.id, this.result, this.error, this.jsonrpc) {
     if (jsonrpc == null) {
@@ -10153,9 +10140,9 @@ class ResponseMessage implements Message, ToJsonable {
   }
   static ResponseMessage fromJson(Map<String, dynamic> json) {
     final id = json['id'] is num
-        ? new Either2<num, String>.t1(json['id'])
+        ? Either2<num, String>.t1(json['id'])
         : (json['id'] is String
-            ? new Either2<num, String>.t2(json['id'])
+            ? Either2<num, String>.t2(json['id'])
             : (json['id'] == null
                 ? null
                 : (throw '''${json['id']} was not one of (num, String)''')));
@@ -10164,7 +10151,7 @@ class ResponseMessage implements Message, ToJsonable {
         ? ResponseError.fromJson<dynamic>(json['error'])
         : null;
     final jsonrpc = json['jsonrpc'];
-    return new ResponseMessage(id, result, error, jsonrpc);
+    return ResponseMessage(id, result, error, jsonrpc);
   }
 
   /// The error object in case a request fails.
@@ -10252,7 +10239,7 @@ class ResponseMessage implements Message, ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ResponseMessage) {
       return id == other.id &&
           result == other.result &&
@@ -10280,12 +10267,12 @@ class ResponseMessage implements Message, ToJsonable {
 /// Save options.
 class SaveOptions implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(SaveOptions.canParse, SaveOptions.fromJson);
+      LspJsonHandler(SaveOptions.canParse, SaveOptions.fromJson);
 
   SaveOptions(this.includeText);
   static SaveOptions fromJson(Map<String, dynamic> json) {
     final includeText = json['includeText'];
-    return new SaveOptions(includeText);
+    return SaveOptions(includeText);
   }
 
   /// The client is supposed to include the content on save.
@@ -10318,7 +10305,7 @@ class SaveOptions implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is SaveOptions) {
       return includeText == other.includeText && true;
     }
@@ -10337,8 +10324,8 @@ class SaveOptions implements ToJsonable {
 }
 
 class ServerCapabilities implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      ServerCapabilities.canParse, ServerCapabilities.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(ServerCapabilities.canParse, ServerCapabilities.fromJson);
 
   ServerCapabilities(
       this.textDocumentSync,
@@ -10368,13 +10355,12 @@ class ServerCapabilities implements ToJsonable {
   static ServerCapabilities fromJson(Map<String, dynamic> json) {
     final textDocumentSync = TextDocumentSyncOptions.canParse(
             json['textDocumentSync'], nullLspJsonReporter)
-        ? new Either2<TextDocumentSyncOptions, num>.t1(
+        ? Either2<TextDocumentSyncOptions, num>.t1(
             json['textDocumentSync'] != null
                 ? TextDocumentSyncOptions.fromJson(json['textDocumentSync'])
                 : null)
         : (json['textDocumentSync'] is num
-            ? new Either2<TextDocumentSyncOptions, num>.t2(
-                json['textDocumentSync'])
+            ? Either2<TextDocumentSyncOptions, num>.t2(json['textDocumentSync'])
             : (json['textDocumentSync'] == null
                 ? null
                 : (throw '''${json['textDocumentSync']} was not one of (TextDocumentSyncOptions, num)''')));
@@ -10393,10 +10379,10 @@ class ServerCapabilities implements ToJsonable {
     final documentSymbolProvider = json['documentSymbolProvider'];
     final workspaceSymbolProvider = json['workspaceSymbolProvider'];
     final codeActionProvider = json['codeActionProvider'] is bool
-        ? new Either2<bool, CodeActionOptions>.t1(json['codeActionProvider'])
+        ? Either2<bool, CodeActionOptions>.t1(json['codeActionProvider'])
         : (CodeActionOptions.canParse(
                 json['codeActionProvider'], nullLspJsonReporter)
-            ? new Either2<bool, CodeActionOptions>.t2(
+            ? Either2<bool, CodeActionOptions>.t2(
                 json['codeActionProvider'] != null
                     ? CodeActionOptions.fromJson(json['codeActionProvider'])
                     : null)
@@ -10415,9 +10401,9 @@ class ServerCapabilities implements ToJsonable {
                 json['documentOnTypeFormattingProvider'])
             : null;
     final renameProvider = json['renameProvider'] is bool
-        ? new Either2<bool, RenameOptions>.t1(json['renameProvider'])
+        ? Either2<bool, RenameOptions>.t1(json['renameProvider'])
         : (RenameOptions.canParse(json['renameProvider'], nullLspJsonReporter)
-            ? new Either2<bool, RenameOptions>.t2(json['renameProvider'] != null
+            ? Either2<bool, RenameOptions>.t2(json['renameProvider'] != null
                 ? RenameOptions.fromJson(json['renameProvider'])
                 : null)
             : (json['renameProvider'] == null
@@ -10436,7 +10422,7 @@ class ServerCapabilities implements ToJsonable {
         ? ServerCapabilitiesWorkspace.fromJson(json['workspace'])
         : null;
     final experimental = json['experimental'];
-    return new ServerCapabilities(
+    return ServerCapabilities(
         textDocumentSync,
         hoverProvider,
         completionProvider,
@@ -10888,7 +10874,7 @@ class ServerCapabilities implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ServerCapabilities) {
       return textDocumentSync == other.textDocumentSync &&
           hoverProvider == other.hoverProvider &&
@@ -10958,7 +10944,7 @@ class ServerCapabilities implements ToJsonable {
 }
 
 class ServerCapabilitiesWorkspace implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       ServerCapabilitiesWorkspace.canParse,
       ServerCapabilitiesWorkspace.fromJson);
 
@@ -10967,7 +10953,7 @@ class ServerCapabilitiesWorkspace implements ToJsonable {
     final workspaceFolders = json['workspaceFolders'] != null
         ? ServerCapabilitiesWorkspaceFolders.fromJson(json['workspaceFolders'])
         : null;
-    return new ServerCapabilitiesWorkspace(workspaceFolders);
+    return ServerCapabilitiesWorkspace(workspaceFolders);
   }
 
   /// The server supports workspace folder.
@@ -11005,7 +10991,7 @@ class ServerCapabilitiesWorkspace implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ServerCapabilitiesWorkspace) {
       return workspaceFolders == other.workspaceFolders && true;
     }
@@ -11024,7 +11010,7 @@ class ServerCapabilitiesWorkspace implements ToJsonable {
 }
 
 class ServerCapabilitiesWorkspaceFolders implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       ServerCapabilitiesWorkspaceFolders.canParse,
       ServerCapabilitiesWorkspaceFolders.fromJson);
 
@@ -11033,8 +11019,7 @@ class ServerCapabilitiesWorkspaceFolders implements ToJsonable {
       Map<String, dynamic> json) {
     final supported = json['supported'];
     final changeNotifications = json['changeNotifications'];
-    return new ServerCapabilitiesWorkspaceFolders(
-        supported, changeNotifications);
+    return ServerCapabilitiesWorkspaceFolders(supported, changeNotifications);
   }
 
   /// Whether the server wants to receive workspace folder change notifications.
@@ -11089,7 +11074,7 @@ class ServerCapabilitiesWorkspaceFolders implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ServerCapabilitiesWorkspaceFolders) {
       return supported == other.supported &&
           changeNotifications == other.changeNotifications &&
@@ -11111,8 +11096,8 @@ class ServerCapabilitiesWorkspaceFolders implements ToJsonable {
 }
 
 class ShowMessageParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      ShowMessageParams.canParse, ShowMessageParams.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(ShowMessageParams.canParse, ShowMessageParams.fromJson);
 
   ShowMessageParams(this.type, this.message) {
     if (type == null) {
@@ -11126,7 +11111,7 @@ class ShowMessageParams implements ToJsonable {
     final type =
         json['type'] != null ? MessageType.fromJson(json['type']) : null;
     final message = json['message'];
-    return new ShowMessageParams(type, message);
+    return ShowMessageParams(type, message);
   }
 
   /// The actual message.
@@ -11187,7 +11172,7 @@ class ShowMessageParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ShowMessageParams) {
       return type == other.type && message == other.message && true;
     }
@@ -11207,7 +11192,7 @@ class ShowMessageParams implements ToJsonable {
 }
 
 class ShowMessageRequestParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       ShowMessageRequestParams.canParse, ShowMessageRequestParams.fromJson);
 
   ShowMessageRequestParams(this.type, this.message, this.actions) {
@@ -11226,7 +11211,7 @@ class ShowMessageRequestParams implements ToJsonable {
         ?.map((item) => item != null ? MessageActionItem.fromJson(item) : null)
         ?.cast<MessageActionItem>()
         ?.toList();
-    return new ShowMessageRequestParams(type, message, actions);
+    return ShowMessageRequestParams(type, message, actions);
   }
 
   /// The message action items to present.
@@ -11305,7 +11290,7 @@ class ShowMessageRequestParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ShowMessageRequestParams) {
       return type == other.type &&
           message == other.message &&
@@ -11333,7 +11318,7 @@ class ShowMessageRequestParams implements ToJsonable {
 /// multiple signature but only one active and only one active parameter.
 class SignatureHelp implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(SignatureHelp.canParse, SignatureHelp.fromJson);
+      LspJsonHandler(SignatureHelp.canParse, SignatureHelp.fromJson);
 
   SignatureHelp(this.signatures, this.activeSignature, this.activeParameter) {
     if (signatures == null) {
@@ -11348,7 +11333,7 @@ class SignatureHelp implements ToJsonable {
         ?.toList();
     final activeSignature = json['activeSignature'];
     final activeParameter = json['activeParameter'];
-    return new SignatureHelp(signatures, activeSignature, activeParameter);
+    return SignatureHelp(signatures, activeSignature, activeParameter);
   }
 
   /// The active parameter of the active signature. If omitted or the value lies
@@ -11432,7 +11417,7 @@ class SignatureHelp implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is SignatureHelp) {
       return listEqual(signatures, other.signatures,
               (SignatureInformation a, SignatureInformation b) => a == b) &&
@@ -11458,7 +11443,7 @@ class SignatureHelp implements ToJsonable {
 
 /// Signature help options.
 class SignatureHelpOptions implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       SignatureHelpOptions.canParse, SignatureHelpOptions.fromJson);
 
   SignatureHelpOptions(this.triggerCharacters);
@@ -11467,7 +11452,7 @@ class SignatureHelpOptions implements ToJsonable {
         ?.map((item) => item)
         ?.cast<String>()
         ?.toList();
-    return new SignatureHelpOptions(triggerCharacters);
+    return SignatureHelpOptions(triggerCharacters);
   }
 
   /// The characters that trigger signature help automatically.
@@ -11502,7 +11487,7 @@ class SignatureHelpOptions implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is SignatureHelpOptions) {
       return listEqual(triggerCharacters, other.triggerCharacters,
               (String a, String b) => a == b) &&
@@ -11524,7 +11509,7 @@ class SignatureHelpOptions implements ToJsonable {
 
 class SignatureHelpRegistrationOptions
     implements TextDocumentRegistrationOptions, ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       SignatureHelpRegistrationOptions.canParse,
       SignatureHelpRegistrationOptions.fromJson);
 
@@ -11539,7 +11524,7 @@ class SignatureHelpRegistrationOptions
         ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
         ?.cast<DocumentFilter>()
         ?.toList();
-    return new SignatureHelpRegistrationOptions(
+    return SignatureHelpRegistrationOptions(
         triggerCharacters, documentSelector);
   }
 
@@ -11596,7 +11581,7 @@ class SignatureHelpRegistrationOptions
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is SignatureHelpRegistrationOptions) {
       return listEqual(triggerCharacters, other.triggerCharacters,
               (String a, String b) => a == b) &&
@@ -11621,7 +11606,7 @@ class SignatureHelpRegistrationOptions
 /// Represents the signature of something callable. A signature can have a
 /// label, like a function-name, a doc-comment, and a set of parameters.
 class SignatureInformation implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       SignatureInformation.canParse, SignatureInformation.fromJson);
 
   SignatureInformation(this.label, this.documentation, this.parameters) {
@@ -11632,12 +11617,11 @@ class SignatureInformation implements ToJsonable {
   static SignatureInformation fromJson(Map<String, dynamic> json) {
     final label = json['label'];
     final documentation = json['documentation'] is String
-        ? new Either2<String, MarkupContent>.t1(json['documentation'])
+        ? Either2<String, MarkupContent>.t1(json['documentation'])
         : (MarkupContent.canParse(json['documentation'], nullLspJsonReporter)
-            ? new Either2<String, MarkupContent>.t2(
-                json['documentation'] != null
-                    ? MarkupContent.fromJson(json['documentation'])
-                    : null)
+            ? Either2<String, MarkupContent>.t2(json['documentation'] != null
+                ? MarkupContent.fromJson(json['documentation'])
+                : null)
             : (json['documentation'] == null
                 ? null
                 : (throw '''${json['documentation']} was not one of (String, MarkupContent)''')));
@@ -11646,7 +11630,7 @@ class SignatureInformation implements ToJsonable {
             (item) => item != null ? ParameterInformation.fromJson(item) : null)
         ?.cast<ParameterInformation>()
         ?.toList();
-    return new SignatureInformation(label, documentation, parameters);
+    return SignatureInformation(label, documentation, parameters);
   }
 
   /// The human-readable doc-comment of this signature. Will be shown in the UI
@@ -11722,7 +11706,7 @@ class SignatureInformation implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is SignatureInformation) {
       return label == other.label &&
           documentation == other.documentation &&
@@ -11748,13 +11732,13 @@ class SignatureInformation implements ToJsonable {
 
 /// Static registration options to be returned in the initialize request.
 class StaticRegistrationOptions implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       StaticRegistrationOptions.canParse, StaticRegistrationOptions.fromJson);
 
   StaticRegistrationOptions(this.id);
   static StaticRegistrationOptions fromJson(Map<String, dynamic> json) {
     final id = json['id'];
-    return new StaticRegistrationOptions(id);
+    return StaticRegistrationOptions(id);
   }
 
   /// The id used to register the request. The id can be used to deregister the
@@ -11788,7 +11772,7 @@ class StaticRegistrationOptions implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is StaticRegistrationOptions) {
       return id == other.id && true;
     }
@@ -11809,8 +11793,8 @@ class StaticRegistrationOptions implements ToJsonable {
 /// Represents information about programming constructs like variables, classes,
 /// interfaces etc.
 class SymbolInformation implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      SymbolInformation.canParse, SymbolInformation.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(SymbolInformation.canParse, SymbolInformation.fromJson);
 
   SymbolInformation(this.name, this.kind, this.deprecated, this.location,
       this.containerName) {
@@ -11832,8 +11816,7 @@ class SymbolInformation implements ToJsonable {
     final location =
         json['location'] != null ? Location.fromJson(json['location']) : null;
     final containerName = json['containerName'];
-    return new SymbolInformation(
-        name, kind, deprecated, location, containerName);
+    return SymbolInformation(name, kind, deprecated, location, containerName);
   }
 
   /// The name of the symbol containing this symbol. This information is for
@@ -11956,7 +11939,7 @@ class SymbolInformation implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is SymbolInformation) {
       return name == other.name &&
           kind == other.kind &&
@@ -11994,32 +11977,32 @@ class SymbolKind {
     return obj is num;
   }
 
-  static const File = const SymbolKind(1);
-  static const Module = const SymbolKind(2);
-  static const Namespace = const SymbolKind(3);
-  static const Package = const SymbolKind(4);
-  static const Class = const SymbolKind(5);
-  static const Method = const SymbolKind(6);
-  static const Property = const SymbolKind(7);
-  static const Field = const SymbolKind(8);
-  static const Constructor = const SymbolKind(9);
-  static const Enum = const SymbolKind(10);
-  static const Interface = const SymbolKind(11);
-  static const Function = const SymbolKind(12);
-  static const Variable = const SymbolKind(13);
-  static const Constant = const SymbolKind(14);
-  static const Str = const SymbolKind(15);
-  static const Number = const SymbolKind(16);
-  static const Boolean = const SymbolKind(17);
-  static const Array = const SymbolKind(18);
-  static const Obj = const SymbolKind(19);
-  static const Key = const SymbolKind(20);
-  static const Null = const SymbolKind(21);
-  static const EnumMember = const SymbolKind(22);
-  static const Struct = const SymbolKind(23);
-  static const Event = const SymbolKind(24);
-  static const Operator = const SymbolKind(25);
-  static const TypeParameter = const SymbolKind(26);
+  static const File = SymbolKind(1);
+  static const Module = SymbolKind(2);
+  static const Namespace = SymbolKind(3);
+  static const Package = SymbolKind(4);
+  static const Class = SymbolKind(5);
+  static const Method = SymbolKind(6);
+  static const Property = SymbolKind(7);
+  static const Field = SymbolKind(8);
+  static const Constructor = SymbolKind(9);
+  static const Enum = SymbolKind(10);
+  static const Interface = SymbolKind(11);
+  static const Function = SymbolKind(12);
+  static const Variable = SymbolKind(13);
+  static const Constant = SymbolKind(14);
+  static const Str = SymbolKind(15);
+  static const Number = SymbolKind(16);
+  static const Boolean = SymbolKind(17);
+  static const Array = SymbolKind(18);
+  static const Obj = SymbolKind(19);
+  static const Key = SymbolKind(20);
+  static const Null = SymbolKind(21);
+  static const EnumMember = SymbolKind(22);
+  static const Struct = SymbolKind(23);
+  static const Event = SymbolKind(24);
+  static const Operator = SymbolKind(25);
+  static const TypeParameter = SymbolKind(26);
 
   Object toJson() => _value;
 
@@ -12029,14 +12012,14 @@ class SymbolKind {
   @override
   get hashCode => _value.hashCode;
 
-  bool operator ==(o) => o is SymbolKind && o._value == _value;
+  bool operator ==(Object o) => o is SymbolKind && o._value == _value;
 }
 
 /// Describe options to be used when registering for text document change
 /// events.
 class TextDocumentChangeRegistrationOptions
     implements TextDocumentRegistrationOptions, ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentChangeRegistrationOptions.canParse,
       TextDocumentChangeRegistrationOptions.fromJson);
 
@@ -12054,8 +12037,7 @@ class TextDocumentChangeRegistrationOptions
         ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
         ?.cast<DocumentFilter>()
         ?.toList();
-    return new TextDocumentChangeRegistrationOptions(
-        syncKind, documentSelector);
+    return TextDocumentChangeRegistrationOptions(syncKind, documentSelector);
   }
 
   /// A document selector to identify the scope of the registration. If set to
@@ -12118,7 +12100,7 @@ class TextDocumentChangeRegistrationOptions
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentChangeRegistrationOptions) {
       return syncKind == other.syncKind &&
           documentSelector == other.documentSelector &&
@@ -12141,7 +12123,7 @@ class TextDocumentChangeRegistrationOptions
 
 /// Text document specific client capabilities.
 class TextDocumentClientCapabilities implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilities.canParse,
       TextDocumentClientCapabilities.fromJson);
 
@@ -12244,7 +12226,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
         ? TextDocumentClientCapabilitiesFoldingRange.fromJson(
             json['foldingRange'])
         : null;
-    return new TextDocumentClientCapabilities(
+    return TextDocumentClientCapabilities(
         synchronization,
         completion,
         hover,
@@ -12670,7 +12652,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilities) {
       return synchronization == other.synchronization &&
           completion == other.completion &&
@@ -12730,7 +12712,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesCodeAction implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesCodeAction.canParse,
       TextDocumentClientCapabilitiesCodeAction.fromJson);
 
@@ -12743,7 +12725,7 @@ class TextDocumentClientCapabilitiesCodeAction implements ToJsonable {
         ? TextDocumentClientCapabilitiesCodeActionLiteralSupport.fromJson(
             json['codeActionLiteralSupport'])
         : null;
-    return new TextDocumentClientCapabilitiesCodeAction(
+    return TextDocumentClientCapabilitiesCodeAction(
         dynamicRegistration, codeActionLiteralSupport);
   }
 
@@ -12801,7 +12783,7 @@ class TextDocumentClientCapabilitiesCodeAction implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesCodeAction) {
       return dynamicRegistration == other.dynamicRegistration &&
           codeActionLiteralSupport == other.codeActionLiteralSupport &&
@@ -12823,7 +12805,7 @@ class TextDocumentClientCapabilitiesCodeAction implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesCodeActionKind implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesCodeActionKind.canParse,
       TextDocumentClientCapabilitiesCodeActionKind.fromJson);
 
@@ -12838,7 +12820,7 @@ class TextDocumentClientCapabilitiesCodeActionKind implements ToJsonable {
         ?.map((item) => item != null ? CodeActionKind.fromJson(item) : null)
         ?.cast<CodeActionKind>()
         ?.toList();
-    return new TextDocumentClientCapabilitiesCodeActionKind(valueSet);
+    return TextDocumentClientCapabilitiesCodeActionKind(valueSet);
   }
 
   /// The code action kind values the client supports. When this property exists
@@ -12883,7 +12865,7 @@ class TextDocumentClientCapabilitiesCodeActionKind implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesCodeActionKind) {
       return listEqual(valueSet, other.valueSet,
               (CodeActionKind a, CodeActionKind b) => a == b) &&
@@ -12905,7 +12887,7 @@ class TextDocumentClientCapabilitiesCodeActionKind implements ToJsonable {
 
 class TextDocumentClientCapabilitiesCodeActionLiteralSupport
     implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesCodeActionLiteralSupport.canParse,
       TextDocumentClientCapabilitiesCodeActionLiteralSupport.fromJson);
 
@@ -12920,7 +12902,7 @@ class TextDocumentClientCapabilitiesCodeActionLiteralSupport
         ? TextDocumentClientCapabilitiesCodeActionKind.fromJson(
             json['codeActionKind'])
         : null;
-    return new TextDocumentClientCapabilitiesCodeActionLiteralSupport(
+    return TextDocumentClientCapabilitiesCodeActionLiteralSupport(
         codeActionKind);
   }
 
@@ -12964,7 +12946,7 @@ class TextDocumentClientCapabilitiesCodeActionLiteralSupport
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesCodeActionLiteralSupport) {
       return codeActionKind == other.codeActionKind && true;
     }
@@ -12983,7 +12965,7 @@ class TextDocumentClientCapabilitiesCodeActionLiteralSupport
 }
 
 class TextDocumentClientCapabilitiesCodeLens implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesCodeLens.canParse,
       TextDocumentClientCapabilitiesCodeLens.fromJson);
 
@@ -12991,7 +12973,7 @@ class TextDocumentClientCapabilitiesCodeLens implements ToJsonable {
   static TextDocumentClientCapabilitiesCodeLens fromJson(
       Map<String, dynamic> json) {
     final dynamicRegistration = json['dynamicRegistration'];
-    return new TextDocumentClientCapabilitiesCodeLens(dynamicRegistration);
+    return TextDocumentClientCapabilitiesCodeLens(dynamicRegistration);
   }
 
   /// Whether code lens supports dynamic registration.
@@ -13026,7 +13008,7 @@ class TextDocumentClientCapabilitiesCodeLens implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesCodeLens) {
       return dynamicRegistration == other.dynamicRegistration && true;
     }
@@ -13045,7 +13027,7 @@ class TextDocumentClientCapabilitiesCodeLens implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesColorProvider implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesColorProvider.canParse,
       TextDocumentClientCapabilitiesColorProvider.fromJson);
 
@@ -13053,7 +13035,7 @@ class TextDocumentClientCapabilitiesColorProvider implements ToJsonable {
   static TextDocumentClientCapabilitiesColorProvider fromJson(
       Map<String, dynamic> json) {
     final dynamicRegistration = json['dynamicRegistration'];
-    return new TextDocumentClientCapabilitiesColorProvider(dynamicRegistration);
+    return TextDocumentClientCapabilitiesColorProvider(dynamicRegistration);
   }
 
   /// Whether colorProvider supports dynamic registration. If this is set to
@@ -13091,7 +13073,7 @@ class TextDocumentClientCapabilitiesColorProvider implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesColorProvider) {
       return dynamicRegistration == other.dynamicRegistration && true;
     }
@@ -13110,7 +13092,7 @@ class TextDocumentClientCapabilitiesColorProvider implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesCompletion implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesCompletion.canParse,
       TextDocumentClientCapabilitiesCompletion.fromJson);
 
@@ -13128,7 +13110,7 @@ class TextDocumentClientCapabilitiesCompletion implements ToJsonable {
             json['completionItemKind'])
         : null;
     final contextSupport = json['contextSupport'];
-    return new TextDocumentClientCapabilitiesCompletion(dynamicRegistration,
+    return TextDocumentClientCapabilitiesCompletion(dynamicRegistration,
         completionItem, completionItemKind, contextSupport);
   }
 
@@ -13214,7 +13196,7 @@ class TextDocumentClientCapabilitiesCompletion implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesCompletion) {
       return dynamicRegistration == other.dynamicRegistration &&
           completionItem == other.completionItem &&
@@ -13240,7 +13222,7 @@ class TextDocumentClientCapabilitiesCompletion implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesCompletionItem implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesCompletionItem.canParse,
       TextDocumentClientCapabilitiesCompletionItem.fromJson);
 
@@ -13260,7 +13242,7 @@ class TextDocumentClientCapabilitiesCompletionItem implements ToJsonable {
         ?.toList();
     final deprecatedSupport = json['deprecatedSupport'];
     final preselectSupport = json['preselectSupport'];
-    return new TextDocumentClientCapabilitiesCompletionItem(
+    return TextDocumentClientCapabilitiesCompletionItem(
         snippetSupport,
         commitCharactersSupport,
         documentationFormat,
@@ -13371,7 +13353,7 @@ class TextDocumentClientCapabilitiesCompletionItem implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesCompletionItem) {
       return snippetSupport == other.snippetSupport &&
           commitCharactersSupport == other.commitCharactersSupport &&
@@ -13400,7 +13382,7 @@ class TextDocumentClientCapabilitiesCompletionItem implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesCompletionItemKind implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesCompletionItemKind.canParse,
       TextDocumentClientCapabilitiesCompletionItemKind.fromJson);
 
@@ -13411,7 +13393,7 @@ class TextDocumentClientCapabilitiesCompletionItemKind implements ToJsonable {
         ?.map((item) => item != null ? CompletionItemKind.fromJson(item) : null)
         ?.cast<CompletionItemKind>()
         ?.toList();
-    return new TextDocumentClientCapabilitiesCompletionItemKind(valueSet);
+    return TextDocumentClientCapabilitiesCompletionItemKind(valueSet);
   }
 
   /// The completion item kind values the client supports. When this property
@@ -13454,7 +13436,7 @@ class TextDocumentClientCapabilitiesCompletionItemKind implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesCompletionItemKind) {
       return listEqual(valueSet, other.valueSet,
               (CompletionItemKind a, CompletionItemKind b) => a == b) &&
@@ -13475,7 +13457,7 @@ class TextDocumentClientCapabilitiesCompletionItemKind implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesDeclaration implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesDeclaration.canParse,
       TextDocumentClientCapabilitiesDeclaration.fromJson);
 
@@ -13485,7 +13467,7 @@ class TextDocumentClientCapabilitiesDeclaration implements ToJsonable {
       Map<String, dynamic> json) {
     final dynamicRegistration = json['dynamicRegistration'];
     final linkSupport = json['linkSupport'];
-    return new TextDocumentClientCapabilitiesDeclaration(
+    return TextDocumentClientCapabilitiesDeclaration(
         dynamicRegistration, linkSupport);
   }
 
@@ -13541,7 +13523,7 @@ class TextDocumentClientCapabilitiesDeclaration implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesDeclaration) {
       return dynamicRegistration == other.dynamicRegistration &&
           linkSupport == other.linkSupport &&
@@ -13563,7 +13545,7 @@ class TextDocumentClientCapabilitiesDeclaration implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesDefinition implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesDefinition.canParse,
       TextDocumentClientCapabilitiesDefinition.fromJson);
 
@@ -13573,7 +13555,7 @@ class TextDocumentClientCapabilitiesDefinition implements ToJsonable {
       Map<String, dynamic> json) {
     final dynamicRegistration = json['dynamicRegistration'];
     final linkSupport = json['linkSupport'];
-    return new TextDocumentClientCapabilitiesDefinition(
+    return TextDocumentClientCapabilitiesDefinition(
         dynamicRegistration, linkSupport);
   }
 
@@ -13624,7 +13606,7 @@ class TextDocumentClientCapabilitiesDefinition implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesDefinition) {
       return dynamicRegistration == other.dynamicRegistration &&
           linkSupport == other.linkSupport &&
@@ -13646,7 +13628,7 @@ class TextDocumentClientCapabilitiesDefinition implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesDocumentHighlight implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesDocumentHighlight.canParse,
       TextDocumentClientCapabilitiesDocumentHighlight.fromJson);
 
@@ -13654,8 +13636,7 @@ class TextDocumentClientCapabilitiesDocumentHighlight implements ToJsonable {
   static TextDocumentClientCapabilitiesDocumentHighlight fromJson(
       Map<String, dynamic> json) {
     final dynamicRegistration = json['dynamicRegistration'];
-    return new TextDocumentClientCapabilitiesDocumentHighlight(
-        dynamicRegistration);
+    return TextDocumentClientCapabilitiesDocumentHighlight(dynamicRegistration);
   }
 
   /// Whether document highlight supports dynamic registration.
@@ -13690,7 +13671,7 @@ class TextDocumentClientCapabilitiesDocumentHighlight implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesDocumentHighlight) {
       return dynamicRegistration == other.dynamicRegistration && true;
     }
@@ -13709,7 +13690,7 @@ class TextDocumentClientCapabilitiesDocumentHighlight implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesDocumentLink implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesDocumentLink.canParse,
       TextDocumentClientCapabilitiesDocumentLink.fromJson);
 
@@ -13717,7 +13698,7 @@ class TextDocumentClientCapabilitiesDocumentLink implements ToJsonable {
   static TextDocumentClientCapabilitiesDocumentLink fromJson(
       Map<String, dynamic> json) {
     final dynamicRegistration = json['dynamicRegistration'];
-    return new TextDocumentClientCapabilitiesDocumentLink(dynamicRegistration);
+    return TextDocumentClientCapabilitiesDocumentLink(dynamicRegistration);
   }
 
   /// Whether document link supports dynamic registration.
@@ -13752,7 +13733,7 @@ class TextDocumentClientCapabilitiesDocumentLink implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesDocumentLink) {
       return dynamicRegistration == other.dynamicRegistration && true;
     }
@@ -13771,7 +13752,7 @@ class TextDocumentClientCapabilitiesDocumentLink implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesDocumentSymbol implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesDocumentSymbol.canParse,
       TextDocumentClientCapabilitiesDocumentSymbol.fromJson);
 
@@ -13785,7 +13766,7 @@ class TextDocumentClientCapabilitiesDocumentSymbol implements ToJsonable {
         : null;
     final hierarchicalDocumentSymbolSupport =
         json['hierarchicalDocumentSymbolSupport'];
-    return new TextDocumentClientCapabilitiesDocumentSymbol(
+    return TextDocumentClientCapabilitiesDocumentSymbol(
         dynamicRegistration, symbolKind, hierarchicalDocumentSymbolSupport);
   }
 
@@ -13856,7 +13837,7 @@ class TextDocumentClientCapabilitiesDocumentSymbol implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesDocumentSymbol) {
       return dynamicRegistration == other.dynamicRegistration &&
           symbolKind == other.symbolKind &&
@@ -13882,7 +13863,7 @@ class TextDocumentClientCapabilitiesDocumentSymbol implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesFoldingRange implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesFoldingRange.canParse,
       TextDocumentClientCapabilitiesFoldingRange.fromJson);
 
@@ -13893,7 +13874,7 @@ class TextDocumentClientCapabilitiesFoldingRange implements ToJsonable {
     final dynamicRegistration = json['dynamicRegistration'];
     final rangeLimit = json['rangeLimit'];
     final lineFoldingOnly = json['lineFoldingOnly'];
-    return new TextDocumentClientCapabilitiesFoldingRange(
+    return TextDocumentClientCapabilitiesFoldingRange(
         dynamicRegistration, rangeLimit, lineFoldingOnly);
   }
 
@@ -13968,7 +13949,7 @@ class TextDocumentClientCapabilitiesFoldingRange implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesFoldingRange) {
       return dynamicRegistration == other.dynamicRegistration &&
           rangeLimit == other.rangeLimit &&
@@ -13992,7 +13973,7 @@ class TextDocumentClientCapabilitiesFoldingRange implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesFormatting implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesFormatting.canParse,
       TextDocumentClientCapabilitiesFormatting.fromJson);
 
@@ -14000,7 +13981,7 @@ class TextDocumentClientCapabilitiesFormatting implements ToJsonable {
   static TextDocumentClientCapabilitiesFormatting fromJson(
       Map<String, dynamic> json) {
     final dynamicRegistration = json['dynamicRegistration'];
-    return new TextDocumentClientCapabilitiesFormatting(dynamicRegistration);
+    return TextDocumentClientCapabilitiesFormatting(dynamicRegistration);
   }
 
   /// Whether formatting supports dynamic registration.
@@ -14035,7 +14016,7 @@ class TextDocumentClientCapabilitiesFormatting implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesFormatting) {
       return dynamicRegistration == other.dynamicRegistration && true;
     }
@@ -14054,7 +14035,7 @@ class TextDocumentClientCapabilitiesFormatting implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesHover implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesHover.canParse,
       TextDocumentClientCapabilitiesHover.fromJson);
 
@@ -14067,7 +14048,7 @@ class TextDocumentClientCapabilitiesHover implements ToJsonable {
         ?.map((item) => item != null ? MarkupKind.fromJson(item) : null)
         ?.cast<MarkupKind>()
         ?.toList();
-    return new TextDocumentClientCapabilitiesHover(
+    return TextDocumentClientCapabilitiesHover(
         dynamicRegistration, contentFormat);
   }
 
@@ -14122,7 +14103,7 @@ class TextDocumentClientCapabilitiesHover implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesHover) {
       return dynamicRegistration == other.dynamicRegistration &&
           listEqual(contentFormat, other.contentFormat,
@@ -14145,7 +14126,7 @@ class TextDocumentClientCapabilitiesHover implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesImplementation implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesImplementation.canParse,
       TextDocumentClientCapabilitiesImplementation.fromJson);
 
@@ -14155,7 +14136,7 @@ class TextDocumentClientCapabilitiesImplementation implements ToJsonable {
       Map<String, dynamic> json) {
     final dynamicRegistration = json['dynamicRegistration'];
     final linkSupport = json['linkSupport'];
-    return new TextDocumentClientCapabilitiesImplementation(
+    return TextDocumentClientCapabilitiesImplementation(
         dynamicRegistration, linkSupport);
   }
 
@@ -14211,7 +14192,7 @@ class TextDocumentClientCapabilitiesImplementation implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesImplementation) {
       return dynamicRegistration == other.dynamicRegistration &&
           linkSupport == other.linkSupport &&
@@ -14233,7 +14214,7 @@ class TextDocumentClientCapabilitiesImplementation implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesOnTypeFormatting implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesOnTypeFormatting.canParse,
       TextDocumentClientCapabilitiesOnTypeFormatting.fromJson);
 
@@ -14241,8 +14222,7 @@ class TextDocumentClientCapabilitiesOnTypeFormatting implements ToJsonable {
   static TextDocumentClientCapabilitiesOnTypeFormatting fromJson(
       Map<String, dynamic> json) {
     final dynamicRegistration = json['dynamicRegistration'];
-    return new TextDocumentClientCapabilitiesOnTypeFormatting(
-        dynamicRegistration);
+    return TextDocumentClientCapabilitiesOnTypeFormatting(dynamicRegistration);
   }
 
   /// Whether on type formatting supports dynamic registration.
@@ -14277,7 +14257,7 @@ class TextDocumentClientCapabilitiesOnTypeFormatting implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesOnTypeFormatting) {
       return dynamicRegistration == other.dynamicRegistration && true;
     }
@@ -14296,7 +14276,7 @@ class TextDocumentClientCapabilitiesOnTypeFormatting implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesParameterInformation implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesParameterInformation.canParse,
       TextDocumentClientCapabilitiesParameterInformation.fromJson);
 
@@ -14304,7 +14284,7 @@ class TextDocumentClientCapabilitiesParameterInformation implements ToJsonable {
   static TextDocumentClientCapabilitiesParameterInformation fromJson(
       Map<String, dynamic> json) {
     final labelOffsetSupport = json['labelOffsetSupport'];
-    return new TextDocumentClientCapabilitiesParameterInformation(
+    return TextDocumentClientCapabilitiesParameterInformation(
         labelOffsetSupport);
   }
 
@@ -14343,7 +14323,7 @@ class TextDocumentClientCapabilitiesParameterInformation implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesParameterInformation) {
       return labelOffsetSupport == other.labelOffsetSupport && true;
     }
@@ -14362,7 +14342,7 @@ class TextDocumentClientCapabilitiesParameterInformation implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesPublishDiagnostics implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesPublishDiagnostics.canParse,
       TextDocumentClientCapabilitiesPublishDiagnostics.fromJson);
 
@@ -14370,8 +14350,7 @@ class TextDocumentClientCapabilitiesPublishDiagnostics implements ToJsonable {
   static TextDocumentClientCapabilitiesPublishDiagnostics fromJson(
       Map<String, dynamic> json) {
     final relatedInformation = json['relatedInformation'];
-    return new TextDocumentClientCapabilitiesPublishDiagnostics(
-        relatedInformation);
+    return TextDocumentClientCapabilitiesPublishDiagnostics(relatedInformation);
   }
 
   /// Whether the clients accepts diagnostics with related information.
@@ -14406,7 +14385,7 @@ class TextDocumentClientCapabilitiesPublishDiagnostics implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesPublishDiagnostics) {
       return relatedInformation == other.relatedInformation && true;
     }
@@ -14425,7 +14404,7 @@ class TextDocumentClientCapabilitiesPublishDiagnostics implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesRangeFormatting implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesRangeFormatting.canParse,
       TextDocumentClientCapabilitiesRangeFormatting.fromJson);
 
@@ -14433,8 +14412,7 @@ class TextDocumentClientCapabilitiesRangeFormatting implements ToJsonable {
   static TextDocumentClientCapabilitiesRangeFormatting fromJson(
       Map<String, dynamic> json) {
     final dynamicRegistration = json['dynamicRegistration'];
-    return new TextDocumentClientCapabilitiesRangeFormatting(
-        dynamicRegistration);
+    return TextDocumentClientCapabilitiesRangeFormatting(dynamicRegistration);
   }
 
   /// Whether range formatting supports dynamic registration.
@@ -14469,7 +14447,7 @@ class TextDocumentClientCapabilitiesRangeFormatting implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesRangeFormatting) {
       return dynamicRegistration == other.dynamicRegistration && true;
     }
@@ -14488,7 +14466,7 @@ class TextDocumentClientCapabilitiesRangeFormatting implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesReferences implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesReferences.canParse,
       TextDocumentClientCapabilitiesReferences.fromJson);
 
@@ -14496,7 +14474,7 @@ class TextDocumentClientCapabilitiesReferences implements ToJsonable {
   static TextDocumentClientCapabilitiesReferences fromJson(
       Map<String, dynamic> json) {
     final dynamicRegistration = json['dynamicRegistration'];
-    return new TextDocumentClientCapabilitiesReferences(dynamicRegistration);
+    return TextDocumentClientCapabilitiesReferences(dynamicRegistration);
   }
 
   /// Whether references supports dynamic registration.
@@ -14531,7 +14509,7 @@ class TextDocumentClientCapabilitiesReferences implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesReferences) {
       return dynamicRegistration == other.dynamicRegistration && true;
     }
@@ -14550,7 +14528,7 @@ class TextDocumentClientCapabilitiesReferences implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesRename implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesRename.canParse,
       TextDocumentClientCapabilitiesRename.fromJson);
 
@@ -14560,7 +14538,7 @@ class TextDocumentClientCapabilitiesRename implements ToJsonable {
       Map<String, dynamic> json) {
     final dynamicRegistration = json['dynamicRegistration'];
     final prepareSupport = json['prepareSupport'];
-    return new TextDocumentClientCapabilitiesRename(
+    return TextDocumentClientCapabilitiesRename(
         dynamicRegistration, prepareSupport);
   }
 
@@ -14612,7 +14590,7 @@ class TextDocumentClientCapabilitiesRename implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesRename) {
       return dynamicRegistration == other.dynamicRegistration &&
           prepareSupport == other.prepareSupport &&
@@ -14634,7 +14612,7 @@ class TextDocumentClientCapabilitiesRename implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesSignatureHelp implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesSignatureHelp.canParse,
       TextDocumentClientCapabilitiesSignatureHelp.fromJson);
 
@@ -14647,7 +14625,7 @@ class TextDocumentClientCapabilitiesSignatureHelp implements ToJsonable {
         ? TextDocumentClientCapabilitiesSignatureInformation.fromJson(
             json['signatureInformation'])
         : null;
-    return new TextDocumentClientCapabilitiesSignatureHelp(
+    return TextDocumentClientCapabilitiesSignatureHelp(
         dynamicRegistration, signatureInformation);
   }
 
@@ -14702,7 +14680,7 @@ class TextDocumentClientCapabilitiesSignatureHelp implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesSignatureHelp) {
       return dynamicRegistration == other.dynamicRegistration &&
           signatureInformation == other.signatureInformation &&
@@ -14724,7 +14702,7 @@ class TextDocumentClientCapabilitiesSignatureHelp implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesSignatureInformation implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesSignatureInformation.canParse,
       TextDocumentClientCapabilitiesSignatureInformation.fromJson);
 
@@ -14740,7 +14718,7 @@ class TextDocumentClientCapabilitiesSignatureInformation implements ToJsonable {
         ? TextDocumentClientCapabilitiesParameterInformation.fromJson(
             json['parameterInformation'])
         : null;
-    return new TextDocumentClientCapabilitiesSignatureInformation(
+    return TextDocumentClientCapabilitiesSignatureInformation(
         documentationFormat, parameterInformation);
   }
 
@@ -14797,7 +14775,7 @@ class TextDocumentClientCapabilitiesSignatureInformation implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesSignatureInformation) {
       return listEqual(documentationFormat, other.documentationFormat,
               (MarkupKind a, MarkupKind b) => a == b) &&
@@ -14820,7 +14798,7 @@ class TextDocumentClientCapabilitiesSignatureInformation implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesSymbolKind implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesSymbolKind.canParse,
       TextDocumentClientCapabilitiesSymbolKind.fromJson);
 
@@ -14831,7 +14809,7 @@ class TextDocumentClientCapabilitiesSymbolKind implements ToJsonable {
         ?.map((item) => item != null ? SymbolKind.fromJson(item) : null)
         ?.cast<SymbolKind>()
         ?.toList();
-    return new TextDocumentClientCapabilitiesSymbolKind(valueSet);
+    return TextDocumentClientCapabilitiesSymbolKind(valueSet);
   }
 
   /// The symbol kind values the client supports. When this property exists the
@@ -14873,7 +14851,7 @@ class TextDocumentClientCapabilitiesSymbolKind implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesSymbolKind) {
       return listEqual(valueSet, other.valueSet,
               (SymbolKind a, SymbolKind b) => a == b) &&
@@ -14894,7 +14872,7 @@ class TextDocumentClientCapabilitiesSymbolKind implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesSynchronization implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesSynchronization.canParse,
       TextDocumentClientCapabilitiesSynchronization.fromJson);
 
@@ -14906,7 +14884,7 @@ class TextDocumentClientCapabilitiesSynchronization implements ToJsonable {
     final willSave = json['willSave'];
     final willSaveWaitUntil = json['willSaveWaitUntil'];
     final didSave = json['didSave'];
-    return new TextDocumentClientCapabilitiesSynchronization(
+    return TextDocumentClientCapabilitiesSynchronization(
         dynamicRegistration, willSave, willSaveWaitUntil, didSave);
   }
 
@@ -14990,7 +14968,7 @@ class TextDocumentClientCapabilitiesSynchronization implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesSynchronization) {
       return dynamicRegistration == other.dynamicRegistration &&
           willSave == other.willSave &&
@@ -15016,7 +14994,7 @@ class TextDocumentClientCapabilitiesSynchronization implements ToJsonable {
 }
 
 class TextDocumentClientCapabilitiesTypeDefinition implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentClientCapabilitiesTypeDefinition.canParse,
       TextDocumentClientCapabilitiesTypeDefinition.fromJson);
 
@@ -15026,7 +15004,7 @@ class TextDocumentClientCapabilitiesTypeDefinition implements ToJsonable {
       Map<String, dynamic> json) {
     final dynamicRegistration = json['dynamicRegistration'];
     final linkSupport = json['linkSupport'];
-    return new TextDocumentClientCapabilitiesTypeDefinition(
+    return TextDocumentClientCapabilitiesTypeDefinition(
         dynamicRegistration, linkSupport);
   }
 
@@ -15082,7 +15060,7 @@ class TextDocumentClientCapabilitiesTypeDefinition implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentClientCapabilitiesTypeDefinition) {
       return dynamicRegistration == other.dynamicRegistration &&
           linkSupport == other.linkSupport &&
@@ -15107,7 +15085,7 @@ class TextDocumentClientCapabilitiesTypeDefinition implements ToJsonable {
 /// are omitted the new text is considered to be the full content of the
 /// document.
 class TextDocumentContentChangeEvent implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentContentChangeEvent.canParse,
       TextDocumentContentChangeEvent.fromJson);
 
@@ -15120,7 +15098,7 @@ class TextDocumentContentChangeEvent implements ToJsonable {
     final range = json['range'] != null ? Range.fromJson(json['range']) : null;
     final rangeLength = json['rangeLength'];
     final text = json['text'];
-    return new TextDocumentContentChangeEvent(range, rangeLength, text);
+    return TextDocumentContentChangeEvent(range, rangeLength, text);
   }
 
   /// The range of the document that changed.
@@ -15189,7 +15167,7 @@ class TextDocumentContentChangeEvent implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentContentChangeEvent) {
       return range == other.range &&
           rangeLength == other.rangeLength &&
@@ -15213,8 +15191,8 @@ class TextDocumentContentChangeEvent implements ToJsonable {
 }
 
 class TextDocumentEdit implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      TextDocumentEdit.canParse, TextDocumentEdit.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(TextDocumentEdit.canParse, TextDocumentEdit.fromJson);
 
   TextDocumentEdit(this.textDocument, this.edits) {
     if (textDocument == null) {
@@ -15232,7 +15210,7 @@ class TextDocumentEdit implements ToJsonable {
         ?.map((item) => item != null ? TextEdit.fromJson(item) : null)
         ?.cast<TextEdit>()
         ?.toList();
-    return new TextDocumentEdit(textDocument, edits);
+    return TextDocumentEdit(textDocument, edits);
   }
 
   /// The edits to be applied.
@@ -15297,7 +15275,7 @@ class TextDocumentEdit implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentEdit) {
       return textDocument == other.textDocument &&
           listEqual(edits, other.edits, (TextEdit a, TextEdit b) => a == b) &&
@@ -15319,7 +15297,7 @@ class TextDocumentEdit implements ToJsonable {
 }
 
 class TextDocumentIdentifier implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentIdentifier.canParse, TextDocumentIdentifier.fromJson);
 
   TextDocumentIdentifier(this.uri) {
@@ -15332,7 +15310,7 @@ class TextDocumentIdentifier implements ToJsonable {
       return VersionedTextDocumentIdentifier.fromJson(json);
     }
     final uri = json['uri'];
-    return new TextDocumentIdentifier(uri);
+    return TextDocumentIdentifier(uri);
   }
 
   /// The text document's URI.
@@ -15371,7 +15349,7 @@ class TextDocumentIdentifier implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentIdentifier) {
       return uri == other.uri && true;
     }
@@ -15390,8 +15368,8 @@ class TextDocumentIdentifier implements ToJsonable {
 }
 
 class TextDocumentItem implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
-      TextDocumentItem.canParse, TextDocumentItem.fromJson);
+  static const jsonHandler =
+      LspJsonHandler(TextDocumentItem.canParse, TextDocumentItem.fromJson);
 
   TextDocumentItem(this.uri, this.languageId, this.version, this.text) {
     if (uri == null) {
@@ -15412,7 +15390,7 @@ class TextDocumentItem implements ToJsonable {
     final languageId = json['languageId'];
     final version = json['version'];
     final text = json['text'];
-    return new TextDocumentItem(uri, languageId, version, text);
+    return TextDocumentItem(uri, languageId, version, text);
   }
 
   /// The text document's language identifier.
@@ -15517,7 +15495,7 @@ class TextDocumentItem implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentItem) {
       return uri == other.uri &&
           languageId == other.languageId &&
@@ -15543,7 +15521,7 @@ class TextDocumentItem implements ToJsonable {
 }
 
 class TextDocumentPositionParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentPositionParams.canParse, TextDocumentPositionParams.fromJson);
 
   TextDocumentPositionParams(this.textDocument, this.position) {
@@ -15566,7 +15544,7 @@ class TextDocumentPositionParams implements ToJsonable {
         : null;
     final position =
         json['position'] != null ? Position.fromJson(json['position']) : null;
-    return new TextDocumentPositionParams(textDocument, position);
+    return TextDocumentPositionParams(textDocument, position);
   }
 
   /// The position inside the text document.
@@ -15628,7 +15606,7 @@ class TextDocumentPositionParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentPositionParams) {
       return textDocument == other.textDocument &&
           position == other.position &&
@@ -15650,7 +15628,7 @@ class TextDocumentPositionParams implements ToJsonable {
 }
 
 class TextDocumentRegistrationOptions implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentRegistrationOptions.canParse,
       TextDocumentRegistrationOptions.fromJson);
 
@@ -15690,7 +15668,7 @@ class TextDocumentRegistrationOptions implements ToJsonable {
         ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
         ?.cast<DocumentFilter>()
         ?.toList();
-    return new TextDocumentRegistrationOptions(documentSelector);
+    return TextDocumentRegistrationOptions(documentSelector);
   }
 
   /// A document selector to identify the scope of the registration. If set to
@@ -15729,7 +15707,7 @@ class TextDocumentRegistrationOptions implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentRegistrationOptions) {
       return documentSelector == other.documentSelector && true;
     }
@@ -15760,13 +15738,13 @@ class TextDocumentSaveReason {
 
   /// Manually triggered, e.g. by the user pressing save, by starting debugging,
   /// or by an API call.
-  static const Manual = const TextDocumentSaveReason(1);
+  static const Manual = TextDocumentSaveReason(1);
 
   /// Automatic after a delay.
-  static const AfterDelay = const TextDocumentSaveReason(2);
+  static const AfterDelay = TextDocumentSaveReason(2);
 
   /// When the editor lost focus.
-  static const FocusOut = const TextDocumentSaveReason(3);
+  static const FocusOut = TextDocumentSaveReason(3);
 
   Object toJson() => _value;
 
@@ -15776,12 +15754,13 @@ class TextDocumentSaveReason {
   @override
   get hashCode => _value.hashCode;
 
-  bool operator ==(o) => o is TextDocumentSaveReason && o._value == _value;
+  bool operator ==(Object o) =>
+      o is TextDocumentSaveReason && o._value == _value;
 }
 
 class TextDocumentSaveRegistrationOptions
     implements TextDocumentRegistrationOptions, ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentSaveRegistrationOptions.canParse,
       TextDocumentSaveRegistrationOptions.fromJson);
 
@@ -15793,8 +15772,7 @@ class TextDocumentSaveRegistrationOptions
         ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
         ?.cast<DocumentFilter>()
         ?.toList();
-    return new TextDocumentSaveRegistrationOptions(
-        includeText, documentSelector);
+    return TextDocumentSaveRegistrationOptions(includeText, documentSelector);
   }
 
   /// A document selector to identify the scope of the registration. If set to
@@ -15849,7 +15827,7 @@ class TextDocumentSaveRegistrationOptions
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentSaveRegistrationOptions) {
       return includeText == other.includeText &&
           documentSelector == other.documentSelector &&
@@ -15883,14 +15861,14 @@ class TextDocumentSyncKind {
   }
 
   /// Documents should not be synced at all.
-  static const None = const TextDocumentSyncKind(0);
+  static const None = TextDocumentSyncKind(0);
 
   /// Documents are synced by always sending the full content of the document.
-  static const Full = const TextDocumentSyncKind(1);
+  static const Full = TextDocumentSyncKind(1);
 
   /// Documents are synced by sending the full content on open. After that only
   /// incremental updates to the document are send.
-  static const Incremental = const TextDocumentSyncKind(2);
+  static const Incremental = TextDocumentSyncKind(2);
 
   Object toJson() => _value;
 
@@ -15900,11 +15878,11 @@ class TextDocumentSyncKind {
   @override
   get hashCode => _value.hashCode;
 
-  bool operator ==(o) => o is TextDocumentSyncKind && o._value == _value;
+  bool operator ==(Object o) => o is TextDocumentSyncKind && o._value == _value;
 }
 
 class TextDocumentSyncOptions implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       TextDocumentSyncOptions.canParse, TextDocumentSyncOptions.fromJson);
 
   TextDocumentSyncOptions(this.openClose, this.change, this.willSave,
@@ -15918,7 +15896,7 @@ class TextDocumentSyncOptions implements ToJsonable {
     final willSaveWaitUntil = json['willSaveWaitUntil'];
     final save =
         json['save'] != null ? SaveOptions.fromJson(json['save']) : null;
-    return new TextDocumentSyncOptions(
+    return TextDocumentSyncOptions(
         openClose, change, willSave, willSaveWaitUntil, save);
   }
 
@@ -16022,7 +16000,7 @@ class TextDocumentSyncOptions implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextDocumentSyncOptions) {
       return openClose == other.openClose &&
           change == other.change &&
@@ -16051,7 +16029,7 @@ class TextDocumentSyncOptions implements ToJsonable {
 
 class TextEdit implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(TextEdit.canParse, TextEdit.fromJson);
+      LspJsonHandler(TextEdit.canParse, TextEdit.fromJson);
 
   TextEdit(this.range, this.newText) {
     if (range == null) {
@@ -16064,7 +16042,7 @@ class TextEdit implements ToJsonable {
   static TextEdit fromJson(Map<String, dynamic> json) {
     final range = json['range'] != null ? Range.fromJson(json['range']) : null;
     final newText = json['newText'];
-    return new TextEdit(range, newText);
+    return TextEdit(range, newText);
   }
 
   /// The string to be inserted. For delete operations use an empty string.
@@ -16126,7 +16104,7 @@ class TextEdit implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is TextEdit) {
       return range == other.range && newText == other.newText && true;
     }
@@ -16148,7 +16126,7 @@ class TextEdit implements ToJsonable {
 /// General parameters to unregister a capability.
 class Unregistration implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(Unregistration.canParse, Unregistration.fromJson);
+      LspJsonHandler(Unregistration.canParse, Unregistration.fromJson);
 
   Unregistration(this.id, this.method) {
     if (id == null) {
@@ -16161,7 +16139,7 @@ class Unregistration implements ToJsonable {
   static Unregistration fromJson(Map<String, dynamic> json) {
     final id = json['id'];
     final method = json['method'];
-    return new Unregistration(id, method);
+    return Unregistration(id, method);
   }
 
   /// The id used to unregister the request or notification. Usually an id
@@ -16222,7 +16200,7 @@ class Unregistration implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is Unregistration) {
       return id == other.id && method == other.method && true;
     }
@@ -16242,7 +16220,7 @@ class Unregistration implements ToJsonable {
 }
 
 class UnregistrationParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       UnregistrationParams.canParse, UnregistrationParams.fromJson);
 
   UnregistrationParams(this.unregisterations) {
@@ -16255,7 +16233,7 @@ class UnregistrationParams implements ToJsonable {
         ?.map((item) => item != null ? Unregistration.fromJson(item) : null)
         ?.cast<Unregistration>()
         ?.toList();
-    return new UnregistrationParams(unregisterations);
+    return UnregistrationParams(unregisterations);
   }
 
   final List<Unregistration> unregisterations;
@@ -16296,7 +16274,7 @@ class UnregistrationParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is UnregistrationParams) {
       return listEqual(unregisterations, other.unregisterations,
               (Unregistration a, Unregistration b) => a == b) &&
@@ -16318,7 +16296,7 @@ class UnregistrationParams implements ToJsonable {
 
 class VersionedTextDocumentIdentifier
     implements TextDocumentIdentifier, ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       VersionedTextDocumentIdentifier.canParse,
       VersionedTextDocumentIdentifier.fromJson);
 
@@ -16330,7 +16308,7 @@ class VersionedTextDocumentIdentifier
   static VersionedTextDocumentIdentifier fromJson(Map<String, dynamic> json) {
     final version = json['version'];
     final uri = json['uri'];
-    return new VersionedTextDocumentIdentifier(version, uri);
+    return VersionedTextDocumentIdentifier(version, uri);
   }
 
   /// The text document's URI.
@@ -16393,7 +16371,7 @@ class VersionedTextDocumentIdentifier
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is VersionedTextDocumentIdentifier) {
       return version == other.version && uri == other.uri && true;
     }
@@ -16423,13 +16401,13 @@ class WatchKind {
   }
 
   /// Interested in create events.
-  static const Create = const WatchKind(1);
+  static const Create = WatchKind(1);
 
   /// Interested in change events
-  static const Change = const WatchKind(2);
+  static const Change = WatchKind(2);
 
   /// Interested in delete events
-  static const Delete = const WatchKind(4);
+  static const Delete = WatchKind(4);
 
   Object toJson() => _value;
 
@@ -16439,12 +16417,12 @@ class WatchKind {
   @override
   get hashCode => _value.hashCode;
 
-  bool operator ==(o) => o is WatchKind && o._value == _value;
+  bool operator ==(Object o) => o is WatchKind && o._value == _value;
 }
 
 /// The parameters send in a will save text document notification.
 class WillSaveTextDocumentParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       WillSaveTextDocumentParams.canParse, WillSaveTextDocumentParams.fromJson);
 
   WillSaveTextDocumentParams(this.textDocument, this.reason) {
@@ -16460,7 +16438,7 @@ class WillSaveTextDocumentParams implements ToJsonable {
         ? TextDocumentIdentifier.fromJson(json['textDocument'])
         : null;
     final reason = json['reason'];
-    return new WillSaveTextDocumentParams(textDocument, reason);
+    return WillSaveTextDocumentParams(textDocument, reason);
   }
 
   /// The 'TextDocumentSaveReason'.
@@ -16521,7 +16499,7 @@ class WillSaveTextDocumentParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is WillSaveTextDocumentParams) {
       return textDocument == other.textDocument &&
           reason == other.reason &&
@@ -16544,7 +16522,7 @@ class WillSaveTextDocumentParams implements ToJsonable {
 
 /// Workspace specific client capabilities.
 class WorkspaceClientCapabilities implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       WorkspaceClientCapabilities.canParse,
       WorkspaceClientCapabilities.fromJson);
 
@@ -16580,7 +16558,7 @@ class WorkspaceClientCapabilities implements ToJsonable {
         : null;
     final workspaceFolders = json['workspaceFolders'];
     final configuration = json['configuration'];
-    return new WorkspaceClientCapabilities(
+    return WorkspaceClientCapabilities(
         applyEdit,
         workspaceEdit,
         didChangeConfiguration,
@@ -16750,7 +16728,7 @@ class WorkspaceClientCapabilities implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is WorkspaceClientCapabilities) {
       return applyEdit == other.applyEdit &&
           workspaceEdit == other.workspaceEdit &&
@@ -16784,7 +16762,7 @@ class WorkspaceClientCapabilities implements ToJsonable {
 }
 
 class WorkspaceClientCapabilitiesDidChangeConfiguration implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       WorkspaceClientCapabilitiesDidChangeConfiguration.canParse,
       WorkspaceClientCapabilitiesDidChangeConfiguration.fromJson);
 
@@ -16792,7 +16770,7 @@ class WorkspaceClientCapabilitiesDidChangeConfiguration implements ToJsonable {
   static WorkspaceClientCapabilitiesDidChangeConfiguration fromJson(
       Map<String, dynamic> json) {
     final dynamicRegistration = json['dynamicRegistration'];
-    return new WorkspaceClientCapabilitiesDidChangeConfiguration(
+    return WorkspaceClientCapabilitiesDidChangeConfiguration(
         dynamicRegistration);
   }
 
@@ -16828,7 +16806,7 @@ class WorkspaceClientCapabilitiesDidChangeConfiguration implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is WorkspaceClientCapabilitiesDidChangeConfiguration) {
       return dynamicRegistration == other.dynamicRegistration && true;
     }
@@ -16847,7 +16825,7 @@ class WorkspaceClientCapabilitiesDidChangeConfiguration implements ToJsonable {
 }
 
 class WorkspaceClientCapabilitiesDidChangeWatchedFiles implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       WorkspaceClientCapabilitiesDidChangeWatchedFiles.canParse,
       WorkspaceClientCapabilitiesDidChangeWatchedFiles.fromJson);
 
@@ -16855,7 +16833,7 @@ class WorkspaceClientCapabilitiesDidChangeWatchedFiles implements ToJsonable {
   static WorkspaceClientCapabilitiesDidChangeWatchedFiles fromJson(
       Map<String, dynamic> json) {
     final dynamicRegistration = json['dynamicRegistration'];
-    return new WorkspaceClientCapabilitiesDidChangeWatchedFiles(
+    return WorkspaceClientCapabilitiesDidChangeWatchedFiles(
         dynamicRegistration);
   }
 
@@ -16893,7 +16871,7 @@ class WorkspaceClientCapabilitiesDidChangeWatchedFiles implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is WorkspaceClientCapabilitiesDidChangeWatchedFiles) {
       return dynamicRegistration == other.dynamicRegistration && true;
     }
@@ -16912,7 +16890,7 @@ class WorkspaceClientCapabilitiesDidChangeWatchedFiles implements ToJsonable {
 }
 
 class WorkspaceClientCapabilitiesExecuteCommand implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       WorkspaceClientCapabilitiesExecuteCommand.canParse,
       WorkspaceClientCapabilitiesExecuteCommand.fromJson);
 
@@ -16920,7 +16898,7 @@ class WorkspaceClientCapabilitiesExecuteCommand implements ToJsonable {
   static WorkspaceClientCapabilitiesExecuteCommand fromJson(
       Map<String, dynamic> json) {
     final dynamicRegistration = json['dynamicRegistration'];
-    return new WorkspaceClientCapabilitiesExecuteCommand(dynamicRegistration);
+    return WorkspaceClientCapabilitiesExecuteCommand(dynamicRegistration);
   }
 
   /// Execute command supports dynamic registration.
@@ -16955,7 +16933,7 @@ class WorkspaceClientCapabilitiesExecuteCommand implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is WorkspaceClientCapabilitiesExecuteCommand) {
       return dynamicRegistration == other.dynamicRegistration && true;
     }
@@ -16974,7 +16952,7 @@ class WorkspaceClientCapabilitiesExecuteCommand implements ToJsonable {
 }
 
 class WorkspaceClientCapabilitiesSymbol implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       WorkspaceClientCapabilitiesSymbol.canParse,
       WorkspaceClientCapabilitiesSymbol.fromJson);
 
@@ -16984,8 +16962,7 @@ class WorkspaceClientCapabilitiesSymbol implements ToJsonable {
     final symbolKind = json['symbolKind'] != null
         ? WorkspaceClientCapabilitiesSymbolKind.fromJson(json['symbolKind'])
         : null;
-    return new WorkspaceClientCapabilitiesSymbol(
-        dynamicRegistration, symbolKind);
+    return WorkspaceClientCapabilitiesSymbol(dynamicRegistration, symbolKind);
   }
 
   /// Symbol request supports dynamic registration.
@@ -17038,7 +17015,7 @@ class WorkspaceClientCapabilitiesSymbol implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is WorkspaceClientCapabilitiesSymbol) {
       return dynamicRegistration == other.dynamicRegistration &&
           symbolKind == other.symbolKind &&
@@ -17060,7 +17037,7 @@ class WorkspaceClientCapabilitiesSymbol implements ToJsonable {
 }
 
 class WorkspaceClientCapabilitiesSymbolKind implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       WorkspaceClientCapabilitiesSymbolKind.canParse,
       WorkspaceClientCapabilitiesSymbolKind.fromJson);
 
@@ -17071,7 +17048,7 @@ class WorkspaceClientCapabilitiesSymbolKind implements ToJsonable {
         ?.map((item) => item != null ? SymbolKind.fromJson(item) : null)
         ?.cast<SymbolKind>()
         ?.toList();
-    return new WorkspaceClientCapabilitiesSymbolKind(valueSet);
+    return WorkspaceClientCapabilitiesSymbolKind(valueSet);
   }
 
   /// The symbol kind values the client supports. When this property exists the
@@ -17113,7 +17090,7 @@ class WorkspaceClientCapabilitiesSymbolKind implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is WorkspaceClientCapabilitiesSymbolKind) {
       return listEqual(valueSet, other.valueSet,
               (SymbolKind a, SymbolKind b) => a == b) &&
@@ -17134,7 +17111,7 @@ class WorkspaceClientCapabilitiesSymbolKind implements ToJsonable {
 }
 
 class WorkspaceClientCapabilitiesWorkspaceEdit implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       WorkspaceClientCapabilitiesWorkspaceEdit.canParse,
       WorkspaceClientCapabilitiesWorkspaceEdit.fromJson);
 
@@ -17151,7 +17128,7 @@ class WorkspaceClientCapabilitiesWorkspaceEdit implements ToJsonable {
     final failureHandling = json['failureHandling'] != null
         ? FailureHandlingKind.fromJson(json['failureHandling'])
         : null;
-    return new WorkspaceClientCapabilitiesWorkspaceEdit(
+    return WorkspaceClientCapabilitiesWorkspaceEdit(
         documentChanges, resourceOperations, failureHandling);
   }
 
@@ -17223,7 +17200,7 @@ class WorkspaceClientCapabilitiesWorkspaceEdit implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is WorkspaceClientCapabilitiesWorkspaceEdit) {
       return documentChanges == other.documentChanges &&
           listEqual(resourceOperations, other.resourceOperations,
@@ -17249,12 +17226,12 @@ class WorkspaceClientCapabilitiesWorkspaceEdit implements ToJsonable {
 
 class WorkspaceEdit implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(WorkspaceEdit.canParse, WorkspaceEdit.fromJson);
+      LspJsonHandler(WorkspaceEdit.canParse, WorkspaceEdit.fromJson);
 
   WorkspaceEdit(this.changes, this.documentChanges);
   static WorkspaceEdit fromJson(Map<String, dynamic> json) {
     final changes = json['changes']
-        ?.map((key, value) => new MapEntry(
+        ?.map((key, value) => MapEntry(
             key,
             value
                 ?.map((item) => item != null ? TextEdit.fromJson(item) : null)
@@ -17262,24 +17239,24 @@ class WorkspaceEdit implements ToJsonable {
                 ?.toList()))
         ?.cast<String, List<TextEdit>>();
     final documentChanges = (json['documentChanges'] is List && (json['documentChanges'].every((item) => TextDocumentEdit.canParse(item, nullLspJsonReporter))))
-        ? new Either2<List<TextDocumentEdit>, List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>>.t1(
+        ? Either2<List<TextDocumentEdit>, List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>>.t1(
             json['documentChanges']
                 ?.map((item) =>
                     item != null ? TextDocumentEdit.fromJson(item) : null)
                 ?.cast<TextDocumentEdit>()
                 ?.toList())
         : ((json['documentChanges'] is List && (json['documentChanges'].every((item) => (TextDocumentEdit.canParse(item, nullLspJsonReporter) || CreateFile.canParse(item, nullLspJsonReporter) || RenameFile.canParse(item, nullLspJsonReporter) || DeleteFile.canParse(item, nullLspJsonReporter)))))
-            ? new Either2<List<TextDocumentEdit>, List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>>.t2(json['documentChanges']
+            ? Either2<List<TextDocumentEdit>, List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>>.t2(json['documentChanges']
                 ?.map((item) => TextDocumentEdit.canParse(item, nullLspJsonReporter)
-                    ? new Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>.t1(
+                    ? Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>.t1(
                         item != null ? TextDocumentEdit.fromJson(item) : null)
                     : (CreateFile.canParse(item, nullLspJsonReporter)
-                        ? new Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>.t2(item != null ? CreateFile.fromJson(item) : null)
-                        : (RenameFile.canParse(item, nullLspJsonReporter) ? new Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>.t3(item != null ? RenameFile.fromJson(item) : null) : (DeleteFile.canParse(item, nullLspJsonReporter) ? new Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>.t4(item != null ? DeleteFile.fromJson(item) : null) : (item == null ? null : (throw '''${item} was not one of (TextDocumentEdit, CreateFile, RenameFile, DeleteFile)'''))))))
+                        ? Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>.t2(item != null ? CreateFile.fromJson(item) : null)
+                        : (RenameFile.canParse(item, nullLspJsonReporter) ? Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>.t3(item != null ? RenameFile.fromJson(item) : null) : (DeleteFile.canParse(item, nullLspJsonReporter) ? Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>.t4(item != null ? DeleteFile.fromJson(item) : null) : (item == null ? null : (throw '''${item} was not one of (TextDocumentEdit, CreateFile, RenameFile, DeleteFile)'''))))))
                 ?.cast<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>()
                 ?.toList())
             : (json['documentChanges'] == null ? null : (throw '''${json['documentChanges']} was not one of (List<TextDocumentEdit>, List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>)''')));
-    return new WorkspaceEdit(changes, documentChanges);
+    return WorkspaceEdit(changes, documentChanges);
   }
 
   /// Holds changes to existing resources.
@@ -17357,7 +17334,7 @@ class WorkspaceEdit implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is WorkspaceEdit) {
       return mapEqual(changes, other.changes,
               (List<TextEdit> a, List<TextEdit> b) => a == b) &&
@@ -17381,7 +17358,7 @@ class WorkspaceEdit implements ToJsonable {
 
 class WorkspaceFolder implements ToJsonable {
   static const jsonHandler =
-      const LspJsonHandler(WorkspaceFolder.canParse, WorkspaceFolder.fromJson);
+      LspJsonHandler(WorkspaceFolder.canParse, WorkspaceFolder.fromJson);
 
   WorkspaceFolder(this.uri, this.name) {
     if (uri == null) {
@@ -17394,7 +17371,7 @@ class WorkspaceFolder implements ToJsonable {
   static WorkspaceFolder fromJson(Map<String, dynamic> json) {
     final uri = json['uri'];
     final name = json['name'];
-    return new WorkspaceFolder(uri, name);
+    return WorkspaceFolder(uri, name);
   }
 
   /// The name of the workspace folder. Used to refer to this workspace folder
@@ -17455,7 +17432,7 @@ class WorkspaceFolder implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is WorkspaceFolder) {
       return uri == other.uri && name == other.name && true;
     }
@@ -17476,7 +17453,7 @@ class WorkspaceFolder implements ToJsonable {
 
 /// The workspace folder change event.
 class WorkspaceFoldersChangeEvent implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       WorkspaceFoldersChangeEvent.canParse,
       WorkspaceFoldersChangeEvent.fromJson);
 
@@ -17497,7 +17474,7 @@ class WorkspaceFoldersChangeEvent implements ToJsonable {
         ?.map((item) => item != null ? WorkspaceFolder.fromJson(item) : null)
         ?.cast<WorkspaceFolder>()
         ?.toList();
-    return new WorkspaceFoldersChangeEvent(added, removed);
+    return WorkspaceFoldersChangeEvent(added, removed);
   }
 
   /// The array of added workspace folders
@@ -17562,7 +17539,7 @@ class WorkspaceFoldersChangeEvent implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is WorkspaceFoldersChangeEvent) {
       return listEqual(added, other.added,
               (WorkspaceFolder a, WorkspaceFolder b) => a == b) &&
@@ -17587,7 +17564,7 @@ class WorkspaceFoldersChangeEvent implements ToJsonable {
 
 /// The parameters of a Workspace Symbol Request.
 class WorkspaceSymbolParams implements ToJsonable {
-  static const jsonHandler = const LspJsonHandler(
+  static const jsonHandler = LspJsonHandler(
       WorkspaceSymbolParams.canParse, WorkspaceSymbolParams.fromJson);
 
   WorkspaceSymbolParams(this.query) {
@@ -17597,7 +17574,7 @@ class WorkspaceSymbolParams implements ToJsonable {
   }
   static WorkspaceSymbolParams fromJson(Map<String, dynamic> json) {
     final query = json['query'];
-    return new WorkspaceSymbolParams(query);
+    return WorkspaceSymbolParams(query);
   }
 
   /// A non-empty query string
@@ -17636,7 +17613,7 @@ class WorkspaceSymbolParams implements ToJsonable {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is WorkspaceSymbolParams) {
       return query == other.query && true;
     }

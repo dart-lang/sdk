@@ -15,24 +15,22 @@ main() {
 @reflectiveTest
 class ClassAliasDriverResolutionTest extends DriverResolutionTest {
   test_defaultConstructor() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 class A {}
 class M {}
 class X = A with M;
 ''');
-    assertNoTestErrors();
     assertConstructors(findElement.class_('X'), ['X X()']);
   }
 
   test_element() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 class A {}
 class B {}
 class C {}
 
 class X = A with B implements C;
 ''');
-    assertNoTestErrors();
 
     var x = findElement.class_('X');
 
@@ -40,14 +38,14 @@ class X = A with B implements C;
     assertTypeName(findNode.typeName('B impl'), findElement.class_('B'), 'B');
     assertTypeName(findNode.typeName('C;'), findElement.class_('C'), 'C');
 
-    assertElementTypeString(x.supertype, 'A');
+    assertType(x.supertype, 'A');
     assertElementTypeStrings(x.mixins, ['B']);
     assertElementTypeStrings(x.interfaces, ['C']);
   }
 
   @failingTest
   test_implicitConstructors_const() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 class A {
   const A();
 }
@@ -58,12 +56,11 @@ class C = A with M;
 
 const x = const C();
 ''');
-    assertNoTestErrors();
     // TODO(scheglov) add also negative test with fields
   }
 
   test_implicitConstructors_dependencies() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 class A {
   A(int i);
 }
@@ -73,14 +70,13 @@ class M2 {}
 class C2 = C1 with M2;
 class C1 = A with M1;
 ''');
-    assertNoTestErrors();
 
     assertConstructors(findElement.class_('C1'), ['C1 C1(int i)']);
     assertConstructors(findElement.class_('C2'), ['C2 C2(int i)']);
   }
 
   test_implicitConstructors_optionalParameters() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 class A {
   A.c1(int a);
   A.c2(int a, [int b, int c]);
@@ -91,7 +87,6 @@ class M {}
 
 class C = A with M;
 ''');
-    assertNoTestErrors();
 
     assertConstructors(
       findElement.class_('C'),
@@ -104,7 +99,7 @@ class C = A with M;
   }
 
   test_implicitConstructors_requiredParameters() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 class A<T extends num> {
   A(T x, T y);
 }
@@ -113,7 +108,6 @@ class M {}
 
 class B<E extends num> = A<E> with M;
 ''');
-    assertNoTestErrors();
 
     assertConstructors(findElement.class_('B'), ['B<E> B(E x, E y)']);
   }

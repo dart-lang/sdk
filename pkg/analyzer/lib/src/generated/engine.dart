@@ -6,6 +6,7 @@ import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart';
 import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -13,7 +14,7 @@ import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
-import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/resolver.dart' show TypeSystem;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/services/lint.dart';
@@ -27,7 +28,7 @@ export 'package:analyzer/src/generated/timestamped_data.dart'
 
 /// Used by [AnalysisOptions] to allow function bodies to be analyzed in some
 /// sources but not others.
-typedef bool AnalyzeFunctionBodiesPredicate(Source source);
+typedef AnalyzeFunctionBodiesPredicate = bool Function(Source source);
 
 /// A context in which a single analysis can be performed and incrementally
 /// maintained. The context includes such information as the version of the SDK
@@ -208,6 +209,7 @@ class AnalysisErrorInfoImpl implements AnalysisErrorInfo {
 
   /// The line information associated with the errors, or `null` if there are no
   /// errors.
+  @override
   final LineInfo lineInfo;
 
   /// Initialize an newly created error info with the given [errors] and
@@ -467,16 +469,11 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   /// `true`.
   List<Linter> _lintRules;
 
+  @override
   Map<String, List<String>> patchPaths = {};
 
   @override
   bool preserveComments = true;
-
-  /// A flag indicating whether strong-mode inference hints should be
-  /// used.  This flag is not exposed in the interface, and should be
-  /// replaced by something more general.
-  // TODO(leafp): replace this with something more general
-  bool strongModeHints = false;
 
   @override
   bool trackCacheDependencies = true;
@@ -541,7 +538,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     preserveComments = options.preserveComments;
     useFastaParser = options.useFastaParser;
     if (options is AnalysisOptionsImpl) {
-      strongModeHints = options.strongModeHints;
       implicitCasts = options.implicitCasts;
       implicitDynamic = options.implicitDynamic;
       strictInference = options.strictInference;
@@ -613,6 +609,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   set enableAsync(bool enable) {}
 
   /// A flag indicating whether interface libraries are to be supported (DEP 40).
+  @override
   bool get enableConditionalDirectives => true;
 
   @deprecated
@@ -718,7 +715,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       buffer.addBool(implicitDynamic);
       buffer.addBool(strictInference);
       buffer.addBool(strictRawTypes);
-      buffer.addBool(strongModeHints);
       buffer.addBool(useFastaParser);
 
       // Append enabled experiments.
@@ -810,7 +806,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     _lintRules = null;
     patchPaths = {};
     preserveComments = true;
-    strongModeHints = false;
     trackCacheDependencies = true;
     useFastaParser = true;
   }
@@ -819,9 +814,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @override
   void setCrossContextOptionsFrom(AnalysisOptions options) {
     enableLazyAssignmentOperators = options.enableLazyAssignmentOperators;
-    if (options is AnalysisOptionsImpl) {
-      strongModeHints = options.strongModeHints;
-    }
   }
 
   /// Return whether the given lists of lints are equal.

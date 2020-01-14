@@ -23,7 +23,7 @@ ExitHandler exitHandler = exit;
 T cast<T>(dynamic value) => value as T;
 
 /// Print the given [message] to stderr and exit with the given [exitCode].
-void printAndFail(String message, {int exitCode: 15}) {
+void printAndFail(String message, {int exitCode = 15}) {
   errorSink.writeln(message);
   exitHandler(exitCode);
 }
@@ -31,7 +31,7 @@ void printAndFail(String message, {int exitCode: 15}) {
 /// Exit handler.
 ///
 /// *Visible for testing.*
-typedef void ExitHandler(int code);
+typedef ExitHandler = void Function(int code);
 
 /// Analyzer commandline configuration options.
 class CommandLineOptions {
@@ -235,7 +235,7 @@ class CommandLineOptions {
         return null; // Only reachable in testing.
       }
       // Check that SDK is existing directory.
-      if (!(new Directory(sdkPath)).existsSync()) {
+      if (!(Directory(sdkPath)).existsSync()) {
         printAndFail('Invalid Dart SDK path: $sdkPath');
         return null; // Only reachable in testing.
       }
@@ -265,7 +265,7 @@ class CommandLineOptions {
       // This is relative to bin/snapshot, so ../..
       String versionPath =
           Platform.script.resolve('../../version').toFilePath();
-      File versionFile = new File(versionPath);
+      File versionFile = File(versionPath);
       return versionFile.readAsStringSync().trim();
     } catch (_) {
       // This happens when the script is not running in the context of an SDK.
@@ -279,7 +279,7 @@ class CommandLineOptions {
     bool verbose = args.contains('-v') || args.contains('--verbose');
     bool hide = !verbose;
 
-    ArgParser parser = new ArgParser(allowTrailingOptions: true);
+    ArgParser parser = ArgParser(allowTrailingOptions: true);
 
     if (!hide) {
       parser.addSeparator('General options:');
@@ -493,7 +493,7 @@ class CommandLineOptions {
               'option. Got: $args');
           return null; // Only reachable in testing.
         }
-        return new CommandLineOptions._fromArgs(results);
+        return CommandLineOptions._fromArgs(results);
       }
 
       // Help requests.
@@ -554,7 +554,7 @@ class CommandLineOptions {
         }
       }
 
-      return new CommandLineOptions._fromArgs(results);
+      return CommandLineOptions._fromArgs(results);
     } on FormatException catch (e) {
       errorSink.writeln(e.message);
       _showUsage(parser);
@@ -563,7 +563,7 @@ class CommandLineOptions {
     }
   }
 
-  static _showUsage(ArgParser parser, {bool fromHelp: false}) {
+  static _showUsage(ArgParser parser, {bool fromHelp = false}) {
     errorSink.writeln(
         'Usage: $_binaryName [options...] <directory or list of files>');
 

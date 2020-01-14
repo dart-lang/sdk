@@ -13,9 +13,9 @@ import 'package:analyzer/dart/element/type.dart';
  */
 OverriddenElements findOverriddenElements(Element element) {
   if (element?.enclosingElement is ClassElement) {
-    return new _OverriddenElementsFinder(element).find();
+    return _OverriddenElementsFinder(element).find();
   }
-  return new OverriddenElements(element, <Element>[], <Element>[]);
+  return OverriddenElements(element, <Element>[], <Element>[]);
 }
 
 /**
@@ -61,7 +61,7 @@ class DartUnitOverridesComputer {
   void _addOverride(SimpleIdentifier node) {
     Element element = node.staticElement;
     OverriddenElements overridesResult =
-        new _OverriddenElementsFinder(element).find();
+        _OverriddenElementsFinder(element).find();
     List<Element> superElements = overridesResult.superElements;
     List<Element> interfaceElements = overridesResult.interfaceElements;
     if (superElements.isNotEmpty || interfaceElements.isNotEmpty) {
@@ -71,7 +71,7 @@ class DartUnitOverridesComputer {
       List<proto.OverriddenMember> interfaceMembers = interfaceElements
           .map((member) => proto.newOverriddenMember_fromEngine(member))
           .toList();
-      _overrides.add(new proto.Override(node.offset, node.length,
+      _overrides.add(proto.Override(node.offset, node.length,
           superclassMember: superMember,
           interfaceMembers: nullIfEmpty(interfaceMembers)));
     }
@@ -103,22 +103,22 @@ class OverriddenElements {
 }
 
 class _OverriddenElementsFinder {
-  static const List<ElementKind> FIELD_KINDS = const <ElementKind>[
+  static const List<ElementKind> FIELD_KINDS = <ElementKind>[
     ElementKind.FIELD,
     ElementKind.GETTER,
     ElementKind.SETTER
   ];
 
-  static const List<ElementKind> GETTER_KINDS = const <ElementKind>[
+  static const List<ElementKind> GETTER_KINDS = <ElementKind>[
     ElementKind.FIELD,
     ElementKind.GETTER
   ];
 
-  static const List<ElementKind> METHOD_KINDS = const <ElementKind>[
+  static const List<ElementKind> METHOD_KINDS = <ElementKind>[
     ElementKind.METHOD
   ];
 
-  static const List<ElementKind> SETTER_KINDS = const <ElementKind>[
+  static const List<ElementKind> SETTER_KINDS = <ElementKind>[
     ElementKind.FIELD,
     ElementKind.SETTER
   ];
@@ -129,9 +129,9 @@ class _OverriddenElementsFinder {
   String _name;
   List<ElementKind> _kinds;
 
-  List<Element> _superElements = <Element>[];
-  List<Element> _interfaceElements = <Element>[];
-  Set<ClassElement> _visited = Set<ClassElement>();
+  final List<Element> _superElements = <Element>[];
+  final List<Element> _interfaceElements = <Element>[];
+  final Set<ClassElement> _visited = <ClassElement>{};
 
   _OverriddenElementsFinder(Element seed) {
     _seed = seed;
@@ -156,7 +156,7 @@ class _OverriddenElementsFinder {
     _visited.clear();
     _addInterfaceOverrides(_class, false);
     _superElements.forEach(_interfaceElements.remove);
-    return new OverriddenElements(_seed, _superElements, _interfaceElements);
+    return OverriddenElements(_seed, _superElements, _interfaceElements);
   }
 
   void _addInterfaceOverrides(ClassElement class_, bool checkType) {

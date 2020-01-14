@@ -14,9 +14,9 @@ bool foo() {
 }
 
 bar() {
-  return "bar";
+  return 'bar';
 }
 
 baz() {
-  return "baz";
+  return 'baz';
 }

@@ -23,6 +23,7 @@ import '../../universe/codegen_world_builder.dart' show CodegenWorld;
 import '../../world.dart' show JClosedWorld;
 import '../js_emitter.dart' show Emitter, ModularEmitter;
 import '../model.dart';
+import '../native_emitter.dart';
 import '../program_builder/program_builder.dart' show ProgramBuilder;
 import 'model_emitter.dart';
 
@@ -152,6 +153,7 @@ class EmitterImpl extends ModularEmitterBase implements Emitter {
   final RecipeEncoder _rtiRecipeEncoder;
   final CompilerTask _task;
   ModelEmitter _emitter;
+  final NativeEmitter _nativeEmitter;
 
   @override
   Program programForTesting;
@@ -165,6 +167,7 @@ class EmitterImpl extends ModularEmitterBase implements Emitter {
       this._closedWorld,
       this._rtiEncoder,
       this._rtiRecipeEncoder,
+      this._nativeEmitter,
       SourceInformationStrategy sourceInformationStrategy,
       this._task,
       bool shouldGenerateSourceMap)
@@ -178,6 +181,7 @@ class EmitterImpl extends ModularEmitterBase implements Emitter {
         _closedWorld,
         _task,
         this,
+        _nativeEmitter,
         sourceInformationStrategy,
         _rtiEncoder,
         _rtiRecipeEncoder,

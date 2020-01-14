@@ -466,20 +466,20 @@ class TimelineEvent {
 
 #ifdef SUPPORT_TIMELINE
 #define TIMELINE_DURATION(thread, stream, name)                                \
-  TimelineDurationScope tds(thread, Timeline::Get##stream##Stream(), name);
+  TimelineBeginEndScope tbes(thread, Timeline::Get##stream##Stream(), name);
 #define TIMELINE_FUNCTION_COMPILATION_DURATION(thread, name, function)         \
-  TimelineDurationScope tds(thread, Timeline::GetCompilerStream(), name);      \
-  if (tds.enabled()) {                                                         \
-    tds.SetNumArguments(1);                                                    \
-    tds.CopyArgument(0, "function", function.ToQualifiedCString());            \
+  TimelineBeginEndScope tbes(thread, Timeline::GetCompilerStream(), name);     \
+  if (tbes.enabled()) {                                                        \
+    tbes.SetNumArguments(1);                                                   \
+    tbes.CopyArgument(0, "function", function.ToQualifiedCString());           \
   }
 
 #define TIMELINE_FUNCTION_GC_DURATION(thread, name)                            \
-  TimelineDurationScope tds(thread, Timeline::GetGCStream(), name);
+  TimelineBeginEndScope tbes(thread, Timeline::GetGCStream(), name);
 #define TIMELINE_FUNCTION_GC_DURATION_BASIC(thread, name)                      \
   TIMELINE_FUNCTION_GC_DURATION(thread, name)                                  \
-  tds.SetNumArguments(1);                                                      \
-  tds.CopyArgument(0, "mode", "basic");
+  tbes.SetNumArguments(1);                                                     \
+  tbes.CopyArgument(0, "mode", "basic");
 #else
 #define TIMELINE_DURATION(thread, stream, name)
 #define TIMELINE_FUNCTION_COMPILATION_DURATION(thread, name, function)
@@ -487,7 +487,7 @@ class TimelineEvent {
 #define TIMELINE_FUNCTION_GC_DURATION_BASIC(thread, name)
 #endif  // !PRODUCT
 
-// See |TimelineDurationScope| and |TimelineBeginEndScope|.
+// See |TimelineBeginEndScope|.
 class TimelineEventScope : public StackResource {
  public:
   bool enabled() const { return enabled_; }
@@ -532,23 +532,6 @@ class TimelineEventScope : public StackResource {
   bool enabled_;
 
   DISALLOW_COPY_AND_ASSIGN(TimelineEventScope);
-};
-
-class TimelineDurationScope : public TimelineEventScope {
- public:
-  TimelineDurationScope(TimelineStream* stream, const char* label);
-
-  TimelineDurationScope(Thread* thread,
-                        TimelineStream* stream,
-                        const char* label);
-
-  virtual ~TimelineDurationScope();
-
- private:
-  int64_t timestamp_;
-  int64_t thread_timestamp_;
-
-  DISALLOW_COPY_AND_ASSIGN(TimelineDurationScope);
 };
 
 class TimelineBeginEndScope : public TimelineEventScope {
@@ -719,6 +702,8 @@ class TimelineEventRecorder {
 
   void FinishBlock(TimelineEventBlock* block);
 
+  virtual intptr_t Size() = 0;
+
  protected:
 #ifndef PRODUCT
   void WriteTo(const char* directory);
@@ -770,6 +755,8 @@ class TimelineEventFixedBufferRecorder : public TimelineEventRecorder {
   void PrintJSON(JSONStream* js, TimelineEventFilter* filter);
   void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter);
 #endif
+
+  intptr_t Size();
 
  protected:
   TimelineEvent* StartEvent();
@@ -857,6 +844,7 @@ class TimelineEventEndlessRecorder : public TimelineEventRecorder {
 #endif
 
   const char* name() const { return ENDLESS_RECORDER_NAME; }
+  intptr_t Size() { return block_index_ * sizeof(TimelineEventBlock); }
 
  protected:
   TimelineEvent* StartEvent();
@@ -929,6 +917,7 @@ class TimelineEventFuchsiaRecorder : public TimelineEventPlatformRecorder {
   virtual ~TimelineEventFuchsiaRecorder() {}
 
   const char* name() const { return FUCHSIA_RECORDER_NAME; }
+  intptr_t Size() { return 0; }
 
  private:
   void OnEvent(TimelineEvent* event);
@@ -949,6 +938,7 @@ class TimelineEventSystraceRecorder : public TimelineEventPlatformRecorder {
                                 intptr_t buffer_size);
 
   const char* name() const { return SYSTRACE_RECORDER_NAME; }
+  intptr_t Size() { return 0; }
 
  private:
   void OnEvent(TimelineEvent* event);
@@ -961,25 +951,14 @@ class DartTimelineEventHelpers : public AllStatic {
  public:
   static void ReportTaskEvent(Thread* thread,
                               TimelineEvent* event,
-                              int64_t start,
                               int64_t id,
                               const char* phase,
                               const char* category,
                               char* name,
                               char* args);
 
-  static void ReportCompleteEvent(Thread* thread,
-                                  TimelineEvent* event,
-                                  int64_t start,
-                                  int64_t start_cpu,
-                                  const char* category,
-                                  char* name,
-                                  char* args);
-
   static void ReportFlowEvent(Thread* thread,
                               TimelineEvent* event,
-                              int64_t start,
-                              int64_t start_cpu,
                               const char* category,
                               char* name,
                               int64_t type,
@@ -988,7 +967,6 @@ class DartTimelineEventHelpers : public AllStatic {
 
   static void ReportInstantEvent(Thread* thread,
                                  TimelineEvent* event,
-                                 int64_t start,
                                  const char* category,
                                  char* name,
                                  char* args);

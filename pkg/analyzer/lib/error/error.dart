@@ -14,14 +14,13 @@ import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
-import 'package:analyzer/src/generated/resolver.dart' show ResolverErrorCode;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/manifest/manifest_warning_code.dart';
 
 export 'package:_fe_analyzer_shared/src/base/errors.dart'
     show ErrorCode, ErrorSeverity, ErrorType;
 
-const List<ErrorCode> errorCodeValues = const [
+const List<ErrorCode> errorCodeValues = [
   //
   // Manually generated. You can mostly reproduce this list by running the
   // following command from the root of the analyzer package:
@@ -78,6 +77,7 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT,
   CompileTimeErrorCode.AWAIT_IN_LATE_LOCAL_VARIABLE_INITIALIZER,
   CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT,
+  CompileTimeErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER,
   CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_EXTENSION_NAME,
   CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_PREFIX_NAME,
   CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE,
@@ -117,16 +117,15 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS,
   CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET,
   CompileTimeErrorCode.CONST_SPREAD_EXPECTED_MAP,
-  CompileTimeErrorCode.CONST_WITH_INVALID_TYPE_PARAMETERS,
   CompileTimeErrorCode.CONST_WITH_NON_CONST,
   CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT,
   CompileTimeErrorCode.CONST_WITH_NON_TYPE,
   CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS,
   CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR,
   CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT,
+  CompileTimeErrorCode.CONTINUE_LABEL_ON_SWITCH,
   CompileTimeErrorCode.DEFAULT_LIST_CONSTRUCTOR_MISMATCH,
   CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPED_PARAMETER,
-  CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS,
   CompileTimeErrorCode.DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR,
   CompileTimeErrorCode.DEFAULT_VALUE_ON_REQUIRED_PARAMETER,
   CompileTimeErrorCode.DEFERRED_IMPORT_OF_EXTENSION,
@@ -138,6 +137,7 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP,
   CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET,
   CompileTimeErrorCode.EXPORT_INTERNAL_LIBRARY,
+  CompileTimeErrorCode.EXPORT_LEGACY_SYMBOL,
   CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY,
   CompileTimeErrorCode.EXPRESSION_IN_MAP,
   CompileTimeErrorCode.EXTENDS_DEFERRED_CLASS,
@@ -192,7 +192,6 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR,
   CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER,
   CompileTimeErrorCode.INVALID_INLINE_FUNCTION_TYPE,
-  CompileTimeErrorCode.INVALID_OPTIONAL_PARAMETER_TYPE,
   CompileTimeErrorCode.INVALID_OVERRIDE,
   CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS,
   CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST,
@@ -274,6 +273,7 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.ON_REPEATED,
   CompileTimeErrorCode.OPTIONAL_PARAMETER_IN_OPERATOR,
   CompileTimeErrorCode.PART_OF_NON_PART,
+  CompileTimeErrorCode.PART_OF_UNNAMED_LIBRARY,
   CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER,
   CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
   CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION,
@@ -651,9 +651,6 @@ const List<ErrorCode> errorCodeValues = const [
   ParserErrorCode.WITH_BEFORE_EXTENDS,
   ParserErrorCode.WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER,
   ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP,
-  ResolverErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER,
-  ResolverErrorCode.CONTINUE_LABEL_ON_SWITCH,
-  ResolverErrorCode.PART_OF_UNNAMED_LIBRARY,
   ScannerErrorCode.EXPECTED_TOKEN,
   ScannerErrorCode.ILLEGAL_CHARACTER,
   ScannerErrorCode.MISSING_DIGIT,
@@ -718,6 +715,7 @@ const List<ErrorCode> errorCodeValues = const [
   StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
   // ignore: deprecated_member_use_from_same_package
   StaticWarningCode.CONST_WITH_ABSTRACT_CLASS,
+  StaticWarningCode.DEAD_NULL_COALESCE,
   StaticWarningCode.EXPORT_DUPLICATED_LIBRARY_NAMED,
   // ignore: deprecated_member_use_from_same_package
   StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS,
@@ -737,6 +735,8 @@ const List<ErrorCode> errorCodeValues = const [
   StaticWarningCode.INSTANTIATE_ABSTRACT_CLASS,
   StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED,
   StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL,
+  StaticWarningCode.INVALID_USE_OF_NEVER_VALUE,
+  StaticWarningCode.INVALID_USE_OF_NULL_VALUE,
   StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE,
   StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
   StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE,
@@ -746,7 +746,6 @@ const List<ErrorCode> errorCodeValues = const [
   StaticWarningCode.MIXED_RETURN_TYPES,
   // ignore: deprecated_member_use_from_same_package
   StaticWarningCode.NEW_WITH_ABSTRACT_CLASS,
-  StaticWarningCode.NEW_WITH_INVALID_TYPE_PARAMETERS,
   StaticWarningCode.NEW_WITH_NON_TYPE,
   StaticWarningCode.NEW_WITH_UNDEFINED_CONSTRUCTOR,
   StaticWarningCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT,
@@ -789,29 +788,7 @@ const List<ErrorCode> errorCodeValues = const [
   StaticWarningCode.UNNECESSARY_NULL_AWARE_SPREAD,
   StaticWarningCode.USE_OF_VOID_RESULT,
   StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE,
-  StaticWarningCode.INVALID_USE_OF_NULL_VALUE,
-  StaticWarningCode.INVALID_USE_OF_NEVER_VALUE,
-  StrongModeCode.ASSIGNMENT_CAST,
   StrongModeCode.COULD_NOT_INFER,
-  StrongModeCode.DOWN_CAST_COMPOSITE,
-  StrongModeCode.DOWN_CAST_IMPLICIT,
-  StrongModeCode.DOWN_CAST_IMPLICIT_ASSIGN,
-  StrongModeCode.DYNAMIC_CAST,
-  StrongModeCode.DYNAMIC_INVOKE,
-  StrongModeCode.IMPLICIT_DYNAMIC_FIELD,
-  StrongModeCode.IMPLICIT_DYNAMIC_FUNCTION,
-  StrongModeCode.IMPLICIT_DYNAMIC_INVOKE,
-  StrongModeCode.IMPLICIT_DYNAMIC_LIST_LITERAL,
-  StrongModeCode.IMPLICIT_DYNAMIC_MAP_LITERAL,
-  StrongModeCode.IMPLICIT_DYNAMIC_METHOD,
-  StrongModeCode.IMPLICIT_DYNAMIC_PARAMETER,
-  StrongModeCode.IMPLICIT_DYNAMIC_RETURN,
-  StrongModeCode.IMPLICIT_DYNAMIC_TYPE,
-  StrongModeCode.IMPLICIT_DYNAMIC_VARIABLE,
-  StrongModeCode.INFERRED_TYPE,
-  StrongModeCode.INFERRED_TYPE_ALLOCATION,
-  StrongModeCode.INFERRED_TYPE_CLOSURE,
-  StrongModeCode.INFERRED_TYPE_LITERAL,
   StrongModeCode.INVALID_CAST_LITERAL,
   StrongModeCode.INVALID_CAST_LITERAL_LIST,
   StrongModeCode.INVALID_CAST_LITERAL_MAP,
@@ -822,7 +799,6 @@ const List<ErrorCode> errorCodeValues = const [
   StrongModeCode.INVALID_CAST_FUNCTION,
   StrongModeCode.INVALID_PARAMETER_DECLARATION,
   StrongModeCode.INVALID_SUPER_INVOCATION,
-  StrongModeCode.NON_GROUND_TYPE_CHECK_INFO,
   StrongModeCode.NOT_INSTANTIATED_BOUND,
   StrongModeCode.TOP_LEVEL_CYCLE,
   StrongModeCode.TOP_LEVEL_FUNCTION_LITERAL_BLOCK,
@@ -861,7 +837,7 @@ class AnalysisError implements Diagnostic {
   /**
    * An empty array of errors used when no errors are expected.
    */
-  static const List<AnalysisError> NO_ERRORS = const <AnalysisError>[];
+  static const List<AnalysisError> NO_ERRORS = <AnalysisError>[];
 
   /**
    * A [Comparator] that sorts by the name of the file that the [AnalysisError]
@@ -954,6 +930,7 @@ class AnalysisError implements Diagnostic {
     _contextMessages = contextMessages;
   }
 
+  @override
   List<DiagnosticMessage> get contextMessages => _contextMessages;
 
   /**

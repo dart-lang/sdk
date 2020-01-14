@@ -131,9 +131,16 @@ abstract class Enum<E extends Enum<E>> implements Comparable<E> {
 
   /// The position in the enum declaration.
   final int ordinal;
+
   const Enum(this.name, this.ordinal);
+
+  @override
   int get hashCode => ordinal;
+
+  @override
   int compareTo(E other) => ordinal - other.ordinal;
+
+  @override
   String toString() => name;
 }
 
@@ -141,10 +148,12 @@ abstract class Enum<E extends Enum<E>> implements Comparable<E> {
 class PrintStringWriter extends PrintWriter {
   final StringBuffer _sb = StringBuffer();
 
+  @override
   void print(x) {
     _sb.write(x);
   }
 
+  @override
   String toString() => _sb.toString();
 }
 

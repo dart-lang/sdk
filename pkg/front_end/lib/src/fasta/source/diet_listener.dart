@@ -43,6 +43,7 @@ import '../builder/metadata_builder.dart';
 import '../builder/modifier_builder.dart';
 import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
+import '../builder/type_declaration_builder.dart';
 
 import '../identifiers.dart' show QualifiedName;
 
@@ -121,12 +122,15 @@ class DietListener extends StackListenerImpl {
 
   DeclarationBuilder get currentDeclaration => _currentDeclaration;
 
-  void set currentDeclaration(DeclarationBuilder builder) {
+  void set currentDeclaration(TypeDeclarationBuilder builder) {
     if (builder == null) {
       _currentClass = _currentDeclaration = null;
     } else {
       _currentDeclaration = builder;
-      _currentClass = builder is ClassBuilder ? builder : null;
+      TypeDeclarationBuilder unaliasedBuilder =
+          builder is TypeAliasBuilder ? builder.unaliasDeclaration : builder;
+      _currentClass =
+          unaliasedBuilder is ClassBuilder ? unaliasedBuilder : null;
     }
   }
 

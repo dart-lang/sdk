@@ -228,7 +228,7 @@ intptr_t RawObject::HeapSizeFromClass() const {
       if (!class_table->IsValidIndex(class_id) ||
           (!class_table->HasValidClassAt(class_id) && !use_saved_class_table)) {
         FATAL3("Invalid cid: %" Pd ", obj: %p, tags: %x. Corrupt heap?",
-               class_id, this, ptr()->tags_.load());
+               class_id, this, static_cast<uint32_t>(ptr()->tags_));
       }
 #endif  // DEBUG
       instance_size = isolate->GetClassSizeForHeapWalkAt(class_id);
@@ -345,7 +345,7 @@ intptr_t RawObject::VisitPointersPredefined(ObjectPointerVisitor* visitor,
       break;
     default:
       FATAL3("Invalid cid: %" Pd ", obj: %p, tags: %x. Corrupt heap?", class_id,
-             this, ptr()->tags_.load());
+             this, static_cast<uint32_t>(ptr()->tags_));
       break;
   }
 

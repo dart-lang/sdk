@@ -543,22 +543,6 @@ class DartRepresentationOf {
   )
 ]);
 
-final MockSdkLibrary _LIB_FOREIGN_HELPER = MockSdkLibrary(
-  [
-    MockSdkLibraryUnit(
-      'dart:_foreign_helper',
-      '$sdkRoot/lib/_foreign_helper/_foreign_helper.dart',
-      '''
-library dart._foreign_helper;
-
-JS(String typeDescription, String codeTemplate,
-  [arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11])
-{}
-''',
-    )
-  ],
-);
-
 final MockSdkLibrary _LIB_HTML_DART2JS = MockSdkLibrary(
   [
     MockSdkLibraryUnit(
@@ -844,7 +828,6 @@ final List<SdkLibrary> _LIBRARIES = [
   _LIB_COLLECTION,
   _LIB_CONVERT,
   _LIB_FFI,
-  _LIB_FOREIGN_HELPER,
   _LIB_IO,
   _LIB_MATH,
   _LIB_HTML_DART2JS,
@@ -861,8 +844,6 @@ final Map<String, String> _librariesDartEntries = {
   'html': 'const LibraryInfo("html/dart2js/html_dart2js.dart")',
   'io': 'const LibraryInfo("io/io.dart")',
   'math': 'const LibraryInfo("math/math.dart")',
-  '_foreign_helper':
-      'const LibraryInfo("_internal/js_runtime/lib/foreign_helper.dart")',
 };
 
 class MockSdk implements DartSdk {

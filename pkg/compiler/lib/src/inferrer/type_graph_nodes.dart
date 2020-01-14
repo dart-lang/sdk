@@ -2269,7 +2269,7 @@ AbstractValue _narrowType(
     {bool isNullable: true}) {
   AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
   AbstractValue otherType;
-  if (annotation.treatAsDynamic) {
+  if (annotation.isTop) {
     return type;
   } else if (annotation is InterfaceType) {
     if (annotation.element == closedWorld.commonElements.objectClass) {

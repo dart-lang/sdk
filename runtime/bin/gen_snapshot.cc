@@ -118,6 +118,7 @@ static const char* kSnapshotKindNames[] = {
   V(elf, elf_filename)                                                         \
   V(load_compilation_trace, load_compilation_trace_filename)                   \
   V(load_type_feedback, load_type_feedback_filename)                           \
+  V(save_debugging_info, debugging_info_filename)                              \
   V(save_obfuscation_map, obfuscation_map_filename)
 
 #define BOOL_OPTIONS_LIST(V)                                                   \
@@ -171,7 +172,9 @@ static void PrintUsage() {
 "as a static or dynamic library:                                             \n"
 "--snapshot_kind=app-aot-assembly                                            \n"
 "--assembly=<output-file>                                                    \n"
+"[--strip]                                                                   \n"
 "[--obfuscate]                                                               \n"
+"[--save-debugging-info=<debug-filename>]                                    \n"
 "[--save-obfuscation-map=<map-filename>]                                     \n"
 "<dart-kernel-file>                                                          \n"
 "                                                                            \n"
@@ -180,6 +183,7 @@ static void PrintUsage() {
 "--elf=<output-file>                                                         \n"
 "[--strip]                                                                   \n"
 "[--obfuscate]                                                               \n"
+"[--save-debugging-info=<debug-filename>]                                    \n"
 "[--save-obfuscation-map=<map-filename>]                                     \n"
 "<dart-kernel-file>                                                          \n"
 "                                                                            \n"
@@ -333,15 +337,30 @@ static int ParseArguments(int argc,
 
   if (!obfuscate && obfuscation_map_filename != NULL) {
     Syslog::PrintErr(
-        "--obfuscation_map=<...> should only be specified when obfuscation is "
-        "enabled by --obfuscate flag.\n\n");
+        "--save-obfuscation_map=<...> should only be specified when "
+        "obfuscation is enabled by the --obfuscate flag.\n\n");
     return -1;
   }
 
-  if (obfuscate && !IsSnapshottingForPrecompilation()) {
-    Syslog::PrintErr(
-        "Obfuscation can only be enabled when building AOT snapshot.\n\n");
-    return -1;
+  if (!IsSnapshottingForPrecompilation()) {
+    if (obfuscate) {
+      Syslog::PrintErr(
+          "Obfuscation can only be enabled when building an AOT snapshot.\n\n");
+      return -1;
+    }
+
+    if (debugging_info_filename != nullptr) {
+      Syslog::PrintErr(
+          "--save-debugging-info=<...> can only be enabled when building an "
+          "AOT snapshot.\n\n");
+      return -1;
+    }
+
+    if (strip) {
+      Syslog::PrintErr(
+          "Stripping can only be enabled when building an AOT snapshot.\n\n");
+      return -1;
+    }
   }
 
   return 0;
@@ -610,19 +629,46 @@ static void CreateAndWritePrecompiledSnapshot() {
   if (snapshot_kind == kAppAOTAssembly) {
     File* file = OpenFile(assembly_filename);
     RefCntReleaseScope<File> rs(file);
-    result = Dart_CreateAppAOTSnapshotAsAssembly(StreamingWriteCallback, file);
+    File* debug_file = nullptr;
+    if (debugging_info_filename != nullptr) {
+      debug_file = OpenFile(debugging_info_filename);
+    } else if (strip) {
+      Syslog::PrintErr(
+          "Warning: Generating assembly code without DWARF debugging"
+          " information.\n");
+    }
+    result = Dart_CreateAppAOTSnapshotAsAssembly(StreamingWriteCallback, file,
+                                                 strip, debug_file);
+    if (debug_file != nullptr) debug_file->Release();
     CHECK_RESULT(result);
+    if (obfuscate && !strip) {
+      Syslog::PrintErr(
+          "Warning: The generated assembly code contains unobfuscated DWARF "
+          "debugging information.\n"
+          "         To avoid this, use --strip to remove it.\n");
+    }
   } else if (snapshot_kind == kAppAOTElf) {
-    if (strip) {
+    File* file = OpenFile(elf_filename);
+    RefCntReleaseScope<File> rs(file);
+    File* debug_file = nullptr;
+    if (debugging_info_filename != nullptr) {
+      debug_file = OpenFile(debugging_info_filename);
+    } else if (strip) {
       Syslog::PrintErr(
           "Warning: Generating ELF library without DWARF debugging"
           " information.\n");
     }
-    File* file = OpenFile(elf_filename);
-    RefCntReleaseScope<File> rs(file);
-    result =
-        Dart_CreateAppAOTSnapshotAsElf(StreamingWriteCallback, file, strip);
+    result = Dart_CreateAppAOTSnapshotAsElf(StreamingWriteCallback, file, strip,
+                                            debug_file);
+    if (debug_file != nullptr) debug_file->Release();
     CHECK_RESULT(result);
+    if (obfuscate && !strip) {
+      Syslog::PrintErr(
+          "Warning: The generated ELF library contains unobfuscated DWARF "
+          "debugging information.\n"
+          "         To avoid this, use --strip to remove it and "
+          "--save-debugging-info=<...> to save it to a separate file.\n");
+    }
   } else if (snapshot_kind == kAppAOTBlobs) {
     Syslog::PrintErr(
         "WARNING: app-aot-blobs snapshots have been deprecated and support for "
@@ -639,12 +685,18 @@ static void CreateAndWritePrecompiledSnapshot() {
     intptr_t isolate_snapshot_data_size = 0;
     uint8_t* isolate_snapshot_instructions_buffer = NULL;
     intptr_t isolate_snapshot_instructions_size = 0;
+    File* debug_file = nullptr;
+    if (debugging_info_filename != nullptr) {
+      debug_file = OpenFile(debugging_info_filename);
+    }
     result = Dart_CreateAppAOTSnapshotAsBlobs(
         &vm_snapshot_data_buffer, &vm_snapshot_data_size,
         &vm_snapshot_instructions_buffer, &vm_snapshot_instructions_size,
         &isolate_snapshot_data_buffer, &isolate_snapshot_data_size,
         &isolate_snapshot_instructions_buffer,
-        &isolate_snapshot_instructions_size);
+        &isolate_snapshot_instructions_size, StreamingWriteCallback,
+        debug_file);
+    if (debug_file != nullptr) debug_file->Release();
     CHECK_RESULT(result);
 
     if (blobs_container_filename != NULL) {

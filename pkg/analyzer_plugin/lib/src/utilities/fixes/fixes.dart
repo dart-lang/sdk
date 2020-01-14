@@ -47,9 +47,9 @@ class FixCollectorImpl implements FixCollector {
    */
   List<AnalysisErrorFixes> get fixes {
     List<AnalysisErrorFixes> fixes = <AnalysisErrorFixes>[];
-    AnalyzerConverter converter = new AnalyzerConverter();
+    AnalyzerConverter converter = AnalyzerConverter();
     for (AnalysisError error in fixMap.keys) {
-      fixes.add(new AnalysisErrorFixes(converter.convertAnalysisError(error),
+      fixes.add(AnalysisErrorFixes(converter.convertAnalysisError(error),
           fixes: fixMap[error]));
     }
     return fixes;

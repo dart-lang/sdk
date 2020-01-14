@@ -33,29 +33,27 @@ main() {
 
     // There should be no errors now because the contents on disk have been
     // overridden with goodText.
-    sendAnalysisUpdateContent({path: new AddContentOverlay(goodText)});
+    sendAnalysisUpdateContent({path: AddContentOverlay(goodText)});
     await analysisFinished;
     expect(currentAnalysisErrors[path], isEmpty);
 
     // There should be errors now because we've removed the semicolon.
     sendAnalysisUpdateContent({
-      path: new ChangeContentOverlay(
-          [new SourceEdit(goodText.indexOf(';'), 1, '')])
+      path: ChangeContentOverlay([SourceEdit(goodText.indexOf(';'), 1, '')])
     });
     await analysisFinished;
     expect(currentAnalysisErrors[path], isNotEmpty);
 
     // There should be no errors now because we've added the semicolon back.
     sendAnalysisUpdateContent({
-      path: new ChangeContentOverlay(
-          [new SourceEdit(goodText.indexOf(';'), 0, ';')])
+      path: ChangeContentOverlay([SourceEdit(goodText.indexOf(';'), 0, ';')])
     });
     await analysisFinished;
     expect(currentAnalysisErrors[path], isEmpty);
 
     // Now there should be errors again, because the contents on disk are no
     // longer overridden.
-    sendAnalysisUpdateContent({path: new RemoveContentOverlay()});
+    sendAnalysisUpdateContent({path: RemoveContentOverlay()});
     await analysisFinished;
     expect(currentAnalysisErrors[path], isNotEmpty);
   }
@@ -83,7 +81,7 @@ void main() {
     expect(errors1[0].location.file, equals(pathname));
 
     await sendAnalysisUpdateContent({
-      pathname: new AddContentOverlay(r'''
+      pathname: AddContentOverlay(r'''
 class Person {
   String _name;
   Person(this._name);

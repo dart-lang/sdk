@@ -17,6 +17,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/type_system.dart';
+import 'package:analyzer/src/task/strong/checker.dart';
 
 /// A visitor that finds dead code and unused labels.
 class DeadCodeVerifier extends RecursiveAstVisitor<void> {
@@ -29,8 +30,8 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
   /// The object used to track the usage of labels within a given label scope.
   _LabelTracker labelTracker;
 
-  /// Is `true` if this unit has been parsed as non-nullable.
-  final bool _isNonNullableUnit;
+  /// Is `true` if the library being analyzed is non-nullable by default.
+  final bool _isNonNullableByDefault;
 
   /// Initialize a newly created dead code verifier that will report dead code
   /// to the given [errorReporter] and will use the given [typeSystem] if one is
@@ -44,14 +45,14 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
               strictInference: false,
               typeProvider: null,
             ),
-        _isNonNullableUnit = featureSet.isEnabled(Feature.non_nullable);
+        _isNonNullableByDefault = featureSet.isEnabled(Feature.non_nullable);
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
     TokenType operatorType = node.operator.type;
     if (operatorType == TokenType.QUESTION_QUESTION_EQ) {
       _checkForDeadNullCoalesce(
-          node.leftHandSide.staticType, node.rightHandSide);
+          getReadType(node.leftHandSide), node.rightHandSide);
     }
     super.visitAssignmentExpression(node);
   }
@@ -104,8 +105,9 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
 //                return null;
 //              }
 //            }
-    } else if (isQuestionQuestion && _isNonNullableUnit) {
-      _checkForDeadNullCoalesce(node.leftOperand.staticType, node.rightOperand);
+    } else if (isQuestionQuestion) {
+      _checkForDeadNullCoalesce(
+          getReadType(node.leftOperand), node.rightOperand);
     }
     super.visitBinaryExpression(node);
   }
@@ -285,7 +287,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
     node.finallyBlock?.accept(this);
     NodeList<CatchClause> catchClauses = node.catchClauses;
     int numOfCatchClauses = catchClauses.length;
-    List<DartType> visitedTypes = List<DartType>();
+    List<DartType> visitedTypes = <DartType>[];
     for (int i = 0; i < numOfCatchClauses; i++) {
       CatchClause catchClause = catchClauses[i];
       if (catchClause.onKeyword != null) {
@@ -321,7 +323,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
                   HintCode.DEAD_CODE_ON_CATCH_SUBTYPE,
                   offset,
                   length,
-                  [currentType.displayName, type.displayName]);
+                  [currentType, type]);
               return;
             }
           }
@@ -393,8 +395,13 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _checkForDeadNullCoalesce(TypeImpl lhsType, Expression rhs) {
-    if (_isNonNullableUnit && _typeSystem.isNonNullable(lhsType)) {
-      _errorReporter.reportErrorForNode(HintCode.DEAD_CODE, rhs, []);
+    if (!_isNonNullableByDefault) return;
+
+    if (_typeSystem.isStrictlyNonNullable(lhsType)) {
+      _errorReporter.reportErrorForNode(
+        StaticWarningCode.DEAD_NULL_COALESCE,
+        rhs,
+      );
     }
   }
 

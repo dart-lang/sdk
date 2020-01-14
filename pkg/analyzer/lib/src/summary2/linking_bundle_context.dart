@@ -209,7 +209,7 @@ class LinkingBundleContext {
   }
 
   static EntityRefNullabilitySuffix _nullabilitySuffix(DartType type) {
-    var nullabilitySuffix = (type as TypeImpl).nullabilitySuffix;
+    var nullabilitySuffix = type.nullabilitySuffix;
     switch (nullabilitySuffix) {
       case NullabilitySuffix.question:
         return EntityRefNullabilitySuffix.question;

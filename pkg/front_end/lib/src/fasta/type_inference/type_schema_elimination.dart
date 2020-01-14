@@ -3,10 +3,9 @@
 // BSD-style license that can be found in the LICENSE.md file.
 
 import 'package:kernel/ast.dart' hide MapEntry;
-
 import 'package:kernel/core_types.dart' show CoreTypes;
+import 'package:kernel/src/replacement_visitor.dart';
 
-import 'replacement_visitor.dart';
 import 'type_schema.dart' show UnknownType;
 
 /// Returns the greatest closure of the given type [schema] with respect to `?`.

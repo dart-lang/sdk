@@ -6,12 +6,12 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/constant.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
@@ -167,7 +167,7 @@ class ConstantFinderTest {
   }
 
   List<Annotation> _findAnnotations() {
-    Set<Annotation> annotations = Set<Annotation>();
+    Set<Annotation> annotations = <Annotation>{};
     for (ConstantEvaluationTarget target in _findConstants()) {
       if (target is ElementAnnotationImpl) {
         expect(target.source, same(_source));
@@ -269,7 +269,7 @@ class ConstantFinderTest {
 @reflectiveTest
 class ReferenceFinderTest {
   Element _tail;
-  List<ConstantEvaluationTarget> _dependencies = [];
+  final List<ConstantEvaluationTarget> _dependencies = [];
 
   void test_visitSimpleIdentifier_const() {
     _visitNode(_makeTailVariable("v2", true));
@@ -304,7 +304,7 @@ class ReferenceFinderTest {
 
   SuperConstructorInvocation _makeTailSuperConstructorInvocation(
       String name, bool isConst) {
-    List<ConstructorInitializer> initializers = List<ConstructorInitializer>();
+    List<ConstructorInitializer> initializers = <ConstructorInitializer>[];
     ConstructorDeclaration constructorDeclaration =
         AstTestFactory.constructorDeclaration(AstTestFactory.identifier3(name),
             null, AstTestFactory.formalParameterList(), initializers);

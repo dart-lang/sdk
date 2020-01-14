@@ -27,7 +27,7 @@ const DYNAMIC = 'dynamic';
  * A marker used in place of `null` when a function has no return type.
  */
 final TypeName NO_RETURN_TYPE = astFactory.typeName(
-    astFactory.simpleIdentifier(new StringToken(TokenType.IDENTIFIER, '', 0)),
+    astFactory.simpleIdentifier(StringToken(TokenType.IDENTIFIER, '', 0)),
     null);
 
 /**
@@ -39,7 +39,7 @@ void addDefaultArgDetails(
     Element element,
     Iterable<ParameterElement> requiredParams,
     Iterable<ParameterElement> namedParams) {
-  StringBuffer sb = new StringBuffer();
+  StringBuffer sb = StringBuffer();
   List<int> ranges = <int>[];
 
   int offset;
@@ -86,16 +86,16 @@ protocol.Element createLocalElement(
   if (id != null) {
     name = id.name;
     // TODO(danrubel) use lineInfo to determine startLine and startColumn
-    location = new Location(source.fullName, id.offset, id.length, 0, 0);
+    location = Location(source.fullName, id.offset, id.length, 0, 0);
   } else {
     name = '';
-    location = new Location(source.fullName, -1, 0, 1, 0);
+    location = Location(source.fullName, -1, 0, 1, 0);
   }
   int flags = protocol.Element.makeFlags(
       isAbstract: isAbstract,
       isDeprecated: isDeprecated,
       isPrivate: Identifier.isPrivateName(name));
-  return new protocol.Element(kind, name, flags,
+  return protocol.Element(kind, name, flags,
       location: location,
       parameters: parameters,
       returnType: nameForType(id, returnType));
@@ -117,7 +117,7 @@ CompletionSuggestion createLocalSuggestion(SimpleIdentifier id,
   if (completion == null || completion.isEmpty || completion == '_') {
     return null;
   }
-  CompletionSuggestion suggestion = new CompletionSuggestion(
+  CompletionSuggestion suggestion = CompletionSuggestion(
       kind,
       isDeprecated ? DART_RELEVANCE_LOW : defaultRelevance,
       completion,
@@ -139,37 +139,47 @@ CompletionSuggestion createLocalSuggestion(SimpleIdentifier id,
   return suggestion;
 }
 
-String getDefaultStringParameterValue(ParameterElement param) {
+DefaultArgument getDefaultStringParameterValue(ParameterElement param) {
   if (param != null) {
     DartType type = param.type;
-    if (type is InterfaceType && isDartList(type)) {
-      List<DartType> typeArguments = type.typeArguments;
-      if (typeArguments.length == 1) {
-        DartType typeArg = typeArguments.first;
-        String typeInfo = !typeArg.isDynamic ? '<${typeArg.name}>' : '';
-        return '$typeInfo[]';
+    if (type is InterfaceType && type.isDartCoreList) {
+      String getTypeArgumentsStr() {
+        var elementType = type.typeArguments.single;
+        if (elementType.isDynamic) {
+          return '';
+        } else {
+          var typeArgStr = elementType.getDisplayString(
+            withNullability: false,
+          );
+          return '<$typeArgStr>';
+        }
       }
-    }
-    if (type is FunctionType) {
+
+      String typeArgumentStr = getTypeArgumentsStr();
+      String text = '$typeArgumentStr[]';
+      return DefaultArgument(text, cursorPosition: text.length - 1);
+    } else if (type is FunctionType) {
       String params = type.parameters
           .map((p) => '${getTypeString(p.type)}${p.name}')
           .join(', ');
-      //TODO(pq): consider adding a `TODO:` message in generated stub
-      return '($params) {}';
+      // TODO(devoncarew): Support having this method return text with newlines.
+      String text = '($params) {  }';
+      return DefaultArgument(text, cursorPosition: text.length - 2);
     }
-    //TODO(pq): support map literals
+
+    // TODO(pq): support map literals
+
   }
+
   return null;
 }
 
-String getTypeString(DartType type) => type.isDynamic ? '' : '${type.name} ';
-
-bool isDartList(DartType type) {
-  ClassElement element = type.element;
-  if (element != null) {
-    return element.name == "List" && element.library.isDartCore;
+String getTypeString(DartType type) {
+  if (type.isDynamic) {
+    return '';
+  } else {
+    return type.getDisplayString(withNullability: false) + ' ';
   }
-  return false;
 }
 
 /**
@@ -231,5 +241,23 @@ String nameForType(SimpleIdentifier identifier, TypeAnnotation declaredType) {
   return type.toString();
 }
 
-//TODO(pq): fix to use getDefaultStringParameterValue()
+// TODO(pq): fix to use getDefaultStringParameterValue()
 String _getDefaultValue(ParameterElement param) => 'null';
+
+/**
+ * A tuple of text to insert and an (optional) location for the cursor.
+ */
+class DefaultArgument {
+  /**
+   * The text to insert.
+   */
+  final String text;
+
+  /**
+   * An optional location for the cursor, relative to the text's start. This
+   * field can be null.
+   */
+  final int cursorPosition;
+
+  DefaultArgument(this.text, {this.cursorPosition});
+}

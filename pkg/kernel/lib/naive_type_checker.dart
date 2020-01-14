@@ -18,17 +18,18 @@ abstract class FailureListener {
 class NaiveTypeChecker extends type_checker.TypeChecker {
   final FailureListener failures;
 
-  NaiveTypeChecker(FailureListener failures, Component component,
-      {bool ignoreSdk: false})
-      : this._(
-            failures,
-            new CoreTypes(component),
-            new ClassHierarchy(component,
-                onAmbiguousSupertypes: (Class cls, Supertype s0, Supertype s1) {
-              failures.reportFailure(
-                  cls, "$cls can't implement both $s1 and $s1");
-            }),
-            ignoreSdk);
+  factory NaiveTypeChecker(FailureListener failures, Component component,
+      {bool ignoreSdk: false}) {
+    CoreTypes coreTypes = new CoreTypes(component);
+    return new NaiveTypeChecker._(
+        failures,
+        coreTypes,
+        new ClassHierarchy(component, coreTypes,
+            onAmbiguousSupertypes: (Class cls, Supertype s0, Supertype s1) {
+          failures.reportFailure(cls, "$cls can't implement both $s1 and $s1");
+        }),
+        ignoreSdk);
+  }
 
   NaiveTypeChecker._(this.failures, CoreTypes coreTypes,
       ClassHierarchy hierarchy, bool ignoreSdk)

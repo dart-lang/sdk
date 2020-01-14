@@ -16,6 +16,7 @@ main() {
 
 @reflectiveTest
 class MustBeImmutableTest extends DriverResolutionTest with PackageMixin {
+  @override
   void setUp() {
     super.setUp();
     addMetaPackage();

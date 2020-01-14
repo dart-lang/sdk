@@ -75,7 +75,7 @@ returnDyn8(
   return x;
 }
 
-/*member: test8:Union([exact=JSUInt31], [null|exact=JSString])*/ test8() {
+/*member: test8:Union(null, [exact=JSString], [exact=JSUInt31])*/ test8() {
   dynamic a = "foo";
   if (a. /*Value([exact=JSString], value: "foo")*/ length
       /*invoke: [subclass=JSInt]*/ ==

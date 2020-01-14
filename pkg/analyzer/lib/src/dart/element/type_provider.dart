@@ -5,9 +5,9 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:meta/meta.dart';
 
 /// Provide common functionality shared by the various TypeProvider
@@ -47,7 +47,7 @@ class TypeProviderImpl extends TypeProviderBase {
 
   /// If `true`, then NNBD types are returned.
   /// If `false`, then legacy types are returned.
-  final bool _isNonNullableByDefault;
+  final bool isNonNullableByDefault;
 
   ClassElement _boolElement;
   ClassElement _doubleElement;
@@ -93,6 +93,8 @@ class TypeProviderImpl extends TypeProviderBase {
   InterfaceType _symbolType;
   InterfaceType _typeType;
 
+  InterfaceTypeImpl _nullStar;
+
   InterfaceType _iterableForSetMapDisambiguation;
   InterfaceType _mapForSetMapDisambiguation;
 
@@ -106,10 +108,10 @@ class TypeProviderImpl extends TypeProviderBase {
     @required bool isNonNullableByDefault,
   })  : _coreLibrary = coreLibrary,
         _asyncLibrary = asyncLibrary,
-        _isNonNullableByDefault = isNonNullableByDefault;
+        isNonNullableByDefault = isNonNullableByDefault;
 
   TypeProviderImpl get asLegacy {
-    if (_isNonNullableByDefault) {
+    if (isNonNullableByDefault) {
       return TypeProviderImpl(
         coreLibrary: _coreLibrary,
         asyncLibrary: _asyncLibrary,
@@ -121,7 +123,7 @@ class TypeProviderImpl extends TypeProviderBase {
   }
 
   TypeProviderImpl get asNonNullableByDefault {
-    if (_isNonNullableByDefault) {
+    if (isNonNullableByDefault) {
       return this;
     } else {
       return TypeProviderImpl(
@@ -145,7 +147,7 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   DartType get bottomType {
-    if (_isNonNullableByDefault) {
+    if (isNonNullableByDefault) {
       return NeverTypeImpl.instance;
     }
     return NeverTypeImpl.instanceLegacy;
@@ -179,37 +181,39 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   InterfaceType get futureDynamicType {
-    _futureDynamicType ??= InterfaceTypeImpl.explicit(
-      futureElement,
-      [dynamicType],
+    _futureDynamicType ??= InterfaceTypeImpl(
+      element: futureElement,
+      typeArguments: [dynamicType],
       nullabilitySuffix: _nullabilitySuffix,
     );
     return _futureDynamicType;
   }
 
+  @override
   ClassElement get futureElement {
     return _futureElement ??= _getClassElement(_asyncLibrary, 'Future');
   }
 
   @override
   InterfaceType get futureNullType {
-    _futureNullType ??= InterfaceTypeImpl.explicit(
-      futureElement,
-      [nullType],
+    _futureNullType ??= InterfaceTypeImpl(
+      element: futureElement,
+      typeArguments: [nullType],
       nullabilitySuffix: _nullabilitySuffix,
     );
     return _futureNullType;
   }
 
+  @override
   ClassElement get futureOrElement {
     return _futureOrElement ??= _getClassElement(_asyncLibrary, 'FutureOr');
   }
 
   @override
   InterfaceType get futureOrNullType {
-    _futureOrNullType ??= InterfaceTypeImpl.explicit(
-      futureOrElement,
-      [nullType],
+    _futureOrNullType ??= InterfaceTypeImpl(
+      element: futureOrElement,
+      typeArguments: [nullType],
       nullabilitySuffix: _nullabilitySuffix,
     );
     return _futureOrNullType;
@@ -240,9 +244,9 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   InterfaceType get iterableDynamicType {
-    _iterableDynamicType ??= InterfaceTypeImpl.explicit(
-      iterableElement,
-      [dynamicType],
+    _iterableDynamicType ??= InterfaceTypeImpl(
+      element: iterableElement,
+      typeArguments: [dynamicType],
       nullabilitySuffix: _nullabilitySuffix,
     );
     return _iterableDynamicType;
@@ -274,9 +278,9 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   InterfaceType get iterableObjectType {
-    _iterableObjectType ??= InterfaceTypeImpl.explicit(
-      iterableElement,
-      [objectType],
+    _iterableObjectType ??= InterfaceTypeImpl(
+      element: iterableElement,
+      typeArguments: [objectType],
       nullabilitySuffix: _nullabilitySuffix,
     );
     return _iterableObjectType;
@@ -326,9 +330,9 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   InterfaceType get mapObjectObjectType {
-    _mapObjectObjectType ??= InterfaceTypeImpl.explicit(
-      mapElement,
-      [objectType, objectType],
+    _mapObjectObjectType ??= InterfaceTypeImpl(
+      element: mapElement,
+      typeArguments: [objectType, objectType],
       nullabilitySuffix: _nullabilitySuffix,
     );
     return _mapObjectObjectType;
@@ -365,6 +369,13 @@ class TypeProviderImpl extends TypeProviderBase {
       _nullObject = DartObjectImpl(nullType, NullState.NULL_STATE);
     }
     return _nullObject;
+  }
+
+  InterfaceTypeImpl get nullStar {
+    return _nullStar ??= nullElement.instantiate(
+      typeArguments: const [],
+      nullabilitySuffix: NullabilitySuffix.star,
+    );
   }
 
   @override
@@ -412,9 +423,9 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   InterfaceType get streamDynamicType {
-    _streamDynamicType ??= InterfaceTypeImpl.explicit(
-      streamElement,
-      [dynamicType],
+    _streamDynamicType ??= InterfaceTypeImpl(
+      element: streamElement,
+      typeArguments: [dynamicType],
       nullabilitySuffix: _nullabilitySuffix,
     );
     return _streamDynamicType;
@@ -463,7 +474,7 @@ class TypeProviderImpl extends TypeProviderBase {
   VoidType get voidType => VoidTypeImpl.instance;
 
   NullabilitySuffix get _nullabilitySuffix {
-    if (_isNonNullableByDefault) {
+    if (isNonNullableByDefault) {
       return NullabilitySuffix.none;
     } else {
       return NullabilitySuffix.star;
@@ -471,7 +482,7 @@ class TypeProviderImpl extends TypeProviderBase {
   }
 
   NullabilitySuffix get _questionOrStarSuffix {
-    return _isNonNullableByDefault
+    return isNonNullableByDefault
         ? NullabilitySuffix.question
         : NullabilitySuffix.star;
   }
@@ -558,9 +569,9 @@ class TypeProviderImpl extends TypeProviderBase {
       }).toList(growable: false);
     }
 
-    return InterfaceTypeImpl.explicit(
-      element,
-      typeArguments,
+    return InterfaceTypeImpl(
+      element: element,
+      typeArguments: typeArguments,
       nullabilitySuffix: _nullabilitySuffix,
     );
   }

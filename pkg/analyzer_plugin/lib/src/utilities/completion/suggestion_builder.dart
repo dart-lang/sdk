@@ -24,7 +24,7 @@ class SuggestionBuilderImpl implements SuggestionBuilder {
   /**
    * The converter used to convert analyzer objects to protocol objects.
    */
-  final AnalyzerConverter converter = new AnalyzerConverter();
+  final AnalyzerConverter converter = AnalyzerConverter();
 
   /**
    * Initialize a newly created suggestion builder.
@@ -41,7 +41,7 @@ class SuggestionBuilderImpl implements SuggestionBuilder {
       Iterable<ParameterElement> requiredParams,
       Iterable<ParameterElement> namedParams) {
     // Copied from analysis_server/lib/src/services/completion/dart/suggestion_builder.dart
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     List<int> ranges = <int>[];
 
     int offset;
@@ -79,8 +79,8 @@ class SuggestionBuilderImpl implements SuggestionBuilder {
   @override
   CompletionSuggestion forElement(Element element,
       {String completion,
-      CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
-      int relevance: DART_RELEVANCE_DEFAULT}) {
+      CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
+      int relevance = DART_RELEVANCE_DEFAULT}) {
     // Copied from analysis_server/lib/src/services/completion/dart/suggestion_builder.dart
     if (element == null) {
       return null;
@@ -89,11 +89,9 @@ class SuggestionBuilderImpl implements SuggestionBuilder {
       // Do not include operators in suggestions
       return null;
     }
-    if (completion == null) {
-      completion = element.displayName;
-    }
+    completion ??= element.displayName;
     bool isDeprecated = element.hasDeprecated;
-    CompletionSuggestion suggestion = new CompletionSuggestion(
+    CompletionSuggestion suggestion = CompletionSuggestion(
         kind,
         isDeprecated ? DART_RELEVANCE_LOW : relevance,
         completion,
@@ -121,7 +119,9 @@ class SuggestionBuilderImpl implements SuggestionBuilder {
           element.parameters.map((ParameterElement parameter) {
         DartType paramType = parameter.type;
         // Gracefully degrade if type not resolved yet
-        return paramType != null ? paramType.displayName : 'var';
+        return paramType != null
+            ? paramType.getDisplayString(withNullability: false)
+            : 'var';
       }).toList();
 
       Iterable<ParameterElement> requiredParameters = element.parameters
@@ -148,7 +148,9 @@ class SuggestionBuilderImpl implements SuggestionBuilder {
       }
     } else if (element is VariableElement) {
       DartType type = element.type;
-      return type != null ? type.displayName : 'dynamic';
+      return type != null
+          ? type.getDisplayString(withNullability: false)
+          : 'dynamic';
     } else if (element is FunctionTypeAliasElement) {
       return element.function.returnType.toString();
     } else {

@@ -38,8 +38,8 @@ class WorkspaceSymbolsTest extends AbstractLspAnalysisServerTest {
     expect(topLevel.location.range, equals(rangeFromMarkers(content)));
 
     // Ensure we didn't get some things that definitely do not match.
-    expect(symbols.any((s) => s.name == 'MyClass'), isFalse);
-    expect(symbols.any((s) => s.name == 'myMethod'), isFalse);
+    expect(symbols.any((s) => s.name.contains('MyClass')), isFalse);
+    expect(symbols.any((s) => s.name.contains('myMethod')), isFalse);
   }
 
   test_fuzzyMatch() async {
@@ -64,15 +64,15 @@ class WorkspaceSymbolsTest extends AbstractLspAnalysisServerTest {
     expect(field.location.range, equals(rangeFromMarkers(content)));
 
     // Ensure we didn't get some things that definitely do not match.
-    expect(symbols.any((s) => s.name == 'MyClass'), isFalse);
-    expect(symbols.any((s) => s.name == 'myMethod'), isFalse);
+    expect(symbols.any((s) => s.name.contains('MyClass')), isFalse);
+    expect(symbols.any((s) => s.name.contains('myMethod')), isFalse);
   }
 
   test_invalidParams() async {
     await initialize();
 
     // Create a request that doesn't supply the query param.
-    final request = new RequestMessage(
+    final request = RequestMessage(
       Either2<num, String>.t1(1),
       Method.workspace_symbol,
       <String, dynamic>{},
@@ -96,6 +96,7 @@ class WorkspaceSymbolsTest extends AbstractLspAnalysisServerTest {
       [[int myField]];
       MyClass(this.myField);
       [[myMethod() {}]]
+      [[myMethodWithArgs(int a) {}]]
     }
     ''';
     newFile(mainFilePath, content: withoutMarkers(content));
@@ -105,6 +106,7 @@ class WorkspaceSymbolsTest extends AbstractLspAnalysisServerTest {
     final ranges = rangesFromMarkers(content);
     final fieldRange = ranges[0];
     final methodRange = ranges[1];
+    final methodWithArgsRange = ranges[2];
 
     final field = symbols.firstWhere((s) => s.name == 'myField');
     expect(field.kind, equals(SymbolKind.Field));
@@ -117,11 +119,18 @@ class WorkspaceSymbolsTest extends AbstractLspAnalysisServerTest {
     expect(klass.containerName, isNull);
     expect(klass.location.uri, equals(mainFileUri.toString()));
 
-    final method = symbols.firstWhere((s) => s.name == 'myMethod');
+    final method = symbols.firstWhere((s) => s.name == 'myMethod()');
     expect(method.kind, equals(SymbolKind.Method));
     expect(method.containerName, equals('MyClass'));
     expect(method.location.uri, equals(mainFileUri.toString()));
     expect(method.location.range, equals(methodRange));
+
+    final methodWithArgs =
+        symbols.firstWhere((s) => s.name == 'myMethodWithArgs(…)');
+    expect(methodWithArgs.kind, equals(SymbolKind.Method));
+    expect(methodWithArgs.containerName, equals('MyClass'));
+    expect(methodWithArgs.location.uri, equals(mainFileUri.toString()));
+    expect(methodWithArgs.location.range, equals(methodWithArgsRange));
 
     // Ensure we didn't get some things that definitely do not match.
     expect(symbols.any((s) => s.name == 'topLevel'), isFalse);

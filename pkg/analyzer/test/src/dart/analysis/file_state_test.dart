@@ -6,8 +6,10 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
+import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/library_graph.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
@@ -55,19 +57,27 @@ class FileSystemStateTest with ResourceProviderMixin {
         'bbb': [getFolder('/bbb/lib')],
       }),
       ResourceUriResolver(resourceProvider)
-    ], null, resourceProvider);
+    ]);
     AnalysisOptions analysisOptions = AnalysisOptionsImpl();
+    var featureSetProvider = FeatureSetProvider.build(
+      resourceProvider: resourceProvider,
+      contextRoot: null,
+      sourceFactory: sourceFactory,
+      defaultFeatureSet: FeatureSet.fromEnableFlags([]),
+    );
     fileSystemState = FileSystemState(
-        logger,
-        byteStore,
-        contentOverlay,
-        resourceProvider,
-        'contextName',
-        sourceFactory,
-        analysisOptions,
-        DeclaredVariables(),
-        Uint32List(0),
-        Uint32List(0));
+      logger,
+      byteStore,
+      contentOverlay,
+      resourceProvider,
+      'contextName',
+      sourceFactory,
+      analysisOptions,
+      DeclaredVariables(),
+      Uint32List(0),
+      Uint32List(0),
+      featureSetProvider,
+    );
   }
 
   test_definedClassMemberNames() {

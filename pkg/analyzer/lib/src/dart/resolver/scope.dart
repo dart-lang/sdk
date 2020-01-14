@@ -9,8 +9,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/java_engine.dart';
-import 'package:analyzer/src/generated/source.dart';
 
 /**
  * The scope defined by a block.
@@ -128,21 +126,18 @@ class EnclosedScope extends Scope {
   EnclosedScope(this.enclosingScope);
 
   @override
-  Element internalLookup(
-      Identifier identifier, String name, LibraryElement referencingLibrary) {
-    Element element = localLookup(name, referencingLibrary);
+  Element internalLookup(String name) {
+    Element element = localLookup(name);
     if (element != null) {
       return element;
     }
     // Check enclosing scope.
-    return enclosingScope.internalLookup(identifier, name, referencingLibrary);
+    return enclosingScope.internalLookup(name);
   }
 
   @override
-  Element _internalLookupPrefixed(PrefixedIdentifier identifier, String prefix,
-      String name, LibraryElement referencingLibrary) {
-    return enclosingScope._internalLookupPrefixed(
-        identifier, prefix, name, referencingLibrary);
+  Element _internalLookupPrefixed(String prefix, String name) {
+    return enclosingScope._internalLookupPrefixed(prefix, name);
   }
 }
 
@@ -282,7 +277,7 @@ class ImplicitLabelScope {
   /**
    * The implicit label scope associated with the top level of a function.
    */
-  static const ImplicitLabelScope ROOT = const ImplicitLabelScope._(null, null);
+  static const ImplicitLabelScope ROOT = ImplicitLabelScope._(null, null);
 
   /**
    * The implicit label scope enclosing this implicit label scope.
@@ -428,23 +423,13 @@ class LibraryImportScope extends Scope {
   }
 
   @override
-  Source getSource(AstNode node) {
-    Source source = super.getSource(node);
-    if (source == null) {
-      source = _definingLibrary.definingCompilationUnit.source;
-    }
-    return source;
-  }
-
-  @override
-  Element internalLookup(
-      Identifier identifier, String name, LibraryElement referencingLibrary) {
-    Element element = localLookup(name, referencingLibrary);
+  Element internalLookup(String name) {
+    Element element = localLookup(name);
     if (element != null) {
       return element;
     }
     element = _lookupInImportedNamespaces(
-        identifier, (Namespace namespace) => namespace.get(name));
+        (Namespace namespace) => namespace.get(name));
     if (element != null) {
       defineNameWithoutChecking(name, element);
     }
@@ -454,9 +439,10 @@ class LibraryImportScope extends Scope {
   @override
   bool shouldIgnoreUndefined(Identifier node) {
     Iterable<NamespaceCombinator> getShowCombinators(
-            ImportElement importElement) =>
-        importElement.combinators.where((NamespaceCombinator combinator) =>
-            combinator is ShowElementCombinator);
+        ImportElement importElement) {
+      return importElement.combinators.whereType<ShowElementCombinator>();
+    }
+
     if (node is PrefixedIdentifier) {
       String prefix = node.prefix.name;
       String name = node.identifier.name;
@@ -525,13 +511,12 @@ class LibraryImportScope extends Scope {
   }
 
   @override
-  Element _internalLookupPrefixed(PrefixedIdentifier identifier, String prefix,
-      String name, LibraryElement referencingLibrary) {
+  Element _internalLookupPrefixed(String prefix, String name) {
     Element element = _localPrefixedLookup(prefix, name);
     if (element != null) {
       return element;
     }
-    element = _lookupInImportedNamespaces(identifier.identifier,
+    element = _lookupInImportedNamespaces(
         (Namespace namespace) => namespace.getPrefixed(prefix, name));
     if (element != null) {
       _definePrefixedNameWithoutChecking(prefix, name, element);
@@ -554,7 +539,7 @@ class LibraryImportScope extends Scope {
   }
 
   Element _lookupInImportedNamespaces(
-      Identifier identifier, Element lookup(Namespace namespace)) {
+      Element Function(Namespace namespace) lookup) {
     Element result;
 
     bool hasPotentialConflict = false;
@@ -570,8 +555,8 @@ class LibraryImportScope extends Scope {
     }
 
     if (hasPotentialConflict) {
-      var sdkElements = Set<Element>();
-      var nonSdkElements = Set<Element>();
+      var sdkElements = <Element>{};
+      var nonSdkElements = <Element>{};
       for (int i = 0; i < _importedNamespaces.length; i++) {
         Element element = lookup(_importedNamespaces[i]);
         if (element != null) {
@@ -583,9 +568,10 @@ class LibraryImportScope extends Scope {
         }
       }
       if (sdkElements.length > 1 || nonSdkElements.length > 1) {
-        var conflictingElements = <Element>[]
-          ..addAll(sdkElements)
-          ..addAll(nonSdkElements);
+        var conflictingElements = <Element>[
+          ...sdkElements,
+          ...nonSdkElements,
+        ];
         return MultiplyDefinedElementImpl(
             _definingLibrary.context,
             _definingLibrary.session,
@@ -607,7 +593,7 @@ class LibraryImportScope extends Scope {
  * A scope containing all of the names defined in a given library.
  */
 class LibraryScope extends EnclosedScope {
-  List<ExtensionElement> _extensions = <ExtensionElement>[];
+  final List<ExtensionElement> _extensions = <ExtensionElement>[];
 
   /**
    * Initialize a newly created scope representing the names defined in the
@@ -966,6 +952,7 @@ class PrefixedNamespace implements Namespace {
    * A table mapping names that are defined in this namespace to the element
    * representing the thing declared with that name.
    */
+  @override
   final Map<String, Element> _definedNames;
 
   /**
@@ -1077,40 +1064,18 @@ abstract class Scope {
   }
 
   /**
-   * Return the source that contains the given [identifier], or the source
-   * associated with this scope if the source containing the identifier could
-   * not be determined.
-   */
-  Source getSource(AstNode identifier) {
-    CompilationUnit unit = identifier.thisOrAncestorOfType<CompilationUnit>();
-    if (unit != null) {
-      CompilationUnitElement unitElement = unit.declaredElement;
-      if (unitElement != null) {
-        return unitElement.source;
-      }
-    }
-    return null;
-  }
-
-  /**
    * Return the element with which the given [name] is associated, or `null` if
-   * the name is not defined within this scope. The [identifier] is the
-   * identifier node to lookup element for, used to report correct kind of a
-   * problem and associate problem with. The [referencingLibrary] is the library
-   * that contains the reference to the name, used to implement library-level
-   * privacy.
+   * the name is not defined within this scope.
    */
-  Element internalLookup(
-      Identifier identifier, String name, LibraryElement referencingLibrary);
+  Element internalLookup(String name);
 
   /**
    * Return the element with which the given [name] is associated, or `null` if
    * the name is not defined within this scope. This method only returns
    * elements that are directly defined within this scope, not elements that are
-   * defined in an enclosing scope. The [referencingLibrary] is the library that
-   * contains the reference to the name, used to implement library-level privacy.
+   * defined in an enclosing scope.
    */
-  Element localLookup(String name, LibraryElement referencingLibrary) {
+  Element localLookup(String name) {
     if (_definedNames != null) {
       return _definedNames[name];
     }
@@ -1125,10 +1090,10 @@ abstract class Scope {
    */
   Element lookup(Identifier identifier, LibraryElement referencingLibrary) {
     if (identifier is PrefixedIdentifier) {
-      return _internalLookupPrefixed(identifier, identifier.prefix.name,
-          identifier.identifier.name, referencingLibrary);
+      return _internalLookupPrefixed(
+          identifier.prefix.name, identifier.identifier.name);
     }
-    return internalLookup(identifier, identifier.name, referencingLibrary);
+    return internalLookup(identifier.name);
   }
 
   /**
@@ -1160,20 +1125,15 @@ abstract class Scope {
 
   /**
    * Return the element with which the given [prefix] and [name] are associated,
-   * or `null` if the name is not defined within this scope. The [identifier] is
-   * the identifier node to lookup element for, used to report correct kind of a
-   * problem and associate problem with. The [referencingLibrary] is the library
-   * that contains the reference to the name, used to implement library-level
-   * privacy.
+   * or `null` if the name is not defined within this scope.
    */
-  Element _internalLookupPrefixed(PrefixedIdentifier identifier, String prefix,
-      String name, LibraryElement referencingLibrary);
+  Element _internalLookupPrefixed(String prefix, String name);
 
   /**
    * Return `true` if the given [name] is a library-private name.
    */
   static bool isPrivateName(String name) =>
-      name != null && StringUtilities.startsWithChar(name, PRIVATE_NAME_PREFIX);
+      name != null && name.startsWith('_');
 }
 
 /**

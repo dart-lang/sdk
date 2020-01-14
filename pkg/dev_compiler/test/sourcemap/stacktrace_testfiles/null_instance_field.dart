@@ -11,5 +11,5 @@ test(c) {
 }
 
 class Class {
-  var field;
+  dynamic field;
 }

@@ -1149,7 +1149,7 @@ class OutlineBuilder extends StackListenerImpl {
 
   @override
   void handleNonNullAssertExpression(Token bang) {
-    if (!library.loader.target.enableNonNullable) {
+    if (!library.isNonNullableByDefault) {
       reportNonNullAssertExpressionNotEnabled(bang);
     }
   }
@@ -1157,7 +1157,7 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void handleType(Token beginToken, Token questionMark) {
     debugEvent("Type");
-    if (!library.loader.target.enableNonNullable) {
+    if (!library.isNonNullableByDefault) {
       reportErrorIfNullableType(questionMark);
     }
     bool isMarkedAsNullable = questionMark != null;
@@ -1197,8 +1197,7 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void beginFormalParameter(Token token, MemberKind kind, Token requiredToken,
       Token covariantToken, Token varFinalOrConst) {
-    // TODO(danrubel): handle required token
-    if (!library.loader.target.enableNonNullable) {
+    if (!library.isNonNullableByDefault) {
       reportNonNullableModifierError(requiredToken);
     }
     push((covariantToken != null ? covariantMask : 0) |
@@ -1404,7 +1403,7 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void endFunctionType(Token functionToken, Token questionMark) {
     debugEvent("FunctionType");
-    if (!library.loader.target.enableNonNullable) {
+    if (!library.isNonNullableByDefault) {
       reportErrorIfNullableType(questionMark);
     }
     List<FormalParameterBuilder> formals = pop();
@@ -1426,7 +1425,7 @@ class OutlineBuilder extends StackListenerImpl {
     int formalsOffset = pop();
     TypeBuilder returnType = pop();
     List<TypeVariableBuilder> typeVariables = pop();
-    if (!library.loader.target.enableNonNullable) {
+    if (!library.isNonNullableByDefault) {
       reportErrorIfNullableType(question);
     }
     push(library.addFunctionType(returnType, typeVariables, formals,
@@ -1508,7 +1507,7 @@ class OutlineBuilder extends StackListenerImpl {
       Token beginToken,
       Token endToken) {
     debugEvent("endTopLevelFields");
-    if (!library.loader.target.enableNonNullable) {
+    if (!library.isNonNullableByDefault) {
       reportNonNullableModifierError(lateToken);
     }
     List<FieldInfo> fieldInfos = popFieldInfos(count);
@@ -1529,7 +1528,7 @@ class OutlineBuilder extends StackListenerImpl {
   void endClassFields(Token staticToken, Token covariantToken, Token lateToken,
       Token varFinalOrConst, int count, Token beginToken, Token endToken) {
     debugEvent("Fields");
-    if (!library.loader.target.enableNonNullable) {
+    if (!library.isNonNullableByDefault) {
       reportNonNullableModifierError(lateToken);
     }
     List<FieldInfo> fieldInfos = popFieldInfos(count);

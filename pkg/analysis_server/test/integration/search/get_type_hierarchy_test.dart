@@ -218,13 +218,13 @@ class Pivot /* target */ extends Base2 {}
 
   Future<HierarchyResults> typeHierarchyTest(String text) async {
     int offset = text.indexOf(' /* target */') - 1;
-    sendAnalysisUpdateContent({pathname: new AddContentOverlay(text)});
+    sendAnalysisUpdateContent({pathname: AddContentOverlay(text)});
     await analysisFinished;
     var result = await sendSearchGetTypeHierarchy(pathname, offset);
     if (result.hierarchyItems == null) {
       return null;
     } else {
-      return new HierarchyResults(result.hierarchyItems);
+      return HierarchyResults(result.hierarchyItems);
     }
   }
 }

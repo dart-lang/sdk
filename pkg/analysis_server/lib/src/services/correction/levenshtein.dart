@@ -27,10 +27,10 @@ const int _MAX_VALUE = 1 << 10;
 int levenshtein(String s, String t, int threshold,
     {bool caseSensitive = true}) {
   if (s == null || t == null) {
-    throw new ArgumentError('Strings must not be null');
+    throw ArgumentError('Strings must not be null');
   }
   if (threshold < 0) {
-    throw new ArgumentError('Threshold must not be negative');
+    throw ArgumentError('Threshold must not be negative');
   }
 
   if (!caseSensitive) {
@@ -64,9 +64,9 @@ int levenshtein(String s, String t, int threshold,
   }
 
   // 'previous' cost array, horizontally
-  List<int> p = new List<int>.filled(s_len + 1, 0);
+  List<int> p = List<int>.filled(s_len + 1, 0);
   // cost array, horizontally
-  List<int> d = new List<int>.filled(s_len + 1, 0);
+  List<int> d = List<int>.filled(s_len + 1, 0);
   // placeholder to assist in swapping p and d
   List<int> _d;
 

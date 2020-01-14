@@ -79,19 +79,19 @@ class _CacheTable {
       return "${name}Of${typeArgs.map(_typeString).join("\$")}";
     }
     if (type is FunctionType) {
-      if (flat) return "Fn";
+      if (flat) return 'Fn';
       var rType = _typeString(type.returnType, flat: true);
       var params = type.positionalParameters
           .take(3)
           .map((p) => _typeString(p, flat: true));
-      var paramList = params.join("And");
+      var paramList = params.join('And');
       var count = type.positionalParameters.length;
       if (count > 3 || type.namedParameters.isNotEmpty) {
-        paramList = "${paramList}__";
+        paramList = '${paramList}__';
       } else if (count == 0) {
-        paramList = "Void";
+        paramList = 'Void';
       }
-      return "${paramList}To${rType}";
+      return '${paramList}To${rType}';
     }
     if (type is TypeParameterType) return type.parameter.name;
     if (type == const DynamicType()) return 'dynamic';

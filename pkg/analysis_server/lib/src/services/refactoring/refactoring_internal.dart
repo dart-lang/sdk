@@ -16,7 +16,7 @@ import 'package:analyzer/src/generated/source.dart';
  * Return a new [SourceReference] instance for the given [match].
  */
 SourceReference getSourceReference(SearchMatch match) {
-  return new SourceReference(match);
+  return SourceReference(match);
 }
 
 /**
@@ -25,7 +25,7 @@ SourceReference getSourceReference(SearchMatch match) {
  * refactorings we want to update each [Source] only once.
  */
 List<SourceReference> getSourceReferences(List<SearchMatch> matches) {
-  var uniqueReferences = new HashMap<SourceReference, SourceReference>();
+  var uniqueReferences = HashMap<SourceReference, SourceReference>();
   for (SearchMatch match in matches) {
     SourceReference newReference = getSourceReference(match);
     SourceReference oldReference = uniqueReferences[newReference];
@@ -41,13 +41,14 @@ List<SourceReference> getSourceReferences(List<SearchMatch> matches) {
  * Abstract implementation of [Refactoring].
  */
 abstract class RefactoringImpl implements Refactoring {
+  @override
   final List<String> potentialEditIds = <String>[];
 
   @override
   Future<RefactoringStatus> checkAllConditions() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    RefactoringStatus result = new RefactoringStatus();
+    RefactoringStatus result = RefactoringStatus();
     result.addStatus(await checkInitialConditions());
     if (result.hasFatalError) {
       return result;

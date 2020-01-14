@@ -19,7 +19,7 @@ main() {
 class FieldFormalContributorTest extends DartCompletionContributorTest {
   @override
   DartCompletionContributor createContributor() {
-    return new FieldFormalContributor();
+    return FieldFormalContributor();
   }
 
   /// https://github.com/dart-lang/sdk/issues/39028

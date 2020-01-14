@@ -11,14 +11,28 @@ import 'codegen_protocol_constants.dart' show generateConstName;
 import 'from_html.dart';
 
 GeneratedFile clientTarget() {
-  return new GeneratedFile(
+  return GeneratedFile(
       '../analysis_server_client/lib/handler/notification_handler.dart',
       (String pkgPath) async {
     CodegenNotificationHandlerVisitor visitor =
-        new CodegenNotificationHandlerVisitor(readApi(pkgPath));
+        CodegenNotificationHandlerVisitor(readApi(pkgPath));
     return visitor.collectCode(visitor.visitApi);
   });
 }
+
+_capitalize(String name) =>
+    '${name.substring(0, 1).toUpperCase()}${name.substring(1)}';
+
+List<String> _generateDartDoc(Element html) => html.children
+    .where((Element elem) => elem.localName == 'p')
+    .map<String>((Element elem) => elem.text.trim())
+    .toList();
+
+String _generateNotificationMethodName(String domainName, String event) =>
+    'on${_capitalize(domainName)}${_capitalize(event)}';
+
+String _generateParamTypeName(String domainName, String event) =>
+    '${_capitalize(domainName)}${_capitalize(event)}Params';
 
 /**
  * Visitor which produces Dart code representing the API.
@@ -27,7 +41,24 @@ class CodegenNotificationHandlerVisitor extends DartCodegenVisitor
     with CodeGenerator {
   CodegenNotificationHandlerVisitor(Api api) : super(api) {
     codeGeneratorSettings.commentLineLength = 79;
+    codeGeneratorSettings.docCommentStartMarker = null;
+    codeGeneratorSettings.docCommentLineLeader = '/// ';
+    codeGeneratorSettings.docCommentEndMarker = null;
     codeGeneratorSettings.languageName = 'dart';
+  }
+
+  void emitDartdoc(List<String> dartdoc) {
+    bool first = true;
+    for (String paragraph in dartdoc) {
+      if (first) {
+        first = false;
+      } else {
+        writeln('  ///');
+      }
+      for (String line in paragraph.split(RegExp('\r?\n'))) {
+        writeln('  /// ${line.trim()}');
+      }
+    }
   }
 
   void emitImports() {
@@ -35,7 +66,7 @@ class CodegenNotificationHandlerVisitor extends DartCodegenVisitor
   }
 
   void emitNotificationHandler() {
-    _NotificationVisitor visitor = new _NotificationVisitor(api)..visitApi();
+    _NotificationVisitor visitor = _NotificationVisitor(api)..visitApi();
     final notifications = visitor.notificationConstants;
     notifications.sort((n1, n2) => n1.constName.compareTo(n2.constName));
 
@@ -49,13 +80,13 @@ class CodegenNotificationHandlerVisitor extends DartCodegenVisitor
 mixin NotificationHandler {
   void handleEvent(Notification notification) {
     Map<String, Object> params = notification.params;
-    ResponseDecoder decoder = new ResponseDecoder(null);
+    ResponseDecoder decoder = ResponseDecoder(null);
     switch (notification.event) {
 ''');
     for (_Notification notification in notifications) {
       writeln('      case ${notification.constName}:');
       writeln('        ${notification.methodName}(');
-      writeln('          new ${notification.paramsTypeName}');
+      writeln('          ${notification.paramsTypeName}');
       writeln("            .fromJson(decoder, 'params', params));");
       writeln('        break;');
     }
@@ -76,20 +107,6 @@ mixin NotificationHandler {
     writeln('  /// by any other notification handlers.');
     writeln('  void onUnknownNotification(String event, params) {}');
     writeln('}');
-  }
-
-  void emitDartdoc(List<String> dartdoc) {
-    bool first = true;
-    for (String paragraph in dartdoc) {
-      if (first) {
-        first = false;
-      } else {
-        writeln('  ///');
-      }
-      for (String line in paragraph.split(new RegExp('\r?\n'))) {
-        writeln('  /// ${line.trim()}');
-      }
-    }
   }
 
   @override
@@ -118,7 +135,7 @@ class _NotificationVisitor extends HierarchicalApiVisitor {
 
   @override
   void visitNotification(Notification notification) {
-    notificationConstants.add(new _Notification(
+    notificationConstants.add(_Notification(
         generateConstName(
             notification.domainName, 'notification', notification.event),
         _generateNotificationMethodName(
@@ -127,17 +144,3 @@ class _NotificationVisitor extends HierarchicalApiVisitor {
         _generateDartDoc(notification.html)));
   }
 }
-
-List<String> _generateDartDoc(Element html) => html.children
-    .where((Element elem) => elem.localName == 'p')
-    .map<String>((Element elem) => elem.text.trim())
-    .toList();
-
-String _generateNotificationMethodName(String domainName, String event) =>
-    'on${_capitalize(domainName)}${_capitalize(event)}';
-
-String _generateParamTypeName(String domainName, String event) =>
-    '${_capitalize(domainName)}${_capitalize(event)}Params';
-
-_capitalize(String name) =>
-    '${name.substring(0, 1).toUpperCase()}${name.substring(1)}';
