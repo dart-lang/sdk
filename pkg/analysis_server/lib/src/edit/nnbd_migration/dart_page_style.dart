@@ -10,7 +10,7 @@ body {
   /* This allows very small files to be displayed lower than the very top of the
    * screen.
    */
-  margin-bottom: 100px;
+  margin: 8px;
   padding: 0.5em;
 }
 
@@ -20,7 +20,7 @@ h1 {
   margin: 0;
 }
 
-h2.unit-name {
+h2#unit-name {
   font-size: 1.2em;
   font-weight: 600;
   margin: 0;
@@ -31,7 +31,6 @@ h2.unit-name {
   flex-wrap: wrap;
 }
 
-
 .nav-link {
   cursor: pointer;
 }
@@ -39,30 +38,40 @@ h2.unit-name {
 .nav {
   background-color: #282b2e;
   flex-basis: 0;
-  flex-grow: 1;
+  flex: 0 1 auto;
   font-size: 14px;
   /* 10px to match exact top margin of .content.
    * 0.8em to pair with the -0.5em margin of .content, producing a net margin
    * between the two of 0.3em.
    */
-  margin: 10px 0.8em 10px 0;
-  padding: 0.5em;
+  margin: 10px 0.8em 0 0;
 }
 
 .nav :first-child {
   margin-top: 0;
 }
 
-.nav .root {
+.nav-inner {
+  background-color: #282b2e;
+  overflow: auto;
+  padding: 7px 0 7px 7px;
+}
+
+.nav-inner.fixed {
+  position: fixed;
+  top: 0;
+}
+
+.nav-inner .root {
   margin: 0;
 }
 
-.nav .nav-link {
+.nav-inner .nav-link {
   color: #33ccff;
   margin-left: 1em;
 }
 
-.nav .selected-file {
+.nav-inner .selected-file {
   color: white;
   cursor: inherit;
   font-weight: 600;
@@ -70,13 +79,12 @@ h2.unit-name {
 }
 
 .content {
-  flex: 1;
+  flex: 1 1 700px;
   font-family: monospace;
   /* Vertical margin around content. */
   margin: 10px 0;
   /* Offset the margin introduced by the absolutely positioned child div. */
   margin-left: -0.5em;
-  min-width: 900px;
   position: relative;
   white-space: pre;
 }
@@ -214,5 +222,9 @@ h2.unit-name {
   color: black;
   position: relative;
   visibility: visible;
+}
+
+.footer {
+  padding: 8px 8px 100px 8px;
 }
 ''';

@@ -173,6 +173,28 @@ function addClickHandlers(parentSelector) {
   });
 }
 
+function debounce(fn, delay) {
+  var timeout;
+  return function() {
+    var later = function() {
+      timeout = null;
+    };
+    var callNow = !timeout;
+    clearTimeout(timeout);
+    timeout = setTimeout(later, delay);
+    if (callNow) fn.apply(this);
+	};
+};
+
+// Resize the fixed-size and fixed-position navigation panel.
+function resizeNav() {
+  const navInner = document.querySelector(".nav-inner");
+  // TODO(srawlins): I'm honestly not sure where 30 comes from; but without
+  // `- 30`, the navigation is too tall and the bottom cannot be seen.
+  const height = window.innerHeight - 30;
+  navInner.style.height = height + "px";
+}
+
 document.addEventListener("DOMContentLoaded", (event) => {
   const path = window.location.pathname;
   const offset = getOffset(window.location.href);
@@ -183,6 +205,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
     loadFile(path, offset, lineNumber,
         () => { pushState(path, offset, lineNumber) });
   }
+  resizeNav();
   addClickHandlers(".nav");
 });
 
@@ -197,5 +220,29 @@ window.addEventListener("popstate", (event) => {
     writeCodeAndRegions({"regions": "", "navContent": ""});
     updatePage("&nbsp;", null);
   }
+});
+
+window.addEventListener("resize", (event) => {
+  debounce(resizeNav, 200)();
+});
+
+window.addEventListener("scroll", (event) => {
+  const nav = document.querySelector(".nav");
+  const navInner = nav.querySelector(".nav-inner");
+  const navTip = nav.querySelector(".nav-tip");
+  const navTipMarginBottom = 14;
+  if (window.pageYOffset >
+          nav.offsetTop + navTip.offsetHeight + navTipMarginBottom) {
+    if (!navInner.classList.contains("fixed")) {
+      nav.style.width = nav.offsetWidth + "px";
+      navInner.classList.add("fixed");
+    }
+  } else {
+    if (navInner.classList.contains("fixed")) {
+      nav.style.width = "";
+      navInner.classList.remove("fixed");
+    }
+  }
+  debounce(resizeNav, 200)();
 });
 ''';
