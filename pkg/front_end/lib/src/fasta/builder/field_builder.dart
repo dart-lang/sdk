@@ -590,6 +590,26 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
     return initializers;
   }
 
+  /// Creates an [Expression] that reads [_field].
+  ///
+  /// If [needsPromotion] is `true`, the field will be read through a `let`
+  /// expression that promotes the expression to [_type]. This is needed for a
+  /// sound encoding of fields with type variable type of undetermined
+  /// nullability.
+  Expression _createFieldRead({bool needsPromotion: false}) {
+    if (needsPromotion) {
+      VariableDeclaration variable = new VariableDeclaration.forValue(
+          _createFieldGet(_field),
+          type: _type.withNullability(Nullability.nullable))
+        ..fileOffset = fileOffset;
+      return new Let(
+          variable, new VariableGet(variable, _type)..fileOffset = fileOffset);
+    } else {
+      return _createFieldGet(_field);
+    }
+  }
+
+  /// Creates an [Expression] that reads [field].
   Expression _createFieldGet(Field field) {
     if (field.isStatic) {
       return new StaticGet(field)..fileOffset = fileOffset;
@@ -600,6 +620,7 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
     }
   }
 
+  /// Creates an [Expression] that writes [value] to [field].
   Expression _createFieldSet(Field field, Expression value) {
     if (field.isStatic) {
       return new StaticSet(field, value)..fileOffset = fileOffset;
@@ -769,7 +790,7 @@ mixin LateWithInitializer on AbstractLateFieldEncoding {
     assert(_type != null, "Type has not been computed for field $name.");
     return late_lowering.createGetterWithInitializer(
         fileOffset, name, _type, initializer,
-        createVariableRead: () => _createFieldGet(_field),
+        createVariableRead: _createFieldRead,
         createVariableWrite: (Expression value) =>
             _createFieldSet(_field, value),
         createIsSetRead: () => _createFieldGet(_lateIsSetField),
@@ -785,7 +806,7 @@ mixin LateWithoutInitializer on AbstractLateFieldEncoding {
     assert(_type != null, "Type has not been computed for field $name.");
     return late_lowering.createGetterBodyWithoutInitializer(
         coreTypes, fileOffset, name, type, 'Field',
-        createVariableRead: () => _createFieldGet(_field),
+        createVariableRead: _createFieldRead,
         createIsSetRead: () => _createFieldGet(_lateIsSetField));
   }
 }

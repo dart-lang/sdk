@@ -2,7 +2,7 @@ library;
 import self as self;
 import "dart:core" as core;
 
-class Class extends core::Object {
+class Class<T extends core::Object? = dynamic> extends core::Object {
   static field core::int? lateStaticField1Init;
   static field core::int? _#lateStaticField1;
   static field core::bool _#lateStaticField1#isSet;
@@ -12,7 +12,11 @@ class Class extends core::Object {
   field core::int? lateInstanceFieldInit;
   field core::int? _#lateInstanceField;
   field core::bool _#lateInstanceField#isSet;
-  synthetic constructor •() → self::Class
+  generic-covariant-impl field self::Class::T? lateGenericInstanceFieldInit;
+  final field self::Class::T? field;
+  field self::Class::T? _#lateGenericInstanceField;
+  field core::bool _#lateGenericInstanceField#isSet;
+  constructor •(self::Class::T? field) → self::Class<self::Class::T%>
     ;
   static method initLateStaticField1(core::int value) → core::int?
     ;
@@ -25,10 +29,13 @@ class Class extends core::Object {
   method initLateInstanceField(core::int value) → core::int?
     ;
   get lateInstanceField() → core::int?;
+  method initLateGenericInstanceField(generic-covariant-impl self::Class::T? value) → self::Class::T?
+    ;
+  get lateGenericInstanceField() → self::Class::T?;
   method instanceMethod() → dynamic
     ;
 }
-extension Extension on self::Class {
+extension Extension<T extends core::Object? = dynamic> on self::Class<T%> {
   static field lateExtensionField1Init = self::Extension|lateExtensionField1Init;
   static method initLateExtensionField1 = self::Extension|initLateExtensionField1;
   static field lateExtensionField1 = self::_#Extension|lateExtensionField1;

@@ -2,7 +2,7 @@ library;
 import self as self;
 import "dart:core" as core;
 
-class Class extends core::Object {
+class Class<T extends core::Object? = dynamic> extends core::Object {
   static field core::int? lateStaticField1Init = null;
   static field core::int? _#lateStaticField1 = null;
   static field core::bool _#lateStaticField1#isSet = false;
@@ -12,8 +12,12 @@ class Class extends core::Object {
   field core::int? lateInstanceFieldInit = null;
   field core::int? _#lateInstanceField = null;
   field core::bool _#lateInstanceField#isSet = false;
-  synthetic constructor •() → self::Class
-    : super core::Object::•()
+  generic-covariant-impl field self::Class::T? lateGenericInstanceFieldInit = null;
+  final field self::Class::T? field;
+  field self::Class::T? _#lateGenericInstanceField = null;
+  field core::bool _#lateGenericInstanceField#isSet = false;
+  constructor •(self::Class::T? field) → self::Class<self::Class::T%>
+    : self::Class::field = field, super core::Object::•()
     ;
   static method initLateStaticField1(core::int value) → core::int? {
     return self::Class::lateStaticField1Init = value;
@@ -50,13 +54,26 @@ class Class extends core::Object {
     }
     return this.{self::Class::_#lateInstanceField};
   }
+  method initLateGenericInstanceField(generic-covariant-impl self::Class::T? value) → self::Class::T? {
+    return this.{self::Class::lateGenericInstanceFieldInit} = value;
+  }
+  get lateGenericInstanceField() → self::Class::T? {
+    if(!this.{self::Class::_#lateGenericInstanceField#isSet}) {
+      this.{self::Class::_#lateGenericInstanceField#isSet} = true;
+      this.{self::Class::_#lateGenericInstanceField} = this.{self::Class::initLateGenericInstanceField}(this.{self::Class::field});
+    }
+    return this.{self::Class::_#lateGenericInstanceField};
+  }
   method instanceMethod() → dynamic {
     self::expect(null, this.{self::Class::lateInstanceFieldInit});
     self::expect(16, this.{self::Class::lateInstanceField});
     self::expect(16, this.{self::Class::lateInstanceFieldInit});
+    self::expect(null, this.{self::Class::lateGenericInstanceFieldInit});
+    self::expect(this.{self::Class::field}, this.{self::Class::lateGenericInstanceField});
+    self::expect(this.{self::Class::field}, this.{self::Class::lateGenericInstanceFieldInit});
   }
 }
-extension Extension on self::Class {
+extension Extension<T extends core::Object? = dynamic> on self::Class<T%> {
   static field lateExtensionField1Init = self::Extension|lateExtensionField1Init;
   static method initLateExtensionField1 = self::Extension|initLateExtensionField1;
   static field lateExtensionField1 = self::_#Extension|lateExtensionField1;
@@ -121,7 +138,9 @@ static method main() → dynamic {
   self::expect(87, self::Class::lateStaticField1);
   self::expect(87, self::Class::lateStaticField1Init);
   self::Class::staticMethod();
-  new self::Class::•().{self::Class::instanceMethod}();
+  new self::Class::•<core::int?>(null).{self::Class::instanceMethod}();
+  new self::Class::•<core::int?>(0).{self::Class::instanceMethod}();
+  new self::Class::•<core::int>(0).{self::Class::instanceMethod}();
   self::expect(null, self::Extension|lateExtensionField1Init);
   self::expect(87, self::Extension|lateExtensionField1);
   self::expect(87, self::Extension|lateExtensionField1Init);

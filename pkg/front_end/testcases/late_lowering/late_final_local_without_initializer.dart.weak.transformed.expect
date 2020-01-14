@@ -16,6 +16,26 @@ static method main() → dynamic {
   self::expect(123, #lateLocal#set.call(123));
   self::expect(123, #lateLocal#get.call());
   self::throws(() → core::int => #lateLocal#set.call(124), "Write value to initialized lateLocal");
+  function local<T extends core::Object? = dynamic>(T% value) → core::Null? {
+    final T? lateGenericLocal;
+    core::bool #lateGenericLocal#isSet = false;
+    function #lateGenericLocal#get() → T%
+      return #lateGenericLocal#isSet ?{T%} lateGenericLocal{T%} : throw new _in::LateInitializationErrorImpl::•("Local 'lateGenericLocal' has not been initialized.");
+    function #lateGenericLocal#set(T% #t3) → dynamic
+      if(#lateGenericLocal#isSet)
+        throw new _in::LateInitializationErrorImpl::•("Local 'lateGenericLocal' has already been initialized.");
+      else {
+        #lateGenericLocal#isSet = true;
+        return lateGenericLocal = #t3;
+      }
+    self::throws(() → T? => #lateGenericLocal#get.call(), "Read value from uninitialized lateGenericLocal");
+    self::expect(value, #lateGenericLocal#set.call(value));
+    self::expect(value, #lateGenericLocal#get.call());
+    self::throws(() → T% => #lateGenericLocal#set.call(value), "Write value to initialized lateGenericLocal");
+  }
+  local.call<core::int?>(null);
+  local.call<core::int?>(42);
+  local.call<core::int>(42);
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
   if(!expected.{core::Object::==}(actual))

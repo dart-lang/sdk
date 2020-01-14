@@ -5091,7 +5091,14 @@ class InferenceVisitor
         result.add(isSetVariable);
       }
 
-      Expression createVariableRead() => new VariableGet(node);
+      Expression createVariableRead({bool needsPromotion: false}) {
+        if (needsPromotion) {
+          return new VariableGet(node, node.type);
+        } else {
+          return new VariableGet(node);
+        }
+      }
+
       Expression createIsSetRead() => new VariableGet(isSetVariable);
       Expression createVariableWrite(Expression value) =>
           new VariableSet(node, value);

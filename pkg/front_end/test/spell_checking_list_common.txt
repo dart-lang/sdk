@@ -2200,6 +2200,7 @@ promotable
 promote
 promoted
 promoter
+promotes
 promotion
 promotions
 propagate
@@ -2648,6 +2649,7 @@ sorted
 sorting
 sorts
 sought
+sound
 source
 sources
 space
