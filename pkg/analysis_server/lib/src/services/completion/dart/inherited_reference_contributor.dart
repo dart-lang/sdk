@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
+import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -127,19 +128,7 @@ class InheritedReferenceContributor extends DartCompletionContributor
         element.name == 'setState' &&
         Flutter.of(request.result).isExactState(element.enclosingElement)) {
       // Find the line indentation.
-      String content = request.result.content;
-      int lineStartOffset = request.offset;
-      int notWhitespaceOffset = request.offset;
-      for (; lineStartOffset > 0; lineStartOffset--) {
-        var char = content.substring(lineStartOffset - 1, lineStartOffset);
-        if (char == '\n') {
-          break;
-        }
-        if (char != ' ' && char != '\t') {
-          notWhitespaceOffset = lineStartOffset - 1;
-        }
-      }
-      String indent = content.substring(lineStartOffset, notWhitespaceOffset);
+      String indent = getRequestLineIndent(request);
 
       // Let the user know that we are going to insert a complete statement.
       suggestion.displayText = 'setState(() {});';
