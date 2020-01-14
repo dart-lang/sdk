@@ -253,12 +253,6 @@ abstract class ClassBuilder implements DeclarationBuilder {
       callback(Member declaredMember, Member interfaceMember, bool isSetter),
       {bool isInterfaceCheck = false});
 
-  void checkOverrides(
-      ClassHierarchy hierarchy, TypeEnvironment typeEnvironment);
-
-  void checkAbstractMembers(CoreTypes coreTypes, ClassHierarchy hierarchy,
-      TypeEnvironment typeEnvironment);
-
   bool hasUserDefinedNoSuchMethod(
       Class klass, ClassHierarchy hierarchy, Class objectClass);
 
@@ -1075,14 +1069,6 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     }
     // TODO(ahe): Handle other cases: accessors, operators, and fields.
   }
-
-  @override
-  void checkOverrides(
-      ClassHierarchy hierarchy, TypeEnvironment typeEnvironment) {}
-
-  @override
-  void checkAbstractMembers(CoreTypes coreTypes, ClassHierarchy hierarchy,
-      TypeEnvironment typeEnvironment) {}
 
   @override
   bool hasUserDefinedNoSuchMethod(
