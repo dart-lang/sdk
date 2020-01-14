@@ -126,8 +126,7 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
     component.addMetadataRepository(_procedureAttributesMetadata);
   }
 
-  InferredType _convertType(Type type,
-      {bool skipCheck: false, bool receiverNotInt: false}) {
+  InferredType _convertType(Type type, {bool skipCheck: false}) {
     assertx(type != null);
 
     Class concreteClass;
@@ -166,21 +165,16 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
         !nullable ||
         isInt ||
         constantValue != null ||
-        skipCheck ||
-        receiverNotInt) {
+        skipCheck) {
       return new InferredType(concreteClass, nullable, isInt, constantValue,
-          exactTypeArguments: typeArgs,
-          skipCheck: skipCheck,
-          receiverNotInt: receiverNotInt);
+          exactTypeArguments: typeArgs, skipCheck: skipCheck);
     }
 
     return null;
   }
 
-  void _setInferredType(TreeNode node, Type type,
-      {bool skipCheck: false, bool receiverNotInt: false}) {
-    final inferredType = _convertType(type,
-        skipCheck: skipCheck, receiverNotInt: receiverNotInt);
+  void _setInferredType(TreeNode node, Type type, {bool skipCheck: false}) {
+    final inferredType = _convertType(type, skipCheck: skipCheck);
     if (inferredType != null) {
       _inferredTypeMetadata.mapping[node] = inferredType;
     }
@@ -190,52 +184,28 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
     _unreachableNodeMetadata.mapping[node] = const UnreachableNode();
   }
 
-  void _annotateCallSite(TreeNode node, Member interfaceTarget) {
+  void _annotateCallSite(TreeNode node) {
     final callSite = _typeFlowAnalysis.callSite(node);
-    if (callSite == null) return;
-    if (!callSite.isReachable) {
-      _setUnreachable(node);
-      return;
-    }
-
-    final bool markSkipCheck = !callSite.useCheckedEntry &&
-        (node is MethodInvocation || node is PropertySet);
-
-    bool markReceiverNotInt = false;
-
-    if (!callSite.receiverMayBeInt) {
-      // No information is needed for static calls.
-      if (node is! StaticInvocation &&
-          node is! StaticSet &&
-          node is! StaticGet) {
-        // The compiler uses another heuristic in addition to the call-site
-        // annotation: if the call-site is non-dynamic and the interface target does
-        // not exist in the parent chain of _Smi (int is used as an approxmiation
-        // here), then the receiver cannot be _Smi. This heuristic covers most
-        // cases, so we skip these to avoid showering the AST with annotations.
-        if (interfaceTarget == null ||
-            _typeFlowAnalysis.hierarchyCache.hierarchy.isSubtypeOf(
-                _typeFlowAnalysis.hierarchyCache.coreTypes.intClass,
-                interfaceTarget.enclosingClass)) {
-          markReceiverNotInt = true;
+    if (callSite != null) {
+      if (callSite.isReachable) {
+        bool markSkipCheck = !callSite.useCheckedEntry &&
+            (node is MethodInvocation || node is PropertySet);
+        if (callSite.isResultUsed) {
+          _setInferredType(node, callSite.resultType, skipCheck: markSkipCheck);
+        } else if (markSkipCheck) {
+          // If the call is not marked as 'isResultUsed', the 'resultType' will
+          // not be observed (i.e., it will always be EmptyType). This is the
+          // case even if the result acutally might be used but is not used by
+          // the summary, e.g. if the result is an argument to a closure call.
+          // Therefore, we need to pass in 'NullableType(AnyType)' as the
+          // inferred result type here (since we don't know what it actually
+          // is).
+          _setInferredType(node, NullableType(const AnyType()),
+              skipCheck: true);
         }
+      } else {
+        _setUnreachable(node);
       }
-    }
-
-    // If the call is not marked as 'isResultUsed', the 'resultType' will
-    // not be observed (i.e., it will always be EmptyType). This is the
-    // case even if the result acutally might be used but is not used by
-    // the summary, e.g. if the result is an argument to a closure call.
-    // Therefore, we need to pass in 'NullableType(AnyType)' as the
-    // inferred result type here (since we don't know what it actually
-    // is).
-    final Type resultType = callSite.isResultUsed
-        ? callSite.resultType
-        : NullableType(const AnyType());
-
-    if (markSkipCheck || markReceiverNotInt || callSite.isResultUsed) {
-      _setInferredType(node, resultType,
-          skipCheck: markSkipCheck, receiverNotInt: markReceiverNotInt);
     }
   }
 
@@ -310,49 +280,49 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
 
   @override
   visitMethodInvocation(MethodInvocation node) {
-    _annotateCallSite(node, node.interfaceTarget);
+    _annotateCallSite(node);
     super.visitMethodInvocation(node);
   }
 
   @override
   visitPropertyGet(PropertyGet node) {
-    _annotateCallSite(node, node.interfaceTarget);
+    _annotateCallSite(node);
     super.visitPropertyGet(node);
   }
 
   @override
   visitDirectMethodInvocation(DirectMethodInvocation node) {
-    _annotateCallSite(node, node.target);
+    _annotateCallSite(node);
     super.visitDirectMethodInvocation(node);
   }
 
   @override
   visitDirectPropertyGet(DirectPropertyGet node) {
-    _annotateCallSite(node, node.target);
+    _annotateCallSite(node);
     super.visitDirectPropertyGet(node);
   }
 
   @override
   visitSuperMethodInvocation(SuperMethodInvocation node) {
-    _annotateCallSite(node, node.interfaceTarget);
+    _annotateCallSite(node);
     super.visitSuperMethodInvocation(node);
   }
 
   @override
   visitSuperPropertyGet(SuperPropertyGet node) {
-    _annotateCallSite(node, node.interfaceTarget);
+    _annotateCallSite(node);
     super.visitSuperPropertyGet(node);
   }
 
   @override
   visitStaticInvocation(StaticInvocation node) {
-    _annotateCallSite(node, node.target);
+    _annotateCallSite(node);
     super.visitStaticInvocation(node);
   }
 
   @override
   visitStaticGet(StaticGet node) {
-    _annotateCallSite(node, node.target);
+    _annotateCallSite(node);
     super.visitStaticGet(node);
   }
 }

@@ -117,11 +117,6 @@ abstract class TypeHierarchy extends TypesBuilder
   /// Return a more specific type for the type cone with [base] root.
   /// May return EmptyType, AnyType, ConcreteType or a SetType.
   Type specializeTypeCone(TFClass base);
-
-  Type _cachedIntType;
-  Type get intType {
-    return _cachedIntType ??= fromStaticType(coreTypes.intLegacyRawType, true);
-  }
 }
 
 /// Base class for type expressions.

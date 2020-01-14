@@ -62,10 +62,13 @@ class UnlinkedCallKeyValueTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) { return key->Hashcode(); }
+  static inline intptr_t Hashcode(Key key) {
+    return String::Handle(key->target_name()).Hash();
+  }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
-    return pair->Equals(*key);
+    return (pair->target_name() == key->target_name()) &&
+           (pair->args_descriptor() == key->args_descriptor());
   }
 };
 

@@ -3335,47 +3335,6 @@ void StubCodeCompiler::GenerateICCallThroughCodeStub(Assembler* assembler) {
   __ Branch(FieldAddress(CODE_REG, target::Code::entry_point_offset()));
 }
 
-// Implement the monomorphic entry check for call-sites where the receiver
-// might be a Smi.
-//
-//   R0: receiver
-//   R9: MonomorphicSmiableCall object
-//
-//   R2, R3: clobbered
-void StubCodeCompiler::GenerateMonomorphicSmiableCheckStub(
-    Assembler* assembler) {
-  __ LoadClassIdMayBeSmi(IP, R0);
-
-  // expected_cid_ should come right after target_
-  ASSERT(target::MonomorphicSmiableCall::expected_cid_offset() ==
-         target::MonomorphicSmiableCall::target_offset() + target::kWordSize);
-  // entrypoint_ should come right after expected_cid_
-  ASSERT(target::MonomorphicSmiableCall::entrypoint_offset() ==
-         target::MonomorphicSmiableCall::expected_cid_offset() +
-             target::kWordSize);
-
-  if (FLAG_use_bare_instructions) {
-    // Simultaneously load the expected cid into R2 and the entrypoint into R3.
-    __ ldrd(
-        R2, R3, R9,
-        target::MonomorphicSmiableCall::expected_cid_offset() - kHeapObjectTag);
-    __ cmp(R2, Operand(IP));
-    __ Branch(Address(THR, target::Thread::monomorphic_miss_entry_offset()),
-              NE);
-    __ bx(R3);
-  } else {
-    // Simultaneously load the target into R2 and the expected cid into R3.
-    __ ldrd(R2, R3, R9,
-            target::MonomorphicSmiableCall::target_offset() - kHeapObjectTag);
-    __ mov(CODE_REG, Operand(R2));
-    __ cmp(R3, Operand(IP));
-    __ Branch(Address(THR, target::Thread::monomorphic_miss_entry_offset()),
-              NE);
-    __ LoadField(IP, FieldAddress(R2, target::Code::entry_point_offset()));
-    __ bx(IP);
-  }
-}
-
 // Called from switchable IC calls.
 //  R0: receiver
 //  R9: UnlinkedCall

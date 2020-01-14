@@ -1805,8 +1805,8 @@ void Assembler::MonomorphicCheckedEntryJIT() {
   nop(1);
 
   Comment("MonomorphicCheckedEntry");
-  ASSERT_EQUAL(CodeSize() - start,
-               target::Instructions::kMonomorphicEntryOffsetJIT);
+  ASSERT(CodeSize() - start ==
+         target::Instructions::kMonomorphicEntryOffsetJIT);
   ASSERT((CodeSize() & kSmiTagMask) == kSmiTag);
 
   const intptr_t cid_offset = target::Array::element_offset(0);
@@ -1821,8 +1821,8 @@ void Assembler::MonomorphicCheckedEntryJIT() {
   nop(1);
 
   // Fall through to unchecked entry.
-  ASSERT_EQUAL(CodeSize() - start,
-               target::Instructions::kPolymorphicEntryOffsetJIT);
+  ASSERT(CodeSize() - start ==
+         target::Instructions::kPolymorphicEntryOffsetJIT);
   ASSERT(((CodeSize() - start) & kSmiTagMask) == kSmiTag);
 }
 
@@ -1838,12 +1838,17 @@ void Assembler::MonomorphicCheckedEntryAOT() {
   nop(1);
 
   Comment("MonomorphicCheckedEntry");
-  ASSERT_EQUAL(CodeSize() - start,
-               target::Instructions::kMonomorphicEntryOffsetAOT);
+  ASSERT(CodeSize() - start ==
+         target::Instructions::kMonomorphicEntryOffsetAOT);
   ASSERT((CodeSize() & kSmiTagMask) == kSmiTag);
 
+  movq(RAX, Immediate(kSmiCid));
   SmiUntag(RBX);
+  testq(RDX, Immediate(kSmiTagMask));
+  j(ZERO, &have_cid, kNearJump);
   LoadClassId(RAX, RDX);
+  Bind(&have_cid);
+
   cmpq(RAX, RBX);
   j(NOT_EQUAL, &miss, Assembler::kNearJump);
 
@@ -1852,8 +1857,8 @@ void Assembler::MonomorphicCheckedEntryAOT() {
   nop(1);
 
   // Fall through to unchecked entry.
-  ASSERT_EQUAL(CodeSize() - start,
-               target::Instructions::kPolymorphicEntryOffsetAOT);
+  ASSERT(CodeSize() - start ==
+         target::Instructions::kPolymorphicEntryOffsetAOT);
   ASSERT(((CodeSize() - start) & kSmiTagMask) == kSmiTag);
 }
 

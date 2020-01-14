@@ -4265,24 +4265,6 @@ static RawCode* TwoArgsSmiOpInlineCacheEntry(Token::Kind kind) {
   }
 }
 
-void InstanceCallBaseInstr::UpdateReceiverSminess(Zone* zone) {
-  if (FLAG_precompiled_mode && !receiver_is_not_smi()) {
-    if (Receiver()->Type()->IsNotSmi()) {
-      set_receiver_is_not_smi(true);
-      return;
-    }
-
-    if (!interface_target().IsNull()) {
-      const AbstractType& target_type = AbstractType::Handle(
-          zone, Class::Handle(zone, interface_target().Owner()).RareType());
-      if (!CompileType::Smi().IsAssignableTo(NNBDMode::kLegacyLib,
-                                             target_type)) {
-        set_receiver_is_not_smi(true);
-      }
-    }
-  }
-}
-
 void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Zone* zone = compiler->zone();
   const ICData* call_ic_data = NULL;
@@ -4303,8 +4285,6 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     call_ic_data = &ICData::ZoneHandle(zone, ic_data()->raw());
   }
 
-  UpdateReceiverSminess(zone);
-
   if ((compiler->is_optimizing() || compiler->function().HasBytecode()) &&
       HasICData()) {
     ASSERT(HasICData());
@@ -4312,13 +4292,11 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       const ICData& unary_ic_data =
           ICData::ZoneHandle(zone, ic_data()->AsUnaryClassChecks());
       compiler->GenerateInstanceCall(deopt_id(), token_pos(), locs(),
-                                     unary_ic_data, entry_kind(),
-                                     !receiver_is_not_smi());
+                                     unary_ic_data, entry_kind());
     } else {
       // Call was not visited yet, use original ICData in order to populate it.
       compiler->GenerateInstanceCall(deopt_id(), token_pos(), locs(),
-                                     *call_ic_data, entry_kind(),
-                                     !receiver_is_not_smi());
+                                     *call_ic_data, entry_kind());
     }
   } else {
     // Unoptimized code.
@@ -4338,8 +4316,7 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                     token_pos(), locs(), entry_kind());
     } else {
       compiler->GenerateInstanceCall(deopt_id(), token_pos(), locs(),
-                                     *call_ic_data, entry_kind(),
-                                     !receiver_is_not_smi());
+                                     *call_ic_data, entry_kind());
     }
   }
 }
@@ -4468,10 +4445,9 @@ LocationSummary* PolymorphicInstanceCallInstr::MakeLocationSummary(
 
 void PolymorphicInstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ArgumentsInfo args_info(type_args_len(), ArgumentCount(), argument_names());
-  UpdateReceiverSminess(compiler->zone());
-  compiler->EmitPolymorphicInstanceCall(
-      this, targets(), args_info, deopt_id(), token_pos(), locs(), complete(),
-      total_call_count(), !receiver_is_not_smi());
+  compiler->EmitPolymorphicInstanceCall(this, targets(), args_info, deopt_id(),
+                                        token_pos(), locs(), complete(),
+                                        total_call_count());
 }
 
 RawType* PolymorphicInstanceCallInstr::ComputeRuntimeType(

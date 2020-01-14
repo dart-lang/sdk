@@ -1148,21 +1148,15 @@ void FlowGraphCompiler::EmitInstanceCallAOT(const ICData& ic_data,
                                             intptr_t deopt_id,
                                             TokenPosition token_pos,
                                             LocationSummary* locs,
-                                            Code::EntryKind entry_kind,
-                                            bool receiver_can_be_smi) {
+                                            Code::EntryKind entry_kind) {
   ASSERT(entry_kind == Code::EntryKind::kNormal ||
          entry_kind == Code::EntryKind::kUnchecked);
   ASSERT(ic_data.NumArgsTested() == 1);
   const Code& initial_stub = StubCode::UnlinkedCall();
-  const char* switchable_call_mode = "smiable";
-  if (!receiver_can_be_smi) {
-    switchable_call_mode = "non-smi";
-    ic_data.set_receiver_cannot_be_smi(true);
-  }
   const UnlinkedCall& data =
       UnlinkedCall::ZoneHandle(zone(), ic_data.AsUnlinkedCall());
 
-  __ Comment("InstanceCallAOT (%s)", switchable_call_mode);
+  __ Comment("InstanceCallAOT");
   __ movq(RDX, compiler::Address(
                    RSP, (ic_data.CountWithoutTypeArgs() - 1) * kWordSize));
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {

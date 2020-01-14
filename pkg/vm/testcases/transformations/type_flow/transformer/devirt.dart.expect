@@ -49,10 +49,10 @@ static method callerA4([@vm.inferred-type.metadata=#lib::D?] self::A* aa) → vo
   [@vm.direct-call.metadata=#lib::C::foo??] [@vm.inferred-type.metadata=!? (skip check)] aa.{self::A::foo}();
 }
 static method callerE1([@vm.inferred-type.metadata=dart.core::_OneByteString (value: abc)] dynamic x) → void {
-  [@vm.direct-call.metadata=dart.core::_StringBase::toString] [@vm.inferred-type.metadata=!? (skip check) (receiver not int)] x.{core::Object::toString}();
+  [@vm.direct-call.metadata=dart.core::_StringBase::toString] [@vm.inferred-type.metadata=!? (skip check)] x.{core::Object::toString}();
 }
 static method callerE2([@vm.inferred-type.metadata=#lib::E?] dynamic x) → void {
-  [@vm.inferred-type.metadata=!? (receiver not int)] x.{core::Object::toString}();
+  x.{core::Object::toString}();
 }
 static method main(core::List<core::String*>* args) → dynamic {
   self::callerA1(new self::B::•());

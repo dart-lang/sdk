@@ -833,16 +833,16 @@ void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs,
 
     BitmapBuilder* bitmap = locs->stack_bitmap();
 
-    // An instruction may have two safepoints in deferred code. The
-    // call to RecordSafepoint has the side-effect of appending the live
-    // registers to the bitmap. This is why the second call to RecordSafepoint
-    // with the same instruction (and same location summary) sees a bitmap that
-    // is larger that StackSize(). It will never be larger than StackSize() +
-    // live_registers_size.
-    // The first safepoint will grow the bitmap to be the size of
-    // spill_area_size but the second safepoint will truncate the bitmap and
-    // append the live registers to it again. The bitmap produced by both calls
-    // will be the same.
+// An instruction may have two safepoints in deferred code. The
+// call to RecordSafepoint has the side-effect of appending the live
+// registers to the bitmap. This is why the second call to RecordSafepoint
+// with the same instruction (and same location summary) sees a bitmap that
+// is larger that StackSize(). It will never be larger than StackSize() +
+// live_registers_size.
+// The first safepoint will grow the bitmap to be the size of
+// spill_area_size but the second safepoint will truncate the bitmap and
+// append the live registers to it again. The bitmap produced by both calls
+// will be the same.
     ASSERT(bitmap->Length() <= (spill_area_size + saved_registers_size));
     bitmap->SetLength(spill_area_size);
 
@@ -1323,13 +1323,12 @@ void FlowGraphCompiler::GenerateInstanceCall(intptr_t deopt_id,
                                              TokenPosition token_pos,
                                              LocationSummary* locs,
                                              const ICData& ic_data_in,
-                                             Code::EntryKind entry_kind,
-                                             bool receiver_can_be_smi) {
+                                             Code::EntryKind entry_kind) {
   ICData& ic_data = ICData::ZoneHandle(ic_data_in.Original());
   if (FLAG_precompiled_mode) {
+    // TODO(#34162): Support unchecked entry-points in precompiled mode.
     ic_data = ic_data.AsUnaryClassChecks();
-    EmitInstanceCallAOT(ic_data, deopt_id, token_pos, locs, entry_kind,
-                        receiver_can_be_smi);
+    EmitInstanceCallAOT(ic_data, deopt_id, token_pos, locs, entry_kind);
     return;
   }
   ASSERT(!ic_data.IsNull());
@@ -1343,8 +1342,11 @@ void FlowGraphCompiler::GenerateInstanceCall(intptr_t deopt_id,
   }
 
   if (is_optimizing()) {
-    EmitMegamorphicInstanceCall(ic_data_in, deopt_id, token_pos, locs,
-                                kInvalidTryIndex);
+    String& name = String::Handle(ic_data_in.target_name());
+    const Array& arguments_descriptor =
+        Array::Handle(ic_data_in.arguments_descriptor());
+    EmitMegamorphicInstanceCall(name, arguments_descriptor, deopt_id, token_pos,
+                                locs, kInvalidTryIndex);
     return;
   }
 
@@ -2021,8 +2023,7 @@ void FlowGraphCompiler::EmitPolymorphicInstanceCall(
     TokenPosition token_pos,
     LocationSummary* locs,
     bool complete,
-    intptr_t total_ic_calls,
-    bool receiver_can_be_smi) {
+    intptr_t total_ic_calls) {
   ASSERT(call != nullptr);
   if (FLAG_polymorphic_with_deopt) {
     compiler::Label* deopt =
@@ -2047,7 +2048,7 @@ void FlowGraphCompiler::EmitPolymorphicInstanceCall(
       const ICData& unary_checks =
           ICData::ZoneHandle(zone(), call->ic_data()->AsUnaryClassChecks());
       EmitInstanceCallAOT(unary_checks, deopt_id, token_pos, locs,
-                          call->entry_kind(), receiver_can_be_smi);
+                          call->entry_kind());
     }
   }
 }

@@ -118,8 +118,6 @@ namespace dart {
   F(SingleTargetCache, target_)                                                \
   F(UnlinkedCall, target_name_)                                                \
   F(UnlinkedCall, args_descriptor_)                                            \
-  F(MonomorphicSmiableCall, expected_cid_)                                     \
-  F(MonomorphicSmiableCall, target_)                                           \
   F(ICData, entries_)                                                          \
   F(ICData, target_name_)                                                      \
   F(ICData, args_descriptor_)                                                  \

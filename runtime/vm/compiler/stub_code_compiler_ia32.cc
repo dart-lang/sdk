@@ -2768,11 +2768,6 @@ void StubCodeCompiler::GenerateICCallThroughCodeStub(Assembler* assembler) {
   __ int3();  // AOT only.
 }
 
-void StubCodeCompiler::GenerateMonomorphicSmiableCheckStub(
-    Assembler* assembler) {
-  __ int3();  // AOT only.
-}
-
 void StubCodeCompiler::GenerateUnlinkedCallStub(Assembler* assembler) {
   __ int3();  // AOT only.
 }

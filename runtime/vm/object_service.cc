@@ -807,17 +807,6 @@ void UnlinkedCall::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("_argumentsDescriptor", Array::Handle(args_descriptor()));
 }
 
-void MonomorphicSmiableCall::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
-  AddCommonObjectProperties(&jsobj, "Object", ref);
-  jsobj.AddServiceId(*this);
-  jsobj.AddProperty("_expectedClassId", Smi::Handle(Smi::New(expected_cid())));
-  if (ref) {
-    return;
-  }
-  jsobj.AddProperty("_target", Code::Handle(target()));
-}
-
 void ICData::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   AddCommonObjectProperties(&jsobj, "Object", ref);

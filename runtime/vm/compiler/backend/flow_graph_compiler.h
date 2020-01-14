@@ -574,12 +574,12 @@ class FlowGraphCompiler : public ValueObject {
                           NNBDMode mode,
                           LocationSummary* locs);
 
-  void GenerateInstanceCall(intptr_t deopt_id,
-                            TokenPosition token_pos,
-                            LocationSummary* locs,
-                            const ICData& ic_data,
-                            Code::EntryKind entry_kind,
-                            bool receiver_can_be_smi);
+  void GenerateInstanceCall(
+      intptr_t deopt_id,
+      TokenPosition token_pos,
+      LocationSummary* locs,
+      const ICData& ic_data,
+      Code::EntryKind entry_kind = Code::EntryKind::kNormal);
 
   void GenerateStaticCall(
       intptr_t deopt_id,
@@ -645,21 +645,7 @@ class FlowGraphCompiler : public ValueObject {
                                    TokenPosition token_pos,
                                    LocationSummary* locs,
                                    bool complete,
-                                   intptr_t total_call_count,
-                                   bool receiver_can_be_smi = true);
-
-  void EmitMegamorphicInstanceCall(const ICData& icdata,
-                                   intptr_t deopt_id,
-                                   TokenPosition token_pos,
-                                   LocationSummary* locs,
-                                   intptr_t try_index,
-                                   intptr_t slow_path_argument_count = 0) {
-    const String& name = String::Handle(icdata.target_name());
-    const Array& arguments_descriptor =
-        Array::Handle(icdata.arguments_descriptor());
-    EmitMegamorphicInstanceCall(name, arguments_descriptor, deopt_id, token_pos,
-                                locs, try_index);
-  }
+                                   intptr_t total_call_count);
 
   // Pass a value for try-index where block is not available (e.g. slow path).
   void EmitMegamorphicInstanceCall(const String& function_name,
@@ -675,8 +661,7 @@ class FlowGraphCompiler : public ValueObject {
       intptr_t deopt_id,
       TokenPosition token_pos,
       LocationSummary* locs,
-      Code::EntryKind entry_kind = Code::EntryKind::kNormal,
-      bool receiver_can_be_smi = true);
+      Code::EntryKind entry_kind = Code::EntryKind::kNormal);
 
   void EmitTestAndCall(const CallTargets& targets,
                        const String& function_name,

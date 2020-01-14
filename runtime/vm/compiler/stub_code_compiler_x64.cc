@@ -275,9 +275,9 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
     __ jmp(&done);
   }
 
-  ASSERT_EQUAL(__ CodeSize(),
-               kNativeCallbackTrampolineSize *
-                   NativeCallbackTrampolines::NumCallbackTrampolinesPerPage());
+  ASSERT(__ CodeSize() ==
+         kNativeCallbackTrampolineSize *
+             NativeCallbackTrampolines::NumCallbackTrampolinesPerPage());
 
   __ Bind(&done);
 
@@ -3417,33 +3417,6 @@ void StubCodeCompiler::GenerateICCallThroughCodeStub(Assembler* assembler) {
   __ movq(CODE_REG, Address(RAX, target::Isolate::ic_miss_code_offset()));
   __ movq(RCX, FieldAddress(CODE_REG, target::Code::entry_point_offset()));
   __ jmp(RCX);
-}
-
-void StubCodeCompiler::GenerateMonomorphicSmiableCheckStub(
-    Assembler* assembler) {
-  Label have_cid, miss;
-
-  __ movq(RAX, Immediate(kSmiCid));
-  __ movzxw(
-      RCX,
-      FieldAddress(RBX, target::MonomorphicSmiableCall::expected_cid_offset()));
-  __ testq(RDX, Immediate(kSmiTagMask));
-  __ j(ZERO, &have_cid, Assembler::kNearJump);
-  __ LoadClassId(RAX, RDX);
-  __ Bind(&have_cid);
-  __ cmpq(RAX, RCX);
-  __ j(NOT_EQUAL, &miss, Assembler::kNearJump);
-  if (FLAG_use_bare_instructions) {
-    __ jmp(
-        FieldAddress(RBX, target::MonomorphicSmiableCall::entrypoint_offset()));
-  } else {
-    __ movq(CODE_REG,
-            FieldAddress(RBX, target::MonomorphicSmiableCall::target_offset()));
-    __ jmp(FieldAddress(CODE_REG, target::Code::entry_point_offset()));
-  }
-
-  __ Bind(&miss);
-  __ jmp(Address(THR, target::Thread::monomorphic_miss_entry_offset()));
 }
 
 //  RDX: receiver

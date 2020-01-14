@@ -238,9 +238,6 @@
   FIELD(TypedDataView, offset_in_bytes_offset)                                 \
   FIELD(TypedData, data_offset)                                                \
   FIELD(UserTag, tag_offset)                                                   \
-  FIELD(MonomorphicSmiableCall, expected_cid_offset)                           \
-  FIELD(MonomorphicSmiableCall, entrypoint_offset)                             \
-  FIELD(MonomorphicSmiableCall, target_offset)                                 \
   ARRAY(Array, element_offset)                                                 \
   ARRAY(TypeArguments, type_at_offset)                                         \
   NOT_IN_PRODUCT(ARRAY(ClassTable, ClassOffsetFor))                            \

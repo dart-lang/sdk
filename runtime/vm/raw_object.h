@@ -1930,17 +1930,6 @@ class RawUnlinkedCall : public RawObject {
   RawString* target_name_;
   RawArray* args_descriptor_;
   VISIT_TO(RawObject*, args_descriptor_);
-  bool can_patch_to_monomorphic_;
-  RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
-};
-
-class RawMonomorphicSmiableCall : public RawObject {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(MonomorphicSmiableCall);
-  VISIT_FROM(RawObject*, target_);
-  RawCode* target_;  // Entrypoint PC in bare mode, Code in non-bare mode.
-  VISIT_TO(RawObject*, target_);
-  uword expected_cid_;
-  uword entrypoint_;
   RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
 };
 

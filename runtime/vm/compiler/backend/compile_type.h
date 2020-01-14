@@ -28,8 +28,8 @@ class GrowableArray;
 //    - whether the value can potentially be null or if it is definitely not
 //      null;
 //    - concrete class id of the value or kDynamicCid if unknown statically;
-//    - abstract super type of the value, where the concrete type of the value
-//      in runtime is guaranteed to be sub type of this type.
+//    - abstract super type of the value, concrete type of the value in runtime
+//      is guaranteed to be sub type of this type.
 //
 // Values of CompileType form a lattice with a None type as a bottom and a
 // nullable Dynamic type as a top element. Method Union provides a join
@@ -223,8 +223,6 @@ class CompileType : public ZoneAllocated {
   }
 
   bool Specialize(GrowableArray<intptr_t>* class_ids);
-
-  bool IsNotSmi();
 
   void PrintTo(BufferFormatter* f) const;
   SExpression* ToSExpression(FlowGraphSerializer* s) const;

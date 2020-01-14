@@ -912,7 +912,6 @@ struct InferredTypeMetadata {
     kFlagInt = 1 << 1,
     kFlagSkipCheck = 1 << 2,
     kFlagConstant = 1 << 3,
-    kFlagReceiverNotInt = 1 << 4,
   };
 
   InferredTypeMetadata(intptr_t cid_,
@@ -931,7 +930,6 @@ struct InferredTypeMetadata {
   bool IsInt() const { return (flags & kFlagInt) != 0; }
   bool IsSkipCheck() const { return (flags & kFlagSkipCheck) != 0; }
   bool IsConstant() const { return (flags & kFlagConstant) != 0; }
-  bool ReceiverNotInt() const { return (flags & kFlagReceiverNotInt) != 0; }
 
   CompileType ToCompileType(Zone* zone) const {
     if (IsInt()) {
