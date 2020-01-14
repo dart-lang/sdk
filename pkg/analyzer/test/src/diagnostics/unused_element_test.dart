@@ -96,6 +96,7 @@ class _A {
 }
 ''', [
       error(HintCode.UNUSED_ELEMENT, 6, 2),
+      error(HintCode.UNUSED_ELEMENT, 20, 12),
     ]);
   }
 
@@ -205,17 +206,19 @@ class A {
 
   test_enum_isUsed_fieldReference() async {
     await assertNoErrorsInCode(r'''
-enum _MyEnum {A, B, C}
+enum _MyEnum {A}
 main() {
-  print(_MyEnum.B);
+  _MyEnum.A;
 }
 ''');
   }
 
   test_enum_notUsed_noReference() async {
     await assertErrorsInCode(r'''
-enum _MyEnum {A, B, C}
-main() {
+enum _MyEnum {A, B}
+void f(d) {
+  d.A;
+  d.B;
 }
 ''', [
       error(HintCode.UNUSED_ELEMENT, 5, 7),
@@ -780,6 +783,79 @@ int g() => 7;
 ''', [
       error(HintCode.UNUSED_ELEMENT, 16, 2),
     ]);
+  }
+
+  test_publicStaticMethod_privateClass_isUsed() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  static void m() {}
+}
+void main() {
+  _A.m();
+}
+''');
+  }
+
+  test_publicStaticMethod_privateClass_notUsed() async {
+    await assertErrorsInCode(r'''
+class _A {
+  static void m() {}
+}
+void f(_A a) {}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 25, 1),
+    ]);
+  }
+
+  test_publicStaticMethod_privateExtension_isUsed() async {
+    await assertNoErrorsInCode(r'''
+extension _A on String {
+  static void m() {}
+}
+void main() {
+  _A.m();
+}
+''');
+  }
+
+  test_publicStaticMethod_privateExtension_notUsed() async {
+    await assertErrorsInCode(r'''
+extension _A on String {
+  static void m() {}
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 39, 1),
+    ]);
+  }
+
+  test_publicStaticMethod_privateMixin_isUsed() async {
+    await assertNoErrorsInCode(r'''
+mixin _A {
+  static void m() {}
+}
+void main() {
+  _A.m();
+}
+''');
+  }
+
+  test_publicStaticMethod_privateMixin_notUsed() async {
+    await assertErrorsInCode(r'''
+mixin _A {
+  static void m() {}
+}
+void main() {
+  _A;
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 25, 1),
+    ]);
+  }
+
+  test_publicTopLevelFunction_notUsed() async {
+    await assertNoErrorsInCode(r'''
+int get a => 1;
+''');
   }
 
   test_setter_isUsed_invocation_implicitThis() async {

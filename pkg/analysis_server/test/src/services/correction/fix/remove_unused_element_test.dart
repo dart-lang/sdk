@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -22,12 +24,13 @@ class RemoveUnusedElementTest extends FixProcessorTest {
   test_class_notUsed_inClassMember() async {
     await resolveTestUnit(r'''
 class _A {
-  static staticMethod() {
+  staticMethod() {
     new _A();
   }
 }
 ''');
-    // todo (pq): consider supporting the case where references are limited to within the class.
+    // TODO(pq): consider supporting the case where references are limited to
+    //  within the class.
     await assertNoFix();
   }
 
@@ -57,7 +60,9 @@ class _A {
 enum _MyEnum {A, B, C}
 ''');
     await assertHasFix(r'''
-''');
+''', errorFilter: (AnalysisError error) {
+      return error.errorCode == HintCode.UNUSED_ELEMENT;
+    });
   }
 
   test_functionLocal_notUsed_noReference() async {
@@ -129,6 +134,52 @@ class A {
     await assertHasFix(r'''
 class A {
 }
+''');
+  }
+
+  test_staticMethod_extension_notUsed_noReference() async {
+    await resolveTestUnit(r'''
+extension _E on String {
+  static int m1() => 3;
+  int m2() => 7;
+}
+void f() => print(_E("hello").m2());
+''');
+    await assertHasFix(r'''
+extension _E on String {
+  int m2() => 7;
+}
+void f() => print(_E("hello").m2());
+''');
+  }
+
+  test_staticMethod_mixim_notUsed_noReference() async {
+    await resolveTestUnit(r'''
+mixin _M {
+  static int m1() => 3;
+}
+class C with _M {}
+void f(C c) {}
+''');
+    await assertHasFix(r'''
+mixin _M {
+}
+class C with _M {}
+void f(C c) {}
+''');
+  }
+
+  test_staticMethod_notUsed_noReference() async {
+    await resolveTestUnit(r'''
+class _A {
+  static int m() => 7;
+}
+void f(_A a) {}
+''');
+    await assertHasFix(r'''
+class _A {
+}
+void f(_A a) {}
 ''');
   }
 

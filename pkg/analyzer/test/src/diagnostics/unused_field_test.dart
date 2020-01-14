@@ -88,6 +88,47 @@ void main() {
 ''');
   }
 
+  test_isUsed_privateEnum_publicValue() async {
+    await assertNoErrorsInCode(r'''
+enum _Foo {a, b}
+f() => print('${_Foo.a}${_Foo.b}');
+''');
+  }
+
+  test_isUsed_publicEnum_privateValue() async {
+    await assertNoErrorsInCode(r'''
+enum Foo {_a, _b}
+f() => print('${Foo._a}${Foo._b}');
+''');
+  }
+
+  test_isUsed_publicStaticField_privateClass() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  static String f1 = "x";
+}
+void main() => print(_A.f1);
+''');
+  }
+
+  test_isUsed_publicStaticField_privateExtension() async {
+    await assertNoErrorsInCode(r'''
+extension _A on String {
+  static String f1 = "x";
+}
+void main() => print(_A.f1);
+''');
+  }
+
+  test_isUsed_publicStaticField_privateMixin() async {
+    await assertNoErrorsInCode(r'''
+mixin _A {
+  static String f1 = "x";
+}
+void main() => print(_A.f1);
+''');
+  }
+
   test_isUsed_reference_implicitThis() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -275,6 +316,55 @@ class A {
 }
 ''', [
       error(HintCode.UNUSED_FIELD, 16, 2),
+    ]);
+  }
+
+  test_notUsed_privateEnum_publicValue() async {
+    await assertErrorsInCode(r'''
+enum _Foo {a}
+f() => _Foo;
+''', [
+      error(HintCode.UNUSED_FIELD, 11, 1),
+    ]);
+  }
+
+  test_notUsed_publicEnum_privateValue() async {
+    await assertErrorsInCode(r'''
+enum Foo {_a}
+''', [
+      error(HintCode.UNUSED_FIELD, 10, 2),
+    ]);
+  }
+
+  test_notUsed_publicStaticField_privateClass() async {
+    await assertErrorsInCode(r'''
+class _A {
+  static String f1 = "x";
+}
+void main() => print(_A);
+''', [
+      error(HintCode.UNUSED_FIELD, 27, 2),
+    ]);
+  }
+
+  test_notUsed_publicStaticField_privateExtension() async {
+    await assertErrorsInCode(r'''
+extension _A on String {
+  static String f1 = "x";
+}
+''', [
+      error(HintCode.UNUSED_FIELD, 41, 2),
+    ]);
+  }
+
+  test_notUsed_publicStaticField_privateMixin() async {
+    await assertErrorsInCode(r'''
+mixin _A {
+  static String f1 = "x";
+}
+void main() => print(_A);
+''', [
+      error(HintCode.UNUSED_FIELD, 27, 2),
     ]);
   }
 
