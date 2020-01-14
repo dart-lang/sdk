@@ -26,6 +26,57 @@ class AddRequiredKeyword extends _NestableChange {
   }
 }
 
+/// Implementation of [NodeChange] representing the removal of a dead branch
+/// because the conditional expression in an if statement, if element, or
+/// conditional expression has been determined to always evaluate to either
+/// `true` or `false`.
+///
+/// TODO(paulberry): store additional information necessary to include in the
+/// preview.
+class EliminateDeadIf extends NodeChange {
+  /// The value that the conditional expression has been determined to always
+  /// evaluate to
+  final bool conditionValue;
+
+  const EliminateDeadIf(this.conditionValue);
+
+  @override
+  EditPlan apply(AstNode node, FixAggregator aggregator) {
+    // TODO(paulberry): do we need to detect whether the condition has side
+    // effects?  For now, assuming no.
+    AstNode nodeToKeep;
+    if (node is IfStatement) {
+      nodeToKeep = conditionValue ? node.thenStatement : node.elseStatement;
+    } else if (node is ConditionalExpression) {
+      nodeToKeep = conditionValue ? node.thenExpression : node.elseExpression;
+    } else if (node is IfElement) {
+      nodeToKeep = conditionValue ? node.thenElement : node.elseElement;
+    } else {
+      throw StateError(
+          "EliminateDeadIf applied to an AST node that's not an if");
+    }
+    if (nodeToKeep == null) {
+      return aggregator.planner.removeNode(node);
+    }
+    if (nodeToKeep is Block) {
+      if (nodeToKeep.statements.isEmpty) {
+        return aggregator.planner.removeNode(node);
+      } else if (nodeToKeep.statements.length == 1) {
+        var singleStatement = nodeToKeep.statements[0];
+        if (singleStatement is VariableDeclarationStatement) {
+          // It's not safe to eliminate the {} because it increases the scope of
+          // the variable declarations
+        } else {
+          return aggregator.planner.extract(node,
+              aggregator.planner.passThrough(nodeToKeep.statements.single));
+        }
+      }
+    }
+    return aggregator.planner
+        .extract(node, aggregator.planner.passThrough(nodeToKeep));
+  }
+}
+
 /// Visitor that combines together the changes produced by [FixBuilder] into a
 /// concrete set of source code edits using the infrastructure of [EditPlan].
 class FixAggregator extends UnifyingAstVisitor<void> {
@@ -42,12 +93,17 @@ class FixAggregator extends UnifyingAstVisitor<void> {
 
   /// Gathers all the changes to nodes descended from [node] into a single
   /// [EditPlan].
-  NodeProducingEditPlan innerPlanForNode(AstNode node) {
+  NodeProducingEditPlan innerPlanForNode(AstNode node) =>
+      planner.passThrough(node, innerPlans: innerPlansForNode(node));
+
+  /// Gathers all the changes to nodes descended from [node] into a list of
+  /// [EditPlan]s, one for each change.
+  List<EditPlan> innerPlansForNode(AstNode node) {
     var previousPlans = _plans;
     try {
       _plans = [];
       node.visitChildren(this);
-      return planner.passThrough(node, innerPlans: _plans);
+      return _plans;
     } finally {
       _plans = previousPlans;
     }
@@ -67,9 +123,11 @@ class FixAggregator extends UnifyingAstVisitor<void> {
   }
 
   /// Runs the [FixAggregator] on a [unit] and returns the resulting edits.
-  static Map<int, List<AtomicEdit>> run(CompilationUnit unit, String sourceText,
-      Map<AstNode, NodeChange> changes) {
-    var planner = EditPlanner(unit.lineInfo, sourceText);
+  static Map<int, List<AtomicEdit>> run(
+      CompilationUnit unit, String sourceText, Map<AstNode, NodeChange> changes,
+      {bool removeViaComments: false}) {
+    var planner = EditPlanner(unit.lineInfo, sourceText,
+        removeViaComments: removeViaComments);
     var aggregator = FixAggregator._(planner, changes);
     unit.accept(aggregator);
     if (aggregator._plans.isEmpty) return {};

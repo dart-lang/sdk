@@ -39,6 +39,215 @@ class FixAggregatorTest extends FixAggregatorTestBase {
     expect(previewInfo.applyTo(code), 'f(a, b) => (a! + b!)!;');
   }
 
+  Future<void> test_eliminateDeadIf_element_delete_drop_completely() async {
+    await analyze('''
+List<int> f(int i) {
+  return [if (i == null) null];
+}
+''');
+    var previewInfo = run({findNode.ifElement('=='): EliminateDeadIf(false)});
+    expect(previewInfo.applyTo(code), '''
+List<int> f(int i) {
+  return [];
+}
+''');
+  }
+
+  Future<void> test_eliminateDeadIf_element_delete_keep_else() async {
+    await analyze('''
+List<int> f(int i) {
+  return [if (i == null) null else i + 1];
+}
+''');
+    var previewInfo = run({findNode.ifElement('=='): EliminateDeadIf(false)});
+    expect(previewInfo.applyTo(code), '''
+List<int> f(int i) {
+  return [i + 1];
+}
+''');
+  }
+
+  Future<void> test_eliminateDeadIf_element_delete_keep_then() async {
+    await analyze('''
+List<int> f(int i) {
+  return [if (i == null) null else i + 1];
+}
+''');
+    var previewInfo = run({findNode.ifElement('=='): EliminateDeadIf(true)});
+    expect(previewInfo.applyTo(code), '''
+List<int> f(int i) {
+  return [null];
+}
+''');
+  }
+
+  Future<void> test_eliminateDeadIf_expression_delete_keep_else() async {
+    await analyze('''
+int f(int i) {
+  return i == null ? null : i + 1;
+}
+''');
+    var previewInfo =
+        run({findNode.conditionalExpression('=='): EliminateDeadIf(false)});
+    expect(previewInfo.applyTo(code), '''
+int f(int i) {
+  return i + 1;
+}
+''');
+  }
+
+  Future<void> test_eliminateDeadIf_expression_delete_keep_then() async {
+    await analyze('''
+int f(int i) {
+  return i == null ? null : i + 1;
+}
+''');
+    var previewInfo =
+        run({findNode.conditionalExpression('=='): EliminateDeadIf(true)});
+    expect(previewInfo.applyTo(code), '''
+int f(int i) {
+  return null;
+}
+''');
+  }
+
+  Future<void> test_eliminateDeadIf_statement_comment_keep_else() async {
+    await analyze('''
+int f(int i) {
+  if (i == null) {
+    return null;
+  } else {
+    return i + 1;
+  }
+}
+''');
+    var previewInfo = run({findNode.statement('if'): EliminateDeadIf(false)},
+        removeViaComments: true);
+    expect(previewInfo.applyTo(code), '''
+int f(int i) {
+  /* if (i == null) {
+    return null;
+  } else {
+    */ return i + 1; /*
+  } */
+}
+''');
+  }
+
+  Future<void> test_eliminateDeadIf_statement_comment_keep_then() async {
+    await analyze('''
+int f(int i) {
+  if (i == null) {
+    return null;
+  } else {
+    return i + 1;
+  }
+}
+''');
+    var previewInfo = run({findNode.statement('if'): EliminateDeadIf(true)},
+        removeViaComments: true);
+    expect(previewInfo.applyTo(code), '''
+int f(int i) {
+  /* if (i == null) {
+    */ return null; /*
+  } else {
+    return i + 1;
+  } */
+}
+''');
+  }
+
+  Future<void>
+      test_eliminateDeadIf_statement_delete_drop_completely_false() async {
+    await analyze('''
+void f(int i) {
+  if (i == null) {
+    print('null');
+  }
+}
+''');
+    var previewInfo = run({findNode.statement('if'): EliminateDeadIf(false)});
+    expect(previewInfo.applyTo(code), '''
+void f(int i) {}
+''');
+  }
+
+  Future<void>
+      test_eliminateDeadIf_statement_delete_drop_completely_true() async {
+    await analyze('''
+void f(int i) {
+  if (i != null) {} else {
+    print('null');
+  }
+}
+''');
+    var previewInfo = run({findNode.statement('if'): EliminateDeadIf(true)});
+    expect(previewInfo.applyTo(code), '''
+void f(int i) {}
+''');
+  }
+
+  Future<void> test_eliminateDeadIf_statement_delete_keep_else() async {
+    await analyze('''
+int f(int i) {
+  if (i == null) {
+    return null;
+  } else {
+    return i + 1;
+  }
+}
+''');
+    var previewInfo = run({findNode.statement('if'): EliminateDeadIf(false)});
+    expect(previewInfo.applyTo(code), '''
+int f(int i) {
+  return i + 1;
+}
+''');
+  }
+
+  Future<void> test_eliminateDeadIf_statement_delete_keep_then() async {
+    await analyze('''
+int f(int i) {
+  if (i != null) {
+    return i + 1;
+  } else {
+    return null;
+  }
+}
+''');
+    var previewInfo = run({findNode.statement('if'): EliminateDeadIf(true)});
+    expect(previewInfo.applyTo(code), '''
+int f(int i) {
+  return i + 1;
+}
+''');
+  }
+
+  Future<void>
+      test_eliminateDeadIf_statement_delete_keep_then_declaration() async {
+    await analyze('''
+void f(int i, String callback()) {
+  if (i != null) {
+    var i = callback();
+  } else {
+    return;
+  }
+  print(i);
+}
+''');
+    // In this case we have to keep the block so that the scope of `var i`
+    // doesn't widen.
+    var previewInfo = run({findNode.statement('if'): EliminateDeadIf(true)});
+    expect(previewInfo.applyTo(code), '''
+void f(int i, String callback()) {
+  {
+    var i = callback();
+  }
+  print(i);
+}
+''');
+  }
+
   Future<void> test_introduceAs_distant_parens_no_longer_needed() async {
     // Note: in principle it would be nice to delete the outer parens, but it's
     // difficult to see that they used to be necessary and aren't anymore, so we
@@ -209,8 +418,10 @@ class FixAggregatorTestBase extends AbstractSingleUnitTest {
     await resolveTestUnit(code);
   }
 
-  Map<int, List<AtomicEdit>> run(Map<AstNode, NodeChange> changes) {
-    return FixAggregator.run(testUnit, testCode, changes);
+  Map<int, List<AtomicEdit>> run(Map<AstNode, NodeChange> changes,
+      {bool removeViaComments: false}) {
+    return FixAggregator.run(testUnit, testCode, changes,
+        removeViaComments: removeViaComments);
   }
 }
 
