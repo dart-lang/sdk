@@ -330,7 +330,8 @@ class ResolverVisitor extends ScopedVisitor {
       typeSystem: typeSystem,
       errorReporter: errorReporter,
     );
-    this._typedLiteralResolver = TypedLiteralResolver(this, _featureSet);
+    this._typedLiteralResolver =
+        TypedLiteralResolver(this, _featureSet, typeSystem, typeProvider);
     this.extensionResolver = ExtensionMemberResolver(this);
     this.typePropertyResolver = TypePropertyResolver(this);
     this.inferenceHelper = InvocationInferenceHelper(

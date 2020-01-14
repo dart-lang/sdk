@@ -3878,11 +3878,6 @@ class _ProvisionalApiTestWithFixBuilder extends _ProvisionalApiTestBase
 
   @override
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40023')
-  Future<void> test_extension_nullableOnType_typeArgument() =>
-      super.test_extension_nullableOnType_typeArgument();
-
-  @override
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40023')
   Future<void> test_extension_nullableOnType_viaImplicitInvocation() =>
       super.test_extension_nullableOnType_viaImplicitInvocation();
 
@@ -3890,25 +3885,6 @@ class _ProvisionalApiTestWithFixBuilder extends _ProvisionalApiTestBase
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
   Future<void> test_field_initializer_typed_list_literal() =>
       super.test_field_initializer_typed_list_literal();
-
-  @override
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
-  Future<void> test_field_initializer_untyped_list_literal() =>
-      super.test_field_initializer_untyped_list_literal();
-
-  @override
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
-  Future<void> test_field_initializer_untyped_map_literal() =>
-      super.test_field_initializer_untyped_map_literal();
-
-  @override
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
-  Future<void> test_field_initializer_untyped_set_literal() =>
-      super.test_field_initializer_untyped_set_literal();
-
-  @override
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
-  Future<void> test_for_each_basic() => super.test_for_each_basic();
 
   @override
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')

@@ -1256,6 +1256,11 @@ f() => 1;
     visitSubexpression(findNode.integerLiteral('1'), 'int');
   }
 
+  Future<void> test_list_unchanged() async {
+    await analyze('_f(int x) => [x];');
+    visitSubexpression(findNode.listLiteral('['), 'List<int>');
+  }
+
   Future<void> test_listLiteral_typed() async {
     await analyze('''
 _f() => <int>[];
