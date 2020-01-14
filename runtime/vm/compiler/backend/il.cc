@@ -1308,8 +1308,8 @@ void BackwardInstructionIterator::RemoveCurrentFromGraph() {
 // Default implementation of visiting basic blocks.  Can be overridden.
 void FlowGraphVisitor::VisitBlocks() {
   ASSERT(current_iterator_ == NULL);
-  for (intptr_t i = 0; i < block_order_.length(); ++i) {
-    BlockEntryInstr* entry = block_order_[i];
+  for (intptr_t i = 0; i < block_order_->length(); ++i) {
+    BlockEntryInstr* entry = (*block_order_)[i];
     entry->Accept(this);
     ForwardInstructionIterator it(entry);
     current_iterator_ = &it;

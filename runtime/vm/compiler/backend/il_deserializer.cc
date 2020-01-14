@@ -8,6 +8,7 @@
 
 #include "vm/compiler/backend/il_serializer.h"
 #include "vm/compiler/backend/range_analysis.h"
+#include "vm/compiler/call_specializer.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/flags.h"
 #include "vm/json_writer.h"
@@ -126,7 +127,7 @@ static void PrintRoundTripResults(Zone* zone, const RoundTripResults& results) {
 }
 
 void FlowGraphDeserializer::RoundTripSerialization(CompilerPassState* state) {
-  auto const flow_graph = state->flow_graph;
+  auto const flow_graph = state->flow_graph();
 
   // The deserialized flow graph must be in the same zone as the original flow
   // graph, to ensure it has the right lifetime. Thus, we leave an explicit
@@ -195,7 +196,9 @@ void FlowGraphDeserializer::RoundTripSerialization(CompilerPassState* state) {
 
   if (FLAG_print_json_round_trip_results) PrintRoundTripResults(zone, results);
 
-  if (new_graph != nullptr) state->flow_graph = new_graph;
+  if (new_graph != nullptr) {
+    state->set_flow_graph(new_graph);
+  }
 }
 
 #define HANDLED_CASE(name)                                                     \
@@ -346,7 +349,13 @@ FlowGraph* FlowGraphDeserializer::ParseFlowGraph() {
   }
 
   flow_graph_->set_max_block_id(max_block_id_);
-  flow_graph_->set_current_ssa_temp_index(max_ssa_index_ + 1);
+  // The highest numbered SSA temp might need two slots (e.g. for unboxed
+  // integers on 32-bit platforms), so we add 2 to the highest seen SSA temp
+  // index to get to the new current SSA temp index. In cases where the highest
+  // numbered SSA temp originally had only one slot assigned, this can result
+  // in different SSA temp numbering in later passes between the original and
+  // deserialized graphs.
+  flow_graph_->set_current_ssa_temp_index(max_ssa_index_ + 2);
   // Now that the deserializer has finished re-creating all the blocks in the
   // flow graph, the blocks must be rediscovered. In addition, if ComputeSSA
   // has already been run, dominators must be recomputed as well.

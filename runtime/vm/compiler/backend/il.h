@@ -8834,7 +8834,7 @@ class Environment : public ZoneAllocated {
 class FlowGraphVisitor : public ValueObject {
  public:
   explicit FlowGraphVisitor(const GrowableArray<BlockEntryInstr*>& block_order)
-      : current_iterator_(NULL), block_order_(block_order) {}
+      : current_iterator_(NULL), block_order_(&block_order) {}
   virtual ~FlowGraphVisitor() {}
 
   ForwardInstructionIterator* current_iterator() const {
@@ -8855,10 +8855,14 @@ class FlowGraphVisitor : public ValueObject {
 #undef DECLARE_VISIT_INSTRUCTION
 
  protected:
+  void set_block_order(const GrowableArray<BlockEntryInstr*>& block_order) {
+    block_order_ = &block_order;
+  }
+
   ForwardInstructionIterator* current_iterator_;
 
  private:
-  const GrowableArray<BlockEntryInstr*>& block_order_;
+  const GrowableArray<BlockEntryInstr*>* block_order_;
   DISALLOW_COPY_AND_ASSIGN(FlowGraphVisitor);
 };
 
