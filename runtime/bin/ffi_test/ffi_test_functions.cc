@@ -186,6 +186,28 @@ DART_EXPORT intptr_t SumManyInts(intptr_t a,
   return retval;
 }
 
+// Sums many ints.
+// Used for testing calling conventions. With small integers on stack slots we
+// test stack alignment.
+DART_EXPORT int16_t SumManySmallInts(int8_t a,
+                                     int16_t b,
+                                     int8_t c,
+                                     int16_t d,
+                                     int8_t e,
+                                     int16_t f,
+                                     int8_t g,
+                                     int16_t h,
+                                     int8_t i,
+                                     int16_t j) {
+  std::cout << "SumManySmallInts(" << static_cast<int>(a) << ", " << b << ", "
+            << static_cast<int>(c) << ", " << d << ", " << static_cast<int>(e)
+            << ", " << f << ", " << static_cast<int>(g) << ", " << h << ", "
+            << static_cast<int>(i) << ", " << j << ")\n";
+  int16_t retval = a + b + c + d + e + f + g + h + i + j;
+  std::cout << "returning " << retval << "\n";
+  return retval;
+}
+
 // Sums an odd number of ints.
 // Used for testing calling conventions. With so many arguments, and an odd
 // number of arguments, we are testing stack alignment on various architectures.

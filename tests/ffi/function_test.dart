@@ -33,6 +33,7 @@ void main() {
     testNativeFunctionManyArguments2();
     testNativeFunctionManyArguments3();
     testNativeFunctionManyArguments4();
+    testNativeFunctionManyArguments5();
     testNativeFunctionPointer();
     testNullInt();
     testNullDouble();
@@ -229,6 +230,8 @@ void testNativeFunctionFloats() {
 
 typedef NativeDecenaryOp = IntPtr Function(IntPtr, IntPtr, IntPtr, IntPtr,
     IntPtr, IntPtr, IntPtr, IntPtr, IntPtr, IntPtr);
+typedef NativeDecenaryOp2 = Int16 Function(
+    Int8, Int16, Int8, Int16, Int8, Int16, Int8, Int16, Int8, Int16);
 typedef DecenaryOp = int Function(
     int, int, int, int, int, int, int, int, int, int);
 
@@ -237,6 +240,13 @@ DecenaryOp sumManyInts = ffiTestFunctions
 
 void testNativeFunctionManyArguments1() {
   Expect.equals(55, sumManyInts(1, 2, 3, 4, 5, 6, 7, 8, 9, 10));
+}
+
+DecenaryOp sumManySmallInts = ffiTestFunctions
+    .lookupFunction<NativeDecenaryOp2, DecenaryOp>("SumManySmallInts");
+
+void testNativeFunctionManyArguments5() {
+  Expect.equals(55, sumManySmallInts(1, 2, 3, 4, 5, 6, 7, 8, 9, 10));
 }
 
 typedef NativeUndenaryOp = IntPtr Function(IntPtr, IntPtr, IntPtr, IntPtr,
