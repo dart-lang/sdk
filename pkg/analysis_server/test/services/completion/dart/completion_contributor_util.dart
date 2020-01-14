@@ -9,6 +9,7 @@ import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart'
     show DartCompletionManager, DartCompletionRequestImpl;
+import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analyzer/src/generated/parser.dart' as analyzer;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:meta/meta.dart';
@@ -78,7 +79,7 @@ class DartCompletionManagerTest extends _BaseDartCompletionContributorTest {
 
   /// Display sorted suggestions.
   void printSuggestions() {
-    suggestions.sort((s1, s2) => s2.relevance.compareTo(s1.relevance));
+    suggestions.sort(completionComparator);
     for (var s in suggestions) {
       print(
           '[${s.relevance}] ${s.completion} • ${s.element?.kind?.name ?? ""} ${s.kind.name} ${s.element?.location?.file ?? ""}');
@@ -563,7 +564,7 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
     if (completions != null) {
       sb.write('\n  found');
       completions.toList()
-        ..sort(suggestionComparator)
+        ..sort(completionComparator)
         ..forEach((CompletionSuggestion suggestion) {
           sb.write('\n    ${suggestion.completion} -> $suggestion');
         });

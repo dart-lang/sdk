@@ -102,6 +102,17 @@ protocol.Element createLocalElement(
 }
 
 /**
+ * Sort by relevance first, highest to lowest, and then by the completion
+ * alphabetically.
+ */
+Comparator<CompletionSuggestion> completionComparator = (sug1, sug2) {
+  if (sug1.relevance == sug2.relevance) {
+    return sug1.completion.compareTo(sug2.completion);
+  }
+  return sug2.relevance.compareTo(sug1.relevance);
+};
+
+/**
  * Create a new suggestion based upon the given information. Return the new
  * suggestion or `null` if it could not be created.
  */

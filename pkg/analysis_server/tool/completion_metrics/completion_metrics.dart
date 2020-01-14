@@ -9,6 +9,7 @@ import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
+import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
@@ -20,16 +21,8 @@ import 'package:analyzer/src/generated/engine.dart';
 int includedCount = 0;
 int notIncludedCount = 0;
 
-/// Sort by relevance first, highest to lowest, and then by the completion, alphabetically
-Comparator<CompletionSuggestion> _completionComparator = (sug1, sug2) {
-  if (sug1.relevance == sug2.relevance) {
-    return sug1.completion.compareTo(sug2.completion);
-  }
-  return sug2.relevance.compareTo(sug1.relevance);
-};
-
 main() {
-  List<String> analysisRoots = [""];
+  List<String> analysisRoots = [''];
   _computeCompletionMetrics(PhysicalResourceProvider.INSTANCE, analysisRoots);
 }
 
@@ -64,7 +57,7 @@ Future _computeCompletionMetrics(
               );
               var suggestions = await completionContributor
                   .computeSuggestions(completionRequestImpl);
-              suggestions.sort(_completionComparator);
+              suggestions.sort(completionComparator);
 
               var fraction =
                   _placementInSuggestionList(suggestions, entity.toString());
