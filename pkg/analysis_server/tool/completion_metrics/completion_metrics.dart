@@ -81,7 +81,8 @@ Future _computeCompletionMetrics(
   final percentIncluded = includedCount / (includedCount + notIncludedCount);
   final percentNotIncluded =
       notIncludedCount / (includedCount + notIncludedCount);
-  print("done $percentIncluded% $percentNotIncluded%");
+  print(
+      "done ${_formatPercentToString(percentIncluded)} ${_formatPercentToString(percentNotIncluded)}");
 }
 
 Point<int> _placementInSuggestionList(
@@ -94,4 +95,8 @@ Point<int> _placementInSuggestionList(
     i++;
   }
   return Point(0, 0);
+}
+
+String _formatPercentToString(double percent, [fractionDigits = 1]) {
+  return (percent * 100).toStringAsFixed(fractionDigits) + '%';
 }
