@@ -452,13 +452,30 @@ class JsClosedWorld implements JClosedWorld {
     }
   }
 
+  ClassEntity __functionLub;
+  ClassEntity get _functionLub => __functionLub ??=
+      getLubOfInstantiatedSubtypes(commonElements.functionClass);
+
   @override
   bool includesClosureCall(Selector selector, AbstractValue receiver) {
     return selector.name == Identifiers.call &&
         (receiver == null ||
-            // TODO(johnniwinther): Should this have been `intersects` instead?
+            // This is logically equivalent to the former implementation using
+            // `abstractValueDomain.contains` (which wrapped `containsMask`).
+            // The switch to `abstractValueDomain.containsType` is because
+            // `contains` was generally unsound but happened to work correctly
+            // here. See https://dart-review.googlesource.com/c/sdk/+/130565
+            // for further discussion.
+            //
+            // This checks if the receiver mask contains the entire type cone
+            // originating from [_functionLub] and may therefore be unsound if
+            // the receiver mask contains only part of the type cone. (Is this
+            // possible?)
+            //
+            // TODO(fishythefish): Use `isDisjoint` or equivalent instead of
+            // `containsType` once we can ensure it's fast enough.
             abstractValueDomain
-                .contains(receiver, abstractValueDomain.functionType)
+                .containsType(receiver, _functionLub)
                 .isPotentiallyTrue);
   }
 

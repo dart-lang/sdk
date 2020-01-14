@@ -1665,15 +1665,6 @@ class NarrowTypeInformation extends TypeInformation {
     AbstractValue input = inputs.first.type;
     AbstractValue intersection =
         abstractValueDomain.intersection(input, typeAnnotation);
-    if (debug.ANOMALY_WARN) {
-      if (abstractValueDomain.contains(input, intersection).isDefinitelyFalse ||
-          abstractValueDomain
-              .contains(typeAnnotation, intersection)
-              .isDefinitelyFalse) {
-        print("ANOMALY WARNING: narrowed $input to $intersection via "
-            "$typeAnnotation");
-      }
-    }
     return intersection;
   }
 

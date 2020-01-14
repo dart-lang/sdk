@@ -563,10 +563,6 @@ abstract class AbstractValueDomain {
 
   /// Returns an [AbstractBool] that describes if the set of runtime values of
   /// [subset] are known to all be in the set of runtime values of [superset].
-  AbstractBool contains(AbstractValue superset, AbstractValue subset);
-
-  /// Returns an [AbstractBool] that describes if the set of runtime values of
-  /// [subset] are known to all be in the set of runtime values of [superset].
   AbstractBool isIn(AbstractValue subset, AbstractValue superset);
 
   /// Returns the [MemberEntity] that is known to always be hit at runtime
