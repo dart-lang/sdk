@@ -2,12 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Should be a compile-time error / warning.
-foo({required int parameter = 42}) {}
-foo2({int parameter}) {}
+// This test checks for compile-time errors related to definite assignment and
+// completion.
 
-// Should be ok.
-bar({required int parameter}) {}
-bar2({int parameter = 42}) {}
+int foo() {
+  int x;
+  return x;
+}
+
+int bar() {}
 
 main() {}

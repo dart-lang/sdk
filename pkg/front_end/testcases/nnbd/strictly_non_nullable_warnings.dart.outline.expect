@@ -1,0 +1,8 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method warning(core::String s, core::List<core::String> l) → dynamic
+  ;
+static method main() → dynamic
+  ;

@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Should be a compile-time error / warning.
-foo({required int parameter = 42}) {}
-foo2({int parameter}) {}
+// The test checks that it's an error to invoke the default constructor of List
+// with potentially non-nullable type argument and specify the length.
 
-// Should be ok.
-bar({required int parameter}) {}
-bar2({int parameter = 42}) {}
+foo<T extends Object?>() {
+  new List<T>(42);
+  new List<int?>(42);
+}
 
 main() {}

@@ -1,0 +1,75 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:13:7: Error: The type 'Never' can't be mixed in.
+// class C1 extends B with Never {}
+//       ^
+//
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:13:7: Error: The type 'Never' can't be used as supertype.
+// class C1 extends B with Never {}
+//       ^
+//
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:16:7: Error: The type 'Never' can't be used as supertype.
+// class D1 extends Never {}
+//       ^
+//
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:19:7: Error: The type 'Never' can't be used as supertype.
+// class E1 implements Never {}
+//       ^
+//
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:16:7: Error: The type 'Never' can't be used in an 'extends' clause.
+// class D1 extends Never {}
+//       ^
+//
+// pkg/front_end/testcases/nnbd/forbidden_supers.dart:19:7: Error: The type 'Never' can't be used in an 'implements' clause.
+// class E1 implements Never {}
+//       ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    ;
+}
+class B extends core::Object {
+  synthetic constructor •() → self::B
+    ;
+}
+abstract class _C&B&A = self::B with self::A {
+  synthetic constructor •() → self::_C&B&A
+    : super self::B::•()
+    ;
+}
+class C extends self::_C&B&A {
+  synthetic constructor •() → self::C
+    ;
+}
+abstract class _C1&B&Never extends self::B {
+  synthetic constructor •() → self::_C1&B&Never
+    : super self::B::•()
+    ;
+}
+class C1 extends self::_C1&B&Never {
+  synthetic constructor •() → self::C1
+    ;
+}
+class D extends self::A {
+  synthetic constructor •() → self::D
+    ;
+}
+class D1 extends core::Object {
+  synthetic constructor •() → self::D1
+    ;
+}
+class E extends core::Object implements self::B {
+  synthetic constructor •() → self::E
+    ;
+}
+class E1 extends core::Object {
+  synthetic constructor •() → self::E1
+    ;
+}
+static method main() → dynamic
+  ;

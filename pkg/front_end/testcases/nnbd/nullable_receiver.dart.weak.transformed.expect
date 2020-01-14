@@ -1,0 +1,91 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/nullable_receiver.dart:16:5: Warning: Property 'length' is accessed on 'String?' which is potentially null.
+// Try accessing using ?. instead.
+//   s.length;
+//     ^
+//
+// pkg/front_end/testcases/nnbd/nullable_receiver.dart:20:5: Warning: Property 'bar' is accessed on 'A?' which is potentially null.
+//  - 'A' is from 'pkg/front_end/testcases/nnbd/nullable_receiver.dart'.
+// Try accessing using ?. instead.
+//   a.bar;
+//     ^
+//
+// pkg/front_end/testcases/nnbd/nullable_receiver.dart:24:12: Warning: Assigning value of type 'void Function()?' to a variable of type 'Function'.
+//  - 'Function' is from 'dart:core'.
+//   Function f1 = a;
+//            ^
+//
+// pkg/front_end/testcases/nnbd/nullable_receiver.dart:25:19: Warning: Assigning value of type 'void Function()?' to a variable of type 'void Function()'.
+//   void Function() f2 = a;
+//                   ^
+//
+// pkg/front_end/testcases/nnbd/nullable_receiver.dart:34:5: Warning: Property 'hashCode' is accessed on 'String?' which is potentially null.
+// Try accessing using ?. instead.
+//   s.hashCode;
+//     ^
+//
+// pkg/front_end/testcases/nnbd/nullable_receiver.dart:35:5: Warning: Property 'hashCode' is accessed on 'A?' which is potentially null.
+//  - 'A' is from 'pkg/front_end/testcases/nnbd/nullable_receiver.dart'.
+// Try accessing using ?. instead.
+//   a.hashCode;
+//     ^
+//
+// pkg/front_end/testcases/nnbd/nullable_receiver.dart:43:5: Warning: Property 'runtimeType' is accessed on 'String?' which is potentially null.
+// Try accessing using ?. instead.
+//   s.runtimeType;
+//     ^
+//
+// pkg/front_end/testcases/nnbd/nullable_receiver.dart:44:5: Warning: Property 'runtimeType' is accessed on 'A?' which is potentially null.
+//  - 'A' is from 'pkg/front_end/testcases/nnbd/nullable_receiver.dart'.
+// Try accessing using ?. instead.
+//   a.runtimeType;
+//     ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+  method foo() → dynamic {}
+  get bar() → core::int
+    return 42;
+  set baz(core::int value) → void {}
+  method call() → void {}
+}
+static method error(core::String? s, self::A? a) → dynamic {
+  s.{core::String::length};
+  s.{core::String::substring}(1, 1);
+  a.{self::A::foo}();
+  a.{self::A::bar};
+  a.{self::A::baz} = 42;
+  a.{self::A::call}();
+  core::Function f1 = let final self::A? #t1 = a in #t1.==(null) ?{() →? void} null : #t1.{self::A::call};
+  () → void f2 = let final self::A? #t2 = a in #t2.==(null) ?{() →? void} null : #t2.{self::A::call};
+  () →? void f3 = let final self::A? #t3 = a in #t3.==(null) ?{() →? void} null : #t3.{self::A::call};
+}
+static method ok(core::String? s, self::A? a, core::Invocation i) → dynamic {
+  s.{core::String::==}(s);
+  a.{core::Object::==}(a);
+  s.{core::String::hashCode};
+  a.{core::Object::hashCode};
+  s.{core::Object::toString}();
+  a.{core::Object::toString}();
+  try {
+    s.{core::Object::noSuchMethod}(i);
+  }
+  on dynamic catch(final dynamic e, final core::StackTrace t) {
+  }
+  try {
+    a.{core::Object::noSuchMethod}(i);
+  }
+  on dynamic catch(final dynamic e, final core::StackTrace t) {
+  }
+  s.{core::Object::runtimeType};
+  a.{core::Object::runtimeType};
+}
+static method main() → dynamic {}

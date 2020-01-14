@@ -1,0 +1,9 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method foo<T extends core::Object? = core::Object?>() → dynamic {
+  core::_List::•<self::foo::T%>(42);
+  core::_List::•<core::int?>(42);
+}
+static method main() → dynamic {}
