@@ -496,6 +496,9 @@ class Object {
     return singletargetcache_class_;
   }
   static RawClass* unlinkedcall_class() { return unlinkedcall_class_; }
+  static RawClass* monomorphicsmiablecall_class() {
+    return monomorphicsmiablecall_class_;
+  }
   static RawClass* icdata_class() { return icdata_class_; }
   static RawClass* megamorphic_cache_class() {
     return megamorphic_cache_class_;
@@ -764,9 +767,11 @@ class Object {
   static RawClass* context_class_;           // Class of the Context vm object.
   static RawClass* context_scope_class_;     // Class of ContextScope vm object.
   static RawClass* dyncalltypecheck_class_;  // Class of ParameterTypeCheck.
-  static RawClass* singletargetcache_class_;    // Class of SingleTargetCache.
-  static RawClass* unlinkedcall_class_;         // Class of UnlinkedCall.
-  static RawClass* icdata_class_;               // Class of ICData.
+  static RawClass* singletargetcache_class_;  // Class of SingleTargetCache.
+  static RawClass* unlinkedcall_class_;       // Class of UnlinkedCall.
+  static RawClass*
+      monomorphicsmiablecall_class_;  // Class of MonomorphicSmiableCall.
+  static RawClass* icdata_class_;     // Class of ICData.
   static RawClass* megamorphic_cache_class_;    // Class of MegamorphiCache.
   static RawClass* subtypetestcache_class_;     // Class of SubtypeTestCache.
   static RawClass* api_error_class_;            // Class of ApiError.
@@ -1707,6 +1712,35 @@ class SingleTargetCache : public Object {
   friend class Class;
 };
 
+class MonomorphicSmiableCall : public Object {
+ public:
+  RawCode* target() const { return raw_ptr()->target_; }
+  classid_t expected_cid() const { return raw_ptr()->expected_cid_; }
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawMonomorphicSmiableCall));
+  }
+
+  static RawMonomorphicSmiableCall* New(classid_t expected_cid,
+                                        const Code& target);
+
+  static intptr_t expected_cid_offset() {
+    return OFFSET_OF(RawMonomorphicSmiableCall, expected_cid_);
+  }
+
+  static intptr_t target_offset() {
+    return OFFSET_OF(RawMonomorphicSmiableCall, target_);
+  }
+
+  static intptr_t entrypoint_offset() {
+    return OFFSET_OF(RawMonomorphicSmiableCall, entrypoint_);
+  }
+
+ private:
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(MonomorphicSmiableCall, Object);
+  friend class Class;
+};
+
 class UnlinkedCall : public Object {
  public:
   RawString* target_name() const { return raw_ptr()->target_name_; }
@@ -1714,9 +1748,17 @@ class UnlinkedCall : public Object {
   RawArray* args_descriptor() const { return raw_ptr()->args_descriptor_; }
   void set_args_descriptor(const Array& args_descriptor) const;
 
+  bool can_patch_to_monomorphic() const {
+    return raw_ptr()->can_patch_to_monomorphic_;
+  }
+  void set_can_patch_to_monomorphic(bool value) const;
+
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawUnlinkedCall));
   }
+
+  intptr_t Hashcode() const;
+  bool Equals(const UnlinkedCall& other) const;
 
   static RawUnlinkedCall* New();
 
@@ -2051,6 +2093,16 @@ class ICData : public Object {
         &raw_ptr()->entries_);
   }
 
+  bool receiver_cannot_be_smi() const {
+    return ReceiverCannotBeSmiBit::decode(
+        LoadNonPointer(&raw_ptr()->state_bits_));
+  }
+
+  void set_receiver_cannot_be_smi(bool value) const {
+    set_state_bits(ReceiverCannotBeSmiBit::encode(value) |
+                   LoadNonPointer(&raw_ptr()->state_bits_));
+  }
+
  private:
   friend class FlowGraphSerializer;  // For is_megamorphic()
 
@@ -2095,8 +2147,12 @@ class ICData : public Object {
     kRebindRuleSize = 3,
     kMegamorphicPos = kRebindRulePos + kRebindRuleSize,
     kMegamorphicSize = 1,
+    kReceiverCannotBeSmiPos = kMegamorphicPos + kMegamorphicSize,
+    kReceiverCannotBeSmiSize = 1,
   };
 
+  COMPILE_ASSERT(kReceiverCannotBeSmiPos + kReceiverCannotBeSmiSize <=
+                 sizeof(RawICData::state_bits_) * kBitsPerWord);
   COMPILE_ASSERT(kNumRebindRules <= (1 << kRebindRuleSize));
 
   class NumArgsTestedBits : public BitField<uint32_t,
@@ -2117,6 +2173,11 @@ class ICData : public Object {
                                          ICData::kRebindRuleSize> {};
   class MegamorphicBit
       : public BitField<uint32_t, bool, kMegamorphicPos, kMegamorphicSize> {};
+
+  class ReceiverCannotBeSmiBit : public BitField<uint32_t,
+                                                 bool,
+                                                 kReceiverCannotBeSmiPos,
+                                                 kReceiverCannotBeSmiSize> {};
 
 #if defined(DEBUG)
   // Used in asserts to verify that a check is not added twice.
@@ -4847,8 +4908,8 @@ class Instructions : public Object {
     return reinterpret_cast<uword>(instr->ptr()) + HeaderSize();
   }
 
-  // Note: We keep the checked entrypoint offsets even (emitting NOPs if
-  // necessary) to allow them to be seen as Smis by the GC.
+// Note: We keep the checked entrypoint offsets even (emitting NOPs if
+// necessary) to allow them to be seen as Smis by the GC.
 #if defined(TARGET_ARCH_IA32)
   static const intptr_t kMonomorphicEntryOffsetJIT = 6;
   static const intptr_t kPolymorphicEntryOffsetJIT = 34;
@@ -4858,17 +4919,17 @@ class Instructions : public Object {
   static const intptr_t kMonomorphicEntryOffsetJIT = 8;
   static const intptr_t kPolymorphicEntryOffsetJIT = 40;
   static const intptr_t kMonomorphicEntryOffsetAOT = 8;
-  static const intptr_t kPolymorphicEntryOffsetAOT = 32;
+  static const intptr_t kPolymorphicEntryOffsetAOT = 22;
 #elif defined(TARGET_ARCH_ARM)
   static const intptr_t kMonomorphicEntryOffsetJIT = 0;
   static const intptr_t kPolymorphicEntryOffsetJIT = 40;
   static const intptr_t kMonomorphicEntryOffsetAOT = 0;
-  static const intptr_t kPolymorphicEntryOffsetAOT = 20;
+  static const intptr_t kPolymorphicEntryOffsetAOT = 12;
 #elif defined(TARGET_ARCH_ARM64)
   static const intptr_t kMonomorphicEntryOffsetJIT = 8;
   static const intptr_t kPolymorphicEntryOffsetJIT = 48;
   static const intptr_t kMonomorphicEntryOffsetAOT = 8;
-  static const intptr_t kPolymorphicEntryOffsetAOT = 28;
+  static const intptr_t kPolymorphicEntryOffsetAOT = 20;
 #else
 #error Missing entry offsets for current architecture
 #endif

@@ -29,7 +29,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     Instructions_kMonomorphicEntryOffsetAOT = 0;
 static constexpr dart::compiler::target::word
-    Instructions_kPolymorphicEntryOffsetAOT = 20;
+    Instructions_kPolymorphicEntryOffsetAOT = 12;
 static constexpr dart::compiler::target::word HeapPage_kBytesPerCardLog2 = 9;
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 2;
@@ -349,6 +349,12 @@ static constexpr dart::compiler::target::word
     TypedDataView_offset_in_bytes_offset = 16;
 static constexpr dart::compiler::target::word TypedData_data_offset = 12;
 static constexpr dart::compiler::target::word UserTag_tag_offset = 8;
+static constexpr dart::compiler::target::word
+    MonomorphicSmiableCall_expected_cid_offset = 8;
+static constexpr dart::compiler::target::word
+    MonomorphicSmiableCall_entrypoint_offset = 12;
+static constexpr dart::compiler::target::word
+    MonomorphicSmiableCall_target_offset = 4;
 static constexpr dart::compiler::target::word Array_elements_start_offset = 12;
 static constexpr dart::compiler::target::word Array_element_size = 4;
 static constexpr dart::compiler::target::word
@@ -399,7 +405,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     Instructions_kMonomorphicEntryOffsetAOT = 8;
 static constexpr dart::compiler::target::word
-    Instructions_kPolymorphicEntryOffsetAOT = 32;
+    Instructions_kPolymorphicEntryOffsetAOT = 22;
 static constexpr dart::compiler::target::word HeapPage_kBytesPerCardLog2 = 10;
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 2;
@@ -722,6 +728,12 @@ static constexpr dart::compiler::target::word
     TypedDataView_offset_in_bytes_offset = 32;
 static constexpr dart::compiler::target::word TypedData_data_offset = 24;
 static constexpr dart::compiler::target::word UserTag_tag_offset = 16;
+static constexpr dart::compiler::target::word
+    MonomorphicSmiableCall_expected_cid_offset = 16;
+static constexpr dart::compiler::target::word
+    MonomorphicSmiableCall_entrypoint_offset = 24;
+static constexpr dart::compiler::target::word
+    MonomorphicSmiableCall_target_offset = 8;
 static constexpr dart::compiler::target::word Array_elements_start_offset = 24;
 static constexpr dart::compiler::target::word Array_element_size = 8;
 static constexpr dart::compiler::target::word
@@ -1091,6 +1103,12 @@ static constexpr dart::compiler::target::word
     TypedDataView_offset_in_bytes_offset = 16;
 static constexpr dart::compiler::target::word TypedData_data_offset = 12;
 static constexpr dart::compiler::target::word UserTag_tag_offset = 8;
+static constexpr dart::compiler::target::word
+    MonomorphicSmiableCall_expected_cid_offset = 8;
+static constexpr dart::compiler::target::word
+    MonomorphicSmiableCall_entrypoint_offset = 12;
+static constexpr dart::compiler::target::word
+    MonomorphicSmiableCall_target_offset = 4;
 static constexpr dart::compiler::target::word Array_elements_start_offset = 12;
 static constexpr dart::compiler::target::word Array_element_size = 4;
 static constexpr dart::compiler::target::word
@@ -1137,7 +1155,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     Instructions_kMonomorphicEntryOffsetAOT = 8;
 static constexpr dart::compiler::target::word
-    Instructions_kPolymorphicEntryOffsetAOT = 28;
+    Instructions_kPolymorphicEntryOffsetAOT = 20;
 static constexpr dart::compiler::target::word HeapPage_kBytesPerCardLog2 = 10;
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 2;
@@ -1460,6 +1478,12 @@ static constexpr dart::compiler::target::word
     TypedDataView_offset_in_bytes_offset = 32;
 static constexpr dart::compiler::target::word TypedData_data_offset = 24;
 static constexpr dart::compiler::target::word UserTag_tag_offset = 16;
+static constexpr dart::compiler::target::word
+    MonomorphicSmiableCall_expected_cid_offset = 16;
+static constexpr dart::compiler::target::word
+    MonomorphicSmiableCall_entrypoint_offset = 24;
+static constexpr dart::compiler::target::word
+    MonomorphicSmiableCall_target_offset = 8;
 static constexpr dart::compiler::target::word Array_elements_start_offset = 24;
 static constexpr dart::compiler::target::word Array_element_size = 8;
 static constexpr dart::compiler::target::word

@@ -1525,8 +1525,8 @@ void Assembler::MonomorphicCheckedEntryJIT() {
   br(IP0);
 
   Comment("MonomorphicCheckedEntry");
-  ASSERT(CodeSize() - start ==
-         target::Instructions::kMonomorphicEntryOffsetJIT);
+  ASSERT_EQUAL(CodeSize() - start,
+               target::Instructions::kMonomorphicEntryOffsetJIT);
 
   const intptr_t cid_offset = target::Array::element_offset(0);
   const intptr_t count_offset = target::Array::element_offset(1);
@@ -1542,8 +1542,8 @@ void Assembler::MonomorphicCheckedEntryJIT() {
   LoadImmediate(R4, 0);  // GC-safe for OptimizeInvokedFunction.
 
   // Fall through to unchecked entry.
-  ASSERT(CodeSize() - start ==
-         target::Instructions::kPolymorphicEntryOffsetJIT);
+  ASSERT_EQUAL(CodeSize() - start,
+               target::Instructions::kPolymorphicEntryOffsetJIT);
 
   set_use_far_branches(saved_use_far_branches);
 }
@@ -1563,15 +1563,15 @@ void Assembler::MonomorphicCheckedEntryAOT() {
   br(IP0);
 
   Comment("MonomorphicCheckedEntry");
-  ASSERT(CodeSize() - start ==
-         target::Instructions::kMonomorphicEntryOffsetAOT);
-  LoadClassIdMayBeSmi(IP0, R0);
+  ASSERT_EQUAL(CodeSize() - start,
+               target::Instructions::kMonomorphicEntryOffsetAOT);
+  LoadClassId(IP0, R0);
   cmp(R5, Operand(IP0, LSL, 1));
   b(&miss, NE);
 
   // Fall through to unchecked entry.
-  ASSERT(CodeSize() - start ==
-         target::Instructions::kPolymorphicEntryOffsetAOT);
+  ASSERT_EQUAL(CodeSize() - start,
+               target::Instructions::kPolymorphicEntryOffsetAOT);
 
   set_use_far_branches(saved_use_far_branches);
 }
@@ -1714,8 +1714,7 @@ Address Assembler::ElementAddressForIntIndex(bool is_external,
                                              intptr_t index_scale,
                                              Register array,
                                              intptr_t index) const {
-  const int64_t offset =
-      index * index_scale + HeapDataOffset(is_external, cid);
+  const int64_t offset = index * index_scale + HeapDataOffset(is_external, cid);
   ASSERT(Utils::IsInt(32, offset));
   const OperandSize size = Address::OperandSizeFor(cid);
   ASSERT(Address::CanHoldOffset(offset, Address::Offset, size));
@@ -1728,8 +1727,7 @@ void Assembler::ComputeElementAddressForIntIndex(Register address,
                                                  intptr_t index_scale,
                                                  Register array,
                                                  intptr_t index) {
-  const int64_t offset =
-      index * index_scale + HeapDataOffset(is_external, cid);
+  const int64_t offset = index * index_scale + HeapDataOffset(is_external, cid);
   AddImmediate(address, array, offset);
 }
 
@@ -1739,13 +1737,9 @@ Address Assembler::ElementAddressForRegIndex(bool is_external,
                                              Register array,
                                              Register index,
                                              Register temp) {
-  return ElementAddressForRegIndexWithSize(is_external,
-                                           cid,
+  return ElementAddressForRegIndexWithSize(is_external, cid,
                                            Address::OperandSizeFor(cid),
-                                           index_scale,
-                                           array,
-                                           index,
-                                           temp);
+                                           index_scale, array, index, temp);
 }
 
 Address Assembler::ElementAddressForRegIndexWithSize(bool is_external,

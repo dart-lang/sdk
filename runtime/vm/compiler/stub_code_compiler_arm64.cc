@@ -3460,6 +3460,48 @@ void StubCodeCompiler::GenerateICCallThroughCodeStub(Assembler* assembler) {
   __ br(R1);
 }
 
+// Implement the monomorphic entry check for call-sites where the receiver
+// might be a Smi.
+//
+//   R0: receiver
+//   R5: MonomorphicSmiableCall object
+//
+//   R1: clobbered
+void StubCodeCompiler::GenerateMonomorphicSmiableCheckStub(
+    Assembler* assembler) {
+  Label miss;
+  __ LoadClassIdMayBeSmi(IP0, R0);
+
+  if (FLAG_use_bare_instructions) {
+    __ LoadField(
+        IP1, FieldAddress(
+                 R5, target::MonomorphicSmiableCall::expected_cid_offset()));
+    __ LoadField(
+        R1,
+        FieldAddress(R5, target::MonomorphicSmiableCall::entrypoint_offset()));
+    __ cmp(IP0, Operand(IP1));
+    __ b(&miss, NE);
+    __ br(R1);
+  } else {
+    __ LoadField(
+        IP1, FieldAddress(
+                 R5, target::MonomorphicSmiableCall::expected_cid_offset()));
+    __ LoadField(
+        CODE_REG,
+        FieldAddress(R5, target::MonomorphicSmiableCall::target_offset()));
+    __ LoadField(
+        R1,
+        FieldAddress(R5, target::MonomorphicSmiableCall::entrypoint_offset()));
+    __ cmp(IP0, Operand(IP1));
+    __ b(&miss, NE);
+    __ br(R1);
+  }
+
+  __ Bind(&miss);
+  __ ldr(IP0, Address(THR, target::Thread::monomorphic_miss_entry_offset()));
+  __ br(IP0);
+}
+
 // Called from switchable IC calls.
 //  R0: receiver
 //  R5: SingleTargetCache

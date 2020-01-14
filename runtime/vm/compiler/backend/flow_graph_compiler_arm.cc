@@ -1167,15 +1167,21 @@ void FlowGraphCompiler::EmitInstanceCallAOT(const ICData& ic_data,
                                             intptr_t deopt_id,
                                             TokenPosition token_pos,
                                             LocationSummary* locs,
-                                            Code::EntryKind entry_kind) {
+                                            Code::EntryKind entry_kind,
+                                            bool receiver_can_be_smi) {
   ASSERT(entry_kind == Code::EntryKind::kNormal ||
          entry_kind == Code::EntryKind::kUnchecked);
   ASSERT(ic_data.NumArgsTested() == 1);
   const Code& initial_stub = StubCode::UnlinkedCall();
+  const char* switchable_call_mode = "smiable";
+  if (!receiver_can_be_smi) {
+    switchable_call_mode = "non-smi";
+    ic_data.set_receiver_cannot_be_smi(true);
+  }
   const UnlinkedCall& data =
       UnlinkedCall::ZoneHandle(zone(), ic_data.AsUnlinkedCall());
 
-  __ Comment("InstanceCallAOT");
+  __ Comment("InstanceCallAOT (%s)", switchable_call_mode);
   __ LoadFromOffset(
       kWord, R0, SP,
       (ic_data.CountWithoutTypeArgs() - 1) * compiler::target::kWordSize);
@@ -1233,8 +1239,8 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
   }
   // Do not use the code from the function, but let the code be patched so that
   // we can record the outgoing edges to other code.
-  GenerateStaticDartCall(deopt_id, token_pos,
-                         RawPcDescriptors::kOther, locs, function, entry_kind);
+  GenerateStaticDartCall(deopt_id, token_pos, RawPcDescriptors::kOther, locs,
+                         function, entry_kind);
   __ Drop(count_with_type_args);
 }
 

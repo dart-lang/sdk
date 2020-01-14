@@ -172,6 +172,8 @@ RawClass* Object::dyncalltypecheck_class_ =
 RawClass* Object::singletargetcache_class_ =
     reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::unlinkedcall_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+RawClass* Object::monomorphicsmiablecall_class_ =
+    reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::icdata_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::megamorphic_cache_class_ =
     reinterpret_cast<RawClass*>(RAW_NULL);
@@ -841,6 +843,9 @@ void Object::Init(Isolate* isolate) {
   cls = Class::New<UnlinkedCall>(isolate);
   unlinkedcall_class_ = cls.raw();
 
+  cls = Class::New<MonomorphicSmiableCall>(isolate);
+  monomorphicsmiablecall_class_ = cls.raw();
+
   cls = Class::New<ICData>(isolate);
   icdata_class_ = cls.raw();
 
@@ -1240,6 +1245,7 @@ void Object::Cleanup() {
   dyncalltypecheck_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
   singletargetcache_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
   unlinkedcall_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  monomorphicsmiablecall_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
   icdata_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
   megamorphic_cache_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
   subtypetestcache_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
@@ -1341,6 +1347,7 @@ void Object::FinalizeVMIsolate(Isolate* isolate) {
   SET_CLASS_NAME(dyncalltypecheck, ParameterTypeCheck);
   SET_CLASS_NAME(singletargetcache, SingleTargetCache);
   SET_CLASS_NAME(unlinkedcall, UnlinkedCall);
+  SET_CLASS_NAME(monomorphicsmiablecall, MonomorphicSmiableCall);
   SET_CLASS_NAME(icdata, ICData);
   SET_CLASS_NAME(megamorphic_cache, MegamorphicCache);
   SET_CLASS_NAME(subtypetestcache, SubtypeTestCache);
@@ -13490,14 +13497,46 @@ void UnlinkedCall::set_args_descriptor(const Array& value) const {
   StorePointer(&raw_ptr()->args_descriptor_, value.raw());
 }
 
+void UnlinkedCall::set_can_patch_to_monomorphic(bool value) const {
+  StoreNonPointer(&raw_ptr()->can_patch_to_monomorphic_, value);
+}
+
+intptr_t UnlinkedCall::Hashcode() const {
+  return String::Handle(target_name()).Hash();
+}
+
+bool UnlinkedCall::Equals(const UnlinkedCall& other) const {
+  return (target_name() == other.target_name()) &&
+         (args_descriptor() == other.args_descriptor()) &&
+         (can_patch_to_monomorphic() == other.can_patch_to_monomorphic());
+}
+
 const char* UnlinkedCall::ToCString() const {
   return "UnlinkedCall";
 }
 
 RawUnlinkedCall* UnlinkedCall::New() {
-  RawObject* raw = Object::Allocate(UnlinkedCall::kClassId,
-                                    UnlinkedCall::InstanceSize(), Heap::kOld);
-  return reinterpret_cast<RawUnlinkedCall*>(raw);
+  UnlinkedCall& result = UnlinkedCall::Handle();
+  result ^= Object::Allocate(UnlinkedCall::kClassId,
+                             UnlinkedCall::InstanceSize(), Heap::kOld);
+  result.set_can_patch_to_monomorphic(!FLAG_precompiled_mode);
+  return result.raw();
+}
+
+RawMonomorphicSmiableCall* MonomorphicSmiableCall::New(classid_t expected_cid,
+                                                       const Code& target) {
+  auto& result = MonomorphicSmiableCall::Handle();
+  result ^=
+      Object::Allocate(MonomorphicSmiableCall::kClassId,
+                       MonomorphicSmiableCall::InstanceSize(), Heap::kOld);
+  result.StorePointer(&result.raw_ptr()->target_, target.raw());
+  result.StoreNonPointer(&result.raw_ptr()->expected_cid_, expected_cid);
+  result.StoreNonPointer(&result.raw_ptr()->entrypoint_, target.EntryPoint());
+  return result.raw();
+}
+
+const char* MonomorphicSmiableCall::ToCString() const {
+  return "MonomorphicSmiableCall";
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -14381,6 +14420,8 @@ RawUnlinkedCall* ICData::AsUnlinkedCall() const {
   const UnlinkedCall& result = UnlinkedCall::Handle(UnlinkedCall::New());
   result.set_target_name(String::Handle(target_name()));
   result.set_args_descriptor(Array::Handle(arguments_descriptor()));
+  result.set_can_patch_to_monomorphic(!FLAG_precompiled_mode ||
+                                      receiver_cannot_be_smi());
   return result.raw();
 }
 

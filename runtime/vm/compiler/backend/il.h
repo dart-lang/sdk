@@ -3795,6 +3795,13 @@ class InstanceCallBaseInstr : public TemplateDartCall<0> {
   ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT
   DEFINE_INSTRUCTION_TYPE_CHECK(InstanceCallBase);
 
+  bool receiver_is_not_smi() const { return receiver_is_not_smi_; }
+  void set_receiver_is_not_smi(bool value) { receiver_is_not_smi_ = value; }
+
+  // Tries to prove that the receiver will not be a Smi based on the
+  // interface target, CompileType and hints from TFA.
+  void UpdateReceiverSminess(Zone* zone);
+
  protected:
   friend class CallSpecializer;
   void set_ic_data(ICData* value) { ic_data_ = value; }
@@ -3808,6 +3815,7 @@ class InstanceCallBaseInstr : public TemplateDartCall<0> {
   CompileType* result_type_;  // Inferred result type.
   bool has_unique_selector_;
   Code::EntryKind entry_kind_ = Code::EntryKind::kNormal;
+  bool receiver_is_not_smi_ = false;
 
   DISALLOW_COPY_AND_ASSIGN(InstanceCallBaseInstr);
 };

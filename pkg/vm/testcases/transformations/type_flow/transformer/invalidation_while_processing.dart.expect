@@ -28,7 +28,7 @@ class Point extends core::Object {
     return new self::Point::•([@vm.direct-call.metadata=#lib::Point::x] [@vm.inferred-type.metadata=!] this.{self::Point::x});
 }
 static method getX([@vm.inferred-type.metadata=#lib::Point] dynamic point) → dynamic {
-  [@vm.direct-call.metadata=#lib::Point::x] point.x;
+  [@vm.direct-call.metadata=#lib::Point::x] [@vm.inferred-type.metadata=!? (receiver not int)] point.x;
 }
 static method main() → dynamic {
   self::Point* a = new self::Point::•(new self::T1::•());
