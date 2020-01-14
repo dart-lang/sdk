@@ -74,4 +74,18 @@ class ExpectedCompletion {
   protocol.CompletionSuggestionKind get kind => _kind;
 
   protocol.ElementKind get elementKind => _elementKind;
+
+  bool matches(protocol.CompletionSuggestion completionSuggestion) {
+    if (completionSuggestion.completion == completion) {
+      if (kind != null && completionSuggestion.kind != kind) {
+        return false;
+      }
+      if (elementKind != null &&
+          completionSuggestion.element?.kind != elementKind) {
+        return false;
+      }
+      return true;
+    }
+    return false;
+  }
 }

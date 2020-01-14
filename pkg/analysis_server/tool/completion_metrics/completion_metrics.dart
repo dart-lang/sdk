@@ -89,28 +89,12 @@ Point<int> _placementInSuggestionList(List<CompletionSuggestion> suggestions,
     ExpectedCompletion expectedCompletion) {
   var i = 1;
   for (var completionSuggestion in suggestions) {
-    if (_areCompletionsEquivalent(completionSuggestion, expectedCompletion)) {
+    if (expectedCompletion.matches(completionSuggestion)) {
       return Point(i, suggestions.length);
     }
     i++;
   }
   return Point(0, 0);
-}
-
-bool _areCompletionsEquivalent(CompletionSuggestion completionSuggestion,
-    ExpectedCompletion expectedCompletion) {
-  if (completionSuggestion.completion == expectedCompletion.completion) {
-    if (expectedCompletion.kind != null &&
-        completionSuggestion.kind != expectedCompletion.kind) {
-      return false;
-    }
-    if (expectedCompletion.elementKind != null &&
-        completionSuggestion.element?.kind != expectedCompletion.elementKind) {
-      return false;
-    }
-    return true;
-  }
-  return false;
 }
 
 String _formatPercentToString(double percent, [fractionDigits = 1]) {
