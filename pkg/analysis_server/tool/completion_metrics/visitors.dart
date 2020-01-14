@@ -9,11 +9,9 @@ import 'package:analyzer/dart/ast/visitor.dart';
 class CompletionMetricVisitor extends RecursiveAstVisitor {
   // TODO(jwren) implement missing visit* methods
 
-  List<SyntacticEntity> entities;
+  final List<SyntacticEntity> entities;
 
-  CompletionMetricVisitor() {
-    entities = <SyntacticEntity>[];
-  }
+  CompletionMetricVisitor() : entities = <SyntacticEntity>[];
 
   safelyRecordEntity(SyntacticEntity entity) {
     if (entity != null && entity.offset > 0 && entity.length > 0) {

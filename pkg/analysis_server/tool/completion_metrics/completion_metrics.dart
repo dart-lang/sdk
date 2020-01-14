@@ -38,7 +38,7 @@ Future _computeCompletionMetrics(
     for (var context in collection.contexts) {
       for (var filePath in context.contextRoot.analyzedFiles()) {
         if (AnalysisEngine.isDartFileName(filePath)) {
-          print("  Analyzing file: $filePath");
+          print('  Analyzing file: $filePath');
           try {
             final result =
                 await context.currentSession.getResolvedUnit(filePath);
@@ -63,7 +63,7 @@ Future _computeCompletionMetrics(
               if (fraction.y != 0) {
                 includedCount++;
 //                print(
-//                    "  Bug - $filePath@${entity.offset} did not include ${entity.toString()}");
+//                    '  Bug - $filePath@${entity.offset} did not include ${entity.toString()}');
               } else {
                 notIncludedCount++;
               }
@@ -76,13 +76,13 @@ Future _computeCompletionMetrics(
       }
     }
   }
-  print("done $includedCount $notIncludedCount");
+  print('done $includedCount $notIncludedCount');
 
   final percentIncluded = includedCount / (includedCount + notIncludedCount);
   final percentNotIncluded =
       notIncludedCount / (includedCount + notIncludedCount);
   print(
-      "done ${_formatPercentToString(percentIncluded)} ${_formatPercentToString(percentNotIncluded)}");
+      'done ${_formatPercentToString(percentIncluded)} ${_formatPercentToString(percentNotIncluded)}');
 }
 
 Point<int> _placementInSuggestionList(
