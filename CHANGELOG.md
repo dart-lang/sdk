@@ -41,16 +41,12 @@ additional details see the [announcement].
 
 #### Linter
 
-The Linter was updated to `0.1.108`, which includes:
+The Linter was updated to `0.1.109`, which includes:
 
-* `always_put_required_parameters` updated for NNBD
-* updated to `package:analyzer` 0.39.3 APIs
-* miscellaneous doc cleanups (typos, etc)
-* new lint: `use_key_in_widget_constructors`
-* new lint: `avoid_redundant_argument_values`
-* updated `slash_for_doc_comments` to check mixin declarations
-* (internal) updates to use new `LinterContext.evaluateConstant` API
-* improved docs for `always_require_non_null_named_parameters`
+* an improved `prefer_single_quotes` lint message
+* `unnecessary_finals` fixed to not flag fields
+* `unnecessary_lambdas` fixed to work with type arguments
+* (internal) migration to use analyzer `LinterContext.resolveNameInScope()` API
 
 #### Pub
 
