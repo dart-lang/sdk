@@ -875,9 +875,6 @@ class _PassThroughBuilderImpl implements PassThroughBuilder {
   /// The set of changes aggregated together so far.
   Map<int, List<AtomicEdit>> changes;
 
-  /// Index into [innerPlans] of the plan to process next.
-  int planIndex = 0;
-
   /// If [node] is a sequence, the list of its child nodes.  Otherwise `null`.
   List<AstNode> sequenceNodes;
 
@@ -955,8 +952,7 @@ class _PassThroughBuilderImpl implements PassThroughBuilder {
     return lastRemovePlanIndex;
   }
 
-  /// Processes an inner plan of type [NodeProducingEditPlan], and updates
-  /// [planIndex] to point to the next inner plan.
+  /// Processes an inner plan of type [NodeProducingEditPlan].
   void _handleNodeProducingEditPlan(NodeProducingEditPlan innerPlan) {
     var parensNeeded = innerPlan.parensNeededFromContext(node);
     assert(_checkParenLogic(innerPlan, parensNeeded));
@@ -971,12 +967,14 @@ class _PassThroughBuilderImpl implements PassThroughBuilder {
     if (endsInCascade == null && innerPlan.sourceNode.end == node.end) {
       endsInCascade = !parensNeeded && innerPlan.endsInCascade;
     }
-    planIndex++;
   }
 
-  /// Processes one or more inner plans of type [_RemoveEditPlan], and updates
-  /// [planIndex] to point to the next inner plan.
-  void _handleRemoveEditPlans(_RemoveEditPlan firstPlan) {
+  /// Processes one or more inner plans of type [_RemoveEditPlan], and returns
+  /// an updated [planIndex] pointing to the next inner plan to be processed.
+  ///
+  /// [firstPlan] should be the plan located at index [planIndex].
+  int _handleRemoveEditPlans(_RemoveEditPlan firstPlan, int planIndex) {
+    assert(identical(innerPlans[planIndex], firstPlan));
     assert(identical(firstPlan.parentNode, node));
     var firstPlanIndex = planIndex;
     var lastPlanIndex = _findConsecutiveRemovals(firstPlanIndex, firstPlan);
@@ -1059,17 +1057,21 @@ class _PassThroughBuilderImpl implements PassThroughBuilder {
               ? _RemovalStyle.spaceInsideComment
               : _RemovalStyle.delete);
     }
+
+    return planIndex;
   }
 
   /// Walks through the plans in [innerPlans], adjusting them as necessary and
   /// collecting their changes in [changes].
   void _processPlans() {
+    int planIndex = 0;
     while (planIndex < innerPlans.length) {
       var innerPlan = innerPlans[planIndex];
       if (innerPlan is NodeProducingEditPlan) {
         _handleNodeProducingEditPlan(innerPlan);
+        planIndex++;
       } else if (innerPlan is _RemoveEditPlan) {
-        _handleRemoveEditPlans(innerPlan);
+        planIndex = _handleRemoveEditPlans(innerPlan, planIndex);
       } else {
         throw UnimplementedError('Unrecognized inner plan type');
       }
