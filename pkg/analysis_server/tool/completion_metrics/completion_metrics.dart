@@ -10,6 +10,7 @@ import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
+import 'package:analysis_server/src/status/pages.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
@@ -17,19 +18,19 @@ import 'package:analyzer/src/generated/engine.dart';
 
 import 'visitors.dart';
 
-int includedCount = 0;
-int notIncludedCount = 0;
-
 const bool doPrintExpectedCompletions = true;
 
 main() {
-  List<String> analysisRoots = [''];
+  var analysisRoots = [''];
   _computeCompletionMetrics(PhysicalResourceProvider.INSTANCE, analysisRoots);
 }
 
 /// TODO(jwren) put the following methods into a class
 Future _computeCompletionMetrics(
     ResourceProvider resourceProvider, List<String> analysisRoots) async {
+  int includedCount = 0;
+  int notIncludedCount = 0;
+
   for (var root in analysisRoots) {
     print('Analyzing root: $root');
     final collection = AnalysisContextCollection(
@@ -78,14 +79,21 @@ Future _computeCompletionMetrics(
         }
       }
     }
-  }
-  print('done $includedCount $notIncludedCount');
 
-  final percentIncluded = includedCount / (includedCount + notIncludedCount);
-  final percentNotIncluded =
-      notIncludedCount / (includedCount + notIncludedCount);
-  print(
-      'done ${_formatPercentToString(percentIncluded)} ${_formatPercentToString(percentNotIncluded)}');
+    final totalCompletionCount = includedCount + notIncludedCount;
+    final percentIncluded = includedCount / totalCompletionCount;
+    final percentNotIncluded = 1 - percentIncluded;
+
+    print('');
+    print('Summary for $root:');
+    print('Total number of completion tests   = $totalCompletionCount');
+    print(
+        'Number of successful completions   = $includedCount (${printPercentage(percentIncluded)})');
+    print(
+        'Number of unsuccessful completions = $notIncludedCount (${printPercentage(percentNotIncluded)})');
+  }
+  includedCount = 0;
+  notIncludedCount = 0;
 }
 
 Point<int> _placementInSuggestionList(List<CompletionSuggestion> suggestions,
@@ -98,8 +106,4 @@ Point<int> _placementInSuggestionList(List<CompletionSuggestion> suggestions,
     i++;
   }
   return Point(0, 0);
-}
-
-String _formatPercentToString(double percent, [fractionDigits = 1]) {
-  return (percent * 100).toStringAsFixed(fractionDigits) + '%';
 }
