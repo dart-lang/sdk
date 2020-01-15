@@ -153,7 +153,7 @@ main(Never x) {
   x<int>(1 + 2);
 }
 ''', [
-      error(StaticWarningCode.INVALID_USE_OF_NEVER_VALUE, 18, 1),
+      error(HintCode.RECEIVER_OF_TYPE_NEVER, 18, 1),
     ]);
 
     assertFunctionExpressionInvocation(

@@ -31,7 +31,7 @@ void main(Never x) {
   x == 1 + 2;
 }
 ''', [
-      error(StaticWarningCode.INVALID_USE_OF_NEVER_VALUE, 23, 1),
+      error(HintCode.RECEIVER_OF_TYPE_NEVER, 23, 1),
     ]);
 
     assertBinaryExpression(
@@ -49,7 +49,7 @@ void main(Never x) {
   x + (1 + 2);
 }
 ''', [
-      error(StaticWarningCode.INVALID_USE_OF_NEVER_VALUE, 23, 1),
+      error(HintCode.RECEIVER_OF_TYPE_NEVER, 23, 1),
     ]);
 
     assertBinaryExpression(
@@ -117,7 +117,7 @@ void main(Never x) {
   x();
 }
 ''', [
-      error(StaticWarningCode.INVALID_USE_OF_NEVER_VALUE, 23, 1),
+      error(HintCode.RECEIVER_OF_TYPE_NEVER, 23, 1),
     ]);
   }
 
@@ -137,7 +137,7 @@ void main(Never x) {
   x[0];
 }
 ''', [
-      error(StaticWarningCode.INVALID_USE_OF_NEVER_VALUE, 23, 1),
+      error(HintCode.RECEIVER_OF_TYPE_NEVER, 23, 1),
     ]);
 
     assertIndexExpression(
@@ -154,7 +154,7 @@ void main(Never x) {
   x[0] += 1 + 2;
 }
 ''', [
-      error(StaticWarningCode.INVALID_USE_OF_NEVER_VALUE, 23, 1),
+      error(HintCode.RECEIVER_OF_TYPE_NEVER, 23, 1),
     ]);
 
     assertIndexExpression(
@@ -173,7 +173,7 @@ void main(Never x) {
   x[0] = 1 + 2;
 }
 ''', [
-      error(StaticWarningCode.INVALID_USE_OF_NEVER_VALUE, 23, 1),
+      error(HintCode.RECEIVER_OF_TYPE_NEVER, 23, 1),
     ]);
 
     assertIndexExpression(
@@ -259,7 +259,7 @@ void main(Never x) {
   x.foo(1 + 2);
 }
 ''', [
-      error(StaticWarningCode.INVALID_USE_OF_NEVER_VALUE, 23, 1),
+      error(HintCode.RECEIVER_OF_TYPE_NEVER, 23, 1),
     ]);
 
     assertMethodInvocation(
@@ -279,7 +279,7 @@ void main(Never x) {
   x.toString(1 + 2);
 }
 ''', [
-      error(StaticWarningCode.INVALID_USE_OF_NEVER_VALUE, 23, 1),
+      error(HintCode.RECEIVER_OF_TYPE_NEVER, 23, 1),
     ]);
 
     assertMethodInvocation(
@@ -319,7 +319,7 @@ void main(Never x) {
   x++;
 }
 ''', [
-      error(StaticWarningCode.INVALID_USE_OF_NEVER_VALUE, 23, 1),
+      error(HintCode.RECEIVER_OF_TYPE_NEVER, 23, 1),
     ]);
 
     assertPostfixExpression(
@@ -352,7 +352,7 @@ void main(Never x) {
   ++x;
 }
 ''', [
-      error(StaticWarningCode.INVALID_USE_OF_NEVER_VALUE, 25, 1),
+      error(HintCode.RECEIVER_OF_TYPE_NEVER, 25, 1),
     ]);
 
     assertPrefixExpression(

@@ -131,7 +131,7 @@ class PostfixExpressionResolver {
 
     if (identical(receiverType, NeverTypeImpl.instance)) {
       _resolver.errorReporter.reportErrorForNode(
-        StaticWarningCode.INVALID_USE_OF_NEVER_VALUE,
+        HintCode.RECEIVER_OF_TYPE_NEVER,
         operand,
       );
       return;
