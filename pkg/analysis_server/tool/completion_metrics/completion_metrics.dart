@@ -68,7 +68,7 @@ Future _computeCompletionMetrics(
                 notIncludedCount++;
                 if (doPrintExpectedCompletions) {
                   print(
-                      '\t$filePath at ${expectedCompletion.offset} did not include \'${expectedCompletion.completion}\'');
+                      '\t$filePath at line number ${expectedCompletion.lineNumber} did not include \"${expectedCompletion.completion}\"');
                 }
               }
             }
