@@ -9,10 +9,10 @@ import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
-class CompletionMetricVisitor extends RecursiveAstVisitor {
+class ExpectedCompletionsVisitor extends RecursiveAstVisitor {
   final List<ExpectedCompletion> expectedCompletions;
 
-  CompletionMetricVisitor() : expectedCompletions = <ExpectedCompletion>[];
+  ExpectedCompletionsVisitor() : expectedCompletions = <ExpectedCompletion>[];
 
   safelyRecordEntity(SyntacticEntity entity,
       {protocol.CompletionSuggestionKind kind,

@@ -44,7 +44,7 @@ Future _computeCompletionMetrics(
           try {
             final result =
                 await context.currentSession.getResolvedUnit(filePath);
-            final visitor = CompletionMetricVisitor();
+            final visitor = ExpectedCompletionsVisitor();
 
             result.unit.accept(visitor);
             var expectedCompletions = visitor.expectedCompletions;
