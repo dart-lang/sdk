@@ -50,7 +50,7 @@ ClassMirror reflectClass(Type key) {
 }
 
 @patch
-TypeMirror reflectType(Type key, [List<Type> typeArguments]) {
+TypeMirror reflectType(Type key, [List<Type> typeArguments = const <Type>[]]) {
   return _Mirrors.reflectType(key, typeArguments);
 }
 
@@ -73,17 +73,17 @@ class MirrorSystem {
 
   @patch
   static String getName(Symbol symbol) {
-    return internal.Symbol.computeUnmangledName(symbol);
+    return internal.Symbol.computeUnmangledName(symbol as internal.Symbol);
   }
 
   @patch
-  static Symbol getSymbol(String name, [LibraryMirror library]) {
-    if ((library != null && library is! _LocalLibraryMirror) ||
+  static Symbol getSymbol(String name, [LibraryMirror? library]) {
+    if ((library != null && library is! _LibraryMirror) ||
         ((name.length > 0) && (name[0] == '_') && (library == null))) {
       throw new ArgumentError(library);
     }
     if (library != null) {
-      name = _mangleName(name, (library as _LocalLibraryMirror)._reflectee);
+      name = _mangleName(name, (library as _LibraryMirror)._reflectee);
     }
     return new internal.Symbol.unvalidated(name);
   }

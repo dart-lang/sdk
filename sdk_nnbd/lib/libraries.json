@@ -130,11 +130,11 @@
         "patches": "../../sdk/lib/_internal/vm/lib/math_patch.dart"
       },
       "mirrors": {
-        "uri": "../../sdk/lib/mirrors/mirrors.dart",
+        "uri": "mirrors/mirrors.dart",
         "patches": [
-          "../../sdk/lib/_internal/vm/lib/mirrors_patch.dart",
-          "../../sdk/lib/_internal/vm/lib/mirrors_impl.dart",
-          "../../sdk/lib/_internal/vm/lib/mirror_reference.dart"
+          "_internal/vm/lib/mirrors_patch.dart",
+          "_internal/vm/lib/mirrors_impl.dart",
+          "_internal/vm/lib/mirror_reference.dart"
         ]
       },
       "nativewrappers": {

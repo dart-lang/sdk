@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 // Patch library for dart:mirrors.
 
 import 'dart:_js_helper' show patch;
@@ -22,5 +20,5 @@ InstanceMirror reflect(Object reflectee) =>
 ClassMirror reflectClass(Type key) => throw new UnsupportedError(_message);
 
 @patch
-TypeMirror reflectType(Type key, [List<Type> typeArguments]) =>
+TypeMirror reflectType(Type key, [List<Type> typeArguments = const <Type>[]]) =>
     throw new UnsupportedError(_message);

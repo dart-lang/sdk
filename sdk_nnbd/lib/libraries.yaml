@@ -95,9 +95,9 @@ vm:
         - "../../sdk/lib/_internal/vm/lib/ffi_native_type_patch.dart"
 
     wasm:
-      uri: "../../sdk/lib/wasm/wasm.dart"
+      uri: "wasm/wasm.dart"
       patches:
-        - "../../sdk/lib/_internal/vm/lib/wasm_patch.dart"
+        - "_internal/vm/lib/wasm_patch.dart"
 
     _http:
       uri: "../../sdk/lib/_http/http.dart"
@@ -131,11 +131,11 @@ vm:
       patches: "../../sdk/lib/_internal/vm/lib/math_patch.dart"
 
     mirrors:
-      uri: "../../sdk/lib/mirrors/mirrors.dart"
+      uri: "mirrors/mirrors.dart"
       patches:
-        - "../../sdk/lib/_internal/vm/lib/mirrors_patch.dart"
-        - "../../sdk/lib/_internal/vm/lib/mirrors_impl.dart"
-        - "../../sdk/lib/_internal/vm/lib/mirror_reference.dart"
+        - "_internal/vm/lib/mirrors_patch.dart"
+        - "_internal/vm/lib/mirrors_impl.dart"
+        - "_internal/vm/lib/mirror_reference.dart"
 
     nativewrappers:
       uri: "../../sdk/lib/html/dartium/nativewrappers.dart"
