@@ -228,6 +228,8 @@ import 'label_in_outer_scope_test.dart' as label_in_outer_scope;
 import 'label_undefined_test.dart' as label_undefined;
 import 'late_final_field_with_const_constructor_test.dart'
     as late_final_field_with_const_constructor;
+import 'late_final_local_already_assigned_test.dart'
+    as late_final_local_already_assigned;
 import 'list_element_type_not_assignable_test.dart'
     as list_element_type_not_assignable;
 import 'map_entry_not_in_map_test.dart' as map_entry_not_in_map;
@@ -634,6 +636,7 @@ main() {
     label_in_outer_scope.main();
     label_undefined.main();
     late_final_field_with_const_constructor.main();
+    late_final_local_already_assigned.main();
     list_element_type_not_assignable.main();
     map_entry_not_in_map.main();
     map_key_type_not_assignable.main();

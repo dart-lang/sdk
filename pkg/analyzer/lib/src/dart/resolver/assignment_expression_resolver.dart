@@ -77,6 +77,23 @@ class AssignmentExpressionResolver {
             : node.staticType);
   }
 
+  void _checkLateFinalAlreadyAssigned(Expression left) {
+    var flow = _flowAnalysis?.flow;
+    if (flow != null && left is SimpleIdentifier) {
+      var element = left.staticElement;
+      if (element is LocalVariableElement &&
+          element.isLate &&
+          element.isFinal) {
+        if (flow.isAssigned(element)) {
+          _errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED,
+            left,
+          );
+        }
+      }
+    }
+  }
+
   void _resolve1(AssignmentExpressionImpl node) {
     Token operator = node.operator;
     TokenType operatorType = operator.type;
@@ -86,6 +103,8 @@ class AssignmentExpressionResolver {
     if (identical(staticType, NeverTypeImpl.instance)) {
       return;
     }
+
+    _checkLateFinalAlreadyAssigned(leftHandSide);
 
     // For any compound assignments to a void or nullable variable, report it.
     // Example: `y += voidFn()`, not allowed.

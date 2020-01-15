@@ -3218,6 +3218,18 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "'const' constructors.");
 
   /**
+   * nnbd/feature-specification.md
+   *
+   * It is a compile time error to assign a value to a local variable marked
+   * `late` and `final` when the variable is definitely assigned.
+   */
+  static const CompileTimeErrorCode LATE_FINAL_LOCAL_ALREADY_ASSIGNED =
+      CompileTimeErrorCode('LATE_FINAL_LOCAL_ALREADY_ASSIGNED',
+          "The late final local variable is already definitely assigned.",
+          correction: "Try removing the 'late' modifier, or don't reassign "
+              "the value.");
+
+  /**
    * No parameters.
    */
   // #### Description

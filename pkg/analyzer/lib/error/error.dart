@@ -205,6 +205,7 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.LABEL_IN_OUTER_SCOPE,
   CompileTimeErrorCode.LABEL_UNDEFINED,
   CompileTimeErrorCode.LATE_FINAL_FIELD_WITH_CONST_CONSTRUCTOR,
+  CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED,
   CompileTimeErrorCode.MAP_ENTRY_NOT_IN_MAP,
   CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME,
   CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL,
