@@ -599,7 +599,9 @@ linter:
     expected.lint = true;
     expected.lintRules = <Linter>[_mockLintRule];
     String packagesFilePath = convertPath('/some/directory/path/.packages');
-    newFile(packagesFilePath, content: 'flutter:/pkg/flutter/lib/');
+    newFile(packagesFilePath, content: '''
+flutter:${toUriStr('/pkg/flutter/lib/')}
+''');
     newFile('/pkg/flutter/lib/analysis_options_user.yaml', content: '''
 linter:
   rules:

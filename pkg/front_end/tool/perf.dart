@@ -44,7 +44,7 @@ main(List<String> args) async {
   var bench = args[0];
   var entryUri = Uri.base.resolve(args[1]);
 
-  await setup(args[1]);
+  await setup(path.fromUri(entryUri));
 
   Set<Source> files = scanReachableFiles(entryUri);
   var handlers = {

@@ -118,8 +118,8 @@ class Required {
     MockSdk(resourceProvider: resourceProvider);
 
     newFolder('/home/test');
-    newFile('/home/test/.packages', content: r'''
-test:file:///home/test/lib
+    newFile('/home/test/.packages', content: '''
+test:${toUriStr('/home/test/lib')}
 ''');
 
     _createDriver();
