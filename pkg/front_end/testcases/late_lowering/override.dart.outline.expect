@@ -1,0 +1,20 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  field core::int? _#field;
+  synthetic constructor •() → self::Class
+    ;
+  get field() → core::int;
+  set field(core::int #t1) → void;
+}
+class SubClass extends self::Class {
+  field core::int? _#field;
+  synthetic constructor •() → self::SubClass
+    ;
+  get field() → core::int;
+  set field(core::int #t2) → void;
+}
+static method main() → dynamic
+  ;

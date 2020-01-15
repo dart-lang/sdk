@@ -1,0 +1,26 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+class Class extends core::Object {
+  field core::int? _#field = null;
+  synthetic constructor •() → self::Class
+    : super core::Object::•()
+    ;
+  get field() → core::int
+    return let final core::int? #t1 = this.{self::Class::_#field} in #t1.==(null) ?{core::int} throw new _in::LateInitializationErrorImpl::•("Field 'field' has not been initialized.") : #t1{core::int};
+  set field(core::int #t2) → void
+    this.{self::Class::_#field} = #t2;
+}
+class SubClass extends self::Class {
+  field core::int? _#field = null;
+  synthetic constructor •() → self::SubClass
+    : super self::Class::•()
+    ;
+  get field() → core::int
+    return let final core::int? #t3 = this.{self::SubClass::_#field} in #t3.==(null) ?{core::int} throw new _in::LateInitializationErrorImpl::•("Field 'field' has not been initialized.") : #t3{core::int};
+  set field(core::int #t4) → void
+    this.{self::SubClass::_#field} = #t4;
+}
+static method main() → dynamic {}

@@ -928,7 +928,7 @@ class ClassHierarchyNodeBuilder {
     }
   }
 
-  bool inferFieldTypes(MemberBuilder a, ClassMember b) {
+  bool inferFieldTypes(ClassMember a, ClassMember b) {
     debug?.log("Trying to infer field types for ${fullName(a)} "
         "based on ${fullName(b)}");
     if (b is DelayedMember) {
@@ -948,7 +948,7 @@ class ClassHierarchyNodeBuilder {
         VariableDeclaration parameter =
             bTarget.function.positionalParameters.single;
         // inheritedType = parameter.type;
-        copyFieldCovarianceFromParameter(a.parent, a.member, parameter);
+        copyFieldCovarianceFromParameter(a.classBuilder, a.member, parameter);
         if (!hasExplicitlyTypedFormalParameter(b, 0)) {
           debug?.log("Giving up (type may be inferred)");
           return false;
@@ -958,14 +958,14 @@ class ClassHierarchyNodeBuilder {
         inheritedType = bTarget.function.returnType;
       }
     } else if (bTarget is Field) {
-      copyFieldCovariance(a.parent, a.member, bTarget);
+      copyFieldCovariance(a.classBuilder, a.member, bTarget);
       inheritedType = bTarget.type;
     }
     if (inheritedType == null) {
       debug?.log("Giving up (inheritedType == null)\n${StackTrace.current}");
       return false;
     }
-    ClassBuilder aClassBuilder = a.parent;
+    ClassBuilder aClassBuilder = a.classBuilder;
     Substitution aSubstitution;
     if (classBuilder != aClassBuilder) {
       assert(
