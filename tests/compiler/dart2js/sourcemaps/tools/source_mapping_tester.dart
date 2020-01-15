@@ -4,10 +4,10 @@
 
 import 'dart:async';
 import 'dart:io';
+import 'package:_fe_analyzer_shared/src/util/filenames.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/commandline_options.dart';
-import 'package:compiler/src/filenames.dart';
 import 'package:compiler/src/io/source_information.dart';
 import 'package:compiler/src/js/js_debug.dart';
 import 'package:js_ast/js_ast.dart';

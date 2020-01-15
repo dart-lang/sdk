@@ -8,8 +8,8 @@ import "dart:io";
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
 
+import 'package:_fe_analyzer_shared/src/util/filenames.dart';
 import 'package:compiler/compiler.dart' as compiler;
-import 'package:compiler/src/filenames.dart';
 
 const Map<String, String> SOURCES = const {
   "/main.dart": """

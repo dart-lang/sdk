@@ -4,14 +4,14 @@
 
 library filenames;
 
-import 'dart:io' show Platform;
+import 'relativize.dart' show isWindows;
 
 // For information about how to convert Windows file names to URIs:
 // http://blogs.msdn.com/b/ie/archive/2006/12/06/file-uris-in-windows.aspx
 
 String nativeToUriPath(String filename) {
   // TODO(ahe): It would be nice to use a Dart library instead.
-  if (!Platform.isWindows) return filename;
+  if (!isWindows) return filename;
   filename = filename.replaceAll('\\', '/');
   if (filename.length > 2 && filename[1] == ':') {
     filename = "/$filename";
@@ -21,7 +21,7 @@ String nativeToUriPath(String filename) {
 
 String uriPathToNative(String path) {
   // TODO(ahe): It would be nice to use a Dart library instead.
-  if (!Platform.isWindows) return path;
+  if (!isWindows) return path;
   if (path.length > 3 && path[0] == '/' && path[2] == ':') {
     return path.substring(1).replaceAll('/', '\\');
   } else {
@@ -29,9 +29,6 @@ String uriPathToNative(String path) {
   }
 }
 
-final Uri currentDirectory = Uri.base;
-
-Uri nativeToUri(String filename) =>
-    currentDirectory.resolve(nativeToUriPath(filename));
+Uri nativeToUri(String filename) => Uri.base.resolve(nativeToUriPath(filename));
 
 String appendSlash(String path) => path.endsWith('/') ? path : '$path/';

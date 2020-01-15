@@ -85,6 +85,9 @@ export 'package:_fe_analyzer_shared/src/scanner/characters.dart'
         $s,
         $z;
 
+export 'package:_fe_analyzer_shared/src/util/filenames.dart'
+    show nativeToUri, nativeToUriPath, uriPathToNative;
+
 export 'package:_fe_analyzer_shared/src/util/link.dart' show Link, LinkBuilder;
 
 export 'package:_fe_analyzer_shared/src/util/link_implementation.dart'
