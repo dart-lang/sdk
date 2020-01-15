@@ -55,6 +55,9 @@ class PreferFinalLocals extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
+  List<String> get incompatibleRules => const ['unnecessary_final'];
+
+  @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
     final visitor = _Visitor(this);
