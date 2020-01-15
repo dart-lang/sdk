@@ -306,6 +306,24 @@
         "timeout": 240,
         "use-sdk": true
     }},
+    "analyzer-unittest-asserts-(debug|product|release)-(linux|mac|win)": {
+      "options": {
+        "compiler": "dartk",
+        "enable-asserts": true,
+        "runtime": "vm",
+        "timeout": 240,
+        "use-sdk": true,
+        "builder-tag": "analyzer"
+    }},
+    "cfe-unittest-asserts-(debug|product|release)-(linux|mac|win)": {
+      "options": {
+        "compiler": "dartk",
+        "enable-asserts": true,
+        "runtime": "vm",
+        "timeout": 240,
+        "use-sdk": true,
+        "builder-tag": "cfe"
+    }},
     "unittest-asserts-no-sdk-(linux|mac|win)": {
       "options": {
         "compiler": "dartk",
@@ -562,9 +580,13 @@
         "enable-asserts": true
 
     }},
-    "fasta-(linux|mac|win)": { },
-    "fasta-weak-(linux|mac|win)": {
+    "cfe-(linux|mac|win)": {
       "options": {
+        "compiler": "fasta"
+    }},
+    "cfe-weak-(linux|mac|win)": {
+      "options": {
+        "compiler": "fasta",
         "enable-experiment": ["non-nullable"]
       }
     },
@@ -618,7 +640,7 @@
         {
           "name": "co19_2 tests",
           "arguments": [
-            "-nfasta-${system}",
+            "-ncfe-${system}",
             "co19_2"
           ],
           "fileset": "front-end",
@@ -626,14 +648,14 @@
         },
         {
           "name": "sdk tests",
-          "arguments": ["-nfasta-${system}"],
+          "arguments": ["-ncfe-${system}"],
           "fileset": "front-end",
           "shards": 5
         },
         {
           "name": "unit tests",
           "arguments": [
-            "-nunittest-asserts-${mode}-${system}",
+            "-ncfe-unittest-asserts-${mode}-${system}",
              "pkg/(kernel|front_end|fasta)"
           ]
         },
@@ -643,7 +665,7 @@
           "testRunner": true,
           "arguments": [
             "pkg/front_end/test/unit_test_suites.dart",
-            "-nfront-end-${system}-release-x64",
+            "-ncfe-${system}-release-x64",
             "--verbose"
           ]
         }
@@ -671,7 +693,7 @@
         {
           "name": "weak sdk tests",
           "arguments": [
-            "-nfasta-weak-${system}",
+            "-ncfe-weak-${system}",
             "language",
             "corelib",
             "lib"
@@ -682,7 +704,7 @@
         {
           "name": "weak co19 tests",
           "arguments": [
-            "-nfasta-weak-${system}",
+            "-ncfe-weak-${system}",
             "co19/LanguageFeatures/nnbd"
           ],
           "fileset": "front-end",
@@ -690,14 +712,14 @@
         },
         {
           "name": "legacy sdk tests",
-          "arguments": ["-nfasta-weak-${system}"],
+          "arguments": ["-ncfe-weak-${system}"],
           "fileset": "front-end",
           "shards": 5
         },
         {
           "name": "legacy co19_2 tests",
           "arguments": [
-            "-nfasta-weak-${system}",
+            "-ncfe-weak-${system}",
             "co19_2"
           ],
           "fileset": "front-end",
@@ -2143,7 +2165,7 @@
         {
           "name": "analyzer unit tests",
           "arguments": [
-            "-nunittest-asserts-${mode}-${system}",
+            "-nanalyzer-unittest-asserts-${mode}-${system}",
             "pkg/analyzer"
           ],
           "shards": 2,
@@ -2152,7 +2174,7 @@
         {
           "name": "analysis_server unit tests",
           "arguments": [
-            "-nunittest-asserts-${mode}-${system}",
+            "-nanalyzer-unittest-asserts-${mode}-${system}",
             "pkg/analysis_server"
           ],
           "shards": 2,
@@ -2173,14 +2195,14 @@
         {
           "name": "analyzer_cli unit tests",
           "arguments": [
-            "-nunittest-asserts-${mode}-${system}",
+            "-nanalyzer-unittest-asserts-${mode}-${system}",
             "pkg/analyzer_cli"
           ]
         },
         {
           "name": "analyzer_plugin unit tests",
           "arguments": [
-            "-nunittest-asserts-${mode}-${system}",
+            "-nanalyzer-unittest-asserts-${mode}-${system}",
             "pkg/analyzer_plugin"
           ]
         },
