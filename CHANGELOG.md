@@ -1,3 +1,10 @@
+# 0.1.109
+
+* improved`prefer_single_quotes` lint message
+* `unnecessary_finals` fixed to not flag fields
+* `unnecessary_lambdas` fixed to work with type arguments
+* (internal) migrated to use analyzer `LinterContext.resolveNameInScope()` API
+
 # 0.1.108
 
 * fixes to `avoid_redundant_argument_values`
