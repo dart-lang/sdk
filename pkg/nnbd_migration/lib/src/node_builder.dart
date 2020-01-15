@@ -498,6 +498,8 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     } else {
       var nullabilityNode = NullabilityNode.forInferredType();
       decoratedBound = DecoratedType(_typeProvider.objectType, nullabilityNode);
+      _graph.connect(_graph.always, nullabilityNode,
+          AlwaysNullableTypeOrigin.forElement(element));
     }
     _typeFormalBounds?.add(decoratedBound);
     _variables.recordDecoratedTypeParameterBound(element, decoratedBound);

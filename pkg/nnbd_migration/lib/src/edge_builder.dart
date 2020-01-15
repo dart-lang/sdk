@@ -2542,13 +2542,9 @@ mixin _AssignmentChecker {
     if (sourceType.isBottom || sourceType.isDartCoreNull) {
       // No further edges need to be created, since all types are trivially
       // supertypes of bottom (and of Null, in the pre-migration world).
-    } else if (destinationType.isDynamic ||
-        destinationType.isVoid ||
-        destinationType.isDartCoreObject) {
-      // No further edges need to be created, since all types are trivially
-      // subtypes of dynamic, Object, and void, since all are treated as
-      // equivalent to dynamic for subtyping purposes.
     } else if (sourceType is TypeParameterType) {
+      // Handle this before handling dynamic/object/void, to correctly infer
+      // nullabilities in `Object o = T`.
       if (destinationType is TypeParameterType) {
         // No further edges need to be created, since type parameter types
         // aren't made up of other types.
@@ -2561,6 +2557,12 @@ mixin _AssignmentChecker {
             hard: false);
         return;
       }
+    } else if (destinationType.isDynamic ||
+        destinationType.isVoid ||
+        destinationType.isDartCoreObject) {
+      // No further edges need to be created, since all types are trivially
+      // subtypes of dynamic, Object, and void, since all are treated as
+      // equivalent to dynamic for subtyping purposes.
     } else if (sourceType is InterfaceType &&
         destinationType is InterfaceType) {
       var rewrittenSource = _decoratedClassHierarchy.asInstanceOf(

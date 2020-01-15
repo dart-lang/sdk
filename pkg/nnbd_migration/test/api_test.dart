@@ -2091,6 +2091,24 @@ int f(int x) {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_implicit_type_parameter_bound_nullable() async {
+    var content = '''
+class C<T> {
+  f(T t) {
+    Object o = t;
+  }
+}
+''';
+    var expected = '''
+class C<T> {
+  f(T t) {
+    Object? o = t;
+  }
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/39376')
   Future<void> test_infer_required() async {
     var content = '''
@@ -2940,6 +2958,28 @@ class C {
   operator==(Object other) {
     return other is C;
   }
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_override_object_from_type_parameter() async {
+    var content = '''
+class C<T> {
+  f(T t) {}
+}
+class D<T> extends C<T> {
+  @override
+  f(Object t) {}
+}
+''';
+    var expected = '''
+class C<T> {
+  f(T t) {}
+}
+class D<T> extends C<T> {
+  @override
+  f(Object? t) {}
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -3905,11 +3945,6 @@ class _ProvisionalApiTestWithFixBuilder extends _ProvisionalApiTestBase
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
   Future<void> test_instance_creation_generic() =>
       super.test_instance_creation_generic();
-
-  @override
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
-  Future<void> test_methodInvocation_typeArguments_inferred() =>
-      super.test_methodInvocation_typeArguments_inferred();
 
   @override
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
