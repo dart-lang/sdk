@@ -11,6 +11,11 @@ set -e
 if [ "$LINTER_BOT" = "release" ]; then
   echo "Validating release..."
   dart tool/bot/version_check.dart
+  echo ""
+  echo ""
+  echo "Generating scorecard..."
+  echo ""
+  dart tool/scorecard.dart
 
 elif [ "$LINTER_BOT" = "benchmark" ]; then
   echo "Running the linter benchmark..."
