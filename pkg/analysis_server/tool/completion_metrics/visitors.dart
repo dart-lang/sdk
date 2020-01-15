@@ -6,18 +6,13 @@ import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/services/completion/dart/keyword_contributor.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 class CompletionMetricVisitor extends RecursiveAstVisitor {
-  // TODO(jwren) implement missing visit* methods
-
   final List<ExpectedCompletion> expectedCompletions;
 
   CompletionMetricVisitor() : expectedCompletions = <ExpectedCompletion>[];
-
-  safelyRecordKeywordCompletion(SyntacticEntity entity) {
-    safelyRecordEntity(entity, kind: protocol.CompletionSuggestionKind.KEYWORD);
-  }
 
   safelyRecordEntity(SyntacticEntity entity,
       {protocol.CompletionSuggestionKind kind,
@@ -56,16 +51,233 @@ class CompletionMetricVisitor extends RecursiveAstVisitor {
     }
   }
 
+  safelyRecordKeywordCompletion(SyntacticEntity entity) {
+    safelyRecordEntity(entity, kind: protocol.CompletionSuggestionKind.KEYWORD);
+  }
+
+  @override
+  visitAsExpression(AsExpression node) {
+    safelyRecordKeywordCompletion(node.asOperator);
+    return super.visitAsExpression(node);
+  }
+
+  @override
+  visitAwaitExpression(AwaitExpression node) {
+    safelyRecordKeywordCompletion(node.awaitKeyword);
+    return super.visitAwaitExpression(node);
+  }
+
+  @override
+  visitBlockFunctionBody(BlockFunctionBody node) {
+    // 'async' | 'async' '*' | 'sync' '*':
+    safelyRecordKeywordCompletion(node.keyword);
+    return super.visitBlockFunctionBody(node);
+  }
+
+  @override
+  visitBooleanLiteral(BooleanLiteral node) {
+    // 'false' | 'true'
+    safelyRecordKeywordCompletion(node.literal);
+    return super.visitBooleanLiteral(node);
+  }
+
+  @override
+  visitBreakStatement(BreakStatement node) {
+    safelyRecordKeywordCompletion(node.breakKeyword);
+    return super.visitBreakStatement(node);
+  }
+
+  @override
+  visitCatchClause(CatchClause node) {
+    // Should we 'catch', it won't be suggested when it already exists as a
+    // keyword in the file?
+    safelyRecordKeywordCompletion(node.catchKeyword);
+    safelyRecordKeywordCompletion(node.onKeyword);
+    return super.visitCatchClause(node);
+  }
+
+  @override
+  visitClassDeclaration(ClassDeclaration node) {
+    safelyRecordKeywordCompletion(node.abstractKeyword);
+    safelyRecordKeywordCompletion(node.classKeyword);
+    return super.visitClassDeclaration(node);
+  }
+
+  @override
+  visitClassTypeAlias(ClassTypeAlias node) {
+    safelyRecordKeywordCompletion(node.abstractKeyword);
+    safelyRecordKeywordCompletion(node.typedefKeyword);
+    return super.visitClassTypeAlias(node);
+  }
+
+  @override
+  visitConfiguration(Configuration node) {
+    safelyRecordKeywordCompletion(node.ifKeyword);
+    return super.visitConfiguration(node);
+  }
+
+  @override
+  visitConstructorDeclaration(ConstructorDeclaration node) {
+    safelyRecordKeywordCompletion(node.externalKeyword);
+    safelyRecordKeywordCompletion(node.constKeyword);
+    safelyRecordKeywordCompletion(node.factoryKeyword);
+    return super.visitConstructorDeclaration(node);
+  }
+
+  @override
+  visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
+    safelyRecordKeywordCompletion(node.thisKeyword);
+    return super.visitConstructorFieldInitializer(node);
+  }
+
+  @override
+  visitContinueStatement(ContinueStatement node) {
+    safelyRecordKeywordCompletion(node.continueKeyword);
+    return super.visitContinueStatement(node);
+  }
+
+  @override
+  visitDeclaredIdentifier(DeclaredIdentifier node) {
+    // 'final', 'const' or 'var'
+    safelyRecordKeywordCompletion(node.keyword);
+    return super.visitDeclaredIdentifier(node);
+  }
+
   @override
   visitDoStatement(DoStatement node) {
     safelyRecordKeywordCompletion(node.doKeyword);
+    safelyRecordKeywordCompletion(node.whileKeyword);
     return super.visitDoStatement(node);
+  }
+
+  @override
+  visitEnumDeclaration(EnumDeclaration node) {
+    safelyRecordKeywordCompletion(node.enumKeyword);
+    return super.visitEnumDeclaration(node);
+  }
+
+  @override
+  visitExportDirective(ExportDirective node) {
+    safelyRecordKeywordCompletion(node.keyword);
+    return super.visitExportDirective(node);
+  }
+
+  @override
+  visitExpressionFunctionBody(ExpressionFunctionBody node) {
+    safelyRecordKeywordCompletion(node.keyword);
+    return super.visitExpressionFunctionBody(node);
+  }
+
+  @override
+  visitExtendsClause(ExtendsClause node) {
+    safelyRecordKeywordCompletion(node.extendsKeyword);
+    return super.visitExtendsClause(node);
+  }
+
+  @override
+  visitExtensionDeclaration(ExtensionDeclaration node) {
+    safelyRecordKeywordCompletion(node.extensionKeyword);
+    safelyRecordKeywordCompletion(node.onKeyword);
+    return super.visitExtensionDeclaration(node);
+  }
+
+  @override
+  visitExtensionOverride(ExtensionOverride node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
+  visitFieldDeclaration(FieldDeclaration node) {
+    safelyRecordKeywordCompletion(node.covariantKeyword);
+    safelyRecordKeywordCompletion(node.staticKeyword);
+    return super.visitFieldDeclaration(node);
+  }
+
+  @override
+  visitFieldFormalParameter(FieldFormalParameter node) {
+    // 'final', 'const' or 'var'
+    safelyRecordKeywordCompletion(node.keyword);
+    safelyRecordKeywordCompletion(node.thisKeyword);
+    return super.visitFieldFormalParameter(node);
+  }
+
+  @override
+  visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) {
+    safelyRecordKeywordCompletion(node.inKeyword);
+    return super.visitForEachPartsWithDeclaration(node);
+  }
+
+  @override
+  visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
+    safelyRecordKeywordCompletion(node.inKeyword);
+    return super.visitForEachPartsWithIdentifier(node);
+  }
+
+  @override
+  visitForElement(ForElement node) {
+    safelyRecordKeywordCompletion(node.awaitKeyword);
+    safelyRecordKeywordCompletion(node.forKeyword);
+    return super.visitForElement(node);
+  }
+
+  @override
+  visitForStatement(ForStatement node) {
+    safelyRecordKeywordCompletion(node.awaitKeyword);
+    safelyRecordKeywordCompletion(node.forKeyword);
+    return super.visitForStatement(node);
+  }
+
+  @override
+  visitFunctionDeclaration(FunctionDeclaration node) {
+    safelyRecordKeywordCompletion(node.externalKeyword);
+    // 'get' or 'set':
+    safelyRecordKeywordCompletion(node.propertyKeyword);
+    return super.visitFunctionDeclaration(node);
+  }
+
+  @override
+  visitFunctionTypeAlias(FunctionTypeAlias node) {
+    safelyRecordKeywordCompletion(node.typedefKeyword);
+    return super.visitFunctionTypeAlias(node);
+  }
+
+  @override
+  visitGenericFunctionType(GenericFunctionType node) {
+    safelyRecordKeywordCompletion(node.functionKeyword);
+    return super.visitGenericFunctionType(node);
+  }
+
+  @override
+  visitGenericTypeAlias(GenericTypeAlias node) {
+    safelyRecordKeywordCompletion(node.typedefKeyword);
+    return super.visitGenericTypeAlias(node);
+  }
+
+  @override
+  visitHideCombinator(HideCombinator node) {
+    safelyRecordKeywordCompletion(node.keyword);
+    return super.visitHideCombinator(node);
+  }
+
+  @override
+  visitIfElement(IfElement node) {
+    safelyRecordKeywordCompletion(node.ifKeyword);
+    safelyRecordKeywordCompletion(node.elseKeyword);
+    return super.visitIfElement(node);
   }
 
   @override
   visitIfStatement(IfStatement node) {
     safelyRecordKeywordCompletion(node.ifKeyword);
+    safelyRecordKeywordCompletion(node.elseKeyword);
     return super.visitIfStatement(node);
+  }
+
+  @override
+  visitImplementsClause(ImplementsClause node) {
+    safelyRecordKeywordCompletion(node.implementsKeyword);
+    return super.visitImplementsClause(node);
   }
 
   @override
@@ -73,6 +285,126 @@ class CompletionMetricVisitor extends RecursiveAstVisitor {
     safelyRecordKeywordCompletion(node.keyword);
     safelyRecordKeywordCompletion(node.asKeyword);
     return super.visitImportDirective(node);
+  }
+
+  @override
+  visitInstanceCreationExpression(InstanceCreationExpression node) {
+    // Here we explicitly do not record 'new' as we don't suggest it in the
+    // completion service.
+    // https://dart-review.googlesource.com/c/sdk/+/131020
+    var keywordStr = node.keyword?.lexeme;
+    if (Keyword.CONST.lexeme == keywordStr) {
+      safelyRecordKeywordCompletion(node.keyword);
+    }
+    return super.visitInstanceCreationExpression(node);
+  }
+
+  @override
+  visitIsExpression(IsExpression node) {
+    safelyRecordKeywordCompletion(node.isOperator);
+    return super.visitIsExpression(node);
+  }
+
+  @override
+  visitLibraryDirective(LibraryDirective node) {
+    safelyRecordKeywordCompletion(node.libraryKeyword);
+    return super.visitLibraryDirective(node);
+  }
+
+  @override
+  visitListLiteral(ListLiteral node) {
+    safelyRecordKeywordCompletion(node.constKeyword);
+    return super.visitListLiteral(node);
+  }
+
+  @override
+  visitMethodDeclaration(MethodDeclaration node) {
+    safelyRecordKeywordCompletion(node.externalKeyword);
+    safelyRecordKeywordCompletion(node.modifierKeyword);
+    safelyRecordKeywordCompletion(node.operatorKeyword);
+    safelyRecordKeywordCompletion(node.propertyKeyword);
+    return super.visitMethodDeclaration(node);
+  }
+
+  @override
+  visitMixinDeclaration(MixinDeclaration node) {
+    safelyRecordKeywordCompletion(node.mixinKeyword);
+    return super.visitMixinDeclaration(node);
+  }
+
+  @override
+  visitNativeClause(NativeClause node) {
+    safelyRecordKeywordCompletion(node.nativeKeyword);
+    return super.visitNativeClause(node);
+  }
+
+  @override
+  visitNativeFunctionBody(NativeFunctionBody node) {
+    safelyRecordKeywordCompletion(node.nativeKeyword);
+    return super.visitNativeFunctionBody(node);
+  }
+
+  @override
+  visitNullLiteral(NullLiteral node) {
+    safelyRecordKeywordCompletion(node.literal);
+    return super.visitNullLiteral(node);
+  }
+
+  @override
+  visitOnClause(OnClause node) {
+    safelyRecordKeywordCompletion(node.onKeyword);
+    return super.visitOnClause(node);
+  }
+
+  @override
+  visitPartDirective(PartDirective node) {
+    safelyRecordKeywordCompletion(node.partKeyword);
+    return super.visitPartDirective(node);
+  }
+
+  @override
+  visitPartOfDirective(PartOfDirective node) {
+    safelyRecordKeywordCompletion(node.partKeyword);
+    safelyRecordKeywordCompletion(node.ofKeyword);
+    return super.visitPartOfDirective(node);
+  }
+
+  @override
+  visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) {
+    safelyRecordKeywordCompletion(node.thisKeyword);
+    return super.visitRedirectingConstructorInvocation(node);
+  }
+
+  @override
+  visitRethrowExpression(RethrowExpression node) {
+    safelyRecordKeywordCompletion(node.rethrowKeyword);
+    return super.visitRethrowExpression(node);
+  }
+
+  @override
+  visitReturnStatement(ReturnStatement node) {
+    safelyRecordKeywordCompletion(node.returnKeyword);
+    return super.visitReturnStatement(node);
+  }
+
+  @override
+  visitSetOrMapLiteral(SetOrMapLiteral node) {
+    safelyRecordKeywordCompletion(node.constKeyword);
+    return super.visitSetOrMapLiteral(node);
+  }
+
+  @override
+  visitShowCombinator(ShowCombinator node) {
+    safelyRecordKeywordCompletion(node.keyword);
+    return super.visitShowCombinator(node);
+  }
+
+  @override
+  visitSimpleFormalParameter(SimpleFormalParameter node) {
+    // 'final', 'const' or 'var'
+    safelyRecordKeywordCompletion(node.keyword);
+    safelyRecordKeywordCompletion(node.covariantKeyword);
+    return super.visitSimpleFormalParameter(node);
   }
 
   @override
@@ -85,6 +417,87 @@ class CompletionMetricVisitor extends RecursiveAstVisitor {
       safelyRecordEntity(node, elementKind: elementKind);
     }
     return super.visitSimpleIdentifier(node);
+  }
+
+  @override
+  visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+    safelyRecordKeywordCompletion(node.superKeyword);
+    return super.visitSuperConstructorInvocation(node);
+  }
+
+  @override
+  visitSuperExpression(SuperExpression node) {
+    safelyRecordKeywordCompletion(node.superKeyword);
+    return super.visitSuperExpression(node);
+  }
+
+  @override
+  visitSwitchCase(SwitchCase node) {
+    safelyRecordKeywordCompletion(node.keyword);
+    return super.visitSwitchCase(node);
+  }
+
+  @override
+  visitSwitchDefault(SwitchDefault node) {
+    safelyRecordKeywordCompletion(node.keyword);
+    return super.visitSwitchDefault(node);
+  }
+
+  @override
+  visitSwitchStatement(SwitchStatement node) {
+    safelyRecordKeywordCompletion(node.switchKeyword);
+    return super.visitSwitchStatement(node);
+  }
+
+  @override
+  visitThisExpression(ThisExpression node) {
+    safelyRecordKeywordCompletion(node.thisKeyword);
+    return super.visitThisExpression(node);
+  }
+
+  @override
+  visitThrowExpression(ThrowExpression node) {
+    safelyRecordKeywordCompletion(node.throwKeyword);
+    return super.visitThrowExpression(node);
+  }
+
+  @override
+  visitTryStatement(TryStatement node) {
+    safelyRecordKeywordCompletion(node.tryKeyword);
+    safelyRecordKeywordCompletion(node.finallyKeyword);
+    return super.visitTryStatement(node);
+  }
+
+  @override
+  visitTypeParameter(TypeParameter node) {
+    safelyRecordKeywordCompletion(node.extendsKeyword);
+    return super.visitTypeParameter(node);
+  }
+
+  @override
+  visitVariableDeclarationList(VariableDeclarationList node) {
+    // 'final', 'const' or 'var'
+    safelyRecordKeywordCompletion(node.keyword);
+    safelyRecordKeywordCompletion(node.lateKeyword);
+    return super.visitVariableDeclarationList(node);
+  }
+
+  @override
+  visitWhileStatement(WhileStatement node) {
+    safelyRecordKeywordCompletion(node.whileKeyword);
+    return super.visitWhileStatement(node);
+  }
+
+  @override
+  visitWithClause(WithClause node) {
+    safelyRecordKeywordCompletion(node.withKeyword);
+    return super.visitWithClause(node);
+  }
+
+  @override
+  visitYieldStatement(YieldStatement node) {
+    safelyRecordKeywordCompletion(node.yieldKeyword);
+    return super.visitYieldStatement(node);
   }
 }
 
@@ -106,15 +519,15 @@ class ExpectedCompletion {
   ExpectedCompletion.specialCompletionString(
       this._entity, this._completionString, this._kind, this._elementKind);
 
-  SyntacticEntity get syntacticEntity => _entity;
-
   String get completion => _completionString ?? _entity.toString();
 
-  int get offset => _entity.offset;
+  protocol.ElementKind get elementKind => _elementKind;
 
   protocol.CompletionSuggestionKind get kind => _kind;
 
-  protocol.ElementKind get elementKind => _elementKind;
+  int get offset => _entity.offset;
+
+  SyntacticEntity get syntacticEntity => _entity;
 
   bool matches(protocol.CompletionSuggestion completionSuggestion) {
     if (completionSuggestion.completion == completion) {
