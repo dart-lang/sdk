@@ -739,9 +739,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
 
     js_ast.Expression emitDeferredType(DartType t) {
-      if (t is InterfaceType && t.typeArguments.isNotEmpty) {
+      if (t is InterfaceType) {
         _declareBeforeUse(t.classNode);
-        return _emitGenericClassType(t, t.typeArguments.map(emitDeferredType));
+        return _emitInterfaceType(t, emitNullability: false);
       }
       return _emitType(t);
     }

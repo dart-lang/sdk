@@ -96,7 +96,9 @@ bool _isJsObject(obj) => JS('!', '# === #', getReifiedType(obj), jsobject);
 /// function before it is passed to native JS code.
 @NoReifyGeneric()
 F assertInterop<F extends Function>(F f) {
-  assert(_isJsObject(f) || !JS('bool', '# instanceof #.Function', f, global_),
+  assert(
+      _isJsObject(f) ||
+          !JS<bool>('bool', '# instanceof #.Function', f, global_),
       'Dart function requires `allowInterop` to be passed to JavaScript.');
   return f;
 }
@@ -316,7 +318,7 @@ class LegacyType extends DartType {
         assert(type is! NullableType);
 
   @override
-  String get name => '$type*';
+  String get name => '$type';
 
   @override
   String toString() => name;
@@ -394,9 +396,41 @@ Type wrapType(type) {
   if (JS('!', '#.hasOwnProperty(#)', type, _typeObject)) {
     return JS('', '#[#]', type, _typeObject);
   }
-  var result = _Type(type);
+  var result = JS<Type?>('', '#.get(#)', _normalizedTypeObjectMap, type) ??
+      canonicalizeNormalizedTypeObject(type);
   JS('', '#[#] = #', type, _typeObject, result);
   return result;
+}
+
+/// Constructs and caches a normalized version of a type.
+///
+/// Used for type object identity. Currently only removes legacy wrappers,
+/// ignoring other normalization operations.
+Type canonicalizeNormalizedTypeObject(dartType) {
+  // Check if a normalized type corresponding to this type has already been
+  // generated. Search for and potentially cache both the type and its
+  // legacy-wrapped version.
+  var result = JS<Type?>('', '#.get(#)', _normalizedTypeObjectMap, dartType);
+  if (result != null) {
+    return result;
+  }
+  var type = dartType is LegacyType ? dartType.type : dartType;
+  var legacyType = legacy(type);
+  var args = getGenericArgs(type);
+  if (args == null || args.isEmpty) {
+    var norm = _Type(type);
+    JS('', '#.set(#, #)', _normalizedTypeObjectMap, type, norm);
+    JS('', '#.set(#, #)', _normalizedTypeObjectMap, legacyType, norm);
+    return norm;
+  }
+  var genericClass = getGenericClass(type);
+  var normArgs = args
+      .map((generic) => unwrapType(canonicalizeNormalizedTypeObject(generic)))
+      .toList();
+  var norm = _Type(constFn(JS('!', '#(...#)', genericClass, normArgs))());
+  JS('', '#.set(#, #)', _normalizedTypeObjectMap, type, norm);
+  JS('', '#.set(#, #)', _normalizedTypeObjectMap, legacyType, norm);
+  return norm;
 }
 
 /// The symbol used to store the cached `Type` object associated with a class.
@@ -436,6 +470,10 @@ final _fnTypeTypeMap = JS('', 'new Map()');
 /// argument types themselves.  The element reached via this
 /// index path (if present) is the canonical function type.
 final List _fnTypeSmallMap = JS('', '[new Map(), new Map(), new Map()]');
+
+/// Memo table that maps DartType objects to their type objects (`_Type`).
+/// Used for computing identity for runtime type objects.
+final _normalizedTypeObjectMap = JS('', 'new Map()');
 
 @NoReifyGeneric()
 T _memoizeArray<T>(map, arr, T create()) => JS('', '''(() => {
