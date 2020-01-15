@@ -16,7 +16,8 @@ String printInteger(int value) => numberFormat.format(value);
 
 String printMilliseconds(num value) => '${numberFormat.format(value)} ms';
 
-String printPercentage(num value) => '${(value * 100).toStringAsFixed(1)}%';
+String printPercentage(num value, [fractionDigits = 1]) =>
+    '${(value * 100).toStringAsFixed(fractionDigits)}%';
 
 /// An entity that knows how to serve itself over http.
 abstract class Page {
