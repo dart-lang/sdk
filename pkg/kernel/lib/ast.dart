@@ -2018,6 +2018,7 @@ class Procedure extends Member {
       bool isConst: false,
       bool isForwardingStub: false,
       bool isForwardingSemiStub: false,
+      bool isMemberSignature: false,
       bool isExtensionMember: false,
       int transformerFlags: 0,
       Uri fileUri,
@@ -2030,6 +2031,7 @@ class Procedure extends Member {
             isExternal: isExternal,
             isConst: isConst,
             isForwardingStub: isForwardingStub,
+            isMemberSignature: isMemberSignature,
             isForwardingSemiStub: isForwardingSemiStub,
             isExtensionMember: isExtensionMember,
             transformerFlags: transformerFlags,
@@ -2047,6 +2049,7 @@ class Procedure extends Member {
       bool isConst: false,
       bool isForwardingStub: false,
       bool isForwardingSemiStub: false,
+      bool isMemberSignature: false,
       bool isExtensionMember: false,
       int transformerFlags: 0,
       Uri fileUri,
@@ -2061,6 +2064,7 @@ class Procedure extends Member {
     this.isConst = isConst;
     this.isForwardingStub = isForwardingStub;
     this.isForwardingSemiStub = isForwardingSemiStub;
+    this.isMemberSignature = isMemberSignature;
     this.isExtensionMember = isExtensionMember;
     this.transformerFlags = transformerFlags;
   }
@@ -2075,6 +2079,7 @@ class Procedure extends Member {
   static const int FlagRedirectingFactoryConstructor = 1 << 6;
   static const int FlagNoSuchMethodForwarder = 1 << 7;
   static const int FlagExtensionMember = 1 << 8;
+  static const int FlagMemberSignature = 1 << 9;
 
   bool get isStatic => flags & FlagStatic != 0;
   bool get isAbstract => flags & FlagAbstract != 0;
@@ -2097,6 +2102,15 @@ class Procedure extends Member {
   /// If set, this flag indicates that although this function is a forwarding
   /// stub, it was present in the original source as an abstract method.
   bool get isForwardingSemiStub => flags & FlagForwardingSemiStub != 0;
+
+  /// If set, this method is a class member added to show the type of an
+  /// inherited member.
+  ///
+  /// This is used when the type of the inherited member cannot be computed
+  /// directly from the member(s) in the supertypes. For instance in case of
+  /// an nnbd opt-out class inheriting from an nnbd opt-in class; here all nnbd-
+  /// aware types are replaced with legacy types in the inherited signature.
+  bool get isMemberSignature => flags & FlagMemberSignature != 0;
 
   // Indicates if this [Procedure] represents a redirecting factory constructor
   // and doesn't have a runnable body.
@@ -2139,6 +2153,11 @@ class Procedure extends Member {
     flags = value
         ? (flags | FlagForwardingSemiStub)
         : (flags & ~FlagForwardingSemiStub);
+  }
+
+  void set isMemberSignature(bool value) {
+    flags =
+        value ? (flags | FlagMemberSignature) : (flags & ~FlagMemberSignature);
   }
 
   void set isRedirectingFactoryConstructor(bool value) {

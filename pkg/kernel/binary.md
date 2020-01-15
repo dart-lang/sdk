@@ -143,7 +143,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 36;
+  UInt32 formatVersion = 37;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
   UriSource sourceMap;
@@ -409,7 +409,7 @@ type Procedure extends Member {
   Byte kind; // Index into the ProcedureKind enum above.
   UInt flags (isStatic, isAbstract, isExternal, isConst, isForwardingStub,
               isForwardingSemiStub, isRedirectingFactoryConstructor,
-              isNoSuchMethodForwarder, isExtensionMember);
+              isNoSuchMethodForwarder, isExtensionMember, isMemberSignature);
   Name name;
   List<Expression> annotations;
   // Only present if the 'isForwardingStub' flag is set.

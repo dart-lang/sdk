@@ -8,6 +8,7 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 
 import 'package:kernel/ast.dart' hide MapEntry;
 import 'package:kernel/core_types.dart';
+import 'package:kernel/src/legacy_erasure.dart';
 
 import '../constant_context.dart' show ConstantContext;
 
@@ -138,6 +139,8 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
           new RegularFieldEncoding(fileUri, charOffset, charEndOffset);
     }
   }
+
+  SourceLibraryBuilder get library => super.library;
 
   Member get member => _fieldEncoding.field;
 
@@ -331,6 +334,12 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
     if (fieldType is ImplicitFieldType) {
       // `fieldType` may have changed if a circularity was detected when
       // [inferredType] was computed.
+      if (library.loader.target.enableNonNullable) {
+        if (!library.isNonNullableByDefault) {
+          inferredType = legacyErasure(
+              library.loader.typeInferenceEngine.coreTypes, inferredType);
+        }
+      }
       fieldType = inferredType;
 
       IncludesTypeParametersNonCovariantly needsCheckVisitor;

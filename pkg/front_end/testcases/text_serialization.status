@@ -944,6 +944,8 @@ nnbd/issue_39286_2: TextSerializationFailure
 nnbd/late: TextSerializationFailure
 nnbd/later: TextSerializationFailure
 nnbd/list_constructor: TextSerializationFailure
+nnbd/member_inheritance_from_opt_in: TextSerializationFailure
+nnbd/member_inheritance_from_opt_out: TextSerializationFailure
 nnbd/messages_with_types_opt_in: TypeCheckError
 nnbd/messages_with_types_opt_out: TypeCheckError
 nnbd/missing_required_named_parameter: TextSerializationFailure
@@ -967,6 +969,7 @@ nnbd/regress_null_aware: TextSerializationFailure
 nnbd/required: TextSerializationFailure
 nnbd/required_named_parameter: TextSerializationFailure
 nnbd/simple_never: TextSerializationFailure
+nnbd/sink_hierarchy: TextSerializationFailure
 nnbd/strictly_non_nullable_warnings: TextSerializationFailure
 nnbd/substitution_in_inference: TextSerializationFailure
 nnbd/type_parameter_types: TextSerializationFailure

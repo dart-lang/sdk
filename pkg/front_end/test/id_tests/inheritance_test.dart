@@ -3,13 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io' show Directory, Platform;
-import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
-import 'package:_fe_analyzer_shared/src/testing/id_testing.dart'
-    show DataInterpreter, runTests;
+import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:front_end/src/fasta/kernel/kernel_api.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
 import 'package:front_end/src/testing/id_testing_utils.dart';
+import 'package:front_end/src/testing/id_extractor.dart';
 import 'package:kernel/ast.dart';
 
 main(List<String> args) async {
@@ -17,7 +16,7 @@ main(List<String> args) async {
       .resolve('../../../_fe_analyzer_shared/test/inheritance/data'));
   await runTests<String>(dataDir,
       args: args,
-      supportedMarkers: cfeAnalyzerMarkers,
+      supportedMarkers: [cfeMarker],
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
       runTest: runTestFor(
@@ -60,15 +59,91 @@ class InheritanceDataComputer extends DataComputer<String> {
 
 class InheritanceDataExtractor extends CfeDataExtractor<String> {
   final ClassHierarchy _hierarchy;
+  final CoreTypes _coreTypes;
 
   InheritanceDataExtractor(InternalCompilerResult compilerResult,
       Map<Id, ActualData<String>> actualMap)
       : _hierarchy = compilerResult.classHierarchy,
+        _coreTypes = compilerResult.coreTypes,
         super(compilerResult, actualMap);
 
   @override
   String computeLibraryValue(Id id, Library node) {
     return 'nnbd=${node.isNonNullableByDefault}';
+  }
+
+  @override
+  void computeForClass(Class node) {
+    super.computeForClass(node);
+
+    Set<Name> getters = _hierarchy
+        .getInterfaceMembers(node)
+        .map((Member member) => member.name)
+        .toSet();
+    Set<Name> setters = _hierarchy
+        .getInterfaceMembers(node, setters: true)
+        .where((Member member) =>
+            member is Procedure && member.kind == ProcedureKind.Setter)
+        .map((Member member) => member.name)
+        .toSet();
+
+    void addMember(Name name, {bool setter}) {
+      Member member = _hierarchy.getInterfaceMember(node, name, setter: setter);
+      if (member.enclosingClass == _coreTypes.objectClass) {
+        return;
+      }
+      InterfaceType supertype = _hierarchy.getTypeAsInstanceOf(
+          _coreTypes.thisInterfaceType(node, node.enclosingLibrary.nonNullable),
+          member.enclosingClass,
+          node.enclosingLibrary,
+          _coreTypes);
+      Substitution substitution = Substitution.fromInterfaceType(supertype);
+      DartType type;
+      if (member is Procedure) {
+        if (member.kind == ProcedureKind.Getter) {
+          type = substitution.substituteType(member.function.returnType);
+        } else if (member.kind == ProcedureKind.Setter) {
+          type = substitution
+              .substituteType(member.function.positionalParameters.single.type);
+        } else {
+          type = substitution.substituteType(member.function
+              .computeThisFunctionType(member.enclosingLibrary.nonNullable));
+        }
+      } else if (member is Field) {
+        type = substitution.substituteType(member.type);
+      }
+      if (type == null) {
+        return;
+      }
+
+      String memberName = name.name;
+      if (member is Procedure && member.kind == ProcedureKind.Setter) {
+        memberName += '=';
+      }
+      MemberId id = new MemberId.internal(memberName, className: node.name);
+
+      TreeNode nodeWithOffset;
+      if (member.enclosingClass == node) {
+        nodeWithOffset = computeTreeNodeWithOffset(member);
+      } else {
+        nodeWithOffset = computeTreeNodeWithOffset(node);
+      }
+
+      registerValue(
+          nodeWithOffset?.location?.file,
+          nodeWithOffset?.fileOffset,
+          id,
+          typeToText(type, TypeRepresentation.implicitUndetermined),
+          member);
+    }
+
+    for (Name name in getters) {
+      addMember(name, setter: false);
+    }
+
+    for (Name name in setters) {
+      addMember(name, setter: true);
+    }
   }
 
   @override

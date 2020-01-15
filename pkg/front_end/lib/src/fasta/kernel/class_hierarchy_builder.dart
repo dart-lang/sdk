@@ -4,24 +4,7 @@
 
 library fasta.class_hierarchy_builder;
 
-import 'package:kernel/ast.dart'
-    show
-        Class,
-        DartType,
-        Field,
-        FunctionNode,
-        InterfaceType,
-        InvalidType,
-        Library,
-        Member,
-        Name,
-        Nullability,
-        Procedure,
-        ProcedureKind,
-        Supertype,
-        TypeParameter,
-        TypeParameterType,
-        VariableDeclaration;
+import 'package:kernel/ast.dart' hide MapEntry;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
@@ -254,8 +237,9 @@ class ClassHierarchyBuilder {
   }
 
   ClassHierarchyNode getNodeFromClass(ClassBuilder classBuilder) {
-    return nodes[classBuilder.cls] ??=
-        new ClassHierarchyNodeBuilder(this, classBuilder).build();
+    return nodes[classBuilder.cls] ??= new ClassHierarchyNodeBuilder(
+            this, classBuilder, loader.target.enableNonNullable)
+        .build();
   }
 
   ClassHierarchyNode getNodeFromType(TypeBuilder type) {
@@ -281,7 +265,12 @@ class ClassHierarchyBuilder {
     Builder supertypeDeclaration = supertypeNode.classBuilder;
     if (depth < supertypes.length) {
       TypeBuilder asSupertypeOf = supertypes[depth];
-      if (asSupertypeOf.declaration == supertypeDeclaration) {
+      TypeDeclarationBuilder declaration = asSupertypeOf.declaration;
+      if (declaration is TypeAliasBuilder) {
+        TypeAliasBuilder aliasBuilder = declaration;
+        declaration = aliasBuilder.unaliasDeclaration;
+      }
+      if (declaration == supertypeDeclaration) {
         return asSupertypeOf;
       }
     }
@@ -438,8 +427,9 @@ class ClassHierarchyBuilder {
     for (int i = 0; i < classes.length; i++) {
       ClassBuilder classBuilder = classes[i];
       if (!classBuilder.isPatch) {
-        hierarchy.nodes[classBuilder.cls] =
-            new ClassHierarchyNodeBuilder(hierarchy, classBuilder).build();
+        hierarchy.nodes[classBuilder.cls] = new ClassHierarchyNodeBuilder(
+                hierarchy, classBuilder, loader.target.enableNonNullable)
+            .build();
       } else {
         // TODO(ahe): Merge the injected members of patch into the hierarchy
         // node of `cls.origin`.
@@ -454,11 +444,15 @@ class ClassHierarchyNodeBuilder {
 
   final ClassBuilder classBuilder;
 
+  /// Whether non-nullable types are supported.
+  final bool enableNonNullable;
+
   bool hasNoSuchMethod = false;
 
   List<ClassMember> abstractMembers = null;
 
-  ClassHierarchyNodeBuilder(this.hierarchy, this.classBuilder);
+  ClassHierarchyNodeBuilder(
+      this.hierarchy, this.classBuilder, this.enableNonNullable);
 
   ClassBuilder get objectClass => hierarchy.objectClassBuilder;
 
@@ -1196,7 +1190,20 @@ class ClassHierarchyNodeBuilder {
     if (!mergeKind.forMembersVsSetters &&
         member is DelayedMember &&
         member.isInheritableConflict) {
-      hierarchy.delayedMemberChecks.add(member.withParent(classBuilder));
+      DelayedMember delayedMember = member;
+      member = delayedMember.withParent(classBuilder);
+      hierarchy.delayedMemberChecks.add(member);
+    }
+    if (mergeKind.intoCurrentClass &&
+        hierarchy.loader.target.enableNonNullable) {
+      if (member.classBuilder.library.isNonNullableByDefault &&
+          !classBuilder.library.isNonNullableByDefault) {
+        if (member is! DelayedMember) {
+          member = new InterfaceConflict(
+              classBuilder, [member], mergeKind.forSetters, shouldModifyKernel);
+          hierarchy.delayedMemberChecks.add(member);
+        }
+      }
     }
     return member;
   }

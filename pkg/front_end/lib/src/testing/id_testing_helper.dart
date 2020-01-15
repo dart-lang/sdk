@@ -120,9 +120,13 @@ class CfeCompiledData<T> extends CompiledData<T> {
       int offset;
       if (id.className != null) {
         Class cls = lookupClass(library, id.className);
-        member = lookupClassMember(cls, id.memberName);
-        offset = member.fileOffset;
-        if (offset == -1) {
+        member = lookupClassMember(cls, id.memberName, required: false);
+        if (member != null) {
+          offset = member.fileOffset;
+          if (offset == -1) {
+            offset = cls.fileOffset;
+          }
+        } else {
           offset = cls.fileOffset;
         }
       } else {

@@ -505,6 +505,9 @@ class DartTypeToTextVisitor implements DartTypeVisitor<void> {
       comma = '';
       for (NamedType namedParameter in node.namedParameters) {
         sb.write(comma);
+        if (namedParameter.isRequired) {
+          sb.write('required ');
+        }
         visit(namedParameter.type);
         sb.write(' ');
         sb.write(namedParameter.name);

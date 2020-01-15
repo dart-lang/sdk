@@ -21,7 +21,14 @@ main(List<String> args) async {
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
       runTest: runTestFor(const StaticTypeDataComputer(),
-          [defaultCfeConfig, cfeNonNullableConfig]));
+          [defaultCfeConfig, cfeNonNullableConfig]),
+      skipMap: {
+        defaultCfeConfig.marker: [
+          // NNBD-only tests.
+          'from_opt_in',
+          'from_opt_out',
+        ]
+      });
 }
 
 class StaticTypeDataComputer extends DataComputer<String> {
