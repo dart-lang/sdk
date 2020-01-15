@@ -20,6 +20,8 @@ import 'visitors.dart';
 int includedCount = 0;
 int notIncludedCount = 0;
 
+const bool doPrintExpectedCompletions = true;
+
 main() {
   List<String> analysisRoots = [''];
   _computeCompletionMetrics(PhysicalResourceProvider.INSTANCE, analysisRoots);
@@ -29,7 +31,7 @@ main() {
 Future _computeCompletionMetrics(
     ResourceProvider resourceProvider, List<String> analysisRoots) async {
   for (var root in analysisRoots) {
-    print('Analyzing root... $root');
+    print('Analyzing root: $root');
     final collection = AnalysisContextCollection(
       includedPaths: [root],
       resourceProvider: resourceProvider,
@@ -38,7 +40,6 @@ Future _computeCompletionMetrics(
     for (var context in collection.contexts) {
       for (var filePath in context.contextRoot.analyzedFiles()) {
         if (AnalysisEngine.isDartFileName(filePath)) {
-          print('  Analyzing file: $filePath');
           try {
             final result =
                 await context.currentSession.getResolvedUnit(filePath);
@@ -62,10 +63,12 @@ Future _computeCompletionMetrics(
                   _placementInSuggestionList(suggestions, expectedCompletion);
               if (fraction.y != 0) {
                 includedCount++;
-//                print(
-//                    '  Bug - $filePath@${entity.offset} did not include ${entity.toString()}');
               } else {
                 notIncludedCount++;
+                if (doPrintExpectedCompletions) {
+                  print(
+                      '\t$filePath at ${expectedCompletion.offset} did not include \'${expectedCompletion.completion}\'');
+                }
               }
             }
           } catch (e) {
