@@ -88,11 +88,11 @@ vm:
         - "../../sdk/lib/_internal/vm/lib/timeline.dart"
 
     ffi:
-      uri: "../../sdk/lib/ffi/ffi.dart"
+      uri: "ffi/ffi.dart"
       patches:
-        - "../../sdk/lib/_internal/vm/lib/ffi_patch.dart"
-        - "../../sdk/lib/_internal/vm/lib/ffi_dynamic_library_patch.dart"
-        - "../../sdk/lib/_internal/vm/lib/ffi_native_type_patch.dart"
+        - "_internal/vm/lib/ffi_patch.dart"
+        - "_internal/vm/lib/ffi_dynamic_library_patch.dart"
+        - "_internal/vm/lib/ffi_native_type_patch.dart"
 
     wasm:
       uri: "wasm/wasm.dart"

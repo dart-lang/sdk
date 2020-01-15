@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file
 
-// @dart = 2.5
-
 /**
  * Foreign Function Interface for interoperability with the C programming language.
  *
@@ -15,6 +13,7 @@
  */
 library dart.ffi;
 
+import 'dart:isolate';
 import 'dart:typed_data';
 
 part "native_type.dart";
@@ -75,9 +74,10 @@ class Pointer<T extends NativeType> extends NativeType {
   external R asFunction<@DartRepresentationOf("T") R extends Function>();
 
   /// Equality for Pointers only depends on their address.
-  bool operator ==(other) {
-    if (other == null) return false;
-    return address == other.address;
+  bool operator ==(Object other) {
+    if (other is! Pointer) return false;
+    Pointer otherPointer = other;
+    return address == otherPointer.address;
   }
 
   /// The hash code for a Pointer only depends on its address.
