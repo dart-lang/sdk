@@ -119,10 +119,10 @@
         ]
       },
       "isolate": {
-        "uri": "../../sdk/lib/isolate/isolate.dart",
+        "uri": "isolate/isolate.dart",
         "patches": [
-          "../../sdk/lib/_internal/vm/lib/isolate_patch.dart",
-          "../../sdk/lib/_internal/vm/lib/timer_impl.dart"
+          "_internal/vm/lib/isolate_patch.dart",
+          "_internal/vm/lib/timer_impl.dart"
         ]
       },
       "math": {
@@ -437,8 +437,8 @@
         "supported": false
       },
       "isolate": {
-        "uri": "isolate/isolate.dart",
-        "patches": "_internal/js_dev_runtime/patch/isolate_patch.dart",
+        "uri": "../../sdk/lib/isolate/isolate.dart",
+        "patches": "../../sdk/lib/_internal/js_dev_runtime/patch/isolate_patch.dart",
         "supported": false
       },
       "mirrors": {
