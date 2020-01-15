@@ -2,11 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 part of dart._vmservice;
 
-typedef void ClientServiceHandle(Message response);
+typedef void ClientServiceHandle(Message? response);
 
 // A service client.
 abstract class Client {
@@ -14,18 +12,18 @@ abstract class Client {
   final bool sendEvents;
 
   /// A set streamIds which describes the streams the client is connected to
-  final Set<String> streams = new Set<String>();
+  final Set<String> streams = <String>{};
 
   /// Services registered and their aliases
   /// key: service
   /// value: alias
-  final Map<String, String> services = new Map<String, String>();
+  final Map<String, String> services = <String, String>{};
 
   /// Callbacks registered for service invocations set to the client
   /// key: RPC id used for the request
   /// value: callback that should be invoked
   final Map<String, ClientServiceHandle> serviceHandles =
-      new Map<String, ClientServiceHandle>();
+      <String, ClientServiceHandle>{};
 
   Client(this.service, {bool sendEvents: true}) : this.sendEvents = sendEvents {
     service._addClient(this);
@@ -58,10 +56,8 @@ abstract class Client {
     service.routeRequest(service, message);
   }
 
-  // Sends a result to the client.  Implemented in subclasses.
+  // Sends a result to the client. Implemented in subclasses.
   void post(Response result);
 
-  dynamic toJson() {
-    return {};
-  }
+  dynamic toJson() => {};
 }

@@ -2,11 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of vmservice_io;
 
-final bool silentObservatory = new bool.fromEnvironment('SILENT_OBSERVATORY');
+final bool silentObservatory = bool.fromEnvironment('SILENT_OBSERVATORY');
 
 void serverPrint(String s) {
   if (silentObservatory) {
@@ -17,10 +15,10 @@ void serverPrint(String s) {
 }
 
 class WebSocketClient extends Client {
-  static const int PARSE_ERROR_CODE = 4000;
-  static const int BINARY_MESSAGE_ERROR_CODE = 4001;
-  static const int NOT_MAP_ERROR_CODE = 4002;
-  static const int ID_ERROR_CODE = 4003;
+  static const int parseErrorCode = 4000;
+  static const int binaryMessageErrorCode = 4001;
+  static const int notMapErrorCode = 4002;
+  static const int idErrorCode = 4003;
   final WebSocket socket;
 
   WebSocketClient(this.socket, VMService service) : super(service) {
@@ -40,15 +38,15 @@ class WebSocketClient extends Client {
       try {
         map = json.decode(message);
       } catch (e) {
-        socket.close(PARSE_ERROR_CODE, 'Message parse error: $e');
+        socket.close(parseErrorCode, 'Message parse error: $e');
         return;
       }
       if (map is! Map) {
-        socket.close(NOT_MAP_ERROR_CODE, 'Message must be a JSON map.');
+        socket.close(notMapErrorCode, 'Message must be a JSON map.');
         return;
       }
       try {
-        final rpc = new Message.fromJsonRpc(this, map);
+        final rpc = Message.fromJsonRpc(this, map);
         switch (rpc.type) {
           case MessageType.Request:
             onRequest(rpc);
@@ -61,18 +59,14 @@ class WebSocketClient extends Client {
             break;
         }
       } catch (e) {
-        socket.close(ID_ERROR_CODE, e.message);
+        socket.close(idErrorCode, e.message);
       }
     } else {
-      socket.close(BINARY_MESSAGE_ERROR_CODE, 'Message must be a string.');
+      socket.close(binaryMessageErrorCode, 'Message must be a string.');
     }
   }
 
   void post(Response result) {
-    if (result == null) {
-      // Do nothing.
-      return;
-    }
     try {
       switch (result.kind) {
         case ResponsePayloadKind.String:
@@ -89,17 +83,16 @@ class WebSocketClient extends Client {
     }
   }
 
-  dynamic toJson() {
-    Map map = super.toJson();
-    map['type'] = 'WebSocketClient';
-    map['socket'] = '$socket';
-    return map;
-  }
+  Map toJson() => {
+        ...super.toJson(),
+        'type': 'WebSocketClient',
+        'socket': '$socket',
+      };
 }
 
 class HttpRequestClient extends Client {
   static ContentType jsonContentType =
-      new ContentType("application", "json", charset: "utf-8");
+      ContentType("application", "json", charset: "utf-8");
   final HttpRequest request;
 
   HttpRequestClient(this.request, VMService service)
@@ -111,10 +104,6 @@ class HttpRequestClient extends Client {
   }
 
   void post(Response result) {
-    if (result == null) {
-      close();
-      return;
-    }
     HttpResponse response = request.response;
     // We closed the connection for bad origins earlier.
     response.headers.add('Access-Control-Allow-Origin', '*');
@@ -150,19 +139,20 @@ class Server {
   final int _port;
   final bool _originCheckDisabled;
   final bool _authCodesDisabled;
-  final String _serviceInfoFilename;
-  HttpServer _server;
+  final String? _serviceInfoFilename;
+  HttpServer? _server;
   bool get running => _server != null;
 
   /// Returns the server address including the auth token.
-  Uri get serverAddress {
+  Uri? get serverAddress {
     if (!running) {
       return null;
     }
-    var ip = _server.address.address;
-    var port = _server.port;
+    final server = _server!;
+    var ip = server.address.address;
+    var port = server.port;
     var path = !_authCodesDisabled ? "$serviceAuthToken/" : "/";
-    return new Uri(scheme: 'http', host: ip, port: port, path: path);
+    return Uri(scheme: 'http', host: ip, port: port, path: path);
   }
 
   // On Fuchsia, authentication codes are disabled by default. To enable, the authentication token
@@ -187,9 +177,10 @@ class Server {
       return true;
     }
 
-    if ((uri.port == _server.port) &&
-        ((uri.host == _server.address.address) ||
-            (uri.host == _server.address.host))) {
+    final server = _server!;
+    if ((uri.port == server.port) &&
+        ((uri.host == server.address.address) ||
+            (uri.host == server.address.host))) {
       return true;
     }
 
@@ -202,7 +193,7 @@ class Server {
       return true;
     }
     // First check the web-socket specific origin.
-    List<String> origins = request.headers["Sec-WebSocket-Origin"];
+    List<String>? origins = request.headers["Sec-WebSocket-Origin"];
     if (origins == null) {
       // Fall back to the general Origin field.
       origins = request.headers["Origin"];
@@ -268,15 +259,15 @@ class Server {
 
       List fsNameList;
       List fsPathList;
-      List fsPathBase64List;
-      List fsUriBase64List;
-      Object fsName;
-      Object fsPath;
-      Object fsUri;
+      List? fsPathBase64List;
+      List? fsUriBase64List;
+      Object? fsName;
+      Object? fsPath;
+      Uri? fsUri;
 
       try {
         // Extract the fs name and fs path from the request headers.
-        fsNameList = request.headers['dev_fs_name'];
+        fsNameList = request.headers['dev_fs_name']!;
         fsName = fsNameList[0];
 
         // Prefer Uri encoding first.
@@ -288,7 +279,7 @@ class Server {
 
         // Fallback to path encoding.
         if (fsUri == null) {
-          fsPathList = request.headers['dev_fs_path'];
+          fsPathList = request.headers['dev_fs_path']!;
           fsPathBase64List = request.headers['dev_fs_path_b64'];
           // If the 'dev_fs_path_b64' header field was sent, use that instead.
           if ((fsPathBase64List != null) && (fsPathBase64List.length > 0)) {
@@ -302,7 +293,7 @@ class Server {
       String result;
       try {
         result = await _service.devfs.handlePutStream(fsName, fsPath, fsUri,
-            request.cast<List<int>>().transform(GZIP.decoder));
+            request.cast<List<int>>().transform(gzip.decoder));
       } catch (e) {
         request.response.statusCode = HttpStatus.internalServerError;
         request.response.write(e);
@@ -338,7 +329,7 @@ class Server {
       // The URI contains the valid auth token but is missing a trailing '/'.
       // Redirect to the same URI with the trailing '/' to correctly serve
       // index.html.
-      request.response.redirect(result as Uri);
+      request.response.redirect(result);
       request.response.close();
       return;
     }
@@ -348,18 +339,18 @@ class Server {
       WebSocketTransformer.upgrade(request,
               compression: CompressionOptions.compressionOff)
           .then((WebSocket webSocket) {
-        new WebSocketClient(webSocket, _service);
+        WebSocketClient(webSocket, _service);
       });
       return;
     }
 
     if (assets == null) {
-      request.response.headers.contentType = ContentType.TEXT;
+      request.response.headers.contentType = ContentType.text;
       request.response.write("This VM was built without the Observatory UI.");
       request.response.close();
       return;
     }
-    Asset asset = assets[path];
+    Asset? asset = assets[path];
     if (asset != null) {
       // Serving up a static asset (e.g. .css, .html, .png).
       request.response.headers.contentType = ContentType.parse(asset.mimeType);
@@ -368,8 +359,8 @@ class Server {
       return;
     }
     // HTTP based service request.
-    final client = new HttpRequestClient(request, _service);
-    final message = new Message.fromUri(
+    final client = HttpRequestClient(request, _service);
+    final message = Message.fromUri(
         client, Uri(path: path, queryParameters: request.uri.queryParameters));
     client.onRequest(message); // exception free, no need to try catch
   }
@@ -379,7 +370,7 @@ class Server {
       'uri': serverAddress.toString(),
     };
     final file = File.fromUri(Uri.parse(_serviceInfoFilename));
-    file.writeAsString(json.encode(serviceInfo));
+    return file.writeAsString(json.encode(serviceInfo));
   }
 
   Future startup() async {
@@ -398,7 +389,7 @@ class Server {
         // Prefer IPv4 addresses.
         for (var i = 0; i < addresses.length; i++) {
           address = addresses[i];
-          if (address.type == InternetAddressType.IP_V4) break;
+          if (address.type == InternetAddressType.IPv4) break;
         }
         _server = await HttpServer.bind(address, _port);
         return true;
@@ -422,7 +413,7 @@ class Server {
         onServerAddressChange(null);
         return this;
       }
-      await new Future<Null>.delayed(const Duration(seconds: 1));
+      await Future<void>.delayed(const Duration(seconds: 1));
     }
     if (_service.isExiting) {
       serverPrint('Observatory HTTP server exiting before listening as '
@@ -430,17 +421,18 @@ class Server {
       await shutdown(true);
       return this;
     }
-    _server.listen(_requestHandler, cancelOnError: true);
+    final server = _server!;
+    server.listen(_requestHandler, cancelOnError: true);
     serverPrint('Observatory listening on $serverAddress');
     if (Platform.isFuchsia) {
       // Create a file with the port number.
       String tmp = Directory.systemTemp.path;
-      String path = "$tmp/dart.services/${_server.port}";
+      String path = "$tmp/dart.services/${server.port}";
       serverPrint("Creating $path");
-      new File(path)..createSync(recursive: true);
+      File(path)..createSync(recursive: true);
     }
     if (_serviceInfoFilename != null && _serviceInfoFilename.isNotEmpty) {
-      _dumpServiceInfoToFile();
+      await _dumpServiceInfoToFile();
     }
     // Server is up and running.
     _notifyServerState(serverAddress.toString());
@@ -448,28 +440,29 @@ class Server {
     return this;
   }
 
-  Future cleanup(bool force) {
+  Future<void> cleanup(bool force) {
     if (_server == null) {
-      return new Future.value(null);
+      return Future.value();
     }
+    final server = _server!;
     if (Platform.isFuchsia) {
       // Remove the file with the port number.
       String tmp = Directory.systemTemp.path;
-      String path = "$tmp/dart.services/${_server.port}";
+      String path = "$tmp/dart.services/${server.port}";
       serverPrint("Deleting $path");
-      new File(path)..deleteSync();
+      File(path)..deleteSync();
     }
-    return _server.close(force: force);
+    return server.close(force: force);
   }
 
   Future shutdown(bool forced) {
     if (_server == null) {
       // Not started.
-      return new Future.value(this);
+      return Future.value(this);
     }
 
     // Shutdown HTTP server and subscription.
-    Uri oldServerAddress = serverAddress;
+    Uri oldServerAddress = serverAddress!;
     return cleanup(forced).then((_) {
       serverPrint('Observatory no longer listening on $oldServerAddress');
       _server = null;

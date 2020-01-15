@@ -7,7 +7,7 @@
         "uri": "vmservice/vmservice.dart"
       },
       "vmservice_io": {
-        "uri": "../../sdk/lib/_internal/vm/bin/vmservice_io.dart"
+        "uri": "_internal/vm/bin/vmservice_io.dart"
       }
     }
   }

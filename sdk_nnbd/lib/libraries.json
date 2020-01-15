@@ -91,9 +91,9 @@
         ]
       },
       "wasm": {
-        "uri": "wasm/wasm.dart",
+        "uri": "../../sdk/lib/wasm/wasm.dart",
         "patches": [
-          "_internal/vm/lib/wasm_patch.dart"
+          "../../sdk/lib/_internal/vm/lib/wasm_patch.dart"
         ]
       },
       "_http": {
@@ -151,10 +151,10 @@
         "patches": "../../sdk/lib/_internal/vm/lib/typed_data_patch.dart"
       },
       "_vmservice": {
-        "uri": "../../sdk/lib/vmservice/vmservice.dart"
+        "uri": "vmservice/vmservice.dart"
       },
       "vmservice_io": {
-        "uri": "../../sdk/lib/_internal/vm/bin/vmservice_io.dart"
+        "uri": "_internal/vm/bin/vmservice_io.dart"
       }
     }
   },

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 part of dart._vmservice;
 
 String _encodeDevFSDisabledError(Message message) {
@@ -27,7 +25,7 @@ class _FileSystem {
   final String name;
   final Uri uri;
 
-  Uri resolvePath(String path) {
+  Uri? resolvePath(String path) {
     if (path.startsWith('/')) {
       path = path.substring(1);
     }
@@ -36,19 +34,21 @@ class _FileSystem {
     }
     Uri pathUri;
     try {
-      pathUri = new Uri.file(path);
-    } on FormatException catch (e) {
+      pathUri = Uri.file(path);
+      // ignore: unused_catch_clause
+    } on FormatException catch (_) {
       return null;
     }
 
     return resolve(pathUri);
   }
 
-  Uri resolve(Uri pathUri) {
+  Uri? resolve(Uri pathUri) {
     try {
       // Make sure that this pathUri can be converted to a file path.
       pathUri.toFilePath();
-    } on UnsupportedError catch (e) {
+      // ignore: unused_catch_clause
+    } on UnsupportedError catch (_) {
       return null;
     }
 
@@ -60,21 +60,19 @@ class _FileSystem {
     return resolvedUri;
   }
 
-  Map toMap() {
-    return {
-      'type': 'FileSystem',
-      'name': name,
-      'uri': uri.toString(),
-    };
-  }
+  Map<String, String> toMap() => {
+        'type': 'FileSystem',
+        'name': name,
+        'uri': uri.toString(),
+      };
 }
 
 class DevFS {
   DevFS();
 
-  Map<String, _FileSystem> _fsMap = {};
+  final Map<String, _FileSystem> _fsMap = {};
 
-  final Set _rpcNames = new Set.from([
+  final Set _rpcNames = <String>{
     '_listDevFS',
     '_createDevFS',
     '_deleteDevFS',
@@ -82,7 +80,7 @@ class DevFS {
     '_writeDevFSFile',
     '_writeDevFSFiles',
     '_listDevFSFiles',
-  ]);
+  };
 
   void cleanup() {
     var deleteDir = VMServiceEmbedderHooks.deleteDir;
@@ -102,7 +100,7 @@ class DevFS {
   }
 
   Future<String> handleMessage(Message message) async {
-    switch (message.method) {
+    switch (message.method!) {
       case '_listDevFS':
         return _listDevFS(message);
       case '_createDevFS':
@@ -124,9 +122,9 @@ class DevFS {
   }
 
   Future<String> handlePutStream(
-      Object fsName, Object path, Uri fsUri, Stream<List<int>> bytes) async {
+      Object? fsName, Object? path, Uri? fsUri, Stream<List<int>> bytes) async {
     // A dummy Message for error message construction.
-    Message message = new Message.forMethod('_writeDevFSFile');
+    Message message = Message.forMethod('_writeDevFSFile');
     var writeStreamFile = VMServiceEmbedderHooks.writeStreamFile;
     if (writeStreamFile == null) {
       return _encodeDevFSDisabledError(message);
@@ -141,7 +139,7 @@ class DevFS {
     if (fs == null) {
       return _encodeFileSystemDoesNotExistError(message, fsName);
     }
-    Uri uri = fsUri;
+    Uri? uri = fsUri;
     if (uri == null) {
       if (path == null) {
         return encodeMissingParamError(message, 'path');
@@ -187,7 +185,7 @@ class DevFS {
       return _encodeFileSystemAlreadyExistsError(message, fsName);
     }
     var tempDir = await createTempDir(fsName);
-    fs = new _FileSystem(fsName, tempDir);
+    fs = _FileSystem(fsName, tempDir);
     _fsMap[fsName] = fs;
     return encodeResult(message, fs.toMap());
   }
@@ -228,7 +226,7 @@ class DevFS {
     if (fs == null) {
       return _encodeFileSystemDoesNotExistError(message, fsName);
     }
-    Uri uri;
+    Uri? uri;
     if (message.params['uri'] != null) {
       try {
         var uriParam = message.params['uri'];
@@ -282,7 +280,7 @@ class DevFS {
     if (fs == null) {
       return _encodeFileSystemDoesNotExistError(message, fsName);
     }
-    Uri uri;
+    Uri? uri;
     if (message.params['uri'] != null) {
       try {
         var uriParam = message.params['uri'];

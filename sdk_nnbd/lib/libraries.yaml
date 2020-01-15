@@ -150,10 +150,10 @@ vm:
       patches: "../../sdk/lib/_internal/vm/lib/typed_data_patch.dart"
 
     _vmservice:
-      uri: "../../sdk/lib/vmservice/vmservice.dart"
+      uri: "vmservice/vmservice.dart"
 
     vmservice_io:
-      uri: "../../sdk/lib/_internal/vm/bin/vmservice_io.dart"
+      uri: "_internal/vm/bin/vmservice_io.dart"
 
 dart2js:
   libraries:
