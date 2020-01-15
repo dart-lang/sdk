@@ -1,0 +1,53 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/undefined.dart:14:5: Error: The getter 'y' isn't defined for the class 'C'.
+//  - 'C' is from 'pkg/front_end/testcases/general_nnbd_opt_out/undefined.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'y'.
+//   c.y;
+//     ^
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/undefined.dart:16:5: Error: The method 'g' isn't defined for the class 'C'.
+//  - 'C' is from 'pkg/front_end/testcases/general_nnbd_opt_out/undefined.dart'.
+// Try correcting the name to the name of an existing method, or defining a method named 'g'.
+//   c.g();
+//     ^
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/undefined.dart:18:5: Error: The setter 'y' isn't defined for the class 'C'.
+//  - 'C' is from 'pkg/front_end/testcases/general_nnbd_opt_out/undefined.dart'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'y'.
+//   c.y = null;
+//     ^
+//
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  field dynamic x = null;
+  synthetic constructor •() → self::C*
+    : super core::Object::•()
+    ;
+  method f() → void {}
+}
+static method test(self::C* c) → void {
+  c.{self::C::x};
+  invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/undefined.dart:14:5: Error: The getter 'y' isn't defined for the class 'C'.
+ - 'C' is from 'pkg/front_end/testcases/general_nnbd_opt_out/undefined.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'y'.
+  c.y;
+    ^";
+  c.{self::C::f}();
+  invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/undefined.dart:16:5: Error: The method 'g' isn't defined for the class 'C'.
+ - 'C' is from 'pkg/front_end/testcases/general_nnbd_opt_out/undefined.dart'.
+Try correcting the name to the name of an existing method, or defining a method named 'g'.
+  c.g();
+    ^";
+  c.{self::C::x} = null;
+  invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/undefined.dart:18:5: Error: The setter 'y' isn't defined for the class 'C'.
+ - 'C' is from 'pkg/front_end/testcases/general_nnbd_opt_out/undefined.dart'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'y'.
+  c.y = null;
+    ^";
+}
+static method main() → dynamic {}

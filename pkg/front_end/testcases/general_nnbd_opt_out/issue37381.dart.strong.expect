@@ -1,0 +1,15 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A<X extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → self::A<self::A::X*>*
+    : super core::Object::•()
+    ;
+  method f<R extends core::Object* = dynamic>(<X extends core::Object* = dynamic>(self::A<X*>*) →* self::A::f::R* f) → self::A::f::R*
+    return f.call<self::A::X*>(this);
+}
+static method main() → dynamic {
+  self::A<core::num*>* a = new self::A::•<core::int*>();
+  a.{self::A::f}<core::int*>(<X extends core::Object* = dynamic>(self::A<X*>* _) → core::int* => 42);
+}

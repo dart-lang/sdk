@@ -1,0 +1,40 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:collection" as col;
+
+static method nullAwareListSpread(core::List<core::String*>* list) → dynamic {
+  list = block {
+    final core::List<core::String*>* #t1 = <core::String*>[];
+    #t1.{core::List::add}("foo");
+    final core::Iterable<core::String*>* #t2 = list;
+    if(!#t2.{core::Object::==}(null))
+      for (final core::String* #t3 in #t2)
+        #t1.{core::List::add}(#t3);
+  } =>#t1;
+}
+static method nullAwareSetSpread(core::Set<core::String*>* set) → dynamic {
+  set = block {
+    final core::Set<core::String*>* #t4 = col::LinkedHashSet::•<core::String*>();
+    #t4.{core::Set::add}("foo");
+    final core::Iterable<core::String*>* #t5 = set;
+    if(!#t5.{core::Object::==}(null))
+      for (final core::String* #t6 in #t5)
+        #t4.{core::Set::add}(#t6);
+  } =>#t4;
+}
+static method nullAwareMapSpread(core::Map<core::int*, core::String*>* map) → dynamic {
+  map = block {
+    final core::Map<core::int*, core::String*>* #t7 = <core::int*, core::String*>{};
+    #t7.{core::Map::[]=}(0, "foo");
+    final core::Map<core::int*, core::String*>* #t8 = map;
+    if(!#t8.{core::Object::==}(null))
+      for (final core::MapEntry<core::int*, core::String*>* #t9 in #t8.{core::Map::entries})
+        #t7.{core::Map::[]=}(#t9.{core::MapEntry::key}, #t9.{core::MapEntry::value});
+  } =>#t7;
+}
+static method main() → dynamic {
+  self::nullAwareListSpread(null);
+  self::nullAwareSetSpread(null);
+  self::nullAwareMapSpread(null);
+}

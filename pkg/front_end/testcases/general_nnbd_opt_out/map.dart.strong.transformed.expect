@@ -1,0 +1,7 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  core::print(core::Map::•<dynamic, dynamic>());
+}

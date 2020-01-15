@@ -1,0 +1,9 @@
+library;
+import self as self;
+
+static method foo({dynamic fisk}) → dynamic
+  ;
+static method caller(dynamic f) → dynamic
+  ;
+static method main() → dynamic
+  ;

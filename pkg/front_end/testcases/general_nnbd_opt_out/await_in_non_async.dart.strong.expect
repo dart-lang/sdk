@@ -1,0 +1,18 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/await_in_non_async.dart:13:3: Error: 'await' can only be used in 'async' or 'async*' methods.
+//   await foo();
+//   ^^^^^
+//
+import self as self;
+
+static method main() → dynamic {
+  self::foo();
+}
+static method foo() → dynamic {
+  invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/await_in_non_async.dart:13:3: Error: 'await' can only be used in 'async' or 'async*' methods.
+  await foo();
+  ^^^^^";
+}

@@ -1,0 +1,36 @@
+library;
+import self as self;
+
+import "org-dartlang-testcase:///error_location_04_lib1.dart";
+import "org-dartlang-testcase:///error_location_04_lib2.dart";
+
+static method main() → dynamic
+  ;
+
+library;
+import self as self2;
+import "dart:core" as core;
+
+class Foo extends core::Object {
+  const constructor •(core::int* i) → self2::Foo*
+    : assert(i.{core::num::>}(0)), super core::Object::•()
+    ;
+}
+static method foo() → dynamic
+  ;
+
+library;
+import self as self3;
+import "dart:core" as core;
+import "error_location_04_lib1.dart" as self2;
+
+import "org-dartlang-testcase:///error_location_04_lib1.dart";
+
+class Bar extends core::Object {
+  final field self2::Foo* x;
+  const constructor •() → self3::Bar*
+    : self3::Bar::x = const self2::Foo::•(0), super core::Object::•()
+    ;
+}
+static method bar() → dynamic
+  ;

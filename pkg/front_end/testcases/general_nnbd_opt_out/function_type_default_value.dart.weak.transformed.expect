@@ -1,0 +1,24 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/function_type_default_value.dart:7:19: Error: Expected an identifier, but got ':'.
+// void Function({obj: Object}) x;
+//                   ^
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/function_type_default_value.dart:7:19: Error: Can't have a default value in a function type.
+// void Function({obj: Object}) x;
+//                   ^
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/function_type_default_value.dart:7:16: Error: Type 'obj' not found.
+// void Function({obj: Object}) x;
+//                ^^^
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/function_type_default_value.dart:7:16: Error: 'obj' isn't a type.
+// void Function({obj: Object}) x;
+//                ^^^
+//
+import self as self;
+
+static field () →* void x;
+static method main() → dynamic {}

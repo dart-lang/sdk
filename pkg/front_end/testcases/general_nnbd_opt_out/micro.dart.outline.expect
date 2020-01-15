@@ -1,0 +1,57 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object {
+  synthetic constructor •() → self::Foo*
+    ;
+  method instanceMethod() → dynamic
+    ;
+}
+abstract class ExternalValue extends core::Object {
+  synthetic constructor •() → self::ExternalValue*
+    ;
+}
+abstract class Bar extends core::Object {
+  synthetic constructor •() → self::Bar*
+    ;
+  abstract method externalInstanceMethod() → self::ExternalValue*;
+}
+class Box extends core::Object {
+  field dynamic field;
+  synthetic constructor •() → self::Box*
+    ;
+}
+class FinalBox extends core::Object {
+  final field dynamic finalField;
+  constructor •(dynamic finalField) → self::FinalBox*
+    ;
+}
+class SubFinalBox extends self::FinalBox {
+  constructor •(dynamic value) → self::SubFinalBox*
+    ;
+}
+class DynamicReceiver1 extends core::Object {
+  synthetic constructor •() → self::DynamicReceiver1*
+    ;
+  method dynamicallyCalled(dynamic x) → dynamic
+    ;
+}
+class DynamicReceiver2 extends core::Object {
+  synthetic constructor •() → self::DynamicReceiver2*
+    ;
+  method dynamicallyCalled(dynamic x) → dynamic
+    ;
+}
+static method staticMethod() → dynamic
+  ;
+external static abstract method externalStatic() → core::bool*;
+external static abstract method createBar() → self::Bar*;
+static method stringArgument(dynamic x) → dynamic
+  ;
+static method intArgument(dynamic x) → dynamic
+  ;
+static method makeDynamicCall(dynamic receiver) → void
+  ;
+static method main() → dynamic
+  ;

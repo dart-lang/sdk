@@ -1,0 +1,105 @@
+Object:
+  superclasses:
+  interfaces:
+  classMembers:
+    Object._haveSameRuntimeType
+    Object.toString
+    Object.runtimeType
+    Object._toString
+    Object._simpleInstanceOf
+    Object._hashCodeRnd
+    Object._instanceOf
+    Object.noSuchMethod
+    Object._objectHashCode
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+
+C:
+  superclasses:
+    Object
+  interfaces:
+  classMembers:
+    C.getterOnly
+    Object.toString
+    C.superField
+    C.setterOnly
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    Object.noSuchMethod
+    Object._identityHashCode
+    C.superMethod
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+    C.getterOnly
+    C.superField
+    C.setterOnly
+
+D:
+  superclasses:
+    Object
+      -> C
+  interfaces:
+  classMembers:
+    D.getterOnly
+    Object.toString
+    C.superField
+    C.setterOnly
+    Object.runtimeType
+    Object._simpleInstanceOf
+    D.field
+    D.method
+    Object._instanceOf
+    Object.noSuchMethod
+    Object._identityHashCode
+    C.superMethod
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+    D.test
+  classSetters:
+    C.getterOnly
+    C.superField
+    D.setterOnly
+    D.field
+
+E:
+  superclasses:
+    Object
+      -> C
+        -> D
+  interfaces:
+  classMembers:
+    D.getterOnly
+    Object.toString
+    C.superField
+    C.setterOnly
+    Object.runtimeType
+    Object._simpleInstanceOf
+    D.field
+    D.method
+    Object._instanceOf
+    Object.noSuchMethod
+    Object._identityHashCode
+    E.missingField
+    C.superMethod
+    Object.hashCode
+    E.missingMethod
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+    D.test
+  classSetters:
+    C.getterOnly
+    C.superField
+    D.setterOnly
+    D.field
+    E.missingField

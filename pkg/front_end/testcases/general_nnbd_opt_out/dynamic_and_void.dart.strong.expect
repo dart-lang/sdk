@@ -1,0 +1,7 @@
+library;
+import self as self;
+
+static method testDynamic() → invalid-type
+  return let final dynamic #t1 = 0 in let dynamic _ = null in invalid-expression "pkg/front_end/testcases/dynamic_and_void.dart:12:52: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'invalid-type'.\nTry changing the type of the left hand side, or casting the right hand side to 'invalid-type'.\n/*@warning=TypeNotFound*/ dynamic testDynamic() => 0;\n                                                   ^";
+static method testVoid() → void {}
+static method main() → dynamic {}

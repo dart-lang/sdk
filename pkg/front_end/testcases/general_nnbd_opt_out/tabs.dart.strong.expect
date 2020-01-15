@@ -1,0 +1,45 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/tabs.dart:11:9: Error: Getter not found: 'one'.
+//   print(one);
+//         ^^^
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/tabs.dart:12:9: Error: Getter not found: 'two'.
+//   print(two);
+//         ^^^
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/tabs.dart:13:9: Error: Getter not found: 'three'.
+//   print(three);
+//         ^^^^^
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/tabs.dart:14:9: Error: Getter not found: 'four'.
+//   print(four);
+//         ^^^^
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/tabs.dart:15:9: Error: Getter not found: 'five'.
+//   print(five);
+//         ^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+static method test() → dynamic {
+  core::print(invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/tabs.dart:11:9: Error: Getter not found: 'one'.
+  print(one);
+        ^^^");
+  core::print(invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/tabs.dart:12:9: Error: Getter not found: 'two'.
+  print(two);
+        ^^^");
+  core::print(invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/tabs.dart:13:9: Error: Getter not found: 'three'.
+  print(three);
+        ^^^^^");
+  core::print(invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/tabs.dart:14:9: Error: Getter not found: 'four'.
+  print(four);
+        ^^^^");
+  core::print(invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/tabs.dart:15:9: Error: Getter not found: 'five'.
+  print(five);
+        ^^^^");
+}
+static method main() → dynamic {}

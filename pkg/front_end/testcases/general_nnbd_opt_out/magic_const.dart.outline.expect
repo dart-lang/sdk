@@ -1,0 +1,19 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Constant extends core::Object {
+  const constructor •() → self::Constant*
+    : super core::Object::•()
+    ;
+}
+class NotConstant extends core::Object {
+  synthetic constructor •() → self::NotConstant*
+    ;
+}
+static method foo({dynamic a, dynamic b, dynamic c}) → dynamic
+  ;
+static method test() → dynamic
+  ;
+static method main() → dynamic
+  ;

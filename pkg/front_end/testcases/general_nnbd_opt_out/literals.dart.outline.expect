@@ -1,0 +1,21 @@
+library;
+import self as self;
+
+static method testString() → dynamic
+  ;
+static method testInt() → dynamic
+  ;
+static method testBool() → dynamic
+  ;
+static method testDouble() → dynamic
+  ;
+static method testNull() → dynamic
+  ;
+static method testList() → dynamic
+  ;
+static method testMap() → dynamic
+  ;
+static method testSymbol() → dynamic
+  ;
+static method main() → dynamic
+  ;

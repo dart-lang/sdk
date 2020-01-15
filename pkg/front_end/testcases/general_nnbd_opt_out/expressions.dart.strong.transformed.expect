@@ -1,0 +1,93 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/expressions.dart:76:16: Error: Method not found: 'int.toString'.
+//     print(int?.toString());
+//                ^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+static method foo({dynamic fisk = #C1}) → dynamic {
+  core::print(fisk);
+}
+static method caller(dynamic f) → dynamic {
+  f.call();
+}
+static method main() → dynamic {
+  core::int* i = 0;
+  core::print(i.{core::num::==}(1) ?{core::String*} "bad" : "good");
+  core::print("${i}");
+  core::print("'${i}'");
+  core::print(" '${i}' ");
+  core::print(" '${i}' '${i}'");
+  core::print(" '${i}' '${i}'");
+  core::print("foobar");
+  core::print(" '${i}' '${i}' '${i}' '${i}'");
+  try {
+    throw "fisk";
+  }
+  on core::String* catch(final core::String* e, final core::StackTrace* s) {
+    core::print(e);
+    if(!s.{core::Object::==}(null))
+      core::print(s);
+  }
+  for (; false; ) {
+  }
+  core::List<core::String*>* list = <core::String*>["Hello, World!"];
+  core::print(list.{core::List::[]}(i));
+  list.{core::List::[]=}(i, "Hello, Brave New World!");
+  core::print(list.{core::List::[]}(i));
+  i = 87;
+  core::print(i.{core::int::unary-}());
+  core::print(i.{core::int::~}());
+  core::print(!i.{core::num::==}(42));
+  core::print(i = i.{core::num::-}(1));
+  core::print(i = i.{core::num::+}(1));
+  core::print(let final core::int* #t1 = i in let final core::int* #t2 = i = #t1.{core::num::-}(1) in #t1);
+  core::print(let final core::int* #t3 = i in let final core::int* #t4 = i = #t3.{core::num::+}(1) in #t3);
+  core::print(new core::Object::•());
+  core::print(#C2);
+  core::print(core::_List::•<core::String*>(2).{core::Object::runtimeType});
+  self::foo(fisk: "Blorp gulp");
+  function f() → core::Null? {
+    core::print("f was called");
+  }
+  self::caller(f);
+  self::caller(() → core::Null? {
+    core::print("<anon> was called");
+  });
+  function g([dynamic message = #C1]) → core::Null? {
+    core::print(message);
+  }
+  g.call("Hello, World");
+  self::caller(([dynamic x = #C1]) → core::Null? {
+    core::print("<anon> was called with ${x}");
+  });
+  function h({dynamic message = #C1}) → core::Null? {
+    core::print(message);
+  }
+  h.call(message: "Hello, World");
+  self::caller(({dynamic x = #C1}) → core::Null? {
+    core::print("<anon> was called with ${x}");
+  });
+  core::print(core::int*.{core::Object::toString}());
+  core::print(core::int*);
+  core::print(let final core::Type* #t5 = core::int* in let final void #t6 = #t5.{core::Object::toString}() in #t5);
+  try {
+    core::print(invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/expressions.dart:76:16: Error: Method not found: 'int.toString'.
+    print(int?.toString());
+               ^^^^^^^^");
+    throw "Shouldn't work";
+  }
+  on core::NoSuchMethodError* catch(final core::NoSuchMethodError* e) {
+    core::print("As expected: ${e}");
+  }
+  core::print(core::int::parse("42"));
+}
+
+constants  {
+  #C1 = null
+  #C2 = core::Object {}
+}

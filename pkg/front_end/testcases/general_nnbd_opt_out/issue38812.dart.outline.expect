@@ -1,0 +1,11 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef G<unrelated X extends core::Object* = dynamic> = () →* void;
+class A<X extends () →* void = () →* void, Y extends () →* void = () →* void> extends core::Object {
+  synthetic constructor •() → self::A<self::A::X*, self::A::Y*>*
+    ;
+}
+static method main() → dynamic
+  ;

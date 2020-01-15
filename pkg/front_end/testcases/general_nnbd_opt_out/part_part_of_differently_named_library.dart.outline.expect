@@ -1,0 +1,24 @@
+library foo;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/part_part_of_differently_named_library.dart:12:6: Error: Using 'pkg/front_end/testcases/general_nnbd_opt_out/part_part_of_differently_named_library_lib1.dart' as part of 'foo' but its 'part of' declaration says 'bar'.
+// part 'part_part_of_differently_named_library_lib1.dart';
+//      ^
+//
+import self as self;
+
+import "org-dartlang-testcase:///part_part_of_differently_named_library_lib2.dart";
+
+part part_part_of_differently_named_library_lib1.dart;
+static method main() → dynamic
+  ;
+
+library bar;
+import self as self2;
+
+part part_part_of_differently_named_library_lib1.dart;
+static method /* from org-dartlang-testcase:///part_part_of_differently_named_library_lib1.dart */ methodFromLib1() → dynamic
+  ;
+static method methodFromLib2() → dynamic
+  ;

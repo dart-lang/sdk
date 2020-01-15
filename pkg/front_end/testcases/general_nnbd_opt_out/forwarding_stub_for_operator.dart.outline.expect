@@ -1,0 +1,35 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A*
+    ;
+  operator +(covariant core::int* a) → dynamic
+    ;
+}
+class B extends core::Object {
+  synthetic constructor •() → self::B*
+    ;
+  operator +(dynamic b) → dynamic
+    ;
+}
+abstract class C extends core::Object implements self::A, self::B {
+  synthetic constructor •() → self::C*
+    ;
+  abstract forwarding-stub operator +(covariant dynamic b) → dynamic;
+}
+class D extends core::Object {
+  synthetic constructor •() → self::D*
+    ;
+  operator +(dynamic d) → dynamic
+    ;
+}
+class E extends self::D {
+  synthetic constructor •() → self::E*
+    ;
+  forwarding-stub forwarding-semi-stub operator +(covariant core::int* e) → dynamic
+    return super.{self::D::+}(e);
+}
+static method main() → dynamic
+  ;

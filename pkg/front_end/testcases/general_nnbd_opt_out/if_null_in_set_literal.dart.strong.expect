@@ -1,0 +1,10 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:collection" as col;
+
+static method main() → dynamic {
+  core::Object* a;
+  core::Object* b;
+  return let final core::Set<core::Object*>* #t1 = col::LinkedHashSet::•<core::Object*>() in let final dynamic #t2 = #t1.{core::Set::add}(let final core::Object* #t3 = a in #t3.{core::Object::==}(null) ?{core::Object*} b : #t3) in #t1;
+}

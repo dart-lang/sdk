@@ -1,0 +1,18 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+import "dart:async";
+
+class Node extends core::Object {
+  final field core::List<self::Node*>* nested;
+  final field core::String* name;
+  constructor •(core::String* name, [core::List<self::Node*>* nested]) → self::Node*
+    ;
+  method toString() → core::String*
+    ;
+  method toSimpleString() → dynamic
+    ;
+}
+static method main() → void
+  ;

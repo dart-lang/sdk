@@ -1,0 +1,60 @@
+Object:
+  superclasses:
+  interfaces:
+  classMembers:
+    Object._haveSameRuntimeType
+    Object.toString
+    Object.runtimeType
+    Object._toString
+    Object._simpleInstanceOf
+    Object._hashCodeRnd
+    Object._instanceOf
+    Object.noSuchMethod
+    Object._objectHashCode
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+
+Superclass:
+  superclasses:
+    Object
+  interfaces:
+  classMembers:
+    Superclass.bar
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    Superclass.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Superclass.namedCallback
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+
+Subclass:
+  superclasses:
+    Object
+      -> Superclass
+  interfaces:
+  classMembers:
+    Subclass.bar
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    Subclass.foo
+    Object.noSuchMethod
+    Object._identityHashCode
+    Subclass.namedCallback
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
