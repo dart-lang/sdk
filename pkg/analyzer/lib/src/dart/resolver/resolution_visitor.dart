@@ -342,10 +342,13 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     if (_elementWalker != null) {
       element = _elementWalker.getParameter();
     } else {
-      if (nameNode != null) {
-        element = DefaultParameterElementImpl(nameNode.name, nameNode.offset);
+      var name = nameNode?.name ?? '';
+      var nameOffset = nameNode?.offset ?? -1;
+      if (node.parameter is FieldFormalParameter) {
+        // Only for recovery, this should not happen in valid code.
+        element = DefaultFieldFormalParameterElementImpl(name, nameOffset);
       } else {
-        element = DefaultParameterElementImpl('', -1);
+        element = DefaultParameterElementImpl(name, nameOffset);
       }
       _elementHolder.addParameter(element);
 
