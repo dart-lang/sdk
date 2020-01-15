@@ -5266,6 +5266,16 @@ const MessageCode messageLanguageVersionInvalidInDotPackages = const MessageCode
         r"""The language version is not specified correctly in the .packages file.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeLanguageVersionLibraryContext =
+    messageLanguageVersionLibraryContext;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageLanguageVersionLibraryContext = const MessageCode(
+    "LanguageVersionLibraryContext",
+    severity: Severity.context,
+    message: r"""This is language version annotation in the library.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeLanguageVersionMismatchInPart =
     messageLanguageVersionMismatchInPart;
 
@@ -5274,6 +5284,36 @@ const MessageCode messageLanguageVersionMismatchInPart = const MessageCode(
     "LanguageVersionMismatchInPart",
     message:
         r"""The language version override has to be the same in the library and its part(s).""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeLanguageVersionMismatchInPatch =
+    messageLanguageVersionMismatchInPatch;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageLanguageVersionMismatchInPatch = const MessageCode(
+    "LanguageVersionMismatchInPatch",
+    message:
+        r"""The language version override has to be the same in the library and its patch(es).""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeLanguageVersionPartContext =
+    messageLanguageVersionPartContext;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageLanguageVersionPartContext = const MessageCode(
+    "LanguageVersionPartContext",
+    severity: Severity.context,
+    message: r"""This is language version annotation in the part.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeLanguageVersionPatchContext =
+    messageLanguageVersionPatchContext;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageLanguageVersionPatchContext = const MessageCode(
+    "LanguageVersionPatchContext",
+    severity: Severity.context,
+    message: r"""This is language version annotation in the patch.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -6026,6 +6066,26 @@ const Code<Null> codeNonNullAwareSpreadIsNull = messageNonNullAwareSpreadIsNull;
 const MessageCode messageNonNullAwareSpreadIsNull = const MessageCode(
     "NonNullAwareSpreadIsNull",
     message: r"""Can't spread a value with static type Null.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNonNullableOptOut = messageNonNullableOptOut;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNonNullableOptOut = const MessageCode(
+    "NonNullableOptOut",
+    message: r"""Null safety features are disabled for this library.""",
+    tip:
+        r"""Try removing the `@dart=` annotation or setting the language version to at least `@dart=2.7`.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNonNullableOptOutComment = messageNonNullableOptOutComment;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNonNullableOptOutComment = const MessageCode(
+    "NonNullableOptOutComment",
+    severity: Severity.context,
+    message:
+        r"""This is the annotation that opts out this library from null safety features.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeNonPartOfDirectiveInPart = messageNonPartOfDirectiveInPart;

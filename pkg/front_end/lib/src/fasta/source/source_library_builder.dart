@@ -99,65 +99,7 @@ import '../configuration.dart' show Configuration;
 
 import '../export.dart' show Export;
 
-import '../fasta_codes.dart'
-    show
-        FormattedMessage,
-        LocatedMessage,
-        Message,
-        messageConflictsWithTypeVariableCause,
-        messageConstructorWithWrongName,
-        messageExpectedUri,
-        messageMemberWithSameNameAsClass,
-        messageGenericFunctionTypeInBound,
-        messageGenericFunctionTypeUsedAsActualTypeArgument,
-        messageIncorrectTypeArgumentVariable,
-        messageLanguageVersionInvalidInDotPackages,
-        messageLanguageVersionMismatchInPart,
-        messagePartExport,
-        messagePartExportContext,
-        messagePartInPart,
-        messagePartInPartLibraryContext,
-        messagePartOfSelf,
-        messagePartOfTwoLibraries,
-        messagePartOfTwoLibrariesContext,
-        messageTypeVariableDuplicatedName,
-        messageTypeVariableSameNameAsEnclosing,
-        noLength,
-        Template,
-        templateConflictsWithMember,
-        templateConflictsWithSetter,
-        templateConflictsWithTypeVariable,
-        templateConstructorWithWrongNameContext,
-        templateCouldNotParseUri,
-        templateDeferredPrefixDuplicated,
-        templateDeferredPrefixDuplicatedCause,
-        templateDuplicatedDeclaration,
-        templateDuplicatedDeclarationCause,
-        templateDuplicatedExport,
-        templateDuplicatedExportInType,
-        templateDuplicatedImport,
-        templateDuplicatedImportInType,
-        templateExportHidesExport,
-        templateGenericFunctionTypeInferredAsActualTypeArgument,
-        templateImportHidesImport,
-        templateIncorrectTypeArgument,
-        templateIncorrectTypeArgumentInReturnType,
-        templateIncorrectTypeArgumentInferred,
-        templateIncorrectTypeArgumentQualified,
-        templateIncorrectTypeArgumentQualifiedInferred,
-        templateLanguageVersionTooHigh,
-        templateLoadLibraryHidesMember,
-        templateLocalDefinitionHidesExport,
-        templateLocalDefinitionHidesImport,
-        templateMissingPartOf,
-        templateNotAPrefixInTypeAnnotation,
-        templatePartOfInLibrary,
-        templatePartOfLibraryNameMismatch,
-        templatePartOfUriMismatch,
-        templatePartOfUseUri,
-        templatePartTwice,
-        templatePatchInjectionFailed,
-        templateTypeVariableDuplicatedNameCause;
+import '../fasta_codes.dart';
 
 import '../identifiers.dart' show QualifiedName, flattenName;
 
@@ -314,7 +256,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   List<FieldBuilder> implicitlyTypedFields;
 
-  bool languageVersionExplicitlySet = false;
+  LanguageVersion _languageVersion = const ImplicitLanguageVersion();
 
   bool postponedProblemsIssued = false;
   List<PostponedProblem> postponedProblems;
@@ -382,8 +324,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   @override
   bool get isNonNullableByDefault =>
       loader.target.enableNonNullable &&
-      library.languageVersionMajor >= enableNonNullableDefaultMajorVersion &&
-      library.languageVersionMinor >= enableNonNullableDefaultMinorVersion &&
+      languageVersion.major >= enableNonNullableDefaultMajorVersion &&
+      languageVersion.minor >= enableNonNullableDefaultMinorVersion &&
       !isOptOutPackage(library.importUri) &&
       !isOptOutTest(library.importUri);
 
@@ -523,11 +465,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     '/tests/standalone_2',
   };
 
+  LanguageVersion get languageVersion => _languageVersion;
+
   @override
   void setLanguageVersion(int major, int minor,
       {int offset: 0, int length: noLength, bool explicit: false}) {
-    if (languageVersionExplicitlySet) return;
-    if (explicit) languageVersionExplicitlySet = true;
+    if (languageVersion.isExplicit) return;
+    _languageVersion =
+        new LanguageVersion(major, minor, fileUri, offset, length, explicit);
 
     if (major == null || minor == null) {
       addPostponedProblem(
@@ -1086,16 +1031,25 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
 
     // Language versions have to match.
-    if ((this.languageVersionExplicitlySet !=
-            part.languageVersionExplicitlySet) ||
-        (this.library.languageVersionMajor !=
-                part.library.languageVersionMajor ||
-            this.library.languageVersionMinor !=
-                part.library.languageVersionMinor)) {
+    if (languageVersion != part.languageVersion) {
       // This is an error, but the part is not removed from the list of
       // parts, so that metadata annotations can be associated with it.
+      List<LocatedMessage> context = <LocatedMessage>[];
+      if (languageVersion.isExplicit) {
+        context.add(messageLanguageVersionLibraryContext.withLocation(
+            languageVersion.fileUri,
+            languageVersion.charOffset,
+            languageVersion.charCount));
+      }
+      if (part.languageVersion.isExplicit) {
+        context.add(messageLanguageVersionPartContext.withLocation(
+            part.languageVersion.fileUri,
+            part.languageVersion.charOffset,
+            part.languageVersion.charCount));
+      }
       addProblem(
-          messageLanguageVersionMismatchInPart, partOffset, noLength, fileUri);
+          messageLanguageVersionMismatchInPart, partOffset, noLength, fileUri,
+          context: context);
     }
 
     part.validatePart(this, usedParts);
@@ -2667,6 +2621,29 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   @override
   void applyPatches() {
     if (!isPatch) return;
+
+    if (languageVersion != origin.languageVersion) {
+      List<LocatedMessage> context = <LocatedMessage>[];
+      if (origin.languageVersion.isExplicit) {
+        context.add(messageLanguageVersionLibraryContext.withLocation(
+            origin.languageVersion.fileUri,
+            origin.languageVersion.charOffset,
+            origin.languageVersion.charCount));
+      }
+
+      if (languageVersion.isExplicit) {
+        addProblem(
+            messageLanguageVersionMismatchInPatch,
+            languageVersion.charOffset,
+            languageVersion.charCount,
+            languageVersion.fileUri,
+            context: context);
+      } else {
+        addProblem(messageLanguageVersionMismatchInPatch, -1, noLength, fileUri,
+            context: context);
+      }
+    }
+
     NameIterator originDeclarations = origin.nameIterator;
     while (originDeclarations.moveNext()) {
       String name = originDeclarations.name;
@@ -3402,4 +3379,57 @@ class PostponedProblem {
   final Uri fileUri;
 
   PostponedProblem(this.message, this.charOffset, this.length, this.fileUri);
+}
+
+class LanguageVersion {
+  final int major;
+  final int minor;
+  final Uri fileUri;
+  final int charOffset;
+  final int charCount;
+  final bool isExplicit;
+
+  LanguageVersion(this.major, this.minor, this.fileUri, this.charOffset,
+      this.charCount, this.isExplicit);
+
+  int get hashCode =>
+      major.hashCode * 13 + minor.hashCode * 17 + isExplicit.hashCode * 19;
+
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is LanguageVersion &&
+        major == other.major &&
+        minor == other.minor &&
+        isExplicit == other.isExplicit;
+  }
+
+  String toString() {
+    return 'LanguageVersion(major=$major,minor=$minor,isExplicit=$isExplicit,'
+        'fileUri=$fileUri,charOffset=$charOffset,charCount=$charCount)';
+  }
+}
+
+class ImplicitLanguageVersion implements LanguageVersion {
+  const ImplicitLanguageVersion();
+
+  @override
+  int get major => Library.defaultLanguageVersionMajor;
+
+  @override
+  int get minor => Library.defaultLanguageVersionMinor;
+
+  @override
+  Uri get fileUri => null;
+
+  @override
+  int get charOffset => -1;
+
+  @override
+  int get charCount => noLength;
+
+  @override
+  bool get isExplicit => false;
+
+  @override
+  String toString() => 'ImplicitLanguageVersion()';
 }

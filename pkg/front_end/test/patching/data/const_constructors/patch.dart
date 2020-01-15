@@ -10,7 +10,10 @@ class PatchedClass {
   final int _field;
 
   /*member: PatchedClass.:
-    initializers=[FieldInitializer(_field),SuperInitializer],
+   initializers=[
+    FieldInitializer(_field),
+    SuperInitializer],
+   patch
   */
   @patch
   const PatchedClass({int field}) : _field = field;

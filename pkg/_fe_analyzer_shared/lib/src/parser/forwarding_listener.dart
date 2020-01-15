@@ -1567,21 +1567,6 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void reportErrorIfNullableType(Token questionMark) {
-    listener?.reportErrorIfNullableType(questionMark);
-  }
-
-  @override
-  void reportNonNullableModifierError(Token modifierToken) {
-    listener?.reportNonNullableModifierError(modifierToken);
-  }
-
-  @override
-  void reportNonNullAssertExpressionNotEnabled(Token bang) {
-    listener?.reportNonNullAssertExpressionNotEnabled(bang);
-  }
-
-  @override
   void reportVarianceModifierNotEnabled(Token variance) {
     listener?.reportVarianceModifierNotEnabled(variance);
   }

@@ -3534,6 +3534,30 @@ class AstBuilder extends StackListener {
     }
   }
 
+  void reportErrorIfNullableType(Token questionMark) {
+    if (questionMark != null) {
+      assert(optional('?', questionMark));
+      handleRecoverableError(
+          templateExperimentNotEnabled.withArguments('non-nullable'),
+          questionMark,
+          questionMark);
+    }
+  }
+
+  void reportNonNullableModifierError(Token modifierToken) {
+    if (modifierToken != null) {
+      handleRecoverableError(
+          templateExperimentNotEnabled.withArguments('non-nullable'),
+          modifierToken,
+          modifierToken);
+    }
+  }
+
+  void reportNonNullAssertExpressionNotEnabled(Token bang) {
+    handleRecoverableError(
+        templateExperimentNotEnabled.withArguments('non-nullable'), bang, bang);
+  }
+
   Comment _findComment(List<Annotation> metadata, Token tokenAfterMetadata) {
     // Find the dartdoc tokens
     Token dartdoc = parser.findDartDoc(tokenAfterMetadata);

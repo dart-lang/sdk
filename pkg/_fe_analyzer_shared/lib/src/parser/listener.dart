@@ -23,8 +23,6 @@ import 'declaration_kind.dart' show DeclarationKind;
 
 import 'member_kind.dart' show MemberKind;
 
-import 'util.dart' show optional;
-
 abstract class UnescapeErrorListener {
   void handleUnescapeError(
       Message message, covariant location, int offset, int length);
@@ -1143,37 +1141,6 @@ class Listener implements UnescapeErrorListener {
   /// used as a non-null postfix assertion in an expression.
   void handleNonNullAssertExpression(Token bang) {
     logEvent("NonNullAssertExpression");
-  }
-
-  // TODO(danrubel): Remove this once all listeners have been updated
-  // to properly handle nullable types
-  void reportErrorIfNullableType(Token questionMark) {
-    if (questionMark != null) {
-      assert(optional('?', questionMark));
-      handleRecoverableError(
-          templateExperimentNotEnabled.withArguments('non-nullable'),
-          questionMark,
-          questionMark);
-    }
-  }
-
-  // TODO(danrubel): Remove this once all listeners have been updated
-  // to properly handle nullable types
-  void reportNonNullableModifierError(Token modifierToken) {
-    if (modifierToken != null) {
-      handleRecoverableError(
-          // TODO(johnniwinther): Update this to handle opt-out libraries
-          templateExperimentNotEnabled.withArguments('non-nullable'),
-          modifierToken,
-          modifierToken);
-    }
-  }
-
-  // TODO(danrubel): Remove this once all listeners have been updated
-  // to properly handle non-null assert expressions
-  void reportNonNullAssertExpressionNotEnabled(Token bang) {
-    handleRecoverableError(
-        templateExperimentNotEnabled.withArguments('non-nullable'), bang, bang);
   }
 
   void handleNoName(Token token) {

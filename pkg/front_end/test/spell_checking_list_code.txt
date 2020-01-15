@@ -323,6 +323,7 @@ eof
 eq
 equation
 erasure
+es
 estimate
 eval
 excludes

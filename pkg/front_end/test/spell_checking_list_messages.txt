@@ -36,6 +36,7 @@ nosuchmethod
 num1%.3ms
 o
 part(s)
+patch(es)
 re
 sdksummary
 stacktrace

@@ -1556,10 +1556,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     } else {
       bool isNullAware = optional('?..', token);
       if (isNullAware && !libraryBuilder.isNonNullableByDefault) {
-        addProblem(
-            fasta.templateExperimentNotEnabled.withArguments('non-nullable'),
-            offsetForToken(token),
-            token.charCount);
+        reportMissingNonNullableSupport(token);
       }
       VariableDeclaration variable =
           forest.createVariableDeclarationForValue(expression);
@@ -3573,10 +3570,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     Object receiver = pop();
     bool isNullAware = optional('?.[', openSquareBracket);
     if (isNullAware && !libraryBuilder.isNonNullableByDefault) {
-      addProblem(
-          fasta.templateExperimentNotEnabled.withArguments('non-nullable'),
-          offsetForToken(openSquareBracket),
-          openSquareBracket.charCount);
+      reportMissingNonNullableSupport(openSquareBracket);
     }
     if (receiver is Generator) {
       push(receiver.buildIndexedAccess(index, openSquareBracket,
