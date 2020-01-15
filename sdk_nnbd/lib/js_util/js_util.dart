@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
+// @dart = 2.6
 
 /// Utility methods to efficiently manipulate typed JSInterop objects in cases
 /// where the name to call is not known at runtime. You should only use these
@@ -30,13 +30,13 @@ import 'dart:_js_helper' show convertDartClosureToJS;
 /// JavaScript type, and all other objects are proxied.
 jsify(object) {
   if ((object is! Map) && (object is! Iterable)) {
-    throw new ArgumentError("object must be a Map or Iterable");
+    throw ArgumentError("object must be a Map or Iterable");
   }
   return _convertDataTree(object);
 }
 
 _convertDataTree(data) {
-  var _convertedObjects = new HashMap.identity();
+  var _convertedObjects = HashMap.identity();
 
   _convert(o) {
     if (_convertedObjects.containsKey(o)) {
@@ -65,13 +65,16 @@ _convertDataTree(data) {
 newObject() => JS('=Object', '{}');
 
 bool hasProperty(o, name) => JS('bool', '# in #', name, o);
+
 getProperty(o, name) => JS('Object|Null', '#[#]', o, name);
+
 setProperty(o, name, value) => JS('', '#[#]=#', o, name, value);
 
 callMethod(o, String method, List args) =>
     JS('Object|Null', '#[#].apply(#, #)', o, method, o, args);
 
 bool instanceof(o, Function type) => JS('bool', '# instanceof #', o, type);
+
 callConstructor(Function constr, List arguments) {
   if (arguments == null) {
     return JS('Object', 'new #()', constr);

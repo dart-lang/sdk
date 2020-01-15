@@ -2,13 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
+// @dart = 2.6
 
 /// Utility methods to efficiently manipulate typed JSInterop objects in cases
 /// where the name to call is not known at runtime. You should only use these
 /// methods when the same effect cannot be achieved with @JS annotations.
 /// These methods would be extension methods on JSObject if Dart supported
 /// extension methods.
+///
+/// {@category Web}
 library dart.js_util;
 
 import 'dart:_foreign_helper' show JS;
@@ -16,7 +18,7 @@ import 'dart:collection' show HashMap;
 import 'dart:async' show Completer;
 import 'dart:_js_helper' show convertDartClosureToJS;
 
-/// WARNING: performance of this method is much worse than other uitil
+/// WARNING: performance of this method is much worse than other util
 /// methods in this library. Only use this method as a last resort.
 ///
 /// Recursively converts a JSON-like collection of Dart objects to a
@@ -24,7 +26,7 @@ import 'dart:_js_helper' show convertDartClosureToJS;
 ///
 /// [object] must be a [Map] or [Iterable], the contents of which are also
 /// converted. Maps and Iterables are copied to a new JavaScript object.
-/// Primitives and other transferrable values are directly converted to their
+/// Primitives and other transferable values are directly converted to their
 /// JavaScript type, and all other objects are proxied.
 jsify(object) {
   if ((object is! Map) && (object is! Iterable)) {
@@ -62,21 +64,24 @@ _convertDataTree(data) {
 
 newObject() => JS('=Object', '{}');
 
-hasProperty(o, name) => JS<bool>('!', '# in #', name, o);
-getProperty(o, name) => JS('Object', '#[#]', o, name);
+bool hasProperty(o, name) => JS('bool', '# in #', name, o);
+
+getProperty(o, name) => JS('Object|Null', '#[#]', o, name);
+
 setProperty(o, name, value) => JS('', '#[#]=#', o, name, value);
 
 callMethod(o, String method, List args) =>
-    JS('Object', '#[#].apply(#, #)', o, method, o, args);
+    JS('Object|Null', '#[#].apply(#, #)', o, method, o, args);
 
-instanceof(o, Function type) => JS<bool>('!', '# instanceof #', o, type);
+bool instanceof(o, Function type) => JS('bool', '# instanceof #', o, type);
+
 callConstructor(Function constr, List arguments) {
   if (arguments == null) {
     return JS('Object', 'new #()', constr);
   }
 
-  if (JS<bool>('!', '# instanceof Array', arguments)) {
-    int argumentCount = JS('!', '#.length', arguments);
+  if (JS('bool', '# instanceof Array', arguments)) {
+    int argumentCount = JS('int', '#.length', arguments);
     switch (argumentCount) {
       case 0:
         return JS('Object', 'new #()', constr);
@@ -116,7 +121,7 @@ callConstructor(Function constr, List arguments) {
   var args = <dynamic>[null]..addAll(arguments);
   var factoryFunction = JS('', '#.bind.apply(#, #)', constr, constr, args);
   // Without this line, calling factoryFunction as a constructor throws
-  JS<String>('!', 'String(#)', factoryFunction);
+  JS('String', 'String(#)', factoryFunction);
   // This could return an UnknownJavaScriptObject, or a native
   // object for which there is an interceptor
   return JS('Object', 'new #()', factoryFunction);
