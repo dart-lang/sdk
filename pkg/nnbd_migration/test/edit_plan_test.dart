@@ -209,6 +209,16 @@ void f() {
 ''');
   }
 
+  Future<void> test_remove_all_list_elements_with_trailing_separator() async {
+    await analyze('var x = [ 1, 2, ];');
+    var i1 = findNode.integerLiteral('1');
+    var i2 = findNode.integerLiteral('2');
+    checkPlan(
+        planner.passThrough(i1.parent,
+            innerPlans: [planner.removeNode(i1), planner.removeNode(i2)]),
+        'var x = [];');
+  }
+
   Future<void> test_remove_argument() async {
     await analyze('f(dynamic d) => d(1, 2, 3);');
     var i2 = findNode.integerLiteral('2');
