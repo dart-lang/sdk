@@ -943,6 +943,7 @@ nnbd/issue_39286: TextSerializationFailure
 nnbd/issue_39286_2: TextSerializationFailure
 nnbd/late: TextSerializationFailure
 nnbd/later: TextSerializationFailure
+nnbd/lhs_of_if_null: TextSerializationFailure
 nnbd/list_constructor: TextSerializationFailure
 nnbd/member_inheritance_from_opt_in: TextSerializationFailure
 nnbd/member_inheritance_from_opt_out: TextSerializationFailure

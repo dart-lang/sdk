@@ -1066,8 +1066,9 @@ class InferenceVisitor
       IfNullExpression node, DartType typeContext) {
     // To infer `e0 ?? e1` in context K:
     // - Infer e0 in context K to get T0
-    ExpressionInferenceResult lhsResult = inferrer
-        .inferExpression(node.left, typeContext, true, isVoidAllowed: false);
+    ExpressionInferenceResult lhsResult = inferrer.inferExpression(
+        node.left, typeContext.withNullability(inferrer.library.nullable), true,
+        isVoidAllowed: false);
 
     Member equalsMember = inferrer
         .findInterfaceMember(
