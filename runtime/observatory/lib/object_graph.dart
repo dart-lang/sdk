@@ -12,14 +12,44 @@ import 'dart:typed_data';
 import 'package:logging/logging.dart';
 
 class _ReadStream {
-  final Uint8List _buffer;
-  int _position = 0;
+  final List<Uint8List> _buffers;
+  Uint8List _currentBuffer = Uint8List(0);
+  int _bufferIndex = 0;
+  int _byteIndex = 0;
 
-  _ReadStream(this._buffer);
+  _ReadStream(this._buffers);
 
-  bool atEnd() => _position >= _buffer.length;
+  bool atEnd() {
+    return _bufferIndex >= _buffers.length &&
+        _byteIndex >= _currentBuffer.length;
+  }
 
-  int readByte() => _buffer[_position++];
+  int readByte() {
+    int i = _byteIndex;
+    Uint8List b = _currentBuffer;
+    if (i < b.length) {
+      int r = b[i];
+      _byteIndex = i + 1;
+      return r;
+    }
+
+    return _readByteSlowPath();
+  }
+
+  int _readByteSlowPath() {
+    int i = _byteIndex;
+    Uint8List b = _currentBuffer;
+    while (i >= b.length) {
+      if (_bufferIndex >= _buffers.length) {
+        throw new StateError("Attempt to read past the end of a stream");
+      }
+      b = _currentBuffer = _buffers[_bufferIndex++];
+      i = 0;
+    }
+    int r = b[i];
+    _byteIndex = i + 1;
+    return r;
+  }
 
   /// Read one ULEB128 number.
   int readUnsigned() {
@@ -427,7 +457,7 @@ abstract class SnapshotGraph {
 
   Map<String, int> get processPartitions;
 
-  factory SnapshotGraph(Uint8List encoded) => new _SnapshotGraph(encoded);
+  factory SnapshotGraph(List<Uint8List> encoded) => new _SnapshotGraph(encoded);
   Stream<String> process();
 }
 
@@ -446,7 +476,7 @@ const kRootName = "Root";
 const kUnknownFieldName = "<unknown>";
 
 class _SnapshotGraph implements SnapshotGraph {
-  _SnapshotGraph(Uint8List encoded) : this._encoded = encoded;
+  _SnapshotGraph(this._encoded);
 
   String get description => _description;
 
@@ -570,7 +600,7 @@ class _SnapshotGraph implements SnapshotGraph {
     return controller.stream;
   }
 
-  Uint8List _encoded;
+  List<Uint8List> _encoded;
 
   String _description;
 
@@ -651,6 +681,8 @@ class _SnapshotGraph implements SnapshotGraph {
   void _readObjects(_ReadStream stream) {
     var E = stream.readUnsigned();
     var N = stream.readUnsigned();
+
+    Logger.root.info("$N objects, $E references");
 
     _N = N;
     _E = E;

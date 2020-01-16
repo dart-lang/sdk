@@ -12,7 +12,7 @@ abstract class HeapSnapshot {
   HeapSnapshotMergedDominatorNode get mergedDominatorTree;
   Iterable<SnapshotClass> get classes;
   Map<String, int> get processPartitions;
-  Uint8List get encoded;
+  List<Uint8List> get encoded;
 }
 
 abstract class HeapSnapshotMergedDominatorNode {

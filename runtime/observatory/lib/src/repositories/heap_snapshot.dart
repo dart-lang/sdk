@@ -35,7 +35,7 @@ class HeapSnapshotLoadingProgress extends M.HeapSnapshotLoadingProgress {
     _run();
   }
 
-  HeapSnapshotLoadingProgress.fetched(this.isolate, Uint8List response) {
+  HeapSnapshotLoadingProgress.fetched(this.isolate, List<Uint8List> response) {
     _runFetched(response);
   }
 
@@ -55,14 +55,14 @@ class HeapSnapshotLoadingProgress extends M.HeapSnapshotLoadingProgress {
         }
       });
 
-      final Uint8List response = await stream.last;
+      final List<Uint8List> response = await stream.last;
       await _runFetched(response);
     } finally {
       _onProgress.close();
     }
   }
 
-  Future _runFetched(Uint8List response) async {
+  Future _runFetched(List<Uint8List> response) async {
     try {
       _fetchingTime.stop();
       _loadingTime.start();

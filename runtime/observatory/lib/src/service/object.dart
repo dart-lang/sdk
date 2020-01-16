@@ -1611,20 +1611,6 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
   int get numScopedHandles => _numScopedHandles;
   int _numScopedHandles;
 
-  static Uint8List _flatten(List<Uint8List> chunks) {
-    var length = 0;
-    for (var chunk in chunks) {
-      length += chunk.length;
-    }
-    var flattened = new Uint8List(length);
-    var position = 0;
-    for (var chunk in chunks) {
-      flattened.setRange(position, position + chunk.length, chunk);
-      position += chunk.length;
-    }
-    return flattened;
-  }
-
   void _loadHeapSnapshot(ServiceEvent event) {
     if (_snapshotFetch == null || _snapshotFetch.isClosed) {
       // No outstanding snapshot request. Presumably another client asked for a
@@ -1644,11 +1630,11 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
       return;
     }
 
-    var flattened = _flatten(_chunksInProgress);
+    var chunks = _chunksInProgress;
     _chunksInProgress = null; // Make chunks GC'able.
 
     if (_snapshotFetch != null) {
-      _snapshotFetch.add(flattened);
+      _snapshotFetch.add(chunks);
       _snapshotFetch.close();
     }
   }

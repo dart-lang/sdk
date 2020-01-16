@@ -17,9 +17,9 @@ class HeapSnapshot implements M.HeapSnapshot {
   List<SnapshotClass> classes;
   SnapshotObject get root => graph.root;
   Map<String, int> get processPartitions => graph.processPartitions;
-  Uint8List encoded;
+  List<Uint8List> encoded;
 
-  Stream<String> loadProgress(S.Isolate isolate, Uint8List encoded) {
+  Stream<String> loadProgress(S.Isolate isolate, List<Uint8List> encoded) {
     final progress = new StreamController<String>.broadcast();
     progress.add('Loading...');
     this.encoded = encoded;
