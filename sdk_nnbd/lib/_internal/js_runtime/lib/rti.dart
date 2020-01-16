@@ -659,12 +659,36 @@ Rti instanceType(object) {
 /// Returns the Rti type of JavaScript Array [object].
 /// Called from generated code.
 Rti _arrayInstanceType(object) {
-  // TODO(sra): Do we need to protect against an Array passed between two Dart
-  // programs loaded into the same JavaScript isolate (e.g. via JS-interop).
-  // FWIW, the legacy rti has this problem too. Perhaps JSArrays should use a
-  // program-local `symbol` for the type field.
+  // A JavaScript Array can come from three places:
+  //   1. This Dart program.
+  //   2. Another Dart program loaded in the JavaScript environment.
+  //   3. From outside of a Dart program.
+  //
+  // In case 3 we default to a fixed type for all external Arrays.  To protect
+  // against an Array passed between two Dart programs loaded into the same
+  // JavaScript isolate (communicating e.g. via JS-interop), we check that the
+  // stored value is 'our' Rti type.
+  //
+  // TODO(40175): Investigate if it is more efficient to have each Dart program
+  // use a unique JavaScript property so that both case 2 and case 3 look like a
+  // missing value. In ES6 we could use a globally named JavaScript Symbol. For
+  // IE11 we would have to synthesise a String property-name with almost zero
+  // chance of conflict.
+
   var rti = JS('', r'#[#]', object, JS_GET_NAME(JsGetName.RTI_NAME));
-  return rti != null ? _castToRti(rti) : _castToRti(getJSArrayInteropRti());
+  var defaultRti = getJSArrayInteropRti();
+
+  // Case 3.
+  if (rti == null) return _castToRti(defaultRti);
+
+  // Case 2 and perhaps case 3. Check constructor of extracted type against a
+  // known instance of Rti - this is an easy way to get the constructor.
+  if (JS('bool', '#.constructor !== #.constructor', rti, defaultRti)) {
+    return _castToRti(defaultRti);
+  }
+
+  // Case 1.
+  return _castToRti(rti);
 }
 
 /// Returns the Rti type of user-defined class [object].
