@@ -189,7 +189,7 @@ abstract class _DoubleLinkedQueueEntry<E> extends DoubleLinkedQueueEntry<E> {
 
   E _remove();
 
-  E get _element => element;
+  E get _element => super._element as E;
 
   DoubleLinkedQueueEntry<E> nextEntry() {
     _DoubleLinkedQueueEntry<E> entry = _nextLink as _DoubleLinkedQueueEntry<E>;
