@@ -61,7 +61,7 @@ class InfoBuilder {
 
   /// Initialize a newly created builder.
   InfoBuilder(this.provider, this.includedPath, this.info, this.listener,
-      {this.explainNonNullableTypes = false});
+      {this.explainNonNullableTypes = true});
 
   /// The analysis server used to get information about libraries.
   AnalysisServer get server => listener.server;
@@ -463,8 +463,8 @@ class InfoBuilder {
     for (var edge in edgeInfos) {
       EdgeOriginInfo origin = info.edgeOrigin[edge];
       if (origin == null) {
-        // TODO(https://github.com/dart-lang/sdk/issues/39203): I think this
-        //  shouldn't happen? But it does on the path package.
+        // TODO(srawlins): I think this shouldn't happen? But it does on the
+        //  collection and path packages.
         continue;
       }
       NavigationTarget target =
@@ -519,13 +519,15 @@ class InfoBuilder {
       if (upstreamTriggeredEdgeInfos.isNotEmpty) {
         List<RegionDetail> details =
             _computeUpstreamTriggeredDetails(upstreamTriggeredEdgeInfos);
-        TypeAnnotation node = nonNullableType.key;
-        regions.add(RegionInfo(
-            RegionType.nonNullableType,
-            mapper.map(node.offset),
-            node.length,
-            "This type is not changed; it is determined to be non-nullable",
-            details));
+        if (details.isNotEmpty) {
+          TypeAnnotation node = nonNullableType.key;
+          regions.add(RegionInfo(
+              RegionType.nonNullableType,
+              mapper.map(node.offset),
+              node.length,
+              "This type is not changed; it is determined to be non-nullable",
+              details));
+        }
       }
     }
   }
