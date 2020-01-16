@@ -163,9 +163,11 @@ class UnitRenderer {
       String regionClass = region.regionType == RegionType.fix
           ? 'fix-region'
           : 'non-nullable-type-region';
+      // TODO(srawlins): Don't ship all of the tooltips for each unit. Instead,
+      //  request each one as they are clicked.
       regions.write('<span class="region $regionClass">'
           '${content.substring(offset, offset + length)}'
-          '<span class="tooltip">'
+          '<div class="tooltip">'
           '<p>${_htmlEscape.convert(region.explanation)}</p>');
       //
       // Write out any details.
@@ -211,7 +213,7 @@ class UnitRenderer {
           regions.write('</p>');
         }
       }
-      regions.write('</span></span>');
+      regions.write('</div></span>');
     }
     if (previousOffset < content.length) {
       // Last region of unmodified content.

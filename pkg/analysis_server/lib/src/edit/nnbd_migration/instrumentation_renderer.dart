@@ -23,25 +23,25 @@ mustache.Template _template = mustache.Template(r'''
   </head>
   <body>
     <h1>Preview of NNBD migration</h1>
-    <p><b>
-    Hover over modified regions to see why the migration tool chose to make the
-    modification.
-    </b></p>
     <h2 id="unit-name">&nbsp;</h2>
     <div class="panels">
     <div class="horizontal">
-    <div class="nav">
-      <p class="nav-tip">
-      Select a source file below to preview the modifications.
-      </p>
+    <div class="nav-panel">
       <div class="nav-inner">
+        <p class="panel-heading">Navigation</p>
         <p class="root">{{ root }}</p>
 {{{ links }}}
       </div><!-- /nav-inner -->
     </div><!-- /nav -->
     '''
     '<div class="content">'
-    '<div class="code">{{! Compilation unit content is written here. }}</div>'
+    '<div class="code">'
+    '{{! Compilation unit content is written here. }}'
+    '<p class="welcome">'
+    '{{! TODO(srawlins): More welcome text! }}'
+    'Select a source file on the left to preview the modifications.'
+    '</p>'
+    '</div>'
     '<div class="regions">'
     '{{! The regions are then written again, overlaying the first copy of }}'
     '{{! the content, to provide tooltips for modified regions. }}'
@@ -49,11 +49,19 @@ mustache.Template _template = mustache.Template(r'''
     '<div class="footer"><em>Generated on {{ generationDate }}</em></div>'
     '</div><!-- /content -->'
     '''
+    <div class="info-panel">
+      <div class="info-panel-inner">
+        <p class="panel-heading">Modification info</p>
+        <div class="info">
+          <p>
+          Hover over modified regions to see why the migration tool chose to
+          make the modification.
+          </p>
+        </div><!-- /info -->
+      </div><!-- /info-panel-inner -->
+    </div><!-- info-panel -->
     </div><!-- /horizontal -->
     </div><!-- /panels -->
-    <script lang="javascript">
-document.addEventListener("DOMContentLoaded", highlightAllCode);
-    </script>
   </body>
 </html>''');
 

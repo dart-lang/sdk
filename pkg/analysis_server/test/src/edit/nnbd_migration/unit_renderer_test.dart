@@ -59,7 +59,7 @@ class UnitRendererTest extends NnbdMigrationTestBase {
     var output = jsonDecode(outputJson);
     // Strip out tooltips which are lengthy and are not being tested here.
     var regions = output['regions']
-        .replaceAll(RegExp('<span class="tooltip">.*?</span>'), '');
+        .replaceAll(RegExp('<div class="tooltip">.*?</div>'), '');
     expect(regions,
         contains('int<span class="region fix-region">?</span> a = null;'));
   }
@@ -71,11 +71,11 @@ class UnitRendererTest extends NnbdMigrationTestBase {
     var output = jsonDecode(outputJson);
     expect(
         output['regions'],
-        contains('<span class="tooltip">'
+        contains('<div class="tooltip">'
             "<p>Changed type 'List&lt;String&gt;' to be nullable.</p>"
             "<ul><li>This variable is initialized to an explicit 'null' "
             '(<a href="test.dart?offset=17&line=1" '
-            'class="nav-link">test.dart</a>)</li></ul></span>'));
+            'class="nav-link">test.dart</a>)</li></ul></div>'));
   }
 
   test_regionsContainsEscapedHtml() async {
@@ -85,7 +85,7 @@ class UnitRendererTest extends NnbdMigrationTestBase {
     var output = jsonDecode(outputJson);
     // Strip out tooltips which are lengthy and are not being tested here.
     var regions = output['regions']
-        .replaceAll(RegExp('<span class="tooltip">.*?</span>'), '');
+        .replaceAll(RegExp('<div class="tooltip">.*?</div>'), '');
     expect(
         regions,
         contains('List&lt;String&gt;'
