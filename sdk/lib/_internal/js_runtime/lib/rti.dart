@@ -538,7 +538,7 @@ Object _instantiateArray(
   for (int i = 0; i < length; i++) {
     Rti rti = _castToRti(_Utils.arrayAt(rtiArray, i));
     Rti instantiatedRti = _instantiate(universe, rti, typeArguments, depth);
-    if (!_Utils.isIdentical(instantiatedRti, rti)) {
+    if (_Utils.isNotIdentical(instantiatedRti, rti)) {
       changed = true;
     }
     _Utils.arrayPush(result, instantiatedRti);
@@ -556,7 +556,7 @@ Object _instantiateNamed(
     String name = _Utils.asString(_Utils.arrayAt(namedArray, i));
     Rti rti = _castToRti(_Utils.arrayAt(namedArray, i + 1));
     Rti instantiatedRti = _instantiate(universe, rti, typeArguments, depth);
-    if (!_Utils.isIdentical(instantiatedRti, rti)) {
+    if (_Utils.isNotIdentical(instantiatedRti, rti)) {
       changed = true;
     }
     _Utils.arrayPush(result, name);
@@ -2004,9 +2004,9 @@ class _Parser {
       if (Recipe.isDigit(ch)) {
         i = handleDigit(i + 1, ch, source, stack);
       } else if (Recipe.isIdentifierStart(ch)) {
-        i = handleIdentifer(parser, i, source, stack, false);
+        i = handleIdentifier(parser, i, source, stack, false);
       } else if (ch == Recipe.period) {
-        i = handleIdentifer(parser, i, source, stack, true);
+        i = handleIdentifier(parser, i, source, stack, true);
       } else {
         i++;
         switch (ch) {
@@ -2123,7 +2123,7 @@ class _Parser {
     return i;
   }
 
-  static int handleIdentifer(
+  static int handleIdentifier(
       Object parser, int start, String source, Object stack, bool hasPeriod) {
     int i = start + 1;
     for (; i < source.length; i++) {
@@ -2824,6 +2824,7 @@ class _Utils {
       JS('bool', '# instanceof #', o, constructor);
 
   static bool isIdentical(s, t) => JS('bool', '# === #', s, t);
+  static bool isNotIdentical(s, t) => JS('bool', '# !== #', s, t);
 
   static JSArray objectKeys(Object o) =>
       JS('returns:JSArray;new:true;', 'Object.keys(#)', o);
