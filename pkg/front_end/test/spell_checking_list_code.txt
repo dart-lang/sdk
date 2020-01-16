@@ -502,6 +502,7 @@ json
 juxtaposition
 juxtapositions
 k
+k’s
 kallentu
 kernel
 kernel's
@@ -510,7 +511,6 @@ klass
 kmillikin
 kustermann
 kv
-k’s
 l
 lacks
 lang
@@ -530,6 +530,7 @@ libs
 lifted
 lifter
 linearized
+linebreak
 linter
 lives
 llub
@@ -741,13 +742,13 @@ quick
 quiver
 quoted
 r
-r'$creation
 r'\f
 r'\r
 r'\s
 r'\t
 r'\u
 r'\v
+r'$creation
 r0i
 r1i
 r2i
@@ -803,6 +804,7 @@ remedy
 removal
 remover
 reparse
+replacements
 replacer
 replaces
 repo

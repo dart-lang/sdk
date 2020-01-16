@@ -14,7 +14,7 @@ class Export {
   final LibraryBuilder exporter;
 
   /// The library being exported.
-  final LibraryBuilder exported;
+  LibraryBuilder exported;
 
   final List<Combinator> combinators;
 

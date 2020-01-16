@@ -7,15 +7,23 @@ import '../ast.dart';
 import '../class_hierarchy.dart';
 import '../clone.dart';
 import '../core_types.dart';
+import '../reference_from_index.dart';
 import '../target/targets.dart' show Target;
 import '../type_algebra.dart';
 
-void transformLibraries(Target targetInfo, CoreTypes coreTypes,
-    ClassHierarchy hierarchy, List<Library> libraries,
+/// Transforms the libraries in [libraries].
+/// Note that [referenceFromIndex] can be null, and is generally only needed
+/// when (ultimately) called from the incremental compiler.
+void transformLibraries(
+    Target targetInfo,
+    CoreTypes coreTypes,
+    ClassHierarchy hierarchy,
+    List<Library> libraries,
+    ReferenceFromIndex referenceFromIndex,
     {bool doSuperResolution: true}) {
   new MixinFullResolution(targetInfo, coreTypes, hierarchy,
           doSuperResolution: doSuperResolution)
-      .transform(libraries);
+      .transform(libraries, referenceFromIndex);
 }
 
 /// Replaces all mixin applications with regular classes, cloning all fields
@@ -46,7 +54,8 @@ class MixinFullResolution {
 
   /// Transform the given new [libraries].  It is expected that all other
   /// libraries have already been transformed.
-  void transform(List<Library> libraries) {
+  void transform(
+      List<Library> libraries, ReferenceFromIndex referenceFromIndex) {
     if (libraries.isEmpty) return;
 
     var transformedClasses = new Set<Class>();
@@ -56,7 +65,8 @@ class MixinFullResolution {
     var processedClasses = new Set<Class>();
     for (var library in libraries) {
       for (var class_ in library.classes) {
-        transformClass(libraries, processedClasses, transformedClasses, class_);
+        transformClass(libraries, processedClasses, transformedClasses, class_,
+            referenceFromIndex);
       }
     }
 
@@ -85,13 +95,16 @@ class MixinFullResolution {
       List<Library> librariesToBeTransformed,
       Set<Class> processedClasses,
       Set<Class> transformedClasses,
-      Class class_) {
+      Class class_,
+      ReferenceFromIndex referenceFromIndex) {
     // If this class was already handled then so were all classes up to the
     // [Object] class.
     if (!processedClasses.add(class_)) return;
 
-    if (!librariesToBeTransformed.contains(class_.enclosingLibrary) &&
-        class_.enclosingLibrary.importUri?.scheme == "dart") {
+    Library enclosingLibrary = class_.enclosingLibrary;
+
+    if (!librariesToBeTransformed.contains(enclosingLibrary) &&
+        enclosingLibrary.importUri?.scheme == "dart") {
       // If we're not asked to transform the platform libraries then we expect
       // that they will be already transformed.
       return;
@@ -101,13 +114,13 @@ class MixinFullResolution {
     if (class_.superclass != null &&
         class_.superclass.level.index >= ClassLevel.Mixin.index) {
       transformClass(librariesToBeTransformed, processedClasses,
-          transformedClasses, class_.superclass);
+          transformedClasses, class_.superclass, referenceFromIndex);
     }
 
     // If this is not a mixin application we don't need to make forwarding
     // constructors in this class.
     if (!class_.isMixinApplication) return;
-    assert(librariesToBeTransformed.contains(class_.enclosingLibrary));
+    assert(librariesToBeTransformed.contains(enclosingLibrary));
 
     if (class_.mixedInClass.level.index < ClassLevel.Mixin.index) {
       throw new Exception(
@@ -119,7 +132,7 @@ class MixinFullResolution {
 
     // Clone fields and methods from the mixin class.
     var substitution = getSubstitutionMap(class_.mixedInType);
-    var cloner = new CloneVisitor(typeSubstitution: substitution);
+    var cloner = new CloneVisitorWithMembers(typeSubstitution: substitution);
 
     // When we copy a field from the mixed in class, we remove any
     // forwarding-stub getters/setters from the superclass, but copy their
@@ -133,8 +146,14 @@ class MixinFullResolution {
         nonSetters[procedure.name] = procedure;
       }
     }
+
+    IndexedLibrary indexedLibrary =
+        referenceFromIndex?.lookupLibrary(enclosingLibrary);
+    IndexedClass indexedClass = indexedLibrary?.lookupIndexedClass(class_.name);
+
     for (var field in class_.mixin.fields) {
-      Field clone = cloner.clone(field);
+      Field clone =
+          cloner.cloneField(field, indexedClass?.lookupField(field.name.name));
       Procedure setter = setters[field.name];
       if (setter != null) {
         setters.remove(field.name);
@@ -165,7 +184,15 @@ class MixinFullResolution {
       // NoSuchMethod forwarders aren't cloned.
       if (procedure.isNoSuchMethodForwarder) continue;
 
-      Procedure clone = cloner.clone(procedure);
+      Procedure referenceFrom;
+      if (procedure.isSetter) {
+        referenceFrom =
+            indexedClass?.lookupProcedureSetter(procedure.name.name);
+      } else {
+        referenceFrom =
+            indexedClass?.lookupProcedureNotSetter(procedure.name.name);
+      }
+      Procedure clone = cloner.cloneProcedure(procedure, referenceFrom);
       // Linear search for a forwarding stub with the same name.
       for (int i = 0; i < originalLength; ++i) {
         var originalProcedure = class_.procedures[i];

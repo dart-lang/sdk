@@ -19,7 +19,7 @@ import '../../fasta/source/directive_listener.dart' show DirectiveListener;
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 
-String textualOutline(List<int> rawBytes) {
+String textualOutline(List<int> rawBytes, {bool makeMoreReadable: false}) {
   // TODO(jensj): We need to specify the scanner settings to match that of the
   // compiler!
   Uint8List bytes = new Uint8List(rawBytes.length + 1);
@@ -34,12 +34,6 @@ String textualOutline(List<int> rawBytes) {
   });
   Token firstToken = scanner.tokenize();
   if (firstToken == null) return null;
-  List<int> lineStarts = scanner.lineStarts;
-  int lineStartsIteratorLine = 1;
-  Iterator<int> lineStartsIterator = lineStarts.iterator;
-  lineStartsIterator.moveNext();
-  lineStartsIterator.moveNext();
-  lineStartsIteratorLine++;
   Token token = firstToken;
 
   EndOffsetListener listener = new EndOffsetListener();
@@ -48,29 +42,31 @@ String textualOutline(List<int> rawBytes) {
 
   bool printed = false;
   int endOfLast = -1;
+  bool addLinebreak = false;
   while (token != null) {
     if (token is ErrorToken) {
       return null;
     }
-    int prevLine = lineStartsIteratorLine;
-    while (token.offset >= lineStartsIterator.current &&
-        lineStartsIterator.moveNext()) {
-      lineStartsIteratorLine++;
-    }
-    if (prevLine < lineStartsIteratorLine) {
-      sb.write("\n");
-      prevLine++;
-      if (prevLine < lineStartsIteratorLine) {
-        sb.write("\n");
-      }
-    } else if (printed && token.offset > endOfLast) {
+    if (printed && token.offset > endOfLast) {
       sb.write(" ");
     }
 
     sb.write(token.lexeme);
     printed = true;
     endOfLast = token.end;
+    if (makeMoreReadable) {
+      if (token.lexeme == ";") {
+        addLinebreak = true;
+      } else if (token.endGroup != null &&
+          listener.endOffsets.contains(token.endGroup.offset)) {
+        addLinebreak = true;
+      } else if (listener.endOffsets.contains(token.offset)) {
+        addLinebreak = true;
+      }
+    }
 
+    if (addLinebreak) sb.write("\n");
+    addLinebreak = false;
     if (token.isEof) break;
 
     if (token.endGroup != null &&
@@ -86,7 +82,7 @@ String textualOutline(List<int> rawBytes) {
 
 main(List<String> args) {
   File f = new File(args[0]);
-  print(textualOutline(f.readAsBytesSync()));
+  print(textualOutline(f.readAsBytesSync(), makeMoreReadable: true));
 }
 
 class EndOffsetListener extends DirectiveListener {

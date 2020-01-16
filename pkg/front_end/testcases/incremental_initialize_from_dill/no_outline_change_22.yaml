@@ -1,0 +1,36 @@
+# Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Compile an application, change a file, but don't change the outline.
+# Mixin something from the platform.
+
+type: newworld
+worlds:
+  - entry: main.dart
+    useExperimentalInvalidation: true
+    sources:
+      main.dart: |
+        import 'dart:collection' show ListMixin;
+        class WithListMixin extends Object with ListMixin<int> {
+          int length = 2;
+          int operator [](int index) => index;
+          void operator []=(int index, int value) => null;
+        }
+    expectedLibraryCount: 1
+  - entry: main.dart
+    useExperimentalInvalidation: true
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - main.dart
+    sources:
+      main.dart: |
+        import 'dart:collection' show ListMixin;
+        class WithListMixin extends Object with ListMixin<int> {
+          int length = 2;
+          int operator [](int index) => index;
+          void operator []=(int index, int value) => null;
+        }
+    expectedLibraryCount: 1
+    expectsRebuildBodiesOnly: true

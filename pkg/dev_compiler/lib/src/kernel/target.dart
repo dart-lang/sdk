@@ -7,6 +7,7 @@ import 'dart:core' hide MapEntry;
 import 'package:kernel/kernel.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/transformations/track_widget_constructor_locations.dart';
 import 'constants.dart' show DevCompilerConstantsBackend;
@@ -139,6 +140,7 @@ class DevCompilerTarget extends Target {
       List<Library> libraries,
       Map<String, String> environmentDefines,
       DiagnosticReporter diagnosticReporter,
+      ReferenceFromIndex referenceFromIndex,
       {void logger(String msg)}) {
     for (var library in libraries) {
       _CovarianceTransformer(library).transform();

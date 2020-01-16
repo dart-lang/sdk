@@ -152,6 +152,7 @@ class RunCompilations extends Step<TestData, TestData, Context> {
           "modules",
           "omitPlatform",
           "target",
+          "forceLateLoweringForTesting",
           "incrementalSerialization"
         ]);
         await newWorldTest(
@@ -161,6 +162,7 @@ class RunCompilations extends Step<TestData, TestData, Context> {
           map["modules"],
           map["omitPlatform"],
           map["target"],
+          map["forceLateLoweringForTesting"],
           map["incrementalSerialization"],
         );
         break;
@@ -233,7 +235,10 @@ Future<Null> basicTest(YamlMap sourceFiles, String entryPoint,
 }
 
 Future<Map<String, List<int>>> createModules(
-    Map module, final List<int> sdkSummaryData, String targetName) async {
+    Map module,
+    final List<int> sdkSummaryData,
+    String targetName,
+    bool forceLateLoweringForTesting) async {
   final Uri base = Uri.parse("org-dartlang-test:///");
   final Uri sdkSummary = base.resolve("vm_platform_strong.dill");
 
@@ -265,7 +270,9 @@ Future<Map<String, List<int>>> createModules(
         moduleSources.add(uri);
       }
     }
-    CompilerOptions options = getOptions(targetName: targetName);
+    CompilerOptions options = getOptions(
+        targetName: targetName,
+        forceLateLoweringForTesting: forceLateLoweringForTesting);
     options.fileSystem = fs;
     options.sdkRoot = null;
     options.sdkSummary = sdkSummary;
@@ -306,6 +313,7 @@ Future<Null> newWorldTest(
     Map modules,
     bool omitPlatform,
     String targetName,
+    bool forceLateLoweringForTesting,
     bool incrementalSerialization) async {
   final Uri sdkRoot = computePlatformBinariesLocation(forceBuildDir: true);
   final Uri base = Uri.parse("org-dartlang-test:///");
@@ -327,7 +335,8 @@ Future<Null> newWorldTest(
   Map<String, Component> moduleComponents;
   Component sdk;
   if (modules != null) {
-    moduleData = await createModules(modules, sdkSummaryData, targetName);
+    moduleData = await createModules(
+        modules, sdkSummaryData, targetName, forceLateLoweringForTesting);
     sdk = newestWholeComponent = new Component();
     new BinaryBuilder(sdkSummaryData, filename: null, disableLazyReading: false)
         .readComponent(newestWholeComponent);
@@ -414,7 +423,9 @@ Future<Null> newWorldTest(
     }
 
     if (brandNewWorld) {
-      options = getOptions(targetName: targetName);
+      options = getOptions(
+          targetName: targetName,
+          forceLateLoweringForTesting: forceLateLoweringForTesting);
       options.fileSystem = fs;
       options.sdkRoot = null;
       options.sdkSummary = sdkSummary;
@@ -1114,9 +1125,11 @@ void checkIsEqual(List<int> a, List<int> b) {
   Expect.equals(a.length, b.length);
 }
 
-CompilerOptions getOptions({String targetName}) {
+CompilerOptions getOptions(
+    {String targetName, bool forceLateLoweringForTesting: false}) {
   final Uri sdkRoot = computePlatformBinariesLocation(forceBuildDir: true);
-  Target target = new VmTarget(new TargetFlags());
+  Target target = new VmTarget(new TargetFlags(
+      forceLateLoweringForTesting: forceLateLoweringForTesting));
   if (targetName != null) {
     if (targetName == "None") {
       target = new NoneTarget(new TargetFlags());

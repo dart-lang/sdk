@@ -5,22 +5,22 @@
 library fasta.source_class_builder;
 
 import 'package:kernel/ast.dart'
-    show Class, Constructor, Member, Supertype, TreeNode;
-
-import 'package:kernel/ast.dart'
     show
         Class,
         Constructor,
+        Expression,
+        ListLiteral,
+        Member,
+        StaticGet,
+        Supertype,
+        TreeNode,
         DartType,
         DynamicType,
         Field,
         FunctionNode,
-        Member,
         Name,
         Procedure,
         ProcedureKind,
-        Supertype,
-        TreeNode,
         TypeParameter,
         VariableDeclaration,
         Variance,
@@ -28,7 +28,9 @@ import 'package:kernel/ast.dart'
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
-import 'package:kernel/clone.dart' show CloneWithoutBody;
+import 'package:kernel/clone.dart' show CloneProcedureWithoutBody;
+
+import 'package:kernel/reference_from_index.dart' show IndexedClass;
 
 import 'package:kernel/type_algebra.dart' show Substitution;
 
@@ -81,6 +83,8 @@ import '../fasta_codes.dart'
         templateRedirectionTargetNotFound,
         templateSupertypeIsIllegal;
 
+import '../kernel/redirecting_factory_body.dart' show redirectingName;
+
 import '../kernel/kernel_builder.dart' show compareProcedures;
 
 import '../kernel/kernel_target.dart' show KernelTarget;
@@ -104,11 +108,13 @@ Class initializeClass(
     SourceLibraryBuilder parent,
     int startCharOffset,
     int charOffset,
-    int charEndOffset) {
+    int charEndOffset,
+    Class referencesFrom) {
   cls ??= new Class(
       name: name,
       typeParameters:
-          TypeVariableBuilder.typeParametersFromBuilders(typeVariables));
+          TypeVariableBuilder.typeParametersFromBuilders(typeVariables),
+      reference: referencesFrom?.reference);
   cls.fileUri ??= parent.fileUri;
   if (cls.startFileOffset == TreeNode.noOffset) {
     cls.startFileOffset = startCharOffset;
@@ -134,26 +140,33 @@ class SourceClassBuilder extends ClassBuilderImpl
 
   bool isMixinDeclaration;
 
+  final Class referencesFrom;
+  final IndexedClass referencesFromIndexed;
+
   SourceClassBuilder(
-      List<MetadataBuilder> metadata,
-      int modifiers,
-      String name,
-      List<TypeVariableBuilder> typeVariables,
-      TypeBuilder supertype,
-      List<TypeBuilder> interfaces,
-      List<TypeBuilder> onTypes,
-      Scope scope,
-      ConstructorScope constructors,
-      LibraryBuilder parent,
-      this.constructorReferences,
-      int startCharOffset,
-      int nameOffset,
-      int charEndOffset,
-      {Class cls,
-      this.mixedInType,
-      this.isMixinDeclaration = false})
-      : actualCls = initializeClass(cls, typeVariables, name, parent,
-            startCharOffset, nameOffset, charEndOffset),
+    List<MetadataBuilder> metadata,
+    int modifiers,
+    String name,
+    List<TypeVariableBuilder> typeVariables,
+    TypeBuilder supertype,
+    List<TypeBuilder> interfaces,
+    List<TypeBuilder> onTypes,
+    Scope scope,
+    ConstructorScope constructors,
+    LibraryBuilder parent,
+    this.constructorReferences,
+    int startCharOffset,
+    int nameOffset,
+    int charEndOffset,
+    Class referencesFrom,
+    IndexedClass referencesFromIndexed, {
+    Class cls,
+    this.mixedInType,
+    this.isMixinDeclaration = false,
+  })  : actualCls = initializeClass(cls, typeVariables, name, parent,
+            startCharOffset, nameOffset, charEndOffset, referencesFrom),
+        referencesFrom = referencesFrom,
+        referencesFromIndexed = referencesFromIndexed,
         super(metadata, modifiers, name, typeVariables, supertype, interfaces,
             onTypes, scope, constructors, parent, nameOffset);
 
@@ -388,11 +401,23 @@ class SourceClassBuilder extends ClassBuilderImpl
 
   void addNoSuchMethodForwarderForProcedure(Member noSuchMethod,
       KernelTarget target, Procedure procedure, ClassHierarchy hierarchy) {
-    CloneWithoutBody cloner = new CloneWithoutBody(
+    Procedure referenceFrom;
+    if (referencesFromIndexed != null) {
+      if (procedure.isSetter) {
+        referenceFrom =
+            referencesFromIndexed.lookupProcedureSetter(procedure.name.name);
+      } else {
+        referenceFrom =
+            referencesFromIndexed.lookupProcedureNotSetter(procedure.name.name);
+      }
+    }
+
+    CloneProcedureWithoutBody cloner = new CloneProcedureWithoutBody(
         typeSubstitution: type_algebra.getSubstitutionMap(
             hierarchy.getClassAsInstanceOf(cls, procedure.enclosingClass)),
         cloneAnnotations: false);
-    Procedure cloned = cloner.clone(procedure)..isExternal = false;
+    Procedure cloned = cloner.cloneProcedure(procedure, referenceFrom)
+      ..isExternal = false;
     transformProcedureToNoSuchMethodForwarder(noSuchMethod, target, cloned);
     cls.procedures.add(cloned);
     cloned.parent = cls;
@@ -406,6 +431,12 @@ class SourceClassBuilder extends ClassBuilderImpl
       KernelTarget target, Field field, ClassHierarchy hierarchy) {
     Substitution substitution = Substitution.fromSupertype(
         hierarchy.getClassAsInstanceOf(cls, field.enclosingClass));
+
+    Procedure referenceFrom;
+    if (referencesFromIndexed != null) {
+      referenceFrom =
+          referencesFromIndexed.lookupProcedureNotSetter(field.name.name);
+    }
     Procedure getter = new Procedure(
         field.name,
         ProcedureKind.Getter,
@@ -415,7 +446,8 @@ class SourceClassBuilder extends ClassBuilderImpl
             namedParameters: <VariableDeclaration>[],
             requiredParameterCount: 0,
             returnType: substitution.substituteType(field.type)),
-        fileUri: field.fileUri)
+        fileUri: field.fileUri,
+        reference: referenceFrom?.reference)
       ..fileOffset = field.fileOffset;
     transformProcedureToNoSuchMethodForwarder(noSuchMethod, target, getter);
     cls.procedures.add(getter);
@@ -426,6 +458,13 @@ class SourceClassBuilder extends ClassBuilderImpl
       KernelTarget target, Field field, ClassHierarchy hierarchy) {
     Substitution substitution = Substitution.fromSupertype(
         hierarchy.getClassAsInstanceOf(cls, field.enclosingClass));
+
+    Procedure referenceFrom;
+    if (referencesFromIndexed != null) {
+      referenceFrom =
+          referencesFromIndexed.lookupProcedureSetter(field.name.name);
+    }
+
     Procedure setter = new Procedure(
         field.name,
         ProcedureKind.Setter,
@@ -438,7 +477,8 @@ class SourceClassBuilder extends ClassBuilderImpl
             namedParameters: <VariableDeclaration>[],
             requiredParameterCount: 1,
             returnType: const VoidType()),
-        fileUri: field.fileUri)
+        fileUri: field.fileUri,
+        reference: referenceFrom?.reference)
       ..fileOffset = field.fileOffset;
     transformProcedureToNoSuchMethodForwarder(noSuchMethod, target, setter);
     cls.procedures.add(setter);
@@ -567,6 +607,42 @@ class SourceClassBuilder extends ClassBuilderImpl
     return changed;
   }
 
+  void addRedirectingConstructor(ProcedureBuilder constructorBuilder,
+      SourceLibraryBuilder library, Field referenceFrom) {
+    // Add a new synthetic field to this class for representing factory
+    // constructors. This is used to support resolving such constructors in
+    // source code.
+    //
+    // The synthetic field looks like this:
+    //
+    //     final _redirecting# = [c1, ..., cn];
+    //
+    // Where each c1 ... cn are an instance of [StaticGet] whose target is
+    // [constructor.target].
+    //
+    // TODO(ahe): Add a kernel node to represent redirecting factory bodies.
+    DillMemberBuilder constructorsField =
+        origin.scope.lookupLocalMember(redirectingName, setter: false);
+    if (constructorsField == null) {
+      ListLiteral literal = new ListLiteral(<Expression>[]);
+      Name name = new Name(redirectingName, library.library);
+      Field field = new Field(name,
+          isStatic: true,
+          initializer: literal,
+          fileUri: cls.fileUri,
+          reference: referenceFrom?.reference)
+        ..fileOffset = cls.fileOffset;
+      cls.addMember(field);
+      constructorsField = new DillMemberBuilder(field, this);
+      origin.scope
+          .addLocalMember(redirectingName, constructorsField, setter: false);
+    }
+    Field field = constructorsField.member;
+    ListLiteral literal = field.initializer;
+    literal.expressions
+        .add(new StaticGet(constructorBuilder.procedure)..parent = literal);
+  }
+
   @override
   int resolveConstructors(LibraryBuilder library) {
     if (constructorReferences == null) return 0;
@@ -596,7 +672,9 @@ class SourceClassBuilder extends ClassBuilderImpl
                 // is actually in the kernel tree. This call creates a StaticGet
                 // to [declaration.target] in a field `_redirecting#` which is
                 // only legal to do to things in the kernel tree.
-                addRedirectingConstructor(declaration, library);
+                Field referenceFrom =
+                    referencesFromIndexed?.lookupField("_redirecting#");
+                addRedirectingConstructor(declaration, library, referenceFrom);
               }
               if (targetBuilder is FunctionBuilder) {
                 List<DartType> typeArguments = declaration.typeArguments;

@@ -294,7 +294,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   Scope switchScope;
 
-  CloneVisitor cloner;
+  CloneVisitorNotMembers cloner;
 
   ConstantContext constantContext = ConstantContext.none;
 
@@ -929,7 +929,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           VariableDeclaration extensionTearOffParameter =
               builder.getExtensionTearOffParameter(i);
           if (extensionTearOffParameter != null) {
-            cloner ??= new CloneVisitor();
+            cloner ??= new CloneVisitorNotMembers();
             Expression tearOffInitializer = cloner.clone(initializer);
             extensionTearOffParameter.initializer = tearOffInitializer
               ..parent = extensionTearOffParameter;
@@ -1221,7 +1221,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         List<Expression> annotations = variables.first.annotations;
         inferAnnotations(variables.first, annotations);
         for (int i = 1; i < variables.length; i++) {
-          cloner ??= new CloneVisitor();
+          cloner ??= new CloneVisitorNotMembers();
           VariableDeclaration variable = variables[i];
           for (int i = 0; i < annotations.length; i++) {
             variable.addAnnotation(cloner.clone(annotations[i]));

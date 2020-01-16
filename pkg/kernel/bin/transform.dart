@@ -95,8 +95,8 @@ Future<CompilerOutcome> runTransformation(List<String> arguments) async {
           productMode: productMode);
       break;
     case 'resolve-mixins':
-      mix.transformLibraries(
-          new NoneTarget(null), coreTypes, hierarchy, component.libraries);
+      mix.transformLibraries(new NoneTarget(null), coreTypes, hierarchy,
+          component.libraries, null);
       break;
     case 'constants':
       final VmConstantsBackend backend = new VmConstantsBackend(coreTypes);

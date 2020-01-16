@@ -6,9 +6,6 @@ library fasta.incremental_compiler;
 
 import 'dart:async' show Future;
 
-import 'package:front_end/src/fasta/dill/dill_class_builder.dart'
-    show DillClassBuilder;
-
 import 'package:kernel/binary/ast_from_binary.dart'
     show
         BinaryBuilderWithMetadata,
@@ -50,11 +47,17 @@ import '../api_prototype/incremental_kernel_generator.dart'
 
 import '../api_prototype/memory_file_system.dart' show MemoryFileSystem;
 
-import 'builder/builder.dart';
+import 'builder/builder.dart' show Builder;
 
-import 'builder/class_builder.dart';
+import 'builder/class_builder.dart' show ClassBuilder;
 
-import 'builder/library_builder.dart';
+import 'builder/library_builder.dart' show LibraryBuilder;
+
+import 'builder/name_iterator.dart' show NameIterator;
+
+import 'builder/type_builder.dart' show TypeBuilder;
+
+import 'builder/type_declaration_builder.dart' show TypeDeclarationBuilder;
 
 import 'builder_graph.dart' show BuilderGraph;
 
@@ -62,11 +65,21 @@ import 'combinator.dart' show Combinator;
 
 import 'compiler_context.dart' show CompilerContext;
 
+import 'dill/dill_class_builder.dart' show DillClassBuilder;
+
 import 'dill/dill_library_builder.dart' show DillLibraryBuilder;
 
 import 'dill/dill_target.dart' show DillTarget;
 
+import 'export.dart' show Export;
+
+import 'import.dart' show Import;
+
 import 'incremental_serializer.dart' show IncrementalSerializer;
+
+import 'scope.dart' show Scope;
+
+import 'source/source_class_builder.dart' show SourceClassBuilder;
 
 import 'util/error_reporter_file_copier.dart' show saveAsGzip;
 
@@ -258,8 +271,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           invalidatedBecauseOfPackageUpdate: invalidatedBecauseOfPackageUpdate);
 
       bool apiUnchanged = false;
-      List<SourceLibraryBuilder> rebuildBodies =
-          new List<SourceLibraryBuilder>();
+      Set<LibraryBuilder> rebuildBodies = new Set<LibraryBuilder>();
       Set<LibraryBuilder> originalNotReusedLibraries;
       Set<Uri> missingSources = new Set<Uri>();
       if (useExperimentalInvalidation &&
@@ -267,15 +279,20 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           directlyInvalidated.isNotEmpty &&
           invalidatedBecauseOfPackageUpdate.isEmpty) {
         // Figure out if the file(s) have changed outline, or we can just
-        // rebuild the bodies. This (at least currently) only works for
-        // SourceLibraryBuilder.
+        // rebuild the bodies.
         apiUnchanged = true;
+        apiUnchangedLoop:
         for (int i = 0; i < directlyInvalidated.length; i++) {
           LibraryBuilder builder = directlyInvalidated[i];
-          if (builder is! SourceLibraryBuilder) {
-            apiUnchanged = false;
-            break;
+          Iterator<Builder> iterator = builder.iterator;
+          while (iterator.moveNext()) {
+            Builder childBuilder = iterator.current;
+            if (childBuilder.isDuplicate) {
+              apiUnchanged = false;
+              break apiUnchangedLoop;
+            }
           }
+
           List<int> previousSource =
               CompilerContext.current.uriToSource[builder.fileUri].source;
           if (previousSource == null || previousSource.isEmpty) {
@@ -283,6 +300,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             break;
           }
           String before = textualOutline(previousSource);
+          if (before == null) {
+            apiUnchanged = false;
+            break;
+          }
           String now;
           FileSystemEntity entity =
               c.options.fileSystem.entityForUri(builder.fileUri);
@@ -299,10 +320,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           missingSources.add(builder.fileUri);
           LibraryBuilder partOfLibrary = builder.partOfLibrary;
           if (partOfLibrary != null) {
-            if (partOfLibrary is! SourceLibraryBuilder) {
-              apiUnchanged = false;
-              break;
-            }
             rebuildBodies.add(partOfLibrary);
           } else {
             rebuildBodies.add(builder);
@@ -311,6 +328,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
         if (apiUnchanged) {
           // TODO(jensj): Check for mixins in a smarter and faster way.
+          apiUnchangedLoop:
           for (LibraryBuilder builder in notReusedLibraries) {
             if (missingSources.contains(builder.fileUri)) continue;
             Library lib = builder.library;
@@ -320,8 +338,11 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
                 if (missingSources.contains(supertype.classNode.fileUri)) {
                   // This is probably a mixin from one of the libraries we want
                   // to rebuild only the body of.
+                  // TODO(jensj): We can probably add this to the rebuildBodies
+                  // list and just rebuild that library too.
+                  // print("Usage of mixin in ${lib.importUri}");
                   apiUnchanged = false;
-                  break;
+                  continue apiUnchangedLoop;
                 }
               }
             }
@@ -334,15 +355,13 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           for (LibraryBuilder builder in notReusedLibraries) {
             if (builder.isPart) continue;
             if (builder.isPatch) continue;
+            if (rebuildBodies.contains(builder)) continue;
             if (!seenUris.add(builder.uri)) continue;
             reusedLibraries.add(builder);
             originalNotReusedLibraries.add(builder);
           }
           notReusedLibraries.clear();
-          for (int i = 0; i < rebuildBodies.length; i++) {
-            SourceLibraryBuilder builder = rebuildBodies[i];
-            builder.issueLexicalErrorsOnBodyBuild = true;
-          }
+          notReusedLibraries.addAll(rebuildBodies);
         } else {
           missingSources.clear();
           rebuildBodies.clear();
@@ -398,6 +417,14 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       if (hierarchy != null) {
         List<Library> removedLibraries = new List<Library>();
+        // TODO(jensj): For now remove all the original from the class hierarchy
+        // to avoid the class hierarchy getting confused.
+        if (originalNotReusedLibraries != null) {
+          for (LibraryBuilder builder in originalNotReusedLibraries) {
+            Library lib = builder.library;
+            removedLibraries.add(lib);
+          }
+        }
         for (LibraryBuilder builder in notReusedLibraries) {
           Library lib = builder.library;
           removedLibraries.add(lib);
@@ -447,10 +474,70 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         }
       }
 
+      // Re-use the libraries we've deemed re-usable.
       for (LibraryBuilder library in reusedLibraries) {
         userCode.loader.builders[library.uri] = library;
         if (library.uri.scheme == "dart" && library.uri.path == "core") {
           userCode.loader.coreLibrary = library;
+        }
+      }
+
+      // The entry point(s) has to be set first for loader.first to be setup
+      // correctly. If the first one is in the rebuildBodies, we have to add it
+      // from there first.
+      Uri firstEntryPoint = entryPoints.first;
+      Uri firstEntryPointImportUri =
+          userCode.getEntryPointUri(firstEntryPoint, issueProblem: false);
+      bool wasFirstSet = false;
+      for (LibraryBuilder library in rebuildBodies) {
+        if (library.uri == firstEntryPointImportUri) {
+          userCode.loader.read(library.uri, -1,
+              accessor: userCode.loader.first,
+              fileUri: library.fileUri,
+              referencesFrom: library.library);
+          wasFirstSet = true;
+          break;
+        }
+      }
+      if (!wasFirstSet) {
+        userCode.loader.read(firstEntryPointImportUri, -1,
+            accessor: userCode.loader.first,
+            fileUri: firstEntryPointImportUri != firstEntryPoint
+                ? firstEntryPoint
+                : null);
+      }
+      if (userCode.loader.first == null &&
+          userCode.loader.builders[firstEntryPointImportUri] != null) {
+        userCode.loader.first =
+            userCode.loader.builders[firstEntryPointImportUri];
+      }
+
+      // Any builder(s) in [rebuildBodies] should be semi-reused: Create source
+      // builders based on the underlying libraries.
+      // Maps from old library builder to list of new library builder(s).
+      Map<LibraryBuilder, List<SourceLibraryBuilder>> rebuildBodiesMap =
+          new Map<LibraryBuilder, List<SourceLibraryBuilder>>.identity();
+      for (LibraryBuilder library in rebuildBodies) {
+        LibraryBuilder newBuilder = userCode.loader.read(library.uri, -1,
+            accessor: userCode.loader.first,
+            fileUri: library.fileUri,
+            referencesFrom: library.library);
+        List<SourceLibraryBuilder> builders = [newBuilder];
+        rebuildBodiesMap[library] = builders;
+        for (LibraryPart part in library.library.parts) {
+          // We need to pass the reference to make any class, procedure etc
+          // overwrite correctly, but the library itself should  not be
+          // over written as the library for parts are temporary "fake"
+          // libraries.
+          Uri partUri = library.uri.resolve(part.partUri);
+          Uri fileUri =
+              getPartFileUri(library.library.fileUri, part, uriTranslator);
+          LibraryBuilder newPartBuilder = userCode.loader.read(partUri, -1,
+              accessor: library,
+              fileUri: fileUri,
+              referencesFrom: library.library,
+              referenceIsPartOwner: true);
+          builders.add(newPartBuilder);
         }
       }
 
@@ -459,19 +546,109 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           userCode.loader.builders[entryPoints.first] != null) {
         userCode.loader.first = userCode.loader.builders[entryPoints.first];
       }
-      Component componentWithDill = await userCode.buildOutlines();
 
-      for (int i = 0; i < rebuildBodies.length; i++) {
-        SourceLibraryBuilder builder = rebuildBodies[i];
-        builder.loader = userCode.loader;
-        Library lib = builder.library;
-        lib.problemsAsJson = null;
-        // Remove component problems for libraries we don't reuse.
-        if (remainingComponentProblems.isNotEmpty) {
-          removeLibraryFromRemainingComponentProblems(lib, uriTranslator);
+      // Create builders for the new entries.
+      await userCode.loader.buildOutlines();
+
+      // Maps from old library builder to map of new content.
+      Map<LibraryBuilder, Map<String, Builder>> replacementMap = {};
+      // Maps from old library builder to map of new content.
+      Map<LibraryBuilder, Map<String, Builder>> replacementSettersMap = {};
+      for (MapEntry<LibraryBuilder, List<SourceLibraryBuilder>> entry
+          in rebuildBodiesMap.entries) {
+        Map<String, Builder> childReplacementMap = {};
+        Map<String, Builder> childReplacementSettersMap = {};
+        List<SourceLibraryBuilder> builders = rebuildBodiesMap[entry.key];
+        replacementMap[entry.key] = childReplacementMap;
+        replacementSettersMap[entry.key] = childReplacementSettersMap;
+        for (SourceLibraryBuilder builder in builders) {
+          NameIterator iterator = builder.nameIterator;
+          while (iterator.moveNext()) {
+            Builder childBuilder = iterator.current;
+            String name = iterator.name;
+            Map<String, Builder> map;
+            if (childBuilder.isSetter) {
+              map = childReplacementSettersMap;
+            } else {
+              map = childReplacementMap;
+            }
+            assert(
+                !map.containsKey(name),
+                "Unexpected double-entry for $name in ${builder.uri} "
+                "(org from ${entry.key.uri}): $childBuilder and ${map[name]}");
+            map[name] = childBuilder;
+          }
         }
-        userCode.loader.libraries.add(lib);
       }
+
+      // We have to reset the import and export scopes and force
+      // re-calculation of those for the libraries we're not recompiling but
+      // should have recompiled if we didn't do special a special
+      // "only-body-change" operation.
+      // We also have to patch up imports and exports to point to the correct
+      // builders, and further more setup the "wrong-way-links" between
+      // exporters and exportees.
+      if (originalNotReusedLibraries != null) {
+        for (LibraryBuilder builder in originalNotReusedLibraries) {
+          if (builder is SourceLibraryBuilder) {
+            builder.clearExtensionsInScopeCache();
+            for (Import import in builder.imports) {
+              assert(import.importer == builder);
+              List<LibraryBuilder> replacements =
+                  rebuildBodiesMap[import.imported];
+              if (replacements != null) {
+                import.imported = replacements.first;
+              }
+              if (import.prefixBuilder?.exportScope != null) {
+                Scope scope = import.prefixBuilder?.exportScope;
+                scope.patchUpScope(replacementMap, replacementSettersMap);
+              }
+            }
+            for (Export export in builder.exports) {
+              assert(export.exporter == builder);
+              List<LibraryBuilder> replacements =
+                  rebuildBodiesMap[export.exported];
+
+              if (replacements != null) {
+                export.exported = replacements.first;
+              }
+            }
+            builder.exportScope
+                .patchUpScope(replacementMap, replacementSettersMap);
+            builder.importScope
+                .patchUpScope(replacementMap, replacementSettersMap);
+
+            Iterator<Builder> iterator = builder.iterator;
+            while (iterator.moveNext()) {
+              Builder childBuilder = iterator.current;
+              if (childBuilder is SourceClassBuilder) {
+                TypeBuilder typeBuilder = childBuilder.supertype;
+                replaceTypeBuilder(
+                    replacementMap, replacementSettersMap, typeBuilder);
+                typeBuilder = childBuilder.mixedInType;
+                replaceTypeBuilder(
+                    replacementMap, replacementSettersMap, typeBuilder);
+                if (childBuilder.onTypes != null) {
+                  for (typeBuilder in childBuilder.onTypes) {
+                    replaceTypeBuilder(
+                        replacementMap, replacementSettersMap, typeBuilder);
+                  }
+                }
+                if (childBuilder.interfaces != null) {
+                  for (typeBuilder in childBuilder.interfaces) {
+                    replaceTypeBuilder(
+                        replacementMap, replacementSettersMap, typeBuilder);
+                  }
+                }
+              }
+            }
+          } else {
+            throw "Currently unsupported";
+          }
+        }
+      }
+
+      Component componentWithDill = await userCode.buildOutlines();
 
       // This is not the full component. It is the component consisting of all
       // newly compiled libraries and all libraries loaded from .dill files or
@@ -575,6 +752,26 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         ..mainMethod = mainMethod
         ..problemsAsJson = problemsAsJson;
     });
+  }
+
+  void replaceTypeBuilder(
+      Map<LibraryBuilder, Map<String, Builder>> replacementMap,
+      Map<LibraryBuilder, Map<String, Builder>> replacementSettersMap,
+      TypeBuilder typeBuilder) {
+    TypeDeclarationBuilder declaration = typeBuilder?.declaration;
+    Builder parent = declaration?.parent;
+    if (parent == null) return;
+    Map<String, Builder> childReplacementMap;
+    if (declaration.isSetter) {
+      childReplacementMap = replacementSettersMap[parent];
+    } else {
+      childReplacementMap = replacementMap[parent];
+    }
+
+    if (childReplacementMap == null) return;
+    Builder replacement = childReplacementMap[declaration.name];
+    assert(replacement != null, "Didn't find the replacement for $typeBuilder");
+    typeBuilder.bind(replacement);
   }
 
   @override

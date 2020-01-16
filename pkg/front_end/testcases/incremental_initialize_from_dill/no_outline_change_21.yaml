@@ -1,0 +1,43 @@
+# Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Compile an application, change a file, but don't change the outline.
+# Have two classes, constructors with the same name. We don't support
+# rebuilding bodies in this case.
+
+type: newworld
+worlds:
+  - entry: main.dart
+    errors: true
+    useExperimentalInvalidation: true
+    sources:
+      main.dart: |
+        class A1 {
+          A1.foo1(){}
+          A1.foo1(){}
+        }
+        class A1 {
+          A1.foo2(){}
+          A1.foo2(){}
+        }
+    expectedLibraryCount: 1
+  - entry: main.dart
+    errors: true
+    useExperimentalInvalidation: true
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - main.dart
+    sources:
+      main.dart: |
+        class A1 {
+          A1.foo1(){}
+          A1.foo1(){}
+        }
+        class A1 {
+          A1.foo2(){}
+          A1.foo2(){}
+        }
+    expectedLibraryCount: 1
+    expectsRebuildBodiesOnly: false

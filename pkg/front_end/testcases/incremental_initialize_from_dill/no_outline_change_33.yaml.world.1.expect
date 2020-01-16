@@ -1,0 +1,37 @@
+main = <No Member>;
+library from "org-dartlang-test:///lib1.dart" as lib1 {
+additionalExports = (lib2::getter,
+  lib2::method,
+  lib2::setter,
+  lib2::Bar)
+
+  export "org-dartlang-test:///lib2.dart";
+
+  class Foo extends dart.core::Object {
+    constructor •() → lib1::Foo*
+      : super dart.core::Object::•() {}
+  }
+}
+library from "org-dartlang-test:///lib2.dart" as lib2 {
+
+  class Bar extends dart.core::Object {
+    constructor •() → lib2::Bar*
+      : super dart.core::Object::•() {}
+  }
+  static get getter() → dart.core::String*
+    return "hello";
+  static set setter(dart.core::int* i) → void {}
+  static method method() → void {}
+}
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "org-dartlang-test:///lib2.dart";
+  import "org-dartlang-test:///lib1.dart";
+
+  static method main() → dynamic {
+    lib2::Bar* bar = new lib2::Bar::•();
+    lib2::method();
+    lib2::getter;
+    lib2::setter = 42;
+  }
+}

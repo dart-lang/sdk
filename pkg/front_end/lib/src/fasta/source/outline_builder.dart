@@ -462,6 +462,7 @@ class OutlineBuilder extends StackListenerImpl {
     push(typeVariables ?? NullValue.TypeVariables);
     libraryBuilder.currentTypeParameterScopeBuilder
         .markAsClassDeclaration(name.lexeme, name.charOffset, typeVariables);
+    libraryBuilder.setCurrentClassName(name.lexeme);
     push(abstractToken != null ? abstractMask : 0);
   }
 
@@ -472,6 +473,7 @@ class OutlineBuilder extends StackListenerImpl {
     push(typeVariables ?? NullValue.TypeVariables);
     libraryBuilder.currentTypeParameterScopeBuilder
         .markAsMixinDeclaration(name.lexeme, name.charOffset, typeVariables);
+    libraryBuilder.setCurrentClassName(name.lexeme);
   }
 
   @override
@@ -582,6 +584,8 @@ class OutlineBuilder extends StackListenerImpl {
         nameOffset,
         endToken.charOffset,
         supertypeOffset);
+
+    libraryBuilder.setCurrentClassName(null);
   }
 
   Object nullIfParserRecovery(Object node) {
@@ -627,6 +631,7 @@ class OutlineBuilder extends StackListenerImpl {
         nameOffset,
         endToken.charOffset,
         -1);
+    libraryBuilder.setCurrentClassName(null);
   }
 
   @override

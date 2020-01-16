@@ -18,6 +18,7 @@ import 'package:kernel/ast.dart' hide MapEntry;
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart';
 import 'package:kernel/library_index.dart' show LibraryIndex;
+import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/target/targets.dart' show DiagnosticReporter;
 import 'package:kernel/type_environment.dart' show SubtypeCheckMode;
 
@@ -59,7 +60,8 @@ ReplacedMembers transformLibraries(
     CoreTypes coreTypes,
     ClassHierarchy hierarchy,
     List<Library> libraries,
-    DiagnosticReporter diagnosticReporter) {
+    DiagnosticReporter diagnosticReporter,
+    ReferenceFromIndex referenceFromIndex) {
   final LibraryIndex index =
       LibraryIndex(component, const ["dart:ffi", "dart:core"]);
   if (!index.containsLibrary("dart:ffi")) {
@@ -67,7 +69,7 @@ ReplacedMembers transformLibraries(
     return ReplacedMembers({}, {});
   }
   final transformer = new _FfiDefinitionTransformer(
-      index, coreTypes, hierarchy, diagnosticReporter);
+      index, coreTypes, hierarchy, diagnosticReporter, referenceFromIndex);
   libraries.forEach(transformer.visitLibrary);
   return ReplacedMembers(
       transformer.replacedGetters, transformer.replacedSetters);
@@ -80,9 +82,22 @@ class _FfiDefinitionTransformer extends FfiTransformer {
   Map<Field, Procedure> replacedGetters = {};
   Map<Field, Procedure> replacedSetters = {};
 
-  _FfiDefinitionTransformer(this.index, CoreTypes coreTypes,
-      ClassHierarchy hierarchy, DiagnosticReporter diagnosticReporter)
-      : super(index, coreTypes, hierarchy, diagnosticReporter) {}
+  IndexedLibrary currentLibraryIndex;
+
+  _FfiDefinitionTransformer(
+      this.index,
+      CoreTypes coreTypes,
+      ClassHierarchy hierarchy,
+      DiagnosticReporter diagnosticReporter,
+      ReferenceFromIndex referenceFromIndex)
+      : super(index, coreTypes, hierarchy, diagnosticReporter,
+            referenceFromIndex) {}
+
+  @override
+  visitLibrary(Library node) {
+    currentLibraryIndex = referenceFromIndex?.lookupLibrary(node);
+    return super.visitLibrary(node);
+  }
 
   @override
   visitExtension(Extension node) {
@@ -101,12 +116,13 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     // Struct objects are manufactured in the VM by 'allocate' and 'load'.
     _makeEntryPoint(node);
 
-    _checkConstructors(node);
+    var indexedClass = currentLibraryIndex?.lookupIndexedClass(node.name);
+    _checkConstructors(node, indexedClass);
     final bool fieldsValid = _checkFieldAnnotations(node);
 
     if (fieldsValid) {
-      final structSize = _replaceFields(node);
-      _replaceSizeOfMethod(node, structSize);
+      final structSize = _replaceFields(node, indexedClass);
+      _replaceSizeOfMethod(node, structSize, indexedClass);
     }
 
     return node;
@@ -187,7 +203,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     return success;
   }
 
-  void _checkConstructors(Class node) {
+  void _checkConstructors(Class node, IndexedClass indexedClass) {
     final toRemove = <Initializer>[];
 
     // Constructors cannot have initializers because initializers refer to
@@ -212,13 +228,16 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     // Add a constructor which 'load' can use.
     // C.#fromPointer(Pointer<Void> address) : super.fromPointer(address);
     final VariableDeclaration pointer = new VariableDeclaration("#pointer");
+    final name = Name("#fromPointer");
+    final referenceFrom = indexedClass?.lookupConstructor(name.name);
     final Constructor ctor = Constructor(
         FunctionNode(EmptyStatement(), positionalParameters: [pointer]),
-        name: Name("#fromPointer"),
+        name: name,
         initializers: [
           SuperInitializer(structFromPointer, Arguments([VariableGet(pointer)]))
         ],
-        fileUri: node.fileUri)
+        fileUri: node.fileUri,
+        reference: referenceFrom?.reference)
       ..fileOffset = node.fileOffset;
     _makeEntryPoint(ctor);
     node.addMember(ctor);
@@ -228,7 +247,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
   /// fields with getters and setters using these offsets.
   ///
   /// Returns the total size of the struct (for all ABIs).
-  Map<Abi, int> _replaceFields(Class node) {
+  Map<Abi, int> _replaceFields(Class node, IndexedClass indexedClass) {
     final fields = <Field>[];
     final types = <NativeType>[];
 
@@ -254,8 +273,8 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     for (int i = 0; i < fields.length; i++) {
       final fieldOffsets = sizeAndOffsets
           .map((Abi abi, SizeAndOffsets v) => MapEntry(abi, v.offsets[i]));
-      final methods =
-          _generateMethodsForField(fields[i], types[i], fieldOffsets);
+      final methods = _generateMethodsForField(
+          fields[i], types[i], fieldOffsets, indexedClass);
       methods.forEach((p) => node.addMember(p));
     }
 
@@ -287,8 +306,8 @@ class _FfiDefinitionTransformer extends FfiTransformer {
   /// ffi.Pointer<ffi.Double> get _xPtr => addressOf.cast();
   /// double get x => _xPtr.load();
   /// set x(double v) => _xPtr.store(v);
-  List<Procedure> _generateMethodsForField(
-      Field field, NativeType type, Map<Abi, int> offsets) {
+  List<Procedure> _generateMethodsForField(Field field, NativeType type,
+      Map<Abi, int> offsets, IndexedClass indexedClass) {
     final DartType nativeType = type == NativeType.kPointer
         ? field.type
         : InterfaceType(nativeTypesClasses[type.index], Nullability.legacy);
@@ -320,7 +339,9 @@ class _FfiDefinitionTransformer extends FfiTransformer {
             ReturnStatement(MethodInvocation(pointer, castMethod.name,
                 Arguments([], types: [nativeType]), castMethod)),
             returnType: pointerType),
-        fileUri: field.fileUri)
+        fileUri: field.fileUri,
+        reference:
+            indexedClass?.lookupProcedureNotSetter(pointerName.name)?.reference)
       ..fileOffset = field.fileOffset;
 
     // Sample output:
@@ -339,7 +360,9 @@ class _FfiDefinitionTransformer extends FfiTransformer {
                       InterfaceType(intClass, Nullability.legacy))
                 ], types: typeArguments))),
             returnType: field.type),
-        fileUri: field.fileUri)
+        fileUri: field.fileUri,
+        reference:
+            indexedClass?.lookupProcedureNotSetter(field.name.name)?.reference)
       ..fileOffset = field.fileOffset;
 
     // Sample output:
@@ -363,7 +386,9 @@ class _FfiDefinitionTransformer extends FfiTransformer {
                   ], types: typeArguments))),
               returnType: VoidType(),
               positionalParameters: [argument]),
-          fileUri: field.fileUri)
+          fileUri: field.fileUri,
+          reference:
+              indexedClass?.lookupProcedureSetter(field.name.name)?.reference)
         ..fileOffset = field.fileOffset;
     }
 
@@ -375,13 +400,16 @@ class _FfiDefinitionTransformer extends FfiTransformer {
 
   /// Sample output:
   /// static int #sizeOf() => 24;
-  void _replaceSizeOfMethod(Class struct, Map<Abi, int> sizes) {
-    final Field sizeOf = Field(Name("#sizeOf"),
+  void _replaceSizeOfMethod(
+      Class struct, Map<Abi, int> sizes, IndexedClass indexedClass) {
+    var name = Name("#sizeOf");
+    final Field sizeOf = Field(name,
         isStatic: true,
         isFinal: true,
         initializer: _runtimeBranchOnLayout(sizes),
         type: InterfaceType(intClass, Nullability.legacy),
-        fileUri: struct.fileUri)
+        fileUri: struct.fileUri,
+        reference: indexedClass?.lookupField(name.name)?.reference)
       ..fileOffset = struct.fileOffset;
     _makeEntryPoint(sizeOf);
     struct.addMember(sizeOf);

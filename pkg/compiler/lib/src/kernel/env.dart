@@ -314,7 +314,7 @@ class KClassEnvImpl implements KClassEnv {
 
   /// Copied from 'package:kernel/transformations/mixin_full_resolution.dart'.
   ir.Constructor _buildForwardingConstructor(
-      CloneVisitor cloner, ir.Constructor superclassConstructor) {
+      CloneVisitorNotMembers cloner, ir.Constructor superclassConstructor) {
     var superFunction = superclassConstructor.function;
 
     // We keep types and default values for the parameters but always mark the
@@ -352,10 +352,13 @@ class KClassEnvImpl implements KClassEnv {
     var superInitializer = new ir.SuperInitializer(superclassConstructor,
         new ir.Arguments(positionalArguments, named: namedArguments));
 
-    // Assemble the constructor.
+    // Assemble the constructor
+    // TODO(jensj): Provide a "reference" if we need to support
+    // the incremental compiler.
     return new ir.Constructor(function,
         name: superclassConstructor.name,
-        initializers: <ir.Initializer>[superInitializer]);
+        initializers: <ir.Initializer>[superInitializer],
+        reference: null);
   }
 
   @override
@@ -441,13 +444,15 @@ class KClassEnvImpl implements KClassEnv {
     int mixinMemberCount = 0;
 
     if (cls.mixedInClass != null) {
-      CloneVisitor cloneVisitor;
+      CloneVisitorWithMembers cloneVisitor;
       for (ir.Field field in cls.mixedInClass.mixin.fields) {
         if (field.containsSuperCalls) {
           _isSuperMixinApplication = true;
-          cloneVisitor ??= new CloneVisitor(
+          cloneVisitor ??= new CloneVisitorWithMembers(
               typeSubstitution: getSubstitutionMap(cls.mixedInType));
-          cls.addMember(cloneVisitor.clone(field));
+          // TODO(jensj): Provide a "referenceFrom" if we need to support
+          // the incremental compiler.
+          cls.addMember(cloneVisitor.cloneField(field, null));
           continue;
         }
         addField(field, includeStatic: false);
@@ -455,9 +460,11 @@ class KClassEnvImpl implements KClassEnv {
       for (ir.Procedure procedure in cls.mixedInClass.mixin.procedures) {
         if (procedure.containsSuperCalls) {
           _isSuperMixinApplication = true;
-          cloneVisitor ??= new CloneVisitor(
+          cloneVisitor ??= new CloneVisitorWithMembers(
               typeSubstitution: getSubstitutionMap(cls.mixedInType));
-          cls.addMember(cloneVisitor.clone(procedure));
+          // TODO(jensj): Provide a "referenceFrom" if we need to support
+          // the incremental compiler.
+          cls.addMember(cloneVisitor.cloneProcedure(procedure, null));
           continue;
         }
         addProcedure(procedure,
@@ -490,7 +497,7 @@ class KClassEnvImpl implements KClassEnv {
       // 'package:kernel/transformations/mixin_full_resolution.dart'
       var superclassSubstitution = getSubstitutionMap(cls.supertype);
       var superclassCloner =
-          new CloneVisitor(typeSubstitution: superclassSubstitution);
+          new CloneVisitorNotMembers(typeSubstitution: superclassSubstitution);
 
       for (var superclassConstructor in cls.superclass.constructors) {
         var forwardingConstructor = _buildForwardingConstructor(

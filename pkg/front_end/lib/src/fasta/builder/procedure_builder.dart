@@ -60,6 +60,7 @@ abstract class ProcedureBuilder implements FunctionBuilder {
 class ProcedureBuilderImpl extends FunctionBuilderImpl
     implements ProcedureBuilder {
   final Procedure _procedure;
+  final Procedure _tearOffReferenceFrom;
 
   @override
   final int charOpenParenOffset;
@@ -104,12 +105,15 @@ class ProcedureBuilderImpl extends FunctionBuilderImpl
       int charOffset,
       this.charOpenParenOffset,
       int charEndOffset,
+      Procedure referenceFrom,
+      this._tearOffReferenceFrom,
       [String nativeMethodName])
-      : _procedure =
-            new Procedure(null, kind, null, fileUri: compilationUnit?.fileUri)
-              ..startFileOffset = startCharOffset
-              ..fileOffset = charOffset
-              ..fileEndOffset = charEndOffset,
+      : _procedure = new Procedure(null, kind, null,
+            fileUri: compilationUnit?.fileUri,
+            reference: referenceFrom?.reference)
+          ..startFileOffset = startCharOffset
+          ..fileOffset = charOffset
+          ..fileEndOffset = charEndOffset,
         super(metadata, modifiers, returnType, name, typeVariables, formals,
             compilationUnit, charOffset, nativeMethodName);
 
@@ -246,29 +250,12 @@ class ProcedureBuilderImpl extends FunctionBuilderImpl
         ExtensionBuilder extensionBuilder = parent;
         _procedure.isExtensionMember = true;
         _procedure.isStatic = true;
-        String kindInfix = '';
         if (isExtensionInstanceMember) {
-          // Instance getter and setter are converted to methods so we use an
-          // infix to make their names unique.
-          switch (kind) {
-            case ProcedureKind.Getter:
-              kindInfix = 'get#';
-              break;
-            case ProcedureKind.Setter:
-              kindInfix = 'set#';
-              break;
-            case ProcedureKind.Method:
-            case ProcedureKind.Operator:
-              kindInfix = '';
-              break;
-            case ProcedureKind.Factory:
-              throw new UnsupportedError(
-                  'Unexpected extension method kind ${kind}');
-          }
           _procedure.kind = ProcedureKind.Method;
         }
         _procedure.name = new Name(
-            '${extensionBuilder.name}|${kindInfix}${name}',
+            createProcedureName(true, !isExtensionInstanceMember, kind,
+                extensionBuilder.name, name),
             libraryBuilder.library);
       } else {
         _procedure.isStatic = isStatic;
@@ -279,6 +266,35 @@ class ProcedureBuilderImpl extends FunctionBuilderImpl
       }
     }
     return _procedure;
+  }
+
+  static String createProcedureName(bool isExtensionMethod, bool isStatic,
+      ProcedureKind kind, String extensionName, String name) {
+    if (isExtensionMethod) {
+      String kindInfix = '';
+      if (!isStatic) {
+        // Instance getter and setter are converted to methods so we use an
+        // infix to make their names unique.
+        switch (kind) {
+          case ProcedureKind.Getter:
+            kindInfix = 'get#';
+            break;
+          case ProcedureKind.Setter:
+            kindInfix = 'set#';
+            break;
+          case ProcedureKind.Method:
+          case ProcedureKind.Operator:
+            kindInfix = '';
+            break;
+          case ProcedureKind.Factory:
+            throw new UnsupportedError(
+                'Unexpected extension method kind ${kind}');
+        }
+      }
+      return '${extensionName}|${kindInfix}${name}';
+    } else {
+      return name;
+    }
   }
 
   /// Creates a top level function that creates a tear off of an extension
@@ -435,7 +451,9 @@ class ProcedureBuilderImpl extends FunctionBuilderImpl
   Procedure get extensionTearOff {
     if (isExtensionInstanceMember && kind == ProcedureKind.Method) {
       _extensionTearOff ??= new Procedure(null, ProcedureKind.Method, null,
-          isStatic: true, isExtensionMember: true);
+          isStatic: true,
+          isExtensionMember: true,
+          reference: _tearOffReferenceFrom?.reference);
     }
     return _extensionTearOff;
   }
@@ -498,6 +516,8 @@ class RedirectingFactoryBuilder extends ProcedureBuilderImpl {
       int charOffset,
       int charOpenParenOffset,
       int charEndOffset,
+      Procedure referenceFrom,
+      Procedure tearOffReferenceFrom,
       [String nativeMethodName,
       this.redirectionTarget])
       : super(
@@ -513,6 +533,8 @@ class RedirectingFactoryBuilder extends ProcedureBuilderImpl {
             charOffset,
             charOpenParenOffset,
             charEndOffset,
+            referenceFrom,
+            tearOffReferenceFrom,
             nativeMethodName);
 
   @override

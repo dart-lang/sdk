@@ -9,6 +9,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/clone.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
+import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/transformations/mixin_full_resolution.dart'
     as transformMixins show transformLibraries;
@@ -99,7 +100,7 @@ class VmTarget extends Target {
     final Field little =
         coreTypes.index.getMember('dart:typed_data', 'Endian', 'little');
     host.isConst = true;
-    host.initializer = new CloneVisitor().clone(little.initializer)
+    host.initializer = new CloneVisitorNotMembers().clone(little.initializer)
       ..parent = host;
   }
 
@@ -138,16 +139,18 @@ class VmTarget extends Target {
       List<Library> libraries,
       Map<String, String> environmentDefines,
       DiagnosticReporter diagnosticReporter,
+      ReferenceFromIndex referenceFromIndex,
       {void logger(String msg)}) {
-    transformMixins.transformLibraries(this, coreTypes, hierarchy, libraries,
+    transformMixins.transformLibraries(
+        this, coreTypes, hierarchy, libraries, referenceFromIndex,
         doSuperResolution: false /* resolution is done in Dart VM */);
     logger?.call("Transformed mixin applications");
 
     transformFfi.ReplacedMembers replacedFields =
-        transformFfiDefinitions.transformLibraries(
-            component, coreTypes, hierarchy, libraries, diagnosticReporter);
+        transformFfiDefinitions.transformLibraries(component, coreTypes,
+            hierarchy, libraries, diagnosticReporter, referenceFromIndex);
     transformFfiUseSites.transformLibraries(component, coreTypes, hierarchy,
-        libraries, diagnosticReporter, replacedFields);
+        libraries, diagnosticReporter, replacedFields, referenceFromIndex);
     logger?.call("Transformed ffi annotations");
 
     // TODO(kmillikin): Make this run on a per-method basis.

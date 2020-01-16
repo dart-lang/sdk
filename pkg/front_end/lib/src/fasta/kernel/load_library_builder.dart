@@ -49,14 +49,18 @@ class LoadLibraryBuilder extends BuilderImpl {
     if (tearoff != null) return tearoff;
     LoadLibrary expression = createLoadLibrary(charOffset, forest, null);
     String prefix = expression.import.name;
+    Name name = new Name('_#loadLibrary_$prefix', parent.library);
+    Procedure referencesFrom =
+        parent.lookupLibraryReferenceProcedure(name.name, false);
     tearoff = new Procedure(
-        new Name('_#loadLibrary_$prefix', parent.library),
+        name,
         ProcedureKind.Method,
         new FunctionNode(new ReturnStatement(expression),
             returnType: new InterfaceType(parent.loader.coreTypes.futureClass,
                 parent.nonNullable, <DartType>[const DynamicType()])),
         fileUri: parent.library.fileUri,
-        isStatic: true)
+        isStatic: true,
+        reference: referencesFrom?.reference)
       ..startFileOffset = charOffset
       ..fileOffset = charOffset;
     return tearoff;

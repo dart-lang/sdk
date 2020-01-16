@@ -37,8 +37,13 @@ import 'package:kernel/ast.dart'
         VariableGet;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
-import 'package:kernel/clone.dart' show CloneVisitor;
+
+import 'package:kernel/clone.dart' show CloneVisitorNotMembers;
+
 import 'package:kernel/core_types.dart';
+
+import 'package:kernel/reference_from_index.dart' show IndexedClass;
+
 import 'package:kernel/type_algebra.dart' show substitute;
 import 'package:kernel/target/targets.dart' show DiagnosticReporter;
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
@@ -166,55 +171,72 @@ class KernelTarget extends TargetImplementation {
     Map<String, Uri> packagesMap;
     List<Uri> result = new List<Uri>();
     for (Uri entryPoint in entryPoints) {
-      String scheme = entryPoint.scheme;
-      Uri fileUri;
-      switch (scheme) {
-        case "package":
-        case "dart":
-        case "data":
-          break;
-        default:
-          // Attempt to reverse-lookup [entryPoint] in package config.
-          String asString = "$entryPoint";
-          packagesMap ??= uriTranslator.packages.asMap();
-          for (String packageName in packagesMap.keys) {
-            Uri packageUri = packagesMap[packageName];
-            if (packageUri?.hasFragment == true) {
-              packageUri = packageUri.removeFragment();
-            }
-            String prefix = "${packageUri}";
-            if (asString.startsWith(prefix)) {
-              Uri reversed = Uri.parse(
-                  "package:$packageName/${asString.substring(prefix.length)}");
-              if (entryPoint == uriTranslator.translate(reversed)) {
+      packagesMap ??= uriTranslator.packages.asMap();
+      Uri translatedEntryPoint = getEntryPointUri(entryPoint,
+          packagesMap: packagesMap, issueProblem: true);
+      result.add(translatedEntryPoint);
+      loader.read(translatedEntryPoint, -1,
+          accessor: loader.first,
+          fileUri: translatedEntryPoint != entryPoint ? entryPoint : null);
+    }
+    return result;
+  }
+
+  /// Return list of same size as input with possibly translated uris.
+  Uri getEntryPointUri(Uri entryPoint,
+      {Map<String, Uri> packagesMap, bool issueProblem: false}) {
+    String scheme = entryPoint.scheme;
+    switch (scheme) {
+      case "package":
+      case "dart":
+      case "data":
+        break;
+      default:
+        // Attempt to reverse-lookup [entryPoint] in package config.
+        String asString = "$entryPoint";
+        packagesMap ??= uriTranslator.packages.asMap();
+        for (String packageName in packagesMap.keys) {
+          Uri packageUri = packagesMap[packageName];
+          if (packageUri?.hasFragment == true) {
+            packageUri = packageUri.removeFragment();
+          }
+          String prefix = "${packageUri}";
+          if (asString.startsWith(prefix)) {
+            Uri reversed = Uri.parse(
+                "package:$packageName/${asString.substring(prefix.length)}");
+            if (entryPoint == uriTranslator.translate(reversed)) {
+              if (issueProblem) {
                 loader.addProblem(
                     templateInferredPackageUri.withArguments(reversed),
                     -1,
                     1,
                     entryPoint);
-                fileUri = entryPoint;
-                entryPoint = reversed;
-                break;
               }
+              entryPoint = reversed;
+              break;
             }
           }
-      }
-      result.add(entryPoint);
-      loader.read(entryPoint, -1, accessor: loader.first, fileUri: fileUri);
+        }
     }
-    return result;
+    return entryPoint;
   }
 
   @override
   LibraryBuilder createLibraryBuilder(
-      Uri uri, Uri fileUri, SourceLibraryBuilder origin) {
+      Uri uri,
+      Uri fileUri,
+      SourceLibraryBuilder origin,
+      Library referencesFrom,
+      bool referenceIsPartOwner) {
     if (dillTarget.isLoaded) {
       LibraryBuilder builder = dillTarget.loader.builders[uri];
       if (builder != null) {
         return builder;
       }
     }
-    return new SourceLibraryBuilder(uri, fileUri, loader, origin);
+    return new SourceLibraryBuilder(uri, fileUri, loader, origin,
+        referencesFrom: referencesFrom,
+        referenceIsPartOwner: referenceIsPartOwner);
   }
 
   /// Returns classes defined in libraries in [loader].
@@ -250,8 +272,8 @@ class KernelTarget extends TargetImplementation {
   Future<Component> buildOutlines({CanonicalName nameRoot}) async {
     if (loader.first == null) return null;
     return withCrashReporting<Component>(() async {
-      loader.createTypeInferenceEngine();
       await loader.buildOutlines();
+      loader.createTypeInferenceEngine();
       loader.coreLibrary.becomeCoreLibrary();
       dynamicType.bind(
           loader.coreLibrary.lookupLocalMember("dynamic", required: true));
@@ -429,12 +451,19 @@ class KernelTarget extends TargetImplementation {
       if (proc.isFactory) return;
     }
 
+    IndexedClass indexedClass = builder.referencesFromIndexed;
+    Constructor referenceFrom;
+    if (indexedClass != null) {
+      referenceFrom = indexedClass.lookupConstructor("");
+    }
+
     /// From [Dart Programming Language Specification, 4th Edition](
     /// https://ecma-international.org/publications/files/ECMA-ST/ECMA-408.pdf):
     /// >Iff no constructor is specified for a class C, it implicitly has a
     /// >default constructor C() : super() {}, unless C is class Object.
     // The superinitializer is installed below in [finishConstructors].
-    builder.addSyntheticConstructor(makeDefaultConstructor(builder.cls));
+    builder.addSyntheticConstructor(
+        makeDefaultConstructor(builder.cls, referenceFrom));
   }
 
   void installForwardingConstructors(SourceClassBuilder builder) {
@@ -471,28 +500,48 @@ class KernelTarget extends TargetImplementation {
     if (supertype is SourceClassBuilder && supertype.isMixinApplication) {
       installForwardingConstructors(supertype);
     }
+
+    IndexedClass indexedClass = builder.referencesFromIndexed;
+    Constructor referenceFrom;
+    if (indexedClass != null) {
+      referenceFrom = indexedClass.lookupConstructor("");
+    }
+
     if (supertype is ClassBuilder) {
       if (supertype.cls.constructors.isEmpty) {
-        builder.addSyntheticConstructor(makeDefaultConstructor(builder.cls));
+        builder.addSyntheticConstructor(
+            makeDefaultConstructor(builder.cls, referenceFrom));
       } else {
         Map<TypeParameter, DartType> substitutionMap =
             builder.getSubstitutionMap(supertype.cls);
         for (Constructor constructor in supertype.cls.constructors) {
+          Constructor referenceFrom =
+              indexedClass?.lookupConstructor(constructor.name.name);
+
           builder.addSyntheticConstructor(makeMixinApplicationConstructor(
-              builder.cls, builder.cls.mixin, constructor, substitutionMap));
+              builder.cls,
+              builder.cls.mixin,
+              constructor,
+              substitutionMap,
+              referenceFrom));
         }
       }
     } else if (supertype is InvalidTypeDeclarationBuilder ||
         supertype is TypeVariableBuilder) {
-      builder.addSyntheticConstructor(makeDefaultConstructor(builder.cls));
+      builder.addSyntheticConstructor(
+          makeDefaultConstructor(builder.cls, referenceFrom));
     } else {
       unhandled("${supertype.runtimeType}", "installForwardingConstructors",
           builder.charOffset, builder.fileUri);
     }
   }
 
-  Constructor makeMixinApplicationConstructor(Class cls, Class mixin,
-      Constructor constructor, Map<TypeParameter, DartType> substitutionMap) {
+  Constructor makeMixinApplicationConstructor(
+      Class cls,
+      Class mixin,
+      Constructor constructor,
+      Map<TypeParameter, DartType> substitutionMap,
+      Constructor referenceFrom) {
     VariableDeclaration copyFormal(VariableDeclaration formal) {
       // TODO(ahe): Handle initializers.
       VariableDeclaration copy = new VariableDeclaration(formal.name,
@@ -530,7 +579,8 @@ class KernelTarget extends TargetImplementation {
         name: constructor.name,
         initializers: <Initializer>[initializer],
         isSynthetic: true,
-        isConst: constructor.isConst && mixin.fields.isEmpty);
+        isConst: constructor.isConst && mixin.fields.isEmpty,
+        reference: referenceFrom?.reference);
   }
 
   void finishClonedParameters() {
@@ -545,8 +595,8 @@ class KernelTarget extends TargetImplementation {
         // default values, but Fasta is currently allowing it, and the VM
         // accepts it. If it isn't legal, the we can speed this up by using a
         // single cloner without substitution.
-        CloneVisitor cloner =
-            new CloneVisitor(typeSubstitution: clonedFormals[i + 2]);
+        CloneVisitorNotMembers cloner =
+            new CloneVisitorNotMembers(typeSubstitution: clonedFormals[i + 2]);
         clone.initializer = cloner.clone(original.initializer)..parent = clone;
       }
     }
@@ -554,12 +604,14 @@ class KernelTarget extends TargetImplementation {
     ticker.logMs("Cloned default values of formals");
   }
 
-  Constructor makeDefaultConstructor(Class enclosingClass) {
+  Constructor makeDefaultConstructor(
+      Class enclosingClass, Constructor referenceFrom) {
     return new Constructor(
         new FunctionNode(new EmptyStatement(),
             returnType: makeConstructorReturnType(enclosingClass)),
         name: new Name(""),
-        isSynthetic: true);
+        isSynthetic: true,
+        reference: referenceFrom?.reference);
   }
 
   DartType makeConstructorReturnType(Class enclosingClass) {
@@ -831,6 +883,7 @@ class KernelTarget extends TargetImplementation {
         loader.libraries,
         environmentDefines,
         new KernelDiagnosticReporter(loader),
+        loader.referenceFromIndex,
         logger: (String msg) => ticker.logMs(msg));
   }
 

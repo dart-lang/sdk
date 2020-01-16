@@ -20,6 +20,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart';
 import 'package:kernel/library_index.dart' show LibraryIndex;
+import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/target/targets.dart' show DiagnosticReporter;
 import 'package:kernel/type_environment.dart';
 
@@ -33,7 +34,8 @@ void transformLibraries(
     ClassHierarchy hierarchy,
     List<Library> libraries,
     DiagnosticReporter diagnosticReporter,
-    ReplacedMembers replacedFields) {
+    ReplacedMembers replacedFields,
+    ReferenceFromIndex referenceFromIndex) {
   final index = new LibraryIndex(component, ["dart:ffi"]);
   if (!index.containsLibrary("dart:ffi")) {
     // If dart:ffi is not loaded, do not do the transformation.
@@ -44,6 +46,7 @@ void transformLibraries(
       coreTypes,
       hierarchy,
       diagnosticReporter,
+      referenceFromIndex,
       replacedFields.replacedGetters,
       replacedFields.replacedSetters);
   libraries.forEach(transformer.visitLibrary);
@@ -57,6 +60,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
 
   Library currentLibrary;
   bool get isFfiLibrary => currentLibrary == ffiLibrary;
+  IndexedLibrary currentLibraryIndex;
 
   // Used to create private top-level fields with unique names for each
   // callback.
@@ -67,13 +71,16 @@ class _FfiUseSiteTransformer extends FfiTransformer {
       CoreTypes coreTypes,
       ClassHierarchy hierarchy,
       DiagnosticReporter diagnosticReporter,
+      ReferenceFromIndex referenceFromIndex,
       this.replacedGetters,
       this.replacedSetters)
-      : super(index, coreTypes, hierarchy, diagnosticReporter) {}
+      : super(index, coreTypes, hierarchy, diagnosticReporter,
+            referenceFromIndex) {}
 
   @override
   TreeNode visitLibrary(Library node) {
     currentLibrary = node;
+    currentLibraryIndex = referenceFromIndex?.lookupLibrary(node);
     callbackCount = 0;
     return super.visitLibrary(node);
   }
@@ -285,8 +292,8 @@ class _FfiUseSiteTransformer extends FfiTransformer {
   Expression _replaceFromFunction(StaticInvocation node) {
     final nativeFunctionType = InterfaceType(
         nativeFunctionClass, Nullability.legacy, node.arguments.types);
-    final Field field = Field(
-        Name("_#ffiCallback${callbackCount++}", currentLibrary),
+    var name = Name("_#ffiCallback${callbackCount++}", currentLibrary);
+    final Field field = Field(name,
         type: InterfaceType(
             pointerClass, Nullability.legacy, [nativeFunctionType]),
         initializer: StaticInvocation(
@@ -298,7 +305,8 @@ class _FfiUseSiteTransformer extends FfiTransformer {
             ])),
         isStatic: true,
         isFinal: true,
-        fileUri: currentLibrary.fileUri)
+        fileUri: currentLibrary.fileUri,
+        reference: currentLibraryIndex?.lookupField(name.name)?.reference)
       ..fileOffset = node.fileOffset;
     currentLibrary.addMember(field);
     return StaticGet(field);
