@@ -34,26 +34,30 @@ STANDARD_PATHS = [
     "tests/.+",
 ]
 
-VM_PATHS = STANDARD_PATHS + [
+CFE_PATHS = STANDARD_PATHS + [
+    "pkg/(front_end|kernel|testing|_fe_analyzer_shared)/.+",
+]
+
+VM_PATHS = CFE_PATHS + [
     # VM sources
-    "pkg/(front_end|kernel|vm|_fe_analyzer_shared)/.+",
+    "pkg/vm/.+",
     "runtime/.+",
 ]
 
-DART2JS_PATHS = STANDARD_PATHS + [
+DART2JS_PATHS = CFE_PATHS + [
     # compiler sources
-    "pkg/(compiler|dart2js_tools|front_end|kernel|js_ast|_fe_analyzer_shared)/.+",
+    "pkg/(compiler|dart2js_tools|js_ast)/.+",
     "utils/compiler/.+",
     # testing
     "pkg/(js|modular_test|sourcemap_testing)/.+",
 ]
 
-DDC_PATHS = STANDARD_PATHS + [
+DDC_PATHS = CFE_PATHS + [
     # compiler sources
-    "pkg/(build_integration|dev_compiler|front_end|kernel|meta|_fe_analyzer_shared)/.+",
+    "pkg/(build_integration|dev_compiler|meta)/.+",
     "utils/dartdevc/.+",
     # testing
-    "pkg/(js|modular_test|sourcemap_testing|testing)/.+",
+    "pkg/(js|modular_test|sourcemap_testing)/.+",
 ]
 
 
@@ -483,14 +487,18 @@ def dart_vm_extra_builder(name, on_cq=False, location_regexp=None, **kwargs):
         **kwargs)
 
 
-# fasta
+# cfe
 dart_ci_sandbox_builder(
     "front-end-linux-release-x64", category="cfe|l", on_cq=True)
 dart_ci_sandbox_builder(
     "front-end-mac-release-x64", category="cfe|m", dimensions=mac())
 dart_ci_sandbox_builder(
     "front-end-win-release-x64", category="cfe|w", dimensions=windows())
-dart_ci_sandbox_builder("front-end-nnbd-linux-release-x64", category="cfe|nn")
+dart_ci_sandbox_builder(
+    "front-end-nnbd-linux-release-x64",
+    category="cfe|nn",
+    location_regexp=to_location_regexp(CFE_PATHS),
+    on_cq=True)
 dart_ci_sandbox_builder(
     "flutter-frontend",
     category="cfe|fl",
