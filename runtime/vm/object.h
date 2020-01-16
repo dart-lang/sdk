@@ -1571,7 +1571,8 @@ class Class : public Object {
   template <class FakeInstance>
   static RawClass* New(intptr_t id,
                        Isolate* isolate,
-                       bool register_class = true);
+                       bool register_class = true,
+                       bool is_abstract = false);
 
   // Helper that calls 'Class::New<Instance>(kIllegalCid)'.
   static RawClass* NewInstanceClass();

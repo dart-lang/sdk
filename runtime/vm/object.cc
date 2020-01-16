@@ -1923,7 +1923,8 @@ RawError* Object::Init(Isolate* isolate,
     pending_classes.Add(cls);
     object_store->set_float32x4_class(cls);
 
-    cls = Class::New<Instance>(kIllegalCid, isolate);
+    cls = Class::New<Instance>(kIllegalCid, isolate, /*register_class=*/true,
+                               /*is_abstract=*/true);
     RegisterClass(cls, Symbols::Float32x4(), lib);
     cls.set_num_type_arguments(0);
     cls.set_is_prefinalized();
@@ -1935,7 +1936,8 @@ RawError* Object::Init(Isolate* isolate,
     pending_classes.Add(cls);
     object_store->set_int32x4_class(cls);
 
-    cls = Class::New<Instance>(kIllegalCid, isolate);
+    cls = Class::New<Instance>(kIllegalCid, isolate, /*register_class=*/true,
+                               /*is_abstract=*/true);
     RegisterClass(cls, Symbols::Int32x4(), lib);
     cls.set_num_type_arguments(0);
     cls.set_is_prefinalized();
@@ -1947,7 +1949,8 @@ RawError* Object::Init(Isolate* isolate,
     pending_classes.Add(cls);
     object_store->set_float64x2_class(cls);
 
-    cls = Class::New<Instance>(kIllegalCid, isolate);
+    cls = Class::New<Instance>(kIllegalCid, isolate, /*register_class=*/true,
+                               /*is_abstract=*/true);
     RegisterClass(cls, Symbols::Float64x2(), lib);
     cls.set_num_type_arguments(0);
     cls.set_is_prefinalized();
@@ -1961,7 +1964,8 @@ RawError* Object::Init(Isolate* isolate,
 
     // Abstract class that represents the Dart class Type.
     // Note that this class is implemented by Dart class _AbstractType.
-    cls = Class::New<Instance>(kIllegalCid, isolate);
+    cls = Class::New<Instance>(kIllegalCid, isolate, /*register_class=*/true,
+                               /*is_abstract=*/true);
     cls.set_num_type_arguments(0);
     cls.set_is_prefinalized();
     RegisterClass(cls, Symbols::Type(), core_lib);
@@ -1970,7 +1974,8 @@ RawError* Object::Init(Isolate* isolate,
     object_store->set_type_type(type);
 
     // Abstract class that represents the Dart class Function.
-    cls = Class::New<Instance>(kIllegalCid, isolate);
+    cls = Class::New<Instance>(kIllegalCid, isolate, /*register_class=*/true,
+                               /*is_abstract=*/true);
     cls.set_num_type_arguments(0);
     cls.set_is_prefinalized();
     RegisterClass(cls, Symbols::Function(), core_lib);
@@ -1984,7 +1989,8 @@ RawError* Object::Init(Isolate* isolate,
     type = Type::NewNonParameterizedType(cls);
     object_store->set_number_type(type);
 
-    cls = Class::New<Instance>(kIllegalCid, isolate);
+    cls = Class::New<Instance>(kIllegalCid, isolate, /*register_class=*/true,
+                               /*is_abstract=*/true);
     RegisterClass(cls, Symbols::Int(), core_lib);
     cls.set_num_type_arguments(0);
     cls.set_is_prefinalized();
@@ -1992,7 +1998,8 @@ RawError* Object::Init(Isolate* isolate,
     type = Type::NewNonParameterizedType(cls);
     object_store->set_int_type(type);
 
-    cls = Class::New<Instance>(kIllegalCid, isolate);
+    cls = Class::New<Instance>(kIllegalCid, isolate, /*register_class=*/true,
+                               /*is_abstract=*/true);
     RegisterClass(cls, Symbols::Double(), core_lib);
     cls.set_num_type_arguments(0);
     cls.set_is_prefinalized();
@@ -2001,7 +2008,8 @@ RawError* Object::Init(Isolate* isolate,
     object_store->set_double_type(type);
 
     name = Symbols::_String().raw();
-    cls = Class::New<Instance>(kIllegalCid, isolate);
+    cls = Class::New<Instance>(kIllegalCid, isolate, /*register_class=*/true,
+                               /*is_abstract=*/true);
     RegisterClass(cls, name, core_lib);
     cls.set_num_type_arguments(0);
     cls.set_is_prefinalized();
@@ -3967,8 +3975,14 @@ RawClass* Class::NewCommon(intptr_t index) {
 }
 
 template <class FakeInstance>
-RawClass* Class::New(intptr_t index, Isolate* isolate, bool register_class) {
+RawClass* Class::New(intptr_t index,
+                     Isolate* isolate,
+                     bool register_class,
+                     bool is_abstract) {
   Class& result = Class::Handle(NewCommon<FakeInstance>(index));
+  if (is_abstract) {
+    result.set_is_abstract();
+  }
   if (register_class) {
     isolate->RegisterClass(result);
   }
