@@ -3905,27 +3905,12 @@ class _ProvisionalApiTestWithFixBuilder extends _ProvisionalApiTestBase
 
   @override
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
-  Future<void> test_downcast_dynamic_type_argument() =>
-      super.test_downcast_dynamic_type_argument();
-
-  @override
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
-  Future<void> test_downcast_type_argument_preserve_nullability() =>
-      super.test_downcast_type_argument_preserve_nullability();
-
-  @override
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
   Future<void> test_enum() => super.test_enum();
 
   @override
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40023')
   Future<void> test_extension_nullableOnType_viaImplicitInvocation() =>
       super.test_extension_nullableOnType_viaImplicitInvocation();
-
-  @override
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
-  Future<void> test_field_initializer_typed_list_literal() =>
-      super.test_field_initializer_typed_list_literal();
 
   @override
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
@@ -3951,11 +3936,6 @@ class _ProvisionalApiTestWithFixBuilder extends _ProvisionalApiTestBase
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
   Future<void> test_named_parameter_no_default_unused_required() =>
       super.test_named_parameter_no_default_unused_required();
-
-  @override
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
-  Future<void> test_override_return_type_nullable_substitution_complex() =>
-      super.test_override_return_type_nullable_substitution_complex();
 
   @override
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')

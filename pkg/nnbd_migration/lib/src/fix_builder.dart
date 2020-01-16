@@ -12,6 +12,7 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart';
@@ -22,7 +23,6 @@ import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:nnbd_migration/src/decorated_class_hierarchy.dart';
-import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/fix_aggregator.dart';
 import 'package:nnbd_migration/src/variables.dart';
 
@@ -194,6 +194,8 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
 
   final Expando<List<CollectionElement>> _collectionElements = Expando();
 
+  final Set<TypeAnnotation> _fixedTypeAnnotations = {};
+
   FlowAnalysis<AstNode, Statement, Expression, PromotableElement, DartType>
       _flowAnalysis;
 
@@ -242,34 +244,31 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
 
   @override
   List<CollectionElement> getListElements(ListLiteral node) {
-    return _collectionElements[node] ??= node.elements
-        .map(_transformCollectionElement)
-        .where((e) => e != null)
-        .toList();
+    return _collectionElements[node] ??=
+        _transformCollectionElements(node.elements, node.typeArguments);
   }
 
   @override
   List<TypeAnnotation> getListTypeArguments(ListLiteral node) {
-    // TODO(paulberry): replace with a proper implementation
+    _fixTypeArguments(node.typeArguments);
     return node.typeArguments?.arguments;
   }
 
   @override
   DartType getMigratedTypeAnnotationType(TypeAnnotation node) {
-    return _fixTypeAnnotation(node).toFinalType(_fixBuilder.typeProvider);
+    _fixTypeAnnotation(node);
+    return node.type;
   }
 
   @override
   List<CollectionElement> getSetOrMapElements(SetOrMapLiteral node) {
-    return _collectionElements[node] ??= node.elements
-        .map(_transformCollectionElement)
-        .where((e) => e != null)
-        .toList();
+    return _collectionElements[node] ??=
+        _transformCollectionElements(node.elements, node.typeArguments);
   }
 
   @override
   List<TypeAnnotation> getSetOrMapTypeArguments(SetOrMapLiteral node) {
-    // TODO(paulberry): replace with a proper implementation
+    _fixTypeArguments(node.typeArguments);
     return node.typeArguments?.arguments;
   }
 
@@ -326,7 +325,8 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
     }
   }
 
-  DecoratedType _fixTypeAnnotation(TypeAnnotation node) {
+  void _fixTypeAnnotation(TypeAnnotation node) {
+    if (!_fixedTypeAnnotations.add(node)) return;
     var decoratedType = _fixBuilder._variables
         .decoratedTypeAnnotation(_fixBuilder.source, node);
     var type = decoratedType.type;
@@ -335,18 +335,26 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
           .decoratedTypeAnnotation(_fixBuilder.source, node);
       _fixBuilder._addChange(node, MakeNullable(decoratedType));
     }
-    if (node is TypeName) {
+    if (node is TypeNameImpl) {
       var typeArguments = node.typeArguments;
-      if (typeArguments != null) {
-        for (var arg in typeArguments.arguments) {
-          _fixTypeAnnotation(arg);
-        }
-      }
-    } else {
+      _fixTypeArguments(typeArguments);
+      node.type = decoratedType.toFinalType(_fixBuilder.typeProvider);
+    } else if (node is GenericFunctionTypeImpl) {
       // TODO(paulberry): handle type parameter bounds that need to be made
       // nullable.
+      node.type = decoratedType.toFinalType(_fixBuilder.typeProvider);
+    } else {
+      throw StateError(
+          'Unrecognized type annotation type: ${node.runtimeType}');
     }
-    return decoratedType;
+  }
+
+  void _fixTypeArguments(TypeArgumentList typeArguments) {
+    if (typeArguments != null) {
+      for (var arg in typeArguments.arguments) {
+        _fixTypeAnnotation(arg);
+      }
+    }
   }
 
   bool _needsNullCheckDueToStructure(Expression node) {
@@ -404,6 +412,15 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
       node = conditionValue ? ifElement.thenElement : ifElement.elseElement;
     }
     return node;
+  }
+
+  List<CollectionElement> _transformCollectionElements(
+      NodeList<CollectionElement> elements, TypeArgumentList typeArguments) {
+    _fixTypeArguments(typeArguments);
+    return elements
+        .map(_transformCollectionElement)
+        .where((e) => e != null)
+        .toList();
   }
 }
 

@@ -1378,6 +1378,14 @@ double/*!*/ h(int/*!*/ y) => y.toDouble();
         changes: {findNode.ifElement('null'): isEliminateDeadIf(false)});
   }
 
+  Future<void> test_list_make_explicit_type_nullable() async {
+    await analyze('_f() => <int>[null];');
+    // The `null` should be analyzed with a context type of `int?`, so it should
+    // not be null-checked.
+    visitSubexpression(findNode.listLiteral('['), 'List<int?>',
+        changes: {findNode.typeAnnotation('int'): isMakeNullable});
+  }
+
   Future<void> test_list_unchanged() async {
     await analyze('_f(int x) => [x];');
     visitSubexpression(findNode.listLiteral('['), 'List<int>');
@@ -1472,6 +1480,22 @@ double/*!*/ h(int/*!*/ y) => y.toDouble();
 ''');
     visitSubexpression(findNode.setOrMapLiteral('{'), 'Map<dynamic, dynamic>',
         changes: {findNode.ifElement('null'): isEliminateDeadIf(false)});
+  }
+
+  Future<void> test_map_make_explicit_key_type_nullable() async {
+    await analyze('_f() => <int, double>{null: 0.0};');
+    // The `null` should be analyzed with a context type of `int?`, so it should
+    // not be null-checked.
+    visitSubexpression(findNode.setOrMapLiteral('{'), 'Map<int?, double>',
+        changes: {findNode.typeAnnotation('int'): isMakeNullable});
+  }
+
+  Future<void> test_map_make_explicit_value_type_nullable() async {
+    await analyze('_f() => <double, int>{0.0: null};');
+    // The `null` should be analyzed with a context type of `int?`, so it should
+    // not be null-checked.
+    visitSubexpression(findNode.setOrMapLiteral('{'), 'Map<double, int?>',
+        changes: {findNode.typeAnnotation('int'): isMakeNullable});
   }
 
   Future<void> test_methodInvocation_dynamic() async {
@@ -2246,6 +2270,14 @@ double/*!*/ h(int/*!*/ y) => y.toDouble();
 ''');
     visitSubexpression(findNode.setOrMapLiteral('{'), 'Map<dynamic, dynamic>',
         changes: {findNode.ifElement('null'): isEliminateDeadIf(false)});
+  }
+
+  Future<void> test_set_make_explicit_type_nullable() async {
+    await analyze('_f() => <int>{null};');
+    // The `null` should be analyzed with a context type of `int?`, so it should
+    // not be null-checked.
+    visitSubexpression(findNode.setOrMapLiteral('{'), 'Set<int?>',
+        changes: {findNode.typeAnnotation('int'): isMakeNullable});
   }
 
   Future<void> test_simpleIdentifier_className() async {
