@@ -175,15 +175,6 @@ class NamedTypeBuilder extends TypeBuilder {
     }
   }
 
-  @override
-  void normalize(int charOffset, Uri fileUri) {
-    if (arguments != null &&
-        arguments.length != declaration.typeVariablesCount) {
-      // [arguments] will be normalized later if they are null.
-      arguments = null;
-    }
-  }
-
   String get debugName => "NamedTypeBuilder";
 
   StringBuffer printOn(StringBuffer buffer) {
