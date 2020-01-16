@@ -79,6 +79,11 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor {
   /// include it again: "get get foo() => _foo;".
   final bool _doExpectKeywordCompletions = false;
 
+  /// This boolean is set to enable if identifiers in comments should be
+  /// expected to be completed. The default is false as typos in a dartdoc
+  /// comment don't yield an error like Dart syntax mistakes would yield.
+  final bool _doExpectCommentRefs = false;
+
   ExpectedCompletionsVisitor() : expectedCompletions = <ExpectedCompletion>[];
 
   safelyRecordEntity(SyntacticEntity entity,
@@ -515,7 +520,7 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor {
 
   @override
   visitSimpleIdentifier(SimpleIdentifier node) {
-    if (!node.isSynthetic && !node.inDeclarationContext()) {
+    if (_doIncludeSimpleIdentifier(node)) {
       var elementKind;
       if (node.staticElement?.kind != null) {
         elementKind = protocol.convertElementKind(node.staticElement?.kind);
@@ -604,5 +609,19 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor {
   visitYieldStatement(YieldStatement node) {
     safelyRecordKeywordCompletion(node.yieldKeyword);
     return super.visitYieldStatement(node);
+  }
+
+  bool _doIncludeSimpleIdentifier(SimpleIdentifier node) {
+    // Do not continue if this node is synthetic, or if the node is in a
+    // declaration context
+    if (node == null || node.isSynthetic || node.inDeclarationContext()) {
+      return false;
+    }
+    // If we are in a comment reference context, return if we should include
+    // such identifiers.
+    if (node.thisOrAncestorOfType<CommentReference>() != null) {
+      return _doExpectCommentRefs;
+    }
+    return true;
   }
 }
