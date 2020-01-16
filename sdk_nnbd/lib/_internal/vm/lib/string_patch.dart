@@ -14,7 +14,9 @@ class String {
   @patch
   factory String.fromCharCodes(Iterable<int> charCodes,
       [int start = 0, int? end]) {
-    if (end != null) throw new ArgumentError.value(end, "end");
+    // TODO: Remove these null checks once all code is opted into strong nonnullable mode.
+    if (charCodes == null) throw new ArgumentError.notNull("charCodes");
+    if (start == null) throw new ArgumentError.notNull("start");
     return _StringBase.createFromCharCodes(charCodes, start, end, null);
   }
 
@@ -572,11 +574,15 @@ abstract class _StringBase implements String {
 
   String replaceFirst(Pattern pattern, String replacement,
       [int startIndex = 0]) {
-    if (replacement is! String) {
-      throw new ArgumentError("${replacement} is not a String");
+    // TODO: Remove these null checks once all code is opted into strong nonnullable mode.
+    if (pattern == null) {
+      throw new ArgumentError.notNull("pattern");
     }
-    if (startIndex is! int) {
-      throw new ArgumentError("${startIndex} is not an int");
+    if (replacement == null) {
+      throw new ArgumentError.notNull("replacement");
+    }
+    if (startIndex == null) {
+      throw new ArgumentError.notNull("startIndex");
     }
     RangeError.checkValueInInterval(startIndex, 0, this.length, "startIndex");
     Iterator iterator = startIndex == 0
@@ -791,8 +797,8 @@ abstract class _StringBase implements String {
 
   String splitMapJoin(Pattern pattern,
       {String onMatch(Match match)?, String onNonMatch(String nonMatch)?}) {
-    if (pattern is! Pattern) {
-      throw new ArgumentError("${pattern} is not a Pattern");
+    if (pattern == null) {
+      throw new ArgumentError.notNull("pattern");
     }
     onMatch ??= _matchString;
     onNonMatch ??= _stringIdentity;

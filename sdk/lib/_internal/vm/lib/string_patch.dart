@@ -16,10 +16,8 @@ class String {
   @patch
   factory String.fromCharCodes(Iterable<int> charCodes,
       [int start = 0, int end]) {
-    if (charCodes is! Iterable)
-      throw new ArgumentError.value(charCodes, "charCodes");
-    if (start is! int) throw new ArgumentError.value(start, "start");
-    if (end != null && end is! int) throw new ArgumentError.value(end, "end");
+    if (charCodes == null) throw new ArgumentError.notNull("charCodes");
+    if (start == null) throw new ArgumentError.notNull("start");
     return _StringBase.createFromCharCodes(charCodes, start, end, null);
   }
 
@@ -575,14 +573,14 @@ abstract class _StringBase implements String {
 
   String replaceFirst(Pattern pattern, String replacement,
       [int startIndex = 0]) {
-    if (pattern is! Pattern) {
-      throw new ArgumentError("${pattern} is not a Pattern");
+    if (pattern == null) {
+      throw new ArgumentError.notNull("pattern");
     }
-    if (replacement is! String) {
-      throw new ArgumentError("${replacement} is not a String");
+    if (replacement == null) {
+      throw new ArgumentError.notNull("replacement");
     }
-    if (startIndex is! int) {
-      throw new ArgumentError("${startIndex} is not an int");
+    if (startIndex == null) {
+      throw new ArgumentError.notNull("startIndex");
     }
     RangeError.checkValueInInterval(startIndex, 0, this.length, "startIndex");
     Iterator iterator = startIndex == 0
@@ -797,8 +795,8 @@ abstract class _StringBase implements String {
 
   String splitMapJoin(Pattern pattern,
       {String onMatch(Match match), String onNonMatch(String nonMatch)}) {
-    if (pattern is! Pattern) {
-      throw new ArgumentError("${pattern} is not a Pattern");
+    if (pattern == null) {
+      throw new ArgumentError.notNull("pattern");
     }
     onMatch ??= _matchString;
     onNonMatch ??= _stringIdentity;

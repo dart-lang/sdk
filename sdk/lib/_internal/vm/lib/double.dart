@@ -174,13 +174,12 @@ class _Double implements double {
   double truncateToDouble() native "Double_truncate";
 
   num clamp(num lowerLimit, num upperLimit) {
-    if (lowerLimit is! num) {
-      throw new ArgumentError.value(lowerLimit, "lowerLimit", "not a number");
+    if (lowerLimit == null) {
+      throw new ArgumentError.notNull("lowerLimit");
     }
-    if (upperLimit is! num) {
-      throw new ArgumentError.value(upperLimit, "upperLimit", "not a number");
+    if (upperLimit == null) {
+      throw new ArgumentError.notNull("upperLimit");
     }
-
     if (lowerLimit.compareTo(upperLimit) > 0) {
       throw new ArgumentError(lowerLimit);
     }
@@ -229,10 +228,10 @@ class _Double implements double {
   String toStringAsFixed(int fractionDigits) {
     // See ECMAScript-262, 15.7.4.5 for details.
 
-    if (fractionDigits is! int) {
-      throw new ArgumentError.value(
-          fractionDigits, "fractionDigits", "not an integer");
+    if (fractionDigits == null) {
+      throw new ArgumentError.notNull("fractionDigits");
     }
+
     // Step 2.
     if (fractionDigits < 0 || fractionDigits > 20) {
       throw new RangeError.range(fractionDigits, 0, 20, "fractionDigits");
@@ -265,10 +264,6 @@ class _Double implements double {
 
     // Step 7.
     if (fractionDigits != null) {
-      if (fractionDigits is! int) {
-        throw new ArgumentError.value(
-            fractionDigits, "fractionDigits", "not an integer");
-      }
       if (fractionDigits < 0 || fractionDigits > 20) {
         throw new RangeError.range(fractionDigits, 0, 20, "fractionDigits");
       }
@@ -291,13 +286,13 @@ class _Double implements double {
   String toStringAsPrecision(int precision) {
     // See ECMAScript-262, 15.7.4.7 for details.
 
+    if (precision == null) {
+      throw new ArgumentError.notNull("precision");
+    }
     // The EcmaScript specification checks for NaN and Infinity before looking
     // at the fractionDigits. In Dart we are consistent with toStringAsFixed and
     // look at the fractionDigits first.
 
-    if (precision is! int) {
-      throw new ArgumentError.value(precision, "precision", "not an integer");
-    }
     // Step 8.
     if (precision < 1 || precision > 21) {
       throw new RangeError.range(precision, 1, 21, "precision");

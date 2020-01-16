@@ -305,9 +305,6 @@ class _BigIntImpl implements BigInt {
       return null;
     }
 
-    if (radix is! int) {
-      throw new ArgumentError.value(radix, 'radix', 'is not an integer');
-    }
     if (radix < 2 || radix > 36) {
       throw new RangeError.range(radix, 2, 36, 'radix');
     }
