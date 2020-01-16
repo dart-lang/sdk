@@ -57,7 +57,10 @@ abstract class Client {
   }
 
   // Sends a result to the client. Implemented in subclasses.
-  void post(Response result);
+  //
+  // Null can be passed as response to a JSON-RPC notification to close the
+  // connection.
+  void post(Response? result);
 
   dynamic toJson() => {};
 }

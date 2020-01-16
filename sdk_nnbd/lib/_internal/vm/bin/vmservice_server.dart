@@ -66,7 +66,11 @@ class WebSocketClient extends Client {
     }
   }
 
-  void post(Response result) {
+  void post(Response? result) {
+    if (result == null) {
+      // The result of a notification event. Do nothing.
+      return;
+    }
     try {
       switch (result.kind) {
         case ResponsePayloadKind.String:
@@ -103,7 +107,14 @@ class HttpRequestClient extends Client {
     close();
   }
 
-  void post(Response result) {
+  void post(Response? result) {
+    if (result == null) {
+      // The result of a notification event. Nothing to do other than close the
+      // connection.
+      close();
+      return;
+    }
+
     HttpResponse response = request.response;
     // We closed the connection for bad origins earlier.
     response.headers.add('Access-Control-Allow-Origin', '*');
@@ -431,7 +442,9 @@ class Server {
       serverPrint("Creating $path");
       File(path)..createSync(recursive: true);
     }
-    if (_serviceInfoFilename != null && _serviceInfoFilename.isNotEmpty) {
+    final serviceInfoFilenameLocal = _serviceInfoFilename;
+    if (serviceInfoFilenameLocal != null &&
+        serviceInfoFilenameLocal.isNotEmpty) {
       await _dumpServiceInfoToFile();
     }
     // Server is up and running.
