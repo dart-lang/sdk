@@ -34,7 +34,6 @@ import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk, SdkLibrary;
-import 'package:meta/meta.dart';
 
 /**
  * A visitor used to traverse an AST structure looking for additional errors and
@@ -343,20 +342,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitAssertInitializer(AssertInitializer node) {
-    _checkForNonBoolExpression(node.condition,
-        errorCode: StaticTypeWarningCode.NON_BOOL_EXPRESSION);
-    super.visitAssertInitializer(node);
-  }
-
-  @override
-  void visitAssertStatement(AssertStatement node) {
-    _checkForNonBoolExpression(node.condition,
-        errorCode: StaticTypeWarningCode.NON_BOOL_EXPRESSION);
-    super.visitAssertStatement(node);
-  }
-
-  @override
   void visitAssignmentExpression(AssignmentExpression node) {
     TokenType operatorType = node.operator.type;
     Expression lhs = node.leftHandSide;
@@ -537,12 +522,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitConditionalExpression(ConditionalExpression node) {
-    _checkForNonBoolCondition(node.condition);
-    super.visitConditionalExpression(node);
-  }
-
-  @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     ExecutableElement outerFunction = _enclosingFunction;
     try {
@@ -605,12 +584,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     _checkForInvalidAssignment(node.identifier, node.defaultValue);
     _checkForDefaultValueInFunctionTypedParameter(node);
     super.visitDefaultFormalParameter(node);
-  }
-
-  @override
-  void visitDoStatement(DoStatement node) {
-    _checkForNonBoolCondition(node.condition);
-    super.visitDoStatement(node);
   }
 
   @override
@@ -751,21 +724,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
-    if (node.condition != null) {
-      _checkForNonBoolCondition(node.condition);
-    }
     if (node.variables != null) {
       _duplicateDefinitionVerifier.checkForVariables(node.variables);
     }
     super.visitForPartsWithDeclarations(node);
-  }
-
-  @override
-  void visitForPartsWithExpression(ForPartsWithExpression node) {
-    if (node.condition != null) {
-      _checkForNonBoolCondition(node.condition);
-    }
-    super.visitForPartsWithExpression(node);
   }
 
   @override
@@ -891,18 +853,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   void visitGenericTypeAlias(GenericTypeAlias node) {
     _checkForTypeAliasCannotReferenceItself(node, node.declaredElement);
     super.visitGenericTypeAlias(node);
-  }
-
-  @override
-  void visitIfElement(IfElement node) {
-    _checkForNonBoolCondition(node.condition);
-    super.visitIfElement(node);
-  }
-
-  @override
-  void visitIfStatement(IfStatement node) {
-    _checkForNonBoolCondition(node.condition);
-    super.visitIfStatement(node);
   }
 
   @override
@@ -1124,9 +1074,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   void visitPrefixExpression(PrefixExpression node) {
     TokenType operatorType = node.operator.type;
     Expression operand = node.operand;
-    if (operatorType == TokenType.BANG) {
-      _checkForNonBoolNegationExpression(operand);
-    } else {
+    if (operatorType != TokenType.BANG) {
       if (operatorType.isIncrementOperator) {
         _checkForAssignmentToFinal(operand);
       }
@@ -1360,12 +1308,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     super.visitVariableDeclarationStatement(node);
 
     _isInLateLocalVariable.removeLast();
-  }
-
-  @override
-  void visitWhileStatement(WhileStatement node) {
-    _checkForNonBoolCondition(node.condition);
-    super.visitWhileStatement(node);
   }
 
   @override
@@ -3955,43 +3897,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT,
         declaration.name,
         [superType, _enclosingClass.displayName]);
-  }
-
-  /**
-   * Check to ensure that the [condition] is of type bool, are. Otherwise an
-   * error is reported on the expression.
-   *
-   * See [StaticTypeWarningCode.NON_BOOL_CONDITION].
-   */
-  void _checkForNonBoolCondition(Expression condition) {
-    _checkForNonBoolExpression(condition,
-        errorCode: StaticTypeWarningCode.NON_BOOL_CONDITION);
-  }
-
-  /**
-   * Verify that the given [expression] is of type 'bool', and report
-   * [errorCode] if not, or a nullability error if its improperly nullable.
-   */
-  void _checkForNonBoolExpression(Expression expression,
-      {@required ErrorCode errorCode}) {
-    DartType type = getStaticType(expression);
-    if (!_checkForUseOfVoidResult(expression) &&
-        !_typeSystem.isAssignableTo(type, _boolType)) {
-      if (type.element == _boolType.element) {
-        _errorReporter.reportErrorForNode(
-            StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, expression);
-      } else {
-        _errorReporter.reportErrorForNode(errorCode, expression);
-      }
-    }
-  }
-
-  /**
-   * Checks to ensure that the given [expression] is assignable to bool.
-   */
-  void _checkForNonBoolNegationExpression(Expression expression) {
-    _checkForNonBoolExpression(expression,
-        errorCode: StaticTypeWarningCode.NON_BOOL_NEGATION_EXPRESSION);
   }
 
   /**

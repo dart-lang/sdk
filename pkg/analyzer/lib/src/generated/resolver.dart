@@ -34,6 +34,7 @@ import 'package:analyzer/src/dart/resolver/prefix_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/dart/resolver/typed_literal_resolver.dart';
+import 'package:analyzer/src/error/bool_expression_verifier.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/nullable_dereference_verifier.dart';
 import 'package:analyzer/src/generated/collection_element_provider.dart';
@@ -200,6 +201,9 @@ class ResolverVisitor extends ScopedVisitor {
 
   final CollectionElementProvider _collectionElementProvider;
 
+  /// Helper for checking expression that should have the `bool` type.
+  BoolExpressionVerifier boolExpressionVerifier;
+
   /// Helper for checking potentially nullable dereferences.
   NullableDereferenceVerifier nullableDereferenceVerifier;
 
@@ -331,6 +335,10 @@ class ResolverVisitor extends ScopedVisitor {
         super(definingLibrary, source, typeProvider, errorListener,
             nameScope: nameScope) {
     this._promoteManager = TypePromotionManager(typeSystem);
+    this.boolExpressionVerifier = BoolExpressionVerifier(
+      typeSystem: typeSystem,
+      errorReporter: errorReporter,
+    );
     this.nullableDereferenceVerifier = NullableDereferenceVerifier(
       typeSystem: typeSystem,
       errorReporter: errorReporter,
@@ -631,6 +639,10 @@ class ResolverVisitor extends ScopedVisitor {
     InferenceContext.setType(node.condition, typeProvider.boolType);
     _flowAnalysis?.flow?.assert_begin();
     node.condition?.accept(this);
+    boolExpressionVerifier.checkForNonBoolExpression(
+      node.condition,
+      errorCode: StaticTypeWarningCode.NON_BOOL_EXPRESSION,
+    );
     _flowAnalysis?.flow?.assert_afterCondition(node.condition);
     node.message?.accept(this);
     _flowAnalysis?.flow?.assert_end();
@@ -641,6 +653,10 @@ class ResolverVisitor extends ScopedVisitor {
     InferenceContext.setType(node.condition, typeProvider.boolType);
     _flowAnalysis?.flow?.assert_begin();
     node.condition?.accept(this);
+    boolExpressionVerifier.checkForNonBoolExpression(
+      node.condition,
+      errorCode: StaticTypeWarningCode.NON_BOOL_EXPRESSION,
+    );
     _flowAnalysis?.flow?.assert_afterCondition(node.condition);
     node.message?.accept(this);
     _flowAnalysis?.flow?.assert_end();
@@ -768,6 +784,7 @@ class ResolverVisitor extends ScopedVisitor {
 
     // TODO(scheglov) Do we need these checks for null?
     condition?.accept(this);
+    boolExpressionVerifier.checkForNonBoolCondition(node.condition);
 
     Expression thenExpression = node.thenExpression;
     InferenceContext.setTypeFromNode(thenExpression, node);
@@ -910,6 +927,7 @@ class ResolverVisitor extends ScopedVisitor {
 
     _flowAnalysis?.flow?.doStatement_conditionBegin();
     condition.accept(this);
+    boolExpressionVerifier.checkForNonBoolCondition(node.condition);
 
     _flowAnalysis?.flow?.doStatement_end(node.condition);
   }
@@ -1023,7 +1041,10 @@ class ResolverVisitor extends ScopedVisitor {
       var condition = forLoopParts.condition;
       InferenceContext.setType(condition, typeProvider.boolType);
       _flowAnalysis?.for_conditionBegin(node, condition);
-      condition?.accept(this);
+      if (condition != null) {
+        condition.accept(this);
+        boolExpressionVerifier.checkForNonBoolCondition(condition);
+      }
       _flowAnalysis?.for_bodyBegin(node, condition);
       node.body?.accept(this);
       _flowAnalysis?.flow?.for_updaterBegin();
@@ -1108,6 +1129,7 @@ class ResolverVisitor extends ScopedVisitor {
       _flowAnalysis?.for_conditionBegin(node, condition);
       if (condition != null) {
         condition.accept(this);
+        boolExpressionVerifier.checkForNonBoolCondition(condition);
       }
 
       _flowAnalysis?.for_bodyBegin(node, condition);
@@ -1324,6 +1346,8 @@ class ResolverVisitor extends ScopedVisitor {
     // TODO(scheglov) Do we need these checks for null?
     condition?.accept(this);
 
+    boolExpressionVerifier.checkForNonBoolCondition(node.condition);
+
     CollectionElement thenElement = node.thenElement;
     if (_flowAnalysis != null) {
       _flowAnalysis.flow.ifStatement_thenBegin(condition);
@@ -1358,6 +1382,8 @@ class ResolverVisitor extends ScopedVisitor {
 
     InferenceContext.setType(condition, typeProvider.boolType);
     condition?.accept(this);
+
+    boolExpressionVerifier.checkForNonBoolCondition(node.condition);
 
     Statement thenStatement = node.thenStatement;
     if (_flowAnalysis != null) {
@@ -1800,6 +1826,8 @@ class ResolverVisitor extends ScopedVisitor {
 
       _flowAnalysis?.flow?.whileStatement_conditionBegin(node);
       condition?.accept(this);
+
+      boolExpressionVerifier.checkForNonBoolCondition(node.condition);
 
       Statement body = node.body;
       if (body != null) {

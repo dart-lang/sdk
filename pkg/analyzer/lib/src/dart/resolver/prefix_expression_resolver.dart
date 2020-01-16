@@ -56,7 +56,7 @@ class PrefixExpressionResolver {
   void resolve(PrefixExpressionImpl node) {
     var operator = node.operator.type;
     if (operator == TokenType.BANG) {
-      _resolveNegation(node, node.operand);
+      _resolveNegation(node);
       return;
     }
 
@@ -257,10 +257,14 @@ class PrefixExpressionResolver {
     }
   }
 
-  void _resolveNegation(PrefixExpressionImpl node, Expression operand) {
+  void _resolveNegation(PrefixExpressionImpl node) {
+    var operand = node.operand;
     InferenceContext.setType(operand, _typeProvider.boolType);
 
     operand.accept(_resolver);
+    operand = node.operand;
+
+    _resolver.boolExpressionVerifier.checkForNonBoolNegationExpression(operand);
 
     _recordStaticType(node, _nonNullable(_typeProvider.boolType));
 
