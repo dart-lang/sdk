@@ -1921,8 +1921,7 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStubForEntryKind(
   __ Bind(&call_target_function);
   __ Comment("Call target");
   // EAX: Target function.
-  __ jmp(
-      FieldAddress(EAX, target::Code::function_entry_point_offset(entry_kind)));
+  __ jmp(FieldAddress(EAX, target::Function::entry_point_offset(entry_kind)));
 
 #if !defined(PRODUCT)
   if (optimized == kUnoptimized) {
@@ -2088,8 +2087,7 @@ static void GenerateZeroArgsUnoptimizedStaticCallForEntryKind(
 
   // Get function and call it, if possible.
   __ movl(EAX, Address(EBX, target_offset));
-  __ jmp(
-      FieldAddress(EAX, target::Code::function_entry_point_offset(entry_kind)));
+  __ jmp(FieldAddress(EAX, target::Function::entry_point_offset(entry_kind)));
 
 #if !defined(PRODUCT)
   __ Bind(&stepping);

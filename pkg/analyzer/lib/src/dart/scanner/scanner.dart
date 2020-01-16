@@ -4,9 +4,9 @@
 
 import 'package:_fe_analyzer_shared/src/scanner/errors.dart'
     show translateErrorToken;
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' as fasta;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show Token, TokenType;
-import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' as fasta;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
@@ -190,9 +190,11 @@ class Scanner {
   void _languageVersionChanged(
       fasta.Scanner scanner, fasta.LanguageVersionToken languageVersion) {
     if (_featureSet != null) {
-      _featureSet = _featureSet.restrictToVersion(
-          Version(languageVersion.major, languageVersion.minor, 0));
-      scanner.configuration = buildConfig(_featureSet);
+      if (languageVersion.major >= 0 && languageVersion.minor >= 0) {
+        _featureSet = _featureSet.restrictToVersion(
+            Version(languageVersion.major, languageVersion.minor, 0));
+        scanner.configuration = buildConfig(_featureSet);
+      }
     }
   }
 

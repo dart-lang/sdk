@@ -1465,6 +1465,11 @@ class AssistProcessor extends BaseProcessor {
       int replaceOffset = 0;
       bool hasBuildMethod = false;
 
+      var typeParams = '';
+      if (widgetClass.typeParameters != null) {
+        typeParams = utils.getNodeText(widgetClass.typeParameters);
+      }
+
       /// Replace code between [replaceOffset] and [replaceEnd] with
       /// `createState()`, empty line, or nothing.
       void replaceInterval(int replaceEnd,
@@ -1480,7 +1485,8 @@ class AssistProcessor extends BaseProcessor {
                 builder.writeln();
               }
               builder.writeln('  @override');
-              builder.writeln('  $stateName createState() => $stateName();');
+              builder.writeln(
+                  '  $stateName$typeParams createState() => $stateName$typeParams();');
               if (hasEmptyLineAfterCreateState) {
                 builder.writeln();
               }
@@ -1532,11 +1538,6 @@ class AssistProcessor extends BaseProcessor {
       builder.addInsertion(widgetClass.end, (builder) {
         builder.writeln();
         builder.writeln();
-
-        var typeParams = '';
-        if (widgetClass.typeParameters != null) {
-          typeParams = utils.getNodeText(widgetClass.typeParameters);
-        }
 
         builder.write('class $stateName$typeParams extends ');
         builder.writeReference(stateClass);

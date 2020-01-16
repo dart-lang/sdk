@@ -259,6 +259,7 @@ abstract class ClassHierarchy {
   /// Compares members by name, using the same sort order as
   /// [getDeclaredMembers] and [getInterfaceMembers].
   static int compareMembers(Member first, Member second) {
+    if (first == second) return 0;
     return compareNames(first.name, second.name);
   }
 

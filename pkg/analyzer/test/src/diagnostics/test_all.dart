@@ -4,6 +4,8 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'abstract_super_member_reference_test.dart'
+    as abstract_super_member_reference;
 import 'ambiguous_export_test.dart' as ambiguous_export;
 import 'ambiguous_extension_member_access_test.dart'
     as ambiguous_extension_member_access;
@@ -207,7 +209,6 @@ import 'invalid_type_argument_in_const_set_test.dart'
 import 'invalid_uri_test.dart' as invalid_uri;
 import 'invalid_use_of_covariant_in_extension_test.dart'
     as invalid_use_of_covariant_in_extension;
-import 'invalid_use_of_never_value_test.dart' as invalid_use_of_never_value;
 import 'invalid_use_of_null_value_test.dart' as invalid_use_of_null_value;
 import 'invalid_use_of_protected_member_test.dart'
     as invalid_use_of_protected_member;
@@ -342,6 +343,7 @@ import 'prefix_identifier_not_followed_by_dot_test.dart'
 import 'private_collision_in_mixin_application_test.dart'
     as private_collision_in_mixin_application;
 import 'private_optional_parameter_test.dart' as private_optional_parameter;
+import 'receiver_of_type_never_test.dart' as receiver_of_type_never;
 import 'recursive_compile_time_constant_test.dart'
     as recursive_compile_time_constant;
 import 'recursive_constructor_redirect_test.dart'
@@ -481,6 +483,7 @@ import 'yield_in_non_generator_test.dart' as yield_in_non_generator;
 
 main() {
   defineReflectiveSuite(() {
+    abstract_super_member_reference.main();
     ambiguous_export.main();
     ambiguous_extension_member_access.main();
     ambiguous_import.main();
@@ -618,7 +621,6 @@ main() {
     invalid_type_argument_in_const_set.main();
     invalid_uri.main();
     invalid_use_of_covariant_in_extension.main();
-    invalid_use_of_never_value.main();
     invalid_use_of_null_value.main();
     invalid_use_of_protected_member.main();
     invalid_use_of_visible_for_template_member.main();
@@ -711,6 +713,7 @@ main() {
     prefix_identifier_not_followed_by_dot.main();
     private_collision_in_mixin_application.main();
     private_optional_parameter.main();
+    receiver_of_type_never.main();
     recursive_compile_time_constant.main();
     recursive_constructor_redirect.main();
     recursive_factory_redirect.main();

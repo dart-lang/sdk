@@ -11,7 +11,11 @@ import "dart:core" as core;
 
 static method foo({required core::int parameter}) → dynamic
   ;
+static method foo2({core::int parameter}) → dynamic
+  ;
 static method bar({required core::int parameter}) → dynamic
+  ;
+static method bar2({core::int parameter}) → dynamic
   ;
 static method main() → dynamic
   ;

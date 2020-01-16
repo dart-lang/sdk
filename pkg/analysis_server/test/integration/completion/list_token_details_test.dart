@@ -42,7 +42,7 @@ class ListTokenDetailsTest extends AbstractAnalysisServerIntegrationTest {
 class A {}
 ''');
     writeFile(path.join(testPackagePath, '.packages'), '''
-a:file://$aLibPath
+a:file://${path.toUri(aLibPath)}
 test_package:lib/
 ''');
     String testFilePath = path.join(testPackagePath, 'lib', 'test.dart');

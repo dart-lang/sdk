@@ -147,6 +147,10 @@ class FindNode {
     return _node(search, (n) => n is GenericFunctionType);
   }
 
+  IfElement ifElement(String search) {
+    return _node(search, (n) => n is IfElement);
+  }
+
   ImportDirective import(String search) {
     return _node(search, (n) => n is ImportDirective);
   }

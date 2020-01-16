@@ -4464,4 +4464,16 @@ class B extends A with ^
     await computeSuggestions();
     assertSuggestMixin('M');
   }
+
+  test_YieldStatement() async {
+    addTestSource('''
+void main() async* {
+  yield ^
+}
+''');
+    await computeSuggestions();
+
+    // Sanity check any completions.
+    assertSuggestClass('Object');
+  }
 }

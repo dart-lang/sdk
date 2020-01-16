@@ -5,7 +5,7 @@
 library dart2js.kernel.env;
 
 import 'package:front_end/src/api_unstable/dart2js.dart'
-    show isRedirectingFactory;
+    show isRedirectingFactory, isRedirectingFactoryField;
 
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/clone.dart';
@@ -119,8 +119,7 @@ class KLibraryEnv {
       _memberMap = <String, ir.Member>{};
       _setterMap = <String, ir.Member>{};
       for (ir.Member member in library.members) {
-        if (member.name.name.contains('#')) {
-          // Skip synthetic .dill members.
+        if (isRedirectingFactoryField(member)) {
           continue;
         }
         if (member is ir.Procedure) {
@@ -375,11 +374,8 @@ class KClassEnvImpl implements KClassEnv {
 
     void addField(ir.Field member, {bool includeStatic}) {
       if (!includeStatic && member.isStatic) return;
+      if (isRedirectingFactoryField(member)) return;
       var name = member.name.name;
-      if (name.contains('#')) {
-        // Skip synthetic .dill members.
-        return;
-      }
       _memberMap[name] = member;
       if (member.isMutable) {
         _setterMap[name] = member;
@@ -417,7 +413,6 @@ class KClassEnvImpl implements KClassEnv {
         }
       }
       var name = member.name.name;
-      assert(!name.contains('#'));
       if (member.kind == ir.ProcedureKind.Factory) {
         if (isRedirectingFactory(member)) {
           // Don't include redirecting factories.
@@ -439,7 +434,6 @@ class KClassEnvImpl implements KClassEnv {
     void addConstructors(ir.Class c) {
       for (ir.Constructor member in c.constructors) {
         var name = member.name.name;
-        assert(!name.contains('#'));
         _constructorMap[name] = member;
       }
     }

@@ -82,10 +82,10 @@ class C {
   test_privateEnum() async {
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
-@visibleForTesting enum _E {a, b, c}
+@visibleForTesting enum _E {a, b}
+void f(_E e) => e == _E.a || e == _E.b;
 ''', [
       error(HintCode.INVALID_VISIBILITY_ANNOTATION, 33, 18),
-      error(HintCode.UNUSED_ELEMENT, 57, 2),
     ]);
   }
 

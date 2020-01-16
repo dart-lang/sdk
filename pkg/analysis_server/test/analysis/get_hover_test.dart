@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
@@ -648,18 +647,8 @@ main() {
 }
 ''');
     var hover = await prepareHover('f(null)');
-    _assertJsonText(hover, r'''
-{
-  "offset": 39,
-  "length": 1,
-  "containingLibraryPath": "/project/bin/test.dart",
-  "containingLibraryName": "bin/test.dart",
-  "elementDescription": "int? f(double? a)",
-  "elementKind": "function",
-  "isDeprecated": false,
-  "staticType": "int? Function(double?)"
-}
-''');
+    expect(hover.elementDescription, 'int? f(double? a)');
+    expect(hover.staticType, 'int? Function(double?)');
   }
 
   test_parameter_declaration_fieldFormal() async {
@@ -726,16 +715,5 @@ main() {
     expect(hover.elementDescription, '{int fff}');
     expect(hover.elementKind, 'parameter');
     expect(hover.staticType, 'int');
-  }
-
-  void _assertJsonText(Object object, String expected) {
-    expected = expected.trimRight();
-    var actual = JsonEncoder.withIndent('  ').convert(object);
-    if (actual != expected) {
-      print('-----');
-      print(actual);
-      print('-----');
-    }
-    expect(actual, expected);
   }
 }

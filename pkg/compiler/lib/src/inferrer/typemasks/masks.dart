@@ -320,7 +320,7 @@ class CommonMasks implements AbstractValueDomain {
 
   @override
   AbstractBool containsType(TypeMask typeMask, ClassEntity cls) {
-    return AbstractBool.trueOrMaybe(_containsType(typeMask, cls));
+    return AbstractBool.trueOrFalse(_containsType(typeMask, cls));
   }
 
   bool _containsType(TypeMask typeMask, ClassEntity cls) {
@@ -701,13 +701,6 @@ class CommonMasks implements AbstractValueDomain {
       covariant TypeMask receiver, Selector selector) {
     return AbstractBool.trueOrFalse(
         receiver.needsNoSuchMethodHandling(selector, _closedWorld));
-  }
-
-  @override
-  AbstractBool contains(
-      covariant TypeMask superset, covariant TypeMask subset) {
-    return AbstractBool.maybeOrFalse(
-        superset.containsMask(subset, _closedWorld));
   }
 
   @override

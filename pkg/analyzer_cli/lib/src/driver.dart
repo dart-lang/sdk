@@ -11,6 +11,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/context/context_root.dart';
+import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
@@ -34,7 +35,6 @@ import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/summary_file_builder.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart' show SummaryBasedDartSdk;
 import 'package:analyzer/src/task/options.dart';
-import 'package:analyzer/src/util/uri.dart';
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:analyzer_cli/src/analyzer_impl.dart';
 import 'package:analyzer_cli/src/batch_mode.dart';
@@ -48,10 +48,6 @@ import 'package:analyzer_cli/src/perf_report.dart';
 import 'package:analyzer_cli/starter.dart' show CommandLineStarter;
 import 'package:linter/src/rules.dart' as linter;
 import 'package:meta/meta.dart';
-import 'package:package_config/discovery.dart' as pkg_discovery;
-import 'package:package_config/packages.dart' show Packages;
-import 'package:package_config/packages_file.dart' as pkgfile show parse;
-import 'package:package_config/src/packages_impl.dart' show MapPackages;
 import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart';
 
@@ -591,44 +587,28 @@ class Driver with HasContextMixin implements CommandLineStarter {
     scheduler.start();
   }
 
-  /// Return discovered packagespec, or `null` if none is found.
-  Packages _discoverPackagespec(Uri root) {
-    try {
-      Packages packages = pkg_discovery.findPackagesFromFile(root);
-      if (packages != Packages.noPackages) {
-        return packages;
-      }
-    } catch (_) {
-      // Ignore and fall through to null.
-    }
-
-    return null;
-  }
-
   _PackageInfo _findPackages(CommandLineOptions options) {
     Packages packages;
     Map<String, List<Folder>> packageMap;
 
     if (options.packageConfigPath != null) {
-      String packageConfigPath = options.packageConfigPath;
-      Uri fileUri = Uri.file(packageConfigPath);
+      String path = normalizePath(options.packageConfigPath);
       try {
-        io.File configFile = io.File.fromUri(fileUri).absolute;
-        List<int> bytes = configFile.readAsBytesSync();
-        Map<String, Uri> map = pkgfile.parse(bytes, configFile.uri);
-        packages = MapPackages(map);
+        var packages = parseDotPackagesFile(
+          resourceProvider,
+          resourceProvider.getFile(path),
+        );
         packageMap = _getPackageMap(packages);
       } catch (e) {
-        printAndFail(
-            'Unable to read package config data from $packageConfigPath: $e');
+        printAndFail('Unable to read package config data from $path: $e');
       }
     } else if (options.packageRootPath != null) {
-      packageMap = _PackageRootPackageMapBuilder.buildPackageMap(
-          options.packageRootPath);
+      var path = normalizePath(options.packageRootPath);
+      packageMap = _PackageRootPackageMapBuilder.buildPackageMap(path);
     } else {
       Resource cwd = resourceProvider.getResource(path.current);
       // Look for .packages.
-      packages = _discoverPackagespec(Uri.directory(cwd.path));
+      packages = findPackagesFrom(resourceProvider, cwd);
       packageMap = _getPackageMap(packages);
     }
 
@@ -640,13 +620,11 @@ class Driver with HasContextMixin implements CommandLineStarter {
       return null;
     }
 
-    Map<String, List<Folder>> folderMap = <String, List<Folder>>{};
-    var pathContext = resourceProvider.pathContext;
-    packages.asMap().forEach((String packagePath, Uri uri) {
-      String path = fileUriToNormalizedPath(pathContext, uri);
-      folderMap[packagePath] = [resourceProvider.getFolder(path)];
-    });
-    return folderMap;
+    var packageMap = <String, List<Folder>>{};
+    for (var package in packages.packages) {
+      packageMap[package.name] = [package.libFolder];
+    }
+    return packageMap;
   }
 
   /// Returns `true` if this relative path is a hidden directory.

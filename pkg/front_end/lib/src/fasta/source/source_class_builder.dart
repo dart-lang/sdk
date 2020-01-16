@@ -95,8 +95,6 @@ import '../problems.dart' show unexpected, unhandled;
 
 import '../scope.dart';
 
-import '../source/source_library_builder.dart' show SourceLibraryBuilder;
-
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 
 Class initializeClass(

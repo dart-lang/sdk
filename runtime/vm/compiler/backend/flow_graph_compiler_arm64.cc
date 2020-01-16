@@ -451,7 +451,6 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
   // Skip check if destination is a dynamic type.
   if (type.IsTypeParameter()) {
     const TypeParameter& type_param = TypeParameter::Cast(type);
-    const AbstractType& bound = AbstractType::Handle(type_param.bound());
 
     // Get instantiator type args (high, R1) and function type args (low, R2).
     __ ldp(R2, R1,
@@ -483,16 +482,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     // Smi can be handled by type test cache.
     __ Bind(&not_smi);
 
-    // TODO(regis): Revisit the bound check taking NNBD into consideration.
-    // TODO(alexmarkov): Fix issue #40066.
-    // If it's guaranteed, by type-parameter bound, that the type parameter will
-    // never have a value of a function type, then we can safely do a 4-type
-    // test instead of a 6-type test.
-    auto test_kind = !bound.NNBD_IsTopType() && !bound.IsFunctionType() &&
-                             !bound.IsDartFunctionType() && bound.IsType()
-                         ? kTestTypeSixArgs
-                         : kTestTypeFourArgs;
-
+    const auto test_kind = GetTypeTestStubKindForTypeParameter(type_param);
     const SubtypeTestCache& type_test_cache = SubtypeTestCache::ZoneHandle(
         zone(), GenerateCallSubtypeTestStub(
                     test_kind, kInstanceReg, kInstantiatorTypeArgumentsReg,

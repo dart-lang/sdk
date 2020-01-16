@@ -3,8 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
 import 'package:nnbd_migration/src/fix_aggregator.dart';
+import 'package:nnbd_migration/src/nullability_node.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -35,6 +37,215 @@ class FixAggregatorTest extends FixAggregatorTestBase {
       findNode.binary('a + b'): const NullCheck()
     });
     expect(previewInfo.applyTo(code), 'f(a, b) => (a! + b!)!;');
+  }
+
+  Future<void> test_eliminateDeadIf_element_delete_drop_completely() async {
+    await analyze('''
+List<int> f(int i) {
+  return [if (i == null) null];
+}
+''');
+    var previewInfo = run({findNode.ifElement('=='): EliminateDeadIf(false)});
+    expect(previewInfo.applyTo(code), '''
+List<int> f(int i) {
+  return [];
+}
+''');
+  }
+
+  Future<void> test_eliminateDeadIf_element_delete_keep_else() async {
+    await analyze('''
+List<int> f(int i) {
+  return [if (i == null) null else i + 1];
+}
+''');
+    var previewInfo = run({findNode.ifElement('=='): EliminateDeadIf(false)});
+    expect(previewInfo.applyTo(code), '''
+List<int> f(int i) {
+  return [i + 1];
+}
+''');
+  }
+
+  Future<void> test_eliminateDeadIf_element_delete_keep_then() async {
+    await analyze('''
+List<int> f(int i) {
+  return [if (i == null) null else i + 1];
+}
+''');
+    var previewInfo = run({findNode.ifElement('=='): EliminateDeadIf(true)});
+    expect(previewInfo.applyTo(code), '''
+List<int> f(int i) {
+  return [null];
+}
+''');
+  }
+
+  Future<void> test_eliminateDeadIf_expression_delete_keep_else() async {
+    await analyze('''
+int f(int i) {
+  return i == null ? null : i + 1;
+}
+''');
+    var previewInfo =
+        run({findNode.conditionalExpression('=='): EliminateDeadIf(false)});
+    expect(previewInfo.applyTo(code), '''
+int f(int i) {
+  return i + 1;
+}
+''');
+  }
+
+  Future<void> test_eliminateDeadIf_expression_delete_keep_then() async {
+    await analyze('''
+int f(int i) {
+  return i == null ? null : i + 1;
+}
+''');
+    var previewInfo =
+        run({findNode.conditionalExpression('=='): EliminateDeadIf(true)});
+    expect(previewInfo.applyTo(code), '''
+int f(int i) {
+  return null;
+}
+''');
+  }
+
+  Future<void> test_eliminateDeadIf_statement_comment_keep_else() async {
+    await analyze('''
+int f(int i) {
+  if (i == null) {
+    return null;
+  } else {
+    return i + 1;
+  }
+}
+''');
+    var previewInfo = run({findNode.statement('if'): EliminateDeadIf(false)},
+        removeViaComments: true);
+    expect(previewInfo.applyTo(code), '''
+int f(int i) {
+  /* if (i == null) {
+    return null;
+  } else {
+    */ return i + 1; /*
+  } */
+}
+''');
+  }
+
+  Future<void> test_eliminateDeadIf_statement_comment_keep_then() async {
+    await analyze('''
+int f(int i) {
+  if (i == null) {
+    return null;
+  } else {
+    return i + 1;
+  }
+}
+''');
+    var previewInfo = run({findNode.statement('if'): EliminateDeadIf(true)},
+        removeViaComments: true);
+    expect(previewInfo.applyTo(code), '''
+int f(int i) {
+  /* if (i == null) {
+    */ return null; /*
+  } else {
+    return i + 1;
+  } */
+}
+''');
+  }
+
+  Future<void>
+      test_eliminateDeadIf_statement_delete_drop_completely_false() async {
+    await analyze('''
+void f(int i) {
+  if (i == null) {
+    print('null');
+  }
+}
+''');
+    var previewInfo = run({findNode.statement('if'): EliminateDeadIf(false)});
+    expect(previewInfo.applyTo(code), '''
+void f(int i) {}
+''');
+  }
+
+  Future<void>
+      test_eliminateDeadIf_statement_delete_drop_completely_true() async {
+    await analyze('''
+void f(int i) {
+  if (i != null) {} else {
+    print('null');
+  }
+}
+''');
+    var previewInfo = run({findNode.statement('if'): EliminateDeadIf(true)});
+    expect(previewInfo.applyTo(code), '''
+void f(int i) {}
+''');
+  }
+
+  Future<void> test_eliminateDeadIf_statement_delete_keep_else() async {
+    await analyze('''
+int f(int i) {
+  if (i == null) {
+    return null;
+  } else {
+    return i + 1;
+  }
+}
+''');
+    var previewInfo = run({findNode.statement('if'): EliminateDeadIf(false)});
+    expect(previewInfo.applyTo(code), '''
+int f(int i) {
+  return i + 1;
+}
+''');
+  }
+
+  Future<void> test_eliminateDeadIf_statement_delete_keep_then() async {
+    await analyze('''
+int f(int i) {
+  if (i != null) {
+    return i + 1;
+  } else {
+    return null;
+  }
+}
+''');
+    var previewInfo = run({findNode.statement('if'): EliminateDeadIf(true)});
+    expect(previewInfo.applyTo(code), '''
+int f(int i) {
+  return i + 1;
+}
+''');
+  }
+
+  Future<void>
+      test_eliminateDeadIf_statement_delete_keep_then_declaration() async {
+    await analyze('''
+void f(int i, String callback()) {
+  if (i != null) {
+    var i = callback();
+  } else {
+    return;
+  }
+  print(i);
+}
+''');
+    // In this case we have to keep the block so that the scope of `var i`
+    // doesn't widen.
+    var previewInfo = run({findNode.statement('if'): EliminateDeadIf(true)});
+    expect(previewInfo.applyTo(code), '''
+void f(int i, String callback()) {
+  {
+    var i = callback();
+  }
+  print(i);
+}
+''');
   }
 
   Future<void> test_introduceAs_distant_parens_no_longer_needed() async {
@@ -71,7 +282,7 @@ class FixAggregatorTest extends FixAggregatorTestBase {
   Future<void> test_makeNullable() async {
     await analyze('f(int x) {}');
     var typeName = findNode.typeName('int');
-    var previewInfo = run({typeName: const MakeNullable()});
+    var previewInfo = run({typeName: MakeNullable(MockDecoratedType())});
     expect(previewInfo.applyTo(code), 'f(int? x) {}');
   }
 
@@ -142,13 +353,21 @@ class FixAggregatorTest extends FixAggregatorTestBase {
   }
 
   Future<void> test_removeAs_parens_needed_due_to_cascade() async {
-    // Note: spaces around parens to verify that we don't remove the old parens
-    // and create new ones.
-    await analyze('f(a, c) => a..b = throw ( c..d ) as int;');
+    // Note: parens are needed, and they could either be around `c..d` or around
+    // `throw c..d`.  In an ideal world, we would see that we can just keep the
+    // parens we have, but this is difficult because we don't see that the
+    // parens are needed until we walk far enough up the AST to see that we're
+    // inside a casade expression.  So we drop the parens and then create new
+    // ones surrounding `throw c..d`.
+    //
+    // Strictly speaking the code we produce is correct, it's just making a
+    // slightly larger edit than necessary.  This is presumably a really rare
+    // corner case so for now we're not worrying about it.
+    await analyze('f(a, c) => a..b = throw (c..d) as int;');
     var cd = findNode.cascade('c..d');
     var cast = cd.parent.parent;
     var previewInfo = run({cast: const RemoveAs()});
-    expect(previewInfo.applyTo(code), 'f(a, c) => a..b = throw ( c..d );');
+    expect(previewInfo.applyTo(code), 'f(a, c) => a..b = (throw c..d);');
   }
 
   Future<void>
@@ -199,7 +418,19 @@ class FixAggregatorTestBase extends AbstractSingleUnitTest {
     await resolveTestUnit(code);
   }
 
-  Map<int, List<AtomicEdit>> run(Map<AstNode, NodeChange> changes) {
-    return FixAggregator.run(testUnit, changes);
+  Map<int, List<AtomicEdit>> run(Map<AstNode, NodeChange> changes,
+      {bool removeViaComments: false}) {
+    return FixAggregator.run(testUnit, testCode, changes,
+        removeViaComments: removeViaComments);
+  }
+}
+
+class MockDecoratedType implements DecoratedType {
+  @override
+  NullabilityNode get node => NullabilityNode.forTypeAnnotation(0);
+
+  @override
+  noSuchMethod(Invocation invocation) {
+    return super.noSuchMethod(invocation);
   }
 }

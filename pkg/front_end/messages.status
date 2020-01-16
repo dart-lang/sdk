@@ -26,6 +26,8 @@ AssertExtraneousArgument/example: Fail
 AsyncAsIdentifier/example: Fail
 AwaitAsIdentifier/example: Fail
 AwaitNotAsync/example: Fail
+AwaitInLateLocalInitializer/analyzerCode: Fail
+AwaitInLateLocalInitializer/example: Fail
 BuiltInIdentifierAsType/example: Fail
 BuiltInIdentifierInDeclaration/example: Fail
 BytecodeLimitExceededTooManyArguments/analyzerCode: Fail

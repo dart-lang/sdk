@@ -60,6 +60,12 @@ class List<E> {
   }
 
   @patch
+  factory List.of(Iterable<E> elements, {bool growable: true}) {
+    // TODO(32937): Specialize to benefit from known element type.
+    return List.from(elements, growable: growable);
+  }
+
+  @patch
   factory List.unmodifiable(Iterable elements) {
     final result = new List<E>.from(elements, growable: false);
     return makeFixedListUnmodifiable(result);

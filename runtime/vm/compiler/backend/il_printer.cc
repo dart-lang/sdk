@@ -532,8 +532,7 @@ void InstanceCallInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 void PolymorphicInstanceCallInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print(" %s<%" Pd ">", instance_call()->function_name().ToCString(),
-           instance_call()->type_args_len());
+  f->Print(" %s<%" Pd ">", function_name().ToCString(), type_args_len());
   for (intptr_t i = 0; i < ArgumentCount(); ++i) {
     f->Print(", ");
     ArgumentValueAt(i)->PrintTo(f);
@@ -542,7 +541,7 @@ void PolymorphicInstanceCallInstr::PrintOperandsTo(BufferFormatter* f) const {
   if (complete()) {
     f->Print(" COMPLETE");
   }
-  if (instance_call()->entry_kind() == Code::EntryKind::kUnchecked) {
+  if (entry_kind() == Code::EntryKind::kUnchecked) {
     f->Print(" using unchecked entrypoint");
   }
 }

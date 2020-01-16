@@ -3177,8 +3177,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return;
     }
 
-    if (lhs is IndexExpression &&
-        identical(lhs.staticType, NeverTypeImpl.instance)) {
+    if (identical(lhs.staticType, NeverTypeImpl.instance)) {
       return;
     }
 
@@ -4812,7 +4811,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * `(throw x).toString()` which is clearly something between a mistake and
    * dead code.
    *
-   * See [StaticWarningCode.INVALID_USE_OF_NEVER_VALUE].
+   * See [StaticWarningCode.RECEIVER_OF_TYPE_NEVER].
    */
   bool _checkForUseOfNever(Expression expression) {
     if (expression == null ||
@@ -4821,7 +4820,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
 
     _errorReporter.reportErrorForNode(
-        StaticWarningCode.INVALID_USE_OF_NEVER_VALUE, expression);
+        HintCode.RECEIVER_OF_TYPE_NEVER, expression);
 
     return true;
   }

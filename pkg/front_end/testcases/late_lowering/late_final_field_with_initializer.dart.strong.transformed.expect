@@ -2,15 +2,19 @@ library;
 import self as self;
 import "dart:core" as core;
 
-class Class extends core::Object {
+class Class<T extends core::Object? = dynamic> extends core::Object {
   static field core::int? lateStaticField1Init = null;
   static field core::int? _#lateStaticField1 = null;
   static field core::int? lateStaticField2Init = null;
   static field core::int? _#lateStaticField2 = null;
   field core::int? lateInstanceFieldInit = null;
   field core::int? _#lateInstanceField = null;
-  synthetic constructor •() → self::Class
-    : super core::Object::•()
+  generic-covariant-impl field self::Class::T? lateGenericFieldInit = null;
+  final field self::Class::T% field;
+  field self::Class::T? _#lateGenericField = null;
+  field core::bool _#lateGenericField#isSet = false;
+  constructor •(self::Class::T% field) → self::Class<self::Class::T%>
+    : self::Class::field = field, super core::Object::•()
     ;
   static method initLateStaticField1(core::int value) → core::int {
     return self::Class::lateStaticField1Init = value;
@@ -32,13 +36,26 @@ class Class extends core::Object {
   }
   get lateInstanceField() → core::int
     return let final core::int? #t3 = this.{self::Class::_#lateInstanceField} in #t3.==(null) ?{core::int} this.{self::Class::_#lateInstanceField} = this.{self::Class::initLateInstanceField}(16) : #t3{core::int};
+  method initLateGenericField(generic-covariant-impl self::Class::T% value) → self::Class::T% {
+    return this.{self::Class::lateGenericFieldInit} = value;
+  }
+  get lateGenericField() → self::Class::T% {
+    if(!this.{self::Class::_#lateGenericField#isSet}) {
+      this.{self::Class::_#lateGenericField#isSet} = true;
+      this.{self::Class::_#lateGenericField} = this.{self::Class::initLateGenericField}(this.{self::Class::field});
+    }
+    return let final self::Class::T? #t4 = this.{self::Class::_#lateGenericField} in #t4{self::Class::T%};
+  }
   method instanceMethod() → dynamic {
     self::expect(null, this.{self::Class::lateInstanceFieldInit});
     self::expect(16, this.{self::Class::lateInstanceField});
     self::expect(16, this.{self::Class::lateInstanceFieldInit});
+    self::expect(null, this.{self::Class::lateGenericFieldInit});
+    self::expect(this.{self::Class::field}, this.{self::Class::lateGenericField});
+    self::expect(this.{self::Class::field}, this.{self::Class::lateGenericFieldInit});
   }
 }
-extension Extension on self::Class {
+extension Extension<T extends core::Object? = dynamic> on self::Class<T%> {
   static field lateExtensionField1Init = self::Extension|lateExtensionField1Init;
   static method initLateExtensionField1 = self::Extension|initLateExtensionField1;
   static field lateExtensionField1 = self::_#Extension|lateExtensionField1;
@@ -59,17 +76,17 @@ static method initLateTopLevelField1(core::int value) → core::int {
   return self::lateTopLevelField1Init = value;
 }
 static get lateTopLevelField1() → core::int
-  return let final core::int? #t4 = self::_#lateTopLevelField1 in #t4.==(null) ?{core::int} self::_#lateTopLevelField1 = self::initLateTopLevelField1(123) : #t4{core::int};
+  return let final core::int? #t5 = self::_#lateTopLevelField1 in #t5.==(null) ?{core::int} self::_#lateTopLevelField1 = self::initLateTopLevelField1(123) : #t5{core::int};
 static method Extension|initLateExtensionField1(core::int value) → core::int {
   return self::Extension|lateExtensionField1Init = value;
 }
 static get Extension|lateExtensionField1() → core::int
-  return let final core::int? #t5 = self::_#Extension|lateExtensionField1 in #t5.==(null) ?{core::int} self::_#Extension|lateExtensionField1 = self::Extension|initLateExtensionField1(87) : #t5{core::int};
+  return let final core::int? #t6 = self::_#Extension|lateExtensionField1 in #t6.==(null) ?{core::int} self::_#Extension|lateExtensionField1 = self::Extension|initLateExtensionField1(87) : #t6{core::int};
 static method Extension|initLateExtensionField2(core::int value) → core::int {
   return self::Extension|lateExtensionField2Init = value;
 }
 static get Extension|lateExtensionField2() → core::int
-  return let final core::int? #t6 = self::_#Extension|lateExtensionField2 in #t6.==(null) ?{core::int} self::_#Extension|lateExtensionField2 = self::Extension|initLateExtensionField2(42) : #t6{core::int};
+  return let final core::int? #t7 = self::_#Extension|lateExtensionField2 in #t7.==(null) ?{core::int} self::_#Extension|lateExtensionField2 = self::Extension|initLateExtensionField2(42) : #t7{core::int};
 static method Extension|staticMethod() → dynamic {
   self::expect(null, self::Extension|lateExtensionField2Init);
   self::expect(42, self::Extension|lateExtensionField2);
@@ -83,7 +100,7 @@ static method main() → dynamic {
   self::expect(87, self::Class::lateStaticField1);
   self::expect(87, self::Class::lateStaticField1Init);
   self::Class::staticMethod();
-  new self::Class::•().{self::Class::instanceMethod}();
+  new self::Class::•<core::int>(0).{self::Class::instanceMethod}();
   self::expect(null, self::Extension|lateExtensionField1Init);
   self::expect(87, self::Extension|lateExtensionField1);
   self::expect(87, self::Extension|lateExtensionField1Init);

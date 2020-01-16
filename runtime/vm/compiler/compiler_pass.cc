@@ -34,7 +34,7 @@
                                                                                \
    protected:                                                                  \
     virtual bool DoBody(CompilerPassState* state) const {                      \
-      FlowGraph* flow_graph = state->flow_graph;                               \
+      FlowGraph* flow_graph = state->flow_graph();                             \
       USE(flow_graph);                                                         \
       Body;                                                                    \
     }                                                                          \
@@ -66,6 +66,13 @@ DEFINE_FLAG(bool,
             "Perform late round trip serialization compiler pass.");
 DECLARE_FLAG(bool, print_flow_graph);
 DECLARE_FLAG(bool, print_flow_graph_optimized);
+
+void CompilerPassState::set_flow_graph(FlowGraph* flow_graph) {
+  flow_graph_ = flow_graph;
+  if (call_specializer != nullptr) {
+    call_specializer->set_flow_graph(flow_graph);
+  }
+}
 
 static const char* kCompilerPassesUsage =
     "=== How to use --compiler-passes flag\n"
@@ -191,7 +198,7 @@ void CompilerPass::Run(CompilerPassState* state) const {
     }
     PrintGraph(state, kTraceAfter, round);
 #if defined(DEBUG)
-    FlowGraphChecker(state->flow_graph).Check(name());
+    FlowGraphChecker(state->flow_graph()).Check(name());
 #endif
   }
 }
@@ -200,7 +207,7 @@ void CompilerPass::PrintGraph(CompilerPassState* state,
                               Flag mask,
                               intptr_t round) const {
   const intptr_t current_flags = flags() | state->sticky_flags;
-  FlowGraph* flow_graph = state->flow_graph;
+  FlowGraph* flow_graph = state->flow_graph();
 
   if ((FLAG_print_flow_graph || FLAG_print_flow_graph_optimized) &&
       flow_graph->should_print() && ((current_flags & mask) != 0)) {
@@ -271,7 +278,7 @@ FlowGraph* CompilerPass::RunForceOptimizedPipeline(
   }
   INVOKE_PASS(AllocateRegisters);
   INVOKE_PASS(ReorderBlocks);
-  return pass_state->flow_graph;
+  return pass_state->flow_graph();
 }
 
 FlowGraph* CompilerPass::RunPipeline(PipelineMode mode,
@@ -355,7 +362,7 @@ FlowGraph* CompilerPass::RunPipeline(PipelineMode mode,
   }
   INVOKE_PASS(AllocateRegisters);
   INVOKE_PASS(ReorderBlocks);
-  return pass_state->flow_graph;
+  return pass_state->flow_graph();
 }
 
 FlowGraph* CompilerPass::RunPipelineWithPasses(
@@ -364,7 +371,7 @@ FlowGraph* CompilerPass::RunPipelineWithPasses(
   for (auto pass_id : passes) {
     passes_[pass_id]->Run(state);
   }
-  return state->flow_graph;
+  return state->flow_graph();
 }
 
 COMPILER_PASS(ComputeSSA, {
@@ -583,7 +590,7 @@ COMPILER_PASS(SerializeGraph, {
 
 COMPILER_PASS(RoundTripSerialization, {
   FlowGraphDeserializer::RoundTripSerialization(state);
-  ASSERT(state->flow_graph != nullptr);
+  ASSERT(state->flow_graph() != nullptr);
 })
 
 }  // namespace dart

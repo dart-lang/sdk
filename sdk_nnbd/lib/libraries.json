@@ -130,20 +130,20 @@
         "patches": "../../sdk/lib/_internal/vm/lib/math_patch.dart"
       },
       "mirrors": {
-        "uri": "../../sdk/lib/mirrors/mirrors.dart",
+        "uri": "mirrors/mirrors.dart",
         "patches": [
-          "../../sdk/lib/_internal/vm/lib/mirrors_patch.dart",
-          "../../sdk/lib/_internal/vm/lib/mirrors_impl.dart",
-          "../../sdk/lib/_internal/vm/lib/mirror_reference.dart"
+          "_internal/vm/lib/mirrors_patch.dart",
+          "_internal/vm/lib/mirrors_impl.dart",
+          "_internal/vm/lib/mirror_reference.dart"
         ]
       },
       "nativewrappers": {
         "uri": "../../sdk/lib/html/dartium/nativewrappers.dart"
       },
       "cli": {
-        "uri": "../../sdk/lib/cli/cli.dart",
+        "uri": "cli/cli.dart",
         "patches": [
-          "../../sdk/lib/_internal/vm/bin/cli_patch.dart"
+          "_internal/vm/bin/cli_patch.dart"
         ]
       },
       "typed_data": {
@@ -151,10 +151,10 @@
         "patches": "../../sdk/lib/_internal/vm/lib/typed_data_patch.dart"
       },
       "_vmservice": {
-        "uri": "../../sdk/lib/vmservice/vmservice.dart"
+        "uri": "vmservice/vmservice.dart"
       },
       "vmservice_io": {
-        "uri": "../../runtime/bin/vmservice/vmservice_io.dart"
+        "uri": "_internal/vm/bin/vmservice_io.dart"
       }
     }
   },
@@ -211,7 +211,7 @@
         "patches": "../../sdk/lib/js/_js_client.dart"
       },
       "js_util": {
-        "uri": "../../sdk/lib/js_util/dart2js/js_util_dart2js.dart"
+        "uri": "../../sdk/lib/js_util/js_util.dart"
       },
       "math": {
         "uri": "../../sdk/lib/math/math.dart",
@@ -321,7 +321,7 @@
         "patches": "../../sdk/lib/js/_js_server.dart"
       },
       "js_util": {
-        "uri": "../../sdk/lib/js_util/dart2js/js_util_dart2js.dart"
+        "uri": "../../sdk/lib/js_util/js_util.dart"
       },
       "math": {
         "uri": "../../sdk/lib/math/math.dart",
@@ -468,7 +468,7 @@
         "patches": "_internal/js_dev_runtime/patch/js_patch.dart"
       },
       "js_util": {
-        "uri": "_internal/js_dev_runtime/lib/js_util/dart2js/js_util_dart2js.dart"
+        "uri": "js_util/js_util.dart"
       },
       "svg": {
         "uri": "svg/dart2js/svg_dart2js.dart"

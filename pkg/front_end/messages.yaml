@@ -3768,3 +3768,6 @@ ValueForRequiredParameterNotProvidedError:
 ValueForRequiredParameterNotProvidedWarning:
   template: "Missing required named parameter '#name'."
   severity: WARNING
+
+AwaitInLateLocalInitializer:
+  template: "`await` expressions are not supported in late local initializers."

@@ -196,7 +196,7 @@ class BinaryExpressionResolutionWithNnbdTest extends DriverResolutionTest {
   @override
   bool get typeToStringWithNullability => true;
 
-  test_ifNull_left_nullable() async {
+  test_ifNull_left_nullableContext() async {
     await assertNoErrorsInCode(r'''
 T f<T>(T t) => t;
 
@@ -215,6 +215,48 @@ int g() => f(null) ?? 0;
       findNode.binary('?? 0'),
       element: null,
       type: 'int',
+    );
+  }
+
+  test_ifNull_nullableInt_int() async {
+    await assertNoErrorsInCode(r'''
+main(int? x, int y) {
+  x ?? y;
+}
+''');
+
+    assertBinaryExpression(
+      findNode.binary('x ?? y'),
+      element: null,
+      type: 'int',
+    );
+  }
+
+  test_ifNull_nullableInt_nullableDouble() async {
+    await assertNoErrorsInCode(r'''
+main(int? x, double? y) {
+  x ?? y;
+}
+''');
+
+    assertBinaryExpression(
+      findNode.binary('x ?? y'),
+      element: null,
+      type: 'num?',
+    );
+  }
+
+  test_ifNull_nullableInt_nullableInt() async {
+    await assertNoErrorsInCode(r'''
+main(int? x) {
+  x ?? x;
+}
+''');
+
+    assertBinaryExpression(
+      findNode.binary('x ?? x'),
+      element: null,
+      type: 'int?',
     );
   }
 }

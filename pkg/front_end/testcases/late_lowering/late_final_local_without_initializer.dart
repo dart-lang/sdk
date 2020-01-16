@@ -9,6 +9,21 @@ main() {
   expect(123, lateLocal = 123);
   expect(123, lateLocal);
   throws(() => lateLocal = 124, 'Write value to initialized lateLocal');
+
+  local<T>(T value) {
+    late final T lateGenericLocal;
+
+    throws(() => lateGenericLocal,
+        'Read value from uninitialized lateGenericLocal');
+    expect(value, lateGenericLocal = value);
+    expect(value, lateGenericLocal);
+    throws(() => lateGenericLocal = value,
+        'Write value to initialized lateGenericLocal');
+  }
+
+  local<int?>(null);
+  local<int?>(42);
+  local<int>(42);
 }
 
 expect(expected, actual) {

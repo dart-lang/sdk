@@ -329,12 +329,7 @@ class _BufferingStreamSubscription<T>
    * of pending events later (if necessary).
    */
   void _addPending(_DelayedEvent event) {
-    // TODO(lrn): Restore to:
-    // _StreamImplEvents<T> pending = (_pending ??= _StreamImplEvents<T>());
-    // when that type-checks.
-    var streamEvents = _StreamImplEvents<T>();
-    _pending ??= streamEvents;
-    _StreamImplEvents<T> pending = streamEvents;
+    var pending = (_pending ??= _StreamImplEvents<T>()) as _StreamImplEvents<T>;
     pending.add(event);
     if (!_hasPending) {
       _state |= _STATE_HAS_PENDING;

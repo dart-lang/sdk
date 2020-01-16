@@ -5007,6 +5007,18 @@ class B extends A with ^
     await computeSuggestions();
     assertSuggestMixin('M');
   }
+
+  test_YieldStatement() async {
+    addTestSource('''
+void main() async* {
+  var value;
+  yield v^
+}
+''');
+    await computeSuggestions();
+
+    assertSuggestLocalVariable('value', null);
+  }
 }
 
 @reflectiveTest

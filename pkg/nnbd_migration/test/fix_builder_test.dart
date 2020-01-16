@@ -1110,6 +1110,36 @@ _f(_C c) => c.f();
         changes: {findNode.propertyAccess('c.f'): isNullCheck});
   }
 
+  Future<void> test_ifStatement_dead_else() async {
+    await analyze('''
+_f(int x, int/*?*/ y) {
+  if (x != null) {
+    print(x + 1);
+  } else {
+    print(y + 1);
+  }
+}
+''');
+    var ifStatement = findNode.statement('if');
+    visitStatement(ifStatement,
+        changes: {ifStatement: isEliminateDeadIf(true)});
+  }
+
+  Future<void> test_ifStatement_dead_then() async {
+    await analyze('''
+_f(int x, int/*?*/ y) {
+  if (x == null) {
+    print(y + 1);
+  } else {
+    print(x + 1);
+  }
+}
+''');
+    var ifStatement = findNode.statement('if');
+    visitStatement(ifStatement,
+        changes: {ifStatement: isEliminateDeadIf(false)});
+  }
+
   Future<void> test_ifStatement_flow_promote_in_else() async {
     await analyze('''
 _f(int/*?*/ x) {
@@ -1224,6 +1254,11 @@ _f(_C<int, String/*?*/> c, String/*?*/ s) => c[s];
 f() => 1;
 ''');
     visitSubexpression(findNode.integerLiteral('1'), 'int');
+  }
+
+  Future<void> test_list_unchanged() async {
+    await analyze('_f(int x) => [x];');
+    visitSubexpression(findNode.listLiteral('['), 'List<int>');
   }
 
   Future<void> test_listLiteral_typed() async {
@@ -2278,4 +2313,8 @@ void _f(bool/*?*/ x, bool/*?*/ y) {
             .thisOrAncestorMatching((ancestor) => identical(ancestor, scope)) !=
         null;
   }
+
+  static Matcher isEliminateDeadIf(bool knownValue) =>
+      TypeMatcher<EliminateDeadIf>()
+          .having((c) => c.conditionValue, 'conditionValue', knownValue);
 }

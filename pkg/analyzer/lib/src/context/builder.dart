@@ -41,7 +41,6 @@ import 'package:analyzer/src/workspace/package_build.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:args/args.dart';
-import 'package:package_config/packages.dart' as package_config;
 import 'package:path/src/context.dart';
 import 'package:yaml/yaml.dart';
 
@@ -536,21 +535,6 @@ class ContextBuilder {
       resource = resource.parent;
     }
     return null;
-  }
-
-  static Map<String, List<Folder>> convertPackagesToMap(
-    ResourceProvider resourceProvider,
-    package_config.Packages packages,
-  ) {
-    Map<String, List<Folder>> folderMap = HashMap<String, List<Folder>>();
-    if (packages != null && packages != package_config.Packages.noPackages) {
-      var pathContext = resourceProvider.pathContext;
-      packages.asMap().forEach((String packageName, Uri uri) {
-        String path = fileUriToNormalizedPath(pathContext, uri);
-        folderMap[packageName] = [resourceProvider.getFolder(path)];
-      });
-    }
-    return folderMap;
   }
 
   static Workspace createWorkspace(ResourceProvider resourceProvider,

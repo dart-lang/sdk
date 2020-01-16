@@ -4,7 +4,9 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'driver_resolution.dart';
@@ -12,158 +14,12 @@ import 'driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MethodInvocationResolutionTest);
+    defineReflectiveTests(MethodInvocationResolutionWithNnbdTest);
   });
 }
 
 @reflectiveTest
 class MethodInvocationResolutionTest extends DriverResolutionTest {
-  test_error_abstractSuperMemberReference() async {
-    await assertErrorsInCode(r'''
-abstract class A {
-  void foo(int _);
-}
-abstract class B extends A {
-  void bar() {
-    super.foo(0);
-  }
-
-  void foo(int _) {} // does not matter
-}
-''', [
-      error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 94, 3),
-    ]);
-
-    var invocation = findNode.methodInvocation('foo(0)');
-    assertMethodInvocation(
-      invocation,
-      findElement.method('foo', of: 'A'),
-      'void Function(int)',
-    );
-    assertSuperExpression(invocation.target);
-  }
-
-  test_error_abstractSuperMemberReference_mixin_implements() async {
-    await assertErrorsInCode(r'''
-class A {
-  void foo(int _) {}
-}
-
-mixin M implements A {
-  void bar() {
-    super.foo(0);
-  }
-}
-''', [
-      error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 82, 3),
-    ]);
-
-    var invocation = findNode.methodInvocation('foo(0)');
-    assertMethodInvocation(
-      invocation,
-      findElement.method('foo', of: 'A'),
-      'void Function(int)',
-    );
-    assertSuperExpression(invocation.target);
-  }
-
-  test_error_abstractSuperMemberReference_mixinHasNoSuchMethod() async {
-    await assertErrorsInCode('''
-class A {
-  int foo();
-  noSuchMethod(im) => 42;
-}
-
-class B extends Object with A {
-  foo() => super.foo(); // ref
-  noSuchMethod(im) => 87;
-}
-''', [
-      error(CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE, 101, 3),
-    ]);
-
-    var invocation = findNode.methodInvocation('foo(); // ref');
-    assertMethodInvocation(
-      invocation,
-      findElement.method('foo', of: 'A'),
-      'int Function()',
-    );
-    assertSuperExpression(invocation.target);
-  }
-
-  test_error_abstractSuperMemberReference_OK_mixinHasConcrete() async {
-    await assertNoErrorsInCode('''
-class A {}
-
-class M {
-  void foo(int _) {}
-}
-
-class B = A with M;
-
-class C extends B {
-  void bar() {
-    super.foo(0);
-  }
-}
-''');
-
-    var invocation = findNode.methodInvocation('foo(0)');
-    assertMethodInvocation(
-      invocation,
-      findElement.method('foo', of: 'M'),
-      'void Function(int)',
-    );
-    assertSuperExpression(invocation.target);
-  }
-
-  test_error_abstractSuperMemberReference_OK_superHasNoSuchMethod() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  int foo();
-  noSuchMethod(im) => 42;
-}
-
-class B extends A {
-  int foo() => super.foo(); // ref
-  noSuchMethod(im) => 87;
-}
-''');
-
-    var invocation = findNode.methodInvocation('super.foo(); // ref');
-    assertMethodInvocation(
-      invocation,
-      findElement.method('foo', of: 'A'),
-      'int Function()',
-    );
-    assertSuperExpression(invocation.target);
-  }
-
-  test_error_abstractSuperMemberReference_OK_superSuperHasConcrete() async {
-    await assertNoErrorsInCode('''
-abstract class A {
-  void foo(int _) {}
-}
-
-abstract class B extends A {
-  void foo(int _);
-}
-
-class C extends B {
-  void bar() {
-    super.foo(0);
-  }
-}
-''');
-
-    var invocation = findNode.methodInvocation('foo(0)');
-    assertMethodInvocation(
-      invocation,
-      findElement.method('foo', of: 'A'),
-      'void Function(int)',
-    );
-    assertSuperExpression(invocation.target);
-  }
-
   test_error_ambiguousImport_topFunction() async {
     newFile('/test/lib/a.dart', content: r'''
 void foo(int _) {}
@@ -1834,5 +1690,152 @@ main() {
 //      'dynamic',
 //      expectedType: 'dynamic',
 //    );
+  }
+}
+
+@reflectiveTest
+class MethodInvocationResolutionWithNnbdTest extends DriverResolutionTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions =>
+      AnalysisOptionsImpl()..enabledExperiments = [EnableString.non_nullable];
+
+  test_hasReceiver_interfaceTypeQ_defined() async {
+    await assertErrorsInCode(r'''
+class A {
+  void foo() {}
+}
+
+main(A? a) {
+  a.foo();
+}
+''', [
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 44, 1),
+    ]);
+
+    assertMethodInvocation2(
+      findNode.methodInvocation('a.foo()'),
+      element: findElement.method('foo', of: 'A'),
+      typeArgumentTypes: [],
+      invokeType: 'void Function()',
+      type: 'void',
+    );
+  }
+
+  test_hasReceiver_interfaceTypeQ_defined_extension() async {
+    await assertErrorsInCode(r'''
+class A {
+  void foo() {}
+}
+
+extension E on A {
+  void foo() {}
+}
+
+main(A? a) {
+  a.foo();
+}
+''', [
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 82, 1),
+    ]);
+
+    assertMethodInvocation2(
+      findNode.methodInvocation('a.foo()'),
+      element: findElement.method('foo', of: 'A'),
+      typeArgumentTypes: [],
+      invokeType: 'void Function()',
+      type: 'void',
+    );
+  }
+
+  test_hasReceiver_interfaceTypeQ_defined_extensionQ() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  void foo() {}
+}
+
+extension E on A? {
+  void foo() {}
+}
+
+main(A? a) {
+  a.foo();
+}
+''');
+
+    assertMethodInvocation2(
+      findNode.methodInvocation('a.foo()'),
+      element: findElement.method('foo', of: 'E'),
+      typeArgumentTypes: [],
+      invokeType: 'void Function()',
+      type: 'void',
+    );
+  }
+
+  test_hasReceiver_interfaceTypeQ_notDefined() async {
+    await assertErrorsInCode(r'''
+class A {}
+
+main(A? a) {
+  a.foo();
+}
+''', [
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 27, 1),
+      error(StaticTypeWarningCode.UNDEFINED_METHOD, 29, 3),
+    ]);
+
+    assertMethodInvocation2(
+      findNode.methodInvocation('a.foo()'),
+      element: null,
+      typeArgumentTypes: [],
+      invokeType: 'dynamic',
+      type: 'dynamic',
+    );
+  }
+
+  test_hasReceiver_interfaceTypeQ_notDefined_extension() async {
+    await assertErrorsInCode(r'''
+class A {}
+
+extension E on A {
+  void foo() {}
+}
+
+main(A? a) {
+  a.foo();
+}
+''', [
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 65, 1),
+      error(StaticTypeWarningCode.UNDEFINED_METHOD, 67, 3),
+    ]);
+
+    assertMethodInvocation2(
+      findNode.methodInvocation('a.foo()'),
+      element: null,
+      typeArgumentTypes: [],
+      invokeType: 'dynamic',
+      type: 'dynamic',
+    );
+  }
+
+  test_hasReceiver_interfaceTypeQ_notDefined_extensionQ() async {
+    await assertNoErrorsInCode(r'''
+class A {}
+
+extension E on A? {
+  void foo() {}
+}
+
+main(A? a) {
+  a.foo();
+}
+''');
+
+    assertMethodInvocation2(
+      findNode.methodInvocation('a.foo()'),
+      element: findElement.method('foo', of: 'E'),
+      typeArgumentTypes: [],
+      invokeType: 'void Function()',
+      type: 'void',
+    );
   }
 }

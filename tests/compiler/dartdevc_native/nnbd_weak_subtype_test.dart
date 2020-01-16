@@ -6,7 +6,7 @@
 
 import 'dart:async';
 
-import 'runtime_utils.dart';
+import 'runtime_utils.dart' show voidType;
 import 'runtime_utils_nnbd.dart';
 
 class A {}

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 // For the purposes of the mirrors library, we adopt a naming
 // convention with respect to getters and setters.  Specifically, for
 // some variable or field...
@@ -132,7 +130,7 @@ abstract class MirrorSystem {
    * Using this method may result in larger output.  If possible, use
    * the const constructor of [Symbol] or symbol literals.
    */
-  external static Symbol getSymbol(String name, [LibraryMirror library]);
+  external static Symbol getSymbol(String name, [LibraryMirror? library]);
 }
 
 /**
@@ -184,7 +182,8 @@ external ClassMirror reflectClass(Type key);
  * function can only be used to obtain type mirrors on types of the current
  * isolate.
  */
-external TypeMirror reflectType(Type key, [List<Type> typeArguments]);
+external TypeMirror reflectType(Type key,
+    [List<Type> typeArguments = const <Type>[]]);
 
 /**
  * A [Mirror] reflects some Dart language entity.
@@ -293,7 +292,7 @@ abstract class DeclarationMirror implements Mirror {
    * * For a parameter, local variable or local function the owner is the
    *   immediately enclosing function.
    */
-  DeclarationMirror get owner;
+  DeclarationMirror? get owner;
 
   /**
    * Whether this declaration is library private.
@@ -345,7 +344,7 @@ abstract class DeclarationMirror implements Mirror {
    *
    * This operation is optional and may throw an [UnsupportedError].
    */
-  SourceLocation get location;
+  SourceLocation? get location;
 
   /**
    * A list of the metadata associated with this declaration.
@@ -406,7 +405,7 @@ abstract class ObjectMirror implements Mirror {
    * TODO(turnidge): Handle optional & named arguments.
    */
   InstanceMirror invoke(Symbol memberName, List positionalArguments,
-      [Map<Symbol, dynamic> namedArguments]);
+      [Map<Symbol, dynamic> namedArguments = const <Symbol, dynamic>{}]);
 
   /**
    * Invokes a getter and returns a mirror on the result.
@@ -598,7 +597,7 @@ abstract class ClosureMirror implements InstanceMirror {
    * method throws *e*.
    */
   InstanceMirror apply(List positionalArguments,
-      [Map<Symbol, dynamic> namedArguments]);
+      [Map<Symbol, dynamic> namedArguments = const <Symbol, dynamic>{}]);
 }
 
 /**
@@ -656,17 +655,17 @@ abstract class LibraryDependencyMirror implements Mirror {
 
   /// Returns the library mirror of the library that is imported or exported,
   /// or null if the library is not loaded.
-  LibraryMirror get targetLibrary;
+  LibraryMirror? get targetLibrary;
 
   /// Returns the prefix if this is a prefixed import and `null` otherwise.
-  Symbol get prefix;
+  Symbol? get prefix;
 
   /// Returns the list of show/hide combinators on the import/export
   /// declaration.
   List<CombinatorMirror> get combinators;
 
   /// Returns the source location for this import/export declaration.
-  SourceLocation get location;
+  SourceLocation? get location;
 
   List<InstanceMirror> get metadata;
 
@@ -781,7 +780,7 @@ abstract class ClassMirror implements TypeMirror, ObjectMirror {
    *
    * If this type is [:Object:], the superclass will be null.
    */
-  ClassMirror get superclass;
+  ClassMirror? get superclass;
 
   /**
    * A list of mirrors on the superinterfaces of the reflectee.
@@ -879,7 +878,7 @@ abstract class ClassMirror implements TypeMirror, ObjectMirror {
    *   catch), this method throws *e*.
    */
   InstanceMirror newInstance(Symbol constructorName, List positionalArguments,
-      [Map<Symbol, dynamic> namedArguments]);
+      [Map<Symbol, dynamic> namedArguments = const <Symbol, dynamic>{}]);
 
   /**
    * Whether this mirror is equal to [other].
@@ -983,7 +982,7 @@ abstract class MethodMirror implements DeclarationMirror {
   /**
    * The source code for the reflectee, if available. Otherwise null.
    */
-  String get source;
+  String? get source;
 
   /**
    * A list of mirrors on the parameters for the reflectee.
@@ -1171,7 +1170,7 @@ abstract class ParameterMirror implements VariableMirror {
    *
    * Returns `null` for a required parameter.
    */
-  InstanceMirror get defaultValue;
+  InstanceMirror? get defaultValue;
 }
 
 /**

@@ -928,6 +928,10 @@ late_lowering/late_nullable_local_with_initializer: TextSerializationFailure
 late_lowering/late_nullable_local_without_initializer: TextSerializationFailure
 new_const_insertion/simple: TextSerializationFailure # Was: Pass
 nnbd/assignability: TextSerializationFailure
+nnbd/definite_assignment_and_completion
+nnbd/definite_assignment_and_completion: TextSerializationFailure
+nnbd/forbidden_supers: TextSerializationFailure
+nnbd/forin: TextSerializationFailure
 nnbd/function_types: TextSerializationFailure
 nnbd/infer_if_null: TextSerializationFailure
 nnbd/inheritance_from_opt_in: TypeCheckError
@@ -938,6 +942,10 @@ nnbd/issue39822: TextSerializationFailure
 nnbd/issue_39286: TextSerializationFailure
 nnbd/issue_39286_2: TextSerializationFailure
 nnbd/late: TextSerializationFailure
+nnbd/later: TextSerializationFailure
+nnbd/list_constructor: TextSerializationFailure
+nnbd/member_inheritance_from_opt_in: TextSerializationFailure
+nnbd/member_inheritance_from_opt_out: TextSerializationFailure
 nnbd/messages_with_types_opt_in: TypeCheckError
 nnbd/messages_with_types_opt_out: TypeCheckError
 nnbd/missing_required_named_parameter: TextSerializationFailure
@@ -954,11 +962,15 @@ nnbd/null_shorting_index: TextSerializationFailure
 nnbd/nullable_access: TextSerializationFailure
 nnbd/nullable_null: TextSerializationFailure
 nnbd/nullable_param: TextSerializationFailure
+nnbd/nullable_receiver: TextSerializationFailure
 nnbd/opt_out: TextSerializationFailure
+nnbd/potentially_non_nullable_field: TextSerializationFailure
 nnbd/regress_null_aware: TextSerializationFailure
 nnbd/required: TextSerializationFailure
 nnbd/required_named_parameter: TextSerializationFailure
 nnbd/simple_never: TextSerializationFailure
+nnbd/sink_hierarchy: TextSerializationFailure
+nnbd/strictly_non_nullable_warnings: TextSerializationFailure
 nnbd/substitution_in_inference: TextSerializationFailure
 nnbd/type_parameter_types: TextSerializationFailure
 no_such_method_forwarders/abstract_accessors_from_field: TextSerializationFailure # Was: Pass

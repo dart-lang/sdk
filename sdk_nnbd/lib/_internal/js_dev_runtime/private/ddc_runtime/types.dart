@@ -1494,7 +1494,7 @@ class _TypeInferrer {
       }
     }
     for (var name in supertypeRequiredNamed.keys) {
-      var subtypeParamType = subtypeRequiredNamed[name] ?? subtypeNamed[name];
+      var subtypeParamType = subtypeRequiredNamed[name] ?? subtypeNamed[name]!;
       if (!_isSubtypeMatch(supertypeRequiredNamed[name]!, subtypeParamType)) {
         return false;
       }

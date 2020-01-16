@@ -21,24 +21,24 @@ import 'package:meta/meta.dart';
 /// Helper for resolving [ListLiteral]s and [SetOrMapLiteral]s.
 class TypedLiteralResolver {
   final ResolverVisitor _resolver;
-
   final TypeSystemImpl _typeSystem;
   final TypeProviderImpl _typeProvider;
   final ErrorReporter _errorReporter;
 
   final bool _strictInference;
   final bool _uiAsCodeEnabled;
+
   final bool _isNonNullableByDefault;
 
-  factory TypedLiteralResolver(
-      ResolverVisitor resolver, FeatureSet featureSet) {
+  factory TypedLiteralResolver(ResolverVisitor resolver, FeatureSet featureSet,
+      TypeSystemImpl typeSystem, TypeProviderImpl typeProvider) {
     var library = resolver.definingLibrary as LibraryElementImpl;
     var analysisOptions = library.context.analysisOptions;
     var analysisOptionsImpl = analysisOptions as AnalysisOptionsImpl;
     return TypedLiteralResolver._(
       resolver,
-      library.typeSystem,
-      library.typeProvider,
+      typeSystem,
+      typeProvider,
       resolver.errorReporter,
       analysisOptionsImpl.strictInference,
       featureSet.isEnabled(Feature.control_flow_collections) ||
@@ -541,6 +541,9 @@ class TypedLiteralResolver {
       InferenceContext.setType(element.key, keyType);
       InferenceContext.setType(element.value, valueType);
     } else if (element is SpreadElement) {
+      if (_isNonNullableByDefault && element.isNullAware) {
+        iterableType = _typeSystem.makeNullable(iterableType);
+      }
       InferenceContext.setType(element.expression, iterableType);
     }
   }

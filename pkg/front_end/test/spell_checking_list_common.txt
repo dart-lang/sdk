@@ -383,6 +383,7 @@ cascade
 cascaded
 cascading
 case
+cased
 cases
 casting
 catch
@@ -589,6 +590,7 @@ constructs
 constuctor
 consume
 consumed
+consumer
 consuming
 contain
 contained
@@ -1424,6 +1426,7 @@ inherit
 inheritable
 inheritance
 inherited
+inheriting
 inherits
 initial
 initialization
@@ -2199,6 +2202,7 @@ promotable
 promote
 promoted
 promoter
+promotes
 promotion
 promotions
 propagate
@@ -2647,6 +2651,7 @@ sorted
 sorting
 sorts
 sought
+sound
 source
 sources
 space

@@ -7589,24 +7589,6 @@ class StaticWarningCode extends AnalyzerErrorCode {
           errorSeverity: ErrorSeverity.WARNING);
 
   /**
-   * It is an error to call a method or getter on an expression of type `Never`,
-   * or to invoke it as if it were a function.
-   *
-   * Go out of our way to provide a *little* more information here because many
-   * dart users probably have never heard of the type Never. Be careful however
-   * of providing too much information or it only becomes more confusing. Hard
-   * balance to strike.
-   *
-   * Parameters: none
-   */
-  static const StaticWarningCode INVALID_USE_OF_NEVER_VALUE = StaticWarningCode(
-      'INVALID_USE_OF_NEVER_VALUE',
-      'This expression is invalid because its target is of type Never and'
-          ' will never complete with a value',
-      correction: 'Try checking for throw expressions or type errors in the'
-          ' target expression');
-
-  /**
    * For the purposes of experimenting with potential non-null type semantics.
    *
    * Whereas [UNCHECKED_USE_OF_NULLABLE] refers to using a value of type T? as

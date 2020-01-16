@@ -101,7 +101,8 @@ import '../fasta_codes.dart'
         templateRedirectingFactoryIncompatibleTypeArgument,
         templateTypeArgumentMismatch;
 
-import '../kernel/redirecting_factory_body.dart' show getRedirectingFactoryBody;
+import '../kernel/redirecting_factory_body.dart'
+    show getRedirectingFactoryBody, redirectingName;
 
 import '../kernel/kernel_target.dart' show KernelTarget;
 
@@ -251,12 +252,6 @@ abstract class ClassBuilder implements DeclarationBuilder {
       bool isSetter,
       callback(Member declaredMember, Member interfaceMember, bool isSetter),
       {bool isInterfaceCheck = false});
-
-  void checkOverrides(
-      ClassHierarchy hierarchy, TypeEnvironment typeEnvironment);
-
-  void checkAbstractMembers(CoreTypes coreTypes, ClassHierarchy hierarchy,
-      TypeEnvironment typeEnvironment);
 
   bool hasUserDefinedNoSuchMethod(
       Class klass, ClassHierarchy hierarchy, Class objectClass);
@@ -970,7 +965,6 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     // [constructor.target].
     //
     // TODO(ahe): Add a kernel node to represent redirecting factory bodies.
-    const String redirectingName = "_redirecting#";
     DillMemberBuilder constructorsField =
         origin.scope.lookupLocalMember(redirectingName, setter: false);
     if (constructorsField == null) {
@@ -1075,14 +1069,6 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     }
     // TODO(ahe): Handle other cases: accessors, operators, and fields.
   }
-
-  @override
-  void checkOverrides(
-      ClassHierarchy hierarchy, TypeEnvironment typeEnvironment) {}
-
-  @override
-  void checkAbstractMembers(CoreTypes coreTypes, ClassHierarchy hierarchy,
-      TypeEnvironment typeEnvironment) {}
 
   @override
   bool hasUserDefinedNoSuchMethod(

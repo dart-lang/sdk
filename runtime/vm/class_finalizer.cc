@@ -1232,7 +1232,6 @@ void ClassFinalizer::AllocateEnumValues(const Class& enum_cls) {
       zone, enum_cls.LookupStaticField(Symbols::_DeletedEnumSentinel()));
   ASSERT(!sentinel.IsNull());
   sentinel.SetStaticValue(enum_value, true);
-  sentinel.RecordStore(enum_value);
 
   ASSERT(enum_cls.is_declared_in_bytecode() || enum_cls.kernel_offset() > 0);
   Error& error = Error::Handle(zone);

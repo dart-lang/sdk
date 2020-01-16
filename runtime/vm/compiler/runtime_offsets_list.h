@@ -90,8 +90,8 @@
   PRECOMP_NO_CHECK(FIELD(Field, is_nullable_offset))                           \
   PRECOMP_NO_CHECK(FIELD(Field, kind_bits_offset))                             \
   FIELD(Function, code_offset)                                                 \
-  FIELD(Function, entry_point_offset)                                          \
-  FIELD(Function, unchecked_entry_point_offset)                                \
+  RANGE(Function, entry_point_offset, CodeEntryKind, CodeEntryKind::kNormal,   \
+        CodeEntryKind::kUnchecked, [](CodeEntryKind value) { return true; })   \
   PRECOMP_NO_CHECK(FIELD(Function, usage_counter_offset))                      \
   FIELD(GrowableObjectArray, data_offset)                                      \
   FIELD(GrowableObjectArray, length_offset)                                    \
@@ -243,9 +243,6 @@
   NOT_IN_PRODUCT(ARRAY(ClassTable, ClassOffsetFor))                            \
   RANGE(Code, entry_point_offset, CodeEntryKind, CodeEntryKind::kNormal,       \
         CodeEntryKind::kMonomorphicUnchecked,                                  \
-        [](CodeEntryKind value) { return true; })                              \
-  RANGE(Code, function_entry_point_offset, CodeEntryKind,                      \
-        CodeEntryKind::kNormal, CodeEntryKind::kUnchecked,                     \
         [](CodeEntryKind value) { return true; })                              \
   ONLY_IN_ARM_ARM64_X64(RANGE(                                                 \
       Thread, write_barrier_wrappers_thread_offset, Register, 0,               \

@@ -248,6 +248,134 @@ class A { const A(int one, int two, int three, {int four, String five:
     assertNoSuggestions();
   }
 
+  test_ArgumentList_closureFunction_namedParameter() async {
+    addTestSource(r'''
+void f({void Function(int a, String b) closure}) {}
+
+void main() {
+  f(closure: ^);
+}
+''');
+    await computeSuggestions();
+
+    assertSuggest(
+      '(a, b) => ,',
+      relevance: DART_RELEVANCE_HIGH,
+      selectionOffset: 10,
+    );
+
+    assertSuggest(
+      '''
+(a, b) {
+${' ' * 4}
+${' ' * 2}},''',
+      selectionOffset: 13,
+    );
+  }
+
+  test_ArgumentList_closureFunction_namedParameter_hasComma() async {
+    addTestSource(r'''
+void f({void Function(int a, String b) closure}) {}
+
+void main() {
+  f(
+    closure: ^,
+  );
+}
+''');
+    await computeSuggestions();
+
+    assertSuggest(
+      '(a, b) => ',
+      selectionOffset: 10,
+    );
+
+    assertSuggest(
+      '''
+(a, b) {
+${' ' * 6}
+${' ' * 4}}''',
+      selectionOffset: 15,
+    );
+  }
+
+  /// todo (pq): implement positional functional parameters
+  @failingTest
+  test_ArgumentList_closureFunction_positionalParameter() async {
+    addTestSource(r'''
+void f(void Function(int a, int b) closure) {}
+
+void main() {
+  f(^);
+}
+''');
+    await computeSuggestions();
+
+    assertSuggest(
+      '(a, b, c) => ,',
+      selectionOffset: 13,
+    );
+  }
+
+  test_ArgumentList_closureMethod_namedParameter() async {
+    addTestSource(r'''
+class C {
+  void f({void Function(int a, String b) closure}) {}
+
+  void main() {
+    f(closure: ^);
+  }
+}
+''');
+    await computeSuggestions();
+
+    assertSuggest(
+      '(a, b) => ,',
+      selectionOffset: 10,
+    );
+
+    assertSuggest(
+      '''
+(a, b) {
+${' ' * 6}
+${' ' * 4}},''',
+      selectionOffset: 15,
+    );
+  }
+
+  test_ArgumentList_closureParameterOptionalNamed() async {
+    addTestSource(r'''
+void f({void Function(int a, {int b, int c}) closure}) {}
+
+void main() {
+  f(closure: ^);
+}
+''');
+    await computeSuggestions();
+
+    assertSuggest(
+      '(a, {b, c}) => ,',
+      selectionOffset: 15,
+    );
+  }
+
+  test_ArgumentList_closureParameterOptionalPositional() async {
+    addTestSource(r'''
+void f({void Function(int a, [int b, int c]) closure]) {}
+
+void main() {
+  f(closure: ^);
+}
+''');
+    await computeSuggestions();
+
+    assertSuggest(
+      '(a, [b, c]) => ,',
+      relevance: DART_RELEVANCE_HIGH,
+      selectionOffset: 15,
+    );
+  }
+
   test_ArgumentList_Flutter_InstanceCreationExpression_0() async {
     addFlutterPackage();
 

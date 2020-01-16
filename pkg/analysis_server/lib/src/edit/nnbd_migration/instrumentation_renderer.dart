@@ -29,15 +29,19 @@ mustache.Template _template = mustache.Template(r'''
     <h2 id="unit-name">&nbsp;</h2>
     <div class="panels">
     <div class="horizontal">
-    <div class="nav" style="">
-      <p>Select a source file below to preview the modifications.</p>
-      <p class="root">{{ root }}</p>
-      {{# links }}
-        <a href="{{ path }}" class="nav-link"
-            data-name="{{ name }}">{{ name }}</a>
-        {{ modificationCount }}
-        <br/>
-      {{/ links }}
+    <div class="nav">
+      <p class="nav-tip">
+      Select a source file below to preview the modifications.
+      </p>
+      <div class="nav-inner">
+        <p class="root">{{ root }}</p>
+        {{# links }}
+          <a href="{{ path }}" class="nav-link"
+              data-name="{{ name }}">{{ name }}</a>
+          {{ modificationCount }}
+          <br/>
+        {{/ links }}
+      </div><!-- /nav-inner -->
     </div><!-- /nav -->
     '''
     '<div class="content">'
@@ -46,10 +50,10 @@ mustache.Template _template = mustache.Template(r'''
     '{{! The regions are then written again, overlaying the first copy of }}'
     '{{! the content, to provide tooltips for modified regions. }}'
     '</div><!-- /regions -->'
+    '<div class="footer"><em>Generated on {{ generationDate }}</em></div>'
     '</div><!-- /content -->'
     '''
     </div><!-- /horizontal -->
-    <div><em>Generated on {{ generationDate }}</em></div>
     </div><!-- /panels -->
     <script lang="javascript">
 document.addEventListener("DOMContentLoaded", highlightAllCode);

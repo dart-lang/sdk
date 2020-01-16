@@ -153,7 +153,7 @@ vm:
       uri: "vmservice/vmservice.dart"
 
     vmservice_io:
-      uri: "../../runtime/bin/vmservice/vmservice_io.dart"
+      uri: "_internal/vm/bin/vmservice_io.dart"
 
 dart2js:
   libraries:
@@ -208,7 +208,7 @@ dart2js:
       patches: "js/_js_client.dart"
 
     js_util:
-      uri: "js_util/dart2js/js_util_dart2js.dart"
+      uri: "js_util/js_util.dart"
 
     math:
       uri: "math/math.dart"
@@ -316,7 +316,7 @@ dart2js_server:
       patches: "js/_js_server.dart"
 
     js_util:
-      uri: "js_util/dart2js/js_util_dart2js.dart"
+      uri: "js_util/js_util.dart"
 
     math:
       uri: "math/math.dart"
@@ -461,7 +461,7 @@ dartdevc:
         patches: "_internal/js_dev_runtime/patch/js_patch.dart"
 
       js_util:
-        uri: "_internal/js_dev_runtime/lib/js_util/dart2js/js_util_dart2js.dart"
+        uri: "js_util/js_util.dart"
 
       svg:
         uri: "svg/dart2js/svg_dart2js.dart"

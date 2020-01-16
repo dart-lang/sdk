@@ -1351,6 +1351,27 @@ class HintCode extends AnalyzerErrorCode {
       "A package import shouldn't contain '..'.");
 
   /**
+   * It is not an error to call or tear-off a method, setter, or getter, or to
+   * read or write a field, on a receiver of static type `Never`.
+   * Implementations that provide feedback about dead or unreachable code are
+   * encouraged to indicate that any arguments to the invocation are
+   * unreachable.
+   *
+   * It is not an error to apply an expression of type `Never` in the function
+   * position of a function call. Implementations that provide feedback about
+   * dead or unreachable code are encouraged to indicate that any arguments to
+   * the call are unreachable.
+   *
+   * Parameters: none
+   */
+  static const HintCode RECEIVER_OF_TYPE_NEVER = HintCode(
+      'RECEIVER_OF_TYPE_NEVER',
+      'The receiver expression is of type Never, and will never complete '
+          'with a value.',
+      correction: 'Try checking for throw expressions or type errors in the'
+          ' target expression');
+
+  /**
    * No parameters.
    */
   // #### Description

@@ -111,9 +111,8 @@ static constexpr dart::compiler::target::word Field_guarded_list_length_offset =
 static constexpr dart::compiler::target::word Field_is_nullable_offset = 46;
 static constexpr dart::compiler::target::word Field_kind_bits_offset = 60;
 static constexpr dart::compiler::target::word Function_code_offset = 44;
-static constexpr dart::compiler::target::word Function_entry_point_offset = 4;
-static constexpr dart::compiler::target::word
-    Function_unchecked_entry_point_offset = 8;
+static constexpr dart::compiler::target::word Function_entry_point_offset[] = {
+    4, 8};
 static constexpr dart::compiler::target::word Function_usage_counter_offset =
     76;
 static constexpr dart::compiler::target::word GrowableObjectArray_data_offset =
@@ -361,8 +360,6 @@ static constexpr dart::compiler::target::word ClassTable_element_size = 1;
 static constexpr dart::compiler::target::word Code_entry_point_offset[] = {
     4, 12, 8, 16};
 static constexpr dart::compiler::target::word
-    Code_function_entry_point_offset[] = {4, 8};
-static constexpr dart::compiler::target::word
     Thread_write_barrier_wrappers_thread_offset[] = {
         628, 632, 636, 640, 644, -1, 648, 652,
         656, 660, -1,  -1,  -1,  -1, -1,  -1};
@@ -485,9 +482,8 @@ static constexpr dart::compiler::target::word Field_guarded_list_length_offset =
 static constexpr dart::compiler::target::word Field_is_nullable_offset = 82;
 static constexpr dart::compiler::target::word Field_kind_bits_offset = 104;
 static constexpr dart::compiler::target::word Function_code_offset = 88;
-static constexpr dart::compiler::target::word Function_entry_point_offset = 8;
-static constexpr dart::compiler::target::word
-    Function_unchecked_entry_point_offset = 16;
+static constexpr dart::compiler::target::word Function_entry_point_offset[] = {
+    8, 16};
 static constexpr dart::compiler::target::word Function_usage_counter_offset =
     132;
 static constexpr dart::compiler::target::word GrowableObjectArray_data_offset =
@@ -737,8 +733,6 @@ static constexpr dart::compiler::target::word ClassTable_element_size = 1;
 static constexpr dart::compiler::target::word Code_entry_point_offset[] = {
     8, 24, 16, 32};
 static constexpr dart::compiler::target::word
-    Code_function_entry_point_offset[] = {8, 16};
-static constexpr dart::compiler::target::word
     Thread_write_barrier_wrappers_thread_offset[] = {
         1248, 1256, 1264, 1272, -1,   -1,   1280, 1288,
         1296, 1304, 1312, -1,   1320, 1328, -1,   -1};
@@ -859,9 +853,8 @@ static constexpr dart::compiler::target::word Field_guarded_list_length_offset =
 static constexpr dart::compiler::target::word Field_is_nullable_offset = 46;
 static constexpr dart::compiler::target::word Field_kind_bits_offset = 60;
 static constexpr dart::compiler::target::word Function_code_offset = 44;
-static constexpr dart::compiler::target::word Function_entry_point_offset = 4;
-static constexpr dart::compiler::target::word
-    Function_unchecked_entry_point_offset = 8;
+static constexpr dart::compiler::target::word Function_entry_point_offset[] = {
+    4, 8};
 static constexpr dart::compiler::target::word Function_usage_counter_offset =
     76;
 static constexpr dart::compiler::target::word GrowableObjectArray_data_offset =
@@ -1108,8 +1101,6 @@ static constexpr dart::compiler::target::word ClassTable_elements_start_offset =
 static constexpr dart::compiler::target::word ClassTable_element_size = 1;
 static constexpr dart::compiler::target::word Code_entry_point_offset[] = {
     4, 12, 8, 16};
-static constexpr dart::compiler::target::word
-    Code_function_entry_point_offset[] = {4, 8};
 static constexpr dart::compiler::target::word Array_header_size = 12;
 static constexpr dart::compiler::target::word Context_header_size = 12;
 static constexpr dart::compiler::target::word Double_InstanceSize = 16;
@@ -1229,9 +1220,8 @@ static constexpr dart::compiler::target::word Field_guarded_list_length_offset =
 static constexpr dart::compiler::target::word Field_is_nullable_offset = 82;
 static constexpr dart::compiler::target::word Field_kind_bits_offset = 104;
 static constexpr dart::compiler::target::word Function_code_offset = 88;
-static constexpr dart::compiler::target::word Function_entry_point_offset = 8;
-static constexpr dart::compiler::target::word
-    Function_unchecked_entry_point_offset = 16;
+static constexpr dart::compiler::target::word Function_entry_point_offset[] = {
+    8, 16};
 static constexpr dart::compiler::target::word Function_usage_counter_offset =
     132;
 static constexpr dart::compiler::target::word GrowableObjectArray_data_offset =
@@ -1480,8 +1470,6 @@ static constexpr dart::compiler::target::word ClassTable_elements_start_offset =
 static constexpr dart::compiler::target::word ClassTable_element_size = 1;
 static constexpr dart::compiler::target::word Code_entry_point_offset[] = {
     8, 24, 16, 32};
-static constexpr dart::compiler::target::word
-    Code_function_entry_point_offset[] = {8, 16};
 static constexpr dart::compiler::target::word
     Thread_write_barrier_wrappers_thread_offset[] = {
         1248, 1256, 1264, 1272, 1280, 1288, 1296, 1304, 1312, 1320, 1328,

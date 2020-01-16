@@ -30,6 +30,9 @@ import 'package:kernel/transformations/flags.dart' show TransformerFlag;
 
 import "package:kernel/type_algebra.dart" show Substitution;
 
+import "package:kernel/src/legacy_erasure.dart";
+import "package:kernel/src/nnbd_top_merge.dart";
+
 import "../builder/class_builder.dart";
 
 import "../problems.dart" show unhandled;
@@ -77,8 +80,38 @@ class ForwardingNode {
   /// stub is introduced as a place to put the checks.
   Member _computeCovarianceFixes() {
     Member interfaceMember = combinedMemberSignatureResult.member;
-    Substitution substitution =
-        _substitutionFor(interfaceMember, enclosingClass);
+
+    List<TypeParameter> interfaceMemberTypeParameters =
+        interfaceMember.function?.typeParameters ?? [];
+
+    List<TypeParameter> stubTypeParameters;
+    if (interfaceMember.enclosingClass != enclosingClass &&
+        interfaceMemberTypeParameters.isNotEmpty) {
+      // Create type parameters for the stub up front. These are needed to
+      // ensure the [substitutions] are alpha renamed to the same type
+      // parameters.
+      stubTypeParameters = new List<TypeParameter>.filled(
+          interfaceMemberTypeParameters.length, null);
+      for (int i = 0; i < interfaceMemberTypeParameters.length; i++) {
+        TypeParameter targetTypeParameter = interfaceMemberTypeParameters[i];
+        TypeParameter typeParameter = new TypeParameter(
+            targetTypeParameter.name, null)
+          ..isGenericCovariantImpl = targetTypeParameter.isGenericCovariantImpl;
+        stubTypeParameters[i] = typeParameter;
+      }
+    }
+
+    List<Substitution> substitutions =
+        new List<Substitution>(_candidates.length);
+    Substitution substitution;
+    for (int j = 0; j < _candidates.length; j++) {
+      Member otherMember = getCandidateAt(j);
+      substitutions[j] =
+          _substitutionFor(stubTypeParameters, otherMember, enclosingClass);
+      if (otherMember == interfaceMember) {
+        substitution = substitutions[j];
+      }
+    }
     // We always create a forwarding stub when we've inherited a member from an
     // interface other than the first override candidate.  This is to work
     // around a bug in the Kernel type checker where it chooses the first
@@ -89,7 +122,8 @@ class ForwardingNode {
     Member stub = interfaceMember.enclosingClass == enclosingClass ||
             interfaceMember == getCandidateAt(0)
         ? interfaceMember
-        : _createForwardingStub(substitution, interfaceMember);
+        : _createForwardingStub(
+            stubTypeParameters, substitution, interfaceMember);
 
     FunctionNode interfaceFunction = interfaceMember.function;
     List<VariableDeclaration> interfacePositionalParameters =
@@ -99,10 +133,20 @@ class ForwardingNode {
     List<TypeParameter> interfaceTypeParameters =
         interfaceFunction?.typeParameters ?? [];
 
-    void createStubIfNeeded() {
-      if (stub != interfaceMember) return;
+    void createStubIfNeeded({bool forMemberSignature: false}) {
+      if (stub != interfaceMember) {
+        Procedure procedure = stub;
+        if (forMemberSignature) {
+          procedure.isMemberSignature = true;
+        } else {
+          procedure.isForwardingStub = true;
+        }
+        return;
+      }
       if (interfaceMember.enclosingClass == enclosingClass) return;
-      stub = _createForwardingStub(substitution, interfaceMember);
+      stub = _createForwardingStub(
+          stubTypeParameters, substitution, interfaceMember,
+          forMemberSignature: forMemberSignature);
     }
 
     bool isImplCreated = false;
@@ -125,15 +169,36 @@ class ForwardingNode {
     bool needsCheck(DartType type) => needsCheckVisitor == null
         ? false
         : substitution.substituteType(type).accept(needsCheckVisitor);
+    bool enableNonNullable = hierarchy.loader.target.enableNonNullable;
+    bool isNonNullableByDefault =
+        enableNonNullable && parent.library.isNonNullableByDefault;
+
+    DartType initialType(DartType a) {
+      if (!enableNonNullable) return null;
+      if (!isNonNullableByDefault) {
+        a = legacyErasure(hierarchy.coreTypes, a);
+      }
+      return a;
+    }
+
+    DartType mergeTypes(DartType a, DartType b) {
+      if (a == null) return null;
+      if (!isNonNullableByDefault) {
+        b = legacyErasure(hierarchy.coreTypes, b);
+      }
+      return nnbdTopMerge(hierarchy.coreTypes, a, b);
+    }
+
     for (int i = 0; i < interfacePositionalParameters.length; i++) {
       VariableDeclaration parameter = interfacePositionalParameters[i];
+      DartType parameterType = parameter.type;
+      DartType type = initialType(substitution.substituteType(parameterType));
       bool isGenericCovariantImpl =
           parameter.isGenericCovariantImpl || needsCheck(parameter.type);
       bool isCovariant = parameter.isCovariant;
       VariableDeclaration superParameter = parameter;
       for (int j = 0; j < _candidates.length; j++) {
         Member otherMember = getCandidateAt(j);
-        if (otherMember is ForwardingNode) continue;
         List<VariableDeclaration> otherPositionalParameters =
             getPositionalParameters(otherMember);
         if (otherPositionalParameters.length <= i) continue;
@@ -146,6 +211,8 @@ class ForwardingNode {
         if (otherParameter.isCovariant) {
           isCovariant = true;
         }
+        type = mergeTypes(
+            type, substitutions[j].substituteType(otherParameter.type));
       }
       if (isGenericCovariantImpl) {
         if (!superParameter.isGenericCovariantImpl) {
@@ -165,9 +232,19 @@ class ForwardingNode {
           stub.function.positionalParameters[i].isCovariant = true;
         }
       }
+      if (enableNonNullable) {
+        if (type != null && type != parameterType) {
+          // TODO(johnniwinther): Report an error when [type] is null; this
+          // means that nnbd-top-merge was not defined.
+          createStubIfNeeded(forMemberSignature: true);
+          stub.function.positionalParameters[i].type = type;
+        }
+      }
     }
     for (int i = 0; i < interfaceNamedParameters.length; i++) {
       VariableDeclaration parameter = interfaceNamedParameters[i];
+      DartType parameterType = parameter.type;
+      DartType type = initialType(substitution.substituteType(parameterType));
       bool isGenericCovariantImpl =
           parameter.isGenericCovariantImpl || needsCheck(parameter.type);
       bool isCovariant = parameter.isCovariant;
@@ -186,6 +263,8 @@ class ForwardingNode {
         if (otherParameter.isCovariant) {
           isCovariant = true;
         }
+        type = mergeTypes(
+            type, substitutions[j].substituteType(otherParameter.type));
       }
       if (isGenericCovariantImpl) {
         if (!superParameter.isGenericCovariantImpl) {
@@ -203,6 +282,14 @@ class ForwardingNode {
         if (!parameter.isCovariant) {
           createStubIfNeeded();
           stub.function.namedParameters[i].isCovariant = true;
+        }
+      }
+      if (enableNonNullable) {
+        if (type != null && type != parameterType) {
+          // TODO(johnniwinther): Report an error when [type] is null; this
+          // means that nnbd-top-merge was not defined.
+          createStubIfNeeded(forMemberSignature: true);
+          stub.function.namedParameters[i].type = type;
         }
       }
     }
@@ -232,6 +319,22 @@ class ForwardingNode {
           createStubIfNeeded();
           stub.function.typeParameters[i].isGenericCovariantImpl = true;
         }
+      }
+    }
+    if (enableNonNullable) {
+      DartType returnType =
+          substitution.substituteType(getReturnType(interfaceMember));
+      DartType type = initialType(returnType);
+      for (int j = 0; j < _candidates.length; j++) {
+        Member otherMember = getCandidateAt(j);
+        type = mergeTypes(
+            type, substitutions[j].substituteType(getReturnType(otherMember)));
+      }
+      if (type != null && type != returnType) {
+        // TODO(johnniwinther): Report an error when [type] is null; this
+        // means that nnbd-top-merge was not defined.
+        createStubIfNeeded(forMemberSignature: true);
+        stub.function.returnType = type;
       }
     }
     return stub;
@@ -299,7 +402,9 @@ class ForwardingNode {
   }
 
   /// Creates a forwarding stub based on the given [target].
-  Procedure _createForwardingStub(Substitution substitution, Member target) {
+  Procedure _createForwardingStub(List<TypeParameter> typeParameters,
+      Substitution substitution, Member target,
+      {bool forMemberSignature: false}) {
     VariableDeclaration copyParameter(VariableDeclaration parameter) {
       return new VariableDeclaration(parameter.name,
           type: substitution.substituteType(parameter.type),
@@ -309,21 +414,14 @@ class ForwardingNode {
 
     List<TypeParameter> targetTypeParameters =
         target.function?.typeParameters ?? [];
-    List<TypeParameter> typeParameters;
-    if (targetTypeParameters.isNotEmpty) {
-      typeParameters =
-          new List<TypeParameter>.filled(targetTypeParameters.length, null);
+    if (typeParameters != null) {
       Map<TypeParameter, DartType> additionalSubstitution =
           <TypeParameter, DartType>{};
       for (int i = 0; i < targetTypeParameters.length; i++) {
         TypeParameter targetTypeParameter = targetTypeParameters[i];
-        TypeParameter typeParameter = new TypeParameter(
-            targetTypeParameter.name, null)
-          ..isGenericCovariantImpl = targetTypeParameter.isGenericCovariantImpl;
-        typeParameters[i] = typeParameter;
         additionalSubstitution[targetTypeParameter] =
             new TypeParameterType.forAlphaRenaming(
-                targetTypeParameter, typeParameter);
+                targetTypeParameter, typeParameters[i]);
       }
       substitution = Substitution.combine(
           substitution, Substitution.fromMap(additionalSubstitution));
@@ -350,7 +448,8 @@ class ForwardingNode {
     }
     return new Procedure(name, kind, function,
         isAbstract: true,
-        isForwardingStub: true,
+        isForwardingStub: !forMemberSignature,
+        isMemberSignature: forMemberSignature,
         fileUri: enclosingClass.fileUri,
         forwardingStubInterfaceTarget: finalTarget)
       ..startFileOffset = enclosingClass.fileOffset
@@ -380,12 +479,27 @@ class ForwardingNode {
     }
   }
 
-  Substitution _substitutionFor(Member candidate, Class class_) {
-    return Substitution.fromInterfaceType(hierarchy.getKernelTypeAsInstanceOf(
-        hierarchy.coreTypes
-            .thisInterfaceType(class_, class_.enclosingLibrary.nonNullable),
-        candidate.enclosingClass,
-        class_.enclosingLibrary));
+  Substitution _substitutionFor(
+      List<TypeParameter> stubTypeParameters, Member candidate, Class class_) {
+    Substitution substitution = Substitution.fromInterfaceType(
+        hierarchy.getKernelTypeAsInstanceOf(
+            hierarchy.coreTypes
+                .thisInterfaceType(class_, class_.enclosingLibrary.nonNullable),
+            candidate.enclosingClass,
+            class_.enclosingLibrary));
+    if (stubTypeParameters != null) {
+      // If the stub is generic ensure that type parameters are alpha renamed
+      // to the [stubTypeParameters].
+      Map<TypeParameter, TypeParameterType> map = {};
+      for (int i = 0; i < stubTypeParameters.length; i++) {
+        TypeParameter typeParameter = candidate.function.typeParameters[i];
+        map[typeParameter] = new TypeParameterType.forAlphaRenaming(
+            typeParameter, stubTypeParameters[i]);
+      }
+      substitution =
+          Substitution.combine(substitution, Substitution.fromMap(map));
+    }
+    return substitution;
   }
 
   List<VariableDeclaration> getPositionalParameters(Member member) {

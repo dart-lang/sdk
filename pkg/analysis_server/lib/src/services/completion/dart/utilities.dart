@@ -24,6 +24,17 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol
 const DYNAMIC = 'dynamic';
 
 /**
+ * Sort by relevance first, highest to lowest, and then by the completion
+ * alphabetically.
+ */
+Comparator<CompletionSuggestion> completionComparator = (a, b) {
+  if (a.relevance == b.relevance) {
+    return a.completion.compareTo(b.completion);
+  }
+  return b.relevance.compareTo(a.relevance);
+};
+
+/**
  * A marker used in place of `null` when a function has no return type.
  */
 final TypeName NO_RETURN_TYPE = astFactory.typeName(
@@ -172,6 +183,22 @@ DefaultArgument getDefaultStringParameterValue(ParameterElement param) {
   }
 
   return null;
+}
+
+String getRequestLineIndent(DartCompletionRequest request) {
+  var content = request.result.content;
+  var lineStartOffset = request.offset;
+  var notWhitespaceOffset = request.offset;
+  for (; lineStartOffset > 0; lineStartOffset--) {
+    var char = content.substring(lineStartOffset - 1, lineStartOffset);
+    if (char == '\n') {
+      break;
+    }
+    if (char != ' ' && char != '\t') {
+      notWhitespaceOffset = lineStartOffset - 1;
+    }
+  }
+  return content.substring(lineStartOffset, notWhitespaceOffset);
 }
 
 String getTypeString(DartType type) {

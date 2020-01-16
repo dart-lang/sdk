@@ -159,53 +159,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
   @override
-  void visitAssignmentExpression(AssignmentExpression node) {
-    Token operator = node.operator;
-    TokenType operatorType = operator.type;
-    Expression leftHandSide = node.leftHandSide;
-    DartType staticType = _getStaticType(leftHandSide, read: true);
-
-    // For any compound assignments to a void or nullable variable, report it.
-    // Example: `y += voidFn()`, not allowed.
-    if (operatorType != TokenType.EQ) {
-      if (staticType != null && staticType.isVoid) {
-        _errorReporter.reportErrorForToken(
-          StaticWarningCode.USE_OF_VOID_RESULT,
-          operator,
-        );
-        return;
-      }
-    }
-
-    if (operatorType != TokenType.AMPERSAND_AMPERSAND_EQ &&
-        operatorType != TokenType.BAR_BAR_EQ &&
-        operatorType != TokenType.EQ &&
-        operatorType != TokenType.QUESTION_QUESTION_EQ) {
-      operatorType = operatorFromCompoundAssignment(operatorType);
-      if (leftHandSide != null) {
-        String methodName = operatorType.lexeme;
-        // TODO(brianwilkerson) Change the [methodNameNode] from the left hand
-        //  side to the operator.
-        var result = _typePropertyResolver.resolve(
-          receiver: leftHandSide,
-          receiverType: staticType,
-          name: methodName,
-          receiverErrorNode: leftHandSide,
-          nameErrorNode: leftHandSide,
-        );
-        node.staticElement = result.getter;
-        if (_shouldReportInvalidMember(staticType, result)) {
-          _errorReporter.reportErrorForToken(
-            StaticTypeWarningCode.UNDEFINED_OPERATOR,
-            operator,
-            [methodName, staticType],
-          );
-        }
-      }
-    }
-  }
-
-  @override
   void visitBreakStatement(BreakStatement node) {
     node.target = _lookupBreakOrContinueTarget(node, node.label, false);
   }
@@ -454,7 +407,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
 
     if (identical(targetType, NeverTypeImpl.instance)) {
       _resolver.errorReporter.reportErrorForNode(
-        StaticWarningCode.INVALID_USE_OF_NEVER_VALUE,
+        HintCode.RECEIVER_OF_TYPE_NEVER,
         target,
       );
       return;
@@ -967,7 +920,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
       );
     } else if (identical(staticType, NeverTypeImpl.instance)) {
       _resolver.errorReporter.reportErrorForNode(
-        StaticWarningCode.INVALID_USE_OF_NEVER_VALUE,
+        HintCode.RECEIVER_OF_TYPE_NEVER,
         target,
       );
     } else {
@@ -1591,11 +1544,15 @@ class ElementResolver extends SimpleAstVisitor<void> {
           // A more specific error will be reported in ErrorVerifier.
         }
       } else if (result.isNone) {
-        _errorReporter.reportErrorForNode(
-          StaticTypeWarningCode.UNDEFINED_SETTER,
-          propertyName,
-          [propertyName.name, staticType],
-        );
+        if (staticType is NeverTypeImpl) {
+          // OK
+        } else {
+          _errorReporter.reportErrorForNode(
+            StaticTypeWarningCode.UNDEFINED_SETTER,
+            propertyName,
+            [propertyName.name, staticType],
+          );
+        }
       }
     }
   }
@@ -1684,21 +1641,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
    */
   DartType _resolveTypeParameter(DartType type) =>
       type?.resolveToBound(_typeProvider.objectType);
-
-  /**
-   * Return `true` if we should report an error for the lookup [result] on
-   * the [type].
-   */
-  bool _shouldReportInvalidMember(DartType type, ResolutionResult result) {
-    if (result.isNone && type != null && !type.isDynamic) {
-      if (_typeSystem.isNonNullableByDefault &&
-          _typeSystem.isPotentiallyNullable(type)) {
-        return false;
-      }
-      return true;
-    }
-    return false;
-  }
 
   /**
    * Checks whether the given [expression] is a reference to a class. If it is

@@ -4810,20 +4810,9 @@ class KernelSsaGraphBuilder extends ir.Visitor {
           .isPotentiallyTrue) {
         // Overwrite the type with the narrower type.
         code.instructionType = trustedMask;
-      } else if (_abstractValueDomain
-          .contains(trustedMask, code.instructionType)
-          .isPotentiallyTrue) {
-        // It is acceptable for the type parameter to be broader than the
-        // specified type.
-      } else {
-        reporter.reportErrorMessage(
-            _elementMap.getSpannable(targetElement, invocation),
-            MessageKind.GENERIC, {
-          'text': 'Type argument too narrow for specified behavior type '
-              '(${trustedMask} does not allow '
-              'all values in ${code.instructionType})'
-        });
       }
+      // It is acceptable for the type parameter to be broader than the
+      // specified type.
     }
   }
 

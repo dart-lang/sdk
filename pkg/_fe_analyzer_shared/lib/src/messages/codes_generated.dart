@@ -197,6 +197,16 @@ const MessageCode messageAwaitForNotAsync = const MessageCode(
         r"""Try marking the function body with either 'async' or 'async*', or removing the 'await' before the for loop.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeAwaitInLateLocalInitializer =
+    messageAwaitInLateLocalInitializer;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageAwaitInLateLocalInitializer = const MessageCode(
+    "AwaitInLateLocalInitializer",
+    message:
+        r"""`await` expressions are not supported in late local initializers.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeAwaitNotAsync = messageAwaitNotAsync;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

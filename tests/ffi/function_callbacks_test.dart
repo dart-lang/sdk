@@ -45,24 +45,40 @@ class Test {
 }
 
 typedef SimpleAdditionType = Int32 Function(Int32, Int32);
-int simpleAddition(int x, int y) => x + y;
+int simpleAddition(int x, int y) {
+  print("simpleAddition($x, $y)");
+  return x + y;
+}
 
 typedef IntComputationType = Int64 Function(Int8, Int16, Int32, Int64);
-int intComputation(int a, int b, int c, int d) => d - c + b - a;
+int intComputation(int a, int b, int c, int d) {
+  print("intComputation($a, $b, $c, $d)");
+  return d - c + b - a;
+}
 
 typedef UintComputationType = Uint64 Function(Uint8, Uint16, Uint32, Uint64);
-int uintComputation(int a, int b, int c, int d) => d - c + b - a;
+int uintComputation(int a, int b, int c, int d) {
+  print("uintComputation($a, $b, $c, $d)");
+  return d - c + b - a;
+}
 
 typedef SimpleMultiplyType = Double Function(Double);
-double simpleMultiply(double x) => x * 1.337;
+double simpleMultiply(double x) {
+  print("simpleMultiply($x)");
+  return x * 1.337;
+}
 
 typedef SimpleMultiplyFloatType = Float Function(Float);
-double simpleMultiplyFloat(double x) => x * 1.337;
+double simpleMultiplyFloat(double x) {
+  print("simpleMultiplyFloat($x)");
+  return x * 1.337;
+}
 
 typedef ManyIntsType = IntPtr Function(IntPtr, IntPtr, IntPtr, IntPtr, IntPtr,
     IntPtr, IntPtr, IntPtr, IntPtr, IntPtr);
 int manyInts(
     int a, int b, int c, int d, int e, int f, int g, int h, int i, int j) {
+  print("manyInts($a, $b, $c, $d, $e, $f, $g, $h, $i, $j");
   return a + b + c + d + e + f + g + h + i + j;
 }
 
@@ -70,6 +86,7 @@ typedef ManyDoublesType = Double Function(Double, Double, Double, Double,
     Double, Double, Double, Double, Double, Double);
 double manyDoubles(double a, double b, double c, double d, double e, double f,
     double g, double h, double i, double j) {
+  print("manyDoubles($a, $b, $c, $d, $e, $f, $g, $h, $i, $j");
   return a + b + c + d + e + f + g + h + i + j;
 }
 
@@ -115,6 +132,8 @@ double manyArgs(
     double _18,
     int _19,
     double _20) {
+  print("manyArgs( $_1, $_2, $_3, $_4, $_5, $_6, $_7, $_8, $_9, $_10," +
+      "$_11, $_12, $_13, $_14, $_15, $_16, $_17, $_18, $_19, $_20)");
   return _1 +
       _2 +
       _3 +

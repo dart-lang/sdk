@@ -621,7 +621,7 @@ sky_engine:lib/''');
     String packagePathFoo = convertPath('/package1/foo');
     String packageRootPath = convertPath('/package2/foo');
     newFile('$projPath/${ContextManagerImpl.PACKAGE_SPEC_NAME}',
-        content: 'foo:file:///package1/foo');
+        content: 'foo:${toUriStr('/package1/foo')}');
     Folder packageFolder = resourceProvider.newFolder(packagePathFoo);
     List<String> includedPaths = <String>[projPath];
     List<String> excludedPaths = <String>[];
@@ -874,7 +874,7 @@ sky_engine:lib/''');
   void test_setRoots_newlyAddedFoldersGetProperPackageMap() {
     String packagePath = convertPath('/package/foo');
     newFile('$projPath/${ContextManagerImpl.PACKAGE_SPEC_NAME}',
-        content: 'foo:file:///package/foo');
+        content: 'foo:${toUriStr('/package/foo')}');
     Folder packageFolder = resourceProvider.newFolder(packagePath);
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     expect(
@@ -1058,7 +1058,7 @@ sky_engine:lib/''');
     String packageRootPath = convertPath('/package2/foo');
     Folder packageFolder = resourceProvider.newFolder(packagePathFoo);
     newFile('$projPath/${ContextManagerImpl.PACKAGE_SPEC_NAME}',
-        content: 'foo:file:///package1/foo');
+        content: 'foo:${toUriStr('/package1/foo')}');
     List<String> includedPaths = <String>[projPath];
     List<String> excludedPaths = <String>[];
     manager.setRoots(includedPaths, excludedPaths,
@@ -1879,7 +1879,7 @@ linter:
 ''');
     // Setup analysis options file which includes another options file.
     newFile('$projPath/${ContextManagerImpl.PACKAGE_SPEC_NAME}',
-        content: 'boo:$booLibPosixPath\n');
+        content: 'boo:${toUriStr(booLibPosixPath)}\n');
     newFile('$projPath/$optionsFileName', content: r'''
 include: package:boo/other_options.yaml
 ''');

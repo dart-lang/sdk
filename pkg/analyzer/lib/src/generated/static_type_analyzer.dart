@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -227,97 +226,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   }
 
   /**
-   * The Dart Language Specification, 12.18: <blockquote>... an assignment <i>a</i> of the form <i>v
-   * = e</i> ...
-   *
-   * It is a static type warning if the static type of <i>e</i> may not be assigned to the static
-   * type of <i>v</i>.
-   *
-   * The static type of the expression <i>v = e</i> is the static type of <i>e</i>.
-   *
-   * ... an assignment of the form <i>C.v = e</i> ...
-   *
-   * It is a static type warning if the static type of <i>e</i> may not be assigned to the static
-   * type of <i>C.v</i>.
-   *
-   * The static type of the expression <i>C.v = e</i> is the static type of <i>e</i>.
-   *
-   * ... an assignment of the form <i>e<sub>1</sub>.v = e<sub>2</sub></i> ...
-   *
-   * Let <i>T</i> be the static type of <i>e<sub>1</sub></i>. It is a static type warning if
-   * <i>T</i> does not have an accessible instance setter named <i>v=</i>. It is a static type
-   * warning if the static type of <i>e<sub>2</sub></i> may not be assigned to <i>T</i>.
-   *
-   * The static type of the expression <i>e<sub>1</sub>.v = e<sub>2</sub></i> is the static type of
-   * <i>e<sub>2</sub></i>.
-   *
-   * ... an assignment of the form <i>e<sub>1</sub>[e<sub>2</sub>] = e<sub>3</sub></i> ...
-   *
-   * The static type of the expression <i>e<sub>1</sub>[e<sub>2</sub>] = e<sub>3</sub></i> is the
-   * static type of <i>e<sub>3</sub></i>.
-   *
-   * A compound assignment of the form <i>v op= e</i> is equivalent to <i>v = v op e</i>. A compound
-   * assignment of the form <i>C.v op= e</i> is equivalent to <i>C.v = C.v op e</i>. A compound
-   * assignment of the form <i>e<sub>1</sub>.v op= e<sub>2</sub></i> is equivalent to <i>((x) => x.v
-   * = x.v op e<sub>2</sub>)(e<sub>1</sub>)</i> where <i>x</i> is a variable that is not used in
-   * <i>e<sub>2</sub></i>. A compound assignment of the form <i>e<sub>1</sub>[e<sub>2</sub>] op=
-   * e<sub>3</sub></i> is equivalent to <i>((a, i) => a[i] = a[i] op e<sub>3</sub>)(e<sub>1</sub>,
-   * e<sub>2</sub>)</i> where <i>a</i> and <i>i</i> are a variables that are not used in
-   * <i>e<sub>3</sub></i>.</blockquote>
-   */
-  @override
-  void visitAssignmentExpression(AssignmentExpression node) {
-    TokenType operator = node.operator.type;
-    if (operator == TokenType.EQ) {
-      Expression rightHandSide = node.rightHandSide;
-      DartType staticType = _getStaticType(rightHandSide);
-      _recordStaticType(node, staticType);
-    } else if (operator == TokenType.QUESTION_QUESTION_EQ) {
-      if (_isNonNullableByDefault) {
-        // The static type of a compound assignment using ??= with NNBD is the
-        // least upper bound of the static types of the LHS and RHS after
-        // promoting the LHS/ to non-null (as we know its value will not be used
-        // if null)
-        _analyzeLeastUpperBoundTypes(
-            node,
-            _typeSystem.promoteToNonNull(
-                _getExpressionType(node.leftHandSide, read: true)),
-            _getExpressionType(node.rightHandSide, read: true));
-      } else {
-        // The static type of a compound assignment using ??= before NNBD is the
-        // least upper bound of the static types of the LHS and RHS.
-        _analyzeLeastUpperBound(node, node.leftHandSide, node.rightHandSide,
-            read: true);
-      }
-    } else if (operator == TokenType.AMPERSAND_AMPERSAND_EQ ||
-        operator == TokenType.BAR_BAR_EQ) {
-      _recordStaticType(node, _nonNullable(_typeProvider.boolType));
-    } else {
-      var operatorElement = node.staticElement;
-      var type =
-          _elementTypeProvider.safeExecutableReturnType(operatorElement) ??
-              _dynamicType;
-      type = _typeSystem.refineBinaryExpressionType(
-        _getStaticType(node.leftHandSide, read: true),
-        operator,
-        node.rightHandSide.staticType,
-        type,
-      );
-      _recordStaticType(node, type);
-
-      var leftWriteType = _getStaticType(node.leftHandSide);
-      if (!_typeSystem.isAssignableTo(type, leftWriteType)) {
-        _resolver.errorReporter.reportErrorForNode(
-          StaticTypeWarningCode.INVALID_ASSIGNMENT,
-          node.rightHandSide,
-          [type, leftWriteType],
-        );
-      }
-    }
-    _nullShortingTermination(node);
-  }
-
-  /**
    * The Dart Language Specification, 16.29 (Await Expressions):
    *
    *   The static type of [the expression "await e"] is flatten(T) where T is
@@ -472,7 +380,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       _recordStaticType(node, type);
     }
 
-    _nullShortingTermination(node);
+    _resolver.nullShortingTermination(node);
   }
 
   /**
@@ -670,7 +578,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     if (!_inferObjectAccess(node, staticType, propertyName)) {
       _recordStaticType(propertyName, staticType);
       _recordStaticType(node, staticType);
-      _nullShortingTermination(node);
+      _resolver.nullShortingTermination(node);
     }
   }
 
@@ -1195,20 +1103,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       return _typeSystem.promoteToNonNull(type);
     }
     return type;
-  }
-
-  /// If we reached a null-shorting termination, and the [node] has null
-  /// shorting, make the type of the [node] nullable.
-  void _nullShortingTermination(Expression node) {
-    if (!_isNonNullableByDefault) return;
-
-    if (identical(_resolver.unfinishedNullShorts.last, node)) {
-      do {
-        _resolver.unfinishedNullShorts.removeLast();
-        _flowAnalysis.flow.nullAwareAccess_end();
-      } while (identical(_resolver.unfinishedNullShorts.last, node));
-      node.staticType = _typeSystem.makeNullable(node.staticType);
-    }
   }
 
   /**

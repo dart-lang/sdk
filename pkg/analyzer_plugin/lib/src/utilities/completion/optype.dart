@@ -1202,6 +1202,14 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
     optype.includeTypeNameSuggestions = true;
   }
 
+  @override
+  void visitYieldStatement(YieldStatement node) {
+    if (identical(entity, node.expression)) {
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
+    }
+  }
+
   bool _isEntityPrevTokenSynthetic() {
     Object entity = this.entity;
     if (entity is AstNode) {

@@ -264,11 +264,23 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor {
     return false;
   }
 
+  bool _isPrivateClassOrExtension(Element element) =>
+      (element is ClassElement || element is ExtensionElement) &&
+      element.isPrivate;
+
   /// Returns whether [element] is a private element which is read somewhere in
   /// the library.
   bool _isReadMember(Element element) {
+    bool elementIsStaticVariable =
+        element is VariableElement && element.isStatic;
     if (element.isPublic) {
-      return true;
+      if (_isPrivateClassOrExtension(element.enclosingElement) &&
+          elementIsStaticVariable) {
+        // Public static fields of private classes, mixins, and extensions are
+        // inaccessible from outside the library in which they are declared.
+      } else {
+        return true;
+      }
     }
     if (element.isSynthetic) {
       return true;
@@ -281,6 +293,9 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor {
       return true;
     }
 
+    if (elementIsStaticVariable) {
+      return false;
+    }
     return _overridesUsedElement(element);
   }
 
@@ -301,7 +316,14 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor {
 
   bool _isUsedMember(Element element) {
     if (element.isPublic) {
-      return true;
+      if (_isPrivateClassOrExtension(element.enclosingElement) &&
+          element is ExecutableElement &&
+          element.isStatic) {
+        // Public static members of private classes, mixins, and extensions are
+        // inaccessible from outside the library in which they are declared.
+      } else {
+        return true;
+      }
     }
     if (element.isSynthetic) {
       return true;

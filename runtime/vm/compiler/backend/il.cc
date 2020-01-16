@@ -45,10 +45,7 @@ DEFINE_FLAG(bool,
             two_args_smi_icd,
             true,
             "Generate special IC stubs for two args Smi operations");
-DEFINE_FLAG(bool,
-            unbox_numeric_fields,
-            true,
-            "Support unboxed double and float32x4 fields.");
+DECLARE_FLAG(bool, unbox_numeric_fields);
 
 class SubclassFinder {
  public:
@@ -556,33 +553,18 @@ bool Definition::IsArrayLength(Definition* def) {
 }
 
 const ICData* Instruction::GetICData(
-    const ZoneGrowableArray<const ICData*>& ic_data_array) const {
+    const ZoneGrowableArray<const ICData*>& ic_data_array,
+    intptr_t deopt_id,
+    bool is_static_call) {
   // The deopt_id can be outside the range of the IC data array for
   // computations added in the optimizing compiler.
-  ASSERT(deopt_id_ != DeoptId::kNone);
-  if (deopt_id_ < ic_data_array.length()) {
-    const ICData* result = ic_data_array[deopt_id_];
-#if defined(DEBUG)
-    if (result != NULL) {
-      switch (tag()) {
-        case kInstanceCall:
-          if (result->is_static_call()) {
-            FATAL("ICData tag mismatch");
-          }
-          break;
-        case kStaticCall:
-          if (!result->is_static_call()) {
-            FATAL("ICData tag mismatch");
-          }
-          break;
-        default:
-          UNREACHABLE();
-      }
-    }
-#endif
-    return result;
+  ASSERT(deopt_id != DeoptId::kNone);
+  if (deopt_id >= ic_data_array.length()) {
+    return nullptr;
   }
-  return NULL;
+  const ICData* result = ic_data_array[deopt_id];
+  ASSERT(result == nullptr || is_static_call == result->is_static_call());
+  return result;
 }
 
 intptr_t Instruction::Hashcode() const {
@@ -1326,8 +1308,8 @@ void BackwardInstructionIterator::RemoveCurrentFromGraph() {
 // Default implementation of visiting basic blocks.  Can be overridden.
 void FlowGraphVisitor::VisitBlocks() {
   ASSERT(current_iterator_ == NULL);
-  for (intptr_t i = 0; i < block_order_.length(); ++i) {
-    BlockEntryInstr* entry = block_order_[i];
+  for (intptr_t i = 0; i < block_order_->length(); ++i) {
+    BlockEntryInstr* entry = (*block_order_)[i];
     entry->Accept(this);
     ForwardInstructionIterator it(entry);
     current_iterator_ = &it;
@@ -4343,7 +4325,7 @@ bool InstanceCallInstr::MatchesCoreName(const String& name) {
   return Library::IsPrivateCoreLibName(function_name(), name);
 }
 
-RawFunction* InstanceCallInstr::ResolveForReceiverClass(
+RawFunction* InstanceCallBaseInstr::ResolveForReceiverClass(
     const Class& cls,
     bool allow_add /* = true */) {
   const Array& args_desc_array = Array::Handle(GetArgumentsDescriptor());
@@ -4463,9 +4445,9 @@ LocationSummary* PolymorphicInstanceCallInstr::MakeLocationSummary(
 
 void PolymorphicInstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ArgumentsInfo args_info(type_args_len(), ArgumentCount(), argument_names());
-  compiler->EmitPolymorphicInstanceCall(targets_, *instance_call(), args_info,
-                                        deopt_id(), token_pos(), locs(),
-                                        complete(), total_call_count());
+  compiler->EmitPolymorphicInstanceCall(this, targets(), args_info, deopt_id(),
+                                        token_pos(), locs(), complete(),
+                                        total_call_count());
 }
 
 RawType* PolymorphicInstanceCallInstr::ComputeRuntimeType(

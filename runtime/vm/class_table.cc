@@ -232,13 +232,6 @@ void SharedClassTable::AllocateIndex(intptr_t index) {
 void SharedClassTable::Grow(intptr_t new_capacity) {
   ASSERT(new_capacity >= capacity_);
 
-#ifndef PRODUCT
-  // Wait for any marking tasks to complete. Allocation stats in the
-  // marker rely on the class table size not changing.
-  Thread* thread = Thread::Current();
-  thread->heap()->WaitForMarkerTasks(thread);
-#endif
-
   intptr_t* new_table = static_cast<intptr_t*>(
       malloc(new_capacity * sizeof(intptr_t)));  // NOLINT
   memmove(new_table, table_, top_ * sizeof(intptr_t));

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -144,5 +145,45 @@ main(A a) {
       invokeType: 'int Function()',
       type: 'int',
     );
+  }
+
+  test_never() async {
+    await assertErrorsInCode(r'''
+main(Never x) {
+  x<int>(1 + 2);
+}
+''', [
+      error(HintCode.RECEIVER_OF_TYPE_NEVER, 18, 1),
+    ]);
+
+    assertFunctionExpressionInvocation(
+      findNode.functionExpressionInvocation('x<int>(1 + 2)'),
+      element: null,
+      typeArgumentTypes: ['int'],
+      invokeType: 'dynamic',
+      type: 'Never',
+    );
+
+    assertType(findNode.binary('1 + 2'), 'int');
+  }
+
+  test_neverQ() async {
+    await assertErrorsInCode(r'''
+main(Never? x) {
+  x<int>(1 + 2);
+}
+''', [
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 19, 1),
+    ]);
+
+    assertFunctionExpressionInvocation(
+      findNode.functionExpressionInvocation('x<int>(1 + 2)'),
+      element: null,
+      typeArgumentTypes: ['int'],
+      invokeType: 'dynamic',
+      type: 'dynamic',
+    );
+
+    assertType(findNode.binary('1 + 2'), 'int');
   }
 }

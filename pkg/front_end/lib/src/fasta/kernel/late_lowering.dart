@@ -9,7 +9,7 @@ import '../names.dart';
 
 Statement createGetterWithInitializer(
     int fileOffset, String name, DartType type, Expression initializer,
-    {Expression createVariableRead(),
+    {Expression createVariableRead({bool needsPromotion}),
     Expression createVariableWrite(Expression value),
     Expression createIsSetRead(),
     Expression createIsSetWrite(Expression value)}) {
@@ -36,7 +36,11 @@ Statement createGetterWithInitializer(
           ]),
           null)
         ..fileOffset = fileOffset,
-      new ReturnStatement(createVariableRead()..fileOffset = fileOffset)
+      new ReturnStatement(
+          // If [type] is a type variable with undetermined nullability we need
+          // to create a read of the field that is promoted to the type variable
+          // type.
+          createVariableRead(needsPromotion: type.isPotentiallyNonNullable))
         ..fileOffset = fileOffset
     ])
       ..fileOffset = fileOffset;
@@ -45,7 +49,7 @@ Statement createGetterWithInitializer(
     //
     //    return let # = _#field in # == null ? _#field = <init> : #;
     VariableDeclaration variable = new VariableDeclaration.forValue(
-        createVariableRead()..fileOffset = fileOffset,
+        createVariableRead(needsPromotion: false)..fileOffset = fileOffset,
         type: type.withNullability(Nullability.nullable))
       ..fileOffset = fileOffset;
     return new ReturnStatement(
@@ -71,7 +75,8 @@ Statement createGetterWithInitializer(
 
 Statement createGetterBodyWithoutInitializer(CoreTypes coreTypes,
     int fileOffset, String name, DartType type, String variableKindName,
-    {Expression createVariableRead(), Expression createIsSetRead()}) {
+    {Expression createVariableRead({bool needsPromotion}),
+    Expression createIsSetRead()}) {
   Expression exception = new Throw(new ConstructorInvocation(
       coreTypes.lateInitializationErrorConstructor,
       new Arguments(<Expression>[
@@ -87,8 +92,12 @@ Statement createGetterBodyWithoutInitializer(CoreTypes coreTypes,
     //
     //    return _#isSet#field ? _#field : throw '...';
     return new ReturnStatement(
-        new ConditionalExpression(createIsSetRead()..fileOffset = fileOffset,
-            createVariableRead()..fileOffset = fileOffset, exception, type)
+        new ConditionalExpression(
+            createIsSetRead()..fileOffset = fileOffset,
+            createVariableRead(needsPromotion: type.isPotentiallyNonNullable)
+              ..fileOffset = fileOffset,
+            exception,
+            type)
           ..fileOffset = fileOffset)
       ..fileOffset = fileOffset;
   } else {

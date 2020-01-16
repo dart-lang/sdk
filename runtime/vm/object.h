@@ -3857,6 +3857,10 @@ class Field : public Object {
   void set_type_test_cache(const SubtypeTestCache& cache) const;
 #endif
 
+  // Unboxed fields require exclusive ownership of the box.
+  // Ensure this by cloning the box if necessary.
+  const Object* CloneForUnboxed(const Object& value) const;
+
  private:
   static void InitializeNew(const Field& result,
                             const String& name,
@@ -5353,18 +5357,6 @@ class Code : public Object {
     }
   }
 
-  static intptr_t function_entry_point_offset(EntryKind kind) {
-    switch (kind) {
-      case EntryKind::kNormal:
-        return Function::entry_point_offset();
-      case EntryKind::kUnchecked:
-        return Function::unchecked_entry_point_offset();
-      default:
-        ASSERT(false && "Invalid entry kind.");
-        UNREACHABLE();
-    }
-  }
-
   RawObjectPool* object_pool() const { return raw_ptr()->object_pool_; }
   static intptr_t object_pool_offset() {
     return OFFSET_OF(RawCode, object_pool_);
@@ -6522,10 +6514,7 @@ class Instance : public Object {
 
   RawObject* GetField(const Field& field) const { return *FieldAddr(field); }
 
-  void SetField(const Field& field, const Object& value) const {
-    field.RecordStore(value);
-    StorePointer(FieldAddr(field), value.raw());
-  }
+  void SetField(const Field& field, const Object& value) const;
 
   RawAbstractType* GetType(Heap::Space space) const;
 

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:collection';
+import 'package:front_end/src/api_unstable/ddc.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 
@@ -239,7 +240,7 @@ bool isUnsupportedFactoryConstructor(Procedure node) {
 /// if the field [f] is storing that information, otherwise returns `null`.
 Iterable<Member> getRedirectingFactories(Field f) {
   // TODO(jmesserly): this relies on implementation details in Kernel
-  if (f.name.name == '_redirecting#') {
+  if (isRedirectingFactoryField(f)) {
     assert(f.isStatic);
     var list = f.initializer as ListLiteral;
     return list.expressions.map((e) => (e as StaticGet).target);

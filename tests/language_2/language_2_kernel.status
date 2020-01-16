@@ -113,10 +113,6 @@ unsorted/disassemble_test: Slow
 [ $mode == debug && $runtime == vm && ($compiler == app_jitk || $compiler == dartk || $compiler == dartkb) ]
 optimize/deopt_inlined_function_lazy_test: Skip
 
-[ $mode == debug && $hot_reload && ($compiler == dartk || $compiler == dartkb) ]
-async_star/async_star2_test/01: Crash
-async_star/async_star2_test/05: Crash
-
 [ $mode == debug && ($compiler == dartk || $compiler == dartkb) && ($hot_reload || $hot_reload_rollback) ]
 enum/duplicate_test/02: Crash # Issue 34606
 enum/duplicate_test/none: Crash # Issue 34606
@@ -142,10 +138,4 @@ web_int_literals_test/*: SkipByDesign # Test applies only to JavaScript targets
 symbol/conflict_test: Slow
 
 [ ($compiler == dartk || $compiler == dartkb) && ($hot_reload || $hot_reload_rollback) ]
-async_star/async_star2_test/01: Skip # Timeout
-async_star/async_star2_test/02: Skip # Timeout
-async_star/async_star2_test/03: Skip # Timeout
-async_star/async_star2_test/04: Skip # Timeout
-async_star/async_star2_test/05: Skip # Timeout
-async_star/async_star2_test/none: Skip # Timeout
 type_constants_test/none: Skip # Deferred libraries and hot reload.

@@ -38,8 +38,6 @@ class GCSweeper {
   static void SweepConcurrent(Isolate* isolate,
                               HeapPage* first,
                               HeapPage* last,
-                              HeapPage* large_first,
-                              HeapPage* large_last,
                               FreeList* freelist);
 };
 

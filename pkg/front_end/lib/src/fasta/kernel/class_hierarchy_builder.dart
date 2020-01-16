@@ -4,24 +4,7 @@
 
 library fasta.class_hierarchy_builder;
 
-import 'package:kernel/ast.dart'
-    show
-        Class,
-        DartType,
-        Field,
-        FunctionNode,
-        InterfaceType,
-        InvalidType,
-        Library,
-        Member,
-        Name,
-        Nullability,
-        Procedure,
-        ProcedureKind,
-        Supertype,
-        TypeParameter,
-        TypeParameterType,
-        VariableDeclaration;
+import 'package:kernel/ast.dart' hide MapEntry;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
@@ -106,6 +89,7 @@ class DebugLogger {
 }
 
 int compareDeclarations(ClassMember a, ClassMember b) {
+  if (a == b) return 0;
   return ClassHierarchy.compareMembers(a.member, b.member);
 }
 
@@ -253,8 +237,9 @@ class ClassHierarchyBuilder {
   }
 
   ClassHierarchyNode getNodeFromClass(ClassBuilder classBuilder) {
-    return nodes[classBuilder.cls] ??=
-        new ClassHierarchyNodeBuilder(this, classBuilder).build();
+    return nodes[classBuilder.cls] ??= new ClassHierarchyNodeBuilder(
+            this, classBuilder, loader.target.enableNonNullable)
+        .build();
   }
 
   ClassHierarchyNode getNodeFromType(TypeBuilder type) {
@@ -280,7 +265,12 @@ class ClassHierarchyBuilder {
     Builder supertypeDeclaration = supertypeNode.classBuilder;
     if (depth < supertypes.length) {
       TypeBuilder asSupertypeOf = supertypes[depth];
-      if (asSupertypeOf.declaration == supertypeDeclaration) {
+      TypeDeclarationBuilder declaration = asSupertypeOf.declaration;
+      if (declaration is TypeAliasBuilder) {
+        TypeAliasBuilder aliasBuilder = declaration;
+        declaration = aliasBuilder.unaliasDeclaration;
+      }
+      if (declaration == supertypeDeclaration) {
         return asSupertypeOf;
       }
     }
@@ -437,8 +427,9 @@ class ClassHierarchyBuilder {
     for (int i = 0; i < classes.length; i++) {
       ClassBuilder classBuilder = classes[i];
       if (!classBuilder.isPatch) {
-        hierarchy.nodes[classBuilder.cls] =
-            new ClassHierarchyNodeBuilder(hierarchy, classBuilder).build();
+        hierarchy.nodes[classBuilder.cls] = new ClassHierarchyNodeBuilder(
+                hierarchy, classBuilder, loader.target.enableNonNullable)
+            .build();
       } else {
         // TODO(ahe): Merge the injected members of patch into the hierarchy
         // node of `cls.origin`.
@@ -453,13 +444,20 @@ class ClassHierarchyNodeBuilder {
 
   final ClassBuilder classBuilder;
 
+  /// Whether non-nullable types are supported.
+  final bool enableNonNullable;
+
   bool hasNoSuchMethod = false;
 
   List<ClassMember> abstractMembers = null;
 
-  ClassHierarchyNodeBuilder(this.hierarchy, this.classBuilder);
+  ClassHierarchyNodeBuilder(
+      this.hierarchy, this.classBuilder, this.enableNonNullable);
 
   ClassBuilder get objectClass => hierarchy.objectClassBuilder;
+
+  bool get shouldModifyKernel =>
+      classBuilder.library.loader == hierarchy.loader;
 
   final Map<Class, Substitution> substitutions = <Class, Substitution>{};
 
@@ -512,18 +510,14 @@ class ClassHierarchyNodeBuilder {
                 classBuilder,
                 a,
                 AbstractMemberOverridingImplementation.selectConcrete(b),
-                mergeKind == MergeKind.superclassSetters,
-                classBuilder.library.loader == hierarchy.loader);
+                mergeKind.forSetters,
+                shouldModifyKernel);
             hierarchy.delayedMemberChecks.add(result);
           }
         } else if (classBuilder.isMixinApplication &&
             a.classBuilder != classBuilder) {
           result = InheritedImplementationInterfaceConflict.combined(
-              classBuilder,
-              a,
-              b,
-              mergeKind == MergeKind.superclassSetters,
-              classBuilder.library.loader == hierarchy.loader,
+              classBuilder, a, b, mergeKind.forSetters, shouldModifyKernel,
               isInheritableConflict: false);
           if (result is DelayedMember) {
             hierarchy.delayedMemberChecks.add(result);
@@ -560,13 +554,13 @@ class ClassHierarchyNodeBuilder {
         break;
 
       case MergeKind.interfacesMembers:
-        result = InterfaceConflict.combined(classBuilder, a, b, false,
-            classBuilder.library.loader == hierarchy.loader);
+        result = InterfaceConflict.combined(
+            classBuilder, a, b, false, shouldModifyKernel);
         break;
 
       case MergeKind.interfacesSetters:
-        result = InterfaceConflict.combined(classBuilder, a, b, true,
-            classBuilder.library.loader == hierarchy.loader);
+        result = InterfaceConflict.combined(
+            classBuilder, a, b, true, shouldModifyKernel);
         break;
 
       case MergeKind.supertypesMembers:
@@ -592,18 +586,10 @@ class ClassHierarchyNodeBuilder {
         } else {
           if (isAbstract(a)) {
             result = InterfaceConflict.combined(
-                classBuilder,
-                a,
-                b,
-                mergeKind == MergeKind.supertypesSetters,
-                classBuilder.library.loader == hierarchy.loader);
+                classBuilder, a, b, mergeKind.forSetters, shouldModifyKernel);
           } else {
             result = InheritedImplementationInterfaceConflict.combined(
-                classBuilder,
-                a,
-                b,
-                mergeKind == MergeKind.supertypesSetters,
-                classBuilder.library.loader == hierarchy.loader);
+                classBuilder, a, b, mergeKind.forSetters, shouldModifyKernel);
           }
           debug?.log("supertypes: ${result}");
           if (result is DelayedMember) {
@@ -1160,20 +1146,18 @@ class ClassHierarchyNodeBuilder {
   ///
   /// If [mergeKind] is `MergeKind.supertypes`, [member] isn't
   /// implementing/overriding anything.
-  void handleOnlyA(ClassMember member, MergeKind mergeKind) {
-    if (mergeKind == MergeKind.interfacesMembers ||
-        mergeKind == MergeKind.interfacesSetters) {
-      return;
+  ClassMember handleOnlyA(ClassMember member, MergeKind mergeKind) {
+    if (mergeKind.betweenInterfaces) {
+      return member;
     }
     // TODO(ahe): Enable this optimization:
     // if (cls is DillClassBuilder) return;
-    // assert(mergeKind == MergeKind.interfaces ||
+    // assert(mergeKind.betweenInterfaces ||
     //    member is! InterfaceConflict);
-    if ((mergeKind == MergeKind.superclassMembers ||
-            mergeKind == MergeKind.superclassSetters) &&
-        isAbstract(member)) {
+    if ((mergeKind.fromSuperclass) && isAbstract(member)) {
       recordAbstractMember(member);
     }
+    return member;
   }
 
   /// When merging `aList` and `bList`, [member] was only found in `bList`.
@@ -1186,32 +1170,40 @@ class ClassHierarchyNodeBuilder {
   /// If [mergeKind] is `MergeKind.supertypes`, [member] is implicitly
   /// abstract, and not implemented.
   ClassMember handleOnlyB(ClassMember member, MergeKind mergeKind) {
-    if (mergeKind == MergeKind.interfacesMembers ||
-        mergeKind == MergeKind.interfacesSetters) {
+    if (mergeKind.betweenInterfaces) {
       return member;
     }
     // TODO(ahe): Enable this optimization:
     // if (cls is DillClassBuilder) return member;
     Member target = member.member;
-    if ((mergeKind == MergeKind.supertypesMembers ||
-            mergeKind == MergeKind.supertypesSetters) ||
-        ((mergeKind == MergeKind.superclassMembers ||
-                mergeKind == MergeKind.superclassSetters) &&
-            target.isAbstract)) {
+    if (mergeKind.fromInterfaces ||
+        (mergeKind.fromSuperclass && target.isAbstract)) {
       if (isNameVisibleIn(target.name, classBuilder.library)) {
         recordAbstractMember(member);
       }
     }
-    if (mergeKind == MergeKind.superclassMembers &&
+    if (mergeKind.fromSuperclass &&
         target.enclosingClass != objectClass.cls &&
         target.name == noSuchMethodName) {
       hasNoSuchMethod = true;
     }
-    if (mergeKind != MergeKind.membersWithSetters &&
-        mergeKind != MergeKind.settersWithMembers &&
+    if (!mergeKind.forMembersVsSetters &&
         member is DelayedMember &&
         member.isInheritableConflict) {
-      hierarchy.delayedMemberChecks.add(member.withParent(classBuilder));
+      DelayedMember delayedMember = member;
+      member = delayedMember.withParent(classBuilder);
+      hierarchy.delayedMemberChecks.add(member);
+    }
+    if (mergeKind.intoCurrentClass &&
+        hierarchy.loader.target.enableNonNullable) {
+      if (member.classBuilder.library.isNonNullableByDefault &&
+          !classBuilder.library.isNonNullableByDefault) {
+        if (member is! DelayedMember) {
+          member = new InterfaceConflict(
+              classBuilder, [member], mergeKind.forSetters, shouldModifyKernel);
+          hierarchy.delayedMemberChecks.add(member);
+        }
+      }
     }
     return member;
   }
@@ -1697,6 +1689,7 @@ class ClassHierarchyNodeBuilder {
 
   List<ClassMember> merge(
       List<ClassMember> aList, List<ClassMember> bList, MergeKind mergeKind) {
+    bool changed = false;
     final List<ClassMember> result = new List<ClassMember>.filled(
         aList.length + bList.length, null,
         growable: true);
@@ -1706,9 +1699,7 @@ class ClassHierarchyNodeBuilder {
     while (i < aList.length && j < bList.length) {
       final ClassMember a = aList[i];
       final ClassMember b = bList[j];
-      if ((mergeKind == MergeKind.interfacesMembers ||
-              mergeKind == MergeKind.interfacesSetters) &&
-          a.isStatic) {
+      if (mergeKind.betweenInterfaces && a.isStatic) {
         i++;
         continue;
       }
@@ -1719,36 +1710,61 @@ class ClassHierarchyNodeBuilder {
       final int compare = compareDeclarations(a, b);
       if (compare == 0) {
         result[storeIndex++] = handleMergeConflict(a, b, mergeKind);
+        changed = true;
         i++;
         j++;
       } else if (compare < 0) {
-        handleOnlyA(a, mergeKind);
-        result[storeIndex++] = a;
+        ClassMember member = handleOnlyA(a, mergeKind);
+        result[storeIndex++] = member;
+        if (!identical(member, a)) {
+          changed = true;
+        }
         i++;
       } else {
-        result[storeIndex++] = handleOnlyB(b, mergeKind);
+        ClassMember member = handleOnlyB(b, mergeKind);
+        result[storeIndex++] = member;
+        if (!identical(member, b)) {
+          changed = true;
+        }
         j++;
       }
     }
     while (i < aList.length) {
       final ClassMember a = aList[i];
-      if (!(mergeKind == MergeKind.interfacesMembers ||
-              mergeKind == MergeKind.interfacesSetters) ||
-          !a.isStatic) {
-        handleOnlyA(a, mergeKind);
-        result[storeIndex++] = a;
+      if (!mergeKind.betweenInterfaces || !a.isStatic) {
+        ClassMember member = handleOnlyA(a, mergeKind);
+        result[storeIndex++] = member;
+        if (!identical(member, a)) {
+          changed = true;
+        }
       }
       i++;
     }
     while (j < bList.length) {
       final ClassMember b = bList[j];
       if (!b.isStatic) {
-        result[storeIndex++] = handleOnlyB(b, mergeKind);
+        ClassMember member = handleOnlyB(b, mergeKind);
+        result[storeIndex++] = member;
+        if (!identical(member, b)) {
+          changed = true;
+        }
       }
       j++;
     }
-    if (aList.isEmpty && storeIndex == bList.length) return bList;
-    if (bList.isEmpty && storeIndex == aList.length) return aList;
+    if (!changed && aList.isEmpty && storeIndex == bList.length) {
+      assert(
+          _equalsList(result, bList, storeIndex),
+          "List mismatch: Expected: ${bList}, "
+          "actual ${result.sublist(0, storeIndex)}");
+      return bList;
+    }
+    if (!changed && bList.isEmpty && storeIndex == aList.length) {
+      assert(
+          _equalsList(result, aList, storeIndex),
+          "List mismatch: Expected: ${aList}, "
+          "actual ${result.sublist(0, storeIndex)}");
+      return aList;
+    }
     return result..length = storeIndex;
   }
 
@@ -1980,30 +1996,77 @@ class MergeResult {
   MergeResult(this.mergedMembers, this.mergedSetters);
 }
 
-enum MergeKind {
+class MergeKind {
+  final String name;
+
+  final bool forSetters;
+
+  final bool betweenInterfaces;
+
+  final bool fromSuperclass;
+
+  final bool fromInterfaces;
+
+  final bool forMembersVsSetters;
+
+  final bool intoCurrentClass;
+
+  const MergeKind(this.name,
+      {this.forSetters: false,
+      this.betweenInterfaces: false,
+      this.fromSuperclass: false,
+      this.fromInterfaces: false,
+      this.forMembersVsSetters: false,
+      this.intoCurrentClass: false});
+
+  String toString() => 'MergeKind($name)';
+
   /// Merging superclass members with the current class.
-  superclassMembers,
+  static const MergeKind superclassMembers = const MergeKind(
+      'Merging superclass members with the current class.',
+      fromSuperclass: true,
+      intoCurrentClass: true);
 
   /// Merging superclass setters with the current class.
-  superclassSetters,
+  static const MergeKind superclassSetters = const MergeKind(
+      'Merging superclass setters with the current class.',
+      fromSuperclass: true,
+      intoCurrentClass: true,
+      forSetters: true);
 
   /// Merging members of two interfaces.
-  interfacesMembers,
+  static const MergeKind interfacesMembers = const MergeKind(
+      'Merging members of two interfaces.',
+      betweenInterfaces: true);
 
   /// Merging setters of two interfaces.
-  interfacesSetters,
+  static const MergeKind interfacesSetters = const MergeKind(
+      'Merging setters of two interfaces.',
+      betweenInterfaces: true,
+      forSetters: true);
 
   /// Merging class members with interface members.
-  supertypesMembers,
+  static const MergeKind supertypesMembers = const MergeKind(
+      'Merging class members with interface members.',
+      fromInterfaces: true,
+      intoCurrentClass: true);
 
   /// Merging class setters with interface setters.
-  supertypesSetters,
+  static const MergeKind supertypesSetters = const MergeKind(
+      'Merging class setters with interface setters.',
+      fromInterfaces: true,
+      intoCurrentClass: true,
+      forSetters: true);
 
   /// Merging members with inherited setters.
-  membersWithSetters,
+  static const MergeKind membersWithSetters = const MergeKind(
+      'Merging members with inherited setters.',
+      forMembersVsSetters: true);
 
   /// Merging setters with inherited members.
-  settersWithMembers,
+  static const MergeKind settersWithMembers = const MergeKind(
+      'Merging setters with inherited members.',
+      forMembersVsSetters: true);
 }
 
 List<LocatedMessage> inheritedConflictContext(ClassMember a, ClassMember b) {
@@ -2637,6 +2700,13 @@ class AbstractMemberOverridingImplementation extends DelayedMember {
             concreteImplementation, isSetter, modifyKernel);
   }
 
+  @override
+  String toString() {
+    return "AbstractMemberOverridingImplementation("
+        "${classBuilder.fullNameForErrors}, "
+        "[${declarations.map(fullName).join(', ')}])";
+  }
+
   static ClassMember selectAbstract(ClassMember declaration) {
     if (declaration is AbstractMemberOverridingImplementation) {
       return declaration.abstractMember;
@@ -2829,4 +2899,15 @@ bool hasExplicitlyTypedFormalParameter(ClassMember declaration, int index) {
   return declaration is ProcedureBuilder
       ? declaration.formals[index].type != null
       : true;
+}
+
+/// Returns `true` if the first [length] elements of [a] and [b] are the same.
+bool _equalsList(List<ClassMember> a, List<ClassMember> b, int length) {
+  if (a.length < length || b.length < length) return false;
+  for (int index = 0; index < length; index++) {
+    if (a[index] != b[index]) {
+      return false;
+    }
+  }
+  return true;
 }

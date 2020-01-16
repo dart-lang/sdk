@@ -93,6 +93,11 @@ DECLARE_FLAG(bool, write_protect_code);
 DECLARE_FLAG(bool, precompiled_mode);
 DECLARE_FLAG(int, max_polymorphic_checks);
 
+DEFINE_FLAG(bool,
+            unbox_numeric_fields,
+            true,
+            "Support unboxed double and float32x4 fields.");
+
 static const char* const kGetterPrefix = "get:";
 static const intptr_t kGetterPrefixLength = strlen(kGetterPrefix);
 static const char* const kSetterPrefix = "set:";
@@ -8637,6 +8642,27 @@ RawField* Field::Original() const {
   }
 }
 
+void Instance::SetField(const Field& field, const Object& value) const {
+  field.RecordStore(value);
+  const Object* stored_value = field.CloneForUnboxed(value);
+  StorePointer(FieldAddr(field), stored_value->raw());
+}
+
+const Object* Field::CloneForUnboxed(const Object& value) const {
+  if (FLAG_unbox_numeric_fields && is_unboxing_candidate() && !is_nullable()) {
+    switch (guarded_cid()) {
+      case kDoubleCid:
+      case kFloat32x4Cid:
+      case kFloat64x2Cid:
+        return &Object::Handle(Object::Clone(value, Heap::kNew));
+      default:
+        // Not a supported unboxed field type.
+        return &value;
+    }
+  }
+  return &value;
+}
+
 void Field::SetOriginal(const Field& value) const {
   ASSERT(value.IsOriginal());
   ASSERT(!value.IsNull());
@@ -8828,7 +8854,7 @@ void Field::InitializeNew(const Field& result,
   result.set_end_token_pos(end_token_pos);
   result.set_has_nontrivial_initializer(false);
   result.set_has_initializer(false);
-  result.set_is_unboxing_candidate(!is_final && !is_late);
+  result.set_is_unboxing_candidate(!is_final && !is_late && !is_static);
   result.set_initializer_changed_after_initialization(false);
   NOT_IN_PRECOMPILED(result.set_is_declared_in_bytecode(false));
   NOT_IN_PRECOMPILED(result.set_binary_declaration_offset(0));

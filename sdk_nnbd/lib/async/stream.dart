@@ -497,7 +497,9 @@ abstract class Stream<T> {
       StreamSubscription<T> subscription = this.listen(null,
           onError: controller._addError, // Avoid Zone error replacement.
           onDone: controller.close);
-      final add = controller.add;
+      FutureOr<Null> add(E value) {
+        controller.add(value);
+      }
       final addError = controller._addError;
       subscription.onData((T event) {
         FutureOr<E> newValue;
@@ -1275,7 +1277,7 @@ abstract class Stream<T> {
         _completeWithErrorCallback(future, e, s);
       }
     }, cancelOnError: true);
-    subscription.onError((T value) {
+    subscription.onData((T value) {
       if (foundResult) {
         // This is the second element we get.
         try {

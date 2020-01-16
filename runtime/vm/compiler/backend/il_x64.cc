@@ -6752,14 +6752,21 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // Function in RAX.
   ASSERT(locs()->in(0).reg() == RAX);
-  __ movq(CODE_REG, compiler::FieldAddress(RAX, Function::code_offset()));
-  __ movq(RCX, compiler::FieldAddress(
-                   RAX, Code::function_entry_point_offset(entry_kind())));
+  if (!FLAG_precompiled_mode || !FLAG_use_bare_instructions) {
+    __ movq(CODE_REG, compiler::FieldAddress(
+                          RAX, compiler::target::Function::code_offset()));
+  }
+  __ movq(
+      RCX,
+      compiler::FieldAddress(
+          RAX, compiler::target::Function::entry_point_offset(entry_kind())));
 
   // RAX: Function.
   // R10: Arguments descriptor array.
-  // RBX: Smi 0 (no IC data; the lazy-compile stub expects a GC-safe value).
-  __ xorq(RBX, RBX);
+  if (!FLAG_precompiled_mode) {
+    // RBX: Smi 0 (no IC data; the lazy-compile stub expects a GC-safe value).
+    __ xorq(RBX, RBX);
+  }
   __ call(RCX);
   compiler->EmitCallsiteMetadata(token_pos(), deopt_id(),
                                  RawPcDescriptors::kOther, locs());

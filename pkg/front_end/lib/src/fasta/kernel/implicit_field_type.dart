@@ -8,7 +8,9 @@ import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 
 import 'package:kernel/ast.dart'
     show DartType, DartTypeVisitor, DartTypeVisitor1, Nullability, Visitor;
+
 import 'package:kernel/src/assumptions.dart';
+import 'package:kernel/src/legacy_erasure.dart';
 
 import '../builder/field_builder.dart';
 
@@ -103,6 +105,13 @@ class _ImplicitFieldTypeAlias extends ImplicitFieldType {
   }
 
   DartType inferType() {
-    return _targetFieldBuilder.fieldType = _root.inferType();
+    DartType type = _root.inferType();
+    if (_targetFieldBuilder.library.loader.target.enableNonNullable) {
+      if (!_targetFieldBuilder.library.isNonNullableByDefault) {
+        type =
+            legacyErasure(_targetFieldBuilder.library.loader.coreTypes, type);
+      }
+    }
+    return _targetFieldBuilder.fieldType = type;
   }
 }

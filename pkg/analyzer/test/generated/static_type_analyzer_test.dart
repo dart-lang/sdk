@@ -403,29 +403,6 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
     _listener.assertNoErrors();
   }
 
-  void test_visitAssignmentExpression_compound_lazy() {
-    validate(TokenType operator) {
-      InterfaceType boolType = _typeProvider.boolType;
-      SimpleIdentifier identifier = _resolvedVariable(boolType, "b");
-      AssignmentExpression node = AstTestFactory.assignmentExpression(
-          identifier, operator, _resolvedBool(true));
-      expect(_analyze(node), same(boolType));
-      _listener.assertNoErrors();
-    }
-
-    validate(TokenType.AMPERSAND_AMPERSAND_EQ);
-    validate(TokenType.BAR_BAR_EQ);
-  }
-
-  void test_visitAssignmentExpression_simple() {
-    // i = 0
-    InterfaceType intType = _typeProvider.intType;
-    Expression node = AstTestFactory.assignmentExpression(
-        _resolvedVariable(intType, "i"), TokenType.EQ, _resolvedInteger(0));
-    expect(_analyze(node), same(intType));
-    _listener.assertNoErrors();
-  }
-
   void test_visitAwaitExpression_flattened() {
     // await e, where e has type Future<Future<int>>
     InterfaceType intType = _typeProvider.intType;
@@ -1118,16 +1095,6 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
   }
 
   DartType _flatten(DartType type) => _typeSystem.flatten(type);
-
-  /**
-   * Return a boolean literal with the given [value] that has been resolved to
-   * the correct type.
-   */
-  BooleanLiteral _resolvedBool(bool value) {
-    BooleanLiteral literal = AstTestFactory.booleanLiteral(value);
-    literal.staticType = _typeProvider.intType;
-    return literal;
-  }
 
   /**
    * Return an integer literal that has been resolved to the correct type.

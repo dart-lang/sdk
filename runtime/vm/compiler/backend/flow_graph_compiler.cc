@@ -2016,38 +2016,39 @@ bool FlowGraphCompiler::LookupMethodFor(int class_id,
 }
 
 void FlowGraphCompiler::EmitPolymorphicInstanceCall(
+    const PolymorphicInstanceCallInstr* call,
     const CallTargets& targets,
-    const InstanceCallInstr& original_call,
     ArgumentsInfo args_info,
     intptr_t deopt_id,
     TokenPosition token_pos,
     LocationSummary* locs,
     bool complete,
     intptr_t total_ic_calls) {
+  ASSERT(call != nullptr);
   if (FLAG_polymorphic_with_deopt) {
     compiler::Label* deopt =
         AddDeoptStub(deopt_id, ICData::kDeoptPolymorphicInstanceCallTestFail);
     compiler::Label ok;
-    EmitTestAndCall(targets, original_call.function_name(), args_info,
+    EmitTestAndCall(targets, call->function_name(), args_info,
                     deopt,  // No cid match.
                     &ok,    // Found cid.
                     deopt_id, token_pos, locs, complete, total_ic_calls,
-                    original_call.entry_kind());
+                    call->entry_kind());
     assembler()->Bind(&ok);
   } else {
     if (complete) {
       compiler::Label ok;
-      EmitTestAndCall(targets, original_call.function_name(), args_info,
+      EmitTestAndCall(targets, call->function_name(), args_info,
                       NULL,  // No cid match.
                       &ok,   // Found cid.
                       deopt_id, token_pos, locs, true, total_ic_calls,
-                      original_call.entry_kind());
+                      call->entry_kind());
       assembler()->Bind(&ok);
     } else {
-      const ICData& unary_checks = ICData::ZoneHandle(
-          zone(), original_call.ic_data()->AsUnaryClassChecks());
+      const ICData& unary_checks =
+          ICData::ZoneHandle(zone(), call->ic_data()->AsUnaryClassChecks());
       EmitInstanceCallAOT(unary_checks, deopt_id, token_pos, locs,
-                          original_call.entry_kind());
+                          call->entry_kind());
     }
   }
 }
@@ -2238,6 +2239,20 @@ bool FlowGraphCompiler::ShouldUseTypeTestingStubFor(bool optimizing,
   return FLAG_precompiled_mode ||
          (optimizing &&
           (type.IsTypeParameter() || (type.IsType() && type.IsInstantiated())));
+}
+
+FlowGraphCompiler::TypeTestStubKind
+FlowGraphCompiler::GetTypeTestStubKindForTypeParameter(
+    const TypeParameter& type_param) {
+  // TODO(regis): Revisit the bound check taking NNBD into consideration.
+  // If it's guaranteed, by type-parameter bound, that the type parameter will
+  // never have a value of a function type, then we can safely do a 4-type
+  // test instead of a 6-type test.
+  const AbstractType& bound = AbstractType::Handle(zone(), type_param.bound());
+  return !bound.NNBD_IsTopType() && !bound.IsFunctionType() &&
+                 !bound.IsDartFunctionType() && bound.IsType()
+             ? kTestTypeFourArgs
+             : kTestTypeSixArgs;
 }
 
 void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(

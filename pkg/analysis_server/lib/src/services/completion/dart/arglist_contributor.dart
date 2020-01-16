@@ -12,7 +12,9 @@ import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/util/comment.dart';
+import 'package:meta/meta.dart';
 
 /**
  * Determine the number of arguments.
@@ -139,6 +141,64 @@ class ArgListContributor extends DartCompletionContributor {
   DartCompletionRequest request;
   List<CompletionSuggestion> suggestions;
 
+  List<CompletionSuggestion> buildClosureSuggestions(
+    DartCompletionRequest request,
+    Expression argument,
+    DartType type,
+  ) {
+    if (type is FunctionType) {
+      var indent = getRequestLineIndent(request);
+      var parametersString = _buildClosureParameters(type);
+
+      var blockBuffer = StringBuffer(parametersString);
+      blockBuffer.writeln(' {');
+      blockBuffer.write('$indent  ');
+      var blockSelectionOffset = blockBuffer.length;
+      blockBuffer.writeln();
+      blockBuffer.write('$indent}');
+
+      var expressionBuffer = StringBuffer(parametersString);
+      expressionBuffer.write(' => ');
+      var expressionSelectionOffset = expressionBuffer.length;
+
+      if (argument.endToken.next?.type != TokenType.COMMA) {
+        blockBuffer.write(',');
+        expressionBuffer.write(',');
+      }
+
+      CompletionSuggestion createSuggestion({
+        @required String completion,
+        @required String displayText,
+        @required int selectionOffset,
+      }) {
+        return CompletionSuggestion(
+          CompletionSuggestionKind.INVOCATION,
+          DART_RELEVANCE_HIGH,
+          completion,
+          selectionOffset,
+          0,
+          false,
+          false,
+          displayText: displayText,
+        );
+      }
+
+      return [
+        createSuggestion(
+          completion: blockBuffer.toString(),
+          displayText: '$parametersString {}',
+          selectionOffset: blockSelectionOffset,
+        ),
+        createSuggestion(
+          completion: expressionBuffer.toString(),
+          displayText: '$parametersString =>',
+          selectionOffset: expressionSelectionOffset,
+        ),
+      ];
+    }
+    return const <CompletionSuggestion>[];
+  }
+
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
       DartCompletionRequest request) async {
@@ -245,6 +305,14 @@ class ArgListContributor extends DartCompletionContributor {
       _addDefaultParamSuggestions(parameters, true);
     } else if (_isInsertingToArgListWithSynthetic(request)) {
       _addDefaultParamSuggestions(parameters, !_isFollowedByAComma(request));
+    } else {
+      final argument = request.target.containingNode;
+      if (argument is NamedExpression) {
+        final type = argument.staticParameterElement?.type;
+        final closureSuggestions =
+            buildClosureSuggestions(request, argument, type);
+        suggestions.addAll(closureSuggestions);
+      }
     }
   }
 
@@ -270,6 +338,38 @@ class ArgListContributor extends DartCompletionContributor {
         ? flutter.identifyNewExpression(containingNode.parent)
         : null;
     return newExpr != null && flutter.isWidgetCreation(newExpr);
+  }
+
+  static String _buildClosureParameters(FunctionType type) {
+    var buffer = StringBuffer();
+    buffer.write('(');
+
+    var hasNamed = false;
+    var hasOptionalPositional = false;
+    var parameters = type.parameters;
+    for (var i = 0; i < parameters.length; ++i) {
+      var parameter = parameters[i];
+      if (i != 0) {
+        buffer.write(', ');
+      }
+      if (parameter.isNamed && !hasNamed) {
+        hasNamed = true;
+        buffer.write('{');
+      } else if (parameter.isOptionalPositional && !hasOptionalPositional) {
+        hasOptionalPositional = true;
+        buffer.write('[');
+      }
+      buffer.write(parameter.name);
+    }
+
+    if (hasNamed) {
+      buffer.write('}');
+    } else if (hasOptionalPositional) {
+      buffer.write(']');
+    }
+
+    buffer.write(')');
+    return buffer.toString();
   }
 
   /**

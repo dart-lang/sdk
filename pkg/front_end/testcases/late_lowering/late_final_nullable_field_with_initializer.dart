@@ -9,7 +9,7 @@ int? initLateTopLevelField1(int value) {
 
 late final int? lateTopLevelField1 = initLateTopLevelField1(123);
 
-class Class {
+class Class<T> {
   static int? lateStaticField1Init;
   static int? initLateStaticField1(int value) {
     return lateStaticField1Init = value;
@@ -37,14 +37,28 @@ class Class {
 
   late final int? lateInstanceField = initLateInstanceField(16);
 
+  T? lateGenericInstanceFieldInit;
+  T? initLateGenericInstanceField(T? value) {
+    return lateGenericInstanceFieldInit = value;
+  }
+
+  final T? field;
+  late final T? lateGenericInstanceField = initLateGenericInstanceField(field);
+
+  Class(this.field);
+
   instanceMethod() {
     expect(null, lateInstanceFieldInit);
     expect(16, lateInstanceField);
     expect(16, lateInstanceFieldInit);
+
+    expect(null, lateGenericInstanceFieldInit);
+    expect(field, lateGenericInstanceField);
+    expect(field, lateGenericInstanceFieldInit);
   }
 }
 
-extension Extension on Class {
+extension Extension<T> on Class<T> {
   static int? lateExtensionField1Init;
   static int? initLateExtensionField1(int value) {
     return lateExtensionField1Init = value;
@@ -76,7 +90,9 @@ main() {
   expect(87, Class.lateStaticField1Init);
 
   Class.staticMethod();
-  new Class().instanceMethod();
+  new Class<int?>(null).instanceMethod();
+  new Class<int?>(0).instanceMethod();
+  new Class<int>(0).instanceMethod();
 
   expect(null, Extension.lateExtensionField1Init);
   expect(87, Extension.lateExtensionField1);
