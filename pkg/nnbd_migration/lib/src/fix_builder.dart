@@ -249,6 +249,12 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
   }
 
   @override
+  List<TypeAnnotation> getListTypeArguments(ListLiteral node) {
+    // TODO(paulberry): replace with a proper implementation
+    return node.typeArguments?.arguments;
+  }
+
+  @override
   DartType getMigratedTypeAnnotationType(TypeAnnotation node) {
     return _fixTypeAnnotation(node).toFinalType(_fixBuilder.typeProvider);
   }
@@ -259,6 +265,12 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
         .map(_transformCollectionElement)
         .where((e) => e != null)
         .toList();
+  }
+
+  @override
+  List<TypeAnnotation> getSetOrMapTypeArguments(SetOrMapLiteral node) {
+    // TODO(paulberry): replace with a proper implementation
+    return node.typeArguments?.arguments;
   }
 
   @override

@@ -19,7 +19,17 @@ class CollectionElementProvider {
   /// Gets the elements contained in a [ListLiteral].
   List<CollectionElement> getListElements(ListLiteral node) => node.elements;
 
+  /// Gets the explicit type arguments of a [ListLiteral], or `null` if there
+  /// are no explicit type arguments.
+  List<TypeAnnotation> getListTypeArguments(ListLiteral node) =>
+      node.typeArguments?.arguments;
+
   /// Gets the elements contained in a [SetOrMapLiteral].
   List<CollectionElement> getSetOrMapElements(SetOrMapLiteral node) =>
       node.elements;
+
+  /// Gets the explicit type arguments of a [SetOrMapLiteral], or `null` if
+  /// there are no explicit type arguments.
+  List<TypeAnnotation> getSetOrMapTypeArguments(SetOrMapLiteral node) =>
+      node.typeArguments?.arguments;
 }

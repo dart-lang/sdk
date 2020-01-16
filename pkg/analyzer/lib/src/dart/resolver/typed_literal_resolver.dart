@@ -72,10 +72,10 @@ class TypedLiteralResolver {
   void resolveListLiteral(ListLiteral node) {
     InterfaceType listType;
 
-    TypeArgumentList typeArguments = node.typeArguments;
+    List<TypeAnnotation> typeArguments = _getListTypeArguments(node);
     if (typeArguments != null) {
-      if (typeArguments.arguments.length == 1) {
-        DartType elementType = typeArguments.arguments[0].type;
+      if (typeArguments.length == 1) {
+        DartType elementType = typeArguments[0].type;
         if (!elementType.isDynamic) {
           listType = _typeProvider.listType2(elementType);
         }
@@ -99,7 +99,7 @@ class TypedLiteralResolver {
 
   void resolveSetOrMapLiteral(SetOrMapLiteral node) {
     (node as SetOrMapLiteralImpl).becomeUnresolved();
-    var typeArguments = node.typeArguments?.arguments;
+    var typeArguments = _getSetOrMapTypeArguments(node);
 
     InterfaceType literalType;
     var literalResolution = _computeSetOrMapResolution(node);
@@ -133,7 +133,7 @@ class TypedLiteralResolver {
             elementType: elementType, iterableType: iterableType);
         if (!_uiAsCodeEnabled &&
             _getSetOrMapElements(node).isEmpty &&
-            node.typeArguments == null &&
+            _getSetOrMapTypeArguments(node) == null &&
             node.isMap) {
           // The node is really an empty set literal with no type arguments.
           (node as SetOrMapLiteralImpl).becomeMap();
@@ -199,7 +199,7 @@ class TypedLiteralResolver {
   /// Compute the context type for the given set or map [literal].
   _LiteralResolution _computeSetOrMapResolution(SetOrMapLiteral literal) {
     _LiteralResolution typeArgumentsResolution =
-        _fromTypeArguments(literal.typeArguments);
+        _fromTypeArguments(_getSetOrMapTypeArguments(literal));
     DartType contextType = InferenceContext.getContext(literal);
     _LiteralResolution contextResolution = _fromContextType(contextType);
     _LeafElements elementCounts = _LeafElements(_getSetOrMapElements(literal));
@@ -286,10 +286,9 @@ class TypedLiteralResolver {
     return _LiteralResolution(_LiteralResolutionKind.ambiguous, null);
   }
 
-  /// Return the resolution that is indicated by the given [typeArgumentList].
-  _LiteralResolution _fromTypeArguments(TypeArgumentList typeArgumentList) {
-    if (typeArgumentList != null) {
-      NodeList<TypeAnnotation> arguments = typeArgumentList.arguments;
+  /// Return the resolution that is indicated by the given [arguments].
+  _LiteralResolution _fromTypeArguments(List<TypeAnnotation> arguments) {
+    if (arguments != null) {
       if (arguments.length == 1) {
         return _LiteralResolution(_LiteralResolutionKind.set,
             _typeProvider.setType2(arguments[0].type));
@@ -304,8 +303,14 @@ class TypedLiteralResolver {
   List<CollectionElement> _getListElements(ListLiteral node) =>
       _collectionElementProvider.getListElements(node);
 
+  List<TypeAnnotation> _getListTypeArguments(ListLiteral node) =>
+      _collectionElementProvider.getListTypeArguments(node);
+
   List<CollectionElement> _getSetOrMapElements(SetOrMapLiteral node) =>
       _collectionElementProvider.getSetOrMapElements(node);
+
+  List<TypeAnnotation> _getSetOrMapTypeArguments(SetOrMapLiteral node) =>
+      _collectionElementProvider.getSetOrMapTypeArguments(node);
 
   _InferredCollectionElementTypeInformation _inferCollectionElementType(
       CollectionElement element) {
@@ -595,14 +600,13 @@ class TypedLiteralResolver {
   }
 
   void _resolveListLiteral2(ListLiteral node) {
-    TypeArgumentList typeArguments = node.typeArguments;
+    List<TypeAnnotation> typeArguments = _getListTypeArguments(node);
 
     // If we have explicit arguments, use them.
     if (typeArguments != null) {
       DartType elementType = _dynamicType;
-      NodeList<TypeAnnotation> arguments = typeArguments.arguments;
-      if (arguments != null && arguments.length == 1) {
-        DartType argumentType = arguments[0].type;
+      if (typeArguments != null && typeArguments.length == 1) {
+        DartType argumentType = typeArguments[0].type;
         if (argumentType != null) {
           elementType = argumentType;
         }
@@ -634,7 +638,7 @@ class TypedLiteralResolver {
   }
 
   void _resolveSetOrMapLiteral2(SetOrMapLiteral node) {
-    var typeArguments = node.typeArguments?.arguments;
+    var typeArguments = _getSetOrMapTypeArguments(node);
 
     // If we have type arguments, use them.
     // TODO(paulberry): this logic seems redundant with
