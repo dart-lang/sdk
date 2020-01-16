@@ -97,7 +97,7 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    _visitClassDeclarationMembers(node);
+    _visitClassOrMixinMembers(node);
     visitNode(node);
   }
 
@@ -146,13 +146,13 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitConstructorDeclaration(ConstructorDeclaration node) {
+  void visitConstructorDeclaration(ConstructorDeclaration node) {
     _visitParamList(node.parameters);
     visitNode(node);
   }
 
   @override
-  visitForStatement(ForStatement node) {
+  void visitForStatement(ForStatement node) {
     var forLoopParts = node.forLoopParts;
     if (forLoopParts is ForEachPartsWithDeclaration) {
       DeclaredIdentifier loopVariable = forLoopParts.loopVariable;
@@ -200,6 +200,12 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitMixinDeclaration(MixinDeclaration node) {
+    _visitClassOrMixinMembers(node);
+    visitNode(node);
+  }
+
+  @override
   void visitNode(AstNode node) {
     // Support the case of searching partial ASTs by aborting on nodes with no
     // parents. This is useful for the angular plugin.
@@ -227,7 +233,7 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
     visitNode(node);
   }
 
-  void _visitClassDeclarationMembers(ClassDeclaration node) {
+  void _visitClassOrMixinMembers(ClassOrMixinDeclaration node) {
     for (ClassMember member in node.members) {
       if (member is FieldDeclaration) {
         member.fields.variables.forEach((VariableDeclaration varDecl) {
@@ -263,7 +269,7 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
     }
   }
 
-  _visitStatements(NodeList<Statement> statements) {
+  void _visitStatements(NodeList<Statement> statements) {
     for (Statement stmt in statements) {
       if (stmt.offset < offset) {
         if (stmt is VariableDeclarationStatement) {

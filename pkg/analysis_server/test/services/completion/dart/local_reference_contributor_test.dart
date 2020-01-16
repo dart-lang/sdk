@@ -4050,6 +4050,32 @@ A T;''');
     assertNotSuggested('x');
   }
 
+  test_mixinDeclaration_method_access() async {
+    addTestSource(r'''
+class A { }
+
+mixin X on A {
+  int _x() => 0;
+  int get x => ^
+}
+''');
+    await computeSuggestions();
+    assertSuggestMethod('_x', 'X', 'int');
+  }
+
+  test_mixinDeclaration_property_access() async {
+    addTestSource(r'''
+class A { }
+
+mixin X on A {
+  int _x;
+  int get x => ^
+}
+''');
+    await computeSuggestions();
+    assertSuggestField('_x', 'int');
+  }
+
   test_new_instance() async {
     addTestSource('import "dart:math"; class A {x() {new Random().^}}');
     await computeSuggestions();
