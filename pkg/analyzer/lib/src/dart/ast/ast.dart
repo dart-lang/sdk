@@ -8623,6 +8623,10 @@ class SetOrMapLiteralImpl extends TypedLiteralImpl implements SetOrMapLiteral {
     _resolvedKind = _SetOrMapKind.set;
   }
 
+  void becomeUnresolved() {
+    _resolvedKind = _SetOrMapKind.unresolved;
+  }
+
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);

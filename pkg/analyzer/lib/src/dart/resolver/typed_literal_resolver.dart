@@ -13,6 +13,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/generated/collection_element_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -24,6 +25,8 @@ class TypedLiteralResolver {
   final TypeSystemImpl _typeSystem;
   final TypeProviderImpl _typeProvider;
   final ErrorReporter _errorReporter;
+  final CollectionElementProvider _collectionElementProvider =
+      const CollectionElementProvider();
 
   final bool _strictInference;
   final bool _uiAsCodeEnabled;
@@ -82,7 +85,7 @@ class TypedLiteralResolver {
     if (listType != null) {
       DartType elementType = listType.typeArguments[0];
       DartType iterableType = _typeProvider.iterableType2(elementType);
-      _pushCollectionTypesDownToAll(node.elements,
+      _pushCollectionTypesDownToAll(_getListElements(node),
           elementType: elementType, iterableType: iterableType);
       InferenceContext.setType(node, listType);
     } else {
@@ -94,6 +97,7 @@ class TypedLiteralResolver {
   }
 
   void resolveSetOrMapLiteral(SetOrMapLiteral node) {
+    (node as SetOrMapLiteralImpl).becomeUnresolved();
     var typeArguments = node.typeArguments?.arguments;
 
     InterfaceType literalType;
@@ -124,10 +128,10 @@ class TypedLiteralResolver {
       if (typeArguments.length == 1) {
         DartType elementType = literalType.typeArguments[0];
         DartType iterableType = _typeProvider.iterableType2(elementType);
-        _pushCollectionTypesDownToAll(node.elements,
+        _pushCollectionTypesDownToAll(_getSetOrMapElements(node),
             elementType: elementType, iterableType: iterableType);
         if (!_uiAsCodeEnabled &&
-            node.elements.isEmpty &&
+            _getSetOrMapElements(node).isEmpty &&
             node.typeArguments == null &&
             node.isMap) {
           // The node is really an empty set literal with no type arguments.
@@ -136,7 +140,7 @@ class TypedLiteralResolver {
       } else if (typeArguments.length == 2) {
         DartType keyType = typeArguments[0];
         DartType valueType = typeArguments[1];
-        _pushCollectionTypesDownToAll(node.elements,
+        _pushCollectionTypesDownToAll(_getSetOrMapElements(node),
             iterableType: literalType, keyType: keyType, valueType: valueType);
       }
       (node as SetOrMapLiteralImpl).contextType = literalType;
@@ -197,7 +201,7 @@ class TypedLiteralResolver {
         _fromTypeArguments(literal.typeArguments);
     DartType contextType = InferenceContext.getContext(literal);
     _LiteralResolution contextResolution = _fromContextType(contextType);
-    _LeafElements elementCounts = _LeafElements(literal.elements);
+    _LeafElements elementCounts = _LeafElements(_getSetOrMapElements(literal));
     _LiteralResolution elementResolution = elementCounts.resolution;
 
     List<_LiteralResolution> unambiguousResolutions = [];
@@ -238,7 +242,7 @@ class TypedLiteralResolver {
           : unambiguousResolutions[0];
     } else if (unambiguousResolutions.length == 1) {
       return unambiguousResolutions[0];
-    } else if (literal.elements.isEmpty) {
+    } else if (_getSetOrMapElements(literal).isEmpty) {
       return _LiteralResolution(_LiteralResolutionKind.map,
           _typeProvider.mapType2(_dynamicType, _dynamicType));
     }
@@ -295,6 +299,12 @@ class TypedLiteralResolver {
     }
     return _LiteralResolution(_LiteralResolutionKind.ambiguous, null);
   }
+
+  List<CollectionElement> _getListElements(ListLiteral node) =>
+      _collectionElementProvider.getListElements(node);
+
+  List<CollectionElement> _getSetOrMapElements(SetOrMapLiteral node) =>
+      _collectionElementProvider.getSetOrMapElements(node);
 
   _InferredCollectionElementTypeInformation _inferCollectionElementType(
       CollectionElement element) {
@@ -378,7 +388,7 @@ class TypedLiteralResolver {
       parameters = [];
     } else {
       // Also use upwards information to infer the type.
-      elementTypes = node.elements.map(_computeElementType).toList();
+      elementTypes = _getListElements(node).map(_computeElementType).toList();
       var syntheticParameter = ParameterElementImpl.synthetic(
           'element', genericElementType, ParameterKind.POSITIONAL);
       parameters = List.filled(elementTypes.length, syntheticParameter);
@@ -436,7 +446,7 @@ class TypedLiteralResolver {
     var literalImpl = literal as SetOrMapLiteralImpl;
     DartType contextType = literalImpl.contextType;
     literalImpl.contextType = null; // Not needed anymore.
-    NodeList<CollectionElement> elements = literal.elements;
+    List<CollectionElement> elements = _getSetOrMapElements(literal);
     List<_InferredCollectionElementTypeInformation> inferredTypes = [];
     bool canBeAMap = true;
     bool mustBeAMap = false;
@@ -667,7 +677,7 @@ class TypedLiteralResolver {
       (node as SetOrMapLiteralImpl).becomeSet();
     }
     if (_strictInference &&
-        node.elements.isEmpty &&
+        _getSetOrMapElements(node).isEmpty &&
         InferenceContext.getContext(node) == null) {
       // We cannot infer the type of a collection literal with no elements, and
       // no context type. If there are any elements, inference has not failed,
