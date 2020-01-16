@@ -71,6 +71,14 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor {
 
   CompilationUnit _enclosingCompilationUnit;
 
+  /// This boolean is set to enable whether or not we should assert that some
+  /// found keyword in Dart syntax should be in the completion set returned from
+  /// the analysis server.  This is off by default because with syntax such as
+  /// "^get foo() => _foo;", "get" and "set" won't be suggested because this
+  /// syntax has specified the "get" modifier, i.e. it would be invalid to
+  /// include it again: "get get foo() => _foo;".
+  final bool _doExpectKeywordCompletions = false;
+
   ExpectedCompletionsVisitor() : expectedCompletions = <ExpectedCompletion>[];
 
   safelyRecordEntity(SyntacticEntity entity,
@@ -141,7 +149,10 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor {
   }
 
   safelyRecordKeywordCompletion(SyntacticEntity entity) {
-    safelyRecordEntity(entity, kind: protocol.CompletionSuggestionKind.KEYWORD);
+    if (_doExpectKeywordCompletions) {
+      safelyRecordEntity(entity,
+          kind: protocol.CompletionSuggestionKind.KEYWORD);
+    }
   }
 
   @override
