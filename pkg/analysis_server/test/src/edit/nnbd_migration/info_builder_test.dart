@@ -191,6 +191,21 @@ class InfoBuilderTest extends NnbdMigrationTestBase {
     }
   }
 
+  /// Assert various properties of the given [edit].
+  void assertEdit(
+      {@required EditDetail edit, int offset, int length, String replacement}) {
+    expect(edit, isNotNull);
+    if (offset != null) {
+      expect(edit.offset, offset);
+    }
+    if (length != null) {
+      expect(edit.length, length);
+    }
+    if (replacement != null) {
+      expect(edit.replacement, replacement);
+    }
+  }
+
   /// Assert that some target in [targets] has various properties.
   void assertInTargets(
       {@required Iterable<NavigationTarget> targets, int offset, int length}) {
@@ -327,10 +342,14 @@ void g() {
 ''');
     List<RegionInfo> regions = unit.regions;
     expect(regions, hasLength(1));
-    assertRegion(region: regions[0], offset: 10, details: [
+    var region = regions[0];
+    var edits = region.edits;
+    assertRegion(region: region, offset: 10, details: [
       "A dynamic value, which is nullable is passed as an argument"
     ]);
-    assertDetail(detail: regions[0].details[0], offset: 104, length: 1);
+    assertDetail(detail: region.details[0], offset: 104, length: 1);
+    assertEdit(edit: edits[0], offset: 10, replacement: '/*!*/');
+    assertEdit(edit: edits[1], offset: 10, replacement: '/*?*/');
   }
 
   test_exactNullable() async {
@@ -541,10 +560,14 @@ class C {
 ''');
     List<RegionInfo> regions = unit.fixRegions;
     expect(regions, hasLength(1));
-    assertRegion(region: regions[0], offset: 42, length: 9, details: [
+    var region = regions[0];
+    var edits = region.edits;
+    assertRegion(region: region, offset: 42, length: 9, details: [
       "This parameter is non-nullable, so cannot have an implicit default "
           "value of 'null'"
     ]);
+    assertEdit(
+        edit: edits[0], offset: 42, length: 0, replacement: '@required ');
   }
 
   test_insertedRequired_parameter() async {
@@ -562,10 +585,14 @@ class C {
     List<RegionInfo> regions = unit.fixRegions;
     expect(regions, hasLength(3));
     // regions[0] is the `int? s` fix.
-    assertRegion(region: regions[1], offset: 34, length: 9, details: [
+    var region = regions[1];
+    var edits = region.edits;
+    assertRegion(region: region, offset: 34, length: 9, details: [
       "This parameter is non-nullable, so cannot have an implicit default "
           "value of 'null'"
     ]);
+    assertEdit(
+        edit: edits[0], offset: 33, length: 0, replacement: '@required ');
     // regions[2] is the `level!` fix.
   }
 
@@ -819,9 +846,12 @@ class C {
     List<RegionInfo> regions = unit.regions;
     expect(regions, hasLength(2));
     // regions[0] is `int?`.
+    var region = regions[1];
+    var edits = region.edits;
     assertRegion(region: regions[1], offset: 65, details: [
       "This value must be null-checked before accessing its properties."
     ]);
+    assertEdit(edit: edits[0], offset: 64, length: 0, replacement: '/*!*/');
   }
 
   test_nullCheck_onMethodCall() async {

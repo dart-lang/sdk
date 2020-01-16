@@ -395,13 +395,35 @@ class InfoBuilder {
 
   /// Return a list of edits that can be applied.
   List<EditDetail> _computeEdits(FixInfo fixInfo) {
-    // TODO(brianwilkerson) Add other kinds of edits, such as adding an assert.
     List<EditDetail> edits = [];
     SingleNullabilityFix fix = fixInfo.fix;
-    if (fix.description.kind == NullabilityFixKind.makeTypeNullable) {
-      for (Location location in fix.locations) {
-        edits.add(EditDetail(
-            'Force type to be non-nullable.', location.offset, 0, '/*!*/'));
+    var fixKind = fix.description.kind;
+    for (Location location in fix.locations) {
+      switch (fixKind) {
+        case NullabilityFixKind.addRequired:
+          // TODO(brianwilkerson) This doesn't verify that the meta package has
+          //  been imported.
+          edits.add(EditDetail(
+              "Mark with '@required'.", location.offset, 0, '@required '));
+          break;
+        case NullabilityFixKind.checkExpression:
+          // TODO(brianwilkerson) Determine whether we can know that the fix is
+          //  associated with a parameter and insert an assert if it is.
+          edits.add(
+              EditDetail('Force null check.', location.offset, 0, '/*!*/'));
+          break;
+        case NullabilityFixKind.discardCondition:
+        case NullabilityFixKind.discardElse:
+        case NullabilityFixKind.discardThen:
+          // There's no need for hints around code that is being removed.
+          break;
+        case NullabilityFixKind.makeTypeNullable:
+        case NullabilityFixKind.noModification:
+          edits.add(EditDetail(
+              'Force type to be non-nullable.', location.offset, 0, '/*!*/'));
+          edits.add(EditDetail(
+              'Force type to be nullable.', location.offset, 0, '/*?*/'));
+          break;
       }
     }
     return edits;
