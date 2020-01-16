@@ -36,6 +36,7 @@ import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/dart/resolver/typed_literal_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/nullable_dereference_verifier.dart';
+import 'package:analyzer/src/generated/collection_element_provider.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
 import 'package:analyzer/src/generated/element_type_provider.dart';
@@ -197,6 +198,8 @@ class ResolverVisitor extends ScopedVisitor {
 
   final ElementTypeProvider _elementTypeProvider;
 
+  final CollectionElementProvider _collectionElementProvider;
+
   /// Helper for checking potentially nullable dereferences.
   NullableDereferenceVerifier nullableDereferenceVerifier;
 
@@ -307,7 +310,8 @@ class ResolverVisitor extends ScopedVisitor {
             propagateTypes,
             reportConstEvaluationErrors,
             flowAnalysisHelper,
-            const ElementTypeProvider());
+            const ElementTypeProvider(),
+            const CollectionElementProvider());
 
   ResolverVisitor._(
       this.inheritance,
@@ -321,7 +325,8 @@ class ResolverVisitor extends ScopedVisitor {
       bool propagateTypes,
       reportConstEvaluationErrors,
       this._flowAnalysis,
-      this._elementTypeProvider)
+      this._elementTypeProvider,
+      this._collectionElementProvider)
       : _featureSet = featureSet,
         super(definingLibrary, source, typeProvider, errorListener,
             nameScope: nameScope) {
@@ -330,8 +335,9 @@ class ResolverVisitor extends ScopedVisitor {
       typeSystem: typeSystem,
       errorReporter: errorReporter,
     );
-    this._typedLiteralResolver =
-        TypedLiteralResolver(this, _featureSet, typeSystem, typeProvider);
+    this._typedLiteralResolver = TypedLiteralResolver(
+        this, _featureSet, typeSystem, typeProvider,
+        collectionElementProvider: _collectionElementProvider);
     this.extensionResolver = ExtensionMemberResolver(this);
     this.typePropertyResolver = TypePropertyResolver(this);
     this.inferenceHelper = InvocationInferenceHelper(
@@ -2097,7 +2103,22 @@ class ResolverVisitorForMigration extends ResolverVisitor {
             true,
             FlowAnalysisHelperForMigration(
                 typeSystem, migrationResolutionHooks),
+            migrationResolutionHooks,
             migrationResolutionHooks);
+
+  @override
+  void visitIfElement(IfElement node) {
+    var conditionalKnownValue =
+        (_elementTypeProvider as MigrationResolutionHooks)
+            .getConditionalKnownValue(node);
+    if (conditionalKnownValue == null) {
+      super.visitIfElement(node);
+      return;
+    } else {
+      (conditionalKnownValue ? node.thenElement : node.elseElement)
+          ?.accept(this);
+    }
+  }
 
   @override
   void visitIfStatement(IfStatement node) {

@@ -199,7 +199,7 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
 
   @override
   bool getConditionalKnownValue(AstNode node) {
-    // TODO(paulberry): handle things other than IfStatement.
+    // TODO(paulberry): handle conditional expressions.
     var conditionalDiscard =
         _fixBuilder._variables.getConditionalDiscard(_fixBuilder.source, node);
     if (conditionalDiscard == null) {
@@ -239,9 +239,25 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
   }
 
   @override
+  List<CollectionElement> getListElements(ListLiteral node) {
+    return node.elements
+        .map(_transformCollectionElement)
+        .where((e) => e != null)
+        .toList();
+  }
+
+  @override
   DartType getMigratedTypeAnnotationType(Source source, TypeAnnotation node) {
     return _fixTypeAnnotation(source, node)
         .toFinalType(_fixBuilder.typeProvider);
+  }
+
+  @override
+  List<CollectionElement> getSetOrMapElements(SetOrMapLiteral node) {
+    return node.elements
+        .map(_transformCollectionElement)
+        .where((e) => e != null)
+        .toList();
   }
 
   @override
@@ -359,6 +375,21 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
       return true;
     }
     return false;
+  }
+
+  CollectionElement _transformCollectionElement(CollectionElement node) {
+    while (node is IfElement) {
+      var conditionalDiscard = _fixBuilder._variables
+          .getConditionalDiscard(_fixBuilder.source, node);
+      if (conditionalDiscard == null ||
+          conditionalDiscard.keepTrue && conditionalDiscard.keepFalse) {
+        return node;
+      }
+      var conditionValue = conditionalDiscard.keepTrue;
+      var ifElement = node as IfElement;
+      node = conditionValue ? ifElement.thenElement : ifElement.elseElement;
+    }
+    return node;
   }
 }
 

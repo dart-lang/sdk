@@ -1254,6 +1254,17 @@ String f(dynamic x) => x.toString();
     await _checkSingleFileChanges(content, expected);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40174')
+  Future<void> test_eliminate_dead_if_inside_for_element() async {
+    var content = '''
+List<int> _f(List<int/*!*/> xs) => [for(var x in xs) if (x == null) 1];
+''';
+    var expected = '''
+List<int> _f(List<int/*!*/> xs) => [];
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_enum() async {
     var content = '''
 enum E {
@@ -3347,8 +3358,8 @@ main() {
 
   @failingTest
   Future<void> test_removed_if_element_doesnt_introduce_nullability() async {
-    // Failing for two reasons: 1. we don't add ! to recover(), and 2. we get
-    // an unimplemented error.
+    // Failing because we don't yet remove the dead list element
+    // `if (x == null) recover()`.
     var content = '''
 f(int x) {
   <int>[if (x == null) recover(), 0];
@@ -3360,7 +3371,7 @@ int recover() {
 ''';
     var expected = '''
 f(int x) {
-  <int>[if (x == null) recover()!, 0];
+  <int>[0];
 }
 int? recover() {
   assert(false);

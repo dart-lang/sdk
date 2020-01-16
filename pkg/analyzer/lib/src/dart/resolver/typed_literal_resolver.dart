@@ -25,8 +25,7 @@ class TypedLiteralResolver {
   final TypeSystemImpl _typeSystem;
   final TypeProviderImpl _typeProvider;
   final ErrorReporter _errorReporter;
-  final CollectionElementProvider _collectionElementProvider =
-      const CollectionElementProvider();
+  final CollectionElementProvider _collectionElementProvider;
 
   final bool _strictInference;
   final bool _uiAsCodeEnabled;
@@ -34,31 +33,33 @@ class TypedLiteralResolver {
   final bool _isNonNullableByDefault;
 
   factory TypedLiteralResolver(ResolverVisitor resolver, FeatureSet featureSet,
-      TypeSystemImpl typeSystem, TypeProviderImpl typeProvider) {
+      TypeSystemImpl typeSystem, TypeProviderImpl typeProvider,
+      {CollectionElementProvider collectionElementProvider =
+          const CollectionElementProvider()}) {
     var library = resolver.definingLibrary as LibraryElementImpl;
     var analysisOptions = library.context.analysisOptions;
     var analysisOptionsImpl = analysisOptions as AnalysisOptionsImpl;
     return TypedLiteralResolver._(
-      resolver,
-      typeSystem,
-      typeProvider,
-      resolver.errorReporter,
-      analysisOptionsImpl.strictInference,
-      featureSet.isEnabled(Feature.control_flow_collections) ||
-          featureSet.isEnabled(Feature.spread_collections),
-      featureSet.isEnabled(Feature.non_nullable),
-    );
+        resolver,
+        typeSystem,
+        typeProvider,
+        resolver.errorReporter,
+        analysisOptionsImpl.strictInference,
+        featureSet.isEnabled(Feature.control_flow_collections) ||
+            featureSet.isEnabled(Feature.spread_collections),
+        featureSet.isEnabled(Feature.non_nullable),
+        collectionElementProvider);
   }
 
   TypedLiteralResolver._(
-    this._resolver,
-    this._typeSystem,
-    this._typeProvider,
-    this._errorReporter,
-    this._strictInference,
-    this._uiAsCodeEnabled,
-    this._isNonNullableByDefault,
-  );
+      this._resolver,
+      this._typeSystem,
+      this._typeProvider,
+      this._errorReporter,
+      this._strictInference,
+      this._uiAsCodeEnabled,
+      this._isNonNullableByDefault,
+      this._collectionElementProvider);
 
   DynamicTypeImpl get _dynamicType => DynamicTypeImpl.instance;
 
