@@ -193,4 +193,42 @@ void f() {
     assertSuggestGetter('b', 'int');
     assertSuggestSetter('c');
   }
+
+  test_members_inExtendedClass() async {
+    addTestSource('''
+class Person {
+  void doSomething() {
+    ^
+  }
+}
+extension E on Person {
+  String get name => '';
+  set id(int id) {}
+  void work() { }
+}
+''');
+    await computeSuggestions();
+    assertSuggestSetter('id');
+    assertSuggestGetter('name', 'String');
+    assertSuggestMethod('work', null, 'void');
+  }
+
+  test_members_with_this_inExtendedClass() async {
+    addTestSource('''
+class Person {
+  void doSomething() {
+    this.^
+  }
+}
+extension E on Person {
+  String get name => '';
+  set id(int id) {}
+  void work() { }
+}
+''');
+    await computeSuggestions();
+    assertSuggestSetter('id');
+    assertSuggestGetter('name', 'String');
+    assertSuggestMethod('work', null, 'void');
+  }
 }
