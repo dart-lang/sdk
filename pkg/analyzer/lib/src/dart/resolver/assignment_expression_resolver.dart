@@ -29,6 +29,7 @@ class AssignmentExpressionResolver {
   final ElementTypeProvider _elementTypeProvider;
   final TypePropertyResolver _typePropertyResolver;
   final InvocationInferenceHelper _inferenceHelper;
+  final AssignmentExpressionShared _assignmentShared;
 
   AssignmentExpressionResolver({
     @required ResolverVisitor resolver,
@@ -38,7 +39,11 @@ class AssignmentExpressionResolver {
         _flowAnalysis = flowAnalysis,
         _elementTypeProvider = elementTypeProvider,
         _typePropertyResolver = resolver.typePropertyResolver,
-        _inferenceHelper = resolver.inferenceHelper;
+        _inferenceHelper = resolver.inferenceHelper,
+        _assignmentShared = AssignmentExpressionShared(
+          resolver: resolver,
+          flowAnalysis: flowAnalysis,
+        );
 
   ErrorReporter get _errorReporter => _resolver.errorReporter;
 
@@ -77,23 +82,6 @@ class AssignmentExpressionResolver {
             : node.staticType);
   }
 
-  void _checkLateFinalAlreadyAssigned(Expression left) {
-    var flow = _flowAnalysis?.flow;
-    if (flow != null && left is SimpleIdentifier) {
-      var element = left.staticElement;
-      if (element is LocalVariableElement &&
-          element.isLate &&
-          element.isFinal) {
-        if (flow.isAssigned(element)) {
-          _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED,
-            left,
-          );
-        }
-      }
-    }
-  }
-
   void _resolve1(AssignmentExpressionImpl node) {
     Token operator = node.operator;
     TokenType operatorType = operator.type;
@@ -104,7 +92,7 @@ class AssignmentExpressionResolver {
       return;
     }
 
-    _checkLateFinalAlreadyAssigned(leftHandSide);
+    _assignmentShared.checkLateFinalAlreadyAssigned(leftHandSide);
 
     // For any compound assignments to a void or nullable variable, report it.
     // Example: `y += voidFn()`, not allowed.
@@ -343,5 +331,35 @@ class AssignmentExpressionResolver {
       return DynamicTypeImpl.instance;
     }
     return type;
+  }
+}
+
+class AssignmentExpressionShared {
+  final ResolverVisitor _resolver;
+  final FlowAnalysisHelper _flowAnalysis;
+
+  AssignmentExpressionShared({
+    @required ResolverVisitor resolver,
+    @required FlowAnalysisHelper flowAnalysis,
+  })  : _resolver = resolver,
+        _flowAnalysis = flowAnalysis;
+
+  ErrorReporter get _errorReporter => _resolver.errorReporter;
+
+  void checkLateFinalAlreadyAssigned(Expression left) {
+    var flow = _flowAnalysis?.flow;
+    if (flow != null && left is SimpleIdentifier) {
+      var element = left.staticElement;
+      if (element is LocalVariableElement &&
+          element.isLate &&
+          element.isFinal) {
+        if (flow.isAssigned(element)) {
+          _errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED,
+            left,
+          );
+        }
+      }
+    }
   }
 }

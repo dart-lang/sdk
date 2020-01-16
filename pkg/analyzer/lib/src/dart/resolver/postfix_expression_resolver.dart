@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/resolver/assignment_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
@@ -27,6 +28,7 @@ class PostfixExpressionResolver {
   final ElementTypeProvider _elementTypeProvider;
   final TypePropertyResolver _typePropertyResolver;
   final InvocationInferenceHelper _inferenceHelper;
+  final AssignmentExpressionShared _assignmentShared;
 
   PostfixExpressionResolver({
     @required ResolverVisitor resolver,
@@ -36,7 +38,11 @@ class PostfixExpressionResolver {
         _flowAnalysis = flowAnalysis,
         _elementTypeProvider = elementTypeProvider,
         _typePropertyResolver = resolver.typePropertyResolver,
-        _inferenceHelper = resolver.inferenceHelper;
+        _inferenceHelper = resolver.inferenceHelper,
+        _assignmentShared = AssignmentExpressionShared(
+          resolver: resolver,
+          flowAnalysis: flowAnalysis,
+        );
 
   ErrorReporter get _errorReporter => _resolver.errorReporter;
 
@@ -56,6 +62,8 @@ class PostfixExpressionResolver {
       _resolveNullCheck(node, receiverType);
       return;
     }
+
+    _assignmentShared.checkLateFinalAlreadyAssigned(node.operand);
 
     _resolve1(node, receiverType);
     _resolve2(node, receiverType);
