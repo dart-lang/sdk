@@ -1504,7 +1504,11 @@ class ContextManagerImpl implements ContextManager {
           }
         }
 
-        callbacks.applyFileRemoved(info.analysisDriver, path);
+        Resource resource = resourceProvider.getResource(path);
+        if (resource is File &&
+            _shouldFileBeAnalyzed(resource, mustExist: false)) {
+          callbacks.applyFileRemoved(info.analysisDriver, path);
+        }
         break;
       case ChangeType.MODIFY:
         Resource resource = resourceProvider.getResource(path);
@@ -1632,7 +1636,7 @@ class ContextManagerImpl implements ContextManager {
   /**
    * Return `true` if the given [file] should be analyzed.
    */
-  bool _shouldFileBeAnalyzed(File file) {
+  bool _shouldFileBeAnalyzed(File file, {bool mustExist = true}) {
     for (Glob glob in analyzedFilesGlobs) {
       if (glob.matches(file.path)) {
         // Emacs creates dummy links to track the fact that a file is open for
@@ -1641,7 +1645,7 @@ class ContextManagerImpl implements ContextManager {
         // the non-existent file 'username@hostname.pid'. To avoid these dummy
         // links causing the analyzer to thrash, just ignore links to
         // non-existent files.
-        return file.exists;
+        return !mustExist || file.exists;
       }
     }
     return false;
