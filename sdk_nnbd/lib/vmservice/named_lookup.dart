@@ -7,8 +7,8 @@ part of dart._vmservice;
 /// Set like containes which automatically generated String ids for its items
 class NamedLookup<E extends Object> extends Object with IterableMixin<E> {
   final IdGenerator _generator;
-  final Map<String, E> _elements = <String, E>{};
-  final Map<E, String> _ids = <E, String>{};
+  final _elements = <String, E>{};
+  final _ids = <E, String>{};
 
   NamedLookup({String prologue = ''})
       : _generator = IdGenerator(prologue: prologue);
@@ -36,10 +36,10 @@ class IdGenerator {
   /// Fixed initial part of the id
   final String prologue;
   // Ids in use
-  final Set<String> _used = <String>{};
+  final _used = <String>{};
 
   /// Ids that has been released (use these before generate new ones)
-  final Set<String> _free = <String>{};
+  final _free = <String>{};
 
   /// Next id to generate if no one can be recycled (first use _free);
   int _next = 0;

@@ -11,8 +11,8 @@ class Asset {
   Asset(this.name, this.data);
 
   String get mimeType {
-    var extensionStart = name.lastIndexOf('.');
-    var extension = name.substring(extensionStart + 1);
+    final extensionStart = name.lastIndexOf('.');
+    final extension = name.substring(extensionStart + 1);
     switch (extension) {
       case 'html':
         return 'text/html; charset=UTF-8';
@@ -43,9 +43,8 @@ class Asset {
       return null;
     }
     List assetList = _decodeAssets(tarBytes);
-    Map<String, Asset> assets = HashMap<String, Asset>();
     for (int i = 0; i < assetList.length; i += 2) {
-      var a = Asset(assetList[i], assetList[i + 1]);
+      final a = Asset(assetList[i], assetList[i + 1]);
       assets[a.name] = a;
     }
     return assets;
@@ -54,7 +53,7 @@ class Asset {
   String toString() => '$name ($mimeType)';
 }
 
-List _decodeAssets(Uint8List data) native "VMService_DecodeAssets";
+List _decodeAssets(Uint8List data) native 'VMService_DecodeAssets';
 
 Map<String, Asset>? _assets;
 Map<String, Asset> get assets {

@@ -44,14 +44,12 @@ class Response {
   Response.json(Object value)
       : this(ResponsePayloadKind.String, json.encode(value));
 
-  factory Response.internalError(String message) {
-    return Response.json({
-      'type': 'ServiceError',
-      'id': '',
-      'kind': 'InternalError',
-      'message': message,
-    });
-  }
+  factory Response.internalError(String message) => Response.json({
+        'type': 'ServiceError',
+        'id': '',
+        'kind': 'InternalError',
+        'message': message,
+      });
 
   /// Construct response from the response [value] which can be either:
   ///     String: a string
