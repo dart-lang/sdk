@@ -2275,9 +2275,36 @@ class InferenceVisitor
       receiver = result.expression;
     }
     DartType receiverType = result.inferredType;
-    return inferrer.inferMethodInvocation(node.fileOffset, nullAwareGuards,
-        receiver, receiverType, node.name, node.arguments, typeContext,
+    ExpressionInferenceResult invocationResult = inferrer.inferMethodInvocation(
+        node.fileOffset,
+        nullAwareGuards,
+        receiver,
+        receiverType,
+        node.name,
+        node.arguments,
+        typeContext,
         isExpressionInvocation: false);
+    if (inferrer.isNonNullableByDefault && inferrer.performNnbdChecks) {
+      if (receiverType is! DynamicType && receiverType.isPotentiallyNullable) {
+        if (inferrer.nnbdStrongMode) {
+          return new ExpressionInferenceResult.nullAware(
+              invocationResult.inferredType,
+              inferrer.helper.wrapInProblem(
+                  invocationResult.expression..fileOffset = node.fileOffset,
+                  templateNullableMethodCallError.withArguments(node.name.name,
+                      receiverType, inferrer.isNonNullableByDefault),
+                  node.name.name.length),
+              null);
+        } else {
+          inferrer.helper.addProblem(
+              templateNullableMethodCallWarning.withArguments(node.name.name,
+                  receiverType, inferrer.isNonNullableByDefault),
+              node.fileOffset,
+              node.name.name.length);
+        }
+      }
+    }
+    return invocationResult;
   }
 
   ExpressionInferenceResult visitExpressionInvocation(
@@ -2293,9 +2320,35 @@ class InferenceVisitor
       receiver = result.expression;
     }
     DartType receiverType = result.inferredType;
-    return inferrer.inferMethodInvocation(node.fileOffset, nullAwareGuards,
-        receiver, receiverType, callName, node.arguments, typeContext,
+    ExpressionInferenceResult invocationResult = inferrer.inferMethodInvocation(
+        node.fileOffset,
+        nullAwareGuards,
+        receiver,
+        receiverType,
+        callName,
+        node.arguments,
+        typeContext,
         isExpressionInvocation: true);
+    if (inferrer.isNonNullableByDefault && inferrer.performNnbdChecks) {
+      if (receiverType is! DynamicType && receiverType.isPotentiallyNullable) {
+        if (inferrer.nnbdStrongMode) {
+          return new ExpressionInferenceResult.nullAware(
+              invocationResult.inferredType,
+              inferrer.helper.wrapInProblem(
+                  invocationResult.expression..fileOffset = node.fileOffset,
+                  templateNullableExpressionCallError.withArguments(
+                      receiverType, inferrer.isNonNullableByDefault),
+                  noLength));
+        } else {
+          inferrer.helper.addProblem(
+              templateNullableExpressionCallWarning.withArguments(
+                  receiverType, inferrer.isNonNullableByDefault),
+              node.fileOffset,
+              noLength);
+        }
+      }
+    }
+    return invocationResult;
   }
 
   ExpressionInferenceResult visitNamedFunctionExpressionJudgment(
@@ -4442,6 +4495,25 @@ class InferenceVisitor
     Expression replacement = _computePropertySet(
         node.fileOffset, receiver, receiverType, node.name, target, rhs,
         valueType: rhsType, forEffect: node.forEffect);
+    if (inferrer.isNonNullableByDefault && inferrer.performNnbdChecks) {
+      if (receiverType is! DynamicType && receiverType.isPotentiallyNullable) {
+        if (inferrer.nnbdStrongMode) {
+          replacement = inferrer.helper.wrapInProblem(
+              replacement,
+              templateNullablePropertyAccessError.withArguments(node.name.name,
+                  receiverType, inferrer.isNonNullableByDefault),
+              node.name.name.length);
+        } else {
+          inferrer.helper.addProblem(
+              templateNullablePropertyAccessWarning.withArguments(
+                  node.name.name,
+                  receiverType,
+                  inferrer.isNonNullableByDefault),
+              replacement.fileOffset,
+              node.name.name.length);
+        }
+      }
+    }
 
     return new ExpressionInferenceResult.nullAware(
         rhsType, replacement, nullAwareGuards);
@@ -4573,15 +4645,17 @@ class InferenceVisitor
         if (inferrer.nnbdStrongMode) {
           resultExpression = inferrer.helper.wrapInProblem(
               resultExpression,
-              templateNullablePropertyGetError.withArguments(node.name.name,
+              templateNullablePropertyAccessError.withArguments(node.name.name,
                   receiverType, inferrer.isNonNullableByDefault),
-              noLength);
+              node.name.name.length);
         } else {
           inferrer.helper.addProblem(
-              templateNullablePropertyGetWarning.withArguments(node.name.name,
-                  receiverType, inferrer.isNonNullableByDefault),
+              templateNullablePropertyAccessWarning.withArguments(
+                  node.name.name,
+                  receiverType,
+                  inferrer.isNonNullableByDefault),
               resultExpression.fileOffset,
-              noLength);
+              node.name.name.length);
         }
       }
     }

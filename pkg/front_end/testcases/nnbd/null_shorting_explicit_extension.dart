@@ -45,13 +45,13 @@ void propertyAccess(Class? c) {
   Extension(c)?.property.field = new Class();
   Extension(c)?.field?.field = new Class();
   Extension(c)?.property.field?.field = new Class();
-  throws(() => (Extension(c)?.field).field);
+  (Extension(c)?.field)?.field;
   throws(() => (Extension(c)?.field = new Class()).field);
   throws(() => (Extension(c)?.method()).field);
   c = Extension(c)?.property.field = new Class();
   c = Extension(c)?.field?.field = new Class();
   c = Extension(c)?.property.field?.field = new Class();
-  Extension(c)?.field.method();
+  Extension(c)?.field?.method();
   Extension(c)?.field = new Class().field;
   c = Extension(c)?.field = new Class().field;
   Extension(c)?.field = new Class().field = new Class();
@@ -74,7 +74,7 @@ void propertyAccess(Class? c) {
   c = Extension(c)?.field = new Class().property.method();
   Extension(c)?.method().property.field;
   Extension(c)?.method().property.field = new Class();
-  Extension(c)?.method().field.method();
+  Extension(c)?.method().field?.method();
 
   Extension(c)?.property.field = new Class().field;
   c = Extension(c)?.property.field = new Class().field;
@@ -111,18 +111,18 @@ void propertyAccess(Class? c) {
 
   Extension(c)?.method()?.method();
 
-  throws(() => (Extension(c?.field)?.field).field);
+  (Extension(c?.field)?.field)?.field;
   Extension(c?.field)?.field;
 }
 
 void indexAccess(Class? c) {
   Extension(c)?.[c];
   Extension(c)?.[c] = new Class();
-  Extension(c)?.[c].method();
+  Extension(c)?.[c]?.method();
   Extension(c)?.field[c];
   Extension(c)?.field[c] = new Class();
   c = Extension(c)?.field[c] = new Class();
-  Extension(c)?.field[c].method();
+  Extension(c)?.field[c]?.method();
   Extension(c)?.field[c] += 0;
   c = Extension(c)?.field[c] += 0;
   Extension(c)?.[c] ??= c;
@@ -145,7 +145,7 @@ void indexAccess(Class? c) {
   Extension(c)?.field[c][c];
   Extension(c)?.field[c][c] = new Class();
   c = Extension(c)?.field[c][c] = new Class();
-  Extension(c)?.field[c][c].method();
+  Extension(c)?.field[c][c]?.method();
   Extension(c)?.field[c][c] += 0;
   c = Extension(c)?.field[c][c] += 0;
   // TODO(johnniwinther): ++ should probably not be null-shorted, awaiting spec
@@ -158,8 +158,8 @@ void indexAccess(Class? c) {
   Extension(c)?.[c]?.[c];
   Extension(c)?.[c]?.[c] = new Class();
   c = Extension(c)?.[c]?.[c] = new Class();
-  Extension(c)?.[c]?.[c].method();
-  c = Extension(c)?.[c]?.[c].method();
+  Extension(c)?.[c]?.[c]?.method();
+  c = Extension(c)?.[c]?.[c]?.method();
   Extension(c)?.[c]?.[c] ??= c;
   c = Extension(c)?.[c]?.[c] ??= c;
   Extension(c)?.[c]?.[c] += 0;

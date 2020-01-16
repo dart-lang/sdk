@@ -5,13 +5,36 @@ library;
 // pkg/front_end/testcases/nnbd/nullable_receiver.dart:16:5: Warning: Property 'length' is accessed on 'String?' which is potentially null.
 // Try accessing using ?. instead.
 //   s.length;
-//     ^
+//     ^^^^^^
+//
+// pkg/front_end/testcases/nnbd/nullable_receiver.dart:17:5: Warning: Method 'substring' is called on 'String?' which is potentially null.
+// Try calling using ?. instead.
+//   s.substring(1, 1);
+//     ^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/nullable_receiver.dart:19:5: Warning: Method 'foo' is called on 'A?' which is potentially null.
+//  - 'A' is from 'pkg/front_end/testcases/nnbd/nullable_receiver.dart'.
+// Try calling using ?. instead.
+//   a.foo();
+//     ^^^
 //
 // pkg/front_end/testcases/nnbd/nullable_receiver.dart:20:5: Warning: Property 'bar' is accessed on 'A?' which is potentially null.
 //  - 'A' is from 'pkg/front_end/testcases/nnbd/nullable_receiver.dart'.
 // Try accessing using ?. instead.
 //   a.bar;
-//     ^
+//     ^^^
+//
+// pkg/front_end/testcases/nnbd/nullable_receiver.dart:21:5: Warning: Property 'baz' is accessed on 'A?' which is potentially null.
+//  - 'A' is from 'pkg/front_end/testcases/nnbd/nullable_receiver.dart'.
+// Try accessing using ?. instead.
+//   a.baz = 42;
+//     ^^^
+//
+// pkg/front_end/testcases/nnbd/nullable_receiver.dart:22:4: Warning: Expression of type 'A?' is used as a function, but it's potentially null.
+//  - 'A' is from 'pkg/front_end/testcases/nnbd/nullable_receiver.dart'.
+// Try calling using ?.call instead.
+//   a();
+//    ^
 //
 // pkg/front_end/testcases/nnbd/nullable_receiver.dart:24:12: Warning: Assigning value of type 'void Function()?' to a variable of type 'Function'.
 //  - 'Function' is from 'dart:core'.
@@ -25,24 +48,46 @@ library;
 // pkg/front_end/testcases/nnbd/nullable_receiver.dart:34:5: Warning: Property 'hashCode' is accessed on 'String?' which is potentially null.
 // Try accessing using ?. instead.
 //   s.hashCode;
-//     ^
+//     ^^^^^^^^
 //
 // pkg/front_end/testcases/nnbd/nullable_receiver.dart:35:5: Warning: Property 'hashCode' is accessed on 'A?' which is potentially null.
 //  - 'A' is from 'pkg/front_end/testcases/nnbd/nullable_receiver.dart'.
 // Try accessing using ?. instead.
 //   a.hashCode;
-//     ^
+//     ^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/nullable_receiver.dart:37:5: Warning: Method 'toString' is called on 'String?' which is potentially null.
+// Try calling using ?. instead.
+//   s.toString();
+//     ^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/nullable_receiver.dart:38:5: Warning: Method 'toString' is called on 'A?' which is potentially null.
+//  - 'A' is from 'pkg/front_end/testcases/nnbd/nullable_receiver.dart'.
+// Try calling using ?. instead.
+//   a.toString();
+//     ^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/nullable_receiver.dart:40:11: Warning: Method 'noSuchMethod' is called on 'String?' which is potentially null.
+// Try calling using ?. instead.
+//   try { s.noSuchMethod(i); } catch (e, t) {}
+//           ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/nullable_receiver.dart:41:11: Warning: Method 'noSuchMethod' is called on 'A?' which is potentially null.
+//  - 'A' is from 'pkg/front_end/testcases/nnbd/nullable_receiver.dart'.
+// Try calling using ?. instead.
+//   try { a.noSuchMethod(i); } catch (e, t) {}
+//           ^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/nnbd/nullable_receiver.dart:43:5: Warning: Property 'runtimeType' is accessed on 'String?' which is potentially null.
 // Try accessing using ?. instead.
 //   s.runtimeType;
-//     ^
+//     ^^^^^^^^^^^
 //
 // pkg/front_end/testcases/nnbd/nullable_receiver.dart:44:5: Warning: Property 'runtimeType' is accessed on 'A?' which is potentially null.
 //  - 'A' is from 'pkg/front_end/testcases/nnbd/nullable_receiver.dart'.
 // Try accessing using ?. instead.
 //   a.runtimeType;
-//     ^
+//     ^^^^^^^^^^^
 //
 import self as self;
 import "dart:core" as core;

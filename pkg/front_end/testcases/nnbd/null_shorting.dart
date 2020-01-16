@@ -37,13 +37,13 @@ void propertyAccess(Class? c) {
   c?.property.field = new Class();
   c?.field?.field = new Class();
   c?.property.field?.field = new Class();
-  throws(() => (c?.field).field);
+  (c?.field)?.field;
   throws(() => (c?.field = new Class()).field);
   throws(() => (c?.method()).field);
   c = c?.property.field = new Class();
   c = c?.field?.field = new Class();
   c = c?.property.field?.field = new Class();
-  c?.field.method();
+  c?.field?.method();
   c?.field = new Class().field;
   c = c?.field = new Class().field;
   c?.field = new Class().field = new Class();
@@ -57,7 +57,7 @@ void propertyAccess(Class? c) {
   c?.property.property.field;
   c?.property.property.field = new Class();
   c = c?.property.property.field = new Class();
-  c?.property.field.method();
+  c?.property.field?.method();
   c?.field = new Class().property.field;
   c = c?.field = new Class().property.field;
   c?.field = new Class().property.field = new Class();
@@ -107,11 +107,11 @@ void propertyAccess(Class? c) {
 void indexAccess(Class? c) {
   c?.[c];
   c?.[c] = new Class();
-  c?.[c].method();
+  c?.[c]?.method();
   c?.field[c];
   c?.field[c] = new Class();
   c = c?.field[c] = new Class();
-  c?.field[c].method();
+  c?.field[c]?.method();
   c?.field[c] += 0;
   c = c?.field[c] += 0;
   c?.[c] ??= c;
@@ -134,7 +134,7 @@ void indexAccess(Class? c) {
   c?.field[c][c];
   c?.field[c][c] = new Class();
   c = c?.field[c][c] = new Class();
-  c?.field[c][c].method();
+  c?.field[c][c]?.method();
   c?.field[c][c] += 0;
   c = c?.field[c][c] += 0;
   // TODO(johnniwinther): ++ should probably not be null-shorted, awaiting spec
@@ -147,8 +147,8 @@ void indexAccess(Class? c) {
   c?.[c]?.[c];
   c?.[c]?.[c] = new Class();
   c = c?.[c]?.[c] = new Class();
-  c?.[c]?.[c].method();
-  c = c?.[c]?.[c].method();
+  c?.[c]?.[c]?.method();
+  c = c?.[c]?.[c]?.method();
   c?.[c]?.[c] ??= c;
   c = c?.[c]?.[c] ??= c;
   c?.[c]?.[c] += 0;

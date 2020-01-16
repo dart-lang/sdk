@@ -3754,13 +3754,31 @@ MultipleVarianceModifiers:
   tip: "Use at most one of the 'in', 'out', or 'inout' modifiers."
   analyzerCode: ParserErrorCode.MULTIPLE_VARIANCE_MODIFIERS
 
-NullablePropertyGetError:
+NullablePropertyAccessError:
   template: "Property '#name' cannot be accessed on '#type' because it is potentially null."
   tip: "Try accessing using ?. instead."
 
-NullablePropertyGetWarning:
+NullablePropertyAccessWarning:
   template: "Property '#name' is accessed on '#type' which is potentially null."
   tip: "Try accessing using ?. instead."
+  severity: WARNING
+
+NullableMethodCallError:
+  template: "Method '#name' cannot be called on '#type' because it is potentially null."
+  tip: "Try calling using ?. instead."
+
+NullableMethodCallWarning:
+  template: "Method '#name' is called on '#type' which is potentially null."
+  tip: "Try calling using ?. instead."
+  severity: WARNING
+
+NullableExpressionCallError:
+  template: "Can't use an expression of type '#type' as a function because it's potentially null."
+  tip: "Try calling using ?.call instead."
+
+NullableExpressionCallWarning:
+  template: "Expression of type '#type' is used as a function, but it's potentially null."
+  tip: "Try calling using ?.call instead."
   severity: WARNING
 
 ThrowingNotAssignableToObjectError:
