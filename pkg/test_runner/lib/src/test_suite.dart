@@ -25,7 +25,6 @@ import 'path.dart';
 import 'repository.dart';
 import 'summary_report.dart';
 import 'test_case.dart';
-import 'test_configurations.dart';
 import 'test_file.dart';
 import 'testing_servers.dart';
 import 'utils.dart';
@@ -459,7 +458,7 @@ class StandardTestSuite extends TestSuite {
   ///     StandardTestSuite.forDirectory(configuration, 'path/to/mytestsuite');
   ///
   /// instead of having to create a custom [StandardTestSuite] subclass. In
-  /// particular, if you add 'path/to/mytestsuite' to [TEST_SUITE_DIRECTORIES]
+  /// particular, if you add 'path/to/mytestsuite' to `testSuiteDirectories`
   /// in test.dart, this will all be set up for you.
   factory StandardTestSuite.forDirectory(
       TestConfiguration configuration, Path directory) {

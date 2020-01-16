@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:smith/smith.dart';
+import 'package:test_runner/src/test_configurations.dart';
 
 import 'configuration.dart';
 import 'path.dart';
@@ -450,12 +451,18 @@ compiler.''',
         // option. Use it as a test selector pattern.
         var patterns = configuration.putIfAbsent("selectors", () => <String>[]);
 
-        // Allow the selector to include "tests" at the beginning so that users
-        // can tab complete on the command line. Likewise, if they tab complete
-        // to a single test, ignore the ".dart".
-        if (arg.startsWith("tests/") || arg.startsWith("tests\\")) {
-          arg = arg.substring(6);
+        // Allow passing in the full relative path to a test or directory and
+        // infer the selector from it. This lets users use tab completion on
+        // the command line.
+        for (var suiteDirectory in testSuiteDirectories) {
+          var path = suiteDirectory.toString();
+          if (arg.startsWith("$path/") || arg.startsWith("$path\\")) {
+            arg = arg.substring(path.lastIndexOf("/") + 1);
+            break;
+          }
         }
+
+        // If they tab complete to a single test, ignore the ".dart".
         if (arg.endsWith(".dart")) arg = arg.substring(0, arg.length - 5);
 
         patterns.add(arg);
