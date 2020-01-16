@@ -1179,9 +1179,11 @@ class ResolverVisitor extends ScopedVisitor {
       // cannot be in scope while visiting the iterator.
       //
       iterable?.accept(this);
-      // Note: the iterable could have been rewritten so grab it from
-      // forLoopParts again.
+      // Note: the iterable could have been rewritten so grab it again.
       iterable = forLoopParts.iterable;
+
+      nullableDereferenceVerifier.expression(iterable);
+
       loopVariable?.accept(this);
       var elementType = typeAnalyzer.computeForEachElementType(
           iterable, node.awaitKeyword != null);
@@ -1656,6 +1658,15 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   @override
+  void visitSpreadElement(SpreadElement node) {
+    super.visitSpreadElement(node);
+
+    if (!node.isNullAware) {
+      nullableDereferenceVerifier.expression(node.expression);
+    }
+  }
+
+  @override
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     //
     // We visit the argument list, but do not visit the optional identifier
@@ -1716,6 +1727,7 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   void visitThrowExpression(ThrowExpression node) {
     super.visitThrowExpression(node);
+    nullableDereferenceVerifier.expression(node.expression);
     _flowAnalysis?.flow?.handleExit();
   }
 
@@ -1865,6 +1877,11 @@ class ResolverVisitor extends ScopedVisitor {
       InferenceContext.setType(e, type);
     }
     super.visitYieldStatement(node);
+
+    if (node.star != null) {
+      nullableDereferenceVerifier.expression(node.expression);
+    }
+
     DartType type = e?.staticType;
     if (type != null && isGenerator) {
       // If this just a yield, then we just pass on the element type

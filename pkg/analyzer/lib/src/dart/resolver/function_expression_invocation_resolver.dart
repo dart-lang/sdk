@@ -12,6 +12,7 @@ import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/error/nullable_dereference_verifier.dart';
 import 'package:analyzer/src/generated/element_type_provider.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:meta/meta.dart';
@@ -35,6 +36,9 @@ class FunctionExpressionInvocationResolver {
 
   ExtensionMemberResolver get _extensionResolver => _resolver.extensionResolver;
 
+  NullableDereferenceVerifier get _nullableDereferenceVerifier =>
+      _resolver.nullableDereferenceVerifier;
+
   void resolve(FunctionExpressionInvocationImpl node) {
     var function = node.function;
 
@@ -42,6 +46,8 @@ class FunctionExpressionInvocationResolver {
       _resolveReceiverExtensionOverride(node, function);
       return;
     }
+
+    _nullableDereferenceVerifier.expression(function);
 
     var receiverType = function.staticType;
     if (receiverType is FunctionType) {

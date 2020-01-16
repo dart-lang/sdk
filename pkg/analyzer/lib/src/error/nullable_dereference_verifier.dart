@@ -12,18 +12,6 @@ import 'package:meta/meta.dart';
 
 /// Helper for checking potentially nullable dereferences.
 class NullableDereferenceVerifier {
-  /// Properties on the object class which are safe to call on nullable types.
-  ///
-  /// Note that this must include tear-offs.
-  ///
-  /// TODO(mfairhurst): Calculate these fields rather than hard-code them.
-  static const _objectPropertyNames = {
-    'hashCode',
-    'runtimeType',
-    'noSuchMethod',
-    'toString',
-  };
-
   final TypeSystemImpl _typeSystem;
   final ErrorReporter _errorReporter;
 
@@ -39,42 +27,6 @@ class NullableDereferenceVerifier {
     }
 
     return _check(expression, expression.staticType);
-  }
-
-  void implicitThis(AstNode errorNode, DartType thisType) {
-    if (!_typeSystem.isNonNullableByDefault) {
-      return;
-    }
-
-    _check(errorNode, thisType);
-  }
-
-  void methodInvocation(
-    Expression receiver,
-    DartType receiverType,
-    String methodName,
-  ) {
-    if (!_typeSystem.isNonNullableByDefault) {
-      return;
-    }
-
-    if (methodName == 'toString' || methodName == 'noSuchMethod') {
-      return;
-    }
-
-    _check(receiver, receiverType);
-  }
-
-  void propertyAccess(AstNode errorNode, DartType receiverType, String name) {
-    if (!_typeSystem.isNonNullableByDefault) {
-      return;
-    }
-
-    if (_objectPropertyNames.contains(name)) {
-      return;
-    }
-
-    _check(errorNode, receiverType);
   }
 
   void report(AstNode errorNode, DartType receiverType) {

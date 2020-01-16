@@ -25,7 +25,6 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/constructor_fields_verifier.dart';
 import 'package:analyzer/src/error/duplicate_definition_verifier.dart';
 import 'package:analyzer/src/error/literal_element_verifier.dart';
-import 'package:analyzer/src/error/nullable_dereference_verifier.dart';
 import 'package:analyzer/src/error/required_parameters_verifier.dart';
 import 'package:analyzer/src/error/type_arguments_verifier.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
@@ -255,7 +254,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   final DuplicateDefinitionVerifier _duplicateDefinitionVerifier;
   TypeArgumentsVerifier _typeArgumentsVerifier;
   ConstructorFieldsVerifier _constructorFieldsVerifier;
-  NullableDereferenceVerifier _nullableDereferenceVerifier;
 
   /**
    * Initialize a newly created error verifier.
@@ -283,10 +281,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     _typeArgumentsVerifier =
         TypeArgumentsVerifier(_options, _typeSystem, _errorReporter);
     _constructorFieldsVerifier = ConstructorFieldsVerifier(
-      typeSystem: _typeSystem,
-      errorReporter: _errorReporter,
-    );
-    _nullableDereferenceVerifier = NullableDereferenceVerifier(
       typeSystem: _typeSystem,
       errorReporter: _errorReporter,
     );
@@ -351,7 +345,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _checkForInvalidAssignment(lhs, rhs);
     } else {
       _checkForArgumentTypeNotAssignableForArgument(rhs);
-      _nullableDereferenceVerifier.expression(lhs);
     }
     _checkForAssignmentToFinal(lhs);
     super.visitAssignmentExpression(node);
@@ -798,8 +791,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
 
     DartType expressionType = functionExpression.staticType;
-    if (!_nullableDereferenceVerifier.expression(functionExpression) &&
-        !_checkForUseOfVoidResult(functionExpression) &&
+    if (!_checkForUseOfVoidResult(functionExpression) &&
         !_checkForUseOfNever(functionExpression) &&
         node.staticElement == null &&
         !_isFunctionType(expressionType)) {
@@ -809,7 +801,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     } else if (expressionType is FunctionType) {
       _typeArgumentsVerifier.checkFunctionExpressionInvocation(node);
     }
-    _nullableDereferenceVerifier.expression(functionExpression);
     _requiredParametersVerifier.visitFunctionExpressionInvocation(node);
     super.visitFunctionExpressionInvocation(node);
   }
@@ -989,7 +980,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _checkForUnnecessaryNullAware(target, node.operator);
     } else {
       _checkForUnqualifiedReferenceToNonLocalStaticMember(methodName);
-      _nullableDereferenceVerifier.expression(node.function);
     }
     _typeArgumentsVerifier.checkMethodInvocation(node);
     _requiredParametersVerifier.visitMethodInvocation(node);
@@ -1169,9 +1159,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitSpreadElement(SpreadElement node) {
-    if (!node.isNullAware) {
-      _nullableDereferenceVerifier.expression(node.expression);
-    } else {
+    if (node.isNullAware) {
       _checkForUnnecessaryNullAware(node.expression, node.spreadOperator);
     }
     super.visitSpreadElement(node);
@@ -1217,7 +1205,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitThrowExpression(ThrowExpression node) {
     _checkForConstEvalThrowsException(node);
-    _nullableDereferenceVerifier.expression(node.expression);
     _checkForUseOfVoidResult(node.expression);
     super.visitThrowExpression(node);
   }
@@ -1320,9 +1307,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   void visitYieldStatement(YieldStatement node) {
     if (_inGenerator) {
       _checkForYieldOfInvalidType(node.expression, node.star != null);
-      if (node.star != null) {
-        _nullableDereferenceVerifier.expression(node.expression);
-      }
     } else {
       CompileTimeErrorCode errorCode;
       if (node.star != null) {
@@ -2412,10 +2396,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * information in the for-each part.
    */
   bool _checkForEachParts(ForEachParts node, SimpleIdentifier variable) {
-    if (_nullableDereferenceVerifier.expression(node.iterable)) {
-      return false;
-    }
-
     if (_checkForUseOfVoidResult(node.iterable)) {
       return false;
     }
