@@ -690,6 +690,11 @@ dart_ci_sandbox_builder(
     category="dart2js|chrome|w",
     dimensions=windows())
 dart_ci_sandbox_builder(
+    "dart2js-nnbd-linux-x64-chrome",
+    category="dart2js|chrome|nn",
+    location_regexp=to_location_regexp(DART2JS_PATHS),
+    on_cq=True)
+dart_ci_sandbox_builder(
     "dart2js-strong-linux-x64-firefox", category="dart2js|firefox|l")
 dart_ci_sandbox_builder(
     "dart2js-strong-win-x64-firefox",
