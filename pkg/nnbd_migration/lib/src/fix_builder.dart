@@ -249,9 +249,8 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
   }
 
   @override
-  DartType getMigratedTypeAnnotationType(Source source, TypeAnnotation node) {
-    return _fixTypeAnnotation(source, node)
-        .toFinalType(_fixBuilder.typeProvider);
+  DartType getMigratedTypeAnnotationType(TypeAnnotation node) {
+    return _fixTypeAnnotation(node).toFinalType(_fixBuilder.typeProvider);
   }
 
   @override
@@ -315,20 +314,20 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
     }
   }
 
-  DecoratedType _fixTypeAnnotation(Source source, TypeAnnotation node) {
-    var decoratedType =
-        _fixBuilder._variables.decoratedTypeAnnotation(source, node);
+  DecoratedType _fixTypeAnnotation(TypeAnnotation node) {
+    var decoratedType = _fixBuilder._variables
+        .decoratedTypeAnnotation(_fixBuilder.source, node);
     var type = decoratedType.type;
     if (!type.isDynamic && !type.isVoid && decoratedType.node.isNullable) {
-      var decoratedType =
-          _fixBuilder._variables.decoratedTypeAnnotation(source, node);
+      var decoratedType = _fixBuilder._variables
+          .decoratedTypeAnnotation(_fixBuilder.source, node);
       _fixBuilder._addChange(node, MakeNullable(decoratedType));
     }
     if (node is TypeName) {
       var typeArguments = node.typeArguments;
       if (typeArguments != null) {
         for (var arg in typeArguments.arguments) {
-          _fixTypeAnnotation(source, arg);
+          _fixTypeAnnotation(arg);
         }
       }
     } else {

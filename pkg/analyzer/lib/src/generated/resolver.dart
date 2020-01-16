@@ -1303,7 +1303,7 @@ class ResolverVisitor extends ScopedVisitor {
     var elementTypeProvider = _elementTypeProvider;
     if (elementTypeProvider is MigrationResolutionHooks) {
       (node as GenericFunctionTypeImpl).type =
-          elementTypeProvider.getMigratedTypeAnnotationType(source, node);
+          elementTypeProvider.getMigratedTypeAnnotationType(node);
     }
     super.visitGenericFunctionType(node);
   }
@@ -1742,8 +1742,7 @@ class ResolverVisitor extends ScopedVisitor {
   void visitTypeName(TypeName node) {
     var elementTypeProvider = _elementTypeProvider;
     if (elementTypeProvider is MigrationResolutionHooks) {
-      node.type =
-          elementTypeProvider.getMigratedTypeAnnotationType(source, node);
+      node.type = elementTypeProvider.getMigratedTypeAnnotationType(node);
     }
   }
 

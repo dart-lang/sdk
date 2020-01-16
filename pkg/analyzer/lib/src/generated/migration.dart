@@ -8,7 +8,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/collection_element_provider.dart';
 import 'package:analyzer/src/generated/element_type_provider.dart';
-import 'package:analyzer/src/generated/source.dart';
 
 /// Hooks used by resolution to communicate with the migration engine.
 abstract class MigrationResolutionHooks
@@ -24,7 +23,7 @@ abstract class MigrationResolutionHooks
   /// Called when the resolver is visiting a [TypeAnnotation] AST node.  Should
   /// return the type of the [TypeAnnotation] after migrations have been
   /// applied.
-  DartType getMigratedTypeAnnotationType(Source source, TypeAnnotation node);
+  DartType getMigratedTypeAnnotationType(TypeAnnotation node);
 
   /// Called after the resolver has determined the type of an expression node.
   /// Should return the type that the expression has after migrations have been
