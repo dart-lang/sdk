@@ -6,7 +6,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/workspace/simple.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
-import 'package:package_config/packages.dart';
+import 'package:analyzer/src/context/packages.dart';
 
 /// Information about a Pub workspace.
 class PubWorkspace extends SimpleWorkspace {
