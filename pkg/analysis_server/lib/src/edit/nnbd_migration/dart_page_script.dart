@@ -115,6 +115,9 @@ function loadFile(path, offset, lineNumber, callback) {
       alert("Request failed; status of " + xhr.status);
     }
   };
+  xhr.onerror = function(e) {
+    alert(`Could not load ${path}; preview server might be disconnected.`);
+  };
   xhr.send();
 }
 
