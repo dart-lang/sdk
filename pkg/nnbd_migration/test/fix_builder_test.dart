@@ -1040,6 +1040,30 @@ f() => 1.0;
     visitSubexpression(findNode.doubleLiteral('1.0'), 'double');
   }
 
+  Future<void> test_enum_ref_index() async {
+    await analyze('''
+enum E { V }
+_f(E e) => e.index;
+''');
+    visitSubexpression(findNode.prefixed('e.index'), 'int');
+  }
+
+  Future<void> test_enum_ref_value() async {
+    await analyze('''
+enum E { V }
+_f() => E.V;
+''');
+    visitSubexpression(findNode.prefixed('E.V'), 'E');
+  }
+
+  Future<void> test_enum_ref_values() async {
+    await analyze('''
+enum E { V }
+_f() => E.values;
+''');
+    visitSubexpression(findNode.prefixed('E.values'), 'List<E>');
+  }
+
   Future<void> test_expressionStatement() async {
     await analyze('''
 _f(int/*!*/ x, int/*?*/ y) {

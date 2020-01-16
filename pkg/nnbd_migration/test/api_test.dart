@@ -3904,10 +3904,6 @@ class _ProvisionalApiTestWithFixBuilder extends _ProvisionalApiTestBase
   bool get _usePermissiveMode => false;
 
   @override
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
-  Future<void> test_enum() => super.test_enum();
-
-  @override
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40023')
   Future<void> test_extension_nullableOnType_viaImplicitInvocation() =>
       super.test_extension_nullableOnType_viaImplicitInvocation();

@@ -150,7 +150,9 @@ class FixBuilder {
     element = element.declaration;
     if (element is ClassElement || element is TypeParameterElement) {
       return typeProvider.typeType;
-    } else if (element is PropertyAccessorElement && element.isSynthetic) {
+    } else if (element is PropertyAccessorElement &&
+        element.isSynthetic &&
+        !element.variable.isSynthetic) {
       var variableType = _variables
           .decoratedElementType(element.variable)
           .toFinalType(typeProvider);
