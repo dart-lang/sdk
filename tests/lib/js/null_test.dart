@@ -8,6 +8,8 @@ import 'dart:js';
 import 'package:expect/expect.dart';
 
 main() {
+  context.callMethod('eval', ['isNull = (x) => x === null']);
+  context.callMethod('eval', ['isUndefined = (x) => x === void 0']);
   Expect.isTrue(context['isNull'].apply([null]));
   Expect.isFalse(context['isUndefined'].apply([null]));
 }

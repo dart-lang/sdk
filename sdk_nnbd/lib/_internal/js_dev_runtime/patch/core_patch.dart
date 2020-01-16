@@ -156,7 +156,9 @@ class Expando<T extends Object> {
   @patch
   T? operator [](Object object) {
     var values = Primitives.getProperty(object, _EXPANDO_PROPERTY_NAME);
-    return (values == null) ? null : Primitives.getProperty(values, _getKey());
+    return (values == null)
+        ? null
+        : Primitives.getProperty(values, _getKey()) as T?;
   }
 
   @patch
@@ -170,7 +172,7 @@ class Expando<T extends Object> {
   }
 
   String _getKey() {
-    String key = Primitives.getProperty(this, _KEY_PROPERTY_NAME);
+    var key = Primitives.getProperty(this, _KEY_PROPERTY_NAME) as String?;
     if (key == null) {
       key = "expando\$key\$${_keyCount++}";
       Primitives.setProperty(this, _KEY_PROPERTY_NAME, key);

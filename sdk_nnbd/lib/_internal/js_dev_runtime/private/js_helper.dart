@@ -470,7 +470,7 @@ class Primitives {
     return value;
   }
 
-  static getProperty(object, key) {
+  static Object? getProperty(Object? object, Object key) {
     if (object == null || object is bool || object is num || object is String) {
       throw argumentErrorValue(object);
     }

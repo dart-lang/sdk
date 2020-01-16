@@ -105,7 +105,7 @@ bool polyfill(window) => JS('', '''(() => {
 })()''');
 
 @JSExportName('global')
-final global_ = JS('', '''
+final Object global_ = JS('', '''
   function () {
     // Find global object.
     var globalState = (typeof window != "undefined") ? window
