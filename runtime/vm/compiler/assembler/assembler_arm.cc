@@ -3441,8 +3441,8 @@ void Assembler::MonomorphicCheckedEntryJIT() {
   intptr_t start = CodeSize();
 
   Comment("MonomorphicCheckedEntry");
-  ASSERT(CodeSize() - start ==
-         target::Instructions::kMonomorphicEntryOffsetJIT);
+  ASSERT_EQUAL(CodeSize() - start,
+               target::Instructions::kMonomorphicEntryOffsetJIT);
 
   const intptr_t cid_offset = target::Array::element_offset(0);
   const intptr_t count_offset = target::Array::element_offset(1);
@@ -3458,8 +3458,8 @@ void Assembler::MonomorphicCheckedEntryJIT() {
   LoadImmediate(R4, 0);  // GC-safe for OptimizeInvokedFunction.
 
   // Fall through to unchecked entry.
-  ASSERT(CodeSize() - start ==
-         target::Instructions::kPolymorphicEntryOffsetJIT);
+  ASSERT_EQUAL(CodeSize() - start,
+               target::Instructions::kPolymorphicEntryOffsetJIT);
 
 #if defined(TESTING) || defined(DEBUG)
   set_use_far_branches(saved_use_far_branches);
@@ -3477,16 +3477,16 @@ void Assembler::MonomorphicCheckedEntryAOT() {
   intptr_t start = CodeSize();
 
   Comment("MonomorphicCheckedEntry");
-  ASSERT(CodeSize() - start ==
-         target::Instructions::kMonomorphicEntryOffsetAOT);
+  ASSERT_EQUAL(CodeSize() - start,
+               target::Instructions::kMonomorphicEntryOffsetAOT);
 
-  LoadClassIdMayBeSmi(IP, R0);
+  LoadClassId(IP, R0);
   cmp(R9, Operand(IP, LSL, 1));
   Branch(Address(THR, target::Thread::monomorphic_miss_entry_offset()), NE);
 
   // Fall through to unchecked entry.
-  ASSERT(CodeSize() - start ==
-         target::Instructions::kPolymorphicEntryOffsetAOT);
+  ASSERT_EQUAL(CodeSize() - start,
+               target::Instructions::kPolymorphicEntryOffsetAOT);
 
 #if defined(TESTING) || defined(DEBUG)
   set_use_far_branches(saved_use_far_branches);

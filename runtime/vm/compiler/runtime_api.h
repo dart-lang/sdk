@@ -628,6 +628,13 @@ class VMHandles : public AllStatic {
   static constexpr intptr_t kOffsetOfRawPtrInHandle = kWordSize;
 };
 
+class MonomorphicSmiableCall : public AllStatic {
+ public:
+  static word expected_cid_offset();
+  static word entrypoint_offset();
+  static word target_offset();
+};
+
 class Thread : public AllStatic {
  public:
   static word dart_stream_offset();

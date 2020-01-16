@@ -207,6 +207,7 @@ class ObjectPointerVisitor;
   V(MapLiteralFactory, "Map._fromLiteral")                                     \
   V(MegamorphicCache, "MegamorphicCache")                                      \
   V(MegamorphicMiss, "megamorphic_miss")                                       \
+  V(MonomorphicSmiableCall, "MonomorphicSmiableCall")                          \
   V(MoveNext, "moveNext")                                                      \
   V(Namespace, "Namespace")                                                    \
   V(Native, "native")                                                          \
