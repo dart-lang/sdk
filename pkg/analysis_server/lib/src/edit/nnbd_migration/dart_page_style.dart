@@ -66,6 +66,24 @@ h2#unit-name {
   margin: 0;
 }
 
+.nav-inner ul {
+  padding-left: 12px;
+}
+
+.nav-inner li {
+  list-style-type: none;
+}
+
+.nav-inner li.dir::before {
+  content: "▼";
+  font-size: 8px;
+  padding-right: 5px;
+}
+
+.nav-inner li:not(.dir) {
+  padding-left: 5px;
+}
+
 .nav-inner .nav-link {
   color: #33ccff;
   margin-left: 1em;

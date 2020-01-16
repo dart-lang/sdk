@@ -5,12 +5,14 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'info_builder_test.dart' as info_builder;
+import 'instrumentation_renderer_test.dart' as instrumentation_renderer;
 import 'offset_mapper_test.dart' as offset_mapper;
 import 'unit_renderer_test.dart' as unit_renderer;
 
 main() {
   defineReflectiveSuite(() {
     info_builder.main();
+    instrumentation_renderer.main();
     offset_mapper.main();
     unit_renderer.main();
   }, name: 'nnbd_migration');

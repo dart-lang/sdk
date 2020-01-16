@@ -22,8 +22,6 @@ main() {
 class UnitRendererTest extends NnbdMigrationTestBase {
   /// Render [libraryInfo], using a [MigrationInfo] which knows only about this
   /// library.
-  // TODO(srawlins): Add tests for navigation links, which use multiple
-  //  libraries.
   List<String> renderUnits() {
     String packageRoot = convertPath('/package');
     MigrationInfo migrationInfo =
