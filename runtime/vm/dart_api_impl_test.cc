@@ -3875,67 +3875,69 @@ TEST_CASE(DartAPI_TypeGetNonParamtericTypes) {
 }
 
 TEST_CASE(DartAPI_TypeGetParameterizedTypes) {
+  // TODO(dartbug.com/40176): Clean up this test once the API supports NNBD.
   const char* kScriptChars =
       "class MyClass0<A, B> {\n"
       "}\n"
       "\n"
       "class MyClass1<A, C> {\n"
       "}\n"
+      "Type type<T>() => T;"
       "MyClass0 getMyClass0() {\n"
       "  return new MyClass0<int, double>();\n"
       "}\n"
       "Type getMyClass0Type() {\n"
-      "  return new MyClass0<int, double>().runtimeType;\n"
+      "  return type<MyClass0<int, double>>();\n"
       "}\n"
       "MyClass1 getMyClass1() {\n"
       "  return new MyClass1<List<int>, List>();\n"
       "}\n"
       "Type getMyClass1Type() {\n"
-      "  return new MyClass1<List<int>, List>().runtimeType;\n"
+      "  return type<MyClass1<List<int>, List>>();\n"
       "}\n"
       "MyClass0 getMyClass0_1() {\n"
       "  return new MyClass0<double, int>();\n"
       "}\n"
       "Type getMyClass0_1Type() {\n"
-      "  return new MyClass0<double, int>().runtimeType;\n"
+      "  return type<MyClass0<double, int>>();\n"
       "}\n"
       "MyClass1 getMyClass1_1() {\n"
       "  return new MyClass1<List<int>, List<double>>();\n"
       "}\n"
       "Type getMyClass1_1Type() {\n"
-      "  return new MyClass1<List<int>, List<double>>().runtimeType;\n"
-      "}\n";
+      "  return type<MyClass1<List<int>, List<double>>>();\n"
+      "}\n"
+      "Type getIntType() { return int; }\n"
+      "Type getDoubleType() { return double; }\n"
+      "Type getListIntType() { return type<List<int>>(); }\n"
+      "Type getListType() { return List; }\n";
 
   Dart_Handle corelib = Dart_LookupLibrary(NewString("dart:core"));
   EXPECT_VALID(corelib);
 
-  // First get type objects of some of the basic types used in the test.
-  Dart_Handle int_type = Dart_GetType(corelib, NewString("int"), 0, NULL);
-  EXPECT_VALID(int_type);
-  Dart_Handle double_type = Dart_GetType(corelib, NewString("double"), 0, NULL);
-  EXPECT_VALID(double_type);
-  Dart_Handle list_type = Dart_GetType(corelib, NewString("List"), 0, NULL);
-  EXPECT_VALID(list_type);
-  Dart_Handle type_args = Dart_NewList(1);
-  EXPECT_VALID(Dart_ListSetAt(type_args, 0, int_type));
-  Dart_Handle list_int_type =
-      Dart_GetType(corelib, NewString("List"), 1, &type_args);
-  EXPECT_VALID(list_int_type);
-
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
-  bool instanceOf = false;
 
   // Now instantiate MyClass0 and MyClass1 types with the same type arguments
   // used in the code above.
-  type_args = Dart_NewList(2);
+  Dart_Handle type_args = Dart_NewList(2);
+  Dart_Handle int_type = Dart_Invoke(lib, NewString("getIntType"), 0, NULL);
+  EXPECT_VALID(int_type);
   EXPECT_VALID(Dart_ListSetAt(type_args, 0, int_type));
+  Dart_Handle double_type =
+      Dart_Invoke(lib, NewString("getDoubleType"), 0, NULL);
+  EXPECT_VALID(double_type);
   EXPECT_VALID(Dart_ListSetAt(type_args, 1, double_type));
   Dart_Handle myclass0_type =
       Dart_GetType(lib, NewString("MyClass0"), 2, &type_args);
   EXPECT_VALID(myclass0_type);
 
   type_args = Dart_NewList(2);
+  Dart_Handle list_int_type =
+      Dart_Invoke(lib, NewString("getListIntType"), 0, NULL);
+  EXPECT_VALID(list_int_type);
   EXPECT_VALID(Dart_ListSetAt(type_args, 0, list_int_type));
+  Dart_Handle list_type = Dart_Invoke(lib, NewString("getListType"), 0, NULL);
+  EXPECT_VALID(list_type);
   EXPECT_VALID(Dart_ListSetAt(type_args, 1, list_type));
   Dart_Handle myclass1_type =
       Dart_GetType(lib, NewString("MyClass1"), 2, &type_args);
@@ -3947,6 +3949,7 @@ TEST_CASE(DartAPI_TypeGetParameterizedTypes) {
   // MyClass0<int, double> type.
   Dart_Handle type0_obj = Dart_Invoke(lib, NewString("getMyClass0"), 0, NULL);
   EXPECT_VALID(type0_obj);
+  bool instanceOf = false;
   EXPECT_VALID(Dart_ObjectIsType(type0_obj, myclass0_type, &instanceOf));
   EXPECT(instanceOf);
   type0_obj = Dart_Invoke(lib, NewString("getMyClass0Type"), 0, NULL);
