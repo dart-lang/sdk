@@ -21,14 +21,23 @@ class ExpectedCompletion {
 
   final int _lineNumber;
 
+  final int _columnNumber;
+
   final protocol.ElementKind _elementKind;
 
-  ExpectedCompletion(
-      this._entity, this._lineNumber, this._kind, this._elementKind)
+  ExpectedCompletion(this._entity, this._lineNumber, this._columnNumber,
+      this._kind, this._elementKind)
       : _completionString = null;
 
-  ExpectedCompletion.specialCompletionString(this._entity, this._lineNumber,
-      this._completionString, this._kind, this._elementKind);
+  ExpectedCompletion.specialCompletionString(
+      this._entity,
+      this._lineNumber,
+      this._columnNumber,
+      this._completionString,
+      this._kind,
+      this._elementKind);
+
+  int get columnNumber => _columnNumber;
 
   String get completion => _completionString ?? _entity.toString();
 
@@ -74,35 +83,59 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor {
           .getLocation(entity.offset)
           .lineNumber;
 
+      var columnNumber = _enclosingCompilationUnit.lineInfo
+          .getLocation(entity.offset)
+          .columnNumber;
+
       // Some special cases in the if and if-else blocks, 'import' from the
       // DAS is "import '';" which we want to be sure to match.
       if (entity.toString() == 'async') {
         expectedCompletions.add(ExpectedCompletion.specialCompletionString(
-            entity, lineNumber, ASYNC_STAR, kind, elementKind));
+            entity, lineNumber, columnNumber, ASYNC_STAR, kind, elementKind));
       } else if (entity.toString() == 'default') {
         expectedCompletions.add(ExpectedCompletion.specialCompletionString(
-            entity, lineNumber, DEFAULT_COLON, kind, elementKind));
+            entity,
+            lineNumber,
+            columnNumber,
+            DEFAULT_COLON,
+            kind,
+            elementKind));
       } else if (entity.toString() == 'deferred') {
         expectedCompletions.add(ExpectedCompletion.specialCompletionString(
-            entity, lineNumber, DEFERRED_AS, kind, elementKind));
+            entity, lineNumber, columnNumber, DEFERRED_AS, kind, elementKind));
       } else if (entity.toString() == 'export') {
         expectedCompletions.add(ExpectedCompletion.specialCompletionString(
-            entity, lineNumber, EXPORT_STATEMENT, kind, elementKind));
+            entity,
+            lineNumber,
+            columnNumber,
+            EXPORT_STATEMENT,
+            kind,
+            elementKind));
       } else if (entity.toString() == 'import') {
         expectedCompletions.add(ExpectedCompletion.specialCompletionString(
-            entity, lineNumber, IMPORT_STATEMENT, kind, elementKind));
+            entity,
+            lineNumber,
+            columnNumber,
+            IMPORT_STATEMENT,
+            kind,
+            elementKind));
       } else if (entity.toString() == 'part') {
         expectedCompletions.add(ExpectedCompletion.specialCompletionString(
-            entity, lineNumber, PART_STATEMENT, kind, elementKind));
+            entity,
+            lineNumber,
+            columnNumber,
+            PART_STATEMENT,
+            kind,
+            elementKind));
       } else if (entity.toString() == 'sync') {
         expectedCompletions.add(ExpectedCompletion.specialCompletionString(
-            entity, lineNumber, SYNC_STAR, kind, elementKind));
+            entity, lineNumber, columnNumber, SYNC_STAR, kind, elementKind));
       } else if (entity.toString() == 'yield') {
         expectedCompletions.add(ExpectedCompletion.specialCompletionString(
-            entity, lineNumber, YIELD_STAR, kind, elementKind));
+            entity, lineNumber, columnNumber, YIELD_STAR, kind, elementKind));
       } else {
-        expectedCompletions
-            .add(ExpectedCompletion(entity, lineNumber, kind, elementKind));
+        expectedCompletions.add(ExpectedCompletion(
+            entity, lineNumber, columnNumber, kind, elementKind));
       }
     }
   }

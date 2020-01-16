@@ -18,12 +18,12 @@ import 'package:analyzer/src/generated/engine.dart';
 
 import 'visitors.dart';
 
-const bool doPrintExpectedCompletions = true;
-
 main() {
   var analysisRoots = [''];
   _computeCompletionMetrics(PhysicalResourceProvider.INSTANCE, analysisRoots);
 }
+
+const bool doPrintExpectedCompletions = true;
 
 /// TODO(jwren) put the following methods into a class
 Future _computeCompletionMetrics(
@@ -67,8 +67,13 @@ Future _computeCompletionMetrics(
               } else {
                 notIncludedCount++;
                 if (doPrintExpectedCompletions) {
+                  // The format "/file/path/foo.dart:3:4" makes for easier input
+                  // with the Files dialog in IntelliJ
                   print(
-                      '\t$filePath at line number ${expectedCompletion.lineNumber} did not include \"${expectedCompletion.completion}\"');
+                      '$filePath:${expectedCompletion.lineNumber}:${expectedCompletion.columnNumber}');
+                  print(
+                      '\tdid not include the expected completion: \"${expectedCompletion.completion}\", completion kind: ${expectedCompletion.kind.toString()}, element kind: ${expectedCompletion.elementKind.toString()}');
+                  print('');
                 }
               }
             }
