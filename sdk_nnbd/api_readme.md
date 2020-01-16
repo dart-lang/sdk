@@ -15,8 +15,7 @@ import 'dart:async';
 import 'dart:math';
 ```
 
-You can install more libraries using the
-[pub.dev package manager](https://dart.dev/guides/packages).
+You can find more libraries using the [pub.dev site](https://pub.dev).
 
 The main site for learning and using Dart is
 [dart.dev](https://dart.dev). Check out these pages:
