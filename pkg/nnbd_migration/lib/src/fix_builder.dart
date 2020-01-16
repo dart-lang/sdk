@@ -192,6 +192,8 @@ class FixBuilder {
 class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
   final FixBuilder _fixBuilder;
 
+  final Expando<List<CollectionElement>> _collectionElements = Expando();
+
   FlowAnalysis<AstNode, Statement, Expression, PromotableElement, DartType>
       _flowAnalysis;
 
@@ -240,7 +242,7 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
 
   @override
   List<CollectionElement> getListElements(ListLiteral node) {
-    return node.elements
+    return _collectionElements[node] ??= node.elements
         .map(_transformCollectionElement)
         .where((e) => e != null)
         .toList();
@@ -254,7 +256,7 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
 
   @override
   List<CollectionElement> getSetOrMapElements(SetOrMapLiteral node) {
-    return node.elements
+    return _collectionElements[node] ??= node.elements
         .map(_transformCollectionElement)
         .where((e) => e != null)
         .toList();
