@@ -12,6 +12,7 @@ import 'sdk_constraint_verifier_support.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SdkVersionNeverTest);
+    defineReflectiveTests(SdkVersionNeverWithNnbdTest);
   });
 }
 
@@ -19,32 +20,36 @@ main() {
 class SdkVersionNeverTest extends SdkConstraintVerifierTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.3.0', additionalFeatures: [Feature.non_nullable]);
+    ..contextFeatures = FeatureSet.forTesting(sdkVersion: '2.7.0');
 
-  @failingTest
-  test_equals() async {
-    // This test cannot pass because there is no version number that is equal to
-    // when non-nullable was enabled.
-    await verifyVersion('2.1.0', '''
-Never sink;
-''');
-  }
-
-  @failingTest
-  test_greaterThan() async {
-    // This test cannot pass because there is no version number that is equal to
-    // when non-nullable was enabled.
-    await verifyVersion('2.1.0', '''
-Never sink;
-''');
-  }
-
-  test_lessThan() async {
-    await verifyVersion('2.3.0', '''
-Never sink = (throw 42);
+  test_languageVersionBeforeNullSafety() async {
+    await verifyVersion('2.7.0', r'''
+Never foo;
 ''', expectedErrors: [
       error(HintCode.SDK_VERSION_NEVER, 0, 5),
+    ]);
+  }
+}
+
+@reflectiveTest
+class SdkVersionNeverWithNnbdTest extends SdkConstraintVerifierTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..contextFeatures =
+        FeatureSet.forTesting(additionalFeatures: [Feature.non_nullable]);
+
+  test_experimentEnabled() async {
+    await verifyVersion('2.7.0', r'''
+Never foo = (throw 42);
+''');
+  }
+
+  test_experimentEnabled_libraryOptedOut() async {
+    await verifyVersion('2.7.0', r'''
+// @dart = 2.7
+Never foo = (throw 42);
+''', expectedErrors: [
+      error(HintCode.SDK_VERSION_NEVER, 15, 5),
     ]);
   }
 }
