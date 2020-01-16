@@ -220,6 +220,11 @@ class CompilationCommand extends ProcessCommand {
     return true;
   }
 
+  @override
+  List<String> get batchArguments {
+    return [...arguments.where((arg) => arg.startsWith('--enable-experiment'))];
+  }
+
   void _buildHashCode(HashCodeBuilder builder) {
     super._buildHashCode(builder);
     builder.addJson(outputFile);
@@ -272,8 +277,8 @@ class FastaCompilationCommand extends CompilationCommand {
   @override
   List<String> get batchArguments {
     return <String>[
+      ...super.batchArguments,
       '--enable-asserts',
-      ...arguments.where((arg) => arg.startsWith('--enable-experiment')),
       _compilerLocation.resolve("batch.dart").toFilePath(),
     ];
   }
