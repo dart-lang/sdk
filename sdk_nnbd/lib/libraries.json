@@ -75,11 +75,11 @@
         ]
       },
       "developer": {
-        "uri": "../../sdk/lib/developer/developer.dart",
+        "uri": "developer/developer.dart",
         "patches": [
-          "../../sdk/lib/_internal/vm/lib/developer.dart",
-          "../../sdk/lib/_internal/vm/lib/profiler.dart",
-          "../../sdk/lib/_internal/vm/lib/timeline.dart"
+          "_internal/vm/lib/developer.dart",
+          "_internal/vm/lib/profiler.dart",
+          "_internal/vm/lib/timeline.dart"
         ]
       },
       "ffi": {
@@ -91,9 +91,9 @@
         ]
       },
       "wasm": {
-        "uri": "../../sdk/lib/wasm/wasm.dart",
+        "uri": "wasm/wasm.dart",
         "patches": [
-          "../../sdk/lib/_internal/vm/lib/wasm_patch.dart"
+          "_internal/vm/lib/wasm_patch.dart"
         ]
       },
       "_http": {
@@ -138,7 +138,7 @@
         ]
       },
       "nativewrappers": {
-        "uri": "../../sdk/lib/html/dartium/nativewrappers.dart"
+        "uri": "html/dartium/nativewrappers.dart"
       },
       "cli": {
         "uri": "cli/cli.dart",
