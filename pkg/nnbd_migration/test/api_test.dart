@@ -3905,16 +3905,6 @@ class _ProvisionalApiTestWithFixBuilder extends _ProvisionalApiTestBase
 
   @override
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
-  Future<void> test_downcast_dynamic_function_to_functionType() =>
-      super.test_downcast_dynamic_function_to_functionType();
-
-  @override
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
-  Future<void> test_downcast_dynamic_to_functionType() =>
-      super.test_downcast_dynamic_to_functionType();
-
-  @override
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
   Future<void> test_downcast_dynamic_type_argument() =>
       super.test_downcast_dynamic_type_argument();
 

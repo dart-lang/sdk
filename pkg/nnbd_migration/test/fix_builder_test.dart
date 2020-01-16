@@ -1110,6 +1110,57 @@ _f(_C c) => c.f();
         changes: {findNode.propertyAccess('c.f'): isNullCheck});
   }
 
+  Future<void> test_genericFunctionType_nonNullable() async {
+    await analyze('''
+void _f() {
+  void Function() x = _f;
+}
+''');
+    visitTypeAnnotation(
+        findNode.genericFunctionType('Function'), 'void Function()');
+  }
+
+  Future<void> test_genericFunctionType_nullable() async {
+    await analyze('''
+void _f() {
+  void Function() x = null;
+}
+''');
+    var genericFunctionTypeAnnotation =
+        findNode.genericFunctionType('Function');
+    visitTypeAnnotation(genericFunctionTypeAnnotation, 'void Function()?',
+        changes: {genericFunctionTypeAnnotation: isMakeNullable});
+  }
+
+  Future<void> test_genericFunctionType_nullable_arg() async {
+    await analyze('''
+void Function(int/*?*/) _f() {
+  void Function(int) x = _g;
+  return x;
+}
+void _g(int/*?*/ x) {}
+''');
+    var intTypeAnnotation = findNode.typeName('int)');
+    var genericFunctionTypeAnnotation =
+        findNode.genericFunctionType('Function(int)');
+    visitTypeAnnotation(genericFunctionTypeAnnotation, 'void Function(int?)',
+        changes: {intTypeAnnotation: isMakeNullable});
+  }
+
+  Future<void> test_genericFunctionType_nullable_return() async {
+    await analyze('''
+void _f() {
+  int Function() x = _g;
+}
+int/*?*/ _g() => null;
+''');
+    var intTypeAnnotation = findNode.typeName('int Function');
+    var genericFunctionTypeAnnotation =
+        findNode.genericFunctionType('Function');
+    visitTypeAnnotation(genericFunctionTypeAnnotation, 'int? Function()',
+        changes: {intTypeAnnotation: isMakeNullable});
+  }
+
   Future<void> test_ifStatement_dead_else() async {
     await analyze('''
 _f(int x, int/*?*/ y) {

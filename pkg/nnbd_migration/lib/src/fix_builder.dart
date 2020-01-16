@@ -330,7 +330,8 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
         }
       }
     } else {
-      throw UnimplementedError('TODO(paulberry)');
+      // TODO(paulberry): handle type parameter bounds that need to be made
+      // nullable.
     }
     return decoratedType;
   }

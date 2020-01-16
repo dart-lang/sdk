@@ -1299,6 +1299,16 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   @override
+  void visitGenericFunctionType(GenericFunctionType node) {
+    var elementTypeProvider = _elementTypeProvider;
+    if (elementTypeProvider is MigrationResolutionHooks) {
+      (node as GenericFunctionTypeImpl).type =
+          elementTypeProvider.getMigratedTypeAnnotationType(source, node);
+    }
+    super.visitGenericFunctionType(node);
+  }
+
+  @override
   void visitGenericTypeAliasInFunctionScope(GenericTypeAlias node) {
     super.visitGenericTypeAliasInFunctionScope(node);
     safelyVisitComment(node.documentationComment);
