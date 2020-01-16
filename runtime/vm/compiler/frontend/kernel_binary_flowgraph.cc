@@ -5041,7 +5041,8 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
       function.set_is_generated_body(function_node_helper.async_marker_ ==
                                      FunctionNodeHelper::kSyncYielding);
       if (function.IsAsyncClosure() || function.IsAsyncGenClosure()) {
-        function.set_is_inlinable(!FLAG_causal_async_stacks);
+        function.set_is_inlinable(!FLAG_causal_async_stacks &&
+                                  !FLAG_lazy_async_stacks);
       }
 
       function.set_end_token_pos(function_node_helper.end_position_);

@@ -2193,6 +2193,9 @@ void Debugger::AppendCodeFrames(Thread* thread,
 }
 
 DebuggerStackTrace* Debugger::CollectAsyncCausalStackTrace() {
+  if (FLAG_lazy_async_stacks) {
+    return CollectAsyncLazyStackTrace();
+  }
   if (!FLAG_causal_async_stacks) {
     return NULL;
   }
@@ -2304,6 +2307,60 @@ DebuggerStackTrace* Debugger::CollectAsyncCausalStackTrace() {
                      ? StackTrace::kSyncAsyncCroppedFrames
                      : 0;
     async_stack_trace = async_stack_trace.async_link();
+  }
+
+  return stack_trace;
+}
+
+DebuggerStackTrace* Debugger::CollectAsyncLazyStackTrace() {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
+
+  Code& code = Code::Handle(zone);
+  Code& inlined_code = Code::Handle(zone);
+  Smi& offset = Smi::Handle();
+  Array& deopt_frame = Array::Handle(zone);
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  Bytecode& bytecode = Bytecode::Handle(zone);
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+  constexpr intptr_t kDefaultStackAllocation = 8;
+  auto stack_trace = new DebuggerStackTrace(kDefaultStackAllocation);
+
+  std::function<void(StackFrame*)> on_sync_frame = [&](StackFrame* frame) {
+    if (frame->is_interpreted()) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+      bytecode = frame->LookupDartBytecode();
+      stack_trace->AddActivation(
+          CollectDartFrame(isolate, frame->pc(), frame, bytecode));
+#else
+      UNREACHABLE();
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+    } else {
+      code = frame->LookupDartCode();
+      AppendCodeFrames(thread, isolate, zone, stack_trace, frame, &code,
+                       &inlined_code, &deopt_frame);
+    }
+  };
+
+  const auto& code_array = GrowableObjectArray::ZoneHandle(
+      zone, GrowableObjectArray::New(kDefaultStackAllocation));
+  const auto& pc_offset_array = GrowableObjectArray::ZoneHandle(
+      zone, GrowableObjectArray::New(kDefaultStackAllocation));
+  StackTraceUtils::CollectFramesLazy(thread, code_array, pc_offset_array,
+                                     /*skip_frames=*/0, &on_sync_frame);
+
+  const intptr_t length = code_array.Length();
+  for (intptr_t i = stack_trace->Length(); i < length; ++i) {
+    code ^= code_array.At(i);
+    offset ^= pc_offset_array.At(i);
+    if (code.raw() == StubCode::AsynchronousGapMarker().raw()) {
+      stack_trace->AddMarker(ActivationFrame::kAsyncSuspensionMarker);
+    } else {
+      const uword absolute_pc = code.PayloadStart() + offset.Value();
+      stack_trace->AddAsyncCausalFrame(absolute_pc, code);
+    }
   }
 
   return stack_trace;
