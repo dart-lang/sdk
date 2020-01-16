@@ -51,17 +51,17 @@ class PostfixExpressionResolver {
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
   void resolve(PostfixExpressionImpl node) {
+    if (node.operator.type == TokenType.BANG) {
+      _resolveNullCheck(node);
+      return;
+    }
+
     node.operand.accept(_resolver);
 
     var receiverType = getReadType(
       node.operand,
       elementTypeProvider: _elementTypeProvider,
     );
-
-    if (node.operator.type == TokenType.BANG) {
-      _resolveNullCheck(node, receiverType);
-      return;
-    }
 
     _assignmentShared.checkLateFinalAlreadyAssigned(node.operand);
 
@@ -197,11 +197,29 @@ class PostfixExpressionResolver {
     _inferenceHelper.recordStaticType(node, receiverType);
   }
 
-  void _resolveNullCheck(PostfixExpressionImpl node, DartType operandType) {
+  void _resolveNullCheck(PostfixExpressionImpl node) {
+    var operand = node.operand;
+
+    var contextType = InferenceContext.getContext(node);
+    if (contextType != null) {
+      if (_isNonNullableByDefault) {
+        contextType = _typeSystem.makeNullable(contextType);
+      }
+      InferenceContext.setType(operand, contextType);
+    }
+
+    operand.accept(_resolver);
+    operand = node.operand;
+
+    var operandType = getReadType(
+      operand,
+      elementTypeProvider: _elementTypeProvider,
+    );
+
     var type = _typeSystem.promoteToNonNull(operandType);
     _inferenceHelper.recordStaticType(node, type);
 
-    _flowAnalysis?.flow?.nonNullAssert_end(node.operand);
+    _flowAnalysis?.flow?.nonNullAssert_end(operand);
   }
 
   /// Return `true` if we should report an error for the lookup [result] on
