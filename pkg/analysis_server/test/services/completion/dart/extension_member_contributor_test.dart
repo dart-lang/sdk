@@ -194,7 +194,62 @@ void f() {
     assertSuggestSetter('c');
   }
 
-  test_members_inExtendedClass() async {
+  test_members_inExtendedClassMethod_getter() async {
+    addTestSource('''
+class Person {
+  void doSomething() {
+    ^
+  }
+}
+extension E on Person {
+  String get name => '';
+  set id(int id) {}
+  void work() { }
+}
+''');
+    await computeSuggestions();
+    assertSuggestGetter('name', 'String');
+  }
+
+  test_members_inExtendedClassMethod_method() async {
+    addTestSource('''
+class Person {
+  void doSomething() {
+    ^
+  }
+}
+extension E on Person {
+  String get name => '';
+  set id(int id) {}
+  void work() { }
+}
+''');
+    await computeSuggestions();
+    assertSuggestMethod('work', null, 'void');
+  }
+
+  test_members_inExtendedClassMethod_multipleExtensions() async {
+    addTestSource('''
+class Person {
+  void doSomething() {
+    ^
+  }
+}
+extension E on Person {
+  String get name => '';
+}
+
+extension E2 on Person {
+  void work() { }
+}
+
+''');
+    await computeSuggestions();
+    assertSuggestGetter('name', 'String');
+    assertSuggestMethod('work', null, 'void');
+  }
+
+  test_members_inExtendedClassMethod_setter() async {
     addTestSource('''
 class Person {
   void doSomething() {
@@ -209,7 +264,22 @@ extension E on Person {
 ''');
     await computeSuggestions();
     assertSuggestSetter('id');
-    assertSuggestGetter('name', 'String');
+  }
+
+  test_members_inMixinMethod_method() async {
+    addTestSource('''
+class Person { }
+extension E on Person {
+  void work() { }
+}
+
+mixin M on Person {
+  void f() {
+    ^
+  }
+}
+''');
+    await computeSuggestions();
     assertSuggestMethod('work', null, 'void');
   }
 

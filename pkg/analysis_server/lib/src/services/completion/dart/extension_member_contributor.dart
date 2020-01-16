@@ -38,10 +38,10 @@ class ExtensionMemberContributor extends DartCompletionContributor {
     Expression expression = request.dotTarget;
 
     if (expression == null) {
-      var classDeclaration = request.target.containingNode
-          .thisOrAncestorOfType<ClassDeclaration>();
-      if (classDeclaration != null) {
-        var type = classDeclaration.declaredElement.thisType;
+      var classOrMixin = request.target.containingNode
+          .thisOrAncestorOfType<ClassOrMixinDeclaration>();
+      if (classOrMixin != null) {
+        var type = classOrMixin.declaredElement.thisType;
         _addExtensionMembers(containingLibrary, type);
       }
       return builder.suggestions.toList();
