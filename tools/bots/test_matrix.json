@@ -1988,6 +1988,22 @@
       ]
     },
     {
+      "builders": ["dart2js-nnbd-linux-x64-chrome"],
+      "meta": {
+        "description": "dart2js tests for NNBD."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "--nnbd",
+            "create_sdk"
+          ]
+        }
+      ]
+    },
+    {
       "builders": [
         "dart-sdk-linux"
       ],
