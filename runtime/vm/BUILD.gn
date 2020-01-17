@@ -70,14 +70,16 @@ library_for_all_configs("libdart_vm") {
   if (is_fuchsia) {
     if (using_fuchsia_sdk) {
       extra_deps += [
-        "$fuchsia_sdk_root/fidl:fuchsia.intl",
+        "$fuchsia_sdk_root/fidl:fuchsia.deprecatedtimezone",
         "$fuchsia_sdk_root/pkg:sys_cpp",
         "$fuchsia_sdk_root/pkg:trace-engine",
       ]
     } else {
       extra_deps += [
-        "//sdk/fidl/fuchsia.intl",
+        # TODO(US-399): Remove time_service specific code when it is no longer
+        # necessary.
         "//sdk/lib/sys/cpp",
+        "//sdk/fidl/fuchsia.deprecatedtimezone",
 
         "//zircon/public/lib/fbl",
         "//zircon/public/lib/trace-engine",
