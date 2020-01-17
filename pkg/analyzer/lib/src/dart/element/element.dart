@@ -3327,6 +3327,10 @@ class EnumElementImpl extends AbstractClassElementImpl {
     return super.codeOffset;
   }
 
+  List<FieldElement> get constants {
+    return fields.where((field) => !field.isSynthetic).toList();
+  }
+
   @override
   List<ConstructorElement> get constructors {
     // The equivalent code for enums in the spec shows a single constructor,

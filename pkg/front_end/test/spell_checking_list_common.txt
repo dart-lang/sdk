@@ -1030,6 +1030,7 @@ executes
 executing
 execution
 exercise
+exhaustive
 exist
 existing
 exists

@@ -579,8 +579,10 @@ abstract class FlowAnalysis<Node, Statement extends Node, Expression, Variable,
   /// Call this method just after visiting the body of a switch statement.  See
   /// [switchStatement_expressionEnd] for details.
   ///
-  /// [hasDefault] indicates whether the switch statement had a "default" case.
-  void switchStatement_end(bool hasDefault);
+  /// [isExhaustive] indicates whether the switch statement had a "default"
+  /// case, or is based on an enumeration and all the enumeration constants
+  /// were listed in cases.
+  void switchStatement_end(bool isExhaustive);
 
   /// Call this method just after visiting the expression part of a switch
   /// statement.
@@ -988,9 +990,9 @@ class FlowAnalysisDebug<Node, Statement extends Node, Expression, Variable,
   }
 
   @override
-  void switchStatement_end(bool hasDefault) {
-    _wrap('switchStatement_end($hasDefault)',
-        () => _wrapped.switchStatement_end(hasDefault));
+  void switchStatement_end(bool isExhaustive) {
+    _wrap('switchStatement_end($isExhaustive)',
+        () => _wrapped.switchStatement_end(isExhaustive));
   }
 
   @override
@@ -2372,7 +2374,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
   }
 
   @override
-  void switchStatement_end(bool hasDefault) {
+  void switchStatement_end(bool isExhaustive) {
     _SimpleStatementContext<Variable, Type> context =
         _stack.removeLast() as _SimpleStatementContext<Variable, Type>;
     FlowModel<Variable, Type> breakState = context._breakModel;
@@ -2382,7 +2384,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
     breakState = _join(breakState, _current);
 
     // And, if there is an implicit fall-through default, join it to any breaks.
-    if (!hasDefault) breakState = _join(breakState, context._previous);
+    if (!isExhaustive) breakState = _join(breakState, context._previous);
 
     _current = breakState;
   }

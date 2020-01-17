@@ -1706,18 +1706,19 @@ class ResolverVisitor extends ScopedVisitor {
 
         flow.switchStatement_expressionEnd(node);
 
-        var hasDefault = false;
+        var exhaustiveness = _SwitchExhaustiveness(
+          _enclosingSwitchStatementExpressionType,
+        );
+
         var members = node.members;
         for (var member in members) {
           flow.switchStatement_beginCase(member.labels.isNotEmpty, node);
           member.accept(this);
 
-          if (member is SwitchDefault) {
-            hasDefault = true;
-          }
+          exhaustiveness.visitSwitchMember(member);
         }
 
-        flow.switchStatement_end(hasDefault);
+        flow.switchStatement_end(exhaustiveness.isExhaustive);
       } else {
         node.members.accept(this);
       }
@@ -3104,4 +3105,51 @@ class VariableResolverVisitor extends ScopedVisitor {
 
   @override
   void visitTypeName(TypeName node) {}
+}
+
+/// Tracker for whether a `switch` statement has `default` or is on an
+/// enumeration, and all the enum constants are covered.
+class _SwitchExhaustiveness {
+  /// If the switch is on an enumeration, the set of all enum constants.
+  /// Otherwise `null`.
+  final Set<FieldElement> _enumConstants;
+
+  bool isExhaustive = false;
+
+  factory _SwitchExhaustiveness(DartType expressionType) {
+    if (expressionType is InterfaceType) {
+      var enum_ = expressionType.element;
+      if (enum_ is EnumElementImpl) {
+        return _SwitchExhaustiveness._(
+          enum_.constants.toSet(),
+        );
+      }
+    }
+    return _SwitchExhaustiveness._(null);
+  }
+
+  _SwitchExhaustiveness._(this._enumConstants);
+
+  void visitSwitchMember(SwitchMember node) {
+    if (_enumConstants != null && node is SwitchCase) {
+      var element = _referencedElement(node.expression);
+      if (element is PropertyAccessorElement) {
+        _enumConstants.remove(element.variable);
+        if (_enumConstants.isEmpty) {
+          isExhaustive = true;
+        }
+      }
+    } else if (node is SwitchDefault) {
+      isExhaustive = true;
+    }
+  }
+
+  static Element _referencedElement(Expression expression) {
+    if (expression is PrefixedIdentifier) {
+      return expression.staticElement;
+    } else if (expression is PropertyAccess) {
+      return expression.propertyName.staticElement;
+    }
+    return null;
+  }
 }
