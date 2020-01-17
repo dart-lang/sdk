@@ -54,11 +54,9 @@ main() {}
 ''');
 
   print('Running dartanalyzer');
-  var dart = Uri.base.resolve(Platform.resolvedExecutable);
-  var analyzerSnapshot = Uri.base
-      .resolve(Platform.resolvedExecutable)
-      .resolve('snapshots/dartanalyzer.dart.snapshot')
-      .toFilePath();
+  var dart = resolveInputUri(Platform.resolvedExecutable);
+  var analyzerSnapshot =
+      dart.resolve('snapshots/dartanalyzer.dart.snapshot').toFilePath();
   var result = Process.runSync(dart.toFilePath(), [
     // The NNBD dart binaries / snapshots require this flag to be enabled at
     // VM level.
