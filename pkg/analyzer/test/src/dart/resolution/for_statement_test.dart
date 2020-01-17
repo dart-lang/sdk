@@ -10,12 +10,13 @@ import 'driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ForInDriverResolutionTest);
+    defineReflectiveTests(ForEachStatementResolutionTest);
+    defineReflectiveTests(ForLoopStatementResolutionTest);
   });
 }
 
 @reflectiveTest
-class ForInDriverResolutionTest extends DriverResolutionTest {
+class ForEachStatementResolutionTest extends DriverResolutionTest {
   test_importPrefix_asIterable() async {
     // TODO(scheglov) Remove this test (already tested as import prefix).
     // TODO(scheglov) Move other for-in tests here.
@@ -36,5 +37,26 @@ main() {
     var pRef = findNode.simple('p) {}');
     assertElement(pRef, findElement.prefix('p'));
     assertTypeDynamic(pRef);
+  }
+}
+
+@reflectiveTest
+class ForLoopStatementResolutionTest extends DriverResolutionTest {
+  test_condition_rewrite() async {
+    await assertNoErrorsInCode(r'''
+main(bool Function() b) {
+  for (; b(); ) {
+    print(0);
+  }
+}
+''');
+
+    assertFunctionExpressionInvocation(
+      findNode.functionExpressionInvocation('b()'),
+      element: null,
+      typeArgumentTypes: [],
+      invokeType: 'bool Function()',
+      type: 'bool',
+    );
   }
 }

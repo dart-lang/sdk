@@ -17,12 +17,14 @@ import 'export_test.dart' as export_;
 import 'extension_method_test.dart' as extension_method;
 import 'extension_override_test.dart' as extension_override;
 import 'for_element_test.dart' as for_element;
-import 'for_in_test.dart' as for_in;
+import 'for_statement_test.dart' as for_in;
 import 'function_expression_invocation_test.dart'
     as function_expression_invocation;
 import 'function_type_alias_test.dart' as function_type_alias;
 import 'generic_function_type_test.dart' as generic_function_type;
 import 'generic_type_alias_test.dart' as generic_type_alias;
+import 'if_element_test.dart' as if_element;
+import 'if_statement_test.dart' as if_statement;
 import 'import_prefix_test.dart' as import_prefix;
 import 'import_test.dart' as import_;
 import 'index_expression_test.dart' as index_expression;
@@ -69,6 +71,8 @@ main() {
     generic_function_type.main();
     generic_type_alias.main();
     import_.main();
+    if_element.main();
+    if_statement.main();
     import_prefix.main();
     index_expression.main();
     instance_creation.main();

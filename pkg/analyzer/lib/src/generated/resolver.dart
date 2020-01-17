@@ -785,7 +785,8 @@ class ResolverVisitor extends ScopedVisitor {
 
     // TODO(scheglov) Do we need these checks for null?
     condition?.accept(this);
-    boolExpressionVerifier.checkForNonBoolCondition(node.condition);
+    condition = node.condition;
+    boolExpressionVerifier.checkForNonBoolCondition(condition);
 
     Expression thenExpression = node.thenExpression;
     InferenceContext.setTypeFromNode(thenExpression, node);
@@ -921,16 +922,16 @@ class ResolverVisitor extends ScopedVisitor {
     var body = node.body;
     var condition = node.condition;
 
-    InferenceContext.setType(node.condition, typeProvider.boolType);
-
     _flowAnalysis?.flow?.doStatement_bodyBegin(node);
     visitStatementInScope(body);
 
     _flowAnalysis?.flow?.doStatement_conditionBegin();
+    InferenceContext.setType(condition, typeProvider.boolType);
     condition.accept(this);
-    boolExpressionVerifier.checkForNonBoolCondition(node.condition);
+    condition = node.condition;
+    boolExpressionVerifier.checkForNonBoolCondition(condition);
 
-    _flowAnalysis?.flow?.doStatement_end(node.condition);
+    _flowAnalysis?.flow?.doStatement_end(condition);
   }
 
   @override
@@ -1039,17 +1040,23 @@ class ResolverVisitor extends ScopedVisitor {
       } else if (forLoopParts is ForPartsWithExpression) {
         forLoopParts.initialization?.accept(this);
       }
+
       var condition = forLoopParts.condition;
-      InferenceContext.setType(condition, typeProvider.boolType);
-      _flowAnalysis?.for_conditionBegin(node, condition);
+
+      _flowAnalysis?.for_conditionBegin(node);
       if (condition != null) {
+        InferenceContext.setType(condition, typeProvider.boolType);
         condition.accept(this);
+        condition = forLoopParts.condition;
         boolExpressionVerifier.checkForNonBoolCondition(condition);
       }
+
       _flowAnalysis?.for_bodyBegin(node, condition);
       node.body?.accept(this);
+
       _flowAnalysis?.flow?.for_updaterBegin();
       forLoopParts.updaters.accept(this);
+
       _flowAnalysis?.flow?.for_end();
     } else if (forLoopParts is ForEachParts) {
       Expression iterable = forLoopParts.iterable;
@@ -1125,11 +1132,12 @@ class ResolverVisitor extends ScopedVisitor {
       }
 
       var condition = forLoopParts.condition;
-      InferenceContext.setType(condition, typeProvider.boolType);
 
-      _flowAnalysis?.for_conditionBegin(node, condition);
+      _flowAnalysis?.for_conditionBegin(node);
       if (condition != null) {
+        InferenceContext.setType(condition, typeProvider.boolType);
         condition.accept(this);
+        condition = forLoopParts.condition;
         boolExpressionVerifier.checkForNonBoolCondition(condition);
       }
 
@@ -1348,8 +1356,9 @@ class ResolverVisitor extends ScopedVisitor {
     InferenceContext.setType(condition, typeProvider.boolType);
     // TODO(scheglov) Do we need these checks for null?
     condition?.accept(this);
+    condition = node.condition;
 
-    boolExpressionVerifier.checkForNonBoolCondition(node.condition);
+    boolExpressionVerifier.checkForNonBoolCondition(condition);
 
     CollectionElement thenElement = node.thenElement;
     if (_flowAnalysis != null) {
@@ -1384,9 +1393,11 @@ class ResolverVisitor extends ScopedVisitor {
     Expression condition = node.condition;
 
     InferenceContext.setType(condition, typeProvider.boolType);
+    // TODO(scheglov) Do we need these checks for null?
     condition?.accept(this);
+    condition = node.condition;
 
-    boolExpressionVerifier.checkForNonBoolCondition(node.condition);
+    boolExpressionVerifier.checkForNonBoolCondition(condition);
 
     Statement thenStatement = node.thenStatement;
     if (_flowAnalysis != null) {
