@@ -67,13 +67,13 @@ class EliminateDeadIf extends NodeChange {
           // It's not safe to eliminate the {} because it increases the scope of
           // the variable declarations
         } else {
-          return aggregator.planner.extract(node,
-              aggregator.planner.passThrough(nodeToKeep.statements.single));
+          return aggregator.planner.extract(
+              node, aggregator.innerPlanForNode(nodeToKeep.statements.single));
         }
       }
     }
     return aggregator.planner
-        .extract(node, aggregator.planner.passThrough(nodeToKeep));
+        .extract(node, aggregator.innerPlanForNode(nodeToKeep));
   }
 
   @override

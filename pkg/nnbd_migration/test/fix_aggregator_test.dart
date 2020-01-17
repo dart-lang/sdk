@@ -39,6 +39,42 @@ class FixAggregatorTest extends FixAggregatorTestBase {
     expect(previewInfo.applyTo(code), 'f(a, b) => (a! + b!)!;');
   }
 
+  Future<void> test_eliminateDeadIf_changesInKeptCode() async {
+    await analyze('''
+f(int i, int/*?*/ j) {
+  if (i != null) j.isEven;
+}
+''');
+    var previewInfo = run({
+      findNode.statement('if'): EliminateDeadIf(true),
+      findNode.simple('j.isEven'): const NullCheck()
+    });
+    expect(previewInfo.applyTo(code), '''
+f(int i, int/*?*/ j) {
+  j!.isEven;
+}
+''');
+  }
+
+  Future<void> test_eliminateDeadIf_changesInKeptCode_expandBlock() async {
+    await analyze('''
+f(int i, int/*?*/ j) {
+  if (i != null) {
+    j.isEven;
+  }
+}
+''');
+    var previewInfo = run({
+      findNode.statement('if'): EliminateDeadIf(true),
+      findNode.simple('j.isEven'): const NullCheck()
+    });
+    expect(previewInfo.applyTo(code), '''
+f(int i, int/*?*/ j) {
+  j!.isEven;
+}
+''');
+  }
+
   Future<void> test_eliminateDeadIf_element_delete_drop_completely() async {
     await analyze('''
 List<int> f(int i) {

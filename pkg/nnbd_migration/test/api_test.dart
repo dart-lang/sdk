@@ -3923,11 +3923,6 @@ class _ProvisionalApiTestWithFixBuilder extends _ProvisionalApiTestBase
   Future<void> test_named_parameter_no_default_unused_required() =>
       super.test_named_parameter_no_default_unused_required();
 
-  @override
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
-  Future<void> test_postdominating_usage_after_cfg_altered() =>
-      super.test_postdominating_usage_after_cfg_altered();
-
   /// Test fails under the pre-FixBuilder implementation; passes now.
   @override
   Future<void> test_removed_if_element_doesnt_introduce_nullability() =>
