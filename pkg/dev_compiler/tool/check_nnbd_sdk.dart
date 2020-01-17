@@ -48,6 +48,7 @@ void main(List<String> argv) {
   var emptyProgramUri = baseUri.resolve('empty_program.dart');
   File.fromUri(emptyProgramUri).writeAsStringSync('''
 import 'dart:js';
+import 'dart:js_util';
 
 main() {}
 ''');

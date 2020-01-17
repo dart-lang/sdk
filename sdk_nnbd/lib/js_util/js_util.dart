@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 /// Utility methods to efficiently manipulate typed JSInterop objects in cases
 /// where the name to call is not known at runtime. You should only use these
 /// methods when the same effect cannot be achieved with @JS annotations.
@@ -28,17 +26,17 @@ import 'dart:_js_helper' show convertDartClosureToJS;
 /// converted. Maps and Iterables are copied to a new JavaScript object.
 /// Primitives and other transferable values are directly converted to their
 /// JavaScript type, and all other objects are proxied.
-jsify(object) {
+Object jsify(Object object) {
   if ((object is! Map) && (object is! Iterable)) {
     throw ArgumentError("object must be a Map or Iterable");
   }
   return _convertDataTree(object);
 }
 
-_convertDataTree(data) {
+Object _convertDataTree(Object data) {
   var _convertedObjects = HashMap.identity();
 
-  _convert(o) {
+  Object? _convert(Object? o) {
     if (_convertedObjects.containsKey(o)) {
       return _convertedObjects[o];
     }
@@ -59,23 +57,26 @@ _convertDataTree(data) {
     }
   }
 
-  return _convert(data);
+  return _convert(data)!;
 }
 
-newObject() => JS('=Object', '{}');
+dynamic newObject() => JS('=Object', '{}');
 
-bool hasProperty(o, name) => JS('bool', '# in #', name, o);
+bool hasProperty(Object o, Object name) => JS('bool', '# in #', name, o);
 
-getProperty(o, name) => JS('Object|Null', '#[#]', o, name);
+dynamic getProperty(Object o, Object name) =>
+    JS('Object|Null', '#[#]', o, name);
 
-setProperty(o, name, value) => JS('', '#[#]=#', o, name, value);
+dynamic setProperty(Object o, Object name, Object? value) =>
+    JS('', '#[#]=#', o, name, value);
 
-callMethod(o, String method, List args) =>
+dynamic callMethod(Object o, String method, List<Object?> args) =>
     JS('Object|Null', '#[#].apply(#, #)', o, method, o, args);
 
-bool instanceof(o, Function type) => JS('bool', '# instanceof #', o, type);
+bool instanceof(Object? o, Function type) =>
+    JS('bool', '# instanceof #', o, type);
 
-callConstructor(Function constr, List arguments) {
+dynamic callConstructor(Function constr, List<Object?> arguments) {
   if (arguments == null) {
     return JS('Object', 'new #()', constr);
   }
@@ -144,7 +145,7 @@ callConstructor(Function constr, List arguments) {
 ///
 /// final three = await threeFuture; // == 3
 /// ```
-Future<T> promiseToFuture<T>(jsPromise) {
+Future<T> promiseToFuture<T>(Object jsPromise) {
   final completer = Completer<T>();
 
   final success = convertDartClosureToJS((r) => completer.complete(r), 1);
