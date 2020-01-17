@@ -3478,6 +3478,47 @@ class B {
     assertNotSuggested('==');
   }
 
+  test_MethodTypeArgumentList() async {
+    addSource('/home/test/lib/a.dart', '''
+class A {}
+class B {}
+''');
+    addTestSource('''
+import 'a.dart';
+void f<S>() { }
+
+void g() {
+    f<^>();
+}
+''');
+
+    await computeSuggestions();
+
+    assertSuggestClass('A');
+    assertSuggestClass('B');
+    assertSuggestClass('Object');
+    assertSuggestClass('bool');
+    // etc.
+    assertNotSuggested('main');
+  }
+
+  test_MethodTypeArgumentList_2() async {
+    addTestSource('''
+void f<S,T>() { }
+
+void g() {
+    f<String, ^>();
+}
+''');
+
+    await computeSuggestions();
+
+    assertSuggestClass('Object');
+    assertSuggestClass('bool');
+    // etc.
+    assertNotSuggested('main');
+  }
+
   test_mixin_ordering() async {
     addSource('/home/test/lib/a.dart', '''
 class B {}

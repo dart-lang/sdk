@@ -881,6 +881,11 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
       optype.includeTypeNameSuggestions = !isThis;
       optype.includeVoidReturnSuggestions = true;
       optype.isPrefixed = true;
+    } else if (identical(entity, node.argumentList)) {
+      // Note that when the cursor is in a type argument list (f<^>()), the entity is
+      // (surprisingly) the invocation's argumentList (and not it's typeArgumentList
+      // as you'd expect).
+      optype.includeTypeNameSuggestions = true;
     }
   }
 
