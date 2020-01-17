@@ -79,7 +79,9 @@ class TimelinePageElement extends CustomElement implements Renderable {
   DivElement _content;
 
   bool get usingVMRecorder =>
-      _recorder.name != "Fuchsia" && _recorder.name != "Systrace";
+      _recorder.name != "Fuchsia" &&
+      _recorder.name != "Systrace" &&
+      _recorder.name != "Macos";
 
   void render() {
     if (_frame == null) {
@@ -207,6 +209,22 @@ class TimelinePageElement extends CustomElement implements Renderable {
             ..text = "systrace usage guide"
             ..href =
                 "https://developer.android.com/studio/command-line/systrace",
+          new SpanElement()..text = ".",
+        ];
+    }
+
+    if (_recorder.name == "Macos") {
+      return new DivElement()
+        ..classes = ['content-centered-big']
+        ..children = <Element>[
+          new BRElement(),
+          new SpanElement()
+            ..text =
+                "This VM is forwarding timeline events to macOS's Unified Logging. "
+                    "To track these events, open 'Instruments' and add the 'os_signpost' Filter. See the ",
+          new AnchorElement()
+            ..text = "Instruments Usage Guide"
+            ..href = "https://help.apple.com/instruments",
           new SpanElement()..text = ".",
         ];
     }

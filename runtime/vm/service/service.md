@@ -978,7 +978,7 @@ timeline events should be.
 For example, given _timeOriginMicros_ and _timeExtentMicros_, only timeline events
 from the following time range will be returned: `(timeOriginMicros, timeOriginMicros + timeExtentMicros)`.
 
-If _getVMTimeline_ is invoked while the current recorder is one of Fuchsia or
+If _getVMTimeline_ is invoked while the current recorder is one of Fuchsia or Macos or
 Systrace, the _114_ error code, invalid timeline request, will be returned as
 timeline events are handled by the OS in these modes.
 
@@ -3373,7 +3373,8 @@ An _TimelineEvent_ is an arbitrary map that contains a [Trace Event Format](http
 ```
 class TimelineFlags extends Response {
   // The name of the recorder currently in use. Recorder types include, but are
-  // not limited to: Callback, Endless, Fuchsia, Ring, Startup, and Systrace.
+  // not limited to: Callback, Endless, Fuchsia, Macos, Ring, Startup, and
+  // Systrace.
   // Set to "null" if no recorder is currently set.
   string recorderName;
 

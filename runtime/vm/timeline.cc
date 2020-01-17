@@ -105,7 +105,6 @@ static TimelineEventRecorder* CreateTimelineRecorder() {
 
   const bool use_startup_recorder = FLAG_startup_timeline;
   const bool use_systrace_recorder = FLAG_systrace_timeline;
-
   const char* flag = FLAG_timeline_recorder;
 
   if (use_systrace_recorder || (flag != NULL)) {
@@ -116,6 +115,10 @@ static TimelineEventRecorder* CreateTimelineRecorder() {
 
 #if defined(HOST_OS_LINUX) || defined(HOST_OS_ANDROID)
       return new TimelineEventSystraceRecorder();
+#elif defined(HOST_OS_MACOS)
+      if (__builtin_available(iOS 12.0, macOS 10.14, *)) {
+        return new TimelineEventMacosRecorder();
+      }
 #elif defined(HOST_OS_FUCHSIA)
       return new TimelineEventFuchsiaRecorder();
 #else
@@ -742,6 +745,11 @@ TimelineStream::TimelineStream(const char* name,
       enabled_(static_cast<uintptr_t>(enabled))
 #endif
 {
+#if defined(HOST_OS_MACOS)
+  if (__builtin_available(iOS 12.0, macOS 10.14, *)) {
+    macos_log_ = os_log_create("Dart", name);
+  }
+#endif
 }
 
 TimelineEvent* TimelineStream::StartEvent() {
