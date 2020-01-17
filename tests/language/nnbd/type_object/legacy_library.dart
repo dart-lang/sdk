@@ -6,3 +6,4 @@
 // @dart = 2.6
 
 Type legacyType<T>() => T;
+Type legacyListType<T>() => <T>[].runtimeType;

@@ -12,6 +12,8 @@ class B {}
 
 Type type<T>() => T;
 
+Type listType<T>() => <T>[].runtimeType;
+
 main() {
   var a = new A();
   var b = new B();
@@ -38,4 +40,6 @@ main() {
   Expect.isFalse(legacyType<int>() == type<int?>());
   Expect.isTrue(legacyType<int>() == type<int>());
   Expect.isTrue(legacyType<int>() == legacyType<int>());
+
+  Expect.isTrue(listType<int>() == legacyListType<int>());
 }
