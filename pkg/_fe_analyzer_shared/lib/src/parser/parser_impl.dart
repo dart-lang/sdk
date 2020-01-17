@@ -5073,6 +5073,7 @@ class Parser {
   /// ;
   /// ```
   Token parseLiteralString(Token token) {
+    Token startToken = token;
     assert(identical(token.next.kind, STRING_TOKEN));
     bool old = mayParseFunctionExpressions;
     mayParseFunctionExpressions = true;
@@ -5083,7 +5084,7 @@ class Parser {
       count++;
     }
     if (count > 1) {
-      listener.handleStringJuxtaposition(count);
+      listener.handleStringJuxtaposition(startToken, count);
     }
     mayParseFunctionExpressions = old;
     return token;

@@ -801,7 +801,7 @@ class Listener implements UnescapeErrorListener {
     logEvent("LiteralString");
   }
 
-  void handleStringJuxtaposition(int literalCount) {
+  void handleStringJuxtaposition(Token startToken, int literalCount) {
     logEvent("StringJuxtaposition");
   }
 

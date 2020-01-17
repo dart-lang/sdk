@@ -454,6 +454,7 @@ class Forest {
   Expression createStringConcatenation(
       int fileOffset, List<Expression> expressions) {
     assert(fileOffset != null);
+    assert(fileOffset != TreeNode.noOffset);
     return new StringConcatenation(expressions)..fileOffset = fileOffset;
   }
 

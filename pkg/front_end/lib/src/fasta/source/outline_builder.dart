@@ -384,7 +384,7 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void handleStringJuxtaposition(int literalCount) {
+  void handleStringJuxtaposition(Token startToken, int literalCount) {
     debugEvent("StringJuxtaposition");
     List<String> list = new List<String>(literalCount);
     int charOffset = -1;

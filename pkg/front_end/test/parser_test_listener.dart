@@ -834,7 +834,7 @@ class ParserTestListener implements Listener {
     doPrint('endLiteralString(' '$interpolationCount, ' '$endToken)');
   }
 
-  void handleStringJuxtaposition(int literalCount) {
+  void handleStringJuxtaposition(Token startToken, int literalCount) {
     doPrint('handleStringJuxtaposition(' '$literalCount)');
   }
 

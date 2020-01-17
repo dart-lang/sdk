@@ -2171,7 +2171,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
-  void handleStringJuxtaposition(int literalCount) {
+  void handleStringJuxtaposition(Token startToken, int literalCount) {
     debugEvent("StringJuxtaposition");
     List<Expression> parts = popListForValue(literalCount);
     List<Expression> expressions;
@@ -2191,7 +2191,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         }
       }
     }
-    push(forest.createStringConcatenation(noLocation, expressions ?? parts));
+    push(forest.createStringConcatenation(
+        offsetForToken(startToken), expressions ?? parts));
   }
 
   @override
