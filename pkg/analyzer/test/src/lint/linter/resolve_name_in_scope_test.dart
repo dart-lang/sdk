@@ -47,6 +47,29 @@ class B extends A {
     _checkGetterDifferent(findElement.setter('foo'));
   }
 
+  test_class_getter_different_importScope() async {
+    newFile('/test/lib/a.dart', content: r'''
+set foo(int _) {}
+''');
+    await resolve('''
+import 'a.dart';
+
+class A {
+  int get foo => 0;
+}
+
+class B extends A {
+  void bar() {
+    this.foo;
+  }
+}
+''', [
+      error(HintCode.UNUSED_IMPORT, 7, 8),
+    ]);
+    var import = findElement.importFind('package:test/a.dart');
+    _checkGetterDifferent(import.topSet('foo'));
+  }
+
   test_class_getter_none_fromExtends() async {
     await resolve('''
 class A {
@@ -60,6 +83,29 @@ class B extends A {
 }
 ''');
     _checkGetterNone();
+  }
+
+  test_class_getter_requested_importScope() async {
+    newFile('/test/lib/a.dart', content: r'''
+int get foo => 0;
+''');
+    await resolve('''
+import 'a.dart';
+
+class A {
+  int get foo => 0;
+}
+
+class B extends A {
+  void bar() {
+    this.foo;
+  }
+}
+''', [
+      error(HintCode.UNUSED_IMPORT, 7, 8),
+    ]);
+    var import = findElement.importFind('package:test/a.dart');
+    _checkGetterRequested(import.topGet('foo'));
   }
 
   test_class_getter_requested_thisClass() async {
@@ -197,6 +243,29 @@ class A {
 var foo = 0;
 ''');
     _checkMethodRequested(findElement.topGet('foo'));
+  }
+
+  test_class_method_requested_importScope() async {
+    newFile('/test/lib/a.dart', content: r'''
+void foo() {}
+''');
+    await resolve('''
+import 'a.dart';
+
+class A {
+  void foo() {}
+}
+
+class B extends A {
+  void bar() {
+    this.foo();
+  }
+}
+''', [
+      error(HintCode.UNUSED_IMPORT, 7, 8),
+    ]);
+    var import = findElement.importFind('package:test/a.dart');
+    _checkMethodRequested(import.topFunction('foo'));
   }
 
   test_class_method_requested_localVariable_catchClause() async {
@@ -418,6 +487,29 @@ class B extends A {
 var foo = 0;
 ''');
     _checkSetterRequested(findElement.topSet('foo'));
+  }
+
+  test_class_setter_requested_importScope() async {
+    newFile('/test/lib/a.dart', content: r'''
+set foo(int _) {}
+''');
+    await resolve('''
+import 'a.dart';
+
+class A {
+  set foo(int _) {}
+}
+
+class B extends A {
+  void bar() {
+    this.foo = 0;
+  }
+}
+''', [
+      error(HintCode.UNUSED_IMPORT, 7, 8),
+    ]);
+    var import = findElement.importFind('package:test/a.dart');
+    _checkSetterRequested(import.topSet('foo'));
   }
 
   test_class_setter_requested_thisClass() async {

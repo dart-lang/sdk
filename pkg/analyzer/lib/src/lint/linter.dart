@@ -22,6 +22,7 @@ import 'package:analyzer/src/dart/constant/potentially_constant.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/error/lint_codes.dart';
+import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisErrorInfo, AnalysisErrorInfoImpl, AnalysisOptions;
 import 'package:analyzer/src/generated/resolver.dart'
@@ -382,36 +383,42 @@ class LinterContextImpl implements LinterContext {
   LinterNameInScopeResolutionResult resolveNameInScope(
       String id, bool setter, AstNode node) {
     var idEq = '$id=';
+
+    Scope scope;
     for (var context = node; context != null; context = context.parent) {
-      var scope = ScopedVisitor.getNodeNameScope(context);
+      scope = ScopedVisitor.getNodeNameScope(context);
       if (scope != null) {
-        Element idElement;
-        Element idEqElement;
+        break;
+      }
+    }
 
-        void lookupScopeAndEnclosing() {
-          while (scope != null && idElement == null && idEqElement == null) {
-            idElement = scope.localLookup(id);
-            idEqElement = scope.localLookup(idEq);
-            scope = scope.enclosingScope;
-          }
+    if (scope != null) {
+      Element idElement;
+      Element idEqElement;
+
+      void lookupScopeAndEnclosing() {
+        while (scope != null && idElement == null && idEqElement == null) {
+          idElement = scope.localLookup(id);
+          idEqElement = scope.localLookup(idEq);
+          scope = scope.enclosingScope;
         }
+      }
 
-        lookupScopeAndEnclosing();
+      lookupScopeAndEnclosing();
 
-        var requestedElement = setter ? idEqElement : idElement;
-        var differentElement = setter ? idElement : idEqElement;
+      var requestedElement = setter ? idEqElement : idElement;
+      var differentElement = setter ? idElement : idEqElement;
 
-        if (requestedElement != null) {
-          return LinterNameInScopeResolutionResult._requestedName(
-            requestedElement,
-          );
-        }
+      if (requestedElement != null) {
+        return LinterNameInScopeResolutionResult._requestedName(
+          requestedElement,
+        );
+      }
 
-        if (differentElement != null) {
-          return LinterNameInScopeResolutionResult._differentName(
-            differentElement,
-          );
-        }
+      if (differentElement != null) {
+        return LinterNameInScopeResolutionResult._differentName(
+          differentElement,
+        );
       }
     }
 
