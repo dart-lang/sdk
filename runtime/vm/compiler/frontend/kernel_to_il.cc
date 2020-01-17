@@ -445,8 +445,7 @@ Fragment FlowGraphBuilder::LoadLateField(const Field& field,
 
   // Check whether the field has been initialized already.
   if (is_static) {
-    instructions += Constant(field);
-    instructions += LoadStaticField();
+    instructions += LoadStaticField(field);
   } else {
     instructions += LoadLocal(instance);
     instructions += LoadField(field);
@@ -531,8 +530,7 @@ Fragment FlowGraphBuilder::StoreLateField(const Field& field,
   if (is_final) {
     // Check whether the field has been initialized already.
     if (is_static) {
-      instructions += Constant(field);
-      instructions += LoadStaticField();
+      instructions += LoadStaticField(field);
     } else {
       instructions += LoadLocal(instance);
       instructions += LoadField(field);
@@ -581,8 +579,8 @@ Fragment FlowGraphBuilder::InitInstanceField(const Field& field) {
 }
 
 Fragment FlowGraphBuilder::InitStaticField(const Field& field) {
-  InitStaticFieldInstr* init = new (Z)
-      InitStaticFieldInstr(Pop(), MayCloneField(field), GetNextDeoptId());
+  InitStaticFieldInstr* init =
+      new (Z) InitStaticFieldInstr(MayCloneField(field), GetNextDeoptId());
   return Fragment(init);
 }
 
@@ -2678,10 +2676,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
       body += LoadLateField(field, /* instance = */ nullptr);
     } else {
       ASSERT(field.has_nontrivial_initializer());
-      body += Constant(field);
       body += InitStaticField(field);
-      body += Constant(field);
-      body += LoadStaticField();
+      body += LoadStaticField(field);
     }
     if (field.needs_load_guard()) {
 #if defined(PRODUCT)

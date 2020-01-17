@@ -1126,17 +1126,11 @@ class RawField : public RawObject {
   RawObject* owner_;  // Class or patch class or mixin class
                       // where this field is defined or original field.
   RawAbstractType* type_;
-  union {
-    RawInstance* static_value_;  // Value for static fields.
-    RawSmi* offset_;             // Offset in words for instance fields.
-  } value_;
   RawFunction* initializer_function_;  // Static initializer function.
   // When generating APPJIT snapshots after running the application it is
   // necessary to save the initial value of static fields so that we can
   // restore the value back to the original initial value.
-  NOT_IN_PRECOMPILED(
-      RawInstance*
-          saved_initial_value_);  // Saved initial value - static fields.
+  NOT_IN_PRECOMPILED(RawInstance* saved_initial_value_);  // Saved initial value
   RawSmi* guarded_list_length_;
   RawArray* dependent_code_;
   RawObject** to_snapshot(Snapshot::Kind kind) {
@@ -1182,6 +1176,10 @@ class RawField : public RawObject {
   // See StaticTypeExactnessState for the meaning and possible values in this
   // field.
   int8_t static_type_exactness_state_;
+
+  // - for instance fields: offset in words to the value in the class instance.
+  // - for static fields: index into field_table.
+  intptr_t offset_or_field_id_;
 
   uint16_t kind_bits_;  // static, final, const, has initializer....
 

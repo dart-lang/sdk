@@ -46,10 +46,9 @@ var tests = <IsolateTest>[
     };
     var result = await isolate.invokeRpcNoUpgrade('getRetainingPath', params);
     expect(result['type'], equals('RetainingPath'));
-    expect(result['elements'].length, equals(2));
+    expect(result['elements'].length, equals(1));
     expect(
         result['elements'][0]['value']['class']['name'], equals('_TestConst'));
-    expect(result['elements'][1]['value']['name'], equals('x'));
   },
 
   // Expect a simple path through variable fn instead of long path filled
@@ -62,9 +61,8 @@ var tests = <IsolateTest>[
     };
     var result = await isolate.invokeRpcNoUpgrade('getRetainingPath', params);
     expect(result['type'], equals('RetainingPath'));
-    expect(result['elements'].length, equals(2));
+    expect(result['elements'].length, equals(1));
     expect(result['elements'][0]['value']['class']['name'], equals('_Closure'));
-    expect(result['elements'][1]['value']['name'], equals('fn'));
   }
 ];
 

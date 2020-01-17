@@ -1070,6 +1070,7 @@ void PageSpace::CollectGarbageAtSafepoint(bool compact,
 
   // Perform various cleanup that relies on no tasks interfering.
   isolate->class_table()->FreeOldTables();
+  isolate->field_table()->FreeOldTables();
 
   NoSafepointScope no_safepoints;
 

@@ -1644,8 +1644,8 @@ Fragment StreamingFlowGraphBuilder::IntConstant(int64_t value) {
   return flow_graph_builder_->IntConstant(value);
 }
 
-Fragment StreamingFlowGraphBuilder::LoadStaticField() {
-  return flow_graph_builder_->LoadStaticField();
+Fragment StreamingFlowGraphBuilder::LoadStaticField(const Field& field) {
+  return flow_graph_builder_->LoadStaticField(field);
 }
 
 Fragment StreamingFlowGraphBuilder::RedefinitionWithType(
@@ -2711,8 +2711,7 @@ Fragment StreamingFlowGraphBuilder::BuildStaticGet(TokenPosition* p) {
         if (result_type.IsConstant()) {
           return Constant(result_type.constant_value);
         }
-        Fragment instructions = Constant(field);
-        return instructions + LoadStaticField();
+        return LoadStaticField(field);
       }
     }
   } else {

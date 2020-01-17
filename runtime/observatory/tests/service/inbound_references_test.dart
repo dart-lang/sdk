@@ -46,8 +46,6 @@ var tests = <IsolateTest>[
         r['source'].clazz.name == 'Node');
     hasReferenceSuchThat(
         (r) => r['parentListIndex'] == 1 && r['source'].isList);
-    hasReferenceSuchThat(
-        (r) => r['source'] is Field && r['source'].name == 'e');
   }
 ];
 

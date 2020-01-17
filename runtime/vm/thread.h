@@ -36,6 +36,7 @@ class Bytecode;
 class Error;
 class ExceptionHandlers;
 class Field;
+class FieldTable;
 class Function;
 class GrowableObjectArray;
 class HandleScope;
@@ -383,6 +384,10 @@ class Thread : public ThreadState {
 
   // The isolate group that this thread is operating on, or nullptr if none.
   IsolateGroup* isolate_group() const { return isolate_group_; }
+
+  static intptr_t field_table_values_offset() {
+    return OFFSET_OF(Thread, field_table_values_);
+  }
 
   bool IsMutatorThread() const;
   bool CanCollectGarbage() const;
@@ -858,6 +863,7 @@ class Thread : public ThreadState {
   uword stack_overflow_flags_;
   uword write_barrier_mask_;
   Isolate* isolate_;
+  RawInstance** field_table_values_;
   Heap* heap_;
   uword top_;
   uword end_;
@@ -939,6 +945,8 @@ class Thread : public ThreadState {
   intptr_t ffi_marshalled_arguments_size_ = 0;
   uint64_t* ffi_marshalled_arguments_;
 
+  RawInstance** field_table_values() const { return field_table_values_; }
+
 // Reusable handles support.
 #define REUSABLE_HANDLE_FIELDS(object) object* object##_handle_;
   REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_FIELDS)
@@ -1005,6 +1013,7 @@ class Thread : public ThreadState {
   friend class ThreadRegistry;
   friend class CompilerState;
   friend class compiler::target::Thread;
+  friend class FieldTable;
   DISALLOW_COPY_AND_ASSIGN(Thread);
 };
 

@@ -4990,21 +4990,16 @@ class GuardFieldTypeInstr : public GuardFieldInstr {
   DISALLOW_COPY_AND_ASSIGN(GuardFieldTypeInstr);
 };
 
-class LoadStaticFieldInstr : public TemplateDefinition<1, NoThrow> {
+class LoadStaticFieldInstr : public TemplateDefinition<0, NoThrow> {
  public:
-  LoadStaticFieldInstr(Value* field_value, TokenPosition token_pos)
-      : token_pos_(token_pos) {
-    ASSERT(field_value->BindsToConstant());
-    SetInputAt(0, field_value);
-  }
+  LoadStaticFieldInstr(const Field& field, TokenPosition token_pos)
+      : field_(field), token_pos_(token_pos) {}
 
   DECLARE_INSTRUCTION(LoadStaticField)
   virtual CompileType ComputeType() const;
 
-  const Field& StaticField() const;
+  const Field& StaticField() const { return field_; }
   bool IsFieldInitialized() const;
-
-  Value* field_value() const { return inputs_[0]; }
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
@@ -5020,6 +5015,7 @@ class LoadStaticFieldInstr : public TemplateDefinition<1, NoThrow> {
   PRINT_OPERANDS_TO_SUPPORT
 
  private:
+  const Field& field_;
   const TokenPosition token_pos_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadStaticFieldInstr);
@@ -6047,11 +6043,10 @@ class InitInstanceFieldInstr : public TemplateInstruction<1, Throws> {
   DISALLOW_COPY_AND_ASSIGN(InitInstanceFieldInstr);
 };
 
-class InitStaticFieldInstr : public TemplateInstruction<1, Throws> {
+class InitStaticFieldInstr : public TemplateInstruction<0, Throws> {
  public:
-  InitStaticFieldInstr(Value* input, const Field& field, intptr_t deopt_id)
+  InitStaticFieldInstr(const Field& field, intptr_t deopt_id)
       : TemplateInstruction(deopt_id), field_(field) {
-    SetInputAt(0, input);
     CheckField(field);
   }
 
