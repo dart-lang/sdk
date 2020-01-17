@@ -408,6 +408,55 @@ void f(int i, String callback()) {
     var previewInfo = run({expr.parent: const RemoveAs()});
     expect(previewInfo.applyTo(code), 'f(a, b, c) => a < b | c;');
   }
+
+  Future<void> test_requiredAnnotationToRequiredKeyword_prefixed() async {
+    addMetaPackage();
+    await analyze('''
+import 'package:meta/meta.dart' as meta;
+f({@meta.required int x}) {}
+''');
+    var annotation = findNode.annotation('required');
+    var previewInfo =
+        run({annotation: const RequiredAnnotationToRequiredKeyword()});
+    expect(previewInfo.applyTo(code), '''
+import 'package:meta/meta.dart' as meta;
+f({required int x}) {}
+''');
+    expect(previewInfo.values.single.single.isDeletion, true);
+  }
+
+  Future<void> test_requiredAnnotationToRequiredKeyword_renamed() async {
+    addMetaPackage();
+    await analyze('''
+import 'package:meta/meta.dart';
+const foo = required;
+f({@foo int x}) {}
+''');
+    var annotation = findNode.annotation('@foo');
+    var previewInfo =
+        run({annotation: const RequiredAnnotationToRequiredKeyword()});
+    expect(previewInfo.applyTo(code), '''
+import 'package:meta/meta.dart';
+const foo = required;
+f({required int x}) {}
+''');
+  }
+
+  Future<void> test_requiredAnnotationToRequiredKeyword_simple() async {
+    addMetaPackage();
+    await analyze('''
+import 'package:meta/meta.dart';
+f({@required int x}) {}
+''');
+    var annotation = findNode.annotation('required');
+    var previewInfo =
+        run({annotation: const RequiredAnnotationToRequiredKeyword()});
+    expect(previewInfo.applyTo(code), '''
+import 'package:meta/meta.dart';
+f({required int x}) {}
+''');
+    expect(previewInfo.values.single.single.isDeletion, true);
+  }
 }
 
 class FixAggregatorTestBase extends AbstractSingleUnitTest {

@@ -2642,6 +2642,7 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38462')
   Future<void> test_named_parameter_no_default_unused_required() async {
     // The `@required` annotation overrides the assumption of nullability.
     // The call at `f()` is presumed to be in error.
@@ -2655,7 +2656,7 @@ main() {
 ''';
     var expected = '''
 import 'package:meta/meta.dart';
-void f({@required String s}) {}
+void f({required String s}) {}
 main() {
   f();
 }
@@ -3903,6 +3904,10 @@ class _ProvisionalApiTestWithFixBuilder extends _ProvisionalApiTestBase
   @override
   bool get _usePermissiveMode => false;
 
+  /// Test fails under the pre-FixBuilder implementation; passes now.
+  @override
+  Future<void> test_convert_required() => super.test_convert_required();
+
   @override
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40023')
   Future<void> test_extension_nullableOnType_viaImplicitInvocation() =>
@@ -3913,8 +3918,8 @@ class _ProvisionalApiTestWithFixBuilder extends _ProvisionalApiTestBase
   Future<void> test_ifStatement_nullCheck_noElse() =>
       super.test_ifStatement_nullCheck_noElse();
 
+  /// Test fails under the pre-FixBuilder implementation; passes now.
   @override
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
   Future<void> test_named_parameter_no_default_unused_required() =>
       super.test_named_parameter_no_default_unused_required();
 

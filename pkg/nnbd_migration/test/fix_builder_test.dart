@@ -43,6 +43,9 @@ class FixBuilderTest extends EdgeBuilderTestBase {
 
   static const isMakeNullable = TypeMatcher<MakeNullable>();
 
+  static const isRequiredAnnotationToRequiredKeyword =
+      TypeMatcher<RequiredAnnotationToRequiredKeyword>();
+
   DartType get dynamicType => postMigrationTypeProvider.dynamicType;
 
   DartType get objectType => postMigrationTypeProvider.objectType;
@@ -998,6 +1001,16 @@ _f(int/*?*/ x) =>
   }
 
   Future<void>
+      test_defaultFormalParameter_add_required_ignore_decoy_annotation() async {
+    await analyze('''
+const foo = Object();
+int _f({@foo int x}) => x + 1;
+''');
+    visitAll(
+        changes: {findNode.defaultParameter('int x'): isAddRequiredKeyword});
+  }
+
+  Future<void>
       test_defaultFormalParameter_add_required_no_because_default() async {
     await analyze('''
 int _f({int x = 0}) => x + 1;
@@ -1022,6 +1035,20 @@ int _f([int/*!*/ x]) => x + 1;
       findNode.defaultParameter('int/*!*/ x'): {
         const NonNullableUnnamedOptionalParameter()
       }
+    });
+  }
+
+  Future<void>
+      test_defaultFormalParameter_add_required_replace_annotation() async {
+    // TODO(paulberry): it would be nice to remove the import of `meta` if it's
+    // no longer needed after the change.
+    addMetaPackage();
+    await analyze('''
+import 'package:meta/meta.dart';
+int _f({@required int x}) => x + 1;
+''');
+    visitAll(changes: {
+      findNode.annotation('required'): isRequiredAnnotationToRequiredKeyword
     });
   }
 

@@ -250,6 +250,35 @@ class RemoveAs extends _NestableChange {
   }
 }
 
+/// Implementation of [NodeChange] that changes an `@required` annotation into
+/// a `required` keyword.
+///
+/// TODO(paulberry): store additional information necessary to include in the
+/// preview.
+class RequiredAnnotationToRequiredKeyword extends _NestableChange {
+  const RequiredAnnotationToRequiredKeyword(
+      [NodeChange<NodeProducingEditPlan> inner = const NoChange()])
+      : super(inner);
+
+  @override
+  EditPlan apply(AstNode node, FixAggregator aggregator) {
+    var annotation = node as Annotation;
+    var name = annotation.name;
+    if (name is PrefixedIdentifier) {
+      name = (name as PrefixedIdentifier).identifier;
+    }
+    if (name != null &&
+        aggregator.planner.sourceText.substring(name.offset, name.end) ==
+            'required') {
+      // The text `required` already exists in the annotation; we can just
+      // extract it.
+      return aggregator.planner.extract(node, _inner.apply(name, aggregator));
+    } else {
+      return aggregator.planner.replace(node, [AtomicEdit.insert('required')]);
+    }
+  }
+}
+
 /// Shared base class for [NodeChange]s that are based on an [_inner] change.
 abstract class _NestableChange extends NodeChange {
   final NodeChange<NodeProducingEditPlan> _inner;

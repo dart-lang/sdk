@@ -395,7 +395,7 @@ class _AdditionalMigrationsVisitor extends RecursiveAstVisitor<void> {
     if (node.defaultValue == null &&
         !_fixBuilder._variables.decoratedElementType(element).node.isNullable) {
       if (element.isNamed) {
-        _fixBuilder._addChange(node, const AddRequiredKeyword());
+        _addRequiredKeyword(node);
       } else {
         _fixBuilder._addProblem(
             node, const NonNullableUnnamedOptionalParameter());
@@ -426,5 +426,22 @@ class _AdditionalMigrationsVisitor extends RecursiveAstVisitor<void> {
     }
     node.type = decoratedType.toFinalType(_fixBuilder.typeProvider);
     super.visitTypeName(node);
+  }
+
+  void _addRequiredKeyword(DefaultFormalParameter node) {
+    // Change an existing `@required` annotation into a `required` keyword if
+    // possible.
+    var metadata = node.metadata;
+    for (var annotation in metadata) {
+      if (annotation.elementAnnotation.isRequired) {
+        // TODO(paulberry): what if `@required` isn't the first annotation?
+        // Will we produce something that isn't grammatical?
+        _fixBuilder._addChange(
+            annotation, const RequiredAnnotationToRequiredKeyword());
+        return;
+      }
+    }
+    // Otherwise create a new `required` keyword.
+    _fixBuilder._addChange(node, const AddRequiredKeyword());
   }
 }

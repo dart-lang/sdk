@@ -312,6 +312,23 @@ class EditPlanner {
     return _RemoveEditPlan(parent, firstIndex, lastIndex);
   }
 
+  /// Creates a new edit plan that replaces the contents of [sourceNode] with
+  /// the given [replacement] text.
+  ///
+  /// If the edit plan is going to be used in a context where an expression is
+  /// expected, additional arguments should be provided to control the behavior
+  /// of parentheses insertion and deletion: [precedence] indicates the
+  /// precedence of the resulting expression.  [endsInCascade] indicates whether
+  /// the resulting plan will end in a cascade.
+  NodeProducingEditPlan replace(
+      AstNode sourceNode, List<AtomicEdit> replacement,
+      {Precedence precedence = Precedence.primary,
+      bool endsInCascade = false}) {
+    return _SimpleEditPlan(sourceNode, precedence, endsInCascade, {
+      sourceNode.offset: [AtomicEdit.delete(sourceNode.length), ...replacement]
+    });
+  }
+
   /// Creates a new edit plan that consists of executing [innerPlan], and then
   /// surrounding it with [prefix] and [suffix] text.  This could be used, for
   /// example, to add a cast.

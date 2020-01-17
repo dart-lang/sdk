@@ -764,6 +764,28 @@ C<int, String> c;
     expect(changes.keys, [declaration.offset]);
   }
 
+  Future<void> test_replace_expression() async {
+    await analyze('var x = 1 + 2 * 3;');
+    checkPlan(planner.replace(findNode.binary('*'), [AtomicEdit.insert('6')]),
+        'var x = 1 + 6;');
+  }
+
+  Future<void> test_replace_expression_add_parens_due_to_cascade() async {
+    await analyze('var x = 1 + 2 * 3;');
+    checkPlan(
+        planner.replace(findNode.binary('*'), [AtomicEdit.insert('4..isEven')],
+            endsInCascade: true),
+        'var x = 1 + (4..isEven);');
+  }
+
+  Future<void> test_replace_expression_add_parens_due_to_precedence() async {
+    await analyze('var x = 1 + 2 * 3;');
+    checkPlan(
+        planner.replace(findNode.binary('*'), [AtomicEdit.insert('y = z')],
+            precedence: Precedence.assignment),
+        'var x = 1 + (y = z);');
+  }
+
   Future<void> test_surround_allowCascade() async {
     await analyze('f(x) => 1..isEven;');
     checkPlan(
