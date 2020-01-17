@@ -2742,6 +2742,7 @@ sublist
 subsequence
 subsequent
 subset
+subsets
 substitute
 substituted
 substituting
@@ -2914,6 +2915,7 @@ top
 topologically
 tortoise
 total
+totally
 touched
 trace
 traces

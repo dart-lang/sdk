@@ -1761,24 +1761,43 @@ class VariableModel<Type> {
   }
 
   /// Performs the portion of the "join" algorithm that applies to promotion
-  /// chains.  Briefly, we keep the longest initial subchain that both input
-  /// chains share, and discard all other promotions.
+  /// chains.  Briefly, we intersect given chains.  The chains are totally
+  /// ordered subsets of a global partial order.  Their intersection is a
+  /// subset of each, and as such is also totally ordered.
   static List<Type> joinPromotedTypes<Type>(List<Type> chain1,
       List<Type> chain2, TypeOperations<Object, Type> typeOperations) {
     if (chain1 == null) return chain1;
     if (chain2 == null) return chain2;
-    int numCommonElements = 0;
-    while (numCommonElements < chain1.length &&
-        numCommonElements < chain2.length &&
-        typeOperations.isSameType(
-            chain1[numCommonElements], chain2[numCommonElements])) {
-      ++numCommonElements;
+
+    int index1 = 0;
+    int index2 = 0;
+    bool skipped1 = false;
+    bool skipped2 = false;
+    List<Type> result;
+    while (index1 < chain1.length && index2 < chain2.length) {
+      var type1 = chain1[index1];
+      var type2 = chain2[index2];
+      if (typeOperations.isSameType(type1, type2)) {
+        result ??= <Type>[];
+        result.add(type1);
+        index1++;
+        index2++;
+      } else if (typeOperations.isSubtypeOf(type2, type1)) {
+        index1++;
+        skipped1 = true;
+      } else if (typeOperations.isSubtypeOf(type1, type2)) {
+        index2++;
+        skipped2 = true;
+      } else {
+        skipped1 = true;
+        skipped2 = true;
+        break;
+      }
     }
-    if (numCommonElements == chain1.length) return chain1;
-    if (numCommonElements == chain2.length) return chain2;
-    // For now we just discard any promotions after the first non-matching
-    // promotion.  TODO(paulberry): consider doing something smarter.
-    return numCommonElements == 0 ? null : chain1.sublist(0, numCommonElements);
+
+    if (index1 == chain1.length && !skipped1) return chain1;
+    if (index2 == chain2.length && !skipped2) return chain2;
+    return result;
   }
 
   /// Performs the portion of the "join" algorithm that applies to promotion
