@@ -6,7 +6,7 @@ library fasta.tool.command_line;
 
 import 'dart:async' show Future;
 
-import 'dart:io' show exit, stderr;
+import 'dart:io' show exit;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
@@ -495,13 +495,6 @@ Future<T> withGlobalOptions<T>(
   ProcessedOptions options;
   CommandLineProblem problem;
   try {
-    if (arguments.contains("--strong") &&
-        arguments.contains("--target=flutter")) {
-      // TODO(ahe): Temporarily ignore option to unbreak flutter build.
-      arguments = new List<String>.from(arguments);
-      arguments.remove("--strong");
-      stderr.writeln("Note: the option '--strong' is deprecated.");
-    }
     parsedArguments = ParsedArguments.parse(arguments, optionSpecification);
     options = analyzeCommandLine(
         programName, parsedArguments, areRestArgumentsInputs, verbose);
