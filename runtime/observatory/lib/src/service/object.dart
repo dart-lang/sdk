@@ -1595,9 +1595,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
   String fileAndLine;
 
   DartError error;
-  StreamController _snapshotFetch;
-
-  List<Uint8List> _chunksInProgress;
+  SnapshotReader _snapshotFetch;
 
   List<Thread> get threads => _threads;
   final List<Thread> _threads = new List<Thread>();
@@ -1612,7 +1610,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
   int _numScopedHandles;
 
   void _loadHeapSnapshot(ServiceEvent event) {
-    if (_snapshotFetch == null || _snapshotFetch.isClosed) {
+    if (_snapshotFetch == null) {
       // No outstanding snapshot request. Presumably another client asked for a
       // snapshot.
       Logger.root.info("Dropping unsolicited heap snapshot chunk");
@@ -1620,32 +1618,20 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
     }
 
     // Occasionally these actually arrive out of order.
-    if (_chunksInProgress == null) {
-      _chunksInProgress = new List();
-    }
-
-    _chunksInProgress.add(event.data);
-    _snapshotFetch.add([_chunksInProgress.length, _chunksInProgress.length]);
-    if (!event.lastChunk) {
-      return;
-    }
-
-    var chunks = _chunksInProgress;
-    _chunksInProgress = null; // Make chunks GC'able.
-
-    if (_snapshotFetch != null) {
-      _snapshotFetch.add(chunks);
+    _snapshotFetch.add(event.data);
+    if (event.lastChunk) {
       _snapshotFetch.close();
+      _snapshotFetch = null;
     }
   }
 
-  Stream fetchHeapSnapshot() {
-    if (_snapshotFetch == null || _snapshotFetch.isClosed) {
-      _snapshotFetch = new StreamController.broadcast();
+  SnapshotReader fetchHeapSnapshot() {
+    if (_snapshotFetch == null) {
+      _snapshotFetch = new SnapshotReader();
       // isolate.vm.streamListen('HeapSnapshot');
       isolate.invokeRpcNoUpgrade('requestHeapSnapshot', {});
     }
-    return _snapshotFetch.stream;
+    return _snapshotFetch;
   }
 
   void updateHeapsFromMap(Map map) {

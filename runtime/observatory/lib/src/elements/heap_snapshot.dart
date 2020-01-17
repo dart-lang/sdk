@@ -11,7 +11,6 @@ import 'dart:html';
 import 'dart:math' as Math;
 import 'dart:typed_data';
 import 'package:observatory/models.dart' as M;
-import 'package:observatory/heap_snapshot.dart' as S;
 import 'package:observatory/object_graph.dart';
 import 'package:observatory/src/elements/class_ref.dart';
 import 'package:observatory/src/elements/containers/virtual_tree.dart';
@@ -145,40 +144,35 @@ class DominatorTreeMap extends NormalTreeMap<SnapshotObject> {
   SnapshotObject getParent(SnapshotObject node) => node.parent;
   Iterable<SnapshotObject> getChildren(SnapshotObject node) => node.children;
   void onSelect(SnapshotObject node) {
-    element.selection = node.objects;
+    element.selection = List.from(node.objects);
     element._r.dirty();
   }
 
   void onDetails(SnapshotObject node) {
-    element.selection = node.objects;
+    element.selection = List.from(node.objects);
     element._mode = HeapSnapshotTreeMode.successors;
     element._r.dirty();
   }
 }
 
-class MergedDominatorTreeMap
-    extends NormalTreeMap<M.HeapSnapshotMergedDominatorNode> {
+class MergedDominatorTreeMap extends NormalTreeMap<SnapshotMergedDominator> {
   HeapSnapshotElement element;
   MergedDominatorTreeMap(this.element);
 
-  int getSize(M.HeapSnapshotMergedDominatorNode node) => node.retainedSize;
-  String getType(M.HeapSnapshotMergedDominatorNode node) => node.klass.name;
-  String getName(M.HeapSnapshotMergedDominatorNode node) =>
-      (node as dynamic).description;
-  M.HeapSnapshotMergedDominatorNode getParent(
-          M.HeapSnapshotMergedDominatorNode node) =>
-      (node as dynamic).parent;
-  Iterable<M.HeapSnapshotMergedDominatorNode> getChildren(
-          M.HeapSnapshotMergedDominatorNode node) =>
+  int getSize(SnapshotMergedDominator node) => node.retainedSize;
+  String getType(SnapshotMergedDominator node) => node.klass.name;
+  String getName(SnapshotMergedDominator node) => node.description;
+  SnapshotMergedDominator getParent(SnapshotMergedDominator node) =>
+      node.parent;
+  Iterable<SnapshotMergedDominator> getChildren(SnapshotMergedDominator node) =>
       node.children;
-  void onSelect(M.HeapSnapshotMergedDominatorNode node) {
+  void onSelect(SnapshotMergedDominator node) {
     element.mergedSelection = node;
     element._r.dirty();
   }
 
-  void onDetails(M.HeapSnapshotMergedDominatorNode node) {
-    dynamic n = node;
-    element.selection = n.objects;
+  void onDetails(SnapshotMergedDominator node) {
+    element.selection = List.from(node.objects);
     element._mode = HeapSnapshotTreeMode.successors;
     element._r.dirty();
   }
@@ -215,7 +209,7 @@ class MergedDominatorDiffTreeMap extends DiffTreeMap<MergedDominatorDiff> {
 // Using `null` to represent the root.
 class ClassesShallowTreeMap extends NormalTreeMap<SnapshotClass> {
   HeapSnapshotElement element;
-  M.HeapSnapshot snapshot;
+  SnapshotGraph snapshot;
 
   ClassesShallowTreeMap(this.element, this.snapshot);
 
@@ -231,7 +225,7 @@ class ClassesShallowTreeMap extends NormalTreeMap<SnapshotClass> {
       node == null ? snapshot.classes : <SnapshotClass>[];
   void onSelect(SnapshotClass node) {}
   void onDetails(SnapshotClass node) {
-    element.selection = node.instances.toList();
+    element.selection = List.from(node.instances);
     element._mode = HeapSnapshotTreeMode.successors;
     element._r.dirty();
   }
@@ -298,7 +292,7 @@ class ClassesShallowDiffTreeMap extends DiffTreeMap<SnapshotClassDiff> {
 // Using `null` to represent the root.
 class ClassesOwnershipTreeMap extends NormalTreeMap<SnapshotClass> {
   HeapSnapshotElement element;
-  M.HeapSnapshot snapshot;
+  SnapshotGraph snapshot;
 
   ClassesOwnershipTreeMap(this.element, this.snapshot);
 
@@ -313,7 +307,7 @@ class ClassesOwnershipTreeMap extends NormalTreeMap<SnapshotClass> {
       node == null ? snapshot.classes : <SnapshotClass>[];
   void onSelect(SnapshotClass node) {}
   void onDetails(SnapshotClass node) {
-    element.selection = node.instances.toList();
+    element.selection = List.from(node.instances);
     element._mode = HeapSnapshotTreeMode.successors;
     element._r.dirty();
   }
@@ -380,7 +374,7 @@ class ClassesOwnershipDiffTreeMap extends DiffTreeMap<SnapshotClassDiff> {
 class ProcessTreeMap extends NormalTreeMap<String> {
   static const String root = "RSS";
   HeapSnapshotElement element;
-  M.HeapSnapshot snapshot;
+  SnapshotGraph snapshot;
 
   ProcessTreeMap(this.element, this.snapshot);
 
@@ -516,9 +510,9 @@ class SnapshotClassDiff {
   String get name => _a == null ? _b.name : _a.name;
 
   List<SnapshotObject> get objectsA =>
-      _a == null ? <SnapshotObject>[] : _a.instances;
+      _a == null ? <SnapshotObject>[] : _a.instances.toList();
   List<SnapshotObject> get objectsB =>
-      _b == null ? <SnapshotObject>[] : _b.instances;
+      _b == null ? <SnapshotObject>[] : _b.instances.toList();
 
   static List<SnapshotClassDiff> from(
       SnapshotGraph graphA, SnapshotGraph graphB) {
@@ -550,8 +544,8 @@ class SnapshotClassDiff {
 }
 
 class MergedDominatorDiff {
-  MergedObjectVertex _a;
-  MergedObjectVertex _b;
+  SnapshotMergedDominator _a;
+  SnapshotMergedDominator _b;
   MergedDominatorDiff parent;
   List<MergedDominatorDiff> children;
   int retainedGain = -1;
@@ -573,11 +567,12 @@ class MergedDominatorDiff {
   String get name => _a == null ? _b.klass.name : _a.klass.name;
 
   List<SnapshotObject> get objectsA =>
-      _a == null ? <SnapshotObject>[] : _a.objects;
+      _a == null ? <SnapshotObject>[] : _a.objects.toList();
   List<SnapshotObject> get objectsB =>
-      _b == null ? <SnapshotObject>[] : _b.objects;
+      _b == null ? <SnapshotObject>[] : _b.objects.toList();
 
-  static MergedDominatorDiff from(MergedObjectVertex a, MergedObjectVertex b) {
+  static MergedDominatorDiff from(
+      SnapshotMergedDominator a, SnapshotMergedDominator b) {
     var root = new MergedDominatorDiff();
     root._a = a;
     root._b = b;
@@ -605,13 +600,13 @@ class MergedDominatorDiff {
     children = new List<MergedDominatorDiff>();
 
     // Matching children by MergedObjectVertex.klass.qualifiedName.
-    var childrenB = new Map<String, MergedObjectVertex>();
+    final childrenB = <String, SnapshotMergedDominator>{};
     if (_b != null)
-      for (var childB in _b.dominatorTreeChildren()) {
+      for (var childB in _b.children) {
         childrenB[childB.klass.qualifiedName] = childB;
       }
     if (_a != null)
-      for (var childA in _a.dominatorTreeChildren()) {
+      for (var childA in _a.children) {
         var childDiff = new MergedDominatorDiff();
         childDiff.parent = this;
         childDiff._a = childA;
@@ -684,20 +679,19 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
   M.NotificationRepository _notifications;
   M.HeapSnapshotRepository _snapshots;
   M.ObjectRepository _objects;
-  List<M.HeapSnapshot> _loadedSnapshots = new List<M.HeapSnapshot>();
-  M.HeapSnapshot _snapshotA;
-  M.HeapSnapshot _snapshotB;
-  Stream<M.HeapSnapshotLoadingProgressEvent> _progressStream;
-  M.HeapSnapshotLoadingProgress _progress;
+  SnapshotReader _reader;
+  String _status;
+  List<SnapshotGraph> _loadedSnapshots = new List<SnapshotGraph>();
+  SnapshotGraph _snapshotA;
+  SnapshotGraph _snapshotB;
   HeapSnapshotTreeMode _mode = HeapSnapshotTreeMode.mergedDominatorTreeMap;
-
   M.IsolateRef get isolate => _isolate;
   M.NotificationRepository get notifications => _notifications;
   M.HeapSnapshotRepository get profiles => _snapshots;
   M.VMRef get vm => _vm;
 
   List<SnapshotObject> selection;
-  M.HeapSnapshotMergedDominatorNode mergedSelection;
+  SnapshotMergedDominator mergedSelection;
   MergedDominatorDiff mergedDiffSelection;
 
   factory HeapSnapshotElement(
@@ -749,19 +743,19 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
         new NavIsolateMenuElement(_isolate, _events, queue: _r.queue).element,
         navMenu('heap snapshot'),
         (new NavRefreshElement(queue: _r.queue)
-              ..disabled = M.isHeapSnapshotProgressRunning(_progress?.status)
+              ..disabled = _reader != null
               ..onRefresh.listen((e) {
                 _refresh();
               }))
             .element,
         (new NavRefreshElement(label: 'save', queue: _r.queue)
-              ..disabled = M.isHeapSnapshotProgressRunning(_progress?.status)
+              ..disabled = _reader != null
               ..onRefresh.listen((e) {
                 _save();
               }))
             .element,
         (new NavRefreshElement(label: 'load', queue: _r.queue)
-              ..disabled = M.isHeapSnapshotProgressRunning(_progress?.status)
+              ..disabled = _reader != null
               ..onRefresh.listen((e) {
                 _load();
               }))
@@ -769,35 +763,24 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
         new NavNotifyElement(_notifications, queue: _r.queue).element
       ]),
     ];
-    if (_progress == null) {
-      children = content;
-      return;
-    }
-    switch (_progress.status) {
-      case M.HeapSnapshotLoadingStatus.fetching:
-        content.addAll(_createStatusMessage('Fetching snapshot from VM...',
-            description: _progress.stepDescription,
-            progress: _progress.progress));
-        break;
-      case M.HeapSnapshotLoadingStatus.loading:
-        content.addAll(_createStatusMessage('Loading snapshot...',
-            description: _progress.stepDescription,
-            progress: _progress.progress));
-        break;
-      case M.HeapSnapshotLoadingStatus.loaded:
-        content.addAll(_createReport());
-        break;
+    if (_reader != null) {
+      // Loading
+      content.addAll(_createStatusMessage('Loading snapshot...',
+          description: _status, progress: 1));
+    } else if (_snapshotA != null) {
+      // Loaded
+      content.addAll(_createReport());
     }
     children = content;
   }
 
   _refresh() {
-    _progress = null;
+    _reader = null;
     _snapshotLoading(_snapshots.get(isolate));
   }
 
   _save() {
-    var blob = new Blob(_snapshotA.encoded, 'application/octet-stream');
+    var blob = new Blob(_snapshotA.chunks, 'application/octet-stream');
     var blobUrl = Url.createObjectUrl(blob);
     var link = new AnchorElement();
     link.href = blobUrl;
@@ -815,32 +798,28 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
       var reader = new FileReader();
       reader.onLoad.listen((event) async {
         var encoded = <Uint8List>[reader.result];
-        _snapshotLoading(
-            new HeapSnapshotLoadingProgress.fetched(_isolate, encoded)
-                .onProgress);
+        var snapshotReader = new SnapshotReader();
+        _snapshotLoading(snapshotReader);
+        snapshotReader.add(reader.result);
+        snapshotReader.close();
       });
       reader.readAsArrayBuffer(file);
     });
     input.click();
   }
 
-  _snapshotLoading(Stream<HeapSnapshotLoadingProgressEvent> s) async {
-    _progress = null;
-    _progressStream = s;
-    _r.dirty();
-    _progressStream.listen((e) {
-      _progress = e.progress;
+  _snapshotLoading(SnapshotReader reader) async {
+    _status = '';
+    _reader = reader;
+    reader.onProgress.listen((String status) {
+      _status = status;
       _r.dirty();
     });
-    _progress = (await _progressStream.first).progress;
-    _r.dirty();
-    if (M.isHeapSnapshotProgressRunning(_progress.status)) {
-      _progress = (await _progressStream.last).progress;
-      _snapshotLoaded(_progress.snapshot);
-    }
+    _snapshotLoaded(await reader.done);
   }
 
-  _snapshotLoaded(M.HeapSnapshot snapshot) {
+  _snapshotLoaded(SnapshotGraph snapshot) {
+    _reader = null;
     _loadedSnapshots.add(snapshot);
     _snapshotA = snapshot;
     _snapshotB = snapshot;
@@ -948,7 +927,7 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
     switch (_mode) {
       case HeapSnapshotTreeMode.dominatorTree:
         if (selection == null) {
-          selection = _snapshotA.root.objects;
+          selection = List.from(_snapshotA.root.objects);
         }
         _tree = new VirtualTreeElement(
             _createDominator, _updateDominator, _getChildrenDominator,
@@ -971,16 +950,16 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
         break;
       case HeapSnapshotTreeMode.dominatorTreeMap:
         if (selection == null) {
-          selection = _snapshotA.root.objects;
+          selection = List.from(_snapshotA.root.objects);
         }
         _createTreeMap(report, new DominatorTreeMap(this), selection.first);
         break;
       case HeapSnapshotTreeMode.mergedDominatorTree:
         _tree = new VirtualTreeElement(_createMergedDominator,
             _updateMergedDominator, _getChildrenMergedDominator,
-            items: _getChildrenMergedDominator(_snapshotA.mergedDominatorTree),
+            items: _getChildrenMergedDominator(_snapshotA.mergedRoot),
             queue: _r.queue);
-        _tree.expand(_snapshotA.mergedDominatorTree);
+        _tree.expand(_snapshotA.mergedRoot);
         final text = 'A heap dominator tree, where siblings with the same class'
             ' have been merged into a single node.';
         report.addAll([
@@ -992,8 +971,7 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
         break;
       case HeapSnapshotTreeMode.mergedDominatorTreeDiff:
         var root = MergedDominatorDiff.from(
-            (_snapshotA as dynamic).graph.mergedRoot,
-            (_snapshotB as dynamic).graph.mergedRoot);
+            _snapshotA.mergedRoot, _snapshotB.mergedRoot);
         _tree = new VirtualTreeElement(_createMergedDominatorDiff,
             _updateMergedDominatorDiff, _getChildrenMergedDominatorDiff,
             items: _getChildrenMergedDominatorDiff(root), queue: _r.queue);
@@ -1009,7 +987,7 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
         break;
       case HeapSnapshotTreeMode.mergedDominatorTreeMap:
         if (mergedSelection == null) {
-          mergedSelection = _snapshotA.mergedDominatorTree;
+          mergedSelection = _snapshotA.mergedRoot;
         }
         _createTreeMap(
             report, new MergedDominatorTreeMap(this), mergedSelection);
@@ -1017,8 +995,7 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
       case HeapSnapshotTreeMode.mergedDominatorTreeMapDiff:
         if (mergedDiffSelection == null) {
           mergedDiffSelection = MergedDominatorDiff.from(
-              (_snapshotA as dynamic).graph.mergedRoot,
-              (_snapshotB as dynamic).graph.mergedRoot);
+              _snapshotA.mergedRoot, _snapshotB.mergedRoot);
         }
         _createTreeMap(
             report, new MergedDominatorDiffTreeMap(this), mergedDiffSelection);
@@ -1042,8 +1019,7 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
         ]);
         break;
       case HeapSnapshotTreeMode.ownershipTableDiff:
-        final items = SnapshotClassDiff.from(
-            (_snapshotA as dynamic).graph, (_snapshotB as dynamic).graph);
+        final items = SnapshotClassDiff.from(_snapshotA, _snapshotB);
         items.sort((a, b) => b.ownedSizeB - a.ownedSizeB);
         items.sort((a, b) => b.ownedSizeA - a.ownedSizeA);
         items.sort((a, b) => b.ownedSizeDiff - a.ownedSizeDiff);
@@ -1067,14 +1043,13 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
             report, new ClassesOwnershipTreeMap(this, _snapshotA), null);
         break;
       case HeapSnapshotTreeMode.ownershipTreeMapDiff:
-        final items = SnapshotClassDiff.from(
-            (_snapshotA as dynamic).graph, (_snapshotB as dynamic).graph);
+        final items = SnapshotClassDiff.from(_snapshotA, _snapshotB);
         _createTreeMap(
             report, new ClassesOwnershipDiffTreeMap(this, items), null);
         break;
       case HeapSnapshotTreeMode.successors:
         if (selection == null) {
-          selection = _snapshotA.root.objects;
+          selection = List.from(_snapshotA.root.objects);
         }
         _tree = new VirtualTreeElement(
             _createSuccessor, _updateSuccessor, _getChildrenSuccessor,
@@ -1092,7 +1067,7 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
         break;
       case HeapSnapshotTreeMode.predecessors:
         if (selection == null) {
-          selection = _snapshotA.root.objects;
+          selection = List.from(_snapshotA.root.objects);
         }
         _tree = new VirtualTreeElement(
             _createPredecessor, _updatePredecessor, _getChildrenPredecessor,
@@ -1117,8 +1092,7 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
         report.add(_tree.element);
         break;
       case HeapSnapshotTreeMode.classesTableDiff:
-        final items = SnapshotClassDiff.from(
-            (_snapshotA as dynamic).graph, (_snapshotB as dynamic).graph);
+        final items = SnapshotClassDiff.from(_snapshotA, _snapshotB);
         items.sort((a, b) => b.shallowSizeB - a.shallowSizeB);
         items.sort((a, b) => b.shallowSizeA - a.shallowSizeA);
         items.sort((a, b) => b.shallowSizeDiff - a.shallowSizeDiff);
@@ -1133,8 +1107,7 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
         break;
 
       case HeapSnapshotTreeMode.classesTreeMapDiff:
-        final items = SnapshotClassDiff.from(
-            (_snapshotA as dynamic).graph, (_snapshotB as dynamic).graph);
+        final items = SnapshotClassDiff.from(_snapshotA, _snapshotB);
         _createTreeMap(
             report, new ClassesShallowDiffTreeMap(this, items), null);
         break;
@@ -1143,8 +1116,7 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
             report, new ProcessTreeMap(this, _snapshotA), ProcessTreeMap.root);
         break;
       case HeapSnapshotTreeMode.processDiff:
-        final root = PartitionDiff.from(
-            (_snapshotA as dynamic).graph, (_snapshotB as dynamic).graph);
+        final root = PartitionDiff.from(_snapshotA, _snapshotB);
         _createTreeMap(report, new ProcessDiffTreeMap(this), root);
         break;
       default:
@@ -1364,43 +1336,41 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
 
   static Iterable _getChildrenDominator(nodeDynamic) {
     SnapshotObject node = nodeDynamic;
-    final list = node.children.toList();
-    list.sort((a, b) => b.retainedSize - a.retainedSize);
-    return list
+    final list = node.children
         .where((child) => child.retainedSize >= kMinRetainedSize)
-        .take(kMaxChildren);
+        .toList();
+    list.sort((a, b) => b.retainedSize - a.retainedSize);
+    return list.take(kMaxChildren).toList();
   }
 
   static Iterable _getChildrenSuccessor(nodeDynamic) {
     SnapshotObject node = nodeDynamic;
-    final list = node.successors.toList();
-    return list;
+    return node.successors.take(kMaxChildren).toList();
   }
 
   static Iterable _getChildrenPredecessor(nodeDynamic) {
     SnapshotObject node = nodeDynamic;
-    final list = node.predecessors.toList();
-    return list;
+    return node.predecessors.take(kMaxChildren).toList();
   }
 
   static Iterable _getChildrenMergedDominator(nodeDynamic) {
-    M.HeapSnapshotMergedDominatorNode node = nodeDynamic;
-    final list = node.children.toList();
-    list.sort((a, b) => b.retainedSize - a.retainedSize);
-    return list
+    SnapshotMergedDominator node = nodeDynamic;
+    final list = node.children
         .where((child) => child.retainedSize >= kMinRetainedSize)
-        .take(kMaxChildren);
+        .toList();
+    list.sort((a, b) => b.retainedSize - a.retainedSize);
+    return list.take(kMaxChildren).toList();
   }
 
   static Iterable _getChildrenMergedDominatorDiff(nodeDynamic) {
     MergedDominatorDiff node = nodeDynamic;
-    final list = node.children.toList();
-    list.sort((a, b) => b.retainedSizeDiff - a.retainedSizeDiff);
-    return list
+    final list = node.children
         .where((child) =>
             child.retainedSizeA >= kMinRetainedSize ||
             child.retainedSizeB >= kMinRetainedSize)
-        .take(kMaxChildren);
+        .toList();
+    list.sort((a, b) => b.retainedSizeDiff - a.retainedSizeDiff);
+    return list.take(kMaxChildren).toList();
   }
 
   static Iterable _getChildrenOwnership(item) {
@@ -1432,17 +1402,17 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
     }
     element.children[4].text = node.description;
     element.children[5].onClick.listen((_) {
-      selection = node.objects;
+      selection = List.from(node.objects);
       _mode = HeapSnapshotTreeMode.successors;
       _r.dirty();
     });
     element.children[6].onClick.listen((_) {
-      selection = node.objects;
+      selection = List.from(node.objects);
       _mode = HeapSnapshotTreeMode.predecessors;
       _r.dirty();
     });
     element.children[7].onClick.listen((_) {
-      selection = node.objects;
+      selection = List.from(node.objects);
       _mode = HeapSnapshotTreeMode.dominatorTreeMap;
       _r.dirty();
     });
@@ -1460,17 +1430,17 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
     element.children[3].text = node.label;
     element.children[4].text = node.description;
     element.children[5].onClick.listen((_) {
-      selection = node.objects;
+      selection = List.from(node.objects);
       _mode = HeapSnapshotTreeMode.predecessors;
       _r.dirty();
     });
     element.children[6].onClick.listen((_) {
-      selection = node.objects;
+      selection = List.from(node.objects);
       _mode = HeapSnapshotTreeMode.dominatorTree;
       _r.dirty();
     });
     element.children[7].onClick.listen((_) {
-      selection = node.objects;
+      selection = List.from(node.objects);
       _mode = HeapSnapshotTreeMode.dominatorTreeMap;
       _r.dirty();
     });
@@ -1488,24 +1458,24 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
     element.children[3].text = node.label;
     element.children[4].text = node.description;
     element.children[5].onClick.listen((_) {
-      selection = node.objects;
+      selection = List.from(node.objects);
       _mode = HeapSnapshotTreeMode.successors;
       _r.dirty();
     });
     element.children[6].onClick.listen((_) {
-      selection = node.objects;
+      selection = List.from(node.objects);
       _mode = HeapSnapshotTreeMode.dominatorTree;
       _r.dirty();
     });
     element.children[7].onClick.listen((_) {
-      selection = node.objects;
+      selection = List.from(node.objects);
       _mode = HeapSnapshotTreeMode.dominatorTreeMap;
       _r.dirty();
     });
   }
 
   void _updateMergedDominator(HtmlElement element, nodeDynamic, int depth) {
-    M.HeapSnapshotMergedDominatorNode node = nodeDynamic;
+    SnapshotMergedDominator node = nodeDynamic;
     element.children[0].text = Utils.formatPercentNormalized(
         node.retainedSize * 1.0 / _snapshotA.size);
     element.children[1].text = Utils.formatSize(node.retainedSize);
