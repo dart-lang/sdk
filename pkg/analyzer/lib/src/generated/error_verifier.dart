@@ -50,11 +50,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   final LibraryElement _currentLibrary;
 
   /**
-   * The type representing the type 'bool'.
-   */
-  InterfaceType _boolType;
-
-  /**
    * The type representing the type 'int'.
    */
   InterfaceType _intType;
@@ -274,7 +269,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     _isInStaticVariableDeclaration = false;
     _isInConstructorInitializer = false;
     _isInStaticMethod = false;
-    _boolType = _typeProvider.boolType;
     _intType = _typeProvider.intType;
     _typeSystem = _currentLibrary.typeSystem;
     _options = _currentLibrary.context.analysisOptions;

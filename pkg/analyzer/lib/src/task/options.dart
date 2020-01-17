@@ -587,8 +587,6 @@ class TrueOrFalseValueErrorBuilder extends ErrorBuilder {
 }
 
 class _OptionsProcessor {
-  static final Map<String, Object> defaults = {'analyzer': {}};
-
   /**
    * Apply the options in the given [optionMap] to the given analysis [options].
    */
