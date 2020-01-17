@@ -10,12 +10,12 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
   static field core::int? _#lateStaticField2 = null;
   static field core::bool _#lateStaticField2#isSet = false;
   field core::int? lateInstanceFieldInit = null;
-  field core::int? _#lateInstanceField = null;
-  field core::bool _#lateInstanceField#isSet = false;
+  field core::int? _#Class#lateInstanceField = null;
+  field core::bool _#Class#lateInstanceField#isSet = false;
   generic-covariant-impl field self::Class::T? lateGenericInstanceFieldInit = null;
   final field self::Class::T? field;
-  field self::Class::T? _#lateGenericInstanceField = null;
-  field core::bool _#lateGenericInstanceField#isSet = false;
+  field self::Class::T? _#Class#lateGenericInstanceField = null;
+  field core::bool _#Class#lateGenericInstanceField#isSet = false;
   constructor •(self::Class::T? field) → self::Class<self::Class::T%>
     : self::Class::field = field, super core::Object::•()
     ;
@@ -48,21 +48,21 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
     return this.{self::Class::lateInstanceFieldInit} = value;
   }
   get lateInstanceField() → core::int? {
-    if(!this.{self::Class::_#lateInstanceField#isSet}) {
-      this.{self::Class::_#lateInstanceField#isSet} = true;
-      this.{self::Class::_#lateInstanceField} = this.{self::Class::initLateInstanceField}(16);
+    if(!this.{self::Class::_#Class#lateInstanceField#isSet}) {
+      this.{self::Class::_#Class#lateInstanceField#isSet} = true;
+      this.{self::Class::_#Class#lateInstanceField} = this.{self::Class::initLateInstanceField}(16);
     }
-    return this.{self::Class::_#lateInstanceField};
+    return this.{self::Class::_#Class#lateInstanceField};
   }
   method initLateGenericInstanceField(generic-covariant-impl self::Class::T? value) → self::Class::T? {
     return this.{self::Class::lateGenericInstanceFieldInit} = value;
   }
   get lateGenericInstanceField() → self::Class::T? {
-    if(!this.{self::Class::_#lateGenericInstanceField#isSet}) {
-      this.{self::Class::_#lateGenericInstanceField#isSet} = true;
-      this.{self::Class::_#lateGenericInstanceField} = this.{self::Class::initLateGenericInstanceField}(this.{self::Class::field});
+    if(!this.{self::Class::_#Class#lateGenericInstanceField#isSet}) {
+      this.{self::Class::_#Class#lateGenericInstanceField#isSet} = true;
+      this.{self::Class::_#Class#lateGenericInstanceField} = this.{self::Class::initLateGenericInstanceField}(this.{self::Class::field});
     }
-    return this.{self::Class::_#lateGenericInstanceField};
+    return this.{self::Class::_#Class#lateGenericInstanceField};
   }
   method instanceMethod() → dynamic {
     self::expect(null, this.{self::Class::lateInstanceFieldInit});

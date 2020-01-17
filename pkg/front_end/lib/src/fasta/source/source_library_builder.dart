@@ -1948,6 +1948,13 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     Procedure setterReferenceFrom;
     final bool fieldIsLateWithLowering = (modifiers & lateMask) != 0 &&
         !loader.target.backendTarget.supportsLateFields;
+    final bool isInstanceMember = currentTypeParameterScopeBuilder.kind ==
+            TypeParameterScopeKind.classDeclaration &&
+        (modifiers & staticMask) == 0;
+    String className;
+    if (isInstanceMember) {
+      className = currentTypeParameterScopeBuilder.name;
+    }
     final bool isExtension = currentTypeParameterScopeBuilder.kind ==
         TypeParameterScopeKind.extensionDeclaration;
     String extensionName;
@@ -1955,8 +1962,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       extensionName = currentTypeParameterScopeBuilder.name;
     }
     if (referencesFrom != null) {
-      String nameToLookup = SourceFieldBuilder.createFieldName(isExtension,
-          extensionName, name, fieldIsLateWithLowering, FieldNameType.Field);
+      String nameToLookup = SourceFieldBuilder.createFieldName(
+          isInstanceMember,
+          className,
+          isExtension,
+          extensionName,
+          name,
+          fieldIsLateWithLowering,
+          FieldNameType.Field);
 
       if (_currentClassReferencesFromIndexed != null) {
         referenceFrom =
@@ -1964,6 +1977,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         if (fieldIsLateWithLowering) {
           lateIsSetReferenceFrom = _currentClassReferencesFromIndexed
               .lookupField(SourceFieldBuilder.createFieldName(
+                  isInstanceMember,
+                  className,
                   isExtension,
                   extensionName,
                   name,
@@ -1971,6 +1986,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                   FieldNameType.IsSetField));
           getterReferenceFrom = _currentClassReferencesFromIndexed
               .lookupProcedureNotSetter(SourceFieldBuilder.createFieldName(
+                  isInstanceMember,
+                  className,
                   isExtension,
                   extensionName,
                   name,
@@ -1978,6 +1995,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                   FieldNameType.Getter));
           setterReferenceFrom = _currentClassReferencesFromIndexed
               .lookupProcedureSetter(SourceFieldBuilder.createFieldName(
+                  isInstanceMember,
+                  className,
                   isExtension,
                   extensionName,
                   name,
@@ -1988,14 +2007,32 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         referenceFrom = referencesFromIndexed.lookupField(nameToLookup);
         if (fieldIsLateWithLowering) {
           lateIsSetReferenceFrom = referencesFromIndexed.lookupField(
-              SourceFieldBuilder.createFieldName(isExtension, extensionName,
-                  name, fieldIsLateWithLowering, FieldNameType.IsSetField));
+              SourceFieldBuilder.createFieldName(
+                  isInstanceMember,
+                  className,
+                  isExtension,
+                  extensionName,
+                  name,
+                  fieldIsLateWithLowering,
+                  FieldNameType.IsSetField));
           getterReferenceFrom = referencesFromIndexed.lookupProcedureNotSetter(
-              SourceFieldBuilder.createFieldName(isExtension, extensionName,
-                  name, fieldIsLateWithLowering, FieldNameType.Getter));
+              SourceFieldBuilder.createFieldName(
+                  isInstanceMember,
+                  className,
+                  isExtension,
+                  extensionName,
+                  name,
+                  fieldIsLateWithLowering,
+                  FieldNameType.Getter));
           setterReferenceFrom = referencesFromIndexed.lookupProcedureSetter(
-              SourceFieldBuilder.createFieldName(isExtension, extensionName,
-                  name, fieldIsLateWithLowering, FieldNameType.Setter));
+              SourceFieldBuilder.createFieldName(
+                  isInstanceMember,
+                  className,
+                  isExtension,
+                  extensionName,
+                  name,
+                  fieldIsLateWithLowering,
+                  FieldNameType.Setter));
         }
       }
     }

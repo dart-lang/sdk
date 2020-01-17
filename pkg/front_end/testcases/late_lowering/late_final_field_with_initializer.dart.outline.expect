@@ -8,11 +8,11 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
   static field core::int? lateStaticField2Init;
   static field core::int? _#lateStaticField2;
   field core::int? lateInstanceFieldInit;
-  field core::int? _#lateInstanceField;
+  field core::int? _#Class#lateInstanceField;
   generic-covariant-impl field self::Class::T? lateGenericFieldInit;
   final field self::Class::T% field;
-  field self::Class::T? _#lateGenericField;
-  field core::bool _#lateGenericField#isSet;
+  field self::Class::T? _#Class#lateGenericField;
+  field core::bool _#Class#lateGenericField#isSet;
   constructor •(self::Class::T% field) → self::Class<self::Class::T%>
     ;
   static method initLateStaticField1(core::int value) → core::int

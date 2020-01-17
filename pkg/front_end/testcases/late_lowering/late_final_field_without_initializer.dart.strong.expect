@@ -6,7 +6,7 @@ import "dart:_internal" as _in;
 class Class extends core::Object {
   static field core::int? _#lateStaticField1 = null;
   static field core::int? _#lateStaticField2 = null;
-  field core::int? _#lateInstanceField = null;
+  field core::int? _#Class#lateInstanceField = null;
   synthetic constructor •() → self::Class
     : super core::Object::•()
     ;
@@ -31,10 +31,10 @@ class Class extends core::Object {
     self::throws(() → core::int => self::Class::lateStaticField2 = 43, "Write value to initialized Class.lateStaticField2");
   }
   get lateInstanceField() → core::int
-    return let final core::int? #t5 = this.{self::Class::_#lateInstanceField} in #t5.==(null) ?{core::int} throw new _in::LateInitializationErrorImpl::•("Field 'lateInstanceField' has not been initialized.") : #t5{core::int};
+    return let final core::int? #t5 = this.{self::Class::_#Class#lateInstanceField} in #t5.==(null) ?{core::int} throw new _in::LateInitializationErrorImpl::•("Field 'lateInstanceField' has not been initialized.") : #t5{core::int};
   set lateInstanceField(core::int #t6) → void
-    if(this.{self::Class::_#lateInstanceField}.==(null))
-      this.{self::Class::_#lateInstanceField} = #t6;
+    if(this.{self::Class::_#Class#lateInstanceField}.==(null))
+      this.{self::Class::_#Class#lateInstanceField} = #t6;
     else
       throw new _in::LateInitializationErrorImpl::•("Field 'lateInstanceField' has already been initialized.");
   method instanceMethod() → dynamic {
@@ -109,7 +109,7 @@ static method throws(() → dynamic f, core::String message) → dynamic {
   try {
     value = f.call();
   }
-  on dynamic catch(final dynamic e) {
+  on core::LateInitializationError catch(final core::LateInitializationError e) {
     core::print(e);
     return;
   }

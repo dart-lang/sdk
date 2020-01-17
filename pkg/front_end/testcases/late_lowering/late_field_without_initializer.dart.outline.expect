@@ -5,9 +5,9 @@ import "dart:core" as core;
 class Class<T extends core::Object? = dynamic> extends core::Object {
   static field core::int? _#lateStaticField1;
   static field core::int? _#lateStaticField2;
-  field core::int? _#lateInstanceField;
-  generic-covariant-impl field self::Class::T? _#lateGenericInstanceField;
-  field core::bool _#lateGenericInstanceField#isSet;
+  field core::int? _#Class#lateInstanceField;
+  generic-covariant-impl field self::Class::T? _#Class#lateGenericInstanceField;
+  field core::bool _#Class#lateGenericInstanceField#isSet;
   synthetic constructor •() → self::Class<self::Class::T%>
     ;
   static get lateStaticField1() → core::int;

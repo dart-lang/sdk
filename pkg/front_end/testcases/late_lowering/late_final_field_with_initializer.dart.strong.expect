@@ -8,11 +8,11 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
   static field core::int? lateStaticField2Init = null;
   static field core::int? _#lateStaticField2 = null;
   field core::int? lateInstanceFieldInit = null;
-  field core::int? _#lateInstanceField = null;
+  field core::int? _#Class#lateInstanceField = null;
   generic-covariant-impl field self::Class::T? lateGenericFieldInit = null;
   final field self::Class::T% field;
-  field self::Class::T? _#lateGenericField = null;
-  field core::bool _#lateGenericField#isSet = false;
+  field self::Class::T? _#Class#lateGenericField = null;
+  field core::bool _#Class#lateGenericField#isSet = false;
   constructor •(self::Class::T% field) → self::Class<self::Class::T%>
     : self::Class::field = field, super core::Object::•()
     ;
@@ -35,16 +35,16 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
     return this.{self::Class::lateInstanceFieldInit} = value;
   }
   get lateInstanceField() → core::int
-    return let final core::int? #t3 = this.{self::Class::_#lateInstanceField} in #t3.==(null) ?{core::int} this.{self::Class::_#lateInstanceField} = this.{self::Class::initLateInstanceField}(16) : #t3{core::int};
+    return let final core::int? #t3 = this.{self::Class::_#Class#lateInstanceField} in #t3.==(null) ?{core::int} this.{self::Class::_#Class#lateInstanceField} = this.{self::Class::initLateInstanceField}(16) : #t3{core::int};
   method initLateGenericField(generic-covariant-impl self::Class::T% value) → self::Class::T% {
     return this.{self::Class::lateGenericFieldInit} = value;
   }
   get lateGenericField() → self::Class::T% {
-    if(!this.{self::Class::_#lateGenericField#isSet}) {
-      this.{self::Class::_#lateGenericField#isSet} = true;
-      this.{self::Class::_#lateGenericField} = this.{self::Class::initLateGenericField}(this.{self::Class::field});
+    if(!this.{self::Class::_#Class#lateGenericField#isSet}) {
+      this.{self::Class::_#Class#lateGenericField#isSet} = true;
+      this.{self::Class::_#Class#lateGenericField} = this.{self::Class::initLateGenericField}(this.{self::Class::field});
     }
-    return let final self::Class::T? #t4 = this.{self::Class::_#lateGenericField} in #t4{self::Class::T%};
+    return let final self::Class::T? #t4 = this.{self::Class::_#Class#lateGenericField} in #t4{self::Class::T%};
   }
   method instanceMethod() → dynamic {
     self::expect(null, this.{self::Class::lateInstanceFieldInit});

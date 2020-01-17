@@ -837,6 +837,7 @@ runnable
 s
 say
 sb
+sc
 scheglov
 scoped
 scoping

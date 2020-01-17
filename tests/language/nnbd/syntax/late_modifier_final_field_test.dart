@@ -33,6 +33,10 @@ main() {
   Expect.equals(1, initCalls);
   Expect.equals(123, a.fieldWithInit);
   Expect.equals(1, initCalls);
+  // Setting Base.fieldWithInit once is ok but causes no calls to init().
+  a.fieldWithInit = 456;
+  Expect.equals(1, initCalls);
+  // Setting Base.fieldWithInit twice throws an error.
   Expect.throws(() => {a.fieldWithInit = 456},
       (error) => error is LateInitializationError);
   Expect.equals(1, initCalls);
@@ -42,6 +46,10 @@ main() {
 
   Base a2 = A();
   Expect.equals(0, initCalls);
+  // Setting Base.fieldWithInit once is ok but causes no calls to init().
+  a2.fieldWithInit = 456;
+  Expect.equals(0, initCalls);
+  // Setting Base.fieldWithInit twice throws an error.
   Expect.throws(() => {a2.fieldWithInit = 456},
       (error) => error is LateInitializationError);
   Expect.equals(0, initCalls);
