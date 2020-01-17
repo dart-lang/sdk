@@ -21,7 +21,6 @@
 #include "vm/constants_kbc.h"
 #include "vm/exceptions.h"
 #include "vm/ffi_callback_trampolines.h"
-#include "vm/field_table.h"
 #include "vm/fixed_cache.h"
 #include "vm/growable_array.h"
 #include "vm/handles.h"
@@ -445,8 +444,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 #if defined(DEBUG)
   void ValidateClassTable();
 #endif
-  // Register a newly introduced static field.
-  void RegisterStaticField(const Field& field);
 
   void RehashConstants();
 #if defined(DEBUG)
@@ -480,8 +477,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   static intptr_t class_table_offset() {
     return OFFSET_OF(Isolate, class_table_);
   }
-
-  FieldTable* field_table() const { return field_table_; }
 
   // Prefers old classes when we are in the middle of a reload.
   RawClass* GetClassForHeapWalkAt(intptr_t cid);
@@ -1141,7 +1136,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   std::unique_ptr<SharedClassTable> shared_class_table_;
   ObjectStore* object_store_ = nullptr;
   ClassTable class_table_;
-  FieldTable* field_table_ = nullptr;
   bool single_step_ = false;
   // End accessed from generated code.
 

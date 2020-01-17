@@ -657,7 +657,6 @@ class Thread : public AllStatic {
   static word top_offset();
   static word end_offset();
   static word isolate_offset();
-  static word field_table_values_offset();
   static word store_buffer_block_offset();
   static word call_to_runtime_entry_point_offset();
   static word null_error_shared_with_fpu_regs_entry_point_offset();
@@ -912,11 +911,6 @@ class TypeArguments : public AllStatic {
  public:
   static word instantiations_offset();
   static word type_at_offset(intptr_t i);
-};
-
-class FieldTable : public AllStatic {
- public:
-  static word OffsetOf(const dart::Field& field);
 };
 
 }  // namespace target

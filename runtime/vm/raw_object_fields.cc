@@ -214,8 +214,8 @@ namespace dart {
   F(ICData, receivers_static_type_)                                            \
   F(Function, bytecode_)                                                       \
   F(Function, unoptimized_code_)                                               \
-  F(Field, saved_initial_value_)                                               \
-  F(Field, type_test_cache_)
+  F(Field, type_test_cache_)                                                   \
+  F(Field, saved_initial_value_)
 
 OffsetsTable::OffsetsTable(Zone* zone) : cached_offsets_(zone) {
   for (intptr_t i = 0; offsets_table[i].class_id != -1; ++i) {

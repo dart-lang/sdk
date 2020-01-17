@@ -1321,7 +1321,8 @@ void BytecodeFlowGraphBuilder::BuildLoadStatic() {
     code_ += B->Constant(value);
     return;
   }
-  code_ += B->LoadStaticField(field);
+  PushConstant(operand);
+  code_ += B->LoadStaticField();
 }
 
 void BytecodeFlowGraphBuilder::BuildStoreIndexedTOS() {

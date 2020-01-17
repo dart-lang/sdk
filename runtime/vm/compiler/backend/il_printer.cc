@@ -637,7 +637,7 @@ void IfThenElseInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 void LoadStaticFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s", String::Handle(StaticField().name()).ToCString());
+  field_value()->PrintTo(f);
 }
 
 void StoreStaticFieldInstr::PrintOperandsTo(BufferFormatter* f) const {

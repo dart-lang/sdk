@@ -913,11 +913,26 @@ class FieldSerializationCluster : public SerializationCluster {
     s->Push(field->ptr()->name_);
     s->Push(field->ptr()->owner_);
     s->Push(field->ptr()->type_);
+    // Write out the initial static value or field offset.
+    if (Field::StaticBit::decode(field->ptr()->kind_bits_)) {
+      if (kind == Snapshot::kFullAOT) {
+        // For precompiled static fields, the value was already reset and
+        // initializer_ now contains a Function.
+        s->Push(field->ptr()->value_.static_value_);
+      } else if (Field::ConstBit::decode(field->ptr()->kind_bits_)) {
+        // Do not reset const fields.
+        s->Push(field->ptr()->value_.static_value_);
+      } else {
+        // Otherwise, for static fields we write out the initial static value.
+        s->Push(field->ptr()->saved_initial_value_);
+      }
+    } else {
+      s->Push(field->ptr()->value_.offset_);
+    }
     // Write out the initializer function
     s->Push(field->ptr()->initializer_function_);
-
     if (kind != Snapshot::kFullAOT) {
-      // Write out the saved initial values
+      // Write out the saved initial value
       s->Push(field->ptr()->saved_initial_value_);
     }
     if (kind != Snapshot::kFullAOT) {
@@ -926,22 +941,6 @@ class FieldSerializationCluster : public SerializationCluster {
     }
     if (kind == Snapshot::kFullJIT) {
       s->Push(field->ptr()->dependent_code_);
-    }
-    // Write out either static value, initial value or field offset.
-    if (Field::StaticBit::decode(field->ptr()->kind_bits_)) {
-      if (
-          // For precompiled static fields, the value was already reset and
-          // initializer_ now contains a Function.
-          kind == Snapshot::kFullAOT ||
-          // Do not reset const fields.
-          Field::ConstBit::decode(field->ptr()->kind_bits_)) {
-        s->Push(s->field_table()->At(field->ptr()->offset_or_field_id_));
-      } else {
-        // Otherwise, for static fields we write out the initial static value.
-        s->Push(field->ptr()->saved_initial_value_);
-      }
-    } else {
-      s->Push(Smi::New(field->ptr()->offset_or_field_id_));
     }
   }
 
@@ -965,6 +964,22 @@ class FieldSerializationCluster : public SerializationCluster {
       WriteField(field, name_);
       WriteField(field, owner_);
       WriteField(field, type_);
+      // Write out the initial static value or field offset.
+      if (Field::StaticBit::decode(field->ptr()->kind_bits_)) {
+        if (kind == Snapshot::kFullAOT) {
+          // For precompiled static fields, the value was already reset and
+          // initializer_ now contains a Function.
+          WriteField(field, value_.static_value_);
+        } else if (Field::ConstBit::decode(field->ptr()->kind_bits_)) {
+          // Do not reset const fields.
+          WriteField(field, value_.static_value_);
+        } else {
+          // Otherwise, for static fields we write out the initial static value.
+          WriteField(field, saved_initial_value_);
+        }
+      } else {
+        WriteField(field, value_.offset_);
+      }
       // Write out the initializer function and initial value if not in AOT.
       WriteField(field, initializer_function_);
       if (kind != Snapshot::kFullAOT) {
@@ -989,27 +1004,6 @@ class FieldSerializationCluster : public SerializationCluster {
 #endif
       }
       s->Write<uint16_t>(field->ptr()->kind_bits_);
-
-      // Write out the initial static value or field offset.
-      if (Field::StaticBit::decode(field->ptr()->kind_bits_)) {
-        if (
-            // For precompiled static fields, the value was already reset and
-            // initializer_ now contains a Function.
-            // WriteField(field, value_.static_value_);
-            kind == Snapshot::kFullAOT ||
-            // Do not reset const fields.
-            Field::ConstBit::decode(field->ptr()->kind_bits_)) {
-          WriteFieldValue(
-              "static value",
-              s->field_table()->At(field->ptr()->offset_or_field_id_));
-        } else {
-          // Otherwise, for static fields we write out the initial static value.
-          WriteFieldValue("static value", field->ptr()->saved_initial_value_);
-        }
-        s->WriteUnsigned(field->ptr()->offset_or_field_id_);
-      } else {
-        WriteFieldValue("offset", Smi::New(field->ptr()->offset_or_field_id_));
-      }
     }
   }
 
@@ -1051,17 +1045,6 @@ class FieldDeserializationCluster : public DeserializationCluster {
 #endif
       }
       field->ptr()->kind_bits_ = d->Read<uint16_t>();
-
-      RawObject* value_or_offset = d->ReadRef();
-      if (Field::StaticBit::decode(field->ptr()->kind_bits_)) {
-        intptr_t field_id = d->ReadUnsigned();
-        d->field_table()->SetAt(
-            field_id, reinterpret_cast<RawInstance*>(value_or_offset));
-        field->ptr()->offset_or_field_id_ = field_id;
-      } else {
-        field->ptr()->offset_or_field_id_ =
-            Smi::Value(Smi::RawCast(value_or_offset));
-      }
     }
   }
 
@@ -4361,7 +4344,6 @@ Serializer::Serializer(Thread* thread,
       num_base_objects_(0),
       num_written_objects_(0),
       next_ref_index_(1),
-      field_table_(thread->isolate()->field_table()),
       vm_(vm),
       profile_writer_(profile_writer)
 #if defined(SNAPSHOT_BACKTRACE)
@@ -4816,7 +4798,6 @@ void Serializer::Serialize() {
   WriteUnsigned(num_objects);
   WriteUnsigned(num_clusters);
   WriteUnsigned(code_order_length);
-  WriteUnsigned(field_table_->NumFieldIds());
 
   for (intptr_t cid = 1; cid < num_cids_; cid++) {
     SerializationCluster* cluster = clusters_by_cid_[cid];
@@ -5033,8 +5014,7 @@ Deserializer::Deserializer(Thread* thread,
       image_reader_(NULL),
       refs_(NULL),
       next_ref_index_(1),
-      clusters_(NULL),
-      field_table_(thread->isolate()->field_table()) {
+      clusters_(NULL) {
   if (Snapshot::IncludesCode(kind)) {
     ASSERT(instructions_buffer != NULL);
     ASSERT(data_buffer != NULL);
@@ -5302,14 +5282,9 @@ void Deserializer::Prepare() {
   num_objects_ = ReadUnsigned();
   num_clusters_ = ReadUnsigned();
   code_order_length_ = ReadUnsigned();
-  const intptr_t field_table_len = ReadUnsigned();
 
   clusters_ = new DeserializationCluster*[num_clusters_];
   refs_ = Array::New(num_objects_ + 1, Heap::kOld);
-  if (field_table_len > 0) {
-    field_table_->AllocateIndex(field_table_len - 1);
-  }
-  ASSERT(field_table_->NumFieldIds() == field_table_len);
 }
 
 void Deserializer::Deserialize() {

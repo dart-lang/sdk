@@ -2346,12 +2346,12 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* LoadStaticFieldInstr::MakeLocationSummary(Zone* zone,
                                                            bool opt) const {
-  const intptr_t kNumInputs = 0;
-  const intptr_t kNumTemps = 1;
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresRegister());
   summary->set_out(0, Location::RequiresRegister());
-  summary->set_temp(0, Location::RequiresRegister());
   return summary;
 }
 
@@ -2361,25 +2361,16 @@ LocationSummary* LoadStaticFieldInstr::MakeLocationSummary(Zone* zone,
 //
 // This is safe only so long as LoadStaticFieldInstr cannot deoptimize.
 void LoadStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const Register field = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();
-  const Register temp = locs()->temp(0).reg();
-
-  compiler->used_static_fields().Add(&StaticField());
-
-  __ LoadFromOffset(temp, THR,
-                    compiler::target::Thread::field_table_values_offset());
-  // Note: static fields ids won't be changed by hot-reload.
-  __ LoadFromOffset(result, temp,
-                    compiler::target::FieldTable::OffsetOf(StaticField()));
+  __ LoadFieldFromOffset(result, field, Field::static_value_offset());
 }
 
 LocationSummary* StoreStaticFieldInstr::MakeLocationSummary(Zone* zone,
                                                             bool opt) const {
-  const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 1;
-  LocationSummary* locs = new (zone)
-      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  locs->set_in(0, Location::RequiresRegister());
+  LocationSummary* locs =
+      new (zone) LocationSummary(zone, 1, 1, LocationSummary::kNoCall);
+  locs->set_in(0, Location::RegisterLocation(kWriteBarrierValueReg));
   locs->set_temp(0, Location::RequiresRegister());
   return locs;
 }
@@ -2388,13 +2379,15 @@ void StoreStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register value = locs()->in(0).reg();
   const Register temp = locs()->temp(0).reg();
 
-  compiler->used_static_fields().Add(&field());
-
-  __ LoadFromOffset(temp, THR,
-                    compiler::target::Thread::field_table_values_offset());
-  // Note: static fields ids won't be changed by hot-reload.
-  __ StoreToOffset(value, temp,
-                   compiler::target::FieldTable::OffsetOf(field()));
+  __ LoadObject(temp, Field::ZoneHandle(Z, field().Original()));
+  if (this->value()->NeedsWriteBarrier()) {
+    __ StoreIntoObjectOffset(temp, Field::static_value_offset(), value,
+                             CanValueBeSmi(),
+                             /*lr_reserved=*/!compiler->intrinsic_mode());
+  } else {
+    __ StoreIntoObjectOffsetNoBarrier(temp, Field::static_value_offset(),
+                                      value);
+  }
 }
 
 LocationSummary* InstanceOfInstr::MakeLocationSummary(Zone* zone,
@@ -2887,23 +2880,21 @@ void InitInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* InitStaticFieldInstr::MakeLocationSummary(Zone* zone,
                                                            bool opt) const {
-  const intptr_t kNumInputs = 0;
+  const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 1;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
+  locs->set_in(0, Location::RegisterLocation(R0));
   locs->set_temp(0, Location::RegisterLocation(R1));
   return locs;
 }
 
 void InitStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register field = locs()->in(0).reg();
   Register temp = locs()->temp(0).reg();
   compiler::Label call_runtime, no_call;
 
-  __ LoadFromOffset(temp, THR,
-                    compiler::target::Thread::field_table_values_offset());
-  // Note: static fields ids won't be changed by hot-reload.
-  __ LoadFromOffset(temp, temp,
-                    compiler::target::FieldTable::OffsetOf(field()));
+  __ ldr(temp, compiler::FieldAddress(field, Field::static_value_offset()));
   __ CompareObject(temp, Object::sentinel());
   __ b(&call_runtime, EQ);
 
@@ -2911,8 +2902,7 @@ void InitStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ b(&no_call, NE);
 
   __ Bind(&call_runtime);
-  __ Push(NULL_REG);
-  __ PushObject(Field::ZoneHandle(field().Original()));
+  __ PushPair(field, NULL_REG);
   compiler->GenerateRuntimeCall(token_pos(), deopt_id(),
                                 kInitStaticFieldRuntimeEntry, 1, locs());
   __ Drop(2);  // Remove argument and result placeholder.

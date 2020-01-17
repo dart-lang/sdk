@@ -2333,7 +2333,7 @@ SwitchDispatch:
     BYTECODE(InitLateField, D);
     RawField* field = RAW_CAST(Field, LOAD_CONSTANT(rD + 1));
     RawInstance* instance = reinterpret_cast<RawInstance*>(SP[0]);
-    intptr_t offset_in_words = field->ptr()->offset_or_field_id_;
+    intptr_t offset_in_words = Smi::Value(field->ptr()->value_.offset_);
 
     instance->StorePointer(
         reinterpret_cast<RawObject**>(instance->ptr()) + offset_in_words,
@@ -2362,16 +2362,14 @@ SwitchDispatch:
     BYTECODE(StoreStaticTOS, D);
     RawField* field = reinterpret_cast<RawField*>(LOAD_CONSTANT(rD));
     RawInstance* value = static_cast<RawInstance*>(*SP--);
-    intptr_t field_id = field->ptr()->offset_or_field_id_;
-    thread->field_table_values()[field_id] = value;
+    field->StorePointer(&field->ptr()->value_.static_value_, value, thread);
     DISPATCH();
   }
 
   {
     BYTECODE(LoadStatic, D);
     RawField* field = reinterpret_cast<RawField*>(LOAD_CONSTANT(rD));
-    intptr_t field_id = field->ptr()->offset_or_field_id_;
-    RawInstance* value = thread->field_table_values()[field_id];
+    RawInstance* value = field->ptr()->value_.static_value_;
     ASSERT((value != Object::sentinel().raw()) &&
            (value != Object::transition_sentinel().raw()));
     *++SP = value;
@@ -2383,7 +2381,7 @@ SwitchDispatch:
     RawField* field = RAW_CAST(Field, LOAD_CONSTANT(rD + 1));
     RawInstance* instance = reinterpret_cast<RawInstance*>(SP[-1]);
     RawObject* value = reinterpret_cast<RawObject*>(SP[0]);
-    intptr_t offset_in_words = field->ptr()->offset_or_field_id_;
+    intptr_t offset_in_words = Smi::Value(field->ptr()->value_.offset_);
 
     if (InterpreterHelpers::FieldNeedsGuardUpdate(field, value)) {
       SP[1] = 0;  // Unused result of runtime call.
@@ -3168,7 +3166,7 @@ SwitchDispatch:
 
     // Field object is cached in function's data_.
     RawField* field = reinterpret_cast<RawField*>(function->ptr()->data_);
-    intptr_t offset_in_words = field->ptr()->offset_or_field_id_;
+    intptr_t offset_in_words = Smi::Value(field->ptr()->value_.offset_);
 
     const intptr_t kArgc = 1;
     RawInstance* instance =
@@ -3188,7 +3186,7 @@ SwitchDispatch:
       function = FrameFunction(FP);
       instance = reinterpret_cast<RawInstance*>(SP[2]);
       field = reinterpret_cast<RawField*>(SP[3]);
-      offset_in_words = field->ptr()->offset_or_field_id_;
+      offset_in_words = Smi::Value(field->ptr()->value_.offset_);
       value = reinterpret_cast<RawInstance**>(instance->ptr())[offset_in_words];
     }
 
@@ -3249,7 +3247,7 @@ SwitchDispatch:
 
     // Field object is cached in function's data_.
     RawField* field = reinterpret_cast<RawField*>(function->ptr()->data_);
-    intptr_t offset_in_words = field->ptr()->offset_or_field_id_;
+    intptr_t offset_in_words = Smi::Value(field->ptr()->value_.offset_);
     const intptr_t kArgc = 2;
     RawInstance* instance =
         reinterpret_cast<RawInstance*>(FrameArguments(FP, kArgc)[0]);
@@ -3329,8 +3327,7 @@ SwitchDispatch:
 
     // Field object is cached in function's data_.
     RawField* field = reinterpret_cast<RawField*>(function->ptr()->data_);
-    intptr_t field_id = field->ptr()->offset_or_field_id_;
-    RawInstance* value = thread->field_table_values()[field_id];
+    RawInstance* value = field->ptr()->value_.static_value_;
     if (value == Object::sentinel().raw() ||
         value == Object::transition_sentinel().raw()) {
       SP[1] = 0;  // Unused result of invoking the initializer.
@@ -3343,8 +3340,7 @@ SwitchDispatch:
       function = FrameFunction(FP);
       field = reinterpret_cast<RawField*>(function->ptr()->data_);
       // The field is initialized by the runtime call, but not returned.
-      intptr_t field_id = field->ptr()->offset_or_field_id_;
-      value = thread->field_table_values()[field_id];
+      value = field->ptr()->value_.static_value_;
     }
 
     // Field was initialized. Return its value.

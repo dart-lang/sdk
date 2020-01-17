@@ -101,8 +101,6 @@ vm_sources = [
   "ffi_callback_trampolines.cc",
   "ffi_callback_trampolines.h",
   "finalizable_data.h",
-  "field_table.cc",
-  "field_table.h",
   "fixed_cache.h",
   "flag_list.h",
   "flags.cc",

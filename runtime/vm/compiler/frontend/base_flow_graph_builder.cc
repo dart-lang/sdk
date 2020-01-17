@@ -523,9 +523,9 @@ Fragment BaseFlowGraphBuilder::StoreInstanceFieldGuarded(
   return instructions;
 }
 
-Fragment BaseFlowGraphBuilder::LoadStaticField(const Field& field) {
+Fragment BaseFlowGraphBuilder::LoadStaticField() {
   LoadStaticFieldInstr* load =
-      new (Z) LoadStaticFieldInstr(field, TokenPosition::kNoSource);
+      new (Z) LoadStaticFieldInstr(Pop(), TokenPosition::kNoSource);
   Push(load);
   return Fragment(load);
 }

@@ -3646,11 +3646,8 @@ class Field : public Object {
   inline void SetOffset(intptr_t offset_in_bytes) const;
 
   inline RawInstance* StaticValue() const;
-  void SetStaticValue(const Instance& value,
-                      bool save_initial_value = false) const;
-
-  intptr_t field_id() const { return raw_ptr()->offset_or_field_id_; }
-  inline void set_field_id(intptr_t field_id) const;
+  inline void SetStaticValue(const Instance& value,
+                             bool save_initial_value = false) const;
 
 #ifndef DART_PRECOMPILED_RUNTIME
   RawInstance* saved_initial_value() const {
@@ -3697,6 +3694,13 @@ class Field : public Object {
   // Allocate new field object, clone values from this field. The
   // original is specified.
   RawField* Clone(const Field& original) const;
+
+  static intptr_t instance_field_offset() {
+    return OFFSET_OF(RawField, value_.offset_);
+  }
+  static intptr_t static_value_offset() {
+    return OFFSET_OF(RawField, value_.static_value_);
+  }
 
   static intptr_t kind_bits_offset() { return OFFSET_OF(RawField, kind_bits_); }
 
@@ -4023,7 +4027,6 @@ class Field : public Object {
   friend class HeapProfiler;
   friend class RawField;
   friend class FieldSerializationCluster;
-  friend class FieldDeserializationCluster;
 };
 
 class Script : public Object {
@@ -10316,24 +10319,32 @@ bool Function::HasBytecode(RawFunction* function) {
 
 intptr_t Field::Offset() const {
   ASSERT(is_instance());  // Valid only for dart instance fields.
-  return (raw_ptr()->offset_or_field_id_ * kWordSize);
+  intptr_t value = Smi::Value(raw_ptr()->value_.offset_);
+  return (value * kWordSize);
 }
 
 void Field::SetOffset(intptr_t offset_in_bytes) const {
   ASSERT(is_instance());  // Valid only for dart instance fields.
   ASSERT(kWordSize != 0);
-  StoreNonPointer(&raw_ptr()->offset_or_field_id_, offset_in_bytes / kWordSize);
+  StorePointer(&raw_ptr()->value_.offset_,
+               Smi::New(offset_in_bytes / kWordSize));
 }
 
 RawInstance* Field::StaticValue() const {
   ASSERT(is_static());  // Valid only for static dart fields.
-  return Isolate::Current()->field_table()->At(raw_ptr()->offset_or_field_id_);
+  return raw_ptr()->value_.static_value_;
 }
 
-void Field::set_field_id(intptr_t field_id) const {
-  ASSERT(is_static());
+void Field::SetStaticValue(const Instance& value,
+                           bool save_initial_value) const {
   ASSERT(Thread::Current()->IsMutatorThread());
-  StoreNonPointer(&raw_ptr()->offset_or_field_id_, field_id);
+  ASSERT(is_static());  // Valid only for static dart fields.
+  StorePointer(&raw_ptr()->value_.static_value_, value.raw());
+  if (save_initial_value) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    StorePointer(&raw_ptr()->saved_initial_value_, value.raw());
+#endif
+  }
 }
 
 #ifndef DART_PRECOMPILED_RUNTIME

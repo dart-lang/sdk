@@ -8883,9 +8883,6 @@ void Field::InitializeNew(const Field& result,
   result.set_static_type_exactness_state(
       StaticTypeExactnessState::NotTracking());
   Isolate* isolate = Isolate::Current();
-  if (is_static) {
-    isolate->RegisterStaticField(result);
-  }
 
 // Use field guards if they are enabled and the isolate has never reloaded.
 // TODO(johnmccutchan): The reload case assumes the worst case (everything is
@@ -9157,11 +9154,9 @@ bool Field::IsConsistentWith(const Field& other) const {
 }
 
 bool Field::IsUninitialized() const {
-  Thread* thread = Thread::Current();
-  const FieldTable* field_table = thread->isolate()->field_table();
-  const RawInstance* raw_value = field_table->At(field_id());
-  ASSERT(raw_value != Object::transition_sentinel().raw());
-  return raw_value == Object::sentinel().raw();
+  const Instance& value = Instance::Handle(raw_ptr()->value_.static_value_);
+  ASSERT(value.raw() != Object::transition_sentinel().raw());
+  return value.raw() == Object::sentinel().raw();
 }
 
 RawFunction* Field::EnsureInitializerFunction() const {
@@ -9430,20 +9425,6 @@ static bool FindInstantiationOf(const Type& type,
   }
 
   return false;  // Not found.
-}
-
-void Field::SetStaticValue(const Instance& value,
-                           bool save_initial_value) const {
-  ASSERT(Thread::Current()->IsMutatorThread());
-  ASSERT(is_static());  // Valid only for static dart fields.
-  Isolate* isolate = Isolate::Current();
-  const intptr_t id = field_id();
-  isolate->field_table()->SetAt(id, value.raw());
-  if (save_initial_value) {
-#if !defined(DART_PRECOMPILED_RUNTIME)
-    StorePointer(&raw_ptr()->saved_initial_value_, value.raw());
-#endif
-  }
 }
 
 static StaticTypeExactnessState TrivialTypeExactnessFor(const Class& cls) {

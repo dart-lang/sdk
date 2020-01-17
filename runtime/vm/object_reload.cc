@@ -255,6 +255,7 @@ void Class::CopyStaticFieldValues(IsolateReloadContext* reload_context,
   Field& field = Field::Handle();
   String& name = String::Handle();
 
+  Instance& value = Instance::Handle();
   for (intptr_t i = 0; i < field_list.Length(); i++) {
     field = Field::RawCast(field_list.At(i));
     name = field.name();
@@ -268,10 +269,8 @@ void Class::CopyStaticFieldValues(IsolateReloadContext* reload_context,
           // We only copy values if requested and if the field is not a const
           // field. We let const fields be updated with a reload.
           if (update_values && !field.is_const()) {
-            // Make new field point to the old field value so that both
-            // old and new code see and update same value.
-            reload_context->isolate()->field_table()->Free(field.field_id());
-            field.set_field_id(old_field.field_id());
+            value = old_field.StaticValue();
+            field.SetStaticValue(value);
           }
           reload_context->AddStaticFieldMapping(old_field, field);
         } else {

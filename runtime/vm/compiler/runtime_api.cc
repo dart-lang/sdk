@@ -635,11 +635,6 @@ word Field::OffsetOf(const dart::Field& field) {
   return TranslateOffsetInWords(field.Offset());
 }
 
-word FieldTable::OffsetOf(const dart::Field& field) {
-  return TranslateOffsetInWords(
-      dart::FieldTable::FieldOffsetFor(field.field_id()));
-}
-
 }  // namespace target
 }  // namespace compiler
 }  // namespace dart

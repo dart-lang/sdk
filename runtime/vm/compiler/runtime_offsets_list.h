@@ -88,6 +88,7 @@
   PRECOMP_NO_CHECK(FIELD(Field, guarded_list_length_in_object_offset_offset))  \
   PRECOMP_NO_CHECK(FIELD(Field, guarded_list_length_offset))                   \
   PRECOMP_NO_CHECK(FIELD(Field, is_nullable_offset))                           \
+  FIELD(Field, static_value_offset)                                            \
   PRECOMP_NO_CHECK(FIELD(Field, kind_bits_offset))                             \
   FIELD(Function, code_offset)                                                 \
   RANGE(Function, entry_point_offset, CodeEntryKind, CodeEntryKind::kNormal,   \
@@ -180,7 +181,6 @@
   FIELD(Thread, invoke_dart_code_from_bytecode_stub_offset)                    \
   FIELD(Thread, invoke_dart_code_stub_offset)                                  \
   FIELD(Thread, isolate_offset)                                                \
-  FIELD(Thread, field_table_values_offset)                                     \
   FIELD(Thread, lazy_deopt_from_return_stub_offset)                            \
   FIELD(Thread, lazy_deopt_from_throw_stub_offset)                             \
   FIELD(Thread, lazy_specialize_type_test_stub_offset)                         \
