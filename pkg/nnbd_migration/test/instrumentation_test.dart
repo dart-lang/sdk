@@ -18,11 +18,12 @@ import 'api_test_base.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(_InstrumentationTest);
+    defineReflectiveTests(_InstrumentationTestWithFixBuilder);
   });
 }
 
 class _InstrumentationClient implements NullabilityMigrationInstrumentation {
-  final _InstrumentationTest test;
+  final _InstrumentationTestBase test;
 
   _InstrumentationClient(this.test);
 
@@ -97,7 +98,12 @@ class _InstrumentationClient implements NullabilityMigrationInstrumentation {
 }
 
 @reflectiveTest
-class _InstrumentationTest extends AbstractContextTest {
+class _InstrumentationTest extends _InstrumentationTestBase {
+  @override
+  bool get useFixBuilder => false;
+}
+
+abstract class _InstrumentationTestBase extends AbstractContextTest {
   NullabilityNodeInfo always;
 
   final Map<TypeAnnotation, NullabilityNodeInfo> explicitTypeNullability = {};
@@ -127,12 +133,15 @@ class _InstrumentationTest extends AbstractContextTest {
 
   Source source;
 
+  bool get useFixBuilder;
+
   Future<void> analyze(String content) async {
     var sourcePath = convertPath('/home/test/lib/test.dart');
     newFile(sourcePath, content: content);
     var listener = new TestMigrationListener();
     var migration = NullabilityMigration(listener,
-        instrumentation: _InstrumentationClient(this));
+        instrumentation: _InstrumentationClient(this),
+        useFixBuilder: useFixBuilder);
     var result = await session.getResolvedUnit(sourcePath);
     source = result.unit.declaredElement.source;
     findNode = FindNode(content, result.unit);
@@ -1001,4 +1010,18 @@ voig g(C<int> x, int y) {
     return edges.any(
         (e) => e.sourceNode == node && e.destinationNode == never && e.isHard);
   }
+}
+
+@reflectiveTest
+class _InstrumentationTestWithFixBuilder extends _InstrumentationTestBase {
+  @override
+  bool get useFixBuilder => true;
+
+  @override
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
+  Future<void> test_fix_reason_edge() => super.test_fix_reason_edge();
+
+  @override
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
+  Future<void> test_fix_reason_node() => super.test_fix_reason_node();
 }
