@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:math';
+import 'dart:io' as io;
 
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/completion/completion_core.dart';
@@ -32,7 +33,13 @@ Future _computeCompletionMetrics(
   int notIncludedCount = 0;
 
   for (var root in analysisRoots) {
-    print('Analyzing root: $root');
+    print('Analyzing root: \"$root\"');
+
+    if (!io.Directory(root).existsSync()) {
+      print('\tError: No such directory exists on this machine.\n');
+      continue;
+    }
+
     final collection = AnalysisContextCollection(
       includedPaths: [root],
       resourceProvider: resourceProvider,
