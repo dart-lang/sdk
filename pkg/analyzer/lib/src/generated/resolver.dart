@@ -335,13 +335,14 @@ class ResolverVisitor extends ScopedVisitor {
         super(definingLibrary, source, typeProvider, errorListener,
             nameScope: nameScope) {
     this._promoteManager = TypePromotionManager(typeSystem);
-    this.boolExpressionVerifier = BoolExpressionVerifier(
-      typeSystem: typeSystem,
-      errorReporter: errorReporter,
-    );
     this.nullableDereferenceVerifier = NullableDereferenceVerifier(
       typeSystem: typeSystem,
       errorReporter: errorReporter,
+    );
+    this.boolExpressionVerifier = BoolExpressionVerifier(
+      typeSystem: typeSystem,
+      errorReporter: errorReporter,
+      nullableDereferenceVerifier: nullableDereferenceVerifier,
     );
     this._typedLiteralResolver = TypedLiteralResolver(
         this, _featureSet, typeSystem, typeProvider,

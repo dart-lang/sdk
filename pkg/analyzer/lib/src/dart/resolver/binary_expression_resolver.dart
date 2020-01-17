@@ -103,9 +103,11 @@ class BinaryExpressionResolver {
   }
 
   void _checkNonBoolOperand(Expression operand, String operator) {
-    _resolver.boolExpressionVerifier.checkForNonBoolExpression(operand,
-        errorCode: StaticTypeWarningCode.NON_BOOL_OPERAND,
-        arguments: [operator]);
+    _resolver.boolExpressionVerifier.checkForNonBoolExpression(
+      operand,
+      errorCode: StaticTypeWarningCode.NON_BOOL_OPERAND,
+      arguments: [operator],
+    );
   }
 
   /// Gets the definite type of expression, which can be used in cases where

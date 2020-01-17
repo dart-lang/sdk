@@ -9,6 +9,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/error/nullable_dereference_verifier.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:meta/meta.dart';
 
@@ -16,6 +17,7 @@ import 'package:meta/meta.dart';
 class BoolExpressionVerifier {
   final TypeSystemImpl _typeSystem;
   final ErrorReporter _errorReporter;
+  final NullableDereferenceVerifier _nullableDereferenceVerifier;
 
   final ClassElement _boolElement;
   final InterfaceType _boolType;
@@ -23,8 +25,10 @@ class BoolExpressionVerifier {
   BoolExpressionVerifier({
     @required TypeSystemImpl typeSystem,
     @required ErrorReporter errorReporter,
+    @required NullableDereferenceVerifier nullableDereferenceVerifier,
   })  : _typeSystem = typeSystem,
         _errorReporter = errorReporter,
+        _nullableDereferenceVerifier = nullableDereferenceVerifier,
         _boolElement = typeSystem.typeProvider.boolElement,
         _boolType = typeSystem.typeProvider.boolType;
 
@@ -47,10 +51,7 @@ class BoolExpressionVerifier {
     if (!_checkForUseOfVoidResult(expression) &&
         !_typeSystem.isAssignableTo(type, _boolType)) {
       if (type.element == _boolElement) {
-        _errorReporter.reportErrorForNode(
-          StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE,
-          expression,
-        );
+        _nullableDereferenceVerifier.report(expression, type);
       } else {
         _errorReporter.reportErrorForNode(errorCode, expression, arguments);
       }

@@ -457,10 +457,7 @@ class MethodInvocationResolver {
         );
       } else {
         _setDynamicResolution(node);
-        _resolver.errorReporter.reportErrorForNode(
-          StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE,
-          receiver,
-        );
+        _resolver.nullableDereferenceVerifier.report(receiver, receiverType);
       }
       return;
     }
