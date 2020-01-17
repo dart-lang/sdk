@@ -163,10 +163,11 @@ class UnitRenderer {
       String regionClass = region.regionType == RegionType.fix
           ? 'fix-region'
           : 'non-nullable-type-region';
+      String regionContent =
+          _htmlEscape.convert(content.substring(offset, offset + length));
       // TODO(srawlins): Don't ship all of the tooltips for each unit. Instead,
       //  request each one as they are clicked.
-      regions.write('<span class="region $regionClass">'
-          '${content.substring(offset, offset + length)}'
+      regions.write('<span class="region $regionClass">$regionContent'
           '<div class="tooltip">'
           '<p>${_htmlEscape.convert(region.explanation)}</p>');
       //
