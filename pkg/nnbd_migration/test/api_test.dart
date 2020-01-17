@@ -3908,25 +3908,10 @@ class _ProvisionalApiTestWithFixBuilder extends _ProvisionalApiTestBase
   Future<void> test_extension_nullableOnType_viaImplicitInvocation() =>
       super.test_extension_nullableOnType_viaImplicitInvocation();
 
-  @override
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
-  Future<void> test_generic_exact_propagation() =>
-      super.test_generic_exact_propagation();
-
-  @override
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
-  Future<void> test_generic_exact_propagation_premigratedListClass() =>
-      super.test_generic_exact_propagation_premigratedListClass();
-
   /// Test fails under the pre-FixBuilder implementation; passes now.
   @override
   Future<void> test_ifStatement_nullCheck_noElse() =>
       super.test_ifStatement_nullCheck_noElse();
-
-  @override
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
-  Future<void> test_instance_creation_generic() =>
-      super.test_instance_creation_generic();
 
   @override
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')

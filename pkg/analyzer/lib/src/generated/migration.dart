@@ -20,11 +20,6 @@ abstract class MigrationResolutionHooks
   /// it is known to evaluate to is returned.  Otherwise `null` is returned.
   bool getConditionalKnownValue(AstNode node);
 
-  /// Called when the resolver is visiting a [TypeAnnotation] AST node.  Should
-  /// return the type of the [TypeAnnotation] after migrations have been
-  /// applied.
-  DartType getMigratedTypeAnnotationType(TypeAnnotation node);
-
   /// Called after the resolver has determined the type of an expression node.
   /// Should return the type that the expression has after migrations have been
   /// applied.

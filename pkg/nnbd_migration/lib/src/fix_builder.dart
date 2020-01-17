@@ -125,8 +125,8 @@ class FixBuilder {
   /// Visits the entire compilation [unit] using the analyzer's resolver and
   /// makes note of changes that need to be made.
   void visitAll(CompilationUnit unit) {
-    unit.accept(_resolver);
     unit.accept(_AdditionalMigrationsVisitor(this));
+    unit.accept(_resolver);
   }
 
   /// Called whenever an AST node is found that needs to be changed.
@@ -196,8 +196,6 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
 
   final Expando<List<CollectionElement>> _collectionElements = Expando();
 
-  final Set<TypeAnnotation> _fixedTypeAnnotations = {};
-
   FlowAnalysis<AstNode, Statement, Expression, PromotableElement, DartType>
       _flowAnalysis;
 
@@ -251,27 +249,9 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
   }
 
   @override
-  List<TypeAnnotation> getListTypeArguments(ListLiteral node) {
-    _fixTypeArguments(node.typeArguments);
-    return node.typeArguments?.arguments;
-  }
-
-  @override
-  DartType getMigratedTypeAnnotationType(TypeAnnotation node) {
-    _fixTypeAnnotation(node);
-    return node.type;
-  }
-
-  @override
   List<CollectionElement> getSetOrMapElements(SetOrMapLiteral node) {
     return _collectionElements[node] ??=
         _transformCollectionElements(node.elements, node.typeArguments);
-  }
-
-  @override
-  List<TypeAnnotation> getSetOrMapTypeArguments(SetOrMapLiteral node) {
-    _fixTypeArguments(node.typeArguments);
-    return node.typeArguments?.arguments;
   }
 
   @override
@@ -324,38 +304,6 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
         continue;
       }
       return node;
-    }
-  }
-
-  void _fixTypeAnnotation(TypeAnnotation node) {
-    if (!_fixedTypeAnnotations.add(node)) return;
-    var decoratedType = _fixBuilder._variables
-        .decoratedTypeAnnotation(_fixBuilder.source, node);
-    var type = decoratedType.type;
-    if (!type.isDynamic && !type.isVoid && decoratedType.node.isNullable) {
-      var decoratedType = _fixBuilder._variables
-          .decoratedTypeAnnotation(_fixBuilder.source, node);
-      _fixBuilder._addChange(node, MakeNullable(decoratedType));
-    }
-    if (node is TypeNameImpl) {
-      var typeArguments = node.typeArguments;
-      _fixTypeArguments(typeArguments);
-      node.type = decoratedType.toFinalType(_fixBuilder.typeProvider);
-    } else if (node is GenericFunctionTypeImpl) {
-      // TODO(paulberry): handle type parameter bounds that need to be made
-      // nullable.
-      node.type = decoratedType.toFinalType(_fixBuilder.typeProvider);
-    } else {
-      throw StateError(
-          'Unrecognized type annotation type: ${node.runtimeType}');
-    }
-  }
-
-  void _fixTypeArguments(TypeArgumentList typeArguments) {
-    if (typeArguments != null) {
-      for (var arg in typeArguments.arguments) {
-        _fixTypeAnnotation(arg);
-      }
     }
   }
 
@@ -418,7 +366,6 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
 
   List<CollectionElement> _transformCollectionElements(
       NodeList<CollectionElement> elements, TypeArgumentList typeArguments) {
-    _fixTypeArguments(typeArguments);
     return elements
         .map(_transformCollectionElement)
         .where((e) => e != null)
@@ -454,5 +401,30 @@ class _AdditionalMigrationsVisitor extends RecursiveAstVisitor<void> {
             node, const NonNullableUnnamedOptionalParameter());
       }
     }
+    super.visitDefaultFormalParameter(node);
+  }
+
+  @override
+  void visitGenericFunctionType(GenericFunctionType node) {
+    var decoratedType = _fixBuilder._variables
+        .decoratedTypeAnnotation(_fixBuilder.source, node);
+    if (decoratedType.node.isNullable) {
+      _fixBuilder._addChange(node, MakeNullable(decoratedType));
+    }
+    (node as GenericFunctionTypeImpl).type =
+        decoratedType.toFinalType(_fixBuilder.typeProvider);
+    super.visitGenericFunctionType(node);
+  }
+
+  @override
+  void visitTypeName(TypeName node) {
+    var decoratedType = _fixBuilder._variables
+        .decoratedTypeAnnotation(_fixBuilder.source, node);
+    var type = decoratedType.type;
+    if (!type.isDynamic && !type.isVoid && decoratedType.node.isNullable) {
+      _fixBuilder._addChange(node, MakeNullable(decoratedType));
+    }
+    node.type = decoratedType.toFinalType(_fixBuilder.typeProvider);
+    super.visitTypeName(node);
   }
 }
