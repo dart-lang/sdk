@@ -253,17 +253,17 @@ var a = [if (0 < 1) ...c else ...d];
 
   test_noContext_noTypeArgs_spread_nullAware_nullAndNotNull() async {
     await resolveTestCode('''
-f() {
+f() async {
   var futureNull = Future.value(null);
   var a = [1, ...?await futureNull, 2];
 }
 ''');
-    assertType(findNode.listLiteral('['), 'List<dynamic>');
+    assertType(findNode.listLiteral('['), 'List<int>');
   }
 
   test_noContext_noTypeArgs_spread_nullAware_onlyNull() async {
     await resolveTestCode('''
-f() {
+f() async {
   var futureNull = Future.value(null);
   var a = [...?await futureNull];
 }

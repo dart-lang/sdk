@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -261,24 +262,38 @@ var a = {if (0 < 1) ...c else ...d};
     assertType(setOrMapLiteral('{'), 'Map<dynamic, dynamic>');
   }
 
-  @failingTest
-  test_noContext_noTypeArgs_spread_nullAware_nullAndNotNull() async {
-    await resolveTestCode('''
-f() {
+  test_noContext_noTypeArgs_spread_nullAware_nullAndNotNull_map() async {
+    await assertNoErrorsInCode('''
+f() async {
   var futureNull = Future.value(null);
   var a = {1 : 'a', ...?await futureNull, 2 : 'b'};
+  a;
 }
 ''');
     assertType(setOrMapLiteral('{1'), 'Map<int, String>');
   }
 
-  test_noContext_noTypeArgs_spread_nullAware_onlyNull() async {
-    await resolveTestCode('''
-f() {
+  test_noContext_noTypeArgs_spread_nullAware_nullAndNotNull_set() async {
+    await assertNoErrorsInCode('''
+f() async {
   var futureNull = Future.value(null);
-  var a = {...?await futureNull};
+  var a = {1, ...?await futureNull, 2};
+  a;
 }
 ''');
+    assertType(setOrMapLiteral('{1'), 'Set<int>');
+  }
+
+  test_noContext_noTypeArgs_spread_nullAware_onlyNull() async {
+    await assertErrorsInCode('''
+f() async {
+  var futureNull = Future.value(null);
+  var a = {...?await futureNull};
+  a;
+}
+''', [
+      error(CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER, 61, 22),
+    ]);
     assertType(setOrMapLiteral('{...'), 'dynamic');
   }
 
