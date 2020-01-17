@@ -102,6 +102,12 @@ class BinaryExpressionResolver {
     _inferenceHelper.recordStaticType(node, staticType);
   }
 
+  void _checkNonBoolOperand(Expression operand, String operator) {
+    _resolver.boolExpressionVerifier.checkForNonBoolExpression(operand,
+        errorCode: StaticTypeWarningCode.NON_BOOL_OPERAND,
+        arguments: [operator]);
+  }
+
   /// Gets the definite type of expression, which can be used in cases where
   /// the most precise type is desired, for example computing the least upper
   /// bound.
@@ -263,8 +269,8 @@ class BinaryExpressionResolver {
   }
 
   void _resolveLogicalAnd(BinaryExpressionImpl node) {
-    Expression left = node.leftOperand;
-    Expression right = node.rightOperand;
+    var left = node.leftOperand;
+    var right = node.rightOperand;
     var flow = _flowAnalysis?.flow;
 
     InferenceContext.setType(left, _typeProvider.boolType);
@@ -272,11 +278,15 @@ class BinaryExpressionResolver {
 
     // TODO(scheglov) Do we need these checks for null?
     left?.accept(_resolver);
+    left = node.leftOperand;
 
     if (_flowAnalysis != null) {
       flow?.logicalBinaryOp_rightBegin(left, isAnd: true);
       _flowAnalysis.checkUnreachableNode(right);
+
       right.accept(_resolver);
+      right = node.rightOperand;
+
       flow?.logicalBinaryOp_end(node, right, isAnd: true);
     } else {
       _promoteManager.visitBinaryExpression_and_rhs(
@@ -284,16 +294,20 @@ class BinaryExpressionResolver {
         right,
         () {
           right.accept(_resolver);
+          right = node.rightOperand;
         },
       );
     }
+
+    _checkNonBoolOperand(left, '&&');
+    _checkNonBoolOperand(right, '&&');
 
     _resolve1(node);
     _resolve2(node);
   }
 
   void _resolveLogicalOr(BinaryExpressionImpl node) {
-    Expression left = node.leftOperand;
+    var left = node.leftOperand;
     Expression right = node.rightOperand;
     var flow = _flowAnalysis?.flow;
 
@@ -302,11 +316,18 @@ class BinaryExpressionResolver {
 
     // TODO(scheglov) Do we need these checks for null?
     left?.accept(_resolver);
+    left = node.leftOperand;
 
     flow?.logicalBinaryOp_rightBegin(left, isAnd: false);
     _flowAnalysis?.checkUnreachableNode(right);
+
     right.accept(_resolver);
+    right = node.rightOperand;
+
     flow?.logicalBinaryOp_end(node, right, isAnd: false);
+
+    _checkNonBoolOperand(left, '||');
+    _checkNonBoolOperand(right, '||');
 
     _resolve1(node);
     _resolve2(node);

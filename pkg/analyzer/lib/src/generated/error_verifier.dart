@@ -365,11 +365,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     Token operator = node.operator;
     TokenType type = operator.type;
     if (type == TokenType.AMPERSAND_AMPERSAND || type == TokenType.BAR_BAR) {
-      String lexeme = operator.lexeme;
-      _checkForAssignability(node.leftOperand, _boolType,
-          StaticTypeWarningCode.NON_BOOL_OPERAND, [lexeme]);
-      _checkForAssignability(node.rightOperand, _boolType,
-          StaticTypeWarningCode.NON_BOOL_OPERAND, [lexeme]);
       _checkForUseOfVoidResult(node.rightOperand);
     } else if (type == TokenType.EQ_EQ || type == TokenType.BANG_EQ) {
       _checkForArgumentTypeNotAssignableForArgument(node.rightOperand,
@@ -1687,33 +1682,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
     for (Expression argument in argumentList.arguments) {
       _checkForArgumentTypeNotAssignableForArgument(argument);
-    }
-  }
-
-  /**
-   * Check that the static type of the given expression is assignable to the
-   * given type. If it isn't, report an error with the given error code. The
-   * [type] is the type that the expression must be assignable to. The
-   * [errorCode] is the error code to be reported. The [arguments] are the
-   * arguments to pass in when creating the error.
-   */
-  void _checkForAssignability(Expression expression, InterfaceType type,
-      ErrorCode errorCode, List<Object> arguments) {
-    if (expression == null) {
-      return;
-    }
-    DartType expressionType = expression.staticType;
-    if (expressionType == null) {
-      return;
-    }
-    if (_typeSystem.isAssignableTo(expressionType, type)) {
-      return;
-    }
-    if (expressionType.element == type.element) {
-      _errorReporter.reportErrorForNode(
-          StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, expression);
-    } else {
-      _errorReporter.reportErrorForNode(errorCode, expression, arguments);
     }
   }
 

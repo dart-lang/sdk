@@ -42,7 +42,7 @@ class BoolExpressionVerifier {
   /// Verify that the given [expression] is of type 'bool', and report
   /// [errorCode] if not, or a nullability error if its improperly nullable.
   void checkForNonBoolExpression(Expression expression,
-      {@required ErrorCode errorCode}) {
+      {@required ErrorCode errorCode, List<Object> arguments}) {
     var type = expression.staticType;
     if (!_checkForUseOfVoidResult(expression) &&
         !_typeSystem.isAssignableTo(type, _boolType)) {
@@ -52,7 +52,7 @@ class BoolExpressionVerifier {
           expression,
         );
       } else {
-        _errorReporter.reportErrorForNode(errorCode, expression);
+        _errorReporter.reportErrorForNode(errorCode, expression, arguments);
       }
     }
   }
