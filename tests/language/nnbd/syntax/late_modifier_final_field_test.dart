@@ -15,11 +15,9 @@ class Base {
   late final int fieldWithInit;
 }
 
-// A inherits from Base to bypass the compile time error caused by assigning to
-// a late final field that has an initializer. This allows us to test the
-// runtime exception.
 class A extends Base {
   late final int fieldWithInit = init();
+  int get superFieldWithInit => super.fieldWithInit;
 }
 
 class B {
@@ -35,9 +33,11 @@ main() {
   Expect.equals(1, initCalls);
   // Setting Base.fieldWithInit once is ok but causes no calls to init().
   a.fieldWithInit = 456;
+  Expect.equals(456, (a as A).superFieldWithInit);
+  Expect.equals(123, a.fieldWithInit);
   Expect.equals(1, initCalls);
   // Setting Base.fieldWithInit twice throws an error.
-  Expect.throws(() => {a.fieldWithInit = 456},
+  Expect.throws(() => {a.fieldWithInit = 789},
       (error) => error is LateInitializationError);
   Expect.equals(1, initCalls);
   Expect.equals(123, a.fieldWithInit);
@@ -48,12 +48,14 @@ main() {
   Expect.equals(0, initCalls);
   // Setting Base.fieldWithInit once is ok but causes no calls to init().
   a2.fieldWithInit = 456;
+  Expect.equals(456, (a as A).superFieldWithInit);
   Expect.equals(0, initCalls);
   // Setting Base.fieldWithInit twice throws an error.
-  Expect.throws(() => {a2.fieldWithInit = 456},
+  Expect.throws(() => {a2.fieldWithInit = 789},
       (error) => error is LateInitializationError);
   Expect.equals(0, initCalls);
   Expect.equals(123, a2.fieldWithInit);
+  Expect.equals(456, (a as A).superFieldWithInit);
   Expect.equals(1, initCalls);
 
   B b = B();

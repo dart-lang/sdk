@@ -2620,14 +2620,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
         body += Drop();
       }
       body += Drop();
-      if (field.is_final() && field.has_initializer()) {
-        body += ThrowLateInitializationError(
-            field.token_pos(), String::ZoneHandle(Z, field.name()));
-      } else {
-        body += StoreLateField(
-            field, is_method ? parsed_function_->ParameterVariable(0) : nullptr,
-            setter_value);
-      }
+      body += StoreLateField(
+          field, is_method ? parsed_function_->ParameterVariable(0) : nullptr,
+          setter_value);
     } else {
       if (is_method) {
         body += StoreInstanceFieldGuarded(

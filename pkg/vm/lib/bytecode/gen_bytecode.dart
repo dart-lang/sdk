@@ -986,9 +986,11 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   }
 
   bool _needsSetter(Field field) {
-    // Late fields always need a setter, unless they're static and non-final.
+    // Late fields always need a setter, unless they're static and non-final, or
+    // final with an initializer.
     if (field.isLate) {
       if (field.isStatic && !field.isFinal) return false;
+      if (field.isFinal && field.initializer != null) return false;
       return true;
     }
 

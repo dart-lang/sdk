@@ -9002,9 +9002,13 @@ void Field::set_guarded_list_length_in_object_offset(
 }
 
 bool Field::NeedsSetter() const {
-  // Late fields always need a setter, unless they're static and non-final.
+  // Late fields always need a setter, unless they're static and non-final, or
+  // final with an initializer.
   if (is_late()) {
     if (is_static() && !is_final()) {
+      return false;
+    }
+    if (is_final() && has_initializer()) {
       return false;
     }
     return true;
