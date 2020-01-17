@@ -471,7 +471,7 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
     }
   }
 
-  int indexOf(E element, [@nullCheck int start = 0]) {
+  int indexOf(Object? element, [@nullCheck int start = 0]) {
     int length = this.length;
     if (start >= length) {
       return -1;
@@ -487,7 +487,7 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
     return -1;
   }
 
-  int lastIndexOf(E element, [int? _startIndex]) {
+  int lastIndexOf(Object? element, [int? _startIndex]) {
     @notNull
     int startIndex = _startIndex ?? this.length - 1;
     if (startIndex >= this.length) {
