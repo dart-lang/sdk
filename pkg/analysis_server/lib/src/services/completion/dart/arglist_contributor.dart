@@ -148,7 +148,7 @@ class ArgListContributor extends DartCompletionContributor {
   ) {
     if (type is FunctionType) {
       var indent = getRequestLineIndent(request);
-      var parametersString = _buildClosureParameters(type);
+      var parametersString = buildClosureParameters(type);
 
       var blockBuffer = StringBuffer(parametersString);
       blockBuffer.writeln(' {');
@@ -338,38 +338,6 @@ class ArgListContributor extends DartCompletionContributor {
         ? flutter.identifyNewExpression(containingNode.parent)
         : null;
     return newExpr != null && flutter.isWidgetCreation(newExpr);
-  }
-
-  static String _buildClosureParameters(FunctionType type) {
-    var buffer = StringBuffer();
-    buffer.write('(');
-
-    var hasNamed = false;
-    var hasOptionalPositional = false;
-    var parameters = type.parameters;
-    for (var i = 0; i < parameters.length; ++i) {
-      var parameter = parameters[i];
-      if (i != 0) {
-        buffer.write(', ');
-      }
-      if (parameter.isNamed && !hasNamed) {
-        hasNamed = true;
-        buffer.write('{');
-      } else if (parameter.isOptionalPositional && !hasOptionalPositional) {
-        hasOptionalPositional = true;
-        buffer.write('[');
-      }
-      buffer.write(parameter.name);
-    }
-
-    if (hasNamed) {
-      buffer.write('}');
-    } else if (hasOptionalPositional) {
-      buffer.write(']');
-    }
-
-    buffer.write(')');
-    return buffer.toString();
   }
 
   /**
