@@ -13,7 +13,7 @@ import 'package:path/path.dart' as path;
 import 'package:pub_semver/pub_semver.dart';
 
 /// A simple application that uses the analysis server to analyze a package.
-main(List<String> args) async {
+void main(List<String> args) async {
   String target = await parseArgs(args);
   print('Analyzing $target');
 
@@ -38,6 +38,7 @@ main(List<String> args) async {
   StreamSubscription<ProcessSignal> subscription;
   subscription = ProcessSignal.sigint.watch().listen((_) async {
     print('Exiting...');
+    // ignore: unawaited_futures
     subscription.cancel();
     await server.stop();
   });

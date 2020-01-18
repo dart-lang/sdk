@@ -9,7 +9,7 @@ linter:
     #
     # From pedantic 1.9.0:
     #
-    #- always_declare_return_types # 2
+    - always_declare_return_types
     - always_require_non_null_named_parameters
     - annotate_overrides
     - avoid_empty_else
@@ -28,7 +28,7 @@ linter:
     - no_duplicate_case_values
     - null_closures
     #- omit_local_variable_types # 421
-    #- prefer_adjacent_string_concatenation # 3
+    - prefer_adjacent_string_concatenation
     - prefer_collection_literals
     - prefer_conditional_assignment
     - prefer_contains
@@ -45,12 +45,12 @@ linter:
     - recursive_getters
     - slash_for_doc_comments
     - type_init_formals
-    #- unawaited_futures # 5
+    - unawaited_futures
     - unnecessary_const
     - unnecessary_new
     - unnecessary_null_in_if_null_operators
     - unnecessary_this
     - unrelated_type_equality_checks
-    #- use_function_type_syntax_for_parameters # 4
+    - use_function_type_syntax_for_parameters
     - use_rethrow_when_possible
     - valid_regexps

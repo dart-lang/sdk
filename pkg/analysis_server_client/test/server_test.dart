@@ -36,6 +36,7 @@ void main() {
       process.stderr = _noMessage();
 
       final future = server.send('blahMethod', null);
+      // ignore: unawaited_futures
       future.catchError((e) {
         expect(e, const TypeMatcher<RequestError>());
         final error = e as RequestError;
@@ -59,6 +60,7 @@ void main() {
         completer.complete();
       }
 
+      // ignore: unawaited_futures
       server.send('blahMethod', null);
       server.listenToOutput(notificationProcessor: eventHandler);
       await completer.future;
@@ -70,6 +72,7 @@ void main() {
       final mockout = StreamController<List<int>>();
       process.stdout = mockout.stream;
       process.stderr = _noMessage();
+      // ignore: unawaited_futures
       process.mockin.controller.stream.first.then((_) {
         String encoded = json.encode({'id': '0'});
         mockout.add(utf8.encoder.convert('$encoded\n'));
