@@ -161,7 +161,7 @@ class _RegExpMatch implements RegExpMatch {
     return _match[(groupIdx * _MATCH_PAIR) + 1];
   }
 
-  String group(int groupIdx) {
+  String? group(int groupIdx) {
     if (groupIdx < 0 || groupIdx > _regexp._groupCount) {
       throw new RangeError.value(groupIdx);
     }
@@ -174,12 +174,12 @@ class _RegExpMatch implements RegExpMatch {
     return input._substringUnchecked(startIndex, endIndex);
   }
 
-  String operator [](int groupIdx) {
+  String? operator [](int groupIdx) {
     return this.group(groupIdx);
   }
 
-  List<String> groups(List<int> groupsSpec) {
-    var groupsList = new List<String>(groupsSpec.length);
+  List<String?> groups(List<int> groupsSpec) {
+    var groupsList = new List<String?>.filled(groupsSpec.length, null);
     for (int i = 0; i < groupsSpec.length; i++) {
       groupsList[i] = group(groupsSpec[i]);
     }
@@ -190,7 +190,7 @@ class _RegExpMatch implements RegExpMatch {
 
   Pattern get pattern => _regexp;
 
-  String namedGroup(String name) {
+  String? namedGroup(String name) {
     var idx = _regexp._groupNameIndex(name);
     if (idx < 0) {
       throw ArgumentError("Not a capture group name: ${name}");

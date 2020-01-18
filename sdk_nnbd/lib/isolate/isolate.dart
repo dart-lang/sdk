@@ -691,7 +691,7 @@ abstract class ReceivePort implements Stream<dynamic> {
    * The stream closes when [close] is called.
    */
   StreamSubscription<dynamic> listen(void onData(var message)?,
-      {Function? onError, void onDone()?, bool cancelOnError = true});
+      {Function? onError, void onDone()?, bool? cancelOnError});
 
   /**
    * Closes `this`.

@@ -198,15 +198,14 @@ abstract class _StringBase implements String {
         throw new RangeError.range(end, start, charCodes.length);
       }
       int len = end - start;
-      charCodeList = new List<int>(len);
-      for (int i = 0; i < len; i++) {
+      charCodeList = new List<int>.generate(len, (int i) {
         if (!it.moveNext()) {
           throw new RangeError.range(end, start, start + i);
         }
         int code = it.current;
         bits |= code;
-        charCodeList[i] = code;
-      }
+        return code;
+      });
     }
     int length = charCodeList.length;
     if (bits < 0) {
@@ -886,10 +885,8 @@ abstract class _StringBase implements String {
 
   List<String> split(Pattern pattern) {
     if ((pattern is String) && pattern.isEmpty) {
-      List<String> result = new List<String>(this.length);
-      for (int i = 0; i < this.length; i++) {
-        result[i] = this[i];
-      }
+      List<String> result =
+          new List<String>.generate(this.length, (int i) => this[i]);
       return result;
     }
     int length = this.length;

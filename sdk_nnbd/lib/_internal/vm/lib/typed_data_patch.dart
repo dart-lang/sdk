@@ -85,7 +85,7 @@ abstract class _TypedListBase {
     throw new UnsupportedError("Cannot remove from a fixed-length list");
   }
 
-  bool remove(Object element) {
+  bool remove(Object? element) {
     throw new UnsupportedError("Cannot remove from a fixed-length list");
   }
 
@@ -157,7 +157,7 @@ mixin _IntListMixin implements List<int> {
       ..setRange(this.length, totalLength, other);
   }
 
-  bool contains(Object element) {
+  bool contains(Object? element) {
     var len = this.length;
     for (var i = 0; i < len; ++i) {
       if (this[i] == element) return true;
@@ -510,7 +510,7 @@ mixin _DoubleListMixin implements List<double> {
       ..setRange(this.length, totalLength, other);
   }
 
-  bool contains(Object element) {
+  bool contains(Object? element) {
     var len = this.length;
     for (var i = 0; i < len; ++i) {
       if (this[i] == element) return true;
@@ -869,7 +869,7 @@ abstract class _Float32x4ListMixin implements List<Float32x4> {
       ..setRange(this.length, totalLength, other);
   }
 
-  bool contains(Object element) {
+  bool contains(Object? element) {
     var len = this.length;
     for (var i = 0; i < len; ++i) {
       if (this[i] == element) return true;
@@ -1226,7 +1226,7 @@ abstract class _Int32x4ListMixin implements List<Int32x4> {
       ..setRange(this.length, totalLength, other);
   }
 
-  bool contains(Object element) {
+  bool contains(Object? element) {
     var len = this.length;
     for (var i = 0; i < len; ++i) {
       if (this[i] == element) return true;
@@ -1582,7 +1582,7 @@ abstract class _Float64x2ListMixin implements List<Float64x2> {
       ..setRange(this.length, totalLength, other);
   }
 
-  bool contains(Object element) {
+  bool contains(Object? element) {
     var len = this.length;
     for (var i = 0; i < len; ++i) {
       if (this[i] == element) return true;

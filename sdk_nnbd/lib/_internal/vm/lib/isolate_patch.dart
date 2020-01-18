@@ -82,7 +82,7 @@ class _ReceivePortImpl extends Stream implements ReceivePort {
   }
 
   StreamSubscription listen(void onData(var message)?,
-      {Function? onError, void onDone()?, bool cancelOnError = true}) {
+      {Function? onError, void onDone()?, bool? cancelOnError}) {
     return _controller.stream.listen(onData,
         onError: onError, onDone: onDone, cancelOnError: cancelOnError);
   }

@@ -298,7 +298,7 @@ abstract class _LinkedHashMapMixin<K, V> implements _HashBase {
     return value;
   }
 
-  V remove(Object key) {
+  V? remove(Object? key) {
     final int size = _index.length;
     final int sizeMask = size - 1;
     final int maxEntries = size >> 1;
@@ -328,7 +328,7 @@ abstract class _LinkedHashMapMixin<K, V> implements _HashBase {
   }
 
   // If key is absent, return _data (which is never a value).
-  Object _getValueOrData(Object key) {
+  Object? _getValueOrData(Object? key) {
     final int size = _index.length;
     final int sizeMask = size - 1;
     final int maxEntries = size >> 1;
@@ -352,14 +352,14 @@ abstract class _LinkedHashMapMixin<K, V> implements _HashBase {
     return _data;
   }
 
-  bool containsKey(Object key) => !identical(_data, _getValueOrData(key));
+  bool containsKey(Object? key) => !identical(_data, _getValueOrData(key));
 
-  V operator [](Object key) {
+  V? operator [](Object? key) {
     var v = _getValueOrData(key);
     return identical(_data, v) ? null : internal.unsafeCast<V>(v);
   }
 
-  bool containsValue(Object value) {
+  bool containsValue(Object? value) {
     for (var v in values) {
       // Spec. says this should always use "==", also for identity maps, etc.
       if (v == value) {
@@ -405,9 +405,9 @@ class _CompactLinkedCustomHashMap<K, V> extends _HashFieldBase
   int _hashCode(e) => _hasher(e);
   bool _equals(e1, e2) => _equality(e1, e2);
 
-  bool containsKey(Object o) => _validKey(o) ? super.containsKey(o) : false;
-  V operator [](Object o) => _validKey(o) ? super[o] : null;
-  V remove(Object o) => _validKey(o) ? super.remove(o) : null;
+  bool containsKey(Object? o) => _validKey(o) ? super.containsKey(o) : false;
+  V? operator [](Object? o) => _validKey(o) ? super[o] : null;
+  V? remove(Object? o) => _validKey(o) ? super.remove(o) : null;
 
   _CompactLinkedCustomHashMap(this._equality, this._hasher, validKey)
       : _validKey = (validKey != null) ? validKey : new _TypeTest<K>().test,
@@ -565,7 +565,7 @@ class _CompactLinkedHashSet<E> extends _HashFieldBase
   }
 
   // If key is absent, return _data (which is never a value).
-  Object _getKeyOrData(Object key) {
+  Object? _getKeyOrData(Object? key) {
     final int size = _index.length;
     final int sizeMask = size - 1;
     final int maxEntries = size >> 1;
@@ -586,14 +586,14 @@ class _CompactLinkedHashSet<E> extends _HashFieldBase
     return _data;
   }
 
-  E lookup(Object key) {
+  E? lookup(Object? key) {
     var k = _getKeyOrData(key);
     return identical(_data, k) ? null : k;
   }
 
-  bool contains(Object key) => !identical(_data, _getKeyOrData(key));
+  bool contains(Object? key) => !identical(_data, _getKeyOrData(key));
 
-  bool remove(Object key) {
+  bool remove(Object? key) {
     final int size = _index.length;
     final int sizeMask = size - 1;
     final int maxEntries = size >> 1;
@@ -648,9 +648,9 @@ class _CompactLinkedCustomHashSet<E> extends _CompactLinkedHashSet<E> {
   int _hashCode(e) => _hasher(e);
   bool _equals(e1, e2) => _equality(e1, e2);
 
-  bool contains(Object o) => _validKey(o) ? super.contains(o) : false;
-  E lookup(Object o) => _validKey(o) ? super.lookup(o) : null;
-  bool remove(Object o) => _validKey(o) ? super.remove(o) : false;
+  bool contains(Object? o) => _validKey(o) ? super.contains(o) : false;
+  E? lookup(Object? o) => _validKey(o) ? super.lookup(o) : null;
+  bool remove(Object? o) => _validKey(o) ? super.remove(o) : false;
 
   _CompactLinkedCustomHashSet(this._equality, this._hasher, validKey)
       : _validKey = (validKey != null) ? validKey : new _TypeTest<E>().test;

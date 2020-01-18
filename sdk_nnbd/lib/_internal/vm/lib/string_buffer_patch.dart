@@ -14,7 +14,7 @@ class StringBuffer {
    * When strings are written to the string buffer, we add them to a
    * list of string parts.
    */
-  List<String> _parts;
+  List<String>? _parts;
 
   /**
     * Total number of code units in the string parts. Does not include
@@ -37,7 +37,7 @@ class StringBuffer {
    * used when writing short strings or individual char codes to the
    * buffer. The buffer is allocated on demand.
    */
-  Uint16List _buffer;
+  Uint16List? _buffer;
   int _bufferPosition = 0;
 
   /**
@@ -74,7 +74,8 @@ class StringBuffer {
         throw new RangeError.range(charCode, 0, 0x10FFFF);
       }
       _ensureCapacity(1);
-      _buffer[_bufferPosition++] = charCode;
+      final localBuffer = _buffer!;
+      localBuffer[_bufferPosition++] = charCode;
       _bufferCodeUnitMagnitude |= charCode;
     } else {
       if (charCode > 0x10FFFF) {
@@ -82,8 +83,9 @@ class StringBuffer {
       }
       _ensureCapacity(2);
       int bits = charCode - 0x10000;
-      _buffer[_bufferPosition++] = 0xD800 | (bits >> 10);
-      _buffer[_bufferPosition++] = 0xDC00 | (bits & 0x3FF);
+      final localBuffer = _buffer!;
+      localBuffer[_bufferPosition++] = 0xD800 | (bits >> 10);
+      localBuffer[_bufferPosition++] = 0xDC00 | (bits & 0x3FF);
       _bufferCodeUnitMagnitude |= 0xFFFF;
     }
   }
@@ -122,16 +124,18 @@ class StringBuffer {
   @patch
   String toString() {
     _consumeBuffer();
-    return (_partsCodeUnits == 0)
+    final localParts = _parts;
+    return (_partsCodeUnits == 0 || localParts == null)
         ? ""
-        : _StringBase._concatRange(_parts, 0, _parts.length);
+        : _StringBase._concatRange(_parts, 0, localParts.length);
   }
 
   /** Ensures that the buffer has enough capacity to add n code units. */
   void _ensureCapacity(int n) {
-    if (_buffer == null) {
+    final localBuffer = _buffer;
+    if (localBuffer == null) {
       _buffer = new Uint16List(_BUFFER_SIZE);
-    } else if (_bufferPosition + n > _buffer.length) {
+    } else if (_bufferPosition + n > localBuffer.length) {
       _consumeBuffer();
     }
   }
@@ -154,16 +158,17 @@ class StringBuffer {
    * many code units are contained in the parts.
    */
   void _addPart(String str) {
+    final localParts = _parts;
     int length = str.length;
     _partsCodeUnits += length;
     _partsCodeUnitsSinceCompaction += length;
 
-    if (_parts == null) {
+    if (localParts == null) {
       // Empirically this is a good capacity to minimize total bytes allocated.
       _parts = new _GrowableList.withCapacity(10)..add(str);
     } else {
-      _parts.add(str);
-      int partsSinceCompaction = _parts.length - _partsCompactionIndex;
+      localParts.add(str);
+      int partsSinceCompaction = localParts.length - _partsCompactionIndex;
       if (partsSinceCompaction == _PARTS_TO_COMPACT) {
         _compact();
       }
@@ -175,17 +180,18 @@ class StringBuffer {
    * lot of memory by turning them all into a single part.
    */
   void _compact() {
+    final localParts = _parts!;
     if (_partsCodeUnitsSinceCompaction < _PARTS_TO_COMPACT_SIZE_LIMIT) {
       String compacted = _StringBase._concatRange(
-          _parts,
+          localParts,
           _partsCompactionIndex, // Start
           _partsCompactionIndex + _PARTS_TO_COMPACT // End
           );
-      _parts.length = _parts.length - _PARTS_TO_COMPACT;
-      _parts.add(compacted);
+      localParts.length = localParts.length - _PARTS_TO_COMPACT;
+      localParts.add(compacted);
     }
     _partsCodeUnitsSinceCompaction = 0;
-    _partsCompactionIndex = _parts.length;
+    _partsCompactionIndex = localParts.length;
   }
 
   /**

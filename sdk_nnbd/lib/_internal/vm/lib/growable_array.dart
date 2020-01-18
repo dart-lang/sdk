@@ -30,7 +30,7 @@ class _GrowableList<T> extends ListBase<T> {
     return result;
   }
 
-  bool remove(Object element) {
+  bool remove(Object? element) {
     for (int i = 0; i < this.length; i++) {
       if (this[i] == element) {
         removeAt(i);

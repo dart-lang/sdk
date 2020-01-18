@@ -277,7 +277,7 @@ abstract class _IntegerImplementation implements int {
     return this.toDouble().toStringAsFixed(fractionDigits);
   }
 
-  String toStringAsExponential([int fractionDigits]) {
+  String toStringAsExponential([int? fractionDigits]) {
     return this.toDouble().toStringAsExponential(fractionDigits);
   }
 
