@@ -35,7 +35,7 @@ linter:
     - prefer_final_fields
     - prefer_for_elements_to_map_fromIterable
     - prefer_generic_function_type_aliases
-    #- prefer_if_null_operators # 12
+    - prefer_if_null_operators
     - prefer_is_empty
     - prefer_is_not_empty
     - prefer_iterable_whereType
@@ -49,7 +49,7 @@ linter:
     - unnecessary_new
     - unnecessary_null_in_if_null_operators
     - unnecessary_this
-    #- unrelated_type_equality_checks # 1
+    - unrelated_type_equality_checks
     - use_function_type_syntax_for_parameters
     - use_rethrow_when_possible
     - valid_regexps

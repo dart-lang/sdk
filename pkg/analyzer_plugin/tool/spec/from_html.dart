@@ -190,7 +190,7 @@ class ApiReader {
     String domainName = getAncestor(html, 'domain', context).attributes['name'];
     checkName(html, 'notification', context);
     String event = html.attributes['event'];
-    context = '$context.${event != null ? event : 'event'}';
+    context = '$context.${event ?? 'event'}';
     checkAttributes(html, ['event'], context);
     TypeObject params;
     recurse(html, context, {
@@ -334,7 +334,7 @@ class ApiReader {
   Refactoring refactoringFromHtml(dom.Element html) {
     checkName(html, 'refactoring');
     String kind = html.attributes['kind'];
-    String context = kind != null ? kind : 'refactoring';
+    String context = kind ?? 'refactoring';
     checkAttributes(html, ['kind'], context);
     TypeObject feedback;
     TypeObject options;
@@ -384,7 +384,7 @@ class ApiReader {
     String domainName = getAncestor(html, 'domain', context).attributes['name'];
     checkName(html, 'request', context);
     String method = html.attributes['method'];
-    context = '$context.${method != null ? method : 'method'}';
+    context = '$context.${method ?? 'method'}';
     checkAttributes(html, ['method'], context,
         optionalAttributes: ['experimental', 'deprecated']);
     bool experimental = html.attributes['experimental'] == 'true';
@@ -415,7 +415,7 @@ class ApiReader {
   TypeDefinition typeDefinitionFromHtml(dom.Element html) {
     checkName(html, 'type');
     String name = html.attributes['name'];
-    String context = name != null ? name : 'type';
+    String context = name ?? 'type';
     checkAttributes(html, ['name'], context,
         optionalAttributes: ['experimental', 'deprecated']);
     TypeDecl type = processContentsAsType(html, context);
@@ -480,7 +480,7 @@ class ApiReader {
   TypeObjectField typeObjectFieldFromHtml(dom.Element html, String context) {
     checkName(html, 'field', context);
     String name = html.attributes['name'];
-    context = '$context.${name != null ? name : 'field'}';
+    context = '$context.${name ?? 'field'}';
     checkAttributes(html, ['name'], context,
         optionalAttributes: ['optional', 'value', 'deprecated']);
     bool deprecated = html.attributes['deprecated'] == 'true';
