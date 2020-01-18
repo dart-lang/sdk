@@ -20,19 +20,19 @@ constructors if an instantiation references this declaration.
 
 **GOOD:**
 ```
-const o = const [];
+const o = <int>[];
 
 class A {
-  static const o = const [];
+  static const o = <int>[];
 }
 ```
 
 **BAD:**
 ```
-final o = const [];
+final o = const <int>[];
 
 class A {
-  static final o = const [];
+  static final o = const <int>[];
 }
 ```
 

@@ -11,8 +11,6 @@ const _desc = r'Avoid using `as`.';
 
 const _details = r'''
 
-From the [flutter style guide](https://github.com/flutter/engine/blob/master/sky/specs/style-guide.md):
-
 **AVOID** using `as`.
 
 If you know the type is correct, use an assertion or assign to a more
@@ -27,14 +25,6 @@ correct, check using `is` (this avoids the exception that `as` raises).
 
 **GOOD:**
 ```
-Person person = pm;
-person.firstName = 'Seth';
-```
-
-or
-
-**GOOD:**
-```
 if (pm is Person)
   pm.firstName = 'Seth';
 ```
@@ -46,7 +36,6 @@ but certainly not
 try {
    (pm as Person).firstName = 'Seth';
 } on CastError { }
-
 ```
 
 Note that an exception is made in the case of `dynamic` since the cast has no
