@@ -1076,7 +1076,7 @@ class _TopLevelInitializerValidator extends RecursiveAstVisitor<void> {
 
   void validateHasType(AstNode n, PropertyAccessorElement e) {
     if (e.hasImplicitReturnType) {
-      var variable = e.variable as VariableElementImpl;
+      var variable = e.declaration.variable as VariableElementImpl;
       TopLevelInferenceError error = variable.typeInferenceError;
       if (error != null) {
         if (error.kind == TopLevelInferenceErrorKind.dependencyCycle) {

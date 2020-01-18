@@ -24,6 +24,7 @@ import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisEngine, RecordingErrorListener;
@@ -168,6 +169,12 @@ class ConstantEvaluationEngine {
   /// Compute the constant value associated with the given [constant].
   void computeConstantValue(ConstantEvaluationTarget constant) {
     validator.beforeComputeValue(constant);
+
+    if (constant is Element) {
+      var element = constant as Element;
+      constant = element.declaration as ConstantEvaluationTarget;
+    }
+
     if (constant is ParameterElementImpl) {
       if (constant.isOptional) {
         Expression defaultValue = constant.constantInitializer;
@@ -1602,6 +1609,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   /// [element]. The [node] is the node to be used if an error needs to be
   /// reported.
   DartObjectImpl _getConstantValue(Expression node, Element element) {
+    element = element?.declaration;
     Element variableElement =
         element is PropertyAccessorElement ? element.variable : element;
     if (variableElement is VariableElementImpl) {
