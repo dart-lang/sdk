@@ -6,14 +6,10 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:analyzer_plugin/utilities/completion/relevance.dart';
 
-/**
- * An object used to build code completion suggestions for Dart code.
- */
+/// An object used to build code completion suggestions for Dart code.
 abstract class SuggestionBuilder {
-  /**
-   * Return a suggestion based on the given [element], or `null` if a suggestion
-   * is not appropriate for the given element.
-   */
+  /// Return a suggestion based on the given [element], or `null` if a
+  /// suggestion is not appropriate for the given element.
   CompletionSuggestion forElement(Element element,
       {String completion,
       CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,

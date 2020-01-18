@@ -2,10 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * Return the summary of the given DartDoc [string], which is the content of the
- * lines before the first blank line.
- */
+/// Return the summary of the given DartDoc [string], which is the content of
+/// the lines before the first blank line.
 String getDartDocSummary(String string) {
   if (string == null) {
     return null;
@@ -26,10 +24,8 @@ String getDartDocSummary(String string) {
   return buffer.toString();
 }
 
-/**
- * Converts [string] from a DartDoc comment with slashes and stars to a plain
- * text representation of the comment.
- */
+/// Converts [string] from a DartDoc comment with slashes and stars to a plain
+/// text representation of the comment.
 String removeDartDocDelimiters(String string) {
   if (string == null) {
     return null;

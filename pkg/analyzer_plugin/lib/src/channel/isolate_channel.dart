@@ -11,27 +11,19 @@ import 'package:analyzer_plugin/channel/channel.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart';
 
-/**
- * The type of the function used to run a built-in plugin in an isolate.
- */
+/// The type of the function used to run a built-in plugin in an isolate.
 typedef EntryPoint = void Function(SendPort sendPort);
 
-/**
- * A communication channel appropriate for built-in plugins.
- */
+/// A communication channel appropriate for built-in plugins.
 class BuiltInServerIsolateChannel extends ServerIsolateChannel {
-  /**
-   * The entry point
-   */
+  /// The entry point
   final EntryPoint entryPoint;
 
   @override
   final String pluginId;
 
-  /**
-   * Initialize a newly created channel to communicate with an isolate running
-   * the given [entryPoint].
-   */
+  /// Initialize a newly created channel to communicate with an isolate running
+  /// the given [entryPoint].
   BuiltInServerIsolateChannel(this.entryPoint, this.pluginId,
       InstrumentationService instrumentationService)
       : super._(instrumentationService);
@@ -44,26 +36,18 @@ class BuiltInServerIsolateChannel extends ServerIsolateChannel {
   }
 }
 
-/**
- * A communication channel appropriate for discovered plugins.
- */
+/// A communication channel appropriate for discovered plugins.
 class DiscoveredServerIsolateChannel extends ServerIsolateChannel {
-  /**
-   * The URI for the Dart file that will be run in the isolate that this channel
-   * communicates with.
-   */
+  /// The URI for the Dart file that will be run in the isolate that this
+  /// channel communicates with.
   final Uri pluginUri;
 
-  /**
-   * The URI for the '.packages' file that will control how 'package:' URIs are
-   * resolved.
-   */
+  /// The URI for the '.packages' file that will control how 'package:' URIs are
+  /// resolved.
   final Uri packagesUri;
 
-  /**
-   * Initialize a newly created channel to communicate with an isolate running
-   * the code at the given [uri].
-   */
+  /// Initialize a newly created channel to communicate with an isolate running
+  /// the code at the given [uri].
   DiscoveredServerIsolateChannel(this.pluginUri, this.packagesUri,
       InstrumentationService instrumentationService)
       : super._(instrumentationService);
@@ -80,30 +64,20 @@ class DiscoveredServerIsolateChannel extends ServerIsolateChannel {
   }
 }
 
-/**
- * The object that allows a [ServerPlugin] to receive [Request]s and to return
- * both [Response]s and [Notification]s. It communicates with the analysis
- * server by passing data to the server's main isolate.
- */
+/// The object that allows a [ServerPlugin] to receive [Request]s and to return
+/// both [Response]s and [Notification]s. It communicates with the analysis
+/// server by passing data to the server's main isolate.
 class PluginIsolateChannel implements PluginCommunicationChannel {
-  /**
-   * The port used to send notifications and responses to the server.
-   */
+  /// The port used to send notifications and responses to the server.
   final SendPort _sendPort;
 
-  /**
-   * The port used to receive requests from the server.
-   */
+  /// The port used to receive requests from the server.
   ReceivePort _receivePort;
 
-  /**
-   * The subscription that needs to be cancelled when the channel is closed.
-   */
+  /// The subscription that needs to be cancelled when the channel is closed.
   StreamSubscription _subscription;
 
-  /**
-   * Initialize a newly created channel to communicate with the server.
-   */
+  /// Initialize a newly created channel to communicate with the server.
   PluginIsolateChannel(this._sendPort) {
     _receivePort = ReceivePort();
     _sendPort.send(_receivePort.sendPort);
@@ -148,68 +122,46 @@ class PluginIsolateChannel implements PluginCommunicationChannel {
   }
 }
 
-/**
- * A communication channel that allows an analysis server to send [Request]s
- * to, and to receive both [Response]s and [Notification]s from, a plugin.
- */
+/// A communication channel that allows an analysis server to send [Request]s
+/// to, and to receive both [Response]s and [Notification]s from, a plugin.
 abstract class ServerIsolateChannel implements ServerCommunicationChannel {
-  /**
-   * The instrumentation service that is being used by the analysis server.
-   */
+  /// The instrumentation service that is being used by the analysis server.
   final InstrumentationService instrumentationService;
 
-  /**
-   * The isolate in which the plugin is running, or `null` if the plugin has
-   * not yet been started by invoking [listen].
-   */
+  /// The isolate in which the plugin is running, or `null` if the plugin has
+  /// not yet been started by invoking [listen].
   Isolate _isolate;
 
-  /**
-   * The port used to send requests to the plugin, or `null` if the plugin has
-   * not yet been started by invoking [listen].
-   */
+  /// The port used to send requests to the plugin, or `null` if the plugin has
+  /// not yet been started by invoking [listen].
   SendPort _sendPort;
 
-  /**
-   * The port used to receive responses and notifications from the plugin.
-   */
+  /// The port used to receive responses and notifications from the plugin.
   ReceivePort _receivePort;
 
-  /**
-   * The port used to receive unhandled exceptions thrown in the plugin.
-   */
+  /// The port used to receive unhandled exceptions thrown in the plugin.
   ReceivePort _errorPort;
 
-  /**
-   * The port used to receive notification when the plugin isolate has exited.
-   */
+  /// The port used to receive notification when the plugin isolate has exited.
   ReceivePort _exitPort;
 
-  /**
-   * Return a communication channel appropriate for communicating with a
-   * built-in plugin.
-   */
+  /// Return a communication channel appropriate for communicating with a
+  /// built-in plugin.
   factory ServerIsolateChannel.builtIn(EntryPoint entryPoint, String pluginId,
           InstrumentationService instrumentationService) =
       BuiltInServerIsolateChannel;
 
-  /**
-   * Return a communication channel appropriate for communicating with a
-   * discovered plugin.
-   */
+  /// Return a communication channel appropriate for communicating with a
+  /// discovered plugin.
   factory ServerIsolateChannel.discovered(Uri pluginUri, Uri packagesUri,
           InstrumentationService instrumentationService) =
       DiscoveredServerIsolateChannel;
 
-  /**
-   * Initialize a newly created channel.
-   */
+  /// Initialize a newly created channel.
   ServerIsolateChannel._(this.instrumentationService);
 
-  /**
-   * Return the id of the plugin running in the isolate, used to identify the
-   * plugin to the instrumentation service.
-   */
+  /// Return the id of the plugin running in the isolate, used to identify the
+  /// plugin to the instrumentation service.
   String get pluginId;
 
   @override
@@ -294,8 +246,6 @@ abstract class ServerIsolateChannel implements ServerCommunicationChannel {
     }
   }
 
-  /**
-   * Spawn the isolate in which the plugin is running.
-   */
+  /// Spawn the isolate in which the plugin is running.
   Future<Isolate> _spawnIsolate();
 }

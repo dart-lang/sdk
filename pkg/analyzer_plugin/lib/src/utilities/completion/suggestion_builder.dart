@@ -12,29 +12,19 @@ import 'package:analyzer_plugin/utilities/analyzer_converter.dart';
 import 'package:analyzer_plugin/utilities/completion/relevance.dart';
 import 'package:analyzer_plugin/utilities/completion/suggestion_builder.dart';
 
-/**
- * An object used to build code completion suggestions for Dart code.
- */
+/// An object used to build code completion suggestions for Dart code.
 class SuggestionBuilderImpl implements SuggestionBuilder {
-  /**
-   * The resource provider used to access the file system.
-   */
+  /// The resource provider used to access the file system.
   final ResourceProvider resourceProvider;
 
-  /**
-   * The converter used to convert analyzer objects to protocol objects.
-   */
+  /// The converter used to convert analyzer objects to protocol objects.
   final AnalyzerConverter converter = AnalyzerConverter();
 
-  /**
-   * Initialize a newly created suggestion builder.
-   */
+  /// Initialize a newly created suggestion builder.
   SuggestionBuilderImpl(this.resourceProvider);
 
-  /**
-   * Add default argument list text and ranges based on the given [requiredParams]
-   * and [namedParams].
-   */
+  /// Add default argument list text and ranges based on the given
+  /// [requiredParams] and [namedParams].
   void addDefaultArgDetails(
       CompletionSuggestion suggestion,
       Element element,

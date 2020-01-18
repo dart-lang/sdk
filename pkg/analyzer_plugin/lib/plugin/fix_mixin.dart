@@ -15,15 +15,13 @@ import 'package:analyzer_plugin/src/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/generator.dart';
 
-/**
- * A mixin that can be used when creating a subclass of [ServerPlugin] and
- * mixing in [FixesMixin]. This implements the creation of the fixes request
- * based on the assumption that the driver being created is an [AnalysisDriver].
- *
- * Clients may not implement this mixin, but are allowed to use it as a mix-in
- * when creating a subclass of [ServerPlugin] that also uses [FixesMixin] as a
- * mix-in.
- */
+/// A mixin that can be used when creating a subclass of [ServerPlugin] and
+/// mixing in [FixesMixin]. This implements the creation of the fixes request
+/// based on the assumption that the driver being created is an [AnalysisDriver].
+///
+/// Clients may not implement this mixin, but are allowed to use it as a mix-in
+/// when creating a subclass of [ServerPlugin] that also uses [FixesMixin] as a
+/// mix-in.
 mixin DartFixesMixin implements FixesMixin {
   @override
   Future<FixesRequest> getFixesRequest(EditGetFixesParams parameters) async {
@@ -46,26 +44,20 @@ mixin DartFixesMixin implements FixesMixin {
   }
 }
 
-/**
- * A mixin that can be used when creating a subclass of [ServerPlugin] to
- * provide most of the implementation for handling fix requests.
- *
- * Clients may not implement this mixin, but are allowed to use it as a mix-in
- * when creating a subclass of [ServerPlugin].
- */
+/// A mixin that can be used when creating a subclass of [ServerPlugin] to
+/// provide most of the implementation for handling fix requests.
+///
+/// Clients may not implement this mixin, but are allowed to use it as a mix-in
+/// when creating a subclass of [ServerPlugin].
 mixin FixesMixin implements ServerPlugin {
-  /**
-   * Return a list containing the fix contributors that should be used to create
-   * fixes for the file with the given [path].
-   */
+  /// Return a list containing the fix contributors that should be used to create
+  /// fixes for the file with the given [path].
   List<FixContributor> getFixContributors(String path);
 
-  /**
-   * Return the fixes request that should be passes to the contributors
-   * returned from [getFixContributors].
-   *
-   * Throw a [RequestFailure] if the request could not be created.
-   */
+  /// Return the fixes request that should be passes to the contributors
+  /// returned from [getFixContributors].
+  ///
+  /// Throw a [RequestFailure] if the request could not be created.
   Future<FixesRequest> getFixesRequest(EditGetFixesParams parameters);
 
   @override

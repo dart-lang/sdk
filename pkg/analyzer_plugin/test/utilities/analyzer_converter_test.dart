@@ -33,9 +33,7 @@ class AnalyzerConverterTest extends AbstractContextTest {
   analyzer.Source source;
   String testFile;
 
-  /**
-   * Assert that the given [pluginError] matches the given [analyzerError].
-   */
+  /// Assert that the given [pluginError] matches the given [analyzerError].
   void assertError(
       plugin.AnalysisError pluginError, analyzer.AnalysisError analyzerError,
       {analyzer.ErrorSeverity severity,

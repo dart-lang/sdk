@@ -2789,15 +2789,13 @@ class B extends A {
     );
   }
 
-  /**
-   * Assuming that the [content] being edited defines a class named `A` whose
-   * member with the given [nameToOverride] to be overridden and has
-   * `class B extends A {...}` to which an inherited method is to be added,
-   * assert that the text of the overridden member matches the [expected] text
-   * (modulo white space). Assert that the generated display text matches the
-   * given [displayText]. If a [selection] is provided, assert that the
-   * generated selection range matches it.
-   */
+  /// Assuming that the [content] being edited defines a class named `A` whose
+  /// member with the given [nameToOverride] to be overridden and has
+  /// `class B extends A {...}` to which an inherited method is to be added,
+  /// assert that the text of the overridden member matches the [expected] text
+  /// (modulo white space). Assert that the generated display text matches the
+  /// given [displayText]. If a [selection] is provided, assert that the
+  /// generated selection range matches it.
   _assertWriteOverride({
     String content,
     String nameToOverride,

@@ -13,16 +13,14 @@ import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
 import 'package:analyzer_plugin/utilities/generator.dart';
 import 'package:analyzer_plugin/utilities/navigation/navigation.dart';
 
-/**
- * A mixin that can be used when creating a subclass of [ServerPlugin] and
- * mixing in [NavigationMixin]. This implements the creation of the navigation
- * request based on the assumption that the driver being created is an
- * [AnalysisDriver].
- *
- * Clients may not implement this mixin, but are allowed to use it as a mix-in
- * when creating a subclass of [ServerPlugin] that also uses [NavigationMixin]
- * as a mix-in.
- */
+/// A mixin that can be used when creating a subclass of [ServerPlugin] and
+/// mixing in [NavigationMixin]. This implements the creation of the navigation
+/// request based on the assumption that the driver being created is an
+/// [AnalysisDriver].
+///
+/// Clients may not implement this mixin, but are allowed to use it as a mix-in
+/// when creating a subclass of [ServerPlugin] that also uses [NavigationMixin]
+/// as a mix-in.
 mixin DartNavigationMixin implements NavigationMixin {
   @override
   Future<NavigationRequest> getNavigationRequest(
@@ -41,26 +39,20 @@ mixin DartNavigationMixin implements NavigationMixin {
   }
 }
 
-/**
- * A mixin that can be used when creating a subclass of [ServerPlugin] to
- * provide most of the implementation for handling navigation requests.
- *
- * Clients may not implement this mixin, but are allowed to use it as a mix-in
- * when creating a subclass of [ServerPlugin].
- */
+/// A mixin that can be used when creating a subclass of [ServerPlugin] to
+/// provide most of the implementation for handling navigation requests.
+///
+/// Clients may not implement this mixin, but are allowed to use it as a mix-in
+/// when creating a subclass of [ServerPlugin].
 mixin NavigationMixin implements ServerPlugin {
-  /**
-   * Return a list containing the navigation contributors that should be used to
-   * create navigation information for the file with the given [path]
-   */
+  /// Return a list containing the navigation contributors that should be used to
+  /// create navigation information for the file with the given [path]
   List<NavigationContributor> getNavigationContributors(String path);
 
-  /**
-   * Return the navigation request that should be passes to the contributors
-   * returned from [getNavigationContributors].
-   *
-   * Throw a [RequestFailure] if the request could not be created.
-   */
+  /// Return the navigation request that should be passes to the contributors
+  /// returned from [getNavigationContributors].
+  ///
+  /// Throw a [RequestFailure] if the request could not be created.
   Future<NavigationRequest> getNavigationRequest(
       AnalysisGetNavigationParams parameters);
 
@@ -79,10 +71,8 @@ mixin NavigationMixin implements ServerPlugin {
     return result.result;
   }
 
-  /**
-   * Send a navigation notification for the file with the given [path] to the
-   * server.
-   */
+  /// Send a navigation notification for the file with the given [path] to the
+  /// server.
   @override
   Future<void> sendNavigationNotification(String path) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.

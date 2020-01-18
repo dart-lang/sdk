@@ -32,13 +32,11 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
   DartCompletionRequest request;
   List<CompletionSuggestion> suggestions;
 
-  /**
-   * If `true` and `null` is specified as the suggestion's expected returnType
-   * then the actual suggestion is expected to have a `dynamic` returnType.
-   * Newer tests return `false` so that they can distinguish between
-   * `dynamic` and `null`.
-   * Eventually all tests should be converted and this getter removed.
-   */
+  /// If `true` and `null` is specified as the suggestion's expected returnType
+  /// then the actual suggestion is expected to have a `dynamic` returnType.
+  /// Newer tests return `false` so that they can distinguish between
+  /// `dynamic` and `null`.
+  /// Eventually all tests should be converted and this getter removed.
   bool get isNullExpectedReturnTypeConsideredDynamic => true;
 
   void addTestSource(String content) {

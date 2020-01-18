@@ -13,26 +13,20 @@ import 'package:analyzer_plugin/src/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/generator.dart';
 
-/**
- * A mixin that can be used when creating a subclass of [ServerPlugin] to
- * provide most of the implementation for handling assist requests.
- *
- * Clients may not implement this mixin, but are allowed to use it as a mix-in
- * when creating a subclass of [ServerPlugin].
- */
+/// A mixin that can be used when creating a subclass of [ServerPlugin] to
+/// provide most of the implementation for handling assist requests.
+///
+/// Clients may not implement this mixin, but are allowed to use it as a mix-in
+/// when creating a subclass of [ServerPlugin].
 mixin AssistsMixin implements ServerPlugin {
-  /**
-   * Return a list containing the assist contributors that should be used to
-   * create assists for the file with the given [path].
-   */
+  /// Return a list containing the assist contributors that should be used to
+  /// create assists for the file with the given [path].
   List<AssistContributor> getAssistContributors(String path);
 
-  /**
-   * Return the assist request that should be passes to the contributors
-   * returned from [getAssistContributors].
-   *
-   * Throw a [RequestFailure] if the request could not be created.
-   */
+  /// Return the assist request that should be passes to the contributors
+  /// returned from [getAssistContributors].
+  ///
+  /// Throw a [RequestFailure] if the request could not be created.
   Future<AssistRequest> getAssistRequest(EditGetAssistsParams parameters);
 
   @override
@@ -50,15 +44,13 @@ mixin AssistsMixin implements ServerPlugin {
   }
 }
 
-/**
- * A mixin that can be used when creating a subclass of [ServerPlugin] and
- * mixing in [AssistsMixin]. This implements the creation of the assists request
- * based on the assumption that the driver being created is an [AnalysisDriver].
- *
- * Clients may not extend or implement this class, but are allowed to use it as
- * a mix-in when creating a subclass of [ServerPlugin] that also uses
- * [AssistsMixin] as a mix-in.
- */
+/// A mixin that can be used when creating a subclass of [ServerPlugin] and
+/// mixing in [AssistsMixin]. This implements the creation of the assists request
+/// based on the assumption that the driver being created is an [AnalysisDriver].
+///
+/// Clients may not extend or implement this class, but are allowed to use it as
+/// a mix-in when creating a subclass of [ServerPlugin] that also uses
+/// [AssistsMixin] as a mix-in.
 abstract class DartAssistsMixin implements AssistsMixin {
   @override
   Future<AssistRequest> getAssistRequest(

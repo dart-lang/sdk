@@ -21,12 +21,10 @@ main() {
 
 @reflectiveTest
 class TypeMemberContributorTest extends DartCompletionContributorTest {
-  /**
-   * Check whether a declaration of the form [shadower] in a derived class
-   * shadows a declaration of the form [shadowee] in a base class, for the
-   * purposes of what is shown during completion.  [shouldBeShadowed] indicates
-   * whether shadowing is expected.
-   */
+  /// Check whether a declaration of the form [shadower] in a derived class
+  /// shadows a declaration of the form [shadowee] in a base class, for the
+  /// purposes of what is shown during completion. [shouldBeShadowed] indicates
+  /// whether shadowing is expected.
   Future check_shadowing(
       String shadower, String shadowee, bool shouldBeShadowed) async {
     addTestSource('''
@@ -3551,9 +3549,9 @@ void test(Derived d) {
 ''');
     await computeSuggestions();
     // Note: due to dartbug.com/22069, analyzer currently analyzes mixins in
-    // reverse order.  The correct order is that Derived inherits from
+    // reverse order. The correct order is that Derived inherits from
     // "Base with Mixin1, Mixin2", which inherits from "Base with Mixin1",
-    // which inherits from "Base".  So the definition of f in Mixin2 should
+    // which inherits from "Base". So the definition of f in Mixin2 should
     // shadow the definition in Mixin1.
     assertSuggestMethod('f', 'Mixin2', 'void');
   }

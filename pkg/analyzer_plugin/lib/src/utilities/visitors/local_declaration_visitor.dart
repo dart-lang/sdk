@@ -8,11 +8,9 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 
-/**
- * A visitor that visits an [AstNode] and its parent recursively along with any
- * declarations in those nodes. Consumers typically call [visit] which catches
- * the exception thrown by [finished].
- */
+/// A visitor that visits an [AstNode] and its parent recursively along with any
+/// declarations in those nodes. Consumers typically call [visit] which catches
+/// the exception thrown by [finished].
 abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
   static final TypeName STACKTRACE_TYPE = astFactory.typeName(
       astFactory
@@ -54,19 +52,15 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
 
   void declaredTypeParameter(TypeParameter node) {}
 
-  /**
-   * Throw an exception indicating that [LocalDeclarationVisitor] should
-   * stop visiting. This is caught in [visit] which then exits normally.
-   */
+  /// Throw an exception indicating that [LocalDeclarationVisitor] should
+  /// stop visiting. This is caught in [visit] which then exits normally.
   void finished() {
     throw _LocalDeclarationVisitorFinished();
   }
 
-  /**
-   * Visit the given [AstNode] and its parent recursively along with any
-   * declarations in those nodes. Return `true` if [finished] is called
-   * while visiting, else `false`.
-   */
+  /// Visit the given [AstNode] and its parent recursively along with any
+  /// declarations in those nodes. Return `true` if [finished] is called
+  /// while visiting, else `false`.
   bool visit(AstNode node) {
     try {
       node.accept(this);
@@ -312,8 +306,6 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
   }
 }
 
-/**
- * Internal exception used to indicate that [LocalDeclarationVisitor]
- * should stop visiting.
- */
+/// Internal exception used to indicate that [LocalDeclarationVisitor]
+/// should stop visiting.
 class _LocalDeclarationVisitorFinished {}

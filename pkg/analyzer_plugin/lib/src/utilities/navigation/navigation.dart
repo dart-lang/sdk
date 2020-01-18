@@ -9,9 +9,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/utilities/navigation/navigation.dart';
 import 'package:analyzer_plugin/utilities/pair.dart';
 
-/**
- * A concrete implementation of [DartNavigationRequest].
- */
+/// A concrete implementation of [DartNavigationRequest].
 class DartNavigationRequestImpl implements DartNavigationRequest {
   @override
   final ResourceProvider resourceProvider;
@@ -25,9 +23,7 @@ class DartNavigationRequestImpl implements DartNavigationRequest {
   @override
   final ResolvedUnitResult result;
 
-  /**
-   * Initialize a newly create request with the given data.
-   */
+  /// Initialize a newly create request with the given data.
   DartNavigationRequestImpl(
       this.resourceProvider, this.offset, this.length, this.result);
 
@@ -35,26 +31,18 @@ class DartNavigationRequestImpl implements DartNavigationRequest {
   String get path => result.path;
 }
 
-/**
- * A concrete implementation of [NavigationCollector].
- */
+/// A concrete implementation of [NavigationCollector].
 class NavigationCollectorImpl implements NavigationCollector {
-  /**
-   * A list of navigation regions.
-   */
+  /// A list of navigation regions.
   final List<NavigationRegion> regions = <NavigationRegion>[];
   final Map<SourceRange, List<int>> regionMap = <SourceRange, List<int>>{};
 
-  /**
-   * All the unique targets referenced by [regions].
-   */
+  /// All the unique targets referenced by [regions].
   final List<NavigationTarget> targets = <NavigationTarget>[];
   final Map<Pair<ElementKind, Location>, int> targetMap =
       <Pair<ElementKind, Location>, int>{};
 
-  /**
-   * All the unique files referenced by [targets].
-   */
+  /// All the unique files referenced by [targets].
   final List<String> files = <String>[];
   final Map<String, int> fileMap = <String, int>{};
 

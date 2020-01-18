@@ -38,11 +38,9 @@ class NavigationGeneratorTest with ResourceProviderMixin {
     expect(contributor.count, 1);
   }
 
-  /**
-   * This tests that we get an error notification for each contributor that
-   * throws an error and that an error in one contributor doesn't prevent other
-   * contributors from being called.
-   */
+  /// This tests that we get an error notification for each contributor that
+  /// throws an error and that an error in one contributor doesn't prevent other
+  /// contributors from being called.
   test_withException() {
     TestContributor contributor1 = TestContributor();
     TestContributor contributor2 = TestContributor(throwException: true);
@@ -70,15 +68,11 @@ class NavigationGeneratorTest with ResourceProviderMixin {
 }
 
 class TestContributor implements NavigationContributor {
-  /**
-   * A flag indicating whether the contributor should throw an exception when
-   * [computeNavigation] is invoked.
-   */
+  /// A flag indicating whether the contributor should throw an exception when
+  /// [computeNavigation] is invoked.
   bool throwException;
 
-  /**
-   * The number of times that [computeNavigation] was invoked.
-   */
+  /// The number of times that [computeNavigation] was invoked.
   int count = 0;
 
   TestContributor({this.throwException = false});

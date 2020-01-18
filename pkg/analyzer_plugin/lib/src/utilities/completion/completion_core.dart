@@ -7,36 +7,24 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/utilities/completion/completion_core.dart';
 
-/**
- * An object that can collect completion suggestions.
- */
+/// An object that can collect completion suggestions.
 class CompletionCollectorImpl implements CompletionCollector {
-  /**
-   * The length of the region of text that should be replaced by the selected
-   * completion suggestion.
-   */
+  /// The length of the region of text that should be replaced by the selected
+  /// completion suggestion.
   int _length;
 
-  /**
-   * The offset of the region of text that should be replaced by the selected
-   * completion suggestion.
-   */
+  /// The offset of the region of text that should be replaced by the selected
+  /// completion suggestion.
   int _offset;
 
-  /**
-   * A list of the completion suggestions that have been collected.
-   */
+  /// A list of the completion suggestions that have been collected.
   List<CompletionSuggestion> suggestions = <CompletionSuggestion>[];
 
-  /**
-   * Initialize a newly created completion collector.
-   */
+  /// Initialize a newly created completion collector.
   CompletionCollectorImpl();
 
-  /**
-   * Return the length of the region of text that should be replaced by the
-   * selected completion suggestion, or `null` if the length has not been set.
-   */
+  /// Return the length of the region of text that should be replaced by the
+  /// selected completion suggestion, or `null` if the length has not been set.
   int get length => _length;
 
   @override
@@ -47,10 +35,8 @@ class CompletionCollectorImpl implements CompletionCollector {
     _length = length;
   }
 
-  /**
-   * Return the offset of the region of text that should be replaced by the
-   * selected completion suggestion, or `null` if the offset has not been set.
-   */
+  /// Return the offset of the region of text that should be replaced by the
+  /// selected completion suggestion, or `null` if the offset has not been set.
   int get offset => _offset;
 
   @override
@@ -73,9 +59,7 @@ class CompletionCollectorImpl implements CompletionCollector {
   }
 }
 
-/**
-* A concrete implementation of [DartCompletionRequest].
-*/
+/// A concrete implementation of [DartCompletionRequest].
 class DartCompletionRequestImpl implements DartCompletionRequest {
   @override
   final ResourceProvider resourceProvider;
@@ -86,19 +70,13 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
   @override
   final ResolvedUnitResult result;
 
-  /**
-   * A flag indicating whether completion has been aborted.
-   */
+  /// A flag indicating whether completion has been aborted.
   bool _aborted = false;
 
-  /**
-   * Initialize a newly created request.
-   */
+  /// Initialize a newly created request.
   DartCompletionRequestImpl(this.resourceProvider, this.offset, this.result);
 
-  /**
-   * Abort the current completion request.
-   */
+  /// Abort the current completion request.
   void abort() {
     _aborted = true;
   }

@@ -12,16 +12,14 @@ import 'package:analyzer_plugin/src/utilities/folding/folding.dart';
 import 'package:analyzer_plugin/utilities/folding/folding.dart';
 import 'package:analyzer_plugin/utilities/generator.dart';
 
-/**
- * A mixin that can be used when creating a subclass of [ServerPlugin] and
- * mixing in [FoldingMixin]. This implements the creation of the folding
- * request based on the assumption that the driver being created is an
- * [AnalysisDriver].
- *
- * Clients may not implement this mixin, but are allowed to use it as a mix-in
- * when creating a subclass of [ServerPlugin] that also uses [FoldingMixin] as a
- * mix-in.
- */
+/// A mixin that can be used when creating a subclass of [ServerPlugin] and
+/// mixing in [FoldingMixin]. This implements the creation of the folding
+/// request based on the assumption that the driver being created is an
+/// [AnalysisDriver].
+///
+/// Clients may not implement this mixin, but are allowed to use it as a mix-in
+/// when creating a subclass of [ServerPlugin] that also uses [FoldingMixin] as a
+/// mix-in.
 mixin DartFoldingMixin implements FoldingMixin {
   @override
   Future<FoldingRequest> getFoldingRequest(String path) async {
@@ -32,26 +30,20 @@ mixin DartFoldingMixin implements FoldingMixin {
   }
 }
 
-/**
- * A mixin that can be used when creating a subclass of [ServerPlugin] to
- * provide most of the implementation for producing folding notifications.
- *
- * Clients may not implement this mixin, but are allowed to use it as a mix-in
- * when creating a subclass of [ServerPlugin].
- */
+/// A mixin that can be used when creating a subclass of [ServerPlugin] to
+/// provide most of the implementation for producing folding notifications.
+///
+/// Clients may not implement this mixin, but are allowed to use it as a mix-in
+/// when creating a subclass of [ServerPlugin].
 mixin FoldingMixin implements ServerPlugin {
-  /**
-   * Return a list containing the folding contributors that should be used
-   * to create folding regions for the file with the given [path].
-   */
+  /// Return a list containing the folding contributors that should be used
+  /// to create folding regions for the file with the given [path].
   List<FoldingContributor> getFoldingContributors(String path);
 
-  /**
-   * Return the folding request that should be passes to the contributors
-   * returned from [getFoldingContributors].
-   *
-   * Throw a [RequestFailure] if the request could not be created.
-   */
+  /// Return the folding request that should be passes to the contributors
+  /// returned from [getFoldingContributors].
+  ///
+  /// Throw a [RequestFailure] if the request could not be created.
   Future<FoldingRequest> getFoldingRequest(String path);
 
   @override

@@ -19,16 +19,12 @@ GeneratedFile target(bool responseRequiresRequestTime) =>
       return visitor.collectCode(visitor.visitApi);
     });
 
-/**
- * A visitor that produces Dart code defining the common types associated with
- * the API.
- */
+/// A visitor that produces Dart code defining the common types associated with
+/// the API.
 class CodegenCommonVisitor extends CodegenProtocolVisitor {
-  /**
-   * Initialize a newly created visitor to generate code in the package with the
-   * given [packageName] corresponding to the types in the given [api] that are
-   * common to multiple protocols.
-   */
+  /// Initialize a newly created visitor to generate code in the package with
+  /// the given [packageName] corresponding to the types in the given [api] that
+  /// are common to multiple protocols.
   CodegenCommonVisitor(
       String packageName, bool responseRequiresRequestTime, Api api)
       : super(packageName, responseRequiresRequestTime, api);

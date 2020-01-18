@@ -9,9 +9,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError;
 import 'package:analyzer_plugin/utilities/folding/folding.dart';
 
-/**
- * A concrete implementation of [DartFoldingRequest].
- */
+/// A concrete implementation of [DartFoldingRequest].
 class DartFoldingRequestImpl implements DartFoldingRequest {
   @override
   final ResourceProvider resourceProvider;
@@ -19,27 +17,19 @@ class DartFoldingRequestImpl implements DartFoldingRequest {
   @override
   final ResolvedUnitResult result;
 
-  /**
-   * Initialize a newly create request with the given data.
-   */
+  /// Initialize a newly create request with the given data.
   DartFoldingRequestImpl(this.resourceProvider, this.result);
 
   @override
   String get path => result.path;
 }
 
-/**
- * A concrete implementation of [FoldingCollector].
- */
+/// A concrete implementation of [FoldingCollector].
 class FoldingCollectorImpl implements FoldingCollector {
-  /**
-   * The list of folding regions that have been collected.
-   */
+  /// The list of folding regions that have been collected.
   List<FoldingRegion> regions = <FoldingRegion>[];
 
-  /**
-   * Initialize a newly created collector.
-   */
+  /// Initialize a newly created collector.
   FoldingCollectorImpl();
 
   @override

@@ -14,10 +14,8 @@ import 'from_html.dart';
 import 'implied_types.dart';
 import 'to_html.dart';
 
-/**
- * Special flags that need to be inserted into the declaration of the Element
- * class.
- */
+/// Special flags that need to be inserted into the declaration of the Element
+/// class.
 const Map<String, String> specialElementFlags = {
   'abstract': '0x01',
   'const': '0x02',
@@ -36,24 +34,18 @@ GeneratedFile target(bool responseRequiresRequestTime) {
   });
 }
 
-/**
- * Callback type used to represent arbitrary code generation.
- */
+/// Callback type used to represent arbitrary code generation.
 typedef CodegenCallback = void Function();
 
 typedef FromJsonSnippetCallback = String Function(String jsonPath, String json);
 
 typedef ToJsonSnippetCallback = String Function(String value);
 
-/**
- * Visitor which produces Dart code representing the API.
- */
+/// Visitor which produces Dart code representing the API.
 class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
-  /**
-   * Class members for which the constructor argument should be optional, even
-   * if the member is not an optional part of the protocol.  For list types,
-   * the constructor will default the member to the empty list.
-   */
+  /// Class members for which the constructor argument should be optional, even
+  /// if the member is not an optional part of the protocol. For list types,
+  /// the constructor will default the member to the empty list.
   static const Map<String, List<String>> _optionalConstructorArguments = {
     'AnalysisErrorFixes': ['fixes'],
     'SourceChange': ['edits', 'linkedEditGroups'],
@@ -61,34 +53,24 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
     'TypeHierarchyItem': ['interfaces', 'mixins', 'subclasses'],
   };
 
-  /**
-   * The disclaimer added to the documentation comment for each of the classes
-   * that are generated.
-   */
+  /// The disclaimer added to the documentation comment for each of the classes
+  /// that are generated.
   static const String disclaimer =
       'Clients may not extend, implement or mix-in this class.';
 
-  /**
-   * The name of the package into which code is being generated.
-   */
+  /// The name of the package into which code is being generated.
   final String packageName;
 
-  /**
-   * A flag indicating whether the class [Response] requires a `requestTime`
-   * parameter.
-   */
+  /// A flag indicating whether the class [Response] requires a `requestTime`
+  /// parameter.
   final bool responseRequiresRequestTime;
 
-  /**
-   * Visitor used to produce doc comments.
-   */
+  /// Visitor used to produce doc comments.
   final ToHtmlVisitor toHtmlVisitor;
 
-  /**
-   * Types implied by the API.  This includes types explicitly named in the
-   * API as well as those implied by the definitions of requests, responses,
-   * notifications, etc.
-   */
+  /// Types implied by the API. This includes types explicitly named in the
+  /// API as well as those implied by the definitions of requests, responses,
+  /// notifications, etc.
   final Map<String, ImpliedType> impliedTypes;
 
   CodegenProtocolVisitor(
@@ -103,9 +85,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
     codeGeneratorSettings.languageName = 'dart';
   }
 
-  /**
-   * Compute the code necessary to compare two objects for equality.
-   */
+  /// Compute the code necessary to compare two objects for equality.
   String compareEqualsCode(TypeDecl type, String thisVar, String otherVar) {
     TypeDecl resolvedType = resolveTypeReferenceChain(type);
     if (resolvedType is TypeReference ||
@@ -128,9 +108,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
     throw Exception("Don't know how to compare for equality: $resolvedType");
   }
 
-  /**
-   * Translate each of the given [types] implied by the API to a class.
-   */
+  /// Translate each of the given [types] implied by the API to a class.
   void emitClasses(List<ImpliedType> types) {
     for (ImpliedType impliedType in types) {
       TypeDecl type = impliedType.type;
@@ -148,10 +126,8 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
     }
   }
 
-  /**
-   * Emit a convenience constructor for decoding a piece of protocol, if
-   * appropriate.  Return true if a constructor was emitted.
-   */
+  /// Emit a convenience constructor for decoding a piece of protocol, if
+  /// appropriate. Return true if a constructor was emitted.
   bool emitConvenienceConstructor(String className, ImpliedType impliedType) {
     // The type of object from which this piece of protocol should be decoded.
     String inputType;
@@ -219,11 +195,9 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
     return true;
   }
 
-  /**
-   * Emit a class representing an data structure that doesn't exist in the
-   * protocol because it is empty (e.g. the "params" object for a request that
-   * doesn't have any parameters).
-   */
+  /// Emit a class representing an data structure that doesn't exist in the
+  /// protocol because it is empty (e.g. the "params" object for a request that
+  /// doesn't have any parameters).
   void emitEmptyObjectClass(String className, ImpliedType impliedType) {
     docComment(toHtmlVisitor.collectHtml(() {
       toHtmlVisitor.p(() {
@@ -267,17 +241,13 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
     writeln('}');
   }
 
-  /**
-   * Emit the toJson() code for an empty class.
-   */
+  /// Emit the toJson() code for an empty class.
   void emitEmptyToJsonMember() {
     writeln('@override');
     writeln('Map<String, dynamic> toJson() => <String, dynamic>{};');
   }
 
-  /**
-   * Emit a class to encapsulate an enum.
-   */
+  /// Emit a class to encapsulate an enum.
   void emitEnumClass(String className, TypeEnum type, ImpliedType impliedType) {
     docComment(toHtmlVisitor.collectHtml(() {
       toHtmlVisitor.p(() {
@@ -349,9 +319,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
     writeln('}');
   }
 
-  /**
-   * Emit the constructor for an enum class.
-   */
+  /// Emit the constructor for an enum class.
   void emitEnumClassConstructor(String className, TypeEnum type) {
     writeln('factory $className(String name) {');
     indent(() {
@@ -371,9 +339,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
     writeln('}');
   }
 
-  /**
-   * Emit the method for decoding an enum from JSON.
-   */
+  /// Emit the method for decoding an enum from JSON.
   void emitEnumFromJsonConstructor(
       String className, TypeEnum type, ImpliedType impliedType) {
     writeln(
@@ -414,9 +380,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
     }
   }
 
-  /**
-   * Emit the class to encapsulate an object type.
-   */
+  /// Emit the class to encapsulate an object type.
   void emitObjectClass(
       String className, TypeObject type, ImpliedType impliedType) {
     docComment(toHtmlVisitor.collectHtml(() {
@@ -512,9 +476,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
     writeln('}');
   }
 
-  /**
-   * Emit the constructor for an object class.
-   */
+  /// Emit the constructor for an object class.
   void emitObjectConstructor(TypeObject type, String className) {
     List<String> args = <String>[];
     List<String> optionalArgs = <String>[];
@@ -528,7 +490,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
       if (isOptionalConstructorArg(className, field)) {
         optionalArgs.add(arg);
         if (!field.optional) {
-          // Optional constructor arg, but non-optional field.  If no arg is
+          // Optional constructor arg, but non-optional field. If no arg is
           // given, the constructor should populate with the empty list.
           TypeDecl fieldType = field.type;
           if (fieldType is TypeList) {
@@ -576,9 +538,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
     }
   }
 
-  /**
-   * Emit the operator== code for an object class.
-   */
+  /// Emit the operator== code for an object class.
   void emitObjectEqualsMember(TypeObject type, String className) {
     writeln('@override');
     writeln('bool operator ==(other) {');
@@ -608,9 +568,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
     writeln('}');
   }
 
-  /**
-   * Emit the method for decoding an object from JSON.
-   */
+  /// Emit the method for decoding an object from JSON.
   void emitObjectFromJsonConstructor(
       String className, TypeObject type, ImpliedType impliedType) {
     String humanReadableNameString =
@@ -696,9 +654,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
     writeln('}');
   }
 
-  /**
-   * Emit the hashCode getter for an object class.
-   */
+  /// Emit the hashCode getter for an object class.
   void emitObjectHashCode(TypeObject type, String className) {
     writeln('@override');
     writeln('int get hashCode {');
@@ -722,10 +678,8 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
     writeln('}');
   }
 
-  /**
-   * If the class named [className] requires special constructors, emit them
-   * and return true.
-   */
+  /// If the class named [className] requires special constructors, emit them
+  /// and return true.
   bool emitSpecialConstructors(String className) {
     switch (className) {
       case 'LinkedEditGroup':
@@ -747,10 +701,8 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
     }
   }
 
-  /**
-   * If the class named [className] requires special getters, emit them and
-   * return true.
-   */
+  /// If the class named [className] requires special getters, emit them and
+  /// return true.
   bool emitSpecialGetters(String className) {
     switch (className) {
       case 'Element':
@@ -769,10 +721,8 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
     }
   }
 
-  /**
-   * If the class named [className] requires special methods, emit them and
-   * return true.
-   */
+  /// If the class named [className] requires special methods, emit them and
+  /// return true.
   bool emitSpecialMethods(String className) {
     switch (className) {
       case 'LinkedEditGroup':
@@ -836,10 +786,8 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
     }
   }
 
-  /**
-   * If the class named [className] requires special static members, emit them
-   * and return true.
-   */
+  /// If the class named [className] requires special static members, emit them
+  /// and return true.
   bool emitSpecialStaticMembers(String className) {
     switch (className) {
       case 'Element':
@@ -866,7 +814,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
       case 'SourceEdit':
         docComment([
           dom.Text('Get the result of applying a set of [edits] to the given '
-              '[code].  Edits are applied in the order they appear in [edits].')
+              '[code]. Edits are applied in the order they appear in [edits].')
         ]);
         writeln(
             'static String applySequence(String code, Iterable<SourceEdit> edits) =>');
@@ -877,9 +825,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
     }
   }
 
-  /**
-   * Emit the toJson() code for an object class.
-   */
+  /// Emit the toJson() code for an object class.
   void emitToJsonMember(TypeObject type) {
     writeln('@override');
     writeln('Map<String, dynamic> toJson() {');
@@ -909,10 +855,8 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
     writeln('}');
   }
 
-  /**
-   * Emit the toNotification() code for a class, if appropriate.  Returns true
-   * if code was emitted.
-   */
+  /// Emit the toNotification() code for a class, if appropriate. Returns true
+  /// if code was emitted.
   bool emitToNotificationMember(ImpliedType impliedType) {
     if (impliedType.kind == 'notificationParams') {
       writeln('Notification toNotification() {');
@@ -928,10 +872,8 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
     return false;
   }
 
-  /**
-   * Emit the toRequest() code for a class, if appropriate.  Returns true if
-   * code was emitted.
-   */
+  /// Emit the toRequest() code for a class, if appropriate. Returns true if
+  /// code was emitted.
   bool emitToRequestMember(ImpliedType impliedType) {
     if (impliedType.kind == 'requestParams') {
       writeln('@override');
@@ -948,10 +890,8 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
     return false;
   }
 
-  /**
-   * Emit the toResponse() code for a class, if appropriate.  Returns true if
-   * code was emitted.
-   */
+  /// Emit the toResponse() code for a class, if appropriate. Returns true if
+  /// code was emitted.
   bool emitToResponseMember(ImpliedType impliedType) {
     if (impliedType.kind == 'requestResult') {
       writeln('@override');
@@ -974,9 +914,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
     return false;
   }
 
-  /**
-   * Compute the code necessary to translate [type] from JSON.
-   */
+  /// Compute the code necessary to translate [type] from JSON.
   FromJsonCode fromJsonCode(TypeDecl type) {
     if (type is TypeReference) {
       TypeDefinition referencedDefinition = api.types[type.typeName];
@@ -1070,9 +1008,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
     }
   }
 
-  /**
-   * Return a list of the classes to be emitted.
-   */
+  /// Return a list of the classes to be emitted.
   List<ImpliedType> getClassesToEmit() {
     List<ImpliedType> types = impliedTypes.values.where((ImpliedType type) {
       ApiNode node = type.apiNode;
@@ -1083,9 +1019,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
     return types;
   }
 
-  /**
-   * True if the constructor argument for the given field should be optional.
-   */
+  /// True if the constructor argument for the given field should be optional.
   bool isOptionalConstructorArg(String className, TypeObjectField field) {
     if (field.optional) {
       return true;
@@ -1097,14 +1031,10 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
     return false;
   }
 
-  /**
-   * Create a string literal that evaluates to [s].
-   */
+  /// Create a string literal that evaluates to [s].
   String literalString(String s) => json.encode(s);
 
-  /**
-   * Compute the code necessary to convert [type] to JSON.
-   */
+  /// Compute the code necessary to convert [type] to JSON.
   ToJsonCode toJsonCode(TypeDecl type) {
     TypeDecl resolvedType = resolveTypeReferenceChain(type);
     if (resolvedType is TypeReference) {
@@ -1164,32 +1094,22 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
   }
 }
 
-/**
- * Container for code that can be used to translate a data type from JSON.
- */
+/// Container for code that can be used to translate a data type from JSON.
 abstract class FromJsonCode {
-  /**
-   * Get the translation code in the form of a closure.
-   */
+  /// Get the translation code in the form of a closure.
   String get asClosure;
 
-  /**
-   * True if the data type is already in JSON form, so the translation is the
-   * identity function.
-   */
+  /// True if the data type is already in JSON form, so the translation is the
+  /// identity function.
   bool get isIdentity;
 
-  /**
-   * Get the translation code in the form of a code snippet, where [jsonPath]
-   * is the variable holding the JSON path, and [json] is the variable holding
-   * the raw JSON.
-   */
+  /// Get the translation code in the form of a code snippet, where [jsonPath]
+  /// is the variable holding the JSON path, and [json] is the variable holding
+  /// the raw JSON.
   String asSnippet(String jsonPath, String json);
 }
 
-/**
- * Representation of FromJsonCode for a function defined elsewhere.
- */
+/// Representation of FromJsonCode for a function defined elsewhere.
 class FromJsonFunction extends FromJsonCode {
   @override
   final String asClosure;
@@ -1204,9 +1124,7 @@ class FromJsonFunction extends FromJsonCode {
       '$asClosure($jsonPath, $json)';
 }
 
-/**
- * Representation of FromJsonCode for the identity transformation.
- */
+/// Representation of FromJsonCode for the identity transformation.
 class FromJsonIdentity extends FromJsonSnippet {
   FromJsonIdentity() : super((String jsonPath, String json) => json);
 
@@ -1214,14 +1132,10 @@ class FromJsonIdentity extends FromJsonSnippet {
   bool get isIdentity => true;
 }
 
-/**
- * Representation of FromJsonCode for a snippet of inline code.
- */
+/// Representation of FromJsonCode for a snippet of inline code.
 class FromJsonSnippet extends FromJsonCode {
-  /**
-   * Callback that can be used to generate the code snippet, once the names
-   * of the [jsonPath] and [json] variables are known.
-   */
+  /// Callback that can be used to generate the code snippet, once the names
+  /// of the [jsonPath] and [json] variables are known.
   final FromJsonSnippetCallback callback;
 
   FromJsonSnippet(this.callback);
@@ -1237,31 +1151,21 @@ class FromJsonSnippet extends FromJsonCode {
   String asSnippet(String jsonPath, String json) => callback(jsonPath, json);
 }
 
-/**
- * Container for code that can be used to translate a data type to JSON.
- */
+/// Container for code that can be used to translate a data type to JSON.
 abstract class ToJsonCode {
-  /**
-   * Get the translation code in the form of a closure.
-   */
+  /// Get the translation code in the form of a closure.
   String get asClosure;
 
-  /**
-   * True if the data type is already in JSON form, so the translation is the
-   * identity function.
-   */
+  /// True if the data type is already in JSON form, so the translation is the
+  /// identity function.
   bool get isIdentity;
 
-  /**
-   * Get the translation code in the form of a code snippet, where [value]
-   * is the variable holding the object to be translated.
-   */
+  /// Get the translation code in the form of a code snippet, where [value]
+  /// is the variable holding the object to be translated.
   String asSnippet(String value);
 }
 
-/**
- * Representation of ToJsonCode for a function defined elsewhere.
- */
+/// Representation of ToJsonCode for a function defined elsewhere.
 class ToJsonFunction extends ToJsonCode {
   @override
   final String asClosure;
@@ -1275,9 +1179,7 @@ class ToJsonFunction extends ToJsonCode {
   String asSnippet(String value) => '$asClosure($value)';
 }
 
-/**
- * Representation of FromJsonCode for the identity transformation.
- */
+/// Representation of FromJsonCode for the identity transformation.
 class ToJsonIdentity extends ToJsonSnippet {
   ToJsonIdentity(String type) : super(type, (String value) => value);
 
@@ -1285,19 +1187,13 @@ class ToJsonIdentity extends ToJsonSnippet {
   bool get isIdentity => true;
 }
 
-/**
- * Representation of ToJsonCode for a snippet of inline code.
- */
+/// Representation of ToJsonCode for a snippet of inline code.
 class ToJsonSnippet extends ToJsonCode {
-  /**
-   * Callback that can be used to generate the code snippet, once the name
-   * of the [value] variable is known.
-   */
+  /// Callback that can be used to generate the code snippet, once the name
+  /// of the [value] variable is known.
   final ToJsonSnippetCallback callback;
 
-  /**
-   * Dart type of the [value] variable.
-   */
+  /// Dart type of the [value] variable.
   final String type;
 
   ToJsonSnippet(this.type, this.callback);
