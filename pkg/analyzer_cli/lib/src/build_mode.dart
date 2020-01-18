@@ -44,9 +44,7 @@ import 'package:bazel_worker/bazel_worker.dart';
 import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
 
-/**
- * Persistent Bazel worker.
- */
+/// Persistent Bazel worker.
 class AnalyzerWorkerLoop extends AsyncWorkerLoop {
   final ResourceProvider resourceProvider;
   final PerformanceLog logger = PerformanceLog(null);
@@ -79,9 +77,7 @@ class AnalyzerWorkerLoop extends AsyncWorkerLoop {
         dartSdkPath: dartSdkPath);
   }
 
-  /**
-   * Performs analysis with given [options].
-   */
+  /// Performs analysis with given [options].
   Future<void> analyze(
       CommandLineOptions options, Map<String, WorkerInput> inputs) async {
     var packageBundleProvider =
@@ -93,9 +89,7 @@ class AnalyzerWorkerLoop extends AsyncWorkerLoop {
     AnalysisEngine.instance.clearCaches();
   }
 
-  /**
-   * Perform a single loop step.
-   */
+  /// Perform a single loop step.
   @override
   Future<WorkResponse> performRequest(WorkRequest request) async {
     return logger.runAsync('Perform request', () async {
@@ -138,9 +132,7 @@ class AnalyzerWorkerLoop extends AsyncWorkerLoop {
     });
   }
 
-  /**
-   * Run the worker loop.
-   */
+  /// Run the worker loop.
   @override
   Future<void> run() async {
     errorSink = errorBuffer;
@@ -163,9 +155,7 @@ class AnalyzerWorkerLoop extends AsyncWorkerLoop {
   }
 }
 
-/**
- * Analyzer used when the "--build-mode" option is supplied.
- */
+/// Analyzer used when the "--build-mode" option is supplied.
 class BuildMode with HasContextMixin {
   @override
   final ResourceProvider resourceProvider;
@@ -208,9 +198,7 @@ class BuildMode with HasContextMixin {
       options.buildSummaryOutput != null ||
       options.buildSummaryOutputSemantic != null;
 
-  /**
-   * Perform package analysis according to the given [options].
-   */
+  /// Perform package analysis according to the given [options].
   Future<ErrorSeverity> analyze() async {
     return await logger.runAsync('Analyze', () async {
       // Write initial progress message.
@@ -310,10 +298,8 @@ class BuildMode with HasContextMixin {
     });
   }
 
-  /**
-   * Use [elementFactory] filled with input summaries, and link prepared
-   * [inputParsedUnitResults] to produce linked libraries in [assembler].
-   */
+  /// Use [elementFactory] filled with input summaries, and link prepared
+  /// [inputParsedUnitResults] to produce linked libraries in [assembler].
   void _computeLinkedLibraries2() {
     logger.run('Link output summary2', () {
       var inputLibraries = <summary2.LinkInputLibrary>[];
@@ -486,11 +472,9 @@ class BuildMode with HasContextMixin {
     }
   }
 
-  /**
-   * Convert [sourceEntities] (a list of file specifications of the form
-   * "$uri|$path") to a map from URI to path.  If an error occurs, report the
-   * error and return null.
-   */
+  /// Convert [sourceEntities] (a list of file specifications of the form
+  /// "$uri|$path") to a map from URI to path. If an error occurs, report the
+  /// error and return null.
   Map<Uri, File> _createUriToFileMap(List<String> sourceEntities) {
     Map<Uri, File> uriToFileMap = <Uri, File>{};
     for (String sourceFile in sourceEntities) {
@@ -510,11 +494,9 @@ class BuildMode with HasContextMixin {
     return uriToFileMap;
   }
 
-  /**
-   * Ensure that the parsed unit for [absoluteUri] is available.
-   *
-   * If the unit is in the input [summaryDataStore], do nothing.
-   */
+  /// Ensure that the parsed unit for [absoluteUri] is available.
+  ///
+  /// If the unit is in the input [summaryDataStore], do nothing.
   Future<void> _prepareUnit(String absoluteUri) async {
     // Parse the source and serialize its AST.
     Uri uri = Uri.parse(absoluteUri);
@@ -528,10 +510,8 @@ class BuildMode with HasContextMixin {
     inputParsedUnitResults[result.path] = result;
   }
 
-  /**
-   * Print errors for all explicit sources.  If [outputPath] is supplied, output
-   * is sent to a new file at that path.
-   */
+  /// Print errors for all explicit sources. If [outputPath] is supplied, output
+  /// is sent to a new file at that path.
   Future<void> _printErrors({String outputPath}) async {
     await logger.runAsync('Compute and print analysis errors', () async {
       StringBuffer buffer = StringBuffer();
@@ -560,9 +540,7 @@ class BuildMode with HasContextMixin {
   }
 }
 
-/**
- * Tracks paths to dependencies, really just a thin api around a Set<String>.
- */
+/// Tracks paths to dependencies, really just a thin api around a Set<String>.
 class DependencyTracker {
   final _dependencies = <String>{};
 
@@ -576,9 +554,7 @@ class DependencyTracker {
   void record(String path) => _dependencies.add(path);
 }
 
-/**
- * [PackageBundleProvider] that always reads from the [ResourceProvider].
- */
+/// [PackageBundleProvider] that always reads from the [ResourceProvider].
 class DirectPackageBundleProvider implements PackageBundleProvider {
   final ResourceProvider resourceProvider;
 
@@ -591,17 +567,13 @@ class DirectPackageBundleProvider implements PackageBundleProvider {
   }
 }
 
-/**
- * Instances of the class [ExplicitSourceResolver] map URIs to files on disk
- * using a fixed mapping provided at construction time.
- */
+/// Instances of the class [ExplicitSourceResolver] map URIs to files on disk
+/// using a fixed mapping provided at construction time.
 class ExplicitSourceResolver extends UriResolver {
   final Map<Uri, File> uriToFileMap;
   final Map<String, Uri> pathToUriMap;
 
-  /**
-   * Construct an [ExplicitSourceResolver] based on the given [uriToFileMap].
-   */
+  /// Construct an [ExplicitSourceResolver] based on the given [uriToFileMap].
   ExplicitSourceResolver(Map<Uri, File> uriToFileMap)
       : uriToFileMap = uriToFileMap,
         pathToUriMap = _computePathToUriMap(uriToFileMap);
@@ -622,9 +594,7 @@ class ExplicitSourceResolver extends UriResolver {
     return pathToUriMap[source.fullName];
   }
 
-  /**
-   * Build the inverse mapping of [uriToSourceMap].
-   */
+  /// Build the inverse mapping of [uriToSourceMap].
   static Map<String, Uri> _computePathToUriMap(Map<Uri, File> uriToSourceMap) {
     Map<String, Uri> pathToUriMap = <String, Uri>{};
     uriToSourceMap.forEach((Uri uri, File file) {
@@ -634,19 +604,13 @@ class ExplicitSourceResolver extends UriResolver {
   }
 }
 
-/**
- * Provider for [PackageBundle]s by file paths.
- */
+/// Provider for [PackageBundle]s by file paths.
 abstract class PackageBundleProvider {
-  /**
-   * Return the [PackageBundle] for the file with the given [path].
-   */
+  /// Return the [PackageBundle] for the file with the given [path].
   PackageBundle get(String path);
 }
 
-/**
- * Wrapper for [InSummaryUriResolver] that tracks accesses to summaries.
- */
+/// Wrapper for [InSummaryUriResolver] that tracks accesses to summaries.
 class TrackingInSummaryUriResolver extends UriResolver {
   // May be null.
   final DependencyTracker dependencyTracker;
@@ -667,13 +631,11 @@ class TrackingInSummaryUriResolver extends UriResolver {
   }
 }
 
-/**
- * Worker input.
- *
- * Bazel does not specify the format of the digest, so we cannot assume that
- * the digest itself is enough to uniquely identify inputs. So, we use a pair
- * of path + digest.
- */
+/// Worker input.
+///
+/// Bazel does not specify the format of the digest, so we cannot assume that
+/// the digest itself is enough to uniquely identify inputs. So, we use a pair
+/// of path + digest.
 class WorkerInput {
   static const _digestEquality = ListEquality<int>();
 
@@ -696,24 +658,18 @@ class WorkerInput {
   String toString() => '$path @ ${hex.encode(digest)}';
 }
 
-/**
- * Value object for [WorkerPackageBundleCache].
- */
+/// Value object for [WorkerPackageBundleCache].
 class WorkerPackageBundle {
   final List<int> bytes;
   final PackageBundle bundle;
 
   WorkerPackageBundle(this.bytes, this.bundle);
 
-  /**
-   * Approximation of a bundle size in memory.
-   */
+  /// Approximation of a bundle size in memory.
   int get size => bytes.length * 3;
 }
 
-/**
- * Cache of [PackageBundle]s.
- */
+/// Cache of [PackageBundle]s.
 class WorkerPackageBundleCache {
   final ResourceProvider resourceProvider;
   final PerformanceLog logger;
@@ -723,10 +679,8 @@ class WorkerPackageBundleCache {
       : _cache = Cache<WorkerInput, WorkerPackageBundle>(
             maxSizeBytes, (value) => value.size);
 
-  /**
-   * Get the [PackageBundle] from the file with the given [path] in the context
-   * of the given worker [inputs].
-   */
+  /// Get the [PackageBundle] from the file with the given [path] in the context
+  /// of the given worker [inputs].
   PackageBundle get(Map<String, WorkerInput> inputs, String path) {
     WorkerInput input = inputs[path];
 
@@ -747,10 +701,8 @@ class WorkerPackageBundleCache {
   }
 }
 
-/**
- * [PackageBundleProvider] that reads from [WorkerPackageBundleCache] using
- * the request specific [inputs].
- */
+/// [PackageBundleProvider] that reads from [WorkerPackageBundleCache] using
+/// the request specific [inputs].
 class WorkerPackageBundleProvider implements PackageBundleProvider {
   final WorkerPackageBundleCache cache;
   final Map<String, WorkerInput> inputs;

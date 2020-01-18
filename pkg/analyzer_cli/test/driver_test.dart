@@ -95,7 +95,7 @@ class AbstractBuildModeTest extends BaseTest {
       return makeAbsoluteAndNormalized(executableParent.path);
     }
     // If neither of those are suitable, assume we are running locally within the
-    // SDK project (e.g. within an IDE).  Find the build output directory and
+    // SDK project (e.g. within an IDE). Find the build output directory and
     // search all built configurations.
     Directory sdkRootDir =
         File(Platform.script.toFilePath()).parent.parent.parent.parent;
@@ -197,12 +197,10 @@ class BaseTest {
     return '$uriPrefix${path.join(testDirectory, relativePath)}';
   }
 
-  /**
-   * Convert the given posix [filePath] to conform to this provider's path context.
-   *
-   * This is a utility method for testing; paths passed in to other methods in
-   * this class are never converted automatically.
-   */
+  /// Convert the given posix [filePath] to conform to this provider's path context.
+  ///
+  /// This is a utility method for testing; paths passed in to other methods in
+  /// this class are never converted automatically.
   String _p(String filePath) {
     if (filePath == null) {
       return null;

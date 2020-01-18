@@ -47,7 +47,7 @@ linter:
     #- prefer_single_quotes # 59
     - prefer_spread_collections
     - recursive_getters
-    #- slash_for_doc_comments # 31
+    - slash_for_doc_comments
     - type_init_formals
     - unawaited_futures
     - unnecessary_const

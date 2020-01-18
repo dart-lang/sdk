@@ -89,9 +89,7 @@ class Driver with HasContextMixin implements CommandLineStarter {
   /// SDK instance.
   DartSdk sdk;
 
-  /**
-   * The resource provider used to access the file system.
-   */
+  /// The resource provider used to access the file system.
   @override
   final ResourceProvider resourceProvider = PhysicalResourceProvider.INSTANCE;
 
@@ -106,9 +104,7 @@ class Driver with HasContextMixin implements CommandLineStarter {
   /// [isTesting] is true if we're running in a test environment.
   Driver({bool isTesting = false});
 
-  /**
-   * Converts the given [filePath] into absolute and normalized.
-   */
+  /// Converts the given [filePath] into absolute and normalized.
   String normalizePath(String filePath) {
     filePath = filePath.trim();
     filePath = resourceProvider.pathContext.absolute(filePath);

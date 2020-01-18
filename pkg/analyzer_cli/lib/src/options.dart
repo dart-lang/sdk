@@ -69,8 +69,8 @@ class CommandLineOptions {
   /// The path to the dart SDK summary file.
   final String dartSdkSummaryPath;
 
-  /// Whether to disable cache flushing.  This option can improve analysis
-  /// speed at the expense of memory usage.  It may also be useful for working
+  /// Whether to disable cache flushing. This option can improve analysis
+  /// speed at the expense of memory usage. It may also be useful for working
   /// around bugs.
   final bool disableCacheFlushing;
 

@@ -49,7 +49,7 @@ class AnalyzerImpl {
   final List<ErrorsResult> errorsResults = [];
 
   /// If the file specified on the command line is part of a package, the name
-  /// of that package.  Otherwise `null`.  This allows us to analyze the file
+  /// of that package. Otherwise `null`. This allows us to analyze the file
   /// specified on the command line as though it is reached via a "package:"
   /// URI, but avoid suppressing its output in the event that the user has not
   /// specified the "--package-warnings" option.
