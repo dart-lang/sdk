@@ -77,8 +77,8 @@ class MockChannel implements PluginCommunicationChannel {
   }
 
   @override
-  void listen(void onRequest(Request request),
-      {void onDone(),
+  void listen(void Function(Request request) onRequest,
+      {void Function() onDone,
       Function onError,
       Function(Notification) onNotification}) {
     _onDone = onDone;

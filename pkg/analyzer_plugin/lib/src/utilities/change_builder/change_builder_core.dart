@@ -60,7 +60,7 @@ class ChangeBuilderImpl implements ChangeBuilder {
 
   @override
   Future<void> addFileEdit(
-      String path, void buildFileEdit(FileEditBuilder builder)) async {
+      String path, void Function(FileEditBuilder builder) buildFileEdit) async {
     FileEditBuilderImpl builder = _fileEditBuilders[path];
     if (builder == null) {
       builder = await createFileEditBuilder(path);
@@ -155,8 +155,8 @@ class EditBuilderImpl implements EditBuilder {
   SourceEdit get sourceEdit => SourceEdit(offset, length, _buffer.toString());
 
   @override
-  void addLinkedEdit(
-      String groupName, void buildLinkedEdit(LinkedEditBuilder builder)) {
+  void addLinkedEdit(String groupName,
+      void Function(LinkedEditBuilder builder) buildLinkedEdit) {
     LinkedEditBuilderImpl builder = createLinkedEditBuilder();
     int start = offset + _buffer.length;
     try {
@@ -198,7 +198,7 @@ class EditBuilderImpl implements EditBuilder {
   }
 
   @override
-  void selectAll(void writer()) {
+  void selectAll(void Function() writer) {
     int rangeOffset = _buffer.length;
     writer();
     int rangeLength = _buffer.length - rangeOffset;
@@ -255,7 +255,7 @@ class FileEditBuilderImpl implements FileEditBuilder {
   }
 
   @override
-  void addInsertion(int offset, void buildEdit(EditBuilder builder)) {
+  void addInsertion(int offset, void Function(EditBuilder builder) buildEdit) {
     EditBuilderImpl builder = createEditBuilder(offset, 0);
     try {
       buildEdit(builder);
@@ -273,7 +273,8 @@ class FileEditBuilderImpl implements FileEditBuilder {
   }
 
   @override
-  void addReplacement(SourceRange range, void buildEdit(EditBuilder builder)) {
+  void addReplacement(
+      SourceRange range, void Function(EditBuilder builder) buildEdit) {
     EditBuilderImpl builder = createEditBuilder(range.offset, range.length);
     try {
       buildEdit(builder);

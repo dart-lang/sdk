@@ -28,7 +28,7 @@ abstract class ChangeBuilder {
   /// file with the given [path]. The edits will be added to the source change
   /// that is being built.
   Future<void> addFileEdit(
-      String path, void buildFileEdit(FileEditBuilder builder));
+      String path, void Function(FileEditBuilder builder) buildFileEdit);
 
   /// Set the selection for the change being built to the given [position].
   void setSelection(Position position);
@@ -42,8 +42,8 @@ abstract class EditBuilder {
   /// [groupName]. The [buildLinkedEdit] function is used to write the content
   /// of the region of text and to add suggestions for other possible values for
   /// that region.
-  void addLinkedEdit(
-      String groupName, void buildLinkedEdit(LinkedEditBuilder builder));
+  void addLinkedEdit(String groupName,
+      void Function(LinkedEditBuilder builder) buildLinkedEdit);
 
   /// Add the given text as a linked edit group with the given [groupName]. If
   /// both a [kind] and a list of [suggestions] are provided, they will be added
@@ -55,7 +55,7 @@ abstract class EditBuilder {
       {LinkedEditSuggestionKind kind, List<String> suggestions});
 
   /// Set the selection to cover all of the code written by the given [writer].
-  void selectAll(void writer());
+  void selectAll(void Function() writer);
 
   /// Set the selection to the current location within the edit being built.
   void selectHere();
@@ -83,7 +83,7 @@ abstract class FileEditBuilder {
   /// to be inserted. This is fully equivalent to
   ///
   ///     addReplacement(new SourceRange(offset, 0), buildEdit);
-  void addInsertion(int offset, void buildEdit(EditBuilder builder));
+  void addInsertion(int offset, void Function(EditBuilder builder) buildEdit);
 
   /// Add the region of text specified by the given [range] to the linked edit
   /// group with the given [groupName]. The [range] is relative to the original
@@ -95,7 +95,8 @@ abstract class FileEditBuilder {
   /// Add a replacement of text specified by the given [range]. The [range] is
   /// relative to the original source. The [buildEdit] function is used to write
   /// the text that will replace the specified region.
-  void addReplacement(SourceRange range, void buildEdit(EditBuilder builder));
+  void addReplacement(
+      SourceRange range, void Function(EditBuilder builder) buildEdit);
 
   /// Add an insertion of the given [text] at the given [offset]. The [offset]
   /// is relative to the original source. This is fully equivalent to

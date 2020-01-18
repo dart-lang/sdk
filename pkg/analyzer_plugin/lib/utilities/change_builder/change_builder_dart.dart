@@ -33,7 +33,7 @@ abstract class DartChangeBuilder implements ChangeBuilder {
   /// import prefix for every newly imported library.
   @override
   Future<void> addFileEdit(
-      String path, void buildFileEdit(DartFileEditBuilder builder),
+      String path, void Function(DartFileEditBuilder builder) buildFileEdit,
       {ImportPrefixGenerator importPrefixGenerator});
 }
 
@@ -42,8 +42,8 @@ abstract class DartChangeBuilder implements ChangeBuilder {
 /// Clients may not extend, implement or mix-in this class.
 abstract class DartEditBuilder implements EditBuilder {
   @override
-  void addLinkedEdit(
-      String groupName, void buildLinkedEdit(DartLinkedEditBuilder builder));
+  void addLinkedEdit(String groupName,
+      void Function(DartLinkedEditBuilder builder) buildLinkedEdit);
 
   /// Write the code for a declaration of a class with the given [name]. If a
   /// list of [interfaces] is provided, then the class will implement those
@@ -58,7 +58,7 @@ abstract class DartEditBuilder implements EditBuilder {
   void writeClassDeclaration(String name,
       {Iterable<DartType> interfaces,
       bool isAbstract = false,
-      void membersWriter(),
+      void Function() membersWriter,
       Iterable<DartType> mixins,
       String nameGroupName,
       DartType superclass,
@@ -81,13 +81,13 @@ abstract class DartEditBuilder implements EditBuilder {
   /// constructor body, otherwise an empty body is written.
   void writeConstructorDeclaration(String className,
       {ArgumentList argumentList,
-      void bodyWriter(),
+      void Function() bodyWriter,
       SimpleIdentifier constructorName,
       String constructorNameGroupName,
       List<String> fieldNames,
-      void initializerWriter(),
+      void Function() initializerWriter,
       bool isConst = false,
-      void parameterWriter()});
+      void Function() parameterWriter});
 
   /// Write the code for a declaration of a field with the given [name]. If an
   /// [initializerWriter] is provided, it will be invoked to write the content
@@ -104,7 +104,7 @@ abstract class DartEditBuilder implements EditBuilder {
   /// required.) If a [typeGroupName] is provided, then if a type was written
   /// it will be in the linked edit group with that name.
   void writeFieldDeclaration(String name,
-      {void initializerWriter(),
+      {void Function() initializerWriter,
       bool isConst = false,
       bool isFinal = false,
       bool isStatic = false,
@@ -125,10 +125,10 @@ abstract class DartEditBuilder implements EditBuilder {
   /// declarations of the parameters to the function. (The parentheses around
   /// the parameters will automatically be written.)
   void writeFunctionDeclaration(String name,
-      {void bodyWriter(),
+      {void Function() bodyWriter,
       bool isStatic = false,
       String nameGroupName,
-      void parameterWriter(),
+      void Function() parameterWriter,
       DartType returnType,
       String returnTypeGroupName});
 
@@ -142,7 +142,7 @@ abstract class DartEditBuilder implements EditBuilder {
   /// getter. If a [returnTypeGroupName] is provided, then if a return type was
   /// written it will be in the linked edit group with that name.
   void writeGetterDeclaration(String name,
-      {void bodyWriter(),
+      {void Function() bodyWriter,
       bool isStatic = false,
       String nameGroupName,
       DartType returnType,
@@ -162,7 +162,7 @@ abstract class DartEditBuilder implements EditBuilder {
   /// when required.) If a [typeGroupName] is provided, then if a type was
   /// written it will be in the linked edit group with that name.
   void writeLocalVariableDeclaration(String name,
-      {void initializerWriter(),
+      {void Function() initializerWriter,
       bool isConst = false,
       bool isFinal = false,
       String nameGroupName,
@@ -177,7 +177,7 @@ abstract class DartEditBuilder implements EditBuilder {
   /// name.
   void writeMixinDeclaration(String name,
       {Iterable<DartType> interfaces,
-      void membersWriter(),
+      void Function() membersWriter,
       String nameGroupName,
       Iterable<DartType> superclassConstraints});
 
@@ -238,7 +238,7 @@ abstract class DartEditBuilder implements EditBuilder {
   /// parameter. If a [parameterTypeGroupName] is provided, then if a parameter
   /// type was written it will be in the linked edit group with that name.
   void writeSetterDeclaration(String name,
-      {void bodyWriter(),
+      {void Function() bodyWriter,
       bool isStatic = false,
       String nameGroupName,
       DartType parameterType,
@@ -295,11 +295,12 @@ abstract class DartEditBuilder implements EditBuilder {
 /// Clients may not extend, implement or mix-in this class.
 abstract class DartFileEditBuilder implements FileEditBuilder {
   @override
-  void addInsertion(int offset, void buildEdit(DartEditBuilder builder));
+  void addInsertion(
+      int offset, void Function(DartEditBuilder builder) buildEdit);
 
   @override
   void addReplacement(
-      SourceRange range, void buildEdit(DartEditBuilder builder));
+      SourceRange range, void Function(DartEditBuilder builder) buildEdit);
 
   /// Create one or more edits that will convert the given function [body] from
   /// being synchronous to be asynchronous. This includes adding the `async`

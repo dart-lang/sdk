@@ -40,7 +40,7 @@ class DartChangeBuilderImpl extends ChangeBuilderImpl
 
   @override
   Future<void> addFileEdit(
-      String path, void buildFileEdit(DartFileEditBuilder builder),
+      String path, void Function(DartFileEditBuilder builder) buildFileEdit,
       {ImportPrefixGenerator importPrefixGenerator}) {
     return super.addFileEdit(path, (builder) {
       DartFileEditBuilderImpl dartBuilder = builder as DartFileEditBuilderImpl;
@@ -113,7 +113,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   @override
   void addLinkedEdit(String groupName,
-          void buildLinkedEdit(DartLinkedEditBuilder builder)) =>
+          void Function(DartLinkedEditBuilder builder) buildLinkedEdit) =>
       super.addLinkedEdit(groupName,
           (builder) => buildLinkedEdit(builder as DartLinkedEditBuilder));
 
@@ -135,7 +135,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   void writeClassDeclaration(String name,
       {Iterable<DartType> interfaces,
       bool isAbstract = false,
-      void membersWriter(),
+      void Function() membersWriter,
       Iterable<DartType> mixins,
       String nameGroupName,
       DartType superclass,
@@ -172,13 +172,13 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   @override
   void writeConstructorDeclaration(String className,
       {ArgumentList argumentList,
-      void bodyWriter(),
+      void Function() bodyWriter,
       SimpleIdentifier constructorName,
       String constructorNameGroupName,
       List<String> fieldNames,
-      void initializerWriter(),
+      void Function() initializerWriter,
       bool isConst = false,
-      void parameterWriter()}) {
+      void Function() parameterWriter}) {
     if (isConst) {
       write(Keyword.CONST.lexeme);
       write(' ');
@@ -222,7 +222,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   @override
   void writeFieldDeclaration(String name,
-      {void initializerWriter(),
+      {void Function() initializerWriter,
       bool isConst = false,
       bool isFinal = false,
       bool isStatic = false,
@@ -264,10 +264,10 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   @override
   void writeFunctionDeclaration(String name,
-      {void bodyWriter(),
+      {void Function() bodyWriter,
       bool isStatic = false,
       String nameGroupName,
-      void parameterWriter(),
+      void Function() parameterWriter,
       DartType returnType,
       String returnTypeGroupName}) {
     if (isStatic) {
@@ -303,7 +303,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   @override
   void writeGetterDeclaration(String name,
-      {void bodyWriter(),
+      {void Function() bodyWriter,
       bool isStatic = false,
       String nameGroupName,
       DartType returnType,
@@ -334,7 +334,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   @override
   void writeLocalVariableDeclaration(String name,
-      {void initializerWriter(),
+      {void Function() initializerWriter,
       bool isConst = false,
       bool isFinal = false,
       String nameGroupName,
@@ -373,7 +373,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   @override
   void writeMixinDeclaration(String name,
       {Iterable<DartType> interfaces,
-      void membersWriter(),
+      void Function() membersWriter,
       String nameGroupName,
       Iterable<DartType> superclassConstraints}) {
     // TODO(brianwilkerson) Add support for type parameters, probably as a
@@ -400,7 +400,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     String returnTypeGroupName,
     bool invokeSuper = false,
   }) {
-    void withCarbonCopyBuffer(f()) {
+    void withCarbonCopyBuffer(Function() f) {
       _carbonCopyBuffer = displayTextBuffer;
       try {
         f();
@@ -648,7 +648,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   @override
   void writeSetterDeclaration(String name,
-      {void bodyWriter(),
+      {void Function() bodyWriter,
       bool isStatic = false,
       String nameGroupName,
       DartType parameterType,
@@ -1157,13 +1157,14 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       librariesToRelativelyImport.isNotEmpty;
 
   @override
-  void addInsertion(int offset, void buildEdit(DartEditBuilder builder)) =>
+  void addInsertion(
+          int offset, void Function(DartEditBuilder builder) buildEdit) =>
       super.addInsertion(
           offset, (builder) => buildEdit(builder as DartEditBuilder));
 
   @override
-  void addReplacement(
-          SourceRange range, void buildEdit(DartEditBuilder builder)) =>
+  void addReplacement(SourceRange range,
+          void Function(DartEditBuilder builder) buildEdit) =>
       super.addReplacement(
           range, (builder) => buildEdit(builder as DartEditBuilder));
 

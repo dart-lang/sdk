@@ -18,8 +18,8 @@ abstract class PluginCommunicationChannel {
   /// the socket, invoke the [onError] function. If the socket is closed by the
   /// client, invoke the [onDone] function. Only one listener is allowed per
   /// channel.
-  void listen(void onRequest(Request request),
-      {Function onError, void onDone()});
+  void listen(void Function(Request request) onRequest,
+      {Function onError, void Function() onDone});
 
   /// Send the given [notification] to the server.
   void sendNotification(Notification notification);
@@ -47,9 +47,9 @@ abstract class ServerCommunicationChannel {
   /// trying to read from the socket, invoke the [onError] function. If the
   /// socket is closed by the plugin, invoke the [onDone] function. Only one
   /// listener is allowed per channel.
-  void listen(void onResponse(Response response),
-      void onNotification(Notification notification),
-      {void onError(dynamic error), void onDone()});
+  void listen(void Function(Response response) onResponse,
+      void Function(Notification notification) onNotification,
+      {void Function(dynamic error) onError, void Function() onDone});
 
   /// Send the given [request] to the plugin.
   void sendRequest(Request request);

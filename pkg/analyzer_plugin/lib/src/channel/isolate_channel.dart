@@ -92,8 +92,8 @@ class PluginIsolateChannel implements PluginCommunicationChannel {
   }
 
   @override
-  void listen(void onRequest(Request request),
-      {Function onError, void onDone()}) {
+  void listen(void Function(Request request) onRequest,
+      {Function onError, void Function() onDone}) {
     void onData(data) {
       Map<String, Object> requestMap = data as Map<String, Object>;
       Request request = Request.fromJson(requestMap);
@@ -178,9 +178,9 @@ abstract class ServerIsolateChannel implements ServerCommunicationChannel {
   }
 
   @override
-  Future<void> listen(void onResponse(Response response),
-      void onNotification(Notification notification),
-      {void onError(dynamic error), void onDone()}) async {
+  Future<void> listen(void Function(Response response) onResponse,
+      void Function(Notification notification) onNotification,
+      {void Function(dynamic error) onError, void Function() onDone}) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     if (_isolate != null) {

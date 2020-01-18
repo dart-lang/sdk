@@ -70,7 +70,8 @@ SourceFileEdit getChangeFileEdit(SourceChange change, String file) {
 
 /// Compare the lists [listA] and [listB], using [itemEqual] to compare
 /// list elements.
-bool listEqual<T>(List<T> listA, List<T> listB, bool itemEqual(T a, T b)) {
+bool listEqual<T>(
+    List<T> listA, List<T> listB, bool Function(T a, T b) itemEqual) {
   if (listA == null) {
     return listB == null;
   }
@@ -90,7 +91,8 @@ bool listEqual<T>(List<T> listA, List<T> listB, bool itemEqual(T a, T b)) {
 
 /// Compare the maps [mapA] and [mapB], using [valueEqual] to compare map
 /// values.
-bool mapEqual<K, V>(Map<K, V> mapA, Map<K, V> mapB, bool valueEqual(V a, V b)) {
+bool mapEqual<K, V>(
+    Map<K, V> mapA, Map<K, V> mapB, bool Function(V a, V b) valueEqual) {
   if (mapA == null) {
     return mapB == null;
   }
@@ -114,7 +116,7 @@ bool mapEqual<K, V>(Map<K, V> mapA, Map<K, V> mapB, bool valueEqual(V a, V b)) {
 /// Translate the input [map], applying [keyCallback] to all its keys, and
 /// [valueCallback] to all its values.
 Map<KR, VR> mapMap<KP, VP, KR, VR>(Map<KP, VP> map,
-    {KR keyCallback(KP key), VR valueCallback(VP value)}) {
+    {KR Function(KP key) keyCallback, VR Function(VP value) valueCallback}) {
   Map<KR, VR> result = HashMap<KR, VR>();
   map.forEach((key, value) {
     KR resultKey;
