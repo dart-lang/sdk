@@ -15,27 +15,21 @@ import 'package:analysis_server_client/src/protocol/protocol_util.dart';
 import 'package:analysis_server_client/src/protocol/protocol_base.dart';
 import 'package:analysis_server_client/src/protocol/protocol_internal.dart';
 
-/**
- * AddContentOverlay
- *
- * {
- *   "type": "add"
- *   "content": String
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// AddContentOverlay
+///
+/// {
+///   "type": "add"
+///   "content": String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AddContentOverlay implements HasToJson {
   String _content;
 
-  /**
-   * The new content of the file.
-   */
+  /// The new content of the file.
   String get content => _content;
 
-  /**
-   * The new content of the file.
-   */
+  /// The new content of the file.
   set content(String value) {
     assert(value != null);
     _content = value;
@@ -93,21 +87,19 @@ class AddContentOverlay implements HasToJson {
   }
 }
 
-/**
- * AnalysisError
- *
- * {
- *   "severity": AnalysisErrorSeverity
- *   "type": AnalysisErrorType
- *   "location": Location
- *   "message": String
- *   "correction": optional String
- *   "code": String
- *   "hasFix": optional bool
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// AnalysisError
+///
+/// {
+///   "severity": AnalysisErrorSeverity
+///   "type": AnalysisErrorType
+///   "location": Location
+///   "message": String
+///   "correction": optional String
+///   "code": String
+///   "hasFix": optional bool
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisError implements HasToJson {
   AnalysisErrorSeverity _severity;
 
@@ -123,111 +115,83 @@ class AnalysisError implements HasToJson {
 
   bool _hasFix;
 
-  /**
-   * The severity of the error.
-   */
+  /// The severity of the error.
   AnalysisErrorSeverity get severity => _severity;
 
-  /**
-   * The severity of the error.
-   */
+  /// The severity of the error.
   set severity(AnalysisErrorSeverity value) {
     assert(value != null);
     _severity = value;
   }
 
-  /**
-   * The type of the error.
-   */
+  /// The type of the error.
   AnalysisErrorType get type => _type;
 
-  /**
-   * The type of the error.
-   */
+  /// The type of the error.
   set type(AnalysisErrorType value) {
     assert(value != null);
     _type = value;
   }
 
-  /**
-   * The location associated with the error.
-   */
+  /// The location associated with the error.
   Location get location => _location;
 
-  /**
-   * The location associated with the error.
-   */
+  /// The location associated with the error.
   set location(Location value) {
     assert(value != null);
     _location = value;
   }
 
-  /**
-   * The message to be displayed for this error. The message should indicate
-   * what is wrong with the code and why it is wrong.
-   */
+  /// The message to be displayed for this error. The message should indicate
+  /// what is wrong with the code and why it is wrong.
   String get message => _message;
 
-  /**
-   * The message to be displayed for this error. The message should indicate
-   * what is wrong with the code and why it is wrong.
-   */
+  /// The message to be displayed for this error. The message should indicate
+  /// what is wrong with the code and why it is wrong.
   set message(String value) {
     assert(value != null);
     _message = value;
   }
 
-  /**
-   * The correction message to be displayed for this error. The correction
-   * message should indicate how the user can fix the error. The field is
-   * omitted if there is no correction message associated with the error code.
-   */
+  /// The correction message to be displayed for this error. The correction
+  /// message should indicate how the user can fix the error. The field is
+  /// omitted if there is no correction message associated with the error code.
   String get correction => _correction;
 
-  /**
-   * The correction message to be displayed for this error. The correction
-   * message should indicate how the user can fix the error. The field is
-   * omitted if there is no correction message associated with the error code.
-   */
+  /// The correction message to be displayed for this error. The correction
+  /// message should indicate how the user can fix the error. The field is
+  /// omitted if there is no correction message associated with the error code.
   set correction(String value) {
     _correction = value;
   }
 
-  /**
-   * The name, as a string, of the error code associated with this error.
-   */
+  /// The name, as a string, of the error code associated with this error.
   String get code => _code;
 
-  /**
-   * The name, as a string, of the error code associated with this error.
-   */
+  /// The name, as a string, of the error code associated with this error.
   set code(String value) {
     assert(value != null);
     _code = value;
   }
 
-  /**
-   * A hint to indicate to interested clients that this error has an associated
-   * fix (or fixes). The absence of this field implies there are not known to
-   * be fixes. Note that since the operation to calculate whether fixes apply
-   * needs to be performant it is possible that complicated tests will be
-   * skipped and a false negative returned. For this reason, this attribute
-   * should be treated as a "hint". Despite the possibility of false negatives,
-   * no false positives should be returned. If a client sees this flag set they
-   * can proceed with the confidence that there are in fact associated fixes.
-   */
+  /// A hint to indicate to interested clients that this error has an associated
+  /// fix (or fixes). The absence of this field implies there are not known to
+  /// be fixes. Note that since the operation to calculate whether fixes apply
+  /// needs to be performant it is possible that complicated tests will be
+  /// skipped and a false negative returned. For this reason, this attribute
+  /// should be treated as a "hint". Despite the possibility of false negatives,
+  /// no false positives should be returned. If a client sees this flag set they
+  /// can proceed with the confidence that there are in fact associated fixes.
   bool get hasFix => _hasFix;
 
-  /**
-   * A hint to indicate to interested clients that this error has an associated
-   * fix (or fixes). The absence of this field implies there are not known to
-   * be fixes. Note that since the operation to calculate whether fixes apply
-   * needs to be performant it is possible that complicated tests will be
-   * skipped and a false negative returned. For this reason, this attribute
-   * should be treated as a "hint". Despite the possibility of false negatives,
-   * no false positives should be returned. If a client sees this flag set they
-   * can proceed with the confidence that there are in fact associated fixes.
-   */
+  /// A hint to indicate to interested clients that this error has an associated
+  /// fix (or fixes). The absence of this field implies there are not known to
+  /// be fixes. Note that since the operation to calculate whether fixes apply
+  /// needs to be performant it is possible that complicated tests will be
+  /// skipped and a false negative returned. For this reason, this attribute
+  /// should be treated as a "hint". Despite the possibility of false negatives,
+  /// no false positives should be returned. If a client sees this flag set they
+  /// can proceed with the confidence that there are in fact associated fixes.
   set hasFix(bool value) {
     _hasFix = value;
   }
@@ -346,17 +310,15 @@ class AnalysisError implements HasToJson {
   }
 }
 
-/**
- * AnalysisErrorSeverity
- *
- * enum {
- *   INFO
- *   WARNING
- *   ERROR
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// AnalysisErrorSeverity
+///
+/// enum {
+///   INFO
+///   WARNING
+///   ERROR
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisErrorSeverity implements Enum {
   static const AnalysisErrorSeverity INFO = AnalysisErrorSeverity._("INFO");
 
@@ -365,9 +327,7 @@ class AnalysisErrorSeverity implements Enum {
 
   static const AnalysisErrorSeverity ERROR = AnalysisErrorSeverity._("ERROR");
 
-  /**
-   * A list containing all of the enum values that are defined.
-   */
+  /// A list containing all of the enum values that are defined.
   static const List<AnalysisErrorSeverity> VALUES = <AnalysisErrorSeverity>[
     INFO,
     WARNING,
@@ -409,22 +369,20 @@ class AnalysisErrorSeverity implements Enum {
   String toJson() => name;
 }
 
-/**
- * AnalysisErrorType
- *
- * enum {
- *   CHECKED_MODE_COMPILE_TIME_ERROR
- *   COMPILE_TIME_ERROR
- *   HINT
- *   LINT
- *   STATIC_TYPE_WARNING
- *   STATIC_WARNING
- *   SYNTACTIC_ERROR
- *   TODO
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// AnalysisErrorType
+///
+/// enum {
+///   CHECKED_MODE_COMPILE_TIME_ERROR
+///   COMPILE_TIME_ERROR
+///   HINT
+///   LINT
+///   STATIC_TYPE_WARNING
+///   STATIC_WARNING
+///   SYNTACTIC_ERROR
+///   TODO
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class AnalysisErrorType implements Enum {
   static const AnalysisErrorType CHECKED_MODE_COMPILE_TIME_ERROR =
       AnalysisErrorType._("CHECKED_MODE_COMPILE_TIME_ERROR");
@@ -447,9 +405,7 @@ class AnalysisErrorType implements Enum {
 
   static const AnalysisErrorType TODO = AnalysisErrorType._("TODO");
 
-  /**
-   * A list containing all of the enum values that are defined.
-   */
+  /// A list containing all of the enum values that are defined.
   static const List<AnalysisErrorType> VALUES = <AnalysisErrorType>[
     CHECKED_MODE_COMPILE_TIME_ERROR,
     COMPILE_TIME_ERROR,
@@ -506,27 +462,21 @@ class AnalysisErrorType implements Enum {
   String toJson() => name;
 }
 
-/**
- * ChangeContentOverlay
- *
- * {
- *   "type": "change"
- *   "edits": List<SourceEdit>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// ChangeContentOverlay
+///
+/// {
+///   "type": "change"
+///   "edits": List<SourceEdit>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ChangeContentOverlay implements HasToJson {
   List<SourceEdit> _edits;
 
-  /**
-   * The edits to be applied to the file.
-   */
+  /// The edits to be applied to the file.
   List<SourceEdit> get edits => _edits;
 
-  /**
-   * The edits to be applied to the file.
-   */
+  /// The edits to be applied to the file.
   set edits(List<SourceEdit> value) {
     assert(value != null);
     _edits = value;
@@ -588,36 +538,34 @@ class ChangeContentOverlay implements HasToJson {
   }
 }
 
-/**
- * CompletionSuggestion
- *
- * {
- *   "kind": CompletionSuggestionKind
- *   "relevance": int
- *   "completion": String
- *   "displayText": optional String
- *   "selectionOffset": int
- *   "selectionLength": int
- *   "isDeprecated": bool
- *   "isPotential": bool
- *   "docSummary": optional String
- *   "docComplete": optional String
- *   "declaringType": optional String
- *   "defaultArgumentListString": optional String
- *   "defaultArgumentListTextRanges": optional List<int>
- *   "element": optional Element
- *   "returnType": optional String
- *   "parameterNames": optional List<String>
- *   "parameterTypes": optional List<String>
- *   "requiredParameterCount": optional int
- *   "hasNamedParameters": optional bool
- *   "parameterName": optional String
- *   "parameterType": optional String
- *   "importUri": optional String
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// CompletionSuggestion
+///
+/// {
+///   "kind": CompletionSuggestionKind
+///   "relevance": int
+///   "completion": String
+///   "displayText": optional String
+///   "selectionOffset": int
+///   "selectionLength": int
+///   "isDeprecated": bool
+///   "isPotential": bool
+///   "docSummary": optional String
+///   "docComplete": optional String
+///   "declaringType": optional String
+///   "defaultArgumentListString": optional String
+///   "defaultArgumentListTextRanges": optional List<int>
+///   "element": optional Element
+///   "returnType": optional String
+///   "parameterNames": optional List<String>
+///   "parameterTypes": optional List<String>
+///   "requiredParameterCount": optional int
+///   "hasNamedParameters": optional bool
+///   "parameterName": optional String
+///   "parameterType": optional String
+///   "importUri": optional String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class CompletionSuggestion implements HasToJson {
   CompletionSuggestionKind _kind;
 
@@ -663,331 +611,243 @@ class CompletionSuggestion implements HasToJson {
 
   String _importUri;
 
-  /**
-   * The kind of element being suggested.
-   */
+  /// The kind of element being suggested.
   CompletionSuggestionKind get kind => _kind;
 
-  /**
-   * The kind of element being suggested.
-   */
+  /// The kind of element being suggested.
   set kind(CompletionSuggestionKind value) {
     assert(value != null);
     _kind = value;
   }
 
-  /**
-   * The relevance of this completion suggestion where a higher number
-   * indicates a higher relevance.
-   */
+  /// The relevance of this completion suggestion where a higher number
+  /// indicates a higher relevance.
   int get relevance => _relevance;
 
-  /**
-   * The relevance of this completion suggestion where a higher number
-   * indicates a higher relevance.
-   */
+  /// The relevance of this completion suggestion where a higher number
+  /// indicates a higher relevance.
   set relevance(int value) {
     assert(value != null);
     _relevance = value;
   }
 
-  /**
-   * The identifier to be inserted if the suggestion is selected. If the
-   * suggestion is for a method or function, the client might want to
-   * additionally insert a template for the parameters. The information
-   * required in order to do so is contained in other fields.
-   */
+  /// The identifier to be inserted if the suggestion is selected. If the
+  /// suggestion is for a method or function, the client might want to
+  /// additionally insert a template for the parameters. The information
+  /// required in order to do so is contained in other fields.
   String get completion => _completion;
 
-  /**
-   * The identifier to be inserted if the suggestion is selected. If the
-   * suggestion is for a method or function, the client might want to
-   * additionally insert a template for the parameters. The information
-   * required in order to do so is contained in other fields.
-   */
+  /// The identifier to be inserted if the suggestion is selected. If the
+  /// suggestion is for a method or function, the client might want to
+  /// additionally insert a template for the parameters. The information
+  /// required in order to do so is contained in other fields.
   set completion(String value) {
     assert(value != null);
     _completion = value;
   }
 
-  /**
-   * Text to be displayed in, for example, a completion pop-up. This field is
-   * only defined if the displayed text should be different than the
-   * completion. Otherwise it is omitted.
-   */
+  /// Text to be displayed in, for example, a completion pop-up. This field is
+  /// only defined if the displayed text should be different than the
+  /// completion. Otherwise it is omitted.
   String get displayText => _displayText;
 
-  /**
-   * Text to be displayed in, for example, a completion pop-up. This field is
-   * only defined if the displayed text should be different than the
-   * completion. Otherwise it is omitted.
-   */
+  /// Text to be displayed in, for example, a completion pop-up. This field is
+  /// only defined if the displayed text should be different than the
+  /// completion. Otherwise it is omitted.
   set displayText(String value) {
     _displayText = value;
   }
 
-  /**
-   * The offset, relative to the beginning of the completion, of where the
-   * selection should be placed after insertion.
-   */
+  /// The offset, relative to the beginning of the completion, of where the
+  /// selection should be placed after insertion.
   int get selectionOffset => _selectionOffset;
 
-  /**
-   * The offset, relative to the beginning of the completion, of where the
-   * selection should be placed after insertion.
-   */
+  /// The offset, relative to the beginning of the completion, of where the
+  /// selection should be placed after insertion.
   set selectionOffset(int value) {
     assert(value != null);
     _selectionOffset = value;
   }
 
-  /**
-   * The number of characters that should be selected after insertion.
-   */
+  /// The number of characters that should be selected after insertion.
   int get selectionLength => _selectionLength;
 
-  /**
-   * The number of characters that should be selected after insertion.
-   */
+  /// The number of characters that should be selected after insertion.
   set selectionLength(int value) {
     assert(value != null);
     _selectionLength = value;
   }
 
-  /**
-   * True if the suggested element is deprecated.
-   */
+  /// True if the suggested element is deprecated.
   bool get isDeprecated => _isDeprecated;
 
-  /**
-   * True if the suggested element is deprecated.
-   */
+  /// True if the suggested element is deprecated.
   set isDeprecated(bool value) {
     assert(value != null);
     _isDeprecated = value;
   }
 
-  /**
-   * True if the element is not known to be valid for the target. This happens
-   * if the type of the target is dynamic.
-   */
+  /// True if the element is not known to be valid for the target. This happens
+  /// if the type of the target is dynamic.
   bool get isPotential => _isPotential;
 
-  /**
-   * True if the element is not known to be valid for the target. This happens
-   * if the type of the target is dynamic.
-   */
+  /// True if the element is not known to be valid for the target. This happens
+  /// if the type of the target is dynamic.
   set isPotential(bool value) {
     assert(value != null);
     _isPotential = value;
   }
 
-  /**
-   * An abbreviated version of the Dartdoc associated with the element being
-   * suggested. This field is omitted if there is no Dartdoc associated with
-   * the element.
-   */
+  /// An abbreviated version of the Dartdoc associated with the element being
+  /// suggested. This field is omitted if there is no Dartdoc associated with
+  /// the element.
   String get docSummary => _docSummary;
 
-  /**
-   * An abbreviated version of the Dartdoc associated with the element being
-   * suggested. This field is omitted if there is no Dartdoc associated with
-   * the element.
-   */
+  /// An abbreviated version of the Dartdoc associated with the element being
+  /// suggested. This field is omitted if there is no Dartdoc associated with
+  /// the element.
   set docSummary(String value) {
     _docSummary = value;
   }
 
-  /**
-   * The Dartdoc associated with the element being suggested. This field is
-   * omitted if there is no Dartdoc associated with the element.
-   */
+  /// The Dartdoc associated with the element being suggested. This field is
+  /// omitted if there is no Dartdoc associated with the element.
   String get docComplete => _docComplete;
 
-  /**
-   * The Dartdoc associated with the element being suggested. This field is
-   * omitted if there is no Dartdoc associated with the element.
-   */
+  /// The Dartdoc associated with the element being suggested. This field is
+  /// omitted if there is no Dartdoc associated with the element.
   set docComplete(String value) {
     _docComplete = value;
   }
 
-  /**
-   * The class that declares the element being suggested. This field is omitted
-   * if the suggested element is not a member of a class.
-   */
+  /// The class that declares the element being suggested. This field is omitted
+  /// if the suggested element is not a member of a class.
   String get declaringType => _declaringType;
 
-  /**
-   * The class that declares the element being suggested. This field is omitted
-   * if the suggested element is not a member of a class.
-   */
+  /// The class that declares the element being suggested. This field is omitted
+  /// if the suggested element is not a member of a class.
   set declaringType(String value) {
     _declaringType = value;
   }
 
-  /**
-   * A default String for use in generating argument list source contents on
-   * the client side.
-   */
+  /// A default String for use in generating argument list source contents on
+  /// the client side.
   String get defaultArgumentListString => _defaultArgumentListString;
 
-  /**
-   * A default String for use in generating argument list source contents on
-   * the client side.
-   */
+  /// A default String for use in generating argument list source contents on
+  /// the client side.
   set defaultArgumentListString(String value) {
     _defaultArgumentListString = value;
   }
 
-  /**
-   * Pairs of offsets and lengths describing 'defaultArgumentListString' text
-   * ranges suitable for use by clients to set up linked edits of default
-   * argument source contents. For example, given an argument list string 'x,
-   * y', the corresponding text range [0, 1, 3, 1], indicates two text ranges
-   * of length 1, starting at offsets 0 and 3. Clients can use these ranges to
-   * treat the 'x' and 'y' values specially for linked edits.
-   */
+  /// Pairs of offsets and lengths describing 'defaultArgumentListString' text
+  /// ranges suitable for use by clients to set up linked edits of default
+  /// argument source contents. For example, given an argument list string 'x,
+  /// y', the corresponding text range [0, 1, 3, 1], indicates two text ranges
+  /// of length 1, starting at offsets 0 and 3. Clients can use these ranges to
+  /// treat the 'x' and 'y' values specially for linked edits.
   List<int> get defaultArgumentListTextRanges => _defaultArgumentListTextRanges;
 
-  /**
-   * Pairs of offsets and lengths describing 'defaultArgumentListString' text
-   * ranges suitable for use by clients to set up linked edits of default
-   * argument source contents. For example, given an argument list string 'x,
-   * y', the corresponding text range [0, 1, 3, 1], indicates two text ranges
-   * of length 1, starting at offsets 0 and 3. Clients can use these ranges to
-   * treat the 'x' and 'y' values specially for linked edits.
-   */
+  /// Pairs of offsets and lengths describing 'defaultArgumentListString' text
+  /// ranges suitable for use by clients to set up linked edits of default
+  /// argument source contents. For example, given an argument list string 'x,
+  /// y', the corresponding text range [0, 1, 3, 1], indicates two text ranges
+  /// of length 1, starting at offsets 0 and 3. Clients can use these ranges to
+  /// treat the 'x' and 'y' values specially for linked edits.
   set defaultArgumentListTextRanges(List<int> value) {
     _defaultArgumentListTextRanges = value;
   }
 
-  /**
-   * Information about the element reference being suggested.
-   */
+  /// Information about the element reference being suggested.
   Element get element => _element;
 
-  /**
-   * Information about the element reference being suggested.
-   */
+  /// Information about the element reference being suggested.
   set element(Element value) {
     _element = value;
   }
 
-  /**
-   * The return type of the getter, function or method or the type of the field
-   * being suggested. This field is omitted if the suggested element is not a
-   * getter, function or method.
-   */
+  /// The return type of the getter, function or method or the type of the field
+  /// being suggested. This field is omitted if the suggested element is not a
+  /// getter, function or method.
   String get returnType => _returnType;
 
-  /**
-   * The return type of the getter, function or method or the type of the field
-   * being suggested. This field is omitted if the suggested element is not a
-   * getter, function or method.
-   */
+  /// The return type of the getter, function or method or the type of the field
+  /// being suggested. This field is omitted if the suggested element is not a
+  /// getter, function or method.
   set returnType(String value) {
     _returnType = value;
   }
 
-  /**
-   * The names of the parameters of the function or method being suggested.
-   * This field is omitted if the suggested element is not a setter, function
-   * or method.
-   */
+  /// The names of the parameters of the function or method being suggested.
+  /// This field is omitted if the suggested element is not a setter, function
+  /// or method.
   List<String> get parameterNames => _parameterNames;
 
-  /**
-   * The names of the parameters of the function or method being suggested.
-   * This field is omitted if the suggested element is not a setter, function
-   * or method.
-   */
+  /// The names of the parameters of the function or method being suggested.
+  /// This field is omitted if the suggested element is not a setter, function
+  /// or method.
   set parameterNames(List<String> value) {
     _parameterNames = value;
   }
 
-  /**
-   * The types of the parameters of the function or method being suggested.
-   * This field is omitted if the parameterNames field is omitted.
-   */
+  /// The types of the parameters of the function or method being suggested.
+  /// This field is omitted if the parameterNames field is omitted.
   List<String> get parameterTypes => _parameterTypes;
 
-  /**
-   * The types of the parameters of the function or method being suggested.
-   * This field is omitted if the parameterNames field is omitted.
-   */
+  /// The types of the parameters of the function or method being suggested.
+  /// This field is omitted if the parameterNames field is omitted.
   set parameterTypes(List<String> value) {
     _parameterTypes = value;
   }
 
-  /**
-   * The number of required parameters for the function or method being
-   * suggested. This field is omitted if the parameterNames field is omitted.
-   */
+  /// The number of required parameters for the function or method being
+  /// suggested. This field is omitted if the parameterNames field is omitted.
   int get requiredParameterCount => _requiredParameterCount;
 
-  /**
-   * The number of required parameters for the function or method being
-   * suggested. This field is omitted if the parameterNames field is omitted.
-   */
+  /// The number of required parameters for the function or method being
+  /// suggested. This field is omitted if the parameterNames field is omitted.
   set requiredParameterCount(int value) {
     _requiredParameterCount = value;
   }
 
-  /**
-   * True if the function or method being suggested has at least one named
-   * parameter. This field is omitted if the parameterNames field is omitted.
-   */
+  /// True if the function or method being suggested has at least one named
+  /// parameter. This field is omitted if the parameterNames field is omitted.
   bool get hasNamedParameters => _hasNamedParameters;
 
-  /**
-   * True if the function or method being suggested has at least one named
-   * parameter. This field is omitted if the parameterNames field is omitted.
-   */
+  /// True if the function or method being suggested has at least one named
+  /// parameter. This field is omitted if the parameterNames field is omitted.
   set hasNamedParameters(bool value) {
     _hasNamedParameters = value;
   }
 
-  /**
-   * The name of the optional parameter being suggested. This field is omitted
-   * if the suggestion is not the addition of an optional argument within an
-   * argument list.
-   */
+  /// The name of the optional parameter being suggested. This field is omitted
+  /// if the suggestion is not the addition of an optional argument within an
+  /// argument list.
   String get parameterName => _parameterName;
 
-  /**
-   * The name of the optional parameter being suggested. This field is omitted
-   * if the suggestion is not the addition of an optional argument within an
-   * argument list.
-   */
+  /// The name of the optional parameter being suggested. This field is omitted
+  /// if the suggestion is not the addition of an optional argument within an
+  /// argument list.
   set parameterName(String value) {
     _parameterName = value;
   }
 
-  /**
-   * The type of the options parameter being suggested. This field is omitted
-   * if the parameterName field is omitted.
-   */
+  /// The type of the options parameter being suggested. This field is omitted
+  /// if the parameterName field is omitted.
   String get parameterType => _parameterType;
 
-  /**
-   * The type of the options parameter being suggested. This field is omitted
-   * if the parameterName field is omitted.
-   */
+  /// The type of the options parameter being suggested. This field is omitted
+  /// if the parameterName field is omitted.
   set parameterType(String value) {
     _parameterType = value;
   }
 
-  /**
-   * The import to be added if the suggestion is out of scope and needs an
-   * import to be added to be in scope.
-   */
+  /// The import to be added if the suggestion is out of scope and needs an
+  /// import to be added to be in scope.
   String get importUri => _importUri;
 
-  /**
-   * The import to be added if the suggestion is out of scope and needs an
-   * import to be added to be in scope.
-   */
+  /// The import to be added if the suggestion is out of scope and needs an
+  /// import to be added to be in scope.
   set importUri(String value) {
     _importUri = value;
   }
@@ -1315,83 +1175,67 @@ class CompletionSuggestion implements HasToJson {
   }
 }
 
-/**
- * CompletionSuggestionKind
- *
- * enum {
- *   ARGUMENT_LIST
- *   IMPORT
- *   IDENTIFIER
- *   INVOCATION
- *   KEYWORD
- *   NAMED_ARGUMENT
- *   OPTIONAL_ARGUMENT
- *   OVERRIDE
- *   PARAMETER
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// CompletionSuggestionKind
+///
+/// enum {
+///   ARGUMENT_LIST
+///   IMPORT
+///   IDENTIFIER
+///   INVOCATION
+///   KEYWORD
+///   NAMED_ARGUMENT
+///   OPTIONAL_ARGUMENT
+///   OVERRIDE
+///   PARAMETER
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class CompletionSuggestionKind implements Enum {
-  /**
-   * A list of arguments for the method or function that is being invoked. For
-   * this suggestion kind, the completion field is a textual representation of
-   * the invocation and the parameterNames, parameterTypes, and
-   * requiredParameterCount attributes are defined.
-   */
+  /// A list of arguments for the method or function that is being invoked. For
+  /// this suggestion kind, the completion field is a textual representation of
+  /// the invocation and the parameterNames, parameterTypes, and
+  /// requiredParameterCount attributes are defined.
   static const CompletionSuggestionKind ARGUMENT_LIST =
       CompletionSuggestionKind._("ARGUMENT_LIST");
 
   static const CompletionSuggestionKind IMPORT =
       CompletionSuggestionKind._("IMPORT");
 
-  /**
-   * The element identifier should be inserted at the completion location. For
-   * example "someMethod" in import 'myLib.dart' show someMethod;. For
-   * suggestions of this kind, the element attribute is defined and the
-   * completion field is the element's identifier.
-   */
+  /// The element identifier should be inserted at the completion location. For
+  /// example "someMethod" in import 'myLib.dart' show someMethod;. For
+  /// suggestions of this kind, the element attribute is defined and the
+  /// completion field is the element's identifier.
   static const CompletionSuggestionKind IDENTIFIER =
       CompletionSuggestionKind._("IDENTIFIER");
 
-  /**
-   * The element is being invoked at the completion location. For example,
-   * 'someMethod' in x.someMethod();. For suggestions of this kind, the element
-   * attribute is defined and the completion field is the element's identifier.
-   */
+  /// The element is being invoked at the completion location. For example,
+  /// 'someMethod' in x.someMethod();. For suggestions of this kind, the element
+  /// attribute is defined and the completion field is the element's identifier.
   static const CompletionSuggestionKind INVOCATION =
       CompletionSuggestionKind._("INVOCATION");
 
-  /**
-   * A keyword is being suggested. For suggestions of this kind, the completion
-   * is the keyword.
-   */
+  /// A keyword is being suggested. For suggestions of this kind, the completion
+  /// is the keyword.
   static const CompletionSuggestionKind KEYWORD =
       CompletionSuggestionKind._("KEYWORD");
 
-  /**
-   * A named argument for the current call site is being suggested. For
-   * suggestions of this kind, the completion is the named argument identifier
-   * including a trailing ':' and a space.
-   */
+  /// A named argument for the current call site is being suggested. For
+  /// suggestions of this kind, the completion is the named argument identifier
+  /// including a trailing ':' and a space.
   static const CompletionSuggestionKind NAMED_ARGUMENT =
       CompletionSuggestionKind._("NAMED_ARGUMENT");
 
   static const CompletionSuggestionKind OPTIONAL_ARGUMENT =
       CompletionSuggestionKind._("OPTIONAL_ARGUMENT");
 
-  /**
-   * An overriding implementation of a class member is being suggested.
-   */
+  /// An overriding implementation of a class member is being suggested.
   static const CompletionSuggestionKind OVERRIDE =
       CompletionSuggestionKind._("OVERRIDE");
 
   static const CompletionSuggestionKind PARAMETER =
       CompletionSuggestionKind._("PARAMETER");
 
-  /**
-   * A list containing all of the enum values that are defined.
-   */
+  /// A list containing all of the enum values that are defined.
   static const List<CompletionSuggestionKind> VALUES =
       <CompletionSuggestionKind>[
     ARGUMENT_LIST,
@@ -1452,21 +1296,19 @@ class CompletionSuggestionKind implements Enum {
   String toJson() => name;
 }
 
-/**
- * Element
- *
- * {
- *   "kind": ElementKind
- *   "name": String
- *   "location": optional Location
- *   "flags": int
- *   "parameters": optional String
- *   "returnType": optional String
- *   "typeParameters": optional String
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// Element
+///
+/// {
+///   "kind": ElementKind
+///   "name": String
+///   "location": optional Location
+///   "flags": int
+///   "parameters": optional String
+///   "returnType": optional String
+///   "typeParameters": optional String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class Element implements HasToJson {
   static const int FLAG_ABSTRACT = 0x01;
   static const int FLAG_CONST = 0x02;
@@ -1506,119 +1348,91 @@ class Element implements HasToJson {
 
   String _typeParameters;
 
-  /**
-   * The kind of the element.
-   */
+  /// The kind of the element.
   ElementKind get kind => _kind;
 
-  /**
-   * The kind of the element.
-   */
+  /// The kind of the element.
   set kind(ElementKind value) {
     assert(value != null);
     _kind = value;
   }
 
-  /**
-   * The name of the element. This is typically used as the label in the
-   * outline.
-   */
+  /// The name of the element. This is typically used as the label in the
+  /// outline.
   String get name => _name;
 
-  /**
-   * The name of the element. This is typically used as the label in the
-   * outline.
-   */
+  /// The name of the element. This is typically used as the label in the
+  /// outline.
   set name(String value) {
     assert(value != null);
     _name = value;
   }
 
-  /**
-   * The location of the name in the declaration of the element.
-   */
+  /// The location of the name in the declaration of the element.
   Location get location => _location;
 
-  /**
-   * The location of the name in the declaration of the element.
-   */
+  /// The location of the name in the declaration of the element.
   set location(Location value) {
     _location = value;
   }
 
-  /**
-   * A bit-map containing the following flags:
-   *
-   * - 0x01 - set if the element is explicitly or implicitly abstract
-   * - 0x02 - set if the element was declared to be ‘const’
-   * - 0x04 - set if the element was declared to be ‘final’
-   * - 0x08 - set if the element is a static member of a class or is a
-   *   top-level function or field
-   * - 0x10 - set if the element is private
-   * - 0x20 - set if the element is deprecated
-   */
+  /// A bit-map containing the following flags:
+  ///
+  /// - 0x01 - set if the element is explicitly or implicitly abstract
+  /// - 0x02 - set if the element was declared to be ‘const’
+  /// - 0x04 - set if the element was declared to be ‘final’
+  /// - 0x08 - set if the element is a static member of a class or is a
+  ///   top-level function or field
+  /// - 0x10 - set if the element is private
+  /// - 0x20 - set if the element is deprecated
   int get flags => _flags;
 
-  /**
-   * A bit-map containing the following flags:
-   *
-   * - 0x01 - set if the element is explicitly or implicitly abstract
-   * - 0x02 - set if the element was declared to be ‘const’
-   * - 0x04 - set if the element was declared to be ‘final’
-   * - 0x08 - set if the element is a static member of a class or is a
-   *   top-level function or field
-   * - 0x10 - set if the element is private
-   * - 0x20 - set if the element is deprecated
-   */
+  /// A bit-map containing the following flags:
+  ///
+  /// - 0x01 - set if the element is explicitly or implicitly abstract
+  /// - 0x02 - set if the element was declared to be ‘const’
+  /// - 0x04 - set if the element was declared to be ‘final’
+  /// - 0x08 - set if the element is a static member of a class or is a
+  ///   top-level function or field
+  /// - 0x10 - set if the element is private
+  /// - 0x20 - set if the element is deprecated
   set flags(int value) {
     assert(value != null);
     _flags = value;
   }
 
-  /**
-   * The parameter list for the element. If the element is not a method or
-   * function this field will not be defined. If the element doesn't have
-   * parameters (e.g. getter), this field will not be defined. If the element
-   * has zero parameters, this field will have a value of "()".
-   */
+  /// The parameter list for the element. If the element is not a method or
+  /// function this field will not be defined. If the element doesn't have
+  /// parameters (e.g. getter), this field will not be defined. If the element
+  /// has zero parameters, this field will have a value of "()".
   String get parameters => _parameters;
 
-  /**
-   * The parameter list for the element. If the element is not a method or
-   * function this field will not be defined. If the element doesn't have
-   * parameters (e.g. getter), this field will not be defined. If the element
-   * has zero parameters, this field will have a value of "()".
-   */
+  /// The parameter list for the element. If the element is not a method or
+  /// function this field will not be defined. If the element doesn't have
+  /// parameters (e.g. getter), this field will not be defined. If the element
+  /// has zero parameters, this field will have a value of "()".
   set parameters(String value) {
     _parameters = value;
   }
 
-  /**
-   * The return type of the element. If the element is not a method or function
-   * this field will not be defined. If the element does not have a declared
-   * return type, this field will contain an empty string.
-   */
+  /// The return type of the element. If the element is not a method or function
+  /// this field will not be defined. If the element does not have a declared
+  /// return type, this field will contain an empty string.
   String get returnType => _returnType;
 
-  /**
-   * The return type of the element. If the element is not a method or function
-   * this field will not be defined. If the element does not have a declared
-   * return type, this field will contain an empty string.
-   */
+  /// The return type of the element. If the element is not a method or function
+  /// this field will not be defined. If the element does not have a declared
+  /// return type, this field will contain an empty string.
   set returnType(String value) {
     _returnType = value;
   }
 
-  /**
-   * The type parameter list for the element. If the element doesn't have type
-   * parameters, this field will not be defined.
-   */
+  /// The type parameter list for the element. If the element doesn't have type
+  /// parameters, this field will not be defined.
   String get typeParameters => _typeParameters;
 
-  /**
-   * The type parameter list for the element. If the element doesn't have type
-   * parameters, this field will not be defined.
-   */
+  /// The type parameter list for the element. If the element doesn't have type
+  /// parameters, this field will not be defined.
   set typeParameters(String value) {
     _typeParameters = value;
   }
@@ -1749,40 +1563,38 @@ class Element implements HasToJson {
   }
 }
 
-/**
- * ElementKind
- *
- * enum {
- *   CLASS
- *   CLASS_TYPE_ALIAS
- *   COMPILATION_UNIT
- *   CONSTRUCTOR
- *   CONSTRUCTOR_INVOCATION
- *   ENUM
- *   ENUM_CONSTANT
- *   FIELD
- *   FILE
- *   FUNCTION
- *   FUNCTION_INVOCATION
- *   FUNCTION_TYPE_ALIAS
- *   GETTER
- *   LABEL
- *   LIBRARY
- *   LOCAL_VARIABLE
- *   METHOD
- *   MIXIN
- *   PARAMETER
- *   PREFIX
- *   SETTER
- *   TOP_LEVEL_VARIABLE
- *   TYPE_PARAMETER
- *   UNIT_TEST_GROUP
- *   UNIT_TEST_TEST
- *   UNKNOWN
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// ElementKind
+///
+/// enum {
+///   CLASS
+///   CLASS_TYPE_ALIAS
+///   COMPILATION_UNIT
+///   CONSTRUCTOR
+///   CONSTRUCTOR_INVOCATION
+///   ENUM
+///   ENUM_CONSTANT
+///   FIELD
+///   FILE
+///   FUNCTION
+///   FUNCTION_INVOCATION
+///   FUNCTION_TYPE_ALIAS
+///   GETTER
+///   LABEL
+///   LIBRARY
+///   LOCAL_VARIABLE
+///   METHOD
+///   MIXIN
+///   PARAMETER
+///   PREFIX
+///   SETTER
+///   TOP_LEVEL_VARIABLE
+///   TYPE_PARAMETER
+///   UNIT_TEST_GROUP
+///   UNIT_TEST_TEST
+///   UNKNOWN
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ElementKind implements Enum {
   static const ElementKind CLASS = ElementKind._("CLASS");
 
@@ -1840,9 +1652,7 @@ class ElementKind implements Enum {
 
   static const ElementKind UNKNOWN = ElementKind._("UNKNOWN");
 
-  /**
-   * A list containing all of the enum values that are defined.
-   */
+  /// A list containing all of the enum values that are defined.
   static const List<ElementKind> VALUES = <ElementKind>[
     CLASS,
     CLASS_TYPE_ALIAS,
@@ -1953,22 +1763,20 @@ class ElementKind implements Enum {
   String toJson() => name;
 }
 
-/**
- * FoldingKind
- *
- * enum {
- *   ANNOTATIONS
- *   CLASS_BODY
- *   DIRECTIVES
- *   DOCUMENTATION_COMMENT
- *   FILE_HEADER
- *   FUNCTION_BODY
- *   INVOCATION
- *   LITERAL
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// FoldingKind
+///
+/// enum {
+///   ANNOTATIONS
+///   CLASS_BODY
+///   DIRECTIVES
+///   DOCUMENTATION_COMMENT
+///   FILE_HEADER
+///   FUNCTION_BODY
+///   INVOCATION
+///   LITERAL
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class FoldingKind implements Enum {
   static const FoldingKind ANNOTATIONS = FoldingKind._("ANNOTATIONS");
 
@@ -1987,9 +1795,7 @@ class FoldingKind implements Enum {
 
   static const FoldingKind LITERAL = FoldingKind._("LITERAL");
 
-  /**
-   * A list containing all of the enum values that are defined.
-   */
+  /// A list containing all of the enum values that are defined.
   static const List<FoldingKind> VALUES = <FoldingKind>[
     ANNOTATIONS,
     CLASS_BODY,
@@ -2046,17 +1852,15 @@ class FoldingKind implements Enum {
   String toJson() => name;
 }
 
-/**
- * FoldingRegion
- *
- * {
- *   "kind": FoldingKind
- *   "offset": int
- *   "length": int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// FoldingRegion
+///
+/// {
+///   "kind": FoldingKind
+///   "offset": int
+///   "length": int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class FoldingRegion implements HasToJson {
   FoldingKind _kind;
 
@@ -2064,40 +1868,28 @@ class FoldingRegion implements HasToJson {
 
   int _length;
 
-  /**
-   * The kind of the region.
-   */
+  /// The kind of the region.
   FoldingKind get kind => _kind;
 
-  /**
-   * The kind of the region.
-   */
+  /// The kind of the region.
   set kind(FoldingKind value) {
     assert(value != null);
     _kind = value;
   }
 
-  /**
-   * The offset of the region to be folded.
-   */
+  /// The offset of the region to be folded.
   int get offset => _offset;
 
-  /**
-   * The offset of the region to be folded.
-   */
+  /// The offset of the region to be folded.
   set offset(int value) {
     assert(value != null);
     _offset = value;
   }
 
-  /**
-   * The length of the region to be folded.
-   */
+  /// The length of the region to be folded.
   int get length => _length;
 
-  /**
-   * The length of the region to be folded.
-   */
+  /// The length of the region to be folded.
   set length(int value) {
     assert(value != null);
     _length = value;
@@ -2170,17 +1962,15 @@ class FoldingRegion implements HasToJson {
   }
 }
 
-/**
- * HighlightRegion
- *
- * {
- *   "type": HighlightRegionType
- *   "offset": int
- *   "length": int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// HighlightRegion
+///
+/// {
+///   "type": HighlightRegionType
+///   "offset": int
+///   "length": int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class HighlightRegion implements HasToJson {
   HighlightRegionType _type;
 
@@ -2188,40 +1978,28 @@ class HighlightRegion implements HasToJson {
 
   int _length;
 
-  /**
-   * The type of highlight associated with the region.
-   */
+  /// The type of highlight associated with the region.
   HighlightRegionType get type => _type;
 
-  /**
-   * The type of highlight associated with the region.
-   */
+  /// The type of highlight associated with the region.
   set type(HighlightRegionType value) {
     assert(value != null);
     _type = value;
   }
 
-  /**
-   * The offset of the region to be highlighted.
-   */
+  /// The offset of the region to be highlighted.
   int get offset => _offset;
 
-  /**
-   * The offset of the region to be highlighted.
-   */
+  /// The offset of the region to be highlighted.
   set offset(int value) {
     assert(value != null);
     _offset = value;
   }
 
-  /**
-   * The length of the region to be highlighted.
-   */
+  /// The length of the region to be highlighted.
   int get length => _length;
 
-  /**
-   * The length of the region to be highlighted.
-   */
+  /// The length of the region to be highlighted.
   set length(int value) {
     assert(value != null);
     _length = value;
@@ -2294,87 +2072,85 @@ class HighlightRegion implements HasToJson {
   }
 }
 
-/**
- * HighlightRegionType
- *
- * enum {
- *   ANNOTATION
- *   BUILT_IN
- *   CLASS
- *   COMMENT_BLOCK
- *   COMMENT_DOCUMENTATION
- *   COMMENT_END_OF_LINE
- *   CONSTRUCTOR
- *   DIRECTIVE
- *   DYNAMIC_TYPE
- *   DYNAMIC_LOCAL_VARIABLE_DECLARATION
- *   DYNAMIC_LOCAL_VARIABLE_REFERENCE
- *   DYNAMIC_PARAMETER_DECLARATION
- *   DYNAMIC_PARAMETER_REFERENCE
- *   ENUM
- *   ENUM_CONSTANT
- *   FIELD
- *   FIELD_STATIC
- *   FUNCTION
- *   FUNCTION_DECLARATION
- *   FUNCTION_TYPE_ALIAS
- *   GETTER_DECLARATION
- *   IDENTIFIER_DEFAULT
- *   IMPORT_PREFIX
- *   INSTANCE_FIELD_DECLARATION
- *   INSTANCE_FIELD_REFERENCE
- *   INSTANCE_GETTER_DECLARATION
- *   INSTANCE_GETTER_REFERENCE
- *   INSTANCE_METHOD_DECLARATION
- *   INSTANCE_METHOD_REFERENCE
- *   INSTANCE_SETTER_DECLARATION
- *   INSTANCE_SETTER_REFERENCE
- *   INVALID_STRING_ESCAPE
- *   KEYWORD
- *   LABEL
- *   LIBRARY_NAME
- *   LITERAL_BOOLEAN
- *   LITERAL_DOUBLE
- *   LITERAL_INTEGER
- *   LITERAL_LIST
- *   LITERAL_MAP
- *   LITERAL_STRING
- *   LOCAL_FUNCTION_DECLARATION
- *   LOCAL_FUNCTION_REFERENCE
- *   LOCAL_VARIABLE
- *   LOCAL_VARIABLE_DECLARATION
- *   LOCAL_VARIABLE_REFERENCE
- *   METHOD
- *   METHOD_DECLARATION
- *   METHOD_DECLARATION_STATIC
- *   METHOD_STATIC
- *   PARAMETER
- *   SETTER_DECLARATION
- *   TOP_LEVEL_VARIABLE
- *   PARAMETER_DECLARATION
- *   PARAMETER_REFERENCE
- *   STATIC_FIELD_DECLARATION
- *   STATIC_GETTER_DECLARATION
- *   STATIC_GETTER_REFERENCE
- *   STATIC_METHOD_DECLARATION
- *   STATIC_METHOD_REFERENCE
- *   STATIC_SETTER_DECLARATION
- *   STATIC_SETTER_REFERENCE
- *   TOP_LEVEL_FUNCTION_DECLARATION
- *   TOP_LEVEL_FUNCTION_REFERENCE
- *   TOP_LEVEL_GETTER_DECLARATION
- *   TOP_LEVEL_GETTER_REFERENCE
- *   TOP_LEVEL_SETTER_DECLARATION
- *   TOP_LEVEL_SETTER_REFERENCE
- *   TOP_LEVEL_VARIABLE_DECLARATION
- *   TYPE_NAME_DYNAMIC
- *   TYPE_PARAMETER
- *   UNRESOLVED_INSTANCE_MEMBER_REFERENCE
- *   VALID_STRING_ESCAPE
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// HighlightRegionType
+///
+/// enum {
+///   ANNOTATION
+///   BUILT_IN
+///   CLASS
+///   COMMENT_BLOCK
+///   COMMENT_DOCUMENTATION
+///   COMMENT_END_OF_LINE
+///   CONSTRUCTOR
+///   DIRECTIVE
+///   DYNAMIC_TYPE
+///   DYNAMIC_LOCAL_VARIABLE_DECLARATION
+///   DYNAMIC_LOCAL_VARIABLE_REFERENCE
+///   DYNAMIC_PARAMETER_DECLARATION
+///   DYNAMIC_PARAMETER_REFERENCE
+///   ENUM
+///   ENUM_CONSTANT
+///   FIELD
+///   FIELD_STATIC
+///   FUNCTION
+///   FUNCTION_DECLARATION
+///   FUNCTION_TYPE_ALIAS
+///   GETTER_DECLARATION
+///   IDENTIFIER_DEFAULT
+///   IMPORT_PREFIX
+///   INSTANCE_FIELD_DECLARATION
+///   INSTANCE_FIELD_REFERENCE
+///   INSTANCE_GETTER_DECLARATION
+///   INSTANCE_GETTER_REFERENCE
+///   INSTANCE_METHOD_DECLARATION
+///   INSTANCE_METHOD_REFERENCE
+///   INSTANCE_SETTER_DECLARATION
+///   INSTANCE_SETTER_REFERENCE
+///   INVALID_STRING_ESCAPE
+///   KEYWORD
+///   LABEL
+///   LIBRARY_NAME
+///   LITERAL_BOOLEAN
+///   LITERAL_DOUBLE
+///   LITERAL_INTEGER
+///   LITERAL_LIST
+///   LITERAL_MAP
+///   LITERAL_STRING
+///   LOCAL_FUNCTION_DECLARATION
+///   LOCAL_FUNCTION_REFERENCE
+///   LOCAL_VARIABLE
+///   LOCAL_VARIABLE_DECLARATION
+///   LOCAL_VARIABLE_REFERENCE
+///   METHOD
+///   METHOD_DECLARATION
+///   METHOD_DECLARATION_STATIC
+///   METHOD_STATIC
+///   PARAMETER
+///   SETTER_DECLARATION
+///   TOP_LEVEL_VARIABLE
+///   PARAMETER_DECLARATION
+///   PARAMETER_REFERENCE
+///   STATIC_FIELD_DECLARATION
+///   STATIC_GETTER_DECLARATION
+///   STATIC_GETTER_REFERENCE
+///   STATIC_METHOD_DECLARATION
+///   STATIC_METHOD_REFERENCE
+///   STATIC_SETTER_DECLARATION
+///   STATIC_SETTER_REFERENCE
+///   TOP_LEVEL_FUNCTION_DECLARATION
+///   TOP_LEVEL_FUNCTION_REFERENCE
+///   TOP_LEVEL_GETTER_DECLARATION
+///   TOP_LEVEL_GETTER_REFERENCE
+///   TOP_LEVEL_SETTER_DECLARATION
+///   TOP_LEVEL_SETTER_REFERENCE
+///   TOP_LEVEL_VARIABLE_DECLARATION
+///   TYPE_NAME_DYNAMIC
+///   TYPE_PARAMETER
+///   UNRESOLVED_INSTANCE_MEMBER_REFERENCE
+///   VALID_STRING_ESCAPE
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class HighlightRegionType implements Enum {
   static const HighlightRegionType ANNOTATION =
       HighlightRegionType._("ANNOTATION");
@@ -2398,33 +2174,23 @@ class HighlightRegionType implements Enum {
   static const HighlightRegionType DIRECTIVE =
       HighlightRegionType._("DIRECTIVE");
 
-  /**
-   * Only for version 1 of highlight.
-   */
+  /// Only for version 1 of highlight.
   static const HighlightRegionType DYNAMIC_TYPE =
       HighlightRegionType._("DYNAMIC_TYPE");
 
-  /**
-   * Only for version 2 of highlight.
-   */
+  /// Only for version 2 of highlight.
   static const HighlightRegionType DYNAMIC_LOCAL_VARIABLE_DECLARATION =
       HighlightRegionType._("DYNAMIC_LOCAL_VARIABLE_DECLARATION");
 
-  /**
-   * Only for version 2 of highlight.
-   */
+  /// Only for version 2 of highlight.
   static const HighlightRegionType DYNAMIC_LOCAL_VARIABLE_REFERENCE =
       HighlightRegionType._("DYNAMIC_LOCAL_VARIABLE_REFERENCE");
 
-  /**
-   * Only for version 2 of highlight.
-   */
+  /// Only for version 2 of highlight.
   static const HighlightRegionType DYNAMIC_PARAMETER_DECLARATION =
       HighlightRegionType._("DYNAMIC_PARAMETER_DECLARATION");
 
-  /**
-   * Only for version 2 of highlight.
-   */
+  /// Only for version 2 of highlight.
   static const HighlightRegionType DYNAMIC_PARAMETER_REFERENCE =
       HighlightRegionType._("DYNAMIC_PARAMETER_REFERENCE");
 
@@ -2433,34 +2199,24 @@ class HighlightRegionType implements Enum {
   static const HighlightRegionType ENUM_CONSTANT =
       HighlightRegionType._("ENUM_CONSTANT");
 
-  /**
-   * Only for version 1 of highlight.
-   */
+  /// Only for version 1 of highlight.
   static const HighlightRegionType FIELD = HighlightRegionType._("FIELD");
 
-  /**
-   * Only for version 1 of highlight.
-   */
+  /// Only for version 1 of highlight.
   static const HighlightRegionType FIELD_STATIC =
       HighlightRegionType._("FIELD_STATIC");
 
-  /**
-   * Only for version 1 of highlight.
-   */
+  /// Only for version 1 of highlight.
   static const HighlightRegionType FUNCTION = HighlightRegionType._("FUNCTION");
 
-  /**
-   * Only for version 1 of highlight.
-   */
+  /// Only for version 1 of highlight.
   static const HighlightRegionType FUNCTION_DECLARATION =
       HighlightRegionType._("FUNCTION_DECLARATION");
 
   static const HighlightRegionType FUNCTION_TYPE_ALIAS =
       HighlightRegionType._("FUNCTION_TYPE_ALIAS");
 
-  /**
-   * Only for version 1 of highlight.
-   */
+  /// Only for version 1 of highlight.
   static const HighlightRegionType GETTER_DECLARATION =
       HighlightRegionType._("GETTER_DECLARATION");
 
@@ -2470,57 +2226,39 @@ class HighlightRegionType implements Enum {
   static const HighlightRegionType IMPORT_PREFIX =
       HighlightRegionType._("IMPORT_PREFIX");
 
-  /**
-   * Only for version 2 of highlight.
-   */
+  /// Only for version 2 of highlight.
   static const HighlightRegionType INSTANCE_FIELD_DECLARATION =
       HighlightRegionType._("INSTANCE_FIELD_DECLARATION");
 
-  /**
-   * Only for version 2 of highlight.
-   */
+  /// Only for version 2 of highlight.
   static const HighlightRegionType INSTANCE_FIELD_REFERENCE =
       HighlightRegionType._("INSTANCE_FIELD_REFERENCE");
 
-  /**
-   * Only for version 2 of highlight.
-   */
+  /// Only for version 2 of highlight.
   static const HighlightRegionType INSTANCE_GETTER_DECLARATION =
       HighlightRegionType._("INSTANCE_GETTER_DECLARATION");
 
-  /**
-   * Only for version 2 of highlight.
-   */
+  /// Only for version 2 of highlight.
   static const HighlightRegionType INSTANCE_GETTER_REFERENCE =
       HighlightRegionType._("INSTANCE_GETTER_REFERENCE");
 
-  /**
-   * Only for version 2 of highlight.
-   */
+  /// Only for version 2 of highlight.
   static const HighlightRegionType INSTANCE_METHOD_DECLARATION =
       HighlightRegionType._("INSTANCE_METHOD_DECLARATION");
 
-  /**
-   * Only for version 2 of highlight.
-   */
+  /// Only for version 2 of highlight.
   static const HighlightRegionType INSTANCE_METHOD_REFERENCE =
       HighlightRegionType._("INSTANCE_METHOD_REFERENCE");
 
-  /**
-   * Only for version 2 of highlight.
-   */
+  /// Only for version 2 of highlight.
   static const HighlightRegionType INSTANCE_SETTER_DECLARATION =
       HighlightRegionType._("INSTANCE_SETTER_DECLARATION");
 
-  /**
-   * Only for version 2 of highlight.
-   */
+  /// Only for version 2 of highlight.
   static const HighlightRegionType INSTANCE_SETTER_REFERENCE =
       HighlightRegionType._("INSTANCE_SETTER_REFERENCE");
 
-  /**
-   * Only for version 2 of highlight.
-   */
+  /// Only for version 2 of highlight.
   static const HighlightRegionType INVALID_STRING_ESCAPE =
       HighlightRegionType._("INVALID_STRING_ESCAPE");
 
@@ -2528,9 +2266,7 @@ class HighlightRegionType implements Enum {
 
   static const HighlightRegionType LABEL = HighlightRegionType._("LABEL");
 
-  /**
-   * Only for version 2 of highlight.
-   */
+  /// Only for version 2 of highlight.
   static const HighlightRegionType LIBRARY_NAME =
       HighlightRegionType._("LIBRARY_NAME");
 
@@ -2552,167 +2288,113 @@ class HighlightRegionType implements Enum {
   static const HighlightRegionType LITERAL_STRING =
       HighlightRegionType._("LITERAL_STRING");
 
-  /**
-   * Only for version 2 of highlight.
-   */
+  /// Only for version 2 of highlight.
   static const HighlightRegionType LOCAL_FUNCTION_DECLARATION =
       HighlightRegionType._("LOCAL_FUNCTION_DECLARATION");
 
-  /**
-   * Only for version 2 of highlight.
-   */
+  /// Only for version 2 of highlight.
   static const HighlightRegionType LOCAL_FUNCTION_REFERENCE =
       HighlightRegionType._("LOCAL_FUNCTION_REFERENCE");
 
-  /**
-   * Only for version 1 of highlight.
-   */
+  /// Only for version 1 of highlight.
   static const HighlightRegionType LOCAL_VARIABLE =
       HighlightRegionType._("LOCAL_VARIABLE");
 
   static const HighlightRegionType LOCAL_VARIABLE_DECLARATION =
       HighlightRegionType._("LOCAL_VARIABLE_DECLARATION");
 
-  /**
-   * Only for version 2 of highlight.
-   */
+  /// Only for version 2 of highlight.
   static const HighlightRegionType LOCAL_VARIABLE_REFERENCE =
       HighlightRegionType._("LOCAL_VARIABLE_REFERENCE");
 
-  /**
-   * Only for version 1 of highlight.
-   */
+  /// Only for version 1 of highlight.
   static const HighlightRegionType METHOD = HighlightRegionType._("METHOD");
 
-  /**
-   * Only for version 1 of highlight.
-   */
+  /// Only for version 1 of highlight.
   static const HighlightRegionType METHOD_DECLARATION =
       HighlightRegionType._("METHOD_DECLARATION");
 
-  /**
-   * Only for version 1 of highlight.
-   */
+  /// Only for version 1 of highlight.
   static const HighlightRegionType METHOD_DECLARATION_STATIC =
       HighlightRegionType._("METHOD_DECLARATION_STATIC");
 
-  /**
-   * Only for version 1 of highlight.
-   */
+  /// Only for version 1 of highlight.
   static const HighlightRegionType METHOD_STATIC =
       HighlightRegionType._("METHOD_STATIC");
 
-  /**
-   * Only for version 1 of highlight.
-   */
+  /// Only for version 1 of highlight.
   static const HighlightRegionType PARAMETER =
       HighlightRegionType._("PARAMETER");
 
-  /**
-   * Only for version 1 of highlight.
-   */
+  /// Only for version 1 of highlight.
   static const HighlightRegionType SETTER_DECLARATION =
       HighlightRegionType._("SETTER_DECLARATION");
 
-  /**
-   * Only for version 1 of highlight.
-   */
+  /// Only for version 1 of highlight.
   static const HighlightRegionType TOP_LEVEL_VARIABLE =
       HighlightRegionType._("TOP_LEVEL_VARIABLE");
 
-  /**
-   * Only for version 2 of highlight.
-   */
+  /// Only for version 2 of highlight.
   static const HighlightRegionType PARAMETER_DECLARATION =
       HighlightRegionType._("PARAMETER_DECLARATION");
 
-  /**
-   * Only for version 2 of highlight.
-   */
+  /// Only for version 2 of highlight.
   static const HighlightRegionType PARAMETER_REFERENCE =
       HighlightRegionType._("PARAMETER_REFERENCE");
 
-  /**
-   * Only for version 2 of highlight.
-   */
+  /// Only for version 2 of highlight.
   static const HighlightRegionType STATIC_FIELD_DECLARATION =
       HighlightRegionType._("STATIC_FIELD_DECLARATION");
 
-  /**
-   * Only for version 2 of highlight.
-   */
+  /// Only for version 2 of highlight.
   static const HighlightRegionType STATIC_GETTER_DECLARATION =
       HighlightRegionType._("STATIC_GETTER_DECLARATION");
 
-  /**
-   * Only for version 2 of highlight.
-   */
+  /// Only for version 2 of highlight.
   static const HighlightRegionType STATIC_GETTER_REFERENCE =
       HighlightRegionType._("STATIC_GETTER_REFERENCE");
 
-  /**
-   * Only for version 2 of highlight.
-   */
+  /// Only for version 2 of highlight.
   static const HighlightRegionType STATIC_METHOD_DECLARATION =
       HighlightRegionType._("STATIC_METHOD_DECLARATION");
 
-  /**
-   * Only for version 2 of highlight.
-   */
+  /// Only for version 2 of highlight.
   static const HighlightRegionType STATIC_METHOD_REFERENCE =
       HighlightRegionType._("STATIC_METHOD_REFERENCE");
 
-  /**
-   * Only for version 2 of highlight.
-   */
+  /// Only for version 2 of highlight.
   static const HighlightRegionType STATIC_SETTER_DECLARATION =
       HighlightRegionType._("STATIC_SETTER_DECLARATION");
 
-  /**
-   * Only for version 2 of highlight.
-   */
+  /// Only for version 2 of highlight.
   static const HighlightRegionType STATIC_SETTER_REFERENCE =
       HighlightRegionType._("STATIC_SETTER_REFERENCE");
 
-  /**
-   * Only for version 2 of highlight.
-   */
+  /// Only for version 2 of highlight.
   static const HighlightRegionType TOP_LEVEL_FUNCTION_DECLARATION =
       HighlightRegionType._("TOP_LEVEL_FUNCTION_DECLARATION");
 
-  /**
-   * Only for version 2 of highlight.
-   */
+  /// Only for version 2 of highlight.
   static const HighlightRegionType TOP_LEVEL_FUNCTION_REFERENCE =
       HighlightRegionType._("TOP_LEVEL_FUNCTION_REFERENCE");
 
-  /**
-   * Only for version 2 of highlight.
-   */
+  /// Only for version 2 of highlight.
   static const HighlightRegionType TOP_LEVEL_GETTER_DECLARATION =
       HighlightRegionType._("TOP_LEVEL_GETTER_DECLARATION");
 
-  /**
-   * Only for version 2 of highlight.
-   */
+  /// Only for version 2 of highlight.
   static const HighlightRegionType TOP_LEVEL_GETTER_REFERENCE =
       HighlightRegionType._("TOP_LEVEL_GETTER_REFERENCE");
 
-  /**
-   * Only for version 2 of highlight.
-   */
+  /// Only for version 2 of highlight.
   static const HighlightRegionType TOP_LEVEL_SETTER_DECLARATION =
       HighlightRegionType._("TOP_LEVEL_SETTER_DECLARATION");
 
-  /**
-   * Only for version 2 of highlight.
-   */
+  /// Only for version 2 of highlight.
   static const HighlightRegionType TOP_LEVEL_SETTER_REFERENCE =
       HighlightRegionType._("TOP_LEVEL_SETTER_REFERENCE");
 
-  /**
-   * Only for version 2 of highlight.
-   */
+  /// Only for version 2 of highlight.
   static const HighlightRegionType TOP_LEVEL_VARIABLE_DECLARATION =
       HighlightRegionType._("TOP_LEVEL_VARIABLE_DECLARATION");
 
@@ -2722,21 +2404,15 @@ class HighlightRegionType implements Enum {
   static const HighlightRegionType TYPE_PARAMETER =
       HighlightRegionType._("TYPE_PARAMETER");
 
-  /**
-   * Only for version 2 of highlight.
-   */
+  /// Only for version 2 of highlight.
   static const HighlightRegionType UNRESOLVED_INSTANCE_MEMBER_REFERENCE =
       HighlightRegionType._("UNRESOLVED_INSTANCE_MEMBER_REFERENCE");
 
-  /**
-   * Only for version 2 of highlight.
-   */
+  /// Only for version 2 of highlight.
   static const HighlightRegionType VALID_STRING_ESCAPE =
       HighlightRegionType._("VALID_STRING_ESCAPE");
 
-  /**
-   * A list containing all of the enum values that are defined.
-   */
+  /// A list containing all of the enum values that are defined.
   static const List<HighlightRegionType> VALUES = <HighlightRegionType>[
     ANNOTATION,
     BUILT_IN,
@@ -2988,19 +2664,17 @@ class HighlightRegionType implements Enum {
   String toJson() => name;
 }
 
-/**
- * KytheEntry
- *
- * {
- *   "source": KytheVName
- *   "kind": optional String
- *   "target": optional KytheVName
- *   "fact": String
- *   "value": optional List<int>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// KytheEntry
+///
+/// {
+///   "source": KytheVName
+///   "kind": optional String
+///   "target": optional KytheVName
+///   "fact": String
+///   "value": optional List<int>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class KytheEntry implements HasToJson {
   KytheVName _source;
 
@@ -3012,64 +2686,44 @@ class KytheEntry implements HasToJson {
 
   List<int> _value;
 
-  /**
-   * The ticket of the source node.
-   */
+  /// The ticket of the source node.
   KytheVName get source => _source;
 
-  /**
-   * The ticket of the source node.
-   */
+  /// The ticket of the source node.
   set source(KytheVName value) {
     assert(value != null);
     _source = value;
   }
 
-  /**
-   * An edge label. The schema defines which labels are meaningful.
-   */
+  /// An edge label. The schema defines which labels are meaningful.
   String get kind => _kind;
 
-  /**
-   * An edge label. The schema defines which labels are meaningful.
-   */
+  /// An edge label. The schema defines which labels are meaningful.
   set kind(String value) {
     _kind = value;
   }
 
-  /**
-   * The ticket of the target node.
-   */
+  /// The ticket of the target node.
   KytheVName get target => _target;
 
-  /**
-   * The ticket of the target node.
-   */
+  /// The ticket of the target node.
   set target(KytheVName value) {
     _target = value;
   }
 
-  /**
-   * A fact label. The schema defines which fact labels are meaningful.
-   */
+  /// A fact label. The schema defines which fact labels are meaningful.
   String get fact => _fact;
 
-  /**
-   * A fact label. The schema defines which fact labels are meaningful.
-   */
+  /// A fact label. The schema defines which fact labels are meaningful.
   set fact(String value) {
     assert(value != null);
     _fact = value;
   }
 
-  /**
-   * The String value of the fact.
-   */
+  /// The String value of the fact.
   List<int> get value => _value;
 
-  /**
-   * The String value of the fact.
-   */
+  /// The String value of the fact.
   set value(List<int> value) {
     _value = value;
   }
@@ -3164,19 +2818,17 @@ class KytheEntry implements HasToJson {
   }
 }
 
-/**
- * KytheVName
- *
- * {
- *   "signature": String
- *   "corpus": String
- *   "root": String
- *   "path": String
- *   "language": String
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// KytheVName
+///
+/// {
+///   "signature": String
+///   "corpus": String
+///   "root": String
+///   "path": String
+///   "language": String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class KytheVName implements HasToJson {
   String _signature;
 
@@ -3188,76 +2840,56 @@ class KytheVName implements HasToJson {
 
   String _language;
 
-  /**
-   * An opaque signature generated by the analyzer.
-   */
+  /// An opaque signature generated by the analyzer.
   String get signature => _signature;
 
-  /**
-   * An opaque signature generated by the analyzer.
-   */
+  /// An opaque signature generated by the analyzer.
   set signature(String value) {
     assert(value != null);
     _signature = value;
   }
 
-  /**
-   * The corpus of source code this KytheVName belongs to. Loosely, a corpus is
-   * a collection of related files, such as the contents of a given source
-   * repository.
-   */
+  /// The corpus of source code this KytheVName belongs to. Loosely, a corpus is
+  /// a collection of related files, such as the contents of a given source
+  /// repository.
   String get corpus => _corpus;
 
-  /**
-   * The corpus of source code this KytheVName belongs to. Loosely, a corpus is
-   * a collection of related files, such as the contents of a given source
-   * repository.
-   */
+  /// The corpus of source code this KytheVName belongs to. Loosely, a corpus is
+  /// a collection of related files, such as the contents of a given source
+  /// repository.
   set corpus(String value) {
     assert(value != null);
     _corpus = value;
   }
 
-  /**
-   * A corpus-specific root label, typically a directory path or project
-   * identifier, denoting a distinct subset of the corpus. This may also be
-   * used to designate virtual collections like generated files.
-   */
+  /// A corpus-specific root label, typically a directory path or project
+  /// identifier, denoting a distinct subset of the corpus. This may also be
+  /// used to designate virtual collections like generated files.
   String get root => _root;
 
-  /**
-   * A corpus-specific root label, typically a directory path or project
-   * identifier, denoting a distinct subset of the corpus. This may also be
-   * used to designate virtual collections like generated files.
-   */
+  /// A corpus-specific root label, typically a directory path or project
+  /// identifier, denoting a distinct subset of the corpus. This may also be
+  /// used to designate virtual collections like generated files.
   set root(String value) {
     assert(value != null);
     _root = value;
   }
 
-  /**
-   * A path-structured label describing the “location” of the named object
-   * relative to the corpus and the root.
-   */
+  /// A path-structured label describing the “location” of the named object
+  /// relative to the corpus and the root.
   String get path => _path;
 
-  /**
-   * A path-structured label describing the “location” of the named object
-   * relative to the corpus and the root.
-   */
+  /// A path-structured label describing the “location” of the named object
+  /// relative to the corpus and the root.
   set path(String value) {
     assert(value != null);
     _path = value;
   }
 
-  /**
-   * The language this name belongs to.
-   */
+  /// The language this name belongs to.
   String get language => _language;
 
-  /**
-   * The language this name belongs to.
-   */
+  /// The language this name belongs to.
   set language(String value) {
     assert(value != null);
     _language = value;
@@ -3352,17 +2984,15 @@ class KytheVName implements HasToJson {
   }
 }
 
-/**
- * LinkedEditGroup
- *
- * {
- *   "positions": List<Position>
- *   "length": int
- *   "suggestions": List<LinkedEditSuggestion>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// LinkedEditGroup
+///
+/// {
+///   "positions": List<Position>
+///   "length": int
+///   "suggestions": List<LinkedEditSuggestion>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class LinkedEditGroup implements HasToJson {
   List<Position> _positions;
 
@@ -3370,42 +3000,30 @@ class LinkedEditGroup implements HasToJson {
 
   List<LinkedEditSuggestion> _suggestions;
 
-  /**
-   * The positions of the regions that should be edited simultaneously.
-   */
+  /// The positions of the regions that should be edited simultaneously.
   List<Position> get positions => _positions;
 
-  /**
-   * The positions of the regions that should be edited simultaneously.
-   */
+  /// The positions of the regions that should be edited simultaneously.
   set positions(List<Position> value) {
     assert(value != null);
     _positions = value;
   }
 
-  /**
-   * The length of the regions that should be edited simultaneously.
-   */
+  /// The length of the regions that should be edited simultaneously.
   int get length => _length;
 
-  /**
-   * The length of the regions that should be edited simultaneously.
-   */
+  /// The length of the regions that should be edited simultaneously.
   set length(int value) {
     assert(value != null);
     _length = value;
   }
 
-  /**
-   * Pre-computed suggestions for what every region might want to be changed
-   * to.
-   */
+  /// Pre-computed suggestions for what every region might want to be changed
+  /// to.
   List<LinkedEditSuggestion> get suggestions => _suggestions;
 
-  /**
-   * Pre-computed suggestions for what every region might want to be changed
-   * to.
-   */
+  /// Pre-computed suggestions for what every region might want to be changed
+  /// to.
   set suggestions(List<LinkedEditSuggestion> value) {
     assert(value != null);
     _suggestions = value;
@@ -3454,9 +3072,7 @@ class LinkedEditGroup implements HasToJson {
     }
   }
 
-  /**
-   * Construct an empty LinkedEditGroup.
-   */
+  /// Construct an empty LinkedEditGroup.
   LinkedEditGroup.empty() : this(<Position>[], 0, <LinkedEditSuggestion>[]);
 
   @override
@@ -3471,17 +3087,13 @@ class LinkedEditGroup implements HasToJson {
     return result;
   }
 
-  /**
-   * Add a new position and change the length.
-   */
+  /// Add a new position and change the length.
   void addPosition(Position position, int length) {
     positions.add(position);
     this.length = length;
   }
 
-  /**
-   * Add a new suggestion.
-   */
+  /// Add a new suggestion.
   void addSuggestion(LinkedEditSuggestion suggestion) {
     suggestions.add(suggestion);
   }
@@ -3511,42 +3123,32 @@ class LinkedEditGroup implements HasToJson {
   }
 }
 
-/**
- * LinkedEditSuggestion
- *
- * {
- *   "value": String
- *   "kind": LinkedEditSuggestionKind
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// LinkedEditSuggestion
+///
+/// {
+///   "value": String
+///   "kind": LinkedEditSuggestionKind
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class LinkedEditSuggestion implements HasToJson {
   String _value;
 
   LinkedEditSuggestionKind _kind;
 
-  /**
-   * The value that could be used to replace all of the linked edit regions.
-   */
+  /// The value that could be used to replace all of the linked edit regions.
   String get value => _value;
 
-  /**
-   * The value that could be used to replace all of the linked edit regions.
-   */
+  /// The value that could be used to replace all of the linked edit regions.
   set value(String value) {
     assert(value != null);
     _value = value;
   }
 
-  /**
-   * The kind of value being proposed.
-   */
+  /// The kind of value being proposed.
   LinkedEditSuggestionKind get kind => _kind;
 
-  /**
-   * The kind of value being proposed.
-   */
+  /// The kind of value being proposed.
   set kind(LinkedEditSuggestionKind value) {
     assert(value != null);
     _kind = value;
@@ -3608,18 +3210,16 @@ class LinkedEditSuggestion implements HasToJson {
   }
 }
 
-/**
- * LinkedEditSuggestionKind
- *
- * enum {
- *   METHOD
- *   PARAMETER
- *   TYPE
- *   VARIABLE
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// LinkedEditSuggestionKind
+///
+/// enum {
+///   METHOD
+///   PARAMETER
+///   TYPE
+///   VARIABLE
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class LinkedEditSuggestionKind implements Enum {
   static const LinkedEditSuggestionKind METHOD =
       LinkedEditSuggestionKind._("METHOD");
@@ -3633,9 +3233,7 @@ class LinkedEditSuggestionKind implements Enum {
   static const LinkedEditSuggestionKind VARIABLE =
       LinkedEditSuggestionKind._("VARIABLE");
 
-  /**
-   * A list containing all of the enum values that are defined.
-   */
+  /// A list containing all of the enum values that are defined.
   static const List<LinkedEditSuggestionKind> VALUES =
       <LinkedEditSuggestionKind>[METHOD, PARAMETER, TYPE, VARIABLE];
 
@@ -3676,19 +3274,17 @@ class LinkedEditSuggestionKind implements Enum {
   String toJson() => name;
 }
 
-/**
- * Location
- *
- * {
- *   "file": FilePath
- *   "offset": int
- *   "length": int
- *   "startLine": int
- *   "startColumn": int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// Location
+///
+/// {
+///   "file": FilePath
+///   "offset": int
+///   "length": int
+///   "startLine": int
+///   "startColumn": int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class Location implements HasToJson {
   String _file;
 
@@ -3700,70 +3296,50 @@ class Location implements HasToJson {
 
   int _startColumn;
 
-  /**
-   * The file containing the range.
-   */
+  /// The file containing the range.
   String get file => _file;
 
-  /**
-   * The file containing the range.
-   */
+  /// The file containing the range.
   set file(String value) {
     assert(value != null);
     _file = value;
   }
 
-  /**
-   * The offset of the range.
-   */
+  /// The offset of the range.
   int get offset => _offset;
 
-  /**
-   * The offset of the range.
-   */
+  /// The offset of the range.
   set offset(int value) {
     assert(value != null);
     _offset = value;
   }
 
-  /**
-   * The length of the range.
-   */
+  /// The length of the range.
   int get length => _length;
 
-  /**
-   * The length of the range.
-   */
+  /// The length of the range.
   set length(int value) {
     assert(value != null);
     _length = value;
   }
 
-  /**
-   * The one-based index of the line containing the first character of the
-   * range.
-   */
+  /// The one-based index of the line containing the first character of the
+  /// range.
   int get startLine => _startLine;
 
-  /**
-   * The one-based index of the line containing the first character of the
-   * range.
-   */
+  /// The one-based index of the line containing the first character of the
+  /// range.
   set startLine(int value) {
     assert(value != null);
     _startLine = value;
   }
 
-  /**
-   * The one-based index of the column containing the first character of the
-   * range.
-   */
+  /// The one-based index of the column containing the first character of the
+  /// range.
   int get startColumn => _startColumn;
 
-  /**
-   * The one-based index of the column containing the first character of the
-   * range.
-   */
+  /// The one-based index of the column containing the first character of the
+  /// range.
   set startColumn(int value) {
     assert(value != null);
     _startColumn = value;
@@ -3858,17 +3434,15 @@ class Location implements HasToJson {
   }
 }
 
-/**
- * NavigationRegion
- *
- * {
- *   "offset": int
- *   "length": int
- *   "targets": List<int>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// NavigationRegion
+///
+/// {
+///   "offset": int
+///   "length": int
+///   "targets": List<int>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class NavigationRegion implements HasToJson {
   int _offset;
 
@@ -3876,44 +3450,32 @@ class NavigationRegion implements HasToJson {
 
   List<int> _targets;
 
-  /**
-   * The offset of the region from which the user can navigate.
-   */
+  /// The offset of the region from which the user can navigate.
   int get offset => _offset;
 
-  /**
-   * The offset of the region from which the user can navigate.
-   */
+  /// The offset of the region from which the user can navigate.
   set offset(int value) {
     assert(value != null);
     _offset = value;
   }
 
-  /**
-   * The length of the region from which the user can navigate.
-   */
+  /// The length of the region from which the user can navigate.
   int get length => _length;
 
-  /**
-   * The length of the region from which the user can navigate.
-   */
+  /// The length of the region from which the user can navigate.
   set length(int value) {
     assert(value != null);
     _length = value;
   }
 
-  /**
-   * The indexes of the targets (in the enclosing navigation response) to which
-   * the given region is bound. By opening the target, clients can implement
-   * one form of navigation. This list cannot be empty.
-   */
+  /// The indexes of the targets (in the enclosing navigation response) to which
+  /// the given region is bound. By opening the target, clients can implement
+  /// one form of navigation. This list cannot be empty.
   List<int> get targets => _targets;
 
-  /**
-   * The indexes of the targets (in the enclosing navigation response) to which
-   * the given region is bound. By opening the target, clients can implement
-   * one form of navigation. This list cannot be empty.
-   */
+  /// The indexes of the targets (in the enclosing navigation response) to which
+  /// the given region is bound. By opening the target, clients can implement
+  /// one form of navigation. This list cannot be empty.
   set targets(List<int> value) {
     assert(value != null);
     _targets = value;
@@ -3986,20 +3548,18 @@ class NavigationRegion implements HasToJson {
   }
 }
 
-/**
- * NavigationTarget
- *
- * {
- *   "kind": ElementKind
- *   "fileIndex": int
- *   "offset": int
- *   "length": int
- *   "startLine": int
- *   "startColumn": int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// NavigationTarget
+///
+/// {
+///   "kind": ElementKind
+///   "fileIndex": int
+///   "offset": int
+///   "length": int
+///   "startLine": int
+///   "startColumn": int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class NavigationTarget implements HasToJson {
   ElementKind _kind;
 
@@ -4013,85 +3573,61 @@ class NavigationTarget implements HasToJson {
 
   int _startColumn;
 
-  /**
-   * The kind of the element.
-   */
+  /// The kind of the element.
   ElementKind get kind => _kind;
 
-  /**
-   * The kind of the element.
-   */
+  /// The kind of the element.
   set kind(ElementKind value) {
     assert(value != null);
     _kind = value;
   }
 
-  /**
-   * The index of the file (in the enclosing navigation response) to navigate
-   * to.
-   */
+  /// The index of the file (in the enclosing navigation response) to navigate
+  /// to.
   int get fileIndex => _fileIndex;
 
-  /**
-   * The index of the file (in the enclosing navigation response) to navigate
-   * to.
-   */
+  /// The index of the file (in the enclosing navigation response) to navigate
+  /// to.
   set fileIndex(int value) {
     assert(value != null);
     _fileIndex = value;
   }
 
-  /**
-   * The offset of the region to which the user can navigate.
-   */
+  /// The offset of the region to which the user can navigate.
   int get offset => _offset;
 
-  /**
-   * The offset of the region to which the user can navigate.
-   */
+  /// The offset of the region to which the user can navigate.
   set offset(int value) {
     assert(value != null);
     _offset = value;
   }
 
-  /**
-   * The length of the region to which the user can navigate.
-   */
+  /// The length of the region to which the user can navigate.
   int get length => _length;
 
-  /**
-   * The length of the region to which the user can navigate.
-   */
+  /// The length of the region to which the user can navigate.
   set length(int value) {
     assert(value != null);
     _length = value;
   }
 
-  /**
-   * The one-based index of the line containing the first character of the
-   * region.
-   */
+  /// The one-based index of the line containing the first character of the
+  /// region.
   int get startLine => _startLine;
 
-  /**
-   * The one-based index of the line containing the first character of the
-   * region.
-   */
+  /// The one-based index of the line containing the first character of the
+  /// region.
   set startLine(int value) {
     assert(value != null);
     _startLine = value;
   }
 
-  /**
-   * The one-based index of the column containing the first character of the
-   * region.
-   */
+  /// The one-based index of the column containing the first character of the
+  /// region.
   int get startColumn => _startColumn;
 
-  /**
-   * The one-based index of the column containing the first character of the
-   * region.
-   */
+  /// The one-based index of the column containing the first character of the
+  /// region.
   set startColumn(int value) {
     assert(value != null);
     _startColumn = value;
@@ -4199,17 +3735,15 @@ class NavigationTarget implements HasToJson {
   }
 }
 
-/**
- * Occurrences
- *
- * {
- *   "element": Element
- *   "offsets": List<int>
- *   "length": int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// Occurrences
+///
+/// {
+///   "element": Element
+///   "offsets": List<int>
+///   "length": int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class Occurrences implements HasToJson {
   Element _element;
 
@@ -4217,40 +3751,28 @@ class Occurrences implements HasToJson {
 
   int _length;
 
-  /**
-   * The element that was referenced.
-   */
+  /// The element that was referenced.
   Element get element => _element;
 
-  /**
-   * The element that was referenced.
-   */
+  /// The element that was referenced.
   set element(Element value) {
     assert(value != null);
     _element = value;
   }
 
-  /**
-   * The offsets of the name of the referenced element within the file.
-   */
+  /// The offsets of the name of the referenced element within the file.
   List<int> get offsets => _offsets;
 
-  /**
-   * The offsets of the name of the referenced element within the file.
-   */
+  /// The offsets of the name of the referenced element within the file.
   set offsets(List<int> value) {
     assert(value != null);
     _offsets = value;
   }
 
-  /**
-   * The length of the name of the referenced element.
-   */
+  /// The length of the name of the referenced element.
   int get length => _length;
 
-  /**
-   * The length of the name of the referenced element.
-   */
+  /// The length of the name of the referenced element.
   set length(int value) {
     assert(value != null);
     _length = value;
@@ -4324,20 +3846,18 @@ class Occurrences implements HasToJson {
   }
 }
 
-/**
- * Outline
- *
- * {
- *   "element": Element
- *   "offset": int
- *   "length": int
- *   "codeOffset": int
- *   "codeLength": int
- *   "children": optional List<Outline>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// Outline
+///
+/// {
+///   "element": Element
+///   "offset": int
+///   "length": int
+///   "codeOffset": int
+///   "codeLength": int
+///   "children": optional List<Outline>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class Outline implements HasToJson {
   Element _element;
 
@@ -4351,89 +3871,65 @@ class Outline implements HasToJson {
 
   List<Outline> _children;
 
-  /**
-   * A description of the element represented by this node.
-   */
+  /// A description of the element represented by this node.
   Element get element => _element;
 
-  /**
-   * A description of the element represented by this node.
-   */
+  /// A description of the element represented by this node.
   set element(Element value) {
     assert(value != null);
     _element = value;
   }
 
-  /**
-   * The offset of the first character of the element. This is different than
-   * the offset in the Element, which is the offset of the name of the element.
-   * It can be used, for example, to map locations in the file back to an
-   * outline.
-   */
+  /// The offset of the first character of the element. This is different than
+  /// the offset in the Element, which is the offset of the name of the element.
+  /// It can be used, for example, to map locations in the file back to an
+  /// outline.
   int get offset => _offset;
 
-  /**
-   * The offset of the first character of the element. This is different than
-   * the offset in the Element, which is the offset of the name of the element.
-   * It can be used, for example, to map locations in the file back to an
-   * outline.
-   */
+  /// The offset of the first character of the element. This is different than
+  /// the offset in the Element, which is the offset of the name of the element.
+  /// It can be used, for example, to map locations in the file back to an
+  /// outline.
   set offset(int value) {
     assert(value != null);
     _offset = value;
   }
 
-  /**
-   * The length of the element.
-   */
+  /// The length of the element.
   int get length => _length;
 
-  /**
-   * The length of the element.
-   */
+  /// The length of the element.
   set length(int value) {
     assert(value != null);
     _length = value;
   }
 
-  /**
-   * The offset of the first character of the element code, which is neither
-   * documentation, nor annotation.
-   */
+  /// The offset of the first character of the element code, which is neither
+  /// documentation, nor annotation.
   int get codeOffset => _codeOffset;
 
-  /**
-   * The offset of the first character of the element code, which is neither
-   * documentation, nor annotation.
-   */
+  /// The offset of the first character of the element code, which is neither
+  /// documentation, nor annotation.
   set codeOffset(int value) {
     assert(value != null);
     _codeOffset = value;
   }
 
-  /**
-   * The length of the element code.
-   */
+  /// The length of the element code.
   int get codeLength => _codeLength;
 
-  /**
-   * The length of the element code.
-   */
+  /// The length of the element code.
   set codeLength(int value) {
     assert(value != null);
     _codeLength = value;
   }
 
-  /**
-   * The children of the node. The field will be omitted if the node has no
-   * children. Children are sorted by offset.
-   */
+  /// The children of the node. The field will be omitted if the node has no
+  /// children. Children are sorted by offset.
   List<Outline> get children => _children;
 
-  /**
-   * The children of the node. The field will be omitted if the node has no
-   * children. Children are sorted by offset.
-   */
+  /// The children of the node. The field will be omitted if the node has no
+  /// children. Children are sorted by offset.
   set children(List<Outline> value) {
     _children = value;
   }
@@ -4545,18 +4041,16 @@ class Outline implements HasToJson {
   }
 }
 
-/**
- * ParameterInfo
- *
- * {
- *   "kind": ParameterKind
- *   "name": String
- *   "type": String
- *   "defaultValue": optional String
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// ParameterInfo
+///
+/// {
+///   "kind": ParameterKind
+///   "name": String
+///   "type": String
+///   "defaultValue": optional String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ParameterInfo implements HasToJson {
   ParameterKind _kind;
 
@@ -4566,55 +4060,39 @@ class ParameterInfo implements HasToJson {
 
   String _defaultValue;
 
-  /**
-   * The kind of the parameter.
-   */
+  /// The kind of the parameter.
   ParameterKind get kind => _kind;
 
-  /**
-   * The kind of the parameter.
-   */
+  /// The kind of the parameter.
   set kind(ParameterKind value) {
     assert(value != null);
     _kind = value;
   }
 
-  /**
-   * The name of the parameter.
-   */
+  /// The name of the parameter.
   String get name => _name;
 
-  /**
-   * The name of the parameter.
-   */
+  /// The name of the parameter.
   set name(String value) {
     assert(value != null);
     _name = value;
   }
 
-  /**
-   * The type of the parameter.
-   */
+  /// The type of the parameter.
   String get type => _type;
 
-  /**
-   * The type of the parameter.
-   */
+  /// The type of the parameter.
   set type(String value) {
     assert(value != null);
     _type = value;
   }
 
-  /**
-   * The default value for this parameter. This value will be omitted if the
-   * parameter does not have a default value.
-   */
+  /// The default value for this parameter. This value will be omitted if the
+  /// parameter does not have a default value.
   String get defaultValue => _defaultValue;
 
-  /**
-   * The default value for this parameter. This value will be omitted if the
-   * parameter does not have a default value.
-   */
+  /// The default value for this parameter. This value will be omitted if the
+  /// parameter does not have a default value.
   set defaultValue(String value) {
     _defaultValue = value;
   }
@@ -4698,36 +4176,26 @@ class ParameterInfo implements HasToJson {
   }
 }
 
-/**
- * ParameterKind
- *
- * enum {
- *   NAMED
- *   OPTIONAL
- *   REQUIRED
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// ParameterKind
+///
+/// enum {
+///   NAMED
+///   OPTIONAL
+///   REQUIRED
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class ParameterKind implements Enum {
-  /**
-   * A named parameter.
-   */
+  /// A named parameter.
   static const ParameterKind NAMED = ParameterKind._("NAMED");
 
-  /**
-   * An optional parameter.
-   */
+  /// An optional parameter.
   static const ParameterKind OPTIONAL = ParameterKind._("OPTIONAL");
 
-  /**
-   * A required parameter.
-   */
+  /// A required parameter.
   static const ParameterKind REQUIRED = ParameterKind._("REQUIRED");
 
-  /**
-   * A list containing all of the enum values that are defined.
-   */
+  /// A list containing all of the enum values that are defined.
   static const List<ParameterKind> VALUES = <ParameterKind>[
     NAMED,
     OPTIONAL,
@@ -4769,42 +4237,32 @@ class ParameterKind implements Enum {
   String toJson() => name;
 }
 
-/**
- * Position
- *
- * {
- *   "file": FilePath
- *   "offset": int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// Position
+///
+/// {
+///   "file": FilePath
+///   "offset": int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class Position implements HasToJson {
   String _file;
 
   int _offset;
 
-  /**
-   * The file containing the position.
-   */
+  /// The file containing the position.
   String get file => _file;
 
-  /**
-   * The file containing the position.
-   */
+  /// The file containing the position.
   set file(String value) {
     assert(value != null);
     _file = value;
   }
 
-  /**
-   * The offset of the position.
-   */
+  /// The offset of the position.
   int get offset => _offset;
 
-  /**
-   * The offset of the position.
-   */
+  /// The offset of the position.
   set offset(int value) {
     assert(value != null);
     _offset = value;
@@ -4865,23 +4323,21 @@ class Position implements HasToJson {
   }
 }
 
-/**
- * RefactoringKind
- *
- * enum {
- *   CONVERT_GETTER_TO_METHOD
- *   CONVERT_METHOD_TO_GETTER
- *   EXTRACT_LOCAL_VARIABLE
- *   EXTRACT_METHOD
- *   EXTRACT_WIDGET
- *   INLINE_LOCAL_VARIABLE
- *   INLINE_METHOD
- *   MOVE_FILE
- *   RENAME
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// RefactoringKind
+///
+/// enum {
+///   CONVERT_GETTER_TO_METHOD
+///   CONVERT_METHOD_TO_GETTER
+///   EXTRACT_LOCAL_VARIABLE
+///   EXTRACT_METHOD
+///   EXTRACT_WIDGET
+///   INLINE_LOCAL_VARIABLE
+///   INLINE_METHOD
+///   MOVE_FILE
+///   RENAME
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class RefactoringKind implements Enum {
   static const RefactoringKind CONVERT_GETTER_TO_METHOD =
       RefactoringKind._("CONVERT_GETTER_TO_METHOD");
@@ -4908,9 +4364,7 @@ class RefactoringKind implements Enum {
 
   static const RefactoringKind RENAME = RefactoringKind._("RENAME");
 
-  /**
-   * A list containing all of the enum values that are defined.
-   */
+  /// A list containing all of the enum values that are defined.
   static const List<RefactoringKind> VALUES = <RefactoringKind>[
     CONVERT_GETTER_TO_METHOD,
     CONVERT_METHOD_TO_GETTER,
@@ -4970,19 +4424,17 @@ class RefactoringKind implements Enum {
   String toJson() => name;
 }
 
-/**
- * RefactoringMethodParameter
- *
- * {
- *   "id": optional String
- *   "kind": RefactoringMethodParameterKind
- *   "type": String
- *   "name": String
- *   "parameters": optional String
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// RefactoringMethodParameter
+///
+/// {
+///   "id": optional String
+///   "kind": RefactoringMethodParameterKind
+///   "type": String
+///   "name": String
+///   "parameters": optional String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class RefactoringMethodParameter implements HasToJson {
   String _id;
 
@@ -4994,73 +4446,53 @@ class RefactoringMethodParameter implements HasToJson {
 
   String _parameters;
 
-  /**
-   * The unique identifier of the parameter. Clients may omit this field for
-   * the parameters they want to add.
-   */
+  /// The unique identifier of the parameter. Clients may omit this field for
+  /// the parameters they want to add.
   String get id => _id;
 
-  /**
-   * The unique identifier of the parameter. Clients may omit this field for
-   * the parameters they want to add.
-   */
+  /// The unique identifier of the parameter. Clients may omit this field for
+  /// the parameters they want to add.
   set id(String value) {
     _id = value;
   }
 
-  /**
-   * The kind of the parameter.
-   */
+  /// The kind of the parameter.
   RefactoringMethodParameterKind get kind => _kind;
 
-  /**
-   * The kind of the parameter.
-   */
+  /// The kind of the parameter.
   set kind(RefactoringMethodParameterKind value) {
     assert(value != null);
     _kind = value;
   }
 
-  /**
-   * The type that should be given to the parameter, or the return type of the
-   * parameter's function type.
-   */
+  /// The type that should be given to the parameter, or the return type of the
+  /// parameter's function type.
   String get type => _type;
 
-  /**
-   * The type that should be given to the parameter, or the return type of the
-   * parameter's function type.
-   */
+  /// The type that should be given to the parameter, or the return type of the
+  /// parameter's function type.
   set type(String value) {
     assert(value != null);
     _type = value;
   }
 
-  /**
-   * The name that should be given to the parameter.
-   */
+  /// The name that should be given to the parameter.
   String get name => _name;
 
-  /**
-   * The name that should be given to the parameter.
-   */
+  /// The name that should be given to the parameter.
   set name(String value) {
     assert(value != null);
     _name = value;
   }
 
-  /**
-   * The parameter list of the parameter's function type. If the parameter is
-   * not of a function type, this field will not be defined. If the function
-   * type has zero parameters, this field will have a value of '()'.
-   */
+  /// The parameter list of the parameter's function type. If the parameter is
+  /// not of a function type, this field will not be defined. If the function
+  /// type has zero parameters, this field will have a value of '()'.
   String get parameters => _parameters;
 
-  /**
-   * The parameter list of the parameter's function type. If the parameter is
-   * not of a function type, this field will not be defined. If the function
-   * type has zero parameters, this field will have a value of '()'.
-   */
+  /// The parameter list of the parameter's function type. If the parameter is
+  /// not of a function type, this field will not be defined. If the function
+  /// type has zero parameters, this field will have a value of '()'.
   set parameters(String value) {
     _parameters = value;
   }
@@ -5156,17 +4588,15 @@ class RefactoringMethodParameter implements HasToJson {
   }
 }
 
-/**
- * RefactoringMethodParameterKind
- *
- * enum {
- *   REQUIRED
- *   POSITIONAL
- *   NAMED
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// RefactoringMethodParameterKind
+///
+/// enum {
+///   REQUIRED
+///   POSITIONAL
+///   NAMED
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class RefactoringMethodParameterKind implements Enum {
   static const RefactoringMethodParameterKind REQUIRED =
       RefactoringMethodParameterKind._("REQUIRED");
@@ -5177,9 +4607,7 @@ class RefactoringMethodParameterKind implements Enum {
   static const RefactoringMethodParameterKind NAMED =
       RefactoringMethodParameterKind._("NAMED");
 
-  /**
-   * A list containing all of the enum values that are defined.
-   */
+  /// A list containing all of the enum values that are defined.
   static const List<RefactoringMethodParameterKind> VALUES =
       <RefactoringMethodParameterKind>[REQUIRED, POSITIONAL, NAMED];
 
@@ -5219,17 +4647,15 @@ class RefactoringMethodParameterKind implements Enum {
   String toJson() => name;
 }
 
-/**
- * RefactoringProblem
- *
- * {
- *   "severity": RefactoringProblemSeverity
- *   "message": String
- *   "location": optional Location
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// RefactoringProblem
+///
+/// {
+///   "severity": RefactoringProblemSeverity
+///   "message": String
+///   "location": optional Location
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class RefactoringProblem implements HasToJson {
   RefactoringProblemSeverity _severity;
 
@@ -5237,44 +4663,32 @@ class RefactoringProblem implements HasToJson {
 
   Location _location;
 
-  /**
-   * The severity of the problem being represented.
-   */
+  /// The severity of the problem being represented.
   RefactoringProblemSeverity get severity => _severity;
 
-  /**
-   * The severity of the problem being represented.
-   */
+  /// The severity of the problem being represented.
   set severity(RefactoringProblemSeverity value) {
     assert(value != null);
     _severity = value;
   }
 
-  /**
-   * A human-readable description of the problem being represented.
-   */
+  /// A human-readable description of the problem being represented.
   String get message => _message;
 
-  /**
-   * A human-readable description of the problem being represented.
-   */
+  /// A human-readable description of the problem being represented.
   set message(String value) {
     assert(value != null);
     _message = value;
   }
 
-  /**
-   * The location of the problem being represented. This field is omitted
-   * unless there is a specific location associated with the problem (such as a
-   * location where an element being renamed will be shadowed).
-   */
+  /// The location of the problem being represented. This field is omitted
+  /// unless there is a specific location associated with the problem (such as a
+  /// location where an element being renamed will be shadowed).
   Location get location => _location;
 
-  /**
-   * The location of the problem being represented. This field is omitted
-   * unless there is a specific location associated with the problem (such as a
-   * location where an element being renamed will be shadowed).
-   */
+  /// The location of the problem being represented. This field is omitted
+  /// unless there is a specific location associated with the problem (such as a
+  /// location where an element being renamed will be shadowed).
   set location(Location value) {
     _location = value;
   }
@@ -5349,59 +4763,47 @@ class RefactoringProblem implements HasToJson {
   }
 }
 
-/**
- * RefactoringProblemSeverity
- *
- * enum {
- *   INFO
- *   WARNING
- *   ERROR
- *   FATAL
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// RefactoringProblemSeverity
+///
+/// enum {
+///   INFO
+///   WARNING
+///   ERROR
+///   FATAL
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class RefactoringProblemSeverity implements Enum {
-  /**
-   * A minor code problem. No example, because it is not used yet.
-   */
+  /// A minor code problem. No example, because it is not used yet.
   static const RefactoringProblemSeverity INFO =
       RefactoringProblemSeverity._("INFO");
 
-  /**
-   * A minor code problem. For example names of local variables should be camel
-   * case and start with a lower case letter. Staring the name of a variable
-   * with an upper case is OK from the language point of view, but it is nice
-   * to warn the user.
-   */
+  /// A minor code problem. For example names of local variables should be camel
+  /// case and start with a lower case letter. Staring the name of a variable
+  /// with an upper case is OK from the language point of view, but it is nice
+  /// to warn the user.
   static const RefactoringProblemSeverity WARNING =
       RefactoringProblemSeverity._("WARNING");
 
-  /**
-   * The refactoring technically can be performed, but there is a logical
-   * problem. For example the name of a local variable being extracted
-   * conflicts with another name in the scope, or duplicate parameter names in
-   * the method being extracted, or a conflict between a parameter name and a
-   * local variable, etc. In some cases the location of the problem is also
-   * provided, so the IDE can show user the location and the problem, and let
-   * the user decide whether they want to perform the refactoring. For example
-   * the name conflict might be expected, and the user wants to fix it
-   * afterwards.
-   */
+  /// The refactoring technically can be performed, but there is a logical
+  /// problem. For example the name of a local variable being extracted
+  /// conflicts with another name in the scope, or duplicate parameter names in
+  /// the method being extracted, or a conflict between a parameter name and a
+  /// local variable, etc. In some cases the location of the problem is also
+  /// provided, so the IDE can show user the location and the problem, and let
+  /// the user decide whether they want to perform the refactoring. For example
+  /// the name conflict might be expected, and the user wants to fix it
+  /// afterwards.
   static const RefactoringProblemSeverity ERROR =
       RefactoringProblemSeverity._("ERROR");
 
-  /**
-   * A fatal error, which prevents performing the refactoring. For example the
-   * name of a local variable being extracted is not a valid identifier, or
-   * selection is not a valid expression.
-   */
+  /// A fatal error, which prevents performing the refactoring. For example the
+  /// name of a local variable being extracted is not a valid identifier, or
+  /// selection is not a valid expression.
   static const RefactoringProblemSeverity FATAL =
       RefactoringProblemSeverity._("FATAL");
 
-  /**
-   * A list containing all of the enum values that are defined.
-   */
+  /// A list containing all of the enum values that are defined.
   static const List<RefactoringProblemSeverity> VALUES =
       <RefactoringProblemSeverity>[INFO, WARNING, ERROR, FATAL];
 
@@ -5436,9 +4838,7 @@ class RefactoringProblemSeverity implements Enum {
     throw jsonDecoder.mismatch(jsonPath, "RefactoringProblemSeverity", json);
   }
 
-  /**
-   * Returns the [RefactoringProblemSeverity] with the maximal severity.
-   */
+  /// Returns the [RefactoringProblemSeverity] with the maximal severity.
   static RefactoringProblemSeverity max(
           RefactoringProblemSeverity a, RefactoringProblemSeverity b) =>
       maxRefactoringProblemSeverity(a, b);
@@ -5449,15 +4849,13 @@ class RefactoringProblemSeverity implements Enum {
   String toJson() => name;
 }
 
-/**
- * RemoveContentOverlay
- *
- * {
- *   "type": "remove"
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// RemoveContentOverlay
+///
+/// {
+///   "type": "remove"
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class RemoveContentOverlay implements HasToJson {
   RemoveContentOverlay();
 
@@ -5500,19 +4898,17 @@ class RemoveContentOverlay implements HasToJson {
   }
 }
 
-/**
- * SourceChange
- *
- * {
- *   "message": String
- *   "edits": List<SourceFileEdit>
- *   "linkedEditGroups": List<LinkedEditGroup>
- *   "selection": optional Position
- *   "id": optional String
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// SourceChange
+///
+/// {
+///   "message": String
+///   "edits": List<SourceFileEdit>
+///   "linkedEditGroups": List<LinkedEditGroup>
+///   "selection": optional Position
+///   "id": optional String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class SourceChange implements HasToJson {
   String _message;
 
@@ -5524,69 +4920,49 @@ class SourceChange implements HasToJson {
 
   String _id;
 
-  /**
-   * A human-readable description of the change to be applied.
-   */
+  /// A human-readable description of the change to be applied.
   String get message => _message;
 
-  /**
-   * A human-readable description of the change to be applied.
-   */
+  /// A human-readable description of the change to be applied.
   set message(String value) {
     assert(value != null);
     _message = value;
   }
 
-  /**
-   * A list of the edits used to effect the change, grouped by file.
-   */
+  /// A list of the edits used to effect the change, grouped by file.
   List<SourceFileEdit> get edits => _edits;
 
-  /**
-   * A list of the edits used to effect the change, grouped by file.
-   */
+  /// A list of the edits used to effect the change, grouped by file.
   set edits(List<SourceFileEdit> value) {
     assert(value != null);
     _edits = value;
   }
 
-  /**
-   * A list of the linked editing groups used to customize the changes that
-   * were made.
-   */
+  /// A list of the linked editing groups used to customize the changes that
+  /// were made.
   List<LinkedEditGroup> get linkedEditGroups => _linkedEditGroups;
 
-  /**
-   * A list of the linked editing groups used to customize the changes that
-   * were made.
-   */
+  /// A list of the linked editing groups used to customize the changes that
+  /// were made.
   set linkedEditGroups(List<LinkedEditGroup> value) {
     assert(value != null);
     _linkedEditGroups = value;
   }
 
-  /**
-   * The position that should be selected after the edits have been applied.
-   */
+  /// The position that should be selected after the edits have been applied.
   Position get selection => _selection;
 
-  /**
-   * The position that should be selected after the edits have been applied.
-   */
+  /// The position that should be selected after the edits have been applied.
   set selection(Position value) {
     _selection = value;
   }
 
-  /**
-   * The optional identifier of the change kind. The identifier remains stable
-   * even if the message changes, or is parameterized.
-   */
+  /// The optional identifier of the change kind. The identifier remains stable
+  /// even if the message changes, or is parameterized.
   String get id => _id;
 
-  /**
-   * The optional identifier of the change kind. The identifier remains stable
-   * even if the message changes, or is parameterized.
-   */
+  /// The optional identifier of the change kind. The identifier remains stable
+  /// even if the message changes, or is parameterized.
   set id(String value) {
     _id = value;
   }
@@ -5679,29 +5055,21 @@ class SourceChange implements HasToJson {
     return result;
   }
 
-  /**
-   * Adds [edit] to the [FileEdit] for the given [file].
-   */
+  /// Adds [edit] to the [FileEdit] for the given [file].
   void addEdit(String file, int fileStamp, SourceEdit edit) =>
       addEditToSourceChange(this, file, fileStamp, edit);
 
-  /**
-   * Adds the given [FileEdit].
-   */
+  /// Adds the given [FileEdit].
   void addFileEdit(SourceFileEdit edit) {
     edits.add(edit);
   }
 
-  /**
-   * Adds the given [LinkedEditGroup].
-   */
+  /// Adds the given [LinkedEditGroup].
   void addLinkedEditGroup(LinkedEditGroup linkedEditGroup) {
     linkedEditGroups.add(linkedEditGroup);
   }
 
-  /**
-   * Returns the [FileEdit] for the given [file], maybe `null`.
-   */
+  /// Returns the [FileEdit] for the given [file], maybe `null`.
   SourceFileEdit getFileEdit(String file) => getChangeFileEdit(this, file);
 
   @override
@@ -5733,23 +5101,19 @@ class SourceChange implements HasToJson {
   }
 }
 
-/**
- * SourceEdit
- *
- * {
- *   "offset": int
- *   "length": int
- *   "replacement": String
- *   "id": optional String
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// SourceEdit
+///
+/// {
+///   "offset": int
+///   "length": int
+///   "replacement": String
+///   "id": optional String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class SourceEdit implements HasToJson {
-  /**
-   * Get the result of applying a set of [edits] to the given [code]. Edits are
-   * applied in the order they appear in [edits].
-   */
+  /// Get the result of applying a set of [edits] to the given [code]. Edits are
+  /// applied in the order they appear in [edits].
   static String applySequence(String code, Iterable<SourceEdit> edits) =>
       applySequenceOfEdits(code, edits);
 
@@ -5761,67 +5125,51 @@ class SourceEdit implements HasToJson {
 
   String _id;
 
-  /**
-   * The offset of the region to be modified.
-   */
+  /// The offset of the region to be modified.
   int get offset => _offset;
 
-  /**
-   * The offset of the region to be modified.
-   */
+  /// The offset of the region to be modified.
   set offset(int value) {
     assert(value != null);
     _offset = value;
   }
 
-  /**
-   * The length of the region to be modified.
-   */
+  /// The length of the region to be modified.
   int get length => _length;
 
-  /**
-   * The length of the region to be modified.
-   */
+  /// The length of the region to be modified.
   set length(int value) {
     assert(value != null);
     _length = value;
   }
 
-  /**
-   * The code that is to replace the specified region in the original code.
-   */
+  /// The code that is to replace the specified region in the original code.
   String get replacement => _replacement;
 
-  /**
-   * The code that is to replace the specified region in the original code.
-   */
+  /// The code that is to replace the specified region in the original code.
   set replacement(String value) {
     assert(value != null);
     _replacement = value;
   }
 
-  /**
-   * An identifier that uniquely identifies this source edit from other edits
-   * in the same response. This field is omitted unless a containing structure
-   * needs to be able to identify the edit for some reason.
-   *
-   * For example, some refactoring operations can produce edits that might not
-   * be appropriate (referred to as potential edits). Such edits will have an
-   * id so that they can be referenced. Edits in the same response that do not
-   * need to be referenced will not have an id.
-   */
+  /// An identifier that uniquely identifies this source edit from other edits
+  /// in the same response. This field is omitted unless a containing structure
+  /// needs to be able to identify the edit for some reason.
+  ///
+  /// For example, some refactoring operations can produce edits that might not
+  /// be appropriate (referred to as potential edits). Such edits will have an
+  /// id so that they can be referenced. Edits in the same response that do not
+  /// need to be referenced will not have an id.
   String get id => _id;
 
-  /**
-   * An identifier that uniquely identifies this source edit from other edits
-   * in the same response. This field is omitted unless a containing structure
-   * needs to be able to identify the edit for some reason.
-   *
-   * For example, some refactoring operations can produce edits that might not
-   * be appropriate (referred to as potential edits). Such edits will have an
-   * id so that they can be referenced. Edits in the same response that do not
-   * need to be referenced will not have an id.
-   */
+  /// An identifier that uniquely identifies this source edit from other edits
+  /// in the same response. This field is omitted unless a containing structure
+  /// needs to be able to identify the edit for some reason.
+  ///
+  /// For example, some refactoring operations can produce edits that might not
+  /// be appropriate (referred to as potential edits). Such edits will have an
+  /// id so that they can be referenced. Edits in the same response that do not
+  /// need to be referenced will not have an id.
   set id(String value) {
     _id = value;
   }
@@ -5866,9 +5214,7 @@ class SourceEdit implements HasToJson {
     }
   }
 
-  /**
-   * The end of the region to be modified.
-   */
+  /// The end of the region to be modified.
   int get end => offset + length;
 
   @override
@@ -5883,9 +5229,7 @@ class SourceEdit implements HasToJson {
     return result;
   }
 
-  /**
-   * Get the result of applying the edit to the given [code].
-   */
+  /// Get the result of applying the edit to the given [code].
   String apply(String code) => applyEdit(code, this);
 
   @override
@@ -5913,17 +5257,15 @@ class SourceEdit implements HasToJson {
   }
 }
 
-/**
- * SourceFileEdit
- *
- * {
- *   "file": FilePath
- *   "fileStamp": long
- *   "edits": List<SourceEdit>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// SourceFileEdit
+///
+/// {
+///   "file": FilePath
+///   "fileStamp": long
+///   "edits": List<SourceEdit>
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
 class SourceFileEdit implements HasToJson {
   String _file;
 
@@ -5931,48 +5273,36 @@ class SourceFileEdit implements HasToJson {
 
   List<SourceEdit> _edits;
 
-  /**
-   * The file containing the code to be modified.
-   */
+  /// The file containing the code to be modified.
   String get file => _file;
 
-  /**
-   * The file containing the code to be modified.
-   */
+  /// The file containing the code to be modified.
   set file(String value) {
     assert(value != null);
     _file = value;
   }
 
-  /**
-   * The modification stamp of the file at the moment when the change was
-   * created, in milliseconds since the "Unix epoch". Will be -1 if the file
-   * did not exist and should be created. The client may use this field to make
-   * sure that the file was not changed since then, so it is safe to apply the
-   * change.
-   */
+  /// The modification stamp of the file at the moment when the change was
+  /// created, in milliseconds since the "Unix epoch". Will be -1 if the file
+  /// did not exist and should be created. The client may use this field to make
+  /// sure that the file was not changed since then, so it is safe to apply the
+  /// change.
   int get fileStamp => _fileStamp;
 
-  /**
-   * The modification stamp of the file at the moment when the change was
-   * created, in milliseconds since the "Unix epoch". Will be -1 if the file
-   * did not exist and should be created. The client may use this field to make
-   * sure that the file was not changed since then, so it is safe to apply the
-   * change.
-   */
+  /// The modification stamp of the file at the moment when the change was
+  /// created, in milliseconds since the "Unix epoch". Will be -1 if the file
+  /// did not exist and should be created. The client may use this field to make
+  /// sure that the file was not changed since then, so it is safe to apply the
+  /// change.
   set fileStamp(int value) {
     assert(value != null);
     _fileStamp = value;
   }
 
-  /**
-   * A list of the edits used to effect the change.
-   */
+  /// A list of the edits used to effect the change.
   List<SourceEdit> get edits => _edits;
 
-  /**
-   * A list of the edits used to effect the change.
-   */
+  /// A list of the edits used to effect the change.
   set edits(List<SourceEdit> value) {
     assert(value != null);
     _edits = value;
@@ -6030,14 +5360,10 @@ class SourceFileEdit implements HasToJson {
     return result;
   }
 
-  /**
-   * Adds the given [Edit] to the list.
-   */
+  /// Adds the given [Edit] to the list.
   void add(SourceEdit edit) => addEditForSource(this, edit);
 
-  /**
-   * Adds the given [Edit]s.
-   */
+  /// Adds the given [Edit]s.
   void addAll(Iterable<SourceEdit> edits) => addAllEditsForSource(this, edits);
 
   @override

@@ -4,7 +4,7 @@
 
 /// Jenkins hash function, optimized for small integers.
 ///
-/// Static methods borrowed from sdk/lib/math/jenkins_smi_hash.dart.  Non-static
+/// Static methods borrowed from sdk/lib/math/jenkins_smi_hash.dart. Non-static
 /// methods are an enhancement for the "front_end" package.
 ///
 /// Where performance is critical, use [hash2], [hash3], or [hash4], or the
@@ -13,7 +13,7 @@
 ///
 /// For ease of use, you may also use this pattern:
 /// `(new JenkinsSmiHash()..add(a)..add(b)....add(z)).hashCode`, where a..z are
-/// the sub-objects whose hashes should be combined.  This pattern performs the
+/// the sub-objects whose hashes should be combined. This pattern performs the
 /// same operations as the performance critical variant, but allocates an extra
 /// object.
 class JenkinsSmiHash {
