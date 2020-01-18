@@ -31,7 +31,8 @@ Future<void> recursiveCopy(FileSystemEntity src, String dstPath) async {
 /// completes, the temporary directory and all its contents will be deleted.
 ///
 /// Returns the return value of [fn].
-Future<dynamic> withTempDirAsync(Future<dynamic> fn(String path)) async {
+Future<dynamic> withTempDirAsync(
+    Future<dynamic> Function(String path) fn) async {
   var tempDir = (await Directory.systemTemp.createTemp('analyzer_')).path;
   try {
     return await fn(tempDir);

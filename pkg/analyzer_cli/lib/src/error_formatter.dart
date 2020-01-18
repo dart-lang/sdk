@@ -183,8 +183,7 @@ abstract class ErrorFormatter {
 
   ErrorFormatter(this.out, this.options, this.stats,
       {SeverityProcessor severityProcessor}) {
-    _severityProcessor =
-        severityProcessor == null ? _severityIdentity : severityProcessor;
+    _severityProcessor = severityProcessor ?? _severityIdentity;
   }
 
   /// Call to write any batched up errors from [formatErrors].
@@ -249,10 +248,7 @@ class HumanErrorFormatter extends ErrorFormatter {
       }
 
       // warning • 'foo' is not a bar. • lib/foo.dart:1:2 • foo_warning
-      String issueColor = (error.isError == ErrorSeverity.ERROR ||
-              error.isWarning == ErrorSeverity.WARNING)
-          ? ansi.red
-          : '';
+      String issueColor = (error.isError || error.isWarning) ? ansi.red : '';
       out.write('  $issueColor${error.severity}${ansi.none} '
           '${ansi.bullet} ${ansi.bold}${error.message}${ansi.none} ');
       out.write('${ansi.bullet} ${error.sourcePath}');

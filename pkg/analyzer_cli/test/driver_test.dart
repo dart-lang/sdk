@@ -464,7 +464,7 @@ import 'package:b/b.dart';
     return pkg;
   }
 
-  Future<void> _withTempDir(Future<void> f()) async {
+  Future<void> _withTempDir(Future<void> Function() f) async {
     await withTempDirAsync((tempDir) async {
       this.tempDir = tempDir;
       await f();

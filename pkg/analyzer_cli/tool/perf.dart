@@ -40,11 +40,15 @@ main(List<String> args) async {
   if (bench == 'scan') {
     Set<Source> files = scanReachableFiles(entryUri);
     // TODO(sigmund): consider replacing the warmup with instrumented snapshots.
-    for (int i = 0; i < 10; i++) scanFiles(files);
+    for (int i = 0; i < 10; i++) {
+      scanFiles(files);
+    }
   } else if (bench == 'parse') {
     Set<Source> files = scanReachableFiles(entryUri);
     // TODO(sigmund): consider replacing the warmup with instrumented snapshots.
-    for (int i = 0; i < 10; i++) parseFiles(files);
+    for (int i = 0; i < 10; i++) {
+      parseFiles(files);
+    }
   } else {
     print('unsupported bench-id: $bench. Please specify "scan" or "parse"');
     // TODO(sigmund): implement the remaining benchmarks.
