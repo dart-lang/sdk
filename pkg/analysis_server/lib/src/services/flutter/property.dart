@@ -173,7 +173,7 @@ class PropertyDescription {
 
   void _changeCode(
     DartFileEditBuilder builder,
-    void buildCode(DartEditBuilder builder),
+    void Function(DartEditBuilder builder) buildCode,
   ) {
     if (valueExpression != null) {
       builder.addReplacement(range.node(valueExpression), buildCode);
@@ -240,7 +240,7 @@ class PropertyDescription {
   void _changeCodeVirtualContainer(
     DartFileEditBuilder builder,
     String parameterName,
-    void writeArgumentValue(DartEditBuilder builder),
+    void Function(DartEditBuilder builder) writeArgumentValue,
   ) {
     if (virtualContainer._parentCreation != null) {
       // `new Padding(...)` -> `Container(...)`

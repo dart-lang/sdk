@@ -57,8 +57,8 @@ class LspByteStreamServerChannel implements LspServerCommunicationChannel {
   }
 
   @override
-  void listen(void onMessage(Message message),
-      {Function onError, void onDone()}) {
+  void listen(void Function(Message message) onMessage,
+      {Function onError, void Function() onDone}) {
     _input.transform(LspPacketTransformer()).listen(
       (String data) => _readMessage(data, onMessage),
       onError: onError,
@@ -85,7 +85,7 @@ class LspByteStreamServerChannel implements LspServerCommunicationChannel {
    * Read a request from the given [data] and use the given function to handle
    * the message.
    */
-  void _readMessage(String data, void onMessage(Message request)) {
+  void _readMessage(String data, void Function(Message request) onMessage) {
     // Ignore any further requests after the communication channel is closed.
     if (_closed.isCompleted) {
       return;

@@ -977,7 +977,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   /// method, or a top-level declaration, we would not have this problem - the
   /// completion computer would be the only consumer of the partial analysis
   /// result.
-  void _runDelayed(f()) {
+  void _runDelayed(Function() f) {
     Future(f);
   }
 }

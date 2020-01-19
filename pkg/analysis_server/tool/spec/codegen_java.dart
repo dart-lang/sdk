@@ -17,7 +17,7 @@ import 'to_html.dart';
  * [path] uses Posix-style path separators regardless of the OS.
  */
 GeneratedFile javaGeneratedFile(
-    String path, CodegenJavaVisitor createVisitor(Api api)) {
+    String path, CodegenJavaVisitor Function(Api api) createVisitor) {
   return GeneratedFile(path, (String pkgPath) async {
     CodegenJavaVisitor visitor = createVisitor(readApi(pkgPath));
     return visitor.collectCode(visitor.visitApi);
@@ -79,7 +79,7 @@ class CodegenJavaVisitor extends HierarchicalApiVisitor with CodeGenerator {
   /**
    * Create a constructor, using [callback] to create its contents.
    */
-  void constructor(String name, void callback()) {
+  void constructor(String name, void Function() callback) {
     _state.constructors[name] = collectCode(callback);
   }
 
@@ -205,7 +205,7 @@ class CodegenJavaVisitor extends HierarchicalApiVisitor with CodeGenerator {
    * sorted).  [header] is the part of the class declaration before the
    * opening brace.
    */
-  void makeClass(String header, void callback()) {
+  void makeClass(String header, void Function() callback) {
     _CodegenJavaState oldState = _state;
     try {
       _state = _CodegenJavaState();
@@ -246,28 +246,28 @@ class CodegenJavaVisitor extends HierarchicalApiVisitor with CodeGenerator {
   /**
    * Create a private field, using [callback] to create its contents.
    */
-  void privateField(String fieldName, void callback()) {
+  void privateField(String fieldName, void Function() callback) {
     _state.privateFields[fieldName] = collectCode(callback);
   }
 
   /**
    * Create a private method, using [callback] to create its contents.
    */
-  void privateMethod(String methodName, void callback()) {
+  void privateMethod(String methodName, void Function() callback) {
     _state.privateMethods[methodName] = collectCode(callback);
   }
 
   /**
    * Create a public field, using [callback] to create its contents.
    */
-  void publicField(String fieldName, void callback()) {
+  void publicField(String fieldName, void Function() callback) {
     _state.publicFields[fieldName] = collectCode(callback);
   }
 
   /**
    * Create a public method, using [callback] to create its contents.
    */
-  void publicMethod(String methodName, void callback()) {
+  void publicMethod(String methodName, void Function() callback) {
     _state.publicMethods[methodName] = collectCode(callback);
   }
 

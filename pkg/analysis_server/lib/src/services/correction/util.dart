@@ -1067,7 +1067,7 @@ class CorrectionUtils {
 
   ClassMemberLocation prepareNewClassMemberLocation(
       CompilationUnitMember declaration,
-      bool shouldSkip(ClassMember existingMember)) {
+      bool Function(ClassMember existingMember) shouldSkip) {
     String indent = getIndent(1);
     // Find the last target member.
     ClassMember targetMember;

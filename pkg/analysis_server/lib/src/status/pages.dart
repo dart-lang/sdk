@@ -31,7 +31,7 @@ abstract class Page {
 
   String get path => '/$id';
 
-  Future<void> asyncDiv(void gen(), {String classes}) async {
+  Future<void> asyncDiv(void Function() gen, {String classes}) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     if (classes != null) {
@@ -49,7 +49,7 @@ abstract class Page {
     div(() => buf.writeln(str), classes: 'blankslate');
   }
 
-  void div(void gen(), {String classes}) {
+  void div(void Function() gen, {String classes}) {
     if (classes != null) {
       buf.writeln('<div class="$classes">');
     } else {
@@ -91,7 +91,7 @@ abstract class Page {
     buf.writeln('<h4>${raw ? text : escape(text)}</h4>');
   }
 
-  void inputList<T>(Iterable<T> items, void gen(T item)) {
+  void inputList<T>(Iterable<T> items, void Function(T item) gen) {
     buf.writeln('<select size="8" style="width: 100%">');
     for (T item in items) {
       buf.write('<option>');
@@ -113,7 +113,7 @@ abstract class Page {
     }
   }
 
-  void pre(void gen(), {String classes}) {
+  void pre(void Function() gen, {String classes}) {
     if (classes != null) {
       buf.write('<pre class="$classes">');
     } else {
@@ -130,7 +130,7 @@ abstract class Page {
     });
   }
 
-  void ul<T>(Iterable<T> items, void gen(T item), {String classes}) {
+  void ul<T>(Iterable<T> items, void Function(T item) gen, {String classes}) {
     buf.writeln('<ul${classes == null ? '' : ' class=$classes'}>');
     for (T item in items) {
       buf.write('<li>');

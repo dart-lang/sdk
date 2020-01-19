@@ -335,7 +335,7 @@ class CommunicationsPage extends DiagnosticPageWithNav {
   }
 
   void _writePerformanceTable(ServerPerformance perf,
-      void writeRow(List<String> data, {List<String> classes})) {
+      void Function(List<String> data, {List<String> classes}) writeRow) {
     int requestCount = perf.requestCount;
     int latencyCount = perf.latencyCount;
     int averageLatency =

@@ -47,8 +47,8 @@ class MockServerChannel implements ServerCommunicationChannel {
   }
 
   @override
-  void listen(void onRequest(Request request),
-      {Function onError, void onDone()}) {
+  void listen(void Function(Request request) onRequest,
+      {Function onError, void Function() onDone}) {
     requestController.stream
         .listen(onRequest, onError: onError, onDone: onDone);
   }

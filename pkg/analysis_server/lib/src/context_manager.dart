@@ -1051,8 +1051,8 @@ class ContextManagerImpl implements ContextManager {
    * TODO(paulberry): use [addDependency] for tracking all folder disposition
    * dependencies (currently we only use it to track "pub list" dependencies).
    */
-  FolderDisposition _computeFolderDisposition(
-      Folder folder, void addDependency(String path), File packagespecFile) {
+  FolderDisposition _computeFolderDisposition(Folder folder,
+      void Function(String path) addDependency, File packagespecFile) {
     String packageRoot = normalizedPackageRoots[folder.path];
     if (packageRoot != null) {
       // TODO(paulberry): We shouldn't be using JavaFile here because it
