@@ -6,6 +6,7 @@ import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:meta/meta.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/src/nullability_migration_impl.dart';
@@ -64,6 +65,20 @@ class NullabilityFixDescription {
 
   const NullabilityFixDescription._(
       {@required this.appliedMessage, @required this.kind});
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, appliedMessage.hashCode);
+    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  operator ==(Object other) =>
+      other is NullabilityFixDescription &&
+      appliedMessage == other.appliedMessage &&
+      kind == other.kind;
 }
 
 /// An enumeration of the various kinds of nullability fixes.
@@ -118,28 +133,13 @@ abstract class NullabilityMigration {
 abstract class NullabilityMigrationListener {
   /// [addEdit] is called once for each source edit, in the order in which they
   /// appear in the source file.
-  void addEdit(SingleNullabilityFix fix, SourceEdit edit);
+  void addEdit(Source source, SourceEdit edit);
 
-  /// [addFix] is called once for each source change.
-  void addFix(SingleNullabilityFix fix);
+  void addSuggestion(String descriptions, Location location);
 
   /// [reportException] is called once for each exception that occurs in
   /// "permissive mode", reporting the location of the exception and the
   /// exception details.
   void reportException(
       Source source, AstNode node, Object exception, StackTrace stackTrace);
-}
-
-/// Representation of a single conceptual change made by the nullability
-/// migration algorithm.  This change might require multiple source edits to
-/// achieve.
-abstract class SingleNullabilityFix {
-  /// What kind of fix this is.
-  NullabilityFixDescription get description;
-
-  /// Locations of the change, for reporting to the user.
-  List<Location> get locations;
-
-  /// File to change.
-  Source get source;
 }

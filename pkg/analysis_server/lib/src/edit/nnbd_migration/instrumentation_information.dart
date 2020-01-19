@@ -6,7 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:nnbd_migration/instrumentation.dart';
-import 'package:nnbd_migration/nnbd_migration.dart';
+import 'package:nnbd_migration/src/edit_plan.dart';
 
 /// The instrumentation information gathered from the migration engine.
 class InstrumentationInformation {
@@ -82,8 +82,9 @@ class SourceInformation {
   /// TODO(paulberry): we should probably get rid of this data structure.
   final Map<TypeAnnotation, NullabilityNodeInfo> explicitTypeNullability = {};
 
-  /// A map from the fixes that were decided on to the reasons for the fix.
-  final Map<SingleNullabilityFix, List<FixReasonInfo>> fixes = {};
+  /// A map from offsets within the source file to a list of changes to be
+  /// applied at that offset.
+  Map<int, List<AtomicEdit>> changes;
 
   /// Initialize a newly created holder of instrumentation information that is
   /// specific to a single source.

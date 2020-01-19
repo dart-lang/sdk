@@ -12,6 +12,7 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:meta/meta.dart';
 import 'package:nnbd_migration/instrumentation.dart';
+import 'package:nnbd_migration/nnbd_migration.dart';
 
 Map<int, List<AtomicEdit>> _removeCode(
     int offset, int end, _RemovalStyle removalStyle) {
@@ -100,23 +101,31 @@ class AtomicEdit {
   }
 }
 
-/// An atomic edit that has a reason associated with it.
-class AtomicEditWithReason extends AtomicEdit {
-  /// The reason for the edit.
-  final FixReasonInfo fixReason;
+/// Information stored along with an atomic edit indicating how it arose.
+class AtomicEditInfo {
+  /// A description of the change that was made.
+  final NullabilityFixDescription description;
+
+  /// The reasons for the edit.
+  final List<FixReasonInfo> fixReasons;
+
+  AtomicEditInfo(this.description, this.fixReasons);
+}
+
+/// An atomic edit that has additional information associated with it.
+class AtomicEditWithInfo extends AtomicEdit {
+  final AtomicEditInfo info;
 
   /// Initialize an edit to delete [length] characters.
-  const AtomicEditWithReason.delete(int length, this.fixReason)
-      : super.delete(length);
+  const AtomicEditWithInfo.delete(int length, this.info) : super.delete(length);
 
   /// Initialize an edit to insert the [replacement] characters.
-  const AtomicEditWithReason.insert(String replacement, this.fixReason)
+  const AtomicEditWithInfo.insert(String replacement, this.info)
       : super.insert(replacement);
 
   /// Initialize an edit to replace [length] characters with the [replacement]
   /// characters.
-  const AtomicEditWithReason.replace(
-      int length, String replacement, this.fixReason)
+  const AtomicEditWithInfo.replace(int length, String replacement, this.info)
       : super.replace(length, replacement);
 }
 

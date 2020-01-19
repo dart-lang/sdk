@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
 
@@ -180,8 +181,14 @@ class MakeNullable extends _NestableChange {
   @override
   EditPlan apply(AstNode node, FixAggregator aggregator) {
     var innerPlan = _inner.apply(node, aggregator);
-    return aggregator.planner.surround(innerPlan,
-        suffix: [AtomicEditWithReason.insert('?', decoratedType.node)]);
+    return aggregator.planner.surround(innerPlan, suffix: [
+      AtomicEditWithInfo.insert(
+          '?',
+          AtomicEditInfo(
+              NullabilityFixDescription.makeTypeNullable(
+                  decoratedType.type.toString()),
+              [decoratedType.node]))
+    ]);
   }
 }
 

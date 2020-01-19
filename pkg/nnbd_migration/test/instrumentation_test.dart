@@ -9,6 +9,7 @@ import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/nullability_state.dart';
+import 'package:nnbd_migration/src/edit_plan.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -26,6 +27,12 @@ class _InstrumentationClient implements NullabilityMigrationInstrumentation {
   final _InstrumentationTestBase test;
 
   _InstrumentationClient(this.test);
+
+  @override
+  void changes(Source source, Map<int, List<AtomicEdit>> changes) {
+    expect(test.changes, isNull);
+    test.changes = changes;
+  }
 
   @override
   void explicitTypeNullability(
@@ -47,11 +54,6 @@ class _InstrumentationClient implements NullabilityMigrationInstrumentation {
     expect(test.externalDecoratedTypeParameterBound,
         isNot(contains(typeParameter)));
     test.externalDecoratedTypeParameterBound[typeParameter] = decoratedType;
-  }
-
-  @override
-  void fix(SingleNullabilityFix fix, Iterable<FixReasonInfo> reasons) {
-    test.fixes[fix] = reasons.toList();
   }
 
   @override
@@ -115,7 +117,7 @@ abstract class _InstrumentationTestBase extends AbstractContextTest {
 
   final List<EdgeInfo> edges = [];
 
-  Map<SingleNullabilityFix, List<FixReasonInfo>> fixes = {};
+  Map<int, List<AtomicEdit>> changes = null;
 
   final Map<AstNode, DecoratedTypeInfo> implicitReturnType = {};
 
@@ -225,10 +227,12 @@ main() {
 }
 ''');
     var yUsage = findNode.simple('y);');
-    var entry = fixes.entries
-        .where((e) => e.key.locations.single.offset == yUsage.end)
-        .single;
-    var reasons = entry.value;
+    var edit = changes[yUsage.end].single as AtomicEditWithInfo;
+    expect(edit.isInsertion, true);
+    expect(edit.replacement, '!');
+    var info = edit.info;
+    expect(info.description, NullabilityFixDescription.checkExpression);
+    var reasons = info.fixReasons;
     expect(reasons, hasLength(1));
     var edge = reasons[0] as EdgeInfo;
     expect(edge.sourceNode,
@@ -243,11 +247,16 @@ main() {
     await analyze('''
 int x = null;
 ''');
-    var entries = fixes.entries.toList();
-    expect(entries, hasLength(1));
     var intAnnotation = findNode.typeAnnotation('int');
-    expect(entries.single.key.locations.single.offset, intAnnotation.end);
-    var reasons = entries.single.value;
+    var entries = changes.entries.toList();
+    expect(entries, hasLength(1));
+    expect(entries.single.key, intAnnotation.end);
+    var edit = entries.single.value.single as AtomicEditWithInfo;
+    expect(edit.isInsertion, true);
+    expect(edit.replacement, '?');
+    var info = edit.info;
+    expect(info.description, NullabilityFixDescription.makeTypeNullable('int'));
+    var reasons = info.fixReasons;
     expect(reasons, hasLength(1));
     expect(reasons.single, same(explicitTypeNullability[intAnnotation]));
   }
@@ -1020,8 +1029,4 @@ class _InstrumentationTestWithFixBuilder extends _InstrumentationTestBase {
   @override
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
   Future<void> test_fix_reason_edge() => super.test_fix_reason_edge();
-
-  @override
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
-  Future<void> test_fix_reason_node() => super.test_fix_reason_node();
 }

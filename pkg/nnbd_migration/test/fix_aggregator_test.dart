@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
 import 'package:nnbd_migration/src/fix_aggregator.dart';
@@ -318,7 +319,8 @@ void f(int i, String callback()) {
   Future<void> test_makeNullable() async {
     await analyze('f(int x) {}');
     var typeName = findNode.typeName('int');
-    var previewInfo = run({typeName: MakeNullable(MockDecoratedType())});
+    var previewInfo =
+        run({typeName: MakeNullable(MockDecoratedType(MockDartType()))});
     expect(previewInfo.applyTo(code), 'f(int? x) {}');
   }
 
@@ -510,7 +512,19 @@ class FixAggregatorTestBase extends AbstractSingleUnitTest {
   }
 }
 
+class MockDartType implements DartType {
+  @override
+  noSuchMethod(Invocation invocation) {
+    return super.noSuchMethod(invocation);
+  }
+}
+
 class MockDecoratedType implements DecoratedType {
+  @override
+  final DartType type;
+
+  MockDecoratedType(this.type);
+
   @override
   NullabilityNode get node => NullabilityNode.forTypeAnnotation(0);
 

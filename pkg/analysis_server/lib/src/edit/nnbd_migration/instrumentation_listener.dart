@@ -8,7 +8,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:nnbd_migration/instrumentation.dart';
-import 'package:nnbd_migration/nnbd_migration.dart';
+import 'package:nnbd_migration/src/edit_plan.dart';
 
 /// A listener used to gather instrumentation information from the migration
 /// engine.
@@ -18,6 +18,12 @@ class InstrumentationListener implements NullabilityMigrationInstrumentation {
 
   /// Initialize a newly created listener.
   InstrumentationListener();
+
+  @override
+  void changes(Source source, Map<int, List<AtomicEdit>> changes) {
+    assert(_sourceInfo(source).changes == null);
+    _sourceInfo(source).changes = changes;
+  }
 
   @override
   void explicitTypeNullability(
@@ -37,12 +43,6 @@ class InstrumentationListener implements NullabilityMigrationInstrumentation {
       TypeParameterElement typeParameter, DecoratedTypeInfo decoratedType) {
     _storeNodeInformation(
         decoratedType, typeParameter.source, null, typeParameter);
-  }
-
-  @override
-  void fix(SingleNullabilityFix fix, Iterable<FixReasonInfo> reasons) {
-    _sourceInfo(fix.source).fixes[fix] =
-        reasons.where((reason) => reason != null).toList();
   }
 
   @override

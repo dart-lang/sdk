@@ -268,15 +268,13 @@ class NullabilityMigrationAdapter implements NullabilityMigrationListener {
   NullabilityMigrationAdapter(this.listener);
 
   @override
-  void addEdit(SingleNullabilityFix fix, SourceEdit edit) {
-    listener.addEditWithoutSuggestion(fix.source, edit);
+  void addEdit(Source source, SourceEdit edit) {
+    listener.addEditWithoutSuggestion(source, edit);
   }
 
   @override
-  void addFix(SingleNullabilityFix fix) {
-    for (Location location in fix.locations) {
-      listener.addSuggestion(fix.description.appliedMessage, location);
-    }
+  void addSuggestion(String descriptions, Location location) {
+    listener.addSuggestion(descriptions, location);
   }
 
   @override
