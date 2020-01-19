@@ -3,9 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:math';
 import 'dart:io' as io;
+import 'dart:math';
 
+import 'package:analysis_server/src/domains/completion/available_suggestions.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
@@ -13,9 +14,12 @@ import 'package:analysis_server/src/services/completion/dart/completion_manager.
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analysis_server/src/status/pages.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/services/available_declarations.dart';
 
 import 'visitors.dart';
 
@@ -24,7 +28,9 @@ main() {
   _computeCompletionMetrics(PhysicalResourceProvider.INSTANCE, analysisRoots);
 }
 
-const bool doPrintExpectedCompletions = true;
+/// When enabled, expected, but missing completion tokens will be printed to
+/// stdout.
+const bool _doPrintMissingCompletions = true;
 
 /// TODO(jwren) put the following methods into a class
 Future _computeCompletionMetrics(
@@ -46,34 +52,37 @@ Future _computeCompletionMetrics(
     );
 
     for (var context in collection.contexts) {
+      var declarationsTracker =
+          DeclarationsTracker(MemoryByteStore(), resourceProvider);
+      declarationsTracker.addContext(context);
+
+      while (declarationsTracker.hasWork) {
+        declarationsTracker.doWork();
+      }
+
       for (var filePath in context.contextRoot.analyzedFiles()) {
         if (AnalysisEngine.isDartFileName(filePath)) {
           try {
-            final result =
+            final resolvedUnitResult =
                 await context.currentSession.getResolvedUnit(filePath);
             final visitor = ExpectedCompletionsVisitor();
 
-            result.unit.accept(visitor);
-            var expectedCompletions = visitor.expectedCompletions;
+            resolvedUnitResult.unit.accept(visitor);
 
-            for (var expectedCompletion in expectedCompletions) {
-              var completionContributor = DartCompletionManager();
-              var completionRequestImpl = CompletionRequestImpl(
-                result,
-                expectedCompletion.offset,
-                CompletionPerformance(),
-              );
-              var suggestions = await completionContributor
-                  .computeSuggestions(completionRequestImpl);
-              suggestions.sort(completionComparator);
+            for (var expectedCompletion in visitor.expectedCompletions) {
+              var suggestions = await computeCompletionSuggestions(
+                  resolvedUnitResult,
+                  expectedCompletion.offset,
+                  declarationsTracker);
 
               var fraction =
                   _placementInSuggestionList(suggestions, expectedCompletion);
+
               if (fraction.y != 0) {
                 includedCount++;
               } else {
                 notIncludedCount++;
-                if (doPrintExpectedCompletions) {
+                if (_doPrintMissingCompletions) {
                   // The format "/file/path/foo.dart:3:4" makes for easier input
                   // with the Files dialog in IntelliJ
                   print(
@@ -118,4 +127,38 @@ Point<int> _placementInSuggestionList(List<CompletionSuggestion> suggestions,
     i++;
   }
   return Point(0, 0);
+}
+
+Future<List<CompletionSuggestion>> computeCompletionSuggestions(
+    ResolvedUnitResult resolvedUnitResult, int offset,
+    [DeclarationsTracker declarationsTracker]) async {
+  var completionRequestImpl = CompletionRequestImpl(
+    resolvedUnitResult,
+    offset,
+    CompletionPerformance(),
+  );
+
+  // This gets all of the suggestions with relevances.
+  var suggestions =
+      await DartCompletionManager().computeSuggestions(completionRequestImpl);
+
+  // If a non-null declarationsTracker was passed, use it to call
+  // computeIncludedSetList, this current implementation just adds the set of
+  // included element names with relevance 0, future implementations should
+  // compute out the relevance that clients will set to each value.
+  if (declarationsTracker != null) {
+    var includedSuggestionSets = <IncludedSuggestionSet>[];
+    var includedElementNames = <String>{};
+
+    computeIncludedSetList(declarationsTracker, resolvedUnitResult,
+        includedSuggestionSets, includedElementNames);
+
+    for (var eltName in includedElementNames) {
+      suggestions.add(CompletionSuggestion(CompletionSuggestionKind.INVOCATION,
+          0, eltName, 0, eltName.length, false, false));
+    }
+  }
+
+  suggestions.sort(completionComparator);
+  return suggestions;
 }
