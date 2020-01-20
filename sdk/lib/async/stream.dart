@@ -1003,9 +1003,9 @@ abstract class Stream<T> {
    * Whether this stream contains any elements.
    *
    * Waits for the first element of this stream, then completes the returned
-   * future with `true`.
+   * future with `false`.
    * If this stream ends without emitting any elements, the returned future is
-   * completed with `false`.
+   * completed with `true`.
    *
    * If the first event is an error, the returned future is completed with that
    * error.
