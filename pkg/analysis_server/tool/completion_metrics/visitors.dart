@@ -527,12 +527,19 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor {
       var elementKind;
       if (node.staticElement?.kind != null) {
         elementKind = protocol.convertElementKind(node.staticElement?.kind);
+
+        // If the completed element kind is a getter or setter set the element
+        // kind to null as the exact kind from the DAS is unknown at this
+        // point.
         if (elementKind == protocol.ElementKind.GETTER ||
             elementKind == protocol.ElementKind.SETTER) {
-          // If the completed element kind is a getter or setter set the element
-          // kind to null as the exact kind from the DAS is unknown at this
-          // point.
           elementKind = null;
+        }
+
+        // Map PREFIX element kinds to LIBRARY kinds as this is the ElementKind
+        // used for prefixes reported from the completion engine.
+        if (elementKind == protocol.ElementKind.PREFIX) {
+          elementKind = protocol.ElementKind.LIBRARY;
         }
       }
       safelyRecordEntity(node, elementKind: elementKind);
