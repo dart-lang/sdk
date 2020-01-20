@@ -188,19 +188,38 @@ function addClickHandlers(parentSelector) {
   const infoPanel = document.querySelector(".info-panel-inner");
   regions.forEach((region) => {
     const tooltip = region.querySelector(".tooltip");
-    if (tooltip !== null) {
-      region.onclick = (event) => {
-        const tooltip = event.currentTarget.querySelector(".tooltip");
-        const newTooltip = tooltip.cloneNode(true);
-        const info = infoPanel.querySelector(".info");
-        infoPanel.replaceChild(newTooltip, info);
-        newTooltip.classList.add("info");
-        addClickHandlers(".info-panel .info");
-        // TODO(srawlins): Add summary info to the top of this panel, so that
-        //  users know what is being displayed.
-      };
-    }
+    region.onclick = (event) => {
+      loadRegionExplanation(region);
+    };
   });
+}
+
+// Load the explanation for [region], into the ".info" div.
+function loadRegionExplanation(region) {
+  // Request the region, then do work with the response.
+  const xhr = new XMLHttpRequest();
+  const path = window.location.pathname;
+  const offset = region.dataset.offset;
+  xhr.open("GET", path + `?region=region&offset=${offset}`);
+  xhr.setRequestHeader("Content-Type", "text/html");
+  xhr.onload = function() {
+    if (xhr.status === 200) {
+      const response = xhr.responseText;
+      const info = document.querySelector(".info-panel-inner .info");
+      info.innerHTML = response;
+      const line = region.dataset.line;
+      const regionLocation = info.querySelector(".region-location");
+      regionLocation.textContent =
+          regionLocation.textContent + ` line ${line}:`;
+      addClickHandlers(".info-panel .info");
+    } else {
+      alert(`Request failed; status of ${xhr.status}`);
+    }
+  };
+  xhr.onerror = function(e) {
+    alert(`Could not load ${path}; preview server might be disconnected.`);
+  };
+  xhr.send();
 }
 
 function debounce(fn, delay) {

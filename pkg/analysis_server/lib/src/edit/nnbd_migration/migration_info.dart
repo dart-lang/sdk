@@ -216,4 +216,10 @@ class UnitInfo {
   /// determined to be non-null.
   List<RegionInfo> get nonNullableTypeRegions => List.of(regions
       .where((region) => region.regionType == RegionType.nonNullableType));
+
+  /// Returns the [RegionInfo] at offset [offset].
+  // TODO(srawlins): This is O(n), used each time the user clicks on a region.
+  //  Consider changing the type of [regions] to facilitate O(1) searching.
+  RegionInfo regionAt(int offset) =>
+      regions.firstWhere((region) => region.offset == offset);
 }

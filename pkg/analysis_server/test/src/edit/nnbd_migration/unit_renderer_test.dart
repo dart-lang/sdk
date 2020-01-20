@@ -57,7 +57,7 @@ class UnitRendererTest extends NnbdMigrationTestBase {
         migratedContent: 'int? a = null;');
     var outputJson = renderUnits()[0];
     var output = jsonDecode(outputJson);
-    var regions = _stripTooltips(output['regions']);
+    var regions = _stripDataAttributes(output['regions']);
     expect(regions,
         contains('int<span class="region fix-region">?</span> a = null;'));
   }
@@ -75,7 +75,7 @@ class UnitRendererTest extends NnbdMigrationTestBase {
         migratedContent: 'List<String>? a = null;');
     var outputJson = renderUnits()[0];
     var output = jsonDecode(outputJson);
-    var regions = _stripTooltips(output['regions']);
+    var regions = _stripDataAttributes(output['regions']);
     expect(
         regions,
         contains('List&lt;String&gt;'
@@ -87,25 +87,11 @@ class UnitRendererTest extends NnbdMigrationTestBase {
         migratedContent: 'f(List<String> a) => a.join(",");');
     var outputJson = renderUnits()[0];
     var output = jsonDecode(outputJson);
-    var regions = _stripTooltips(output['regions']);
+    var regions = _stripDataAttributes(output['regions']);
     expect(
         regions,
-        contains(
-            '<span class="region non-nullable-type-region">List&lt;String&gt;</span>'));
-  }
-
-  test_regionsContainsEscapedHtml_tooltip() async {
-    await buildInfoForSingleTestFile('List<String> a = null;',
-        migratedContent: 'List<String>? a = null;');
-    var outputJson = renderUnits()[0];
-    var output = jsonDecode(outputJson);
-    expect(
-        output['regions'],
-        contains('<div class="tooltip">'
-            "<p>Changed type 'List&lt;String&gt;' to be nullable.</p>"
-            "<ul><li>This variable is initialized to an explicit 'null' "
-            '(<a href="test.dart?offset=17&line=1" '
-            'class="nav-link">test.dart</a>)</li></ul></div>'));
+        contains('<span class="region non-nullable-type-region">'
+            'List&lt;String&gt;</span>'));
   }
 
   UnitInfo unit(String path, String content, {List<RegionInfo> regions}) {
@@ -114,7 +100,7 @@ class UnitRendererTest extends NnbdMigrationTestBase {
       ..regions.addAll(regions);
   }
 
-  /// Strip out tooltips which are lengthy and are not being tested here.
-  String _stripTooltips(String html) =>
-      html.replaceAll(RegExp('<div class="tooltip">.*?</div>'), '');
+  /// Strip out data attributes which are not being tested here.
+  String _stripDataAttributes(String html) =>
+      html.replaceAll(RegExp(' data-[^=]+="[^"]+"'), '');
 }

@@ -43,7 +43,7 @@ h2#unit-name {
 
 .nav-panel {
   background-color: #282b2e;
-  flex: 1 1 300px;
+  flex: 1 1 270px;
   font-size: 14px;
   /* 10px to match exact top margin of .content.
    * 0.8em to pair with the -0.5em margin of .content, producing a net margin
@@ -233,7 +233,7 @@ h2#unit-name {
 
 .info-panel {
   background-color: #282b2e;
-  flex: 1 1 250px;
+  flex: 1 1 270px;
   font-size: 14px;
   margin: 10px 0;
 }

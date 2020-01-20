@@ -14,6 +14,7 @@ import 'package:analysis_server/src/edit/preview/highlight_js_page.dart';
 import 'package:analysis_server/src/edit/preview/http_preview_server.dart';
 import 'package:analysis_server/src/edit/preview/index_file_page.dart';
 import 'package:analysis_server/src/edit/preview/not_found_page.dart';
+import 'package:analysis_server/src/edit/preview/region_page.dart';
 import 'package:analysis_server/src/status/pages.dart';
 import 'package:analyzer/file_system/file_system.dart';
 
@@ -101,6 +102,8 @@ class PreviewSite extends Site implements AbstractGetHandler {
       if (unitInfo != null) {
         if (uri.queryParameters.containsKey('inline')) {
           return respond(request, DartFilePage(this, unitInfo));
+        } else if (uri.queryParameters.containsKey('region')) {
+          return respond(request, RegionPage(this, unitInfo));
         } else {
           return respond(request, IndexFilePage(this));
         }
