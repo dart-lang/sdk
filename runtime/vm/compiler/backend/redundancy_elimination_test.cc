@@ -584,6 +584,114 @@ ISOLATE_UNIT_TEST_CASE(
                        /* make_host_escape= */ true, MakeAssertAssignable);
 }
 
+// This is a regression test for
+// https://github.com/flutter/flutter/issues/48114.
+ISOLATE_UNIT_TEST_CASE(LoadOptimizer_AliasingViaTypedDataAndUntaggedTypedData) {
+  using compiler::BlockBuilder;
+  CompilerState S(thread);
+  FlowGraphBuilderHelper H;
+
+  const auto& lib = Library::Handle(Library::TypedDataLibrary());
+  const Class& cls = Class::Handle(lib.LookupLocalClass(Symbols::Uint32List()));
+  const Error& err = Error::Handle(cls.EnsureIsFinalized(thread));
+  EXPECT(err.IsNull());
+
+  const Function& function = Function::ZoneHandle(
+      cls.LookupFactory(String::Handle(String::New("Uint32List."))));
+  EXPECT(!function.IsNull());
+
+  auto zone = H.flow_graph()->zone();
+
+  // We are going to build the following graph:
+  //
+  //   B0[graph_entry] {
+  //     vc0 <- Constant(0)
+  //     vc42 <- Constant(42)
+  //   }
+  //
+  //   B1[function_entry] {
+  //   }
+  //   array <- StaticCall(...) {_Uint32List}
+  //   v1 <- LoadIndexed(array)
+  //   v2 <- LoadUntagged(array)
+  //   StoreIndexed(v2, index=vc0, value=vc42)
+  //   v3 <- LoadIndexed(array)
+  //   return v3
+  // }
+
+  auto vc0 = H.flow_graph()->GetConstant(Integer::Handle(Integer::New(0)));
+  auto vc42 = H.flow_graph()->GetConstant(Integer::Handle(Integer::New(42)));
+  auto b1 = H.flow_graph()->graph_entry()->normal_entry();
+
+  StaticCallInstr* array;
+  LoadIndexedInstr* v1;
+  LoadUntaggedInstr* v2;
+  StoreIndexedInstr* store;
+  LoadIndexedInstr* v3;
+  ReturnInstr* ret;
+
+  {
+    BlockBuilder builder(H.flow_graph(), b1);
+
+    //   array <- StaticCall(...) {_Uint32List}
+    array = builder.AddDefinition(new StaticCallInstr(
+        TokenPosition::kNoSource, function, 0, Array::empty_array(),
+        new InputsArray(), DeoptId::kNone, 0, ICData::kNoRebind));
+    array->UpdateType(CompileType::FromCid(kTypedDataUint32ArrayCid));
+    array->SetResultType(zone, CompileType::FromCid(kTypedDataUint32ArrayCid));
+    array->set_is_known_list_constructor(true);
+
+    //   v1 <- LoadIndexed(array)
+    v1 = builder.AddDefinition(new LoadIndexedInstr(
+        new Value(array), new Value(vc0), 1, kTypedDataUint32ArrayCid,
+        kAlignedAccess, DeoptId::kNone, TokenPosition::kNoSource));
+
+    //   v2 <- LoadUntagged(array)
+    //   StoreIndexed(v2, index=0, value=42)
+    v2 = builder.AddDefinition(new LoadUntaggedInstr(new Value(array), 0));
+    store = builder.AddInstruction(new StoreIndexedInstr(
+        new Value(v2), new Value(vc0), new Value(vc42), kNoStoreBarrier, 1,
+        kTypedDataUint32ArrayCid, kAlignedAccess, DeoptId::kNone,
+        TokenPosition::kNoSource));
+
+    //   v3 <- LoadIndexed(array)
+    v3 = builder.AddDefinition(new LoadIndexedInstr(
+        new Value(array), new Value(vc0), 1, kTypedDataUint32ArrayCid,
+        kAlignedAccess, DeoptId::kNone, TokenPosition::kNoSource));
+
+    //   return v3
+    ret = builder.AddInstruction(new ReturnInstr(
+        TokenPosition::kNoSource, new Value(v3), S.GetNextDeoptId()));
+  }
+  H.FinishGraph();
+
+  DominatorBasedCSE::Optimize(H.flow_graph());
+  {
+    Instruction* sc = nullptr;
+    Instruction* li = nullptr;
+    Instruction* lu = nullptr;
+    Instruction* s = nullptr;
+    Instruction* li2 = nullptr;
+    Instruction* r = nullptr;
+    ILMatcher cursor(H.flow_graph(), b1, true);
+    RELEASE_ASSERT(cursor.TryMatch({
+        kMatchAndMoveFunctionEntry,
+        {kMatchAndMoveStaticCall, &sc},
+        {kMatchAndMoveLoadIndexed, &li},
+        {kMatchAndMoveLoadUntagged, &lu},
+        {kMatchAndMoveStoreIndexed, &s},
+        {kMatchAndMoveLoadIndexed, &li2},
+        {kMatchReturn, &r},
+    }));
+    EXPECT(array == sc);
+    EXPECT(v1 == li);
+    EXPECT(v2 == lu);
+    EXPECT(store == s);
+    EXPECT(v3 == li2);
+    EXPECT(ret == r);
+  }
+}
+
 // This test verifies behavior of load forwarding when an alias for an
 // allocation A is created after forwarded due to an eliminated load. That is,
 // allocation A is stored and later retrieved via load B, B is used in store C

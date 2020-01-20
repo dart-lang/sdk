@@ -1045,7 +1045,7 @@ class AliasedSet : public ZoneAllocated {
     for (Value* use = defn->input_use_list(); use != NULL;
          use = use->next_use()) {
       Instruction* instr = use->instruction();
-      if (instr->HasUnknownSideEffects() ||
+      if (instr->HasUnknownSideEffects() || instr->IsLoadUntagged() ||
           (instr->IsStoreIndexed() &&
            (use->use_index() == StoreIndexedInstr::kValuePos)) ||
           instr->IsStoreStaticField() || instr->IsPhi()) {
