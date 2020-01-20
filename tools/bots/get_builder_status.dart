@@ -16,6 +16,11 @@ import 'package:args/args.dart';
 import 'package:http/http.dart' as http;
 
 const numAttempts = 20;
+const queryUrl = 'https://firestore.googleapis.com/v1/'
+    'projects/dart-ci/databases/(default)/documents:runQuery';
+String builder;
+String token;
+http.Client client;
 
 bool booleanFieldOrFalse(Map<String, dynamic> document, String field) {
   Map<String, dynamic> fieldObject = document['fields'][field];
@@ -48,53 +53,43 @@ main(List<String> args) async {
     usage(parser);
   }
 
-  const postUrl = 'https://firestore.googleapis.com/v1/'
-      'projects/dart-ci/databases/(default)/documents:runQuery';
-
-  final builder = options['builder'];
+  builder = options['builder'];
   final buildNumber = options['build_number'];
   final table = builder.endsWith('-try') ? 'try_builds' : 'builds';
-  final token = await File(options['auth_token']).readAsString();
-  final client = http.Client();
+  token = await File(options['auth_token']).readAsString();
+  client = http.Client();
   final query = {
-    "from": [
-      {"collectionId": table}
+    'from': [
+      {'collectionId': table}
     ],
-    "limit": 1,
-    "where": {
-      "compositeFilter": {
-        "op": "AND",
-        "filters": [
+    'limit': 1,
+    'where': {
+      'compositeFilter': {
+        'op': 'AND',
+        'filters': [
           {
-            "fieldFilter": {
-              "field": {"fieldPath": "build_number"},
-              "op": "EQUAL",
-              "value": {"integerValue": buildNumber}
+            'fieldFilter': {
+              'field': {'fieldPath': 'build_number'},
+              'op': 'EQUAL',
+              'value': {'integerValue': buildNumber}
             }
           },
           {
-            "fieldFilter": {
-              "field": {"fieldPath": "builder"},
-              "op": "EQUAL",
-              "value": {"stringValue": builder}
+            'fieldFilter': {
+              'field': {'fieldPath': 'builder'},
+              'op': 'EQUAL',
+              'value': {'stringValue': builder}
             }
           }
         ]
       }
     }
   };
-
-  final json = jsonEncode({"structuredQuery": query});
-  final headers = {
-    'Authorization': 'Bearer $token',
-    'Accept': 'application/json',
-    'Content-Type': 'application/json'
-  };
   for (int count = 0; count < numAttempts; ++count) {
     if (count > 0) {
       await Future.delayed(Duration(seconds: 10));
     }
-    final response = await client.post(postUrl, headers: headers, body: json);
+    final response = await runFirestoreQuery(query);
     if (response.statusCode == HttpStatus.ok) {
       final documents = jsonDecode(response.body);
       final document = documents.first['document'];
@@ -107,9 +102,11 @@ main(List<String> args) async {
             print('No unapproved new failures');
             if (activeFailures == true) {
               print('There are unapproved failures from previous builds');
+              await printResultsFeedLink();
             }
           } else {
             print('There are unapproved new failures on this build');
+            await printResultsFeedLink();
           }
           exit((success && (activeFailures != true)) ? 0 : 1);
         }
@@ -126,14 +123,62 @@ main(List<String> args) async {
           ].join(' '));
         }
       } else {
-        print("No results recieved for build $buildNumber of $builder");
+        print('No results recieved for build $buildNumber of $builder');
       }
     } else {
-      print("HTTP status ${response.statusCode} received "
-          "when fetching build data");
+      print('HTTP status ${response.statusCode} received '
+          'when fetching build data');
     }
   }
   print('No status received for build $buildNumber of $builder '
       'after $numAttempts attempts, with 10 second waits.');
   exit(2);
+}
+
+void printResultsFeedLink() async {
+  if (builder.endsWith('-try')) return;
+  final query = {
+    'from': [
+      {'collectionId': 'configurations'}
+    ],
+    'where': {
+      'fieldFilter': {
+        'field': {'fieldPath': 'builder'},
+        'op': 'EQUAL',
+        'value': {'stringValue': builder}
+      }
+    }
+  };
+  final response = await runFirestoreQuery(query);
+  if (response.statusCode == HttpStatus.ok) {
+    final documents = jsonDecode(response.body);
+    final groups = <String>{
+      for (Map document in documents)
+        if (document.containsKey('document'))
+          document['document']['fields']['builder']['stringValue']
+              .split('-')
+              .first
+    };
+    String fragment = [
+      'showLatestFailures=true',
+      'showUnapprovedOnly=true',
+      if (groups.isNotEmpty) 'configurationGroups=${groups.join(',')}'
+    ].join('&');
+    final link = 'https://dart-ci.firebaseapp.com/#$fragment';
+    print('Failures link: $link');
+  } else {
+    print('HTTP status ${response.statusCode} received '
+        'when fetching configurations for results feed link');
+    print('HTTP response: ${response.body}');
+  }
+}
+
+Future<http.Response> runFirestoreQuery(Map<String, dynamic> query) {
+  final json = jsonEncode({'structuredQuery': query});
+  final headers = {
+    'Authorization': 'Bearer $token',
+    'Accept': 'application/json',
+    'Content-Type': 'application/json'
+  };
+  return client.post(queryUrl, headers: headers, body: json);
 }
