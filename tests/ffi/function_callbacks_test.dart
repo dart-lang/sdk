@@ -162,11 +162,6 @@ Pointer<Int64> store(Pointer<Int64> ptr) => ptr.elementAt(1)..value = 1337;
 typedef NullPointersType = Pointer<Int64> Function(Pointer<Int64>);
 Pointer<Int64> nullPointers(Pointer<Int64> ptr) => ptr.elementAt(1);
 
-typedef ReturnNullType = Int32 Function();
-int returnNull() {
-  return null;
-}
-
 typedef ReturnVoid = Void Function();
 void returnVoid() {}
 
@@ -233,7 +228,6 @@ final List<Test> testcases = [
   Test("ManyArgs", Pointer.fromFunction<ManyArgsType>(manyArgs, 0.0)),
   Test("Store", Pointer.fromFunction<StoreType>(store)),
   Test("NullPointers", Pointer.fromFunction<NullPointersType>(nullPointers)),
-  Test("ReturnNull", Pointer.fromFunction<ReturnNullType>(returnNull, 42)),
   Test("ReturnVoid", Pointer.fromFunction<ReturnVoid>(returnVoid)),
   Test("ThrowExceptionDouble",
       Pointer.fromFunction<ThrowExceptionDouble>(throwExceptionDouble, 42.0)),

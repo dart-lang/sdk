@@ -87,12 +87,10 @@ final largePointer = ffiTestFunctions
 // Forces boxing into ffi.Pointer and ffi.Mint.
 void testBoxPointer() {
   ffi.Pointer pointer = largePointer();
-  if (pointer != null) {
-    if (ffi.sizeOf<ffi.Pointer>() == 4) {
-      Expect.equals(0x82000000, pointer.address);
-    } else {
-      Expect.equals(0x8100000082000000, pointer.address);
-    }
+  if (ffi.sizeOf<ffi.Pointer>() == 4) {
+    Expect.equals(0x82000000, pointer.address);
+  } else {
+    Expect.equals(0x8100000082000000, pointer.address);
   }
 }
 

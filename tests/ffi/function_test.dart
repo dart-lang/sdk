@@ -35,14 +35,10 @@ void main() {
     testNativeFunctionManyArguments4();
     testNativeFunctionManyArguments5();
     testNativeFunctionPointer();
-    testNullInt();
-    testNullDouble();
-    testNullManyArgs();
     testNullPointers();
     testFloatRounding();
     testVoidReturn();
     testNoArgs();
-    testException();
   }
 }
 
@@ -399,22 +395,6 @@ void testNativeFunctionPointer() {
   free(p2);
 }
 
-void testNullInt() {
-  BinaryOp sumPlus42 =
-      ffiTestFunctions.lookupFunction<NativeBinaryOp, BinaryOp>("SumPlus42");
-
-  Expect.throws(() => sumPlus42(43, null));
-}
-
-void testNullDouble() {
-  Expect.throws(() => times1_337Double(null));
-}
-
-void testNullManyArgs() {
-  Expect.throws(() => sumManyNumbers(1, 2.0, 3, 4.0, 5, 6.0, 7, 8.0, 9, 10.0,
-      11, 12.0, 13, 14.0, 15, 16.0, 17, 18.0, null, 20.0));
-}
-
 Int64PointerUnOp nullableInt64ElemAt1 = ffiTestFunctions
     .lookupFunction<Int64PointerUnOp, Int64PointerUnOp>("NullableInt64ElemAt1");
 
@@ -467,15 +447,4 @@ VoidToDouble inventFloatValue = ffiTestFunctions
 void testNoArgs() {
   double result = inventFloatValue();
   Expect.approxEquals(1337.0, result);
-}
-
-// Throw an exception from within the trampoline and collect a stacktrace
-// include its frame.
-void testException() {
-  try {
-    sumPlus42(null, null);
-  } catch (e, s) {
-    return;
-  }
-  throw "Didn't throw!";
 }
