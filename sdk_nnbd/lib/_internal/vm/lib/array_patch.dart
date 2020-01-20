@@ -7,7 +7,7 @@
 @patch
 class List<E> {
   @patch
-  factory List.empty({bool growable = true}) {
+  factory List.empty({bool growable = false}) {
     return growable ? <E>[] : _List<E>(0);
   }
 

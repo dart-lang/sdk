@@ -634,8 +634,7 @@ class ListQueue<E> extends ListIterable<E> implements Queue<E> {
   List<E> toList({bool growable = true}) {
     int mask = _table.length - 1;
     int length = (_tail - _head) & mask;
-    // TODO(rnystrom): Use List.empty() when that's available.
-    if (length == 0) return List<E>.of([], growable: growable);
+    if (length == 0) return List<E>.empty(growable: growable);
 
     var list = List<E>.filled(length, first, growable: growable);
     for (int i = 0; i < length; i++) {

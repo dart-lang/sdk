@@ -524,7 +524,7 @@ class List<E> {
   }
 
   @patch
-  factory List.empty({bool growable = true}) {
+  factory List.empty({bool growable = false}) {
     var list = JSArray<E>.of(JS('', 'new Array()'));
     if (!growable) JSArray.markFixedList(list);
     return list;
