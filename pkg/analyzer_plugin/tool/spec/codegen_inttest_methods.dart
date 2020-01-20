@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Code generation for the file "integration_test_methods.dart".
-import 'dart:convert';
-
 import 'package:analysis_tool/tools.dart';
 import 'package:path/path.dart' as path;
 
@@ -165,7 +163,7 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
       writeln('$streamName = _$streamName.stream.asBroadcastStream();');
     }));
     notificationSwitchContents.add(collectCode(() {
-      writeln('case ${json.encode(notification.longEvent)}:');
+      writeln("case '${notification.longEvent}':");
       indent(() {
         String paramsValidator = camelJoin(
             ['is', notification.domainName, notification.event, 'params']);
@@ -237,7 +235,7 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
         args.addAll(optionalArgs);
         writeln('var params = $requestClass(${args.join(', ')}).toJson();');
       }
-      String methodJson = json.encode(request.longMethod);
+      String methodJson = "'${request.longMethod}'";
       writeln('var result = await server.send($methodJson, $paramsVar);');
       if (request.result != null) {
         String kind = 'null';

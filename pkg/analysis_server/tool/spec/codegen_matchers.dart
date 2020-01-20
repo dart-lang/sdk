@@ -5,8 +5,6 @@
 /**
  * Code generation for the file "matchers.dart".
  */
-import 'dart:convert';
-
 import 'package:analysis_tool/tools.dart';
 
 import 'api.dart';
@@ -84,9 +82,9 @@ class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
         if (commaNeeded) {
           writeln(',');
         }
-        write('${json.encode(field.name)}: ');
+        write("'${field.name}': ");
         if (field.value != null) {
-          write('equals(${json.encode(field.value)})');
+          write("equals('${field.value}')");
         } else {
           visitTypeDecl(field.type);
         }
@@ -116,14 +114,14 @@ class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
 
   @override
   visitTypeEnum(TypeEnum typeEnum) {
-    writeln('MatchesEnum(${json.encode(context)}, [');
+    writeln("MatchesEnum('$context', [");
     indent(() {
       bool commaNeeded = false;
       for (TypeEnumValue value in typeEnum.values) {
         if (commaNeeded) {
           writeln(',');
         }
-        write('${json.encode(value.value)}');
+        write("'${value.value}'");
         commaNeeded = true;
       }
       writeln();
@@ -151,7 +149,7 @@ class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
   void visitTypeObject(TypeObject typeObject) {
     writeln('LazyMatcher(() => MatchesJsonObject(');
     indent(() {
-      write('${json.encode(context)}, ');
+      write("'$context', ");
       Iterable<TypeObjectField> requiredFields =
           typeObject.fields.where((TypeObjectField field) => !field.optional);
       outputObjectFields(requiredFields);

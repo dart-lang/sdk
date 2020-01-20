@@ -59,33 +59,33 @@ class AnalysisErrorFixes implements HasToJson {
     json ??= {};
     if (json is Map) {
       AnalysisError error;
-      if (json.containsKey("error")) {
+      if (json.containsKey('error')) {
         error = AnalysisError.fromJson(
-            jsonDecoder, jsonPath + ".error", json["error"]);
+            jsonDecoder, jsonPath + '.error', json['error']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "error");
+        throw jsonDecoder.mismatch(jsonPath, 'error');
       }
       List<PrioritizedSourceChange> fixes;
-      if (json.containsKey("fixes")) {
+      if (json.containsKey('fixes')) {
         fixes = jsonDecoder.decodeList(
-            jsonPath + ".fixes",
-            json["fixes"],
+            jsonPath + '.fixes',
+            json['fixes'],
             (String jsonPath, Object json) =>
                 PrioritizedSourceChange.fromJson(jsonDecoder, jsonPath, json));
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "fixes");
+        throw jsonDecoder.mismatch(jsonPath, 'fixes');
       }
       return AnalysisErrorFixes(error, fixes: fixes);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "AnalysisErrorFixes", json);
+      throw jsonDecoder.mismatch(jsonPath, 'AnalysisErrorFixes', json);
     }
   }
 
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["error"] = error.toJson();
-    result["fixes"] =
+    result['error'] = error.toJson();
+    result['fixes'] =
         fixes.map((PrioritizedSourceChange value) => value.toJson()).toList();
     return result;
   }
@@ -153,43 +153,43 @@ class AnalysisErrorsParams implements HasToJson {
     json ??= {};
     if (json is Map) {
       String file;
-      if (json.containsKey("file")) {
-        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
+      if (json.containsKey('file')) {
+        file = jsonDecoder.decodeString(jsonPath + '.file', json['file']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "file");
+        throw jsonDecoder.mismatch(jsonPath, 'file');
       }
       List<AnalysisError> errors;
-      if (json.containsKey("errors")) {
+      if (json.containsKey('errors')) {
         errors = jsonDecoder.decodeList(
-            jsonPath + ".errors",
-            json["errors"],
+            jsonPath + '.errors',
+            json['errors'],
             (String jsonPath, Object json) =>
                 AnalysisError.fromJson(jsonDecoder, jsonPath, json));
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "errors");
+        throw jsonDecoder.mismatch(jsonPath, 'errors');
       }
       return AnalysisErrorsParams(file, errors);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "analysis.errors params", json);
+      throw jsonDecoder.mismatch(jsonPath, 'analysis.errors params', json);
     }
   }
 
   factory AnalysisErrorsParams.fromNotification(Notification notification) {
     return AnalysisErrorsParams.fromJson(
-        ResponseDecoder(null), "params", notification.params);
+        ResponseDecoder(null), 'params', notification.params);
   }
 
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["file"] = file;
-    result["errors"] =
+    result['file'] = file;
+    result['errors'] =
         errors.map((AnalysisError value) => value.toJson()).toList();
     return result;
   }
 
   Notification toNotification() {
-    return Notification("analysis.errors", toJson());
+    return Notification('analysis.errors', toJson());
   }
 
   @override
@@ -255,43 +255,43 @@ class AnalysisFoldingParams implements HasToJson {
     json ??= {};
     if (json is Map) {
       String file;
-      if (json.containsKey("file")) {
-        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
+      if (json.containsKey('file')) {
+        file = jsonDecoder.decodeString(jsonPath + '.file', json['file']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "file");
+        throw jsonDecoder.mismatch(jsonPath, 'file');
       }
       List<FoldingRegion> regions;
-      if (json.containsKey("regions")) {
+      if (json.containsKey('regions')) {
         regions = jsonDecoder.decodeList(
-            jsonPath + ".regions",
-            json["regions"],
+            jsonPath + '.regions',
+            json['regions'],
             (String jsonPath, Object json) =>
                 FoldingRegion.fromJson(jsonDecoder, jsonPath, json));
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "regions");
+        throw jsonDecoder.mismatch(jsonPath, 'regions');
       }
       return AnalysisFoldingParams(file, regions);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "analysis.folding params", json);
+      throw jsonDecoder.mismatch(jsonPath, 'analysis.folding params', json);
     }
   }
 
   factory AnalysisFoldingParams.fromNotification(Notification notification) {
     return AnalysisFoldingParams.fromJson(
-        ResponseDecoder(null), "params", notification.params);
+        ResponseDecoder(null), 'params', notification.params);
   }
 
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["file"] = file;
-    result["regions"] =
+    result['file'] = file;
+    result['regions'] =
         regions.map((FoldingRegion value) => value.toJson()).toList();
     return result;
   }
 
   Notification toNotification() {
-    return Notification("analysis.folding", toJson());
+    return Notification('analysis.folding', toJson());
   }
 
   @override
@@ -374,47 +374,47 @@ class AnalysisGetNavigationParams implements RequestParams {
     json ??= {};
     if (json is Map) {
       String file;
-      if (json.containsKey("file")) {
-        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
+      if (json.containsKey('file')) {
+        file = jsonDecoder.decodeString(jsonPath + '.file', json['file']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "file");
+        throw jsonDecoder.mismatch(jsonPath, 'file');
       }
       int offset;
-      if (json.containsKey("offset")) {
-        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
+      if (json.containsKey('offset')) {
+        offset = jsonDecoder.decodeInt(jsonPath + '.offset', json['offset']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "offset");
+        throw jsonDecoder.mismatch(jsonPath, 'offset');
       }
       int length;
-      if (json.containsKey("length")) {
-        length = jsonDecoder.decodeInt(jsonPath + ".length", json["length"]);
+      if (json.containsKey('length')) {
+        length = jsonDecoder.decodeInt(jsonPath + '.length', json['length']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "length");
+        throw jsonDecoder.mismatch(jsonPath, 'length');
       }
       return AnalysisGetNavigationParams(file, offset, length);
     } else {
       throw jsonDecoder.mismatch(
-          jsonPath, "analysis.getNavigation params", json);
+          jsonPath, 'analysis.getNavigation params', json);
     }
   }
 
   factory AnalysisGetNavigationParams.fromRequest(Request request) {
     return AnalysisGetNavigationParams.fromJson(
-        RequestDecoder(request), "params", request.params);
+        RequestDecoder(request), 'params', request.params);
   }
 
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["file"] = file;
-    result["offset"] = offset;
-    result["length"] = length;
+    result['file'] = file;
+    result['offset'] = offset;
+    result['length'] = length;
     return result;
   }
 
   @override
   Request toRequest(String id) {
-    return Request(id, "analysis.getNavigation", toJson());
+    return Request(id, 'analysis.getNavigation', toJson());
   }
 
   @override
@@ -499,53 +499,53 @@ class AnalysisGetNavigationResult implements ResponseResult {
     json ??= {};
     if (json is Map) {
       List<String> files;
-      if (json.containsKey("files")) {
+      if (json.containsKey('files')) {
         files = jsonDecoder.decodeList(
-            jsonPath + ".files", json["files"], jsonDecoder.decodeString);
+            jsonPath + '.files', json['files'], jsonDecoder.decodeString);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "files");
+        throw jsonDecoder.mismatch(jsonPath, 'files');
       }
       List<NavigationTarget> targets;
-      if (json.containsKey("targets")) {
+      if (json.containsKey('targets')) {
         targets = jsonDecoder.decodeList(
-            jsonPath + ".targets",
-            json["targets"],
+            jsonPath + '.targets',
+            json['targets'],
             (String jsonPath, Object json) =>
                 NavigationTarget.fromJson(jsonDecoder, jsonPath, json));
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "targets");
+        throw jsonDecoder.mismatch(jsonPath, 'targets');
       }
       List<NavigationRegion> regions;
-      if (json.containsKey("regions")) {
+      if (json.containsKey('regions')) {
         regions = jsonDecoder.decodeList(
-            jsonPath + ".regions",
-            json["regions"],
+            jsonPath + '.regions',
+            json['regions'],
             (String jsonPath, Object json) =>
                 NavigationRegion.fromJson(jsonDecoder, jsonPath, json));
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "regions");
+        throw jsonDecoder.mismatch(jsonPath, 'regions');
       }
       return AnalysisGetNavigationResult(files, targets, regions);
     } else {
       throw jsonDecoder.mismatch(
-          jsonPath, "analysis.getNavigation result", json);
+          jsonPath, 'analysis.getNavigation result', json);
     }
   }
 
   factory AnalysisGetNavigationResult.fromResponse(Response response) {
     return AnalysisGetNavigationResult.fromJson(
         ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
-        "result",
+        'result',
         response.result);
   }
 
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["files"] = files;
-    result["targets"] =
+    result['files'] = files;
+    result['targets'] =
         targets.map((NavigationTarget value) => value.toJson()).toList();
-    result["regions"] =
+    result['regions'] =
         regions.map((NavigationRegion value) => value.toJson()).toList();
     return result;
   }
@@ -608,38 +608,38 @@ class AnalysisHandleWatchEventsParams implements RequestParams {
     json ??= {};
     if (json is Map) {
       List<WatchEvent> events;
-      if (json.containsKey("events")) {
+      if (json.containsKey('events')) {
         events = jsonDecoder.decodeList(
-            jsonPath + ".events",
-            json["events"],
+            jsonPath + '.events',
+            json['events'],
             (String jsonPath, Object json) =>
                 WatchEvent.fromJson(jsonDecoder, jsonPath, json));
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "events");
+        throw jsonDecoder.mismatch(jsonPath, 'events');
       }
       return AnalysisHandleWatchEventsParams(events);
     } else {
       throw jsonDecoder.mismatch(
-          jsonPath, "analysis.handleWatchEvents params", json);
+          jsonPath, 'analysis.handleWatchEvents params', json);
     }
   }
 
   factory AnalysisHandleWatchEventsParams.fromRequest(Request request) {
     return AnalysisHandleWatchEventsParams.fromJson(
-        RequestDecoder(request), "params", request.params);
+        RequestDecoder(request), 'params', request.params);
   }
 
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["events"] =
+    result['events'] =
         events.map((WatchEvent value) => value.toJson()).toList();
     return result;
   }
 
   @override
   Request toRequest(String id) {
-    return Request(id, "analysis.handleWatchEvents", toJson());
+    return Request(id, 'analysis.handleWatchEvents', toJson());
   }
 
   @override
@@ -729,43 +729,43 @@ class AnalysisHighlightsParams implements HasToJson {
     json ??= {};
     if (json is Map) {
       String file;
-      if (json.containsKey("file")) {
-        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
+      if (json.containsKey('file')) {
+        file = jsonDecoder.decodeString(jsonPath + '.file', json['file']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "file");
+        throw jsonDecoder.mismatch(jsonPath, 'file');
       }
       List<HighlightRegion> regions;
-      if (json.containsKey("regions")) {
+      if (json.containsKey('regions')) {
         regions = jsonDecoder.decodeList(
-            jsonPath + ".regions",
-            json["regions"],
+            jsonPath + '.regions',
+            json['regions'],
             (String jsonPath, Object json) =>
                 HighlightRegion.fromJson(jsonDecoder, jsonPath, json));
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "regions");
+        throw jsonDecoder.mismatch(jsonPath, 'regions');
       }
       return AnalysisHighlightsParams(file, regions);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "analysis.highlights params", json);
+      throw jsonDecoder.mismatch(jsonPath, 'analysis.highlights params', json);
     }
   }
 
   factory AnalysisHighlightsParams.fromNotification(Notification notification) {
     return AnalysisHighlightsParams.fromJson(
-        ResponseDecoder(null), "params", notification.params);
+        ResponseDecoder(null), 'params', notification.params);
   }
 
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["file"] = file;
-    result["regions"] =
+    result['file'] = file;
+    result['regions'] =
         regions.map((HighlightRegion value) => value.toJson()).toList();
     return result;
   }
 
   Notification toNotification() {
-    return Notification("analysis.highlights", toJson());
+    return Notification('analysis.highlights', toJson());
   }
 
   @override
@@ -862,63 +862,63 @@ class AnalysisNavigationParams implements HasToJson {
     json ??= {};
     if (json is Map) {
       String file;
-      if (json.containsKey("file")) {
-        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
+      if (json.containsKey('file')) {
+        file = jsonDecoder.decodeString(jsonPath + '.file', json['file']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "file");
+        throw jsonDecoder.mismatch(jsonPath, 'file');
       }
       List<NavigationRegion> regions;
-      if (json.containsKey("regions")) {
+      if (json.containsKey('regions')) {
         regions = jsonDecoder.decodeList(
-            jsonPath + ".regions",
-            json["regions"],
+            jsonPath + '.regions',
+            json['regions'],
             (String jsonPath, Object json) =>
                 NavigationRegion.fromJson(jsonDecoder, jsonPath, json));
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "regions");
+        throw jsonDecoder.mismatch(jsonPath, 'regions');
       }
       List<NavigationTarget> targets;
-      if (json.containsKey("targets")) {
+      if (json.containsKey('targets')) {
         targets = jsonDecoder.decodeList(
-            jsonPath + ".targets",
-            json["targets"],
+            jsonPath + '.targets',
+            json['targets'],
             (String jsonPath, Object json) =>
                 NavigationTarget.fromJson(jsonDecoder, jsonPath, json));
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "targets");
+        throw jsonDecoder.mismatch(jsonPath, 'targets');
       }
       List<String> files;
-      if (json.containsKey("files")) {
+      if (json.containsKey('files')) {
         files = jsonDecoder.decodeList(
-            jsonPath + ".files", json["files"], jsonDecoder.decodeString);
+            jsonPath + '.files', json['files'], jsonDecoder.decodeString);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "files");
+        throw jsonDecoder.mismatch(jsonPath, 'files');
       }
       return AnalysisNavigationParams(file, regions, targets, files);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "analysis.navigation params", json);
+      throw jsonDecoder.mismatch(jsonPath, 'analysis.navigation params', json);
     }
   }
 
   factory AnalysisNavigationParams.fromNotification(Notification notification) {
     return AnalysisNavigationParams.fromJson(
-        ResponseDecoder(null), "params", notification.params);
+        ResponseDecoder(null), 'params', notification.params);
   }
 
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["file"] = file;
-    result["regions"] =
+    result['file'] = file;
+    result['regions'] =
         regions.map((NavigationRegion value) => value.toJson()).toList();
-    result["targets"] =
+    result['targets'] =
         targets.map((NavigationTarget value) => value.toJson()).toList();
-    result["files"] = files;
+    result['files'] = files;
     return result;
   }
 
   Notification toNotification() {
-    return Notification("analysis.navigation", toJson());
+    return Notification('analysis.navigation', toJson());
   }
 
   @override
@@ -989,44 +989,44 @@ class AnalysisOccurrencesParams implements HasToJson {
     json ??= {};
     if (json is Map) {
       String file;
-      if (json.containsKey("file")) {
-        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
+      if (json.containsKey('file')) {
+        file = jsonDecoder.decodeString(jsonPath + '.file', json['file']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "file");
+        throw jsonDecoder.mismatch(jsonPath, 'file');
       }
       List<Occurrences> occurrences;
-      if (json.containsKey("occurrences")) {
+      if (json.containsKey('occurrences')) {
         occurrences = jsonDecoder.decodeList(
-            jsonPath + ".occurrences",
-            json["occurrences"],
+            jsonPath + '.occurrences',
+            json['occurrences'],
             (String jsonPath, Object json) =>
                 Occurrences.fromJson(jsonDecoder, jsonPath, json));
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "occurrences");
+        throw jsonDecoder.mismatch(jsonPath, 'occurrences');
       }
       return AnalysisOccurrencesParams(file, occurrences);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "analysis.occurrences params", json);
+      throw jsonDecoder.mismatch(jsonPath, 'analysis.occurrences params', json);
     }
   }
 
   factory AnalysisOccurrencesParams.fromNotification(
       Notification notification) {
     return AnalysisOccurrencesParams.fromJson(
-        ResponseDecoder(null), "params", notification.params);
+        ResponseDecoder(null), 'params', notification.params);
   }
 
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["file"] = file;
-    result["occurrences"] =
+    result['file'] = file;
+    result['occurrences'] =
         occurrences.map((Occurrences value) => value.toJson()).toList();
     return result;
   }
 
   Notification toNotification() {
-    return Notification("analysis.occurrences", toJson());
+    return Notification('analysis.occurrences', toJson());
   }
 
   @override
@@ -1092,42 +1092,42 @@ class AnalysisOutlineParams implements HasToJson {
     json ??= {};
     if (json is Map) {
       String file;
-      if (json.containsKey("file")) {
-        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
+      if (json.containsKey('file')) {
+        file = jsonDecoder.decodeString(jsonPath + '.file', json['file']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "file");
+        throw jsonDecoder.mismatch(jsonPath, 'file');
       }
       List<Outline> outline;
-      if (json.containsKey("outline")) {
+      if (json.containsKey('outline')) {
         outline = jsonDecoder.decodeList(
-            jsonPath + ".outline",
-            json["outline"],
+            jsonPath + '.outline',
+            json['outline'],
             (String jsonPath, Object json) =>
                 Outline.fromJson(jsonDecoder, jsonPath, json));
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "outline");
+        throw jsonDecoder.mismatch(jsonPath, 'outline');
       }
       return AnalysisOutlineParams(file, outline);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "analysis.outline params", json);
+      throw jsonDecoder.mismatch(jsonPath, 'analysis.outline params', json);
     }
   }
 
   factory AnalysisOutlineParams.fromNotification(Notification notification) {
     return AnalysisOutlineParams.fromJson(
-        ResponseDecoder(null), "params", notification.params);
+        ResponseDecoder(null), 'params', notification.params);
   }
 
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["file"] = file;
-    result["outline"] = outline.map((Outline value) => value.toJson()).toList();
+    result['file'] = file;
+    result['outline'] = outline.map((Outline value) => value.toJson()).toList();
     return result;
   }
 
   Notification toNotification() {
-    return Notification("analysis.outline", toJson());
+    return Notification('analysis.outline', toJson());
   }
 
   @override
@@ -1163,15 +1163,15 @@ class AnalysisOutlineParams implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisService implements Enum {
-  static const AnalysisService FOLDING = AnalysisService._("FOLDING");
+  static const AnalysisService FOLDING = AnalysisService._('FOLDING');
 
-  static const AnalysisService HIGHLIGHTS = AnalysisService._("HIGHLIGHTS");
+  static const AnalysisService HIGHLIGHTS = AnalysisService._('HIGHLIGHTS');
 
-  static const AnalysisService NAVIGATION = AnalysisService._("NAVIGATION");
+  static const AnalysisService NAVIGATION = AnalysisService._('NAVIGATION');
 
-  static const AnalysisService OCCURRENCES = AnalysisService._("OCCURRENCES");
+  static const AnalysisService OCCURRENCES = AnalysisService._('OCCURRENCES');
 
-  static const AnalysisService OUTLINE = AnalysisService._("OUTLINE");
+  static const AnalysisService OUTLINE = AnalysisService._('OUTLINE');
 
   /// A list containing all of the enum values that are defined.
   static const List<AnalysisService> VALUES = <AnalysisService>[
@@ -1189,15 +1189,15 @@ class AnalysisService implements Enum {
 
   factory AnalysisService(String name) {
     switch (name) {
-      case "FOLDING":
+      case 'FOLDING':
         return FOLDING;
-      case "HIGHLIGHTS":
+      case 'HIGHLIGHTS':
         return HIGHLIGHTS;
-      case "NAVIGATION":
+      case 'NAVIGATION':
         return NAVIGATION;
-      case "OCCURRENCES":
+      case 'OCCURRENCES':
         return OCCURRENCES;
-      case "OUTLINE":
+      case 'OUTLINE':
         return OUTLINE;
     }
     throw Exception('Illegal enum value: $name');
@@ -1212,11 +1212,11 @@ class AnalysisService implements Enum {
         // Fall through
       }
     }
-    throw jsonDecoder.mismatch(jsonPath, "AnalysisService", json);
+    throw jsonDecoder.mismatch(jsonPath, 'AnalysisService', json);
   }
 
   @override
-  String toString() => "AnalysisService.$name";
+  String toString() => 'AnalysisService.$name';
 
   String toJson() => name;
 }
@@ -1249,37 +1249,37 @@ class AnalysisSetContextRootsParams implements RequestParams {
     json ??= {};
     if (json is Map) {
       List<ContextRoot> roots;
-      if (json.containsKey("roots")) {
+      if (json.containsKey('roots')) {
         roots = jsonDecoder.decodeList(
-            jsonPath + ".roots",
-            json["roots"],
+            jsonPath + '.roots',
+            json['roots'],
             (String jsonPath, Object json) =>
                 ContextRoot.fromJson(jsonDecoder, jsonPath, json));
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "roots");
+        throw jsonDecoder.mismatch(jsonPath, 'roots');
       }
       return AnalysisSetContextRootsParams(roots);
     } else {
       throw jsonDecoder.mismatch(
-          jsonPath, "analysis.setContextRoots params", json);
+          jsonPath, 'analysis.setContextRoots params', json);
     }
   }
 
   factory AnalysisSetContextRootsParams.fromRequest(Request request) {
     return AnalysisSetContextRootsParams.fromJson(
-        RequestDecoder(request), "params", request.params);
+        RequestDecoder(request), 'params', request.params);
   }
 
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["roots"] = roots.map((ContextRoot value) => value.toJson()).toList();
+    result['roots'] = roots.map((ContextRoot value) => value.toJson()).toList();
     return result;
   }
 
   @override
   Request toRequest(String id) {
-    return Request(id, "analysis.setContextRoots", toJson());
+    return Request(id, 'analysis.setContextRoots', toJson());
   }
 
   @override
@@ -1356,34 +1356,34 @@ class AnalysisSetPriorityFilesParams implements RequestParams {
     json ??= {};
     if (json is Map) {
       List<String> files;
-      if (json.containsKey("files")) {
+      if (json.containsKey('files')) {
         files = jsonDecoder.decodeList(
-            jsonPath + ".files", json["files"], jsonDecoder.decodeString);
+            jsonPath + '.files', json['files'], jsonDecoder.decodeString);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "files");
+        throw jsonDecoder.mismatch(jsonPath, 'files');
       }
       return AnalysisSetPriorityFilesParams(files);
     } else {
       throw jsonDecoder.mismatch(
-          jsonPath, "analysis.setPriorityFiles params", json);
+          jsonPath, 'analysis.setPriorityFiles params', json);
     }
   }
 
   factory AnalysisSetPriorityFilesParams.fromRequest(Request request) {
     return AnalysisSetPriorityFilesParams.fromJson(
-        RequestDecoder(request), "params", request.params);
+        RequestDecoder(request), 'params', request.params);
   }
 
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["files"] = files;
+    result['files'] = files;
     return result;
   }
 
   @override
   Request toRequest(String id) {
-    return Request(id, "analysis.setPriorityFiles", toJson());
+    return Request(id, 'analysis.setPriorityFiles', toJson());
   }
 
   @override
@@ -1462,39 +1462,39 @@ class AnalysisSetSubscriptionsParams implements RequestParams {
     json ??= {};
     if (json is Map) {
       Map<AnalysisService, List<String>> subscriptions;
-      if (json.containsKey("subscriptions")) {
+      if (json.containsKey('subscriptions')) {
         subscriptions = jsonDecoder.decodeMap(
-            jsonPath + ".subscriptions", json["subscriptions"],
+            jsonPath + '.subscriptions', json['subscriptions'],
             keyDecoder: (String jsonPath, Object json) =>
                 AnalysisService.fromJson(jsonDecoder, jsonPath, json),
             valueDecoder: (String jsonPath, Object json) => jsonDecoder
                 .decodeList(jsonPath, json, jsonDecoder.decodeString));
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "subscriptions");
+        throw jsonDecoder.mismatch(jsonPath, 'subscriptions');
       }
       return AnalysisSetSubscriptionsParams(subscriptions);
     } else {
       throw jsonDecoder.mismatch(
-          jsonPath, "analysis.setSubscriptions params", json);
+          jsonPath, 'analysis.setSubscriptions params', json);
     }
   }
 
   factory AnalysisSetSubscriptionsParams.fromRequest(Request request) {
     return AnalysisSetSubscriptionsParams.fromJson(
-        RequestDecoder(request), "params", request.params);
+        RequestDecoder(request), 'params', request.params);
   }
 
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["subscriptions"] = mapMap(subscriptions,
+    result['subscriptions'] = mapMap(subscriptions,
         keyCallback: (AnalysisService value) => value.toJson());
     return result;
   }
 
   @override
   Request toRequest(String id) {
-    return Request(id, "analysis.setSubscriptions", toJson());
+    return Request(id, 'analysis.setSubscriptions', toJson());
   }
 
   @override
@@ -1576,44 +1576,44 @@ class AnalysisUpdateContentParams implements RequestParams {
     json ??= {};
     if (json is Map) {
       Map<String, dynamic> files;
-      if (json.containsKey("files")) {
-        files = jsonDecoder.decodeMap(jsonPath + ".files", json["files"],
+      if (json.containsKey('files')) {
+        files = jsonDecoder.decodeMap(jsonPath + '.files', json['files'],
             valueDecoder: (String jsonPath, Object json) =>
-                jsonDecoder.decodeUnion(jsonPath, json as Map, "type", {
-                  "add": (String jsonPath, Object json) =>
+                jsonDecoder.decodeUnion(jsonPath, json as Map, 'type', {
+                  'add': (String jsonPath, Object json) =>
                       AddContentOverlay.fromJson(jsonDecoder, jsonPath, json),
-                  "change": (String jsonPath, Object json) =>
+                  'change': (String jsonPath, Object json) =>
                       ChangeContentOverlay.fromJson(
                           jsonDecoder, jsonPath, json),
-                  "remove": (String jsonPath, Object json) =>
+                  'remove': (String jsonPath, Object json) =>
                       RemoveContentOverlay.fromJson(jsonDecoder, jsonPath, json)
                 }));
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "files");
+        throw jsonDecoder.mismatch(jsonPath, 'files');
       }
       return AnalysisUpdateContentParams(files);
     } else {
       throw jsonDecoder.mismatch(
-          jsonPath, "analysis.updateContent params", json);
+          jsonPath, 'analysis.updateContent params', json);
     }
   }
 
   factory AnalysisUpdateContentParams.fromRequest(Request request) {
     return AnalysisUpdateContentParams.fromJson(
-        RequestDecoder(request), "params", request.params);
+        RequestDecoder(request), 'params', request.params);
   }
 
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["files"] =
+    result['files'] =
         mapMap(files, valueCallback: (dynamic value) => value.toJson());
     return result;
   }
 
   @override
   Request toRequest(String id) {
-    return Request(id, "analysis.updateContent", toJson());
+    return Request(id, 'analysis.updateContent', toJson());
   }
 
   @override
@@ -1702,40 +1702,40 @@ class CompletionGetSuggestionsParams implements RequestParams {
     json ??= {};
     if (json is Map) {
       String file;
-      if (json.containsKey("file")) {
-        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
+      if (json.containsKey('file')) {
+        file = jsonDecoder.decodeString(jsonPath + '.file', json['file']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "file");
+        throw jsonDecoder.mismatch(jsonPath, 'file');
       }
       int offset;
-      if (json.containsKey("offset")) {
-        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
+      if (json.containsKey('offset')) {
+        offset = jsonDecoder.decodeInt(jsonPath + '.offset', json['offset']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "offset");
+        throw jsonDecoder.mismatch(jsonPath, 'offset');
       }
       return CompletionGetSuggestionsParams(file, offset);
     } else {
       throw jsonDecoder.mismatch(
-          jsonPath, "completion.getSuggestions params", json);
+          jsonPath, 'completion.getSuggestions params', json);
     }
   }
 
   factory CompletionGetSuggestionsParams.fromRequest(Request request) {
     return CompletionGetSuggestionsParams.fromJson(
-        RequestDecoder(request), "params", request.params);
+        RequestDecoder(request), 'params', request.params);
   }
 
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["file"] = file;
-    result["offset"] = offset;
+    result['file'] = file;
+    result['offset'] = offset;
     return result;
   }
 
   @override
   Request toRequest(String id) {
-    return Request(id, "completion.getSuggestions", toJson());
+    return Request(id, 'completion.getSuggestions', toJson());
   }
 
   @override
@@ -1833,50 +1833,50 @@ class CompletionGetSuggestionsResult implements ResponseResult {
     json ??= {};
     if (json is Map) {
       int replacementOffset;
-      if (json.containsKey("replacementOffset")) {
+      if (json.containsKey('replacementOffset')) {
         replacementOffset = jsonDecoder.decodeInt(
-            jsonPath + ".replacementOffset", json["replacementOffset"]);
+            jsonPath + '.replacementOffset', json['replacementOffset']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "replacementOffset");
+        throw jsonDecoder.mismatch(jsonPath, 'replacementOffset');
       }
       int replacementLength;
-      if (json.containsKey("replacementLength")) {
+      if (json.containsKey('replacementLength')) {
         replacementLength = jsonDecoder.decodeInt(
-            jsonPath + ".replacementLength", json["replacementLength"]);
+            jsonPath + '.replacementLength', json['replacementLength']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "replacementLength");
+        throw jsonDecoder.mismatch(jsonPath, 'replacementLength');
       }
       List<CompletionSuggestion> results;
-      if (json.containsKey("results")) {
+      if (json.containsKey('results')) {
         results = jsonDecoder.decodeList(
-            jsonPath + ".results",
-            json["results"],
+            jsonPath + '.results',
+            json['results'],
             (String jsonPath, Object json) =>
                 CompletionSuggestion.fromJson(jsonDecoder, jsonPath, json));
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "results");
+        throw jsonDecoder.mismatch(jsonPath, 'results');
       }
       return CompletionGetSuggestionsResult(
           replacementOffset, replacementLength, results);
     } else {
       throw jsonDecoder.mismatch(
-          jsonPath, "completion.getSuggestions result", json);
+          jsonPath, 'completion.getSuggestions result', json);
     }
   }
 
   factory CompletionGetSuggestionsResult.fromResponse(Response response) {
     return CompletionGetSuggestionsResult.fromJson(
         ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
-        "result",
+        'result',
         response.result);
   }
 
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["replacementOffset"] = replacementOffset;
-    result["replacementLength"] = replacementLength;
-    result["results"] =
+    result['replacementOffset'] = replacementOffset;
+    result['replacementLength'] = replacementLength;
+    result['results'] =
         results.map((CompletionSuggestion value) => value.toJson()).toList();
     return result;
   }
@@ -1969,36 +1969,36 @@ class ContextRoot implements HasToJson {
     json ??= {};
     if (json is Map) {
       String root;
-      if (json.containsKey("root")) {
-        root = jsonDecoder.decodeString(jsonPath + ".root", json["root"]);
+      if (json.containsKey('root')) {
+        root = jsonDecoder.decodeString(jsonPath + '.root', json['root']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "root");
+        throw jsonDecoder.mismatch(jsonPath, 'root');
       }
       List<String> exclude;
-      if (json.containsKey("exclude")) {
+      if (json.containsKey('exclude')) {
         exclude = jsonDecoder.decodeList(
-            jsonPath + ".exclude", json["exclude"], jsonDecoder.decodeString);
+            jsonPath + '.exclude', json['exclude'], jsonDecoder.decodeString);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "exclude");
+        throw jsonDecoder.mismatch(jsonPath, 'exclude');
       }
       String optionsFile;
-      if (json.containsKey("optionsFile")) {
+      if (json.containsKey('optionsFile')) {
         optionsFile = jsonDecoder.decodeString(
-            jsonPath + ".optionsFile", json["optionsFile"]);
+            jsonPath + '.optionsFile', json['optionsFile']);
       }
       return ContextRoot(root, exclude, optionsFile: optionsFile);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "ContextRoot", json);
+      throw jsonDecoder.mismatch(jsonPath, 'ContextRoot', json);
     }
   }
 
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["root"] = root;
-    result["exclude"] = exclude;
+    result['root'] = root;
+    result['exclude'] = exclude;
     if (optionsFile != null) {
-      result["optionsFile"] = optionsFile;
+      result['optionsFile'] = optionsFile;
     }
     return result;
   }
@@ -2156,46 +2156,46 @@ class EditGetAssistsParams implements RequestParams {
     json ??= {};
     if (json is Map) {
       String file;
-      if (json.containsKey("file")) {
-        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
+      if (json.containsKey('file')) {
+        file = jsonDecoder.decodeString(jsonPath + '.file', json['file']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "file");
+        throw jsonDecoder.mismatch(jsonPath, 'file');
       }
       int offset;
-      if (json.containsKey("offset")) {
-        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
+      if (json.containsKey('offset')) {
+        offset = jsonDecoder.decodeInt(jsonPath + '.offset', json['offset']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "offset");
+        throw jsonDecoder.mismatch(jsonPath, 'offset');
       }
       int length;
-      if (json.containsKey("length")) {
-        length = jsonDecoder.decodeInt(jsonPath + ".length", json["length"]);
+      if (json.containsKey('length')) {
+        length = jsonDecoder.decodeInt(jsonPath + '.length', json['length']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "length");
+        throw jsonDecoder.mismatch(jsonPath, 'length');
       }
       return EditGetAssistsParams(file, offset, length);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "edit.getAssists params", json);
+      throw jsonDecoder.mismatch(jsonPath, 'edit.getAssists params', json);
     }
   }
 
   factory EditGetAssistsParams.fromRequest(Request request) {
     return EditGetAssistsParams.fromJson(
-        RequestDecoder(request), "params", request.params);
+        RequestDecoder(request), 'params', request.params);
   }
 
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["file"] = file;
-    result["offset"] = offset;
-    result["length"] = length;
+    result['file'] = file;
+    result['offset'] = offset;
+    result['length'] = length;
     return result;
   }
 
   @override
   Request toRequest(String id) {
-    return Request(id, "edit.getAssists", toJson());
+    return Request(id, 'edit.getAssists', toJson());
   }
 
   @override
@@ -2249,32 +2249,32 @@ class EditGetAssistsResult implements ResponseResult {
     json ??= {};
     if (json is Map) {
       List<PrioritizedSourceChange> assists;
-      if (json.containsKey("assists")) {
+      if (json.containsKey('assists')) {
         assists = jsonDecoder.decodeList(
-            jsonPath + ".assists",
-            json["assists"],
+            jsonPath + '.assists',
+            json['assists'],
             (String jsonPath, Object json) =>
                 PrioritizedSourceChange.fromJson(jsonDecoder, jsonPath, json));
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "assists");
+        throw jsonDecoder.mismatch(jsonPath, 'assists');
       }
       return EditGetAssistsResult(assists);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "edit.getAssists result", json);
+      throw jsonDecoder.mismatch(jsonPath, 'edit.getAssists result', json);
     }
   }
 
   factory EditGetAssistsResult.fromResponse(Response response) {
     return EditGetAssistsResult.fromJson(
         ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
-        "result",
+        'result',
         response.result);
   }
 
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["assists"] =
+    result['assists'] =
         assists.map((PrioritizedSourceChange value) => value.toJson()).toList();
     return result;
   }
@@ -2358,47 +2358,47 @@ class EditGetAvailableRefactoringsParams implements RequestParams {
     json ??= {};
     if (json is Map) {
       String file;
-      if (json.containsKey("file")) {
-        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
+      if (json.containsKey('file')) {
+        file = jsonDecoder.decodeString(jsonPath + '.file', json['file']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "file");
+        throw jsonDecoder.mismatch(jsonPath, 'file');
       }
       int offset;
-      if (json.containsKey("offset")) {
-        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
+      if (json.containsKey('offset')) {
+        offset = jsonDecoder.decodeInt(jsonPath + '.offset', json['offset']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "offset");
+        throw jsonDecoder.mismatch(jsonPath, 'offset');
       }
       int length;
-      if (json.containsKey("length")) {
-        length = jsonDecoder.decodeInt(jsonPath + ".length", json["length"]);
+      if (json.containsKey('length')) {
+        length = jsonDecoder.decodeInt(jsonPath + '.length', json['length']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "length");
+        throw jsonDecoder.mismatch(jsonPath, 'length');
       }
       return EditGetAvailableRefactoringsParams(file, offset, length);
     } else {
       throw jsonDecoder.mismatch(
-          jsonPath, "edit.getAvailableRefactorings params", json);
+          jsonPath, 'edit.getAvailableRefactorings params', json);
     }
   }
 
   factory EditGetAvailableRefactoringsParams.fromRequest(Request request) {
     return EditGetAvailableRefactoringsParams.fromJson(
-        RequestDecoder(request), "params", request.params);
+        RequestDecoder(request), 'params', request.params);
   }
 
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["file"] = file;
-    result["offset"] = offset;
-    result["length"] = length;
+    result['file'] = file;
+    result['offset'] = offset;
+    result['length'] = length;
     return result;
   }
 
   @override
   Request toRequest(String id) {
-    return Request(id, "edit.getAvailableRefactorings", toJson());
+    return Request(id, 'edit.getAvailableRefactorings', toJson());
   }
 
   @override
@@ -2462,33 +2462,33 @@ class EditGetAvailableRefactoringsResult implements ResponseResult {
     json ??= {};
     if (json is Map) {
       List<RefactoringKind> kinds;
-      if (json.containsKey("kinds")) {
+      if (json.containsKey('kinds')) {
         kinds = jsonDecoder.decodeList(
-            jsonPath + ".kinds",
-            json["kinds"],
+            jsonPath + '.kinds',
+            json['kinds'],
             (String jsonPath, Object json) =>
                 RefactoringKind.fromJson(jsonDecoder, jsonPath, json));
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "kinds");
+        throw jsonDecoder.mismatch(jsonPath, 'kinds');
       }
       return EditGetAvailableRefactoringsResult(kinds);
     } else {
       throw jsonDecoder.mismatch(
-          jsonPath, "edit.getAvailableRefactorings result", json);
+          jsonPath, 'edit.getAvailableRefactorings result', json);
     }
   }
 
   factory EditGetAvailableRefactoringsResult.fromResponse(Response response) {
     return EditGetAvailableRefactoringsResult.fromJson(
         ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
-        "result",
+        'result',
         response.result);
   }
 
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["kinds"] =
+    result['kinds'] =
         kinds.map((RefactoringKind value) => value.toJson()).toList();
     return result;
   }
@@ -2559,39 +2559,39 @@ class EditGetFixesParams implements RequestParams {
     json ??= {};
     if (json is Map) {
       String file;
-      if (json.containsKey("file")) {
-        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
+      if (json.containsKey('file')) {
+        file = jsonDecoder.decodeString(jsonPath + '.file', json['file']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "file");
+        throw jsonDecoder.mismatch(jsonPath, 'file');
       }
       int offset;
-      if (json.containsKey("offset")) {
-        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
+      if (json.containsKey('offset')) {
+        offset = jsonDecoder.decodeInt(jsonPath + '.offset', json['offset']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "offset");
+        throw jsonDecoder.mismatch(jsonPath, 'offset');
       }
       return EditGetFixesParams(file, offset);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "edit.getFixes params", json);
+      throw jsonDecoder.mismatch(jsonPath, 'edit.getFixes params', json);
     }
   }
 
   factory EditGetFixesParams.fromRequest(Request request) {
     return EditGetFixesParams.fromJson(
-        RequestDecoder(request), "params", request.params);
+        RequestDecoder(request), 'params', request.params);
   }
 
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["file"] = file;
-    result["offset"] = offset;
+    result['file'] = file;
+    result['offset'] = offset;
     return result;
   }
 
   @override
   Request toRequest(String id) {
-    return Request(id, "edit.getFixes", toJson());
+    return Request(id, 'edit.getFixes', toJson());
   }
 
   @override
@@ -2642,32 +2642,32 @@ class EditGetFixesResult implements ResponseResult {
     json ??= {};
     if (json is Map) {
       List<AnalysisErrorFixes> fixes;
-      if (json.containsKey("fixes")) {
+      if (json.containsKey('fixes')) {
         fixes = jsonDecoder.decodeList(
-            jsonPath + ".fixes",
-            json["fixes"],
+            jsonPath + '.fixes',
+            json['fixes'],
             (String jsonPath, Object json) =>
                 AnalysisErrorFixes.fromJson(jsonDecoder, jsonPath, json));
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "fixes");
+        throw jsonDecoder.mismatch(jsonPath, 'fixes');
       }
       return EditGetFixesResult(fixes);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "edit.getFixes result", json);
+      throw jsonDecoder.mismatch(jsonPath, 'edit.getFixes result', json);
     }
   }
 
   factory EditGetFixesResult.fromResponse(Response response) {
     return EditGetFixesResult.fromJson(
         ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
-        "result",
+        'result',
         response.result);
   }
 
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["fixes"] =
+    result['fixes'] =
         fixes.map((AnalysisErrorFixes value) => value.toJson()).toList();
     return result;
   }
@@ -2801,52 +2801,52 @@ class EditGetRefactoringParams implements RequestParams {
     json ??= {};
     if (json is Map) {
       RefactoringKind kind;
-      if (json.containsKey("kind")) {
+      if (json.containsKey('kind')) {
         kind = RefactoringKind.fromJson(
-            jsonDecoder, jsonPath + ".kind", json["kind"]);
+            jsonDecoder, jsonPath + '.kind', json['kind']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "kind");
+        throw jsonDecoder.mismatch(jsonPath, 'kind');
       }
       String file;
-      if (json.containsKey("file")) {
-        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
+      if (json.containsKey('file')) {
+        file = jsonDecoder.decodeString(jsonPath + '.file', json['file']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "file");
+        throw jsonDecoder.mismatch(jsonPath, 'file');
       }
       int offset;
-      if (json.containsKey("offset")) {
-        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
+      if (json.containsKey('offset')) {
+        offset = jsonDecoder.decodeInt(jsonPath + '.offset', json['offset']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "offset");
+        throw jsonDecoder.mismatch(jsonPath, 'offset');
       }
       int length;
-      if (json.containsKey("length")) {
-        length = jsonDecoder.decodeInt(jsonPath + ".length", json["length"]);
+      if (json.containsKey('length')) {
+        length = jsonDecoder.decodeInt(jsonPath + '.length', json['length']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "length");
+        throw jsonDecoder.mismatch(jsonPath, 'length');
       }
       bool validateOnly;
-      if (json.containsKey("validateOnly")) {
+      if (json.containsKey('validateOnly')) {
         validateOnly = jsonDecoder.decodeBool(
-            jsonPath + ".validateOnly", json["validateOnly"]);
+            jsonPath + '.validateOnly', json['validateOnly']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "validateOnly");
+        throw jsonDecoder.mismatch(jsonPath, 'validateOnly');
       }
       RefactoringOptions options;
-      if (json.containsKey("options")) {
+      if (json.containsKey('options')) {
         options = RefactoringOptions.fromJson(
-            jsonDecoder, jsonPath + ".options", json["options"], kind);
+            jsonDecoder, jsonPath + '.options', json['options'], kind);
       }
       return EditGetRefactoringParams(kind, file, offset, length, validateOnly,
           options: options);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "edit.getRefactoring params", json);
+      throw jsonDecoder.mismatch(jsonPath, 'edit.getRefactoring params', json);
     }
   }
 
   factory EditGetRefactoringParams.fromRequest(Request request) {
     var params = EditGetRefactoringParams.fromJson(
-        RequestDecoder(request), "params", request.params);
+        RequestDecoder(request), 'params', request.params);
     REQUEST_ID_REFACTORING_KINDS[request.id] = params.kind;
     return params;
   }
@@ -2854,20 +2854,20 @@ class EditGetRefactoringParams implements RequestParams {
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["kind"] = kind.toJson();
-    result["file"] = file;
-    result["offset"] = offset;
-    result["length"] = length;
-    result["validateOnly"] = validateOnly;
+    result['kind'] = kind.toJson();
+    result['file'] = file;
+    result['offset'] = offset;
+    result['length'] = length;
+    result['validateOnly'] = validateOnly;
     if (options != null) {
-      result["options"] = options.toJson();
+      result['options'] = options.toJson();
     }
     return result;
   }
 
   @override
   Request toRequest(String id) {
-    return Request(id, "edit.getRefactoring", toJson());
+    return Request(id, 'edit.getRefactoring', toJson());
   }
 
   @override
@@ -3029,85 +3029,85 @@ class EditGetRefactoringResult implements ResponseResult {
     json ??= {};
     if (json is Map) {
       List<RefactoringProblem> initialProblems;
-      if (json.containsKey("initialProblems")) {
+      if (json.containsKey('initialProblems')) {
         initialProblems = jsonDecoder.decodeList(
-            jsonPath + ".initialProblems",
-            json["initialProblems"],
+            jsonPath + '.initialProblems',
+            json['initialProblems'],
             (String jsonPath, Object json) =>
                 RefactoringProblem.fromJson(jsonDecoder, jsonPath, json));
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "initialProblems");
+        throw jsonDecoder.mismatch(jsonPath, 'initialProblems');
       }
       List<RefactoringProblem> optionsProblems;
-      if (json.containsKey("optionsProblems")) {
+      if (json.containsKey('optionsProblems')) {
         optionsProblems = jsonDecoder.decodeList(
-            jsonPath + ".optionsProblems",
-            json["optionsProblems"],
+            jsonPath + '.optionsProblems',
+            json['optionsProblems'],
             (String jsonPath, Object json) =>
                 RefactoringProblem.fromJson(jsonDecoder, jsonPath, json));
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "optionsProblems");
+        throw jsonDecoder.mismatch(jsonPath, 'optionsProblems');
       }
       List<RefactoringProblem> finalProblems;
-      if (json.containsKey("finalProblems")) {
+      if (json.containsKey('finalProblems')) {
         finalProblems = jsonDecoder.decodeList(
-            jsonPath + ".finalProblems",
-            json["finalProblems"],
+            jsonPath + '.finalProblems',
+            json['finalProblems'],
             (String jsonPath, Object json) =>
                 RefactoringProblem.fromJson(jsonDecoder, jsonPath, json));
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "finalProblems");
+        throw jsonDecoder.mismatch(jsonPath, 'finalProblems');
       }
       RefactoringFeedback feedback;
-      if (json.containsKey("feedback")) {
+      if (json.containsKey('feedback')) {
         feedback = RefactoringFeedback.fromJson(
-            jsonDecoder, jsonPath + ".feedback", json["feedback"], json);
+            jsonDecoder, jsonPath + '.feedback', json['feedback'], json);
       }
       SourceChange change;
-      if (json.containsKey("change")) {
+      if (json.containsKey('change')) {
         change = SourceChange.fromJson(
-            jsonDecoder, jsonPath + ".change", json["change"]);
+            jsonDecoder, jsonPath + '.change', json['change']);
       }
       List<String> potentialEdits;
-      if (json.containsKey("potentialEdits")) {
-        potentialEdits = jsonDecoder.decodeList(jsonPath + ".potentialEdits",
-            json["potentialEdits"], jsonDecoder.decodeString);
+      if (json.containsKey('potentialEdits')) {
+        potentialEdits = jsonDecoder.decodeList(jsonPath + '.potentialEdits',
+            json['potentialEdits'], jsonDecoder.decodeString);
       }
       return EditGetRefactoringResult(
           initialProblems, optionsProblems, finalProblems,
           feedback: feedback, change: change, potentialEdits: potentialEdits);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "edit.getRefactoring result", json);
+      throw jsonDecoder.mismatch(jsonPath, 'edit.getRefactoring result', json);
     }
   }
 
   factory EditGetRefactoringResult.fromResponse(Response response) {
     return EditGetRefactoringResult.fromJson(
         ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
-        "result",
+        'result',
         response.result);
   }
 
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["initialProblems"] = initialProblems
+    result['initialProblems'] = initialProblems
         .map((RefactoringProblem value) => value.toJson())
         .toList();
-    result["optionsProblems"] = optionsProblems
+    result['optionsProblems'] = optionsProblems
         .map((RefactoringProblem value) => value.toJson())
         .toList();
-    result["finalProblems"] = finalProblems
+    result['finalProblems'] = finalProblems
         .map((RefactoringProblem value) => value.toJson())
         .toList();
     if (feedback != null) {
-      result["feedback"] = feedback.toJson();
+      result['feedback'] = feedback.toJson();
     }
     if (change != null) {
-      result["change"] = change.toJson();
+      result['change'] = change.toJson();
     }
     if (potentialEdits != null) {
-      result["potentialEdits"] = potentialEdits;
+      result['potentialEdits'] = potentialEdits;
     }
     return result;
   }
@@ -3243,46 +3243,46 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback {
     json ??= {};
     if (json is Map) {
       List<int> coveringExpressionOffsets;
-      if (json.containsKey("coveringExpressionOffsets")) {
+      if (json.containsKey('coveringExpressionOffsets')) {
         coveringExpressionOffsets = jsonDecoder.decodeList(
-            jsonPath + ".coveringExpressionOffsets",
-            json["coveringExpressionOffsets"],
+            jsonPath + '.coveringExpressionOffsets',
+            json['coveringExpressionOffsets'],
             jsonDecoder.decodeInt);
       }
       List<int> coveringExpressionLengths;
-      if (json.containsKey("coveringExpressionLengths")) {
+      if (json.containsKey('coveringExpressionLengths')) {
         coveringExpressionLengths = jsonDecoder.decodeList(
-            jsonPath + ".coveringExpressionLengths",
-            json["coveringExpressionLengths"],
+            jsonPath + '.coveringExpressionLengths',
+            json['coveringExpressionLengths'],
             jsonDecoder.decodeInt);
       }
       List<String> names;
-      if (json.containsKey("names")) {
+      if (json.containsKey('names')) {
         names = jsonDecoder.decodeList(
-            jsonPath + ".names", json["names"], jsonDecoder.decodeString);
+            jsonPath + '.names', json['names'], jsonDecoder.decodeString);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "names");
+        throw jsonDecoder.mismatch(jsonPath, 'names');
       }
       List<int> offsets;
-      if (json.containsKey("offsets")) {
+      if (json.containsKey('offsets')) {
         offsets = jsonDecoder.decodeList(
-            jsonPath + ".offsets", json["offsets"], jsonDecoder.decodeInt);
+            jsonPath + '.offsets', json['offsets'], jsonDecoder.decodeInt);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "offsets");
+        throw jsonDecoder.mismatch(jsonPath, 'offsets');
       }
       List<int> lengths;
-      if (json.containsKey("lengths")) {
+      if (json.containsKey('lengths')) {
         lengths = jsonDecoder.decodeList(
-            jsonPath + ".lengths", json["lengths"], jsonDecoder.decodeInt);
+            jsonPath + '.lengths', json['lengths'], jsonDecoder.decodeInt);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "lengths");
+        throw jsonDecoder.mismatch(jsonPath, 'lengths');
       }
       return ExtractLocalVariableFeedback(names, offsets, lengths,
           coveringExpressionOffsets: coveringExpressionOffsets,
           coveringExpressionLengths: coveringExpressionLengths);
     } else {
       throw jsonDecoder.mismatch(
-          jsonPath, "extractLocalVariable feedback", json);
+          jsonPath, 'extractLocalVariable feedback', json);
     }
   }
 
@@ -3290,14 +3290,14 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
     if (coveringExpressionOffsets != null) {
-      result["coveringExpressionOffsets"] = coveringExpressionOffsets;
+      result['coveringExpressionOffsets'] = coveringExpressionOffsets;
     }
     if (coveringExpressionLengths != null) {
-      result["coveringExpressionLengths"] = coveringExpressionLengths;
+      result['coveringExpressionLengths'] = coveringExpressionLengths;
     }
-    result["names"] = names;
-    result["offsets"] = offsets;
-    result["lengths"] = lengths;
+    result['names'] = names;
+    result['offsets'] = offsets;
+    result['lengths'] = lengths;
     return result;
   }
 
@@ -3377,36 +3377,36 @@ class ExtractLocalVariableOptions extends RefactoringOptions {
     json ??= {};
     if (json is Map) {
       String name;
-      if (json.containsKey("name")) {
-        name = jsonDecoder.decodeString(jsonPath + ".name", json["name"]);
+      if (json.containsKey('name')) {
+        name = jsonDecoder.decodeString(jsonPath + '.name', json['name']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "name");
+        throw jsonDecoder.mismatch(jsonPath, 'name');
       }
       bool extractAll;
-      if (json.containsKey("extractAll")) {
+      if (json.containsKey('extractAll')) {
         extractAll = jsonDecoder.decodeBool(
-            jsonPath + ".extractAll", json["extractAll"]);
+            jsonPath + '.extractAll', json['extractAll']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "extractAll");
+        throw jsonDecoder.mismatch(jsonPath, 'extractAll');
       }
       return ExtractLocalVariableOptions(name, extractAll);
     } else {
       throw jsonDecoder.mismatch(
-          jsonPath, "extractLocalVariable options", json);
+          jsonPath, 'extractLocalVariable options', json);
     }
   }
 
   factory ExtractLocalVariableOptions.fromRefactoringParams(
       EditGetRefactoringParams refactoringParams, Request request) {
     return ExtractLocalVariableOptions.fromJson(
-        RequestDecoder(request), "options", refactoringParams.options);
+        RequestDecoder(request), 'options', refactoringParams.options);
   }
 
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["name"] = name;
-    result["extractAll"] = extractAll;
+    result['name'] = name;
+    result['extractAll'] = extractAll;
     return result;
   }
 
@@ -3571,83 +3571,83 @@ class ExtractMethodFeedback extends RefactoringFeedback {
     json ??= {};
     if (json is Map) {
       int offset;
-      if (json.containsKey("offset")) {
-        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
+      if (json.containsKey('offset')) {
+        offset = jsonDecoder.decodeInt(jsonPath + '.offset', json['offset']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "offset");
+        throw jsonDecoder.mismatch(jsonPath, 'offset');
       }
       int length;
-      if (json.containsKey("length")) {
-        length = jsonDecoder.decodeInt(jsonPath + ".length", json["length"]);
+      if (json.containsKey('length')) {
+        length = jsonDecoder.decodeInt(jsonPath + '.length', json['length']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "length");
+        throw jsonDecoder.mismatch(jsonPath, 'length');
       }
       String returnType;
-      if (json.containsKey("returnType")) {
+      if (json.containsKey('returnType')) {
         returnType = jsonDecoder.decodeString(
-            jsonPath + ".returnType", json["returnType"]);
+            jsonPath + '.returnType', json['returnType']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "returnType");
+        throw jsonDecoder.mismatch(jsonPath, 'returnType');
       }
       List<String> names;
-      if (json.containsKey("names")) {
+      if (json.containsKey('names')) {
         names = jsonDecoder.decodeList(
-            jsonPath + ".names", json["names"], jsonDecoder.decodeString);
+            jsonPath + '.names', json['names'], jsonDecoder.decodeString);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "names");
+        throw jsonDecoder.mismatch(jsonPath, 'names');
       }
       bool canCreateGetter;
-      if (json.containsKey("canCreateGetter")) {
+      if (json.containsKey('canCreateGetter')) {
         canCreateGetter = jsonDecoder.decodeBool(
-            jsonPath + ".canCreateGetter", json["canCreateGetter"]);
+            jsonPath + '.canCreateGetter', json['canCreateGetter']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "canCreateGetter");
+        throw jsonDecoder.mismatch(jsonPath, 'canCreateGetter');
       }
       List<RefactoringMethodParameter> parameters;
-      if (json.containsKey("parameters")) {
+      if (json.containsKey('parameters')) {
         parameters = jsonDecoder.decodeList(
-            jsonPath + ".parameters",
-            json["parameters"],
+            jsonPath + '.parameters',
+            json['parameters'],
             (String jsonPath, Object json) =>
                 RefactoringMethodParameter.fromJson(
                     jsonDecoder, jsonPath, json));
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "parameters");
+        throw jsonDecoder.mismatch(jsonPath, 'parameters');
       }
       List<int> offsets;
-      if (json.containsKey("offsets")) {
+      if (json.containsKey('offsets')) {
         offsets = jsonDecoder.decodeList(
-            jsonPath + ".offsets", json["offsets"], jsonDecoder.decodeInt);
+            jsonPath + '.offsets', json['offsets'], jsonDecoder.decodeInt);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "offsets");
+        throw jsonDecoder.mismatch(jsonPath, 'offsets');
       }
       List<int> lengths;
-      if (json.containsKey("lengths")) {
+      if (json.containsKey('lengths')) {
         lengths = jsonDecoder.decodeList(
-            jsonPath + ".lengths", json["lengths"], jsonDecoder.decodeInt);
+            jsonPath + '.lengths', json['lengths'], jsonDecoder.decodeInt);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "lengths");
+        throw jsonDecoder.mismatch(jsonPath, 'lengths');
       }
       return ExtractMethodFeedback(offset, length, returnType, names,
           canCreateGetter, parameters, offsets, lengths);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "extractMethod feedback", json);
+      throw jsonDecoder.mismatch(jsonPath, 'extractMethod feedback', json);
     }
   }
 
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["offset"] = offset;
-    result["length"] = length;
-    result["returnType"] = returnType;
-    result["names"] = names;
-    result["canCreateGetter"] = canCreateGetter;
-    result["parameters"] = parameters
+    result['offset'] = offset;
+    result['length'] = length;
+    result['returnType'] = returnType;
+    result['names'] = names;
+    result['canCreateGetter'] = canCreateGetter;
+    result['parameters'] = parameters
         .map((RefactoringMethodParameter value) => value.toJson())
         .toList();
-    result["offsets"] = offsets;
-    result["lengths"] = lengths;
+    result['offsets'] = offsets;
+    result['lengths'] = lengths;
     return result;
   }
 
@@ -3793,66 +3793,66 @@ class ExtractMethodOptions extends RefactoringOptions {
     json ??= {};
     if (json is Map) {
       String returnType;
-      if (json.containsKey("returnType")) {
+      if (json.containsKey('returnType')) {
         returnType = jsonDecoder.decodeString(
-            jsonPath + ".returnType", json["returnType"]);
+            jsonPath + '.returnType', json['returnType']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "returnType");
+        throw jsonDecoder.mismatch(jsonPath, 'returnType');
       }
       bool createGetter;
-      if (json.containsKey("createGetter")) {
+      if (json.containsKey('createGetter')) {
         createGetter = jsonDecoder.decodeBool(
-            jsonPath + ".createGetter", json["createGetter"]);
+            jsonPath + '.createGetter', json['createGetter']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "createGetter");
+        throw jsonDecoder.mismatch(jsonPath, 'createGetter');
       }
       String name;
-      if (json.containsKey("name")) {
-        name = jsonDecoder.decodeString(jsonPath + ".name", json["name"]);
+      if (json.containsKey('name')) {
+        name = jsonDecoder.decodeString(jsonPath + '.name', json['name']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "name");
+        throw jsonDecoder.mismatch(jsonPath, 'name');
       }
       List<RefactoringMethodParameter> parameters;
-      if (json.containsKey("parameters")) {
+      if (json.containsKey('parameters')) {
         parameters = jsonDecoder.decodeList(
-            jsonPath + ".parameters",
-            json["parameters"],
+            jsonPath + '.parameters',
+            json['parameters'],
             (String jsonPath, Object json) =>
                 RefactoringMethodParameter.fromJson(
                     jsonDecoder, jsonPath, json));
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "parameters");
+        throw jsonDecoder.mismatch(jsonPath, 'parameters');
       }
       bool extractAll;
-      if (json.containsKey("extractAll")) {
+      if (json.containsKey('extractAll')) {
         extractAll = jsonDecoder.decodeBool(
-            jsonPath + ".extractAll", json["extractAll"]);
+            jsonPath + '.extractAll', json['extractAll']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "extractAll");
+        throw jsonDecoder.mismatch(jsonPath, 'extractAll');
       }
       return ExtractMethodOptions(
           returnType, createGetter, name, parameters, extractAll);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "extractMethod options", json);
+      throw jsonDecoder.mismatch(jsonPath, 'extractMethod options', json);
     }
   }
 
   factory ExtractMethodOptions.fromRefactoringParams(
       EditGetRefactoringParams refactoringParams, Request request) {
     return ExtractMethodOptions.fromJson(
-        RequestDecoder(request), "options", refactoringParams.options);
+        RequestDecoder(request), 'options', refactoringParams.options);
   }
 
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["returnType"] = returnType;
-    result["createGetter"] = createGetter;
-    result["name"] = name;
-    result["parameters"] = parameters
+    result['returnType'] = returnType;
+    result['createGetter'] = createGetter;
+    result['name'] = name;
+    result['parameters'] = parameters
         .map((RefactoringMethodParameter value) => value.toJson())
         .toList();
-    result["extractAll"] = extractAll;
+    result['extractAll'] = extractAll;
     return result;
   }
 
@@ -3928,30 +3928,30 @@ class InlineLocalVariableFeedback extends RefactoringFeedback {
     json ??= {};
     if (json is Map) {
       String name;
-      if (json.containsKey("name")) {
-        name = jsonDecoder.decodeString(jsonPath + ".name", json["name"]);
+      if (json.containsKey('name')) {
+        name = jsonDecoder.decodeString(jsonPath + '.name', json['name']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "name");
+        throw jsonDecoder.mismatch(jsonPath, 'name');
       }
       int occurrences;
-      if (json.containsKey("occurrences")) {
+      if (json.containsKey('occurrences')) {
         occurrences = jsonDecoder.decodeInt(
-            jsonPath + ".occurrences", json["occurrences"]);
+            jsonPath + '.occurrences', json['occurrences']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "occurrences");
+        throw jsonDecoder.mismatch(jsonPath, 'occurrences');
       }
       return InlineLocalVariableFeedback(name, occurrences);
     } else {
       throw jsonDecoder.mismatch(
-          jsonPath, "inlineLocalVariable feedback", json);
+          jsonPath, 'inlineLocalVariable feedback', json);
     }
   }
 
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["name"] = name;
-    result["occurrences"] = occurrences;
+    result['name'] = name;
+    result['occurrences'] = occurrences;
     return result;
   }
 
@@ -4052,28 +4052,28 @@ class InlineMethodFeedback extends RefactoringFeedback {
     json ??= {};
     if (json is Map) {
       String className;
-      if (json.containsKey("className")) {
+      if (json.containsKey('className')) {
         className = jsonDecoder.decodeString(
-            jsonPath + ".className", json["className"]);
+            jsonPath + '.className', json['className']);
       }
       String methodName;
-      if (json.containsKey("methodName")) {
+      if (json.containsKey('methodName')) {
         methodName = jsonDecoder.decodeString(
-            jsonPath + ".methodName", json["methodName"]);
+            jsonPath + '.methodName', json['methodName']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "methodName");
+        throw jsonDecoder.mismatch(jsonPath, 'methodName');
       }
       bool isDeclaration;
-      if (json.containsKey("isDeclaration")) {
+      if (json.containsKey('isDeclaration')) {
         isDeclaration = jsonDecoder.decodeBool(
-            jsonPath + ".isDeclaration", json["isDeclaration"]);
+            jsonPath + '.isDeclaration', json['isDeclaration']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "isDeclaration");
+        throw jsonDecoder.mismatch(jsonPath, 'isDeclaration');
       }
       return InlineMethodFeedback(methodName, isDeclaration,
           className: className);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "inlineMethod feedback", json);
+      throw jsonDecoder.mismatch(jsonPath, 'inlineMethod feedback', json);
     }
   }
 
@@ -4081,10 +4081,10 @@ class InlineMethodFeedback extends RefactoringFeedback {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
     if (className != null) {
-      result["className"] = className;
+      result['className'] = className;
     }
-    result["methodName"] = methodName;
-    result["isDeclaration"] = isDeclaration;
+    result['methodName'] = methodName;
+    result['isDeclaration'] = isDeclaration;
     return result;
   }
 
@@ -4156,36 +4156,36 @@ class InlineMethodOptions extends RefactoringOptions {
     json ??= {};
     if (json is Map) {
       bool deleteSource;
-      if (json.containsKey("deleteSource")) {
+      if (json.containsKey('deleteSource')) {
         deleteSource = jsonDecoder.decodeBool(
-            jsonPath + ".deleteSource", json["deleteSource"]);
+            jsonPath + '.deleteSource', json['deleteSource']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "deleteSource");
+        throw jsonDecoder.mismatch(jsonPath, 'deleteSource');
       }
       bool inlineAll;
-      if (json.containsKey("inlineAll")) {
+      if (json.containsKey('inlineAll')) {
         inlineAll =
-            jsonDecoder.decodeBool(jsonPath + ".inlineAll", json["inlineAll"]);
+            jsonDecoder.decodeBool(jsonPath + '.inlineAll', json['inlineAll']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "inlineAll");
+        throw jsonDecoder.mismatch(jsonPath, 'inlineAll');
       }
       return InlineMethodOptions(deleteSource, inlineAll);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "inlineMethod options", json);
+      throw jsonDecoder.mismatch(jsonPath, 'inlineMethod options', json);
     }
   }
 
   factory InlineMethodOptions.fromRefactoringParams(
       EditGetRefactoringParams refactoringParams, Request request) {
     return InlineMethodOptions.fromJson(
-        RequestDecoder(request), "options", refactoringParams.options);
+        RequestDecoder(request), 'options', refactoringParams.options);
   }
 
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["deleteSource"] = deleteSource;
-    result["inlineAll"] = inlineAll;
+    result['deleteSource'] = deleteSource;
+    result['inlineAll'] = inlineAll;
     return result;
   }
 
@@ -4239,33 +4239,33 @@ class KytheGetKytheEntriesParams implements RequestParams {
     json ??= {};
     if (json is Map) {
       String file;
-      if (json.containsKey("file")) {
-        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
+      if (json.containsKey('file')) {
+        file = jsonDecoder.decodeString(jsonPath + '.file', json['file']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "file");
+        throw jsonDecoder.mismatch(jsonPath, 'file');
       }
       return KytheGetKytheEntriesParams(file);
     } else {
       throw jsonDecoder.mismatch(
-          jsonPath, "kythe.getKytheEntries params", json);
+          jsonPath, 'kythe.getKytheEntries params', json);
     }
   }
 
   factory KytheGetKytheEntriesParams.fromRequest(Request request) {
     return KytheGetKytheEntriesParams.fromJson(
-        RequestDecoder(request), "params", request.params);
+        RequestDecoder(request), 'params', request.params);
   }
 
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["file"] = file;
+    result['file'] = file;
     return result;
   }
 
   @override
   Request toRequest(String id) {
-    return Request(id, "kythe.getKytheEntries", toJson());
+    return Request(id, 'kythe.getKytheEntries', toJson());
   }
 
   @override
@@ -4334,42 +4334,42 @@ class KytheGetKytheEntriesResult implements ResponseResult {
     json ??= {};
     if (json is Map) {
       List<KytheEntry> entries;
-      if (json.containsKey("entries")) {
+      if (json.containsKey('entries')) {
         entries = jsonDecoder.decodeList(
-            jsonPath + ".entries",
-            json["entries"],
+            jsonPath + '.entries',
+            json['entries'],
             (String jsonPath, Object json) =>
                 KytheEntry.fromJson(jsonDecoder, jsonPath, json));
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "entries");
+        throw jsonDecoder.mismatch(jsonPath, 'entries');
       }
       List<String> files;
-      if (json.containsKey("files")) {
+      if (json.containsKey('files')) {
         files = jsonDecoder.decodeList(
-            jsonPath + ".files", json["files"], jsonDecoder.decodeString);
+            jsonPath + '.files', json['files'], jsonDecoder.decodeString);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "files");
+        throw jsonDecoder.mismatch(jsonPath, 'files');
       }
       return KytheGetKytheEntriesResult(entries, files);
     } else {
       throw jsonDecoder.mismatch(
-          jsonPath, "kythe.getKytheEntries result", json);
+          jsonPath, 'kythe.getKytheEntries result', json);
     }
   }
 
   factory KytheGetKytheEntriesResult.fromResponse(Response response) {
     return KytheGetKytheEntriesResult.fromJson(
         ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
-        "result",
+        'result',
         response.result);
   }
 
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["entries"] =
+    result['entries'] =
         entries.map((KytheEntry value) => value.toJson()).toList();
-    result["files"] = files;
+    result['files'] = files;
     return result;
   }
 
@@ -4446,28 +4446,28 @@ class MoveFileOptions extends RefactoringOptions {
     json ??= {};
     if (json is Map) {
       String newFile;
-      if (json.containsKey("newFile")) {
+      if (json.containsKey('newFile')) {
         newFile =
-            jsonDecoder.decodeString(jsonPath + ".newFile", json["newFile"]);
+            jsonDecoder.decodeString(jsonPath + '.newFile', json['newFile']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "newFile");
+        throw jsonDecoder.mismatch(jsonPath, 'newFile');
       }
       return MoveFileOptions(newFile);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "moveFile options", json);
+      throw jsonDecoder.mismatch(jsonPath, 'moveFile options', json);
     }
   }
 
   factory MoveFileOptions.fromRefactoringParams(
       EditGetRefactoringParams refactoringParams, Request request) {
     return MoveFileOptions.fromJson(
-        RequestDecoder(request), "options", refactoringParams.options);
+        RequestDecoder(request), 'options', refactoringParams.options);
   }
 
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["newFile"] = newFile;
+    result['newFile'] = newFile;
     return result;
   }
 
@@ -4552,48 +4552,48 @@ class PluginErrorParams implements HasToJson {
     json ??= {};
     if (json is Map) {
       bool isFatal;
-      if (json.containsKey("isFatal")) {
+      if (json.containsKey('isFatal')) {
         isFatal =
-            jsonDecoder.decodeBool(jsonPath + ".isFatal", json["isFatal"]);
+            jsonDecoder.decodeBool(jsonPath + '.isFatal', json['isFatal']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "isFatal");
+        throw jsonDecoder.mismatch(jsonPath, 'isFatal');
       }
       String message;
-      if (json.containsKey("message")) {
+      if (json.containsKey('message')) {
         message =
-            jsonDecoder.decodeString(jsonPath + ".message", json["message"]);
+            jsonDecoder.decodeString(jsonPath + '.message', json['message']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "message");
+        throw jsonDecoder.mismatch(jsonPath, 'message');
       }
       String stackTrace;
-      if (json.containsKey("stackTrace")) {
+      if (json.containsKey('stackTrace')) {
         stackTrace = jsonDecoder.decodeString(
-            jsonPath + ".stackTrace", json["stackTrace"]);
+            jsonPath + '.stackTrace', json['stackTrace']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "stackTrace");
+        throw jsonDecoder.mismatch(jsonPath, 'stackTrace');
       }
       return PluginErrorParams(isFatal, message, stackTrace);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "plugin.error params", json);
+      throw jsonDecoder.mismatch(jsonPath, 'plugin.error params', json);
     }
   }
 
   factory PluginErrorParams.fromNotification(Notification notification) {
     return PluginErrorParams.fromJson(
-        ResponseDecoder(null), "params", notification.params);
+        ResponseDecoder(null), 'params', notification.params);
   }
 
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["isFatal"] = isFatal;
-    result["message"] = message;
-    result["stackTrace"] = stackTrace;
+    result['isFatal'] = isFatal;
+    result['message'] = message;
+    result['stackTrace'] = stackTrace;
     return result;
   }
 
   Notification toNotification() {
-    return Notification("plugin.error", toJson());
+    return Notification('plugin.error', toJson());
   }
 
   @override
@@ -4628,7 +4628,7 @@ class PluginShutdownParams implements RequestParams {
 
   @override
   Request toRequest(String id) {
-    return Request(id, "plugin.shutdown", null);
+    return Request(id, 'plugin.shutdown', null);
   }
 
   @override
@@ -4732,49 +4732,49 @@ class PluginVersionCheckParams implements RequestParams {
     json ??= {};
     if (json is Map) {
       String byteStorePath;
-      if (json.containsKey("byteStorePath")) {
+      if (json.containsKey('byteStorePath')) {
         byteStorePath = jsonDecoder.decodeString(
-            jsonPath + ".byteStorePath", json["byteStorePath"]);
+            jsonPath + '.byteStorePath', json['byteStorePath']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "byteStorePath");
+        throw jsonDecoder.mismatch(jsonPath, 'byteStorePath');
       }
       String sdkPath;
-      if (json.containsKey("sdkPath")) {
+      if (json.containsKey('sdkPath')) {
         sdkPath =
-            jsonDecoder.decodeString(jsonPath + ".sdkPath", json["sdkPath"]);
+            jsonDecoder.decodeString(jsonPath + '.sdkPath', json['sdkPath']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "sdkPath");
+        throw jsonDecoder.mismatch(jsonPath, 'sdkPath');
       }
       String version;
-      if (json.containsKey("version")) {
+      if (json.containsKey('version')) {
         version =
-            jsonDecoder.decodeString(jsonPath + ".version", json["version"]);
+            jsonDecoder.decodeString(jsonPath + '.version', json['version']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "version");
+        throw jsonDecoder.mismatch(jsonPath, 'version');
       }
       return PluginVersionCheckParams(byteStorePath, sdkPath, version);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "plugin.versionCheck params", json);
+      throw jsonDecoder.mismatch(jsonPath, 'plugin.versionCheck params', json);
     }
   }
 
   factory PluginVersionCheckParams.fromRequest(Request request) {
     return PluginVersionCheckParams.fromJson(
-        RequestDecoder(request), "params", request.params);
+        RequestDecoder(request), 'params', request.params);
   }
 
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["byteStorePath"] = byteStorePath;
-    result["sdkPath"] = sdkPath;
-    result["version"] = version;
+    result['byteStorePath'] = byteStorePath;
+    result['sdkPath'] = sdkPath;
+    result['version'] = version;
     return result;
   }
 
   @override
   Request toRequest(String id) {
-    return Request(id, "plugin.versionCheck", toJson());
+    return Request(id, 'plugin.versionCheck', toJson());
   }
 
   @override
@@ -4897,64 +4897,64 @@ class PluginVersionCheckResult implements ResponseResult {
     json ??= {};
     if (json is Map) {
       bool isCompatible;
-      if (json.containsKey("isCompatible")) {
+      if (json.containsKey('isCompatible')) {
         isCompatible = jsonDecoder.decodeBool(
-            jsonPath + ".isCompatible", json["isCompatible"]);
+            jsonPath + '.isCompatible', json['isCompatible']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "isCompatible");
+        throw jsonDecoder.mismatch(jsonPath, 'isCompatible');
       }
       String name;
-      if (json.containsKey("name")) {
-        name = jsonDecoder.decodeString(jsonPath + ".name", json["name"]);
+      if (json.containsKey('name')) {
+        name = jsonDecoder.decodeString(jsonPath + '.name', json['name']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "name");
+        throw jsonDecoder.mismatch(jsonPath, 'name');
       }
       String version;
-      if (json.containsKey("version")) {
+      if (json.containsKey('version')) {
         version =
-            jsonDecoder.decodeString(jsonPath + ".version", json["version"]);
+            jsonDecoder.decodeString(jsonPath + '.version', json['version']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "version");
+        throw jsonDecoder.mismatch(jsonPath, 'version');
       }
       String contactInfo;
-      if (json.containsKey("contactInfo")) {
+      if (json.containsKey('contactInfo')) {
         contactInfo = jsonDecoder.decodeString(
-            jsonPath + ".contactInfo", json["contactInfo"]);
+            jsonPath + '.contactInfo', json['contactInfo']);
       }
       List<String> interestingFiles;
-      if (json.containsKey("interestingFiles")) {
+      if (json.containsKey('interestingFiles')) {
         interestingFiles = jsonDecoder.decodeList(
-            jsonPath + ".interestingFiles",
-            json["interestingFiles"],
+            jsonPath + '.interestingFiles',
+            json['interestingFiles'],
             jsonDecoder.decodeString);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "interestingFiles");
+        throw jsonDecoder.mismatch(jsonPath, 'interestingFiles');
       }
       return PluginVersionCheckResult(
           isCompatible, name, version, interestingFiles,
           contactInfo: contactInfo);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "plugin.versionCheck result", json);
+      throw jsonDecoder.mismatch(jsonPath, 'plugin.versionCheck result', json);
     }
   }
 
   factory PluginVersionCheckResult.fromResponse(Response response) {
     return PluginVersionCheckResult.fromJson(
         ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
-        "result",
+        'result',
         response.result);
   }
 
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["isCompatible"] = isCompatible;
-    result["name"] = name;
-    result["version"] = version;
+    result['isCompatible'] = isCompatible;
+    result['name'] = name;
+    result['version'] = version;
     if (contactInfo != null) {
-      result["contactInfo"] = contactInfo;
+      result['contactInfo'] = contactInfo;
     }
-    result["interestingFiles"] = interestingFiles;
+    result['interestingFiles'] = interestingFiles;
     return result;
   }
 
@@ -5034,30 +5034,30 @@ class PrioritizedSourceChange implements HasToJson {
     json ??= {};
     if (json is Map) {
       int priority;
-      if (json.containsKey("priority")) {
+      if (json.containsKey('priority')) {
         priority =
-            jsonDecoder.decodeInt(jsonPath + ".priority", json["priority"]);
+            jsonDecoder.decodeInt(jsonPath + '.priority', json['priority']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "priority");
+        throw jsonDecoder.mismatch(jsonPath, 'priority');
       }
       SourceChange change;
-      if (json.containsKey("change")) {
+      if (json.containsKey('change')) {
         change = SourceChange.fromJson(
-            jsonDecoder, jsonPath + ".change", json["change"]);
+            jsonDecoder, jsonPath + '.change', json['change']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "change");
+        throw jsonDecoder.mismatch(jsonPath, 'change');
       }
       return PrioritizedSourceChange(priority, change);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "PrioritizedSourceChange", json);
+      throw jsonDecoder.mismatch(jsonPath, 'PrioritizedSourceChange', json);
     }
   }
 
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["priority"] = priority;
-    result["change"] = change.toJson();
+    result['priority'] = priority;
+    result['change'] = change.toJson();
     return result;
   }
 
@@ -5228,44 +5228,44 @@ class RenameFeedback extends RefactoringFeedback {
     json ??= {};
     if (json is Map) {
       int offset;
-      if (json.containsKey("offset")) {
-        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
+      if (json.containsKey('offset')) {
+        offset = jsonDecoder.decodeInt(jsonPath + '.offset', json['offset']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "offset");
+        throw jsonDecoder.mismatch(jsonPath, 'offset');
       }
       int length;
-      if (json.containsKey("length")) {
-        length = jsonDecoder.decodeInt(jsonPath + ".length", json["length"]);
+      if (json.containsKey('length')) {
+        length = jsonDecoder.decodeInt(jsonPath + '.length', json['length']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "length");
+        throw jsonDecoder.mismatch(jsonPath, 'length');
       }
       String elementKindName;
-      if (json.containsKey("elementKindName")) {
+      if (json.containsKey('elementKindName')) {
         elementKindName = jsonDecoder.decodeString(
-            jsonPath + ".elementKindName", json["elementKindName"]);
+            jsonPath + '.elementKindName', json['elementKindName']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "elementKindName");
+        throw jsonDecoder.mismatch(jsonPath, 'elementKindName');
       }
       String oldName;
-      if (json.containsKey("oldName")) {
+      if (json.containsKey('oldName')) {
         oldName =
-            jsonDecoder.decodeString(jsonPath + ".oldName", json["oldName"]);
+            jsonDecoder.decodeString(jsonPath + '.oldName', json['oldName']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "oldName");
+        throw jsonDecoder.mismatch(jsonPath, 'oldName');
       }
       return RenameFeedback(offset, length, elementKindName, oldName);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "rename feedback", json);
+      throw jsonDecoder.mismatch(jsonPath, 'rename feedback', json);
     }
   }
 
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["offset"] = offset;
-    result["length"] = length;
-    result["elementKindName"] = elementKindName;
-    result["oldName"] = oldName;
+    result['offset'] = offset;
+    result['length'] = length;
+    result['elementKindName'] = elementKindName;
+    result['oldName'] = oldName;
     return result;
   }
 
@@ -5322,28 +5322,28 @@ class RenameOptions extends RefactoringOptions {
     json ??= {};
     if (json is Map) {
       String newName;
-      if (json.containsKey("newName")) {
+      if (json.containsKey('newName')) {
         newName =
-            jsonDecoder.decodeString(jsonPath + ".newName", json["newName"]);
+            jsonDecoder.decodeString(jsonPath + '.newName', json['newName']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "newName");
+        throw jsonDecoder.mismatch(jsonPath, 'newName');
       }
       return RenameOptions(newName);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "rename options", json);
+      throw jsonDecoder.mismatch(jsonPath, 'rename options', json);
     }
   }
 
   factory RenameOptions.fromRefactoringParams(
       EditGetRefactoringParams refactoringParams, Request request) {
     return RenameOptions.fromJson(
-        RequestDecoder(request), "options", refactoringParams.options);
+        RequestDecoder(request), 'options', refactoringParams.options);
   }
 
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["newName"] = newName;
+    result['newName'] = newName;
     return result;
   }
 
@@ -5421,37 +5421,37 @@ class RequestError implements HasToJson {
     json ??= {};
     if (json is Map) {
       RequestErrorCode code;
-      if (json.containsKey("code")) {
+      if (json.containsKey('code')) {
         code = RequestErrorCode.fromJson(
-            jsonDecoder, jsonPath + ".code", json["code"]);
+            jsonDecoder, jsonPath + '.code', json['code']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "code");
+        throw jsonDecoder.mismatch(jsonPath, 'code');
       }
       String message;
-      if (json.containsKey("message")) {
+      if (json.containsKey('message')) {
         message =
-            jsonDecoder.decodeString(jsonPath + ".message", json["message"]);
+            jsonDecoder.decodeString(jsonPath + '.message', json['message']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "message");
+        throw jsonDecoder.mismatch(jsonPath, 'message');
       }
       String stackTrace;
-      if (json.containsKey("stackTrace")) {
+      if (json.containsKey('stackTrace')) {
         stackTrace = jsonDecoder.decodeString(
-            jsonPath + ".stackTrace", json["stackTrace"]);
+            jsonPath + '.stackTrace', json['stackTrace']);
       }
       return RequestError(code, message, stackTrace: stackTrace);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "RequestError", json);
+      throw jsonDecoder.mismatch(jsonPath, 'RequestError', json);
     }
   }
 
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["code"] = code.toJson();
-    result["message"] = message;
+    result['code'] = code.toJson();
+    result['message'] = message;
     if (stackTrace != null) {
-      result["stackTrace"] = stackTrace;
+      result['stackTrace'] = stackTrace;
     }
     return result;
   }
@@ -5498,22 +5498,22 @@ class RequestErrorCode implements Enum {
   /// - one or more of the specified edits have an offset or length that is out
   ///   of range.
   static const RequestErrorCode INVALID_OVERLAY_CHANGE =
-      RequestErrorCode._("INVALID_OVERLAY_CHANGE");
+      RequestErrorCode._('INVALID_OVERLAY_CHANGE');
 
   /// One of the method parameters was invalid.
   static const RequestErrorCode INVALID_PARAMETER =
-      RequestErrorCode._("INVALID_PARAMETER");
+      RequestErrorCode._('INVALID_PARAMETER');
 
   /// An internal error occurred in the plugin while attempting to respond to a
   /// request. Also see the plugin.error notification for errors that occur
   /// outside of handling a request.
   static const RequestErrorCode PLUGIN_ERROR =
-      RequestErrorCode._("PLUGIN_ERROR");
+      RequestErrorCode._('PLUGIN_ERROR');
 
   /// A request was received that the plugin does not recognize, or cannot
   /// handle in its current configuration.
   static const RequestErrorCode UNKNOWN_REQUEST =
-      RequestErrorCode._("UNKNOWN_REQUEST");
+      RequestErrorCode._('UNKNOWN_REQUEST');
 
   /// A list containing all of the enum values that are defined.
   static const List<RequestErrorCode> VALUES = <RequestErrorCode>[
@@ -5530,13 +5530,13 @@ class RequestErrorCode implements Enum {
 
   factory RequestErrorCode(String name) {
     switch (name) {
-      case "INVALID_OVERLAY_CHANGE":
+      case 'INVALID_OVERLAY_CHANGE':
         return INVALID_OVERLAY_CHANGE;
-      case "INVALID_PARAMETER":
+      case 'INVALID_PARAMETER':
         return INVALID_PARAMETER;
-      case "PLUGIN_ERROR":
+      case 'PLUGIN_ERROR':
         return PLUGIN_ERROR;
-      case "UNKNOWN_REQUEST":
+      case 'UNKNOWN_REQUEST':
         return UNKNOWN_REQUEST;
     }
     throw Exception('Illegal enum value: $name');
@@ -5551,11 +5551,11 @@ class RequestErrorCode implements Enum {
         // Fall through
       }
     }
-    throw jsonDecoder.mismatch(jsonPath, "RequestErrorCode", json);
+    throw jsonDecoder.mismatch(jsonPath, 'RequestErrorCode', json);
   }
 
   @override
-  String toString() => "RequestErrorCode.$name";
+  String toString() => 'RequestErrorCode.$name';
 
   String toJson() => name;
 }
@@ -5601,29 +5601,29 @@ class WatchEvent implements HasToJson {
     json ??= {};
     if (json is Map) {
       WatchEventType type;
-      if (json.containsKey("type")) {
+      if (json.containsKey('type')) {
         type = WatchEventType.fromJson(
-            jsonDecoder, jsonPath + ".type", json["type"]);
+            jsonDecoder, jsonPath + '.type', json['type']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "type");
+        throw jsonDecoder.mismatch(jsonPath, 'type');
       }
       String path;
-      if (json.containsKey("path")) {
-        path = jsonDecoder.decodeString(jsonPath + ".path", json["path"]);
+      if (json.containsKey('path')) {
+        path = jsonDecoder.decodeString(jsonPath + '.path', json['path']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "path");
+        throw jsonDecoder.mismatch(jsonPath, 'path');
       }
       return WatchEvent(type, path);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "WatchEvent", json);
+      throw jsonDecoder.mismatch(jsonPath, 'WatchEvent', json);
     }
   }
 
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["type"] = type.toJson();
-    result["path"] = path;
+    result['type'] = type.toJson();
+    result['path'] = path;
     return result;
   }
 
@@ -5658,13 +5658,13 @@ class WatchEvent implements HasToJson {
 /// Clients may not extend, implement or mix-in this class.
 class WatchEventType implements Enum {
   /// An indication that the file or directory was added.
-  static const WatchEventType ADD = WatchEventType._("ADD");
+  static const WatchEventType ADD = WatchEventType._('ADD');
 
   /// An indication that the file was modified.
-  static const WatchEventType MODIFY = WatchEventType._("MODIFY");
+  static const WatchEventType MODIFY = WatchEventType._('MODIFY');
 
   /// An indication that the file or directory was removed.
-  static const WatchEventType REMOVE = WatchEventType._("REMOVE");
+  static const WatchEventType REMOVE = WatchEventType._('REMOVE');
 
   /// A list containing all of the enum values that are defined.
   static const List<WatchEventType> VALUES = <WatchEventType>[
@@ -5680,11 +5680,11 @@ class WatchEventType implements Enum {
 
   factory WatchEventType(String name) {
     switch (name) {
-      case "ADD":
+      case 'ADD':
         return ADD;
-      case "MODIFY":
+      case 'MODIFY':
         return MODIFY;
-      case "REMOVE":
+      case 'REMOVE':
         return REMOVE;
     }
     throw Exception('Illegal enum value: $name');
@@ -5699,11 +5699,11 @@ class WatchEventType implements Enum {
         // Fall through
       }
     }
-    throw jsonDecoder.mismatch(jsonPath, "WatchEventType", json);
+    throw jsonDecoder.mismatch(jsonPath, 'WatchEventType', json);
   }
 
   @override
-  String toString() => "WatchEventType.$name";
+  String toString() => 'WatchEventType.$name';
 
   String toJson() => name;
 }
