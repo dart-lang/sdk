@@ -96,3 +96,7 @@ class N {
   external N(int n); // OK
   external factory N.named(int n); // OK
 }
+
+class O {
+  O(@Deprecated('') int x); // OK because the parameter is deprecated
+}

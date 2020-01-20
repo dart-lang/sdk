@@ -55,7 +55,9 @@ class _ConstructorVisitor extends RecursiveAstVisitor {
 
   _ConstructorVisitor(this.rule, this.element)
       : unusedParameters = element.parameters.parameters
-            .where((p) => p.declaredElement is! FieldFormalParameterElement)
+            .where((p) =>
+                p.declaredElement is! FieldFormalParameterElement &&
+                !p.declaredElement.hasDeprecated)
             .toSet();
 
   @override
