@@ -36,6 +36,7 @@ ConstantPropagator::ConstantPropagator(
       graph_(graph),
       unknown_(Object::unknown_constant()),
       non_constant_(Object::non_constant()),
+      constant_value_(Object::Handle(Z)),
       reachable_(new (Z) BitVector(Z, graph->preorder().length())),
       marked_phis_(new (Z) BitVector(Z, graph->max_virtual_register_number())),
       block_worklist_(),
@@ -1428,7 +1429,6 @@ void ConstantPropagator::Transform() {
   // instructions, previous pointers, predecessors, etc. after eliminating
   // unreachable code.  We do not maintain those properties during the
   // transformation.
-  auto& value = Object::Handle(Z);
   for (BlockIterator b = graph_->reverse_postorder_iterator(); !b.Done();
        b.Advance()) {
     BlockEntryInstr* block = b.Current();
@@ -1492,32 +1492,18 @@ void ConstantPropagator::Transform() {
       }
     }
 
+    if (join != nullptr) {
+      for (PhiIterator it(join); !it.Done(); it.Advance()) {
+        auto phi = it.Current();
+        if (TransformDefinition(phi)) {
+          phi->UnuseAllInputs();
+          it.RemoveCurrentFromGraph();
+        }
+      }
+    }
     for (ForwardInstructionIterator i(block); !i.Done(); i.Advance()) {
       Definition* defn = i.Current()->AsDefinition();
-      // Replace constant-valued instructions without observable side
-      // effects.  Do this for smis only to avoid having to copy other
-      // objects into the heap's old generation.
-      ASSERT((defn == nullptr) || !defn->IsPushArgument());
-      if ((defn != nullptr) && IsConstant(defn->constant_value()) &&
-          (defn->constant_value().IsSmi() || defn->constant_value().IsOld()) &&
-          !defn->IsConstant() && !defn->IsStoreIndexed() &&
-          !defn->IsStoreInstanceField() && !defn->IsStoreStaticField()) {
-        if (FLAG_trace_constant_propagation && graph_->should_print()) {
-          THR_Print("Constant v%" Pd " = %s\n", defn->ssa_temp_index(),
-                    defn->constant_value().ToCString());
-        }
-        value = defn->constant_value().raw();
-        if ((value.IsString() || value.IsMint() || value.IsDouble()) &&
-            !value.IsCanonical()) {
-          const char* error_str = nullptr;
-          value = Instance::Cast(value).CheckAndCanonicalize(T, &error_str);
-          ASSERT(!value.IsNull() && (error_str == nullptr));
-        }
-        if (auto call = defn->AsStaticCall()) {
-          ASSERT(!call->HasPushArguments());
-        }
-        ConstantInstr* constant = graph_->GetConstant(value);
-        defn->ReplaceUsesWith(constant);
+      if (TransformDefinition(defn)) {
         i.RemoveCurrentFromGraph();
       }
     }
@@ -1571,6 +1557,38 @@ void ConstantPropagator::Transform() {
   graph_->MergeBlocks();
   GrowableArray<BitVector*> dominance_frontier;
   graph_->ComputeDominators(&dominance_frontier);
+}
+
+bool ConstantPropagator::TransformDefinition(Definition* defn) {
+  // Replace constant-valued instructions without observable side
+  // effects.  Do this for smis and old objects only to avoid having to
+  // copy other objects into the heap's old generation.
+  ASSERT((defn == nullptr) || !defn->IsPushArgument());
+  if ((defn != nullptr) && IsConstant(defn->constant_value()) &&
+      (defn->constant_value().IsSmi() || defn->constant_value().IsOld()) &&
+      !defn->IsConstant() && !defn->IsStoreIndexed() &&
+      !defn->IsStoreInstanceField() && !defn->IsStoreStaticField()) {
+    if (FLAG_trace_constant_propagation && graph_->should_print()) {
+      THR_Print("Constant v%" Pd " = %s\n", defn->ssa_temp_index(),
+                defn->constant_value().ToCString());
+    }
+    constant_value_ = defn->constant_value().raw();
+    if ((constant_value_.IsString() || constant_value_.IsMint() ||
+         constant_value_.IsDouble()) &&
+        !constant_value_.IsCanonical()) {
+      const char* error_str = nullptr;
+      constant_value_ =
+          Instance::Cast(constant_value_).CheckAndCanonicalize(T, &error_str);
+      ASSERT(!constant_value_.IsNull() && (error_str == nullptr));
+    }
+    if (auto call = defn->AsStaticCall()) {
+      ASSERT(!call->HasPushArguments());
+    }
+    ConstantInstr* constant = graph_->GetConstant(constant_value_);
+    defn->ReplaceUsesWith(constant);
+    return true;
+  }
+  return false;
 }
 
 }  // namespace dart
