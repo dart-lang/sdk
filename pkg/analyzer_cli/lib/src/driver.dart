@@ -67,7 +67,7 @@ bool containsLintRuleEntry(YamlMap options) {
 
 class Driver with HasContextMixin implements CommandLineStarter {
   static final PerformanceTag _analyzeAllTag =
-      PerformanceTag("Driver._analyzeAll");
+      PerformanceTag('Driver._analyzeAll');
 
   static final ByteStore analysisDriverMemoryByteStore = MemoryByteStore();
 
@@ -115,7 +115,7 @@ class Driver with HasContextMixin implements CommandLineStarter {
   @override
   Future<void> start(List<String> args, {SendPort sendPort}) async {
     if (analysisDriver != null) {
-      throw StateError("start() can only be called once");
+      throw StateError('start() can only be called once');
     }
     int startTime = DateTime.now().millisecondsSinceEpoch;
 
@@ -235,8 +235,8 @@ class Driver with HasContextMixin implements CommandLineStarter {
     ErrorSeverity allResult = ErrorSeverity.NONE;
 
     void reportPartError(String partPath) {
-      errorSink.writeln("$partPath is a part and cannot be analyzed.");
-      errorSink.writeln("Please pass in a library that contains this part.");
+      errorSink.writeln('$partPath is a part and cannot be analyzed.');
+      errorSink.writeln('Please pass in a library that contains this part.');
       io.exitCode = ErrorSeverity.ERROR.ordinal;
       allResult = allResult.max(ErrorSeverity.ERROR);
     }
@@ -625,7 +625,7 @@ class Driver with HasContextMixin implements CommandLineStarter {
 
   /// Returns `true` if this relative path is a hidden directory.
   bool _isInHiddenDir(String relative) =>
-      path.split(relative).any((part) => part.startsWith("."));
+      path.split(relative).any((part) => part.startsWith('.'));
 
   /// Analyze a single source.
   Future<ErrorSeverity> _runAnalyzer(

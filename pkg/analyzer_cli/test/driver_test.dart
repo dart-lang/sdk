@@ -934,7 +934,7 @@ analyzer:
       expect(
           bulletToDash(outSink),
           contains(
-              "warning - The feature android.software.home_screen is not supported on Chrome OS"));
+              'warning - The feature android.software.home_screen is not supported on Chrome OS'));
       expect(exitCode, 0);
     });
   }
@@ -1023,7 +1023,7 @@ class OptionsTest extends BaseTest {
     expect(processorFor(missing_return).severity, ErrorSeverity.ERROR);
     expect(bulletToDash(outSink),
         contains("error - This function has a return type of 'int'"));
-    expect(outSink.toString(), contains("1 error and 1 warning found."));
+    expect(outSink.toString(), contains('1 error and 1 warning found.'));
   }
 
   test_includeDirective() async {
@@ -1064,7 +1064,7 @@ class OptionsTest extends BaseTest {
     // Should not be made fatal by `--fatal-warnings`.
     expect(bulletToDash(outSink),
         contains("warning - The function 'baz' isn't defined"));
-    expect(outSink.toString(), contains("1 error and 1 warning found."));
+    expect(outSink.toString(), contains('1 error and 1 warning found.'));
   }
 
   Future<void> _driveBasic() async {
@@ -1077,7 +1077,7 @@ class OptionsTest extends BaseTest {
         contains("error - Undefined class 'IncludedUndefinedClass'"));
     expect(bulletToDash(outSink),
         isNot(contains("error - Undefined class 'ExcludedUndefinedClass'")));
-    expect(outSink.toString(), contains("1 error found."));
+    expect(outSink.toString(), contains('1 error found.'));
   }
 }
 

@@ -19,7 +19,7 @@ final Map<String, int> _severityCompare = {
   'hint': 1,
 };
 
-String _pluralize(String word, int count) => count == 1 ? word : word + "s";
+String _pluralize(String word, int count) => count == 1 ? word : word + 's';
 
 /// Given an absolute path, return a relative path if the file is contained in
 /// the current directory; return the original path otherwise.
@@ -60,7 +60,7 @@ class AnalysisStats {
     if (hasErrors) {
       out.write(errorCount);
       out.write(' ');
-      out.write(_pluralize("error", errorCount));
+      out.write(_pluralize('error', errorCount));
       hasContent = true;
     }
     if (hasWarns) {
@@ -68,12 +68,12 @@ class AnalysisStats {
         if (!hasHints && !hasLints) {
           out.write(' and ');
         } else {
-          out.write(", ");
+          out.write(', ');
         }
       }
       out.write(warnCount);
       out.write(' ');
-      out.write(_pluralize("warning", warnCount));
+      out.write(_pluralize('warning', warnCount));
       hasContent = true;
     }
     if (hasLints) {
@@ -82,22 +82,22 @@ class AnalysisStats {
       }
       out.write(lintCount);
       out.write(' ');
-      out.write(_pluralize("lint", lintCount));
+      out.write(_pluralize('lint', lintCount));
       hasContent = true;
     }
     if (hasHints) {
       if (hasContent) {
-        out.write(" and ");
+        out.write(' and ');
       }
       out.write(hintCount);
       out.write(' ');
-      out.write(_pluralize("hint", hintCount));
+      out.write(_pluralize('hint', hintCount));
       hasContent = true;
     }
     if (hasContent) {
-      out.writeln(" found.");
+      out.writeln(' found.');
     } else {
-      out.writeln("No issues found!");
+      out.writeln('No issues found!');
     }
   }
 }

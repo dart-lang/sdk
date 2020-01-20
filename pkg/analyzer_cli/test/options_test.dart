@@ -249,7 +249,7 @@ main() {
             equals("Cannot specify both '--package-root' and '--packages."));
       });
 
-      test("bad SDK dir", () {
+      test('bad SDK dir', () {
         var failureMessage;
         CommandLineOptions.parse(['--dart-sdk', '&&&&&', 'foo.dart'],
             printAndFail: (msg) => failureMessage = msg);

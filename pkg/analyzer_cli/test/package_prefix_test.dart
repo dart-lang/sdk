@@ -27,9 +27,9 @@ main() {
 
     test('shows only the hint whose package matches the prefix', () async {
       await runner.run2([
-        "--packages",
+        '--packages',
         join(testDirectory, 'data', 'package_prefix', 'packagelist'),
-        "--x-package-warnings-prefix=f",
+        '--x-package-warnings-prefix=f',
         join(testDirectory, 'data', 'package_prefix', 'main.dart')
       ]);
       expect(runner.stdout, contains('1 hint found'));
@@ -67,7 +67,7 @@ class _Runner {
   Future<void> run2(List<String> args) async {
     await Driver(isTesting: true).start(args);
     if (stderr.isNotEmpty) {
-      fail("Unexpected output to stderr:\n$stderr");
+      fail('Unexpected output to stderr:\n$stderr');
     }
   }
 

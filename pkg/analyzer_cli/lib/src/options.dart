@@ -269,7 +269,7 @@ class CommandLineOptions {
       return versionFile.readAsStringSync().trim();
     } catch (_) {
       // This happens when the script is not running in the context of an SDK.
-      return "<unknown>";
+      return '<unknown>';
     }
   }
 
@@ -470,8 +470,8 @@ class CommandLineOptions {
           hide: hide,
           negatable: true)
       ..addFlag('train-snapshot',
-          help: "Analyze the given source for the purposes of training a "
-              "dartanalyzer snapshot.",
+          help: 'Analyze the given source for the purposes of training a '
+              'dartanalyzer snapshot.',
           hide: hide,
           negatable: false);
 
