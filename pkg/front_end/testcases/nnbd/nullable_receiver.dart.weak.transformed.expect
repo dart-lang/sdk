@@ -2,92 +2,60 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/nnbd/nullable_receiver.dart:16:5: Warning: Property 'length' is accessed on 'String?' which is potentially null.
+// pkg/front_end/testcases/nnbd/nullable_receiver.dart:20:5: Warning: Property 'length' is accessed on 'String?' which is potentially null.
 // Try accessing using ?. instead.
 //   s.length;
 //     ^^^^^^
 //
-// pkg/front_end/testcases/nnbd/nullable_receiver.dart:17:5: Warning: Method 'substring' is called on 'String?' which is potentially null.
+// pkg/front_end/testcases/nnbd/nullable_receiver.dart:21:5: Warning: Method 'substring' is called on 'String?' which is potentially null.
 // Try calling using ?. instead.
 //   s.substring(1, 1);
 //     ^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/nullable_receiver.dart:19:5: Warning: Method 'foo' is called on 'A?' which is potentially null.
+// pkg/front_end/testcases/nnbd/nullable_receiver.dart:23:5: Warning: Method 'foo' is called on 'A?' which is potentially null.
 //  - 'A' is from 'pkg/front_end/testcases/nnbd/nullable_receiver.dart'.
 // Try calling using ?. instead.
 //   a.foo();
 //     ^^^
 //
-// pkg/front_end/testcases/nnbd/nullable_receiver.dart:20:5: Warning: Property 'bar' is accessed on 'A?' which is potentially null.
+// pkg/front_end/testcases/nnbd/nullable_receiver.dart:24:5: Warning: Property 'bar' is accessed on 'A?' which is potentially null.
 //  - 'A' is from 'pkg/front_end/testcases/nnbd/nullable_receiver.dart'.
 // Try accessing using ?. instead.
 //   a.bar;
 //     ^^^
 //
-// pkg/front_end/testcases/nnbd/nullable_receiver.dart:21:5: Warning: Property 'baz' is accessed on 'A?' which is potentially null.
+// pkg/front_end/testcases/nnbd/nullable_receiver.dart:25:5: Warning: Property 'baz' is accessed on 'A?' which is potentially null.
 //  - 'A' is from 'pkg/front_end/testcases/nnbd/nullable_receiver.dart'.
 // Try accessing using ?. instead.
 //   a.baz = 42;
 //     ^^^
 //
-// pkg/front_end/testcases/nnbd/nullable_receiver.dart:22:4: Warning: Expression of type 'A?' is used as a function, but it's potentially null.
+// pkg/front_end/testcases/nnbd/nullable_receiver.dart:26:4: Warning: Method 'call' is called on 'A?' which is potentially null.
+//  - 'A' is from 'pkg/front_end/testcases/nnbd/nullable_receiver.dart'.
+// Try calling using ?. instead.
+//   a();
+//    ^
+//
+// pkg/front_end/testcases/nnbd/nullable_receiver.dart:26:4: Warning: Expression of type 'A?' is used as a function, but it's potentially null.
 //  - 'A' is from 'pkg/front_end/testcases/nnbd/nullable_receiver.dart'.
 // Try calling using ?.call instead.
 //   a();
 //    ^
 //
-// pkg/front_end/testcases/nnbd/nullable_receiver.dart:24:12: Warning: Assigning value of type 'void Function()?' to a variable of type 'Function'.
+// pkg/front_end/testcases/nnbd/nullable_receiver.dart:27:5: Warning: Method 'toString' is called on 'B?' which is potentially null.
+//  - 'B' is from 'pkg/front_end/testcases/nnbd/nullable_receiver.dart'.
+// Try calling using ?. instead.
+//   b.toString(0);
+//     ^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/nullable_receiver.dart:29:12: Warning: Assigning value of type 'void Function()?' to a variable of type 'Function'.
 //  - 'Function' is from 'dart:core'.
 //   Function f1 = a;
 //            ^
 //
-// pkg/front_end/testcases/nnbd/nullable_receiver.dart:25:19: Warning: Assigning value of type 'void Function()?' to a variable of type 'void Function()'.
+// pkg/front_end/testcases/nnbd/nullable_receiver.dart:30:19: Warning: Assigning value of type 'void Function()?' to a variable of type 'void Function()'.
 //   void Function() f2 = a;
 //                   ^
-//
-// pkg/front_end/testcases/nnbd/nullable_receiver.dart:34:5: Warning: Property 'hashCode' is accessed on 'String?' which is potentially null.
-// Try accessing using ?. instead.
-//   s.hashCode;
-//     ^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/nullable_receiver.dart:35:5: Warning: Property 'hashCode' is accessed on 'A?' which is potentially null.
-//  - 'A' is from 'pkg/front_end/testcases/nnbd/nullable_receiver.dart'.
-// Try accessing using ?. instead.
-//   a.hashCode;
-//     ^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/nullable_receiver.dart:37:5: Warning: Method 'toString' is called on 'String?' which is potentially null.
-// Try calling using ?. instead.
-//   s.toString();
-//     ^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/nullable_receiver.dart:38:5: Warning: Method 'toString' is called on 'A?' which is potentially null.
-//  - 'A' is from 'pkg/front_end/testcases/nnbd/nullable_receiver.dart'.
-// Try calling using ?. instead.
-//   a.toString();
-//     ^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/nullable_receiver.dart:40:11: Warning: Method 'noSuchMethod' is called on 'String?' which is potentially null.
-// Try calling using ?. instead.
-//   try { s.noSuchMethod(i); } catch (e, t) {}
-//           ^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/nullable_receiver.dart:41:11: Warning: Method 'noSuchMethod' is called on 'A?' which is potentially null.
-//  - 'A' is from 'pkg/front_end/testcases/nnbd/nullable_receiver.dart'.
-// Try calling using ?. instead.
-//   try { a.noSuchMethod(i); } catch (e, t) {}
-//           ^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/nullable_receiver.dart:43:5: Warning: Property 'runtimeType' is accessed on 'String?' which is potentially null.
-// Try accessing using ?. instead.
-//   s.runtimeType;
-//     ^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/nullable_receiver.dart:44:5: Warning: Property 'runtimeType' is accessed on 'A?' which is potentially null.
-//  - 'A' is from 'pkg/front_end/testcases/nnbd/nullable_receiver.dart'.
-// Try accessing using ?. instead.
-//   a.runtimeType;
-//     ^^^^^^^^^^^
 //
 import self as self;
 import "dart:core" as core;
@@ -102,24 +70,38 @@ class A extends core::Object {
   set baz(core::int value) → void {}
   method call() → void {}
 }
-static method error(core::String? s, self::A? a) → dynamic {
+class B extends core::Object {
+  synthetic constructor •() → self::B
+    : super core::Object::•()
+    ;
+  method toString([core::int extra = #C1]) → core::String
+    return super.{core::Object::toString}();
+}
+static method error(core::String? s, self::A? a, self::B? b) → dynamic {
   s.{core::String::length};
   s.{core::String::substring}(1, 1);
   a.{self::A::foo}();
   a.{self::A::bar};
   a.{self::A::baz} = 42;
   a.{self::A::call}();
+  b.{self::B::toString}(0);
   core::Function f1 = let final self::A? #t1 = a in #t1.==(null) ?{() →? void} null : #t1.{self::A::call};
   () → void f2 = let final self::A? #t2 = a in #t2.==(null) ?{() →? void} null : #t2.{self::A::call};
   () →? void f3 = let final self::A? #t3 = a in #t3.==(null) ?{() →? void} null : #t3.{self::A::call};
 }
-static method ok(core::String? s, self::A? a, core::Invocation i) → dynamic {
+static method ok<T extends core::Object? = core::Object?>(core::String? s, self::A? a, self::ok::T% t, self::B? b, core::Invocation i) → dynamic {
   s.{core::String::==}(s);
   a.{core::Object::==}(a);
+  t.{core::Object::==}(t);
+  b.{core::Object::==}(b);
   s.{core::String::hashCode};
   a.{core::Object::hashCode};
+  t.{core::Object::hashCode};
+  b.{core::Object::hashCode};
   s.{core::Object::toString}();
   a.{core::Object::toString}();
+  t.{core::Object::toString}();
+  b.{self::B::toString}();
   try {
     s.{core::Object::noSuchMethod}(i);
   }
@@ -130,7 +112,23 @@ static method ok(core::String? s, self::A? a, core::Invocation i) → dynamic {
   }
   on dynamic catch(final dynamic e, final core::StackTrace t) {
   }
+  try {
+    t.{core::Object::noSuchMethod}(i);
+  }
+  on dynamic catch(final dynamic e, final core::StackTrace t) {
+  }
+  try {
+    b.{core::Object::noSuchMethod}(i);
+  }
+  on dynamic catch(final dynamic e, final core::StackTrace t) {
+  }
   s.{core::Object::runtimeType};
   a.{core::Object::runtimeType};
+  t.{core::Object::runtimeType};
+  b.{core::Object::runtimeType};
 }
 static method main() → dynamic {}
+
+constants  {
+  #C1 = 42
+}

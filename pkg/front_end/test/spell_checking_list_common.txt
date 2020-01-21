@@ -1473,6 +1473,7 @@ instructions
 instrumentation
 instrumented
 int
+intact
 integer
 integers
 integrated
@@ -2931,6 +2932,7 @@ transformation
 transformations
 transformed
 transformer
+transforms
 transient
 transition
 transitional

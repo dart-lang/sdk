@@ -14,9 +14,15 @@ class A extends core::Object {
   method call() → void
     ;
 }
-static method error(core::String? s, self::A? a) → dynamic
+class B extends core::Object {
+  synthetic constructor •() → self::B
+    ;
+  method toString([core::int extra = 42]) → core::String
+    ;
+}
+static method error(core::String? s, self::A? a, self::B? b) → dynamic
   ;
-static method ok(core::String? s, self::A? a, core::Invocation i) → dynamic
+static method ok<T extends core::Object? = core::Object?>(core::String? s, self::A? a, self::ok::T% t, self::B? b, core::Invocation i) → dynamic
   ;
 static method main() → dynamic
   ;
