@@ -3988,10 +3988,11 @@ bool f(C c) => c.m();
 
   Future<void> test_methodInvocation_return_type_generic_function() async {
     await analyze('''
-T f<T>(T t) => t;
+T f<T extends Object>(T t) => t;
 int g() => (f<int>(1));
 ''');
     var check_i = checkExpression('(f<int>(1))');
+    var t_bound = decoratedTypeAnnotation('Object').node;
     var nullable_f_t = decoratedTypeAnnotation('int>').node;
     var nullable_f_t_or_nullable_t = check_i.checks.edges.single.sourceNode
         as NullabilityNodeForSubstitution;
@@ -4001,6 +4002,7 @@ int g() => (f<int>(1));
     var nullable_return = decoratedTypeAnnotation('int g').node;
     assertNullCheck(check_i,
         assertEdge(nullable_f_t_or_nullable_t, nullable_return, hard: false));
+    assertEdge(nullable_f_t, t_bound, hard: true);
   }
 
   Future<void> test_methodInvocation_return_type_null_aware() async {

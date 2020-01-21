@@ -2111,6 +2111,21 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     });
   }
 
+  /// Instantiate [type] with [argumentTypes], assigning [argumentTypes] to
+  /// [bounds].
+  DecoratedType _handleInstantiation(
+      DecoratedType type, List<DecoratedType> argumentTypes) {
+    for (var i = 0; i < argumentTypes.length; ++i) {
+      _checkAssignment(null,
+          source: argumentTypes[i],
+          destination:
+              _variables.decoratedTypeParameterBound(type.typeFormals[i]),
+          hard: true);
+    }
+
+    return type.instantiate(argumentTypes);
+  }
+
   /// Creates the necessary constraint(s) for an [ArgumentList] when invoking an
   /// executable element whose type is [calleeType].
   ///
@@ -2125,7 +2140,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       TypeArgumentList typeArguments,
       Iterable<DartType> typeArgumentTypes,
       DecoratedType calleeType,
-      Iterable<TypeParameterElement> constructorTypeParameters,
+      List<TypeParameterElement> constructorTypeParameters,
       {DartType invokeType}) {
     var typeFormals = constructorTypeParameters ?? calleeType.typeFormals;
     if (typeFormals.isNotEmpty) {
@@ -2138,7 +2153,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
               Map<TypeParameterElement, DecoratedType>.fromIterables(
                   constructorTypeParameters, argumentTypes));
         } else {
-          calleeType = calleeType.instantiate(argumentTypes);
+          calleeType = _handleInstantiation(calleeType, argumentTypes);
         }
       } else {
         if (invokeType is FunctionType) {
