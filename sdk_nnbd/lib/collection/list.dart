@@ -19,7 +19,7 @@ part of dart.collection;
 /// repeatedly increasing the length of a growable list is not efficient.
 /// To avoid this, either override 'add' and 'addAll' to also forward directly
 /// to the growable list, or, preferably, use `DelegatingList` from
-/// "package:collection/wrappers.dart" instead.
+/// "package:collection/collection.dart" instead.
 abstract class ListBase<E> extends Object with ListMixin<E> {
   /// Converts a [List] to a [String].
   ///
@@ -49,7 +49,7 @@ abstract class ListBase<E> extends Object with ListMixin<E> {
 /// repeatedly increasing the length of a growable list is not efficient.
 /// To avoid this, either override 'add' and 'addAll' to also forward directly
 /// to the growable list, or, if possible, use `DelegatingList` from
-/// "package:collection/wrappers.dart" instead.
+/// "package:collection/collection.dart" instead.
 abstract class ListMixin<E> implements List<E> {
   // Iterable interface.
   // TODO(lrn): When we get composable mixins, reuse IterableMixin instead
