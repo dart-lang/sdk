@@ -89,11 +89,11 @@ t5 = _TypeCheck (%x against t4) (for x)
 RESULT: t5
 ------------ #lib::main ------------
 t0 = _Call direct [#lib::C::] (_T (#lib::C<dart.core::int>))
-t1* = _Call [#lib::C::foo] (_T (#lib::C<dart.core::int>))
+t1 = _Call [#lib::C::foo] (_T (#lib::C<dart.core::int>))
 t2 = _Call direct [#lib::E::] (_T (#lib::E<dart.core::int, dart.core::String>))
-t3* = _Call [#lib::E::foo] (_T (#lib::E<dart.core::int, dart.core::String>))
+t3 = _Call [#lib::E::foo] (_T (#lib::E<dart.core::int, dart.core::String>))
 t4 = _Call direct [#lib::E::] (_T (#lib::E<dart.core::int, dart.core::String>))
-t5* = _Call [#lib::E::bar] (_T (#lib::E<dart.core::int, dart.core::String>))
+t5 = _Call [#lib::E::bar] (_T (#lib::E<dart.core::int, dart.core::String>))
 t6 = _Call direct [#lib::E::] (_T (#lib::E<dart.core::int, dart.core::String>))
 t7* = _Call [#lib::E::baz] (_T (#lib::E<dart.core::int, dart.core::String>))
 t8 = _Call direct [#lib::C::] (_T (#lib::C<#lib::Y>))
@@ -105,5 +105,4 @@ t13 = _Call direct [#lib::C2::] (_T (#lib::C2<dart.core::num>))
 t14 = _Call [#lib::C2::id3] (_T (#lib::C2<dart.core::num>), _T (dart.core::_Double, 3.0))
 t15 = _Call direct [#lib::K::] (_T (#lib::K<#lib::J>))
 t16 = _Call [#lib::C2::id4] (_T (#lib::C2<dart.core::num>), _T (#lib::K<#lib::J>))
-used = _Join [dynamic] (_T {}?, t1, t3, t5, t7)
-RESULT: used
+RESULT: t7

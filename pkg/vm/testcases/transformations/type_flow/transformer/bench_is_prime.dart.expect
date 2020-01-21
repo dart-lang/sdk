@@ -17,7 +17,7 @@ static method nThPrimeNumber([@vm.inferred-type.metadata=dart.core::_Smi (value:
   for (core::int* i = 1; ; i = [@vm.direct-call.metadata=dart.core::_IntegerImplementation::+??] [@vm.inferred-type.metadata=int (skip check)] i.{core::num::+}(1)) {
     if([@vm.inferred-type.metadata=dart.core::bool] self::isPrime(i))
       counter = [@vm.direct-call.metadata=dart.core::_IntegerImplementation::+??] [@vm.inferred-type.metadata=int (skip check)] counter.{core::num::+}(1);
-    if([@vm.direct-call.metadata=dart.core::_IntegerImplementation::==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] counter.{core::num::==}(n)) {
+    if([@vm.inferred-type.metadata=dart.core::bool] counter.{core::num::==}(n)) {
       return i;
     }
   }
