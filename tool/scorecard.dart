@@ -229,7 +229,14 @@ class ScoreCard {
   static Future<List<Issue>> _getIssues() async {
     var github = GitHub();
     var slug = RepositorySlug('dart-lang', 'linter');
-    return github.issues.listByRepo(slug).toList();
+    try {
+      return github.issues.listByRepo(slug).toList();
+    } on Exception catch (e) {
+      print('exception caught fetching github issues');
+      print(e);
+      print('(defaulting to an empty list)');
+      return Future.value(<Issue>[]);
+    }
   }
 
   static Future<ScoreCard> calculate() async {
