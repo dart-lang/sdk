@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:math' as math;
+
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -19,6 +21,16 @@ import 'package:nnbd_migration/src/expression_checks.dart';
 import 'package:nnbd_migration/src/node_builder.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
 import 'package:nnbd_migration/src/potential_modification.dart';
+
+/// Data structure used by [Variables.spanForUniqueIdentifier] to return an
+/// offset/end pair.
+class OffsetEndPair {
+  final int offset;
+
+  final int end;
+
+  OffsetEndPair(this.offset, this.end);
+}
 
 class Variables implements VariableRecorder, VariableRepository {
   final NullabilityGraph _graph;
@@ -233,6 +245,52 @@ class Variables implements VariableRecorder, VariableRepository {
       result[class_] = decoratedSupertype;
     }
     return result;
+  }
+
+  /// Inverts the logic of [uniqueIdentifierForSpan], producing an (offset, end)
+  /// pair.
+  @visibleForTesting
+  static OffsetEndPair spanForUniqueIdentifier(int span) {
+    // The formula for uniqueIdentifierForSpan was:
+    //   span = end*(end + 1) / 2 + offset
+    // In other words, all encodings with the same `end` value are consecutive.
+    // So we just have to figure out the `end` value for this `span`, then
+    // use [uniqueIdentifierForSpan] to find the first encoding with this `end`
+    // value, and subtract to find the offset.
+    //
+    // To find the `end` value, we assume offset = 0 and solve for `end` using
+    // the quadratic formula:
+    //   span = end*(end + 1) / 2
+    //   end^2 + end - 2*span = 0
+    //   end = -1 +/- sqrt(1 + 8*span)
+    // We can reslove the `+/-` to `+` (since the result we seek can't be
+    // negative), so that yields:
+    //   end = sqrt(1 + 8*span) - 1
+    int end = (math.sqrt(1 + 8.0 * span) - 1).floor();
+    assert(end >= 0);
+
+    // There's a slight chance of numerical instabilities in `sqrt` leading to
+    // a result for `end` that's off by 1, so we loop to find the correct
+    // result:
+    while (true) {
+      // Compute the first `span` value corresponding to this `end` value.
+      int firstSpanForThisEnd = uniqueIdentifierForSpan(0, end);
+
+      // Offsets are encoded consecutively so we can find the offset by
+      // subtracting:
+      int offset = span - firstSpanForThisEnd;
+
+      if (offset < 0) {
+        // Oops, `end` must have been too large.  Decrement and try again.
+        assert(end > 0);
+        --end;
+      } else if (offset > end) {
+        // Oops, `end` must have been too small.  Increment and try again.
+        ++end;
+      } else {
+        return OffsetEndPair(offset, end);
+      }
+    }
   }
 
   /// Combine the given [offset] and [end] into a unique integer that depends

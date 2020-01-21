@@ -14,6 +14,18 @@ main() {
 
 @reflectiveTest
 class _UniqueIdentifierForSpanTest {
+  void test_inverse() {
+    const maxEnd = 1000;
+    for (int offset = 0; offset <= maxEnd; offset++) {
+      for (int end = offset; end <= maxEnd; end++) {
+        var uniqueId = Variables.uniqueIdentifierForSpan(offset, end);
+        var decoded = Variables.spanForUniqueIdentifier(uniqueId);
+        expect(decoded.offset, offset);
+        expect(decoded.end, end);
+      }
+    }
+  }
+
   void test_uniqueness() {
     const maxEnd = 1000;
     const maxExpectedId = maxEnd * maxEnd;
