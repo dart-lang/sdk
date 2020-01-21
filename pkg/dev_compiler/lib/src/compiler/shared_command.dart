@@ -305,11 +305,8 @@ Uri sourcePathToRelativeUri(String source, {bool windows}) {
   return uri;
 }
 
-/// Adjusts the source paths in [sourceMap] to be relative paths,and returns
+/// Adjusts the source uris in [sourceMap] to be relative uris, and returns
 /// the new map.
-///
-/// Relative paths are in terms of URIs ('/'), not local OS paths (e.g.,
-/// windows '\').
 ///
 /// Source uris show up in two forms, absolute `file:` uris and custom
 /// [multiRootScheme] uris (also "absolute" uris, but always relative to some
@@ -323,7 +320,9 @@ Uri sourcePathToRelativeUri(String source, {bool windows}) {
 ///   to the [multiRootOutputPath], and assert that [multiRootOutputPath]
 ///   starts with `/packages` (more explanation inline).
 ///
-// TODO(jmesserly): find a new home for this.
+// TODO(#40251): Remove this logic from dev_compiler itself, push it to the
+// invokers of dev_compiler which have more knowledge about how they want
+// source paths to look.
 Map placeSourceMap(Map sourceMap, String sourceMapPath, String multiRootScheme,
     {String multiRootOutputPath, String sourceMapBase}) {
   var map = Map.from(sourceMap);
@@ -350,8 +349,8 @@ Map placeSourceMap(Map sourceMap, String sourceMapPath, String multiRootScheme,
         // `/packages` path, we do that by stripping the `/lib` prefix and
         // relying on the `multiRootOutputPath` to be set to the proper
         // packages dir (so /packages/<package>).
-        if (shortPath.startsWith('/lib')) {
-          assert(multiRootOutputPath.startsWith('/packages'));
+        if (shortPath.startsWith('/lib') &&
+            multiRootOutputPath.startsWith('/packages')) {
           shortPath = shortPath.substring(4);
         }
         var multiRootPath = "${multiRootOutputPath ?? ''}$shortPath";
