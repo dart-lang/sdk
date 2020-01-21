@@ -1497,6 +1497,9 @@ class AstBuilder extends StackListener {
   @override
   void endFunctionTypedFormalParameter(Token nameToken, Token question) {
     debugEvent("FunctionTypedFormalParameter");
+    if (!enableNonNullable) {
+      reportErrorIfNullableType(question);
+    }
 
     FormalParameterList formalParameters = pop();
     TypeAnnotation returnType = pop();
