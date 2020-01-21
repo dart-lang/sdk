@@ -332,14 +332,13 @@ Future<api.CompilationResult> compile(List<String> argv,
         "supported formats are: json or binary");
   }
 
-  void setNonNullableMode(String argument) {
-    if (argument == "${Flags.nonNullableMode}=strong" ||
-        argument == "${Flags.nonNullableMode}=weak") {
-      passThrough(argument);
-      return;
+  String nullSafetyMode = null;
+  void setNullSafetyMode(String argument) {
+    if (nullSafetyMode != null && nullSafetyMode != argument) {
+      helpAndFail("Error: cannot specify both $nullSafetyMode and $argument.");
     }
-    helpAndFail("Error: Unsupported '$argument', "
-        "supported modes are: strong (default) or weak");
+    nullSafetyMode = argument;
+    passThrough(argument);
   }
 
   void handleThrowOnError(String argument) {
@@ -465,7 +464,8 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(Flags.laxRuntimeTypeToString, passThrough),
     new OptionHandler(Flags.benchmarkingProduction, passThrough),
     new OptionHandler(Flags.benchmarkingExperiment, passThrough),
-    new OptionHandler('${Flags.nonNullableMode}=.+', setNonNullableMode),
+    new OptionHandler(Flags.runtimeNullSafety, setNullSafetyMode),
+    new OptionHandler(Flags.noRuntimeNullSafety, setNullSafetyMode),
 
     // TODO(floitsch): remove conditional directives flag.
     // We don't provide the info-message yet, since we haven't publicly

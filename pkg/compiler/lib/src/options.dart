@@ -445,9 +445,11 @@ class CompilerOptions implements DiagnosticOptions {
       ..codegenShards = _extractIntOption(options, '${Flags.codegenShards}=')
       ..cfeOnly = _hasOption(options, Flags.cfeOnly)
       ..debugGlobalInference = _hasOption(options, Flags.debugGlobalInference)
-      ..useWeakNullSafetySemantics = _extractStringOption(
-              options, '${Flags.nonNullableMode}=', 'strong') ==
-          'weak';
+      // TODO(sigmund): if no flag is specified, the default should depend on
+      // whether the entry point library is opted-in (see
+      // https://github.com/dart-lang/language/pull/779)
+      ..useWeakNullSafetySemantics =
+          _hasOption(options, Flags.noRuntimeNullSafety);
   }
 
   void validate() {
