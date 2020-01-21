@@ -191,15 +191,15 @@ abstract class _DoubleLinkedQueueEntry<E> extends DoubleLinkedQueueEntry<E> {
 
   E get _element => super._element as E;
 
-  DoubleLinkedQueueEntry<E> nextEntry() {
+  DoubleLinkedQueueEntry<E>? nextEntry() {
     _DoubleLinkedQueueEntry<E> entry = _nextLink as _DoubleLinkedQueueEntry<E>;
-    return entry._asNonSentinelEntry()!;
+    return entry._asNonSentinelEntry();
   }
 
-  DoubleLinkedQueueEntry<E> previousEntry() {
+  DoubleLinkedQueueEntry<E>? previousEntry() {
     _DoubleLinkedQueueEntry<E> entry =
         _previousLink as _DoubleLinkedQueueEntry<E>;
-    return entry._asNonSentinelEntry()!;
+    return entry._asNonSentinelEntry();
   }
 }
 
@@ -418,7 +418,7 @@ class DoubleLinkedQueue<E> extends Iterable<E> implements Queue<E> {
   /// and they can be iterated using [DoubleLinkedQueueEntry.nextEntry()] and
   /// [DoubleLinkedQueueEntry.previousEntry()].
   DoubleLinkedQueueEntry<E> firstEntry() {
-    return _sentinel.nextEntry();
+    return _sentinel.nextEntry()!;
   }
 
   /// The entry object of the last element in the queue.
@@ -430,7 +430,7 @@ class DoubleLinkedQueue<E> extends Iterable<E> implements Queue<E> {
   /// and they can be iterated using [DoubleLinkedQueueEntry.nextEntry()] and
   /// [DoubleLinkedQueueEntry.previousEntry()].
   DoubleLinkedQueueEntry<E> lastEntry() {
-    return _sentinel.previousEntry();
+    return _sentinel.previousEntry()!;
   }
 
   bool get isEmpty {
