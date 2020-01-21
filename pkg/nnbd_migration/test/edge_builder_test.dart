@@ -3127,6 +3127,19 @@ C<int> f() => C<int>();
         hard: false);
   }
 
+  Future<void> test_instanceCreation_generic_bound() async {
+    await analyze('''
+class C<T extends Object> {}
+C<int> f() => C<int>();
+''');
+    assertEdge(decoratedTypeAnnotation('int>(').node,
+        decoratedTypeAnnotation('int> f').node,
+        hard: false);
+    assertEdge(decoratedTypeAnnotation('int>(').node,
+        decoratedTypeAnnotation('Object').node,
+        hard: true);
+  }
+
   Future<void> test_instanceCreation_generic_dynamic() async {
     await analyze('''
 class C<T> {}

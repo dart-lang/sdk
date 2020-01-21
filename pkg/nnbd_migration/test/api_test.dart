@@ -2311,6 +2311,88 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_instance_creation_generic_explicit_nonNullable() async {
+    var content = '''
+class C<T extends Object/*!*/> {
+  C(T/*!*/ t);
+}
+main() {
+  C<int> c = C<int>(null);
+}
+''';
+    var expected = '''
+class C<T extends Object/*!*/> {
+  C(T/*!*/ t);
+}
+main() {
+  C<int> c = C<int>(null!);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void>
+      test_instance_creation_generic_explicit_nonNullableParam() async {
+    var content = '''
+class C<T> {
+  C(T/*!*/ t);
+}
+main() {
+  C<int> c = C<int>(null);
+}
+''';
+    var expected = '''
+class C<T> {
+  C(T/*!*/ t);
+}
+main() {
+  C<int?> c = C<int?>(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_instance_creation_generic_implicit_nonNullable() async {
+    var content = '''
+class C<T extends Object/*!*/> {
+  C(T/*!*/ t);
+}
+main() {
+  C<int> c = C(null);
+}
+''';
+    var expected = '''
+class C<T extends Object/*!*/> {
+  C(T/*!*/ t);
+}
+main() {
+  C<int> c = C(null!);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void>
+      test_instance_creation_generic_implicit_nonNullableParam() async {
+    var content = '''
+class C<T> {
+  C(T/*!*/ t);
+}
+main() {
+  C<int> c = C(null);
+}
+''';
+    var expected = '''
+class C<T> {
+  C(T/*!*/ t);
+}
+main() {
+  C<int?> c = C(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_instanceCreation_noTypeArguments_noParameters() async {
     var content = '''
 void main() {

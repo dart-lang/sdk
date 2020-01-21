@@ -897,6 +897,13 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var createdType = DecoratedType(node.staticType, nullabilityNode,
         typeArguments: decoratedTypeArguments);
     var calleeType = getOrComputeElementType(callee, targetType: createdType);
+    for (var i = 0; i < decoratedTypeArguments.length; ++i) {
+      _checkAssignment(null,
+          source: decoratedTypeArguments[i],
+          destination:
+              _variables.decoratedTypeParameterBound(typeParameters[i]),
+          hard: true);
+    }
     _handleInvocationArguments(node, node.argumentList.arguments, typeArguments,
         typeArgumentTypes, calleeType, typeParameters);
     return createdType;
