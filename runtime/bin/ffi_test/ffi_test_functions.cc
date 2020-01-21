@@ -199,7 +199,7 @@ DART_EXPORT int64_t UintComputation(uint8_t a,
   return retval;
 }
 
-// Multiplies pointer sized int by three.
+// Multiplies pointer sized intptr_t by three.
 // Used for testing pointer sized parameter and return value.
 DART_EXPORT intptr_t Times3(intptr_t a) {
   std::cout << "Times3(" << a << ")\n";
@@ -317,25 +317,25 @@ DART_EXPORT double SumManyDoubles(double a,
 // Sums many numbers.
 // Used for testing calling conventions. With so many parameters we are using
 // both registers and stack slots.
-DART_EXPORT double SumManyNumbers(int a,
+DART_EXPORT double SumManyNumbers(intptr_t a,
                                   float b,
-                                  int c,
+                                  intptr_t c,
                                   double d,
-                                  int e,
+                                  intptr_t e,
                                   float f,
-                                  int g,
+                                  intptr_t g,
                                   double h,
-                                  int i,
+                                  intptr_t i,
                                   float j,
-                                  int k,
+                                  intptr_t k,
                                   double l,
-                                  int m,
+                                  intptr_t m,
                                   float n,
-                                  int o,
+                                  intptr_t o,
                                   double p,
-                                  int q,
+                                  intptr_t q,
                                   float r,
-                                  int s,
+                                  intptr_t s,
                                   double t) {
   std::cout << "SumManyNumbers(" << a << ", " << b << ", " << c << ", " << d
             << ", " << e << ", " << f << ", " << g << ", " << h << ", " << i
@@ -532,7 +532,7 @@ DART_EXPORT int64_t SumVeryLargeStruct(VeryLargeStruct* vls) {
     retval += vls->parent->a;
   }
   std::cout << "has " << vls->numChildren << " children\n";
-  for (int i = 0; i < vls->numChildren; i++) {
+  for (intptr_t i = 0; i < vls->numChildren; i++) {
     retval += vls->children[i].a;
   }
   std::cout << "returning " << retval << "\n";
@@ -577,7 +577,7 @@ DART_EXPORT void DevNullFloat(float a) {
   std::cout << "returning nothing\n";
 }
 
-// Invents an elite floating point number.
+// Invents an elite floating pointptr_t number.
 // Used for testing functions that do not take any arguments.
 DART_EXPORT float InventFloatValue() {
   std::cout << "InventFloatValue()\n";
@@ -590,7 +590,7 @@ DART_EXPORT float InventFloatValue() {
 // Tests for callbacks.
 
 // Sanity test.
-DART_EXPORT int TestSimpleAddition(int (*add)(int, int)) {
+DART_EXPORT intptr_t TestSimpleAddition(intptr_t (*add)(int, int)) {
   CHECK_EQ(add(10, 20), 30);
   return 0;
 }
@@ -598,8 +598,8 @@ DART_EXPORT int TestSimpleAddition(int (*add)(int, int)) {
 //// Following tests are copied from above, with the role of Dart and C++ code
 //// reversed.
 
-DART_EXPORT int TestIntComputation(
-    int64_t (*fn)(int8_t, int16_t, int32_t, int64_t)) {
+DART_EXPORT intptr_t
+TestIntComputation(int64_t (*fn)(int8_t, int16_t, int32_t, int64_t)) {
   CHECK_EQ(fn(125, 250, 500, 1000), 625);
   CHECK_EQ(0x7FFFFFFFFFFFFFFFLL, fn(0, 0, 0, 0x7FFFFFFFFFFFFFFFLL));
   CHECK_EQ(((int64_t)-0x8000000000000000LL),
@@ -607,78 +607,78 @@ DART_EXPORT int TestIntComputation(
   return 0;
 }
 
-DART_EXPORT int TestUintComputation(
-    uint64_t (*fn)(uint8_t, uint16_t, uint32_t, uint64_t)) {
+DART_EXPORT intptr_t
+TestUintComputation(uint64_t (*fn)(uint8_t, uint16_t, uint32_t, uint64_t)) {
   CHECK_EQ(0x7FFFFFFFFFFFFFFFLL, fn(0, 0, 0, 0x7FFFFFFFFFFFFFFFLL));
   CHECK_EQ(-0x8000000000000000LL, fn(0, 0, 0, -0x8000000000000000LL));
   CHECK_EQ(-1, (int64_t)fn(0, 0, 0, -1));
   return 0;
 }
 
-DART_EXPORT int TestSimpleMultiply(double (*fn)(double)) {
+DART_EXPORT intptr_t TestSimpleMultiply(double (*fn)(double)) {
   CHECK_EQ(fn(2.0), 2.0 * 1.337);
   return 0;
 }
 
-DART_EXPORT int TestSimpleMultiplyFloat(float (*fn)(float)) {
+DART_EXPORT intptr_t TestSimpleMultiplyFloat(float (*fn)(float)) {
   CHECK(::std::abs(fn(2.0) - 2.0 * 1.337) < 0.001);
   return 0;
 }
 
-DART_EXPORT int TestManyInts(intptr_t (*fn)(intptr_t,
-                                            intptr_t,
-                                            intptr_t,
-                                            intptr_t,
-                                            intptr_t,
-                                            intptr_t,
-                                            intptr_t,
-                                            intptr_t,
-                                            intptr_t,
-                                            intptr_t)) {
+DART_EXPORT intptr_t TestManyInts(intptr_t (*fn)(intptr_t,
+                                                 intptr_t,
+                                                 intptr_t,
+                                                 intptr_t,
+                                                 intptr_t,
+                                                 intptr_t,
+                                                 intptr_t,
+                                                 intptr_t,
+                                                 intptr_t,
+                                                 intptr_t)) {
   CHECK_EQ(55, fn(1, 2, 3, 4, 5, 6, 7, 8, 9, 10));
   return 0;
 }
 
-DART_EXPORT int TestManyDoubles(double (*fn)(double,
-                                             double,
-                                             double,
-                                             double,
-                                             double,
-                                             double,
-                                             double,
-                                             double,
-                                             double,
-                                             double)) {
+DART_EXPORT intptr_t TestManyDoubles(double (*fn)(double,
+                                                  double,
+                                                  double,
+                                                  double,
+                                                  double,
+                                                  double,
+                                                  double,
+                                                  double,
+                                                  double,
+                                                  double)) {
   CHECK_EQ(55, fn(1, 2, 3, 4, 5, 6, 7, 8, 9, 10));
   return 0;
 }
 
-DART_EXPORT int TestManyArgs(double (*fn)(intptr_t a,
-                                          float b,
-                                          intptr_t c,
-                                          double d,
-                                          intptr_t e,
-                                          float f,
-                                          intptr_t g,
-                                          double h,
-                                          intptr_t i,
-                                          float j,
-                                          intptr_t k,
-                                          double l,
-                                          intptr_t m,
-                                          float n,
-                                          intptr_t o,
-                                          double p,
-                                          intptr_t q,
-                                          float r,
-                                          intptr_t s,
-                                          double t)) {
+DART_EXPORT intptr_t TestManyArgs(double (*fn)(intptr_t a,
+                                               float b,
+                                               intptr_t c,
+                                               double d,
+                                               intptr_t e,
+                                               float f,
+                                               intptr_t g,
+                                               double h,
+                                               intptr_t i,
+                                               float j,
+                                               intptr_t k,
+                                               double l,
+                                               intptr_t m,
+                                               float n,
+                                               intptr_t o,
+                                               double p,
+                                               intptr_t q,
+                                               float r,
+                                               intptr_t s,
+                                               double t)) {
   CHECK(210.0 == fn(1, 2.0, 3, 4.0, 5, 6.0, 7, 8.0, 9, 10.0, 11, 12.0, 13, 14.0,
                     15, 16.0, 17, 18.0, 19, 20.0));
   return 0;
 }
 
-DART_EXPORT int TestStore(int64_t* (*fn)(int64_t* a)) {
+DART_EXPORT intptr_t TestStore(int64_t* (*fn)(int64_t* a)) {
   int64_t p[2] = {42, 1000};
   int64_t* result = fn(p);
   CHECK_EQ(*result, 1337);
@@ -687,48 +687,48 @@ DART_EXPORT int TestStore(int64_t* (*fn)(int64_t* a)) {
   return 0;
 }
 
-DART_EXPORT int TestReturnNull(int32_t (*fn)()) {
+DART_EXPORT intptr_t TestReturnNull(int32_t (*fn)()) {
   CHECK_EQ(fn(), 42);
   return 0;
 }
 
-DART_EXPORT int TestNullPointers(int64_t* (*fn)(int64_t* ptr)) {
+DART_EXPORT intptr_t TestNullPointers(int64_t* (*fn)(int64_t* ptr)) {
   CHECK_EQ(fn(nullptr), reinterpret_cast<void*>(sizeof(int64_t)));
   int64_t p[2] = {0};
   CHECK_EQ(fn(p), p + 1);
   return 0;
 }
 
-DART_EXPORT int TestReturnVoid(int (*return_void)()) {
+DART_EXPORT intptr_t TestReturnVoid(intptr_t (*return_void)()) {
   CHECK_EQ(return_void(), 0);
   return 0;
 }
 
-DART_EXPORT int TestThrowExceptionDouble(double (*fn)()) {
+DART_EXPORT intptr_t TestThrowExceptionDouble(double (*fn)()) {
   CHECK_EQ(fn(), 42.0);
   return 0;
 }
 
-DART_EXPORT int TestThrowExceptionPointer(void* (*fn)()) {
+DART_EXPORT intptr_t TestThrowExceptionPointer(void* (*fn)()) {
   CHECK_EQ(fn(), nullptr);
   return 0;
 }
 
-DART_EXPORT int TestThrowException(int (*fn)()) {
+DART_EXPORT intptr_t TestThrowException(intptr_t (*fn)()) {
   CHECK_EQ(fn(), 42);
   return 0;
 }
 
-DART_EXPORT int TestTakeMaxUint8x10(intptr_t (*fn)(uint8_t,
-                                                   uint8_t,
-                                                   uint8_t,
-                                                   uint8_t,
-                                                   uint8_t,
-                                                   uint8_t,
-                                                   uint8_t,
-                                                   uint8_t,
-                                                   uint8_t,
-                                                   uint8_t)) {
+DART_EXPORT intptr_t TestTakeMaxUint8x10(intptr_t (*fn)(uint8_t,
+                                                        uint8_t,
+                                                        uint8_t,
+                                                        uint8_t,
+                                                        uint8_t,
+                                                        uint8_t,
+                                                        uint8_t,
+                                                        uint8_t,
+                                                        uint8_t,
+                                                        uint8_t)) {
   CHECK_EQ(1, fn(0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF));
   // Check the argument values are properly truncated.
   uint64_t v = 0xabcFF;
@@ -736,7 +736,7 @@ DART_EXPORT int TestTakeMaxUint8x10(intptr_t (*fn)(uint8_t,
   return 0;
 }
 
-DART_EXPORT int TestReturnMaxUint8(uint8_t (*fn)()) {
+DART_EXPORT intptr_t TestReturnMaxUint8(uint8_t (*fn)()) {
   std::cout << "TestReturnMaxUint8(fn): " << static_cast<int>(fn()) << "\n";
   CHECK_EQ(0xFF, fn());
   return 0;
