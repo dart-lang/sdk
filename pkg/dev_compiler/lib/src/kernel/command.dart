@@ -536,11 +536,16 @@ class JSCode {
   JSCode(this.code, this.sourceMap);
 }
 
+/// Converts [moduleTree] to [JSCode], using [format].
+///
+/// See [placeSourceMap] for a description of [sourceMapBase], [customScheme],
+/// and [multiRootOutputPath] arguments.
 JSCode jsProgramToCode(js_ast.Program moduleTree, ModuleFormat format,
     {bool buildSourceMap = false,
     bool inlineSourceMap = false,
     String jsUrl,
     String mapUrl,
+    String sourceMapBase,
     String customScheme,
     String multiRootOutputPath}) {
   var opts = js_ast.JavaScriptPrintingOptions(
@@ -562,7 +567,7 @@ JSCode jsProgramToCode(js_ast.Program moduleTree, ModuleFormat format,
   Map builtMap;
   if (buildSourceMap && sourceMap != null) {
     builtMap = placeSourceMap(sourceMap.build(jsUrl), mapUrl, customScheme,
-        multiRootOutputPath: multiRootOutputPath);
+        multiRootOutputPath: multiRootOutputPath, sourceMapBase: sourceMapBase);
     var jsDir = p.dirname(p.fromUri(jsUrl));
     var relative = p.relative(p.fromUri(mapUrl), from: jsDir);
     var relativeMapUrl = p.toUri(relative).toString();
