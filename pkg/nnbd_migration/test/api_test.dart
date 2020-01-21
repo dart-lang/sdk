@@ -2561,7 +2561,6 @@ void g() {
     await _checkSingleFileChanges(content, expected);
   }
 
-  @failingTest
   Future<void>
       test_methodInvocation_typeArguments_inferred_nonNullable() async {
     var content = '''

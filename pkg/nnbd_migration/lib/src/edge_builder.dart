@@ -2118,8 +2118,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     for (var i = 0; i < argumentTypes.length; ++i) {
       _checkAssignment(null,
           source: argumentTypes[i],
-          destination:
-              _variables.decoratedTypeParameterBound(type.typeFormals[i]),
+          destination: type.typeFormalBounds[i],
           hard: true);
     }
 
@@ -2162,7 +2161,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
                   DecoratedType.forImplicitType(typeProvider, argType, _graph))
               .toList();
           instrumentation?.implicitTypeArguments(source, node, argumentTypes);
-          calleeType = calleeType.instantiate(argumentTypes);
+          calleeType = _handleInstantiation(calleeType, argumentTypes);
         } else if (constructorTypeParameters != null) {
           // No need to instantiate; caller has already substituted in the
           // correct type arguments.
